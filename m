@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E35BD3164CB
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:03:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E822431619E
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:03:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486613; cv=none; b=I0f5iJqDuFG5I2xmTJtGa3IknCZWdlNzaYKJrelFttJ4gVpa9hEyqFSex0ezOhj8wRPKnMpWNEJqUY0CejuCIaBDOvaoKojL8X83S9ojLCNvNLR1nh1c5mb+5BY0IyMS0sEkGvKMUpIQMyN9S8an8WVIZIe8w/ml+2EH+aOjF0Y=
+	t=1769486615; cv=none; b=jxRvmx7ptvfUQ/VnHHjfVCa7ZHfAikYdCQM5gbi/S/w8T0tIkjLI7avCtakQI658lNBmC+LyHXlZn3cDAWWfTHytgJc6jbAOGAMsyY4LFPkG3bv2GublCzarBVqCYeXy4t0GydIJvjxAdG69k95C9FukqCf8ajYhKxML1DCYpQw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486613; c=relaxed/simple;
-	bh=vTmhH16+HxQnqAfZD78gBOisJo4Q5vdqdS/U6uSx18M=;
-	h=Date:To:From:Subject:Message-Id; b=Wbn65wJGs4v1lbQkf9Tr6Yjd8NnEoOAyrZQu7aiTxl8AevhWJuZx8BGRfUDkBdGM9nrlzTPGHdlsZWqJUx7Oy+WG7oDD0rdw2a1R23qcUPDYQnyXSMZfINWySNZMCIWXcDmQLa31BHiW6pku6/JRIkKygRpY+jRwZJwN0AgwOPQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UkFl7t6c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486615; c=relaxed/simple;
+	bh=bOfP54pOzfVvIAsQq0jAbmGyTy1TKU06Rj49h/VrLvA=;
+	h=Date:To:From:Subject:Message-Id; b=Wxb3pFKi8t0SdrqxhxD9tHCUZAtsI9M8V8Qw1PetikwIXDQJr5LxUchXk1toa0JulcsTEW3dN9D47TQu2/KsOv7sPFo57jDrNb6oPc5jbxBLIklkVcg09FFvXdHO3NkljA3O8Omr3wBc2B9X7Y84nSbHk9mGTF3iu238Pw+HODE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DrCGyTFM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UkFl7t6c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2946C116C6;
-	Tue, 27 Jan 2026 04:03:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DrCGyTFM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9345C116C6;
+	Tue, 27 Jan 2026 04:03:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486612;
-	bh=vTmhH16+HxQnqAfZD78gBOisJo4Q5vdqdS/U6uSx18M=;
+	s=korg; t=1769486614;
+	bh=bOfP54pOzfVvIAsQq0jAbmGyTy1TKU06Rj49h/VrLvA=;
 	h=Date:To:From:Subject:From;
-	b=UkFl7t6cafQkxeYohfEbLOdexlreyX/2jXLXytza/0KhDIwlMN3EFYHUFkHfiQxp4
-	 Np5FY7sLRykeBCANjyQ4ADqpONDvsqpjN3c6idiowhxqiikahZW+wQkZA8PmZEQI6k
-	 zvwr30cQlgPOVdIjV3wVcEoLJ8fLdVDwPRhl5k3I=
-Date: Mon, 26 Jan 2026 20:03:32 -0800
+	b=DrCGyTFMGGpbRv0PpE7Y/N/Ms709ES7HgBEd/Dn/HPQPXXa49lySu03F7EqUhKD5q
+	 U/kMb0AEveQeLu7zIG/XsS3fSTZnY6bP7fQMruT3ItEU2oSHuMHB0ITi7kuUEh7fho
+	 KFfBIrwlvOQlrxN9OlO5pqYR6wxGcpVp9/itWijo=
+Date: Mon, 26 Jan 2026 20:03:34 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,vgupta@kernel.org,vbabka@suse.cz,tsbogend@alpha.franken.de,tglx@linutronix.de,surenb@google.com,shorne@gmail.com,ritesh.list@gmail.com,richard@nod.at,pratyush@kernel.org,palmer@dabbelt.com,osalvador@suse.de,muchun.song@linux.dev,mpe@ellerman.id.au,monstr@monstr.eu,mingo@redhat.com,mhocko@suse.com,mattst88@gmail.com,lorenzo.stoakes@oracle.com,linux@armlinux.org.uk,linmag7@gmail.com,liam.howlett@oracle.com,klarasmodin@gmail.com,johannes@sipsolutions.net,jcmvbkbc@gmail.com,hca@linux.ibm.com,guoren@kernel.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,dinguyen@kernel.org,deller@gmx.de,david@kernel.org,davem@davemloft.net,corbet@lwn.net,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,andreas@gaisler.com,alexs@kernel.org,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] microblaze-introduce-arch_zone_limits_init.patch removed from -mm tree
-Message-Id: <20260127040332.A2946C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mips-introduce-arch_zone_limits_init.patch removed from -mm tree
+Message-Id: <20260127040334.A9345C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,17 +35,17 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: microblaze: introduce arch_zone_limits_init()
+     Subject: mips: introduce arch_zone_limits_init()
 has been removed from the -mm tree.  Its filename was
-     microblaze-introduce-arch_zone_limits_init.patch
+     mips-introduce-arch_zone_limits_init.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: microblaze: introduce arch_zone_limits_init()
-Date: Sun, 11 Jan 2026 10:20:44 +0200
+Subject: mips: introduce arch_zone_limits_init()
+Date: Sun, 11 Jan 2026 10:20:45 +0200
 
 Move calculations of zone limits to a dedicated arch_zone_limits_init()
 function.
@@ -54,7 +54,7 @@ Later MM core will use this function as an architecture specific callback
 during nodes and zones initialization and thus there won't be a need to
 call free_area_init() from every architecture.
 
-Link: https://lkml.kernel.org/r/20260111082105.290734-11-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20260111082105.290734-12-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alex Shi <alexs@kernel.org>
@@ -100,41 +100,84 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/mm/init.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ arch/mips/loongson64/numa.c      |    9 +++++++--
+ arch/mips/mm/init.c              |   14 +++++++++-----
+ arch/mips/sgi-ip27/ip27-memory.c |    7 ++++++-
+ 3 files changed, 22 insertions(+), 8 deletions(-)
 
---- a/arch/microblaze/mm/init.c~microblaze-introduce-arch_zone_limits_init
-+++ a/arch/microblaze/mm/init.c
-@@ -54,6 +54,16 @@ static void __init highmem_init(void)
+--- a/arch/mips/loongson64/numa.c~mips-introduce-arch_zone_limits_init
++++ a/arch/mips/loongson64/numa.c
+@@ -154,13 +154,18 @@ static __init void prom_meminit(void)
+ 	}
  }
- #endif /* CONFIG_HIGHMEM */
  
 +void __init arch_zone_limits_init(unsigned long *max_zone_pfns)
 +{
-+#ifdef CONFIG_HIGHMEM
-+	max_zone_pfns[ZONE_DMA] = max_low_pfn;
-+	max_zone_pfns[ZONE_HIGHMEM] = max_pfn;
-+#else
-+	max_zone_pfns[ZONE_DMA] = max_pfn;
-+#endif
++	max_zone_pfns[ZONE_DMA32] = MAX_DMA32_PFN;
++	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
 +}
 +
- /*
-  * paging_init() sets up the page tables - in fact we've already done this.
-  */
-@@ -71,13 +81,8 @@ static void __init paging_init(void)
+ void __init paging_init(void)
+ {
+ 	unsigned long zones_size[MAX_NR_ZONES] = {0, };
  
- #ifdef CONFIG_HIGHMEM
- 	highmem_init();
--
--	zones_size[ZONE_DMA] = max_low_pfn;
--	zones_size[ZONE_HIGHMEM] = max_pfn;
--#else
--	zones_size[ZONE_DMA] = max_pfn;
- #endif
--
+ 	pagetable_init();
+-	zones_size[ZONE_DMA32] = MAX_DMA32_PFN;
+-	zones_size[ZONE_NORMAL] = max_low_pfn;
 +	arch_zone_limits_init(zones_size);
- 	/* We don't have holes in memory map */
+ 	free_area_init(zones_size);
+ }
+ 
+--- a/arch/mips/mm/init.c~mips-introduce-arch_zone_limits_init
++++ a/arch/mips/mm/init.c
+@@ -394,12 +394,8 @@ void maar_init(void)
+ }
+ 
+ #ifndef CONFIG_NUMA
+-void __init paging_init(void)
++void __init arch_zone_limits_init(unsigned long *max_zone_pfns)
+ {
+-	unsigned long max_zone_pfns[MAX_NR_ZONES];
+-
+-	pagetable_init();
+-
+ #ifdef CONFIG_ZONE_DMA
+ 	max_zone_pfns[ZONE_DMA] = MAX_DMA_PFN;
+ #endif
+@@ -417,7 +413,15 @@ void __init paging_init(void)
+ 		max_zone_pfns[ZONE_HIGHMEM] = max_low_pfn;
+ 	}
+ #endif
++}
++
++void __init paging_init(void)
++{
++	unsigned long max_zone_pfns[MAX_NR_ZONES];
++
++	pagetable_init();
+ 
++	arch_zone_limits_init(max_zone_pfns);
+ 	free_area_init(max_zone_pfns);
+ }
+ 
+--- a/arch/mips/sgi-ip27/ip27-memory.c~mips-introduce-arch_zone_limits_init
++++ a/arch/mips/sgi-ip27/ip27-memory.c
+@@ -406,11 +406,16 @@ void __init prom_meminit(void)
+ 	}
+ }
+ 
++void __init arch_zone_limits_init(unsigned long *max_zone_pfns)
++{
++	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
++}
++
+ void __init paging_init(void)
+ {
+ 	unsigned long zones_size[MAX_NR_ZONES] = {0, };
+ 
+ 	pagetable_init();
+-	zones_size[ZONE_NORMAL] = max_low_pfn;
++	arch_zone_limits_init(zones_size);
  	free_area_init(zones_size);
  }
 _
