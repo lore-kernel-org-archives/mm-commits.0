@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 661CF315D5C
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 03:57:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FC84315D51
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 03:57:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486242; cv=none; b=gW9ziiTcUi+HSz8GR6u3qS5DL4rk45n05AG1VHNaXM/LZzMTJ4yh6VkL5yPTds2mjSUCsOcCzLzWPLJd2tu/c0/JOpKfCfuOhuvH0djhLw3Gwn7WXShFSTlpzEC/H7teZBYs7aIn8fsKnnAs+049zDvUZ9jO8kFfNQ0jYZs4/88=
+	t=1769486276; cv=none; b=CEuK4xSF0tB21XhxojnmC3zcpjTOKMhE6P6nt2ft2EjRUdI/uiWX2JDYgXet2XFyf7au/Gv9wkCadD9FO43ySnnPHBQSMyaVWQSNuVPOO5kQpEYrXqduPc8BUhXKJNKGsSylj8wVf4Z5CWmIMiCyaVXwzdqDCQFuott8kQ8s+g0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486242; c=relaxed/simple;
-	bh=8crcKr5wVX+zLusyf2U61IG+UvVGttUIvM81AkVCczo=;
-	h=Date:To:From:Subject:Message-Id; b=EhEtlKU5dVpIIBEM3CrkCbgo3pMJJJAN30JpMH/m5kNd1GN3o5HfFZhTq/pYXpMbJIqix5NOyPlh4jiyRNQ2ykwjK71F4//8A5UELVIwZ1b4PWpqZ8bXS7Lqix7vjw/4gl1EVD650yXGU52imESEpvTKXZ1y3temnT2F0LQHlaA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OlW++YfM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486276; c=relaxed/simple;
+	bh=LJwH58ys7cdgawUNl+nSwJ3lBojX1G5Mh80i5yEyorM=;
+	h=Date:To:From:Subject:Message-Id; b=ZJmFkGo0IqIXNbyITdZmHjD9JQ3hXBXUChiTylY2qrZNQQ6FGcZQ3FDWX9sQC91NiX3rrkD90ijI4OVN2XPAKLC899ZttiyOHa3r+lc0Vh5a3000fN0wYhKlAwpMLq9O8q4r8vKiNRfoR6LSlUo8OeGT53wCvR3wufTN3I7IVxo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b7Gs5T5J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OlW++YfM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD906C116C6;
-	Tue, 27 Jan 2026 03:57:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b7Gs5T5J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DE78C116C6;
+	Tue, 27 Jan 2026 03:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486241;
-	bh=8crcKr5wVX+zLusyf2U61IG+UvVGttUIvM81AkVCczo=;
+	s=korg; t=1769486276;
+	bh=LJwH58ys7cdgawUNl+nSwJ3lBojX1G5Mh80i5yEyorM=;
 	h=Date:To:From:Subject:From;
-	b=OlW++YfMT97TABpLZ/fQpRwxRvlhiWZnQtKu098pxz1qCm7XqmJ+bPh3jL2YxWLp8
-	 mEMYiK+Q30XTMlXlQihP46G5SHF9leDqJP3IZ0+d2yUJTV2kwiO8PrdX1P90RvVhZe
-	 IyIoKUnPTj/3VOS51GNefw7x5VDYB9OTYmVChWIA=
-Date: Mon, 26 Jan 2026 19:57:21 -0800
-To: mm-commits@vger.kernel.org,lianux.mm@gmail.com,sj@kernel.org,akpm@linux-foundation.org
+	b=b7Gs5T5J2UUkLJtQRr2jNDN9odnbMziMey6m7kjBXnW2tkg+/cTIxaZhoxGUdlGON
+	 G6TqNRTBt9nGx6iqD1HG8HdUR7v69Af3RYbea9grwYGQdRRT0IXFzFPNK6MfkHeT7N
+	 q2ZCaCUctb3yA5hiNDL0Wle6hDsfdyGKcWvKoXzI=
+Date: Mon, 26 Jan 2026 19:57:55 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,nphamcs@gmail.com,minchan@kernel.org,herbert@gondor.apana.org.au,hannes@cmpxchg.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning-fix.patch removed from -mm tree
-Message-Id: <20260127035721.CD906C116C6@smtp.kernel.org>
+Subject: [folded-merged] zsmalloc-introduce-sg-list-based-object-read-api-fix.patch removed from -mm tree
+Message-Id: <20260127035756.0DE78C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,75 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/lru_sort: add inactive mem ratio quota goal to cold_scheme
+     Subject: zsmalloc: fixup zsmalloc-introduce-sg-list-based-object-read-api.patch
 has been removed from the -mm tree.  Its filename was
-     mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning-fix.patch
+     zsmalloc-introduce-sg-list-based-object-read-api-fix.patch
 
-This patch was dropped because it was folded into mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning.patch
+This patch was dropped because it was folded into zsmalloc-introduce-sg-list-based-object-read-api.patch
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: add inactive mem ratio quota goal to cold_scheme
-Date: Tue, 13 Jan 2026 21:48:53 -0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: fixup zsmalloc-introduce-sg-list-based-object-read-api.patch
+Date: Sat, 17 Jan 2026 11:48:40 +0900
 
-damon_lru_sort_add_quota_goals() is adding inactive memory ratio quota
-goal, which is for cold pages scheme, to hot pages scheme.  Fix it.
+zs_obj_read_sg_begin() always returns 0, convert it to void (per Yosry).
 
-Link: https://lkml.kernel.org/r/20260114055308.79884-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: wang lian <lianux.mm@gmail.com>
+Link: https://lkml.kernel.org/r/20260117024900.792237-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/zsmalloc.h |    4 ++--
+ mm/zsmalloc.c            |    6 ++----
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning-fix
-+++ a/mm/damon/lru_sort.c
-@@ -238,7 +238,7 @@ static int damon_lru_sort_add_quota_goal
- 			10000 - active_mem_bp + 2);
- 	if (!goal)
- 		return -ENOMEM;
--	damos_add_quota_goal(&hot_scheme->quota, goal);
-+	damos_add_quota_goal(&cold_scheme->quota, goal);
- 	return 0;
+--- a/include/linux/zsmalloc.h~zsmalloc-introduce-sg-list-based-object-read-api-fix
++++ a/include/linux/zsmalloc.h
+@@ -44,8 +44,8 @@ void *zs_obj_read_begin(struct zs_pool *
+ 			size_t mem_len, void *local_copy);
+ void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
+ 		     size_t mem_len, void *handle_mem);
+-int zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
+-		   struct scatterlist *sg, size_t mem_len);
++void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
++			  struct scatterlist *sg, size_t mem_len);
+ void zs_obj_read_sg_end(struct zs_pool *pool, unsigned long handle);
+ void zs_obj_write(struct zs_pool *pool, unsigned long handle,
+ 		  void *handle_mem, size_t mem_len);
+--- a/mm/zsmalloc.c~zsmalloc-introduce-sg-list-based-object-read-api-fix
++++ a/mm/zsmalloc.c
+@@ -1142,8 +1142,8 @@ void zs_obj_read_end(struct zs_pool *poo
  }
+ EXPORT_SYMBOL_GPL(zs_obj_read_end);
+ 
+-int zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
+-			 struct scatterlist *sg, size_t mem_len)
++void zs_obj_read_sg_begin(struct zs_pool *pool, unsigned long handle,
++			  struct scatterlist *sg, size_t mem_len)
+ {
+ 	struct zspage *zspage;
+ 	struct zpdesc *zpdesc;
+@@ -1186,8 +1186,6 @@ int zs_obj_read_sg_begin(struct zs_pool
+ 
+ 		sg_set_page(sg, zpdesc_page(zpdesc), sizes[1], 0);
+ 	}
+-
+-	return 0;
+ }
+ EXPORT_SYMBOL_GPL(zs_obj_read_sg_begin);
  
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-damon-core-introduce-active-memory-ratio-damos-quota-goal-metric.patch
-mm-damon-sysfs-schemes-support-damos_quota_active_mem_bp.patch
-docs-mm-damon-design-document-damos_quota_active_mem_bp.patch
-mm-damon-paddr-activate-damos_lru_prio-targets-instead-of-marking-accessed.patch
-mm-damon-lru_sort-consider-age-for-quota-prioritization.patch
-mm-damon-lru_sort-support-young-page-filters.patch
-docs-admin-guide-mm-damon-lru_sort-document-filter_young_pages.patch
-mm-damon-lru_sort-support-active-inactive-memory-ratio-based-auto-tuning.patch
-docs-admin-guide-mm-damon-lru_sort-document-active_mem_bp-parameter.patch
-mm-damon-lru_sort-add-monitoring-intervals-auto-tuning-parameter.patch
-docs-admin-guide-mm-damon-lru_sort-document-intervals-autotuning.patch
-mm-damon-core-implement-damon_kdamond_pid.patch
-mm-damon-sysfs-use-damon_kdamond_pid.patch
-mm-damon-lru_sort-use-damon_kdamond_pid.patch
-mm-damon-reclaim-use-damon_kdamond_pid.patch
-mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx.patch
-selftests-damon-sysfs_memcg_path_leaksh-use-kmemleak.patch
-selftests-damon-wss_estimation-test-for-up-to-160-mib-working-set-size.patch
-selftests-damon-access_memory-add-repeat-mode.patch
-selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch
-selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch
-mm-damon-remove-damon_operations-cleanup.patch
-mm-damon-core-cleanup-targets-and-regions-at-once-on-kdamond-termination.patch
-mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset.patch
-mm-damon-core-process-damon_call_control-requests-on-a-local-list.patch
-mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior.patch
-mm-damon-core-rename-damos_filter_out-to-damos_core_filter_out.patch
-mm-damon-rename-damon_min_region-to-damon_min_region_sz.patch
-mm-damon-rename-min_sz_region-of-damon_ctx-to-min_region_sz.patch
-docs-mm-damon-index-simplify-the-intro.patch
-docs-mm-damon-design-link-repology-instead-of-fedora-package.patch
-docs-mm-damon-design-document-damon-sample-modules.patch
-docs-mm-damon-design-add-reference-to-damon_stat-usage.patch
-docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning.patch
-docs-admin-guide-mm-damon-usage-update-stats-update-process-for-refresh_ms.patch
-docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name.patch
-docs-mm-damon-maintainer-profile-remove-damon-tests-perf-suggestion.patch
-maple_tree-start-using-maple-copy-node-for-destination-fix.patch
+zsmalloc-use-actual-object-size-to-detect-spans.patch
+zsmalloc-introduce-sg-list-based-object-read-api.patch
+zram-rename-init_lock-to-dev_lock.patch
+zsmalloc-make-common-caches-global.patch
 
