@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 996EF3195E6
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA881318EFF
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486688; cv=none; b=d/esGk7zs1b0OXAvCs/50mp9HuXYvKH9jgwvyUSFQhLVDRpP80hkiVZ+a14rW1hP6hzRfN1P5OiVUrWfoFdUJnyQn/++icNVLL16TvuW/+uemzNCJd6qZ8wxzJLD8nPiMvgWtD3IfqI7iEwMYYsYUN+K+V1DvNiH0Z5irQE5cFI=
+	t=1769486689; cv=none; b=eXbxMP5l8bcoL207XA+MSUu8tsz/726AB02hPx98v9Z+h+jzf+iEnL4ZOwXeyvqb+PLwE2YQZUXNgW8Zg1Op1dKftuT9oXDJNXpj3Ag3eaGfJFiYQofFcjQjF9OIgNWTn2mo40iZnKub+IQP0B+c+cDKxh8q5elb8bK5obH5lsE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486688; c=relaxed/simple;
-	bh=roPRFM9GtBfC5F74Ypgm9EcEE7IGntLVxoSsvf5MkBk=;
-	h=Date:To:From:Subject:Message-Id; b=Nd7OrTCdcolVLdwoh4de2mfnruCnDJg8qbhiJKX3IJcbVkIr2dF+csUi0bbzXoPrA1LY2/iVqTJ/suU2+kmB+VNkjVxUYQFROArDAnatOTGI4xXS7lgOdPBuhp9eB6KPBj213Dv+mwEXkCSPvS5WqyChtedhlPHdpbDi0mwIvyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gvwY1oWT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486689; c=relaxed/simple;
+	bh=3Q11+kAxwTQ3PRrWK0M9QgyRo97bpPKEaDb3pGX0jjQ=;
+	h=Date:To:From:Subject:Message-Id; b=qjrIugTUtGEYcxS5sc2ugOIK56aMau8UNDLZpuZsH8Yvud94GSHknS238HvjM63rHCc0FYf/w8WYmGko+TBcWbG9X4M1HyvsOJLDdc6HCKNwv4zMnObkQ1huuuVzS1P0xvD0t/whjgYAxqxVIMkPNs9AxBDdUsgxbB9eVHLaDN4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bVBfiCoP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gvwY1oWT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71A32C116D0;
-	Tue, 27 Jan 2026 04:04:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bVBfiCoP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98564C116C6;
+	Tue, 27 Jan 2026 04:04:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486688;
-	bh=roPRFM9GtBfC5F74Ypgm9EcEE7IGntLVxoSsvf5MkBk=;
+	s=korg; t=1769486689;
+	bh=3Q11+kAxwTQ3PRrWK0M9QgyRo97bpPKEaDb3pGX0jjQ=;
 	h=Date:To:From:Subject:From;
-	b=gvwY1oWTZL5tCa3ekxQDTTlQqIeBe0CFCVOSBKytun89ZVAMcWKpdbtJYkuzGPadF
-	 J0UH6XL8isL/tGejq8ZJfy0+K2dq5ibTE/ojPTKsyO34h4IuVfzULweExnXSkcrrCN
-	 Vra76xADOPrB/1W7X1EV81no+l+1j6T6lcTqYOto=
-Date: Mon, 26 Jan 2026 20:04:46 -0800
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,bgeffon@google.com,axboe@kernel.dk,yosry.ahmed@linux.dev,akpm@linux-foundation.org
+	b=bVBfiCoPqxvpg1q0gt3RQOTRwjEAOufJnf9gZdpYgfSKMR7U3Q5B22IOrlILEp/kt
+	 AIvNLlct+0ZC1FxKRNVPkbG91SeS4Ql5bZIF9ti+Pxgh7D9WsIaWDKcmKOmNV5suMB
+	 rbP3QLtlNLCOCmJXy6TBAPCGAwYo5Edeqhz5h7Wc=
+Date: Mon, 26 Jan 2026 20:04:49 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,yangqixiao@inspur.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zsmalloc-simplify-read-begin-end-logic.patch removed from -mm tree
-Message-Id: <20260127040448.71A32C116D0@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-paddr-initialize-folio-variables-to-null-for-clarity.patch removed from -mm tree
+Message-Id: <20260127040449.98564C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zsmalloc: simplify read begin/end logic
+     Subject: mm/damon/paddr: initialize 'folio' variables to NULL for clarity
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-simplify-read-begin-end-logic.patch
+     mm-damon-paddr-initialize-folio-variables-to-null-for-clarity.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosry.ahmed@linux.dev>
-Subject: zsmalloc: simplify read begin/end logic
-Date: Wed, 7 Jan 2026 14:21:45 +0900
+From: Aaron Yang <yangqixiao@inspur.com>
+Subject: mm/damon/paddr: initialize 'folio' variables to NULL for clarity
+Date: Wed, 7 Jan 2026 17:30:38 -0800
 
-zs_obj_read_begin() currently maps or copies the compressed object with
-the prefix handle for !ZsHugePage case.  Make the logic clearer and
-more efficient by moving the offset of the object in the page after the
-prefix handle instead, only copying the actual object and avoiding the
-need to adjust the returned address to account for the prefix.
+In damon_pa_mark_accessed_or_deactivate(), damon_pa_pageout(),
+damon_pa_migrate(), and damon_pa_stat(), the local variable 'folio' is
+declared but not initialized.
 
-Adjust the logic to detect spanning objects in zs_obj_read_end()
-accordingly, slightly simplifying it by avoiding the need to account
-for the handle in both the offset and the object size.
+Initialize 'folio' to NULL to improve code readability and
+maintainability.
 
-Link: https://lkml.kernel.org/r/20260107052145.3586917-2-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Co-developed-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Signed-off-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://patch.msgid.link/20260104013255.16962-1-yangqixiao@inspur.com
+Link: https://lkml.kernel.org/r/20260108013041.80601-1-sj@kernel.org
+Signed-off-by: Aaron Yang <yangqixiao@inspur.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ mm/damon/paddr.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-simplify-read-begin-end-logic
-+++ a/mm/zsmalloc.c
-@@ -1088,7 +1088,7 @@ void *zs_obj_read_begin(struct zs_pool *
- 	off = offset_in_page(class->size * obj_idx);
+--- a/mm/damon/paddr.c~mm-damon-paddr-initialize-folio-variables-to-null-for-clarity
++++ a/mm/damon/paddr.c
+@@ -156,7 +156,7 @@ static unsigned long damon_pa_pageout(st
+ 	LIST_HEAD(folio_list);
+ 	bool install_young_filter = true;
+ 	struct damos_filter *filter;
+-	struct folio *folio;
++	struct folio *folio = NULL;
  
- 	if (!ZsHugePage(zspage))
--		mem_len += ZS_HANDLE_SIZE;
-+		off += ZS_HANDLE_SIZE;
+ 	/* check access in page level again by default */
+ 	damos_for_each_ops_filter(filter, s) {
+@@ -212,7 +212,7 @@ static inline unsigned long damon_pa_mar
+ 		unsigned long *sz_filter_passed)
+ {
+ 	phys_addr_t addr, applied = 0;
+-	struct folio *folio;
++	struct folio *folio = NULL;
  
- 	if (off + mem_len <= PAGE_SIZE) {
- 		/* this object is contained entirely within a page */
-@@ -1110,9 +1110,6 @@ void *zs_obj_read_begin(struct zs_pool *
- 				 0, sizes[1]);
- 	}
+ 	addr = damon_pa_phys_addr(r->ar.start, addr_unit);
+ 	while (addr < damon_pa_phys_addr(r->ar.end, addr_unit)) {
+@@ -262,7 +262,7 @@ static unsigned long damon_pa_migrate(st
+ {
+ 	phys_addr_t addr, applied;
+ 	LIST_HEAD(folio_list);
+-	struct folio *folio;
++	struct folio *folio = NULL;
  
--	if (!ZsHugePage(zspage))
--		addr += ZS_HANDLE_SIZE;
--
- 	return addr;
- }
- EXPORT_SYMBOL_GPL(zs_obj_read_begin);
-@@ -1133,11 +1130,9 @@ void zs_obj_read_end(struct zs_pool *poo
- 	off = offset_in_page(class->size * obj_idx);
+ 	addr = damon_pa_phys_addr(r->ar.start, addr_unit);
+ 	while (addr < damon_pa_phys_addr(r->ar.end, addr_unit)) {
+@@ -295,7 +295,7 @@ static unsigned long damon_pa_stat(struc
+ 		unsigned long *sz_filter_passed)
+ {
+ 	phys_addr_t addr;
+-	struct folio *folio;
++	struct folio *folio = NULL;
  
- 	if (!ZsHugePage(zspage))
--		mem_len += ZS_HANDLE_SIZE;
-+		off += ZS_HANDLE_SIZE;
- 
- 	if (off + mem_len <= PAGE_SIZE) {
--		if (!ZsHugePage(zspage))
--			off += ZS_HANDLE_SIZE;
- 		handle_mem -= off;
- 		kunmap_local(handle_mem);
- 	}
+ 	if (!damos_ops_has_filter(s))
+ 		return 0;
 _
 
-Patches currently in -mm which might be from yosry.ahmed@linux.dev are
+Patches currently in -mm which might be from yangqixiao@inspur.com are
 
-mm-zswap-use-sg-list-decompression-apis-from-zsmalloc.patch
 
