@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F92D315D51
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 03:55:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFEF01D45E8
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 03:56:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486147; cv=none; b=qB4eU6tR6+TwNOquIVD55zRszv5fNWR/ge+eJbpNpJ/xgphSMzq24KaCirWgQ0bpE0cOQGn9mOMvMQWa4cjR+muC/YVPPM07+3ZVPL7cIiJMZyzI0YFmk3Z0Eg4qu6fjI32HmVY/CMRr+InlG+UvUcp/m4j621XnWkkJ0ucQ6yI=
+	t=1769486200; cv=none; b=btTvpHCqpeqDrqG1vIECagQFt517csa4S7a3ub+hkTz6XEim629zZvvDNje2Ea2LCiFY0CIf0EuyNL1sVn0bNF4xNSmDZYrL/oizrPf910xndIFl6KmruZv1QwnPmBc1FL4AhGWXRDsif5UfQzxwpj1k+K3RqQiyShVCq8wAdkM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486147; c=relaxed/simple;
-	bh=i2Wo+sJcC1b+bOvBtQkEyHWv9IdyP5PhGfaYWkVIwL8=;
-	h=Date:To:From:Subject:Message-Id; b=hIN8Xa5EfpwRg/gC90Y3vXhCR55Tq3Y83jr6/8+po7ScPzuQ8IF6folS09whaZWOGUly1mFL6rS7jJBgcDhGxDfyyKfeI8cih7/qdGNiEUozYptHcSef79h2w+foA8gXia+aza5cKJy9IYC4lF11BHIpw5TrlWX4nyUf7W83Zb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tcLhvjuw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486200; c=relaxed/simple;
+	bh=HQufrGhVajFQ17Df3U8/rYbtvEAyXqjv5ckGRqL7iLM=;
+	h=Date:To:From:Subject:Message-Id; b=f2CfZ995rkaA69NUDa7mYDTThq0jJeYYhoi+Y9d68gLQ8QcKbtijseZHnQhe9gG8C5yOovfm95NjROmycdKqaf1oJ1xf6A7KCjc9sQNnq+8KhDJi/OEYR//6+7AOGqmAXweEUXQaRD2+jXdpxDk4U5dUPEiNe5LlosX3SOvz8mE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jyhv3vWD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tcLhvjuw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98510C116C6;
-	Tue, 27 Jan 2026 03:55:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jyhv3vWD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9826C116C6;
+	Tue, 27 Jan 2026 03:56:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486146;
-	bh=i2Wo+sJcC1b+bOvBtQkEyHWv9IdyP5PhGfaYWkVIwL8=;
+	s=korg; t=1769486199;
+	bh=HQufrGhVajFQ17Df3U8/rYbtvEAyXqjv5ckGRqL7iLM=;
 	h=Date:To:From:Subject:From;
-	b=tcLhvjuwspdcgb81HYVxv9y7jpX24dPcg1bFmV/C25fGzvGD4yoJtKZHMfXyfoDcJ
-	 QMMhQSK2AlrmGI59Jo1pMMdtGlmpKaZmkzS/Pv2q+hJVfrk7g7Kq2/ASTgJtO4fmJ/
-	 12fs+RnO5jovBM1y3fmqSPcWCHsIId4ibohcInUk=
-Date: Mon, 26 Jan 2026 19:55:46 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=jyhv3vWDzRBNKIFmyi4kn+GxKnZHrtKWilfK7UwxKrs+SRGhkJSVCJcUQdoM2EAI6
+	 fOSFLqfzoD5GbwqVHRXFfIsLVBLZpQfnW3efJ7Ygn90RbZdne+pvdlu9R6+YUV92LH
+	 9/oMeZyHK8brE6PHbvY9FJ4NLGgXCX8WDWocG09c=
+Date: Mon, 26 Jan 2026 19:56:39 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,urezki@gmail.com,maze@google.com,maciej.wieczor-retman@intel.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,ryabinin.a.a@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch removed from -mm tree
-Message-Id: <20260127035546.98510C116C6@smtp.kernel.org>
+Subject: [folded-merged] mm-kasan-kunit-extend-vmalloc-oob-tests-to-cover-vrealloc-fix.patch removed from -mm tree
+Message-Id: <20260127035639.A9826C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,58 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg-mem_cgroup_get_from_ino-returns-null-on-error-fix
+     Subject: mm-kasan-kunit-extend-vmalloc-oob-tests-to-cover-vrealloc-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix.patch
+     mm-kasan-kunit-extend-vmalloc-oob-tests-to-cover-vrealloc-fix.patch
 
-This patch was dropped because it was folded into memcg-rename-mem_cgroup_ino-to-mem_cgroup_id.patch
+This patch was dropped because it was folded into mm-kasan-kunit-extend-vmalloc-oob-tests-to-cover-vrealloc.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-mem_cgroup_get_from_ino-returns-null-on-error-fix
-Date: Mon Jan 12 03:36:40 PM PST 2026
+From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Subject: mm-kasan-kunit-extend-vmalloc-oob-tests-to-cover-vrealloc-fix
+Date: Fri, 16 Jan 2026 14:28:22 +0100
 
-build fix
+Adjust vrealloc() size to verify full-granule poisoning/unpoisoning in
+tag-based modes.
 
-mm/memcontrol.c: In function 'mem_cgroup_get_from_id':
-mm/memcontrol.c:3624:35: error: 'ino' undeclared (first use in this function); did you mean 'int'?
- 3624 |         cgrp = cgroup_get_from_id(ino);
-      |                                   ^~~
-      |                                   int
-
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Link: https://lkml.kernel.org/r/20260116132822.22227-1-ryabinin.a.a@gmail.com
+Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Tested-by: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitriy Vyukov <dvyukov@google.com>
+Cc: Maciej Żenczykowski <maze@google.com>
+Cc: Uladzislau Rezki <urezki@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/kasan_test_c.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~memcg-rename-mem_cgroup_ino-to-mem_cgroup_id-fix-fix
-+++ a/mm/memcontrol.c
-@@ -3621,7 +3621,7 @@ struct mem_cgroup *mem_cgroup_get_from_i
- 	struct cgroup_subsys_state *css;
- 	struct mem_cgroup *memcg = NULL;
+--- a/mm/kasan/kasan_test_c.c~mm-kasan-kunit-extend-vmalloc-oob-tests-to-cover-vrealloc-fix
++++ a/mm/kasan/kasan_test_c.c
+@@ -1881,7 +1881,7 @@ static void vmalloc_oob(struct kunit *te
  
--	cgrp = cgroup_get_from_id(ino);
-+	cgrp = cgroup_get_from_id(id);
- 	if (IS_ERR(cgrp))
- 		return NULL;
+ 	vmalloc_oob_helper(test, v_ptr, size);
+ 
+-	size--;
++	size -= KASAN_GRANULE_SIZE + 1;
+ 	v_ptr = vrealloc(v_ptr, size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, v_ptr);
+ 
+@@ -1889,7 +1889,7 @@ static void vmalloc_oob(struct kunit *te
+ 
+ 	vmalloc_oob_helper(test, v_ptr, size);
+ 
+-	size += 2;
++	size += 2 * KASAN_GRANULE_SIZE + 2;
+ 	v_ptr = vrealloc(v_ptr, size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, v_ptr);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ryabinin.a.a@gmail.com are
 
-memcg-rename-mem_cgroup_ino-to-mem_cgroup_id.patch
-mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
-mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix.patch
-sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
-mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch
-mm-vma-document-possible-vma-vm_refcnt-values-and-reference-comment-fix.patch
-mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix.patch
-mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
-mm-pagewalk-use-min-to-simplify-the-code-fix.patch
+mm-kasan-kunit-extend-vmalloc-oob-tests-to-cover-vrealloc.patch
 
