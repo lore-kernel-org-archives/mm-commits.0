@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 056D531A81F
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:05:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574A931A81F
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:05:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486756; cv=none; b=XcgvnnOfWiK04G0Om//JNyFiBT3JwU1BvelWMaQkLG9zAiZ5E04fqqYnnNAzUZHxT6Hgzlo1dh2L9YpPTlAAMOWaCEhUEMTEr9KbvtTYPpSt6dKs77/JL4g8sVzwtSAAgPI7D3fPkHuLILVGtMGAGBYPRGaQNtDt3sMcGDeDKwo=
+	t=1769486757; cv=none; b=rj3rF/6JmxTo/OxMqud+l6y4Ax2v8P7RxWQpaZHC2Jk28cf6LWeyte+aNaLbNuSLhHVxk93l8Czc3QiQxCHvlrAy8Tk0BQlNVszMN7kCvExD7kKLvFHvh9rptMBjuXmrYAZJOQZy7hCKHV6NBaK9r5FAIe4g1fveFJ9CZacFR4M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486756; c=relaxed/simple;
-	bh=0MZfvhU9ZUbMkuOpo768dreejo7Z/HkrVHK5L273OgA=;
-	h=Date:To:From:Subject:Message-Id; b=DfGjc3JvKw4AmwQEs474Aup3IstEG6gx2fHGjv3+iBp2DdcSikEoqjPAUYY9vRaA/LrYED+5YS+3xYeQTzx99dy+NFtJGcfvOxryH3YPxw4kF9vkpRTvYtbtmJ7Z0HFozDyMrTxDzVHdRih6I+jgTw2RRWY2oDtMAzLuNL5PZZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KHGAx4iC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486757; c=relaxed/simple;
+	bh=Y5600A1kAeU3hpGUBpFUMa2hmxe7IsTb+ya5dWr5nBo=;
+	h=Date:To:From:Subject:Message-Id; b=sqDSCcoFu/eKiim6fD7f7lQ4lVlo2iRXlX85BbU4XqSw3Ye0WQuA2suhFUuemKrfzYpU1lkGZ0Q6EGrLPKVhreQIkPA/5E9ktQE8JVL0w2wHP//lZN/qQTOAi7D/8NYkjwkNAe3mL2+XSnuaaie8wc1qin4vadaEU7emuUUjn1U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FFuNYm3a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KHGAx4iC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D10C0C116C6;
-	Tue, 27 Jan 2026 04:05:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FFuNYm3a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30117C116C6;
+	Tue, 27 Jan 2026 04:05:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486755;
-	bh=0MZfvhU9ZUbMkuOpo768dreejo7Z/HkrVHK5L273OgA=;
+	s=korg; t=1769486757;
+	bh=Y5600A1kAeU3hpGUBpFUMa2hmxe7IsTb+ya5dWr5nBo=;
 	h=Date:To:From:Subject:From;
-	b=KHGAx4iCb37GOvsnYcSp818udDtcUhVb5vvMj+8djXu0KBcXLGj7sAxRv2XQeH77t
-	 3IQfxvliQAQjxhEB1YMwppmtgt4wI+Lp2odsnsWaRkSa3nriYS5I0hEahRbeYUgKF8
-	 4OTjQ5cL6CBuQQiLi5rfldCCzEicg+8uPozJZ81c=
-Date: Mon, 26 Jan 2026 20:05:55 -0800
+	b=FFuNYm3aPKs6UMXNlRD9ozmIrs5jkwLeqI3zMd/KkehMD9PfbUjsFiJo642TVgttC
+	 4K9clEAfDBZYpiR+olc+E30TcKtDnacDFAgHdRjRHHSvy6wT5ebJexEiegIwZ3qCsZ
+	 5Od+0ONvMI6j8o1mfkaFAAdiY1bFhM8BWcXXZCek=
+Date: Mon, 26 Jan 2026 20:05:56 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yury.norov@gmail.com,ying.huang@linux.alibaba.com,vbabka@suse.cz,tj@kernel.org,surenb@google.com,rppt@kernel.org,rakie.kim@sk.com,mkoutny@suse.com,mhocko@suse.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,longman@redhat.com,linux@rasmusvillemoes.dk,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,ynorov@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-use-nodes_and-return-value-to-simplify-client-code.patch removed from -mm tree
-Message-Id: <20260127040555.D10C0C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] cgroup-use-nodes_and-output-where-appropriate.patch removed from -mm tree
+Message-Id: <20260127040557.30117C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: use nodes_and() return value to simplify client code
+     Subject: cgroup: use nodes_and() output where appropriate
 has been removed from the -mm tree.  Its filename was
-     mm-use-nodes_and-return-value-to-simplify-client-code.patch
+     cgroup-use-nodes_and-output-where-appropriate.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Yury Norov <ynorov@nvidia.com>
-Subject: mm: use nodes_and() return value to simplify client code
-Date: Wed, 14 Jan 2026 12:22:14 -0500
+Subject: cgroup: use nodes_and() output where appropriate
+Date: Wed, 14 Jan 2026 12:22:15 -0500
 
-establish_demotion_targets() and kernel_migrate_pages() call node_empty()
-immediately after calling nodes_and().  Now that nodes_and() return false
-if nodemask is empty, drop the latter.
+Now that nodes_and() returns true if the result nodemask is not empty,
+drop useless nodes_intersects() in guarantee_online_mems() and
+nodes_empty() in update_nodemasks_hier(), which both are O(N).
 
-Link: https://lkml.kernel.org/r/20260114172217.861204-3-ynorov@nvidia.com
+Link: https://lkml.kernel.org/r/20260114172217.861204-4-ynorov@nvidia.com
 Signed-off-by: Yury Norov <ynorov@nvidia.com>
 Reviewed-by: Gregory Price <gourry@gourry.net>
 Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: Tejun Heo <tj@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -70,41 +70,45 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Waiman Long <longman@redhat.com>
 Cc: Yury Norov (NVIDIA) <yury.norov@gmail.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-tiers.c |    3 +--
- mm/mempolicy.c    |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ kernel/cgroup/cpuset.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/memory-tiers.c~mm-use-nodes_and-return-value-to-simplify-client-code
-+++ a/mm/memory-tiers.c
-@@ -475,8 +475,7 @@ static void establish_demotion_targets(v
- 	 */
- 	list_for_each_entry_reverse(memtier, &memory_tiers, list) {
- 		tier_nodes = get_memtier_nodemask(memtier);
--		nodes_and(tier_nodes, node_states[N_CPU], tier_nodes);
--		if (!nodes_empty(tier_nodes)) {
-+		if (nodes_and(tier_nodes, node_states[N_CPU], tier_nodes)) {
- 			/*
- 			 * abstract distance below the max value of this memtier
- 			 * is considered toptier.
---- a/mm/mempolicy.c~mm-use-nodes_and-return-value-to-simplify-client-code
-+++ a/mm/mempolicy.c
-@@ -1909,8 +1909,7 @@ static int kernel_migrate_pages(pid_t pi
- 	}
+--- a/kernel/cgroup/cpuset.c~cgroup-use-nodes_and-output-where-appropriate
++++ a/kernel/cgroup/cpuset.c
+@@ -453,9 +453,8 @@ static void guarantee_active_cpus(struct
+  */
+ static void guarantee_online_mems(struct cpuset *cs, nodemask_t *pmask)
+ {
+-	while (!nodes_intersects(cs->effective_mems, node_states[N_MEMORY]))
++	while (!nodes_and(*pmask, cs->effective_mems, node_states[N_MEMORY]))
+ 		cs = parent_cs(cs);
+-	nodes_and(*pmask, cs->effective_mems, node_states[N_MEMORY]);
+ }
  
- 	task_nodes = cpuset_mems_allowed(current);
--	nodes_and(*new, *new, task_nodes);
--	if (nodes_empty(*new))
-+	if (!nodes_and(*new, *new, task_nodes))
- 		goto out_put;
+ /**
+@@ -2859,13 +2858,13 @@ static void update_nodemasks_hier(struct
+ 	cpuset_for_each_descendant_pre(cp, pos_css, cs) {
+ 		struct cpuset *parent = parent_cs(cp);
  
- 	err = security_task_movememory(task);
+-		nodes_and(*new_mems, cp->mems_allowed, parent->effective_mems);
++		bool has_mems = nodes_and(*new_mems, cp->mems_allowed, parent->effective_mems);
+ 
+ 		/*
+ 		 * If it becomes empty, inherit the effective mask of the
+ 		 * parent, which is guaranteed to have some MEMs.
+ 		 */
+-		if (is_in_v2_mode() && nodes_empty(*new_mems))
++		if (is_in_v2_mode() && !has_mems)
+ 			*new_mems = parent->effective_mems;
+ 
+ 		/* Skip the whole subtree if the nodemask remains the same. */
 _
 
 Patches currently in -mm which might be from ynorov@nvidia.com are
