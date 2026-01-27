@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 497383191AC
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 996EF3195E6
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486686; cv=none; b=INO9dCjLB6dyL4ReR50LabABjcwFMdXY6/JZTyGjUWQKCKYveII72JtoFPPhjqBhqd+wnfeTEHgUBzXis79urzTuHqzHzXBA1lAaLCnmnejv/VILsKR/WGQWXUqxG6+ehIcaYKf2h+b1P67Jq21au/ram2W2AFBaIa0l5RyAvAo=
+	t=1769486688; cv=none; b=d/esGk7zs1b0OXAvCs/50mp9HuXYvKH9jgwvyUSFQhLVDRpP80hkiVZ+a14rW1hP6hzRfN1P5OiVUrWfoFdUJnyQn/++icNVLL16TvuW/+uemzNCJd6qZ8wxzJLD8nPiMvgWtD3IfqI7iEwMYYsYUN+K+V1DvNiH0Z5irQE5cFI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486686; c=relaxed/simple;
-	bh=WOjUVS9Vi2nsRK104Kzij32ppX34n7mOy+P1D6k3nUU=;
-	h=Date:To:From:Subject:Message-Id; b=Kg0EB5yyuhCqYGGMSrzwLlL5D33xzlqlk9GYmKaXKbi8txaQVtnbX7wbKgcU9tRK3MInS3oNHffPnTGhfV/dVuNTgK7h0jHSlvGosQ6M/9PWwgZ+yJX0HW7g2s7kocqZH8yczB49xM5PVkkmup6CV4pqMiQL9rZTwe5gF1LxeFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RbgrlBr/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486688; c=relaxed/simple;
+	bh=roPRFM9GtBfC5F74Ypgm9EcEE7IGntLVxoSsvf5MkBk=;
+	h=Date:To:From:Subject:Message-Id; b=Nd7OrTCdcolVLdwoh4de2mfnruCnDJg8qbhiJKX3IJcbVkIr2dF+csUi0bbzXoPrA1LY2/iVqTJ/suU2+kmB+VNkjVxUYQFROArDAnatOTGI4xXS7lgOdPBuhp9eB6KPBj213Dv+mwEXkCSPvS5WqyChtedhlPHdpbDi0mwIvyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gvwY1oWT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RbgrlBr/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0FC2C116C6;
-	Tue, 27 Jan 2026 04:04:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gvwY1oWT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71A32C116D0;
+	Tue, 27 Jan 2026 04:04:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486686;
-	bh=WOjUVS9Vi2nsRK104Kzij32ppX34n7mOy+P1D6k3nUU=;
+	s=korg; t=1769486688;
+	bh=roPRFM9GtBfC5F74Ypgm9EcEE7IGntLVxoSsvf5MkBk=;
 	h=Date:To:From:Subject:From;
-	b=RbgrlBr/EGaQMZhJmjQ3s9RPlIx/n2Gh4huJRdQB97bUG1coBYSLAOQHpQClUnQoM
-	 36C8SNgK/9wSaMHo3csZ6Y58pP51FDdeymrNtWtQwSaLYI3bKvdrgF51kNehabtzEG
-	 fwOPtFIQ2z48c/MGBPB/UaSeupnDKey25N5kg1pk=
-Date: Mon, 26 Jan 2026 20:04:45 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=gvwY1oWTZL5tCa3ekxQDTTlQqIeBe0CFCVOSBKytun89ZVAMcWKpdbtJYkuzGPadF
+	 J0UH6XL8isL/tGejq8ZJfy0+K2dq5ibTE/ojPTKsyO34h4IuVfzULweExnXSkcrrCN
+	 Vra76xADOPrB/1W7X1EV81no+l+1j6T6lcTqYOto=
+Date: Mon, 26 Jan 2026 20:04:46 -0800
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,bgeffon@google.com,axboe@kernel.dk,yosry.ahmed@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zsmalloc-use-actual-object-size-to-detect-spans.patch removed from -mm tree
-Message-Id: <20260127040445.E0FC2C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] zsmalloc-simplify-read-begin-end-logic.patch removed from -mm tree
+Message-Id: <20260127040448.71A32C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,183 +35,81 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zsmalloc: use actual object size to detect spans
+     Subject: zsmalloc: simplify read begin/end logic
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-use-actual-object-size-to-detect-spans.patch
+     zsmalloc-simplify-read-begin-end-logic.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zsmalloc: use actual object size to detect spans
-Date: Wed, 7 Jan 2026 14:21:44 +0900
+From: Yosry Ahmed <yosry.ahmed@linux.dev>
+Subject: zsmalloc: simplify read begin/end logic
+Date: Wed, 7 Jan 2026 14:21:45 +0900
 
-Using class->size to detect spanning objects is not entirely correct,
-because some size classes can hold a range of object sizes of up to
-class->size bytes in length, due to size-classes merge.  Such classes use
-padding for cases when actually written objects are smaller than
-class->size.  zs_obj_read_begin() can incorrectly hit the slow path and
-perform memcpy of such objects, basically copying padding bytes.  Instead
-of class->size zs_obj_read_begin() should use the actual compressed object
-length (both zram and zswap know it) so that it can correctly handle
-situations when a written object is small enough to fit into the first
-physical page.
+zs_obj_read_begin() currently maps or copies the compressed object with
+the prefix handle for !ZsHugePage case.  Make the logic clearer and
+more efficient by moving the offset of the object in the page after the
+prefix handle instead, only copying the actual object and avoiding the
+need to adjust the returned address to account for the prefix.
 
-Link: https://lkml.kernel.org/r/20260107052145.3586917-1-senozhatsky@chromium.org
+Adjust the logic to detect spanning objects in zs_obj_read_end()
+accordingly, slightly simplifying it by avoiding the need to account
+for the handle in both the offset and the object size.
+
+Link: https://lkml.kernel.org/r/20260107052145.3586917-2-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Reviewed-by: Yosry Ahmed <yosry.ahmed@linux.dev>	[zsmalloc & zswap]
-Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Co-developed-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Signed-off-by: Yosry Ahmed <yosry.ahmed@linux.dev>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   14 ++++++++------
- include/linux/zsmalloc.h      |    4 ++--
- mm/zsmalloc.c                 |   16 +++++++++++-----
- mm/zswap.c                    |    5 +++--
- 4 files changed, 24 insertions(+), 15 deletions(-)
+ mm/zsmalloc.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zsmalloc-use-actual-object-size-to-detect-spans
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2062,11 +2062,11 @@ static int read_incompressible_page(stru
- 	void *src, *dst;
- 
- 	handle = get_slot_handle(zram, index);
--	src = zs_obj_read_begin(zram->mem_pool, handle, NULL);
-+	src = zs_obj_read_begin(zram->mem_pool, handle, PAGE_SIZE, NULL);
- 	dst = kmap_local_page(page);
- 	copy_page(dst, src);
- 	kunmap_local(dst);
--	zs_obj_read_end(zram->mem_pool, handle, src);
-+	zs_obj_read_end(zram->mem_pool, handle, PAGE_SIZE, src);
- 
- 	return 0;
- }
-@@ -2084,11 +2084,12 @@ static int read_compressed_page(struct z
- 	prio = get_slot_comp_priority(zram, index);
- 
- 	zstrm = zcomp_stream_get(zram->comps[prio]);
--	src = zs_obj_read_begin(zram->mem_pool, handle, zstrm->local_copy);
-+	src = zs_obj_read_begin(zram->mem_pool, handle, size,
-+				zstrm->local_copy);
- 	dst = kmap_local_page(page);
- 	ret = zcomp_decompress(zram->comps[prio], zstrm, src, size, dst);
- 	kunmap_local(dst);
--	zs_obj_read_end(zram->mem_pool, handle, src);
-+	zs_obj_read_end(zram->mem_pool, handle, size, src);
- 	zcomp_stream_put(zstrm);
- 
- 	return ret;
-@@ -2111,9 +2112,10 @@ static int read_from_zspool_raw(struct z
- 	 * takes place here, as we read raw compressed data.
- 	 */
- 	zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_COMP]);
--	src = zs_obj_read_begin(zram->mem_pool, handle, zstrm->local_copy);
-+	src = zs_obj_read_begin(zram->mem_pool, handle, size,
-+				zstrm->local_copy);
- 	memcpy_to_page(page, 0, src, size);
--	zs_obj_read_end(zram->mem_pool, handle, src);
-+	zs_obj_read_end(zram->mem_pool, handle, size, src);
- 	zcomp_stream_put(zstrm);
- 
- 	return 0;
---- a/include/linux/zsmalloc.h~zsmalloc-use-actual-object-size-to-detect-spans
-+++ a/include/linux/zsmalloc.h
-@@ -40,9 +40,9 @@ unsigned int zs_lookup_class_index(struc
- void zs_pool_stats(struct zs_pool *pool, struct zs_pool_stats *stats);
- 
- void *zs_obj_read_begin(struct zs_pool *pool, unsigned long handle,
--			void *local_copy);
-+			size_t mem_len, void *local_copy);
- void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
--		     void *handle_mem);
-+		     size_t mem_len, void *handle_mem);
- void zs_obj_write(struct zs_pool *pool, unsigned long handle,
- 		  void *handle_mem, size_t mem_len);
- 
---- a/mm/zsmalloc.c~zsmalloc-use-actual-object-size-to-detect-spans
+--- a/mm/zsmalloc.c~zsmalloc-simplify-read-begin-end-logic
 +++ a/mm/zsmalloc.c
-@@ -1065,7 +1065,7 @@ unsigned long zs_get_total_pages(struct
- EXPORT_SYMBOL_GPL(zs_get_total_pages);
- 
- void *zs_obj_read_begin(struct zs_pool *pool, unsigned long handle,
--			void *local_copy)
-+			size_t mem_len, void *local_copy)
- {
- 	struct zspage *zspage;
- 	struct zpdesc *zpdesc;
-@@ -1087,7 +1087,10 @@ void *zs_obj_read_begin(struct zs_pool *
- 	class = zspage_class(pool, zspage);
+@@ -1088,7 +1088,7 @@ void *zs_obj_read_begin(struct zs_pool *
  	off = offset_in_page(class->size * obj_idx);
  
--	if (off + class->size <= PAGE_SIZE) {
-+	if (!ZsHugePage(zspage))
-+		mem_len += ZS_HANDLE_SIZE;
-+
-+	if (off + mem_len <= PAGE_SIZE) {
+ 	if (!ZsHugePage(zspage))
+-		mem_len += ZS_HANDLE_SIZE;
++		off += ZS_HANDLE_SIZE;
+ 
+ 	if (off + mem_len <= PAGE_SIZE) {
  		/* this object is contained entirely within a page */
- 		addr = kmap_local_zpdesc(zpdesc);
- 		addr += off;
-@@ -1096,7 +1099,7 @@ void *zs_obj_read_begin(struct zs_pool *
+@@ -1110,9 +1110,6 @@ void *zs_obj_read_begin(struct zs_pool *
+ 				 0, sizes[1]);
+ 	}
  
- 		/* this object spans two pages */
- 		sizes[0] = PAGE_SIZE - off;
--		sizes[1] = class->size - sizes[0];
-+		sizes[1] = mem_len - sizes[0];
- 		addr = local_copy;
- 
- 		memcpy_from_page(addr, zpdesc_page(zpdesc),
-@@ -1115,7 +1118,7 @@ void *zs_obj_read_begin(struct zs_pool *
+-	if (!ZsHugePage(zspage))
+-		addr += ZS_HANDLE_SIZE;
+-
+ 	return addr;
+ }
  EXPORT_SYMBOL_GPL(zs_obj_read_begin);
- 
- void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
--		     void *handle_mem)
-+		     size_t mem_len, void *handle_mem)
- {
- 	struct zspage *zspage;
- 	struct zpdesc *zpdesc;
-@@ -1129,7 +1132,10 @@ void zs_obj_read_end(struct zs_pool *poo
- 	class = zspage_class(pool, zspage);
+@@ -1133,11 +1130,9 @@ void zs_obj_read_end(struct zs_pool *poo
  	off = offset_in_page(class->size * obj_idx);
  
--	if (off + class->size <= PAGE_SIZE) {
-+	if (!ZsHugePage(zspage))
-+		mem_len += ZS_HANDLE_SIZE;
-+
-+	if (off + mem_len <= PAGE_SIZE) {
- 		if (!ZsHugePage(zspage))
- 			off += ZS_HANDLE_SIZE;
+ 	if (!ZsHugePage(zspage))
+-		mem_len += ZS_HANDLE_SIZE;
++		off += ZS_HANDLE_SIZE;
+ 
+ 	if (off + mem_len <= PAGE_SIZE) {
+-		if (!ZsHugePage(zspage))
+-			off += ZS_HANDLE_SIZE;
  		handle_mem -= off;
---- a/mm/zswap.c~zsmalloc-use-actual-object-size-to-detect-spans
-+++ a/mm/zswap.c
-@@ -937,7 +937,8 @@ static bool zswap_decompress(struct zswa
- 	u8 *src, *obj;
- 
- 	acomp_ctx = acomp_ctx_get_cpu_lock(pool);
--	obj = zs_obj_read_begin(pool->zs_pool, entry->handle, acomp_ctx->buffer);
-+	obj = zs_obj_read_begin(pool->zs_pool, entry->handle, entry->length,
-+				acomp_ctx->buffer);
- 
- 	/* zswap entries of length PAGE_SIZE are not compressed. */
- 	if (entry->length == PAGE_SIZE) {
-@@ -966,7 +967,7 @@ static bool zswap_decompress(struct zswa
- 	dlen = acomp_ctx->req->dlen;
- 
- read_done:
--	zs_obj_read_end(pool->zs_pool, entry->handle, obj);
-+	zs_obj_read_end(pool->zs_pool, entry->handle, entry->length, obj);
- 	acomp_ctx_put_unlock(acomp_ctx);
- 
- 	if (!decomp_ret && dlen == PAGE_SIZE)
+ 		kunmap_local(handle_mem);
+ 	}
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from yosry.ahmed@linux.dev are
 
-zram-rename-init_lock-to-dev_lock.patch
-zsmalloc-make-common-caches-global.patch
+mm-zswap-use-sg-list-decompression-apis-from-zsmalloc.patch
 
