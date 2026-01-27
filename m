@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C20A83191D2
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A8F0318EE5
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486680; cv=none; b=D9dBeMpAy6ngnhViy9kHghDZ4KNQz3LKgMID3X7RRNdk/ZCbAYhAsolVql1QwEk22wpWcA46XJwBGDnyE7Ug+H6pWlKkjD7EJixzT/sJsXYb/IPUQ8oKGp0xomEVPpkQdlcJB9yncjvwuUvt1rPUXxyiX+Nhs/SuIvL29xeEOMA=
+	t=1769486682; cv=none; b=jgvzYHH+jhEWEYte4rxh/n67qa5tJi9/yFkEsfPol2gNqO1cU9u8aI1jjTg3EUhnfrkPcazi0YEP2wkn45n4Nls39u6agKqHJKxjpmM9F9XtFy7T8K/1n6Oxmr9qHUO7X12uAG6SelE6X83vFy2+t/Slovv+h40iBrAJ1+mPWU8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486680; c=relaxed/simple;
-	bh=yXATSgU4/JM8tI8vtISUFJuYh0cA4K/HmEr6ZCFnNZQ=;
-	h=Date:To:From:Subject:Message-Id; b=W6HxBErXsT9m8LL57g1xlaVCdb2AOqbMMGnFKbQRnID8KOM0sbhEJKny4rFQcHnlqrYPO2+x9BwLZFe4VyBXWG0+it7GUbLHL3PGqVjRKFpQvQOVyOhkXp1lZrk5u7mgYNTZIUPS3mAQL7CFEDVRizhvtnexvToT6rM6XhMVXz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CFhBWRgg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486682; c=relaxed/simple;
+	bh=Loqm9h4sVxK5gB8f5yvW7ODwWZYr0pxIDeLAoqL64GU=;
+	h=Date:To:From:Subject:Message-Id; b=O4lcOSuAezStJ994n+pfH75IuxjaFAgaVYRRVmVLPQtHV8SwvDxv2alJLd7ACrjbq6ssCur5GCSHmiAIYl9aBsVdU1P2UTwop5Ds9TyTDRY82R5okxjdsyEnab1WG4xS8RwNtFxe6qfIonvR9FWzNGDV9hq9Y0UW31YPTlRoHMI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rreShM7/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CFhBWRgg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98DC3C116C6;
-	Tue, 27 Jan 2026 04:04:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rreShM7/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC8F2C116C6;
+	Tue, 27 Jan 2026 04:04:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486680;
-	bh=yXATSgU4/JM8tI8vtISUFJuYh0cA4K/HmEr6ZCFnNZQ=;
+	s=korg; t=1769486682;
+	bh=Loqm9h4sVxK5gB8f5yvW7ODwWZYr0pxIDeLAoqL64GU=;
 	h=Date:To:From:Subject:From;
-	b=CFhBWRgg5hsY3f3a8OWKFEp/Xf9ryrQojC9qTPfuI/Ub2DEAhuiLtdGXNEwD4DRM0
-	 sTq6sIrYJV7xjJt47StFwu+dRrF0QRCwhYB/oLrylY0BIQjl0DBKHkAlU/IX47StN9
-	 km3jcx5f0onnht0y/AvQaUrBHMKhE8ilQW3FoPXs=
-Date: Mon, 26 Jan 2026 20:04:40 -0800
+	b=rreShM7/LEWcTPnl1dDkOsvaUVAS3QY+4MApWbAtO3UvwEa6KPg4JiDyR9ouy3dbM
+	 P4b/WlisUgkUbyONL95Lzh0xAbG2Mt8kiyAaqc4yZp8agE3QF3o4Q85qBWb5ykX+SA
+	 J3mAAVrF974afOgBCHI+2XbXH6km3af27EeshQxI=
+Date: Mon, 26 Jan 2026 20:04:41 -0800
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,sj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,axelrasmussen@google.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-use-cgroup-id-instead-of-private-memcg-id-in-lru_gen-interface.patch removed from -mm tree
-Message-Id: <20260127040440.98DC3C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-remove-unused-mem_cgroup_id-and-mem_cgroup_from_id.patch removed from -mm tree
+Message-Id: <20260127040441.EC8F2C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmscan: use cgroup ID instead of private memcg ID in lru_gen interface
+     Subject: memcg: remove unused mem_cgroup_id() and mem_cgroup_from_id()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-use-cgroup-id-instead-of-private-memcg-id-in-lru_gen-interface.patch
+     memcg-remove-unused-mem_cgroup_id-and-mem_cgroup_from_id.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: mm/vmscan: use cgroup ID instead of private memcg ID in lru_gen interface
-Date: Thu, 25 Dec 2025 15:21:14 -0800
+Subject: memcg: remove unused mem_cgroup_id() and mem_cgroup_from_id()
+Date: Thu, 25 Dec 2025 15:21:15 -0800
 
-The LRU gen debugfs interface was using the internal private memcg ID
-which is meant for tracking kernel objects that outlive their cgroup. 
-Switch to using the public cgroup ID instead.
+Now that all callers have been converted to use either:
+ - The private ID APIs (mem_cgroup_private_id/mem_cgroup_from_private_id)
+   for internal kernel objects that outlive their cgroup
+ - The public cgroup ID APIs (mem_cgroup_ino/mem_cgroup_get_from_ino)
+   for external interfaces
 
-Link: https://lkml.kernel.org/r/20251225232116.294540-7-shakeel.butt@linux.dev
+Remove the unused wrapper functions mem_cgroup_id() and
+mem_cgroup_from_id() along with their !CONFIG_MEMCG stubs.
+
+Link: https://lkml.kernel.org/r/20251225232116.294540-8-shakeel.butt@linux.dev
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -68,69 +73,58 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   19 ++++++-------------
- 1 file changed, 6 insertions(+), 13 deletions(-)
+ include/linux/memcontrol.h |   18 ------------------
+ mm/memcontrol.c            |    5 -----
+ 2 files changed, 23 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-use-cgroup-id-instead-of-private-memcg-id-in-lru_gen-interface
-+++ a/mm/vmscan.c
-@@ -5416,7 +5416,7 @@ static int lru_gen_seq_show(struct seq_f
- 		if (memcg)
- 			cgroup_path(memcg->css.cgroup, m->private, PATH_MAX);
- #endif
--		seq_printf(m, "memcg %5hu %s\n", mem_cgroup_id(memcg), path);
-+		seq_printf(m, "memcg %llu %s\n", mem_cgroup_ino(memcg), path);
- 	}
+--- a/include/linux/memcontrol.h~memcg-remove-unused-mem_cgroup_id-and-mem_cgroup_from_id
++++ a/include/linux/memcontrol.h
+@@ -830,12 +830,6 @@ static inline unsigned short mem_cgroup_
+ }
+ struct mem_cgroup *mem_cgroup_from_private_id(unsigned short id);
  
- 	seq_printf(m, " node %5d\n", nid);
-@@ -5501,7 +5501,7 @@ static int run_eviction(struct lruvec *l
- 	return -EINTR;
+-static inline unsigned short mem_cgroup_id(struct mem_cgroup *memcg)
+-{
+-	return mem_cgroup_private_id(memcg);
+-}
+-struct mem_cgroup *mem_cgroup_from_id(unsigned short id);
+-
+ static inline u64 mem_cgroup_ino(struct mem_cgroup *memcg)
+ {
+ 	return memcg ? cgroup_id(memcg->css.cgroup) : 0;
+@@ -1282,18 +1276,6 @@ static inline void mem_cgroup_scan_tasks
+ {
  }
  
--static int run_cmd(char cmd, int memcg_id, int nid, unsigned long seq,
-+static int run_cmd(char cmd, u64 memcg_id, int nid, unsigned long seq,
- 		   struct scan_control *sc, int swappiness, unsigned long opt)
+-static inline unsigned short mem_cgroup_id(struct mem_cgroup *memcg)
+-{
+-	return 0;
+-}
+-
+-static inline struct mem_cgroup *mem_cgroup_from_id(unsigned short id)
+-{
+-	WARN_ON_ONCE(id);
+-	/* XXX: This should always return root_mem_cgroup */
+-	return NULL;
+-}
+-
+ static inline unsigned short mem_cgroup_private_id(struct mem_cgroup *memcg)
  {
- 	struct lruvec *lruvec;
-@@ -5512,19 +5512,12 @@ static int run_cmd(char cmd, int memcg_i
- 		return -EINVAL;
+ 	return 0;
+--- a/mm/memcontrol.c~memcg-remove-unused-mem_cgroup_id-and-mem_cgroup_from_id
++++ a/mm/memcontrol.c
+@@ -3615,11 +3615,6 @@ struct mem_cgroup *mem_cgroup_from_priva
+ 	return xa_load(&mem_cgroup_private_ids, id);
+ }
  
- 	if (!mem_cgroup_disabled()) {
--		rcu_read_lock();
+-struct mem_cgroup *mem_cgroup_from_id(unsigned short id)
+-{
+-	return mem_cgroup_from_private_id(id);
+-}
 -
--		memcg = mem_cgroup_from_id(memcg_id);
--		if (!mem_cgroup_tryget(memcg))
--			memcg = NULL;
--
--		rcu_read_unlock();
--
-+		memcg = mem_cgroup_get_from_ino(memcg_id);
- 		if (!memcg)
- 			return -EINVAL;
- 	}
- 
--	if (memcg_id != mem_cgroup_id(memcg))
-+	if (memcg_id != mem_cgroup_ino(memcg))
- 		goto done;
- 
- 	sc->target_mem_cgroup = memcg;
-@@ -5591,7 +5584,7 @@ static ssize_t lru_gen_seq_write(struct
- 		int n;
- 		int end;
- 		char cmd, swap_string[5];
--		unsigned int memcg_id;
-+		u64 memcg_id;
- 		unsigned int nid;
- 		unsigned long seq;
- 		unsigned int swappiness;
-@@ -5601,7 +5594,7 @@ static ssize_t lru_gen_seq_write(struct
- 		if (!*cur)
- 			continue;
- 
--		n = sscanf(cur, "%c %u %u %lu %n %4s %n %lu %n", &cmd, &memcg_id, &nid,
-+		n = sscanf(cur, "%c %llu %u %lu %n %4s %n %lu %n", &cmd, &memcg_id, &nid,
- 			   &seq, &end, swap_string, &end, &opt, &end);
- 		if (n < 4 || cur[end]) {
- 			err = -EINVAL;
+ struct mem_cgroup *mem_cgroup_get_from_ino(u64 ino)
+ {
+ 	struct cgroup *cgrp;
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
