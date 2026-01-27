@@ -1,306 +1,224 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBC251D5ADE
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 00:34:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA42A236454
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 01:15:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769474077; cv=none; b=ipNyv9MSLSo33qlnqUxT93/KOPYOmQ+XF0qWF5XpLliengPE5c9IpVElH0ktO1egRPJChn9XIF01jI1UMoz/jiXGyuoODpE01mk+V5/pC0JGYrdO+zFfcGjT/nULW8M1v8iQCW16g1OJOqzg+vFe4A0yi684oG/1aSR9VIqaW90=
+	t=1769476510; cv=none; b=qYO/x9B4XOeuU6uV8//f+t9SDB7CvpycnEDsAvR+FfqWZmx3Pk+Q38qVGpqOpgAiOMbVac9aXXwcKV2NxBa3mVbIxVfW4G9UetAbKPdR4fCz4Q1iQlkToPaT7cqzwQICbU75msz3b/TBxxZdt0cy5XQEegLGLX6mJ40QQzPYhk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769474077; c=relaxed/simple;
-	bh=2J/EQiChiJzzX+KIyGxHm69o4RttpPw/IziXepmYCtQ=;
-	h=Date:To:From:Subject:Message-Id; b=Rzr5txOIz5ML8dMjamLMhME3uD9qz8LHXwB1QsxvdnVcg6Ujs+3o3gn3UWfVfqsH0mdQSnVfLT7EZ/G2TsoEeiF5vQrxnG5RCaEuAM/boWwUPXh1i+Dy+uekK8iYwDyGJ1ciFb9QZhV75Kne9vMjLiduiom3FV0gRcJwAYqK/ao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2gAbizMs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769476510; c=relaxed/simple;
+	bh=4hWe/ZeM0/dp3df6siLGhiMwgMH8EDIhO8UEJze1og4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=bLKTdtyPItyApPOCi2Md75G0El09H/2QXB6DuoUMIBp2ZanPPhOw06gwsA/8d5RF9zzYsqVb2xIfBa/xOKbOrKpema/ZJjSHy7R/opJoWO66AmkuVulcVrj6sVwNkDjNcs9XfxVzrf0I58ke+fb0ZrqMQPId8u6CBuW4jC6i060=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=LyhmGZ1S; arc=none smtp.client-ip=209.85.218.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2gAbizMs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 744F8C116C6;
-	Tue, 27 Jan 2026 00:34:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769474077;
-	bh=2J/EQiChiJzzX+KIyGxHm69o4RttpPw/IziXepmYCtQ=;
-	h=Date:To:From:Subject:From;
-	b=2gAbizMs7IhXEq+u/2dzih7WaXQNpO/QmIT0DdxAyLWUGp1UbuRig1sIxpoyTABaJ
-	 ZncgbVXBBgitk8gbOlmQDqExdVXrdFDn0nswR/VIuJSefmEIGKTS30HFoqug594dda
-	 Fj5TdlFdgvB+WCJSeSbU1Uu0GaRxHIdyPgcOUcpI=
-Date: Mon, 26 Jan 2026 16:34:36 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,pratyush@kernel.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + liveupdate-luo_file-remember-retrieve-status.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260127003437.744F8C116C6@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="LyhmGZ1S"
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-b8838339fc6so988129866b.0
+        for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 17:15:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1769476507; x=1770081307; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=V0WNey5zwe01UB/P+i2RgBgqNj6Zk0tMin0y60LW9DU=;
+        b=LyhmGZ1SjaKcXkdPeUy3t1G4mJ6tqe2tqKiv8Ka2YmsY0n/qEtOfQu3u3atQfqJ4FY
+         eb065r52Ndvk156jmTru4PZrfLZ7yGcRzCJFbigSe/JdrFDKMBTvPirZRtLp949yhoo6
+         M2d+TU2u4FooR7tvfJDdnfWcFoWfoR/caZBDs=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769476507; x=1770081307;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=V0WNey5zwe01UB/P+i2RgBgqNj6Zk0tMin0y60LW9DU=;
+        b=IQJ37WIAZhry0XJSexsyLOvtJWG/lQSke3o4uOAfiYZryNyI1vA0zc/2wq3tqKcm9R
+         z0lT06DpgMH0w8Dh1RBA0P8QBRvzcrgzg1YXJ01iccnbDaMxeQ5EtgEewVtupxMiMMIB
+         GPeLtFw/KpPeR4Glwm+PHck+IZ7wehhPvwM/GE32kX5CElcj4pU1Hv7mbiTDQIClkCgC
+         E2cW1ykl39j5tROJt2IRJMsjBX9LQa8s5sbuKknwnHZer7VR+wZUVKMtWVJZdiKcG6JT
+         C7ILV6ymOzd+gehbrEf8PQ3WJmI+9yn2Rg4GxTVMhbNy3K7NLm194gvKV9QrE6WBtsyf
+         usMQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWTzNaFbDlfetuhnFF265BMeTsvQ395Fx6NGmw2/pBtrHfZ+miQPyWlVUvkXr8i10QkidrG4XDfAFHr@vger.kernel.org
+X-Gm-Message-State: AOJu0Yzl2Z24VcVpiFDEUgZgfYwiOHF/fSSCaplW3sPgUnktd2iNAABw
+	yumlB0MOB96JKdnV9qKFk5PKb0WBiv+tWe3l2z06w8Chf0AouGRbNTlF6FmHPjuNxbpZZabM1up
+	AoI/Hmg==
+X-Gm-Gg: AZuq6aJ3JDgyqAOSESemDeAnlAKFKjdBbBXCuvMtQCs5RvBbjPlIBl4wjioKv9uVKFK
+	qb4uvxMfmSZaj4M8BSGZ5WKkHfqI7qhCNIBEFQn5hsHrpc70xsv2cqXamZ9YvSzJIavV0imil0g
+	QF+f4XCK+fY1YnaG3JoqXF3n053N3RcstC+b9RqoArFRDN/Xm1a8Oa+XnLkxRMdhEeVNXkVRkRR
+	vyu5z7cTXWtTpQfi4i2gHz5TpZgf2MAHrqgK+j+p40iPHxkUR34vqyoagr8U76nPE0KR8vOuHJU
+	bsOMVtIe3Lts3VJL9wy3jZl27o7OH1b5Ur+xq8l+dkSb4fS3bod2s3KT7a9P0yv9b2jS7Mkw/2u
+	hQBikRcVcnNof89E0QNqbLozvMcCMC/zdKVoGxw25VZ3ekM6FOeGR1SvgIThj4KC29m6qvkRMsu
+	LSMoJe+0h44Xrt4+iGkgmfSWlFco+WOLNGX4osrLdy6RZqk8DPDA==
+X-Received: by 2002:a17:907:7205:b0:b87:2abc:4a2a with SMTP id a640c23a62f3a-b8ceed5a231mr469464466b.1.1769476506511;
+        Mon, 26 Jan 2026 17:15:06 -0800 (PST)
+Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com. [209.85.221.50])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b885b411de7sm715589966b.19.2026.01.26.17.15.05
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 26 Jan 2026 17:15:05 -0800 (PST)
+Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-43246af170aso2891750f8f.0
+        for <mm-commits@vger.kernel.org>; Mon, 26 Jan 2026 17:15:05 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCVSghUbnFiqC/eNj9MEmKqoFEZs6FlewhL7zcfl+NSdKetzTWU/KDOJrwCFDNZAdpZa40tU02TfWlwh@vger.kernel.org
+X-Received: by 2002:a5d:64e9:0:b0:430:2773:84d6 with SMTP id
+ ffacd0b85a97d-435c9d1a409mr9683879f8f.24.1769476505162; Mon, 26 Jan 2026
+ 17:15:05 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <CAD=FV=Vmk1jA+dAgJNVDMtxrhhrPxgnXkNxiqJXWBvgUcZZUxQ@mail.gmail.com>
+ <20260126033012.934143-1-realwujing@gmail.com>
+In-Reply-To: <20260126033012.934143-1-realwujing@gmail.com>
+From: Doug Anderson <dianders@chromium.org>
+Date: Mon, 26 Jan 2026 17:14:53 -0800
+X-Gmail-Original-Message-ID: <CAD=FV=WVtFAPZ3=6pPnOV=vbMhFwfH9LaZ5oNgAKtcj5hA0q2Q@mail.gmail.com>
+X-Gm-Features: AZwV_QjgByfA3hEAUN30WElxUvkskpDfD8rbwB8NvDK5sJAq06ev73kRykPD3JE
+Message-ID: <CAD=FV=WVtFAPZ3=6pPnOV=vbMhFwfH9LaZ5oNgAKtcj5hA0q2Q@mail.gmail.com>
+Subject: Re: [PATCH v3] watchdog/hardlockup: Fix UAF in perf event cleanup due
+ to migration race
+To: Qiliang Yuan <realwujing@gmail.com>
+Cc: akpm@linux-foundation.org, lihuafei1@huawei.com, 
+	linux-kernel@vger.kernel.org, mingo@kernel.org, mm-commits@vger.kernel.org, 
+	song@kernel.org, stable@vger.kernel.org, sunshx@chinatelecom.cn, 
+	thorsten.blum@linux.dev, wangjinchao600@gmail.com, yangyicong@hisilicon.com, 
+	yuanql9@chinatelecom.cn, zhangjn11@chinatelecom.cn
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Sun, Jan 25, 2026 at 7:30=E2=80=AFPM Qiliang Yuan <realwujing@gmail.com>=
+ wrote:
+>
+> Hi Doug,
+>
+> Thanks for your further questions and for digging into the 4.19 vs ToT
+> differences.
+>
+> On Sat, 24 Jan 2026 15:36:01 Doug Anderson <dianders@chromium.org> wrote:
+> > The part that doesn't make a lot of sense to me, though, is that v4.19
+> > also doesn't have commit 930d8f8dbab9 ("watchdog/perf: adapt the
+> > watchdog_perf interface for async model"), which is where we are
+> > saying the problem was introduced.
+> >
+> > ...so in v4.19 I think:
+> > * hardlockup_detector_perf_init() is only called from watchdog_nmi_prob=
+e()
+> > * watchdog_nmi_probe() is only called from lockup_detector_init()
+> > * lockup_detector_init() is only called from kernel_init_freeable()
+> > right before smp_init()
+> >
+> > Thus I'm super confused about how you could have seen the problem on
+> > v4.19. Maybe your v4.19 kernel has some backported patches that makes
+> > this possible?
+>
+> You caught it! Here is the context for the differences:
+>
+> 1. Mainline (ToT):
+>    - `lockup_detector_init()` is always called before `smp_init()`
+>      (pre-SMP phase).
+>    - Risk source: The asynchronous retry path (`lockup_detector_delay_ini=
+t`)
+>      introduced by 930d8f8dbab9, which runs in a workqueue (post-SMP)
+>      context and triggers the UAF.
+>
+> 2. openEuler (4.19/5.10):
+>    - Local `euler inclusion` patches moved `lockup_detector_init()` after
+>      `do_basic_setup()` (post-SMP phase).
+>    - Risk source: The initial probe occurs directly in a post-SMP
+>      environment, exposing the race condition.
+>
+> For openEuler (4.19/5.10) kernel, the call stack looks like this:
+>   kernel_init()
+>   -> kernel_init_freeable()
+>     -> lockup_detector_init()       <-- Called after smp_init()
+>       -> watchdog_nmi_probe()
+>         -> hardlockup_detector_perf_init()
+>           -> hardlockup_detector_event_create()
+>
+> In mainline (ToT), the initial probe (safe) call stack is:
+>   kernel_init()
+>   -> kernel_init_freeable()
+>     -> lockup_detector_init()       <-- Called before smp_init()
+>       -> watchdog_hardlockup_probe()
+>         -> hardlockup_detector_event_create()
+>
+> However, the asynchronous retry mechanism (commit 930d8f8dbab9) executes =
+the
+> probe logic in a post-SMP, preemptible context.
+>
+> For the mainline (ToT) retry path (at risk), the call stack is:
+>   kworker thread
+>   -> process_one_work()
+>     -> lockup_detector_delay_init()
+>       -> watchdog_hardlockup_probe()
+>         -> hardlockup_detector_event_create()
+>
+> Thus, `930d8f8dbab9` remains the correct "Fixes" target for ToT.
+
+OK, at least I'm not crazy! That does indeed explain why things seemed
+so wonky...
 
 
-The patch titled
-     Subject: liveupdate: luo_file: remember retrieve() status
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     liveupdate-luo_file-remember-retrieve-status.patch
+> > OK, fair enough. ...but I'm a bit curious why nobody else saw this
+> > WARN_ON(). I'm also curious if you have tested the hardlockup detector
+> > on newer kernels, or if all of your work has been done on 4.19. If all
+> > your work has been done on 4.19, do we need to find someone to test
+> > your patch on a newer kernel and make sure it works OK? If you've
+> > tested on a newer kernel, did the hardlockup detector init from the
+> > kernel's early-init code, or the retry code?
+>
+> In newer kernels, when the probe fails initially and falls
+> back to the retry workqueue (or even during early init if preemption is
+> enabled), the `WARN_ON(!is_percpu_thread())` in
+> `hardlockup_detector_event_create()` does indeed trigger because
+> `watchdog_hardlockup_probe()` is called from a non-bound context.
+>
+> I have verified this patch on the openEuler 4.19 kernel. During our stres=
+s
+> testing, where we start dozens of VMs simultaneously to create high resou=
+rce
+> contention, the UAF was consistently reproducible without this fix and is=
+ now
+> confirmed resolved.
+>
+> The v4 patch addresses this by refactoring the creation logic to be state=
+less
+> and adding `cpu_hotplug_disable()` to ensure the probed CPU stays alive.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-luo_file-remember-retrieve-status.patch
+OK, so I think the answer is: you haven't actually seen the problem
+(or the WARN_ON) on a mainline kernel, only on the openEuler 4.19
+kernel...
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+...actually, I looked and now think the problem doesn't exist on a
+mainline kernel. Specificaly, when we run lockup_detector_retry_init()
+we call schedule_work() to do the work. That schedules work on the
+"system_percpu_wq". While the work ends up being queued with
+"WORK_CPU_UNBOUND", I believe that we still end up running on a thread
+that's bound to just one CPU in the end.  This is presumably why
+nobody has reported that "WARN_ON(!is_percpu_thread())" actually
+hitting on mainline.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Given the above, it sounds to me like the problem you're having is
+with a downstream kernel and upstream is actually fine. Did I
+understand that correctly?
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
-Subject: liveupdate: luo_file: remember retrieve() status
-Date: Tue, 27 Jan 2026 00:02:53 +0100
-
-Patch series "liveupdate: fixes in error handling".
-
-This series contains some fixes in LUO's error handling paths.
-
-The first patch deals with failed freeze() attempts.  The cleanup path
-calls unfreeze, and that clears some data needed by later unpreserve
-calls.
-
-The second patch is a bit more involved.  It deals with failed retrieve()
-attempts.  To do so properly, it reworks some of the error handling logic
-in luo_file core.
-
-Both these fixes are "theoretical" -- in the sense that I have not been
-able to reproduce either of them in normal operation.  The only supported
-file type right now is memfd, and there is nothing userspace can do right
-now to make it fail its retrieve or freeze.  I need to make the retrieve
-or freeze fail by artificially injecting errors.  The injected errors
-trigger a use-after-free and a double-free.
-
-That said, once more complex file handlers are added or memfd preservation
-is used in ways not currently expected or covered by the tests, we will be
-able to see them on real systems.
+If that's the case, we'd definitely want to at least change the
+description and presumably _remove_ the Fixes tag? I actually still
+think the code looks nicer after your CL and (maybe?) we could even
+remove the whole schedule_work() for running this code? Maybe it was
+only added to deal with this exact problem? ...but the CL description
+would definitely need to be updated.
 
 
-This patch (of 2):
+> I'll wait for your further thoughts on v4:
+> https://lore.kernel.org/all/20260124070814.806828-1-realwujing@gmail.com/
 
-LUO keeps track of successful retrieve attempts on a LUO file.  It does so
-to avoid multiple retrievals of the same file.  Doing so will cause
-problems because once the file is retrieved, the serialized data
-structures are likely freed and the file is likely in a very different
-state from what the code expects.
+Sure. In the very least the CL description would need to be updated
+(assuming my understanding is correct), but for now let's avoid
+forking the conversation and resolve things here?
 
-This is kept track of by the retrieved boolean in struct luo_file, and is
-passed to the finish callback so it knows what work was already done and
-what it has left to do.
-
-All this works well when retrieve succeeds.  When it fails,
-luo_retrieve_file() returns the error immediately, without ever storing
-anywhere that a retrieve was attempted or what its error code was.  This
-results in an errored LIVEUPDATE_SESSION_RETRIEVE_FD ioctl to userspace,
-but nothing prevents it from trying this again.
-
-The retry is problematic for much of the same reasons listed above.  The
-file is likely in a very different state than what the retrieve logic
-normally expects, and it might even have freed some serialization data
-structures.  Attempting to access them or free them again is going to
-break things.
-
-For example, if memfd managed to restore 8 of its 10 folios, but fails on
-the 9th, a subsequent retrieve attempt will try to call
-kho_restore_folio() on the first folio again, and that will fail with a
-warning since it is an invalid operation.
-
-Apart from the retry, finish() also breaks.  Since on failure the
-retrieved bool in luo_file is never touched, the finish() call on session
-close will tell the file handler that retrieve was never attempted, and it
-will try to access or free the data structures that might not exist, much
-in the same way as the retry attempt.
-
-There is no sane way of attempting the retrieve again.  Remember the error
-retrieve returned and directly return it on a retry.  Also pass this
-status code to finish() so it can make the right decision on the work it
-needs to do.
-
-This is done by changing the bool to an integer.  A value of 0 means
-retrieve was never attempted, a positive value means it succeeded, and a
-negative value means it failed and the error code is the value.
-
-Link: https://lkml.kernel.org/r/20260126230302.2936817-1-pratyush@kernel.org
-Link: https://lkml.kernel.org/r/20260126230302.2936817-3-pratyush@kernel.org
-Fixes: 7c722a7f44e0 ("liveupdate: luo_file: implement file systems callbacks")
-Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/liveupdate.h   |    7 ++++-
- kernel/liveupdate/luo_file.c |   41 ++++++++++++++++++++-------------
- mm/memfd_luo.c               |    7 ++++-
- 3 files changed, 36 insertions(+), 19 deletions(-)
-
---- a/include/linux/liveupdate.h~liveupdate-luo_file-remember-retrieve-status
-+++ a/include/linux/liveupdate.h
-@@ -21,7 +21,10 @@ struct file;
-  * struct liveupdate_file_op_args - Arguments for file operation callbacks.
-  * @handler:          The file handler being called.
-  * @retrieved:        The retrieve status for the 'can_finish / finish'
-- *                    operation.
-+ *                    operation. A value of 0 means the retrieve has not been
-+ *                    attempted, a positive value means the retrieve was
-+ *                    successful, and a negative value means the retrieve failed,
-+ *                    and the value is the error code of the call.
-  * @file:             The file object. For retrieve: [OUT] The callback sets
-  *                    this to the new file. For other ops: [IN] The caller sets
-  *                    this to the file being operated on.
-@@ -37,7 +40,7 @@ struct file;
-  */
- struct liveupdate_file_op_args {
- 	struct liveupdate_file_handler *handler;
--	bool retrieved;
-+	bool retrieve_sts;
- 	struct file *file;
- 	u64 serialized_data;
- 	void *private_data;
---- a/kernel/liveupdate/luo_file.c~liveupdate-luo_file-remember-retrieve-status
-+++ a/kernel/liveupdate/luo_file.c
-@@ -133,9 +133,12 @@ static LIST_HEAD(luo_file_handler_list);
-  *                 state that is not preserved. Set by the handler's .preserve()
-  *                 callback, and must be freed in the handler's .unpreserve()
-  *                 callback.
-- * @retrieved:     A flag indicating whether a user/kernel in the new kernel has
-+ * @retrieve_sts:  Status code indicating whether a user/kernel in the new kernel has
-  *                 successfully called retrieve() on this file. This prevents
-- *                 multiple retrieval attempts.
-+ *                 multiple retrieval attempts. A value of 0 means a retrieve()
-+ *                 has not been attempted, a positive value means the retrieve()
-+ *                 was successful, and a negative value means the retrieve()
-+ *                 failed, and the value is the error code of the call.
-  * @mutex:         A mutex that protects the fields of this specific instance
-  *                 (e.g., @retrieved, @file), ensuring that operations like
-  *                 retrieving or finishing a file are atomic.
-@@ -160,7 +163,7 @@ struct luo_file {
- 	struct file *file;
- 	u64 serialized_data;
- 	void *private_data;
--	bool retrieved;
-+	int retrieve_sts;
- 	struct mutex mutex;
- 	struct list_head list;
- 	u64 token;
-@@ -293,7 +296,7 @@ int luo_preserve_file(struct luo_file_se
- 	luo_file->file = file;
- 	luo_file->fh = fh;
- 	luo_file->token = token;
--	luo_file->retrieved = false;
-+	luo_file->retrieve_sts = 0;
- 	mutex_init(&luo_file->mutex);
- 
- 	args.handler = fh;
-@@ -569,7 +572,7 @@ int luo_retrieve_file(struct luo_file_se
- 		return -ENOENT;
- 
- 	guard(mutex)(&luo_file->mutex);
--	if (luo_file->retrieved) {
-+	if (luo_file->retrieve_sts > 0) {
- 		/*
- 		 * Someone is asking for this file again, so get a reference
- 		 * for them.
-@@ -577,21 +580,27 @@ int luo_retrieve_file(struct luo_file_se
- 		get_file(luo_file->file);
- 		*filep = luo_file->file;
- 		return 0;
-+	} else if (luo_file->retrieve_sts < 0) {
-+		/* Retrieve was attempted and it failed. Return the error code. */
-+		return luo_file->retrieve_sts;
- 	}
- 
- 	args.handler = luo_file->fh;
- 	args.serialized_data = luo_file->serialized_data;
- 	err = luo_file->fh->ops->retrieve(&args);
--	if (!err) {
--		luo_file->file = args.file;
--
--		/* Get reference so we can keep this file in LUO until finish */
--		get_file(luo_file->file);
--		*filep = luo_file->file;
--		luo_file->retrieved = true;
-+	if (err) {
-+		/* Keep the error code for later use. */
-+		luo_file->retrieve_sts = err;
-+		return err;
- 	}
- 
--	return err;
-+	luo_file->file = args.file;
-+	/* Get reference so we can keep this file in LUO until finish */
-+	get_file(luo_file->file);
-+	*filep = luo_file->file;
-+	luo_file->retrieve_sts = 1;
-+
-+	return 0;
- }
- 
- static int luo_file_can_finish_one(struct luo_file_set *file_set,
-@@ -607,7 +616,7 @@ static int luo_file_can_finish_one(struc
- 		args.handler = luo_file->fh;
- 		args.file = luo_file->file;
- 		args.serialized_data = luo_file->serialized_data;
--		args.retrieved = luo_file->retrieved;
-+		args.retrieve_sts = luo_file->retrieve_sts;
- 		can_finish = luo_file->fh->ops->can_finish(&args);
- 	}
- 
-@@ -624,7 +633,7 @@ static void luo_file_finish_one(struct l
- 	args.handler = luo_file->fh;
- 	args.file = luo_file->file;
- 	args.serialized_data = luo_file->serialized_data;
--	args.retrieved = luo_file->retrieved;
-+	args.retrieve_sts = luo_file->retrieve_sts;
- 
- 	luo_file->fh->ops->finish(&args);
- }
-@@ -779,7 +788,7 @@ int luo_file_deserialize(struct luo_file
- 		luo_file->file = NULL;
- 		luo_file->serialized_data = file_ser[i].data;
- 		luo_file->token = file_ser[i].token;
--		luo_file->retrieved = false;
-+		luo_file->retrieve_sts = 0;
- 		mutex_init(&luo_file->mutex);
- 		list_add_tail(&luo_file->list, &file_set->files_list);
- 	}
---- a/mm/memfd_luo.c~liveupdate-luo_file-remember-retrieve-status
-+++ a/mm/memfd_luo.c
-@@ -326,7 +326,12 @@ static void memfd_luo_finish(struct live
- 	struct memfd_luo_folio_ser *folios_ser;
- 	struct memfd_luo_ser *ser;
- 
--	if (args->retrieved)
-+	/*
-+	 * If retrieve was successful, nothing to do. If it failed, retrieve()
-+	 * already cleaned up everything it could. So nothing to do there
-+	 * either. Only need to clean up when retrieve was not called.
-+	 */
-+	if (args->retrieve_sts)
- 		return;
- 
- 	ser = phys_to_virt(args->serialized_data);
-_
-
-Patches currently in -mm which might be from pratyush@kernel.org are
-
-memfd-export-alloc_file.patch
-mm-memfd_luo-use-memfd_alloc_file-instead-of-shmem_file_setup.patch
-mm-memfd_luo-restore-and-free-memfd_luo_ser-on-failure.patch
-liveupdate-luo_file-do-not-clear-serialized_data-on-unfreeze.patch
-liveupdate-luo_file-remember-retrieve-status.patch
-memfd-export-memfd_addget_seals.patch
-mm-memfd_luo-preserve-file-seals.patch
-kho-use-unsigned-long-for-nr_pages.patch
-kho-simplify-page-initialization-in-kho_restore_page.patch
-
+-Doug
