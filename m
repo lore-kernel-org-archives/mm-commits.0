@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B85741E5702
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:05:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BCE61E5702
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:05:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486731; cv=none; b=EypuRtyF4abhxmFmuDyI+PUSBV1muzM+O9Q8i+0Zc08B7F/VXdv9WsZY6qIqyIzbgUDz2+wgbgB/HJe6QBlGPDSKPzjNH4D9bxAhZkINIoQSZPWRynL1nTDYRy3OJ8u+RGist3QatMI8b3qlaHl73pYPN1G522pzqRNKC8ipzYg=
+	t=1769486733; cv=none; b=rga9i5r8qnQasCqxr4lgbpkSAiXdovt7CunlPnKFv2IeZE6DjSLAPWKvrR7ldzVAUS0UIbDgvBxW0Kgu3+gRphkOMEu/H+jQGazCS902jp4AvTN3zeUuVu46hshx6RbSkyFNxRCg+guSznQC44IlIEqeCdDogEhElcAYGhQAgKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486731; c=relaxed/simple;
-	bh=VDEpoPtBxYTP93SoYqhiK6qg2UOSke8VRbDwx4Uf5PI=;
-	h=Date:To:From:Subject:Message-Id; b=cA9iFVNE5YqFAdgB82+/SfdQXRNzwB1GangPDxplhXvQDxgoB6joHJGdrf0izHkd/IdlCwm5qQYTZaN1/rsqsZyO1tn937xkMP4uLF0VtNNA7a5u8Vu6t6k+I0fHR/q5L60S+hBMZ4sGkeE5wxSWEFhy8OtDC9JL/rwWvvMV7B0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cQSXc9cU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486733; c=relaxed/simple;
+	bh=fa1Nw3+tSGLquPF466q3FFVdaNaP3E4qFOShSPfuV74=;
+	h=Date:To:From:Subject:Message-Id; b=rzAt13Vo5FpEG/GwroAWyFGSL2E5Ar2/Z9ndMtvdoCVesFJaqDTeQlKChh5VbpgOeGPL7GTXMorNE7pA+BjSmA87b1UiR6c03pgBxZfELrBJEwgicy5meoq1DvmJrpHI5Cd988VRJw9gNg1ceSYZ5hVAoTXyFpVc3qyqiJLOhjs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FLSIJH3s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cQSXc9cU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E9F8C116C6;
-	Tue, 27 Jan 2026 04:05:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FLSIJH3s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D4AFC116C6;
+	Tue, 27 Jan 2026 04:05:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486731;
-	bh=VDEpoPtBxYTP93SoYqhiK6qg2UOSke8VRbDwx4Uf5PI=;
+	s=korg; t=1769486733;
+	bh=fa1Nw3+tSGLquPF466q3FFVdaNaP3E4qFOShSPfuV74=;
 	h=Date:To:From:Subject:From;
-	b=cQSXc9cUZHxl2gLDJv0sFqL59wVnEp85nuRMeqfMYgLWhu6PESFCmh/TI0VunWZ7F
-	 jWt58JsMlkgMOWgSDuoU9Onl2N/w8P31qUYjoiH+QHUMw5sVg/pxz7FcEgdZOR47as
-	 ufK8WeuZJ8mVHREazZysLL+cXPkKkvsAidIbhtrY=
-Date: Mon, 26 Jan 2026 20:05:31 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,vbabka@suse.cz,riel@surriel.com,rakie.kim@sk.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,willy@infradead.org,akpm@linux-foundation.org
+	b=FLSIJH3sCaL939r6/btXPuR1VXbjmsMrwVt5kDIEpx1Yd/VyStAZGXFyKfz7/WsJz
+	 4/sP/9A6ihdqPEebE9qa2LX161oPvXI1jmWTsep/1UgeH+pbIcDmL0uYxWIr0msuQT
+	 zHGCEJ1QZfR8pUrDe31LJlVkMNqJwpeU23906/p0=
+Date: Mon, 26 Jan 2026 20:05:32 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,willy@infradead.org,vishal.moola@gmail.com,thuth@redhat.com,sweettea-kernel@dorminy.me,rmclure@linux.ibm.com,ritesh.list@gmail.com,paulus@ozlabs.org,pasha.tatashin@soleen.com,npiggin@gmail.com,nicholas@linux.ibm.com,mpe@ellerman.id.au,mingo@kernel.org,maddy@linux.ibm.com,linmag7@gmail.com,kevin.brodsky@arm.com,jgg@ziepe.ca,guoweikang.kernel@gmail.com,donettom@linux.ibm.com,david@kernel.org,christophe.leroy@csgroup.eu,chleroy@kernel.org,apopple@nvidia.com,alexghiti@rivosinc.com,alex@ghiti.fr,agordeev@linux.ibm.com,ajd@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] migrate-replace-rmp_-flags-with-ttu_-flags.patch removed from -mm tree
-Message-Id: <20260127040531.8E9F8C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-mm-add-addr-parameter-to-__set_ptes_anysz.patch removed from -mm tree
+Message-Id: <20260127040533.0D4AFC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,147 +35,178 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: migrate: replace RMP_ flags with TTU_ flags
+     Subject: arm64/mm: add addr parameter to __set_ptes_anysz()
 has been removed from the -mm tree.  Its filename was
-     migrate-replace-rmp_-flags-with-ttu_-flags.patch
+     arm64-mm-add-addr-parameter-to-__set_ptes_anysz.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: migrate: replace RMP_ flags with TTU_ flags
-Date: Fri, 9 Jan 2026 04:13:43 +0000
+From: Andrew Donnellan <ajd@linux.ibm.com>
+Subject: arm64/mm: add addr parameter to __set_ptes_anysz()
+Date: Fri, 19 Dec 2025 04:09:33 +1100
 
-Instead of translating between RMP_ and TTU_ flags, remove the RMP_ flags
-and just use the TTU_ flag space; there's plenty available.
+Patch series "Support page table check on PowerPC", v18.
 
-Possibly we should rename these to RMAP_ flags, and maybe even pass them
-in through rmap_walk_arg, but that can be done later.
+Support page table check on PowerPC.  Page table check tracks the usage of
+of page table entries at each level to ensure that anonymous mappings have
+at most one writable consumer, and likewise that file-backed mappings are
+not simultaneously also anonymous mappings.
 
-Link: https://lkml.kernel.org/r/20260109041345.3863089-3-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+In order to support this infrastructure, a number of helpers or stubs must
+be defined or updated for all powerpc platforms.  Additionally, we
+separate set_pte_at() and set_pte_at_unchecked(), to allow for internal,
+uninstrumented mappings.
+
+On some PowerPC platforms, implementing
+{pte,pmd,pud}_user_accessible_page() requires the address.  We revert
+previous changes that removed the address parameter from various
+interfaces, and add it to some other interfaces, in order to allow this.
+
+For now, we don't allow page table check alongside HUGETLB_PAGE, due to
+the arch-specific complexity of set_huge_page_at().  (I'm sure I could
+figure this out, but I have to get this version on this list before I
+leave my job.)
+
+This series was initially written by Rohan McLure, who has left IBM and is
+no longer working on powerpc.
+
+
+This patch (of 18):
+
+To provide support for page table check on powerpc, we need to reinstate
+the address parameter in several functions, including
+page_table_check_{ptes,pmds,puds}_set().
+
+In preparation for this, add the addr parameter to arm64's
+__set_ptes_anysz() and change its callsites accordingly.
+
+Link: https://lkml.kernel.org/r/20251219-pgtable_check_v18rebase-v18-0-755bc151a50b@linux.ibm.com
+Link: https://lkml.kernel.org/r/20251219-pgtable_check_v18rebase-v18-1-755bc151a50b@linux.ibm.com
+Signed-off-by: Andrew Donnellan <ajd@linux.ibm.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Jann Horn <jannh@google.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Donet Tom <donettom@linux.ibm.com>
+Cc: Guo Weikang <guoweikang.kernel@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Magnus Lindholm <linmag7@gmail.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Miehlbradt <nicholas@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Paul Mackerras <paulus@ozlabs.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
+Cc: Thomas Huth <thuth@redhat.com>
+Cc: "Vishal Moola (Oracle)" <vishal.moola@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Alexandre Ghiti <alexghiti@rivosinc.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Rohan McLure <rmclure@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    9 +++------
- mm/huge_memory.c     |    8 ++++----
- mm/migrate.c         |   12 ++++++------
- 3 files changed, 13 insertions(+), 16 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   19 ++++++++-----------
+ arch/arm64/mm/hugetlbpage.c      |   10 +++++-----
+ 2 files changed, 13 insertions(+), 16 deletions(-)
 
---- a/include/linux/rmap.h~migrate-replace-rmp_-flags-with-ttu_-flags
-+++ a/include/linux/rmap.h
-@@ -92,6 +92,7 @@ struct anon_vma_chain {
- };
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-add-addr-parameter-to-__set_ptes_anysz
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -673,8 +673,8 @@ static inline pgprot_t pud_pgprot(pud_t
+ 	return __pgprot(pud_val(pfn_pud(pfn, __pgprot(0))) ^ pud_val(pud));
+ }
  
- enum ttu_flags {
-+	TTU_USE_SHARED_ZEROPAGE	= 0x2,	/* for unused pages of large folios */
- 	TTU_SPLIT_HUGE_PMD	= 0x4,	/* split huge PMD if any */
- 	TTU_IGNORE_MLOCK	= 0x8,	/* ignore mlock */
- 	TTU_SYNC		= 0x10,	/* avoid racy checks with PVMW_SYNC */
-@@ -933,12 +934,8 @@ int mapping_wrprotect_range(struct addre
- int pfn_mkclean_range(unsigned long pfn, unsigned long nr_pages, pgoff_t pgoff,
- 		      struct vm_area_struct *vma);
- 
--enum rmp_flags {
--	RMP_LOCKED		= 1 << 0,
--	RMP_USE_SHARED_ZEROPAGE	= 1 << 1,
--};
--
--void remove_migration_ptes(struct folio *src, struct folio *dst, int flags);
-+void remove_migration_ptes(struct folio *src, struct folio *dst,
-+		enum ttu_flags flags);
- 
- /*
-  * rmap_walk_control: To control rmap traversing for specific needs
---- a/mm/huge_memory.c~migrate-replace-rmp_-flags-with-ttu_-flags
-+++ a/mm/huge_memory.c
-@@ -3431,7 +3431,7 @@ static void remap_page(struct folio *fol
- 	if (!folio_test_anon(folio))
- 		return;
- 	for (;;) {
--		remove_migration_ptes(folio, folio, RMP_LOCKED | flags);
-+		remove_migration_ptes(folio, folio, TTU_RMAP_LOCKED | flags);
- 		i += folio_nr_pages(folio);
- 		if (i >= nr)
- 			break;
-@@ -3944,7 +3944,7 @@ static int __folio_split(struct folio *f
- 	int old_order = folio_order(folio);
- 	struct folio *new_folio, *next;
- 	int nr_shmem_dropped = 0;
--	int remap_flags = 0;
-+	enum ttu_flags ttu_flags = 0;
- 	int ret;
- 	pgoff_t end = 0;
- 
-@@ -4064,9 +4064,9 @@ fail:
- 		shmem_uncharge(mapping->host, nr_shmem_dropped);
- 
- 	if (!ret && is_anon && !folio_is_device_private(folio))
--		remap_flags = RMP_USE_SHARED_ZEROPAGE;
-+		ttu_flags = TTU_USE_SHARED_ZEROPAGE;
- 
--	remap_page(folio, 1 << old_order, remap_flags);
-+	remap_page(folio, 1 << old_order, ttu_flags);
- 
- 	/*
- 	 * Unlock all after-split folios except the one containing
---- a/mm/migrate.c~migrate-replace-rmp_-flags-with-ttu_-flags
-+++ a/mm/migrate.c
-@@ -452,11 +452,12 @@ static bool remove_migration_pte(struct
-  * Get rid of all migration entries and replace them by
-  * references to the indicated page.
-  */
--void remove_migration_ptes(struct folio *src, struct folio *dst, int flags)
-+void remove_migration_ptes(struct folio *src, struct folio *dst,
-+		enum ttu_flags flags)
+-static inline void __set_ptes_anysz(struct mm_struct *mm, pte_t *ptep,
+-				    pte_t pte, unsigned int nr,
++static inline void __set_ptes_anysz(struct mm_struct *mm, unsigned long addr,
++				    pte_t *ptep, pte_t pte, unsigned int nr,
+ 				    unsigned long pgsize)
  {
- 	struct rmap_walk_arg rmap_walk_arg = {
- 		.folio = src,
--		.map_unused_to_zeropage = flags & RMP_USE_SHARED_ZEROPAGE,
-+		.map_unused_to_zeropage = flags & TTU_USE_SHARED_ZEROPAGE,
- 	};
+ 	unsigned long stride = pgsize >> PAGE_SHIFT;
+@@ -709,26 +709,23 @@ static inline void __set_ptes_anysz(stru
+ 	__set_pte_complete(pte);
+ }
  
- 	struct rmap_walk_control rwc = {
-@@ -464,9 +465,9 @@ void remove_migration_ptes(struct folio
- 		.arg = &rmap_walk_arg,
- 	};
+-static inline void __set_ptes(struct mm_struct *mm,
+-			      unsigned long __always_unused addr,
++static inline void __set_ptes(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep, pte_t pte, unsigned int nr)
+ {
+-	__set_ptes_anysz(mm, ptep, pte, nr, PAGE_SIZE);
++	__set_ptes_anysz(mm, addr, ptep, pte, nr, PAGE_SIZE);
+ }
  
--	VM_BUG_ON_FOLIO((flags & RMP_USE_SHARED_ZEROPAGE) && (src != dst), src);
-+	VM_BUG_ON_FOLIO((flags & TTU_USE_SHARED_ZEROPAGE) && (src != dst), src);
+-static inline void __set_pmds(struct mm_struct *mm,
+-			      unsigned long __always_unused addr,
++static inline void __set_pmds(struct mm_struct *mm, unsigned long addr,
+ 			      pmd_t *pmdp, pmd_t pmd, unsigned int nr)
+ {
+-	__set_ptes_anysz(mm, (pte_t *)pmdp, pmd_pte(pmd), nr, PMD_SIZE);
++	__set_ptes_anysz(mm, addr, (pte_t *)pmdp, pmd_pte(pmd), nr, PMD_SIZE);
+ }
+ #define set_pmd_at(mm, addr, pmdp, pmd) __set_pmds(mm, addr, pmdp, pmd, 1)
  
--	if (flags & RMP_LOCKED)
-+	if (flags & TTU_RMAP_LOCKED)
- 		rmap_walk_locked(dst, &rwc);
- 	else
- 		rmap_walk(dst, &rwc);
-@@ -1521,8 +1522,7 @@ static int unmap_and_move_huge_page(new_
- 		rc = move_to_new_folio(dst, src, mode);
+-static inline void __set_puds(struct mm_struct *mm,
+-			      unsigned long __always_unused addr,
++static inline void __set_puds(struct mm_struct *mm, unsigned long addr,
+ 			      pud_t *pudp, pud_t pud, unsigned int nr)
+ {
+-	__set_ptes_anysz(mm, (pte_t *)pudp, pud_pte(pud), nr, PUD_SIZE);
++	__set_ptes_anysz(mm, addr, (pte_t *)pudp, pud_pte(pud), nr, PUD_SIZE);
+ }
+ #define set_pud_at(mm, addr, pudp, pud) __set_puds(mm, addr, pudp, pud, 1)
  
- 	if (page_was_mapped)
--		remove_migration_ptes(src, !rc ? dst : src,
--				ttu ? RMP_LOCKED : 0);
-+		remove_migration_ptes(src, !rc ? dst : src, ttu);
+--- a/arch/arm64/mm/hugetlbpage.c~arm64-mm-add-addr-parameter-to-__set_ptes_anysz
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -221,8 +221,8 @@ void set_huge_pte_at(struct mm_struct *m
+ 	ncontig = num_contig_ptes(sz, &pgsize);
  
- 	if (ttu & TTU_RMAP_LOCKED)
- 		i_mmap_unlock_write(mapping);
+ 	if (!pte_present(pte)) {
+-		for (i = 0; i < ncontig; i++, ptep++)
+-			__set_ptes_anysz(mm, ptep, pte, 1, pgsize);
++		for (i = 0; i < ncontig; i++, ptep++, addr += pgsize)
++			__set_ptes_anysz(mm, addr, ptep, pte, 1, pgsize);
+ 		return;
+ 	}
+ 
+@@ -230,7 +230,7 @@ void set_huge_pte_at(struct mm_struct *m
+ 	if (pte_cont(pte) && pte_valid(__ptep_get(ptep)))
+ 		clear_flush(mm, addr, ptep, pgsize, ncontig);
+ 
+-	__set_ptes_anysz(mm, ptep, pte, ncontig, pgsize);
++	__set_ptes_anysz(mm, addr, ptep, pte, ncontig, pgsize);
+ }
+ 
+ pte_t *huge_pte_alloc(struct mm_struct *mm, struct vm_area_struct *vma,
+@@ -445,7 +445,7 @@ int huge_ptep_set_access_flags(struct vm
+ 	if (pte_young(orig_pte))
+ 		pte = pte_mkyoung(pte);
+ 
+-	__set_ptes_anysz(mm, ptep, pte, ncontig, pgsize);
++	__set_ptes_anysz(mm, addr, ptep, pte, ncontig, pgsize);
+ 	return 1;
+ }
+ 
+@@ -469,7 +469,7 @@ void huge_ptep_set_wrprotect(struct mm_s
+ 	pte = get_clear_contig_flush(mm, addr, ptep, pgsize, ncontig);
+ 	pte = pte_wrprotect(pte);
+ 
+-	__set_ptes_anysz(mm, ptep, pte, ncontig, pgsize);
++	__set_ptes_anysz(mm, addr, ptep, pte, ncontig, pgsize);
+ }
+ 
+ pte_t huge_ptep_clear_flush(struct vm_area_struct *vma,
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from ajd@linux.ibm.com are
 
 
