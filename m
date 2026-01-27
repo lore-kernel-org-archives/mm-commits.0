@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3446F31619E
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CCB731619E
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486661; cv=none; b=KCgpvxut6pqQ2QybWJWlwX/VwLlH3Z2e2ntgzPVugJ3fNR/BmOTzgh6M4smrfLcELdluu1Jah5wb0EhIPtL+kidL5eXXNgY36v+EKQ8jYyI5+Aow35shFioIVZLt4NUFi98Fg5uLEesaMtA9UuO5hTvMLdrmmAZ8xMdL3hBwVgo=
+	t=1769486663; cv=none; b=Oxv8Q/l8GKccCVDb0H9mJOlzLA1oCL8+3hCcDEkeNY1u6tQfOoigg3O9lH+GocpRK/9whyyv8kKc1RYA8EPXnriLIYB/2TrlG745YrSGRCavWAJSD7uHBxplj1I4zT7yFQszZ/YZLhVMPaUL+ny9o56CVJqpWTz+asvRa/yXvDo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486661; c=relaxed/simple;
-	bh=17UYQ5IUs2Iz9HR4Zfz5ET0Oi+Gf2sZwJE+xdZXuTHs=;
-	h=Date:To:From:Subject:Message-Id; b=J5AIGyYQqwr5qOcQVnUZK5BSbb7NGd2IUHQVioU/7jiM4Fabw7G86kBokqAfC3Cmh/HwzR/A7FcQLwXMl9Ah9uXYkeGgaRVd1ldBbR860QyeuuxJLgbXaOnyKMglBMGQnAx1JDcQRBvnZCiRz26QaWD18K5y0s4sJhDhBkZfELg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bE46tpKn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486663; c=relaxed/simple;
+	bh=ptiviejfuDDYCzdcfiHKb6ly6O2tC6xA95n/Ctt3v2g=;
+	h=Date:To:From:Subject:Message-Id; b=dfLej+0XZ4/bXZWKe/Akh1NWg+6zuAYFf/WViX0241nzRgD/MS2ORYZIPos83d392/OMQvsa2EaI2wEb8M8qS91doB4QFvQDQsy8xrSKKPlQAV960sROMxG+aWtKiRdQjZkH1bC5seFilllpXuOZUKdZSIeiEwV3E8WSnHGAISg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MxtdVfAI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bE46tpKn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A3C0C116C6;
-	Tue, 27 Jan 2026 04:04:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MxtdVfAI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0F80C116C6;
+	Tue, 27 Jan 2026 04:04:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486661;
-	bh=17UYQ5IUs2Iz9HR4Zfz5ET0Oi+Gf2sZwJE+xdZXuTHs=;
+	s=korg; t=1769486662;
+	bh=ptiviejfuDDYCzdcfiHKb6ly6O2tC6xA95n/Ctt3v2g=;
 	h=Date:To:From:Subject:From;
-	b=bE46tpKnJ2jLVYq3Y8K/ix2Ra1buy1OmdxYo62IXIC9cFwsSUAXhPa071pUwv6F9T
-	 4VMrqflqotpvqNMhC+bOlC5Sg+g+H3RO2O3YqA7cODv9RErqETqXEycHmYqdSyajDO
-	 /fw4POdxGNF/2RHPiHYPNZPWqZ3+/yFgNAvqNqCk=
-Date: Mon, 26 Jan 2026 20:04:20 -0800
+	b=MxtdVfAIBtFZxVyml3D3iMsv3slOrNcEbhFwlp2zbMZ+JZ05OuWcAmvs8rjdKGE9b
+	 voZt0NdK89hNMNSXWkwTbe49MQWO7Ohv4XlRjmji+gi2WnGjryFYYPYa5psbx1eJ/i
+	 A1iBQ7y9jvTNml4uLwMrh3itSRHGZBIsAtavaE1s=
+Date: Mon, 26 Jan 2026 20:04:22 -0800
 To: mm-commits@vger.kernel.org,v-songbaohua@oppo.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,riel@surriel.com,pfalcato@suse.de,mhocko@suse.com,Liam.Howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,chriscli@google.com,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rmap-remove-anon_vma_merge-function.patch removed from -mm tree
-Message-Id: <20260127040421.0A3C0C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rmap-make-anon_vma-functions-internal.patch removed from -mm tree
+Message-Id: <20260127040422.C0F80C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: remove anon_vma_merge() function
+     Subject: mm/rmap: make anon_vma functions internal
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-remove-anon_vma_merge-function.patch
+     mm-rmap-make-anon_vma-functions-internal.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/rmap: remove anon_vma_merge() function
-Date: Sun, 18 Jan 2026 14:50:41 +0000
+Subject: mm/rmap: make anon_vma functions internal
+Date: Sun, 18 Jan 2026 14:50:42 +0000
 
-This function is confusing, we already have the concept of anon_vma merge
-to adjacent VMA's anon_vma's to increase probability of anon_vma
-compatibility and therefore VMA merge (see is_mergeable_anon_vma() etc.),
-as well as anon_vma reuse, along side the usual VMA merge logic.
+The bulk of the anon_vma operations are only used by mm, so formalise this
+by putting the function prototypes and inlines in mm/internal.h.  This
+allows us to make changes without having to worry about the rest of the
+kernel.
 
-We can remove the anon_vma check as it is redundant - a merge would not
-have been permitted with removal if the anon_vma's were not the same (and
-in the case of an unfaulted/faulted merge, we would have already set the
-unfaulted VMA's anon_vma to vp->remove->anon_vma in dup_anon_vma()).
-
-Avoid overloading this term when we're very simply unlinking anon_vma
-state from a removed VMA upon merge.
-
-Link: https://lkml.kernel.org/r/56bbe45e309f7af197b1c4f94a9a0c8931ff2d29.1768746221.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/79ec933c3a9c8bf1f64dab253bbfdae8a01cb921.1768746221.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
@@ -78,52 +70,148 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h             |    7 -------
- mm/vma.c                         |    2 +-
- tools/testing/vma/vma_internal.h |    5 -----
- 3 files changed, 1 insertion(+), 13 deletions(-)
+ include/linux/rmap.h |   60 -----------------------------------------
+ mm/internal.h        |   58 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+), 60 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-remove-anon_vma_merge-function
+--- a/include/linux/rmap.h~mm-rmap-make-anon_vma-functions-internal
 +++ a/include/linux/rmap.h
-@@ -165,13 +165,6 @@ static inline int anon_vma_prepare(struc
- 	return __anon_vma_prepare(vma);
- }
+@@ -104,68 +104,8 @@ enum ttu_flags {
+ };
  
--static inline void anon_vma_merge(struct vm_area_struct *vma,
--				  struct vm_area_struct *next)
+ #ifdef CONFIG_MMU
+-static inline void get_anon_vma(struct anon_vma *anon_vma)
 -{
--	VM_BUG_ON_VMA(vma->anon_vma != next->anon_vma, vma);
--	unlink_anon_vmas(next);
+-	atomic_inc(&anon_vma->refcount);
+-}
+ 
+-void __put_anon_vma(struct anon_vma *anon_vma);
+-
+-static inline void put_anon_vma(struct anon_vma *anon_vma)
+-{
+-	if (atomic_dec_and_test(&anon_vma->refcount))
+-		__put_anon_vma(anon_vma);
 -}
 -
- struct anon_vma *folio_get_anon_vma(const struct folio *folio);
+-static inline void anon_vma_lock_write(struct anon_vma *anon_vma)
+-{
+-	down_write(&anon_vma->root->rwsem);
+-}
+-
+-static inline int anon_vma_trylock_write(struct anon_vma *anon_vma)
+-{
+-	return down_write_trylock(&anon_vma->root->rwsem);
+-}
+-
+-static inline void anon_vma_unlock_write(struct anon_vma *anon_vma)
+-{
+-	up_write(&anon_vma->root->rwsem);
+-}
+-
+-static inline void anon_vma_lock_read(struct anon_vma *anon_vma)
+-{
+-	down_read(&anon_vma->root->rwsem);
+-}
+-
+-static inline int anon_vma_trylock_read(struct anon_vma *anon_vma)
+-{
+-	return down_read_trylock(&anon_vma->root->rwsem);
+-}
+-
+-static inline void anon_vma_unlock_read(struct anon_vma *anon_vma)
+-{
+-	up_read(&anon_vma->root->rwsem);
+-}
+-
+-
+-/*
+- * anon_vma helper functions.
+- */
+ void anon_vma_init(void);	/* create anon_vma_cachep */
+-int  __anon_vma_prepare(struct vm_area_struct *);
+-void unlink_anon_vmas(struct vm_area_struct *);
+-int anon_vma_clone(struct vm_area_struct *, struct vm_area_struct *);
+-int anon_vma_fork(struct vm_area_struct *, struct vm_area_struct *);
+-
+-static inline int anon_vma_prepare(struct vm_area_struct *vma)
+-{
+-	if (likely(vma->anon_vma))
+-		return 0;
+-
+-	return __anon_vma_prepare(vma);
+-}
+-
+-struct anon_vma *folio_get_anon_vma(const struct folio *folio);
  
  #ifdef CONFIG_MM_ID
---- a/mm/vma.c~mm-rmap-remove-anon_vma_merge-function
-+++ a/mm/vma.c
-@@ -381,7 +381,7 @@ again:
- 			fput(vp->file);
- 		}
- 		if (vp->remove->anon_vma)
--			anon_vma_merge(vp->vma, vp->remove);
-+			unlink_anon_vmas(vp->remove);
- 		mm->map_count--;
- 		mpol_put(vma_policy(vp->remove));
- 		if (!vp->remove2)
---- a/tools/testing/vma/vma_internal.h~mm-rmap-remove-anon_vma_merge-function
-+++ a/tools/testing/vma/vma_internal.h
-@@ -1265,11 +1265,6 @@ static inline void i_mmap_unlock_write(s
- {
- }
+ static __always_inline void folio_lock_large_mapcount(struct folio *folio)
+--- a/mm/internal.h~mm-rmap-make-anon_vma-functions-internal
++++ a/mm/internal.h
+@@ -199,6 +199,64 @@ static inline void vma_close(struct vm_a
  
--static inline void anon_vma_merge(struct vm_area_struct *vma,
--				  struct vm_area_struct *next)
--{
--}
--
- static inline int userfaultfd_unmap_prep(struct vm_area_struct *vma,
- 					 unsigned long start,
- 					 unsigned long end,
+ #ifdef CONFIG_MMU
+ 
++static inline void get_anon_vma(struct anon_vma *anon_vma)
++{
++	atomic_inc(&anon_vma->refcount);
++}
++
++void __put_anon_vma(struct anon_vma *anon_vma);
++
++static inline void put_anon_vma(struct anon_vma *anon_vma)
++{
++	if (atomic_dec_and_test(&anon_vma->refcount))
++		__put_anon_vma(anon_vma);
++}
++
++static inline void anon_vma_lock_write(struct anon_vma *anon_vma)
++{
++	down_write(&anon_vma->root->rwsem);
++}
++
++static inline int anon_vma_trylock_write(struct anon_vma *anon_vma)
++{
++	return down_write_trylock(&anon_vma->root->rwsem);
++}
++
++static inline void anon_vma_unlock_write(struct anon_vma *anon_vma)
++{
++	up_write(&anon_vma->root->rwsem);
++}
++
++static inline void anon_vma_lock_read(struct anon_vma *anon_vma)
++{
++	down_read(&anon_vma->root->rwsem);
++}
++
++static inline int anon_vma_trylock_read(struct anon_vma *anon_vma)
++{
++	return down_read_trylock(&anon_vma->root->rwsem);
++}
++
++static inline void anon_vma_unlock_read(struct anon_vma *anon_vma)
++{
++	up_read(&anon_vma->root->rwsem);
++}
++
++struct anon_vma *folio_get_anon_vma(const struct folio *folio);
++
++int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src);
++int anon_vma_fork(struct vm_area_struct *vma, struct vm_area_struct *pvma);
++int  __anon_vma_prepare(struct vm_area_struct *vma);
++void unlink_anon_vmas(struct vm_area_struct *vma);
++
++static inline int anon_vma_prepare(struct vm_area_struct *vma)
++{
++	if (likely(vma->anon_vma))
++		return 0;
++
++	return __anon_vma_prepare(vma);
++}
++
+ /* Flags for folio_pte_batch(). */
+ typedef int __bitwise fpb_t;
+ 
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
