@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 496AB31619E
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:03:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5739931619E
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486639; cv=none; b=bjaRTQafTABiUgMsgfV4+shDw5YhmJ7ahVval6jIe8DzBbDJq8sQncTBtMXv4ZeKoIV80BBIvbxBjZ1iD2XWbBaevf394xjoQTJCMxqTKAPQMn2iyNVLkOSahwv80dat8a7KN5zb8r2B0BivPJFfgQB8kagqdCGLCiCJ8MrboSw=
+	t=1769486641; cv=none; b=NbbcWmc0aUU3PzTZ6YgX9QggcVGb03wiO0Ocrz0rEBi/i5B3Fklo4I4STn9fLR3n1h/5YEhbOsh0514kpvA5bbwLuTitNdtKI1Z4zRz0qJJSK7G7dGIeaGa/u0f/8t6NhaNrDDnBJuKJ7AON/3D+IuFTs1U/QKXS9qJk/fPUuH0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486639; c=relaxed/simple;
-	bh=heogiCohI0LMiTXA5C+vQ3ezRmKoC8iCNKeoJ3HrGaU=;
-	h=Date:To:From:Subject:Message-Id; b=kz3R1Kbgv6yiuK+yR+XPEZ5w2n5IkBQuOav0mhy90slsaBIDnuXYczle2w7zes4voHn+X1abWj+DhmD/tm0xy7pn+yrxdHjIhE/DgpOClot4Yiv0k6ElUKUUPT607RZm1pNYEXl8jEn9Ld90y2rdzziwHxB4xyUINws6Dvbvi/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cd5oVP2l; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486641; c=relaxed/simple;
+	bh=KrU7MkZLXMdG78LD/gjoKsg7jpHAWBQDVKeNMgjtFZw=;
+	h=Date:To:From:Subject:Message-Id; b=oqkH2uADXe9OGeHwRsBIWQUdWVpiS+yORWQ7gW9U+0E31JrdklmTdlRTBSjlKTPdzzXxkBjzDcvHhDkqhB7wAK+um+x3dLtR+G3OFOtuXXeXrcO8Cb547qpoeAZ27QB0AZxXCecVppq3gIP9JIaZMScdZMudUqm1xaroyma/GkU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GhPLVFPT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cd5oVP2l"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10D9CC116C6;
-	Tue, 27 Jan 2026 04:03:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GhPLVFPT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24B25C116C6;
+	Tue, 27 Jan 2026 04:04:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486639;
-	bh=heogiCohI0LMiTXA5C+vQ3ezRmKoC8iCNKeoJ3HrGaU=;
+	s=korg; t=1769486641;
+	bh=KrU7MkZLXMdG78LD/gjoKsg7jpHAWBQDVKeNMgjtFZw=;
 	h=Date:To:From:Subject:From;
-	b=Cd5oVP2liKLZTHvdfdgiPNLC20tgWqfPi22cnZ9vWB007Uju2IjiRXbMKLhjyY7o3
-	 YhZvho70M2vNbenZ9pn2t5LnQw18xRly0RhUmM97b/RBenfGedeAEFGFQefR1Fx8fK
-	 V5Cto93UL2nNZai6F+Ojx/KNq9zcDz0umFNVEz8Y=
-Date: Mon, 26 Jan 2026 20:03:58 -0800
+	b=GhPLVFPTxjmpR7nI+addu2csMEmh/WpDhtp4yneILXN59r0Aj54T9MkSxh587edWh
+	 FJReRBPIswSmifX41JFu5MPeUMSEUqli48iRcIcnSn6wXkNgGtQV4A7dhhoECcPwoc
+	 Y//taSRBwHI+nTTHtHGAowPLFG09zBUvihWBjNMU=
+Date: Mon, 26 Jan 2026 20:04:00 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,vgupta@kernel.org,vbabka@suse.cz,tsbogend@alpha.franken.de,tglx@linutronix.de,surenb@google.com,shorne@gmail.com,ritesh.list@gmail.com,richard@nod.at,pratyush@kernel.org,palmer@dabbelt.com,osalvador@suse.de,muchun.song@linux.dev,mpe@ellerman.id.au,monstr@monstr.eu,mingo@redhat.com,mhocko@suse.com,mattst88@gmail.com,lorenzo.stoakes@oracle.com,linux@armlinux.org.uk,linmag7@gmail.com,liam.howlett@oracle.com,klarasmodin@gmail.com,johannes@sipsolutions.net,jcmvbkbc@gmail.com,hca@linux.ibm.com,guoren@kernel.org,gor@linux.ibm.com,glaubitz@physik.fu-berlin.de,geert@linux-m68k.org,dinguyen@kernel.org,deller@gmx.de,david@kernel.org,davem@davemloft.net,corbet@lwn.net,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,andreas@gaisler.com,alexs@kernel.org,agordeev@linux.ibm.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map.patch removed from -mm tree
-Message-Id: <20260127040359.10D9CC116C6@smtp.kernel.org>
+Subject: [merged mm-stable] arch-mm-consolidate-initialization-of-sparse-memory-model.patch removed from -mm tree
+Message-Id: <20260127040401.24B25C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arch, mm: consolidate initialization of nodes, zones and memory map
+     Subject: arch, mm: consolidate initialization of SPARSE memory model
 has been removed from the -mm tree.  Its filename was
-     arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map.patch
+     arch-mm-consolidate-initialization-of-sparse-memory-model.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: arch, mm: consolidate initialization of nodes, zones and memory map
-Date: Sun, 11 Jan 2026 10:20:57 +0200
+Subject: arch, mm: consolidate initialization of SPARSE memory model
+Date: Sun, 11 Jan 2026 10:20:58 +0200
 
-To initialize node, zone and memory map data structures every architecture
-calls free_area_init() during setup_arch() and passes it an array of zone
-limits.
+Every architecture calls sparse_init() during setup_arch() although the
+data structures created by sparse_init() are not used until the
+initialization of the core MM.
 
-Beside code duplication it creates "interesting" ordering cases between
-allocation and initialization of hugetlb and the memory map.  Some
-architectures allocate hugetlb pages very early in setup_arch() in certain
-cases, some only create hugetlb CMA areas in setup_arch() and sometimes
-hugetlb allocations happen mm_core_init().
+Beside the code duplication, calling sparse_init() from architecture
+specific code causes ordering differences of vmemmap and HVO
+initialization on different architectures.
 
-With arch_zone_limits_init() helper available now on all architectures it
-is no longer necessary to call free_area_init() from architecture setup
-code.  Rather core MM initialization can call arch_zone_limits_init() in a
-single place.
+Move the call to sparse_init() from architecture specific code to
+free_area_init() to ensure that vmemmap and HVO initialization order is
+always the same.
 
-This allows to unify ordering of hugetlb vs memory map allocation and
-initialization.
-
-Remove the call to free_area_init() from architecture specific code and
-place it in a new mm_core_init_early() function that is called immediately
-after setup_arch().
-
-After this refactoring it is possible to consolidate hugetlb allocations
-and eliminate differences in ordering of hugetlb and memory map
-initialization among different architectures.
-
-As the first step of this consolidation move hugetlb_bootmem_alloc() to
-mm_core_early_init().
-
-Link: https://lkml.kernel.org/r/20260111082105.290734-24-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20260111082105.290734-25-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alex Shi <alexs@kernel.org>
@@ -122,728 +105,297 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/mm/init.c                 |    9 +--------
- arch/arc/mm/init.c                   |    5 -----
- arch/arm/mm/init.c                   |   16 ----------------
- arch/arm64/mm/init.c                 |    4 ----
- arch/csky/kernel/setup.c             |    4 ----
- arch/hexagon/mm/init.c               |   12 ------------
- arch/loongarch/include/asm/pgtable.h |    2 --
- arch/loongarch/kernel/setup.c        |    2 --
- arch/loongarch/mm/init.c             |    8 --------
- arch/m68k/mm/init.c                  |    3 ---
- arch/m68k/mm/mcfmmu.c                |    3 ---
- arch/m68k/mm/motorola.c              |    6 +-----
- arch/m68k/mm/sun3mmu.c               |    9 ---------
- arch/microblaze/mm/init.c            |    7 -------
- arch/mips/loongson64/numa.c          |    4 ----
- arch/mips/mm/init.c                  |    5 -----
- arch/mips/sgi-ip27/ip27-memory.c     |    4 ----
- arch/nios2/mm/init.c                 |    6 ------
- arch/openrisc/mm/init.c              |   10 ----------
- arch/parisc/mm/init.c                |    9 ---------
- arch/powerpc/mm/mem.c                |    4 ----
- arch/riscv/mm/init.c                 |    9 ---------
- arch/s390/mm/init.c                  |    5 -----
- arch/sh/mm/init.c                    |    5 -----
- arch/sparc/mm/init_64.c              |   11 -----------
- arch/sparc/mm/srmmu.c                |    7 -------
- arch/um/kernel/mem.c                 |    5 -----
- arch/x86/mm/init.c                   |   10 ----------
- arch/x86/mm/init_32.c                |    1 -
- arch/x86/mm/init_64.c                |    2 --
- arch/x86/mm/mm_internal.h            |    1 -
- arch/xtensa/mm/init.c                |    4 ----
- include/linux/mm.h                   |    4 ++--
- init/main.c                          |    1 +
- mm/mm_init.c                         |   18 ++++++++++--------
- 35 files changed, 15 insertions(+), 200 deletions(-)
+ Documentation/mm/memory-model.rst                    |    3 --
+ Documentation/translations/zh_CN/mm/memory-model.rst |    2 -
+ arch/alpha/kernel/setup.c                            |    1 
+ arch/arm/mm/init.c                                   |    6 -----
+ arch/arm64/mm/init.c                                 |    6 -----
+ arch/csky/kernel/setup.c                             |    2 -
+ arch/loongarch/kernel/setup.c                        |    8 -------
+ arch/mips/kernel/setup.c                             |   11 ----------
+ arch/parisc/mm/init.c                                |    2 -
+ arch/powerpc/include/asm/setup.h                     |    4 +++
+ arch/powerpc/mm/mem.c                                |    5 ----
+ arch/powerpc/mm/numa.c                               |    2 -
+ arch/riscv/mm/init.c                                 |    1 
+ arch/s390/mm/init.c                                  |    1 
+ arch/sh/mm/init.c                                    |    2 -
+ arch/sparc/mm/init_64.c                              |    2 -
+ arch/x86/mm/init_32.c                                |    1 
+ arch/x86/mm/init_64.c                                |    2 -
+ include/linux/mmzone.h                               |    2 -
+ mm/internal.h                                        |    6 +++++
+ mm/mm_init.c                                         |    1 
+ 21 files changed, 11 insertions(+), 59 deletions(-)
 
---- a/arch/alpha/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/alpha/mm/init.c
-@@ -220,17 +220,10 @@ void __init arch_zone_limits_init(unsign
- }
+--- a/arch/alpha/kernel/setup.c~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/arch/alpha/kernel/setup.c
+@@ -607,7 +607,6 @@ setup_arch(char **cmdline_p)
+ 	/* Find our memory.  */
+ 	setup_memory(kernel_end);
+ 	memblock_set_bottom_up(true);
+-	sparse_init();
  
- /*
-- * paging_init() sets up the memory map.
-+ * paging_init() initializes the kernel's ZERO_PGE.
-  */
- void __init paging_init(void)
- {
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = {0, };
--
--	/* Initialize mem_map[].  */
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);
--
--	/* Initialize the kernel's ZERO_PGE. */
- 	memset(absolute_pointer(ZERO_PGE), 0, PAGE_SIZE);
- }
- 
---- a/arch/arc/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/arc/mm/init.c
-@@ -102,8 +102,6 @@ void __init arch_zone_limits_init(unsign
-  */
- void __init setup_arch_memory(void)
- {
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
--
- 	setup_initial_init_mm(_text, _etext, _edata, _end);
- 
- 	/* first page of system - kernel .vector starts here */
-@@ -158,9 +156,6 @@ void __init setup_arch_memory(void)
- 	arch_pfn_offset = min(min_low_pfn, min_high_pfn);
- 	kmap_init();
- #endif /* CONFIG_HIGHMEM */
--
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);
- }
- 
- void __init arch_mm_preinit(void)
---- a/arch/arm64/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
+ 	/* First guess at cpu cache sizes.  Do this before init_arch.  */
+ 	determine_cpu_caches(cpu->type);
+--- a/arch/arm64/mm/init.c~arch-mm-consolidate-initialization-of-sparse-memory-model
 +++ a/arch/arm64/mm/init.c
-@@ -134,7 +134,6 @@ void __init arch_zone_limits_init(unsign
- 
- static void __init dma_limits_init(void)
- {
--	unsigned long max_zone_pfns[MAX_NR_ZONES]  = {0};
- 	phys_addr_t __maybe_unused acpi_zone_dma_limit;
- 	phys_addr_t __maybe_unused dt_zone_dma_limit;
- 	phys_addr_t __maybe_unused dma32_phys_limit =
-@@ -160,9 +159,6 @@ static void __init dma_limits_init(void)
+@@ -321,12 +321,6 @@ void __init bootmem_init(void)
  #endif
- 	if (!arm64_dma_phys_limit)
- 		arm64_dma_phys_limit = PHYS_MASK + 1;
--
--	arch_zone_limits_init(max_zone_pfns);
--	free_area_init(max_zone_pfns);
- }
  
- int pfn_is_map_memory(unsigned long pfn)
---- a/arch/arm/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/arm/mm/init.c
-@@ -118,15 +118,6 @@ void __init arch_zone_limits_init(unsign
- #endif
- }
- 
--static void __init zone_sizes_init(unsigned long min, unsigned long max_low,
--	unsigned long max_high)
--{
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
--
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);
--}
--
- #ifdef CONFIG_HAVE_ARCH_PFN_VALID
- int pfn_valid(unsigned long pfn)
- {
-@@ -222,13 +213,6 @@ void __init bootmem_init(void)
- 	 * done after the fixed reservations
- 	 */
- 	sparse_init();
+ 	kvm_hyp_reserve();
 -
 -	/*
--	 * Now free the memory - free_area_init needs
--	 * the sparse mem_map arrays initialized by sparse_init()
--	 * for memmap_init_zone(), otherwise all PFNs are invalid.
+-	 * sparse_init() tries to allocate memory from memblock, so must be
+-	 * done after the fixed reservations
 -	 */
--	zone_sizes_init(min_low_pfn, max_low_pfn, max_pfn);
- }
+-	sparse_init();
+ 	dma_limits_init();
  
- /*
---- a/arch/csky/kernel/setup.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/csky/kernel/setup.c
-@@ -63,7 +63,6 @@ static void __init csky_memblock_init(vo
- {
- 	unsigned long lowmem_size = PFN_DOWN(LOWMEM_LIMIT - PHYS_OFFSET_OFFSET);
- 	unsigned long sseg_size = PFN_DOWN(SSEG_SIZE - PHYS_OFFSET_OFFSET);
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
- 	signed long size;
- 
- 	memblock_reserve(__pa(_start), _end - _start);
-@@ -101,9 +100,6 @@ static void __init csky_memblock_init(vo
- 	memblock_set_current_limit(PFN_PHYS(max_low_pfn));
- 
- 	dma_contiguous_reserve(0);
--
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);
- }
- 
- void __init setup_arch(char **cmdline_p)
---- a/arch/hexagon/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/hexagon/mm/init.c
-@@ -66,20 +66,8 @@ void __init arch_zone_limits_init(unsign
- 	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
- }
- 
--/*
-- * In order to set up page allocator "nodes",
-- * somebody has to call free_area_init() for UMA.
-- *
-- * In this mode, we only have one pg_data_t
-- * structure: contig_mem_data.
-- */
- static void __init paging_init(void)
- {
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = {0, };
--
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);  /*  sets up the zonelists and mem_map  */
--
  	/*
- 	 * Set the init_mm descriptors "context" value to point to the
- 	 * initial kernel segment table's physical address.
---- a/arch/loongarch/include/asm/pgtable.h~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/loongarch/include/asm/pgtable.h
-@@ -353,8 +353,6 @@ static inline pte_t pte_swp_clear_exclus
- 	return pte;
+--- a/arch/arm/mm/init.c~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/arch/arm/mm/init.c
+@@ -207,12 +207,6 @@ void __init bootmem_init(void)
+ 
+ 	early_memtest((phys_addr_t)min_low_pfn << PAGE_SHIFT,
+ 		      (phys_addr_t)max_low_pfn << PAGE_SHIFT);
+-
+-	/*
+-	 * sparse_init() tries to allocate memory from memblock, so must be
+-	 * done after the fixed reservations
+-	 */
+-	sparse_init();
  }
- 
--extern void paging_init(void);
--
- #define pte_none(pte)		(!(pte_val(pte) & ~_PAGE_GLOBAL))
- #define pte_present(pte)	(pte_val(pte) & (_PAGE_PRESENT | _PAGE_PROTNONE))
- #define pte_no_exec(pte)	(pte_val(pte) & _PAGE_NO_EXEC)
---- a/arch/loongarch/kernel/setup.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/loongarch/kernel/setup.c
-@@ -621,8 +621,6 @@ void __init setup_arch(char **cmdline_p)
- 	prefill_possible_map();
- #endif
- 
--	paging_init();
--
- #ifdef CONFIG_KASAN
- 	kasan_init();
- #endif
---- a/arch/loongarch/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/loongarch/mm/init.c
-@@ -68,14 +68,6 @@ void __init arch_zone_limits_init(unsign
- 	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
- }
- 
--void __init paging_init(void)
--{
--	unsigned long max_zone_pfns[MAX_NR_ZONES];
--
--	arch_zone_limits_init(max_zone_pfns);
--	free_area_init(max_zone_pfns);
--}
--
- void __ref free_initmem(void)
- {
- 	free_initmem_default(POISON_FREE_INITMEM);
---- a/arch/m68k/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/m68k/mm/init.c
-@@ -69,13 +69,10 @@ void __init paging_init(void)
- 	 * page_alloc get different views of the world.
- 	 */
- 	unsigned long end_mem = memory_end & PAGE_MASK;
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0, };
- 
- 	high_memory = (void *) end_mem;
- 
- 	empty_zero_page = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);
- }
- 
- #endif /* CONFIG_MMU */
---- a/arch/m68k/mm/mcfmmu.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/m68k/mm/mcfmmu.c
-@@ -39,7 +39,6 @@ void __init paging_init(void)
- 	pte_t *pg_table;
- 	unsigned long address, size;
- 	unsigned long next_pgtable;
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
- 	int i;
- 
- 	empty_zero_page = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
-@@ -73,8 +72,6 @@ void __init paging_init(void)
- 	}
- 
- 	current->mm = NULL;
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);
- }
- 
- int cf_tlb_miss(struct pt_regs *regs, int write, int dtlb, int extension_word)
---- a/arch/m68k/mm/motorola.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/m68k/mm/motorola.c
-@@ -429,7 +429,6 @@ DECLARE_VM_GET_PAGE_PROT
-  */
- void __init paging_init(void)
- {
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0, };
- 	unsigned long min_addr, max_addr;
- 	unsigned long addr;
- 	int i;
-@@ -511,12 +510,9 @@ void __init paging_init(void)
- 	set_fc(USER_DATA);
- 
- #ifdef DEBUG
--	printk ("before free_area_init\n");
-+	printk ("before node_set_state\n");
- #endif
- 	for (i = 0; i < m68k_num_memory; i++)
- 		if (node_present_pages(i))
- 			node_set_state(i, N_NORMAL_MEMORY);
--
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);
- }
---- a/arch/m68k/mm/sun3mmu.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/m68k/mm/sun3mmu.c
-@@ -41,7 +41,6 @@ void __init paging_init(void)
- 	unsigned long address;
- 	unsigned long next_pgtable;
- 	unsigned long bootmem_end;
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0, };
- 	unsigned long size;
- 
- 	empty_zero_page = memblock_alloc_or_panic(PAGE_SIZE, PAGE_SIZE);
-@@ -80,14 +79,6 @@ void __init paging_init(void)
- 	mmu_emu_init(bootmem_end);
- 
- 	current->mm = NULL;
--
--	/* memory sizing is a hack stolen from motorola.c..  hope it works for us */
--	arch_zone_limits_init(max_zone_pfn);
--
--	/* I really wish I knew why the following change made things better...  -- Sam */
--	free_area_init(max_zone_pfn);
--
--
- }
- 
- static const pgprot_t protection_map[16] = {
---- a/arch/microblaze/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/microblaze/mm/init.c
-@@ -69,22 +69,15 @@ void __init arch_zone_limits_init(unsign
-  */
- static void __init paging_init(void)
- {
--	unsigned long zones_size[MAX_NR_ZONES];
- 	int idx;
- 
- 	/* Setup fixmaps */
- 	for (idx = 0; idx < __end_of_fixed_addresses; idx++)
- 		clear_fixmap(idx);
- 
--	/* Clean every zones */
--	memset(zones_size, 0, sizeof(zones_size));
--
- #ifdef CONFIG_HIGHMEM
- 	highmem_init();
- #endif
--	arch_zone_limits_init(zones_size);
--	/* We don't have holes in memory map */
--	free_area_init(zones_size);
- }
- 
- void __init setup_memory(void)
---- a/arch/mips/loongson64/numa.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/mips/loongson64/numa.c
-@@ -162,11 +162,7 @@ void __init arch_zone_limits_init(unsign
- 
- void __init paging_init(void)
- {
--	unsigned long zones_size[MAX_NR_ZONES] = {0, };
--
- 	pagetable_init();
--	arch_zone_limits_init(zones_size);
--	free_area_init(zones_size);
- }
- 
- /* All PCI device belongs to logical Node-0 */
---- a/arch/mips/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/mips/mm/init.c
-@@ -417,12 +417,7 @@ void __init arch_zone_limits_init(unsign
- 
- void __init paging_init(void)
- {
--	unsigned long max_zone_pfns[MAX_NR_ZONES];
--
- 	pagetable_init();
--
--	arch_zone_limits_init(max_zone_pfns);
--	free_area_init(max_zone_pfns);
- }
- 
- #ifdef CONFIG_64BIT
---- a/arch/mips/sgi-ip27/ip27-memory.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/mips/sgi-ip27/ip27-memory.c
-@@ -413,9 +413,5 @@ void __init arch_zone_limits_init(unsign
- 
- void __init paging_init(void)
- {
--	unsigned long zones_size[MAX_NR_ZONES] = {0, };
--
- 	pagetable_init();
--	arch_zone_limits_init(zones_size);
--	free_area_init(zones_size);
- }
---- a/arch/nios2/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/nios2/mm/init.c
-@@ -51,15 +51,9 @@ void __init arch_zone_limits_init(unsign
-  */
- void __init paging_init(void)
- {
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
--
- 	pagetable_init();
- 	pgd_current = swapper_pg_dir;
- 
--	arch_zone_limits_init(max_zone_pfn);
--	/* pass the memory from the bootmem allocator to the main allocator */
--	free_area_init(max_zone_pfn);
--
- 	flush_dcache_range((unsigned long)empty_zero_page,
- 			(unsigned long)empty_zero_page + PAGE_SIZE);
- }
---- a/arch/openrisc/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/openrisc/mm/init.c
-@@ -47,14 +47,6 @@ void __init arch_zone_limits_init(unsign
- 	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
- }
- 
--static void __init zone_sizes_init(void)
--{
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
--
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);
--}
--
- extern const char _s_kernel_ro[], _e_kernel_ro[];
  
  /*
-@@ -145,8 +137,6 @@ void __init paging_init(void)
+--- a/arch/csky/kernel/setup.c~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/arch/csky/kernel/setup.c
+@@ -123,8 +123,6 @@ void __init setup_arch(char **cmdline_p)
+ 	setup_smp();
+ #endif
  
- 	map_ram();
- 
--	zone_sizes_init();
+-	sparse_init();
 -
- 	/* self modifying code ;) */
- 	/* Since the old TLB miss handler has been running up until now,
- 	 * the kernel pages are still all RW, so we can still modify the
---- a/arch/parisc/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
+ 	fixaddr_init();
+ 
+ #ifdef CONFIG_HIGHMEM
+--- a/arch/loongarch/kernel/setup.c~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/arch/loongarch/kernel/setup.c
+@@ -402,14 +402,6 @@ static void __init arch_mem_init(char **
+ 
+ 	check_kernel_sections_mem();
+ 
+-	/*
+-	 * In order to reduce the possibility of kernel panic when failed to
+-	 * get IO TLB memory under CONFIG_SWIOTLB, it is better to allocate
+-	 * low memory as small as possible before swiotlb_init(), so make
+-	 * sparse_init() using top-down allocation.
+-	 */
+-	memblock_set_bottom_up(false);
+-	sparse_init();
+ 	memblock_set_bottom_up(true);
+ 
+ 	swiotlb_init(true, SWIOTLB_VERBOSE);
+--- a/arch/mips/kernel/setup.c~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/arch/mips/kernel/setup.c
+@@ -614,7 +614,6 @@ static void __init bootcmdline_init(void
+  * kernel but generic memory management system is still entirely uninitialized.
+  *
+  *  o bootmem_init()
+- *  o sparse_init()
+  *  o paging_init()
+  *  o dma_contiguous_reserve()
+  *
+@@ -665,16 +664,6 @@ static void __init arch_mem_init(char **
+ 	mips_parse_crashkernel();
+ 	device_tree_init();
+ 
+-	/*
+-	 * In order to reduce the possibility of kernel panic when failed to
+-	 * get IO TLB memory under CONFIG_SWIOTLB, it is better to allocate
+-	 * low memory as small as possible before plat_swiotlb_setup(), so
+-	 * make sparse_init() using top-down allocation.
+-	 */
+-	memblock_set_bottom_up(false);
+-	sparse_init();
+-	memblock_set_bottom_up(true);
+-
+ 	plat_swiotlb_setup();
+ 
+ 	dma_contiguous_reserve(PFN_PHYS(max_low_pfn));
+--- a/arch/parisc/mm/init.c~arch-mm-consolidate-initialization-of-sparse-memory-model
 +++ a/arch/parisc/mm/init.c
-@@ -698,14 +698,6 @@ void __init arch_zone_limits_init(unsign
- 	max_zone_pfns[ZONE_NORMAL] = PFN_DOWN(memblock_end_of_DRAM());
- }
- 
--static void __init parisc_bootmem_free(void)
--{
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0, };
--
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);
--}
--
- void __init paging_init(void)
- {
- 	setup_bootmem();
-@@ -716,7 +708,6 @@ void __init paging_init(void)
+@@ -706,8 +706,6 @@ void __init paging_init(void)
+ 	fixmap_init();
+ 	flush_cache_all_local(); /* start with known state */
  	flush_tlb_all_local(NULL);
- 
- 	sparse_init();
--	parisc_bootmem_free();
+-
+-	sparse_init();
  }
  
  static void alloc_btlb(unsigned long start, unsigned long end, int *slot,
---- a/arch/powerpc/mm/mem.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
+--- a/arch/powerpc/include/asm/setup.h~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/arch/powerpc/include/asm/setup.h
+@@ -20,7 +20,11 @@ extern void reloc_got2(unsigned long);
+ 
+ void check_for_initrd(void);
+ void mem_topology_setup(void);
++#ifdef CONFIG_NUMA
+ void initmem_init(void);
++#else
++static inline void initmem_init(void) {}
++#endif
+ void setup_panic(void);
+ #define ARCH_PANIC_TIMEOUT 180
+ 
+--- a/arch/powerpc/mm/mem.c~arch-mm-consolidate-initialization-of-sparse-memory-model
 +++ a/arch/powerpc/mm/mem.c
-@@ -237,7 +237,6 @@ void __init arch_zone_limits_init(unsign
-  */
- void __init paging_init(void)
- {
--	unsigned long max_zone_pfns[MAX_NR_ZONES] = { 0 };
- 	unsigned long long total_ram = memblock_phys_mem_size();
- 	phys_addr_t top_of_ram = memblock_end_of_DRAM();
- 	int zone_dma_bits;
-@@ -269,9 +268,6 @@ void __init paging_init(void)
- 
- 	zone_dma_limit = DMA_BIT_MASK(zone_dma_bits);
- 
--	arch_zone_limits_init(max_zone_pfns);
--	free_area_init(max_zone_pfns);
--
- 	mark_nonram_nosave();
+@@ -182,11 +182,6 @@ void __init mem_topology_setup(void)
+ 	memblock_set_node(0, PHYS_ADDR_MAX, &memblock.memory, 0);
  }
  
---- a/arch/riscv/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/riscv/mm/init.c
-@@ -87,14 +87,6 @@ void __init arch_zone_limits_init(unsign
- 	max_zone_pfns[ZONE_NORMAL] = max_low_pfn;
- }
- 
--static void __init zone_sizes_init(void)
+-void __init initmem_init(void)
 -{
--	unsigned long max_zone_pfns[MAX_NR_ZONES] = { 0, };
--
--	arch_zone_limits_init(max_zone_pfns);
--	free_area_init(max_zone_pfns);
+-	sparse_init();
 -}
 -
- #if defined(CONFIG_MMU) && defined(CONFIG_DEBUG_VM)
+ /* mark pages that don't exist as nosave */
+ static int __init mark_nonram_nosave(void)
+ {
+--- a/arch/powerpc/mm/numa.c~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/arch/powerpc/mm/numa.c
+@@ -1213,8 +1213,6 @@ void __init initmem_init(void)
+ 		setup_node_data(nid, start_pfn, end_pfn);
+ 	}
  
- #define LOG2_SZ_1K  ilog2(SZ_1K)
-@@ -1443,7 +1435,6 @@ void __init misc_mem_init(void)
+-	sparse_init();
+-
+ 	/*
+ 	 * We need the numa_cpu_lookup_table to be accurate for all CPUs,
+ 	 * even before we online them, so that we can use cpu_to_{node,mem}
+--- a/arch/riscv/mm/init.c~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/arch/riscv/mm/init.c
+@@ -1430,7 +1430,6 @@ void __init misc_mem_init(void)
+ {
+ 	early_memtest(min_low_pfn << PAGE_SHIFT, max_low_pfn << PAGE_SHIFT);
+ 	arch_numa_init();
+-	sparse_init();
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
  	/* The entire VMEMMAP region has been populated. Flush TLB for this region */
  	local_flush_tlb_kernel_range(VMEMMAP_START, VMEMMAP_END);
- #endif
--	zone_sizes_init();
- 	arch_reserve_crashkernel();
- 	memblock_dump_all();
- }
---- a/arch/s390/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
+--- a/arch/s390/mm/init.c~arch-mm-consolidate-initialization-of-sparse-memory-model
 +++ a/arch/s390/mm/init.c
-@@ -97,14 +97,9 @@ void __init arch_zone_limits_init(unsign
-  */
+@@ -98,7 +98,6 @@ void __init arch_zone_limits_init(unsign
  void __init paging_init(void)
  {
--	unsigned long max_zone_pfns[MAX_NR_ZONES];
--
  	vmem_map_init();
- 	sparse_init();
+-	sparse_init();
  	zone_dma_limit = DMA_BIT_MASK(31);
--	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
--	arch_zone_limits_init(max_zone_pfns);
--	free_area_init(max_zone_pfns);
  }
  
- void mark_rodata_ro(void)
---- a/arch/sh/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
+--- a/arch/sh/mm/init.c~arch-mm-consolidate-initialization-of-sparse-memory-model
 +++ a/arch/sh/mm/init.c
-@@ -271,7 +271,6 @@ void __init arch_zone_limits_init(unsign
+@@ -227,8 +227,6 @@ static void __init do_init_bootmem(void)
+ 	node_set_online(0);
  
- void __init paging_init(void)
- {
--	unsigned long max_zone_pfns[MAX_NR_ZONES];
- 	unsigned long vaddr, end;
- 
- 	sh_mv.mv_mem_init();
-@@ -325,10 +324,6 @@ void __init paging_init(void)
- 	page_table_range_init(vaddr, end, swapper_pg_dir);
- 
- 	kmap_coherent_init();
+ 	plat_mem_setup();
 -
--	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
--	arch_zone_limits_init(max_zone_pfns);
--	free_area_init(max_zone_pfns);
+-	sparse_init();
  }
  
- unsigned int mem_init_done = 0;
---- a/arch/sparc/mm/init_64.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
+ static void __init early_reserve_mem(void)
+--- a/arch/sparc/mm/init_64.c~arch-mm-consolidate-initialization-of-sparse-memory-model
 +++ a/arch/sparc/mm/init_64.c
-@@ -2459,17 +2459,6 @@ void __init paging_init(void)
+@@ -1615,8 +1615,6 @@ static unsigned long __init bootmem_init
  
- 	kernel_physical_mapping_init();
+ 	/* XXX cpu notifier XXX */
  
--	{
--		unsigned long max_zone_pfns[MAX_NR_ZONES];
+-	sparse_init();
 -
--		memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
--
--		max_zone_pfns[ZONE_NORMAL] = end_pfn;
--
--		arch_zone_limits_init(max_zone_pfns);
--		free_area_init(max_zone_pfns);
--	}
--
- 	printk("Booting Linux...\n");
+ 	return end_pfn;
  }
  
---- a/arch/sparc/mm/srmmu.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/sparc/mm/srmmu.c
-@@ -970,13 +970,6 @@ void __init srmmu_paging_init(void)
- 	flush_tlb_all();
- 
- 	sparc_context_init(num_contexts);
--
--	{
--		unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
--
--		arch_zone_limits_init(max_zone_pfn);
--		free_area_init(max_zone_pfn);
--	}
- }
- 
- void mmu_info(struct seq_file *m)
---- a/arch/um/kernel/mem.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/um/kernel/mem.c
-@@ -91,16 +91,11 @@ void __init arch_zone_limits_init(unsign
- 
- void __init paging_init(void)
- {
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
--
- 	empty_zero_page = (unsigned long *) memblock_alloc_low(PAGE_SIZE,
- 							       PAGE_SIZE);
- 	if (!empty_zero_page)
- 		panic("%s: Failed to allocate %lu bytes align=%lx\n",
- 		      __func__, PAGE_SIZE, PAGE_SIZE);
--
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);
- }
- 
- /*
---- a/arch/x86/mm/init_32.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
+--- a/arch/x86/mm/init_32.c~arch-mm-consolidate-initialization-of-sparse-memory-model
 +++ a/arch/x86/mm/init_32.c
-@@ -655,7 +655,6 @@ void __init paging_init(void)
+@@ -654,7 +654,6 @@ void __init paging_init(void)
+ 	 * NOTE: at this point the bootmem allocator is fully available.
  	 */
  	olpc_dt_build_devicetree();
- 	sparse_init();
--	zone_sizes_init();
+-	sparse_init();
  }
  
  /*
---- a/arch/x86/mm/init_64.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
+--- a/arch/x86/mm/init_64.c~arch-mm-consolidate-initialization-of-sparse-memory-model
 +++ a/arch/x86/mm/init_64.c
-@@ -843,8 +843,6 @@ void __init paging_init(void)
- 	 */
- 	node_clear_state(0, N_MEMORY);
- 	node_clear_state(0, N_NORMAL_MEMORY);
--
--	zone_sizes_init();
- }
+@@ -833,8 +833,6 @@ void __init initmem_init(void)
  
- #define PAGE_UNUSED 0xFD
---- a/arch/x86/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/x86/mm/init.c
-@@ -1011,16 +1011,6 @@ void __init arch_zone_limits_init(unsign
- #endif
- }
- 
--void __init zone_sizes_init(void)
--{
--	unsigned long max_zone_pfns[MAX_NR_ZONES];
--
--	memset(max_zone_pfns, 0, sizeof(max_zone_pfns));
--
--	arch_zone_limits_init(max_zone_pfns);
--	free_area_init(max_zone_pfns);
--}
--
- __visible DEFINE_PER_CPU_ALIGNED(struct tlb_state, cpu_tlbstate) = {
- 	.loaded_mm = &init_mm,
- 	.next_asid = 1,
---- a/arch/x86/mm/mm_internal.h~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/x86/mm/mm_internal.h
-@@ -17,7 +17,6 @@ unsigned long kernel_physical_mapping_in
- unsigned long kernel_physical_mapping_change(unsigned long start,
- 					     unsigned long end,
- 					     unsigned long page_size_mask);
--void zone_sizes_init(void);
- 
- extern int after_bootmem;
- 
---- a/arch/xtensa/mm/init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/arch/xtensa/mm/init.c
-@@ -126,10 +126,6 @@ void __init arch_zone_limits_init(unsign
- 
- void __init zones_init(void)
+ void __init paging_init(void)
  {
--	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0, };
+-	sparse_init();
 -
--	arch_zone_limits_init(max_zone_pfn);
--	free_area_init(max_zone_pfn);
- 	print_vm_layout();
- }
+ 	/*
+ 	 * clear the default setting with node 0
+ 	 * note: don't use nodes_clear here, that is really clearing when
+--- a/Documentation/mm/memory-model.rst~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/Documentation/mm/memory-model.rst
+@@ -97,9 +97,6 @@ sections:
+   `mem_section` objects and the number of rows is calculated to fit
+   all the memory sections.
  
---- a/include/linux/mm.h~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/include/linux/mm.h
-@@ -45,6 +45,7 @@ struct pt_regs;
- struct folio_batch;
+-The architecture setup code should call sparse_init() to
+-initialize the memory sections and the memory maps.
+-
+ With SPARSEMEM there are two possible ways to convert a PFN to the
+ corresponding `struct page` - a "classic sparse" and "sparse
+ vmemmap". The selection is made at build time and it is determined by
+--- a/Documentation/translations/zh_CN/mm/memory-model.rst~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/Documentation/translations/zh_CN/mm/memory-model.rst
+@@ -83,8 +83,6 @@ 大小和位置取决于 `CONFIG_SPARSEM
+   每一行包含价值 `PAGE_SIZE` 的 `mem_section` 对象，行数的计算是为了适应所有的
+   内存区。
  
- void arch_mm_preinit(void);
-+void mm_core_init_early(void);
- void mm_core_init(void);
- void init_mm_internals(void);
+-架构设置代码应该调用sparse_init()来初始化内存区和内存映射。
+-
+ 通过SPARSEMEM，有两种可能的方式将PFN转换为相应的 `struct page` --"classic sparse"和
+  "sparse vmemmap"。选择是在构建时进行的，它由 `CONFIG_SPARSEMEM_VMEMMAP` 的
+  值决定。
+--- a/include/linux/mmzone.h~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/include/linux/mmzone.h
+@@ -2286,9 +2286,7 @@ static inline unsigned long next_present
+ #define pfn_to_nid(pfn)		(0)
+ #endif
  
-@@ -3540,7 +3541,7 @@ static inline unsigned long get_num_phys
- }
+-void sparse_init(void);
+ #else
+-#define sparse_init()	do {} while (0)
+ #define sparse_index_init(_sec, _nid)  do {} while (0)
+ #define sparse_vmemmap_init_nid_early(_nid) do {} while (0)
+ #define sparse_vmemmap_init_nid_late(_nid) do {} while (0)
+--- a/mm/internal.h~arch-mm-consolidate-initialization-of-sparse-memory-model
++++ a/mm/internal.h
+@@ -852,6 +852,12 @@ void memmap_init_range(unsigned long, in
+ 		unsigned long, enum meminit_context, struct vmem_altmap *, int,
+ 		bool);
+ 
++#ifdef CONFIG_SPARSEMEM
++void sparse_init(void);
++#else
++static inline void sparse_init(void) {}
++#endif /* CONFIG_SPARSEMEM */
++
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
  
  /*
-- * Using memblock node mappings, an architecture may initialise its
-+ * FIXME: Using memblock node mappings, an architecture may initialise its
-  * zones, allocate the backing mem_map and account for memory holes in an
-  * architecture independent manner.
-  *
-@@ -3555,7 +3556,6 @@ static inline unsigned long get_num_phys
-  *	memblock_add_node(base, size, nid, MEMBLOCK_NONE)
-  * free_area_init(max_zone_pfns);
-  */
--void free_area_init(unsigned long *max_zone_pfn);
- void arch_zone_limits_init(unsigned long *max_zone_pfn);
- unsigned long node_map_pfn_alignment(void);
- extern unsigned long absent_pages_in_range(unsigned long start_pfn,
---- a/init/main.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
-+++ a/init/main.c
-@@ -1025,6 +1025,7 @@ void start_kernel(void)
- 	page_address_init();
- 	pr_notice("%s", linux_banner);
- 	setup_arch(&command_line);
-+	mm_core_init_early();
- 	/* Static keys and static calls are needed by LSMs */
- 	jump_label_init();
- 	static_call_init();
---- a/mm/mm_init.c~arch-mm-consolidate-initialization-of-nodes-zones-and-memory-map
+--- a/mm/mm_init.c~arch-mm-consolidate-initialization-of-sparse-memory-model
 +++ a/mm/mm_init.c
-@@ -1807,7 +1807,6 @@ static void __init set_high_memory(void)
- 
- /**
-  * free_area_init - Initialise all pg_data_t and zone data
-- * @max_zone_pfn: an array of max PFNs for each zone
-  *
-  * This will call free_area_init_node() for each active node in the system.
-  * Using the page ranges provided by memblock_set_node(), the size of each
-@@ -1818,17 +1817,14 @@ static void __init set_high_memory(void)
-  * starts where the previous one ended. For example, ZONE_DMA32 starts
-  * at arch_max_dma_pfn.
-  */
--void __init free_area_init(unsigned long *max_zone_pfn)
-+static void __init free_area_init(void)
- {
-+	unsigned long max_zone_pfn[MAX_NR_ZONES] = { 0 };
- 	unsigned long start_pfn, end_pfn;
- 	int i, nid, zone;
+@@ -1825,6 +1825,7 @@ static void __init free_area_init(void)
  	bool descending;
  
--	/* Record where the zone boundaries are */
--	memset(arch_zone_lowest_possible_pfn, 0,
--				sizeof(arch_zone_lowest_possible_pfn));
--	memset(arch_zone_highest_possible_pfn, 0,
--				sizeof(arch_zone_highest_possible_pfn));
-+	arch_zone_limits_init(max_zone_pfn);
+ 	arch_zone_limits_init(max_zone_pfn);
++	sparse_init();
  
  	start_pfn = PHYS_PFN(memblock_start_of_DRAM());
  	descending = arch_has_descending_max_zone_pfns();
-@@ -2678,13 +2674,19 @@ void __init __weak mem_init(void)
- {
- }
- 
-+void __init mm_core_init_early(void)
-+{
-+	hugetlb_bootmem_alloc();
-+
-+	free_area_init();
-+}
-+
- /*
-  * Set up kernel memory allocators
-  */
- void __init mm_core_init(void)
- {
- 	arch_mm_preinit();
--	hugetlb_bootmem_alloc();
- 
- 	/* Initializations relying on SMP setup */
- 	BUILD_BUG_ON(MAX_ZONELISTS > 2);
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
