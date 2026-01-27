@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E71B318EFF
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 497383191AC
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486683; cv=none; b=hmjvqpUKcpNP4RH2exHD3S0oWmbLntmtEhK9lAzYJ3NMGCyPKO8z7TEGSByLiOdO6RBGgbgtfvaXG+ZedQZ9KWHo4JZtAPu0WHOt13KglA3B4WDq1aLCc7Rg6aDKQhm+3jDm2rLhlYcM+MaqpEdMM4yzchlAKh7gH8mcpW/SyU8=
+	t=1769486686; cv=none; b=INO9dCjLB6dyL4ReR50LabABjcwFMdXY6/JZTyGjUWQKCKYveII72JtoFPPhjqBhqd+wnfeTEHgUBzXis79urzTuHqzHzXBA1lAaLCnmnejv/VILsKR/WGQWXUqxG6+ehIcaYKf2h+b1P67Jq21au/ram2W2AFBaIa0l5RyAvAo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486683; c=relaxed/simple;
-	bh=dwTR6PDz5VqdczJjruuDEnQ5apU2O2ge0y9hHA9MrTM=;
-	h=Date:To:From:Subject:Message-Id; b=AE2Ckng8JyHa/YjfPiy6C1vIDdgiVufv9hlemVGvDgEaOFkQ0kYVuGOwa4uJQGox5LGpw6GSNXjxTZdD4ex8vYq/JguNaHRYfez8I9f4RqyCvbP0v1mZI3iNn6dct+vL8S8g9wlzEUjyaeF1Xltjd0sDuNO0iB0bCISPMeJHZr8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x4DrR8iQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486686; c=relaxed/simple;
+	bh=WOjUVS9Vi2nsRK104Kzij32ppX34n7mOy+P1D6k3nUU=;
+	h=Date:To:From:Subject:Message-Id; b=Kg0EB5yyuhCqYGGMSrzwLlL5D33xzlqlk9GYmKaXKbi8txaQVtnbX7wbKgcU9tRK3MInS3oNHffPnTGhfV/dVuNTgK7h0jHSlvGosQ6M/9PWwgZ+yJX0HW7g2s7kocqZH8yczB49xM5PVkkmup6CV4pqMiQL9rZTwe5gF1LxeFY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RbgrlBr/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x4DrR8iQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45752C116C6;
-	Tue, 27 Jan 2026 04:04:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RbgrlBr/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0FC2C116C6;
+	Tue, 27 Jan 2026 04:04:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486683;
-	bh=dwTR6PDz5VqdczJjruuDEnQ5apU2O2ge0y9hHA9MrTM=;
+	s=korg; t=1769486686;
+	bh=WOjUVS9Vi2nsRK104Kzij32ppX34n7mOy+P1D6k3nUU=;
 	h=Date:To:From:Subject:From;
-	b=x4DrR8iQbsyIJW5+2LFtI/6BQWeOAmjNqICyOIfetWZaPull4uhOFhhelRfwNNSrF
-	 ioJgBdWeF1upEIt0IhlkIPilc6u2RKc+5Jc3vhouPvqHOUIh+WHNDmyGyKuIQykMJ+
-	 LCUg/Q/DlhTiDupnP5u/jxzlUOUf+9O9vqDoUwHc=
-Date: Mon, 26 Jan 2026 20:04:42 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,sj@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@kernel.org,david@fromorbit.com,axelrasmussen@google.com,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=RbgrlBr/EGaQMZhJmjQ3s9RPlIx/n2Gh4huJRdQB97bUG1coBYSLAOQHpQClUnQoM
+	 36C8SNgK/9wSaMHo3csZ6Y58pP51FDdeymrNtWtQwSaLYI3bKvdrgF51kNehabtzEG
+	 fwOPtFIQ2z48c/MGBPB/UaSeupnDKey25N5kg1pk=
+Date: Mon, 26 Jan 2026 20:04:45 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,chengming.zhou@linux.dev,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memcg-rename-mem_cgroup_ino-to-mem_cgroup_id.patch removed from -mm tree
-Message-Id: <20260127040443.45752C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] zsmalloc-use-actual-object-size-to-detect-spans.patch removed from -mm tree
+Message-Id: <20260127040445.E0FC2C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,209 +35,183 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: rename mem_cgroup_ino() to mem_cgroup_id()
+     Subject: zsmalloc: use actual object size to detect spans
 has been removed from the -mm tree.  Its filename was
-     memcg-rename-mem_cgroup_ino-to-mem_cgroup_id.patch
+     zsmalloc-use-actual-object-size-to-detect-spans.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: rename mem_cgroup_ino() to mem_cgroup_id()
-Date: Thu, 25 Dec 2025 15:21:16 -0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: use actual object size to detect spans
+Date: Wed, 7 Jan 2026 14:21:44 +0900
 
-Rename mem_cgroup_ino() to mem_cgroup_id() and mem_cgroup_get_from_ino()
-to mem_cgroup_get_from_id().  These functions now use cgroup IDs (from
-cgroup_id()) rather than inode numbers, so the names should reflect that.
+Using class->size to detect spanning objects is not entirely correct,
+because some size classes can hold a range of object sizes of up to
+class->size bytes in length, due to size-classes merge.  Such classes use
+padding for cases when actually written objects are smaller than
+class->size.  zs_obj_read_begin() can incorrectly hit the slow path and
+perform memcpy of such objects, basically copying padding bytes.  Instead
+of class->size zs_obj_read_begin() should use the actual compressed object
+length (both zram and zswap know it) so that it can correctly handle
+situations when a written object is small enough to fit into the first
+physical page.
 
-[shakeel.butt@linux.dev: replace ino with id, per SeongJae]
-  Link: https://lkml.kernel.org/r/flkqanhyettp5uq22bjwg37rtmnpeg3mghznsylxcxxgaafpl4@nov2x7tagma7
-[akpm@linux-foundation.org: build fix]
-Link: https://lkml.kernel.org/r/20251225232116.294540-9-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: David Hildenbrand <david@kernel.org>
+Link: https://lkml.kernel.org/r/20260107052145.3586917-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reviewed-by: Yosry Ahmed <yosry.ahmed@linux.dev>	[zsmalloc & zswap]
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 ++++----
- mm/damon/core.c            |    2 +-
- mm/damon/ops-common.c      |    2 +-
- mm/damon/sysfs-schemes.c   |    2 +-
- mm/memcontrol.c            |    4 ++--
- mm/shrinker_debug.c        |   10 +++++-----
- mm/vmscan.c                |    6 +++---
- 7 files changed, 17 insertions(+), 17 deletions(-)
+ drivers/block/zram/zram_drv.c |   14 ++++++++------
+ include/linux/zsmalloc.h      |    4 ++--
+ mm/zsmalloc.c                 |   16 +++++++++++-----
+ mm/zswap.c                    |    5 +++--
+ 4 files changed, 24 insertions(+), 15 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-rename-mem_cgroup_ino-to-mem_cgroup_id
-+++ a/include/linux/memcontrol.h
-@@ -830,12 +830,12 @@ static inline unsigned short mem_cgroup_
- }
- struct mem_cgroup *mem_cgroup_from_private_id(unsigned short id);
+--- a/drivers/block/zram/zram_drv.c~zsmalloc-use-actual-object-size-to-detect-spans
++++ a/drivers/block/zram/zram_drv.c
+@@ -2062,11 +2062,11 @@ static int read_incompressible_page(stru
+ 	void *src, *dst;
  
--static inline u64 mem_cgroup_ino(struct mem_cgroup *memcg)
-+static inline u64 mem_cgroup_id(struct mem_cgroup *memcg)
- {
- 	return memcg ? cgroup_id(memcg->css.cgroup) : 0;
- }
+ 	handle = get_slot_handle(zram, index);
+-	src = zs_obj_read_begin(zram->mem_pool, handle, NULL);
++	src = zs_obj_read_begin(zram->mem_pool, handle, PAGE_SIZE, NULL);
+ 	dst = kmap_local_page(page);
+ 	copy_page(dst, src);
+ 	kunmap_local(dst);
+-	zs_obj_read_end(zram->mem_pool, handle, src);
++	zs_obj_read_end(zram->mem_pool, handle, PAGE_SIZE, src);
  
--struct mem_cgroup *mem_cgroup_get_from_ino(u64 ino);
-+struct mem_cgroup *mem_cgroup_get_from_id(u64 id);
- 
- static inline struct mem_cgroup *mem_cgroup_from_seq(struct seq_file *m)
- {
-@@ -1288,12 +1288,12 @@ static inline struct mem_cgroup *mem_cgr
- 	return NULL;
- }
- 
--static inline u64 mem_cgroup_ino(struct mem_cgroup *memcg)
-+static inline u64 mem_cgroup_id(struct mem_cgroup *memcg)
- {
  	return 0;
  }
+@@ -2084,11 +2084,12 @@ static int read_compressed_page(struct z
+ 	prio = get_slot_comp_priority(zram, index);
  
--static inline struct mem_cgroup *mem_cgroup_get_from_ino(u64 ino)
-+static inline struct mem_cgroup *mem_cgroup_get_from_id(u64 id)
+ 	zstrm = zcomp_stream_get(zram->comps[prio]);
+-	src = zs_obj_read_begin(zram->mem_pool, handle, zstrm->local_copy);
++	src = zs_obj_read_begin(zram->mem_pool, handle, size,
++				zstrm->local_copy);
+ 	dst = kmap_local_page(page);
+ 	ret = zcomp_decompress(zram->comps[prio], zstrm, src, size, dst);
+ 	kunmap_local(dst);
+-	zs_obj_read_end(zram->mem_pool, handle, src);
++	zs_obj_read_end(zram->mem_pool, handle, size, src);
+ 	zcomp_stream_put(zstrm);
+ 
+ 	return ret;
+@@ -2111,9 +2112,10 @@ static int read_from_zspool_raw(struct z
+ 	 * takes place here, as we read raw compressed data.
+ 	 */
+ 	zstrm = zcomp_stream_get(zram->comps[ZRAM_PRIMARY_COMP]);
+-	src = zs_obj_read_begin(zram->mem_pool, handle, zstrm->local_copy);
++	src = zs_obj_read_begin(zram->mem_pool, handle, size,
++				zstrm->local_copy);
+ 	memcpy_to_page(page, 0, src, size);
+-	zs_obj_read_end(zram->mem_pool, handle, src);
++	zs_obj_read_end(zram->mem_pool, handle, size, src);
+ 	zcomp_stream_put(zstrm);
+ 
+ 	return 0;
+--- a/include/linux/zsmalloc.h~zsmalloc-use-actual-object-size-to-detect-spans
++++ a/include/linux/zsmalloc.h
+@@ -40,9 +40,9 @@ unsigned int zs_lookup_class_index(struc
+ void zs_pool_stats(struct zs_pool *pool, struct zs_pool_stats *stats);
+ 
+ void *zs_obj_read_begin(struct zs_pool *pool, unsigned long handle,
+-			void *local_copy);
++			size_t mem_len, void *local_copy);
+ void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
+-		     void *handle_mem);
++		     size_t mem_len, void *handle_mem);
+ void zs_obj_write(struct zs_pool *pool, unsigned long handle,
+ 		  void *handle_mem, size_t mem_len);
+ 
+--- a/mm/zsmalloc.c~zsmalloc-use-actual-object-size-to-detect-spans
++++ a/mm/zsmalloc.c
+@@ -1065,7 +1065,7 @@ unsigned long zs_get_total_pages(struct
+ EXPORT_SYMBOL_GPL(zs_get_total_pages);
+ 
+ void *zs_obj_read_begin(struct zs_pool *pool, unsigned long handle,
+-			void *local_copy)
++			size_t mem_len, void *local_copy)
  {
- 	return NULL;
- }
---- a/mm/damon/core.c~memcg-rename-mem_cgroup_ino-to-mem_cgroup_id
-+++ a/mm/damon/core.c
-@@ -2094,7 +2094,7 @@ static unsigned long damos_get_node_memc
- 	unsigned long used_pages, numerator;
- 	struct sysinfo i;
+ 	struct zspage *zspage;
+ 	struct zpdesc *zpdesc;
+@@ -1087,7 +1087,10 @@ void *zs_obj_read_begin(struct zs_pool *
+ 	class = zspage_class(pool, zspage);
+ 	off = offset_in_page(class->size * obj_idx);
  
--	memcg = mem_cgroup_get_from_ino(goal->memcg_id);
-+	memcg = mem_cgroup_get_from_id(goal->memcg_id);
- 	if (!memcg) {
- 		if (goal->metric == DAMOS_QUOTA_NODE_MEMCG_USED_BP)
- 			return 0;
---- a/mm/damon/ops-common.c~memcg-rename-mem_cgroup_ino-to-mem_cgroup_id
-+++ a/mm/damon/ops-common.c
-@@ -274,7 +274,7 @@ bool damos_folio_filter_match(struct dam
- 		if (!memcg)
- 			matched = false;
- 		else
--			matched = filter->memcg_id == mem_cgroup_ino(memcg);
-+			matched = filter->memcg_id == mem_cgroup_id(memcg);
- 		rcu_read_unlock();
- 		break;
- 	case DAMOS_FILTER_TYPE_YOUNG:
---- a/mm/damon/sysfs-schemes.c~memcg-rename-mem_cgroup_ino-to-mem_cgroup_id
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2513,7 +2513,7 @@ static int damon_sysfs_memcg_path_to_id(
- 		if (!mem_cgroup_online(memcg))
- 			continue;
- 		if (damon_sysfs_memcg_path_eq(memcg, path, memcg_path)) {
--			*id = mem_cgroup_ino(memcg);
-+			*id = mem_cgroup_id(memcg);
- 			found = true;
- 			break;
- 		}
---- a/mm/memcontrol.c~memcg-rename-mem_cgroup_ino-to-mem_cgroup_id
-+++ a/mm/memcontrol.c
-@@ -3615,13 +3615,13 @@ struct mem_cgroup *mem_cgroup_from_priva
- 	return xa_load(&mem_cgroup_private_ids, id);
- }
+-	if (off + class->size <= PAGE_SIZE) {
++	if (!ZsHugePage(zspage))
++		mem_len += ZS_HANDLE_SIZE;
++
++	if (off + mem_len <= PAGE_SIZE) {
+ 		/* this object is contained entirely within a page */
+ 		addr = kmap_local_zpdesc(zpdesc);
+ 		addr += off;
+@@ -1096,7 +1099,7 @@ void *zs_obj_read_begin(struct zs_pool *
  
--struct mem_cgroup *mem_cgroup_get_from_ino(u64 ino)
-+struct mem_cgroup *mem_cgroup_get_from_id(u64 id)
+ 		/* this object spans two pages */
+ 		sizes[0] = PAGE_SIZE - off;
+-		sizes[1] = class->size - sizes[0];
++		sizes[1] = mem_len - sizes[0];
+ 		addr = local_copy;
+ 
+ 		memcpy_from_page(addr, zpdesc_page(zpdesc),
+@@ -1115,7 +1118,7 @@ void *zs_obj_read_begin(struct zs_pool *
+ EXPORT_SYMBOL_GPL(zs_obj_read_begin);
+ 
+ void zs_obj_read_end(struct zs_pool *pool, unsigned long handle,
+-		     void *handle_mem)
++		     size_t mem_len, void *handle_mem)
  {
- 	struct cgroup *cgrp;
- 	struct cgroup_subsys_state *css;
- 	struct mem_cgroup *memcg = NULL;
+ 	struct zspage *zspage;
+ 	struct zpdesc *zpdesc;
+@@ -1129,7 +1132,10 @@ void zs_obj_read_end(struct zs_pool *poo
+ 	class = zspage_class(pool, zspage);
+ 	off = offset_in_page(class->size * obj_idx);
  
--	cgrp = cgroup_get_from_id(ino);
-+	cgrp = cgroup_get_from_id(id);
- 	if (IS_ERR(cgrp))
- 		return NULL;
+-	if (off + class->size <= PAGE_SIZE) {
++	if (!ZsHugePage(zspage))
++		mem_len += ZS_HANDLE_SIZE;
++
++	if (off + mem_len <= PAGE_SIZE) {
+ 		if (!ZsHugePage(zspage))
+ 			off += ZS_HANDLE_SIZE;
+ 		handle_mem -= off;
+--- a/mm/zswap.c~zsmalloc-use-actual-object-size-to-detect-spans
++++ a/mm/zswap.c
+@@ -937,7 +937,8 @@ static bool zswap_decompress(struct zswa
+ 	u8 *src, *obj;
  
---- a/mm/shrinker_debug.c~memcg-rename-mem_cgroup_ino-to-mem_cgroup_id
-+++ a/mm/shrinker_debug.c
-@@ -70,7 +70,7 @@ static int shrinker_debugfs_count_show(s
- 					       memcg_aware ? memcg : NULL,
- 					       count_per_node);
- 		if (total) {
--			seq_printf(m, "%llu", mem_cgroup_ino(memcg));
-+			seq_printf(m, "%llu", mem_cgroup_id(memcg));
- 			for_each_node(nid)
- 				seq_printf(m, " %lu", count_per_node[nid]);
- 			seq_putc(m, '\n');
-@@ -107,7 +107,7 @@ static ssize_t shrinker_debugfs_scan_wri
- {
- 	struct shrinker *shrinker = file->private_data;
- 	unsigned long nr_to_scan = 0, read_len;
--	u64 ino;
-+	u64 id;
- 	struct shrink_control sc = {
- 		.gfp_mask = GFP_KERNEL,
- 	};
-@@ -120,7 +120,7 @@ static ssize_t shrinker_debugfs_scan_wri
- 		return -EFAULT;
- 	kbuf[read_len] = '\0';
+ 	acomp_ctx = acomp_ctx_get_cpu_lock(pool);
+-	obj = zs_obj_read_begin(pool->zs_pool, entry->handle, acomp_ctx->buffer);
++	obj = zs_obj_read_begin(pool->zs_pool, entry->handle, entry->length,
++				acomp_ctx->buffer);
  
--	if (sscanf(kbuf, "%llu %d %lu", &ino, &nid, &nr_to_scan) != 3)
-+	if (sscanf(kbuf, "%llu %d %lu", &id, &nid, &nr_to_scan) != 3)
- 		return -EINVAL;
+ 	/* zswap entries of length PAGE_SIZE are not compressed. */
+ 	if (entry->length == PAGE_SIZE) {
+@@ -966,7 +967,7 @@ static bool zswap_decompress(struct zswa
+ 	dlen = acomp_ctx->req->dlen;
  
- 	if (nid < 0 || nid >= nr_node_ids)
-@@ -130,7 +130,7 @@ static ssize_t shrinker_debugfs_scan_wri
- 		return size;
+ read_done:
+-	zs_obj_read_end(pool->zs_pool, entry->handle, obj);
++	zs_obj_read_end(pool->zs_pool, entry->handle, entry->length, obj);
+ 	acomp_ctx_put_unlock(acomp_ctx);
  
- 	if (shrinker->flags & SHRINKER_MEMCG_AWARE) {
--		memcg = mem_cgroup_get_from_ino(ino);
-+		memcg = mem_cgroup_get_from_id(id);
- 		if (!memcg)
- 			return -ENOENT;
- 
-@@ -138,7 +138,7 @@ static ssize_t shrinker_debugfs_scan_wri
- 			mem_cgroup_put(memcg);
- 			return -ENOENT;
- 		}
--	} else if (ino != 0) {
-+	} else if (id != 0) {
- 		return -EINVAL;
- 	}
- 
---- a/mm/vmscan.c~memcg-rename-mem_cgroup_ino-to-mem_cgroup_id
-+++ a/mm/vmscan.c
-@@ -5416,7 +5416,7 @@ static int lru_gen_seq_show(struct seq_f
- 		if (memcg)
- 			cgroup_path(memcg->css.cgroup, m->private, PATH_MAX);
- #endif
--		seq_printf(m, "memcg %llu %s\n", mem_cgroup_ino(memcg), path);
-+		seq_printf(m, "memcg %llu %s\n", mem_cgroup_id(memcg), path);
- 	}
- 
- 	seq_printf(m, " node %5d\n", nid);
-@@ -5512,12 +5512,12 @@ static int run_cmd(char cmd, u64 memcg_i
- 		return -EINVAL;
- 
- 	if (!mem_cgroup_disabled()) {
--		memcg = mem_cgroup_get_from_ino(memcg_id);
-+		memcg = mem_cgroup_get_from_id(memcg_id);
- 		if (!memcg)
- 			return -EINVAL;
- 	}
- 
--	if (memcg_id != mem_cgroup_ino(memcg))
-+	if (memcg_id != mem_cgroup_id(memcg))
- 		goto done;
- 
- 	sc->target_mem_cgroup = memcg;
+ 	if (!decomp_ret && dlen == PAGE_SIZE)
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
+zram-rename-init_lock-to-dev_lock.patch
+zsmalloc-make-common-caches-global.patch
 
