@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 919523191D2;
-	Tue, 27 Jan 2026 04:04:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF57E3191C4
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:04:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486693; cv=none; b=AtBlsjA7/tQo7U/OuC49Ixu2be+swonywweYchd75gd1bwIdMz6x2BFn9+q5vsMAimAbTrRMIMt3xBoseK87HHwsnHI1qrAwdZYEt5NyU2zqB9Qn9SCvceZM1K4EhPb4HaQw5Je4XMap2OWT86Qa2kMD4XH9NVAillHBKLCNFvA=
+	t=1769486694; cv=none; b=Sw9/5452TdJG1RDFcTzcvQ4XcQi0PP5sAmuBeDB9K7uqxFscEvui2gbpLHB/pr5PXY+1QnUUEgEJe4/Q+hbCpYI00siIBEW2wLpsDYLcgz2vgkvAnJ1FjvZ5cyBWwTA89a9R7/KeJGALFEtBgYNchv5XHf27T6A0e3R1tNmQDRo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486693; c=relaxed/simple;
-	bh=wt8QP+/D3ntBtKipjWyeYkn/ZCLF8LRN2iTuJsbrkfk=;
-	h=Date:To:From:Subject:Message-Id; b=gJLwFfYYyMATHzDnvxu8XbBom01ebyEonhpCWO9j+SJV+K1nzCcc2mmDJscWX8WXuFeFkhA/LAmHINmVrZhNnk277kx5ybQfgmDHF/wDcstBprhPR+cMbg56y93lhb4OWhVRmjmjsmfBCCxlK06+biUSQixfYndhsAX+i3bU4fE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hmeafQuG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769486694; c=relaxed/simple;
+	bh=KG+R7qLoz8ti44CTfniZ501WcbSMj4sM9dKja4qxkcQ=;
+	h=Date:To:From:Subject:Message-Id; b=FE6B9RpibIXRVy3kZDFqBkqN8EJAK1JJEkEawr1UdqJ8M1qFuMGC0HyQjDnu5wP40xZYK2fbfjX0M3h/awO58MhxU8kd0KkQSrFVjzMy56mMowdlG3UoBUpHENLRawjr4xx7AvdKUfeKEg+OdnwxNhPiQviQqemh1EM8SdwTLfE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CZpH0NGE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hmeafQuG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61BE9C116C6;
-	Tue, 27 Jan 2026 04:04:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CZpH0NGE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C6A7C116C6;
+	Tue, 27 Jan 2026 04:04:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486693;
-	bh=wt8QP+/D3ntBtKipjWyeYkn/ZCLF8LRN2iTuJsbrkfk=;
+	s=korg; t=1769486694;
+	bh=KG+R7qLoz8ti44CTfniZ501WcbSMj4sM9dKja4qxkcQ=;
 	h=Date:To:From:Subject:From;
-	b=hmeafQuGQlJ/wbIj6mMAqCnqIpR1XlzWG2X2DdVpltHnNwqJuMvZ3PGcnLzmRgduh
-	 ieYn7LB2QaBX5cirvYzlfkNj1IEEazAP/m0doZjb9Hvy+PV11iWhSTmVnf0SyEgkd1
-	 GxeVH5YZuH86qpPCJsYsp9THoXDHOaVALHe8/rN0=
-Date: Mon, 26 Jan 2026 20:04:52 -0800
-To: mm-commits@vger.kernel.org,urezki@gmail.com,stable@vger.kernel.org,hdanton@sina.com,kartikey406@gmail.com,akpm@linux-foundation.org
+	b=CZpH0NGEEWsHZ6nQ8HrkgmTVqGbsJyxn6K+NNPyIylBqzVH9KkVndq3JzX1OH7W7m
+	 qOZJDVYhqiFakz+tSkyEKAhK8ab1Vm98WeNjqpa9gtfpwRWZL0CpY4a5FlHOPhC+Hp
+	 CL+CFYrzYSa1uWHD5mSZga3vZhnhybzqOzdGA4GI=
+Date: Mon, 26 Jan 2026 20:04:54 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@redhat.com,claudiu.beznea.uj@bp.renesas.com,broonie@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-prevent-rcu-stalls-in-kasan_release_vmalloc_node.patch removed from -mm tree
-Message-Id: <20260127040453.61BE9C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-debug_vm_pgtable-add-debug_vm_pgtable_free_huge_page.patch removed from -mm tree
+Message-Id: <20260127040454.9C6A7C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,96 +35,166 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: prevent RCU stalls in kasan_release_vmalloc_node
+     Subject: mm: debug_vm_pgtable: add debug_vm_pgtable_free_huge_page()
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-prevent-rcu-stalls-in-kasan_release_vmalloc_node.patch
+     mm-debug_vm_pgtable-add-debug_vm_pgtable_free_huge_page.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Deepanshu Kartikey <kartikey406@gmail.com>
-Subject: mm/vmalloc: prevent RCU stalls in kasan_release_vmalloc_node
-Date: Mon, 12 Jan 2026 16:06:12 +0530
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: debug_vm_pgtable: add debug_vm_pgtable_free_huge_page()
+Date: Fri, 9 Jan 2026 17:31:31 +0800
 
-When CONFIG_PAGE_OWNER is enabled, freeing KASAN shadow pages during
-vmalloc cleanup triggers expensive stack unwinding that acquires RCU read
-locks.  Processing a large purge_list without rescheduling can cause the
-task to hold CPU for extended periods (10+ seconds), leading to RCU stalls
-and potential OOM conditions.
+Patch series "mm: hugetlb: allocate frozen gigantic folio", v6.
 
-The issue manifests in purge_vmap_node() -> kasan_release_vmalloc_node()
-where iterating through hundreds or thousands of vmap_area entries and
-freeing their associated shadow pages causes:
+Introduce alloc_contig_frozen_pages() and cma_alloc_frozen_compound()
+which avoid atomic operation about page refcount, and then convert to
+allocate frozen gigantic folio by the new helpers in hugetlb to cleanup
+the alloc_gigantic_folio().
 
-  rcu: INFO: rcu_preempt detected stalls on CPUs/tasks:
-  rcu: Tasks blocked on level-0 rcu_node (CPUs 0-1): P6229/1:b..l
-  ...
-  task:kworker/0:17 state:R running task stack:28840 pid:6229
-  ...
-  kasan_release_vmalloc_node+0x1ba/0xad0 mm/vmalloc.c:2299
-  purge_vmap_node+0x1ba/0xad0 mm/vmalloc.c:2299
 
-Each call to kasan_release_vmalloc() can free many pages, and with
-page_owner tracking, each free triggers save_stack() which performs stack
-unwinding under RCU read lock.  Without yielding, this creates an
-unbounded RCU critical section.
+This patch (of 6):
 
-Add periodic cond_resched() calls within the loop to allow:
-- RCU grace periods to complete
-- Other tasks to run
-- Scheduler to preempt when needed
+Add a new helper to free huge page to be consistency to
+debug_vm_pgtable_alloc_huge_page(), and use HPAGE_PUD_ORDER instead of
+open-code.
 
-The fix uses need_resched() for immediate response under load, with a
-batch count of 32 as a guaranteed upper bound to prevent worst-case stalls
-even under light load.
+Also move the free_contig_range() under CONFIG_ALLOC_CONTIG since all
+caller are built with CONFIG_ALLOC_CONTIG.
 
-Link: https://lkml.kernel.org/r/20260112103612.627247-1-kartikey406@gmail.com
-Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
-Reported-by: syzbot+d8d4c31d40f868eaea30@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=d8d4c31d40f868eaea30
-Link: https://lore.kernel.org/all/20260112084723.622910-1-kartikey406@gmail.com/T/ [v1]
-Suggested-by: Uladzislau Rezki <urezki@gmail.com>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260109093136.1491549-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Claudiu Beznea <claudiu.beznea.uj@bp.renesas.com>
+Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/gfp.h   |    2 +-
+ mm/debug_vm_pgtable.c |   38 +++++++++++++++++---------------------
+ mm/page_alloc.c       |    2 +-
+ 3 files changed, 19 insertions(+), 23 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-prevent-rcu-stalls-in-kasan_release_vmalloc_node
-+++ a/mm/vmalloc.c
-@@ -2273,11 +2273,14 @@ decay_va_pool_node(struct vmap_node *vn,
- 	reclaim_list_global(&decay_list);
+--- a/include/linux/gfp.h~mm-debug_vm_pgtable-add-debug_vm_pgtable_free_huge_page
++++ a/include/linux/gfp.h
+@@ -444,8 +444,8 @@ extern struct page *alloc_contig_pages_n
+ 					      int nid, nodemask_t *nodemask);
+ #define alloc_contig_pages(...)			alloc_hooks(alloc_contig_pages_noprof(__VA_ARGS__))
+ 
+-#endif
+ void free_contig_range(unsigned long pfn, unsigned long nr_pages);
++#endif
+ 
+ #ifdef CONFIG_CONTIG_ALLOC
+ static inline struct folio *folio_alloc_gigantic_noprof(int order, gfp_t gfp,
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-add-debug_vm_pgtable_free_huge_page
++++ a/mm/debug_vm_pgtable.c
+@@ -971,22 +971,26 @@ static unsigned long __init get_random_v
+ 	return random_vaddr;
  }
  
-+#define KASAN_RELEASE_BATCH_SIZE 32
-+
- static void
- kasan_release_vmalloc_node(struct vmap_node *vn)
+-static void __init destroy_args(struct pgtable_debug_args *args)
++static void __init
++debug_vm_pgtable_free_huge_page(struct pgtable_debug_args *args,
++		unsigned long pfn, int order)
  {
- 	struct vmap_area *va;
- 	unsigned long start, end;
-+	unsigned int batch_count = 0;
+-	struct page *page = NULL;
++#ifdef CONFIG_CONTIG_ALLOC
++	if (args->is_contiguous_page) {
++		free_contig_range(pfn, 1 << order);
++		return;
++	}
++#endif
++	__free_pages(pfn_to_page(pfn), order);
++}
  
- 	start = list_first_entry(&vn->purge_list, struct vmap_area, list)->va_start;
- 	end = list_last_entry(&vn->purge_list, struct vmap_area, list)->va_end;
-@@ -2287,6 +2290,11 @@ kasan_release_vmalloc_node(struct vmap_n
- 			kasan_release_vmalloc(va->va_start, va->va_end,
- 				va->va_start, va->va_end,
- 				KASAN_VMALLOC_PAGE_RANGE);
-+
-+		if (need_resched() || (++batch_count >= KASAN_RELEASE_BATCH_SIZE)) {
-+			cond_resched();
-+			batch_count = 0;
-+		}
++static void __init destroy_args(struct pgtable_debug_args *args)
++{
+ 	/* Free (huge) page */
+ 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
+ 	    has_transparent_pud_hugepage() &&
+ 	    args->pud_pfn != ULONG_MAX) {
+-		if (args->is_contiguous_page) {
+-			free_contig_range(args->pud_pfn,
+-					  (1 << (HPAGE_PUD_SHIFT - PAGE_SHIFT)));
+-		} else {
+-			page = pfn_to_page(args->pud_pfn);
+-			__free_pages(page, HPAGE_PUD_SHIFT - PAGE_SHIFT);
+-		}
+-
++		debug_vm_pgtable_free_huge_page(args, args->pud_pfn, HPAGE_PUD_ORDER);
+ 		args->pud_pfn = ULONG_MAX;
+ 		args->pmd_pfn = ULONG_MAX;
+ 		args->pte_pfn = ULONG_MAX;
+@@ -995,20 +999,13 @@ static void __init destroy_args(struct p
+ 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
+ 	    has_transparent_hugepage() &&
+ 	    args->pmd_pfn != ULONG_MAX) {
+-		if (args->is_contiguous_page) {
+-			free_contig_range(args->pmd_pfn, (1 << HPAGE_PMD_ORDER));
+-		} else {
+-			page = pfn_to_page(args->pmd_pfn);
+-			__free_pages(page, HPAGE_PMD_ORDER);
+-		}
+-
++		debug_vm_pgtable_free_huge_page(args, args->pmd_pfn, HPAGE_PMD_ORDER);
+ 		args->pmd_pfn = ULONG_MAX;
+ 		args->pte_pfn = ULONG_MAX;
  	}
  
- 	kasan_release_vmalloc(start, end, start, end, KASAN_VMALLOC_TLB_FLUSH);
+ 	if (args->pte_pfn != ULONG_MAX) {
+-		page = pfn_to_page(args->pte_pfn);
+-		__free_page(page);
++		__free_page(pfn_to_page(args->pte_pfn));
+ 
+ 		args->pte_pfn = ULONG_MAX;
+ 	}
+@@ -1242,8 +1239,7 @@ static int __init init_args(struct pgtab
+ 	 */
+ 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
+ 	    has_transparent_pud_hugepage()) {
+-		page = debug_vm_pgtable_alloc_huge_page(args,
+-				HPAGE_PUD_SHIFT - PAGE_SHIFT);
++		page = debug_vm_pgtable_alloc_huge_page(args, HPAGE_PUD_ORDER);
+ 		if (page) {
+ 			args->pud_pfn = page_to_pfn(page);
+ 			args->pmd_pfn = args->pud_pfn;
+--- a/mm/page_alloc.c~mm-debug_vm_pgtable-add-debug_vm_pgtable_free_huge_page
++++ a/mm/page_alloc.c
+@@ -7255,7 +7255,6 @@ retry:
+ 	}
+ 	return NULL;
+ }
+-#endif /* CONFIG_CONTIG_ALLOC */
+ 
+ void free_contig_range(unsigned long pfn, unsigned long nr_pages)
+ {
+@@ -7282,6 +7281,7 @@ void free_contig_range(unsigned long pfn
+ 	WARN(count != 0, "%lu pages are still in use!\n", count);
+ }
+ EXPORT_SYMBOL(free_contig_range);
++#endif /* CONFIG_CONTIG_ALLOC */
+ 
+ /*
+  * Effectively disable pcplists for the zone by setting the high limit to 0
 _
 
-Patches currently in -mm which might be from kartikey406@gmail.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
+mm-page_isolation-introduce-page_is_unmovable.patch
+mm-page_alloc-optimize-pfn_range_valid_contig.patch
+mm-hugetlb-optimize-replace_free_hugepage_folios.patch
+mm-hugetlb_cma-optimize-hugetlb_cma_alloc_frozen_folio.patch
+mm-hugetlb_cma-mark-hugetlb_cma_only-as-__ro_after_init.patch
 
