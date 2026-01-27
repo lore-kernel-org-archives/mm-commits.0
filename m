@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDD5D31A81F
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:06:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65CCD30AD10
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:25:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769486763; cv=none; b=dBCVWP+Iworq+RAIJKS3usP22/fnWGEQv9rq3VDvebGON2bl9cTk4Bgm5rG635UK9na173Mdz6nNnMhKfiEotO85Ywc+YgBSjqO/JdABj3GOAjaCnyKYIl8sDt69a8kxLjBhbtu5Ob7KPuJUEN3sxmY3FKjf5pNuu/jcsrzcnBM=
+	t=1769487911; cv=none; b=byZac2gF1n5ZFK01h8GbBoISPr7JKSZL6HT4HmejhrUUmiSbMM0xSowuSfOM4PrtJMgvPBK5hZEEaN8u7nxdYg+kOFfGNPdx07m4XYzl+EFgAbyucYgVTK3EPnVJcJ+buJWCDX5wd8hbn4D1iQTV+4EACHxRWhxicD6vbIZL+LI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769486763; c=relaxed/simple;
-	bh=RK3Y8JulGYMgto61bj3R2TQoLTqzsyZ0tGZD4C3UmX8=;
-	h=Date:To:From:Subject:Message-Id; b=DDJwr0e0pNo365S53b5sJ6lr2D8lM7yLe33ky+G5azOCKVRl8Ge6SWXKwbBxKbHegpnyXUVDRJoLO2MeUmUsECMu02TM1+JZDIn+vYKvUOcNpyLSopsx4n4zK9jWKDn8ZZJPE6lyaRYmcVRprAKu3c+gbCL9nAMxtWE/Ua730X0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PrpFuo3u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769487911; c=relaxed/simple;
+	bh=bI6dbkmBolXR1B2C0axX2D63qw56+xz5oAOXFpDraRw=;
+	h=Date:To:From:Subject:Message-Id; b=b4DWINJlXXvJQLNZK7qkl00lnnMT37tig/f3veD2nEphom3dd5HZyKAyYrrkgjEk9CEnDwoHn06rLiWPZoCjThLHnGktoUXIWdRkiMK0tzOiKESWeyuRzwndbRDXicCBGPGtmsaIkke70nyFU2m5E/fC0V8YKbe529WN96YqLP8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qm3afK/D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PrpFuo3u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C573EC116C6;
-	Tue, 27 Jan 2026 04:06:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qm3afK/D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D427DC116C6;
+	Tue, 27 Jan 2026 04:25:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769486762;
-	bh=RK3Y8JulGYMgto61bj3R2TQoLTqzsyZ0tGZD4C3UmX8=;
+	s=korg; t=1769487910;
+	bh=bI6dbkmBolXR1B2C0axX2D63qw56+xz5oAOXFpDraRw=;
 	h=Date:To:From:Subject:From;
-	b=PrpFuo3uCYvLG7CTiCNQwQGRtDvLLhVX2Fx05szpIP9ZAM0zWuEjQLjINh4FtqIPA
-	 Bp4IXGSeWoUXdquHhaCUzgOqGoP8csx8XV6d8/XToZDuD0gj5HUeTu1Q0BjGELEXYY
-	 kxU6qFfiCNquvVMfui2U+AwaEpq/XfEohCoVvhys=
-Date: Mon, 26 Jan 2026 20:06:02 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=Qm3afK/Dih9PwhPHqBGc/Cri9XjZSJu3KPtb50NYjd6KF47EOr/iehUmC3PZzWKV0
+	 w5N9jVOcxEjmC761r7iuJj6fKefKr5LyRf+XEc/WhdaP1Wur6nwLZsdHpOKXdUsnay
+	 sf0DaBerQSb86sabhfS3LEkynuWDQhhAzXYW6dDQ=
+Date: Mon, 26 Jan 2026 20:25:10 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,catalin.marinas@arm.com,bhe@redhat.com,maqianga@uniontech.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx.patch removed from -mm tree
-Message-Id: <20260127040602.C573EC116C6@smtp.kernel.org>
+Subject: [nacked] kexec-replace-the-goto-out_unlock-with-out.patch removed from -mm tree
+Message-Id: <20260127042510.D427DC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,106 +35,168 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: hide kdamond and kdamond_lock of damon_ctx
+     Subject: kexec: replace the goto out_unlock with out
 has been removed from the -mm tree.  Its filename was
-     mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx.patch
+     kexec-replace-the-goto-out_unlock-with-out.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: hide kdamond and kdamond_lock of damon_ctx
-Date: Thu, 15 Jan 2026 07:20:45 -0800
+From: Qiang Ma <maqianga@uniontech.com>
+Subject: kexec: replace the goto out_unlock with out
+Date: Fri, 19 Dec 2025 17:31:31 +0800
 
-There is no DAMON API caller that directly access 'kdamond' and
-'kdamond_lock' fields of 'struct damon_ctx'.  Keeping those exposed could
-only encourage creative but error-prone usages.  Hide them from DAMON API
-callers by marking those as private fields.
+Patch series "kexec: add kexec flag to control debug printing", v2.
 
-Link: https://lkml.kernel.org/r/20260115152047.68415-6-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Overview:
+=========
+The commit cbc2fe9d9cb2 ("kexec_file: add kexec_file flag to control debug
+printing") added the kexec_file flag to control debug printing.  However,
+for arm64, after commit 6f8c1da071a4 ("kexec_file, arm64: print out
+debugging message if required"), when using the kexec_load interface, the
+kexec_image_info function is called to print debug message, but it uses
+kexec_dprintk, which is only available under kexec_file, then when
+specifying 'kexec -d', kexec_load interface will print nothing.
+
+For riscv, commit eb7622d908a09 ("kexec_file, riscv: print out debugging
+message if required") remove kexec_image_info(), because the content has
+been printed out in generic code in kexec_file_load, but not in
+kexec_load.
+
+Therefore, in order to solve the two problems mentioned above, for this
+patchset, several things need to be done:
+
+1. Enabling kexec_dprintk is available for kexec_load.
+2. Add some debugging message of the deleted kexec_image_info
+   to generic code.
+3. Remove duplicate debugging prints for arm64.
+
+Since kexec_load and kexec_file_load are not triggered simultaneously, we
+can unify the debug flag of kexec and kexec_file as kexec_dbg_print.
+
+In this way, kexec_dprintk is available for kexec_load and
+kexec_file_load.
+
+Then when specifying 'kexec -d', the debugging message using kexec_dprintk
+in kexec_image_info can be printed normally.
+
+The following are the key points of the specific changes:
+
+1. rename kexec_file_dbg_print to kexec_dbg_print
+2. Add KEXEC_DEBUG
+3. Initialize kexec_dbg_print for kexec
+4. Set the reset of kexec_dbg_print to kimage_free
+
+Testing:
+=========
+I did testing on x86_64, arm64 and loongarch. On x86_64, the printed
+messages look like below:
+
+Unset CONFIG_KEXEC_FILE:
+[   36.774228] kexec_file: kernel: 0000000066c386c8 kernel_size: 0xd78400
+[   36.821814] kexec-bzImage64: Loaded purgatory at 0x23fffb000
+[   36.821826] kexec-bzImage64: Loaded boot_param, command line and misc at 0x23fff9000 bufsz=0x12d0 memsz=0x2000
+[   36.821829] kexec-bzImage64: Loaded 64bit kernel at 0x23d400000 bufsz=0xd73400 memsz=0x2ab7000
+[   36.821918] kexec-bzImage64: Loaded initrd at 0x23bd0b000 bufsz=0x16f40a8 memsz=0x16f40a8
+[   36.821920] kexec-bzImage64: Final command line is: root=/dev/mapper/test-root crashkernel=auto rd.lvm.lv=test/root
+[   36.821925] kexec-bzImage64: E820 memmap:
+[   36.821926] kexec-bzImage64: 0000000000000000-000000000009ffff (1)
+[   36.821928] kexec-bzImage64: 0000000000100000-0000000000811fff (1)
+[   36.821930] kexec-bzImage64: 0000000000812000-0000000000812fff (2)
+[   36.821931] kexec-bzImage64: 0000000000813000-00000000bee38fff (1)
+[   36.821933] kexec-bzImage64: 00000000bee39000-00000000beec2fff (2)
+[   36.821934] kexec-bzImage64: 00000000beec3000-00000000bf8ecfff (1)
+[   36.821935] kexec-bzImage64: 00000000bf8ed000-00000000bfb6cfff (2)
+[   36.821936] kexec-bzImage64: 00000000bfb6d000-00000000bfb7efff (3)
+[   36.821937] kexec-bzImage64: 00000000bfb7f000-00000000bfbfefff (4)
+[   36.821938] kexec-bzImage64: 00000000bfbff000-00000000bff7bfff (1)
+[   36.821939] kexec-bzImage64: 00000000bff7c000-00000000bfffffff (2)
+[   36.821940] kexec-bzImage64: 00000000feffc000-00000000feffffff (2)
+[   36.821941] kexec-bzImage64: 00000000ffc00000-00000000ffffffff (2)
+[   36.821942] kexec-bzImage64: 0000000100000000-000000023fffffff (1)
+[   36.872348] kexec_file: nr_segments = 4
+[   36.872356] kexec_file: segment[0]: buf=0x000000005314ece7 bufsz=0x4000 mem=0x23fffb000 memsz=0x5000
+[   36.872370] kexec_file: segment[1]: buf=0x000000006e59b143 bufsz=0x12d0 mem=0x23fff9000 memsz=0x2000
+[   36.872374] kexec_file: segment[2]: buf=0x00000000eb7b1fc3 bufsz=0xd73400 mem=0x23d400000 memsz=0x2ab7000
+[   36.882172] kexec_file: segment[3]: buf=0x000000006af76441 bufsz=0x16f40a8 mem=0x23bd0b000 memsz=0x16f5000
+[   36.889113] kexec_file: kexec_file_load: type:0, start:0x23fffb150 head:0x101a2e002 flags:0x8
+
+On aarch64, the printed messages look like below:
+
+Set CONFIG_KEXEC_FILE
+[   39.033203] kexec_file: kernel: 0000000073414684 kernel_size: 0x3123a00
+[   39.047010] kexec_file: Loaded initrd at 0x43cf0000 bufsz=0x17e0e19 memsz=0x17e1000
+[   39.047054] kexec_file: Loaded dtb at 0x23ec00000 bufsz=0x386 memsz=0x1000
+[   39.047056] kexec_file(Image): Loaded kernel at 0x40000000 bufsz=0x3123a00 memsz=0x3cf0000
+[   39.047063] kexec_file: nr_segments = 3
+[   39.047064] kexec_file: segment[0]: buf=0x0000000073414684 bufsz=0x3123a00 mem=0x40000000 memsz=0x3cf0000
+[   39.073612] kexec_file: segment[1]: buf=0x000000005cd5746b bufsz=0x17e0e19 mem=0x43cf0000 memsz=0x17e1000
+[   39.085309] kexec_file: segment[2]: buf=0x0000000084c4a0f1 bufsz=0x386 mem=0x23ec00000 memsz=0x1000
+[   39.085459] machine_kexec_post_load:155:
+[   39.085463]   kexec kimage info:
+[   39.085467]     kern_reloc: 0x00000001620e2000
+[   39.085468]     el2_vectors: 0x0000000000000000
+[   39.085470] kexec_file: kexec_file_load: type:0, start:0x40000000 head:0x1620e4002 flags:0x8
+
+Unset CONFIG_KEXEC_FILE:
+
+With this patch:
+[   35.156088] machine_kexec_post_load:155:
+[   35.156097]   kexec kimage info:
+[   35.156101]     kern_reloc: 0x000000011c134000
+[   35.156102]     el2_vectors: 0x0000000000000000
+[   35.156104] kexec: kexec_load: type:0, start:0x454d26b0 head:0x105c14002 flags:0xb70010
+
+Without this patch:
+There is no kexec print in dmesg.
+
+
+This patch (of 4):
+
+The image is initialized to NULL.  Then, after calling kimage_alloc_init,
+we can directly goto 'out' because at this time, the kimage_free will
+determine whether image is a NULL pointer.
+
+This will prepare for the subsequent patch to reset the variable in
+kimage_free.
+
+Link: https://lkml.kernel.org/r/20251219093134.2268620-1-maqianga@uniontech.com
+Link: https://lkml.kernel.org/r/20251219093134.2268620-2-maqianga@uniontech.com
+Signed-off-by: Qiang Ma <maqianga@uniontech.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   29 ++++++++++++++---------------
- 1 file changed, 14 insertions(+), 15 deletions(-)
+ kernel/kexec.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-hide-kdamond-and-kdamond_lock-of-damon_ctx
-+++ a/include/linux/damon.h
-@@ -759,23 +759,20 @@ struct damon_attrs {
-  * of the monitoring.
-  *
-  * @attrs:		Monitoring attributes for accuracy/overhead control.
-- * @kdamond:		Kernel thread who does the monitoring.
-- * @kdamond_lock:	Mutex for the synchronizations with @kdamond.
-  *
-- * For each monitoring context, one kernel thread for the monitoring is
-- * created.  The pointer to the thread is stored in @kdamond.
-+ * For each monitoring context, one kernel thread for the monitoring, namely
-+ * kdamond, is created.  The pid of kdamond can be retrieved using
-+ * damon_kdamond_pid().
-  *
-- * Once started, the monitoring thread runs until explicitly required to be
-- * terminated or every monitoring target is invalid.  The validity of the
-- * targets is checked via the &damon_operations.target_valid of @ops.  The
-- * termination can also be explicitly requested by calling damon_stop().
-- * The thread sets @kdamond to NULL when it terminates. Therefore, users can
-- * know whether the monitoring is ongoing or terminated by reading @kdamond.
-- * Reads and writes to @kdamond from outside of the monitoring thread must
-- * be protected by @kdamond_lock.
-+ * Once started, kdamond runs until explicitly required to be terminated or
-+ * every monitoring target is invalid.  The validity of the targets is checked
-+ * via the &damon_operations.target_valid of @ops.  The termination can also be
-+ * explicitly requested by calling damon_stop().  To know if a kdamond is
-+ * running, damon_is_running() can be used.
-  *
-- * Note that the monitoring thread protects only @kdamond via @kdamond_lock.
-- * Accesses to other fields must be protected by themselves.
-+ * While the kdamond is running, all accesses to &struct damon_ctx from a
-+ * thread other than the kdamond should be made using safe DAMON APIs,
-+ * including damon_call() and damos_walk().
-  *
-  * @ops:	Set of monitoring operations for given use cases.
-  * @addr_unit:	Scale factor for core to ops address conversion.
-@@ -816,10 +813,12 @@ struct damon_ctx {
- 	struct damos_walk_control *walk_control;
- 	struct mutex walk_control_lock;
+--- a/kernel/kexec.c~kexec-replace-the-goto-out_unlock-with-out
++++ a/kernel/kexec.c
+@@ -95,6 +95,8 @@ static int do_kexec_load(unsigned long e
+ 	unsigned long i;
+ 	int ret;
  
--/* public: */
-+	/* Working thread of the given DAMON context */
- 	struct task_struct *kdamond;
-+	/* Protects @kdamond field access */
- 	struct mutex kdamond_lock;
++	image = NULL;
++
+ 	/*
+ 	 * Because we write directly to the reserved memory region when loading
+ 	 * crash kernels we need a serialization here to prevent multiple crash
+@@ -129,7 +131,7 @@ static int do_kexec_load(unsigned long e
  
-+/* public: */
- 	struct damon_operations ops;
- 	unsigned long addr_unit;
- 	unsigned long min_sz_region;
+ 	ret = kimage_alloc_init(&image, entry, nr_segments, segments, flags);
+ 	if (ret)
+-		goto out_unlock;
++		goto out;
+ 
+ 	if (flags & KEXEC_PRESERVE_CONTEXT)
+ 		image->preserve_context = 1;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from maqianga@uniontech.com are
 
-selftests-damon-sysfs_memcg_path_leaksh-use-kmemleak.patch
-selftests-damon-wss_estimation-test-for-up-to-160-mib-working-set-size.patch
-selftests-damon-access_memory-add-repeat-mode.patch
-selftests-damon-wss_estimation-ensure-number-of-collected-wss.patch
-selftests-damon-wss_estimation-deduplicate-failed-samples-output.patch
-mm-damon-remove-damon_operations-cleanup.patch
-mm-damon-core-cleanup-targets-and-regions-at-once-on-kdamond-termination.patch
-mm-damon-core-cancel-damos_walk-before-damon_ctx-kdamond-reset.patch
-mm-damon-core-process-damon_call_control-requests-on-a-local-list.patch
-mm-damon-document-damon_call_control-dealloc_on_cancel-repeat-behavior.patch
-mm-damon-core-rename-damos_filter_out-to-damos_core_filter_out.patch
-mm-damon-rename-damon_min_region-to-damon_min_region_sz.patch
-mm-damon-rename-min_sz_region-of-damon_ctx-to-min_region_sz.patch
-docs-mm-damon-index-simplify-the-intro.patch
-docs-mm-damon-design-link-repology-instead-of-fedora-package.patch
-docs-mm-damon-design-document-damon-sample-modules.patch
-docs-mm-damon-design-add-reference-to-damon_stat-usage.patch
-docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning.patch
-docs-admin-guide-mm-damon-usage-update-stats-update-process-for-refresh_ms.patch
-docs-mm-damon-maintainer-profile-fix-wrong-maitnainers-section-name.patch
-docs-mm-damon-maintainer-profile-remove-damon-tests-perf-suggestion.patch
-maple_tree-start-using-maple-copy-node-for-destination-fix.patch
+kexec-add-kexec-flag-to-control-debug-printing.patch
+kexec-print-out-debugging-message-if-required-for-kexec_load.patch
+arm64-kexec-adjust-the-debug-print-of-kexec_image_info.patch
 
