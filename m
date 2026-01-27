@@ -1,65 +1,222 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C64F2320A34
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 18:33:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15DC61FDE31
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 20:22:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769538798; cv=none; b=YKRJ+TQ6mdlrheXk6adxpSALIjIUUgUJAqd+f2tx7/eLfLvYK/KZdR/ZS0avp6mxtLeVljB1V0jtygNNELSrGbvny8rqx5cqR8pGKFfx6+skTvtUzvU1kIrwuO2xlswqzBCqVmDgY1B2WPLl39wAXBIQCGpIelecWH9GsMTaZQA=
+	t=1769545364; cv=none; b=tsSXhW/zzy2miYtiL8h424QxE+Zynho8jF9N5zq2ujmNyxA1E9EIq5Kn/l4IpVMg/3Y6Hkm559nk8U/VTMB1WKgDRjNQ+5vyhuMDxE3HZi6+OtpvX8n79rJY0tSZTvw/E9VZtcowyOj5v3ODtcfDbpb9rjmBkPsRRWy76C+UrcU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769538798; c=relaxed/simple;
-	bh=JbB3uNYviokFX2rnvfBzyFLBPbMFtqmdBRLwU7zKVio=;
-	h=From:To:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=er9vyhN+h8XSzFkLsOE2eYWZDXPnW41Wni3yA7ey2prb5l5hYdIWctvyJWh0Ux36rviF3H1iofv+FtSUQ14xhkZj58dzuX0SbJl5huqEkuAAv13P9S09pY1hZ0ArOcqf0CrVCTvEBsyfuGwwZFfYWOPLHBo9KAOS9078BQSeTIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=kNp3UKx0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769545364; c=relaxed/simple;
+	bh=ncABgnKQua+86JaNothTGYYi2daonNQUIGn3oB3XY6M=;
+	h=Date:To:From:Subject:Message-Id; b=Te93idOI3ILTPTW3ccsASt70WXvupbg4lwBxDVnhOQD60PhrAwCam7t26V9rK87gsgmcymii4T0N5PVC+MqoYhRzdnlBrt240bAbrECooJa/9gNkewBdXQwfNut0AOo/c+YtyAT26qqJDy8aFEX5TOy/mionfJiOJx52HNtelOM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QswmBmdy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="kNp3UKx0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8430C2BC87;
-	Tue, 27 Jan 2026 18:33:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769538798;
-	bh=JbB3uNYviokFX2rnvfBzyFLBPbMFtqmdBRLwU7zKVio=;
-	h=From:To:Subject:In-Reply-To:References:Date:From;
-	b=kNp3UKx0La/8NmlKdtev408h3At7VcXWuQYDrdsEevP0Uk9bn2sRrvPfu7dIL0B/u
-	 MIi5Lnwia1cTVXq0+PiiOvtuQhfJQbYqYw2ddgjyXN0n30fMgI2qpf+TRQdGaaorxx
-	 ldWtfw5tQgDLKu4CNTj4h1WxlqCvm8xcilJNNK0RWqJxgsYOhCzKjmeuDGIf7340CC
-	 DHn/jqAT2clohmoqFqEr4MD7pcyZHuGgZHVNG8VW/QFB4QqNPaREI8OPIZkFgDtT58
-	 KJWx4Xo+uvpIPZgRewUqxRGqWCcpcEjiOYmifr2sC8yJmat6zZBf1yZu1pc69JD0pJ
-	 t/zfl7SAZmMVQ==
-From: Thomas Gleixner <tglx@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- usama.anjum@collabora.com, shuah@kernel.org, peterz@infradead.org,
- ndesaulniers@google.com, nathan@kernel.org, morbo@google.com,
- mingo@redhat.com, justinstitt@google.com, edliaw@google.com,
- dvhart@infradead.org, dave@stgolabs.net, colin.i.king@gmail.com,
- bigeasy@linutronix.de, andrealmeid@igalia.com, ywen.chen@foxmail.com,
- akpm@linux-foundation.org
-Subject: Re: + selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
- added to mm-nonmm-unstable branch
-In-Reply-To: <20260126195016.AE9B7C116C6@smtp.kernel.org>
-References: <20260126195016.AE9B7C116C6@smtp.kernel.org>
-Date: Tue, 27 Jan 2026 19:33:14 +0100
-Message-ID: <874io6c3dh.ffs@tglx>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QswmBmdy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 771C6C116C6;
+	Tue, 27 Jan 2026 20:22:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1769545363;
+	bh=ncABgnKQua+86JaNothTGYYi2daonNQUIGn3oB3XY6M=;
+	h=Date:To:From:Subject:From;
+	b=QswmBmdy4DtAI18sAVKUKglwSMAmKR/LXQjX+jU3QPGfr2/zg6mQcYxF/m9F8d+tm
+	 BF8bhP+JsjGjkEA8ScLEfXR7Er0mIB8ux8W6QyyxGVDFJezfL5Pw8qBzfZTkbzJ2Nb
+	 1xWm3G0MRXtidKku0B5aXInk5blj6849BCfrG6Wk=
+Date: Tue, 27 Jan 2026 12:22:42 -0800
+To: mm-commits@vger.kernel.org,usama.anjum@collabora.com,tglx@linutronix.de,shuah@kernel.org,peterz@infradead.org,ndesaulniers@google.com,nathan@kernel.org,morbo@google.com,mingo@redhat.com,justinstitt@google.com,edliaw@google.com,dvhart@infradead.org,dave@stgolabs.net,colin.i.king@gmail.com,bigeasy@linutronix.de,andrealmeid@igalia.com,ywen.chen@foxmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] selftests-futex-fix-the-failed-futex_requeue-test-issue.patch removed from -mm tree
+Message-Id: <20260127202243.771C6C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain
 
-On Mon, Jan 26 2026 at 11:50, Andrew Morton wrote:
-> The patch titled
->      Subject: selftests/futex: fix the failed futex_requeue test issue
-> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
->      selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
 
-NAK.
+The quilt patch titled
+     Subject: selftests/futex: fix the failed futex_requeue test issue
+has been removed from the -mm tree.  Its filename was
+     selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
 
-That's a horrible hack and I have no idea why you insist on collecting
-and merging unreviewed garbage from the mailing list within less than 24
-hours.
+This patch was dropped because an updated version will be issued
 
-Yours grumpy
+------------------------------------------------------
+From: Yuwen Chen <ywen.chen@foxmail.com>
+Subject: selftests/futex: fix the failed futex_requeue test issue
+Date: Mon, 26 Jan 2026 17:33:30 +0800
 
-      tglx
+This test item has extremely high requirements for timing and can only
+pass the test under specific conditions.  The following situations will
+lead to test failure:
+
+    MainThread                  Thread1
+        │
+  pthread_create-------------------┐
+        │                          │
+ futex_cmp_requeue                 │
+        │                     futex_wait
+        │                          │
+
+If the child thread is not waiting in the futex_wait function when the
+main thread reaches the futex_cmp_requeue function, the test will fail.
+
+This patch avoids this problem by checking whether the child thread is in
+a sleeping state in the main thread.
+
+Link: https://lkml.kernel.org/r/tencent_B9DBF2ECBE56BAB68BDAB949C6935D01CE09@qq.com
+Fixes: 7cb5dd8e2c8c ("selftests: futex: Add futex compare requeue test")
+Signed-off-by: Yuwen Chen <ywen.chen@foxmail.com>
+Co-developed-by: Edward Liaw <edliaw@google.com>
+Signed-off-by: Edward Liaw <edliaw@google.com>
+Cc: Andre Almeida <andrealmeid@igalia.com>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Colin Ian King <colin.i.king@gmail.com>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: ndesaulniers@google.com <ndesaulniers@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/futex/functional/futex_requeue.c |   70 ++++++++--
+ 1 file changed, 59 insertions(+), 11 deletions(-)
+
+--- a/tools/testing/selftests/futex/functional/futex_requeue.c~selftests-futex-fix-the-failed-futex_requeue-test-issue
++++ a/tools/testing/selftests/futex/functional/futex_requeue.c
+@@ -7,21 +7,27 @@
+ 
+ #include <pthread.h>
+ #include <limits.h>
++#include <stdatomic.h>
+ 
+ #include "futextest.h"
+ #include "kselftest_harness.h"
+ 
+-#define timeout_ns  30000000
+-#define WAKE_WAIT_US 10000
++#define timeout_s  3 /* 3s */
++#define WAKE_WAIT_US (10000 * 100) /* 1s */
+ 
+ volatile futex_t *f1;
++static pthread_barrier_t barrier;
+ 
+ void *waiterfn(void *arg)
+ {
+ 	struct timespec to;
++	atomic_int *tid = (atomic_int *)arg;
+ 
+-	to.tv_sec = 0;
+-	to.tv_nsec = timeout_ns;
++	to.tv_sec = timeout_s;
++	to.tv_nsec = 0;
++
++	atomic_store(tid, gettid());
++	pthread_barrier_wait(&barrier);
+ 
+ 	if (futex_wait(f1, *f1, &to, 0))
+ 		printf("waiter failed errno %d\n", errno);
+@@ -29,22 +35,52 @@ void *waiterfn(void *arg)
+ 	return NULL;
+ }
+ 
++static int get_thread_state(pid_t pid)
++{
++	FILE *fp;
++	char buf[80], tag[80];
++	char val = 0;
++
++	snprintf(buf, sizeof(buf), "/proc/%d/status", pid);
++	fp = fopen(buf, "r");
++	if (!fp)
++		return -1;
++
++	while (fgets(buf, sizeof(buf), fp))
++		if (sscanf(buf, "%s %c", tag, &val) == 2 && !strcmp(tag, "State:")) {
++			fclose(fp);
++			return val;
++		}
++
++	fclose(fp);
++	return -1;
++}
++
+ TEST(requeue_single)
+ {
+ 	volatile futex_t _f1 = 0;
+ 	volatile futex_t f2 = 0;
+ 	pthread_t waiter[10];
+-	int res;
++	atomic_int tid = 0;
++	int res, state, retry = 100;
+ 
+ 	f1 = &_f1;
++	pthread_barrier_init(&barrier, NULL, 2);
+ 
+ 	/*
+ 	 * Requeue a waiter from f1 to f2, and wake f2.
+ 	 */
+-	if (pthread_create(&waiter[0], NULL, waiterfn, NULL))
++	if (pthread_create(&waiter[0], NULL, waiterfn, &tid))
+ 		ksft_exit_fail_msg("pthread_create failed\n");
+ 
+-	usleep(WAKE_WAIT_US);
++	pthread_barrier_wait(&barrier);
++	pthread_barrier_destroy(&barrier);
++	while ((state = get_thread_state(atomic_load(&tid))) != 'S') {
++		usleep(WAKE_WAIT_US / 100);
++
++		if (state < 0 || retry-- <= 0)
++			break;
++	}
+ 
+ 	ksft_print_dbg_msg("Requeuing 1 futex from f1 to f2\n");
+ 	res = futex_cmp_requeue(f1, 0, &f2, 0, 1, 0);
+@@ -69,7 +105,8 @@ TEST(requeue_multiple)
+ 	volatile futex_t _f1 = 0;
+ 	volatile futex_t f2 = 0;
+ 	pthread_t waiter[10];
+-	int res, i;
++	atomic_int tids[10] = {0};
++	int res, i, state, retry = 0;
+ 
+ 	f1 = &_f1;
+ 
+@@ -78,11 +115,22 @@ TEST(requeue_multiple)
+ 	 * At futex_wake, wake INT_MAX (should be exactly 7).
+ 	 */
+ 	for (i = 0; i < 10; i++) {
+-		if (pthread_create(&waiter[i], NULL, waiterfn, NULL))
++		pthread_barrier_init(&barrier, NULL, 2);
++
++		if (pthread_create(&waiter[i], NULL, waiterfn, &tids[i]))
+ 			ksft_exit_fail_msg("pthread_create failed\n");
+-	}
+ 
+-	usleep(WAKE_WAIT_US);
++		pthread_barrier_wait(&barrier);
++		pthread_barrier_destroy(&barrier);
++
++		retry += 10;
++		while ((state = get_thread_state(atomic_load(&tids[i]))) != 'S') {
++			usleep(WAKE_WAIT_US / 100);
++
++			if (state < 0 || retry-- <= 0)
++				break;
++		}
++	}
+ 
+ 	ksft_print_dbg_msg("Waking 3 futexes at f1 and requeuing 7 futexes from f1 to f2\n");
+ 	res = futex_cmp_requeue(f1, 0, &f2, 3, 7, 0);
+_
+
+Patches currently in -mm which might be from ywen.chen@foxmail.com are
+
+
