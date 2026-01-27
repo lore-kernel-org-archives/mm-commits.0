@@ -1,78 +1,88 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76F24321F42
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 04:25:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69BB325CC6C
+	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 07:07:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.142.43.55
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769487915; cv=none; b=uugGFeFquoKoOWbax5eNVEckBb/ieYFVc4r6FAMLXVflA0yseY7JlZhRMiLowlwNtVq6CIT6xJuSf5vx0FMNKaq803bK1QLWgpHnrv4/pSFN6Zd2pPbHmNOwPBdHnBChfxHHlJEYImKiBLLhcFwWXc1RVv7fyFAUHk6V1UGlLJc=
+	t=1769497625; cv=none; b=Qp7tglQwAPGF727Ql1iQ5PQfE0s5wduiEmARLTnjsssNm6XlzMcnOMulWPkRyyBhm7p2Z7iOPEO/ZZrDPn8M1qx5df6V6cs0yUSyC3LVX6cxqjkDrRZgFsFjaYOezuMUhr9UDM99R3KnhFiwsig++AcdnRVPfsIjW7n/FJ8OF9w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769487915; c=relaxed/simple;
-	bh=fBags55eZ7g/6PPL6Os6xsKT50wbAvIJ7sVk3bk3K8E=;
-	h=Date:To:From:Subject:Message-Id; b=DabcrDezkUiHUaWvPw9twyO8W7Le/hYC2S00elOT59akLa2ubdGr/27jlRh2ocnmfE4P+5VZnmZXB48J4CvJyeOeetetP9aAqmqN3P/QaEBaTfQqB+5qerbNZiRLRipAmcaMHPwwRIGgDvysfYzUX0RLU7rhuMpkPKDuhnkoiR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xqnan9XU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769497625; c=relaxed/simple;
+	bh=60yYJaYdMAQNcr6oQn4pchj+IymjpoNeYF1NwpaBqxI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UQOdVcO8BViF+4xFY7Fy1kxlceRnLGVghRA0AttbHYP1QZc0G05hr2xvxVKvvlcdXox4xRcI5033m/7NRuXhKHJKS38KBpyiCnMTDYpehFoQ+k/XQyHGq2r8BicMxfzUU624Vv8M0AWYqmZTn50yQ81jAtGvsuOd/HZyoktzeTY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de; spf=pass smtp.mailfrom=linutronix.de; dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=zGuHi3dN; dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b=zrMOrWZl; arc=none smtp.client-ip=193.142.43.55
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linutronix.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xqnan9XU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BAF6C116C6;
-	Tue, 27 Jan 2026 04:25:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769487915;
-	bh=fBags55eZ7g/6PPL6Os6xsKT50wbAvIJ7sVk3bk3K8E=;
-	h=Date:To:From:Subject:From;
-	b=xqnan9XUJ5mLhr/oI/rsT7n0PVoenHJGOpXQyvT0vHN28YtU/g8sBv1+OPXgfPseC
-	 +1kZvSts2s/raro66PWQ0fwjJRMeX8dZZsWJXHhleNJXF3MdXotAGzcoD9y4xx+OrW
-	 2lGyRu7hx/Gt5xXYy6kDYoG23GZJJTXhQ+feIR1M=
-Date: Mon, 26 Jan 2026 20:25:14 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,catalin.marinas@arm.com,bhe@redhat.com,maqianga@uniontech.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] arm64-kexec-adjust-the-debug-print-of-kexec_image_info.patch removed from -mm tree
-Message-Id: <20260127042515.1BAF6C116C6@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="zGuHi3dN";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="zrMOrWZl"
+Date: Tue, 27 Jan 2026 08:07:00 +0100
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1769497622;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ql+RqQMEQP+yq6zOTAvnFxyWCXVBT6mAJApo6HZsc2U=;
+	b=zGuHi3dNLCZjWbXaplSpLr/0cHmeekBOHApUFy0q2AAjcAZlSUr2p4FEmgbuMje15LA4mK
+	TFDhRa6l5cJDU2H4h24R7L+aO5RRxSFuRazHQeRLmooMQu5cpFIvsl7/GKfp0InbmYtG1f
+	letKacmGjKvBQ+zEXRx5w6i2vK6Ft6FTUB4WvIEISxkLIJzLzCz2V8rfPXoELuiYRYw3U1
+	vX+m/A2AAP6eMmcDwWQc65TPl08AHODCrmCRcPf33t4UujiN9IFQIRIyIoauDlZAPBL/m3
+	KX8W4YuO1mvUzfV6HMN2zg3fNsK/uYl4BI8qXXsfmxThSYS0sTefsanHeBw/qQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1769497622;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ql+RqQMEQP+yq6zOTAvnFxyWCXVBT6mAJApo6HZsc2U=;
+	b=zrMOrWZl72tZ8GfVWT40dPWvUX/TnVFP6ZrK7O3c6DeHvfSYjDbMrp73bMqesZbduYiPkb
+	OC3bHgS8NaUmLAAQ==
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, usama.anjum@collabora.com,
+	tglx@linutronix.de, shuah@kernel.org, peterz@infradead.org,
+	ndesaulniers@google.com, nathan@kernel.org, morbo@google.com,
+	mingo@redhat.com, justinstitt@google.com, edliaw@google.com,
+	dvhart@infradead.org, dave@stgolabs.net, colin.i.king@gmail.com,
+	andrealmeid@igalia.com, ywen.chen@foxmail.com
+Subject: Re: + selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
+ added to mm-nonmm-unstable branch
+Message-ID: <20260127070700.Kho5amle@linutronix.de>
+References: <20260126195016.AE9B7C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20260126195016.AE9B7C116C6@smtp.kernel.org>
 
+On 2026-01-26 11:50:16 [-0800], Andrew Morton wrote:
+>=20
+> The patch titled
+>      Subject: selftests/futex: fix the failed futex_requeue test issue
+> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+>      selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
+>=20
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
+/patches/selftests-futex-fix-the-failed-futex_requeue-test-issue.patch
+>=20
+> This patch will later appear in the mm-nonmm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+>=20
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
 
-The quilt patch titled
-     Subject: arm64: kexec: adjust the debug print of kexec_image_info
-has been removed from the -mm tree.  Its filename was
-     arm64-kexec-adjust-the-debug-print-of-kexec_image_info.patch
+Please don't send it any further before someone acks it. It is on my
+list for some time now=E2=80=A6
 
-This patch was dropped because it was nacked
-
-------------------------------------------------------
-From: Qiang Ma <maqianga@uniontech.com>
-Subject: arm64: kexec: adjust the debug print of kexec_image_info
-Date: Fri, 19 Dec 2025 17:31:34 +0800
-
-In the previous patch, we move start/head of kimage to the generic code,
-so, we remove them to avoid duplicate printing.
-
-Link: https://lkml.kernel.org/r/20251219093134.2268620-5-maqianga@uniontech.com
-Signed-off-by: Qiang Ma <maqianga@uniontech.com>
-Acked-by: Will Deacon <will@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/arm64/kernel/machine_kexec.c |    2 --
- 1 file changed, 2 deletions(-)
-
---- a/arch/arm64/kernel/machine_kexec.c~arm64-kexec-adjust-the-debug-print-of-kexec_image_info
-+++ a/arch/arm64/kernel/machine_kexec.c
-@@ -34,8 +34,6 @@ static void _kexec_image_info(const char
- {
- 	kexec_dprintk("%s:%d:\n", func, line);
- 	kexec_dprintk("  kexec kimage info:\n");
--	kexec_dprintk("    type:        %d\n", kimage->type);
--	kexec_dprintk("    head:        %lx\n", kimage->head);
- 	kexec_dprintk("    kern_reloc: %pa\n", &kimage->arch.kern_reloc);
- 	kexec_dprintk("    el2_vectors: %pa\n", &kimage->arch.el2_vectors);
- }
-_
-
-Patches currently in -mm which might be from maqianga@uniontech.com are
-
-
+Sebastian
