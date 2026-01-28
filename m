@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7105322B79
-	for <mm-commits@vger.kernel.org>; Wed, 28 Jan 2026 19:19:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B2B5374173
+	for <mm-commits@vger.kernel.org>; Wed, 28 Jan 2026 19:34:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769627999; cv=none; b=VUxdAveRkbQWp9QwY3/4wbxPW5XgzHwb50OtiC8I6fuy/ZUEwGq+7jkexU79Aq7pnvsCoZxpMEa/b1QWKypbWO6Xt2B/z5RrvyGoSA+xI6/0zgat02Yj1tcqep1O082S7PgMvV/f5TBRWggXxoujDiChRP3mut4SgYyazHHk5V4=
+	t=1769628889; cv=none; b=KE0T5jzCr40c/vEV7tE/1VkMpmxA5PwEtuCzY5x05UL9PYtzOlWl3RqxpMg29C90DVxBMCEjPjg+km4ggfMwRf94DlmxK5T6+wOLDyeEvntclaWw1ewhk40pU/jhCMb835x19U+A24g4woaqFizRm91y5bAVP+CNWLz4RGhudNw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769627999; c=relaxed/simple;
-	bh=GksUaoBhLHRvwmEm5DBszZjkUO3FnhHWd8YO3yar3LY=;
-	h=Date:To:From:Subject:Message-Id; b=SLIV8wUpR0fO8OWIqOXp1ziLtiXzshG6/DGHmBIKisXPgvUx70h+86uTx+RG9Kr15gOUTm3IS7UVjisRLm9YVT7Ct4iz4i9v0WudmH/yCC3pHXOFSAcXlJ+h0CaJWoY+X3G/1DTBpv02+HCCzzazxVfuYj6SAnCSETBSlZ41zqY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ncAyxLnR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769628889; c=relaxed/simple;
+	bh=OLz0CKZxqYSwMFODUwHwZT2NMd0w1uSe+muD5+1fX/M=;
+	h=Date:To:From:Subject:Message-Id; b=Mnfa76xk5SSUJUfpjgn0RZDBaM1OZOdE/aellqbOqz2TkGK5hzvJojixtugy3O2HPgtkDCwxS7odb5aSiwmkIjBtBvHMw1WF+ipwMu3WLY1sskpS+IPVUQ57g8ecAkMQIiyM+bdYP0qOlm8+W1ALTvRCkhlh0OT4TJPTjuQYbIQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yl+HLofI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ncAyxLnR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15DF8C4CEF1;
-	Wed, 28 Jan 2026 19:19:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yl+HLofI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E849C4CEF1;
+	Wed, 28 Jan 2026 19:34:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769627999;
-	bh=GksUaoBhLHRvwmEm5DBszZjkUO3FnhHWd8YO3yar3LY=;
+	s=korg; t=1769628888;
+	bh=OLz0CKZxqYSwMFODUwHwZT2NMd0w1uSe+muD5+1fX/M=;
 	h=Date:To:From:Subject:From;
-	b=ncAyxLnRohEbg5DePZ/nnE9qAOYeR6VqXn+NXymm6aVcCvnMgfni7YR7kTwvo8JAS
-	 oDrkblA9F9Y3xWViDTG5TaipUIzml1NET6eZJ6HF+LhW9APoZ/SOGZACHtwTb/0HBN
-	 6V51aN0TS1FjxW4tIMmtR8sxCf9p68cAsUSl6TLU=
-Date: Wed, 28 Jan 2026 11:19:58 -0800
-To: mm-commits@vger.kernel.org,bhe@redhat.com,me@linux.beauty,akpm@linux-foundation.org
+	b=yl+HLofIAmfUlJeC4A11O699dQ2IjxXzKPHqp8zihVHIXDujAYbInCNaKqXavv68G
+	 NpSiOKIqPUzVJZ6hzeG2AN25disDUA2iv9ssbP5nOkBFDKkWkF60Uc1Hrmm+KYHnfu
+	 zfsvOg6A/5rM9uZcyOHd/F45eo+SEsyzyZ8K4IoM=
+Date: Wed, 28 Jan 2026 11:34:48 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,tglx@linutronix.de,raghavendra.kt@amd.com,peterz@infradead.org,mjguzik@gmail.com,mingo@redhat.com,luto@kernel.org,lkp@intel.com,lizhe.67@bytedance.com,konrad.wilk@oracle.com,ioworker0@gmail.com,hpa@zytor.com,david@kernel.org,bp@alien8.de,boris.ostrovsky@oracle.com,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kexec-derive-purgatory-entry-from-symbol-v2.patch added to mm-nonmm-unstable branch
-Message-Id: <20260128191959.15DF8C4CEF1@smtp.kernel.org>
+Subject: [to-be-updated] mm-folio_zero_user-open-code-range-computation-in-folio_zero_user.patch removed from -mm tree
+Message-Id: <20260128193448.9E849C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,178 +34,114 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: kexec-derive-purgatory-entry-from-symbol-v2
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kexec-derive-purgatory-entry-from-symbol-v2.patch
+The quilt patch titled
+     Subject: mm: folio_zero_user: open code range computation in folio_zero_user()
+has been removed from the -mm tree.  Its filename was
+     mm-folio_zero_user-open-code-range-computation-in-folio_zero_user.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-derive-purgatory-entry-from-symbol-v2.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Li Chen <me@linux.beauty>
-Subject: kexec-derive-purgatory-entry-from-symbol-v2
-Date: Wed, 28 Jan 2026 12:35:10 +0800
+From: Ankur Arora <ankur.a.arora@oracle.com>
+Subject: mm: folio_zero_user: open code range computation in folio_zero_user()
+Date: Mon, 26 Jan 2026 10:32:12 -0800
 
-move the helper body above kexec_purgatory_setup_sechdrs() to avoid the
-forward declaration, per Baoquan
+riscv64-gcc-linux-gnu (v8.5) reports a compile time assert in:
 
-Link: https://lkml.kernel.org/r/20260128043511.316860-1-me@linux.beauty
-Fixes: 8652d44f466a ("kexec: support purgatories with .text.hot sections")
-Signed-off-by: Li Chen <me@linux.beauty>
-Acked-by: Baoquan He <bhe@redhat.com>
+   r[2] = DEFINE_RANGE(clamp_t(s64, fault_idx - radius, pg.start, pg.end),
+ 		       clamp_t(s64, fault_idx + radius, pg.start, pg.end));
+
+where it decides that pg.start > pg.end in:
+  clamp_t(s64, fault_idx + radius, pg.start, pg.end));
+
+where pg comes from:
+  const struct range pg = DEFINE_RANGE(0, folio_nr_pages(folio) - 1);
+
+That does not seem like it could be true. Even for pg.start == pg.end,
+we would need folio_test_large() to evaluate to false at compile time:
+
+  static inline unsigned long folio_nr_pages(const struct folio *folio)
+  {
+	if (!folio_test_large(folio))
+		return 1;
+	return folio_large_nr_pages(folio);
+  }
+
+Workaround by open coding the range computation.  Also, simplify the type
+declarations for the relevant variables.
+
+Link: https://lkml.kernel.org/r/20260126183212.2366596-1-ankur.a.arora@oracle.com
+Fixes: 93552c9a3350 ("mm: folio_zero_user: cache neighbouring pages")
+Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202601240453.QCjgGdJa-lkp@intel.com/
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ankur Arora <ankur.a.arora@oracle.com>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Konrad Rzessutek Wilk <konrad.wilk@oracle.com>
+Cc: Lance Yang <ioworker0@gmail.com>
+Cc: Li Zhe <lizhe.67@bytedance.com>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Raghavendra K T <raghavendra.kt@amd.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |  111 ++++++++++++++++++++----------------------
- 1 file changed, 54 insertions(+), 57 deletions(-)
+ mm/memory.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
---- a/kernel/kexec_file.c~kexec-derive-purgatory-entry-from-symbol-v2
-+++ a/kernel/kexec_file.c
-@@ -882,8 +882,60 @@ out_free_sha_regions:
- }
- 
- #ifdef CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY
--static const Elf_Sym * kexec_purgatory_find_symbol(struct purgatory_info *pi,
--			      const char *name);
-+/*
-+ * kexec_purgatory_find_symbol - find a symbol in the purgatory
-+ * @pi:		Purgatory to search in.
-+ * @name:	Name of the symbol.
-+ *
-+ * Return: pointer to symbol in read-only symtab on success, NULL on error.
-+ */
-+static const Elf_Sym *kexec_purgatory_find_symbol(struct purgatory_info *pi,
-+						  const char *name)
-+{
-+	const Elf_Shdr *sechdrs;
-+	const Elf_Ehdr *ehdr;
-+	const Elf_Sym *syms;
-+	const char *strtab;
-+	int i, k;
-+
-+	if (!pi->ehdr)
-+		return NULL;
-+
-+	ehdr = pi->ehdr;
-+	sechdrs = (void *)ehdr + ehdr->e_shoff;
-+
-+	for (i = 0; i < ehdr->e_shnum; i++) {
-+		if (sechdrs[i].sh_type != SHT_SYMTAB)
-+			continue;
-+
-+		if (sechdrs[i].sh_link >= ehdr->e_shnum)
-+			/* Invalid strtab section number */
-+			continue;
-+		strtab = (void *)ehdr + sechdrs[sechdrs[i].sh_link].sh_offset;
-+		syms = (void *)ehdr + sechdrs[i].sh_offset;
-+
-+		/* Go through symbols for a match */
-+		for (k = 0; k < sechdrs[i].sh_size/sizeof(Elf_Sym); k++) {
-+			if (ELF_ST_BIND(syms[k].st_info) != STB_GLOBAL)
-+				continue;
-+
-+			if (strcmp(strtab + syms[k].st_name, name) != 0)
-+				continue;
-+
-+			if (syms[k].st_shndx == SHN_UNDEF ||
-+			    syms[k].st_shndx >= ehdr->e_shnum) {
-+				pr_debug("Symbol: %s has bad section index %d.\n",
-+					name, syms[k].st_shndx);
-+				return NULL;
-+			}
-+
-+			/* Found the symbol we are looking for */
-+			return &syms[k];
-+		}
-+	}
-+
-+	return NULL;
-+}
- /*
-  * kexec_purgatory_setup_kbuf - prepare buffer to load purgatory.
-  * @pi:		Purgatory to be loaded.
-@@ -1148,61 +1200,6 @@ out_free_kbuf:
- 	return ret;
- }
- 
--/*
-- * kexec_purgatory_find_symbol - find a symbol in the purgatory
-- * @pi:		Purgatory to search in.
-- * @name:	Name of the symbol.
-- *
-- * Return: pointer to symbol in read-only symtab on success, NULL on error.
-- */
--static const Elf_Sym *kexec_purgatory_find_symbol(struct purgatory_info *pi,
--						  const char *name)
--{
--	const Elf_Shdr *sechdrs;
--	const Elf_Ehdr *ehdr;
--	const Elf_Sym *syms;
--	const char *strtab;
--	int i, k;
--
--	if (!pi->ehdr)
--		return NULL;
--
--	ehdr = pi->ehdr;
--	sechdrs = (void *)ehdr + ehdr->e_shoff;
--
--	for (i = 0; i < ehdr->e_shnum; i++) {
--		if (sechdrs[i].sh_type != SHT_SYMTAB)
--			continue;
--
--		if (sechdrs[i].sh_link >= ehdr->e_shnum)
--			/* Invalid strtab section number */
--			continue;
--		strtab = (void *)ehdr + sechdrs[sechdrs[i].sh_link].sh_offset;
--		syms = (void *)ehdr + sechdrs[i].sh_offset;
--
--		/* Go through symbols for a match */
--		for (k = 0; k < sechdrs[i].sh_size/sizeof(Elf_Sym); k++) {
--			if (ELF_ST_BIND(syms[k].st_info) != STB_GLOBAL)
--				continue;
--
--			if (strcmp(strtab + syms[k].st_name, name) != 0)
--				continue;
--
--			if (syms[k].st_shndx == SHN_UNDEF ||
--			    syms[k].st_shndx >= ehdr->e_shnum) {
--				pr_debug("Symbol: %s has bad section index %d.\n",
--						name, syms[k].st_shndx);
--				return NULL;
--			}
--
--			/* Found the symbol we are looking for */
--			return &syms[k];
--		}
--	}
--
--	return NULL;
--}
--
- void *kexec_purgatory_get_symbol_addr(struct kimage *image, const char *name)
+--- a/mm/memory.c~mm-folio_zero_user-open-code-range-computation-in-folio_zero_user
++++ a/mm/memory.c
+@@ -7332,30 +7332,29 @@ static void clear_contig_highpages(struc
+ void folio_zero_user(struct folio *folio, unsigned long addr_hint)
  {
- 	struct purgatory_info *pi = &image->purgatory_info;
+ 	const unsigned long base_addr = ALIGN_DOWN(addr_hint, folio_size(folio));
+-	const long fault_idx = (addr_hint - base_addr) / PAGE_SIZE;
+ 	const struct range pg = DEFINE_RANGE(0, folio_nr_pages(folio) - 1);
+-	const int radius = FOLIO_ZERO_LOCALITY_RADIUS;
++	const long fault_idx = (addr_hint - base_addr) / PAGE_SIZE;
++	const long radius = FOLIO_ZERO_LOCALITY_RADIUS;
+ 	struct range r[3];
+ 	int i;
+ 
+ 	/*
+-	 * Faulting page and its immediate neighbourhood. Will be cleared at the
+-	 * end to keep its cachelines hot.
++	 * Faulting page and its immediate neighbourhood. Cleared at the end to
++	 * keep its cachelines hot.
+ 	 */
+-	r[2] = DEFINE_RANGE(clamp_t(s64, fault_idx - radius, pg.start, pg.end),
+-			    clamp_t(s64, fault_idx + radius, pg.start, pg.end));
++	r[2] = DEFINE_RANGE(fault_idx - radius < (long)pg.start ? pg.start : fault_idx - radius,
++			    fault_idx + radius > (long)pg.end   ? pg.end   : fault_idx + radius);
++
+ 
+-	/* Region to the left of the fault */
+-	r[1] = DEFINE_RANGE(pg.start,
+-			    clamp_t(s64, r[2].start - 1, pg.start - 1, r[2].start));
++	/* Region to the left of the fault. */
++	r[1] = DEFINE_RANGE(pg.start, r[2].start - 1);
+ 
+ 	/* Region to the right of the fault: always valid for the common fault_idx=0 case. */
+-	r[0] = DEFINE_RANGE(clamp_t(s64, r[2].end + 1, r[2].end, pg.end + 1),
+-			    pg.end);
++	r[0] = DEFINE_RANGE(r[2].end + 1, pg.end);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(r); i++) {
+ 		const unsigned long addr = base_addr + r[i].start * PAGE_SIZE;
+-		const unsigned int nr_pages = range_len(&r[i]);
++		const long nr_pages = (long)range_len(&r[i]);
+ 		struct page *page = folio_page(folio, r[i].start);
+ 
+ 		if (nr_pages > 0)
 _
 
-Patches currently in -mm which might be from me@linux.beauty are
+Patches currently in -mm which might be from ankur.a.arora@oracle.com are
 
-kexec-derive-purgatory-entry-from-symbol.patch
-kexec-derive-purgatory-entry-from-symbol-v2.patch
 
