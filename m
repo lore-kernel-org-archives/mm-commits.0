@@ -1,172 +1,252 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-dy1-f177.google.com (mail-dy1-f177.google.com [74.125.82.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B99D26ED25
-	for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 23:31:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 243FC28D82F
+	for <mm-commits@vger.kernel.org>; Wed, 28 Jan 2026 02:32:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769556696; cv=none; b=pGBTDA63uwgWCcTeW+5wd28/dI9wdNGnVuoujDcuRKrrV9lWsWsV6mv9ZBadTWwdCYO/V6Ff/PafkQK0SgMdit6vUaWFgSYMGFtRhboyC/HqobnEXu3msNnVp+Zf8TO4JDM30jOO8o8R1YUMW1ZrEm4L7LiZTrQ0ZUAB9Qxw/+w=
+	t=1769567525; cv=none; b=tBJqod7W/yJdLYZJP/UZcXUIqlvCeuQWYfNxfL7ZZJ0ewjfGOPAY6T7nwfkk9wD12wK8DvjPd8p895XZvbrQM4et6BNR2Zg/yrIVXhkIGT6dynSfsob4zw2pzSw0BlyB+VjnDtCINv1sqMdm/L8BzFd1MPit6/ciqSApwAsIBlM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769556696; c=relaxed/simple;
-	bh=isRBxgB25WZh5bZXDVUhxcO9TA2rl2I05rSvtVBvGgg=;
-	h=Date:To:From:Subject:Message-Id; b=imNiuvjtgSSqoGfDLDdCVeefIXoDjeb/zIyVpi3L8kX7WSIiSl1fRzSixNkSuK3u1XUHZf1s+P3IIOfpl+OS3fpl2FVbqgE0bPCOCgtDrv/EMgoO7eC/K1NAUemRx16L9rttppypvxk4XORf/6hj9Q5UjVkQaWrl615Vac0TlxU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=krMEScug; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769567525; c=relaxed/simple;
+	bh=3zyzKCSekqq7FHMYW7I4Xhmf24lrfieQrozQP0dABJg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Dt8y+oYIiJ5Gym0Bdrdb57qv2GB5P/pSBxkCwxJBf3Hc8mYDI4W+pBeF7Bj8aRpM2zRIffpA2Lwcz5HFTpzoaMNKI/nll91LkdDg19ntDnsjLfhfEf7FwKQMcayJvUKl/mOkzTr+O4R6+rQIyCqEXPzCJpK/FDHpfIm3CuSPfRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=D3FpUrpA; arc=none smtp.client-ip=74.125.82.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krMEScug"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99483C116C6;
-	Tue, 27 Jan 2026 23:31:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769556695;
-	bh=isRBxgB25WZh5bZXDVUhxcO9TA2rl2I05rSvtVBvGgg=;
-	h=Date:To:From:Subject:From;
-	b=krMEScug7B/va/zKUeXNX6GCshj+R7zpxNoHC5M4QR87EjkskN23F9ivUCsa5F3s7
-	 wBc+9wLilknvH5kwzqA0NCl1+o07M0CQCr+sP7LRSQ6QGR6SPI6LIcwEoVXkRCSDSx
-	 BIPZEQwNNHpJ/zcsVZxmVz2zLhB/QUF+NH9Eh88c=
-Date: Tue, 27 Jan 2026 15:31:35 -0800
-To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,ubizjak@gmail.com,sdf@fomichev.me,peterz@infradead.org,paulmck@kernel.org,ojeda@kernel.org,nilay@linux.ibm.com,nathan@kernel.org,namjain@linux.microsoft.com,martin.lau@linux.dev,kpsingh@kernel.org,kees@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,jason@zx2c4.com,hpa@zytor.com,hca@linux.ibm.com,haoluo@google.com,elver@google.com,eddyz87@gmail.com,daniel@iogearbox.net,bvanassche@acm.org,ast@kernel.org,andrii.nakryiko@gmail.com,alan.maguire@oracle.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kcsan-compiler_types-avoid-duplicate-type-issues-in-bpf-type-format.patch added to mm-nonmm-unstable branch
-Message-Id: <20260127233135.99483C116C6@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="D3FpUrpA"
+Received: by mail-dy1-f177.google.com with SMTP id 5a478bee46e88-2b73112ab62so5455953eec.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 18:32:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1769567522; x=1770172322; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=egAN9VsiBBmLS+EOoK2lXqZdjZw63twFvoDba+Q9+sA=;
+        b=D3FpUrpAPSkq7c5MzDpfnDRX1BXrInzAxy5VejW8UEwXDOqHIk+aricbX3hVMVBZqI
+         sHY/58vamS2jVQIV4OGRmXNXqMmWGjdc6XNn7oRuyOCMWxjF/mhJTRAfqOR7U2wYlV4u
+         EErl6jV0zCVvYqQ7iGRIrFN9agSrm7Mw/594UYDO+mrYfvJFMKQPsmtXBNn117Agmf2v
+         H3LbAnMXzeSBkRzrE8uy/LjsFuy8YWCNQJlb80SwFahxnelv371Ekwkw9TKGL6yfHzHs
+         pAxLDd0X2fLdvO+3jtMdWjcERLj5Sj1J2cyNwQ9OTfQpOczSFIMXjRVRhkNnzhq4okZC
+         xAXg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1769567522; x=1770172322;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=egAN9VsiBBmLS+EOoK2lXqZdjZw63twFvoDba+Q9+sA=;
+        b=GjNvq3hc1h2nUTFB+dVHtAeJdUOxi/x2uY+Wh1WuZR7AlTO2/u2fxTgwqSVhaOlbi3
+         C6QME6U1jIfnP5VccDtPc6D/v+oy6CX3E7rR9EZUPAkSGd824kQaeCxN1OXcgxKky/lE
+         tSqIqfZsTCsYmWXbrNfwkOF6qkD2l6z0F4PDn8/FZe4y7xh9eXTEo+4Z2MJXul7PeXwB
+         vBzq2ffCgF1SNthJ2C/nnh8Oy9nA0MVITqxxUStkwrBCnvNHOQ3wjIgQ0S+blXXpmpYP
+         ld/bQzI5pH+2mFLFIYbH8mcMizmGHt4cNAJ4TPlnemMD+3YZJ+cYRk/Ekzfw6FqcQDLQ
+         3Vuw==
+X-Forwarded-Encrypted: i=1; AJvYcCXmXC6Nm57vvLo7u7VvDyJyEsohfsisbJ/6DEAg6mofvoeWfjCojgDHnSu1yXjIeCORfhWemZBJAIv3@vger.kernel.org
+X-Gm-Message-State: AOJu0YzpbPex4uhsPR19WtSZkt5c6ZhzYv9fMczbP4TaGxlhd1Ddit+X
+	CmsfX7hNabvva3eNbIZNHOJfGjemEwWMcJIKWkV/7Pa7n23B7IfFa3gu
+X-Gm-Gg: AZuq6aIXJEIJvCIZQD/fJ8r5YSyIM6NiGQJXLiSfw14mL3vLwgQ/gjZ/uIBn900138f
+	qrH4HZ8i5qFPjwq1Lklo8GqAzXei0p7a6qMdjkGeaSFPMOpAynkdzIw3rCvYOfg9gx2MhJouSjG
+	ZHQjg6lZjpRk8Br7QOgaaV7YdyCRtCPYJJv9Z5Qsu25haVqhkj9fpDkOL0R5C0AUVB2x3oO1BBv
+	ZDc3jfkCNGRLp3/xbDJcG4NEr0CS9ToGwK23wF1agBf7lBQjekW7wCfA2wSNZHUSL16payIpx4I
+	ewbwiACiEnxmzA8cqR9OjBb/JVAzGQcVvcTkRjiKY8tJOJM+8QxWH7AYRJOr56B8bLox+Sl+DyW
+	GrZzN2xfY3MZHsNzGsGUS+KkZhBf6SQdNQa+ljzxhE2iNhBtUInGQlXk/96R3QYAomWcnzdFb8M
+	6Cm0ArsWCpOtw7kQ==
+X-Received: by 2002:a05:693c:60cd:b0:2b7:97b0:82b9 with SMTP id 5a478bee46e88-2b797b09200mr1234573eec.9.1769567522217;
+        Tue, 27 Jan 2026 18:32:02 -0800 (PST)
+Received: from debian ([74.48.213.230])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2b7a17083dasm930663eec.14.2026.01.27.18.31.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 27 Jan 2026 18:32:01 -0800 (PST)
+From: Qiliang Yuan <realwujing@gmail.com>
+To: Qiliang Yuan <realwujing@gmail.com>,
+	Li Huafei <lihuafei1@huawei.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ingo Molnar <mingo@kernel.org>,
+	Jinchao Wang <wangjinchao600@gmail.com>,
+	Yicong Yang <yangyicong@hisilicon.com>,
+	Thorsten Blum <thorsten.blum@linux.dev>
+Cc: linux-watchdog@vger.kernel.org,
+	mm-commits@vger.kernel.org,
+	Shouxin Sun <sunshx@chinatelecom.cn>,
+	Junnan Zhang <zhangjn11@chinatelecom.cn>,
+	Qiliang Yuan <yuanql9@chinatelecom.cn>,
+	Song Liu <song@kernel.org>,
+	Douglas Anderson <dianders@chromium.org>,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v6] watchdog/hardlockup: simplify perf event probe and remove per-cpu dependency
+Date: Tue, 27 Jan 2026 21:31:22 -0500
+Message-ID: <20260128023136.1691973-1-realwujing@gmail.com>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
+Simplify the hardlockup detector's probe path and remove its implicit
+dependency on pinned per-cpu execution.
 
-The patch titled
-     Subject: kcsan, compiler_types: avoid duplicate type issues in BPF Type Format
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kcsan-compiler_types-avoid-duplicate-type-issues-in-bpf-type-format.patch
+Refactor hardlockup_detector_event_create() to be stateless. Return
+the created perf_event pointer to the caller instead of directly
+modifying the per-cpu 'watchdog_ev' variable. This allows the probe
+path to safely manage a temporary event without the risk of leaving
+stale pointers should task migration occur.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcsan-compiler_types-avoid-duplicate-type-issues-in-bpf-type-format.patch
+Use cpu_hotplug_disable() during the probe to ensure the target CPU
+remains stable throughout the availability check.
 
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Alan Maguire <alan.maguire@oracle.com>
-Subject: kcsan, compiler_types: avoid duplicate type issues in BPF Type Format
-Date: Fri, 16 Jan 2026 09:17:30 +0000
-
-Enabling KCSAN is causing a large number of duplicate types in BTF for
-core kernel structs like task_struct [1].  This is due to the definition
-in include/linux/compiler_types.h
-
-`#ifdef __SANITIZE_THREAD__
-...
-`#define __data_racy volatile
-..
-`#else
-...
-`#define __data_racy
-...
-`#endif
-
-Because some objects in the kernel are compiled without KCSAN flags
-(KCSAN_SANITIZE) we sometimes get the empty __data_racy annotation for
-objects; as a result we get multiple conflicting representations of the
-associated structs in DWARF, and these lead to multiple instances of core
-kernel types in BTF since they cannot be deduplicated due to the
-additional modifier in some instances.
-
-Moving the __data_racy definition under CONFIG_KCSAN avoids this problem,
-since the volatile modifier will be present for both KCSAN and
-KCSAN_SANITIZE objects in a CONFIG_KCSAN=y kernel.
-
-Link: https://lkml.kernel.org/r/20260116091730.324322-1-alan.maguire@oracle.com
-Fixes: 31f605a308e6 ("kcsan, compiler_types: Introduce __data_racy type qualifier")
-Signed-off-by: Alan Maguire <alan.maguire@oracle.com>
-Reported-by: Nilay Shroff <nilay@linux.ibm.com>
-Tested-by: Nilay Shroff <nilay@linux.ibm.com>
-Suggested-by: Marco Elver <elver@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Acked-by: Yonghong Song <yonghong.song@linux.dev>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Cc: Bart van Assche <bvanassche@acm.org>
-Cc: Daniel Borkman <daniel@iogearbox.net>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Hao Luo <haoluo@google.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Jason A. Donenfeld <jason@zx2c4.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Naman Jain <namjain@linux.microsoft.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Uros Bizjak <ubizjak@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Shouxin Sun <sunshx@chinatelecom.cn>
+Signed-off-by: Junnan Zhang <zhangjn11@chinatelecom.cn>
+Signed-off-by: Qiliang Yuan <yuanql9@chinatelecom.cn>
+Cc: Song Liu <song@kernel.org>
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Jinchao Wang <wangjinchao600@gmail.com>
 ---
+v6:
+- Change title to "simplify/cleanup" and remove "Fixes" tag since the issue
+  is not reproducible on mainline.
+- Rewrite commit message in imperative mood.
+- Clarify that mainline is safe while this improves robustness.
+- v5 link: https://lore.kernel.org/all/20260127022238.1182079-1-realwujing@gmail.com/
+v5:
+- Refine description: clarify that the retry path uses worker threads
+  without PF_PERCPU_THREAD (though mainline is safe due to system_percpu_wq).
+- v4 link: https://lore.kernel.org/all/20260124070814.806828-1-realwujing@gmail.com/
+v4:
+- Add cpu_hotplug_disable() in watchdog_hardlockup_probe() to stabilize
+  the probe CPU.
+- Update description to explain the relevance of 4.19 logs.
+v3:
+- Refactor hardlockup_detector_event_create() to be stateless by returning
+  the event pointer instead of directly assigning to per-cpu variables.
+- Restore PMU cycle fallback and unify the enable/probe paths.
+v2:
+- Add Cc: stable@vger.kernel.org.
+v1:
+- Avoid 'watchdog_ev' in probe path by manually creating and releasing a
+  local perf event.
 
- include/linux/compiler_types.h |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ kernel/watchdog_perf.c | 56 +++++++++++++++++++++++++-----------------
+ 1 file changed, 34 insertions(+), 22 deletions(-)
 
---- a/include/linux/compiler_types.h~kcsan-compiler_types-avoid-duplicate-type-issues-in-bpf-type-format
-+++ a/include/linux/compiler_types.h
-@@ -303,6 +303,22 @@ struct ftrace_likely_data {
- # define __no_kasan_or_inline __always_inline
- #endif
+diff --git a/kernel/watchdog_perf.c b/kernel/watchdog_perf.c
+index d3ca70e3c256..887b61c65c1b 100644
+--- a/kernel/watchdog_perf.c
++++ b/kernel/watchdog_perf.c
+@@ -17,6 +17,7 @@
+ #include <linux/atomic.h>
+ #include <linux/module.h>
+ #include <linux/sched/debug.h>
++#include <linux/cpu.h>
  
-+#ifdef CONFIG_KCSAN
-+/*
-+ * Type qualifier to mark variables where all data-racy accesses should be
-+ * ignored by KCSAN. Note, the implementation simply marks these variables as
-+ * volatile, since KCSAN will treat such accesses as "marked".
-+ *
-+ * Defined here because defining __data_racy as volatile for KCSAN objects only
-+ * causes problems in BPF Type Format (BTF) generation since struct members
-+ * of core kernel data structs will be volatile in some objects and not in
-+ * others.  Instead define it globally for KCSAN kernels.
-+ */
-+# define __data_racy volatile
-+#else
-+# define __data_racy
-+#endif
-+
- #ifdef __SANITIZE_THREAD__
- /*
-  * Clang still emits instrumentation for __tsan_func_{entry,exit}() and builtin
-@@ -314,16 +330,9 @@ struct ftrace_likely_data {
-  * disable all instrumentation. See Kconfig.kcsan where this is mandatory.
+ #include <asm/irq_regs.h>
+ #include <linux/perf_event.h>
+@@ -118,18 +119,11 @@ static void watchdog_overflow_callback(struct perf_event *event,
+ 	watchdog_hardlockup_check(smp_processor_id(), regs);
+ }
+ 
+-static int hardlockup_detector_event_create(void)
++static struct perf_event *hardlockup_detector_event_create(unsigned int cpu)
+ {
+-	unsigned int cpu;
+ 	struct perf_event_attr *wd_attr;
+ 	struct perf_event *evt;
+ 
+-	/*
+-	 * Preemption is not disabled because memory will be allocated.
+-	 * Ensure CPU-locality by calling this in per-CPU kthread.
+-	 */
+-	WARN_ON(!is_percpu_thread());
+-	cpu = raw_smp_processor_id();
+ 	wd_attr = &wd_hw_attr;
+ 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
+ 
+@@ -143,14 +137,7 @@ static int hardlockup_detector_event_create(void)
+ 						       watchdog_overflow_callback, NULL);
+ 	}
+ 
+-	if (IS_ERR(evt)) {
+-		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
+-			 PTR_ERR(evt));
+-		return PTR_ERR(evt);
+-	}
+-	WARN_ONCE(this_cpu_read(watchdog_ev), "unexpected watchdog_ev leak");
+-	this_cpu_write(watchdog_ev, evt);
+-	return 0;
++	return evt;
+ }
+ 
+ /**
+@@ -159,17 +146,26 @@ static int hardlockup_detector_event_create(void)
   */
- # define __no_kcsan __no_sanitize_thread __disable_sanitizer_instrumentation
--/*
-- * Type qualifier to mark variables where all data-racy accesses should be
-- * ignored by KCSAN. Note, the implementation simply marks these variables as
-- * volatile, since KCSAN will treat such accesses as "marked".
-- */
--# define __data_racy volatile
- # define __no_sanitize_or_inline __no_kcsan notrace __maybe_unused
- #else
- # define __no_kcsan
--# define __data_racy
- #endif
+ void watchdog_hardlockup_enable(unsigned int cpu)
+ {
++	struct perf_event *evt;
++
+ 	WARN_ON_ONCE(cpu != smp_processor_id());
  
- #ifdef __SANITIZE_MEMORY__
-_
-
-Patches currently in -mm which might be from alan.maguire@oracle.com are
-
-kcsan-compiler_types-avoid-duplicate-type-issues-in-bpf-type-format.patch
+-	if (hardlockup_detector_event_create())
++	evt = hardlockup_detector_event_create(cpu);
++	if (IS_ERR(evt)) {
++		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
++			 PTR_ERR(evt));
+ 		return;
++	}
+ 
+ 	/* use original value for check */
+ 	if (!atomic_fetch_inc(&watchdog_cpus))
+ 		pr_info("Enabled. Permanently consumes one hw-PMU counter.\n");
+ 
++	WARN_ONCE(this_cpu_read(watchdog_ev), "unexpected watchdog_ev leak");
++	this_cpu_write(watchdog_ev, evt);
++
+ 	watchdog_init_timestamp();
+-	perf_event_enable(this_cpu_read(watchdog_ev));
++	perf_event_enable(evt);
+ }
+ 
+ /**
+@@ -263,19 +259,35 @@ bool __weak __init arch_perf_nmi_is_available(void)
+  */
+ int __init watchdog_hardlockup_probe(void)
+ {
++	struct perf_event *evt;
++	unsigned int cpu;
+ 	int ret;
+ 
+ 	if (!arch_perf_nmi_is_available())
+ 		return -ENODEV;
+ 
+-	ret = hardlockup_detector_event_create();
++	if (!hw_nmi_get_sample_period(watchdog_thresh))
++		return -EINVAL;
+ 
+-	if (ret) {
++	/*
++	 * Test hardware PMU availability by creating a temporary perf event.
++	 * The requested CPU is arbitrary; preemption is not disabled, so
++	 * raw_smp_processor_id() is used. Surround with cpu_hotplug_disable()
++	 * to ensure the arbitrarily chosen CPU remains online during the check.
++	 * The event is released immediately.
++	 */
++	cpu_hotplug_disable();
++	cpu = raw_smp_processor_id();
++	evt = hardlockup_detector_event_create(cpu);
++	if (IS_ERR(evt)) {
+ 		pr_info("Perf NMI watchdog permanently disabled\n");
++		ret = PTR_ERR(evt);
+ 	} else {
+-		perf_event_release_kernel(this_cpu_read(watchdog_ev));
+-		this_cpu_write(watchdog_ev, NULL);
++		perf_event_release_kernel(evt);
++		ret = 0;
+ 	}
++	cpu_hotplug_enable();
++
+ 	return ret;
+ }
+ 
+-- 
+2.51.0
 
