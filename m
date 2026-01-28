@@ -1,137 +1,173 @@
-Received: from mail-dl1-f52.google.com (mail-dl1-f52.google.com [74.125.82.52])
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13BCD2C0F97
-	for <mm-commits@vger.kernel.org>; Wed, 28 Jan 2026 02:38:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A720231A23
+	for <mm-commits@vger.kernel.org>; Wed, 28 Jan 2026 04:08:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769567885; cv=none; b=OEQHXOqTlN1hI03EkGFOePgxJy0T/Mo7QU/gWgXvuTB8HC9GZ4FOaP4L4jlseM/jXgdxY9L5xBwpthZFPAZ3gsoS9H+FSt8wm/VovQuKwshyXivIwHxbYpvh2Jlo53wgkKyn5Cg448w899wtHTf0MHNCmdwnLNg5/ZTBPfHGlzU=
+	t=1769573297; cv=none; b=Nps+o/YZMQdH9S37zGhzZd237E+7QAulKAkKe1LiMrnsB0ZMuM5fogeSFIglUfeh8a9WN3Fd6epfbylb7QhZlZ2DTbFS+0WCWmZVokp/HePRoYBTaonDCqMf2vPZARgfyTzwPp2DO26WiHvVgx2C8nTAB7u53kIo/KWkp10TTBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769567885; c=relaxed/simple;
-	bh=TwSoeihKpQAs0Xculcg+xL4TrpYrf6SpB9Q3RJkipQg=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=mJRVXvh8hCzxVWYsoXP2OpDRYStRd2sR7+tiss+dM5XHnAwsKLYkQQYeD7dcE5ddZUd0eGp2zLI110eenLD7UxjaVX69e+MA1aRgYqKipeVmAhg0L8BkXnleZP3lwV/yFAT9cmL/DHKfew5p6frlmxvI68PbVxsc1n3MNuAcUoA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RRVaoeKu; arc=none smtp.client-ip=74.125.82.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1769573297; c=relaxed/simple;
+	bh=IKS3rm5HaKGj1cSZc9Q9841iwotUmP6mNanLxQbk4Us=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=fQaVd3y3xSkhq9oAJYqCAF+EoSV+wneVlreQh1uHYU7r9kzhfxByD30c9MfGhSajIPIX1YhGHH/eXtNhqtrx+OIP6CippIXNAq5k5PCHMiE6FLFH5T2o0xzj3+S/1mj9vvGKumMu2ybF4eZn/m7jPqeixlFMfLBRdqMQ+JjPCt0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=VKkmHZa7; arc=none smtp.client-ip=209.85.218.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RRVaoeKu"
-Received: by mail-dl1-f52.google.com with SMTP id a92af1059eb24-1248d27f293so2351867c88.0
-        for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 18:38:03 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="VKkmHZa7"
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-b8845cb580bso1135522266b.3
+        for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 20:08:16 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769567883; x=1770172683; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=chromium.org; s=google; t=1769573293; x=1770178093; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=r6cfmUDBf1+qLRNX7vc1byRXhiT1ATCL/TBU1o+0kLY=;
-        b=RRVaoeKu9NC5OoiU9WiyZ0cGih/jVa0ZZkrQ3nIFrhVB2RD4c8UZ3Ggy35CYqksb7y
-         6evDHYXQlVHI9wwhM5c0WG3go/ShPWJSAlajY4CIBSY31Y5uFuh8iZTV60JY6j5ZpCOS
-         JvPMSDTPJygx7b9J4NsR1C3tE8/VVcd+GcGNloJhxTgwVhX22/qcDuSzXyVYmeDqgewi
-         yAqu7mMsgBxVc12Le2ccw3rhrnY7ea4tdsl7tZy8f1Jm8AkGcJ+rZXZw/t39j3/so5bT
-         wfhmJObVSmG8EZSICJStdIZJpJnuGVBnOCYNOtNi7S9lOQF7bZfqnLCRgTAmBpnLC1qD
-         GkpA==
+        bh=E+SBx2bhyAxpOr0xPAhvkbF9K+DXCdj305biHMr2LWg=;
+        b=VKkmHZa7+qD/9ioUm7My3/ECcIJ40G98857Nv9A9zAQJQm1wZ946afSlImRZ5ElmSx
+         LGXEoqLoSCKxk/2+7mx/MnPT9LIs3iKjTIZpsQDalRNY3RF10UD0bVfKs2EZw3KKdjTi
+         tSHPwUYxbUvLxpkfp1p1+Avs7Mm0S3n/o/BPU=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769567883; x=1770172683;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-gg:x-gm-message-state:from
+        d=1e100.net; s=20230601; t=1769573293; x=1770178093;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=r6cfmUDBf1+qLRNX7vc1byRXhiT1ATCL/TBU1o+0kLY=;
-        b=FvPKbcnmAsaCMfFhL4ThmlTHJJQnRNP0thPzgCL9l79s0qTUSGERWeg41xouhGxEHJ
-         +DkJy5WsHUNP6tGh2lJntr0HMbPLeCswP7No9D6pLqR/Cpkg76Lt5E/yY37bZ9+aAnNX
-         Fyni0LW6uEEuLIF4bU52vkxOd9jViFOg8AcvUaso1PR72SG6SngldNbw9K2EW6wtvSM1
-         D2cTcS5QwrB22MRf3UaWE4BbSI5abXkSsCyZz41ArgffGdaDEmCh6V7CKhcSpUv/exXU
-         /rZPnQbyF37u9npunT8RjQ8EvAo9/6qY4jyA2ZsqQKXLXrRZafUqVT7HFR3S2YyRPmbW
-         7v6g==
-X-Forwarded-Encrypted: i=1; AJvYcCUoFZXmoibQadGIzUyQBQZ05VHxfCinHxsCwGI/xyR4HFK2lMF6XpCg4JlCw4E4yfo8SpRlEJRm0AqJ@vger.kernel.org
-X-Gm-Message-State: AOJu0YzFVQCKsyLQkjbCCstBI7kqiXzy0Q+ET9CHgzsLHcHvodxr5DxV
-	FZChsG11V6kIHcftf0x1xzD69Rwykm/3vNpV5q0Vkb2uwHcfQ+w9N2se
-X-Gm-Gg: AZuq6aIXnK/LCayy1vH9oxNFb7rJd/NtGqqVQHOU1h10vlq4TnFWp+P5WUQ30HNMCZB
-	s/RgwAycnYEaaxLDZ+qUOuH2xga7Qxyk8YCsadDkk0CwOmTi3ccsiwvVGhTlTdVwX2EvNwAJcUe
-	+AIXcwkLS3BhTi6skfV3WEPmKmtlrMtydV6EbXuUVbI+Xt1QA76RSslYHKOtVPNmpkRA7IbKl4w
-	+0fIxs3+cLK64wrqXZsETCMYXH/kCiJ5m3bFIuS5VGdINhEckdHjSbHQKiKLfGDDIx0YFNzAlr3
-	9DWYE96+q69hy/mREPKHa48CSIobWlj8InLKmklfJd+qHZB0ReDtEGEXgTM7c8pzfvKDcQeOJ3N
-	NRx/noHytJO507VkrNJQSmHo9HdhfbPrTdsMaBLjJpluFgktpZ7Sgk0AbDqjvpDAFicmUtKHUNR
-	DWWqU=
-X-Received: by 2002:a05:7022:f96:b0:119:e56b:c75c with SMTP id a92af1059eb24-124a00deeb4mr2362361c88.33.1769567882811;
-        Tue, 27 Jan 2026 18:38:02 -0800 (PST)
-Received: from debian ([74.48.213.230])
-        by smtp.gmail.com with ESMTPSA id a92af1059eb24-124a9de948esm781862c88.9.2026.01.27.18.37.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 27 Jan 2026 18:38:02 -0800 (PST)
-From: Qiliang Yuan <realwujing@gmail.com>
-To: dianders@chromium.org
-Cc: akpm@linux-foundation.org,
-	lihuafei1@huawei.com,
-	linux-kernel@vger.kernel.org,
-	mingo@kernel.org,
-	mm-commits@vger.kernel.org,
-	realwujing@gmail.com,
-	song@kernel.org,
-	stable@vger.kernel.org,
-	sunshx@chinatelecom.cn,
-	thorsten.blum@linux.dev,
-	wangjinchao600@gmail.com,
-	yangyicong@hisilicon.com,
-	yuanql9@chinatelecom.cn,
-	zhangjn11@chinatelecom.cn
-Subject: Re: [PATCH v4] watchdog/hardlockup: Fix UAF in perf event cleanup due to migration race
-Date: Tue, 27 Jan 2026 21:37:52 -0500
-Message-ID: <20260128023757.1693269-1-realwujing@gmail.com>
-X-Mailer: git-send-email 2.51.0
-In-Reply-To: <CAD=FV=U6sM71UuPbYZRWV87=p1ZO8-gpv3yzK8eMEv3dRNVgdA@mail.gmail.com>
-References: <CAD=FV=U6sM71UuPbYZRWV87=p1ZO8-gpv3yzK8eMEv3dRNVgdA@mail.gmail.com>
+        bh=E+SBx2bhyAxpOr0xPAhvkbF9K+DXCdj305biHMr2LWg=;
+        b=ci4aOui8TkaubsoioHeYuRzuwpisM9mQBarP/XrKYwDCbkKE/Gx9HNhldF5bNd2uLu
+         uw51/C23BVJ2dOHRYRyurRHl5DPsfeUE1h9pMZDQ+lof0Iyb43lPRPalZlgzVyCGfbyC
+         u/KRriUGiJtOv7GhAK5UTHam00H0YTjPY4ELfUlIc+eD1xBdUFUiIUJ1zH/kQLq00esd
+         XFEi1PEp9Qwre9PLMMR/bcNRcY9owjRBXKpWxFcUnWe6BW7LkqDLmpyc9wc7iPjo4+KG
+         HNFuygdhxrMf4Qpydf+0QsxCOGYCYFjYLTGwKVWVt4XuTRTvgatqgzmemoVxUpXjRPha
+         fysQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUCRFspP2BdYjOQ5VfFl8gyCpVLQ282Osofb+nWWJct17QUjObjJ0CP5Oa2yfJzdVZTz6g3s9wE0geo@vger.kernel.org
+X-Gm-Message-State: AOJu0YxoPAacRZ5SCs2xazRvr+DHvs/EFyuxemDj0Nw6wE7qXXuUB72O
+	wfWqZYP742MEv6aNnRl1X21V4bQxnXEWDKX+jsm8UMDw+W66KvuspKdqhUKt+dg08yRoU+yYVsC
+	9f6TzmeXP
+X-Gm-Gg: AZuq6aI6opbUVY2ILaO1AP7QjG73hFsgntR4raazIJxXy9yAY/4w1OeIZSVqgyx3fPf
+	FGhYRLzcPX3AlumIsYsX7DzxmvqRN7EXIDEOBlc/ND2B3ki6GaU+DMiKzKnLRJd0j3JMp9ZvjV0
+	axVKUYd6ow7g5bLOweVNMIlP6aQ/WYxKFkN9Wl6S7hg3R+MlSiS/CSGsmMlIPfbkaYA3+m1e23s
+	VwcASdFoFEIrv5YTvWcSoS4xAeZYbD2xH9oJbjgsV3lxFZByvBTR1BsjEyrH2Vq/NgGzBYOhIeh
+	8rS+qYOR+b8XpgcfvaomuadfjnnrmiKBJ/hcQtWhZigI9OKJ+WncMm1VHq+UG4e5/XK8evdLyE1
+	jAArobB/gJda7twj0aO64ScUCkCDB4uL8NJ4lgaKiLZqca82jkcn79y9okARxULCDqmEixS3mAO
+	dYd/ZfTWyNPjFK6W/N3hXTp/3f7cgfRTDk+bKMnypEEPeFsZU5lA==
+X-Received: by 2002:a17:907:9622:b0:b87:117f:b6f1 with SMTP id a640c23a62f3a-b8dab152abbmr280806466b.2.1769573292850;
+        Tue, 27 Jan 2026 20:08:12 -0800 (PST)
+Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com. [209.85.221.52])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b8dbffb7263sm62788266b.28.2026.01.27.20.08.11
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 27 Jan 2026 20:08:12 -0800 (PST)
+Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-42fb0fc5aa9so3704451f8f.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 20:08:11 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCURcZZWSYMqp7fkhTpcF8A1Ty2dEgJaBFqiCnnAZT76mS+rHprJ2loZZ8Szlsxdki1Nkv7n78QoRNV0@vger.kernel.org
+X-Received: by 2002:a05:6000:25c6:b0:429:b751:7935 with SMTP id
+ ffacd0b85a97d-435dd1d7c61mr4787319f8f.56.1769573291404; Tue, 27 Jan 2026
+ 20:08:11 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20260128023136.1691973-1-realwujing@gmail.com>
+In-Reply-To: <20260128023136.1691973-1-realwujing@gmail.com>
+From: Doug Anderson <dianders@chromium.org>
+Date: Tue, 27 Jan 2026 20:08:00 -0800
+X-Gmail-Original-Message-ID: <CAD=FV=XX0dJ2jEaQ21M4Kas6pbJL0SSCxYhr8-1kqSTEiJP_UA@mail.gmail.com>
+X-Gm-Features: AZwV_QgdeU-M1S25dbD0bfuUkv4_GToYEVkAE_Sry3IUpeS5khRlkZo5Q_oaJ0E
+Message-ID: <CAD=FV=XX0dJ2jEaQ21M4Kas6pbJL0SSCxYhr8-1kqSTEiJP_UA@mail.gmail.com>
+Subject: Re: [PATCH v6] watchdog/hardlockup: simplify perf event probe and
+ remove per-cpu dependency
+To: Qiliang Yuan <realwujing@gmail.com>
+Cc: Li Huafei <lihuafei1@huawei.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Ingo Molnar <mingo@kernel.org>, Jinchao Wang <wangjinchao600@gmail.com>, 
+	Yicong Yang <yangyicong@hisilicon.com>, Thorsten Blum <thorsten.blum@linux.dev>, 
+	linux-watchdog@vger.kernel.org, mm-commits@vger.kernel.org, 
+	Shouxin Sun <sunshx@chinatelecom.cn>, Junnan Zhang <zhangjn11@chinatelecom.cn>, 
+	Qiliang Yuan <yuanql9@chinatelecom.cn>, Song Liu <song@kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Doug,
+Hi,
 
-Thanks for your detailed feedback and for the patient explanation regarding the 
-mainline workqueue behavior.
+On Tue, Jan 27, 2026 at 6:32=E2=80=AFPM Qiliang Yuan <realwujing@gmail.com>=
+ wrote:
+>
+> Simplify the hardlockup detector's probe path and remove its implicit
+> dependency on pinned per-cpu execution.
+>
+> Refactor hardlockup_detector_event_create() to be stateless. Return
+> the created perf_event pointer to the caller instead of directly
+> modifying the per-cpu 'watchdog_ev' variable. This allows the probe
+> path to safely manage a temporary event without the risk of leaving
+> stale pointers should task migration occur.
+>
+> Use cpu_hotplug_disable() during the probe to ensure the target CPU
+> remains stable throughout the availability check.
+>
+> Signed-off-by: Shouxin Sun <sunshx@chinatelecom.cn>
+> Signed-off-by: Junnan Zhang <zhangjn11@chinatelecom.cn>
+> Signed-off-by: Qiliang Yuan <yuanql9@chinatelecom.cn>
+> Cc: Song Liu <song@kernel.org>
+> Cc: Douglas Anderson <dianders@chromium.org>
+> Cc: Jinchao Wang <wangjinchao600@gmail.com>
 
-On Tue, 27 Jan 2026 13:37:28 Doug Anderson <dianders@chromium.org> wrote:
-> Really, it matters what schedule_work() does on anyone who happens to have
-> commit 930d8f8dbab9 ("watchdog/perf: adapt the watchdog_perf interface
-> for async model")... we have to focus on supporting the mainline kernel here.
+One last note is that your Signed-off-by tags don't match. When I
+apply your patch, I see:
 
-I completely agree that the focus must be on the mainline kernel. I've since
-checked and confirmed that in mainline, schedule_work() is redirected to
-system_percpu_wq (via include/linux/workqueue.h), which provides the
-necessary CPU affinity.
+Author:     Qiliang Yuan <realwujing@gmail.com>
 
-> To ask directly: have you seen this WARN_ON in mainline, or is this
-> all speculative?
+...but your Signed-off-by is your "@chinatelecom.cn" address. That's
+generally not okay. You need to do something to make those match. My
+guess is that locally you're using git-send-email and everything looks
+good on your end, but then you use your gmail account to login to a
+SMTP server to send your patch. Gmail silently rewrites your patch to
+be sent from the Gmail address you logged in with.
 
-To be direct: no, I haven't seen this WARN_ON on a pure mainline kernel. As
-you suspected, the issue was identified in a downstream 4.19-based kernel
-with different initialization timings and workqueue behavior. My assumption
-that it would also affect mainline was indeed speculative and based on an
-incomplete understanding of include/linux/sched.h's is_percpu_thread()
-implementation on modern kernels.
+You'll need to work on your email setup to fix that. Andrew can
+correct me if I'm wrong, but I think he can't really commit your patch
+until you've resent it with that fix.
 
-> I'm still not convinced that there was ever a UAF in mainline nor that
-> this actually "Fixes" anything in mainline. I do agree that the code
-> is better by not having it write the per-cpu variable at probe time
 
-Since the risk is not currently manifested in mainline, I have refactored
-the patch as a "cleanup and robustness improvement" as you suggested. This
-removes the fragile implicit dependency on the caller's context and makes
-the probe stateless.
+> @@ -263,19 +259,35 @@ bool __weak __init arch_perf_nmi_is_available(void)
+>   */
+>  int __init watchdog_hardlockup_probe(void)
+>  {
+> +       struct perf_event *evt;
+> +       unsigned int cpu;
+>         int ret;
+>
+>         if (!arch_perf_nmi_is_available())
+>                 return -ENODEV;
+>
+> -       ret =3D hardlockup_detector_event_create();
+> +       if (!hw_nmi_get_sample_period(watchdog_thresh))
+> +               return -EINVAL;
+>
+> -       if (ret) {
+> +       /*
+> +        * Test hardware PMU availability by creating a temporary perf ev=
+ent.
+> +        * The requested CPU is arbitrary; preemption is not disabled, so
+> +        * raw_smp_processor_id() is used. Surround with cpu_hotplug_disa=
+ble()
+> +        * to ensure the arbitrarily chosen CPU remains online during the=
+ check.
+> +        * The event is released immediately.
+> +        */
+> +       cpu_hotplug_disable();
 
-I have sent v6 with these changes. Please ignore v5 and review v6 instead.
+Given our newest understanding, the cpu_hotplug_disable() isn't truly
+needed anymore, but I'm still good keeping it. Perhaps we can
+eventually make the caller not need to queue the work on the system
+workqueue.
 
-v6 changes:
-- Renamed the title to "simplify perf event probe and remove per-cpu dependency".
-- Removed the "Fixes:" tag and "Cc: stable".
-- Rewrote the commit record in the imperative mood.
-- Updated the description to clarify that it addresses code brittleness
-  rather than a confirmed mainline bug.
+With your Signed-off-by fixed, I'd be happy with:
 
-v6 link: https://lore.kernel.org/all/20260127025814.1200345-1-realwujing@gmail.com/
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
 
-Best regards,
-Qiliang
+NOTE: I am not currently set up to test this patch (either through the
+main probe path or the retry path) so I haven't personally validated
+it. That being said, the code looks right to me. :-P
+
+-Doug
