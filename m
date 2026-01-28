@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D60DE371047;
-	Wed, 28 Jan 2026 18:42:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A017333434;
+	Wed, 28 Jan 2026 18:51:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769625773; cv=none; b=D/RB0PuHwv38zAxyXWojrX3HxHVCWwsntBLvV1EJlNQiw3evmaJPGvqPjFEzjaeSRyKF0pUviPmlV5KU4SJbqmlM8nwxWImVMzZBP8BDJdACWn7GNysKoFaJ+P/ySJrMfCYh7hBv2Yy5kWsqpbYcD8+8nI1KSD94MpGQDlkJmhw=
+	t=1769626281; cv=none; b=hJMLbZjKch9tc1zBVIhy8tC/wR/BCwHs/r2BAWI8K4tfWkvvELlL9WSgrAEWpKKcq8kUWp4m1lOlv8k9VjUsgOqQ4Wk8hmllyOz8TrwEtOiKE27b/xRtp9nmZe2GlbvLEAwI4LV26189tT795DvJLGnTqGk2LKyPt0IsQg8/JCM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769625773; c=relaxed/simple;
-	bh=daChFEWlmVlkFjwmx2FrTRrn4H7vOdMNw4qzOPI9hxw=;
-	h=Date:To:From:Subject:Message-Id; b=ObKmoKj1gfd8H5Wv0Y3cbKpfPoJqU27hyVwmJSl5961jV/+aYiBFg0RX1NrKR0xTMRJ4++ASi7kCAg+9gvrqPITm+8zCouEjUTmH2B/iUPKLUJavYlqgcNjBLplkLpKYMIfsY7dcVv7503IE/iJg8drmMj8GhBDTEwTk0tR9YwE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LuIegFL6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769626281; c=relaxed/simple;
+	bh=2JteLNZWbgn3Y5odURnxdDZXXw9T4BZLG6a8Tj8TThc=;
+	h=Date:To:From:Subject:Message-Id; b=H3eOYCM9RmQr+EWsYhtI4ZxIUaw6u2nHkjqrUNiVaJ4bwJQ0x1PJp26taTmH2vLw4xW3jZtq0Qx2X8TdHGP8nsws3ZoEyIdIooNU3nm90JIHaJrhWy26RyaoE1dHxmlUza3PqMdbR4eI/Ic6yxKrlC/mNm9HvdbVTzHjq8hsTig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=V/b07Qc/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LuIegFL6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C5BDC4CEF1;
-	Wed, 28 Jan 2026 18:42:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="V/b07Qc/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3608C4CEF1;
+	Wed, 28 Jan 2026 18:51:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769625772;
-	bh=daChFEWlmVlkFjwmx2FrTRrn4H7vOdMNw4qzOPI9hxw=;
+	s=korg; t=1769626280;
+	bh=2JteLNZWbgn3Y5odURnxdDZXXw9T4BZLG6a8Tj8TThc=;
 	h=Date:To:From:Subject:From;
-	b=LuIegFL6XG1mKE+7uHEe8NuUmKgybw9e+wMQjAi8fUt1yyXlJvGlNfOVwmLr3z2oD
-	 BYIJDWsJSTVNLpDvRKro9Qo6d1DEGJYg+jD7J2sutG0bZlywSFrjzGneQbinpgv8zs
-	 PE41fTsRgwwQ8l+cWatm3LtnepOBf3bor+NflN90=
-Date: Wed, 28 Jan 2026 10:42:51 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,hughd@google.com,clm@meta.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=V/b07Qc//aaYTw96Mgr/GbCckyYSrwviAKKM04l/VnjkTnud+bunmPImUOG+r6TLi
+	 uahbUX5Jg+0ZAGXIs4YZdGEcv4P0OMSsDP5ALMTt8jfAKOjS8cViOjPW3l/ezwtE3h
+	 OQ4ttNUNdX7gqodsgnoWglok8sncCURUfjXVToQk=
+Date: Wed, 28 Jan 2026 10:51:20 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,Liam.Howlett@Oracle.com,andrii@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260128184252.5C5BDC4CEF1@smtp.kernel.org>
+Subject: + procfs-avoid-fetching-build-id-while-holding-vma-lock.patch added to mm-nonmm-unstable branch
+Message-Id: <20260128185120.D3608C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, shmem: prevent infinite loop on truncate race
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch
+     Subject: procfs: avoid fetching build ID while holding VMA lock
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     procfs-avoid-fetching-build-id-while-holding-vma-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/procfs-avoid-fetching-build-id-while-holding-vma-lock.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,108 +58,228 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, shmem: prevent infinite loop on truncate race
-Date: Thu, 29 Jan 2026 00:19:23 +0800
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: procfs: avoid fetching build ID while holding VMA lock
+Date: Wed, 28 Jan 2026 10:32:32 -0800
 
-When truncating a large swap entry, shmem_free_swap() returns 0 when the
-entry's index doesn't match the given index due to lookup alignment.  The
-failure fallback path checks if the entry crosses the end border and
-aborts when it happens, so truncate won't erase an unexpected entry or
-range.  But one scenario was ignored.
+Fix PROCMAP_QUERY to fetch optional build ID only after dropping mmap_lock
+or per-VMA lock, whichever was used to lock VMA under question, to avoid
+deadlock reported by syzbot:
 
-When `index` points to the middle of a large swap entry, and the large
-swap entry doesn't go across the end border, find_get_entries() will
-return that large swap entry as the first item in the batch with
-`indices[0]` equal to `index`.  The entry's base index will be smaller
-than `indices[0]`, so shmem_free_swap() will fail and return 0 due to the
-"base < index" check.  The code will then call shmem_confirm_swap(), get
-the order, check if it crosses the END boundary (which it doesn't), and
-retry with the same index.
+ -> #1 (&mm->mmap_lock){++++}-{4:4}:
+        __might_fault+0xed/0x170
+        _copy_to_iter+0x118/0x1720
+        copy_page_to_iter+0x12d/0x1e0
+        filemap_read+0x720/0x10a0
+        blkdev_read_iter+0x2b5/0x4e0
+        vfs_read+0x7f4/0xae0
+        ksys_read+0x12a/0x250
+        do_syscall_64+0xcb/0xf80
+        entry_SYSCALL_64_after_hwframe+0x77/0x7f
 
-The next iteration will find the same entry again at the same index with
-same indices, leading to an infinite loop.
+ -> #0 (&sb->s_type->i_mutex_key#8){++++}-{4:4}:
+        __lock_acquire+0x1509/0x26d0
+        lock_acquire+0x185/0x340
+        down_read+0x98/0x490
+        blkdev_read_iter+0x2a7/0x4e0
+        __kernel_read+0x39a/0xa90
+        freader_fetch+0x1d5/0xa80
+        __build_id_parse.isra.0+0xea/0x6a0
+        do_procmap_query+0xd75/0x1050
+        procfs_procmap_ioctl+0x7a/0xb0
+        __x64_sys_ioctl+0x18e/0x210
+        do_syscall_64+0xcb/0xf80
+        entry_SYSCALL_64_after_hwframe+0x77/0x7f
 
-Fix this by retrying with a round-down index, and abort if the index is
-smaller than the truncate range.
+ other info that might help us debug this:
 
-Link: https://lkml.kernel.org/r/aXo6ltB5iqAKJzY8@KASONG-MC4
-Fixes: 809bc86517cc ("mm: shmem: support large folio swap out")
-Fixes: 8a1968bd997f ("mm/shmem, swap: fix race of truncate and swap entry split")
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Reported-by: Chris Mason <clm@meta.com>
-Closes: https://lore.kernel.org/linux-mm/20260128130336.727049-1-clm@meta.com/
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   rlock(&mm->mmap_lock);
+                                lock(&sb->s_type->i_mutex_key#8);
+                                lock(&mm->mmap_lock);
+   rlock(&sb->s_type->i_mutex_key#8);
+
+  *** DEADLOCK ***
+
+To make this safe, we need to grab file refcount while VMA is still
+locked, but other than that everything is pretty straightforward. 
+Internal build_id_parse() API assumes VMA is passed, but it only needs the
+underlying file reference, so just add another variant
+build_id_parse_file() that expects file passed directly.
+
+Link: https://lkml.kernel.org/r/20260128183232.2854138-1-andrii@kernel.org
+Fixes: ed5d583a88a9 ("fs/procfs: implement efficient VMA querying API for /proc/<pid>/maps")
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Reported-by: syzbot+4e70c8e0a2017b432f7a@syzkaller.appspotmail.com
+Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ fs/proc/task_mmu.c      |   42 ++++++++++++++++++++++++--------------
+ include/linux/buildid.h |    3 ++
+ lib/buildid.c           |   34 +++++++++++++++++++++++-------
+ 3 files changed, 56 insertions(+), 23 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split
-+++ a/mm/shmem.c
-@@ -1211,17 +1211,22 @@ whole_folios:
- 				swaps_freed = shmem_free_swap(mapping, indices[i],
- 							      end - 1, folio);
- 				if (!swaps_freed) {
--					/*
--					 * If found a large swap entry cross the end border,
--					 * skip it as the truncate_inode_partial_folio above
--					 * should have at least zerod its content once.
--					 */
-+					pgoff_t base = indices[i];
+--- a/fs/proc/task_mmu.c~procfs-avoid-fetching-build-id-while-holding-vma-lock
++++ a/fs/proc/task_mmu.c
+@@ -656,6 +656,7 @@ static int do_procmap_query(struct mm_st
+ 	struct proc_maps_locking_ctx lock_ctx = { .mm = mm };
+ 	struct procmap_query karg;
+ 	struct vm_area_struct *vma;
++	struct file *vm_file = NULL;
+ 	const char *name = NULL;
+ 	char build_id_buf[BUILD_ID_SIZE_MAX], *name_buf = NULL;
+ 	__u64 usize;
+@@ -727,21 +728,6 @@ static int do_procmap_query(struct mm_st
+ 		karg.inode = 0;
+ 	}
+ 
+-	if (karg.build_id_size) {
+-		__u32 build_id_sz;
+-
+-		err = build_id_parse(vma, build_id_buf, &build_id_sz);
+-		if (err) {
+-			karg.build_id_size = 0;
+-		} else {
+-			if (karg.build_id_size < build_id_sz) {
+-				err = -ENAMETOOLONG;
+-				goto out;
+-			}
+-			karg.build_id_size = build_id_sz;
+-		}
+-	}
+-
+ 	if (karg.vma_name_size) {
+ 		size_t name_buf_sz = min_t(size_t, PATH_MAX, karg.vma_name_size);
+ 		const struct path *path;
+@@ -775,10 +761,34 @@ static int do_procmap_query(struct mm_st
+ 		karg.vma_name_size = name_sz;
+ 	}
+ 
++	if (karg.build_id_size && vma->vm_file)
++		vm_file = get_file(vma->vm_file);
 +
- 					order = shmem_confirm_swap(mapping, indices[i],
- 								   radix_to_swp_entry(folio));
--					if (order > 0 && indices[i] + (1 << order) > end)
--						continue;
--					/* Swap was replaced by page: retry */
--					index = indices[i];
-+					/*
-+					 * If found a large swap entry cross the end or start
-+					 * border, skip it as the truncate_inode_partial_folio
-+					 * above should have at least zerod its content once.
-+					 */
-+					if (order > 0) {
-+						base = round_down(base, 1 << order);
-+						if (base < start || base + (1 << order) > end)
-+							continue;
-+					}
-+					/* Swap was replaced by page or extended, retry */
-+					index = base;
- 					break;
- 				}
- 				nr_swaps_freed += swaps_freed;
+ 	/* unlock vma or mmap_lock, and put mm_struct before copying data to user */
+ 	query_vma_teardown(&lock_ctx);
+ 	mmput(mm);
+ 
++	if (karg.build_id_size) {
++		__u32 build_id_sz;
++
++		if (vm_file)
++			err = build_id_parse_file(vm_file, build_id_buf, &build_id_sz);
++		else
++			err = -ENOENT;
++		if (err) {
++			karg.build_id_size = 0;
++		} else {
++			if (karg.build_id_size < build_id_sz) {
++				err = -ENAMETOOLONG;
++				goto out;
++			}
++			karg.build_id_size = build_id_sz;
++		}
++	}
++
++	if (vm_file)
++		fput(vm_file);
++
+ 	if (karg.vma_name_size && copy_to_user(u64_to_user_ptr(karg.vma_name_addr),
+ 					       name, karg.vma_name_size)) {
+ 		kfree(name_buf);
+@@ -798,6 +808,8 @@ static int do_procmap_query(struct mm_st
+ out:
+ 	query_vma_teardown(&lock_ctx);
+ 	mmput(mm);
++	if (vm_file)
++		fput(vm_file);
+ 	kfree(name_buf);
+ 	return err;
+ }
+--- a/include/linux/buildid.h~procfs-avoid-fetching-build-id-while-holding-vma-lock
++++ a/include/linux/buildid.h
+@@ -7,7 +7,10 @@
+ #define BUILD_ID_SIZE_MAX 20
+ 
+ struct vm_area_struct;
++struct file;
++
+ int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size);
++int build_id_parse_file(struct file *file, unsigned char *build_id, __u32 *size);
+ int build_id_parse_nofault(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size);
+ int build_id_parse_buf(const void *buf, unsigned char *build_id, u32 buf_size);
+ 
+--- a/lib/buildid.c~procfs-avoid-fetching-build-id-while-holding-vma-lock
++++ a/lib/buildid.c
+@@ -279,7 +279,7 @@ static int get_build_id_64(struct freade
+ /* enough for Elf64_Ehdr, Elf64_Phdr, and all the smaller requests */
+ #define MAX_FREADER_BUF_SZ 64
+ 
+-static int __build_id_parse(struct vm_area_struct *vma, unsigned char *build_id,
++static int __build_id_parse(struct file *file, unsigned char *build_id,
+ 			    __u32 *size, bool may_fault)
+ {
+ 	const Elf32_Ehdr *ehdr;
+@@ -287,11 +287,7 @@ static int __build_id_parse(struct vm_ar
+ 	char buf[MAX_FREADER_BUF_SZ];
+ 	int ret;
+ 
+-	/* only works for page backed storage  */
+-	if (!vma->vm_file)
+-		return -EINVAL;
+-
+-	freader_init_from_file(&r, buf, sizeof(buf), vma->vm_file, may_fault);
++	freader_init_from_file(&r, buf, sizeof(buf), file, may_fault);
+ 
+ 	/* fetch first 18 bytes of ELF header for checks */
+ 	ehdr = freader_fetch(&r, 0, offsetofend(Elf32_Ehdr, e_type));
+@@ -332,7 +328,10 @@ out:
+  */
+ int build_id_parse_nofault(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size)
+ {
+-	return __build_id_parse(vma, build_id, size, false /* !may_fault */);
++	if (!vma->vm_file)
++		return -EINVAL;
++
++	return __build_id_parse(vma->vm_file, build_id, size, false /* !may_fault */);
+ }
+ 
+ /*
+@@ -348,7 +347,26 @@ int build_id_parse_nofault(struct vm_are
+  */
+ int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size)
+ {
+-	return __build_id_parse(vma, build_id, size, true /* may_fault */);
++	if (!vma->vm_file)
++		return -EINVAL;
++
++	return __build_id_parse(vma->vm_file, build_id, size, true /* may_fault */);
++}
++
++/*
++ * Parse build ID of ELF file
++ * @vma:      file object
++ * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
++ * @size:     returns actual build id size in case of success
++ *
++ * Assumes faultable context and can cause page faults to bring in file data
++ * into page cache.
++ *
++ * Return: 0 on success; negative error, otherwise
++ */
++int build_id_parse_file(struct file *file, unsigned char *build_id, __u32 *size)
++{
++	return __build_id_parse(file, build_id, size, true /* may_fault */);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from andrii@kernel.org are
 
-mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch
-mm-swap-rename-__read_swap_cache_async-to-swap_cache_alloc_folio.patch
-mm-swap-split-swap-cache-preparation-loop-into-a-standalone-helper.patch
-mm-swap-never-bypass-the-swap-cache-even-for-swp_synchronous_io.patch
-mm-swap-always-try-to-free-swap-cache-for-swp_synchronous_io-devices.patch
-mm-swap-simplify-the-code-and-reduce-indention.patch
-mm-swap-free-the-swap-cache-after-folio-is-mapped.patch
-mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io.patch
-mm-swap-swap-entry-of-a-bad-slot-should-not-be-considered-as-swapped-out.patch
-mm-swap-consolidate-cluster-reclaim-and-usability-check.patch
-mm-swap-split-locked-entry-duplicating-into-a-standalone-helper.patch
-mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer.patch
-mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer-fix.patch
-mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state.patch
-mm-swap-cleanup-swap-entry-management-workflow.patch
-mm-swap-cleanup-swap-entry-management-workflow-fix.patch
-mm-swap-add-folio-to-swap-cache-directly-on-allocation.patch
-mm-swap-check-swap-table-directly-for-checking-cache.patch
-mm-swap-clean-up-and-improve-swap-entries-freeing.patch
-mm-swap-drop-the-swap_has_cache-flag.patch
-mm-swap-remove-no-longer-needed-_swap_info_get.patch
+procfs-avoid-fetching-build-id-while-holding-vma-lock.patch
 
