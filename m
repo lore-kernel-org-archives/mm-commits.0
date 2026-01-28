@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 312BC2DCC04
-	for <mm-commits@vger.kernel.org>; Wed, 28 Jan 2026 19:14:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7105322B79
+	for <mm-commits@vger.kernel.org>; Wed, 28 Jan 2026 19:19:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769627680; cv=none; b=Nn7GRQYG9yepHjKnDDjhnCH2Hw9Zso7lqbaVzH93u5NXShHJ6EO4J8tlAmUGb10oGZPdA2ddp7V6wdpYlTrhv5gWtmJfESiZdT5HOBzzOHSjN8LNivA3831H0n26LZjbwF/jyNHhTmxjDnj6leywIBuFVugj+QHl4xxaIqXWJGQ=
+	t=1769627999; cv=none; b=VUxdAveRkbQWp9QwY3/4wbxPW5XgzHwb50OtiC8I6fuy/ZUEwGq+7jkexU79Aq7pnvsCoZxpMEa/b1QWKypbWO6Xt2B/z5RrvyGoSA+xI6/0zgat02Yj1tcqep1O082S7PgMvV/f5TBRWggXxoujDiChRP3mut4SgYyazHHk5V4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769627680; c=relaxed/simple;
-	bh=mZRDszmarf8D+E/JnYYAUDo+blxKGMB2qwCJkX8qZl4=;
-	h=Date:To:From:Subject:Message-Id; b=LizmcHwWA4kfPTbLO8J+e0EhkyaVs1fa4bMptafV3jSK0PZrC1uXuc5yefxlLJyK0E6AmM5LNN8jwbe70WQHnt+csjeBSapRTOrLLs5whXxPSaAmCqeHIb0ogAzngSkiCDz3VV+5H1txZcbY7GVf7trASNasqtnKD6CjDLcbfdU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qXihCAmm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769627999; c=relaxed/simple;
+	bh=GksUaoBhLHRvwmEm5DBszZjkUO3FnhHWd8YO3yar3LY=;
+	h=Date:To:From:Subject:Message-Id; b=SLIV8wUpR0fO8OWIqOXp1ziLtiXzshG6/DGHmBIKisXPgvUx70h+86uTx+RG9Kr15gOUTm3IS7UVjisRLm9YVT7Ct4iz4i9v0WudmH/yCC3pHXOFSAcXlJ+h0CaJWoY+X3G/1DTBpv02+HCCzzazxVfuYj6SAnCSETBSlZ41zqY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ncAyxLnR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qXihCAmm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99C79C4CEF7;
-	Wed, 28 Jan 2026 19:14:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ncAyxLnR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15DF8C4CEF1;
+	Wed, 28 Jan 2026 19:19:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769627679;
-	bh=mZRDszmarf8D+E/JnYYAUDo+blxKGMB2qwCJkX8qZl4=;
+	s=korg; t=1769627999;
+	bh=GksUaoBhLHRvwmEm5DBszZjkUO3FnhHWd8YO3yar3LY=;
 	h=Date:To:From:Subject:From;
-	b=qXihCAmmVX/APbkJunxgnNT6sTjWsz5LxGaBlMXZ8qoCQRIFus2ys6aoWFgp623fI
-	 apFapFhiK9LhRiFg88AnHhxYYiB9JBCclrO64jTnohNoVaUT4IVVgDM5YOYWpb2Mto
-	 XaOW/CzZY7xhsuuURj39LZQCeocYPJ/Yl25hWcXU=
-Date: Wed, 28 Jan 2026 11:14:39 -0800
-To: mm-commits@vger.kernel.org,usamaarif642@gmail.com,ruippan@tencent.com,oleg@redhat.com,mjguzik@gmail.com,mingo@kernel.org,lorenzo.stoakes@oracle.com,david@kernel.org,alexjlzheng@tencent.com,akpm@linux-foundation.org
+	b=ncAyxLnRohEbg5DePZ/nnE9qAOYeR6VqXn+NXymm6aVcCvnMgfni7YR7kTwvo8JAS
+	 oDrkblA9F9Y3xWViDTG5TaipUIzml1NET6eZJ6HF+LhW9APoZ/SOGZACHtwTb/0HBN
+	 6V51aN0TS1FjxW4tIMmtR8sxCf9p68cAsUSl6TLU=
+Date: Wed, 28 Jan 2026 11:19:58 -0800
+To: mm-commits@vger.kernel.org,bhe@redhat.com,me@linux.beauty,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + procfs-fix-missing-rcu-protection-when-reading-real_parent-in-do_task_stat.patch added to mm-nonmm-unstable branch
-Message-Id: <20260128191439.99C79C4CEF7@smtp.kernel.org>
+Subject: + kexec-derive-purgatory-entry-from-symbol-v2.patch added to mm-nonmm-unstable branch
+Message-Id: <20260128191959.15DF8C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: procfs: fix missing RCU protection when reading real_parent in do_task_stat()
+     Subject: kexec-derive-purgatory-entry-from-symbol-v2
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     procfs-fix-missing-rcu-protection-when-reading-real_parent-in-do_task_stat.patch
+     kexec-derive-purgatory-entry-from-symbol-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/procfs-fix-missing-rcu-protection-when-reading-real_parent-in-do_task_stat.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kexec-derive-purgatory-entry-from-symbol-v2.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,57 +58,154 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jinliang Zheng <alexjlzheng@tencent.com>
-Subject: procfs: fix missing RCU protection when reading real_parent in do_task_stat()
-Date: Wed, 28 Jan 2026 16:30:07 +0800
+From: Li Chen <me@linux.beauty>
+Subject: kexec-derive-purgatory-entry-from-symbol-v2
+Date: Wed, 28 Jan 2026 12:35:10 +0800
 
-When reading /proc/[pid]/stat, do_task_stat() accesses task->real_parent
-without proper RCU protection, which leads to:
+move the helper body above kexec_purgatory_setup_sechdrs() to avoid the
+forward declaration, per Baoquan
 
-  cpu 0                               cpu 1
-  -----                               -----
-  do_task_stat
-    var = task->real_parent
-                                      release_task
-                                        call_rcu(delayed_put_task_struct)
-    task_tgid_nr_ns(var)
-      rcu_read_lock   <--- Too late to protect task->real_parent!
-      task_pid_ptr    <--- UAF!
-      rcu_read_unlock
-
-This patch uses task_ppid_nr_ns() instead of task_tgid_nr_ns() to add
-proper RCU protection for accessing task->real_parent.
-
-Link: https://lkml.kernel.org/r/20260128083007.3173016-1-alexjlzheng@tencent.com
-Fixes: 06fffb1267c9 ("do_task_stat: don't take rcu_read_lock()")
-Signed-off-by: Jinliang Zheng <alexjlzheng@tencent.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: ruippan <ruippan@tencent.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
+Link: https://lkml.kernel.org/r/20260128043511.316860-1-me@linux.beauty
+Fixes: 8652d44f466a ("kexec: support purgatories with .text.hot sections")
+Signed-off-by: Li Chen <me@linux.beauty>
+Acked-by: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kexec_file.c |  111 ++++++++++++++++++++----------------------
+ 1 file changed, 54 insertions(+), 57 deletions(-)
 
---- a/fs/proc/array.c~procfs-fix-missing-rcu-protection-when-reading-real_parent-in-do_task_stat
-+++ a/fs/proc/array.c
-@@ -529,7 +529,7 @@ static int do_task_stat(struct seq_file
- 		}
+--- a/kernel/kexec_file.c~kexec-derive-purgatory-entry-from-symbol-v2
++++ a/kernel/kexec_file.c
+@@ -882,8 +882,60 @@ out_free_sha_regions:
+ }
  
- 		sid = task_session_nr_ns(task, ns);
--		ppid = task_tgid_nr_ns(task->real_parent, ns);
-+		ppid = task_ppid_nr_ns(task, ns);
- 		pgid = task_pgrp_nr_ns(task, ns);
+ #ifdef CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY
+-static const Elf_Sym * kexec_purgatory_find_symbol(struct purgatory_info *pi,
+-			      const char *name);
++/*
++ * kexec_purgatory_find_symbol - find a symbol in the purgatory
++ * @pi:		Purgatory to search in.
++ * @name:	Name of the symbol.
++ *
++ * Return: pointer to symbol in read-only symtab on success, NULL on error.
++ */
++static const Elf_Sym *kexec_purgatory_find_symbol(struct purgatory_info *pi,
++						  const char *name)
++{
++	const Elf_Shdr *sechdrs;
++	const Elf_Ehdr *ehdr;
++	const Elf_Sym *syms;
++	const char *strtab;
++	int i, k;
++
++	if (!pi->ehdr)
++		return NULL;
++
++	ehdr = pi->ehdr;
++	sechdrs = (void *)ehdr + ehdr->e_shoff;
++
++	for (i = 0; i < ehdr->e_shnum; i++) {
++		if (sechdrs[i].sh_type != SHT_SYMTAB)
++			continue;
++
++		if (sechdrs[i].sh_link >= ehdr->e_shnum)
++			/* Invalid strtab section number */
++			continue;
++		strtab = (void *)ehdr + sechdrs[sechdrs[i].sh_link].sh_offset;
++		syms = (void *)ehdr + sechdrs[i].sh_offset;
++
++		/* Go through symbols for a match */
++		for (k = 0; k < sechdrs[i].sh_size/sizeof(Elf_Sym); k++) {
++			if (ELF_ST_BIND(syms[k].st_info) != STB_GLOBAL)
++				continue;
++
++			if (strcmp(strtab + syms[k].st_name, name) != 0)
++				continue;
++
++			if (syms[k].st_shndx == SHN_UNDEF ||
++			    syms[k].st_shndx >= ehdr->e_shnum) {
++				pr_debug("Symbol: %s has bad section index %d.\n",
++					name, syms[k].st_shndx);
++				return NULL;
++			}
++
++			/* Found the symbol we are looking for */
++			return &syms[k];
++		}
++	}
++
++	return NULL;
++}
+ /*
+  * kexec_purgatory_setup_kbuf - prepare buffer to load purgatory.
+  * @pi:		Purgatory to be loaded.
+@@ -1148,61 +1200,6 @@ out_free_kbuf:
+ 	return ret;
+ }
  
- 		unlock_task_sighand(task, &flags);
+-/*
+- * kexec_purgatory_find_symbol - find a symbol in the purgatory
+- * @pi:		Purgatory to search in.
+- * @name:	Name of the symbol.
+- *
+- * Return: pointer to symbol in read-only symtab on success, NULL on error.
+- */
+-static const Elf_Sym *kexec_purgatory_find_symbol(struct purgatory_info *pi,
+-						  const char *name)
+-{
+-	const Elf_Shdr *sechdrs;
+-	const Elf_Ehdr *ehdr;
+-	const Elf_Sym *syms;
+-	const char *strtab;
+-	int i, k;
+-
+-	if (!pi->ehdr)
+-		return NULL;
+-
+-	ehdr = pi->ehdr;
+-	sechdrs = (void *)ehdr + ehdr->e_shoff;
+-
+-	for (i = 0; i < ehdr->e_shnum; i++) {
+-		if (sechdrs[i].sh_type != SHT_SYMTAB)
+-			continue;
+-
+-		if (sechdrs[i].sh_link >= ehdr->e_shnum)
+-			/* Invalid strtab section number */
+-			continue;
+-		strtab = (void *)ehdr + sechdrs[sechdrs[i].sh_link].sh_offset;
+-		syms = (void *)ehdr + sechdrs[i].sh_offset;
+-
+-		/* Go through symbols for a match */
+-		for (k = 0; k < sechdrs[i].sh_size/sizeof(Elf_Sym); k++) {
+-			if (ELF_ST_BIND(syms[k].st_info) != STB_GLOBAL)
+-				continue;
+-
+-			if (strcmp(strtab + syms[k].st_name, name) != 0)
+-				continue;
+-
+-			if (syms[k].st_shndx == SHN_UNDEF ||
+-			    syms[k].st_shndx >= ehdr->e_shnum) {
+-				pr_debug("Symbol: %s has bad section index %d.\n",
+-						name, syms[k].st_shndx);
+-				return NULL;
+-			}
+-
+-			/* Found the symbol we are looking for */
+-			return &syms[k];
+-		}
+-	}
+-
+-	return NULL;
+-}
+-
+ void *kexec_purgatory_get_symbol_addr(struct kimage *image, const char *name)
+ {
+ 	struct purgatory_info *pi = &image->purgatory_info;
 _
 
-Patches currently in -mm which might be from alexjlzheng@tencent.com are
+Patches currently in -mm which might be from me@linux.beauty are
 
-procfs-fix-missing-rcu-protection-when-reading-real_parent-in-do_task_stat.patch
+kexec-derive-purgatory-entry-from-symbol.patch
+kexec-derive-purgatory-entry-from-symbol-v2.patch
 
