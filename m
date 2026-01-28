@@ -1,173 +1,245 @@
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+Received: from mail-dl1-f52.google.com (mail-dl1-f52.google.com [74.125.82.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A720231A23
-	for <mm-commits@vger.kernel.org>; Wed, 28 Jan 2026 04:08:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D865309EE4
+	for <mm-commits@vger.kernel.org>; Wed, 28 Jan 2026 06:06:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=74.125.82.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769573297; cv=none; b=Nps+o/YZMQdH9S37zGhzZd237E+7QAulKAkKe1LiMrnsB0ZMuM5fogeSFIglUfeh8a9WN3Fd6epfbylb7QhZlZ2DTbFS+0WCWmZVokp/HePRoYBTaonDCqMf2vPZARgfyTzwPp2DO26WiHvVgx2C8nTAB7u53kIo/KWkp10TTBU=
+	t=1769580391; cv=none; b=S1A6SiLMP+F07wmP7v3Y9HfjuV9EFL3gH17bbUksU/EWKUVGY90z4q22dtD3hHr09Bvf7u80ewDpI2B0wfFKCDKxMma3JRoxyaIiPGhuHFI6wIc48IBc7RJ4Yn1p39SQkzfVndoByqHZYJCZUNHm7V2lQvwtPbgdEeUG1ATpMbo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769573297; c=relaxed/simple;
-	bh=IKS3rm5HaKGj1cSZc9Q9841iwotUmP6mNanLxQbk4Us=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=fQaVd3y3xSkhq9oAJYqCAF+EoSV+wneVlreQh1uHYU7r9kzhfxByD30c9MfGhSajIPIX1YhGHH/eXtNhqtrx+OIP6CippIXNAq5k5PCHMiE6FLFH5T2o0xzj3+S/1mj9vvGKumMu2ybF4eZn/m7jPqeixlFMfLBRdqMQ+JjPCt0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=VKkmHZa7; arc=none smtp.client-ip=209.85.218.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	s=arc-20240116; t=1769580391; c=relaxed/simple;
+	bh=fD/kgZvAJFHYzXjUwTyBXUwZSjmzmlfRjg/zztY3NpI=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=BOBej3w8vFRD6M3NcB6mElUmMwE0Fc7TZpH4apL98VR5h6QH4UGljwo6panmuz3gqdwfWrk+C6gdzHefru1Sj2WgZjzJ+/uz7DSRUN/LmlVzVXXuyVbiiru5Pp9iFd9GemHBpcRwceEsKC3AaP1cDTYKKrVcQC+M2SSPcC0n8WI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=b2BLG0eA; arc=none smtp.client-ip=74.125.82.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="VKkmHZa7"
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-b8845cb580bso1135522266b.3
-        for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 20:08:16 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="b2BLG0eA"
+Received: by mail-dl1-f52.google.com with SMTP id a92af1059eb24-1233bb90317so518549c88.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 22:06:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1769573293; x=1770178093; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=E+SBx2bhyAxpOr0xPAhvkbF9K+DXCdj305biHMr2LWg=;
-        b=VKkmHZa7+qD/9ioUm7My3/ECcIJ40G98857Nv9A9zAQJQm1wZ946afSlImRZ5ElmSx
-         LGXEoqLoSCKxk/2+7mx/MnPT9LIs3iKjTIZpsQDalRNY3RF10UD0bVfKs2EZw3KKdjTi
-         tSHPwUYxbUvLxpkfp1p1+Avs7Mm0S3n/o/BPU=
+        d=gmail.com; s=20230601; t=1769580389; x=1770185189; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ylSEp4a0zfiE/n3fKLMKe4thGKMdljP/4PNULWhpuIc=;
+        b=b2BLG0eAbFraMpVUSm2yzawP1t1+u3Q/b3njS7jDr5in4sq5gv8K7G+incDL0jLatf
+         5O8SWeLqKGL/aW6D200w7ANj5aHLroKaG9s0Roo4iCH2amAZpQ4OE6YL/K1asLJqburc
+         Fd96I1zaYEFJDj++K2XZp++Y+YIeagQ/Hn4xkn6e8alzBAPoOVW4Rawrb6Uc/+Af6yxf
+         elckJZL0MNAdfjIS5RK07STdp+ba/lquAzT4XDkeGj4hyjiul3z6mvspfPNzjyomAksP
+         bW3AchyQqENm60cpB1e1Ie3yK99ybITmFQnCPMe7npxfNVPB50hZbvFYJMWIRBGDfAZ6
+         yvqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769573293; x=1770178093;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=E+SBx2bhyAxpOr0xPAhvkbF9K+DXCdj305biHMr2LWg=;
-        b=ci4aOui8TkaubsoioHeYuRzuwpisM9mQBarP/XrKYwDCbkKE/Gx9HNhldF5bNd2uLu
-         uw51/C23BVJ2dOHRYRyurRHl5DPsfeUE1h9pMZDQ+lof0Iyb43lPRPalZlgzVyCGfbyC
-         u/KRriUGiJtOv7GhAK5UTHam00H0YTjPY4ELfUlIc+eD1xBdUFUiIUJ1zH/kQLq00esd
-         XFEi1PEp9Qwre9PLMMR/bcNRcY9owjRBXKpWxFcUnWe6BW7LkqDLmpyc9wc7iPjo4+KG
-         HNFuygdhxrMf4Qpydf+0QsxCOGYCYFjYLTGwKVWVt4XuTRTvgatqgzmemoVxUpXjRPha
-         fysQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUCRFspP2BdYjOQ5VfFl8gyCpVLQ282Osofb+nWWJct17QUjObjJ0CP5Oa2yfJzdVZTz6g3s9wE0geo@vger.kernel.org
-X-Gm-Message-State: AOJu0YxoPAacRZ5SCs2xazRvr+DHvs/EFyuxemDj0Nw6wE7qXXuUB72O
-	wfWqZYP742MEv6aNnRl1X21V4bQxnXEWDKX+jsm8UMDw+W66KvuspKdqhUKt+dg08yRoU+yYVsC
-	9f6TzmeXP
-X-Gm-Gg: AZuq6aI6opbUVY2ILaO1AP7QjG73hFsgntR4raazIJxXy9yAY/4w1OeIZSVqgyx3fPf
-	FGhYRLzcPX3AlumIsYsX7DzxmvqRN7EXIDEOBlc/ND2B3ki6GaU+DMiKzKnLRJd0j3JMp9ZvjV0
-	axVKUYd6ow7g5bLOweVNMIlP6aQ/WYxKFkN9Wl6S7hg3R+MlSiS/CSGsmMlIPfbkaYA3+m1e23s
-	VwcASdFoFEIrv5YTvWcSoS4xAeZYbD2xH9oJbjgsV3lxFZByvBTR1BsjEyrH2Vq/NgGzBYOhIeh
-	8rS+qYOR+b8XpgcfvaomuadfjnnrmiKBJ/hcQtWhZigI9OKJ+WncMm1VHq+UG4e5/XK8evdLyE1
-	jAArobB/gJda7twj0aO64ScUCkCDB4uL8NJ4lgaKiLZqca82jkcn79y9okARxULCDqmEixS3mAO
-	dYd/ZfTWyNPjFK6W/N3hXTp/3f7cgfRTDk+bKMnypEEPeFsZU5lA==
-X-Received: by 2002:a17:907:9622:b0:b87:117f:b6f1 with SMTP id a640c23a62f3a-b8dab152abbmr280806466b.2.1769573292850;
-        Tue, 27 Jan 2026 20:08:12 -0800 (PST)
-Received: from mail-wr1-f52.google.com (mail-wr1-f52.google.com. [209.85.221.52])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-b8dbffb7263sm62788266b.28.2026.01.27.20.08.11
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 27 Jan 2026 20:08:12 -0800 (PST)
-Received: by mail-wr1-f52.google.com with SMTP id ffacd0b85a97d-42fb0fc5aa9so3704451f8f.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Jan 2026 20:08:11 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCURcZZWSYMqp7fkhTpcF8A1Ty2dEgJaBFqiCnnAZT76mS+rHprJ2loZZ8Szlsxdki1Nkv7n78QoRNV0@vger.kernel.org
-X-Received: by 2002:a05:6000:25c6:b0:429:b751:7935 with SMTP id
- ffacd0b85a97d-435dd1d7c61mr4787319f8f.56.1769573291404; Tue, 27 Jan 2026
- 20:08:11 -0800 (PST)
+        d=1e100.net; s=20230601; t=1769580389; x=1770185189;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ylSEp4a0zfiE/n3fKLMKe4thGKMdljP/4PNULWhpuIc=;
+        b=kIztQI9tasR9kuD9TzZfTuA7hXdqEE9Rpp575U6g8Rhc1YBbjjnlv6FyX6k4OdAETD
+         vnupK9MVpfFfIlhcgK1+uzIzqAXHxNpB4FPqYQ9XBvzp3YQInkb6rhKn+dpX2AFuT+df
+         et+wKQBLSKFLxMn97F7glICk0vPczK1s5acqUDA9KJdEK6cxyz2FoABLmWgX14I9BnQq
+         yKLjYgLvVQ3TFaP3uaXm7Nl19Hi1ZA5QRQGM+B1YLeavRNeOi/TBeGjRJb04OID/etQN
+         owwFkzDGUzc117LzLdRR889Srwkj+FdKTS2ohMcow/HLeQUjWs2zsnhDcZL0s/qzVGbL
+         zxWA==
+X-Forwarded-Encrypted: i=1; AJvYcCWEWWOCMRVyQf6zMjzjfJvt6ZeEffJbHv2N1ILkBpCYjiOCBVOJI6h7vxF6yl/nOnSCaTrRLupME+fp@vger.kernel.org
+X-Gm-Message-State: AOJu0YyN5zdnmCJRgH8oEjT9XRVcmyHfEJKhRnxRDTmJFRm1qkmxc38w
+	GSJgPzsueT9MGZLLf7skIXkWbI7FggAv2QXwnZVgKJi8RaCuyqRFaMn1
+X-Gm-Gg: AZuq6aLVJgaXfdIH/e5uXFzwUPGTWtmD9q3E63QS5Q4Cm6ixZIGlPh9kjq6bxa3d2gf
+	n7e96lNTk+6PKUQORsQNq1KFMqVfpdlMHqKqChYMoYHDzZ3z+ESB/hCh1n95Leza5nrNY8SbmDz
+	U8Lh1ILcvcVWDBRus+OqFGJiii47PNX0/h3XSzvWyTmSYxe4xgZEL3klM5381rQLC0KopZRarN1
+	Ee1opt4hOuH8c4V1Gt4LRt5ZUdG1QPUTwxBz3KPLkbaP493YrXX/6S+JnNr3g7c5YyisCntIumI
+	CjDhVkOciCxK5rasx6w2Krl1M/N+K4H1OG87Z0J2doquq2TnEuPidaGnBudY1Pg9bpFhjtz3VeB
+	5aYjUd5bIRWtFb7f7pZvv1HJBR3SarT8JwmHb9xmZbBSS/22TNNLX5njir85zcPffRsPspgWqwR
+	aQVyU=
+X-Received: by 2002:a05:693c:61d2:b0:2a4:3593:cca7 with SMTP id 5a478bee46e88-2b78e6beedbmr2168496eec.4.1769580388693;
+        Tue, 27 Jan 2026 22:06:28 -0800 (PST)
+Received: from debian ([74.48.213.230])
+        by smtp.gmail.com with ESMTPSA id 5a478bee46e88-2b7a17083dasm1548275eec.14.2026.01.27.22.06.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 27 Jan 2026 22:06:28 -0800 (PST)
+From: Qiliang Yuan <realwujing@gmail.com>
+To: Li Huafei <lihuafei1@huawei.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ingo Molnar <mingo@kernel.org>,
+	Jinchao Wang <wangjinchao600@gmail.com>,
+	Yicong Yang <yangyicong@hisilicon.com>,
+	Qiliang Yuan <realwujing@gmail.com>,
+	Thorsten Blum <thorsten.blum@linux.dev>
+Cc: linux-watchdog@vger.kernel.org,
+	mm-commits@vger.kernel.org,
+	Shouxin Sun <sunshx@chinatelecom.cn>,
+	Junnan Zhang <zhangjn11@chinatelecom.cn>,
+	Song Liu <song@kernel.org>,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v7] watchdog/hardlockup: simplify perf event probe and remove per-cpu dependency
+Date: Wed, 28 Jan 2026 01:05:29 -0500
+Message-ID: <20260128060544.1714875-1-realwujing@gmail.com>
+X-Mailer: git-send-email 2.51.0
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20260128023136.1691973-1-realwujing@gmail.com>
-In-Reply-To: <20260128023136.1691973-1-realwujing@gmail.com>
-From: Doug Anderson <dianders@chromium.org>
-Date: Tue, 27 Jan 2026 20:08:00 -0800
-X-Gmail-Original-Message-ID: <CAD=FV=XX0dJ2jEaQ21M4Kas6pbJL0SSCxYhr8-1kqSTEiJP_UA@mail.gmail.com>
-X-Gm-Features: AZwV_QgdeU-M1S25dbD0bfuUkv4_GToYEVkAE_Sry3IUpeS5khRlkZo5Q_oaJ0E
-Message-ID: <CAD=FV=XX0dJ2jEaQ21M4Kas6pbJL0SSCxYhr8-1kqSTEiJP_UA@mail.gmail.com>
-Subject: Re: [PATCH v6] watchdog/hardlockup: simplify perf event probe and
- remove per-cpu dependency
-To: Qiliang Yuan <realwujing@gmail.com>
-Cc: Li Huafei <lihuafei1@huawei.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	Ingo Molnar <mingo@kernel.org>, Jinchao Wang <wangjinchao600@gmail.com>, 
-	Yicong Yang <yangyicong@hisilicon.com>, Thorsten Blum <thorsten.blum@linux.dev>, 
-	linux-watchdog@vger.kernel.org, mm-commits@vger.kernel.org, 
-	Shouxin Sun <sunshx@chinatelecom.cn>, Junnan Zhang <zhangjn11@chinatelecom.cn>, 
-	Qiliang Yuan <yuanql9@chinatelecom.cn>, Song Liu <song@kernel.org>, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi,
+Simplify the hardlockup detector's probe path and remove its implicit
+dependency on pinned per-cpu execution.
 
-On Tue, Jan 27, 2026 at 6:32=E2=80=AFPM Qiliang Yuan <realwujing@gmail.com>=
- wrote:
->
-> Simplify the hardlockup detector's probe path and remove its implicit
-> dependency on pinned per-cpu execution.
->
-> Refactor hardlockup_detector_event_create() to be stateless. Return
-> the created perf_event pointer to the caller instead of directly
-> modifying the per-cpu 'watchdog_ev' variable. This allows the probe
-> path to safely manage a temporary event without the risk of leaving
-> stale pointers should task migration occur.
->
-> Use cpu_hotplug_disable() during the probe to ensure the target CPU
-> remains stable throughout the availability check.
->
-> Signed-off-by: Shouxin Sun <sunshx@chinatelecom.cn>
-> Signed-off-by: Junnan Zhang <zhangjn11@chinatelecom.cn>
-> Signed-off-by: Qiliang Yuan <yuanql9@chinatelecom.cn>
-> Cc: Song Liu <song@kernel.org>
-> Cc: Douglas Anderson <dianders@chromium.org>
-> Cc: Jinchao Wang <wangjinchao600@gmail.com>
+Refactor hardlockup_detector_event_create() to be stateless. Return
+the created perf_event pointer to the caller instead of directly
+modifying the per-cpu 'watchdog_ev' variable. This allows the probe
+path to safely manage a temporary event without the risk of leaving
+stale pointers should task migration occur.
 
-One last note is that your Signed-off-by tags don't match. When I
-apply your patch, I see:
+Signed-off-by: Shouxin Sun <sunshx@chinatelecom.cn>
+Signed-off-by: Junnan Zhang <zhangjn11@chinatelecom.cn>
+Signed-off-by: Qiliang Yuan <realwujing@gmail.com>
+Cc: Song Liu <song@kernel.org>
+Cc: Jinchao Wang <wangjinchao600@gmail.com>
+---
+v7:
+- Update Signed-off-by to match author email.
+- Remove redundant cpu_hotplug_disable() in probe path.
+- v6 link: https://lore.kernel.org/all/20260128023136.1691973-1-realwujing@gmail.com/
+v6:
+- Change title to "simplify/cleanup" and remove "Fixes" tag since the issue
+  is not reproducible on mainline.
+- Rewrite commit message in imperative mood.
+- Clarify that mainline is safe while this improves robustness.
+- v5 link: https://lore.kernel.org/all/20260127022238.1182079-1-realwujing@gmail.com/
+v5:
+- Refine description: clarify that the retry path uses worker threads
+  without PF_PERCPU_THREAD (though mainline is safe due to system_percpu_wq).
+- v4 link: https://lore.kernel.org/all/20260124070814.806828-1-realwujing@gmail.com/
+v4:
+- Add cpu_hotplug_disable() in watchdog_hardlockup_probe() to stabilize
+  the probe CPU.
+- Update description to explain the relevance of 4.19 logs.
+v3:
+- Refactor hardlockup_detector_event_create() to be stateless by returning
+  the event pointer instead of directly assigning to per-cpu variables.
+- Restore PMU cycle fallback and unify the enable/probe paths.
+v2:
+- Add Cc: stable@vger.kernel.org.
+v1:
+- Avoid 'watchdog_ev' in probe path by manually creating and releasing a
+  local perf event.
 
-Author:     Qiliang Yuan <realwujing@gmail.com>
+ kernel/watchdog_perf.c | 51 ++++++++++++++++++++++++------------------
+ 1 file changed, 29 insertions(+), 22 deletions(-)
 
-...but your Signed-off-by is your "@chinatelecom.cn" address. That's
-generally not okay. You need to do something to make those match. My
-guess is that locally you're using git-send-email and everything looks
-good on your end, but then you use your gmail account to login to a
-SMTP server to send your patch. Gmail silently rewrites your patch to
-be sent from the Gmail address you logged in with.
+diff --git a/kernel/watchdog_perf.c b/kernel/watchdog_perf.c
+index d3ca70e3c256..4a798443033b 100644
+--- a/kernel/watchdog_perf.c
++++ b/kernel/watchdog_perf.c
+@@ -17,6 +17,7 @@
+ #include <linux/atomic.h>
+ #include <linux/module.h>
+ #include <linux/sched/debug.h>
++#include <linux/cpu.h>
+ 
+ #include <asm/irq_regs.h>
+ #include <linux/perf_event.h>
+@@ -118,18 +119,11 @@ static void watchdog_overflow_callback(struct perf_event *event,
+ 	watchdog_hardlockup_check(smp_processor_id(), regs);
+ }
+ 
+-static int hardlockup_detector_event_create(void)
++static struct perf_event *hardlockup_detector_event_create(unsigned int cpu)
+ {
+-	unsigned int cpu;
+ 	struct perf_event_attr *wd_attr;
+ 	struct perf_event *evt;
+ 
+-	/*
+-	 * Preemption is not disabled because memory will be allocated.
+-	 * Ensure CPU-locality by calling this in per-CPU kthread.
+-	 */
+-	WARN_ON(!is_percpu_thread());
+-	cpu = raw_smp_processor_id();
+ 	wd_attr = &wd_hw_attr;
+ 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
+ 
+@@ -143,14 +137,7 @@ static int hardlockup_detector_event_create(void)
+ 						       watchdog_overflow_callback, NULL);
+ 	}
+ 
+-	if (IS_ERR(evt)) {
+-		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
+-			 PTR_ERR(evt));
+-		return PTR_ERR(evt);
+-	}
+-	WARN_ONCE(this_cpu_read(watchdog_ev), "unexpected watchdog_ev leak");
+-	this_cpu_write(watchdog_ev, evt);
+-	return 0;
++	return evt;
+ }
+ 
+ /**
+@@ -159,17 +146,26 @@ static int hardlockup_detector_event_create(void)
+  */
+ void watchdog_hardlockup_enable(unsigned int cpu)
+ {
++	struct perf_event *evt;
++
+ 	WARN_ON_ONCE(cpu != smp_processor_id());
+ 
+-	if (hardlockup_detector_event_create())
++	evt = hardlockup_detector_event_create(cpu);
++	if (IS_ERR(evt)) {
++		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
++			 PTR_ERR(evt));
+ 		return;
++	}
+ 
+ 	/* use original value for check */
+ 	if (!atomic_fetch_inc(&watchdog_cpus))
+ 		pr_info("Enabled. Permanently consumes one hw-PMU counter.\n");
+ 
++	WARN_ONCE(this_cpu_read(watchdog_ev), "unexpected watchdog_ev leak");
++	this_cpu_write(watchdog_ev, evt);
++
+ 	watchdog_init_timestamp();
+-	perf_event_enable(this_cpu_read(watchdog_ev));
++	perf_event_enable(evt);
+ }
+ 
+ /**
+@@ -263,19 +259,30 @@ bool __weak __init arch_perf_nmi_is_available(void)
+  */
+ int __init watchdog_hardlockup_probe(void)
+ {
++	struct perf_event *evt;
++	unsigned int cpu;
+ 	int ret;
+ 
+ 	if (!arch_perf_nmi_is_available())
+ 		return -ENODEV;
+ 
+-	ret = hardlockup_detector_event_create();
++	if (!hw_nmi_get_sample_period(watchdog_thresh))
++		return -EINVAL;
+ 
+-	if (ret) {
++	/*
++	 * Test hardware PMU availability by creating a temporary perf event.
++	 * The event is released immediately.
++	 */
++	cpu = raw_smp_processor_id();
++	evt = hardlockup_detector_event_create(cpu);
++	if (IS_ERR(evt)) {
+ 		pr_info("Perf NMI watchdog permanently disabled\n");
++		ret = PTR_ERR(evt);
+ 	} else {
+-		perf_event_release_kernel(this_cpu_read(watchdog_ev));
+-		this_cpu_write(watchdog_ev, NULL);
++		perf_event_release_kernel(evt);
++		ret = 0;
+ 	}
++
+ 	return ret;
+ }
+ 
+-- 
+2.51.0
 
-You'll need to work on your email setup to fix that. Andrew can
-correct me if I'm wrong, but I think he can't really commit your patch
-until you've resent it with that fix.
-
-
-> @@ -263,19 +259,35 @@ bool __weak __init arch_perf_nmi_is_available(void)
->   */
->  int __init watchdog_hardlockup_probe(void)
->  {
-> +       struct perf_event *evt;
-> +       unsigned int cpu;
->         int ret;
->
->         if (!arch_perf_nmi_is_available())
->                 return -ENODEV;
->
-> -       ret =3D hardlockup_detector_event_create();
-> +       if (!hw_nmi_get_sample_period(watchdog_thresh))
-> +               return -EINVAL;
->
-> -       if (ret) {
-> +       /*
-> +        * Test hardware PMU availability by creating a temporary perf ev=
-ent.
-> +        * The requested CPU is arbitrary; preemption is not disabled, so
-> +        * raw_smp_processor_id() is used. Surround with cpu_hotplug_disa=
-ble()
-> +        * to ensure the arbitrarily chosen CPU remains online during the=
- check.
-> +        * The event is released immediately.
-> +        */
-> +       cpu_hotplug_disable();
-
-Given our newest understanding, the cpu_hotplug_disable() isn't truly
-needed anymore, but I'm still good keeping it. Perhaps we can
-eventually make the caller not need to queue the work on the system
-workqueue.
-
-With your Signed-off-by fixed, I'd be happy with:
-
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-
-NOTE: I am not currently set up to test this patch (either through the
-main probe path or the retry path) so I haven't personally validated
-it. That being said, the code looks right to me. :-P
-
--Doug
