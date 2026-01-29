@@ -1,174 +1,298 @@
-Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFA0F326922
-	for <mm-commits@vger.kernel.org>; Thu, 29 Jan 2026 22:13:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=209.85.216.50
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769724787; cv=pass; b=lPgq9hSCGu/YG4C/M1UPZqY51Bl3JoCykv+0pnogRLM3cg8QvnbYgieN0C5oZyypg8mNEGdIwCyxrWIBT59MEY7mQP6jJhBmPysEoIgpp/G6V27Sha/iXTp93SOJwgsNKbWlbYcfhdjhvGOws8SPMWoJ1CQQ2+aaQMwoiMU7raY=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769724787; c=relaxed/simple;
-	bh=X6TtmoAyVY2MGvdbYZvc3762hVQwPWUCU74JQXjBH9k=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=k+YAcAlfOT+iZcidm4reJ9823+3NQT41Yi1PNGzOXImoKvFl2+8Yd+wpknhD1D9ywqjITCJe+gUGBlf1sRpiUIevEdbbKM1QCj9LskZkU7RFqFJ8IngGrM21nZWPKK/38Scy+Uv7usnGDOHDQiSrTsI6X/ZZYwdTan56pFLhMP8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=b02onhOr; arc=pass smtp.client-ip=209.85.216.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B6FA326922;
+	Thu, 29 Jan 2026 22:14:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1769724846; cv=none; b=O/KyIkJ689RbqmWVl2SrvZXxhuX9isFL6ec+tDd/GV0We3VL/EMI6EXi8L2Vl2WRkzp+7gzTJdBge7uiwlwHwCxgUD+JtmwnA2OivQYiKHVTMj5WmhlVkilEow/n5mEOwuSkJ9HNU0zY9WZjTL9nfzljghJ+kOjE74YEhIFYZNE=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1769724846; c=relaxed/simple;
+	bh=NfsAtB9wtqcKBBTYLhjmmSYNmst+XWK//p6Dz+is8oM=;
+	h=Date:To:From:Subject:Message-Id; b=rKdvmMqpwMMMU7/RnlXLbwB7smsc2faMzY3/YrPE/hPyKHde1IbtXCauCPq0LOAy1DrNBxFsPfPNlS4tx7iHDvOz7xstYhpGde3SyEo3MjrKth/+EZb5x7i+VoAnWZKhmhzoapma/ER3XW6vjslI5um+TwcO3NbzWJbG+ihKK5c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pG78S77F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="b02onhOr"
-Received: by mail-pj1-f50.google.com with SMTP id 98e67ed59e1d1-3540266d356so876932a91.0
-        for <mm-commits@vger.kernel.org>; Thu, 29 Jan 2026 14:13:05 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1769724785; cv=none;
-        d=google.com; s=arc-20240605;
-        b=B4Otx8TmfKquOVGmTYhbl3DSDOlzmxtm9Y4tEC5kLOB8eo15fdogMhqeZkaOvXehQt
-         L5OUAY4ZTH4dE3lnykaongIjPXFW00AeMY8TGwlmzMNqrI9Uav66kFbBRGXelAmIcuBv
-         p9d8EQqjMMjf6UqBrCnOYzhDcCIiMuG0pn+pQ4FVHouiNFnOURoT2i8qhHnBmj8wKHr8
-         wufsGXdRMUtY6Jd1p+hA81Sh2hWC06HSvGIrQEHYCAZ/uGg/e/kcZ6VhaFycQHKvUjQU
-         KrKK5HCxdGUcm9vDQACheMX7qsEPcmDLMXivfDfOtHAr2feRKRD8tBTfAEzzh3XLblI/
-         iLhg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:dkim-signature;
-        bh=z1nBp37qmsnlCFlqK6lF3t88pdL41dsBdFbvRYv4Yk0=;
-        fh=PUSpXdoXMIq6onXTgUG2douwWi54f67ml0kAxs1sdtc=;
-        b=RVrDJnGLycgMN9mJAAUKF5jrKvUDRYEd0jd/5BCM5cNm6AHIXQCUywQXjLlDZCReMm
-         l2Kjtw1i22ePTAkZSZJ6vBJj7Zzb3RNOu/dlGvBek3UoYOR7WHb1RKfViIRB/D8PAq+d
-         pG7OXJNKftUZZFfykHJkEzQDkLIRSynsM5XqJx/+QiJ+GgFuDq9IDFdK62Pe4zk60NvY
-         hEieDAsB7VStWx5IGoLjG22IEnqzhklP/amL0a8CIinlxrkh1UDY687pExbUJryHzTk7
-         Eq+FcULU2HfKrzqyyLAggzC37n5BHfOk6aRuWiTSstUi/8ua/rJNeLikvAhF2jhsH67W
-         2BYQ==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1769724785; x=1770329585; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=z1nBp37qmsnlCFlqK6lF3t88pdL41dsBdFbvRYv4Yk0=;
-        b=b02onhOrDmIrflr4da9qH4T4QLTQi3FyOVOLQ1+J5tIyVaw+6V3xuM5xnvtjVmE7ax
-         jLjMDjJuzgjfDevbieNHDNJLMaHfxY6RV8GMqjcd2xIn3FmU+iY/gSjjGldIgHK7vGUS
-         nBpaPIBMPcMwuQlwTTNnkT8kAzy4PEfN6c6ICIzqFBwYbrzsZOm4Iv4zj41FLTQQt2EX
-         /XVNuWyUCcf+4p9YtBdJYIpGLFahPDPzmmBlrrmx0en1K1o9/wZw9n8OdRIXab1NRYLt
-         3h5uRjtGYAiBEAbtzM7ee1s9SvsjUsnC/XuggtZX7OTEOwtlo47HT5QvZKEFalOnlkV4
-         Whew==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1769724785; x=1770329585;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-gg:x-gm-message-state:from
-         :to:cc:subject:date:message-id:reply-to;
-        bh=z1nBp37qmsnlCFlqK6lF3t88pdL41dsBdFbvRYv4Yk0=;
-        b=GgF31PxVq+j+6CU5E1Mek3ts3XUXKNiSW11jNaunq+6nPhHr/4Qrk0EMJGPgi/U9OT
-         AZE/Fd/B1/pmnlOQNK1tiUtbHuei2yBR7uXZGR0T1bbBUzGw0pz4lGHtqakbKWGt0iY8
-         oEqE1xfsEUVTyaBFXr4r1HbAuRkndWi79BHxHAT7hiF7+uz2cZIzF6kwplwNM3whvJvb
-         Wr9uYPM7O63qRncMIc2xhY/koH/8CKKkplwao0lEGb5l3kpHcSh5BuG1y+Oba0THODSE
-         NG4cPRMcf0yuk5EkMBzUtvmZq15ibYXXA6WsfR635c5lFCi56Xqs3w8uvIiDVWx2y9T4
-         mWQA==
-X-Gm-Message-State: AOJu0YxZ/yeVyvy8g9rBdbaR4kQbJUW8bF8aPyrGWHweDaV8eaqOCxVU
-	uVDXmk7BeRjVUwF4P8j/Im+6UBUxBGvqvwSUHTL8rnK2TGcSKGRIYYd7lpE6UuU5j/U1tapQeWv
-	VTAXc0KxrqMJKU/VwqUI+3n6PU1ULIeQ39A==
-X-Gm-Gg: AZuq6aKgkbe11GBYDZ97Ntvr/21UKXAArq5t/4Twxyh7W/AsRQA7rSK+CxUFab7fBu2
-	7AF7Xqn+MXBSF6f42wvBgQtw2VDzatZeIU3ZorkWFjaRftmZftjI27o8+Fyu+90gMA8O5QWJ6vc
-	0BFxzC5l2Qx15nxR4WQSIvYFSjU0FCgcqAhzraO8QmUns1Vz3M2EqU/eJKtCOZWR9mG+UKzp0zt
-	QsTm0peOZjNmKjw2/9qCjffPaeeOiA9/rDA6MbR7zH2v+mI4/z0VUB6O2gzBaVwhS4lcSMGpPnf
-	yB3nMnS1XRA=
-X-Received: by 2002:a17:90b:56ce:b0:341:ae23:85fd with SMTP id
- 98e67ed59e1d1-3543b315807mr754283a91.11.1769724785101; Thu, 29 Jan 2026
- 14:13:05 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pG78S77F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2136C16AAE;
+	Thu, 29 Jan 2026 22:14:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1769724846;
+	bh=NfsAtB9wtqcKBBTYLhjmmSYNmst+XWK//p6Dz+is8oM=;
+	h=Date:To:From:Subject:From;
+	b=pG78S77Fci4OJdO5rfJHz3ircsTRHYasd1BsBfFoFNQhhx4QgbJlJ5ICA6yLGV0eQ
+	 a4JhZ8v1kgwXlDvPvdU71g+/gMRXJ7/VvLb+ey9POt9NC/yu6MGoBm7xVk6dpSuyCe
+	 8msfVvdOXCF0QpYOg+h6Fh7AraIZSdyzBEsGv85E=
+Date: Thu, 29 Jan 2026 14:14:05 -0800
+To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,surenb@google.com,stable@vger.kernel.org,song@kernel.org,shakeel.butt@linux.dev,sdf@fomichev.me,martin.lau@linux.dev,kpsingh@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,eddyz87@gmail.com,daniel@iogearbox.net,ast@kernel.org,andrii@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + procfs-avoid-fetching-build-id-while-holding-vma-lock.patch added to mm-nonmm-unstable branch
+Message-Id: <20260129221405.F2136C16AAE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20260129215650.3B361C4CEF7@smtp.kernel.org>
-In-Reply-To: <20260129215650.3B361C4CEF7@smtp.kernel.org>
-From: Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Date: Thu, 29 Jan 2026 14:12:52 -0800
-X-Gm-Features: AZwV_QgFuTJz8Ge68RW3caJMvNBSM9bfI6AXNYkBa0joMwgYa1caEW2vBwzOg1k
-Message-ID: <CAEf4BzYCeubZrfnX=CZuL0g42MiS9FvsyenemfiSyf1e1WtZ_Q@mail.gmail.com>
-Subject: Re: + procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch
- added to mm-nonmm-unstable branch
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, surenb@google.com, mykyta.yatsenko5@gmail.com, 
-	Liam.Howlett@oracle.com, andrii@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 29, 2026 at 1:56=E2=80=AFPM Andrew Morton <akpm@linux-foundatio=
-n.org> wrote:
->
->
-> The patch titled
->      Subject: procfs-avoid-fetching-build-id-while-holding-vma-lock-fix
-> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
->      procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch
->
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree=
-/patches/procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch
->
-> This patch will later appear in the mm-nonmm-unstable branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testi=
-ng your code ***
->
-> The -mm tree is included into linux-next via various
-> branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there most days
->
-> ------------------------------------------------------
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: procfs-avoid-fetching-build-id-while-holding-vma-lock-fix
-> Date: Thu Jan 29 01:54:41 PM PST 2026
->
-> fix kerneldoc, per Mykyta Yatsenko
->
-> Cc: Andrii Nakryiko <andrii@kernel.org>
-> Cc: Liam R. Howlett <Liam.Howlett@Oracle.com>
-> Cc: Suren Baghdasaryan <surenb@google.com>
-> Cc: Mykyta Yatsenko <mykyta.yatsenko5@gmail.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  lib/buildid.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> --- a/lib/buildid.c~procfs-avoid-fetching-build-id-while-holding-vma-lock=
--fix
-> +++ a/lib/buildid.c
-> @@ -315,7 +315,7 @@ out:
->         return ret;
->  }
->
-> -/*
-> +/**
->   * Parse build ID of ELF file mapped to vma
->   * @vma:      vma object
 
-there was also @vma -> @file rename as pointed out by Yonghong.
+The patch titled
+     Subject: procfs: avoid fetching build ID while holding VMA lock
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     procfs-avoid-fetching-build-id-while-holding-vma-lock.patch
 
->   * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
-> _
->
-> Patches currently in -mm which might be from akpm@linux-foundation.org ar=
-e
->
-> mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
-> mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix.patch
-> sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
-> mm-vma-document-possible-vma-vm_refcnt-values-and-reference-comment-fix.p=
-atch
-> mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix.patc=
-h
-> mm-pagewalk-use-min-to-simplify-the-code-fix.patch
-> mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch
-> mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
-> procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch
->
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/procfs-avoid-fetching-build-id-while-holding-vma-lock.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: procfs: avoid fetching build ID while holding VMA lock
+Date: Thu, 29 Jan 2026 13:53:40 -0800
+
+Fix PROCMAP_QUERY to fetch optional build ID only after dropping mmap_lock
+or per-VMA lock, whichever was used to lock VMA under question, to avoid
+deadlock reported by syzbot:
+
+ -> #1 (&mm->mmap_lock){++++}-{4:4}:
+        __might_fault+0xed/0x170
+        _copy_to_iter+0x118/0x1720
+        copy_page_to_iter+0x12d/0x1e0
+        filemap_read+0x720/0x10a0
+        blkdev_read_iter+0x2b5/0x4e0
+        vfs_read+0x7f4/0xae0
+        ksys_read+0x12a/0x250
+        do_syscall_64+0xcb/0xf80
+        entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+ -> #0 (&sb->s_type->i_mutex_key#8){++++}-{4:4}:
+        __lock_acquire+0x1509/0x26d0
+        lock_acquire+0x185/0x340
+        down_read+0x98/0x490
+        blkdev_read_iter+0x2a7/0x4e0
+        __kernel_read+0x39a/0xa90
+        freader_fetch+0x1d5/0xa80
+        __build_id_parse.isra.0+0xea/0x6a0
+        do_procmap_query+0xd75/0x1050
+        procfs_procmap_ioctl+0x7a/0xb0
+        __x64_sys_ioctl+0x18e/0x210
+        do_syscall_64+0xcb/0xf80
+        entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+ other info that might help us debug this:
+
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   rlock(&mm->mmap_lock);
+                                lock(&sb->s_type->i_mutex_key#8);
+                                lock(&mm->mmap_lock);
+   rlock(&sb->s_type->i_mutex_key#8);
+
+  *** DEADLOCK ***
+
+To make this safe, we need to grab file refcount while VMA is still locked, but
+other than that everything is pretty straightforward. Internal build_id_parse()
+API assumes VMA is passed, but it only needs the underlying file reference, so
+just add another variant build_id_parse_file() that expects file passed
+directly.
+
+Link: https://lkml.kernel.org/r/20260129215340.3742283-1-andrii@kernel.org
+Fixes: ed5d583a88a9 ("fs/procfs: implement efficient VMA querying API for /proc/<pid>/maps")
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Reported-by: syzbot+4e70c8e0a2017b432f7a@syzkaller.appspotmail.com
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Tested-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Hao Luo <haoluo@google.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Martin KaFai Lau <martin.lau@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Song Liu <song@kernel.org>
+Cc: Stanislav Fomichev <sdf@fomichev.me>
+Cc: Yonghong Song <yonghong.song@linux.dev>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/proc/task_mmu.c      |   42 ++++++++++++++++++++++++--------------
+ include/linux/buildid.h |    3 ++
+ lib/buildid.c           |   34 +++++++++++++++++++++++-------
+ 3 files changed, 56 insertions(+), 23 deletions(-)
+
+--- a/fs/proc/task_mmu.c~procfs-avoid-fetching-build-id-while-holding-vma-lock
++++ a/fs/proc/task_mmu.c
+@@ -656,6 +656,7 @@ static int do_procmap_query(struct mm_st
+ 	struct proc_maps_locking_ctx lock_ctx = { .mm = mm };
+ 	struct procmap_query karg;
+ 	struct vm_area_struct *vma;
++	struct file *vm_file = NULL;
+ 	const char *name = NULL;
+ 	char build_id_buf[BUILD_ID_SIZE_MAX], *name_buf = NULL;
+ 	__u64 usize;
+@@ -727,21 +728,6 @@ static int do_procmap_query(struct mm_st
+ 		karg.inode = 0;
+ 	}
+ 
+-	if (karg.build_id_size) {
+-		__u32 build_id_sz;
+-
+-		err = build_id_parse(vma, build_id_buf, &build_id_sz);
+-		if (err) {
+-			karg.build_id_size = 0;
+-		} else {
+-			if (karg.build_id_size < build_id_sz) {
+-				err = -ENAMETOOLONG;
+-				goto out;
+-			}
+-			karg.build_id_size = build_id_sz;
+-		}
+-	}
+-
+ 	if (karg.vma_name_size) {
+ 		size_t name_buf_sz = min_t(size_t, PATH_MAX, karg.vma_name_size);
+ 		const struct path *path;
+@@ -775,10 +761,34 @@ static int do_procmap_query(struct mm_st
+ 		karg.vma_name_size = name_sz;
+ 	}
+ 
++	if (karg.build_id_size && vma->vm_file)
++		vm_file = get_file(vma->vm_file);
++
+ 	/* unlock vma or mmap_lock, and put mm_struct before copying data to user */
+ 	query_vma_teardown(&lock_ctx);
+ 	mmput(mm);
+ 
++	if (karg.build_id_size) {
++		__u32 build_id_sz;
++
++		if (vm_file)
++			err = build_id_parse_file(vm_file, build_id_buf, &build_id_sz);
++		else
++			err = -ENOENT;
++		if (err) {
++			karg.build_id_size = 0;
++		} else {
++			if (karg.build_id_size < build_id_sz) {
++				err = -ENAMETOOLONG;
++				goto out;
++			}
++			karg.build_id_size = build_id_sz;
++		}
++	}
++
++	if (vm_file)
++		fput(vm_file);
++
+ 	if (karg.vma_name_size && copy_to_user(u64_to_user_ptr(karg.vma_name_addr),
+ 					       name, karg.vma_name_size)) {
+ 		kfree(name_buf);
+@@ -798,6 +808,8 @@ static int do_procmap_query(struct mm_st
+ out:
+ 	query_vma_teardown(&lock_ctx);
+ 	mmput(mm);
++	if (vm_file)
++		fput(vm_file);
+ 	kfree(name_buf);
+ 	return err;
+ }
+--- a/include/linux/buildid.h~procfs-avoid-fetching-build-id-while-holding-vma-lock
++++ a/include/linux/buildid.h
+@@ -7,7 +7,10 @@
+ #define BUILD_ID_SIZE_MAX 20
+ 
+ struct vm_area_struct;
++struct file;
++
+ int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size);
++int build_id_parse_file(struct file *file, unsigned char *build_id, __u32 *size);
+ int build_id_parse_nofault(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size);
+ int build_id_parse_buf(const void *buf, unsigned char *build_id, u32 buf_size);
+ 
+--- a/lib/buildid.c~procfs-avoid-fetching-build-id-while-holding-vma-lock
++++ a/lib/buildid.c
+@@ -279,7 +279,7 @@ static int get_build_id_64(struct freade
+ /* enough for Elf64_Ehdr, Elf64_Phdr, and all the smaller requests */
+ #define MAX_FREADER_BUF_SZ 64
+ 
+-static int __build_id_parse(struct vm_area_struct *vma, unsigned char *build_id,
++static int __build_id_parse(struct file *file, unsigned char *build_id,
+ 			    __u32 *size, bool may_fault)
+ {
+ 	const Elf32_Ehdr *ehdr;
+@@ -287,11 +287,7 @@ static int __build_id_parse(struct vm_ar
+ 	char buf[MAX_FREADER_BUF_SZ];
+ 	int ret;
+ 
+-	/* only works for page backed storage  */
+-	if (!vma->vm_file)
+-		return -EINVAL;
+-
+-	freader_init_from_file(&r, buf, sizeof(buf), vma->vm_file, may_fault);
++	freader_init_from_file(&r, buf, sizeof(buf), file, may_fault);
+ 
+ 	/* fetch first 18 bytes of ELF header for checks */
+ 	ehdr = freader_fetch(&r, 0, offsetofend(Elf32_Ehdr, e_type));
+@@ -332,7 +328,10 @@ out:
+  */
+ int build_id_parse_nofault(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size)
+ {
+-	return __build_id_parse(vma, build_id, size, false /* !may_fault */);
++	if (!vma->vm_file)
++		return -EINVAL;
++
++	return __build_id_parse(vma->vm_file, build_id, size, false /* !may_fault */);
+ }
+ 
+ /*
+@@ -348,7 +347,26 @@ int build_id_parse_nofault(struct vm_are
+  */
+ int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size)
+ {
+-	return __build_id_parse(vma, build_id, size, true /* may_fault */);
++	if (!vma->vm_file)
++		return -EINVAL;
++
++	return __build_id_parse(vma->vm_file, build_id, size, true /* may_fault */);
++}
++
++/**
++ * Parse build ID of ELF file
++ * @file:      file object
++ * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
++ * @size:     returns actual build id size in case of success
++ *
++ * Assumes faultable context and can cause page faults to bring in file data
++ * into page cache.
++ *
++ * Return: 0 on success; negative error, otherwise
++ */
++int build_id_parse_file(struct file *file, unsigned char *build_id, __u32 *size)
++{
++	return __build_id_parse(file, build_id, size, true /* may_fault */);
+ }
+ 
+ /**
+_
+
+Patches currently in -mm which might be from andrii@kernel.org are
+
+procfs-avoid-fetching-build-id-while-holding-vma-lock.patch
+
