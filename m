@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F114F221FB6
-	for <mm-commits@vger.kernel.org>; Thu, 29 Jan 2026 23:17:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 632443451C6
+	for <mm-commits@vger.kernel.org>; Thu, 29 Jan 2026 23:25:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769728677; cv=none; b=O79NZzxseiswsxWQ8wfv/jtyaqU0rsAw1DobGxq+eNDGFncmeB+HzIm/yQyBVCPCfcloCTeJHQq1Shw7wqLAAv1D+o9pEQXw+ULycCqSTaiL3N+2Od8buGVilShIZUZyboJm9YySsTyri8j4Z+fGm7rKnvJvVElm3GiPew3xeTE=
+	t=1769729107; cv=none; b=hAAZfQpD2M9TR0YdaTN9RbjZxYGcROPgyMw1HJkTm4jtIljrbXxCesic5+U6j+MYdSZsejLvaaTiE64RDG9xLbV46wjBb0Ms9BhsIasTcsfnYJwgpdzcorIntYjOTJurzhmwdCxj1v51NRVIBhS7eUL1N8MuZ0rOwLfSWeYltvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769728677; c=relaxed/simple;
-	bh=+vKU9ed8BvgXHD2f0LgH84ZWqJX7Nz4i7VvNtqGlrCw=;
-	h=Date:To:From:Subject:Message-Id; b=CH1RHeUILeK7qlw7E3bFeen1R7+nNbyBpxkpFGepiXOYI3DatmYuLbwMNiGtfCxPipA7AFMeALd8bz6DjpZj4ke/rEDb1YpWIQQwdDIwxwds3wI/VjWFSDcLK7ONpuc9tkm9SZw3Y4zRmmgAKeqvbEnPEjwsbSI3qoghmwjOIlQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OLIGjYWI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769729107; c=relaxed/simple;
+	bh=99Xy8y6FRgMBA+KLO/OIyIF0sMrYqptM+qxe9EuxXQE=;
+	h=Date:To:From:Subject:Message-Id; b=Hk+PX2sUNzVjt8w2qqjMZRfe8Ijf2V1J8Tj8CfEMloRPINhxl5eO1L0fgkXKeB44yQxkpbN76FX2DNdgu7AR1B2F+EN8ppUstsbgIn85Kfv+10O+HHB4qtjYXi6MXiNYZcDcImrDbSoTn2R1D6oiIi89olSrWTHj8Kh37/PsGEs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xzLum2Ew; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OLIGjYWI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67CBEC4CEF7;
-	Thu, 29 Jan 2026 23:17:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xzLum2Ew"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDC9FC4CEF7;
+	Thu, 29 Jan 2026 23:25:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769728676;
-	bh=+vKU9ed8BvgXHD2f0LgH84ZWqJX7Nz4i7VvNtqGlrCw=;
+	s=korg; t=1769729106;
+	bh=99Xy8y6FRgMBA+KLO/OIyIF0sMrYqptM+qxe9EuxXQE=;
 	h=Date:To:From:Subject:From;
-	b=OLIGjYWIO+Umobl4I7OfDxL7eGy9iStmU7DpXxx1DQbYCFZUwPSwdxgsFa3zo3+lv
-	 4I5vI0Flf66J7sULAFjE1hMg8tTNTOoH5/peY0g4RfjKWi8xaudnfzql0VNEy8Wh+W
-	 I6nAJDqQJzHNxPM23XeECLwmOM1PYwpNPVuDaixs=
-Date: Thu, 29 Jan 2026 15:17:55 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,clm@meta.com,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=xzLum2EwyIdPX6iTZGFUmlk+FD1Pv+/mVGMdi8nzvHdVWAk/jD7ehcKp3GNWeF6sp
+	 Zu232SCt+XuAn/2cNKKVBr0BSsjxh/iA2Bb0MSxpkzP+fTi8VOObop+beJFw1+mGPo
+	 tPYUlcDU2JXOZiel2O07bvjshLGhsxx22lcDsrrk=
+Date: Thu, 29 Jan 2026 15:25:06 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rientjes@google.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,bgeffon@google.com,arjunroy@google.com,greenjustin@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix.patch added to mm-unstable branch
-Message-Id: <20260129231756.67CBEC4CEF7@smtp.kernel.org>
+Subject: + mm-refactor-vma_map_pages-to-use-vm_insert_pages.patch added to mm-new branch
+Message-Id: <20260129232506.CDC9FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix.patch
+     Subject: mm: refactor vma_map_pages to use vm_insert_pages
+has been added to the -mm mm-new branch.  Its filename is
+     mm-refactor-vma_map_pages-to-use-vm_insert_pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-refactor-vma_map_pages-to-use-vm_insert_pages.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,43 +66,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix
-Date: Thu, 29 Jan 2026 09:42:12 +0800
+From: Justin Green <greenjustin@chromium.org>
+Subject: mm: refactor vma_map_pages to use vm_insert_pages
+Date: Wed, 28 Jan 2026 17:56:47 -0500
 
-s/pte_cont/pte_valid_cont/, per Chris
+vma_map_pages currently calls vm_insert_page on each individual page in
+the mapping, which creates significant overhead because we are repeatedly
+spinlocking.  Instead, we should batch insert pages using vm_insert_pages,
+which amortizes the cost of the spinlock.
 
-Link: https://lkml.kernel.org/r/de141225-a0c1-41fd-b3e1-bcab09827ddd@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chris Mason <clm@meta.com>
-Cc: Will Deacon <will@kernel.org>
+Tested through watching hardware accelerated video on a MTK ChromeOS
+device.  This particular path maps both a V4L2 buffer and a GEM allocated
+buffer into userspace and converts the contents from one pixel format to
+another.  Both vb2_mmap() and mtk_gem_object_mmap() exercise this pathway.
+
+Link: https://lkml.kernel.org/r/20260128225648.2938636-1-greenjustin@chromium.org
+Signed-off-by: Justin Green <greenjustin@chromium.org>
+Acked-by: Brian Geffon <bgeffon@google.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Arjun Roy <arjunroy@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1843,7 +1843,7 @@ static inline int clear_flush_young_ptes
- 					 unsigned long addr, pte_t *ptep,
- 					 unsigned int nr)
+--- a/mm/memory.c~mm-refactor-vma_map_pages-to-use-vm_insert_pages
++++ a/mm/memory.c
+@@ -2568,7 +2568,6 @@ static int __vm_map_pages(struct vm_area
  {
--	if (likely(nr == 1 && !pte_cont(__ptep_get(ptep))))
-+	if (likely(nr == 1 && !pte_valid_cont(__ptep_get(ptep))))
- 		return __ptep_clear_flush_young(vma, addr, ptep);
+ 	unsigned long count = vma_pages(vma);
+ 	unsigned long uaddr = vma->vm_start;
+-	int ret, i;
  
- 	return contpte_clear_flush_young_ptes(vma, addr, ptep, nr);
+ 	/* Fail if the user requested offset is beyond the end of the object */
+ 	if (offset >= num)
+@@ -2578,14 +2577,7 @@ static int __vm_map_pages(struct vm_area
+ 	if (count > num - offset)
+ 		return -ENXIO;
+ 
+-	for (i = 0; i < count; i++) {
+-		ret = vm_insert_page(vma, uaddr, pages[offset + i]);
+-		if (ret < 0)
+-			return ret;
+-		uaddr += PAGE_SIZE;
+-	}
+-
+-	return 0;
++	return vm_insert_pages(vma, uaddr, pages + offset, &count);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from greenjustin@chromium.org are
 
-mm-rmap-support-batched-checks-of-the-references-for-large-folios.patch
-arm64-mm-factor-out-the-address-and-ptep-alignment-into-a-new-helper.patch
-arm64-mm-support-batch-clearing-of-the-young-flag-for-large-folios.patch
-arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes.patch
-arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix.patch
-mm-rmap-support-batched-unmapping-for-file-large-folios.patch
-mm-rmap-support-batched-unmapping-for-file-large-folios-fix.patch
+mm-refactor-vma_map_pages-to-use-vm_insert_pages.patch
 
