@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FA6E372B52
-	for <mm-commits@vger.kernel.org>; Thu, 29 Jan 2026 23:06:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F114F221FB6
+	for <mm-commits@vger.kernel.org>; Thu, 29 Jan 2026 23:17:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769727996; cv=none; b=T39m42axPLoX6TRYN6FL6qt/OaEh/aesO+UuJ0w+l8X+Y43nGTOWmwnxkIGHftyc0xRF2OeJPXEQUqZ5qo5PkSzMd69dZbvX6s4NNkiLu41y0MH+icpCvpSEHDLfdsP+u+frw2lLX3xIIJCiuc/Szsio3gQyuUvznfkvMc6bpF4=
+	t=1769728677; cv=none; b=O79NZzxseiswsxWQ8wfv/jtyaqU0rsAw1DobGxq+eNDGFncmeB+HzIm/yQyBVCPCfcloCTeJHQq1Shw7wqLAAv1D+o9pEQXw+ULycCqSTaiL3N+2Od8buGVilShIZUZyboJm9YySsTyri8j4Z+fGm7rKnvJvVElm3GiPew3xeTE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769727996; c=relaxed/simple;
-	bh=V9oEbICSWuOFKkC2fpxDAu0tfrRaa65LTjYqFzIawVg=;
-	h=Date:To:From:Subject:Message-Id; b=Wmro6aRtZkMGQi6XlpcYxz238IRHOukN7w6hMjBZcNsYYvXt4H6RzfxqX2gjc2wlA7alCDVIJQ8dUh5anRosYvtatTlrTgA58183g6utYYfcY6Rru3f823z+BIf/3gZNZ+jKpW/MOYLGDN6c+UD4SOR9DNF4YMKH6khqTjbQWz4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uhttKp0T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769728677; c=relaxed/simple;
+	bh=+vKU9ed8BvgXHD2f0LgH84ZWqJX7Nz4i7VvNtqGlrCw=;
+	h=Date:To:From:Subject:Message-Id; b=CH1RHeUILeK7qlw7E3bFeen1R7+nNbyBpxkpFGepiXOYI3DatmYuLbwMNiGtfCxPipA7AFMeALd8bz6DjpZj4ke/rEDb1YpWIQQwdDIwxwds3wI/VjWFSDcLK7ONpuc9tkm9SZw3Y4zRmmgAKeqvbEnPEjwsbSI3qoghmwjOIlQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OLIGjYWI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uhttKp0T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAF58C4CEF7;
-	Thu, 29 Jan 2026 23:06:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OLIGjYWI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67CBEC4CEF7;
+	Thu, 29 Jan 2026 23:17:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769727995;
-	bh=V9oEbICSWuOFKkC2fpxDAu0tfrRaa65LTjYqFzIawVg=;
+	s=korg; t=1769728676;
+	bh=+vKU9ed8BvgXHD2f0LgH84ZWqJX7Nz4i7VvNtqGlrCw=;
 	h=Date:To:From:Subject:From;
-	b=uhttKp0T+9Da3tj8qivvMgwsQnjcQzlXqEUMah5qbvyyZNMTPS6dc+MwqIu4ctLUn
-	 vwNCsdylCxVrYfikumUbipa2Jjmg/j07p/IH3wbgzLg7V+VSTfjc6kmu8bKU6KlYQp
-	 jC2EG5ZxcvarUDNRNesNpH2IvclXkpY8EmUNFTKM=
-Date: Thu, 29 Jan 2026 15:06:35 -0800
-To: mm-commits@vger.kernel.org,zhangjn11@chinatelecom.cn,yuanql9@chinatelecom.cn,yangyicong@hisilicon.com,wangjinchao600@gmail.com,thorsten.blum@linux.dev,sunshx@chinatelecom.cn,song@kernel.org,mingo@kernel.org,lihuafei1@huawei.com,dianders@chromium.org,realwujing@gmail.com,akpm@linux-foundation.org
+	b=OLIGjYWIO+Umobl4I7OfDxL7eGy9iStmU7DpXxx1DQbYCFZUwPSwdxgsFa3zo3+lv
+	 4I5vI0Flf66J7sULAFjE1hMg8tTNTOoH5/peY0g4RfjKWi8xaudnfzql0VNEy8Wh+W
+	 I6nAJDqQJzHNxPM23XeECLwmOM1PYwpNPVuDaixs=
+Date: Thu, 29 Jan 2026 15:17:55 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,clm@meta.com,catalin.marinas@arm.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-hardlockup-simplify-perf-event-probe-and-remove-per-cpu-dependency.patch added to mm-nonmm-unstable branch
-Message-Id: <20260129230635.DAF58C4CEF7@smtp.kernel.org>
+Subject: + arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix.patch added to mm-unstable branch
+Message-Id: <20260129231756.67CBEC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: watchdog/hardlockup: simplify perf event probe and remove per-cpu dependency
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-hardlockup-simplify-perf-event-probe-and-remove-per-cpu-dependency.patch
+     Subject: arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-simplify-perf-event-probe-and-remove-per-cpu-dependency.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,143 +58,43 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qiliang Yuan <realwujing@gmail.com>
-Subject: watchdog/hardlockup: simplify perf event probe and remove per-cpu dependency
-Date: Wed, 28 Jan 2026 21:26:14 -0500
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix
+Date: Thu, 29 Jan 2026 09:42:12 +0800
 
-Simplify the hardlockup detector's probe path and remove its implicit
-dependency on pinned per-cpu execution.
+s/pte_cont/pte_valid_cont/, per Chris
 
-Refactor hardlockup_detector_event_create() to be stateless.  Return the
-created perf_event pointer to the caller instead of directly modifying the
-per-cpu 'watchdog_ev' variable.  This allows the probe path to safely
-manage a temporary event without the risk of leaving stale pointers should
-task migration occur.
-
-Link: https://lkml.kernel.org/r/20260129022629.2201331-1-realwujing@gmail.com
-Signed-off-by: Shouxin Sun <sunshx@chinatelecom.cn>
-Signed-off-by: Junnan Zhang <zhangjn11@chinatelecom.cn>
-Signed-off-by: Qiliang Yuan <yuanql9@chinatelecom.cn>
-Signed-off-by: Qiliang Yuan <realwujing@gmail.com>
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-Cc: Jinchao Wang <wangjinchao600@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Li Huafei <lihuafei1@huawei.com>
-Cc: Song Liu <song@kernel.org>
-Cc: Thorsten Blum <thorsten.blum@linux.dev>
-Cc: Wang Jinchao <wangjinchao600@gmail.com>
-Cc: Yicong Yang <yangyicong@hisilicon.com>
+Link: https://lkml.kernel.org/r/de141225-a0c1-41fd-b3e1-bcab09827ddd@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Chris Mason <clm@meta.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog_perf.c |   50 +++++++++++++++++++++------------------
- 1 file changed, 28 insertions(+), 22 deletions(-)
+ arch/arm64/include/asm/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/watchdog_perf.c~watchdog-hardlockup-simplify-perf-event-probe-and-remove-per-cpu-dependency
-+++ a/kernel/watchdog_perf.c
-@@ -118,18 +118,11 @@ static void watchdog_overflow_callback(s
- 	watchdog_hardlockup_check(smp_processor_id(), regs);
- }
- 
--static int hardlockup_detector_event_create(void)
-+static struct perf_event *hardlockup_detector_event_create(unsigned int cpu)
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -1843,7 +1843,7 @@ static inline int clear_flush_young_ptes
+ 					 unsigned long addr, pte_t *ptep,
+ 					 unsigned int nr)
  {
--	unsigned int cpu;
- 	struct perf_event_attr *wd_attr;
- 	struct perf_event *evt;
+-	if (likely(nr == 1 && !pte_cont(__ptep_get(ptep))))
++	if (likely(nr == 1 && !pte_valid_cont(__ptep_get(ptep))))
+ 		return __ptep_clear_flush_young(vma, addr, ptep);
  
--	/*
--	 * Preemption is not disabled because memory will be allocated.
--	 * Ensure CPU-locality by calling this in per-CPU kthread.
--	 */
--	WARN_ON(!is_percpu_thread());
--	cpu = raw_smp_processor_id();
- 	wd_attr = &wd_hw_attr;
- 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
- 
-@@ -143,14 +136,7 @@ static int hardlockup_detector_event_cre
- 						       watchdog_overflow_callback, NULL);
- 	}
- 
--	if (IS_ERR(evt)) {
--		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
--			 PTR_ERR(evt));
--		return PTR_ERR(evt);
--	}
--	WARN_ONCE(this_cpu_read(watchdog_ev), "unexpected watchdog_ev leak");
--	this_cpu_write(watchdog_ev, evt);
--	return 0;
-+	return evt;
- }
- 
- /**
-@@ -159,17 +145,26 @@ static int hardlockup_detector_event_cre
-  */
- void watchdog_hardlockup_enable(unsigned int cpu)
- {
-+	struct perf_event *evt;
-+
- 	WARN_ON_ONCE(cpu != smp_processor_id());
- 
--	if (hardlockup_detector_event_create())
-+	evt = hardlockup_detector_event_create(cpu);
-+	if (IS_ERR(evt)) {
-+		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
-+			 PTR_ERR(evt));
- 		return;
-+	}
- 
- 	/* use original value for check */
- 	if (!atomic_fetch_inc(&watchdog_cpus))
- 		pr_info("Enabled. Permanently consumes one hw-PMU counter.\n");
- 
-+	WARN_ONCE(this_cpu_read(watchdog_ev), "unexpected watchdog_ev leak");
-+	this_cpu_write(watchdog_ev, evt);
-+
- 	watchdog_init_timestamp();
--	perf_event_enable(this_cpu_read(watchdog_ev));
-+	perf_event_enable(evt);
- }
- 
- /**
-@@ -263,19 +258,30 @@ bool __weak __init arch_perf_nmi_is_avai
-  */
- int __init watchdog_hardlockup_probe(void)
- {
-+	struct perf_event *evt;
-+	unsigned int cpu;
- 	int ret;
- 
- 	if (!arch_perf_nmi_is_available())
- 		return -ENODEV;
- 
--	ret = hardlockup_detector_event_create();
-+	if (!hw_nmi_get_sample_period(watchdog_thresh))
-+		return -EINVAL;
- 
--	if (ret) {
-+	/*
-+	 * Test hardware PMU availability by creating a temporary perf event.
-+	 * The event is released immediately.
-+	 */
-+	cpu = raw_smp_processor_id();
-+	evt = hardlockup_detector_event_create(cpu);
-+	if (IS_ERR(evt)) {
- 		pr_info("Perf NMI watchdog permanently disabled\n");
-+		ret = PTR_ERR(evt);
- 	} else {
--		perf_event_release_kernel(this_cpu_read(watchdog_ev));
--		this_cpu_write(watchdog_ev, NULL);
-+		perf_event_release_kernel(evt);
-+		ret = 0;
- 	}
-+
- 	return ret;
- }
- 
+ 	return contpte_clear_flush_young_ptes(vma, addr, ptep, nr);
 _
 
-Patches currently in -mm which might be from realwujing@gmail.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-watchdog-hardlockup-simplify-perf-event-probe-and-remove-per-cpu-dependency.patch
+mm-rmap-support-batched-checks-of-the-references-for-large-folios.patch
+arm64-mm-factor-out-the-address-and-ptep-alignment-into-a-new-helper.patch
+arm64-mm-support-batch-clearing-of-the-young-flag-for-large-folios.patch
+arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes.patch
+arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes-fix.patch
+mm-rmap-support-batched-unmapping-for-file-large-folios.patch
+mm-rmap-support-batched-unmapping-for-file-large-folios-fix.patch
 
