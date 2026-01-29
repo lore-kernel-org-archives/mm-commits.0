@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B6FA326922;
-	Thu, 29 Jan 2026 22:14:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9896C2D46B3
+	for <mm-commits@vger.kernel.org>; Thu, 29 Jan 2026 22:54:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769724846; cv=none; b=O/KyIkJ689RbqmWVl2SrvZXxhuX9isFL6ec+tDd/GV0We3VL/EMI6EXi8L2Vl2WRkzp+7gzTJdBge7uiwlwHwCxgUD+JtmwnA2OivQYiKHVTMj5WmhlVkilEow/n5mEOwuSkJ9HNU0zY9WZjTL9nfzljghJ+kOjE74YEhIFYZNE=
+	t=1769727296; cv=none; b=G94pT8O8Wvk1fpZFw1embhJsTE3QLQI0IBzcU7SeyvGi3qO2E9tXgixb6GXSLbh0TZ8L2rM/7/BqT4NTqdMOVWZpTLqBXgnwuHnIU/KwRSsTTMfMleGrG9OmrCX33nXZAX8LvwtMZsDm+Z8KBzaQzAY5OCnXayTm8O4Ux3m7Pi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769724846; c=relaxed/simple;
-	bh=NfsAtB9wtqcKBBTYLhjmmSYNmst+XWK//p6Dz+is8oM=;
-	h=Date:To:From:Subject:Message-Id; b=rKdvmMqpwMMMU7/RnlXLbwB7smsc2faMzY3/YrPE/hPyKHde1IbtXCauCPq0LOAy1DrNBxFsPfPNlS4tx7iHDvOz7xstYhpGde3SyEo3MjrKth/+EZb5x7i+VoAnWZKhmhzoapma/ER3XW6vjslI5um+TwcO3NbzWJbG+ihKK5c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pG78S77F; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769727296; c=relaxed/simple;
+	bh=xWdf1aiILvIWrepTgM1TBgOXhRkB6bqazFpzEE8UqmA=;
+	h=Date:To:From:Subject:Message-Id; b=W+CzDQ8NAG2g6efrM+EnfZlGMKde01j3sgK7iDnOJqIWxzmRy7/dAYU1XxiQn+smUNbFt3uswAFE2cNB15izS13phNfM4Mba3UUg6z4mPqWbOgIJppzjrHQIGduv0O1a83JmE5ZgpesHFOsDJYq0qV4JK5lwI9MyEYxaY5hlT7o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2oMtrC0w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pG78S77F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2136C16AAE;
-	Thu, 29 Jan 2026 22:14:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2oMtrC0w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BB6FC4CEF7;
+	Thu, 29 Jan 2026 22:54:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769724846;
-	bh=NfsAtB9wtqcKBBTYLhjmmSYNmst+XWK//p6Dz+is8oM=;
+	s=korg; t=1769727296;
+	bh=xWdf1aiILvIWrepTgM1TBgOXhRkB6bqazFpzEE8UqmA=;
 	h=Date:To:From:Subject:From;
-	b=pG78S77Fci4OJdO5rfJHz3ircsTRHYasd1BsBfFoFNQhhx4QgbJlJ5ICA6yLGV0eQ
-	 a4JhZ8v1kgwXlDvPvdU71g+/gMRXJ7/VvLb+ey9POt9NC/yu6MGoBm7xVk6dpSuyCe
-	 8msfVvdOXCF0QpYOg+h6Fh7AraIZSdyzBEsGv85E=
-Date: Thu, 29 Jan 2026 14:14:05 -0800
-To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,surenb@google.com,stable@vger.kernel.org,song@kernel.org,shakeel.butt@linux.dev,sdf@fomichev.me,martin.lau@linux.dev,kpsingh@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,eddyz87@gmail.com,daniel@iogearbox.net,ast@kernel.org,andrii@kernel.org,akpm@linux-foundation.org
+	b=2oMtrC0wA4CFDykF696cHMMAalU+D/Ii1FgvxykicS/nsTCvQs+MBKo5HIJWLqQUL
+	 sH3bUZD91G5LOPa6OL2Gu2RtdH5JOdsEfBcA+VA2JehQzIG3SG+3AWeBHX+TzUVgzh
+	 w9X7VxvBbTs5adIlL7Nlj80GfQOCyfZCDaEtrMoY=
+Date: Thu, 29 Jan 2026 14:54:55 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,lienze@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + procfs-avoid-fetching-build-id-while-holding-vma-lock.patch added to mm-nonmm-unstable branch
-Message-Id: <20260129221405.F2136C16AAE@smtp.kernel.org>
+Subject: + mm-damon-unify-address-range-representation-with-damon_addr_range.patch added to mm-new branch
+Message-Id: <20260129225456.1BB6FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: procfs: avoid fetching build ID while holding VMA lock
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     procfs-avoid-fetching-build-id-while-holding-vma-lock.patch
+     Subject: mm/damon: unify address range representation with damon_addr_range
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-unify-address-range-representation-with-damon_addr_range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/procfs-avoid-fetching-build-id-while-holding-vma-lock.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-unify-address-range-representation-with-damon_addr_range.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,241 +66,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrii Nakryiko <andrii@kernel.org>
-Subject: procfs: avoid fetching build ID while holding VMA lock
-Date: Thu, 29 Jan 2026 13:53:40 -0800
+From: Enze Li <lienze@kylinos.cn>
+Subject: mm/damon: unify address range representation with damon_addr_range
+Date: Thu, 29 Jan 2026 18:08:45 +0800
 
-Fix PROCMAP_QUERY to fetch optional build ID only after dropping mmap_lock
-or per-VMA lock, whichever was used to lock VMA under question, to avoid
-deadlock reported by syzbot:
+Currently, DAMON defines two identical structures for representing address
+ranges: damon_system_ram_region and damon_addr_range.  Both structures
+share the same semantic interpretation of a half-open interval [start,
+end), where the start address is inclusive and the end address is
+exclusive.
 
- -> #1 (&mm->mmap_lock){++++}-{4:4}:
-        __might_fault+0xed/0x170
-        _copy_to_iter+0x118/0x1720
-        copy_page_to_iter+0x12d/0x1e0
-        filemap_read+0x720/0x10a0
-        blkdev_read_iter+0x2b5/0x4e0
-        vfs_read+0x7f4/0xae0
-        ksys_read+0x12a/0x250
-        do_syscall_64+0xcb/0xf80
-        entry_SYSCALL_64_after_hwframe+0x77/0x7f
+This duplication adds unnecessary redundancy and increases maintenance
+overhead.  This patch replaces all uses of damon_system_ram_region with
+the more generic damon_addr_range structure, ensuring a unified type
+representation for address ranges within the DAMON subsystem.  The change
+simplifies the codebase, improves readability, and avoids potential
+inconsistencies in future modifications.
 
- -> #0 (&sb->s_type->i_mutex_key#8){++++}-{4:4}:
-        __lock_acquire+0x1509/0x26d0
-        lock_acquire+0x185/0x340
-        down_read+0x98/0x490
-        blkdev_read_iter+0x2a7/0x4e0
-        __kernel_read+0x39a/0xa90
-        freader_fetch+0x1d5/0xa80
-        __build_id_parse.isra.0+0xea/0x6a0
-        do_procmap_query+0xd75/0x1050
-        procfs_procmap_ioctl+0x7a/0xb0
-        __x64_sys_ioctl+0x18e/0x210
-        do_syscall_64+0xcb/0xf80
-        entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
- other info that might help us debug this:
-
-  Possible unsafe locking scenario:
-
-        CPU0                    CPU1
-        ----                    ----
-   rlock(&mm->mmap_lock);
-                                lock(&sb->s_type->i_mutex_key#8);
-                                lock(&mm->mmap_lock);
-   rlock(&sb->s_type->i_mutex_key#8);
-
-  *** DEADLOCK ***
-
-To make this safe, we need to grab file refcount while VMA is still locked, but
-other than that everything is pretty straightforward. Internal build_id_parse()
-API assumes VMA is passed, but it only needs the underlying file reference, so
-just add another variant build_id_parse_file() that expects file passed
-directly.
-
-Link: https://lkml.kernel.org/r/20260129215340.3742283-1-andrii@kernel.org
-Fixes: ed5d583a88a9 ("fs/procfs: implement efficient VMA querying API for /proc/<pid>/maps")
-Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
-Reported-by: syzbot+4e70c8e0a2017b432f7a@syzkaller.appspotmail.com
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Tested-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Hao Luo <haoluo@google.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Song Liu <song@kernel.org>
-Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Yonghong Song <yonghong.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260129100845.281734-1-lienze@kylinos.cn
+Signed-off-by: Enze Li <lienze@kylinos.cn>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c      |   42 ++++++++++++++++++++++++--------------
- include/linux/buildid.h |    3 ++
- lib/buildid.c           |   34 +++++++++++++++++++++++-------
- 3 files changed, 56 insertions(+), 23 deletions(-)
+ mm/damon/core.c |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
---- a/fs/proc/task_mmu.c~procfs-avoid-fetching-build-id-while-holding-vma-lock
-+++ a/fs/proc/task_mmu.c
-@@ -656,6 +656,7 @@ static int do_procmap_query(struct mm_st
- 	struct proc_maps_locking_ctx lock_ctx = { .mm = mm };
- 	struct procmap_query karg;
- 	struct vm_area_struct *vma;
-+	struct file *vm_file = NULL;
- 	const char *name = NULL;
- 	char build_id_buf[BUILD_ID_SIZE_MAX], *name_buf = NULL;
- 	__u64 usize;
-@@ -727,21 +728,6 @@ static int do_procmap_query(struct mm_st
- 		karg.inode = 0;
- 	}
- 
--	if (karg.build_id_size) {
--		__u32 build_id_sz;
--
--		err = build_id_parse(vma, build_id_buf, &build_id_sz);
--		if (err) {
--			karg.build_id_size = 0;
--		} else {
--			if (karg.build_id_size < build_id_sz) {
--				err = -ENAMETOOLONG;
--				goto out;
--			}
--			karg.build_id_size = build_id_sz;
--		}
--	}
--
- 	if (karg.vma_name_size) {
- 		size_t name_buf_sz = min_t(size_t, PATH_MAX, karg.vma_name_size);
- 		const struct path *path;
-@@ -775,10 +761,34 @@ static int do_procmap_query(struct mm_st
- 		karg.vma_name_size = name_sz;
- 	}
- 
-+	if (karg.build_id_size && vma->vm_file)
-+		vm_file = get_file(vma->vm_file);
-+
- 	/* unlock vma or mmap_lock, and put mm_struct before copying data to user */
- 	query_vma_teardown(&lock_ctx);
- 	mmput(mm);
- 
-+	if (karg.build_id_size) {
-+		__u32 build_id_sz;
-+
-+		if (vm_file)
-+			err = build_id_parse_file(vm_file, build_id_buf, &build_id_sz);
-+		else
-+			err = -ENOENT;
-+		if (err) {
-+			karg.build_id_size = 0;
-+		} else {
-+			if (karg.build_id_size < build_id_sz) {
-+				err = -ENAMETOOLONG;
-+				goto out;
-+			}
-+			karg.build_id_size = build_id_sz;
-+		}
-+	}
-+
-+	if (vm_file)
-+		fput(vm_file);
-+
- 	if (karg.vma_name_size && copy_to_user(u64_to_user_ptr(karg.vma_name_addr),
- 					       name, karg.vma_name_size)) {
- 		kfree(name_buf);
-@@ -798,6 +808,8 @@ static int do_procmap_query(struct mm_st
- out:
- 	query_vma_teardown(&lock_ctx);
- 	mmput(mm);
-+	if (vm_file)
-+		fput(vm_file);
- 	kfree(name_buf);
- 	return err;
- }
---- a/include/linux/buildid.h~procfs-avoid-fetching-build-id-while-holding-vma-lock
-+++ a/include/linux/buildid.h
-@@ -7,7 +7,10 @@
- #define BUILD_ID_SIZE_MAX 20
- 
- struct vm_area_struct;
-+struct file;
-+
- int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size);
-+int build_id_parse_file(struct file *file, unsigned char *build_id, __u32 *size);
- int build_id_parse_nofault(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size);
- int build_id_parse_buf(const void *buf, unsigned char *build_id, u32 buf_size);
- 
---- a/lib/buildid.c~procfs-avoid-fetching-build-id-while-holding-vma-lock
-+++ a/lib/buildid.c
-@@ -279,7 +279,7 @@ static int get_build_id_64(struct freade
- /* enough for Elf64_Ehdr, Elf64_Phdr, and all the smaller requests */
- #define MAX_FREADER_BUF_SZ 64
- 
--static int __build_id_parse(struct vm_area_struct *vma, unsigned char *build_id,
-+static int __build_id_parse(struct file *file, unsigned char *build_id,
- 			    __u32 *size, bool may_fault)
- {
- 	const Elf32_Ehdr *ehdr;
-@@ -287,11 +287,7 @@ static int __build_id_parse(struct vm_ar
- 	char buf[MAX_FREADER_BUF_SZ];
- 	int ret;
- 
--	/* only works for page backed storage  */
--	if (!vma->vm_file)
--		return -EINVAL;
--
--	freader_init_from_file(&r, buf, sizeof(buf), vma->vm_file, may_fault);
-+	freader_init_from_file(&r, buf, sizeof(buf), file, may_fault);
- 
- 	/* fetch first 18 bytes of ELF header for checks */
- 	ehdr = freader_fetch(&r, 0, offsetofend(Elf32_Ehdr, e_type));
-@@ -332,7 +328,10 @@ out:
-  */
- int build_id_parse_nofault(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size)
- {
--	return __build_id_parse(vma, build_id, size, false /* !may_fault */);
-+	if (!vma->vm_file)
-+		return -EINVAL;
-+
-+	return __build_id_parse(vma->vm_file, build_id, size, false /* !may_fault */);
+--- a/mm/damon/core.c~mm-damon-unify-address-range-representation-with-damon_addr_range
++++ a/mm/damon/core.c
+@@ -2856,20 +2856,9 @@ done:
+ 	return 0;
  }
  
- /*
-@@ -348,7 +347,26 @@ int build_id_parse_nofault(struct vm_are
-  */
- int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size)
+-/*
+- * struct damon_system_ram_region - System RAM resource address region of
+- *				    [@start, @end).
+- * @start:	Start address of the region (inclusive).
+- * @end:	End address of the region (exclusive).
+- */
+-struct damon_system_ram_region {
+-	unsigned long start;
+-	unsigned long end;
+-};
+-
+ static int walk_system_ram(struct resource *res, void *arg)
  {
--	return __build_id_parse(vma, build_id, size, true /* may_fault */);
-+	if (!vma->vm_file)
-+		return -EINVAL;
-+
-+	return __build_id_parse(vma->vm_file, build_id, size, true /* may_fault */);
-+}
-+
-+/**
-+ * Parse build ID of ELF file
-+ * @file:      file object
-+ * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
-+ * @size:     returns actual build id size in case of success
-+ *
-+ * Assumes faultable context and can cause page faults to bring in file data
-+ * into page cache.
-+ *
-+ * Return: 0 on success; negative error, otherwise
-+ */
-+int build_id_parse_file(struct file *file, unsigned char *build_id, __u32 *size)
-+{
-+	return __build_id_parse(file, build_id, size, true /* may_fault */);
- }
+-	struct damon_system_ram_region *a = arg;
++	struct damon_addr_range *a = arg;
  
- /**
+ 	if (a->end - a->start < resource_size(res)) {
+ 		a->start = res->start;
+@@ -2886,7 +2875,7 @@ static bool damon_find_biggest_system_ra
+ 						unsigned long *end)
+ 
+ {
+-	struct damon_system_ram_region arg = {};
++	struct damon_addr_range arg = {};
+ 
+ 	walk_system_ram_res(0, ULONG_MAX, &arg, walk_system_ram);
+ 	if (arg.end <= arg.start)
 _
 
-Patches currently in -mm which might be from andrii@kernel.org are
+Patches currently in -mm which might be from lienze@kylinos.cn are
 
-procfs-avoid-fetching-build-id-while-holding-vma-lock.patch
+mm-damon-unify-address-range-representation-with-damon_addr_range.patch
 
