@@ -1,134 +1,176 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24CDF3542FC;
-	Thu, 29 Jan 2026 17:45:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86F913090C2
+	for <mm-commits@vger.kernel.org>; Thu, 29 Jan 2026 18:51:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769708714; cv=none; b=CHF4EvZl7imJ8311C2oiIF5RNqP7KlXRW0cnRvczJZg7laS/T1a81+5L2c8v+FsDNIda0tyqgY401pWi3q1pZCBKvCkZixMMKNT5Jp8RJJwMohJZOUhFkgKviQ6jZfiRN7tSJYFaVyYdvZZw/b7yQQJl4YIc7NvwL+qRNWVa8w8=
+	t=1769712673; cv=none; b=Dm3ItlYDBh8jL7IvQc2oSjQ/aaYzO+KEldHviUzGkBRepEM+NO5hB+LQ7O0xZnMDpnnonUOq/AjLeKagMYudUQdWqVoLS7DYW4fCS0ElLlJq/7L8vFFk+SZ6ImTHAhRuU6NRXdWxnWGSlncPC2nLEnnOrfmecgpSwCQupe/jiyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769708714; c=relaxed/simple;
-	bh=/6Bij3SsXTuU2/orANe8p9+tCAYwwRciCDxFl8HVqdk=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=khFau7KFjrq5IkcmuVOSblDjthBYTWL7i0HmlbAmYNmpfSAFSzhwfKxsEFiSJ5hZ4rQ5Atzijai3izrhOKv+Bb2VwDjVYIA6F6WkbF6pKBfk6yspyBAcjsrEa0rmCRk6fVcewOeqfnZPPduwLd7cDQei/Zf5VI9ej7cm6j+/7Do=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0akjmG9r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769712673; c=relaxed/simple;
+	bh=WrKHsOHXL2pc/VdAXi6x8XRC5pnKmXgwij7934caL9c=;
+	h=Date:To:From:Subject:Message-Id; b=ZeLAgZkwTQomhmKV1J4+EjyECZugn8P+v2y5rH4vrsQcGbGYw2sBoERl2oZkSW3q+7j08sjsx1NK+vKFv4NvFAdWRlaHd8/xl4QFdCjit0fxRCyOy6vdWn/vJgFFx+P4HEavkq2Z0PFo5FQ1KuHE6JJLm8ZCPg7XQiRZZ5ZlToY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KUrsxQ3K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0akjmG9r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A625AC4CEF7;
-	Thu, 29 Jan 2026 17:45:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KUrsxQ3K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 005CEC4CEF7;
+	Thu, 29 Jan 2026 18:51:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769708713;
-	bh=/6Bij3SsXTuU2/orANe8p9+tCAYwwRciCDxFl8HVqdk=;
-	h=Date:From:To:Cc:Subject:From;
-	b=0akjmG9rb9fhX7DXzSBU9V/DaI4hjKXoHmSjI3SM1rSTiRMEyX5S4IKy9Fhffeds+
-	 IVWBA8nGrlSXZeN1bv4HsvZzaPpGnfzRaod8fMPivarkUNE0RIoahDVpo37Gg9KL/f
-	 6K0+FwY4CYKBLQj+w0UG/bWaqtSiasUp/ye751YM=
-Date: Thu, 29 Jan 2026 09:45:13 -0800
+	s=korg; t=1769712673;
+	bh=WrKHsOHXL2pc/VdAXi6x8XRC5pnKmXgwij7934caL9c=;
+	h=Date:To:From:Subject:From;
+	b=KUrsxQ3K+KZoa1kym4uDWnhS3VX2i1J5IMmNOYcpfKjyHZP9FSlP6xgqodBPh/9uP
+	 XnPoKtZQn9IpHpDk5n7PyFq77gV5VpytwiWHiw1fRpEB39Rb1QKbVsMjIHhoOgs8N9
+	 5zuB08EUw/vWCv2mj4CkDwV2nXG7iyMq4MQUnnvI=
+Date: Thu, 29 Jan 2026 10:51:12 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,usamaarif642@gmail.com,songliubraving@fb.com,ryan.roberts@arm.com,riel@surriel.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linuxfoundation.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- mm-commits@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 6.19-rc8
-Message-Id: <20260129094513.621310717801e65dce692162@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-khugepaged-fix-nr_file_pages-accounting-in-collapse_file.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260129185113.005CEC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please pull this batch of MM and non-MM hotfixes, thanks.
+The patch titled
+     Subject: mm: khugepaged: fix NR_FILE_PAGES accounting in collapse_file()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-khugepaged-fix-nr_file_pages-accounting-in-collapse_file.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-nr_file_pages-accounting-in-collapse_file.patch
 
-The following changes since commit 6c790212c588fddeb0d852f2790840753bb604b1:
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  Merge tag 'devicetree-fixes-for-6.19-3' of git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux (2026-01-20 15:01:15 -0800)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-are available in the Git repository at:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-01-29-09-41
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
-for you to fetch changes up to bd58782995a2e6a07fd07255f3cc319f40b131c9:
+------------------------------------------------------
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: mm: khugepaged: fix NR_FILE_PAGES accounting in collapse_file()
+Date: Thu, 29 Jan 2026 10:40:54 -0800
 
-  vmcoreinfo: make hwerr_data visible for debugging (2026-01-26 19:03:49 -0800)
+In META's fleet, we are seeing high level cgroups with zero file memcg
+stat but their descendants have non-zero file stat.  This should not be
+possible.  On further inspection by looking at kernel data structures
+though drgn, it was revealed that the high level cgroups have negative
+file stat which was aggregated from their children.
 
-----------------------------------------------------------------
-16 hotfixes.  9 are cc:stable, 12 are for MM.
+Another interesting point was that this specific issue start happening
+more often as we started deploying thp-always more widely which indicates
+some correlation between file memory and THPs and indeed it was found that
+file memcg stat accounting is buggy in the collapse code path from the
+start.
 
-- There's a 3 patch series from Pratyush Yadav which fixes a few things
-  in the new-in-6.19 LUO memfd code.
+When collapse_file() replaces small folios with a large THP, it fails to
+properly update the NR_FILE_PAGES memcg stat for both the old folios being
+freed and the new THP being added.  It assumes the old and new folios
+belong to the same cgroup.  However this assumption breaks in couple of
+scenarios:
 
-- Plus the usual shower of singletons - please see the changelogs for
-  details.
+1. Binary (executable) package downloader running in a different cgroup
+   than the actual job executing the downloaded package.
 
-----------------------------------------------------------------
-Andrew Morton (1):
-      kho: kho_preserve_vmalloc(): don't return 0 when ENOMEM
+2. File shared and mapped by processes running in different cgroups. One
+   process read-in the file and the second process either through
+   madvise(COLLAPSE) or khugepaged on behalf of second process
+   collapsing the file.
 
-Andrey Ryabinin (1):
-      mm/kasan: fix KASAN poisoning in vrealloc()
+So, the current code has two bugs:
 
-Breno Leitao (1):
-      vmcoreinfo: make hwerr_data visible for debugging
+1. For non-shmem files, NR_FILE_PAGES is never incremented for the new
+   THP because nr_none is always 0 for non-shmem, and the stat update is
+   inside the "if (nr_none)" block.
 
-Jan Kara (1):
-      flex_proportions: make fprop_new_period() hardirq safe
+2. When freeing old folios, NR_FILE_PAGES is never decremented because
+   folio->mapping is set to NULL directly without calling
+   filemap_unaccount_folio().
 
-Jane Chu (2):
-      mm/memory-failure: fix missing ->mf_stats count in hugetlb poison
-      mm/memory-failure: teach kill_accessing_process to accept hugetlb tail page pfn
+These bugs cause incorrect per-memcg accounting when the process
+triggering the collapse (MADV_COLLAPSE or khugepaged) belongs to a
+different memcg than the process that originally faulted in the pages:
 
-Kairui Song (1):
-      mm/shmem, swap: fix race of truncate and swap entry split
+  - Process A (memcg X) reads file, creating 512 small page cache folios
+    charged to memcg X (NR_FILE_PAGES += 512 for memcg X)
 
-Matthew Brost (1):
-      mm/zone_device: reinitialize large zone device private folios
+  - Process B (memcg Y) triggers collapse via MADV_COLLAPSE or khugepaged
+    scans B's mm. The new THP is charged to memcg Y.
 
-Pimyn Girgis (1):
-      mm/kfence: randomize the freelist on initialization
+  - Old folios freed: NR_FILE_PAGES not decremented (bug)
+    New THP added: NR_FILE_PAGES not incremented (bug)
 
-Pratyush Yadav (Google) (3):
-      memfd: export alloc_file()
-      mm: memfd_luo: use memfd_alloc_file() instead of shmem_file_setup()
-      mm: memfd_luo: restore and free memfd_luo_ser on failure
+  - Later, THP removed from page cache: NR_FILE_PAGES -= 512 for memcg Y
 
-Ran Xiaokai (1):
-      kho: init alloc tags when restoring pages from reserved memory
+Result: memcg X has +512 inflated pages, memcg Y has -512 (negative!)
 
-Viacheslav Bocharov (1):
-      mailmap: add entry for Viacheslav Bocharov
+Fix this by:
+1. Always incrementing NR_FILE_PAGES by HPAGE_PMD_NR for the new THP
+2. Decrementing NR_FILE_PAGES for each old folio before clearing its
+   mapping pointer
 
-Waiman Long (1):
-      mm/mm_init: don't cond_resched() in deferred_init_memmap_chunk() if called from deferred_grow_zone()
+For shmem with holes (nr_none > 0), the net change is still +nr_none since
+we decrement (HPAGE_PMD_NR - nr_none) old pages and increment HPAGE_PMD_NR
+new pages.
 
-robin.kuo (1):
-      mm, swap: restore swap_space attr aviod kernel panic
+Link: https://lkml.kernel.org/r/20260129184054.910897-1-shakeel.butt@linux.dev
+Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
- .mailmap                                 |  1 +
- arch/powerpc/kvm/book3s_hv_uvmem.c       |  2 +-
- drivers/gpu/drm/amd/amdkfd/kfd_migrate.c |  2 +-
- drivers/gpu/drm/drm_pagemap.c            |  2 +-
- drivers/gpu/drm/nouveau/nouveau_dmem.c   |  2 +-
- include/linux/kasan.h                    | 14 +++++
- include/linux/memfd.h                    |  6 ++
- include/linux/memremap.h                 |  9 ++-
- kernel/liveupdate/kexec_handover.c       | 12 +++-
- kernel/vmcore_info.c                     |  6 +-
- lib/flex_proportions.c                   |  5 +-
- lib/test_hmm.c                           |  4 +-
- mm/kasan/common.c                        | 21 +++++++
- mm/kfence/core.c                         | 23 ++++++--
- mm/memfd.c                               |  4 +-
- mm/memfd_luo.c                           | 10 ++--
- mm/memory-failure.c                      | 99 +++++++++++++++++++-------------
- mm/memremap.c                            | 35 ++++++++++-
- mm/mm_init.c                             | 12 ++--
- mm/shmem.c                               | 45 +++++++++++----
- mm/swap.h                                |  2 +-
- mm/swap_state.c                          |  3 +-
- mm/vmalloc.c                             |  7 +--
- 23 files changed, 239 insertions(+), 87 deletions(-)
+ mm/khugepaged.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+--- a/mm/khugepaged.c~mm-khugepaged-fix-nr_file_pages-accounting-in-collapse_file
++++ a/mm/khugepaged.c
+@@ -2199,8 +2199,8 @@ immap_locked:
+ 	else
+ 		lruvec_stat_mod_folio(new_folio, NR_FILE_THPS, HPAGE_PMD_NR);
+ 
++	lruvec_stat_mod_folio(new_folio, NR_FILE_PAGES, HPAGE_PMD_NR);
+ 	if (nr_none) {
+-		lruvec_stat_mod_folio(new_folio, NR_FILE_PAGES, nr_none);
+ 		/* nr_none is always 0 for non-shmem. */
+ 		lruvec_stat_mod_folio(new_folio, NR_SHMEM, nr_none);
+ 	}
+@@ -2237,6 +2237,8 @@ immap_locked:
+ 	 */
+ 	list_for_each_entry_safe(folio, tmp, &pagelist, lru) {
+ 		list_del(&folio->lru);
++		lruvec_stat_mod_folio(folio, NR_FILE_PAGES,
++				      -folio_nr_pages(folio));
+ 		folio->mapping = NULL;
+ 		folio_clear_active(folio);
+ 		folio_clear_unevictable(folio);
+_
+
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
+
+mm-khugepaged-fix-nr_file_pages-accounting-in-collapse_file.patch
 
