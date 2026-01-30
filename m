@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AA382BE655
-	for <mm-commits@vger.kernel.org>; Fri, 30 Jan 2026 07:01:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F3223644D1
+	for <mm-commits@vger.kernel.org>; Fri, 30 Jan 2026 17:35:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769756467; cv=none; b=pSqHpX2lweT6BUJq8gkvjjo8r4IdIpz8bnDZg+VQpigdxy1sZlU8eBVIMIOsIYxNLz+wgxeqTW0fKXNeyIa8Y6e2/Y4Erk+hlVZhw2UJa5UYtJbsQbCrVH7eFEfjUZn09oJXZF/kH5WXWiWEZfgYWT6Bf1JFvXR+8fqruuIxgW8=
+	t=1769794506; cv=none; b=dm3naHPJ/T8N8T2pOac5M7dMIm7dpAAFbO3pKi7GmIb3mdfxAFGRY8UfVo33HVx8S3RtZmj6A+BgeLzo8qI4m+Y3SqMWA43XMt1ATjyLKrE9FE4xFkQN3aemF2F4H6GVVGNOxFP0ftq/p7A4v+Ug75inpqJvAudF4mVEhUyEaoo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769756467; c=relaxed/simple;
-	bh=w103rtJlJMlXs0EilV5BSB4Ii4iy2qSzEoIZkMmfbzk=;
-	h=Date:To:From:Subject:Message-Id; b=lgyqxvqWqb3md0DPneO+IOWbPuMS6PKlBBfT5g/eSKlDycfv8q3tgDnrypNVaYEQOU1F4uD9i8+7ZZErUSPPWiLvaSAkgX/y1xDiZpLzu8MMa9q2Wu9uofEoCcuF4FMmaUty2DA9vbqIDs1267QU8aEbE/5K7odTZ/DWLzQ9Yj0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Isgnp8qG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769794506; c=relaxed/simple;
+	bh=yHyM4rM0Gea1Oo+oX3q3Z0ObBNFadqwUjn6a/fxa9LQ=;
+	h=Date:To:From:Subject:Message-Id; b=P0XtVwpPNbNd5d9pPeXZntRxMcp4Y9UUmNSyQDqxJG+8YL3dLMOFBUi8JXeYfiLDf8kQvFCiw+aY9ocXLxu/kCR9zpAJpJ5Bvq394iKt9U2m6qHblnJAmvplBHUUutI5MZ/bIcsG3ek7nJUGtX5132VA4OV0CTpcQmld5h2MXT8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rWyJSL8n; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Isgnp8qG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9919C4CEF7;
-	Fri, 30 Jan 2026 07:01:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rWyJSL8n"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7BC3C116C6;
+	Fri, 30 Jan 2026 17:35:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769756466;
-	bh=w103rtJlJMlXs0EilV5BSB4Ii4iy2qSzEoIZkMmfbzk=;
+	s=korg; t=1769794505;
+	bh=yHyM4rM0Gea1Oo+oX3q3Z0ObBNFadqwUjn6a/fxa9LQ=;
 	h=Date:To:From:Subject:From;
-	b=Isgnp8qG7LFH+T+ipwahAGRAJS+dzUOrMHHNByMglne4EG7475ei+u6zFXPUbdA/f
-	 qDX7HTdGJD7la1aZsGPb97ZFdX392EPBHrf3L7Aa0sSQk3Uox6+NuBgnhq0Y8mMW5a
-	 tefJsATtq0gGWYPLQsVNhb36IXnnMJFcDSZLfDLQ=
-Date: Thu, 29 Jan 2026 23:01:05 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,hu.shengming@zte.com.cn,akpm@linux-foundation.org
+	b=rWyJSL8nVjZ+klWnKQzZjAskMFg3FmLX9oBOXIvV2VlL+HDQFwYmedQTRKmTTGUik
+	 Qh5a6DF5IaC12b5D6esHmTmYpsBCNqperXig8fDvWMjvptzLV877TFxnV1woj7xLr7
+	 Lakcot1vLI9ddxHd0VQNjA1tw2AKYFiS22lppP2g=
+Date: Fri, 30 Jan 2026 09:35:05 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,lirongqing@baidu.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-avoid-overcounting-bulk-alloc-in-watermark-check.patch added to mm-new branch
-Message-Id: <20260130070106.B9919C4CEF7@smtp.kernel.org>
+Subject: + mm-damon-remove-__read_mostly-from-memory_idle_ms_percentiles.patch added to mm-new branch
+Message-Id: <20260130173505.A7BC3C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: avoid overcounting bulk alloc in watermark check
+     Subject: mm/damon/stat: remove __read_mostly from memory_idle_ms_percentiles
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-avoid-overcounting-bulk-alloc-in-watermark-check.patch
+     mm-damon-remove-__read_mostly-from-memory_idle_ms_percentiles.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-avoid-overcounting-bulk-alloc-in-watermark-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-remove-__read_mostly-from-memory_idle_ms_percentiles.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,47 +66,41 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shengming Hu <hu.shengming@zte.com.cn>
-Subject: mm/page_alloc: avoid overcounting bulk alloc in watermark check
-Date: Thu, 29 Jan 2026 22:38:14 +0800
+From: Li RongQing <lirongqing@baidu.com>
+Subject: mm/damon/stat: remove __read_mostly from memory_idle_ms_percentiles
+Date: Fri, 30 Jan 2026 03:56:03 -0500
 
-alloc_pages_bulk_noprof() only fills NULL slots and already tracks how
-many entries are pre-populated via nr_populated.
+The 'memory_idle_ms_percentiles' array in DAMON_STAT is updated frequently
+by the kernel to reflect the latest idle time statistics.  Marking it as
+'__read_mostly' is inappropriate for data that is regularly written to, as
+it can lead to cache pollution in the read-mostly section.
 
-The fast watermark check was adding nr_pages unconditionally, which can
-overestimate the demand.  Use (nr_pages - nr_populated) instead, as an
-upper bound on the remaining pages this call can still allocate without
-scanning the whole array.
+Remove the '__read_mostly' annotation to accurately reflect the
+variable's usage pattern.
 
-Link: https://lkml.kernel.org/r/tencent_F36C5B5FB4DED98C79D9BDEE1210CD338C06@qq.com
-Signed-off-by: Shengming Hu <hu.shengming@zte.com.cn>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20260130085603.1814-1-lirongqing@baidu.com
+Signed-off-by: Li RongQing <lirongqing@baidu.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ mm/damon/stat.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-avoid-overcounting-bulk-alloc-in-watermark-check
-+++ a/mm/page_alloc.c
-@@ -5125,7 +5125,7 @@ unsigned long alloc_pages_bulk_noprof(gf
+--- a/mm/damon/stat.c~mm-damon-remove-__read_mostly-from-memory_idle_ms_percentiles
++++ a/mm/damon/stat.c
+@@ -34,7 +34,7 @@ module_param(estimated_memory_bandwidth,
+ MODULE_PARM_DESC(estimated_memory_bandwidth,
+ 		"Estimated memory bandwidth usage in bytes per second");
  
- 		cond_accept_memory(zone, 0, alloc_flags);
- retry_this_zone:
--		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK) + nr_pages;
-+		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK) + nr_pages - nr_populated;
- 		if (zone_watermark_fast(zone, 0,  mark,
- 				zonelist_zone_idx(ac.preferred_zoneref),
- 				alloc_flags, gfp)) {
+-static long memory_idle_ms_percentiles[101] __read_mostly = {0,};
++static long memory_idle_ms_percentiles[101] = {0,};
+ module_param_array(memory_idle_ms_percentiles, long, NULL, 0400);
+ MODULE_PARM_DESC(memory_idle_ms_percentiles,
+ 		"Memory idle time percentiles in milliseconds");
 _
 
-Patches currently in -mm which might be from hu.shengming@zte.com.cn are
+Patches currently in -mm which might be from lirongqing@baidu.com are
 
-mm-page_alloc-avoid-overcounting-bulk-alloc-in-watermark-check.patch
-watchdog-softlockup-fix-sample-ring-index-wrap-in-need_counting_irqs.patch
+mm-damon-remove-__read_mostly-from-memory_idle_ms_percentiles.patch
 
