@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53645356A07
-	for <mm-commits@vger.kernel.org>; Fri, 30 Jan 2026 17:42:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB6F234679C
+	for <mm-commits@vger.kernel.org>; Fri, 30 Jan 2026 20:43:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769794963; cv=none; b=qFohx2AuLFTEmV63564YBMIgBJ/a42dtJ0tCf+xES9FDaxY84BPSMTnkVTocW4WajUu+lNqtJOqaEvtgYiInHzYgwT3TtOyctgc/we5T4abEBcGd6wlmwiR5yc7thhY9W9+w1FEkgEd1OKRswgZ+iCKKT82sch+kqP1YNEaMdRU=
+	t=1769805789; cv=none; b=LFD0N64MgNg+XJ0KVgEqRgwaqH3Npqfv/DQLCeRgWXVntH3+covM5w3+bWIgUQM/BS/HC5NyHUf1wRVRajSH/At8/vuylvWFWPgjvyB1DzqVRRsZz4xEJIucbwMj9IP9RWntvr/lYl1t1ELXa4A4fdJ576nrd5C7jxVG8b+UiDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769794963; c=relaxed/simple;
-	bh=QM1XlIQceJ6qW7t2ju203D1N4HxHGDT8PTdyf9Z7NAQ=;
-	h=Date:To:From:Subject:Message-Id; b=XyO8qThl7X58dHrpGx6WEnkfvzpJj3U74Fq2PSN5blSSeAqDKsvGT18obXYjyhsbzflfJs7OKWZRsd2xFuU+vjhyi8uetNOHMShcD5GdQU5hooHrhH7zJCXT9f6eGWfTk89hBslvIxBcacDO2wVYwopopV1Lf6xw89uhzdplWws=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dkG5NKSb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769805789; c=relaxed/simple;
+	bh=5TUdVANuy5Pu1yohHm6CwfUVAb8CP55Zi3b5q8IqbsI=;
+	h=Date:To:From:Subject:Message-Id; b=hnmkGXRV38XXCqWs+689WNzqusIZHim4h4rQsTHWAhnyU0isaopjBusC2/ZwKC63GyXUvnpS8+EwEkN1SPbp3j3TCwmYrmKqDCE7FT6P+qScsEtuV6/pentFCq8pemmWwxruiEhyRB6Rs5UHHTrR5hf4I/ktFVmRio5GOCoMjjA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DpF8YW0u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dkG5NKSb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA010C4CEF7;
-	Fri, 30 Jan 2026 17:42:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DpF8YW0u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65377C4CEF7;
+	Fri, 30 Jan 2026 20:43:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769794962;
-	bh=QM1XlIQceJ6qW7t2ju203D1N4HxHGDT8PTdyf9Z7NAQ=;
+	s=korg; t=1769805789;
+	bh=5TUdVANuy5Pu1yohHm6CwfUVAb8CP55Zi3b5q8IqbsI=;
 	h=Date:To:From:Subject:From;
-	b=dkG5NKSbFG5bp8uPuSBubob5LEnJB6RFrDRVNZkv4MxtGi6WdByBiUA3Cf2AMlZT5
-	 DOMmQOD6lyUrVy6+RGwPo6KCslTGxhryNLnKXJNLTngJSPUtU24Ism4myKvCA3WVFw
-	 KVhGrGJSsFm+djfV/zvymgnZIRB4Tm0ySufOld44=
-Date: Fri, 30 Jan 2026 09:42:42 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,rdunlap@infradead.org,ptyadav@amazon.de,pawan.kumar.gupta@linux.intel.com,pasha.tatashin@soleen.com,mingo@kernel.org,lirongqing@baidu.com,kees@kernel.org,fvdl@google.com,corbet@lwn.net,bp@alien8.de,arnd@arndb.de,me@linux.beauty,akpm@linux-foundation.org
+	b=DpF8YW0u4GDiL88riJfnTP4NzNe+DWXTCFzP/rvAMwSSRS8L7ts4bPnJVRZQerlLW
+	 Mk+os8lJoTZ9whah9xjDAYI8NwkHiMygbtgnCm21hN8MHV1EY/LIz3wmKWARLFF0aX
+	 I48trtOooYzXgTE8XT0R9RnfQUabLSIVny9kEKag=
+Date: Fri, 30 Jan 2026 12:43:08 -0800
+To: mm-commits@vger.kernel.org,ast@kernel.org,andrii@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-document-liveupdate-cmdline-parameter.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260130174242.CA010C4CEF7@smtp.kernel.org>
+Subject: + procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260130204309.65377C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation: document liveupdate cmdline parameter
+     Subject: procfs-avoid-fetching-build-id-while-holding-vma-lock-fix
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     documentation-document-liveupdate-cmdline-parameter.patch
+     procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-document-liveupdate-cmdline-parameter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,52 +58,64 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Li Chen <me@linux.beauty>
-Subject: Documentation: document liveupdate cmdline parameter
-Date: Fri, 30 Jan 2026 19:20:33 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: procfs-avoid-fetching-build-id-while-holding-vma-lock-fix
+Date: Fri Jan 30 12:39:13 PM PST 2026
 
-liveupdate is used to enable Live Update Orchestrator (LUO) early during
-boot.  Add it to kernel-parameters.txt so users can discover and use it.
+fix up kerneldoc
 
-Link: https://lkml.kernel.org/r/20260130112036.359806-1-me@linux.beauty
-Signed-off-by: Li Chen <me@linux.beauty>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Li RongQing <lirongqing@baidu.com>
-Cc: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Pratyush Yadav <ptyadav@amazon.de>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrii Nakryiko <andrii@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    5 +++++
- 1 file changed, 5 insertions(+)
+ lib/buildid.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~documentation-document-liveupdate-cmdline-parameter
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -3472,6 +3472,11 @@ Kernel parameters
- 			If there are multiple matching configurations changing
- 			the same attribute, the last one is used.
+--- a/lib/buildid.c~procfs-avoid-fetching-build-id-while-holding-vma-lock-fix
++++ a/lib/buildid.c
+@@ -315,8 +315,8 @@ out:
+ 	return ret;
+ }
  
-+	liveupdate=	[KNL,EARLY]
-+			Format: <bool>
-+			Enable Live Update Orchestrator (LUO).
-+			Default: off.
-+
- 	load_ramdisk=	[RAM] [Deprecated]
+-/*
+- * Parse build ID of ELF file mapped to vma
++/**
++ * build_id_parse_nofault() - Parse build ID of ELF file mapped to vma
+  * @vma:      vma object
+  * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
+  * @size:     returns actual build id size in case of success
+@@ -334,8 +334,8 @@ int build_id_parse_nofault(struct vm_are
+ 	return __build_id_parse(vma->vm_file, build_id, size, false /* !may_fault */);
+ }
  
- 	lockd.nlm_grace_period=P  [NFS] Assign grace period.
+-/*
+- * Parse build ID of ELF file mapped to VMA
++/**
++ * build_id_parse() - Parse build ID of ELF file mapped to VMA
+  * @vma:      vma object
+  * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
+  * @size:     returns actual build id size in case of success
+@@ -354,7 +354,7 @@ int build_id_parse(struct vm_area_struct
+ }
+ 
+ /**
+- * Parse build ID of ELF file
++ * build_id_parse_file() - Parse build ID of ELF file
+  * @file:      file object
+  * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
+  * @size:     returns actual build id size in case of success
 _
 
-Patches currently in -mm which might be from me@linux.beauty are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-documentation-document-liveupdate-cmdline-parameter.patch
-kexec-derive-purgatory-entry-from-symbol.patch
-kexec-derive-purgatory-entry-from-symbol-v2.patch
+procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch
+mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
+mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix.patch
+sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
+mm-vma-document-possible-vma-vm_refcnt-values-and-reference-comment-fix.patch
+mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix.patch
+mm-pagewalk-use-min-to-simplify-the-code-fix.patch
+mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch
+mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
 
