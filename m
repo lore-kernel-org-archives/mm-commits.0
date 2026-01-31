@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91B0B38A9A2
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9867938A9A2
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898325; cv=none; b=aomHeQgjY3GBeuWhP8KNrrztUTXHZc1cidMktpAkDRK0eqTg01iqCbcL5LyOFhPUU4nU6oCIgIl5smzn/T87S4QHqXTQO7q9LfEo3WJcdOECVvDMOKJbUydtgp2wUO7Hg1hxDbF0cBv3+/QxkFBuWLlxYzA9VKC57V1Iy2tzcS8=
+	t=1769898326; cv=none; b=l/PmPZJks0cRupZcaQPCyPC4GxKHOJWPZY2N2MeMCA7iLUUI3TN41WZ33HwN4MROLnUmINwwaRx4bCpG1+JJQ9tdjRzd5Zx47Or5+qUqGrxPWBahUBu+K67Mv0syTS1ZmhrQTtQttnYjGwrIktBP2rxcKHHaUynDmPhy/Z0cOkw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898325; c=relaxed/simple;
-	bh=ZcRIqqFUw0IBUiPAEUHXBs7GK9asgkh0OxpSAPFsKfA=;
-	h=Date:To:From:Subject:Message-Id; b=kK6zGltoY0YUNtgdJgMsTudLrFCyW9Mu55Whj2dsVd9PLsmoBT1+9Y6+vQJ5g+HwhaEu00CaeZoFQar4A2U0qCSrY5lHlApYAczaTOSG1aSvEmCsus+OdGajipUsDmokPcxa1CQfXSMFgY3enVoiHg4SvlAdxyllxG5I9tXFR0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DFqBtQ2+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898326; c=relaxed/simple;
+	bh=vnQlnEdXfUwLvJ59AcUgkrhx/+m6Kge6AKOa4yCHsfI=;
+	h=Date:To:From:Subject:Message-Id; b=ASyKeKmfrmpsED3JAQAyl87jvikCMOeE6MoSKL8j1KqoiLrTNSoCbN8eBThqr9crsjfAjc+4LHd5+fEysudLT2oS/7a5iEIfauemiO1RgiJfOpu07yD8u+qpu1pJykS03+F2eHRhJct1clT0Ur6jUdaZ77rFMT2Aa5In9SSJhig=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FFJZg6cx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DFqBtQ2+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20EA7C4CEF1;
-	Sat, 31 Jan 2026 22:25:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FFJZg6cx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D430C4CEF1;
+	Sat, 31 Jan 2026 22:25:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898325;
-	bh=ZcRIqqFUw0IBUiPAEUHXBs7GK9asgkh0OxpSAPFsKfA=;
+	s=korg; t=1769898326;
+	bh=vnQlnEdXfUwLvJ59AcUgkrhx/+m6Kge6AKOa4yCHsfI=;
 	h=Date:To:From:Subject:From;
-	b=DFqBtQ2+wYdc2Xp8WOwYAsSYW5IHbZXL0i29FF3qVLcUZ4b+lFBsXKifnZmEJn4+7
-	 RHdd0iK9BH7COH3HGXi5hpVd9TiOzduo2BKKFmxUtktl23O3mdPfz49qHvvxPQR2Qt
-	 i3as6z/ZC6tSZI9fvj8IAK3KP5c5NnAj2h/W2BcM=
-Date: Sat, 31 Jan 2026 14:25:24 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
+	b=FFJZg6cxblu8aNJ/2MNPyq/n/NdbmaFLbm9D7TTTMb+h3aerw9EYMX2DX4kuta/jE
+	 LFNtUiVpTRPw9I/PkcaSGyqhwrhOCHPAWdHMWRL4hZqFgHpHj+9fdwSzhUxmCNMPDB
+	 DfEe058ifXGx2LKkxwJeI0dLpgI4HPMiwnmPuISU=
+Date: Sat, 31 Jan 2026 14:25:25 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,david@kernel.org,broonie@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-hugetlb_cma-mark-hugetlb_cma_only-as-__ro_after_init.patch removed from -mm tree
-Message-Id: <20260131222525.20EA7C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-remove-virtual_address_range-test.patch removed from -mm tree
+Message-Id: <20260131222526.6D430C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,405 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: hugetlb_cma: mark hugetlb_cma{_only} as __ro_after_init
+     Subject: selftests/mm: remove virtual_address_range test
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb_cma-mark-hugetlb_cma_only-as-__ro_after_init.patch
+     selftests-mm-remove-virtual_address_range-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: hugetlb_cma: mark hugetlb_cma{_only} as __ro_after_init
-Date: Mon, 12 Jan 2026 23:09:54 +0800
+From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Subject: selftests/mm: remove virtual_address_range test
+Date: Fri, 16 Jan 2026 13:20:53 +0000
 
-hugetlb_cma and hugetlb_cma_only are initialized once during init and
-never changed.
+This self test is asserting internal implementation details and is highly
+vulnerable to internal kernel changes as a result.
 
-Link: https://lkml.kernel.org/r/20260112150954.1802953-6-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: Brendan Jackman <jackmanb@google.com>
+It is currently failing locally from at least v6.17, and it seems that it
+may have been failing for longer in many configurations/hardware as it
+skips if e.g.  CONFIG_ANON_VMA_NAME is not specified.
+
+With these skips and the fact that run_vmtests.sh won't run the tests in
+certain configurations it is likely we have simply missed this test being
+broken in CI for a long while.
+
+I have tried multiple versions of these tests and am unable to find a
+working bisect as previous versions of the test fail also.
+
+The tests are essentially mmap()'ing a series of mappings with no hint and
+asserting what the get_unmapped_area*() functions will come up with, with
+seemingly few checks for what other mappings may already be in place.
+
+It then appears to be mmap()'ing with a hint, and making a series of
+similar assertions about the internal implementation details of the
+hinting logic.
+
+Commit 0ef3783d7558 ("selftests/mm: add support to test 4PB VA on PPC64"),
+commit 3bd6137220bb ("selftests/mm: virtual_address_range: avoid reading
+from VM_IO mappings"), and especially commit a005145b9c96 ("selftests/mm:
+virtual_address_range: mmap() without PROT_WRITE") are good examples of
+the whack-a-mole nature of maintaining this test.
+
+The last commit there being particularly pertinent as it was accounting
+for an internal implementation detail change that really should have no
+bearing on self-tests, that is commit e93d2521b27f ("x86/vdso: Split
+virtual clock pages into dedicated mapping").
+
+The purpose of the mm self-tests are to assert attributes about the API
+exposed to users, and to ensure that expectations are met.
+
+This test is emphatically not doing this, rather making a series of
+assumptions about internal implementation details and asserting them.
+
+It therefore, sadly, seems that the best course is to remove this test
+altogether.
+
+Link: https://lkml.kernel.org/r/20260116132053.857887-1-lorenzo.stoakes@oracle.com
+Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/.gitignore              |    1 
+ tools/testing/selftests/mm/Makefile                |    3 
+ tools/testing/selftests/mm/run_vmtests.sh          |   12 
+ tools/testing/selftests/mm/virtual_address_range.c |  260 -----------
+ 4 files changed, 276 deletions(-)
 
---- a/mm/hugetlb_cma.c~mm-hugetlb_cma-mark-hugetlb_cma_only-as-__ro_after_init
-+++ a/mm/hugetlb_cma.c
-@@ -13,9 +13,9 @@
- #include "hugetlb_cma.h"
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-remove-virtual_address_range-test
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -32,7 +32,6 @@ uffd-unit-tests
+ uffd-wp-mremap
+ mlock-intersect-test
+ mlock-random-test
+-virtual_address_range
+ gup_test
+ va_128TBswitch
+ map_fixed_noreplace
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-remove-virtual_address_range-test
++++ a/tools/testing/selftests/mm/Makefile
+@@ -136,9 +136,6 @@ endif
  
+ ifneq (,$(filter $(ARCH),arm64 mips64 parisc64 powerpc riscv64 s390x sparc64 x86_64 s390))
+ TEST_GEN_FILES += va_high_addr_switch
+-ifneq ($(ARCH),riscv64)
+-TEST_GEN_FILES += virtual_address_range
+-endif
+ TEST_GEN_FILES += write_to_hugetlbfs
+ endif
  
--static struct cma *hugetlb_cma[MAX_NUMNODES];
-+static struct cma *hugetlb_cma[MAX_NUMNODES] __ro_after_init;
- static unsigned long hugetlb_cma_size_in_node[MAX_NUMNODES] __initdata;
--static bool hugetlb_cma_only;
-+static bool hugetlb_cma_only __ro_after_init;
- static unsigned long hugetlb_cma_size __ro_after_init;
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-remove-virtual_address_range-test
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -399,18 +399,6 @@ CATEGORY="hugetlb" run_test ./hugetlb-re
+ fi
  
- void hugetlb_cma_free_frozen_folio(struct folio *folio)
+ if [ $VADDR64 -ne 0 ]; then
+-
+-	# set overcommit_policy as OVERCOMMIT_ALWAYS so that kernel
+-	# allows high virtual address allocation requests independent
+-	# of platform's physical memory.
+-
+-	if [ -x ./virtual_address_range ]; then
+-		prev_policy=$(cat /proc/sys/vm/overcommit_memory)
+-		echo 1 > /proc/sys/vm/overcommit_memory
+-		CATEGORY="hugevm" run_test ./virtual_address_range
+-		echo $prev_policy > /proc/sys/vm/overcommit_memory
+-	fi
+-
+ 	# va high address boundary switch test
+ 	CATEGORY="hugevm" run_test bash ./va_high_addr_switch.sh
+ fi # VADDR64
+diff --git a/tools/testing/selftests/mm/virtual_address_range.c a/tools/testing/selftests/mm/virtual_address_range.c
+deleted file mode 100644
+--- a/tools/testing/selftests/mm/virtual_address_range.c
++++ /dev/null
+@@ -1,260 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright 2017, Anshuman Khandual, IBM Corp.
+- *
+- * Works on architectures which support 128TB virtual
+- * address range and beyond.
+- */
+-#include <stdio.h>
+-#include <stdlib.h>
+-#include <string.h>
+-#include <unistd.h>
+-#include <errno.h>
+-#include <sys/prctl.h>
+-#include <sys/mman.h>
+-#include <sys/time.h>
+-#include <fcntl.h>
+-
+-#include "vm_util.h"
+-#include "kselftest.h"
+-
+-/*
+- * Maximum address range mapped with a single mmap()
+- * call is little bit more than 1GB. Hence 1GB is
+- * chosen as the single chunk size for address space
+- * mapping.
+- */
+-
+-#define SZ_1GB	(1024 * 1024 * 1024UL)
+-#define SZ_1TB	(1024 * 1024 * 1024 * 1024UL)
+-
+-#define MAP_CHUNK_SIZE	SZ_1GB
+-
+-/*
+- * Address space till 128TB is mapped without any hint
+- * and is enabled by default. Address space beyond 128TB
+- * till 512TB is obtained by passing hint address as the
+- * first argument into mmap() system call.
+- *
+- * The process heap address space is divided into two
+- * different areas one below 128TB and one above 128TB
+- * till it reaches 512TB. One with size 128TB and the
+- * other being 384TB.
+- *
+- * On Arm64 the address space is 256TB and support for
+- * high mappings up to 4PB virtual address space has
+- * been added.
+- *
+- * On PowerPC64, the address space up to 128TB can be
+- * mapped without a hint. Addresses beyond 128TB, up to
+- * 4PB, can be mapped with a hint.
+- *
+- */
+-
+-#define NR_CHUNKS_128TB   ((128 * SZ_1TB) / MAP_CHUNK_SIZE) /* Number of chunks for 128TB */
+-#define NR_CHUNKS_256TB   (NR_CHUNKS_128TB * 2UL)
+-#define NR_CHUNKS_384TB   (NR_CHUNKS_128TB * 3UL)
+-#define NR_CHUNKS_3840TB  (NR_CHUNKS_128TB * 30UL)
+-#define NR_CHUNKS_3968TB  (NR_CHUNKS_128TB * 31UL)
+-
+-#define ADDR_MARK_128TB  (1UL << 47) /* First address beyond 128TB */
+-#define ADDR_MARK_256TB  (1UL << 48) /* First address beyond 256TB */
+-
+-#ifdef __aarch64__
+-#define HIGH_ADDR_MARK  ADDR_MARK_256TB
+-#define HIGH_ADDR_SHIFT 49
+-#define NR_CHUNKS_LOW   NR_CHUNKS_256TB
+-#define NR_CHUNKS_HIGH  NR_CHUNKS_3840TB
+-#elif defined(__PPC64__)
+-#define HIGH_ADDR_MARK  ADDR_MARK_128TB
+-#define HIGH_ADDR_SHIFT 48
+-#define NR_CHUNKS_LOW   NR_CHUNKS_128TB
+-#define NR_CHUNKS_HIGH  NR_CHUNKS_3968TB
+-#else
+-#define HIGH_ADDR_MARK  ADDR_MARK_128TB
+-#define HIGH_ADDR_SHIFT 48
+-#define NR_CHUNKS_LOW   NR_CHUNKS_128TB
+-#define NR_CHUNKS_HIGH  NR_CHUNKS_384TB
+-#endif
+-
+-static char *hint_addr(void)
+-{
+-	int bits = HIGH_ADDR_SHIFT + rand() % (63 - HIGH_ADDR_SHIFT);
+-
+-	return (char *) (1UL << bits);
+-}
+-
+-static void validate_addr(char *ptr, int high_addr)
+-{
+-	unsigned long addr = (unsigned long) ptr;
+-
+-	if (high_addr) {
+-		if (addr < HIGH_ADDR_MARK)
+-			ksft_exit_fail_msg("Bad address %lx\n", addr);
+-		return;
+-	}
+-
+-	if (addr > HIGH_ADDR_MARK)
+-		ksft_exit_fail_msg("Bad address %lx\n", addr);
+-}
+-
+-static void mark_range(char *ptr, size_t size)
+-{
+-	if (prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, ptr, size, "virtual_address_range") == -1) {
+-		if (errno == EINVAL) {
+-			/* Depends on CONFIG_ANON_VMA_NAME */
+-			ksft_test_result_skip("prctl(PR_SET_VMA_ANON_NAME) not supported\n");
+-			ksft_finished();
+-		} else {
+-			ksft_exit_fail_perror("prctl(PR_SET_VMA_ANON_NAME) failed\n");
+-		}
+-	}
+-}
+-
+-static int is_marked_vma(const char *vma_name)
+-{
+-	return vma_name && !strcmp(vma_name, "[anon:virtual_address_range]\n");
+-}
+-
+-static int validate_lower_address_hint(void)
+-{
+-	char *ptr;
+-
+-	ptr = mmap((void *) (1UL << 45), MAP_CHUNK_SIZE, PROT_READ |
+-		   PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-
+-	if (ptr == MAP_FAILED)
+-		return 0;
+-
+-	return 1;
+-}
+-
+-static int validate_complete_va_space(void)
+-{
+-	unsigned long start_addr, end_addr, prev_end_addr;
+-	char line[400];
+-	char prot[6];
+-	FILE *file;
+-	int fd;
+-
+-	fd = open("va_dump", O_CREAT | O_WRONLY, 0600);
+-	unlink("va_dump");
+-	if (fd < 0) {
+-		ksft_test_result_skip("cannot create or open dump file\n");
+-		ksft_finished();
+-	}
+-
+-	file = fopen("/proc/self/maps", "r");
+-	if (file == NULL)
+-		ksft_exit_fail_msg("cannot open /proc/self/maps\n");
+-
+-	prev_end_addr = 0;
+-	while (fgets(line, sizeof(line), file)) {
+-		const char *vma_name = NULL;
+-		int vma_name_start = 0;
+-		unsigned long hop;
+-
+-		if (sscanf(line, "%lx-%lx %4s %*s %*s %*s %n",
+-			   &start_addr, &end_addr, prot, &vma_name_start) != 3)
+-			ksft_exit_fail_msg("cannot parse /proc/self/maps\n");
+-
+-		if (vma_name_start)
+-			vma_name = line + vma_name_start;
+-
+-		/* end of userspace mappings; ignore vsyscall mapping */
+-		if (start_addr & (1UL << 63))
+-			return 0;
+-
+-		/* /proc/self/maps must have gaps less than MAP_CHUNK_SIZE */
+-		if (start_addr - prev_end_addr >= MAP_CHUNK_SIZE)
+-			return 1;
+-
+-		prev_end_addr = end_addr;
+-
+-		if (prot[0] != 'r')
+-			continue;
+-
+-		if (check_vmflag_io((void *)start_addr))
+-			continue;
+-
+-		/*
+-		 * Confirm whether MAP_CHUNK_SIZE chunk can be found or not.
+-		 * If write succeeds, no need to check MAP_CHUNK_SIZE - 1
+-		 * addresses after that. If the address was not held by this
+-		 * process, write would fail with errno set to EFAULT.
+-		 * Anyways, if write returns anything apart from 1, exit the
+-		 * program since that would mean a bug in /proc/self/maps.
+-		 */
+-		hop = 0;
+-		while (start_addr + hop < end_addr) {
+-			if (write(fd, (void *)(start_addr + hop), 1) != 1)
+-				return 1;
+-			lseek(fd, 0, SEEK_SET);
+-
+-			if (is_marked_vma(vma_name))
+-				munmap((char *)(start_addr + hop), MAP_CHUNK_SIZE);
+-
+-			hop += MAP_CHUNK_SIZE;
+-		}
+-	}
+-	return 0;
+-}
+-
+-int main(int argc, char *argv[])
+-{
+-	char *ptr[NR_CHUNKS_LOW];
+-	char **hptr;
+-	char *hint;
+-	unsigned long i, lchunks, hchunks;
+-
+-	ksft_print_header();
+-	ksft_set_plan(1);
+-
+-	for (i = 0; i < NR_CHUNKS_LOW; i++) {
+-		ptr[i] = mmap(NULL, MAP_CHUNK_SIZE, PROT_READ,
+-			      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-
+-		if (ptr[i] == MAP_FAILED) {
+-			if (validate_lower_address_hint())
+-				ksft_exit_fail_msg("mmap unexpectedly succeeded with hint\n");
+-			break;
+-		}
+-
+-		mark_range(ptr[i], MAP_CHUNK_SIZE);
+-		validate_addr(ptr[i], 0);
+-	}
+-	lchunks = i;
+-	hptr = (char **) calloc(NR_CHUNKS_HIGH, sizeof(char *));
+-	if (hptr == NULL) {
+-		ksft_test_result_skip("Memory constraint not fulfilled\n");
+-		ksft_finished();
+-	}
+-
+-	for (i = 0; i < NR_CHUNKS_HIGH; i++) {
+-		hint = hint_addr();
+-		hptr[i] = mmap(hint, MAP_CHUNK_SIZE, PROT_READ,
+-			       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+-
+-		if (hptr[i] == MAP_FAILED)
+-			break;
+-
+-		mark_range(hptr[i], MAP_CHUNK_SIZE);
+-		validate_addr(hptr[i], 1);
+-	}
+-	hchunks = i;
+-	if (validate_complete_va_space()) {
+-		ksft_test_result_fail("BUG in mmap() or /proc/self/maps\n");
+-		ksft_finished();
+-	}
+-
+-	for (i = 0; i < lchunks; i++)
+-		munmap(ptr[i], MAP_CHUNK_SIZE);
+-
+-	for (i = 0; i < hchunks; i++)
+-		munmap(hptr[i], MAP_CHUNK_SIZE);
+-
+-	free(hptr);
+-
+-	ksft_test_result_pass("Test\n");
+-	ksft_finished();
+-}
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
 
+mm-vma-remove-__private-sparse-decoration-from-vma_flags_t.patch
+mm-rename-vma_flag_test-set_atomic-to-vma_test-set_atomic_flag.patch
+mm-add-mk_vma_flags-bitmap-flag-macro-helper.patch
+tools-bitmap-add-missing-bitmap_.patch
+mm-add-basic-vma-flag-operation-helper-functions.patch
+mm-update-hugetlbfs-to-use-vma-flags-on-mmap_prepare.patch
+mm-update-secretmem-to-use-vma-flags-on-mmap_prepare.patch
+mm-update-secretmem-to-use-vma-flags-on-mmap_prepare-fix.patch
+mm-update-shmem__file_-functions-to-use-vma_flags_t.patch
+mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t.patch
+mm-make-vm_area_desc-utilise-vma_flags_t-only.patch
+tools-testing-vma-separate-vma-userland-tests-into-separate-files.patch
+tools-testing-vma-separate-out-vma_internalh-into-logical-headers.patch
+tools-testing-vma-separate-out-vma_internalh-into-logical-headers-fix.patch
+tools-testing-vma-add-vma-userland-tests-for-vma-flag-functions.patch
 
