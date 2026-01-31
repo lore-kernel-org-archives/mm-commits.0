@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C90E20CCDC
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFB7720CCDC
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898246; cv=none; b=DLnRM+gx/GR/DwMvvaHL3UmIBrEN2dcA+vexR6J0XYRUn0a9wGrGdgxPdSMcnctA5gIPDu7BF11DKdaiQYADCi8msvNwzQpM/xk4ilwJYlCS9/yiU1WoksicLwFvKfhlitHmBnrFrUSQY/lihzhhe0xA335Y99EcSj3eE6tJfZs=
+	t=1769898247; cv=none; b=raDx1Tocklhr7QMxj1GpIkT/H1WMKC/fUb5dBKerLRFy2f7SBWywaW4z6M1JOavXeGKHaoe08j03C57qONE1VbL7W/+AhanNSoZgcorenT6GvuEjS6njVPJRBB9xlBBXuodypbFxFp9n/xExy7IqExVuGdTDdovRoB3XRdJsuFk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898246; c=relaxed/simple;
-	bh=SM0pSGz7VCqr0qpqiaOJAOkZihJDrVLwKmK1CyY8H3M=;
-	h=Date:To:From:Subject:Message-Id; b=dhythMcQ0rMA32ccvPpmk6T5B+5Ox16q1HVoFutXLdKie3euRIjShIIu8IdKLRZ5iDAfRQyjcbHJS6CwqKdF/iB+bY+gZmQlXmB0srNM7GQSY1ZJwzW1QRA8Q4S0XIN7q/37qYPE3pKkZPGqTVCMJGztSMja0zAlShXWcztYJW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UIb86RJ4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898247; c=relaxed/simple;
+	bh=yTCZvj9tKQuXJSCQQwtgff6/9YdJwM1XVhP0YNzxhGw=;
+	h=Date:To:From:Subject:Message-Id; b=N6Qn3nGLvs2JNLC6Lkqe2iswereo3kYUljyrzEiDGp2tNKY2x/hpyoY5pihETG5wIpU4rsQso7YU3VS9xsBNjCpjsWZ2Q4uimmzLnGDr8DIaMvPNjyxB1wDNX+dtekCiCeV+40K7gru5EI7m5a6nk48/mpnm9LBin4COWmA/LOY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y9Oce+4N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UIb86RJ4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C970C4CEF1;
-	Sat, 31 Jan 2026 22:24:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y9Oce+4N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DA11C4CEF1;
+	Sat, 31 Jan 2026 22:24:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898246;
-	bh=SM0pSGz7VCqr0qpqiaOJAOkZihJDrVLwKmK1CyY8H3M=;
+	s=korg; t=1769898247;
+	bh=yTCZvj9tKQuXJSCQQwtgff6/9YdJwM1XVhP0YNzxhGw=;
 	h=Date:To:From:Subject:From;
-	b=UIb86RJ4fYi+tLusxD6ZvdQUqJk1MuqusLMbgtai44iwE0PitpHV2GkEU6qasEss/
-	 +/X+rfVZIaRetrVPBSw0V/fhTjUe0psJgEA7yaVlemged4u/ZzpQKQdmh9Pmcaa/b3
-	 H4+/oHOirxl5w7cQXEb0e3EtwYCEtxb3pCgIo/P4=
-Date: Sat, 31 Jan 2026 14:24:05 -0800
+	b=Y9Oce+4NQmb4zGrt311cS2ISiE+GaAZrqEzJ49JeEDQu+bIAxeNUuLOcLW35DvMoQ
+	 x8ry/uE8RzH162kKijZqf6XtruhM+rnhfwIPVZHWyDcUpMNKatpgDApT8bbZtO5Z8v
+	 seVGkwTYHrZHe+lxiGRersj4wXWtK34hmUT9Bjlo=
+Date: Sat, 31 Jan 2026 14:24:06 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mst@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,gregkh@linuxfoundation.org,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,arnd@arndb.de,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-balloon_compaction-improve-comments-for-warn_on_onceb_dev_info.patch removed from -mm tree
-Message-Id: <20260131222406.1C970C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-balloon_compaction-centralize-basic-page-migration-handling.patch removed from -mm tree
+Message-Id: <20260131222407.7DA11C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,41 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/balloon_compaction: improve comments for WARN_ON_ONCE(!b_dev_info)
+     Subject: mm/balloon_compaction: centralize basic page migration handling
 has been removed from the -mm tree.  Its filename was
-     mm-balloon_compaction-improve-comments-for-warn_on_onceb_dev_info.patch
+     mm-balloon_compaction-centralize-basic-page-migration-handling.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Subject: mm/balloon_compaction: improve comments for WARN_ON_ONCE(!b_dev_info)
-Date: Tue, 20 Jan 2026 00:01:12 +0100
+Subject: mm/balloon_compaction: centralize basic page migration handling
+Date: Tue, 20 Jan 2026 00:01:13 +0100
 
-Let's clarify a bit by extending the comments.
+Let's update the balloon page references, the balloon page list, the
+BALLOON_MIGRATE counter and the isolated-pages counter in
+balloon_page_migrate(), after letting the balloon->migratepage() callback
+deal with the actual inflation+deflation.
 
-Link: https://lkml.kernel.org/r/20260119230133.3551867-5-david@kernel.org
+Note that we now perform the balloon list modifications outside of any
+implementation-specific locks: which is fine, there is nothing special
+about these page actions that the lock would be protecting.
+
+The old page is already no longer in the list (isolated) and the new page
+is not yet in the list.
+
+Let's use -ENOENT to communicate the special "inflation of new page failed
+after already deflating the old page" to balloon_page_migrate() so it can
+handle it accordingly.
+
+While at it, rename balloon->b_dev_info to make it match the other
+functions.  Also, drop the comment above balloon_page_migrate(), which
+seems unnecessary.
+
+Link: https://lkml.kernel.org/r/20260119230133.3551867-6-david@kernel.org
 Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Eugenio Pérez <eperezma@redhat.com>
@@ -62,7 +81,6 @@ Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michael S. Tsirkin <mst@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
@@ -75,37 +93,231 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/balloon_compaction.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ arch/powerpc/platforms/pseries/cmm.c |   16 --------
+ drivers/misc/vmw_balloon.c           |   49 ++++---------------------
+ drivers/virtio/virtio_balloon.c      |   12 ------
+ mm/balloon_compaction.c              |   31 +++++++++++++--
+ 4 files changed, 35 insertions(+), 73 deletions(-)
 
---- a/mm/balloon_compaction.c~mm-balloon_compaction-improve-comments-for-warn_on_onceb_dev_info
-+++ a/mm/balloon_compaction.c
-@@ -222,7 +222,11 @@ static void balloon_page_putback(struct
- 	struct balloon_dev_info *b_dev_info = balloon_page_device(page);
- 	unsigned long flags;
+--- a/arch/powerpc/platforms/pseries/cmm.c~mm-balloon_compaction-centralize-basic-page-migration-handling
++++ a/arch/powerpc/platforms/pseries/cmm.c
+@@ -501,8 +501,6 @@ static int cmm_migratepage(struct balloo
+ 			   struct page *newpage, struct page *page,
+ 			   enum migrate_mode mode)
+ {
+-	unsigned long flags;
+-
+ 	/*
+ 	 * loan/"inflate" the newpage first.
+ 	 *
+@@ -517,9 +515,6 @@ static int cmm_migratepage(struct balloo
+ 		return -EBUSY;
+ 	}
  
--	/* Isolated balloon pages cannot get deflated. */
-+	/*
-+	 * When we isolated the page, the page was still inflated in a balloon
-+	 * device. As isolated balloon pages cannot get deflated, we still have
-+	 * a balloon device here.
-+	 */
- 	if (WARN_ON_ONCE(!b_dev_info))
- 		return;
+-	/* balloon page list reference */
+-	get_page(newpage);
+-
+ 	/*
+ 	 * When we migrate a page to a different zone, we have to fixup the
+ 	 * count of both involved zones as we adjusted the managed page count
+@@ -530,22 +525,11 @@ static int cmm_migratepage(struct balloo
+ 		adjust_managed_page_count(newpage, -1);
+ 	}
  
-@@ -241,7 +245,11 @@ static int balloon_page_migrate(struct p
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(!PageLocked(newpage), newpage);
+-	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
+-	balloon_page_insert(b_dev_info, newpage);
+-	__count_vm_event(BALLOON_MIGRATE);
+-	b_dev_info->isolated_pages--;
+-	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
+-
+ 	/*
+ 	 * activate/"deflate" the old page. We ignore any errors just like the
+ 	 * other callers.
+ 	 */
+ 	plpar_page_set_active(page);
+-
+-	balloon_page_finalize(page);
+-	/* balloon page list reference */
+-	put_page(page);
+-
+ 	return 0;
+ }
+ #else /* CONFIG_BALLOON_COMPACTION */
+--- a/drivers/misc/vmw_balloon.c~mm-balloon_compaction-centralize-basic-page-migration-handling
++++ a/drivers/misc/vmw_balloon.c
+@@ -1724,18 +1724,17 @@ static inline void vmballoon_debugfs_exi
+  * @page: a ballooned page that should be migrated.
+  * @mode: migration mode, ignored.
+  *
+- * This function is really open-coded, but that is according to the interface
+- * that balloon_compaction provides.
+- *
+  * Return: zero on success, -EAGAIN when migration cannot be performed
+- *	   momentarily, and -EBUSY if migration failed and should be retried
+- *	   with that specific page.
++ *	   momentarily, -EBUSY if migration failed and should be retried
++ *	   with that specific page, and -ENOENT when deflating @page
++ *	   succeeded but inflating @newpage failed, effectively deflating
++ *	   the balloon.
+  */
+ static int vmballoon_migratepage(struct balloon_dev_info *b_dev_info,
+ 				 struct page *newpage, struct page *page,
+ 				 enum migrate_mode mode)
+ {
+-	unsigned long status, flags;
++	unsigned long status;
+ 	struct vmballoon *b;
+ 	int ret = 0;
  
--	/* Isolated balloon pages cannot get deflated. */
-+	/*
-+	 * When we isolated the page, the page was still inflated in a balloon
-+	 * device. As isolated balloon pages cannot get deflated, we still have
-+	 * a balloon device here.
-+	 */
- 	if (WARN_ON_ONCE(!balloon))
+@@ -1773,14 +1772,6 @@ static int vmballoon_migratepage(struct
+ 		goto out_unlock;
+ 	}
+ 
+-	/*
+-	 * The page is isolated, so it is safe to delete it without holding
+-	 * @pages_lock . We keep holding @comm_lock since we will need it in a
+-	 * second.
+-	 */
+-	balloon_page_finalize(page);
+-	put_page(page);
+-
+ 	/* Inflate */
+ 	vmballoon_add_page(b, 0, newpage);
+ 	status = vmballoon_lock_op(b, 1, VMW_BALLOON_4K_PAGE,
+@@ -1799,36 +1790,12 @@ static int vmballoon_migratepage(struct
+ 		 * change.
+ 		 */
+ 		atomic64_dec(&b->size);
+-	} else {
+ 		/*
+-		 * Success. Take a reference for the page, and we will add it to
+-		 * the list after acquiring the lock.
++		 * Tell the core that we're deflating the old page and don't
++		 * need the new page.
+ 		 */
+-		get_page(newpage);
++		ret = -ENOENT;
+ 	}
+-
+-	/* Update the balloon list under the @pages_lock */
+-	spin_lock_irqsave(&b->b_dev_info.pages_lock, flags);
+-
+-	/*
+-	 * On inflation success, we already took a reference for the @newpage.
+-	 * If we succeed just insert it to the list and update the statistics
+-	 * under the lock.
+-	 */
+-	if (status == VMW_BALLOON_SUCCESS) {
+-		balloon_page_insert(&b->b_dev_info, newpage);
+-		__count_vm_event(BALLOON_MIGRATE);
+-	} else {
+-		__count_vm_event(BALLOON_DEFLATE);
+-	}
+-
+-	/*
+-	 * We deflated successfully, so regardless to the inflation success, we
+-	 * need to reduce the number of isolated_pages.
+-	 */
+-	b->b_dev_info.isolated_pages--;
+-	spin_unlock_irqrestore(&b->b_dev_info.pages_lock, flags);
+-
+ out_unlock:
+ 	up_read(&b->conf_sem);
+ 	return ret;
+--- a/drivers/virtio/virtio_balloon.c~mm-balloon_compaction-centralize-basic-page-migration-handling
++++ a/drivers/virtio/virtio_balloon.c
+@@ -827,7 +827,6 @@ static int virtballoon_migratepage(struc
+ {
+ 	struct virtio_balloon *vb = container_of(vb_dev_info,
+ 			struct virtio_balloon, vb_dev_info);
+-	unsigned long flags;
+ 
+ 	/*
+ 	 * In order to avoid lock contention while migrating pages concurrently
+@@ -840,8 +839,6 @@ static int virtballoon_migratepage(struc
+ 	if (!mutex_trylock(&vb->balloon_lock))
  		return -EAGAIN;
  
+-	get_page(newpage); /* balloon reference */
+-
+ 	/*
+ 	  * When we migrate a page to a different zone and adjusted the
+ 	  * managed page count when inflating, we have to fixup the count of
+@@ -854,11 +851,6 @@ static int virtballoon_migratepage(struc
+ 	}
+ 
+ 	/* balloon's page migration 1st step  -- inflate "newpage" */
+-	spin_lock_irqsave(&vb_dev_info->pages_lock, flags);
+-	balloon_page_insert(vb_dev_info, newpage);
+-	vb_dev_info->isolated_pages--;
+-	__count_vm_event(BALLOON_MIGRATE);
+-	spin_unlock_irqrestore(&vb_dev_info->pages_lock, flags);
+ 	vb->num_pfns = VIRTIO_BALLOON_PAGES_PER_PAGE;
+ 	set_page_pfns(vb, vb->pfns, newpage);
+ 	tell_host(vb, vb->inflate_vq);
+@@ -869,10 +861,6 @@ static int virtballoon_migratepage(struc
+ 	tell_host(vb, vb->deflate_vq);
+ 
+ 	mutex_unlock(&vb->balloon_lock);
+-
+-	balloon_page_finalize(page);
+-	put_page(page); /* balloon reference */
+-
+ 	return 0;
+ }
+ #endif /* CONFIG_BALLOON_COMPACTION */
+--- a/mm/balloon_compaction.c~mm-balloon_compaction-centralize-basic-page-migration-handling
++++ a/mm/balloon_compaction.c
+@@ -236,11 +236,12 @@ static void balloon_page_putback(struct
+ 	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
+ }
+ 
+-/* move_to_new_page() counterpart for a ballooned page */
+ static int balloon_page_migrate(struct page *newpage, struct page *page,
+ 		enum migrate_mode mode)
+ {
+-	struct balloon_dev_info *balloon = balloon_page_device(page);
++	struct balloon_dev_info *b_dev_info = balloon_page_device(page);
++	unsigned long flags;
++	int rc;
+ 
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_PAGE(!PageLocked(newpage), newpage);
+@@ -250,10 +251,32 @@ static int balloon_page_migrate(struct p
+ 	 * device. As isolated balloon pages cannot get deflated, we still have
+ 	 * a balloon device here.
+ 	 */
+-	if (WARN_ON_ONCE(!balloon))
++	if (WARN_ON_ONCE(!b_dev_info))
+ 		return -EAGAIN;
+ 
+-	return balloon->migratepage(balloon, newpage, page, mode);
++	rc = b_dev_info->migratepage(b_dev_info, newpage, page, mode);
++	if (rc < 0 && rc != -ENOENT)
++		return rc;
++
++	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
++	if (!rc) {
++		/* Insert the new page into the balloon list. */
++		get_page(newpage);
++		balloon_page_insert(b_dev_info, newpage);
++		__count_vm_event(BALLOON_MIGRATE);
++	} else {
++		/* Old page was deflated but new page not inflated. */
++		__count_vm_event(BALLOON_DEFLATE);
++	}
++
++	b_dev_info->isolated_pages--;
++	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
++
++	/* Free the now-deflated page we isolated in balloon_page_isolate(). */
++	balloon_page_finalize(page);
++	put_page(page);
++
++	return 0;
+ }
+ 
+ const struct movable_operations balloon_mops = {
 _
 
 Patches currently in -mm which might be from david@kernel.org are
