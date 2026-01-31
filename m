@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25AF038A9C2
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FEF438B7B2
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898348; cv=none; b=UTZDfqsLNR1mEJoci9GtLqXo5L7I73l/73LCNif7KYUNby2V/IboeqzwFKEMWnMfexiAxHn/LrVhw7aVvscSOq9PUFGcj8bFZfufuNnPRuqp/yg7fP6OlmYlpzqP5bmeAT55iuuY8cVfR7yju2+gYSOaqy2uyfnpA3Ha3MuSaD0=
+	t=1769898349; cv=none; b=oHafYDYGUrjWr1Kwkn38Ody87j8Pg8fC4OfyajXayQIaXWvVK6ftrjbUBsd0HAF78ej6ibay34QY1AqxMtk/wh2AGjg40UsdDH6Suib7BfAadHdsJYjsx/2FUCbIv3gAWQacQ41tNIhwAP6+QrfbHz0IrGNp6knYyQwoVjdV6WM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898348; c=relaxed/simple;
-	bh=rkRh43xxquTT9C4ZCDlkp/zgSEl+EPV13iJy581wLOU=;
-	h=Date:To:From:Subject:Message-Id; b=Wnwq/NAgRNdoKd2mx7Ibbbt8dtN9yZcSm+MNwlTM+0KHSMtKtdgahV0rXS0NEAiP2pyTUH0HONZEMDM9EA8Dij58UPa7sgB9PAFRUI/EKH+39RhU8h2GIqCMgs935swZmYpy/lVkPIrs81dcUOIcMeWh0jyHIdfvmUHK/AXcW+E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FoOhz+DM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898349; c=relaxed/simple;
+	bh=gQGiZp3kKNnCNgsJvj3voD2wLLIJ2ah5E+rYuDRQbfo=;
+	h=Date:To:From:Subject:Message-Id; b=EAMgSl8OHnha0TtcaYUEao8qiADKg2rwX8xjJDhTN+Oaho9pI4GzGbUpmKK4Bc/d3EuZw8yziNJQ3Q9QT4rEvAKv90wsbA5cy9Wo3iYZfd+pzwZfOaBMqG0j0p2uLaTsLxi0P5Cpa/2His4rVcSI4XB/noAdX3xvZtJOvkuxSvQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZBG4EI7q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FoOhz+DM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0210C116D0;
-	Sat, 31 Jan 2026 22:25:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZBG4EI7q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27C41C116D0;
+	Sat, 31 Jan 2026 22:25:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898348;
-	bh=rkRh43xxquTT9C4ZCDlkp/zgSEl+EPV13iJy581wLOU=;
+	s=korg; t=1769898349;
+	bh=gQGiZp3kKNnCNgsJvj3voD2wLLIJ2ah5E+rYuDRQbfo=;
 	h=Date:To:From:Subject:From;
-	b=FoOhz+DMmN0o3XBlYTjCVOaDxF/OBEVSJjCZkUDQxfhiJ9rwJmEQZYqf2ojVza6wc
-	 qwDni9bdRTU3TLNBxflL7ZneGnJL2fMlA3GHDXah09mlpwY1BZr29kVP/fza63iuxM
-	 ubzU+H/fh854+68x/oclADkB3grflE0k8bIrOddM=
-Date: Sat, 31 Jan 2026 14:25:47 -0800
+	b=ZBG4EI7qxDty0HtN8fVO7wwHDdXADnWGRK0Rutn8pKmvB6Jf02srNHYQ9axJDusVz
+	 r0zTG3BCPYaI9fch52wrp9TucI2+ncwAfy3Mepn45CaTbj+ejlpEIZxuCo7bYTYlc2
+	 30pCgQMeZixU5dHJR+nNJivkiTuNZaUIK9sc7FFg=
+Date: Sat, 31 Jan 2026 14:25:48 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-damon-design-document-damon-sample-modules.patch removed from -mm tree
-Message-Id: <20260131222547.F0210C116D0@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-damon-design-add-reference-to-damon_stat-usage.patch removed from -mm tree
+Message-Id: <20260131222549.27C41C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/mm/damon/design: document DAMON sample modules
+     Subject: Docs/mm/damon/design: add reference to DAMON_STAT usage
 has been removed from the -mm tree.  Its filename was
-     docs-mm-damon-design-document-damon-sample-modules.patch
+     docs-mm-damon-design-add-reference-to-damon_stat-usage.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: document DAMON sample modules
-Date: Sun, 18 Jan 2026 10:02:54 -0800
+Subject: Docs/mm/damon/design: add reference to DAMON_STAT usage
+Date: Sun, 18 Jan 2026 10:02:55 -0800
 
-People sometimes get confused about the purposes of DAMON special-purpose
-modules and sample modules.  Clarify those on the design document by
-adding a section describing their existence and purposes.
+Design document's special-purpose DAMON modules section is providing the
+list of links to the usage documents of existing DAMON modules.  It is
+missing the link for DAMON_STAT, though.  Add the missed link.
 
-Link: https://lkml.kernel.org/r/20260118180305.70023-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260118180305.70023-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -64,28 +64,20 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ Documentation/mm/damon/design.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-damon-sample-modules
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-add-reference-to-damon_stat-usage
 +++ a/Documentation/mm/damon/design.rst
-@@ -836,3 +836,16 @@ modules for proactive reclamation and LR
+@@ -834,7 +834,7 @@ To support such cases, yet more DAMON AP
+ simple and optimized user space interfaces are available.  Currently, two
+ modules for proactive reclamation and LRU lists manipulation are provided.  For
  more detail, please read the usage documents for those
- (:doc:`/admin-guide/mm/damon/reclaim` and
+-(:doc:`/admin-guide/mm/damon/reclaim` and
++(:doc:`/admin-guide/mm/damon/stat`, :doc:`/admin-guide/mm/damon/reclaim` and
  :doc:`/admin-guide/mm/damon/lru_sort`).
-+
-+
-+Sample DAMON Modules
-+--------------------
-+
-+DAMON modules that provides example DAMON kernel API usages.
-+
-+kernel programmers can build their own special or general purpose DAMON modules
-+using DAMON kernel API.  To help them easily understand how DAMON kernel API
-+can be used, a few sample modules are provided under ``samples/damon/`` of the
-+linux source tree.  Please note that these modules are not developed for being
-+used on real products, but only for showing how DAMON kernel API can be used in
-+simple ways.
+ 
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
