@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7558F36E496
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 21:58:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9784A36E496
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 21:58:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769896704; cv=none; b=YQvfwuZQg/xy3JrJ97dwOG2DmGZAr1iP4GgvjBBiTcvuStakgjrj2btUhIF7ER7x/VeAkVgffxb+4YwF2dju7cG/CStI9cVmvqdLuiCBXrWyJ3KVcIUEc+3r+VsJaGFbRw73X8ap0uc4/VbnRfyFh1BaLhcj3bWbPZg2PQB0MBM=
+	t=1769896706; cv=none; b=XNjCjWIhRiFSnpBN1aBu8M30ypY1rK89gzwsbnzIYanYGjyKnc1PMvJKHk0QBMuqRfJ4UQkYWYZrEInni8sfQfziUdwANEiXO7khdxXN6NDMeYQAHBmk2hfBglmCVtcmVBajj1RJ4Wbb78HHonoTK5Ecoki7fsMILRnNNa+9jVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769896704; c=relaxed/simple;
-	bh=7TpDZMHFivTN410pr7XRdKs7OVpRTLpb2VOSm/59XTo=;
-	h=Date:To:From:Subject:Message-Id; b=Xhv+Ef/gaplT6R7SwefAdTjzO3J+d8gQ7VdqxCqsypBrH2U3UpmRR44I/44C4LPmf80f1PdXv0bAaIwPE4ehLdymBMscdlT2o2qLFB1LTi0Ig63Gi0OqC7Qj00nQBltJKjlln4r1aHVwFx97WeTNwa2EkInbA+sQVugOTqU8//A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=psNQMUxR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769896706; c=relaxed/simple;
+	bh=3AGt1FizqIkHRMZGqPIOjx+5/gbu9yQE3qMcJgpS0n0=;
+	h=Date:To:From:Subject:Message-Id; b=nBm0qtuzQpoaRXobyEwrE92bIxnWZKXEB0UVYEW7KFsgkAdetm/n8a13g+Ohxo2VUb0a/4LyFNtcxAfadnkoOk41i5Sh9Jyl4xNRj6a+0x12AlG+Y5gA/69If8JM78zTD/Qh24unikt+jC+xPgpYbTCMNao2BjVHdV5UlKC6LMg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OeQIVY8V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="psNQMUxR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 290E5C4CEF1;
-	Sat, 31 Jan 2026 21:58:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OeQIVY8V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DE00C4CEF1;
+	Sat, 31 Jan 2026 21:58:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769896704;
-	bh=7TpDZMHFivTN410pr7XRdKs7OVpRTLpb2VOSm/59XTo=;
+	s=korg; t=1769896706;
+	bh=3AGt1FizqIkHRMZGqPIOjx+5/gbu9yQE3qMcJgpS0n0=;
 	h=Date:To:From:Subject:From;
-	b=psNQMUxROjGjQstYeP9hDXsYqUyxl+L2/DbXlsKUS5bnp/ud2gb9SxBjYuHMRTj38
-	 Vl47fNSyK5/hisGA1UTha6jv0c/KDGap1amnk8dP3QdG6E60GqkS1c2n4bc7EN+Rl3
-	 GwKL/1TME3MIqapr1R3D4gAHn4xpZGe4oCv2vn2Y=
-Date: Sat, 31 Jan 2026 13:58:23 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,yi1.lai@linux.intel.com,ryncsn@gmail.com,rafael@kernel.org,nphamcs@gmail.com,kartikey406@gmail.com,hannes@cmpxchg.org,clm@meta.com,clm@fb.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=OeQIVY8VOOtRn8FvavwJU2WfcKZS//7bXFZaNOEEGxOuBknJfQWeHmW9wb/CeBgQK
+	 oK4itLEKvyj4g7WCWVGuJc7+dxNH8qImMdbR07imy+USJHeFT8MAXZh8C2ET01Xd6T
+	 ecv8QCnHlsf2zhlmfbcd9Wd6oMPBnZlbwChYF544=
+Date: Sat, 31 Jan 2026 13:58:25 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,yi1.lai@linux.intel.com,rafael@kernel.org,nphamcs@gmail.com,kasong@tencent.com,kartikey406@gmail.com,hannes@cmpxchg.org,clm@meta.com,clm@fb.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ryncsn@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-swap-cleanup-swap-entry-management-workflow-fix.patch removed from -mm tree
-Message-Id: <20260131215824.290E5C4CEF1@smtp.kernel.org>
+Subject: [folded-merged] mm-swap-cleanup-swap-entry-management-workflow-fix-2.patch removed from -mm tree
+Message-Id: <20260131215826.1DE00C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: fix locking and leaking with hibernation snapshot releasing
+     Subject: mm-swap-cleanup-swap-entry-management-workflow-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-swap-cleanup-swap-entry-management-workflow-fix.patch
+     mm-swap-cleanup-swap-entry-management-workflow-fix-2.patch
 
 This patch was dropped because it was folded into mm-swap-cleanup-swap-entry-management-workflow.patch
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: fix locking and leaking with hibernation snapshot releasing
-Date: Thu, 15 Jan 2026 00:15:27 +0800
+From: Kairui Song <ryncsn@gmail.com>
+Subject: mm-swap-cleanup-swap-entry-management-workflow-fix-2
+Date: Sat, 31 Jan 2026 00:48:07 +0800
 
-fix leak, per Chris Mason.  Remove WARN_ON, per Lai Yi
+fix KSM copy pages for swapoff, per Chris
 
-Link: https://lkml.kernel.org/r/CAMgjq7AUz10uETVm8ozDWcB3XohkOqf0i33KGrAquvEVvfp5cg@mail.gmail.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Cc: Lai Yi <yi1.lai@linux.intel.com>
+Link: https://lkml.kernel.org/r/aXxkANcET3l2Xu6J@KASONG-MC4
+Signed-off-by: Kairui Song <ryncsn@gmail.com>
+Cc: Chris Mason <clm@meta.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: Chris Mason <clm@fb.com>
+Cc: Deepanshu Kartikey <kartikey406@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lai Yi <yi1.lai@linux.intel.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/swap.c |    2 +-
- mm/swapfile.c       |    1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/power/swap.c~mm-swap-cleanup-swap-entry-management-workflow-fix
-+++ a/kernel/power/swap.c
-@@ -199,7 +199,7 @@ void free_all_swap_pages(int swap)
- 		ext = rb_entry(node, struct swsusp_extent, node);
- 		rb_erase(node, &swsusp_extents);
- 
--		for (offset = ext->start; offset < ext->end; offset++)
-+		for (offset = ext->start; offset <= ext->end; offset++)
- 			swap_free_hibernation_slot(swp_entry(swap, offset));
- 
- 		kfree(ext);
---- a/mm/swapfile.c~mm-swap-cleanup-swap-entry-management-workflow-fix
+--- a/mm/swapfile.c~mm-swap-cleanup-swap-entry-management-workflow-fix-2
 +++ a/mm/swapfile.c
-@@ -2096,7 +2096,6 @@ void swap_free_hibernation_slot(swp_entr
- 
- 	ci = swap_cluster_lock(si, offset);
- 	swap_entry_put_locked(si, ci, entry, 1);
--	WARN_ON(swap_entry_swapped(si, entry));
- 	swap_cluster_unlock(ci);
- 
- 	/* In theory readahead might add it to the swap cache by accident */
+@@ -2305,7 +2305,7 @@ static int unuse_pte(struct vm_area_stru
+ 		new_pte = pte_mkuffd_wp(new_pte);
+ setpte:
+ 	set_pte_at(vma->vm_mm, addr, pte, new_pte);
+-	folio_put_swap(folio, page);
++	folio_put_swap(swapcache, folio_file_page(swapcache, swp_offset(entry)));
+ out:
+ 	if (pte)
+ 		pte_unmap_unlock(pte, ptl);
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from ryncsn@gmail.com are
 
-mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch
-mm-swap-rename-__read_swap_cache_async-to-swap_cache_alloc_folio.patch
-mm-swap-split-swap-cache-preparation-loop-into-a-standalone-helper.patch
-mm-swap-never-bypass-the-swap-cache-even-for-swp_synchronous_io.patch
-mm-swap-always-try-to-free-swap-cache-for-swp_synchronous_io-devices.patch
-mm-swap-simplify-the-code-and-reduce-indention.patch
-mm-swap-free-the-swap-cache-after-folio-is-mapped.patch
-mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io.patch
-mm-swap-swap-entry-of-a-bad-slot-should-not-be-considered-as-swapped-out.patch
-mm-swap-consolidate-cluster-reclaim-and-usability-check.patch
-mm-swap-split-locked-entry-duplicating-into-a-standalone-helper.patch
-mm-swap-use-swap-cache-as-the-swap-in-synchronize-layer.patch
-mm-swap-remove-workaround-for-unsynchronized-swap-map-cache-state.patch
 mm-swap-cleanup-swap-entry-management-workflow.patch
-mm-swap-add-folio-to-swap-cache-directly-on-allocation.patch
-mm-swap-check-swap-table-directly-for-checking-cache.patch
-mm-swap-clean-up-and-improve-swap-entries-freeing.patch
-mm-swap-drop-the-swap_has_cache-flag.patch
-mm-swap-remove-no-longer-needed-_swap_info_get.patch
 
