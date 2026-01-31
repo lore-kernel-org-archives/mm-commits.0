@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D7ED38A73C
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 702AB38A73C
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898333; cv=none; b=DCojWlKFZ+pApuMvzj2Tw0bTGpAQuN/TgqfAyp7u4YadwbsBWWq680z+1x0yAMRtpC7y+qayGlSDPzV6wL3VWRTECl8oTS2SydKmx0rDo/N1IdIwtlJfHiErhYk8pafaK2RB7abv71rbhY844p0f7S792+50Zk9fM6Glsrn9aGw=
+	t=1769898334; cv=none; b=PxjcMFNVkxTcdU1Xm1Q8G7q7bOQ4+bRBKSYkkJNSzJf0OTlE+BhrWqum8EXntVA4GM5+OpKiKO8VNIbF27Cxo06hizRCTQd3Kd4+punvjFgxD8zk+FMgSTRWAxlQm5e745PlEQTm37bp+E/4CSSDg2VPKuE7BhRFF95htyme4uk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898333; c=relaxed/simple;
-	bh=qJ3/YbVT6z6sEE9AJ0vxwe6HsmyEI7uC9oYRM2xDXHs=;
-	h=Date:To:From:Subject:Message-Id; b=fUdLfniEcs+J1DUV/2lF07dL1K/iBiC6lAaRea34OAnh/ZB5g1YB+CkUxlqk2bSlKF/SJNgyL3c0bfo044PHamIYIGAmxofP9UjhJ/8bHoKwfoH+LF1TnEjE149knMMOnDoreoiRnkmR+bVksggm0/OYyS+1iMQhRJU7W0QCfUo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C8E4NpLT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898334; c=relaxed/simple;
+	bh=hBTS3NeMKJCpagLW5ZUj/AXHHoDfZeO6j8fTHnw7ER8=;
+	h=Date:To:From:Subject:Message-Id; b=oJ648KbFOOSEtHtLkHVhzkEBe7fa2D4B+GN1dZYtt5I/icRkVjzK7SJ3FzZU0v6BflvF07DJ9MR4o+f+NGDkTy+rhHPpMm6nOEqY8GF9qAdRyg/Bh3bcklTJQ3C4Gi2dAD50KmMOTSrhAcFeML10z+uZIuuANhLOfvqHyyGS0ZQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yad6yYhE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C8E4NpLT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2508FC4CEF1;
-	Sat, 31 Jan 2026 22:25:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yad6yYhE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48874C4CEF1;
+	Sat, 31 Jan 2026 22:25:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898333;
-	bh=qJ3/YbVT6z6sEE9AJ0vxwe6HsmyEI7uC9oYRM2xDXHs=;
+	s=korg; t=1769898334;
+	bh=hBTS3NeMKJCpagLW5ZUj/AXHHoDfZeO6j8fTHnw7ER8=;
 	h=Date:To:From:Subject:From;
-	b=C8E4NpLTXSAO8SbiDQcTRqOdOXSXQVxCyR4Eni65E45esIIeEPFuxrRuC3gkxa8Yr
-	 39vhhJcrahDW0ICkuENSfNJSS5GpkeHWpwCAEPx+p5e09o1oEi223gUW/uNLIysDgJ
-	 od+KsX9STPlO3UvI1t+1Hxfor5LBgGpg3pZkQxlk=
-Date: Sat, 31 Jan 2026 14:25:32 -0800
+	b=Yad6yYhEJzXA+pSewj37H9/6HkfuLSWG24mDZmRnpzfnV2jAwyARWGJfvs5wX9Wi3
+	 ROWMU2qvOHA23nDYuYW/wRCu6zig62bzTdWHz390BFw+Iqx/FQbSV2h1LWgyS1Mr8L
+	 19P5AtgE6LZ8+h3vTPpc3p5ZV5ULrFQ6sZG0ky8I=
+Date: Sat, 31 Jan 2026 14:25:33 -0800
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-remove-damon_operations-cleanup.patch removed from -mm tree
-Message-Id: <20260131222533.2508FC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-cleanup-targets-and-regions-at-once-on-kdamond-termination.patch removed from -mm tree
+Message-Id: <20260131222534.48874C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,112 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: remove damon_operations->cleanup()
+     Subject: mm/damon/core: cleanup targets and regions at once on kdamond termination
 has been removed from the -mm tree.  Its filename was
-     mm-damon-remove-damon_operations-cleanup.patch
+     mm-damon-core-cleanup-targets-and-regions-at-once-on-kdamond-termination.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: remove damon_operations->cleanup()
-Date: Sat, 17 Jan 2026 09:52:48 -0800
+Subject: mm/damon/core: cleanup targets and regions at once on kdamond termination
+Date: Sat, 17 Jan 2026 09:52:49 -0800
 
-Patch series "mm/damon: cleanup kdamond, damon_call(), damos filter and
-DAMON_MIN_REGION".
+When kdamond terminates, it destroys the regions of the context first, and
+the targets of the context just before the kdamond main function returns. 
+Because regions are linked inside targets, doing them separately is only
+inefficient and looks weird.  A more serious problem is that the cleanup
+of the targets is done after damon_ctx->kdamond reset, which is the event
+that lets DAMON API callers know the kdamond is no longer actively
+running.  That is, some DAMON targets could still exist while kdamond is
+not running.  There are no real problems from this, but this implicit fact
+could cause subtle racy issues in future.  Destroy targets and regions at
+one.
 
-Do miscellaneous code cleanups for improving readability.  First three
-patches cleanup kdamond termination process, by removing unused operation
-set cleanup callback (patch 1) and moving damon_ctx specific resource
-cleanups on kdamond termination to synchronization-easy place (patches 2
-and 3).  Next two patches touch damon_call() infrastructure, by
-refactoring kdamond_call() function to do less and simpler locking
-operations (patch 4), and documenting when dealloc_on_free does work
-(patch 5).  Final three patches rename things for clear uses of those. 
-Those rename damos_filter_out() to be more explicit about the fact that it
-is only for core-handled filters (patch 6), DAMON_MIN_REGION macro to be
-more explicit it is not about number of regions but size of each region
-(patch 7), and damon_ctx->min_sz_region to be different from
-damos_access_patern->min_sz_region (patch 8), so that those are not
-confusing and easy to grep.
+Adding contexts on how the code has evolved in the way.  Doing only
+regions destruction was because putting pids of the targets were done on
+DAMON API callers.  Commit 7114bc5e01cf ("mm/damon/core: add
+cleanup_target() ops callback") moved the role to be done via operations
+set on each target destruction.  Hence it removed the reason to do only
+regions cleanup.  Commit 3a69f1635769 ("mm/damon/core: destroy targets
+when kdamond_fn() finish") therefore further destructed targets on kdamond
+termination time.  It was still separated from regions destruction because
+damon_operations->cleanup() may do additional targets cleanup.  Placing
+the targets destruction after damon_ctx->kdamond reset was just an
+unnecessary decision of the commit.  The previous commit removed
+damon_operations->cleanup(), so there is no more reason to do destructions
+of regions and targets separately.
 
-
-This patch (of 8):
-
-damon_operations->cleanup() was added for a case that an operation set
-implementation requires additional cleanups.  But no such implementation
-exists at the moment.  Remove it.
-
-Link: https://lkml.kernel.org/r/20260117175256.82826-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20260117175256.82826-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260117175256.82826-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    3 ---
- mm/damon/core.c       |    2 --
- mm/damon/paddr.c      |    1 -
- mm/damon/vaddr.c      |    1 -
- 4 files changed, 7 deletions(-)
+ mm/damon/core.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-remove-damon_operations-cleanup
-+++ a/include/linux/damon.h
-@@ -607,7 +607,6 @@ enum damon_ops_id {
-  * @apply_scheme:		Apply a DAMON-based operation scheme.
-  * @target_valid:		Determine if the target is valid.
-  * @cleanup_target:		Clean up each target before deallocation.
-- * @cleanup:			Clean up the context.
-  *
-  * DAMON can be extended for various address spaces and usages.  For this,
-  * users should register the low level operations for their target address
-@@ -640,7 +639,6 @@ enum damon_ops_id {
-  * @target_valid should check whether the target is still valid for the
-  * monitoring.
-  * @cleanup_target is called before the target will be deallocated.
-- * @cleanup is called from @kdamond just before its termination.
-  */
- struct damon_operations {
- 	enum damon_ops_id id;
-@@ -656,7 +654,6 @@ struct damon_operations {
- 			struct damos *scheme, unsigned long *sz_filter_passed);
- 	bool (*target_valid)(struct damon_target *t);
- 	void (*cleanup_target)(struct damon_target *t);
--	void (*cleanup)(struct damon_ctx *context);
- };
- 
- /*
---- a/mm/damon/core.c~mm-damon-remove-damon_operations-cleanup
+--- a/mm/damon/core.c~mm-damon-core-cleanup-targets-and-regions-at-once-on-kdamond-termination
 +++ a/mm/damon/core.c
-@@ -2859,8 +2859,6 @@ done:
- 			damon_destroy_region(r, t);
- 	}
+@@ -2748,8 +2748,6 @@ static void kdamond_init_ctx(struct damo
+ static int kdamond_fn(void *data)
+ {
+ 	struct damon_ctx *ctx = data;
+-	struct damon_target *t;
+-	struct damon_region *r, *next;
+ 	unsigned int max_nr_accesses = 0;
+ 	unsigned long sz_limit = 0;
  
--	if (ctx->ops.cleanup)
--		ctx->ops.cleanup(ctx);
+@@ -2854,10 +2852,7 @@ static int kdamond_fn(void *data)
+ 		}
+ 	}
+ done:
+-	damon_for_each_target(t, ctx) {
+-		damon_for_each_region_safe(r, next, t)
+-			damon_destroy_region(r, t);
+-	}
++	damon_destroy_targets(ctx);
+ 
  	kfree(ctx->regions_score_histogram);
  	kdamond_call(ctx, true);
+@@ -2875,7 +2870,6 @@ done:
+ 		running_exclusive_ctxs = false;
+ 	mutex_unlock(&damon_lock);
  
---- a/mm/damon/paddr.c~mm-damon-remove-damon_operations-cleanup
-+++ a/mm/damon/paddr.c
-@@ -373,7 +373,6 @@ static int __init damon_pa_initcall(void
- 		.prepare_access_checks = damon_pa_prepare_access_checks,
- 		.check_accesses = damon_pa_check_accesses,
- 		.target_valid = NULL,
--		.cleanup = NULL,
- 		.apply_scheme = damon_pa_apply_scheme,
- 		.get_scheme_score = damon_pa_scheme_score,
- 	};
---- a/mm/damon/vaddr.c~mm-damon-remove-damon_operations-cleanup
-+++ a/mm/damon/vaddr.c
-@@ -1014,7 +1014,6 @@ static int __init damon_va_initcall(void
- 		.check_accesses = damon_va_check_accesses,
- 		.target_valid = damon_va_target_valid,
- 		.cleanup_target = damon_va_cleanup_target,
--		.cleanup = NULL,
- 		.apply_scheme = damon_va_apply_scheme,
- 		.get_scheme_score = damon_va_scheme_score,
- 	};
+-	damon_destroy_targets(ctx);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
