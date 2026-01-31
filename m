@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A52F376479
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 21:53:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F9BD376479
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 21:54:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769896440; cv=none; b=qMbsfNN7A213P9U2ZXuzp2u4Dw6XQB9ikTrmsTQxFoW60xSEf/2+ZfcSEJDGpoOdOobrWC9O/DZCAP8fTIiNMZ3ymeHibM8Z7nZLX3fPIvarXpjCOTBqGuwCl4+/WcUEM5sb0vnwSmbnvQM+UoRSubeQFU+MVlT8QEBRru5TdQU=
+	t=1769896475; cv=none; b=UXoiM2qCAIHm01Q+8vIh55NZL1XEvl1TP5oD6brccVzCWdDRTMpxuR25Wh78FuGDo0UDU5YO/qAIFfGL3u59lFWpkOIQmTCZG95sVs/0Ua7k7YW1I+RbHgdFmEvlAv7bB5mqRaJZy61EV+jG5KU4KhB17E8muyKPjL1hAHCaOI8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769896440; c=relaxed/simple;
-	bh=9cIahVcb3kPe5SKaDGHHXm759jCp135lH9/A5fTArNs=;
-	h=Date:To:From:Subject:Message-Id; b=JDu2j+RJVvWcvdspI90neSZFP61ggXYr2uBoRdIWHwDD6N7mnnUuhG5ClVRPkfCitz+2sgVQRpVJa9NSuG1SmkPzT9tgSznJ48PRfE7RVCBREyKm/JbpV4KJn1uTME+1Q04Iw1mIgETj+w4H0A10qcz3635AadJtWMK069WKq4s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=alxEScu3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769896475; c=relaxed/simple;
+	bh=7f20Th8hGIrCabUBbCMVkOxaKOh/NjLFT0d9nhPY/pg=;
+	h=Date:To:From:Subject:Message-Id; b=LTw+KKgDg6sdW7koL/5bnRLp2eGJ4tfZXNQGhFcx57o//pT6vH808KEV5sEK1in1zCw71L2TGILpozepmjGI62u2lOm+w/TwN8PY0fmvpFrPjPpHw2LIMw4j9n7i9FT+riuKWgBjmwHJaO3naSxyAQ7R4K9FxHyCVS56UXlSYqA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o2hLIqoU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="alxEScu3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFAC5C4CEF1;
-	Sat, 31 Jan 2026 21:53:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o2hLIqoU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F358C4CEF1;
+	Sat, 31 Jan 2026 21:54:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769896439;
-	bh=9cIahVcb3kPe5SKaDGHHXm759jCp135lH9/A5fTArNs=;
+	s=korg; t=1769896475;
+	bh=7f20Th8hGIrCabUBbCMVkOxaKOh/NjLFT0d9nhPY/pg=;
 	h=Date:To:From:Subject:From;
-	b=alxEScu3GTTJYoVhivrct5dO0TSvfR1PgMFDFlcSzfRMli8n7+wz/W1Z/Wi9yoN61
-	 ENbv+Yrm6XpGpIdu0jbNA77pqA270Yz/S1dniQBXvyQd4gVXNcbwJ3Mdc7n6sfOvm0
-	 Dx6LvLoGS9F5B76bZGlPXFKr8Vb+P7Els/CzbajI=
-Date: Sat, 31 Jan 2026 13:53:59 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,marco.crivellari@suse.com,bigeasy@linutronix.de,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=o2hLIqoU+SB0+TE6Ksm3xvgqZ7AQRHd6DiLaTBw3SO1LD5sV9Gm+BuQVlL2zl2QuS
+	 tMfckTJyvHtlUwI/BGnSW+RUpcRl0fnQyPd2xxy7JdKzLMj3jtZ3CztWBwElXdZ/S2
+	 m7zFV/5BQZTbaBbqBwVI9mHfDRPHrC6rMT24Gz/4=
+Date: Sat, 31 Jan 2026 13:54:34 -0800
+To: mm-commits@vger.kernel.org,kevin.brodsky@arm.com,andreas@gaisler.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix.patch removed from -mm tree
-Message-Id: <20260131215359.BFAC5C4CEF1@smtp.kernel.org>
+Subject: [folded-merged] sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch removed from -mm tree
+Message-Id: <20260131215435.2F358C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix
+     Subject: sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix.patch
+     sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
 
-This patch was dropped because it was folded into mm-add-wq_percpu-to-alloc_workqueue-users.patch
+This patch was dropped because it was folded into sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix
-Date: Sat Jan 24 03:20:32 PM PST 2026
+Subject: sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix
+Date: Wed Jan 21 09:06:56 AM PST 2026
 
-fix kmem_cache_init_late() properly, per Sebastian
+remove mm/tests/lazy_mmu_mode_kunit.c comment, per Kevin
 
-Cc: Marco Crivellari <marco.crivellari@suse.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/tests/lazy_mmu_mode_kunit.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/slub.c~mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix
-+++ a/mm/slub.c
-@@ -8542,11 +8542,9 @@ void __init kmem_cache_init(void)
+--- a/mm/tests/lazy_mmu_mode_kunit.c~sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix
++++ a/mm/tests/lazy_mmu_mode_kunit.c
+@@ -2,7 +2,6 @@
+ #include <kunit/test.h>
+ #include <linux/pgtable.h>
  
- void __init kmem_cache_init_late(void)
- {
--#ifndef CONFIG_SLUB_TINY
- 	flushwq = alloc_workqueue("slub_flushwq", WQ_MEM_RECLAIM | WQ_PERCPU,
- 				  0);
- 	WARN_ON(!flushwq);
--#endif
- }
+-/* For some symbols referenced by arch_{enter,leave}_lazy_mmu_mode on powerpc */
+ MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
  
- struct kmem_cache *
+ static void expect_not_active(struct kunit *test)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch
-mm-add-wq_percpu-to-alloc_workqueue-users.patch
-sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
+sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests.patch
 mm-vma-document-possible-vma-vm_refcnt-values-and-reference-comment-fix.patch
 mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix.patch
 mm-pagewalk-use-min-to-simplify-the-code-fix.patch
