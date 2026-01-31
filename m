@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A146020CCDC
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F45020CCDC
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898286; cv=none; b=A+Umwqi1etTEWjfyZYTIdoQ812vynr9+CK46QtctkcOS+efOmXEpiSBjpm95WJQ11tU/UaZoeNiGCwyqn4sz4D59FeA0odjtwf9n7jKivpG1pDO/54jxu59uuLt9Ou2mYmMTE07YoudHDM06an3a1VaJUNGz/fa/tiqWIaUkI84=
+	t=1769898288; cv=none; b=BChEWFQ1i5GJyTTbTF5GJMFwnAvNHxCCDQXJu8B7j3HzEBaPc30lbApKYb3bmZYaWadybycxM9btS6hENk7nvtaIl5jZ4juQpmO2QrK3MI4AfwVBbPBqgjEug89br9kAwf+mc+xRyrr14zai3dhgHXf00URDmsUdVmTtp3c29ZE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898286; c=relaxed/simple;
-	bh=a8/VB1m1Nf8qZUNPcOFSCV0VYhX+cTIKGTCULlI+qLc=;
-	h=Date:To:From:Subject:Message-Id; b=ZJSmjCwBN/QCzDa2w8eGfuUvlVBmIuVu727ouwTtV7iqqYSmT7QmnJ1YloyZka1RiSaldCLCr6ARD56rVj9+fLKZgDobc9J773DRj8sNHSQECEwAUathubEaibU2tPBj6L7RKVaJYuOVbQMt4frtfWS1ZvKL8Kxqj++Z3u4I5c0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ch0SrwG4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898288; c=relaxed/simple;
+	bh=DgK6e8jZXZaB/N1sdfUuYKk8BrI1fY5eAZGH69NpwMU=;
+	h=Date:To:From:Subject:Message-Id; b=L/Mkv7g5oxVlOZ3uSI3woIb9GcrasBVX8z3J2F3772ihmw4EBAXr8KPn2HaEZDLvY3q6t70//Wx6PZ6v1z+qah57lBKXkOTS5Vnd4r5n1PL2NB1knGtJ8tgLHD4Z2701LOSBfpDVSRSFA5mySBnBuY3dk3XuvB0wR4ad1tLHLg4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iq1O+XMg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ch0SrwG4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71A7DC4CEF1;
-	Sat, 31 Jan 2026 22:24:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iq1O+XMg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 656E7C4CEF1;
+	Sat, 31 Jan 2026 22:24:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898286;
-	bh=a8/VB1m1Nf8qZUNPcOFSCV0VYhX+cTIKGTCULlI+qLc=;
+	s=korg; t=1769898288;
+	bh=DgK6e8jZXZaB/N1sdfUuYKk8BrI1fY5eAZGH69NpwMU=;
 	h=Date:To:From:Subject:From;
-	b=ch0SrwG4KisfcUfuz0REefVeGKiqUT2EBjEU5f+9q6tmcAonosrM9OvMom6wMErds
-	 9QtjsaNBEI2mi/XFOBU0nDyXIQttx5leorL3YAMdh0b3Jf5TzLkDFnHOs9yASFgcV6
-	 7JqXT2dbQ6ZdeFzZurmR7cpKYsrPbMQ85WI0VTbo=
-Date: Sat, 31 Jan 2026 14:24:45 -0800
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,sweettea-kernel@dorminy.me,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,richard.weiyang@gmail.com,paulmck@kernel.org,mjguzik@gmail.com,mhocko@suse.com,mhiramat@kernel.org,lorenzo.stoakes@oracle.com,liumartin@google.com,linmiaohe@huawei.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,cl@linux.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,aboorvad@linux.ibm.com,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org
+	b=Iq1O+XMgDpanRyaqzLNCz7I6Raw32MrR6AiwWvCbp+cQ7nvBRPf8PwCORJHjGfYlM
+	 Iayx+NesrSo31YDyf8aBXtQrvdD6XBVOKZ0KWNm9ic9EAjVF9iQj48cyx+6B+6Fo/O
+	 XCv1xr2W+lIRnwv28o8pdy5iKBmKi0VkA+PH49Lg=
+Date: Sat, 31 Jan 2026 14:24:47 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jiayuan.chen@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,jiayuan.chen@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch removed from -mm tree
-Message-Id: <20260131222446.71A7DC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch removed from -mm tree
+Message-Id: <20260131222448.656E7C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,197 +35,247 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: fix OOM killer inaccuracy on large many-core systems
+     Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
 has been removed from the -mm tree.  Its filename was
-     mm-fix-oom-killer-inaccuracy-on-large-many-core-systems.patch
+     mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: mm: fix OOM killer inaccuracy on large many-core systems
-Date: Wed, 14 Jan 2026 09:36:42 -0500
+From: Jiayuan Chen <jiayuan.chen@shopee.com>
+Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
+Date: Tue, 20 Jan 2026 10:43:48 +0800
 
-Use the precise, albeit slower, precise RSS counter sums for the OOM
-killer task selection and console dumps.  The approximated value is too
-imprecise on large many-core systems.
+Patch series "mm/vmscan: add tracepoint and reason for kswapd_failures
+reset", v4.
 
-The following rss tracking issues were noted by Sweet Tea Dorminy [1],
-which lead to picking wrong tasks as OOM kill target:
+Currently, kswapd_failures is reset in multiple places (kswapd,
+direct reclaim, PCP freeing, memory-tiers), but there's no way to
+trace when and why it was reset, making it difficult to debug
+memory reclaim issues.
 
-  Recently, several internal services had an RSS usage regression as part of a
-  kernel upgrade. Previously, they were on a pre-6.2 kernel and were able to
-  read RSS statistics in a backup watchdog process to monitor and decide if
-  they'd overrun their memory budget. Now, however, a representative service
-  with five threads, expected to use about a hundred MB of memory, on a 250-cpu
-  machine had memory usage tens of megabytes different from the expected amount
-  -- this constituted a significant percentage of inaccuracy, causing the
-  watchdog to act.
+This patch:
 
-  This was a result of commit f1a7941243c1 ("mm: convert mm's rss stats
-  into percpu_counter") [1].  Previously, the memory error was bounded by
-  64*nr_threads pages, a very livable megabyte. Now, however, as a result of
-  scheduler decisions moving the threads around the CPUs, the memory error could
-  be as large as a gigabyte.
+1. Introduce kswapd_clear_hopeless() as a wrapper function to
+   centralize kswapd_failures reset logic.
 
-  This is a really tremendous inaccuracy for any few-threaded program on a
-  large machine and impedes monitoring significantly. These stat counters are
-  also used to make OOM killing decisions, so this additional inaccuracy could
-  make a big difference in OOM situations -- either resulting in the wrong
-  process being killed, or in less memory being returned from an OOM-kill than
-  expected.
+2. Introduce kswapd_test_hopeless() to encapsulate hopeless node
+   checks, replacing all open-coded kswapd_failures comparisons.
 
-Here is a (possibly incomplete) list of the prior approaches that were
-used or proposed, along with their downside:
+3. Add kswapd_clear_hopeless_reason enum to distinguish reset sources:
+   - KSWAPD_CLEAR_HOPELESS_KSWAPD: reset from kswapd context
+   - KSWAPD_CLEAR_HOPELESS_DIRECT: reset from direct reclaim
+   - KSWAPD_CLEAR_HOPELESS_PCP: reset from PCP page freeing
+   - KSWAPD_CLEAR_HOPELESS_OTHER: reset from other paths
 
-1) Per-thread rss tracking: large error on many-thread processes.
+4. Add tracepoints for better observability:
+   - mm_vmscan_kswapd_clear_hopeless: traces each reset with reason
+   - mm_vmscan_kswapd_reclaim_fail: traces each kswapd reclaim failure
 
-2) Per-CPU counters: up to 12% slower for short-lived processes and 9%
-   increased system time in make test workloads [1]. Moreover, the
-   inaccuracy increases with O(n^2) with the number of CPUs.
+Test results:
 
-3) Per-NUMA-node counters: requires atomics on fast-path (overhead),
-   error is high with systems that have lots of NUMA nodes (32 times
-   the number of NUMA nodes).
+$ trace-cmd record -e vmscan:mm_vmscan_kswapd_clear_hopeless -e vmscan:mm_vmscan_kswapd_reclaim_fail
+$ # generate memory pressure
+$ trace-cmd report
+cpus=4
+ kswapd0-71    [000]    27.216563: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=1
+ kswapd0-71    [000]    27.217169: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=2
+ kswapd0-71    [000]    27.217764: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=3
+ kswapd0-71    [000]    27.218353: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=4
+ kswapd0-71    [000]    27.218993: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=5
+ kswapd0-71    [000]    27.219744: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=6
+ kswapd0-71    [000]    27.220488: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=7
+ kswapd0-71    [000]    27.221206: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=8
+ kswapd0-71    [000]    27.221806: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=9
+ kswapd0-71    [000]    27.222634: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=10
+ kswapd0-71    [000]    27.223286: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=11
+ kswapd0-71    [000]    27.223894: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=12
+ kswapd0-71    [000]    27.224712: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=13
+ kswapd0-71    [000]    27.225424: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=14
+ kswapd0-71    [000]    27.226082: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=15
+ kswapd0-71    [000]    27.226810: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=16
+ kswapd1-72    [002]    27.386869: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=1
+ kswapd1-72    [002]    27.387435: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=2
+ kswapd1-72    [002]    27.388016: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=3
+ kswapd1-72    [002]    27.388586: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=4
+ kswapd1-72    [002]    27.389155: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=5
+ kswapd1-72    [002]    27.389723: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=6
+ kswapd1-72    [002]    27.390292: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=7
+ kswapd1-72    [002]    27.392364: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=8
+ kswapd1-72    [002]    27.392934: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=9
+ kswapd1-72    [002]    27.393504: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=10
+ kswapd1-72    [002]    27.394073: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=11
+ kswapd1-72    [002]    27.394899: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=12
+ kswapd1-72    [002]    27.395472: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=13
+ kswapd1-72    [002]    27.396055: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=14
+ kswapd1-72    [002]    27.396628: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=15
+ kswapd1-72    [002]    27.397199: mm_vmscan_kswapd_reclaim_fail: nid=1 failures=16
+kworker/u18:0-40    [002]    27.410151: mm_vmscan_kswapd_clear_hopeless: nid=0 reason=DIRECT
+ kswapd0-71    [000]    27.439454: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=1
+ kswapd0-71    [000]    27.440048: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=2
+ kswapd0-71    [000]    27.440634: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=3
+ kswapd0-71    [000]    27.441211: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=4
+ kswapd0-71    [000]    27.441787: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=5
+ kswapd0-71    [000]    27.442363: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=6
+ kswapd0-71    [000]    27.443030: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=7
+ kswapd0-71    [000]    27.443725: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=8
+ kswapd0-71    [000]    27.444315: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=9
+ kswapd0-71    [000]    27.444898: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=10
+ kswapd0-71    [000]    27.445476: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=11
+ kswapd0-71    [000]    27.446053: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=12
+ kswapd0-71    [000]    27.446646: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=13
+ kswapd0-71    [000]    27.447230: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=14
+ kswapd0-71    [000]    27.447812: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=15
+ kswapd0-71    [000]    27.448391: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=16
+ ann-423   [003]    28.028285: mm_vmscan_kswapd_clear_hopeless: nid=0 reason=PCP
 
-commit 82241a83cd15 ("mm: fix the inaccurate memory statistics issue for
-users") introduced get_mm_counter_sum() for precise proc memory status
-queries for some proc files.
 
-The simple fix proposed here is to do the precise per-cpu counters sum
-every time a counter value needs to be read.  This applies to the OOM
-killer task selection, oom task console dumps (printk).
+This patch (of 2):
 
-This change increases the latency introduced when the OOM killer executes
-in favor of doing a more precise OOM target task selection.  Effectively,
-the OOM killer iterates on all tasks, for all relevant page types, for
-which the precise sum iterates on all possible CPUs.
+When kswapd fails to reclaim memory, kswapd_failures is incremented.  Once
+it reaches MAX_RECLAIM_RETRIES, kswapd stops running to avoid futile
+reclaim attempts.  However, any successful direct reclaim unconditionally
+resets kswapd_failures to 0, which can cause problems.
 
-As a reference, here is the execution time of the OOM killer before/after
-the change:
+We observed an issue in production on a multi-NUMA system where a process
+allocated large amounts of anonymous pages on a single NUMA node, causing
+its watermark to drop below high and evicting most file pages:
 
-AMD EPYC 9654 96-Core (2 sockets)
-Within a KVM, configured with 256 logical cpus.
+$ numastat -m
+Per-node system memory usage (in MBs):
+                          Node 0          Node 1           Total
+                 --------------- --------------- ---------------
+MemTotal               128222.19       127983.91       256206.11
+MemFree                  1414.48         1432.80         2847.29
+MemUsed                126807.71       126551.11       252358.82
+SwapCached                  0.00            0.00            0.00
+Active                  29017.91        25554.57        54572.48
+Inactive                92749.06        95377.00       188126.06
+Active(anon)            28998.96        23356.47        52355.43
+Inactive(anon)          92685.27        87466.11       180151.39
+Active(file)               18.95         2198.10         2217.05
+Inactive(file)             63.79         7910.89         7974.68
 
-                                  |  before  |  after   |
-----------------------------------|----------|----------|
-nr_processes=40                   |  0.3 ms  |   0.5 ms |
-nr_processes=10000                |  3.0 ms  |  80.0 ms |
+With swap disabled, only file pages can be reclaimed.  When kswapd is
+woken (e.g., via wake_all_kswapds()), it runs continuously but cannot
+raise free memory above the high watermark since reclaimable file pages
+are insufficient.  Normally, kswapd would eventually stop after
+kswapd_failures reaches MAX_RECLAIM_RETRIES.
 
-Link: https://lkml.kernel.org/r/20260114143642.47333-1-mathieu.desnoyers@efficios.com
-Fixes: f1a7941243c1 ("mm: convert mm's rss stats into percpu_counter")
-Link: https://lore.kernel.org/lkml/20250331223516.7810-2-sweettea-kernel@dorminy.me/ # [1]
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Martin Liu <liumartin@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+However, containers on this machine have memory.high set in their cgroup. 
+Business processes continuously trigger the high limit, causing frequent
+direct reclaim that keeps resetting kswapd_failures to 0.  This prevents
+kswapd from ever stopping.
+
+The key insight is that direct reclaim triggered by cgroup memory.high
+performs aggressive scanning to throttle the allocating process.  With
+sufficiently aggressive scanning, even hot pages will eventually be
+reclaimed, making direct reclaim "successful" at freeing some memory. 
+However, this success does not mean the node has reached a balanced state
+- the freed memory may still be insufficient to bring free pages above the
+high watermark.  Unconditionally resetting kswapd_failures in this case
+keeps kswapd alive indefinitely.
+
+The result is that kswapd runs endlessly.  Unlike direct reclaim which
+only reclaims from the allocating cgroup, kswapd scans the entire node's
+memory.  This causes hot file pages from all workloads on the node to be
+evicted, not just those from the cgroup triggering memory.high.  These
+pages constantly refault, generating sustained heavy IO READ pressure
+across the entire system.
+
+Fix this by only resetting kswapd_failures when the node is actually
+balanced.  This allows both kswapd and direct reclaim to clear
+kswapd_failures upon successful reclaim, but only when the reclaim
+actually resolves the memory pressure (i.e., the node becomes balanced).
+
+Link: https://lkml.kernel.org/r/20260120024402.387576-1-jiayuan.chen@linux.dev
+Link: https://lkml.kernel.org/r/20260120024402.387576-2-jiayuan.chen@linux.dev
+Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
+Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: "Liam R . Howlett" <liam.howlett@oracle.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    7 +++++++
- mm/oom_kill.c      |   22 +++++++++++-----------
- 2 files changed, 18 insertions(+), 11 deletions(-)
+ include/linux/mmzone.h |    2 ++
+ mm/vmscan.c            |   22 ++++++++++++++++++++--
+ 2 files changed, 22 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm.h~mm-fix-oom-killer-inaccuracy-on-large-many-core-systems
-+++ a/include/linux/mm.h
-@@ -2906,6 +2906,13 @@ static inline unsigned long get_mm_rss(s
- 		get_mm_counter(mm, MM_SHMEMPAGES);
+--- a/include/linux/mmzone.h~mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim
++++ a/include/linux/mmzone.h
+@@ -1536,6 +1536,8 @@ static inline unsigned long pgdat_end_pf
+ void build_all_zonelists(pg_data_t *pgdat);
+ void wakeup_kswapd(struct zone *zone, gfp_t gfp_mask, int order,
+ 		   enum zone_type highest_zoneidx);
++void kswapd_try_clear_hopeless(struct pglist_data *pgdat,
++			       unsigned int order, int highest_zoneidx);
+ bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
+ 			 int highest_zoneidx, unsigned int alloc_flags,
+ 			 long free_pages);
+--- a/mm/vmscan.c~mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim
++++ a/mm/vmscan.c
+@@ -5065,7 +5065,7 @@ static void lru_gen_shrink_node(struct p
+ 	blk_finish_plug(&plug);
+ done:
+ 	if (sc->nr_reclaimed > reclaimed)
+-		atomic_set(&pgdat->kswapd_failures, 0);
++		kswapd_try_clear_hopeless(pgdat, sc->order, sc->reclaim_idx);
  }
  
-+static inline unsigned long get_mm_rss_sum(struct mm_struct *mm)
+ /******************************************************************************
+@@ -6132,7 +6132,7 @@ again:
+ 	 * successful direct reclaim run will revive a dormant kswapd.
+ 	 */
+ 	if (reclaimable)
+-		atomic_set(&pgdat->kswapd_failures, 0);
++		kswapd_try_clear_hopeless(pgdat, sc->order, sc->reclaim_idx);
+ 	else if (sc->cache_trim_mode)
+ 		sc->cache_trim_mode_failed = 1;
+ }
+@@ -7391,6 +7391,24 @@ void wakeup_kswapd(struct zone *zone, gf
+ 	wake_up_interruptible(&pgdat->kswapd_wait);
+ }
+ 
++static void kswapd_clear_hopeless(pg_data_t *pgdat)
 +{
-+	return get_mm_counter_sum(mm, MM_FILEPAGES) +
-+		get_mm_counter_sum(mm, MM_ANONPAGES) +
-+		get_mm_counter_sum(mm, MM_SHMEMPAGES);
++	atomic_set(&pgdat->kswapd_failures, 0);
 +}
 +
- static inline unsigned long get_mm_hiwater_rss(struct mm_struct *mm)
- {
- 	return max(mm->hiwater_rss, get_mm_rss(mm));
---- a/mm/oom_kill.c~mm-fix-oom-killer-inaccuracy-on-large-many-core-systems
-+++ a/mm/oom_kill.c
-@@ -228,7 +228,7 @@ long oom_badness(struct task_struct *p,
- 	 * The baseline for the badness score is the proportion of RAM that each
- 	 * task's rss, pagetable and swap space use.
- 	 */
--	points = get_mm_rss(p->mm) + get_mm_counter(p->mm, MM_SWAPENTS) +
-+	points = get_mm_rss_sum(p->mm) + get_mm_counter_sum(p->mm, MM_SWAPENTS) +
- 		mm_pgtables_bytes(p->mm) / PAGE_SIZE;
- 	task_unlock(p);
- 
-@@ -402,10 +402,10 @@ static int dump_task(struct task_struct
- 
- 	pr_info("[%7d] %5d %5d %8lu %8lu %8lu %8lu %9lu %8ld %8lu         %5hd %s\n",
- 		task->pid, from_kuid(&init_user_ns, task_uid(task)),
--		task->tgid, task->mm->total_vm, get_mm_rss(task->mm),
--		get_mm_counter(task->mm, MM_ANONPAGES), get_mm_counter(task->mm, MM_FILEPAGES),
--		get_mm_counter(task->mm, MM_SHMEMPAGES), mm_pgtables_bytes(task->mm),
--		get_mm_counter(task->mm, MM_SWAPENTS),
-+		task->tgid, task->mm->total_vm, get_mm_rss_sum(task->mm),
-+		get_mm_counter_sum(task->mm, MM_ANONPAGES), get_mm_counter_sum(task->mm, MM_FILEPAGES),
-+		get_mm_counter_sum(task->mm, MM_SHMEMPAGES), mm_pgtables_bytes(task->mm),
-+		get_mm_counter_sum(task->mm, MM_SWAPENTS),
- 		task->signal->oom_score_adj, task->comm);
- 	task_unlock(task);
- 
-@@ -604,9 +604,9 @@ static bool oom_reap_task_mm(struct task
- 
- 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
- 			task_pid_nr(tsk), tsk->comm,
--			K(get_mm_counter(mm, MM_ANONPAGES)),
--			K(get_mm_counter(mm, MM_FILEPAGES)),
--			K(get_mm_counter(mm, MM_SHMEMPAGES)));
-+			K(get_mm_counter_sum(mm, MM_ANONPAGES)),
-+			K(get_mm_counter_sum(mm, MM_FILEPAGES)),
-+			K(get_mm_counter_sum(mm, MM_SHMEMPAGES)));
- out_finish:
- 	trace_finish_task_reaping(tsk->pid);
- out_unlock:
-@@ -960,9 +960,9 @@ static void __oom_kill_process(struct ta
- 	mark_oom_victim(victim);
- 	pr_err("%s: Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB, UID:%u pgtables:%lukB oom_score_adj:%d\n",
- 		message, task_pid_nr(victim), victim->comm, K(mm->total_vm),
--		K(get_mm_counter(mm, MM_ANONPAGES)),
--		K(get_mm_counter(mm, MM_FILEPAGES)),
--		K(get_mm_counter(mm, MM_SHMEMPAGES)),
-+		K(get_mm_counter_sum(mm, MM_ANONPAGES)),
-+		K(get_mm_counter_sum(mm, MM_FILEPAGES)),
-+		K(get_mm_counter_sum(mm, MM_SHMEMPAGES)),
- 		from_kuid(&init_user_ns, task_uid(victim)),
- 		mm_pgtables_bytes(mm) >> 10, victim->signal->oom_score_adj);
- 	task_unlock(victim);
++/*
++ * Reset kswapd_failures only when the node is balanced. Without this
++ * check, successful direct reclaim (e.g., from cgroup memory.high
++ * throttling) can keep resetting kswapd_failures even when the node
++ * cannot be balanced, causing kswapd to run endlessly.
++ */
++void kswapd_try_clear_hopeless(struct pglist_data *pgdat,
++			       unsigned int order, int highest_zoneidx)
++{
++	if (pgdat_balanced(pgdat, order, highest_zoneidx))
++		kswapd_clear_hopeless(pgdat);
++}
++
+ #ifdef CONFIG_HIBERNATION
+ /*
+  * Try to free `nr_to_reclaim' of memory, system-wide, and return the number of
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
+Patches currently in -mm which might be from jiayuan.chen@shopee.com are
 
 
