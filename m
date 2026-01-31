@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3B9520CCDC;
-	Sat, 31 Jan 2026 22:24:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CA4420CCDC
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898291; cv=none; b=CfNAYO7guz/Jv9O1OSMn+SrOKF4fUs6qmcsX1SyEBI6Dr5/dOUr5cU4KVD1PUSgSVTKUNOb8PXVldP4I9L3h8cf0PsgtxScEKWWeIz1vH45MM5uhLfmDk9zdWmlGLi8YygUArdPzMHRzvaBfARDXv8CqTyAXspRbd6VrYm1QbJw=
+	t=1769898293; cv=none; b=cEEueA91ve7JJO/bsaQtbd3h1W4hMwv9x7wFgNkARFTTv4dcxxjcb5Tn8Pwn77B2sDDz0smV3gR6koWUeMrafcSk1SZtgwky7MUN7MvZbVIAqk79oipWG609bQKdabS2Ymr4267TbHdT/6CwTfdUzcbKhVhwPAHZzVJCUg2l81E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898291; c=relaxed/simple;
-	bh=V+BiavjyoArCY0Gz4a3ZTCVJkwpV6iO+ERzBiPfV9a0=;
-	h=Date:To:From:Subject:Message-Id; b=q0+MBmS7fxwDz+oUeCWJah6Jrsg4g+KklQud3YPsxG1MUKSILYoATJhNDt6jBxKV1YvVvJl/iwUft3pQrPvU6mSEMxBt8JHne5WC0Qkae4LXPZYL6UNT90ZtJBCl+sA1pM/W2aqfT6L0dJPbRV1kUvfGFp1OqQAH58C/MKGCaTw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m0FLgLAv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898293; c=relaxed/simple;
+	bh=CoFlG9h14DzoaR9+OcKvCUvc3FJXEsKDjmLorECXCEw=;
+	h=Date:To:From:Subject:Message-Id; b=AMl0bBTo4GziqR90ZDsFaq1VgBT5mlTAiki1XGzgDjbQl2IgF/JiTWLwr/ZuhAYKuYu3AJsmlofvyt8ITKasL7UjbgkH2ZkSj68AaTxWtqU/kbyWc6qA4cXjGpgem4tHu8Kxb9sci/4SjeEsNQu0JwpL7tURkz9Z2qr9D12Oxm0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2rLLbvWf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m0FLgLAv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA0E1C4CEF1;
-	Sat, 31 Jan 2026 22:24:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2rLLbvWf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D72F2C4CEF1;
+	Sat, 31 Jan 2026 22:24:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898291;
-	bh=V+BiavjyoArCY0Gz4a3ZTCVJkwpV6iO+ERzBiPfV9a0=;
+	s=korg; t=1769898292;
+	bh=CoFlG9h14DzoaR9+OcKvCUvc3FJXEsKDjmLorECXCEw=;
 	h=Date:To:From:Subject:From;
-	b=m0FLgLAvXuvdoTLGpvNR/91jSyALOoCVH9xgjapjFLvbJ6WStOgyArT3vwiw5knjx
-	 8e29kE8tiKiQ7rNZ6yqIa27aznuPfU9JUfr/cBsGHpT+SD7TtqQK/RuiFsPwvGGLCK
-	 A7zWkpC5GC0VgRnZ/s4UKCNvDenIeBS3lisgI+R8=
-Date: Sat, 31 Jan 2026 14:24:51 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jcmvbkbc@gmail.com,chris@zankel.net,williamt@cadence.com,akpm@linux-foundation.org
+	b=2rLLbvWfWPNdEtyfUFddekkrSiQHq0R4faA/HD+/i2NtvTtBy19QHgJzuxrx4payb
+	 K1W907LHSG2cPI3GRxVFNzqzpIyEjO58/gOep5XItPNJmxz/RVykJdqUss7sMmRw68
+	 Lw65Z+290We3UugbAhuMf22cxmtN1oBd+aH54jlw=
+Date: Sat, 31 Jan 2026 14:24:52 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-highmem-fix-__kmap_to_page-build-error.patch removed from -mm tree
-Message-Id: <20260131222451.AA0E1C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-hugetlb-remove-unnecessary-if-condition.patch removed from -mm tree
+Message-Id: <20260131222452.D72F2C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,69 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/highmem: fix __kmap_to_page() build error
+     Subject: mm/hugetlb: remove unnecessary if condition
 has been removed from the -mm tree.  Its filename was
-     mm-highmem-fix-__kmap_to_page-build-error.patch
+     mm-hugetlb-remove-unnecessary-if-condition.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: William Tambe <williamt@cadence.com>
-Subject: mm/highmem: fix __kmap_to_page() build error
-Date: Thu, 11 Dec 2025 12:38:19 -0800
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm/hugetlb: remove unnecessary if condition
+Date: Fri, 16 Jan 2026 14:27:15 -0500
 
-This changes fixes following build error which is a miss from ef6e06b2ef87
-("highmem: fix kmap_to_page() for kmap_local_page() addresses").
+if (map_chg) is always true, since it is nested in another if statement
+which checks for map_chg == MAP_CHG_NEEDED, which is equal to 1.
 
-mm/highmem.c:184:66: error: 'pteval' undeclared (first use in this
-function); did you mean 'pte_val'?
-184 | idx = arch_kmap_local_map_idx(i, pte_pfn(pteval));
+if (unlikely(map_chg == MAP_CHG_NEEDED && retval == 0)) {
+	...
 
-In __kmap_to_page(), pteval is used but does not exist in the function.
+	if (map_chg) {
+		...
+	}
+}
 
-(akpm: affects xtensa only)
+Remove the check, un-indent, and collapse the function call for
+readability.
 
-Link: https://lkml.kernel.org/r/SJ0PR07MB86317E00EC0C59DA60935FDCD18DA@SJ0PR07MB8631.namprd07.prod.outlook.com
-Fixes: ef6e06b2ef87 ("highmem: fix kmap_to_page() for kmap_local_page() addresses")
-Signed-off-by: William Tambe <williamt@cadence.com>
-Reviewed-by: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: <stable@vger.kernel.org>
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/20260116192717.1600049-1-joshua.hahnjy@gmail.com
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/highmem.c~mm-highmem-fix-__kmap_to_page-build-error
-+++ a/mm/highmem.c
-@@ -180,12 +180,13 @@ struct page *__kmap_to_page(void *vaddr)
- 		for (i = 0; i < kctrl->idx; i++) {
- 			unsigned long base_addr;
- 			int idx;
-+			pte_t pteval = kctrl->pteval[i];
+--- a/mm/hugetlb.c~mm-hugetlb-remove-unnecessary-if-condition
++++ a/mm/hugetlb.c
+@@ -2989,13 +2989,10 @@ struct folio *alloc_hugetlb_folio(struct
  
- 			idx = arch_kmap_local_map_idx(i, pte_pfn(pteval));
- 			base_addr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
- 
- 			if (base_addr == base)
--				return pte_page(kctrl->pteval[i]);
-+				return pte_page(pteval);
+ 			rsv_adjust = hugepage_subpool_put_pages(spool, 1);
+ 			hugetlb_acct_memory(h, -rsv_adjust);
+-			if (map_chg) {
+-				spin_lock_irq(&hugetlb_lock);
+-				hugetlb_cgroup_uncharge_folio_rsvd(
+-				    hstate_index(h), pages_per_huge_page(h),
+-				    folio);
+-				spin_unlock_irq(&hugetlb_lock);
+-			}
++			spin_lock_irq(&hugetlb_lock);
++			hugetlb_cgroup_uncharge_folio_rsvd(
++			    hstate_index(h), pages_per_huge_page(h), folio);
++			spin_unlock_irq(&hugetlb_lock);
  		}
  	}
  
 _
 
-Patches currently in -mm which might be from williamt@cadence.com are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
+mm-hugetlb-restore-failed-global-reservations-to-subpool.patch
 
