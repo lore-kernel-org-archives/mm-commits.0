@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCE5320CCDC
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F5AB38A734
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898309; cv=none; b=XADR8u4gPDYjlDj4yhtlWJfiNFSoqI7TzB3ZlURBKlrlDX2MYdLbulvKojiq/WCV9oMcev7Dzf+bXGH7pjS77OO2MavoLuV2CMt2YvKMCwItnVksa2A8ivs2q3NQNNrMuyeHLYzd1CPd525Ulo2FkYRtnwnoFOfVDtpfWoVaFYM=
+	t=1769898311; cv=none; b=qeVEhsYCGqa904HYVjJ+KvBBy1PRV4ax2cmnEl5bZwkakly8C2FYPHxOaGw0AThLLzgQs5p3K1PY5cjUO2+bDn5G9QXk3PLMDAK5CA3vbny5wSYwr61pHXQFrdJZSa5hZBkzRqPflb5Dd7KxkmeipI9r8grlwe3uoBdjbXdpFzI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898309; c=relaxed/simple;
-	bh=3ePwD6vEKus0XFIsbRlq2h4Kz2iLL6nrcDIrAQnZyhk=;
-	h=Date:To:From:Subject:Message-Id; b=Cf2zxBj0FrXYGkxO01hL8+23XUmDMurpc8dEpGXtiyP+4hXqFMwKKkQOc3MLvwwyUO9qTY6qTLEflwb8Rs1ham/+NOhiWjgNKc1UGcQ2pK2/dGskYm1OGMQg7b49ozDdKSydIHZzBp+/GfMScEltwxb8HCYiSzPXt60x9IynlxU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lNKrYCIF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898311; c=relaxed/simple;
+	bh=p80DDeuJ0Iw7wBl4npmGUpBvJ7HDcUnRvClljTcfLjI=;
+	h=Date:To:From:Subject:Message-Id; b=mquowN1oalAjegJrQ4WgHNQ3QOZFkzfQCsXjyl3krGEWudKl1/xnN27r3wQOjsqpv77+tqKTk7xMOiwJR2mqhEFKuUJD23RWPU2vdtqsU4kyiOOmvdN8lnzWoeEnZDrS5kYJlm5sSniDC8L7cogLFuGt7OA1KnFmiFNMU+KmyqY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NxZeP3Cc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lNKrYCIF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4AEAC4CEF1;
-	Sat, 31 Jan 2026 22:25:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NxZeP3Cc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46631C4CEF1;
+	Sat, 31 Jan 2026 22:25:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898309;
-	bh=3ePwD6vEKus0XFIsbRlq2h4Kz2iLL6nrcDIrAQnZyhk=;
+	s=korg; t=1769898311;
+	bh=p80DDeuJ0Iw7wBl4npmGUpBvJ7HDcUnRvClljTcfLjI=;
 	h=Date:To:From:Subject:From;
-	b=lNKrYCIFrZFyfE1ofOBVZBC9qdFwe4Rk++xIjgNgEeYItfYfOMVep2/103jp87HGO
-	 p7iQ3pWKSCOhUIdak6bqREsN/Wf3oNKteeQVe2HufzjDImUXwVhM3U7hIK5btZhKGo
-	 VeU7MTLipcAPjcarXnyWb0jT7HMnOy6P1l7jA6QI=
-Date: Sat, 31 Jan 2026 14:25:09 -0800
+	b=NxZeP3CcY9fESUH1XeH49gbp01hVYVzxjkk3XLXgTp/oVJmmL7GjBgAFCGoskYM+7
+	 eAdmvlnmvpeGRRgO9pslZ6HjZaMNOV6/+KUoKZ0xOjj+c40DU+RymzhM20j6jpTUac
+	 SlIAMKsBd7VfrRXez0BZwsbxOTwGYmh7Sk6IDAWg=
+Date: Sat, 31 Jan 2026 14:25:10 -0800
 To: mm-commits@vger.kernel.org,Usama.Anjum@arm.com,sj@kernel.org,shuah@kernel.org,ryan.roberts@arm.com,pabeni@redhat.com,lorenzo.stoakes@oracle.com,linyunsheng@huawei.com,lianux.mm@gmail.com,jhubbard@nvidia.com,jgg@nvidia.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-pass-down-full-cc-and-cflags-to-check_configsh.patch removed from -mm tree
-Message-Id: <20260131222509.A4AEAC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-fix-usage-of-force_read-in-cow-tests.patch removed from -mm tree
+Message-Id: <20260131222511.46631C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: pass down full CC and CFLAGS to check_config.sh
+     Subject: selftests/mm: fix usage of FORCE_READ() in cow tests
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-pass-down-full-cc-and-cflags-to-check_configsh.patch
+     selftests-mm-fix-usage-of-force_read-in-cow-tests.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: pass down full CC and CFLAGS to check_config.sh
-Date: Thu, 22 Jan 2026 17:02:18 +0000
+Subject: selftests/mm: fix usage of FORCE_READ() in cow tests
+Date: Thu, 22 Jan 2026 17:02:19 +0000
 
-check_config.sh checks that liburing is available by running the compiler
-provided as its first argument.  This makes two assumptions:
+Commit 5bbc2b785e63 ("selftests/mm: fix FORCE_READ to read input value
+correctly") modified FORCE_READ() to take a value instead of a pointer. 
+It also changed most of the call sites accordingly, but missed many of
+them in cow.c.  In those cases, we ended up with the pointer itself being
+read, not the memory it points to.
 
-1. CC consists of only one word
-2. No extra flag is required
+No failure occurred as a result, so it looks like the tests work just fine
+without faulting in.  However, the huge_zeropage tests explicitly check
+that pages are populated, so those became skipped.
 
-Unfortunately, there are many situations where these assumptions don't
-hold.  For instance:
+Convert all the remaining FORCE_READ() to fault in the mapped page, as was
+originally intended.  This allows the huge_zeropage tests to run again (3
+tests in total).
 
-- When using Clang, CC consists of multiple words
-- When cross-compiling, extra flags may be required to allow the
-  compiler to find headers
-
-Remove these assumptions by passing down CC and CFLAGS as-is from the
-Makefile, so that the same command line is used as when actually building
-the tests.
-
-Link: https://lkml.kernel.org/r/20260122170224.4056513-4-kevin.brodsky@arm.com
+Link: https://lkml.kernel.org/r/20260122170224.4056513-5-kevin.brodsky@arm.com
+Fixes: 5bbc2b785e63 ("selftests/mm: fix FORCE_READ to read input value correctly")
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: wang lian <lianux.mm@gmail.com>
 Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Dev Jain <dev.jain@arm.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mark Brown <broonie@kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Usama Anjum <Usama.Anjum@arm.com>
-Cc: wang lian <lianux.mm@gmail.com>
 Cc: Yunsheng Lin <linyunsheng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile        |    2 +-
- tools/testing/selftests/mm/check_config.sh |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/cow.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/mm/check_config.sh~selftests-mm-pass-down-full-cc-and-cflags-to-check_configsh
-+++ a/tools/testing/selftests/mm/check_config.sh
-@@ -16,8 +16,7 @@ echo "#include <sys/types.h>"        > $
- echo "#include <liburing.h>"        >> $tmpfile_c
- echo "int func(void) { return 0; }" >> $tmpfile_c
+--- a/tools/testing/selftests/mm/cow.c~selftests-mm-fix-usage-of-force_read-in-cow-tests
++++ a/tools/testing/selftests/mm/cow.c
+@@ -1612,8 +1612,8 @@ static void run_with_huge_zeropage(non_a
+ 	 * the first sub-page and test if we get another sub-page populated
+ 	 * automatically.
+ 	 */
+-	FORCE_READ(mem);
+-	FORCE_READ(smem);
++	FORCE_READ(*mem);
++	FORCE_READ(*smem);
+ 	if (!pagemap_is_populated(pagemap_fd, mem + pagesize) ||
+ 	    !pagemap_is_populated(pagemap_fd, smem + pagesize)) {
+ 		ksft_test_result_skip("Did not get THPs populated\n");
+@@ -1663,8 +1663,8 @@ static void run_with_memfd(non_anon_test
+ 	}
  
--CC=${1:?"Usage: $0 <compiler> # example compiler: gcc"}
--$CC -c $tmpfile_c -o $tmpfile_o >/dev/null 2>&1
-+$CC $CFLAGS -c $tmpfile_c -o $tmpfile_o
+ 	/* Fault the page in. */
+-	FORCE_READ(mem);
+-	FORCE_READ(smem);
++	FORCE_READ(*mem);
++	FORCE_READ(*smem);
  
- if [ -f $tmpfile_o ]; then
-     echo "#define LOCAL_CONFIG_HAVE_LIBURING 1"  > $OUTPUT_H_FILE
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-pass-down-full-cc-and-cflags-to-check_configsh
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -230,7 +230,7 @@ $(OUTPUT)/migration: LDLIBS += -lnuma
- $(OUTPUT)/rmap: LDLIBS += -lnuma
+ 	fn(mem, smem, pagesize);
+ munmap:
+@@ -1719,8 +1719,8 @@ static void run_with_tmpfile(non_anon_te
+ 	}
  
- local_config.mk local_config.h: check_config.sh
--	/bin/sh ./check_config.sh $(CC)
-+	CC="$(CC)" CFLAGS="$(CFLAGS)" ./check_config.sh
+ 	/* Fault the page in. */
+-	FORCE_READ(mem);
+-	FORCE_READ(smem);
++	FORCE_READ(*mem);
++	FORCE_READ(*smem);
  
- EXTRA_CLEAN += local_config.mk local_config.h
+ 	fn(mem, smem, pagesize);
+ munmap:
+@@ -1773,8 +1773,8 @@ static void run_with_memfd_hugetlb(non_a
+ 	}
  
+ 	/* Fault the page in. */
+-	FORCE_READ(mem);
+-	FORCE_READ(smem);
++	FORCE_READ(*mem);
++	FORCE_READ(*smem);
+ 
+ 	fn(mem, smem, hugetlbsize);
+ munmap:
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
