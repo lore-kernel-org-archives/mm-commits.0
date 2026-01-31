@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1661376479
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 21:53:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A52F376479
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 21:53:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769896438; cv=none; b=JqyJCVvasrwS4rdYf3GhpjdhcaukLTQVI6G5I51iR0787l77NwWOoL6c1JOhIMZME6xmyQg7vSqY0EmjIaBpcyMFB6fTZj3FD52pi5OtlkqiNUaFxm0/Vlf18YKm0hoa6Fbl9uU59E6/15etwJXw6sGClYtURWu8gmIH65+XwVw=
+	t=1769896440; cv=none; b=qMbsfNN7A213P9U2ZXuzp2u4Dw6XQB9ikTrmsTQxFoW60xSEf/2+ZfcSEJDGpoOdOobrWC9O/DZCAP8fTIiNMZ3ymeHibM8Z7nZLX3fPIvarXpjCOTBqGuwCl4+/WcUEM5sb0vnwSmbnvQM+UoRSubeQFU+MVlT8QEBRru5TdQU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769896438; c=relaxed/simple;
-	bh=5Bo01pyFn13r8KytcXWBDbBAK6Ly9XvQTUxNigrWrkg=;
-	h=Date:To:From:Subject:Message-Id; b=m0l8WAVc+MKkUNhBnhgajEBgTJ3JINsovrGKlmksTwGGk59yGuubF+rlvZ1WJ0vOyixMEUczeiL4XEIOgAcTwuItrol/hz616bc1Odhm9FUL8gl+IO5vNyJw/MAp6iBuqhlDe+Lvpmu3+szG5pqYm+PN6wFI9OfxsXn9L/hioJQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ci7FRrbb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769896440; c=relaxed/simple;
+	bh=9cIahVcb3kPe5SKaDGHHXm759jCp135lH9/A5fTArNs=;
+	h=Date:To:From:Subject:Message-Id; b=JDu2j+RJVvWcvdspI90neSZFP61ggXYr2uBoRdIWHwDD6N7mnnUuhG5ClVRPkfCitz+2sgVQRpVJa9NSuG1SmkPzT9tgSznJ48PRfE7RVCBREyKm/JbpV4KJn1uTME+1Q04Iw1mIgETj+w4H0A10qcz3635AadJtWMK069WKq4s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=alxEScu3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ci7FRrbb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49BEAC19421;
-	Sat, 31 Jan 2026 21:53:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="alxEScu3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFAC5C4CEF1;
+	Sat, 31 Jan 2026 21:53:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769896438;
-	bh=5Bo01pyFn13r8KytcXWBDbBAK6Ly9XvQTUxNigrWrkg=;
+	s=korg; t=1769896439;
+	bh=9cIahVcb3kPe5SKaDGHHXm759jCp135lH9/A5fTArNs=;
 	h=Date:To:From:Subject:From;
-	b=Ci7FRrbb0BgRYuvsPbMt55g7xk6A8QiYhhMA0tagqNix4zSC0DDu7mZqr+NKAdEPa
-	 Cn0vMk2mll6REEpFje53gHDSsUjYXPLy1WOP0eaBjTADh6736TZBk8f2WEWYciG5Jg
-	 lceYkpko3tQXnHhKiESUNWfEXgvNp0yDeeHbhg4s=
-Date: Sat, 31 Jan 2026 13:53:56 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,marco.crivellari@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jiangshanlai@gmail.com,hannes@cmpxchg.org,glider@google.com,frederic@kernel.org,elver@google.com,dvyukov@google.com,david@kernel.org,bigeasy@linutronix.de,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=alxEScu3GTTJYoVhivrct5dO0TSvfR1PgMFDFlcSzfRMli8n7+wz/W1Z/Wi9yoN61
+	 ENbv+Yrm6XpGpIdu0jbNA77pqA270Yz/S1dniQBXvyQd4gVXNcbwJ3Mdc7n6sfOvm0
+	 Dx6LvLoGS9F5B76bZGlPXFKr8Vb+P7Els/CzbajI=
+Date: Sat, 31 Jan 2026 13:53:59 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,marco.crivellari@suse.com,bigeasy@linutronix.de,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch removed from -mm tree
-Message-Id: <20260131215358.49BEAC19421@smtp.kernel.org>
+Subject: [folded-merged] mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix.patch removed from -mm tree
+Message-Id: <20260131215359.BFAC5C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,39 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-add-wq_percpu-to-alloc_workqueue-users-fix
+     Subject: mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
+     mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix.patch
 
 This patch was dropped because it was folded into mm-add-wq_percpu-to-alloc_workqueue-users.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-wq_percpu-to-alloc_workqueue-users-fix
-Date: Tue Jan 13 05:59:13 PM PST 2026
+Subject: mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix
+Date: Sat Jan 24 03:20:32 PM PST 2026
 
-fix mm/slub.c
+fix kmem_cache_init_late() properly, per Sebastian
 
 Cc: Marco Crivellari <marco.crivellari@suse.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lai jiangshan <jiangshanlai@gmail.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slub.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/slub.c~mm-add-wq_percpu-to-alloc_workqueue-users-fix
+--- a/mm/slub.c~mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix
 +++ a/mm/slub.c
-@@ -8546,6 +8546,7 @@ void __init kmem_cache_init_late(void)
+@@ -8542,11 +8542,9 @@ void __init kmem_cache_init(void)
+ 
+ void __init kmem_cache_init_late(void)
+ {
+-#ifndef CONFIG_SLUB_TINY
  	flushwq = alloc_workqueue("slub_flushwq", WQ_MEM_RECLAIM | WQ_PERCPU,
  				  0);
  	WARN_ON(!flushwq);
-+#endif
+-#endif
  }
  
  struct kmem_cache *
@@ -89,7 +77,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch
 mm-add-wq_percpu-to-alloc_workqueue-users.patch
-mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix.patch
 sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
 mm-vma-document-possible-vma-vm_refcnt-values-and-reference-comment-fix.patch
 mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix.patch
