@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9501720CCDC
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E6F738A726
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898279; cv=none; b=EMv3cnNwMidIjab88vfx+5ruv/pwYPaUKUGocj5AUNv13oyoUbNjEznbLThMqbT64VnEzKXWBOEZFH5WYjb70zQqnznOivUhPcRg0YSzTma52zSLhiyjDozDhzXyiVM2iaGTPsfGezs/+lMQcgdiz2G6Qz6fSIAgOtUUawae4Kg=
+	t=1769898281; cv=none; b=lrrIFtTSjlpSkCub9s+l3jBm88212tXJq6qHLIbLEGtWlCv2F+5le7ESO4RF1KctCXPtp7vxdxnG55/5QAO7V6b8PxHOLBkPntkSdBHwKxQdT69zrsh0VWD0J0j9dl7irBkrQFsE/1t5SyMi/uOYktbFT3GzGWtfoRuCi1I12ns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898279; c=relaxed/simple;
-	bh=LXq5sdbeE2NVYNkWzmzFIBuOYPGcrevTT8vbdIE/LLU=;
-	h=Date:To:From:Subject:Message-Id; b=aGSZymmAGl2BL3eaUsAvHlkKx6cHufWpZDs22kFLswdYyIJY0v5YB3c9WJK6YaTCF4H4my0yTne5D1hMhO3yATlLUk+oF9gMovjAoaFwY4EZShfNY2O2pb/GePECJrCJ1COt83y/Agu1y99R42uMeXaAo9kdxMTX8dVCVI6SzlI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZNB+tWeX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898281; c=relaxed/simple;
+	bh=p/aTDp2VFieOhFqhJrJq3q/q13g4Sra9x4SMe+81dNg=;
+	h=Date:To:From:Subject:Message-Id; b=jNlGfB9gpSckKyVbfKGoJ2oRScxP3H2KatUIHQuNuY+5QyqaDHc2wVg/HocitduzHIm7SU3SZ/3u8W15zvK/hZEQw4CW/IyLET8OSDRdsCC7wT33SrirWK3tjZd1ignqKngEOlqVJMPHDTJKGXsfYy/cDTd59lBo9ILP2sqLX5w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UaZrco2v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZNB+tWeX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D394C4CEF1;
-	Sat, 31 Jan 2026 22:24:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UaZrco2v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27777C4CEF1;
+	Sat, 31 Jan 2026 22:24:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898279;
-	bh=LXq5sdbeE2NVYNkWzmzFIBuOYPGcrevTT8vbdIE/LLU=;
+	s=korg; t=1769898281;
+	bh=p/aTDp2VFieOhFqhJrJq3q/q13g4Sra9x4SMe+81dNg=;
 	h=Date:To:From:Subject:From;
-	b=ZNB+tWeXGzs6z4NM2TUhPuV73G0wP5NPFfMU6ViT7xJGW9jCsp4VkpjREpLQtjk0n
-	 PUEkEDXV2gEMCVOM4Z1GpJjUE5vfUeCjPYfk9JxrIJWP5x5zyoFTOQNAai0Vr5b5gO
-	 DbVH4D+D46EtM2TIgSjCiw50QytkYESHNV6VrkKk=
-Date: Sat, 31 Jan 2026 14:24:38 -0800
+	b=UaZrco2v7EJQBZThud6yEU9dfo1GfsDYyd9IIZpYq0+JmfzhhhBSrCfFu/itojQUk
+	 uzljqyT1/eEDINeaDd4XPrjnwYZdOd/QO1eNkhAu8tHp9d5ggF3xPeqT/hsNJ4+vlt
+	 Wa6ldeBPVSBLHHxkHohcrdPjulSUT6DtLj0Nx7aM=
+Date: Sat, 31 Jan 2026 14:24:40 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mst@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,gregkh@linuxfoundation.org,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,arnd@arndb.de,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rename-config_memory_balloon-config_balloon.patch removed from -mm tree
-Message-Id: <20260131222439.6D394C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon.patch removed from -mm tree
+Message-Id: <20260131222441.27777C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: rename CONFIG_MEMORY_BALLOON -> CONFIG_BALLOON
+     Subject: MAINTAINERS: move memory balloon infrastructure to "MEMORY MANAGEMENT - BALLOON"
 has been removed from the -mm tree.  Its filename was
-     mm-rename-config_memory_balloon-config_balloon.patch
+     maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Subject: mm: rename CONFIG_MEMORY_BALLOON -> CONFIG_BALLOON
-Date: Tue, 20 Jan 2026 00:01:31 +0100
+Subject: MAINTAINERS: move memory balloon infrastructure to "MEMORY MANAGEMENT - BALLOON"
+Date: Tue, 20 Jan 2026 00:01:32 +0100
 
-Let's make it consistent with the naming of the files but also with the
-naming of CONFIG_BALLOON_MIGRATION.
+Nowadays, there is nothing virtio-balloon specific anymore about these
+files, the basic infrastructure is used by multiple memory balloon
+drivers.
 
-While at it, add a "/* CONFIG_BALLOON */".
+For now we'll route it through Andrew's tree, maybe in some future it
+makes sense to route this through a separate tree.
 
-Link: https://lkml.kernel.org/r/20260119230133.3551867-24-david@kernel.org
+Link: https://lkml.kernel.org/r/20260119230133.3551867-25-david@kernel.org
 Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Eugenio Pérez <eperezma@redhat.com>
@@ -66,127 +68,51 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michael S. Tsirkin <mst@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: SeongJae Park <sj@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/Kconfig |    2 +-
- drivers/misc/Kconfig                   |    2 +-
- drivers/virtio/Kconfig                 |    2 +-
- include/linux/vm_event_item.h          |    4 ++--
- mm/Kconfig                             |    4 ++--
- mm/Makefile                            |    2 +-
- mm/vmstat.c                            |    4 ++--
- 7 files changed, 10 insertions(+), 10 deletions(-)
+ MAINTAINERS |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
---- a/arch/powerpc/platforms/pseries/Kconfig~mm-rename-config_memory_balloon-config_balloon
-+++ a/arch/powerpc/platforms/pseries/Kconfig
-@@ -120,7 +120,7 @@ config PPC_SMLPAR
- config CMM
- 	tristate "Collaborative memory management"
- 	depends on PPC_SMLPAR
--	select MEMORY_BALLOON
-+	select BALLOON
- 	default y
- 	help
- 	  Select this option, if you want to enable the kernel interface
---- a/drivers/misc/Kconfig~mm-rename-config_memory_balloon-config_balloon
-+++ a/drivers/misc/Kconfig
-@@ -410,7 +410,7 @@ config DS1682
- config VMWARE_BALLOON
- 	tristate "VMware Balloon Driver"
- 	depends on VMWARE_VMCI && X86 && HYPERVISOR_GUEST
--	select MEMORY_BALLOON
-+	select BALLOON
- 	help
- 	  This is VMware physical memory management driver which acts
- 	  like a "balloon" that can be inflated to reclaim physical pages
---- a/drivers/virtio/Kconfig~mm-rename-config_memory_balloon-config_balloon
-+++ a/drivers/virtio/Kconfig
-@@ -112,7 +112,7 @@ config VIRTIO_PMEM
- config VIRTIO_BALLOON
- 	tristate "Virtio balloon driver"
- 	depends on VIRTIO
--	select MEMORY_BALLOON
-+	select BALLOON
- 	select PAGE_REPORTING
- 	help
- 	 This driver supports increasing and decreasing the amount
---- a/include/linux/vm_event_item.h~mm-rename-config_memory_balloon-config_balloon
-+++ a/include/linux/vm_event_item.h
-@@ -122,13 +122,13 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		THP_SWPOUT,
- 		THP_SWPOUT_FALLBACK,
- #endif
--#ifdef CONFIG_MEMORY_BALLOON
-+#ifdef CONFIG_BALLOON
- 		BALLOON_INFLATE,
- 		BALLOON_DEFLATE,
- #ifdef CONFIG_BALLOON_MIGRATION
- 		BALLOON_MIGRATE,
- #endif /* CONFIG_BALLOON_MIGRATION */
--#endif
-+#endif /* CONFIG_BALLOON */
- #ifdef CONFIG_DEBUG_TLBFLUSH
- 		NR_TLB_REMOTE_FLUSH,	/* cpu tried to flush others' tlbs */
- 		NR_TLB_REMOTE_FLUSH_RECEIVED,/* cpu received ipi for flush */
---- a/mm/Kconfig~mm-rename-config_memory_balloon-config_balloon
-+++ a/mm/Kconfig
-@@ -593,7 +593,7 @@ config SPLIT_PMD_PTLOCKS
+--- a/MAINTAINERS~maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon
++++ a/MAINTAINERS
+@@ -16458,6 +16458,17 @@ T:	quilt git://git.kernel.org/pub/scm/li
+ F:	mm/
+ F:	tools/mm/
  
- #
- # support for memory balloon
--config MEMORY_BALLOON
-+config BALLOON
- 	bool
++MEMORY MANAGEMENT - BALLOON
++M:	Andrew Morton <akpm@linux-foundation.org>
++M:	David Hildenbrand <david@kernel.org>
++L:	linux-mm@kvack.org
++L:	virtualization@lists.linux.dev
++S:	Maintained
++W:	http://www.linux-mm.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
++F:	include/linux/balloon.h
++F:	mm/balloon.c
++
+ MEMORY MANAGEMENT - CORE
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	David Hildenbrand <david@kernel.org>
+@@ -27546,9 +27557,7 @@ M:	David Hildenbrand <david@kernel.org>
+ L:	virtualization@lists.linux.dev
+ S:	Maintained
+ F:	drivers/virtio/virtio_balloon.c
+-F:	include/linux/balloon.h
+ F:	include/uapi/linux/virtio_balloon.h
+-F:	mm/balloon.c
  
- #
-@@ -601,7 +601,7 @@ config MEMORY_BALLOON
- config BALLOON_MIGRATION
- 	bool "Allow for balloon memory migration"
- 	default y
--	depends on MIGRATION && MEMORY_BALLOON
-+	depends on MIGRATION && BALLOON
- 	help
- 	  Allow for migration of pages inflated in a memory balloon such that
- 	  they can be allocated from memory areas only available for movable
---- a/mm/Makefile~mm-rename-config_memory_balloon-config_balloon
-+++ a/mm/Makefile
-@@ -122,7 +122,7 @@ obj-$(CONFIG_CMA)	+= cma.o
- obj-$(CONFIG_NUMA) += numa.o
- obj-$(CONFIG_NUMA_MEMBLKS) += numa_memblks.o
- obj-$(CONFIG_NUMA_EMU) += numa_emulation.o
--obj-$(CONFIG_MEMORY_BALLOON) += balloon.o
-+obj-$(CONFIG_BALLOON) += balloon.o
- obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
- obj-$(CONFIG_PAGE_TABLE_CHECK) += page_table_check.o
- obj-$(CONFIG_CMA_DEBUGFS) += cma_debug.o
---- a/mm/vmstat.c~mm-rename-config_memory_balloon-config_balloon
-+++ a/mm/vmstat.c
-@@ -1419,13 +1419,13 @@ const char * const vmstat_text[] = {
- 	[I(THP_SWPOUT)]				= "thp_swpout",
- 	[I(THP_SWPOUT_FALLBACK)]		= "thp_swpout_fallback",
- #endif
--#ifdef CONFIG_MEMORY_BALLOON
-+#ifdef CONFIG_BALLOON
- 	[I(BALLOON_INFLATE)]			= "balloon_inflate",
- 	[I(BALLOON_DEFLATE)]			= "balloon_deflate",
- #ifdef CONFIG_BALLOON_MIGRATION
- 	[I(BALLOON_MIGRATE)]			= "balloon_migrate",
- #endif /* CONFIG_BALLOON_MIGRATION */
--#endif /* CONFIG_MEMORY_BALLOON */
-+#endif /* CONFIG_BALLOON */
- #ifdef CONFIG_DEBUG_TLBFLUSH
- 	[I(NR_TLB_REMOTE_FLUSH)]		= "nr_tlb_remote_flush",
- 	[I(NR_TLB_REMOTE_FLUSH_RECEIVED)]	= "nr_tlb_remote_flush_received",
+ VIRTIO BLOCK AND SCSI DRIVERS
+ M:	"Michael S. Tsirkin" <mst@redhat.com>
 _
 
 Patches currently in -mm which might be from david@kernel.org are
