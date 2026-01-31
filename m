@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3203720CCDC
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:23:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95A9C20CCDC
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:23:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898235; cv=none; b=uoreOvqp5zPys8UigJ5RhvGHYiiQv/xL8SytUEdqs96Pi5yyAw2bIG1IuwEl1tNDM2a5lUDMo5gUbLr+jJvagU/8loV1UH9YGe+PJ+lWqZiclW3Z0GnuSNiLeNaPJvCKxUNKkprWiGPFfCSDnii/D4Bfs7tOGZ+bZIbNrCFMVhk=
+	t=1769898237; cv=none; b=U74cBpPTBdnwUEnoD691yQi1mofUFT+x2Vlp+aEksTha4Ia5uGpsR8WypCQVSz5pxeYPvs0veIJw/OqD2kRgT+VY1Ef6yEnDvjakOeahAhCKFh4uwUAkS5zecFvXhFhMhHwne3/SR0aw2QE858sdAJwxZJsPPwmphccx+8Fcxpo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898235; c=relaxed/simple;
-	bh=oBUVM6UVUK6eepBiPRPEYWrFq+ElS54T9Ox+25Gf2zU=;
-	h=Date:To:From:Subject:Message-Id; b=ILLgTYZDwTt2Tqops6nwLIGSPDhNpvfFImvHDu1o7v2a/52l/isXjPmpISCMwpY2MgWIH5YtFSiyDUtCyx2gvX4F12I+Vrj/JP3UG+ij2VbMkpE5ClpNQCbg8jJBwrdgkGsxOYcr5TW6FFh8Gh2pPIY59vHQrGNfHujJseMM+74=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M+Ba8pCg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898237; c=relaxed/simple;
+	bh=pQCMErKLyVIrFLhCHDpgoOnijrHdJJJGJ6DjzaG+A4Q=;
+	h=Date:To:From:Subject:Message-Id; b=CC2VN0V0/GGm3o/RoDjhQaJQqhLwIyMpaadwXlEJJxc67Tj02TORTu2YOiEuzxkReNiYtgyi7nPE5HCMUVgwraANg+ndz087os721a1rFyVM67UHkqSNdZYnkxihvhExvJfQPQXWUof9EdpXxuxfVwQnMLY8WzToJKuW4FnJo58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p6g34vxt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M+Ba8pCg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB499C4CEF1;
-	Sat, 31 Jan 2026 22:23:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p6g34vxt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CDADC4CEF1;
+	Sat, 31 Jan 2026 22:23:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898235;
-	bh=oBUVM6UVUK6eepBiPRPEYWrFq+ElS54T9Ox+25Gf2zU=;
+	s=korg; t=1769898237;
+	bh=pQCMErKLyVIrFLhCHDpgoOnijrHdJJJGJ6DjzaG+A4Q=;
 	h=Date:To:From:Subject:From;
-	b=M+Ba8pCgPI4E/A6MAf5ihKdz/x9WaThreqZxoI0tqgsSZultSVdjGceJXcUops7sY
-	 ljZ5DzRXssyMZoxyAXibBUlMyzJT2haRQ0LplytX+tk4EyhwgTvFADuwXWMP3FOc1T
-	 TI+r6abbPgShDm10S1sWHBq6IB7aoYgO7fL9QZ+4=
-Date: Sat, 31 Jan 2026 14:23:54 -0800
+	b=p6g34vxtuRMVlHM6YmiNvOV8Sn0OZ4bwK4V1du87Nx8hmchG7pIyKcivD32mz8phr
+	 CG1YygMN539fclPe3slipi+CAq3IkMzgH69H9WsgOKLu+YGKZnrB1Pg1gkKpKJjBS7
+	 UeE1RuqzKXfbXk7VP4MlbwfAV8DQ8oPlvGdutxhA=
+Date: Sat, 31 Jan 2026 14:23:56 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,richard.weiyang@gmail.com,npache@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshuman.khandual@arm.com,shivankg@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void.patch removed from -mm tree
-Message-Id: <20260131222354.EB499C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-use-enum-scan_result-for-result-variables-and-return-types.patch removed from -mm tree
+Message-Id: <20260131222357.4CDADC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,35 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: change collapse_pte_mapped_thp() to return void
+     Subject: mm/khugepaged: use enum scan_result for result variables and return types
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void.patch
+     mm-khugepaged-use-enum-scan_result-for-result-variables-and-return-types.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Shivank Garg <shivankg@amd.com>
-Subject: mm/khugepaged: change collapse_pte_mapped_thp() to return void
-Date: Sun, 18 Jan 2026 19:22:57 +0000
+Subject: mm/khugepaged: use enum scan_result for result variables and return types
+Date: Sun, 18 Jan 2026 19:22:59 +0000
 
-The only external caller of collapse_pte_mapped_thp() is uprobe, which
-ignores the return value.  Change the external API to return void to
-simplify the interface.
+Convert result variables and return types from int to enum scan_result
+throughout khugepaged code.  This improves type safety and code clarity by
+making the intent explicit.
 
-Introduce try_collapse_pte_mapped_thp() for internal use that preserves
-the return value.  This prepares for future patch that will convert the
-return type to use enum scan_result.
+No functional change.
 
-Link: https://lkml.kernel.org/r/20260118192253.9263-10-shivankg@amd.com
+Link: https://lkml.kernel.org/r/20260118192253.9263-12-shivankg@amd.com
 Signed-off-by: Shivank Garg <shivankg@amd.com>
-Suggested-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Acked-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Tested-by: Nico Pache <npache@redhat.com>
 Reviewed-by: Nico Pache <npache@redhat.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
@@ -74,113 +71,277 @@ Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/khugepaged.h |    9 +++----
- mm/khugepaged.c            |   40 ++++++++++++++++++++---------------
- 2 files changed, 27 insertions(+), 22 deletions(-)
+ mm/khugepaged.c |   99 +++++++++++++++++++++-------------------------
+ 1 file changed, 46 insertions(+), 53 deletions(-)
 
---- a/include/linux/khugepaged.h~mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void
-+++ a/include/linux/khugepaged.h
-@@ -17,8 +17,8 @@ extern void khugepaged_enter_vma(struct
- 				 vm_flags_t vm_flags);
- extern void khugepaged_min_free_kbytes_update(void);
- extern bool current_is_khugepaged(void);
--extern int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
--				   bool install_pmd);
-+void collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
-+		bool install_pmd);
- 
- static inline void khugepaged_fork(struct mm_struct *mm, struct mm_struct *oldmm)
- {
-@@ -42,10 +42,9 @@ static inline void khugepaged_enter_vma(
- 					vm_flags_t vm_flags)
- {
- }
--static inline int collapse_pte_mapped_thp(struct mm_struct *mm,
--					  unsigned long addr, bool install_pmd)
-+static inline void collapse_pte_mapped_thp(struct mm_struct *mm,
-+		unsigned long addr, bool install_pmd)
- {
--	return 0;
- }
- 
- static inline void khugepaged_min_free_kbytes_update(void)
---- a/mm/khugepaged.c~mm-khugepaged-change-collapse_pte_mapped_thp-to-return-void
+--- a/mm/khugepaged.c~mm-khugepaged-use-enum-scan_result-for-result-variables-and-return-types
 +++ a/mm/khugepaged.c
-@@ -1477,20 +1477,8 @@ static int set_huge_pmd(struct vm_area_s
+@@ -537,17 +537,16 @@ static void release_pte_pages(pte_t *pte
+ 	}
+ }
+ 
+-static int __collapse_huge_page_isolate(struct vm_area_struct *vma,
+-					unsigned long start_addr,
+-					pte_t *pte,
+-					struct collapse_control *cc,
+-					struct list_head *compound_pagelist)
++static enum scan_result __collapse_huge_page_isolate(struct vm_area_struct *vma,
++		unsigned long start_addr, pte_t *pte, struct collapse_control *cc,
++		struct list_head *compound_pagelist)
+ {
+ 	struct page *page = NULL;
+ 	struct folio *folio = NULL;
+ 	unsigned long addr = start_addr;
+ 	pte_t *_pte;
+-	int none_or_zero = 0, shared = 0, result = SCAN_FAIL, referenced = 0;
++	int none_or_zero = 0, shared = 0, referenced = 0;
++	enum scan_result result = SCAN_FAIL;
+ 
+ 	for (_pte = pte; _pte < pte + HPAGE_PMD_NR;
+ 	     _pte++, addr += PAGE_SIZE) {
+@@ -780,13 +779,13 @@ static void __collapse_huge_page_copy_fa
+  * @ptl: lock on raw pages' PTEs
+  * @compound_pagelist: list that stores compound pages
+  */
+-static int __collapse_huge_page_copy(pte_t *pte, struct folio *folio,
++static enum scan_result __collapse_huge_page_copy(pte_t *pte, struct folio *folio,
+ 		pmd_t *pmd, pmd_t orig_pmd, struct vm_area_struct *vma,
+ 		unsigned long address, spinlock_t *ptl,
+ 		struct list_head *compound_pagelist)
+ {
+ 	unsigned int i;
+-	int result = SCAN_SUCCEED;
++	enum scan_result result = SCAN_SUCCEED;
+ 
+ 	/*
+ 	 * Copying pages' contents is subject to memory poison at any iteration.
+@@ -898,10 +897,8 @@ static int hpage_collapse_find_target_no
+  * Returns enum scan_result value.
+  */
+ 
+-static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address,
+-				   bool expect_anon,
+-				   struct vm_area_struct **vmap,
+-				   struct collapse_control *cc)
++static enum scan_result hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address,
++		bool expect_anon, struct vm_area_struct **vmap, struct collapse_control *cc)
+ {
+ 	struct vm_area_struct *vma;
+ 	enum tva_type type = cc->is_khugepaged ? TVA_KHUGEPAGED :
+@@ -930,7 +927,7 @@ static int hugepage_vma_revalidate(struc
  	return SCAN_SUCCEED;
  }
  
--/**
-- * collapse_pte_mapped_thp - Try to collapse a pte-mapped THP for mm at
-- * address haddr.
-- *
-- * @mm: process address space where collapse happens
-- * @addr: THP collapse address
-- * @install_pmd: If a huge PMD should be installed
-- *
-- * This function checks whether all the PTEs in the PMD are pointing to the
-- * right THP. If so, retract the page table so the THP can refault in with
-- * as pmd-mapped. Possibly install a huge PMD mapping the THP.
-- */
--int collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
--			    bool install_pmd)
-+static int try_collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
-+		bool install_pmd)
+-static inline int check_pmd_state(pmd_t *pmd)
++static inline enum scan_result check_pmd_state(pmd_t *pmd)
  {
- 	int nr_mapped_ptes = 0, result = SCAN_FAIL;
- 	unsigned int nr_batch_ptes;
-@@ -1711,6 +1699,24 @@ drop_folio:
+ 	pmd_t pmde = pmdp_get_lockless(pmd);
+ 
+@@ -953,9 +950,8 @@ static inline int check_pmd_state(pmd_t
+ 	return SCAN_SUCCEED;
+ }
+ 
+-static int find_pmd_or_thp_or_none(struct mm_struct *mm,
+-				   unsigned long address,
+-				   pmd_t **pmd)
++static enum scan_result find_pmd_or_thp_or_none(struct mm_struct *mm,
++		unsigned long address, pmd_t **pmd)
+ {
+ 	*pmd = mm_find_pmd(mm, address);
+ 	if (!*pmd)
+@@ -964,12 +960,11 @@ static int find_pmd_or_thp_or_none(struc
+ 	return check_pmd_state(*pmd);
+ }
+ 
+-static int check_pmd_still_valid(struct mm_struct *mm,
+-				 unsigned long address,
+-				 pmd_t *pmd)
++static enum scan_result check_pmd_still_valid(struct mm_struct *mm,
++		unsigned long address, pmd_t *pmd)
+ {
+ 	pmd_t *new_pmd;
+-	int result = find_pmd_or_thp_or_none(mm, address, &new_pmd);
++	enum scan_result result = find_pmd_or_thp_or_none(mm, address, &new_pmd);
+ 
+ 	if (result != SCAN_SUCCEED)
+ 		return result;
+@@ -985,15 +980,14 @@ static int check_pmd_still_valid(struct
+  * Called and returns without pte mapped or spinlocks held.
+  * Returns result: if not SCAN_SUCCEED, mmap_lock has been released.
+  */
+-static int __collapse_huge_page_swapin(struct mm_struct *mm,
+-				       struct vm_area_struct *vma,
+-				       unsigned long start_addr, pmd_t *pmd,
+-				       int referenced)
++static enum scan_result __collapse_huge_page_swapin(struct mm_struct *mm,
++		struct vm_area_struct *vma, unsigned long start_addr, pmd_t *pmd,
++		int referenced)
+ {
+ 	int swapped_in = 0;
+ 	vm_fault_t ret = 0;
+ 	unsigned long addr, end = start_addr + (HPAGE_PMD_NR * PAGE_SIZE);
+-	int result;
++	enum scan_result result;
+ 	pte_t *pte = NULL;
+ 	spinlock_t *ptl;
+ 
+@@ -1062,8 +1056,8 @@ out:
  	return result;
  }
  
-+/**
-+ * collapse_pte_mapped_thp - Try to collapse a pte-mapped THP for mm at
-+ * address haddr.
-+ *
-+ * @mm: process address space where collapse happens
-+ * @addr: THP collapse address
-+ * @install_pmd: If a huge PMD should be installed
-+ *
-+ * This function checks whether all the PTEs in the PMD are pointing to the
-+ * right THP. If so, retract the page table so the THP can refault in with
-+ * as pmd-mapped. Possibly install a huge PMD mapping the THP.
-+ */
-+void collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
-+		bool install_pmd)
-+{
-+	try_collapse_pte_mapped_thp(mm, addr, install_pmd);
-+}
-+
- /* Can we retract page tables for this file-backed VMA? */
- static bool file_backed_vma_is_retractable(struct vm_area_struct *vma)
+-static int alloc_charge_folio(struct folio **foliop, struct mm_struct *mm,
+-			      struct collapse_control *cc)
++static enum scan_result alloc_charge_folio(struct folio **foliop, struct mm_struct *mm,
++		struct collapse_control *cc)
  {
-@@ -2227,7 +2233,7 @@ immap_locked:
+ 	gfp_t gfp = (cc->is_khugepaged ? alloc_hugepage_khugepaged_gfpmask() :
+ 		     GFP_TRANSHUGE);
+@@ -1090,9 +1084,8 @@ static int alloc_charge_folio(struct fol
+ 	return SCAN_SUCCEED;
+ }
  
- 	/*
- 	 * Remove pte page tables, so we can re-fault the page as huge.
--	 * If MADV_COLLAPSE, adjust result to call collapse_pte_mapped_thp().
-+	 * If MADV_COLLAPSE, adjust result to call try_collapse_pte_mapped_thp().
- 	 */
- 	retract_page_tables(mapping, start);
- 	if (cc && !cc->is_khugepaged)
-@@ -2479,7 +2485,7 @@ static unsigned int khugepaged_scan_mm_s
- 					mmap_read_lock(mm);
- 					if (hpage_collapse_test_exit_or_disable(mm))
- 						goto breakouterloop;
--					*result = collapse_pte_mapped_thp(mm,
-+					*result = try_collapse_pte_mapped_thp(mm,
- 						khugepaged_scan.address, false);
- 					if (*result == SCAN_PMD_MAPPED)
- 						*result = SCAN_SUCCEED;
-@@ -2844,7 +2850,7 @@ handle_result:
- 		case SCAN_PTE_MAPPED_HUGEPAGE:
- 			BUG_ON(mmap_locked);
- 			mmap_read_lock(mm);
--			result = collapse_pte_mapped_thp(mm, addr, true);
-+			result = try_collapse_pte_mapped_thp(mm, addr, true);
- 			mmap_read_unlock(mm);
- 			goto handle_result;
- 		/* Whitelisted set of results where continuing OK */
+-static int collapse_huge_page(struct mm_struct *mm, unsigned long address,
+-			      int referenced, int unmapped,
+-			      struct collapse_control *cc)
++static enum scan_result collapse_huge_page(struct mm_struct *mm, unsigned long address,
++		int referenced, int unmapped, struct collapse_control *cc)
+ {
+ 	LIST_HEAD(compound_pagelist);
+ 	pmd_t *pmd, _pmd;
+@@ -1100,7 +1093,7 @@ static int collapse_huge_page(struct mm_
+ 	pgtable_t pgtable;
+ 	struct folio *folio;
+ 	spinlock_t *pmd_ptl, *pte_ptl;
+-	int result = SCAN_FAIL;
++	enum scan_result result = SCAN_FAIL;
+ 	struct vm_area_struct *vma;
+ 	struct mmu_notifier_range range;
+ 
+@@ -1246,15 +1239,14 @@ out_nolock:
+ 	return result;
+ }
+ 
+-static int hpage_collapse_scan_pmd(struct mm_struct *mm,
+-				   struct vm_area_struct *vma,
+-				   unsigned long start_addr, bool *mmap_locked,
+-				   struct collapse_control *cc)
++static enum scan_result hpage_collapse_scan_pmd(struct mm_struct *mm,
++		struct vm_area_struct *vma, unsigned long start_addr, bool *mmap_locked,
++		struct collapse_control *cc)
+ {
+ 	pmd_t *pmd;
+ 	pte_t *pte, *_pte;
+-	int result = SCAN_FAIL, referenced = 0;
+-	int none_or_zero = 0, shared = 0;
++	int none_or_zero = 0, shared = 0, referenced = 0;
++	enum scan_result result = SCAN_FAIL;
+ 	struct page *page = NULL;
+ 	struct folio *folio = NULL;
+ 	unsigned long addr;
+@@ -1441,8 +1433,8 @@ static void collect_mm_slot(struct mm_sl
+ }
+ 
+ /* folio must be locked, and mmap_lock must be held */
+-static int set_huge_pmd(struct vm_area_struct *vma, unsigned long addr,
+-			pmd_t *pmdp, struct folio *folio, struct page *page)
++static enum scan_result set_huge_pmd(struct vm_area_struct *vma, unsigned long addr,
++		pmd_t *pmdp, struct folio *folio, struct page *page)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct vm_fault vmf = {
+@@ -1477,10 +1469,11 @@ static int set_huge_pmd(struct vm_area_s
+ 	return SCAN_SUCCEED;
+ }
+ 
+-static int try_collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
++static enum scan_result try_collapse_pte_mapped_thp(struct mm_struct *mm, unsigned long addr,
+ 		bool install_pmd)
+ {
+-	int nr_mapped_ptes = 0, result = SCAN_FAIL;
++	enum scan_result result = SCAN_FAIL;
++	int nr_mapped_ptes = 0;
+ 	unsigned int nr_batch_ptes;
+ 	struct mmu_notifier_range range;
+ 	bool notified = false;
+@@ -1862,9 +1855,8 @@ drop_pml:
+  *    + unlock old pages
+  *    + unlock and free huge page;
+  */
+-static int collapse_file(struct mm_struct *mm, unsigned long addr,
+-			 struct file *file, pgoff_t start,
+-			 struct collapse_control *cc)
++static enum scan_result collapse_file(struct mm_struct *mm, unsigned long addr,
++		struct file *file, pgoff_t start, struct collapse_control *cc)
+ {
+ 	struct address_space *mapping = file->f_mapping;
+ 	struct page *dst;
+@@ -1872,7 +1864,8 @@ static int collapse_file(struct mm_struc
+ 	pgoff_t index = 0, end = start + HPAGE_PMD_NR;
+ 	LIST_HEAD(pagelist);
+ 	XA_STATE_ORDER(xas, &mapping->i_pages, start, HPAGE_PMD_ORDER);
+-	int nr_none = 0, result = SCAN_SUCCEED;
++	enum scan_result result = SCAN_SUCCEED;
++	int nr_none = 0;
+ 	bool is_shmem = shmem_file(file);
+ 
+ 	VM_BUG_ON(!IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && !is_shmem);
+@@ -2293,16 +2286,15 @@ out:
+ 	return result;
+ }
+ 
+-static int hpage_collapse_scan_file(struct mm_struct *mm, unsigned long addr,
+-				    struct file *file, pgoff_t start,
+-				    struct collapse_control *cc)
++static enum scan_result hpage_collapse_scan_file(struct mm_struct *mm, unsigned long addr,
++		struct file *file, pgoff_t start, struct collapse_control *cc)
+ {
+ 	struct folio *folio = NULL;
+ 	struct address_space *mapping = file->f_mapping;
+ 	XA_STATE(xas, &mapping->i_pages, start);
+ 	int present, swap;
+ 	int node = NUMA_NO_NODE;
+-	int result = SCAN_SUCCEED;
++	enum scan_result result = SCAN_SUCCEED;
+ 
+ 	present = 0;
+ 	swap = 0;
+@@ -2400,7 +2392,7 @@ static int hpage_collapse_scan_file(stru
+ 	return result;
+ }
+ 
+-static unsigned int khugepaged_scan_mm_slot(unsigned int pages, int *result,
++static unsigned int khugepaged_scan_mm_slot(unsigned int pages, enum scan_result *result,
+ 					    struct collapse_control *cc)
+ 	__releases(&khugepaged_mm_lock)
+ 	__acquires(&khugepaged_mm_lock)
+@@ -2561,7 +2553,7 @@ static void khugepaged_do_scan(struct co
+ 	unsigned int progress = 0, pass_through_head = 0;
+ 	unsigned int pages = READ_ONCE(khugepaged_pages_to_scan);
+ 	bool wait = true;
+-	int result = SCAN_SUCCEED;
++	enum scan_result result = SCAN_SUCCEED;
+ 
+ 	lru_add_drain_all();
+ 
+@@ -2774,7 +2766,8 @@ int madvise_collapse(struct vm_area_stru
+ 	struct collapse_control *cc;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long hstart, hend, addr;
+-	int thps = 0, last_fail = SCAN_FAIL;
++	enum scan_result last_fail = SCAN_FAIL;
++	int thps = 0;
+ 	bool mmap_locked = true;
+ 
+ 	BUG_ON(vma->vm_start > start);
+@@ -2795,7 +2788,7 @@ int madvise_collapse(struct vm_area_stru
+ 	hend = end & HPAGE_PMD_MASK;
+ 
+ 	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
+-		int result = SCAN_FAIL;
++		enum scan_result result = SCAN_FAIL;
+ 		bool triggered_wb = false;
+ 
+ retry:
 _
 
 Patches currently in -mm which might be from shivankg@amd.com are
