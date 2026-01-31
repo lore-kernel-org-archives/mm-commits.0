@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6EBF38A9C1
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEACE38A9C1
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898395; cv=none; b=UOd8PcGJozAdOnXVS24Jar7GBej9ERPbF3REOPt5CSvmxchmmMpC6I8EGmv/JbsoKElXnCSOCQ909/eBiCdZjXjcdgEBeF+zkZi4/OvL2QskvMry/Qp4iwOtpWRuFq9J/srUnH/0PEOVojlflY1VLBIZBwOwdgdFR7emGrl7zd4=
+	t=1769898397; cv=none; b=bmKC6dR6388UMZaihbq69Txi3znI8rUHRFXngkmZPzXV/2jTJVKwGjVyOy0ZvjVCQBwnw8VDDUnEequN64YV7LVVz6YmpVQSOp71sHneEeTLDHLliyQ8Y6ozcpZsb1j0vwBDQrtW3aQQKKgq0oYtirU/RDCPejvDvvQpLTAt17k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898395; c=relaxed/simple;
-	bh=14ckoQOrppCiZX82wZKueAfgfWxEOkSdT5/IJPT2Km4=;
-	h=Date:To:From:Subject:Message-Id; b=kSIUBqmi5xiED09sHLZDwaFmN6Oq7OtUzNpIP88+WkWpwINApjuXMxY5zb/IHTbgvGOazTPLlhX/wvXlGhi/uFH/UlYqXC4xKCrQirefvIZc8n/yPztfFlVZ6XiK7+xGU/LOza7np33TNoylOu5QrnQ1wUuQUSR5w/9wv6/24Es=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HO3wjWuO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898397; c=relaxed/simple;
+	bh=zP8LHiHAaVT6iL9YVClhVZXZf/BzVDtRM9OzpaMJuLM=;
+	h=Date:To:From:Subject:Message-Id; b=MMSSKLnvwJ9PbDgyLgEma9BlvyH2pLZddG+VuHtXefKh1S2N/Wk7Ay0RAlUzw67tcInycO7WXEjAC44paKhmCpkh2OPcAfFYMB6hnySZ8LmA1PMELZtUjqJF43lLPPvs51sRipN04A6YWT9ijaavm6FDKiXUx+GFC2DJpuUQgWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CM9ECCYz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HO3wjWuO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50754C4CEF1;
-	Sat, 31 Jan 2026 22:26:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CM9ECCYz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A61D6C4CEF1;
+	Sat, 31 Jan 2026 22:26:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898395;
-	bh=14ckoQOrppCiZX82wZKueAfgfWxEOkSdT5/IJPT2Km4=;
+	s=korg; t=1769898397;
+	bh=zP8LHiHAaVT6iL9YVClhVZXZf/BzVDtRM9OzpaMJuLM=;
 	h=Date:To:From:Subject:From;
-	b=HO3wjWuOfpFx02SQ6KTlmtbDJ3xlL/utgtWUHF7MwL8v+xLlF15oBhj2BkTvGzwfN
-	 5YFU69BIZrb9PIy8RMQSJgZOOodasOwGCerrEdxIiSe8auXYxFx3pMVadfnWTkG7/H
-	 nHUF9OPsnWwH1EIe51ksdL0mF9adw3GjJ2kvMQek=
-Date: Sat, 31 Jan 2026 14:26:34 -0800
+	b=CM9ECCYzyXyL4Nk5jIhiPP0NaDPidxnloCDnvg12Ul56l4++UXGbfFPqviTUbvrnF
+	 2JB8z+q8x5qEkuCPMkMBkFly/aO5dtB5bU2KGYP3r/BA0Gx6apmT2Z8oO5KYo4QWRH
+	 d2ohBifdsqEXkVr4bz3LTj8LCRR9jjdeS520anEQ=
+Date: Sat, 31 Jan 2026 14:26:37 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ryncsn@gmail.com,rafael@kernel.org,nphamcs@gmail.com,kartikey406@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-always-try-to-free-swap-cache-for-swp_synchronous_io-devices.patch removed from -mm tree
-Message-Id: <20260131222635.50754C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-simplify-the-code-and-reduce-indention.patch removed from -mm tree
+Message-Id: <20260131222637.A61D6C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,43 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: always try to free swap cache for SWP_SYNCHRONOUS_IO devices
+     Subject: mm, swap: simplify the code and reduce indention
 has been removed from the -mm tree.  Its filename was
-     mm-swap-always-try-to-free-swap-cache-for-swp_synchronous_io-devices.patch
+     mm-swap-simplify-the-code-and-reduce-indention.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: always try to free swap cache for SWP_SYNCHRONOUS_IO devices
-Date: Sat, 20 Dec 2025 03:43:33 +0800
+Subject: mm, swap: simplify the code and reduce indention
+Date: Sat, 20 Dec 2025 03:43:34 +0800
 
-Now SWP_SYNCHRONOUS_IO devices are also using swap cache.  One side effect
-is that a folio may stay in swap cache for a longer time due to lazy
-freeing (vm_swap_full()).  This can help save some CPU / IO if folios are
-being swapped out very frequently right after swapin, hence improving the
-performance.  But the long pinning of swap slots also increases the
-fragmentation rate of the swap device significantly, and currently, all
-in-tree SWP_SYNCHRONOUS_IO devices are RAM disks, so it also causes the
-backing memory to be pinned, increasing the memory pressure.
+Now swap cache is always used, multiple swap cache checks are no longer
+useful, remove them and reduce the code indention.
 
-So drop the swap cache immediately for SWP_SYNCHRONOUS_IO devices after
-swapin finishes.  Swap cache has served its role as a synchronization
-layer to prevent any parallel swap-in from wasting CPU or memory
-allocation, and the redundant IO is not a major concern for
-SWP_SYNCHRONOUS_IO devices.
+No behavior change.
 
-Worth noting, without this patch, this series so far can provide a ~30%
-performance gain for certain workloads like MySQL or kernel compilation,
-but causes significant regression or OOM when under extreme global
-pressure.  With this patch, we still have a nice performance gain for most
-workloads, and without introducing any observable regressions.  This is a
-hint that further optimization can be done based on the new unified swapin
-with swap cache, but for now, just keep the behaviour consistent with
-before.
-
-Link: https://lkml.kernel.org/r/20251220-swap-table-p2-v5-4-8862a265a033@tencent.com
+Link: https://lkml.kernel.org/r/20251220-swap-table-p2-v5-5-8862a265a033@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -86,48 +67,126 @@ Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ mm/memory.c |   89 ++++++++++++++++++++++++--------------------------
+ 1 file changed, 43 insertions(+), 46 deletions(-)
 
---- a/mm/memory.c~mm-swap-always-try-to-free-swap-cache-for-swp_synchronous_io-devices
+--- a/mm/memory.c~mm-swap-simplify-the-code-and-reduce-indention
 +++ a/mm/memory.c
-@@ -4357,12 +4357,26 @@ static vm_fault_t remove_device_exclusiv
- 	return 0;
- }
+@@ -4767,55 +4767,52 @@ vm_fault_t do_swap_page(struct vm_fault
+ 		goto out_release;
  
--static inline bool should_try_to_free_swap(struct folio *folio,
-+/*
-+ * Check if we should call folio_free_swap to free the swap cache.
-+ * folio_free_swap only frees the swap cache to release the slot if swap
-+ * count is zero, so we don't need to check the swap count here.
-+ */
-+static inline bool should_try_to_free_swap(struct swap_info_struct *si,
-+					   struct folio *folio,
- 					   struct vm_area_struct *vma,
- 					   unsigned int fault_flags)
- {
- 	if (!folio_test_swapcache(folio))
- 		return false;
+ 	page = folio_file_page(folio, swp_offset(entry));
+-	if (swapcache) {
+-		/*
+-		 * Make sure folio_free_swap() or swapoff did not release the
+-		 * swapcache from under us.  The page pin, and pte_same test
+-		 * below, are not enough to exclude that.  Even if it is still
+-		 * swapcache, we need to check that the page's swap has not
+-		 * changed.
+-		 */
+-		if (unlikely(!folio_matches_swap_entry(folio, entry)))
+-			goto out_page;
+-
+-		if (unlikely(PageHWPoison(page))) {
+-			/*
+-			 * hwpoisoned dirty swapcache pages are kept for killing
+-			 * owner processes (which may be unknown at hwpoison time)
+-			 */
+-			ret = VM_FAULT_HWPOISON;
+-			goto out_page;
+-		}
+-
+-		/*
+-		 * KSM sometimes has to copy on read faults, for example, if
+-		 * folio->index of non-ksm folios would be nonlinear inside the
+-		 * anon VMA -- the ksm flag is lost on actual swapout.
+-		 */
+-		folio = ksm_might_need_to_copy(folio, vma, vmf->address);
+-		if (unlikely(!folio)) {
+-			ret = VM_FAULT_OOM;
+-			folio = swapcache;
+-			goto out_page;
+-		} else if (unlikely(folio == ERR_PTR(-EHWPOISON))) {
+-			ret = VM_FAULT_HWPOISON;
+-			folio = swapcache;
+-			goto out_page;
+-		}
+-		if (folio != swapcache)
+-			page = folio_page(folio, 0);
 +	/*
-+	 * Always try to free swap cache for SWP_SYNCHRONOUS_IO devices. Swap
-+	 * cache can help save some IO or memory overhead, but these devices
-+	 * are fast, and meanwhile, swap cache pinning the slot deferring the
-+	 * release of metadata or fragmentation is a more critical issue.
++	 * Make sure folio_free_swap() or swapoff did not release the
++	 * swapcache from under us.  The page pin, and pte_same test
++	 * below, are not enough to exclude that.  Even if it is still
++	 * swapcache, we need to check that the page's swap has not
++	 * changed.
 +	 */
-+	if (data_race(si->flags & SWP_SYNCHRONOUS_IO))
-+		return true;
- 	if (mem_cgroup_swap_full(folio) || (vma->vm_flags & VM_LOCKED) ||
- 	    folio_test_mlocked(folio))
- 		return true;
-@@ -4934,7 +4948,7 @@ check_folio:
- 	 * yet.
- 	 */
- 	swap_free_nr(entry, nr_pages);
--	if (should_try_to_free_swap(folio, vma, vmf->flags))
-+	if (should_try_to_free_swap(si, folio, vma, vmf->flags))
- 		folio_free_swap(folio);
++	if (unlikely(!folio_matches_swap_entry(folio, entry)))
++		goto out_page;
  
- 	add_mm_counter(vma->vm_mm, MM_ANONPAGES, nr_pages);
++	if (unlikely(PageHWPoison(page))) {
+ 		/*
+-		 * If we want to map a page that's in the swapcache writable, we
+-		 * have to detect via the refcount if we're really the exclusive
+-		 * owner. Try removing the extra reference from the local LRU
+-		 * caches if required.
++		 * hwpoisoned dirty swapcache pages are kept for killing
++		 * owner processes (which may be unknown at hwpoison time)
+ 		 */
+-		if ((vmf->flags & FAULT_FLAG_WRITE) && folio == swapcache &&
+-		    !folio_test_ksm(folio) && !folio_test_lru(folio))
+-			lru_add_drain();
++		ret = VM_FAULT_HWPOISON;
++		goto out_page;
+ 	}
+ 
++	/*
++	 * KSM sometimes has to copy on read faults, for example, if
++	 * folio->index of non-ksm folios would be nonlinear inside the
++	 * anon VMA -- the ksm flag is lost on actual swapout.
++	 */
++	folio = ksm_might_need_to_copy(folio, vma, vmf->address);
++	if (unlikely(!folio)) {
++		ret = VM_FAULT_OOM;
++		folio = swapcache;
++		goto out_page;
++	} else if (unlikely(folio == ERR_PTR(-EHWPOISON))) {
++		ret = VM_FAULT_HWPOISON;
++		folio = swapcache;
++		goto out_page;
++	} else if (folio != swapcache)
++		page = folio_page(folio, 0);
++
++	/*
++	 * If we want to map a page that's in the swapcache writable, we
++	 * have to detect via the refcount if we're really the exclusive
++	 * owner. Try removing the extra reference from the local LRU
++	 * caches if required.
++	 */
++	if ((vmf->flags & FAULT_FLAG_WRITE) &&
++	    !folio_test_ksm(folio) && !folio_test_lru(folio))
++		lru_add_drain();
++
+ 	folio_throttle_swaprate(folio, GFP_KERNEL);
+ 
+ 	/*
+@@ -5005,7 +5002,7 @@ check_folio:
+ 			pte, pte, nr_pages);
+ 
+ 	folio_unlock(folio);
+-	if (folio != swapcache && swapcache) {
++	if (unlikely(folio != swapcache)) {
+ 		/*
+ 		 * Hold the lock to avoid the swap entry to be reused
+ 		 * until we take the PT lock for the pte_same() check
+@@ -5043,7 +5040,7 @@ out_page:
+ 	folio_unlock(folio);
+ out_release:
+ 	folio_put(folio);
+-	if (folio != swapcache && swapcache) {
++	if (folio != swapcache) {
+ 		folio_unlock(swapcache);
+ 		folio_put(swapcache);
+ 	}
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
