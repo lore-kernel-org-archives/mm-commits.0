@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 993CD38A734
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32F9A38A734
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898315; cv=none; b=HMVQruesPCb3tCY0U3P5FGTb3rekNnlBbhgcE8VN003TEQ0uREjdBlujzSl7CkzPBObad6J6f+CesFrCpvpnb5uF23+2pjGIdyGYWIhkt1JK+js+4hC/Zm4Nvt/HderOI7geXmcmf3FLrGbAEzndTZnChWe/vbJrXJcuvXcptAo=
+	t=1769898317; cv=none; b=GWa0f4aTQ3TpCFO8dlRDGfI+kGe62FEL2SfdyyN998BHIipS6XKo4De/qV75RfGK7DuCJLO+sHNTRKPUP1u8w1FA1SpfbKHrjnoB8v+/13kmy5ZSX0VnY+huXyxnoXqSPwQSBsPYjcFQg63zja1xZmgNH7emhIGrWnM0Pk6AR2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898315; c=relaxed/simple;
-	bh=wZJ84HvBLXhrwEKNrENvNb55YuGXBd6WZaImFB98x0Y=;
-	h=Date:To:From:Subject:Message-Id; b=Im1qekISKantDZ8Vck5VAzlRjp58lOV8KyaBXMaDNMg1rLtkLy2SU29FMUmdmsJnYnnVG8e832qNnAF5ltU6j/f0ORYmukWgfcHqvocxN3xPwjewgswUQAYR0Rdo/475239hiL+SQ6yYLk9ep46z72/RSZ9CeRdu+MLaf5yezfo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iH3PLPFB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898317; c=relaxed/simple;
+	bh=BI7y7297j3t7PqypHShxv4pet4VXCK5+1/COa5S0Ag4=;
+	h=Date:To:From:Subject:Message-Id; b=TCydZdHJHxXCA+3kbUzu5ekjJph3oZwFZ3ZX+LYYKSE5ZeJznx18cyeJydhpCVi6lYDhmP5rdO0Z5wYZGBBiplEB2DNmY0Uv47JBUXBzikyIAeZ8ZT4O9cl6I1ODw1LTugF1mu69m5L7kdNqA6XYs+yS44j7fthkZumcVRwSWyU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ccBkN2bA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iH3PLPFB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7099FC4CEF1;
-	Sat, 31 Jan 2026 22:25:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ccBkN2bA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09659C4CEF1;
+	Sat, 31 Jan 2026 22:25:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898315;
-	bh=wZJ84HvBLXhrwEKNrENvNb55YuGXBd6WZaImFB98x0Y=;
+	s=korg; t=1769898317;
+	bh=BI7y7297j3t7PqypHShxv4pet4VXCK5+1/COa5S0Ag4=;
 	h=Date:To:From:Subject:From;
-	b=iH3PLPFBvK7Gl1DHA73epsTPB/Emsd6MwPvGQ75N/0iUqpYjKtgHRfheWvyWtdOrr
-	 sqpGcY0jKzaGRxu7kh2Hx3qtPzLBVt3ZgMmrERUyCs3ICHzvrw69b5pX/lULa2nscA
-	 cw69JXC8GdT6/Nmlg7btliaDDhys3LTZ0rRcgeXM=
-Date: Sat, 31 Jan 2026 14:25:14 -0800
-To: mm-commits@vger.kernel.org,usama.anjum@arm.com,sj@kernel.org,shuah@kernel.org,ryan.roberts@arm.com,pabeni@redhat.com,lorenzo.stoakes@oracle.com,linyunsheng@huawei.com,lianux.mm@gmail.com,jhubbard@nvidia.com,jgg@nvidia.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,kevin.brodsky@arm.com,akpm@linux-foundation.org
+	b=ccBkN2bAKKbEM1WEyQmNynK9cPliH0SPqMB+ViOXpP7678PSQT+pFXupMsMGpWeDq
+	 0nMfXwEbpCvBN18nGsqke8iOtmaS/RqWX+OjewCi4pScoXL+YNlgxxqCtXFZsuLwLs
+	 Y4OwhX5RIHAPJ7+GAy+O6ajHHzlhEW9mQpwzUqN0=
+Date: Sat, 31 Jan 2026 14:25:16 -0800
+To: mm-commits@vger.kernel.org,Usama.Anjum@arm.com,sj@kernel.org,shuah@kernel.org,ryan.roberts@arm.com,pabeni@redhat.com,lorenzo.stoakes@oracle.com,linyunsheng@huawei.com,lianux.mm@gmail.com,jhubbard@nvidia.com,jgg@nvidia.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-fix-faulting-in-code-in-pagemap_ioctl-test.patch removed from -mm tree
-Message-Id: <20260131222515.7099FC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-fix-exit-code-in-pagemap_ioctl.patch removed from -mm tree
+Message-Id: <20260131222517.09659C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,78 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix faulting-in code in pagemap_ioctl test
+     Subject: selftests/mm: fix exit code in pagemap_ioctl
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-faulting-in-code-in-pagemap_ioctl-test.patch
+     selftests-mm-fix-exit-code-in-pagemap_ioctl.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: fix faulting-in code in pagemap_ioctl test
-Date: Thu, 22 Jan 2026 17:02:22 +0000
+Subject: selftests/mm: fix exit code in pagemap_ioctl
+Date: Thu, 22 Jan 2026 17:02:23 +0000
 
-One of the pagemap_ioctl tests attempts to fault in pages by memcpy()'ing
-them to an unused buffer.  This probably worked originally, but since
-commit 46036188ea1f ("selftests/mm: build with -O2") the compiler is free
-to optimise away that unused buffer and the memcpy() with it.  As a result
-there might not be any resident page in the mapping and the test may fail.
+Make sure pagemap_ioctl exits with an appropriate value:
 
-We don't need to copy all that memory anyway.  Just fault in every page.
+* If the tests are run, call ksft_finished() to report the right
+  status instead of reporting PASS unconditionally.
 
-While at it also make sure to compute the number of pages once using
-simple integer arithmetic instead of ceilf() and implicit conversions.
+* Report SKIP if userfaultfd isn't available (in line with other
+  tests)
 
-Link: https://lkml.kernel.org/r/20260122170224.4056513-8-kevin.brodsky@arm.com
-Fixes: 46036188ea1f ("selftests/mm: build with -O2")
+* Report FAIL if we failed to open /proc/self/pagemap, as this file
+  has been added a long time ago and doesn't depend on any CONFIG
+  option (returning -EINVAL from main() is meaningless)
+
+Link: https://lkml.kernel.org/r/20260122170224.4056513-9-kevin.brodsky@arm.com
 Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Mark Brown <broonie@kernel.org>
 Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Acked-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: wang lian <lianux.mm@gmail.com>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Muhammad Usama Anjum <usama.anjum@arm.com>
+Cc: Usama Anjum <Usama.Anjum@arm.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mark Brown <broonie@kernel.org>
 Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: wang lian <lianux.mm@gmail.com>
 Cc: Yunsheng Lin <linyunsheng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pagemap_ioctl.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ tools/testing/selftests/mm/pagemap_ioctl.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-fix-faulting-in-code-in-pagemap_ioctl-test
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-fix-exit-code-in-pagemap_ioctl
 +++ a/tools/testing/selftests/mm/pagemap_ioctl.c
-@@ -1052,11 +1052,10 @@ static void test_simple(void)
- int sanity_tests(void)
- {
- 	unsigned long long mem_size, vec_size;
--	long ret, fd, i, buf_size;
-+	long ret, fd, i, buf_size, nr_pages;
- 	struct page_region *vec;
- 	char *mem, *fmem;
- 	struct stat sbuf;
--	char *tmp_buf;
+@@ -1552,7 +1552,7 @@ int main(int __attribute__((unused)) arg
+ 	ksft_print_header();
  
- 	/* 1. wrong operation */
- 	mem_size = 10 * page_size;
-@@ -1167,14 +1166,14 @@ int sanity_tests(void)
- 	if (fmem == MAP_FAILED)
- 		ksft_exit_fail_msg("error nomem %d %s\n", errno, strerror(errno));
+ 	if (init_uffd())
+-		ksft_exit_pass();
++		ksft_exit_skip("Failed to initialize userfaultfd\n");
  
--	tmp_buf = malloc(sbuf.st_size);
--	memcpy(tmp_buf, fmem, sbuf.st_size);
-+	nr_pages = (sbuf.st_size + page_size - 1) / page_size;
-+	force_read_pages(fmem, nr_pages, page_size);
+ 	ksft_set_plan(117);
  
- 	ret = pagemap_ioctl(fmem, sbuf.st_size, vec, vec_size, 0, 0,
- 			    0, PAGEMAP_NON_WRITTEN_BITS, 0, PAGEMAP_NON_WRITTEN_BITS);
+@@ -1561,7 +1561,7 @@ int main(int __attribute__((unused)) arg
  
- 	ksft_test_result(ret >= 0 && vec[0].start == (uintptr_t)fmem &&
--			 LEN(vec[0]) == ceilf((float)sbuf.st_size/page_size) &&
-+			 LEN(vec[0]) == nr_pages &&
- 			 (vec[0].categories & PAGE_IS_FILE),
- 			 "%s Memory mapped file\n", __func__);
+ 	pagemap_fd = open(PAGEMAP, O_RDONLY);
+ 	if (pagemap_fd < 0)
+-		return -EINVAL;
++		ksft_exit_fail_msg("Failed to open " PAGEMAP "\n");
  
+ 	/* 1. Sanity testing */
+ 	sanity_tests_sd();
+@@ -1733,5 +1733,5 @@ int main(int __attribute__((unused)) arg
+ 	zeropfn_tests();
+ 
+ 	close(pagemap_fd);
+-	ksft_exit_pass();
++	ksft_finished();
+ }
 _
 
 Patches currently in -mm which might be from kevin.brodsky@arm.com are
