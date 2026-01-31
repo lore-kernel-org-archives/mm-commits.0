@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3465367F5C
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 21:52:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1661376479
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 21:53:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769896338; cv=none; b=IG6CWgH5P6J31GQIrHrgaSak9joFWraRHrlInO1QFOoqCi1Ugi8Q5cYbmUaE6s5nvAgj55qcMdTxeuIoAY/XRU2GySHPnnFIZ7HUAUlBi8UkCvS0YpqCLpfpxZSOFah6PubYlLLOaUcG7j/wpQRTAjNuEHFviP6IVnyyvvQl4fg=
+	t=1769896438; cv=none; b=JqyJCVvasrwS4rdYf3GhpjdhcaukLTQVI6G5I51iR0787l77NwWOoL6c1JOhIMZME6xmyQg7vSqY0EmjIaBpcyMFB6fTZj3FD52pi5OtlkqiNUaFxm0/Vlf18YKm0hoa6Fbl9uU59E6/15etwJXw6sGClYtURWu8gmIH65+XwVw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769896338; c=relaxed/simple;
-	bh=FSCNG0pQDRy0GP4VbU9mfQt1x1fpaCtE583ryjA0Fb0=;
-	h=Date:To:From:Subject:Message-Id; b=CUizabAqYsyu4wnu8IEoDAYIESXdQ+FVExYj3kb3k+1ISHHjRDtbzrlsxoaIyxYZqsD9bXA9rIeHyFDNykXIPrMlJGY1IVzKSsFjRTI1uK8W3XNbBZdJuO0A+9OpNd838NULmrkWwqk8SIIg9UbpP8z0l7Gy4HHPgVP7QRcin1A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PBEY0ngO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769896438; c=relaxed/simple;
+	bh=5Bo01pyFn13r8KytcXWBDbBAK6Ly9XvQTUxNigrWrkg=;
+	h=Date:To:From:Subject:Message-Id; b=m0l8WAVc+MKkUNhBnhgajEBgTJ3JINsovrGKlmksTwGGk59yGuubF+rlvZ1WJ0vOyixMEUczeiL4XEIOgAcTwuItrol/hz616bc1Odhm9FUL8gl+IO5vNyJw/MAp6iBuqhlDe+Lvpmu3+szG5pqYm+PN6wFI9OfxsXn9L/hioJQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ci7FRrbb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PBEY0ngO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31853C4CEF1;
-	Sat, 31 Jan 2026 21:52:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ci7FRrbb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49BEAC19421;
+	Sat, 31 Jan 2026 21:53:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769896337;
-	bh=FSCNG0pQDRy0GP4VbU9mfQt1x1fpaCtE583ryjA0Fb0=;
+	s=korg; t=1769896438;
+	bh=5Bo01pyFn13r8KytcXWBDbBAK6Ly9XvQTUxNigrWrkg=;
 	h=Date:To:From:Subject:From;
-	b=PBEY0ngO8xbPvwBrNjDluDvOz9DuF7Djw7jYPdx2wTEYc6N80OmyDOSjo/ESR6OGZ
-	 ld2Cuv7u8nEPECz70hqFU9lKCU0bTKnb4FwAJSimoLKSw5gRQgd5utUSCv8m4m7SJs
-	 IQzi2xrGVsfPfnpjxmlqPZgFAXGd1mAp1zGOlWGU=
-Date: Sat, 31 Jan 2026 13:52:16 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,david@kernel.org,akpm@linux-foundation.org
+	b=Ci7FRrbb0BgRYuvsPbMt55g7xk6A8QiYhhMA0tagqNix4zSC0DDu7mZqr+NKAdEPa
+	 Cn0vMk2mll6REEpFje53gHDSsUjYXPLy1WOP0eaBjTADh6736TZBk8f2WEWYciG5Jg
+	 lceYkpko3tQXnHhKiESUNWfEXgvNp0yDeeHbhg4s=
+Date: Sat, 31 Jan 2026 13:53:56 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,marco.crivellari@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jiangshanlai@gmail.com,hannes@cmpxchg.org,glider@google.com,frederic@kernel.org,elver@google.com,dvyukov@google.com,david@kernel.org,bigeasy@linutronix.de,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc-fix.patch removed from -mm tree
-Message-Id: <20260131215217.31853C4CEF1@smtp.kernel.org>
+Subject: [folded-merged] mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch removed from -mm tree
+Message-Id: <20260131215358.49BEAC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: fixup: mm/balloon_compaction: move internal helpers to balloon_compaction.c
+     Subject: mm-add-wq_percpu-to-alloc_workqueue-users-fix
 has been removed from the -mm tree.  Its filename was
-     mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc-fix.patch
+     mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
 
-This patch was dropped because it was folded into mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc.patch
+This patch was dropped because it was folded into mm-add-wq_percpu-to-alloc_workqueue-users.patch
 
 ------------------------------------------------------
-From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Subject: fixup: mm/balloon_compaction: move internal helpers to balloon_compaction.c
-Date: Tue, 20 Jan 2026 07:37:39 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-add-wq_percpu-to-alloc_workqueue-users-fix
+Date: Tue Jan 13 05:59:13 PM PST 2026
 
-Move balloon_page_device() under CONFIG_BALLOON_COMPACTION.
+fix mm/slub.c
 
-Link: https://lkml.kernel.org/r/27f0adf1-54c1-4d99-8b7f-fd45574e7f41@kernel.org
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202601201338.4muFmFHV-lkp@intel.com/
-Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Marco Crivellari <marco.crivellari@suse.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lai jiangshan <jiangshanlai@gmail.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/balloon_compaction.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/slub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/balloon_compaction.c~mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc-fix
-+++ a/mm/balloon_compaction.c
-@@ -17,11 +17,6 @@
-  */
- static DEFINE_SPINLOCK(balloon_pages_lock);
+--- a/mm/slub.c~mm-add-wq_percpu-to-alloc_workqueue-users-fix
++++ a/mm/slub.c
+@@ -8546,6 +8546,7 @@ void __init kmem_cache_init_late(void)
+ 	flushwq = alloc_workqueue("slub_flushwq", WQ_MEM_RECLAIM | WQ_PERCPU,
+ 				  0);
+ 	WARN_ON(!flushwq);
++#endif
+ }
  
--static struct balloon_dev_info *balloon_page_device(struct page *page)
--{
--	return (struct balloon_dev_info *)page_private(page);
--}
--
- /*
-  * balloon_page_insert - insert a page into the balloon's page list and make
-  *			 the page->private assignment accordingly.
-@@ -232,6 +227,10 @@ struct page *balloon_page_dequeue(struct
- EXPORT_SYMBOL_GPL(balloon_page_dequeue);
- 
- #ifdef CONFIG_BALLOON_COMPACTION
-+static struct balloon_dev_info *balloon_page_device(struct page *page)
-+{
-+	return (struct balloon_dev_info *)page_private(page);
-+}
- 
- static bool balloon_page_isolate(struct page *page, isolate_mode_t mode)
- 
+ struct kmem_cache *
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmw_balloon-adjust-balloon_deflate-when-deflating-while-migrating.patch
-vmw_balloon-remove-vmballoon_compaction_init.patch
-powerpc-pseries-cmm-remove-cmm_balloon_compaction_init.patch
-mm-balloon_compaction-improve-comments-for-warn_on_onceb_dev_info.patch
-mm-balloon_compaction-centralize-basic-page-migration-handling.patch
-mm-balloon_compaction-centralize-adjust_managed_page_count-handling.patch
-vmw_balloon-stop-using-the-balloon_dev_info-lock.patch
-mm-balloon_compaction-use-a-device-independent-balloon-list-lock.patch
-mm-balloon_compaction-remove-dependency-on-page-lock.patch
-mm-balloon_compaction-make-balloon_mops-static.patch
-mm-balloon_compaction-drop-fsh-include-from-balloon_compactionh.patch
-drivers-virtio-virtio_balloon-stop-using-balloon_page_push-pop.patch
-mm-balloon_compaction-remove-balloon_page_push-pop.patch
-mm-balloon_compaction-fold-balloon_mapping_gfp_mask-into-balloon_page_alloc.patch
-mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc.patch
-mm-balloon_compaction-assert-that-the-balloon_pages_lock-is-held.patch
-mm-balloon_compaction-mark-remaining-functions-for-having-proper-kerneldoc.patch
-mm-balloon_compaction-remove-extern-from-functions.patch
-mm-vmscan-drop-inclusion-of-balloon_compactionh.patch
-mm-rename-balloon_compactionch-to-balloonch.patch
-mm-kconfig-make-balloon_compaction-depend-on-migration.patch
-mm-rename-config_balloon_compaction-to-config_balloon_migration.patch
-mm-rename-config_memory_balloon-config_balloon.patch
-maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon.patch
-mm-move-pte-table-reclaim-code-to-memoryc.patch
-mm-memory-handle-non-split-locks-correctly-in-zap_empty_pte_table.patch
+procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch
+mm-add-wq_percpu-to-alloc_workqueue-users.patch
+mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix.patch
+sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
+mm-vma-document-possible-vma-vm_refcnt-values-and-reference-comment-fix.patch
+mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix.patch
+mm-pagewalk-use-min-to-simplify-the-code-fix.patch
+mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch
+mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
+maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
+liveupdate-luo_file-remember-retrieve-status-fix.patch
 
