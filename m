@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C05A038A734
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 672D738A734
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898318; cv=none; b=JGsS2PiM1M3geMDlnmnVDcazAZwgLbX31U4Gbt3ql4sddJ7/uFAQLXBqFjY1yMdWCTptRFUOeSSkK5MarRjnCuQdiyUsx/7DU73uLaLfS2W5UafdKFgNzJjO8C7QzTatS5V99bOl2pMosDDS339HTSSOA+nenRrOB/O8Netr4gI=
+	t=1769898320; cv=none; b=OSfOcWnSXp8pZ7kZpQdIMNEXGYSOYDsv8qzqlyU4+6nQQbw8Jjx31JtHi3r5D9OoCYc5NhJCt/Ej6Aoua1/ys++SoqDZBLM8FDxLWCC3IiTv0ux8jaMzy7/Li+xqkvCB2DNLj1gyLW2xAoGAjOPIHOhSm+iRZIUxhG3kMnLhwPc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898318; c=relaxed/simple;
-	bh=l0yg2S6y2AYb/tHSkJ68Hi2o22WPfQYHGqnqIebGPIc=;
-	h=Date:To:From:Subject:Message-Id; b=q5Lesx9X5ATmFn6bVY4L4+ihjcb/svyA+EwQ3zFyU93Cy3T7JQY+47UXYy75hRU9K0+0hEgzASQCKjXNhedbjEzY04kjzHeKJI+8AL2jeyLt8KSfHsPYvxODKb36X2pZ+zn1S9oDff1v+pa/2Gj6KQYYrKo/tjVn0ZMtJVYJtHk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rlyjuLAO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898320; c=relaxed/simple;
+	bh=iUnwaoMD5Y1trO0DEU6nXV8TPwgT/3/4vrAmTkdU4ek=;
+	h=Date:To:From:Subject:Message-Id; b=SR83B5PpJwLApwmbkWmvdrjt5b/pMxzAo7ek8o9BC7FVA8J01MiqYSIMHPghob1kXQEOUzF+TfwAYXKTuS0kdmIMtx8JfIexiIWRDpLC+9vksfSW/KzUe/hBsDvTmy5FUS7wGhPB0vR9rhPeDrsrY/AVRrbH/bhpm47D5fFQjNE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0ElGWzKb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rlyjuLAO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99534C4CEF1;
-	Sat, 31 Jan 2026 22:25:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0ElGWzKb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EA20C4CEF1;
+	Sat, 31 Jan 2026 22:25:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898318;
-	bh=l0yg2S6y2AYb/tHSkJ68Hi2o22WPfQYHGqnqIebGPIc=;
+	s=korg; t=1769898320;
+	bh=iUnwaoMD5Y1trO0DEU6nXV8TPwgT/3/4vrAmTkdU4ek=;
 	h=Date:To:From:Subject:From;
-	b=rlyjuLAOQTKgvLpvsusJIIT8MiGUk9VSpKZjCRdzDHc8gsXAdnYn1MqWqbcBY2JUu
-	 sZFTEzN6Fc5BjF/45xD08wqBKGxrn2rUnvt2qjebfsE77lKcFBhKXN6CE9uulFnoy+
-	 VZdgHNLSRQjopj2SzUyoM6tDpaWlz5uPxXT0u9nk=
-Date: Sat, 31 Jan 2026 14:25:18 -0800
-To: mm-commits@vger.kernel.org,Usama.Anjum@arm.com,sj@kernel.org,shuah@kernel.org,ryan.roberts@arm.com,pabeni@redhat.com,lorenzo.stoakes@oracle.com,linyunsheng@huawei.com,lianux.mm@gmail.com,jhubbard@nvidia.com,jgg@nvidia.com,dev.jain@arm.com,david@kernel.org,broonie@kernel.org,kevin.brodsky@arm.com,akpm@linux-foundation.org
+	b=0ElGWzKbWVus1ZSACzM4MInY4jeae+1SEHIdcrM055J+dL0J4deCIL1y3ZQPyYF6O
+	 WBZ3s1rKXtp1PheV/Bv0NDNmbDZUIxD8waJZzDMbJK6lu5p7wR1I0Tgby3kYMieNt1
+	 yTGmV9M3fIdS72j92WGxXX9en2+fSKJfaFkjdbFc=
+Date: Sat, 31 Jan 2026 14:25:19 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,sidhartha.kumar@oracle.com,osalvador@suse.de,muchun.song@linux.dev,jane.chu@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-report-skip-in-pfnmap-if-a-check-fails.patch removed from -mm tree
-Message-Id: <20260131222518.99534C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_isolation-introduce-page_is_unmovable.patch removed from -mm tree
+Message-Id: <20260131222520.3EA20C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,199 +35,279 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: report SKIP in pfnmap if a check fails
+     Subject: mm: page_isolation: introduce page_is_unmovable()
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-report-skip-in-pfnmap-if-a-check-fails.patch
+     mm-page_isolation-introduce-page_is_unmovable.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kevin Brodsky <kevin.brodsky@arm.com>
-Subject: selftests/mm: report SKIP in pfnmap if a check fails
-Date: Thu, 22 Jan 2026 17:02:24 +0000
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: page_isolation: introduce page_is_unmovable()
+Date: Mon, 12 Jan 2026 23:09:50 +0800
 
-pfnmap currently checks the target file in FIXTURE_SETUP(pfnmap), meaning
-once for every test, and skips the test if any check fails.
+Patch series "mm: accelerate gigantic folio allocation".
 
-The target file is the same for every test so this is a little overkill. 
-More importantly, this approach means that the whole suite will report
-PASS even if all the tests are skipped because kernel configuration (e.g. 
-CONFIG_STRICT_DEVMEM=y) prevented /dev/mem from being mapped, for
-instance.
+Optimize pfn_range_valid_contig() and replace_free_hugepage_folios() in
+alloc_contig_frozen_pages() to speed up gigantic folio allocation.  The
+allocation time for 120*1G folios drops from 3.605s to 0.431s.
 
-Let's ensure that KSFT_SKIP is returned as exit code if any check fails by
-performing the checks in pfnmap_init(), run once.  That function also
-takes care of finding the offset of the pages to be mapped and saves it in
-a global.  The file is now opened only once and the fd saved in a global,
-but it is still mapped/unmapped for every test, as some of them modify the
-mapping.
 
-Link: https://lkml.kernel.org/r/20260122170224.4056513-10-kevin.brodsky@arm.com
-Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Usama Anjum <Usama.Anjum@arm.com>
-Cc: wang lian <lianux.mm@gmail.com>
-Cc: Yunsheng Lin <linyunsheng@huawei.com>
+This patch (of 5):
+
+Factor out the check if a page is unmovable into a new helper, and will be
+reused in the following patch.
+
+No functional change intended, the minor changes are as follows,
+1) Avoid unnecessary calls by checking CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+2) Directly call PageCompound since PageTransCompound may be dropped
+3) Using folio_test_hugetlb()
+
+Link: https://lkml.kernel.org/r/20260112150954.1802953-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20260112150954.1802953-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pfnmap.c |   84 ++++++++++++++++----------
- 1 file changed, 53 insertions(+), 31 deletions(-)
+ include/linux/page-isolation.h |    2 
+ mm/page_isolation.c            |  187 ++++++++++++++++---------------
+ 2 files changed, 101 insertions(+), 88 deletions(-)
 
---- a/tools/testing/selftests/mm/pfnmap.c~selftests-mm-report-skip-in-pfnmap-if-a-check-fails
-+++ a/tools/testing/selftests/mm/pfnmap.c
-@@ -25,8 +25,12 @@
- #include "kselftest_harness.h"
- #include "vm_util.h"
+--- a/include/linux/page-isolation.h~mm-page_isolation-introduce-page_is_unmovable
++++ a/include/linux/page-isolation.h
+@@ -67,4 +67,6 @@ void undo_isolate_page_range(unsigned lo
  
-+#define DEV_MEM_NPAGES	2
-+
- static sigjmp_buf sigjmp_buf_env;
- static char *file = "/dev/mem";
-+static off_t file_offset;
-+static int fd;
+ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
+ 			enum pb_isolate_mode mode);
++bool page_is_unmovable(struct zone *zone, struct page *page,
++			enum pb_isolate_mode mode, unsigned long *step);
+ #endif
+--- a/mm/page_isolation.c~mm-page_isolation-introduce-page_is_unmovable
++++ a/mm/page_isolation.c
+@@ -15,6 +15,100 @@
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/page_isolation.h>
  
- static void signal_handler(int sig)
- {
-@@ -88,7 +92,7 @@ static int find_ram_target(off_t *offset
- 			break;
- 
- 		/* We need two pages. */
--		if (end > start + 2 * pagesize) {
-+		if (end > start + DEV_MEM_NPAGES * pagesize) {
- 			fclose(file);
- 			*offset = start;
- 			return 0;
-@@ -97,11 +101,48 @@ static int find_ram_target(off_t *offset
- 	return -ENOENT;
- }
- 
-+static void pfnmap_init(void)
++bool page_is_unmovable(struct zone *zone, struct page *page,
++		enum pb_isolate_mode mode, unsigned long *step)
 +{
-+	size_t pagesize = getpagesize();
-+	size_t size = DEV_MEM_NPAGES * pagesize;
-+	void *addr;
-+
-+	if (strncmp(file, "/dev/mem", strlen("/dev/mem")) == 0) {
-+		int err = find_ram_target(&file_offset, pagesize);
-+
-+		if (err)
-+			ksft_exit_skip("Cannot find ram target in '/proc/iomem': %s\n",
-+				       strerror(-err));
-+	} else {
-+		file_offset = 0;
-+	}
-+
-+	fd = open(file, O_RDONLY);
-+	if (fd < 0)
-+		ksft_exit_skip("Cannot open '%s': %s\n", file, strerror(errno));
++	/*
++	 * Both, bootmem allocations and memory holes are marked
++	 * PG_reserved and are unmovable. We can even have unmovable
++	 * allocations inside ZONE_MOVABLE, for example when
++	 * specifying "movablecore".
++	 */
++	if (PageReserved(page))
++		return true;
 +
 +	/*
-+	 * Make sure we can map the file, and perform some basic checks; skip
-+	 * the whole suite if anything goes wrong.
-+	 * A fresh mapping is then created for every test case by
-+	 * FIXTURE_SETUP(pfnmap).
++	 * If the zone is movable and we have ruled out all reserved
++	 * pages then it should be reasonably safe to assume the rest
++	 * is movable.
 +	 */
-+	addr = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, file_offset);
-+	if (addr == MAP_FAILED)
-+		ksft_exit_skip("Cannot mmap '%s': %s\n", file, strerror(errno));
++	if (zone_idx(zone) == ZONE_MOVABLE)
++		return false;
 +
-+	if (!check_vmflag_pfnmap(addr))
-+		ksft_exit_skip("Invalid file: '%s'. Not pfnmap'ed\n", file);
++	/*
++	 * Hugepages are not in LRU lists, but they're movable.
++	 * THPs are on the LRU, but need to be counted as #small pages.
++	 * We need not scan over tail pages because we don't
++	 * handle each tail page individually in migration.
++	 */
++	if (PageHuge(page) || PageCompound(page)) {
++		struct folio *folio = page_folio(page);
 +
-+	if (test_read_access(addr, size, pagesize))
-+		ksft_exit_skip("Cannot read-access mmap'ed '%s'\n", file);
++		if (folio_test_hugetlb(folio)) {
++			struct hstate *h;
 +
-+	munmap(addr, size);
++			if (!IS_ENABLED(CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION))
++				return true;
++
++			/*
++			 * The huge page may be freed so can not
++			 * use folio_hstate() directly.
++			 */
++			h = size_to_hstate(folio_size(folio));
++			if (h && !hugepage_migration_supported(h))
++				return true;
++
++		} else if (!folio_test_lru(folio)) {
++			return true;
++		}
++
++		*step = folio_nr_pages(folio) - folio_page_idx(folio, page);
++		return false;
++	}
++
++	/*
++	 * We can't use page_count without pin a page
++	 * because another CPU can free compound page.
++	 * This check already skips compound tails of THP
++	 * because their page->_refcount is zero at all time.
++	 */
++	if (!page_ref_count(page)) {
++		if (PageBuddy(page))
++			*step = (1 << buddy_order(page));
++		return false;
++	}
++
++	/*
++	 * The HWPoisoned page may be not in buddy system, and
++	 * page_count() is not 0.
++	 */
++	if ((mode == PB_ISOLATE_MODE_MEM_OFFLINE) && PageHWPoison(page))
++		return false;
++
++	/*
++	 * We treat all PageOffline() pages as movable when offlining
++	 * to give drivers a chance to decrement their reference count
++	 * in MEM_GOING_OFFLINE in order to indicate that these pages
++	 * can be offlined as there are no direct references anymore.
++	 * For actually unmovable PageOffline() where the driver does
++	 * not support this, we will fail later when trying to actually
++	 * move these pages that still have a reference count > 0.
++	 * (false negatives in this function only)
++	 */
++	if ((mode == PB_ISOLATE_MODE_MEM_OFFLINE) && PageOffline(page))
++		return false;
++
++	if (PageLRU(page) || page_has_movable_ops(page))
++		return false;
++
++	/*
++	 * If there are RECLAIMABLE pages, we need to check
++	 * it.  But now, memory offline itself doesn't call
++	 * shrink_node_slabs() and it still to be fixed.
++	 */
++	return true;
 +}
 +
- FIXTURE(pfnmap)
+ /*
+  * This function checks whether the range [start_pfn, end_pfn) includes
+  * unmovable pages or not. The range must fall into a single pageblock and
+@@ -35,7 +129,6 @@ static struct page *has_unmovable_pages(
  {
--	off_t offset;
- 	size_t pagesize;
--	int dev_mem_fd;
- 	char *addr1;
- 	size_t size1;
- 	char *addr2;
-@@ -112,31 +153,10 @@ FIXTURE_SETUP(pfnmap)
- {
- 	self->pagesize = getpagesize();
+ 	struct page *page = pfn_to_page(start_pfn);
+ 	struct zone *zone = page_zone(page);
+-	unsigned long pfn;
  
--	if (strncmp(file, "/dev/mem", strlen("/dev/mem")) == 0) {
--		/* We'll require two physical pages throughout our tests ... */
--		if (find_ram_target(&self->offset, self->pagesize))
--			SKIP(return,
--				   "Cannot find ram target in '/proc/iomem'\n");
--	} else {
--		self->offset = 0;
--	}
--
--	self->dev_mem_fd = open(file, O_RDONLY);
--	if (self->dev_mem_fd < 0)
--		SKIP(return, "Cannot open '%s'\n", file);
--
--	self->size1 = self->pagesize * 2;
-+	self->size1 = DEV_MEM_NPAGES * self->pagesize;
- 	self->addr1 = mmap(NULL, self->size1, PROT_READ, MAP_SHARED,
--			   self->dev_mem_fd, self->offset);
--	if (self->addr1 == MAP_FAILED)
--		SKIP(return, "Cannot mmap '%s'\n", file);
--
--	if (!check_vmflag_pfnmap(self->addr1))
--		SKIP(return, "Invalid file: '%s'. Not pfnmap'ed\n", file);
--
--	/* ... and want to be able to read from them. */
--	if (test_read_access(self->addr1, self->size1, self->pagesize))
--		SKIP(return, "Cannot read-access mmap'ed '%s'\n", file);
-+			   fd, file_offset);
-+	ASSERT_NE(self->addr1, MAP_FAILED);
- 
- 	self->size2 = 0;
- 	self->addr2 = MAP_FAILED;
-@@ -148,8 +168,6 @@ FIXTURE_TEARDOWN(pfnmap)
- 		munmap(self->addr2, self->size2);
- 	if (self->addr1 != MAP_FAILED)
- 		munmap(self->addr1, self->size1);
--	if (self->dev_mem_fd >= 0)
--		close(self->dev_mem_fd);
- }
- 
- TEST_F(pfnmap, madvise_disallowed)
-@@ -189,7 +207,7 @@ TEST_F(pfnmap, munmap_split)
- 	 */
- 	self->size2 = self->pagesize;
- 	self->addr2 = mmap(NULL, self->pagesize, PROT_READ, MAP_SHARED,
--			   self->dev_mem_fd, self->offset);
-+			   fd, file_offset);
- 	ASSERT_NE(self->addr2, MAP_FAILED);
- }
- 
-@@ -259,8 +277,12 @@ int main(int argc, char **argv)
- 		if (strcmp(argv[i], "--") == 0) {
- 			if (i + 1 < argc && strlen(argv[i + 1]) > 0)
- 				file = argv[i + 1];
--			return test_harness_run(i, argv);
-+			argc = i;
-+			break;
- 		}
+ 	VM_BUG_ON(pageblock_start_pfn(start_pfn) !=
+ 		  pageblock_start_pfn(end_pfn - 1));
+@@ -52,96 +145,14 @@ static struct page *has_unmovable_pages(
+ 		return page;
  	}
-+
-+	pfnmap_init();
-+
- 	return test_harness_run(argc, argv);
+ 
+-	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+-		page = pfn_to_page(pfn);
++	while (start_pfn < end_pfn) {
++		unsigned long step = 1;
+ 
+-		/*
+-		 * Both, bootmem allocations and memory holes are marked
+-		 * PG_reserved and are unmovable. We can even have unmovable
+-		 * allocations inside ZONE_MOVABLE, for example when
+-		 * specifying "movablecore".
+-		 */
+-		if (PageReserved(page))
++		page = pfn_to_page(start_pfn);
++		if (page_is_unmovable(zone, page, mode, &step))
+ 			return page;
+ 
+-		/*
+-		 * If the zone is movable and we have ruled out all reserved
+-		 * pages then it should be reasonably safe to assume the rest
+-		 * is movable.
+-		 */
+-		if (zone_idx(zone) == ZONE_MOVABLE)
+-			continue;
+-
+-		/*
+-		 * Hugepages are not in LRU lists, but they're movable.
+-		 * THPs are on the LRU, but need to be counted as #small pages.
+-		 * We need not scan over tail pages because we don't
+-		 * handle each tail page individually in migration.
+-		 */
+-		if (PageHuge(page) || PageTransCompound(page)) {
+-			struct folio *folio = page_folio(page);
+-			unsigned int skip_pages;
+-
+-			if (PageHuge(page)) {
+-				struct hstate *h;
+-
+-				/*
+-				 * The huge page may be freed so can not
+-				 * use folio_hstate() directly.
+-				 */
+-				h = size_to_hstate(folio_size(folio));
+-				if (h && !hugepage_migration_supported(h))
+-					return page;
+-			} else if (!folio_test_lru(folio)) {
+-				return page;
+-			}
+-
+-			skip_pages = folio_nr_pages(folio) - folio_page_idx(folio, page);
+-			pfn += skip_pages - 1;
+-			continue;
+-		}
+-
+-		/*
+-		 * We can't use page_count without pin a page
+-		 * because another CPU can free compound page.
+-		 * This check already skips compound tails of THP
+-		 * because their page->_refcount is zero at all time.
+-		 */
+-		if (!page_ref_count(page)) {
+-			if (PageBuddy(page))
+-				pfn += (1 << buddy_order(page)) - 1;
+-			continue;
+-		}
+-
+-		/*
+-		 * The HWPoisoned page may be not in buddy system, and
+-		 * page_count() is not 0.
+-		 */
+-		if ((mode == PB_ISOLATE_MODE_MEM_OFFLINE) && PageHWPoison(page))
+-			continue;
+-
+-		/*
+-		 * We treat all PageOffline() pages as movable when offlining
+-		 * to give drivers a chance to decrement their reference count
+-		 * in MEM_GOING_OFFLINE in order to indicate that these pages
+-		 * can be offlined as there are no direct references anymore.
+-		 * For actually unmovable PageOffline() where the driver does
+-		 * not support this, we will fail later when trying to actually
+-		 * move these pages that still have a reference count > 0.
+-		 * (false negatives in this function only)
+-		 */
+-		if ((mode == PB_ISOLATE_MODE_MEM_OFFLINE) && PageOffline(page))
+-			continue;
+-
+-		if (PageLRU(page) || page_has_movable_ops(page))
+-			continue;
+-
+-		/*
+-		 * If there are RECLAIMABLE pages, we need to check
+-		 * it.  But now, memory offline itself doesn't call
+-		 * shrink_node_slabs() and it still to be fixed.
+-		 */
+-		return page;
++		start_pfn += step;
+ 	}
+ 	return NULL;
  }
 _
 
-Patches currently in -mm which might be from kevin.brodsky@arm.com are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
 
