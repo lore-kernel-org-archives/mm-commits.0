@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF2BB20CCDC
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9501720CCDC
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898277; cv=none; b=tDAdlF7QqmTtKYN7SbrrkOX8mjqoszQlj4T2fk7/xU1Ql+2YeIzDZ4yfIDhwGjZuv36IE5eKdAT1FkzXsEYvfd6OYtpybP+jszY+NpUbxKyMW21s4VLSdvFNrie+V/xsa7OyRMmalERLNpSqItLkgU/U6wOIrFPZ96blVC5yl5k=
+	t=1769898279; cv=none; b=EMv3cnNwMidIjab88vfx+5ruv/pwYPaUKUGocj5AUNv13oyoUbNjEznbLThMqbT64VnEzKXWBOEZFH5WYjb70zQqnznOivUhPcRg0YSzTma52zSLhiyjDozDhzXyiVM2iaGTPsfGezs/+lMQcgdiz2G6Qz6fSIAgOtUUawae4Kg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898277; c=relaxed/simple;
-	bh=1wm8SGpFN3x4UgN0D0FLMnMofX0C2dFXgCp08TNUKjo=;
-	h=Date:To:From:Subject:Message-Id; b=RxjBPqzgKDUJFs3i8aI8BY+JzwTOucitMQiQ6I/XzxV5SbAYsEBwzculg+9Kdtg57lvWQjKHs8UnOnZhnk8ECBU5Rm706x37f8jObUBekLZeZUNZTbhc+SSbpU6KqnP3Ty0vbh9xqRZAeYID7KvK/2+VQfElAeNKRXSRsUwKSjo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yqWkxDwj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898279; c=relaxed/simple;
+	bh=LXq5sdbeE2NVYNkWzmzFIBuOYPGcrevTT8vbdIE/LLU=;
+	h=Date:To:From:Subject:Message-Id; b=aGSZymmAGl2BL3eaUsAvHlkKx6cHufWpZDs22kFLswdYyIJY0v5YB3c9WJK6YaTCF4H4my0yTne5D1hMhO3yATlLUk+oF9gMovjAoaFwY4EZShfNY2O2pb/GePECJrCJ1COt83y/Agu1y99R42uMeXaAo9kdxMTX8dVCVI6SzlI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZNB+tWeX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yqWkxDwj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4353C4CEF1;
-	Sat, 31 Jan 2026 22:24:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZNB+tWeX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D394C4CEF1;
+	Sat, 31 Jan 2026 22:24:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898277;
-	bh=1wm8SGpFN3x4UgN0D0FLMnMofX0C2dFXgCp08TNUKjo=;
+	s=korg; t=1769898279;
+	bh=LXq5sdbeE2NVYNkWzmzFIBuOYPGcrevTT8vbdIE/LLU=;
 	h=Date:To:From:Subject:From;
-	b=yqWkxDwjHbKt3hBxCn4ZYo6NA4RhGse1sTmrCtfXfuygSxkaOOCJzE2VzpgxJdtVT
-	 lB/K9UHWoFJgOzqwa2XPoLPzMPLlS/SKUuKwZGV70HwtxhpCOyiaTA8TE1f9k8ojFA
-	 QNOR78Ge9m5POYH2g+Zvkmbt7blOYKKHlTnfBFC8=
-Date: Sat, 31 Jan 2026 14:24:37 -0800
+	b=ZNB+tWeXGzs6z4NM2TUhPuV73G0wP5NPFfMU6ViT7xJGW9jCsp4VkpjREpLQtjk0n
+	 PUEkEDXV2gEMCVOM4Z1GpJjUE5vfUeCjPYfk9JxrIJWP5x5zyoFTOQNAai0Vr5b5gO
+	 DbVH4D+D46EtM2TIgSjCiw50QytkYESHNV6VrkKk=
+Date: Sat, 31 Jan 2026 14:24:38 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mst@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,gregkh@linuxfoundation.org,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,arnd@arndb.de,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-rename-config_balloon_compaction-to-config_balloon_migration.patch removed from -mm tree
-Message-Id: <20260131222437.B4353C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rename-config_memory_balloon-config_balloon.patch removed from -mm tree
+Message-Id: <20260131222439.6D394C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: rename CONFIG_BALLOON_COMPACTION to CONFIG_BALLOON_MIGRATION
+     Subject: mm: rename CONFIG_MEMORY_BALLOON -> CONFIG_BALLOON
 has been removed from the -mm tree.  Its filename was
-     mm-rename-config_balloon_compaction-to-config_balloon_migration.patch
+     mm-rename-config_memory_balloon-config_balloon.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Subject: mm: rename CONFIG_BALLOON_COMPACTION to CONFIG_BALLOON_MIGRATION
-Date: Tue, 20 Jan 2026 00:01:30 +0100
+Subject: mm: rename CONFIG_MEMORY_BALLOON -> CONFIG_BALLOON
+Date: Tue, 20 Jan 2026 00:01:31 +0100
 
-While compaction depends on migration, the other direction is not the
-case.  So let's make it clearer that this is all about migration of
-balloon pages.
+Let's make it consistent with the naming of the files but also with the
+naming of CONFIG_BALLOON_MIGRATION.
 
-Adjust all comments/docs in the core to talk about "migration" instead of
-"compaction".
+While at it, add a "/* CONFIG_BALLOON */".
 
-While at it add some "/* CONFIG_BALLOON_MIGRATION */".
-
-Link: https://lkml.kernel.org/r/20260119230133.3551867-23-david@kernel.org
+Link: https://lkml.kernel.org/r/20260119230133.3551867-24-david@kernel.org
 Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Acked-by: Michael S. Tsirkin <mst@redhat.com>
@@ -82,271 +78,115 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/memory-hotplug.rst |    8 ++++----
- arch/powerpc/platforms/pseries/cmm.c            |    8 ++++----
- drivers/misc/vmw_balloon.c                      |    8 ++++----
- drivers/virtio/virtio_balloon.c                 |    6 +++---
- include/linux/balloon.h                         |   12 ++++++------
- include/linux/vm_event_item.h                   |    4 ++--
- mm/Kconfig                                      |    4 ++--
- mm/balloon.c                                    |   10 +++++-----
- mm/memory_hotplug.c                             |    4 ++--
- mm/migrate.c                                    |    2 +-
- mm/vmstat.c                                     |    4 ++--
- 11 files changed, 35 insertions(+), 35 deletions(-)
+ arch/powerpc/platforms/pseries/Kconfig |    2 +-
+ drivers/misc/Kconfig                   |    2 +-
+ drivers/virtio/Kconfig                 |    2 +-
+ include/linux/vm_event_item.h          |    4 ++--
+ mm/Kconfig                             |    4 ++--
+ mm/Makefile                            |    2 +-
+ mm/vmstat.c                            |    4 ++--
+ 7 files changed, 10 insertions(+), 10 deletions(-)
 
---- a/arch/powerpc/platforms/pseries/cmm.c~mm-rename-config_balloon_compaction-to-config_balloon_migration
-+++ a/arch/powerpc/platforms/pseries/cmm.c
-@@ -494,7 +494,7 @@ static struct notifier_block cmm_mem_nb
- 	.priority = CMM_MEM_HOTPLUG_PRI
- };
- 
--#ifdef CONFIG_BALLOON_COMPACTION
-+#ifdef CONFIG_BALLOON_MIGRATION
- static int cmm_migratepage(struct balloon_dev_info *b_dev_info,
- 			   struct page *newpage, struct page *page,
- 			   enum migrate_mode mode)
-@@ -520,10 +520,10 @@ static int cmm_migratepage(struct balloo
- 	plpar_page_set_active(page);
- 	return 0;
- }
--#else /* CONFIG_BALLOON_COMPACTION */
-+#else /* CONFIG_BALLOON_MIGRATION */
- int cmm_migratepage(struct balloon_dev_info *b_dev_info, struct page *newpage,
- 		    struct page *page, enum migrate_mode mode);
--#endif /* CONFIG_BALLOON_COMPACTION */
-+#endif /* CONFIG_BALLOON_MIGRATION */
- 
- /**
-  * cmm_init - Module initialization
-@@ -540,7 +540,7 @@ static int cmm_init(void)
- 
- 	balloon_devinfo_init(&b_dev_info);
- 	b_dev_info.adjust_managed_page_count = true;
--	if (IS_ENABLED(CONFIG_BALLOON_COMPACTION))
-+	if (IS_ENABLED(CONFIG_BALLOON_MIGRATION))
- 		b_dev_info.migratepage = cmm_migratepage;
- 
- 	rc = register_oom_notifier(&cmm_oom_nb);
---- a/Documentation/admin-guide/mm/memory-hotplug.rst~mm-rename-config_balloon_compaction-to-config_balloon_migration
-+++ a/Documentation/admin-guide/mm/memory-hotplug.rst
-@@ -603,11 +603,11 @@ ZONE_MOVABLE, especially when fine-tunin
-   memory for metadata and page tables in the direct map; having a lot of offline
-   memory blocks is not a typical case, though.
- 
--- Memory ballooning without balloon compaction is incompatible with
--  ZONE_MOVABLE. Only some implementations, such as virtio-balloon and
--  pseries CMM, fully support balloon compaction.
-+- Memory ballooning without support for balloon memory migration is incompatible
-+  with ZONE_MOVABLE. Only some implementations, such as virtio-balloon and
-+  pseries CMM, fully support balloon memory migration.
- 
--  Further, the CONFIG_BALLOON_COMPACTION kernel configuration option might be
-+  Further, the CONFIG_BALLOON_MIGRATION kernel configuration option might be
-   disabled. In that case, balloon inflation will only perform unmovable
-   allocations and silently create a zone imbalance, usually triggered by
-   inflation requests from the hypervisor.
---- a/drivers/misc/vmw_balloon.c~mm-rename-config_balloon_compaction-to-config_balloon_migration
-+++ a/drivers/misc/vmw_balloon.c
-@@ -1719,7 +1719,7 @@ static inline void vmballoon_debugfs_exi
- #endif	/* CONFIG_DEBUG_FS */
- 
- 
--#ifdef CONFIG_BALLOON_COMPACTION
-+#ifdef CONFIG_BALLOON_MIGRATION
- /**
-  * vmballoon_migratepage() - migrates a balloon page.
-  * @b_dev_info: balloon device information descriptor.
-@@ -1803,11 +1803,11 @@ out_unlock:
- 	up_read(&b->conf_sem);
- 	return ret;
- }
--#else /* CONFIG_BALLOON_COMPACTION */
-+#else /* CONFIG_BALLOON_MIGRATION */
- int vmballoon_migratepage(struct balloon_dev_info *b_dev_info,
- 			  struct page *newpage, struct page *page,
- 			  enum migrate_mode mode);
--#endif /* CONFIG_BALLOON_COMPACTION */
-+#endif /* CONFIG_BALLOON_MIGRATION */
- 
- static int __init vmballoon_init(void)
- {
-@@ -1827,7 +1827,7 @@ static int __init vmballoon_init(void)
- 		return error;
- 
- 	balloon_devinfo_init(&balloon.b_dev_info);
--	if (IS_ENABLED(CONFIG_BALLOON_COMPACTION))
-+	if (IS_ENABLED(CONFIG_BALLOON_MIGRATION))
- 		balloon.b_dev_info.migratepage = vmballoon_migratepage;
- 
- 	INIT_LIST_HEAD(&balloon.huge_pages);
---- a/drivers/virtio/virtio_balloon.c~mm-rename-config_balloon_compaction-to-config_balloon_migration
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -802,7 +802,7 @@ static void report_free_page_func(struct
- 	}
- }
- 
--#ifdef CONFIG_BALLOON_COMPACTION
-+#ifdef CONFIG_BALLOON_MIGRATION
- /*
-  * virtballoon_migratepage - perform the balloon page migration on behalf of
-  *			     a compaction thread.     (called under page lock)
-@@ -851,7 +851,7 @@ static int virtballoon_migratepage(struc
- 	mutex_unlock(&vb->balloon_lock);
- 	return 0;
- }
--#endif /* CONFIG_BALLOON_COMPACTION */
-+#endif /* CONFIG_BALLOON_MIGRATION */
- 
- static unsigned long shrink_free_pages(struct virtio_balloon *vb,
- 				       unsigned long pages_to_free)
-@@ -948,7 +948,7 @@ static int virtballoon_probe(struct virt
- 
- 	if (!virtio_has_feature(vb->vdev, VIRTIO_BALLOON_F_DEFLATE_ON_OOM))
- 		vb->vb_dev_info.adjust_managed_page_count = true;
--#ifdef CONFIG_BALLOON_COMPACTION
-+#ifdef CONFIG_BALLOON_MIGRATION
- 	vb->vb_dev_info.migratepage = virtballoon_migratepage;
- #endif
- 	if (virtio_has_feature(vdev, VIRTIO_BALLOON_F_FREE_PAGE_HINT)) {
---- a/include/linux/balloon.h~mm-rename-config_balloon_compaction-to-config_balloon_migration
-+++ a/include/linux/balloon.h
-@@ -22,9 +22,9 @@
-  *
-  * As the page isolation scanning step a compaction thread does is a lockless
-  * procedure (from a page standpoint), it might bring some racy situations while
-- * performing balloon page compaction. In order to sort out these racy scenarios
-- * and safely perform balloon's page compaction and migration we must, always,
-- * ensure following these simple rules:
-+ * performing balloon page migration. In order to sort out these racy scenarios
-+ * and safely perform balloon's page migration we must, always, ensure following
-+ * these simple rules:
-  *
-  *   i. Inflation/deflation must set/clear page->private under the
-  *      balloon_pages_lock
-@@ -45,10 +45,10 @@
- 
- /*
-  * Balloon device information descriptor.
-- * This struct is used to allow the common balloon compaction interface
-+ * This struct is used to allow the common balloon page migration interface
-  * procedures to find the proper balloon device holding memory pages they'll
-- * have to cope for page compaction / migration, as well as it serves the
-- * balloon driver as a page book-keeper for its registered balloon devices.
-+ * have to cope for page migration, as well as it serves the balloon driver as
-+ * a page book-keeper for its registered balloon devices.
-  */
- struct balloon_dev_info {
- 	unsigned long isolated_pages;	/* # of isolated pages for migration */
---- a/include/linux/vm_event_item.h~mm-rename-config_balloon_compaction-to-config_balloon_migration
+--- a/arch/powerpc/platforms/pseries/Kconfig~mm-rename-config_memory_balloon-config_balloon
++++ a/arch/powerpc/platforms/pseries/Kconfig
+@@ -120,7 +120,7 @@ config PPC_SMLPAR
+ config CMM
+ 	tristate "Collaborative memory management"
+ 	depends on PPC_SMLPAR
+-	select MEMORY_BALLOON
++	select BALLOON
+ 	default y
+ 	help
+ 	  Select this option, if you want to enable the kernel interface
+--- a/drivers/misc/Kconfig~mm-rename-config_memory_balloon-config_balloon
++++ a/drivers/misc/Kconfig
+@@ -410,7 +410,7 @@ config DS1682
+ config VMWARE_BALLOON
+ 	tristate "VMware Balloon Driver"
+ 	depends on VMWARE_VMCI && X86 && HYPERVISOR_GUEST
+-	select MEMORY_BALLOON
++	select BALLOON
+ 	help
+ 	  This is VMware physical memory management driver which acts
+ 	  like a "balloon" that can be inflated to reclaim physical pages
+--- a/drivers/virtio/Kconfig~mm-rename-config_memory_balloon-config_balloon
++++ a/drivers/virtio/Kconfig
+@@ -112,7 +112,7 @@ config VIRTIO_PMEM
+ config VIRTIO_BALLOON
+ 	tristate "Virtio balloon driver"
+ 	depends on VIRTIO
+-	select MEMORY_BALLOON
++	select BALLOON
+ 	select PAGE_REPORTING
+ 	help
+ 	 This driver supports increasing and decreasing the amount
+--- a/include/linux/vm_event_item.h~mm-rename-config_memory_balloon-config_balloon
 +++ a/include/linux/vm_event_item.h
-@@ -125,9 +125,9 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- #ifdef CONFIG_MEMORY_BALLOON
+@@ -122,13 +122,13 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		THP_SWPOUT,
+ 		THP_SWPOUT_FALLBACK,
+ #endif
+-#ifdef CONFIG_MEMORY_BALLOON
++#ifdef CONFIG_BALLOON
  		BALLOON_INFLATE,
  		BALLOON_DEFLATE,
--#ifdef CONFIG_BALLOON_COMPACTION
-+#ifdef CONFIG_BALLOON_MIGRATION
+ #ifdef CONFIG_BALLOON_MIGRATION
  		BALLOON_MIGRATE,
+ #endif /* CONFIG_BALLOON_MIGRATION */
 -#endif
-+#endif /* CONFIG_BALLOON_MIGRATION */
- #endif
++#endif /* CONFIG_BALLOON */
  #ifdef CONFIG_DEBUG_TLBFLUSH
  		NR_TLB_REMOTE_FLUSH,	/* cpu tried to flush others' tlbs */
---- a/mm/balloon.c~mm-rename-config_balloon_compaction-to-config_balloon_migration
-+++ a/mm/balloon.c
-@@ -29,7 +29,7 @@ static void balloon_page_insert(struct b
- {
- 	lockdep_assert_held(&balloon_pages_lock);
- 	__SetPageOffline(page);
--	if (IS_ENABLED(CONFIG_BALLOON_COMPACTION)) {
-+	if (IS_ENABLED(CONFIG_BALLOON_MIGRATION)) {
- 		SetPageMovableOps(page);
- 		set_page_private(page, (unsigned long)balloon);
- 	}
-@@ -46,7 +46,7 @@ static void balloon_page_insert(struct b
- static void balloon_page_finalize(struct page *page)
- {
- 	lockdep_assert_held(&balloon_pages_lock);
--	if (IS_ENABLED(CONFIG_BALLOON_COMPACTION))
-+	if (IS_ENABLED(CONFIG_BALLOON_MIGRATION))
- 		set_page_private(page, 0);
- 	/* PageOffline is sticky until the page is freed to the buddy. */
- }
-@@ -148,7 +148,7 @@ struct page *balloon_page_alloc(void)
- {
- 	gfp_t gfp_flags = __GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_NOWARN;
- 
--	if (IS_ENABLED(CONFIG_BALLOON_COMPACTION))
-+	if (IS_ENABLED(CONFIG_BALLOON_MIGRATION))
- 		gfp_flags |= GFP_HIGHUSER_MOVABLE;
- 	else
- 		gfp_flags |= GFP_HIGHUSER;
-@@ -227,7 +227,7 @@ struct page *balloon_page_dequeue(struct
- }
- EXPORT_SYMBOL_GPL(balloon_page_dequeue);
- 
--#ifdef CONFIG_BALLOON_COMPACTION
-+#ifdef CONFIG_BALLOON_MIGRATION
- static struct balloon_dev_info *balloon_page_device(struct page *page)
- {
- 	return (struct balloon_dev_info *)page_private(page);
-@@ -341,4 +341,4 @@ static int __init balloon_init(void)
- }
- core_initcall(balloon_init);
- 
--#endif /* CONFIG_BALLOON_COMPACTION */
-+#endif /* CONFIG_BALLOON_MIGRATION */
---- a/mm/Kconfig~mm-rename-config_balloon_compaction-to-config_balloon_migration
+ 		NR_TLB_REMOTE_FLUSH_RECEIVED,/* cpu received ipi for flush */
+--- a/mm/Kconfig~mm-rename-config_memory_balloon-config_balloon
 +++ a/mm/Kconfig
-@@ -597,8 +597,8 @@ config MEMORY_BALLOON
+@@ -593,7 +593,7 @@ config SPLIT_PMD_PTLOCKS
+ 
+ #
+ # support for memory balloon
+-config MEMORY_BALLOON
++config BALLOON
  	bool
  
  #
--# support for memory balloon compaction
--config BALLOON_COMPACTION
-+# support for memory balloon page migration
-+config BALLOON_MIGRATION
+@@ -601,7 +601,7 @@ config MEMORY_BALLOON
+ config BALLOON_MIGRATION
  	bool "Allow for balloon memory migration"
  	default y
- 	depends on MIGRATION && MEMORY_BALLOON
---- a/mm/memory_hotplug.c~mm-rename-config_balloon_compaction-to-config_balloon_migration
-+++ a/mm/memory_hotplug.c
-@@ -946,8 +946,8 @@ static struct zone *default_kernel_zone_
-  * We rely on "present pages" instead of "managed pages", as the latter is
-  * highly unreliable and dynamic in virtualized environments, and does not
-  * consider boot time allocations. For example, memory ballooning adjusts the
-- * managed pages when inflating/deflating the balloon, and balloon compaction
-- * can even migrate inflated pages between zones.
-+ * managed pages when inflating/deflating the balloon, and balloon page
-+ * migration can even migrate inflated pages between zones.
-  *
-  * Using "present pages" is better but some things to keep in mind are:
-  *
---- a/mm/migrate.c~mm-rename-config_balloon_compaction-to-config_balloon_migration
-+++ a/mm/migrate.c
-@@ -88,7 +88,7 @@ static const struct movable_operations *
- 	 * back to the buddy.
- 	 */
- 	if (PageOffline(page))
--		/* Only balloon compaction sets PageOffline pages movable. */
-+		/* Only balloon page migration sets PageOffline pages movable. */
- 		return offline_movable_ops;
- 	if (PageZsmalloc(page))
- 		return zsmalloc_movable_ops;
---- a/mm/vmstat.c~mm-rename-config_balloon_compaction-to-config_balloon_migration
+-	depends on MIGRATION && MEMORY_BALLOON
++	depends on MIGRATION && BALLOON
+ 	help
+ 	  Allow for migration of pages inflated in a memory balloon such that
+ 	  they can be allocated from memory areas only available for movable
+--- a/mm/Makefile~mm-rename-config_memory_balloon-config_balloon
++++ a/mm/Makefile
+@@ -122,7 +122,7 @@ obj-$(CONFIG_CMA)	+= cma.o
+ obj-$(CONFIG_NUMA) += numa.o
+ obj-$(CONFIG_NUMA_MEMBLKS) += numa_memblks.o
+ obj-$(CONFIG_NUMA_EMU) += numa_emulation.o
+-obj-$(CONFIG_MEMORY_BALLOON) += balloon.o
++obj-$(CONFIG_BALLOON) += balloon.o
+ obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
+ obj-$(CONFIG_PAGE_TABLE_CHECK) += page_table_check.o
+ obj-$(CONFIG_CMA_DEBUGFS) += cma_debug.o
+--- a/mm/vmstat.c~mm-rename-config_memory_balloon-config_balloon
 +++ a/mm/vmstat.c
-@@ -1422,9 +1422,9 @@ const char * const vmstat_text[] = {
- #ifdef CONFIG_MEMORY_BALLOON
+@@ -1419,13 +1419,13 @@ const char * const vmstat_text[] = {
+ 	[I(THP_SWPOUT)]				= "thp_swpout",
+ 	[I(THP_SWPOUT_FALLBACK)]		= "thp_swpout_fallback",
+ #endif
+-#ifdef CONFIG_MEMORY_BALLOON
++#ifdef CONFIG_BALLOON
  	[I(BALLOON_INFLATE)]			= "balloon_inflate",
  	[I(BALLOON_DEFLATE)]			= "balloon_deflate",
--#ifdef CONFIG_BALLOON_COMPACTION
-+#ifdef CONFIG_BALLOON_MIGRATION
+ #ifdef CONFIG_BALLOON_MIGRATION
  	[I(BALLOON_MIGRATE)]			= "balloon_migrate",
--#endif
-+#endif /* CONFIG_BALLOON_MIGRATION */
- #endif /* CONFIG_MEMORY_BALLOON */
+ #endif /* CONFIG_BALLOON_MIGRATION */
+-#endif /* CONFIG_MEMORY_BALLOON */
++#endif /* CONFIG_BALLOON */
  #ifdef CONFIG_DEBUG_TLBFLUSH
  	[I(NR_TLB_REMOTE_FLUSH)]		= "nr_tlb_remote_flush",
+ 	[I(NR_TLB_REMOTE_FLUSH_RECEIVED)]	= "nr_tlb_remote_flush_received",
 _
 
 Patches currently in -mm which might be from david@kernel.org are
