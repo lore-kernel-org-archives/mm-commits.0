@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEACE38A9C1
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26B1736683F
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898397; cv=none; b=bmKC6dR6388UMZaihbq69Txi3znI8rUHRFXngkmZPzXV/2jTJVKwGjVyOy0ZvjVCQBwnw8VDDUnEequN64YV7LVVz6YmpVQSOp71sHneEeTLDHLliyQ8Y6ozcpZsb1j0vwBDQrtW3aQQKKgq0oYtirU/RDCPejvDvvQpLTAt17k=
+	t=1769898400; cv=none; b=ZssDm9TmjlQ/yf7zclssL/b2LtkHAGlaqxrXYJ1gQCO/XROimcegMzc+Bi01h1C3xQ5+QXxkDAU8zMDMXifsIll1+uAWj9UbBPFOOATlrRQCG0/XPQnzz4Sd34j5Q9ciA+MCn3unTZkKIBZ4pW506T1T/j/b5rKzG5m38c6CchU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898397; c=relaxed/simple;
-	bh=zP8LHiHAaVT6iL9YVClhVZXZf/BzVDtRM9OzpaMJuLM=;
-	h=Date:To:From:Subject:Message-Id; b=MMSSKLnvwJ9PbDgyLgEma9BlvyH2pLZddG+VuHtXefKh1S2N/Wk7Ay0RAlUzw67tcInycO7WXEjAC44paKhmCpkh2OPcAfFYMB6hnySZ8LmA1PMELZtUjqJF43lLPPvs51sRipN04A6YWT9ijaavm6FDKiXUx+GFC2DJpuUQgWs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CM9ECCYz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898400; c=relaxed/simple;
+	bh=KaSv02tpbnMFFOD0NoqDtil7wqYt81FIr3doiJ71Grs=;
+	h=Date:To:From:Subject:Message-Id; b=mUEbpEy0XPcMi9mxnWQXdetWrrobT7slYIKHZOV00PNDoMv5r5jx1gZRVdQDvOR4rzSHDn5BDSddy6gnwQxrqr5zmYAk0AhB6ZKabk3m0gRemAS0wyXQgboSCkVyY3u64fCiRXLQWE+AL7VjF1qBhqvvomAl9EcYLpOFcylYpy4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xXTjC+qp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CM9ECCYz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A61D6C4CEF1;
-	Sat, 31 Jan 2026 22:26:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xXTjC+qp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1BC7C4CEF1;
+	Sat, 31 Jan 2026 22:26:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898397;
-	bh=zP8LHiHAaVT6iL9YVClhVZXZf/BzVDtRM9OzpaMJuLM=;
+	s=korg; t=1769898400;
+	bh=KaSv02tpbnMFFOD0NoqDtil7wqYt81FIr3doiJ71Grs=;
 	h=Date:To:From:Subject:From;
-	b=CM9ECCYzyXyL4Nk5jIhiPP0NaDPidxnloCDnvg12Ul56l4++UXGbfFPqviTUbvrnF
-	 2JB8z+q8x5qEkuCPMkMBkFly/aO5dtB5bU2KGYP3r/BA0Gx6apmT2Z8oO5KYo4QWRH
-	 d2ohBifdsqEXkVr4bz3LTj8LCRR9jjdeS520anEQ=
-Date: Sat, 31 Jan 2026 14:26:37 -0800
+	b=xXTjC+qpzpLp//FuISBMn/wcScAX+gyvsBuaHDY31ifMDnCOX8UupC2Y4KHTbsMbg
+	 fE/6efAF51XT6yl39G7TCqbdlP7UkgtQIHMyWAzPWFckVyQk0yGQj2ceyV1/KiaeP8
+	 XruAe46F1dPgIlLxDgvNLmjt/QW840tPtN2YXBuE=
+Date: Sat, 31 Jan 2026 14:26:39 -0800
 To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ryncsn@gmail.com,rafael@kernel.org,nphamcs@gmail.com,kartikey406@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-simplify-the-code-and-reduce-indention.patch removed from -mm tree
-Message-Id: <20260131222637.A61D6C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-free-the-swap-cache-after-folio-is-mapped.patch removed from -mm tree
+Message-Id: <20260131222639.F1BC7C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: simplify the code and reduce indention
+     Subject: mm, swap: free the swap cache after folio is mapped
 has been removed from the -mm tree.  Its filename was
-     mm-swap-simplify-the-code-and-reduce-indention.patch
+     mm-swap-free-the-swap-cache-after-folio-is-mapped.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: simplify the code and reduce indention
-Date: Sat, 20 Dec 2025 03:43:34 +0800
+Subject: mm, swap: free the swap cache after folio is mapped
+Date: Sat, 20 Dec 2025 03:43:35 +0800
 
-Now swap cache is always used, multiple swap cache checks are no longer
-useful, remove them and reduce the code indention.
+Currently, we remove the folio from the swap cache and free the swap cache
+before mapping the PTE.  To reduce repeated faults due to parallel swapins
+of the same PTE, change it to remove the folio from the swap cache after
+it is mapped.  So new faults from the swap PTE will be much more likely to
+see the folio in the swap cache and wait on it.
 
-No behavior change.
+This does not eliminate all swapin races: an ongoing swapin fault may
+still see an empty swap cache.  That's harmless, as the PTE is changed
+before the swap cache is cleared, so it will just return and not trigger
+any repeated faults.  This does help to reduce the chance.
 
-Link: https://lkml.kernel.org/r/20251220-swap-table-p2-v5-5-8862a265a033@tencent.com
+Link: https://lkml.kernel.org/r/20251220-swap-table-p2-v5-6-8862a265a033@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -67,126 +73,60 @@ Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   89 ++++++++++++++++++++++++--------------------------
- 1 file changed, 43 insertions(+), 46 deletions(-)
+ mm/memory.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/mm/memory.c~mm-swap-simplify-the-code-and-reduce-indention
+--- a/mm/memory.c~mm-swap-free-the-swap-cache-after-folio-is-mapped
 +++ a/mm/memory.c
-@@ -4767,55 +4767,52 @@ vm_fault_t do_swap_page(struct vm_fault
- 		goto out_release;
+@@ -4365,6 +4365,7 @@ static vm_fault_t remove_device_exclusiv
+ static inline bool should_try_to_free_swap(struct swap_info_struct *si,
+ 					   struct folio *folio,
+ 					   struct vm_area_struct *vma,
++					   unsigned int extra_refs,
+ 					   unsigned int fault_flags)
+ {
+ 	if (!folio_test_swapcache(folio))
+@@ -4387,7 +4388,7 @@ static inline bool should_try_to_free_sw
+ 	 * reference only in case it's likely that we'll be the exclusive user.
+ 	 */
+ 	return (fault_flags & FAULT_FLAG_WRITE) && !folio_test_ksm(folio) &&
+-		folio_ref_count(folio) == (1 + folio_nr_pages(folio));
++		folio_ref_count(folio) == (extra_refs + folio_nr_pages(folio));
+ }
  
- 	page = folio_file_page(folio, swp_offset(entry));
--	if (swapcache) {
--		/*
--		 * Make sure folio_free_swap() or swapoff did not release the
--		 * swapcache from under us.  The page pin, and pte_same test
--		 * below, are not enough to exclude that.  Even if it is still
--		 * swapcache, we need to check that the page's swap has not
--		 * changed.
--		 */
--		if (unlikely(!folio_matches_swap_entry(folio, entry)))
--			goto out_page;
+ static vm_fault_t pte_marker_clear(struct vm_fault *vmf)
+@@ -4939,15 +4940,6 @@ check_folio:
+ 	 */
+ 	arch_swap_restore(folio_swap(entry, folio), folio);
+ 
+-	/*
+-	 * Remove the swap entry and conditionally try to free up the swapcache.
+-	 * We're already holding a reference on the page but haven't mapped it
+-	 * yet.
+-	 */
+-	swap_free_nr(entry, nr_pages);
+-	if (should_try_to_free_swap(si, folio, vma, vmf->flags))
+-		folio_free_swap(folio);
 -
--		if (unlikely(PageHWPoison(page))) {
--			/*
--			 * hwpoisoned dirty swapcache pages are kept for killing
--			 * owner processes (which may be unknown at hwpoison time)
--			 */
--			ret = VM_FAULT_HWPOISON;
--			goto out_page;
--		}
--
--		/*
--		 * KSM sometimes has to copy on read faults, for example, if
--		 * folio->index of non-ksm folios would be nonlinear inside the
--		 * anon VMA -- the ksm flag is lost on actual swapout.
--		 */
--		folio = ksm_might_need_to_copy(folio, vma, vmf->address);
--		if (unlikely(!folio)) {
--			ret = VM_FAULT_OOM;
--			folio = swapcache;
--			goto out_page;
--		} else if (unlikely(folio == ERR_PTR(-EHWPOISON))) {
--			ret = VM_FAULT_HWPOISON;
--			folio = swapcache;
--			goto out_page;
--		}
--		if (folio != swapcache)
--			page = folio_page(folio, 0);
-+	/*
-+	 * Make sure folio_free_swap() or swapoff did not release the
-+	 * swapcache from under us.  The page pin, and pte_same test
-+	 * below, are not enough to exclude that.  Even if it is still
-+	 * swapcache, we need to check that the page's swap has not
-+	 * changed.
-+	 */
-+	if (unlikely(!folio_matches_swap_entry(folio, entry)))
-+		goto out_page;
- 
-+	if (unlikely(PageHWPoison(page))) {
- 		/*
--		 * If we want to map a page that's in the swapcache writable, we
--		 * have to detect via the refcount if we're really the exclusive
--		 * owner. Try removing the extra reference from the local LRU
--		 * caches if required.
-+		 * hwpoisoned dirty swapcache pages are kept for killing
-+		 * owner processes (which may be unknown at hwpoison time)
- 		 */
--		if ((vmf->flags & FAULT_FLAG_WRITE) && folio == swapcache &&
--		    !folio_test_ksm(folio) && !folio_test_lru(folio))
--			lru_add_drain();
-+		ret = VM_FAULT_HWPOISON;
-+		goto out_page;
- 	}
- 
-+	/*
-+	 * KSM sometimes has to copy on read faults, for example, if
-+	 * folio->index of non-ksm folios would be nonlinear inside the
-+	 * anon VMA -- the ksm flag is lost on actual swapout.
-+	 */
-+	folio = ksm_might_need_to_copy(folio, vma, vmf->address);
-+	if (unlikely(!folio)) {
-+		ret = VM_FAULT_OOM;
-+		folio = swapcache;
-+		goto out_page;
-+	} else if (unlikely(folio == ERR_PTR(-EHWPOISON))) {
-+		ret = VM_FAULT_HWPOISON;
-+		folio = swapcache;
-+		goto out_page;
-+	} else if (folio != swapcache)
-+		page = folio_page(folio, 0);
-+
-+	/*
-+	 * If we want to map a page that's in the swapcache writable, we
-+	 * have to detect via the refcount if we're really the exclusive
-+	 * owner. Try removing the extra reference from the local LRU
-+	 * caches if required.
-+	 */
-+	if ((vmf->flags & FAULT_FLAG_WRITE) &&
-+	    !folio_test_ksm(folio) && !folio_test_lru(folio))
-+		lru_add_drain();
-+
- 	folio_throttle_swaprate(folio, GFP_KERNEL);
- 
- 	/*
-@@ -5005,7 +5002,7 @@ check_folio:
+ 	add_mm_counter(vma->vm_mm, MM_ANONPAGES, nr_pages);
+ 	add_mm_counter(vma->vm_mm, MM_SWAPENTS, -nr_pages);
+ 	pte = mk_pte(page, vma->vm_page_prot);
+@@ -5001,6 +4993,15 @@ check_folio:
+ 	arch_do_swap_page_nr(vma->vm_mm, vma, address,
  			pte, pte, nr_pages);
  
++	/*
++	 * Remove the swap entry and conditionally try to free up the swapcache.
++	 * Do it after mapping, so raced page faults will likely see the folio
++	 * in swap cache and wait on the folio lock.
++	 */
++	swap_free_nr(entry, nr_pages);
++	if (should_try_to_free_swap(si, folio, vma, nr_pages, vmf->flags))
++		folio_free_swap(folio);
++
  	folio_unlock(folio);
--	if (folio != swapcache && swapcache) {
-+	if (unlikely(folio != swapcache)) {
+ 	if (unlikely(folio != swapcache)) {
  		/*
- 		 * Hold the lock to avoid the swap entry to be reused
- 		 * until we take the PT lock for the pte_same() check
-@@ -5043,7 +5040,7 @@ out_page:
- 	folio_unlock(folio);
- out_release:
- 	folio_put(folio);
--	if (folio != swapcache && swapcache) {
-+	if (folio != swapcache) {
- 		folio_unlock(swapcache);
- 		folio_put(swapcache);
- 	}
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
