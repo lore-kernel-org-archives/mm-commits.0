@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C22A436683F
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56D9138A9DA
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898402; cv=none; b=D70Gc4kMxXoNRxm3S3kr0zuVxZZP/uEjS9DGqXlcClmXr7KkasrZ8LiNuGS2/gL50Y6lHeYbxbWj9dtn6KC+Rpf4mbisEub+jqY2fqP/qGoFq/kHG2E2Lf7JXnSqMfs2lcMisGb++mdhWL+tcMdZKnpJSGyqu6BvShXbIAwLIN0=
+	t=1769898405; cv=none; b=LbGfVgmOwUSw1FeiFymd4IH6KRk4WR9CGj8kUuvpZwfKxGYwl0R+F2ypuXr1qJ06bWKB1U/m8GniicuY/9gnH8OfTGtxUneIlJSJHCCaBuTXDT4OiWEC/YqquabVT6wDXDtLeaqV02gen+XM7JhXeNL1wvktSMqAkvUpv+uoV3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898402; c=relaxed/simple;
-	bh=025NecFBR5PlyotEw5HY8cETXNGk0ezl1anon3FoLOI=;
-	h=Date:To:From:Subject:Message-Id; b=EItIdXMc7w2prPGp3nUsy06G2QWJ5O/boCcTsTJOkUj4TGEh2s6F0nxvOVAqCqYG3pXfuYwwkQYY/nuEJhHrXJsjmnWINjvDNepvz88ThNhyf0AHN34vdVw1UZqMMS+gR4XaHtu4cWaCTFTswCGoNTKiB93+/ZaTWnbjHvXmJ6g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ss47/P2I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898405; c=relaxed/simple;
+	bh=zCzjzv1NyK4BTBQIQ9ILJqYywpsfnIVMy7+SBi7Kfp8=;
+	h=Date:To:From:Subject:Message-Id; b=vAO0Dri5sWJVfv2/jdvU/smHqWmBXU0tmgM1tVX6JVP70ODKdIeZtVZaW+bfV8en6Xf1XaztRtuj5bD/XOkem0P5zGAzNQHPwEFMvhuHmqWyKi5RGFYMiYRgzYw3H6bAal5fnyVIe6nyUKLYtSjOfyy2xVkLU4KWxVTToWnrPLE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cs92Ny7t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ss47/P2I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61C9AC4CEF1;
-	Sat, 31 Jan 2026 22:26:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cs92Ny7t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC2DAC4CEF1;
+	Sat, 31 Jan 2026 22:26:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898402;
-	bh=025NecFBR5PlyotEw5HY8cETXNGk0ezl1anon3FoLOI=;
+	s=korg; t=1769898404;
+	bh=zCzjzv1NyK4BTBQIQ9ILJqYywpsfnIVMy7+SBi7Kfp8=;
 	h=Date:To:From:Subject:From;
-	b=Ss47/P2IdfMfXoU0juElQM/b0qloKxkIQFpjRKM8HMFv7BdRZSQZXTws3BDeuV274
-	 vHv9dj1YLMErF87lBiirRVV1I9v5P6W0gWaiytHWRPVRiU5aGRR8LsMUG91FEy59ua
-	 JVma1/HvBJF6CLq7sgI+SEGvZf1QSpILLjsgqQBI=
-Date: Sat, 31 Jan 2026 14:26:41 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,rafael@kernel.org,nphamcs@gmail.com,kartikey406@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=Cs92Ny7t5wqWxD00ywmMWXgGTX3w5bcUuP/Ryh9NYtf4HiiT3u1LVkjKpuMMcfK+x
+	 hdjie3q/GHvlaKau91InKaW9AeYDXZMZkGCndr1X6ayK10ifiXcR8mmP6UstKjgrpK
+	 +9x23Chr3GiR8hLB1uP1qW5eDD+DqgIAYabFdfjo=
+Date: Sat, 31 Jan 2026 14:26:44 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,ryncsn@gmail.com,rafael@kernel.org,kasong@tencent.com,kartikey406@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,nphamcs@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io.patch removed from -mm tree
-Message-Id: <20260131222642.61C9AC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-shmem-swap-remove-swap_map_shmem.patch removed from -mm tree
+Message-Id: <20260131222644.BC2DAC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,276 +35,213 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/shmem: never bypass the swap cache for SWP_SYNCHRONOUS_IO
+     Subject: mm/shmem, swap: remove SWAP_MAP_SHMEM
 has been removed from the -mm tree.  Its filename was
-     mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io.patch
+     mm-shmem-swap-remove-swap_map_shmem.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/shmem: never bypass the swap cache for SWP_SYNCHRONOUS_IO
-Date: Sat, 20 Dec 2025 03:57:51 +0800
+From: Nhat Pham <nphamcs@gmail.com>
+Subject: mm/shmem, swap: remove SWAP_MAP_SHMEM
+Date: Sat, 20 Dec 2025 03:43:37 +0800
 
-Now the overhead of the swap cache is trivial to none, bypassing the swap
-cache is no longer a good optimization.
+The SWAP_MAP_SHMEM state was introduced in the commit aaa468653b4a
+("swap_info: note SWAP_MAP_SHMEM"), to quickly determine if a swap entry
+belongs to shmem during swapoff.
 
-We have removed the cache bypass swapin for anon memory, now do the same
-for shmem.  Many helpers and functions can be dropped now.
+However, swapoff has since been rewritten in the commit b56a2d8af914 ("mm:
+rid swapoff of quadratic complexity").  Now having swap count ==
+SWAP_MAP_SHMEM value is basically the same as having swap count == 1, and
+swap_shmem_alloc() behaves analogously to swap_duplicate().  The only
+difference of note is that swap_shmem_alloc() does not check for -ENOMEM
+returned from __swap_duplicate(), but it is OK because shmem never
+re-duplicates any swap entry it owns.  This will stil be safe if we use
+(batched) swap_duplicate() instead.
 
-The performance may slightly drop because of the co-existence and double
-update of swap_map and swap table, and this problem will be improved very
-soon in later commits by dropping the swap_map update partially:
+This commit adds swap_duplicate_nr(), the batched variant of
+swap_duplicate(), and removes the SWAP_MAP_SHMEM state and the associated
+swap_shmem_alloc() helper to simplify the state machine (both mentally and
+in terms of actual code).  We will also have an extra state/special value
+that can be repurposed (for swap entries that never gets re-duplicated).
 
-Swapin of 24 GB file with tmpfs with
-transparent_hugepage_tmpfs=within_size and ZRAM, 3 test runs on my
-machine:
-
-Before:  After this commit:  After this series:
-5.99s    6.29s               6.08s
-
-And later swap table phases will drop the swap_map completely to avoid
-overhead and reduce memory usage.
-
-Link: https://lkml.kernel.org/r/20251219195751.61328-1-ryncsn@gmail.com
+Link: https://lkml.kernel.org/r/20251220-swap-table-p2-v5-8-8862a265a033@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
+Signed-off-by: Nhat Pham <nphamcs@gmail.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Cc: Deepanshu Kartikey <kartikey406@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <ryncsn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c    |   65 +++++++++++++-----------------------------------
- mm/swap.h     |    4 --
- mm/swapfile.c |   35 ++++++-------------------
- 3 files changed, 27 insertions(+), 77 deletions(-)
+ include/linux/swap.h |   15 ++++++--------
+ mm/shmem.c           |    2 -
+ mm/swapfile.c        |   42 ++++++++++++++++-------------------------
+ 3 files changed, 25 insertions(+), 34 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io
-+++ a/mm/shmem.c
-@@ -2037,10 +2037,9 @@ static struct folio *shmem_swap_alloc_fo
- 		swp_entry_t entry, int order, gfp_t gfp)
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
-+	struct folio *new, *swapcache;
- 	int nr_pages = 1 << order;
--	struct folio *new;
- 	gfp_t alloc_gfp;
--	void *shadow;
+--- a/include/linux/swap.h~mm-shmem-swap-remove-swap_map_shmem
++++ a/include/linux/swap.h
+@@ -230,7 +230,6 @@ enum {
+ /* Special value in first swap_map */
+ #define SWAP_MAP_MAX	0x3e	/* Max count */
+ #define SWAP_MAP_BAD	0x3f	/* Note page is bad */
+-#define SWAP_MAP_SHMEM	0xbf	/* Owned by shmem/tmpfs */
  
- 	/*
- 	 * We have arrived here because our zones are constrained, so don't
-@@ -2080,34 +2079,19 @@ retry:
- 		goto fallback;
- 	}
- 
--	/*
--	 * Prevent parallel swapin from proceeding with the swap cache flag.
--	 *
--	 * Of course there is another possible concurrent scenario as well,
--	 * that is to say, the swap cache flag of a large folio has already
--	 * been set by swapcache_prepare(), while another thread may have
--	 * already split the large swap entry stored in the shmem mapping.
--	 * In this case, shmem_add_to_page_cache() will help identify the
--	 * concurrent swapin and return -EEXIST.
--	 */
--	if (swapcache_prepare(entry, nr_pages)) {
-+	swapcache = swapin_folio(entry, new);
-+	if (swapcache != new) {
- 		folio_put(new);
--		new = ERR_PTR(-EEXIST);
--		/* Try smaller folio to avoid cache conflict */
--		goto fallback;
-+		if (!swapcache) {
-+			/*
-+			 * The new folio is charged already, swapin can
-+			 * only fail due to another raced swapin.
-+			 */
-+			new = ERR_PTR(-EEXIST);
-+			goto fallback;
-+		}
- 	}
--
--	__folio_set_locked(new);
--	__folio_set_swapbacked(new);
--	new->swap = entry;
--
--	memcg1_swapin(entry, nr_pages);
--	shadow = swap_cache_get_shadow(entry);
--	if (shadow)
--		workingset_refault(new, shadow);
--	folio_add_lru(new);
--	swap_read_folio(new, NULL);
--	return new;
-+	return swapcache;
- fallback:
- 	/* Order 0 swapin failed, nothing to fallback to, abort */
- 	if (!order)
-@@ -2197,8 +2181,7 @@ static int shmem_replace_folio(struct fo
- }
- 
- static void shmem_set_folio_swapin_error(struct inode *inode, pgoff_t index,
--					 struct folio *folio, swp_entry_t swap,
--					 bool skip_swapcache)
-+					 struct folio *folio, swp_entry_t swap)
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	swp_entry_t swapin_error;
-@@ -2214,8 +2197,7 @@ static void shmem_set_folio_swapin_error
- 
- 	nr_pages = folio_nr_pages(folio);
- 	folio_wait_writeback(folio);
--	if (!skip_swapcache)
--		swap_cache_del_folio(folio);
-+	swap_cache_del_folio(folio);
- 	/*
- 	 * Don't treat swapin error folio as alloced. Otherwise inode->i_blocks
- 	 * won't be 0 when inode is released and thus trigger WARN_ON(i_blocks)
-@@ -2315,7 +2297,6 @@ static int shmem_swapin_folio(struct ino
- 	softleaf_t index_entry;
- 	struct swap_info_struct *si;
- 	struct folio *folio = NULL;
--	bool skip_swapcache = false;
- 	int error, nr_pages, order;
- 	pgoff_t offset;
- 
-@@ -2358,7 +2339,6 @@ static int shmem_swapin_folio(struct ino
- 				folio = NULL;
- 				goto failed;
- 			}
--			skip_swapcache = true;
- 		} else {
- 			/* Cached swapin only supports order 0 folio */
- 			folio = shmem_swapin_cluster(swap, gfp, info, index);
-@@ -2414,9 +2394,8 @@ static int shmem_swapin_folio(struct ino
- 	 * and swap cache folios are never partially freed.
- 	 */
- 	folio_lock(folio);
--	if ((!skip_swapcache && !folio_test_swapcache(folio)) ||
--	    shmem_confirm_swap(mapping, index, swap) < 0 ||
--	    folio->swap.val != swap.val) {
-+	if (!folio_matches_swap_entry(folio, swap) ||
-+	    shmem_confirm_swap(mapping, index, swap) < 0) {
- 		error = -EEXIST;
- 		goto unlock;
- 	}
-@@ -2448,12 +2427,7 @@ static int shmem_swapin_folio(struct ino
- 	if (sgp == SGP_WRITE)
- 		folio_mark_accessed(folio);
- 
--	if (skip_swapcache) {
--		folio->swap.val = 0;
--		swapcache_clear(si, swap, nr_pages);
--	} else {
--		swap_cache_del_folio(folio);
--	}
-+	swap_cache_del_folio(folio);
- 	folio_mark_dirty(folio);
- 	swap_free_nr(swap, nr_pages);
- 	put_swap_device(si);
-@@ -2464,14 +2438,11 @@ failed:
- 	if (shmem_confirm_swap(mapping, index, swap) < 0)
- 		error = -EEXIST;
- 	if (error == -EIO)
--		shmem_set_folio_swapin_error(inode, index, folio, swap,
--					     skip_swapcache);
-+		shmem_set_folio_swapin_error(inode, index, folio, swap);
- unlock:
- 	if (folio)
- 		folio_unlock(folio);
- failed_nolock:
--	if (skip_swapcache)
--		swapcache_clear(si, folio->swap, folio_nr_pages(folio));
- 	if (folio)
- 		folio_put(folio);
- 	put_swap_device(si);
---- a/mm/swapfile.c~mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io
-+++ a/mm/swapfile.c
-@@ -1614,22 +1614,6 @@ put_out:
- 	return NULL;
- }
- 
--static void swap_entries_put_cache(struct swap_info_struct *si,
--				   swp_entry_t entry, int nr)
--{
--	unsigned long offset = swp_offset(entry);
--	struct swap_cluster_info *ci;
--
--	ci = swap_cluster_lock(si, offset);
--	if (swap_only_has_cache(si, offset, nr)) {
--		swap_entries_free(si, ci, entry, nr);
--	} else {
--		for (int i = 0; i < nr; i++, entry.val++)
--			swap_entry_put_locked(si, ci, entry, SWAP_HAS_CACHE);
--	}
--	swap_cluster_unlock(ci);
--}
--
- static bool swap_entries_put_map(struct swap_info_struct *si,
- 				 swp_entry_t entry, int nr)
- {
-@@ -1765,13 +1749,21 @@ void swap_free_nr(swp_entry_t entry, int
- void put_swap_folio(struct folio *folio, swp_entry_t entry)
- {
- 	struct swap_info_struct *si;
-+	struct swap_cluster_info *ci;
-+	unsigned long offset = swp_offset(entry);
- 	int size = 1 << swap_entry_order(folio_order(folio));
- 
- 	si = _swap_info_get(entry);
- 	if (!si)
- 		return;
- 
--	swap_entries_put_cache(si, entry, size);
-+	ci = swap_cluster_lock(si, offset);
-+	if (swap_only_has_cache(si, offset, size))
-+		swap_entries_free(si, ci, entry, size);
-+	else
-+		for (int i = 0; i < size; i++, entry.val++)
-+			swap_entry_put_locked(si, ci, entry, SWAP_HAS_CACHE);
-+	swap_cluster_unlock(ci);
- }
- 
- int __swap_count(swp_entry_t entry)
-@@ -3785,15 +3777,6 @@ int swapcache_prepare(swp_entry_t entry,
- }
- 
- /*
-- * Caller should ensure entries belong to the same folio so
-- * the entries won't span cross cluster boundary.
-- */
--void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry, int nr)
--{
--	swap_entries_put_cache(si, entry, nr);
--}
--
--/*
-  * add_swap_count_continuation - called when a swap count is duplicated
-  * beyond SWAP_MAP_MAX, it allocates a new page and links that to the entry's
-  * page of the original vmalloc'ed swap_map, to hold the continuation count
---- a/mm/swap.h~mm-shmem-never-bypass-the-swap-cache-for-swp_synchronous_io
-+++ a/mm/swap.h
-@@ -403,10 +403,6 @@ static inline int swap_writeout(struct f
+ /* Special value in each swap_map continuation */
+ #define SWAP_CONT_MAX	0x7f	/* Max count */
+@@ -458,8 +457,7 @@ bool folio_free_swap(struct folio *folio
+ void put_swap_folio(struct folio *folio, swp_entry_t entry);
+ extern swp_entry_t get_swap_page_of_type(int);
+ extern int add_swap_count_continuation(swp_entry_t, gfp_t);
+-extern void swap_shmem_alloc(swp_entry_t, int);
+-extern int swap_duplicate(swp_entry_t);
++extern int swap_duplicate_nr(swp_entry_t entry, int nr);
+ extern int swapcache_prepare(swp_entry_t entry, int nr);
+ extern void swap_free_nr(swp_entry_t entry, int nr_pages);
+ extern void free_swap_and_cache_nr(swp_entry_t entry, int nr);
+@@ -514,11 +512,7 @@ static inline int add_swap_count_continu
  	return 0;
  }
  
--static inline void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry, int nr)
+-static inline void swap_shmem_alloc(swp_entry_t swp, int nr)
 -{
 -}
 -
- static inline struct folio *swap_cache_get_folio(swp_entry_t entry)
+-static inline int swap_duplicate(swp_entry_t swp)
++static inline int swap_duplicate_nr(swp_entry_t swp, int nr_pages)
  {
- 	return NULL;
+ 	return 0;
+ }
+@@ -569,6 +563,11 @@ static inline int add_swap_extent(struct
+ }
+ #endif /* CONFIG_SWAP */
+ 
++static inline int swap_duplicate(swp_entry_t entry)
++{
++	return swap_duplicate_nr(entry, 1);
++}
++
+ static inline void free_swap_and_cache(swp_entry_t entry)
+ {
+ 	free_swap_and_cache_nr(entry, 1);
+--- a/mm/shmem.c~mm-shmem-swap-remove-swap_map_shmem
++++ a/mm/shmem.c
+@@ -1690,7 +1690,7 @@ try_split:
+ 			spin_unlock(&shmem_swaplist_lock);
+ 		}
+ 
+-		swap_shmem_alloc(folio->swap, nr_pages);
++		swap_duplicate_nr(folio->swap, nr_pages);
+ 		shmem_delete_from_page_cache(folio, swp_to_radix_entry(folio->swap));
+ 
+ 		BUG_ON(folio_mapped(folio));
+--- a/mm/swapfile.c~mm-shmem-swap-remove-swap_map_shmem
++++ a/mm/swapfile.c
+@@ -201,7 +201,7 @@ static bool swap_is_last_map(struct swap
+ 	unsigned char *map_end = map + nr_pages;
+ 	unsigned char count = *map;
+ 
+-	if (swap_count(count) != 1 && swap_count(count) != SWAP_MAP_SHMEM)
++	if (swap_count(count) != 1)
+ 		return false;
+ 
+ 	while (++map < map_end) {
+@@ -1523,12 +1523,6 @@ static unsigned char swap_entry_put_lock
+ 	if (usage == SWAP_HAS_CACHE) {
+ 		VM_BUG_ON(!has_cache);
+ 		has_cache = 0;
+-	} else if (count == SWAP_MAP_SHMEM) {
+-		/*
+-		 * Or we could insist on shmem.c using a special
+-		 * swap_shmem_free() and free_shmem_swap_and_cache()...
+-		 */
+-		count = 0;
+ 	} else if ((count & ~COUNT_CONTINUED) <= SWAP_MAP_MAX) {
+ 		if (count == COUNT_CONTINUED) {
+ 			if (swap_count_continued(si, offset, count))
+@@ -1626,7 +1620,7 @@ static bool swap_entries_put_map(struct
+ 	if (nr <= 1)
+ 		goto fallback;
+ 	count = swap_count(data_race(si->swap_map[offset]));
+-	if (count != 1 && count != SWAP_MAP_SHMEM)
++	if (count != 1)
+ 		goto fallback;
+ 
+ 	ci = swap_cluster_lock(si, offset);
+@@ -1680,12 +1674,10 @@ static bool swap_entries_put_map_nr(stru
+ 
+ /*
+  * Check if it's the last ref of swap entry in the freeing path.
+- * Qualified value includes 1, SWAP_HAS_CACHE or SWAP_MAP_SHMEM.
+  */
+ static inline bool __maybe_unused swap_is_last_ref(unsigned char count)
+ {
+-	return (count == SWAP_HAS_CACHE) || (count == 1) ||
+-	       (count == SWAP_MAP_SHMEM);
++	return (count == SWAP_HAS_CACHE) || (count == 1);
+ }
+ 
+ /*
+@@ -3678,7 +3670,6 @@ static int __swap_duplicate(swp_entry_t
+ 
+ 	offset = swp_offset(entry);
+ 	VM_WARN_ON(nr > SWAPFILE_CLUSTER - offset % SWAPFILE_CLUSTER);
+-	VM_WARN_ON(usage == 1 && nr > 1);
+ 	ci = swap_cluster_lock(si, offset);
+ 
+ 	err = 0;
+@@ -3738,27 +3729,28 @@ unlock_out:
+ 	return err;
+ }
+ 
+-/*
+- * Help swapoff by noting that swap entry belongs to shmem/tmpfs
+- * (in which case its reference count is never incremented).
+- */
+-void swap_shmem_alloc(swp_entry_t entry, int nr)
+-{
+-	__swap_duplicate(entry, SWAP_MAP_SHMEM, nr);
+-}
+-
+-/*
+- * Increase reference count of swap entry by 1.
++/**
++ * swap_duplicate_nr() - Increase reference count of nr contiguous swap entries
++ *                       by 1.
++ *
++ * @entry: first swap entry from which we want to increase the refcount.
++ * @nr: Number of entries in range.
++ *
+  * Returns 0 for success, or -ENOMEM if a swap_count_continuation is required
+  * but could not be atomically allocated.  Returns 0, just as if it succeeded,
+  * if __swap_duplicate() fails for another reason (-EINVAL or -ENOENT), which
+  * might occur if a page table entry has got corrupted.
++ *
++ * Note that we are currently not handling the case where nr > 1 and we need to
++ * add swap count continuation. This is OK, because no such user exists - shmem
++ * is the only user that can pass nr > 1, and it never re-duplicates any swap
++ * entry it owns.
+  */
+-int swap_duplicate(swp_entry_t entry)
++int swap_duplicate_nr(swp_entry_t entry, int nr)
+ {
+ 	int err = 0;
+ 
+-	while (!err && __swap_duplicate(entry, 1, 1) == -ENOMEM)
++	while (!err && __swap_duplicate(entry, 1, nr) == -ENOMEM)
+ 		err = add_swap_count_continuation(entry, GFP_ATOMIC);
+ 	return err;
+ }
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from nphamcs@gmail.com are
 
-mm-shmem-swap-fix-race-of-truncate-and-swap-entry-split.patch
 
