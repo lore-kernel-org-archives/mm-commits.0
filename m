@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1C5720CCDC
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C90E20CCDC
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898244; cv=none; b=SopPz7Vdxihk+/WM7aVJO9muhdDODBrF1C0EulnBUPRPrGvaWDIFyxnn1Slnj3S6mEVwiqrPVdC+5yZ04lzTty/Rw+2eb+IOr6+TIpLnkIotwx+oy+1ouuYSaDAq/AQ+3BPVHz1s++gweWEGa3H6qFNt6nxGr9y2266JfKHEKLM=
+	t=1769898246; cv=none; b=DLnRM+gx/GR/DwMvvaHL3UmIBrEN2dcA+vexR6J0XYRUn0a9wGrGdgxPdSMcnctA5gIPDu7BF11DKdaiQYADCi8msvNwzQpM/xk4ilwJYlCS9/yiU1WoksicLwFvKfhlitHmBnrFrUSQY/lihzhhe0xA335Y99EcSj3eE6tJfZs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898244; c=relaxed/simple;
-	bh=wu0y01+wk9kQuQeoxwx6bdabqP0J5qbWFysdsurTZ30=;
-	h=Date:To:From:Subject:Message-Id; b=G5DFSTIdbg1feZSdRK1MBp2HflfU9n2COlX+B/ZT9v2GSDL9tMLENVltYM9FDlsYBxXyyUA1d74ylOKqNnA0XHOvoQCHkPCibHZFMSefkmNzjc6xOwv3N9asdwhFQSAlzSz1qrJaV/i8fzsr8xSZztiThEyQ5WYSpAuAftJNpfg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y1xTgkiz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898246; c=relaxed/simple;
+	bh=SM0pSGz7VCqr0qpqiaOJAOkZihJDrVLwKmK1CyY8H3M=;
+	h=Date:To:From:Subject:Message-Id; b=dhythMcQ0rMA32ccvPpmk6T5B+5Ox16q1HVoFutXLdKie3euRIjShIIu8IdKLRZ5iDAfRQyjcbHJS6CwqKdF/iB+bY+gZmQlXmB0srNM7GQSY1ZJwzW1QRA8Q4S0XIN7q/37qYPE3pKkZPGqTVCMJGztSMja0zAlShXWcztYJW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UIb86RJ4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y1xTgkiz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65183C4CEF1;
-	Sat, 31 Jan 2026 22:24:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UIb86RJ4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C970C4CEF1;
+	Sat, 31 Jan 2026 22:24:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898244;
-	bh=wu0y01+wk9kQuQeoxwx6bdabqP0J5qbWFysdsurTZ30=;
+	s=korg; t=1769898246;
+	bh=SM0pSGz7VCqr0qpqiaOJAOkZihJDrVLwKmK1CyY8H3M=;
 	h=Date:To:From:Subject:From;
-	b=Y1xTgkizxstmM0BkBkOQfKPGImHVmZ3aIVa16UWq2oLkwbi1DCGKVp8hkW4wiMQjw
-	 raJV5FZ4y9pFI8Topb60Qtc6tWzLQfIzMTvOS2ut9ZCpX97BHp0CbRAAqL5VEAhUNK
-	 aqNHbv7MizSOeZYE/Mr8eFoPjt94LP093rryMDCM=
-Date: Sat, 31 Jan 2026 14:24:03 -0800
+	b=UIb86RJ4fYi+tLusxD6ZvdQUqJk1MuqusLMbgtai44iwE0PitpHV2GkEU6qasEss/
+	 +/X+rfVZIaRetrVPBSw0V/fhTjUe0psJgEA7yaVlemged4u/ZzpQKQdmh9Pmcaa/b3
+	 H4+/oHOirxl5w7cQXEb0e3EtwYCEtxb3pCgIo/P4=
+Date: Sat, 31 Jan 2026 14:24:05 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mst@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,gregkh@linuxfoundation.org,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,arnd@arndb.de,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] powerpc-pseries-cmm-remove-cmm_balloon_compaction_init.patch removed from -mm tree
-Message-Id: <20260131222404.65183C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-balloon_compaction-improve-comments-for-warn_on_onceb_dev_info.patch removed from -mm tree
+Message-Id: <20260131222406.1C970C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: powerpc/pseries/cmm: remove cmm_balloon_compaction_init()
+     Subject: mm/balloon_compaction: improve comments for WARN_ON_ONCE(!b_dev_info)
 has been removed from the -mm tree.  Its filename was
-     powerpc-pseries-cmm-remove-cmm_balloon_compaction_init.patch
+     mm-balloon_compaction-improve-comments-for-warn_on_onceb_dev_info.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Subject: powerpc/pseries/cmm: remove cmm_balloon_compaction_init()
-Date: Tue, 20 Jan 2026 00:01:11 +0100
+Subject: mm/balloon_compaction: improve comments for WARN_ON_ONCE(!b_dev_info)
+Date: Tue, 20 Jan 2026 00:01:12 +0100
 
-Now that there is not a lot of logic left, let's just inline setting up
-the migration function.
+Let's clarify a bit by extending the comments.
 
-To avoid #ifdef in the caller we can instead use IS_ENABLED() and make the
-compiler happy by only providing the function declaration.
-
-Now that the function is gone, drop the "out_balloon_compaction" label. 
-Note that before commit 68f2736a8583 ("mm: Convert all PageMovable users
-to movable_operations") we actually had to undo something, now not
-anymore.
-
-Link: https://lkml.kernel.org/r/20260119230133.3551867-4-david@kernel.org
+Link: https://lkml.kernel.org/r/20260119230133.3551867-5-david@kernel.org
 Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Eugenio Pérez <eperezma@redhat.com>
@@ -70,8 +59,10 @@ Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jerrin Shaji George <jerrin.shaji-george@broadcom.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michael S. Tsirkin <mst@redhat.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
@@ -84,51 +75,36 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/cmm.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ mm/balloon_compaction.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/arch/powerpc/platforms/pseries/cmm.c~powerpc-pseries-cmm-remove-cmm_balloon_compaction_init
-+++ a/arch/powerpc/platforms/pseries/cmm.c
-@@ -548,15 +548,9 @@ static int cmm_migratepage(struct balloo
+--- a/mm/balloon_compaction.c~mm-balloon_compaction-improve-comments-for-warn_on_onceb_dev_info
++++ a/mm/balloon_compaction.c
+@@ -222,7 +222,11 @@ static void balloon_page_putback(struct
+ 	struct balloon_dev_info *b_dev_info = balloon_page_device(page);
+ 	unsigned long flags;
  
- 	return 0;
- }
--
--static void cmm_balloon_compaction_init(void)
--{
--	b_dev_info.migratepage = cmm_migratepage;
--}
- #else /* CONFIG_BALLOON_COMPACTION */
--static void cmm_balloon_compaction_init(void)
--{
--}
-+int cmm_migratepage(struct balloon_dev_info *b_dev_info, struct page *newpage,
-+		    struct page *page, enum migrate_mode mode);
- #endif /* CONFIG_BALLOON_COMPACTION */
+-	/* Isolated balloon pages cannot get deflated. */
++	/*
++	 * When we isolated the page, the page was still inflated in a balloon
++	 * device. As isolated balloon pages cannot get deflated, we still have
++	 * a balloon device here.
++	 */
+ 	if (WARN_ON_ONCE(!b_dev_info))
+ 		return;
  
- /**
-@@ -573,11 +567,12 @@ static int cmm_init(void)
- 		return -EOPNOTSUPP;
+@@ -241,7 +245,11 @@ static int balloon_page_migrate(struct p
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_PAGE(!PageLocked(newpage), newpage);
  
- 	balloon_devinfo_init(&b_dev_info);
--	cmm_balloon_compaction_init();
-+	if (IS_ENABLED(CONFIG_BALLOON_COMPACTION))
-+		b_dev_info.migratepage = cmm_migratepage;
- 
- 	rc = register_oom_notifier(&cmm_oom_nb);
- 	if (rc < 0)
--		goto out_balloon_compaction;
-+		return rc;
- 
- 	if ((rc = register_reboot_notifier(&cmm_reboot_nb)))
- 		goto out_oom_notifier;
-@@ -606,7 +601,6 @@ out_reboot_notifier:
- 	unregister_reboot_notifier(&cmm_reboot_nb);
- out_oom_notifier:
- 	unregister_oom_notifier(&cmm_oom_nb);
--out_balloon_compaction:
- 	return rc;
- }
+-	/* Isolated balloon pages cannot get deflated. */
++	/*
++	 * When we isolated the page, the page was still inflated in a balloon
++	 * device. As isolated balloon pages cannot get deflated, we still have
++	 * a balloon device here.
++	 */
+ 	if (WARN_ON_ONCE(!balloon))
+ 		return -EAGAIN;
  
 _
 
