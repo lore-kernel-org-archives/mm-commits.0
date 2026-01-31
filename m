@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3268D38B7BB
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83E0638A9C8
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898362; cv=none; b=ELiy6fhq3c4r2P7gPzkPGBu7liheYjFT5KYmPGvwNwGan16QgVI/2CHuMEe1GpIvPkvmv2iAlxho8sUe8OsPABMk4446N17O3SUzhfiP7SLjytWK6RTNBBRlwd+5H+M2jcea2b8IHN0TUNYOuPWpoLRrxeFatJ7LkDRTrYUNS6I=
+	t=1769898363; cv=none; b=ZW7mPaug4aAunnYOHaew2fCKWTa346AHR7pb5BnmLFHcRYo725ds+MRXv8xtNzOq2lDQFdtkK+SKMTJDZL6f5bGJyU4kAIRL36MtVzzmXE3lfuDp+fYSs/2hdDYDsg8HAXMZ2yuz+52qVRZfyQ+Is3R69f5RUEoig7546XzXCr0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898362; c=relaxed/simple;
-	bh=T6R2rPDVptk0hs55HWGHEVKt3nSpZc7uSZjMRVdtqd8=;
-	h=Date:To:From:Subject:Message-Id; b=CeeRmzJTbGc5xmfqPL5OiMutaJ0hCfG05avTZjzkFGNxUdzgaHI5uPtSbtN3vKQsnYCnVQ5Q/F6l/EbGKlpvEFEqSsykeDSZFZo0p8wWxi39LUOkh33LYYR2bexqw5Jpu6Ny6FUtY+No3mnnc2EGsOrGBy97brJ5tI9X5q0YR+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MUaz1sR3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898363; c=relaxed/simple;
+	bh=NkpH11Jr4eXWVAYL0bwCQIbWCWD+4Jts8IExOBFwbHk=;
+	h=Date:To:From:Subject:Message-Id; b=LHQpQsT9KxqwmRkYYXIUUrdtqRBf0Qi0yPkePgq6V9heO+WR3VxHcjpjUQnE140ykA7u4ZZaVFKaJCP2EUDBdL0UgEUExgvzvwsmWJPfphTzPzneNDmi/4niQf1t47G3V2Jp16UfCdUVcFRaxEakV38cr7+8oMC1PGPhqO5wSf0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oAyYkcZh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MUaz1sR3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2D19C4CEF1;
-	Sat, 31 Jan 2026 22:26:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oAyYkcZh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5AD3DC19425;
+	Sat, 31 Jan 2026 22:26:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898361;
-	bh=T6R2rPDVptk0hs55HWGHEVKt3nSpZc7uSZjMRVdtqd8=;
+	s=korg; t=1769898363;
+	bh=NkpH11Jr4eXWVAYL0bwCQIbWCWD+4Jts8IExOBFwbHk=;
 	h=Date:To:From:Subject:From;
-	b=MUaz1sR3pexg/vriqSulJWbIEjFOv9zYL9eKKVS4LYognMO2U5JDzRfprcoOun9Xl
-	 bOCnfAOAGG+rwXZa9WKsHGFOwUKrKNWvUP7v5NfMzomsTYLgI8xaRLUJNG2HhHuRyf
-	 /4CHr8FtlR0wM/ptBUWLUPDdykT7jYnUXV+4wZiA=
-Date: Sat, 31 Jan 2026 14:26:01 -0800
+	b=oAyYkcZhAloiNTtk9RIWG+zbe00m4QWasAtCkc61uGdq9/CUBO5WmF4om3EwMv9xK
+	 aMg6hI9f5OKlpQXzr989t0MLAgn490g8e3CkEztsyfSgw3X/N4NUHC3QP56AekkM+k
+	 u9esmmYRpYtzyEkLnf1NrA5ZsdP9Sx9GXGqvKFs4=
+Date: Sat, 31 Jan 2026 14:26:02 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,longman@redhat.com,liam.howlett@oracle.com,boqun.feng@gmail.com,bigeasy@linutronix.de,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-rename-is_vma_write_only-separate-out-shared-refcount-put.patch removed from -mm tree
-Message-Id: <20260131222601.C2D19C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-adduse-vma-lockdep-acquire-release-defines.patch removed from -mm tree
+Message-Id: <20260131222603.5AD3DC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,191 +35,155 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: rename is_vma_write_only(), separate out shared refcount put
+     Subject: mm/vma: add+use vma lockdep acquire/release defines
 has been removed from the -mm tree.  Its filename was
-     mm-vma-rename-is_vma_write_only-separate-out-shared-refcount-put.patch
+     mm-vma-adduse-vma-lockdep-acquire-release-defines.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: rename is_vma_write_only(), separate out shared refcount put
-Date: Fri, 23 Jan 2026 20:12:13 +0000
+Subject: mm/vma: add+use vma lockdep acquire/release defines
+Date: Fri, 23 Jan 2026 20:12:14 +0000
 
-The is_vma_writer_only() function is misnamed - this isn't determining if
-there is only a write lock, as it checks for the presence of the
-VM_REFCNT_EXCLUDE_READERS_FLAG.
+The code is littered with inscrutable and duplicative lockdep
+incantations, replace these with defines which explain what is going on
+and add commentary to explain what we're doing.
 
-Really, it is checking to see whether readers are excluded, with a
-possibility of a false positive in the case of a detachment (there we
-expect the vma->vm_refcnt to eventually be set to
-VM_REFCNT_EXCLUDE_READERS_FLAG, whereas for an attached VMA we expect it
-to eventually be set to VM_REFCNT_EXCLUDE_READERS_FLAG + 1).
+If lockdep is disabled these become no-ops.  We must use defines so
+_RET_IP_ remains meaningful.
 
-Rename the function accordingly.
+These are self-documenting and aid readability of the code.
 
-Relatedly, we use a __refcount_dec_and_test() primitive directly in
-vma_refcount_put(), using the old value to determine what the reference
-count ought to be after the operation is complete (ignoring racing
-reference count adjustments).
-
-Wrap this into a __vma_refcount_put_return() function, which we can then
-utilise in vma_mark_detached() and thus keep the refcount primitive usage
-abstracted.
-
-This function, as the name implies, returns the value after the reference
-count has been updated.
-
-This reduces duplication in the two invocations of this function.
-
-Also adjust comments, removing duplicative comments covered elsewhere and
-adding more to aid understanding.
+Additionally, instead of using the confusing rwsem_*() form for something
+that is emphatically not an rwsem, we instead explicitly use
+lock_[acquired, release]_shared/exclusive() lockdep invocations since we
+are doing something rather custom here and these make more sense to use.
 
 No functional change intended.
 
-Link: https://lkml.kernel.org/r/32053580bff460eb1092ef780b526cefeb748bad.1769198904.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/fdae72441949ecf3b4a0ed3510da803e881bb153.1769198904.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Waiman Long <longman@redhat.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |   66 ++++++++++++++++++++++++++++--------
- mm/mmap_lock.c            |   17 +++++----
- 2 files changed, 63 insertions(+), 20 deletions(-)
+ include/linux/mmap_lock.h |   37 +++++++++++++++++++++++++++++++++---
+ mm/mmap_lock.c            |   10 ++++-----
+ 2 files changed, 39 insertions(+), 8 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-vma-rename-is_vma_write_only-separate-out-shared-refcount-put
+--- a/include/linux/mmap_lock.h~mm-vma-adduse-vma-lockdep-acquire-release-defines
 +++ a/include/linux/mmap_lock.h
-@@ -122,15 +122,22 @@ static inline void vma_lock_init(struct
- 	vma->vm_lock_seq = UINT_MAX;
- }
+@@ -78,6 +78,37 @@ static inline void mmap_assert_write_loc
  
--static inline bool is_vma_writer_only(int refcnt)
-+/*
-+ * This function determines whether the input VMA reference count describes a
-+ * VMA which has excluded all VMA read locks.
-+ *
-+ * In the case of a detached VMA, we may incorrectly indicate that readers are
-+ * excluded when one remains, because in that scenario we target a refcount of
-+ * VM_REFCNT_EXCLUDE_READERS_FLAG, rather than the attached target of
-+ * VM_REFCNT_EXCLUDE_READERS_FLAG + 1.
-+ *
-+ * However, the race window for that is very small so it is unlikely.
-+ *
-+ * Returns: true if readers are excluded, false otherwise.
-+ */
-+static inline bool __vma_are_readers_excluded(int refcnt)
- {
- 	/*
--	 * With a writer and no readers, refcnt is VM_REFCNT_EXCLUDE_READERS_FLAG
--	 * if the vma is detached and (VM_REFCNT_EXCLUDE_READERS_FLAG + 1) if it is
--	 * attached. Waiting on a detached vma happens only in
--	 * vma_mark_detached() and is a rare case, therefore most of the time
--	 * there will be no unnecessary wakeup.
--	 *
- 	 * See the comment describing the vm_area_struct->vm_refcnt field for
- 	 * details of possible refcnt values.
- 	 */
-@@ -138,18 +145,51 @@ static inline bool is_vma_writer_only(in
- 		refcnt <= VM_REFCNT_EXCLUDE_READERS_FLAG + 1;
- }
+ #ifdef CONFIG_PER_VMA_LOCK
  
 +/*
-+ * Actually decrement the VMA reference count.
++ * VMA locks do not behave like most ordinary locks found in the kernel, so we
++ * cannot quite have full lockdep tracking in the way we would ideally prefer.
 + *
-+ * The function returns the reference count as it was immediately after the
-+ * decrement took place. If it returns zero, the VMA is now detached.
-+ */
-+static inline __must_check unsigned int
-+__vma_refcount_put_return(struct vm_area_struct *vma)
-+{
-+	int oldcnt;
-+
-+	if (__refcount_dec_and_test(&vma->vm_refcnt, &oldcnt))
-+		return 0;
-+
-+	return oldcnt - 1;
-+}
-+
-+/**
-+ * vma_refcount_put() - Drop reference count in VMA vm_refcnt field due to a
-+ * read-lock being dropped.
-+ * @vma: The VMA whose reference count we wish to decrement.
++ * Read locks act as shared locks which exclude an exclusive lock being
++ * taken. We therefore mark these accordingly on read lock acquire/release.
 + *
-+ * If we were the last reader, wake up threads waiting to obtain an exclusive
-+ * lock.
++ * Write locks are acquired exclusively per-VMA, but released in a shared
++ * fashion, that is upon vma_end_write_all(), we update the mmap's seqcount such
++ * that write lock is released.
++ *
++ * We therefore cannot track write locks per-VMA, nor do we try. Mitigating this
++ * is the fact that, of course, we do lockdep-track the mmap lock rwsem which
++ * must be held when taking a VMA write lock.
++ *
++ * We do, however, want to indicate that during either acquisition of a VMA
++ * write lock or detachment of a VMA that we require the lock held be exclusive,
++ * so we utilise lockdep to do so.
 + */
- static inline void vma_refcount_put(struct vm_area_struct *vma)
++#define __vma_lockdep_acquire_read(vma) \
++	lock_acquire_shared(&vma->vmlock_dep_map, 0, 1, NULL, _RET_IP_)
++#define __vma_lockdep_release_read(vma) \
++	lock_release(&vma->vmlock_dep_map, _RET_IP_)
++#define __vma_lockdep_acquire_exclusive(vma) \
++	lock_acquire_exclusive(&vma->vmlock_dep_map, 0, 0, NULL, _RET_IP_)
++#define __vma_lockdep_release_exclusive(vma) \
++	lock_release(&vma->vmlock_dep_map, _RET_IP_)
++/* Only meaningful if CONFIG_LOCK_STAT is defined. */
++#define __vma_lockdep_stat_mark_acquired(vma) \
++	lock_acquired(&vma->vmlock_dep_map, _RET_IP_)
++
+ static inline void mm_lock_seqcount_init(struct mm_struct *mm)
  {
--	/* Use a copy of vm_mm in case vma is freed after we drop vm_refcnt */
-+	/* Use a copy of vm_mm in case vma is freed after we drop vm_refcnt. */
+ 	seqcount_init(&mm->mm_lock_seq);
+@@ -176,9 +207,9 @@ static inline void vma_refcount_put(stru
  	struct mm_struct *mm = vma->vm_mm;
--	int oldcnt;
-+	int newcnt;
+ 	int newcnt;
  
- 	rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
--	if (!__refcount_dec_and_test(&vma->vm_refcnt, &oldcnt)) {
+-	rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
+-
++	__vma_lockdep_release_read(vma);
+ 	newcnt = __vma_refcount_put_return(vma);
++
+ 	/*
+ 	 * __vma_enter_locked() may be sleeping waiting for readers to drop
+ 	 * their reference count, so wake it up if we were the last reader
+@@ -207,7 +238,7 @@ static inline bool vma_start_read_locked
+ 							      VM_REFCNT_LIMIT)))
+ 		return false;
  
--		if (is_vma_writer_only(oldcnt - 1))
--			rcuwait_wake_up(&mm->vma_writer_wait);
--	}
-+	newcnt = __vma_refcount_put_return(vma);
-+	/*
-+	 * __vma_enter_locked() may be sleeping waiting for readers to drop
-+	 * their reference count, so wake it up if we were the last reader
-+	 * blocking it from being acquired.
-+	 *
-+	 * We may be raced by other readers temporarily incrementing the
-+	 * reference count, though the race window is very small, this might
-+	 * cause spurious wakeups.
-+	 */
-+	if (newcnt && __vma_are_readers_excluded(newcnt))
-+		rcuwait_wake_up(&mm->vma_writer_wait);
+-	rwsem_acquire_read(&vma->vmlock_dep_map, 0, 1, _RET_IP_);
++	__vma_lockdep_acquire_read(vma);
+ 	return true;
  }
  
- /*
---- a/mm/mmap_lock.c~mm-vma-rename-is_vma_write_only-separate-out-shared-refcount-put
+--- a/mm/mmap_lock.c~mm-vma-adduse-vma-lockdep-acquire-release-defines
 +++ a/mm/mmap_lock.c
-@@ -134,21 +134,24 @@ void vma_mark_detached(struct vm_area_st
- 	vma_assert_attached(vma);
+@@ -72,7 +72,7 @@ static inline int __vma_enter_locked(str
+ 	if (!refcount_add_not_zero(VM_REFCNT_EXCLUDE_READERS_FLAG, &vma->vm_refcnt))
+ 		return 0;
  
- 	/*
--	 * We are the only writer, so no need to use vma_refcount_put().
--	 * The condition below is unlikely because the vma has been already
--	 * write-locked and readers can increment vm_refcnt only temporarily
--	 * before they check vm_lock_seq, realize the vma is locked and drop
--	 * back the vm_refcnt. That is a narrow window for observing a raised
--	 * vm_refcnt.
-+	 * This condition - that the VMA is still attached (refcnt > 0) - is
-+	 * unlikely, because the vma has been already write-locked and readers
-+	 * can increment vm_refcnt only temporarily before they check
-+	 * vm_lock_seq, realize the vma is locked and drop back the
-+	 * vm_refcnt. That is a narrow window for observing a raised vm_refcnt.
- 	 *
- 	 * See the comment describing the vm_area_struct->vm_refcnt field for
- 	 * details of possible refcnt values.
- 	 */
--	if (unlikely(!refcount_dec_and_test(&vma->vm_refcnt))) {
-+	if (unlikely(__vma_refcount_put_return(vma))) {
- 		/* Wait until vma is detached with no readers. */
- 		if (__vma_enter_locked(vma, true, TASK_UNINTERRUPTIBLE)) {
- 			bool detached;
- 
-+			/*
-+			 * Once this is complete, no readers can increment the
-+			 * reference count, and the VMA is marked detached.
-+			 */
- 			__vma_exit_locked(vma, &detached);
- 			WARN_ON_ONCE(!detached);
+-	rwsem_acquire(&vma->vmlock_dep_map, 0, 0, _RET_IP_);
++	__vma_lockdep_acquire_exclusive(vma);
+ 	err = rcuwait_wait_event(&vma->vm_mm->vma_writer_wait,
+ 		   refcount_read(&vma->vm_refcnt) == tgt_refcnt,
+ 		   state);
+@@ -85,10 +85,10 @@ static inline int __vma_enter_locked(str
+ 			WARN_ON_ONCE(!detaching);
+ 			err = 0;
  		}
+-		rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
++		__vma_lockdep_release_exclusive(vma);
+ 		return err;
+ 	}
+-	lock_acquired(&vma->vmlock_dep_map, _RET_IP_);
++	__vma_lockdep_stat_mark_acquired(vma);
+ 
+ 	return 1;
+ }
+@@ -97,7 +97,7 @@ static inline void __vma_exit_locked(str
+ {
+ 	*detached = refcount_sub_and_test(VM_REFCNT_EXCLUDE_READERS_FLAG,
+ 					  &vma->vm_refcnt);
+-	rwsem_release(&vma->vmlock_dep_map, _RET_IP_);
++	__vma_lockdep_release_exclusive(vma);
+ }
+ 
+ int __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq,
+@@ -204,7 +204,7 @@ static inline struct vm_area_struct *vma
+ 		goto err;
+ 	}
+ 
+-	rwsem_acquire_read(&vma->vmlock_dep_map, 0, 1, _RET_IP_);
++	__vma_lockdep_acquire_read(vma);
+ 
+ 	if (unlikely(vma->vm_mm != mm))
+ 		goto err_unstable;
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
