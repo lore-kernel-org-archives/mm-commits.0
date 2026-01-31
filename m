@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6907E33439F
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 893C838A9C0
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898385; cv=none; b=UpEk/8vhfIj+adiplU45R1kAp1dYfR4Q1jlIQR6jpgn4JjZoq3KshCoOMH07u82332EtmDUsUfag3q2+P3eRNbt0RVaERdirEw5cs9nnj44Jalue+u9NDFLjTPV4Rs7x+F/ORi1z0OXspWM+Vf8heuAufNvQ8j7hpBTr06hhcGY=
+	t=1769898386; cv=none; b=R/yz4uEt5HZjJttFU6MYMaJ0BqH1Sx1DaybIaOTLDO/nA4Gq5MAv3KF2W8eUxj2LvQHqMqF+4pP45ti7k7EEBktu0oqgAXlDdB14Bf+4payR7ntbi3uihodkS1IHsirzCiAzm9+qBFK8gA8hK1OkA9Wgnr+n2ZvwL4XEmSNG8TU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898385; c=relaxed/simple;
-	bh=hCyp4soF/CTuAOC1FwTMDmXO0rz5S1a6+VJhBABrJxo=;
-	h=Date:To:From:Subject:Message-Id; b=SmjJi7WkNL2JzXF2ZlvKcHZgLfrzoqhtaYoVmpqUXtEazqYPIDP5O5avDjAN3BcSbiq2czkrSO5v0EOHY3OlCT0DvHvPEBj+aPdZaHgfbG4dHEzlJIRStPlzWk3XcxLlkhLkdtCf6RGaFPGjlhETHWb/pMBQzeVVzEk6qxv8WY4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yhV4DD0N; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898386; c=relaxed/simple;
+	bh=8R1/Ool8iNSrjBHQnc+7K0LR4ALd5JTX3H6qD2+Qr8w=;
+	h=Date:To:From:Subject:Message-Id; b=oIJuX2+6eR1l9/nIon5Axe0QYvmT3OBmL0fXOsPojmqNmbG39RgpXXGNNNOLSgOpqONCQq2w1V2AnG0cs5pwCCJB3PIJTvLxhKcoQ6MZ3Qs0ebkSS/L/yBYJ+1NsqJg5cQzGn36ynz1giRjc3qiJTBO0d/uB+XigAvfjbOAEI1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ynqbqXF3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yhV4DD0N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37B84C4CEF1;
-	Sat, 31 Jan 2026 22:26:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ynqbqXF3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 603B7C4CEF1;
+	Sat, 31 Jan 2026 22:26:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898385;
-	bh=hCyp4soF/CTuAOC1FwTMDmXO0rz5S1a6+VJhBABrJxo=;
+	s=korg; t=1769898386;
+	bh=8R1/Ool8iNSrjBHQnc+7K0LR4ALd5JTX3H6qD2+Qr8w=;
 	h=Date:To:From:Subject:From;
-	b=yhV4DD0NA9HnqvOc2nq/xiBS4opatMapTgdWdIPiHgq7SUm+Ui8ZIvQkfmH0ahG+F
-	 q3rDnSswPshzhn3V/ePMm0AfI7DKkS977fICfdsrGkePd8KVpufNWh/5wkr1SdC3A0
-	 RhW5RT3HTbMTg2VFSFHvxc7/Pebui5pKCn5kd8yI=
-Date: Sat, 31 Jan 2026 14:26:24 -0800
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,maninder1.s@samsung.com,akpm@linux-foundation.org
+	b=ynqbqXF3r1Vq81lrZl6FdN6P0TZ1dda4H1dr46/5kaT3pcNoIA81NOfUkHC9Ko2B9
+	 XG+fddOrw3DJRJsQsVlBx5ZqoIPtRJ8ziwJHQzDg2BwH6cYCd12YidsynS+gnbGeRt
+	 0h61ENdMIRZW/M96Mn3rdKMpQoq5leRymiPrL+oY=
+Date: Sat, 31 Jan 2026 14:26:25 -0800
+To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,lizhe.67@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kasan-remove-unnecessary-sync-argument-from-start_report.patch removed from -mm tree
-Message-Id: <20260131222625.37B84C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] hugetlb-increase-hugepage-reservations-when-using-node-specific-hugepages=-cmdline.patch removed from -mm tree
+Message-Id: <20260131222626.603B7C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kasan: remove unnecessary sync argument from start_report()
+     Subject: hugetlb: increase hugepage reservations when using node-specific "hugepages=" cmdline
 has been removed from the -mm tree.  Its filename was
-     kasan-remove-unnecessary-sync-argument-from-start_report.patch
+     hugetlb-increase-hugepage-reservations-when-using-node-specific-hugepages=-cmdline.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Maninder Singh <maninder1.s@samsung.com>
-Subject: kasan: remove unnecessary sync argument from start_report()
-Date: Thu, 22 Jan 2026 09:45:56 +0530
+From: "Li Zhe" <lizhe.67@bytedance.com>
+Subject: hugetlb: increase hugepage reservations when using node-specific "hugepages=" cmdline
+Date: Thu, 22 Jan 2026 11:50:02 +0800
 
-commit 7ce0ea19d50e ("kasan: switch kunit tests to console tracepoints")
-removed use of sync variable, thus removing that extra argument also.
+Commit 3dfd02c90037 ("hugetlb: increase number of reserving hugepages via
+cmdline") raised the number of hugepages that can be reserved through the
+boot-time "hugepages=" parameter for the non-node-specific case, but left
+the node-specific form of the same parameter unchanged.
 
-Link: https://lkml.kernel.org/r/20260122041556.341868-1-maninder1.s@samsung.com
-Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
-Acked-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+This patch extends the same optimization to node-specific reservations. 
+When HugeTLB vmemmap optimization (HVO) is enabled and a node cannot
+satisfy the requested hugepages, the code first releases ordinary
+struct-page memory of hugepages obtained from the buddy allocator,
+allowing their struct-page memory to be reclaimed and reused for
+additional hugepage reservations on that node.
+
+This is particularly beneficial for configurations that require identical,
+large per-node hugepage reservations.  On a four-node, 384 GB x86 VM, the
+patch raises the attainable 2 MiB hugepage reservation from under 374 GB
+to more than 379 GB.
+
+Link: https://lkml.kernel.org/r/20260122035002.79958-1-lizhe.67@bytedance.com
+Signed-off-by: Li Zhe <lizhe.67@bytedance.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/kasan/report.c~kasan-remove-unnecessary-sync-argument-from-start_report
-+++ a/mm/kasan/report.c
-@@ -203,7 +203,7 @@ static inline void fail_non_kasan_kunit_
+--- a/mm/hugetlb.c~hugetlb-increase-hugepage-reservations-when-using-node-specific-hugepages=-cmdline
++++ a/mm/hugetlb.c
+@@ -3435,6 +3435,13 @@ static void __init hugetlb_hstate_alloc_
  
- static DEFINE_RAW_SPINLOCK(report_lock);
- 
--static void start_report(unsigned long *flags, bool sync)
-+static void start_report(unsigned long *flags)
- {
- 	fail_non_kasan_kunit_test();
- 	/* Respect the /proc/sys/kernel/traceoff_on_warning interface. */
-@@ -543,7 +543,7 @@ void kasan_report_invalid_free(void *ptr
- 	if (unlikely(!report_enabled()))
- 		return;
- 
--	start_report(&flags, true);
-+	start_report(&flags);
- 
- 	__memset(&info, 0, sizeof(info));
- 	info.type = type;
-@@ -581,7 +581,7 @@ bool kasan_report(const void *addr, size
- 		goto out;
- 	}
- 
--	start_report(&irq_flags, true);
-+	start_report(&irq_flags);
- 
- 	__memset(&info, 0, sizeof(info));
- 	info.type = KASAN_REPORT_ACCESS;
-@@ -615,7 +615,7 @@ void kasan_report_async(void)
- 	if (unlikely(!report_enabled()))
- 		return;
- 
--	start_report(&flags, false);
-+	start_report(&flags);
- 	pr_err("BUG: KASAN: invalid-access\n");
- 	pr_err("Asynchronous fault: no details available\n");
- 	pr_err("\n");
+ 			folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
+ 					&node_states[N_MEMORY], NULL);
++			if (!folio && !list_empty(&folio_list) &&
++			    hugetlb_vmemmap_optimizable_size(h)) {
++				prep_and_add_allocated_folios(h, &folio_list);
++				INIT_LIST_HEAD(&folio_list);
++				folio = only_alloc_fresh_hugetlb_folio(h, gfp_mask, nid,
++						&node_states[N_MEMORY], NULL);
++			}
+ 			if (!folio)
+ 				break;
+ 			list_add(&folio->lru, &folio_list);
 _
 
-Patches currently in -mm which might be from maninder1.s@samsung.com are
+Patches currently in -mm which might be from lizhe.67@bytedance.com are
 
 
