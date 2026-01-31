@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 867C138B7D6
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE6F938A9DF
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:25:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898350; cv=none; b=r/icQBwI7/Yl5ntOUVyMUnH52orkBNkhxbOTvkYhks/7MB1xksRWe/2C+jgQ1V7PWXbgsXUQ/cAFURC4RRfjin0v9lC1CiYJTnI3uCec6RfQEgFBg9nH936JZCF2WZkkIQ4XOfr1baRzh3U6jyHXicC9gCqQAAXrfKUmi2fVBho=
+	t=1769898352; cv=none; b=IdEM7fJPX40mWSQ2UKpXzaqSis9+zNsqLMOzZtDqWFgUnQXrxNm+j8ecIOdJihH6t/rTPgy7c2TsBgLH2aH+suxIP9eaf/Qzw6OEAhIxRqjXvSFl3N9MglhEkCSUnavbKXZa2B81TTEU5lhl6f0cN+UHvgrRG19r0CdZtctGvhw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898350; c=relaxed/simple;
-	bh=uaAkiavXYpesbGfCOb8LZAQEk2nGlTLfGyWWEsV/3yc=;
-	h=Date:To:From:Subject:Message-Id; b=NPch9U4JGAnEJpixlt/YyUuX9wZwM3XwVigWafXlnNRubrycdDtY897vEkHVMSrfmW2Rh2Da1R7XhgXcGBbFFVwK1LpT2bqYY6NSgd+gxMFP1dS7TKmO8syJPfWVe9dBHarZ0JJI01/Ah2I5vfclHmZ96eKE9AFUzx/ZKjwQcUA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EoDwWS+v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898352; c=relaxed/simple;
+	bh=jlUeBHlRahXH9vNQMZSaDDjGkv/fSj85TIZe1KUHFko=;
+	h=Date:To:From:Subject:Message-Id; b=L+dJW6LXVxt94VOA/T70BNADg1XhI9bXMSoO+aOzQSsLJOz3RncxOa2WVDaU6mextWopizgC+BjVzTbXNqsLugQqcxfC0OMPCXELOdOeVEVwvS5nQWCPZenWDPIzTnBUKbSUi8zLNFVOAJU64ePSWSaqsG8P7VJyHFbQsJVfF4c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EjYq8Tj4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EoDwWS+v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D860C116D0;
-	Sat, 31 Jan 2026 22:25:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EjYq8Tj4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95BDAC4CEF1;
+	Sat, 31 Jan 2026 22:25:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898350;
-	bh=uaAkiavXYpesbGfCOb8LZAQEk2nGlTLfGyWWEsV/3yc=;
+	s=korg; t=1769898351;
+	bh=jlUeBHlRahXH9vNQMZSaDDjGkv/fSj85TIZe1KUHFko=;
 	h=Date:To:From:Subject:From;
-	b=EoDwWS+viKwhR3/Z85yqcOUkAiUWYg+gfpWOqCkqvwslA+bkW2xiV+Fb4zd3RT0jz
-	 5Xc/s4nc6GD08JaHdXDCIs+GW5BdUziDV00/HsSHytJA17t4wb7G2tysL2hgjalxM2
-	 KC37Xt9emat3IE3BqDULLxBQ4sKZoRQmfyYc5Rtg=
-Date: Sat, 31 Jan 2026 14:25:49 -0800
+	b=EjYq8Tj4WkWF3tcdnNpT3qQRXaZXghN31v0uhcKKk2uh5czsS/V97NJJ66tfyo7o+
+	 5i9Z6QdSWHVcVuJRmmRaJ8w1cUDC6jzPuANoCE1ZB8VOc2Pt2MGh1lqHE/6l+0pv4E
+	 5wuNZJPvNj74WK/zeihBeflElylpjEI7fSVm5uLU=
+Date: Sat, 31 Jan 2026 14:25:51 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning.patch removed from -mm tree
-Message-Id: <20260131222550.5D860C116D0@smtp.kernel.org>
+Subject: [merged mm-stable] docs-admin-guide-mm-damon-usage-update-stats-update-process-for-refresh_ms.patch removed from -mm tree
+Message-Id: <20260131222551.95BDAC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: introduce DAMON modules at the beginning
+     Subject: Docs/admin-guide/mm/damon/usage: update stats update process for refresh_ms
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning.patch
+     docs-admin-guide-mm-damon-usage-update-stats-update-process-for-refresh_ms.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: introduce DAMON modules at the beginning
-Date: Sun, 18 Jan 2026 10:02:56 -0800
+Subject: Docs/admin-guide/mm/damon/usage: update stats update process for refresh_ms
+Date: Sun, 18 Jan 2026 10:02:57 -0800
 
-DAMON usage document provides a list of available DAMON interfaces with
-brief introduction at the beginning of the doc.  The list is missing DAMON
-modules for special purposes, while it is one of the major suggested
-interfaces.  Add an item for those to the list.
+DAMOS stats on sysfs was only manually updated.  Recent addition of
+'refresh_ms' knob enabled periodic and automated updates of the stats. 
+The document for stats update process is not updated for the change,
+however.  Update.
 
-Link: https://lkml.kernel.org/r/20260118180305.70023-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260118180305.70023-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -65,34 +65,28 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    5 +++++
- Documentation/mm/damon/design.rst            |    2 ++
- 2 files changed, 7 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-stats-update-process-for-refresh_ms
 +++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -6,6 +6,11 @@ Detailed Usages
- 
- DAMON provides below interfaces for different users.
- 
-+- *Special-purpose DAMON modules.*
-+  :ref:`This <damon_modules_special_purpose>` is for people who are building,
-+  distributing, and/or administrating the kernel with special-purpose DAMON
-+  usages.  Using this, users can use DAMON's major features for the given
-+  purposes in build, boot, or runtime in simple ways.
- - *DAMON user space tool.*
-   `This <https://github.com/damonitor/damo>`_ is for privileged people such as
-   system administrators who want a just-working human-friendly interface.
---- a/Documentation/mm/damon/design.rst~docs-admin-guide-mm-damon-usage-introduce-damon-modules-at-the-beginning
-+++ a/Documentation/mm/damon/design.rst
-@@ -817,6 +817,8 @@ available.  Please refer to the ABI :ref
- the interfaces.
- 
- 
-+.. _damon_modules_special_purpose:
+@@ -549,10 +549,13 @@ online analysis or tuning of the schemes
+ The statistics can be retrieved by reading the files under ``stats`` directory
+ (``nr_tried``, ``sz_tried``, ``nr_applied``, ``sz_applied``,
+ ``sz_ops_filter_passed``, ``qt_exceeds``, ``nr_snapshots`` and
+-``max_nr_snapshots``), respectively.  The files are not updated in real time,
+-so you should ask DAMON sysfs interface to update the content of the files for
+-the stats by writing a special keyword, ``update_schemes_stats`` to the
+-relevant ``kdamonds/<N>/state`` file.
++``max_nr_snapshots``), respectively.
 +
- Special-Purpose Access-aware Kernel Modules
- -------------------------------------------
++The files are not updated in real time by default.  Users should ask DAMON
++sysfs interface to periodically update those using ``refresh_ms``, or do a one
++time update by writing a special keyword, ``update_schemes_stats`` to the
++relevant ``kdamonds/<N>/state`` file.  Refer to :ref:`kdamond directory
++<sysfs_kdamond>` for more details.
+ 
+ .. _sysfs_schemes_tried_regions:
  
 _
 
