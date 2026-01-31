@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F45020CCDC
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59CD920CCDC
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898288; cv=none; b=BChEWFQ1i5GJyTTbTF5GJMFwnAvNHxCCDQXJu8B7j3HzEBaPc30lbApKYb3bmZYaWadybycxM9btS6hENk7nvtaIl5jZ4juQpmO2QrK3MI4AfwVBbPBqgjEug89br9kAwf+mc+xRyrr14zai3dhgHXf00URDmsUdVmTtp3c29ZE=
+	t=1769898290; cv=none; b=ip9aPlj4Gs7ckYowXGVZ4NIgpcZnAclZm4FoMS48UWnAY5G26nRLmgbVSxTYMQS+wD3QORmmArIUkan7ybvCndPTJjH65KiPOOCxEKqKn6d0d5oGuyspzkVx3BQHBPgWBaY//HFVO/txKrGXTAiyExMBh3omE4eu5zbS3/nOqSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898288; c=relaxed/simple;
-	bh=DgK6e8jZXZaB/N1sdfUuYKk8BrI1fY5eAZGH69NpwMU=;
-	h=Date:To:From:Subject:Message-Id; b=L/Mkv7g5oxVlOZ3uSI3woIb9GcrasBVX8z3J2F3772ihmw4EBAXr8KPn2HaEZDLvY3q6t70//Wx6PZ6v1z+qah57lBKXkOTS5Vnd4r5n1PL2NB1knGtJ8tgLHD4Z2701LOSBfpDVSRSFA5mySBnBuY3dk3XuvB0wR4ad1tLHLg4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iq1O+XMg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898290; c=relaxed/simple;
+	bh=d7lzMzE8E5qJ04/CxW78qRU4iJd0nM0B8Rhgzr4VvPQ=;
+	h=Date:To:From:Subject:Message-Id; b=BLJdUXgU0tVm8bBMUhoULajtLxC48F22UxI3y978QhkPvXcyRQTV1iiZcOalRSXXCGuA6o1uFv/fHW6ZZvglx6nGhDWUKjhaR4Vp+Rjt8C0lD5Itlzc2U/8U0K7OofIfV6tGd3aXlmeWvjCERLiPnauizH3ms/0Vy5+Z6zXPg6g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=emEo0o0P; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iq1O+XMg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 656E7C4CEF1;
-	Sat, 31 Jan 2026 22:24:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="emEo0o0P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 313BCC4CEF1;
+	Sat, 31 Jan 2026 22:24:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898288;
-	bh=DgK6e8jZXZaB/N1sdfUuYKk8BrI1fY5eAZGH69NpwMU=;
+	s=korg; t=1769898290;
+	bh=d7lzMzE8E5qJ04/CxW78qRU4iJd0nM0B8Rhgzr4VvPQ=;
 	h=Date:To:From:Subject:From;
-	b=Iq1O+XMgDpanRyaqzLNCz7I6Raw32MrR6AiwWvCbp+cQ7nvBRPf8PwCORJHjGfYlM
-	 Iayx+NesrSo31YDyf8aBXtQrvdD6XBVOKZ0KWNm9ic9EAjVF9iQj48cyx+6B+6Fo/O
-	 XCv1xr2W+lIRnwv28o8pdy5iKBmKi0VkA+PH49Lg=
-Date: Sat, 31 Jan 2026 14:24:47 -0800
+	b=emEo0o0P7F5VAAli4v/X8D3z6ETg/ub/4+kd3lzJOSXBT6GyARQOedaJcbUamYkTf
+	 IIfiq2Z0CLjgUQqeza+Jma/W+2DpoqF6RD7dQlfK0OR8+4SAFDhZD13r9syiWQIpS8
+	 Dbb/HpKVhWm8x7lZI/tZe7+oKQDH36Ak9QSJC0KE=
+Date: Sat, 31 Jan 2026 14:24:49 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jiayuan.chen@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,jiayuan.chen@shopee.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch removed from -mm tree
-Message-Id: <20260131222448.656E7C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-add-tracepoint-and-reason-for-kswapd_failures-reset.patch removed from -mm tree
+Message-Id: <20260131222450.313BCC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
+     Subject: mm/vmscan: add tracepoint and reason for kswapd_failures reset
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim.patch
+     mm-vmscan-add-tracepoint-and-reason-for-kswapd_failures-reset.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Jiayuan Chen <jiayuan.chen@shopee.com>
-Subject: mm/vmscan: mitigate spurious kswapd_failures reset from direct reclaim
-Date: Tue, 20 Jan 2026 10:43:48 +0800
+Subject: mm/vmscan: add tracepoint and reason for kswapd_failures reset
+Date: Tue, 20 Jan 2026 10:43:49 +0800
 
-Patch series "mm/vmscan: add tracepoint and reason for kswapd_failures
-reset", v4.
-
-Currently, kswapd_failures is reset in multiple places (kswapd,
-direct reclaim, PCP freeing, memory-tiers), but there's no way to
-trace when and why it was reset, making it difficult to debug
-memory reclaim issues.
+Currently, kswapd_failures is reset in multiple places (kswapd, direct
+reclaim, PCP freeing, memory-tiers), but there's no way to trace when and
+why it was reset, making it difficult to debug memory reclaim issues.
 
 This patch:
 
@@ -130,74 +126,15 @@ kworker/u18:0-40    [002]    27.410151: mm_vmscan_kswapd_clear_hopeless: nid=0 r
  kswapd0-71    [000]    27.448391: mm_vmscan_kswapd_reclaim_fail: nid=0 failures=16
  ann-423   [003]    28.028285: mm_vmscan_kswapd_clear_hopeless: nid=0 reason=PCP
 
-
-This patch (of 2):
-
-When kswapd fails to reclaim memory, kswapd_failures is incremented.  Once
-it reaches MAX_RECLAIM_RETRIES, kswapd stops running to avoid futile
-reclaim attempts.  However, any successful direct reclaim unconditionally
-resets kswapd_failures to 0, which can cause problems.
-
-We observed an issue in production on a multi-NUMA system where a process
-allocated large amounts of anonymous pages on a single NUMA node, causing
-its watermark to drop below high and evicting most file pages:
-
-$ numastat -m
-Per-node system memory usage (in MBs):
-                          Node 0          Node 1           Total
-                 --------------- --------------- ---------------
-MemTotal               128222.19       127983.91       256206.11
-MemFree                  1414.48         1432.80         2847.29
-MemUsed                126807.71       126551.11       252358.82
-SwapCached                  0.00            0.00            0.00
-Active                  29017.91        25554.57        54572.48
-Inactive                92749.06        95377.00       188126.06
-Active(anon)            28998.96        23356.47        52355.43
-Inactive(anon)          92685.27        87466.11       180151.39
-Active(file)               18.95         2198.10         2217.05
-Inactive(file)             63.79         7910.89         7974.68
-
-With swap disabled, only file pages can be reclaimed.  When kswapd is
-woken (e.g., via wake_all_kswapds()), it runs continuously but cannot
-raise free memory above the high watermark since reclaimable file pages
-are insufficient.  Normally, kswapd would eventually stop after
-kswapd_failures reaches MAX_RECLAIM_RETRIES.
-
-However, containers on this machine have memory.high set in their cgroup. 
-Business processes continuously trigger the high limit, causing frequent
-direct reclaim that keeps resetting kswapd_failures to 0.  This prevents
-kswapd from ever stopping.
-
-The key insight is that direct reclaim triggered by cgroup memory.high
-performs aggressive scanning to throttle the allocating process.  With
-sufficiently aggressive scanning, even hot pages will eventually be
-reclaimed, making direct reclaim "successful" at freeing some memory. 
-However, this success does not mean the node has reached a balanced state
-- the freed memory may still be insufficient to bring free pages above the
-high watermark.  Unconditionally resetting kswapd_failures in this case
-keeps kswapd alive indefinitely.
-
-The result is that kswapd runs endlessly.  Unlike direct reclaim which
-only reclaims from the allocating cgroup, kswapd scans the entire node's
-memory.  This causes hot file pages from all workloads on the node to be
-evicted, not just those from the cgroup triggering memory.high.  These
-pages constantly refault, generating sustained heavy IO READ pressure
-across the entire system.
-
-Fix this by only resetting kswapd_failures when the node is actually
-balanced.  This allows both kswapd and direct reclaim to clear
-kswapd_failures upon successful reclaim, but only when the reclaim
-actually resolves the memory pressure (i.e., the node becomes balanced).
-
-Link: https://lkml.kernel.org/r/20260120024402.387576-1-jiayuan.chen@linux.dev
-Link: https://lkml.kernel.org/r/20260120024402.387576-2-jiayuan.chen@linux.dev
+Link: https://lkml.kernel.org/r/20260120024402.387576-3-jiayuan.chen@linux.dev
 Signed-off-by: Jiayuan Chen <jiayuan.chen@shopee.com>
 Signed-off-by: Jiayuan Chen <jiayuan.chen@linux.dev>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>	[tracing]
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
@@ -205,7 +142,6 @@ Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Xu <weixugc@google.com>
@@ -214,66 +150,245 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 ++
- mm/vmscan.c            |   22 ++++++++++++++++++++--
- 2 files changed, 22 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h        |   19 +++++++++--
+ include/trace/events/vmscan.h |   51 ++++++++++++++++++++++++++++++++
+ mm/memory-tiers.c             |    2 -
+ mm/page_alloc.c               |    4 +-
+ mm/show_mem.c                 |    3 -
+ mm/vmscan.c                   |   29 ++++++++++++------
+ mm/vmstat.c                   |    2 -
+ 7 files changed, 91 insertions(+), 19 deletions(-)
 
---- a/include/linux/mmzone.h~mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim
+--- a/include/linux/mmzone.h~mm-vmscan-add-tracepoint-and-reason-for-kswapd_failures-reset
 +++ a/include/linux/mmzone.h
-@@ -1536,6 +1536,8 @@ static inline unsigned long pgdat_end_pf
+@@ -1534,16 +1534,27 @@ static inline unsigned long pgdat_end_pf
+ #include <linux/memory_hotplug.h>
+ 
  void build_all_zonelists(pg_data_t *pgdat);
- void wakeup_kswapd(struct zone *zone, gfp_t gfp_mask, int order,
- 		   enum zone_type highest_zoneidx);
-+void kswapd_try_clear_hopeless(struct pglist_data *pgdat,
-+			       unsigned int order, int highest_zoneidx);
+-void wakeup_kswapd(struct zone *zone, gfp_t gfp_mask, int order,
+-		   enum zone_type highest_zoneidx);
+-void kswapd_try_clear_hopeless(struct pglist_data *pgdat,
+-			       unsigned int order, int highest_zoneidx);
  bool __zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
  			 int highest_zoneidx, unsigned int alloc_flags,
  			 long free_pages);
---- a/mm/vmscan.c~mm-vmscan-mitigate-spurious-kswapd_failures-reset-from-direct-reclaim
-+++ a/mm/vmscan.c
-@@ -5065,7 +5065,7 @@ static void lru_gen_shrink_node(struct p
- 	blk_finish_plug(&plug);
- done:
- 	if (sc->nr_reclaimed > reclaimed)
--		atomic_set(&pgdat->kswapd_failures, 0);
-+		kswapd_try_clear_hopeless(pgdat, sc->order, sc->reclaim_idx);
- }
+ bool zone_watermark_ok(struct zone *z, unsigned int order,
+ 		unsigned long mark, int highest_zoneidx,
+ 		unsigned int alloc_flags);
++
++enum kswapd_clear_hopeless_reason {
++	KSWAPD_CLEAR_HOPELESS_OTHER = 0,
++	KSWAPD_CLEAR_HOPELESS_KSWAPD,
++	KSWAPD_CLEAR_HOPELESS_DIRECT,
++	KSWAPD_CLEAR_HOPELESS_PCP,
++};
++
++void wakeup_kswapd(struct zone *zone, gfp_t gfp_mask, int order,
++		   enum zone_type highest_zoneidx);
++void kswapd_try_clear_hopeless(struct pglist_data *pgdat,
++			       unsigned int order, int highest_zoneidx);
++void kswapd_clear_hopeless(pg_data_t *pgdat, enum kswapd_clear_hopeless_reason reason);
++bool kswapd_test_hopeless(pg_data_t *pgdat);
++
+ /*
+  * Memory initialization context, use to differentiate memory added by
+  * the platform statically or via memory hotplug interface.
+--- a/include/trace/events/vmscan.h~mm-vmscan-add-tracepoint-and-reason-for-kswapd_failures-reset
++++ a/include/trace/events/vmscan.h
+@@ -40,6 +40,16 @@
+ 		{_VMSCAN_THROTTLE_CONGESTED,	"VMSCAN_THROTTLE_CONGESTED"}	\
+ 		) : "VMSCAN_THROTTLE_NONE"
  
- /******************************************************************************
-@@ -6132,7 +6132,7 @@ again:
- 	 * successful direct reclaim run will revive a dormant kswapd.
- 	 */
- 	if (reclaimable)
--		atomic_set(&pgdat->kswapd_failures, 0);
-+		kswapd_try_clear_hopeless(pgdat, sc->order, sc->reclaim_idx);
- 	else if (sc->cache_trim_mode)
- 		sc->cache_trim_mode_failed = 1;
++TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_OTHER);
++TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_KSWAPD);
++TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_DIRECT);
++TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_PCP);
++
++#define kswapd_clear_hopeless_reason_ops		\
++	{KSWAPD_CLEAR_HOPELESS_KSWAPD,	"KSWAPD"},	\
++	{KSWAPD_CLEAR_HOPELESS_DIRECT,	"DIRECT"},	\
++	{KSWAPD_CLEAR_HOPELESS_PCP,	"PCP"},		\
++	{KSWAPD_CLEAR_HOPELESS_OTHER,	"OTHER"}
+ 
+ #define trace_reclaim_flags(file) ( \
+ 	(file ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) | \
+@@ -535,6 +545,47 @@ TRACE_EVENT(mm_vmscan_throttled,
+ 		__entry->usec_delayed,
+ 		show_throttle_flags(__entry->reason))
+ );
++
++TRACE_EVENT(mm_vmscan_kswapd_reclaim_fail,
++
++	TP_PROTO(int nid, int failures),
++
++	TP_ARGS(nid, failures),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(int, failures)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->failures = failures;
++	),
++
++	TP_printk("nid=%d failures=%d",
++		__entry->nid, __entry->failures)
++);
++
++TRACE_EVENT(mm_vmscan_kswapd_clear_hopeless,
++
++	TP_PROTO(int nid, int reason),
++
++	TP_ARGS(nid, reason),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(int, reason)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->reason = reason;
++	),
++
++	TP_printk("nid=%d reason=%s",
++		__entry->nid,
++		__print_symbolic(__entry->reason, kswapd_clear_hopeless_reason_ops))
++);
+ #endif /* _TRACE_VMSCAN_H */
+ 
+ /* This part must be outside protection */
+--- a/mm/memory-tiers.c~mm-vmscan-add-tracepoint-and-reason-for-kswapd_failures-reset
++++ a/mm/memory-tiers.c
+@@ -955,7 +955,7 @@ static ssize_t demotion_enabled_store(st
+ 		struct pglist_data *pgdat;
+ 
+ 		for_each_online_pgdat(pgdat)
+-			atomic_set(&pgdat->kswapd_failures, 0);
++			kswapd_clear_hopeless(pgdat, KSWAPD_CLEAR_HOPELESS_OTHER);
+ 	}
+ 
+ 	return count;
+--- a/mm/page_alloc.c~mm-vmscan-add-tracepoint-and-reason-for-kswapd_failures-reset
++++ a/mm/page_alloc.c
+@@ -2945,9 +2945,9 @@ static bool free_frozen_page_commit(stru
+ 		 * 'hopeless node' to stay in that state for a while.  Let
+ 		 * kswapd work again by resetting kswapd_failures.
+ 		 */
+-		if (atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES &&
++		if (kswapd_test_hopeless(pgdat) &&
+ 		    next_memory_node(pgdat->node_id) < MAX_NUMNODES)
+-			atomic_set(&pgdat->kswapd_failures, 0);
++			kswapd_clear_hopeless(pgdat, KSWAPD_CLEAR_HOPELESS_PCP);
+ 	}
+ 	return ret;
  }
-@@ -7391,6 +7391,24 @@ void wakeup_kswapd(struct zone *zone, gf
+--- a/mm/show_mem.c~mm-vmscan-add-tracepoint-and-reason-for-kswapd_failures-reset
++++ a/mm/show_mem.c
+@@ -278,8 +278,7 @@ static void show_free_areas(unsigned int
+ #endif
+ 			K(node_page_state(pgdat, NR_PAGETABLE)),
+ 			K(node_page_state(pgdat, NR_SECONDARY_PAGETABLE)),
+-			str_yes_no(atomic_read(&pgdat->kswapd_failures) >=
+-				   MAX_RECLAIM_RETRIES),
++			str_yes_no(kswapd_test_hopeless(pgdat)),
+ 			K(node_page_state(pgdat, NR_BALLOON_PAGES)));
+ 	}
+ 
+--- a/mm/vmscan.c~mm-vmscan-add-tracepoint-and-reason-for-kswapd_failures-reset
++++ a/mm/vmscan.c
+@@ -506,7 +506,7 @@ static bool skip_throttle_noprogress(pg_
+ 	 * If kswapd is disabled, reschedule if necessary but do not
+ 	 * throttle as the system is likely near OOM.
+ 	 */
+-	if (atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES)
++	if (kswapd_test_hopeless(pgdat))
+ 		return true;
+ 
+ 	/*
+@@ -6437,7 +6437,7 @@ static bool allow_direct_reclaim(pg_data
+ 	int i;
+ 	bool wmark_ok;
+ 
+-	if (atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES)
++	if (kswapd_test_hopeless(pgdat))
+ 		return true;
+ 
+ 	for_each_managed_zone_pgdat(zone, pgdat, i, ZONE_NORMAL) {
+@@ -6846,7 +6846,7 @@ static bool prepare_kswapd_sleep(pg_data
+ 		wake_up_all(&pgdat->pfmemalloc_wait);
+ 
+ 	/* Hopeless node, leave it to direct reclaim */
+-	if (atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES)
++	if (kswapd_test_hopeless(pgdat))
+ 		return true;
+ 
+ 	if (pgdat_balanced(pgdat, order, highest_zoneidx)) {
+@@ -7111,8 +7111,11 @@ restart:
+ 	 * watermark_high at this point. We need to avoid increasing the
+ 	 * failure count to prevent the kswapd thread from stopping.
+ 	 */
+-	if (!sc.nr_reclaimed && !boosted)
+-		atomic_inc(&pgdat->kswapd_failures);
++	if (!sc.nr_reclaimed && !boosted) {
++		int fail_cnt = atomic_inc_return(&pgdat->kswapd_failures);
++		/* kswapd context, low overhead to trace every failure */
++		trace_mm_vmscan_kswapd_reclaim_fail(pgdat->node_id, fail_cnt);
++	}
+ 
+ out:
+ 	clear_reclaim_active(pgdat, highest_zoneidx);
+@@ -7371,7 +7374,7 @@ void wakeup_kswapd(struct zone *zone, gf
+ 		return;
+ 
+ 	/* Hopeless node, leave it to direct reclaim if possible */
+-	if (atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES ||
++	if (kswapd_test_hopeless(pgdat) ||
+ 	    (pgdat_balanced(pgdat, order, highest_zoneidx) &&
+ 	     !pgdat_watermark_boosted(pgdat, highest_zoneidx))) {
+ 		/*
+@@ -7391,9 +7394,11 @@ void wakeup_kswapd(struct zone *zone, gf
  	wake_up_interruptible(&pgdat->kswapd_wait);
  }
  
-+static void kswapd_clear_hopeless(pg_data_t *pgdat)
-+{
-+	atomic_set(&pgdat->kswapd_failures, 0);
-+}
-+
-+/*
-+ * Reset kswapd_failures only when the node is balanced. Without this
-+ * check, successful direct reclaim (e.g., from cgroup memory.high
-+ * throttling) can keep resetting kswapd_failures even when the node
-+ * cannot be balanced, causing kswapd to run endlessly.
-+ */
-+void kswapd_try_clear_hopeless(struct pglist_data *pgdat,
-+			       unsigned int order, int highest_zoneidx)
-+{
-+	if (pgdat_balanced(pgdat, order, highest_zoneidx))
-+		kswapd_clear_hopeless(pgdat);
-+}
-+
- #ifdef CONFIG_HIBERNATION
+-static void kswapd_clear_hopeless(pg_data_t *pgdat)
++void kswapd_clear_hopeless(pg_data_t *pgdat, enum kswapd_clear_hopeless_reason reason)
+ {
+-	atomic_set(&pgdat->kswapd_failures, 0);
++	/* Only trace actual resets, not redundant zero-to-zero */
++	if (atomic_xchg(&pgdat->kswapd_failures, 0))
++		trace_mm_vmscan_kswapd_clear_hopeless(pgdat->node_id, reason);
+ }
+ 
  /*
-  * Try to free `nr_to_reclaim' of memory, system-wide, and return the number of
+@@ -7406,7 +7411,13 @@ void kswapd_try_clear_hopeless(struct pg
+ 			       unsigned int order, int highest_zoneidx)
+ {
+ 	if (pgdat_balanced(pgdat, order, highest_zoneidx))
+-		kswapd_clear_hopeless(pgdat);
++		kswapd_clear_hopeless(pgdat, current_is_kswapd() ?
++			KSWAPD_CLEAR_HOPELESS_KSWAPD : KSWAPD_CLEAR_HOPELESS_DIRECT);
++}
++
++bool kswapd_test_hopeless(pg_data_t *pgdat)
++{
++	return atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES;
+ }
+ 
+ #ifdef CONFIG_HIBERNATION
+--- a/mm/vmstat.c~mm-vmscan-add-tracepoint-and-reason-for-kswapd_failures-reset
++++ a/mm/vmstat.c
+@@ -1840,7 +1840,7 @@ static void zoneinfo_show_print(struct s
+ 		   "\n  start_pfn:           %lu"
+ 		   "\n  reserved_highatomic: %lu"
+ 		   "\n  free_highatomic:     %lu",
+-		   atomic_read(&pgdat->kswapd_failures) >= MAX_RECLAIM_RETRIES,
++		   kswapd_test_hopeless(pgdat),
+ 		   zone->zone_start_pfn,
+ 		   zone->nr_reserved_highatomic,
+ 		   zone->nr_free_highatomic);
 _
 
 Patches currently in -mm which might be from jiayuan.chen@shopee.com are
