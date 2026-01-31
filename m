@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 643F020CCDC
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A1C720CCDC
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898249; cv=none; b=mrGnZRUSBJ0j8+in2L2cmS0nrSDaZglViOfg+H0zsTH5mVc4J4vdd9XA2c7aNulyLq2A+JPGnS5H7WPPP0pHboq7vHbZObF91i3GLjdPpGDeABRXlYdesr/W/Swv8sVUFK9mPcXLV9UpuSJmIgNK/4KZI7iP7/XRsRkrWBA/8K4=
+	t=1769898251; cv=none; b=MfaFA7Sywm/24bT8vsEueP5oc6IKHx9xWRJWluJwAnzFmEElPIfHVZdU9Uaqn79CU7rXRQ33MOCkTqJg111+GCSH8mddr3tsrrzhgX6iOrnLqlcpb2o2B2UI/R49N+OTgS9P1HuH/s7FYuVnBj7F99XRe3pLB/I9etzblKK1DqM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898249; c=relaxed/simple;
-	bh=cHSLOhOq9Sn91T6Xy3l5Fah1YbI0GRVd4zXlE3kQzQs=;
-	h=Date:To:From:Subject:Message-Id; b=geDcwoweJ21XaNfpKjnSKb7Cm5jmYyeyoRhtl4ROpl3iCFfBAtMEjSKm9AphSqch/zdNKQfc+6Vz0gm0dN1h4EMXJA6wb/9Kv5q/iYd8ojdalIJKi5xtfOZWjwHCFl4/Y0t39lVcPZbd87U/+PDbhhxvt/A+aWrvFvdjyVr9R3Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AAmOAyUN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898251; c=relaxed/simple;
+	bh=DN7sseSDbl++OlzQNXNOE7kf+5d6hXDf7R3Jn2aadVc=;
+	h=Date:To:From:Subject:Message-Id; b=qouGJ6dfPXjcZVeV/5VZIUTC2KxVjcAMBe1EDVmS398rw9ZksEe6PHwQOLTmy4xjiSBXXu+c+aE83vGjNUAgtF0gcYJjCjMziB3R/x8Dl8zBAAgbD7eELjd5aCMEHzVt8kAEKeBvSTSJBE+CIHJSprTseKUQjvMd13e5IIdKhcc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kVJ/llxG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AAmOAyUN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38B5AC4CEF1;
-	Sat, 31 Jan 2026 22:24:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kVJ/llxG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E574BC4CEF1;
+	Sat, 31 Jan 2026 22:24:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898249;
-	bh=cHSLOhOq9Sn91T6Xy3l5Fah1YbI0GRVd4zXlE3kQzQs=;
+	s=korg; t=1769898251;
+	bh=DN7sseSDbl++OlzQNXNOE7kf+5d6hXDf7R3Jn2aadVc=;
 	h=Date:To:From:Subject:From;
-	b=AAmOAyUNJ0UpemB/iim4xLWdraDz21KjKR+74vaBKEW9GO085XjFGi/XafFRnxrpA
-	 oYw0rbctyjCzT4CoJNRJ7/FUbrgrMOrzAunOKizlgGP3fs1fFh2vXaQZZwOVzhbq5C
-	 x78EF1FzxdI6G3nlY7msfARWGjkMOXoRR9gCDkpU=
-Date: Sat, 31 Jan 2026 14:24:08 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mst@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,gregkh@linuxfoundation.org,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,arnd@arndb.de,david@kernel.org,akpm@linux-foundation.org
+	b=kVJ/llxG5e1uHf7eLFS8LF2ppOxtzjXpjdu24xelyDSnpuPuqte+9LaV4ursdxO4X
+	 67cTm6pP6jtYbqMpvG8thqMpWprXzFLeRRbwP3rJH90TTNmlb0EgLv8oGlfGH1wa67
+	 AkHWUwryU0Jqk4/sAYpISQdbd1Nl/tepuyxEVLI8=
+Date: Sat, 31 Jan 2026 14:24:10 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mst@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,gregkh@linuxfoundation.org,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,arnd@arndb.de,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-balloon_compaction-centralize-adjust_managed_page_count-handling.patch removed from -mm tree
-Message-Id: <20260131222409.38B5AC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] vmw_balloon-stop-using-the-balloon_dev_info-lock.patch removed from -mm tree
+Message-Id: <20260131222410.E574BC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/balloon_compaction: centralize adjust_managed_page_count() handling
+     Subject: vmw_balloon: stop using the balloon_dev_info lock
 has been removed from the -mm tree.  Its filename was
-     mm-balloon_compaction-centralize-adjust_managed_page_count-handling.patch
+     vmw_balloon-stop-using-the-balloon_dev_info-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Subject: mm/balloon_compaction: centralize adjust_managed_page_count() handling
-Date: Tue, 20 Jan 2026 00:01:14 +0100
+Subject: vmw_balloon: stop using the balloon_dev_info lock
+Date: Tue, 20 Jan 2026 00:01:15 +0100
 
-Let's centralize it, by allowing for the driver to enable this handling
-through a new flag (bool for now) in the balloon device info.
+Let's not piggy-back on the existing lock and use a separate lock for the
+huge page list.  Now that we use a separate lock, there is no need to
+disable interrupts, so use the non-irqsave variants.  We only required the
+irqsave variants because of the balloon device lock.
 
-Note that we now adjust the counter when adding/removing a page into the
-balloon list: when removing a page to deflate it, it will now happen
-before the driver communicated with hypervisor, not afterwards.
+This is a preparation for changing the locking used to protect
+balloon_dev_info.
 
-This shouldn't make a difference in practice.
+While at it, talk about "page migration" instead of "page compaction". 
+We'll change that in core code soon as well.
 
-Link: https://lkml.kernel.org/r/20260119230133.3551867-7-david@kernel.org
+Link: https://lkml.kernel.org/r/20260119230133.3551867-8-david@kernel.org
 Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
@@ -67,7 +69,7 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Jason Wang <jasowang@redhat.com>
 Cc: Jerrin Shaji George <jerrin.shaji-george@broadcom.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -82,165 +84,92 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/cmm.c |   13 +------------
- drivers/virtio/virtio_balloon.c      |   19 ++-----------------
- include/linux/balloon_compaction.h   |    2 ++
- mm/balloon_compaction.c              |   17 +++++++++++++++++
- 4 files changed, 22 insertions(+), 29 deletions(-)
+ drivers/misc/vmw_balloon.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
---- a/arch/powerpc/platforms/pseries/cmm.c~mm-balloon_compaction-centralize-adjust_managed_page_count-handling
-+++ a/arch/powerpc/platforms/pseries/cmm.c
-@@ -165,7 +165,6 @@ static long cmm_alloc_pages(long nr)
- 
- 		balloon_page_enqueue(&b_dev_info, page);
- 		atomic_long_inc(&loaned_pages);
--		adjust_managed_page_count(page, -1);
- 		nr--;
- 	}
- 
-@@ -190,7 +189,6 @@ static long cmm_free_pages(long nr)
- 		if (!page)
- 			break;
- 		plpar_page_set_active(page);
--		adjust_managed_page_count(page, 1);
- 		__free_page(page);
- 		atomic_long_dec(&loaned_pages);
- 		nr--;
-@@ -516,16 +514,6 @@ static int cmm_migratepage(struct balloo
- 	}
- 
- 	/*
--	 * When we migrate a page to a different zone, we have to fixup the
--	 * count of both involved zones as we adjusted the managed page count
--	 * when inflating.
--	 */
--	if (page_zone(page) != page_zone(newpage)) {
--		adjust_managed_page_count(page, 1);
--		adjust_managed_page_count(newpage, -1);
--	}
--
--	/*
- 	 * activate/"deflate" the old page. We ignore any errors just like the
- 	 * other callers.
+--- a/drivers/misc/vmw_balloon.c~vmw_balloon-stop-using-the-balloon_dev_info-lock
++++ a/drivers/misc/vmw_balloon.c
+@@ -354,11 +354,16 @@ struct vmballoon {
+ 	/**
+ 	 * @huge_pages - list of the inflated 2MB pages.
+ 	 *
+-	 * Protected by @b_dev_info.pages_lock .
++	 * Protected by @huge_pages_lock.
  	 */
-@@ -551,6 +539,7 @@ static int cmm_init(void)
- 		return -EOPNOTSUPP;
+ 	struct list_head huge_pages;
  
- 	balloon_devinfo_init(&b_dev_info);
-+	b_dev_info.adjust_managed_page_count = true;
- 	if (IS_ENABLED(CONFIG_BALLOON_COMPACTION))
- 		b_dev_info.migratepage = cmm_migratepage;
- 
---- a/drivers/virtio/virtio_balloon.c~mm-balloon_compaction-centralize-adjust_managed_page_count-handling
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -274,9 +274,6 @@ static unsigned int fill_balloon(struct
- 
- 		set_page_pfns(vb, vb->pfns + vb->num_pfns, page);
- 		vb->num_pages += VIRTIO_BALLOON_PAGES_PER_PAGE;
--		if (!virtio_has_feature(vb->vdev,
--					VIRTIO_BALLOON_F_DEFLATE_ON_OOM))
--			adjust_managed_page_count(page, -1);
- 		vb->num_pfns += VIRTIO_BALLOON_PAGES_PER_PAGE;
- 	}
- 
-@@ -295,9 +292,6 @@ static void release_pages_balloon(struct
- 	struct page *page, *next;
- 
- 	list_for_each_entry_safe(page, next, pages, lru) {
--		if (!virtio_has_feature(vb->vdev,
--					VIRTIO_BALLOON_F_DEFLATE_ON_OOM))
--			adjust_managed_page_count(page, 1);
- 		list_del(&page->lru);
- 		put_page(page); /* balloon reference */
- 	}
-@@ -839,17 +833,6 @@ static int virtballoon_migratepage(struc
- 	if (!mutex_trylock(&vb->balloon_lock))
- 		return -EAGAIN;
- 
--	/*
--	  * When we migrate a page to a different zone and adjusted the
--	  * managed page count when inflating, we have to fixup the count of
--	  * both involved zones.
--	  */
--	if (!virtio_has_feature(vb->vdev, VIRTIO_BALLOON_F_DEFLATE_ON_OOM) &&
--	    page_zone(page) != page_zone(newpage)) {
--		adjust_managed_page_count(page, 1);
--		adjust_managed_page_count(newpage, -1);
--	}
--
- 	/* balloon's page migration 1st step  -- inflate "newpage" */
- 	vb->num_pfns = VIRTIO_BALLOON_PAGES_PER_PAGE;
- 	set_page_pfns(vb, vb->pfns, newpage);
-@@ -958,6 +941,8 @@ static int virtballoon_probe(struct virt
- 	if (err)
- 		goto out_free_vb;
- 
-+	if (!virtio_has_feature(vb->vdev, VIRTIO_BALLOON_F_DEFLATE_ON_OOM))
-+		vb->vb_dev_info.adjust_managed_page_count = true;
- #ifdef CONFIG_BALLOON_COMPACTION
- 	vb->vb_dev_info.migratepage = virtballoon_migratepage;
- #endif
---- a/include/linux/balloon_compaction.h~mm-balloon_compaction-centralize-adjust_managed_page_count-handling
-+++ a/include/linux/balloon_compaction.h
-@@ -56,6 +56,7 @@ struct balloon_dev_info {
- 	struct list_head pages;		/* Pages enqueued & handled to Host */
- 	int (*migratepage)(struct balloon_dev_info *, struct page *newpage,
- 			struct page *page, enum migrate_mode mode);
-+	bool adjust_managed_page_count;
- };
- 
- extern struct page *balloon_page_alloc(void);
-@@ -73,6 +74,7 @@ static inline void balloon_devinfo_init(
- 	spin_lock_init(&balloon->pages_lock);
- 	INIT_LIST_HEAD(&balloon->pages);
- 	balloon->migratepage = NULL;
-+	balloon->adjust_managed_page_count = false;
- }
- 
- #ifdef CONFIG_BALLOON_COMPACTION
---- a/mm/balloon_compaction.c~mm-balloon_compaction-centralize-adjust_managed_page_count-handling
-+++ a/mm/balloon_compaction.c
-@@ -23,6 +23,8 @@ static void balloon_page_enqueue_one(str
- 	BUG_ON(!trylock_page(page));
- 	balloon_page_insert(b_dev_info, page);
- 	unlock_page(page);
-+	if (b_dev_info->adjust_managed_page_count)
-+		adjust_managed_page_count(page, -1);
- 	__count_vm_event(BALLOON_INFLATE);
- 	inc_node_page_state(page, NR_BALLOON_PAGES);
- }
-@@ -95,6 +97,8 @@ size_t balloon_page_list_dequeue(struct
- 			continue;
- 
- 		list_del(&page->lru);
-+		if (b_dev_info->adjust_managed_page_count)
-+			adjust_managed_page_count(page, 1);
- 		balloon_page_finalize(page);
- 		__count_vm_event(BALLOON_DEFLATE);
- 		list_add(&page->lru, pages);
-@@ -264,9 +268,22 @@ static int balloon_page_migrate(struct p
- 		get_page(newpage);
- 		balloon_page_insert(b_dev_info, newpage);
- 		__count_vm_event(BALLOON_MIGRATE);
+ 	/**
++	 * @huge_pages_lock: lock for the list of inflated 2MB pages.
++	 */
++	spinlock_t huge_pages_lock;
 +
-+		if (b_dev_info->adjust_managed_page_count &&
-+		    page_zone(page) != page_zone(newpage)) {
-+			/*
-+			 * When we migrate a page to a different zone we
-+			 * have to fixup the count of both involved zones.
-+			 */
-+			adjust_managed_page_count(page, 1);
-+			adjust_managed_page_count(newpage, -1);
-+		}
++	/**
+ 	 * @vmci_doorbell.
+ 	 *
+ 	 * Protected by @conf_sem.
+@@ -987,7 +992,6 @@ static void vmballoon_enqueue_page_list(
+ 					unsigned int *n_pages,
+ 					enum vmballoon_page_size_type page_size)
+ {
+-	unsigned long flags;
+ 	struct page *page;
+ 
+ 	if (page_size == VMW_BALLOON_4K_PAGE) {
+@@ -995,9 +999,9 @@ static void vmballoon_enqueue_page_list(
  	} else {
- 		/* Old page was deflated but new page not inflated. */
- 		__count_vm_event(BALLOON_DEFLATE);
-+
-+		if (b_dev_info->adjust_managed_page_count)
-+			adjust_managed_page_count(page, 1);
+ 		/*
+ 		 * Keep the huge pages in a local list which is not available
+-		 * for the balloon compaction mechanism.
++		 * for the balloon page migration.
+ 		 */
+-		spin_lock_irqsave(&b->b_dev_info.pages_lock, flags);
++		spin_lock(&b->huge_pages_lock);
+ 
+ 		list_for_each_entry(page, pages, lru) {
+ 			vmballoon_mark_page_offline(page, VMW_BALLOON_2M_PAGE);
+@@ -1006,7 +1010,7 @@ static void vmballoon_enqueue_page_list(
+ 		list_splice_init(pages, &b->huge_pages);
+ 		__count_vm_events(BALLOON_INFLATE, *n_pages *
+ 				  vmballoon_page_in_frames(VMW_BALLOON_2M_PAGE));
+-		spin_unlock_irqrestore(&b->b_dev_info.pages_lock, flags);
++		spin_unlock(&b->huge_pages_lock);
  	}
  
- 	b_dev_info->isolated_pages--;
+ 	*n_pages = 0;
+@@ -1033,7 +1037,6 @@ static void vmballoon_dequeue_page_list(
+ {
+ 	struct page *page, *tmp;
+ 	unsigned int i = 0;
+-	unsigned long flags;
+ 
+ 	/* In the case of 4k pages, use the compaction infrastructure */
+ 	if (page_size == VMW_BALLOON_4K_PAGE) {
+@@ -1043,7 +1046,7 @@ static void vmballoon_dequeue_page_list(
+ 	}
+ 
+ 	/* 2MB pages */
+-	spin_lock_irqsave(&b->b_dev_info.pages_lock, flags);
++	spin_lock(&b->huge_pages_lock);
+ 	list_for_each_entry_safe(page, tmp, &b->huge_pages, lru) {
+ 		vmballoon_mark_page_online(page, VMW_BALLOON_2M_PAGE);
+ 
+@@ -1054,7 +1057,7 @@ static void vmballoon_dequeue_page_list(
+ 
+ 	__count_vm_events(BALLOON_DEFLATE,
+ 			  i * vmballoon_page_in_frames(VMW_BALLOON_2M_PAGE));
+-	spin_unlock_irqrestore(&b->b_dev_info.pages_lock, flags);
++	spin_unlock(&b->huge_pages_lock);
+ 	*n_pages = i;
+ }
+ 
+@@ -1828,6 +1831,7 @@ static int __init vmballoon_init(void)
+ 		balloon.b_dev_info.migratepage = vmballoon_migratepage;
+ 
+ 	INIT_LIST_HEAD(&balloon.huge_pages);
++	spin_lock_init(&balloon.huge_pages_lock);
+ 	spin_lock_init(&balloon.comm_lock);
+ 	init_rwsem(&balloon.conf_sem);
+ 	balloon.vmci_doorbell = VMCI_INVALID_HANDLE;
 _
 
 Patches currently in -mm which might be from david@kernel.org are
