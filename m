@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 339C638B9A9
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD14438A9C2
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:26:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898372; cv=none; b=Dk90A6Ot6ntq0xqPtt7TgSBKMELFM/caN0Z8GIhJAV8YfW/gt3NtAteQzZA/f87grUQXT99KuaqSYLUKVtx0AtKc2qm6VDezzd485alRW6gBfOsLyUk3cje7v5+5YaqL6pkD//tt5BjVLB6wyU3rAKLDukVKtMIwCWNOVAeymPw=
+	t=1769898376; cv=none; b=SXiBunlIvNld/9efbRRuroNM5JitrDv+1MmffhBT+c5EpdPPXwIggG5Y/N/xNYtQ16Iv0c+uZHV0qDqwae1KO40Vwgf6gCcxEq8fAfKsWPylcLAZCf4uRkmref0P3TyJwNU7pupVysg/Ut1/3q0iGp2wGt5EhWH0OJ/pCyiIj0Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898372; c=relaxed/simple;
-	bh=LYnVaxji0q5MIP8iYB/inJUF3lhsWJlMoA7RGM4zegg=;
-	h=Date:To:From:Subject:Message-Id; b=cAzgl3izRDf0MmHvqZi44qt/zTDFadY8siqqxTl9IGsYmz2rD/RC0UI1hMTw/1YxpzSUE6gu7dU77flUYdrmpWb07ubUGCCp1oBjfQm4QsUKl6fy+NAd+IC0IHQ1SkJnKIpqNMUmLAifrRvr8mbQE9+SCN6C+zbuRHMGUqf8gwg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SBpgCT6t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898376; c=relaxed/simple;
+	bh=K3xZDJHZkLbqL2xrA6bnO7s42jY7ovmILQsJD4VCqb0=;
+	h=Date:To:From:Subject:Message-Id; b=uMcafAkb3gBZGHDA0/DiEPkYYbP2SBPR4RO/CC4Qd2MXA8tuqhXoyV/mW31jBRztHNqomlxE2/55kAr5kzOeq0bY9PM9fZCOxahbm5HDkp+9ZiaWIr1DyhYw37GZaDjkLRISMU1nliI9CAFZ9+H9ioTZM7Jc3rLtyXBiY4yjxUM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=firhw1su; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SBpgCT6t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2007C4CEF1;
-	Sat, 31 Jan 2026 22:26:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="firhw1su"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A03EC4CEF1;
+	Sat, 31 Jan 2026 22:26:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898371;
-	bh=LYnVaxji0q5MIP8iYB/inJUF3lhsWJlMoA7RGM4zegg=;
+	s=korg; t=1769898376;
+	bh=K3xZDJHZkLbqL2xrA6bnO7s42jY7ovmILQsJD4VCqb0=;
 	h=Date:To:From:Subject:From;
-	b=SBpgCT6tpkK4Jpj6IQ9nlQilyPxljvpxB0IjtZMYHJX8mureu7dyq6OFCuCM+cyg0
-	 FROXNrQXFxTvW+hb9Cnod7baOs6X22MUAfXnoWP1d+qGs54nWIpokgkAr1kkUJXwBD
-	 4kVeb5J9xAgRhrBCH8BRRX2J+YU/ywZNK+jS8SSk=
-Date: Sat, 31 Jan 2026 14:26:11 -0800
+	b=firhw1sui6rtseVO295qbaHElUEE7URchEkU8Y+Z6maaoW4S8jxL9iJY0yzUo+NUq
+	 RnTNl2cYKTsUiep1GxgvW4ZhfEZxmT/MXq+xEWAmm7TOt+c1ukd970thGhhssow0+3
+	 DyVms60pleQ63ytffT6xIa/UNz4YRXh/UfidgmUU=
+Date: Sat, 31 Jan 2026 14:26:16 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,longman@redhat.com,liam.howlett@oracle.com,boqun.feng@gmail.com,bigeasy@linutronix.de,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-improve-and-document-__is_vma_write_locked.patch removed from -mm tree
-Message-Id: <20260131222611.C2007C4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-update-vma_assert_locked-to-use-lockdep.patch removed from -mm tree
+Message-Id: <20260131222616.8A03EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,163 +35,154 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: improve and document __is_vma_write_locked()
+     Subject: mm/vma: update vma_assert_locked() to use lockdep
 has been removed from the -mm tree.  Its filename was
-     mm-vma-improve-and-document-__is_vma_write_locked.patch
+     mm-vma-update-vma_assert_locked-to-use-lockdep.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/vma: improve and document __is_vma_write_locked()
-Date: Fri, 23 Jan 2026 20:12:18 +0000
+Subject: mm/vma: update vma_assert_locked() to use lockdep
+Date: Fri, 23 Jan 2026 20:12:19 +0000
 
-We don't actually need to return an output parameter providing mm sequence
-number, rather we can separate that out into another function -
-__vma_raw_mm_seqnum() - and have any callers which need to obtain that
-invoke that instead.
+We can use lockdep to avoid unnecessary work here, otherwise update the
+code to logically evaluate all pertinent cases and share code with
+vma_assert_write_locked().
 
-The access to the raw sequence number requires that we hold the exclusive
-mmap lock such that we know we can't race vma_end_write_all(), so move the
-assert to __vma_raw_mm_seqnum() to make this requirement clear.
+Make it clear here that we treat the VMA being detached at this point as a
+bug, this was only implicit before.
 
-Also while we're here, convert all of the VM_BUG_ON_VMA()'s to
-VM_WARN_ON_ONCE_VMA()'s in line with the convention that we do not invoke
-oopses when we can avoid it.
+Additionally, abstract references to vma->vmlock_dep_map by introducing a
+macro helper __vma_lockdep_map() which accesses this field if lockdep is
+enabled.
 
-[lorenzo.stoakes@oracle.com: minor tweaks, per Vlastimil]
-  Link: https://lkml.kernel.org/r/3fa89c13-232d-4eee-86cc-96caa75c2c67@lucifer.local
-Link: https://lkml.kernel.org/r/ef6c415c2d2c03f529dca124ccaed66bc2f60edc.1769198904.git.lorenzo.stoakes@oracle.com
+Since lock_is_held() is specified as an extern function if lockdep is
+disabled, we can simply have __vma_lockdep_map() defined as NULL in this
+case, and then use IS_ENABLED(CONFIG_LOCKDEP) to avoid ugly ifdeffery.
+
+[lorenzo.stoakes@oracle.com: add helper macro __vma_lockdep_map(), per Vlastimil]
+  Link: https://lkml.kernel.org/r/7c4b722e-604b-4b20-8e33-03d2f8d55407@lucifer.local
+Link: https://lkml.kernel.org/r/538762f079cc4fa76ff8bf30a8a9525a09961451.1769198904.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Waiman Long <longman@redhat.com>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |   45 +++++++++++++++++++-----------------
- mm/mmap_lock.c            |    6 ++--
- 2 files changed, 27 insertions(+), 24 deletions(-)
+ include/linux/mmap_lock.h |   56 ++++++++++++++++++++++++++++++------
+ 1 file changed, 48 insertions(+), 8 deletions(-)
 
---- a/include/linux/mmap_lock.h~mm-vma-improve-and-document-__is_vma_write_locked
+--- a/include/linux/mmap_lock.h~mm-vma-update-vma_assert_locked-to-use-lockdep
 +++ a/include/linux/mmap_lock.h
-@@ -258,21 +258,31 @@ static inline void vma_end_read(struct v
- 	vma_refcount_put(vma);
- }
+@@ -78,6 +78,12 @@ static inline void mmap_assert_write_loc
  
--/* WARNING! Can only be used if mmap_lock is expected to be write-locked */
--static inline bool __is_vma_write_locked(struct vm_area_struct *vma, unsigned int *mm_lock_seq)
-+static inline unsigned int __vma_raw_mm_seqnum(struct vm_area_struct *vma)
- {
-+	const struct mm_struct *mm = vma->vm_mm;
+ #ifdef CONFIG_PER_VMA_LOCK
+ 
++#ifdef CONFIG_LOCKDEP
++#define __vma_lockdep_map(vma) (&vma->vmlock_dep_map)
++#else
++#define __vma_lockdep_map(vma) NULL
++#endif
 +
-+	/* We must hold an exclusive write lock for this access to be valid. */
- 	mmap_assert_write_locked(vma->vm_mm);
-+	return mm->mm_lock_seq.sequence;
-+}
- 
-+/*
-+ * Determine whether a VMA is write-locked. Must be invoked ONLY if the mmap
-+ * write lock is held.
-+ *
-+ * Returns true if write-locked, otherwise false.
-+ */
-+static inline bool __is_vma_write_locked(struct vm_area_struct *vma)
-+{
- 	/*
- 	 * current task is holding mmap_write_lock, both vma->vm_lock_seq and
- 	 * mm->mm_lock_seq can't be concurrently modified.
- 	 */
--	*mm_lock_seq = vma->vm_mm->mm_lock_seq.sequence;
--	return (vma->vm_lock_seq == *mm_lock_seq);
-+	return vma->vm_lock_seq == __vma_raw_mm_seqnum(vma);
- }
- 
--int __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq,
--		int state);
-+int __vma_start_write(struct vm_area_struct *vma, int state);
- 
  /*
-  * Begin writing to a VMA.
-@@ -281,12 +291,10 @@ int __vma_start_write(struct vm_area_str
+  * VMA locks do not behave like most ordinary locks found in the kernel, so we
+  * cannot quite have full lockdep tracking in the way we would ideally prefer.
+@@ -98,16 +104,16 @@ static inline void mmap_assert_write_loc
+  * so we utilise lockdep to do so.
   */
- static inline void vma_start_write(struct vm_area_struct *vma)
- {
--	unsigned int mm_lock_seq;
--
--	if (__is_vma_write_locked(vma, &mm_lock_seq))
-+	if (__is_vma_write_locked(vma))
- 		return;
+ #define __vma_lockdep_acquire_read(vma) \
+-	lock_acquire_shared(&vma->vmlock_dep_map, 0, 1, NULL, _RET_IP_)
++	lock_acquire_shared(__vma_lockdep_map(vma), 0, 1, NULL, _RET_IP_)
+ #define __vma_lockdep_release_read(vma) \
+-	lock_release(&vma->vmlock_dep_map, _RET_IP_)
++	lock_release(__vma_lockdep_map(vma), _RET_IP_)
+ #define __vma_lockdep_acquire_exclusive(vma) \
+-	lock_acquire_exclusive(&vma->vmlock_dep_map, 0, 0, NULL, _RET_IP_)
++	lock_acquire_exclusive(__vma_lockdep_map(vma), 0, 0, NULL, _RET_IP_)
+ #define __vma_lockdep_release_exclusive(vma) \
+-	lock_release(&vma->vmlock_dep_map, _RET_IP_)
++	lock_release(__vma_lockdep_map(vma), _RET_IP_)
+ /* Only meaningful if CONFIG_LOCK_STAT is defined. */
+ #define __vma_lockdep_stat_mark_acquired(vma) \
+-	lock_acquired(&vma->vmlock_dep_map, _RET_IP_)
++	lock_acquired(__vma_lockdep_map(vma), _RET_IP_)
  
--	__vma_start_write(vma, mm_lock_seq, TASK_UNINTERRUPTIBLE);
-+	__vma_start_write(vma, TASK_UNINTERRUPTIBLE);
+ static inline void mm_lock_seqcount_init(struct mm_struct *mm)
+ {
+@@ -146,7 +152,7 @@ static inline void vma_lock_init(struct
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ 	static struct lock_class_key lockdep_key;
+ 
+-	lockdep_init_map(&vma->vmlock_dep_map, "vm_lock", &lockdep_key, 0);
++	lockdep_init_map(__vma_lockdep_map(vma), "vm_lock", &lockdep_key, 0);
+ #endif
+ 	if (reset_refcnt)
+ 		refcount_set(&vma->vm_refcnt, 0);
+@@ -319,19 +325,53 @@ int vma_start_write_killable(struct vm_a
+ 	return __vma_start_write(vma, TASK_KILLABLE);
  }
  
- /**
-@@ -305,30 +313,25 @@ static inline void vma_start_write(struc
- static inline __must_check
- int vma_start_write_killable(struct vm_area_struct *vma)
- {
--	unsigned int mm_lock_seq;
--
--	if (__is_vma_write_locked(vma, &mm_lock_seq))
-+	if (__is_vma_write_locked(vma))
- 		return 0;
--	return __vma_start_write(vma, mm_lock_seq, TASK_KILLABLE);
-+
-+	return __vma_start_write(vma, TASK_KILLABLE);
- }
- 
++/**
++ * vma_assert_write_locked() - assert that @vma holds a VMA write lock.
++ * @vma: The VMA to assert.
++ */
  static inline void vma_assert_write_locked(struct vm_area_struct *vma)
  {
--	unsigned int mm_lock_seq;
--
--	VM_BUG_ON_VMA(!__is_vma_write_locked(vma, &mm_lock_seq), vma);
-+	VM_WARN_ON_ONCE_VMA(!__is_vma_write_locked(vma), vma);
+ 	VM_WARN_ON_ONCE_VMA(!__is_vma_write_locked(vma), vma);
  }
  
++/**
++ * vma_assert_locked() - assert that @vma holds either a VMA read or a VMA write
++ * lock and is not detached.
++ * @vma: The VMA to assert.
++ */
  static inline void vma_assert_locked(struct vm_area_struct *vma)
  {
--	unsigned int mm_lock_seq;
--
++	unsigned int refcnt;
++
++	if (IS_ENABLED(CONFIG_LOCKDEP)) {
++		if (!lock_is_held(__vma_lockdep_map(vma)))
++			vma_assert_write_locked(vma);
++		return;
++	}
++
  	/*
  	 * See the comment describing the vm_area_struct->vm_refcnt field for
  	 * details of possible refcnt values.
  	 */
--	VM_BUG_ON_VMA(refcount_read(&vma->vm_refcnt) <= 1 &&
--		      !__is_vma_write_locked(vma, &mm_lock_seq), vma);
-+	VM_WARN_ON_ONCE_VMA(refcount_read(&vma->vm_refcnt) <= 1 &&
-+			    !__is_vma_write_locked(vma), vma);
+-	VM_WARN_ON_ONCE_VMA(refcount_read(&vma->vm_refcnt) <= 1 &&
+-			    !__is_vma_write_locked(vma), vma);
++	refcnt = refcount_read(&vma->vm_refcnt);
++
++	/*
++	 * In this case we're either read-locked, write-locked with temporary
++	 * readers, or in the midst of excluding readers, all of which means
++	 * we're locked.
++	 */
++	if (refcnt > 1)
++		return;
++
++	/* It is a bug for the VMA to be detached here. */
++	VM_WARN_ON_ONCE_VMA(!refcnt, vma);
++
++	/*
++	 * OK, the VMA has a reference count of 1 which means it is either
++	 * unlocked and attached or write-locked, so assert that it is
++	 * write-locked.
++	 */
++	vma_assert_write_locked(vma);
  }
  
  static inline bool vma_is_attached(struct vm_area_struct *vma)
---- a/mm/mmap_lock.c~mm-vma-improve-and-document-__is_vma_write_locked
-+++ a/mm/mmap_lock.c
-@@ -136,14 +136,14 @@ static int __vma_start_exclude_readers(s
- 	return 0;
- }
- 
--int __vma_start_write(struct vm_area_struct *vma, unsigned int mm_lock_seq,
--		int state)
-+int __vma_start_write(struct vm_area_struct *vma, int state)
- {
--	int err;
-+	const unsigned int mm_lock_seq = __vma_raw_mm_seqnum(vma);
- 	struct vma_exclude_readers_state ves = {
- 		.vma = vma,
- 		.state = state,
- 	};
-+	int err;
- 
- 	err = __vma_start_exclude_readers(&ves);
- 	if (err) {
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
