@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2620F20CCDC
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9087B20CCDC
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 22:24:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769898253; cv=none; b=VParOqNu/LgLHkSccBZkiLRp/inrB4G8kOlndo8IWc2o78suwdV3RtQMvML0f2VHJ5xKMzSMWVo66tRBUEyZNv9w2592YC/hhFPPxWGYyyyCenAwdobkn7PwCf+rLpay8xeCgKspKTvGFL18lfwsIbxxYm369CTInuiSZwO4ZlA=
+	t=1769898254; cv=none; b=ifjSVpQrsA7MSnw4yyLZ67c2QMLt95Bw8gHtNKgjFOR/4V0/4BlaAVhZbdYkSbrLWg20RKNu1j68E+psBCtaovDlWtMyZzycK2UGlmNzWpOe6y33MMlGoYDyo1s8wUopwIefS4q7rYJxDHTjBgMbXnfs2VHVdOh4+6+TR6SHT6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769898253; c=relaxed/simple;
-	bh=+jeM4fHWnKTaOt6/OojqLhkoEpJAPcP8/ZE30VIIpVQ=;
-	h=Date:To:From:Subject:Message-Id; b=NSRxHW1c5s5QMTyD1ErQ/+HASloY+qeptMz5RvCiJwfRCi9LwKIHvjASF9XiWBJkfO4aV2tiKHAnsETDjHLRAq9WojpPt7Gw/LKid64nSsqXJh3JiQ0gAkE54hKwIiFyBtJFU3/UZeYGtpwP0EsNdyatbNKx/GHHo9+/jPtLt7s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UmyeBEzh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769898254; c=relaxed/simple;
+	bh=gFB9+JAfhKFITZhLD+qfe14ZKMLNQp0o2Rw2xv5UUOY=;
+	h=Date:To:From:Subject:Message-Id; b=QZMFZhLGKn8EwXrG2TdL+yRO/CZjrWkbkxdbM8+AQnKXoW8uswRjMWXYRHLDthZLxHu3YgF5hQw79OmA03jBhDhgvcMFhz1FMRP6tuyxN+RbeGaTSYR1MdmXcRoXFhrFRjh/XMSTs/hNHhhPRpGbxn7ar+sZjY76y9yx128HPiU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sBakISA0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UmyeBEzh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AA5CC4CEF1;
-	Sat, 31 Jan 2026 22:24:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sBakISA0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B03CC4CEF1;
+	Sat, 31 Jan 2026 22:24:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769898252;
-	bh=+jeM4fHWnKTaOt6/OojqLhkoEpJAPcP8/ZE30VIIpVQ=;
+	s=korg; t=1769898254;
+	bh=gFB9+JAfhKFITZhLD+qfe14ZKMLNQp0o2Rw2xv5UUOY=;
 	h=Date:To:From:Subject:From;
-	b=UmyeBEzhhVDd7kIpad8qujyS+Dgkl2WuYtgD2s+HXq4Efmd2MC7wAzI3Bp/ouvrro
-	 y0gJTT5Ucs6HVGNj5X9VnYc8g1Ekod7UnvwDU96SqhNLUi5jzvFNOxhLR6voISbxkW
-	 lAmSOXrVTb4w0Q7NDZlsZ0AcqWY/U2Yyd3TIBfaU=
-Date: Sat, 31 Jan 2026 14:24:12 -0800
+	b=sBakISA0DK60MJI5jhJH9FldL2JWlVwR5w6D5pPvQNaSArvH3OcZqxDr0tNbgmkrv
+	 w1yW6w6tiVOSZV0TpuIcpKz1GY60PvZTjdjqg3dXxjKtj3vL+86sxwCyyMfw1vAufc
+	 xlpg5CAp084pm1OfEK6p05lEM+xK+8DpJORRgAGU=
+Date: Sat, 31 Jan 2026 14:24:13 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mst@redhat.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jerrin.shaji-george@broadcom.com,jasowang@redhat.com,gregkh@linuxfoundation.org,eperezma@redhat.com,corbet@lwn.net,christophe.leroy@csgroup.eu,arnd@arndb.de,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-balloon_compaction-use-a-device-independent-balloon-list-lock.patch removed from -mm tree
-Message-Id: <20260131222412.9AA5CC4CEF1@smtp.kernel.org>
+Subject: [merged mm-stable] mm-balloon_compaction-remove-dependency-on-page-lock.patch removed from -mm tree
+Message-Id: <20260131222414.4B03CC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/balloon_compaction: use a device-independent balloon (list) lock
+     Subject: mm/balloon_compaction: remove dependency on page lock
 has been removed from the -mm tree.  Its filename was
-     mm-balloon_compaction-use-a-device-independent-balloon-list-lock.patch
+     mm-balloon_compaction-remove-dependency-on-page-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Subject: mm/balloon_compaction: use a device-independent balloon (list) lock
-Date: Tue, 20 Jan 2026 00:01:16 +0100
+Subject: mm/balloon_compaction: remove dependency on page lock
+Date: Tue, 20 Jan 2026 00:01:17 +0100
 
-In order to remove the dependency on the page lock for balloon pages, we
-need a lock that is independent of the page.
+Let's stop using the page lock in balloon code and instead use only the
+balloon_device_lock.
 
-It's crucial that we can handle the scenario where balloon deflation
-(clearing page->private) can race with page isolation (using page->private
-to obtain the balloon_dev_info where the lock currently resides).
+As soon as we set the PG_movable_ops flag, we might now get isolation
+callbacks for that page as we are no longer holding the page lock.  In
+there, we'll simply synchronize using the balloon_device_lock.
 
-The current lock in balloon_dev_info is therefore not suitable.
+So in balloon_page_isolate() lookup the balloon_dev_info through
+page->private under balloon_device_lock.
 
-Fortunately, we never really have more than a single balloon device per
-VM, so we can just keep it simple and use a static lock to protect all
-balloon devices.
+It's crucial that we update page->private under the balloon_device_lock,
+so the isolation callback can properly deal with concurrent deflation.
 
-Based on this change we will remove the dependency on the page lock next.
+Consequently, make sure that balloon_page_finalize() is called under
+balloon_device_lock as we remove a page from the list and clear
+page->private.  balloon_page_insert() is already called with the
+balloon_device_lock held.
 
-Link: https://lkml.kernel.org/r/20260119230133.3551867-9-david@kernel.org
+Note that the core will still lock the pages, for example in
+isolate_movable_ops_page().  The lock is there still relevant for handling
+the PageMovableOpsIsolated flag, but that can be later changed to use an
+atomic test-and-set instead, or moved into the movable_ops backends.
+
+Link: https://lkml.kernel.org/r/20260119230133.3551867-10-david@kernel.org
 Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -88,160 +96,156 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/balloon_compaction.h |    6 +---
- mm/balloon_compaction.c            |   34 +++++++++++++++------------
- 2 files changed, 22 insertions(+), 18 deletions(-)
+ include/linux/balloon_compaction.h |   25 +++++++++--------
+ mm/balloon_compaction.c            |   38 ++++++++-------------------
+ 2 files changed, 25 insertions(+), 38 deletions(-)
 
---- a/include/linux/balloon_compaction.h~mm-balloon_compaction-use-a-device-independent-balloon-list-lock
+--- a/include/linux/balloon_compaction.h~mm-balloon_compaction-remove-dependency-on-page-lock
 +++ a/include/linux/balloon_compaction.h
-@@ -21,10 +21,10 @@
-  *   i. Setting the PG_movable_ops flag and page->private with the following
-  *	lock order
-  *	    +-page_lock(page);
-- *	      +--spin_lock_irq(&b_dev_info->pages_lock);
-+ *	      +--spin_lock_irq(&balloon_pages_lock);
+@@ -12,25 +12,27 @@
+  * is derived from the page type (PageOffline()) combined with the
+  * PG_movable_ops flag (PageMovableOps()).
+  *
++ * Once the page type and the PG_movable_ops are set, migration code
++ * can initiate page isolation by invoking the
++ * movable_operations()->isolate_page() callback
++ *
++ * As long as page->private is set, the page is either on the balloon list
++ * or isolated for migration. If page->private is not set, the page is
++ * either still getting inflated, or was deflated to be freed by the balloon
++ * driver soon. Isolation is impossible in both cases.
++ *
+  * As the page isolation scanning step a compaction thread does is a lockless
+  * procedure (from a page standpoint), it might bring some racy situations while
+  * performing balloon page compaction. In order to sort out these racy scenarios
+  * and safely perform balloon's page compaction and migration we must, always,
+  * ensure following these simple rules:
+  *
+- *   i. Setting the PG_movable_ops flag and page->private with the following
+- *	lock order
+- *	    +-page_lock(page);
+- *	      +--spin_lock_irq(&balloon_pages_lock);
++ *   i. Inflation/deflation must set/clear page->private under the
++ *      balloon_pages_lock
   *
   *  ii. isolation or dequeueing procedure must remove the page from balloon
-- *      device page list under b_dev_info->pages_lock.
-+ *      device page list under balloon_pages_lock
+  *      device page list under balloon_pages_lock
   *
-  * The functions provided by this interface are placed to help on coping with
-  * the aforementioned balloon page corner case, as well as to ensure the simple
-@@ -52,7 +52,6 @@
+- * The functions provided by this interface are placed to help on coping with
+- * the aforementioned balloon page corner case, as well as to ensure the simple
+- * set of exposed rules are satisfied while we are dealing with balloon pages
+- * compaction / migration.
+- *
+  * Copyright (C) 2012, Red Hat, Inc.  Rafael Aquini <aquini@redhat.com>
   */
- struct balloon_dev_info {
- 	unsigned long isolated_pages;	/* # of isolated pages for migration */
--	spinlock_t pages_lock;		/* Protection to pages list */
- 	struct list_head pages;		/* Pages enqueued & handled to Host */
- 	int (*migratepage)(struct balloon_dev_info *, struct page *newpage,
- 			struct page *page, enum migrate_mode mode);
-@@ -71,7 +70,6 @@ extern size_t balloon_page_list_dequeue(
- static inline void balloon_devinfo_init(struct balloon_dev_info *balloon)
+ #ifndef _LINUX_BALLOON_COMPACTION_H
+@@ -93,8 +95,7 @@ static inline struct balloon_dev_info *b
+  * @balloon : pointer to balloon device
+  * @page    : page to be assigned as a 'balloon page'
+  *
+- * Caller must ensure the page is locked and the spin_lock protecting balloon
+- * pages list is held before inserting a page into the balloon device.
++ * Caller must ensure the balloon_pages_lock is held.
+  */
+ static inline void balloon_page_insert(struct balloon_dev_info *balloon,
+ 				       struct page *page)
+@@ -119,7 +120,7 @@ static inline gfp_t balloon_mapping_gfp_
+  *			   balloon list for release to the page allocator
+  * @page: page to be released to the page allocator
+  *
+- * Caller must ensure that the page is locked.
++ * Caller must ensure the balloon_pages_lock is held.
+  */
+ static inline void balloon_page_finalize(struct page *page)
  {
- 	balloon->isolated_pages = 0;
--	spin_lock_init(&balloon->pages_lock);
- 	INIT_LIST_HEAD(&balloon->pages);
- 	balloon->migratepage = NULL;
- 	balloon->adjust_managed_page_count = false;
---- a/mm/balloon_compaction.c~mm-balloon_compaction-use-a-device-independent-balloon-list-lock
+--- a/mm/balloon_compaction.c~mm-balloon_compaction-remove-dependency-on-page-lock
 +++ a/mm/balloon_compaction.c
-@@ -11,6 +11,12 @@
- #include <linux/export.h>
- #include <linux/balloon_compaction.h>
- 
-+/*
-+ * Lock protecting the balloon_dev_info of all devices. We don't really
-+ * expect more than one device.
-+ */
-+static DEFINE_SPINLOCK(balloon_pages_lock);
-+
+@@ -20,15 +20,7 @@ static DEFINE_SPINLOCK(balloon_pages_loc
  static void balloon_page_enqueue_one(struct balloon_dev_info *b_dev_info,
  				     struct page *page)
  {
-@@ -47,13 +53,13 @@ size_t balloon_page_list_enqueue(struct
- 	unsigned long flags;
- 	size_t n_pages = 0;
- 
--	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-+	spin_lock_irqsave(&balloon_pages_lock, flags);
- 	list_for_each_entry_safe(page, tmp, pages, lru) {
- 		list_del(&page->lru);
- 		balloon_page_enqueue_one(b_dev_info, page);
- 		n_pages++;
- 	}
--	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
-+	spin_unlock_irqrestore(&balloon_pages_lock, flags);
- 	return n_pages;
- }
- EXPORT_SYMBOL_GPL(balloon_page_list_enqueue);
-@@ -83,7 +89,7 @@ size_t balloon_page_list_dequeue(struct
- 	unsigned long flags;
- 	size_t n_pages = 0;
- 
--	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-+	spin_lock_irqsave(&balloon_pages_lock, flags);
+-	/*
+-	 * Block others from accessing the 'page' when we get around to
+-	 * establishing additional references. We should be the only one
+-	 * holding a reference to the 'page' at this point. If we are not, then
+-	 * memory corruption is possible and we should stop execution.
+-	 */
+-	BUG_ON(!trylock_page(page));
+ 	balloon_page_insert(b_dev_info, page);
+-	unlock_page(page);
+ 	if (b_dev_info->adjust_managed_page_count)
+ 		adjust_managed_page_count(page, -1);
+ 	__count_vm_event(BALLOON_INFLATE);
+@@ -93,22 +85,12 @@ size_t balloon_page_list_dequeue(struct
  	list_for_each_entry_safe(page, tmp, &b_dev_info->pages, lru) {
  		if (n_pages == n_req_pages)
  			break;
-@@ -106,7 +112,7 @@ size_t balloon_page_list_dequeue(struct
+-
+-		/*
+-		 * Block others from accessing the 'page' while we get around to
+-		 * establishing additional references and preparing the 'page'
+-		 * to be released by the balloon driver.
+-		 */
+-		if (!trylock_page(page))
+-			continue;
+-
+ 		list_del(&page->lru);
+ 		if (b_dev_info->adjust_managed_page_count)
+ 			adjust_managed_page_count(page, 1);
+ 		balloon_page_finalize(page);
+ 		__count_vm_event(BALLOON_DEFLATE);
+ 		list_add(&page->lru, pages);
+-		unlock_page(page);
  		dec_node_page_state(page, NR_BALLOON_PAGES);
  		n_pages++;
  	}
--	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
-+	spin_unlock_irqrestore(&balloon_pages_lock, flags);
+@@ -213,13 +195,19 @@ EXPORT_SYMBOL_GPL(balloon_page_dequeue);
+ static bool balloon_page_isolate(struct page *page, isolate_mode_t mode)
  
- 	return n_pages;
- }
-@@ -149,9 +155,9 @@ void balloon_page_enqueue(struct balloon
  {
+-	struct balloon_dev_info *b_dev_info = balloon_page_device(page);
++	struct balloon_dev_info *b_dev_info;
  	unsigned long flags;
  
--	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-+	spin_lock_irqsave(&balloon_pages_lock, flags);
- 	balloon_page_enqueue_one(b_dev_info, page);
--	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
-+	spin_unlock_irqrestore(&balloon_pages_lock, flags);
- }
- EXPORT_SYMBOL_GPL(balloon_page_enqueue);
- 
-@@ -191,11 +197,11 @@ struct page *balloon_page_dequeue(struct
- 		 * BUG() here, otherwise the balloon driver may get stuck in
- 		 * an infinite loop while attempting to release all its pages.
- 		 */
--		spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-+		spin_lock_irqsave(&balloon_pages_lock, flags);
- 		if (unlikely(list_empty(&b_dev_info->pages) &&
- 			     !b_dev_info->isolated_pages))
- 			BUG();
--		spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
+-	if (!b_dev_info)
+-		return false;
+-
+ 	spin_lock_irqsave(&balloon_pages_lock, flags);
++	b_dev_info = balloon_page_device(page);
++	if (!b_dev_info) {
++		/*
++		 * The page already got deflated and removed from the
++		 * balloon list.
++		 */
 +		spin_unlock_irqrestore(&balloon_pages_lock, flags);
- 		return NULL;
- 	}
- 	return list_first_entry(&pages, struct page, lru);
-@@ -213,10 +219,10 @@ static bool balloon_page_isolate(struct
- 	if (!b_dev_info)
- 		return false;
- 
--	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-+	spin_lock_irqsave(&balloon_pages_lock, flags);
++		return false;
++	}
  	list_del(&page->lru);
  	b_dev_info->isolated_pages++;
--	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
-+	spin_unlock_irqrestore(&balloon_pages_lock, flags);
+ 	spin_unlock_irqrestore(&balloon_pages_lock, flags);
+@@ -253,9 +241,6 @@ static int balloon_page_migrate(struct p
+ 	unsigned long flags;
+ 	int rc;
  
- 	return true;
- }
-@@ -234,10 +240,10 @@ static void balloon_page_putback(struct
- 	if (WARN_ON_ONCE(!b_dev_info))
- 		return;
- 
--	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-+	spin_lock_irqsave(&balloon_pages_lock, flags);
- 	list_add(&page->lru, &b_dev_info->pages);
- 	b_dev_info->isolated_pages--;
--	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
-+	spin_unlock_irqrestore(&balloon_pages_lock, flags);
- }
- 
- static int balloon_page_migrate(struct page *newpage, struct page *page,
-@@ -262,7 +268,7 @@ static int balloon_page_migrate(struct p
- 	if (rc < 0 && rc != -ENOENT)
- 		return rc;
- 
--	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
-+	spin_lock_irqsave(&balloon_pages_lock, flags);
- 	if (!rc) {
- 		/* Insert the new page into the balloon list. */
- 		get_page(newpage);
-@@ -287,7 +293,7 @@ static int balloon_page_migrate(struct p
+-	VM_BUG_ON_PAGE(!PageLocked(page), page);
+-	VM_BUG_ON_PAGE(!PageLocked(newpage), newpage);
+-
+ 	/*
+ 	 * When we isolated the page, the page was still inflated in a balloon
+ 	 * device. As isolated balloon pages cannot get deflated, we still have
+@@ -293,10 +278,11 @@ static int balloon_page_migrate(struct p
  	}
  
  	b_dev_info->isolated_pages--;
--	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
-+	spin_unlock_irqrestore(&balloon_pages_lock, flags);
+-	spin_unlock_irqrestore(&balloon_pages_lock, flags);
  
  	/* Free the now-deflated page we isolated in balloon_page_isolate(). */
  	balloon_page_finalize(page);
++	spin_unlock_irqrestore(&balloon_pages_lock, flags);
++
+ 	put_page(page);
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from david@kernel.org are
