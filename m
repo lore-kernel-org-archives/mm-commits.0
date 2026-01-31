@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85625337BAC
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 21:15:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3465367F5C
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 21:52:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769894140; cv=none; b=ejsbtuXY/7rfRxuIyNXA4FbkIIMgpbvIYUkMRHxoBjjZ7LRJ4y9Z8GUrdmHS8yVThmBzGfDcKyWt7vy2EM7LEIuWmNqZrXVKqiatcL5EWnyozVbnn3Lk32IvwH90ukJY39G5FHFr+KFHADTyi2Eiqja+dRP4Lz0R8DssZBNdq8A=
+	t=1769896338; cv=none; b=IG6CWgH5P6J31GQIrHrgaSak9joFWraRHrlInO1QFOoqCi1Ugi8Q5cYbmUaE6s5nvAgj55qcMdTxeuIoAY/XRU2GySHPnnFIZ7HUAUlBi8UkCvS0YpqCLpfpxZSOFah6PubYlLLOaUcG7j/wpQRTAjNuEHFviP6IVnyyvvQl4fg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769894140; c=relaxed/simple;
-	bh=xSPIV9VQoWWm5hnIAlnRVPlhHCavHXNgZCSmhywRVe8=;
-	h=Date:To:From:Subject:Message-Id; b=ZLJ9vHRZIr4KJ+gdDQ9YnQ+/RFyn85lbotW7wkuyYhu7oUH6kdqH0IfOpVPY6Y57zCdSWiDlRiT5wTbNu0VvkxWzHyPFIfjwSlFKUtCF0fWwliwzzLYnn1Dh76/3SbWTsPF6nfVYpuHcV/Y8qPZsgWCY6mhw79cFQc1bGf4oaYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z8xe3JL5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769896338; c=relaxed/simple;
+	bh=FSCNG0pQDRy0GP4VbU9mfQt1x1fpaCtE583ryjA0Fb0=;
+	h=Date:To:From:Subject:Message-Id; b=CUizabAqYsyu4wnu8IEoDAYIESXdQ+FVExYj3kb3k+1ISHHjRDtbzrlsxoaIyxYZqsD9bXA9rIeHyFDNykXIPrMlJGY1IVzKSsFjRTI1uK8W3XNbBZdJuO0A+9OpNd838NULmrkWwqk8SIIg9UbpP8z0l7Gy4HHPgVP7QRcin1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PBEY0ngO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z8xe3JL5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2131BC4CEF1;
-	Sat, 31 Jan 2026 21:15:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PBEY0ngO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31853C4CEF1;
+	Sat, 31 Jan 2026 21:52:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769894140;
-	bh=xSPIV9VQoWWm5hnIAlnRVPlhHCavHXNgZCSmhywRVe8=;
+	s=korg; t=1769896337;
+	bh=FSCNG0pQDRy0GP4VbU9mfQt1x1fpaCtE583ryjA0Fb0=;
 	h=Date:To:From:Subject:From;
-	b=z8xe3JL5BJbDl4i5Bw6Irxum3wM34hhTCprmrj0lGtDUQhSti1Bqge82JQlCKc7UP
-	 SFOm960U4D6h5CW+3Ax0XHzmkhfhmJbHQXvaCnnBqvVprQkxC551tJw0lkihmHX2Cd
-	 8dZ1772nPXknyxcl9zMN0OG2ulYLcVODouxqKt9M=
-Date: Sat, 31 Jan 2026 13:15:39 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,usamaarif642@gmail.com,songliubraving@fb.com,ryan.roberts@arm.com,riel@surriel.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,kas@kernel.org,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=PBEY0ngO8xbPvwBrNjDluDvOz9DuF7Djw7jYPdx2wTEYc6N80OmyDOSjo/ESR6OGZ
+	 ld2Cuv7u8nEPECz70hqFU9lKCU0bTKnb4FwAJSimoLKSw5gRQgd5utUSCv8m4m7SJs
+	 IQzi2xrGVsfPfnpjxmlqPZgFAXGd1mAp1zGOlWGU=
+Date: Sat, 31 Jan 2026 13:52:16 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-fix-nr_file_pages-and-nr_shmem-in-collapse_file.patch added to mm-unstable branch
-Message-Id: <20260131211540.2131BC4CEF1@smtp.kernel.org>
+Subject: [folded-merged] mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc-fix.patch removed from -mm tree
+Message-Id: <20260131215217.31853C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,124 +34,83 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: khugepaged: fix NR_FILE_PAGES and NR_SHMEM in collapse_file()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-fix-nr_file_pages-and-nr_shmem-in-collapse_file.patch
+The quilt patch titled
+     Subject: fixup: mm/balloon_compaction: move internal helpers to balloon_compaction.c
+has been removed from the -mm tree.  Its filename was
+     mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-nr_file_pages-and-nr_shmem-in-collapse_file.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was folded into mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc.patch
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: mm: khugepaged: fix NR_FILE_PAGES and NR_SHMEM in collapse_file()
-Date: Thu, 29 Jan 2026 20:29:25 -0800
+From: "David Hildenbrand (Red Hat)" <david@kernel.org>
+Subject: fixup: mm/balloon_compaction: move internal helpers to balloon_compaction.c
+Date: Tue, 20 Jan 2026 07:37:39 +0100
 
-In META's fleet, we observed high-level cgroups showing zero file memcg
-stats while their descendants had non-zero values.  Investigation using
-drgn revealed that these parent cgroups actually had negative file stats,
-aggregated from their children.
+Move balloon_page_device() under CONFIG_BALLOON_COMPACTION.
 
-This issue became more frequent after deploying thp-always more widely,
-pointing to a correlation with THP file collapsing.  The root cause is
-that collapse_file() assumes old folios and the new THP belong to the same
-node and memcg.  When this assumption breaks, stats become skewed.  The
-bug affects not just memcg stats but also per-numa stats, and not just
-NR_FILE_PAGES but also NR_SHMEM.
-
-The assumption breaks in scenarios such as:
-
-1. Small folios allocated on one node while the THP gets allocated on a
-   different node.
-
-2. A package downloader running in one cgroup populates the page cache,
-   while a job in a different cgroup executes the downloaded binary.
-
-3. A file shared between processes in different cgroups, where one
-   process faults in the pages and khugepaged (or madvise(COLLAPSE))
-   collapses them on behalf of the other.
-
-Fix the accounting by explicitly incrementing stats for the new THP and
-decrementing stats for the old folios being replaced.
-
-Link: https://lkml.kernel.org/r/20260130042925.2797946-1-shakeel.butt@linux.dev
-Fixes: f3f0e1d2150b ("khugepaged: add support of collapse for tmpfs/shmem pages")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Kiryl Shutsemau <kas@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/27f0adf1-54c1-4d99-8b7f-fd45574e7f41@kernel.org
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202601201338.4muFmFHV-lkp@intel.com/
+Signed-off-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ mm/balloon_compaction.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-fix-nr_file_pages-and-nr_shmem-in-collapse_file
-+++ a/mm/khugepaged.c
-@@ -2195,16 +2195,13 @@ immap_locked:
- 		xas_lock_irq(&xas);
- 	}
+--- a/mm/balloon_compaction.c~mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc-fix
++++ a/mm/balloon_compaction.c
+@@ -17,11 +17,6 @@
+  */
+ static DEFINE_SPINLOCK(balloon_pages_lock);
  
--	if (is_shmem)
-+	if (is_shmem) {
-+		lruvec_stat_mod_folio(new_folio, NR_SHMEM, HPAGE_PMD_NR);
- 		lruvec_stat_mod_folio(new_folio, NR_SHMEM_THPS, HPAGE_PMD_NR);
--	else
-+	} else {
- 		lruvec_stat_mod_folio(new_folio, NR_FILE_THPS, HPAGE_PMD_NR);
+-static struct balloon_dev_info *balloon_page_device(struct page *page)
+-{
+-	return (struct balloon_dev_info *)page_private(page);
+-}
 -
--	if (nr_none) {
--		lruvec_stat_mod_folio(new_folio, NR_FILE_PAGES, nr_none);
--		/* nr_none is always 0 for non-shmem. */
--		lruvec_stat_mod_folio(new_folio, NR_SHMEM, nr_none);
- 	}
-+	lruvec_stat_mod_folio(new_folio, NR_FILE_PAGES, HPAGE_PMD_NR);
+ /*
+  * balloon_page_insert - insert a page into the balloon's page list and make
+  *			 the page->private assignment accordingly.
+@@ -232,6 +227,10 @@ struct page *balloon_page_dequeue(struct
+ EXPORT_SYMBOL_GPL(balloon_page_dequeue);
  
- 	/*
- 	 * Mark new_folio as uptodate before inserting it into the
-@@ -2238,6 +2235,11 @@ immap_locked:
- 	 */
- 	list_for_each_entry_safe(folio, tmp, &pagelist, lru) {
- 		list_del(&folio->lru);
-+		lruvec_stat_mod_folio(folio, NR_FILE_PAGES,
-+				      -folio_nr_pages(folio));
-+		if (is_shmem)
-+			lruvec_stat_mod_folio(folio, NR_SHMEM,
-+					      -folio_nr_pages(folio));
- 		folio->mapping = NULL;
- 		folio_clear_active(folio);
- 		folio_clear_unevictable(folio);
+ #ifdef CONFIG_BALLOON_COMPACTION
++static struct balloon_dev_info *balloon_page_device(struct page *page)
++{
++	return (struct balloon_dev_info *)page_private(page);
++}
+ 
+ static bool balloon_page_isolate(struct page *page, isolate_mode_t mode)
+ 
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-khugepaged-fix-nr_file_pages-and-nr_shmem-in-collapse_file.patch
+vmw_balloon-adjust-balloon_deflate-when-deflating-while-migrating.patch
+vmw_balloon-remove-vmballoon_compaction_init.patch
+powerpc-pseries-cmm-remove-cmm_balloon_compaction_init.patch
+mm-balloon_compaction-improve-comments-for-warn_on_onceb_dev_info.patch
+mm-balloon_compaction-centralize-basic-page-migration-handling.patch
+mm-balloon_compaction-centralize-adjust_managed_page_count-handling.patch
+vmw_balloon-stop-using-the-balloon_dev_info-lock.patch
+mm-balloon_compaction-use-a-device-independent-balloon-list-lock.patch
+mm-balloon_compaction-remove-dependency-on-page-lock.patch
+mm-balloon_compaction-make-balloon_mops-static.patch
+mm-balloon_compaction-drop-fsh-include-from-balloon_compactionh.patch
+drivers-virtio-virtio_balloon-stop-using-balloon_page_push-pop.patch
+mm-balloon_compaction-remove-balloon_page_push-pop.patch
+mm-balloon_compaction-fold-balloon_mapping_gfp_mask-into-balloon_page_alloc.patch
+mm-balloon_compaction-move-internal-helpers-to-balloon_compactionc.patch
+mm-balloon_compaction-assert-that-the-balloon_pages_lock-is-held.patch
+mm-balloon_compaction-mark-remaining-functions-for-having-proper-kerneldoc.patch
+mm-balloon_compaction-remove-extern-from-functions.patch
+mm-vmscan-drop-inclusion-of-balloon_compactionh.patch
+mm-rename-balloon_compactionch-to-balloonch.patch
+mm-kconfig-make-balloon_compaction-depend-on-migration.patch
+mm-rename-config_balloon_compaction-to-config_balloon_migration.patch
+mm-rename-config_memory_balloon-config_balloon.patch
+maintainers-move-memory-balloon-infrastructure-to-memory-management-balloon.patch
+mm-move-pte-table-reclaim-code-to-memoryc.patch
+mm-memory-handle-non-split-locks-correctly-in-zap_empty_pte_table.patch
 
