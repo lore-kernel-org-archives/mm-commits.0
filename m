@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBF303254BD
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 20:30:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 680853612D8
+	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 20:32:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769891419; cv=none; b=Pkv9x2qHO1ZhqGBxsbaDFbxb6ZLDGlGkPjlX8k24KeWx3yQoI/m8iiPiaTEPGNCFhCXrsDxL9XcBCcBQ0iWA8/qzyd48Y11dxPJ+zEU4/Eb9PAUWgG2cIi929kJ1p11o9jHCI+ut4hsNUyUuo5V2eDG/bbh/hKZw8sdxwmH/6h0=
+	t=1769891547; cv=none; b=mkjQb7c5wXN4TlVPoi/wiLfyFWdZ4bFGGin62G8kFjN937JjH0jss32GTL5S4XS0KU3Hs+AJfiOcVu2oAqzZZqomp7kllNb7OW6BgrAtjWTw1KnJtWjaUWomDRnQJu8NlVFcWk13JNECHglAaRhQJeFqbw/QwDJx5XwZ3itjb0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769891419; c=relaxed/simple;
-	bh=pOrZJv2tYmTkSjn7ShtiUuYL+GdRoOWODacRB2Pnl6o=;
-	h=Date:To:From:Subject:Message-Id; b=JjH5q2DLxGbTLpyZUWGZZ7poCHUvfWP/B4//9BgizfVsmFX+3tlbTg7vWlJ9OiOmfwRuE59ASbubq7buRSkREVtb8pcpQQnUZ2eh+3PQ9f5x/h0w271Ia3+YO1r1l9ll2CTQxgGfzuW0HkFbR4hVx2+LXqRWaHvv1dIEkz86ocI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h+e8EId/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769891547; c=relaxed/simple;
+	bh=tJeCc03h9duFVbvhUpXlHNZGnOLH2vqMt9ra7kHD2WI=;
+	h=Date:To:From:Subject:Message-Id; b=fxSdtisXB2O8gxBWr9cHkZlqYBBCikJpmommivfV8dvzaCNnNA5mmjsOBLr165HUAphDkcQ3nnPVAVEy+/Acm2AJT+GTAKoMkPQpW/CPqS35NCZoOz360g4w2e940A2Cd8IuXwUyGRaSYrXGJkFa45OTAArun1acS2Gm16Sl7Xk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I2mcb9kd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h+e8EId/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83952C4CEF1;
-	Sat, 31 Jan 2026 20:30:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I2mcb9kd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC3A3C4CEF1;
+	Sat, 31 Jan 2026 20:32:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769891418;
-	bh=pOrZJv2tYmTkSjn7ShtiUuYL+GdRoOWODacRB2Pnl6o=;
+	s=korg; t=1769891546;
+	bh=tJeCc03h9duFVbvhUpXlHNZGnOLH2vqMt9ra7kHD2WI=;
 	h=Date:To:From:Subject:From;
-	b=h+e8EId/397/llGuslxYERn18gVp4EWRQGddjOLfoHRsFNt0DS596VkrWiJ/3mHFP
-	 NBUmx8h7+ICgN8GLkFmatJ53z+DxcaWLwymJY8/NKVmR0jf3WghDluF5BlXJAx7x7k
-	 SXfGYgNmrCmSqiIFYbla6J88YWbQQntXEbYAL7rI=
-Date: Sat, 31 Jan 2026 12:30:17 -0800
-To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=I2mcb9kdpYxQfWebS5gxDTX3QKRTO5ysOEMmYlUCuRBB1ZKhDw2CV705nbJXKWDb1
+	 tUKp1WgDNhRyPOg319iVo8id016KF6iF0paM1g1PiORAnXwoUSAG644dsfu1bmt8se
+	 5NqHBkhnpn7Hny9tHHWkr8YpKhCDW/vTShN7DlPM=
+Date: Sat, 31 Jan 2026 12:32:26 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,yi1.lai@linux.intel.com,rafael@kernel.org,nphamcs@gmail.com,kasong@tencent.com,kartikey406@gmail.com,hannes@cmpxchg.org,clm@meta.com,clm@fb.com,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,ryncsn@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch added to mm-unstable branch
-Message-Id: <20260131203018.83952C4CEF1@smtp.kernel.org>
+Subject: + mm-swap-cleanup-swap-entry-management-workflow-fix-2.patch added to mm-unstable branch
+Message-Id: <20260131203226.CC3A3C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes
+     Subject: mm-swap-cleanup-swap-entry-management-workflow-fix-2
 has been added to the -mm mm-unstable branch.  Its filename is
-     maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
+     mm-swap-cleanup-swap-entry-management-workflow-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-cleanup-swap-entry-management-workflow-fix-2.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,66 +58,47 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes
-Date: Sat Jan 31 12:29:16 PM PST 2026
+From: Kairui Song <ryncsn@gmail.com>
+Subject: mm-swap-cleanup-swap-entry-management-workflow-fix-2
+Date: Sat, 31 Jan 2026 00:48:07 +0800
 
-ERROR: code indent should use tabs where possible
-#492: FILE: lib/maple_tree.c:3167:
-+^I^I^I^I^I         slot_max, ma_pivots(mn, mt),$
+fix KSM copy pages for swapoff, per Chris
 
-ERROR: code indent should use tabs where possible
-#493: FILE: lib/maple_tree.c:3168:
-+^I^I^I^I^I         ma_slots(mn, mt));$
-
-total: 2 errors, 0 warnings, 721 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/maple_tree-start-using-maple-copy-node-for-destination.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/aXxkANcET3l2Xu6J@KASONG-MC4
+Signed-off-by: Kairui Song <ryncsn@gmail.com>
+Cc: Chris Mason <clm@meta.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Chris Mason <clm@fb.com>
+Cc: Deepanshu Kartikey <kartikey406@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lai Yi <yi1.lai@linux.intel.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes
-+++ a/lib/maple_tree.c
-@@ -3164,8 +3164,8 @@ static inline void cp_dst_to_slots(struc
- 		if (mt_is_alloc(mas->tree)) {
- 			if (ma_is_leaf(mt)) {
- 				cp->gap[d] = ma_leaf_max_gap(mn, mt, slot_min,
--					         slot_max, ma_pivots(mn, mt),
--					         ma_slots(mn, mt));
-+						 slot_max, ma_pivots(mn, mt),
-+						 ma_slots(mn, mt));
- 			} else {
- 				unsigned long *gaps = ma_gaps(mn, mt);
- 
+--- a/mm/swapfile.c~mm-swap-cleanup-swap-entry-management-workflow-fix-2
++++ a/mm/swapfile.c
+@@ -2305,7 +2305,7 @@ static int unuse_pte(struct vm_area_stru
+ 		new_pte = pte_mkuffd_wp(new_pte);
+ setpte:
+ 	set_pte_at(vma->vm_mm, addr, pte, new_pte);
+-	folio_put_swap(folio, page);
++	folio_put_swap(swapcache, folio_file_page(swapcache, swp_offset(entry)));
+ out:
+ 	if (pte)
+ 		pte_unmap_unlock(pte, ptl);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ryncsn@gmail.com are
 
-procfs-avoid-fetching-build-id-while-holding-vma-lock-fix.patch
-mm-add-wq_percpu-to-alloc_workqueue-users-fix.patch
-mm-add-wq_percpu-to-alloc_workqueue-users-fix-fix.patch
-sparc-mm-export-symbols-for-lazy_mmu_mode-kunit-tests-fix.patch
-mm-vma-document-possible-vma-vm_refcnt-values-and-reference-comment-fix.patch
-mm-vma-introduce-helper-struct-thread-through-exclusive-lock-fns-fix.patch
-mm-pagewalk-use-min-to-simplify-the-code-fix.patch
-mm-relocate-the-page-table-ceiling-and-floor-definitions-fix.patch
-mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
-maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
-liveupdate-luo_file-remember-retrieve-status-fix.patch
+mm-swap-cleanup-swap-entry-management-workflow-fix-2.patch
 
