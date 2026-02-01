@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A90C6385EE6
-	for <mm-commits@vger.kernel.org>; Sat, 31 Jan 2026 23:56:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D7AAA59
+	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 00:08:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769903815; cv=none; b=j+phRJ59GJ9mcoMPUNxxlo7NDzuvYKkslD6ETg0jeO3p2A+yN3oD3x1iPe2xH8btrbsF9ZCF10RFb4YTFUoObfEW6Z0kgvFe3Rxy8W31IP+ZjIMPW5yrQT/CK3QqeJokkbUenMzG+UhtJjmpl5TLdHkB8eTGh1kShjeR8YH4KMg=
+	t=1769904513; cv=none; b=ryhMgvGOh7mXguS92OProRSjEw7ik6z2hMiowtJyti/3v/t/c413SKb1rwfGFAdP/hQi0JAKJ5T6J7GJIUhyNg8quYYV7IM8bZPJjXJmsQb5zf6yWyK0Rf9Vo8zNHCDiWfH2TSQ5LArQ7+pPk+4O0eDC7ef6whzPhylbOpyicow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769903815; c=relaxed/simple;
-	bh=e/WA9vnDVWpi2IBLfierfXUbXSvsXfGdzMDR/Rf7820=;
-	h=Date:To:From:Subject:Message-Id; b=FvqVx7k6NPiYbzcKUK67M9uwquOTOPZhEn2LgrApghkbhyyZrnjX9wBBY4KsvWxtTW3+BX7oOOkTfFb2VA/3Q+GNi82a+64OyFhZvpTPcGN4Eh08h3hqkgDLCZXP7wdKe5hgbRmdsybQsj0q74rwiOxVD7mannM+PJl4mEHf8qU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aHnrIl4g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769904513; c=relaxed/simple;
+	bh=S3CIunG/jTtLtmudZozLzJqNavkon6o00Ub3L/OQtZs=;
+	h=Date:To:From:Subject:Message-Id; b=F/o+/bU0z8RoN486/2cK5dEno4rK4Ma5cKEAW24CdsHkm73NEkz2Ff2gYQM6ggI6UUPSW4IVBPE6lx0U+2ChOIhzpPTjeK1Ep9hzOZ/wbZY1BKYYV0Tdmxg7AKJU02fMgd+59jbR8Forc7fVe6vohFxV5apVG+NSTVamJo+qCn0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZV3BUeiG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aHnrIl4g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23B43C4CEF1;
-	Sat, 31 Jan 2026 23:56:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZV3BUeiG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D3D9C4CEF1;
+	Sun,  1 Feb 2026 00:08:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769903815;
-	bh=e/WA9vnDVWpi2IBLfierfXUbXSvsXfGdzMDR/Rf7820=;
+	s=korg; t=1769904513;
+	bh=S3CIunG/jTtLtmudZozLzJqNavkon6o00Ub3L/OQtZs=;
 	h=Date:To:From:Subject:From;
-	b=aHnrIl4gz63viZb8wg642DJz1a1GI83bT3rBt+Q3Nks/UXcX+jBGpTPF9Gw4GIvz9
-	 xGawNpvAJQJBA24Zl/nRu7L+ED7B4cIF83kxSJZa0uqK9bg/JZHr5rdfg9nuForcn+
-	 9WXPQY9rtbGLaRZlgwkGHBlR3VYHAMojDOQz5o64=
-Date: Sat, 31 Jan 2026 15:56:54 -0800
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,jiangqi903@gmail.com,heming.zhao@suse.com,gechangwei@live.cn,swilczek.lx@gmail.com,akpm@linux-foundation.org
+	b=ZV3BUeiGK/euiE/X2FkeVi4Yv4wTjcVw5M18VHTTmxPZhKJw+yyEPcquRwaf4aUH3
+	 rBrJPTrTsQZls7801HAd5nRyOJX1YDhFTua/b8wn/TzFGRYjAD8YgB0ItnVzjFo1m7
+	 cj4Cb23ZN8af2fI9xRgnlxh9UG4uiU4jHvz96bv0=
+Date: Sat, 31 Jan 2026 16:08:32 -0800
+To: mm-commits@vger.kernel.org,bhe@redhat.com,me@linux.beauty,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch added to mm-nonmm-unstable branch
-Message-Id: <20260131235655.23B43C4CEF1@smtp.kernel.org>
+Subject: [folded-merged] kexec-derive-purgatory-entry-from-symbol-v2.patch removed from -mm tree
+Message-Id: <20260201000833.0D3D9C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,161 +34,162 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: ocfs2: fix circular locking dependency in ocfs2_acquire_dquot
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch
+The quilt patch titled
+     Subject: kexec-derive-purgatory-entry-from-symbol-v2
+has been removed from the -mm tree.  Its filename was
+     kexec-derive-purgatory-entry-from-symbol-v2.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was folded into kexec-derive-purgatory-entry-from-symbol.patch
 
 ------------------------------------------------------
-From: Szymon Wilczek <swilczek.lx@gmail.com>
-Subject: ocfs2: fix circular locking dependency in ocfs2_acquire_dquot
-Date: Thu, 8 Jan 2026 15:19:31 +0100
+From: Li Chen <me@linux.beauty>
+Subject: kexec-derive-purgatory-entry-from-symbol-v2
+Date: Wed, 28 Jan 2026 12:35:10 +0800
 
-Move ocfs2_extend_no_holes() and ocfs2_start_trans() to execute before
-ocfs2_lock_global_qf() to fix a circular locking dependency reported by
-syzbot.
+move the helper body above kexec_purgatory_setup_sechdrs() to avoid the
+forward declaration, per Baoquan
 
-The issue occurs because ocfs2_start_trans() acquires sb_internal (via
-sb_start_intwrite) while already holding quota file locks (ip_alloc_sem
-and sysfile_lock_key).  This conflicts with freeze/dismount paths that
-acquire sb_internal first, creating the following circular dependency:
-
-  sb_internal -> sysfile_lock_key -> ip_alloc_sem (freeze/dismount)
-  ip_alloc_sem -> sysfile_lock_key -> sb_internal (quota acquire)
-
-Fix this by reordering the operations:
-1. Speculatively extend quota file (uses need_alloc estimate)
-2. Start transaction
-3. Acquire global quota file lock
-4. Perform quota operations
-5. Release lock
-6. Commit transaction
-
-This ensures sb_internal is acquired before quota file locks, matching
-the expected kernel lock order.
-
-Link: https://lkml.kernel.org/r/20260108141931.67110-1-swilczek.lx@gmail.com
-Reported-by: syzbot+51244a05705883616c95@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug\?extid\=51244a05705883616c95
-Signed-off-by: Szymon Wilczek <swilczek.lx@gmail.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+Link: https://lkml.kernel.org/r/20260128043511.316860-1-me@linux.beauty
+Fixes: 8652d44f466a ("kexec: support purgatories with .text.hot sections")
+Signed-off-by: Li Chen <me@linux.beauty>
+Acked-by: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/quota_global.c |   49 ++++++++++++++++++++------------------
- 1 file changed, 27 insertions(+), 22 deletions(-)
+ kernel/kexec_file.c |  111 ++++++++++++++++++++----------------------
+ 1 file changed, 54 insertions(+), 57 deletions(-)
 
---- a/fs/ocfs2/quota_global.c~ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot
-+++ a/fs/ocfs2/quota_global.c
-@@ -821,13 +821,35 @@ static int ocfs2_acquire_dquot(struct dq
- 	trace_ocfs2_acquire_dquot(from_kqid(&init_user_ns, dquot->dq_id),
- 				  type);
- 	mutex_lock(&dquot->dq_lock);
+--- a/kernel/kexec_file.c~kexec-derive-purgatory-entry-from-symbol-v2
++++ a/kernel/kexec_file.c
+@@ -882,8 +882,60 @@ out_free_sha_regions:
+ }
+ 
+ #ifdef CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY
+-static const Elf_Sym * kexec_purgatory_find_symbol(struct purgatory_info *pi,
+-			      const char *name);
++/*
++ * kexec_purgatory_find_symbol - find a symbol in the purgatory
++ * @pi:		Purgatory to search in.
++ * @name:	Name of the symbol.
++ *
++ * Return: pointer to symbol in read-only symtab on success, NULL on error.
++ */
++static const Elf_Sym *kexec_purgatory_find_symbol(struct purgatory_info *pi,
++						  const char *name)
++{
++	const Elf_Shdr *sechdrs;
++	const Elf_Ehdr *ehdr;
++	const Elf_Sym *syms;
++	const char *strtab;
++	int i, k;
 +
-+	/*
-+	 * Speculatively extend quota file before acquiring any locks or
-+	 * starting transaction to avoid lock inversion. sb_start_intwrite
-+	 * (via ocfs2_start_trans) ranks above quota file locks.
-+	 */
-+	if (need_alloc) {
-+		WARN_ON(journal_current_handle());
-+		status = ocfs2_extend_no_holes(gqinode, NULL,
-+			i_size_read(gqinode) + (need_alloc << sb->s_blocksize_bits),
-+			i_size_read(gqinode));
-+		if (status < 0)
-+			goto out;
++	if (!pi->ehdr)
++		return NULL;
++
++	ehdr = pi->ehdr;
++	sechdrs = (void *)ehdr + ehdr->e_shoff;
++
++	for (i = 0; i < ehdr->e_shnum; i++) {
++		if (sechdrs[i].sh_type != SHT_SYMTAB)
++			continue;
++
++		if (sechdrs[i].sh_link >= ehdr->e_shnum)
++			/* Invalid strtab section number */
++			continue;
++		strtab = (void *)ehdr + sechdrs[sechdrs[i].sh_link].sh_offset;
++		syms = (void *)ehdr + sechdrs[i].sh_offset;
++
++		/* Go through symbols for a match */
++		for (k = 0; k < sechdrs[i].sh_size/sizeof(Elf_Sym); k++) {
++			if (ELF_ST_BIND(syms[k].st_info) != STB_GLOBAL)
++				continue;
++
++			if (strcmp(strtab + syms[k].st_name, name) != 0)
++				continue;
++
++			if (syms[k].st_shndx == SHN_UNDEF ||
++			    syms[k].st_shndx >= ehdr->e_shnum) {
++				pr_debug("Symbol: %s has bad section index %d.\n",
++					name, syms[k].st_shndx);
++				return NULL;
++			}
++
++			/* Found the symbol we are looking for */
++			return &syms[k];
++		}
 +	}
 +
-+	handle = ocfs2_start_trans(osb,
-+				   ocfs2_calc_global_qinit_credits(sb, type));
-+	if (IS_ERR(handle)) {
-+		status = PTR_ERR(handle);
-+		goto out;
-+	}
-+
- 	/*
- 	 * We need an exclusive lock, because we're going to update use count
- 	 * and instantiate possibly new dquot structure
- 	 */
- 	status = ocfs2_lock_global_qf(info, 1);
- 	if (status < 0)
--		goto out;
-+		goto out_trans;
- 	status = ocfs2_qinfo_lock(info, 0);
- 	if (status < 0)
- 		goto out_dq;
-@@ -843,29 +865,12 @@ static int ocfs2_acquire_dquot(struct dq
- 	OCFS2_DQUOT(dquot)->dq_use_count++;
- 	OCFS2_DQUOT(dquot)->dq_origspace = dquot->dq_dqb.dqb_curspace;
- 	OCFS2_DQUOT(dquot)->dq_originodes = dquot->dq_dqb.dqb_curinodes;
--	if (!dquot->dq_off) {	/* No real quota entry? */
-+	if (!dquot->dq_off)	/* No real quota entry? */
- 		ex = 1;
--		/*
--		 * Add blocks to quota file before we start a transaction since
--		 * locking allocators ranks above a transaction start
--		 */
--		WARN_ON(journal_current_handle());
--		status = ocfs2_extend_no_holes(gqinode, NULL,
--			i_size_read(gqinode) + (need_alloc << sb->s_blocksize_bits),
--			i_size_read(gqinode));
--		if (status < 0)
--			goto out_dq;
--	}
++	return NULL;
++}
+ /*
+  * kexec_purgatory_setup_kbuf - prepare buffer to load purgatory.
+  * @pi:		Purgatory to be loaded.
+@@ -1148,61 +1200,6 @@ out_free_kbuf:
+ 	return ret;
+ }
  
--	handle = ocfs2_start_trans(osb,
--				   ocfs2_calc_global_qinit_credits(sb, type));
--	if (IS_ERR(handle)) {
--		status = PTR_ERR(handle);
--		goto out_dq;
+-/*
+- * kexec_purgatory_find_symbol - find a symbol in the purgatory
+- * @pi:		Purgatory to search in.
+- * @name:	Name of the symbol.
+- *
+- * Return: pointer to symbol in read-only symtab on success, NULL on error.
+- */
+-static const Elf_Sym *kexec_purgatory_find_symbol(struct purgatory_info *pi,
+-						  const char *name)
+-{
+-	const Elf_Shdr *sechdrs;
+-	const Elf_Ehdr *ehdr;
+-	const Elf_Sym *syms;
+-	const char *strtab;
+-	int i, k;
+-
+-	if (!pi->ehdr)
+-		return NULL;
+-
+-	ehdr = pi->ehdr;
+-	sechdrs = (void *)ehdr + ehdr->e_shoff;
+-
+-	for (i = 0; i < ehdr->e_shnum; i++) {
+-		if (sechdrs[i].sh_type != SHT_SYMTAB)
+-			continue;
+-
+-		if (sechdrs[i].sh_link >= ehdr->e_shnum)
+-			/* Invalid strtab section number */
+-			continue;
+-		strtab = (void *)ehdr + sechdrs[sechdrs[i].sh_link].sh_offset;
+-		syms = (void *)ehdr + sechdrs[i].sh_offset;
+-
+-		/* Go through symbols for a match */
+-		for (k = 0; k < sechdrs[i].sh_size/sizeof(Elf_Sym); k++) {
+-			if (ELF_ST_BIND(syms[k].st_info) != STB_GLOBAL)
+-				continue;
+-
+-			if (strcmp(strtab + syms[k].st_name, name) != 0)
+-				continue;
+-
+-			if (syms[k].st_shndx == SHN_UNDEF ||
+-			    syms[k].st_shndx >= ehdr->e_shnum) {
+-				pr_debug("Symbol: %s has bad section index %d.\n",
+-						name, syms[k].st_shndx);
+-				return NULL;
+-			}
+-
+-			/* Found the symbol we are looking for */
+-			return &syms[k];
+-		}
 -	}
- 	status = ocfs2_qinfo_lock(info, ex);
- 	if (status < 0)
--		goto out_trans;
-+		goto out_dq;
- 	status = qtree_write_dquot(&info->dqi_gi, dquot);
- 	if (ex && info_dirty(sb_dqinfo(sb, type))) {
- 		err = __ocfs2_global_write_info(sb, type);
-@@ -873,10 +878,10 @@ static int ocfs2_acquire_dquot(struct dq
- 			status = err;
- 	}
- 	ocfs2_qinfo_unlock(info, ex);
--out_trans:
--	ocfs2_commit_trans(osb, handle);
- out_dq:
- 	ocfs2_unlock_global_qf(info, 1);
-+out_trans:
-+	ocfs2_commit_trans(osb, handle);
- 	if (status < 0)
- 		goto out;
- 
+-
+-	return NULL;
+-}
+-
+ void *kexec_purgatory_get_symbol_addr(struct kimage *image, const char *name)
+ {
+ 	struct purgatory_info *pi = &image->purgatory_info;
 _
 
-Patches currently in -mm which might be from swilczek.lx@gmail.com are
+Patches currently in -mm which might be from me@linux.beauty are
 
-ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch
+documentation-document-liveupdate-cmdline-parameter.patch
+kexec-derive-purgatory-entry-from-symbol.patch
 
