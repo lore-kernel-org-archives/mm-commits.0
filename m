@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 610553EBF1D
-	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 00:16:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8C0D3EBF1D
+	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 00:16:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769905013; cv=none; b=NRTSZ6YrJhTHDNiOoI3HQp6TehRDRWF9HFTQPg8i+I8r2lyHANWWM3v+nZYO02ySPA+Uts1f9oMMFMKhhlrPg1ka+Tms6HafNh3EIqH9vKKjnm4x/LwIWw/b2eRFc2qTOQEwJ4xCVUwnlzY3szTJ/3RxFC0pkBmpSZJZ2pwaQg8=
+	t=1769905014; cv=none; b=QlEppY8gVf2JNaHe4LEUsL4oojX6gmYheJB5iMDdvrqQ79ms7XEcBes9tteCLB4MEWKb46IDfwkUmFm2LxE7AqKsAyLp1b5NkWToIXYjy9xKkx60btTLILkRzKPZnBTzbUhKp/q6Xtf4+fjfJVkVXrNY11VHtK3khuuFgyH3v1g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769905013; c=relaxed/simple;
-	bh=00jU3YPJxb9fQxo0U/zA7zRJfRetL4dSBzNxjlnbU8w=;
-	h=Date:To:From:Subject:Message-Id; b=jcr/ZSfV61nTTRGLqNfKrsW06kgRPj+yhXUwDpGq9VUu+1SA+pvXgFsQrfkry4iNqBZvW5Kd5P9VlHMKe5NLpWJhl3lP7TKO22/ccC35FSvwjRPLxlSEBGpPtMvITKuLAK/toLuMSSfxPQGsBOSrjACkat2hde6zFZHTJfk0d3A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BK6stPs+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769905014; c=relaxed/simple;
+	bh=0t9UgeJlTb+2MLXPXJlJmpYmncZfksA3F5lg/oDr9q4=;
+	h=Date:To:From:Subject:Message-Id; b=WposgjecweEaLez39qJ0ec83iuI1L2e5tDaBChJWar/ym7QncyXW5sHHXhB6TbYc1G7oxuWlXSI/bdQ9FKWeh4TUZnTsWCZdqpCDwYnBb1DWYpMppL2x8fM63xHB877/ujZdosUvizme1QZJNpVu3IaJzmnIoLTs85PYeQioANU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tI8Y2tIG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BK6stPs+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C3C6C4CEF1;
-	Sun,  1 Feb 2026 00:16:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tI8Y2tIG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E4BAC4CEF1;
+	Sun,  1 Feb 2026 00:16:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769905013;
-	bh=00jU3YPJxb9fQxo0U/zA7zRJfRetL4dSBzNxjlnbU8w=;
+	s=korg; t=1769905014;
+	bh=0t9UgeJlTb+2MLXPXJlJmpYmncZfksA3F5lg/oDr9q4=;
 	h=Date:To:From:Subject:From;
-	b=BK6stPs+dMF3TKvdrAVDMp3kP+eWIk5FnOWtUfQTGsg/z3HJSlSmRuEyW6Vx0IcaM
-	 stDZX2vAOI6NYf51Mtyyyn49v3q1FAPoGHVxKw10ld/PK9F5f2y6o5H+y3H/eWVDi+
-	 fxoc7dS0yrQ1DKqMb9HGhfQvDxHF+kYgbah/bpG4=
-Date: Sat, 31 Jan 2026 16:16:52 -0800
-To: mm-commits@vger.kernel.org,ynorov@nvidia.com,rdunlap@infradead.org,petr.pavlu@suse.com,joelagnelf@nvidia.com,jani.nikula@intel.com,gregkh@linuxfoundation.org,chleroy@kernel.org,atomlin@atomlin.com,andriy.shevchenko@linux.intel.com,andi.shyti@linux.intel.com,rostedt@goodmis.org,akpm@linux-foundation.org
+	b=tI8Y2tIG11zbgDs2TQG+TQTLnsApX0y8cynSP/Ks4igwhw4z6flnrQpMSLtKxZApj
+	 RINGOmExFmr/YUvBv7wnA/B6BHXhJiyn1m98ozhUwJpw3x1PupW56NQNmT6L5CBi8m
+	 hw3FS/qMpbQSxa6oYskMn3DhK3q1FuaFyBr02m0s=
+Date: Sat, 31 Jan 2026 16:16:53 -0800
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,rdunlap@infradead.org,petr.pavlu@suse.com,joelagnelf@nvidia.com,jani.nikula@intel.com,gregkh@linuxfoundation.org,chleroy@kernel.org,atomlin@atomlin.com,andriy.shevchenko@linux.intel.com,andi.shyti@linux.intel.com,ynorov@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] tracing-remove-size-parameter-in-__trace_puts.patch removed from -mm tree
-Message-Id: <20260201001653.2C3C6C4CEF1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] tracing-move-tracing-declarations-from-kernelh-to-a-dedicated-header.patch removed from -mm tree
+Message-Id: <20260201001654.7E4BAC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tracing: remove size parameter in __trace_puts()
+     Subject: tracing: move tracing declarations from kernel.h to a dedicated header
 has been removed from the -mm tree.  Its filename was
-     tracing-remove-size-parameter-in-__trace_puts.patch
+     tracing-move-tracing-declarations-from-kernelh-to-a-dedicated-header.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: tracing: remove size parameter in __trace_puts()
-Date: Thu, 15 Jan 2026 23:25:08 -0500
+From: Yury Norov <ynorov@nvidia.com>
+Subject: tracing: move tracing declarations from kernel.h to a dedicated header
+Date: Thu, 15 Jan 2026 23:25:09 -0500
 
-The __trace_puts() function takes a string pointer and the size of the
-string itself.  All users currently simply pass in the strlen() of the
-string it is also passing in.  There's no reason to pass in the size. 
-Instead have the __trace_puts() function do the strlen() within the
-function itself.
+Tracing is a half of the kernel.h in terms of LOCs, although it's a
+self-consistent part.  It is intended for quick debugging purposes and
+isn't used by the normal tracing utilities.
 
-This fixes a header recursion issue where using strlen() in the macro
-calling __trace_puts() requires adding #include <linux/string.h> in order
-to use strlen().  Removing the use of strlen() from the header fixes the
-recursion issue.
+Move it to a separate header.  If someone needs to just throw a
+trace_printk() in their driver, they will not have to pull all the heavy
+tracing machinery.
 
-Link: https://lore.kernel.org/all/aUN8Hm377C5A0ILX@yury/
-Link: https://lkml.kernel.org/r/20260116042510.241009-6-ynorov@nvidia.com
-Signed-off-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+This is a pure move.
+
+Link: https://lkml.kernel.org/r/20260116042510.241009-7-ynorov@nvidia.com
 Signed-off-by: Yury Norov <ynorov@nvidia.com>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Joel Fernandes <joelagnelf@nvidia.com>
 Cc: Aaron Tomlin <atomlin@atomlin.com>
@@ -74,64 +72,433 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    4 ++--
- kernel/trace/trace.c   |    7 +++----
- kernel/trace/trace.h   |    2 +-
- 3 files changed, 6 insertions(+), 7 deletions(-)
+ include/linux/kernel.h       |  196 -------------------------------
+ include/linux/trace_printk.h |  204 +++++++++++++++++++++++++++++++++
+ 2 files changed, 205 insertions(+), 195 deletions(-)
 
---- a/include/linux/kernel.h~tracing-remove-size-parameter-in-__trace_puts
+--- a/include/linux/kernel.h~tracing-move-tracing-declarations-from-kernelh-to-a-dedicated-header
 +++ a/include/linux/kernel.h
-@@ -328,10 +328,10 @@ int __trace_printk(unsigned long ip, con
- 	if (__builtin_constant_p(str))					\
- 		__trace_bputs(_THIS_IP_, trace_printk_fmt);		\
- 	else								\
--		__trace_puts(_THIS_IP_, str, strlen(str));		\
+@@ -31,7 +31,7 @@
+ #include <linux/build_bug.h>
+ #include <linux/sprintf.h>
+ #include <linux/static_call_types.h>
+-#include <linux/instruction_pointer.h>
++#include <linux/trace_printk.h>
+ #include <linux/util_macros.h>
+ #include <linux/wordpart.h>
+ 
+@@ -189,200 +189,6 @@ enum system_states {
+ };
+ extern enum system_states system_state;
+ 
+-/*
+- * General tracing related utility functions - trace_printk(),
+- * tracing_on/tracing_off and tracing_start()/tracing_stop
+- *
+- * Use tracing_on/tracing_off when you want to quickly turn on or off
+- * tracing. It simply enables or disables the recording of the trace events.
+- * This also corresponds to the user space /sys/kernel/tracing/tracing_on
+- * file, which gives a means for the kernel and userspace to interact.
+- * Place a tracing_off() in the kernel where you want tracing to end.
+- * From user space, examine the trace, and then echo 1 > tracing_on
+- * to continue tracing.
+- *
+- * tracing_stop/tracing_start has slightly more overhead. It is used
+- * by things like suspend to ram where disabling the recording of the
+- * trace is not enough, but tracing must actually stop because things
+- * like calling smp_processor_id() may crash the system.
+- *
+- * Most likely, you want to use tracing_on/tracing_off.
+- */
+-
+-enum ftrace_dump_mode {
+-	DUMP_NONE,
+-	DUMP_ALL,
+-	DUMP_ORIG,
+-	DUMP_PARAM,
+-};
+-
+-#ifdef CONFIG_TRACING
+-void tracing_on(void);
+-void tracing_off(void);
+-int tracing_is_on(void);
+-void tracing_snapshot(void);
+-void tracing_snapshot_alloc(void);
+-
+-extern void tracing_start(void);
+-extern void tracing_stop(void);
+-
+-static inline __printf(1, 2)
+-void ____trace_printk_check_format(const char *fmt, ...)
+-{
+-}
+-#define __trace_printk_check_format(fmt, args...)			\
+-do {									\
+-	if (0)								\
+-		____trace_printk_check_format(fmt, ##args);		\
+-} while (0)
+-
+-/**
+- * trace_printk - printf formatting in the ftrace buffer
+- * @fmt: the printf format for printing
+- *
+- * Note: __trace_printk is an internal function for trace_printk() and
+- *       the @ip is passed in via the trace_printk() macro.
+- *
+- * This function allows a kernel developer to debug fast path sections
+- * that printk is not appropriate for. By scattering in various
+- * printk like tracing in the code, a developer can quickly see
+- * where problems are occurring.
+- *
+- * This is intended as a debugging tool for the developer only.
+- * Please refrain from leaving trace_printks scattered around in
+- * your code. (Extra memory is used for special buffers that are
+- * allocated when trace_printk() is used.)
+- *
+- * A little optimization trick is done here. If there's only one
+- * argument, there's no need to scan the string for printf formats.
+- * The trace_puts() will suffice. But how can we take advantage of
+- * using trace_puts() when trace_printk() has only one argument?
+- * By stringifying the args and checking the size we can tell
+- * whether or not there are args. __stringify((__VA_ARGS__)) will
+- * turn into "()\0" with a size of 3 when there are no args, anything
+- * else will be bigger. All we need to do is define a string to this,
+- * and then take its size and compare to 3. If it's bigger, use
+- * do_trace_printk() otherwise, optimize it to trace_puts(). Then just
+- * let gcc optimize the rest.
+- */
+-
+-#define trace_printk(fmt, ...)				\
+-do {							\
+-	char _______STR[] = __stringify((__VA_ARGS__));	\
+-	if (sizeof(_______STR) > 3)			\
+-		do_trace_printk(fmt, ##__VA_ARGS__);	\
+-	else						\
+-		trace_puts(fmt);			\
+-} while (0)
+-
+-#define do_trace_printk(fmt, args...)					\
+-do {									\
+-	static const char *trace_printk_fmt __used			\
+-		__section("__trace_printk_fmt") =			\
+-		__builtin_constant_p(fmt) ? fmt : NULL;			\
+-									\
+-	__trace_printk_check_format(fmt, ##args);			\
+-									\
+-	if (__builtin_constant_p(fmt))					\
+-		__trace_bprintk(_THIS_IP_, trace_printk_fmt, ##args);	\
+-	else								\
+-		__trace_printk(_THIS_IP_, fmt, ##args);			\
+-} while (0)
+-
+-extern __printf(2, 3)
+-int __trace_bprintk(unsigned long ip, const char *fmt, ...);
+-
+-extern __printf(2, 3)
+-int __trace_printk(unsigned long ip, const char *fmt, ...);
+-
+-/**
+- * trace_puts - write a string into the ftrace buffer
+- * @str: the string to record
+- *
+- * Note: __trace_bputs is an internal function for trace_puts and
+- *       the @ip is passed in via the trace_puts macro.
+- *
+- * This is similar to trace_printk() but is made for those really fast
+- * paths that a developer wants the least amount of "Heisenbug" effects,
+- * where the processing of the print format is still too much.
+- *
+- * This function allows a kernel developer to debug fast path sections
+- * that printk is not appropriate for. By scattering in various
+- * printk like tracing in the code, a developer can quickly see
+- * where problems are occurring.
+- *
+- * This is intended as a debugging tool for the developer only.
+- * Please refrain from leaving trace_puts scattered around in
+- * your code. (Extra memory is used for special buffers that are
+- * allocated when trace_puts() is used.)
+- *
+- * Returns: 0 if nothing was written, positive # if string was.
+- *  (1 when __trace_bputs is used, strlen(str) when __trace_puts is used)
+- */
+-
+-#define trace_puts(str) ({						\
+-	static const char *trace_printk_fmt __used			\
+-		__section("__trace_printk_fmt") =			\
+-		__builtin_constant_p(str) ? str : NULL;			\
+-									\
+-	if (__builtin_constant_p(str))					\
+-		__trace_bputs(_THIS_IP_, trace_printk_fmt);		\
+-	else								\
+-		__trace_puts(_THIS_IP_, str);				\
+-})
+-extern int __trace_bputs(unsigned long ip, const char *str);
+-extern int __trace_puts(unsigned long ip, const char *str);
+-
+-extern void trace_dump_stack(int skip);
+-
+-/*
+- * The double __builtin_constant_p is because gcc will give us an error
+- * if we try to allocate the static variable to fmt if it is not a
+- * constant. Even with the outer if statement.
+- */
+-#define ftrace_vprintk(fmt, vargs)					\
+-do {									\
+-	if (__builtin_constant_p(fmt)) {				\
+-		static const char *trace_printk_fmt __used		\
+-		  __section("__trace_printk_fmt") =			\
+-			__builtin_constant_p(fmt) ? fmt : NULL;		\
+-									\
+-		__ftrace_vbprintk(_THIS_IP_, trace_printk_fmt, vargs);	\
+-	} else								\
+-		__ftrace_vprintk(_THIS_IP_, fmt, vargs);		\
+-} while (0)
+-
+-extern __printf(2, 0) int
+-__ftrace_vbprintk(unsigned long ip, const char *fmt, va_list ap);
+-
+-extern __printf(2, 0) int
+-__ftrace_vprintk(unsigned long ip, const char *fmt, va_list ap);
+-
+-extern void ftrace_dump(enum ftrace_dump_mode oops_dump_mode);
+-#else
+-static inline void tracing_start(void) { }
+-static inline void tracing_stop(void) { }
+-static inline void trace_dump_stack(int skip) { }
+-
+-static inline void tracing_on(void) { }
+-static inline void tracing_off(void) { }
+-static inline int tracing_is_on(void) { return 0; }
+-static inline void tracing_snapshot(void) { }
+-static inline void tracing_snapshot_alloc(void) { }
+-
+-static inline __printf(1, 2)
+-int trace_printk(const char *fmt, ...)
+-{
+-	return 0;
+-}
+-static __printf(1, 0) inline int
+-ftrace_vprintk(const char *fmt, va_list ap)
+-{
+-	return 0;
+-}
+-static inline void ftrace_dump(enum ftrace_dump_mode oops_dump_mode) { }
+-#endif /* CONFIG_TRACING */
+-
+ /* Rebuild everything on CONFIG_DYNAMIC_FTRACE */
+ #ifdef CONFIG_DYNAMIC_FTRACE
+ # define REBUILD_DUE_TO_DYNAMIC_FTRACE
+diff --git a/include/linux/trace_printk.h a/include/linux/trace_printk.h
+new file mode 100644
+--- /dev/null
++++ a/include/linux/trace_printk.h
+@@ -0,0 +1,204 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_TRACE_PRINTK_H
++#define _LINUX_TRACE_PRINTK_H
++
++#include <linux/compiler_attributes.h>
++#include <linux/instruction_pointer.h>
++#include <linux/stddef.h>
++#include <linux/stringify.h>
++
++/*
++ * General tracing related utility functions - trace_printk(),
++ * tracing_on/tracing_off and tracing_start()/tracing_stop
++ *
++ * Use tracing_on/tracing_off when you want to quickly turn on or off
++ * tracing. It simply enables or disables the recording of the trace events.
++ * This also corresponds to the user space /sys/kernel/tracing/tracing_on
++ * file, which gives a means for the kernel and userspace to interact.
++ * Place a tracing_off() in the kernel where you want tracing to end.
++ * From user space, examine the trace, and then echo 1 > tracing_on
++ * to continue tracing.
++ *
++ * tracing_stop/tracing_start has slightly more overhead. It is used
++ * by things like suspend to ram where disabling the recording of the
++ * trace is not enough, but tracing must actually stop because things
++ * like calling smp_processor_id() may crash the system.
++ *
++ * Most likely, you want to use tracing_on/tracing_off.
++ */
++
++enum ftrace_dump_mode {
++	DUMP_NONE,
++	DUMP_ALL,
++	DUMP_ORIG,
++	DUMP_PARAM,
++};
++
++#ifdef CONFIG_TRACING
++void tracing_on(void);
++void tracing_off(void);
++int tracing_is_on(void);
++void tracing_snapshot(void);
++void tracing_snapshot_alloc(void);
++
++extern void tracing_start(void);
++extern void tracing_stop(void);
++
++static inline __printf(1, 2)
++void ____trace_printk_check_format(const char *fmt, ...)
++{
++}
++#define __trace_printk_check_format(fmt, args...)			\
++do {									\
++	if (0)								\
++		____trace_printk_check_format(fmt, ##args);		\
++} while (0)
++
++/**
++ * trace_printk - printf formatting in the ftrace buffer
++ * @fmt: the printf format for printing
++ *
++ * Note: __trace_printk is an internal function for trace_printk() and
++ *       the @ip is passed in via the trace_printk() macro.
++ *
++ * This function allows a kernel developer to debug fast path sections
++ * that printk is not appropriate for. By scattering in various
++ * printk like tracing in the code, a developer can quickly see
++ * where problems are occurring.
++ *
++ * This is intended as a debugging tool for the developer only.
++ * Please refrain from leaving trace_printks scattered around in
++ * your code. (Extra memory is used for special buffers that are
++ * allocated when trace_printk() is used.)
++ *
++ * A little optimization trick is done here. If there's only one
++ * argument, there's no need to scan the string for printf formats.
++ * The trace_puts() will suffice. But how can we take advantage of
++ * using trace_puts() when trace_printk() has only one argument?
++ * By stringifying the args and checking the size we can tell
++ * whether or not there are args. __stringify((__VA_ARGS__)) will
++ * turn into "()\0" with a size of 3 when there are no args, anything
++ * else will be bigger. All we need to do is define a string to this,
++ * and then take its size and compare to 3. If it's bigger, use
++ * do_trace_printk() otherwise, optimize it to trace_puts(). Then just
++ * let gcc optimize the rest.
++ */
++
++#define trace_printk(fmt, ...)				\
++do {							\
++	char _______STR[] = __stringify((__VA_ARGS__));	\
++	if (sizeof(_______STR) > 3)			\
++		do_trace_printk(fmt, ##__VA_ARGS__);	\
++	else						\
++		trace_puts(fmt);			\
++} while (0)
++
++#define do_trace_printk(fmt, args...)					\
++do {									\
++	static const char *trace_printk_fmt __used			\
++		__section("__trace_printk_fmt") =			\
++		__builtin_constant_p(fmt) ? fmt : NULL;			\
++									\
++	__trace_printk_check_format(fmt, ##args);			\
++									\
++	if (__builtin_constant_p(fmt))					\
++		__trace_bprintk(_THIS_IP_, trace_printk_fmt, ##args);	\
++	else								\
++		__trace_printk(_THIS_IP_, fmt, ##args);			\
++} while (0)
++
++extern __printf(2, 3)
++int __trace_bprintk(unsigned long ip, const char *fmt, ...);
++
++extern __printf(2, 3)
++int __trace_printk(unsigned long ip, const char *fmt, ...);
++
++/**
++ * trace_puts - write a string into the ftrace buffer
++ * @str: the string to record
++ *
++ * Note: __trace_bputs is an internal function for trace_puts and
++ *       the @ip is passed in via the trace_puts macro.
++ *
++ * This is similar to trace_printk() but is made for those really fast
++ * paths that a developer wants the least amount of "Heisenbug" effects,
++ * where the processing of the print format is still too much.
++ *
++ * This function allows a kernel developer to debug fast path sections
++ * that printk is not appropriate for. By scattering in various
++ * printk like tracing in the code, a developer can quickly see
++ * where problems are occurring.
++ *
++ * This is intended as a debugging tool for the developer only.
++ * Please refrain from leaving trace_puts scattered around in
++ * your code. (Extra memory is used for special buffers that are
++ * allocated when trace_puts() is used.)
++ *
++ * Returns: 0 if nothing was written, positive # if string was.
++ *  (1 when __trace_bputs is used, strlen(str) when __trace_puts is used)
++ */
++
++#define trace_puts(str) ({						\
++	static const char *trace_printk_fmt __used			\
++		__section("__trace_printk_fmt") =			\
++		__builtin_constant_p(str) ? str : NULL;			\
++									\
++	if (__builtin_constant_p(str))					\
++		__trace_bputs(_THIS_IP_, trace_printk_fmt);		\
++	else								\
 +		__trace_puts(_THIS_IP_, str);				\
- })
- extern int __trace_bputs(unsigned long ip, const char *str);
--extern int __trace_puts(unsigned long ip, const char *str, int size);
++})
++extern int __trace_bputs(unsigned long ip, const char *str);
 +extern int __trace_puts(unsigned long ip, const char *str);
- 
- extern void trace_dump_stack(int skip);
- 
---- a/kernel/trace/trace.c~tracing-remove-size-parameter-in-__trace_puts
-+++ a/kernel/trace/trace.c
-@@ -1178,11 +1178,10 @@ EXPORT_SYMBOL_GPL(__trace_array_puts);
-  * __trace_puts - write a constant string into the trace buffer.
-  * @ip:	   The address of the caller
-  * @str:   The constant string to write
-- * @size:  The size of the string.
-  */
--int __trace_puts(unsigned long ip, const char *str, int size)
-+int __trace_puts(unsigned long ip, const char *str)
- {
--	return __trace_array_puts(printk_trace, ip, str, size);
-+	return __trace_array_puts(printk_trace, ip, str, strlen(str));
- }
- EXPORT_SYMBOL_GPL(__trace_puts);
- 
-@@ -1201,7 +1200,7 @@ int __trace_bputs(unsigned long ip, cons
- 	int size = sizeof(struct bputs_entry);
- 
- 	if (!printk_binsafe(tr))
--		return __trace_puts(ip, str, strlen(str));
-+		return __trace_puts(ip, str);
- 
- 	if (!(tr->trace_flags & TRACE_ITER(PRINTK)))
- 		return 0;
---- a/kernel/trace/trace.h~tracing-remove-size-parameter-in-__trace_puts
-+++ a/kernel/trace/trace.h
-@@ -2116,7 +2116,7 @@ extern void tracing_log_err(struct trace
-  * about performance). The internal_trace_puts() is for such
-  * a purpose.
-  */
--#define internal_trace_puts(str) __trace_puts(_THIS_IP_, str, strlen(str))
-+#define internal_trace_puts(str) __trace_puts(_THIS_IP_, str)
- 
- #undef FTRACE_ENTRY
- #define FTRACE_ENTRY(call, struct_name, id, tstruct, print)	\
++
++extern void trace_dump_stack(int skip);
++
++/*
++ * The double __builtin_constant_p is because gcc will give us an error
++ * if we try to allocate the static variable to fmt if it is not a
++ * constant. Even with the outer if statement.
++ */
++#define ftrace_vprintk(fmt, vargs)					\
++do {									\
++	if (__builtin_constant_p(fmt)) {				\
++		static const char *trace_printk_fmt __used		\
++		  __section("__trace_printk_fmt") =			\
++			__builtin_constant_p(fmt) ? fmt : NULL;		\
++									\
++		__ftrace_vbprintk(_THIS_IP_, trace_printk_fmt, vargs);	\
++	} else								\
++		__ftrace_vprintk(_THIS_IP_, fmt, vargs);		\
++} while (0)
++
++extern __printf(2, 0) int
++__ftrace_vbprintk(unsigned long ip, const char *fmt, va_list ap);
++
++extern __printf(2, 0) int
++__ftrace_vprintk(unsigned long ip, const char *fmt, va_list ap);
++
++extern void ftrace_dump(enum ftrace_dump_mode oops_dump_mode);
++#else
++static inline void tracing_start(void) { }
++static inline void tracing_stop(void) { }
++static inline void trace_dump_stack(int skip) { }
++
++static inline void tracing_on(void) { }
++static inline void tracing_off(void) { }
++static inline int tracing_is_on(void) { return 0; }
++static inline void tracing_snapshot(void) { }
++static inline void tracing_snapshot_alloc(void) { }
++
++static inline __printf(1, 2)
++int trace_printk(const char *fmt, ...)
++{
++	return 0;
++}
++static __printf(1, 0) inline int
++ftrace_vprintk(const char *fmt, va_list ap)
++{
++	return 0;
++}
++static inline void ftrace_dump(enum ftrace_dump_mode oops_dump_mode) { }
++#endif /* CONFIG_TRACING */
++
++#endif
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from ynorov@nvidia.com are
 
 
