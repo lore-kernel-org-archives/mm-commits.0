@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C2523EBF1D
-	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 00:16:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F28D73EBF1D;
+	Sun,  1 Feb 2026 00:16:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769905004; cv=none; b=B1p5SSiaC4SqArTqCEgllss5gucCjEqsGZB12kVHjn2VqOZPPhAigyholDiKVFzAfOCShbfwf6tByojczFjAIBg0US3Swg+A+OOVear+QaxNWsQPUcXZ49md1GOrwigQPADHgcfZtKRPOD/fm9jpbx4r5v7dpFp5dW/PsZWXgH8=
+	t=1769905006; cv=none; b=KHGaUSeE67dq45Yqi80EZdPp8dCPhEliaIvhnWHZwtW/uWLThne+ebBnAdiORey1pa+KNUWmlEKuYJxltoNPkonPCaJjntYUVXbuQvRkjXrYoRXdzQ9Xk9213BwnTfLIz/f063LyQetUFho6AK1fZ/oLZ79a3Zw+Tcoq4rYe7Ac=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769905004; c=relaxed/simple;
-	bh=YyrdSFP4zOEm/m470BIizECto66rGAXRnEAo2dSzfk4=;
-	h=Date:To:From:Subject:Message-Id; b=qa9orISWAKzeDk+NtHv0bzuxxFj8axcQYVz1j0FojvEdWuk+c4w/nm+EN5uZRK+Q87YlxOSRygaEzPt2D47nVdTk9ubdeOy7TtiU6vtREmT8r+Y7HotH3b15ig0TvcFMGc33Jafdc9s72NlpOn1axYFaA9MG0TesACkv7+cSIkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WHJHVh2T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769905006; c=relaxed/simple;
+	bh=RLzHHZizplOr80+cGQElSRYkOI/ePm4eYRnerU6DYPQ=;
+	h=Date:To:From:Subject:Message-Id; b=hn7USriCOGLhzs22qGrMGSX+wpVGlL7dM5kFk9w+EssJhVIEX6X9XrVBHHqlM0BqXKJ436FFn5I+GJo7t31qjWsBtdS4CmVnkDI8+nzM9C2m+jaZnBfyBQ4XojM7pyDP4HTOoSCYB7ROswFFQF4/ftFiXfOmWWTc9EquOVpXkIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k+vo6uK4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WHJHVh2T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECE10C4CEF1;
-	Sun,  1 Feb 2026 00:16:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k+vo6uK4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92A24C4CEF1;
+	Sun,  1 Feb 2026 00:16:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769905004;
-	bh=YyrdSFP4zOEm/m470BIizECto66rGAXRnEAo2dSzfk4=;
+	s=korg; t=1769905005;
+	bh=RLzHHZizplOr80+cGQElSRYkOI/ePm4eYRnerU6DYPQ=;
 	h=Date:To:From:Subject:From;
-	b=WHJHVh2T+gZeETUzspsNTBpIfRPwJLj1xTvM6GSac2TXRp2cDr7UrZjv0KWmAgZOf
-	 51Qbp18BgI6h3AgNpkanTciKbN8mO1j/yeHamSyLBjUjIdFLHt0dcKLZ3vqk2EApol
-	 D9hXf8CFh8n25Y0aVXu+s021YyZ62JjDBi08hX+o=
-Date: Sat, 31 Jan 2026 16:16:43 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=k+vo6uK4JQASjEWd4uaCdrlEB/iB+N+khmQbU37pbS7mBcVrRSzUAjkcZBuQ4gfxa
+	 VgQkrjBbmOQkYDGdNWx9uJWydLl2QySarPdU+dJuyaGP5nH2U3T9gBkgGzCRelNWDq
+	 ZKn4XOxlJq+cVYmsjSqSP6IPAQwHx/c778LapglY=
+Date: Sat, 31 Jan 2026 16:16:45 -0800
+To: mm-commits@vger.kernel.org,ubizjak@gmail.com,stable@vger.kernel.org,morbo@google.com,justinstitt@google.com,nathan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kho-simplify-page-initialization-in-kho_restore_page.patch removed from -mm tree
-Message-Id: <20260201001643.ECE10C4CEF1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] compiler-clangh-require-llvm-1910-or-higher-for-__typeof_unqual__.patch removed from -mm tree
+Message-Id: <20260201001645.92A24C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,112 +35,76 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho: simplify page initialization in kho_restore_page()
+     Subject: compiler-clang.h: require LLVM 19.1.0 or higher for __typeof_unqual__
 has been removed from the -mm tree.  Its filename was
-     kho-simplify-page-initialization-in-kho_restore_page.patch
+     compiler-clangh-require-llvm-1910-or-higher-for-__typeof_unqual__.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pratyush Yadav <pratyush@kernel.org>
-Subject: kho: simplify page initialization in kho_restore_page()
-Date: Fri, 16 Jan 2026 11:22:15 +0000
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: compiler-clang.h: require LLVM 19.1.0 or higher for __typeof_unqual__
+Date: Fri, 16 Jan 2026 16:26:27 -0700
 
-When restoring a page (from kho_restore_pages()) or folio (from
-kho_restore_folio()), KHO must initialize the struct page.  The
-initialization differs slightly depending on if a folio is requested or a
-set of 0-order pages is requested.
+When building the kernel using a version of LLVM between llvmorg-19-init
+(the first commit of the LLVM 19 development cycle) and the change in
+LLVM that actually added __typeof_unqual__ for all C modes [1], which
+might happen during a bisect of LLVM, there is a build failure:
 
-Conceptually, it is quite simple to understand.  When restoring 0-order
-pages, each page gets a refcount of 1 and that's it.  When restoring a
-folio, head page gets a refcount of 1 and tail pages get 0.
+  In file included from arch/x86/kernel/asm-offsets.c:9:
+  In file included from include/linux/crypto.h:15:
+  In file included from include/linux/completion.h:12:
+  In file included from include/linux/swait.h:7:
+  In file included from include/linux/spinlock.h:56:
+  In file included from include/linux/preempt.h:79:
+  arch/x86/include/asm/preempt.h:61:2: error: call to undeclared function '__typeof_unqual__'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+     61 |         raw_cpu_and_4(__preempt_count, ~PREEMPT_NEED_RESCHED);
+        |         ^
+  arch/x86/include/asm/percpu.h:478:36: note: expanded from macro 'raw_cpu_and_4'
+    478 | #define raw_cpu_and_4(pcp, val)                         percpu_binary_op(4, , "and", (pcp), val)
+        |                                                         ^
+  arch/x86/include/asm/percpu.h:210:3: note: expanded from macro 'percpu_binary_op'
+    210 |                 TYPEOF_UNQUAL(_var) pto_tmp__;                          \
+        |                 ^
+  include/linux/compiler.h:248:29: note: expanded from macro 'TYPEOF_UNQUAL'
+    248 | # define TYPEOF_UNQUAL(exp) __typeof_unqual__(exp)
+        |                             ^
 
-kho_restore_page() tries to combine the two separate initialization flow
-into one piece of code.  While it works fine, it is more complicated to
-read than it needs to be.  Make the code simpler by splitting the two
-initalization paths into two separate functions.  This improves
-readability by clearly showing how each type must be initialized.
+The current logic of CC_HAS_TYPEOF_UNQUAL just checks for a major
+version of 19 but half of the 19 development cycle did not have support
+for __typeof_unqual__.
 
-Link: https://lkml.kernel.org/r/20260116112217.915803-3-pratyush@kernel.org
-Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Harden the logic of CC_HAS_TYPEOF_UNQUAL to avoid this error by only
+using __typeof_unqual__ with a released version of LLVM 19, which is
+greater than or equal to 19.1.0 with LLVM's versioning scheme that
+matches GCC's [2].
+
+Link: https://github.com/llvm/llvm-project/commit/cc308f60d41744b5920ec2e2e5b25e1273c8704b [1]
+Link: https://github.com/llvm/llvm-project/commit/4532617ae420056bf32f6403dde07fb99d276a49 [2]
+Link: https://lkml.kernel.org/r/20260116-require-llvm-19-1-for-typeof_unqual-v1-1-3b9a4a4b212b@kernel.org
+Fixes: ac053946f5c4 ("compiler.h: introduce TYPEOF_UNQUAL() macro")
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Uros Bizjak <ubizjak@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |   40 +++++++++++++++++----------
- 1 file changed, 26 insertions(+), 14 deletions(-)
+ include/linux/compiler-clang.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-simplify-page-initialization-in-kho_restore_page
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -216,11 +216,32 @@ static int __kho_preserve_order(struct k
- 	return 0;
- }
- 
-+/* For physically contiguous 0-order pages. */
-+static void kho_init_pages(struct page *page, unsigned long nr_pages)
-+{
-+	for (unsigned long i = 0; i < nr_pages; i++)
-+		set_page_count(page + i, 1);
-+}
-+
-+static void kho_init_folio(struct page *page, unsigned int order)
-+{
-+	unsigned long nr_pages = (1 << order);
-+
-+	/* Head page gets refcount of 1. */
-+	set_page_count(page, 1);
-+
-+	/* For higher order folios, tail pages get a page count of zero. */
-+	for (unsigned long i = 1; i < nr_pages; i++)
-+		set_page_count(page + i, 0);
-+
-+	if (order > 0)
-+		prep_compound_page(page, order);
-+}
-+
- static struct page *kho_restore_page(phys_addr_t phys, bool is_folio)
- {
- 	struct page *page = pfn_to_online_page(PHYS_PFN(phys));
- 	unsigned long nr_pages;
--	unsigned int ref_cnt;
- 	union kho_page_info info;
- 
- 	if (!page)
-@@ -238,20 +259,11 @@ static struct page *kho_restore_page(phy
- 
- 	/* Clear private to make sure later restores on this page error out. */
- 	page->private = 0;
--	/* Head page gets refcount of 1. */
--	set_page_count(page, 1);
--
--	/*
--	 * For higher order folios, tail pages get a page count of zero.
--	 * For physically contiguous order-0 pages every pages gets a page
--	 * count of 1
--	 */
--	ref_cnt = is_folio ? 0 : 1;
--	for (unsigned long i = 1; i < nr_pages; i++)
--		set_page_count(page + i, ref_cnt);
- 
--	if (is_folio && info.order)
--		prep_compound_page(page, info.order);
-+	if (is_folio)
-+		kho_init_folio(page, info.order);
-+	else
-+		kho_init_pages(page, nr_pages);
- 
- 	/* Always mark headpage's codetag as empty to avoid accounting mismatch */
- 	clear_page_tag_ref(page);
+--- a/include/linux/compiler-clang.h~compiler-clangh-require-llvm-1910-or-higher-for-__typeof_unqual__
++++ a/include/linux/compiler-clang.h
+@@ -153,4 +153,4 @@
+  * Bindgen uses LLVM even if our C compiler is GCC, so we cannot
+  * rely on the auto-detected CONFIG_CC_HAS_TYPEOF_UNQUAL.
+  */
+-#define CC_HAS_TYPEOF_UNQUAL (__clang_major__ >= 19)
++#define CC_HAS_TYPEOF_UNQUAL (__clang_major__ > 19 || (__clang_major__ == 19 && __clang_minor__ > 0))
 _
 
-Patches currently in -mm which might be from pratyush@kernel.org are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-liveupdate-luo_file-do-not-clear-serialized_data-on-unfreeze.patch
-memfd-export-memfd_addget_seals.patch
-mm-memfd_luo-preserve-file-seals.patch
-liveupdate-luo_file-remember-retrieve-status.patch
 
