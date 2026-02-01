@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D7AAA59
-	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 00:08:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5B6A3EBF29
+	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 00:13:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769904513; cv=none; b=ryhMgvGOh7mXguS92OProRSjEw7ik6z2hMiowtJyti/3v/t/c413SKb1rwfGFAdP/hQi0JAKJ5T6J7GJIUhyNg8quYYV7IM8bZPJjXJmsQb5zf6yWyK0Rf9Vo8zNHCDiWfH2TSQ5LArQ7+pPk+4O0eDC7ef6whzPhylbOpyicow=
+	t=1769904823; cv=none; b=ecD9jFrd77RCKsOPYiEyGR9KHupw85C9D4ValGKx+WZFS+E7SfgloE0iCeihysIPz1o4HP7UCBrKBj7ER23gcUnG2AQjWCMPjyKbfpdcAuWJuESx/MSZuvwGrjRGweZnNL42+LWQBnU6a7oBaIa4mf8sXT90uLGL5P5JAfOMfdg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769904513; c=relaxed/simple;
-	bh=S3CIunG/jTtLtmudZozLzJqNavkon6o00Ub3L/OQtZs=;
-	h=Date:To:From:Subject:Message-Id; b=F/o+/bU0z8RoN486/2cK5dEno4rK4Ma5cKEAW24CdsHkm73NEkz2Ff2gYQM6ggI6UUPSW4IVBPE6lx0U+2ChOIhzpPTjeK1Ep9hzOZ/wbZY1BKYYV0Tdmxg7AKJU02fMgd+59jbR8Forc7fVe6vohFxV5apVG+NSTVamJo+qCn0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZV3BUeiG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769904823; c=relaxed/simple;
+	bh=Q9fonHscF+XjqKqyQj3YevUxInQv9gJNvDEA7WXzRlE=;
+	h=Date:To:From:Subject:Message-Id; b=gzIlJ0a1U6vR2S7EFfuu7MuefGFpxenLTHbbF8z/+CCQgaShLCGbh+Gv8QPGI5sqTgAlq5tHaWKqrTBLgvpf5GtqKFJBXp/TqQIYqBqm6o5C5zpDBAyRXLpvZR8PoS8BevT8AYYQB2r+HHzPzz0Gx9a7bB9M/17eSrJn02OfI7E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MLkfNn9d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZV3BUeiG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D3D9C4CEF1;
-	Sun,  1 Feb 2026 00:08:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MLkfNn9d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1087CC4CEF1;
+	Sun,  1 Feb 2026 00:13:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769904513;
-	bh=S3CIunG/jTtLtmudZozLzJqNavkon6o00Ub3L/OQtZs=;
+	s=korg; t=1769904823;
+	bh=Q9fonHscF+XjqKqyQj3YevUxInQv9gJNvDEA7WXzRlE=;
 	h=Date:To:From:Subject:From;
-	b=ZV3BUeiGK/euiE/X2FkeVi4Yv4wTjcVw5M18VHTTmxPZhKJw+yyEPcquRwaf4aUH3
-	 rBrJPTrTsQZls7801HAd5nRyOJX1YDhFTua/b8wn/TzFGRYjAD8YgB0ItnVzjFo1m7
-	 cj4Cb23ZN8af2fI9xRgnlxh9UG4uiU4jHvz96bv0=
-Date: Sat, 31 Jan 2026 16:08:32 -0800
-To: mm-commits@vger.kernel.org,bhe@redhat.com,me@linux.beauty,akpm@linux-foundation.org
+	b=MLkfNn9d7SsvQfE7TtSuJh/ZHC7k5VScVpcAMyIi8xR33WTgCp4+ItDup7yuxgTOe
+	 KhsEaCMo9N48XzkL4IkzbBh5t7vOL3ShGSVmfeuiIK732s5erDSyDRxw4FZKCdyH36
+	 viHf3LpkaJc72CwH1r7LDvSZN/RLun4ezZJDFvaw=
+Date: Sat, 31 Jan 2026 16:13:42 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,pnina.feder@mobileye.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kexec-derive-purgatory-entry-from-symbol-v2.patch removed from -mm tree
-Message-Id: <20260201000833.0D3D9C4CEF1@smtp.kernel.org>
+Subject: [folded-merged] panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix.patch removed from -mm tree
+Message-Id: <20260201001343.1087CC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,161 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kexec-derive-purgatory-entry-from-symbol-v2
+     Subject: panic: fix unused variable warning when SMP or CRASH_DUMP disabled
 has been removed from the -mm tree.  Its filename was
-     kexec-derive-purgatory-entry-from-symbol-v2.patch
+     panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix.patch
 
-This patch was dropped because it was folded into kexec-derive-purgatory-entry-from-symbol.patch
+This patch was dropped because it was folded into panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch
 
 ------------------------------------------------------
-From: Li Chen <me@linux.beauty>
-Subject: kexec-derive-purgatory-entry-from-symbol-v2
-Date: Wed, 28 Jan 2026 12:35:10 +0800
+From: Pnina Feder <pnina.feder@mobileye.com>
+Subject: panic: fix unused variable warning when SMP or CRASH_DUMP disabled
+Date: Mon, 26 Jan 2026 14:26:18 +0200
 
-move the helper body above kexec_purgatory_setup_sechdrs() to avoid the
-forward declaration, per Baoquan
+Move panic_force_buf inside the #ifdef block to fix unused variable
+warning when CONFIG_SMP or CONFIG_CRASH_DUMP is not enabled.
 
-Link: https://lkml.kernel.org/r/20260128043511.316860-1-me@linux.beauty
-Fixes: 8652d44f466a ("kexec: support purgatories with .text.hot sections")
-Signed-off-by: Li Chen <me@linux.beauty>
-Acked-by: Baoquan He <bhe@redhat.com>
+Link: https://lkml.kernel.org/r/20260126122618.2967950-1-pnina.feder@mobileye.com
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202601222042.OSZryOnl-lkp@intel.com/
+Closes: https://lore.kernel.org/oe-kbuild-all/202601230908.0vB3SoHM-lkp@intel.com/
+Closes: https://lore.kernel.org/oe-kbuild-all/202601231058.Q6hDGfoT-lkp@intel.com/
+Signed-off-by: Pnina Feder <pnina.feder@mobileye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |  111 ++++++++++++++++++++----------------------
- 1 file changed, 54 insertions(+), 57 deletions(-)
+ kernel/panic.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/kernel/kexec_file.c~kexec-derive-purgatory-entry-from-symbol-v2
-+++ a/kernel/kexec_file.c
-@@ -882,8 +882,60 @@ out_free_sha_regions:
- }
+--- a/kernel/panic.c~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu-fix
++++ a/kernel/panic.c
+@@ -76,7 +76,6 @@ EXPORT_SYMBOL_GPL(panic_timeout);
+ unsigned long panic_print;
  
- #ifdef CONFIG_ARCH_SUPPORTS_KEXEC_PURGATORY
--static const Elf_Sym * kexec_purgatory_find_symbol(struct purgatory_info *pi,
--			      const char *name);
-+/*
-+ * kexec_purgatory_find_symbol - find a symbol in the purgatory
-+ * @pi:		Purgatory to search in.
-+ * @name:	Name of the symbol.
-+ *
-+ * Return: pointer to symbol in read-only symtab on success, NULL on error.
-+ */
-+static const Elf_Sym *kexec_purgatory_find_symbol(struct purgatory_info *pi,
-+						  const char *name)
-+{
-+	const Elf_Shdr *sechdrs;
-+	const Elf_Ehdr *ehdr;
-+	const Elf_Sym *syms;
-+	const char *strtab;
-+	int i, k;
-+
-+	if (!pi->ehdr)
-+		return NULL;
-+
-+	ehdr = pi->ehdr;
-+	sechdrs = (void *)ehdr + ehdr->e_shoff;
-+
-+	for (i = 0; i < ehdr->e_shnum; i++) {
-+		if (sechdrs[i].sh_type != SHT_SYMTAB)
-+			continue;
-+
-+		if (sechdrs[i].sh_link >= ehdr->e_shnum)
-+			/* Invalid strtab section number */
-+			continue;
-+		strtab = (void *)ehdr + sechdrs[sechdrs[i].sh_link].sh_offset;
-+		syms = (void *)ehdr + sechdrs[i].sh_offset;
-+
-+		/* Go through symbols for a match */
-+		for (k = 0; k < sechdrs[i].sh_size/sizeof(Elf_Sym); k++) {
-+			if (ELF_ST_BIND(syms[k].st_info) != STB_GLOBAL)
-+				continue;
-+
-+			if (strcmp(strtab + syms[k].st_name, name) != 0)
-+				continue;
-+
-+			if (syms[k].st_shndx == SHN_UNDEF ||
-+			    syms[k].st_shndx >= ehdr->e_shnum) {
-+				pr_debug("Symbol: %s has bad section index %d.\n",
-+					name, syms[k].st_shndx);
-+				return NULL;
-+			}
-+
-+			/* Found the symbol we are looking for */
-+			return &syms[k];
-+		}
-+	}
-+
-+	return NULL;
-+}
- /*
-  * kexec_purgatory_setup_kbuf - prepare buffer to load purgatory.
-  * @pi:		Purgatory to be loaded.
-@@ -1148,61 +1200,6 @@ out_free_kbuf:
- 	return ret;
- }
+ static int panic_force_cpu = -1;
+-static char *panic_force_buf;
  
--/*
-- * kexec_purgatory_find_symbol - find a symbol in the purgatory
-- * @pi:		Purgatory to search in.
-- * @name:	Name of the symbol.
-- *
-- * Return: pointer to symbol in read-only symtab on success, NULL on error.
-- */
--static const Elf_Sym *kexec_purgatory_find_symbol(struct purgatory_info *pi,
--						  const char *name)
--{
--	const Elf_Shdr *sechdrs;
--	const Elf_Ehdr *ehdr;
--	const Elf_Sym *syms;
--	const char *strtab;
--	int i, k;
--
--	if (!pi->ehdr)
--		return NULL;
--
--	ehdr = pi->ehdr;
--	sechdrs = (void *)ehdr + ehdr->e_shoff;
--
--	for (i = 0; i < ehdr->e_shnum; i++) {
--		if (sechdrs[i].sh_type != SHT_SYMTAB)
--			continue;
--
--		if (sechdrs[i].sh_link >= ehdr->e_shnum)
--			/* Invalid strtab section number */
--			continue;
--		strtab = (void *)ehdr + sechdrs[sechdrs[i].sh_link].sh_offset;
--		syms = (void *)ehdr + sechdrs[i].sh_offset;
--
--		/* Go through symbols for a match */
--		for (k = 0; k < sechdrs[i].sh_size/sizeof(Elf_Sym); k++) {
--			if (ELF_ST_BIND(syms[k].st_info) != STB_GLOBAL)
--				continue;
--
--			if (strcmp(strtab + syms[k].st_name, name) != 0)
--				continue;
--
--			if (syms[k].st_shndx == SHN_UNDEF ||
--			    syms[k].st_shndx >= ehdr->e_shnum) {
--				pr_debug("Symbol: %s has bad section index %d.\n",
--						name, syms[k].st_shndx);
--				return NULL;
--			}
--
--			/* Found the symbol we are looking for */
--			return &syms[k];
--		}
--	}
--
--	return NULL;
--}
--
- void *kexec_purgatory_get_symbol_addr(struct kimage *image, const char *name)
+ ATOMIC_NOTIFIER_HEAD(panic_notifier_list);
+ 
+@@ -307,6 +306,8 @@ atomic_t panic_cpu = ATOMIC_INIT(PANIC_C
+ atomic_t panic_redirect_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
+ 
+ #if defined(CONFIG_SMP) && defined(CONFIG_CRASH_DUMP)
++static char *panic_force_buf;
++
+ static int __init panic_force_cpu_setup(char *str)
  {
- 	struct purgatory_info *pi = &image->purgatory_info;
+ 	int cpu;
 _
 
-Patches currently in -mm which might be from me@linux.beauty are
+Patches currently in -mm which might be from pnina.feder@mobileye.com are
 
-documentation-document-liveupdate-cmdline-parameter.patch
-kexec-derive-purgatory-entry-from-symbol.patch
+panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch
 
