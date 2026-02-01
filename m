@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E57803EBF1D
-	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 00:17:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1638D3EBF1D
+	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 00:17:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769905026; cv=none; b=MSgHRnjZ8Ex0NDrbnYON6R4ynDGtl68byVJk79SpwWjs4eN6hQBEsbao1jpWHIzx6j5UXU6qc7okVOs+NNsM5R8tdDMGA2ZJGo0OgfZIaF349LFC7A0fS/740tUxD8x+NxMux3mQAGPfMUzBATwPLZC6an6hvACVNho2EFQwvA0=
+	t=1769905027; cv=none; b=eeIaB8W6J3dlO36l083RFhFPQCAJ88vK+7kSU4o4z9KUlFabGHmCrBand2QlDacOTy2k0tyIwEq8Lb2kgJQgWIvkr1y19Oyn9k5KFcqQy4/zi7KTBCiTL3Ye/04RNQwM4XOoX9Xe/O+0kdJBN+cshvw09Gm2K8AbsO4eYk8NbR0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769905026; c=relaxed/simple;
-	bh=Wmo1w5RNmngWkTpl+HaTSH5qRrBaFlXDp1A0U0u8GMM=;
-	h=Date:To:From:Subject:Message-Id; b=a14C4wTcQxzruEsIe+Ckf2pJ3LHf48nIBbZQcYRUqmKzE9AFL6vRYqmeLzoo6hpx7RUH2cOGBl5Xx/FO4gwVioD04/JUVn9UmbigHgdSiRYBA8p1VWu7PXaDkNjbC5WhMvREBYhcjd4ifSBdxZX0/7jtiMlvAQn3tF9VsSvKPP0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BQyqSB2Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769905027; c=relaxed/simple;
+	bh=vUohPP/l3IxjkkGXC+R4s/IZH2ynYKe2S7juRjQwe6s=;
+	h=Date:To:From:Subject:Message-Id; b=KTEnvr8DoXXmyE8qM/NT0QCPDxTDMoZ0kXrAca+oTQnY6YhyHyB8elu6BEtZ3IAdn8NFzroBKnvsjnDKlMZryja3D9MiQTphtM3hKrFKpwckkCImzbqPvt7XoUY0wEXtVZxKoMAVpB4nSeZ+Bs5bFrC435ddQIPOnSe3TwYEmfg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qTcfKUhK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BQyqSB2Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCE66C4CEF1;
-	Sun,  1 Feb 2026 00:17:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qTcfKUhK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1E6EC4CEF1;
+	Sun,  1 Feb 2026 00:17:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769905025;
-	bh=Wmo1w5RNmngWkTpl+HaTSH5qRrBaFlXDp1A0U0u8GMM=;
+	s=korg; t=1769905027;
+	bh=vUohPP/l3IxjkkGXC+R4s/IZH2ynYKe2S7juRjQwe6s=;
 	h=Date:To:From:Subject:From;
-	b=BQyqSB2ZNss9tDxq23vC+wcLEu3sjkGIM7VJTHiHHFA4xwz0CKAlYFjhIPDhid907
-	 uWJukAcAPDV4NdipCBZ91jB29q8bVoAkWBm2kt1QrZBDxrlU/mdo7ui5G3rbfZet3N
-	 u1hRJjhjujXKbv+f+41nNJPcUq2E+xxEp+oCzEvM=
-Date: Sat, 31 Jan 2026 16:17:05 -0800
-To: mm-commits@vger.kernel.org,serge@hallyn.com,paul@paul-moore.com,legion@kernel.org,ebiederm@xmission.com,omosnace@redhat.com,akpm@linux-foundation.org
+	b=qTcfKUhKljGbjFvKf6W/xTxaULQjCJRK+gGNICVqA+Q5J97mP/Z6ojK7R7W4f/ykz
+	 ALXQawSSiLDJfOfXq11TlI8KNZd2SgC0PG6GTg6sWRqwC0736Y4aqq9v5wQKWDo/0F
+	 MIS/k97mT31s1yrl3JLhH2STXa2b6PeTrjKyrnzo=
+Date: Sat, 31 Jan 2026 16:17:06 -0800
+To: mm-commits@vger.kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ucount-check-for-cap_sys_resource-using-ns_capable_noaudit.patch removed from -mm tree
-Message-Id: <20260201001705.BCE66C4CEF1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kho-cleanup-error-handling-in-kho_populate.patch removed from -mm tree
+Message-Id: <20260201001706.E1E6EC4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,126 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ucount: check for CAP_SYS_RESOURCE using ns_capable_noaudit()
+     Subject: kho: cleanup error handling in kho_populate()
 has been removed from the -mm tree.  Its filename was
-     ucount-check-for-cap_sys_resource-using-ns_capable_noaudit.patch
+     kho-cleanup-error-handling-in-kho_populate.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ondrej Mosnacek <omosnace@redhat.com>
-Subject: ucount: check for CAP_SYS_RESOURCE using ns_capable_noaudit()
-Date: Thu, 22 Jan 2026 15:07:45 +0100
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: kho: cleanup error handling in kho_populate()
+Date: Thu, 22 Jan 2026 14:17:57 +0200
 
-The user.* sysctls implement the ctl_table_root::permissions hook and they
-override the file access mode based on the CAP_SYS_RESOURCE capability (at
-most rwx if capable, at most r-- if not).  The capability is being checked
-unconditionally, so if an LSM denies the capability, an audit record may
-be logged even when access is in fact granted.
+* use dedicated labels for error handling instead of checking if a pointer
+  is not null to decide if it should be unmapped
+* drop assignment of values to err that are only used to print a numeric
+  error code, there are pr_warn()s for each failure already so printing a
+  numeric error code in the next line does not add anything useful
 
-Given the logic in the set_permissions() function in kernel/ucount.c and
-the unfortunate way the permission checking is implemented, it doesn't
-seem viable to avoid false positive denials by deferring the capability
-check.  Thus, do the same as in net_ctl_permissions() (net/sysctl_net.c) -
-switch from ns_capable() to ns_capable_noaudit(), so that the check never
-logs an audit record.
-
-Link: https://lkml.kernel.org/r/20260122140745.239428-1-omosnace@redhat.com
-Fixes: dbec28460a89 ("userns: Add per user namespace sysctls.")
-Signed-off-by: Ondrej Mosnacek <omosnace@redhat.com>
-Reviewed-by: Paul Moore <paul@paul-moore.com>
-Acked-by: Serge Hallyn <serge@hallyn.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Alexey Gladkov <legion@kernel.org>
+Link: https://lkml.kernel.org/r/20260122121757.575987-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ucount.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/liveupdate/kexec_handover.c |   39 +++++++++++----------------
+ 1 file changed, 17 insertions(+), 22 deletions(-)
 
---- a/kernel/ucount.c~ucount-check-for-cap_sys_resource-using-ns_capable_noaudit
-+++ a/kernel/ucount.c
-@@ -47,7 +47,7 @@ static int set_permissions(struct ctl_ta
- 	int mode;
+--- a/kernel/liveupdate/kexec_handover.c~kho-cleanup-error-handling-in-kho_populate
++++ a/kernel/liveupdate/kexec_handover.c
+@@ -1455,46 +1455,40 @@ void __init kho_memory_init(void)
+ void __init kho_populate(phys_addr_t fdt_phys, u64 fdt_len,
+ 			 phys_addr_t scratch_phys, u64 scratch_len)
+ {
++	unsigned int scratch_cnt = scratch_len / sizeof(*kho_scratch);
+ 	struct kho_scratch *scratch = NULL;
+ 	phys_addr_t mem_map_phys;
+ 	void *fdt = NULL;
+-	int err = 0;
+-	unsigned int scratch_cnt = scratch_len / sizeof(*kho_scratch);
++	int err;
  
- 	/* Allow users with CAP_SYS_RESOURCE unrestrained access */
--	if (ns_capable(user_ns, CAP_SYS_RESOURCE))
-+	if (ns_capable_noaudit(user_ns, CAP_SYS_RESOURCE))
- 		mode = (table->mode & S_IRWXU) >> 6;
- 	else
- 	/* Allow all others at most read-only access */
+ 	/* Validate the input FDT */
+ 	fdt = early_memremap(fdt_phys, fdt_len);
+ 	if (!fdt) {
+ 		pr_warn("setup: failed to memremap FDT (0x%llx)\n", fdt_phys);
+-		err = -EFAULT;
+-		goto out;
++		goto err_report;
+ 	}
+ 	err = fdt_check_header(fdt);
+ 	if (err) {
+ 		pr_warn("setup: handover FDT (0x%llx) is invalid: %d\n",
+ 			fdt_phys, err);
+-		err = -EINVAL;
+-		goto out;
++		goto err_unmap_fdt;
+ 	}
+ 	err = fdt_node_check_compatible(fdt, 0, KHO_FDT_COMPATIBLE);
+ 	if (err) {
+ 		pr_warn("setup: handover FDT (0x%llx) is incompatible with '%s': %d\n",
+ 			fdt_phys, KHO_FDT_COMPATIBLE, err);
+-		err = -EINVAL;
+-		goto out;
++		goto err_unmap_fdt;
+ 	}
+ 
+ 	mem_map_phys = kho_get_mem_map_phys(fdt);
+-	if (!mem_map_phys) {
+-		err = -ENOENT;
+-		goto out;
+-	}
++	if (!mem_map_phys)
++		goto err_unmap_fdt;
+ 
+ 	scratch = early_memremap(scratch_phys, scratch_len);
+ 	if (!scratch) {
+ 		pr_warn("setup: failed to memremap scratch (phys=0x%llx, len=%lld)\n",
+ 			scratch_phys, scratch_len);
+-		err = -EFAULT;
+-		goto out;
++		goto err_unmap_fdt;
+ 	}
+ 
+ 	/*
+@@ -1511,7 +1505,7 @@ void __init kho_populate(phys_addr_t fdt
+ 		if (WARN_ON(err)) {
+ 			pr_warn("failed to mark the scratch region 0x%pa+0x%pa: %pe",
+ 				&area->addr, &size, ERR_PTR(err));
+-			goto out;
++			goto err_unmap_scratch;
+ 		}
+ 		pr_debug("Marked 0x%pa+0x%pa as scratch", &area->addr, &size);
+ 	}
+@@ -1533,13 +1527,14 @@ void __init kho_populate(phys_addr_t fdt
+ 	kho_scratch_cnt = scratch_cnt;
+ 	pr_info("found kexec handover data.\n");
+ 
+-out:
+-	if (fdt)
+-		early_memunmap(fdt, fdt_len);
+-	if (scratch)
+-		early_memunmap(scratch, scratch_len);
+-	if (err)
+-		pr_warn("disabling KHO revival: %d\n", err);
++	return;
++
++err_unmap_scratch:
++	early_memunmap(scratch, scratch_len);
++err_unmap_fdt:
++	early_memunmap(fdt, fdt_len);
++err_report:
++	pr_warn("disabling KHO revival\n");
+ }
+ 
+ /* Helper functions for kexec_file_load */
 _
 
-Patches currently in -mm which might be from omosnace@redhat.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
 
