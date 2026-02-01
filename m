@@ -1,353 +1,217 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC9C93EBF1D
-	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 00:17:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D3434F265
+	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 14:29:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769905040; cv=none; b=Grc4GzC70lAJMbY1pqQOhHLFsMZgzNZsFCR63x0Gq/iMh8Ui1P5N8bQVFFQV3f8+u/RuS4N1wz2Enm+s5wDbMZ8zbdfgv1WcSDeNcCYYRzYZkuoM2Ce0ci96E6UYQO0lmXPp2OCVCWkD0aUE054mYwENOvixb7xvUxFXjXy1cnA=
+	t=1769956169; cv=none; b=SlD5MMGkuGuF73Pd2a/bmLfhDRiNwBWunDs+KvAeqorctDIXakyglKhWyE6TCoRg0+fgiyTPhR+0LktEsghe4z0MJV75NBhWcXGhiLh/tJuKanUhBFgrCXQ1hPVnZHJ046QlS6P/LSwjP7kltYdIwdsvfNvGxNcu4hMBr0hzEuk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769905040; c=relaxed/simple;
-	bh=FOfWW2kqiHUnfgqD26Tw21t6jUF62/7H+oLMWC1VJDI=;
-	h=Date:To:From:Subject:Message-Id; b=ZqZdQa/BIc7c3vwdMcu6FOOIbeG2o1g7QFX/cZQLxYfwQJBYfRCJdCbOPz0HuPvI4I7K7ejuWtp032hyF+iclUvWaSjouzmed3UmJ2mH9y+7sPHCTAprl32z84u1T54wmox6m+ztNLwU6707VPfOuQjIZPncr2BmZUIgnXiVcMY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IDLYD1dx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769956169; c=relaxed/simple;
+	bh=SQ1VBikf9kF/fa9Ul/EvSs4uUS32plPbVLC7awIg7ZU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JT6d2VBfo0TK1bH44BzYuFsP85CWp2W1sCabDXfcNQtXeXKJ+yAd9dFRgOOHeK/QKSsXR3XRLCitVxr2H0j8raT7bd2i8oXXI0ZiLo7EEoPT6kk5NJAG6eo5yyRPRd1KE/9YE0gwsHmz+MXy65NEoHltxkizR5BK+nEeqND5Y/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QSxLWd5d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IDLYD1dx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C523C4CEF1;
-	Sun,  1 Feb 2026 00:17:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769905040;
-	bh=FOfWW2kqiHUnfgqD26Tw21t6jUF62/7H+oLMWC1VJDI=;
-	h=Date:To:From:Subject:From;
-	b=IDLYD1dxujTrOr0nEfrZanZLdOHlSo2aGJTv2yfxakOQEczUNyKvoju/9VhBgnVcb
-	 3joXnI5PwRZTH76kAllMQlx2b8DYKBaLI/9UrExmYLRV4+npAWdI0pIDFglnK98T/K
-	 m+FNHJpUANs2QyW3TtX5Noa2pNXpw67zQPOsj9v4=
-Date: Sat, 31 Jan 2026 16:17:19 -0800
-To: mm-commits@vger.kernel.org,tglx@linutronix.de,senozhatsky@chromium.org,rostedt@goodmis.org,pmladek@suse.com,peterz@infradead.org,mingo@redhat.com,mgorman@suse.de,corbet@lwn.net,bhe@redhat.com,pnina.feder@mobileye.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch removed from -mm tree
-Message-Id: <20260201001720.7C523C4CEF1@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QSxLWd5d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17547C4CEF7;
+	Sun,  1 Feb 2026 14:29:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1769956168;
+	bh=SQ1VBikf9kF/fa9Ul/EvSs4uUS32plPbVLC7awIg7ZU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=QSxLWd5dwXUz2ldJhA3AwYwJAgF09Kw1bwpuYPpHbVa5L/M7T6vf4hbBs6KBeN1XF
+	 TZ6rXYaTQKlFVoT3gE2HkI07X/XQGpFAVJOzcw38i7bPKyw5Mnodpt78s6v07Wrzzp
+	 hYpByH+UGyEfAYussYXL+26x4xLfShvehK1HdawZK+H97Q5D2ahIXa0C0ocSaJA4wi
+	 v+I+leDtPF4BoQMka0RCqmBdLBDQCM1t0vnAkzrwcXgCmJf9/K8psTv0kzlaasZKLC
+	 HD2zrsZihxEQSqtR1r6OEe6Jli/SocJGIh8iO4LgeeaFzKAS3DqeSfhjGYd/PjE0US
+	 glMbyc4QlpFvw==
+Date: Sun, 1 Feb 2026 15:29:17 +0100
+From: Mike Rapoport <rppt@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, vishal.moola@gmail.com,
+	songshuaishuai@tinylab.org, samuel.holland@sifive.com,
+	rdunlap@infradead.org, pawan.kumar.gupta@linux.intel.com,
+	palmer@dabbelt.com, mingo@kernel.org, lirongqing@baidu.com,
+	leitao@debian.org, kevin.brodsky@arm.com, kees@kernel.org,
+	fvdl@google.com, elver@google.com, cuiyunhui@bytedance.com,
+	corbet@lwn.net, bp@alien8.de, bjorn@rivosinc.com,
+	bhelgaas@google.com, arnd@arndb.de, aou@eecs.berkeley.edu,
+	alex@ghiti.fr, ruanjinjie@huawei.com
+Subject: Re: [merged mm-nonmm-stable]
+ riscv-kexec-add-support-for-crashkernel-cma-reservation.patch removed from
+ -mm tree
+Message-ID: <aX9jPbkG7QYNWH73@kernel.org>
+References: <20260201001710.A3CE5C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20260201001710.A3CE5C4CEF1@smtp.kernel.org>
 
+Hi Andrew,
 
-The quilt patch titled
-     Subject: panic: add panic_force_cpu= parameter to redirect panic to a specific CPU
-has been removed from the -mm tree.  Its filename was
-     panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu.patch
+On Sat, Jan 31, 2026 at 04:17:10PM -0800, Andrew Morton wrote:
+> 
+> The quilt patch titled
+>      Subject: riscv: kexec: add support for crashkernel CMA reservation
+> has been removed from the -mm tree.  Its filename was
+>      riscv-kexec-add-support-for-crashkernel-cma-reservation.patch
+> 
+> This patch was dropped because it was merged into the mm-nonmm-stable branch
+> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> ------------------------------------------------------
+> From: Jinjie Ruan <ruanjinjie@huawei.com>
+> Subject: riscv: kexec: add support for crashkernel CMA reservation
+> Date: Mon, 26 Jan 2026 16:07:38 +0800
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+I commented on almost identical patch for arm64 
 
-------------------------------------------------------
-From: Pnina Feder <pnina.feder@mobileye.com>
-Subject: panic: add panic_force_cpu= parameter to redirect panic to a specific CPU
-Date: Thu, 22 Jan 2026 12:24:57 +0200
+https://lore.kernel.org/all/20260126081334.699147-1-ruanjinjie@huawei.com/
 
-Some platforms require panic handling to execute on a specific CPU for
-crash dump to work reliably.  This can be due to firmware limitations,
-interrupt routing constraints, or platform-specific requirements where
-only a single CPU is able to safely enter the crash kernel.
-
-Add the panic_force_cpu= kernel command-line parameter to redirect panic
-execution to a designated CPU.  When the parameter is provided, the CPU
-that initially triggers panic forwards the panic context to the target CPU
-via IPI, which then proceeds with the normal panic and kexec flow.
-
-The IPI delivery is implemented as a weak function
-(panic_smp_redirect_cpu) so architectures with NMI support can override it
-for more reliable delivery.
-
-If the specified CPU is invalid, offline, or a panic is already in
-progress on another CPU, the redirection is skipped and panic continues on
-the current CPU.
-
-[pnina.feder@mobileye.com: fix unused variable warning]
-  Link: https://lkml.kernel.org/r/20260126122618.2967950-1-pnina.feder@mobileye.com
-Link: https://lkml.kernel.org/r/20260122102457.1154599-1-pnina.feder@mobileye.com
-Signed-off-by: Pnina Feder <pnina.feder@mobileye.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- Documentation/admin-guide/kernel-parameters.txt |   15 +
- include/linux/panic.h                           |    8 
- include/linux/smp.h                             |    1 
- kernel/panic.c                                  |  164 +++++++++++++-
- 4 files changed, 186 insertions(+), 2 deletions(-)
-
---- a/Documentation/admin-guide/kernel-parameters.txt~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -4788,6 +4788,21 @@ Kernel parameters
- 	panic_on_warn=1	panic() instead of WARN().  Useful to cause kdump
- 			on a WARN().
+about moving the exclusion of CMA regions into the core crash code.
+The same comment applies to this one as well. Sorry I didn't mention that
+more explicitly.
  
-+	panic_force_cpu=
-+			[KNL,SMP] Force panic handling to execute on a specific CPU.
-+			Format: <cpu number>
-+			Some platforms require panic handling to occur on a
-+			specific CPU for the crash kernel to function correctly.
-+			This can be due to firmware limitations, interrupt routing
-+			constraints, or platform-specific requirements where only
-+			a particular CPU can safely enter the crash kernel.
-+			When set, panic() will redirect execution to the specified
-+			CPU before proceeding with the normal panic and kexec flow.
-+			If the target CPU is offline or unavailable, panic proceeds
-+			on the current CPU.
-+			This option should only be used for systems with the above
-+			constraints as it might cause the panic operation to be less reliable.
-+
- 	panic_print=	Bitmask for printing system info when panic happens.
- 			User can chose combination of the following bits:
- 			bit 0: print all tasks info
---- a/include/linux/panic.h~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/include/linux/panic.h
-@@ -41,6 +41,14 @@ void abort(void);
-  * PANIC_CPU_INVALID means no CPU has entered panic() or crash_kexec().
-  */
- extern atomic_t panic_cpu;
-+
-+/*
-+ * panic_redirect_cpu is used when panic is redirected to a specific CPU via
-+ * the panic_force_cpu= boot parameter. It holds the CPU number that originally
-+ * triggered the panic before redirection. A value of PANIC_CPU_INVALID means
-+ * no redirection has occurred.
-+ */
-+extern atomic_t panic_redirect_cpu;
- #define PANIC_CPU_INVALID	-1
- 
- bool panic_try_start(void);
---- a/include/linux/smp.h~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/include/linux/smp.h
-@@ -62,6 +62,7 @@ int smp_call_function_single_async(int c
- void __noreturn panic_smp_self_stop(void);
- void __noreturn nmi_panic_self_stop(struct pt_regs *regs);
- void crash_smp_send_stop(void);
-+int panic_smp_redirect_cpu(int target_cpu, void *msg);
- 
- /*
-  * Call a function on all processors
---- a/kernel/panic.c~panic-add-panic_force_cpu=-parameter-to-redirect-panic-to-a-specific-cpu
-+++ a/kernel/panic.c
-@@ -42,6 +42,7 @@
- 
- #define PANIC_TIMER_STEP 100
- #define PANIC_BLINK_SPD 18
-+#define PANIC_MSG_BUFSZ 1024
- 
- #ifdef CONFIG_SMP
- /*
-@@ -74,6 +75,8 @@ EXPORT_SYMBOL_GPL(panic_timeout);
- 
- unsigned long panic_print;
- 
-+static int panic_force_cpu = -1;
-+
- ATOMIC_NOTIFIER_HEAD(panic_notifier_list);
- 
- EXPORT_SYMBOL(panic_notifier_list);
-@@ -300,6 +303,150 @@ void __weak crash_smp_send_stop(void)
- }
- 
- atomic_t panic_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
-+atomic_t panic_redirect_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
-+
-+#if defined(CONFIG_SMP) && defined(CONFIG_CRASH_DUMP)
-+static char *panic_force_buf;
-+
-+static int __init panic_force_cpu_setup(char *str)
-+{
-+	int cpu;
-+
-+	if (!str)
-+		return -EINVAL;
-+
-+	if (kstrtoint(str, 0, &cpu) || cpu < 0 || cpu >= nr_cpu_ids) {
-+		pr_warn("panic_force_cpu: invalid value '%s'\n", str);
-+		return -EINVAL;
-+	}
-+
-+	panic_force_cpu = cpu;
-+	return 0;
-+}
-+early_param("panic_force_cpu", panic_force_cpu_setup);
-+
-+static int __init panic_force_cpu_late_init(void)
-+{
-+	if (panic_force_cpu < 0)
-+		return 0;
-+
-+	panic_force_buf = kmalloc(PANIC_MSG_BUFSZ, GFP_KERNEL);
-+
-+	return 0;
-+}
-+late_initcall(panic_force_cpu_late_init);
-+
-+static void do_panic_on_target_cpu(void *info)
-+{
-+	panic("%s", (char *)info);
-+}
-+
-+/**
-+ * panic_smp_redirect_cpu - Redirect panic to target CPU
-+ * @target_cpu: CPU that should handle the panic
-+ * @msg: formatted panic message
-+ *
-+ * Default implementation uses IPI. Architectures with NMI support
-+ * can override this for more reliable delivery.
-+ *
-+ * Return: 0 on success, negative errno on failure
-+ */
-+int __weak panic_smp_redirect_cpu(int target_cpu, void *msg)
-+{
-+	static call_single_data_t panic_csd;
-+
-+	panic_csd.func = do_panic_on_target_cpu;
-+	panic_csd.info = msg;
-+
-+	return smp_call_function_single_async(target_cpu, &panic_csd);
-+}
-+
-+/**
-+ * panic_try_force_cpu - Redirect panic to a specific CPU for crash kernel
-+ * @fmt: panic message format string
-+ * @args: arguments for format string
-+ *
-+ * Some platforms require panic handling to occur on a specific CPU
-+ * for the crash kernel to function correctly. This function redirects
-+ * panic handling to the CPU specified via the panic_force_cpu= boot parameter.
-+ *
-+ * Returns false if panic should proceed on current CPU.
-+ * Returns true if panic was redirected.
-+ */
-+__printf(1, 0)
-+static bool panic_try_force_cpu(const char *fmt, va_list args)
-+{
-+	int this_cpu = raw_smp_processor_id();
-+	int old_cpu = PANIC_CPU_INVALID;
-+	const char *msg;
-+
-+	/* Feature not enabled via boot parameter */
-+	if (panic_force_cpu < 0)
-+		return false;
-+
-+	/* Already on target CPU - proceed normally */
-+	if (this_cpu == panic_force_cpu)
-+		return false;
-+
-+	/* Target CPU is offline, can't redirect */
-+	if (!cpu_online(panic_force_cpu)) {
-+		pr_warn("panic: target CPU %d is offline, continuing on CPU %d\n",
-+			panic_force_cpu, this_cpu);
-+		return false;
-+	}
-+
-+	/* Another panic already in progress */
-+	if (panic_in_progress())
-+		return false;
-+
-+	/*
-+	 * Only one CPU can do the redirect. Use atomic cmpxchg to ensure
-+	 * we don't race with another CPU also trying to redirect.
-+	 */
-+	if (!atomic_try_cmpxchg(&panic_redirect_cpu, &old_cpu, this_cpu))
-+		return false;
-+
-+	/*
-+	 * Use dynamically allocated buffer if available, otherwise
-+	 * fall back to static message for early boot panics or allocation failure.
-+	 */
-+	if (panic_force_buf) {
-+		vsnprintf(panic_force_buf, PANIC_MSG_BUFSZ, fmt, args);
-+		msg = panic_force_buf;
-+	} else {
-+		msg = "Redirected panic (buffer unavailable)";
-+	}
-+
-+	console_verbose();
-+	bust_spinlocks(1);
-+
-+	pr_emerg("panic: Redirecting from CPU %d to CPU %d for crash kernel.\n",
-+		 this_cpu, panic_force_cpu);
-+
-+	/* Dump original CPU before redirecting */
-+	if (!test_taint(TAINT_DIE) &&
-+	    oops_in_progress <= 1 &&
-+	    IS_ENABLED(CONFIG_DEBUG_BUGVERBOSE)) {
-+		dump_stack();
-+	}
-+
-+	if (panic_smp_redirect_cpu(panic_force_cpu, (void *)msg) != 0) {
-+		atomic_set(&panic_redirect_cpu, PANIC_CPU_INVALID);
-+		pr_warn("panic: failed to redirect to CPU %d, continuing on CPU %d\n",
-+			panic_force_cpu, this_cpu);
-+		return false;
-+	}
-+
-+	/* IPI/NMI sent, this CPU should stop */
-+	return true;
-+}
-+#else
-+__printf(1, 0)
-+static inline bool panic_try_force_cpu(const char *fmt, va_list args)
-+{
-+	return false;
-+}
-+#endif /* CONFIG_SMP && CONFIG_CRASH_DUMP */
- 
- bool panic_try_start(void)
- {
-@@ -428,7 +575,7 @@ static void panic_other_cpus_shutdown(bo
-  */
- void vpanic(const char *fmt, va_list args)
- {
--	static char buf[1024];
-+	static char buf[PANIC_MSG_BUFSZ];
- 	long i, i_next = 0, len;
- 	int state = 0;
- 	bool _crash_kexec_post_notifiers = crash_kexec_post_notifiers;
-@@ -452,6 +599,15 @@ void vpanic(const char *fmt, va_list arg
- 	local_irq_disable();
- 	preempt_disable_notrace();
- 
-+	/* Redirect panic to target CPU if configured via panic_force_cpu=. */
-+	if (panic_try_force_cpu(fmt, args)) {
-+		/*
-+		 * Mark ourselves offline so panic_other_cpus_shutdown() won't wait
-+		 * for us on architectures that check num_online_cpus().
-+		 */
-+		set_cpu_online(smp_processor_id(), false);
-+		panic_smp_self_stop();
-+	}
- 	/*
- 	 * It's possible to come here directly from a panic-assertion and
- 	 * not have preempt disabled. Some functions called from here want
-@@ -484,7 +640,11 @@ void vpanic(const char *fmt, va_list arg
- 	/*
- 	 * Avoid nested stack-dumping if a panic occurs during oops processing
- 	 */
--	if (test_taint(TAINT_DIE) || oops_in_progress > 1) {
-+	if (atomic_read(&panic_redirect_cpu) != PANIC_CPU_INVALID &&
-+	    panic_force_cpu == raw_smp_processor_id()) {
-+		pr_emerg("panic: Redirected from CPU %d, skipping stack dump.\n",
-+			 atomic_read(&panic_redirect_cpu));
-+	} else if (test_taint(TAINT_DIE) || oops_in_progress > 1) {
- 		panic_this_cpu_backtrace_printed = true;
- 	} else if (IS_ENABLED(CONFIG_DEBUG_BUGVERBOSE)) {
- 		dump_stack();
-_
+> Commit 35c18f2933c5 ("Add a new optional ",cma" suffix to the crashkernel=
+> command line option") and commit ab475510e042 ("kdump: implement
+> reserve_crashkernel_cma") added CMA support for kdump crashkernel
+> reservation.  This allows the kernel to dynamically allocate contiguous
+> memory for crash dumping when needed, rather than permanently reserving a
+> fixed region at boot time.
+> 
+> So extend crashkernel CMA reservation support to riscv.  The following
+> changes are made to enable CMA reservation:
+> 
+> - Parse and obtain the CMA reservation size along with other crashkernel
+>   parameters.
+> - Call reserve_crashkernel_cma() to allocate the CMA region for kdump.
+> - Include the CMA-reserved ranges for kdump kernel to use.
+> - Exclude the CMA-reserved ranges from the crash kernel memory to
+>   prevent them from being exported through /proc/vmcore.
+> 
+> Update kernel-parameters.txt to document CMA support for crashkernel on
+> riscv architecture.
+> 
+> Link: https://lkml.kernel.org/r/20260126080738.696723-1-ruanjinjie@huawei.com
+> Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
+> Cc: Albert Ou <aou@eecs.berkeley.edu>
+> Cc: Alexandre Ghiti <alex@ghiti.fr>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Björn Töpel <bjorn@rivosinc.com>
+> Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+> Cc: Breno Leitao <leitao@debian.org>
+> Cc: Frank van der Linden <fvdl@google.com>
+> Cc: Ingo Molnar <mingo@kernel.org>
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> Cc: Kees Cook <kees@kernel.org>
+> Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+> Cc: Li RongQing <lirongqing@baidu.com>
+> Cc: Marco Elver <elver@google.com>
+> Cc: Mike Rapoport <rppt@kernel.org>
+> Cc: Palmer Dabbelt <palmer@dabbelt.com>
+> Cc: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
+> Cc: Randy Dunlap <rdunlap@infradead.org>
+> Cc: Samuel Holland <samuel.holland@sifive.com>
+> Cc: Song Shuai <songshuaishuai@tinylab.org>
+> Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+> Cc: Yunhui Cui <cuiyunhui@bytedance.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  Documentation/admin-guide/kernel-parameters.txt |    2 -
+>  arch/riscv/kernel/machine_kexec_file.c          |   17 ++++++++++++--
+>  arch/riscv/mm/init.c                            |    5 ++--
+>  3 files changed, 19 insertions(+), 5 deletions(-)
+> 
+> --- a/arch/riscv/kernel/machine_kexec_file.c~riscv-kexec-add-support-for-crashkernel-cma-reservation
+> +++ a/arch/riscv/kernel/machine_kexec_file.c
+> @@ -59,9 +59,9 @@ static int prepare_elf_headers(void **ad
+>  {
+>  	struct crash_mem *cmem;
+>  	unsigned int nr_ranges;
+> -	int ret;
+> +	int ret, i;
+>  
+> -	nr_ranges = 1; /* For exclusion of crashkernel region */
+> +	nr_ranges = 1 + crashk_cma_cnt; /* For exclusion of crashkernel region */
+>  	walk_system_ram_res(0, -1, &nr_ranges, get_nr_ram_ranges_callback);
+>  
+>  	cmem = kmalloc(struct_size(cmem, ranges, nr_ranges), GFP_KERNEL);
+> @@ -74,11 +74,24 @@ static int prepare_elf_headers(void **ad
+>  	if (ret)
+>  		goto out;
+>  
+> +	for (i = 0; i < crashk_cma_cnt; i++) {
+> +		cmem->ranges[cmem->nr_ranges].start = crashk_cma_ranges[i].start;
+> +		cmem->ranges[cmem->nr_ranges].end = crashk_cma_ranges[i].end;
+> +		cmem->nr_ranges++;
+> +	}
+> +
+>  	/* Exclude crashkernel region */
+>  	ret = crash_exclude_mem_range(cmem, crashk_res.start, crashk_res.end);
+>  	if (!ret)
+>  		ret = crash_prepare_elf64_headers(cmem, true, addr, sz);
+>  
+> +	for (i = 0; i < crashk_cma_cnt; ++i) {
+> +		ret = crash_exclude_mem_range(cmem, crashk_cma_ranges[i].start,
+> +					      crashk_cma_ranges[i].end);
+> +		if (ret)
+> +			goto out;
+> +	}
+> +
+>  out:
+>  	kfree(cmem);
+>  	return ret;
+> --- a/arch/riscv/mm/init.c~riscv-kexec-add-support-for-crashkernel-cma-reservation
+> +++ a/arch/riscv/mm/init.c
+> @@ -1404,7 +1404,7 @@ static inline void setup_vm_final(void)
+>   */
+>  static void __init arch_reserve_crashkernel(void)
+>  {
+> -	unsigned long long low_size = 0;
+> +	unsigned long long low_size = 0, cma_size = 0;
+>  	unsigned long long crash_base, crash_size;
+>  	bool high = false;
+>  	int ret;
+> @@ -1414,11 +1414,12 @@ static void __init arch_reserve_crashker
+>  
+>  	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
+>  				&crash_size, &crash_base,
+> -				&low_size, NULL, &high);
+> +				&low_size, &cma_size, &high);
+>  	if (ret)
+>  		return;
+>  
+>  	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
+> +	reserve_crashkernel_cma(cma_size);
+>  }
+>  
+>  void __init paging_init(void)
+> --- a/Documentation/admin-guide/kernel-parameters.txt~riscv-kexec-add-support-for-crashkernel-cma-reservation
+> +++ a/Documentation/admin-guide/kernel-parameters.txt
+> @@ -1119,7 +1119,7 @@ Kernel parameters
+>  			It will be ignored when crashkernel=X,high is not used
+>  			or memory reserved is below 4G.
+>  	crashkernel=size[KMG],cma
+> -			[KNL, X86, ppc] Reserve additional crash kernel memory from
+> +			[KNL, X86, RISCV, ppc] Reserve additional crash kernel memory from
+>  			CMA. This reservation is usable by the first system's
+>  			userspace memory and kernel movable allocations (memory
+>  			balloon, zswap). Pages allocated from this memory range
+> _
+> 
+> Patches currently in -mm which might be from ruanjinjie@huawei.com are
+> 
+> 
 
-Patches currently in -mm which might be from pnina.feder@mobileye.com are
-
-
+-- 
+Sincerely yours,
+Mike.
