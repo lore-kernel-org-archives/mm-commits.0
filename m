@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1638D3EBF1D
-	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 00:17:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 580173EBF1D;
+	Sun,  1 Feb 2026 00:17:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769905027; cv=none; b=eeIaB8W6J3dlO36l083RFhFPQCAJ88vK+7kSU4o4z9KUlFabGHmCrBand2QlDacOTy2k0tyIwEq8Lb2kgJQgWIvkr1y19Oyn9k5KFcqQy4/zi7KTBCiTL3Ye/04RNQwM4XOoX9Xe/O+0kdJBN+cshvw09Gm2K8AbsO4eYk8NbR0=
+	t=1769905028; cv=none; b=b0I1grfEmVt0IrteNSX0i7YeCz/Qa0rSnMFmiSNL7VySlF5zDvX2on5za32GuZOdmD904OKRwFkIlXjrTL9iMFA4PdtKfifv3OmQ02oNTMbXtsJYbrIMq9UfYUsOk55nJ4mCJBAXFVHdLmskxcALlqB3gfgZlwzR+NVY1EdbICw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769905027; c=relaxed/simple;
-	bh=vUohPP/l3IxjkkGXC+R4s/IZH2ynYKe2S7juRjQwe6s=;
-	h=Date:To:From:Subject:Message-Id; b=KTEnvr8DoXXmyE8qM/NT0QCPDxTDMoZ0kXrAca+oTQnY6YhyHyB8elu6BEtZ3IAdn8NFzroBKnvsjnDKlMZryja3D9MiQTphtM3hKrFKpwckkCImzbqPvt7XoUY0wEXtVZxKoMAVpB4nSeZ+Bs5bFrC435ddQIPOnSe3TwYEmfg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qTcfKUhK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1769905028; c=relaxed/simple;
+	bh=iV4zz0DlYN7DO4SK5Ru0QB+k2B4ytTaTPfO0gtSncIc=;
+	h=Date:To:From:Subject:Message-Id; b=gx6XZPY6mBt96eOiDywFyBmSMJTtndcQSVkf5GsoXPQBaSkMRIg8/6VltAK/7fPkhdZy2IP2like/KvQnil0uQxhKPUpKvANGQBqhHe9cj1kpdc93erBGT83F10nPk72E2404K/zGcv74B/RzHzLLkYd4+rYaBtDdeKeMaSGH+s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NfvtW1jw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qTcfKUhK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1E6EC4CEF1;
-	Sun,  1 Feb 2026 00:17:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NfvtW1jw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26792C4CEF1;
+	Sun,  1 Feb 2026 00:17:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1769905027;
-	bh=vUohPP/l3IxjkkGXC+R4s/IZH2ynYKe2S7juRjQwe6s=;
+	s=korg; t=1769905028;
+	bh=iV4zz0DlYN7DO4SK5Ru0QB+k2B4ytTaTPfO0gtSncIc=;
 	h=Date:To:From:Subject:From;
-	b=qTcfKUhKljGbjFvKf6W/xTxaULQjCJRK+gGNICVqA+Q5J97mP/Z6ojK7R7W4f/ykz
-	 ALXQawSSiLDJfOfXq11TlI8KNZd2SgC0PG6GTg6sWRqwC0736Y4aqq9v5wQKWDo/0F
-	 MIS/k97mT31s1yrl3JLhH2STXa2b6PeTrjKyrnzo=
-Date: Sat, 31 Jan 2026 16:17:06 -0800
-To: mm-commits@vger.kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=NfvtW1jw8bS18ebDYAhCPxVfTz6JPIspwSy4GFcmSeNdb1kqBN1Sj6rV4YYIunRVM
+	 CXRatct+F0smwODYJlhkAqfYrDIKRTaLbMLLvPlgEjvj5Xzp2VLGw3frOT4O8Nxwev
+	 ii3L0yuiifnrXJOtXH2xIjFE+3WwHrCjbZXlVoyc=
+Date: Sat, 31 Jan 2026 16:17:07 -0800
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,stable@vger.kernel.org,dyoung@redhat.com,coxu@redhat.com,bhe@redhat.com,gor@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kho-cleanup-error-handling-in-kho_populate.patch removed from -mm tree
-Message-Id: <20260201001706.E1E6EC4CEF1@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] crash_dump-fix-dm_crypt-keys-locking-and-ref-leak.patch removed from -mm tree
+Message-Id: <20260201001708.26792C4CEF1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,126 +35,110 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho: cleanup error handling in kho_populate()
+     Subject: crash_dump: fix dm_crypt keys locking and ref leak
 has been removed from the -mm tree.  Its filename was
-     kho-cleanup-error-handling-in-kho_populate.patch
+     crash_dump-fix-dm_crypt-keys-locking-and-ref-leak.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: kho: cleanup error handling in kho_populate()
-Date: Thu, 22 Jan 2026 14:17:57 +0200
+From: Vasily Gorbik <gor@linux.ibm.com>
+Subject: crash_dump: fix dm_crypt keys locking and ref leak
+Date: Mon, 26 Jan 2026 12:20:46 +0100
 
-* use dedicated labels for error handling instead of checking if a pointer
-  is not null to decide if it should be unmapped
-* drop assignment of values to err that are only used to print a numeric
-  error code, there are pr_warn()s for each failure already so printing a
-  numeric error code in the next line does not add anything useful
+crash_load_dm_crypt_keys() reads dm-crypt volume keys from the user
+keyring.  It uses user_key_payload_locked() without holding key->sem,
+which makes lockdep complain when kexec_file_load() assembles the crash
+image:
 
-Link: https://lkml.kernel.org/r/20260122121757.575987-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+  =============================
+  WARNING: suspicious RCU usage
+  -----------------------------
+  ./include/keys/user-type.h:53 suspicious rcu_dereference_protected() usage!
+
+  other info that might help us debug this:
+
+  rcu_scheduler_active = 2, debug_locks = 1
+  no locks held by kexec/4875.
+
+  stack backtrace:
+  Call Trace:
+   <TASK>
+   dump_stack_lvl+0x5d/0x80
+   lockdep_rcu_suspicious.cold+0x4e/0x96
+   crash_load_dm_crypt_keys+0x314/0x390
+   bzImage64_load+0x116/0x9a0
+   ? __lock_acquire+0x464/0x1ba0
+   __do_sys_kexec_file_load+0x26a/0x4f0
+   do_syscall_64+0xbd/0x430
+   entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+In addition, the key returned by request_key() is never key_put()'d,
+leaking a key reference on each load attempt.
+
+Take key->sem while copying the payload and drop the key reference
+afterwards.
+
+Link: https://lkml.kernel.org/r/patch.git-2d4d76083a5c.your-ad-here.call-01769426386-ext-2560@work.hours
+Fixes: 479e58549b0f ("crash_dump: store dm crypt keys in kdump reserved memory")
+Signed-off-by: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Coiby Xu <coxu@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |   39 +++++++++++----------------
- 1 file changed, 17 insertions(+), 22 deletions(-)
+ kernel/crash_dump_dm_crypt.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-cleanup-error-handling-in-kho_populate
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -1455,46 +1455,40 @@ void __init kho_memory_init(void)
- void __init kho_populate(phys_addr_t fdt_phys, u64 fdt_len,
- 			 phys_addr_t scratch_phys, u64 scratch_len)
+--- a/kernel/crash_dump_dm_crypt.c~crash_dump-fix-dm_crypt-keys-locking-and-ref-leak
++++ a/kernel/crash_dump_dm_crypt.c
+@@ -143,6 +143,7 @@ static int read_key_from_user_keying(str
  {
-+	unsigned int scratch_cnt = scratch_len / sizeof(*kho_scratch);
- 	struct kho_scratch *scratch = NULL;
- 	phys_addr_t mem_map_phys;
- 	void *fdt = NULL;
--	int err = 0;
--	unsigned int scratch_cnt = scratch_len / sizeof(*kho_scratch);
-+	int err;
+ 	const struct user_key_payload *ukp;
+ 	struct key *key;
++	int ret = 0;
  
- 	/* Validate the input FDT */
- 	fdt = early_memremap(fdt_phys, fdt_len);
- 	if (!fdt) {
- 		pr_warn("setup: failed to memremap FDT (0x%llx)\n", fdt_phys);
--		err = -EFAULT;
--		goto out;
-+		goto err_report;
- 	}
- 	err = fdt_check_header(fdt);
- 	if (err) {
- 		pr_warn("setup: handover FDT (0x%llx) is invalid: %d\n",
- 			fdt_phys, err);
--		err = -EINVAL;
--		goto out;
-+		goto err_unmap_fdt;
- 	}
- 	err = fdt_node_check_compatible(fdt, 0, KHO_FDT_COMPATIBLE);
- 	if (err) {
- 		pr_warn("setup: handover FDT (0x%llx) is incompatible with '%s': %d\n",
- 			fdt_phys, KHO_FDT_COMPATIBLE, err);
--		err = -EINVAL;
--		goto out;
-+		goto err_unmap_fdt;
+ 	kexec_dprintk("Requesting logon key %s", dm_key->key_desc);
+ 	key = request_key(&key_type_logon, dm_key->key_desc, NULL);
+@@ -152,20 +153,28 @@ static int read_key_from_user_keying(str
+ 		return PTR_ERR(key);
  	}
  
- 	mem_map_phys = kho_get_mem_map_phys(fdt);
--	if (!mem_map_phys) {
--		err = -ENOENT;
--		goto out;
--	}
-+	if (!mem_map_phys)
-+		goto err_unmap_fdt;
++	down_read(&key->sem);
+ 	ukp = user_key_payload_locked(key);
+-	if (!ukp)
+-		return -EKEYREVOKED;
++	if (!ukp) {
++		ret = -EKEYREVOKED;
++		goto out;
++	}
  
- 	scratch = early_memremap(scratch_phys, scratch_len);
- 	if (!scratch) {
- 		pr_warn("setup: failed to memremap scratch (phys=0x%llx, len=%lld)\n",
- 			scratch_phys, scratch_len);
--		err = -EFAULT;
--		goto out;
-+		goto err_unmap_fdt;
+ 	if (ukp->datalen > KEY_SIZE_MAX) {
+ 		pr_err("Key size %u exceeds maximum (%u)\n", ukp->datalen, KEY_SIZE_MAX);
+-		return -EINVAL;
++		ret = -EINVAL;
++		goto out;
  	}
  
- 	/*
-@@ -1511,7 +1505,7 @@ void __init kho_populate(phys_addr_t fdt
- 		if (WARN_ON(err)) {
- 			pr_warn("failed to mark the scratch region 0x%pa+0x%pa: %pe",
- 				&area->addr, &size, ERR_PTR(err));
--			goto out;
-+			goto err_unmap_scratch;
- 		}
- 		pr_debug("Marked 0x%pa+0x%pa as scratch", &area->addr, &size);
- 	}
-@@ -1533,13 +1527,14 @@ void __init kho_populate(phys_addr_t fdt
- 	kho_scratch_cnt = scratch_cnt;
- 	pr_info("found kexec handover data.\n");
- 
--out:
--	if (fdt)
--		early_memunmap(fdt, fdt_len);
--	if (scratch)
--		early_memunmap(scratch, scratch_len);
--	if (err)
--		pr_warn("disabling KHO revival: %d\n", err);
-+	return;
+ 	memcpy(dm_key->data, ukp->data, ukp->datalen);
+ 	dm_key->key_size = ukp->datalen;
+ 	kexec_dprintk("Get dm crypt key (size=%u) %s: %8ph\n", dm_key->key_size,
+ 		      dm_key->key_desc, dm_key->data);
+-	return 0;
 +
-+err_unmap_scratch:
-+	early_memunmap(scratch, scratch_len);
-+err_unmap_fdt:
-+	early_memunmap(fdt, fdt_len);
-+err_report:
-+	pr_warn("disabling KHO revival\n");
++out:
++	up_read(&key->sem);
++	key_put(key);
++	return ret;
  }
  
- /* Helper functions for kexec_file_load */
+ struct config_key {
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from gor@linux.ibm.com are
 
 
