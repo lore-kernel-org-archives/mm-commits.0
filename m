@@ -1,217 +1,246 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f177.google.com (mail-pg1-f177.google.com [209.85.215.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D3434F265
-	for <mm-commits@vger.kernel.org>; Sun,  1 Feb 2026 14:29:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF5D71D5CEA
+	for <mm-commits@vger.kernel.org>; Mon,  2 Feb 2026 03:01:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1769956169; cv=none; b=SlD5MMGkuGuF73Pd2a/bmLfhDRiNwBWunDs+KvAeqorctDIXakyglKhWyE6TCoRg0+fgiyTPhR+0LktEsghe4z0MJV75NBhWcXGhiLh/tJuKanUhBFgrCXQ1hPVnZHJ046QlS6P/LSwjP7kltYdIwdsvfNvGxNcu4hMBr0hzEuk=
+	t=1770001306; cv=none; b=PL3PMKcIAK2I0BLHONuK8o32931IbjrsIU3R6ja0tdpC57tVZYazjAB0/MLZ1gTldDFqLJ4QyuivK8NdjWHdjjf3/CG2bdmwRifxW+5KNQJPeA9JCYhdt5er+lZHdeo4TyErZnovNr6aSXtpacZ1Rl1jCN7qVpaTktsvNM9JD5w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1769956169; c=relaxed/simple;
-	bh=SQ1VBikf9kF/fa9Ul/EvSs4uUS32plPbVLC7awIg7ZU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=JT6d2VBfo0TK1bH44BzYuFsP85CWp2W1sCabDXfcNQtXeXKJ+yAd9dFRgOOHeK/QKSsXR3XRLCitVxr2H0j8raT7bd2i8oXXI0ZiLo7EEoPT6kk5NJAG6eo5yyRPRd1KE/9YE0gwsHmz+MXy65NEoHltxkizR5BK+nEeqND5Y/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QSxLWd5d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770001306; c=relaxed/simple;
+	bh=vmtkan5sP5l9llZplvdAavrlmmvhsUKqqMITpUxGe3I=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:Cc:
+	 In-Reply-To:Content-Type; b=p/NQZaP0TWKB0dfJ2BoAMqVfFPu4sFXl5bzzQmpf2vU+vvgQyUW32rVIbuXSobmsArWvDCvmHDpNN4IRPWXPHoUm6xz7M9mjbU5whR6/NK31Q9//ZiLHm8N3e3Mcp48YgV7mPKqChFxsvE5c8nMx7AR8Vd2sbuzpKnAtmJ85JHE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Mdl7YIG5; arc=none smtp.client-ip=209.85.215.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QSxLWd5d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17547C4CEF7;
-	Sun,  1 Feb 2026 14:29:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1769956168;
-	bh=SQ1VBikf9kF/fa9Ul/EvSs4uUS32plPbVLC7awIg7ZU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=QSxLWd5dwXUz2ldJhA3AwYwJAgF09Kw1bwpuYPpHbVa5L/M7T6vf4hbBs6KBeN1XF
-	 TZ6rXYaTQKlFVoT3gE2HkI07X/XQGpFAVJOzcw38i7bPKyw5Mnodpt78s6v07Wrzzp
-	 hYpByH+UGyEfAYussYXL+26x4xLfShvehK1HdawZK+H97Q5D2ahIXa0C0ocSaJA4wi
-	 v+I+leDtPF4BoQMka0RCqmBdLBDQCM1t0vnAkzrwcXgCmJf9/K8psTv0kzlaasZKLC
-	 HD2zrsZihxEQSqtR1r6OEe6Jli/SocJGIh8iO4LgeeaFzKAS3DqeSfhjGYd/PjE0US
-	 glMbyc4QlpFvw==
-Date: Sun, 1 Feb 2026 15:29:17 +0100
-From: Mike Rapoport <rppt@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, vishal.moola@gmail.com,
-	songshuaishuai@tinylab.org, samuel.holland@sifive.com,
-	rdunlap@infradead.org, pawan.kumar.gupta@linux.intel.com,
-	palmer@dabbelt.com, mingo@kernel.org, lirongqing@baidu.com,
-	leitao@debian.org, kevin.brodsky@arm.com, kees@kernel.org,
-	fvdl@google.com, elver@google.com, cuiyunhui@bytedance.com,
-	corbet@lwn.net, bp@alien8.de, bjorn@rivosinc.com,
-	bhelgaas@google.com, arnd@arndb.de, aou@eecs.berkeley.edu,
-	alex@ghiti.fr, ruanjinjie@huawei.com
-Subject: Re: [merged mm-nonmm-stable]
- riscv-kexec-add-support-for-crashkernel-cma-reservation.patch removed from
- -mm tree
-Message-ID: <aX9jPbkG7QYNWH73@kernel.org>
-References: <20260201001710.A3CE5C4CEF1@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Mdl7YIG5"
+Received: by mail-pg1-f177.google.com with SMTP id 41be03b00d2f7-c65822dead7so1521246a12.3
+        for <mm-commits@vger.kernel.org>; Sun, 01 Feb 2026 19:01:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1770001304; x=1770606104; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:cc:from:references:to:subject
+         :user-agent:mime-version:date:message-id:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=3ZqgtgUHkqRMpwNIOeIJntJiuuNaTyYu4y8n2nppDOA=;
+        b=Mdl7YIG5bwA2NNxB4HUhnJN62X6bij5OXM8asmAxHPq0cXYxvnx+am/djxc5D0FZ7A
+         kLqHm7nAQ4fTiEvOQoMNHwKQZXRD/ic0hCGEtBqvBplhn3uduv6KG2w+xFlla8fjGDHo
+         gUE66CXjpL+bL/8Skg2R5JivFEGXzrIlktIjnlAInPRrkDrdU29N/3xo/UMRqG71eCbU
+         xmfxZcmEDNC3jy4lA8Q8O5Ao1L0LyuQpDAenRaqZlfIAKDRxgsZzo/XWlsYQ8Bo83v/g
+         EeKaIz5b9oBF6rnofaEoVnBW2GitfEwj/38+73xpft8xUNuIkrDJtai3NUtyf4pEqcQY
+         otrw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1770001304; x=1770606104;
+        h=content-transfer-encoding:in-reply-to:cc:from:references:to:subject
+         :user-agent:mime-version:date:message-id:x-gm-gg:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=3ZqgtgUHkqRMpwNIOeIJntJiuuNaTyYu4y8n2nppDOA=;
+        b=UVCE2GdbSvZ4vdzFRkJo84OJi9KNwhq1xvSDR5WwtsPn5aBCpb4eQM33tvC/EuK7p0
+         CRedOmz4v0bKguwyPlDOUdp3S3R4326vMsYiUQjUHesktgUvxI2XKPByBb+jL6iFjCEo
+         8hdzjOtn4D+Xp1bEu4bDZxjZiP0nO9LVP55hr23/pcn813/za8vBYgmLMqCHXmRQl9GZ
+         sDdGlrrHjwj0XuGOKs9YmIebKaGYx8pWcBMS1sbEU4sPHUf/gOKzigP2OlK/Y4/30B0Y
+         O2KtPAdH6IqOH5cNcAA53nBsplYwQvaNrP/sewTX2ifdxDKtMrwQBf5KhfDLUZpdbz1S
+         CrYw==
+X-Gm-Message-State: AOJu0YxnfhLBrE9YU6fHmmDLBqn9bWSYJsIKtmKSZPzsILz5m7K3ANgC
+	aqFmopKBSBJ5OeiKoB1c1JntKQw0WXxONC685a9SWMB1h6nWoPZf9X9G
+X-Gm-Gg: AZuq6aJJJGedYEOeG7kDcvhRsFPRHJvStDAgPwTXEJtsQOYKAT4OboTrsjjLK8sLBKv
+	yHCb+q++bbwJNzlGYe+eHrk5dmxgZNrFaWVyAuHhUAIx9CWovR8lkRLJJlfSpb4iZm5Kk2ASGyK
+	XB7UCQyi9NVEU1foAtOPy/Qt7be1ITdvk7/d8Khcx0JDD7GwZGp+n7SBQQa3sSPosYzInLNI2VC
+	5vkkY0tFs7j2VE2T/Qawfe8X6/oKCC+RLL6dJMD9aQQmWP+LdnRr9dEu75Skn7SSeAZjdc2zVUc
+	k4hPk5CxNOU130jQ0sTyYYPJ79YWopZia8AjEbfr8GgJXOq5CqOuTeBRpB7vJGhYO721Qri5BX1
+	QExJ/roLsAajL9YHRCm2KOWYMn+erhHJHcOf+H7x6ecsVwOHG65rdDJtOiwanswQfpk+3RINUUc
+	5HPTrn7KFUYdirPuWNm8iAujtz4g==
+X-Received: by 2002:a05:6300:404c:b0:35d:d477:a7d6 with SMTP id adf61e73a8af0-392e0000552mr8846286637.13.1770001304136;
+        Sun, 01 Feb 2026 19:01:44 -0800 (PST)
+Received: from [30.221.131.71] ([47.246.101.55])
+        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-c642add5199sm12174435a12.31.2026.02.01.19.01.42
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 01 Feb 2026 19:01:43 -0800 (PST)
+Message-ID: <dd7c7aaa-a08a-4706-9570-b34dd313f667@gmail.com>
+Date: Mon, 2 Feb 2026 11:01:38 +0800
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20260201001710.A3CE5C4CEF1@smtp.kernel.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: +
+ ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch added to
+ mm-nonmm-unstable branch
+To: Andrew Morton <akpm@linux-foundation.org>, swilczek.lx@gmail.com
+References: <20260131235655.23B43C4CEF1@smtp.kernel.org>
+From: Joseph Qi <jiangqi903@gmail.com>
+Cc: mm-commits@vger.kernel.org, Mark Fasheh <mark@fasheh.com>,
+ Joel Becker <jlbec@evilplan.org>, Heming Zhao <heming.zhao@suse.com>
+In-Reply-To: <20260131235655.23B43C4CEF1@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 Hi Andrew,
+As discussed in v1 thread, I also have questions for this solution.
 
-On Sat, Jan 31, 2026 at 04:17:10PM -0800, Andrew Morton wrote:
+Thanks,
+Joseph
+
+On 2/1/26 7:56 AM, Andrew Morton wrote:
+> The patch titled
+>      Subject: ocfs2: fix circular locking dependency in ocfs2_acquire_dquot
+> has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+>      ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch
 > 
-> The quilt patch titled
->      Subject: riscv: kexec: add support for crashkernel CMA reservation
-> has been removed from the -mm tree.  Its filename was
->      riscv-kexec-add-support-for-crashkernel-cma-reservation.patch
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch
 > 
-> This patch was dropped because it was merged into the mm-nonmm-stable branch
-> of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> This patch will later appear in the mm-nonmm-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via various
+> branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there most days
 > 
 > ------------------------------------------------------
-> From: Jinjie Ruan <ruanjinjie@huawei.com>
-> Subject: riscv: kexec: add support for crashkernel CMA reservation
-> Date: Mon, 26 Jan 2026 16:07:38 +0800
-
-I commented on almost identical patch for arm64 
-
-https://lore.kernel.org/all/20260126081334.699147-1-ruanjinjie@huawei.com/
-
-about moving the exclusion of CMA regions into the core crash code.
-The same comment applies to this one as well. Sorry I didn't mention that
-more explicitly.
- 
-> Commit 35c18f2933c5 ("Add a new optional ",cma" suffix to the crashkernel=
-> command line option") and commit ab475510e042 ("kdump: implement
-> reserve_crashkernel_cma") added CMA support for kdump crashkernel
-> reservation.  This allows the kernel to dynamically allocate contiguous
-> memory for crash dumping when needed, rather than permanently reserving a
-> fixed region at boot time.
+> From: Szymon Wilczek <swilczek.lx@gmail.com>
+> Subject: ocfs2: fix circular locking dependency in ocfs2_acquire_dquot
+> Date: Thu, 8 Jan 2026 15:19:31 +0100
 > 
-> So extend crashkernel CMA reservation support to riscv.  The following
-> changes are made to enable CMA reservation:
+> Move ocfs2_extend_no_holes() and ocfs2_start_trans() to execute before
+> ocfs2_lock_global_qf() to fix a circular locking dependency reported by
+> syzbot.
 > 
-> - Parse and obtain the CMA reservation size along with other crashkernel
->   parameters.
-> - Call reserve_crashkernel_cma() to allocate the CMA region for kdump.
-> - Include the CMA-reserved ranges for kdump kernel to use.
-> - Exclude the CMA-reserved ranges from the crash kernel memory to
->   prevent them from being exported through /proc/vmcore.
+> The issue occurs because ocfs2_start_trans() acquires sb_internal (via
+> sb_start_intwrite) while already holding quota file locks (ip_alloc_sem
+> and sysfile_lock_key).  This conflicts with freeze/dismount paths that
+> acquire sb_internal first, creating the following circular dependency:
 > 
-> Update kernel-parameters.txt to document CMA support for crashkernel on
-> riscv architecture.
+>   sb_internal -> sysfile_lock_key -> ip_alloc_sem (freeze/dismount)
+>   ip_alloc_sem -> sysfile_lock_key -> sb_internal (quota acquire)
 > 
-> Link: https://lkml.kernel.org/r/20260126080738.696723-1-ruanjinjie@huawei.com
-> Signed-off-by: Jinjie Ruan <ruanjinjie@huawei.com>
-> Cc: Albert Ou <aou@eecs.berkeley.edu>
-> Cc: Alexandre Ghiti <alex@ghiti.fr>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Björn Töpel <bjorn@rivosinc.com>
-> Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-> Cc: Breno Leitao <leitao@debian.org>
-> Cc: Frank van der Linden <fvdl@google.com>
-> Cc: Ingo Molnar <mingo@kernel.org>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Kees Cook <kees@kernel.org>
-> Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-> Cc: Li RongQing <lirongqing@baidu.com>
-> Cc: Marco Elver <elver@google.com>
-> Cc: Mike Rapoport <rppt@kernel.org>
-> Cc: Palmer Dabbelt <palmer@dabbelt.com>
-> Cc: Pawan Gupta <pawan.kumar.gupta@linux.intel.com>
-> Cc: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Samuel Holland <samuel.holland@sifive.com>
-> Cc: Song Shuai <songshuaishuai@tinylab.org>
-> Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-> Cc: Yunhui Cui <cuiyunhui@bytedance.com>
+> Fix this by reordering the operations:
+> 1. Speculatively extend quota file (uses need_alloc estimate)
+> 2. Start transaction
+> 3. Acquire global quota file lock
+> 4. Perform quota operations
+> 5. Release lock
+> 6. Commit transaction
+> 
+> This ensures sb_internal is acquired before quota file locks, matching
+> the expected kernel lock order.
+> 
+> Link: https://lkml.kernel.org/r/20260108141931.67110-1-swilczek.lx@gmail.com
+> Reported-by: syzbot+51244a05705883616c95@syzkaller.appspotmail.com
+> Closes: https://syzkaller.appspot.com/bug\?extid\=51244a05705883616c95
+> Signed-off-by: Szymon Wilczek <swilczek.lx@gmail.com>
+> Cc: Mark Fasheh <mark@fasheh.com>
+> Cc: Joel Becker <jlbec@evilplan.org>
+> Cc: Junxiao Bi <junxiao.bi@oracle.com>
+> Cc: Joseph Qi <jiangqi903@gmail.com>
+> Cc: Changwei Ge <gechangwei@live.cn>
+> Cc: Jun Piao <piaojun@huawei.com>
+> Cc: Heming Zhao <heming.zhao@suse.com>
 > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 > ---
 > 
->  Documentation/admin-guide/kernel-parameters.txt |    2 -
->  arch/riscv/kernel/machine_kexec_file.c          |   17 ++++++++++++--
->  arch/riscv/mm/init.c                            |    5 ++--
->  3 files changed, 19 insertions(+), 5 deletions(-)
+>  fs/ocfs2/quota_global.c |   49 ++++++++++++++++++++------------------
+>  1 file changed, 27 insertions(+), 22 deletions(-)
 > 
-> --- a/arch/riscv/kernel/machine_kexec_file.c~riscv-kexec-add-support-for-crashkernel-cma-reservation
-> +++ a/arch/riscv/kernel/machine_kexec_file.c
-> @@ -59,9 +59,9 @@ static int prepare_elf_headers(void **ad
->  {
->  	struct crash_mem *cmem;
->  	unsigned int nr_ranges;
-> -	int ret;
-> +	int ret, i;
->  
-> -	nr_ranges = 1; /* For exclusion of crashkernel region */
-> +	nr_ranges = 1 + crashk_cma_cnt; /* For exclusion of crashkernel region */
->  	walk_system_ram_res(0, -1, &nr_ranges, get_nr_ram_ranges_callback);
->  
->  	cmem = kmalloc(struct_size(cmem, ranges, nr_ranges), GFP_KERNEL);
-> @@ -74,11 +74,24 @@ static int prepare_elf_headers(void **ad
->  	if (ret)
->  		goto out;
->  
-> +	for (i = 0; i < crashk_cma_cnt; i++) {
-> +		cmem->ranges[cmem->nr_ranges].start = crashk_cma_ranges[i].start;
-> +		cmem->ranges[cmem->nr_ranges].end = crashk_cma_ranges[i].end;
-> +		cmem->nr_ranges++;
-> +	}
+> --- a/fs/ocfs2/quota_global.c~ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot
+> +++ a/fs/ocfs2/quota_global.c
+> @@ -821,13 +821,35 @@ static int ocfs2_acquire_dquot(struct dq
+>  	trace_ocfs2_acquire_dquot(from_kqid(&init_user_ns, dquot->dq_id),
+>  				  type);
+>  	mutex_lock(&dquot->dq_lock);
 > +
->  	/* Exclude crashkernel region */
->  	ret = crash_exclude_mem_range(cmem, crashk_res.start, crashk_res.end);
->  	if (!ret)
->  		ret = crash_prepare_elf64_headers(cmem, true, addr, sz);
->  
-> +	for (i = 0; i < crashk_cma_cnt; ++i) {
-> +		ret = crash_exclude_mem_range(cmem, crashk_cma_ranges[i].start,
-> +					      crashk_cma_ranges[i].end);
-> +		if (ret)
+> +	/*
+> +	 * Speculatively extend quota file before acquiring any locks or
+> +	 * starting transaction to avoid lock inversion. sb_start_intwrite
+> +	 * (via ocfs2_start_trans) ranks above quota file locks.
+> +	 */
+> +	if (need_alloc) {
+> +		WARN_ON(journal_current_handle());
+> +		status = ocfs2_extend_no_holes(gqinode, NULL,
+> +			i_size_read(gqinode) + (need_alloc << sb->s_blocksize_bits),
+> +			i_size_read(gqinode));
+> +		if (status < 0)
 > +			goto out;
 > +	}
 > +
->  out:
->  	kfree(cmem);
->  	return ret;
-> --- a/arch/riscv/mm/init.c~riscv-kexec-add-support-for-crashkernel-cma-reservation
-> +++ a/arch/riscv/mm/init.c
-> @@ -1404,7 +1404,7 @@ static inline void setup_vm_final(void)
->   */
->  static void __init arch_reserve_crashkernel(void)
->  {
-> -	unsigned long long low_size = 0;
-> +	unsigned long long low_size = 0, cma_size = 0;
->  	unsigned long long crash_base, crash_size;
->  	bool high = false;
->  	int ret;
-> @@ -1414,11 +1414,12 @@ static void __init arch_reserve_crashker
+> +	handle = ocfs2_start_trans(osb,
+> +				   ocfs2_calc_global_qinit_credits(sb, type));
+> +	if (IS_ERR(handle)) {
+> +		status = PTR_ERR(handle);
+> +		goto out;
+> +	}
+> +
+>  	/*
+>  	 * We need an exclusive lock, because we're going to update use count
+>  	 * and instantiate possibly new dquot structure
+>  	 */
+>  	status = ocfs2_lock_global_qf(info, 1);
+>  	if (status < 0)
+> -		goto out;
+> +		goto out_trans;
+>  	status = ocfs2_qinfo_lock(info, 0);
+>  	if (status < 0)
+>  		goto out_dq;
+> @@ -843,29 +865,12 @@ static int ocfs2_acquire_dquot(struct dq
+>  	OCFS2_DQUOT(dquot)->dq_use_count++;
+>  	OCFS2_DQUOT(dquot)->dq_origspace = dquot->dq_dqb.dqb_curspace;
+>  	OCFS2_DQUOT(dquot)->dq_originodes = dquot->dq_dqb.dqb_curinodes;
+> -	if (!dquot->dq_off) {	/* No real quota entry? */
+> +	if (!dquot->dq_off)	/* No real quota entry? */
+>  		ex = 1;
+> -		/*
+> -		 * Add blocks to quota file before we start a transaction since
+> -		 * locking allocators ranks above a transaction start
+> -		 */
+> -		WARN_ON(journal_current_handle());
+> -		status = ocfs2_extend_no_holes(gqinode, NULL,
+> -			i_size_read(gqinode) + (need_alloc << sb->s_blocksize_bits),
+> -			i_size_read(gqinode));
+> -		if (status < 0)
+> -			goto out_dq;
+> -	}
 >  
->  	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
->  				&crash_size, &crash_base,
-> -				&low_size, NULL, &high);
-> +				&low_size, &cma_size, &high);
->  	if (ret)
->  		return;
+> -	handle = ocfs2_start_trans(osb,
+> -				   ocfs2_calc_global_qinit_credits(sb, type));
+> -	if (IS_ERR(handle)) {
+> -		status = PTR_ERR(handle);
+> -		goto out_dq;
+> -	}
+>  	status = ocfs2_qinfo_lock(info, ex);
+>  	if (status < 0)
+> -		goto out_trans;
+> +		goto out_dq;
+>  	status = qtree_write_dquot(&info->dqi_gi, dquot);
+>  	if (ex && info_dirty(sb_dqinfo(sb, type))) {
+>  		err = __ocfs2_global_write_info(sb, type);
+> @@ -873,10 +878,10 @@ static int ocfs2_acquire_dquot(struct dq
+>  			status = err;
+>  	}
+>  	ocfs2_qinfo_unlock(info, ex);
+> -out_trans:
+> -	ocfs2_commit_trans(osb, handle);
+>  out_dq:
+>  	ocfs2_unlock_global_qf(info, 1);
+> +out_trans:
+> +	ocfs2_commit_trans(osb, handle);
+>  	if (status < 0)
+>  		goto out;
 >  
->  	reserve_crashkernel_generic(crash_size, crash_base, low_size, high);
-> +	reserve_crashkernel_cma(cma_size);
->  }
->  
->  void __init paging_init(void)
-> --- a/Documentation/admin-guide/kernel-parameters.txt~riscv-kexec-add-support-for-crashkernel-cma-reservation
-> +++ a/Documentation/admin-guide/kernel-parameters.txt
-> @@ -1119,7 +1119,7 @@ Kernel parameters
->  			It will be ignored when crashkernel=X,high is not used
->  			or memory reserved is below 4G.
->  	crashkernel=size[KMG],cma
-> -			[KNL, X86, ppc] Reserve additional crash kernel memory from
-> +			[KNL, X86, RISCV, ppc] Reserve additional crash kernel memory from
->  			CMA. This reservation is usable by the first system's
->  			userspace memory and kernel movable allocations (memory
->  			balloon, zswap). Pages allocated from this memory range
 > _
 > 
-> Patches currently in -mm which might be from ruanjinjie@huawei.com are
+> Patches currently in -mm which might be from swilczek.lx@gmail.com are
 > 
+> ocfs2-fix-circular-locking-dependency-in-ocfs2_acquire_dquot.patch
 > 
 
--- 
-Sincerely yours,
-Mike.
