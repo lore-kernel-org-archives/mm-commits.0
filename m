@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B70842F0C5B
-	for <mm-commits@vger.kernel.org>; Mon,  2 Feb 2026 20:38:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 692B0274B35
+	for <mm-commits@vger.kernel.org>; Mon,  2 Feb 2026 20:47:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770064699; cv=none; b=b1SIBawBRarUGQT/plUwUdhvJX4BiGmn1Hk+2cYkJ8/Eu2ts4Syjmr/boU2VnHeLXXnD88ZvWAixl9od46tZj+cD4bhfSUKdSfT4zYCo6/k0DNPJnSWJIFUViuv8Qv1FBPLGM9rIcfvCPUQVEtUOfTp5hI2bQlArl3qgOoBWj10=
+	t=1770065249; cv=none; b=DEWIqvdwfqfPl8ejFtcOIlzzE9SITDcB68wXmjAlv7WracWlt9SRhmKwpXsbfbRAR6tZveRoc3uzrE4ZyjB6t0ta6/c7/+lXjGU5ULnLHdD6Y7dJujuGmy2X8n3IyejDe1jvyEXTJYGYfG9IlzNmecFJOxm6uFNw3UV89/acoYg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770064699; c=relaxed/simple;
-	bh=4VgKw+nDdp6+w8RL8zH7uRp3BxcC/gbPWXYfElqbhcM=;
-	h=Date:To:From:Subject:Message-Id; b=MknDRQ9xx0r8VyivGuLXUma453y+Z1fWMkajHl/buYiPpQ2kKiOrx2Dj5/+1P55SCRAeLtAxJ772pzihOLsjOq39L5nZ76jMxzKsOuWZSDGKW73eiohopE/nvSagjtcM5wSyiSWDP7QKgBc2Q9jPg33WgtRm4TvNftS9EgF4d0o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fP8AKXUk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770065249; c=relaxed/simple;
+	bh=4C45bZSdYrVo54x6ZWbkkiwRf+h8IgfGrWYu4bpILeQ=;
+	h=Date:To:From:Subject:Message-Id; b=jZfMOG0TW1nzzFgGIXnHFJpzg+wIzeZz5UetC2i2U8FeDyw4vYtVFXbVCtyNVjPp3J1F7FQ1D+rrQSY8mSUCrb1kCNgvYrELyG6+uvv3eBVeRAxsraUsAGtLTj2Qz4YnbYyJqcUmwx5hTuDf3GPG22Y3RqSRJF7Uzjd6kkcKu/c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xh04LMy/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fP8AKXUk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80337C19421;
-	Mon,  2 Feb 2026 20:38:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xh04LMy/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBD99C116C6;
+	Mon,  2 Feb 2026 20:47:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770064699;
-	bh=4VgKw+nDdp6+w8RL8zH7uRp3BxcC/gbPWXYfElqbhcM=;
+	s=korg; t=1770065249;
+	bh=4C45bZSdYrVo54x6ZWbkkiwRf+h8IgfGrWYu4bpILeQ=;
 	h=Date:To:From:Subject:From;
-	b=fP8AKXUkHdL4GUodGiF8+kUv4t5mA3ScitK9CAs5DNctSmqgVs7E/kIXy2zMcliD6
-	 HCQP5J8Z54QdUuypEV+tLI+4WWkk6us/STMLBOgrYBXrWAarvlLMNL0C4Ltk7+19e2
-	 Gtwk86a+Nx3r+YSOi5R2xbDeZt7nIahsHOm8tcX4=
-Date: Mon, 02 Feb 2026 12:38:18 -0800
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,jiang.kun2@zte.com.cn,fan.yu9@zte.com.cn,corbet@lwn.net,bsingharora@gmail.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=xh04LMy/PRyabjNc0EkTjRtvkr14Zki1Hc3ZlvobSClcdm/vzz08QGyox190VnH8H
+	 b8KXNtRRoeQTObCD8H0UHxPtRKWUazupDiJO8SFFx4GwHeF4TgrhZQlgFGtOYbTXtV
+	 CszYcwal9UWqBRtTkaaZiedmM++MRiFJ6MdouJr0=
+Date: Mon, 02 Feb 2026 12:47:28 -0800
+To: mm-commits@vger.kernel.org,jan.kiszka@siemens.com,hsj0512@snu.ac.kr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + delayacct-fix-uapi-timespec64-definition.patch added to mm-nonmm-unstable branch
-Message-Id: <20260202203819.80337C19421@smtp.kernel.org>
+Subject: + scripts-gdb-implement-x86_page_ops-in-mmpy.patch added to mm-nonmm-unstable branch
+Message-Id: <20260202204728.EBD99C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: delayacct: fix uapi timespec64 definition
+     Subject: scripts/gdb: implement x86_page_ops in mm.py
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     delayacct-fix-uapi-timespec64-definition.patch
+     scripts-gdb-implement-x86_page_ops-in-mmpy.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-fix-uapi-timespec64-definition.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-implement-x86_page_ops-in-mmpy.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,108 +58,227 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: delayacct: fix uapi timespec64 definition
-Date: Mon, 2 Feb 2026 10:59:00 +0100
+From: Seongjun Hong <hsj0512@snu.ac.kr>
+Subject: scripts/gdb: implement x86_page_ops in mm.py
+Date: Mon, 2 Feb 2026 12:42:41 +0900
 
-The custom definition of 'struct timespec64' is incompatible with both the
-kernel's internal definition and the glibc type, at least on big-endian
-targets that have the tv_nsec field in a different place, and the
-definition clashes with any userspace that also defines a timespec64
-structure.
+Implement all member functions of x86_page_ops strictly following the
+logic of aarch64_page_ops.
 
-Running the header check with -Wpadding enabled produces this output that
-warns about the incorrect padding:
+This includes full support for SPARSEMEM and standard page translation
+functions.
 
-usr/include/linux/taskstats.h:25:1: error: padding struct size to alignment boundary with 4 bytes [-Werror=padded]
+This fixes compatibility with 'lx-' commands on x86_64, preventing
+AttributeErrors when using lx-pfn_to_page and others.
 
-Remove the hack and instead use the regular __kernel_timespec type that is
-meant to be used in uapi definitions.
-
-Link: https://lkml.kernel.org/r/20260202095906.1344100-1-arnd@kernel.org
-Fixes: 29b63f6eff0e ("delayacct: add timestamp of delay max")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Fan Yu <fan.yu9@zte.com.cn>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: xu xin <xu.xin16@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Jiang Kun <jiang.kun2@zte.com.cn>
+Link: https://lkml.kernel.org/r/20260202034241.649268-1-hsj0512@snu.ac.kr
+Signed-off-by: Seongjun Hong <hsj0512@snu.ac.kr>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/taskstats.h |   27 +++++++++------------------
- kernel/delayacct.c             |    6 ++++--
- 2 files changed, 13 insertions(+), 20 deletions(-)
+ scripts/gdb/linux/constants.py.in |    2 
+ scripts/gdb/linux/mm.py           |  173 +++++++++++++++++++++++++++-
+ 2 files changed, 173 insertions(+), 2 deletions(-)
 
---- a/include/uapi/linux/taskstats.h~delayacct-fix-uapi-timespec64-definition
-+++ a/include/uapi/linux/taskstats.h
-@@ -18,16 +18,7 @@
- #define _LINUX_TASKSTATS_H
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-implement-x86_page_ops-in-mmpy
++++ a/scripts/gdb/linux/constants.py.in
+@@ -150,8 +150,8 @@ LX_CONFIG(CONFIG_ARM64_64K_PAGES)
+ if IS_BUILTIN(CONFIG_ARM64):
+     LX_VALUE(CONFIG_ARM64_PA_BITS)
+     LX_VALUE(CONFIG_ARM64_VA_BITS)
+-    LX_VALUE(CONFIG_PAGE_SHIFT)
+     LX_VALUE(CONFIG_ARCH_FORCE_MAX_ORDER)
++LX_VALUE(CONFIG_PAGE_SHIFT)
+ LX_CONFIG(CONFIG_SPARSEMEM)
+ LX_CONFIG(CONFIG_SPARSEMEM_EXTREME)
+ LX_CONFIG(CONFIG_SPARSEMEM_VMEMMAP)
+--- a/scripts/gdb/linux/mm.py~scripts-gdb-implement-x86_page_ops-in-mmpy
++++ a/scripts/gdb/linux/mm.py
+@@ -26,8 +26,179 @@ class page_ops():
+             raise gdb.GdbError('Only support CONFIG_SPARSEMEM_VMEMMAP now')
+         if constants.LX_CONFIG_ARM64 and utils.is_target_arch('aarch64'):
+             self.ops = aarch64_page_ops()
++        elif utils.is_target_arch('x86_64') or utils.is_target_arch('x86-64'):
++            self.ops = x86_page_ops()
+         else:
+-            raise gdb.GdbError('Only support aarch64 now')
++            raise gdb.GdbError('Only support aarch64 and x86_64 now')
++
++class x86_page_ops():
++    def __init__(self):
++        self.struct_page_size = utils.get_page_type().sizeof
++        self.PAGE_SHIFT = constants.LX_CONFIG_PAGE_SHIFT
++        self.PAGE_SIZE = 1 << self.PAGE_SHIFT
++        self.PAGE_MASK = (~(self.PAGE_SIZE - 1)) & ((1 << 64) - 1)
++
++        self.PAGE_OFFSET = int(gdb.parse_and_eval("page_offset_base"))
++        self.VMEMMAP_START = int(gdb.parse_and_eval("vmemmap_base"))
++        self.PHYS_BASE = int(gdb.parse_and_eval("phys_base"))
++        self.START_KERNEL_map = 0xffffffff80000000
++
++        self.KERNEL_START = gdb.parse_and_eval("_text")
++        self.KERNEL_END = gdb.parse_and_eval("_end")
++
++        self.VMALLOC_START = int(gdb.parse_and_eval("vmalloc_base"))
++        if self.VMALLOC_START == 0xffffc90000000000:
++            self.VMALLOC_END = self.VMALLOC_START + (32 * 1024 * 1024 * 1024 * 1024) - 1
++        elif self.VMALLOC_START == 0xffa0000000000000:
++            self.VMALLOC_END = self.VMALLOC_START + (12800 * 1024 * 1024 * 1024 * 1024) - 1
++        else:
++            self.VMALLOC_END = self.VMALLOC_START + (12800 * 1024 * 1024 * 1024 * 1024) - 1
++
++        self.MAX_PHYSMEM_BITS = 46
++        self.SECTION_SIZE_BITS = 27
++        self.MAX_ORDER = 10
++
++        self.SECTIONS_SHIFT = self.MAX_PHYSMEM_BITS - self.SECTION_SIZE_BITS
++        self.NR_MEM_SECTIONS = 1 << self.SECTIONS_SHIFT
++        self.PFN_SECTION_SHIFT = self.SECTION_SIZE_BITS - self.PAGE_SHIFT
++        self.PAGES_PER_SECTION = 1 << self.PFN_SECTION_SHIFT
++        self.PAGE_SECTION_MASK = (~(self.PAGES_PER_SECTION - 1)) & ((1 << 64) - 1)
++
++        if constants.LX_CONFIG_SPARSEMEM_EXTREME:
++            self.SECTIONS_PER_ROOT = self.PAGE_SIZE // gdb.lookup_type("struct mem_section").sizeof
++        else:
++            self.SECTIONS_PER_ROOT = 1
++
++        self.NR_SECTION_ROOTS = DIV_ROUND_UP(self.NR_MEM_SECTIONS, self.SECTIONS_PER_ROOT)
++        self.SECTION_ROOT_MASK = self.SECTIONS_PER_ROOT - 1
++
++        try:
++            self.SECTION_HAS_MEM_MAP = 1 << int(gdb.parse_and_eval('SECTION_HAS_MEM_MAP_BIT'))
++            self.SECTION_IS_EARLY = 1 << int(gdb.parse_and_eval('SECTION_IS_EARLY_BIT'))
++        except:
++            self.SECTION_HAS_MEM_MAP = 1 << 0
++            self.SECTION_IS_EARLY = 1 << 3
++
++        self.SUBSECTION_SHIFT = 21
++        self.PAGES_PER_SUBSECTION = 1 << (self.SUBSECTION_SHIFT - self.PAGE_SHIFT)
++
++        if constants.LX_CONFIG_NUMA and constants.LX_CONFIG_NODES_SHIFT:
++            self.NODE_SHIFT = constants.LX_CONFIG_NODES_SHIFT
++        else:
++            self.NODE_SHIFT = 0
++
++        self.MAX_NUMNODES = 1 << self.NODE_SHIFT
++
++        self.vmemmap = gdb.Value(self.VMEMMAP_START).cast(utils.get_page_type().pointer())
++
++    def kasan_reset_tag(self, addr):
++        return addr
++
++    def SECTION_NR_TO_ROOT(self, sec):
++        return sec // self.SECTIONS_PER_ROOT
++
++    def __nr_to_section(self, nr):
++        root = self.SECTION_NR_TO_ROOT(nr)
++        mem_section = gdb.parse_and_eval("mem_section")
++        return mem_section[root][nr & self.SECTION_ROOT_MASK]
++
++    def pfn_to_section_nr(self, pfn):
++        return pfn >> self.PFN_SECTION_SHIFT
++
++    def section_nr_to_pfn(self, sec):
++        return sec << self.PFN_SECTION_SHIFT
++
++    def __pfn_to_section(self, pfn):
++        return self.__nr_to_section(self.pfn_to_section_nr(pfn))
++
++    def pfn_to_section(self, pfn):
++        return self.__pfn_to_section(pfn)
++
++    def subsection_map_index(self, pfn):
++        return (pfn & ~(self.PAGE_SECTION_MASK)) // self.PAGES_PER_SUBSECTION
++
++    def pfn_section_valid(self, ms, pfn):
++        if constants.LX_CONFIG_SPARSEMEM_VMEMMAP:
++            idx = self.subsection_map_index(pfn)
++            return test_bit(idx, ms['usage']['subsection_map'])
++        else:
++            return True
++
++    def valid_section(self, mem_section):
++        if mem_section != None and (mem_section['section_mem_map'] & self.SECTION_HAS_MEM_MAP):
++            return True
++        return False
++
++    def early_section(self, mem_section):
++        if mem_section != None and (mem_section['section_mem_map'] & self.SECTION_IS_EARLY):
++            return True
++        return False
++
++    def pfn_valid(self, pfn):
++        ms = None
++        if self.PHYS_PFN(self.PFN_PHYS(pfn)) != pfn:
++            return False
++        if self.pfn_to_section_nr(pfn) >= self.NR_MEM_SECTIONS:
++            return False
++        ms = self.__pfn_to_section(pfn)
++
++        if not self.valid_section(ms):
++            return False
++        return self.early_section(ms) or self.pfn_section_valid(ms, pfn)
++
++    def PFN_PHYS(self, pfn):
++        return pfn << self.PAGE_SHIFT
++
++    def PHYS_PFN(self, phys):
++        return phys >> self.PAGE_SHIFT
++
++    def __phys_to_virt(self, pa):
++        return pa + self.PAGE_OFFSET
++
++    def __virt_to_phys(self, va):
++        if va >= self.START_KERNEL_map:
++            return va - self.START_KERNEL_map + self.PHYS_BASE
++        else:
++            return va - self.PAGE_OFFSET
++
++    def virt_to_phys(self, va):
++        return self.__virt_to_phys(va)
++
++    def virt_to_page(self, va):
++        return self.pfn_to_page(self.virt_to_pfn(va))
++
++    def __pa(self, va):
++        return self.__virt_to_phys(va)
++
++    def __va(self, pa):
++        return self.__phys_to_virt(pa)
++
++    def pfn_to_kaddr(self, pfn):
++        return self.__va(pfn << self.PAGE_SHIFT)
++
++    def virt_to_pfn(self, va):
++        return self.PHYS_PFN(self.__virt_to_phys(va))
++
++    def sym_to_pfn(self, x):
++        return self.PHYS_PFN(self.__virt_to_phys(x))
++
++    def page_to_pfn(self, page):
++        return int(page.cast(utils.get_page_type().pointer()) - self.vmemmap)
++
++    def pfn_to_page(self, pfn):
++        return self.vmemmap + pfn
++
++    def page_to_phys(self, page):
++        return self.PFN_PHYS(self.page_to_pfn(page))
++
++    def page_to_virt(self, page):
++        return self.__va(self.page_to_phys(page))
++
++    def page_address(self, page):
++        return self.page_to_virt(page)
++
++    def folio_address(self, folio):
++        return self.page_address(folio['page'].address)
  
- #include <linux/types.h>
--#ifdef __KERNEL__
--#include <linux/time64.h>
--#else
--#ifndef _LINUX_TIME64_H
--struct timespec64 {
--	__s64   tv_sec;         /* seconds */
--	long    tv_nsec;        /* nanoseconds */
--};
--#endif
--#endif
-+#include <linux/time_types.h>
- 
- /* Format for per-task data returned to userland when
-  *	- a task exits
-@@ -242,14 +233,14 @@ struct taskstats {
- 	__u64	irq_delay_min;
- 
- 	/*v17: delay max timestamp record*/
--	struct timespec64 cpu_delay_max_ts;
--	struct timespec64 blkio_delay_max_ts;
--	struct timespec64 swapin_delay_max_ts;
--	struct timespec64 freepages_delay_max_ts;
--	struct timespec64 thrashing_delay_max_ts;
--	struct timespec64 compact_delay_max_ts;
--	struct timespec64 wpcopy_delay_max_ts;
--	struct timespec64 irq_delay_max_ts;
-+	struct __kernel_timespec cpu_delay_max_ts;
-+	struct __kernel_timespec blkio_delay_max_ts;
-+	struct __kernel_timespec swapin_delay_max_ts;
-+	struct __kernel_timespec freepages_delay_max_ts;
-+	struct __kernel_timespec thrashing_delay_max_ts;
-+	struct __kernel_timespec compact_delay_max_ts;
-+	struct __kernel_timespec wpcopy_delay_max_ts;
-+	struct __kernel_timespec irq_delay_max_ts;
- };
- 
- 
---- a/kernel/delayacct.c~delayacct-fix-uapi-timespec64-definition
-+++ a/kernel/delayacct.c
-@@ -18,7 +18,8 @@
- do { \
- 	d->type##_delay_max = tsk->delays->type##_delay_max; \
- 	d->type##_delay_min = tsk->delays->type##_delay_min; \
--	d->type##_delay_max_ts = tsk->delays->type##_delay_max_ts; \
-+	d->type##_delay_max_ts.tv_sec = tsk->delays->type##_delay_max_ts.tv_sec; \
-+	d->type##_delay_max_ts.tv_nsec = tsk->delays->type##_delay_max_ts.tv_nsec; \
- 	tmp = d->type##_delay_total + tsk->delays->type##_delay; \
- 	d->type##_delay_total = (tmp < d->type##_delay_total) ? 0 : tmp; \
- 	d->type##_count += tsk->delays->type##_count; \
-@@ -175,7 +176,8 @@ int delayacct_add_tsk(struct taskstats *
- 
- 	d->cpu_delay_max = tsk->sched_info.max_run_delay;
- 	d->cpu_delay_min = tsk->sched_info.min_run_delay;
--	d->cpu_delay_max_ts = tsk->sched_info.max_run_delay_ts;
-+	d->cpu_delay_max_ts.tv_sec = tsk->sched_info.max_run_delay_ts.tv_sec;
-+	d->cpu_delay_max_ts.tv_nsec = tsk->sched_info.max_run_delay_ts.tv_nsec;
- 	tmp = (s64)d->cpu_delay_total + t2;
- 	d->cpu_delay_total = (tmp < (s64)d->cpu_delay_total) ? 0 : tmp;
- 	tmp = (s64)d->cpu_run_virtual_total + t3;
+ class aarch64_page_ops():
+     def __init__(self):
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from hsj0512@snu.ac.kr are
 
-delayacct-fix-uapi-timespec64-definition.patch
+scripts-gdb-implement-x86_page_ops-in-mmpy.patch
 
