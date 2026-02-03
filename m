@@ -1,126 +1,141 @@
-Received: from mail-wr1-f49.google.com (mail-wr1-f49.google.com [209.85.221.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71EE93D1CA0
-	for <mm-commits@vger.kernel.org>; Tue,  3 Feb 2026 16:36:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED214194C96
+	for <mm-commits@vger.kernel.org>; Tue,  3 Feb 2026 17:40:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770136565; cv=none; b=jouqYYYEcIKAPHgKa4H8kdJ5iXpKbbBnyBPY1ac3kBnA6d5nyCYesMh//rUvFaXWJOMMbWyUT+za7wybsSPWDGqK1wYzzm27GSZCpYQ9Q6ei/eAldNbOY90Xtx8X50SQNR6mFE28ObMaOPKYu+oCtllJQVOrW6lIc1LWSMwL4uk=
+	t=1770140458; cv=none; b=Tk3Zhauii2BnE3QpT52YQLybSewZoORWquicidSvAd+/GCs8ixAnIsS7R9XWfjf2KDkENNhmt24vO1v1/NCkkLeYp/MaHanClX89xEtLLW5HukyLVfQTCss+2Z0wodtVlN9lIG/+lpfy2kUxrIFzPW9wYbin8g1sBZQl2k2yZng=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770136565; c=relaxed/simple;
-	bh=qap9S7WORoUubJqTBtETXU0xFt0az5wDCXk0PrXYzOg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=PgXASsfJWzRlM7oUPql9M/wfGwD9ozJSdv+acG2g1CdWSTL9maDsG1s3SFxwAkm/3DsGP87195mHWbdDeZqFpjqdIpXuEuIJ4MAmplhf6HCXy4Yo7XRZnmiJeqmVHi9OPxA7uIZkZHc7pfbrAsYiUo8kd2MSK1j031b2pUqaqEk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=VBt3hDo9; arc=none smtp.client-ip=209.85.221.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	s=arc-20240116; t=1770140458; c=relaxed/simple;
+	bh=17fZSV6p96aJ4sK/WqmTxpE5UcsWnIxtpJytmpBbt3A=;
+	h=Date:To:From:Subject:Message-Id; b=QZIG5I3LG6GJcVjcQc+BszU4tVKwmDBiJJxsgtBeYpFGaHl3Sw5tefKzABUmrvVYcx68UqXBDawmpt9w+kBMqjO/iKrGXSb2zRSOc3wzG6KTbGiISkrGMIurDwGM7O5SRDZYCs0oCLkRK7F+ROoW+Xl4kSs6E1Lf1EW8UnbXcv4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nLVWN9o8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="VBt3hDo9"
-Received: by mail-wr1-f49.google.com with SMTP id ffacd0b85a97d-42fbc305914so5174251f8f.0
-        for <mm-commits@vger.kernel.org>; Tue, 03 Feb 2026 08:36:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1770136561; x=1770741361; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=FQuo/p5AInQk1R/8pvqh/pjovAKXDnSWHvDzZRsI+LE=;
-        b=VBt3hDo9vGybANjrUkwXqw61AVGw+GKLWLzBalRMHC30ytCT/TyulnB7Its5Caic0y
-         TDeSGPb16o50+O50oUF1ZJWqWswIFcQ8B4B265ftHqNKeOajGJjIpXG4m/bYkgU5lcsy
-         DxmftfxirMJ9SnqJdwVE6NABPND8GB4wsjNEtGQ8f1MZpH8jpVySxLmfmcgrdg8YkjLq
-         xqTPFxYk4LFKDg6/+L/uloaF1hPRtYlH0bUS5AThzCEep+xioywe90qDRdkpzZ+h48pu
-         TM/JdZN8Zf7hiRuDweHSoDbuDp7iaITj/g8WdQmNaYZUb36u4AU6HEFrxAHJrWi56iYX
-         9iNA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1770136561; x=1770741361;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=FQuo/p5AInQk1R/8pvqh/pjovAKXDnSWHvDzZRsI+LE=;
-        b=JIQBXroJUJL+ELKUlWyDhNOChiaxw8C/p7uB5z7/9/1jyloqmzUqL1HJLb8iExVwO/
-         2IaFkNdIq0/2b9B7Eb+OxnOBUF8tNMUWl34TGgHF3eZb/QxaGUXBmJTteEcKxB75lQry
-         g/vaiTNlTzSIGuAfc2xc/OtL6CP6UL3FDY/oeZjnHFcyUhwHRZehcyAFHUCwN52hT1ed
-         LJTbCflb5+jTQyF2hdMMuanjhWoHc8r5BwSt6dH1EbludP1Io4UhaFaMrGheXXD0mmd9
-         yVV5n1YMffX6L44CUKW/cykmd/L7tNZbVLI9RXYMNSZNqQqPXqDiCz4nn292k9ZoVIc7
-         nmJw==
-X-Forwarded-Encrypted: i=1; AJvYcCU/5y8T2Hd9sLRtuOMPiR1BH8VnHQnBCOHaXMtoZiK22waXJI7WslmuWMQAEhHWSEAo+Wy5FhTSDaSa@vger.kernel.org
-X-Gm-Message-State: AOJu0YyjwcCXZNTWtIGel2HQydohdQb9XLfkvi3DHikQ16kZAKXTePzn
-	qxg4tO/oaApAsC6bTrv9S4qczczecEYfae8P2FtXM9b0PBOy1JGidIpllCuIR1z4Y+w=
-X-Gm-Gg: AZuq6aIJ9dtX9k9VEAQVLMrKCrUXpsnkky4oP8wLa0ej1VGhYxLB7DDl7KVFs8fU8AW
-	603jnVbal0NEyy+XLn3nBTlyelElL+UJtCe3DhJhhY6G4lWDEpUN7TYyiwOsDxW1KjSsD3JGtvV
-	d6GafgXgsj/fqoo/qAXwbzvZrFkgpAdZqadOQ5sEnScWDsa3lHBMhpzMQxnzdHhOOLVGCwutfUl
-	QtkE8Ep8gdOE5cq0bLp/CT9xQskXLbbnXBs7Ldw8NVclHjJycK9S4CvwhQ9DeBxgFv7/U3vFtr3
-	UQWYKbZnS5fI3W73fu2+mC6yeUwbvKmpBXrNKyLIkDBIZxn+VCQrKbCrpbhWflZabFrC6NZqfLv
-	094nn1zwfp6gIsQrfc41GXsRgmOYYaGA3F/wrsnik9tOGEGXxYiBnBCWNX138HpaI72smBlFf5g
-	p/XTAGA+hzw3f2TA==
-X-Received: by 2002:a05:6000:401e:b0:430:feb3:f5ae with SMTP id ffacd0b85a97d-435f3ad7646mr20374411f8f.55.1770136560693;
-        Tue, 03 Feb 2026 08:36:00 -0800 (PST)
-Received: from pathway.suse.cz ([176.114.240.130])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-435e10e48a6sm51375458f8f.8.2026.02.03.08.35.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 03 Feb 2026 08:36:00 -0800 (PST)
-Date: Tue, 3 Feb 2026 17:35:56 +0100
-From: Petr Mladek <pmladek@suse.com>
-To: Qiliang Yuan <realwujing@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Li Huafei <lihuafei1@huawei.com>,
-	Thorsten Blum <thorsten.blum@linux.dev>,
-	Jinchao Wang <wangjinchao600@gmail.com>,
-	Yicong Yang <yangyicong@hisilicon.com>,
-	Pingfan Liu <kernelfans@gmail.com>,
-	Lecopzer Chen <lecopzer.chen@mediatek.com>,
-	Douglas Anderson <dianders@chromium.org>,
-	linux-watchdog@vger.kernel.org, mm-commits@vger.kernel.org,
-	Shouxin Sun <sunshx@chinatelecom.cn>,
-	Junnan Zhang <zhangjn11@chinatelecom.cn>,
-	Qiliang Yuan <yuanql9@chinatelecom.cn>, Song Liu <song@kernel.org>,
-	stable@vger.kernel.org,
-	"Yury Norov (NVIDIA)" <yury.norov@gmail.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5] watchdog/hardlockup: Fix UAF in perf event cleanup
- due to migration race
-Message-ID: <aYIj7BzCI46iz2wj@pathway.suse.cz>
-References: <20260127022238.1182079-1-realwujing@gmail.com>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nLVWN9o8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 487AAC116D0;
+	Tue,  3 Feb 2026 17:40:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1770140457;
+	bh=17fZSV6p96aJ4sK/WqmTxpE5UcsWnIxtpJytmpBbt3A=;
+	h=Date:To:From:Subject:From;
+	b=nLVWN9o8V/GKX+P0GxpZh4NQURfgl2/OkYRCi+61HtmtDVXSyk4/SyJbaqbBYO1Zo
+	 ntFAYgFnevW0IxGgJJUX1Nbd4MkhlOYhBWJY81qkhv7eDh2gPKbrUazBuIZDTcEtu6
+	 pcMp627hUKPhxmkeC7NoUdY/aEtPoERjN9ejAP3c=
+Date: Tue, 03 Feb 2026 09:40:56 -0800
+To: mm-commits@vger.kernel.org,sj@kernel.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + maple_tree-add-cp_is_new_root-helper-fix.patch added to mm-new branch
+Message-Id: <20260203174057.487AAC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260127022238.1182079-1-realwujing@gmail.com>
 
-On Mon 2026-01-26 21:22:24, Qiliang Yuan wrote:
-> The hardlockup detector's probe path (watchdog_hardlockup_probe()) can
-> be executed in a non-pinned context, such as during the asynchronous
-> retry mechanism (lockup_detector_delay_init) which runs in a standard
-> unbound workqueue.
 
-[...]
+The patch titled
+     Subject: maple_tree-add-cp_is_new_root-helper-fix
+has been added to the -mm mm-new branch.  Its filename is
+     maple_tree-add-cp_is_new_root-helper-fix.patch
 
-> Refactor hardlockup_detector_event_create() to be stateless by returning
-> the created perf_event pointer instead of directly modifying the per-cpu
-> 'watchdog_ev' variable. This allows the probe logic to safely manage
-> the temporary event. Use cpu_hotplug_disable() during the probe to ensure
-> the target CPU remains valid throughout the check.
-> 
-> Fixes: 930d8f8dbab9 ("watchdog/perf: adapt the watchdog_perf interface for async model")
-> Signed-off-by: Shouxin Sun <sunshx@chinatelecom.cn>
-> Signed-off-by: Junnan Zhang <zhangjn11@chinatelecom.cn>
-> Signed-off-by: Qiliang Yuan <realwujing@gmail.com>
-> Signed-off-by: Qiliang Yuan <yuanql9@chinatelecom.cn>
-> Cc: Song Liu <song@kernel.org>
-> Cc: Douglas Anderson <dianders@chromium.org>
-> Cc: Jinchao Wang <wangjinchao600@gmail.com>
-> Cc: <stable@vger.kernel.org>
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-cp_is_new_root-helper-fix.patch
 
-Please, do not remove people from Cc, especially when you send new
-versions on such a rapid speed.
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-I was on Cc only for this version. There were no replies. I started
-review just to realize that another 4 versions were sent within
-a week and they got some proper review and v9 already ended in
-linux-next...
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
-Best Regards,
-Petr
+The mm-new branch of mm.git is not included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: maple_tree-add-cp_is_new_root-helper-fix
+Date: Tue, 3 Feb 2026 12:26:44 -0500
+
+remove warnings on older compilers
+
+Link: https://lkml.kernel.org/r/malwmirqnpuxqkqrobcmzfkmmxipoyzwfs2nwc5fbpxlt2r2ej@wchmjtaljvw3
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: SeongJae Park <sj@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/lib/maple_tree.c~maple_tree-add-cp_is_new_root-helper-fix
++++ a/lib/maple_tree.c
+@@ -3361,7 +3361,7 @@ static inline bool cp_is_new_root(struct
+ 		 * read-side operations that can view it until it is insert into
+ 		 * the tree after an rcu_assign_pointer() call.
+ 		 */
+-		RCU_INIT_POINTER(cp->slot[0], mt_mk_node(cp->dst[0].node, mt));
++		ma_init_slot(cp->slot[0], cp->dst[0].node, mt);
+ 		cp->height++;
+ 	}
+ 	WARN_ON_ONCE(cp->dst[0].node != mte_to_node(
+_
+
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+
+mm-relocate-the-page-table-ceiling-and-floor-definitions.patch
+mm-mmap-move-exit_mmap-trace-point.patch
+mm-mmap-abstract-vma-clean-up-from-exit_mmap.patch
+mm-vma-add-limits-to-unmap_region-for-vmas.patch
+mm-memory-add-tree-limit-to-free_pgtables.patch
+mm-vma-add-page-table-limit-to-unmap_region.patch
+mm-change-dup_mmap-recovery.patch
+mm-introduce-unmap_desc-struct-to-reduce-function-arguments.patch
+mm-vma-use-unmap_desc-in-exit_mmap-and-vms_clear_ptes.patch
+mm-vma-use-unmap_region-in-vms_clear_ptes.patch
+mm-use-unmap_desc-struct-for-freeing-page-tables.patch
+maple_tree-fix-mas_dup_alloc-sparse-warning.patch
+maple_tree-move-mas_spanning_rebalance-loop-to-function.patch
+maple_tree-extract-use-of-big-node-from-mas_wr_spanning_store.patch
+maple_tree-remove-unnecessary-assignment-of-orig_l-index.patch
+maple_tree-inline-mas_spanning_rebalance-into-mas_wr_spanning_rebalance.patch
+maple_tree-make-ma_wr_states-reliable-for-reuse-in-spanning-store.patch
+maple_tree-remove-l_wr_mas-from-mas_wr_spanning_rebalance.patch
+maple_tree-dont-pass-through-height-in-mas_wr_spanning_store.patch
+maple_tree-move-maple_subtree_state-from-mas_wr_spanning_store-to-mas_wr_spanning_rebalance.patch
+maple_tree-correct-right-ma_wr_state-end-pivot-in-mas_wr_spanning_store.patch
+maple_tree-introduce-maple_copy-node-and-use-it-in-mas_spanning_rebalance.patch
+maple_tree-testing-update-for-spanning-store.patch
+maple_tree-inline-mas_spanning_rebalance_loop-into-mas_wr_spanning_rebalance.patch
+maple_tree-change-initial-big-node-setup-in-mas_wr_spanning_rebalance.patch
+maple_tree-introduce-ma_leaf_max_gap.patch
+maple_tree-add-gap-support-slot-and-pivot-sizes-for-maple-copy.patch
+maple_tree-start-using-maple-copy-node-for-destination.patch
+maple_tree-inline-mas_wr_spanning_rebalance.patch
+maple_tree-remove-unnecessary-return-statements.patch
+maple_tree-separate-wr_split_store-and-wr_rebalance-store-type-code-path.patch
+maple_tree-add-cp_is_new_root-helper.patch
+maple_tree-add-cp_is_new_root-helper-fix.patch
+maple_tree-use-maple-copy-node-for-mas_wr_rebalance-operation.patch
+maple_tree-add-test-for-rebalance-calculation-off-by-one.patch
+maple_tree-add-copy_tree_location-helper.patch
+maple_tree-add-cp_converged-helper.patch
+maple_tree-use-maple-copy-node-for-mas_wr_split.patch
+maple_tree-remove-maple-big-node-and-subtree-structs.patch
+maple_tree-pass-maple-copy-node-to-mas_wmb_replace.patch
+maple_tree-dont-pass-end-to-mas_wr_append.patch
+maple_tree-clean-up-mas_wr_node_store.patch
+
