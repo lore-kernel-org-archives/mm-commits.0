@@ -1,141 +1,162 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED214194C96
-	for <mm-commits@vger.kernel.org>; Tue,  3 Feb 2026 17:40:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D23F02ECE8F
+	for <mm-commits@vger.kernel.org>; Tue,  3 Feb 2026 17:47:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770140458; cv=none; b=Tk3Zhauii2BnE3QpT52YQLybSewZoORWquicidSvAd+/GCs8ixAnIsS7R9XWfjf2KDkENNhmt24vO1v1/NCkkLeYp/MaHanClX89xEtLLW5HukyLVfQTCss+2Z0wodtVlN9lIG/+lpfy2kUxrIFzPW9wYbin8g1sBZQl2k2yZng=
+	t=1770140854; cv=none; b=mIX6TUs4SOZYPX1c1dljQblSZ/zI3LvHDgegrBE24hzyNpq1Tdn1HnSQ1K8SOJGxYa9noVCDubtCkviheQZgad8D/iWvtLBmn8eEw7gxfXJvSw2BOw5R8jEz/hJs25YP3HU10I7K2NB4o6NZf7q3/ErWFXXnYt9bE6K3CxYRJkg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770140458; c=relaxed/simple;
-	bh=17fZSV6p96aJ4sK/WqmTxpE5UcsWnIxtpJytmpBbt3A=;
-	h=Date:To:From:Subject:Message-Id; b=QZIG5I3LG6GJcVjcQc+BszU4tVKwmDBiJJxsgtBeYpFGaHl3Sw5tefKzABUmrvVYcx68UqXBDawmpt9w+kBMqjO/iKrGXSb2zRSOc3wzG6KTbGiISkrGMIurDwGM7O5SRDZYCs0oCLkRK7F+ROoW+Xl4kSs6E1Lf1EW8UnbXcv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nLVWN9o8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770140854; c=relaxed/simple;
+	bh=+1Rg0Qo9JKMlh5VR6orLM0BdH2Job7+LNL+Ppjinj+w=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=diyjC5f03M7QmbPb1aS4yun5MsWWsNRkEXmoW03dYhEgy2lwU6FXOfcemBt3IjCQl3lUHsIYZMCEg/6ofLTLyufsLK3ngbAY/RYvmUlWKjS83gkd/1GAudnMQkq91k2feHBsVgeCzOaY0Vh/Zw8YHSPs2USB2CpuYvdH//9Kjcg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=m9ScTRYE; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nLVWN9o8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 487AAC116D0;
-	Tue,  3 Feb 2026 17:40:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770140457;
-	bh=17fZSV6p96aJ4sK/WqmTxpE5UcsWnIxtpJytmpBbt3A=;
-	h=Date:To:From:Subject:From;
-	b=nLVWN9o8V/GKX+P0GxpZh4NQURfgl2/OkYRCi+61HtmtDVXSyk4/SyJbaqbBYO1Zo
-	 ntFAYgFnevW0IxGgJJUX1Nbd4MkhlOYhBWJY81qkhv7eDh2gPKbrUazBuIZDTcEtu6
-	 pcMp627hUKPhxmkeC7NoUdY/aEtPoERjN9ejAP3c=
-Date: Tue, 03 Feb 2026 09:40:56 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maple_tree-add-cp_is_new_root-helper-fix.patch added to mm-new branch
-Message-Id: <20260203174057.487AAC116D0@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="m9ScTRYE"
+Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 613ARvot018639;
+	Tue, 3 Feb 2026 17:45:25 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=cc
+	:content-transfer-encoding:content-type:date:from:in-reply-to
+	:message-id:mime-version:references:subject:to; s=pp1; bh=+1Rg0Q
+	o9JKMlh5VR6orLM0BdH2Job7+LNL+Ppjinj+w=; b=m9ScTRYEzUfKqNeVQCbZ+Q
+	Qf5MG2Ibd0vbeJ2ISXaPI4vBtw3s2T8ZmUGbmzUMrdtUnxC++y8+Wu8w7W9wXiGP
+	T0fyUnGTB6nvVoH9ZpItcfSQ4hjOLoKYonk2lVLcLE9Q1IW3UY13BBAwQSpQRYCi
+	vCjWsmQ7jH5IbnkhUv8yixpAHxf3yjTSZWF53Nn8FBTt7KkrWD6XbM0NMvTIHpM2
+	xtgihifT6safw+Cvxs4hVLJdcPeO9CqguBDhshi/SiFb0EY6RDnEX26DElYI50px
+	9ThKqe3NtnbjaNLLlfJ4mFdzePFcG9zv2Zdn0uvl4I5jGSt9wSQBFYKmbFBBwmBQ
+	==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4c175mvdwk-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 03 Feb 2026 17:45:24 +0000 (GMT)
+Received: from m0356516.ppops.net (m0356516.ppops.net [127.0.0.1])
+	by pps.reinject (8.18.1.12/8.18.0.8) with ESMTP id 613HjOju016945;
+	Tue, 3 Feb 2026 17:45:24 GMT
+Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 4c175mvdwd-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 03 Feb 2026 17:45:24 +0000 (GMT)
+Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma12.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 613F9Hk0029064;
+	Tue, 3 Feb 2026 17:45:23 GMT
+Received: from smtprelay07.fra02v.mail.ibm.com ([9.218.2.229])
+	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 4c1v2sa6qt-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 03 Feb 2026 17:45:23 +0000
+Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
+	by smtprelay07.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 613HjLuQ47841660
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 3 Feb 2026 17:45:21 GMT
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 49DD720043;
+	Tue,  3 Feb 2026 17:45:21 +0000 (GMT)
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 0716C20040;
+	Tue,  3 Feb 2026 17:45:14 +0000 (GMT)
+Received: from [9.124.212.68] (unknown [9.124.212.68])
+	by smtpav02.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Tue,  3 Feb 2026 17:45:13 +0000 (GMT)
+Message-ID: <3d7ae169-1689-4eb3-a18d-96c88a624d5f@linux.ibm.com>
+Date: Tue, 3 Feb 2026 23:15:12 +0530
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [merged mm-nonmm-stable]
+ riscv-kexec-add-support-for-crashkernel-cma-reservation.patch removed from
+ -mm tree
+To: Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@kernel.org>
+Cc: mm-commits@vger.kernel.org, vishal.moola@gmail.com,
+        songshuaishuai@tinylab.org, samuel.holland@sifive.com,
+        rdunlap@infradead.org, pawan.kumar.gupta@linux.intel.com,
+        palmer@dabbelt.com, mingo@kernel.org, lirongqing@baidu.com,
+        leitao@debian.org, kevin.brodsky@arm.com, kees@kernel.org,
+        fvdl@google.com, elver@google.com, cuiyunhui@bytedance.com,
+        corbet@lwn.net, bp@alien8.de, bjorn@rivosinc.com, bhelgaas@google.com,
+        arnd@arndb.de, aou@eecs.berkeley.edu, alex@ghiti.fr,
+        ruanjinjie@huawei.com
+References: <20260201001710.A3CE5C4CEF1@smtp.kernel.org>
+ <aX9jPbkG7QYNWH73@kernel.org>
+ <20260202125404.343361f6696777efc3acaab1@linux-foundation.org>
+ <aYGnODFtgjyiRLB9@kernel.org>
+ <20260203082703.bae7a2b786da8d74f5ebf851@linux-foundation.org>
+Content-Language: en-US
+From: Sourabh Jain <sourabhjain@linux.ibm.com>
+In-Reply-To: <20260203082703.bae7a2b786da8d74f5ebf851@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: IQVqS1rPo5CAdfMx2qRjIyxjkpOeMQMD
+X-Authority-Analysis: v=2.4 cv=VcX6/Vp9 c=1 sm=1 tr=0 ts=69823434 cx=c_pps
+ a=bLidbwmWQ0KltjZqbj+ezA==:117 a=bLidbwmWQ0KltjZqbj+ezA==:17
+ a=IkcTkHD0fZMA:10 a=HzLeVaNsDn8A:10 a=VkNPw1HP01LnGYTKEx00:22
+ a=VwQbUJbxAAAA:8 a=i0EeH86SAAAA:8 a=YHaCEJf6j7sQuHjAKnwA:9 a=QEXdDO2ut3YA:10
+X-Proofpoint-GUID: na2ZgQQEuUVjOllwlBrDgS4aWz_bCuD5
+X-Proofpoint-Spam-Details-Enc: AW1haW4tMjYwMjAzMDEzOSBTYWx0ZWRfXyEZCRl/3/MhR
+ noYee1irFrj9ZQJKKzYA/tYNwCFKPU6MA7cE7+imbaC/2arYcOXAT2Lsrck3xl9rj/TRDc5FOmi
+ 2i8NshbSQwesZZMPaVGVJnZfHSd32Hrq3x7Mir6UQbH3tT61PFZHE74TVrBB241jc3me0BF+8PY
+ Of0QzrHEg755MHJ1QLh1w/D9ksap3E3xe/fr0KAlB0Ij8VQCC1do33tWrSCjALgPJoEI4ASx7z1
+ q1N+v8ZFyO+gvINnNa9dLu18xs1HY1vqzVX5ptKdcMxQA53XAuoRkdOqOecrlsEcgED7jKkOPmG
+ Ul+r+E8tjVm5iysJ/7m4HQyB1odaiyDfPG3VvIDjkdKyBFq6hyJd1SaOEVhI4KapxwkxLZ+Z/eI
+ hGWovsudaPBR9TEXPf+K5i66DTVo7IG8LHIyiHHja1iD0J7XzlSF/nWdoDuBDe9sJ1/BdZlgEsB
+ F2t+O9rERO2HuD2lUTQ==
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1121,Hydra:6.1.51,FMLib:17.12.100.49
+ definitions=2026-02-03_05,2026-02-02_01,2025-10-01_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501 malwarescore=0 suspectscore=0 spamscore=0 adultscore=0
+ bulkscore=0 phishscore=0 lowpriorityscore=0 impostorscore=0 clxscore=1011
+ classifier=typeunknown authscore=0 authtc= authcc= route=outbound adjust=0
+ reason=mlx scancount=1 engine=8.19.0-2601150000 definitions=main-2602030139
 
 
-The patch titled
-     Subject: maple_tree-add-cp_is_new_root-helper-fix
-has been added to the -mm mm-new branch.  Its filename is
-     maple_tree-add-cp_is_new_root-helper-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maple_tree-add-cp_is_new_root-helper-fix.patch
+On 03/02/26 21:57, Andrew Morton wrote:
+> On Tue, 3 Feb 2026 09:43:52 +0200 Mike Rapoport <rppt@kernel.org> wrote:
+>
+>> On Mon, Feb 02, 2026 at 12:54:04PM -0800, Andrew Morton wrote:
+>>> On Sun, 1 Feb 2026 15:29:17 +0100 Mike Rapoport <rppt@kernel.org> wrote:
+>>>
+>>>>> From: Jinjie Ruan <ruanjinjie@huawei.com>
+>>>>> Subject: riscv: kexec: add support for crashkernel CMA reservation
+>>>>> Date: Mon, 26 Jan 2026 16:07:38 +0800
+>>>> I commented on almost identical patch for arm64
+>>>>
+>>>> https://lore.kernel.org/all/20260126081334.699147-1-ruanjinjie@huawei.com/
+>>>>
+>>>> about moving the exclusion of CMA regions into the core crash code.
+>>>> The same comment applies to this one as well. Sorry I didn't mention that
+>>>> more explicitly.
+>>> Thanks.
+>>>
+>>> So IIUC this patch is OK, but we should reduce the code duplication in
+>>> this area?
+>> The patch is Ok in the sense it does not break anything :)
+> No probs, I've dropped "riscv: kexec: add support for crashkernel CMA
+> reservation" from mm.git.
+>
+>> I'd like to see series with PATCH 1/3 moving the duplicated code from x86
+>> and powerpc to the crash_core.c and patches 2 and 3 adding arm64 and riscv
+>> support for CMA.
+> I'm not sure which kind soul will be doing this work!
+>
+> I've cc'ed Jinjie Ruan regarding "arm64: kexec: Add support for
+> crashkernel CMA reservation" and Sourabh Jain regarding "powerpc/kdump:
+> Add support for crashkernel CMA reservation".
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+I agree that we should avoid code duplication by handling CMA crashkernel
+exclusion in a more generic way.
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+Would it make sense to handle the exclusion of all crash memory ranges
+(including crashk_res, crashk_cma, and crashk_low) at the generic level?
 
-The mm-new branch of mm.git is not included in linux-next
+Andrew, I can send the patch series you referred above.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree-add-cp_is_new_root-helper-fix
-Date: Tue, 3 Feb 2026 12:26:44 -0500
-
-remove warnings on older compilers
-
-Link: https://lkml.kernel.org/r/malwmirqnpuxqkqrobcmzfkmmxipoyzwfs2nwc5fbpxlt2r2ej@wchmjtaljvw3
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: SeongJae Park <sj@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- lib/maple_tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/lib/maple_tree.c~maple_tree-add-cp_is_new_root-helper-fix
-+++ a/lib/maple_tree.c
-@@ -3361,7 +3361,7 @@ static inline bool cp_is_new_root(struct
- 		 * read-side operations that can view it until it is insert into
- 		 * the tree after an rcu_assign_pointer() call.
- 		 */
--		RCU_INIT_POINTER(cp->slot[0], mt_mk_node(cp->dst[0].node, mt));
-+		ma_init_slot(cp->slot[0], cp->dst[0].node, mt);
- 		cp->height++;
- 	}
- 	WARN_ON_ONCE(cp->dst[0].node != mte_to_node(
-_
-
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
-
-mm-relocate-the-page-table-ceiling-and-floor-definitions.patch
-mm-mmap-move-exit_mmap-trace-point.patch
-mm-mmap-abstract-vma-clean-up-from-exit_mmap.patch
-mm-vma-add-limits-to-unmap_region-for-vmas.patch
-mm-memory-add-tree-limit-to-free_pgtables.patch
-mm-vma-add-page-table-limit-to-unmap_region.patch
-mm-change-dup_mmap-recovery.patch
-mm-introduce-unmap_desc-struct-to-reduce-function-arguments.patch
-mm-vma-use-unmap_desc-in-exit_mmap-and-vms_clear_ptes.patch
-mm-vma-use-unmap_region-in-vms_clear_ptes.patch
-mm-use-unmap_desc-struct-for-freeing-page-tables.patch
-maple_tree-fix-mas_dup_alloc-sparse-warning.patch
-maple_tree-move-mas_spanning_rebalance-loop-to-function.patch
-maple_tree-extract-use-of-big-node-from-mas_wr_spanning_store.patch
-maple_tree-remove-unnecessary-assignment-of-orig_l-index.patch
-maple_tree-inline-mas_spanning_rebalance-into-mas_wr_spanning_rebalance.patch
-maple_tree-make-ma_wr_states-reliable-for-reuse-in-spanning-store.patch
-maple_tree-remove-l_wr_mas-from-mas_wr_spanning_rebalance.patch
-maple_tree-dont-pass-through-height-in-mas_wr_spanning_store.patch
-maple_tree-move-maple_subtree_state-from-mas_wr_spanning_store-to-mas_wr_spanning_rebalance.patch
-maple_tree-correct-right-ma_wr_state-end-pivot-in-mas_wr_spanning_store.patch
-maple_tree-introduce-maple_copy-node-and-use-it-in-mas_spanning_rebalance.patch
-maple_tree-testing-update-for-spanning-store.patch
-maple_tree-inline-mas_spanning_rebalance_loop-into-mas_wr_spanning_rebalance.patch
-maple_tree-change-initial-big-node-setup-in-mas_wr_spanning_rebalance.patch
-maple_tree-introduce-ma_leaf_max_gap.patch
-maple_tree-add-gap-support-slot-and-pivot-sizes-for-maple-copy.patch
-maple_tree-start-using-maple-copy-node-for-destination.patch
-maple_tree-inline-mas_wr_spanning_rebalance.patch
-maple_tree-remove-unnecessary-return-statements.patch
-maple_tree-separate-wr_split_store-and-wr_rebalance-store-type-code-path.patch
-maple_tree-add-cp_is_new_root-helper.patch
-maple_tree-add-cp_is_new_root-helper-fix.patch
-maple_tree-use-maple-copy-node-for-mas_wr_rebalance-operation.patch
-maple_tree-add-test-for-rebalance-calculation-off-by-one.patch
-maple_tree-add-copy_tree_location-helper.patch
-maple_tree-add-cp_converged-helper.patch
-maple_tree-use-maple-copy-node-for-mas_wr_split.patch
-maple_tree-remove-maple-big-node-and-subtree-structs.patch
-maple_tree-pass-maple-copy-node-to-mas_wmb_replace.patch
-maple_tree-dont-pass-end-to-mas_wr_append.patch
-maple_tree-clean-up-mas_wr_node_store.patch
-
+- Sourabh
