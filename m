@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 722E83BB57
-	for <mm-commits@vger.kernel.org>; Wed,  4 Feb 2026 22:35:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 973FC20F067
+	for <mm-commits@vger.kernel.org>; Wed,  4 Feb 2026 22:38:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770244558; cv=none; b=Da2P6enKD7xll2lFlvR6WvbqDcEw8eOXUQgMLH+bRzkQGpvPqi/kj+QoqHNerVaPuZAd8V7hPBSxqqHLlv03pe8a4Yw6+6KBZsorrKQulrDE2YDDwDuclDBI6XdmBY6wASyNPlw4pf1t808puaWVln0nVhHN48Sqr1xHVhBiOUw=
+	t=1770244711; cv=none; b=FsLy6HbZmVT/1Hx+JifsmtSgoB05qd8poiNpt5svYC1/iD1KGieVdR9Y6iKQTiDkqaVqIN3epMhjGqLPqBrMoJGrXG6eqnAYF02MTaTd37zPP9PwSjm86/wr6aLuCS5I9+2YJSP/wY29TWijKijVhIKFvSkvGtPePEYTpdnjPvY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770244558; c=relaxed/simple;
-	bh=fILoaQUqI6XHYojmTg4VrrgEvAQmKWNPtDj1mX8jUAs=;
-	h=Date:To:From:Subject:Message-Id; b=BgzcikFu5YDgrQYl4DORFFYcmzYTmrN2EV7MqTvfq6x55xvLvbS9ONHr75KEaV0NwM5p0dGLeJAaFtBcnIluBx9IfLZML/gcla8+T/SyidXFTFfM+V1jjVgw9fmp9Jdh7qr0udV/cYvLLo7crn34A7Gc76DDPhqUcPqWBDk9Vlw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vF7Jhngu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770244711; c=relaxed/simple;
+	bh=eUS19H74kvkk1Cx8GjxAUQRyz0ihFzzKLLE/ZP5PsTU=;
+	h=Date:To:From:Subject:Message-Id; b=hFV2hl2uqmJxrX0LIEAWS0VCO51klspjzIZax4Jz755aLGKu8JJVGsInmmguv9V8OdwNujCHqhfCk6Vl6sgPIitRPmfd4k3P+u/bXP2iJqttKKEjI96CNPtB+S3nPIQnChe0FAh4PmVeo5btDdwaRxJ2xC8TkU8FW/R/ldQUhIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RdsBAcQW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vF7Jhngu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EDEE9C4CEF7;
-	Wed,  4 Feb 2026 22:35:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RdsBAcQW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A2CEC4CEF7;
+	Wed,  4 Feb 2026 22:38:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770244558;
-	bh=fILoaQUqI6XHYojmTg4VrrgEvAQmKWNPtDj1mX8jUAs=;
+	s=korg; t=1770244711;
+	bh=eUS19H74kvkk1Cx8GjxAUQRyz0ihFzzKLLE/ZP5PsTU=;
 	h=Date:To:From:Subject:From;
-	b=vF7JhnguBnCTBoGXxPufOoJNKU2OlyKy8+miEU3W3DxrnCJVKybVzSXxbbNCu48cr
-	 OZk79nD4OBP4GXAYAYUnDJd91d4LFFP9hp453JNvyHuRK9CYCD0QvdPj9FbEKud7eb
-	 tbS+KEyAAwzFyUD1RplEkbhezgwEfNl7CQUuq3k4=
-Date: Wed, 04 Feb 2026 14:35:57 -0800
-To: mm-commits@vger.kernel.org,tim.bird@sony.com,akpm@linux-foundation.org
+	b=RdsBAcQWkRNiWiSzwmiRDQsNjcavcfijp6uAxA7Kd+Ox2DMC1yUDhOPetaDnEJRMa
+	 uZ1n94MbPDejYfbZ1Pi4bAo2qCu8b6OPyIWtgy/uLQmQHcSbKEQqFSxdADE/k2Yl6l
+	 GTGvH5b86iKTOuV/rAqNIFou77HDC30+DHT+Pguw=
+Date: Wed, 04 Feb 2026 14:38:30 -0800
+To: mm-commits@vger.kernel.org,muchun.song@linux.dev,jane.chu@oracle.com,david@kernel.org,jiaqiyan@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-spdx-id-lines-to-some-mm-source-files.patch added to mm-unstable branch
-Message-Id: <20260204223557.EDEE9C4CEF7@smtp.kernel.org>
+Subject: + fs-hugetlb-simplify-remove_inode_hugepages-return-type.patch added to mm-new branch
+Message-Id: <20260204223831.0A2CEC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: Add SPDX id lines to some mm source files
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-spdx-id-lines-to-some-mm-source-files.patch
+     Subject: fs: hugetlb: simplify remove_inode_hugepages() return type
+has been added to the -mm mm-new branch.  Its filename is
+     fs-hugetlb-simplify-remove_inode_hugepages-return-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-spdx-id-lines-to-some-mm-source-files.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-hugetlb-simplify-remove_inode_hugepages-return-type.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,124 +66,87 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tim Bird <tim.bird@sony.com>
-Subject: mm: Add SPDX id lines to some mm source files
-Date: Wed, 4 Feb 2026 14:31:01 -0700
+From: Jiaqi Yan <jiaqiyan@google.com>
+Subject: fs: hugetlb: simplify remove_inode_hugepages() return type
+Date: Wed, 4 Feb 2026 21:47:41 +0000
 
-Some of the memory management source files are missing
-SPDX-License-Identifier lines.  Add appropriate IDs
-to these files (mostly GPL-2.0, but one LGPL-2.1).
+When remove_inode_hugepages() was introduced in commit c86272287bc6
+("hugetlb: create remove_inode_single_folio to remove single file folio")
+it used to return a boolean to indicate if it bailed out due to race with
+page faults.  However, since the race is already solved by [1],
+remove_inode_hugepages() doesn't have any path to return false anymore.
 
-Link: https://lkml.kernel.org/r/20260204213101.1754183-1-tim.bird@sony.com
-Signed-off-by: Tim Bird <tim.bird@sony.com>
+Simplify remove_inode_hugepages() return type to void, remove the
+unnecessary ret variable, and adjust the call site in
+remove_inode_hugepages().  No functional change in this commit.
+
+
+Link: https://lkml.kernel.org/r/20260204214741.3161520-1-jiaqiyan@google.com
+Link: https://lore.kernel.org/all/20220914221810.95771-10-mike.kravetz@oracle.com [2]
+Signed-off-by: Jiaqi Yan <jiaqiyan@google.com>
+Suggested-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: David Hildenbrand (arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/dmapool_test.c   |    1 +
- mm/folio-compat.c   |    1 +
- mm/gup_test.c       |    1 +
- mm/hugetlb_cgroup.c |    9 +--------
- mm/memfd.c          |    3 +--
- mm/mmu_gather.c     |    1 +
- mm/rmap.c           |    2 +-
- mm/shmem.c          |    3 +--
- 8 files changed, 8 insertions(+), 13 deletions(-)
+ fs/hugetlbfs/inode.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
---- a/mm/dmapool_test.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/dmapool_test.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- #include <linux/device.h>
- #include <linux/dma-map-ops.h>
- #include <linux/dma-mapping.h>
---- a/mm/folio-compat.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/folio-compat.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Compatibility functions which bloat the callers too much to make inline.
-  * All of the callers of these functions should be converted to use folios
---- a/mm/gup_test.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/gup_test.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/slab.h>
---- a/mm/hugetlb_cgroup.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/hugetlb_cgroup.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: LGPL-2.1
- /*
-  *
-  * Copyright IBM Corporation, 2012
-@@ -7,14 +8,6 @@
-  * Copyright (C) 2019 Red Hat, Inc.
-  * Author: Giuseppe Scrivano <gscrivan@redhat.com>
-  *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of version 2.1 of the GNU Lesser General Public License
-- * as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it would be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-- *
-  */
+--- a/fs/hugetlbfs/inode.c~fs-hugetlb-simplify-remove_inode_hugepages-return-type
++++ a/fs/hugetlbfs/inode.c
+@@ -513,15 +513,11 @@ hugetlb_vmdelete_list(struct rb_root_cac
  
- #include <linux/cgroup.h>
---- a/mm/memfd.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/memfd.c
-@@ -1,10 +1,9 @@
-+// SPDX-License-Identifier: GPL-2.0
  /*
-  * memfd_create system call and file sealing support
-  *
-  * Code was originally included in shmem.c, and broken out to facilitate
-  * use by hugetlbfs as well as tmpfs.
-- *
-- * This file is released under the GPL.
+  * Called with hugetlb fault mutex held.
+- * Returns true if page was actually removed, false otherwise.
   */
+-static bool remove_inode_single_folio(struct hstate *h, struct inode *inode,
+-					struct address_space *mapping,
+-					struct folio *folio, pgoff_t index,
+-					bool truncate_op)
++static void remove_inode_single_folio(struct hstate *h, struct inode *inode,
++		struct address_space *mapping, struct folio *folio,
++		pgoff_t index, bool truncate_op)
+ {
+-	bool ret = false;
+-
+ 	/*
+ 	 * If folio is mapped, it was faulted in after being
+ 	 * unmapped in caller or hugetlb_vmdelete_list() skips
+@@ -543,7 +539,6 @@ static bool remove_inode_single_folio(st
+ 	 */
+ 	VM_BUG_ON_FOLIO(folio_test_hugetlb_restore_reserve(folio), folio);
+ 	hugetlb_delete_from_page_cache(folio);
+-	ret = true;
+ 	if (!truncate_op) {
+ 		if (unlikely(hugetlb_unreserve_pages(inode, index,
+ 							index + 1, 1)))
+@@ -551,7 +546,6 @@ static bool remove_inode_single_folio(st
+ 	}
  
- #include <linux/fs.h>
---- a/mm/mmu_gather.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/mmu_gather.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- #include <linux/gfp.h>
- #include <linux/highmem.h>
- #include <linux/kernel.h>
---- a/mm/rmap.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/rmap.c
-@@ -1,8 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * mm/rmap.c - physical to virtual reverse mappings
-  *
-  * Copyright 2001, Rik van Riel <riel@conectiva.com.br>
-- * Released under the General Public License (GPL).
-  *
-  * Simple, low overhead reverse mapping scheme.
-  * Please try to keep this thing as modular as possible.
---- a/mm/shmem.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/shmem.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Resizable virtual memory filesystem for Linux.
-  *
-@@ -17,8 +18,6 @@
-  *
-  * tiny-shmem:
-  * Copyright (c) 2004, 2008 Matt Mackall <mpm@selenic.com>
-- *
-- * This file is released under the GPL.
-  */
+ 	folio_unlock(folio);
+-	return ret;
+ }
  
- #include <linux/fs.h>
+ /*
+@@ -599,9 +593,9 @@ static void remove_inode_hugepages(struc
+ 			/*
+ 			 * Remove folio that was part of folio_batch.
+ 			 */
+-			if (remove_inode_single_folio(h, inode, mapping, folio,
+-							index, truncate_op))
+-				freed++;
++			remove_inode_single_folio(h, inode, mapping, folio,
++						  index, truncate_op);
++			freed++;
+ 
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 		}
 _
 
-Patches currently in -mm which might be from tim.bird@sony.com are
+Patches currently in -mm which might be from jiaqiyan@google.com are
 
-mm-add-spdx-id-lines-to-some-mm-source-files.patch
+fs-hugetlb-simplify-remove_inode_hugepages-return-type.patch
 
