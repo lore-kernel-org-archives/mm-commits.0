@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 276EA42883A;
-	Wed,  4 Feb 2026 19:44:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A3E538BF7D
+	for <mm-commits@vger.kernel.org>; Wed,  4 Feb 2026 19:53:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770234262; cv=none; b=igfwf9Q7FOwfKUdLbrRhkV8cncdJeOKkymkyhoCvlBfSsAZaA4ebkznUSBSqH57bEVgGp2sxedgSxvcUqkrPW4tE3adw5eHyQHy5G1WW8GJIJsztABZbyoNqHFbs+shE0nvj7mea+p46n6ZMnCkpRfXbDmq1Sxkjv06bP0J3Z30=
+	t=1770234824; cv=none; b=DpPaCSIglviqz8DPn7SW3tDk2q4RA3VM57Wqih6u9rLZeQzjimovQAvpv/CIIJGl+3lncM/+dlXLdqKnlWb8qqdm0WJOcluInIvqJCkok9WJHUkD904hier3Z0atWTlQ8lQGvKkyKCLWRx3b8uzj0DwYR/HkLj+c4xatjOfIWwQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770234262; c=relaxed/simple;
-	bh=LZTc3xq3e58wt6zj6jFatblAyz9oaqu6MffeleKA4zU=;
-	h=Date:To:From:Subject:Message-Id; b=RUFhw0i2fVIUC2W1GYzRitzY4Aq0tRe7+llWtQBddYvwLH3DsqNQzv2tzPI4SQPx7e8nUB2R7tmJ8BYe/Uy+YDXOXcQ2+E7xdh3RHXTY0EU/WmVUoIN6jUnjjmnbJzJbD0yYBLOkjTC2lkvZ2Dm29v3K26IaJsywf1LP8kG9Mas=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LDUuu9jt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770234824; c=relaxed/simple;
+	bh=cI3+HKNP4HLLt0bxBx3ylj3fgD1AZ979KrbofIg3pmE=;
+	h=Date:To:From:Subject:Message-Id; b=i1s1A3uFhCX8BaZe6bwUHv0pvcpRmm2KTTnlGybjVagHQOuBWO3si9tY8gmjL6oLOq/lKBz5Z4q5cMrjUEYvChN55zEYJ70GFgYZdPx0m10o1QVxQ8CS6JV21pK57ScwjW80iZ21AZVq1il9C/ghqqEtBzh/69qsyTsHd14NUxs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MkXtSBnJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LDUuu9jt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7F6FC19423;
-	Wed,  4 Feb 2026 19:44:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MkXtSBnJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 966B1C4CEF7;
+	Wed,  4 Feb 2026 19:53:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770234261;
-	bh=LZTc3xq3e58wt6zj6jFatblAyz9oaqu6MffeleKA4zU=;
+	s=korg; t=1770234823;
+	bh=cI3+HKNP4HLLt0bxBx3ylj3fgD1AZ979KrbofIg3pmE=;
 	h=Date:To:From:Subject:From;
-	b=LDUuu9jt7uew/8i/FxfufTKq1U9sCmc7bMFCQeCQjKTK1xFKCzGmVbEtP657WgJOq
-	 JfxZ0Uyg7NowgDnnmG0TuGIJjV6bzZKhGYrsozNAknwrjuqYCz8yg7zEp5DrHEDgz5
-	 PxZJE347+pKoI7arU6/Xzjlh9knIUGzCzcay3AOQ=
-Date: Wed, 04 Feb 2026 11:44:21 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,stable@vger.kernel.org,riel@surriel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,jannh@google.com,harry.yoo@oracle.com,gavinguo@igalia.com,david@kernel.org,baolin.wang@linux.alibaba.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=MkXtSBnJ30kf+13cy35n/g4obaSF5jKJeNAVtIeT6UcWomhE8dCWYPUkcSoO2UaRE
+	 lhs7NW2XceaDEwX9ZBlq6BHzGyEPjLw39dkELjsF8EQCXes9G36NnyxTSgG4BXsqEL
+	 ZEqx+Xn9RvKRV2EHSNYY43sVKqgyGQwR77P873CQ=
+Date: Wed, 04 Feb 2026 11:53:42 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,roman.gushchin@linux.dev,muchun.song@linux.dev,david@fromorbit.com,ahacigu.linux@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-early-failure-try_to_migrate-when-split-huge-pmd-for-shared-thp.patch added to mm-new branch
-Message-Id: <20260204194421.D7F6FC19423@smtp.kernel.org>
+Subject: + mm-shrinker-fix-refcount-leak-in-shrink_slab_memcg.patch added to mm-new branch
+Message-Id: <20260204195343.966B1C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: fix early failure try_to_migrate() when split huge pmd for shared thp
+     Subject: mm/shrinker: fix refcount leak in shrink_slab_memcg()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-fix-early-failure-try_to_migrate-when-split-huge-pmd-for-shared-thp.patch
+     mm-shrinker-fix-refcount-leak-in-shrink_slab_memcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-early-failure-try_to_migrate-when-split-huge-pmd-for-shared-thp.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-fix-refcount-leak-in-shrink_slab_memcg.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,92 +66,52 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/huge_memory: fix early failure try_to_migrate() when split huge pmd for shared thp
-Date: Wed, 4 Feb 2026 00:42:19 +0000
+From: Altan Hacigumus <ahacigu.linux@gmail.com>
+Subject: mm/shrinker: fix refcount leak in shrink_slab_memcg()
+Date: Tue, 3 Feb 2026 19:35:53 -0800
 
-Commit 60fbb14396d5 ("mm/huge_memory: adjust try_to_migrate_one() and
-split_huge_pmd_locked()") return false unconditionally after
-split_huge_pmd_locked() which may fail early during try_to_migrate() for
-shared thp.  This will lead to unexpected folio split failure.
+When kmem is disabled for memcg, slab-backed shrinkers are skipped. 
+However, shrink_slab_memcg() doesn't drop the reference acquired via
+shrinker_try_get() before continuing.
 
-One way to reproduce:
+Add the missing shrinker_put().
 
-    Create an anonymous thp range and fork 512 children, so we have a
-    thp shared mapped in 513 processes. Then trigger folio split with
-    /sys/kernel/debug/split_huge_pages debugfs to split the thp folio to
-    order 0.
+Also, since memcg_kmem_online() and shrinker flags cannot change
+dynamically, remove the shrinker from the bitmap to avoid unnecessary
+future scans.
 
-Without the above commit, we can successfully split to order 0.  With the
-above commit, the folio is still a large folio.
-
-The reason is the above commit return false after split pmd
-unconditionally in the first process and break try_to_migrate().
-
-The tricky thing in above reproduce method is current debugfs interface
-leverage function split_huge_pages_pid(), which will iterate the whole pmd
-range and do folio split on each base page address.  This means it will
-try 512 times, and each time split one pmd from pmd mapped to pte mapped
-thp.  If there are less than 512 shared mapped process, the folio is still
-split successfully at last.  But in real world, we usually try it for
-once.
-
-This patch fixes this by restart page_vma_mapped_walk() after
-split_huge_pmd_locked().  Because split_huge_pmd_locked() may fall back to
-(freeze = false) if folio_try_share_anon_rmap_pmd() fails and the PMD is
-just split instead of split to migration entry.  Restart
-page_vma_mapped_walk() and let try_to_migrate_one() try on each PTE again
-and fail try_to_migrate() early if it fails.
-
-Link: https://lkml.kernel.org/r/20260204004219.6524-1-richard.weiyang@gmail.com
-Fixes: 60fbb14396d5 ("mm/huge_memory: adjust try_to_migrate_one() and split_huge_pmd_locked()")
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Gavin Guo <gavinguo@igalia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260204033553.50039-1-ahacigu.linux@gmail.com
+Fixes: 50d09da8e119 ("mm: shrinker: make memcg slab shrink lockless")
+Signed-off-by: Altan Hacigumus <ahacigu.linux@gmail.com>
+Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
+  Link: https://lore.kernel.org/r/20260203073757.135088-1-ahacigu.linux@gmail.com
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/shrinker.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/rmap.c~mm-huge_memory-fix-early-failure-try_to_migrate-when-split-huge-pmd-for-shared-thp
-+++ a/mm/rmap.c
-@@ -2446,11 +2446,16 @@ static bool try_to_migrate_one(struct fo
- 			__maybe_unused pmd_t pmdval;
+--- a/mm/shrinker.c~mm-shrinker-fix-refcount-leak-in-shrink_slab_memcg
++++ a/mm/shrinker.c
+@@ -544,8 +544,11 @@ again:
  
- 			if (flags & TTU_SPLIT_HUGE_PMD) {
-+				/*
-+				 * After split_huge_pmd_locked(), restart the
-+				 * walk to detect PageAnonExclusive handling
-+				 * failure in __split_huge_pmd_locked().
-+				 */
- 				split_huge_pmd_locked(vma, pvmw.address,
- 						      pvmw.pmd, true);
--				ret = false;
--				page_vma_mapped_walk_done(&pvmw);
--				break;
-+				flags &= ~TTU_SPLIT_HUGE_PMD;
-+				page_vma_mapped_walk_restart(&pvmw);
-+				continue;
- 			}
- #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
- 			pmdval = pmdp_get(pvmw.pmd);
+ 			/* Call non-slab shrinkers even though kmem is disabled */
+ 			if (!memcg_kmem_online() &&
+-			    !(shrinker->flags & SHRINKER_NONSLAB))
++			    !(shrinker->flags & SHRINKER_NONSLAB)) {
++				clear_bit(offset, unit->map);
++				shrinker_put(shrinker);
+ 				continue;
++			}
+ 
+ 			ret = do_shrink_slab(&sc, shrinker, priority);
+ 			if (ret == SHRINK_EMPTY) {
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from ahacigu.linux@gmail.com are
 
-mm-huge_memory-fix-early-failure-try_to_migrate-when-split-huge-pmd-for-shared-thp.patch
+mm-shrinker-fix-refcount-leak-in-shrink_slab_memcg.patch
 
