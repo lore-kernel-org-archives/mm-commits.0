@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75A802367B5
-	for <mm-commits@vger.kernel.org>; Wed,  4 Feb 2026 19:03:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C10432E137
+	for <mm-commits@vger.kernel.org>; Wed,  4 Feb 2026 19:37:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770231816; cv=none; b=i4arh+6vcNRhh4RQzOxXt/fXWpSNnf3D/tv+d09615z4m0Rg8b+EZXK+nDGx4UyRjzhDU4dP0pVQgWKbC6a8f/RwNN8NAmR3vnL8chfsGdZWSXdQle5DDDijlIF6taMqi32aXAP5rR6hnrtDr2w8GgHERkh6yOX1E8XBmZvKf14=
+	t=1770233823; cv=none; b=HT+f9FE+0kmTlra6bIRmcHBXwIUUxX34i8FoodiK/PN6vnre4jPOd0+600UO9jVBpBzkmp9O8unGGZFyT5C9Zpw6QMRqOvQFzatS+RjxXZ0i5lLBv2Qy6H4F1SgtMbstOesb7Pdxrm8wXDS32NenGECsY1w8yFlxgoSMB0rRhuA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770231816; c=relaxed/simple;
-	bh=4KUokkhZQ5dLcVNcc5P779TdVCFyVhLmGjS/qhdiUTo=;
-	h=Date:To:From:Subject:Message-Id; b=QfnDe/zuD6uV1zzAIPN2Dm/2qIqVkb20dQHYPs6jir99QzlgnU8hHYTu+7vHF9AsXoRhTsi2JMuEQ11Fhbs3TnD6QREZELna/2aO7ApN/L+roRwIWyBLpfJZxR5I9Brlkj4IatJXZRT3IH5TrtbvqkkqLBx32yHJNtfBvRYshE4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=htgTJXYn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770233823; c=relaxed/simple;
+	bh=Tfu71tVPJfWxlXCjyyuJl3Vs/+KpPzoN1PUGJv5cQS4=;
+	h=Date:To:From:Subject:Message-Id; b=Ay2ySu96/khEDdHOss57YUEYUgAqQb9rjL31UGp77674B3kFo2y8zabS6v8OdbMx4BVUPXxFkrWKMhcfCmKC7uZIuF0kXCkbrLz6nhkxFxjMeHI5orKFtdVG6V6XdphAhKIhgpK4DhIYNGYU9cVEaF5U8MVe0VEce+p9fGm1cFU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rNCyp4Pk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="htgTJXYn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03EC5C116C6;
-	Wed,  4 Feb 2026 19:03:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rNCyp4Pk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20541C4CEF7;
+	Wed,  4 Feb 2026 19:37:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770231816;
-	bh=4KUokkhZQ5dLcVNcc5P779TdVCFyVhLmGjS/qhdiUTo=;
+	s=korg; t=1770233823;
+	bh=Tfu71tVPJfWxlXCjyyuJl3Vs/+KpPzoN1PUGJv5cQS4=;
 	h=Date:To:From:Subject:From;
-	b=htgTJXYn5UbWBfDnXuql1d/Ki+6P1+7ksq4oQVAybNiHi7ViQtds32qklM5IPe/qd
-	 kOI3DZt9Uuii8QNtr3i1P1Or0qP41LJD35A60l79OBAm2PzIGI7TNkGhqx6wcP2n7x
-	 AoOznPPwURSuFvAqC6IS59EhRY+7thqSHlPhVpoY=
-Date: Wed, 04 Feb 2026 11:03:35 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,sj@kernel.org,nphamcs@gmail.com,david@kernel.org,chandna.sahil@gmail.com,akpm@linux-foundation.org
+	b=rNCyp4Pk25UjZjIkJZWj+Dgc4x6/oUCjjd51n2vZ/mgpBLnAEZiKA32nPYjNYPXeV
+	 tA0nEa+hmIqnHgqj3fCTilUtcYWxCeI6eDGvy0bawlyDm+mJrR3MADfAzVjy2sGTaW
+	 yhVwbOeaMnKW2HwGA2Pr+7sc/7qoWlheAjKfnOKE=
+Date: Wed, 04 Feb 2026 11:37:02 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,roman.gushchin@linux.dev,muchun.song@linux.dev,david@fromorbit.com,ahacigu.linux@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-use-%pe-to-print-error-pointers.patch added to mm-unstable branch
-Message-Id: <20260204190336.03EC5C116C6@smtp.kernel.org>
+Subject: + mm-shrinker-fix-refcount-leak-in-shrink_slab_memcg.patch added to mm-new branch
+Message-Id: <20260204193703.20541C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: use %pe to print error pointers
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-use-%pe-to-print-error-pointers.patch
+     Subject: mm/shrinker: fix refcount leak in shrink_slab_memcg()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-shrinker-fix-refcount-leak-in-shrink_slab_memcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-use-%pe-to-print-error-pointers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-fix-refcount-leak-in-shrink_slab_memcg.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,49 +66,35 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sahil Chandna <chandna.sahil@gmail.com>
-Subject: mm/zswap: use %pe to print error pointers
-Date: Thu, 5 Feb 2026 00:24:08 +0530
+From: Altan Hacigumus <ahacigu.linux@gmail.com>
+Subject: mm/shrinker: fix refcount leak in shrink_slab_memcg()
+Date: Tue, 3 Feb 2026 19:35:53 -0800
 
-Use the %pe printk format specifier to report error pointers directly
-instead of printing PTR_ERR() as a long value.  This improves clarity,
-produces more readable error messages.
+When kmem is disabled for memcg, slab-backed shrinkers are skipped. 
+However, shrink_slab_memcg() doesn't drop the reference acquired via
+shrinker_try_get() before continuing.
 
-This instance was flagged by the Coccinelle script
-(misc/ptr_err_to_pe.cocci) as an opportunity to adopt %pe.
+Add the missing shrinker_put().
 
-Found by: make coccicheck MODE=report M=mm/
-No functional change intended.
+Also, since memcg_kmem_online() and shrinker flags cannot change
+dynamically, remove the shrinker from the bitmap to avoid unnecessary
+future scans.
 
-Link: https://lkml.kernel.org/r/581a26f22fb4c6ce04aeb7ee0d703fe64454ac7f.1770230135.git.chandna.sahil@gmail.com
-Signed-off-by: Sahil Chandna <chandna.sahil@gmail.com>
-Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20260204033553.50039-1-ahacigu.linux@gmail.com
+Fixes: 50d09da8e119 ("mm: shrinker: make memcg slab shrink lockless")
+Signed-off-by: Altan Hacigumus <ahacigu.linux@gmail.com>
+Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
+  Link: https://lore.kernel.org/r/20260203073757.135088-1-ahacigu.linux@gmail.com
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-use-%pe-to-print-error-pointers
-+++ a/mm/zswap.c
-@@ -749,8 +749,8 @@ static int zswap_cpu_comp_prepare(unsign
- 
- 	acomp = crypto_alloc_acomp_node(pool->tfm_name, 0, 0, cpu_to_node(cpu));
- 	if (IS_ERR(acomp)) {
--		pr_err("could not alloc crypto acomp %s : %ld\n",
--				pool->tfm_name, PTR_ERR(acomp));
-+		pr_err("could not alloc crypto acomp %s : %pe\n",
-+				pool->tfm_name, acomp);
- 		ret = PTR_ERR(acomp);
- 		goto fail;
- 	}
 _
 
-Patches currently in -mm which might be from chandna.sahil@gmail.com are
+Patches currently in -mm which might be from ahacigu.linux@gmail.com are
 
-mm-vmscan-use-%pe-to-print-error-pointers.patch
-mm-zswap-use-%pe-to-print-error-pointers.patch
+mm-shrinker-fix-refcount-leak-in-shrink_slab_memcg.patch
 
