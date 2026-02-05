@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A074C22339;
-	Thu,  5 Feb 2026 03:47:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A94728726D
+	for <mm-commits@vger.kernel.org>; Thu,  5 Feb 2026 03:59:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770263274; cv=none; b=TWhSYz8YDcwffdE4YaEf4tGl7cjwqS1a2STG2lu1p3RDjvLlpUb7La5CJge4CE7ek4hxAOyiCPHj+CairVfRLwPVeg1BNToCMFmOyQWKC2W6s0cATK8qTAFj8aRZ24+gaIxcTVCbGfjbMmK7vEW8sH+E4lEj7EaRRHhKy+t+QDQ=
+	t=1770263950; cv=none; b=a6fAoEZVBN4A+riRONlMGALrFxLWeyYeIO9kdQm/H3UGdqXMJgT7BqUdtgb9xujKaCELLhlZ8khJ7ITwYLV7xBnxknG29md9JQj3wQKdHhv0IHSL+ApfwRhOlVS8mMeoosldT6GaBDQ9me78ukszyq8X6uvCklUSGl4nMxesulY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770263274; c=relaxed/simple;
-	bh=AlJYk0vwR6a7z3G1T7gdtCSo68C6OKgODawm43o+LVc=;
-	h=Date:To:From:Subject:Message-Id; b=TLFM7jdFlZVInB+fyHefOhOlBk3WNwPdJ56znurrOEo+fKs2QDil0X1V+k2F09Zh7GKTGZBIDeHT2NCqNUsW7OycvkQxb0vVcSdTzydAuczmxVsp8U826a4PrUKaJdHFhu6nwzcAm8gBp4s6+DxHcj2W9VeJ5t2uwvMHTeGPbuQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UyCz1ArS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770263950; c=relaxed/simple;
+	bh=ZVS4pJY1wfgymDV3s0F+rwayt2edWZwa8+SrbeEJzR0=;
+	h=Date:To:From:Subject:Message-Id; b=hUF/Nf6Mk9Lp3Fc9OgBPP4j36s49rFjlT98YGrDlSh9IZL+Jqg1aL3jnZw3mh5KpAFhS4rAv4vs4N4b3yn4Yxt2KRaoaNGfHRBLESAvZTKeT4FTk00FDIQLwYrPhnutSlPCFA4QOrp3/eL1QbQexT9MMG6JgQguiZl1XFJNv2iM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jpFsMADm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UyCz1ArS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 147B3C4CEF7;
-	Thu,  5 Feb 2026 03:47:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jpFsMADm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCC2CC4CEF7;
+	Thu,  5 Feb 2026 03:59:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770263274;
-	bh=AlJYk0vwR6a7z3G1T7gdtCSo68C6OKgODawm43o+LVc=;
+	s=korg; t=1770263949;
+	bh=ZVS4pJY1wfgymDV3s0F+rwayt2edWZwa8+SrbeEJzR0=;
 	h=Date:To:From:Subject:From;
-	b=UyCz1ArSigO634pH2KsNbD6bi6ljow4j49SVWeOiCRhNdre8mOrvixDWU+WQrTPcL
-	 UjbYvCHRJG9NlF4CUMtFmRQCYQtWMIzl//AASscYNLKzdwHqBJzeFjEfKefqeLrUBU
-	 yazgyhbf3T7NhGVJ9G8wjSXzR+FXAtvskWLPTlok=
-Date: Wed, 04 Feb 2026 19:47:53 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,lance.yang@linux.dev,gavinguo@igalia.com,david@kernel.org,baolin.wang@linux.alibaba.com,richard.weiyang@gmail.com,akpm@linux-foundation.org
+	b=jpFsMADmiUX9LzBZNTTRiMi4NQo84P6e8qV3lHCRXch2zJGhY9Si3XSvgnNp+8SyC
+	 LREkCq9dP9MqQAq0A8Oa1P83JIlY5ZlAxY4gffH77798BDvULDXyD5QGqUuV8/TlFj
+	 kUZfhDslxKkZ0cMQhV8phCvIc9QipoUbcEbA+seE=
+Date: Wed, 04 Feb 2026 19:59:09 -0800
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shicenci@gmail.com,rppt@kernel.org,richard.weiyang@gmail.com,nao.horiguchi@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,linmiaohe@huawei.com,liam.howlett@oracle.com,harry.yoo@oracle.com,david@kernel.org,baolin.wang@linux.alibaba.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-early-failure-try_to_migrate-when-split-huge-pmd-for-shared-thp.patch added to mm-new branch
-Message-Id: <20260205034754.147B3C4CEF7@smtp.kernel.org>
+Subject: [to-be-updated] mm-memory_failure-reject-unsupported-non-folio-compound-page.patch removed from -mm tree
+Message-Id: <20260205035909.CCC2CC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,127 +34,107 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/huge_memory: fix early failure try_to_migrate() when split huge pmd for shared thp
-has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-fix-early-failure-try_to_migrate-when-split-huge-pmd-for-shared-thp.patch
+The quilt patch titled
+     Subject: mm/memory_failure: reject unsupported non-folio compound page
+has been removed from the -mm tree.  Its filename was
+     mm-memory_failure-reject-unsupported-non-folio-compound-page.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-early-failure-try_to_migrate-when-split-huge-pmd-for-shared-thp.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/huge_memory: fix early failure try_to_migrate() when split huge pmd for shared thp
-Date: Thu, 5 Feb 2026 03:31:13 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/memory_failure: reject unsupported non-folio compound page
+Date: Wed, 4 Feb 2026 19:56:03 -0500
 
-Commit 60fbb14396d5 ("mm/huge_memory: adjust try_to_migrate_one() and
-split_huge_pmd_locked()") return false unconditionally after
-split_huge_pmd_locked() which may fail early during try_to_migrate() for
-shared thp.  This will lead to unexpected folio split failure.
+When !CONFIG_TRANSPARENT_HUGEPAGE, a non-folio compound page can appear in
+a userspace mapping via either vm_insert_*() functions or
+vm_operatios_struct->fault().  They are not folios, thus should not be
+considered for folio operations like split.  Change memory_failure() and
+soft_offline_page() to reject these non-folio compound pages as
+EOPNOTSUPP.
 
-One way to reproduce:
+Add PageNonFolioCompound() helper function.  This function is functionally
+equivalent to folio_test_large() && !folio_test_large_rmappable(), but it
+is supposed to be used on struct page.  So open code it instead.
 
-    Create an anonymous thp range and fork 512 children, so we have a
-    thp shared mapped in 513 processes. Then trigger folio split with
-    /sys/kernel/debug/split_huge_pages debugfs to split the thp folio to
-    order 0.
-
-Without the above commit, we can successfully split to order 0.  With the
-above commit, the folio is still a large folio.
-
-The reason is the above commit return false after split pmd
-unconditionally in the first process and break try_to_migrate().
-
-On memory pressure or failure, we would try to reclaim unused memory or
-limit bad memory after folio split.  If failed to split it, we will leave
-some more memory unusable than expected.
-
-The tricky thing in the above reproduction method is current debugfs
-interface leverage function split_huge_pages_pid(), which will iterate the
-whole pmd range and do folio split on each base page address.  This means
-it will try 512 times, and each time split one pmd from pmd mapped to pte
-mapped thp.  If there are less than 512 shared mapped process, the folio
-is still split successfully at last.  But in real world, we usually try it
-for once.
-
-This patch fixes this by restarting page_vma_mapped_walk() after
-split_huge_pmd_locked().  We cannot simply return "true" to fix the
-problem, as that would affect another case:
-split_huge_pmd_locked()->folio_try_share_anon_rmap_pmd() can failed and
-leave the folio mapped through PTEs; we would return "true" from
-try_to_migrate_one() in that case as well.  While that is mostly harmless,
-we could end up walking the rmap, wasting some cycles.
-
-Link: https://lkml.kernel.org/r/20260205033113.30724-1-richard.weiyang@gmail.com
-Fixes: 60fbb14396d5 ("mm/huge_memory: adjust try_to_migrate_one() and split_huge_pmd_locked()")
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Gavin Guo <gavinguo@igalia.com>
-Acked-by: David Hildenbrand (arm) <david@kernel.org>
-Cc: Gavin Guo <gavinguo@igalia.com>
-Cc: "David Hildenbrand (Red Hat)" <david@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20260205005603.274383-1-ziy@nvidia.com
+Fixes: 689b8986776c ("mm/memory-failure: improve large block size folio handling")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: 是参差 <shicenci@gmail.com>
+Closes: https://lore.kernel.org/all/PS1PPF7E1D7501F1E4F4441E7ECD056DEADAB98A@PS1PPF7E1D7501F.apcprd02.prod.outlook.com/
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: <stable@vger.kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h |   16 ++++++++++++++++
+ mm/memory-failure.c        |    9 ++++++---
+ 2 files changed, 22 insertions(+), 3 deletions(-)
 
---- a/mm/rmap.c~mm-huge_memory-fix-early-failure-try_to_migrate-when-split-huge-pmd-for-shared-thp
-+++ a/mm/rmap.c
-@@ -2446,11 +2446,17 @@ static bool try_to_migrate_one(struct fo
- 			__maybe_unused pmd_t pmdval;
+--- a/include/linux/page-flags.h~mm-memory_failure-reject-unsupported-non-folio-compound-page
++++ a/include/linux/page-flags.h
+@@ -1102,6 +1102,22 @@ static inline bool folio_contain_hwpoiso
  
- 			if (flags & TTU_SPLIT_HUGE_PMD) {
-+				/*
-+				 * split_huge_pmd_locked() might leave the
-+				 * folio mapped through PTEs. Retry the walk
-+				 * so we can detect this scenario and properly
-+				 * abort the walk.
-+				 */
- 				split_huge_pmd_locked(vma, pvmw.address,
- 						      pvmw.pmd, true);
--				ret = false;
--				page_vma_mapped_walk_done(&pvmw);
--				break;
-+				flags &= ~TTU_SPLIT_HUGE_PMD;
-+				page_vma_mapped_walk_restart(&pvmw);
-+				continue;
- 			}
- #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
- 			pmdval = pmdp_get(pvmw.pmd);
+ bool is_free_buddy_page(const struct page *page);
+ 
++static inline bool PageNonFolioCompound(const struct page *page)
++{
++	if (PageCompound(page)) {
++		const struct page *head = compound_head(page);
++
++		/*
++		 * Without CONFIG_TRANSPARENT_HUGEPAGE, PG_large_rmappable
++		 * should not be set/used.
++		 */
++		return !IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) ||
++		       !test_bit(PG_large_rmappable, &head[1].flags.f);
++	}
++
++	return false;
++}
++
+ #ifdef CONFIG_MIGRATION
+ /*
+  * This page is migratable through movable_ops (for selected typed pages
+--- a/mm/memory-failure.c~mm-memory_failure-reject-unsupported-non-folio-compound-page
++++ a/mm/memory-failure.c
+@@ -2440,9 +2440,12 @@ try_again:
+ 
+ 	folio = page_folio(p);
+ 
+-	/* filter pages that are protected from hwpoison test by users */
++	/*
++	 * filter pages that are protected from hwpoison test by users or
++	 * unsupported non folio compound ones
++	 */
+ 	folio_lock(folio);
+-	if (hwpoison_filter(p)) {
++	if (hwpoison_filter(p) || PageNonFolioCompound(p)) {
+ 		ClearPageHWPoison(p);
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+@@ -2945,7 +2948,7 @@ retry:
+ 	ret = get_hwpoison_page(page, flags | MF_SOFT_OFFLINE);
+ 	put_online_mems();
+ 
+-	if (hwpoison_filter(page)) {
++	if (hwpoison_filter(page) || PageNonFolioCompound(page)) {
+ 		if (ret > 0)
+ 			put_page(page);
+ 
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-huge_memory-fix-early-failure-try_to_migrate-when-split-huge-pmd-for-shared-thp.patch
 
