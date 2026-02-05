@@ -1,63 +1,305 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5264F30275F;
-	Thu,  5 Feb 2026 17:47:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC7C5335557;
+	Thu,  5 Feb 2026 22:10:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770313654; cv=none; b=D3SAGwv90LZkdb1nA5nTjanEd29CYnx0e/hbto8YOwteNiTis2Gcry93auLms0JpHZgARgSpJpKR40rJgvXo99ka4nvkAB7WA0ao7idj1QJK/j6wscWiiRu2uiVYUJtpup8CgxHRyC5uxp2liJMEB7DeoKyBG4zvs5MMp+n13L0=
+	t=1770329434; cv=none; b=JqHpFRDZV+csnsqdTgU7eHDOrjo+QjGy5lcoTfT0UnjRxznMT1DFUY/1lznv/qMfn76Ms7kUzMdhaUCHLsDkb7tCWCCymhIr0f9BxDQxT5xxoo0y+5Xs7Y8x+8IdnJk4mRCBRjP8B4p66Iq74Qhb2UR3pPJwqDTLcdukxM1/nEM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770313654; c=relaxed/simple;
-	bh=5r1cNZ711fosLU2hxpv3v6DnKR9J2b5R52KaPdq0rVo=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=NhcfLH7kg1HJikUtIbbrgjWHpHH9AZSU4KJwNcq2A7xX0FUAn1HCX4FmDfHM9KSq1CA6PvgwrkRCtC8LUKdjpfBS9agwt8qC8VKI8Mh1ZwcfDQ2RgET+fafn5fpdiuminK+z5jJHGH/fPqpzaLve268+jH9SQ39UoehaeyB20uY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=q4fUHG5z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770329434; c=relaxed/simple;
+	bh=FyS1HZqau5GWt2HsCyDb4h5tFLAlSa3CW+a+YXdseKg=;
+	h=Date:To:From:Subject:Message-Id; b=k/HQ+ZJOR0VP74tHqw2q2zfdTMpKYq73oRBfP5YaRgdnR1Hg0oOmR9Q+t5Ktx2JQKrY4iHfZzJgJMpFEL5tkFHca1a+5gmyE/0xETrDOPSFd2oKi519pvQbPK1rY4j5+X7Y28WY75k6/wbgLPdMNQ4h39sMH81rFaF7cwdWXvdE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v1sEiV/3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="q4fUHG5z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8A84C4CEF7;
-	Thu,  5 Feb 2026 17:47:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1770313653;
-	bh=5r1cNZ711fosLU2hxpv3v6DnKR9J2b5R52KaPdq0rVo=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=q4fUHG5znFTlwjO0exqdqWYPybtLtceqqwji/A3KMZxuiEKE2hbX60kTvHm60cIPz
-	 mQZelkJeXnuFkGjO7y1C1Uye7UJmXCpm1ZAo2qGMXWMT5+pT2XWUCNNM7Klnh5yf2e
-	 8dKMmS3997S2a2MIyf8NRe/WKjXM2QPUehzY1Xl4njLzgiXSF6rPHp6FfC0MdjbJxf
-	 qxqK9rP/i3mh23zLt2cO4KaXOtJxprLkrE7TWdVb30issxYhE8Kg2KWPy43ywAIj53
-	 YFZ2lMfLTdQvsh5Zfa2upgfaPKokscRVLzI3LhDhU3YOSw7zrXDsXyQF6usE00DUAc
-	 E3vjo2h4gq+qA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id C26233808200;
-	Thu,  5 Feb 2026 17:47:32 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes against 6.19-rc8
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20260204155838.05fd9b9d9b43b493fd0b74a4@linux-foundation.org>
-References: <20260204155838.05fd9b9d9b43b493fd0b74a4@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20260204155838.05fd9b9d9b43b493fd0b74a4@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-02-04-15-55
-X-PR-Tracked-Commit-Id: 1a47837bfafed7e9ef93f5dfdea6d70869b0c3ab
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: b20624608f350c5dadd74577629e90715d351e2c
-Message-Id: <177031365139.509822.8597681757742011770.pr-tracker-bot@kernel.org>
-Date: Thu, 05 Feb 2026 17:47:31 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v1sEiV/3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A6BEC4AF0B;
+	Thu,  5 Feb 2026 22:10:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1770329433;
+	bh=FyS1HZqau5GWt2HsCyDb4h5tFLAlSa3CW+a+YXdseKg=;
+	h=Date:To:From:Subject:From;
+	b=v1sEiV/3TORv0AkKhNsiKQ00XWMC/aewy/QBTbXrdSlfJXb9Prp9Q7iZ15LN3AdHU
+	 X1qCzncjsiWIWJknZNggRu49VTHEQp9p00oE3Y+t8hjh7fSFLV7GqL7gM4wdB674no
+	 Br5hvZmAnfjJxYPfZamPwYebeTqZ6qvtsUYKA8xI=
+Date: Thu, 05 Feb 2026 14:10:32 -0800
+To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,syzbot+4e70c8e0a2017b432f7a@syzkaller.appspotmail.com,surenb@google.com,stable@vger.kernel.org,song@kernel.org,shakeel.butt@linux.dev,sdf@fomichev.me,martin.lau@linux.dev,kpsingh@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,eddyz87@gmail.com,daniel@iogearbox.net,ast@kernel.org,andrii@kernel.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged mm-hotfixes-stable] procfs-avoid-fetching-build-id-while-holding-vma-lock.patch removed from -mm tree
+Message-Id: <20260205221033.4A6BEC4AF0B@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-The pull request you sent on Wed, 4 Feb 2026 15:58:38 -0800:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-02-04-15-55
+The quilt patch titled
+     Subject: procfs: avoid fetching build ID while holding VMA lock
+has been removed from the -mm tree.  Its filename was
+     procfs-avoid-fetching-build-id-while-holding-vma-lock.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/b20624608f350c5dadd74577629e90715d351e2c
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-Thank you!
+------------------------------------------------------
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: procfs: avoid fetching build ID while holding VMA lock
+Date: Thu, 29 Jan 2026 13:53:40 -0800
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Fix PROCMAP_QUERY to fetch optional build ID only after dropping mmap_lock
+or per-VMA lock, whichever was used to lock VMA under question, to avoid
+deadlock reported by syzbot:
+
+ -> #1 (&mm->mmap_lock){++++}-{4:4}:
+        __might_fault+0xed/0x170
+        _copy_to_iter+0x118/0x1720
+        copy_page_to_iter+0x12d/0x1e0
+        filemap_read+0x720/0x10a0
+        blkdev_read_iter+0x2b5/0x4e0
+        vfs_read+0x7f4/0xae0
+        ksys_read+0x12a/0x250
+        do_syscall_64+0xcb/0xf80
+        entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+ -> #0 (&sb->s_type->i_mutex_key#8){++++}-{4:4}:
+        __lock_acquire+0x1509/0x26d0
+        lock_acquire+0x185/0x340
+        down_read+0x98/0x490
+        blkdev_read_iter+0x2a7/0x4e0
+        __kernel_read+0x39a/0xa90
+        freader_fetch+0x1d5/0xa80
+        __build_id_parse.isra.0+0xea/0x6a0
+        do_procmap_query+0xd75/0x1050
+        procfs_procmap_ioctl+0x7a/0xb0
+        __x64_sys_ioctl+0x18e/0x210
+        do_syscall_64+0xcb/0xf80
+        entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+ other info that might help us debug this:
+
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   rlock(&mm->mmap_lock);
+                                lock(&sb->s_type->i_mutex_key#8);
+                                lock(&mm->mmap_lock);
+   rlock(&sb->s_type->i_mutex_key#8);
+
+  *** DEADLOCK ***
+
+This seems to be exacerbated (as we haven't seen these syzbot reports
+before that) by the recent:
+
+	777a8560fd29 ("lib/buildid: use __kernel_read() for sleepable context")
+
+To make this safe, we need to grab file refcount while VMA is still locked, but
+other than that everything is pretty straightforward. Internal build_id_parse()
+API assumes VMA is passed, but it only needs the underlying file reference, so
+just add another variant build_id_parse_file() that expects file passed
+directly.
+
+[akpm@linux-foundation.org: fix up kerneldoc]
+Link: https://lkml.kernel.org/r/20260129215340.3742283-1-andrii@kernel.org
+Fixes: ed5d583a88a9 ("fs/procfs: implement efficient VMA querying API for /proc/<pid>/maps")
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Reported-by: <syzbot+4e70c8e0a2017b432f7a@syzkaller.appspotmail.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Tested-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Eduard Zingerman <eddyz87@gmail.com>
+Cc: Hao Luo <haoluo@google.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: John Fastabend <john.fastabend@gmail.com>
+Cc: KP Singh <kpsingh@kernel.org>
+Cc: Martin KaFai Lau <martin.lau@linux.dev>
+Cc: Song Liu <song@kernel.org>
+Cc: Stanislav Fomichev <sdf@fomichev.me>
+Cc: Yonghong Song <yonghong.song@linux.dev>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/proc/task_mmu.c      |   42 ++++++++++++++++++++++++--------------
+ include/linux/buildid.h |    3 ++
+ lib/buildid.c           |   42 +++++++++++++++++++++++++++-----------
+ 3 files changed, 60 insertions(+), 27 deletions(-)
+
+--- a/fs/proc/task_mmu.c~procfs-avoid-fetching-build-id-while-holding-vma-lock
++++ a/fs/proc/task_mmu.c
+@@ -656,6 +656,7 @@ static int do_procmap_query(struct mm_st
+ 	struct proc_maps_locking_ctx lock_ctx = { .mm = mm };
+ 	struct procmap_query karg;
+ 	struct vm_area_struct *vma;
++	struct file *vm_file = NULL;
+ 	const char *name = NULL;
+ 	char build_id_buf[BUILD_ID_SIZE_MAX], *name_buf = NULL;
+ 	__u64 usize;
+@@ -727,21 +728,6 @@ static int do_procmap_query(struct mm_st
+ 		karg.inode = 0;
+ 	}
+ 
+-	if (karg.build_id_size) {
+-		__u32 build_id_sz;
+-
+-		err = build_id_parse(vma, build_id_buf, &build_id_sz);
+-		if (err) {
+-			karg.build_id_size = 0;
+-		} else {
+-			if (karg.build_id_size < build_id_sz) {
+-				err = -ENAMETOOLONG;
+-				goto out;
+-			}
+-			karg.build_id_size = build_id_sz;
+-		}
+-	}
+-
+ 	if (karg.vma_name_size) {
+ 		size_t name_buf_sz = min_t(size_t, PATH_MAX, karg.vma_name_size);
+ 		const struct path *path;
+@@ -775,10 +761,34 @@ static int do_procmap_query(struct mm_st
+ 		karg.vma_name_size = name_sz;
+ 	}
+ 
++	if (karg.build_id_size && vma->vm_file)
++		vm_file = get_file(vma->vm_file);
++
+ 	/* unlock vma or mmap_lock, and put mm_struct before copying data to user */
+ 	query_vma_teardown(&lock_ctx);
+ 	mmput(mm);
+ 
++	if (karg.build_id_size) {
++		__u32 build_id_sz;
++
++		if (vm_file)
++			err = build_id_parse_file(vm_file, build_id_buf, &build_id_sz);
++		else
++			err = -ENOENT;
++		if (err) {
++			karg.build_id_size = 0;
++		} else {
++			if (karg.build_id_size < build_id_sz) {
++				err = -ENAMETOOLONG;
++				goto out;
++			}
++			karg.build_id_size = build_id_sz;
++		}
++	}
++
++	if (vm_file)
++		fput(vm_file);
++
+ 	if (karg.vma_name_size && copy_to_user(u64_to_user_ptr(karg.vma_name_addr),
+ 					       name, karg.vma_name_size)) {
+ 		kfree(name_buf);
+@@ -798,6 +808,8 @@ static int do_procmap_query(struct mm_st
+ out:
+ 	query_vma_teardown(&lock_ctx);
+ 	mmput(mm);
++	if (vm_file)
++		fput(vm_file);
+ 	kfree(name_buf);
+ 	return err;
+ }
+--- a/include/linux/buildid.h~procfs-avoid-fetching-build-id-while-holding-vma-lock
++++ a/include/linux/buildid.h
+@@ -7,7 +7,10 @@
+ #define BUILD_ID_SIZE_MAX 20
+ 
+ struct vm_area_struct;
++struct file;
++
+ int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size);
++int build_id_parse_file(struct file *file, unsigned char *build_id, __u32 *size);
+ int build_id_parse_nofault(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size);
+ int build_id_parse_buf(const void *buf, unsigned char *build_id, u32 buf_size);
+ 
+--- a/lib/buildid.c~procfs-avoid-fetching-build-id-while-holding-vma-lock
++++ a/lib/buildid.c
+@@ -279,7 +279,7 @@ static int get_build_id_64(struct freade
+ /* enough for Elf64_Ehdr, Elf64_Phdr, and all the smaller requests */
+ #define MAX_FREADER_BUF_SZ 64
+ 
+-static int __build_id_parse(struct vm_area_struct *vma, unsigned char *build_id,
++static int __build_id_parse(struct file *file, unsigned char *build_id,
+ 			    __u32 *size, bool may_fault)
+ {
+ 	const Elf32_Ehdr *ehdr;
+@@ -287,11 +287,7 @@ static int __build_id_parse(struct vm_ar
+ 	char buf[MAX_FREADER_BUF_SZ];
+ 	int ret;
+ 
+-	/* only works for page backed storage  */
+-	if (!vma->vm_file)
+-		return -EINVAL;
+-
+-	freader_init_from_file(&r, buf, sizeof(buf), vma->vm_file, may_fault);
++	freader_init_from_file(&r, buf, sizeof(buf), file, may_fault);
+ 
+ 	/* fetch first 18 bytes of ELF header for checks */
+ 	ehdr = freader_fetch(&r, 0, offsetofend(Elf32_Ehdr, e_type));
+@@ -319,8 +315,8 @@ out:
+ 	return ret;
+ }
+ 
+-/*
+- * Parse build ID of ELF file mapped to vma
++/**
++ * build_id_parse_nofault() - Parse build ID of ELF file mapped to vma
+  * @vma:      vma object
+  * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
+  * @size:     returns actual build id size in case of success
+@@ -332,11 +328,14 @@ out:
+  */
+ int build_id_parse_nofault(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size)
+ {
+-	return __build_id_parse(vma, build_id, size, false /* !may_fault */);
++	if (!vma->vm_file)
++		return -EINVAL;
++
++	return __build_id_parse(vma->vm_file, build_id, size, false /* !may_fault */);
+ }
+ 
+-/*
+- * Parse build ID of ELF file mapped to VMA
++/**
++ * build_id_parse() - Parse build ID of ELF file mapped to VMA
+  * @vma:      vma object
+  * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
+  * @size:     returns actual build id size in case of success
+@@ -348,7 +347,26 @@ int build_id_parse_nofault(struct vm_are
+  */
+ int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size)
+ {
+-	return __build_id_parse(vma, build_id, size, true /* may_fault */);
++	if (!vma->vm_file)
++		return -EINVAL;
++
++	return __build_id_parse(vma->vm_file, build_id, size, true /* may_fault */);
++}
++
++/**
++ * build_id_parse_file() - Parse build ID of ELF file
++ * @file:      file object
++ * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
++ * @size:     returns actual build id size in case of success
++ *
++ * Assumes faultable context and can cause page faults to bring in file data
++ * into page cache.
++ *
++ * Return: 0 on success; negative error, otherwise
++ */
++int build_id_parse_file(struct file *file, unsigned char *build_id, __u32 *size)
++{
++	return __build_id_parse(file, build_id, size, true /* may_fault */);
+ }
+ 
+ /**
+_
+
+Patches currently in -mm which might be from andrii@kernel.org are
+
+
