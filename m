@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC7C5335557;
-	Thu,  5 Feb 2026 22:10:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5AEB33509C
+	for <mm-commits@vger.kernel.org>; Thu,  5 Feb 2026 22:10:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770329434; cv=none; b=JqHpFRDZV+csnsqdTgU7eHDOrjo+QjGy5lcoTfT0UnjRxznMT1DFUY/1lznv/qMfn76Ms7kUzMdhaUCHLsDkb7tCWCCymhIr0f9BxDQxT5xxoo0y+5Xs7Y8x+8IdnJk4mRCBRjP8B4p66Iq74Qhb2UR3pPJwqDTLcdukxM1/nEM=
+	t=1770329434; cv=none; b=GeA1M2g3muv373/dpdauM+9emHd2lNztyEwt5V2Mbpp6EK+7rTKTWZKMN4uEUFsQYGy7adZKaKNy/76OzaLK7pOLNarr1JHDNtevH/IDgfmTqjE635EeD0P8yjZPym445+J2QuetshO4nMYu/rfdGuCpp9OQiW171IHo7dl/lek=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1770329434; c=relaxed/simple;
-	bh=FyS1HZqau5GWt2HsCyDb4h5tFLAlSa3CW+a+YXdseKg=;
-	h=Date:To:From:Subject:Message-Id; b=k/HQ+ZJOR0VP74tHqw2q2zfdTMpKYq73oRBfP5YaRgdnR1Hg0oOmR9Q+t5Ktx2JQKrY4iHfZzJgJMpFEL5tkFHca1a+5gmyE/0xETrDOPSFd2oKi519pvQbPK1rY4j5+X7Y28WY75k6/wbgLPdMNQ4h39sMH81rFaF7cwdWXvdE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v1sEiV/3; arc=none smtp.client-ip=10.30.226.201
+	bh=j+TCRKEdEO/QjvbTpQHsR/DKHtI/5QN1wt3codvjsbA=;
+	h=Date:To:From:Subject:Message-Id; b=RS/3+UwPjVob7EScqNq7U1ibhqYi31gB+6cyEDTNJiiHxFVY6OoaRW5T5vY0JRFWQmfGftHQsBtXsjVOXXwjNXJLvPb+2apCMdhyL3lA6g6iNqaQpGU/DnNiQ64gLBknPfRnFWEUiP6rfdKbSJGCVGuURA/dVWZgv72o0W8R30Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wa+40XED; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v1sEiV/3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A6BEC4AF0B;
-	Thu,  5 Feb 2026 22:10:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wa+40XED"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8381DC2BC87;
+	Thu,  5 Feb 2026 22:10:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770329433;
-	bh=FyS1HZqau5GWt2HsCyDb4h5tFLAlSa3CW+a+YXdseKg=;
+	s=korg; t=1770329434;
+	bh=j+TCRKEdEO/QjvbTpQHsR/DKHtI/5QN1wt3codvjsbA=;
 	h=Date:To:From:Subject:From;
-	b=v1sEiV/3TORv0AkKhNsiKQ00XWMC/aewy/QBTbXrdSlfJXb9Prp9Q7iZ15LN3AdHU
-	 X1qCzncjsiWIWJknZNggRu49VTHEQp9p00oE3Y+t8hjh7fSFLV7GqL7gM4wdB674no
-	 Br5hvZmAnfjJxYPfZamPwYebeTqZ6qvtsUYKA8xI=
-Date: Thu, 05 Feb 2026 14:10:32 -0800
-To: mm-commits@vger.kernel.org,yonghong.song@linux.dev,syzbot+4e70c8e0a2017b432f7a@syzkaller.appspotmail.com,surenb@google.com,stable@vger.kernel.org,song@kernel.org,shakeel.butt@linux.dev,sdf@fomichev.me,martin.lau@linux.dev,kpsingh@kernel.org,jolsa@kernel.org,john.fastabend@gmail.com,haoluo@google.com,eddyz87@gmail.com,daniel@iogearbox.net,ast@kernel.org,andrii@kernel.org,akpm@linux-foundation.org
+	b=Wa+40XEDbq5K8IS9isERr0U7xhGMeYqtrvQg98iBHWZr0HI/37ZbGSaaxd6reQvpQ
+	 N+CxA961NdKDjHtFH1+ys9yfUMmwM+Tru0FMf0kTPIhO4ckxwrumld8b53ZMqWlFFp
+	 cAv+0p+GqWJHK12wUtDHHTqGM8L8hDiboVGtiYlw=
+Date: Thu, 05 Feb 2026 14:10:33 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,shicenci@gmail.com,nao.horiguchi@gmail.com,jane.chu@oracle.com,david@kernel.org,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] procfs-avoid-fetching-build-id-while-holding-vma-lock.patch removed from -mm tree
-Message-Id: <20260205221033.4A6BEC4AF0B@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memory-failure-reject-unsupported-non-folio-compound-page.patch removed from -mm tree
+Message-Id: <20260205221034.8381DC2BC87@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,271 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: procfs: avoid fetching build ID while holding VMA lock
+     Subject: mm/memory-failure: reject unsupported non-folio compound page
 has been removed from the -mm tree.  Its filename was
-     procfs-avoid-fetching-build-id-while-holding-vma-lock.patch
+     mm-memory-failure-reject-unsupported-non-folio-compound-page.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andrii Nakryiko <andrii@kernel.org>
-Subject: procfs: avoid fetching build ID while holding VMA lock
-Date: Thu, 29 Jan 2026 13:53:40 -0800
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memory-failure: reject unsupported non-folio compound page
+Date: Thu, 5 Feb 2026 15:53:28 +0800
 
-Fix PROCMAP_QUERY to fetch optional build ID only after dropping mmap_lock
-or per-VMA lock, whichever was used to lock VMA under question, to avoid
-deadlock reported by syzbot:
+When !CONFIG_TRANSPARENT_HUGEPAGE, a non-folio compound page can appear in
+a userspace mapping via either vm_insert_*() functions or
+vm_operatios_struct->fault().  They are not folios, thus should not be
+considered for folio operations like split.  To reject these pages, make
+sure get_hwpoison_page() is always called as HWPoisonHandlable() will do
+the right work.
 
- -> #1 (&mm->mmap_lock){++++}-{4:4}:
-        __might_fault+0xed/0x170
-        _copy_to_iter+0x118/0x1720
-        copy_page_to_iter+0x12d/0x1e0
-        filemap_read+0x720/0x10a0
-        blkdev_read_iter+0x2b5/0x4e0
-        vfs_read+0x7f4/0xae0
-        ksys_read+0x12a/0x250
-        do_syscall_64+0xcb/0xf80
-        entry_SYSCALL_64_after_hwframe+0x77/0x7f
+[Some commit log borrowed from Zi Yan. Thanks.]
 
- -> #0 (&sb->s_type->i_mutex_key#8){++++}-{4:4}:
-        __lock_acquire+0x1509/0x26d0
-        lock_acquire+0x185/0x340
-        down_read+0x98/0x490
-        blkdev_read_iter+0x2a7/0x4e0
-        __kernel_read+0x39a/0xa90
-        freader_fetch+0x1d5/0xa80
-        __build_id_parse.isra.0+0xea/0x6a0
-        do_procmap_query+0xd75/0x1050
-        procfs_procmap_ioctl+0x7a/0xb0
-        __x64_sys_ioctl+0x18e/0x210
-        do_syscall_64+0xcb/0xf80
-        entry_SYSCALL_64_after_hwframe+0x77/0x7f
-
- other info that might help us debug this:
-
-  Possible unsafe locking scenario:
-
-        CPU0                    CPU1
-        ----                    ----
-   rlock(&mm->mmap_lock);
-                                lock(&sb->s_type->i_mutex_key#8);
-                                lock(&mm->mmap_lock);
-   rlock(&sb->s_type->i_mutex_key#8);
-
-  *** DEADLOCK ***
-
-This seems to be exacerbated (as we haven't seen these syzbot reports
-before that) by the recent:
-
-	777a8560fd29 ("lib/buildid: use __kernel_read() for sleepable context")
-
-To make this safe, we need to grab file refcount while VMA is still locked, but
-other than that everything is pretty straightforward. Internal build_id_parse()
-API assumes VMA is passed, but it only needs the underlying file reference, so
-just add another variant build_id_parse_file() that expects file passed
-directly.
-
-[akpm@linux-foundation.org: fix up kerneldoc]
-Link: https://lkml.kernel.org/r/20260129215340.3742283-1-andrii@kernel.org
-Fixes: ed5d583a88a9 ("fs/procfs: implement efficient VMA querying API for /proc/<pid>/maps")
-Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
-Reported-by: <syzbot+4e70c8e0a2017b432f7a@syzkaller.appspotmail.com>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Tested-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Hao Luo <haoluo@google.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: KP Singh <kpsingh@kernel.org>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Song Liu <song@kernel.org>
-Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Yonghong Song <yonghong.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260205075328.523211-1-linmiaohe@huawei.com
+Fixes: 689b8986776c ("mm/memory-failure: improve large block size folio handling")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reported-by: 是参差 <shicenci@gmail.com>
+Closes: https://lore.kernel.org/all/PS1PPF7E1D7501F1E4F4441E7ECD056DEADAB98A@PS1PPF7E1D7501F.apcprd02.prod.outlook.com/
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Tested-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c      |   42 ++++++++++++++++++++++++--------------
- include/linux/buildid.h |    3 ++
- lib/buildid.c           |   42 +++++++++++++++++++++++++++-----------
- 3 files changed, 60 insertions(+), 27 deletions(-)
+ mm/memory-failure.c |   42 ++++++++++++++++++++----------------------
+ 1 file changed, 20 insertions(+), 22 deletions(-)
 
---- a/fs/proc/task_mmu.c~procfs-avoid-fetching-build-id-while-holding-vma-lock
-+++ a/fs/proc/task_mmu.c
-@@ -656,6 +656,7 @@ static int do_procmap_query(struct mm_st
- 	struct proc_maps_locking_ctx lock_ctx = { .mm = mm };
- 	struct procmap_query karg;
- 	struct vm_area_struct *vma;
-+	struct file *vm_file = NULL;
- 	const char *name = NULL;
- 	char build_id_buf[BUILD_ID_SIZE_MAX], *name_buf = NULL;
- 	__u64 usize;
-@@ -727,21 +728,6 @@ static int do_procmap_query(struct mm_st
- 		karg.inode = 0;
- 	}
- 
--	if (karg.build_id_size) {
--		__u32 build_id_sz;
--
--		err = build_id_parse(vma, build_id_buf, &build_id_sz);
--		if (err) {
--			karg.build_id_size = 0;
--		} else {
--			if (karg.build_id_size < build_id_sz) {
--				err = -ENAMETOOLONG;
--				goto out;
--			}
--			karg.build_id_size = build_id_sz;
--		}
--	}
--
- 	if (karg.vma_name_size) {
- 		size_t name_buf_sz = min_t(size_t, PATH_MAX, karg.vma_name_size);
- 		const struct path *path;
-@@ -775,10 +761,34 @@ static int do_procmap_query(struct mm_st
- 		karg.vma_name_size = name_sz;
- 	}
- 
-+	if (karg.build_id_size && vma->vm_file)
-+		vm_file = get_file(vma->vm_file);
-+
- 	/* unlock vma or mmap_lock, and put mm_struct before copying data to user */
- 	query_vma_teardown(&lock_ctx);
- 	mmput(mm);
- 
-+	if (karg.build_id_size) {
-+		__u32 build_id_sz;
-+
-+		if (vm_file)
-+			err = build_id_parse_file(vm_file, build_id_buf, &build_id_sz);
-+		else
-+			err = -ENOENT;
-+		if (err) {
-+			karg.build_id_size = 0;
+--- a/mm/memory-failure.c~mm-memory-failure-reject-unsupported-non-folio-compound-page
++++ a/mm/memory-failure.c
+@@ -2411,31 +2411,29 @@ try_again:
+ 	 * In fact it's dangerous to directly bump up page count from 0,
+ 	 * that may make page_ref_freeze()/page_ref_unfreeze() mismatch.
+ 	 */
+-	if (!(flags & MF_COUNT_INCREASED)) {
+-		res = get_hwpoison_page(p, flags);
+-		if (!res) {
+-			if (is_free_buddy_page(p)) {
+-				if (take_page_off_buddy(p)) {
+-					page_ref_inc(p);
+-					res = MF_RECOVERED;
+-				} else {
+-					/* We lost the race, try again */
+-					if (retry) {
+-						ClearPageHWPoison(p);
+-						retry = false;
+-						goto try_again;
+-					}
+-					res = MF_FAILED;
+-				}
+-				res = action_result(pfn, MF_MSG_BUDDY, res);
++	res = get_hwpoison_page(p, flags);
++	if (!res) {
++		if (is_free_buddy_page(p)) {
++			if (take_page_off_buddy(p)) {
++				page_ref_inc(p);
++				res = MF_RECOVERED;
+ 			} else {
+-				res = action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
++				/* We lost the race, try again */
++				if (retry) {
++					ClearPageHWPoison(p);
++					retry = false;
++					goto try_again;
++				}
++				res = MF_FAILED;
+ 			}
+-			goto unlock_mutex;
+-		} else if (res < 0) {
+-			res = action_result(pfn, MF_MSG_GET_HWPOISON, MF_IGNORED);
+-			goto unlock_mutex;
++			res = action_result(pfn, MF_MSG_BUDDY, res);
 +		} else {
-+			if (karg.build_id_size < build_id_sz) {
-+				err = -ENAMETOOLONG;
-+				goto out;
-+			}
-+			karg.build_id_size = build_id_sz;
-+		}
-+	}
-+
-+	if (vm_file)
-+		fput(vm_file);
-+
- 	if (karg.vma_name_size && copy_to_user(u64_to_user_ptr(karg.vma_name_addr),
- 					       name, karg.vma_name_size)) {
- 		kfree(name_buf);
-@@ -798,6 +808,8 @@ static int do_procmap_query(struct mm_st
- out:
- 	query_vma_teardown(&lock_ctx);
- 	mmput(mm);
-+	if (vm_file)
-+		fput(vm_file);
- 	kfree(name_buf);
- 	return err;
- }
---- a/include/linux/buildid.h~procfs-avoid-fetching-build-id-while-holding-vma-lock
-+++ a/include/linux/buildid.h
-@@ -7,7 +7,10 @@
- #define BUILD_ID_SIZE_MAX 20
++			res = action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
+ 		}
++		goto unlock_mutex;
++	} else if (res < 0) {
++		res = action_result(pfn, MF_MSG_GET_HWPOISON, MF_IGNORED);
++		goto unlock_mutex;
+ 	}
  
- struct vm_area_struct;
-+struct file;
-+
- int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size);
-+int build_id_parse_file(struct file *file, unsigned char *build_id, __u32 *size);
- int build_id_parse_nofault(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size);
- int build_id_parse_buf(const void *buf, unsigned char *build_id, u32 buf_size);
- 
---- a/lib/buildid.c~procfs-avoid-fetching-build-id-while-holding-vma-lock
-+++ a/lib/buildid.c
-@@ -279,7 +279,7 @@ static int get_build_id_64(struct freade
- /* enough for Elf64_Ehdr, Elf64_Phdr, and all the smaller requests */
- #define MAX_FREADER_BUF_SZ 64
- 
--static int __build_id_parse(struct vm_area_struct *vma, unsigned char *build_id,
-+static int __build_id_parse(struct file *file, unsigned char *build_id,
- 			    __u32 *size, bool may_fault)
- {
- 	const Elf32_Ehdr *ehdr;
-@@ -287,11 +287,7 @@ static int __build_id_parse(struct vm_ar
- 	char buf[MAX_FREADER_BUF_SZ];
- 	int ret;
- 
--	/* only works for page backed storage  */
--	if (!vma->vm_file)
--		return -EINVAL;
--
--	freader_init_from_file(&r, buf, sizeof(buf), vma->vm_file, may_fault);
-+	freader_init_from_file(&r, buf, sizeof(buf), file, may_fault);
- 
- 	/* fetch first 18 bytes of ELF header for checks */
- 	ehdr = freader_fetch(&r, 0, offsetofend(Elf32_Ehdr, e_type));
-@@ -319,8 +315,8 @@ out:
- 	return ret;
- }
- 
--/*
-- * Parse build ID of ELF file mapped to vma
-+/**
-+ * build_id_parse_nofault() - Parse build ID of ELF file mapped to vma
-  * @vma:      vma object
-  * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
-  * @size:     returns actual build id size in case of success
-@@ -332,11 +328,14 @@ out:
-  */
- int build_id_parse_nofault(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size)
- {
--	return __build_id_parse(vma, build_id, size, false /* !may_fault */);
-+	if (!vma->vm_file)
-+		return -EINVAL;
-+
-+	return __build_id_parse(vma->vm_file, build_id, size, false /* !may_fault */);
- }
- 
--/*
-- * Parse build ID of ELF file mapped to VMA
-+/**
-+ * build_id_parse() - Parse build ID of ELF file mapped to VMA
-  * @vma:      vma object
-  * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
-  * @size:     returns actual build id size in case of success
-@@ -348,7 +347,26 @@ int build_id_parse_nofault(struct vm_are
-  */
- int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id, __u32 *size)
- {
--	return __build_id_parse(vma, build_id, size, true /* may_fault */);
-+	if (!vma->vm_file)
-+		return -EINVAL;
-+
-+	return __build_id_parse(vma->vm_file, build_id, size, true /* may_fault */);
-+}
-+
-+/**
-+ * build_id_parse_file() - Parse build ID of ELF file
-+ * @file:      file object
-+ * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
-+ * @size:     returns actual build id size in case of success
-+ *
-+ * Assumes faultable context and can cause page faults to bring in file data
-+ * into page cache.
-+ *
-+ * Return: 0 on success; negative error, otherwise
-+ */
-+int build_id_parse_file(struct file *file, unsigned char *build_id, __u32 *size)
-+{
-+	return __build_id_parse(file, build_id, size, true /* may_fault */);
- }
- 
- /**
+ 	folio = page_folio(p);
 _
 
-Patches currently in -mm which might be from andrii@kernel.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+selftests-mm-add-memory-failure-anonymous-page-test.patch
+selftests-mm-add-memory-failure-clean-pagecache-test.patch
+selftests-mm-add-memory-failure-dirty-pagecache-test.patch
 
