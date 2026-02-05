@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5AEB33509C
-	for <mm-commits@vger.kernel.org>; Thu,  5 Feb 2026 22:10:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D51833C535
+	for <mm-commits@vger.kernel.org>; Thu,  5 Feb 2026 23:29:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770329434; cv=none; b=GeA1M2g3muv373/dpdauM+9emHd2lNztyEwt5V2Mbpp6EK+7rTKTWZKMN4uEUFsQYGy7adZKaKNy/76OzaLK7pOLNarr1JHDNtevH/IDgfmTqjE635EeD0P8yjZPym445+J2QuetshO4nMYu/rfdGuCpp9OQiW171IHo7dl/lek=
+	t=1770334175; cv=none; b=jeukWwuP+eRY/+xM2wWpiAE/EmxNVn+nizfB8c/v8yDW+2T0Khiwm8xeYAyBLqYP/x+oHp1NN15+i6IX7+daoE7q/Q9YTgjOcJ1QHdwQQ6U3+uxbQB1e0aiJ05eflYgPU5lK2n9/1Ls7ozI7Sn6/lIC0yancE2MnSfkVl8ElwqM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770329434; c=relaxed/simple;
-	bh=j+TCRKEdEO/QjvbTpQHsR/DKHtI/5QN1wt3codvjsbA=;
-	h=Date:To:From:Subject:Message-Id; b=RS/3+UwPjVob7EScqNq7U1ibhqYi31gB+6cyEDTNJiiHxFVY6OoaRW5T5vY0JRFWQmfGftHQsBtXsjVOXXwjNXJLvPb+2apCMdhyL3lA6g6iNqaQpGU/DnNiQ64gLBknPfRnFWEUiP6rfdKbSJGCVGuURA/dVWZgv72o0W8R30Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wa+40XED; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770334175; c=relaxed/simple;
+	bh=7db9PIagFzV+hlDJM9QuzbtQJ/HB1PSVah/n3Uu7HYU=;
+	h=Date:To:From:Subject:Message-Id; b=IUXT5s59H4em77pfDmtp6d4/P3xWmwP3CsfpW95nKZFniWr7yXNI8s8Bw0PybJvcwX9XqB4p2h1vUhaNJnWiy/hqWyAXA/egGhoTyoZedEG+/8buIpy29wOwWNj9U6iul6yDi45DCwdI2SA9adggsjb51tV49WDJ+JjT0YcD+Ms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nk+l+gQo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wa+40XED"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8381DC2BC87;
-	Thu,  5 Feb 2026 22:10:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nk+l+gQo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1899EC4CEF7;
+	Thu,  5 Feb 2026 23:29:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770329434;
-	bh=j+TCRKEdEO/QjvbTpQHsR/DKHtI/5QN1wt3codvjsbA=;
+	s=korg; t=1770334175;
+	bh=7db9PIagFzV+hlDJM9QuzbtQJ/HB1PSVah/n3Uu7HYU=;
 	h=Date:To:From:Subject:From;
-	b=Wa+40XEDbq5K8IS9isERr0U7xhGMeYqtrvQg98iBHWZr0HI/37ZbGSaaxd6reQvpQ
-	 N+CxA961NdKDjHtFH1+ys9yfUMmwM+Tru0FMf0kTPIhO4ckxwrumld8b53ZMqWlFFp
-	 cAv+0p+GqWJHK12wUtDHHTqGM8L8hDiboVGtiYlw=
-Date: Thu, 05 Feb 2026 14:10:33 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,shicenci@gmail.com,nao.horiguchi@gmail.com,jane.chu@oracle.com,david@kernel.org,linmiaohe@huawei.com,akpm@linux-foundation.org
+	b=nk+l+gQo3rorWe5wuf9NY3i+QH+8i5wPcaKmP7dhBVS/yGg9wuTTYVjh0KLjA2E2W
+	 lAcUVBj+yLPtW0xm/G/e4FVfV9mxelgMmWHH40dmkqLCBORWoKH4txKNwj+8uofIba
+	 RK19RJTF7nJeqB5Eft5E9sQrbjtvHD1aIKERVhlA=
+Date: Thu, 05 Feb 2026 15:29:34 -0800
+To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,joel.granados@kernel.org,gregkh@linuxfoundation.org,atomlin@atomlin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-failure-reject-unsupported-non-folio-compound-page.patch removed from -mm tree
-Message-Id: <20260205221034.8381DC2BC87@smtp.kernel.org>
+Subject: [to-be-updated] hung_task-explicitly-report-i-o-wait-state-in-log-output.patch removed from -mm tree
+Message-Id: <20260205232935.1899EC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,103 +35,74 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory-failure: reject unsupported non-folio compound page
+     Subject: hung_task: explicitly report I/O wait state in log output
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-reject-unsupported-non-folio-compound-page.patch
+     hung_task-explicitly-report-i-o-wait-state-in-log-output.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory-failure: reject unsupported non-folio compound page
-Date: Thu, 5 Feb 2026 15:53:28 +0800
+From: Aaron Tomlin <atomlin@atomlin.com>
+Subject: hung_task: explicitly report I/O wait state in log output
+Date: Wed, 28 Jan 2026 15:45:16 -0500
 
-When !CONFIG_TRANSPARENT_HUGEPAGE, a non-folio compound page can appear in
-a userspace mapping via either vm_insert_*() functions or
-vm_operatios_struct->fault().  They are not folios, thus should not be
-considered for folio operations like split.  To reject these pages, make
-sure get_hwpoison_page() is always called as HWPoisonHandlable() will do
-the right work.
+Currently, the hung task reporting mechanism indiscriminately labels all
+TASK_UNINTERRUPTIBLE (D) tasks as "blocked", irrespective of whether they
+are awaiting I/O completion or kernel locking primitives.  This ambiguity
+compels system administrators to manually inspect stack traces to discern
+whether the delay stems from an I/O wait (typically indicative of hardware
+or filesystem anomalies) or software contention.  Such detailed analysis
+is not always immediately accessible to system administrators or support
+engineers.
 
-[Some commit log borrowed from Zi Yan. Thanks.]
+To address this, this patch utilises the existing in_iowait field within
+struct task_struct to augment the failure report.  If the task is blocked
+due to I/O (e.g., via io_schedule_prepare()), the log message is updated
+to explicitly state "blocked in I/O wait".
 
-Link: https://lkml.kernel.org/r/20260205075328.523211-1-linmiaohe@huawei.com
-Fixes: 689b8986776c ("mm/memory-failure: improve large block size folio handling")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reported-by: 是参差 <shicenci@gmail.com>
-Closes: https://lore.kernel.org/all/PS1PPF7E1D7501F1E4F4441E7ECD056DEADAB98A@PS1PPF7E1D7501F.apcprd02.prod.outlook.com/
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Tested-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Examples:
+        - Standard Block: "INFO: task bash:123 blocked for more than 120
+          seconds".
+
+        - I/O Block: "INFO: task dd:456 blocked in I/O wait for more than
+          120 seconds".
+
+Accessing in_iowait is safe in this context.  The detector holds
+rcu_read_lock() within check_hung_uninterruptible_tasks(), ensuring the
+task structure remains valid in memory.  Furthermore, as the task is
+confirmed to be in a persistent TASK_UNINTERRUPTIBLE state, it cannot
+modify its own in_iowait flag, rendering the read operation stable and
+free from data races.
+
+Link: https://lkml.kernel.org/r/20260128204516.3473709-2-atomlin@atomlin.com
+Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
+Acked-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   42 ++++++++++++++++++++----------------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+ kernel/hung_task.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-reject-unsupported-non-folio-compound-page
-+++ a/mm/memory-failure.c
-@@ -2411,31 +2411,29 @@ try_again:
- 	 * In fact it's dangerous to directly bump up page count from 0,
- 	 * that may make page_ref_freeze()/page_ref_unfreeze() mismatch.
- 	 */
--	if (!(flags & MF_COUNT_INCREASED)) {
--		res = get_hwpoison_page(p, flags);
--		if (!res) {
--			if (is_free_buddy_page(p)) {
--				if (take_page_off_buddy(p)) {
--					page_ref_inc(p);
--					res = MF_RECOVERED;
--				} else {
--					/* We lost the race, try again */
--					if (retry) {
--						ClearPageHWPoison(p);
--						retry = false;
--						goto try_again;
--					}
--					res = MF_FAILED;
--				}
--				res = action_result(pfn, MF_MSG_BUDDY, res);
-+	res = get_hwpoison_page(p, flags);
-+	if (!res) {
-+		if (is_free_buddy_page(p)) {
-+			if (take_page_off_buddy(p)) {
-+				page_ref_inc(p);
-+				res = MF_RECOVERED;
- 			} else {
--				res = action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
-+				/* We lost the race, try again */
-+				if (retry) {
-+					ClearPageHWPoison(p);
-+					retry = false;
-+					goto try_again;
-+				}
-+				res = MF_FAILED;
- 			}
--			goto unlock_mutex;
--		} else if (res < 0) {
--			res = action_result(pfn, MF_MSG_GET_HWPOISON, MF_IGNORED);
--			goto unlock_mutex;
-+			res = action_result(pfn, MF_MSG_BUDDY, res);
-+		} else {
-+			res = action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
- 		}
-+		goto unlock_mutex;
-+	} else if (res < 0) {
-+		res = action_result(pfn, MF_MSG_GET_HWPOISON, MF_IGNORED);
-+		goto unlock_mutex;
- 	}
- 
- 	folio = page_folio(p);
+--- a/kernel/hung_task.c~hung_task-explicitly-report-i-o-wait-state-in-log-output
++++ a/kernel/hung_task.c
+@@ -252,8 +252,9 @@ static void check_hung_task(struct task_
+ 	if (sysctl_hung_task_warnings || hung_task_call_panic) {
+ 		if (sysctl_hung_task_warnings > 0)
+ 			sysctl_hung_task_warnings--;
+-		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
+-		       t->comm, t->pid, (jiffies - t->last_switch_time) / HZ);
++		pr_err("INFO: task %s:%d blocked %s for more than %ld seconds.\n",
++		       t->comm, t->pid, t->in_iowait ? "in I/O wait" : "",
++		       (jiffies - t->last_switch_time) / HZ);
+ 		pr_err("      %s %s %.*s\n",
+ 			print_tainted(), init_utsname()->release,
+ 			(int)strcspn(init_utsname()->version, " "),
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from atomlin@atomlin.com are
 
-selftests-mm-add-memory-failure-anonymous-page-test.patch
-selftests-mm-add-memory-failure-clean-pagecache-test.patch
-selftests-mm-add-memory-failure-dirty-pagecache-test.patch
 
