@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7156313550
-	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 23:48:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45AD6313550
+	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 23:48:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770421710; cv=none; b=Pzw/vQ8fhvqlXVKe7hAwvyXbaWBVzsIhKj4hR0MiZ0m40FbHIjEnEEj+Q42K3/epD5WvS8xp8sdvnZqIZSw3fNX0JMx+Ho6VVpuEqlh/ac2jjqMKaMJ6r+wLExsba0ESUHfs/1bNomXCHff5OeabLIQo/h2NIdSlLdl78bd6iN4=
+	t=1770421712; cv=none; b=E68XjlKOXXFweHqkfkhcOvfanvfxT+CCN85FTn9HEEyhLcoxqiCok8yuHbBvxI37NqGrlZAwXIengOCMMhegNfaXUupASRKY5V62MtXdfGKf3/dcMAlQ+k5jxR5XawdIzYU4EB7VZCMtk88LGjJCAVaiL3wMychemKisZytgbyw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770421710; c=relaxed/simple;
-	bh=86A9Y8oNeZR8cEO7ozwnxpu2rx6lEvQB7tLREqCesmA=;
-	h=Date:To:From:Subject:Message-Id; b=IA9frr09n7ECniIxTm6XGchJZ5HyWI+QCWrTnnF74eIRqD1HYMuyB2+32ST4XW8vZpFHT3joexAZNdakSFE4BnOoiHfcn5fH3fsx6ASMs97i9f5Fwe19G9kts3oV7KolF/Cbqy7wvgoYysxaU/0RyLhLHQ0CoIbsaj+RVT1taCI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jqUn+n47; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770421712; c=relaxed/simple;
+	bh=6P/gT4NIu4E3M6I1avwVcvs2guF+Ftnbcc+D3GkWkng=;
+	h=Date:To:From:Subject:Message-Id; b=Yc2KH8+//uk7ztiyXL0p+8D/Z+puKZOz2gckHkmfAMPverEAS1OVnfDJ0pqLwzN982xZwXqhm2x15QENe+3/UBHFXoW6CcA5HcIrOksthXoHZvsCBZT2ud+v14+n2oulVCJ7Uk5mhyIxi57z0vFg1WID4zBQLRWHKPJSZyrtQlw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kbIJw32B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jqUn+n47"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83F88C116C6;
-	Fri,  6 Feb 2026 23:48:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kbIJw32B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEBC4C116C6;
+	Fri,  6 Feb 2026 23:48:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770421709;
-	bh=86A9Y8oNeZR8cEO7ozwnxpu2rx6lEvQB7tLREqCesmA=;
+	s=korg; t=1770421711;
+	bh=6P/gT4NIu4E3M6I1avwVcvs2guF+Ftnbcc+D3GkWkng=;
 	h=Date:To:From:Subject:From;
-	b=jqUn+n47sVZgV6g/4n6DkQ3Vn8r4HUs53r4/g+1bWhHVS/qIRl9JACbk3cR03cAyB
-	 VhQxb+ACRyS5R/ytXsDjQDuOLNHADCllu4BbTTf3voq+9BpGRxWD/svFqxbNqIUtJK
-	 Hvqv7gIS34Lh/y+92DB20OPRYWC5vQiuZ3ZGGx+8=
-Date: Fri, 06 Feb 2026 15:48:29 -0800
+	b=kbIJw32BALg21CyAuKt4Q2COT74oL1udN5PcwId8pG5vfwABYwYcSqPMFLhwmSFgk
+	 QjuC7lv1nUkUbyXw8z0/qL2gdTjLVkAlrv+AB3bIQci9ueQENlACraQTBpmc6BUhkL
+	 NluIvI9Z0GkPf3leXH3sxwDOG4FyG9cL7kvZvf4o=
+Date: Fri, 06 Feb 2026 15:48:31 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,tsbogend@alpha.franken.de,tglx@kernel.org,surenb@google.com,rppt@kernel.org,richard.weiyang@gmail.com,richard@nod.at,richard.henderson@linaro.org,peterz@infradead.org,npiggin@gmail.com,mingo@redhat.com,mhocko@suse.com,mattst88@gmail.com,lorenzo.stoakes@oracle.com,linmag7@gmail.com,Liam.Howlett@oracle.com,kernel@xen0n.name,johannes@sipsolutions.net,James.Bottomley@HansenPartnership.com,ioworker0@gmail.com,hpa@zytor.com,dev.jain@arm.com,deller@gmx.de,david@kernel.org,dave.hansen@linux.intel.com,chenhuacai@kernel.org,bp@alien8.de,anton.ivanov@cambridgegreys.com,aneesh.kumar@kernel.org,andreas@gaisler.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config.patch removed from -mm tree
-Message-Id: <20260206234829.83F88C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-pt_reclaim-depends-on-mmu_gather_rcu_table_free.patch removed from -mm tree
+Message-Id: <20260206234831.BEBC4C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: convert __HAVE_ARCH_TLB_REMOVE_TABLE to CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE config
+     Subject: mm: make PT_RECLAIM depends on MMU_GATHER_RCU_TABLE_FREE
 has been removed from the -mm tree.  Its filename was
-     mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config.patch
+     mm-make-pt_reclaim-depends-on-mmu_gather_rcu_table_free.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: convert __HAVE_ARCH_TLB_REMOVE_TABLE to CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE config
-Date: Tue, 27 Jan 2026 20:13:00 +0800
+Subject: mm: make PT_RECLAIM depends on MMU_GATHER_RCU_TABLE_FREE
+Date: Tue, 27 Jan 2026 20:13:01 +0800
 
-For architectures that define __HAVE_ARCH_TLB_REMOVE_TABLE, the page
-tables at the pmd/pud level are generally not of struct ptdesc type, and
-do not have pt_rcu_head member, thus these architectures cannot support
-PT_RECLAIM.
+The PT_RECLAIM can work on all architectures that support
+MMU_GATHER_RCU_TABLE_FREE, except for those that have selected
+HAVE_ARCH_TLB_REMOVE_TABLE,so make PT_RECLAIM depends on
+MMU_GATHER_RCU_TABLE_FREE && !HAVE_ARCH_TLB_REMOVE_TABLE.
 
-In preparation for enabling PT_RECLAIM on more architectures, convert
-__HAVE_ARCH_TLB_REMOVE_TABLE to CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE config,
-so that we can make conditional judgments in Kconfig.
+BTW, change PT_RECLAIM to be enabled by default, since nobody should want
+to turn it off.
 
-Link: https://lkml.kernel.org/r/5ebfa3d4b56e63c6906bda5eccaa9f7194d3a86b.1769515122.git.zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/83b034810935a9ff18e425b085e065bb0acb28f3.1769515122.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Tested-by: Andreas Larsson <andreas@gaisler.com>	[sparc, UP&SMP]
-Acked-by: Andreas Larsson <andreas@gaisler.com>		[sparc]
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
 Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -93,77 +91,39 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig            |    1 +
- arch/powerpc/include/asm/tlb.h  |    1 -
- arch/sparc/Kconfig              |    1 +
- arch/sparc/include/asm/tlb_64.h |    1 -
- include/asm-generic/tlb.h       |    2 +-
- mm/Kconfig                      |    3 +++
- 6 files changed, 6 insertions(+), 3 deletions(-)
+ arch/x86/Kconfig |    1 -
+ mm/Kconfig       |    9 ++-------
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
---- a/arch/powerpc/include/asm/tlb.h~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
-+++ a/arch/powerpc/include/asm/tlb.h
-@@ -37,7 +37,6 @@ extern void tlb_flush(struct mmu_gather
-  */
- #define tlb_needs_table_invalidate()	radix_enabled()
- 
--#define __HAVE_ARCH_TLB_REMOVE_TABLE
- /* Get the generic bits... */
- #include <asm-generic/tlb.h>
- 
---- a/arch/powerpc/Kconfig~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
-+++ a/arch/powerpc/Kconfig
-@@ -305,6 +305,7 @@ config PPC
- 	select LOCK_MM_AND_FIND_VMA
- 	select MMU_GATHER_PAGE_SIZE
- 	select MMU_GATHER_RCU_TABLE_FREE
-+	select HAVE_ARCH_TLB_REMOVE_TABLE
- 	select MMU_GATHER_MERGE_VMAS
- 	select MMU_LAZY_TLB_SHOOTDOWN		if PPC_BOOK3S_64
- 	select MODULES_USE_ELF_RELA
---- a/arch/sparc/include/asm/tlb_64.h~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
-+++ a/arch/sparc/include/asm/tlb_64.h
-@@ -33,7 +33,6 @@ void flush_tlb_pending(void);
- #define tlb_needs_table_invalidate()	(false)
- #endif
- 
--#define __HAVE_ARCH_TLB_REMOVE_TABLE
- #include <asm-generic/tlb.h>
- 
- #endif /* _SPARC64_TLB_H */
---- a/arch/sparc/Kconfig~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
-+++ a/arch/sparc/Kconfig
-@@ -74,6 +74,7 @@ config SPARC64
- 	select HAVE_KRETPROBES
- 	select HAVE_KPROBES
- 	select MMU_GATHER_RCU_TABLE_FREE if SMP
-+	select HAVE_ARCH_TLB_REMOVE_TABLE if SMP
- 	select MMU_GATHER_MERGE_VMAS
- 	select MMU_GATHER_NO_FLUSH_CACHE
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
---- a/include/asm-generic/tlb.h~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
-+++ a/include/asm-generic/tlb.h
-@@ -213,7 +213,7 @@ struct mmu_table_batch {
- #define MAX_TABLE_BATCH		\
- 	((PAGE_SIZE - sizeof(struct mmu_table_batch)) / sizeof(void *))
- 
--#ifndef __HAVE_ARCH_TLB_REMOVE_TABLE
-+#ifndef CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE
- static inline void __tlb_remove_table(void *table)
- {
- 	struct ptdesc *ptdesc = (struct ptdesc *)table;
---- a/mm/Kconfig~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
+--- a/arch/x86/Kconfig~mm-make-pt_reclaim-depends-on-mmu_gather_rcu_table_free
++++ a/arch/x86/Kconfig
+@@ -331,7 +331,6 @@ config X86
+ 	select FUNCTION_ALIGNMENT_4B
+ 	imply IMA_SECURE_AND_OR_TRUSTED_BOOT    if EFI
+ 	select HAVE_DYNAMIC_FTRACE_NO_PATCHABLE
+-	select ARCH_SUPPORTS_PT_RECLAIM		if X86_64
+ 	select ARCH_SUPPORTS_SCHED_SMT		if SMP
+ 	select SCHED_SMT			if SMP
+ 	select ARCH_SUPPORTS_SCHED_CLUSTER	if SMP
+--- a/mm/Kconfig~mm-make-pt_reclaim-depends-on-mmu_gather_rcu_table_free
 +++ a/mm/Kconfig
-@@ -1448,6 +1448,9 @@ config ARCH_HAS_USER_SHADOW_STACK
- 	  The architecture has hardware support for userspace shadow call
-           stacks (eg, x86 CET, arm64 GCS or RISC-V Zicfiss).
- 
-+config HAVE_ARCH_TLB_REMOVE_TABLE
-+	def_bool n
-+
- config ARCH_SUPPORTS_PT_RECLAIM
+@@ -1451,14 +1451,9 @@ config ARCH_HAS_USER_SHADOW_STACK
+ config HAVE_ARCH_TLB_REMOVE_TABLE
  	def_bool n
  
+-config ARCH_SUPPORTS_PT_RECLAIM
+-	def_bool n
+-
+ config PT_RECLAIM
+-	bool "reclaim empty user page table pages"
+-	default y
+-	depends on ARCH_SUPPORTS_PT_RECLAIM && MMU && SMP
+-	select MMU_GATHER_RCU_TABLE_FREE
++	def_bool y
++	depends on MMU_GATHER_RCU_TABLE_FREE && !HAVE_ARCH_TLB_REMOVE_TABLE
+ 	help
+ 	  Try to reclaim empty user page table pages in paths other than munmap
+ 	  and exit_mmap path.
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
