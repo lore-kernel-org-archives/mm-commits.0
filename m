@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E3693EBF34;
-	Fri,  6 Feb 2026 17:50:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D4EC2848B2
+	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 19:57:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770400231; cv=none; b=dVHBjlbnS6+SNHjkJXsSDgtlPhvRKF/XXyd44MFsQDHkWZWgZZI6Y3uuTCV+Nlv5zrXu43YjdDypaBAreKUetvYrcDVLzdxKuHEbowLd6gmDg7dh+rFWxszhH5BN1k0NZKt0OPzX/yMjNDoAVWJdGUdnYchuSA4m1OKRdydG8f4=
+	t=1770407828; cv=none; b=FunbqwJN4nvWkARy6eboZRruKOjTxNaZeIbnrPmT4rWRoxfkWPcSP+MLdZTo3b0amABAyUDC4fE3Il6Un/BOrmSd6oOoA8APS9k7L8DwFoOt3beBDk8LIDs6aXXjzMgwzjIhYdhEpYKHYKpl0rdIBQ6dCdF0krua0HFV4dyCpXg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770400231; c=relaxed/simple;
-	bh=PiBW61eOR0uLgDNUuNJHwzRcX0ckdpSTq5JYCoUtP08=;
-	h=Date:To:From:Subject:Message-Id; b=uv/sw4LoEYPYsPXh3RirqfU4iapOzMSmmr+DOpUgxtCpRMDQY6RL3I+EUkn3uIxIhQ7V1dod2hj5gKBXS44xOeQ95w/EE5JOeErglb4NSNEsAoIen9ueFi3E+bhKqTrhIrsep0+egQfXEWgLgnRLWnMqF9s5r2Ktubd8jRL/haM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DZK6vCxv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770407828; c=relaxed/simple;
+	bh=u2CMs+caRwDMaaAuJjpExUUjcFnSWszFYZ4NUOta2QY=;
+	h=Date:To:From:Subject:Message-Id; b=KWMTUlzCKOJe1QjWpfHu6t9oe49kNldXwAh8C9wBk4WMEBs8Y1Oal61KWiG0CAHOtktnKFFwpi881+SVg27e/CwHdQy3/ryZyPQgOSEyRCLg2nxAHmYPRyE2Sw1JLtf3avvWsDp/UCeyOCDdoF56S6kdfyKulRbyonGgm2CQmEg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OJLYgb4p; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DZK6vCxv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E66E0C116C6;
-	Fri,  6 Feb 2026 17:50:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OJLYgb4p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 205F7C116C6;
+	Fri,  6 Feb 2026 19:57:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770400231;
-	bh=PiBW61eOR0uLgDNUuNJHwzRcX0ckdpSTq5JYCoUtP08=;
+	s=korg; t=1770407828;
+	bh=u2CMs+caRwDMaaAuJjpExUUjcFnSWszFYZ4NUOta2QY=;
 	h=Date:To:From:Subject:From;
-	b=DZK6vCxvnmnqcSL4Xno9puqEBnXfSb57qvs8JGuXahMp7pUA47pvoqpnGTx3SAc6c
-	 FFRokjqPBNN6E5UEK8JjyEdw5qrKqC6xrj2UbCzRDMdQgoMq3jCV2wenj5851h/3Pt
-	 4do0s99qf+mdEgEly962DDpXshE9Z2JTffVWelQU=
-Date: Fri, 06 Feb 2026 09:50:30 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,ryncsn@gmail.com,mhocko@suse.com,jackmanb@google.com,hughd@google.com,hannes@cmpxchg.org,chrisl@kernel.org,mikhail.v.gavrilov@gmail.com,akpm@linux-foundation.org
+	b=OJLYgb4pYJoXEoOEWkMLk2icpfU/mU4kZ8ixehv+YxWDllX1vwfQrd2yTcl9kGnFX
+	 HLEXPa/BR5uaGB2bR0czvjIR7hOTOgwPobO+32718i9ysDI/PM1/amFLdd1UFlnwGf
+	 nYCi02xBNDq1cjfr8BrErJp2uDkWw0gLj9iE194E=
+Date: Fri, 06 Feb 2026 11:57:07 -0800
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,willy@infradead.org,wang.yaxin@zte.com.cn,hughd@google.com,david@kernel.org,chengming.zhou@linux.dev,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-clear-page-private-in-split_page-for-tail-pages.patch added to mm-unstable branch
-Message-Id: <20260206175030.E66E0C116C6@smtp.kernel.org>
+Subject: + ksm-initialize-rmap-values-directly-and-make-them-const-fix.patch added to mm-new branch
+Message-Id: <20260206195708.205F7C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: clear page->private in split_page() for tail pages
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-page_alloc-clear-page-private-in-split_page-for-tail-pages.patch
+     Subject: ksm: initialize rmap values directly and make them const
+has been added to the -mm mm-new branch.  Its filename is
+     ksm-initialize-rmap-values-directly-and-make-them-const-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-clear-page-private-in-split_page-for-tail-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-initialize-rmap-values-directly-and-make-them-const-fix.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,74 +66,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
-Subject: mm/page_alloc: clear page->private in split_page() for tail pages
-Date: Fri, 6 Feb 2026 22:40:17 +0500
+From: xu xin <xu.xin16@zte.com.cn>
+Subject: ksm: initialize rmap values directly and make them const
+Date: Fri, 6 Feb 2026 15:22:54 +0800 (CST)
 
-When vmalloc allocates high-order pages and splits them via split_page(),
-tail pages may retain stale page->private values from previous use by the
-buddy allocator.
+Considering that commit 06fbd555dea8 ("ksm: optimize rmap_walk_ksm by
+passing a suitable addressrange") seems to have already been merged, this
+new patch is proposed to address the issue raised by David at:
 
-This causes a use-after-free in the swap subsystem. The swap code uses
-vmalloc_to_page() to get struct page pointers for swap_map, then uses
-page->private to track swap count continuations. In add_swap_count_
-continuation(), the condition "if (!page_private(head))" assumes fresh
-pages have page->private == 0, but tail pages from split_page() may have
-non-zero stale values.
+https://lore.kernel.org/all/ba03780a-fd65-4a03-97de-bc0905106260@kernel.org/
 
-When page->private accidentally contains a value like SWP_CONTINUED (32),
-swap_count_continued() incorrectly assumes the continuation list is valid
-and iterates over uninitialized page->lru, which may contain LIST_POISON
-values from a previous list_del(), causing a crash:
+This initialize rmap values (addr, pgoff_start, pgoff_end) directly and
+make them const to make code more robust.  Besides, since KSM folios are
+always order-0, so folio_nr_pages(KSM folio) is always 1, so the line:
 
-  KASAN: maybe wild-memory-access in range [0xdead000000000100-0xdead000000000107]
-  RIP: 0010:__do_sys_swapoff+0x1151/0x1860
+	"pgoff_end = pgoff_start + folio_nr_pages(folio) - 1;"
 
-Fix this by clearing page->private for tail pages in split_page(). Note
-that we don't touch page->lru to avoid breaking split_free_page() which
-may have the head page on a list.
+becomes directly:
 
-Link: https://lkml.kernel.org/r/20260206174017.128673-1-mikhail.v.gavrilov@gmail.com
-Fixes: 3b8000ae185c ("mm/vmalloc: huge vmalloc backing pages should be split rather than compound")
-Signed-off-by: Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Chris Li <chrisl@kernel.org>
+	"pgoff_end = pgoff_start;"
+
+The test reproducer of rmap_walk_ksm can be found at:
+https://lore.kernel.org/all/20260206151424734QIyWL_pA-1QeJPbJlUxsO@zte.com.cn/
+
+Link: https://lkml.kernel.org/r/202602061522548871ohgXN8z0qq87sTSX-yZc@zte.com.cn
+Fixes: 06fbd555dea8 ("ksm: optimize rmap_walk_ksm by passing a suitable addressrange")
+Signed-off-by: xu xin <xu.xin16@zte.com.cn>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
+Cc: David Hildenbrand <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/ksm.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-clear-page-private-in-split_page-for-tail-pages
-+++ a/mm/page_alloc.c
-@@ -3129,9 +3129,14 @@ void split_page(struct page *page, unsig
+--- a/mm/ksm.c~ksm-initialize-rmap-values-directly-and-make-them-const-fix
++++ a/mm/ksm.c
+@@ -3171,8 +3171,11 @@ again:
+ 		struct anon_vma *anon_vma = rmap_item->anon_vma;
+ 		struct anon_vma_chain *vmac;
+ 		struct vm_area_struct *vma;
+-		unsigned long addr;
+-		pgoff_t pgoff_start, pgoff_end;
++		/* Ignore the stable/unstable/sqnr flags */
++		const unsigned long addr = rmap_item->address & PAGE_MASK;
++		const pgoff_t pgoff_start = rmap_item->address >> PAGE_SHIFT;
++		/* KSM folios are always order-0 normal pages */
++		const pgoff_t pgoff_end = pgoff_start;
  
- 	VM_WARN_ON_PAGE(!page_count(page), page);
+ 		cond_resched();
+ 		if (!anon_vma_trylock_read(anon_vma)) {
+@@ -3183,12 +3186,6 @@ again:
+ 			anon_vma_lock_read(anon_vma);
+ 		}
  
--	for (i = 1; i < (1 << order); i++)
-+	for (i = 1; i < (1 << order); i++) {
- 		set_page_refcounted(page + i);
+-		/* Ignore the stable/unstable/sqnr flags */
+-		addr = rmap_item->address & PAGE_MASK;
 -
-+		/*
-+		 * Tail pages may have stale page->private from buddy
-+		 * allocator or previous use. Clear it.
-+		 */
-+		set_page_private(page + i, 0);
-+	}
- 	__split_page(page, order);
- }
- EXPORT_SYMBOL_GPL(split_page);
+-		pgoff_start = rmap_item->address >> PAGE_SHIFT;
+-		pgoff_end = pgoff_start + folio_nr_pages(folio) - 1;
+-
+ 		anon_vma_interval_tree_foreach(vmac, &anon_vma->rb_root,
+ 					       pgoff_start, pgoff_end) {
+ 
 _
 
-Patches currently in -mm which might be from mikhail.v.gavrilov@gmail.com are
+Patches currently in -mm which might be from xu.xin16@zte.com.cn are
 
-mm-page_alloc-clear-page-private-in-split_page-for-tail-pages.patch
+ksm-initialize-the-addr-only-once-in-rmap_walk_ksm.patch
+ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-addressrange.patch
+ksm-initialize-rmap-values-directly-and-make-them-const-fix.patch
 
