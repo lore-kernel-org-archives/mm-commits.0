@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01F4530F534
-	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 23:48:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5243B30AABC
+	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 23:48:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770421694; cv=none; b=Iw+VO7SiPAVQlWtXehKV5qugckPzVatK/ReRMi/SswHyOLf7/GoSHxvnA7lokE80+eM8r5KY5am9okBSkPOS3gzinYlTbYmJM+BBxlb0oCiQ8E0KN4QmpqxW1+Cdrr/43PcuvYM/HcMKIQtutCST+esYPTcvXxSkLUfUZ3a+aPE=
+	t=1770421695; cv=none; b=ZG4ab8FTuoZ1lyEC5kEaJkIj8OsC4Kc792kJODsTIvfcDZJ2Ph6lonjqiY6j2DjvXgXhKE6qwY3No768SDQ5cGe/bLdIUzIDNiCswnZM01dLv/0a+7x9PBEImfqVllrRgDbNtjJ4CFAL1GMX50tDFRWXxSNVzUW7+kfeaq/jTqE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770421694; c=relaxed/simple;
-	bh=G1JlhyKkDcrEgjhbexNhfb/rmAVsGNwVQPqie/gIf7M=;
-	h=Date:To:From:Subject:Message-Id; b=ZPwYGK9fddTa4nmom8nFSxAk/hZso6wnUhbHHl27mbYEmlgAgUkk9ZN0GBkZfJzE6En9GgNo08HG6bZUoO4prZCxsuckpfJDFAERObV/k3Tg6mLrBVZZpBdij/ttX7z7Gck5RuU3KdGDJqCXuZ052qlVlx5Ea5zrLG2nPVclKL0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sOjRnuZY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770421695; c=relaxed/simple;
+	bh=5tI7a4U5yLsyy/2jviHG5caQBjqw9aigiZGzaZBzEkY=;
+	h=Date:To:From:Subject:Message-Id; b=BikfyeWUzYS1Ibt5umuO4vNt4L26V4wqOPYFnACZutL78w6qpIHToZNCv4oT6R4HOU2coWne9OWhGzAA7dk/UcdLJMh0EA/i8zi/Ce7vuSLY9059KjwSVX8WDhDDuINBum+Q5PTE8F/Ns/UzGsqAPvXgVpyYqVmZLMgn8eYjeJw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J4fLoyQ2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sOjRnuZY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDF57C116C6;
-	Fri,  6 Feb 2026 23:48:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J4fLoyQ2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28ACDC116C6;
+	Fri,  6 Feb 2026 23:48:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770421693;
-	bh=G1JlhyKkDcrEgjhbexNhfb/rmAVsGNwVQPqie/gIf7M=;
+	s=korg; t=1770421695;
+	bh=5tI7a4U5yLsyy/2jviHG5caQBjqw9aigiZGzaZBzEkY=;
 	h=Date:To:From:Subject:From;
-	b=sOjRnuZY2N1E0STntP4nELCbE0RiaTkj+wuU7zqWNvRtCR0g/GcPV2H7ZJ1SIGn99
-	 dmmAbDj+tLvIFzfBSHeMdTAaUusNYh+tFdcjJV3EaysPwlEj4pKouA0iLF2KmsvlIG
-	 9m/074AnKJrCQQVWqvgL1iL32RqJdva3yc+asfSQ=
-Date: Fri, 06 Feb 2026 15:48:13 -0800
-To: mm-commits@vger.kernel.org,tim.bird@sony.com,akpm@linux-foundation.org
+	b=J4fLoyQ28IODm+bsmpb7e37FMtqGy3QWcSZa88rxuEGnCBpKhDW9y1k4MMB8T6daa
+	 njXPJLhzF26qSDYs2B+JeHCS8aBvVXIsr2QfXV0LHyS3BtYkRCJzVhKRUy82J193RG
+	 /f1q8g9HGedg1i+GaTUjmOH07L8qmGdVxoGuVYVw=
+Date: Fri, 06 Feb 2026 15:48:14 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,nphamcs@gmail.com,minchan@kernel.org,hannes@cmpxchg.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-spdx-id-lines-to-some-mm-source-files.patch removed from -mm tree
-Message-Id: <20260206234813.CDF57C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] zsmalloc-make-common-caches-global.patch removed from -mm tree
+Message-Id: <20260206234815.28ACDC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,131 +35,253 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add SPDX id lines to some mm source files
+     Subject: zsmalloc: make common caches global
 has been removed from the -mm tree.  Its filename was
-     mm-add-spdx-id-lines-to-some-mm-source-files.patch
+     zsmalloc-make-common-caches-global.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Tim Bird <tim.bird@sony.com>
-Subject: mm: add SPDX id lines to some mm source files
-Date: Wed, 4 Feb 2026 14:31:01 -0700
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zsmalloc: make common caches global
+Date: Sat, 17 Jan 2026 11:54:05 +0900
 
-Some of the memory management source files are missing
-SPDX-License-Identifier lines.  Add appropriate IDs
-to these files (mostly GPL-2.0, but one LGPL-2.1).
+Currently, zsmalloc creates kmem_cache of handles and zspages for each
+pool, which may be suboptimal from the memory usage point of view (extra
+internal fragmentation per pool).  Systems that create multiple zsmalloc
+pools may benefit from shared common zsmalloc caches.
 
-Link: https://lkml.kernel.org/r/20260204213101.1754183-1-tim.bird@sony.com
-Signed-off-by: Tim Bird <tim.bird@sony.com>
+Make handles and zspages kmem caches global.  The memory savings depend on
+particular setup and data patterns and can be found via slabinfo.
+
+Link: https://lkml.kernel.org/r/20260117025406.799428-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reviewed-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/dmapool_test.c   |    1 +
- mm/folio-compat.c   |    1 +
- mm/gup_test.c       |    1 +
- mm/hugetlb_cgroup.c |    9 +--------
- mm/memfd.c          |    3 +--
- mm/mmu_gather.c     |    1 +
- mm/rmap.c           |    2 +-
- mm/shmem.c          |    3 +--
- 8 files changed, 8 insertions(+), 13 deletions(-)
+ mm/zsmalloc.c |  106 ++++++++++++++++++++++--------------------------
+ 1 file changed, 50 insertions(+), 56 deletions(-)
 
---- a/mm/dmapool_test.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/dmapool_test.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- #include <linux/device.h>
- #include <linux/dma-map-ops.h>
- #include <linux/dma-mapping.h>
---- a/mm/folio-compat.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/folio-compat.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Compatibility functions which bloat the callers too much to make inline.
-  * All of the callers of these functions should be converted to use folios
---- a/mm/gup_test.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/gup_test.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/slab.h>
---- a/mm/hugetlb_cgroup.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/hugetlb_cgroup.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: LGPL-2.1
- /*
-  *
-  * Copyright IBM Corporation, 2012
-@@ -7,14 +8,6 @@
-  * Copyright (C) 2019 Red Hat, Inc.
-  * Author: Giuseppe Scrivano <gscrivan@redhat.com>
-  *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of version 2.1 of the GNU Lesser General Public License
-- * as published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it would be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-- *
-  */
+--- a/mm/zsmalloc.c~zsmalloc-make-common-caches-global
++++ a/mm/zsmalloc.c
+@@ -193,12 +193,13 @@ struct link_free {
+ 	};
+ };
  
- #include <linux/cgroup.h>
---- a/mm/memfd.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/memfd.c
-@@ -1,10 +1,9 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * memfd_create system call and file sealing support
-  *
-  * Code was originally included in shmem.c, and broken out to facilitate
-  * use by hugetlbfs as well as tmpfs.
-- *
-- * This file is released under the GPL.
-  */
++static struct kmem_cache *handle_cachep;
++static struct kmem_cache *zspage_cachep;
++
+ struct zs_pool {
+ 	const char *name;
  
- #include <linux/fs.h>
---- a/mm/mmu_gather.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/mmu_gather.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- #include <linux/gfp.h>
- #include <linux/highmem.h>
- #include <linux/kernel.h>
---- a/mm/rmap.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/rmap.c
-@@ -1,8 +1,8 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * mm/rmap.c - physical to virtual reverse mappings
-  *
-  * Copyright 2001, Rik van Riel <riel@conectiva.com.br>
-- * Released under the General Public License (GPL).
-  *
-  * Simple, low overhead reverse mapping scheme.
-  * Please try to keep this thing as modular as possible.
---- a/mm/shmem.c~mm-add-spdx-id-lines-to-some-mm-source-files
-+++ a/mm/shmem.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Resizable virtual memory filesystem for Linux.
-  *
-@@ -17,8 +18,6 @@
-  *
-  * tiny-shmem:
-  * Copyright (c) 2004, 2008 Matt Mackall <mpm@selenic.com>
-- *
-- * This file is released under the GPL.
-  */
+ 	struct size_class *size_class[ZS_SIZE_CLASSES];
+-	struct kmem_cache *handle_cachep;
+-	struct kmem_cache *zspage_cachep;
  
- #include <linux/fs.h>
+ 	atomic_long_t pages_allocated;
+ 
+@@ -371,60 +372,28 @@ static void init_deferred_free(struct zs
+ static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage) {}
+ #endif
+ 
+-static int create_cache(struct zs_pool *pool)
++static unsigned long cache_alloc_handle(gfp_t gfp)
+ {
+-	char *name;
+-
+-	name = kasprintf(GFP_KERNEL, "zs_handle-%s", pool->name);
+-	if (!name)
+-		return -ENOMEM;
+-	pool->handle_cachep = kmem_cache_create(name, ZS_HANDLE_SIZE,
+-						0, 0, NULL);
+-	kfree(name);
+-	if (!pool->handle_cachep)
+-		return -EINVAL;
+-
+-	name = kasprintf(GFP_KERNEL, "zspage-%s", pool->name);
+-	if (!name)
+-		return -ENOMEM;
+-	pool->zspage_cachep = kmem_cache_create(name, sizeof(struct zspage),
+-						0, 0, NULL);
+-	kfree(name);
+-	if (!pool->zspage_cachep) {
+-		kmem_cache_destroy(pool->handle_cachep);
+-		pool->handle_cachep = NULL;
+-		return -EINVAL;
+-	}
++	gfp = gfp & ~(__GFP_HIGHMEM | __GFP_MOVABLE);
+ 
+-	return 0;
+-}
+-
+-static void destroy_cache(struct zs_pool *pool)
+-{
+-	kmem_cache_destroy(pool->handle_cachep);
+-	kmem_cache_destroy(pool->zspage_cachep);
++	return (unsigned long)kmem_cache_alloc(handle_cachep, gfp);
+ }
+ 
+-static unsigned long cache_alloc_handle(struct zs_pool *pool, gfp_t gfp)
++static void cache_free_handle(unsigned long handle)
+ {
+-	return (unsigned long)kmem_cache_alloc(pool->handle_cachep,
+-			gfp & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
++	kmem_cache_free(handle_cachep, (void *)handle);
+ }
+ 
+-static void cache_free_handle(struct zs_pool *pool, unsigned long handle)
++static struct zspage *cache_alloc_zspage(gfp_t gfp)
+ {
+-	kmem_cache_free(pool->handle_cachep, (void *)handle);
+-}
++	gfp = gfp & ~(__GFP_HIGHMEM | __GFP_MOVABLE);
+ 
+-static struct zspage *cache_alloc_zspage(struct zs_pool *pool, gfp_t flags)
+-{
+-	return kmem_cache_zalloc(pool->zspage_cachep,
+-			flags & ~(__GFP_HIGHMEM|__GFP_MOVABLE));
++	return kmem_cache_zalloc(zspage_cachep, gfp);
+ }
+ 
+-static void cache_free_zspage(struct zs_pool *pool, struct zspage *zspage)
++static void cache_free_zspage(struct zspage *zspage)
+ {
+-	kmem_cache_free(pool->zspage_cachep, zspage);
++	kmem_cache_free(zspage_cachep, zspage);
+ }
+ 
+ /* class->lock(which owns the handle) synchronizes races */
+@@ -853,7 +822,7 @@ static void __free_zspage(struct zs_pool
+ 		zpdesc = next;
+ 	} while (zpdesc != NULL);
+ 
+-	cache_free_zspage(pool, zspage);
++	cache_free_zspage(zspage);
+ 
+ 	class_stat_sub(class, ZS_OBJS_ALLOCATED, class->objs_per_zspage);
+ 	atomic_long_sub(class->pages_per_zspage, &pool->pages_allocated);
+@@ -966,7 +935,7 @@ static struct zspage *alloc_zspage(struc
+ {
+ 	int i;
+ 	struct zpdesc *zpdescs[ZS_MAX_PAGES_PER_ZSPAGE];
+-	struct zspage *zspage = cache_alloc_zspage(pool, gfp);
++	struct zspage *zspage = cache_alloc_zspage(gfp);
+ 
+ 	if (!zspage)
+ 		return NULL;
+@@ -988,7 +957,7 @@ static struct zspage *alloc_zspage(struc
+ 				zpdesc_dec_zone_page_state(zpdescs[i]);
+ 				free_zpdesc(zpdescs[i]);
+ 			}
+-			cache_free_zspage(pool, zspage);
++			cache_free_zspage(zspage);
+ 			return NULL;
+ 		}
+ 		__zpdesc_set_zsmalloc(zpdesc);
+@@ -1339,7 +1308,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 	if (unlikely(size > ZS_MAX_ALLOC_SIZE))
+ 		return (unsigned long)ERR_PTR(-ENOSPC);
+ 
+-	handle = cache_alloc_handle(pool, gfp);
++	handle = cache_alloc_handle(gfp);
+ 	if (!handle)
+ 		return (unsigned long)ERR_PTR(-ENOMEM);
+ 
+@@ -1363,7 +1332,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 
+ 	zspage = alloc_zspage(pool, class, gfp, nid);
+ 	if (!zspage) {
+-		cache_free_handle(pool, handle);
++		cache_free_handle(handle);
+ 		return (unsigned long)ERR_PTR(-ENOMEM);
+ 	}
+ 
+@@ -1443,7 +1412,7 @@ void zs_free(struct zs_pool *pool, unsig
+ 		free_zspage(pool, class, zspage);
+ 
+ 	spin_unlock(&class->lock);
+-	cache_free_handle(pool, handle);
++	cache_free_handle(handle);
+ }
+ EXPORT_SYMBOL_GPL(zs_free);
+ 
+@@ -2105,9 +2074,6 @@ struct zs_pool *zs_create_pool(const cha
+ 	if (!pool->name)
+ 		goto err;
+ 
+-	if (create_cache(pool))
+-		goto err;
+-
+ 	/*
+ 	 * Iterate reversely, because, size of size_class that we want to use
+ 	 * for merging should be larger or equal to current size.
+@@ -2229,20 +2195,47 @@ void zs_destroy_pool(struct zs_pool *poo
+ 		kfree(class);
+ 	}
+ 
+-	destroy_cache(pool);
+ 	kfree(pool->name);
+ 	kfree(pool);
+ }
+ EXPORT_SYMBOL_GPL(zs_destroy_pool);
+ 
++static void zs_destroy_caches(void)
++{
++	kmem_cache_destroy(handle_cachep);
++	handle_cachep = NULL;
++	kmem_cache_destroy(zspage_cachep);
++	zspage_cachep = NULL;
++}
++
++static int __init zs_init_caches(void)
++{
++	handle_cachep = kmem_cache_create("zs_handle", ZS_HANDLE_SIZE,
++					  0, 0, NULL);
++	zspage_cachep = kmem_cache_create("zspage", sizeof(struct zspage),
++					  0, 0, NULL);
++
++	if (!handle_cachep || !zspage_cachep) {
++		zs_destroy_caches();
++		return -ENOMEM;
++	}
++	return 0;
++}
++
+ static int __init zs_init(void)
+ {
+-	int rc __maybe_unused;
++	int rc;
++
++	rc = zs_init_caches();
++	if (rc)
++		return rc;
+ 
+ #ifdef CONFIG_COMPACTION
+ 	rc = set_movable_ops(&zsmalloc_mops, PGTY_zsmalloc);
+-	if (rc)
++	if (rc) {
++		zs_destroy_caches();
+ 		return rc;
++	}
+ #endif
+ 	zs_stat_init();
+ 	return 0;
+@@ -2254,6 +2247,7 @@ static void __exit zs_exit(void)
+ 	set_movable_ops(NULL, PGTY_zsmalloc);
+ #endif
+ 	zs_stat_exit();
++	zs_destroy_caches();
+ }
+ 
+ module_init(zs_init);
 _
 
-Patches currently in -mm which might be from tim.bird@sony.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
 
