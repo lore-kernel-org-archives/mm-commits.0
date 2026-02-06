@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11717309EF4
-	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 23:48:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7156313550
+	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 23:48:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770421708; cv=none; b=nP9pe2138z6Ng/BzNHx2JxW4p8Z9VYU0a8/JLI5UpybZ+sx2U3N39BKEjQWqWCBR4gvJSwD2+BEXwJjwe/aXg5Ffj+pzSdJMVGbvnbnPw+Xylu4KhPONuDfAAS095v0x4Zgj8OJL773aBDXfCfcDwDtXaAT8LOfteI6tHKaZlIo=
+	t=1770421710; cv=none; b=Pzw/vQ8fhvqlXVKe7hAwvyXbaWBVzsIhKj4hR0MiZ0m40FbHIjEnEEj+Q42K3/epD5WvS8xp8sdvnZqIZSw3fNX0JMx+Ho6VVpuEqlh/ac2jjqMKaMJ6r+wLExsba0ESUHfs/1bNomXCHff5OeabLIQo/h2NIdSlLdl78bd6iN4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770421708; c=relaxed/simple;
-	bh=r9f5YdLU75UTa1CJa/vwGTL68rdMqkrJ1y0VWwuvavc=;
-	h=Date:To:From:Subject:Message-Id; b=Y5+4IPeNyJhp17G6rKK8NGHbQtszuZewDsFGRZl2ZLnJGeG6tkoSh6fp+j+XW3P925jp7g0mH8oCv9XURodhCw6eKW37fFfT5ZBs4dOQTCgwExkEw8jAiG0BjU/Op+rOpTQkzm6MWHYqL9USHX4mdqdxhANkCQkjfU4zilhGU6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ldzPxQa8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770421710; c=relaxed/simple;
+	bh=86A9Y8oNeZR8cEO7ozwnxpu2rx6lEvQB7tLREqCesmA=;
+	h=Date:To:From:Subject:Message-Id; b=IA9frr09n7ECniIxTm6XGchJZ5HyWI+QCWrTnnF74eIRqD1HYMuyB2+32ST4XW8vZpFHT3joexAZNdakSFE4BnOoiHfcn5fH3fsx6ASMs97i9f5Fwe19G9kts3oV7KolF/Cbqy7wvgoYysxaU/0RyLhLHQ0CoIbsaj+RVT1taCI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jqUn+n47; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ldzPxQa8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 971A3C116C6;
-	Fri,  6 Feb 2026 23:48:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jqUn+n47"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83F88C116C6;
+	Fri,  6 Feb 2026 23:48:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770421707;
-	bh=r9f5YdLU75UTa1CJa/vwGTL68rdMqkrJ1y0VWwuvavc=;
+	s=korg; t=1770421709;
+	bh=86A9Y8oNeZR8cEO7ozwnxpu2rx6lEvQB7tLREqCesmA=;
 	h=Date:To:From:Subject:From;
-	b=ldzPxQa874Og+ERfaWLhnVuqZ/BktlyKOlFX/WJ2xVAAjEVYfrG67BAVPrRCRRTiV
-	 oRLOPvIZ2fbzAWYtlbI4ZrzESrBhMUiweYX7NnqOCxGADaMXPUDzEoZapw2NDHpJxZ
-	 jB28WkPGlpcv5qwAWxzw2xojsLpf2sgVAcSABo7w=
-Date: Fri, 06 Feb 2026 15:48:27 -0800
+	b=jqUn+n47sVZgV6g/4n6DkQ3Vn8r4HUs53r4/g+1bWhHVS/qIRl9JACbk3cR03cAyB
+	 VhQxb+ACRyS5R/ytXsDjQDuOLNHADCllu4BbTTf3voq+9BpGRxWD/svFqxbNqIUtJK
+	 Hvqv7gIS34Lh/y+92DB20OPRYWC5vQiuZ3ZGGx+8=
+Date: Fri, 06 Feb 2026 15:48:29 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,tsbogend@alpha.franken.de,tglx@kernel.org,surenb@google.com,rppt@kernel.org,richard.weiyang@gmail.com,richard@nod.at,richard.henderson@linaro.org,peterz@infradead.org,npiggin@gmail.com,mingo@redhat.com,mhocko@suse.com,mattst88@gmail.com,lorenzo.stoakes@oracle.com,linmag7@gmail.com,Liam.Howlett@oracle.com,kernel@xen0n.name,johannes@sipsolutions.net,James.Bottomley@HansenPartnership.com,ioworker0@gmail.com,hpa@zytor.com,dev.jain@arm.com,deller@gmx.de,david@kernel.org,dave.hansen@linux.intel.com,chenhuacai@kernel.org,bp@alien8.de,anton.ivanov@cambridgegreys.com,aneesh.kumar@kernel.org,andreas@gaisler.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] um-mm-enable-mmu_gather_rcu_table_free.patch removed from -mm tree
-Message-Id: <20260206234827.971A3C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config.patch removed from -mm tree
+Message-Id: <20260206234829.83F88C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: um: mm: enable MMU_GATHER_RCU_TABLE_FREE
+     Subject: mm: convert __HAVE_ARCH_TLB_REMOVE_TABLE to CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE config
 has been removed from the -mm tree.  Its filename was
-     um-mm-enable-mmu_gather_rcu_table_free.patch
+     mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: um: mm: enable MMU_GATHER_RCU_TABLE_FREE
-Date: Tue, 27 Jan 2026 20:12:59 +0800
+Subject: mm: convert __HAVE_ARCH_TLB_REMOVE_TABLE to CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE config
+Date: Tue, 27 Jan 2026 20:13:00 +0800
 
-On a 64-bit system, madvise(MADV_DONTNEED) may cause a large number of
-empty PTE page table pages (such as 100GB+).  To resolve this problem,
-first enable MMU_GATHER_RCU_TABLE_FREE to prepare for enabling the
-PT_RECLAIM feature, which resolves this problem.
+For architectures that define __HAVE_ARCH_TLB_REMOVE_TABLE, the page
+tables at the pmd/pud level are generally not of struct ptdesc type, and
+do not have pt_rcu_head member, thus these architectures cannot support
+PT_RECLAIM.
 
-Link: https://lkml.kernel.org/r/e2217546504668b8a87a39eb0e378839339a1bb4.1769515122.git.zhengqi.arch@bytedance.com
+In preparation for enabling PT_RECLAIM on more architectures, convert
+__HAVE_ARCH_TLB_REMOVE_TABLE to CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE config,
+so that we can make conditional judgments in Kconfig.
+
+Link: https://lkml.kernel.org/r/5ebfa3d4b56e63c6906bda5eccaa9f7194d3a86b.1769515122.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Andreas Larsson <andreas@gaisler.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Tested-by: Andreas Larsson <andreas@gaisler.com>	[sparc, UP&SMP]
+Acked-by: Andreas Larsson <andreas@gaisler.com>		[sparc]
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand (Red Hat) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Huacai Chen <chenhuacai@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: Lance Yang <ioworker0@gmail.com>
 Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -78,6 +82,7 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Richard Henderson <richard.henderson@linaro.org>
+Cc: Richard Weinberger <richard@nod.at>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Thomas Gleixner <tglx@kernel.org>
@@ -88,19 +93,77 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/Kconfig            |    1 +
+ arch/powerpc/include/asm/tlb.h  |    1 -
+ arch/sparc/Kconfig              |    1 +
+ arch/sparc/include/asm/tlb_64.h |    1 -
+ include/asm-generic/tlb.h       |    2 +-
+ mm/Kconfig                      |    3 +++
+ 6 files changed, 6 insertions(+), 3 deletions(-)
 
---- a/arch/um/Kconfig~um-mm-enable-mmu_gather_rcu_table_free
-+++ a/arch/um/Kconfig
-@@ -42,6 +42,7 @@ config UML
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select THREAD_INFO_IN_TASK
- 	select SPARSE_IRQ
-+	select MMU_GATHER_RCU_TABLE_FREE
+--- a/arch/powerpc/include/asm/tlb.h~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
++++ a/arch/powerpc/include/asm/tlb.h
+@@ -37,7 +37,6 @@ extern void tlb_flush(struct mmu_gather
+  */
+ #define tlb_needs_table_invalidate()	radix_enabled()
  
- config MMU
- 	bool
+-#define __HAVE_ARCH_TLB_REMOVE_TABLE
+ /* Get the generic bits... */
+ #include <asm-generic/tlb.h>
+ 
+--- a/arch/powerpc/Kconfig~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
++++ a/arch/powerpc/Kconfig
+@@ -305,6 +305,7 @@ config PPC
+ 	select LOCK_MM_AND_FIND_VMA
+ 	select MMU_GATHER_PAGE_SIZE
+ 	select MMU_GATHER_RCU_TABLE_FREE
++	select HAVE_ARCH_TLB_REMOVE_TABLE
+ 	select MMU_GATHER_MERGE_VMAS
+ 	select MMU_LAZY_TLB_SHOOTDOWN		if PPC_BOOK3S_64
+ 	select MODULES_USE_ELF_RELA
+--- a/arch/sparc/include/asm/tlb_64.h~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
++++ a/arch/sparc/include/asm/tlb_64.h
+@@ -33,7 +33,6 @@ void flush_tlb_pending(void);
+ #define tlb_needs_table_invalidate()	(false)
+ #endif
+ 
+-#define __HAVE_ARCH_TLB_REMOVE_TABLE
+ #include <asm-generic/tlb.h>
+ 
+ #endif /* _SPARC64_TLB_H */
+--- a/arch/sparc/Kconfig~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
++++ a/arch/sparc/Kconfig
+@@ -74,6 +74,7 @@ config SPARC64
+ 	select HAVE_KRETPROBES
+ 	select HAVE_KPROBES
+ 	select MMU_GATHER_RCU_TABLE_FREE if SMP
++	select HAVE_ARCH_TLB_REMOVE_TABLE if SMP
+ 	select MMU_GATHER_MERGE_VMAS
+ 	select MMU_GATHER_NO_FLUSH_CACHE
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
+--- a/include/asm-generic/tlb.h~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
++++ a/include/asm-generic/tlb.h
+@@ -213,7 +213,7 @@ struct mmu_table_batch {
+ #define MAX_TABLE_BATCH		\
+ 	((PAGE_SIZE - sizeof(struct mmu_table_batch)) / sizeof(void *))
+ 
+-#ifndef __HAVE_ARCH_TLB_REMOVE_TABLE
++#ifndef CONFIG_HAVE_ARCH_TLB_REMOVE_TABLE
+ static inline void __tlb_remove_table(void *table)
+ {
+ 	struct ptdesc *ptdesc = (struct ptdesc *)table;
+--- a/mm/Kconfig~mm-convert-__have_arch_tlb_remove_table-to-config_have_arch_tlb_remove_table-config
++++ a/mm/Kconfig
+@@ -1448,6 +1448,9 @@ config ARCH_HAS_USER_SHADOW_STACK
+ 	  The architecture has hardware support for userspace shadow call
+           stacks (eg, x86 CET, arm64 GCS or RISC-V Zicfiss).
+ 
++config HAVE_ARCH_TLB_REMOVE_TABLE
++	def_bool n
++
+ config ARCH_SUPPORTS_PT_RECLAIM
+ 	def_bool n
+ 
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
