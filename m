@@ -1,94 +1,74 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6407827B352
-	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 20:01:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 077FA2EC097;
+	Fri,  6 Feb 2026 20:43:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770408085; cv=none; b=ALX4yWGbgich4bKqN0JnoPG99/Nh0u5jIKheIplRzxjHbkxVgIQnjlxglKKPpemjIvZQW/7zKEObbNYwg1ElzlEcqxU0PYRn71pQSSU0K9avHDG7/fe5mcP/YjEQAZyc7b86qpDxFPm3mO2KAhhp3N77LKJqNOnX0Pmkx6HmoDU=
+	t=1770410623; cv=none; b=lgiLSe5pyifyNRTt1y3OVkdQWY1blRk/rXtACbq30MsH996h7wpdlo4ESzXN9QlcjVARbWH5erkLfde47waZTmDigBRu5LfWjRUCO82vmcx0nVRgH3tapojERYRrEwkOIeQ0N7xl+VC50hK+LBTm0CSpqbul9KYQnA0Mm9PFXyg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770408085; c=relaxed/simple;
-	bh=YftZjigvX3NGm5pNb1LZGGdkscqqIm7HhtWJBNklcdk=;
-	h=Date:To:From:Subject:Message-Id; b=Y1o91urI5bMJvIbzUis4JGxWeUwztfJUiPjxQLLuNJO+Q3df+j7LVxltL+KFAR1WJR7/gGwXKidROWN840xU1NXUub1D3OXCyVzmGm98JuwwWvgY3jC/YG0p2j/ZrK2ee4BaWO5iv5mB+Py7z1eqj9j5OtlbVcl8BR/HtiLx7jA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JFJr5gp3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770410623; c=relaxed/simple;
+	bh=/TnX09Hv5t15PMPchOzqwIa2F9kys99mKm/6GSVU3rI=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=juM4NM/3AyWTIj/0wbxcSaFJbguKUHvySMPqWIz+ERbfTXeTp1a3UPtQr3U+AFcXgdthRPdp8QkBAnYM6qULxsuil2LI/+aiD80RB0/pmoxVxFsjxQMvMvDUXZu/2IJpDAO4Y2bTtMPWM7wgr37Ji1Kfw/gvr3M3twYxkY/97Ug=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cEc/bc8j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JFJr5gp3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBE47C116C6;
-	Fri,  6 Feb 2026 20:01:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cEc/bc8j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 723EEC116C6;
+	Fri,  6 Feb 2026 20:43:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770408084;
-	bh=YftZjigvX3NGm5pNb1LZGGdkscqqIm7HhtWJBNklcdk=;
-	h=Date:To:From:Subject:From;
-	b=JFJr5gp3cq8o1iFiskhVk1JnAFbSEGGBbrTxvsofTrSx1B2N57YMYZPjG6iw3ARpY
-	 PTX21tjVAx1CyPnXkeyVEukd/TgKlvAA5ZOQKsrazgzG3MjnFNf47CBZiyLnGnDPHi
-	 z3y+/I2hgJ4TbWxeNJh9U1SujyG0IvCj6l89QfV0=
-Date: Fri, 06 Feb 2026 12:01:24 -0800
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,bingjiao@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	s=korg; t=1770410622;
+	bh=/TnX09Hv5t15PMPchOzqwIa2F9kys99mKm/6GSVU3rI=;
+	h=Date:From:To:Cc:Subject:From;
+	b=cEc/bc8j40oDPNKYjkoeIt5QOpwDrrjfVP7k8Z8eVNzsNwGXtdV8uhbFatg0YSP+9
+	 NafyI79ICSPkzS/NH8SdBKHhVCrmMvpTbFc4+w+U03rGk69A1EO3sagAUm1hPFDxG2
+	 HSkjpUl/e6yHxm53HCkjDKqk9I4HVshr9oiDpmuo=
+Date: Fri, 6 Feb 2026 12:43:41 -0800
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-select-the-closest-perferred-node-in-demote_folio_list-fix.patch added to mm-unstable branch
-Message-Id: <20260206200124.DBE47C116C6@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linuxfoundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] more hotfixes against 6.19-rc8
+Message-Id: <20260206124341.c7dc8fc55e0f0f9ea68d3951@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: mm-vmscan-select-the-closest-perferred-node-in-demote_folio_list-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-select-the-closest-perferred-node-in-demote_folio_list-fix.patch
+Linus, please merge these two MM fixes for the upcoming release, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-select-the-closest-perferred-node-in-demote_folio_list-fix.patch
 
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following changes since commit 1a47837bfafed7e9ef93f5dfdea6d70869b0c3ab:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  Documentation: document liveupdate cmdline parameter (2026-02-02 18:43:56 -0800)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+are available in the Git repository at:
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-02-06-12-37
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-select-the-closest-perferred-node-in-demote_folio_list-fix
-Date: Fri Feb  6 12:00:18 PM PST 2026
+for you to fetch changes up to ae9fd76c111bb4a5293c2831a1ad373605251dd6:
 
-fix comment typo, per Shakeel
+  mm/memory-failure: reject unsupported non-folio compound page (2026-02-05 14:10:00 -0800)
 
-Cc: Bing Jiao <bingjiao@google.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+----------------------------------------------------------------
+A couple of late-breaking MM fixes.  One against a new-in-this-cycle patch
+and the other addresses a locking issue which has been there for 1+ years.
 
- mm/memory-tiers.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+----------------------------------------------------------------
+Andrii Nakryiko (1):
+      procfs: avoid fetching build ID while holding VMA lock
 
---- a/mm/memory-tiers.c~mm-vmscan-select-the-closest-perferred-node-in-demote_folio_list-fix
-+++ a/mm/memory-tiers.c
-@@ -365,7 +365,7 @@ int next_demotion_node(int node, const n
- 		return node_random(&mask);
- 
- 	/*
--	 * Preferred nodes are not in allowed_mask. Filp bits in
-+	 * Preferred nodes are not in allowed_mask. Flip bits in
- 	 * allowed_mask as used node mask. Then, use it to get the
- 	 * closest demotion target.
- 	 */
-_
+Miaohe Lin (1):
+      mm/memory-failure: reject unsupported non-folio compound page
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-vmscan-select-the-closest-perferred-node-in-demote_folio_list-fix.patch
-mm-update-shmem__file_-functions-to-use-vma_flags_t-fix.patch
-maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
-maple_tree-add-cp_is_new_root-helper-fix-fix.patch
+ fs/proc/task_mmu.c      | 42 +++++++++++++++++++++++++++---------------
+ include/linux/buildid.h |  3 +++
+ lib/buildid.c           | 42 ++++++++++++++++++++++++++++++------------
+ mm/memory-failure.c     | 42 ++++++++++++++++++++----------------------
+ 4 files changed, 80 insertions(+), 49 deletions(-)
 
