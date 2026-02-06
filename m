@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D746E3126AB
-	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 23:48:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 172633126D4
+	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 23:48:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770421689; cv=none; b=Ozu0TAVz+9YF4IOWJtOpPyl9IYtbDFRKCwOHcHRNOzjJdixpsOo/2Ce3Rdo2niIeVgY8dMkGNbO/qirKVf1gDzxrjDLH4Z7W1GzD20IKBDEVVM8iEdrTydH+CT9R/Dc8i9cYy0S4k64yD/2OAq4LbwgYrGmr2eEL98rlg4I9ORE=
+	t=1770421691; cv=none; b=QX8uUtQXMlQQ+qdvpGpkav8gqFqO4dCousYHh3SKI1UdT0qVqDnMQuZeVRgGq6NiTNeyq7Mn0DR2w2uUKkmT0mpCTUxYNDHZe5xMW7QH7OtV6hx94ZshLIPaFbfavBxBgjOAZ0taJN8VQoHv3OQGzNpFEeql/J1qwfARaMW5Ykk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770421689; c=relaxed/simple;
-	bh=oS7diYkC+vVu4jEzQbpPb4oyRDJotn2MZN1sxwZu2gQ=;
-	h=Date:To:From:Subject:Message-Id; b=FTyb1aCpf+uQCjiJ6AgJRIIo2broBi8CkWfkF9AYKvhPRP+K0xzHtFg8lFBNd0s5wwEPBxi5ZWzuPOSry9JAZ+9NhkCTFenpslrBBlBUnssDyuvQChCErQp6BAjTiXe0faa60QCnWB7mQAaZ8Wy+dhmn5VLOnEBb6WNMyIgO6/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A8yfmaAV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770421691; c=relaxed/simple;
+	bh=5tuWyY1AF6xo9qlb+OHphP8KBUqc5aznQRmGKmAnWbE=;
+	h=Date:To:From:Subject:Message-Id; b=rfE9N5I0AhFQJZ2opNaFDiPPs26LdvxszCO0ARHyjchw79ShImxqgYIjxfCuVRvh/GagF5SJyxjaHtGa/CqsX6RsJfjxV5Zh33NzIuIZYkomqolxvOlDrtQliqvVI1qzZuMcnvyehHX7W7ehMcAEGPvkBKtzWP0sJSINAL4pjNI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=byohby9Y; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A8yfmaAV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 764CEC116C6;
-	Fri,  6 Feb 2026 23:48:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="byohby9Y"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAD30C116C6;
+	Fri,  6 Feb 2026 23:48:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770421689;
-	bh=oS7diYkC+vVu4jEzQbpPb4oyRDJotn2MZN1sxwZu2gQ=;
+	s=korg; t=1770421690;
+	bh=5tuWyY1AF6xo9qlb+OHphP8KBUqc5aznQRmGKmAnWbE=;
 	h=Date:To:From:Subject:From;
-	b=A8yfmaAVQDhw/fttbJQLWDYY0jP3Zf8r0nBX+YsHYLagICW6waOMM0buJyMD3DZk3
-	 JawDYjGwRUIlX8dDd31Q0Dcc6x6oiSwpfnkvLKW8iRX5DHBTFr6zQgwUWnIvOEkVQT
-	 32ukypkaGQnVV6w+OsHS6HgBtXooeea2aCeyznFI=
-Date: Fri, 06 Feb 2026 15:48:08 -0800
-To: mm-commits@vger.kernel.org,lorenzo.stoakes@oracle.com,cheng20011202@gmail.com,akpm@linux-foundation.org
+	b=byohby9Ysa3xtvryt4VAvIaaoAaLpXekvvB/SuTwkwHllYJMRyax+iiUt/i4niRjM
+	 d/peZBwRKoPEDjrEC5VZ4BBWUUDg5yOaByu/SYWHllywZWRSKf8V3uucqJJgerR8bk
+	 SavKGr0xyqtthCFqfvILz12/WSNVLeafB2tVHaGM=
+Date: Fri, 06 Feb 2026 15:48:10 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,sj@kernel.org,nphamcs@gmail.com,david@kernel.org,chandna.sahil@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-readahead-fix-typo-in-comment.patch removed from -mm tree
-Message-Id: <20260206234809.764CEC116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-use-%pe-to-print-error-pointers.patch removed from -mm tree
+Message-Id: <20260206234810.BAD30C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,42 +35,55 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/readahead: fix typo in comment
+     Subject: mm/vmscan: use %pe to print error pointers
 has been removed from the -mm tree.  Its filename was
-     mm-readahead-fix-typo-in-comment.patch
+     mm-vmscan-use-%pe-to-print-error-pointers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Wilson Zeng <cheng20011202@gmail.com>
-Subject: mm/readahead: fix typo in comment
-Date: Tue, 27 Jan 2026 23:25:35 +0800
+From: Sahil Chandna <chandna.sahil@gmail.com>
+Subject: mm/vmscan: use %pe to print error pointers
+Date: Thu, 5 Feb 2026 00:24:07 +0530
 
-Fix a typo in a comment: max_readhead -> max_readahead.
+Use the %pe printk format specifier to report error pointers directly
+instead of printing PTR_ERR() as a long value.  This improves clarity,
+produces more readable error messages.
 
-Link: https://lkml.kernel.org/r/20260127152535.321951-1-cheng20011202@gmail.com
-Signed-off-by: Wilson Zeng <cheng20011202@gmail.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+This instance was flagged by the Coccinelle script
+(misc/ptr_err_to_pe.cocci) as an opportunity to adopt %pe.
+
+Found by: make coccicheck MODE=report M=mm/
+No functional change intended
+
+Link: https://lkml.kernel.org/r/80a6643657a60e75ddf48b4869b3e7fdc101f855.1770230135.git.chandna.sahil@gmail.com
+Signed-off-by: Sahil Chandna <chandna.sahil@gmail.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Yosry Ahmed <yosry.ahmed@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/readahead.c~mm-readahead-fix-typo-in-comment
-+++ a/mm/readahead.c
-@@ -436,7 +436,7 @@ static unsigned long get_next_ra_size(st
-  * based on I/O request size and the max_readahead.
-  *
-  * The code ramps up the readahead size aggressively at first, but slow down as
-- * it approaches max_readhead.
-+ * it approaches max_readahead.
-  */
- 
- static inline int ra_alloc_folio(struct readahead_control *ractl, pgoff_t index,
+--- a/mm/vmscan.c~mm-vmscan-use-%pe-to-print-error-pointers
++++ a/mm/vmscan.c
+@@ -7470,8 +7470,8 @@ void __meminit kswapd_run(int nid)
+ 		pgdat->kswapd = kthread_create_on_node(kswapd, pgdat, nid, "kswapd%d", nid);
+ 		if (IS_ERR(pgdat->kswapd)) {
+ 			/* failure at boot is fatal */
+-			pr_err("Failed to start kswapd on node %d，ret=%ld\n",
+-				   nid, PTR_ERR(pgdat->kswapd));
++			pr_err("Failed to start kswapd on node %d, ret=%pe\n",
++				   nid, pgdat->kswapd);
+ 			BUG_ON(system_state < SYSTEM_RUNNING);
+ 			pgdat->kswapd = NULL;
+ 		} else {
 _
 
-Patches currently in -mm which might be from cheng20011202@gmail.com are
+Patches currently in -mm which might be from chandna.sahil@gmail.com are
 
 
