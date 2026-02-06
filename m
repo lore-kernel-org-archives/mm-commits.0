@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7D91279DB6
-	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 23:48:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01F4530F534
+	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 23:48:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770421692; cv=none; b=nIMCtL3TJi//ndDYIuVUV0cUnogaTlF2kxbkH4cepqjkruXmnzBqpBlfras2cnAPa65VWdaDZkkxPiRuCVDT8ZfMyAC/wrG5dQQ/A/j1MKUXsmZbdP+JzXiRfSrKeEJj0MUq5N4suI+0XwMoJCdB5DHDcgNExqUf2UZDZtU7NbE=
+	t=1770421694; cv=none; b=Iw+VO7SiPAVQlWtXehKV5qugckPzVatK/ReRMi/SswHyOLf7/GoSHxvnA7lokE80+eM8r5KY5am9okBSkPOS3gzinYlTbYmJM+BBxlb0oCiQ8E0KN4QmpqxW1+Cdrr/43PcuvYM/HcMKIQtutCST+esYPTcvXxSkLUfUZ3a+aPE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770421692; c=relaxed/simple;
-	bh=sqXt+D3+6VxAUtrNCYlQ+Q4hZea3pX4MeRTV5m7AnG8=;
-	h=Date:To:From:Subject:Message-Id; b=nTNJSGdQr2g10Y5sAzSbx33TlcyI/IWBlVBtxfwERt98lfvtj/kA4VKh8e7VUJr/3TkbfBH0J5PHbu5Bc0xYYRsuELSOfGFbnS1qyRYBCXPaodnwBtEXVMge+/5wDPg2hwbEJ9Sw9gb4PYlruneTZvCG5EEG2kdkWPdFy2adqfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bq9AHze6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770421694; c=relaxed/simple;
+	bh=G1JlhyKkDcrEgjhbexNhfb/rmAVsGNwVQPqie/gIf7M=;
+	h=Date:To:From:Subject:Message-Id; b=ZPwYGK9fddTa4nmom8nFSxAk/hZso6wnUhbHHl27mbYEmlgAgUkk9ZN0GBkZfJzE6En9GgNo08HG6bZUoO4prZCxsuckpfJDFAERObV/k3Tg6mLrBVZZpBdij/ttX7z7Gck5RuU3KdGDJqCXuZ052qlVlx5Ea5zrLG2nPVclKL0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sOjRnuZY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bq9AHze6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52EE2C116C6;
-	Fri,  6 Feb 2026 23:48:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sOjRnuZY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDF57C116C6;
+	Fri,  6 Feb 2026 23:48:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770421692;
-	bh=sqXt+D3+6VxAUtrNCYlQ+Q4hZea3pX4MeRTV5m7AnG8=;
+	s=korg; t=1770421693;
+	bh=G1JlhyKkDcrEgjhbexNhfb/rmAVsGNwVQPqie/gIf7M=;
 	h=Date:To:From:Subject:From;
-	b=bq9AHze6jMjMqOdmv7rVpDMPHz9SdwT7SCnuYbWfibpQnUKpY8iGROGeY00abZIhF
-	 CT1I9jiaIJfnfcwGzUwbek73ZcqSiOVbdIhskbPXkt7b54UyL8cf+QhMFtHpdbU05M
-	 Dl/UyFOBl4aaLMCW5iG34hMc9P55eNlapksVYDvE=
-Date: Fri, 06 Feb 2026 15:48:11 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,sj@kernel.org,nphamcs@gmail.com,david@kernel.org,chandna.sahil@gmail.com,akpm@linux-foundation.org
+	b=sOjRnuZY2N1E0STntP4nELCbE0RiaTkj+wuU7zqWNvRtCR0g/GcPV2H7ZJ1SIGn99
+	 dmmAbDj+tLvIFzfBSHeMdTAaUusNYh+tFdcjJV3EaysPwlEj4pKouA0iLF2KmsvlIG
+	 9m/074AnKJrCQQVWqvgL1iL32RqJdva3yc+asfSQ=
+Date: Fri, 06 Feb 2026 15:48:13 -0800
+To: mm-commits@vger.kernel.org,tim.bird@sony.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zswap-use-%pe-to-print-error-pointers.patch removed from -mm tree
-Message-Id: <20260206234812.52EE2C116C6@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-spdx-id-lines-to-some-mm-source-files.patch removed from -mm tree
+Message-Id: <20260206234813.CDF57C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,131 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zswap: use %pe to print error pointers
+     Subject: mm: add SPDX id lines to some mm source files
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-use-%pe-to-print-error-pointers.patch
+     mm-add-spdx-id-lines-to-some-mm-source-files.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sahil Chandna <chandna.sahil@gmail.com>
-Subject: mm/zswap: use %pe to print error pointers
-Date: Thu, 5 Feb 2026 00:24:08 +0530
+From: Tim Bird <tim.bird@sony.com>
+Subject: mm: add SPDX id lines to some mm source files
+Date: Wed, 4 Feb 2026 14:31:01 -0700
 
-Use the %pe printk format specifier to report error pointers directly
-instead of printing PTR_ERR() as a long value.  This improves clarity,
-produces more readable error messages.
+Some of the memory management source files are missing
+SPDX-License-Identifier lines.  Add appropriate IDs
+to these files (mostly GPL-2.0, but one LGPL-2.1).
 
-This instance was flagged by the Coccinelle script
-(misc/ptr_err_to_pe.cocci) as an opportunity to adopt %pe.
-
-Found by: make coccicheck MODE=report M=mm/
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/581a26f22fb4c6ce04aeb7ee0d703fe64454ac7f.1770230135.git.chandna.sahil@gmail.com
-Signed-off-by: Sahil Chandna <chandna.sahil@gmail.com>
-Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20260204213101.1754183-1-tim.bird@sony.com
+Signed-off-by: Tim Bird <tim.bird@sony.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/dmapool_test.c   |    1 +
+ mm/folio-compat.c   |    1 +
+ mm/gup_test.c       |    1 +
+ mm/hugetlb_cgroup.c |    9 +--------
+ mm/memfd.c          |    3 +--
+ mm/mmu_gather.c     |    1 +
+ mm/rmap.c           |    2 +-
+ mm/shmem.c          |    3 +--
+ 8 files changed, 8 insertions(+), 13 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-use-%pe-to-print-error-pointers
-+++ a/mm/zswap.c
-@@ -749,8 +749,8 @@ static int zswap_cpu_comp_prepare(unsign
+--- a/mm/dmapool_test.c~mm-add-spdx-id-lines-to-some-mm-source-files
++++ a/mm/dmapool_test.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0
+ #include <linux/device.h>
+ #include <linux/dma-map-ops.h>
+ #include <linux/dma-mapping.h>
+--- a/mm/folio-compat.c~mm-add-spdx-id-lines-to-some-mm-source-files
++++ a/mm/folio-compat.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Compatibility functions which bloat the callers too much to make inline.
+  * All of the callers of these functions should be converted to use folios
+--- a/mm/gup_test.c~mm-add-spdx-id-lines-to-some-mm-source-files
++++ a/mm/gup_test.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+--- a/mm/hugetlb_cgroup.c~mm-add-spdx-id-lines-to-some-mm-source-files
++++ a/mm/hugetlb_cgroup.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: LGPL-2.1
+ /*
+  *
+  * Copyright IBM Corporation, 2012
+@@ -7,14 +8,6 @@
+  * Copyright (C) 2019 Red Hat, Inc.
+  * Author: Giuseppe Scrivano <gscrivan@redhat.com>
+  *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of version 2.1 of the GNU Lesser General Public License
+- * as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it would be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+- *
+  */
  
- 	acomp = crypto_alloc_acomp_node(pool->tfm_name, 0, 0, cpu_to_node(cpu));
- 	if (IS_ERR(acomp)) {
--		pr_err("could not alloc crypto acomp %s : %ld\n",
--				pool->tfm_name, PTR_ERR(acomp));
-+		pr_err("could not alloc crypto acomp %s : %pe\n",
-+				pool->tfm_name, acomp);
- 		ret = PTR_ERR(acomp);
- 		goto fail;
- 	}
+ #include <linux/cgroup.h>
+--- a/mm/memfd.c~mm-add-spdx-id-lines-to-some-mm-source-files
++++ a/mm/memfd.c
+@@ -1,10 +1,9 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * memfd_create system call and file sealing support
+  *
+  * Code was originally included in shmem.c, and broken out to facilitate
+  * use by hugetlbfs as well as tmpfs.
+- *
+- * This file is released under the GPL.
+  */
+ 
+ #include <linux/fs.h>
+--- a/mm/mmu_gather.c~mm-add-spdx-id-lines-to-some-mm-source-files
++++ a/mm/mmu_gather.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0
+ #include <linux/gfp.h>
+ #include <linux/highmem.h>
+ #include <linux/kernel.h>
+--- a/mm/rmap.c~mm-add-spdx-id-lines-to-some-mm-source-files
++++ a/mm/rmap.c
+@@ -1,8 +1,8 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * mm/rmap.c - physical to virtual reverse mappings
+  *
+  * Copyright 2001, Rik van Riel <riel@conectiva.com.br>
+- * Released under the General Public License (GPL).
+  *
+  * Simple, low overhead reverse mapping scheme.
+  * Please try to keep this thing as modular as possible.
+--- a/mm/shmem.c~mm-add-spdx-id-lines-to-some-mm-source-files
++++ a/mm/shmem.c
+@@ -1,3 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * Resizable virtual memory filesystem for Linux.
+  *
+@@ -17,8 +18,6 @@
+  *
+  * tiny-shmem:
+  * Copyright (c) 2004, 2008 Matt Mackall <mpm@selenic.com>
+- *
+- * This file is released under the GPL.
+  */
+ 
+ #include <linux/fs.h>
 _
 
-Patches currently in -mm which might be from chandna.sahil@gmail.com are
+Patches currently in -mm which might be from tim.bird@sony.com are
 
 
