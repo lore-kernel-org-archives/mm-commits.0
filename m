@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 618981482E8
-	for <mm-commits@vger.kernel.org>; Thu,  5 Feb 2026 23:32:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 846672E3B15
+	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 04:50:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770334354; cv=none; b=E8fnBG/JchnBNlwbVD7ifWNzEoeYQXYmt2kBI2qKAiV66tq8E5UiLCzl6wxHKWjR/jBYZ2k7XggN7sw87xhIchcHnl8DGpP/rTs/XMN8rYbVIay61eRuM8P1p/R6YezDnh9h17UsI35V3tP0wgCCpOEeNCyB7KqYSrudA1DywIc=
+	t=1770353434; cv=none; b=mwfJ2j6CctPcVVR2xNU6pnRu9kTOAObyycC1sL3rI5o6h/hRm8rQyWqCufS63kqatQ1snvTASry8pR8lDrutadKSkm0NXhDZY4A5+HymMkjazLMnH7yhS8/YDfaipkibQULLxPP9wOIWZGNF/k3SKL6qNdA9Zms8fQ8uyVRly6o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770334354; c=relaxed/simple;
-	bh=LFRPvE0cCb4oA5PycnUN3MWNtpnQ/NAi2MtTpDCsKSA=;
-	h=Date:To:From:Subject:Message-Id; b=g4Hmvb7OIb0YySkmbDlzkMqqR3pSlb4TkH5fi177X7t4Glv3Wz4aDLelABO3+Y+8jJ5x0LfbRXiHTFtsS6IhRyoNosU7ZMwz/LUDNnGmmiZdus3xceKDgv3yH2fuSoefEVqY3vwcuxMQ9NY0nvvgecfjM4hAupLP1SX4DA0OO5E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eIIIxrLC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770353434; c=relaxed/simple;
+	bh=u3rHcVi/VuAzky/xWLUlEQqWL0TPPmntQlFH/ScX3Us=;
+	h=Date:To:From:Subject:Message-Id; b=JGNf4wUavZcie36BghWYkQwXz5PabW3n9nzR0ypeIQtO5F/LCLo4CPMNVAY8IjM5l1e2ostcoIiqaxOdLChVuz9Q3Ou3IHNKw2vdxgEhokertrRIuoUOE4zfgDXX7mOZ/ydDCXqfq6rhD9KJ0wyux+RCHoi9wjRGMopR6gHlID4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XMuwp4H6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eIIIxrLC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A9A7C4CEF7;
-	Thu,  5 Feb 2026 23:32:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XMuwp4H6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E7BBC116C6;
+	Fri,  6 Feb 2026 04:50:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770334354;
-	bh=LFRPvE0cCb4oA5PycnUN3MWNtpnQ/NAi2MtTpDCsKSA=;
+	s=korg; t=1770353434;
+	bh=u3rHcVi/VuAzky/xWLUlEQqWL0TPPmntQlFH/ScX3Us=;
 	h=Date:To:From:Subject:From;
-	b=eIIIxrLCGFclzGatsV7/Xy4SiaZ+ELjcmlhU1S9HUPPMYsbH2yuxrk3Aavi3OXZyZ
-	 S0crPkdx7FUj/btuXq9qTsEtz3sCB4DCFkW74ULcSL3bRK7p/kej7L+Uc+ipYX5rHz
-	 FvBnTFYu+Z9yDhtxJvPSDKI2B3tKtNMwP/z/mbWw=
-Date: Thu, 05 Feb 2026 15:32:33 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=XMuwp4H6+ycjtKiwQvWE+DB6waxoDzEn/MoYoowVS6AORAMBwNDaeX+T8isULGaG3
+	 Q0EjxvEG/xyrrJ5gy+oho7+IQxWJsOqBEVpR9A5V9gM33dRmTN/Lm/RURDOocCH9Jw
+	 Wl8GnwYpV21JGtn7btQA1MTBl0IqIFtS9fZSZ0jE=
+Date: Thu, 05 Feb 2026 20:50:33 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,nao.horiguchi@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] liveupdate-luo_file-remember-retrieve-status.patch removed from -mm tree
-Message-Id: <20260205233234.0A9A7C4CEF7@smtp.kernel.org>
+Subject: [to-be-updated] selftests-mm-add-memory-failure-anonymous-page-test.patch removed from -mm tree
+Message-Id: <20260206045034.1E7BBC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,225 +35,448 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: liveupdate: luo_file: remember retrieve() status
+     Subject: selftests/mm: add memory failure anonymous page test
 has been removed from the -mm tree.  Its filename was
-     liveupdate-luo_file-remember-retrieve-status.patch
+     selftests-mm-add-memory-failure-anonymous-page-test.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
-Subject: liveupdate: luo_file: remember retrieve() status
-Date: Tue, 27 Jan 2026 00:02:53 +0100
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: selftests/mm: add memory failure anonymous page test
+Date: Tue, 20 Jan 2026 20:32:37 +0800
 
-LUO keeps track of successful retrieve attempts on a LUO file.  It does so
-to avoid multiple retrievals of the same file.  Doing so will cause
-problems because once the file is retrieved, the serialized data
-structures are likely freed and the file is likely in a very different
-state from what the code expects.
+Patch series "selftests/mm: add memory failure selftests", v2.
 
-This is kept track of by the retrieved boolean in struct luo_file, and is
-passed to the finish callback so it knows what work was already done and
-what it has left to do.
+Introduce selftests to validate the functionality of memory failure. 
+These tests help ensure that memory failure handling for anonymous pages,
+pagecaches pages works correctly, including proper SIGBUS delivery to user
+processes, page isolation, and recovery paths.
 
-All this works well when retrieve succeeds.  When it fails,
-luo_retrieve_file() returns the error immediately, without ever storing
-anywhere that a retrieve was attempted or what its error code was.  This
-results in an errored LIVEUPDATE_SESSION_RETRIEVE_FD ioctl to userspace,
-but nothing prevents it from trying this again.
+Currently madvise syscall is used to inject memory failures.  And only
+anonymous pages and pagecaches are tested.  More test scenarios, e.g. 
+hugetlb, shmem, thp, will be added.  Also more memory failure injecting
+methods will be supported, e.g.  APEI Error INJection, if required.
 
-The retry is problematic for much of the same reasons listed above.  The
-file is likely in a very different state than what the retrieve logic
-normally expects, and it might even have freed some serialization data
-structures.  Attempting to access them or free them again is going to
-break things.
 
-For example, if memfd managed to restore 8 of its 10 folios, but fails on
-the 9th, a subsequent retrieve attempt will try to call
-kho_restore_folio() on the first folio again, and that will fail with a
-warning since it is an invalid operation.
+This patch (of 3):
 
-Apart from the retry, finish() also breaks.  Since on failure the
-retrieved bool in luo_file is never touched, the finish() call on session
-close will tell the file handler that retrieve was never attempted, and it
-will try to access or free the data structures that might not exist, much
-in the same way as the retry attempt.
+This patch adds a new kselftest to validate memory failure handling for
+anonymous pages. The test performs the following operations:
+1. Allocates anonymous pages using mmap().
+2. Injects memory failure via madvise syscall.
+3. Verifies expected error handling behavior.
+4. Unpoison memory.
 
-There is no sane way of attempting the retrieve again.  Remember the error
-retrieve returned and directly return it on a retry.  Also pass this
-status code to finish() so it can make the right decision on the work it
-needs to do.
+This test helps ensure that memory failure handling for anonymous pages
+works correctly, including proper SIGBUS delivery to user processes, page
+isolation and recovery paths.
 
-This is done by changing the bool to an integer.  A value of 0 means
-retrieve was never attempted, a positive value means it succeeded, and a
-negative value means it failed and the error code is the value.
-
-[akpm@linux-foundation.org: fix kerneldoc, per Pasha]
-Link: https://lkml.kernel.org/r/20260126230302.2936817-3-pratyush@kernel.org
-Fixes: 7c722a7f44e0 ("liveupdate: luo_file: implement file systems callbacks")
-Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
+Link: https://lkml.kernel.org/r/20260120123239.909882-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20260120123239.909882-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/liveupdate.h   |    9 ++++---
- kernel/liveupdate/luo_file.c |   41 ++++++++++++++++++++-------------
- mm/memfd_luo.c               |    7 ++++-
- 3 files changed, 37 insertions(+), 20 deletions(-)
+ MAINTAINERS                                 |    1 
+ tools/testing/selftests/mm/.gitignore       |    1 
+ tools/testing/selftests/mm/Makefile         |    1 
+ tools/testing/selftests/mm/memory-failure.c |  239 ++++++++++++++++++
+ tools/testing/selftests/mm/run_vmtests.sh   |   21 +
+ tools/testing/selftests/mm/vm_util.c        |   41 +++
+ tools/testing/selftests/mm/vm_util.h        |    3 
+ 7 files changed, 307 insertions(+)
 
---- a/include/linux/liveupdate.h~liveupdate-luo_file-remember-retrieve-status
-+++ a/include/linux/liveupdate.h
-@@ -23,8 +23,11 @@ struct file;
- /**
-  * struct liveupdate_file_op_args - Arguments for file operation callbacks.
-  * @handler:          The file handler being called.
-- * @retrieved:        The retrieve status for the 'can_finish / finish'
-- *                    operation.
-+ * @retrieve_sts:     The retrieve status for the 'can_finish / finish'
-+ *                    operation. A value of 0 means the retrieve has not been
-+ *                    attempted, a positive value means the retrieve was
-+ *                    successful, and a negative value means the retrieve failed,
-+ *                    and the value is the error code of the call.
-  * @file:             The file object. For retrieve: [OUT] The callback sets
-  *                    this to the new file. For other ops: [IN] The caller sets
-  *                    this to the file being operated on.
-@@ -40,7 +43,7 @@ struct file;
-  */
- struct liveupdate_file_op_args {
- 	struct liveupdate_file_handler *handler;
--	bool retrieved;
-+	bool retrieve_sts;
- 	struct file *file;
- 	u64 serialized_data;
- 	void *private_data;
---- a/kernel/liveupdate/luo_file.c~liveupdate-luo_file-remember-retrieve-status
-+++ a/kernel/liveupdate/luo_file.c
-@@ -134,9 +134,12 @@ static LIST_HEAD(luo_file_handler_list);
-  *                 state that is not preserved. Set by the handler's .preserve()
-  *                 callback, and must be freed in the handler's .unpreserve()
-  *                 callback.
-- * @retrieved:     A flag indicating whether a user/kernel in the new kernel has
-+ * @retrieve_sts:  Status code indicating whether a user/kernel in the new kernel has
-  *                 successfully called retrieve() on this file. This prevents
-- *                 multiple retrieval attempts.
-+ *                 multiple retrieval attempts. A value of 0 means a retrieve()
-+ *                 has not been attempted, a positive value means the retrieve()
-+ *                 was successful, and a negative value means the retrieve()
-+ *                 failed, and the value is the error code of the call.
-  * @mutex:         A mutex that protects the fields of this specific instance
-  *                 (e.g., @retrieved, @file), ensuring that operations like
-  *                 retrieving or finishing a file are atomic.
-@@ -161,7 +164,7 @@ struct luo_file {
- 	struct file *file;
- 	u64 serialized_data;
- 	void *private_data;
--	bool retrieved;
-+	int retrieve_sts;
- 	struct mutex mutex;
- 	struct list_head list;
- 	u64 token;
-@@ -298,7 +301,7 @@ int luo_preserve_file(struct luo_file_se
- 	luo_file->file = file;
- 	luo_file->fh = fh;
- 	luo_file->token = token;
--	luo_file->retrieved = false;
-+	luo_file->retrieve_sts = 0;
- 	mutex_init(&luo_file->mutex);
+--- a/MAINTAINERS~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/MAINTAINERS
+@@ -11691,6 +11691,7 @@ F:	include/linux/memory-failure.h
+ F:	include/trace/events/memory-failure.h
+ F:	mm/hwpoison-inject.c
+ F:	mm/memory-failure.c
++F:	tools/testing/selftests/mm/memory-failure.c
  
- 	args.handler = fh;
-@@ -577,7 +580,7 @@ int luo_retrieve_file(struct luo_file_se
- 		return -ENOENT;
- 
- 	guard(mutex)(&luo_file->mutex);
--	if (luo_file->retrieved) {
-+	if (luo_file->retrieve_sts > 0) {
- 		/*
- 		 * Someone is asking for this file again, so get a reference
- 		 * for them.
-@@ -585,21 +588,27 @@ int luo_retrieve_file(struct luo_file_se
- 		get_file(luo_file->file);
- 		*filep = luo_file->file;
- 		return 0;
-+	} else if (luo_file->retrieve_sts < 0) {
-+		/* Retrieve was attempted and it failed. Return the error code. */
-+		return luo_file->retrieve_sts;
- 	}
- 
- 	args.handler = luo_file->fh;
- 	args.serialized_data = luo_file->serialized_data;
- 	err = luo_file->fh->ops->retrieve(&args);
--	if (!err) {
--		luo_file->file = args.file;
--
--		/* Get reference so we can keep this file in LUO until finish */
--		get_file(luo_file->file);
--		*filep = luo_file->file;
--		luo_file->retrieved = true;
-+	if (err) {
-+		/* Keep the error code for later use. */
-+		luo_file->retrieve_sts = err;
-+		return err;
- 	}
- 
--	return err;
-+	luo_file->file = args.file;
-+	/* Get reference so we can keep this file in LUO until finish */
-+	get_file(luo_file->file);
-+	*filep = luo_file->file;
-+	luo_file->retrieve_sts = 1;
+ HYCON HY46XX TOUCHSCREEN SUPPORT
+ M:	Giulio Benetti <giulio.benetti@benettiengineering.com>
+--- a/tools/testing/selftests/mm/.gitignore~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/tools/testing/selftests/mm/.gitignore
+@@ -12,6 +12,7 @@ map_hugetlb
+ map_populate
+ thuge-gen
+ compaction_test
++memory-failure
+ migration
+ mlock2-tests
+ mrelease_test
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/tools/testing/selftests/mm/Makefile
+@@ -75,6 +75,7 @@ TEST_GEN_FILES += map_populate
+ ifneq (,$(filter $(ARCH),arm64 riscv riscv64 x86 x86_64))
+ TEST_GEN_FILES += memfd_secret
+ endif
++TEST_GEN_FILES += memory-failure
+ TEST_GEN_FILES += migration
+ TEST_GEN_FILES += mkdirty
+ TEST_GEN_FILES += mlock-random-test
+diff --git a/tools/testing/selftests/mm/memory-failure.c a/tools/testing/selftests/mm/memory-failure.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/memory-failure.c
+@@ -0,0 +1,239 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Memory-failure functional tests.
++ *
++ * Author(s): Miaohe Lin <linmiaohe@huawei.com>
++ */
 +
-+	return 0;
++#include "../kselftest_harness.h"
++
++#include <sys/mman.h>
++#include <linux/mman.h>
++#include <linux/string.h>
++#include <signal.h>
++#include <setjmp.h>
++#include <unistd.h>
++#include <fcntl.h>
++
++#include "vm_util.h"
++
++enum inject_type {
++	MADV_HARD,
++	MADV_SOFT,
++};
++
++enum result_type {
++	MADV_HARD_ANON,
++	MADV_SOFT_ANON,
++};
++
++static jmp_buf signal_jmp_buf;
++static siginfo_t siginfo;
++const char *pagemap_proc = "/proc/self/pagemap";
++const char *kpageflags_proc = "/proc/kpageflags";
++
++FIXTURE(memory_failure)
++{
++	unsigned long page_size;
++	unsigned long corrupted_size;
++	unsigned long pfn;
++	int pagemap_fd;
++	int kpageflags_fd;
++	bool triggered;
++};
++
++FIXTURE_VARIANT(memory_failure)
++{
++	enum inject_type type;
++	int (*inject)(FIXTURE_DATA(memory_failure) * self, void *vaddr);
++};
++
++static int madv_hard_inject(FIXTURE_DATA(memory_failure) * self, void *vaddr)
++{
++	return madvise(vaddr, self->page_size, MADV_HWPOISON);
++}
++
++FIXTURE_VARIANT_ADD(memory_failure, madv_hard)
++{
++	.type = MADV_HARD,
++	.inject = madv_hard_inject,
++};
++
++static int madv_soft_inject(FIXTURE_DATA(memory_failure) * self, void *vaddr)
++{
++	return madvise(vaddr, self->page_size, MADV_SOFT_OFFLINE);
++}
++
++FIXTURE_VARIANT_ADD(memory_failure, madv_soft)
++{
++	.type = MADV_SOFT,
++	.inject = madv_soft_inject,
++};
++
++static void sigbus_action(int signo, siginfo_t *si, void *args)
++{
++	memcpy(&siginfo, si, sizeof(siginfo_t));
++	siglongjmp(signal_jmp_buf, 1);
++}
++
++static int setup_sighandler(void)
++{
++	struct sigaction sa = {
++		.sa_sigaction = sigbus_action,
++		.sa_flags = SA_SIGINFO,
++	};
++
++	return sigaction(SIGBUS, &sa, NULL);
++}
++
++FIXTURE_SETUP(memory_failure)
++{
++	memset(self, 0, sizeof(*self));
++
++	self->page_size = (unsigned long)sysconf(_SC_PAGESIZE);
++
++	memset(&siginfo, 0, sizeof(siginfo));
++	if (setup_sighandler())
++		SKIP(return, "setup sighandler failed.\n");
++
++	self->pagemap_fd = open(pagemap_proc, O_RDONLY);
++	if (self->pagemap_fd == -1)
++		SKIP(return, "open %s failed.\n", pagemap_proc);
++
++	self->kpageflags_fd = open(kpageflags_proc, O_RDONLY);
++	if (self->kpageflags_fd == -1)
++		SKIP(return, "open %s failed.\n", kpageflags_proc);
++}
++
++static void teardown_sighandler(void)
++{
++	struct sigaction sa = {
++		.sa_handler = SIG_DFL,
++		.sa_flags = SA_SIGINFO,
++	};
++
++	sigaction(SIGBUS, &sa, NULL);
++}
++
++FIXTURE_TEARDOWN(memory_failure)
++{
++	close(self->kpageflags_fd);
++	close(self->pagemap_fd);
++	teardown_sighandler();
++}
++
++static void prepare(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self,
++		    void *vaddr)
++{
++	self->pfn = pagemap_get_pfn(self->pagemap_fd, vaddr);
++	ASSERT_NE(self->pfn, -1UL);
++
++	ASSERT_EQ(get_hardware_corrupted_size(&self->corrupted_size), 0);
++}
++
++static bool check_memory(void *vaddr, unsigned long size)
++{
++	char buf[64];
++
++	memset(buf, 0xce, sizeof(buf));
++	while (size >= sizeof(buf)) {
++		if (memcmp(vaddr, buf, sizeof(buf)))
++			return false;
++		size -= sizeof(buf);
++		vaddr += sizeof(buf);
++	}
++
++	return true;
++}
++
++static void check(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self,
++		  void *vaddr, enum result_type type, int setjmp)
++{
++	unsigned long size;
++	uint64_t pfn_flags;
++
++	switch (type) {
++	case MADV_SOFT_ANON:
++		/* It is not expected to receive a SIGBUS signal. */
++		ASSERT_EQ(setjmp, 0);
++
++		/* The page content should remain unchanged. */
++		ASSERT_TRUE(check_memory(vaddr, self->page_size));
++
++		/* The backing pfn of addr should have changed. */
++		ASSERT_NE(pagemap_get_pfn(self->pagemap_fd, vaddr), self->pfn);
++		break;
++	case MADV_HARD_ANON:
++		/* The SIGBUS signal should have been received. */
++		ASSERT_EQ(setjmp, 1);
++
++		/* Check if siginfo contains correct SIGBUS context. */
++		ASSERT_EQ(siginfo.si_signo, SIGBUS);
++		ASSERT_EQ(siginfo.si_code, BUS_MCEERR_AR);
++		ASSERT_EQ(1UL << siginfo.si_addr_lsb, self->page_size);
++		ASSERT_EQ(siginfo.si_addr, vaddr);
++
++		/* XXX Check backing pte is hwpoison entry when supported. */
++		ASSERT_TRUE(pagemap_is_swapped(self->pagemap_fd, vaddr));
++		break;
++	default:
++		SKIP(return, "unexpected inject type %d.\n", type);
++	}
++
++	/* Check if the value of HardwareCorrupted has increased. */
++	ASSERT_EQ(get_hardware_corrupted_size(&size), 0);
++	ASSERT_EQ(size, self->corrupted_size + self->page_size / 1024);
++
++	/* Check if HWPoison flag is set. */
++	ASSERT_EQ(pageflags_get(self->pfn, self->kpageflags_fd, &pfn_flags), 0);
++	ASSERT_EQ(pfn_flags & KPF_HWPOISON, KPF_HWPOISON);
++}
++
++static void cleanup(struct __test_metadata *_metadata, FIXTURE_DATA(memory_failure) * self,
++		    void *vaddr)
++{
++	unsigned long size;
++	uint64_t pfn_flags;
++
++	ASSERT_EQ(unpoison_memory(self->pfn), 0);
++
++	/* Check if HWPoison flag is cleared. */
++	ASSERT_EQ(pageflags_get(self->pfn, self->kpageflags_fd, &pfn_flags), 0);
++	ASSERT_NE(pfn_flags & KPF_HWPOISON, KPF_HWPOISON);
++
++	/* Check if the value of HardwareCorrupted has decreased. */
++	ASSERT_EQ(get_hardware_corrupted_size(&size), 0);
++	ASSERT_EQ(size, self->corrupted_size);
++}
++
++TEST_F(memory_failure, anon)
++{
++	char *addr;
++	int ret;
++
++	addr = mmap(0, self->page_size, PROT_READ | PROT_WRITE,
++		    MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
++	if (addr == MAP_FAILED)
++		SKIP(return, "mmap failed, not enough memory.\n");
++	memset(addr, 0xce, self->page_size);
++
++	prepare(_metadata, self, addr);
++
++	ret = sigsetjmp(signal_jmp_buf, 1);
++	if (!self->triggered) {
++		self->triggered = true;
++		ASSERT_EQ(variant->inject(self, addr), 0);
++		FORCE_READ(*addr);
++	}
++
++	if (variant->type == MADV_HARD)
++		check(_metadata, self, addr, MADV_HARD_ANON, ret);
++	else
++		check(_metadata, self, addr, MADV_SOFT_ANON, ret);
++
++	cleanup(_metadata, self, addr);
++
++	ASSERT_EQ(munmap(addr, self->page_size), 0);
++}
++
++TEST_HARNESS_MAIN
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -91,6 +91,8 @@ separated by spaces:
+ 	test VMA merge cases behave as expected
+ - rmap
+ 	test rmap behaves as expected
++- memory-failure
++	test memory-failure behaves as expected
+ 
+ example: ./run_vmtests.sh -t "hmm mmap ksm"
+ EOF
+@@ -527,6 +529,25 @@ CATEGORY="page_frag" run_test ./test_pag
+ 
+ CATEGORY="rmap" run_test ./rmap
+ 
++# Try to load hwpoison_inject if not present.
++HWPOISON_DIR=/sys/kernel/debug/hwpoison/
++if [ ! -d "$HWPOISON_DIR" ]; then
++	if ! modprobe -q -R hwpoison_inject; then
++		echo "Module hwpoison_inject not found, skipping..."
++	else
++		modprobe hwpoison_inject > /dev/null 2>&1
++		LOADED_MOD=1
++	fi
++fi
++
++if [ -d "$HWPOISON_DIR" ]; then
++	CATEGORY="memory-failure" run_test ./memory-failure
++fi
++
++if [ -n "${LOADED_MOD}" ]; then
++	modprobe -r hwpoison_inject > /dev/null 2>&1
++fi
++
+ if [ "${HAVE_HUGEPAGES}" = 1 ]; then
+ 	echo "$orig_nr_hugepgs" > /proc/sys/vm/nr_hugepages
+ fi
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -723,3 +723,44 @@ int ksm_stop(void)
+ 	close(ksm_fd);
+ 	return ret == 1 ? 0 : -errno;
  }
++
++int get_hardware_corrupted_size(unsigned long *val)
++{
++	unsigned long size;
++	char *line = NULL;
++	size_t linelen = 0;
++	FILE *f = fopen("/proc/meminfo", "r");
++	int ret = -1;
++
++	if (!f)
++		return ret;
++
++	while (getline(&line, &linelen, f) > 0) {
++		if (sscanf(line, "HardwareCorrupted: %12lu kB", &size) == 1) {
++			*val = size;
++			ret = 0;
++			break;
++		}
++	}
++
++	free(line);
++	fclose(f);
++	return ret;
++}
++
++int unpoison_memory(unsigned long pfn)
++{
++	int unpoison_fd, len;
++	char buf[32];
++	ssize_t ret;
++
++	unpoison_fd = open("/sys/kernel/debug/hwpoison/unpoison-pfn", O_WRONLY);
++	if (unpoison_fd < 0)
++		return -errno;
++
++	len = sprintf(buf, "0x%lx\n", pfn);
++	ret = write(unpoison_fd, buf, len);
++	close(unpoison_fd);
++
++	return ret > 0 ? 0 : -errno;
++}
+--- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-memory-failure-anonymous-page-test
++++ a/tools/testing/selftests/mm/vm_util.h
+@@ -20,6 +20,7 @@
  
- static int luo_file_can_finish_one(struct luo_file_set *file_set,
-@@ -615,7 +624,7 @@ static int luo_file_can_finish_one(struc
- 		args.handler = luo_file->fh;
- 		args.file = luo_file->file;
- 		args.serialized_data = luo_file->serialized_data;
--		args.retrieved = luo_file->retrieved;
-+		args.retrieve_sts = luo_file->retrieve_sts;
- 		can_finish = luo_file->fh->ops->can_finish(&args);
- 	}
+ #define KPF_COMPOUND_HEAD             BIT_ULL(15)
+ #define KPF_COMPOUND_TAIL             BIT_ULL(16)
++#define KPF_HWPOISON                  BIT_ULL(19)
+ #define KPF_THP                       BIT_ULL(22)
+ /*
+  * Ignore the checkpatch warning, we must read from x but don't want to do
+@@ -154,6 +155,8 @@ long ksm_get_full_scans(void);
+ int ksm_use_zero_pages(void);
+ int ksm_start(void);
+ int ksm_stop(void);
++int get_hardware_corrupted_size(unsigned long *val);
++int unpoison_memory(unsigned long pfn);
  
-@@ -632,7 +641,7 @@ static void luo_file_finish_one(struct l
- 	args.handler = luo_file->fh;
- 	args.file = luo_file->file;
- 	args.serialized_data = luo_file->serialized_data;
--	args.retrieved = luo_file->retrieved;
-+	args.retrieve_sts = luo_file->retrieve_sts;
- 
- 	luo_file->fh->ops->finish(&args);
- 	luo_flb_file_finish(luo_file->fh);
-@@ -788,7 +797,7 @@ int luo_file_deserialize(struct luo_file
- 		luo_file->file = NULL;
- 		luo_file->serialized_data = file_ser[i].data;
- 		luo_file->token = file_ser[i].token;
--		luo_file->retrieved = false;
-+		luo_file->retrieve_sts = 0;
- 		mutex_init(&luo_file->mutex);
- 		list_add_tail(&luo_file->list, &file_set->files_list);
- 	}
---- a/mm/memfd_luo.c~liveupdate-luo_file-remember-retrieve-status
-+++ a/mm/memfd_luo.c
-@@ -335,7 +335,12 @@ static void memfd_luo_finish(struct live
- 	struct memfd_luo_folio_ser *folios_ser;
- 	struct memfd_luo_ser *ser;
- 
--	if (args->retrieved)
-+	/*
-+	 * If retrieve was successful, nothing to do. If it failed, retrieve()
-+	 * already cleaned up everything it could. So nothing to do there
-+	 * either. Only need to clean up when retrieve was not called.
-+	 */
-+	if (args->retrieve_sts)
- 		return;
- 
- 	ser = phys_to_virt(args->serialized_data);
+ /*
+  * On ppc64 this will only work with radix 2M hugepage size
 _
 
-Patches currently in -mm which might be from pratyush@kernel.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-memfd-export-memfd_addget_seals.patch
-mm-memfd_luo-preserve-file-seals.patch
+selftests-mm-add-memory-failure-clean-pagecache-test.patch
+selftests-mm-add-memory-failure-dirty-pagecache-test.patch
 
