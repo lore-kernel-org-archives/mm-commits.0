@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 470402ECEAC
-	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 06:19:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A49B22ECEAC
+	for <mm-commits@vger.kernel.org>; Fri,  6 Feb 2026 06:19:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770358764; cv=none; b=mPyBM90/7MZ11XQF32eXYcKPphoPROJ/mhU7L1NqtMyP0jgHM9JsyA54biv2BYHSatLaJanXmbGfxXSA5LZ2eDMQs3Lb+nq823QUhLCfMjYuVv9zDp0u8IGTwgg2rX6V15g0IhJ4bPcfcMuo5SniRfnN5u2Gs2bxvs08v/I5JWY=
+	t=1770358766; cv=none; b=VSJpRGTvabnB13Rf3XE75GFYV7bGqcvKwDZPyxw+y5d5bTMn4rln7YNYPwmg7oBVrpVHWcxvLxvjXu3bhahBSewVTtcp/TZCya2Xb8MAckT5h5/rdOnKIM3F1WcaL3kqWdHw0HcirjBoxgQ4d5ftj84XwdmfRV9uFDmYYdmH/mY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770358764; c=relaxed/simple;
-	bh=Ola4C96Jmpq4ETFOXY7DACnVPfde8fmB0nbNH71IFK0=;
-	h=Date:To:From:Subject:Message-Id; b=KXeKr3xMr+sO+tnQfqq7fEaJk0EgvShXD7/piJcxvNiE7WK+rWWNs8bVClNDQe/mPnjcE19dr3pUvM1dIfNiDR9j93zpy9GNjDTrvHLb1L5fEinEWBDHu7CFg8i0MGLGWaaeh1lxcZblRFjb40beUD+vCEyvNluleU/YQKdf3Lk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qgKrpfsC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770358766; c=relaxed/simple;
+	bh=kNonu20vSpqkDtwr23aDsy8l+NjFm22YFh0qBsgxDTk=;
+	h=Date:To:From:Subject:Message-Id; b=f++BUByTvLHHrQCIfFwoNnj4/pYA343rUcqx39fvRbxWi3uXcWvhR6H3lhYYOVCMo6xPVmwTDZuJC7wS5lVlHV96eAIee95f7uUqL0Jo93ZB+aSWRCeI07974Iczp6GvQvvnq8Fd3SlrOERHEmx0H6UJlNyKiM3tOPxjYY+xp4Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sIPWibUI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qgKrpfsC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0D53C116C6;
-	Fri,  6 Feb 2026 06:19:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sIPWibUI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23D9FC116C6;
+	Fri,  6 Feb 2026 06:19:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770358763;
-	bh=Ola4C96Jmpq4ETFOXY7DACnVPfde8fmB0nbNH71IFK0=;
+	s=korg; t=1770358766;
+	bh=kNonu20vSpqkDtwr23aDsy8l+NjFm22YFh0qBsgxDTk=;
 	h=Date:To:From:Subject:From;
-	b=qgKrpfsCUEJgEsmb5bzUCYmmvHgntb1Jhyip9j7DCoBl5pye5RmfeElL0AevF+pAF
-	 g58vISfXHa5z0g/WjcAkJ7zFttVWDYHmpMYsqquQW146n8V5dVsaHLyXpCpu1/kcSz
-	 WTOXtkcwHwQF8844LE+kNrxQyT0msjMdS/0vahv4=
-Date: Thu, 05 Feb 2026 22:19:23 -0800
+	b=sIPWibUITzCFrkLMoCzSGrQeFZ+v402y4J7iuPoxn+47nlmDnNxt7syl4loERpd7X
+	 6s5K152W+qT9tMj7RFZTVBhRsnGObU93yXWjnMraL1gsLuIgoyfth0TaUkxd1dBQCx
+	 +Ky23DjzrPbdkkJIk/0owjylZCyMykzyc4b/K2ZU=
+Date: Thu, 05 Feb 2026 22:19:25 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,nao.horiguchi@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,lkp@intel.com,liam.howlett@oracle.com,david@kernel.org,broonie@kernel.org,linmiaohe@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-memory-failure-clean-pagecache-test.patch added to mm-unstable branch
-Message-Id: <20260206061923.D0D53C116C6@smtp.kernel.org>
+Subject: + selftests-mm-add-memory-failure-dirty-pagecache-test.patch added to mm-unstable branch
+Message-Id: <20260206061926.23D9FC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add memory failure clean pagecache test
+     Subject: selftests/mm: add memory failure dirty pagecache test
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-add-memory-failure-clean-pagecache-test.patch
+     selftests-mm-add-memory-failure-dirty-pagecache-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-memory-failure-clean-pagecache-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-memory-failure-dirty-pagecache-test.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,22 +59,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: selftests/mm: add memory failure clean pagecache test
-Date: Fri, 6 Feb 2026 11:16:38 +0800
+Subject: selftests/mm: add memory failure dirty pagecache test
+Date: Fri, 6 Feb 2026 11:16:39 +0800
 
 This patch adds a new testcase to validate memory failure handling for
-clean pagecache.  This test performs similar operations as anonymous pages
-except allocating memory using mmap() with a file fd.
+dirty pagecache.  This performs similar operations as clean pagecaches
+except fsync() is not used to keep pages dirty.
 
-This test helps ensure that memory failure handling for clean pagecache
-works correctly, including unchanged page content, page isolation, and
+This test helps ensure that memory failure handling for dirty pagecache
+works correctly, including proper SIGBUS delivery, page isolation, and
 recovery paths.
 
-Link: https://lkml.kernel.org/r/20260206031639.2707102-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20260206031639.2707102-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202601221142.mDWA1ucw-lkp@intel.com/
 Cc: David Hildenbrand <david@kernel.org>
+Cc: kernel test robot <lkp@intel.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Mark Brown <broonie@kernel.org>
@@ -87,75 +86,95 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/memory-failure.c |   66 ++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ tools/testing/selftests/mm/memory-failure.c |   62 ++++++++++++++++--
+ 1 file changed, 58 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/memory-failure.c~selftests-mm-add-memory-failure-clean-pagecache-test
+--- a/tools/testing/selftests/mm/memory-failure.c~selftests-mm-add-memory-failure-dirty-pagecache-test
 +++ a/tools/testing/selftests/mm/memory-failure.c
-@@ -10,10 +10,14 @@
- #include <sys/mman.h>
- #include <linux/mman.h>
- #include <linux/string.h>
-+#include <unistd.h>
- #include <signal.h>
- #include <setjmp.h>
- #include <unistd.h>
- #include <fcntl.h>
-+#include <sys/vfs.h>
-+#include <linux/magic.h>
-+#include <errno.h>
- 
- #include "vm_util.h"
- 
-@@ -24,7 +28,9 @@ enum inject_type {
- 
+@@ -29,8 +29,10 @@ enum inject_type {
  enum result_type {
  	MADV_HARD_ANON,
-+	MADV_HARD_CLEAN_PAGECACHE,
+ 	MADV_HARD_CLEAN_PAGECACHE,
++	MADV_HARD_DIRTY_PAGECACHE,
  	MADV_SOFT_ANON,
-+	MADV_SOFT_CLEAN_PAGECACHE,
+ 	MADV_SOFT_CLEAN_PAGECACHE,
++	MADV_SOFT_DIRTY_PAGECACHE,
  };
  
  static jmp_buf signal_jmp_buf;
-@@ -154,6 +160,8 @@ static void check(struct __test_metadata
- 
- 	switch (type) {
+@@ -162,6 +164,7 @@ static void check(struct __test_metadata
  	case MADV_SOFT_ANON:
-+	case MADV_HARD_CLEAN_PAGECACHE:
-+	case MADV_SOFT_CLEAN_PAGECACHE:
+ 	case MADV_HARD_CLEAN_PAGECACHE:
+ 	case MADV_SOFT_CLEAN_PAGECACHE:
++	case MADV_SOFT_DIRTY_PAGECACHE:
  		/* It is not expected to receive a SIGBUS signal. */
  		ASSERT_EQ(setjmp, 0);
  
-@@ -236,4 +244,62 @@ TEST_F(memory_failure, anon)
+@@ -172,6 +175,7 @@ static void check(struct __test_metadata
+ 		ASSERT_NE(pagemap_get_pfn(self->pagemap_fd, vaddr), self->pfn);
+ 		break;
+ 	case MADV_HARD_ANON:
++	case MADV_HARD_DIRTY_PAGECACHE:
+ 		/* The SIGBUS signal should have been received. */
+ 		ASSERT_EQ(setjmp, 1);
+ 
+@@ -244,6 +248,18 @@ TEST_F(memory_failure, anon)
  	ASSERT_EQ(munmap(addr, self->page_size), 0);
  }
  
-+/* Borrowed from mm/gup_longterm.c. */
-+static int get_fs_type(int fd)
++static int prepare_file(const char *fname, unsigned long size)
 +{
-+	struct statfs fs;
-+	int ret;
++	int fd;
 +
-+	do {
-+		ret = fstatfs(fd, &fs);
-+	} while (ret && errno == EINTR);
-+
-+	return ret ? 0 : (int)fs.f_type;
++	fd = open(fname, O_RDWR | O_CREAT, 0664);
++	if (fd >= 0) {
++		unlink(fname);
++		ftruncate(fd, size);
++	}
++	return fd;
 +}
 +
-+TEST_F(memory_failure, clean_pagecache)
+ /* Borrowed from mm/gup_longterm.c. */
+ static int get_fs_type(int fd)
+ {
+@@ -259,17 +275,14 @@ static int get_fs_type(int fd)
+ 
+ TEST_F(memory_failure, clean_pagecache)
+ {
+-	const char *fname = "./clean-page-cache-test-file";
+ 	int fd;
+ 	char *addr;
+ 	int ret;
+ 	int fs_type;
+ 
+-	fd = open(fname, O_RDWR | O_CREAT, 0664);
++	fd = prepare_file("./clean-page-cache-test-file", self->page_size);
+ 	if (fd < 0)
+ 		SKIP(return, "failed to open test file.\n");
+-	unlink(fname);
+-	ftruncate(fd, self->page_size);
+ 	fs_type = get_fs_type(fd);
+ 	if (!fs_type || fs_type == TMPFS_MAGIC)
+ 		SKIP(return, "unsupported filesystem :%x\n", fs_type);
+@@ -297,6 +310,47 @@ TEST_F(memory_failure, clean_pagecache)
+ 
+ 	cleanup(_metadata, self, addr);
+ 
++	ASSERT_EQ(munmap(addr, self->page_size), 0);
++
++	ASSERT_EQ(close(fd), 0);
++}
++
++TEST_F(memory_failure, dirty_pagecache)
 +{
-+	const char *fname = "./clean-page-cache-test-file";
 +	int fd;
 +	char *addr;
 +	int ret;
 +	int fs_type;
 +
-+	fd = open(fname, O_RDWR | O_CREAT, 0664);
++	fd = prepare_file("./dirty-page-cache-test-file", self->page_size);
 +	if (fd < 0)
 +		SKIP(return, "failed to open test file.\n");
-+	unlink(fname);
-+	ftruncate(fd, self->page_size);
 +	fs_type = get_fs_type(fd);
 +	if (!fs_type || fs_type == TMPFS_MAGIC)
 +		SKIP(return, "unsupported filesystem :%x\n", fs_type);
@@ -165,7 +184,6 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	if (addr == MAP_FAILED)
 +		SKIP(return, "mmap failed, not enough memory.\n");
 +	memset(addr, 0xce, self->page_size);
-+	fsync(fd);
 +
 +	prepare(_metadata, self, addr);
 +
@@ -177,18 +195,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	}
 +
 +	if (variant->type == MADV_HARD)
-+		check(_metadata, self, addr, MADV_HARD_CLEAN_PAGECACHE, ret);
++		check(_metadata, self, addr, MADV_HARD_DIRTY_PAGECACHE, ret);
 +	else
-+		check(_metadata, self, addr, MADV_SOFT_CLEAN_PAGECACHE, ret);
++		check(_metadata, self, addr, MADV_SOFT_DIRTY_PAGECACHE, ret);
 +
 +	cleanup(_metadata, self, addr);
 +
-+	ASSERT_EQ(munmap(addr, self->page_size), 0);
-+
-+	ASSERT_EQ(close(fd), 0);
-+}
-+
- TEST_HARNESS_MAIN
+ 	ASSERT_EQ(munmap(addr, self->page_size), 0);
+ 
+ 	ASSERT_EQ(close(fd), 0);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
