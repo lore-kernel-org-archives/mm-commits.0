@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 175E026ED35
-	for <mm-commits@vger.kernel.org>; Tue, 10 Feb 2026 01:53:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84F392DCC08
+	for <mm-commits@vger.kernel.org>; Tue, 10 Feb 2026 15:44:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770688435; cv=none; b=H5tQj9axwwMzaivXuVGi/urex9QoafGUouIdxz1UYTz7sKS741wKSsFVDtaGTRyKeMjo8gUd1J4W5jBOwyorN/fXZYJLNoQ2XJTGBwgQTXcOSd7NN9Z4SapL9VDPEOVbyISBOKd4ev/35zUmK66WRIcuIYPlUz2y8S0eP9YnEls=
+	t=1770738293; cv=none; b=CejjlwtG/+fqyxe0yYTYkPBlVwTfJGonF6LtITRZSIz9gKn7yqPTDIanBHBqcr13h4FpTlZgyZZuLwJhg57p2uvfQ/bOTXn6liIr2/ulJOZG2OnkWlZIejECzknQmTaHXa/hkzrwr9gviCcmbXrgb5Pb1xOF6AVGkzU0pX1/bIE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770688435; c=relaxed/simple;
-	bh=BScOjXAFEYHW/AmK+BSrL9ASIQpcwFsYJtwXNDl6MVs=;
-	h=Date:To:From:Subject:Message-Id; b=GqQv/ryu46PD4cKFgwk2N0d+Ph1EkYfby+xwFTGuJrt9T2z9Q6ChW27ILhIFKaXdKu7ffkhiWu/AhbqoptIOtONaJGNKxMmP7B8Hz3FFKXNTiA2+CpLqnBZkgArV/NxYCnTQoHjlPwqNMtlcAVKhcTUmotvvvPrcuvOoHeC2wjc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MRZLxBUO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770738293; c=relaxed/simple;
+	bh=3leU9ZAER5lgexU+SVPw+LLTY2wZk7JCGOyxhN36pvA=;
+	h=Date:To:From:Subject:Message-Id; b=Ki3wSOQocSRiUH0coVg3YMDqLRgJBF8jopDeKxP/GBwwvcpWjJTSPZyyyo3yk+IXl5vDF4C4FE1HhxC6h0GZKH7PP0+h89zjOlCedZzuLiJhw44rBUW9vZpHaSH/C0zOINjOzaOV2XBKj8QJCF+JvdFSJqVcJeejbsY6k0wd0c0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ggbjL+I3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MRZLxBUO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C75A0C116C6;
-	Tue, 10 Feb 2026 01:53:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ggbjL+I3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 075CCC116C6;
+	Tue, 10 Feb 2026 15:44:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770688434;
-	bh=BScOjXAFEYHW/AmK+BSrL9ASIQpcwFsYJtwXNDl6MVs=;
+	s=korg; t=1770738293;
+	bh=3leU9ZAER5lgexU+SVPw+LLTY2wZk7JCGOyxhN36pvA=;
 	h=Date:To:From:Subject:From;
-	b=MRZLxBUOcP/nzLZbnRo18dRx9lBYCk8dZnMc+gF6MeMyJnxCD/xowCxrL+ACss9o+
-	 ZlaQYLS+lGxzB4pnaF6jzMdEJL/XW1A1fYWh9k6/mK2QEl6o0Fc3zZa5ttK9Va7+Oy
-	 wnG8vsLHOxCkjbEQJ/DOfvO/UjutSTe6cbZUE67A=
-Date: Mon, 09 Feb 2026 17:53:54 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=ggbjL+I3VibdK2exDrJUUTv8UcyMhZy7HtRlXk3pImC4NHFrcTOSZ45jjHXorM2RS
+	 JEmImezFLXuYN0d8aRA9O5+I96f2PV3/Ei0xDeaqt8cA6e+vT0Yu0duySTkfAkF1Bq
+	 Ct90r2ikcZhTBa5B5S3oTRU19/4hIaQmd4ByL+Qc=
+Date: Tue, 10 Feb 2026 07:44:52 -0800
+To: mm-commits@vger.kernel.org,lkp@intel.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-support-batched-unmapping-for-file-large-folios.patch added to mm-unstable branch
-Message-Id: <20260210015354.C75A0C116C6@smtp.kernel.org>
+Subject: + delayacct-fix-build-regression-on-accounting-tool.patch added to mm-nonmm-unstable branch
+Message-Id: <20260210154453.075CCC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: rmap: support batched unmapping for file large folios
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-rmap-support-batched-unmapping-for-file-large-folios.patch
+     Subject: delayacct: fix build regression on accounting tool
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     delayacct-fix-build-regression-on-accounting-tool.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-support-batched-unmapping-for-file-large-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-fix-build-regression-on-accounting-tool.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,100 +58,81 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: rmap: support batched unmapping for file large folios
-Date: Mon, 9 Feb 2026 22:07:28 +0800
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: delayacct: fix build regression on accounting tool
+Date: Tue, 10 Feb 2026 11:34:22 +0100
 
-Similar to folio_referenced_one(), we can apply batched unmapping for file
-large folios to optimize the performance of file folios reclamation.
+The accounting tool was modified for the original ABI using a custom
+'timespec64' type in linux/taskstats.h, which I changed to use the regular
+__kernel_timespec type, causing a build failure:
 
-Barry previously implemented batched unmapping for lazyfree anonymous
-large folios[1] and did not further optimize anonymous large folios or
-file-backed large folios at that stage.  As for file-backed large folios,
-the batched unmapping support is relatively straightforward, as we only
-need to clear the consecutive (present) PTE entries for file-backed large
-folios.
+        getdelays.c:202:45: warning: 'struct timespec64' declared inside parameter list will not be visible outside of this definition or declaration
 
-Note that it's not ready to support batched unmapping for uffd case, so
-let's still fallback to per-page unmapping for the uffd case.
+     202 | static const char *format_timespec64(struct timespec64 *ts)
+         |                                             ^~~~~~~~~~
 
-Performance testing:
-Allocate 10G clean file-backed folios by mmap() in a memory cgroup, and
-try to reclaim 8G file-backed folios via the memory.reclaim interface.  I
-can observe 75% performance improvement on my Arm64 32-core server (and
-50%+ improvement on my X86 machine) with this patch.
+Change the tool to match the updated header.
 
-W/o patch:
-real    0m1.018s
-user    0m0.000s
-sys     0m1.018s
-
-W/ patch:
-real	0m0.249s
-user	0m0.000s
-sys	0m0.249s
-
-[1] https://lore.kernel.org/all/20250214093015.51024-4-21cnbao@gmail.com/T/#u
-Link: https://lkml.kernel.org/r/b53a16f67c93a3fe65e78092069ad135edf00eff.1770645603.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Acked-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20260210103427.2984963-1-arnd@kernel.org
+Fixes: 503efe850c74 ("delayacct: add timestamp of delay max")
+Fixes: f06e31eef4c1 ("delayacct: fix uapi timespec64 definition")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/r/202602091611.lxgINqXp-lkp@intel.com/
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ tools/accounting/getdelays.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-support-batched-unmapping-for-file-large-folios
-+++ a/mm/rmap.c
-@@ -1945,12 +1945,16 @@ static inline unsigned int folio_unmap_p
- 	end_addr = pmd_addr_end(addr, vma->vm_end);
- 	max_nr = (end_addr - addr) >> PAGE_SHIFT;
+--- a/tools/accounting/getdelays.c~delayacct-fix-build-regression-on-accounting-tool
++++ a/tools/accounting/getdelays.c
+@@ -196,20 +196,20 @@ static int get_family_id(int sd)
+ #define delay_ms(t) (t / 1000000ULL)
  
--	/* We only support lazyfree batching for now ... */
--	if (!folio_test_anon(folio) || folio_test_swapbacked(folio))
-+	/* We only support lazyfree or file folios batching for now ... */
-+	if (folio_test_anon(folio) && folio_test_swapbacked(folio))
- 		return 1;
-+
- 	if (pte_unused(pte))
- 		return 1;
+ /*
+- * Format timespec64 to human readable string (YYYY-MM-DD HH:MM:SS)
++ * Format __kernel_timespec to human readable string (YYYY-MM-DD HH:MM:SS)
+  * Returns formatted string or "N/A" if timestamp is zero
+  */
+-static const char *format_timespec64(struct timespec64 *ts)
++static const char *format_timespec(struct __kernel_timespec *ts)
+ {
+ 	static char buffer[32];
+ 	struct tm tm_info;
+-	time_t time_sec;
++	__kernel_time_t time_sec;
  
-+	if (userfaultfd_wp(vma))
-+		return 1;
-+
- 	return folio_pte_batch(folio, pvmw->pte, pte, max_nr);
- }
+ 	/* Check if timestamp is zero (not set) */
+ 	if (ts->tv_sec == 0 && ts->tv_nsec == 0)
+ 		return "N/A";
  
-@@ -2313,7 +2317,7 @@ static bool try_to_unmap_one(struct foli
- 			 *
- 			 * See Documentation/mm/mmu_notifier.rst
- 			 */
--			dec_mm_counter(mm, mm_counter_file(folio));
-+			add_mm_counter(mm, mm_counter_file(folio), -nr_pages);
- 		}
- discard:
- 		if (unlikely(folio_test_hugetlb(folio))) {
+-	time_sec = (time_t)ts->tv_sec;
++	time_sec = ts->tv_sec;
+ 
+ 	/* Use thread-safe localtime_r */
+ 	if (localtime_r(&time_sec, &tm_info) == NULL)
+@@ -257,7 +257,7 @@ static const char *format_timespec64(str
+ 				average_ms((double)(t)->cpu_delay_total, (t)->cpu_count), \
+ 				delay_ms((double)(t)->cpu_delay_max), \
+ 				delay_ms((double)(t)->cpu_delay_min), \
+-				format_timespec64(&(t)->cpu_delay_max_ts)); \
++				format_timespec(&(t)->cpu_delay_max_ts)); \
+ 		} else if (version >= 16) { \
+ 			printf("%-10s%15s%15s%15s%15s%15s%15s%15s\n", \
+ 				"CPU", "count", "real total", "virtual total", \
+@@ -316,7 +316,7 @@ static const char *format_timespec64(str
+ 				average_ms((double)(t)->total, (t)->count), \
+ 				delay_ms((double)(t)->max), \
+ 				delay_ms((double)(t)->min), \
+-				format_timespec64(&(t)->max_ts)); \
++				format_timespec(&(t)->max_ts)); \
+ 		} else if (version >= 16) { \
+ 			printf("%-10s%15s%15s%15s%15s%15s\n", \
+ 				name, "count", "delay total", "delay average", \
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-rmap-support-batched-checks-of-the-references-for-large-folios.patch
-arm64-mm-factor-out-the-address-and-ptep-alignment-into-a-new-helper.patch
-arm64-mm-support-batch-clearing-of-the-young-flag-for-large-folios.patch
-arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes.patch
-mm-rmap-support-batched-unmapping-for-file-large-folios.patch
+delayacct-fix-build-regression-on-accounting-tool.patch
 
