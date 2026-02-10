@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84F392DCC08
-	for <mm-commits@vger.kernel.org>; Tue, 10 Feb 2026 15:44:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA05A1FB1;
+	Tue, 10 Feb 2026 19:32:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770738293; cv=none; b=CejjlwtG/+fqyxe0yYTYkPBlVwTfJGonF6LtITRZSIz9gKn7yqPTDIanBHBqcr13h4FpTlZgyZZuLwJhg57p2uvfQ/bOTXn6liIr2/ulJOZG2OnkWlZIejECzknQmTaHXa/hkzrwr9gviCcmbXrgb5Pb1xOF6AVGkzU0pX1/bIE=
+	t=1770751979; cv=none; b=r97shVnQxNenmx0c+RbCg/TmJR7YqPzGUkmPM7qwFbeTUXN4i9DVSlVsJtM8q5wJRprhgKWg3Fq3O3CYaxhcMkbsfpcSBAVnDRMpsz7WDWBuvtFnhMtgr93V3wMwV63fC0q+oxuO3+PQsG7u4M2p14WRsjp4SfHBt17J2nVYsok=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770738293; c=relaxed/simple;
-	bh=3leU9ZAER5lgexU+SVPw+LLTY2wZk7JCGOyxhN36pvA=;
-	h=Date:To:From:Subject:Message-Id; b=Ki3wSOQocSRiUH0coVg3YMDqLRgJBF8jopDeKxP/GBwwvcpWjJTSPZyyyo3yk+IXl5vDF4C4FE1HhxC6h0GZKH7PP0+h89zjOlCedZzuLiJhw44rBUW9vZpHaSH/C0zOINjOzaOV2XBKj8QJCF+JvdFSJqVcJeejbsY6k0wd0c0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ggbjL+I3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770751979; c=relaxed/simple;
+	bh=aJaQgc9RiUGvmnXKSPrxC6bbowcWSn8ILZ5/EO+IxxA=;
+	h=Date:To:From:Subject:Message-Id; b=I97HES7nOVGUkRVKeZn8z0p7vhGx5YfhKEQOpzB0DFsAyrpBjmsH217eJfNUN5lvNkASKpeL2lRrCguPSj69IbiZQk/rmwD2r7SlNqHGvBoN5vf5DASgYx346r/c1OMuEPGNAYURQTjaU44FA+ymXOK87AvlHmk2D/P7bsZZu9s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uF0QGUH8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ggbjL+I3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 075CCC116C6;
-	Tue, 10 Feb 2026 15:44:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uF0QGUH8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40FA8C116C6;
+	Tue, 10 Feb 2026 19:32:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770738293;
-	bh=3leU9ZAER5lgexU+SVPw+LLTY2wZk7JCGOyxhN36pvA=;
+	s=korg; t=1770751979;
+	bh=aJaQgc9RiUGvmnXKSPrxC6bbowcWSn8ILZ5/EO+IxxA=;
 	h=Date:To:From:Subject:From;
-	b=ggbjL+I3VibdK2exDrJUUTv8UcyMhZy7HtRlXk3pImC4NHFrcTOSZ45jjHXorM2RS
-	 JEmImezFLXuYN0d8aRA9O5+I96f2PV3/Ei0xDeaqt8cA6e+vT0Yu0duySTkfAkF1Bq
-	 Ct90r2ikcZhTBa5B5S3oTRU19/4hIaQmd4ByL+Qc=
-Date: Tue, 10 Feb 2026 07:44:52 -0800
-To: mm-commits@vger.kernel.org,lkp@intel.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=uF0QGUH8wQE4C0Tsq06ArI+by5hwYizp0SXHSd/AiwFpR26eu5suIMzkbT6sZ8WCs
+	 dT15mmul4E4/OQ/5ptMz5Dq9RioaS0Sd0vIRbV/x2VxybZWoT9my18tzHpzhHMdGHs
+	 XflUjPNxnEnpxH0eUe2sgdQoW2u+BLgHLUya5VmE=
+Date: Tue, 10 Feb 2026 11:32:58 -0800
+To: mm-commits@vger.kernel.org,tglx@kernel.org,stable@vger.kernel.org,ruikai@pwno.io,andrii@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + delayacct-fix-build-regression-on-accounting-tool.patch added to mm-nonmm-unstable branch
-Message-Id: <20260210154453.075CCC116C6@smtp.kernel.org>
+Subject: + procfs-fix-possible-double-mmput-in-do_procmap_query.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260210193259.40FA8C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: delayacct: fix build regression on accounting tool
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     delayacct-fix-build-regression-on-accounting-tool.patch
+     Subject: procfs: fix possible double mmput() in do_procmap_query()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     procfs-fix-possible-double-mmput-in-do_procmap_query.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/delayacct-fix-build-regression-on-accounting-tool.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/procfs-fix-possible-double-mmput-in-do_procmap_query.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,81 +58,54 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: delayacct: fix build regression on accounting tool
-Date: Tue, 10 Feb 2026 11:34:22 +0100
+From: Andrii Nakryiko <andrii@kernel.org>
+Subject: procfs: fix possible double mmput() in do_procmap_query()
+Date: Tue, 10 Feb 2026 11:27:38 -0800
 
-The accounting tool was modified for the original ABI using a custom
-'timespec64' type in linux/taskstats.h, which I changed to use the regular
-__kernel_timespec type, causing a build failure:
+When user provides incorrectly sized buffer for build ID for PROCMAP_QUERY
+we return with -ENAMETOOLONG error.  After recent changes this condition
+happens later, after we unlocked mmap_lock/per-VMA lock and did mmput(),
+so original goto out is now wrong and will double-mmput() mm_struct.  Fix
+by jumping further to clean up only vm_file and name_buf.
 
-        getdelays.c:202:45: warning: 'struct timespec64' declared inside parameter list will not be visible outside of this definition or declaration
-
-     202 | static const char *format_timespec64(struct timespec64 *ts)
-         |                                             ^~~~~~~~~~
-
-Change the tool to match the updated header.
-
-Link: https://lkml.kernel.org/r/20260210103427.2984963-1-arnd@kernel.org
-Fixes: 503efe850c74 ("delayacct: add timestamp of delay max")
-Fixes: f06e31eef4c1 ("delayacct: fix uapi timespec64 definition")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/r/202602091611.lxgINqXp-lkp@intel.com/
+Link: https://lkml.kernel.org/r/20260210192738.3041609-1-andrii@kernel.org
+Fixes: b5cbacd7f86f ("procfs: avoid fetching build ID while holding VMA lock")
+Signed-off-by: Andrii Nakryiko <andrii@kernel.org>
+Reported-by: Ruikai Peng <ruikai@pwno.io>
+Reported-by: Thomas Gleixner <tglx@kernel.org>
+Reported-by: syzbot+237b5b985b78c1da9600@syzkaller.appspotmail.com
+Cc: Ruikai Peng <ruikai@pwno.io>
+CLoses: https://lkml.kernel.org/r/CAFD3drOJANTZPuyiqMdqpiRwOKnHwv5QgMNZghCDr-WxdiHvMg@mail.gmail.com
+Closes: https://lore.kernel.org/all/698aaf3c.050a0220.3b3015.0088.GAE@google.com/T/#u
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/accounting/getdelays.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/proc/task_mmu.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/accounting/getdelays.c~delayacct-fix-build-regression-on-accounting-tool
-+++ a/tools/accounting/getdelays.c
-@@ -196,20 +196,20 @@ static int get_family_id(int sd)
- #define delay_ms(t) (t / 1000000ULL)
- 
- /*
-- * Format timespec64 to human readable string (YYYY-MM-DD HH:MM:SS)
-+ * Format __kernel_timespec to human readable string (YYYY-MM-DD HH:MM:SS)
-  * Returns formatted string or "N/A" if timestamp is zero
-  */
--static const char *format_timespec64(struct timespec64 *ts)
-+static const char *format_timespec(struct __kernel_timespec *ts)
- {
- 	static char buffer[32];
- 	struct tm tm_info;
--	time_t time_sec;
-+	__kernel_time_t time_sec;
- 
- 	/* Check if timestamp is zero (not set) */
- 	if (ts->tv_sec == 0 && ts->tv_nsec == 0)
- 		return "N/A";
- 
--	time_sec = (time_t)ts->tv_sec;
-+	time_sec = ts->tv_sec;
- 
- 	/* Use thread-safe localtime_r */
- 	if (localtime_r(&time_sec, &tm_info) == NULL)
-@@ -257,7 +257,7 @@ static const char *format_timespec64(str
- 				average_ms((double)(t)->cpu_delay_total, (t)->cpu_count), \
- 				delay_ms((double)(t)->cpu_delay_max), \
- 				delay_ms((double)(t)->cpu_delay_min), \
--				format_timespec64(&(t)->cpu_delay_max_ts)); \
-+				format_timespec(&(t)->cpu_delay_max_ts)); \
- 		} else if (version >= 16) { \
- 			printf("%-10s%15s%15s%15s%15s%15s%15s%15s\n", \
- 				"CPU", "count", "real total", "virtual total", \
-@@ -316,7 +316,7 @@ static const char *format_timespec64(str
- 				average_ms((double)(t)->total, (t)->count), \
- 				delay_ms((double)(t)->max), \
- 				delay_ms((double)(t)->min), \
--				format_timespec64(&(t)->max_ts)); \
-+				format_timespec(&(t)->max_ts)); \
- 		} else if (version >= 16) { \
- 			printf("%-10s%15s%15s%15s%15s%15s\n", \
- 				name, "count", "delay total", "delay average", \
+--- a/fs/proc/task_mmu.c~procfs-fix-possible-double-mmput-in-do_procmap_query
++++ a/fs/proc/task_mmu.c
+@@ -780,7 +780,7 @@ static int do_procmap_query(struct mm_st
+ 		} else {
+ 			if (karg.build_id_size < build_id_sz) {
+ 				err = -ENAMETOOLONG;
+-				goto out;
++				goto out_file;
+ 			}
+ 			karg.build_id_size = build_id_sz;
+ 		}
+@@ -808,6 +808,7 @@ static int do_procmap_query(struct mm_st
+ out:
+ 	query_vma_teardown(&lock_ctx);
+ 	mmput(mm);
++out_file:
+ 	if (vm_file)
+ 		fput(vm_file);
+ 	kfree(name_buf);
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from andrii@kernel.org are
 
-delayacct-fix-build-regression-on-accounting-tool.patch
+procfs-fix-possible-double-mmput-in-do_procmap_query.patch
 
