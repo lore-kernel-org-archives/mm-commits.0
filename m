@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B14422580F2;
-	Tue, 10 Feb 2026 01:36:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB53827B35B
+	for <mm-commits@vger.kernel.org>; Tue, 10 Feb 2026 01:53:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770687376; cv=none; b=ZadICgzkn9MEeqfWacOrph38GGD42ZLqsxaCoD2SrmCUQ33d5BMh430fiktCITMsKTnVWIrGN4TqkU60FlmTBFpY0XYCberJz6w8TGtq1vgvZH2fN4rJ08vVBTmFaVwDZgJiU+658nwyCc4yBldLuJTgu8zDMCBSy1YNakgFTeg=
+	t=1770688424; cv=none; b=fGIuGVy8XAM6Dqq8zdxfbl5Cgzoyk/lGathz3Mey0VjPwu+ISp9KvZI7r0oU8BZz++JjRsVuUkyHiLHftcHJmvbn9Ky3kjyuKSULcwAE7DOKWowEZ3tV2bszCy56GnKnklg3LUuRioDcK3tCCr4tjTobFYEZUcTsPTBq2nIip5s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770687376; c=relaxed/simple;
-	bh=HP0w4T2ynjDn3Nhm+Da/XwHGKl4T2rN0CmZvW9gTDfY=;
-	h=Date:To:From:Subject:Message-Id; b=dD3jDC62m8rCzOAcNOXITaRV8IaYOgbuPJ+jrkR9J8bNQbh/wwIZwdRZUUu2phhhmg00LK8pgqlV7T3B3Oo2AG4M0uWmFPaiyeeVrzEuxULcjJwQk+sNhHeFaZSQfwhWvVBd9gH3jHvuhJhq50Ubl31yXU8qlNU/XqWD/WF4nTc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TNPtFMUU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770688424; c=relaxed/simple;
+	bh=dTlgmKkXUK5Su+MeTHOp7KFM8ri18T90z3fVgMQoyY4=;
+	h=Date:To:From:Subject:Message-Id; b=UzWGVhML1eo8ATsZyZrnPI3jWp+qjyKe9e5ehtaxxu66SKmainIWE/B7v+xsGbX8x7GNGK5e1cXMec7gl02VITzTrwP48UCKTy+4G+wXqMoNkira3d20o+2BsHpLMpSNGS89+IIRHoRznZkCyvL1EmUH1b2sW5viyG+n9dGbOBo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NSqFr7VM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TNPtFMUU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ED35C116C6;
-	Tue, 10 Feb 2026 01:36:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NSqFr7VM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65037C116C6;
+	Tue, 10 Feb 2026 01:53:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770687376;
-	bh=HP0w4T2ynjDn3Nhm+Da/XwHGKl4T2rN0CmZvW9gTDfY=;
+	s=korg; t=1770688424;
+	bh=dTlgmKkXUK5Su+MeTHOp7KFM8ri18T90z3fVgMQoyY4=;
 	h=Date:To:From:Subject:From;
-	b=TNPtFMUUCzPpG1Mcbj3pj4D6ieBsnSGCaV5QKGx7qwFBwKPs607wLM9SlhDvRhlKZ
-	 uN2J4WZT+tO4XW2HRPhH+a9lpb2961Eon99leon3V8fEarGAiCBCDBvjRjbfScvYEg
-	 n3eAm3MH09LIxqGm9s19HDtEYEjz0M6ssdRFKqY8=
-Date: Mon, 09 Feb 2026 17:36:15 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rcampbell@nvidia.com,matthew.brost@intel.com,leon@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,jgg@mellanox.com,hch@lst.de,dri-devel@lists.freedesktop.org,apopple@nvidia.com,thomas.hellstrom@linux.intel.com,akpm@linux-foundation.org
+	b=NSqFr7VM2rM+s80zcmlvwAV5cW4Y3y6cEJLXbnfJM6LRg1W49UO7/lCoM8eF4C7uH
+	 yePIckHFsC3boTldGdw6n6eaMLrUp42mjkJtIbFJ7Bbp/T1BTluldtxyBFdXlN5j1U
+	 GZp5k3Lvi9ui6J4Nj9yV5qYfkHLYCDfnLCbPmfQc=
+Date: Mon, 09 Feb 2026 17:53:43 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-a-hmm_range_fault-livelock-starvation-problem.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260210013616.3ED35C116C6@smtp.kernel.org>
+Subject: + mm-rmap-support-batched-checks-of-the-references-for-large-folios.patch added to mm-unstable branch
+Message-Id: <20260210015344.65037C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix a hmm_range_fault() livelock / starvation problem
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-a-hmm_range_fault-livelock-starvation-problem.patch
+     Subject: mm: rmap: support batched checks of the references for large folios
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-rmap-support-batched-checks-of-the-references-for-large-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-a-hmm_range_fault-livelock-starvation-problem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-support-batched-checks-of-the-references-for-large-folios.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,199 +58,222 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Thomas Hellström <thomas.hellstrom@linux.intel.com>
-Subject: mm: fix a hmm_range_fault() livelock / starvation problem
-Date: Thu, 5 Feb 2026 12:10:28 +0100
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: rmap: support batched checks of the references for large folios
+Date: Mon, 9 Feb 2026 22:07:24 +0800
 
-If hmm_range_fault() fails a folio_trylock() in do_swap_page, trying to
-acquire the lock of a device-private folio for migration, to ram, the
-function will spin until it succeeds grabbing the lock.
+Patch series "support batch checking of references and unmapping for large
+folios", v6.
 
-However, if the process holding the lock is depending on a work item to be
-completed, which is scheduled on the same CPU as the spinning
-hmm_range_fault(), that work item might be starved and we end up in a
-livelock / starvation situation which is never resolved.
 
-This can happen, for example if the process holding the
-device-private folio lock is stuck in
-   migrate_device_unmap()->lru_add_drain_all()
-The lru_add_drain_all() function requires a short work-item
-to be run on all online cpus to complete.
+Currently, folio_referenced_one() always checks the young flag for each
+PTE sequentially, which is inefficient for large folios.  This
+inefficiency is especially noticeable when reclaiming clean file-backed
+large folios, where folio_referenced() is observed as a significant
+performance hotspot.
 
-A prerequisite for this to happen is:
-a) Both zone device and system memory folios are considered in
-   migrate_device_unmap(), so that there is a reason to call
-   lru_add_drain_all() for a system memory folio while a
-   folio lock is held on a zone device folio.
-b) The zone device folio has an initial mapcount > 1 which causes
-   at least one migration PTE entry insertion to be deferred to
-   try_to_migrate(), which can happen after the call to
-   lru_add_drain_all().
-c) No or voluntary only preemption.
+Moreover, on Arm architecture, which supports contiguous PTEs, there is
+already an optimization to clear the young flags for PTEs within a
+contiguous range.  However, this is not sufficient.  We can extend this to
+perform batched operations for the entire large folio (which might exceed
+the contiguous range: CONT_PTE_SIZE).
 
-This all seems pretty unlikely to happen, but indeed is hit by the
-"xe_exec_system_allocator" igt test.
+Similar to folio_referenced_one(), we can also apply batched unmapping for
+large file folios to optimize the performance of file folio reclamation. 
+By supporting batched checking of the young flags, flushing TLB entries,
+and unmapping, I can observed a significant performance improvements in my
+performance tests for file folios reclamation.  Please check the
+performance data in the commit message of each patch.
 
-Resolve this by waiting for the folio to be unlocked if the
-folio_trylock() fails in the do_swap_page() function.
 
-Rename the migration_entry_wait_on_locked() function to
-softleaf_entry_wait_unlock() and update its documentation to indicate the
-new use-case.
+This patch (of 5):
 
-Future code improvements might consider moving the lru_add_drain_all()
-call in migrate_device_unmap() to be called *after* all pages have
-migration entries inserted.  That would eliminate also b) above.
+Currently, folio_referenced_one() always checks the young flag for each
+PTE sequentially, which is inefficient for large folios.  This
+inefficiency is especially noticeable when reclaiming clean file-backed
+large folios, where folio_referenced() is observed as a significant
+performance hotspot.
 
-Link: https://lkml.kernel.org/r/20260205111028.200506-1-thomas.hellstrom@linux.intel.com
-Fixes: 1afaeb8293c9 ("mm/migrate: Trylock device page in do_swap_page")
-Signed-off-by: Thomas Hellström <thomas.hellstrom@linux.intel.com>
-Suggested-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com> #v3
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: <dri-devel@lists.freedesktop.org>
-Cc: <stable@vger.kernel.org>	[6.15+]
+Moreover, on Arm64 architecture, which supports contiguous PTEs, there is
+already an optimization to clear the young flags for PTEs within a
+contiguous range.  However, this is not sufficient.  We can extend this to
+perform batched operations for the entire large folio (which might exceed
+the contiguous range: CONT_PTE_SIZE).
+
+Introduce a new API: clear_flush_young_ptes() to facilitate batched
+checking of the young flags and flushing TLB entries, thereby improving
+performance during large folio reclamation.  And it will be overridden by
+the architecture that implements a more efficient batch operation in the
+following patches.
+
+While we are at it, rename ptep_clear_flush_young_notify() to
+clear_flush_young_ptes_notify() to indicate that this is a batch
+operation.
+
+Link: https://lkml.kernel.org/r/cover.1770645603.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/12132694536834262062d1fb304f8f8a064b6750.1770645603.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
+Cc: Barry Song <baohua@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    8 +++++++-
- mm/filemap.c            |   15 ++++++++++-----
- mm/memory.c             |    3 ++-
- mm/migrate.c            |    8 ++++----
- mm/migrate_device.c     |    2 +-
- 5 files changed, 24 insertions(+), 12 deletions(-)
+ include/linux/mmu_notifier.h |    9 ++++----
+ include/linux/pgtable.h      |   35 +++++++++++++++++++++++++++++++++
+ mm/rmap.c                    |   28 +++++++++++++++++++++++---
+ 3 files changed, 65 insertions(+), 7 deletions(-)
 
---- a/include/linux/migrate.h~mm-fix-a-hmm_range_fault-livelock-starvation-problem
-+++ a/include/linux/migrate.h
-@@ -65,7 +65,7 @@ bool isolate_folio_to_list(struct folio
- 
- int migrate_huge_page_move_mapping(struct address_space *mapping,
- 		struct folio *dst, struct folio *src);
--void migration_entry_wait_on_locked(softleaf_t entry, spinlock_t *ptl)
-+void softleaf_entry_wait_on_locked(softleaf_t entry, spinlock_t *ptl)
- 		__releases(ptl);
- void folio_migrate_flags(struct folio *newfolio, struct folio *folio);
- int folio_migrate_mapping(struct address_space *mapping,
-@@ -97,6 +97,12 @@ static inline int set_movable_ops(const
- 	return -ENOSYS;
+--- a/include/linux/mmu_notifier.h~mm-rmap-support-batched-checks-of-the-references-for-large-folios
++++ a/include/linux/mmu_notifier.h
+@@ -515,16 +515,17 @@ static inline void mmu_notifier_range_in
+ 	range->owner = owner;
  }
  
-+static inline void softleaf_entry_wait_on_locked(softleaf_t entry, spinlock_t *ptl)
-+	__releases(ptl)
+-#define ptep_clear_flush_young_notify(__vma, __address, __ptep)		\
++#define clear_flush_young_ptes_notify(__vma, __address, __ptep, __nr)	\
+ ({									\
+ 	int __young;							\
+ 	struct vm_area_struct *___vma = __vma;				\
+ 	unsigned long ___address = __address;				\
+-	__young = ptep_clear_flush_young(___vma, ___address, __ptep);	\
++	unsigned int ___nr = __nr;					\
++	__young = clear_flush_young_ptes(___vma, ___address, __ptep, ___nr);	\
+ 	__young |= mmu_notifier_clear_flush_young(___vma->vm_mm,	\
+ 						  ___address,		\
+ 						  ___address +		\
+-							PAGE_SIZE);	\
++						  ___nr * PAGE_SIZE);	\
+ 	__young;							\
+ })
+ 
+@@ -650,7 +651,7 @@ static inline void mmu_notifier_subscrip
+ 
+ #define mmu_notifier_range_update_to_read_only(r) false
+ 
+-#define ptep_clear_flush_young_notify ptep_clear_flush_young
++#define clear_flush_young_ptes_notify clear_flush_young_ptes
+ #define pmdp_clear_flush_young_notify pmdp_clear_flush_young
+ #define ptep_clear_young_notify ptep_test_and_clear_young
+ #define pmdp_clear_young_notify pmdp_test_and_clear_young
+--- a/include/linux/pgtable.h~mm-rmap-support-batched-checks-of-the-references-for-large-folios
++++ a/include/linux/pgtable.h
+@@ -1068,6 +1068,41 @@ static inline void wrprotect_ptes(struct
+ }
+ #endif
+ 
++#ifndef clear_flush_young_ptes
++/**
++ * clear_flush_young_ptes - Mark PTEs that map consecutive pages of the same
++ *			    folio as old and flush the TLB.
++ * @vma: The virtual memory area the pages are mapped into.
++ * @addr: Address the first page is mapped at.
++ * @ptep: Page table pointer for the first entry.
++ * @nr: Number of entries to clear access bit.
++ *
++ * May be overridden by the architecture; otherwise, implemented as a simple
++ * loop over ptep_clear_flush_young().
++ *
++ * Note that PTE bits in the PTE range besides the PFN can differ. For example,
++ * some PTEs might be write-protected.
++ *
++ * Context: The caller holds the page table lock.  The PTEs map consecutive
++ * pages that belong to the same folio.  The PTEs are all in the same PMD.
++ */
++static inline int clear_flush_young_ptes(struct vm_area_struct *vma,
++		unsigned long addr, pte_t *ptep, unsigned int nr)
 +{
-+	spin_unlock(ptl);
-+}
++	int young = 0;
 +
- #endif /* CONFIG_MIGRATION */
++	for (;;) {
++		young |= ptep_clear_flush_young(vma, addr, ptep);
++		if (--nr == 0)
++			break;
++		ptep++;
++		addr += PAGE_SIZE;
++	}
++
++	return young;
++}
++#endif
++
+ /*
+  * On some architectures hardware does not set page access bit when accessing
+  * memory page, it is responsibility of software setting this bit. It brings
+--- a/mm/rmap.c~mm-rmap-support-batched-checks-of-the-references-for-large-folios
++++ a/mm/rmap.c
+@@ -913,9 +913,11 @@ static bool folio_referenced_one(struct
+ 	struct folio_referenced_arg *pra = arg;
+ 	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, address, 0);
+ 	int ptes = 0, referenced = 0;
++	unsigned int nr;
  
- #ifdef CONFIG_NUMA_BALANCING
---- a/mm/filemap.c~mm-fix-a-hmm_range_fault-livelock-starvation-problem
-+++ a/mm/filemap.c
-@@ -1379,14 +1379,16 @@ repeat:
+ 	while (page_vma_mapped_walk(&pvmw)) {
+ 		address = pvmw.address;
++		nr = 1;
  
- #ifdef CONFIG_MIGRATION
- /**
-- * migration_entry_wait_on_locked - Wait for a migration entry to be removed
-- * @entry: migration swap entry.
-+ * softleaf_entry_wait_on_locked - Wait for a migration entry or
-+ * device_private entry to be removed.
-+ * @entry: migration or device_private swap entry.
-  * @ptl: already locked ptl. This function will drop the lock.
-  *
-- * Wait for a migration entry referencing the given page to be removed. This is
-+ * Wait for a migration entry referencing the given page, or device_private
-+ * entry referencing a dvice_private page to be unlocked. This is
-  * equivalent to folio_put_wait_locked(folio, TASK_UNINTERRUPTIBLE) except
-  * this can be called without taking a reference on the page. Instead this
-- * should be called while holding the ptl for the migration entry referencing
-+ * should be called while holding the ptl for @entry referencing
-  * the page.
-  *
-  * Returns after unlocking the ptl.
-@@ -1394,7 +1396,7 @@ repeat:
-  * This follows the same logic as folio_wait_bit_common() so see the comments
-  * there.
-  */
--void migration_entry_wait_on_locked(softleaf_t entry, spinlock_t *ptl)
-+void softleaf_entry_wait_on_locked(softleaf_t entry, spinlock_t *ptl)
- 	__releases(ptl)
- {
- 	struct wait_page_queue wait_page;
-@@ -1428,6 +1430,9 @@ void migration_entry_wait_on_locked(soft
- 	 * If a migration entry exists for the page the migration path must hold
- 	 * a valid reference to the page, and it must take the ptl to remove the
- 	 * migration entry. So the page is valid until the ptl is dropped.
-+	 * Similarly any path attempting to drop the last reference to a
-+	 * device-private page needs to grab the ptl to remove the device-private
-+	 * entry.
- 	 */
- 	spin_unlock(ptl);
+ 		if (vma->vm_flags & VM_LOCKED) {
+ 			ptes++;
+@@ -960,9 +962,21 @@ static bool folio_referenced_one(struct
+ 			if (lru_gen_look_around(&pvmw))
+ 				referenced++;
+ 		} else if (pvmw.pte) {
+-			if (ptep_clear_flush_young_notify(vma, address,
+-						pvmw.pte))
++			if (folio_test_large(folio)) {
++				unsigned long end_addr = pmd_addr_end(address, vma->vm_end);
++				unsigned int max_nr = (end_addr - address) >> PAGE_SHIFT;
++				pte_t pteval = ptep_get(pvmw.pte);
++
++				nr = folio_pte_batch(folio, pvmw.pte,
++						     pteval, max_nr);
++			}
++
++			ptes += nr;
++			if (clear_flush_young_ptes_notify(vma, address, pvmw.pte, nr))
+ 				referenced++;
++			/* Skip the batched PTEs */
++			pvmw.pte += nr - 1;
++			pvmw.address += (nr - 1) * PAGE_SIZE;
+ 		} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
+ 			if (pmdp_clear_flush_young_notify(vma, address,
+ 						pvmw.pmd))
+@@ -972,7 +986,15 @@ static bool folio_referenced_one(struct
+ 			WARN_ON_ONCE(1);
+ 		}
  
---- a/mm/memory.c~mm-fix-a-hmm_range_fault-livelock-starvation-problem
-+++ a/mm/memory.c
-@@ -4684,7 +4684,8 @@ vm_fault_t do_swap_page(struct vm_fault
- 				unlock_page(vmf->page);
- 				put_page(vmf->page);
- 			} else {
--				pte_unmap_unlock(vmf->pte, vmf->ptl);
-+				pte_unmap(vmf->pte);
-+				softleaf_entry_wait_on_locked(entry, vmf->ptl);
- 			}
- 		} else if (softleaf_is_hwpoison(entry)) {
- 			ret = VM_FAULT_HWPOISON;
---- a/mm/migrate.c~mm-fix-a-hmm_range_fault-livelock-starvation-problem
-+++ a/mm/migrate.c
-@@ -499,7 +499,7 @@ void migration_entry_wait(struct mm_stru
- 	if (!softleaf_is_migration(entry))
- 		goto out;
- 
--	migration_entry_wait_on_locked(entry, ptl);
-+	softleaf_entry_wait_on_locked(entry, ptl);
- 	return;
- out:
- 	spin_unlock(ptl);
-@@ -531,10 +531,10 @@ void migration_entry_wait_huge(struct vm
- 		 * If migration entry existed, safe to release vma lock
- 		 * here because the pgtable page won't be freed without the
- 		 * pgtable lock released.  See comment right above pgtable
--		 * lock release in migration_entry_wait_on_locked().
-+		 * lock release in softleaf_entry_wait_on_locked().
- 		 */
- 		hugetlb_vma_unlock_read(vma);
--		migration_entry_wait_on_locked(entry, ptl);
-+		softleaf_entry_wait_on_locked(entry, ptl);
- 		return;
+-		pra->mapcount--;
++		pra->mapcount -= nr;
++		/*
++		 * If we are sure that we batched the entire folio,
++		 * we can just optimize and stop right here.
++		 */
++		if (ptes == pvmw.nr_pages) {
++			page_vma_mapped_walk_done(&pvmw);
++			break;
++		}
  	}
  
-@@ -552,7 +552,7 @@ void pmd_migration_entry_wait(struct mm_
- 	ptl = pmd_lock(mm, pmd);
- 	if (!pmd_is_migration_entry(*pmd))
- 		goto unlock;
--	migration_entry_wait_on_locked(softleaf_from_pmd(*pmd), ptl);
-+	softleaf_entry_wait_on_locked(softleaf_from_pmd(*pmd), ptl);
- 	return;
- unlock:
- 	spin_unlock(ptl);
---- a/mm/migrate_device.c~mm-fix-a-hmm_range_fault-livelock-starvation-problem
-+++ a/mm/migrate_device.c
-@@ -176,7 +176,7 @@ static int migrate_vma_collect_huge_pmd(
- 		}
- 
- 		if (softleaf_is_migration(entry)) {
--			migration_entry_wait_on_locked(entry, ptl);
-+			softleaf_entry_wait_on_locked(entry, ptl);
- 			spin_unlock(ptl);
- 			return -EAGAIN;
- 		}
+ 	if (referenced)
 _
 
-Patches currently in -mm which might be from thomas.hellstrom@linux.intel.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-fix-a-hmm_range_fault-livelock-starvation-problem.patch
+mm-rmap-support-batched-checks-of-the-references-for-large-folios.patch
+arm64-mm-factor-out-the-address-and-ptep-alignment-into-a-new-helper.patch
+arm64-mm-support-batch-clearing-of-the-young-flag-for-large-folios.patch
+arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes.patch
+mm-rmap-support-batched-unmapping-for-file-large-folios.patch
 
