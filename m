@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9C2B26ED35
-	for <mm-commits@vger.kernel.org>; Tue, 10 Feb 2026 01:53:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 175E026ED35
+	for <mm-commits@vger.kernel.org>; Tue, 10 Feb 2026 01:53:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770688433; cv=none; b=hHeZ1qM+DuKZ9PJBfak3xVWFo/fTKZfHHqC5st1r15magUWCHDTN+9x6CNnzLrMhNQi0ejDhn8T4cVMWaTtxYcHtMXBa0OnybmSb2HTBb2AGIEi/VzNf7PVeHM3HRu2U/JH+Wn1sUW/k7BoQ+1BliOt4yCM/NMFdo0S9v9exhVQ=
+	t=1770688435; cv=none; b=H5tQj9axwwMzaivXuVGi/urex9QoafGUouIdxz1UYTz7sKS741wKSsFVDtaGTRyKeMjo8gUd1J4W5jBOwyorN/fXZYJLNoQ2XJTGBwgQTXcOSd7NN9Z4SapL9VDPEOVbyISBOKd4ev/35zUmK66WRIcuIYPlUz2y8S0eP9YnEls=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770688433; c=relaxed/simple;
-	bh=6LOOvLC8LS9n81uDFd+L5D7L4hY9papuYOuiZjLMMzI=;
-	h=Date:To:From:Subject:Message-Id; b=WGvHvHdsyIlZtVX+S6Jr6I4bn66qdOw7QaTDtcPkBwF5ttHCBQFqNTBMYeliZ5K8vPcYTTss/zkhReHM852uP3bBAGxxonq0SMQNXHuQtuO3U4NE2KQY60jcuwK2btd1hZh6w0k71D8h5+ZQCghFiv/vJ/97pMKaUNySjKRJeg8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=njZFIb/C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770688435; c=relaxed/simple;
+	bh=BScOjXAFEYHW/AmK+BSrL9ASIQpcwFsYJtwXNDl6MVs=;
+	h=Date:To:From:Subject:Message-Id; b=GqQv/ryu46PD4cKFgwk2N0d+Ph1EkYfby+xwFTGuJrt9T2z9Q6ChW27ILhIFKaXdKu7ffkhiWu/AhbqoptIOtONaJGNKxMmP7B8Hz3FFKXNTiA2+CpLqnBZkgArV/NxYCnTQoHjlPwqNMtlcAVKhcTUmotvvvPrcuvOoHeC2wjc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MRZLxBUO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="njZFIb/C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A27EC116C6;
-	Tue, 10 Feb 2026 01:53:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MRZLxBUO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C75A0C116C6;
+	Tue, 10 Feb 2026 01:53:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770688432;
-	bh=6LOOvLC8LS9n81uDFd+L5D7L4hY9papuYOuiZjLMMzI=;
+	s=korg; t=1770688434;
+	bh=BScOjXAFEYHW/AmK+BSrL9ASIQpcwFsYJtwXNDl6MVs=;
 	h=Date:To:From:Subject:From;
-	b=njZFIb/C+5fkXekrdNLcYRsDV3UQY/gGpANHizjmAzMYw7Ry8N2Q8If8+Z8VT0QTQ
-	 OYYQUDGv5E16JGXqvGlNjFqhkItGGoh2H/kHZnMY9aAj7gjcLdfFwMhOUmQzF0R/G1
-	 aJ8Fa5jhCDyFNqi/WRKDlKu34QTHUaMC3Xk9PpTs=
-Date: Mon, 09 Feb 2026 17:53:51 -0800
+	b=MRZLxBUOcP/nzLZbnRo18dRx9lBYCk8dZnMc+gF6MeMyJnxCD/xowCxrL+ACss9o+
+	 ZlaQYLS+lGxzB4pnaF6jzMdEJL/XW1A1fYWh9k6/mK2QEl6o0Fc3zZa5ttK9Va7+Oy
+	 wnG8vsLHOxCkjbEQJ/DOfvO/UjutSTe6cbZUE67A=
+Date: Mon, 09 Feb 2026 17:53:54 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes.patch added to mm-unstable branch
-Message-Id: <20260210015352.8A27EC116C6@smtp.kernel.org>
+Subject: + mm-rmap-support-batched-unmapping-for-file-large-folios.patch added to mm-unstable branch
+Message-Id: <20260210015354.C75A0C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: mm: implement the architecture-specific clear_flush_young_ptes()
+     Subject: mm: rmap: support batched unmapping for file large folios
 has been added to the -mm mm-unstable branch.  Its filename is
-     arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes.patch
+     mm-rmap-support-batched-unmapping-for-file-large-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-support-batched-unmapping-for-file-large-folios.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,37 +59,46 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: arm64: mm: implement the architecture-specific clear_flush_young_ptes()
-Date: Mon, 9 Feb 2026 22:07:27 +0800
+Subject: mm: rmap: support batched unmapping for file large folios
+Date: Mon, 9 Feb 2026 22:07:28 +0800
 
-Implement the Arm64 architecture-specific clear_flush_young_ptes() to
-enable batched checking of young flags and TLB flushing, improving
-performance during large folio reclamation.
+Similar to folio_referenced_one(), we can apply batched unmapping for file
+large folios to optimize the performance of file folios reclamation.
+
+Barry previously implemented batched unmapping for lazyfree anonymous
+large folios[1] and did not further optimize anonymous large folios or
+file-backed large folios at that stage.  As for file-backed large folios,
+the batched unmapping support is relatively straightforward, as we only
+need to clear the consecutive (present) PTE entries for file-backed large
+folios.
+
+Note that it's not ready to support batched unmapping for uffd case, so
+let's still fallback to per-page unmapping for the uffd case.
 
 Performance testing:
 Allocate 10G clean file-backed folios by mmap() in a memory cgroup, and
 try to reclaim 8G file-backed folios via the memory.reclaim interface.  I
-can observe 33% performance improvement on my Arm64 32-core server (and
-10%+ improvement on my X86 machine).  Meanwhile, the hotspot
-folio_check_references() dropped from approximately 35% to around 5%.
+can observe 75% performance improvement on my Arm64 32-core server (and
+50%+ improvement on my X86 machine) with this patch.
 
-W/o patchset:
-real	0m1.518s
+W/o patch:
+real    0m1.018s
+user    0m0.000s
+sys     0m1.018s
+
+W/ patch:
+real	0m0.249s
 user	0m0.000s
-sys	0m1.518s
+sys	0m0.249s
 
-W/ patchset:
-real	0m1.018s
-user	0m0.000s
-sys	0m1.018s
-
-Link: https://lkml.kernel.org/r/ce749fbae3e900e733fa104a16fcb3ca9fe4f9bd.1770645603.git.baolin.wang@linux.alibaba.com
+[1] https://lore.kernel.org/all/20250214093015.51024-4-21cnbao@gmail.com/T/#u
+Link: https://lkml.kernel.org/r/b53a16f67c93a3fe65e78092069ad135edf00eff.1770645603.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Barry Song <baohua@kernel.org>
+Acked-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
@@ -103,29 +112,39 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/rmap.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1838,6 +1838,17 @@ static inline int ptep_clear_flush_young
- 	return contpte_clear_flush_young_ptes(vma, addr, ptep, 1);
+--- a/mm/rmap.c~mm-rmap-support-batched-unmapping-for-file-large-folios
++++ a/mm/rmap.c
+@@ -1945,12 +1945,16 @@ static inline unsigned int folio_unmap_p
+ 	end_addr = pmd_addr_end(addr, vma->vm_end);
+ 	max_nr = (end_addr - addr) >> PAGE_SHIFT;
+ 
+-	/* We only support lazyfree batching for now ... */
+-	if (!folio_test_anon(folio) || folio_test_swapbacked(folio))
++	/* We only support lazyfree or file folios batching for now ... */
++	if (folio_test_anon(folio) && folio_test_swapbacked(folio))
+ 		return 1;
++
+ 	if (pte_unused(pte))
+ 		return 1;
+ 
++	if (userfaultfd_wp(vma))
++		return 1;
++
+ 	return folio_pte_batch(folio, pvmw->pte, pte, max_nr);
  }
  
-+#define clear_flush_young_ptes clear_flush_young_ptes
-+static inline int clear_flush_young_ptes(struct vm_area_struct *vma,
-+					 unsigned long addr, pte_t *ptep,
-+					 unsigned int nr)
-+{
-+	if (likely(nr == 1 && !pte_cont(__ptep_get(ptep))))
-+		return __ptep_clear_flush_young(vma, addr, ptep);
-+
-+	return contpte_clear_flush_young_ptes(vma, addr, ptep, nr);
-+}
-+
- #define wrprotect_ptes wrprotect_ptes
- static __always_inline void wrprotect_ptes(struct mm_struct *mm,
- 				unsigned long addr, pte_t *ptep, unsigned int nr)
+@@ -2313,7 +2317,7 @@ static bool try_to_unmap_one(struct foli
+ 			 *
+ 			 * See Documentation/mm/mmu_notifier.rst
+ 			 */
+-			dec_mm_counter(mm, mm_counter_file(folio));
++			add_mm_counter(mm, mm_counter_file(folio), -nr_pages);
+ 		}
+ discard:
+ 		if (unlikely(folio_test_hugetlb(folio))) {
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
