@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D9221DE4EF
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:46:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B3FE29E11D
+	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:46:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770939994; cv=none; b=Ikstyrq9iA4pLK9/D73WVbztQVl6c9ulutXksXOKGhvoUWT+zXFS0o6E7VJVxLvm/4XnfpLYyJX4GwSldlv1YBb8Eb1cFUc5KfEWzW5ZufO4uo/o/p8aytxftbzJ4u+L0/FnSflvTI3zIDkttnpwRRtrOknYnIHwvwd7GSUdZ+k=
+	t=1770939996; cv=none; b=SidhqHj0SsjT9oahIp07kP42kAx9do1e0/7bEPJKLfTRPKapUM3MfrfFHdYfR1G3ftc/m1rXF2rk8nMIB65UQh2LHyyoL1Diikf682HqsaMWKR/2u2M5YVvPO/KjGQUOkdD8mymi9SmGu9oQ3o8XroenQhcvlYp+LcyoY+CjmUo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770939994; c=relaxed/simple;
-	bh=RELRcNISoMHXLHRJndEgsdAnD7hv7eDLga6x0RMz9Rc=;
-	h=Date:To:From:Subject:Message-Id; b=Ojwhtmbu657RqxYvCyKvWmJUeKVHl1qjmRWblWQETnoWsVyzBlpvdlQlDrlyNroGvdS5y5mF08NMBy8Xd7MXjAyogKSvAGN3UwHiJv/uVhdrPl5wsu6xh3E+XcxCbQwIIxtoUUugQd3VyXxDlH+NrWiNAj/dHRMqKLXbVLoKCrU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P7b/FhN7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770939996; c=relaxed/simple;
+	bh=+n8Ox4ALGI7jGwp6ne8M+sy28B00aXOfRssUdA4/vcg=;
+	h=Date:To:From:Subject:Message-Id; b=utbhKdrVtF9mCwiMqVZC5bANjNqq8ornLYLJNeLM5Bigd6bK0K1aTbWrBUfId6ebkStDo1HWLz7J+dVC1ctS8UW+vkqW4qg2Lh161dMSLo2bkpiPS8xhWXGo9548ggFjgZwQ66ZDJ0GzqH0y6bq+Hem5VmxrEIfa+sIMNfFG6bQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DvObBi5P; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P7b/FhN7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65F33C4CEF7;
-	Thu, 12 Feb 2026 23:46:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DvObBi5P"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2D04C4CEF7;
+	Thu, 12 Feb 2026 23:46:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770939994;
-	bh=RELRcNISoMHXLHRJndEgsdAnD7hv7eDLga6x0RMz9Rc=;
+	s=korg; t=1770939996;
+	bh=+n8Ox4ALGI7jGwp6ne8M+sy28B00aXOfRssUdA4/vcg=;
 	h=Date:To:From:Subject:From;
-	b=P7b/FhN7HumrpTMLE/ROD95E0Rb/Vcn72jK5PbpItyWotFQW8dM41YrtnpdKLsGPJ
-	 ptA4hgfBnSH0oSeEKuy5gy/LHcnKUfnkz6WmgbCEUkQcwlb9rKlYfLptnh48TgA/dd
-	 CRVsxRsOw/Db2diwCUhn0dJS4CDSbznDeO6bIvR0=
-Date: Thu, 12 Feb 2026 15:46:33 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
+	b=DvObBi5PM2Q/Hj3nGgE6Dv0QBdj2mU08vBwhd9qt7QBhSCYsgV/zy0Cgt2mZ+CEri
+	 Q1p4wq/Tv1CGD3/a1T/RhKdK9d9E7aBvXkZn9afZVGPOcMXGKk6Y/Vjb8VKpIjweLJ
+	 JhPCffvH37fgYvGoasTKo91t3Ecgq5TsAHc24h9U=
+Date: Thu, 12 Feb 2026 15:46:35 -0800
+To: mm-commits@vger.kernel.org,wangyang.guo@intel.com,tglx@kernel.org,kees@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kho-remove-unnecessary-warn_onerr-in-kho_populate.patch removed from -mm tree
-Message-Id: <20260212234634.65F33C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-group_cpus-handle-const-qualifier-from-clusters-allocation-type.patch removed from -mm tree
+Message-Id: <20260212234635.E2D04C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,50 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho: remove unnecessary WARN_ON(err) in kho_populate()
+     Subject: lib/group_cpus: handle const qualifier from clusters allocation type
 has been removed from the -mm tree.  Its filename was
-     kho-remove-unnecessary-warn_onerr-in-kho_populate.patch
+     lib-group_cpus-handle-const-qualifier-from-clusters-allocation-type.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Subject: kho: remove unnecessary WARN_ON(err) in kho_populate()
-Date: Thu, 12 Feb 2026 11:11:46 +0000
+From: Kees Cook <kees@kernel.org>
+Subject: lib/group_cpus: handle const qualifier from clusters allocation type
+Date: Fri, 6 Feb 2026 14:20:13 -0800
 
-The following pr_warn() provides detailed error and location information,
-WARN_ON(err) adds no additional debugging value, so remove the redundant
-WARN_ON() call.
+In preparation for making the kmalloc family of allocators type aware, we
+need to make sure that the returned type from the allocation matches the
+type of the variable being assigned.  (Before, the allocator would always
+return "void *", which can be implicitly cast to any pointer type.)
 
-Link: https://lkml.kernel.org/r/20260212111146.210086-3-ranxiaokai627@163.com
-Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+The assigned type is "const struct cpumask **", but the returned type,
+while matching, is not const qualified.  To get them exactly matching,
+just use the dereferenced pointer for the sizeof().
+
+Link: https://lkml.kernel.org/r/20260206222010.work.349-kees@kernel.org
+Signed-off-by: Kees Cook <kees@kernel.org>
+Cc: Wangyang Guo <wangyang.guo@intel.com>
+Cc: Thomas Gleixner <tglx@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |    2 +-
+ lib/group_cpus.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-remove-unnecessary-warn_onerr-in-kho_populate
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -1507,7 +1507,7 @@ void __init kho_populate(phys_addr_t fdt
+--- a/lib/group_cpus.c~lib-group_cpus-handle-const-qualifier-from-clusters-allocation-type
++++ a/lib/group_cpus.c
+@@ -320,7 +320,7 @@ static int alloc_cluster_groups(unsigned
+ 		goto no_cluster;
  
- 		memblock_add(area->addr, size);
- 		err = memblock_mark_kho_scratch(area->addr, size);
--		if (WARN_ON(err)) {
-+		if (err) {
- 			pr_warn("failed to mark the scratch region 0x%pa+0x%pa: %pe",
- 				&area->addr, &size, ERR_PTR(err));
- 			goto unmap_scratch;
+ 	/* Allocate memory based on cluster number. */
+-	clusters = kcalloc(ncluster, sizeof(struct cpumask *), GFP_KERNEL);
++	clusters = kcalloc(ncluster, sizeof(*clusters), GFP_KERNEL);
+ 	if (!clusters)
+ 		goto no_cluster;
+ 	cluster_groups = kcalloc(ncluster, sizeof(struct node_groups), GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
+Patches currently in -mm which might be from kees@kernel.org are
 
 
