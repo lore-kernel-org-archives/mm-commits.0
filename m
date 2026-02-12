@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AED62E1C63
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:44:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 026CA2E1C63
+	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:44:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770939850; cv=none; b=NRGmT1twFzqlRWIW2Hk2Q7eCHP7XPvzO9NvTsbB3wNmUOsZqrA47UZUk0j/MGBCLUI5kOnHii48qux5Bo3kpjlqGfG2IfB5TBoJpttpBNK/ZR6pZELgL5mQo3+SSCv/4EP3Kls9rNulf6/jOqKn8hZFgxF3/HYdXk33tyEs8B9E=
+	t=1770939852; cv=none; b=IhiqH1tAdz4EhrLai8ZicVasT3b0XdxFNYhb2qCXBpC5swSLt+00/yKSkbNf9o24zXsfMS0U020EghNZxRerwQJNBlJe9vO1wNFtHdLP4WEAjlHGkgoJTqDcqjXbAVcgEwx4iHLzH7q2orBHBT+7uXSWoSNu+3N6YY1Avcp+zpA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770939850; c=relaxed/simple;
-	bh=J+c94dsmyzm6sHH0VEIrE2lZfRez7smNdGYirTs7Sxk=;
-	h=Date:To:From:Subject:Message-Id; b=KUOjiNLK+nb5TtZCf3NJOnPJYgXaWA2SAswMj2cvlh+wVgs3quYZx6fpEEuTjgcgWf5JcT2ZnvDL9KwktjDeisWYYQ1QLYTDIsxPQv9CC2aDbsoQoIMbqdkf4sIjnZoyUFtEXP0RLkwhC4wLkegVOUTL9DaVk5BuY0Ed1COp71w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K06rq2cT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770939852; c=relaxed/simple;
+	bh=4jxZ8YNhtV2FT9o0LE48ZvuA6Ul7vb3A4oyAedwxap8=;
+	h=Date:To:From:Subject:Message-Id; b=n2YyEGGOte/Ib2AIsetkf5w9RZSs4vhPTXIrDQOHTRcvJk5QUnPQa/tAjd+Vv1V/ZUlY+BTvX3EWWt4/11Wg719KZV50wM+pBGGa456OgFe6WG0EaSEDV4Z+HeHQVUAXZY1QzAPLAIkcePf1iolB0pNqzUWRp1aVmA3WWeDnq4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N6U7PsZ+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K06rq2cT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 306FEC4CEF7;
-	Thu, 12 Feb 2026 23:44:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N6U7PsZ+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEC4FC4CEF7;
+	Thu, 12 Feb 2026 23:44:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770939850;
-	bh=J+c94dsmyzm6sHH0VEIrE2lZfRez7smNdGYirTs7Sxk=;
+	s=korg; t=1770939851;
+	bh=4jxZ8YNhtV2FT9o0LE48ZvuA6Ul7vb3A4oyAedwxap8=;
 	h=Date:To:From:Subject:From;
-	b=K06rq2cTdWqjuvKZibc8r5LAwrdRvLJRaGfvs99JqDxWu4uyneJckzkEa2JBVKDU7
-	 W4B5Swd7D/jQ47rSoOvwO/KMMjDK9UdvIR+N+3sqFZGR/RcDMdV0ZuFSAvdIPeeK6Q
-	 E1G46ZDnGzhscyBDhvbBTL+CN2dU09thgQ98heQk=
-Date: Thu, 12 Feb 2026 15:44:09 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ynorov@nvidia.com,vbabka@suse.cz,surenb@google.com,pfalcato@suse.de,liam.howlett@oracle.com,jgg@nvidia.com,jarkko@kernel.org,dlemoal@kernel.org,djwong@kernel.org,dev.jain@arm.com,david@kernel.org,clm@fb.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=N6U7PsZ+Jy4jmOMQGsmRXw23n61jlznFE0E+8eEkfFNIbTjGcxqvC9YATHqb5sLR9
+	 AURToxBWviz6OWoEyXDfpRqXawvuzciTtPjk2DlYGJqIJIQKpFVy6iyVdu8Nk0NYnA
+	 devSh9FeUsHCSW9O7Xsloj/imdpm60TI2CXZBOSQ=
+Date: Thu, 12 Feb 2026 15:44:11 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ynorov@nvidia.com,vbabka@suse.cz,surenb@google.com,pfalcato@suse.de,Liam.Howlett@oracle.com,jgg@nvidia.com,jarkko@kernel.org,dlemoal@kernel.org,djwong@kernel.org,dev.jain@arm.com,david@kernel.org,clm@fb.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t.patch removed from -mm tree
-Message-Id: <20260212234410.306FEC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-vm_area_desc-utilise-vma_flags_t-only.patch removed from -mm tree
+Message-Id: <20260212234411.CEC4FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,433 +35,200 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: update all remaining mmap_prepare users to use vma_flags_t
+     Subject: mm: make vm_area_desc utilise vma_flags_t only
 has been removed from the -mm tree.  Its filename was
-     mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t.patch
+     mm-make-vm_area_desc-utilise-vma_flags_t-only.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm: update all remaining mmap_prepare users to use vma_flags_t
-Date: Thu, 22 Jan 2026 16:06:18 +0000
+Subject: mm: make vm_area_desc utilise vma_flags_t only
+Date: Thu, 22 Jan 2026 16:06:19 +0000
 
-We will be shortly removing the vm_flags_t field from vm_area_desc so we
-need to update all mmap_prepare users to only use the dessc->vma_flags
-field.
+Now we have eliminated all uses of vm_area_desc->vm_flags, eliminate this
+field, and have mmap_prepare users utilise the vma_flags_t
+vm_area_desc->vma_flags field only.
 
-This patch achieves that and makes all ancillary changes required to make
-this possible.
+As part of this change we alter is_shared_maywrite() to accept a
+vma_flags_t parameter, and introduce is_shared_maywrite_vm_flags() for use
+with legacy vm_flags_t flags.
 
-This lays the groundwork for future work to eliminate the use of
-vm_flags_t in vm_area_desc altogether and more broadly throughout the
-kernel.
+We also update struct mmap_state to add a union between vma_flags and
+vm_flags temporarily until the mmap logic is also converted to using
+vma_flags_t.
 
-While we're here, we take the opportunity to replace VM_REMAP_FLAGS with
-VMA_REMAP_FLAGS, the vma_flags_t equivalent.
+Also update the VMA userland tests to reflect this change.
 
-No functional changes intended.
-
-Link: https://lkml.kernel.org/r/fb1f55323799f09fe6a36865b31550c9ec67c225.1769097829.git.lorenzo.stoakes@oracle.com
+Link: https://lkml.kernel.org/r/fd2a2938b246b4505321954062b1caba7acfc77a.1769097829.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Damien Le Moal <dlemoal@kernel.org>	[zonefs]
-Acked-by: "Darrick J. Wong" <djwong@kernel.org>
-Acked-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Damien Le Moal <dlemoal@kernel.org>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Jarkko Sakkinen <jarkko@kernel.org>
 Cc: Yury Norov <ynorov@nvidia.com>
 Cc: Chris Mason <clm@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c       |    6 +++---
- drivers/dax/device.c     |   10 +++++-----
- fs/aio.c                 |    2 +-
- fs/erofs/data.c          |    5 +++--
- fs/ext4/file.c           |    4 ++--
- fs/ntfs3/file.c          |    2 +-
- fs/orangefs/file.c       |    4 ++--
- fs/ramfs/file-nommu.c    |    2 +-
- fs/resctrl/pseudo_lock.c |    2 +-
- fs/romfs/mmap-nommu.c    |    2 +-
- fs/xfs/xfs_file.c        |    4 ++--
- fs/zonefs/file.c         |    3 ++-
- include/linux/dax.h      |    8 ++++----
- include/linux/mm.h       |   24 +++++++++++++++++++-----
- kernel/relay.c           |    2 +-
- mm/memory.c              |   17 ++++++++---------
- 16 files changed, 56 insertions(+), 41 deletions(-)
+ include/linux/mm.h               |    9 +++++++--
+ include/linux/mm_types.h         |    5 +----
+ mm/filemap.c                     |    2 +-
+ mm/util.c                        |    2 +-
+ mm/vma.c                         |   11 +++++++----
+ mm/vma.h                         |    3 +--
+ tools/testing/vma/vma_internal.h |    9 +++++++--
+ 7 files changed, 25 insertions(+), 16 deletions(-)
 
---- a/drivers/char/mem.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/drivers/char/mem.c
-@@ -306,7 +306,7 @@ static unsigned zero_mmap_capabilities(s
- /* can't do an in-place private mapping if there's no MMU */
- static inline int private_mapping_ok(struct vm_area_desc *desc)
- {
--	return is_nommu_shared_mapping(desc->vm_flags);
-+	return is_nommu_shared_vma_flags(&desc->vma_flags);
- }
- #else
- 
-@@ -360,7 +360,7 @@ static int mmap_mem_prepare(struct vm_ar
- 
- 	desc->vm_ops = &mmap_mem_ops;
- 
--	/* Remap-pfn-range will mark the range VM_IO. */
-+	/* Remap-pfn-range will mark the range with the I/O flag. */
- 	mmap_action_remap_full(desc, desc->pgoff);
- 	/* We filter remap errors to -EAGAIN. */
- 	desc->action.error_hook = mmap_filter_error;
-@@ -520,7 +520,7 @@ static int mmap_zero_prepare(struct vm_a
- #ifndef CONFIG_MMU
- 	return -ENOSYS;
- #endif
--	if (desc->vm_flags & VM_SHARED)
-+	if (vma_desc_test_flags(desc, VMA_SHARED_BIT))
- 		return shmem_zero_setup_desc(desc);
- 
- 	desc->action.success_hook = mmap_zero_private_success;
---- a/drivers/dax/device.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/drivers/dax/device.c
-@@ -13,7 +13,7 @@
- #include "dax-private.h"
- #include "bus.h"
- 
--static int __check_vma(struct dev_dax *dev_dax, vm_flags_t vm_flags,
-+static int __check_vma(struct dev_dax *dev_dax, vma_flags_t flags,
- 		       unsigned long start, unsigned long end, struct file *file,
- 		       const char *func)
- {
-@@ -24,7 +24,7 @@ static int __check_vma(struct dev_dax *d
- 		return -ENXIO;
- 
- 	/* prevent private mappings from being established */
--	if ((vm_flags & VM_MAYSHARE) != VM_MAYSHARE) {
-+	if (!vma_flags_test(&flags, VMA_MAYSHARE_BIT)) {
- 		dev_info_ratelimited(dev,
- 				"%s: %s: fail, attempted private mapping\n",
- 				current->comm, func);
-@@ -53,7 +53,7 @@ static int __check_vma(struct dev_dax *d
- static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
- 		     const char *func)
- {
--	return __check_vma(dev_dax, vma->vm_flags, vma->vm_start, vma->vm_end,
-+	return __check_vma(dev_dax, vma->flags, vma->vm_start, vma->vm_end,
- 			   vma->vm_file, func);
- }
- 
-@@ -306,14 +306,14 @@ static int dax_mmap_prepare(struct vm_ar
- 	 * fault time.
- 	 */
- 	id = dax_read_lock();
--	rc = __check_vma(dev_dax, desc->vm_flags, desc->start, desc->end, filp,
-+	rc = __check_vma(dev_dax, desc->vma_flags, desc->start, desc->end, filp,
- 			 __func__);
- 	dax_read_unlock(id);
- 	if (rc)
- 		return rc;
- 
- 	desc->vm_ops = &dax_vm_ops;
--	desc->vm_flags |= VM_HUGEPAGE;
-+	vma_desc_set_flags(desc, VMA_HUGEPAGE_BIT);
- 	return 0;
- }
- 
---- a/fs/aio.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/fs/aio.c
-@@ -394,7 +394,7 @@ static const struct vm_operations_struct
- 
- static int aio_ring_mmap_prepare(struct vm_area_desc *desc)
- {
--	desc->vm_flags |= VM_DONTEXPAND;
-+	vma_desc_set_flags(desc, VMA_DONTEXPAND_BIT);
- 	desc->vm_ops = &aio_ring_vm_ops;
- 	return 0;
- }
---- a/fs/erofs/data.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/fs/erofs/data.c
-@@ -438,11 +438,12 @@ static int erofs_file_mmap_prepare(struc
- 	if (!IS_DAX(file_inode(desc->file)))
- 		return generic_file_readonly_mmap_prepare(desc);
- 
--	if ((desc->vm_flags & VM_SHARED) && (desc->vm_flags & VM_MAYWRITE))
-+	if (vma_desc_test_flags(desc, VMA_SHARED_BIT) &&
-+	    vma_desc_test_flags(desc, VMA_MAYWRITE_BIT))
- 		return -EINVAL;
- 
- 	desc->vm_ops = &erofs_dax_vm_ops;
--	desc->vm_flags |= VM_HUGEPAGE;
-+	vma_desc_set_flags(desc, VMA_HUGEPAGE_BIT);
- 	return 0;
- }
- #else
---- a/fs/ext4/file.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/fs/ext4/file.c
-@@ -822,13 +822,13 @@ static int ext4_file_mmap_prepare(struct
- 	 * We don't support synchronous mappings for non-DAX files and
- 	 * for DAX files if underneath dax_device is not synchronous.
- 	 */
--	if (!daxdev_mapping_supported(desc->vm_flags, file_inode(file), dax_dev))
-+	if (!daxdev_mapping_supported(desc, file_inode(file), dax_dev))
- 		return -EOPNOTSUPP;
- 
- 	file_accessed(file);
- 	if (IS_DAX(file_inode(file))) {
- 		desc->vm_ops = &ext4_dax_vm_ops;
--		desc->vm_flags |= VM_HUGEPAGE;
-+		vma_desc_set_flags(desc, VMA_HUGEPAGE_BIT);
- 	} else {
- 		desc->vm_ops = &ext4_file_vm_ops;
- 	}
---- a/fs/ntfs3/file.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/fs/ntfs3/file.c
-@@ -347,7 +347,7 @@ static int ntfs_file_mmap_prepare(struct
- 	struct inode *inode = file_inode(file);
- 	struct ntfs_inode *ni = ntfs_i(inode);
- 	u64 from = ((u64)desc->pgoff << PAGE_SHIFT);
--	bool rw = desc->vm_flags & VM_WRITE;
-+	const bool rw = vma_desc_test_flags(desc, VMA_WRITE_BIT);
- 	int err;
- 
- 	/* Avoid any operation if inode is bad. */
---- a/fs/orangefs/file.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/fs/orangefs/file.c
-@@ -411,8 +411,8 @@ static int orangefs_file_mmap_prepare(st
- 		     "orangefs_file_mmap: called on %pD\n", file);
- 
- 	/* set the sequential readahead hint */
--	desc->vm_flags |= VM_SEQ_READ;
--	desc->vm_flags &= ~VM_RAND_READ;
-+	vma_desc_set_flags(desc, VMA_SEQ_READ_BIT);
-+	vma_desc_clear_flags(desc, VMA_RAND_READ_BIT);
- 
- 	file_accessed(file);
- 	desc->vm_ops = &orangefs_file_vm_ops;
---- a/fs/ramfs/file-nommu.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/fs/ramfs/file-nommu.c
-@@ -264,7 +264,7 @@ out:
-  */
- static int ramfs_nommu_mmap_prepare(struct vm_area_desc *desc)
- {
--	if (!is_nommu_shared_mapping(desc->vm_flags))
-+	if (!is_nommu_shared_vma_flags(&desc->vma_flags))
- 		return -ENOSYS;
- 
- 	file_accessed(desc->file);
---- a/fs/resctrl/pseudo_lock.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/fs/resctrl/pseudo_lock.c
-@@ -1044,7 +1044,7 @@ static int pseudo_lock_dev_mmap_prepare(
- 	 * Ensure changes are carried directly to the memory being mapped,
- 	 * do not allow copy-on-write mapping.
- 	 */
--	if (!(desc->vm_flags & VM_SHARED)) {
-+	if (!vma_desc_test_flags(desc, VMA_SHARED_BIT)) {
- 		mutex_unlock(&rdtgroup_mutex);
- 		return -EINVAL;
- 	}
---- a/fs/romfs/mmap-nommu.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/fs/romfs/mmap-nommu.c
-@@ -63,7 +63,7 @@ static unsigned long romfs_get_unmapped_
-  */
- static int romfs_mmap_prepare(struct vm_area_desc *desc)
- {
--	return is_nommu_shared_mapping(desc->vm_flags) ? 0 : -ENOSYS;
-+	return is_nommu_shared_vma_flags(&desc->vma_flags) ? 0 : -ENOSYS;
- }
- 
- static unsigned romfs_mmap_capabilities(struct file *file)
---- a/fs/xfs/xfs_file.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/fs/xfs/xfs_file.c
-@@ -1974,14 +1974,14 @@ xfs_file_mmap_prepare(
- 	 * We don't support synchronous mappings for non-DAX files and
- 	 * for DAX files if underneath dax_device is not synchronous.
- 	 */
--	if (!daxdev_mapping_supported(desc->vm_flags, file_inode(file),
-+	if (!daxdev_mapping_supported(desc, file_inode(file),
- 				      target->bt_daxdev))
- 		return -EOPNOTSUPP;
- 
- 	file_accessed(file);
- 	desc->vm_ops = &xfs_file_vm_ops;
- 	if (IS_DAX(inode))
--		desc->vm_flags |= VM_HUGEPAGE;
-+		vma_desc_set_flags(desc, VMA_HUGEPAGE_BIT);
- 	return 0;
- }
- 
---- a/fs/zonefs/file.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/fs/zonefs/file.c
-@@ -333,7 +333,8 @@ static int zonefs_file_mmap_prepare(stru
- 	 * ordering between msync() and page cache writeback.
- 	 */
- 	if (zonefs_inode_is_seq(file_inode(file)) &&
--	    (desc->vm_flags & VM_SHARED) && (desc->vm_flags & VM_MAYWRITE))
-+	    vma_desc_test_flags(desc, VMA_SHARED_BIT) &&
-+	    vma_desc_test_flags(desc, VMA_MAYWRITE_BIT))
- 		return -EINVAL;
- 
- 	file_accessed(file);
---- a/include/linux/dax.h~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/include/linux/dax.h
-@@ -65,11 +65,11 @@ size_t dax_recovery_write(struct dax_dev
- /*
-  * Check if given mapping is supported by the file / underlying device.
-  */
--static inline bool daxdev_mapping_supported(vm_flags_t vm_flags,
-+static inline bool daxdev_mapping_supported(const struct vm_area_desc *desc,
- 					    const struct inode *inode,
- 					    struct dax_device *dax_dev)
- {
--	if (!(vm_flags & VM_SYNC))
-+	if (!vma_desc_test_flags(desc, VMA_SYNC_BIT))
- 		return true;
- 	if (!IS_DAX(inode))
- 		return false;
-@@ -111,11 +111,11 @@ static inline void set_dax_nomc(struct d
- static inline void set_dax_synchronous(struct dax_device *dax_dev)
- {
- }
--static inline bool daxdev_mapping_supported(vm_flags_t vm_flags,
-+static inline bool daxdev_mapping_supported(const struct vm_area_desc *desc,
- 					    const struct inode *inode,
- 					    struct dax_device *dax_dev)
- {
--	return !(vm_flags & VM_SYNC);
-+	return !vma_desc_test_flags(desc, VMA_SYNC_BIT);
- }
- static inline size_t dax_recovery_write(struct dax_device *dax_dev,
- 		pgoff_t pgoff, void *addr, size_t bytes, struct iov_iter *i)
---- a/include/linux/mm.h~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
+--- a/include/linux/mm.h~mm-make-vm_area_desc-utilise-vma_flags_t-only
 +++ a/include/linux/mm.h
-@@ -550,17 +550,18 @@ enum {
- /*
-  * Physically remapped pages are special. Tell the
-  * rest of the world about it:
-- *   VM_IO tells people not to look at these pages
-+ *   IO tells people not to look at these pages
-  *	(accesses can have side effects).
-- *   VM_PFNMAP tells the core MM that the base pages are just
-+ *   PFNMAP tells the core MM that the base pages are just
-  *	raw PFN mappings, and do not have a "struct page" associated
-  *	with them.
-- *   VM_DONTEXPAND
-+ *   DONTEXPAND
-  *      Disable vma merging and expanding with mremap().
-- *   VM_DONTDUMP
-+ *   DONTDUMP
-  *      Omit vma from core dump, even when VM_IO turned off.
-  */
--#define VM_REMAP_FLAGS (VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP)
-+#define VMA_REMAP_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_PFNMAP_BIT,	\
-+				     VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)
- 
- /* This mask prevents VMA from being scanned with khugepaged */
- #define VM_NO_KHUGEPAGED (VM_SPECIAL | VM_HUGETLB)
-@@ -1925,6 +1926,14 @@ static inline bool is_cow_mapping(vm_fla
- 	return (flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
+@@ -1290,15 +1290,20 @@ static inline bool vma_is_accessible(con
+ 	return vma->vm_flags & VM_ACCESS_FLAGS;
  }
  
-+static inline bool vma_desc_is_cow_mapping(struct vm_area_desc *desc)
+-static inline bool is_shared_maywrite(vm_flags_t vm_flags)
++static inline bool is_shared_maywrite_vm_flags(vm_flags_t vm_flags)
+ {
+ 	return (vm_flags & (VM_SHARED | VM_MAYWRITE)) ==
+ 		(VM_SHARED | VM_MAYWRITE);
+ }
+ 
++static inline bool is_shared_maywrite(const vma_flags_t *flags)
 +{
-+	const vma_flags_t *flags = &desc->vma_flags;
-+
-+	return vma_flags_test(flags, VMA_MAYWRITE_BIT) &&
-+		!vma_flags_test(flags, VMA_SHARED_BIT);
++	return vma_flags_test_all(flags, VMA_SHARED_BIT, VMA_MAYWRITE_BIT);
 +}
 +
- #ifndef CONFIG_MMU
- static inline bool is_nommu_shared_mapping(vm_flags_t flags)
+ static inline bool vma_is_shared_maywrite(const struct vm_area_struct *vma)
  {
-@@ -1938,6 +1947,11 @@ static inline bool is_nommu_shared_mappi
- 	 */
- 	return flags & (VM_MAYSHARE | VM_MAYOVERLAY);
+-	return is_shared_maywrite(vma->vm_flags);
++	return is_shared_maywrite(&vma->flags);
  }
-+
-+static inline bool is_nommu_shared_vma_flags(const vma_flags_t *flags)
+ 
+ static inline
+--- a/include/linux/mm_types.h~mm-make-vm_area_desc-utilise-vma_flags_t-only
++++ a/include/linux/mm_types.h
+@@ -887,10 +887,7 @@ struct vm_area_desc {
+ 	/* Mutable fields. Populated with initial state. */
+ 	pgoff_t pgoff;
+ 	struct file *vm_file;
+-	union {
+-		vm_flags_t vm_flags;
+-		vma_flags_t vma_flags;
+-	};
++	vma_flags_t vma_flags;
+ 	pgprot_t page_prot;
+ 
+ 	/* Write-only fields. */
+--- a/mm/filemap.c~mm-make-vm_area_desc-utilise-vma_flags_t-only
++++ a/mm/filemap.c
+@@ -4012,7 +4012,7 @@ int generic_file_readonly_mmap(struct fi
+ 
+ int generic_file_readonly_mmap_prepare(struct vm_area_desc *desc)
+ {
+-	if (is_shared_maywrite(desc->vm_flags))
++	if (is_shared_maywrite(&desc->vma_flags))
+ 		return -EINVAL;
+ 	return generic_file_mmap_prepare(desc);
+ }
+--- a/mm/util.c~mm-make-vm_area_desc-utilise-vma_flags_t-only
++++ a/mm/util.c
+@@ -1154,7 +1154,7 @@ int __compat_vma_mmap(const struct file_
+ 
+ 		.pgoff = vma->vm_pgoff,
+ 		.vm_file = vma->vm_file,
+-		.vm_flags = vma->vm_flags,
++		.vma_flags = vma->flags,
+ 		.page_prot = vma->vm_page_prot,
+ 
+ 		.action.type = MMAP_NOTHING, /* Default */
+--- a/mm/vma.c~mm-make-vm_area_desc-utilise-vma_flags_t-only
++++ a/mm/vma.c
+@@ -15,7 +15,10 @@ struct mmap_state {
+ 	unsigned long end;
+ 	pgoff_t pgoff;
+ 	unsigned long pglen;
+-	vm_flags_t vm_flags;
++	union {
++		vm_flags_t vm_flags;
++		vma_flags_t vma_flags;
++	};
+ 	struct file *file;
+ 	pgprot_t page_prot;
+ 
+@@ -2369,7 +2372,7 @@ static void set_desc_from_map(struct vm_
+ 
+ 	desc->pgoff = map->pgoff;
+ 	desc->vm_file = map->file;
+-	desc->vm_flags = map->vm_flags;
++	desc->vma_flags = map->vma_flags;
+ 	desc->page_prot = map->page_prot;
+ }
+ 
+@@ -2650,7 +2653,7 @@ static int call_mmap_prepare(struct mmap
+ 		map->file_doesnt_need_get = true;
+ 		map->file = desc->vm_file;
+ 	}
+-	map->vm_flags = desc->vm_flags;
++	map->vma_flags = desc->vma_flags;
+ 	map->page_prot = desc->page_prot;
+ 	/* User-defined fields. */
+ 	map->vm_ops = desc->vm_ops;
+@@ -2823,7 +2826,7 @@ unsigned long mmap_region(struct file *f
+ 		return -EINVAL;
+ 
+ 	/* Map writable and ensure this isn't a sealed memfd. */
+-	if (file && is_shared_maywrite(vm_flags)) {
++	if (file && is_shared_maywrite_vm_flags(vm_flags)) {
+ 		int error = mapping_map_writable(file->f_mapping);
+ 
+ 		if (error)
+--- a/mm/vma.h~mm-make-vm_area_desc-utilise-vma_flags_t-only
++++ a/mm/vma.h
+@@ -309,8 +309,7 @@ static inline void set_vma_from_desc(str
+ 	vma->vm_pgoff = desc->pgoff;
+ 	if (desc->vm_file != vma->vm_file)
+ 		vma_set_file(vma, desc->vm_file);
+-	if (desc->vm_flags != vma->vm_flags)
+-		vm_flags_set(vma, desc->vm_flags);
++	vma->flags = desc->vma_flags;
+ 	vma->vm_page_prot = desc->page_prot;
+ 
+ 	/* User-defined fields. */
+--- a/tools/testing/vma/vma_internal.h~mm-make-vm_area_desc-utilise-vma_flags_t-only
++++ a/tools/testing/vma/vma_internal.h
+@@ -1009,15 +1009,20 @@ static inline void vma_desc_clear_flags_
+ #define vma_desc_clear_flags(desc, ...) \
+ 	vma_desc_clear_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
+ 
+-static inline bool is_shared_maywrite(vm_flags_t vm_flags)
++static inline bool is_shared_maywrite_vm_flags(vm_flags_t vm_flags)
+ {
+ 	return (vm_flags & (VM_SHARED | VM_MAYWRITE)) ==
+ 		(VM_SHARED | VM_MAYWRITE);
+ }
+ 
++static inline bool is_shared_maywrite(const vma_flags_t *flags)
 +{
-+	return vma_flags_test(flags, VMA_MAYSHARE_BIT, VMA_MAYOVERLAY_BIT);
++	return vma_flags_test_all(flags, VMA_SHARED_BIT, VMA_MAYWRITE_BIT);
 +}
- #endif
- 
- #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
---- a/kernel/relay.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/kernel/relay.c
-@@ -92,7 +92,7 @@ static int relay_mmap_prepare_buf(struct
- 		return -EINVAL;
- 
- 	desc->vm_ops = &relay_file_mmap_ops;
--	desc->vm_flags |= VM_DONTEXPAND;
-+	vma_desc_set_flags(desc, VMA_DONTEXPAND_BIT);
- 	desc->private_data = buf;
- 
- 	return 0;
---- a/mm/memory.c~mm-update-all-remaining-mmap_prepare-users-to-use-vma_flags_t
-+++ a/mm/memory.c
-@@ -2957,7 +2957,7 @@ static inline int remap_p4d_range(struct
- 	return 0;
- }
- 
--static int get_remap_pgoff(vm_flags_t vm_flags, unsigned long addr,
-+static int get_remap_pgoff(bool is_cow, unsigned long addr,
- 		unsigned long end, unsigned long vm_start, unsigned long vm_end,
- 		unsigned long pfn, pgoff_t *vm_pgoff_p)
++
+ static inline bool vma_is_shared_maywrite(struct vm_area_struct *vma)
  {
-@@ -2967,7 +2967,7 @@ static int get_remap_pgoff(vm_flags_t vm
- 	 * un-COW'ed pages by matching them up with "vma->vm_pgoff".
- 	 * See vm_normal_page() for details.
- 	 */
--	if (is_cow_mapping(vm_flags)) {
-+	if (is_cow) {
- 		if (addr != vm_start || end != vm_end)
- 			return -EINVAL;
- 		*vm_pgoff_p = pfn;
-@@ -2988,7 +2988,7 @@ static int remap_pfn_range_internal(stru
- 	if (WARN_ON_ONCE(!PAGE_ALIGNED(addr)))
- 		return -EINVAL;
- 
--	VM_WARN_ON_ONCE((vma->vm_flags & VM_REMAP_FLAGS) != VM_REMAP_FLAGS);
-+	VM_WARN_ON_ONCE(!vma_test_all_flags_mask(vma, VMA_REMAP_FLAGS));
- 
- 	BUG_ON(addr >= end);
- 	pfn -= addr >> PAGE_SHIFT;
-@@ -3112,9 +3112,9 @@ void remap_pfn_range_prepare(struct vm_a
- 	 * check it again on complete and will fail there if specified addr is
- 	 * invalid.
- 	 */
--	get_remap_pgoff(desc->vm_flags, desc->start, desc->end,
-+	get_remap_pgoff(vma_desc_is_cow_mapping(desc), desc->start, desc->end,
- 			desc->start, desc->end, pfn, &desc->pgoff);
--	desc->vm_flags |= VM_REMAP_FLAGS;
-+	vma_desc_set_flags_mask(desc, VMA_REMAP_FLAGS);
+-	return is_shared_maywrite(vma->vm_flags);
++	return is_shared_maywrite(&vma->flags);
  }
  
- static int remap_pfn_range_prepare_vma(struct vm_area_struct *vma, unsigned long addr,
-@@ -3123,13 +3123,12 @@ static int remap_pfn_range_prepare_vma(s
- 	unsigned long end = addr + PAGE_ALIGN(size);
- 	int err;
- 
--	err = get_remap_pgoff(vma->vm_flags, addr, end,
--			      vma->vm_start, vma->vm_end,
--			      pfn, &vma->vm_pgoff);
-+	err = get_remap_pgoff(is_cow_mapping(vma->vm_flags), addr, end,
-+			      vma->vm_start, vma->vm_end, pfn, &vma->vm_pgoff);
- 	if (err)
- 		return err;
- 
--	vm_flags_set(vma, VM_REMAP_FLAGS);
-+	vma_set_flags_mask(vma, VMA_REMAP_FLAGS);
- 	return 0;
- }
- 
+ static inline struct vm_area_struct *vma_next(struct vma_iterator *vmi)
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
