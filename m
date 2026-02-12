@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BFA4F9D9
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 20:33:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28BC3F9D9
+	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 20:34:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770928390; cv=none; b=phfITwZgpmLKQUyoWYWnRSMsFtVVB8+JFLg8F7e3548Rn2VDzAp5GgbDO6F9x7bIsgJWCCNPzWH2TqWo4bAEw+aScaVfwR/qWfQh1eyYyIWEqZvdCL1O/irB200evRmKqzw7EX/4Aq0rlCH7GLqWrB9vRjJ8xzVtJmu6ZgoGOXk=
+	t=1770928458; cv=none; b=NGnMZfXiAhMEUYn945/Y2Kv1pX6Aza8xvWI4e+lMTC3PX3InLWsfxuK2krj+Xhh10kUxs9FEtwfN5bcx/eaIYwZdotJDiHQoTpFI/GkmUnjTMzKLqKO7KMp3nWhJVYTIyki936lQsEDMWZ1j4ZhJrJWtWWCFvggd6pvRvvq0egc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770928390; c=relaxed/simple;
-	bh=L7ZW7SEtbkKY5iP79qhQhklYVp4UjGU06EgtrBcvgaE=;
-	h=Date:To:From:Subject:Message-Id; b=Y7k7iOqzdpWulced8/+CQxcWTHbRyZHResIQ3Uu9im2vehNVeZQAQw7aiCiCtSIiEVRTPnOjvVzhNBGly0i3h6Gt3lExYS1UBg4dquYEDRGrAk+bU6NfVUnVV01RhEWhFMFzyE8xSh54MFbVNn14ii483y0s785IRvMI0THWO6E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TMBWfmaX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770928458; c=relaxed/simple;
+	bh=UgAi9iHJywZkElaer9UGgRTmFpmWo+UAB1gGy/q+/gQ=;
+	h=Date:To:From:Subject:Message-Id; b=rIp01PoFcamc4Pfauqh2mPPb/Ph5DVHBYV753HYQpbwg6V7X99hHwENqD0QcTDNmZpzClTLke20hoZlM6QkrTxBlFIq/yr3JS5pMM0MRMT6vQ3wLvvo+l8A9WmXX1eAoTGm0RrvQ9JtmundMOTS48o+hp2ZUO31BuYEQfWI8pfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SrZaCSQE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TMBWfmaX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CEFBC4CEF7;
-	Thu, 12 Feb 2026 20:33:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SrZaCSQE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1FAFC4CEF7;
+	Thu, 12 Feb 2026 20:34:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770928390;
-	bh=L7ZW7SEtbkKY5iP79qhQhklYVp4UjGU06EgtrBcvgaE=;
+	s=korg; t=1770928458;
+	bh=UgAi9iHJywZkElaer9UGgRTmFpmWo+UAB1gGy/q+/gQ=;
 	h=Date:To:From:Subject:From;
-	b=TMBWfmaXxrdBOnd8PhYt2fLxtHZjEClcRxYUTFDztWOjIrb34SWuTOZbpf5CpyhEG
-	 scgDzLAmp61Ss8VDeXJgphb9AQIGWMOesJ6H7YM5yXRGVFI078EDWDd02PDqIvr1HA
-	 KkCd7VA/o1IYTOjVVrs4lxTsDsOtYRe6I/Sp+YLU=
-Date: Thu, 12 Feb 2026 12:33:09 -0800
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,wang.yaxin@zte.com.cn,hughd@google.com,david@kernel.org,chengming.zhou@linux.dev,xu.xin16@zte.com.cn,akpm@linux-foundation.org
+	b=SrZaCSQEG1JhoFIEKo4Z80X9ZEvWtO4r32eloHbiyGqq9csvXdPuwvCHvJgswjMaw
+	 xOBBh0Yf5kSw4RB8WK+k1xqU6mppSw80zUVOa2MnGRaK/21/l+CytNNUiqVux3Jrbj
+	 bSbGjkJKcFCbuBvvAfaMqpJT+9ysVXWS9F9y1R2U=
+Date: Thu, 12 Feb 2026 12:34:17 -0800
+To: mm-commits@vger.kernel.org,liam.howlett@oracle.com,andrewjballance@gmail.com,aliceryhl@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range.patch added to mm-new branch
-Message-Id: <20260212203310.1CEFBC4CEF7@smtp.kernel.org>
+Subject: [to-be-updated] maple_tree-update-mas_next-docs.patch removed from -mm tree
+Message-Id: <20260212203417.F1FAFC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,145 +34,69 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: ksm: optimize rmap_walk_ksm by passing a suitable address range
-has been added to the -mm mm-new branch.  Its filename is
-     ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range.patch
+The quilt patch titled
+     Subject: maple_tree: update mas_next[_range] docs
+has been removed from the -mm tree.  Its filename was
+     maple_tree-update-mas_next-docs.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: xu xin <xu.xin16@zte.com.cn>
-Subject: ksm: optimize rmap_walk_ksm by passing a suitable address range
-Date: Thu, 12 Feb 2026 19:30:45 +0800 (CST)
+From: Alice Ryhl <aliceryhl@google.com>
+Subject: maple_tree: update mas_next[_range] docs
+Date: Sun, 18 Jan 2026 11:00:41 +0000
 
-Problem
-=======
-When available memory is extremely tight, causing KSM pages to be swapped
-out, or when there is significant memory fragmentation and THP triggers
-memory compaction, the system will invoke the rmap_walk_ksm function to
-perform reverse mapping.  However, we observed that this function becomes
-particularly time-consuming when a large number of VMAs (e.g., 20,000)
-share the same anon_vma.  Through debug trace analysis, we found that most
-of the latency occurs within anon_vma_interval_tree_foreach, leading to an
-excessively long hold time on the anon_vma lock (even reaching 500ms or
-more), which in turn causes upper-layer applications (waiting for the
-anon_vma lock) to be blocked for extended periods.
+If you read the docs, it sounds like the difference between these
+functions is whether mas->index and mas->last are updated.  However, if
+you read the implementation, you will instead find that the difference is
+whether NULL entries are skipped.
 
-Root Cause
-==========
-Further investigation revealed that 99.9% of iterations inside the
-anon_vma_interval_tree_foreach loop are skipped due to the first check "if
-(addr < vma->vm_start || addr >= vma->vm_end)), indicating that a large
-number of loop iterations are ineffective.  This inefficiency arises
-because the pgoff_start and pgoff_end parameters passed to
-anon_vma_interval_tree_foreach span the entire address space from 0 to
-ULONG_MAX, resulting in very poor loop efficiency.
-
-Solution
-========
-In fact, we can significantly improve performance by passing a more precise
-range based on the given addr. Since the original pages merged by KSM
-correspond to anonymous VMAs, the page offset can be calculated as
-pgoff = address >> PAGE_SHIFT. Therefore, we can optimize the call by
-defining:
-
-	pgoff = rmap_item->address >> PAGE_SHIFT;
-
-Performance
-===========
-In our real embedded Linux environment, the measured metrcis were as
-follows:
-
-1) Time_ms: Max time for holding anon_vma lock in a single
-   rmap_walk_ksm.
-
-2) Nr_iteration_total: The max times of iterations in a loop of
-   anon_vma_interval_tree_foreach
-
-3) Skip_addr_out_of_range: The max times of skipping due to the first
-   check (vma->vm_start and vma->vm_end) in a loop of
-   anon_vma_interval_tree_foreach.
-
-4) Skip_mm_mismatch: The max times of skipping due to the second check
-   (rmap_item->mm == vma->vm_mm) in a loop of
-   anon_vma_interval_tree_foreach.
-
-The result is as follows:
-
-         Time_ms      Nr_iteration_total    Skip_addr_out_of_range   Skip_mm_mismatch
-Before:  228.65       22169                 22168                    0
-After :   0.396        3                     0                       2
-
-The referenced reproducer of rmap_walk_ksm can be found at:
-https://lore.kernel.org/all/20260206151424734QIyWL_pA-1QeJPbJlUxsO@zte.com.cn/
-
-Link: https://lkml.kernel.org/r/20260212193045556CbzCX8p9gDu73tQ2nvHEI@zte.com.cn
-Co-developed-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
-Signed-off-by: xu xin <xu.xin16@zte.com.cn>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Link: https://lkml.kernel.org/r/20260118-mas-next-doc-v1-1-827d9f4924ce@google.com
+Signed-off-by: Alice Ryhl <aliceryhl@google.com>
+Cc: Andrew Ballance <andrewjballance@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ lib/maple_tree.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/ksm.c~ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range
-+++ a/mm/ksm.c
-@@ -3170,6 +3170,7 @@ again:
- 	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist) {
- 		/* Ignore the stable/unstable/sqnr flags */
- 		const unsigned long addr = rmap_item->address & PAGE_MASK;
-+		const pgoff_t pgoff = rmap_item->address >> PAGE_SHIFT;
- 		struct anon_vma *anon_vma = rmap_item->anon_vma;
- 		struct anon_vma_chain *vmac;
- 		struct vm_area_struct *vma;
-@@ -3183,8 +3184,12 @@ again:
- 			anon_vma_lock_read(anon_vma);
- 		}
+--- a/lib/maple_tree.c~maple_tree-update-mas_next-docs
++++ a/lib/maple_tree.c
+@@ -5060,13 +5060,14 @@ static bool mas_next_setup(struct ma_sta
+ }
  
-+		/*
-+		 * Currently KSM folios are order-0 normal pages, so pgoff_end
-+		 * should be the same as pgoff_start.
-+		 */
- 		anon_vma_interval_tree_foreach(vmac, &anon_vma->rb_root,
--					       0, ULONG_MAX) {
-+					       pgoff, pgoff) {
+ /**
+- * mas_next() - Get the next entry.
++ * mas_next() - Advance the maple state to the next range, skipping zero entries.
+  * @mas: The maple state
+  * @max: The maximum index to check.
+  *
+  * Returns the next entry after @mas->index.
++ * Updates @mas->index and @mas->last to the range.
+  * Must hold rcu_read_lock or the write lock.
+- * Can return the zero entry.
++ * Skips entries reserved with XA_ZERO_ENTRY.
+  *
+  * Return: The next entry or %NULL
+  */
+@@ -5083,11 +5084,12 @@ void *mas_next(struct ma_state *mas, uns
+ EXPORT_SYMBOL_GPL(mas_next);
  
- 			cond_resched();
- 			vma = vmac->vma;
+ /**
+- * mas_next_range() - Advance the maple state to the next range
++ * mas_next_range() - Advance the maple state to the next range.
+  * @mas: The maple state
+  * @max: The maximum index to check.
+  *
+- * Sets @mas->index and @mas->last to the range.
++ * Returns the next entry after @mas->index.
++ * Updates @mas->index and @mas->last to the range.
+  * Must hold rcu_read_lock or the write lock.
+  * Can return the zero entry.
+  *
 _
 
-Patches currently in -mm which might be from xu.xin16@zte.com.cn are
+Patches currently in -mm which might be from aliceryhl@google.com are
 
-ksm-initialize-the-addr-only-once-in-rmap_walk_ksm.patch
-ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range.patch
 
