@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28BC3F9D9
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 20:34:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDE10F9C0
+	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 20:35:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770928458; cv=none; b=NGnMZfXiAhMEUYn945/Y2Kv1pX6Aza8xvWI4e+lMTC3PX3InLWsfxuK2krj+Xhh10kUxs9FEtwfN5bcx/eaIYwZdotJDiHQoTpFI/GkmUnjTMzKLqKO7KMp3nWhJVYTIyki936lQsEDMWZ1j4ZhJrJWtWWCFvggd6pvRvvq0egc=
+	t=1770928502; cv=none; b=XCkFScYDdyaJ+XrRUTp16iCD0quuJFlP7q5pSZ9hqOkr9p26EPaV/iG5eQ17ec131Zo5lKDEjBO1Fckab5EZSM1D2sN2bPDzJdd0E7UylFck1R+WdN0cLD064nvzpTRAg33MXnClnJHXqii7GBa9q9BWYlkTATy4JvhzgCIcWH4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770928458; c=relaxed/simple;
-	bh=UgAi9iHJywZkElaer9UGgRTmFpmWo+UAB1gGy/q+/gQ=;
-	h=Date:To:From:Subject:Message-Id; b=rIp01PoFcamc4Pfauqh2mPPb/Ph5DVHBYV753HYQpbwg6V7X99hHwENqD0QcTDNmZpzClTLke20hoZlM6QkrTxBlFIq/yr3JS5pMM0MRMT6vQ3wLvvo+l8A9WmXX1eAoTGm0RrvQ9JtmundMOTS48o+hp2ZUO31BuYEQfWI8pfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SrZaCSQE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770928502; c=relaxed/simple;
+	bh=RnL05tNtRVgbJ2Oickh5fXzp6n14Ul1WENW7m15Pb7A=;
+	h=Date:To:From:Subject:Message-Id; b=OlRvWwDl95Gm9bdzih1wK4eKFjP2dk93EM9kXi3iZIzi7fxlnOeToiOp2qtA2QaCpsxGNM7fQbL1XiViGY4dnziLFqO06wIEHKuD72r9JpgXajgihq6mTAV5WUOT68E26TjaYqimTh0FsxUJcQcC1L14vKCVVVgwTljP8DJNnDU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AZPZI7fl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SrZaCSQE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1FAFC4CEF7;
-	Thu, 12 Feb 2026 20:34:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AZPZI7fl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68373C4CEF7;
+	Thu, 12 Feb 2026 20:35:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770928458;
-	bh=UgAi9iHJywZkElaer9UGgRTmFpmWo+UAB1gGy/q+/gQ=;
+	s=korg; t=1770928501;
+	bh=RnL05tNtRVgbJ2Oickh5fXzp6n14Ul1WENW7m15Pb7A=;
 	h=Date:To:From:Subject:From;
-	b=SrZaCSQEG1JhoFIEKo4Z80X9ZEvWtO4r32eloHbiyGqq9csvXdPuwvCHvJgswjMaw
-	 xOBBh0Yf5kSw4RB8WK+k1xqU6mppSw80zUVOa2MnGRaK/21/l+CytNNUiqVux3Jrbj
-	 bSbGjkJKcFCbuBvvAfaMqpJT+9ysVXWS9F9y1R2U=
-Date: Thu, 12 Feb 2026 12:34:17 -0800
-To: mm-commits@vger.kernel.org,liam.howlett@oracle.com,andrewjballance@gmail.com,aliceryhl@google.com,akpm@linux-foundation.org
+	b=AZPZI7flPvieqeCzKsPfMq1fqjYf+WnVllhJPdmTH3yWHGffNyLQ2CyM9TYfShJIH
+	 xQERat7j5ZXV0Z+K6pipMOwKFV+W/nvMlmX1Z0/mSuTnts6k5vBLxzamGFbricgUXJ
+	 2upe96/lJZ5Qp9psR6OuOMq8s4tGxPlGOlEwcdh8=
+Date: Thu, 12 Feb 2026 12:35:00 -0800
+To: mm-commits@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,jgg@nvidia.com,hughd@google.com,graf@amazon.com,baolin.wang@linux.alibaba.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] maple_tree-update-mas_next-docs.patch removed from -mm tree
-Message-Id: <20260212203417.F1FAFC4CEF7@smtp.kernel.org>
+Subject: [to-be-updated] memfd-export-memfd_addget_seals.patch removed from -mm tree
+Message-Id: <20260212203501.68373C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: update mas_next[_range] docs
+     Subject: memfd: export memfd_{add,get}_seals()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-update-mas_next-docs.patch
+     memfd-export-memfd_addget_seals.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Alice Ryhl <aliceryhl@google.com>
-Subject: maple_tree: update mas_next[_range] docs
-Date: Sun, 18 Jan 2026 11:00:41 +0000
+From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
+Subject: memfd: export memfd_{add,get}_seals()
+Date: Fri, 23 Jan 2026 10:58:50 +0100
 
-If you read the docs, it sounds like the difference between these
-functions is whether mas->index and mas->last are updated.  However, if
-you read the implementation, you will instead find that the difference is
-whether NULL entries are skipped.
+Patch series "mm: memfd_luo: preserve file seals".
 
-Link: https://lkml.kernel.org/r/20260118-mas-next-doc-v1-1-827d9f4924ce@google.com
-Signed-off-by: Alice Ryhl <aliceryhl@google.com>
-Cc: Andrew Ballance <andrewjballance@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+This series adds support for preserving file seals when preserving a memfd
+using LUO.  Patch 1 exports some memfd seal manipulation functions and
+patch 2 adds support for preserving them.  Since it makes changes to the
+serialized data structure for memfd, it also bumps the version number.
+
+
+This patch (of 2):
+
+Support for preserving file seals will be added to memfd preservation
+using the Live Update Orchestrator (LUO).  Export memfd_{add,get}_seals)()
+so memfd_luo can use them to manipulate the seals.
+
+Link: https://lkml.kernel.org/r/20260123095854.535058-1-pratyush@kernel.org
+Link: https://lkml.kernel.org/r/20260123095854.535058-2-pratyush@kernel.org
+Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Samiullah Khawaja <skhawaja@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/memfd.h |   12 ++++++++++++
+ mm/memfd.c            |    4 ++--
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-update-mas_next-docs
-+++ a/lib/maple_tree.c
-@@ -5060,13 +5060,14 @@ static bool mas_next_setup(struct ma_sta
+--- a/include/linux/memfd.h~memfd-export-memfd_addget_seals
++++ a/include/linux/memfd.h
+@@ -18,6 +18,8 @@ struct folio *memfd_alloc_folio(struct f
+  */
+ int memfd_check_seals_mmap(struct file *file, vm_flags_t *vm_flags_ptr);
+ struct file *memfd_alloc_file(const char *name, unsigned int flags);
++int memfd_get_seals(struct file *file);
++int memfd_add_seals(struct file *file, unsigned int seals);
+ #else
+ static inline long memfd_fcntl(struct file *f, unsigned int c, unsigned int a)
+ {
+@@ -37,6 +39,16 @@ static inline struct file *memfd_alloc_f
+ {
+ 	return ERR_PTR(-EINVAL);
+ }
++
++static inline int memfd_get_seals(struct file *file)
++{
++	return -EINVAL;
++}
++
++static inline int memfd_add_seals(struct file *file, unsigned int seals)
++{
++	return -EINVAL;
++}
+ #endif
+ 
+ #endif /* __LINUX_MEMFD_H */
+--- a/mm/memfd.c~memfd-export-memfd_addget_seals
++++ a/mm/memfd.c
+@@ -227,7 +227,7 @@ static unsigned int *memfd_file_seals_pt
+ 		     F_SEAL_WRITE | \
+ 		     F_SEAL_FUTURE_WRITE)
+ 
+-static int memfd_add_seals(struct file *file, unsigned int seals)
++int memfd_add_seals(struct file *file, unsigned int seals)
+ {
+ 	struct inode *inode = file_inode(file);
+ 	unsigned int *file_seals;
+@@ -309,7 +309,7 @@ unlock:
+ 	return error;
  }
  
- /**
-- * mas_next() - Get the next entry.
-+ * mas_next() - Advance the maple state to the next range, skipping zero entries.
-  * @mas: The maple state
-  * @max: The maximum index to check.
-  *
-  * Returns the next entry after @mas->index.
-+ * Updates @mas->index and @mas->last to the range.
-  * Must hold rcu_read_lock or the write lock.
-- * Can return the zero entry.
-+ * Skips entries reserved with XA_ZERO_ENTRY.
-  *
-  * Return: The next entry or %NULL
-  */
-@@ -5083,11 +5084,12 @@ void *mas_next(struct ma_state *mas, uns
- EXPORT_SYMBOL_GPL(mas_next);
+-static int memfd_get_seals(struct file *file)
++int memfd_get_seals(struct file *file)
+ {
+ 	unsigned int *seals = memfd_file_seals_ptr(file);
  
- /**
-- * mas_next_range() - Advance the maple state to the next range
-+ * mas_next_range() - Advance the maple state to the next range.
-  * @mas: The maple state
-  * @max: The maximum index to check.
-  *
-- * Sets @mas->index and @mas->last to the range.
-+ * Returns the next entry after @mas->index.
-+ * Updates @mas->index and @mas->last to the range.
-  * Must hold rcu_read_lock or the write lock.
-  * Can return the zero entry.
-  *
 _
 
-Patches currently in -mm which might be from aliceryhl@google.com are
+Patches currently in -mm which might be from pratyush@kernel.org are
 
+mm-memfd_luo-preserve-file-seals.patch
 
