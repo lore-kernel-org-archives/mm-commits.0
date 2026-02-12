@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 937562C026E
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:43:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45BAF3EBF1B
+	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:43:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770939823; cv=none; b=AdQBI2J8nJqxMbuybJsgnC47ZSP+d0PMGm9aJDwk3enqqb7KV32Ie3Z7tutYCBq5+y0MBdpVwu4vtD02dJiE5ylSckUSDnWS/wdRSPPUd1eWg4XNwpULKzIVU7sG38+k2iYNBHyl2F17u/Mv7R2iY2k5H1N6KcOi40JmrqlF8x8=
+	t=1770939825; cv=none; b=MMg/SKsHmJBPbxMtBEnYMQeqkkmOir4lL5Ha+rM0rLLjRI3f6groSEYwawGUraPriFx4YsZL4IkgLOQI6dlOELqb/FVFBmK6SvaWuGfdu1toAihFxwtIx8RNEwdDex2sqIbYxEaZgrYKwW2T7bYcNAiUBl+BKl7OJ1Wz25ADVfA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770939823; c=relaxed/simple;
-	bh=GFd/pUfxlTLk3I10bKBVR730NRPL8l1VmkKskWG8QCw=;
-	h=Date:To:From:Subject:Message-Id; b=RcxOyDBC0fqKjNYHgOmIGjKij/OF24BtFaLvz+Sj0R2pAGfOIkaRxVCY/MdAC0UaQkKPBxWggmEdl5y2BdAS0dZUIlyyHnmW5MD4GbV7F6Qc3JbNDqodYhgBPoSCobPMzr/X2k1gUsTsjmyYF89jZ/FZiPS6K/5Kh9VE7heDL6k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=W4BgW1BT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770939825; c=relaxed/simple;
+	bh=tlJtt47w7mjmCinVGQIE1pQUJRybnhmrJbfvmKmKL4g=;
+	h=Date:To:From:Subject:Message-Id; b=MAQE+2bUL1OqmpXjiL7oUBqem2YKUir1Wuj6uQz5xWOEEAMrLAzWMGfwV563+yf9Tgs/uKDOagkokJ3JLOIxK/oJVxAH3tDMvQATK0Ln+mTHsZptNSKL98LhHAt/FwmMQ/BFWhcw8AX+wMTOeejJrPXSzXhxiIH2yQ1QGwdhd34=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q8Ir09SH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="W4BgW1BT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 281EDC4CEF7;
-	Thu, 12 Feb 2026 23:43:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q8Ir09SH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E321FC4CEF7;
+	Thu, 12 Feb 2026 23:43:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770939823;
-	bh=GFd/pUfxlTLk3I10bKBVR730NRPL8l1VmkKskWG8QCw=;
+	s=korg; t=1770939825;
+	bh=tlJtt47w7mjmCinVGQIE1pQUJRybnhmrJbfvmKmKL4g=;
 	h=Date:To:From:Subject:From;
-	b=W4BgW1BTIHRN7Tg9zU6tEA3bAl3qJQnfpjZhOmSN9e8p2Hs/0LvD3iPCscX6vcu5T
-	 e8TXyyN5NJGwGFzvyoEX/C30qRC8g8wg9aG/3tSywfcj4YAJNGiO0nqGOYIc0Aqqgo
-	 DhnUyhXccMgy7AlNSPi2nrpCB0aJxLbpmZAwGPc4=
-Date: Thu, 12 Feb 2026 15:43:42 -0800
+	b=q8Ir09SHW1ZDS++A9RBycQMMQmOPerb8VAD1/Quf+EJe/qMo8quly7JthSm4NUTSe
+	 qBGVOIXhqnZ1U0Si8/V2f1RiTAecN+QJiuDNw57QaBf48YUxoAMX91MZf5XfnedMbA
+	 7x2sk0LTrqfZWQ4Fe9Am4gH7PoFwuPvLqEGcZlhU=
+Date: Thu, 12 Feb 2026 15:43:44 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,rppt@kernel.org,pfalcato@suse.de,nphamcs@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,kasong@tencent.com,jannh@google.com,david@redhat.com,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-add-tree-limit-to-free_pgtables.patch removed from -mm tree
-Message-Id: <20260212234343.281EDC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-add-page-table-limit-to-unmap_region.patch removed from -mm tree
+Message-Id: <20260212234344.E321FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory: add tree limit to free_pgtables()
+     Subject: mm/vma: add page table limit to unmap_region()
 has been removed from the -mm tree.  Its filename was
-     mm-memory-add-tree-limit-to-free_pgtables.patch
+     mm-vma-add-page-table-limit-to-unmap_region.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/memory: add tree limit to free_pgtables()
-Date: Wed, 21 Jan 2026 11:49:40 -0500
+Subject: mm/vma: add page table limit to unmap_region()
+Date: Wed, 21 Jan 2026 11:49:41 -0500
 
-The ceiling and tree search limit need to be different arguments for the
-future change in the failed fork attempt.  The ceiling and floor variables
-are not very descriptive, so change them to pg_start/pg_end.
-
-Adding a new variable for the vma_end to the function as it will differ
-from the pg_end in the later patches in the series.
-
-Add a kernel doc about the free_pgtables() function.
-
-Test code also updated.
+The unmap_region() calls need to pass through the page table limit for a
+future patch.
 
 No functional changes intended.
 
-Link: https://lkml.kernel.org/r/20260121164946.2093480-6-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20260121164946.2093480-7-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
@@ -82,145 +74,52 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h                    |    6 ++--
- mm/memory.c                      |   42 ++++++++++++++++++++++-------
- mm/mmap.c                        |    2 -
- mm/vma.c                         |    3 +-
- tools/testing/vma/vma_internal.h |    3 +-
- 5 files changed, 42 insertions(+), 14 deletions(-)
+ mm/vma.c |    7 ++++---
+ mm/vma.h |    3 ++-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/internal.h~mm-memory-add-tree-limit-to-free_pgtables
-+++ a/mm/internal.h
-@@ -510,8 +510,10 @@ void deactivate_file_folio(struct folio
- void folio_activate(struct folio *folio);
- 
- void free_pgtables(struct mmu_gather *tlb, struct ma_state *mas,
--		   struct vm_area_struct *start_vma, unsigned long floor,
--		   unsigned long ceiling, bool mm_wr_locked);
-+		   struct vm_area_struct *vma, unsigned long pg_start,
-+		   unsigned long pg_end, unsigned long vma_end,
-+		   bool mm_wr_locked);
-+
- void pmd_install(struct mm_struct *mm, pmd_t *pmd, pgtable_t *pte);
- 
- struct zap_details;
---- a/mm/memory.c~mm-memory-add-tree-limit-to-free_pgtables
-+++ a/mm/memory.c
-@@ -370,23 +370,47 @@ void free_pgd_range(struct mmu_gather *t
- 	} while (pgd++, addr = next, addr != end);
- }
- 
-+/**
-+ * free_pgtables() - Free a range of page tables
-+ * @tlb: The mmu gather
-+ * @mas: The maple state
-+ * @vma: The first vma
-+ * @pg_start: The lowest page table address (floor)
-+ * @pg_end: The highest page table address (ceiling)
-+ * @vma_end: The highest vma tree search address
-+ * @mm_wr_locked: boolean indicating if the mm is write locked
-+ *
-+ * Note: pg_start and pg_end are provided to indicate the absolute range of the
-+ * page tables that should be removed.  This can differ from the vma mappings on
-+ * some archs that may have mappings that need to be removed outside the vmas.
-+ * Note that the prev->vm_end and next->vm_start are often used.
-+ *
-+ * The vma_end differs from the pg_end when a dup_mmap() failed and the tree has
-+ * unrelated data to the mm_struct being torn down.
-+ */
- void free_pgtables(struct mmu_gather *tlb, struct ma_state *mas,
--		   struct vm_area_struct *vma, unsigned long floor,
--		   unsigned long ceiling, bool mm_wr_locked)
-+		   struct vm_area_struct *vma, unsigned long pg_start,
-+		   unsigned long pg_end, unsigned long vma_end,
-+		   bool mm_wr_locked)
- {
- 	struct unlink_vma_file_batch vb;
- 
-+	/*
-+	 * Note: USER_PGTABLES_CEILING may be passed as the value of pg_end and
-+	 * may be 0.  Underflow is expected in this case.  Otherwise the
-+	 * pagetable end is exclusive.
-+	 * vma_end is exclusive.
-+	 * The last vma address should never be larger than the pagetable end.
-+	 */
-+	WARN_ON_ONCE(vma_end - 1 > pg_end - 1);
-+
- 	tlb_free_vmas(tlb);
- 
- 	do {
- 		unsigned long addr = vma->vm_start;
- 		struct vm_area_struct *next;
- 
--		/*
--		 * Note: USER_PGTABLES_CEILING may be passed as ceiling and may
--		 * be 0.  This will underflow and is okay.
--		 */
--		next = mas_find(mas, ceiling - 1);
-+		next = mas_find(mas, vma_end - 1);
- 		if (unlikely(xa_is_zero(next)))
- 			next = NULL;
- 
-@@ -406,7 +430,7 @@ void free_pgtables(struct mmu_gather *tl
- 		 */
- 		while (next && next->vm_start <= vma->vm_end + PMD_SIZE) {
- 			vma = next;
--			next = mas_find(mas, ceiling - 1);
-+			next = mas_find(mas, vma_end - 1);
- 			if (unlikely(xa_is_zero(next)))
- 				next = NULL;
- 			if (mm_wr_locked)
-@@ -417,7 +441,7 @@ void free_pgtables(struct mmu_gather *tl
- 		unlink_file_vma_batch_final(&vb);
- 
- 		free_pgd_range(tlb, addr, vma->vm_end,
--			floor, next ? next->vm_start : ceiling);
-+			pg_start, next ? next->vm_start : pg_end);
- 		vma = next;
- 	} while (vma);
- }
---- a/mm/mmap.c~mm-memory-add-tree-limit-to-free_pgtables
-+++ a/mm/mmap.c
-@@ -1308,7 +1308,7 @@ void exit_mmap(struct mm_struct *mm)
- 	mt_clear_in_rcu(&mm->mm_mt);
- 	vma_iter_set(&vmi, vma->vm_end);
- 	free_pgtables(&tlb, &vmi.mas, vma, FIRST_USER_ADDRESS,
--		      USER_PGTABLES_CEILING, true);
-+		      USER_PGTABLES_CEILING, USER_PGTABLES_CEILING, true);
- 	tlb_finish_mmu(&tlb);
- 
- 	/*
---- a/mm/vma.c~mm-memory-add-tree-limit-to-free_pgtables
+--- a/mm/vma.c~mm-vma-add-page-table-limit-to-unmap_region
 +++ a/mm/vma.c
-@@ -485,6 +485,7 @@ void unmap_region(struct ma_state *mas,
+@@ -474,7 +474,8 @@ void remove_vma(struct vm_area_struct *v
+  */
+ void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
+ 		unsigned long vma_start, unsigned long vma_end,
+-		struct vm_area_struct *prev, struct vm_area_struct *next)
++		unsigned long pg_max, struct vm_area_struct *prev,
++		struct vm_area_struct *next)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct mmu_gather tlb;
+@@ -484,8 +485,7 @@ void unmap_region(struct ma_state *mas,
+ 	unmap_vmas(&tlb, mas, vma, vma_start, vma_end, vma_end);
  	mas_set(mas, vma->vm_end);
  	free_pgtables(&tlb, mas, vma, prev ? prev->vm_end : FIRST_USER_ADDRESS,
- 		      next ? next->vm_start : USER_PGTABLES_CEILING,
-+		      next ? next->vm_start : USER_PGTABLES_CEILING,
+-		      next ? next->vm_start : USER_PGTABLES_CEILING,
+-		      next ? next->vm_start : USER_PGTABLES_CEILING,
++		      pg_max, next ? next->vm_start : USER_PGTABLES_CEILING,
  		      /* mm_wr_locked = */ true);
  	tlb_finish_mmu(&tlb);
  }
-@@ -1275,7 +1276,7 @@ static inline void vms_clear_ptes(struct
- 	mas_set(mas_detach, 1);
- 	/* start and end may be different if there is no prev or next vma. */
- 	free_pgtables(&tlb, mas_detach, vms->vma, vms->unmap_start,
--		      vms->unmap_end, mm_wr_locked);
-+		      vms->unmap_end, vms->unmap_end, mm_wr_locked);
- 	tlb_finish_mmu(&tlb);
- 	vms->clear_ptes = false;
- }
---- a/tools/testing/vma/vma_internal.h~mm-memory-add-tree-limit-to-free_pgtables
-+++ a/tools/testing/vma/vma_internal.h
-@@ -1139,7 +1139,8 @@ static inline void unmap_vmas(struct mmu
+@@ -2469,6 +2469,7 @@ static int __mmap_new_file_vma(struct mm
+ 		vma_iter_set(vmi, vma->vm_end);
+ 		/* Undo any partial mapping done by a device driver. */
+ 		unmap_region(&vmi->mas, vma, vma->vm_start, vma->vm_end,
++			     map->next ? map->next->vm_start : USER_PGTABLES_CEILING,
+ 			     map->prev, map->next);
  
- static inline void free_pgtables(struct mmu_gather *tlb, struct ma_state *mas,
- 		   struct vm_area_struct *vma, unsigned long floor,
--		   unsigned long ceiling, bool mm_wr_locked)
-+		   unsigned long ceiling, unsigned long tree_max,
-+		   bool mm_wr_locked)
- {
- }
+ 		return error;
+--- a/mm/vma.h~mm-vma-add-page-table-limit-to-unmap_region
++++ a/mm/vma.h
+@@ -265,7 +265,8 @@ void remove_vma(struct vm_area_struct *v
  
+ void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
+ 		unsigned long vma_start, unsigned long vma_end,
+-		struct vm_area_struct *prev, struct vm_area_struct *next);
++		unsigned long pg_max, struct vm_area_struct *prev,
++		struct vm_area_struct *next);
+ 
+ /**
+  * vma_modify_flags() - Perform any necessary split/merge in preparation for
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
