@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6CD72C026E
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:43:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11FDB2580E1
+	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:43:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770939818; cv=none; b=HrWrGbfZmQ0F++WE1k8LbM8rWCoGySDHKmWLJljtZo1Gm+G8FSgoMK5q5c98okOY8Mvd+jSvEOgJrq9ooOYsjQtnrU3mET6C7zKFkSgiYgcUKSmGmtYCUqe0z87URqzHF6j5+sRV9GRuposU2rjDaD6h5n+bJBuSro3mnOvTuUI=
+	t=1770939820; cv=none; b=Jt4wRm3dbc6RGCTIEj9yKlPVHMms5Ae/6ckMPQHDhLuIwiegnDcsySwyujDaAEenMZhep/qn/fSWQ3ix08P3V6B6mOsgWVl3OlIIApTk8wq/LN1WNi/+5ay/MJ1LYKzkyws7Szrn50caoZguj5x8+ZSeKrCjwgCSPn+ADG0nprc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770939818; c=relaxed/simple;
-	bh=up7FAoONXND2c4Rgh3obCzpC16r+23Q73KkQ51BDidA=;
-	h=Date:To:From:Subject:Message-Id; b=f86QTAZMjcym04LA5+gyXyi2UrgcAufC/l+JgBba7ibNYfYv7bc/wJwnEz5K05YEfy2Qb1Bftz2KpHguRk58RrphfpO1jXPyPLtHQYTUNhpuHyjvJD3VijQH+BnUCG7Tw0RWBAFYx6U9A+qsikarANkUn7xBTWeNtBZ02zjHWBA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MuLZt3AM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770939820; c=relaxed/simple;
+	bh=qGEDtvx6+hvrTdfo3eiWMsArdzrUOlUgZ49cU5MmsfM=;
+	h=Date:To:From:Subject:Message-Id; b=KMZDg+/n9GFcmvJzCmPAC/mFiuChgkC9I92KbI1Fgm21UJ6K6PZgQAU9RYGn8V2lFPyso4G8k8yVi32fVtpI87oum0P2SyANKn/wkXCLIZXq49OD9jOHhTBCX3/LtafECBe6E+MxPkxi1EXIyjNuO5W+EVI/HLqwAg9vqfrO4S4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wmmrre8D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MuLZt3AM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBBF0C4CEF7;
-	Thu, 12 Feb 2026 23:43:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wmmrre8D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95E79C4CEF7;
+	Thu, 12 Feb 2026 23:43:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770939817;
-	bh=up7FAoONXND2c4Rgh3obCzpC16r+23Q73KkQ51BDidA=;
+	s=korg; t=1770939819;
+	bh=qGEDtvx6+hvrTdfo3eiWMsArdzrUOlUgZ49cU5MmsfM=;
 	h=Date:To:From:Subject:From;
-	b=MuLZt3AMJnO/IUx66iph0hD7Q0lXLh+nfYFZb+h1a77dJjcK/vJ2mU1r+lvotYNhY
-	 n5PF8DTU3Na260xVagP9RsuW/9mnkXDuyfVcpI16CqCz+IqsbcredaMQ9DquFO967Q
-	 elSdll5J7Hnju207hgfQ4YZWYptp3HCaKk3AhSSI=
-Date: Thu, 12 Feb 2026 15:43:37 -0800
+	b=Wmmrre8Dy2CYJNAT1ZqtY3W94RzVgF5QtVvMo0gOVlsDRyEAf2bPvQSDqO78CZz/c
+	 vs6WAOUsLXmoGBumkS+1tVGFQ+8VLLuqv5aImi190ooNjXZt6qrGxfDQjeMwDTKZwH
+	 SlZfxw9EPozkgWrcb59G+JT4Jrle7vyzoSuAisKQ=
+Date: Thu, 12 Feb 2026 15:43:38 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,rppt@kernel.org,pfalcato@suse.de,nphamcs@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,kasong@tencent.com,jannh@google.com,david@redhat.com,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mmap-move-exit_mmap-trace-point.patch removed from -mm tree
-Message-Id: <20260212234337.BBBF0C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mmap-abstract-vma-clean-up-from-exit_mmap.patch removed from -mm tree
+Message-Id: <20260212234339.95E79C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mmap: move exit_mmap() trace point
+     Subject: mm/mmap: abstract vma clean up from exit_mmap()
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-move-exit_mmap-trace-point.patch
+     mm-mmap-abstract-vma-clean-up-from-exit_mmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/mmap: move exit_mmap() trace point
-Date: Wed, 21 Jan 2026 11:49:37 -0500
+Subject: mm/mmap: abstract vma clean up from exit_mmap()
+Date: Wed, 21 Jan 2026 11:49:38 -0500
 
-Move the trace point later in the function so that it is not skipped in
-the event of a failed fork.
+Create the new function tear_down_vmas() to remove a range of vmas. 
+exit_mmap() will be removing all the vmas.
 
-Link: https://lkml.kernel.org/r/20260121164946.2093480-3-Liam.Howlett@oracle.com
+This is necessary for future patches.
+
+No functional changes intended.
+
+Link: https://lkml.kernel.org/r/20260121164946.2093480-4-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Acked-by: Chris Li <chrisl@kernel.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Kairui Song <kasong@tencent.com>
@@ -72,22 +76,69 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |   37 ++++++++++++++++++++++++-------------
+ 1 file changed, 24 insertions(+), 13 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-move-exit_mmap-trace-point
+--- a/mm/mmap.c~mm-mmap-abstract-vma-clean-up-from-exit_mmap
 +++ a/mm/mmap.c
-@@ -1307,9 +1307,9 @@ void exit_mmap(struct mm_struct *mm)
+@@ -1247,6 +1247,29 @@ limits_failed:
+ }
+ EXPORT_SYMBOL(vm_brk_flags);
  
- 	BUG_ON(count != mm->map_count);
++static
++unsigned long tear_down_vmas(struct mm_struct *mm, struct vma_iterator *vmi,
++		struct vm_area_struct *vma, unsigned long end)
++{
++	unsigned long nr_accounted = 0;
++	int count = 0;
++
++	mmap_assert_write_locked(mm);
++	vma_iter_set(vmi, vma->vm_end);
++	do {
++		if (vma->vm_flags & VM_ACCOUNT)
++			nr_accounted += vma_pages(vma);
++		vma_mark_detached(vma);
++		remove_vma(vma);
++		count++;
++		cond_resched();
++		vma = vma_next(vmi);
++	} while (vma && vma->vm_end <= end);
++
++	VM_WARN_ON_ONCE(count != mm->map_count);
++	return nr_accounted;
++}
++
+ /* Release all mmaps. */
+ void exit_mmap(struct mm_struct *mm)
+ {
+@@ -1254,7 +1277,6 @@ void exit_mmap(struct mm_struct *mm)
+ 	struct vm_area_struct *vma;
+ 	unsigned long nr_accounted = 0;
+ 	VMA_ITERATOR(vmi, mm, 0);
+-	int count = 0;
  
--	trace_exit_mmap(mm);
+ 	/* mm's last user has gone, and its about to be pulled down */
+ 	mmu_notifier_release(mm);
+@@ -1294,18 +1316,7 @@ void exit_mmap(struct mm_struct *mm)
+ 	 * enabled, without holding any MM locks besides the unreachable
+ 	 * mmap_write_lock.
+ 	 */
+-	vma_iter_set(&vmi, vma->vm_end);
+-	do {
+-		if (vma->vm_flags & VM_ACCOUNT)
+-			nr_accounted += vma_pages(vma);
+-		vma_mark_detached(vma);
+-		remove_vma(vma);
+-		count++;
+-		cond_resched();
+-		vma = vma_next(&vmi);
+-	} while (vma && likely(!xa_is_zero(vma)));
+-
+-	BUG_ON(count != mm->map_count);
++	nr_accounted = tear_down_vmas(mm, &vmi, vma, ULONG_MAX);
+ 
  destroy:
  	__mt_destroy(&mm->mm_mt);
-+	trace_exit_mmap(mm);
- 	mmap_write_unlock(mm);
- 	vm_unacct_memory(nr_accounted);
- }
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
