@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1852ABA21
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 18:58:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9250C214813
+	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 19:05:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770922692; cv=none; b=Uv/W2ec/w1Rd1qJVdQJwvYnEf7J15i5UEQl+FSXpnRsIYZarQ294W/+6WwnobtIUgProSc4JKiJk7Ondevt9ooxBnIj2HJyidczaxQqbX+wswScT3UYJ0Fz0l0CHmj54CD/G/juCCFGpeIFwN9mmwxrbKxfCjRUiYJcxRysszY0=
+	t=1770923123; cv=none; b=FQI1VA8Igrd4aFbSWCa8nawMTLVyeIZz9IwEJz9CJQUX5yct6GEwFT2kqrVWRwBeyXApPUtvkLlForZsNqjY+Jk+DVPDmDgu9FftSCtL8Fr4cmYKI9jkRWZmT7l2KdlyJezxNpQ91WKJxCS6uPI/XnROYGCganjiQX2isUTm1P8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770922692; c=relaxed/simple;
-	bh=BQar8WuB1ncf6MtqAgZm1KDUgiL1WUCP6TMw1uDh/YQ=;
-	h=Date:To:From:Subject:Message-Id; b=KQLON49F7CM+AuxDHxCNNmRVVVszjCsMs/rn5dERpflUhqS+mbTX63OVUZgQFtbPHaZOFo/immXghEZzYp9u+WTTXbLU7qq9F8jIUJ3sQ6H6rkttrO8xLM4+nqMpAMn/BhotV/cTvpmDmDeXCgF58/VHlJ00hlF7foVDi6h5y0c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nToPXTUY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770923123; c=relaxed/simple;
+	bh=6LMDb5Xosa8bNc0AVIZnQb7gvD8YuKbg4WAJE+CoQPI=;
+	h=Date:To:From:Subject:Message-Id; b=ae3YvB4YNT4bpOVnyiLe0FXB5Itrsd0jHGoYKyGYk7T+OllmNKquMAw8hHg7d/i9GJlhx+l3KfBorT4NFSddwzzLH8bMVtmwHuA+CDWaL7zZuqvrO+CdCZkOcmvTSQvgY+WZLfn9ybuV+tQmvh1TpckhJ0IFBcJKwZF7qLE02Ac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kpZRChcy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nToPXTUY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93CC8C4CEF7;
-	Thu, 12 Feb 2026 18:58:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kpZRChcy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DBA1C4CEF7;
+	Thu, 12 Feb 2026 19:05:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770922691;
-	bh=BQar8WuB1ncf6MtqAgZm1KDUgiL1WUCP6TMw1uDh/YQ=;
+	s=korg; t=1770923123;
+	bh=6LMDb5Xosa8bNc0AVIZnQb7gvD8YuKbg4WAJE+CoQPI=;
 	h=Date:To:From:Subject:From;
-	b=nToPXTUYCJhdbOAndT6RuCP1yGsjaH76yWYwJVlsF/49kWImRWzvwfb/uA2BQnzpu
-	 3G0tzVUxV/xFZUshulnCjogkBIbrFPxqq3B8JWerBhIhyYjOCL9bnP0qj0poTraobj
-	 D41LaI7QfkNsxcJUdQUui9R6rAxU5McVc+XRKPJk=
-Date: Thu, 12 Feb 2026 10:58:11 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
+	b=kpZRChcybAGz241+F+Prg4Tsk22GHrsYFABUnVS3ErThdn0XSpb2QgEuNrsHeiGtZ
+	 5bqd67a7o3a4c3U+1YcoQEv4UtDkELB2nCDKHsRatEa01v7sECaihCH1qyGk+nUawg
+	 GTcSHDVtmf0iVdgGz3ga5+167yUakMczErlcW/oY=
+Date: Thu, 12 Feb 2026 11:05:22 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,thomas.hellstrom@linux.intel.com,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,gourry@gourry.net,david@kernel.org,byungchul@sk.com,balbirs@nvidia.com,apopple@nvidia.com,dave@stgolabs.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-remove-unnecessary-warn_onerr-in-kho_populate.patch added to mm-nonmm-unstable branch
-Message-Id: <20260212185811.93CC8C4CEF7@smtp.kernel.org>
+Subject: + mm-migrate_device-remove-dead-migration-entry-check-in-migrate_vma_collect_huge_pmd.patch added to mm-unstable branch
+Message-Id: <20260212190523.1DBA1C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: remove unnecessary WARN_ON(err) in kho_populate()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-remove-unnecessary-warn_onerr-in-kho_populate.patch
+     Subject: mm/migrate_device: remove dead migration entry check in migrate_vma_collect_huge_pmd()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-migrate_device-remove-dead-migration-entry-check-in-migrate_vma_collect_huge_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-remove-unnecessary-warn_onerr-in-kho_populate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-remove-dead-migration-entry-check-in-migrate_vma_collect_huge_pmd.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,41 +58,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Subject: kho: remove unnecessary WARN_ON(err) in kho_populate()
-Date: Thu, 12 Feb 2026 11:11:46 +0000
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: mm/migrate_device: remove dead migration entry check in migrate_vma_collect_huge_pmd()
+Date: Wed, 11 Feb 2026 17:46:11 -0800
 
-The following pr_warn() provides detailed error and location information,
-WARN_ON(err) adds no additional debugging value, so remove the redundant
-WARN_ON() call.
+The softleaf_is_migration() check is unreachable as entries that are not
+device_private are filtered out.  Similarly, the PTE-level equivalent in
+migrate_vma_collect_pmd() skips migration entries.
 
-Link: https://lkml.kernel.org/r/20260212111146.210086-3-ranxiaokai627@163.com
-Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Alexander Graf <graf@amazon.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+This dead branch also contained a double spin_unlock(ptl) bug.
+
+Link: https://lkml.kernel.org/r/20260212014611.416695-1-dave@stgolabs.net
+Fixes: a30b48bf1b244 ("mm/migrate_device: implement THP migration of zone device pages")
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+Suggested-by: Matthew Brost <matthew.brost@intel.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate_device.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-remove-unnecessary-warn_onerr-in-kho_populate
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -1507,7 +1507,7 @@ void __init kho_populate(phys_addr_t fdt
+--- a/mm/migrate_device.c~mm-migrate_device-remove-dead-migration-entry-check-in-migrate_vma_collect_huge_pmd
++++ a/mm/migrate_device.c
+@@ -175,12 +175,6 @@ static int migrate_vma_collect_huge_pmd(
+ 			return migrate_vma_collect_skip(start, end, walk);
+ 		}
  
- 		memblock_add(area->addr, size);
- 		err = memblock_mark_kho_scratch(area->addr, size);
--		if (WARN_ON(err)) {
-+		if (err) {
- 			pr_warn("failed to mark the scratch region 0x%pa+0x%pa: %pe",
- 				&area->addr, &size, ERR_PTR(err));
- 			goto unmap_scratch;
+-		if (softleaf_is_migration(entry)) {
+-			migration_entry_wait_on_locked(entry, ptl);
+-			spin_unlock(ptl);
+-			return -EAGAIN;
+-		}
+-
+ 		if (softleaf_is_device_private_write(entry))
+ 			write = MIGRATE_PFN_WRITE;
+ 	} else {
 _
 
-Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-kho-fix-missing-early_memunmap-call-in-kho_populate.patch
-kho-remove-unnecessary-warn_onerr-in-kho_populate.patch
+mm-migrate_device-remove-dead-migration-entry-check-in-migrate_vma_collect_huge_pmd.patch
 
