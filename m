@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 882F932C924
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 22:10:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75FA13EBF1B;
+	Thu, 12 Feb 2026 23:40:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770934249; cv=none; b=AB1s+1SgWA24vsr1dlCOip77Dk/qJBR0n6KPPp5lNPLoXzC2/xVyE4eRRp/JoM3LG1FuKrKGgy1X1/oRHaq08cQfi1YCDtNDFR5Y51ltPoSvpNXRYfHEWG5uvSoQ1jNO83ZEE5vXkUkNZ6CErR2V7645xQPZ6l2XiD5mL/hfi/E=
+	t=1770939647; cv=none; b=ozTdB4JH1OeyiUnfE1y1BREMRSpfa/WGIm0snav6+rdfalVu89xifnRc1CKnPkl0QZpNMweAdsVnSN0A6TAewrBnfObEwwOL2jHtpAfB7T3IvWnNsvAY4EFWc45aWGtqLZe95FM/DJo2h+S0cb7/xLdwvrVkIR6EPi+S2SRuc3c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770934249; c=relaxed/simple;
-	bh=zDYiqscoPF329IBTgUFXZhrwRAFvTb9lIiv7LWNpLPc=;
-	h=Date:To:From:Subject:Message-Id; b=cOUNX60um28nzoClY08tr6QbgFi8647/yqTTZPD2Ib2pC+e2n+zgOKLCEaG1ucyzgrGyrWDBX7yAIbRHcbEQwaZEf7pdQiKW18aESSzP64wcu5cZEkq8Xws9RdVU4pYYWyMJCRb78yvC1lI5W/ZzDhT5SsVEgj3C+06CB1uEyF0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E6PofB17; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770939647; c=relaxed/simple;
+	bh=x+KoL5lqHzBK80U+S3TuqtzQIa6x6bM94GUorfw/Ewo=;
+	h=Date:To:From:Subject:Message-Id; b=oe3vsJ2lZi8trO38To5lii2LH4lcmL8quwrFo+MT8hWLXzcYx5grL+6ApaKiBy2QVfms4eO4pDv0U++F2l1qSRT10cq7BaJkZ7sT589MP0dOtfMvng0y45eTCpcLth4hsWGgwRpa7S3KqX1F+4QJKGCBLwEKFXSW1h0nxrLr9cU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a8/eVDgt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E6PofB17"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBDEFC4CEF7;
-	Thu, 12 Feb 2026 22:10:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a8/eVDgt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9AF4C4CEF7;
+	Thu, 12 Feb 2026 23:40:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770934249;
-	bh=zDYiqscoPF329IBTgUFXZhrwRAFvTb9lIiv7LWNpLPc=;
+	s=korg; t=1770939646;
+	bh=x+KoL5lqHzBK80U+S3TuqtzQIa6x6bM94GUorfw/Ewo=;
 	h=Date:To:From:Subject:From;
-	b=E6PofB17DnAHI3Iyl02KGuOMY1ZuiTEJ8/zJ+d3Xuhy/qscq4SoNecRQy2tgIZx/o
-	 tWbqc60Mw00jBkZSAi92Gsq99bRdUnEAsy4e5yUj4UMLHA7fcKg9w4rfeQgjk/FuvL
-	 ovUCyBkLOSFKbjwdFf2GkX2rvDxsEfqibEbg3Jxo=
-Date: Thu, 12 Feb 2026 14:10:54 -0800
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,svens@linux.ibm.com,pabeni@redhat.com,kuba@kernel.org,horms@kernel.org,hca@linux.ibm.com,gor@linux.ibm.com,geert@linux-m68k.org,edumazet@google.com,davidgow@google.com,davem@davemloft.net,daniel@iogearbox.net,brendan.higgins@linux.dev,borntraeger@linux.ibm.com,agordeev@linux.ibm.com,note351@hotmail.com,akpm@linux-foundation.org
+	b=a8/eVDgt6geeqFjvM0OPLySWYxbvF2ZTJqbQvAT4zun/xGZxJA91m6qrQA1ShyAU+
+	 6IZ9slMx3KCOr13hw4uJxqRzFT9UkktykmcVhFY7ZpUKId0vywhvRvyDmTTuqwLcKJ
+	 1CKG28xvitSFzELKgd72AJEh0uA25LpeHU8MxlzU=
+Date: Thu, 12 Feb 2026 15:40:44 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,usama.arif@linux.dev,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,mawupeng1@huawei.com,lorenzo.stoakes@oracle.com,longman@redhat.com,Liam.Howlett@oracle.com,david@kernel.org,joshua.hahnjy@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] lib-random32-convert-selftest-to-kunit.patch removed from -mm tree
-Message-Id: <20260212221048.EBDEFC4CEF7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb-restore-failed-global-reservations-to-subpool.patch removed from -mm tree
+Message-Id: <20260212234046.B9AF4C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,456 +35,107 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/random32: convert selftest to KUnit
+     Subject: mm/hugetlb: restore failed global reservations to subpool
 has been removed from the -mm tree.  Its filename was
-     lib-random32-convert-selftest-to-kunit.patch
+     mm-hugetlb-restore-failed-global-reservations-to-subpool.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kir Chou <note351@hotmail.com>
-Subject: lib/random32: convert selftest to KUnit
-Date: Sat, 24 Jan 2026 14:41:33 +0900
+From: Joshua Hahn <joshua.hahnjy@gmail.com>
+Subject: mm/hugetlb: restore failed global reservations to subpool
+Date: Fri, 16 Jan 2026 15:40:36 -0500
 
-This patch converts the existing prandom selftest (lib/random32.c) to use
-the KUnit framework (lib/tests/random32_kunit.c).  Unlike typical KUnit
-tests, this file is directly #included into lib/random32.c.
+Commit a833a693a490 ("mm: hugetlb: fix incorrect fallback for subpool")
+fixed an underflow error for hstate->resv_huge_pages caused by incorrectly
+attributing globally requested pages to the subpool's reservation.
 
-Only the file name "random32_kunit.c" keeps random32, "prandom" is used
-for all other places for aligning with the API semantics and avoiding
-confusion with the cryptographically secure random.c,
+Unfortunately, this fix also introduced the opposite problem, which would
+leave spool->used_hpages elevated if the globally requested pages could
+not be acquired.  This is because while a subpool's reserve pages only
+accounts for what is requested and allocated from the subpool, its "used"
+counter keeps track of what is consumed in total, both from the subpool
+and globally.  Thus, we need to adjust spool->used_hpages in the other
+direction, and make sure that globally requested pages are uncharged from
+the subpool's used counter.
 
-The new test:
-- Removes the legacy CONFIG_RANDOM32_SELFTEST.
-- Adds CONFIG_PRANDOM_KUNIT_TEST (defaulting to KUNIT_ALL_TESTS).
-- Moves the test logic to lib/tests/random32_kunit.c.
-- Updates arch/s390/configs/debug_defconfig to use the new KUnit symbol.
+Each failed allocation attempt increments the used_hpages counter by how
+many pages were requested from the global pool.  Ultimately, this renders
+the subpool unusable, as used_hpages approaches the max limit.
 
-This commit is verified by `./tools/testing/kunit/kunit.py run`
-with the .kunit/.kunitconfig:
+The issue can be reproduced as follows:
+1. Allocate 4 hugetlb pages
+2. Create a hugetlb mount with max=4, min=2
+3. Consume 2 pages globally
+4. Request 3 pages from the subpool (2 from subpool + 1 from global)
+	4.1 hugepage_subpool_get_pages(spool, 3) succeeds.
+		used_hpages += 3
+	4.2 hugetlb_acct_memory(h, 1) fails: no global pages left
+		used_hpages -= 2
+5. Subpool now has used_hpages = 1, despite not being able to
+   successfully allocate any hugepages. It believes it can now only
+   allocate 3 more hugepages, not 4.
 
-CONFIG_KUNIT=y
-CONFIG_PRANDOM_KUNIT_TEST=y
+With each failed allocation attempt incrementing the used counter, the
+subpool eventually reaches a point where its used counter equals its
+max counter.  At that point, any future allocations that try to
+allocate hugeTLB pages from the subpool will fail, despite the subpool
+not having any of its hugeTLB pages consumed by any user.
 
-Link: https://lkml.kernel.org/r/20260124054134.71369-1-note351@hotmail.com
-Signed-off-by: Kir Chou <note351@hotmail.com>
-Reviewed-by: David Gow <davidgow@google.com>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Simon Horman <horms@kernel.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Once this happens, there is no way to make the subpool usable again,
+since there is no way to decrement the used counter as no process is
+really consuming the hugeTLB pages.
+
+The underflow issue that the original commit fixes still remains fixed
+as well.
+
+Without this fix, used_hpages would keep on leaking if
+hugetlb_acct_memory() fails.
+
+Link: https://lkml.kernel.org/r/20260116204037.2270096-1-joshua.hahnjy@gmail.com
+Fixes: a833a693a490 ("mm: hugetlb: fix incorrect fallback for subpool")
+Signed-off-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Ma Wupeng <mawupeng1@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Waiman Long <longman@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/configs/debug_defconfig |    2 
- lib/Kconfig.debug                 |   12 +
- lib/random32.c                    |  173 ---------------------------
- lib/tests/random32_kunit.c        |  174 ++++++++++++++++++++++++++++
- 4 files changed, 189 insertions(+), 172 deletions(-)
+ mm/hugetlb.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/arch/s390/configs/debug_defconfig~lib-random32-convert-selftest-to-kunit
-+++ a/arch/s390/configs/debug_defconfig
-@@ -827,7 +827,7 @@ CONFIG_CRYPTO_KRB5=m
- CONFIG_CRYPTO_KRB5_SELFTESTS=y
- CONFIG_CORDIC=m
- CONFIG_TRACE_MMIO_ACCESS=y
--CONFIG_RANDOM32_SELFTEST=y
-+CONFIG_PRANDOM_KUNIT_TEST=y
- CONFIG_XZ_DEC_MICROLZMA=y
- CONFIG_DMA_CMA=y
- CONFIG_CMA_SIZE_MBYTES=0
---- a/lib/Kconfig.debug~lib-random32-convert-selftest-to-kunit
-+++ a/lib/Kconfig.debug
-@@ -3432,6 +3432,18 @@ config GLOB_KUNIT_TEST
- 
- 	  If unsure, say N
- 
-+config PRANDOM_KUNIT_TEST
-+	tristate "KUnit test for prandom" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Enable this option to test the prandom functions at runtime.
+--- a/mm/hugetlb.c~mm-hugetlb-restore-failed-global-reservations-to-subpool
++++ a/mm/hugetlb.c
+@@ -6717,6 +6717,15 @@ out_put_pages:
+ 		 */
+ 		hugetlb_acct_memory(h, -gbl_resv);
+ 	}
++	/* Restore used_hpages for pages that failed global reservation */
++	if (gbl_reserve && spool) {
++		unsigned long flags;
 +
-+	  This test suite verifies the correctness of the pseudo-random number
-+	  generator across various scenarios, including edge cases.
-+
-+	  If unsure, say N
-+
- endif # RUNTIME_TESTING_MENU
- 
- config ARCH_USE_MEMTEST
---- a/lib/random32.c~lib-random32-convert-selftest-to-kunit
-+++ a/lib/random32.c
-@@ -126,175 +126,6 @@ void prandom_seed_full_state(struct rnd_
- }
- EXPORT_SYMBOL(prandom_seed_full_state);
- 
--#ifdef CONFIG_RANDOM32_SELFTEST
--static struct prandom_test1 {
--	u32 seed;
--	u32 result;
--} test1[] = {
--	{ 1U, 3484351685U },
--	{ 2U, 2623130059U },
--	{ 3U, 3125133893U },
--	{ 4U,  984847254U },
--};
--
--static struct prandom_test2 {
--	u32 seed;
--	u32 iteration;
--	u32 result;
--} test2[] = {
--	/* Test cases against taus113 from GSL library. */
--	{  931557656U, 959U, 2975593782U },
--	{ 1339693295U, 876U, 3887776532U },
--	{ 1545556285U, 961U, 1615538833U },
--	{  601730776U, 723U, 1776162651U },
--	{ 1027516047U, 687U,  511983079U },
--	{  416526298U, 700U,  916156552U },
--	{ 1395522032U, 652U, 2222063676U },
--	{  366221443U, 617U, 2992857763U },
--	{ 1539836965U, 714U, 3783265725U },
--	{  556206671U, 994U,  799626459U },
--	{  684907218U, 799U,  367789491U },
--	{ 2121230701U, 931U, 2115467001U },
--	{ 1668516451U, 644U, 3620590685U },
--	{  768046066U, 883U, 2034077390U },
--	{ 1989159136U, 833U, 1195767305U },
--	{  536585145U, 996U, 3577259204U },
--	{ 1008129373U, 642U, 1478080776U },
--	{ 1740775604U, 939U, 1264980372U },
--	{ 1967883163U, 508U,   10734624U },
--	{ 1923019697U, 730U, 3821419629U },
--	{  442079932U, 560U, 3440032343U },
--	{ 1961302714U, 845U,  841962572U },
--	{ 2030205964U, 962U, 1325144227U },
--	{ 1160407529U, 507U,  240940858U },
--	{  635482502U, 779U, 4200489746U },
--	{ 1252788931U, 699U,  867195434U },
--	{ 1961817131U, 719U,  668237657U },
--	{ 1071468216U, 983U,  917876630U },
--	{ 1281848367U, 932U, 1003100039U },
--	{  582537119U, 780U, 1127273778U },
--	{ 1973672777U, 853U, 1071368872U },
--	{ 1896756996U, 762U, 1127851055U },
--	{  847917054U, 500U, 1717499075U },
--	{ 1240520510U, 951U, 2849576657U },
--	{ 1685071682U, 567U, 1961810396U },
--	{ 1516232129U, 557U,    3173877U },
--	{ 1208118903U, 612U, 1613145022U },
--	{ 1817269927U, 693U, 4279122573U },
--	{ 1510091701U, 717U,  638191229U },
--	{  365916850U, 807U,  600424314U },
--	{  399324359U, 702U, 1803598116U },
--	{ 1318480274U, 779U, 2074237022U },
--	{  697758115U, 840U, 1483639402U },
--	{ 1696507773U, 840U,  577415447U },
--	{ 2081979121U, 981U, 3041486449U },
--	{  955646687U, 742U, 3846494357U },
--	{ 1250683506U, 749U,  836419859U },
--	{  595003102U, 534U,  366794109U },
--	{   47485338U, 558U, 3521120834U },
--	{  619433479U, 610U, 3991783875U },
--	{  704096520U, 518U, 4139493852U },
--	{ 1712224984U, 606U, 2393312003U },
--	{ 1318233152U, 922U, 3880361134U },
--	{  855572992U, 761U, 1472974787U },
--	{   64721421U, 703U,  683860550U },
--	{  678931758U, 840U,  380616043U },
--	{  692711973U, 778U, 1382361947U },
--	{  677703619U, 530U, 2826914161U },
--	{   92393223U, 586U, 1522128471U },
--	{ 1222592920U, 743U, 3466726667U },
--	{  358288986U, 695U, 1091956998U },
--	{ 1935056945U, 958U,  514864477U },
--	{  735675993U, 990U, 1294239989U },
--	{ 1560089402U, 897U, 2238551287U },
--	{   70616361U, 829U,   22483098U },
--	{  368234700U, 731U, 2913875084U },
--	{   20221190U, 879U, 1564152970U },
--	{  539444654U, 682U, 1835141259U },
--	{ 1314987297U, 840U, 1801114136U },
--	{ 2019295544U, 645U, 3286438930U },
--	{  469023838U, 716U, 1637918202U },
--	{ 1843754496U, 653U, 2562092152U },
--	{  400672036U, 809U, 4264212785U },
--	{  404722249U, 965U, 2704116999U },
--	{  600702209U, 758U,  584979986U },
--	{  519953954U, 667U, 2574436237U },
--	{ 1658071126U, 694U, 2214569490U },
--	{  420480037U, 749U, 3430010866U },
--	{  690103647U, 969U, 3700758083U },
--	{ 1029424799U, 937U, 3787746841U },
--	{ 2012608669U, 506U, 3362628973U },
--	{ 1535432887U, 998U,   42610943U },
--	{ 1330635533U, 857U, 3040806504U },
--	{ 1223800550U, 539U, 3954229517U },
--	{ 1322411537U, 680U, 3223250324U },
--	{ 1877847898U, 945U, 2915147143U },
--	{ 1646356099U, 874U,  965988280U },
--	{  805687536U, 744U, 4032277920U },
--	{ 1948093210U, 633U, 1346597684U },
--	{  392609744U, 783U, 1636083295U },
--	{  690241304U, 770U, 1201031298U },
--	{ 1360302965U, 696U, 1665394461U },
--	{ 1220090946U, 780U, 1316922812U },
--	{  447092251U, 500U, 3438743375U },
--	{ 1613868791U, 592U,  828546883U },
--	{  523430951U, 548U, 2552392304U },
--	{  726692899U, 810U, 1656872867U },
--	{ 1364340021U, 836U, 3710513486U },
--	{ 1986257729U, 931U,  935013962U },
--	{  407983964U, 921U,  728767059U },
--};
--
--static void prandom_state_selftest_seed(struct rnd_state *state, u32 seed)
--{
--#define LCG(x)	 ((x) * 69069U)	/* super-duper LCG */
--	state->s1 = __seed(LCG(seed),        2U);
--	state->s2 = __seed(LCG(state->s1),   8U);
--	state->s3 = __seed(LCG(state->s2),  16U);
--	state->s4 = __seed(LCG(state->s3), 128U);
--}
--
--static int __init prandom_state_selftest(void)
--{
--	int i, j, errors = 0, runs = 0;
--	bool error = false;
--
--	for (i = 0; i < ARRAY_SIZE(test1); i++) {
--		struct rnd_state state;
--
--		prandom_state_selftest_seed(&state, test1[i].seed);
--		prandom_warmup(&state);
--
--		if (test1[i].result != prandom_u32_state(&state))
--			error = true;
--	}
--
--	if (error)
--		pr_warn("prandom: seed boundary self test failed\n");
--	else
--		pr_info("prandom: seed boundary self test passed\n");
--
--	for (i = 0; i < ARRAY_SIZE(test2); i++) {
--		struct rnd_state state;
--
--		prandom_state_selftest_seed(&state, test2[i].seed);
--		prandom_warmup(&state);
--
--		for (j = 0; j < test2[i].iteration - 1; j++)
--			prandom_u32_state(&state);
--
--		if (test2[i].result != prandom_u32_state(&state))
--			errors++;
--
--		runs++;
--		cond_resched();
--	}
--
--	if (errors)
--		pr_warn("prandom: %d/%d self tests failed\n", errors, runs);
--	else
--		pr_info("prandom: %d self tests passed\n", runs);
--	return 0;
--}
--core_initcall(prandom_state_selftest);
-+#ifdef CONFIG_PRANDOM_KUNIT_TEST
-+#include "tests/random32_kunit.c"
- #endif
-diff --git a/lib/tests/random32_kunit.c a/lib/tests/random32_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/tests/random32_kunit.c
-@@ -0,0 +1,174 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Test cases for random32 functions.
-+ */
-+
-+#include <kunit/test.h>
-+
-+static struct prandom_test1 {
-+	u32 seed;
-+	u32 result;
-+} test1[] = {
-+	{ 1U, 3484351685U },
-+	{ 2U, 2623130059U },
-+	{ 3U, 3125133893U },
-+	{ 4U,  984847254U },
-+};
-+
-+static struct prandom_test2 {
-+	u32 seed;
-+	u32 iteration;
-+	u32 result;
-+} test2[] = {
-+	/* Test cases against taus113 from GSL library. */
-+	{  931557656U, 959U, 2975593782U },
-+	{ 1339693295U, 876U, 3887776532U },
-+	{ 1545556285U, 961U, 1615538833U },
-+	{  601730776U, 723U, 1776162651U },
-+	{ 1027516047U, 687U,  511983079U },
-+	{  416526298U, 700U,  916156552U },
-+	{ 1395522032U, 652U, 2222063676U },
-+	{  366221443U, 617U, 2992857763U },
-+	{ 1539836965U, 714U, 3783265725U },
-+	{  556206671U, 994U,  799626459U },
-+	{  684907218U, 799U,  367789491U },
-+	{ 2121230701U, 931U, 2115467001U },
-+	{ 1668516451U, 644U, 3620590685U },
-+	{  768046066U, 883U, 2034077390U },
-+	{ 1989159136U, 833U, 1195767305U },
-+	{  536585145U, 996U, 3577259204U },
-+	{ 1008129373U, 642U, 1478080776U },
-+	{ 1740775604U, 939U, 1264980372U },
-+	{ 1967883163U, 508U,   10734624U },
-+	{ 1923019697U, 730U, 3821419629U },
-+	{  442079932U, 560U, 3440032343U },
-+	{ 1961302714U, 845U,  841962572U },
-+	{ 2030205964U, 962U, 1325144227U },
-+	{ 1160407529U, 507U,  240940858U },
-+	{  635482502U, 779U, 4200489746U },
-+	{ 1252788931U, 699U,  867195434U },
-+	{ 1961817131U, 719U,  668237657U },
-+	{ 1071468216U, 983U,  917876630U },
-+	{ 1281848367U, 932U, 1003100039U },
-+	{  582537119U, 780U, 1127273778U },
-+	{ 1973672777U, 853U, 1071368872U },
-+	{ 1896756996U, 762U, 1127851055U },
-+	{  847917054U, 500U, 1717499075U },
-+	{ 1240520510U, 951U, 2849576657U },
-+	{ 1685071682U, 567U, 1961810396U },
-+	{ 1516232129U, 557U,    3173877U },
-+	{ 1208118903U, 612U, 1613145022U },
-+	{ 1817269927U, 693U, 4279122573U },
-+	{ 1510091701U, 717U,  638191229U },
-+	{  365916850U, 807U,  600424314U },
-+	{  399324359U, 702U, 1803598116U },
-+	{ 1318480274U, 779U, 2074237022U },
-+	{  697758115U, 840U, 1483639402U },
-+	{ 1696507773U, 840U,  577415447U },
-+	{ 2081979121U, 981U, 3041486449U },
-+	{  955646687U, 742U, 3846494357U },
-+	{ 1250683506U, 749U,  836419859U },
-+	{  595003102U, 534U,  366794109U },
-+	{   47485338U, 558U, 3521120834U },
-+	{  619433479U, 610U, 3991783875U },
-+	{  704096520U, 518U, 4139493852U },
-+	{ 1712224984U, 606U, 2393312003U },
-+	{ 1318233152U, 922U, 3880361134U },
-+	{  855572992U, 761U, 1472974787U },
-+	{   64721421U, 703U,  683860550U },
-+	{  678931758U, 840U,  380616043U },
-+	{  692711973U, 778U, 1382361947U },
-+	{  677703619U, 530U, 2826914161U },
-+	{   92393223U, 586U, 1522128471U },
-+	{ 1222592920U, 743U, 3466726667U },
-+	{  358288986U, 695U, 1091956998U },
-+	{ 1935056945U, 958U,  514864477U },
-+	{  735675993U, 990U, 1294239989U },
-+	{ 1560089402U, 897U, 2238551287U },
-+	{   70616361U, 829U,   22483098U },
-+	{  368234700U, 731U, 2913875084U },
-+	{   20221190U, 879U, 1564152970U },
-+	{  539444654U, 682U, 1835141259U },
-+	{ 1314987297U, 840U, 1801114136U },
-+	{ 2019295544U, 645U, 3286438930U },
-+	{  469023838U, 716U, 1637918202U },
-+	{ 1843754496U, 653U, 2562092152U },
-+	{  400672036U, 809U, 4264212785U },
-+	{  404722249U, 965U, 2704116999U },
-+	{  600702209U, 758U,  584979986U },
-+	{  519953954U, 667U, 2574436237U },
-+	{ 1658071126U, 694U, 2214569490U },
-+	{  420480037U, 749U, 3430010866U },
-+	{  690103647U, 969U, 3700758083U },
-+	{ 1029424799U, 937U, 3787746841U },
-+	{ 2012608669U, 506U, 3362628973U },
-+	{ 1535432887U, 998U,   42610943U },
-+	{ 1330635533U, 857U, 3040806504U },
-+	{ 1223800550U, 539U, 3954229517U },
-+	{ 1322411537U, 680U, 3223250324U },
-+	{ 1877847898U, 945U, 2915147143U },
-+	{ 1646356099U, 874U,  965988280U },
-+	{  805687536U, 744U, 4032277920U },
-+	{ 1948093210U, 633U, 1346597684U },
-+	{  392609744U, 783U, 1636083295U },
-+	{  690241304U, 770U, 1201031298U },
-+	{ 1360302965U, 696U, 1665394461U },
-+	{ 1220090946U, 780U, 1316922812U },
-+	{  447092251U, 500U, 3438743375U },
-+	{ 1613868791U, 592U,  828546883U },
-+	{  523430951U, 548U, 2552392304U },
-+	{  726692899U, 810U, 1656872867U },
-+	{ 1364340021U, 836U, 3710513486U },
-+	{ 1986257729U, 931U,  935013962U },
-+	{  407983964U, 921U,  728767059U },
-+};
-+
-+static void prandom_state_test_seed(struct rnd_state *state, u32 seed)
-+{
-+#define LCG(x)	 ((x) * 69069U)	/* super-duper LCG */
-+	state->s1 = __seed(LCG(seed),        2U);
-+	state->s2 = __seed(LCG(state->s1),   8U);
-+	state->s3 = __seed(LCG(state->s2),  16U);
-+	state->s4 = __seed(LCG(state->s3), 128U);
-+}
-+
-+static void test_prandom_seed_boundary(struct kunit *test)
-+{
-+	int i;
-+	struct rnd_state state;
-+
-+	for (i = 0; i < ARRAY_SIZE(test1); i++) {
-+		prandom_state_test_seed(&state, test1[i].seed);
-+		prandom_warmup(&state);
-+		KUNIT_EXPECT_EQ(test, test1[i].result, prandom_u32_state(&state));
++		spin_lock_irqsave(&spool->lock, flags);
++		if (spool->max_hpages != -1)
++			spool->used_hpages -= gbl_reserve;
++		unlock_or_release_subpool(spool, flags);
 +	}
-+}
-+
-+static void test_prandom_taus113(struct kunit *test)
-+{
-+	int i, j;
-+	struct rnd_state state;
-+
-+	for (i = 0; i < ARRAY_SIZE(test2); i++) {
-+		prandom_state_test_seed(&state, test2[i].seed);
-+		prandom_warmup(&state);
-+
-+		for (j = 0; j < test2[i].iteration - 1; j++)
-+			prandom_u32_state(&state);
-+
-+		KUNIT_EXPECT_EQ(test, test2[i].result, prandom_u32_state(&state));
-+	}
-+}
-+
-+static struct kunit_case prandom_test_cases[] = {
-+	KUNIT_CASE(test_prandom_seed_boundary),
-+	KUNIT_CASE(test_prandom_taus113),
-+	{}
-+};
-+
-+static struct kunit_suite prandom_test_suite = {
-+	.name = "prandom",
-+	.test_cases = prandom_test_cases,
-+};
-+
-+kunit_test_suite(prandom_test_suite);
+ out_uncharge_cgroup:
+ 	hugetlb_cgroup_uncharge_cgroup_rsvd(hstate_index(h),
+ 					    chg * pages_per_huge_page(h), h_cg);
 _
 
-Patches currently in -mm which might be from note351@hotmail.com are
+Patches currently in -mm which might be from joshua.hahnjy@gmail.com are
 
 
