@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C10525EFBC
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:44:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F106C2EC55D
+	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:44:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770939862; cv=none; b=nwwQ3BFsMA9/hkqvg11IwV5inApHAAzO12ZozBIl4pOaAdo+gpdOtSJ2phLyS13UpBhgBpOFqGxdxwfmCSQSyemDGp3ZG7VD119SidewjW+LScX52GdBkEUEbw4lxCaRGCHOLGLOAVBvi3Q4HlrS6p4ERT6xRA5Oe+9igGjwves=
+	t=1770939864; cv=none; b=sufdsorYGD+fHhe07VEGd2hRuy8QLF3d1m1rlThjU5h3lvbOcnUOHhhzqv9a/Ik16T/EdcFs29BpnYZIxo/qQb5z2iFFoiuR+tzyCSwvFLNHnzJOBCbGx+ZrNzSyWHDbHqGsT25ZHSRZRKPxcZ2gc7nhh/JxpHdmKuDkcH7Aies=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770939862; c=relaxed/simple;
-	bh=6N9uxHRL+bEyqpM1No9Ddzn8IgugPHqyKSgzRY9yRXY=;
-	h=Date:To:From:Subject:Message-Id; b=Z3tmKE40J8Fr8BoA47cJfEXz0JUPKPUL8V33muyg5MYfnpfi9A0tl2UZnIccpoHgujHM8cGX3jaaBWoUVHIhja81DKj9w9GhqoHzVpakeEy64qdHC3xXvfyv4vbIUZV6ZwkyOatgVb0U+ZXyarm0+/mKKNaCdo8YQ/SvmMw8FwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0e+wlwmq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770939864; c=relaxed/simple;
+	bh=P9f77MaTWi8QoOyTyFA265JuHO73ca9u1/hL0Iag6fc=;
+	h=Date:To:From:Subject:Message-Id; b=TfByQLyMQgnwDVjazhqZ+Hu/krNkMGZ5M2STH1SxLiPKfLoy6wO6wOmbw8inKRT9ptm9GNxCva1o95VsBCJnNXhRtsg72KmL+Vhn2RzdMl8y/LOjnxL7EIeHjBWEWCDC5Rvb2nuzE3V1dWlEetVw3RzPPhVcChZq4LlzMj9PX54=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f15bjm9B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0e+wlwmq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14502C4CEF7;
-	Thu, 12 Feb 2026 23:44:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f15bjm9B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEE66C4CEF7;
+	Thu, 12 Feb 2026 23:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770939862;
-	bh=6N9uxHRL+bEyqpM1No9Ddzn8IgugPHqyKSgzRY9yRXY=;
+	s=korg; t=1770939863;
+	bh=P9f77MaTWi8QoOyTyFA265JuHO73ca9u1/hL0Iag6fc=;
 	h=Date:To:From:Subject:From;
-	b=0e+wlwmq3BkBU7H9BiFsFyWH2IuJAPVwLOeodAj732FwRDqMYdx7Sy6UJOOIAjQkj
-	 SGGd59MR96xzeZ/XtPzHLzH3lc4/tL0pm9DUhv/n6w+tgYfiDQ6KV3aKPYV4o0moUL
-	 j27/XjiQ9sUjrlbvxmk6vEGfKqa5xNnOOCDSNXQA=
-Date: Thu, 12 Feb 2026 15:44:21 -0800
+	b=f15bjm9B/MjSVln9qWdsjI+KxWAfKXl2DOLvGBgpC7j3yg5guNhhIGoev2kpt7Z2v
+	 gXSZn2aJuZLxao7qqzi4P0wD0yMj14eYtIm9/LKhcYNXcAMpwadbo/zC7kJ+79/W/v
+	 Z5y952cgJWXftC7DOfPvSQVGhyHJ+OqjOFMx8U9g=
+Date: Thu, 12 Feb 2026 15:44:23 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arm64-mm-support-batch-clearing-of-the-young-flag-for-large-folios.patch removed from -mm tree
-Message-Id: <20260212234422.14502C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes.patch removed from -mm tree
+Message-Id: <20260212234423.BEE66C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm64: mm: support batch clearing of the young flag for large folios
+     Subject: arm64: mm: implement the architecture-specific clear_flush_young_ptes()
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-support-batch-clearing-of-the-young-flag-for-large-folios.patch
+     arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: arm64: mm: support batch clearing of the young flag for large folios
-Date: Mon, 9 Feb 2026 22:07:26 +0800
+Subject: arm64: mm: implement the architecture-specific clear_flush_young_ptes()
+Date: Mon, 9 Feb 2026 22:07:27 +0800
 
-Currently, contpte_ptep_test_and_clear_young() and
-contpte_ptep_clear_flush_young() only clear the young flag and flush TLBs
-for PTEs within the contiguous range.  To support batch PTE operations for
-other sized large folios in the following patches, adding a new parameter
-to specify the number of PTEs that map consecutive pages of the same large
-folio in a single VMA and a single page table.
+Implement the Arm64 architecture-specific clear_flush_young_ptes() to
+enable batched checking of young flags and TLB flushing, improving
+performance during large folio reclamation.
 
-While we are at it, rename the functions to maintain consistency with
-other contpte_*() functions.
+Performance testing:
+Allocate 10G clean file-backed folios by mmap() in a memory cgroup, and
+try to reclaim 8G file-backed folios via the memory.reclaim interface.  I
+can observe 33% performance improvement on my Arm64 32-core server (and
+10%+ improvement on my X86 machine).  Meanwhile, the hotspot
+folio_check_references() dropped from approximately 35% to around 5%.
 
-Link: https://lkml.kernel.org/r/5644250dcc0417278c266ad37118d27f541fd052.1770645603.git.baolin.wang@linux.alibaba.com
+W/o patchset:
+real	0m1.518s
+user	0m0.000s
+sys	0m1.518s
+
+W/ patchset:
+real	0m1.018s
+user	0m0.000s
+sys	0m1.018s
+
+Link: https://lkml.kernel.org/r/ce749fbae3e900e733fa104a16fcb3ca9fe4f9bd.1770645603.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
 Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
@@ -77,117 +88,29 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   12 +++++-----
- arch/arm64/mm/contpte.c          |   33 ++++++++++++++++-------------
- 2 files changed, 25 insertions(+), 20 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-support-batch-clearing-of-the-young-flag-for-large-folios
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-implement-the-architecture-specific-clear_flush_young_ptes
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -1648,10 +1648,10 @@ extern void contpte_clear_full_ptes(stru
- extern pte_t contpte_get_and_clear_full_ptes(struct mm_struct *mm,
- 				unsigned long addr, pte_t *ptep,
- 				unsigned int nr, int full);
--extern int contpte_ptep_test_and_clear_young(struct vm_area_struct *vma,
--				unsigned long addr, pte_t *ptep);
--extern int contpte_ptep_clear_flush_young(struct vm_area_struct *vma,
--				unsigned long addr, pte_t *ptep);
-+int contpte_test_and_clear_young_ptes(struct vm_area_struct *vma,
-+				unsigned long addr, pte_t *ptep, unsigned int nr);
-+int contpte_clear_flush_young_ptes(struct vm_area_struct *vma,
-+				unsigned long addr, pte_t *ptep, unsigned int nr);
- extern void contpte_wrprotect_ptes(struct mm_struct *mm, unsigned long addr,
- 				pte_t *ptep, unsigned int nr);
- extern int contpte_ptep_set_access_flags(struct vm_area_struct *vma,
-@@ -1823,7 +1823,7 @@ static inline int ptep_test_and_clear_yo
- 	if (likely(!pte_valid_cont(orig_pte)))
- 		return __ptep_test_and_clear_young(vma, addr, ptep);
- 
--	return contpte_ptep_test_and_clear_young(vma, addr, ptep);
-+	return contpte_test_and_clear_young_ptes(vma, addr, ptep, 1);
+@@ -1838,6 +1838,17 @@ static inline int ptep_clear_flush_young
+ 	return contpte_clear_flush_young_ptes(vma, addr, ptep, 1);
  }
  
- #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
-@@ -1835,7 +1835,7 @@ static inline int ptep_clear_flush_young
- 	if (likely(!pte_valid_cont(orig_pte)))
- 		return __ptep_clear_flush_young(vma, addr, ptep);
- 
--	return contpte_ptep_clear_flush_young(vma, addr, ptep);
-+	return contpte_clear_flush_young_ptes(vma, addr, ptep, 1);
- }
- 
- #define wrprotect_ptes wrprotect_ptes
---- a/arch/arm64/mm/contpte.c~arm64-mm-support-batch-clearing-of-the-young-flag-for-large-folios
-+++ a/arch/arm64/mm/contpte.c
-@@ -508,8 +508,9 @@ pte_t contpte_get_and_clear_full_ptes(st
- }
- EXPORT_SYMBOL_GPL(contpte_get_and_clear_full_ptes);
- 
--int contpte_ptep_test_and_clear_young(struct vm_area_struct *vma,
--					unsigned long addr, pte_t *ptep)
-+int contpte_test_and_clear_young_ptes(struct vm_area_struct *vma,
-+					unsigned long addr, pte_t *ptep,
-+					unsigned int nr)
- {
- 	/*
- 	 * ptep_clear_flush_young() technically requires us to clear the access
-@@ -518,41 +519,45 @@ int contpte_ptep_test_and_clear_young(st
- 	 * contig range when the range is covered by a single folio, we can get
- 	 * away with clearing young for the whole contig range here, so we avoid
- 	 * having to unfold.
-+	 *
-+	 * The 'nr' means consecutive (present) PTEs that map consecutive pages
-+	 * of the same large folio in a single VMA and a single page table.
- 	 */
- 
-+	unsigned long end = addr + nr * PAGE_SIZE;
- 	int young = 0;
--	int i;
- 
--	ptep = contpte_align_down(ptep);
--	addr = ALIGN_DOWN(addr, CONT_PTE_SIZE);
--
--	for (i = 0; i < CONT_PTES; i++, ptep++, addr += PAGE_SIZE)
-+	ptep = contpte_align_addr_ptep(&addr, &end, ptep, nr);
-+	for (; addr != end; ptep++, addr += PAGE_SIZE)
- 		young |= __ptep_test_and_clear_young(vma, addr, ptep);
- 
- 	return young;
- }
--EXPORT_SYMBOL_GPL(contpte_ptep_test_and_clear_young);
-+EXPORT_SYMBOL_GPL(contpte_test_and_clear_young_ptes);
- 
--int contpte_ptep_clear_flush_young(struct vm_area_struct *vma,
--					unsigned long addr, pte_t *ptep)
-+int contpte_clear_flush_young_ptes(struct vm_area_struct *vma,
-+				unsigned long addr, pte_t *ptep,
-+				unsigned int nr)
- {
- 	int young;
- 
--	young = contpte_ptep_test_and_clear_young(vma, addr, ptep);
-+	young = contpte_test_and_clear_young_ptes(vma, addr, ptep, nr);
- 
- 	if (young) {
-+		unsigned long end = addr + nr * PAGE_SIZE;
++#define clear_flush_young_ptes clear_flush_young_ptes
++static inline int clear_flush_young_ptes(struct vm_area_struct *vma,
++					 unsigned long addr, pte_t *ptep,
++					 unsigned int nr)
++{
++	if (likely(nr == 1 && !pte_cont(__ptep_get(ptep))))
++		return __ptep_clear_flush_young(vma, addr, ptep);
 +
-+		contpte_align_addr_ptep(&addr, &end, ptep, nr);
- 		/*
- 		 * See comment in __ptep_clear_flush_young(); same rationale for
- 		 * eliding the trailing DSB applies here.
- 		 */
--		addr = ALIGN_DOWN(addr, CONT_PTE_SIZE);
--		__flush_tlb_range_nosync(vma->vm_mm, addr, addr + CONT_PTE_SIZE,
-+		__flush_tlb_range_nosync(vma->vm_mm, addr, end,
- 					 PAGE_SIZE, true, 3);
- 	}
- 
- 	return young;
- }
--EXPORT_SYMBOL_GPL(contpte_ptep_clear_flush_young);
-+EXPORT_SYMBOL_GPL(contpte_clear_flush_young_ptes);
- 
- void contpte_wrprotect_ptes(struct mm_struct *mm, unsigned long addr,
- 					pte_t *ptep, unsigned int nr)
++	return contpte_clear_flush_young_ptes(vma, addr, ptep, nr);
++}
++
+ #define wrprotect_ptes wrprotect_ptes
+ static __always_inline void wrprotect_ptes(struct mm_struct *mm,
+ 				unsigned long addr, pte_t *ptep, unsigned int nr)
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
