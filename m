@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11FDB2580E1
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:43:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2BA72580E1
+	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:43:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770939820; cv=none; b=Jt4wRm3dbc6RGCTIEj9yKlPVHMms5Ae/6ckMPQHDhLuIwiegnDcsySwyujDaAEenMZhep/qn/fSWQ3ix08P3V6B6mOsgWVl3OlIIApTk8wq/LN1WNi/+5ay/MJ1LYKzkyws7Szrn50caoZguj5x8+ZSeKrCjwgCSPn+ADG0nprc=
+	t=1770939821; cv=none; b=NOxWK8igUxkq70+ZcA7hmcLzrjGsd7uZM1r2ZFsMcMFVyMOuWKcTvLJisQg1USsE3HS3LoLjEmBnW7H11Td/OY5McepHqRHOtWh6hgBG2IBzIk6c7bUIpe9KaFZtnC0zrjINsSd9ywtgNNivDvevFUMgmDOkZgAtVR9zSMa4zyM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770939820; c=relaxed/simple;
-	bh=qGEDtvx6+hvrTdfo3eiWMsArdzrUOlUgZ49cU5MmsfM=;
-	h=Date:To:From:Subject:Message-Id; b=KMZDg+/n9GFcmvJzCmPAC/mFiuChgkC9I92KbI1Fgm21UJ6K6PZgQAU9RYGn8V2lFPyso4G8k8yVi32fVtpI87oum0P2SyANKn/wkXCLIZXq49OD9jOHhTBCX3/LtafECBe6E+MxPkxi1EXIyjNuO5W+EVI/HLqwAg9vqfrO4S4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wmmrre8D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770939821; c=relaxed/simple;
+	bh=w+6HVti5T2v3eftgvWVHSc3m0q43hGSPYbnqXrr1iy0=;
+	h=Date:To:From:Subject:Message-Id; b=RX4685YgmelcgmeSZ+bXtepCjHued6TjBCV8yYUp1YJkuoBBnYvMEGrw60S0EMz5UqcQVaYzH/YSDiyDQxrHZXcyvdQceFRhtO8e83XwYmUneSdaDW7yf1Z1yy+fqsM3C8cckC7oK58160QPvqCE2FvYXdrtpoG3HfBN95NR+68=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EPeZBas/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wmmrre8D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95E79C4CEF7;
-	Thu, 12 Feb 2026 23:43:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EPeZBas/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 683C5C4CEF7;
+	Thu, 12 Feb 2026 23:43:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770939819;
-	bh=qGEDtvx6+hvrTdfo3eiWMsArdzrUOlUgZ49cU5MmsfM=;
+	s=korg; t=1770939821;
+	bh=w+6HVti5T2v3eftgvWVHSc3m0q43hGSPYbnqXrr1iy0=;
 	h=Date:To:From:Subject:From;
-	b=Wmmrre8Dy2CYJNAT1ZqtY3W94RzVgF5QtVvMo0gOVlsDRyEAf2bPvQSDqO78CZz/c
-	 vs6WAOUsLXmoGBumkS+1tVGFQ+8VLLuqv5aImi190ooNjXZt6qrGxfDQjeMwDTKZwH
-	 SlZfxw9EPozkgWrcb59G+JT4Jrle7vyzoSuAisKQ=
-Date: Thu, 12 Feb 2026 15:43:38 -0800
+	b=EPeZBas/dKDKLcYTy3a9HBNK+/UftlhVGVgbv50taDdjmrUFa0391ZY2HziuFZMoN
+	 Sd9dkohY5C70gqOQo6gbA1+Uwl/GzKLj6TTtSMR46WsJOIpVf3qkvsqMz4JwJ7/99n
+	 D0rztdRCFBKXRPMPx4E+Z4hVlWAUCpnpx7BBrZmM=
+Date: Thu, 12 Feb 2026 15:43:40 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shikemeng@huaweicloud.com,rppt@kernel.org,pfalcato@suse.de,nphamcs@gmail.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,kasong@tencent.com,jannh@google.com,david@redhat.com,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mmap-abstract-vma-clean-up-from-exit_mmap.patch removed from -mm tree
-Message-Id: <20260212234339.95E79C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-add-limits-to-unmap_region-for-vmas.patch removed from -mm tree
+Message-Id: <20260212234341.683C5C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mmap: abstract vma clean up from exit_mmap()
+     Subject: mm/vma: add limits to unmap_region() for vmas
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-abstract-vma-clean-up-from-exit_mmap.patch
+     mm-vma-add-limits-to-unmap_region-for-vmas.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: mm/mmap: abstract vma clean up from exit_mmap()
-Date: Wed, 21 Jan 2026 11:49:38 -0500
+Subject: mm/vma: add limits to unmap_region() for vmas
+Date: Wed, 21 Jan 2026 11:49:39 -0500
 
-Create the new function tear_down_vmas() to remove a range of vmas. 
-exit_mmap() will be removing all the vmas.
-
-This is necessary for future patches.
+Add a limit to the vma search instead of using the start and end of the
+one passed in.
 
 No functional changes intended.
 
-Link: https://lkml.kernel.org/r/20260121164946.2093480-4-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20260121164946.2093480-5-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -76,69 +74,49 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   37 ++++++++++++++++++++++++-------------
- 1 file changed, 24 insertions(+), 13 deletions(-)
+ mm/vma.c |    6 ++++--
+ mm/vma.h |    1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/mmap.c~mm-mmap-abstract-vma-clean-up-from-exit_mmap
-+++ a/mm/mmap.c
-@@ -1247,6 +1247,29 @@ limits_failed:
- }
- EXPORT_SYMBOL(vm_brk_flags);
- 
-+static
-+unsigned long tear_down_vmas(struct mm_struct *mm, struct vma_iterator *vmi,
-+		struct vm_area_struct *vma, unsigned long end)
-+{
-+	unsigned long nr_accounted = 0;
-+	int count = 0;
-+
-+	mmap_assert_write_locked(mm);
-+	vma_iter_set(vmi, vma->vm_end);
-+	do {
-+		if (vma->vm_flags & VM_ACCOUNT)
-+			nr_accounted += vma_pages(vma);
-+		vma_mark_detached(vma);
-+		remove_vma(vma);
-+		count++;
-+		cond_resched();
-+		vma = vma_next(vmi);
-+	} while (vma && vma->vm_end <= end);
-+
-+	VM_WARN_ON_ONCE(count != mm->map_count);
-+	return nr_accounted;
-+}
-+
- /* Release all mmaps. */
- void exit_mmap(struct mm_struct *mm)
+--- a/mm/vma.c~mm-vma-add-limits-to-unmap_region-for-vmas
++++ a/mm/vma.c
+@@ -473,6 +473,7 @@ void remove_vma(struct vm_area_struct *v
+  * Called with the mm semaphore held.
+  */
+ void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
++		unsigned long vma_start, unsigned long vma_end,
+ 		struct vm_area_struct *prev, struct vm_area_struct *next)
  {
-@@ -1254,7 +1277,6 @@ void exit_mmap(struct mm_struct *mm)
- 	struct vm_area_struct *vma;
- 	unsigned long nr_accounted = 0;
- 	VMA_ITERATOR(vmi, mm, 0);
--	int count = 0;
+ 	struct mm_struct *mm = vma->vm_mm;
+@@ -480,7 +481,7 @@ void unmap_region(struct ma_state *mas,
  
- 	/* mm's last user has gone, and its about to be pulled down */
- 	mmu_notifier_release(mm);
-@@ -1294,18 +1316,7 @@ void exit_mmap(struct mm_struct *mm)
- 	 * enabled, without holding any MM locks besides the unreachable
- 	 * mmap_write_lock.
- 	 */
--	vma_iter_set(&vmi, vma->vm_end);
--	do {
--		if (vma->vm_flags & VM_ACCOUNT)
--			nr_accounted += vma_pages(vma);
--		vma_mark_detached(vma);
--		remove_vma(vma);
--		count++;
--		cond_resched();
--		vma = vma_next(&vmi);
--	} while (vma && likely(!xa_is_zero(vma)));
--
--	BUG_ON(count != mm->map_count);
-+	nr_accounted = tear_down_vmas(mm, &vmi, vma, ULONG_MAX);
+ 	tlb_gather_mmu(&tlb, mm);
+ 	update_hiwater_rss(mm);
+-	unmap_vmas(&tlb, mas, vma, vma->vm_start, vma->vm_end, vma->vm_end);
++	unmap_vmas(&tlb, mas, vma, vma_start, vma_end, vma_end);
+ 	mas_set(mas, vma->vm_end);
+ 	free_pgtables(&tlb, mas, vma, prev ? prev->vm_end : FIRST_USER_ADDRESS,
+ 		      next ? next->vm_start : USER_PGTABLES_CEILING,
+@@ -2466,7 +2467,8 @@ static int __mmap_new_file_vma(struct mm
  
- destroy:
- 	__mt_destroy(&mm->mm_mt);
+ 		vma_iter_set(vmi, vma->vm_end);
+ 		/* Undo any partial mapping done by a device driver. */
+-		unmap_region(&vmi->mas, vma, map->prev, map->next);
++		unmap_region(&vmi->mas, vma, vma->vm_start, vma->vm_end,
++			     map->prev, map->next);
+ 
+ 		return error;
+ 	}
+--- a/mm/vma.h~mm-vma-add-limits-to-unmap_region-for-vmas
++++ a/mm/vma.h
+@@ -264,6 +264,7 @@ int do_vmi_munmap(struct vma_iterator *v
+ void remove_vma(struct vm_area_struct *vma);
+ 
+ void unmap_region(struct ma_state *mas, struct vm_area_struct *vma,
++		unsigned long vma_start, unsigned long vma_end,
+ 		struct vm_area_struct *prev, struct vm_area_struct *next);
+ 
+ /**
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
