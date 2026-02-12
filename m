@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38B932E8B9F
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:44:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCC752EC541
+	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 23:44:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770939841; cv=none; b=j+ttOI+oGYxWmL452KugRyRAyMqJuOp1Ax9InqpQ6dL/fgUhke4MRYXMHAIre2U2OnsZ1lv6vrRn1nb6Ahyx5ZSmtKSRr0snE0qjODgpGVfw65h05l2Su13cSGq3AnNXC1GC8jvRE23dKD0Ue7KFi9tHnd8jK5vWtVk+JdwwwWw=
+	t=1770939842; cv=none; b=DN5RanOUPhIWwUYvuJc/C8hNZZKKUakmLf6SfUwuB4a+sCG2//AZPgYXudCsBoa6nHtrBV0oSPzYJHfBLUStvvFRe5l0w15T4M9pd8QWSIrj8vIhy93kHM6aPSjMWfKTmheJL/n5dothpDMRcpM+0eDv0SgXorVmkZGJUYI9t3g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770939841; c=relaxed/simple;
-	bh=0v06fySjE5nenZroch/SEmV7SiDfIWhVuUwSDoY6ras=;
-	h=Date:To:From:Subject:Message-Id; b=GZWQxF+nrVamwUwHuXPHfuN8BM+CEqmhpQyb4uRWqc+6ulzdpXPMcaMlvxq0Vz956Qw8eQGAOUxbUFJgT7R6Qm5woJNGI6KqYQOBqCogBzPm06S0sRNepcj6hwe+OG3UD1XX8SeLY0kjI1j96V9N1KyuLh+Ni32GkzVTZl06S+Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DVzxB+N2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770939842; c=relaxed/simple;
+	bh=cksvc1J2vmAS6EUjrAyhaP9Y+NrLJokOR1/iWDBTiOk=;
+	h=Date:To:From:Subject:Message-Id; b=UHYsNFOxiVTX6mCCktbixOPP85/DYFCgOAKbkoBbR4SMJPT/Q8oUW7ZtFlaFA73QhziJbQoYTp6ATHHPCz2WvNINyBKkDeIyhft7Z3LyqvgYIAv+egQFrDre1mgPdE+AzRQEj2h4Yo+J59WdzsUK/OFr+FPhgpUkq7xNwmiM4jU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fgq3mgZs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DVzxB+N2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FF20C4CEF7;
-	Thu, 12 Feb 2026 23:44:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fgq3mgZs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B232CC4CEF7;
+	Thu, 12 Feb 2026 23:44:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770939841;
-	bh=0v06fySjE5nenZroch/SEmV7SiDfIWhVuUwSDoY6ras=;
+	s=korg; t=1770939842;
+	bh=cksvc1J2vmAS6EUjrAyhaP9Y+NrLJokOR1/iWDBTiOk=;
 	h=Date:To:From:Subject:From;
-	b=DVzxB+N2MpKw07r5iIBo2jZicyD3bUjJ+wJcJpDJXRRqIfj3hcp14Mnx9XnJqI5u+
-	 4vzv39LETuuXQE/bFz5dpSzZ6wv6vC0La6fJkAE2xZHT/kovyXueSEJROcPJrogZuh
-	 e1HOrfM4uncqXtTMDlRLPoe9rED41llCue3pxkEE=
-Date: Thu, 12 Feb 2026 15:44:00 -0800
+	b=Fgq3mgZsEMPf58aOTrTnCeyWQECIzb1dAu6pYQC5SRWS65A9Bg8t7SzdudeMoCL0z
+	 HiHbheEmCsSTX8CouiHJC0ugX3Hxlog4rf3jPxzDToS49bXipXdyxOoz+sWobcRXZD
+	 nBGqHviPg+L9KpLmWAvR5/1ziyPOrxQ/e180V66k=
+Date: Thu, 12 Feb 2026 15:44:02 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ynorov@nvidia.com,vbabka@suse.cz,surenb@google.com,pfalcato@suse.de,Liam.Howlett@oracle.com,jgg@nvidia.com,jarkko@kernel.org,dlemoal@kernel.org,djwong@kernel.org,dev.jain@arm.com,david@kernel.org,clm@fb.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-bitmap-add-missing-bitmap_.patch removed from -mm tree
-Message-Id: <20260212234401.0FF20C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-basic-vma-flag-operation-helper-functions.patch removed from -mm tree
+Message-Id: <20260212234402.B232CC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools: bitmap: add missing bitmap_[subset(), andnot()]
+     Subject: mm: add basic VMA flag operation helper functions
 has been removed from the -mm tree.  Its filename was
-     tools-bitmap-add-missing-bitmap_.patch
+     mm-add-basic-vma-flag-operation-helper-functions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: tools: bitmap: add missing bitmap_[subset(), andnot()]
-Date: Thu, 22 Jan 2026 16:06:13 +0000
+Subject: mm: add basic VMA flag operation helper functions
+Date: Thu, 22 Jan 2026 16:06:14 +0000
 
-The bitmap_subset() and bitmap_andnot() functions are not present in the
-tools version of include/linux/bitmap.h, so add them as subsequent patches
-implement test code that requires them.
+Now we have the mk_vma_flags() macro helper which permits easy
+specification of any number of VMA flags, add helper functions which
+operate with vma_flags_t parameters.
 
-We also add the missing __bitmap_subset() to tools/lib/bitmap.c.
+This patch provides vma_flags_test[_mask](), vma_flags_set[_mask]() and
+vma_flags_clear[_mask]() respectively testing, setting and clearing flags
+with the _mask variants accepting vma_flag_t parameters, and the non-mask
+variants implemented as macros which accept a list of flags.
 
-Link: https://lkml.kernel.org/r/0fd0d4ec868297f522003cb4b5898b53b498805b.1769097829.git.lorenzo.stoakes@oracle.com
+This allows us to trivially test/set/clear aggregate VMA flag values as
+necessary, for instance:
+
+	if (vma_flags_test(&flags, VMA_READ_BIT, VMA_WRITE_BIT))
+		goto readwrite;
+
+	vma_flags_set(&flags, VMA_READ_BIT, VMA_WRITE_BIT);
+
+	vma_flags_clear(&flags, VMA_READ_BIT, VMA_WRITE_BIT);
+
+We also add a function for testing that ALL flags are set for convenience,
+e.g.:
+
+	if (vma_flags_test_all(&flags, VMA_READ_BIT, VMA_MAYREAD_BIT)) {
+		/* Both READ and MAYREAD flags set */
+		...
+	}
+
+The compiler generates optimal assembly for each such that they behave as
+if the caller were setting the bitmap flags manually.
+
+This is important for e.g.  drivers which manipulate flag values rather
+than a VMA's specific flag values.
+
+We also add helpers for testing, setting and clearing flags for VMA's and
+VMA descriptors to reduce boilerplate.
+
+Also add the EMPTY_VMA_FLAGS define to aid initialisation of empty flags.
+
+Finally, update the userland VMA tests to add the helpers there so they
+can be utilised as part of userland testing.
+
+Link: https://lkml.kernel.org/r/885d4897d67a6a57c0b07fa182a7055ad752df11.1769097829.git.lorenzo.stoakes@oracle.com
 Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -69,94 +105,398 @@ Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Jarkko Sakkinen <jarkko@kernel.org>
 Cc: Yury Norov <ynorov@nvidia.com>
 Cc: Chris Mason <clm@fb.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/linux/bitmap.h |   22 ++++++++++++++++++++++
- tools/lib/bitmap.c           |   29 +++++++++++++++++++++++++++++
- 2 files changed, 51 insertions(+)
+ include/linux/mm.h               |  165 +++++++++++++++++++++++++++++
+ include/linux/mm_types.h         |    4 
+ tools/testing/vma/vma_internal.h |  147 ++++++++++++++++++++++---
+ 3 files changed, 295 insertions(+), 21 deletions(-)
 
---- a/tools/include/linux/bitmap.h~tools-bitmap-add-missing-bitmap_
-+++ a/tools/include/linux/bitmap.h
-@@ -24,6 +24,10 @@ void __bitmap_set(unsigned long *map, un
- void __bitmap_clear(unsigned long *map, unsigned int start, int len);
- bool __bitmap_intersects(const unsigned long *bitmap1,
- 			 const unsigned long *bitmap2, unsigned int bits);
-+bool __bitmap_subset(const unsigned long *bitmap1,
-+		     const unsigned long *bitmap2, unsigned int nbits);
-+bool __bitmap_andnot(unsigned long *dst, const unsigned long *bitmap1,
-+		    const unsigned long *bitmap2, unsigned int nbits);
+--- a/include/linux/mm.h~mm-add-basic-vma-flag-operation-helper-functions
++++ a/include/linux/mm.h
+@@ -1059,6 +1059,171 @@ static inline vma_flags_t __mk_vma_flags
+ #define mk_vma_flags(...) __mk_vma_flags(COUNT_ARGS(__VA_ARGS__), \
+ 					 (const vma_flag_t []){__VA_ARGS__})
  
- #define BITMAP_FIRST_WORD_MASK(start) (~0UL << ((start) & (BITS_PER_LONG - 1)))
- #define BITMAP_LAST_WORD_MASK(nbits) (~0UL >> (-(nbits) & (BITS_PER_LONG - 1)))
-@@ -81,6 +85,15 @@ static inline void bitmap_or(unsigned lo
- 		__bitmap_or(dst, src1, src2, nbits);
- }
- 
-+static __always_inline
-+bool bitmap_andnot(unsigned long *dst, const unsigned long *src1,
-+		   const unsigned long *src2, unsigned int nbits)
++/*  Test each of to_test flags in flags, non-atomically. */
++static __always_inline bool vma_flags_test_mask(const vma_flags_t *flags,
++		vma_flags_t to_test)
 +{
-+	if (small_const_nbits(nbits))
-+		return (*dst = *src1 & ~(*src2) & BITMAP_LAST_WORD_MASK(nbits)) != 0;
-+	return __bitmap_andnot(dst, src1, src2, nbits);
++	const unsigned long *bitmap = flags->__vma_flags;
++	const unsigned long *bitmap_to_test = to_test.__vma_flags;
++
++	return bitmap_intersects(bitmap_to_test, bitmap, NUM_VMA_FLAG_BITS);
 +}
 +
- static inline unsigned long *bitmap_alloc(unsigned int nbits, gfp_t flags __maybe_unused)
++/*
++ * Test whether any specified VMA flag is set, e.g.:
++ *
++ * if (vma_flags_test(flags, VMA_READ_BIT, VMA_MAYREAD_BIT)) { ... }
++ */
++#define vma_flags_test(flags, ...) \
++	vma_flags_test_mask(flags, mk_vma_flags(__VA_ARGS__))
++
++/* Test that ALL of the to_test flags are set, non-atomically. */
++static __always_inline bool vma_flags_test_all_mask(const vma_flags_t *flags,
++		vma_flags_t to_test)
++{
++	const unsigned long *bitmap = flags->__vma_flags;
++	const unsigned long *bitmap_to_test = to_test.__vma_flags;
++
++	return bitmap_subset(bitmap_to_test, bitmap, NUM_VMA_FLAG_BITS);
++}
++
++/*
++ * Test whether ALL specified VMA flags are set, e.g.:
++ *
++ * if (vma_flags_test_all(flags, VMA_READ_BIT, VMA_MAYREAD_BIT)) { ... }
++ */
++#define vma_flags_test_all(flags, ...) \
++	vma_flags_test_all_mask(flags, mk_vma_flags(__VA_ARGS__))
++
++/* Set each of the to_set flags in flags, non-atomically. */
++static __always_inline void vma_flags_set_mask(vma_flags_t *flags, vma_flags_t to_set)
++{
++	unsigned long *bitmap = flags->__vma_flags;
++	const unsigned long *bitmap_to_set = to_set.__vma_flags;
++
++	bitmap_or(bitmap, bitmap, bitmap_to_set, NUM_VMA_FLAG_BITS);
++}
++
++/*
++ * Set all specified VMA flags, e.g.:
++ *
++ * vma_flags_set(&flags, VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
++ */
++#define vma_flags_set(flags, ...) \
++	vma_flags_set_mask(flags, mk_vma_flags(__VA_ARGS__))
++
++/* Clear all of the to-clear flags in flags, non-atomically. */
++static __always_inline void vma_flags_clear_mask(vma_flags_t *flags, vma_flags_t to_clear)
++{
++	unsigned long *bitmap = flags->__vma_flags;
++	const unsigned long *bitmap_to_clear = to_clear.__vma_flags;
++
++	bitmap_andnot(bitmap, bitmap, bitmap_to_clear, NUM_VMA_FLAG_BITS);
++}
++
++/*
++ * Clear all specified individual flags, e.g.:
++ *
++ * vma_flags_clear(&flags, VMA_READ_BIT, VMA_WRITE_BIT, VMA_EXEC_BIT);
++ */
++#define vma_flags_clear(flags, ...) \
++	vma_flags_clear_mask(flags, mk_vma_flags(__VA_ARGS__))
++
++/*
++ * Helper to test that ALL specified flags are set in a VMA.
++ *
++ * Note: appropriate locks must be held, this function does not acquire them for
++ * you.
++ */
++static inline bool vma_test_all_flags_mask(const struct vm_area_struct *vma,
++					   vma_flags_t flags)
++{
++	return vma_flags_test_all_mask(&vma->flags, flags);
++}
++
++/*
++ * Helper macro for checking that ALL specified flags are set in a VMA, e.g.:
++ *
++ * if (vma_test_all_flags(vma, VMA_READ_BIT, VMA_MAYREAD_BIT) { ... }
++ */
++#define vma_test_all_flags(vma, ...) \
++	vma_test_all_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
++
++/*
++ * Helper to set all VMA flags in a VMA.
++ *
++ * Note: appropriate locks must be held, this function does not acquire them for
++ * you.
++ */
++static inline void vma_set_flags_mask(struct vm_area_struct *vma,
++				      vma_flags_t flags)
++{
++	vma_flags_set_mask(&vma->flags, flags);
++}
++
++/*
++ * Helper macro for specifying VMA flags in a VMA, e.g.:
++ *
++ * vma_set_flags(vma, VMA_IO_BIT, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT,
++ * 		VMA_DONTDUMP_BIT);
++ *
++ * Note: appropriate locks must be held, this function does not acquire them for
++ * you.
++ */
++#define vma_set_flags(vma, ...) \
++	vma_set_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
++
++/* Helper to test all VMA flags in a VMA descriptor. */
++static inline bool vma_desc_test_flags_mask(const struct vm_area_desc *desc,
++					    vma_flags_t flags)
++{
++	return vma_flags_test_mask(&desc->vma_flags, flags);
++}
++
++/*
++ * Helper macro for testing VMA flags for an input pointer to a struct
++ * vm_area_desc object describing a proposed VMA, e.g.:
++ *
++ * if (vma_desc_test_flags(desc, VMA_IO_BIT, VMA_PFNMAP_BIT,
++ *		VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)) { ... }
++ */
++#define vma_desc_test_flags(desc, ...) \
++	vma_desc_test_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
++
++/* Helper to set all VMA flags in a VMA descriptor. */
++static inline void vma_desc_set_flags_mask(struct vm_area_desc *desc,
++					   vma_flags_t flags)
++{
++	vma_flags_set_mask(&desc->vma_flags, flags);
++}
++
++/*
++ * Helper macro for specifying VMA flags for an input pointer to a struct
++ * vm_area_desc object describing a proposed VMA, e.g.:
++ *
++ * vma_desc_set_flags(desc, VMA_IO_BIT, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT,
++ * 		VMA_DONTDUMP_BIT);
++ */
++#define vma_desc_set_flags(desc, ...) \
++	vma_desc_set_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
++
++/* Helper to clear all VMA flags in a VMA descriptor. */
++static inline void vma_desc_clear_flags_mask(struct vm_area_desc *desc,
++					     vma_flags_t flags)
++{
++	vma_flags_clear_mask(&desc->vma_flags, flags);
++}
++
++/*
++ * Helper macro for clearing VMA flags for an input pointer to a struct
++ * vm_area_desc object describing a proposed VMA, e.g.:
++ *
++ * vma_desc_clear_flags(desc, VMA_IO_BIT, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT,
++ * 		VMA_DONTDUMP_BIT);
++ */
++#define vma_desc_clear_flags(desc, ...) \
++	vma_desc_clear_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
++
+ static inline void vma_set_anonymous(struct vm_area_struct *vma)
  {
- 	return malloc(bitmap_size(nbits));
-@@ -157,6 +170,15 @@ static inline bool bitmap_intersects(con
- 		return __bitmap_intersects(src1, src2, nbits);
+ 	vma->vm_ops = NULL;
+--- a/include/linux/mm_types.h~mm-add-basic-vma-flag-operation-helper-functions
++++ a/include/linux/mm_types.h
+@@ -844,7 +844,7 @@ struct mmap_action {
+ 
+ 	/*
+ 	 * If specified, this hook is invoked when an error occurred when
+-	 * attempting the selection action.
++	 * attempting the selected action.
+ 	 *
+ 	 * The hook can return an error code in order to filter the error, but
+ 	 * it is not valid to clear the error here.
+@@ -868,6 +868,8 @@ typedef struct {
+ 	DECLARE_BITMAP(__vma_flags, NUM_VMA_FLAG_BITS);
+ } vma_flags_t;
+ 
++#define EMPTY_VMA_FLAGS ((vma_flags_t){ })
++
+ /*
+  * Describes a VMA that is about to be mmap()'ed. Drivers may choose to
+  * manipulate mutable fields which will cause those fields to be updated in the
+--- a/tools/testing/vma/vma_internal.h~mm-add-basic-vma-flag-operation-helper-functions
++++ a/tools/testing/vma/vma_internal.h
+@@ -21,7 +21,13 @@
+ 
+ #include <stdlib.h>
+ 
++#ifdef __CONCAT
++#undef __CONCAT
++#endif
++
++#include <linux/args.h>
+ #include <linux/atomic.h>
++#include <linux/bitmap.h>
+ #include <linux/list.h>
+ #include <linux/maple_tree.h>
+ #include <linux/mm.h>
+@@ -38,6 +44,8 @@ extern unsigned long dac_mmap_min_addr;
+ #define dac_mmap_min_addr	0UL
+ #endif
+ 
++#define ACCESS_PRIVATE(p, member) ((p)->member)
++
+ #define VM_WARN_ON(_expr) (WARN_ON(_expr))
+ #define VM_WARN_ON_ONCE(_expr) (WARN_ON_ONCE(_expr))
+ #define VM_WARN_ON_VMG(_expr, _vmg) (WARN_ON(_expr))
+@@ -533,6 +541,8 @@ typedef struct {
+ 	DECLARE_BITMAP(__vma_flags, NUM_VMA_FLAG_BITS);
+ } __private vma_flags_t;
+ 
++#define EMPTY_VMA_FLAGS ((vma_flags_t){ })
++
+ struct mm_struct {
+ 	struct maple_tree mm_mt;
+ 	int map_count;			/* number of VMAs */
+@@ -882,6 +892,123 @@ static inline pgprot_t vm_get_page_prot(
+ 	return __pgprot(vm_flags);
  }
  
-+static __always_inline
-+bool bitmap_subset(const unsigned long *src1, const unsigned long *src2, unsigned int nbits)
++static inline void vma_flags_clear_all(vma_flags_t *flags)
 +{
-+	if (small_const_nbits(nbits))
-+		return ! ((*src1 & ~(*src2)) & BITMAP_LAST_WORD_MASK(nbits));
-+	else
-+		return __bitmap_subset(src1, src2, nbits);
++	bitmap_zero(flags->__vma_flags, NUM_VMA_FLAG_BITS);
 +}
 +
- static inline void bitmap_set(unsigned long *map, unsigned int start, unsigned int nbits)
++static inline void vma_flag_set(vma_flags_t *flags, vma_flag_t bit)
++{
++	unsigned long *bitmap = flags->__vma_flags;
++
++	__set_bit((__force int)bit, bitmap);
++}
++
++static inline vma_flags_t __mk_vma_flags(size_t count, const vma_flag_t *bits)
++{
++	vma_flags_t flags;
++	int i;
++
++	vma_flags_clear_all(&flags);
++	for (i = 0; i < count; i++)
++		vma_flag_set(&flags, bits[i]);
++	return flags;
++}
++
++#define mk_vma_flags(...) __mk_vma_flags(COUNT_ARGS(__VA_ARGS__), \
++					 (const vma_flag_t []){__VA_ARGS__})
++
++static __always_inline bool vma_flags_test_mask(const vma_flags_t *flags,
++		vma_flags_t to_test)
++{
++	const unsigned long *bitmap = flags->__vma_flags;
++	const unsigned long *bitmap_to_test = to_test.__vma_flags;
++
++	return bitmap_intersects(bitmap_to_test, bitmap, NUM_VMA_FLAG_BITS);
++}
++
++#define vma_flags_test(flags, ...) \
++	vma_flags_test_mask(flags, mk_vma_flags(__VA_ARGS__))
++
++static __always_inline bool vma_flags_test_all_mask(const vma_flags_t *flags,
++		vma_flags_t to_test)
++{
++	const unsigned long *bitmap = flags->__vma_flags;
++	const unsigned long *bitmap_to_test = to_test.__vma_flags;
++
++	return bitmap_subset(bitmap_to_test, bitmap, NUM_VMA_FLAG_BITS);
++}
++
++#define vma_flags_test_all(flags, ...) \
++	vma_flags_test_all_mask(flags, mk_vma_flags(__VA_ARGS__))
++
++static __always_inline void vma_flags_set_mask(vma_flags_t *flags, vma_flags_t to_set)
++{
++	unsigned long *bitmap = flags->__vma_flags;
++	const unsigned long *bitmap_to_set = to_set.__vma_flags;
++
++	bitmap_or(bitmap, bitmap, bitmap_to_set, NUM_VMA_FLAG_BITS);
++}
++
++#define vma_flags_set(flags, ...) \
++	vma_flags_set_mask(flags, mk_vma_flags(__VA_ARGS__))
++
++static __always_inline void vma_flags_clear_mask(vma_flags_t *flags, vma_flags_t to_clear)
++{
++	unsigned long *bitmap = flags->__vma_flags;
++	const unsigned long *bitmap_to_clear = to_clear.__vma_flags;
++
++	bitmap_andnot(bitmap, bitmap, bitmap_to_clear, NUM_VMA_FLAG_BITS);
++}
++
++#define vma_flags_clear(flags, ...) \
++	vma_flags_clear_mask(flags, mk_vma_flags(__VA_ARGS__))
++
++static inline bool vma_test_all_flags_mask(const struct vm_area_struct *vma,
++					   vma_flags_t flags)
++{
++	return vma_flags_test_all_mask(&vma->flags, flags);
++}
++
++#define vma_test_all_flags(vma, ...) \
++	vma_test_all_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
++
++static inline void vma_set_flags_mask(struct vm_area_struct *vma,
++				      vma_flags_t flags)
++{
++	vma_flags_set_mask(&vma->flags, flags);
++}
++
++#define vma_set_flags(vma, ...) \
++	vma_set_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
++
++static inline bool vma_desc_test_flags_mask(const struct vm_area_desc *desc,
++					    vma_flags_t flags)
++{
++	return vma_flags_test_mask(&desc->vma_flags, flags);
++}
++
++#define vma_desc_test_flags(desc, ...) \
++	vma_desc_test_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
++
++static inline void vma_desc_set_flags_mask(struct vm_area_desc *desc,
++					   vma_flags_t flags)
++{
++	vma_flags_set_mask(&desc->vma_flags, flags);
++}
++
++#define vma_desc_set_flags(desc, ...) \
++	vma_desc_set_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
++
++static inline void vma_desc_clear_flags_mask(struct vm_area_desc *desc,
++					     vma_flags_t flags)
++{
++	vma_flags_clear_mask(&desc->vma_flags, flags);
++}
++
++#define vma_desc_clear_flags(desc, ...) \
++	vma_desc_clear_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
++
+ static inline bool is_shared_maywrite(vm_flags_t vm_flags)
  {
- 	if (__builtin_constant_p(nbits) && nbits == 1)
---- a/tools/lib/bitmap.c~tools-bitmap-add-missing-bitmap_
-+++ a/tools/lib/bitmap.c
-@@ -140,3 +140,32 @@ void __bitmap_clear(unsigned long *map,
- 		*p &= ~mask_to_clear;
- 	}
+ 	return (vm_flags & (VM_SHARED | VM_MAYWRITE)) ==
+@@ -1540,31 +1667,11 @@ static inline void userfaultfd_unmap_com
+ {
  }
-+
-+bool __bitmap_andnot(unsigned long *dst, const unsigned long *bitmap1,
-+				const unsigned long *bitmap2, unsigned int bits)
-+{
-+	unsigned int k;
-+	unsigned int lim = bits/BITS_PER_LONG;
-+	unsigned long result = 0;
-+
-+	for (k = 0; k < lim; k++)
-+		result |= (dst[k] = bitmap1[k] & ~bitmap2[k]);
-+	if (bits % BITS_PER_LONG)
-+		result |= (dst[k] = bitmap1[k] & ~bitmap2[k] &
-+			   BITMAP_LAST_WORD_MASK(bits));
-+	return result != 0;
-+}
-+
-+bool __bitmap_subset(const unsigned long *bitmap1,
-+		     const unsigned long *bitmap2, unsigned int bits)
-+{
-+	unsigned int k, lim = bits/BITS_PER_LONG;
-+	for (k = 0; k < lim; ++k)
-+		if (bitmap1[k] & ~bitmap2[k])
-+			return false;
-+
-+	if (bits % BITS_PER_LONG)
-+		if ((bitmap1[k] & ~bitmap2[k]) & BITMAP_LAST_WORD_MASK(bits))
-+			return false;
-+	return true;
-+}
+ 
+-#define ACCESS_PRIVATE(p, member) ((p)->member)
+-
+-#define bitmap_size(nbits)	(ALIGN(nbits, BITS_PER_LONG) / BITS_PER_BYTE)
+-
+-static __always_inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
+-{
+-	unsigned int len = bitmap_size(nbits);
+-
+-	if (small_const_nbits(nbits))
+-		*dst = 0;
+-	else
+-		memset(dst, 0, len);
+-}
+-
+ static inline bool mm_flags_test(int flag, const struct mm_struct *mm)
+ {
+ 	return test_bit(flag, ACCESS_PRIVATE(&mm->flags, __mm_flags));
+ }
+ 
+-/* Clears all bits in the VMA flags bitmap, non-atomically. */
+-static inline void vma_flags_clear_all(vma_flags_t *flags)
+-{
+-	bitmap_zero(ACCESS_PRIVATE(flags, __vma_flags), NUM_VMA_FLAG_BITS);
+-}
+-
+ /*
+  * Copy value to the first system word of VMA flags, non-atomically.
+  *
 _
 
 Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
