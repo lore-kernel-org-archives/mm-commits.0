@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 761A4F9D9
-	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 20:33:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BFA4F9D9
+	for <mm-commits@vger.kernel.org>; Thu, 12 Feb 2026 20:33:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1770928388; cv=none; b=J0684xVLkm4ozmhiAFSlb1AV+EPzDmvJHQMu4IQG7ZnQ71D/WRvrtVLUHUA6AIwzc5lfHTkih8aCspwaqyzQKAshCgnkoQxjSAPbBlCu2us7dRD2H3rOOEoY6ChMhMhclZGeMQSY/0ez3xOa6elB6ArTQb9vBC1Nq7zpzEAIByA=
+	t=1770928390; cv=none; b=phfITwZgpmLKQUyoWYWnRSMsFtVVB8+JFLg8F7e3548Rn2VDzAp5GgbDO6F9x7bIsgJWCCNPzWH2TqWo4bAEw+aScaVfwR/qWfQh1eyYyIWEqZvdCL1O/irB200evRmKqzw7EX/4Aq0rlCH7GLqWrB9vRjJ8xzVtJmu6ZgoGOXk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1770928388; c=relaxed/simple;
-	bh=uGHAWQD81SxXi870Qe9NfeFeVC2swuHB1UKt82gdifo=;
-	h=Date:To:From:Subject:Message-Id; b=dd2ETAJtLUBxmd21CJ82rUIf82cE2TeUuUjSEf3VXO5CX+hq9nwDC6VUWctczLW/SIWNXLIcFFjG33VymTAAt4xBu5NK4q6CAa4L6RZDEBYLLDmpSIc2q7UiZAK1LGgGvC4jb+5FAiZwMzLLct36wIykAS9u6ajvjZt9WAj4D/c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y/sTu3ak; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1770928390; c=relaxed/simple;
+	bh=L7ZW7SEtbkKY5iP79qhQhklYVp4UjGU06EgtrBcvgaE=;
+	h=Date:To:From:Subject:Message-Id; b=Y7k7iOqzdpWulced8/+CQxcWTHbRyZHResIQ3Uu9im2vehNVeZQAQw7aiCiCtSIiEVRTPnOjvVzhNBGly0i3h6Gt3lExYS1UBg4dquYEDRGrAk+bU6NfVUnVV01RhEWhFMFzyE8xSh54MFbVNn14ii483y0s785IRvMI0THWO6E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TMBWfmaX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y/sTu3ak"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA983C4CEF7;
-	Thu, 12 Feb 2026 20:33:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TMBWfmaX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CEFBC4CEF7;
+	Thu, 12 Feb 2026 20:33:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1770928388;
-	bh=uGHAWQD81SxXi870Qe9NfeFeVC2swuHB1UKt82gdifo=;
+	s=korg; t=1770928390;
+	bh=L7ZW7SEtbkKY5iP79qhQhklYVp4UjGU06EgtrBcvgaE=;
 	h=Date:To:From:Subject:From;
-	b=y/sTu3akydGnaHiL0tmw6f3a9S1Iv8rMKa24fZVarKxXpzy6waMXy2MphQJ1vWgwD
-	 zQQGRA8KHk1+Ls1G+zLA93g3EA2kQioK5DaK9hLdXF+qxGtn9S/EFiHuTVXIjDbHZH
-	 a8352Num177sr5Hacq4P6aK3k9AYy8uFmHza3K+Y=
-Date: Thu, 12 Feb 2026 12:33:07 -0800
+	b=TMBWfmaXxrdBOnd8PhYt2fLxtHZjEClcRxYUTFDztWOjIrb34SWuTOZbpf5CpyhEG
+	 scgDzLAmp61Ss8VDeXJgphb9AQIGWMOesJ6H7YM5yXRGVFI078EDWDd02PDqIvr1HA
+	 KkCd7VA/o1IYTOjVVrs4lxTsDsOtYRe6I/Sp+YLU=
+Date: Thu, 12 Feb 2026 12:33:09 -0800
 To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,wang.yaxin@zte.com.cn,hughd@google.com,david@kernel.org,chengming.zhou@linux.dev,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ksm-initialize-the-addr-only-once-in-rmap_walk_ksm.patch added to mm-new branch
-Message-Id: <20260212203307.EA983C4CEF7@smtp.kernel.org>
+Subject: + ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range.patch added to mm-new branch
+Message-Id: <20260212203310.1CEFBC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ksm: initialize the addr only once in rmap_walk_ksm
+     Subject: ksm: optimize rmap_walk_ksm by passing a suitable address range
 has been added to the -mm mm-new branch.  Its filename is
-     ksm-initialize-the-addr-only-once-in-rmap_walk_ksm.patch
+     ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-initialize-the-addr-only-once-in-rmap_walk_ksm.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,75 +67,108 @@ and is updated there most days
 
 ------------------------------------------------------
 From: xu xin <xu.xin16@zte.com.cn>
-Subject: ksm: initialize the addr only once in rmap_walk_ksm
-Date: Thu, 12 Feb 2026 19:29:32 +0800 (CST)
+Subject: ksm: optimize rmap_walk_ksm by passing a suitable address range
+Date: Thu, 12 Feb 2026 19:30:45 +0800 (CST)
 
-Patch series "KSM: Optimizations for rmap_walk_ksm", v3.
+Problem
+=======
+When available memory is extremely tight, causing KSM pages to be swapped
+out, or when there is significant memory fragmentation and THP triggers
+memory compaction, the system will invoke the rmap_walk_ksm function to
+perform reverse mapping.  However, we observed that this function becomes
+particularly time-consuming when a large number of VMAs (e.g., 20,000)
+share the same anon_vma.  Through debug trace analysis, we found that most
+of the latency occurs within anon_vma_interval_tree_foreach, leading to an
+excessively long hold time on the anon_vma lock (even reaching 500ms or
+more), which in turn causes upper-layer applications (waiting for the
+anon_vma lock) to be blocked for extended periods.
 
-There are two performance optimization patches for rmap_walk_ksm.
+Root Cause
+==========
+Further investigation revealed that 99.9% of iterations inside the
+anon_vma_interval_tree_foreach loop are skipped due to the first check "if
+(addr < vma->vm_start || addr >= vma->vm_end)), indicating that a large
+number of loop iterations are ineffective.  This inefficiency arises
+because the pgoff_start and pgoff_end parameters passed to
+anon_vma_interval_tree_foreach span the entire address space from 0 to
+ULONG_MAX, resulting in very poor loop efficiency.
 
-The patch [1/2] move the initializaion of addr from the position inside
-loop to the position before the loop, since the variable will not change
-in the loop.
+Solution
+========
+In fact, we can significantly improve performance by passing a more precise
+range based on the given addr. Since the original pages merged by KSM
+correspond to anonymous VMAs, the page offset can be calculated as
+pgoff = address >> PAGE_SHIFT. Therefore, we can optimize the call by
+defining:
 
-The patch [2/2] optimize rmap_walk_ksm by passing a suitable page offset
-range to the anon_vma_interval_tree_foreach loop to reduce ineffective
-checks.
+	pgoff = rmap_item->address >> PAGE_SHIFT;
 
-The metric performance and reproducer can be found at patch[2/2].
+Performance
+===========
+In our real embedded Linux environment, the measured metrcis were as
+follows:
 
+1) Time_ms: Max time for holding anon_vma lock in a single
+   rmap_walk_ksm.
 
-This patch (of 2):
+2) Nr_iteration_total: The max times of iterations in a loop of
+   anon_vma_interval_tree_foreach
 
-This is a minor performance optimization, especially when there are many
-for-loop iterations, because the addr variable doesn't change across
-iterations.
+3) Skip_addr_out_of_range: The max times of skipping due to the first
+   check (vma->vm_start and vma->vm_end) in a loop of
+   anon_vma_interval_tree_foreach.
 
-Therefore, it only needs to be initialized once before the loop.
+4) Skip_mm_mismatch: The max times of skipping due to the second check
+   (rmap_item->mm == vma->vm_mm) in a loop of
+   anon_vma_interval_tree_foreach.
 
-Link: https://lkml.kernel.org/r/20260212192820223O_r2NQzSEPG_C56cs-z4l@zte.com.cn
-Link: https://lkml.kernel.org/r/20260212192932941MSsJEAyoRW4YdLBN7_myn@zte.com.cn
+The result is as follows:
+
+         Time_ms      Nr_iteration_total    Skip_addr_out_of_range   Skip_mm_mismatch
+Before:  228.65       22169                 22168                    0
+After :   0.396        3                     0                       2
+
+The referenced reproducer of rmap_walk_ksm can be found at:
+https://lore.kernel.org/all/20260206151424734QIyWL_pA-1QeJPbJlUxsO@zte.com.cn/
+
+Link: https://lkml.kernel.org/r/20260212193045556CbzCX8p9gDu73tQ2nvHEI@zte.com.cn
+Co-developed-by: Wang Yaxin <wang.yaxin@zte.com.cn>
+Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
 Signed-off-by: xu xin <xu.xin16@zte.com.cn>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
 Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/ksm.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/ksm.c~ksm-initialize-the-addr-only-once-in-rmap_walk_ksm
+--- a/mm/ksm.c~ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range
 +++ a/mm/ksm.c
-@@ -3168,6 +3168,8 @@ void rmap_walk_ksm(struct folio *folio,
- 		return;
- again:
+@@ -3170,6 +3170,7 @@ again:
  	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist) {
-+		/* Ignore the stable/unstable/sqnr flags */
-+		const unsigned long addr = rmap_item->address & PAGE_MASK;
+ 		/* Ignore the stable/unstable/sqnr flags */
+ 		const unsigned long addr = rmap_item->address & PAGE_MASK;
++		const pgoff_t pgoff = rmap_item->address >> PAGE_SHIFT;
  		struct anon_vma *anon_vma = rmap_item->anon_vma;
  		struct anon_vma_chain *vmac;
  		struct vm_area_struct *vma;
-@@ -3180,16 +3182,13 @@ again:
- 			}
+@@ -3183,8 +3184,12 @@ again:
  			anon_vma_lock_read(anon_vma);
  		}
-+
+ 
++		/*
++		 * Currently KSM folios are order-0 normal pages, so pgoff_end
++		 * should be the same as pgoff_start.
++		 */
  		anon_vma_interval_tree_foreach(vmac, &anon_vma->rb_root,
- 					       0, ULONG_MAX) {
--			unsigned long addr;
+-					       0, ULONG_MAX) {
++					       pgoff, pgoff) {
  
  			cond_resched();
  			vma = vmac->vma;
- 
--			/* Ignore the stable/unstable/sqnr flags */
--			addr = rmap_item->address & PAGE_MASK;
--
- 			if (addr < vma->vm_start || addr >= vma->vm_end)
- 				continue;
- 			/*
 _
 
 Patches currently in -mm which might be from xu.xin16@zte.com.cn are
