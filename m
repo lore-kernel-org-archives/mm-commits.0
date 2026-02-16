@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 037DB1D54FA;
-	Sat, 14 Feb 2026 17:08:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF64E22A4E9;
+	Mon, 16 Feb 2026 21:40:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771088919; cv=none; b=NdZM1ttACWkt7WEDQRKkfykugf1whfv2oF2s7w+RB6zg8ygIDLWjBX1eXI1WXzvT29A4ZQNpxsZAj17KktbZzc5XqS9C2sCTscdXKFBTANdWyPs9tmAYky2JS7LOGO90B2Y940buuGOQCzUneEai3FwFpg2UGOSQV9UlV+vUSs4=
+	t=1771278050; cv=none; b=hcwhq0BzMKxqTZNSrmcEyB9t5+g3OP1Qrp8WGceaWrQZjWc5gpFNgSwj/+GbfjXeWUIHZy/aWD4yz8pDH7u/o+Jk2MxCDr4iOBOo+zuE3EULo7Ob0598HWDyxvjzjh31Erhn6aV5cmlYPhjf3LV7MvFISs4aT7Ip5DkfXG6CE4U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771088919; c=relaxed/simple;
-	bh=WLxojpvFkihbh2F5J4jmA4uuqMuar9HCoUphkvqFeS0=;
-	h=Date:To:From:Subject:Message-Id; b=hgc3vVa8DXWyLOaXbnk7kB5snpaiaNELsKqxMZBy2wdvvy6OkE64f4P/L6C97DT5iByUfIIZYVBRKwIGBgQmRkXnjxFAkTG/3ibF3lsMPK9fZ5mTRi5ldFKXAuvEQejz5uWb9PaqW6CEc5RMQAhTzpN8ZysR4dFO6bFVNzWdfYE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zF/5yCSQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771278050; c=relaxed/simple;
+	bh=25lyj0yevGlOXb2vwwSwfsjHCCw0F4q0tDg2kNGaNfE=;
+	h=Date:To:From:Subject:Message-Id; b=g+nhu6daTlp5ov4q1TwpUZRJoKia2KYgiWR0VH6G3lCO0PUXfXzQmlQffVNL8HOvou5g7hUv5Kc0381/XZAEDtBOGJdmCiJwQr7zPXwzAO6l4yFJZAgg3sWWq7ItZVZk3on0qfiSXLfup0YDt2vBDkVeWYwVDs16iFRY50TsKe4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vzgDHhB0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zF/5yCSQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97C5AC16AAE;
-	Sat, 14 Feb 2026 17:08:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vzgDHhB0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38B71C116C6;
+	Mon, 16 Feb 2026 21:40:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771088918;
-	bh=WLxojpvFkihbh2F5J4jmA4uuqMuar9HCoUphkvqFeS0=;
+	s=korg; t=1771278050;
+	bh=25lyj0yevGlOXb2vwwSwfsjHCCw0F4q0tDg2kNGaNfE=;
 	h=Date:To:From:Subject:From;
-	b=zF/5yCSQGpj6VeeXo48UyDZxVGvjynFWMfGs6aQ+vmTEFlRwf1S45VwLX35V61F0l
-	 tPFq1heWbbLmghE3j2e7N13hoNimUOLTwsHjcn0DLSksJYNMyFO03Nihv1gH4YnB77
-	 QJSDAYYKf5DBwt0hm7EotfHFQYooh84fbKE1/eqU=
-Date: Sat, 14 Feb 2026 09:08:38 -0800
-To: mm-commits@vger.kernel.org,wangyinfeng@phytium.com.cn,stable@vger.kernel.org,rppt@kernel.org,jonathan.cameron@huawei.com,gourry@gourry.net,david@kernel.org,dan.j.williams@intel.com,cuichao1753@phytium.com.cn,akpm@linux-foundation.org
+	b=vzgDHhB0vi0z9ymDDQQ/oqzbg18i9Ts1wYupsTJQsOGxaXPeDtOMajMwU4DFK4yHB
+	 nxUEXpPudI0/rJJExOSHkI6+/s59ebGbGNJ13MG5EZHpmXKeedimeZ5OzLcvEuUlJW
+	 6JWC7QSSHRcl4yeuxP/B1lqaVjLF6Q/s1LGHE+KI=
+Date: Mon, 16 Feb 2026 13:40:49 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,mail@carstengrohmann.de,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] mm-numa_memblks-identify-the-accurate-numa-id-of-cfmw.patch removed from -mm tree
-Message-Id: <20260214170838.97C5AC16AAE@smtp.kernel.org>
+Subject: + mm-swap-speed-up-hibernation-allocation-and-writeout.patch added to mm-unstable branch
+Message-Id: <20260216214050.38B71C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,97 +34,107 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: numa_memblks: identify the accurate NUMA ID of CFMW
-has been removed from the -mm tree.  Its filename was
-     mm-numa_memblks-identify-the-accurate-numa-id-of-cfmw.patch
+The patch titled
+     Subject: mm, swap: speed up hibernation allocation and writeout
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap-speed-up-hibernation-allocation-and-writeout.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-speed-up-hibernation-allocation-and-writeout.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Cui Chao <cuichao1753@phytium.com.cn>
-Subject: mm: numa_memblks: identify the accurate NUMA ID of CFMW
-Date: Wed, 11 Feb 2026 18:33:20 +0800
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: speed up hibernation allocation and writeout
+Date: Mon, 16 Feb 2026 22:58:02 +0800
 
-In some physical memory layout designs, the address space of CFMW (CXL
-Fixed Memory Window) resides between multiple segments of system memory
-belonging to the same NUMA node.  In numa_cleanup_meminfo, these multiple
-segments of system memory are merged into a larger numa_memblk.  When
-identifying which NUMA node the CFMW belongs to, it may be incorrectly
-assigned to the NUMA node of the merged system memory.
+Since commit 0ff67f990bd4 ("mm, swap: remove swap slot cache"),
+hibernation has been using the swap slot slow allocation path for
+simplification, which turns out might cause regression for some devices
+because the allocator now rotates clusters too often, leading to slower
+allocation and more random distribution of data.
 
-When a CXL RAM region is created in userspace, the memory capacity of the
-newly created region is not added to the CFMW-dedicated NUMA node. 
-Instead, it is accumulated into an existing NUMA node (e.g., NUMA0
-containing RAM).  This makes it impossible to clearly distinguish between
-the two types of memory, which may affect memory-tiering applications.
+Fast allocation is not complex, so implement hibernation support as well.
 
-Example memory layout:
+Test result with Samsung SSD 830 Series (SATA II, 3.0 Gbps) shows the
+performance is several times better [1]:
+6.19:               324 seconds
+After this series:  35 seconds
 
-Physical address space:
-    0x00000000 - 0x1FFFFFFF  System RAM (node0)
-    0x20000000 - 0x2FFFFFFF  CXL CFMW (node2)
-    0x40000000 - 0x5FFFFFFF  System RAM (node0)
-    0x60000000 - 0x7FFFFFFF  System RAM (node1)
-
-After numa_cleanup_meminfo, the two node0 segments are merged into one:
-    0x00000000 - 0x5FFFFFFF  System RAM (node0) // CFMW is inside the range
-    0x60000000 - 0x7FFFFFFF  System RAM (node1)
-
-So the CFMW (0x20000000-0x2FFFFFFF) will be incorrectly assigned to node0.
-
-To address this scenario, accurately identifying the correct NUMA node can
-be achieved by checking whether the region belongs to both numa_meminfo
-and numa_reserved_meminfo.
-
-While this issue is only observed in a QEMU configuration, and no known
-end users are impacted by this problem, it is likely that some firmware
-implementation is leaving memory map holes in a CXL Fixed Memory Window. 
-CXL hotplug depends on mapping free window capacity, and it seems to be
-only a coincidence to have not hit this problem yet.
-
-Link: https://lkml.kernel.org/r/20260213060347.2389818-2-cuichao1753@phytium.com.cn
-Link: https://lkml.kernel.org/r/20260211103320.2064211-2-cuichao1753@phytium.com.cn
-Fixes: 779dd20cfb56 ("cxl/region: Add region creation support")
-Signed-off-by: Cui Chao <cuichao1753@phytium.com.cn>
-Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Wang Yinfeng <wangyinfeng@phytium.com.cn>
+Link: https://lkml.kernel.org/r/20260216-hibernate-perf-v4-1-1ba9f0bf1ec9@tencent.com
+Link: https://lore.kernel.org/linux-mm/8b4bdcfa-ce3f-4e23-839f-31367df7c18f@gmx.de/ [1]
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Fixes: 0ff67f990bd4 ("mm, swap: remove swap slot cache")
+Reported-by: Carsten Grohmann <mail@carstengrohmann.de>
+Closes: https://lore.kernel.org/linux-mm/20260206121151.dea3633d1f0ded7bbf49c22e@linux-foundation.org/
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/numa_memblks.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/swapfile.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
---- a/mm/numa_memblks.c~mm-numa_memblks-identify-the-accurate-numa-id-of-cfmw
-+++ a/mm/numa_memblks.c
-@@ -570,15 +570,16 @@ static int meminfo_to_nid(struct numa_me
- int phys_to_target_node(u64 start)
+--- a/mm/swapfile.c~mm-swap-speed-up-hibernation-allocation-and-writeout
++++ a/mm/swapfile.c
+@@ -1926,8 +1926,9 @@ out:
+ /* Allocate a slot for hibernation */
+ swp_entry_t swap_alloc_hibernation_slot(int type)
  {
- 	int nid = meminfo_to_nid(&numa_meminfo, start);
-+	int reserved_nid = meminfo_to_nid(&numa_reserved_meminfo, start);
+-	struct swap_info_struct *si = swap_type_to_info(type);
+-	unsigned long offset;
++	struct swap_info_struct *pcp_si, *si = swap_type_to_info(type);
++	unsigned long pcp_offset, offset = SWAP_ENTRY_INVALID;
++	struct swap_cluster_info *ci;
+ 	swp_entry_t entry = {0};
  
- 	/*
--	 * Prefer online nodes, but if reserved memory might be
--	 * hot-added continue the search with reserved ranges.
-+	 * Prefer online nodes unless the address is also described
-+	 * by reserved ranges, in which case use the reserved nid.
- 	 */
--	if (nid != NUMA_NO_NODE)
-+	if (nid != NUMA_NO_NODE && reserved_nid == NUMA_NO_NODE)
- 		return nid;
- 
--	return meminfo_to_nid(&numa_reserved_meminfo, start);
-+	return reserved_nid;
- }
- EXPORT_SYMBOL_GPL(phys_to_target_node);
- 
+ 	if (!si)
+@@ -1937,11 +1938,21 @@ swp_entry_t swap_alloc_hibernation_slot(
+ 	if (get_swap_device_info(si)) {
+ 		if (si->flags & SWP_WRITEOK) {
+ 			/*
+-			 * Grab the local lock to be compliant
+-			 * with swap table allocation.
++			 * Try the local cluster first if it matches the device. If
++			 * not, try grab a new cluster and override local cluster.
+ 			 */
+ 			local_lock(&percpu_swap_cluster.lock);
+-			offset = cluster_alloc_swap_entry(si, NULL);
++			pcp_si = this_cpu_read(percpu_swap_cluster.si[0]);
++			pcp_offset = this_cpu_read(percpu_swap_cluster.offset[0]);
++			if (pcp_si == si && pcp_offset) {
++				ci = swap_cluster_lock(si, pcp_offset);
++				if (cluster_is_usable(ci, 0))
++					offset = alloc_swap_scan_cluster(si, ci, NULL, pcp_offset);
++				else
++					swap_cluster_unlock(ci);
++			}
++			if (!offset)
++				offset = cluster_alloc_swap_entry(si, NULL);
+ 			local_unlock(&percpu_swap_cluster.lock);
+ 			if (offset)
+ 				entry = swp_entry(si->type, offset);
 _
 
-Patches currently in -mm which might be from cuichao1753@phytium.com.cn are
+Patches currently in -mm which might be from kasong@tencent.com are
 
+mm-swap-speed-up-hibernation-allocation-and-writeout.patch
 
