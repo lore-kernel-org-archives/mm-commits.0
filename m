@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF64E22A4E9;
-	Mon, 16 Feb 2026 21:40:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E55C944F
+	for <mm-commits@vger.kernel.org>; Mon, 16 Feb 2026 21:46:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771278050; cv=none; b=hcwhq0BzMKxqTZNSrmcEyB9t5+g3OP1Qrp8WGceaWrQZjWc5gpFNgSwj/+GbfjXeWUIHZy/aWD4yz8pDH7u/o+Jk2MxCDr4iOBOo+zuE3EULo7Ob0598HWDyxvjzjh31Erhn6aV5cmlYPhjf3LV7MvFISs4aT7Ip5DkfXG6CE4U=
+	t=1771278366; cv=none; b=mrgfc6ZbxuT43O1uHN17VvoEFlBmHUBBtesWlvYxLWonJHl/fAAgotpbXzzcm2ExNC0oUFpe6HfPeErbpUu4aVjdMtsXixTkQPcwJyoBXgM5Y3keHVP36ps7S6f3VKfgNMrTTdD8/b1uW1RWWf780Oy7LRU6AJWuen8OVCOY+Go=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771278050; c=relaxed/simple;
-	bh=25lyj0yevGlOXb2vwwSwfsjHCCw0F4q0tDg2kNGaNfE=;
-	h=Date:To:From:Subject:Message-Id; b=g+nhu6daTlp5ov4q1TwpUZRJoKia2KYgiWR0VH6G3lCO0PUXfXzQmlQffVNL8HOvou5g7hUv5Kc0381/XZAEDtBOGJdmCiJwQr7zPXwzAO6l4yFJZAgg3sWWq7ItZVZk3on0qfiSXLfup0YDt2vBDkVeWYwVDs16iFRY50TsKe4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vzgDHhB0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771278366; c=relaxed/simple;
+	bh=k1kHUTnuQtrxUQL8jSWd8Wn6EGpvzOrX9/0QfmvXJbc=;
+	h=Date:To:From:Subject:Message-Id; b=CE1sLOnlfoAiWmctbLqgdI2D+L6CXN+HJtQ3SCORPEthAOkivcBkh36ZFTHF064VgearfxEcSFUGxxVzpaxYlkg/0zuXRSMSe8DGXIUMM2GE3YkeZIDaEemG+OuGiQQNcgZwGsL+88Es2smDrp7H8CKie+SoOycOblOGZ8TZUBI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nXo/aXsg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vzgDHhB0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38B71C116C6;
-	Mon, 16 Feb 2026 21:40:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nXo/aXsg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D667C116C6;
+	Mon, 16 Feb 2026 21:46:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771278050;
-	bh=25lyj0yevGlOXb2vwwSwfsjHCCw0F4q0tDg2kNGaNfE=;
+	s=korg; t=1771278365;
+	bh=k1kHUTnuQtrxUQL8jSWd8Wn6EGpvzOrX9/0QfmvXJbc=;
 	h=Date:To:From:Subject:From;
-	b=vzgDHhB0vi0z9ymDDQQ/oqzbg18i9Ts1wYupsTJQsOGxaXPeDtOMajMwU4DFK4yHB
-	 nxUEXpPudI0/rJJExOSHkI6+/s59ebGbGNJ13MG5EZHpmXKeedimeZ5OzLcvEuUlJW
-	 6JWC7QSSHRcl4yeuxP/B1lqaVjLF6Q/s1LGHE+KI=
-Date: Mon, 16 Feb 2026 13:40:49 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,mail@carstengrohmann.de,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=nXo/aXsg+hsjTVOLxaLWPq98HOpxIviQjswNgzhvCCHLE58v/owUQ5kTBvdtbXdYP
+	 D3cMpffy3Ft3LgHL9VrXcQHJ1EiMPeiDbRkn+NxQAQW3Xoi6x1TXppTCsTxF4j8alK
+	 P3ejjChy54wWqz9hkPBNdutETghn8yYuWFxmjAII=
+Date: Mon, 16 Feb 2026 13:46:04 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-speed-up-hibernation-allocation-and-writeout.patch added to mm-unstable branch
-Message-Id: <20260216214050.38B71C116C6@smtp.kernel.org>
+Subject: + liveupdate-luo_file-remember-retrieve-status.patch added to mm-nonmm-unstable branch
+Message-Id: <20260216214605.7D667C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: speed up hibernation allocation and writeout
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-swap-speed-up-hibernation-allocation-and-writeout.patch
+     Subject: liveupdate: luo_file: remember retrieve() status
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     liveupdate-luo_file-remember-retrieve-status.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-speed-up-hibernation-allocation-and-writeout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-luo_file-remember-retrieve-status.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,83 +58,211 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: speed up hibernation allocation and writeout
-Date: Mon, 16 Feb 2026 22:58:02 +0800
+From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
+Subject: liveupdate: luo_file: remember retrieve() status
+Date: Mon, 16 Feb 2026 14:22:19 +0100
 
-Since commit 0ff67f990bd4 ("mm, swap: remove swap slot cache"),
-hibernation has been using the swap slot slow allocation path for
-simplification, which turns out might cause regression for some devices
-because the allocator now rotates clusters too often, leading to slower
-allocation and more random distribution of data.
+LUO keeps track of successful retrieve attempts on a LUO file.  It does so
+to avoid multiple retrievals of the same file.  Multiple retrievals cause
+problems because once the file is retrieved, the serialized data
+structures are likely freed and the file is likely in a very different
+state from what the code expects.
 
-Fast allocation is not complex, so implement hibernation support as well.
+The retrieve boolean in struct luo_file keeps track of this, and is passed
+to the finish callback so it knows what work was already done and what it
+has left to do.
 
-Test result with Samsung SSD 830 Series (SATA II, 3.0 Gbps) shows the
-performance is several times better [1]:
-6.19:               324 seconds
-After this series:  35 seconds
+All this works well when retrieve succeeds.  When it fails,
+luo_retrieve_file() returns the error immediately, without ever storing
+anywhere that a retrieve was attempted or what its error code was.  This
+results in an errored LIVEUPDATE_SESSION_RETRIEVE_FD ioctl to userspace,
+but nothing prevents it from trying this again.
 
-Link: https://lkml.kernel.org/r/20260216-hibernate-perf-v4-1-1ba9f0bf1ec9@tencent.com
-Link: https://lore.kernel.org/linux-mm/8b4bdcfa-ce3f-4e23-839f-31367df7c18f@gmx.de/ [1]
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Fixes: 0ff67f990bd4 ("mm, swap: remove swap slot cache")
-Reported-by: Carsten Grohmann <mail@carstengrohmann.de>
-Closes: https://lore.kernel.org/linux-mm/20260206121151.dea3633d1f0ded7bbf49c22e@linux-foundation.org/
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: <stable@vger.kernel.org>
+The retry is problematic for much of the same reasons listed above.  The
+file is likely in a very different state than what the retrieve logic
+normally expects, and it might even have freed some serialization data
+structures.  Attempting to access them or free them again is going to
+break things.
+
+For example, if memfd managed to restore 8 of its 10 folios, but fails on
+the 9th, a subsequent retrieve attempt will try to call
+kho_restore_folio() on the first folio again, and that will fail with a
+warning since it is an invalid operation.
+
+Apart from the retry, finish() also breaks.  Since on failure the
+retrieved bool in luo_file is never touched, the finish() call on session
+close will tell the file handler that retrieve was never attempted, and it
+will try to access or free the data structures that might not exist, much
+in the same way as the retry attempt.
+
+There is no sane way of attempting the retrieve again.  Remember the error
+retrieve returned and directly return it on a retry.  Also pass this
+status code to finish() so it can make the right decision on the work it
+needs to do.
+
+This is done by changing the bool to an integer.  A value of 0 means
+retrieve was never attempted, a positive value means it succeeded, and a
+negative value means it failed and the error code is the value.
+
+Link: https://lkml.kernel.org/r/20260216132221.987987-1-pratyush@kernel.org
+Fixes: 7c722a7f44e0 ("liveupdate: luo_file: implement file systems callbacks")
+Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ include/linux/liveupdate.h   |    9 ++++---
+ kernel/liveupdate/luo_file.c |   41 ++++++++++++++++++++-------------
+ mm/memfd_luo.c               |    7 ++++-
+ 3 files changed, 37 insertions(+), 20 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-speed-up-hibernation-allocation-and-writeout
-+++ a/mm/swapfile.c
-@@ -1926,8 +1926,9 @@ out:
- /* Allocate a slot for hibernation */
- swp_entry_t swap_alloc_hibernation_slot(int type)
- {
--	struct swap_info_struct *si = swap_type_to_info(type);
--	unsigned long offset;
-+	struct swap_info_struct *pcp_si, *si = swap_type_to_info(type);
-+	unsigned long pcp_offset, offset = SWAP_ENTRY_INVALID;
-+	struct swap_cluster_info *ci;
- 	swp_entry_t entry = {0};
+--- a/include/linux/liveupdate.h~liveupdate-luo_file-remember-retrieve-status
++++ a/include/linux/liveupdate.h
+@@ -23,8 +23,11 @@ struct file;
+ /**
+  * struct liveupdate_file_op_args - Arguments for file operation callbacks.
+  * @handler:          The file handler being called.
+- * @retrieved:        The retrieve status for the 'can_finish / finish'
+- *                    operation.
++ * @retrieve_status:  The retrieve status for the 'can_finish / finish'
++ *                    operation. A value of 0 means the retrieve has not been
++ *                    attempted, a positive value means the retrieve was
++ *                    successful, and a negative value means the retrieve failed,
++ *                    and the value is the error code of the call.
+  * @file:             The file object. For retrieve: [OUT] The callback sets
+  *                    this to the new file. For other ops: [IN] The caller sets
+  *                    this to the file being operated on.
+@@ -40,7 +43,7 @@ struct file;
+  */
+ struct liveupdate_file_op_args {
+ 	struct liveupdate_file_handler *handler;
+-	bool retrieved;
++	int retrieve_status;
+ 	struct file *file;
+ 	u64 serialized_data;
+ 	void *private_data;
+--- a/kernel/liveupdate/luo_file.c~liveupdate-luo_file-remember-retrieve-status
++++ a/kernel/liveupdate/luo_file.c
+@@ -134,9 +134,12 @@ static LIST_HEAD(luo_file_handler_list);
+  *                 state that is not preserved. Set by the handler's .preserve()
+  *                 callback, and must be freed in the handler's .unpreserve()
+  *                 callback.
+- * @retrieved:     A flag indicating whether a user/kernel in the new kernel has
++ * @retrieve_status: Status code indicating whether a user/kernel in the new kernel has
+  *                 successfully called retrieve() on this file. This prevents
+- *                 multiple retrieval attempts.
++ *                 multiple retrieval attempts. A value of 0 means a retrieve()
++ *                 has not been attempted, a positive value means the retrieve()
++ *                 was successful, and a negative value means the retrieve()
++ *                 failed, and the value is the error code of the call.
+  * @mutex:         A mutex that protects the fields of this specific instance
+  *                 (e.g., @retrieved, @file), ensuring that operations like
+  *                 retrieving or finishing a file are atomic.
+@@ -161,7 +164,7 @@ struct luo_file {
+ 	struct file *file;
+ 	u64 serialized_data;
+ 	void *private_data;
+-	bool retrieved;
++	int retrieve_status;
+ 	struct mutex mutex;
+ 	struct list_head list;
+ 	u64 token;
+@@ -298,7 +301,6 @@ int luo_preserve_file(struct luo_file_se
+ 	luo_file->file = file;
+ 	luo_file->fh = fh;
+ 	luo_file->token = token;
+-	luo_file->retrieved = false;
+ 	mutex_init(&luo_file->mutex);
  
- 	if (!si)
-@@ -1937,11 +1938,21 @@ swp_entry_t swap_alloc_hibernation_slot(
- 	if (get_swap_device_info(si)) {
- 		if (si->flags & SWP_WRITEOK) {
- 			/*
--			 * Grab the local lock to be compliant
--			 * with swap table allocation.
-+			 * Try the local cluster first if it matches the device. If
-+			 * not, try grab a new cluster and override local cluster.
- 			 */
- 			local_lock(&percpu_swap_cluster.lock);
--			offset = cluster_alloc_swap_entry(si, NULL);
-+			pcp_si = this_cpu_read(percpu_swap_cluster.si[0]);
-+			pcp_offset = this_cpu_read(percpu_swap_cluster.offset[0]);
-+			if (pcp_si == si && pcp_offset) {
-+				ci = swap_cluster_lock(si, pcp_offset);
-+				if (cluster_is_usable(ci, 0))
-+					offset = alloc_swap_scan_cluster(si, ci, NULL, pcp_offset);
-+				else
-+					swap_cluster_unlock(ci);
-+			}
-+			if (!offset)
-+				offset = cluster_alloc_swap_entry(si, NULL);
- 			local_unlock(&percpu_swap_cluster.lock);
- 			if (offset)
- 				entry = swp_entry(si->type, offset);
+ 	args.handler = fh;
+@@ -577,7 +579,12 @@ int luo_retrieve_file(struct luo_file_se
+ 		return -ENOENT;
+ 
+ 	guard(mutex)(&luo_file->mutex);
+-	if (luo_file->retrieved) {
++	if (luo_file->retrieve_status < 0) {
++		/* Retrieve was attempted and it failed. Return the error code. */
++		return luo_file->retrieve_status;
++	}
++
++	if (luo_file->retrieve_status > 0) {
+ 		/*
+ 		 * Someone is asking for this file again, so get a reference
+ 		 * for them.
+@@ -590,16 +597,19 @@ int luo_retrieve_file(struct luo_file_se
+ 	args.handler = luo_file->fh;
+ 	args.serialized_data = luo_file->serialized_data;
+ 	err = luo_file->fh->ops->retrieve(&args);
+-	if (!err) {
+-		luo_file->file = args.file;
+-
+-		/* Get reference so we can keep this file in LUO until finish */
+-		get_file(luo_file->file);
+-		*filep = luo_file->file;
+-		luo_file->retrieved = true;
++	if (err) {
++		/* Keep the error code for later use. */
++		luo_file->retrieve_status = err;
++		return err;
+ 	}
+ 
+-	return err;
++	luo_file->file = args.file;
++	/* Get reference so we can keep this file in LUO until finish */
++	get_file(luo_file->file);
++	*filep = luo_file->file;
++	luo_file->retrieve_status = 1;
++
++	return 0;
+ }
+ 
+ static int luo_file_can_finish_one(struct luo_file_set *file_set,
+@@ -615,7 +625,7 @@ static int luo_file_can_finish_one(struc
+ 		args.handler = luo_file->fh;
+ 		args.file = luo_file->file;
+ 		args.serialized_data = luo_file->serialized_data;
+-		args.retrieved = luo_file->retrieved;
++		args.retrieve_status = luo_file->retrieve_status;
+ 		can_finish = luo_file->fh->ops->can_finish(&args);
+ 	}
+ 
+@@ -632,7 +642,7 @@ static void luo_file_finish_one(struct l
+ 	args.handler = luo_file->fh;
+ 	args.file = luo_file->file;
+ 	args.serialized_data = luo_file->serialized_data;
+-	args.retrieved = luo_file->retrieved;
++	args.retrieve_status = luo_file->retrieve_status;
+ 
+ 	luo_file->fh->ops->finish(&args);
+ 	luo_flb_file_finish(luo_file->fh);
+@@ -788,7 +798,6 @@ int luo_file_deserialize(struct luo_file
+ 		luo_file->file = NULL;
+ 		luo_file->serialized_data = file_ser[i].data;
+ 		luo_file->token = file_ser[i].token;
+-		luo_file->retrieved = false;
+ 		mutex_init(&luo_file->mutex);
+ 		list_add_tail(&luo_file->list, &file_set->files_list);
+ 	}
+--- a/mm/memfd_luo.c~liveupdate-luo_file-remember-retrieve-status
++++ a/mm/memfd_luo.c
+@@ -326,7 +326,12 @@ static void memfd_luo_finish(struct live
+ 	struct memfd_luo_folio_ser *folios_ser;
+ 	struct memfd_luo_ser *ser;
+ 
+-	if (args->retrieved)
++	/*
++	 * If retrieve was successful, nothing to do. If it failed, retrieve()
++	 * already cleaned up everything it could. So nothing to do there
++	 * either. Only need to clean up when retrieve was not called.
++	 */
++	if (args->retrieve_status)
+ 		return;
+ 
+ 	ser = phys_to_virt(args->serialized_data);
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from pratyush@kernel.org are
 
-mm-swap-speed-up-hibernation-allocation-and-writeout.patch
+liveupdate-luo_file-remember-retrieve-status.patch
 
