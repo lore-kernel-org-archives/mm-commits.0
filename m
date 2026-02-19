@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6B3015539A
-	for <mm-commits@vger.kernel.org>; Thu, 19 Feb 2026 22:16:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D41D8279792
+	for <mm-commits@vger.kernel.org>; Thu, 19 Feb 2026 22:18:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771539416; cv=none; b=d1mi4gK8aUdXLYtpyCXUzEeyYJusSB8u28gCGHEFyrX8QgfYEXbcsdPnYXkbI56WIIJu/mFEaqvAD8+I1ZJ9PedKSwjr6TquTYZCxmL+DYJ8evxDbzOzf+H6ItOSd5vcclYv3g7xLp4YFW4g+5Jnd7FXcR+VwJ7wNA2LroPiOSI=
+	t=1771539528; cv=none; b=Byz87bFzqye7MyDBDheYRMD4Xxl1EvbABQx7GnmFtc9OGL6dCTMUnxOKIjy0TcWflOd7IDfXB+sE/Jfqc7/zEen+KeRm3Dbymbi/IRT/0pysYKcX6jWwCqnV4q8wUg/dpuvAHKycOIoWCtlPnZx5VQ8IFW1ZjLnPGO2grN507XI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771539416; c=relaxed/simple;
-	bh=ujARNX6NOXSPglgdu7Jf1QSNw2tA0MpoZJnU+p8nucs=;
-	h=Date:To:From:Subject:Message-Id; b=GW0kJ55iG+f3Y+Lbg2Yl3uBGMtNBQi+1gqd/YPDd2YLXkiyLDRB4GC69tTOYpj3/bDOg0HUt8H5+GLep/3UyHLP55vcKnbcyr9rrtfNytWXB/J9FNhaqAj99L85gL2ApljiP6DDut13mnHqraBzzluZx/AY4fogDRS9fFpE4HfM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XzwCynfA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771539528; c=relaxed/simple;
+	bh=U6rwxF/usR1/Nv2w/XN+V4eh5VIjuYHi02rZAnErwuM=;
+	h=Date:To:From:Subject:Message-Id; b=RyEk2zDjIsIQJYkjGML5/PLNLF5dyqTYMPpNvBJvH5RC/MyH0UvN93FWhZbX2ULUKXjt1T9TYxPCNfWYXb+4JgBb/+I6DU/ke+htCvaNL9fTFI8I+8NIaxmoj5uiDWVdFQhrdUf5IZo87u6P+ozIfcTwfdTUTs6x1uKb5eF6UEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rtRWp9VX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XzwCynfA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B2C0C4CEF7;
-	Thu, 19 Feb 2026 22:16:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rtRWp9VX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62E43C4CEF7;
+	Thu, 19 Feb 2026 22:18:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771539416;
-	bh=ujARNX6NOXSPglgdu7Jf1QSNw2tA0MpoZJnU+p8nucs=;
+	s=korg; t=1771539528;
+	bh=U6rwxF/usR1/Nv2w/XN+V4eh5VIjuYHi02rZAnErwuM=;
 	h=Date:To:From:Subject:From;
-	b=XzwCynfAp/y4ubvie7dfI4BQMJGdT0THkOx6iQgxuDRwjOViXJdXCnAyZuN1LIBa1
-	 Lk3t4wmPldiL2HR9AjTACJfy38IWAi7Ti0WmMP1QAZmQZj9JN65mRK9r5UsQmxCcEz
-	 Es8th9qHSZrVuS/RSULvd/NB4ml0byHj7hZ2GkNc=
-Date: Thu, 19 Feb 2026 14:16:55 -0800
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,rppt@kernel.org,oleg@redhat.com,neil@brown.name,mingo@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,ebiederm@xmission.com,bvanassche@acm.org,brauner@kernel.org,ethantidmore06@gmail.com,akpm@linux-foundation.org
+	b=rtRWp9VXdoUFH2GtdtdyyK5t6nwDrzOPRG3vQd9Uqe9tTJKXJc8rgeewaDa10ZbDG
+	 q59LDm0iGXXXE94c/L1T68DINxq22vrSHDfxQeXiyaMhQ3jfN0GcjJB1he3pnI1Ktn
+	 8OJm2+vBnQyHNy9BITa8ULY5UPnQK94TAwuyo2FY=
+Date: Thu, 19 Feb 2026 14:18:47 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,mpe@ellerman.id.au,mingo@redhat.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,catalin.marinas@arm.com,bp@alien8.de,sgsu.park@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-fix-pointer-error-dereference.patch added to mm-nonmm-unstable branch
-Message-Id: <20260219221656.4B2C0C4CEF7@smtp.kernel.org>
+Subject: + mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access.patch added to mm-new branch
+Message-Id: <20260219221848.62E43C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc: fix pointer error dereference
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     proc-fix-pointer-error-dereference.patch
+     Subject: mm/pkeys: remove unused tsk parameter from arch_set_user_pkey_access()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-fix-pointer-error-dereference.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,51 +66,146 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ethan Tidmore <ethantidmore06@gmail.com>
-Subject: proc: fix pointer error dereference
-Date: Thu, 19 Feb 2026 16:10:01 -0600
+From: Seongsu Park <sgsu.park@samsung.com>
+Subject: mm/pkeys: remove unused tsk parameter from arch_set_user_pkey_access()
+Date: Thu, 19 Feb 2026 15:35:06 +0900
 
-The function try_lookup_noperm() can return an error pointer.  Add check
-for error pointer.
+The tsk parameter in arch_set_user_pkey_access() is never used in the
+function implementations across all architectures (arm64, powerpc, x86).
 
-Detected by Smatch:
-fs/proc/base.c:2148 proc_fill_cache() error:
-'child' dereferencing possible ERR_PTR()
-
-Link: https://lkml.kernel.org/r/20260219221001.1117135-1-ethantidmore06@gmail.com
-Fixes: 61a28784028e6 ("proc: Remove the hard coded inode numbers")
-Signed-off-by: Ethan Tidmore <ethantidmore06@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Bart van Assche <bvanassche@acm.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Link: https://lkml.kernel.org/r/20260219063506.545148-1-sgsu.park@samsung.com
+Signed-off-by: Seongsu Park <sgsu.park@samsung.com>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: NeilBrown <neil@brown.name>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm64/include/asm/pkeys.h   |    3 +--
+ arch/arm64/mm/mmu.c              |    2 +-
+ arch/powerpc/include/asm/pkeys.h |    8 +++-----
+ arch/powerpc/mm/book3s64/pkeys.c |    3 +--
+ arch/x86/include/asm/pkeys.h     |    3 +--
+ arch/x86/kernel/fpu/xstate.c     |    3 +--
+ arch/x86/mm/pkeys.c              |    3 +--
+ mm/mprotect.c                    |    2 +-
+ 8 files changed, 10 insertions(+), 17 deletions(-)
 
---- a/fs/proc/base.c~proc-fix-pointer-error-dereference
-+++ a/fs/proc/base.c
-@@ -2128,6 +2128,9 @@ bool proc_fill_cache(struct file *file,
- 	ino_t ino = 1;
+--- a/arch/arm64/include/asm/pkeys.h~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/arm64/include/asm/pkeys.h
+@@ -12,8 +12,7 @@
  
- 	child = try_lookup_noperm(&qname, dir);
-+	if (IS_ERR(child))
-+		goto end_instantiate;
-+
- 	if (!child) {
- 		DECLARE_WAIT_QUEUE_HEAD_ONSTACK(wq);
- 		child = d_alloc_parallel(dir, &qname, &wq);
+ #define arch_max_pkey() 8
+ 
+-int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-		unsigned long init_val);
++int arch_set_user_pkey_access(int pkey, unsigned long init_val);
+ 
+ static inline bool arch_pkeys_enabled(void)
+ {
+--- a/arch/arm64/mm/mmu.c~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/arm64/mm/mmu.c
+@@ -2206,7 +2206,7 @@ void __cpu_replace_ttbr1(pgd_t *pgdp, bo
+ }
+ 
+ #ifdef CONFIG_ARCH_HAS_PKEYS
+-int arch_set_user_pkey_access(struct task_struct *tsk, int pkey, unsigned long init_val)
++int arch_set_user_pkey_access(int pkey, unsigned long init_val)
+ {
+ 	u64 new_por;
+ 	u64 old_por;
+--- a/arch/powerpc/include/asm/pkeys.h~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/powerpc/include/asm/pkeys.h
+@@ -143,10 +143,8 @@ static inline int arch_override_mprotect
+ 	return __arch_override_mprotect_pkey(vma, prot, pkey);
+ }
+ 
+-extern int __arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-				       unsigned long init_val);
+-static inline int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-					    unsigned long init_val)
++extern int __arch_set_user_pkey_access(int pkey, unsigned long init_val);
++static inline int arch_set_user_pkey_access(int pkey, unsigned long init_val)
+ {
+ 	if (!mmu_has_feature(MMU_FTR_PKEY))
+ 		return -EINVAL;
+@@ -160,7 +158,7 @@ static inline int arch_set_user_pkey_acc
+ 	if (pkey == 0)
+ 		return init_val ? -EINVAL : 0;
+ 
+-	return __arch_set_user_pkey_access(tsk, pkey, init_val);
++	return __arch_set_user_pkey_access(pkey, init_val);
+ }
+ 
+ static inline bool arch_pkeys_enabled(void)
+--- a/arch/powerpc/mm/book3s64/pkeys.c~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/powerpc/mm/book3s64/pkeys.c
+@@ -335,8 +335,7 @@ static inline void init_iamr(int pkey, u
+  * Set the access rights in AMR IAMR and UAMOR registers for @pkey to that
+  * specified in @init_val.
+  */
+-int __arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-				unsigned long init_val)
++int __arch_set_user_pkey_access(int pkey, unsigned long init_val)
+ {
+ 	u64 new_amr_bits = 0x0ul;
+ 	u64 new_iamr_bits = 0x0ul;
+--- a/arch/x86/include/asm/pkeys.h~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/x86/include/asm/pkeys.h
+@@ -9,8 +9,7 @@
+  */
+ #define arch_max_pkey() (cpu_feature_enabled(X86_FEATURE_OSPKE) ? 16 : 1)
+ 
+-extern int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-		unsigned long init_val);
++extern int arch_set_user_pkey_access(int pkey, unsigned long init_val);
+ 
+ static inline bool arch_pkeys_enabled(void)
+ {
+--- a/arch/x86/kernel/fpu/xstate.c~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/x86/kernel/fpu/xstate.c
+@@ -1080,8 +1080,7 @@ void __user *get_xsave_addr_user(struct
+  * This will go out and modify PKRU register to set the access
+  * rights for @pkey to @init_val.
+  */
+-int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-			      unsigned long init_val)
++int arch_set_user_pkey_access(int pkey, unsigned long init_val)
+ {
+ 	u32 old_pkru, new_pkru_bits = 0;
+ 	int pkey_shift;
+--- a/arch/x86/mm/pkeys.c~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/x86/mm/pkeys.c
+@@ -42,8 +42,7 @@ int __execute_only_pkey(struct mm_struct
+ 	 * Set up PKRU so that it denies access for everything
+ 	 * other than execution.
+ 	 */
+-	ret = arch_set_user_pkey_access(current, execute_only_pkey,
+-			PKEY_DISABLE_ACCESS);
++	ret = arch_set_user_pkey_access(execute_only_pkey, PKEY_DISABLE_ACCESS);
+ 	/*
+ 	 * If the PKRU-set operation failed somehow, just return
+ 	 * 0 and effectively disable execute-only support.
+--- a/mm/mprotect.c~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/mm/mprotect.c
+@@ -978,7 +978,7 @@ SYSCALL_DEFINE2(pkey_alloc, unsigned lon
+ 	if (pkey == -1)
+ 		goto out;
+ 
+-	ret = arch_set_user_pkey_access(current, pkey, init_val);
++	ret = arch_set_user_pkey_access(pkey, init_val);
+ 	if (ret) {
+ 		mm_pkey_free(current->mm, pkey);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from ethantidmore06@gmail.com are
+Patches currently in -mm which might be from sgsu.park@samsung.com are
 
-proc-fix-pointer-error-dereference.patch
+mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access.patch
 
