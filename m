@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDCF231195F
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 20:55:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B52092D7DEF
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 20:55:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771620950; cv=none; b=ncD953OUgh1vaJqFOVO5+clNDe+X60mZO7PcAlJJ0RvAFsz6HYgzlhaWKY72Q36lpXYpJtv3n9cw3sE91tFbBbNkguTurkc3WbkZhoDKmJJGntn7mfJdvVX1V8N1ln41ZLIk40hmDrHvCy4G8Ks3q82o49kOxGqQLTm7lyzLWrw=
+	t=1771620952; cv=none; b=RTSwMVHM9Dz8PH3LDV5ShnbKi8Ym9l2o2a9BXffQQ0VFm3iYQ2PgETz7igRrg94uHNcLlUametCdNWKdGdOK5Mfedz218KefdwzPS/umgs2rEEsPPMAlcC1fPaXXpG3iz+LQLWDDAVI9cPnKUja6kqwaNrc64QFg72xwyiRzILQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771620950; c=relaxed/simple;
-	bh=rQrPPI0moMpFS8jgcbepXimW+Yozvi6aBaL30ihE8HM=;
-	h=Date:To:From:Subject:Message-Id; b=FfSBkNswW6WDcfHcZWGLae2q/nIb5J+Ifl1NfgK3/ciIl0Q+XdFzGYaaFWD0JH4XjiMCjvaWrVjW67R6kl+NJXAc4MsWqxW6SFh3P9l31kXHuuVWsHAhf/aMpzFlyLZ557dT9RhYlGsz9qGlqfpxvgqdZ3DamCSYHRJ4MJRd2ic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WzWAu8vh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771620952; c=relaxed/simple;
+	bh=YBqwSWais2EZUu06ruYpTh621fJfYLdcv3dCdutvuUo=;
+	h=Date:To:From:Subject:Message-Id; b=Jm3VAioRzFv4/N/Yk3VOvXjnKYZU3lzW/IKRC5o/rw4ydF7s9bUzc0vloZnrnUPe9W/z/XNXaa3Iy+bbtFi7S0DbwXK+BlSV7IfZNYCJX8DHj2WsUfGCd25gjKcEZZoCbvRBojGhL478bZcBSUak3CCcLiNLwG/eN2ekg3UgYKU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eQ58g4Sg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WzWAu8vh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FCC3C116C6;
-	Fri, 20 Feb 2026 20:55:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eQ58g4Sg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EC4AC116C6;
+	Fri, 20 Feb 2026 20:55:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771620950;
-	bh=rQrPPI0moMpFS8jgcbepXimW+Yozvi6aBaL30ihE8HM=;
+	s=korg; t=1771620952;
+	bh=YBqwSWais2EZUu06ruYpTh621fJfYLdcv3dCdutvuUo=;
 	h=Date:To:From:Subject:From;
-	b=WzWAu8vh24LxpcfJ6ihy8dLfjKtavsbzdMXf8+snjErNsp06GE+RswnkUizgpLLaL
-	 SnsXRTKBctP0rFJPmpYIjB/aW6kp71kmmxKumovVQYFORJkxl7mtRnvpNts2B2ATp2
-	 nYhK6BqTNhcpfLDQEDlDOOYE8sSzFqPy7LrBdYqE=
-Date: Fri, 20 Feb 2026 12:55:49 -0800
+	b=eQ58g4SgamAbF8+soGyMo/78n378vcJT7Dt/lpQSBP1b9U59yvC9VkxG0mBiCU7qq
+	 FKP1Rm7t/MlPPVgi9rJjJMQIjlGBa9CzfolegJnLnPqfuJxyj5fXaiHyVSCCr40Bxl
+	 zDSMTKVIlFmzj/KWzep7O8iL/ymyrOrJPwrtKGbY=
+Date: Fri, 20 Feb 2026 12:55:51 -0800
 To: mm-commits@vger.kernel.org,urezki@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-streamline-vmalloc-memory-accounting.patch added to mm-new branch
-Message-Id: <20260220205550.7FCC3C116C6@smtp.kernel.org>
+Subject: + mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter.patch added to mm-new branch
+Message-Id: <20260220205552.6EC4AC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmalloc: streamline vmalloc memory accounting
+     Subject: mm: memcontrol: switch to native NR_VMALLOC vmstat counter
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-streamline-vmalloc-memory-accounting.patch
+     mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-streamline-vmalloc-memory-accounting.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,14 +67,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmalloc: streamline vmalloc memory accounting
-Date: Fri, 20 Feb 2026 14:10:34 -0500
+Subject: mm: memcontrol: switch to native NR_VMALLOC vmstat counter
+Date: Fri, 20 Feb 2026 14:10:35 -0500
 
-Use a vmstat counter instead of a custom, open-coded atomic.  This has the
-added benefit of making the data available per-node, and prepares for
-cleaning up the memcg accounting as well.
+Eliminates the custom memcg counter and results in a single, consolidated
+accounting call in vmalloc code.
 
-Link: https://lkml.kernel.org/r/20260220191035.3703800-1-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20260220191035.3703800-2-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -85,139 +84,108 @@ Cc: Uladzislau Rezki <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c       |    3 ++-
- include/linux/mmzone.h  |    1 +
- include/linux/vmalloc.h |    3 ---
- mm/vmalloc.c            |   19 ++++++++++---------
- mm/vmstat.c             |    1 +
- 5 files changed, 14 insertions(+), 13 deletions(-)
+ include/linux/memcontrol.h |    1 -
+ mm/memcontrol.c            |    4 ++--
+ mm/vmalloc.c               |   16 ++++------------
+ 3 files changed, 6 insertions(+), 15 deletions(-)
 
---- a/fs/proc/meminfo.c~mm-vmalloc-streamline-vmalloc-memory-accounting
-+++ a/fs/proc/meminfo.c
-@@ -126,7 +126,8 @@ static int meminfo_proc_show(struct seq_
- 	show_val_kb(m, "Committed_AS:   ", committed);
- 	seq_printf(m, "VmallocTotal:   %8lu kB\n",
- 		   (unsigned long)VMALLOC_TOTAL >> 10);
--	show_val_kb(m, "VmallocUsed:    ", vmalloc_nr_pages());
-+	show_val_kb(m, "VmallocUsed:    ",
-+		    global_node_page_state(NR_VMALLOC));
- 	show_val_kb(m, "VmallocChunk:   ", 0ul);
- 	show_val_kb(m, "Percpu:         ", pcpu_nr_pages());
- 
---- a/include/linux/mmzone.h~mm-vmalloc-streamline-vmalloc-memory-accounting
-+++ a/include/linux/mmzone.h
-@@ -220,6 +220,7 @@ enum node_stat_item {
- 	NR_KERNEL_MISC_RECLAIMABLE,	/* reclaimable non-slab kernel pages */
- 	NR_FOLL_PIN_ACQUIRED,	/* via: pin_user_page(), gup flag: FOLL_PIN */
- 	NR_FOLL_PIN_RELEASED,	/* pages returned via unpin_user_page() */
+--- a/include/linux/memcontrol.h~mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter
++++ a/include/linux/memcontrol.h
+@@ -35,7 +35,6 @@ enum memcg_stat_item {
+ 	MEMCG_SWAP = NR_VM_NODE_STAT_ITEMS,
+ 	MEMCG_SOCK,
+ 	MEMCG_PERCPU_B,
+-	MEMCG_VMALLOC,
+ 	MEMCG_KMEM,
+ 	MEMCG_ZSWAP_B,
+ 	MEMCG_ZSWAPPED,
+--- a/mm/memcontrol.c~mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter
++++ a/mm/memcontrol.c
+@@ -318,6 +318,7 @@ static const unsigned int memcg_node_sta
+ 	NR_SHMEM_THPS,
+ 	NR_FILE_THPS,
+ 	NR_ANON_THPS,
 +	NR_VMALLOC,
- 	NR_KERNEL_STACK_KB,	/* measured in KiB */
- #if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
- 	NR_KERNEL_SCS_KB,	/* measured in KiB */
---- a/include/linux/vmalloc.h~mm-vmalloc-streamline-vmalloc-memory-accounting
-+++ a/include/linux/vmalloc.h
-@@ -286,8 +286,6 @@ int unregister_vmap_purge_notifier(struc
- #ifdef CONFIG_MMU
- #define VMALLOC_TOTAL (VMALLOC_END - VMALLOC_START)
- 
--unsigned long vmalloc_nr_pages(void);
--
- int vm_area_map_pages(struct vm_struct *area, unsigned long start,
- 		      unsigned long end, struct page **pages);
- void vm_area_unmap_pages(struct vm_struct *area, unsigned long start,
-@@ -304,7 +302,6 @@ static inline void set_vm_flush_reset_pe
- #else  /* !CONFIG_MMU */
- #define VMALLOC_TOTAL 0UL
- 
--static inline unsigned long vmalloc_nr_pages(void) { return 0; }
- static inline void set_vm_flush_reset_perms(void *addr) {}
- #endif /* CONFIG_MMU */
- 
---- a/mm/vmalloc.c~mm-vmalloc-streamline-vmalloc-memory-accounting
+ 	NR_KERNEL_STACK_KB,
+ 	NR_PAGETABLE,
+ 	NR_SECONDARY_PAGETABLE,
+@@ -353,7 +354,6 @@ static const unsigned int memcg_stat_ite
+ 	MEMCG_SWAP,
+ 	MEMCG_SOCK,
+ 	MEMCG_PERCPU_B,
+-	MEMCG_VMALLOC,
+ 	MEMCG_KMEM,
+ 	MEMCG_ZSWAP_B,
+ 	MEMCG_ZSWAPPED,
+@@ -1365,7 +1365,7 @@ static const struct memory_stat memory_s
+ 	{ "sec_pagetables",		NR_SECONDARY_PAGETABLE		},
+ 	{ "percpu",			MEMCG_PERCPU_B			},
+ 	{ "sock",			MEMCG_SOCK			},
+-	{ "vmalloc",			MEMCG_VMALLOC			},
++	{ "vmalloc",			NR_VMALLOC			},
+ 	{ "shmem",			NR_SHMEM			},
+ #ifdef CONFIG_ZSWAP
+ 	{ "zswap",			MEMCG_ZSWAP_B			},
+--- a/mm/vmalloc.c~mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter
 +++ a/mm/vmalloc.c
-@@ -1068,14 +1068,8 @@ static BLOCKING_NOTIFIER_HEAD(vmap_notif
- static void drain_vmap_area_work(struct work_struct *work);
- static DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
+@@ -3459,9 +3459,6 @@ void vfree(const void *addr)
  
--static __cacheline_aligned_in_smp atomic_long_t nr_vmalloc_pages;
- static __cacheline_aligned_in_smp atomic_long_t vmap_lazy_nr;
+ 	if (unlikely(vm->flags & VM_FLUSH_RESET_PERMS))
+ 		vm_reset_perms(vm);
+-	/* All pages of vm should be charged to same memcg, so use first one. */
+-	if (vm->nr_pages && !(vm->flags & VM_MAP_PUT_PAGES))
+-		mod_memcg_page_state(vm->pages[0], MEMCG_VMALLOC, -vm->nr_pages);
+ 	for (i = 0; i < vm->nr_pages; i++) {
+ 		struct page *page = vm->pages[i];
  
--unsigned long vmalloc_nr_pages(void)
--{
--	return atomic_long_read(&nr_vmalloc_pages);
--}
--
- static struct vmap_area *__find_vmap_area(unsigned long addr, struct rb_root *root)
- {
- 	struct rb_node *n = root->rb_node;
-@@ -3476,11 +3470,11 @@ void vfree(const void *addr)
- 		 * High-order allocs for huge vmallocs are split, so
+@@ -3471,7 +3468,7 @@ void vfree(const void *addr)
  		 * can be freed as an array of order-0 allocations
  		 */
-+		if (!(vm->flags & VM_MAP_PUT_PAGES))
-+			dec_node_page_state(page, NR_VMALLOC);
+ 		if (!(vm->flags & VM_MAP_PUT_PAGES))
+-			dec_node_page_state(page, NR_VMALLOC);
++			mod_lruvec_page_state(page, NR_VMALLOC, -1);
  		__free_page(page);
  		cond_resched();
  	}
--	if (!(vm->flags & VM_MAP_PUT_PAGES))
--		atomic_long_sub(vm->nr_pages, &nr_vmalloc_pages);
- 	kvfree(vm->pages);
- 	kfree(vm);
- }
-@@ -3668,6 +3662,8 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+@@ -3662,7 +3659,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
  			continue;
  		}
  
-+		mod_node_page_state(page, NR_VMALLOC, 1 << large_order);
-+
+-		mod_node_page_state(page, NR_VMALLOC, 1 << large_order);
++		mod_lruvec_page_state(page, NR_VMALLOC, 1 << large_order);
+ 
  		split_page(page, large_order);
  		for (i = 0; i < (1U << large_order); i++)
- 			pages[nr_allocated + i] = page + i;
-@@ -3688,6 +3684,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 	if (!order) {
- 		while (nr_allocated < nr_pages) {
- 			unsigned int nr, nr_pages_request;
-+			int i;
- 
- 			/*
- 			 * A maximum allowed request is hard-coded and is 100
-@@ -3711,6 +3708,9 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 							nr_pages_request,
+@@ -3709,7 +3706,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
  							pages + nr_allocated);
  
-+			for (i = nr_allocated; i < nr_allocated + nr; i++)
-+				inc_node_page_state(pages[i], NR_VMALLOC);
-+
+ 			for (i = nr_allocated; i < nr_allocated + nr; i++)
+-				inc_node_page_state(pages[i], NR_VMALLOC);
++				mod_lruvec_page_state(pages[i], NR_VMALLOC, 1);
+ 
  			nr_allocated += nr;
  
- 			/*
-@@ -3735,6 +3735,8 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+@@ -3735,7 +3732,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
  		if (unlikely(!page))
  			break;
  
-+		mod_node_page_state(page, NR_VMALLOC, 1 << order);
-+
+-		mod_node_page_state(page, NR_VMALLOC, 1 << order);
++		mod_lruvec_page_state(page, NR_VMALLOC, 1 << order);
+ 
  		/*
  		 * High-order allocations must be able to be treated as
- 		 * independent small pages by callers (as they can with
-@@ -3877,7 +3879,6 @@ static void *__vmalloc_area_node(struct
+@@ -3879,11 +3876,6 @@ static void *__vmalloc_area_node(struct
  			vmalloc_gfp_adjust(gfp_mask, page_order), node,
  			page_order, nr_small_pages, area->pages);
  
--	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
- 	/* All pages of vm should be charged to same memcg, so use first one. */
- 	if (gfp_mask & __GFP_ACCOUNT && area->nr_pages)
- 		mod_memcg_page_state(area->pages[0], MEMCG_VMALLOC,
---- a/mm/vmstat.c~mm-vmalloc-streamline-vmalloc-memory-accounting
-+++ a/mm/vmstat.c
-@@ -1255,6 +1255,7 @@ const char * const vmstat_text[] = {
- 	[I(NR_KERNEL_MISC_RECLAIMABLE)]		= "nr_kernel_misc_reclaimable",
- 	[I(NR_FOLL_PIN_ACQUIRED)]		= "nr_foll_pin_acquired",
- 	[I(NR_FOLL_PIN_RELEASED)]		= "nr_foll_pin_released",
-+	[I(NR_VMALLOC)]				= "nr_vmalloc",
- 	[I(NR_KERNEL_STACK_KB)]			= "nr_kernel_stack",
- #if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
- 	[I(NR_KERNEL_SCS_KB)]			= "nr_shadow_call_stack",
+-	/* All pages of vm should be charged to same memcg, so use first one. */
+-	if (gfp_mask & __GFP_ACCOUNT && area->nr_pages)
+-		mod_memcg_page_state(area->pages[0], MEMCG_VMALLOC,
+-				     area->nr_pages);
+-
+ 	/*
+ 	 * If not enough pages were obtained to accomplish an
+ 	 * allocation request, free them via vfree() if any.
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
