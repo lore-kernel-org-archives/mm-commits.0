@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B04A7189B84
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 23:11:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 509167478
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 23:15:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771629064; cv=none; b=si0AtIIzsaqa/M0TN8z3ZmKD4aZ+mkIf2f3pY0PcQHkNrhlbeTMUuA2JMtm3x+7XUwFV0SSRbkr/ywepNwWtMHEGP617tC7OXn9qrRCk/lEb7ZdKcowFBdlFtxn3nJNP2pDZkiWr0wzWkVgeIZrayG6aQIAM7ndZII7q9VmZt8E=
+	t=1771629323; cv=none; b=LEYqRo4NlyHydbSsgWWf3ayV7lGV1sa3p9dYnNmpgz05jcIwL5kFGMjsvrqpOauXxl6nlRuoSBTfqMH+n4ZlPjKR4XCXMA1UFYQAlPOSz2BrQip4DoBWDhhVNvt1WNwJOF4ApxgdSu2IC6ygT2UDCKyhIch7irVvZi8R2PNv2Bo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771629064; c=relaxed/simple;
-	bh=z0kKujpF2TPS47Oogiv7J189wUHuEiP7EEhRk7ZQoAE=;
-	h=Date:To:From:Subject:Message-Id; b=W7RkFLE6yS96NEF3irRbsvn8IAKeZjr4mTPmvm49IQlcOeQN8IDPKALaTZlbXat8FYDOQ4UXCUej7eU0Q7hN/0LtAKtsqIvvx/kNgyyYw+9jw0ijT5a9bdcdTo3Qq4wuzUu1yEnz59+lukktzJNdfjckW3OgrauFoSI5erzebAM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TVltZncm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771629323; c=relaxed/simple;
+	bh=LqA2z2XOXSvFBVTbooOnfqNqoLdONuP3Riqly9i1CIc=;
+	h=Date:To:From:Subject:Message-Id; b=QoYjPTHaR4eNRLw4ZtM6OMk+3m9O7aO+bmR+JmgAEoN8snKwuJTEyLjotzYscxOTPbzL1gTTcOnjVeus7NdG1Bs/F4Go9JepM8zsVpMyvqEFXgClQ8R25Bo6SEt9T5ekNVLqMYOEktiVE6vNTSPO6ROy44xfjYshRZv0GlgGWqM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rv7fmL8M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TVltZncm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EEA4C116C6;
-	Fri, 20 Feb 2026 23:11:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rv7fmL8M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4FDDC116C6;
+	Fri, 20 Feb 2026 23:15:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771629064;
-	bh=z0kKujpF2TPS47Oogiv7J189wUHuEiP7EEhRk7ZQoAE=;
+	s=korg; t=1771629322;
+	bh=LqA2z2XOXSvFBVTbooOnfqNqoLdONuP3Riqly9i1CIc=;
 	h=Date:To:From:Subject:From;
-	b=TVltZncmo4KfLXUO2pCfIUERnl7gB+EFaosKq2VrVREC7iT277KDO94bhqoVGdhic
-	 /GmBvUcBi/n1WOJJGkQfQjU8CW3WFU7vXuMuKyXgzMUNiBARtjZbWWtYofIbRStPcv
-	 LoZkLg752BHRSEEztEwzW435qwtXoGTNhuUaAGUQ=
-Date: Fri, 20 Feb 2026 15:11:03 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,yanglincheng@kylinos.cn,akpm@linux-foundation.org
+	b=rv7fmL8MAQaytlztJqtqh+eFZ15jz/jEUYwelRrNJAWG60np4BzrBSx7QaN7ik1Gp
+	 Gl9r+tiNm6kalYzFMrqkWw7jQgxr0Sz5g6Xn3oG12tfFi2h9UKLjAHPYXSjCVYOXUn
+	 ndwFQVMWTG1Je7O9JSKzSLjIC0uA1UUIiWbfg6Fs=
+Date: Fri, 20 Feb 2026 15:15:22 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,willy@infradead.org,will@kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,liam.howlett@oracle.com,kas@kernel.org,gorbunov.ivan@h-partners.com,david@kernel.org,baolin.wang@linux.alibaba.com,gladyshev.ilya1@h-partners.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-set-to-next-mm-direct-when-mm-has-mmf_disable_thp_completely.patch added to mm-new branch
-Message-Id: <20260220231104.0EEA4C116C6@smtp.kernel.org>
+Subject: + mm-make-ref_unless-functions-unless_zero-only.patch added to mm-new branch
+Message-Id: <20260220231522.C4FDDC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: khugepaged: set to next mm direct when mm has MMF_DISABLE_THP_COMPLETELY
+     Subject: mm: make ref_unless functions unless_zero only
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-set-to-next-mm-direct-when-mm-has-mmf_disable_thp_completely.patch
+     mm-make-ref_unless-functions-unless_zero-only.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-set-to-next-mm-direct-when-mm-has-mmf_disable_thp_completely.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-ref_unless-functions-unless_zero-only.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,55 +66,139 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Vernon Yang <yanglincheng@kylinos.cn>
-Subject: mm: khugepaged: set to next mm direct when mm has MMF_DISABLE_THP_COMPLETELY
-Date: Sat, 7 Feb 2026 16:16:13 +0800
+From: Gladyshev Ilya <gladyshev.ilya1@h-partners.com>
+Subject: mm: make ref_unless functions unless_zero only
+Date: Fri, 6 Feb 2026 13:33:02 +0000
 
-When an mm with the MMF_DISABLE_THP_COMPLETELY flag is detected during
-scanning, directly set khugepaged_scan.mm_slot to the next mm_slot, reduce
-redundant operation.
+There are no users of (folio/page)_ref_add_unless(page, nr, u) with u != 0
+[1] and all current users are "internal" for page refcounting API.  This
+allows us to safely drop this parameter and reduce function semantics to
+the "unless zero" cases only, which will be optimized in the following
+patch.
 
-Without this patch, entering khugepaged_scan_mm_slot() next time, we will
-set khugepaged_scan.mm_slot to the next mm_slot.
+If needed, these functions for the u!=0 cases can be trivially
+reintroduced later using the same atomic_add_unless operations as before.
 
-With this patch, we will directly set khugepaged_scan.mm_slot to the next
-mm_slot.
+[1]: The last user was dropped in v5.18 kernel, commit 27674ef6c73f ("mm:
+remove the extra ZONE_DEVICE struct page refcount").  There is no trace of
+discussion as to why this cleanup wasn't done earlier.
 
-Link: https://lkml.kernel.org/r/20260207081613.588598-6-vernon2gm@gmail.com
-Signed-off-by: Vernon Yang <yanglincheng@kylinos.cn>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
+Link: https://lkml.kernel.org/r/20260206133328.426921-1-gladyshev.ilya1@h-partners.com
+Co-developed-by: Gorbunov Ivan <gorbunov.ivan@h-partners.com>
+Signed-off-by: Gorbunov Ivan <gorbunov.ivan@h-partners.com>
+Signed-off-by: Gladyshev Ilya <gladyshev.ilya1@h-partners.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Kiryl Shutsemau <kas@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h         |    2 +-
+ include/linux/page-flags.h |    6 +++---
+ include/linux/page_ref.h   |   14 +++++++-------
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-set-to-next-mm-direct-when-mm-has-mmf_disable_thp_completely
-+++ a/mm/khugepaged.c
-@@ -2508,9 +2508,9 @@ breakouterloop_mmap_lock:
- 	VM_BUG_ON(khugepaged_scan.mm_slot != slot);
- 	/*
- 	 * Release the current mm_slot if this mm is about to die, or
--	 * if we scanned all vmas of this mm.
-+	 * if we scanned all vmas of this mm, or THP got disabled.
+--- a/include/linux/mm.h~mm-make-ref_unless-functions-unless_zero-only
++++ a/include/linux/mm.h
+@@ -1507,7 +1507,7 @@ static inline int folio_put_testzero(str
+  */
+ static inline bool get_page_unless_zero(struct page *page)
+ {
+-	return page_ref_add_unless(page, 1, 0);
++	return page_ref_add_unless_zero(page, 1);
+ }
+ 
+ static inline struct folio *folio_get_nontail_page(struct page *page)
+--- a/include/linux/page-flags.h~mm-make-ref_unless-functions-unless_zero-only
++++ a/include/linux/page-flags.h
+@@ -231,7 +231,7 @@ static __always_inline const struct page
+ 	return page;
+ }
+ 
+-static __always_inline bool page_count_writable(const struct page *page, int u)
++static __always_inline bool page_count_writable(const struct page *page)
+ {
+ 	if (!static_branch_unlikely(&hugetlb_optimize_vmemmap_key))
+ 		return true;
+@@ -257,7 +257,7 @@ static __always_inline bool page_count_w
+ 	 * The refcount check also prevents modification attempts to other (r/o)
+ 	 * tail pages that are not fake heads.
  	 */
--	if (hpage_collapse_test_exit(mm) || !vma) {
-+	if (hpage_collapse_test_exit_or_disable(mm) || !vma) {
- 		/*
- 		 * Make sure that if mm_users is reaching zero while
- 		 * khugepaged runs here, khugepaged_exit will find
+-	if (atomic_read_acquire(&page->_refcount) == u)
++	if (!atomic_read_acquire(&page->_refcount))
+ 		return false;
+ 
+ 	return page_fixed_fake_head(page) == page;
+@@ -268,7 +268,7 @@ static inline const struct page *page_fi
+ 	return page;
+ }
+ 
+-static inline bool page_count_writable(const struct page *page, int u)
++static inline bool page_count_writable(const struct page *page)
+ {
+ 	return true;
+ }
+--- a/include/linux/page_ref.h~mm-make-ref_unless-functions-unless_zero-only
++++ a/include/linux/page_ref.h
+@@ -228,14 +228,14 @@ static inline int folio_ref_dec_return(s
+ 	return page_ref_dec_return(&folio->page);
+ }
+ 
+-static inline bool page_ref_add_unless(struct page *page, int nr, int u)
++static inline bool page_ref_add_unless_zero(struct page *page, int nr)
+ {
+ 	bool ret = false;
+ 
+ 	rcu_read_lock();
+ 	/* avoid writing to the vmemmap area being remapped */
+-	if (page_count_writable(page, u))
+-		ret = atomic_add_unless(&page->_refcount, nr, u);
++	if (page_count_writable(page))
++		ret = atomic_add_unless(&page->_refcount, nr, 0);
+ 	rcu_read_unlock();
+ 
+ 	if (page_ref_tracepoint_active(page_ref_mod_unless))
+@@ -243,9 +243,9 @@ static inline bool page_ref_add_unless(s
+ 	return ret;
+ }
+ 
+-static inline bool folio_ref_add_unless(struct folio *folio, int nr, int u)
++static inline bool folio_ref_add_unless_zero(struct folio *folio, int nr)
+ {
+-	return page_ref_add_unless(&folio->page, nr, u);
++	return page_ref_add_unless_zero(&folio->page, nr);
+ }
+ 
+ /**
+@@ -261,12 +261,12 @@ static inline bool folio_ref_add_unless(
+  */
+ static inline bool folio_try_get(struct folio *folio)
+ {
+-	return folio_ref_add_unless(folio, 1, 0);
++	return folio_ref_add_unless_zero(folio, 1);
+ }
+ 
+ static inline bool folio_ref_try_add(struct folio *folio, int count)
+ {
+-	return folio_ref_add_unless(folio, count, 0);
++	return folio_ref_add_unless_zero(folio, count);
+ }
+ 
+ static inline int page_ref_freeze(struct page *page, int count)
 _
 
-Patches currently in -mm which might be from yanglincheng@kylinos.cn are
+Patches currently in -mm which might be from gladyshev.ilya1@h-partners.com are
 
-mm-khugepaged-set-to-next-mm-direct-when-mm-has-mmf_disable_thp_completely.patch
+mm-make-ref_unless-functions-unless_zero-only.patch
 
