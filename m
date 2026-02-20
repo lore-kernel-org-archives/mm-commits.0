@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CDDE190664
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 00:36:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D747C190664
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 00:36:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771547802; cv=none; b=Wc06c9k5ZfZR4aqcGmtPzvWpyrkFMqXRGWRNM+8WlkW8SLO9YD1nTsHDBgs/JIllIVYJ/5lpE7Zn3h4FoE5YAAnTNL/L1sO0hbYDD9xxEZ0nyW6RgMOL+VlFLdLtD9nuDSqYbFVZwGYf6B/mbevCAyjjouALINlrYcv1vnxsdSg=
+	t=1771547804; cv=none; b=K4GGC/7y6D+7bLHP/FMcID+PqWrJNO8NpeY2qWcXikhVLMVFB/1xSp4DOqXYch8GIs73NsEvr8eePmOTeZbUEYr/1va0TN+Kfc4JWxzC0mvsZCvNgJCUSiiBncICqSSGVpMKtN9RZQZ77/V6D6SgMuVd9E7tNGqP/xlePWklVnk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771547802; c=relaxed/simple;
-	bh=D/yPhnwFWWhby+27UchnDdahcj/6QDihkfwFXpOdnzs=;
-	h=Date:To:From:Subject:Message-Id; b=qkBS8W3WwzhgesrgxoSiGhxIDXP275sdtY0KS9K8Dpbgr/s0e8j1dyoNl6ix1XWJ3QH6oZdVejur00V3WAUS3eLviVkMBhO/PPBErA9n2zf4jDvZ/TZCPqc1H+9qPkkONxIEVO6+AJB5p+FSGNcIfc/s9Btc4HAGZzVqNHx26L8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eSxiL7dY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771547804; c=relaxed/simple;
+	bh=JGXtRpXRQe0nB22Zh0U99V8EY2mg3xcZN7ig4r/Ytks=;
+	h=Date:To:From:Subject:Message-Id; b=fPysWVLZJXWe/jUgL7aVyD8OumUZw8B5raXTPBmnNgBnGhWcRjfXPGjDwyJlZWxo0QOogJ+DC/wXd8i46pmWxzVRMvjpTeHn/TRSJXniMKO0r3FT9wa7VQ6fOiSKoW+j0h2hdZ3BcZuf2CNyHIjBH+yyErY7PuYno8TjW8Wp1XM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JYm5xvcp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eSxiL7dY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A761BC4CEF7;
-	Fri, 20 Feb 2026 00:36:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JYm5xvcp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E0E0C4CEF7;
+	Fri, 20 Feb 2026 00:36:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771547801;
-	bh=D/yPhnwFWWhby+27UchnDdahcj/6QDihkfwFXpOdnzs=;
+	s=korg; t=1771547804;
+	bh=JGXtRpXRQe0nB22Zh0U99V8EY2mg3xcZN7ig4r/Ytks=;
 	h=Date:To:From:Subject:From;
-	b=eSxiL7dYxwLdBZHxCJEedtpLSZ1Z+1/Jk848rI3RbRh1fAlXmbT0F9NowtvSIr/XS
-	 f4IR6LnuvhKenYZbwavEhyiYYnwmzKheyPZGteDw/ae9+Pfwy7GlzGyfe7Jr6n8Hcw
-	 GPCjpiMWlXpEmpu+EIrJdM+EaGl3jCcsyzwLYfb0=
-Date: Thu, 19 Feb 2026 16:36:41 -0800
+	b=JYm5xvcpB0s2ES2VBb6DwkfKWLc34npd5+uoQMbBKu/bbJWu4PlAxvtXxlYyhs/7G
+	 yvfbZfvTCgtQsZI0FL9u6P94Ukhxz4eOW8tLOHNftN0XgWTJEa/3k8OShosl6hZcrC
+	 YOONjP92aiV2z4PR9PDChOMRdz6QyZ8busFtGbjM=
+Date: Thu, 19 Feb 2026 16:36:43 -0800
 To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,ryncsn@gmail.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,lkp@intel.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-implement-helpers-for-reserving-data-in-the-swap-table.patch added to mm-new branch
-Message-Id: <20260220003641.A761BC4CEF7@smtp.kernel.org>
+Subject: + mm-swap-mark-bad-slots-in-swap-table-directly.patch added to mm-new branch
+Message-Id: <20260220003644.5E0E0C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm, swap: implement helpers for reserving data in the swap table
+     Subject: mm, swap: mark bad slots in swap table directly
 has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-implement-helpers-for-reserving-data-in-the-swap-table.patch
+     mm-swap-mark-bad-slots-in-swap-table-directly.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-implement-helpers-for-reserving-data-in-the-swap-table.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-mark-bad-slots-in-swap-table-directly.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,23 +67,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: implement helpers for reserving data in the swap table
-Date: Wed, 18 Feb 2026 04:06:31 +0800
+Subject: mm, swap: mark bad slots in swap table directly
+Date: Wed, 18 Feb 2026 04:06:32 +0800
 
-To prepare for using the swap table as the unified swap layer, introduce
-macros and helpers for storing multiple kinds of data in a swap table
-entry.
+In preparing the deprecating swap_map, mark bad slots in the swap table
+too when setting SWAP_MAP_BAD in swap_map.  Also, refine the swap table
+sanity check on freeing to adapt to the bad slots change.  For swapoff,
+the bad slots count must match the cluster usage count, as nothing should
+touch them, and they contribute to the cluster usage count on swapon.  For
+ordinary swap table freeing, the swap table of clusters with bad slots
+should never be freed since the cluster usage count never reaches zero.
 
-From now on, we are storing PFN in the swap table to make space for extra
-counting bits (SWAP_COUNT).  Shadows are still stored as they are, as the
-SWAP_COUNT is not used yet.
-
-Also, rename shadow_swp_to_tb to shadow_to_swp_tb.  That's a spelling
-error, not really worth a separate fix.
-
-No behaviour change yet, just prepare the API.
-
-Link: https://lkml.kernel.org/r/20260218-swap-table-p3-v3-6-f4e34be021a7@tencent.com
+Link: https://lkml.kernel.org/r/20260218-swap-table-p3-v3-7-f4e34be021a7@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Acked-by: Chris Li <chrisl@kernel.org>
 Cc: Baoquan He <bhe@redhat.com>
@@ -98,234 +93,122 @@ Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    6 +-
- mm/swap_table.h |  131 ++++++++++++++++++++++++++++++++++++++++++----
- 2 files changed, 124 insertions(+), 13 deletions(-)
+ mm/swapfile.c |   56 +++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 41 insertions(+), 15 deletions(-)
 
---- a/mm/swap_state.c~mm-swap-implement-helpers-for-reserving-data-in-the-swap-table
-+++ a/mm/swap_state.c
-@@ -148,7 +148,7 @@ void __swap_cache_add_folio(struct swap_
- 	VM_WARN_ON_ONCE_FOLIO(folio_test_swapcache(folio), folio);
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_swapbacked(folio), folio);
- 
--	new_tb = folio_to_swp_tb(folio);
-+	new_tb = folio_to_swp_tb(folio, 0);
- 	ci_start = swp_cluster_offset(entry);
- 	ci_off = ci_start;
- 	ci_end = ci_start + nr_pages;
-@@ -249,7 +249,7 @@ void __swap_cache_del_folio(struct swap_
- 	VM_WARN_ON_ONCE_FOLIO(folio_test_writeback(folio), folio);
- 
- 	si = __swap_entry_to_info(entry);
--	new_tb = shadow_swp_to_tb(shadow);
-+	new_tb = shadow_to_swp_tb(shadow, 0);
- 	ci_start = swp_cluster_offset(entry);
- 	ci_end = ci_start + nr_pages;
- 	ci_off = ci_start;
-@@ -331,7 +331,7 @@ void __swap_cache_replace_folio(struct s
- 	VM_WARN_ON_ONCE(!entry.val);
- 
- 	/* Swap cache still stores N entries instead of a high-order entry */
--	new_tb = folio_to_swp_tb(new);
-+	new_tb = folio_to_swp_tb(new, 0);
- 	do {
- 		old_tb = __swap_table_xchg(ci, ci_off, new_tb);
- 		WARN_ON_ONCE(!swp_tb_is_folio(old_tb) || swp_tb_to_folio(old_tb) != old);
---- a/mm/swap_table.h~mm-swap-implement-helpers-for-reserving-data-in-the-swap-table
-+++ a/mm/swap_table.h
-@@ -12,17 +12,72 @@ struct swap_table {
- };
- 
- #define SWP_TABLE_USE_PAGE (sizeof(struct swap_table) == PAGE_SIZE)
--#define SWP_TB_COUNT_BITS		4
- 
- /*
-  * A swap table entry represents the status of a swap slot on a swap
-  * (physical or virtual) device. The swap table in each cluster is a
-  * 1:1 map of the swap slots in this cluster.
-  *
-- * Each swap table entry could be a pointer (folio), a XA_VALUE
-- * (shadow), or NULL.
-+ * Swap table entry type and bits layouts:
-+ *
-+ * NULL:     |---------------- 0 ---------------| - Free slot
-+ * Shadow:   | SWAP_COUNT |---- SHADOW_VAL ---|1| - Swapped out slot
-+ * PFN:      | SWAP_COUNT |------ PFN -------|10| - Cached slot
-+ * Pointer:  |----------- Pointer ----------|100| - (Unused)
-+ * Bad:      |------------- 1 -------------|1000| - Bad slot
-+ *
-+ * SWAP_COUNT is `SWP_TB_COUNT_BITS` long, each entry is an atomic long.
-+ *
-+ * Usages:
-+ *
-+ * - NULL: Swap slot is unused, could be allocated.
-+ *
-+ * - Shadow: Swap slot is used and not cached (usually swapped out). It reuses
-+ *   the XA_VALUE format to be compatible with working set shadows. SHADOW_VAL
-+ *   part might be all 0 if the working shadow info is absent. In such a case,
-+ *   we still want to keep the shadow format as a placeholder.
-+ *
-+ *   Memcg ID is embedded in SHADOW_VAL.
-+ *
-+ * - PFN: Swap slot is in use, and cached. Memcg info is recorded on the page
-+ *   struct.
-+ *
-+ * - Pointer: Unused yet. `0b100` is reserved for potential pointer usage
-+ *   because only the lower three bits can be used as a marker for 8 bytes
-+ *   aligned pointers.
-+ *
-+ * - Bad: Swap slot is reserved, protects swap header or holes on swap devices.
-  */
- 
-+#if defined(MAX_POSSIBLE_PHYSMEM_BITS)
-+#define SWAP_CACHE_PFN_BITS (MAX_POSSIBLE_PHYSMEM_BITS - PAGE_SHIFT)
-+#elif defined(MAX_PHYSMEM_BITS)
-+#define SWAP_CACHE_PFN_BITS (MAX_PHYSMEM_BITS - PAGE_SHIFT)
-+#else
-+#define SWAP_CACHE_PFN_BITS (BITS_PER_LONG - PAGE_SHIFT)
-+#endif
-+
-+/* NULL Entry, all 0 */
-+#define SWP_TB_NULL		0UL
-+
-+/* Swapped out: shadow */
-+#define SWP_TB_SHADOW_MARK	0b1UL
-+
-+/* Cached: PFN */
-+#define SWP_TB_PFN_BITS		(SWAP_CACHE_PFN_BITS + SWP_TB_PFN_MARK_BITS)
-+#define SWP_TB_PFN_MARK		0b10UL
-+#define SWP_TB_PFN_MARK_BITS	2
-+#define SWP_TB_PFN_MARK_MASK	(BIT(SWP_TB_PFN_MARK_BITS) - 1)
-+
-+/* SWAP_COUNT part for PFN or shadow, the width can be shrunk or extended */
-+#define SWP_TB_COUNT_BITS      min(4, BITS_PER_LONG - SWP_TB_PFN_BITS)
-+#define SWP_TB_COUNT_MASK      (~((~0UL) >> SWP_TB_COUNT_BITS))
-+#define SWP_TB_COUNT_SHIFT     (BITS_PER_LONG - SWP_TB_COUNT_BITS)
-+#define SWP_TB_COUNT_MAX       ((1 << SWP_TB_COUNT_BITS) - 1)
-+
-+/* Bad slot: ends with 0b1000 and rests of bits are all 1 */
-+#define SWP_TB_BAD		((~0UL) << 3)
-+
- /* Macro for shadow offset calculation */
- #define SWAP_COUNT_SHIFT	SWP_TB_COUNT_BITS
- 
-@@ -35,18 +90,47 @@ static inline unsigned long null_to_swp_
- 	return 0;
+--- a/mm/swapfile.c~mm-swap-mark-bad-slots-in-swap-table-directly
++++ a/mm/swapfile.c
+@@ -454,16 +454,37 @@ static void swap_table_free(struct swap_
+ 		 swap_table_free_folio_rcu_cb);
  }
  
--static inline unsigned long folio_to_swp_tb(struct folio *folio)
-+static inline unsigned long __count_to_swp_tb(unsigned char count)
- {
-+	/*
-+	 * At least three values are needed to distinguish free (0),
-+	 * used (count > 0 && count < SWP_TB_COUNT_MAX), and
-+	 * overflow (count == SWP_TB_COUNT_MAX).
-+	 */
-+	BUILD_BUG_ON(SWP_TB_COUNT_MAX < 2 || SWP_TB_COUNT_BITS < 2);
-+	VM_WARN_ON(count > SWP_TB_COUNT_MAX);
-+	return ((unsigned long)count) << SWP_TB_COUNT_SHIFT;
-+}
-+
-+static inline unsigned long pfn_to_swp_tb(unsigned long pfn, unsigned int count)
++/*
++ * Sanity check to ensure nothing leaked, and the specified range is empty.
++ * One special case is that bad slots can't be freed, so check the number of
++ * bad slots for swapoff, and non-swapoff path must never free bad slots.
++ */
++static void swap_cluster_assert_empty(struct swap_cluster_info *ci, bool swapoff)
 +{
++	unsigned int ci_off = 0, ci_end = SWAPFILE_CLUSTER;
 +	unsigned long swp_tb;
++	int bad_slots = 0;
 +
- 	BUILD_BUG_ON(sizeof(unsigned long) != sizeof(void *));
--	return (unsigned long)folio;
-+	BUILD_BUG_ON(SWAP_CACHE_PFN_BITS >
-+		     (BITS_PER_LONG - SWP_TB_PFN_MARK_BITS - SWP_TB_COUNT_BITS));
++	if (!IS_ENABLED(CONFIG_DEBUG_VM) && !swapoff)
++		return;
 +
-+	swp_tb = (pfn << SWP_TB_PFN_MARK_BITS) | SWP_TB_PFN_MARK;
-+	VM_WARN_ON_ONCE(swp_tb & SWP_TB_COUNT_MASK);
++	do {
++		swp_tb = __swap_table_get(ci, ci_off);
++		if (swp_tb_is_bad(swp_tb))
++			bad_slots++;
++		else
++			WARN_ON_ONCE(!swp_tb_is_null(swp_tb));
++	} while (++ci_off < ci_end);
 +
-+	return swp_tb | __count_to_swp_tb(count);
- }
- 
--static inline unsigned long shadow_swp_to_tb(void *shadow)
-+static inline unsigned long folio_to_swp_tb(struct folio *folio, unsigned int count)
-+{
-+	return pfn_to_swp_tb(folio_pfn(folio), count);
++	WARN_ON_ONCE(bad_slots != (swapoff ? ci->count : 0));
 +}
 +
-+static inline unsigned long shadow_to_swp_tb(void *shadow, unsigned int count)
+ static void swap_cluster_free_table(struct swap_cluster_info *ci)
  {
- 	BUILD_BUG_ON((BITS_PER_XA_VALUE + 1) !=
- 		     BITS_PER_BYTE * sizeof(unsigned long));
-+	BUILD_BUG_ON((unsigned long)xa_mk_value(0) != SWP_TB_SHADOW_MARK);
-+
- 	VM_WARN_ON_ONCE(shadow && !xa_is_value(shadow));
--	return (unsigned long)shadow;
-+	VM_WARN_ON_ONCE(shadow && ((unsigned long)shadow & SWP_TB_COUNT_MASK));
-+
-+	return (unsigned long)shadow | __count_to_swp_tb(count) | SWP_TB_SHADOW_MARK;
+-	unsigned int ci_off;
+ 	struct swap_table *table;
+ 
+ 	/* Only empty cluster's table is allow to be freed  */
+ 	lockdep_assert_held(&ci->lock);
+-	VM_WARN_ON_ONCE(!cluster_is_empty(ci));
+-	for (ci_off = 0; ci_off < SWAPFILE_CLUSTER; ci_off++)
+-		VM_WARN_ON_ONCE(!swp_tb_is_null(__swap_table_get(ci, ci_off)));
+ 	table = (void *)rcu_dereference_protected(ci->table, true);
+ 	rcu_assign_pointer(ci->table, NULL);
+ 
+@@ -567,6 +588,7 @@ static void swap_cluster_schedule_discar
+ 
+ static void __free_cluster(struct swap_info_struct *si, struct swap_cluster_info *ci)
+ {
++	swap_cluster_assert_empty(ci, false);
+ 	swap_cluster_free_table(ci);
+ 	move_cluster(si, ci, &si->free_clusters, CLUSTER_FLAG_FREE);
+ 	ci->order = 0;
+@@ -747,9 +769,11 @@ static int swap_cluster_setup_bad_slot(s
+ 				       struct swap_cluster_info *cluster_info,
+ 				       unsigned int offset, bool mask)
+ {
++	unsigned int ci_off = offset % SWAPFILE_CLUSTER;
+ 	unsigned long idx = offset / SWAPFILE_CLUSTER;
+-	struct swap_table *table;
+ 	struct swap_cluster_info *ci;
++	struct swap_table *table;
++	int ret = 0;
+ 
+ 	/* si->max may got shrunk by swap swap_activate() */
+ 	if (offset >= si->max && !mask) {
+@@ -767,13 +791,7 @@ static int swap_cluster_setup_bad_slot(s
+ 		pr_warn("Empty swap-file\n");
+ 		return -EINVAL;
+ 	}
+-	/* Check for duplicated bad swap slots. */
+-	if (si->swap_map[offset]) {
+-		pr_warn("Duplicated bad slot offset %d\n", offset);
+-		return -EINVAL;
+-	}
+ 
+-	si->swap_map[offset] = SWAP_MAP_BAD;
+ 	ci = cluster_info + idx;
+ 	if (!ci->table) {
+ 		table = swap_table_alloc(GFP_KERNEL);
+@@ -781,13 +799,21 @@ static int swap_cluster_setup_bad_slot(s
+ 			return -ENOMEM;
+ 		rcu_assign_pointer(ci->table, table);
+ 	}
+-
+-	ci->count++;
++	spin_lock(&ci->lock);
++	/* Check for duplicated bad swap slots. */
++	if (__swap_table_xchg(ci, ci_off, SWP_TB_BAD) != SWP_TB_NULL) {
++		pr_warn("Duplicated bad slot offset %d\n", offset);
++		ret = -EINVAL;
++	} else {
++		si->swap_map[offset] = SWAP_MAP_BAD;
++		ci->count++;
++	}
++	spin_unlock(&ci->lock);
+ 
+ 	WARN_ON(ci->count > SWAPFILE_CLUSTER);
+ 	WARN_ON(ci->flags);
+ 
+-	return 0;
++	return ret;
  }
  
  /*
-@@ -59,7 +143,7 @@ static inline bool swp_tb_is_null(unsign
- 
- static inline bool swp_tb_is_folio(unsigned long swp_tb)
- {
--	return !xa_is_value((void *)swp_tb) && !swp_tb_is_null(swp_tb);
-+	return ((swp_tb & SWP_TB_PFN_MARK_MASK) == SWP_TB_PFN_MARK);
- }
- 
- static inline bool swp_tb_is_shadow(unsigned long swp_tb)
-@@ -67,19 +151,44 @@ static inline bool swp_tb_is_shadow(unsi
- 	return xa_is_value((void *)swp_tb);
- }
- 
-+static inline bool swp_tb_is_bad(unsigned long swp_tb)
-+{
-+	return swp_tb == SWP_TB_BAD;
-+}
-+
-+static inline bool swp_tb_is_countable(unsigned long swp_tb)
-+{
-+	return (swp_tb_is_shadow(swp_tb) || swp_tb_is_folio(swp_tb) ||
-+		swp_tb_is_null(swp_tb));
-+}
-+
- /*
-  * Helpers for retrieving info from swap table.
-  */
- static inline struct folio *swp_tb_to_folio(unsigned long swp_tb)
- {
- 	VM_WARN_ON(!swp_tb_is_folio(swp_tb));
--	return (void *)swp_tb;
-+	return pfn_folio((swp_tb & ~SWP_TB_COUNT_MASK) >> SWP_TB_PFN_MARK_BITS);
- }
- 
- static inline void *swp_tb_to_shadow(unsigned long swp_tb)
- {
- 	VM_WARN_ON(!swp_tb_is_shadow(swp_tb));
--	return (void *)swp_tb;
-+	/* No shift needed, xa_value is stored as it is in the lower bits. */
-+	return (void *)(swp_tb & ~SWP_TB_COUNT_MASK);
-+}
-+
-+static inline unsigned char __swp_tb_get_count(unsigned long swp_tb)
-+{
-+	VM_WARN_ON(!swp_tb_is_countable(swp_tb));
-+	return ((swp_tb & SWP_TB_COUNT_MASK) >> SWP_TB_COUNT_SHIFT);
-+}
-+
-+static inline int swp_tb_get_count(unsigned long swp_tb)
-+{
-+	if (swp_tb_is_countable(swp_tb))
-+		return __swp_tb_get_count(swp_tb);
-+	return -EINVAL;
- }
- 
- /*
-@@ -124,6 +233,8 @@ static inline unsigned long swap_table_g
- 	atomic_long_t *table;
- 	unsigned long swp_tb;
- 
-+	VM_WARN_ON_ONCE(off >= SWAPFILE_CLUSTER);
-+
- 	rcu_read_lock();
- 	table = rcu_dereference(ci->table);
- 	swp_tb = table ? atomic_long_read(&table[off]) : null_to_swp_tb();
+@@ -2754,7 +2780,7 @@ static void free_swap_cluster_info(struc
+ 		/* Cluster with bad marks count will have a remaining table */
+ 		spin_lock(&ci->lock);
+ 		if (rcu_dereference_protected(ci->table, true)) {
+-			ci->count = 0;
++			swap_cluster_assert_empty(ci, true);
+ 			swap_cluster_free_table(ci);
+ 		}
+ 		spin_unlock(&ci->lock);
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
