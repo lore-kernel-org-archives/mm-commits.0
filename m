@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C16A98632B;
-	Fri, 20 Feb 2026 21:08:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 198FD264617
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 21:20:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771621695; cv=none; b=eisd71/shm+K9JdLQ9hgMtYAdLhQhHv0Jnm8LZQEjFGQVYk+GqCk/dF8PowQvj7oMa7qMlBFoYiSBc+1K/bKbks1RZCBvNvpR7DnGPTy0cTXXoQ7l5dyFN2Ay/8+rJTU4a1LakLnN6Dk/fw0J7KK1YayVwOQpsCeu1GyESJbM9Q=
+	t=1771622447; cv=none; b=X1ZnotBqi/bix4pV4a7FOzmbuvhZjxihWbqK3+lcsSwZjfyFo+3GTzllXVtQtDE8dGHsg20usUr0lCok/bgUKWJxqMmHyY+A7RS/staoCx29JmT56i2BFXYpT/V/2LC4hYdKUPoCbssRsDqgZ1TlE5+e7dVdGMs63sXd0wvBYZU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771621695; c=relaxed/simple;
-	bh=fo9J7Kh5LXZ4sAfujsd/dDL1VGh9hmHvsbJR1d7LZ34=;
-	h=Date:To:From:Subject:Message-Id; b=txJQAegi0M+K2wAQPuC5J65mJi5kI+kSnh/u6z9bx9XMB5fq1d4IXIHiSEFv4BKuSEVgZrrxOWbGmPLvN93KWuyh9yCcnuiWLNDbIy0hbuVCw4UNtK5mBikdmgl051off9JqMgZmL22pLkeQZpbpii/XtT8rZ/z+1mA+UkpQlOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r012pDis; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771622447; c=relaxed/simple;
+	bh=Zg6aDj7f5h72p5W+Ls0H5kAmnxE7RQgYnAytAhYpVnI=;
+	h=Date:To:From:Subject:Message-Id; b=sJj0YYsDVKq+7aZo651c3BWyYIBcXhcc2vgIvBhEA4SKKFfqM+ZP6rkul7gfjfEqCiyrfAiyxrZEF4/9RUtFeH5AlpSFI0EZuIvWzjiIWngzDiir7Mw2KFVpSF0thLaIQfrZCc1HHOBAb84+Fe7hgICfeQ/SczHbONILavb6G5E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZzfODIBR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r012pDis"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 077E5C116C6;
-	Fri, 20 Feb 2026 21:08:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZzfODIBR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E663C116C6;
+	Fri, 20 Feb 2026 21:20:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771621695;
-	bh=fo9J7Kh5LXZ4sAfujsd/dDL1VGh9hmHvsbJR1d7LZ34=;
+	s=korg; t=1771622446;
+	bh=Zg6aDj7f5h72p5W+Ls0H5kAmnxE7RQgYnAytAhYpVnI=;
 	h=Date:To:From:Subject:From;
-	b=r012pDis/MIiENZFG9rf40avsWS7hqKdXMBeLa6OIxXB4sCXt/df/kw2WQKpdIm3r
-	 5lMUDVF0heobob39mWSgZ54b/uCKIacJwmjeSoIy9IUN67zEb0iKuCvIpyMZADQq2F
-	 wFPJKly13kd8o3+XC9OEUtdpTHdjCVYyjusRgASU=
-Date: Fri, 20 Feb 2026 13:08:14 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryabinin.a.a@gmail.com,kees@kernel.org,gregkh@linuxfoundation.org,ernesto.martinezgarcia@tugraz.at,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,glider@google.com,akpm@linux-foundation.org
+	b=ZzfODIBRqVoGQ1trtabHKp+h96aw13XYx0B5USOCYNLFOVtTF3WL4CKx/DLFsdqFe
+	 4gOg+5ai5J/zmJgBOBywcy0Pr1PwZQWSAGb5Jg5UmWmzWFdU4fkDpLmVfszNMIY3Qq
+	 9EBCYEya9G22mzouUyHjNYZYM6ce+bH5kLLhQe48=
+Date: Fri, 20 Feb 2026 13:20:45 -0800
+To: mm-commits@vger.kernel.org,wangjinchao600@gmail.com,pmladek@suse.com,max.kellermann@ionos.com,lihuafei1@huawei.com,irogers@google.com,eranian@google.com,dianders@chromium.org,cuiyunhui@bytedance.com,corbet@lwn.net,mrungta@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kfence-fix-kasan-hardware-tag-faults-during-late-enablement.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260220210815.077E5C116C6@smtp.kernel.org>
+Subject: + watchdog-hardlockup-always-update-saved-interrupts-during-check.patch added to mm-nonmm-unstable branch
+Message-Id: <20260220212046.7E663C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/kfence: fix KASAN hardware tag faults during late enablement
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-kfence-fix-kasan-hardware-tag-faults-during-late-enablement.patch
+     Subject: watchdog/hardlockup: always update saved interrupts during check
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     watchdog-hardlockup-always-update-saved-interrupts-during-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kfence-fix-kasan-hardware-tag-faults-during-late-enablement.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-always-update-saved-interrupts-during-check.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,93 +58,123 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: mm/kfence: fix KASAN hardware tag faults during late enablement
-Date: Fri, 20 Feb 2026 15:49:40 +0100
+From: Mayank Rungta <mrungta@google.com>
+Subject: watchdog/hardlockup: always update saved interrupts during check
+Date: Thu, 12 Feb 2026 14:12:10 -0700
 
-When KASAN hardware tags are enabled, re-enabling KFENCE late (via
-/sys/module/kfence/parameters/sample_interval) causes KASAN faults.
+Patch series "watchdog/hardlockup: Improvements to hardlockup".
 
-This happens because the KFENCE pool and metadata are allocated via the
-page allocator, which tags the memory, while KFENCE continues to access it
-using untagged pointers during initialization.
+This series addresses limitations in the hardlockup detector
+implementations and updates the documentation to reflect actual behavior
+and recent changes.
 
-Use __GFP_SKIP_KASAN for late KFENCE pool and metadata allocations to
-ensure the memory remains untagged, consistent with early allocations from
-memblock.  To support this, add __GFP_SKIP_KASAN to the allowlist in
-__alloc_contig_verify_gfp_mask().
+The changes are structured as follows:
 
-Link: https://lkml.kernel.org/r/20260220144940.2779209-1-glider@google.com
-Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Suggested-by: Ernesto Martinez Garcia <ernesto.martinezgarcia@tugraz.at>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Marco Elver <elver@google.com>
-Cc: <stable@vger.kernel.org>
+Hardlockup Detection Improvements (Patches 1 & 3)
+=================================================
+The hardlockup detector logic relies on updating saved interrupt counts to
+determine if the CPU is making progress.
+
+Patch 1 ensures that the saved interrupt count is updated unconditionally
+before checking the "touched" flag.  This prevents stale comparisons which
+can delay detection.  This is a logic fix that ensures the detector
+remains accurate even when the watchdog is frequently touched.
+
+Patch 3 improves the Buddy detector's timeliness.  The current checking
+interval (every 3rd sample) causes high variability in detection time (up
+to 24s).  This patch changes the Buddy detector to check at every hrtimer
+interval (4s) with a missed-interrupt threshold of 3, narrowing the
+detection window to a consistent 8-12 second range.
+
+Documentation Updates (Patches 2 & 4)
+=====================================
+The current documentation does not fully capture the variable nature of
+detection latency or the details of the Buddy system.
+
+Patch 2 removes the strict "10 seconds" definition of a hardlockup, which
+was misleading given the periodic nature of the detector.  It adds a
+"Detection Overhead" section to the admin guide, using "Best Case" and
+"Worst Case" scenarios to illustrate that detection time can vary
+significantly (e.g., ~6s to ~20s).
+
+Patch 4 adds a dedicated section for the Buddy detector, which was
+previously undocumented.  It details the mechanism, the new timing logic,
+and known limitations.
+
+
+This patch (of 4):
+
+Currently, arch_touch_nmi_watchdog() causes an early return that skips
+updating hrtimer_interrupts_saved.  This leads to stale comparisons and
+delayed lockup detection.
+
+Update the saved interrupt count before checking the touched flag to
+ensure detection timeliness.
+
+Link: https://lkml.kernel.org/r/20260212-hardlockup-watchdog-fixes-v1-0-745f1dce04c3@google.com
+Link: https://lkml.kernel.org/r/20260212-hardlockup-watchdog-fixes-v1-1-745f1dce04c3@google.com
+Signed-off-by: Mayank Rungta <mrungta@google.com>
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Li Huafei <lihuafei1@huawei.com>
+Cc: Max Kellermann <max.kellermann@ionos.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Stephane Erainan <eranian@google.com>
+Cc: Wang Jinchao <wangjinchao600@gmail.com>
+Cc: Yunhui Cui <cuiyunhui@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   14 ++++++++------
- mm/page_alloc.c  |    3 ++-
- 2 files changed, 10 insertions(+), 7 deletions(-)
+ kernel/watchdog.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
---- a/mm/kfence/core.c~mm-kfence-fix-kasan-hardware-tag-faults-during-late-enablement
-+++ a/mm/kfence/core.c
-@@ -1004,14 +1004,14 @@ static int kfence_init_late(void)
- #ifdef CONFIG_CONTIG_ALLOC
- 	struct page *pages;
+--- a/kernel/watchdog.c~watchdog-hardlockup-always-update-saved-interrupts-during-check
++++ a/kernel/watchdog.c
+@@ -186,7 +186,21 @@ static void watchdog_hardlockup_kick(voi
  
--	pages = alloc_contig_pages(nr_pages_pool, GFP_KERNEL, first_online_node,
--				   NULL);
-+	pages = alloc_contig_pages(nr_pages_pool, GFP_KERNEL | __GFP_SKIP_KASAN,
-+				   first_online_node, NULL);
- 	if (!pages)
- 		return -ENOMEM;
- 
- 	__kfence_pool = page_to_virt(pages);
--	pages = alloc_contig_pages(nr_pages_meta, GFP_KERNEL, first_online_node,
--				   NULL);
-+	pages = alloc_contig_pages(nr_pages_meta, GFP_KERNEL | __GFP_SKIP_KASAN,
-+				   first_online_node, NULL);
- 	if (pages)
- 		kfence_metadata_init = page_to_virt(pages);
- #else
-@@ -1021,11 +1021,13 @@ static int kfence_init_late(void)
- 		return -EINVAL;
- 	}
- 
--	__kfence_pool = alloc_pages_exact(KFENCE_POOL_SIZE, GFP_KERNEL);
-+	__kfence_pool = alloc_pages_exact(KFENCE_POOL_SIZE,
-+					  GFP_KERNEL | __GFP_SKIP_KASAN);
- 	if (!__kfence_pool)
- 		return -ENOMEM;
- 
--	kfence_metadata_init = alloc_pages_exact(KFENCE_METADATA_SIZE, GFP_KERNEL);
-+	kfence_metadata_init = alloc_pages_exact(KFENCE_METADATA_SIZE,
-+						 GFP_KERNEL | __GFP_SKIP_KASAN);
- #endif
- 
- 	if (!kfence_metadata_init)
---- a/mm/page_alloc.c~mm-kfence-fix-kasan-hardware-tag-faults-during-late-enablement
-+++ a/mm/page_alloc.c
-@@ -6928,7 +6928,8 @@ static int __alloc_contig_verify_gfp_mas
+ void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
  {
- 	const gfp_t reclaim_mask = __GFP_IO | __GFP_FS | __GFP_RECLAIM;
- 	const gfp_t action_mask = __GFP_COMP | __GFP_RETRY_MAYFAIL | __GFP_NOWARN |
--				  __GFP_ZERO | __GFP_ZEROTAGS | __GFP_SKIP_ZERO;
-+				  __GFP_ZERO | __GFP_ZEROTAGS | __GFP_SKIP_ZERO |
-+				  __GFP_SKIP_KASAN;
- 	const gfp_t cc_action_mask = __GFP_RETRY_MAYFAIL | __GFP_NOWARN;
++	bool is_hl;
+ 	int hardlockup_all_cpu_backtrace;
++	/*
++	 * Check for a hardlockup by making sure the CPU's timer
++	 * interrupt is incrementing. The timer interrupt should have
++	 * fired multiple times before we overflow'd. If it hasn't
++	 * then this is a good indication the cpu is stuck
++	 *
++	 * Purposely check this _before_ checking watchdog_hardlockup_touched
++	 * so we make sure we still update the saved value of the interrupts.
++	 * Without that we'll take an extra round through this function before
++	 * we can detect a lockup.
++	 */
++
++	is_hl = is_hardlockup(cpu);
  
- 	/*
+ 	if (per_cpu(watchdog_hardlockup_touched, cpu)) {
+ 		per_cpu(watchdog_hardlockup_touched, cpu) = false;
+@@ -195,13 +209,8 @@ void watchdog_hardlockup_check(unsigned
+ 
+ 	hardlockup_all_cpu_backtrace = (hardlockup_si_mask & SYS_INFO_ALL_BT) ?
+ 					1 : sysctl_hardlockup_all_cpu_backtrace;
+-	/*
+-	 * Check for a hardlockup by making sure the CPU's timer
+-	 * interrupt is incrementing. The timer interrupt should have
+-	 * fired multiple times before we overflow'd. If it hasn't
+-	 * then this is a good indication the cpu is stuck
+-	 */
+-	if (is_hardlockup(cpu)) {
++
++	if (is_hl) {
+ 		unsigned int this_cpu = smp_processor_id();
+ 		unsigned long flags;
+ 
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from mrungta@google.com are
 
-mm-kfence-disable-kfence-upon-kasan-hw-tags-enablement.patch
-mm-kfence-fix-kasan-hardware-tag-faults-during-late-enablement.patch
+watchdog-hardlockup-always-update-saved-interrupts-during-check.patch
+doc-watchdog-clarify-hardlockup-detection-timing.patch
+watchdog-hardlockup-improve-buddy-system-detection-timeliness.patch
+doc-watchdog-document-buddy-detector.patch
 
