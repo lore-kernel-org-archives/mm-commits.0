@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E4882C21DD
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 02:55:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE5254A32
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 03:04:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771556152; cv=none; b=Hv3qDo7Fp9iWJxvJvU93/mKTV+G3lSFlM3QIFZukZ21vt1cu3dX2RR9f6F/jGPNDvpeZKrYUkNu2oKnStuGmH/KcthfTNv1cJRSf2E5QcD+haEI3pS+5gfZpLfiOisRZaWThEyAok0MaY7BtgK2cXN9Vq3QMlpYSvvKZ05jxku4=
+	t=1771556673; cv=none; b=TJ2NoU1qXH9V0/VwOyDn6eU95YcU/+jOIljb9mjWTcsYGTKTuk/yeNh7QkroeRFHA6qhbmdZQTEhwK05IZuerVOps8oC6CpUgqdyAGt9d73E8cAor+MGB9vvlH9bcXjLCz5j4SS4U8+d6K4xLKkrLZLiVPBx6NiiwnP3KpS6fgU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771556152; c=relaxed/simple;
-	bh=eRmDDn+sYawZS+S0fnL8J5E1BFiNBzxphholnbwjBbA=;
-	h=Date:To:From:Subject:Message-Id; b=ABcD5YA2eP3/5reVX+cOwemNlzFyFIl8wD10V9BlKFpzpjz2KU7wDGbkqfD4rU5FUcqk2Ap8VXvV5grqXz46M+Fp8T0ewzVPTJTcegGqTM1LwtK0cl2mtC/y1BIOH7dsQ//+q33fhqLUJ2SRa97UIuMuAEHcGwMlgySWNS8mdsE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=duBNBRcJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771556673; c=relaxed/simple;
+	bh=TllIqGme3h/unG/e9/PSVn1nrEswuutUv56QIU7zmNE=;
+	h=Date:To:From:Subject:Message-Id; b=bqn6hb5S4aC7T0gcRAbrbQuN3HLpsEyHMC4oi9EPtumcdiWgsA78ioQdfEzsoDu4ni+a7fyUj4FabC/kX0uu7XrM/Y/HIT8CQaZ29iApyrKUWtWYs59bgGdC9Ol4kf/RNV3q+SX0aJXt7PETWVLsSmOQ0ynPvS7AU3xjV93+O6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SzDRfiCr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="duBNBRcJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B224CC4CEF7;
-	Fri, 20 Feb 2026 02:55:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SzDRfiCr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3145C4CEF7;
+	Fri, 20 Feb 2026 03:04:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771556151;
-	bh=eRmDDn+sYawZS+S0fnL8J5E1BFiNBzxphholnbwjBbA=;
+	s=korg; t=1771556672;
+	bh=TllIqGme3h/unG/e9/PSVn1nrEswuutUv56QIU7zmNE=;
 	h=Date:To:From:Subject:From;
-	b=duBNBRcJEHhNruvDRPudDGo76qI2dYVqD4DucQwrw40gOadgdcquUXd6XNnpW14Fx
-	 kmbxh6ze2iq3D5r2fljH+gCxiHcNSlXE2+5YjaJxIpkheJIcEHhtZvBwi+x9QKIueU
-	 0rLQ2tgIkciruRsa01c94xKfUi5pZojKUzEBMwUU=
-Date: Thu, 19 Feb 2026 18:55:51 -0800
-To: mm-commits@vger.kernel.org,gnoack3000@gmail.com,akpm@linux-foundation.org
+	b=SzDRfiCrKE955YqgmiNTxcGQyh9xIHVxGQrFoKviMb7go8ZifxT9CSp4dg4rWVUe9
+	 c8OeZXeT+Xg+En9OaDp8hjeh38l6mlzbMOak86TXm5H8NY3plJobXNs+ZPaVyYtSF3
+	 awCZyQFZ2vk2afl5KK6mAULtrCC7dKiOHGQTIpoM=
+Date: Thu, 19 Feb 2026 19:04:31 -0800
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,legion@kernel.org,kees@kernel.org,juri.lelli@redhat.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,akpm@linux-foundation.org,mge@meta.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-spellingtxt-add-bindedbound.patch added to mm-nonmm-unstable branch
-Message-Id: <20260220025551.B224CC4CEF7@smtp.kernel.org>
+Subject: + unshare-fix-nsproxy-leak-in-ksys_unshare-on-set_cred_ucounts-failure.patch added to mm-nonmm-unstable branch
+Message-Id: <20260220030432.A3145C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/spelling.txt: Add "binded||bound"
+     Subject: unshare: fix nsproxy leak in ksys_unshare() on set_cred_ucounts() failure
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-spellingtxt-add-bindedbound.patch
+     unshare-fix-nsproxy-leak-in-ksys_unshare-on-set_cred_ucounts-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-spellingtxt-add-bindedbound.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/unshare-fix-nsproxy-leak-in-ksys_unshare-on-set_cred_ucounts-failure.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,34 +58,89 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Günther Noack <gnoack3000@gmail.com>
-Subject: scripts/spelling.txt: Add "binded||bound"
-Date: Sat, 14 Feb 2026 15:08:54 +0100
+From: Michal Grzedzicki <mge@meta.com>
+Subject: unshare: fix nsproxy leak in ksys_unshare() on set_cred_ucounts() failure
+Date: Fri, 13 Feb 2026 11:39:59 -0800
 
-The correct passive of "to bind" is "bound", not "binded".  This is often
-used in the context of the BSD socket bind(2) operation.
+When set_cred_ucounts() fails in ksys_unshare() new_nsproxy is leaked.
 
-Link: https://lkml.kernel.org/r/20260214140854.42247-1-gnoack3000@gmail.com
-Signed-off-by: Günther Noack <gnoack3000@gmail.com>
+Let's call put_nsproxy() if that happens.
+
+Link: https://lkml.kernel.org/r/20260213193959.2556730-1-mge@meta.com
+Fixes: 905ae01c4ae2 ("Add a reference to ucounts for each cred")
+Signed-off-by: Michal Grzedzicki <mge@meta.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alexey Gladkov (Intel) <legion@kernel.org>
+Cc: Ben Segall <bsegall@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/fork.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-add-bindedbound
-+++ a/scripts/spelling.txt
-@@ -257,6 +257,7 @@ begining||beginning
- beter||better
- betweeen||between
- bianries||binaries
-+binded||bound
- bitmast||bitmask
- bitwiedh||bitwidth
- boardcast||broadcast
+--- a/kernel/fork.c~unshare-fix-nsproxy-leak-in-ksys_unshare-on-set_cred_ucounts-failure
++++ a/kernel/fork.c
+@@ -3179,11 +3179,10 @@ int ksys_unshare(unsigned long unshare_f
+ 					 new_cred, new_fs);
+ 	if (err)
+ 		goto bad_unshare_cleanup_cred;
+-
+ 	if (new_cred) {
+ 		err = set_cred_ucounts(new_cred);
+ 		if (err)
+-			goto bad_unshare_cleanup_cred;
++			goto bad_unshare_cleanup_nsproxy;
+ 	}
+ 
+ 	if (new_fs || new_fd || do_sysvsem || new_cred || new_nsproxy) {
+@@ -3199,8 +3198,10 @@ int ksys_unshare(unsigned long unshare_f
+ 			shm_init_task(current);
+ 		}
+ 
+-		if (new_nsproxy)
++		if (new_nsproxy) {
+ 			switch_task_namespaces(current, new_nsproxy);
++			new_nsproxy = NULL;
++		}
+ 
+ 		task_lock(current);
+ 
+@@ -3229,13 +3230,15 @@ int ksys_unshare(unsigned long unshare_f
+ 
+ 	perf_event_namespaces(current);
+ 
++bad_unshare_cleanup_nsproxy:
++	if (new_nsproxy)
++		put_nsproxy(new_nsproxy);
+ bad_unshare_cleanup_cred:
+ 	if (new_cred)
+ 		put_cred(new_cred);
+ bad_unshare_cleanup_fd:
+ 	if (new_fd)
+ 		put_files_struct(new_fd);
+-
+ bad_unshare_cleanup_fs:
+ 	if (new_fs)
+ 		free_fs_struct(new_fs);
 _
 
-Patches currently in -mm which might be from gnoack3000@gmail.com are
+Patches currently in -mm which might be from mge@meta.com are
 
-scripts-spellingtxt-add-bindedbound.patch
+unshare-fix-nsproxy-leak-in-ksys_unshare-on-set_cred_ucounts-failure.patch
 
