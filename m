@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F53F3074BA
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 21:34:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4C6330F924
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 21:34:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771623284; cv=none; b=Wc5Emjtqx+hvsLJFgnL8cNWzFKVYWTzE27UDm4+DETH29A2nhIojS0B8aV7RVE1dX9lwR4HPPB7bLgJEXqWAQTaicD88Y4amOtucfp5yiW0ThDWjBwM6yK0g5iHeBFzKdalMI/SwfKoF2h3EmXp6Ir9nAG0orlDZMH1TRkf2YUc=
+	t=1771623285; cv=none; b=SPr30Ef4aNOQU/p+PcuZLr1KG0HJwi3v27KSEzt6wZKb7cijgLRZJB7oZVbKARkCKP57lKNniyP9clynB5XGr4y1A4l22XD9R8n47Ffm5BpAO5v3clPHCEnvSV1fCrXTW3d0IdfQY03V0D4AyEXrEkvRjIwczwwXlZk/QNev+qo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771623284; c=relaxed/simple;
-	bh=A97om6tBt28YjD6IaSbPRwpPJoKaq7GzNHlMob+/uRM=;
-	h=Date:To:From:Subject:Message-Id; b=f52UZ+NW7iV8vwkPPfL2qpNq+3v8tRTGSTwLQz3a+T0whijXtVFuFFCs3iHBXljroQjOPeHjxFAj9H6o03TLid1lzvfEq4clkOdw6axM7Xl+3nA9K/JL6dFRyPC9ITxmUaXVK4NdwFzwzXY1cgtmFRRm13UbX5kt25VDP20kcJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iyZCoQwS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771623285; c=relaxed/simple;
+	bh=Kesq3cbdgsui68+RsTV264hMnJPkd0x8kby+cRdX+cc=;
+	h=Date:To:From:Subject:Message-Id; b=tKg/qt5G39st6jgKMz0nWsXRz+RIdMqSqs2t8TS07ZDEl8a831RMO+fDITIg5/Kl5WF56tqNGMvgdK4muupQrIyfgh3qNoCIsDjYxQJVVr98VruMzROuhr+WxCu5+hr6/kyI2Vxxby2JYeO5lrjenPdf3i5YYbDjzXMCNaWdvwc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yt86SbTW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iyZCoQwS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3414DC116C6;
-	Fri, 20 Feb 2026 21:34:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yt86SbTW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79E89C116C6;
+	Fri, 20 Feb 2026 21:34:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771623284;
-	bh=A97om6tBt28YjD6IaSbPRwpPJoKaq7GzNHlMob+/uRM=;
+	s=korg; t=1771623285;
+	bh=Kesq3cbdgsui68+RsTV264hMnJPkd0x8kby+cRdX+cc=;
 	h=Date:To:From:Subject:From;
-	b=iyZCoQwSQVSuLSwaaRaW5PtMyzyKN0ya+8J1wUe9SBHKuKTHRNoVC7N2YrP7tyHtY
-	 EVylOtT/LFyvyldg7GBNtB9OdYLFKWrdS4G9TULMZhsMdwGw82ooOVEqptSLsikj9G
-	 FyrVgLPSlaXqPLjW0fYTnT+Ll4RLdYXfJcdPjrqA=
-Date: Fri, 20 Feb 2026 13:34:43 -0800
+	b=Yt86SbTWiBCHVCr+UfEnvobYs9HPVXwqUHNVhYDjtT5QQMUFZUrQComM3KbHND/rN
+	 rIEM9PjGuvKcxfd+0gYZk4MGK1nZOAcVr7VOPkTCmMRNSiimOF3F4eJqXPk4yC5ZeE
+	 CFv2CvXayTMde35xZ2wQiDX4yCsl+L1Vqx/SLU9Y=
+Date: Fri, 20 Feb 2026 13:34:44 -0800
 To: mm-commits@vger.kernel.org,kees@kernel.org,djwong@kernel.org,andriy.shevchenko@intel.com,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-cmdline_kunit-add-test-case-for-memparse.patch added to mm-nonmm-unstable branch
-Message-Id: <20260220213444.3414DC116C6@smtp.kernel.org>
+Subject: + lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch added to mm-nonmm-unstable branch
+Message-Id: <20260220213445.79E89C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/cmdline_kunit: add test case for memparse()
+     Subject: lib/cmdline: adjust a few comments to fix kernel-doc -Wreturn warnings
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-cmdline_kunit-add-test-case-for-memparse.patch
+     lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-cmdline_kunit-add-test-case-for-memparse.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: lib/cmdline_kunit: add test case for memparse()
-Date: Thu, 12 Feb 2026 19:44:12 +0300
+Subject: lib/cmdline: adjust a few comments to fix kernel-doc -Wreturn warnings
+Date: Thu, 12 Feb 2026 19:44:13 +0300
 
-Better late than never, now there is a long-awaited basic test for
-'memparse()' which is provided by cmdline.c.
+Fix 'get_option()', 'memparse()' and 'parse_option_str()' comments to
+match the commonly used style as suggested by kernel-doc -Wreturn.
 
-Link: https://lkml.kernel.org/r/20260212164413.889625-5-dmantipov@yandex.ru
+Link: https://lkml.kernel.org/r/20260212164413.889625-6-dmantipov@yandex.ru
 Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
 Suggested-by: Andy Shevchenko <andriy.shevchenko@intel.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
@@ -74,86 +74,39 @@ Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/tests/cmdline_kunit.c |   56 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+ lib/cmdline.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/lib/tests/cmdline_kunit.c~lib-cmdline_kunit-add-test-case-for-memparse
-+++ a/lib/tests/cmdline_kunit.c
-@@ -6,6 +6,7 @@
- #include <kunit/test.h>
- #include <linux/kernel.h>
- #include <linux/random.h>
-+#include <linux/sizes.h>
- #include <linux/string.h>
+--- a/lib/cmdline.c~lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings
++++ a/lib/cmdline.c
+@@ -43,7 +43,7 @@ static int get_range(char **str, int *pi
+  *	When @pint is NULL the function can be used as a validator of
+  *	the current option in the string.
+  *
+- *	Return values:
++ *	Return:
+  *	0 - no int in string
+  *	1 - int found, no subsequent comma
+  *	2 - int found including a subsequent comma
+@@ -145,6 +145,9 @@ EXPORT_SYMBOL(get_options);
+  *
+  *	Parses a string into a number.  The number stored at @ptr is
+  *	potentially suffixed with K, M, G, T, P, E.
++ *
++ *	Return: The value as recognized by simple_strtoull() multiplied
++ *	by the value as specified by suffix, if any.
+  */
  
- static const char *cmdline_test_strings[] = {
-@@ -139,11 +140,66 @@ static void cmdline_test_range(struct ku
- 	} while (++i < ARRAY_SIZE(cmdline_test_range_strings));
- }
- 
-+struct cmdline_test_memparse_entry {
-+	const char *input;
-+	const char *unrecognized;
-+	unsigned long long result;
-+};
-+
-+static const struct cmdline_test_memparse_entry testdata[] = {
-+	{ "0",				"",	0ULL },
-+	{ "1",				"",	1ULL },
-+	{ "a",				"a",	0ULL },
-+	{ "k",				"k",	0ULL },
-+	{ "E",				"E",	0ULL },
-+	{ "0xb",			"",	11ULL },
-+	{ "0xz",			"x",	0ULL },
-+	{ "1234",			"",	1234ULL },
-+	{ "04567",			"",	2423ULL },
-+	{ "0x9876",			"",	39030LL },
-+	{ "05678",			"8",	375ULL },
-+	{ "0xabcdefz",			"z",	11259375ULL },
-+	{ "0cdba",			"c",	0ULL },
-+	{ "4K",				"",	SZ_4K },
-+	{ "0x10k@0xaaaabbbb",		"@",	SZ_16K },
-+	{ "32M",			"",	SZ_32M },
-+	{ "067m:foo",			":",	55 * SZ_1M },
-+	{ "2G;bar=baz",			";",	SZ_2G },
-+	{ "07gz",			"z",	7ULL * SZ_1G },
-+	{ "3T+data",			"+",	3 * SZ_1T },
-+	{ "04t,ro",			",",	SZ_4T },
-+	{ "012p",			"",	11258999068426240ULL },
-+	{ "7P,sync",			",",	7881299347898368ULL },
-+	{ "0x2e",			"",	46ULL },
-+	{ "2E and more",		" ",	2305843009213693952ULL },
-+	{ "18446744073709551615",	"",	ULLONG_MAX },
-+	{ "0xffffffffffffffff0",	"",	ULLONG_MAX },
-+	{ "1111111111111111111T",	"",	ULLONG_MAX },
-+	{ "222222222222222222222G",	"",	ULLONG_MAX },
-+	{ "3333333333333333333333M",	"",	ULLONG_MAX },
-+};
-+
-+static void cmdline_test_memparse(struct kunit *test)
-+{
-+	const struct cmdline_test_memparse_entry *e;
-+	unsigned long long ret;
-+	char *retptr;
-+
-+	for (e = testdata; e < testdata + ARRAY_SIZE(testdata); e++) {
-+		ret = memparse(e->input, &retptr);
-+		KUNIT_EXPECT_EQ_MSG(test, ret, e->result,
-+				    "    when parsing '%s'", e->input);
-+		KUNIT_EXPECT_EQ_MSG(test, *retptr, *e->unrecognized,
-+				    "    when parsing '%s'", e->input);
-+	}
-+}
-+
- static struct kunit_case cmdline_test_cases[] = {
- 	KUNIT_CASE(cmdline_test_noint),
- 	KUNIT_CASE(cmdline_test_lead_int),
- 	KUNIT_CASE(cmdline_test_tail_int),
- 	KUNIT_CASE(cmdline_test_range),
-+	KUNIT_CASE(cmdline_test_memparse),
- 	{}
- };
- 
+ unsigned long long memparse(const char *ptr, char **retptr)
+@@ -205,7 +208,7 @@ EXPORT_SYMBOL(memparse);
+  *	This function parses a string containing a comma-separated list of
+  *	strings like a=b,c.
+  *
+- *	Return true if there's such option in the string, or return false.
++ *	Return: True if there's such option in the string or false otherwise.
+  */
+ bool parse_option_str(const char *str, const char *option)
+ {
 _
 
 Patches currently in -mm which might be from dmantipov@yandex.ru are
