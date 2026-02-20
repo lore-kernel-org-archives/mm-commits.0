@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B2F1450FE
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 23:30:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F11F63EBF28
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 23:45:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771630247; cv=none; b=mcoc/FJiZ31T5AC1CYaPHs011/HYI+sikqae6FiSue6wBVW72IdEroQRUt2Sp4kH95x0oYirOjVXocSl9SU+XAMV6pZksrIeN6xzu+vD2iigsiUwe4VfNWEVtNd4KoyanGevfX5PpEruWGKSn7HV3kNv/fBpZ6oPk1n1HW/NBaY=
+	t=1771631143; cv=none; b=bFLDImIF1k1Od4U2ZiuoQUULl9zBQxa8hSo2yGYR4zIqtTthDaa4wxqfBA2Y+H554+yEkXY6FDL/UVQ2gfTaLumychhJPvk/wY4IqhEw3+QQ0twNap/BQr1cj1W/TtbAIQRGhEEsZjrrVE1ysihsJpOyemHW0QEf6hFdTPN6cm0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771630247; c=relaxed/simple;
-	bh=dVHRAdsJevHH8jXElzU1PMV1wBucW7stys7dHrn86sM=;
-	h=Date:To:From:Subject:Message-Id; b=OX9OGcpEfUmuacZgTL56tDW4H7bkBOk3ijmxUlN/y5tTlP2mpu8YGz/J+RoxQ5zjd89kECnN3QcN+Ru2IFutF8TrK7H13OSHoNeudVThNWZR0P3kIEmgHwVDIWotSCe5a3O7g3DJ+RAfk47ffF75iCNXFEzTGejZgxEyHYLJQXo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2L9OX13+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771631143; c=relaxed/simple;
+	bh=iX19pZg0p69hMMpq+5490Bp3dwFlVscheT+5IRQTbsA=;
+	h=Date:To:From:Subject:Message-Id; b=RDjntXyDIrFcafxDBhKDJ6CZ6KToUW5q2IJ/OZGdlNKwlcoc6ARrNsREunP8028pP8V1B7/KRJCyb2NjfVZOTDwRmWUoDvK81XSOdHMunv+3C9HjFM12lB6SJWsbDrEI0u6HVT2uEzpHz7RJz9XOTmIHBMDgEBWQDQGs9kW08ds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a1e/HOE9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2L9OX13+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1DE4C116C6;
-	Fri, 20 Feb 2026 23:30:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a1e/HOE9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB26CC116C6;
+	Fri, 20 Feb 2026 23:45:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771630246;
-	bh=dVHRAdsJevHH8jXElzU1PMV1wBucW7stys7dHrn86sM=;
+	s=korg; t=1771631142;
+	bh=iX19pZg0p69hMMpq+5490Bp3dwFlVscheT+5IRQTbsA=;
 	h=Date:To:From:Subject:From;
-	b=2L9OX13+UZuQafNVqlZExmk637VmV+6GlmDKjpCWo3BxDbHZM9pW+AtBywIi5EB/0
-	 U5PcZwu/J7vRi7KICJsQd2QVHAUL9Ssr8XuvixicDh3ZWY+wlNs1UqyAwVPCa0zRC0
-	 OjulsUNO7uKOzywEP01NQkVRq9Lqs68uKbaxrCHA=
-Date: Fri, 20 Feb 2026 15:30:46 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,david@kernel.org,baolin.wang@linux.alibaba.com,qin.yuA@h3c.com,akpm@linux-foundation.org
+	b=a1e/HOE98L8OzVZGxE5DNfu6kmyF4rLLjAPJSeI/3xVcM+l01i+bte50F3/5hbe27
+	 T4ToyhF+zfMtdLiqjY83mGTXqMfTB62U3zyIpxxlfPQ6nnlACZVOQfpwU70KHZYkbS
+	 asGCoLioTKequnH/k020I+sj1xt4QTiwhqbN6BNU=
+Date: Fri, 20 Feb 2026 15:45:42 -0800
+To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,chengming.zhou@linux.dev,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_idlec-remove-redundant-mmu-notifier-in-aging-code.patch added to mm-new branch
-Message-Id: <20260220233046.A1DE4C116C6@smtp.kernel.org>
+Subject: + mm-zswap-remove-swp_synchronous_io-swapcache-bypass-workaround.patch added to mm-new branch
+Message-Id: <20260220234542.AB26CC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_idle.c: remove redundant mmu notifier in aging code
+     Subject: mm/zswap: remove SWP_SYNCHRONOUS_IO swapcache bypass workaround
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_idlec-remove-redundant-mmu-notifier-in-aging-code.patch
+     mm-zswap-remove-swp_synchronous_io-swapcache-bypass-workaround.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_idlec-remove-redundant-mmu-notifier-in-aging-code.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-swp_synchronous_io-swapcache-bypass-workaround.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,41 +66,95 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: qinyu <qin.yuA@h3c.com>
-Subject: mm/page_idle.c: remove redundant mmu notifier in aging code
-Date: Tue, 3 Feb 2026 18:26:49 +0800
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/zswap: remove SWP_SYNCHRONOUS_IO swapcache bypass workaround
+Date: Mon, 02 Feb 2026 01:47:32 +0800
 
-Now we have mmu_notifier_clear_young immediately follows
-pmdp_clear_young_notify which internally calls mmu_notifier_clear_young,
-this is redundant.  change it with non-notify variant and keep consistent
-with ptep aging code.
+Since commit f1879e8a0c60 ("mm, swap: never bypass the swap cache even for
+SWP_SYNCHRONOUS_IO"), all swap-in operations go through the swap cache,
+including those from SWP_SYNCHRONOUS_IO devices like zram.  Which means
+the workaround for swap cache bypassing introduced by commit 25cd241408a2
+("mm: zswap: fix data loss on SWP_SYNCHRONOUS_IO devices") is no longer
+needed.  Remove it, but keep the comments that are still helpful.
 
-Link: https://lkml.kernel.org/r/20260203102649.2486836-1-qin.yuA@h3c.com
-Signed-off-by: qinyu <qin.yuA@h3c.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Acked-by: David Hildenbrand (arm) <david@kernel.org>
+Link: https://lkml.kernel.org/r/20260202-zswap-syncio-cleanup-v1-1-86bb24a64521@tencent.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Suggested-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Chris Li <chrisl@kernel.org>
+Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_idle.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zswap.c |   19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
---- a/mm/page_idle.c~mm-page_idlec-remove-redundant-mmu-notifier-in-aging-code
-+++ a/mm/page_idle.c
-@@ -74,7 +74,7 @@ static bool page_idle_clear_pte_refs_one
- 			pmd_t pmdval = pmdp_get(pvmw.pmd);
+--- a/mm/zswap.c~mm-zswap-remove-swp_synchronous_io-swapcache-bypass-workaround
++++ a/mm/zswap.c
+@@ -1589,11 +1589,11 @@ int zswap_load(struct folio *folio)
+ {
+ 	swp_entry_t swp = folio->swap;
+ 	pgoff_t offset = swp_offset(swp);
+-	bool swapcache = folio_test_swapcache(folio);
+ 	struct xarray *tree = swap_zswap_tree(swp);
+ 	struct zswap_entry *entry;
  
- 			if (likely(pmd_present(pmdval)))
--				referenced |= pmdp_clear_young_notify(vma, addr, pvmw.pmd);
-+				referenced |= pmdp_test_and_clear_young(vma, addr, pvmw.pmd);
- 			referenced |= mmu_notifier_clear_young(vma->vm_mm, addr, addr + PMD_SIZE);
- 		} else {
- 			/* unexpected pmd-mapped page? */
+ 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
++	VM_WARN_ON_ONCE(!folio_test_swapcache(folio));
+ 
+ 	if (zswap_never_enabled())
+ 		return -ENOENT;
+@@ -1624,22 +1624,15 @@ int zswap_load(struct folio *folio)
+ 		count_objcg_events(entry->objcg, ZSWPIN, 1);
+ 
+ 	/*
+-	 * When reading into the swapcache, invalidate our entry. The
+-	 * swapcache can be the authoritative owner of the page and
++	 * We are reading into the swapcache, invalidate zswap entry.
++	 * The swapcache is the authoritative owner of the page and
+ 	 * its mappings, and the pressure that results from having two
+ 	 * in-memory copies outweighs any benefits of caching the
+ 	 * compression work.
+-	 *
+-	 * (Most swapins go through the swapcache. The notable
+-	 * exception is the singleton fault on SWP_SYNCHRONOUS_IO
+-	 * files, which reads into a private page and may free it if
+-	 * the fault fails. We remain the primary owner of the entry.)
+ 	 */
+-	if (swapcache) {
+-		folio_mark_dirty(folio);
+-		xa_erase(tree, offset);
+-		zswap_entry_free(entry);
+-	}
++	folio_mark_dirty(folio);
++	xa_erase(tree, offset);
++	zswap_entry_free(entry);
+ 
+ 	folio_unlock(folio);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from qin.yuA@h3c.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-damon-remove-redudnant-mmu-notifier-call-in-pmdp-mkold.patch
-mm-page_idlec-remove-redundant-mmu-notifier-in-aging-code.patch
+mm-swap-speed-up-hibernation-allocation-and-writeout.patch
+mm-swap-protect-si-swap_file-properly-and-use-as-a-mount-indicator.patch
+mm-swap-clean-up-swapon-process-and-locking.patch
+mm-swap-remove-redundant-arguments-and-locking-for-enabling-a-device.patch
+mm-swap-consolidate-bad-slots-setup-and-make-it-more-robust.patch
+mm-workingset-leave-highest-bits-empty-for-anon-shadow.patch
+mm-swap-implement-helpers-for-reserving-data-in-the-swap-table.patch
+mm-swap-mark-bad-slots-in-swap-table-directly.patch
+mm-swap-simplify-swap-table-sanity-range-check.patch
+mm-swap-use-the-swap-table-to-track-the-swap-count.patch
+mm-swap-no-need-to-truncate-the-scan-border.patch
+mm-swap-simplify-checking-if-a-folio-is-swapped.patch
+mm-swap-no-need-to-clear-the-shadow-explicitly.patch
+memcg-consolidate-private-id-refcount-get-put-helpers.patch
+mm-shmem-remove-unnecessary-restrain-unmask-of-swap-gfp-flags.patch
+mm-zswap-remove-swp_synchronous_io-swapcache-bypass-workaround.patch
 
