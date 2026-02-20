@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8E3432B9AC
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 04:38:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDCF231195F
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 20:55:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771562317; cv=none; b=rUL8SrqM3XMjW+WsuFW3rTmKLuQGfMrypP8zkS+9HaPsGJhwWf/dtqBjebmUmf3lnIYFggLPIy8myCEb70YTysi+fsq53HyL5ryiV+JGZaqziS/0hVYTeQYXg3H6GAnKkMi4qR7oLsduogxcm+HbZUC/BhJvgVW4OJqPp1sjWfA=
+	t=1771620950; cv=none; b=ncD953OUgh1vaJqFOVO5+clNDe+X60mZO7PcAlJJ0RvAFsz6HYgzlhaWKY72Q36lpXYpJtv3n9cw3sE91tFbBbNkguTurkc3WbkZhoDKmJJGntn7mfJdvVX1V8N1ln41ZLIk40hmDrHvCy4G8Ks3q82o49kOxGqQLTm7lyzLWrw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771562317; c=relaxed/simple;
-	bh=+2SnZ+kkzayiCd6S6xSYAqIoZadHr+75HRaIS9UCe50=;
-	h=Date:To:From:Subject:Message-Id; b=K9Wp2C/iRpUwDUMYDl/6G+tEfBekkRdh1GVJT3ANDW0sbt1p2wIukDuF67gNniTIA9d3ZEfTxbbJVBOakum/IuW1EPmdPyCckBmPxy4Mqh8eqf7LEKgIFLMLq1mCxzaeJGROGYB5A0mPCQBYmXCw4vsRLAU8E82IoEEFweGAXj8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n0zVgJSv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771620950; c=relaxed/simple;
+	bh=rQrPPI0moMpFS8jgcbepXimW+Yozvi6aBaL30ihE8HM=;
+	h=Date:To:From:Subject:Message-Id; b=FfSBkNswW6WDcfHcZWGLae2q/nIb5J+Ifl1NfgK3/ciIl0Q+XdFzGYaaFWD0JH4XjiMCjvaWrVjW67R6kl+NJXAc4MsWqxW6SFh3P9l31kXHuuVWsHAhf/aMpzFlyLZ557dT9RhYlGsz9qGlqfpxvgqdZ3DamCSYHRJ4MJRd2ic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WzWAu8vh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n0zVgJSv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 683FFC116D0;
-	Fri, 20 Feb 2026 04:38:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WzWAu8vh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FCC3C116C6;
+	Fri, 20 Feb 2026 20:55:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771562316;
-	bh=+2SnZ+kkzayiCd6S6xSYAqIoZadHr+75HRaIS9UCe50=;
+	s=korg; t=1771620950;
+	bh=rQrPPI0moMpFS8jgcbepXimW+Yozvi6aBaL30ihE8HM=;
 	h=Date:To:From:Subject:From;
-	b=n0zVgJSv2zS40HN3PHcy3Mpz2OIuDx6/cz6uePnEJJyChqQ0fwPmQGkXCCg4NWSYG
-	 vcPDvl1tYQwAKAbvxSe4AHfioZFnOLT4MS/p/DAevIxyl+rEp8iWRZ533+bIR+bcpt
-	 9NIuV0JHyOfIvMut0TinWBQTt4YlE4H+UuD4CG0s=
-Date: Thu, 19 Feb 2026 20:38:35 -0800
-To: mm-commits@vger.kernel.org,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=WzWAu8vh24LxpcfJ6ihy8dLfjKtavsbzdMXf8+snjErNsp06GE+RswnkUizgpLLaL
+	 SnsXRTKBctP0rFJPmpYIjB/aW6kp71kmmxKumovVQYFORJkxl7mtRnvpNts2B2ATp2
+	 nYhK6BqTNhcpfLDQEDlDOOYE8sSzFqPy7LrBdYqE=
+Date: Fri, 20 Feb 2026 12:55:49 -0800
+To: mm-commits@vger.kernel.org,urezki@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-introduce-hierarchical-per-cpu-counters-fix.patch added to mm-new branch
-Message-Id: <20260220043836.683FFC116D0@smtp.kernel.org>
+Subject: + mm-vmalloc-streamline-vmalloc-memory-accounting.patch added to mm-new branch
+Message-Id: <20260220205550.7FCC3C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib-introduce-hierarchical-per-cpu-counters-fix
+     Subject: mm: vmalloc: streamline vmalloc memory accounting
 has been added to the -mm mm-new branch.  Its filename is
-     lib-introduce-hierarchical-per-cpu-counters-fix.patch
+     mm-vmalloc-streamline-vmalloc-memory-accounting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-introduce-hierarchical-per-cpu-counters-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-streamline-vmalloc-memory-accounting.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,99 +66,162 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-introduce-hierarchical-per-cpu-counters-fix
-Date: Thu Feb 19 08:12:23 PM PST 2026
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmalloc: streamline vmalloc memory accounting
+Date: Fri, 20 Feb 2026 14:10:34 -0500
 
-export things to modules for lib/tests/percpu_counter_tree_kunit.ko
+Use a vmstat counter instead of a custom, open-coded atomic.  This has the
+added benefit of making the data available per-node, and prepares for
+cleaning up the memcg accounting as well.
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Link: https://lkml.kernel.org/r/20260220191035.3703800-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Uladzislau Rezki <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_counter_tree.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ fs/proc/meminfo.c       |    3 ++-
+ include/linux/mmzone.h  |    1 +
+ include/linux/vmalloc.h |    3 ---
+ mm/vmalloc.c            |   19 ++++++++++---------
+ mm/vmstat.c             |    1 +
+ 5 files changed, 14 insertions(+), 13 deletions(-)
 
---- a/lib/percpu_counter_tree.c~lib-introduce-hierarchical-per-cpu-counters-fix
-+++ a/lib/percpu_counter_tree.c
-@@ -297,6 +297,7 @@ int percpu_counter_tree_init(struct perc
- {
- 	return percpu_counter_tree_init_many(counter, items, 1, batch_size, gfp_flags);
- }
-+EXPORT_SYMBOL_GPL(percpu_counter_tree_init);
+--- a/fs/proc/meminfo.c~mm-vmalloc-streamline-vmalloc-memory-accounting
++++ a/fs/proc/meminfo.c
+@@ -126,7 +126,8 @@ static int meminfo_proc_show(struct seq_
+ 	show_val_kb(m, "Committed_AS:   ", committed);
+ 	seq_printf(m, "VmallocTotal:   %8lu kB\n",
+ 		   (unsigned long)VMALLOC_TOTAL >> 10);
+-	show_val_kb(m, "VmallocUsed:    ", vmalloc_nr_pages());
++	show_val_kb(m, "VmallocUsed:    ",
++		    global_node_page_state(NR_VMALLOC));
+ 	show_val_kb(m, "VmallocChunk:   ", 0ul);
+ 	show_val_kb(m, "Percpu:         ", pcpu_nr_pages());
  
- /**
-  * percpu_counter_tree_destroy_many() - Destroy many per-CPU counter trees.
-@@ -321,6 +322,7 @@ void percpu_counter_tree_destroy(struct
- {
- 	return percpu_counter_tree_destroy_many(counter, 1);
- }
-+EXPORT_SYMBOL_GPL(percpu_counter_tree_destroy);
+--- a/include/linux/mmzone.h~mm-vmalloc-streamline-vmalloc-memory-accounting
++++ a/include/linux/mmzone.h
+@@ -220,6 +220,7 @@ enum node_stat_item {
+ 	NR_KERNEL_MISC_RECLAIMABLE,	/* reclaimable non-slab kernel pages */
+ 	NR_FOLL_PIN_ACQUIRED,	/* via: pin_user_page(), gup flag: FOLL_PIN */
+ 	NR_FOLL_PIN_RELEASED,	/* pages returned via unpin_user_page() */
++	NR_VMALLOC,
+ 	NR_KERNEL_STACK_KB,	/* measured in KiB */
+ #if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
+ 	NR_KERNEL_SCS_KB,	/* measured in KiB */
+--- a/include/linux/vmalloc.h~mm-vmalloc-streamline-vmalloc-memory-accounting
++++ a/include/linux/vmalloc.h
+@@ -286,8 +286,6 @@ int unregister_vmap_purge_notifier(struc
+ #ifdef CONFIG_MMU
+ #define VMALLOC_TOTAL (VMALLOC_END - VMALLOC_START)
  
- static
- long percpu_counter_tree_carry(long orig, long res, long inc, unsigned long bit_mask)
-@@ -423,7 +425,7 @@ void percpu_counter_tree_add(struct perc
- 		return;
- 	percpu_counter_tree_add_slowpath(counter, inc);
- }
+-unsigned long vmalloc_nr_pages(void);
 -
-+EXPORT_SYMBOL_GPL(percpu_counter_tree_add);
+ int vm_area_map_pages(struct vm_struct *area, unsigned long start,
+ 		      unsigned long end, struct page **pages);
+ void vm_area_unmap_pages(struct vm_struct *area, unsigned long start,
+@@ -304,7 +302,6 @@ static inline void set_vm_flush_reset_pe
+ #else  /* !CONFIG_MMU */
+ #define VMALLOC_TOTAL 0UL
  
- static
- long percpu_counter_tree_precise_sum_unbiased(struct percpu_counter_tree *counter)
-@@ -450,6 +452,7 @@ long percpu_counter_tree_precise_sum(str
+-static inline unsigned long vmalloc_nr_pages(void) { return 0; }
+ static inline void set_vm_flush_reset_perms(void *addr) {}
+ #endif /* CONFIG_MMU */
+ 
+--- a/mm/vmalloc.c~mm-vmalloc-streamline-vmalloc-memory-accounting
++++ a/mm/vmalloc.c
+@@ -1068,14 +1068,8 @@ static BLOCKING_NOTIFIER_HEAD(vmap_notif
+ static void drain_vmap_area_work(struct work_struct *work);
+ static DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
+ 
+-static __cacheline_aligned_in_smp atomic_long_t nr_vmalloc_pages;
+ static __cacheline_aligned_in_smp atomic_long_t vmap_lazy_nr;
+ 
+-unsigned long vmalloc_nr_pages(void)
+-{
+-	return atomic_long_read(&nr_vmalloc_pages);
+-}
+-
+ static struct vmap_area *__find_vmap_area(unsigned long addr, struct rb_root *root)
  {
- 	return percpu_counter_tree_precise_sum_unbiased(counter) + READ_ONCE(counter->bias);
+ 	struct rb_node *n = root->rb_node;
+@@ -3476,11 +3470,11 @@ void vfree(const void *addr)
+ 		 * High-order allocs for huge vmallocs are split, so
+ 		 * can be freed as an array of order-0 allocations
+ 		 */
++		if (!(vm->flags & VM_MAP_PUT_PAGES))
++			dec_node_page_state(page, NR_VMALLOC);
+ 		__free_page(page);
+ 		cond_resched();
+ 	}
+-	if (!(vm->flags & VM_MAP_PUT_PAGES))
+-		atomic_long_sub(vm->nr_pages, &nr_vmalloc_pages);
+ 	kvfree(vm->pages);
+ 	kfree(vm);
  }
-+EXPORT_SYMBOL_GPL(percpu_counter_tree_precise_sum);
+@@ -3668,6 +3662,8 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 			continue;
+ 		}
  
- static
- int compare_delta(long delta, unsigned long accuracy_neg, unsigned long accuracy_pos)
-@@ -491,6 +494,7 @@ int percpu_counter_tree_approximate_comp
- 			     a->approx_accuracy_range.over + b->approx_accuracy_range.under,
- 			     a->approx_accuracy_range.under + b->approx_accuracy_range.over);
- }
-+EXPORT_SYMBOL_GPL(percpu_counter_tree_approximate_compare);
++		mod_node_page_state(page, NR_VMALLOC, 1 << large_order);
++
+ 		split_page(page, large_order);
+ 		for (i = 0; i < (1U << large_order); i++)
+ 			pages[nr_allocated + i] = page + i;
+@@ -3688,6 +3684,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 	if (!order) {
+ 		while (nr_allocated < nr_pages) {
+ 			unsigned int nr, nr_pages_request;
++			int i;
  
- /**
-  * percpu_counter_tree_approximate_compare_value - Approximated comparison of a counter tree against a given value.
-@@ -514,6 +518,7 @@ int percpu_counter_tree_approximate_comp
- 			     counter->approx_accuracy_range.under,
- 			     counter->approx_accuracy_range.over);
- }
-+EXPORT_SYMBOL_GPL(percpu_counter_tree_approximate_compare_value);
+ 			/*
+ 			 * A maximum allowed request is hard-coded and is 100
+@@ -3711,6 +3708,9 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 							nr_pages_request,
+ 							pages + nr_allocated);
  
- /**
-  * percpu_counter_tree_precise_compare - Precise comparison of two counter trees.
-@@ -582,6 +587,7 @@ int percpu_counter_tree_precise_compare(
- 		return 1;
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(percpu_counter_tree_precise_compare);
++			for (i = nr_allocated; i < nr_allocated + nr; i++)
++				inc_node_page_state(pages[i], NR_VMALLOC);
++
+ 			nr_allocated += nr;
  
- /**
-  * percpu_counter_tree_precise_compare_value - Precise comparison of a counter tree against a given value.
-@@ -619,6 +625,7 @@ int percpu_counter_tree_precise_compare_
- 		return 1;
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(percpu_counter_tree_precise_compare_value);
+ 			/*
+@@ -3735,6 +3735,8 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 		if (unlikely(!page))
+ 			break;
  
- static
- void percpu_counter_tree_set_bias(struct percpu_counter_tree *counter, long bias)
-@@ -657,6 +664,7 @@ size_t percpu_counter_tree_items_size(vo
- 		return 0;
- 	return counter_config->nr_items * sizeof(struct percpu_counter_tree_level_item);
- }
-+EXPORT_SYMBOL_GPL(percpu_counter_tree_items_size);
++		mod_node_page_state(page, NR_VMALLOC, 1 << order);
++
+ 		/*
+ 		 * High-order allocations must be able to be treated as
+ 		 * independent small pages by callers (as they can with
+@@ -3877,7 +3879,6 @@ static void *__vmalloc_area_node(struct
+ 			vmalloc_gfp_adjust(gfp_mask, page_order), node,
+ 			page_order, nr_small_pages, area->pages);
  
- static void __init calculate_accuracy_topology(void)
- {
+-	atomic_long_add(area->nr_pages, &nr_vmalloc_pages);
+ 	/* All pages of vm should be charged to same memcg, so use first one. */
+ 	if (gfp_mask & __GFP_ACCOUNT && area->nr_pages)
+ 		mod_memcg_page_state(area->pages[0], MEMCG_VMALLOC,
+--- a/mm/vmstat.c~mm-vmalloc-streamline-vmalloc-memory-accounting
++++ a/mm/vmstat.c
+@@ -1255,6 +1255,7 @@ const char * const vmstat_text[] = {
+ 	[I(NR_KERNEL_MISC_RECLAIMABLE)]		= "nr_kernel_misc_reclaimable",
+ 	[I(NR_FOLL_PIN_ACQUIRED)]		= "nr_foll_pin_acquired",
+ 	[I(NR_FOLL_PIN_RELEASED)]		= "nr_foll_pin_released",
++	[I(NR_VMALLOC)]				= "nr_vmalloc",
+ 	[I(NR_KERNEL_STACK_KB)]			= "nr_kernel_stack",
+ #if IS_ENABLED(CONFIG_SHADOW_CALL_STACK)
+ 	[I(NR_KERNEL_SCS_KB)]			= "nr_shadow_call_stack",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
-maple_tree-add-cp_is_new_root-helper-fix-fix.patch
-lib-introduce-hierarchical-per-cpu-counters-fix.patch
+mm-vmalloc-streamline-vmalloc-memory-accounting.patch
+mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter.patch
 
