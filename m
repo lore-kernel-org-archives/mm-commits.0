@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B52092D7DEF
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 20:55:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 438562DD5E2
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 21:07:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771620952; cv=none; b=RTSwMVHM9Dz8PH3LDV5ShnbKi8Ym9l2o2a9BXffQQ0VFm3iYQ2PgETz7igRrg94uHNcLlUametCdNWKdGdOK5Mfedz218KefdwzPS/umgs2rEEsPPMAlcC1fPaXXpG3iz+LQLWDDAVI9cPnKUja6kqwaNrc64QFg72xwyiRzILQ=
+	t=1771621626; cv=none; b=hepbG2RfKKgH0DpwahGUMAI4dmlUkX8WdArphRvn9j9s8Zin6GD3ykCRh79ZGHesNMfwtOp/beVC5JXkPhHSMVD+FXSzyW3jm+KQ923eFIzOSxx+euPbwQoDeROCo3Oij9q/9q5RUIrZtopIKjy3pfxgiq3XIzA3T/6p/Dmko4g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771620952; c=relaxed/simple;
-	bh=YBqwSWais2EZUu06ruYpTh621fJfYLdcv3dCdutvuUo=;
-	h=Date:To:From:Subject:Message-Id; b=Jm3VAioRzFv4/N/Yk3VOvXjnKYZU3lzW/IKRC5o/rw4ydF7s9bUzc0vloZnrnUPe9W/z/XNXaa3Iy+bbtFi7S0DbwXK+BlSV7IfZNYCJX8DHj2WsUfGCd25gjKcEZZoCbvRBojGhL478bZcBSUak3CCcLiNLwG/eN2ekg3UgYKU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eQ58g4Sg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771621626; c=relaxed/simple;
+	bh=SoCXJ/0+6FApMDIgotjW4YRn4l3f3MFI+0EpORv0/Qs=;
+	h=Date:To:From:Subject:Message-Id; b=ulTjtz7hmaqNpHTZUs+Fvy+cmv/3+Z2gExrzXWip2hNqmyfgMEtD1ENhSNLxcWhWR2dHGm+fJ6qUpoZjXCR0xIwuplCMyAocsNfOzv2z/2blr40bjtOm36I3uXzqj+xzXsneOgsYI+cwrFDdhkzwuST8jnEY4lScQYxoDdppNTQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=am6LcLYB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eQ58g4Sg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EC4AC116C6;
-	Fri, 20 Feb 2026 20:55:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="am6LcLYB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7E0EC116C6;
+	Fri, 20 Feb 2026 21:07:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771620952;
-	bh=YBqwSWais2EZUu06ruYpTh621fJfYLdcv3dCdutvuUo=;
+	s=korg; t=1771621625;
+	bh=SoCXJ/0+6FApMDIgotjW4YRn4l3f3MFI+0EpORv0/Qs=;
 	h=Date:To:From:Subject:From;
-	b=eQ58g4SgamAbF8+soGyMo/78n378vcJT7Dt/lpQSBP1b9U59yvC9VkxG0mBiCU7qq
-	 FKP1Rm7t/MlPPVgi9rJjJMQIjlGBa9CzfolegJnLnPqfuJxyj5fXaiHyVSCCr40Bxl
-	 zDSMTKVIlFmzj/KWzep7O8iL/ymyrOrJPwrtKGbY=
-Date: Fri, 20 Feb 2026 12:55:51 -0800
-To: mm-commits@vger.kernel.org,urezki@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=am6LcLYBRmYF7L7acCFDqgGVXprBGF9Hi/PcmuTcFZMPxQDYKfT+pX3aEZnCV+JUV
+	 koeUYMFwJIBV+xh4AgihcGucbY5NcgWsmMSozhRciFQfsnRJ0Tv8B8NEyvzmOyyi7m
+	 Y2uVYyMwcp79+sQ/6HuPQMX6wCeiGxv+w+yLayXM=
+Date: Fri, 20 Feb 2026 13:07:05 -0800
+To: mm-commits@vger.kernel.org,wangjinchao600@gmail.com,pmladek@suse.com,joel.granados@kernel.org,rioo.tsukatsukii@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter.patch added to mm-new branch
-Message-Id: <20260220205552.6EC4AC116C6@smtp.kernel.org>
+Subject: + kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch added to mm-nonmm-unstable branch
+Message-Id: <20260220210705.C7E0EC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: switch to native NR_VMALLOC vmstat counter
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter.patch
+     Subject: kernel/panic: increase buffer size for verbose taint logging
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,130 +58,46 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: switch to native NR_VMALLOC vmstat counter
-Date: Fri, 20 Feb 2026 14:10:35 -0500
+From: Rio <rioo.tsukatsukii@gmail.com>
+Subject: kernel/panic: increase buffer size for verbose taint logging
+Date: Fri, 20 Feb 2026 20:45:00 +0530
 
-Eliminates the custom memcg counter and results in a single, consolidated
-accounting call in vmalloc code.
+The verbose 'Tainted: ...' string in print_tainted_seq can total to 327
+characters while the buffer defined in _print_tainted is 320 bytes. 
+Increase its size to 350 characters to hold all flags, along with some
+headroom.
 
-Link: https://lkml.kernel.org/r/20260220191035.3703800-2-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Uladzislau Rezki <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20260220151500.13585-1-rioo.tsukatsukii@gmail.com
+Signed-off-by: Rio <rioo.tsukatsukii@gmail.com>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Wang Jinchao <wangjinchao600@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 -
- mm/memcontrol.c            |    4 ++--
- mm/vmalloc.c               |   16 ++++------------
- 3 files changed, 6 insertions(+), 15 deletions(-)
+ kernel/panic.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter
-+++ a/include/linux/memcontrol.h
-@@ -35,7 +35,6 @@ enum memcg_stat_item {
- 	MEMCG_SWAP = NR_VM_NODE_STAT_ITEMS,
- 	MEMCG_SOCK,
- 	MEMCG_PERCPU_B,
--	MEMCG_VMALLOC,
- 	MEMCG_KMEM,
- 	MEMCG_ZSWAP_B,
- 	MEMCG_ZSWAPPED,
---- a/mm/memcontrol.c~mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter
-+++ a/mm/memcontrol.c
-@@ -318,6 +318,7 @@ static const unsigned int memcg_node_sta
- 	NR_SHMEM_THPS,
- 	NR_FILE_THPS,
- 	NR_ANON_THPS,
-+	NR_VMALLOC,
- 	NR_KERNEL_STACK_KB,
- 	NR_PAGETABLE,
- 	NR_SECONDARY_PAGETABLE,
-@@ -353,7 +354,6 @@ static const unsigned int memcg_stat_ite
- 	MEMCG_SWAP,
- 	MEMCG_SOCK,
- 	MEMCG_PERCPU_B,
--	MEMCG_VMALLOC,
- 	MEMCG_KMEM,
- 	MEMCG_ZSWAP_B,
- 	MEMCG_ZSWAPPED,
-@@ -1365,7 +1365,7 @@ static const struct memory_stat memory_s
- 	{ "sec_pagetables",		NR_SECONDARY_PAGETABLE		},
- 	{ "percpu",			MEMCG_PERCPU_B			},
- 	{ "sock",			MEMCG_SOCK			},
--	{ "vmalloc",			MEMCG_VMALLOC			},
-+	{ "vmalloc",			NR_VMALLOC			},
- 	{ "shmem",			NR_SHMEM			},
- #ifdef CONFIG_ZSWAP
- 	{ "zswap",			MEMCG_ZSWAP_B			},
---- a/mm/vmalloc.c~mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter
-+++ a/mm/vmalloc.c
-@@ -3459,9 +3459,6 @@ void vfree(const void *addr)
- 
- 	if (unlikely(vm->flags & VM_FLUSH_RESET_PERMS))
- 		vm_reset_perms(vm);
--	/* All pages of vm should be charged to same memcg, so use first one. */
--	if (vm->nr_pages && !(vm->flags & VM_MAP_PUT_PAGES))
--		mod_memcg_page_state(vm->pages[0], MEMCG_VMALLOC, -vm->nr_pages);
- 	for (i = 0; i < vm->nr_pages; i++) {
- 		struct page *page = vm->pages[i];
- 
-@@ -3471,7 +3468,7 @@ void vfree(const void *addr)
- 		 * can be freed as an array of order-0 allocations
- 		 */
- 		if (!(vm->flags & VM_MAP_PUT_PAGES))
--			dec_node_page_state(page, NR_VMALLOC);
-+			mod_lruvec_page_state(page, NR_VMALLOC, -1);
- 		__free_page(page);
- 		cond_resched();
+--- a/kernel/panic.c~kernel-panic-increase-buffer-size-for-verbose-taint-logging
++++ a/kernel/panic.c
+@@ -854,10 +854,12 @@ static void print_tainted_seq(struct seq
  	}
-@@ -3662,7 +3659,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 			continue;
- 		}
+ }
  
--		mod_node_page_state(page, NR_VMALLOC, 1 << large_order);
-+		mod_lruvec_page_state(page, NR_VMALLOC, 1 << large_order);
++/* 350 can accomadate all taint flags in verbose mode, with some headroom */
++#define TAINT_BUF_MAX 350
++
+ static const char *_print_tainted(bool verbose)
+ {
+-	/* FIXME: what should the size be? */
+-	static char buf[sizeof(taint_flags)];
++	static char buf[TAINT_BUF_MAX];
+ 	struct seq_buf s;
  
- 		split_page(page, large_order);
- 		for (i = 0; i < (1U << large_order); i++)
-@@ -3709,7 +3706,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 							pages + nr_allocated);
- 
- 			for (i = nr_allocated; i < nr_allocated + nr; i++)
--				inc_node_page_state(pages[i], NR_VMALLOC);
-+				mod_lruvec_page_state(pages[i], NR_VMALLOC, 1);
- 
- 			nr_allocated += nr;
- 
-@@ -3735,7 +3732,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 		if (unlikely(!page))
- 			break;
- 
--		mod_node_page_state(page, NR_VMALLOC, 1 << order);
-+		mod_lruvec_page_state(page, NR_VMALLOC, 1 << order);
- 
- 		/*
- 		 * High-order allocations must be able to be treated as
-@@ -3879,11 +3876,6 @@ static void *__vmalloc_area_node(struct
- 			vmalloc_gfp_adjust(gfp_mask, page_order), node,
- 			page_order, nr_small_pages, area->pages);
- 
--	/* All pages of vm should be charged to same memcg, so use first one. */
--	if (gfp_mask & __GFP_ACCOUNT && area->nr_pages)
--		mod_memcg_page_state(area->pages[0], MEMCG_VMALLOC,
--				     area->nr_pages);
--
- 	/*
- 	 * If not enough pages were obtained to accomplish an
- 	 * allocation request, free them via vfree() if any.
+ 	BUILD_BUG_ON(ARRAY_SIZE(taint_flags) != TAINT_FLAGS_COUNT);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from rioo.tsukatsukii@gmail.com are
 
-mm-vmalloc-streamline-vmalloc-memory-accounting.patch
-mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter.patch
+kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch
 
