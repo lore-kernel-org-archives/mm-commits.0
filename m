@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97DC830FC23
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 22:46:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2275285C84
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 22:54:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771627564; cv=none; b=mIr8FemM+06Cgxt+vNEKR37+f/cPWap9JJobkOW01Mt6o0I8ef/gtbkdSowJC2yUYSq3547jni2bTj7eIxTOY2ONzPnVWdz4J+p6+39RQKB1/HXyYnUjU2GJ/YUDMNyzv2uHFiAtI6sltCTuS/bYb8Z8/NPuOJKCO+qISqleQ2k=
+	t=1771628054; cv=none; b=FjoIGj3+Dt3nIbncOj3Wl1or3rnc4M66+5xqEYkXyorEr+tfBacJUj5xH0CH6Sm6bFlopW70AoH/lyYFlX3iiyn+DxNl5HK8JgkCyBcwKpK4Ok/dmpNCzmUvapJz7S0Mj3aV/PX3MYA4wyRrPGdmoIsvxYNXQC5ylrDTM1zbolQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771627564; c=relaxed/simple;
-	bh=8SHDvnJ9U3fx6VT1mhuqHYVsCbeAq5dDxm14OVn6ISc=;
-	h=Date:To:From:Subject:Message-Id; b=ZJdIdXKLG8Jx8vxGo+PkWzQx8Y0SILowtCwey9RQwj0ue2RmF9Lx+PO2BcYdGM6VOR8SNE8hExmOcdP0xDmXmVArV+CDmxY8frvNBTe9VSQ4seymFZWXj9NwVTpwMqJP5rdguC6jIZPayZEzAVOEBeesW+dpyWNsQksayHIpsN8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aSWluDH2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771628054; c=relaxed/simple;
+	bh=3N8eOo1wWk4SmTDSmBrQlN5ker4PTCt6MTKRU8f3KcA=;
+	h=Date:To:From:Subject:Message-Id; b=eARxbRJSmsjACku29710HDyDH9gjV/oVH2QYvrq7FfqnFmgZG/GcqCNtYrLQJgLNYZ/a3rch/FNukbtiIUb6xc+huQ5cnOfGCEAqTa4i+335mLJu+f2EIqkMptNAE2GyazosjU7OBbLhm/xv9k2GXeHSySzZxq8jV5tSTl0O29w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AjUr8CdF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aSWluDH2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0581C116C6;
-	Fri, 20 Feb 2026 22:46:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AjUr8CdF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6F76C116C6;
+	Fri, 20 Feb 2026 22:54:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771627564;
-	bh=8SHDvnJ9U3fx6VT1mhuqHYVsCbeAq5dDxm14OVn6ISc=;
+	s=korg; t=1771628054;
+	bh=3N8eOo1wWk4SmTDSmBrQlN5ker4PTCt6MTKRU8f3KcA=;
 	h=Date:To:From:Subject:From;
-	b=aSWluDH2d76ceBq14wxrJXhsbchX3PLgs04xr1do7fxuLBL0D2SB5pAooHkLp+xhU
-	 kKGtVqrLcdTT1qNdZW8ZrNFaTzJIgQDPE/YVLmnKBvGxM5gSP64mKo2DwZ8uCx4HWZ
-	 YyWWrdYNihWtCzWlAnGv2ViaOBOXjWR6n4FijeAs=
-Date: Fri, 20 Feb 2026 14:46:03 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,linmiaohe@huawei.com,Liam.Howlett@oracle.com,dev.jain@arm.com,nichen@iscas.ac.cn,akpm@linux-foundation.org
+	b=AjUr8CdFmAiWQELg2KapGN1prvqhNNjSBCEXLR6CdDbsW6qGb5r8cXI3T4I1+GvzL
+	 YdAl4SSVAffiK3eP7/4JKigjeI79xl9QHySsL+jwLY2vPH4pdBpcnqLkQgBW9b0Y4q
+	 I81f2zgjmMFXTo6+ow/pnGfybMjgWAtmSInVZYAc=
+Date: Fri, 20 Feb 2026 14:54:13 -0800
+To: mm-commits@vger.kernel.org,shuah@kernel.org,richard.weiyang@gmail.com,jouyeol8739@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-remove-duplicate-include-of-unistdh.patch added to mm-new branch
-Message-Id: <20260220224603.F0581C116C6@smtp.kernel.org>
+Subject: + selftests-ipc-skip-msgque-test-when-msg_copy-is-unsupported.patch added to mm-nonmm-unstable branch
+Message-Id: <20260220225413.E6F76C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: remove duplicate include of unistd.h
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-remove-duplicate-include-of-unistdh.patch
+     Subject: selftests/ipc: skip msgque test when MSG_COPY is unsupported
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-ipc-skip-msgque-test-when-msg_copy-is-unsupported.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-duplicate-include-of-unistdh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-ipc-skip-msgque-test-when-msg_copy-is-unsupported.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,38 +58,42 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Chen Ni <nichen@iscas.ac.cn>
-Subject: selftests/mm: remove duplicate include of unistd.h
-Date: Wed, 11 Feb 2026 14:43:11 +0800
+From: UYeol Jo <jouyeol8739@gmail.com>
+Subject: selftests/ipc: skip msgque test when MSG_COPY is unsupported
+Date: Tue, 10 Feb 2026 22:53:59 +0900
 
-Remove duplicate inclusion of unistd.h in memory-failure.c to clean up
-redundant code.
+msgque kselftest uses msgrcv(..., MSG_COPY) to copy messages.  When the
+kernel is built without CONFIG_CHECKPOINT_RESTORE, prepare_copy() is
+stubbed out and msgrcv() returns -ENOSYS.  The test currently reports this
+as a failure even though it is simply a missing feature/configuration.
 
-Link: https://lkml.kernel.org/r/20260211064311.2981726-1-nichen@iscas.ac.cn
-Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Dev Jain <dev.jain@arm.com>
+Skip the test when msgrcv() fails with ENOSYS.
+
+Link: https://lkml.kernel.org/r/20260210135359.178636-1-jouyeol8739@gmail.com
+Signed-off-by: UYeol Jo <jouyeol8739@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/memory-failure.c |    1 -
- 1 file changed, 1 deletion(-)
+ tools/testing/selftests/ipc/msgque.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/tools/testing/selftests/mm/memory-failure.c~selftests-mm-remove-duplicate-include-of-unistdh
-+++ a/tools/testing/selftests/mm/memory-failure.c
-@@ -13,7 +13,6 @@
- #include <unistd.h>
- #include <signal.h>
- #include <setjmp.h>
--#include <unistd.h>
- #include <fcntl.h>
- #include <sys/vfs.h>
- #include <linux/magic.h>
+--- a/tools/testing/selftests/ipc/msgque.c~selftests-ipc-skip-msgque-test-when-msg_copy-is-unsupported
++++ a/tools/testing/selftests/ipc/msgque.c
+@@ -161,6 +161,9 @@ int dump_queue(struct msgque_data *msgqu
+ 		ret = msgrcv(msgque->msq_id, &msgque->messages[i].mtype,
+ 				MAX_MSG_SIZE, i, IPC_NOWAIT | MSG_COPY);
+ 		if (ret < 0) {
++			if (errno == ENOSYS)
++				ksft_exit_skip("MSG_COPY not supported\n");
++
+ 			ksft_test_result_fail("Failed to copy IPC message: %m (%d)\n", errno);
+ 			return -errno;
+ 		}
 _
 
-Patches currently in -mm which might be from nichen@iscas.ac.cn are
+Patches currently in -mm which might be from jouyeol8739@gmail.com are
 
-selftests-mm-remove-duplicate-include-of-unistdh.patch
+selftests-ipc-skip-msgque-test-when-msg_copy-is-unsupported.patch
 
