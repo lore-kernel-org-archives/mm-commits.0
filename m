@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8F30B672
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 03:18:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8E3432B9AC
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 04:38:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771557530; cv=none; b=I2USEdRMDz7c7fax1YO7R2H96JHx/A2L1QOESO8olctcKMbuCBXi1b6zGnNGmFvVfGPf7azZfon8AxiD3XlZ3ElL63mpEZQLTofbgYxtr8sJBbtAaGQP2N23pOsl+d8UA42FbuQnd95rPFpMpAcNDvHkav5g6j/TlPxpaCu2kns=
+	t=1771562317; cv=none; b=rUL8SrqM3XMjW+WsuFW3rTmKLuQGfMrypP8zkS+9HaPsGJhwWf/dtqBjebmUmf3lnIYFggLPIy8myCEb70YTysi+fsq53HyL5ryiV+JGZaqziS/0hVYTeQYXg3H6GAnKkMi4qR7oLsduogxcm+HbZUC/BhJvgVW4OJqPp1sjWfA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771557530; c=relaxed/simple;
-	bh=53NbWi22HflW00CdiCo61LF5Y7IvnbEQzaakFf9NocE=;
-	h=Date:To:From:Subject:Message-Id; b=MOK6OjoBXUhfOGIHVRyB6ardvAQAv+6HQLDxIcD/+vZAzSu+ziH9ySgU1+Q3H9IRxBaHCwBBgQCGVhn4H3lN6p6MROJPdiefChyHDCNUinTNWpAT1TN2T/dscTqIYfHBfMwaTk7Rj7PWXi7jVpXOkz7bDRG3d0aYV20f2Bi69cA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xLu5seEX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771562317; c=relaxed/simple;
+	bh=+2SnZ+kkzayiCd6S6xSYAqIoZadHr+75HRaIS9UCe50=;
+	h=Date:To:From:Subject:Message-Id; b=K9Wp2C/iRpUwDUMYDl/6G+tEfBekkRdh1GVJT3ANDW0sbt1p2wIukDuF67gNniTIA9d3ZEfTxbbJVBOakum/IuW1EPmdPyCckBmPxy4Mqh8eqf7LEKgIFLMLq1mCxzaeJGROGYB5A0mPCQBYmXCw4vsRLAU8E82IoEEFweGAXj8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n0zVgJSv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xLu5seEX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CB06C4CEF7;
-	Fri, 20 Feb 2026 03:18:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n0zVgJSv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 683FFC116D0;
+	Fri, 20 Feb 2026 04:38:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771557530;
-	bh=53NbWi22HflW00CdiCo61LF5Y7IvnbEQzaakFf9NocE=;
+	s=korg; t=1771562316;
+	bh=+2SnZ+kkzayiCd6S6xSYAqIoZadHr+75HRaIS9UCe50=;
 	h=Date:To:From:Subject:From;
-	b=xLu5seEXtwlgGhF9Wr4Jx5H9CXWL96NDevVL3ypjWmtzNpTBJfxhJfgTdAZtek1Ij
-	 PslrDClCwWyvQR0L7mS9ZlU20VQpDDfqeC68Tcq3vMHtlBmi6nLc5mSrT1hpJlH9e4
-	 yNshe/KjWAGyI644auBqUtD8mUJKTByrAuEX4DIc=
-Date: Thu, 19 Feb 2026 19:18:49 -0800
-To: mm-commits@vger.kernel.org,vkoskiv@gmail.com,akpm@linux-foundation.org
+	b=n0zVgJSv2zS40HN3PHcy3Mpz2OIuDx6/cz6uePnEJJyChqQ0fwPmQGkXCCg4NWSYG
+	 vcPDvl1tYQwAKAbvxSe4AHfioZFnOLT4MS/p/DAevIxyl+rEp8iWRZ533+bIR+bcpt
+	 9NIuV0JHyOfIvMut0TinWBQTt4YlE4H+UuD4CG0s=
+Date: Thu, 19 Feb 2026 20:38:35 -0800
+To: mm-commits@vger.kernel.org,mathieu.desnoyers@efficios.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-bloat-o-meter-rename-file-arguments-to-match-output.patch added to mm-nonmm-unstable branch
-Message-Id: <20260220031850.4CB06C4CEF7@smtp.kernel.org>
+Subject: + lib-introduce-hierarchical-per-cpu-counters-fix.patch added to mm-new branch
+Message-Id: <20260220043836.683FFC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/bloat-o-meter: rename file arguments to match output
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-bloat-o-meter-rename-file-arguments-to-match-output.patch
+     Subject: lib-introduce-hierarchical-per-cpu-counters-fix
+has been added to the -mm mm-new branch.  Its filename is
+     lib-introduce-hierarchical-per-cpu-counters-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-bloat-o-meter-rename-file-arguments-to-match-output.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-introduce-hierarchical-per-cpu-counters-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,47 +66,99 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Valtteri Koskivuori <vkoskiv@gmail.com>
-Subject: scripts/bloat-o-meter: rename file arguments to match output
-Date: Thu, 12 Feb 2026 23:39:33 +0200
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-introduce-hierarchical-per-cpu-counters-fix
+Date: Thu Feb 19 08:12:23 PM PST 2026
 
-The output of bloat-o-meter already uses the words 'old' and 'new' for
-symbol size in the table header, so reflect that in the corresponding
-argument names.
+export things to modules for lib/tests/percpu_counter_tree_kunit.ko
 
-Link: https://lkml.kernel.org/r/20260212213941.3984330-1-vkoskiv@gmail.com
-Signed-off-by: Valtteri Koskivuori <vkoskiv@gmail.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/percpu_counter_tree.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-rename-file-arguments-to-match-output
-+++ a/scripts/bloat-o-meter
-@@ -18,8 +18,8 @@ group.add_argument('-c', help='categoriz
- group.add_argument('-d', help='Show delta of Data Section', action='store_true')
- group.add_argument('-t', help='Show delta of text Section', action='store_true')
- parser.add_argument('-p', dest='prefix', help='Arch prefix for the tool being used. Useful in cross build scenarios')
--parser.add_argument('file1', help='First file to compare')
--parser.add_argument('file2', help='Second file to compare')
-+parser.add_argument('file_old', help='First file to compare')
-+parser.add_argument('file_new', help='Second file to compare')
+--- a/lib/percpu_counter_tree.c~lib-introduce-hierarchical-per-cpu-counters-fix
++++ a/lib/percpu_counter_tree.c
+@@ -297,6 +297,7 @@ int percpu_counter_tree_init(struct perc
+ {
+ 	return percpu_counter_tree_init_many(counter, items, 1, batch_size, gfp_flags);
+ }
++EXPORT_SYMBOL_GPL(percpu_counter_tree_init);
  
- args = parser.parse_args()
+ /**
+  * percpu_counter_tree_destroy_many() - Destroy many per-CPU counter trees.
+@@ -321,6 +322,7 @@ void percpu_counter_tree_destroy(struct
+ {
+ 	return percpu_counter_tree_destroy_many(counter, 1);
+ }
++EXPORT_SYMBOL_GPL(percpu_counter_tree_destroy);
  
-@@ -86,7 +86,7 @@ def calc(oldfile, newfile, format):
+ static
+ long percpu_counter_tree_carry(long orig, long res, long inc, unsigned long bit_mask)
+@@ -423,7 +425,7 @@ void percpu_counter_tree_add(struct perc
+ 		return;
+ 	percpu_counter_tree_add_slowpath(counter, inc);
+ }
+-
++EXPORT_SYMBOL_GPL(percpu_counter_tree_add);
  
- def print_result(symboltype, symbolformat):
-     grow, shrink, add, remove, up, down, delta, old, new, otot, ntot = \
--    calc(args.file1, args.file2, symbolformat)
-+    calc(args.file_old, args.file_new, symbolformat)
+ static
+ long percpu_counter_tree_precise_sum_unbiased(struct percpu_counter_tree *counter)
+@@ -450,6 +452,7 @@ long percpu_counter_tree_precise_sum(str
+ {
+ 	return percpu_counter_tree_precise_sum_unbiased(counter) + READ_ONCE(counter->bias);
+ }
++EXPORT_SYMBOL_GPL(percpu_counter_tree_precise_sum);
  
-     print("add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
-           (add, remove, grow, shrink, up, -down, up-down))
+ static
+ int compare_delta(long delta, unsigned long accuracy_neg, unsigned long accuracy_pos)
+@@ -491,6 +494,7 @@ int percpu_counter_tree_approximate_comp
+ 			     a->approx_accuracy_range.over + b->approx_accuracy_range.under,
+ 			     a->approx_accuracy_range.under + b->approx_accuracy_range.over);
+ }
++EXPORT_SYMBOL_GPL(percpu_counter_tree_approximate_compare);
+ 
+ /**
+  * percpu_counter_tree_approximate_compare_value - Approximated comparison of a counter tree against a given value.
+@@ -514,6 +518,7 @@ int percpu_counter_tree_approximate_comp
+ 			     counter->approx_accuracy_range.under,
+ 			     counter->approx_accuracy_range.over);
+ }
++EXPORT_SYMBOL_GPL(percpu_counter_tree_approximate_compare_value);
+ 
+ /**
+  * percpu_counter_tree_precise_compare - Precise comparison of two counter trees.
+@@ -582,6 +587,7 @@ int percpu_counter_tree_precise_compare(
+ 		return 1;
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(percpu_counter_tree_precise_compare);
+ 
+ /**
+  * percpu_counter_tree_precise_compare_value - Precise comparison of a counter tree against a given value.
+@@ -619,6 +625,7 @@ int percpu_counter_tree_precise_compare_
+ 		return 1;
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(percpu_counter_tree_precise_compare_value);
+ 
+ static
+ void percpu_counter_tree_set_bias(struct percpu_counter_tree *counter, long bias)
+@@ -657,6 +664,7 @@ size_t percpu_counter_tree_items_size(vo
+ 		return 0;
+ 	return counter_config->nr_items * sizeof(struct percpu_counter_tree_level_item);
+ }
++EXPORT_SYMBOL_GPL(percpu_counter_tree_items_size);
+ 
+ static void __init calculate_accuracy_topology(void)
+ {
 _
 
-Patches currently in -mm which might be from vkoskiv@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-scripts-bloat-o-meter-rename-file-arguments-to-match-output.patch
+maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
+maple_tree-add-cp_is_new_root-helper-fix-fix.patch
+lib-introduce-hierarchical-per-cpu-counters-fix.patch
 
