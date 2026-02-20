@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 198FD264617
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 21:20:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3458F309EE3
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 21:20:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771622447; cv=none; b=X1ZnotBqi/bix4pV4a7FOzmbuvhZjxihWbqK3+lcsSwZjfyFo+3GTzllXVtQtDE8dGHsg20usUr0lCok/bgUKWJxqMmHyY+A7RS/staoCx29JmT56i2BFXYpT/V/2LC4hYdKUPoCbssRsDqgZ1TlE5+e7dVdGMs63sXd0wvBYZU=
+	t=1771622448; cv=none; b=d+UvSx9pI8dFqwEKF6VtFvQ2OCNEQLnKEGaJWKPVCEaeaz2R2099bwLfEarH+NcqCD1NRHrAg5ay4IRXvzOj5NDfgDsy7e0ke0clCcfdvjO0lgsfdebpRKxiddOzP9dL2f/w8ltnJplDmFUEJJU/jQ+FShO43t9R+OSK/FVQ28k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771622447; c=relaxed/simple;
-	bh=Zg6aDj7f5h72p5W+Ls0H5kAmnxE7RQgYnAytAhYpVnI=;
-	h=Date:To:From:Subject:Message-Id; b=sJj0YYsDVKq+7aZo651c3BWyYIBcXhcc2vgIvBhEA4SKKFfqM+ZP6rkul7gfjfEqCiyrfAiyxrZEF4/9RUtFeH5AlpSFI0EZuIvWzjiIWngzDiir7Mw2KFVpSF0thLaIQfrZCc1HHOBAb84+Fe7hgICfeQ/SczHbONILavb6G5E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZzfODIBR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771622448; c=relaxed/simple;
+	bh=d2Ug7+V2KvrLdOeQcOFTm3yAcKDCpotxso52Kx4fvJQ=;
+	h=Date:To:From:Subject:Message-Id; b=tqP847SQqo5c/ELpGZockDm1aDfsimTJj8C29RG+ClrLed5ayJD32N4mXYWLLzbbhF5ZpzO7kEYfjY5HTcMmoXgdGUeG07mGNdPS3xcS8QOy3mHvkvTwt0OI5lfkuNUxF9XdcGjLz5s4Y1CX8GNOMRzUj/ZkEw2MiXlW5S2EdQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jZFbrPpe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZzfODIBR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E663C116C6;
-	Fri, 20 Feb 2026 21:20:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jZFbrPpe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDF69C116C6;
+	Fri, 20 Feb 2026 21:20:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771622446;
-	bh=Zg6aDj7f5h72p5W+Ls0H5kAmnxE7RQgYnAytAhYpVnI=;
+	s=korg; t=1771622447;
+	bh=d2Ug7+V2KvrLdOeQcOFTm3yAcKDCpotxso52Kx4fvJQ=;
 	h=Date:To:From:Subject:From;
-	b=ZzfODIBRqVoGQ1trtabHKp+h96aw13XYx0B5USOCYNLFOVtTF3WL4CKx/DLFsdqFe
-	 4gOg+5ai5J/zmJgBOBywcy0Pr1PwZQWSAGb5Jg5UmWmzWFdU4fkDpLmVfszNMIY3Qq
-	 9EBCYEya9G22mzouUyHjNYZYM6ce+bH5kLLhQe48=
-Date: Fri, 20 Feb 2026 13:20:45 -0800
+	b=jZFbrPpeGsWIm6FZ/S4pWDqzInuoeP7DCu5RKqPudkb0WPvzBqrR6xdaJ2eu0itxg
+	 mlNYCHKBkw3ONTGGWxNKcoA1YM25ZNPbp5I9r2B/bMTjnCWdd4f3m1y+/WkzQz1JRo
+	 50VlGlVJFIgqGia0mdel2Dh6b9V/pufe0UPOH6TE=
+Date: Fri, 20 Feb 2026 13:20:47 -0800
 To: mm-commits@vger.kernel.org,wangjinchao600@gmail.com,pmladek@suse.com,max.kellermann@ionos.com,lihuafei1@huawei.com,irogers@google.com,eranian@google.com,dianders@chromium.org,cuiyunhui@bytedance.com,corbet@lwn.net,mrungta@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + watchdog-hardlockup-always-update-saved-interrupts-during-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20260220212046.7E663C116C6@smtp.kernel.org>
+Subject: + doc-watchdog-clarify-hardlockup-detection-timing.patch added to mm-nonmm-unstable branch
+Message-Id: <20260220212047.CDF69C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: watchdog/hardlockup: always update saved interrupts during check
+     Subject: doc: watchdog: clarify hardlockup detection timing
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     watchdog-hardlockup-always-update-saved-interrupts-during-check.patch
+     doc-watchdog-clarify-hardlockup-detection-timing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/watchdog-hardlockup-always-update-saved-interrupts-during-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/doc-watchdog-clarify-hardlockup-detection-timing.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,60 +59,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Mayank Rungta <mrungta@google.com>
-Subject: watchdog/hardlockup: always update saved interrupts during check
-Date: Thu, 12 Feb 2026 14:12:10 -0700
+Subject: doc: watchdog: clarify hardlockup detection timing
+Date: Thu, 12 Feb 2026 14:12:11 -0700
 
-Patch series "watchdog/hardlockup: Improvements to hardlockup".
+The current documentation implies that a hardlockup is strictly defined as
+looping for "more than 10 seconds." However, the detection mechanism is
+periodic (based on `watchdog_thresh`), meaning detection time varies
+significantly depending on when the lockup occurs relative to the NMI perf
+event.
 
-This series addresses limitations in the hardlockup detector
-implementations and updates the documentation to reflect actual behavior
-and recent changes.
+Update the definition to remove the strict "more than 10 seconds"
+constraint in the introduction and defer details to the Implementation
+section.
 
-The changes are structured as follows:
+Additionally, add a "Detection Overhead" section illustrating the Best
+Case (~6s) and Worst Case (~20s) detection scenarios to provide
+administrators with a clearer understanding of the watchdog's latency.
 
-Hardlockup Detection Improvements (Patches 1 & 3)
-=================================================
-The hardlockup detector logic relies on updating saved interrupt counts to
-determine if the CPU is making progress.
-
-Patch 1 ensures that the saved interrupt count is updated unconditionally
-before checking the "touched" flag.  This prevents stale comparisons which
-can delay detection.  This is a logic fix that ensures the detector
-remains accurate even when the watchdog is frequently touched.
-
-Patch 3 improves the Buddy detector's timeliness.  The current checking
-interval (every 3rd sample) causes high variability in detection time (up
-to 24s).  This patch changes the Buddy detector to check at every hrtimer
-interval (4s) with a missed-interrupt threshold of 3, narrowing the
-detection window to a consistent 8-12 second range.
-
-Documentation Updates (Patches 2 & 4)
-=====================================
-The current documentation does not fully capture the variable nature of
-detection latency or the details of the Buddy system.
-
-Patch 2 removes the strict "10 seconds" definition of a hardlockup, which
-was misleading given the periodic nature of the detector.  It adds a
-"Detection Overhead" section to the admin guide, using "Best Case" and
-"Worst Case" scenarios to illustrate that detection time can vary
-significantly (e.g., ~6s to ~20s).
-
-Patch 4 adds a dedicated section for the Buddy detector, which was
-previously undocumented.  It details the mechanism, the new timing logic,
-and known limitations.
-
-
-This patch (of 4):
-
-Currently, arch_touch_nmi_watchdog() causes an early return that skips
-updating hrtimer_interrupts_saved.  This leads to stale comparisons and
-delayed lockup detection.
-
-Update the saved interrupt count before checking the touched flag to
-ensure detection timeliness.
-
-Link: https://lkml.kernel.org/r/20260212-hardlockup-watchdog-fixes-v1-0-745f1dce04c3@google.com
-Link: https://lkml.kernel.org/r/20260212-hardlockup-watchdog-fixes-v1-1-745f1dce04c3@google.com
+Link: https://lkml.kernel.org/r/20260212-hardlockup-watchdog-fixes-v1-2-745f1dce04c3@google.com
 Signed-off-by: Mayank Rungta <mrungta@google.com>
 Reviewed-by: Douglas Anderson <dianders@chromium.org>
 Cc: Ian Rogers <irogers@google.com>
@@ -126,49 +90,66 @@ Cc: Yunhui Cui <cuiyunhui@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ Documentation/admin-guide/lockup-watchdogs.rst |   41 ++++++++++++++-
+ 1 file changed, 40 insertions(+), 1 deletion(-)
 
---- a/kernel/watchdog.c~watchdog-hardlockup-always-update-saved-interrupts-during-check
-+++ a/kernel/watchdog.c
-@@ -186,7 +186,21 @@ static void watchdog_hardlockup_kick(voi
+--- a/Documentation/admin-guide/lockup-watchdogs.rst~doc-watchdog-clarify-hardlockup-detection-timing
++++ a/Documentation/admin-guide/lockup-watchdogs.rst
+@@ -16,7 +16,7 @@ details), and a compile option, "BOOTPAR
+ provided for this.
  
- void watchdog_hardlockup_check(unsigned int cpu, struct pt_regs *regs)
- {
-+	bool is_hl;
- 	int hardlockup_all_cpu_backtrace;
-+	/*
-+	 * Check for a hardlockup by making sure the CPU's timer
-+	 * interrupt is incrementing. The timer interrupt should have
-+	 * fired multiple times before we overflow'd. If it hasn't
-+	 * then this is a good indication the cpu is stuck
-+	 *
-+	 * Purposely check this _before_ checking watchdog_hardlockup_touched
-+	 * so we make sure we still update the saved value of the interrupts.
-+	 * Without that we'll take an extra round through this function before
-+	 * we can detect a lockup.
-+	 */
+ A 'hardlockup' is defined as a bug that causes the CPU to loop in
+-kernel mode for more than 10 seconds (see "Implementation" below for
++kernel mode for several seconds (see "Implementation" below for
+ details), without letting other interrupts have a chance to run.
+ Similarly to the softlockup case, the current stack trace is displayed
+ upon detection and the system will stay locked up unless the default
+@@ -64,6 +64,45 @@ administrators to configure the period o
+ event. The right value for a particular environment is a trade-off
+ between fast response to lockups and detection overhead.
+ 
++Detection Overhead
++------------------
 +
-+	is_hl = is_hardlockup(cpu);
- 
- 	if (per_cpu(watchdog_hardlockup_touched, cpu)) {
- 		per_cpu(watchdog_hardlockup_touched, cpu) = false;
-@@ -195,13 +209,8 @@ void watchdog_hardlockup_check(unsigned
- 
- 	hardlockup_all_cpu_backtrace = (hardlockup_si_mask & SYS_INFO_ALL_BT) ?
- 					1 : sysctl_hardlockup_all_cpu_backtrace;
--	/*
--	 * Check for a hardlockup by making sure the CPU's timer
--	 * interrupt is incrementing. The timer interrupt should have
--	 * fired multiple times before we overflow'd. If it hasn't
--	 * then this is a good indication the cpu is stuck
--	 */
--	if (is_hardlockup(cpu)) {
++The hardlockup detector checks for lockups using a periodic NMI perf
++event. This means the time to detect a lockup can vary depending on
++when the lockup occurs relative to the NMI check window.
 +
-+	if (is_hl) {
- 		unsigned int this_cpu = smp_processor_id();
- 		unsigned long flags;
- 
++**Best Case:**
++In the best case scenario, the lockup occurs just before the first
++heartbeat is due. The detector will notice the missing hrtimer
++interrupt almost immediately during the next check.
++
++::
++
++  Time 100.0: cpu 1 heartbeat
++  Time 100.1: hardlockup_check, cpu1 stores its state
++  Time 103.9: Hard Lockup on cpu1
++  Time 104.0: cpu 1 heartbeat never comes
++  Time 110.1: hardlockup_check, cpu1 checks the state again, should be the same, declares lockup
++
++  Time to detection: ~6 seconds
++
++**Worst Case:**
++In the worst case scenario, the lockup occurs shortly after a valid
++interrupt (heartbeat) which itself happened just after the NMI check.
++The next NMI check sees that the interrupt count has changed (due to
++that one heartbeat), assumes the CPU is healthy, and resets the
++baseline. The lockup is only detected at the subsequent check.
++
++::
++
++  Time 100.0: hardlockup_check, cpu1 stores its state
++  Time 100.1: cpu 1 heartbeat
++  Time 100.2: Hard Lockup on cpu1
++  Time 110.0: hardlockup_check, cpu1 stores its state (misses lockup as state changed)
++  Time 120.0: hardlockup_check, cpu1 checks the state again, should be the same, declares lockup
++
++  Time to detection: ~20 seconds
++
+ By default, the watchdog runs on all online cores.  However, on a
+ kernel configured with NO_HZ_FULL, by default the watchdog runs only
+ on the housekeeping cores, not the cores specified in the "nohz_full"
 _
 
 Patches currently in -mm which might be from mrungta@google.com are
