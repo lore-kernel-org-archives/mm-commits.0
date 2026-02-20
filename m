@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 438562DD5E2
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 21:07:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E57F2DCC03
+	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 21:07:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771621626; cv=none; b=hepbG2RfKKgH0DpwahGUMAI4dmlUkX8WdArphRvn9j9s8Zin6GD3ykCRh79ZGHesNMfwtOp/beVC5JXkPhHSMVD+FXSzyW3jm+KQ923eFIzOSxx+euPbwQoDeROCo3Oij9q/9q5RUIrZtopIKjy3pfxgiq3XIzA3T/6p/Dmko4g=
+	t=1771621627; cv=none; b=gQVYE0/I/etoWgNGVGt0XA4sL4PwG4+6x/I40AVBUYZo21JnO0Sy+T54R6JuXb7bDjtw3oMLwlRW3uZ54KsZnusDN6RgD44qVWfDPVPcangPgf7O69/hWDp0itWDQ/GkJSlvP+Nh6TKClufm3WiECgchxRL7FjMtkK+gmytp6UY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771621626; c=relaxed/simple;
-	bh=SoCXJ/0+6FApMDIgotjW4YRn4l3f3MFI+0EpORv0/Qs=;
-	h=Date:To:From:Subject:Message-Id; b=ulTjtz7hmaqNpHTZUs+Fvy+cmv/3+Z2gExrzXWip2hNqmyfgMEtD1ENhSNLxcWhWR2dHGm+fJ6qUpoZjXCR0xIwuplCMyAocsNfOzv2z/2blr40bjtOm36I3uXzqj+xzXsneOgsYI+cwrFDdhkzwuST8jnEY4lScQYxoDdppNTQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=am6LcLYB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771621627; c=relaxed/simple;
+	bh=UKThgzll29dxPC9cXRN4rqlknyN8D8xbHIt48tz8tlw=;
+	h=Date:To:From:Subject:Message-Id; b=WIOobig09OGMZmi/DFwWaxDB51YvMkY6X+lD9PrsRE+LK+q2oSa6/uIN4lhh0GFuK9cVV/0dyEIBiCoImBBNS1UnRgAAU0DstP1IUFYEqsS4MHN2+Q2TnDLy5QYOQUI5n3lBz4/gn1FjD875jEKAE1A5UBgICeX+LAV/32I+d4k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jW2oPe+c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="am6LcLYB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7E0EC116C6;
-	Fri, 20 Feb 2026 21:07:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jW2oPe+c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24716C116C6;
+	Fri, 20 Feb 2026 21:07:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771621625;
-	bh=SoCXJ/0+6FApMDIgotjW4YRn4l3f3MFI+0EpORv0/Qs=;
+	s=korg; t=1771621627;
+	bh=UKThgzll29dxPC9cXRN4rqlknyN8D8xbHIt48tz8tlw=;
 	h=Date:To:From:Subject:From;
-	b=am6LcLYBRmYF7L7acCFDqgGVXprBGF9Hi/PcmuTcFZMPxQDYKfT+pX3aEZnCV+JUV
-	 koeUYMFwJIBV+xh4AgihcGucbY5NcgWsmMSozhRciFQfsnRJ0Tv8B8NEyvzmOyyi7m
-	 Y2uVYyMwcp79+sQ/6HuPQMX6wCeiGxv+w+yLayXM=
-Date: Fri, 20 Feb 2026 13:07:05 -0800
-To: mm-commits@vger.kernel.org,wangjinchao600@gmail.com,pmladek@suse.com,joel.granados@kernel.org,rioo.tsukatsukii@gmail.com,akpm@linux-foundation.org
+	b=jW2oPe+cPrv8eVMtNxTXMmaxCbdn5EiowlVSVUFDtRNOrNm/7T51LMzuOvS/EnGzE
+	 sO/mmrNucH+IjC+SJsni1EWpZ9JxtchYRRbnQXXEoYf4lMagnRS9/WenlMRY0agfCt
+	 daKutpCpc186b8Y9xbfHxjIzE95kZCEgjZjAooTc=
+Date: Fri, 20 Feb 2026 13:07:06 -0800
+To: mm-commits@vger.kernel.org,wangjinchao600@gmail.com,rioo.tsukatsukii@gmail.com,pmladek@suse.com,joel.granados@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch added to mm-nonmm-unstable branch
-Message-Id: <20260220210705.C7E0EC116C6@smtp.kernel.org>
+Subject: + kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20260220210707.24716C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/panic: increase buffer size for verbose taint logging
+     Subject: kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch
+     kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,46 +58,48 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Rio <rioo.tsukatsukii@gmail.com>
-Subject: kernel/panic: increase buffer size for verbose taint logging
-Date: Fri, 20 Feb 2026 20:45:00 +0530
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix
+Date: Fri Feb 20 01:05:15 PM PST 2026
 
-The verbose 'Tainted: ...' string in print_tainted_seq can total to 327
-characters while the buffer defined in _print_tainted is 320 bytes. 
-Increase its size to 350 characters to hold all flags, along with some
-headroom.
+fix spello, add comment
 
-Link: https://lkml.kernel.org/r/20260220151500.13585-1-rioo.tsukatsukii@gmail.com
-Signed-off-by: Rio <rioo.tsukatsukii@gmail.com>
 Cc: Joel Granados <joel.granados@kernel.org>
 Cc: Petr Mladek <pmladek@suse.com>
+Cc: Rio <rioo.tsukatsukii@gmail.com>
 Cc: Wang Jinchao <wangjinchao600@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/panic.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/kernel/panic.c~kernel-panic-increase-buffer-size-for-verbose-taint-logging
+--- a/kernel/panic.c~kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix
 +++ a/kernel/panic.c
-@@ -854,10 +854,12 @@ static void print_tainted_seq(struct seq
+@@ -801,6 +801,8 @@ EXPORT_SYMBOL(panic);
+  * Documentation/admin-guide/tainted-kernels.rst, including its
+  * small shell script that prints the TAINT_FLAGS_COUNT bits of
+  * /proc/sys/kernel/tainted.
++ *
++ * Also, update TAINT_BUF_MAX below.
+  */
+ const struct taint_flag taint_flags[TAINT_FLAGS_COUNT] = {
+ 	TAINT_FLAG(PROPRIETARY_MODULE,		'P', 'G'),
+@@ -854,7 +856,7 @@ static void print_tainted_seq(struct seq
  	}
  }
  
-+/* 350 can accomadate all taint flags in verbose mode, with some headroom */
-+#define TAINT_BUF_MAX 350
-+
- static const char *_print_tainted(bool verbose)
- {
--	/* FIXME: what should the size be? */
--	static char buf[sizeof(taint_flags)];
-+	static char buf[TAINT_BUF_MAX];
- 	struct seq_buf s;
+-/* 350 can accomadate all taint flags in verbose mode, with some headroom */
++/* 350 can accommodate all taint flags in verbose mode, with some headroom */
+ #define TAINT_BUF_MAX 350
  
- 	BUILD_BUG_ON(ARRAY_SIZE(taint_flags) != TAINT_FLAGS_COUNT);
+ static const char *_print_tainted(bool verbose)
 _
 
-Patches currently in -mm which might be from rioo.tsukatsukii@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch
+maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
+maple_tree-add-cp_is_new_root-helper-fix-fix.patch
+lib-introduce-hierarchical-per-cpu-counters-fix.patch
+kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
 
