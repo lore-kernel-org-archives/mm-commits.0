@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F11F63EBF28
-	for <mm-commits@vger.kernel.org>; Fri, 20 Feb 2026 23:45:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA0D38834
+	for <mm-commits@vger.kernel.org>; Sat, 21 Feb 2026 00:33:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771631143; cv=none; b=bFLDImIF1k1Od4U2ZiuoQUULl9zBQxa8hSo2yGYR4zIqtTthDaa4wxqfBA2Y+H554+yEkXY6FDL/UVQ2gfTaLumychhJPvk/wY4IqhEw3+QQ0twNap/BQr1cj1W/TtbAIQRGhEEsZjrrVE1ysihsJpOyemHW0QEf6hFdTPN6cm0=
+	t=1771633981; cv=none; b=IKwIXYXdkBkyTzEPHgEJyoRw+mEQ0bIJ4ct96eN0l5HMHKiIvX3q2undLlgiI4aGYCW3lOncA6OQvte7hytFpla5Yz78WXPj46p6NFkbIn4JOZsjfelWjADC3+Yo3xx+joYaLh/fWNbOW57CBGvHolz4UFchVYRnB5C5ODOvl4A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771631143; c=relaxed/simple;
-	bh=iX19pZg0p69hMMpq+5490Bp3dwFlVscheT+5IRQTbsA=;
-	h=Date:To:From:Subject:Message-Id; b=RDjntXyDIrFcafxDBhKDJ6CZ6KToUW5q2IJ/OZGdlNKwlcoc6ARrNsREunP8028pP8V1B7/KRJCyb2NjfVZOTDwRmWUoDvK81XSOdHMunv+3C9HjFM12lB6SJWsbDrEI0u6HVT2uEzpHz7RJz9XOTmIHBMDgEBWQDQGs9kW08ds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a1e/HOE9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771633981; c=relaxed/simple;
+	bh=3yldN8DyAqAELyRgay2udaPd3JosrtBKFeGGsT/8gNw=;
+	h=Date:To:From:Subject:Message-Id; b=smaQeDj61Bsby++Pd55k83OE2Iu0oouPfnHbGj/jyEmpgFovpDU9ZIvprh2MgRUxB8/kvFezzExPit077Y4QYf2lLIQG9dpb886b+a91sUi0P4U94T1K2dxKsLBdGtwezaOT+iKHb5zPuJ++u4M7aE1Q/CBuV+WBg+8oWG2TJWA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uvsq9E2k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a1e/HOE9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB26CC116C6;
-	Fri, 20 Feb 2026 23:45:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uvsq9E2k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30E26C116C6;
+	Sat, 21 Feb 2026 00:33:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771631142;
-	bh=iX19pZg0p69hMMpq+5490Bp3dwFlVscheT+5IRQTbsA=;
+	s=korg; t=1771633981;
+	bh=3yldN8DyAqAELyRgay2udaPd3JosrtBKFeGGsT/8gNw=;
 	h=Date:To:From:Subject:From;
-	b=a1e/HOE98L8OzVZGxE5DNfu6kmyF4rLLjAPJSeI/3xVcM+l01i+bte50F3/5hbe27
-	 T4ToyhF+zfMtdLiqjY83mGTXqMfTB62U3zyIpxxlfPQ6nnlACZVOQfpwU70KHZYkbS
-	 asGCoLioTKequnH/k020I+sj1xt4QTiwhqbN6BNU=
-Date: Fri, 20 Feb 2026 15:45:42 -0800
-To: mm-commits@vger.kernel.org,yosry.ahmed@linux.dev,nphamcs@gmail.com,hannes@cmpxchg.org,chrisl@kernel.org,chengming.zhou@linux.dev,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=uvsq9E2kk6GUNw/LUZm3Mt0VQxig0QrZTBX9cZDpPK4YglWgk19C5fR8pDiNkWXNU
+	 5UPuhTw2lGrCpleI2hUothD1qaXAaurL7qw7E5fZ1VLE/Z3QOrCe/3ZKmPR7RsK1U6
+	 065FPv09CNlZ8UyBP8ITyWlZsz5DwNYxSNxZk3Bo=
+Date: Fri, 20 Feb 2026 16:33:00 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,willy@infradead.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kevin.brodsky@arm.com,david@kernel.org,davem@davemloft.net,andreas@gaisler.com,chengkaitao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-remove-swp_synchronous_io-swapcache-bypass-workaround.patch added to mm-new branch
-Message-Id: <20260220234542.AB26CC116C6@smtp.kernel.org>
+Subject: + sparc-use-vmemmap_populate_hugepages-for-vmemmap_populate.patch added to mm-new branch
+Message-Id: <20260221003301.30E26C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zswap: remove SWP_SYNCHRONOUS_IO swapcache bypass workaround
+     Subject: sparc: use vmemmap_populate_hugepages for vmemmap_populate
 has been added to the -mm mm-new branch.  Its filename is
-     mm-zswap-remove-swp_synchronous_io-swapcache-bypass-workaround.patch
+     sparc-use-vmemmap_populate_hugepages-for-vmemmap_populate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-swp_synchronous_io-swapcache-bypass-workaround.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-use-vmemmap_populate_hugepages-for-vmemmap_populate.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,95 +66,122 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/zswap: remove SWP_SYNCHRONOUS_IO swapcache bypass workaround
-Date: Mon, 02 Feb 2026 01:47:32 +0800
+From: Chengkaitao <chengkaitao@kylinos.cn>
+Subject: sparc: use vmemmap_populate_hugepages for vmemmap_populate
+Date: Sun, 1 Feb 2026 14:35:31 +0800
 
-Since commit f1879e8a0c60 ("mm, swap: never bypass the swap cache even for
-SWP_SYNCHRONOUS_IO"), all swap-in operations go through the swap cache,
-including those from SWP_SYNCHRONOUS_IO devices like zram.  Which means
-the workaround for swap cache bypassing introduced by commit 25cd241408a2
-("mm: zswap: fix data loss on SWP_SYNCHRONOUS_IO devices") is no longer
-needed.  Remove it, but keep the comments that are still helpful.
+Change sparc's implementation of vmemmap_populate() using
+vmemmap_populate_hugepages() to streamline the code.  Another benefit is
+that it allows us to eliminate the external declarations of
+vmemmap_p?d_populate functions and convert them to static functions.
 
-Link: https://lkml.kernel.org/r/20260202-zswap-syncio-cleanup-v1-1-86bb24a64521@tencent.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Suggested-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: Chris Li <chrisl@kernel.org>
-Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
-Reviewed-by: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
+Since vmemmap_populate_hugepages may fallback to vmemmap_populate-
+_basepages, which differs from sparc's original implementation.  During
+the v1 discussion with Mike Rapoport, sparc uses base pages in the kernel
+page tables, so it should be able to use them in vmemmap as well. 
+Consequently, no additional special handling is required.
+
+1. In the SPARC architecture, reimplement vmemmap_populate using
+   vmemmap_populate_hugepages.
+
+2. Allow the SPARC arch to fallback to vmemmap_populate_basepages(),
+   when vmemmap_alloc_block returns NULL.
+
+Link: https://lkml.kernel.org/r/20260201063532.44807-2-pilgrimtao@gmail.com
+Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   19 ++++++-------------
- 1 file changed, 6 insertions(+), 13 deletions(-)
+ arch/sparc/mm/init_64.c |   53 +++++++++++++-------------------------
+ 1 file changed, 19 insertions(+), 34 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-remove-swp_synchronous_io-swapcache-bypass-workaround
-+++ a/mm/zswap.c
-@@ -1589,11 +1589,11 @@ int zswap_load(struct folio *folio)
+--- a/arch/sparc/mm/init_64.c~sparc-use-vmemmap_populate_hugepages-for-vmemmap_populate
++++ a/arch/sparc/mm/init_64.c
+@@ -2562,8 +2562,8 @@ unsigned long _PAGE_CACHE __read_mostly;
+ EXPORT_SYMBOL(_PAGE_CACHE);
+ 
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+-int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+-			       int node, struct vmem_altmap *altmap)
++void __meminit vmemmap_set_pmd(pmd_t *pmd, void *p, int node,
++			       unsigned long addr, unsigned long next)
  {
- 	swp_entry_t swp = folio->swap;
- 	pgoff_t offset = swp_offset(swp);
--	bool swapcache = folio_test_swapcache(folio);
- 	struct xarray *tree = swap_zswap_tree(swp);
- 	struct zswap_entry *entry;
+ 	unsigned long pte_base;
  
- 	VM_WARN_ON_ONCE(!folio_test_locked(folio));
-+	VM_WARN_ON_ONCE(!folio_test_swapcache(folio));
+@@ -2576,39 +2576,24 @@ int __meminit vmemmap_populate(unsigned
  
- 	if (zswap_never_enabled())
- 		return -ENOENT;
-@@ -1624,22 +1624,15 @@ int zswap_load(struct folio *folio)
- 		count_objcg_events(entry->objcg, ZSWPIN, 1);
+ 	pte_base |= _PAGE_PMD_HUGE;
  
- 	/*
--	 * When reading into the swapcache, invalidate our entry. The
--	 * swapcache can be the authoritative owner of the page and
-+	 * We are reading into the swapcache, invalidate zswap entry.
-+	 * The swapcache is the authoritative owner of the page and
- 	 * its mappings, and the pressure that results from having two
- 	 * in-memory copies outweighs any benefits of caching the
- 	 * compression work.
--	 *
--	 * (Most swapins go through the swapcache. The notable
--	 * exception is the singleton fault on SWP_SYNCHRONOUS_IO
--	 * files, which reads into a private page and may free it if
--	 * the fault fails. We remain the primary owner of the entry.)
- 	 */
--	if (swapcache) {
--		folio_mark_dirty(folio);
--		xa_erase(tree, offset);
--		zswap_entry_free(entry);
+-	vstart = vstart & PMD_MASK;
+-	vend = ALIGN(vend, PMD_SIZE);
+-	for (; vstart < vend; vstart += PMD_SIZE) {
+-		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
+-		unsigned long pte;
+-		p4d_t *p4d;
+-		pud_t *pud;
+-		pmd_t *pmd;
+-
+-		if (!pgd)
+-			return -ENOMEM;
+-
+-		p4d = vmemmap_p4d_populate(pgd, vstart, node);
+-		if (!p4d)
+-			return -ENOMEM;
+-
+-		pud = vmemmap_pud_populate(p4d, vstart, node);
+-		if (!pud)
+-			return -ENOMEM;
+-
+-		pmd = pmd_offset(pud, vstart);
+-		pte = pmd_val(*pmd);
+-		if (!(pte & _PAGE_VALID)) {
+-			void *block = vmemmap_alloc_block(PMD_SIZE, node);
+-
+-			if (!block)
+-				return -ENOMEM;
+-
+-			pmd_val(*pmd) = pte_base | __pa(block);
+-		}
 -	}
-+	folio_mark_dirty(folio);
-+	xa_erase(tree, offset);
-+	zswap_entry_free(entry);
++	pmd_val(*pmd) = pte_base | __pa(p);
++}
++
++int __meminit vmemmap_check_pmd(pmd_t *pmdp, int node,
++				unsigned long addr, unsigned long next)
++{
++	int large = pmd_leaf(*pmdp);
++
++	if (large)
++		vmemmap_verify((pte_t *)pmdp, node, addr, next);
  
- 	folio_unlock(folio);
- 	return 0;
+-	return 0;
++	return large;
++}
++
++int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
++			       int node, struct vmem_altmap *altmap)
++{
++	return vmemmap_populate_hugepages(vstart, vend, node, NULL);
+ }
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from chengkaitao@kylinos.cn are
 
-mm-swap-speed-up-hibernation-allocation-and-writeout.patch
-mm-swap-protect-si-swap_file-properly-and-use-as-a-mount-indicator.patch
-mm-swap-clean-up-swapon-process-and-locking.patch
-mm-swap-remove-redundant-arguments-and-locking-for-enabling-a-device.patch
-mm-swap-consolidate-bad-slots-setup-and-make-it-more-robust.patch
-mm-workingset-leave-highest-bits-empty-for-anon-shadow.patch
-mm-swap-implement-helpers-for-reserving-data-in-the-swap-table.patch
-mm-swap-mark-bad-slots-in-swap-table-directly.patch
-mm-swap-simplify-swap-table-sanity-range-check.patch
-mm-swap-use-the-swap-table-to-track-the-swap-count.patch
-mm-swap-no-need-to-truncate-the-scan-border.patch
-mm-swap-simplify-checking-if-a-folio-is-swapped.patch
-mm-swap-no-need-to-clear-the-shadow-explicitly.patch
-memcg-consolidate-private-id-refcount-get-put-helpers.patch
-mm-shmem-remove-unnecessary-restrain-unmask-of-swap-gfp-flags.patch
-mm-zswap-remove-swp_synchronous_io-swapcache-bypass-workaround.patch
+sparc-use-vmemmap_populate_hugepages-for-vmemmap_populate.patch
+mm-convert-vmemmap_pd_populate-to-static-functions.patch
 
