@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F19E4280A5B
-	for <mm-commits@vger.kernel.org>; Sat, 21 Feb 2026 00:38:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D7DDC8E6
+	for <mm-commits@vger.kernel.org>; Sat, 21 Feb 2026 00:38:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771634327; cv=none; b=u6/DlTPT/RPSiM2mF5X8BDLfQeBR7KZ6cIDpC+Lqmnd6VqnfcmRqMWm73L0t85zUWS+ooWIM09kPG1SoCU5BzYvDX0W5/aJHYNOKFNW+X5BOuCZWDVlCRHG9XVUwxCQvmWSESY6mcY5k3NRidZPPXBXF3Ds15/Pzb2PRGLzE+eA=
+	t=1771634329; cv=none; b=qMWFaRQhiRR9uh5B91wF5nVZlN9GxV/2qgKgHNJgpUZYLC+p5Z1KLZxPYToO56L5wSWTnARPWBO9MKWHR0m2K2ZHp5XZMPK7K0qdZOL+VCwBBrWAui1dDWP9F4Q9xPqJ0J2YTjXIsPuwMGttdVLbaSijn1OtN1eeSEX0RxXlyFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771634327; c=relaxed/simple;
-	bh=/Q/eBCTuG6Qx516PAGoOEfCUp9oVY+vjoNVoCu83Ub4=;
-	h=Date:To:From:Subject:Message-Id; b=jNn3eJ4z3Aqs5l1Z6J9uKYL/qz1IZx+wgKq/nBUPnXS6ialrx/4Let1J/UK/cXAg9QNnEIWqyFiy47DtAxzEMak1VeZDphL2l1+4xQOnGBxZXN4BcHso/Lf2o5p6y7NtwZXfMLHjPxiCa3tzShOuUFgU6kzW8ZPl1oivDsKHdHY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gFm/Y+Cx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771634329; c=relaxed/simple;
+	bh=G2QsuBurny2RIda0Rl9pownWazhVSipKnnGFKLzJ65o=;
+	h=Date:To:From:Subject:Message-Id; b=XqC7rHRrAWMVjd/HAZREP/f8r/nnkYJb+F64iEVOwDxAz+1lTFXuhEbuUEMdFRxMIiDcAraf5UH/az3qlWV+sxiiYLCmg2ODfNjJtfJdfYBo8FFVsAUmrIs7KdNzDvhGHGCoqvgRrnKDjDiCWF0l8ftP4GHKVfmDFs87gRjnnfg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QzVCe+gp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gFm/Y+Cx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B92A2C116C6;
-	Sat, 21 Feb 2026 00:38:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QzVCe+gp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9A16C116C6;
+	Sat, 21 Feb 2026 00:38:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771634326;
-	bh=/Q/eBCTuG6Qx516PAGoOEfCUp9oVY+vjoNVoCu83Ub4=;
+	s=korg; t=1771634328;
+	bh=G2QsuBurny2RIda0Rl9pownWazhVSipKnnGFKLzJ65o=;
 	h=Date:To:From:Subject:From;
-	b=gFm/Y+Cx6HSKBrRWg8T0K4x++uJEdWphJMEgNhEc5b/LZwcS9FqVWWRLkPe50MrNY
-	 65uAnbxCTZljiEKrvkwA3r9bxlUDtnMUzCf0GARW7kE84W34k7ffIKNHiW4dI7H+yR
-	 DQ53IbkAtagAV23BddDML3P1AGa54HIyxgTHeGGM=
-Date: Fri, 20 Feb 2026 16:38:46 -0800
+	b=QzVCe+gpFV5QkvSqfAHC7s7rQ7MeuuE4bBrA0SS4r8E8bNd6kFwJTow7p4VaGkWD4
+	 sKKO6L+P8ecJzQIPphi5Hej1D0uE6JWOko2BVJLIxekAoEPbqM4n/64rKgbj/TuKNy
+	 YCgrxY8QvBkGtnF4zpvoiGP8sOWWx6o9ePnUkid0=
+Date: Fri, 20 Feb 2026 16:38:48 -0800
 To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,zhongqiu.han@oss.qualcomm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-remove-unreachable-return-statement-in-scan_should_stop.patch added to mm-new branch
-Message-Id: <20260221003846.B92A2C116C6@smtp.kernel.org>
+Subject: + mm-kmemleak-use-pf_kthread-flag-to-detect-kernel-threads.patch added to mm-new branch
+Message-Id: <20260221003848.B9A16C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/kmemleak: remove unreachable return statement in scan_should_stop()
+     Subject: mm/kmemleak: use PF_KTHREAD flag to detect kernel threads
 has been added to the -mm mm-new branch.  Its filename is
-     mm-kmemleak-remove-unreachable-return-statement-in-scan_should_stop.patch
+     mm-kmemleak-use-pf_kthread-flag-to-detect-kernel-threads.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-remove-unreachable-return-statement-in-scan_should_stop.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-use-pf_kthread-flag-to-detect-kernel-threads.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,42 +67,39 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
-Subject: mm/kmemleak: remove unreachable return statement in scan_should_stop()
-Date: Fri, 30 Jan 2026 17:37:28 +0800
+Subject: mm/kmemleak: use PF_KTHREAD flag to detect kernel threads
+Date: Fri, 30 Jan 2026 17:37:29 +0800
 
-Patch series "mm/kmemleak: Improve scan_should_stop() implementation".
-
-This series improves the scan_should_stop() function by addressing code
-quality issues and enhancing kernel thread detection robustness.
-
-
-This patch (of 2):
-
-Remove unreachable "return 0;" statement as all execution paths return
-before reaching it.
+Replace the current->mm check with PF_KTHREAD flag for more reliable
+kernel thread detection in scan_should_stop().  The PF_KTHREAD flag is the
+standard way to identify kernel threads and is not affected by temporary
+mm borrowing via kthread_use_mm() (although kmemleak does not currently
+encounter such cases, this makes the code more robust).
 
 No functional change.
 
-Link: https://lkml.kernel.org/r/20260130093729.2045858-2-zhongqiu.han@oss.qualcomm.com
+Link: https://lkml.kernel.org/r/20260130093729.2045858-3-zhongqiu.han@oss.qualcomm.com
 Signed-off-by: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/kmemleak.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-remove-unreachable-return-statement-in-scan_should_stop
+--- a/mm/kmemleak.c~mm-kmemleak-use-pf_kthread-flag-to-detect-kernel-threads
 +++ a/mm/kmemleak.c
-@@ -1507,10 +1507,8 @@ static int scan_should_stop(void)
+@@ -1505,10 +1505,10 @@ static int scan_should_stop(void)
+ 	 * This function may be called from either process or kthread context,
+ 	 * hence the need to check for both stop conditions.
  	 */
- 	if (current->mm)
- 		return signal_pending(current);
--	else
--		return kthread_should_stop();
+-	if (current->mm)
+-		return signal_pending(current);
++	if (current->flags & PF_KTHREAD)
++		return kthread_should_stop();
  
--	return 0;
-+	return kthread_should_stop();
+-	return kthread_should_stop();
++	return signal_pending(current);
  }
  
  /*
