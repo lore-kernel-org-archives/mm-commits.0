@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0627E3EBF08
-	for <mm-commits@vger.kernel.org>; Sun, 22 Feb 2026 19:19:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5061D35BDCF
+	for <mm-commits@vger.kernel.org>; Sun, 22 Feb 2026 19:25:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771787948; cv=none; b=fqM/COWpgmxYwm78MaMjllQ3NcAKVXaj7Bd/xmJx3IvXi9lkGOwKqo79zjLB3+wWOc0Vy0Ufuab7dmZuKrYvbplSUciRFHDk+ffGIuJ2XWmHaIqLrZ2I/8YbCn3MPJXnfniegmWo9J028URgAKWO8hHgeHygZR/zifTk1R0MzFU=
+	t=1771788355; cv=none; b=XJor6pMe27f+hr75mQAk3Z9wtrQQ6SLkMCVs4hK4wigr8I52n0OpVz912gwfgExBmHWl3OVEuWZZM15vzPRGigsPdMQMFENLHHI/lir0Jtb8E5xI91rMAMJJnX1R8s9AgxKIVqsKQ7Eo3YvFYSqzHVKfoiY8JEhlS4Dz6qzejX0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771787948; c=relaxed/simple;
-	bh=Oeeg9HCJq1XZ8bDo1z9eIRTkmk9Xlics67f96llgHyY=;
-	h=Date:To:From:Subject:Message-Id; b=QmLXK7mS7ez0bZc9PC4E3neE4Jo/Lz8+6Cce5F2+Akn05pjid7I25MNhHM6vofTrmm6OdHpEuqE/DKauMCgBAOd//PcztMamg477auXlrwdjLJQk4/Xs7IjFXk0bEmahlKS+BlClPahlp0kgKYO+MxFTEpcbaBISVasnLZdzvjY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fzTdL1bU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771788355; c=relaxed/simple;
+	bh=i2FJdfhi9MhMdwfCcgakQkZc7p5T9ZTzwmk2ZUPUz7M=;
+	h=Date:To:From:Subject:Message-Id; b=CcPClV7F+pCQXkMXrFigO+UhtENy9ZZ0tVDsKeHxyJs28t0IgdOfxaZ0CbjtL4Mc4sN1PU2kp2PUrvKTvNE/5VNzeaDUfdRYnQDS0CF4DurnrObGdiJ2yvuZxxnHXMXr1LJmzcfQGfHmoIbpVfJVzx5otWXh3pnVSot/A0TyAgg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RiS7bytp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fzTdL1bU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8ABCCC116D0;
-	Sun, 22 Feb 2026 19:19:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RiS7bytp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 106C8C116D0;
+	Sun, 22 Feb 2026 19:25:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771787947;
-	bh=Oeeg9HCJq1XZ8bDo1z9eIRTkmk9Xlics67f96llgHyY=;
+	s=korg; t=1771788355;
+	bh=i2FJdfhi9MhMdwfCcgakQkZc7p5T9ZTzwmk2ZUPUz7M=;
 	h=Date:To:From:Subject:From;
-	b=fzTdL1bUKUkHujlmpjR8JxG8N6v1oMgJjocf3bv6invdkBgOlfKN/w3Ji9hSoJRnM
-	 Z2nQ5HyhFk79FqVBsYUGoqoIUa67igpPBqRQ0fhTGd7Nmpf6HO5CMOfPbDO+AuWJaK
-	 XRTkURqzkovLTnW9D5/w/efwLVGKXZJ48D6nIWr8=
-Date: Sun, 22 Feb 2026 11:19:06 -0800
-To: mm-commits@vger.kernel.org,mjguzik@gmail.com,kees@kernel.org,brauner@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
+	b=RiS7bytp6qXdXwBIsFJUfQ/XTTkonyLGy9QAnOpaZom4EDrgHHp2cWabf9za1cbmw
+	 g08RqfDrM30Ylhpi13nQxoa+EA2I/1vL8y51NZRinmDLmXv3o+KE2udhbHXG/fLmSg
+	 TbbnzBSRuWYOxwsPYtGdVGmvD7ej111HKwRYayR0=
+Date: Sun, 22 Feb 2026 11:25:54 -0800
+To: mm-commits@vger.kernel.org,wangjinchao600@gmail.com,pmladek@suse.com,joel.granados@kernel.org,rioo.tsukatsukii@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + complete_signal-kill-always-true-core_state-signal_group_exit-check.patch added to mm-nonmm-unstable branch
-Message-Id: <20260222191907.8ABCCC116D0@smtp.kernel.org>
+Subject: + kernel-panic-allocate-taint-string-buffer-dynamically.patch added to mm-nonmm-unstable branch
+Message-Id: <20260222192555.106C8C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: complete_signal: kill always-true "core_state || !SIGNAL_GROUP_EXIT" check
+     Subject: kernel/panic: allocate taint string buffer dynamically
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     complete_signal-kill-always-true-core_state-signal_group_exit-check.patch
+     kernel-panic-allocate-taint-string-buffer-dynamically.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/complete_signal-kill-always-true-core_state-signal_group_exit-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-panic-allocate-taint-string-buffer-dynamically.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,60 +58,110 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: complete_signal: kill always-true "core_state || !SIGNAL_GROUP_EXIT" check
-Date: Sun, 22 Feb 2026 16:24:00 +0100
+From: Rio <rioo.tsukatsukii@gmail.com>
+Subject: kernel/panic: allocate taint string buffer dynamically
+Date: Sun, 22 Feb 2026 19:38:04 +0530
 
-The "(signal->core_state || !(signal->flags & SIGNAL_GROUP_EXIT))" check
-in complete_signal() is not obvious at all, and in fact it only adds
-unnecessary confusion: this condition is always true.
+The buffer used to hold the taint string is statically allocated, which
+requires updating whenever a new taint flag is added.
 
-prepare_signal() does:
+Instead, allocate the exact required length at boot once the allocator is
+available in an init function.  The allocation sums the string lengths in
+taint_flags[], along with space for separators and formatting. 
+print_tainted() is switched to use this dynamically allocated buffer.
 
-	if (signal->flags & SIGNAL_GROUP_EXIT) {
-		if (signal->core_state)
-			return sig == SIGKILL;
-		/*
-		 * The process is in the middle of dying, drop the signal.
-		 */
-		return false;
-	}
+If allocation fails, print_tainted() warns about the failure and continues
+to use the original static buffer as a fallback.
 
-This means that "!signal->core_state && (signal->flags &
-SIGNAL_GROUP_EXIT)" in complete_signal() is never possible.
-
-If SIGNAL_GROUP_EXIT is set, prepare_signal() can only return true if
-signal->core_state is not NULL.
-
-Link: https://lkml.kernel.org/r/aZsfkDhnqJ4s1oTs@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
+Link: https://lkml.kernel.org/r/20260222140804.22225-1-rioo.tsukatsukii@gmail.com
+Signed-off-by: Rio <rioo.tsukatsukii@gmail.com>
+Cc: Joel Granados <joel.granados@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Wang Jinchao <wangjinchao600@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ kernel/panic.c |   51 ++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 46 insertions(+), 5 deletions(-)
 
---- a/kernel/signal.c~complete_signal-kill-always-true-core_state-signal_group_exit-check
-+++ a/kernel/signal.c
-@@ -1000,9 +1000,7 @@ static void complete_signal(int sig, str
- 	 * Found a killable thread.  If the signal will be fatal,
- 	 * then start taking the whole group down immediately.
- 	 */
--	if (sig_fatal(p, sig) &&
--	    (signal->core_state || !(signal->flags & SIGNAL_GROUP_EXIT)) &&
--	    !sigismember(&t->real_blocked, sig) &&
-+	if (sig_fatal(p, sig) && !sigismember(&t->real_blocked, sig) &&
- 	    (sig == SIGKILL || !p->ptrace)) {
- 		/*
- 		 * This signal will be fatal to the whole group.
+--- a/kernel/panic.c~kernel-panic-allocate-taint-string-buffer-dynamically
++++ a/kernel/panic.c
+@@ -802,7 +802,7 @@ EXPORT_SYMBOL(panic);
+  * small shell script that prints the TAINT_FLAGS_COUNT bits of
+  * /proc/sys/kernel/tainted.
+  *
+- * Also, update TAINT_BUF_MAX below.
++ * Also, update INIT_TAINT_BUF_MAX below.
+  */
+ const struct taint_flag taint_flags[TAINT_FLAGS_COUNT] = {
+ 	TAINT_FLAG(PROPRIETARY_MODULE,		'P', 'G'),
+@@ -856,17 +856,58 @@ static void print_tainted_seq(struct seq
+ 	}
+ }
+ 
+-/* 350 can accommodate all taint flags in verbose mode, with some headroom */
+-#define TAINT_BUF_MAX 350
++/* The initial buffer can accommodate all taint flags in verbose
++ * mode, with some headroom. Once the allocator is available, the
++ * exact size is allocated dynamically; the initial buffer remains
++ * as a fallback if allocation fails.
++ *
++ * The verbose taint string currently requires up to 327 characters.
++ */
++#define INIT_TAINT_BUF_MAX 350
++
++static char init_taint_buf[INIT_TAINT_BUF_MAX];
++static char *taint_buf = init_taint_buf;
++static size_t taint_buf_size = INIT_TAINT_BUF_MAX;
++
++static __init int alloc_taint_buf(void)
++{
++	int i;
++	char *buf;
++	size_t size = 0;
++
++	size += sizeof("Tainted: ") - 1;
++	for (i = 0; i < TAINT_FLAGS_COUNT; i++) {
++		size += 2; /* For ", " */
++		size += 4; /* For "[%c]=" */
++		size += strlen(taint_flags[i].desc);
++	}
++
++	size += 1; /* For NULL terminator */
++
++	buf = kmalloc(size, GFP_KERNEL);
++
++	if (!buf) {
++		/* Allocation may fail; this warning explains possibly
++		 * truncated taint strings
++		 */
++		pr_warn_once("taint string buffer allocation failed, using fallback buffer\n");
++		return 0;
++	}
++
++	taint_buf = buf;
++	taint_buf_size = size;
++
++	return 0;
++}
++postcore_initcall(alloc_taint_buf);
+ 
+ static const char *_print_tainted(bool verbose)
+ {
+-	static char buf[TAINT_BUF_MAX];
+ 	struct seq_buf s;
+ 
+ 	BUILD_BUG_ON(ARRAY_SIZE(taint_flags) != TAINT_FLAGS_COUNT);
+ 
+-	seq_buf_init(&s, buf, sizeof(buf));
++	seq_buf_init(&s, taint_buf, taint_buf_size);
+ 
+ 	print_tainted_seq(&s, verbose);
+ 
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from rioo.tsukatsukii@gmail.com are
 
-exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent.patch
-do_notify_parent-sanitize-the-valid_signal-checks.patch
-complete_signal-kill-always-true-core_state-signal_group_exit-check.patch
+kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch
+kernel-panic-allocate-taint-string-buffer-dynamically.patch
 
