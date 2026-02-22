@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D7DDC8E6
-	for <mm-commits@vger.kernel.org>; Sat, 21 Feb 2026 00:38:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E18B3EBF08
+	for <mm-commits@vger.kernel.org>; Sun, 22 Feb 2026 19:19:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771634329; cv=none; b=qMWFaRQhiRR9uh5B91wF5nVZlN9GxV/2qgKgHNJgpUZYLC+p5Z1KLZxPYToO56L5wSWTnARPWBO9MKWHR0m2K2ZHp5XZMPK7K0qdZOL+VCwBBrWAui1dDWP9F4Q9xPqJ0J2YTjXIsPuwMGttdVLbaSijn1OtN1eeSEX0RxXlyFU=
+	t=1771787943; cv=none; b=PyZmi7olK9VRdrTdbKv3Z5/K1cYgSPOdsZ4JZWvy32Qrlou2P+B9myC/JWQKcMzvp4LVwKe0xPqq2+68hKTx3wUTBWai1qNEQSPjmXG6d6OzFU0Uwv6v4ApUWyGFzVrI8Aai+xw962yJMaPuX0omjTJUEq4ieUxEMv4xbzfqSHw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771634329; c=relaxed/simple;
-	bh=G2QsuBurny2RIda0Rl9pownWazhVSipKnnGFKLzJ65o=;
-	h=Date:To:From:Subject:Message-Id; b=XqC7rHRrAWMVjd/HAZREP/f8r/nnkYJb+F64iEVOwDxAz+1lTFXuhEbuUEMdFRxMIiDcAraf5UH/az3qlWV+sxiiYLCmg2ODfNjJtfJdfYBo8FFVsAUmrIs7KdNzDvhGHGCoqvgRrnKDjDiCWF0l8ftP4GHKVfmDFs87gRjnnfg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QzVCe+gp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771787943; c=relaxed/simple;
+	bh=hhOiblFihTlpD9sDno2jso3/6+4MDmS9A0Hp9y7GRcs=;
+	h=Date:To:From:Subject:Message-Id; b=q8SZea+MxOtBKmxDOUlHCw1pYoSEmLvC8vSFC/GWvW+0sx/w5tG0Z3N8SWnzdIrtk4F2v8HtklVFiBG4YD54MN0QA6ybapWQjDU288Nu+fU6ZNkvcm06PJ8CNRi9F9elD979+/rD09czbDUVT5BwsOVT9rhKUNqqcJwb5YBQwxE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DGSvaSf/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QzVCe+gp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9A16C116C6;
-	Sat, 21 Feb 2026 00:38:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DGSvaSf/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09770C116D0;
+	Sun, 22 Feb 2026 19:19:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771634328;
-	bh=G2QsuBurny2RIda0Rl9pownWazhVSipKnnGFKLzJ65o=;
+	s=korg; t=1771787943;
+	bh=hhOiblFihTlpD9sDno2jso3/6+4MDmS9A0Hp9y7GRcs=;
 	h=Date:To:From:Subject:From;
-	b=QzVCe+gpFV5QkvSqfAHC7s7rQ7MeuuE4bBrA0SS4r8E8bNd6kFwJTow7p4VaGkWD4
-	 sKKO6L+P8ecJzQIPphi5Hej1D0uE6JWOko2BVJLIxekAoEPbqM4n/64rKgbj/TuKNy
-	 YCgrxY8QvBkGtnF4zpvoiGP8sOWWx6o9ePnUkid0=
-Date: Fri, 20 Feb 2026 16:38:48 -0800
-To: mm-commits@vger.kernel.org,catalin.marinas@arm.com,zhongqiu.han@oss.qualcomm.com,akpm@linux-foundation.org
+	b=DGSvaSf/VJsv+OkSaDmgE4yAGdiyd79qc7IjfDJpfmXyl+19DH+GerXe8BAoBuaA+
+	 2zWEMu8E2KjnAWl0CJQobzNrfRJwzgs63/B5hGKw/yR/cSvd+ybEecvX452j4QA8bS
+	 OI6xJpgu6oOyaSvMWDjdg+KqLFjnbpDRvoLJDDqQ=
+Date: Sun, 22 Feb 2026 11:19:02 -0800
+To: mm-commits@vger.kernel.org,mjguzik@gmail.com,kees@kernel.org,brauner@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-use-pf_kthread-flag-to-detect-kernel-threads.patch added to mm-new branch
-Message-Id: <20260221003848.B9A16C116C6@smtp.kernel.org>
+Subject: + exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent.patch added to mm-nonmm-unstable branch
+Message-Id: <20260222191903.09770C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/kmemleak: use PF_KTHREAD flag to detect kernel threads
-has been added to the -mm mm-new branch.  Its filename is
-     mm-kmemleak-use-pf_kthread-flag-to-detect-kernel-threads.patch
+     Subject: exit: kill unnecessary thread_group_leader() checks in exit_notify() and do_notify_parent()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-use-pf_kthread-flag-to-detect-kernel-threads.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,47 +58,65 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
-Subject: mm/kmemleak: use PF_KTHREAD flag to detect kernel threads
-Date: Fri, 30 Jan 2026 17:37:29 +0800
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: exit: kill unnecessary thread_group_leader() checks in exit_notify() and do_notify_parent()
+Date: Sun, 22 Feb 2026 16:23:37 +0100
 
-Replace the current->mm check with PF_KTHREAD flag for more reliable
-kernel thread detection in scan_should_stop().  The PF_KTHREAD flag is the
-standard way to identify kernel threads and is not affected by temporary
-mm borrowing via kthread_use_mm() (although kmemleak does not currently
-encounter such cases, this makes the code more robust).
+thread_group_empty(tsk) is only possible if tsk is a group leader, and
+thread_group_empty() already does the thread_group_leader() check.
 
-No functional change.
+So it makes no sense to check "thread_group_leader() &&
+thread_group_empty()"; thread_group_empty() alone is enough.
 
-Link: https://lkml.kernel.org/r/20260130093729.2045858-3-zhongqiu.han@oss.qualcomm.com
-Signed-off-by: Zhongqiu Han <zhongqiu.han@oss.qualcomm.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lkml.kernel.org/r/aZsfeegKZPZZszJh@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/exit.c   |    8 +++-----
+ kernel/signal.c |    3 +--
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-use-pf_kthread-flag-to-detect-kernel-threads
-+++ a/mm/kmemleak.c
-@@ -1505,10 +1505,10 @@ static int scan_should_stop(void)
- 	 * This function may be called from either process or kthread context,
- 	 * hence the need to check for both stop conditions.
- 	 */
--	if (current->mm)
--		return signal_pending(current);
-+	if (current->flags & PF_KTHREAD)
-+		return kthread_should_stop();
+--- a/kernel/exit.c~exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent
++++ a/kernel/exit.c
+@@ -748,14 +748,12 @@ static void exit_notify(struct task_stru
+ 	tsk->exit_state = EXIT_ZOMBIE;
  
--	return kthread_should_stop();
-+	return signal_pending(current);
- }
+ 	if (unlikely(tsk->ptrace)) {
+-		int sig = thread_group_leader(tsk) &&
+-				thread_group_empty(tsk) &&
+-				!ptrace_reparented(tsk) ?
+-			tsk->exit_signal : SIGCHLD;
++		int sig = thread_group_empty(tsk) && !ptrace_reparented(tsk)
++			  ? tsk->exit_signal : SIGCHLD;
+ 		autoreap = do_notify_parent(tsk, sig);
+ 	} else if (thread_group_leader(tsk)) {
+ 		autoreap = thread_group_empty(tsk) &&
+-			do_notify_parent(tsk, tsk->exit_signal);
++			   do_notify_parent(tsk, tsk->exit_signal);
+ 	} else {
+ 		autoreap = true;
+ 		/* untraced sub-thread */
+--- a/kernel/signal.c~exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent
++++ a/kernel/signal.c
+@@ -2178,8 +2178,7 @@ bool do_notify_parent(struct task_struct
+ 	/* do_notify_parent_cldstop should have been called instead.  */
+ 	WARN_ON_ONCE(task_is_stopped_or_traced(tsk));
  
- /*
+-	WARN_ON_ONCE(!tsk->ptrace &&
+-	       (tsk->group_leader != tsk || !thread_group_empty(tsk)));
++	WARN_ON_ONCE(!tsk->ptrace && !thread_group_empty(tsk));
+ 
+ 	/* ptraced, or group-leader without sub-threads */
+ 	do_notify_pidfd(tsk);
 _
 
-Patches currently in -mm which might be from zhongqiu.han@oss.qualcomm.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-kmemleak-remove-unreachable-return-statement-in-scan_should_stop.patch
-mm-kmemleak-use-pf_kthread-flag-to-detect-kernel-threads.patch
+exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent.patch
+do_notify_parent-sanitize-the-valid_signal-checks.patch
+complete_signal-kill-always-true-core_state-signal_group_exit-check.patch
 
