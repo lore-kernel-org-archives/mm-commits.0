@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5061D35BDCF
-	for <mm-commits@vger.kernel.org>; Sun, 22 Feb 2026 19:25:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 141D03EBF08
+	for <mm-commits@vger.kernel.org>; Sun, 22 Feb 2026 19:28:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771788355; cv=none; b=XJor6pMe27f+hr75mQAk3Z9wtrQQ6SLkMCVs4hK4wigr8I52n0OpVz912gwfgExBmHWl3OVEuWZZM15vzPRGigsPdMQMFENLHHI/lir0Jtb8E5xI91rMAMJJnX1R8s9AgxKIVqsKQ7Eo3YvFYSqzHVKfoiY8JEhlS4Dz6qzejX0=
+	t=1771788502; cv=none; b=t9ADu9ZCOI1vKqqxEONtSHGpCxr5ftCx8cvHvQ+P4G3Gche3SHzTlQC59rWuIms7CAFswDRzAXKA6TKhN/MPkP5mOniEX7iDgxiRhbZxZ68ABI4wVe1F6zodGlsIxqnAgUppx9ITUtMDNKVSHRZoaqxOwKOin6FiYv9JVOa1hDs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771788355; c=relaxed/simple;
-	bh=i2FJdfhi9MhMdwfCcgakQkZc7p5T9ZTzwmk2ZUPUz7M=;
-	h=Date:To:From:Subject:Message-Id; b=CcPClV7F+pCQXkMXrFigO+UhtENy9ZZ0tVDsKeHxyJs28t0IgdOfxaZ0CbjtL4Mc4sN1PU2kp2PUrvKTvNE/5VNzeaDUfdRYnQDS0CF4DurnrObGdiJ2yvuZxxnHXMXr1LJmzcfQGfHmoIbpVfJVzx5otWXh3pnVSot/A0TyAgg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RiS7bytp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771788502; c=relaxed/simple;
+	bh=QwFtNREnlHDjAisQDuDhrLMAnN3PgtQonzKNcN5bqJ4=;
+	h=Date:To:From:Subject:Message-Id; b=fNe/PZHbQDhoH9ghrb+MQjFt/WzHtGZf5HwofqRGrMmRqcGF47Z9/zvJfDUavT8UYrDDCEGtvo9CbNnfsJAd3nlM16HOQiu5Lkb/fZeqWrJmn2N+LXETTGuBMIYcXKyUJBESvXPOg2F37LL/wxJpmpXwUCmi/veDqPrScxZEfiY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Uckl5zIp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RiS7bytp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 106C8C116D0;
-	Sun, 22 Feb 2026 19:25:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Uckl5zIp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 880DAC116D0;
+	Sun, 22 Feb 2026 19:28:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771788355;
-	bh=i2FJdfhi9MhMdwfCcgakQkZc7p5T9ZTzwmk2ZUPUz7M=;
+	s=korg; t=1771788501;
+	bh=QwFtNREnlHDjAisQDuDhrLMAnN3PgtQonzKNcN5bqJ4=;
 	h=Date:To:From:Subject:From;
-	b=RiS7bytp6qXdXwBIsFJUfQ/XTTkonyLGy9QAnOpaZom4EDrgHHp2cWabf9za1cbmw
-	 g08RqfDrM30Ylhpi13nQxoa+EA2I/1vL8y51NZRinmDLmXv3o+KE2udhbHXG/fLmSg
-	 TbbnzBSRuWYOxwsPYtGdVGmvD7ej111HKwRYayR0=
-Date: Sun, 22 Feb 2026 11:25:54 -0800
-To: mm-commits@vger.kernel.org,wangjinchao600@gmail.com,pmladek@suse.com,joel.granados@kernel.org,rioo.tsukatsukii@gmail.com,akpm@linux-foundation.org
+	b=Uckl5zIpDKwn2ASnp0SH2jWz/LRb87GFBt9MbtkSEYi2axuch6M5QUZERN7TwsWP5
+	 0lPBa3CMTfM3G5K0Y8sDIqF/yYh3/+6AWG77vV23PcKAem6kOTUgyN7V8eLaMTScHn
+	 ijXwb6HlwR15FfGO2KawC5w8seCD6aYLR2q0DCdk=
+Date: Sun, 22 Feb 2026 11:28:20 -0800
+To: mm-commits@vger.kernel.org,lasse.collin@tukaani.org,kees@kernel.org,haiyuewa@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-panic-allocate-taint-string-buffer-dynamically.patch added to mm-nonmm-unstable branch
-Message-Id: <20260222192555.106C8C116D0@smtp.kernel.org>
+Subject: + xz-fix-arm-fdt-compile-error-for-kmalloc-replacement.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260222192821.880DAC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/panic: allocate taint string buffer dynamically
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-panic-allocate-taint-string-buffer-dynamically.patch
+     Subject: xz: fix the preboot code to match the kmalloc_obj change
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     xz-fix-arm-fdt-compile-error-for-kmalloc-replacement.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-panic-allocate-taint-string-buffer-dynamically.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xz-fix-arm-fdt-compile-error-for-kmalloc-replacement.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,110 +58,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Rio <rioo.tsukatsukii@gmail.com>
-Subject: kernel/panic: allocate taint string buffer dynamically
-Date: Sun, 22 Feb 2026 19:38:04 +0530
+From: Haiyue Wang <haiyuewa@163.com>
+Subject: xz: fix the preboot code to match the kmalloc_obj change
+Date: Sun, 22 Feb 2026 20:11:00 +0800
 
-The buffer used to hold the taint string is statically allocated, which
-requires updating whenever a new taint flag is added.
+kmalloc was replaced with kmalloc_obj in lib/xz.  Make the same change
+also in the preboot code to fix building of XZ-compressed kernel on a few
+archs.  For example, on ARM:
 
-Instead, allocate the exact required length at boot once the allocator is
-available in an init function.  The allocation sums the string lengths in
-taint_flags[], along with space for separators and formatting. 
-print_tainted() is switched to use this dynamically allocated buffer.
+In file included from arch/arm/boot/compressed/../../../../lib/decompress_unxz.c:241,
+                 from arch/arm/boot/compressed/decompress.c:56:
+arch/arm/boot/compressed/../../../../lib/xz/xz_dec_stream.c: In function 'xz_dec_init':
+arch/arm/boot/compressed/../../../../lib/xz/xz_dec_stream.c:787:28: error: implicit declaration of function 'kmalloc_obj'; did you mean 'kmalloc'? [-Wimplicit-function-declaration]
+   787 |         struct xz_dec *s = kmalloc_obj(*s);
+       |                            ^~~~~~~~~~~
+       |                            kmalloc
+arch/arm/boot/compressed/../../../../lib/xz/xz_dec_stream.c:787:28: error: initialization of 'struct xz_dec *' from 'int' makes pointer from integer without a cast [-Wint-conversion]
+arch/arm/boot/compressed/../../../../lib/decompress_unxz.c:242:
+arch/arm/boot/compressed/../../../../lib/xz/xz_dec_lzma2.c: In function 'xz_dec_lzma2_create':
+arch/arm/boot/compressed/../../../../lib/xz/xz_dec_lzma2.c:1141:34: error: initialization of 'struct xz_dec_lzma2 *' from 'int' makes pointer from integer without a cast [-Wint-conversion]
+  1141 |         struct xz_dec_lzma2 *s = kmalloc_obj(*s);
+       |                                  ^~~~~~~~~~~
+arch/arm/boot/compressed/../../../../lib/decompress_unxz.c:243:
+arch/arm/boot/compressed/../../../../lib/xz/xz_dec_bcj.c: In function 'xz_dec_bcj_create':
+arch/arm/boot/compressed/../../../../lib/xz/xz_dec_bcj.c:594:32: error: initialization of 'struct xz_dec_bcj *' from 'int' makes pointer from integer without a cast [-Wint-conversion]
+   594 |         struct xz_dec_bcj *s = kmalloc_obj(*s);
+       |                                ^~~~~~~~~~~
+CC      arch/arm/boot/compressed/fdt.o
 
-If allocation fails, print_tainted() warns about the failure and continues
-to use the original static buffer as a fallback.
-
-Link: https://lkml.kernel.org/r/20260222140804.22225-1-rioo.tsukatsukii@gmail.com
-Signed-off-by: Rio <rioo.tsukatsukii@gmail.com>
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Wang Jinchao <wangjinchao600@gmail.com>
+[lasse.collin@tukaani.org: changelog updates]
+Link: https://lkml.kernel.org/r/20260222121107.116775-1-haiyuewa@163.com
+Fixes: 69050f8d6d07 ("treewide: Replace kmalloc with kmalloc_obj for non-scalar types")
+Fixes: bf4afc53b77a ("Convert 'alloc_obj' family to use the new default GFP_KERNEL argument")
+Signed-off-by: Haiyue Wang <haiyuewa@163.com>
+Acked-by: Lasse Collin <lasse.collin@tukaani.org>
+Reviewed-by: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |   51 ++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 46 insertions(+), 5 deletions(-)
+ lib/decompress_unxz.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/panic.c~kernel-panic-allocate-taint-string-buffer-dynamically
-+++ a/kernel/panic.c
-@@ -802,7 +802,7 @@ EXPORT_SYMBOL(panic);
-  * small shell script that prints the TAINT_FLAGS_COUNT bits of
-  * /proc/sys/kernel/tainted.
-  *
-- * Also, update TAINT_BUF_MAX below.
-+ * Also, update INIT_TAINT_BUF_MAX below.
+--- a/lib/decompress_unxz.c~xz-fix-arm-fdt-compile-error-for-kmalloc-replacement
++++ a/lib/decompress_unxz.c
+@@ -157,11 +157,11 @@
+  * when XZ_DYNALLOC is used, but the pre-boot free() doesn't support it.
+  * Workaround it here because the other decompressors don't need it.
   */
- const struct taint_flag taint_flags[TAINT_FLAGS_COUNT] = {
- 	TAINT_FLAG(PROPRIETARY_MODULE,		'P', 'G'),
-@@ -856,17 +856,58 @@ static void print_tainted_seq(struct seq
- 	}
- }
- 
--/* 350 can accommodate all taint flags in verbose mode, with some headroom */
--#define TAINT_BUF_MAX 350
-+/* The initial buffer can accommodate all taint flags in verbose
-+ * mode, with some headroom. Once the allocator is available, the
-+ * exact size is allocated dynamically; the initial buffer remains
-+ * as a fallback if allocation fails.
-+ *
-+ * The verbose taint string currently requires up to 327 characters.
-+ */
-+#define INIT_TAINT_BUF_MAX 350
-+
-+static char init_taint_buf[INIT_TAINT_BUF_MAX];
-+static char *taint_buf = init_taint_buf;
-+static size_t taint_buf_size = INIT_TAINT_BUF_MAX;
-+
-+static __init int alloc_taint_buf(void)
-+{
-+	int i;
-+	char *buf;
-+	size_t size = 0;
-+
-+	size += sizeof("Tainted: ") - 1;
-+	for (i = 0; i < TAINT_FLAGS_COUNT; i++) {
-+		size += 2; /* For ", " */
-+		size += 4; /* For "[%c]=" */
-+		size += strlen(taint_flags[i].desc);
-+	}
-+
-+	size += 1; /* For NULL terminator */
-+
-+	buf = kmalloc(size, GFP_KERNEL);
-+
-+	if (!buf) {
-+		/* Allocation may fail; this warning explains possibly
-+		 * truncated taint strings
-+		 */
-+		pr_warn_once("taint string buffer allocation failed, using fallback buffer\n");
-+		return 0;
-+	}
-+
-+	taint_buf = buf;
-+	taint_buf_size = size;
-+
-+	return 0;
-+}
-+postcore_initcall(alloc_taint_buf);
- 
- static const char *_print_tainted(bool verbose)
- {
--	static char buf[TAINT_BUF_MAX];
- 	struct seq_buf s;
- 
- 	BUILD_BUG_ON(ARRAY_SIZE(taint_flags) != TAINT_FLAGS_COUNT);
- 
--	seq_buf_init(&s, buf, sizeof(buf));
-+	seq_buf_init(&s, taint_buf, taint_buf_size);
- 
- 	print_tainted_seq(&s, verbose);
- 
+-#undef kmalloc
++#undef kmalloc_obj
+ #undef kfree
+ #undef vmalloc
+ #undef vfree
+-#define kmalloc(size, flags) malloc(size)
++#define kmalloc_obj(type) malloc(sizeof(type))
+ #define kfree(ptr) free(ptr)
+ #define vmalloc(size) malloc(size)
+ #define vfree(ptr) do { if (ptr != NULL) free(ptr); } while (0)
 _
 
-Patches currently in -mm which might be from rioo.tsukatsukii@gmail.com are
+Patches currently in -mm which might be from haiyuewa@163.com are
 
-kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch
-kernel-panic-allocate-taint-string-buffer-dynamically.patch
+xz-fix-arm-fdt-compile-error-for-kmalloc-replacement.patch
 
