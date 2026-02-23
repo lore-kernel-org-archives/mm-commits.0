@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2488B36923C;
-	Mon, 23 Feb 2026 18:50:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3BFB37474C
+	for <mm-commits@vger.kernel.org>; Mon, 23 Feb 2026 20:12:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771872611; cv=none; b=hbPtzpuautEhAW24/5+WLGHKeW35pItu14eXNUcaYoZo903lMao9Uqn1RhzL/2cPpHRHxgRkZWHKGZEat3Xbk3PObdpBtBbPIq3V9SgBLsp9FIUyrdygveVligscs5eOAd7l7MlOlXnvapq15ZrWxb04WYLuY4+53Gv9DvON/Xs=
+	t=1771877537; cv=none; b=B8du/RgWapW3FF49CmIt1aKm0QWV2rmeEzrMCq87dC2a4WHQ+hc8zu4nI2Ul6M3VPljH2a0Xe2C6lIbasqKm1WeAru9t1+cm3BeEZexkput49QSb0eJVVVTRZt4Qqqz9beVHtk6dDfBLgN3Z7SygyWBwSv8V+aOWZhSLNt4NXBE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771872611; c=relaxed/simple;
-	bh=K4osqT7485pwBO/d9wDgPNmmazS4dQtX9H40Il6+cYU=;
-	h=Date:To:From:Subject:Message-Id; b=NNKakqyehW/TFFv0TexHX4tF+vJFs4xkWdQuZKW0UtxYNp5zcxwZSxjGyja/vdEzbOtCvRac3Jze7t3G07I+WDokjFdswP0RFQ9DvdqpFWF2UTVlezlm8qf07wKdxNf4JfqQLkIi3jgXJM3klpufE0ZcGH7VRCwR4zpPsgWAd58=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UANw2jIo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771877537; c=relaxed/simple;
+	bh=03jUB21huD9WXALJGJv0bSZYCb+998/0dA32FF25SE0=;
+	h=Date:To:From:Subject:Message-Id; b=Nk/ZxZ4nLn/4vA0HgrRyO4M/BN/2x0SLTMDECJx34GosawVODCziJubH6U9ZAo5ogFa1GjfUuOzhIGx/THFR3FFPKILKB34Gpq5MJCaSdB9lCzsrQZC55g/QmJKRtX6JeKTubAx+6fBr0zo7qWZy12k+LZUF7i7isEDrC475SHg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ILIhgFN2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UANw2jIo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A48EFC116C6;
-	Mon, 23 Feb 2026 18:50:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ILIhgFN2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63AE7C19421;
+	Mon, 23 Feb 2026 20:12:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771872610;
-	bh=K4osqT7485pwBO/d9wDgPNmmazS4dQtX9H40Il6+cYU=;
+	s=korg; t=1771877536;
+	bh=03jUB21huD9WXALJGJv0bSZYCb+998/0dA32FF25SE0=;
 	h=Date:To:From:Subject:From;
-	b=UANw2jIoFhMZ28VjBizoiiyFgB3lkJSuYWLzRqnxQgYXlJIXlS3PM8jQay4OVy9pz
-	 CJF7qP9pEjipVMpLVeifMN5F0/6+PTOPchv9mRwk+/RDOBbj53dEk6dnSEWmXxaAz/
-	 EWr2hzwidnvqBwNuBCF9ri9Yp6VJmvJ5TC4U+hp8=
-Date: Mon, 23 Feb 2026 10:50:10 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=ILIhgFN2xXXA9QZ5uTQ7EnfFgahdsPnRuoEdIY6GnxxMONTI2cM+7kxAZxUskJqCn
+	 3AIfBjqGXDJB0G77D15DJx22mMuF0p2W8FO5YmBpM1+29sqCKcJxQEGtICED4gh+GA
+	 0A4qx6CGgHOWKObej9wbhF+mo4yGeQpZ7c0cRNMA=
+Date: Mon, 23 Feb 2026 12:12:15 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd_luo-always-dirty-all-folios.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260223185010.A48EFC116C6@smtp.kernel.org>
+Subject: + mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix.patch added to mm-unstable branch
+Message-Id: <20260223201216.63AE7C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memfd_luo: always dirty all folios
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memfd_luo-always-dirty-all-folios.patch
+     Subject: mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-always-dirty-all-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,107 +58,52 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
-Subject: mm: memfd_luo: always dirty all folios
-Date: Mon, 23 Feb 2026 18:39:29 +0100
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix
+Date: Mon Feb 23 12:09:18 PM PST 2026
 
-A dirty folio is one which has been written to.  A clean folio is its
-opposite.  Since a clean folio has no user data, it can be freed under
-memory pressure.
+update comment per Matthew and David
 
-memfd preservation with LUO saves the flag at preserve().  This is
-problematic.  The folio might get dirtied later.  Saving it at freeze()
-also doesn't work, since the dirty bit from PTE is normally synced at
-unmap and there might still be mappings of the file at freeze().
-
-To see why this is a problem, say a folio is clean at preserve, but gets
-dirtied later.  The serialized state of the folio will mark it as clean. 
-After retrieve, the next kernel will see the folio as clean and might try
-to reclaim it under memory pressure.  This will result in losing user
-data.
-
-Mark all folios of the file as dirty, and always set the
-MEMFD_LUO_FOLIO_DIRTY flag.  This comes with the side effect of making all
-clean folios un-reclaimable.  This is a cost that has to be paid for
-participants of live update.  It is not expected to be a common use case
-to preserve a lot of clean folios anyway.
-
-Since the value of pfolio->flags is a constant now, drop the flags
-variable and set it directly.
-
-Link: https://lkml.kernel.org/r/20260223173931.2221759-3-pratyush@kernel.org
-Fixes: b3749f174d68 ("mm: memfd_luo: allow preserving memfd")
-Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
+Cc: "David Hildenbrand (Arm)" <david@kernel.org>
+Cc: Harry Yoo <harry.yoo@oracle.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: <stable@vger.kernel.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd_luo.c |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ mm/internal.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/memfd_luo.c~mm-memfd_luo-always-dirty-all-folios
-+++ a/mm/memfd_luo.c
-@@ -146,7 +146,6 @@ static int memfd_luo_preserve_folios(str
- 	for (i = 0; i < nr_folios; i++) {
- 		struct memfd_luo_folio_ser *pfolio = &folios_ser[i];
- 		struct folio *folio = folios[i];
--		unsigned int flags = 0;
- 
- 		err = kho_preserve_folio(folio);
- 		if (err)
-@@ -154,8 +153,26 @@ static int memfd_luo_preserve_folios(str
- 
- 		folio_lock(folio);
- 
--		if (folio_test_dirty(folio))
--			flags |= MEMFD_LUO_FOLIO_DIRTY;
-+		/*
-+		 * A dirty folio is one which has been written to. A clean folio
-+		 * is its opposite. Since a clean folio does not carry user
-+		 * data, it can be freed by page reclaim under memory pressure.
-+		 *
-+		 * Saving the dirty flag at prepare() time doesn't work since it
-+		 * can change later. Saving it at freeze() also won't work
-+		 * because the dirty bit is normally synced at unmap and there
-+		 * might still be a mapping of the file at freeze().
-+		 *
-+		 * To see why this is a problem, say a folio is clean at
-+		 * preserve, but gets dirtied later. The pfolio flags will mark
-+		 * it as clean. After retrieve, the next kernel might try to
-+		 * reclaim this folio under memory pressure, losing user data.
-+		 *
-+		 * Unconditionally mark it dirty to avoid this problem. This
-+		 * comes at the cost of making clean folios un-reclaimable after
-+		 * live update.
-+		 */
-+		folio_mark_dirty(folio);
- 
- 		/*
- 		 * If the folio is not uptodate, it was fallocated but never
-@@ -174,12 +191,11 @@ static int memfd_luo_preserve_folios(str
- 			flush_dcache_folio(folio);
- 			folio_mark_uptodate(folio);
- 		}
--		flags |= MEMFD_LUO_FOLIO_UPTODATE;
- 
- 		folio_unlock(folio);
- 
- 		pfolio->pfn = folio_pfn(folio);
--		pfolio->flags = flags;
-+		pfolio->flags = MEMFD_LUO_FOLIO_DIRTY | MEMFD_LUO_FOLIO_UPTODATE;
- 		pfolio->index = folio->index;
- 	}
- 
+--- a/mm/internal.h~mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix
++++ a/mm/internal.h
+@@ -521,10 +521,10 @@ void pmd_install(struct mm_struct *mm, p
+  * @mm: The mm_struct.
+  * @pmdp: Pointer to the pmd that was found to be pmd_none().
+  *
+- * When we stumble over a pmd_none() without holding the PTL while unmapping a
+- * folio that could have been mapped at that PMD, it could be that concurrent
+- * zapping of the PMD is not complete yet. While the PMD might be pmd_none()
+- * already, the folio might still appear to be mapped (folio_mapped()).
++ * When we find a pmd_none() while unmapping a folio without holding the PTL,
++ * zap_huge_pmd() may have cleared the PMD but not yet modified the folio to
++ * indicate that it's unmapped. Skipping the PMD without synchronization could
++ * make folio unmapping code assume that unmapping failed.
+  *
+  * Wait for concurrent zapping to complete by grabbing the PTL.
+  */
 _
 
-Patches currently in -mm which might be from pratyush@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-liveupdate-luo_file-remember-retrieve-status.patch
-mm-memfd_luo-always-make-all-folios-uptodate.patch
-mm-memfd_luo-always-dirty-all-folios.patch
-memfd-export-memfd_addget_seals.patch
-mm-memfd_luo-preserve-file-seals.patch
-kho-move-alloc-tag-init-to-kho_init_foliopages.patch
+maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
+maple_tree-add-cp_is_new_root-helper-fix-fix.patch
+lib-introduce-hierarchical-per-cpu-counters-fix.patch
+mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix.patch
+kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
 
