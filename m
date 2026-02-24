@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C42023AA19D
-	for <mm-commits@vger.kernel.org>; Tue, 24 Feb 2026 17:57:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E35C364054;
+	Tue, 24 Feb 2026 19:13:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771955875; cv=none; b=LjzkLXKkgT+aDUFzgKh+DUzg2ixWzR0ujhDk0/CazjANup1MvOFswH8njWW9BlG0ZQ+Hat6D4wMO+B2kIRKt/wLwPwJQWejEP/zWrZ6Z8IQe9tlHPsLUDU+MJIsQL5aW7c45Q5HCN2xa1lLCn7CuBXtlYeIsTrfwsNvFsw6vEVs=
+	t=1771960438; cv=none; b=ikPAPPe5lcvRsdRn1t+apohL4XTJLlXd06LoTcKd7AKQlMGF84Ds3GtdSAVTWB5s+gNtMDwC8OC2V6m58m62lpw7UGGjdEYgoUmDeBVn7dG+5WPzU7ZwBpp+o2rNrKXV4ZHW2KbkD9PxiBa1jTxoouU7ErIAdBZvm9mcrRq1ujw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771955875; c=relaxed/simple;
-	bh=Ki3MNligh8ThGb0qoqiXoNpg6aO1cmH0d4q0VEn0wlE=;
-	h=Date:To:From:Subject:Message-Id; b=uDG8R8gwZQBBYTyaYDqGTx024Zyvt42auDyY0iQ/6Gw14Uz8o3EDrFzIS1S6ESI9O/+iHjOncO4P58u+UlbR6u1v72UfXXn90levASRFoQgP5sIdbzlraMBedVc+p/QJYzjaWVxO20Ku7TDTFBveG6WGpWYWewBWtSs2C0CTEOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iz8/m3Ej; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771960438; c=relaxed/simple;
+	bh=dg7HxhNXmUcEH4vTFxKqrO2V+Bz7+KLiEfgpi4a7mRY=;
+	h=Date:To:From:Subject:Message-Id; b=G/RKrO0KmT7T4y9kii2zRwO5npSCax2AObFoTtzBf8ZkTMolEwlbwHEy2Uh276w4pi9lZGIJYtgeusJeAFX7u0miUXLfSvHRVNlfoJWkmKtJm92gTc9B7DKdv6f9rhiIcsmjE78C3VsYMkHllQBs9Btvl/ClCl2jm1fq8iYs6GM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dB55znbb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iz8/m3Ej"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70BF2C2BC86;
-	Tue, 24 Feb 2026 17:57:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dB55znbb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6192C116D0;
+	Tue, 24 Feb 2026 19:13:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771955875;
-	bh=Ki3MNligh8ThGb0qoqiXoNpg6aO1cmH0d4q0VEn0wlE=;
+	s=korg; t=1771960437;
+	bh=dg7HxhNXmUcEH4vTFxKqrO2V+Bz7+KLiEfgpi4a7mRY=;
 	h=Date:To:From:Subject:From;
-	b=Iz8/m3EjOt9VZqzqKSE0vrWUVA+zcY2G6sifeqFz2H6G/Jut9qYrVqFUMC2AnAA/I
-	 RtRdnPE5e1umcr8eGl1sW/ASYVyhJHGvsMlxoWv4A17/jSa8oPsbGrHScUcgNKHvg4
-	 YeMIroStRPWVdJ5Pkf4DtM/Ac5e1qNdYq/lZLzLU=
-Date: Tue, 24 Feb 2026 09:57:54 -0800
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,julia.lawall@inria.fr,david@kernel.org,kexinsun@smail.nju.edu.cn,akpm@linux-foundation.org
+	b=dB55znbb5+/njDheMSrwrv48/7r1N9dO5ya6w11rE9PXZEcbsVjkHSVM7KBDTr37m
+	 eFuVJmuB36EL+XL6UM+oFHSWqABki5YFVEtCkIlAtTn7Mg/jqFYGtKrQvVo4YhRMO6
+	 L3fbSVNneHVKfAKqvtDEcOFtdAr4gP+0KwN3If2A=
+Date: Tue, 24 Feb 2026 11:13:57 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,ryabinin.a.a@gmail.com,kees@kernel.org,gregkh@linuxfoundation.org,ernesto.martinezgarcia@tugraz.at,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,glider@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb_vmemmap-update-outdated-comment.patch added to mm-unstable branch
-Message-Id: <20260224175755.70BF2C2BC86@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-kfence-disable-kfence-upon-kasan-hw-tags-enablement.patch removed from -mm tree
+Message-Id: <20260224191357.C6192C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,66 +34,79 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/hugetlb_vmemmap: update outdated comment
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-hugetlb_vmemmap-update-outdated-comment.patch
+The quilt patch titled
+     Subject: mm/kfence: disable KFENCE upon KASAN HW tags enablement
+has been removed from the -mm tree.  Its filename was
+     mm-kfence-disable-kfence-upon-kasan-hw-tags-enablement.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-update-outdated-comment.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: kexinsun <kexinsun@smail.nju.edu.cn>
-Subject: mm/hugetlb_vmemmap: update outdated comment
-Date: Tue, 24 Feb 2026 10:28:40 +0800
+From: Alexander Potapenko <glider@google.com>
+Subject: mm/kfence: disable KFENCE upon KASAN HW tags enablement
+Date: Fri, 13 Feb 2026 10:54:10 +0100
 
-The function vmemmap_pte_range() was refactored into vmemmap_pte_entry()
-by commit fb93ed63345f ("mm: hugetlb_vmemmap: use walk_page_range_novma()
-to simplify the code").  Both functions share the key behavior that the
-reuse page is identified first before remapping begins.  Update the
-comment accordingly.
+KFENCE does not currently support KASAN hardware tags.  As a result, the
+two features are incompatible when enabled simultaneously.
 
-Link: https://lkml.kernel.org/r/20260224022840.1936-1-kexinsun@smail.nju.edu.cn
-Signed-off-by: kexinsun <kexinsun@smail.nju.edu.cn>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Julia Lawall <julia.lawall@inria.fr>
-Cc: Oscar Salvador <osalvador@suse.de>
+Given that MTE provides deterministic protection and KFENCE is a
+sampling-based debugging tool, prioritize the stronger hardware
+protections.  Disable KFENCE initialization and free the pre-allocated
+pool if KASAN hardware tags are detected to ensure the system maintains
+the security guarantees provided by MTE.
+
+Link: https://lkml.kernel.org/r/20260213095410.1862978-1-glider@google.com
+Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Suggested-by: Marco Elver <elver@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ernesto Martinez Garcia <ernesto.martinezgarcia@tugraz.at>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Kees Cook <kees@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_vmemmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kfence/core.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-update-outdated-comment
-+++ a/mm/hugetlb_vmemmap.c
-@@ -350,7 +350,7 @@ static int vmemmap_remap_free(unsigned l
+--- a/mm/kfence/core.c~mm-kfence-disable-kfence-upon-kasan-hw-tags-enablement
++++ a/mm/kfence/core.c
+@@ -13,6 +13,7 @@
+ #include <linux/hash.h>
+ #include <linux/irq_work.h>
+ #include <linux/jhash.h>
++#include <linux/kasan-enabled.h>
+ #include <linux/kcsan-checks.h>
+ #include <linux/kfence.h>
+ #include <linux/kmemleak.h>
+@@ -917,6 +918,20 @@ void __init kfence_alloc_pool_and_metada
+ 		return;
+ 
  	/*
- 	 * In order to make remapping routine most efficient for the huge pages,
- 	 * the routine of vmemmap page table walking has the following rules
--	 * (see more details from the vmemmap_pte_range()):
-+	 * (see more details from the vmemmap_pte_entry()):
- 	 *
- 	 * - The range [@start, @end) and the range [@reuse, @reuse + PAGE_SIZE)
- 	 *   should be continuous.
++	 * If KASAN hardware tags are enabled, disable KFENCE, because it
++	 * does not support MTE yet.
++	 */
++	if (kasan_hw_tags_enabled()) {
++		pr_info("disabled as KASAN HW tags are enabled\n");
++		if (__kfence_pool) {
++			memblock_free(__kfence_pool, KFENCE_POOL_SIZE);
++			__kfence_pool = NULL;
++		}
++		kfence_sample_interval = 0;
++		return;
++	}
++
++	/*
+ 	 * If the pool has already been initialized by arch, there is no need to
+ 	 * re-allocate the memory pool.
+ 	 */
 _
 
-Patches currently in -mm which might be from kexinsun@smail.nju.edu.cn are
+Patches currently in -mm which might be from glider@google.com are
 
-mm-hugetlb_vmemmap-update-outdated-comment.patch
 
