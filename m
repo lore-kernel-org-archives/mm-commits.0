@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE74B2FFF8F;
-	Tue, 24 Feb 2026 19:14:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67890301474;
+	Tue, 24 Feb 2026 19:14:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771960441; cv=none; b=GtzT3kVg4zmaToYPN5U+eWtz8wpWWvOlNyyoc5obyH/9o78cTKq3AgKr8bk6aqQvz4+NrPf5q72RXItFCf3W9znkGaHa19Fmo0qLW/hlfGsuZPAepl8iYTNpB1EZ+TN4I1OCem6Y5QDBzCr5fg6bQmtbeTBpAwOc+0BLtmmsOas=
+	t=1771960442; cv=none; b=ts/rN26RP6CmXHJaV7l8b/+qglBi3FH4rbkgw8NGTRjObGH3EyEqqLzTw5ObQFwepD3bY77SeMTBi/ASKi3M0++117snVScRHidIlwIfWAfWP3gKahq9CM5Nkx/C9QSKXqyJi4iYNfp6GXCAsLPrWd0rrX9QldKkqEV2szOEOZ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771960441; c=relaxed/simple;
-	bh=VcylxH4Oefw8mmDP34gBy10Q/G3pskMGsfULM9edbaE=;
-	h=Date:To:From:Subject:Message-Id; b=BmiJlI96fInb45jCoaddNFZ1u+YVFwy4NHs/Jl1ccaoJOoSOEbVgBGbyt7zhRYqBIkAt4NXNB6YStpmDVpGjU1yyCzYmzn0TACYGRMfqbqpVbEiGBD3qBVBSdhN2wmERGzji6l2tuyhA2JdyHUKv5Kr+Cy87puXwGvycGEOo/fo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=01sHfdHl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771960442; c=relaxed/simple;
+	bh=vi7AgGJDUh3IHs6cGHUTUeu+POD5YJvP1x+mCLjs7qk=;
+	h=Date:To:From:Subject:Message-Id; b=mq13qpOp7LfAdA/8+tf+40yPvU8xmbWAw/OhCZxO93jNWLjFZRm67JikC7iev52cneKvD1XoX5Ydpl5qb2+NkyyWVqBxOoJa8eiWD+wobid/sODmSTsgGJBTfI0ej4s2lwrlLrZQfRN7W/qeHH4xqIc3D8dbK9eXIY6ocXVR0Ak=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jWU5McBO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="01sHfdHl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A198DC116D0;
-	Tue, 24 Feb 2026 19:14:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jWU5McBO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03263C116D0;
+	Tue, 24 Feb 2026 19:14:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771960440;
-	bh=VcylxH4Oefw8mmDP34gBy10Q/G3pskMGsfULM9edbaE=;
+	s=korg; t=1771960442;
+	bh=vi7AgGJDUh3IHs6cGHUTUeu+POD5YJvP1x+mCLjs7qk=;
 	h=Date:To:From:Subject:From;
-	b=01sHfdHlcydBnVQRdu2C3MITw/ik2EzUrmDL2T1uGrz8gJ8MT74h5BVDYqQmC3qD1
-	 ZEu/e7O0n3IE85kRIEZHsLi5S/RXBMG52Lb5FefyYzyU2NPgXTCYnJE3CpM451hcVd
-	 pPF6I3SPvpT2Jt3iG0zgjb2x9QT4c/p8KHhDZtjg=
-Date: Tue, 24 Feb 2026 11:14:00 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,shy828301@gmail.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,Kartikey406@gmail.com,i@maskray.me,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ackerleytng@google.com,kartikey406@gmail.com,akpm@linux-foundation.org
+	b=jWU5McBOqlnZykHuX17BIMDUxMLv+O3k/rFkYHLCEf6TgM6sn84hgrQfEA2YIRCuX
+	 zigCztsxeZMlNx4wYd4xTJvEWJO+it7GVn2jetsc/Zggh3Ak6ESTvGeeSXMP/9aKIf
+	 wGVVw4G+n821PgSbqBVHo2BU3vjTRfZYFpuTv9sI=
+Date: Tue, 24 Feb 2026 11:14:01 -0800
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-thp-deny-thp-for-files-on-anonymous-inodes.patch removed from -mm tree
-Message-Id: <20260224191400.A198DC116D0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] liveupdate-luo_file-remember-retrieve-status.patch removed from -mm tree
+Message-Id: <20260224191402.03263C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,102 +35,224 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: thp: deny THP for files on anonymous inodes
+     Subject: liveupdate: luo_file: remember retrieve() status
 has been removed from the -mm tree.  Its filename was
-     mm-thp-deny-thp-for-files-on-anonymous-inodes.patch
+     liveupdate-luo_file-remember-retrieve-status.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Deepanshu Kartikey <kartikey406@gmail.com>
-Subject: mm: thp: deny THP for files on anonymous inodes
-Date: Sat, 14 Feb 2026 05:45:35 +0530
+From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
+Subject: liveupdate: luo_file: remember retrieve() status
+Date: Mon, 16 Feb 2026 14:22:19 +0100
 
-file_thp_enabled() incorrectly allows THP for files on anonymous inodes
-(e.g. guest_memfd and secretmem). These files are created via
-alloc_file_pseudo(), which does not call get_write_access() and leaves
-inode->i_writecount at 0. Combined with S_ISREG(inode->i_mode) being
-true, they appear as read-only regular files when
-CONFIG_READ_ONLY_THP_FOR_FS is enabled, making them eligible for THP
-collapse.
+LUO keeps track of successful retrieve attempts on a LUO file.  It does so
+to avoid multiple retrievals of the same file.  Multiple retrievals cause
+problems because once the file is retrieved, the serialized data
+structures are likely freed and the file is likely in a very different
+state from what the code expects.
 
-Anonymous inodes can never pass the inode_is_open_for_write() check
-since their i_writecount is never incremented through the normal VFS
-open path. The right thing to do is to exclude them from THP eligibility
-altogether, since CONFIG_READ_ONLY_THP_FOR_FS was designed for real
-filesystem files (e.g. shared libraries), not for pseudo-filesystem
-inodes.
+The retrieve boolean in struct luo_file keeps track of this, and is passed
+to the finish callback so it knows what work was already done and what it
+has left to do.
 
-For guest_memfd, this allows khugepaged and MADV_COLLAPSE to create
-large folios in the page cache via the collapse path, but the
-guest_memfd fault handler does not support large folios. This triggers
-WARN_ON_ONCE(folio_test_large(folio)) in kvm_gmem_fault_user_mapping().
+All this works well when retrieve succeeds.  When it fails,
+luo_retrieve_file() returns the error immediately, without ever storing
+anywhere that a retrieve was attempted or what its error code was.  This
+results in an errored LIVEUPDATE_SESSION_RETRIEVE_FD ioctl to userspace,
+but nothing prevents it from trying this again.
 
-For secretmem, collapse_file() tries to copy page contents through the
-direct map, but secretmem pages are removed from the direct map. This
-can result in a kernel crash:
+The retry is problematic for much of the same reasons listed above.  The
+file is likely in a very different state than what the retrieve logic
+normally expects, and it might even have freed some serialization data
+structures.  Attempting to access them or free them again is going to
+break things.
 
-    BUG: unable to handle page fault for address: ffff88810284d000
-    RIP: 0010:memcpy_orig+0x16/0x130
-    Call Trace:
-     collapse_file
-     hpage_collapse_scan_file
-     madvise_collapse
+For example, if memfd managed to restore 8 of its 10 folios, but fails on
+the 9th, a subsequent retrieve attempt will try to call
+kho_restore_folio() on the first folio again, and that will fail with a
+warning since it is an invalid operation.
 
-Secretmem is not affected by the crash on upstream as the memory failure
-recovery handles the failed copy gracefully, but it still triggers
-confusing false memory failure reports:
+Apart from the retry, finish() also breaks.  Since on failure the
+retrieved bool in luo_file is never touched, the finish() call on session
+close will tell the file handler that retrieve was never attempted, and it
+will try to access or free the data structures that might not exist, much
+in the same way as the retry attempt.
 
-    Memory failure: 0x106d96f: recovery action for clean unevictable
-    LRU page: Recovered
+There is no sane way of attempting the retrieve again.  Remember the error
+retrieve returned and directly return it on a retry.  Also pass this
+status code to finish() so it can make the right decision on the work it
+needs to do.
 
-Check IS_ANON_FILE(inode) in file_thp_enabled() to deny THP for all
-anonymous inode files.
+This is done by changing the bool to an integer.  A value of 0 means
+retrieve was never attempted, a positive value means it succeeded, and a
+negative value means it failed and the error code is the value.
 
-Link: https://syzkaller.appspot.com/bug?extid=33a04338019ac7e43a44
-Link: https://lore.kernel.org/linux-mm/CAEvNRgHegcz3ro35ixkDw39ES8=U6rs6S7iP0gkR9enr7HoGtA@mail.gmail.com
-Link: https://lkml.kernel.org/r/20260214001535.435626-1-kartikey406@gmail.com
-Fixes: 7fbb5e188248 ("mm: remove VM_EXEC requirement for THP eligibility")
-Signed-off-by: Deepanshu Kartikey <Kartikey406@gmail.com>
-Reported-by: syzbot+33a04338019ac7e43a44@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=33a04338019ac7e43a44
-Tested-by: syzbot+33a04338019ac7e43a44@syzkaller.appspotmail.com
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Ackerley Tng <ackerleytng@google.com>
-Tested-by: Ackerley Tng <ackerleytng@google.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Fangrui Song <i@maskray.me>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20260216132221.987987-1-pratyush@kernel.org
+Fixes: 7c722a7f44e0 ("liveupdate: luo_file: implement file systems callbacks")
+Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/liveupdate.h   |    9 ++++---
+ kernel/liveupdate/luo_file.c |   41 ++++++++++++++++++++-------------
+ mm/memfd_luo.c               |    7 ++++-
+ 3 files changed, 37 insertions(+), 20 deletions(-)
 
---- a/mm/huge_memory.c~mm-thp-deny-thp-for-files-on-anonymous-inodes
-+++ a/mm/huge_memory.c
-@@ -94,6 +94,9 @@ static inline bool file_thp_enabled(stru
+--- a/include/linux/liveupdate.h~liveupdate-luo_file-remember-retrieve-status
++++ a/include/linux/liveupdate.h
+@@ -23,8 +23,11 @@ struct file;
+ /**
+  * struct liveupdate_file_op_args - Arguments for file operation callbacks.
+  * @handler:          The file handler being called.
+- * @retrieved:        The retrieve status for the 'can_finish / finish'
+- *                    operation.
++ * @retrieve_status:  The retrieve status for the 'can_finish / finish'
++ *                    operation. A value of 0 means the retrieve has not been
++ *                    attempted, a positive value means the retrieve was
++ *                    successful, and a negative value means the retrieve failed,
++ *                    and the value is the error code of the call.
+  * @file:             The file object. For retrieve: [OUT] The callback sets
+  *                    this to the new file. For other ops: [IN] The caller sets
+  *                    this to the file being operated on.
+@@ -40,7 +43,7 @@ struct file;
+  */
+ struct liveupdate_file_op_args {
+ 	struct liveupdate_file_handler *handler;
+-	bool retrieved;
++	int retrieve_status;
+ 	struct file *file;
+ 	u64 serialized_data;
+ 	void *private_data;
+--- a/kernel/liveupdate/luo_file.c~liveupdate-luo_file-remember-retrieve-status
++++ a/kernel/liveupdate/luo_file.c
+@@ -134,9 +134,12 @@ static LIST_HEAD(luo_file_handler_list);
+  *                 state that is not preserved. Set by the handler's .preserve()
+  *                 callback, and must be freed in the handler's .unpreserve()
+  *                 callback.
+- * @retrieved:     A flag indicating whether a user/kernel in the new kernel has
++ * @retrieve_status: Status code indicating whether a user/kernel in the new kernel has
+  *                 successfully called retrieve() on this file. This prevents
+- *                 multiple retrieval attempts.
++ *                 multiple retrieval attempts. A value of 0 means a retrieve()
++ *                 has not been attempted, a positive value means the retrieve()
++ *                 was successful, and a negative value means the retrieve()
++ *                 failed, and the value is the error code of the call.
+  * @mutex:         A mutex that protects the fields of this specific instance
+  *                 (e.g., @retrieved, @file), ensuring that operations like
+  *                 retrieving or finishing a file are atomic.
+@@ -161,7 +164,7 @@ struct luo_file {
+ 	struct file *file;
+ 	u64 serialized_data;
+ 	void *private_data;
+-	bool retrieved;
++	int retrieve_status;
+ 	struct mutex mutex;
+ 	struct list_head list;
+ 	u64 token;
+@@ -298,7 +301,6 @@ int luo_preserve_file(struct luo_file_se
+ 	luo_file->file = file;
+ 	luo_file->fh = fh;
+ 	luo_file->token = token;
+-	luo_file->retrieved = false;
+ 	mutex_init(&luo_file->mutex);
  
- 	inode = file_inode(vma->vm_file);
+ 	args.handler = fh;
+@@ -577,7 +579,12 @@ int luo_retrieve_file(struct luo_file_se
+ 		return -ENOENT;
  
-+	if (IS_ANON_FILE(inode))
-+		return false;
+ 	guard(mutex)(&luo_file->mutex);
+-	if (luo_file->retrieved) {
++	if (luo_file->retrieve_status < 0) {
++		/* Retrieve was attempted and it failed. Return the error code. */
++		return luo_file->retrieve_status;
++	}
 +
- 	return !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
++	if (luo_file->retrieve_status > 0) {
+ 		/*
+ 		 * Someone is asking for this file again, so get a reference
+ 		 * for them.
+@@ -590,16 +597,19 @@ int luo_retrieve_file(struct luo_file_se
+ 	args.handler = luo_file->fh;
+ 	args.serialized_data = luo_file->serialized_data;
+ 	err = luo_file->fh->ops->retrieve(&args);
+-	if (!err) {
+-		luo_file->file = args.file;
+-
+-		/* Get reference so we can keep this file in LUO until finish */
+-		get_file(luo_file->file);
+-		*filep = luo_file->file;
+-		luo_file->retrieved = true;
++	if (err) {
++		/* Keep the error code for later use. */
++		luo_file->retrieve_status = err;
++		return err;
+ 	}
+ 
+-	return err;
++	luo_file->file = args.file;
++	/* Get reference so we can keep this file in LUO until finish */
++	get_file(luo_file->file);
++	*filep = luo_file->file;
++	luo_file->retrieve_status = 1;
++
++	return 0;
  }
  
+ static int luo_file_can_finish_one(struct luo_file_set *file_set,
+@@ -615,7 +625,7 @@ static int luo_file_can_finish_one(struc
+ 		args.handler = luo_file->fh;
+ 		args.file = luo_file->file;
+ 		args.serialized_data = luo_file->serialized_data;
+-		args.retrieved = luo_file->retrieved;
++		args.retrieve_status = luo_file->retrieve_status;
+ 		can_finish = luo_file->fh->ops->can_finish(&args);
+ 	}
+ 
+@@ -632,7 +642,7 @@ static void luo_file_finish_one(struct l
+ 	args.handler = luo_file->fh;
+ 	args.file = luo_file->file;
+ 	args.serialized_data = luo_file->serialized_data;
+-	args.retrieved = luo_file->retrieved;
++	args.retrieve_status = luo_file->retrieve_status;
+ 
+ 	luo_file->fh->ops->finish(&args);
+ 	luo_flb_file_finish(luo_file->fh);
+@@ -788,7 +798,6 @@ int luo_file_deserialize(struct luo_file
+ 		luo_file->file = NULL;
+ 		luo_file->serialized_data = file_ser[i].data;
+ 		luo_file->token = file_ser[i].token;
+-		luo_file->retrieved = false;
+ 		mutex_init(&luo_file->mutex);
+ 		list_add_tail(&luo_file->list, &file_set->files_list);
+ 	}
+--- a/mm/memfd_luo.c~liveupdate-luo_file-remember-retrieve-status
++++ a/mm/memfd_luo.c
+@@ -326,7 +326,12 @@ static void memfd_luo_finish(struct live
+ 	struct memfd_luo_folio_ser *folios_ser;
+ 	struct memfd_luo_ser *ser;
+ 
+-	if (args->retrieved)
++	/*
++	 * If retrieve was successful, nothing to do. If it failed, retrieve()
++	 * already cleaned up everything it could. So nothing to do there
++	 * either. Only need to clean up when retrieve was not called.
++	 */
++	if (args->retrieve_status)
+ 		return;
+ 
+ 	ser = phys_to_virt(args->serialized_data);
 _
 
-Patches currently in -mm which might be from kartikey406@gmail.com are
+Patches currently in -mm which might be from pratyush@kernel.org are
 
+mm-memfd_luo-always-make-all-folios-uptodate.patch
+mm-memfd_luo-always-dirty-all-folios.patch
+memfd-export-memfd_addget_seals.patch
+mm-memfd_luo-preserve-file-seals.patch
+kho-move-alloc-tag-init-to-kho_init_foliopages.patch
 
