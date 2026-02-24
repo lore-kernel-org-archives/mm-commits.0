@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67890301474;
-	Tue, 24 Feb 2026 19:14:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1DCC2FFF8F
+	for <mm-commits@vger.kernel.org>; Tue, 24 Feb 2026 19:14:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771960442; cv=none; b=ts/rN26RP6CmXHJaV7l8b/+qglBi3FH4rbkgw8NGTRjObGH3EyEqqLzTw5ObQFwepD3bY77SeMTBi/ASKi3M0++117snVScRHidIlwIfWAfWP3gKahq9CM5Nkx/C9QSKXqyJi4iYNfp6GXCAsLPrWd0rrX9QldKkqEV2szOEOZ8=
+	t=1771960443; cv=none; b=NxBMqYhalkcAcN0NrjsGWNEvbkBPH2YE8Z7MiN1HASuTbJ27+VbVCI4x4bKyAcmpe0sbMUYiwszpxdjSRJ27BVjr5ldS9X1Vub/7gSuK2qoH1izVlQ6o++1t1ZvxHApYRFQ+vWKBBpagZ4QFsassjjsJgvFTxK/ZtmGcMcX6jrE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771960442; c=relaxed/simple;
-	bh=vi7AgGJDUh3IHs6cGHUTUeu+POD5YJvP1x+mCLjs7qk=;
-	h=Date:To:From:Subject:Message-Id; b=mq13qpOp7LfAdA/8+tf+40yPvU8xmbWAw/OhCZxO93jNWLjFZRm67JikC7iev52cneKvD1XoX5Ydpl5qb2+NkyyWVqBxOoJa8eiWD+wobid/sODmSTsgGJBTfI0ej4s2lwrlLrZQfRN7W/qeHH4xqIc3D8dbK9eXIY6ocXVR0Ak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jWU5McBO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771960443; c=relaxed/simple;
+	bh=FqSWMCfvqXoFtVAxwxtTOqlk8FoWk+v2IcnILyyGZhg=;
+	h=Date:To:From:Subject:Message-Id; b=G2SOOV6hQ74Mbp3caCJYEiWUVraYKzzfjWbl9M40FnJ73Czjg+UVQaAJLz4dh+TQOqbkP6VPihSDbjWNP56hEzs8yrQ1yIowughIqCDLD8eJ13X5hoWP4UPRf6kAWQS8N0mITIlZWa5XnkBVERiszab3j7LVdiacmnStzmDW/oE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XnL+kniQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jWU5McBO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03263C116D0;
-	Tue, 24 Feb 2026 19:14:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XnL+kniQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97487C116D0;
+	Tue, 24 Feb 2026 19:14:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771960442;
-	bh=vi7AgGJDUh3IHs6cGHUTUeu+POD5YJvP1x+mCLjs7qk=;
+	s=korg; t=1771960443;
+	bh=FqSWMCfvqXoFtVAxwxtTOqlk8FoWk+v2IcnILyyGZhg=;
 	h=Date:To:From:Subject:From;
-	b=jWU5McBOqlnZykHuX17BIMDUxMLv+O3k/rFkYHLCEf6TgM6sn84hgrQfEA2YIRCuX
-	 zigCztsxeZMlNx4wYd4xTJvEWJO+it7GVn2jetsc/Zggh3Ak6ESTvGeeSXMP/9aKIf
-	 wGVVw4G+n821PgSbqBVHo2BU3vjTRfZYFpuTv9sI=
-Date: Tue, 24 Feb 2026 11:14:01 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=XnL+kniQmCRnf8O/twsCGL2XoxnncYrrwrEpet+E6Ky8P7bk71igsfzuzp0nedqYr
+	 7zz9XlDjsGN6drghcGaw0BGbOA8mynF2FBJKzR6nVSWucHKldJe95NJLR36/2i4384
+	 oXfy/44DsH5hULQ2xi1if5Nf8H2W7PhBW14Of+VU=
+Date: Tue, 24 Feb 2026 11:14:03 -0800
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] liveupdate-luo_file-remember-retrieve-status.patch removed from -mm tree
-Message-Id: <20260224191402.03263C116D0@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-mailmap-update-e-mail-address-for-vlastimil-babka.patch removed from -mm tree
+Message-Id: <20260224191403.97487C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,224 +35,124 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: liveupdate: luo_file: remember retrieve() status
+     Subject: MAINTAINERS, mailmap: update e-mail address for Vlastimil Babka
 has been removed from the -mm tree.  Its filename was
-     liveupdate-luo_file-remember-retrieve-status.patch
+     maintainers-mailmap-update-e-mail-address-for-vlastimil-babka.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
-Subject: liveupdate: luo_file: remember retrieve() status
-Date: Mon, 16 Feb 2026 14:22:19 +0100
+From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
+Subject: MAINTAINERS, mailmap: update e-mail address for Vlastimil Babka
+Date: Tue, 17 Feb 2026 11:21:52 +0100
 
-LUO keeps track of successful retrieve attempts on a LUO file.  It does so
-to avoid multiple retrievals of the same file.  Multiple retrievals cause
-problems because once the file is retrieved, the serialized data
-structures are likely freed and the file is likely in a very different
-state from what the code expects.
+Hopefully improve e-mail performance.
 
-The retrieve boolean in struct luo_file keeps track of this, and is passed
-to the finish callback so it knows what work was already done and what it
-has left to do.
-
-All this works well when retrieve succeeds.  When it fails,
-luo_retrieve_file() returns the error immediately, without ever storing
-anywhere that a retrieve was attempted or what its error code was.  This
-results in an errored LIVEUPDATE_SESSION_RETRIEVE_FD ioctl to userspace,
-but nothing prevents it from trying this again.
-
-The retry is problematic for much of the same reasons listed above.  The
-file is likely in a very different state than what the retrieve logic
-normally expects, and it might even have freed some serialization data
-structures.  Attempting to access them or free them again is going to
-break things.
-
-For example, if memfd managed to restore 8 of its 10 folios, but fails on
-the 9th, a subsequent retrieve attempt will try to call
-kho_restore_folio() on the first folio again, and that will fail with a
-warning since it is an invalid operation.
-
-Apart from the retry, finish() also breaks.  Since on failure the
-retrieved bool in luo_file is never touched, the finish() call on session
-close will tell the file handler that retrieve was never attempted, and it
-will try to access or free the data structures that might not exist, much
-in the same way as the retry attempt.
-
-There is no sane way of attempting the retrieve again.  Remember the error
-retrieve returned and directly return it on a retry.  Also pass this
-status code to finish() so it can make the right decision on the work it
-needs to do.
-
-This is done by changing the bool to an integer.  A value of 0 means
-retrieve was never attempted, a positive value means it succeeded, and a
-negative value means it failed and the error code is the value.
-
-Link: https://lkml.kernel.org/r/20260216132221.987987-1-pratyush@kernel.org
-Fixes: 7c722a7f44e0 ("liveupdate: luo_file: implement file systems callbacks")
-Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260217102151.10425-2-vbabka@kernel.org
+Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/liveupdate.h   |    9 ++++---
- kernel/liveupdate/luo_file.c |   41 ++++++++++++++++++++-------------
- mm/memfd_luo.c               |    7 ++++-
- 3 files changed, 37 insertions(+), 20 deletions(-)
+ .mailmap    |    1 +
+ MAINTAINERS |   18 +++++++++---------
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
---- a/include/linux/liveupdate.h~liveupdate-luo_file-remember-retrieve-status
-+++ a/include/linux/liveupdate.h
-@@ -23,8 +23,11 @@ struct file;
- /**
-  * struct liveupdate_file_op_args - Arguments for file operation callbacks.
-  * @handler:          The file handler being called.
-- * @retrieved:        The retrieve status for the 'can_finish / finish'
-- *                    operation.
-+ * @retrieve_status:  The retrieve status for the 'can_finish / finish'
-+ *                    operation. A value of 0 means the retrieve has not been
-+ *                    attempted, a positive value means the retrieve was
-+ *                    successful, and a negative value means the retrieve failed,
-+ *                    and the value is the error code of the call.
-  * @file:             The file object. For retrieve: [OUT] The callback sets
-  *                    this to the new file. For other ops: [IN] The caller sets
-  *                    this to the file being operated on.
-@@ -40,7 +43,7 @@ struct file;
-  */
- struct liveupdate_file_op_args {
- 	struct liveupdate_file_handler *handler;
--	bool retrieved;
-+	int retrieve_status;
- 	struct file *file;
- 	u64 serialized_data;
- 	void *private_data;
---- a/kernel/liveupdate/luo_file.c~liveupdate-luo_file-remember-retrieve-status
-+++ a/kernel/liveupdate/luo_file.c
-@@ -134,9 +134,12 @@ static LIST_HEAD(luo_file_handler_list);
-  *                 state that is not preserved. Set by the handler's .preserve()
-  *                 callback, and must be freed in the handler's .unpreserve()
-  *                 callback.
-- * @retrieved:     A flag indicating whether a user/kernel in the new kernel has
-+ * @retrieve_status: Status code indicating whether a user/kernel in the new kernel has
-  *                 successfully called retrieve() on this file. This prevents
-- *                 multiple retrieval attempts.
-+ *                 multiple retrieval attempts. A value of 0 means a retrieve()
-+ *                 has not been attempted, a positive value means the retrieve()
-+ *                 was successful, and a negative value means the retrieve()
-+ *                 failed, and the value is the error code of the call.
-  * @mutex:         A mutex that protects the fields of this specific instance
-  *                 (e.g., @retrieved, @file), ensuring that operations like
-  *                 retrieving or finishing a file are atomic.
-@@ -161,7 +164,7 @@ struct luo_file {
- 	struct file *file;
- 	u64 serialized_data;
- 	void *private_data;
--	bool retrieved;
-+	int retrieve_status;
- 	struct mutex mutex;
- 	struct list_head list;
- 	u64 token;
-@@ -298,7 +301,6 @@ int luo_preserve_file(struct luo_file_se
- 	luo_file->file = file;
- 	luo_file->fh = fh;
- 	luo_file->token = token;
--	luo_file->retrieved = false;
- 	mutex_init(&luo_file->mutex);
+--- a/.mailmap~maintainers-mailmap-update-e-mail-address-for-vlastimil-babka
++++ a/.mailmap
+@@ -876,6 +876,7 @@ Vivien Didelot <vivien.didelot@gmail.com
+ Vlad Dogaru <ddvlad@gmail.com> <vlad.dogaru@intel.com>
+ Vladimir Davydov <vdavydov.dev@gmail.com> <vdavydov@parallels.com>
+ Vladimir Davydov <vdavydov.dev@gmail.com> <vdavydov@virtuozzo.com>
++Vlastimil Babka <vbabka@kernel.org> <vbabka@suse.cz>
+ WangYuli <wangyuli@aosc.io> <wangyl5933@chinaunicom.cn>
+ WangYuli <wangyuli@aosc.io> <wangyuli@deepin.org>
+ Weiwen Hu <huweiwen@linux.alibaba.com> <sehuww@mail.scut.edu.cn>
+--- a/MAINTAINERS~maintainers-mailmap-update-e-mail-address-for-vlastimil-babka
++++ a/MAINTAINERS
+@@ -16656,7 +16656,7 @@ M:	Andrew Morton <akpm@linux-foundation.
+ M:	David Hildenbrand <david@kernel.org>
+ R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Liam R. Howlett <Liam.Howlett@oracle.com>
+-R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Mike Rapoport <rppt@kernel.org>
+ R:	Suren Baghdasaryan <surenb@google.com>
+ R:	Michal Hocko <mhocko@suse.com>
+@@ -16786,7 +16786,7 @@ M:	Andrew Morton <akpm@linux-foundation.
+ M:	David Hildenbrand <david@kernel.org>
+ R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Liam R. Howlett <Liam.Howlett@oracle.com>
+-R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Mike Rapoport <rppt@kernel.org>
+ R:	Suren Baghdasaryan <surenb@google.com>
+ R:	Michal Hocko <mhocko@suse.com>
+@@ -16841,7 +16841,7 @@ F:	mm/oom_kill.c
  
- 	args.handler = fh;
-@@ -577,7 +579,12 @@ int luo_retrieve_file(struct luo_file_se
- 		return -ENOENT;
+ MEMORY MANAGEMENT - PAGE ALLOCATOR
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	Vlastimil Babka <vbabka@suse.cz>
++M:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Suren Baghdasaryan <surenb@google.com>
+ R:	Michal Hocko <mhocko@suse.com>
+ R:	Brendan Jackman <jackmanb@google.com>
+@@ -16887,7 +16887,7 @@ M:	David Hildenbrand <david@kernel.org>
+ M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ R:	Rik van Riel <riel@surriel.com>
+ R:	Liam R. Howlett <Liam.Howlett@oracle.com>
+-R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Harry Yoo <harry.yoo@oracle.com>
+ R:	Jann Horn <jannh@google.com>
+ L:	linux-mm@kvack.org
+@@ -16986,7 +16986,7 @@ MEMORY MAPPING
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	Liam R. Howlett <Liam.Howlett@oracle.com>
+ M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+-R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Jann Horn <jannh@google.com>
+ R:	Pedro Falcato <pfalcato@suse.de>
+ L:	linux-mm@kvack.org
+@@ -17016,7 +17016,7 @@ M:	Andrew Morton <akpm@linux-foundation.
+ M:	Suren Baghdasaryan <surenb@google.com>
+ M:	Liam R. Howlett <Liam.Howlett@oracle.com>
+ M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+-R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Shakeel Butt <shakeel.butt@linux.dev>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+@@ -17032,7 +17032,7 @@ M:	Andrew Morton <akpm@linux-foundation.
+ M:	Liam R. Howlett <Liam.Howlett@oracle.com>
+ M:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+ M:	David Hildenbrand <david@kernel.org>
+-R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Jann Horn <jannh@google.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+@@ -23174,7 +23174,7 @@ K:	\b(?i:rust)\b
+ RUST [ALLOC]
+ M:	Danilo Krummrich <dakr@kernel.org>
+ R:	Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+-R:	Vlastimil Babka <vbabka@suse.cz>
++R:	Vlastimil Babka <vbabka@kernel.org>
+ R:	Liam R. Howlett <Liam.Howlett@oracle.com>
+ R:	Uladzislau Rezki <urezki@gmail.com>
+ L:	rust-for-linux@vger.kernel.org
+@@ -24350,7 +24350,7 @@ F:	Documentation/devicetree/bindings/nvm
+ F:	drivers/nvmem/layouts/sl28vpd.c
  
- 	guard(mutex)(&luo_file->mutex);
--	if (luo_file->retrieved) {
-+	if (luo_file->retrieve_status < 0) {
-+		/* Retrieve was attempted and it failed. Return the error code. */
-+		return luo_file->retrieve_status;
-+	}
-+
-+	if (luo_file->retrieve_status > 0) {
- 		/*
- 		 * Someone is asking for this file again, so get a reference
- 		 * for them.
-@@ -590,16 +597,19 @@ int luo_retrieve_file(struct luo_file_se
- 	args.handler = luo_file->fh;
- 	args.serialized_data = luo_file->serialized_data;
- 	err = luo_file->fh->ops->retrieve(&args);
--	if (!err) {
--		luo_file->file = args.file;
--
--		/* Get reference so we can keep this file in LUO until finish */
--		get_file(luo_file->file);
--		*filep = luo_file->file;
--		luo_file->retrieved = true;
-+	if (err) {
-+		/* Keep the error code for later use. */
-+		luo_file->retrieve_status = err;
-+		return err;
- 	}
- 
--	return err;
-+	luo_file->file = args.file;
-+	/* Get reference so we can keep this file in LUO until finish */
-+	get_file(luo_file->file);
-+	*filep = luo_file->file;
-+	luo_file->retrieve_status = 1;
-+
-+	return 0;
- }
- 
- static int luo_file_can_finish_one(struct luo_file_set *file_set,
-@@ -615,7 +625,7 @@ static int luo_file_can_finish_one(struc
- 		args.handler = luo_file->fh;
- 		args.file = luo_file->file;
- 		args.serialized_data = luo_file->serialized_data;
--		args.retrieved = luo_file->retrieved;
-+		args.retrieve_status = luo_file->retrieve_status;
- 		can_finish = luo_file->fh->ops->can_finish(&args);
- 	}
- 
-@@ -632,7 +642,7 @@ static void luo_file_finish_one(struct l
- 	args.handler = luo_file->fh;
- 	args.file = luo_file->file;
- 	args.serialized_data = luo_file->serialized_data;
--	args.retrieved = luo_file->retrieved;
-+	args.retrieve_status = luo_file->retrieve_status;
- 
- 	luo_file->fh->ops->finish(&args);
- 	luo_flb_file_finish(luo_file->fh);
-@@ -788,7 +798,6 @@ int luo_file_deserialize(struct luo_file
- 		luo_file->file = NULL;
- 		luo_file->serialized_data = file_ser[i].data;
- 		luo_file->token = file_ser[i].token;
--		luo_file->retrieved = false;
- 		mutex_init(&luo_file->mutex);
- 		list_add_tail(&luo_file->list, &file_set->files_list);
- 	}
---- a/mm/memfd_luo.c~liveupdate-luo_file-remember-retrieve-status
-+++ a/mm/memfd_luo.c
-@@ -326,7 +326,12 @@ static void memfd_luo_finish(struct live
- 	struct memfd_luo_folio_ser *folios_ser;
- 	struct memfd_luo_ser *ser;
- 
--	if (args->retrieved)
-+	/*
-+	 * If retrieve was successful, nothing to do. If it failed, retrieve()
-+	 * already cleaned up everything it could. So nothing to do there
-+	 * either. Only need to clean up when retrieve was not called.
-+	 */
-+	if (args->retrieve_status)
- 		return;
- 
- 	ser = phys_to_virt(args->serialized_data);
+ SLAB ALLOCATOR
+-M:	Vlastimil Babka <vbabka@suse.cz>
++M:	Vlastimil Babka <vbabka@kernel.org>
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ R:	Christoph Lameter <cl@gentwo.org>
+ R:	David Rientjes <rientjes@google.com>
 _
 
-Patches currently in -mm which might be from pratyush@kernel.org are
+Patches currently in -mm which might be from vbabka@kernel.org are
 
-mm-memfd_luo-always-make-all-folios-uptodate.patch
-mm-memfd_luo-always-dirty-all-folios.patch
-memfd-export-memfd_addget_seals.patch
-mm-memfd_luo-preserve-file-seals.patch
-kho-move-alloc-tag-init-to-kho_init_foliopages.patch
 
