@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24AE427F195
-	for <mm-commits@vger.kernel.org>; Tue, 24 Feb 2026 17:35:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52E4A265621
+	for <mm-commits@vger.kernel.org>; Tue, 24 Feb 2026 17:47:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771954548; cv=none; b=LdMl/nL9DvSfc34zGOUKiurBoa69fXQ7LVn+kmd4F7yexrb8autFJ+zN3vBF/eQ14XSWXLDXGaDJ8Uq4w8vLIdGMwfuX6AW/7pJZaqxs0dXjU/W3HDGl/kXBUAhr/WGmT1kPWnf8e+FpRGC19wmx0FKxEMfh8iX7461u2avA61I=
+	t=1771955253; cv=none; b=b5c2DSKxOQDtPizpzcBb25SIrzZPEyyF3By/Z2KasLhjO7nQVGuK81H06PUZYJYpognkVY6F/RToGTnuHkbbnN/4eY8yLkO1AUphAwWlEP/TALM0lbeKB3t6O3czV7oiW7cAd14/voO973pcMSUKd6wOpoyCs8S5K1KiwaiTIVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771954548; c=relaxed/simple;
-	bh=FBB6s7aR7cb/HDG8Fm5QPEiRAwkc9e+3BM9Hc5alENM=;
-	h=Date:To:From:Subject:Message-Id; b=flL9WA5xokbuCdB3t36O7HG7orinbHt1T6F/cgO9KjY0VypUFmSxTfMocabQoDOPAGBH+xSlmUyG4oBubRjSkB7DieuwgkSVaf3MAMzuBYyWI5T4b8o0y6WNbXfX0WLDI1kiK8z166lqgd1pNOhULUz3Fw/DVPuBhkzuwwt7hSI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PGNOBxgl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1771955253; c=relaxed/simple;
+	bh=UIuZVxPK9aFZrcXKIBeUE2UvVo54X57AmrkRrYdDIlM=;
+	h=Date:To:From:Subject:Message-Id; b=HU3F7Kc57Kvq56HnCZFwUY+GYRNtqdgJO9ue0sM7bO5g4Zn6YHBIzBG/ej+2s7tWOVTDhsTTl0pMwyvE0nIccE9IJ++/KeSZSCJM1eqpToXW5MhtyUlps0jjH5T3CrghS2R3UYEUgW9FuTcZkvNwsEsr84nENMeaMxeSL4tieq0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TMoxpG+G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PGNOBxgl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0132C116D0;
-	Tue, 24 Feb 2026 17:35:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TMoxpG+G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA905C116D0;
+	Tue, 24 Feb 2026 17:47:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771954547;
-	bh=FBB6s7aR7cb/HDG8Fm5QPEiRAwkc9e+3BM9Hc5alENM=;
+	s=korg; t=1771955253;
+	bh=UIuZVxPK9aFZrcXKIBeUE2UvVo54X57AmrkRrYdDIlM=;
 	h=Date:To:From:Subject:From;
-	b=PGNOBxglBXz9SJ7NO57P6eXRYB+e6owar411IOP2nMSBd8L3MvuWqmb9gbjMHEInb
-	 nzhizBwsYPWQELEKouprJPEyBeFMhvsakRrvLx/NT0boAAfC93R9avU3teEQA51U/j
-	 y/4TqPXU7fdN89EYdgTCMLcs6XaD5uU749/3GTEk=
-Date: Tue, 24 Feb 2026 09:35:46 -0800
-To: mm-commits@vger.kernel.org,will@kernel.org,peterz@infradead.org,npiggin@gmail.com,david@kernel.org,dave.hansen@intel.com,arnd@arndb.de,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=TMoxpG+GkKWAgo8qKbzUdgg15HGfGnhom6jZae1Y89b5NZN9IeO6QuTyYDloSooE6
+	 Ma+JP7t/kVziNyIwyTE2bG3hBv/pbxOpmD4RoGvApHxWdZiV1mIhMhRZEk3UWQf1oD
+	 /duOQ1Ue/waz8GRG8ICQIlzg1a/7VxaJlm1K7UTM=
+Date: Tue, 24 Feb 2026 09:47:32 -0800
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,pasha.tatashin@soleen.com,mjguzik@gmail.com,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kees@kernel.org,juri.lelli@redhat.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,ankur.a.arora@oracle.com,linusw@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmu_gather-replace-ipi-with-synchronize_rcu-when-batch-allocation-fails.patch added to mm-new branch
-Message-Id: <20260224173547.A0132C116D0@smtp.kernel.org>
+Subject: + fork-zero-vmap-stack-using-clear_pages-instead-of-memset.patch added to mm-nonmm-unstable branch
+Message-Id: <20260224174732.DA905C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmu_gather: replace IPI with synchronize_rcu() when batch allocation fails
-has been added to the -mm mm-new branch.  Its filename is
-     mm-mmu_gather-replace-ipi-with-synchronize_rcu-when-batch-allocation-fails.patch
+     Subject: fork: zero vmap stack using clear_pages() instead of memset()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     fork-zero-vmap-stack-using-clear_pages-instead-of-memset.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmu_gather-replace-ipi-with-synchronize_rcu-when-batch-allocation-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fork-zero-vmap-stack-using-clear_pages-instead-of-memset.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,117 +58,58 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm/mmu_gather: replace IPI with synchronize_rcu() when batch allocation fails
-Date: Tue, 24 Feb 2026 22:21:01 +0800
+From: Linus Walleij <linusw@kernel.org>
+Subject: fork: zero vmap stack using clear_pages() instead of memset()
+Date: Tue, 24 Feb 2026 11:26:32 +0100
 
-When freeing page tables, we try to batch them.  If batch allocation fails
-(GFP_NOWAIT), __tlb_remove_table_one() immediately frees the one without
-batching.
+After the introduction of clear_pages() we exploit the fact that the
+process vm_area is allocated in contiguous pages to just clear them all in
+one swift operation.
 
-On !CONFIG_PT_RECLAIM, the fallback sends an IPI to all CPUs via
-tlb_remove_table_sync_one().  It disrupts all CPUs even when only a single
-process is unmapping memory.  IPI broadcast was reported to hurt RT
-workloads[1].
-
-tlb_remove_table_sync_one() synchronizes with lockless page-table walkers
-(e.g.  GUP-fast) that rely on IRQ disabling.  These walkers use
-local_irq_disable(), which is also an RCU read-side critical section.
-
-This patch introduces tlb_remove_table_sync_rcu() which uses RCU grace
-period (synchronize_rcu()) instead of IPI broadcast.  This provides the
-same guarantee as IPI but without disrupting all CPUs.  Since batch
-allocation already failed, we are in a slow path where sleeping is
-acceptable - we are in process context (unmap_region, exit_mmap) with only
-mmap_lock held.
-
-tlb_remove_table_sync_one() is retained for other callers (e.g.,
-khugepaged after pmdp_collapse_flush(), tlb_finish_mmu() when
-tlb->fully_unshared_tables) that are not slow paths.  Converting those may
-require different approaches such as targeted IPIs.
-
-Link: https://lore.kernel.org/linux-mm/1b27a3fa-359a-43d0-bdeb-c31341749367@kernel.org/ [1]
-Link: https://lore.kernel.org/linux-mm/20260202150957.GD1282955@noisy.programming.kicks-ass.net/
-Link: https://lore.kernel.org/linux-mm/dfdfeac9-5cd5-46fc-a5c1-9ccf9bd3502a@intel.com/
-Link: https://lore.kernel.org/linux-mm/bc489455-bb18-44dc-8518-ae75abda6bec@kernel.org/
-Link: https://lkml.kernel.org/r/20260224142101.20500-1-lance.yang@linux.dev
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Suggested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Suggested-by: Dave Hansen <dave.hansen@intel.com>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Nick Piggin <npiggin@gmail.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20260224-mm-fork-clear-pages-v1-1-184c65a72d49@kernel.org
+Signed-off-by: Linus Walleij <linusw@kernel.org>
+Suggested-by: Mateusz Guzik <mjguzik@gmail.com>
+Link: https://lore.kernel.org/linux-mm/dpnwsp7dl4535rd7qmszanw6u5an2p74uxfex4dh53frpb7pu3@2bnjjavjrepe/
+Suggested-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Link: https://lore.kernel.org/20240311164638.2015063-7-pasha.tatashin@soleen.com
+Cc: Ankur Arora <ankur.a.arora@oracle.com>
+Cc: Ben Segall <bsegall@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |    4 ++++
- mm/mmu_gather.c           |   21 ++++++++++++++++++++-
- 2 files changed, 24 insertions(+), 1 deletion(-)
+ kernel/fork.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/asm-generic/tlb.h~mm-mmu_gather-replace-ipi-with-synchronize_rcu-when-batch-allocation-fails
-+++ a/include/asm-generic/tlb.h
-@@ -251,6 +251,8 @@ static inline void tlb_remove_table(stru
+--- a/kernel/fork.c~fork-zero-vmap-stack-using-clear_pages-instead-of-memset
++++ a/kernel/fork.c
+@@ -350,7 +350,7 @@ static int alloc_thread_stack_node(struc
+ 		stack = kasan_reset_tag(vm_area->addr);
  
- void tlb_remove_table_sync_one(void);
+ 		/* Clear stale pointers from reused stack. */
+-		memset(stack, 0, THREAD_SIZE);
++		clear_pages(vm_area->addr, vm_area->nr_pages);
  
-+void tlb_remove_table_sync_rcu(void);
-+
- #else
- 
- #ifdef tlb_needs_table_invalidate
-@@ -259,6 +261,8 @@ void tlb_remove_table_sync_one(void);
- 
- static inline void tlb_remove_table_sync_one(void) { }
- 
-+static inline void tlb_remove_table_sync_rcu(void) { }
-+
- #endif /* CONFIG_MMU_GATHER_RCU_TABLE_FREE */
- 
- 
---- a/mm/mmu_gather.c~mm-mmu_gather-replace-ipi-with-synchronize_rcu-when-batch-allocation-fails
-+++ a/mm/mmu_gather.c
-@@ -296,6 +296,25 @@ static void tlb_remove_table_free(struct
- 	call_rcu(&batch->rcu, tlb_remove_table_rcu);
- }
- 
-+/**
-+ * tlb_remove_table_sync_rcu - synchronize with software page-table walkers
-+ *
-+ * Like tlb_remove_table_sync_one() but uses RCU grace period instead of IPI
-+ * broadcast. Use in slow paths where sleeping is acceptable.
-+ *
-+ * Software/Lockless page-table walkers use local_irq_disable(), which is also
-+ * an RCU read-side critical section. synchronize_rcu() waits for all such
-+ * sections, providing the same guarantee as tlb_remove_table_sync_one() but
-+ * without disrupting all CPUs with IPIs.
-+ *
-+ * Do not use for freeing memory. Use RCU callbacks instead to avoid latency
-+ * spikes.
-+ */
-+void tlb_remove_table_sync_rcu(void)
-+{
-+	synchronize_rcu();
-+}
-+
- #else /* !CONFIG_MMU_GATHER_RCU_TABLE_FREE */
- 
- static void tlb_remove_table_free(struct mmu_table_batch *batch)
-@@ -339,7 +358,7 @@ static inline void __tlb_remove_table_on
- #else
- static inline void __tlb_remove_table_one(void *table)
- {
--	tlb_remove_table_sync_one();
-+	tlb_remove_table_sync_rcu();
- 	__tlb_remove_table(table);
- }
- #endif /* CONFIG_PT_RECLAIM */
+ 		tsk->stack_vm_area = vm_area;
+ 		tsk->stack = stack;
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from linusw@kernel.org are
 
-mm-mmu_gather-replace-ipi-with-synchronize_rcu-when-batch-allocation-fails.patch
+fork-zero-vmap-stack-using-clear_pages-instead-of-memset.patch
 
