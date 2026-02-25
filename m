@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B11602EFDA1
-	for <mm-commits@vger.kernel.org>; Wed, 25 Feb 2026 21:58:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38A503195FD
+	for <mm-commits@vger.kernel.org>; Wed, 25 Feb 2026 22:08:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772056697; cv=none; b=aTuNWjUnSsOJSy3zPBrBnIDQMVB2Cw8RgnMHcMW1UzGrGl3uMt2f7+aCvdfpTaKPH4cBzml8jxcQbZH1UHA09lpo+3/mxG8WKsDQq540icrJ2QH8bkTnFXMo4hFwjdVu1G/KpwUKs8HC5aj/eshdfGCfh1jXNMI2wnjVhUXVFRc=
+	t=1772057292; cv=none; b=gHH9NsuOg6QfZnzz+FFFeRuxULfpCSRjq1g5HxvRzdpAa7+vx0pWOt9ZjaJirOaV7ba+SCFayMU92LcmyGyOa4wvX7stgmVamorKgOAt4wForejZAjCzmuEYCpN071yY5/inxdYrMXNH5Kuy/6l4QwU4inrX+qHIzfR7dt6MCus=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772056697; c=relaxed/simple;
-	bh=5oM0yHMz0comr48NKGLky72+rUT3V+zBtehBJpyNR24=;
-	h=Date:To:From:Subject:Message-Id; b=sJGxWDqlr3E8HQX1pIorAS0WmmsyqjKzITjeXpBNjB/tJUs/hh+4WVV7WvyF+TlMtwEubK4ebeoj0gp1eeTbd4qNCHCu3sw0c2oELbyXhNC+otueTxqkx6Db9gybQ2HXzpAXWIH+XYFQxPJJc7RznulL85aiJSdMt49ChDHjKmM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WjITFOnr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772057292; c=relaxed/simple;
+	bh=udgnc61Jhc6ma2q5zj/vN3P8JmJtt44t9aiSlUK2odI=;
+	h=Date:To:From:Subject:Message-Id; b=E9e8z652NKtrCBGT1mjcmgEDY9YHnhhxJf0KfV4tP0xgBVb5prPMpTavxO+OGm+JgCB6G/wYFrRBg/DNHNjUMSA8ewvNVndzdv10O/lySFwEWUHK5xytK9xCHREFknT3u/n4ZS15fBv9D7js8rxGA5rld9l2OLJIcHgk0uwyn10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hxY1sKQe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WjITFOnr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A392C116D0;
-	Wed, 25 Feb 2026 21:58:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hxY1sKQe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB7F2C116D0;
+	Wed, 25 Feb 2026 22:08:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772056697;
-	bh=5oM0yHMz0comr48NKGLky72+rUT3V+zBtehBJpyNR24=;
+	s=korg; t=1772057291;
+	bh=udgnc61Jhc6ma2q5zj/vN3P8JmJtt44t9aiSlUK2odI=;
 	h=Date:To:From:Subject:From;
-	b=WjITFOnrYO1qr5M0gs+jBxTTcWHpjEOuDPQq8JTZ+hh9g1n6Sv+a/Y0D0kpwoPFCd
-	 XhNLnXg9ectZwq/8ia1+Rs8BWbyCLB7xDOevVO2r/rdUcw3v17QeNovUpWCNHkO6XI
-	 63TOwicMfSLsGIFieHNv6Olgi1vvcgxGsW+ljUGs=
-Date: Wed, 25 Feb 2026 13:58:16 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,weixugc@google.com,usamaarif642@gmail.com,tj@kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=hxY1sKQeLRvkqiE7Am/WxkNUPHLaKB1JPjie4uqBBTAYNU8ZYS+L6fpJ54xvrGAjI
+	 GZ7rQjbnjhpQZikGwj2d1yOX4WK11bPtVR7kP2oi6EJmsWrrvZzLl2gN4aFVy3KdXy
+	 KY4+FL3eMacMMzgoFwi0+5h5yqlGSixpvh/eF5fk=
+Date: Wed, 25 Feb 2026 14:08:11 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,tstaudt@de.ibm.com,sourabhjain@linux.ibm.com,ryncsn@gmail.com,robh@kernel.org,lkp@intel.com,krzk@kernel.org,kernelfans@gmail.com,dyoung@redhat.com,chleroy@kernel.org,bhe@redhat.com,arnaud.lefebvre@clever-cloud.com,coxu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch added to mm-new branch
-Message-Id: <20260225215817.3A392C116D0@smtp.kernel.org>
+Subject: + crash_dump-dm-crypt-dont-print-in-arch-specific-code.patch added to mm-nonmm-unstable branch
+Message-Id: <20260225220811.AB7F2C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: convert objcg to be per-memcg per-node type
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch
+     Subject: crash_dump/dm-crypt: don't print in arch-specific code
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     crash_dump-dm-crypt-dont-print-in-arch-specific-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_dump-dm-crypt-dont-print-in-arch-specific-code.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,330 +58,86 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: memcontrol: convert objcg to be per-memcg per-node type
-Date: Wed, 25 Feb 2026 17:44:56 +0800
+From: Coiby Xu <coxu@redhat.com>
+Subject: crash_dump/dm-crypt: don't print in arch-specific code
+Date: Wed, 25 Feb 2026 14:03:44 +0800
 
-Convert objcg to be per-memcg per-node type, so that when reparent LRU
-folios later, we can hold the lru lock at the node level, thus avoiding
-holding too many lru locks at once.
+When the vmcore dumping target is not a LUKS-encrypted target, it's
+expected that there is no dm-crypt key thus no need to return -ENOENT. 
+Also print more logs in crash_load_dm_crypt_keys.  The benefit is
+arch-specific code can be more succinct.
 
-Link: https://lkml.kernel.org/r/20260225094456.74145-1-qi.zheng@linux.dev
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Allen Pais <apais@linux.microsoft.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Imran Khan <imran.f.khan@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chen Ridong <chenridong@huawei.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Link: https://lkml.kernel.org/r/20260225060347.718905-2-coxu@redhat.com
+Suggested-by: Will Deacon <will@kernel.org>
+Signed-off-by: Coiby Xu <coxu@redhat.com>
+Cc: Arnaud Lefebvre <arnaud.lefebvre@clever-cloud.com>
+Cc: Baoquan he <bhe@redhat.com>
+Cc: Christophe Leroy (CS GROUP) <chleroy@kernel.org>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Pingfan Liu <kernelfans@gmail.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
+Cc: Thomas Staudt <tstaudt@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   23 +++++-----
- include/linux/sched.h      |    2 
- mm/memcontrol.c            |   79 +++++++++++++++++++++--------------
- 3 files changed, 62 insertions(+), 42 deletions(-)
+ arch/x86/kernel/kexec-bzimage64.c |    6 +-----
+ kernel/crash_dump_dm_crypt.c      |    7 +++++--
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type
-+++ a/include/linux/memcontrol.h
-@@ -115,6 +115,16 @@ struct mem_cgroup_per_node {
- 	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
- 	struct mem_cgroup_reclaim_iter	iter;
+--- a/arch/x86/kernel/kexec-bzimage64.c~crash_dump-dm-crypt-dont-print-in-arch-specific-code
++++ a/arch/x86/kernel/kexec-bzimage64.c
+@@ -525,12 +525,8 @@ static void *bzImage64_load(struct kimag
+ 		if (ret)
+ 			return ERR_PTR(ret);
+ 		ret = crash_load_dm_crypt_keys(image);
+-		if (ret == -ENOENT) {
+-			kexec_dprintk("No dm crypt key to load\n");
+-		} else if (ret) {
+-			pr_err("Failed to load dm crypt keys\n");
++		if (ret)
+ 			return ERR_PTR(ret);
+-		}
+ 		if (image->dm_crypt_keys_addr &&
+ 		    cmdline_len + MAX_ELFCOREHDR_STR_LEN + MAX_DMCRYPTKEYS_STR_LEN >
+ 			    header->cmdline_size) {
+--- a/kernel/crash_dump_dm_crypt.c~crash_dump-dm-crypt-dont-print-in-arch-specific-code
++++ a/kernel/crash_dump_dm_crypt.c
+@@ -414,14 +414,16 @@ int crash_load_dm_crypt_keys(struct kima
  
-+	/*
-+	 * objcg is wiped out as a part of the objcg repaprenting process.
-+	 * orig_objcg preserves a pointer (and a reference) to the original
-+	 * objcg until the end of live of memcg.
-+	 */
-+	struct obj_cgroup __rcu	*objcg;
-+	struct obj_cgroup	*orig_objcg;
-+	/* list of inherited objcgs, protected by objcg_lock */
-+	struct list_head objcg_list;
-+
- #ifdef CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC
- 	/* slab stats for nmi context */
- 	atomic_t		slab_reclaimable;
-@@ -179,6 +189,7 @@ struct obj_cgroup {
- 		struct list_head list; /* protected by objcg_lock */
- 		struct rcu_head rcu;
- 	};
-+	bool is_root;
- };
- 
- /*
-@@ -257,15 +268,6 @@ struct mem_cgroup {
- 	seqlock_t		socket_pressure_seqlock;
- #endif
- 	int kmemcg_id;
--	/*
--	 * memcg->objcg is wiped out as a part of the objcg repaprenting
--	 * process. memcg->orig_objcg preserves a pointer (and a reference)
--	 * to the original objcg until the end of live of memcg.
--	 */
--	struct obj_cgroup __rcu	*objcg;
--	struct obj_cgroup	*orig_objcg;
--	/* list of inherited objcgs, protected by objcg_lock */
--	struct list_head objcg_list;
- 
- 	struct memcg_vmstats_percpu __percpu *vmstats_percpu;
- 
-@@ -332,7 +334,6 @@ struct mem_cgroup {
- #define MEMCG_CHARGE_BATCH 64U
- 
- extern struct mem_cgroup *root_mem_cgroup;
--extern struct obj_cgroup *root_obj_cgroup;
- 
- enum page_memcg_data_flags {
- 	/* page->memcg_data is a pointer to an slabobj_ext vector */
-@@ -551,7 +552,7 @@ static inline bool mem_cgroup_is_root(st
- 
- static inline bool obj_cgroup_is_root(const struct obj_cgroup *objcg)
- {
--	return objcg == root_obj_cgroup;
-+	return objcg->is_root;
- }
- 
- static inline bool mem_cgroup_disabled(void)
---- a/include/linux/sched.h~mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type
-+++ a/include/linux/sched.h
-@@ -1532,7 +1532,7 @@ struct task_struct {
- 	/* Used by memcontrol for targeted memcg charge: */
- 	struct mem_cgroup		*active_memcg;
- 
--	/* Cache for current->cgroups->memcg->objcg lookups: */
-+	/* Cache for current->cgroups->memcg->nodeinfo[nid]->objcg lookups: */
- 	struct obj_cgroup		*objcg;
- #endif
- 
---- a/mm/memcontrol.c~mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type
-+++ a/mm/memcontrol.c
-@@ -84,8 +84,6 @@ EXPORT_SYMBOL(memory_cgrp_subsys);
- struct mem_cgroup *root_mem_cgroup __read_mostly;
- EXPORT_SYMBOL(root_mem_cgroup);
- 
--struct obj_cgroup *root_obj_cgroup __read_mostly;
--
- /* Active memory cgroup to use from an interrupt context */
- DEFINE_PER_CPU(struct mem_cgroup *, int_active_memcg);
- EXPORT_PER_CPU_SYMBOL_GPL(int_active_memcg);
-@@ -210,18 +208,21 @@ static struct obj_cgroup *obj_cgroup_all
- }
- 
- static inline struct obj_cgroup *__memcg_reparent_objcgs(struct mem_cgroup *memcg,
--							 struct mem_cgroup *parent)
-+							 struct mem_cgroup *parent,
-+							 int nid)
- {
- 	struct obj_cgroup *objcg, *iter;
-+	struct mem_cgroup_per_node *pn = memcg->nodeinfo[nid];
-+	struct mem_cgroup_per_node *parent_pn = parent->nodeinfo[nid];
- 
--	objcg = rcu_replace_pointer(memcg->objcg, NULL, true);
-+	objcg = rcu_replace_pointer(pn->objcg, NULL, true);
- 	/* 1) Ready to reparent active objcg. */
--	list_add(&objcg->list, &memcg->objcg_list);
-+	list_add(&objcg->list, &pn->objcg_list);
- 	/* 2) Reparent active objcg and already reparented objcgs to parent. */
--	list_for_each_entry(iter, &memcg->objcg_list, list)
-+	list_for_each_entry(iter, &pn->objcg_list, list)
- 		WRITE_ONCE(iter->memcg, parent);
- 	/* 3) Move already reparented objcgs to the parent's list */
--	list_splice(&memcg->objcg_list, &parent->objcg_list);
-+	list_splice(&pn->objcg_list, &parent_pn->objcg_list);
- 
- 	return objcg;
- }
-@@ -260,14 +261,17 @@ static void memcg_reparent_objcgs(struct
- {
- 	struct obj_cgroup *objcg;
- 	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
-+	int nid;
- 
--	reparent_locks(memcg, parent);
-+	for_each_node(nid) {
-+		reparent_locks(memcg, parent);
- 
--	objcg = __memcg_reparent_objcgs(memcg, parent);
-+		objcg = __memcg_reparent_objcgs(memcg, parent, nid);
- 
--	reparent_unlocks(memcg, parent);
-+		reparent_unlocks(memcg, parent);
- 
--	percpu_ref_kill(&objcg->refcnt);
-+		percpu_ref_kill(&objcg->refcnt);
-+	}
- }
- 
- /*
-@@ -2859,8 +2863,10 @@ struct mem_cgroup *mem_cgroup_from_virt(
- 
- static struct obj_cgroup *__get_obj_cgroup_from_memcg(struct mem_cgroup *memcg)
- {
-+	int nid = numa_node_id();
-+
- 	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
--		struct obj_cgroup *objcg = rcu_dereference(memcg->objcg);
-+		struct obj_cgroup *objcg = rcu_dereference(memcg->nodeinfo[nid]->objcg);
- 
- 		if (likely(objcg && obj_cgroup_tryget(objcg)))
- 			return objcg;
-@@ -2924,6 +2930,7 @@ __always_inline struct obj_cgroup *curre
- {
- 	struct mem_cgroup *memcg;
- 	struct obj_cgroup *objcg;
-+	int nid = numa_node_id();
- 
- 	if (IS_ENABLED(CONFIG_MEMCG_NMI_UNSAFE) && in_nmi())
- 		return NULL;
-@@ -2940,14 +2947,14 @@ __always_inline struct obj_cgroup *curre
- 		 * Objcg reference is kept by the task, so it's safe
- 		 * to use the objcg by the current task.
- 		 */
--		return objcg ? : root_obj_cgroup;
-+		return objcg ? : rcu_dereference_check(root_mem_cgroup->nodeinfo[nid]->objcg, 1);
+ 	if (key_count <= 0) {
+ 		kexec_dprintk("No dm-crypt keys\n");
+-		return -ENOENT;
++		return 0;
  	}
  
- 	memcg = this_cpu_read(int_active_memcg);
- 	if (unlikely(memcg))
- 		goto from_memcg;
- 
--	return root_obj_cgroup;
-+	return rcu_dereference_check(root_mem_cgroup->nodeinfo[nid]->objcg, 1);
- 
- from_memcg:
- 	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
-@@ -2957,12 +2964,12 @@ from_memcg:
- 		 * away and can be used within the scope without any additional
- 		 * protection.
- 		 */
--		objcg = rcu_dereference_check(memcg->objcg, 1);
-+		objcg = rcu_dereference_check(memcg->nodeinfo[nid]->objcg, 1);
- 		if (likely(objcg))
- 			return objcg;
+ 	if (!is_dm_key_reused) {
+ 		image->dm_crypt_keys_addr = 0;
+ 		r = build_keys_header();
+-		if (r)
++		if (r) {
++			pr_err("Failed to build dm-crypt keys header, ret=%d\n", r);
+ 			return r;
++		}
  	}
  
--	return root_obj_cgroup;
-+	return rcu_dereference_check(root_mem_cgroup->nodeinfo[nid]->objcg, 1);
- }
- 
- struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio)
-@@ -3859,6 +3866,8 @@ static bool alloc_mem_cgroup_per_node_in
- 	if (!pn->lruvec_stats_percpu)
- 		goto fail;
- 
-+	INIT_LIST_HEAD(&pn->objcg_list);
-+
- 	lruvec_init(&pn->lruvec);
- 	pn->memcg = memcg;
- 
-@@ -3873,10 +3882,12 @@ static void __mem_cgroup_free(struct mem
- {
- 	int node;
- 
--	obj_cgroup_put(memcg->orig_objcg);
-+	for_each_node(node) {
-+		struct mem_cgroup_per_node *pn = memcg->nodeinfo[node];
- 
--	for_each_node(node)
--		free_mem_cgroup_per_node_info(memcg->nodeinfo[node]);
-+		obj_cgroup_put(pn->orig_objcg);
-+		free_mem_cgroup_per_node_info(pn);
-+	}
- 	memcg1_free_events(memcg);
- 	kfree(memcg->vmstats);
- 	free_percpu(memcg->vmstats_percpu);
-@@ -3947,7 +3958,6 @@ static struct mem_cgroup *mem_cgroup_all
- #endif
- 	memcg1_memcg_init(memcg);
- 	memcg->kmemcg_id = -1;
--	INIT_LIST_HEAD(&memcg->objcg_list);
- #ifdef CONFIG_CGROUP_WRITEBACK
- 	INIT_LIST_HEAD(&memcg->cgwb_list);
- 	for (i = 0; i < MEMCG_CGWB_FRN_CNT; i++)
-@@ -4024,6 +4034,7 @@ static int mem_cgroup_css_online(struct
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
- 	struct obj_cgroup *objcg;
-+	int nid;
- 
- 	memcg_online_kmem(memcg);
- 
-@@ -4035,17 +4046,19 @@ static int mem_cgroup_css_online(struct
- 	if (alloc_shrinker_info(memcg))
- 		goto offline_kmem;
- 
--	objcg = obj_cgroup_alloc();
--	if (!objcg)
--		goto free_shrinker;
-+	for_each_node(nid) {
-+		objcg = obj_cgroup_alloc();
-+		if (!objcg)
-+			goto free_objcg;
- 
--	if (unlikely(mem_cgroup_is_root(memcg)))
--		root_obj_cgroup = objcg;
-+		if (unlikely(mem_cgroup_is_root(memcg)))
-+			objcg->is_root = true;
- 
--	objcg->memcg = memcg;
--	rcu_assign_pointer(memcg->objcg, objcg);
--	obj_cgroup_get(objcg);
--	memcg->orig_objcg = objcg;
-+		objcg->memcg = memcg;
-+		rcu_assign_pointer(memcg->nodeinfo[nid]->objcg, objcg);
-+		obj_cgroup_get(objcg);
-+		memcg->nodeinfo[nid]->orig_objcg = objcg;
-+	}
- 
- 	if (unlikely(mem_cgroup_is_root(memcg)) && !mem_cgroup_disabled())
- 		queue_delayed_work(system_dfl_wq, &stats_flush_dwork,
-@@ -4069,7 +4082,13 @@ static int mem_cgroup_css_online(struct
- 	xa_store(&mem_cgroup_private_ids, memcg->id.id, memcg, GFP_KERNEL);
- 
- 	return 0;
--free_shrinker:
-+free_objcg:
-+	for_each_node(nid) {
-+		struct mem_cgroup_per_node *pn = memcg->nodeinfo[nid];
-+
-+		if (pn && pn->orig_objcg)
-+			obj_cgroup_put(pn->orig_objcg);
-+	}
- 	free_shrinker_info(memcg);
- offline_kmem:
- 	memcg_offline_kmem(memcg);
+ 	kbuf.buffer = keys_header;
+@@ -432,6 +434,7 @@ int crash_load_dm_crypt_keys(struct kima
+ 	kbuf.mem = KEXEC_BUF_MEM_UNKNOWN;
+ 	r = kexec_add_buffer(&kbuf);
+ 	if (r) {
++		pr_err("Failed to call kexec_add_buffer, ret=%d\n", r);
+ 		kvfree((void *)kbuf.buffer);
+ 		return r;
+ 	}
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from coxu@redhat.com are
 
-mm-vmscan-prepare-for-the-refactoring-the-move_folios_to_lru.patch
-mm-thp-prevent-memory-cgroup-release-in-folio_split_queue_lock_irqsave.patch
-mm-zswap-prevent-memory-cgroup-release-in-zswap_compress.patch
-mm-do-not-open-code-lruvec-lock.patch
-mm-vmscan-prepare-for-reparenting-traditional-lru-folios.patch
-mm-vmscan-prepare-for-reparenting-mglru-folios.patch
-mm-memcontrol-refactor-memcg_reparent_objcgs.patch
-mm-workingset-use-lruvec_lru_size-to-get-the-number-of-lru-pages.patch
-mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats.patch
-mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch
+crash_dump-dm-crypt-dont-print-in-arch-specific-code.patch
+crash-align-the-declaration-of-crash_load_dm_crypt_keys-with-config_crash_dm_crypt.patch
+arm64ppc64le-kdump-pass-dm-crypt-keys-to-kdump-kernel.patch
 
