@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E125038F949
-	for <mm-commits@vger.kernel.org>; Wed, 25 Feb 2026 19:48:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7993439E6DA
+	for <mm-commits@vger.kernel.org>; Wed, 25 Feb 2026 19:48:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772048885; cv=none; b=Ag0Ok6XPdvqJ8ZciPif1epoZtdOiFnw2Zr2bpDC4QtP2EtvUhLVndbzLAk/iGe+5dsHAe7BBrQG14JxMr5gE9TE4HgDbSyqvwtfyKPylJ/jQOo8G5GAggTo2TDU08mbBGapieiwwdh5lQJbXE1UW798BpuLmPFB3hyRm4sWg7JU=
+	t=1772048887; cv=none; b=aKXZBIHIZtzOklp3wEJmt1ymM3MygOJe+AuoZbggV19S3ys8eGFqCccvaEiFhbtMLycbidSh7j3NDgFWvbUa44MAoNGyA8P+QxyPAfMmwlXlkIA4ouX2eWBZKHuy4yCnn60DYZlJqzYiOiZU8CyF1B2VXAUB38Y/4EfuXMe6wgw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772048885; c=relaxed/simple;
-	bh=ISrrUj3pPY/gCRgGo9jcr3wC1nx0na3K0YcMp/mHeBE=;
-	h=Date:To:From:Subject:Message-Id; b=ND86aRzXHrK6F3wRSUw/cHnry3gR0TKLXM4a9uML2yMHjtKtaSGdmZm6WanGD5JMAVx+x7v31ZIOM9x1LpRCyP40tU2rrMxJwMEQJFMhDLVXDgWFSRLKMJ+v954/iZp7El8Z7cAosKxvqiGepqQgnPbQXFVPaJbeckicTbCkrH4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eLAXp+et; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772048887; c=relaxed/simple;
+	bh=doNPOKoFQ0foG63l05QFiRSCPaDIcJryN0ZWHKFX8vU=;
+	h=Date:To:From:Subject:Message-Id; b=J5v1yIIiJYj5eQD26fAN7Ytb3chNrhFkVxLCaPULHKIFTObOvHcICYRDaYsA5ixHbBXDFQn1Ev8nZVfP7Kzp/yYGPTPDfpj/kOtBZ6dKUxcYEhKr+m7c838qq0c7PSTIta68D0EV4P9Sc8u69Es1iK7Jq9qP4EN8e1lk+siNaOA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KY76hP1X; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eLAXp+et"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DA4BC116D0;
-	Wed, 25 Feb 2026 19:48:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KY76hP1X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21D21C116D0;
+	Wed, 25 Feb 2026 19:48:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772048884;
-	bh=ISrrUj3pPY/gCRgGo9jcr3wC1nx0na3K0YcMp/mHeBE=;
+	s=korg; t=1772048887;
+	bh=doNPOKoFQ0foG63l05QFiRSCPaDIcJryN0ZWHKFX8vU=;
 	h=Date:To:From:Subject:From;
-	b=eLAXp+et8tmPpdVr/RrnRm7/NMytfu9B0FJ99i7uJ8qe6yRUAYZL+w01wVLEtorxB
-	 6edkEKykztQametxOEP+4mKjmynWTl36TRV38zsQ7A9kc4NiimuIEfjILbR/i5r/kM
-	 F5opgvmZOJCGwo+e7Swjj0VvDdLkrmBCmJZccEgk=
-Date: Wed, 25 Feb 2026 11:48:03 -0800
+	b=KY76hP1XfYnYk1t7q8Na7yCjJcpOlP5/zVg5MEu4doaEgi+G02X5RKTjm1B1kC4HV
+	 jksRHD+QyUPrCWKBGOxBXQfFW/x6tSrLYoVm0870UDhFclwzFzmAjtKqrpWRFaYRmF
+	 rQANPyZMSN3EsoTWLXGCV3AGlhhWl8P0GrPoiR6Q=
+Date: Wed, 25 Feb 2026 11:48:06 -0800
 To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,tglx@kernel.org,surenb@google.com,rppt@kernel.org,rick.p.edgecombe@intel.com,pjw@kernel.org,palmer@dabbelt.com,mingo@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,hpa@zytor.com,debug@rivosinc.com,david@kernel.org,dave.hansen@linux.intel.com,broonie@kernel.org,bp@alien8.de,aou@eecs.berkeley.edu,alex@ghiti.fr,catalin.marinas@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-introduce-vm_mmap_shadow_stack-as-a-helper-for-vm_shadow_stack-mappings.patch added to mm-new branch
-Message-Id: <20260225194804.5DA4BC116D0@smtp.kernel.org>
+Subject: + arm64-gcs-use-the-new-common-vm_mmap_shadow_stack-helper.patch added to mm-new branch
+Message-Id: <20260225194807.21D21C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: introduce vm_mmap_shadow_stack() as a helper for VM_SHADOW_STACK mappings
+     Subject: arm64: gcs: use the new common vm_mmap_shadow_stack() helper
 has been added to the -mm mm-new branch.  Its filename is
-     mm-introduce-vm_mmap_shadow_stack-as-a-helper-for-vm_shadow_stack-mappings.patch
+     arm64-gcs-use-the-new-common-vm_mmap_shadow_stack-helper.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-vm_mmap_shadow_stack-as-a-helper-for-vm_shadow_stack-mappings.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-gcs-use-the-new-common-vm_mmap_shadow_stack-helper.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,37 +67,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: mm: introduce vm_mmap_shadow_stack() as a helper for VM_SHADOW_STACK mappings
-Date: Wed, 25 Feb 2026 16:13:58 +0000
+Subject: arm64: gcs: use the new common vm_mmap_shadow_stack() helper
+Date: Wed, 25 Feb 2026 16:13:59 +0000
 
-Patch series "mm: arch/shstk: Common shadow stack mapping helper and
-VM_NOHUGEPAGE", v2.
+Replace the arm64 map_shadow_stack() content with a call to
+vm_mmap_shadow_stack().  There is no functional change.
 
-A series to extract the common shadow stack mmap into a separate helper
-for arm64, riscv and x86.
-
-
-This patch (of 5):
-
-arm64, riscv and x86 use a similar pattern for mapping the user shadow
-stack (cloned from x86).  Extract this into a helper to facilitate code
-reuse.
-
-The call to do_mmap() from the new helper uses PROT_READ|PROT_WRITE prot
-bits instead of the PROT_READ with an explicit VM_WRITE vm_flag.  The x86
-intent was to avoid PROT_WRITE implying normal write since the shadow
-stack is not writable by normal stores.  However, from a kernel
-perspective, the vma is writeable.  Functionally there is no difference.
-
-Link: https://lkml.kernel.org/r/20260225161404.3157851-1-catalin.marinas@arm.com
-Link: https://lkml.kernel.org/r/20260225161404.3157851-2-catalin.marinas@arm.com
+Link: https://lkml.kernel.org/r/20260225161404.3157851-3-catalin.marinas@arm.com
 Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Tested-by: Deepak Gupta <debug@rivosinc.com>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Mark Brown <broonie@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Will Deacon <will@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Deepak Gupta <debug@rivosinc.com>
 Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
@@ -106,64 +91,39 @@ Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Paul Walmsley <pjw@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Thomas Gleixner <tglx@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/util.c          |   25 +++++++++++++++++++++++++
- 2 files changed, 27 insertions(+)
+ arch/arm64/mm/gcs.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
---- a/include/linux/mm.h~mm-introduce-vm_mmap_shadow_stack-as-a-helper-for-vm_shadow_stack-mappings
-+++ a/include/linux/mm.h
-@@ -3917,6 +3917,8 @@ extern int vm_munmap(unsigned long, size
- extern unsigned long __must_check vm_mmap(struct file *, unsigned long,
-         unsigned long, unsigned long,
-         unsigned long, unsigned long);
-+extern unsigned long __must_check vm_mmap_shadow_stack(unsigned long addr,
-+		unsigned long len, unsigned long flags);
+--- a/arch/arm64/mm/gcs.c~arm64-gcs-use-the-new-common-vm_mmap_shadow_stack-helper
++++ a/arch/arm64/mm/gcs.c
+@@ -12,19 +12,7 @@
  
- struct vm_unmapped_area_info {
- #define VM_UNMAPPED_AREA_TOPDOWN 1
---- a/mm/util.c~mm-introduce-vm_mmap_shadow_stack-as-a-helper-for-vm_shadow_stack-mappings
-+++ a/mm/util.c
-@@ -618,6 +618,31 @@ unsigned long vm_mmap(struct file *file,
+ static unsigned long alloc_gcs(unsigned long addr, unsigned long size)
+ {
+-	int flags = MAP_ANONYMOUS | MAP_PRIVATE;
+-	struct mm_struct *mm = current->mm;
+-	unsigned long mapped_addr, unused;
+-
+-	if (addr)
+-		flags |= MAP_FIXED_NOREPLACE;
+-
+-	mmap_write_lock(mm);
+-	mapped_addr = do_mmap(NULL, addr, size, PROT_READ, flags,
+-			      VM_SHADOW_STACK | VM_WRITE, 0, &unused, NULL);
+-	mmap_write_unlock(mm);
+-
+-	return mapped_addr;
++	return vm_mmap_shadow_stack(addr, size, 0);
  }
- EXPORT_SYMBOL(vm_mmap);
  
-+#ifdef CONFIG_ARCH_HAS_USER_SHADOW_STACK
-+/*
-+ * Perform a userland memory mapping for a shadow stack into the current
-+ * process address space. This is intended to be used by architectures that
-+ * support user shadow stacks.
-+ */
-+unsigned long vm_mmap_shadow_stack(unsigned long addr, unsigned long len,
-+		unsigned long flags)
-+{
-+	struct mm_struct *mm = current->mm;
-+	unsigned long ret, unused;
-+
-+	flags |= MAP_ANONYMOUS | MAP_PRIVATE;
-+	if (addr)
-+		flags |= MAP_FIXED_NOREPLACE;
-+
-+	mmap_write_lock(mm);
-+	ret = do_mmap(NULL, addr, len, PROT_READ | PROT_WRITE, flags,
-+		      VM_SHADOW_STACK, 0, &unused, NULL);
-+	mmap_write_unlock(mm);
-+
-+	return ret;
-+}
-+#endif /* CONFIG_ARCH_HAS_USER_SHADOW_STACK */
-+
- /**
-  * __vmalloc_array - allocate memory for a virtually contiguous array.
-  * @n: number of elements.
+ static unsigned long gcs_size(unsigned long size)
 _
 
 Patches currently in -mm which might be from catalin.marinas@arm.com are
