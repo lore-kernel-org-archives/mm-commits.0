@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DCE729BD90
-	for <mm-commits@vger.kernel.org>; Wed, 25 Feb 2026 04:25:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D957C3E9F7A
+	for <mm-commits@vger.kernel.org>; Wed, 25 Feb 2026 19:10:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1771993514; cv=none; b=RWIN8teOScf7dTVZbsLGCjQRninHL7SHGuEHEFXrkBW1j4sf2fcczEGkQeotXN5Q4x8omJzaJZljYVl7jqwJcrfeGZpPNaTxTIZOKlqx5tCmNfQwhmLfFd1q/7YPQFXGPkWvqqo/IJBxVjYeB+LaWWrwahkxG7uPXa3/jrOsGFg=
+	t=1772046657; cv=none; b=uG50368Z1Hjt3TbOQreIYxHUa0F/gCsLxMAETI/8f2Mr3Q1nBvI9yhi/J8jLo0ubCwN19mgwhk3vI5IU7zSfjkPtFWWrQUMWTrD+c7vI24C1s1htEzwUzOlHywMrVjDksCMpa0HKhtlhdJx2IAgsg8Bul3BkruwkIjgMdupyFm4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1771993514; c=relaxed/simple;
-	bh=4lEYWzl0TU9qwsxlLrd9cf8mnRscmosxzVGfzTEfqvI=;
-	h=Date:To:From:Subject:Message-Id; b=mxYzfpARmZ1vmSxylUyH+tEB4aLMXC2QlrDzLVnrZ7ccIk7fawxvi9l7oMAg9G7NiJT/Fxr1kZoZbon+8PU7cD+ao1WcLTzgKiauLP7g+O6ZIPJcy+M9CA6tXFD+W1zCbMMZPl3iCRURs+15/XqWePiOhDFnvajUi9xV82eltEw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q/+zROhy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772046657; c=relaxed/simple;
+	bh=ZCpC6gmGnvoBNU4Od1RIdSoktKatHMVqkJ+7sYecqsQ=;
+	h=Date:To:From:Subject:Message-Id; b=sf6CDdnSa4k4+7bUxjcLhNtyCXvDJdZ/P5BGBGHDZ9G6eBzJx3KicA2Xm0TKT723G8UR3oWWwERk1HKRdoSJlmx9OfC8vuJKIFFHZlXz77SOsXAMlx4uN/dUniFR8vl3gAARpv4cQnljqacGG/e3Vv856Mq4J7Ov/aAk5343xYg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QNYAjQV8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q/+zROhy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A788FC116D0;
-	Wed, 25 Feb 2026 04:25:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QNYAjQV8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E1BEC116D0;
+	Wed, 25 Feb 2026 19:10:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1771993513;
-	bh=4lEYWzl0TU9qwsxlLrd9cf8mnRscmosxzVGfzTEfqvI=;
+	s=korg; t=1772046656;
+	bh=ZCpC6gmGnvoBNU4Od1RIdSoktKatHMVqkJ+7sYecqsQ=;
 	h=Date:To:From:Subject:From;
-	b=q/+zROhymoIbtAZ8jnVaaPhKhjeKg0ltpVp1MAvE34FWmcVu3WVVZlyG8eeuYWcxN
-	 cmdsytZtQDPVnI9kCJGixD3c/sfAoaEvExLTexTH+bJD/5iD+pylZ31ahWUT0D58KO
-	 02rq9qe60hO7q9clg+oS0Furxos/qPt5mbMdc0dg=
-Date: Tue, 24 Feb 2026 20:25:13 -0800
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,re@w6rz.net,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=QNYAjQV8/k/kns/ORshLZLsq1iLYqKqhhQGHkHGz4KNkteH72870LP70fRB5V43tC
+	 Dl9FStlezSxC1//JulGrRbwgmx5M3hW2R37cCWJdsY6bRalvHOrkNpcSHV+sxz3d3G
+	 EgzbaWJ5YsnjuhUowPNJPtSt1oMKh08QR/Z9RXAA=
+Date: Wed, 25 Feb 2026 11:10:55 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,roman.gushchin@linux.dev,muchun.song@linux.dev,jack@suse.cz,david@fromorbit.com,mkoutny@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260225042513.A788FC116D0@smtp.kernel.org>
+Subject: + mm-do-not-allocate-shrinker-info-with-cgroupmemory=nokmem.patch added to mm-new branch
+Message-Id: <20260225191056.6E1BEC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/cma: move put_page_testzero() out of VM_WARN_ON in cma_release()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release.patch
+     Subject: mm: Do not allocate shrinker info with cgroup.memory=nokmem
+has been added to the -mm mm-new branch.  Its filename is
+     mm-do-not-allocate-shrinker-info-with-cgroupmemory=nokmem.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-do-not-allocate-shrinker-info-with-cgroupmemory=nokmem.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,62 +66,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/cma: move put_page_testzero() out of VM_WARN_ON in cma_release()
-Date: Tue, 24 Feb 2026 22:12:31 -0500
+From: Michal Koutný <mkoutny@suse.com>
+Subject: mm: Do not allocate shrinker info with cgroup.memory=nokmem
+Date: Wed, 25 Feb 2026 19:38:44 +0100
 
-When CONFIG_DEBUG_VM is not set, VM_WARN_ON is a NOP.  Putting any
-statement with side effect inside it is incorrect.  Collect all
-!put_page_testzero() results and check the sum using WARN instead after
-the loop.  It restores the same check in free_contig_range() before commit
-e0c1326779cc ("mm: page_alloc: add alloc_contig_frozen_{range,pages}()"),
-the commit prior to the Fixes one.
+There'd be no work for memcg-aware shrinkers when kernel memory is not
+accounted per cgroup, so we can skip allocating per memcg shrinker data. 
+This saves some memory, avoids holding shrinker_mutex with O(nr_memcgs)
+and saves work in shrink_slab_memcg().
 
-Link: https://lkml.kernel.org/r/20260225031231.2352011-1-ziy@nvidia.com
-Fixes: 9bda131c6093 ("mm: cma: add cma_alloc_frozen{_compound}()")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reported-by: Ron Economos <re@w6rz.net>
-Closes: https://lore.kernel.org/all/1b17c38f-30d3-4bb4-a7e1-e74b19ada885@w6rz.net/
-Suggested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc:
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Then there are SHRINKER_NONSLAB shrinkers which handle non-kernel memory
+so nokmem should not disable their per-memcg behavior.  Such shrinkers
+(e.g.  deferred_split_shrinker) still need access to per-memcg data (see
+also commit 0a432dcbeb32e ("mm: shrinker: make shrinker not depend on
+memcg kmem")).
+
+The savings with this patch come on container hosts that create many
+superblocks (each with own shrinker) but tracking and processing per-memcg
+data is pointless with nokmem (shrink_slab_memcg() is partially guarded
+with !memcg_kmem_online already).
+
+The patch uses "boottime" predicate mem_cgroup_kmem_disabled() (not
+memcg_kmem_online()) to avoid mistakenly un-MEMCG_AWARE-ing shrinkers
+registered before first non-root memcg is mkdir'd.
+
+Link: https://lkml.kernel.org/r/20260225-cgroup-ml-nokmem-shrinker-v1-1-d703899bdda4@suse.com
+Signed-off-by: Michal Koutný <mkoutny@suse.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/shrinker.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/cma.c~mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release
-+++ a/mm/cma.c
-@@ -1013,6 +1013,7 @@ bool cma_release(struct cma *cma, const
- 		 unsigned long count)
- {
- 	struct cma_memrange *cmr;
-+	unsigned long ret = 0;
- 	unsigned long i, pfn;
+--- a/mm/shrinker.c~mm-do-not-allocate-shrinker-info-with-cgroupmemory=nokmem
++++ a/mm/shrinker.c
+@@ -219,6 +219,8 @@ static int shrinker_memcg_alloc(struct s
  
- 	cmr = find_cma_memrange(cma, pages, count);
-@@ -1021,7 +1022,9 @@ bool cma_release(struct cma *cma, const
+ 	if (mem_cgroup_disabled())
+ 		return -ENOSYS;
++	if (mem_cgroup_kmem_disabled() && !(shrinker->flags & SHRINKER_NONSLAB))
++		return -ENOSYS;
  
- 	pfn = page_to_pfn(pages);
- 	for (i = 0; i < count; i++, pfn++)
--		VM_WARN_ON(!put_page_testzero(pfn_to_page(pfn)));
-+		ret += !put_page_testzero(pfn_to_page(pfn));
-+
-+	WARN(ret, "%lu pages are still in use!\n", ret);
- 
- 	__cma_release_frozen(cma, cmr, pages, count);
- 
+ 	mutex_lock(&shrinker_mutex);
+ 	id = idr_alloc(&shrinker_idr, shrinker, 0, 0, GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from mkoutny@suse.com are
 
-mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release.patch
+mm-do-not-allocate-shrinker-info-with-cgroupmemory=nokmem.patch
 
