@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B91CE23BCED
-	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 00:42:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D51682E413
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 00:42:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772066553; cv=none; b=tBopUWlATNXIi2km6GtWDWi+R3y5fjy1Yy0IQI4yhwZkwr2ibbD+0RQyUAPoQoxeiwSqMj9R9JogrI9Zk6O1CjBsrTU5n5HTYlym5G7jx9uVJW/AgJsbFSl9v41MjkJMEh3k5Xm/DBZx0xFFBIWnqIBdymKwQsPtHeNL5cmgLns=
+	t=1772066571; cv=none; b=TrUMqqxeN92gvqH6T7KUXe9/VRveSVA6oLuzrE7+YE9qEi7NlsHTijIXA6Yqme+/uFHVRDvc4SnW6oBRA26oFCkL1SfrjGaUQSx257XzKDf9s7n/3mW3CgrRebjadAtJYwzfg/VQ2KXC/RYWar3MnS3XXxl5QAwdxXutk5VeQGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772066553; c=relaxed/simple;
-	bh=FteNNmeiCqYrtgQoS/zXFCEib+uvliYX88+zk0rkLvM=;
-	h=Date:To:From:Subject:Message-Id; b=HNl45QKJtCpr5n9B6qg/S+pM1VzR9bI4lL9CKRooEX1R2H+a4OhCVxpN+8q+yloAotzd8pZGyW/W1NNv74n1K774NbdbH8QJ/q4zEV4A7pq9CWbyKXoWlZo7Q8Ys19h3rCet3Uk3nJn0JWOF9dU0F+Ew0XmiwhEmCDZSkYvRms8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AoMi8M6L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772066571; c=relaxed/simple;
+	bh=Ws9fruBFzh0r+jKKTiCDF9vbACialSqrvbDbp2hPBoE=;
+	h=Date:To:From:Subject:Message-Id; b=mlITMj/a1UUFPJ6yqCw6zOqnDlkjxGP0ZFUotv0MqY1i11xrbTyqeoEw+YBrqmX6O2KRTZ9rYQBfZB5f/ZD8SDlD4pDLACEP5hjIVt0Ymh+IowrWBJGUxc188DHe5t/QctDzJM+uPXHKCVoNdXVG88nVqtiRZyWeVwUdkW+62fo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OGdVNz0/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AoMi8M6L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58094C116D0;
-	Thu, 26 Feb 2026 00:42:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OGdVNz0/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73A27C116D0;
+	Thu, 26 Feb 2026 00:42:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772066553;
-	bh=FteNNmeiCqYrtgQoS/zXFCEib+uvliYX88+zk0rkLvM=;
+	s=korg; t=1772066571;
+	bh=Ws9fruBFzh0r+jKKTiCDF9vbACialSqrvbDbp2hPBoE=;
 	h=Date:To:From:Subject:From;
-	b=AoMi8M6LbCkZp/z17fRxYnySps8xWuyMWca+cQ/2if7TVXumCcoQmBiTKfYCb8ywb
-	 m2Yp4SjIpPHNQCYQscTwU8CbQRhiA/SAX600d29NDlPECF4Q8bxj4Wyjnu/S7LJGwF
-	 zmE6Uvo/BHqVmJMfy0Q0F0175pPVCWjKp94jksZk=
-Date: Wed, 25 Feb 2026 16:42:32 -0800
+	b=OGdVNz0/5SypbGWrheGQNHKVH8wkZsSCAfYfrn+mLkab4FBqkCrzXezpM0gGiNtSi
+	 /MTtXR7t5Nsd/8wnoj3IgctSGcZ2z6B8TnXBLcZdQ7sc08Q9aDBHOHSJ6qU83Ghexc
+	 2HNXQqqb5vNsduc+S7DFrEf+CAuiRfHMomw6O70g=
+Date: Wed, 25 Feb 2026 16:42:50 -0800
 To: mm-commits@vger.kernel.org,willy@infradead.org,david@kernel.org,chrisl@kernel.org,brauner@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + folio_batch-rename-pagevech-to-folio_batchh.patch added to mm-new branch
-Message-Id: <20260226004233.58094C116D0@smtp.kernel.org>
+Subject: + folio_batch-rename-pagevec_size-to-folio_batch_size.patch added to mm-new branch
+Message-Id: <20260226004251.73A27C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: folio_batch: rename pagevec.h to folio_batch.h
+     Subject: folio_batch: rename PAGEVEC_SIZE to FOLIO_BATCH_SIZE
 has been added to the -mm mm-new branch.  Its filename is
-     folio_batch-rename-pagevech-to-folio_batchh.patch
+     folio_batch-rename-pagevec_size-to-folio_batch_size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/folio_batch-rename-pagevech-to-folio_batchh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/folio_batch-rename-pagevec_size-to-folio_batch_size.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +67,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Tal Zussman <tz2294@columbia.edu>
-Subject: folio_batch: rename pagevec.h to folio_batch.h
-Date: Wed, 25 Feb 2026 18:44:27 -0500
+Subject: folio_batch: rename PAGEVEC_SIZE to FOLIO_BATCH_SIZE
+Date: Wed, 25 Feb 2026 18:44:28 -0500
 
-struct pagevec was removed in commit 1e0877d58b1e ("mm: remove struct
-pagevec").  Rename include/linux/pagevec.h to reflect reality and update
-includes tree-wide.  Add the new filename to MAINTAINERS explicitly, as it
-no longer matches the "include/linux/page[-_]*" pattern in MEMORY
-MANAGEMENT - CORE.
+struct pagevec no longer exists.  Rename the macro appropriately.
 
-Link: https://lkml.kernel.org/r/20260225-pagevec_cleanup-v2-3-716868cc2d11@columbia.edu
+Link: https://lkml.kernel.org/r/20260225-pagevec_cleanup-v2-4-716868cc2d11@columbia.edu
 Signed-off-by: Tal Zussman <tz2294@columbia.edu>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -85,661 +81,159 @@ Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                               |    1 
- drivers/gpu/drm/drm_gem.c                 |    2 
- drivers/gpu/drm/i915/gem/i915_gem_shmem.c |    2 
- drivers/gpu/drm/i915/gt/intel_gtt.h       |    2 
- drivers/gpu/drm/i915/i915_gpu_error.c     |    2 
- fs/btrfs/compression.c                    |    2 
- fs/btrfs/extent_io.c                      |    2 
- fs/btrfs/tests/extent-io-tests.c          |    2 
- fs/buffer.c                               |    2 
- fs/ceph/addr.c                            |    2 
- fs/ext4/inode.c                           |    2 
- fs/f2fs/checkpoint.c                      |    2 
- fs/f2fs/compress.c                        |    2 
- fs/f2fs/data.c                            |    2 
- fs/f2fs/node.c                            |    2 
- fs/gfs2/aops.c                            |    2 
- fs/hugetlbfs/inode.c                      |    2 
- fs/nilfs2/btree.c                         |    2 
- fs/nilfs2/page.c                          |    2 
- fs/nilfs2/segment.c                       |    2 
- fs/ramfs/file-nommu.c                     |    2 
- include/linux/folio_batch.h               |  105 ++++++++++++++++++++
- include/linux/folio_queue.h               |    2 
- include/linux/iomap.h                     |    2 
- include/linux/pagevec.h                   |  105 --------------------
- include/linux/sunrpc/svc.h                |    2 
- include/linux/writeback.h                 |    2 
- mm/filemap.c                              |    2 
- mm/gup.c                                  |    2 
- mm/memcontrol.c                           |    2 
- mm/mlock.c                                |    2 
- mm/page-writeback.c                       |    2 
- mm/page_alloc.c                           |    2 
- mm/shmem.c                                |    2 
- mm/swap.c                                 |    2 
- mm/swap_state.c                           |    2 
- mm/truncate.c                             |    2 
- mm/vmscan.c                               |    2 
- 38 files changed, 141 insertions(+), 140 deletions(-)
+ fs/btrfs/extent_io.c        |    4 ++--
+ include/linux/folio_batch.h |    6 +++---
+ include/linux/folio_queue.h |    6 +++---
+ mm/shmem.c                  |    4 ++--
+ mm/swap.c                   |    2 +-
+ mm/swap_state.c             |    2 +-
+ mm/truncate.c               |    6 +++---
+ 7 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/drivers/gpu/drm/drm_gem.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/drivers/gpu/drm/drm_gem.c
-@@ -38,7 +38,7 @@
- #include <linux/mman.h>
- #include <linux/module.h>
- #include <linux/pagemap.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/sched/mm.h>
- #include <linux/shmem_fs.h>
- #include <linux/slab.h>
---- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
-@@ -3,7 +3,7 @@
-  * Copyright © 2014-2016 Intel Corporation
-  */
- 
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/shmem_fs.h>
- #include <linux/swap.h>
- #include <linux/uio.h>
---- a/drivers/gpu/drm/i915/gt/intel_gtt.h~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/drivers/gpu/drm/i915/gt/intel_gtt.h
-@@ -19,7 +19,7 @@
- #include <linux/io-mapping.h>
- #include <linux/kref.h>
- #include <linux/mm.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/scatterlist.h>
- #include <linux/workqueue.h>
- 
---- a/drivers/gpu/drm/i915/i915_gpu_error.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/drivers/gpu/drm/i915/i915_gpu_error.c
-@@ -31,7 +31,7 @@
- #include <linux/debugfs.h>
- #include <linux/highmem.h>
- #include <linux/nmi.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/scatterlist.h>
- #include <linux/string_helpers.h>
- #include <linux/utsname.h>
---- a/fs/btrfs/compression.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/btrfs/compression.c
-@@ -8,7 +8,7 @@
- #include <linux/file.h>
- #include <linux/fs.h>
- #include <linux/pagemap.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/highmem.h>
- #include <linux/kthread.h>
- #include <linux/time.h>
---- a/fs/btrfs/extent_io.c~folio_batch-rename-pagevech-to-folio_batchh
+--- a/fs/btrfs/extent_io.c~folio_batch-rename-pagevec_size-to-folio_batch_size
 +++ a/fs/btrfs/extent_io.c
-@@ -11,7 +11,7 @@
- #include <linux/blkdev.h>
- #include <linux/swap.h>
- #include <linux/writeback.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/prefetch.h>
- #include <linux/fsverity.h>
- #include "extent_io.h"
---- a/fs/btrfs/tests/extent-io-tests.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/btrfs/tests/extent-io-tests.c
-@@ -4,7 +4,7 @@
-  */
+@@ -2095,13 +2095,13 @@ static void buffer_tree_tag_for_writebac
+ struct eb_batch {
+ 	unsigned int nr;
+ 	unsigned int cur;
+-	struct extent_buffer *ebs[PAGEVEC_SIZE];
++	struct extent_buffer *ebs[FOLIO_BATCH_SIZE];
+ };
  
- #include <linux/pagemap.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/sizes.h>
---- a/fs/buffer.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/buffer.c
-@@ -45,7 +45,7 @@
- #include <linux/bitops.h>
- #include <linux/mpage.h>
- #include <linux/bit_spinlock.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/sched/mm.h>
- #include <trace/events/block.h>
- #include <linux/fscrypt.h>
---- a/fs/ceph/addr.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/ceph/addr.c
-@@ -7,7 +7,7 @@
- #include <linux/swap.h>
- #include <linux/pagemap.h>
- #include <linux/slab.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/task_io_accounting_ops.h>
- #include <linux/signal.h>
- #include <linux/iversion.h>
---- a/fs/ext4/inode.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/ext4/inode.c
-@@ -29,7 +29,7 @@
- #include <linux/string.h>
- #include <linux/buffer_head.h>
- #include <linux/writeback.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/mpage.h>
- #include <linux/rmap.h>
- #include <linux/namei.h>
---- a/fs/f2fs/checkpoint.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/f2fs/checkpoint.c
-@@ -11,7 +11,7 @@
- #include <linux/writeback.h>
- #include <linux/blkdev.h>
- #include <linux/f2fs_fs.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/swap.h>
- #include <linux/kthread.h>
- #include <linux/delayacct.h>
---- a/fs/f2fs/compress.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/f2fs/compress.c
-@@ -13,7 +13,7 @@
- #include <linux/lzo.h>
- #include <linux/lz4.h>
- #include <linux/zstd.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
+ static inline bool eb_batch_add(struct eb_batch *batch, struct extent_buffer *eb)
+ {
+ 	batch->ebs[batch->nr++] = eb;
+-	return (batch->nr < PAGEVEC_SIZE);
++	return (batch->nr < FOLIO_BATCH_SIZE);
+ }
  
- #include "f2fs.h"
- #include "node.h"
---- a/fs/f2fs/data.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/f2fs/data.c
-@@ -10,7 +10,7 @@
- #include <linux/sched/mm.h>
- #include <linux/mpage.h>
- #include <linux/writeback.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/blkdev.h>
- #include <linux/bio.h>
- #include <linux/blk-crypto.h>
---- a/fs/f2fs/node.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/f2fs/node.c
-@@ -10,7 +10,7 @@
- #include <linux/mpage.h>
- #include <linux/sched/mm.h>
- #include <linux/blkdev.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/swap.h>
- 
- #include "f2fs.h"
---- a/fs/gfs2/aops.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/gfs2/aops.c
-@@ -10,7 +10,7 @@
- #include <linux/completion.h>
- #include <linux/buffer_head.h>
- #include <linux/pagemap.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/mpage.h>
- #include <linux/fs.h>
- #include <linux/writeback.h>
---- a/fs/hugetlbfs/inode.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/hugetlbfs/inode.c
-@@ -25,7 +25,7 @@
- #include <linux/ctype.h>
- #include <linux/backing-dev.h>
- #include <linux/hugetlb.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/fs_parser.h>
- #include <linux/mman.h>
- #include <linux/slab.h>
---- a/fs/nilfs2/btree.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/nilfs2/btree.c
-@@ -10,7 +10,7 @@
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/errno.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include "nilfs.h"
- #include "page.h"
- #include "btnode.h"
---- a/fs/nilfs2/page.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/nilfs2/page.c
-@@ -14,7 +14,7 @@
- #include <linux/page-flags.h>
- #include <linux/list.h>
- #include <linux/highmem.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/gfp.h>
- #include "nilfs.h"
- #include "page.h"
---- a/fs/nilfs2/segment.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/nilfs2/segment.c
-@@ -19,7 +19,7 @@
- #include <linux/freezer.h>
- #include <linux/kthread.h>
- #include <linux/crc32.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/slab.h>
- #include <linux/sched/signal.h>
- 
---- a/fs/ramfs/file-nommu.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/fs/ramfs/file-nommu.c
-@@ -14,7 +14,7 @@
- #include <linux/string.h>
- #include <linux/backing-dev.h>
- #include <linux/ramfs.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/mman.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-diff --git a/include/linux/folio_batch.h a/include/linux/folio_batch.h
-new file mode 100664
---- /dev/null
+ static inline void eb_batch_init(struct eb_batch *batch)
+--- a/include/linux/folio_batch.h~folio_batch-rename-pagevec_size-to-folio_batch_size
 +++ a/include/linux/folio_batch.h
-@@ -0,0 +1,105 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * include/linux/folio_batch.h
-+ *
-+ * In many places it is efficient to batch an operation up against multiple
-+ * folios.  A folio_batch is a container which is used for that.
-+ */
-+
-+#ifndef _LINUX_FOLIO_BATCH_H
-+#define _LINUX_FOLIO_BATCH_H
-+
-+#include <linux/types.h>
-+
-+/* 31 pointers + header align the folio_batch structure to a power of two */
-+#define PAGEVEC_SIZE	31
-+
-+struct folio;
-+
-+/**
-+ * struct folio_batch - A collection of folios.
-+ *
-+ * The folio_batch is used to amortise the cost of retrieving and
-+ * operating on a set of folios.  The order of folios in the batch may be
-+ * significant (eg delete_from_page_cache_batch()).  Some users of the
-+ * folio_batch store "exceptional" entries in it which can be removed
-+ * by calling folio_batch_remove_exceptionals().
-+ */
-+struct folio_batch {
-+	unsigned char nr;
-+	unsigned char i;
-+	bool percpu_pvec_drained;
-+	struct folio *folios[PAGEVEC_SIZE];
-+};
-+
-+/**
-+ * folio_batch_init() - Initialise a batch of folios
-+ * @fbatch: The folio batch.
-+ *
-+ * A freshly initialised folio_batch contains zero folios.
-+ */
-+static inline void folio_batch_init(struct folio_batch *fbatch)
-+{
-+	fbatch->nr = 0;
-+	fbatch->i = 0;
-+	fbatch->percpu_pvec_drained = false;
-+}
-+
-+static inline void folio_batch_reinit(struct folio_batch *fbatch)
-+{
-+	fbatch->nr = 0;
-+	fbatch->i = 0;
-+}
-+
-+static inline unsigned int folio_batch_count(const struct folio_batch *fbatch)
-+{
-+	return fbatch->nr;
-+}
-+
-+static inline unsigned int folio_batch_space(const struct folio_batch *fbatch)
-+{
-+	return PAGEVEC_SIZE - fbatch->nr;
-+}
-+
-+/**
-+ * folio_batch_add() - Add a folio to a batch.
-+ * @fbatch: The folio batch.
-+ * @folio: The folio to add.
-+ *
-+ * The folio is added to the end of the batch.
-+ * The batch must have previously been initialised using folio_batch_init().
-+ *
-+ * Return: The number of slots still available.
-+ */
-+static inline unsigned folio_batch_add(struct folio_batch *fbatch,
-+		struct folio *folio)
-+{
-+	fbatch->folios[fbatch->nr++] = folio;
-+	return folio_batch_space(fbatch);
-+}
-+
-+/**
-+ * folio_batch_next - Return the next folio to process.
-+ * @fbatch: The folio batch being processed.
-+ *
-+ * Use this function to implement a queue of folios.
-+ *
-+ * Return: The next folio in the queue, or NULL if the queue is empty.
-+ */
-+static inline struct folio *folio_batch_next(struct folio_batch *fbatch)
-+{
-+	if (fbatch->i == fbatch->nr)
-+		return NULL;
-+	return fbatch->folios[fbatch->i++];
-+}
-+
-+void __folio_batch_release(struct folio_batch *fbatch);
-+
-+static inline void folio_batch_release(struct folio_batch *fbatch)
-+{
-+	if (folio_batch_count(fbatch))
-+		__folio_batch_release(fbatch);
-+}
-+
-+void folio_batch_remove_exceptionals(struct folio_batch *fbatch);
-+#endif /* _LINUX_FOLIO_BATCH_H */
---- a/include/linux/folio_queue.h~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/include/linux/folio_queue.h
-@@ -14,7 +14,7 @@
- #ifndef _LINUX_FOLIO_QUEUE_H
- #define _LINUX_FOLIO_QUEUE_H
- 
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/mm.h>
- 
- /*
---- a/include/linux/iomap.h~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/include/linux/iomap.h
-@@ -9,7 +9,7 @@
+@@ -12,7 +12,7 @@
  #include <linux/types.h>
- #include <linux/mm_types.h>
- #include <linux/blkdev.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
  
- struct address_space;
- struct fiemap_extent_info;
-diff --git a/include/linux/pagevec.h a/include/linux/pagevec.h
-deleted file mode 100644
---- a/include/linux/pagevec.h
-+++ /dev/null
-@@ -1,105 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * include/linux/pagevec.h
-- *
-- * In many places it is efficient to batch an operation up against multiple
-- * folios.  A folio_batch is a container which is used for that.
-- */
--
--#ifndef _LINUX_PAGEVEC_H
--#define _LINUX_PAGEVEC_H
--
--#include <linux/types.h>
--
--/* 31 pointers + header align the folio_batch structure to a power of two */
+ /* 31 pointers + header align the folio_batch structure to a power of two */
 -#define PAGEVEC_SIZE	31
--
--struct folio;
--
--/**
-- * struct folio_batch - A collection of folios.
-- *
-- * The folio_batch is used to amortise the cost of retrieving and
-- * operating on a set of folios.  The order of folios in the batch may be
-- * significant (eg delete_from_page_cache_batch()).  Some users of the
-- * folio_batch store "exceptional" entries in it which can be removed
-- * by calling folio_batch_remove_exceptionals().
-- */
--struct folio_batch {
--	unsigned char nr;
--	unsigned char i;
--	bool percpu_pvec_drained;
++#define FOLIO_BATCH_SIZE	31
+ 
+ struct folio;
+ 
+@@ -29,7 +29,7 @@ struct folio_batch {
+ 	unsigned char nr;
+ 	unsigned char i;
+ 	bool percpu_pvec_drained;
 -	struct folio *folios[PAGEVEC_SIZE];
--};
--
--/**
-- * folio_batch_init() - Initialise a batch of folios
-- * @fbatch: The folio batch.
-- *
-- * A freshly initialised folio_batch contains zero folios.
-- */
--static inline void folio_batch_init(struct folio_batch *fbatch)
--{
--	fbatch->nr = 0;
--	fbatch->i = 0;
--	fbatch->percpu_pvec_drained = false;
--}
--
--static inline void folio_batch_reinit(struct folio_batch *fbatch)
--{
--	fbatch->nr = 0;
--	fbatch->i = 0;
--}
--
--static inline unsigned int folio_batch_count(const struct folio_batch *fbatch)
--{
--	return fbatch->nr;
--}
--
--static inline unsigned int folio_batch_space(const struct folio_batch *fbatch)
--{
++	struct folio *folios[FOLIO_BATCH_SIZE];
+ };
+ 
+ /**
+@@ -58,7 +58,7 @@ static inline unsigned int folio_batch_c
+ 
+ static inline unsigned int folio_batch_space(const struct folio_batch *fbatch)
+ {
 -	return PAGEVEC_SIZE - fbatch->nr;
--}
--
--/**
-- * folio_batch_add() - Add a folio to a batch.
-- * @fbatch: The folio batch.
-- * @folio: The folio to add.
-- *
-- * The folio is added to the end of the batch.
-- * The batch must have previously been initialised using folio_batch_init().
-- *
-- * Return: The number of slots still available.
-- */
--static inline unsigned folio_batch_add(struct folio_batch *fbatch,
--		struct folio *folio)
--{
--	fbatch->folios[fbatch->nr++] = folio;
--	return folio_batch_space(fbatch);
--}
--
--/**
-- * folio_batch_next - Return the next folio to process.
-- * @fbatch: The folio batch being processed.
-- *
-- * Use this function to implement a queue of folios.
-- *
-- * Return: The next folio in the queue, or NULL if the queue is empty.
-- */
--static inline struct folio *folio_batch_next(struct folio_batch *fbatch)
--{
--	if (fbatch->i == fbatch->nr)
--		return NULL;
--	return fbatch->folios[fbatch->i++];
--}
--
--void __folio_batch_release(struct folio_batch *fbatch);
--
--static inline void folio_batch_release(struct folio_batch *fbatch)
--{
--	if (folio_batch_count(fbatch))
--		__folio_batch_release(fbatch);
--}
--
--void folio_batch_remove_exceptionals(struct folio_batch *fbatch);
--#endif /* _LINUX_PAGEVEC_H */
---- a/include/linux/sunrpc/svc.h~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/include/linux/sunrpc/svc.h
-@@ -20,7 +20,7 @@
- #include <linux/lwq.h>
- #include <linux/wait.h>
- #include <linux/mm.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/kthread.h>
++	return FOLIO_BATCH_SIZE - fbatch->nr;
+ }
  
- /*
---- a/include/linux/writeback.h~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/include/linux/writeback.h
-@@ -11,7 +11,7 @@
- #include <linux/flex_proportions.h>
- #include <linux/backing-dev-defs.h>
- #include <linux/blk_types.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
+ /**
+--- a/include/linux/folio_queue.h~folio_batch-rename-pagevec_size-to-folio_batch_size
++++ a/include/linux/folio_queue.h
+@@ -29,12 +29,12 @@
+  */
+ struct folio_queue {
+ 	struct folio_batch	vec;		/* Folios in the queue segment */
+-	u8			orders[PAGEVEC_SIZE]; /* Order of each folio */
++	u8			orders[FOLIO_BATCH_SIZE]; /* Order of each folio */
+ 	struct folio_queue	*next;		/* Next queue segment or NULL */
+ 	struct folio_queue	*prev;		/* Previous queue segment of NULL */
+ 	unsigned long		marks;		/* 1-bit mark per folio */
+ 	unsigned long		marks2;		/* Second 1-bit mark per folio */
+-#if PAGEVEC_SIZE > BITS_PER_LONG
++#if FOLIO_BATCH_SIZE > BITS_PER_LONG
+ #error marks is not big enough
+ #endif
+ 	unsigned int		rreq_id;
+@@ -70,7 +70,7 @@ static inline void folioq_init(struct fo
+  */
+ static inline unsigned int folioq_nr_slots(const struct folio_queue *folioq)
+ {
+-	return PAGEVEC_SIZE;
++	return FOLIO_BATCH_SIZE;
+ }
  
- struct bio;
- 
---- a/MAINTAINERS~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/MAINTAINERS
-@@ -16664,6 +16664,7 @@ L:	linux-mm@kvack.org
- S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-+F:	include/linux/folio_batch.h
- F:	include/linux/gfp.h
- F:	include/linux/gfp_types.h
- F:	include/linux/highmem.h
---- a/mm/filemap.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/mm/filemap.c
-@@ -31,7 +31,7 @@
- #include <linux/hash.h>
- #include <linux/writeback.h>
- #include <linux/backing-dev.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/security.h>
- #include <linux/cpuset.h>
- #include <linux/hugetlb.h>
---- a/mm/gup.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/mm/gup.c
-@@ -18,7 +18,7 @@
- #include <linux/hugetlb.h>
- #include <linux/migrate.h>
- #include <linux/mm_inline.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/sched/mm.h>
- #include <linux/shmem_fs.h>
- 
---- a/mm/memcontrol.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/mm/memcontrol.c
-@@ -34,7 +34,7 @@
- #include <linux/shmem_fs.h>
- #include <linux/hugetlb.h>
- #include <linux/pagemap.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/vm_event_item.h>
- #include <linux/smp.h>
- #include <linux/page-flags.h>
---- a/mm/mlock.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/mm/mlock.c
-@@ -13,7 +13,7 @@
- #include <linux/swap.h>
- #include <linux/swapops.h>
- #include <linux/pagemap.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/pagewalk.h>
- #include <linux/mempolicy.h>
- #include <linux/syscalls.h>
---- a/mm/page_alloc.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/mm/page_alloc.c
-@@ -31,7 +31,7 @@
- #include <linux/sysctl.h>
- #include <linux/cpu.h>
- #include <linux/cpuset.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/memory_hotplug.h>
- #include <linux/nodemask.h>
- #include <linux/vmstat.h>
---- a/mm/page-writeback.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/mm/page-writeback.c
-@@ -33,7 +33,7 @@
- #include <linux/sysctl.h>
- #include <linux/cpu.h>
- #include <linux/syscalls.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/timer.h>
- #include <linux/sched/rt.h>
- #include <linux/sched/signal.h>
---- a/mm/shmem.c~folio_batch-rename-pagevech-to-folio_batchh
+ /**
+--- a/mm/shmem.c~folio_batch-rename-pagevec_size-to-folio_batch_size
 +++ a/mm/shmem.c
-@@ -61,7 +61,7 @@ static struct vfsmount *shm_mnt __ro_aft
- #include <linux/slab.h>
- #include <linux/backing-dev.h>
- #include <linux/writeback.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/percpu_counter.h>
- #include <linux/falloc.h>
- #include <linux/splice.h>
---- a/mm/swap.c~folio_batch-rename-pagevech-to-folio_batchh
+@@ -1113,7 +1113,7 @@ static void shmem_undo_range(struct inod
+ 	pgoff_t start = (lstart + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	pgoff_t end = (lend + 1) >> PAGE_SHIFT;
+ 	struct folio_batch fbatch;
+-	pgoff_t indices[PAGEVEC_SIZE];
++	pgoff_t indices[FOLIO_BATCH_SIZE];
+ 	struct folio *folio;
+ 	bool same_folio;
+ 	long nr_swaps_freed = 0;
+@@ -1510,7 +1510,7 @@ static int shmem_unuse_inode(struct inod
+ 	struct address_space *mapping = inode->i_mapping;
+ 	pgoff_t start = 0;
+ 	struct folio_batch fbatch;
+-	pgoff_t indices[PAGEVEC_SIZE];
++	pgoff_t indices[FOLIO_BATCH_SIZE];
+ 	int ret = 0;
+ 
+ 	do {
+--- a/mm/swap.c~folio_batch-rename-pagevec_size-to-folio_batch_size
 +++ a/mm/swap.c
-@@ -20,7 +20,7 @@
- #include <linux/swap.h>
- #include <linux/mman.h>
- #include <linux/pagemap.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/init.h>
- #include <linux/export.h>
- #include <linux/mm_inline.h>
---- a/mm/swap_state.c~folio_batch-rename-pagevech-to-folio_batchh
+@@ -1024,7 +1024,7 @@ EXPORT_SYMBOL(folios_put_refs);
+ void release_pages(release_pages_arg arg, int nr)
+ {
+ 	struct folio_batch fbatch;
+-	int refs[PAGEVEC_SIZE];
++	int refs[FOLIO_BATCH_SIZE];
+ 	struct encoded_page **encoded = arg.encoded_pages;
+ 	int i;
+ 
+--- a/mm/swap_state.c~folio_batch-rename-pagevec_size-to-folio_batch_size
 +++ a/mm/swap_state.c
-@@ -15,7 +15,7 @@
- #include <linux/leafops.h>
- #include <linux/init.h>
- #include <linux/pagemap.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/backing-dev.h>
- #include <linux/blkdev.h>
- #include <linux/migrate.h>
---- a/mm/truncate.c~folio_batch-rename-pagevech-to-folio_batchh
+@@ -385,7 +385,7 @@ void free_folio_and_swap_cache(struct fo
+ void free_pages_and_swap_cache(struct encoded_page **pages, int nr)
+ {
+ 	struct folio_batch folios;
+-	unsigned int refs[PAGEVEC_SIZE];
++	unsigned int refs[FOLIO_BATCH_SIZE];
+ 
+ 	folio_batch_init(&folios);
+ 	for (int i = 0; i < nr; i++) {
+--- a/mm/truncate.c~folio_batch-rename-pagevec_size-to-folio_batch_size
 +++ a/mm/truncate.c
-@@ -17,7 +17,7 @@
- #include <linux/export.h>
- #include <linux/pagemap.h>
- #include <linux/highmem.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/task_io_accounting_ops.h>
- #include <linux/shmem_fs.h>
- #include <linux/rmap.h>
---- a/mm/vmscan.c~folio_batch-rename-pagevech-to-folio_batchh
-+++ a/mm/vmscan.c
-@@ -44,7 +44,7 @@
- #include <linux/sysctl.h>
- #include <linux/memory-tiers.h>
- #include <linux/oom.h>
--#include <linux/pagevec.h>
-+#include <linux/folio_batch.h>
- #include <linux/prefetch.h>
- #include <linux/printk.h>
- #include <linux/dax.h>
+@@ -369,7 +369,7 @@ void truncate_inode_pages_range(struct a
+ 	pgoff_t		start;		/* inclusive */
+ 	pgoff_t		end;		/* exclusive */
+ 	struct folio_batch fbatch;
+-	pgoff_t		indices[PAGEVEC_SIZE];
++	pgoff_t		indices[FOLIO_BATCH_SIZE];
+ 	pgoff_t		index;
+ 	int		i;
+ 	struct folio	*folio;
+@@ -534,7 +534,7 @@ EXPORT_SYMBOL(truncate_inode_pages_final
+ unsigned long mapping_try_invalidate(struct address_space *mapping,
+ 		pgoff_t start, pgoff_t end, unsigned long *nr_failed)
+ {
+-	pgoff_t indices[PAGEVEC_SIZE];
++	pgoff_t indices[FOLIO_BATCH_SIZE];
+ 	struct folio_batch fbatch;
+ 	pgoff_t index = start;
+ 	unsigned long ret;
+@@ -672,7 +672,7 @@ failed:
+ int invalidate_inode_pages2_range(struct address_space *mapping,
+ 				  pgoff_t start, pgoff_t end)
+ {
+-	pgoff_t indices[PAGEVEC_SIZE];
++	pgoff_t indices[FOLIO_BATCH_SIZE];
+ 	struct folio_batch fbatch;
+ 	pgoff_t index;
+ 	int i;
 _
 
 Patches currently in -mm which might be from tz2294@columbia.edu are
