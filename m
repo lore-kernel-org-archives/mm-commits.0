@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1FB41F0E2E;
-	Thu, 26 Feb 2026 00:25:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AA9315A864
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 00:35:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772065516; cv=none; b=nBzEfNkjh7xX5vHQLj+2p4N0aLrJ13Mz09+71wwvWtq1dhAQ9b6cgsY/0yCKyTO5iboaxe5N2VJo+9WuK65ebfpW+seEJm8cT8RePMvOB5UtLzgDNCWWfEIv6ORzgL7zS/lKXPl2Pjjqct3qDY/QYod5X7ORKkEyfZDJKCmGJzs=
+	t=1772066126; cv=none; b=dG8Q3ARyxLoe77bKI00uLHMwaI0BYIeube0tHgkV6HYQwq7XcuOdPRMt2E0954y9T28/r+aRZCHIeLQijdc/aBUhg2JE1qvIvcu4mFk5mSy6so4mmzTTdH5525w0VBSX7jQt+qO9zGsOkeE8ielf/K7LDrJfRl1jte0r4/w1MZM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772065516; c=relaxed/simple;
-	bh=mlR7oOjibb4iN2xmRSg13S+y3VkEy7SekPku0ZBWk6k=;
-	h=Date:To:From:Subject:Message-Id; b=jlEetVh7XrCSpESip8O8a8EA8Sco2nqDAGiLn782+a3b+qgUsNgTOYusXxZcbCIXTXltyRHtMU3FoJRtpzn6Lma+yDCO2gYQ0Q09hCGK+AjyQhMr0Kzwu3r3F/INKvjY5BJsmOnn4ygGN31jyS1ObYymWT6mWsdb4dfQ7pzdw3g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SpuWLqzT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772066126; c=relaxed/simple;
+	bh=H/6dr7ZYybS6UB5HTv3982CKOzXkdqbaokJQZD7eKcE=;
+	h=Date:To:From:Subject:Message-Id; b=RR3okXnxJqrtiGaDX1EHLu4bGKOCN4vlUxgr81ztBZXhQ6aEKusU/QH57EsBYKtNVEmqK/xDCH2AUXEEOJLjysYnKLJX0w5u5jqXQdkILhkNxNg+gZexT3SMNl2BxX8950O4+snLJwBBEDemOKIXID+/ydKeaulmamiIembPwOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=12DlJLmV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SpuWLqzT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DC17C116D0;
-	Thu, 26 Feb 2026 00:25:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="12DlJLmV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B541AC116D0;
+	Thu, 26 Feb 2026 00:35:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772065516;
-	bh=mlR7oOjibb4iN2xmRSg13S+y3VkEy7SekPku0ZBWk6k=;
+	s=korg; t=1772066125;
+	bh=H/6dr7ZYybS6UB5HTv3982CKOzXkdqbaokJQZD7eKcE=;
 	h=Date:To:From:Subject:From;
-	b=SpuWLqzTcoeO85p7CQMTr2ydcBMi94byLle2HAF0s6DjzwFzrhlaIoDW4YDP6/gXw
-	 KNUx3v0E31wkqHxhCnGi8RZkOyvyIxymuTTbXPOm7lqjC5nFiUJONl/XPvGzNFdkBI
-	 MgYyPsI7WTIxUZ6KcsMtFeV8lVyluYzjByYcSCqU=
-Date: Wed, 25 Feb 2026 16:25:15 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,akpm@linux-foundation.org
+	b=12DlJLmVcSFPv+lZ+hp8f4lR3pW9L1qkaxipcmLph2zyux8+8qbMUsLwosvw1O2KR
+	 5NwdBdU/fEmBUFe00yi4S+jLdOCM5hk2DrxOx1K7Gy/N6L+U7pFI0LFPwOPj1/hkbF
+	 4iuii8CwAtGcnIrK9jLI/1HljpzORrvyXTSe/OBI=
+Date: Wed, 25 Feb 2026 16:35:25 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kees@kernel.org,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260226002516.1DC17C116D0@smtp.kernel.org>
+Subject: + tools-testing-fix-testing-vma-and-testing-radix-tree-build.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260226003525.B541AC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Revert "ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()"
+     Subject: tools/testing: fix testing/vma and testing/radix-tree build
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch
+     tools-testing-fix-testing-vma-and-testing-radix-tree-build.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-fix-testing-vma-and-testing-radix-tree-build.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,86 +58,113 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: Revert "ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()"
-Date: Tue, 24 Feb 2026 16:24:34 -0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: tools/testing: fix testing/vma and testing/radix-tree build
+Date: Thu, 26 Feb 2026 01:31:11 +0200
 
-This change swapped out mod_node_page_state for lruvec_stat_add_folio. 
-But, these two APIs are not interchangeable: the lruvec version also
-increments memcg stats, in addition to "global" pgdat stats.
+Build of VMA and radix-tree tests is unhappy after the conversion of
+kzalloc() to kzalloc_obj() in lib/idr.c:
 
-So after this change, the "pagetables" memcg stat in memory.stat always
-yields "0", which is a userspace visible regression.
+  cc -I../shared -I. -I../../include -I../../arch/x86/include -I../../../lib -g -Og -Wall -D_LGPL_SOURCE -fsanitize=address -fsanitize=undefined  -DNUM_VMA_FLAG_BITS=128 -DNUM_MM_FLAG_BITS=128   -c -o idr.o idr.c
+  idr.c: In function `ida_alloc_range':
+  idr.c:420:34: error: implicit declaration of function `kzalloc_obj'; did you mean `kzalloc_node'? [-Wimplicit-function-declaration]
+    420 |                         bitmap = kzalloc_obj(*bitmap, GFP_NOWAIT);
+        |                                  ^~~~~~~~~~~
+        |                                  kzalloc_node
+  idr.c:420:32: error: assignment to `struct ida_bitmap *' from `int' makes pointer from integer without a cast [-Wint-conversion]
+    420 |                         bitmap = kzalloc_obj(*bitmap, GFP_NOWAIT);
+        |                                ^
+  idr.c:447:40: error: assignment to `struct ida_bitmap *' from `int' makes pointer from integer without a cast [-Wint-conversion]
+    447 |                                 bitmap = kzalloc_obj(*bitmap, GFP_NOWAIT);
+        |                                        ^
+  idr.c:468:15: error: assignment to `struct ida_bitmap *' from `int' makes pointer from integer without a cast [-Wint-conversion]
+    468 |         alloc = kzalloc_obj(*bitmap, gfp);
+        |               ^
+  make: *** [<builtin>: idr.o] Error 1
 
-I tried to look for a refactor where we add a variant of
-lruvec_stat_mod_folio which takes a pgdat and a memcg instead of a folio,
-to try to adhere to the spirit of the original patch.  But at the end of
-the day this just means we have to call folio_memcg(ptdesc_folio(ptdesc))
-anyway, which doesn't really accomplish much.
+Import necessary macros from include/linux to tools/include/linux to fix
+the compilation.
 
-This regression is visible in master as well as 6.18 stable, so CC stable
-too.
-
-Link: https://lkml.kernel.org/r/20260225002434.2953895-1-axelrasmussen@google.com
-Fixes: f0c92726e89f ("ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()")
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20260225233111.2760752-1-rppt@kernel.org
+Fixes: 69050f8d6d07 ("treewide: Replace kmalloc with kmalloc_obj for non-scalar types")
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ tools/include/linux/gfp.h      |    4 ++++
+ tools/include/linux/overflow.h |   19 +++++++++++++++++++
+ tools/include/linux/slab.h     |    9 +++++++++
+ 3 files changed, 32 insertions(+)
 
---- a/include/linux/mm.h~revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor
-+++ a/include/linux/mm.h
-@@ -3514,26 +3514,21 @@ static inline bool ptlock_init(struct pt
- static inline void ptlock_free(struct ptdesc *ptdesc) {}
- #endif /* defined(CONFIG_SPLIT_PTE_PTLOCKS) */
+--- a/tools/include/linux/gfp.h~tools-testing-fix-testing-vma-and-testing-radix-tree-build
++++ a/tools/include/linux/gfp.h
+@@ -5,6 +5,10 @@
+ #include <linux/types.h>
+ #include <linux/gfp_types.h>
  
--static inline unsigned long ptdesc_nr_pages(const struct ptdesc *ptdesc)
--{
--	return compound_nr(ptdesc_page(ptdesc));
--}
--
- static inline void __pagetable_ctor(struct ptdesc *ptdesc)
++/* Helper macro to avoid gfp flags if they are the default one */
++#define __default_gfp(a,...) a
++#define default_gfp(...) __default_gfp(__VA_ARGS__ __VA_OPT__(,) GFP_KERNEL)
++
+ static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
  {
--	pg_data_t *pgdat = NODE_DATA(memdesc_nid(ptdesc->pt_flags));
-+	struct folio *folio = ptdesc_folio(ptdesc);
+ 	return !!(gfp_flags & __GFP_DIRECT_RECLAIM);
+--- a/tools/include/linux/overflow.h~tools-testing-fix-testing-vma-and-testing-radix-tree-build
++++ a/tools/include/linux/overflow.h
+@@ -69,6 +69,25 @@
+ })
  
--	__SetPageTable(ptdesc_page(ptdesc));
--	mod_node_page_state(pgdat, NR_PAGETABLE, ptdesc_nr_pages(ptdesc));
-+	__folio_set_pgtable(folio);
-+	lruvec_stat_add_folio(folio, NR_PAGETABLE);
+ /**
++ * size_mul() - Calculate size_t multiplication with saturation at SIZE_MAX
++ * @factor1: first factor
++ * @factor2: second factor
++ *
++ * Returns: calculate @factor1 * @factor2, both promoted to size_t,
++ * with any overflow causing the return value to be SIZE_MAX. The
++ * lvalue must be size_t to avoid implicit type conversion.
++ */
++static inline size_t __must_check size_mul(size_t factor1, size_t factor2)
++{
++	size_t bytes;
++
++	if (check_mul_overflow(factor1, factor2, &bytes))
++		return SIZE_MAX;
++
++	return bytes;
++}
++
++/**
+  * array_size() - Calculate size of 2-dimensional array.
+  *
+  * @a: dimension one
+--- a/tools/include/linux/slab.h~tools-testing-fix-testing-vma-and-testing-radix-tree-build
++++ a/tools/include/linux/slab.h
+@@ -202,4 +202,13 @@ static inline unsigned int kmem_cache_sh
+ 	return sheaf->size;
  }
  
- static inline void pagetable_dtor(struct ptdesc *ptdesc)
- {
--	pg_data_t *pgdat = NODE_DATA(memdesc_nid(ptdesc->pt_flags));
-+	struct folio *folio = ptdesc_folio(ptdesc);
- 
- 	ptlock_free(ptdesc);
--	__ClearPageTable(ptdesc_page(ptdesc));
--	mod_node_page_state(pgdat, NR_PAGETABLE, -ptdesc_nr_pages(ptdesc));
-+	__folio_clear_pgtable(folio);
-+	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
- }
- 
- static inline void pagetable_dtor_free(struct ptdesc *ptdesc)
++#define __alloc_objs(KMALLOC, GFP, TYPE, COUNT)				\
++({									\
++	const size_t __obj_size = size_mul(sizeof(TYPE), COUNT);	\
++	(TYPE *)KMALLOC(__obj_size, GFP);				\
++})
++
++#define kzalloc_obj(P, ...) \
++	__alloc_objs(kzalloc, default_gfp(__VA_ARGS__), typeof(P), 1)
++
+ #endif		/* _TOOLS_SLAB_H */
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch
+tools-testing-fix-testing-vma-and-testing-radix-tree-build.patch
+mm-dont-special-case-mmu-for-is_zero_pfn-and-my_zero_pfn.patch
+mm-rename-my_zero_pfn-to-zero_pfn.patch
+arch-mm-consolidate-empty_zero_page.patch
+mm-cache-struct-page-for-empty_zero_page-and-return-it-from-zero_page.patch
 
