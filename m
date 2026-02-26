@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40494368952
-	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 17:18:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 841291A317D
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 17:18:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772126329; cv=none; b=lkUPpulqczl9H89H4qdpLXzX0MoORdEN85C0I5M57w0mhYQgOOHKQE9KxdXXQhclim1Zm27EVVPc5Tkpmn0veotGw94i2UbB2e419LD0rgRUopMzTKzMNsyZN8+t7+86aa4lpyu/eKH/lpt4wr6/DRKw9IWd8HzRRk4kL1vSwFI=
+	t=1772126331; cv=none; b=OSNK+gVxmBdZ5lTpMCjSunq3CJvCNyI7Si/iZgR+L/l6UbEFb1MRgsIlZJ+vpMMiR2JAMCxnm/zGObAOwHWaFB562DOUSlRmUDktW9AnFKy7D/A9StE0TpFnr/f6iX6B8Z4v13u5Y+Cs5fPTaApKP3Rj8BuQk4SnCHhmW8sJxGM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772126329; c=relaxed/simple;
-	bh=ta/zQ6dt9WrEijRkWf73/jEiEQffItsPFizXVcsleXo=;
-	h=Date:To:From:Subject:Message-Id; b=XKB9p0jZZpSGuVh/v9r+rDS/6QxQ0EWACCeKnmaOGVRPgeJmRVj49XVLvZu5Ck22qGnwFGz0Bp1pWN9SF4JZA5GDheh8yw6uc1SdNvSeySQaWn56SWXD3ACMz+9PdO07kXnaV//prw93p/nBnZMchljDPOqC7csozPpvYHPO11A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zOfzelHg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772126331; c=relaxed/simple;
+	bh=ZkpK6NUGHDMvUjYOOSxcq9h03CQZNd6vWjZCnWnVMuE=;
+	h=Date:To:From:Subject:Message-Id; b=ZhMf+B3y9M4nx7nu7IdPa6HVT6Sms+vfuUb2aAUQIB2MGYExdgS3wOD8OjOY7zqotTkY4k5ve6z4j26tk4IPc2S0Vy05gS9UqhfYeJPxw6KmGf83Ae16aupaeUO2bhVSjHbix2+bPcP08D/pQdCSp2w1cvEt8dwRnfIFM+nYRkg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MjPWsM9c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zOfzelHg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB11BC116C6;
-	Thu, 26 Feb 2026 17:18:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MjPWsM9c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02F0EC116C6;
+	Thu, 26 Feb 2026 17:18:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772126328;
-	bh=ta/zQ6dt9WrEijRkWf73/jEiEQffItsPFizXVcsleXo=;
+	s=korg; t=1772126331;
+	bh=ZkpK6NUGHDMvUjYOOSxcq9h03CQZNd6vWjZCnWnVMuE=;
 	h=Date:To:From:Subject:From;
-	b=zOfzelHgeLpKr33PssJt13Qz8QAewI3wb9iynZizduNpXDUzcDswr3sIZmSPcN27e
-	 x9fwUfWc7RP5dVFlvL20gvvmNoKlhxn2GmlnSFdXxRARdE9EkKrL4v/UlUhiwsOUG8
-	 H1mxI8G5QPfbI9uN66y1+j/WQTVliDJqYUL4x0LY=
-Date: Thu, 26 Feb 2026 09:18:48 -0800
+	b=MjPWsM9c0AYHY/jvHSqyKfK0WYJqZv8qrheIgWR8nBxagHFvw/f4VMm64T5OoV7Ht
+	 hG6UFQNtomUXkKYeLLrkBeT+xh4pSgeslVoopn9jy4IRlafLTq43NWZAH8BddzoKdP
+	 E4wLuaINjUkwyrW1cC1hYCqCj0NZDcTYO16wUowA=
+Date: Thu, 26 Feb 2026 09:18:50 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,vbabka@suse.cz,surenb@google.com,mst@redhat.com,mhocko@suse.com,longli@microsoft.com,kys@microsoft.com,jasowang@redhat.com,jackmanb@google.com,hannes@cmpxchg.org,haiyangz@microsoft.com,eperezma@redhat.com,decui@microsoft.com,david@kernel.org,yuvraj.sakshith@oss.qualcomm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + hv_balloon-change-default-page-reporting-order.patch added to mm-new branch
-Message-Id: <20260226171848.CB11BC116C6@smtp.kernel.org>
+Subject: + virtio_balloon-set-pr_devorder-to-new-default.patch added to mm-new branch
+Message-Id: <20260226171851.02F0EC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: hv_balloon: change default page reporting order
+     Subject: virtio_balloon: set pr_dev.order to new default
 has been added to the -mm mm-new branch.  Its filename is
-     hv_balloon-change-default-page-reporting-order.patch
+     virtio_balloon-set-pr_devorder-to-new-default.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hv_balloon-change-default-page-reporting-order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/virtio_balloon-set-pr_devorder-to-new-default.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,18 +67,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Yuvraj Sakshith <yuvraj.sakshith@oss.qualcomm.com>
-Subject: hv_balloon: change default page reporting order
-Date: Wed, 25 Feb 2026 23:01:24 -0800
+Subject: virtio_balloon: set pr_dev.order to new default
+Date: Wed, 25 Feb 2026 23:01:25 -0800
 
-page_reporting_order used to fall back to default value (passed as
-parameter or MAX_PAGE_ORDER) if the driver wishes to not provide it.
+Drivers registering with page reporting used zero as a way to signal
+page_reporting_order to be set as a default value (either passed as a
+param or MAX_PAGE_ORDER).
 
-The way the driver used to do this was by passing the order as zero.
+Since page_reporting_order can now have zero as valid order, default
+fallback value send by drivers to page reporting is now -1.
 
-Now that zero is a valid order that can be passed by a driver to page
-reporting, we use -1 to signal default value to be used.
-
-Link: https://lkml.kernel.org/r/20260226070125.3732265-3-yuvraj.sakshith@oss.qualcomm.com
+Link: https://lkml.kernel.org/r/20260226070125.3732265-4-yuvraj.sakshith@oss.qualcomm.com
 Signed-off-by: Yuvraj Sakshith <yuvraj.sakshith@oss.qualcomm.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: David Hildenbrand <david@kernel.org>
@@ -99,20 +98,32 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hv/hv_balloon.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/virtio/virtio_balloon.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/drivers/hv/hv_balloon.c~hv_balloon-change-default-page-reporting-order
-+++ a/drivers/hv/hv_balloon.c
-@@ -1663,7 +1663,7 @@ static void enable_page_reporting(void)
- 	 * We let the page_reporting_order parameter decide the order
- 	 * in the page_reporting code
- 	 */
--	dm_device.pr_dev_info.order = 0;
-+	dm_device.pr_dev_info.order = -1;
- 	ret = page_reporting_register(&dm_device.pr_dev_info);
- 	if (ret < 0) {
- 		dm_device.pr_dev_info.report = NULL;
+--- a/drivers/virtio/virtio_balloon.c~virtio_balloon-set-pr_devorder-to-new-default
++++ a/drivers/virtio/virtio_balloon.c
+@@ -1023,6 +1023,20 @@ static int virtballoon_probe(struct virt
+ 		}
+ 
+ 		/*
++		 * page_reporting_register() takes the order either
++		 * from the driver or the commandline. If neither
++		 * are provided, it falls back to MAX_PAGE_ORDER.
++		 *
++		 * Order given by the driver is required to be in the
++		 * range [0, MAX_PAGE_ORDER].
++		 *
++		 * One way for the driver to not provide any order
++		 * is by setting it to -1.
++		 */
++
++		vb->pr_dev_info.order = -1;
++
++		/*
+ 		 * The default page reporting order is @pageblock_order, which
+ 		 * corresponds to 512MB in size on ARM64 when 64KB base page
+ 		 * size is used. The page reporting won't be triggered if the
 _
 
 Patches currently in -mm which might be from yuvraj.sakshith@oss.qualcomm.com are
