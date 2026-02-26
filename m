@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C9A233343B
-	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 21:25:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1123229B18
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 21:25:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772141154; cv=none; b=C8TMo6CpPdowjWaFEiSy+OrZuAFB4WoBYQTrMaDvp+cqtCVkKkpemQnQCVGW7OA1FwJ6PcFM7Vo5j1b1B1Xhg4DRfCnY4qUgk5xLwwC/KL0zShn7wuFJHLH7/mBzLUg9uYiyd4LjSfxbKbf/TmSw4x66L8xDnT1gjQz6qqg36pk=
+	t=1772141156; cv=none; b=boXYwr9FBauw0wxL/wGrCYC579fULuAYh4oTY9b8pu7/KEOdyXtVYxRlzVocXoGRBYda7ZQqvIJuxI1XEfI0EsoW2V0kgA/Y2WaCjA7sGF3C/+fePmjNlNfVJFDy0Lid78aTOanVp1mNdCXz95FR078mKWJFVfXiHfNMCIOkiwM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772141154; c=relaxed/simple;
-	bh=CClwyVy0XmQVgyva4nHcNTCiskfLfxYYWUPajamEkd0=;
-	h=Date:To:From:Subject:Message-Id; b=oWQwxbu3YWQ+hyD/f9CACFLer0YBQ3n7Bt5uvk/ZTGcXhsbNo4P7f2pqQulXuVqlWzLnk6f5V6fyU6NI/nKftE2XIbZmJ5MdrA+4+zyanPL7qkpOI2mZmtvypa53PyIFbjb2b/xowS2OOKNPmBTuUsq2kc4G2VSBR60ZswUaawI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oFpkIyuk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772141156; c=relaxed/simple;
+	bh=irZ2fE6lcQL0ElIWMx5KYqPqy3ehuPvVJkpkO803Fk0=;
+	h=Date:To:From:Subject:Message-Id; b=gYLqIo0Xq2lYSEcJojLJhAhAOvXIgQjHiA/gS0sZQUFsDDtVRdwVPDbzHv9xFu1P7Gr7atvwIr+5U8kZFce70g8K4nXmMcZdCSsX4EZWNC99ZJAIEskQJYYORnqmJNJox28e5sm68Ix7jVZTny7iCy3hKX7GhV2ButYByEilkjM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fnTaJ/xO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oFpkIyuk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D776C116C6;
-	Thu, 26 Feb 2026 21:25:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fnTaJ/xO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FD23C116C6;
+	Thu, 26 Feb 2026 21:25:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772141154;
-	bh=CClwyVy0XmQVgyva4nHcNTCiskfLfxYYWUPajamEkd0=;
+	s=korg; t=1772141156;
+	bh=irZ2fE6lcQL0ElIWMx5KYqPqy3ehuPvVJkpkO803Fk0=;
 	h=Date:To:From:Subject:From;
-	b=oFpkIyukDXGjkuBsb6YAwH8ucwjnMS/mg65k8Z7wlgMLNwnSwKXngKHNzSaqgAHf/
-	 VHTX7sdfm9sl9CzhPs/2KFwhcAaOQp3vi5KKLp9On2KkSDRqUZFrqNXoSfGx54ELCH
-	 gRunow34X2m3L/t184tdiJFzXmvifaZi25jRcVtA=
-Date: Thu, 26 Feb 2026 13:25:53 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,osalvador@suse.de,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,benjamin.cheatham@amd.com,axelrasmussen@google.com,d@ilvokhin.com,akpm@linux-foundation.org
+	b=fnTaJ/xOwff7bOApOr8PEhRFwR3FMbeg8eU9Ii24vr5Qe1pGqO3gTxUv3EYlbi6d7
+	 LAgfAPaLOuq29VTDFbeCvvTARkRNXqzp+r0CRPKhMYb2H3j4XuNO1trN7VRbX+c9ds
+	 gmkHnYwbTUqnIxJvIy/iMvE2Oe88ihdlkmvGUBtA=
+Date: Thu, 26 Feb 2026 13:25:55 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,osalvador@suse.de,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,benjamin.cheatham@amd.com,axelrasmussen@google.com,akpm@linux-foundation.org,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-compaction-to-zone-lock-wrappers.patch added to mm-new branch
-Message-Id: <20260226212554.0D776C116C6@smtp.kernel.org>
+Subject: + mm-rename-zone-lock-to-zone-_lock.patch added to mm-new branch
+Message-Id: <20260226212556.7FD23C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: convert compaction to zone lock wrappers
+     Subject: mm: rename zone->lock to zone->_lock
 has been added to the -mm mm-new branch.  Its filename is
-     mm-convert-compaction-to-zone-lock-wrappers.patch
+     mm-rename-zone-lock-to-zone-_lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-compaction-to-zone-lock-wrappers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-zone-lock-to-zone-_lock.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,25 +67,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: mm: convert compaction to zone lock wrappers
-Date: Thu, 26 Feb 2026 18:26:20 +0000
+Subject: mm: rename zone->lock to zone->_lock
+Date: Thu, 26 Feb 2026 18:26:21 +0000
 
-Compaction uses compact_lock_irqsave(), which currently operates on a raw
-spinlock_t pointer so it can be used for both zone->lock and
-lruvec->lru_lock.  Since zone lock operations are now wrapped,
-compact_lock_irqsave() can no longer directly operate on a spinlock_t when
-the lock belongs to a zone.
-
-Split the helper into compact_zone_lock_irqsave() and
-compact_lruvec_lock_irqsave(), duplicating the small amount of shared
-logic.  As there are only two call sites and both statically know the lock
-type, this avoids introducing additional abstraction or runtime dispatch
-in the compaction path.
+This intentionally breaks direct users of zone->lock at compile time so
+all call sites are converted to the zone lock wrappers.  Without the
+rename, present and future out-of-tree code could continue using
+spin_lock(&zone->lock) and bypass the wrappers and tracing infrastructure.
 
 No functional change intended.
 
-Link: https://lkml.kernel.org/r/01729baf359e4c6612aead53f1fcb644f782d1de.1772129168.git.d@ilvokhin.com
+Link: https://lkml.kernel.org/r/1221b8e7fa9f5694f3c4e411f01581b5aba9bc63.1772129168.git.d@ilvokhin.com
 Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Ben Cheatham <benjamin.cheatham@amd.com>
@@ -109,80 +103,208 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   33 ++++++++++++++++++++++++---------
- 1 file changed, 24 insertions(+), 9 deletions(-)
+ include/linux/mmzone.h    |    7 +++++--
+ include/linux/zone_lock.h |   12 ++++++------
+ mm/compaction.c           |    4 ++--
+ mm/internal.h             |    2 +-
+ mm/page_alloc.c           |   16 ++++++++--------
+ mm/page_isolation.c       |    4 ++--
+ mm/page_owner.c           |    2 +-
+ 7 files changed, 25 insertions(+), 22 deletions(-)
 
---- a/mm/compaction.c~mm-convert-compaction-to-zone-lock-wrappers
+--- a/include/linux/mmzone.h~mm-rename-zone-lock-to-zone-_lock
++++ a/include/linux/mmzone.h
+@@ -1040,8 +1040,11 @@ struct zone {
+ 	/* zone flags, see below */
+ 	unsigned long		flags;
+ 
+-	/* Primarily protects free_area */
+-	spinlock_t		lock;
++	/*
++	 * Primarily protects free_area. Should be accessed via zone_lock_*
++	 * helpers.
++	 */
++	spinlock_t		_lock;
+ 
+ 	/* Pages to be freed when next trylock succeeds */
+ 	struct llist_head	trylock_free_pages;
+--- a/include/linux/zone_lock.h~mm-rename-zone-lock-to-zone-_lock
++++ a/include/linux/zone_lock.h
+@@ -7,32 +7,32 @@
+ 
+ static inline void zone_lock_init(struct zone *zone)
+ {
+-	spin_lock_init(&zone->lock);
++	spin_lock_init(&zone->_lock);
+ }
+ 
+ #define zone_lock_irqsave(zone, flags)				\
+ do {								\
+-	spin_lock_irqsave(&(zone)->lock, flags);		\
++	spin_lock_irqsave(&(zone)->_lock, flags);		\
+ } while (0)
+ 
+ #define zone_trylock_irqsave(zone, flags)			\
+ ({								\
+-	spin_trylock_irqsave(&(zone)->lock, flags);		\
++	spin_trylock_irqsave(&(zone)->_lock, flags);		\
+ })
+ 
+ static inline void zone_unlock_irqrestore(struct zone *zone, unsigned long flags)
+ {
+-	spin_unlock_irqrestore(&zone->lock, flags);
++	spin_unlock_irqrestore(&zone->_lock, flags);
+ }
+ 
+ static inline void zone_lock_irq(struct zone *zone)
+ {
+-	spin_lock_irq(&zone->lock);
++	spin_lock_irq(&zone->_lock);
+ }
+ 
+ static inline void zone_unlock_irq(struct zone *zone)
+ {
+-	spin_unlock_irq(&zone->lock);
++	spin_unlock_irq(&zone->_lock);
+ }
+ 
+ #endif /* _LINUX_ZONE_LOCK_H */
+--- a/mm/compaction.c~mm-rename-zone-lock-to-zone-_lock
 +++ a/mm/compaction.c
-@@ -503,19 +503,36 @@ static bool test_and_set_skip(struct com
-  *
-  * Always returns true which makes it easier to track lock state in callers.
-  */
--static bool compact_lock_irqsave(spinlock_t *lock, unsigned long *flags,
--						struct compact_control *cc)
--	__acquires(lock)
-+static bool compact_zone_lock_irqsave(struct zone *zone,
-+				      unsigned long *flags,
-+				      struct compact_control *cc)
-+__acquires(&zone->lock)
+@@ -506,7 +506,7 @@ static bool test_and_set_skip(struct com
+ static bool compact_zone_lock_irqsave(struct zone *zone,
+ 				      unsigned long *flags,
+ 				      struct compact_control *cc)
+-__acquires(&zone->lock)
++__acquires(&zone->_lock)
  {
  	/* Track if the lock is contended in async mode */
  	if (cc->mode == MIGRATE_ASYNC && !cc->contended) {
--		if (spin_trylock_irqsave(lock, *flags))
-+		if (zone_trylock_irqsave(zone, *flags))
- 			return true;
+@@ -1419,7 +1419,7 @@ static bool suitable_migration_target(st
+ 		int order = cc->order > 0 ? cc->order : pageblock_order;
  
- 		cc->contended = true;
+ 		/*
+-		 * We are checking page_order without zone->lock taken. But
++		 * We are checking page_order without zone->_lock taken. But
+ 		 * the only small danger is that we skip a potentially suitable
+ 		 * pageblock, so it's not worth to check order for valid range.
+ 		 */
+--- a/mm/internal.h~mm-rename-zone-lock-to-zone-_lock
++++ a/mm/internal.h
+@@ -729,7 +729,7 @@ static inline unsigned int buddy_order(s
+  * (d) a page and its buddy are in the same zone.
+  *
+  * For recording whether a page is in the buddy system, we set PageBuddy.
+- * Setting, clearing, and testing PageBuddy is serialized by zone->lock.
++ * Setting, clearing, and testing PageBuddy is serialized by zone->_lock.
+  *
+  * For recording page's order, we use page_private(page).
+  */
+--- a/mm/page_alloc.c~mm-rename-zone-lock-to-zone-_lock
++++ a/mm/page_alloc.c
+@@ -815,7 +815,7 @@ compaction_capture(struct capture_contro
+ static inline void account_freepages(struct zone *zone, int nr_pages,
+ 				     int migratetype)
+ {
+-	lockdep_assert_held(&zone->lock);
++	lockdep_assert_held(&zone->_lock);
+ 
+ 	if (is_migrate_isolate(migratetype))
+ 		return;
+@@ -2476,7 +2476,7 @@ enum rmqueue_mode {
+ 
+ /*
+  * Do the hard work of removing an element from the buddy allocator.
+- * Call me with the zone->lock already held.
++ * Call me with the zone->_lock already held.
+  */
+ static __always_inline struct page *
+ __rmqueue(struct zone *zone, unsigned int order, int migratetype,
+@@ -2504,7 +2504,7 @@ __rmqueue(struct zone *zone, unsigned in
+ 	 * fallbacks modes with increasing levels of fragmentation risk.
+ 	 *
+ 	 * The fallback logic is expensive and rmqueue_bulk() calls in
+-	 * a loop with the zone->lock held, meaning the freelists are
++	 * a loop with the zone->_lock held, meaning the freelists are
+ 	 * not subject to any outside changes. Remember in *mode where
+ 	 * we found pay dirt, to save us the search on the next call.
+ 	 */
+@@ -3206,7 +3206,7 @@ void __putback_isolated_page(struct page
+ 	struct zone *zone = page_zone(page);
+ 
+ 	/* zone lock should be held when this function is called */
+-	lockdep_assert_held(&zone->lock);
++	lockdep_assert_held(&zone->_lock);
+ 
+ 	/* Return isolated page to tail of freelist. */
+ 	__free_one_page(page, page_to_pfn(page), zone, order, mt,
+@@ -7090,7 +7090,7 @@ int alloc_contig_frozen_range_noprof(uns
+ 	 * pages.  Because of this, we reserve the bigger range and
+ 	 * once this is done free the pages we are not interested in.
+ 	 *
+-	 * We don't have to hold zone->lock here because the pages are
++	 * We don't have to hold zone->_lock here because the pages are
+ 	 * isolated thus they won't get removed from buddy.
+ 	 */
+ 	outer_start = find_large_buddy(start);
+@@ -7659,7 +7659,7 @@ void accept_page(struct page *page)
+ 		return;
  	}
  
--	spin_lock_irqsave(lock, *flags);
-+	zone_lock_irqsave(zone, *flags);
-+	return true;
-+}
-+
-+static bool compact_lruvec_lock_irqsave(struct lruvec *lruvec,
-+					unsigned long *flags,
-+					struct compact_control *cc)
-+__acquires(&lruvec->lru_lock)
-+{
-+	if (cc->mode == MIGRATE_ASYNC && !cc->contended) {
-+		if (spin_trylock_irqsave(&lruvec->lru_lock, *flags))
-+			return true;
-+
-+		cc->contended = true;
-+	}
-+
-+	spin_lock_irqsave(&lruvec->lru_lock, *flags);
- 	return true;
+-	/* Unlocks zone->lock */
++	/* Unlocks zone->_lock */
+ 	__accept_page(zone, &flags, page);
  }
  
-@@ -528,7 +545,7 @@ compact_folio_lruvec_lock_irqsave(struct
- 	rcu_read_lock();
- retry:
- 	lruvec = folio_lruvec(folio);
--	compact_lock_irqsave(&lruvec->lru_lock, flags, cc);
-+	compact_lruvec_lock_irqsave(lruvec, flags, cc);
- 	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
- 		spin_unlock_irqrestore(&lruvec->lru_lock, *flags);
- 		goto retry;
-@@ -549,7 +566,6 @@ retry:
-  * Returns true if compaction should abort due to fatal signal pending.
-  * Returns false when compaction can continue.
+@@ -7676,7 +7676,7 @@ static bool try_to_accept_memory_one(str
+ 		return false;
+ 	}
+ 
+-	/* Unlocks zone->lock */
++	/* Unlocks zone->_lock */
+ 	__accept_page(zone, &flags, page);
+ 
+ 	return true;
+@@ -7817,7 +7817,7 @@ struct page *alloc_frozen_pages_nolock_n
+ 
+ 	/*
+ 	 * Best effort allocation from percpu free list.
+-	 * If it's empty attempt to spin_trylock zone->lock.
++	 * If it's empty attempt to spin_trylock zone->_lock.
+ 	 */
+ 	page = get_page_from_freelist(alloc_gfp, order, alloc_flags, &ac);
+ 
+--- a/mm/page_isolation.c~mm-rename-zone-lock-to-zone-_lock
++++ a/mm/page_isolation.c
+@@ -212,7 +212,7 @@ static int set_migratetype_isolate(struc
+ 	zone_unlock_irqrestore(zone, flags);
+ 	if (mode == PB_ISOLATE_MODE_MEM_OFFLINE) {
+ 		/*
+-		 * printk() with zone->lock held will likely trigger a
++		 * printk() with zone->_lock held will likely trigger a
+ 		 * lockdep splat, so defer it here.
+ 		 */
+ 		dump_page(unmovable, "unmovable page");
+@@ -553,7 +553,7 @@ void undo_isolate_page_range(unsigned lo
+ /*
+  * Test all pages in the range is free(means isolated) or not.
+  * all pages in [start_pfn...end_pfn) must be in the same zone.
+- * zone->lock must be held before call this.
++ * zone->_lock must be held before call this.
+  *
+  * Returns the last tested pfn.
   */
--
- static bool compact_unlock_should_abort(struct zone *zone,
- 					unsigned long flags,
- 					bool *locked,
-@@ -634,8 +650,7 @@ static unsigned long isolate_freepages_b
+--- a/mm/page_owner.c~mm-rename-zone-lock-to-zone-_lock
++++ a/mm/page_owner.c
+@@ -799,7 +799,7 @@ static void init_pages_in_zone(struct zo
+ 				continue;
  
- 		/* If we already hold the lock, we can skip some rechecking. */
- 		if (!locked) {
--			locked = compact_lock_irqsave(&cc->zone->lock,
--								&flags, cc);
-+			locked = compact_zone_lock_irqsave(cc->zone, &flags, cc);
- 
- 			/* Recheck this is a buddy page under lock */
- 			if (!PageBuddy(page))
+ 			/*
+-			 * To avoid having to grab zone->lock, be a little
++			 * To avoid having to grab zone->_lock, be a little
+ 			 * careful when reading buddy page order. The only
+ 			 * danger is that we skip too much and potentially miss
+ 			 * some early allocated pages, which is better than
 _
 
 Patches currently in -mm which might be from d@ilvokhin.com are
