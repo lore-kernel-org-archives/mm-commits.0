@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69ED8275864
-	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 03:04:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D44FE332EDD
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 16:34:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772075046; cv=none; b=HV8vw6B9FKQNveI//phv+46kwQOb4z2Rd01CiH8STqmm4jUz+6tdawYUScLYfT5Lw72hktmYwB1Enm/9mwx6FTmIeKqBtUcvOoJJML9k1BENpWKXsWdmqWEeRrBN/hwhUeLTzPFg47+9Oo+ElIEPXDvWltozKQ1UnAC+M/CT4Qk=
+	t=1772123653; cv=none; b=bVPQBU144JRSgWnc50wxtLpc00JKY+2nGi9dGhkcN8MYeHfGMdfQFmRq3BDa23aieXG61hJn/r66btOXQi/xOlh+A+TUTg7vdVgA0STOfuSYgP1Fr1B1eZz24QMd0cYHPqLWgeYpOh7F9Q7Ads77TqWsqEef5btOft0fE6XkYgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772075046; c=relaxed/simple;
-	bh=P+MRD34aSMjIjZKyy9px8TqZ0Ic/IqaO3wphiA6vt00=;
-	h=Date:To:From:Subject:Message-Id; b=S0BZdZL+Y7yhNXhSCrO7ll5hRLRXJVzjmZcIyNsDliQmKBYi6xbK04r86AQ1lOrPhB9LRRlrzZ3Ygay1gZlrIAxVX2/ZM4CQHociz9Qn+fksrUcQJMCPmxFNpYniK2nsVMvKqdi7N0jGM6xSTzGSRSDkGi5tAFHHtgItVnOXU1k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=atiqxjoX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772123653; c=relaxed/simple;
+	bh=etkbq/dOqBLHiXRqeaolirpuvRPPpzcvRa7BwxKcjsM=;
+	h=Date:To:From:Subject:Message-Id; b=jYkMnJjruv3JnJ/za+pM0Tm2secWzs/uE8tdsFP5TpGdLj+d3FATNyOiOloUEsXEGITNJ5+jTRZVLXzwV9LxeVxrPP5CKhNVZi+adCGb42JspvanHmW5UWACMIpNlq7i9pCm6n6yDmcdqsHieDasuomklI5/DEe/s7U7Jsc+P9E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hKc+DpZV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="atiqxjoX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8E75C116D0;
-	Thu, 26 Feb 2026 03:04:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hKc+DpZV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BE89C116C6;
+	Thu, 26 Feb 2026 16:34:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772075046;
-	bh=P+MRD34aSMjIjZKyy9px8TqZ0Ic/IqaO3wphiA6vt00=;
+	s=korg; t=1772123652;
+	bh=etkbq/dOqBLHiXRqeaolirpuvRPPpzcvRa7BwxKcjsM=;
 	h=Date:To:From:Subject:From;
-	b=atiqxjoXpfH07TLp/FOgAnabjdKNONTPLWtHwF0+WfqwpsAroetSmCnX85HeyTfsL
-	 I7j70K3Nf+b0N1grw4UWPPmRthqF6hcGRTctr2KN3WeCIQhzBFGB8J+0B162GgOAq2
-	 MsjIw4u/ieHhFhPPX0NFgaP+E90R7DNuNC3HzPTY=
-Date: Wed, 25 Feb 2026 19:04:05 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,skhan@linuxfoundation.org,richardycc@google.com,philipp.reisner@linbit.com,minchan@kernel.org,lars.ellenberg@linbit.com,corbet@lwn.net,christoph.boehmwalder@linbit.com,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=hKc+DpZV1IVH6Irh1J3ysgqNda+4JzRrFpwLxpF4VZnRhtQIpsJHI1bq2pmd6cBam
+	 1Ln18KQ8oJmcO228gJqHSfWCMtHKseGJdYfjNnfppIzwPYUjfDU4hRXb0Wzr5Rtp9w
+	 wpmVMt3QJesbARmT3Q4fhUXjN9SkO+ZDcymj8iTk=
+Date: Thu, 26 Feb 2026 08:34:11 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yanglincheng@kylinos.cn,ryan.roberts@arm.com,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,vernon2gm@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-rename-writeback_compressed-device-attr.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260226030405.E8E75C116D0@smtp.kernel.org>
+Subject: + mm-khugepaged-refine-scan-progress-number-fix.patch added to mm-unstable branch
+Message-Id: <20260226163412.5BE89C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: rename writeback_compressed device attr
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     zram-rename-writeback_compressed-device-attr.patch
+     Subject: mm-khugepaged-refine-scan-progress-number-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-khugepaged-refine-scan-progress-number-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-rename-writeback_compressed-device-attr.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-refine-scan-progress-number-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,201 +58,296 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: rename writeback_compressed device attr
-Date: Thu, 26 Feb 2026 11:54:21 +0900
+From: Vernon Yang <vernon2gm@gmail.com>
+Subject: mm-khugepaged-refine-scan-progress-number-fix
+Date: Thu, 26 Feb 2026 22:31:34 +0800
 
-Rename writeback_compressed attr to compressed_writeback to avoid possible
-confusion and have more natural naming.  writeback_compressed may look
-like an alternative version of writeback while in fact
-writeback_compressed only sets a writeback property.  Make this
-distinction more clear with a new compressed_writeback name.
+Based on previous discussions [1], v2 as follow, and testing shows the
+same performance benefits. Just make code cleaner, no function changes.
 
-Link: https://lkml.kernel.org/r/20260226025429.1042083-1-senozhatsky@chromium.org
-Fixes: 4c1d61389e8e ("zram: introduce writeback_compressed device attribute")
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Richard Chang <richardycc@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: "Christoph Böhmwalder" <christoph.boehmwalder@linbit.com>
-Cc: drbd-dev@lists.linbit.com
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lars Ellenberg <lars.ellenberg@linbit.com>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+
+Link: https://lkml.kernel.org/r/hbftflvdmnranprul4zkq3d2iymqm7ta2a7fwiphggsmt36gt7@bihvv5jg2ko5
+Link: https://lore.kernel.org/linux-mm/zdvzmoop5xswqcyiwmvvrdfianm4ccs3gryfecwbm4bhuh7ebo@7an4huwgbuwo [1]
+Signed-off-by: Vernon Yang <yanglincheng@kylinos.cn>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand (arm) <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram  |    4 +--
- Documentation/admin-guide/blockdev/zram.rst |    6 ++--
- drivers/block/zram/zram_drv.c               |   24 +++++++++---------
- drivers/block/zram/zram_drv.h               |    2 -
- 4 files changed, 18 insertions(+), 18 deletions(-)
+ mm/khugepaged.c |   78 ++++++++++++++++++++--------------------------
+ 1 file changed, 35 insertions(+), 43 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-rename-writeback_compressed-device-attr
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -151,11 +151,11 @@ Description:
- 		The algorithm_params file is write-only and is used to setup
- 		compression algorithm parameters.
+--- a/mm/khugepaged.c~mm-khugepaged-refine-scan-progress-number-fix
++++ a/mm/khugepaged.c
+@@ -69,8 +69,8 @@ static struct task_struct *khugepaged_th
+ static DEFINE_MUTEX(khugepaged_mutex);
  
--What:		/sys/block/zram<id>/writeback_compressed
-+What:		/sys/block/zram<id>/compressed_writeback
- Date:		Decemeber 2025
- Contact:	Richard Chang <richardycc@google.com>
- Description:
--		The writeback_compressed device atrribute toggles compressed
-+		The compressed_writeback device atrribute toggles compressed
- 		writeback feature.
+ /*
+- * default scan 8*HPAGE_PMD_NR ptes, pmd_mapped, no_pte_table or vmas
+- * every 10 second.
++ * default scan 8*HPAGE_PMD_NR ptes, pte_mapped_hugepage, pmd_mapped,
++ * no_pte_table or vmas every 10 second.
+  */
+ static unsigned int khugepaged_pages_to_scan __read_mostly;
+ static unsigned int khugepaged_pages_collapsed;
+@@ -103,6 +103,9 @@ struct collapse_control {
+ 	/* Num pages scanned per node */
+ 	u32 node_load[MAX_NUMNODES];
  
- What:		/sys/block/zram<id>/writeback_batch_size
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-rename-writeback_compressed-device-attr
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -216,7 +216,7 @@ writeback_limit   	WO	specifies the maxi
- writeback_limit_enable  RW	show and set writeback_limit feature
- writeback_batch_size	RW	show and set maximum number of in-flight
- 				writeback operations
--writeback_compressed	RW	show and set compressed writeback feature
-+compressed_writeback	RW	show and set compressed writeback feature
- comp_algorithm    	RW	show and change the compression algorithm
- algorithm_params	WO	setup compression algorithm parameters
- compact           	WO	trigger memory compaction
-@@ -439,11 +439,11 @@ budget in next setting is user's job.
- By default zram stores written back pages in decompressed (raw) form, which
- means that writeback operation involves decompression of the page before
- writing it to the backing device.  This behavior can be changed by enabling
--`writeback_compressed` feature, which causes zram to write compressed pages
-+`compressed_writeback` feature, which causes zram to write compressed pages
- to the backing device, thus avoiding decompression overhead.  To enable
- this feature, execute::
++	/* Num pages scanned (see khugepaged_pages_to_scan) */
++	unsigned int progress;
++
+ 	/* nodemask for allocation fallback */
+ 	nodemask_t alloc_nmask;
+ };
+@@ -1235,8 +1238,7 @@ out_nolock:
  
--	$ echo yes > /sys/block/zramX/writeback_compressed
-+	$ echo yes > /sys/block/zramX/compressed_writeback
- 
- Note that this feature should be configured before the `zramX` device is
- initialized.
---- a/drivers/block/zram/zram_drv.c~zram-rename-writeback_compressed-device-attr
-+++ a/drivers/block/zram/zram_drv.c
-@@ -549,7 +549,7 @@ static ssize_t bd_stat_show(struct devic
- 	return ret;
- }
- 
--static ssize_t writeback_compressed_store(struct device *dev,
-+static ssize_t compressed_writeback_store(struct device *dev,
- 					  struct device_attribute *attr,
- 					  const char *buf, size_t len)
+ static enum scan_result hpage_collapse_scan_pmd(struct mm_struct *mm,
+ 		struct vm_area_struct *vma, unsigned long start_addr,
+-		bool *mmap_locked, unsigned int *cur_progress,
+-		struct collapse_control *cc)
++		bool *mmap_locked, struct collapse_control *cc)
  {
-@@ -564,12 +564,12 @@ static ssize_t writeback_compressed_stor
- 		return -EBUSY;
- 	}
+ 	pmd_t *pmd;
+ 	pte_t *pte, *_pte;
+@@ -1252,8 +1254,7 @@ static enum scan_result hpage_collapse_s
  
--	zram->wb_compressed = val;
-+	zram->compressed_wb = val;
- 
- 	return len;
- }
- 
--static ssize_t writeback_compressed_show(struct device *dev,
-+static ssize_t compressed_writeback_show(struct device *dev,
- 					 struct device_attribute *attr,
- 					 char *buf)
- {
-@@ -577,7 +577,7 @@ static ssize_t writeback_compressed_show
- 	struct zram *zram = dev_to_zram(dev);
- 
- 	guard(rwsem_read)(&zram->dev_lock);
--	val = zram->wb_compressed;
-+	val = zram->compressed_wb;
- 
- 	return sysfs_emit(buf, "%d\n", val);
- }
-@@ -946,7 +946,7 @@ static int zram_writeback_complete(struc
+ 	result = find_pmd_or_thp_or_none(mm, start_addr, &pmd);
+ 	if (result != SCAN_SUCCEED) {
+-		if (cur_progress)
+-			*cur_progress = 1;
++		cc->progress++;
  		goto out;
  	}
  
--	if (zram->wb_compressed) {
-+	if (zram->compressed_wb) {
- 		/*
- 		 * ZRAM_WB slots get freed, we need to preserve data required
- 		 * for read decompression.
-@@ -960,7 +960,7 @@ static int zram_writeback_complete(struc
- 	set_slot_flag(zram, index, ZRAM_WB);
- 	set_slot_handle(zram, index, req->blk_idx);
+@@ -1261,16 +1262,14 @@ static enum scan_result hpage_collapse_s
+ 	nodes_clear(cc->alloc_nmask);
+ 	pte = pte_offset_map_lock(mm, pmd, start_addr, &ptl);
+ 	if (!pte) {
+-		if (cur_progress)
+-			*cur_progress = 1;
++		cc->progress++;
+ 		result = SCAN_NO_PTE_TABLE;
+ 		goto out;
+ 	}
  
--	if (zram->wb_compressed) {
-+	if (zram->compressed_wb) {
- 		if (huge)
- 			set_slot_flag(zram, index, ZRAM_HUGE);
- 		set_slot_size(zram, index, size);
-@@ -1100,7 +1100,7 @@ static int zram_writeback_slots(struct z
- 		 */
- 		if (!test_slot_flag(zram, index, ZRAM_PP_SLOT))
- 			goto next;
--		if (zram->wb_compressed)
-+		if (zram->compressed_wb)
- 			err = read_from_zspool_raw(zram, req->page, index);
+ 	for (addr = start_addr, _pte = pte; _pte < pte + HPAGE_PMD_NR;
+ 	     _pte++, addr += PAGE_SIZE) {
+-		if (cur_progress)
+-			*cur_progress += 1;
++		cc->progress++;
+ 
+ 		pte_t pteval = ptep_get(_pte);
+ 		if (pte_none_or_zero(pteval)) {
+@@ -2293,7 +2292,7 @@ out:
+ 
+ static enum scan_result hpage_collapse_scan_file(struct mm_struct *mm,
+ 		unsigned long addr, struct file *file, pgoff_t start,
+-		unsigned int *cur_progress, struct collapse_control *cc)
++		struct collapse_control *cc)
+ {
+ 	struct folio *folio = NULL;
+ 	struct address_space *mapping = file->f_mapping;
+@@ -2383,12 +2382,10 @@ static enum scan_result hpage_collapse_s
+ 		}
+ 	}
+ 	rcu_read_unlock();
+-	if (cur_progress) {
+-		if (result == SCAN_PTE_MAPPED_HUGEPAGE)
+-			*cur_progress = 1;
+-		else
+-			*cur_progress = HPAGE_PMD_NR;
+-	}
++	if (result == SCAN_PTE_MAPPED_HUGEPAGE)
++		cc->progress++;
++	else
++		cc->progress += HPAGE_PMD_NR;
+ 
+ 	if (result == SCAN_SUCCEED) {
+ 		if (cc->is_khugepaged &&
+@@ -2404,8 +2401,8 @@ static enum scan_result hpage_collapse_s
+ 	return result;
+ }
+ 
+-static unsigned int khugepaged_scan_mm_slot(unsigned int pages, enum scan_result *result,
+-					    struct collapse_control *cc)
++static void khugepaged_scan_mm_slot(unsigned int progress_max,
++		enum scan_result *result, struct collapse_control *cc)
+ 	__releases(&khugepaged_mm_lock)
+ 	__acquires(&khugepaged_mm_lock)
+ {
+@@ -2413,9 +2410,8 @@ static unsigned int khugepaged_scan_mm_s
+ 	struct mm_slot *slot;
+ 	struct mm_struct *mm;
+ 	struct vm_area_struct *vma;
+-	int progress = 0;
++	unsigned int progress_prev = cc->progress;
+ 
+-	VM_BUG_ON(!pages);
+ 	lockdep_assert_held(&khugepaged_mm_lock);
+ 	*result = SCAN_FAIL;
+ 
+@@ -2438,7 +2434,7 @@ static unsigned int khugepaged_scan_mm_s
+ 	if (unlikely(!mmap_read_trylock(mm)))
+ 		goto breakouterloop_mmap_lock;
+ 
+-	progress++;
++	cc->progress++;
+ 	if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
+ 		goto breakouterloop;
+ 
+@@ -2448,17 +2444,17 @@ static unsigned int khugepaged_scan_mm_s
+ 
+ 		cond_resched();
+ 		if (unlikely(hpage_collapse_test_exit_or_disable(mm))) {
+-			progress++;
++			cc->progress++;
+ 			break;
+ 		}
+ 		if (!thp_vma_allowable_order(vma, vma->vm_flags, TVA_KHUGEPAGED, PMD_ORDER)) {
+-			progress++;
++			cc->progress++;
+ 			continue;
+ 		}
+ 		hstart = round_up(vma->vm_start, HPAGE_PMD_SIZE);
+ 		hend = round_down(vma->vm_end, HPAGE_PMD_SIZE);
+ 		if (khugepaged_scan.address > hend) {
+-			progress++;
++			cc->progress++;
+ 			continue;
+ 		}
+ 		if (khugepaged_scan.address < hstart)
+@@ -2467,7 +2463,6 @@ static unsigned int khugepaged_scan_mm_s
+ 
+ 		while (khugepaged_scan.address < hend) {
+ 			bool mmap_locked = true;
+-			unsigned int cur_progress = 0;
+ 
+ 			cond_resched();
+ 			if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
+@@ -2484,8 +2479,7 @@ static unsigned int khugepaged_scan_mm_s
+ 				mmap_read_unlock(mm);
+ 				mmap_locked = false;
+ 				*result = hpage_collapse_scan_file(mm,
+-					khugepaged_scan.address, file, pgoff,
+-					&cur_progress, cc);
++					khugepaged_scan.address, file, pgoff, cc);
+ 				fput(file);
+ 				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
+ 					mmap_read_lock(mm);
+@@ -2499,8 +2493,7 @@ static unsigned int khugepaged_scan_mm_s
+ 				}
+ 			} else {
+ 				*result = hpage_collapse_scan_pmd(mm, vma,
+-					khugepaged_scan.address, &mmap_locked,
+-					&cur_progress, cc);
++					khugepaged_scan.address, &mmap_locked, cc);
+ 			}
+ 
+ 			if (*result == SCAN_SUCCEED)
+@@ -2508,7 +2501,6 @@ static unsigned int khugepaged_scan_mm_s
+ 
+ 			/* move to next address */
+ 			khugepaged_scan.address += HPAGE_PMD_SIZE;
+-			progress += cur_progress;
+ 			if (!mmap_locked)
+ 				/*
+ 				 * We released mmap_lock so break loop.  Note
+@@ -2518,7 +2510,7 @@ static unsigned int khugepaged_scan_mm_s
+ 				 * correct result back to caller.
+ 				 */
+ 				goto breakouterloop_mmap_lock;
+-			if (progress >= pages)
++			if (cc->progress >= progress_max)
+ 				goto breakouterloop;
+ 		}
+ 	}
+@@ -2549,9 +2541,8 @@ breakouterloop_mmap_lock:
+ 		collect_mm_slot(slot);
+ 	}
+ 
+-	trace_mm_khugepaged_scan(mm, progress, khugepaged_scan.mm_slot == NULL);
+-
+-	return progress;
++	trace_mm_khugepaged_scan(mm, cc->progress - progress_prev,
++				 khugepaged_scan.mm_slot == NULL);
+ }
+ 
+ static int khugepaged_has_work(void)
+@@ -2567,13 +2558,14 @@ static int khugepaged_wait_event(void)
+ 
+ static void khugepaged_do_scan(struct collapse_control *cc)
+ {
+-	unsigned int progress = 0, pass_through_head = 0;
+-	unsigned int pages = READ_ONCE(khugepaged_pages_to_scan);
++	const unsigned int progress_max = READ_ONCE(khugepaged_pages_to_scan);
++	unsigned int pass_through_head = 0;
+ 	bool wait = true;
+ 	enum scan_result result = SCAN_SUCCEED;
+ 
+ 	lru_add_drain_all();
+ 
++	cc->progress = 0;
+ 	while (true) {
+ 		cond_resched();
+ 
+@@ -2585,13 +2577,12 @@ static void khugepaged_do_scan(struct co
+ 			pass_through_head++;
+ 		if (khugepaged_has_work() &&
+ 		    pass_through_head < 2)
+-			progress += khugepaged_scan_mm_slot(pages - progress,
+-							    &result, cc);
++			khugepaged_scan_mm_slot(progress_max, &result, cc);
  		else
- 			err = read_from_zspool(zram, req->page, index);
-@@ -1429,7 +1429,7 @@ static void zram_async_read_endio(struct
- 	 *
- 	 * Keep the existing behavior for now.
- 	 */
--	if (zram->wb_compressed == false) {
-+	if (zram->compressed_wb == false) {
- 		/* No decompression needed, complete the parent IO */
- 		bio_endio(req->parent);
- 		bio_put(bio);
-@@ -1508,7 +1508,7 @@ static int read_from_bdev_sync(struct zr
- 	flush_work(&req.work);
- 	destroy_work_on_stack(&req.work);
+-			progress = pages;
++			cc->progress = progress_max;
+ 		spin_unlock(&khugepaged_mm_lock);
  
--	if (req.error || zram->wb_compressed == false)
-+	if (req.error || zram->compressed_wb == false)
- 		return req.error;
+-		if (progress >= pages)
++		if (cc->progress >= progress_max)
+ 			break;
  
- 	return decompress_bdev_page(zram, page, index);
-@@ -3007,7 +3007,7 @@ static DEVICE_ATTR_WO(writeback);
- static DEVICE_ATTR_RW(writeback_limit);
- static DEVICE_ATTR_RW(writeback_limit_enable);
- static DEVICE_ATTR_RW(writeback_batch_size);
--static DEVICE_ATTR_RW(writeback_compressed);
-+static DEVICE_ATTR_RW(compressed_writeback);
- #endif
- #ifdef CONFIG_ZRAM_MULTI_COMP
- static DEVICE_ATTR_RW(recomp_algorithm);
-@@ -3031,7 +3031,7 @@ static struct attribute *zram_disk_attrs
- 	&dev_attr_writeback_limit.attr,
- 	&dev_attr_writeback_limit_enable.attr,
- 	&dev_attr_writeback_batch_size.attr,
--	&dev_attr_writeback_compressed.attr,
-+	&dev_attr_compressed_writeback.attr,
- #endif
- 	&dev_attr_io_stat.attr,
- 	&dev_attr_mm_stat.attr,
-@@ -3091,7 +3091,7 @@ static int zram_add(void)
- 	init_rwsem(&zram->dev_lock);
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	zram->wb_batch_size = 32;
--	zram->wb_compressed = false;
-+	zram->compressed_wb = false;
- #endif
+ 		if (result == SCAN_ALLOC_HUGE_PAGE_FAIL) {
+@@ -2797,6 +2788,7 @@ int madvise_collapse(struct vm_area_stru
+ 	if (!cc)
+ 		return -ENOMEM;
+ 	cc->is_khugepaged = false;
++	cc->progress = 0;
  
- 	/* gendisk structure */
---- a/drivers/block/zram/zram_drv.h~zram-rename-writeback_compressed-device-attr
-+++ a/drivers/block/zram/zram_drv.h
-@@ -133,7 +133,7 @@ struct zram {
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	struct file *backing_dev;
- 	bool wb_limit_enable;
--	bool wb_compressed;
-+	bool compressed_wb;
- 	u32 wb_batch_size;
- 	u64 bd_wb_limit;
- 	struct block_device *bdev;
+ 	mmgrab(mm);
+ 	lru_add_drain_all();
+@@ -2831,7 +2823,7 @@ retry:
+ 			mmap_locked = false;
+ 			*lock_dropped = true;
+ 			result = hpage_collapse_scan_file(mm, addr, file, pgoff,
+-							  NULL, cc);
++							  cc);
+ 
+ 			if (result == SCAN_PAGE_DIRTY_OR_WRITEBACK && !triggered_wb &&
+ 			    mapping_can_writeback(file->f_mapping)) {
+@@ -2846,7 +2838,7 @@ retry:
+ 			fput(file);
+ 		} else {
+ 			result = hpage_collapse_scan_pmd(mm, vma, addr,
+-							 &mmap_locked, NULL, cc);
++							 &mmap_locked, cc);
+ 		}
+ 		if (!mmap_locked)
+ 			*lock_dropped = true;
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from vernon2gm@gmail.com are
 
-zram-rename-writeback_compressed-device-attr.patch
+mm-khugepaged-refine-scan-progress-number-fix.patch
 
