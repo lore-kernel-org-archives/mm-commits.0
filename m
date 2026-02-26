@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 151BC3EBF34
-	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 00:04:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B244C2BB13
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 00:05:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772064298; cv=none; b=u9FWy2AFcGaECvDmw1jt1L3jwN3LBVZCE9LpqqnJeFw0i9sioa7wUme1DzarDW/BuHcmVyEPWBurIUpGRXK1tFeLdD4FsSOHleoF81NlSicOhH5n/85OF2Bk+msYLgOn7C8AFzsfvLQlejC298SXVFnZnxCSFaUNTrw9+nPnMsc=
+	t=1772064300; cv=none; b=BSaOkOHY+iU3/msZo449esZ6JYmD0jnpcAHIr/hEGFc05cmZWDEk86oqcDXKfK6cXx66Za+YvFZQrXgQB/VxYJ9m07C42yQWvQ75kKmzRGiV8RSE4WCNj0RzgVMrleTmng2lnIPxnwlKLzja3rMHE38ptSYxY7eQeZmV3ZBEng0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772064298; c=relaxed/simple;
-	bh=PD/Q/wgKxofnmzSGtXILFnzVjKvAsqXSNgECACLIQOE=;
-	h=Date:To:From:Subject:Message-Id; b=XYRPjtAcExvY5HJYEkkDq3MjtHZbfuS92MKimJlUaH0/EbyhA+h8JpCNbF8Cd4smN3B7OMwj2cyJ1pgJmIyUzZNa47dalgmqjZoIDyrQSU+tTd/Mxtmon1QxLZfnjRQ8g4jK4HNl/LNBGaooPIL+Jv+muvYpLSYJG7YLj0M0z4A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HKzGZqDr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772064300; c=relaxed/simple;
+	bh=uL7wuTznZGGQGqAIwzru7veXcGOgE52anPqii6E3GgA=;
+	h=Date:To:From:Subject:Message-Id; b=jeHj+f1oVJKyJzpvepFtdI/tiJf47td02p2ASOtYVxuBuEpwh8smozXZy2zB9WsnidtHZTTvCujliiwXY1g8Y7wuc3SFWcYoLxiNJQq/u0odNB7c8bnIDhdtHnDwDA37MNqtH/hqUiIpW5mLsm+ytg+70MwuQcDCWfDWuaaEaNo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1oAG+8zt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HKzGZqDr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9553BC116D0;
-	Thu, 26 Feb 2026 00:04:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1oAG+8zt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EC06C116D0;
+	Thu, 26 Feb 2026 00:05:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772064297;
-	bh=PD/Q/wgKxofnmzSGtXILFnzVjKvAsqXSNgECACLIQOE=;
+	s=korg; t=1772064300;
+	bh=uL7wuTznZGGQGqAIwzru7veXcGOgE52anPqii6E3GgA=;
 	h=Date:To:From:Subject:From;
-	b=HKzGZqDrt68asBoBcwKyLXYGlt3hJtudm91LlXabxuf6zSEvvjOVDYtUgiqK8luaq
-	 VffGLpNIJEvp0CnXx+WDndyAVPz320mzobdiL0801g6kHorXvIrvU9mXwZxsI3AevJ
-	 ksbKLfwcxQSMmsgR2uNg8im8rC5iu8aWtpvPKo5E=
-Date: Wed, 25 Feb 2026 16:04:56 -0800
+	b=1oAG+8ztzUrXDrR9jIpOuqGtn2ArEolucvUy5xBZlJV8klDNyZ6Qau8dgPhV176bo
+	 ER/1o+tM6x0AtiYMHkivNgMjHJp+0r/4wRGzvjtKWGDQWTVGPRN5RaI8obAtfjkotz
+	 61dVk2LkzNfSj+KCCJS2jdah6jYhfq/cTPun0A+A=
+Date: Wed, 25 Feb 2026 16:04:59 -0800
 To: mm-commits@vger.kernel.org,urezki@gmail.com,surenb@google.com,rppt@kernel.org,pratyush@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,graf@amazon.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-export-clear_vm_uninitialized_flag.patch added to mm-new branch
-Message-Id: <20260226000457.9553BC116D0@smtp.kernel.org>
+Subject: + kho-fix-kasan-support-for-restored-vmalloc-regions.patch added to mm-new branch
+Message-Id: <20260226000500.4EC06C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: export clear_vm_uninitialized_flag()
+     Subject: kho: fix KASAN support for restored vmalloc regions
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-export-clear_vm_uninitialized_flag.patch
+     kho-fix-kasan-support-for-restored-vmalloc-regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-export-clear_vm_uninitialized_flag.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-fix-kasan-support-for-restored-vmalloc-regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,78 +67,78 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: mm/vmalloc: export clear_vm_uninitialized_flag()
-Date: Wed, 25 Feb 2026 17:38:56 -0500
+Subject: kho: fix KASAN support for restored vmalloc regions
+Date: Wed, 25 Feb 2026 17:38:57 -0500
 
-Patch series "Fix KASAN support for KHO restored vmalloc regions".
+Restored vmalloc regions are currently not properly marked for KASAN,
+causing KASAN to treat accesses to these regions as out-of-bounds.
 
-When KHO restores a vmalloc area, it maps existing physical pages into a
-newly allocated virtual memory area.  However, because these areas were
-not properly unpoisoned, KASAN would treat any access to the restored
-region as out-of-bounds, as seen in the following trace:
+Fix this by properly unpoisoning the restored vmalloc area using
+kasan_unpoison_vmalloc().  This requires setting the VM_UNINITIALIZED flag
+during the initial area allocation and clearing it after the pages have
+been mapped and unpoisoned, using the clear_vm_uninitialized_flag()
+helper.
 
-BUG: KASAN: vmalloc-out-of-bounds in kho_test_restore_data.isra.0+0x17b/0x2cd
-Read of size 8 at addr ffffc90000025000 by task swapper/0/1
-[...]
-Call Trace:
-[...]
-kasan_report+0xe8/0x120
-kho_test_restore_data.isra.0+0x17b/0x2cd
-kho_test_init+0x15a/0x1f0
-do_one_initcall+0xd5/0x4b0
+Link: https://lkml.kernel.org/r/20260225223857.1714801-3-pasha.tatashin@soleen.com
+Fixes: a667300bd53f ("kho: add support for preserving vmalloc allocations")
 
-The fix involves deferring KASAN's default poisoning by using the
-VM_UNINITIALIZED flag during allocation, manually unpoisoning the memory
-once it is correctly mapped, and then clearing the uninitialized flag
-using a newly exported helper.
-
-
-This patch (of 2):
-
-Make clear_vm_uninitialized_flag() available to other parts of the kernel
-that need to manage vmalloc areas manually, such as KHO for restoring
-vmallocs.
-
-Link: https://lkml.kernel.org/r/20260225220223.1695350-1-pasha.tatashin@soleen.com
-Link: https://lkml.kernel.org/r/20260225223857.1714801-2-pasha.tatashin@soleen.com
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reported-by: Pratyush Yadav <pratyush@kernel.org>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pratyush Yadav <pratyush@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 ++
- mm/vmalloc.c  |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ kernel/liveupdate/kexec_handover.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/internal.h~mm-vmalloc-export-clear_vm_uninitialized_flag
-+++ a/mm/internal.h
-@@ -1469,6 +1469,8 @@ int __must_check vmap_pages_range_noflus
- }
- #endif
- 
-+void clear_vm_uninitialized_flag(struct vm_struct *vm);
-+
- int __must_check __vmap_pages_range_noflush(unsigned long addr,
- 			       unsigned long end, pgprot_t prot,
- 			       struct page **pages, unsigned int page_shift);
---- a/mm/vmalloc.c~mm-vmalloc-export-clear_vm_uninitialized_flag
-+++ a/mm/vmalloc.c
-@@ -3183,7 +3183,7 @@ void __init vm_area_register_early(struc
- 	kasan_populate_early_vm_area_shadow(vm->addr, vm->size);
- }
- 
--static void clear_vm_uninitialized_flag(struct vm_struct *vm)
-+void clear_vm_uninitialized_flag(struct vm_struct *vm)
+--- a/kernel/liveupdate/kexec_handover.c~kho-fix-kasan-support-for-restored-vmalloc-regions
++++ a/kernel/liveupdate/kexec_handover.c
+@@ -14,6 +14,7 @@
+ #include <linux/cma.h>
+ #include <linux/kmemleak.h>
+ #include <linux/count_zeros.h>
++#include <linux/kasan.h>
+ #include <linux/kexec.h>
+ #include <linux/kexec_handover.h>
+ #include <linux/kho_radix_tree.h>
+@@ -1102,6 +1103,7 @@ EXPORT_SYMBOL_GPL(kho_unpreserve_vmalloc
+ void *kho_restore_vmalloc(const struct kho_vmalloc *preservation)
  {
- 	/*
- 	 * Before removing VM_UNINITIALIZED,
+ 	struct kho_vmalloc_chunk *chunk = KHOSER_LOAD_PTR(preservation->first);
++	kasan_vmalloc_flags_t kasan_flags = KASAN_VMALLOC_PROT_NORMAL;
+ 	unsigned int align, order, shift, vm_flags;
+ 	unsigned long total_pages, contig_pages;
+ 	unsigned long addr, size;
+@@ -1153,7 +1155,8 @@ void *kho_restore_vmalloc(const struct k
+ 		goto err_free_pages_array;
+ 
+ 	area = __get_vm_area_node(total_pages * PAGE_SIZE, align, shift,
+-				  vm_flags, VMALLOC_START, VMALLOC_END,
++				  vm_flags | VM_UNINITIALIZED,
++				  VMALLOC_START, VMALLOC_END,
+ 				  NUMA_NO_NODE, GFP_KERNEL,
+ 				  __builtin_return_address(0));
+ 	if (!area)
+@@ -1168,6 +1171,13 @@ void *kho_restore_vmalloc(const struct k
+ 	area->nr_pages = total_pages;
+ 	area->pages = pages;
+ 
++	if (vm_flags & VM_ALLOC)
++		kasan_flags |= KASAN_VMALLOC_VM_ALLOC;
++
++	area->addr = kasan_unpoison_vmalloc(area->addr, total_pages * PAGE_SIZE,
++					    kasan_flags);
++	clear_vm_uninitialized_flag(area);
++
+ 	return area->addr;
+ 
+ err_free_vm_area:
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
