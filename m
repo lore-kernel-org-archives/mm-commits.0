@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9897D42DFF6
-	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 16:45:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01076425CED
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 16:48:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772124316; cv=none; b=pQK0Gf+8i4tzW3zoHlaZq3jpSXOc2vf5kj5u7/HMzRQtnOnG6OI8xi44hv229BtSKPju3VUxWxR/LDSmL2skXNo1XFGBsVKCotKLVLQMmeU42bIhW9ameLtmFKDKNpOB8OVtVHKEZ6bK8TZx0pYmJH7Uw+EtnY3aZdTEn7/px9A=
+	t=1772124520; cv=none; b=BgVlj5PPTmOMTwuS6wupnFFq3y0E73VzEHNBuv28opIXM9Am7c2Fz5/meb+fX6DS0avgkmgCfqovU7IVcmKnQ41UDdNiSo9kclqdwV6Kk22IpUdoOTz7GZA5LEHZ3IZ4zcA2m5IvFAz8N9Mxuo2hocFgCnRkp7Sti2XyQCZB9SE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772124316; c=relaxed/simple;
-	bh=tE3xI9cNH5e3/T+fl0HxoE5IcxCksirv3FCaiLoqlXc=;
-	h=Date:To:From:Subject:Message-Id; b=a/KNQJXcrt2szXrN41ibot+H/K1nMBxkvkW6A4S7ksaEJ3khphW+YtQmrpBff+AoWRraixlik5ugUv21vUtr0nljT2dFXEZuQ+1kUYQHYBCtqlb9wkrkxeyYOPXj5C6Sc/lsnxPArmta6r5RoLpBhTbE+dm+ZUhPfbs2rH5eTIU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mdt+QJIu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772124520; c=relaxed/simple;
+	bh=zYHHyO10AhW9Q9nXUe+TcDEzhR5/a1EsYlneGojPWZk=;
+	h=Date:To:From:Subject:Message-Id; b=Du09aFRHrYSKNT9nZ2tkuTTlieKQw4Je5nMA4QYPThD+u0374TYuZNV6rLZB1idSep5YIscQSHPQQrX+b62Q8H76baiVg+R9cVwsbFvVzwEGczY2Wp5APk1KxFAo4PYPNV2hateqV/6cUIH9sKn/evP8lDfq6VAPRroMFVCyoH0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OmmBWSgG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mdt+QJIu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21CA7C116C6;
-	Thu, 26 Feb 2026 16:45:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OmmBWSgG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7916FC116C6;
+	Thu, 26 Feb 2026 16:48:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772124316;
-	bh=tE3xI9cNH5e3/T+fl0HxoE5IcxCksirv3FCaiLoqlXc=;
+	s=korg; t=1772124519;
+	bh=zYHHyO10AhW9Q9nXUe+TcDEzhR5/a1EsYlneGojPWZk=;
 	h=Date:To:From:Subject:From;
-	b=Mdt+QJIuphPzXET8QMRnTFudB3Q8QhuihKMHfYN80yciyuhTR0LBl6OMS/x7r0GZK
-	 JXk3NONfAqp+gutbxLzoVGxG3e4KTJ74gsBt2TUvOfwg3bdaUIan2UWc11tdPRJvR6
-	 Db6CSpkXi191iQ33QgNzKxiB1YrmkuXuFeMHZo7U=
-Date: Thu, 26 Feb 2026 08:45:15 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,gaoxu2@honor.com,akpm@linux-foundation.org
+	b=OmmBWSgGYQi8AMbHJBspk5gN7wqQjua3vWyOM6JhYzus1VFFAIDbFgk1BWzqJwMT8
+	 uvTU6IYj2068SUGwsij+8ydpn3LbYlFz5A28LLoISRf9qHYh6vP6LiSIXE/2GlNzqu
+	 F4zq35sU8e20trVVrODi7nI7tZa0D8PN9RxAbwyA=
+Date: Thu, 26 Feb 2026 08:48:38 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,ritesh.list@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-use-statically-allocated-compression-algorithm-names.patch added to mm-new branch
-Message-Id: <20260226164516.21CA7C116C6@smtp.kernel.org>
+Subject: + mm-hugetlbc-use-__pa-instead-of-virt_to_phys-in-early-bootmem-alloc-code.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260226164839.7916FC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: use statically allocated compression algorithm names
-has been added to the -mm mm-new branch.  Its filename is
-     zram-use-statically-allocated-compression-algorithm-names.patch
+     Subject: mm/hugetlb.c: use __pa() instead of virt_to_phys() in early bootmem alloc code
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlbc-use-__pa-instead-of-virt_to_phys-in-early-bootmem-alloc-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-use-statically-allocated-compression-algorithm-names.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlbc-use-__pa-instead-of-virt_to_phys-in-early-bootmem-alloc-code.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,132 +58,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: gao xu <gaoxu2@honor.com>
-Subject: zram: use statically allocated compression algorithm names
-Date: Thu, 26 Feb 2026 12:37:22 +0000
+From: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Subject: mm/hugetlb.c: use __pa() instead of virt_to_phys() in early bootmem alloc code
+Date: Thu, 26 Feb 2026 17:56:30 +0530
 
-Currently, zram dynamically allocates memory for compressor algorithm
-names when they are set by the user.  This requires careful memory
-management, including explicit `kfree` calls and special handling to avoid
-freeing statically defined default compressor names.
+Architecture like powerpc, checks for pfn_valid() in their virt_to_phys()
+implementation (when CONFIG_DEBUG_VIRTUAL is enabled) [1].  Commit
+d49004c5f0c1 "arch, mm: consolidate initialization of nodes, zones and
+memory map" changed the order of initialization between
+hugetlb_bootmem_alloc() and free_area_init().  This means, pfn_valid() can
+now return false in alloc_bootmem() path, since sparse_init() is not yet
+done.
 
-This patch refactors the way zram handles compression algorithm names. 
-Instead of storing dynamically allocated copies, `zram->comp_algs` will
-now store pointers directly to the static name strings defined within the
-`zcomp_ops` backend structures, thereby removing the need for conditional
-`kfree` calls.
+Since, alloc_bootmem() uses memblock_alloc(.., MEMBLOCK_ALLOC_ACCESSIBLE),
+this means these allocations are always going to happen below high_memory,
+where __pa() should return valid physical addresses.  Hence this patch
+converts the two callers of virt_to_phys() in alloc_bootmem() path to
+__pa() to avoid this bootup warning:
 
-Link: https://lkml.kernel.org/r/5bb2e9318d124dbcb2b743dcdce6a950@honor.com
-Signed-off-by: gao xu <gaoxu2@honor.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+ ------------[ cut here ]------------
+ WARNING: arch/powerpc/include/asm/io.h:879 at virt_to_phys+0x44/0x1b8, CPU#0: swapper/0
+ Modules linked in:
+ <...>
+ NIP [c000000000601584] virt_to_phys+0x44/0x1b8
+ LR [c000000004075de4] alloc_bootmem+0x144/0x1a8
+ Call Trace:
+ [c000000004d1fb50] [c000000004075dd4] alloc_bootmem+0x134/0x1a8
+ [c000000004d1fba0] [c000000004075fac] __alloc_bootmem_huge_page+0x164/0x230
+ [c000000004d1fbe0] [c000000004030bc4] alloc_bootmem_huge_page+0x44/0x138
+ [c000000004d1fc10] [c000000004076e48] hugetlb_hstate_alloc_pages+0x350/0x5ac
+ [c000000004d1fd30] [c0000000040782f0] hugetlb_bootmem_alloc+0x15c/0x19c
+ [c000000004d1fd70] [c00000000406d7b4] mm_core_init_early+0x7c/0xdf4
+ [c000000004d1ff30] [c000000004011d84] start_kernel+0xac/0xc58
+ [c000000004d1ffe0] [c00000000000e99c] start_here_common+0x1c/0x20
+
+[1]: https://lore.kernel.org/linuxppc-dev/87tsv5h544.ritesh.list@gmail.com/
+
+Link: https://lkml.kernel.org/r/b4a7d2c6c4c1dd81dddc904fc21f01303290a4b8.1772107852.git.riteshh@linux.ibm.com
+Fixes: d49004c5f0c1 ("arch, mm: consolidate initialization of nodes, zones and memory map")
+Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c    |    9 +++++++--
- drivers/block/zram/zcomp.h    |    2 +-
- drivers/block/zram/zram_drv.c |   28 +++++-----------------------
- 3 files changed, 13 insertions(+), 26 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/block/zram/zcomp.c~zram-use-statically-allocated-compression-algorithm-names
-+++ a/drivers/block/zram/zcomp.c
-@@ -84,9 +84,14 @@ static const struct zcomp_ops *lookup_ba
- 	return backends[i];
- }
+--- a/mm/hugetlb.c~mm-hugetlbc-use-__pa-instead-of-virt_to_phys-in-early-bootmem-alloc-code
++++ a/mm/hugetlb.c
+@@ -3101,7 +3101,7 @@ static __init void *alloc_bootmem(struct
+ 			 * extract the actual node first.
+ 			 */
+ 			if (m)
+-				listnode = early_pfn_to_nid(PHYS_PFN(virt_to_phys(m)));
++				listnode = early_pfn_to_nid(PHYS_PFN(__pa(m)));
+ 		}
  
--bool zcomp_available_algorithm(const char *comp)
-+const char *zcomp_lookup_backend_name(const char *comp)
- {
--	return lookup_backend_ops(comp) != NULL;
-+	const struct zcomp_ops *backend = lookup_backend_ops(comp);
-+
-+	if (backend)
-+		return backend->name;
-+
-+	return NULL;
- }
+ 		if (m) {
+@@ -3160,7 +3160,7 @@ found:
+ 	 * The head struct page is used to get folio information by the HugeTLB
+ 	 * subsystem like zone id and node id.
+ 	 */
+-	memblock_reserved_mark_noinit(virt_to_phys((void *)m + PAGE_SIZE),
++	memblock_reserved_mark_noinit(__pa((void *)m + PAGE_SIZE),
+ 		huge_page_size(h) - PAGE_SIZE);
  
- /* show available compressors */
---- a/drivers/block/zram/zcomp.h~zram-use-statically-allocated-compression-algorithm-names
-+++ a/drivers/block/zram/zcomp.h
-@@ -80,7 +80,7 @@ struct zcomp {
- int zcomp_cpu_up_prepare(unsigned int cpu, struct hlist_node *node);
- int zcomp_cpu_dead(unsigned int cpu, struct hlist_node *node);
- ssize_t zcomp_available_show(const char *comp, char *buf, ssize_t at);
--bool zcomp_available_algorithm(const char *comp);
-+const char *zcomp_lookup_backend_name(const char *comp);
- 
- struct zcomp *zcomp_create(const char *alg, struct zcomp_params *params);
- void zcomp_destroy(struct zcomp *comp);
---- a/drivers/block/zram/zram_drv.c~zram-use-statically-allocated-compression-algorithm-names
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1637,43 +1637,29 @@ static void zram_debugfs_unregister(stru
- 
- static void comp_algorithm_set(struct zram *zram, u32 prio, const char *alg)
- {
--	/* Do not free statically defined compression algorithms */
--	if (zram->comp_algs[prio] != default_compressor)
--		kfree(zram->comp_algs[prio]);
--
- 	zram->comp_algs[prio] = alg;
- }
- 
- static int __comp_algorithm_store(struct zram *zram, u32 prio, const char *buf)
- {
--	char *compressor;
-+	const char *alg;
- 	size_t sz;
- 
- 	sz = strlen(buf);
- 	if (sz >= ZRAM_MAX_ALGO_NAME_SZ)
- 		return -E2BIG;
- 
--	compressor = kstrdup(buf, GFP_KERNEL);
--	if (!compressor)
--		return -ENOMEM;
--
--	/* ignore trailing newline */
--	if (sz > 0 && compressor[sz - 1] == '\n')
--		compressor[sz - 1] = 0x00;
--
--	if (!zcomp_available_algorithm(compressor)) {
--		kfree(compressor);
-+	alg = zcomp_lookup_backend_name(buf);
-+	if (!alg)
- 		return -EINVAL;
--	}
- 
- 	guard(rwsem_write)(&zram->dev_lock);
- 	if (init_done(zram)) {
--		kfree(compressor);
- 		pr_info("Can't change algorithm for initialized device\n");
- 		return -EBUSY;
- 	}
- 
--	comp_algorithm_set(zram, prio, compressor);
-+	comp_algorithm_set(zram, prio, alg);
- 	return 0;
- }
- 
-@@ -2851,12 +2837,8 @@ static void zram_destroy_comps(struct zr
- 		zram->num_active_comps--;
- 	}
- 
--	for (prio = ZRAM_PRIMARY_COMP; prio < ZRAM_MAX_COMPS; prio++) {
--		/* Do not free statically defined compression algorithms */
--		if (zram->comp_algs[prio] != default_compressor)
--			kfree(zram->comp_algs[prio]);
-+	for (prio = ZRAM_PRIMARY_COMP; prio < ZRAM_MAX_COMPS; prio++)
- 		zram->comp_algs[prio] = NULL;
--	}
- 
- 	zram_comp_params_reset(zram);
- }
+ 	return 1;
 _
 
-Patches currently in -mm which might be from gaoxu2@honor.com are
+Patches currently in -mm which might be from ritesh.list@gmail.com are
 
-zram-use-statically-allocated-compression-algorithm-names.patch
+mm-hugetlbc-use-__pa-instead-of-virt_to_phys-in-early-bootmem-alloc-code.patch
 
