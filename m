@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22715368952
-	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 17:18:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40494368952
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 17:18:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772126327; cv=none; b=lFxs+1b990v1rvHQDaDXU916Al/TtUm1DStl4CQ2biZvf5KHnc6DyyasUM/jQJa21KozzBsUO3eFZPNlZklX0qzuaD9wFksnmXDcYUMXKDPzEBY+/qTRB69LvNOWglYCF3jNIb+GAwjqWlyzg9jszpTIYmyy4b8EcFfFN7Vlf3U=
+	t=1772126329; cv=none; b=lkUPpulqczl9H89H4qdpLXzX0MoORdEN85C0I5M57w0mhYQgOOHKQE9KxdXXQhclim1Zm27EVVPc5Tkpmn0veotGw94i2UbB2e419LD0rgRUopMzTKzMNsyZN8+t7+86aa4lpyu/eKH/lpt4wr6/DRKw9IWd8HzRRk4kL1vSwFI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772126327; c=relaxed/simple;
-	bh=wCJnk1YaquKDJzRFpuEprsWkuiU+Hog6qx5jnO/MpfU=;
-	h=Date:To:From:Subject:Message-Id; b=MWQGtc1V6IUOZ93nP0LOVAixYxJOI3BWOZfSHxuKjYpXSJ2xU7JCh4V5Ejc2AtGj6HsL38+pGI+qTmj/d5QVKDD9muvfTP1gHR0OvqBjqs1FPaXBbF90HBmCinwT9zV6k35tP77at0TO/W1WZYY/N806dt8CrZZtDZuMpepQDss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AesKyMjW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772126329; c=relaxed/simple;
+	bh=ta/zQ6dt9WrEijRkWf73/jEiEQffItsPFizXVcsleXo=;
+	h=Date:To:From:Subject:Message-Id; b=XKB9p0jZZpSGuVh/v9r+rDS/6QxQ0EWACCeKnmaOGVRPgeJmRVj49XVLvZu5Ck22qGnwFGz0Bp1pWN9SF4JZA5GDheh8yw6uc1SdNvSeySQaWn56SWXD3ACMz+9PdO07kXnaV//prw93p/nBnZMchljDPOqC7csozPpvYHPO11A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zOfzelHg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AesKyMjW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 998D2C116C6;
-	Thu, 26 Feb 2026 17:18:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zOfzelHg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB11BC116C6;
+	Thu, 26 Feb 2026 17:18:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772126326;
-	bh=wCJnk1YaquKDJzRFpuEprsWkuiU+Hog6qx5jnO/MpfU=;
+	s=korg; t=1772126328;
+	bh=ta/zQ6dt9WrEijRkWf73/jEiEQffItsPFizXVcsleXo=;
 	h=Date:To:From:Subject:From;
-	b=AesKyMjWHtLHJfbm1BWayvwl5K9PTYp8ol9IQQxyhpComS0XBqs7uqEHzRqtMMUVk
-	 61HsiZtcFkckJVSmWCM1BSD+HLqVZGkPfC6eJgOvFRw5tvDeS2Kz8AsAx4bWAU9a6R
-	 Ldn+RyeGgB9qGNPPdoLg1nDueqoFbqaFfmPexbtA=
-Date: Thu, 26 Feb 2026 09:18:45 -0800
+	b=zOfzelHgeLpKr33PssJt13Qz8QAewI3wb9iynZizduNpXDUzcDswr3sIZmSPcN27e
+	 x9fwUfWc7RP5dVFlvL20gvvmNoKlhxn2GmlnSFdXxRARdE9EkKrL4v/UlUhiwsOUG8
+	 H1mxI8G5QPfbI9uN66y1+j/WQTVliDJqYUL4x0LY=
+Date: Thu, 26 Feb 2026 09:18:48 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,vbabka@suse.cz,surenb@google.com,mst@redhat.com,mhocko@suse.com,longli@microsoft.com,kys@microsoft.com,jasowang@redhat.com,jackmanb@google.com,hannes@cmpxchg.org,haiyangz@microsoft.com,eperezma@redhat.com,decui@microsoft.com,david@kernel.org,yuvraj.sakshith@oss.qualcomm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_reporting-allow-zero-page_reporting_order.patch added to mm-new branch
-Message-Id: <20260226171846.998D2C116C6@smtp.kernel.org>
+Subject: + hv_balloon-change-default-page-reporting-order.patch added to mm-new branch
+Message-Id: <20260226171848.CB11BC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_reporting: allow zero page_reporting_order
+     Subject: hv_balloon: change default page reporting order
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_reporting-allow-zero-page_reporting_order.patch
+     hv_balloon-change-default-page-reporting-order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_reporting-allow-zero-page_reporting_order.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hv_balloon-change-default-page-reporting-order.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,42 +67,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Yuvraj Sakshith <yuvraj.sakshith@oss.qualcomm.com>
-Subject: mm/page_reporting: allow zero page_reporting_order
-Date: Wed, 25 Feb 2026 23:01:23 -0800
+Subject: hv_balloon: change default page reporting order
+Date: Wed, 25 Feb 2026 23:01:24 -0800
 
-Patch series "Allow order zero pages in page reporting".
+page_reporting_order used to fall back to default value (passed as
+parameter or MAX_PAGE_ORDER) if the driver wishes to not provide it.
 
-Today, page reporting sets page_reporting_order in two ways:
+The way the driver used to do this was by passing the order as zero.
 
-(1) page_reporting.page_reporting_order cmdline parameter
-(2) Driver can pass order while registering itself.
+Now that zero is a valid order that can be passed by a driver to page
+reporting, we use -1 to signal default value to be used.
 
-In both cases, order zero is ignored by free page reporting because it is
-used to set page_reporting_order to a default value, like MAX_PAGE_ORDER.
-
-In some cases we might want page_reporting_order to be zero.
-
-For instance, when virtio-balloon runs inside a guest with tiny memory
-(say, 16MB), it might not be able to find a order 1 page (or in the worst
-case order MAX_PAGE_ORDER page) after some uptime.  Page reporting should
-be able to return order zero pages back for optimal memory relinquishment.
-
-This patchset changes the default fallback value from '0' to '-1' in all
-possible clients of free page reporting (hv_balloon and virtio-balloon)
-together with allowing '0' as a valid order in page_reporting_register().
-
-
-This patch (of 3):
-
-Some drivers might require page sized chunks to be reported.  This patch
-allows registering a driver with order as zero.
-
-Example use case: virtio-balloon driver running on a guest with very small
-memory.  After some time has passed, the guest might not be able to find a
-chunk of 8KB.
-
-Link: https://lkml.kernel.org/r/20260226070125.3732265-1-yuvraj.sakshith@oss.qualcomm.com
-Link: https://lkml.kernel.org/r/20260226070125.3732265-2-yuvraj.sakshith@oss.qualcomm.com
+Link: https://lkml.kernel.org/r/20260226070125.3732265-3-yuvraj.sakshith@oss.qualcomm.com
 Signed-off-by: Yuvraj Sakshith <yuvraj.sakshith@oss.qualcomm.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: David Hildenbrand <david@kernel.org>
@@ -123,20 +99,20 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_reporting.c |    2 +-
+ drivers/hv/hv_balloon.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_reporting.c~mm-page_reporting-allow-zero-page_reporting_order
-+++ a/mm/page_reporting.c
-@@ -370,7 +370,7 @@ int page_reporting_register(struct page_
+--- a/drivers/hv/hv_balloon.c~hv_balloon-change-default-page-reporting-order
++++ a/drivers/hv/hv_balloon.c
+@@ -1663,7 +1663,7 @@ static void enable_page_reporting(void)
+ 	 * We let the page_reporting_order parameter decide the order
+ 	 * in the page_reporting code
  	 */
- 
- 	if (page_reporting_order == -1) {
--		if (prdev->order > 0 && prdev->order <= MAX_PAGE_ORDER)
-+		if (prdev->order >= 0 && prdev->order <= MAX_PAGE_ORDER)
- 			page_reporting_order = prdev->order;
- 		else
- 			page_reporting_order = pageblock_order;
+-	dm_device.pr_dev_info.order = 0;
++	dm_device.pr_dev_info.order = -1;
+ 	ret = page_reporting_register(&dm_device.pr_dev_info);
+ 	if (ret < 0) {
+ 		dm_device.pr_dev_info.report = NULL;
 _
 
 Patches currently in -mm which might be from yuvraj.sakshith@oss.qualcomm.com are
