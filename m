@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 841291A317D
-	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 17:18:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA1A8229B18
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 21:25:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772126331; cv=none; b=OSNK+gVxmBdZ5lTpMCjSunq3CJvCNyI7Si/iZgR+L/l6UbEFb1MRgsIlZJ+vpMMiR2JAMCxnm/zGObAOwHWaFB562DOUSlRmUDktW9AnFKy7D/A9StE0TpFnr/f6iX6B8Z4v13u5Y+Cs5fPTaApKP3Rj8BuQk4SnCHhmW8sJxGM=
+	t=1772141145; cv=none; b=jUocxtUN0rUPKYC3gMpbDiLHuSxbJ1pD8RW6uL2x/AZDgURnMnPQ6R7OxdUzIYRT+5HNR6c/gGVvzQO74VxaDSOUXLdYZvLpV8j6Lq0yJ4WTBJSmqkjPND3FSMukIaYQb4mivATGOg4mx9OulIUepORGJI8n4rF2pefWVhFt6Oc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772126331; c=relaxed/simple;
-	bh=ZkpK6NUGHDMvUjYOOSxcq9h03CQZNd6vWjZCnWnVMuE=;
-	h=Date:To:From:Subject:Message-Id; b=ZhMf+B3y9M4nx7nu7IdPa6HVT6Sms+vfuUb2aAUQIB2MGYExdgS3wOD8OjOY7zqotTkY4k5ve6z4j26tk4IPc2S0Vy05gS9UqhfYeJPxw6KmGf83Ae16aupaeUO2bhVSjHbix2+bPcP08D/pQdCSp2w1cvEt8dwRnfIFM+nYRkg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MjPWsM9c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772141145; c=relaxed/simple;
+	bh=Zc8ltlDoELM6JdE2T0dImyDl0OmpApFxuKblPUbtgFg=;
+	h=Date:To:From:Subject:Message-Id; b=l/OT0dtzxiwjRqF87Qcy5FgYNnciJrGLTrdiXVdiVtriwle/euwHmIEsA91yUZsHB4wBf2105BoV78HV1IjCGTHzdULi24qkNd4kCU20v4FTfgYBrgm8OwjdXabZpXY0HlkYdwFvG4M8kZnvbN+SqsyoYK3l1OCzbYGckl3mF2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dBoqJpZ2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MjPWsM9c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02F0EC116C6;
-	Thu, 26 Feb 2026 17:18:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dBoqJpZ2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EB3AC116C6;
+	Thu, 26 Feb 2026 21:25:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772126331;
-	bh=ZkpK6NUGHDMvUjYOOSxcq9h03CQZNd6vWjZCnWnVMuE=;
+	s=korg; t=1772141145;
+	bh=Zc8ltlDoELM6JdE2T0dImyDl0OmpApFxuKblPUbtgFg=;
 	h=Date:To:From:Subject:From;
-	b=MjPWsM9c0AYHY/jvHSqyKfK0WYJqZv8qrheIgWR8nBxagHFvw/f4VMm64T5OoV7Ht
-	 hG6UFQNtomUXkKYeLLrkBeT+xh4pSgeslVoopn9jy4IRlafLTq43NWZAH8BddzoKdP
-	 E4wLuaINjUkwyrW1cC1hYCqCj0NZDcTYO16wUowA=
-Date: Thu, 26 Feb 2026 09:18:50 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,vbabka@suse.cz,surenb@google.com,mst@redhat.com,mhocko@suse.com,longli@microsoft.com,kys@microsoft.com,jasowang@redhat.com,jackmanb@google.com,hannes@cmpxchg.org,haiyangz@microsoft.com,eperezma@redhat.com,decui@microsoft.com,david@kernel.org,yuvraj.sakshith@oss.qualcomm.com,akpm@linux-foundation.org
+	b=dBoqJpZ2mDLZMq1TDUvLPQ0ROh+aLuEl2YxE8QuKR3Hm50cjfNBUazJnN8V+VIoML
+	 lZ3RPDjhosfMIIwInb6cS0OfH1IIIkcp1zvhUuVM9NRTXfDPF5QmFgu53xwtsCfKt5
+	 VPNYlK10qo4HcCRgJ/N+CTU8nGmSXBkO+Y/upNpU=
+Date: Thu, 26 Feb 2026 13:25:44 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,osalvador@suse.de,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,benjamin.cheatham@amd.com,axelrasmussen@google.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + virtio_balloon-set-pr_devorder-to-new-default.patch added to mm-new branch
-Message-Id: <20260226171851.02F0EC116C6@smtp.kernel.org>
+Subject: + mm-introduce-zone-lock-wrappers.patch added to mm-new branch
+Message-Id: <20260226212545.2EB3AC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: virtio_balloon: set pr_dev.order to new default
+     Subject: mm: introduce zone lock wrappers
 has been added to the -mm mm-new branch.  Its filename is
-     virtio_balloon-set-pr_devorder-to-new-default.patch
+     mm-introduce-zone-lock-wrappers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/virtio_balloon-set-pr_devorder-to-new-default.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-zone-lock-wrappers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,69 +66,149 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yuvraj Sakshith <yuvraj.sakshith@oss.qualcomm.com>
-Subject: virtio_balloon: set pr_dev.order to new default
-Date: Wed, 25 Feb 2026 23:01:25 -0800
+From: Dmitry Ilvokhin <d@ilvokhin.com>
+Subject: mm: introduce zone lock wrappers
+Date: Thu, 26 Feb 2026 18:26:18 +0000
 
-Drivers registering with page reporting used zero as a way to signal
-page_reporting_order to be set as a default value (either passed as a
-param or MAX_PAGE_ORDER).
+Patch series "mm: zone lock tracepoint instrumentation", v3.
 
-Since page_reporting_order can now have zero as valid order, default
-fallback value send by drivers to page reporting is now -1.
+Zone lock contention can significantly impact allocation and reclaim
+latency, as it is a central synchronization point in the page allocator
+and reclaim paths.  Improved visibility into its behavior is therefore
+important for diagnosing performance issues in memory-intensive workloads.
 
-Link: https://lkml.kernel.org/r/20260226070125.3732265-4-yuvraj.sakshith@oss.qualcomm.com
-Signed-off-by: Yuvraj Sakshith <yuvraj.sakshith@oss.qualcomm.com>
+On some production workloads at Meta, we have observed noticeable zone
+lock contention.  Deeper analysis of lock holders and waiters is currently
+difficult with existing instrumentation.
+
+While generic lock contention_begin/contention_end tracepoints cover the
+slow path, they do not provide sufficient visibility into lock hold times.
+In particular, the lack of a release-side event makes it difficult to
+identify long lock holders and correlate them with waiters.  As a result,
+distinguishing between short bursts of contention and pathological long
+hold times requires additional instrumentation.
+
+This patch series adds dedicated tracepoint instrumentation to zone lock,
+following the existing mmap_lock tracing model.
+
+The goal is to enable detailed holder/waiter analysis and lock hold time
+measurements without affecting the fast path when tracing is disabled.
+
+The series is structured as follows:
+
+  1. Introduce zone lock wrappers.
+  2. Mechanically convert zone lock users to the wrappers.
+  3. Convert compaction to use the wrappers (requires minor
+     restructuring of compact_lock_irqsave()).
+  4. Rename zone->lock to zone->_lock.
+  5. Add zone lock tracepoints.
+
+The tracepoints are added via lightweight inline helpers in the wrappers. 
+When tracing is disabled, the fast path remains unchanged.
+
+
+This patch (of 5):
+
+Add thin wrappers around zone lock acquire/release operations.  This
+prepares the code for future tracepoint instrumentation without modifying
+individual call sites.
+
+Centralizing zone lock operations behind wrappers allows future
+instrumentation or debugging hooks to be added without touching all users.
+
+No functional change intended.  The wrappers are introduced in preparation
+for subsequent patches and are not yet used.
+
+Link: https://lkml.kernel.org/r/cover.1772129168.git.d@ilvokhin.com
+Link: https://lkml.kernel.org/r/5bcc39cd3a227944d0fbe75ff86cdac92b38d4ca.1772129168.git.d@ilvokhin.com
+Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Ben Cheatham <benjamin.cheatham@amd.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Dexuan Cui <decui@microsoft.com>
-Cc: Eugenio Pérez <eperezma@redhat.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Jason Wang <jasowang@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: K. Y. Srinivasan <kys@microsoft.com>
-Cc: Long Li <longli@microsoft.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Liu <wei.liu@kernel.org>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ MAINTAINERS               |    1 
+ include/linux/zone_lock.h |   38 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+)
 
---- a/drivers/virtio/virtio_balloon.c~virtio_balloon-set-pr_devorder-to-new-default
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -1023,6 +1023,20 @@ static int virtballoon_probe(struct virt
- 		}
- 
- 		/*
-+		 * page_reporting_register() takes the order either
-+		 * from the driver or the commandline. If neither
-+		 * are provided, it falls back to MAX_PAGE_ORDER.
-+		 *
-+		 * Order given by the driver is required to be in the
-+		 * range [0, MAX_PAGE_ORDER].
-+		 *
-+		 * One way for the driver to not provide any order
-+		 * is by setting it to -1.
-+		 */
+diff --git a/include/linux/zone_lock.h a/include/linux/zone_lock.h
+new file mode 100644
+--- /dev/null
++++ a/include/linux/zone_lock.h
+@@ -0,0 +1,38 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_ZONE_LOCK_H
++#define _LINUX_ZONE_LOCK_H
 +
-+		vb->pr_dev_info.order = -1;
++#include <linux/mmzone.h>
++#include <linux/spinlock.h>
 +
-+		/*
- 		 * The default page reporting order is @pageblock_order, which
- 		 * corresponds to 512MB in size on ARM64 when 64KB base page
- 		 * size is used. The page reporting won't be triggered if the
++static inline void zone_lock_init(struct zone *zone)
++{
++	spin_lock_init(&zone->lock);
++}
++
++#define zone_lock_irqsave(zone, flags)				\
++do {								\
++	spin_lock_irqsave(&(zone)->lock, flags);		\
++} while (0)
++
++#define zone_trylock_irqsave(zone, flags)			\
++({								\
++	spin_trylock_irqsave(&(zone)->lock, flags);		\
++})
++
++static inline void zone_unlock_irqrestore(struct zone *zone, unsigned long flags)
++{
++	spin_unlock_irqrestore(&zone->lock, flags);
++}
++
++static inline void zone_lock_irq(struct zone *zone)
++{
++	spin_lock_irq(&zone->lock);
++}
++
++static inline void zone_unlock_irq(struct zone *zone)
++{
++	spin_unlock_irq(&zone->lock);
++}
++
++#endif /* _LINUX_ZONE_LOCK_H */
+--- a/MAINTAINERS~mm-introduce-zone-lock-wrappers
++++ a/MAINTAINERS
+@@ -16681,6 +16681,7 @@ F:	include/linux/pgtable.h
+ F:	include/linux/ptdump.h
+ F:	include/linux/vmpressure.h
+ F:	include/linux/vmstat.h
++F:	include/linux/zone_lock.h
+ F:	kernel/fork.c
+ F:	mm/Kconfig
+ F:	mm/debug.c
 _
 
-Patches currently in -mm which might be from yuvraj.sakshith@oss.qualcomm.com are
+Patches currently in -mm which might be from d@ilvokhin.com are
 
-mm-page_reporting-allow-zero-page_reporting_order.patch
-hv_balloon-change-default-page-reporting-order.patch
-virtio_balloon-set-pr_devorder-to-new-default.patch
+mm-introduce-zone-lock-wrappers.patch
+mm-convert-zone-lock-users-to-wrappers.patch
+mm-convert-compaction-to-zone-lock-wrappers.patch
+mm-rename-zone-lock-to-zone-_lock.patch
+mm-add-tracepoints-for-zone-lock.patch
 
