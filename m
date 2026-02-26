@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B244C2BB13
-	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 00:05:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1FB41F0E2E;
+	Thu, 26 Feb 2026 00:25:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772064300; cv=none; b=BSaOkOHY+iU3/msZo449esZ6JYmD0jnpcAHIr/hEGFc05cmZWDEk86oqcDXKfK6cXx66Za+YvFZQrXgQB/VxYJ9m07C42yQWvQ75kKmzRGiV8RSE4WCNj0RzgVMrleTmng2lnIPxnwlKLzja3rMHE38ptSYxY7eQeZmV3ZBEng0=
+	t=1772065516; cv=none; b=nBzEfNkjh7xX5vHQLj+2p4N0aLrJ13Mz09+71wwvWtq1dhAQ9b6cgsY/0yCKyTO5iboaxe5N2VJo+9WuK65ebfpW+seEJm8cT8RePMvOB5UtLzgDNCWWfEIv6ORzgL7zS/lKXPl2Pjjqct3qDY/QYod5X7ORKkEyfZDJKCmGJzs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772064300; c=relaxed/simple;
-	bh=uL7wuTznZGGQGqAIwzru7veXcGOgE52anPqii6E3GgA=;
-	h=Date:To:From:Subject:Message-Id; b=jeHj+f1oVJKyJzpvepFtdI/tiJf47td02p2ASOtYVxuBuEpwh8smozXZy2zB9WsnidtHZTTvCujliiwXY1g8Y7wuc3SFWcYoLxiNJQq/u0odNB7c8bnIDhdtHnDwDA37MNqtH/hqUiIpW5mLsm+ytg+70MwuQcDCWfDWuaaEaNo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1oAG+8zt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772065516; c=relaxed/simple;
+	bh=mlR7oOjibb4iN2xmRSg13S+y3VkEy7SekPku0ZBWk6k=;
+	h=Date:To:From:Subject:Message-Id; b=jlEetVh7XrCSpESip8O8a8EA8Sco2nqDAGiLn782+a3b+qgUsNgTOYusXxZcbCIXTXltyRHtMU3FoJRtpzn6Lma+yDCO2gYQ0Q09hCGK+AjyQhMr0Kzwu3r3F/INKvjY5BJsmOnn4ygGN31jyS1ObYymWT6mWsdb4dfQ7pzdw3g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SpuWLqzT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1oAG+8zt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EC06C116D0;
-	Thu, 26 Feb 2026 00:05:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SpuWLqzT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DC17C116D0;
+	Thu, 26 Feb 2026 00:25:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772064300;
-	bh=uL7wuTznZGGQGqAIwzru7veXcGOgE52anPqii6E3GgA=;
+	s=korg; t=1772065516;
+	bh=mlR7oOjibb4iN2xmRSg13S+y3VkEy7SekPku0ZBWk6k=;
 	h=Date:To:From:Subject:From;
-	b=1oAG+8ztzUrXDrR9jIpOuqGtn2ArEolucvUy5xBZlJV8klDNyZ6Qau8dgPhV176bo
-	 ER/1o+tM6x0AtiYMHkivNgMjHJp+0r/4wRGzvjtKWGDQWTVGPRN5RaI8obAtfjkotz
-	 61dVk2LkzNfSj+KCCJS2jdah6jYhfq/cTPun0A+A=
-Date: Wed, 25 Feb 2026 16:04:59 -0800
-To: mm-commits@vger.kernel.org,urezki@gmail.com,surenb@google.com,rppt@kernel.org,pratyush@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,graf@amazon.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=SpuWLqzTcoeO85p7CQMTr2ydcBMi94byLle2HAF0s6DjzwFzrhlaIoDW4YDP6/gXw
+	 KNUx3v0E31wkqHxhCnGi8RZkOyvyIxymuTTbXPOm7lqjC5nFiUJONl/XPvGzNFdkBI
+	 MgYyPsI7WTIxUZ6KcsMtFeV8lVyluYzjByYcSCqU=
+Date: Wed, 25 Feb 2026 16:25:15 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-fix-kasan-support-for-restored-vmalloc-regions.patch added to mm-new branch
-Message-Id: <20260226000500.4EC06C116D0@smtp.kernel.org>
+Subject: + revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260226002516.1DC17C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: fix KASAN support for restored vmalloc regions
-has been added to the -mm mm-new branch.  Its filename is
-     kho-fix-kasan-support-for-restored-vmalloc-regions.patch
+     Subject: Revert "ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()"
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-fix-kasan-support-for-restored-vmalloc-regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,83 +58,86 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: kho: fix KASAN support for restored vmalloc regions
-Date: Wed, 25 Feb 2026 17:38:57 -0500
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: Revert "ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()"
+Date: Tue, 24 Feb 2026 16:24:34 -0800
 
-Restored vmalloc regions are currently not properly marked for KASAN,
-causing KASAN to treat accesses to these regions as out-of-bounds.
+This change swapped out mod_node_page_state for lruvec_stat_add_folio. 
+But, these two APIs are not interchangeable: the lruvec version also
+increments memcg stats, in addition to "global" pgdat stats.
 
-Fix this by properly unpoisoning the restored vmalloc area using
-kasan_unpoison_vmalloc().  This requires setting the VM_UNINITIALIZED flag
-during the initial area allocation and clearing it after the pages have
-been mapped and unpoisoned, using the clear_vm_uninitialized_flag()
-helper.
+So after this change, the "pagetables" memcg stat in memory.stat always
+yields "0", which is a userspace visible regression.
 
-Link: https://lkml.kernel.org/r/20260225223857.1714801-3-pasha.tatashin@soleen.com
-Fixes: a667300bd53f ("kho: add support for preserving vmalloc allocations")
+I tried to look for a refactor where we add a variant of
+lruvec_stat_mod_folio which takes a pgdat and a memcg instead of a folio,
+to try to adhere to the spirit of the original patch.  But at the end of
+the day this just means we have to call folio_memcg(ptdesc_folio(ptdesc))
+anyway, which doesn't really accomplish much.
 
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reported-by: Pratyush Yadav <pratyush@kernel.org>
-Cc: Alexander Graf <graf@amazon.com>
+This regression is visible in master as well as 6.18 stable, so CC stable
+too.
+
+Link: https://lkml.kernel.org/r/20260225002434.2953895-1-axelrasmussen@google.com
+Fixes: f0c92726e89f ("ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()")
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ include/linux/mm.h |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-fix-kasan-support-for-restored-vmalloc-regions
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -14,6 +14,7 @@
- #include <linux/cma.h>
- #include <linux/kmemleak.h>
- #include <linux/count_zeros.h>
-+#include <linux/kasan.h>
- #include <linux/kexec.h>
- #include <linux/kexec_handover.h>
- #include <linux/kho_radix_tree.h>
-@@ -1102,6 +1103,7 @@ EXPORT_SYMBOL_GPL(kho_unpreserve_vmalloc
- void *kho_restore_vmalloc(const struct kho_vmalloc *preservation)
+--- a/include/linux/mm.h~revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor
++++ a/include/linux/mm.h
+@@ -3514,26 +3514,21 @@ static inline bool ptlock_init(struct pt
+ static inline void ptlock_free(struct ptdesc *ptdesc) {}
+ #endif /* defined(CONFIG_SPLIT_PTE_PTLOCKS) */
+ 
+-static inline unsigned long ptdesc_nr_pages(const struct ptdesc *ptdesc)
+-{
+-	return compound_nr(ptdesc_page(ptdesc));
+-}
+-
+ static inline void __pagetable_ctor(struct ptdesc *ptdesc)
  {
- 	struct kho_vmalloc_chunk *chunk = KHOSER_LOAD_PTR(preservation->first);
-+	kasan_vmalloc_flags_t kasan_flags = KASAN_VMALLOC_PROT_NORMAL;
- 	unsigned int align, order, shift, vm_flags;
- 	unsigned long total_pages, contig_pages;
- 	unsigned long addr, size;
-@@ -1153,7 +1155,8 @@ void *kho_restore_vmalloc(const struct k
- 		goto err_free_pages_array;
+-	pg_data_t *pgdat = NODE_DATA(memdesc_nid(ptdesc->pt_flags));
++	struct folio *folio = ptdesc_folio(ptdesc);
  
- 	area = __get_vm_area_node(total_pages * PAGE_SIZE, align, shift,
--				  vm_flags, VMALLOC_START, VMALLOC_END,
-+				  vm_flags | VM_UNINITIALIZED,
-+				  VMALLOC_START, VMALLOC_END,
- 				  NUMA_NO_NODE, GFP_KERNEL,
- 				  __builtin_return_address(0));
- 	if (!area)
-@@ -1168,6 +1171,13 @@ void *kho_restore_vmalloc(const struct k
- 	area->nr_pages = total_pages;
- 	area->pages = pages;
+-	__SetPageTable(ptdesc_page(ptdesc));
+-	mod_node_page_state(pgdat, NR_PAGETABLE, ptdesc_nr_pages(ptdesc));
++	__folio_set_pgtable(folio);
++	lruvec_stat_add_folio(folio, NR_PAGETABLE);
+ }
  
-+	if (vm_flags & VM_ALLOC)
-+		kasan_flags |= KASAN_VMALLOC_VM_ALLOC;
-+
-+	area->addr = kasan_unpoison_vmalloc(area->addr, total_pages * PAGE_SIZE,
-+					    kasan_flags);
-+	clear_vm_uninitialized_flag(area);
-+
- 	return area->addr;
+ static inline void pagetable_dtor(struct ptdesc *ptdesc)
+ {
+-	pg_data_t *pgdat = NODE_DATA(memdesc_nid(ptdesc->pt_flags));
++	struct folio *folio = ptdesc_folio(ptdesc);
  
- err_free_vm_area:
+ 	ptlock_free(ptdesc);
+-	__ClearPageTable(ptdesc_page(ptdesc));
+-	mod_node_page_state(pgdat, NR_PAGETABLE, -ptdesc_nr_pages(ptdesc));
++	__folio_clear_pgtable(folio);
++	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
+ }
+ 
+ static inline void pagetable_dtor_free(struct ptdesc *ptdesc)
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-mm-vmalloc-export-clear_vm_uninitialized_flag.patch
-kho-fix-kasan-support-for-restored-vmalloc-regions.patch
+revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch
 
