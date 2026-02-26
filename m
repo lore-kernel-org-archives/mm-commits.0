@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D44FE332EDD
-	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 16:34:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9283A372B43
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 16:38:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772123653; cv=none; b=bVPQBU144JRSgWnc50wxtLpc00JKY+2nGi9dGhkcN8MYeHfGMdfQFmRq3BDa23aieXG61hJn/r66btOXQi/xOlh+A+TUTg7vdVgA0STOfuSYgP1Fr1B1eZz24QMd0cYHPqLWgeYpOh7F9Q7Ads77TqWsqEef5btOft0fE6XkYgk=
+	t=1772123937; cv=none; b=M/opSq7Qv60KXHWIOfIkg37tSJ8fEngWa19cUxfsebPVLLZkdR9O/AeJsMnYzowtxlXxY1pXozPCtIPfblzv2NGp52qRRx+ERGP0X2IJeE++rvDYCcXVJJFoFxpp2EbL26ubBDjgDPwEpBzrSWpb0eKYBwBkngy0qnl2gpFc2Og=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772123653; c=relaxed/simple;
-	bh=etkbq/dOqBLHiXRqeaolirpuvRPPpzcvRa7BwxKcjsM=;
-	h=Date:To:From:Subject:Message-Id; b=jYkMnJjruv3JnJ/za+pM0Tm2secWzs/uE8tdsFP5TpGdLj+d3FATNyOiOloUEsXEGITNJ5+jTRZVLXzwV9LxeVxrPP5CKhNVZi+adCGb42JspvanHmW5UWACMIpNlq7i9pCm6n6yDmcdqsHieDasuomklI5/DEe/s7U7Jsc+P9E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hKc+DpZV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772123937; c=relaxed/simple;
+	bh=rSfoHgUcikcbvB2CgnBx/aop1xwNgDS3u7YnkCxL3cE=;
+	h=Date:To:From:Subject:Message-Id; b=RLQDBZypOre2gQCJJzWixYIwqQhkhngKuaIDc38ALcPrsXJCVCWf2HPINFqgL5drDV/iM+J85V/Ebp/Kkqp5gJn8rHAPQlgNfUX8XWRX4+8DLrTAFkKPEspPntP38lo7wmVCVrVYNWGeUlpiZc3abwxBsl8q19odVM6hdEVAF7o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PrY/pLgP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hKc+DpZV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5BE89C116C6;
-	Thu, 26 Feb 2026 16:34:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PrY/pLgP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 205E8C19425;
+	Thu, 26 Feb 2026 16:38:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772123652;
-	bh=etkbq/dOqBLHiXRqeaolirpuvRPPpzcvRa7BwxKcjsM=;
+	s=korg; t=1772123937;
+	bh=rSfoHgUcikcbvB2CgnBx/aop1xwNgDS3u7YnkCxL3cE=;
 	h=Date:To:From:Subject:From;
-	b=hKc+DpZV1IVH6Irh1J3ysgqNda+4JzRrFpwLxpF4VZnRhtQIpsJHI1bq2pmd6cBam
-	 1Ln18KQ8oJmcO228gJqHSfWCMtHKseGJdYfjNnfppIzwPYUjfDU4hRXb0Wzr5Rtp9w
-	 wpmVMt3QJesbARmT3Q4fhUXjN9SkO+ZDcymj8iTk=
-Date: Thu, 26 Feb 2026 08:34:11 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yanglincheng@kylinos.cn,ryan.roberts@arm.com,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,vernon2gm@gmail.com,akpm@linux-foundation.org
+	b=PrY/pLgP0Bc0NGg4zFCG3uBCKWeb/jrR8R366/BehV2ayoeLPRfvbH0VYwfmhX3tS
+	 hPjgfaJCju2lJjyIEEIRQmdnSgjmYvtFDH9Q3Fiz5WFVsLqhq1TIp8yh3SJG3SUKUo
+	 Aydp0+SkU1xrZUPHAo2T/HAGc2aVgK8mJPVn9OU4=
+Date: Thu, 26 Feb 2026 08:38:56 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@kernel.org,chris@chrisdown.name,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-refine-scan-progress-number-fix.patch added to mm-unstable branch
-Message-Id: <20260226163412.5BE89C116C6@smtp.kernel.org>
+Subject: + selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch added to mm-new branch
+Message-Id: <20260226163857.205E8C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-khugepaged-refine-scan-progress-number-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-refine-scan-progress-number-fix.patch
+     Subject: selftests/mm: add UFFDIO_MOVE huge zeropage PMD regression test
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-refine-scan-progress-number-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,296 +66,237 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Vernon Yang <vernon2gm@gmail.com>
-Subject: mm-khugepaged-refine-scan-progress-number-fix
-Date: Thu, 26 Feb 2026 22:31:34 +0800
+From: Chris Down <chris@chrisdown.name>
+Subject: selftests/mm: add UFFDIO_MOVE huge zeropage PMD regression test
+Date: Thu, 26 Feb 2026 22:18:03 +0800
 
-Based on previous discussions [1], v2 as follow, and testing shows the
-same performance benefits. Just make code cleaner, no function changes.
+The existing uffd-unit-tests move-pmd coverage exercises PMD-sized
+UFFDIO_MOVE on anonymous THPs, but it does not force the huge zeropage PMD
+path in move_pages_huge_pmd().
 
+Add a dedicated anonymous UFFDIO_MOVE PMD test that exercises this
+relatively comprehensively.
 
-Link: https://lkml.kernel.org/r/hbftflvdmnranprul4zkq3d2iymqm7ta2a7fwiphggsmt36gt7@bihvv5jg2ko5
-Link: https://lore.kernel.org/linux-mm/zdvzmoop5xswqcyiwmvvrdfianm4ccs3gryfecwbm4bhuh7ebo@7an4huwgbuwo [1]
-Signed-off-by: Vernon Yang <yanglincheng@kylinos.cn>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand (arm) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/aaBWG4fajXXbjpVN@chrisdown.name
+Signed-off-by: Chris Down <chris@chrisdown.name>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   78 ++++++++++++++++++++--------------------------
- 1 file changed, 35 insertions(+), 43 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |  176 +++++++++++++++++
+ 1 file changed, 176 insertions(+)
 
---- a/mm/khugepaged.c~mm-khugepaged-refine-scan-progress-number-fix
-+++ a/mm/khugepaged.c
-@@ -69,8 +69,8 @@ static struct task_struct *khugepaged_th
- static DEFINE_MUTEX(khugepaged_mutex);
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -203,6 +203,62 @@ static int pagemap_open(void)
+ 	return fd;
+ }
  
- /*
-- * default scan 8*HPAGE_PMD_NR ptes, pmd_mapped, no_pte_table or vmas
-- * every 10 second.
-+ * default scan 8*HPAGE_PMD_NR ptes, pte_mapped_hugepage, pmd_mapped,
-+ * no_pte_table or vmas every 10 second.
-  */
- static unsigned int khugepaged_pages_to_scan __read_mostly;
- static unsigned int khugepaged_pages_collapsed;
-@@ -103,6 +103,9 @@ struct collapse_control {
- 	/* Num pages scanned per node */
- 	u32 node_load[MAX_NUMNODES];
- 
-+	/* Num pages scanned (see khugepaged_pages_to_scan) */
-+	unsigned int progress;
++static long uffd_pagemap_scan_get_categories_raw(int fd, char *start,
++						 struct page_region *r)
++{
++	struct pm_scan_arg arg = { 0 };
 +
- 	/* nodemask for allocation fallback */
- 	nodemask_t alloc_nmask;
- };
-@@ -1235,8 +1238,7 @@ out_nolock:
- 
- static enum scan_result hpage_collapse_scan_pmd(struct mm_struct *mm,
- 		struct vm_area_struct *vma, unsigned long start_addr,
--		bool *mmap_locked, unsigned int *cur_progress,
--		struct collapse_control *cc)
-+		bool *mmap_locked, struct collapse_control *cc)
- {
- 	pmd_t *pmd;
- 	pte_t *pte, *_pte;
-@@ -1252,8 +1254,7 @@ static enum scan_result hpage_collapse_s
- 
- 	result = find_pmd_or_thp_or_none(mm, start_addr, &pmd);
- 	if (result != SCAN_SUCCEED) {
--		if (cur_progress)
--			*cur_progress = 1;
-+		cc->progress++;
- 		goto out;
- 	}
- 
-@@ -1261,16 +1262,14 @@ static enum scan_result hpage_collapse_s
- 	nodes_clear(cc->alloc_nmask);
- 	pte = pte_offset_map_lock(mm, pmd, start_addr, &ptl);
- 	if (!pte) {
--		if (cur_progress)
--			*cur_progress = 1;
-+		cc->progress++;
- 		result = SCAN_NO_PTE_TABLE;
- 		goto out;
- 	}
- 
- 	for (addr = start_addr, _pte = pte; _pte < pte + HPAGE_PMD_NR;
- 	     _pte++, addr += PAGE_SIZE) {
--		if (cur_progress)
--			*cur_progress += 1;
-+		cc->progress++;
- 
- 		pte_t pteval = ptep_get(_pte);
- 		if (pte_none_or_zero(pteval)) {
-@@ -2293,7 +2292,7 @@ out:
- 
- static enum scan_result hpage_collapse_scan_file(struct mm_struct *mm,
- 		unsigned long addr, struct file *file, pgoff_t start,
--		unsigned int *cur_progress, struct collapse_control *cc)
-+		struct collapse_control *cc)
- {
- 	struct folio *folio = NULL;
- 	struct address_space *mapping = file->f_mapping;
-@@ -2383,12 +2382,10 @@ static enum scan_result hpage_collapse_s
- 		}
- 	}
- 	rcu_read_unlock();
--	if (cur_progress) {
--		if (result == SCAN_PTE_MAPPED_HUGEPAGE)
--			*cur_progress = 1;
--		else
--			*cur_progress = HPAGE_PMD_NR;
--	}
-+	if (result == SCAN_PTE_MAPPED_HUGEPAGE)
-+		cc->progress++;
-+	else
-+		cc->progress += HPAGE_PMD_NR;
- 
- 	if (result == SCAN_SUCCEED) {
- 		if (cc->is_khugepaged &&
-@@ -2404,8 +2401,8 @@ static enum scan_result hpage_collapse_s
- 	return result;
++	arg.start = (uintptr_t)start;
++	arg.end = (uintptr_t)(start + psize());
++	arg.vec = (uintptr_t)r;
++	arg.vec_len = 1;
++	arg.flags = 0;
++	arg.size = sizeof(struct pm_scan_arg);
++	arg.max_pages = 0;
++	arg.category_inverted = 0;
++	arg.category_mask = 0;
++	arg.category_anyof_mask = PAGE_IS_WPALLOWED | PAGE_IS_WRITTEN |
++				  PAGE_IS_FILE | PAGE_IS_PRESENT |
++				  PAGE_IS_SWAPPED | PAGE_IS_PFNZERO |
++				  PAGE_IS_HUGE | PAGE_IS_SOFT_DIRTY;
++	arg.return_mask = arg.category_anyof_mask;
++
++	return ioctl(fd, PAGEMAP_SCAN, &arg);
++}
++
++static bool uffd_pagemap_scan_supported(int fd, char *start)
++{
++	static int supported = -1;
++	int ret;
++
++	if (supported != -1)
++		return supported;
++
++	ret = uffd_pagemap_scan_get_categories_raw(fd, start,
++						   (struct page_region *)~0UL);
++	if (ret == 0)
++		err("PAGEMAP_SCAN succeeded unexpectedly");
++
++	supported = errno == EFAULT;
++	return supported;
++}
++
++static bool uffd_pagemap_scan_get_categories(int fd, char *start, uint64_t *categories)
++{
++	struct page_region r = { 0 };
++	long ret;
++
++	if (!uffd_pagemap_scan_supported(fd, start))
++		return false;
++
++	ret = uffd_pagemap_scan_get_categories_raw(fd, start, &r);
++	if (ret < 0)
++		err("PAGEMAP_SCAN failed: %s", strerror(errno));
++
++	*categories = ret ? r.categories : 0;
++	return true;
++}
++
+ /* This macro let __LINE__ works in err() */
+ #define  pagemap_check_wp(value, wp) do {				\
+ 		if (!!(value & PM_UFFD_WP) != wp)			\
+@@ -1227,6 +1283,119 @@ static void uffd_move_pmd_test(uffd_glob
+ 			      uffd_move_pmd_handle_fault);
  }
  
--static unsigned int khugepaged_scan_mm_slot(unsigned int pages, enum scan_result *result,
--					    struct collapse_control *cc)
-+static void khugepaged_scan_mm_slot(unsigned int progress_max,
-+		enum scan_result *result, struct collapse_control *cc)
- 	__releases(&khugepaged_mm_lock)
- 	__acquires(&khugepaged_mm_lock)
++static void uffd_move_pmd_huge_zeropage_test(uffd_global_test_opts_t *gopts,
++					     uffd_test_args_t *targs)
++{
++	unsigned long pmd_size = read_pmd_pagesize();
++	unsigned long pmd_pages;
++	unsigned long bytes = gopts->nr_pages * gopts->page_size;
++	char *orig_area_src = gopts->area_src, *orig_area_dst = gopts->area_dst;
++	char *aligned_src, *aligned_dst;
++	unsigned long src_offs, dst_offs, max_offs;
++	pthread_t uffd_mon;
++	struct uffd_args args = { 0 };
++	char c = '\0';
++	int pagemap_fd;
++	uint64_t categories;
++	unsigned long i;
++
++	if (pmd_size <= gopts->page_size) {
++		uffd_test_skip("huge page size is 0, feature missing?");
++		return;
++	}
++	if (!detect_huge_zeropage()) {
++		uffd_test_skip("transparent huge zeropage disabled");
++		return;
++	}
++
++	pmd_pages = pmd_size / gopts->page_size;
++	if (bytes < pmd_size) {
++		uffd_test_skip("not enough pages for one PMD-sized move");
++		return;
++	}
++
++	aligned_src = ALIGN_UP(orig_area_src, pmd_size);
++	aligned_dst = ALIGN_UP(orig_area_dst, pmd_size);
++	src_offs = (aligned_src - orig_area_src) / gopts->page_size;
++	dst_offs = (aligned_dst - orig_area_dst) / gopts->page_size;
++	max_offs = src_offs > dst_offs ? src_offs : dst_offs;
++	if (max_offs + pmd_pages > gopts->nr_pages) {
++		uffd_test_skip("could not find aligned PMD-sized src/dst window");
++		return;
++	}
++
++	if (madvise(orig_area_dst, bytes, MADV_HUGEPAGE))
++		err("madvise(MADV_HUGEPAGE) failure");
++	if (madvise(orig_area_src, bytes, MADV_DONTFORK))
++		err("madvise(MADV_DONTFORK) failure");
++	if (madvise(aligned_src, pmd_size, MADV_DONTNEED))
++		err("madvise(MADV_DONTNEED) failure");
++
++	/* Materialise a PMD-sized huge zeropage mapping in the source. */
++	force_read_pages(aligned_src, pmd_pages, gopts->page_size);
++
++	pagemap_fd = pagemap_open();
++	if (!uffd_pagemap_scan_get_categories(pagemap_fd, aligned_src, &categories)) {
++		close(pagemap_fd);
++		uffd_test_skip("PAGEMAP_SCAN unsupported");
++		return;
++	}
++	if ((categories & (PAGE_IS_PRESENT | PAGE_IS_PFNZERO | PAGE_IS_HUGE)) !=
++	    (PAGE_IS_PRESENT | PAGE_IS_PFNZERO | PAGE_IS_HUGE)) {
++		close(pagemap_fd);
++		uffd_test_skip("could not materialise a huge zeropage PMD mapping");
++		return;
++	}
++	gopts->area_src = aligned_src;
++	gopts->area_dst = aligned_dst;
++
++	if (uffd_register(gopts->uffd, gopts->area_dst, pmd_size, true, false, false))
++		err("register failure");
++
++	args.gopts = gopts;
++	args.handle_fault = uffd_move_pmd_handle_fault;
++	if (pthread_create(&uffd_mon, NULL, uffd_poll_thread, &args))
++		err("uffd_poll_thread create");
++
++	/*
++	 * One fault on dst should trigger a single PMD-sized UFFDIO_MOVE from
++	 * the huge zeropage PMD we populated in the source.
++	 */
++	force_read_pages(gopts->area_dst, pmd_pages, gopts->page_size);
++
++	if (write(gopts->pipefd[1], &c, sizeof(c)) != sizeof(c))
++		err("pipe write");
++	if (pthread_join(uffd_mon, NULL))
++		err("join() failed");
++
++	if (args.missing_faults != 1 || args.minor_faults != 0) {
++		uffd_test_fail("stats check error");
++	} else if (!uffd_pagemap_scan_get_categories(pagemap_fd, gopts->area_dst,
++						     &categories)) {
++		uffd_test_fail("PAGEMAP_SCAN unsupported");
++	} else if ((categories & (PAGE_IS_PRESENT | PAGE_IS_PFNZERO |
++				  PAGE_IS_HUGE)) !=
++			(PAGE_IS_PRESENT | PAGE_IS_PFNZERO | PAGE_IS_HUGE)) {
++		uffd_test_fail("moved destination is not a huge zeropage PMD");
++	} else if (!check_huge_anon(gopts->area_dst, 0, pmd_size)) {
++		/* vm_normal_page_pmd() must continue to treat the moved PMD as special. */
++		uffd_test_fail("moved huge zeropage PMD counted as AnonHugePages");
++	} else {
++		for (i = 0; i < pmd_size; i++) {
++			if (gopts->area_dst[i]) {
++				uffd_test_fail("moved huge zeropage PMD data is not zero");
++				goto out_restore;
++			}
++		}
++		uffd_test_pass();
++	}
++
++out_restore:
++	gopts->area_src = orig_area_src;
++	gopts->area_dst = orig_area_dst;
++	close(pagemap_fd);
++}
++
+ static void uffd_move_pmd_split_test(uffd_global_test_opts_t *gopts, uffd_test_args_t *targs)
  {
-@@ -2413,9 +2410,8 @@ static unsigned int khugepaged_scan_mm_s
- 	struct mm_slot *slot;
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
--	int progress = 0;
-+	unsigned int progress_prev = cc->progress;
- 
--	VM_BUG_ON(!pages);
- 	lockdep_assert_held(&khugepaged_mm_lock);
- 	*result = SCAN_FAIL;
- 
-@@ -2438,7 +2434,7 @@ static unsigned int khugepaged_scan_mm_s
- 	if (unlikely(!mmap_read_trylock(mm)))
- 		goto breakouterloop_mmap_lock;
- 
--	progress++;
-+	cc->progress++;
- 	if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
- 		goto breakouterloop;
- 
-@@ -2448,17 +2444,17 @@ static unsigned int khugepaged_scan_mm_s
- 
- 		cond_resched();
- 		if (unlikely(hpage_collapse_test_exit_or_disable(mm))) {
--			progress++;
-+			cc->progress++;
- 			break;
- 		}
- 		if (!thp_vma_allowable_order(vma, vma->vm_flags, TVA_KHUGEPAGED, PMD_ORDER)) {
--			progress++;
-+			cc->progress++;
- 			continue;
- 		}
- 		hstart = round_up(vma->vm_start, HPAGE_PMD_SIZE);
- 		hend = round_down(vma->vm_end, HPAGE_PMD_SIZE);
- 		if (khugepaged_scan.address > hend) {
--			progress++;
-+			cc->progress++;
- 			continue;
- 		}
- 		if (khugepaged_scan.address < hstart)
-@@ -2467,7 +2463,6 @@ static unsigned int khugepaged_scan_mm_s
- 
- 		while (khugepaged_scan.address < hend) {
- 			bool mmap_locked = true;
--			unsigned int cur_progress = 0;
- 
- 			cond_resched();
- 			if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
-@@ -2484,8 +2479,7 @@ static unsigned int khugepaged_scan_mm_s
- 				mmap_read_unlock(mm);
- 				mmap_locked = false;
- 				*result = hpage_collapse_scan_file(mm,
--					khugepaged_scan.address, file, pgoff,
--					&cur_progress, cc);
-+					khugepaged_scan.address, file, pgoff, cc);
- 				fput(file);
- 				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
- 					mmap_read_lock(mm);
-@@ -2499,8 +2493,7 @@ static unsigned int khugepaged_scan_mm_s
- 				}
- 			} else {
- 				*result = hpage_collapse_scan_pmd(mm, vma,
--					khugepaged_scan.address, &mmap_locked,
--					&cur_progress, cc);
-+					khugepaged_scan.address, &mmap_locked, cc);
- 			}
- 
- 			if (*result == SCAN_SUCCEED)
-@@ -2508,7 +2501,6 @@ static unsigned int khugepaged_scan_mm_s
- 
- 			/* move to next address */
- 			khugepaged_scan.address += HPAGE_PMD_SIZE;
--			progress += cur_progress;
- 			if (!mmap_locked)
- 				/*
- 				 * We released mmap_lock so break loop.  Note
-@@ -2518,7 +2510,7 @@ static unsigned int khugepaged_scan_mm_s
- 				 * correct result back to caller.
- 				 */
- 				goto breakouterloop_mmap_lock;
--			if (progress >= pages)
-+			if (cc->progress >= progress_max)
- 				goto breakouterloop;
- 		}
- 	}
-@@ -2549,9 +2541,8 @@ breakouterloop_mmap_lock:
- 		collect_mm_slot(slot);
- 	}
- 
--	trace_mm_khugepaged_scan(mm, progress, khugepaged_scan.mm_slot == NULL);
--
--	return progress;
-+	trace_mm_khugepaged_scan(mm, cc->progress - progress_prev,
-+				 khugepaged_scan.mm_slot == NULL);
- }
- 
- static int khugepaged_has_work(void)
-@@ -2567,13 +2558,14 @@ static int khugepaged_wait_event(void)
- 
- static void khugepaged_do_scan(struct collapse_control *cc)
- {
--	unsigned int progress = 0, pass_through_head = 0;
--	unsigned int pages = READ_ONCE(khugepaged_pages_to_scan);
-+	const unsigned int progress_max = READ_ONCE(khugepaged_pages_to_scan);
-+	unsigned int pass_through_head = 0;
- 	bool wait = true;
- 	enum scan_result result = SCAN_SUCCEED;
- 
- 	lru_add_drain_all();
- 
-+	cc->progress = 0;
- 	while (true) {
- 		cond_resched();
- 
-@@ -2585,13 +2577,12 @@ static void khugepaged_do_scan(struct co
- 			pass_through_head++;
- 		if (khugepaged_has_work() &&
- 		    pass_through_head < 2)
--			progress += khugepaged_scan_mm_slot(pages - progress,
--							    &result, cc);
-+			khugepaged_scan_mm_slot(progress_max, &result, cc);
- 		else
--			progress = pages;
-+			cc->progress = progress_max;
- 		spin_unlock(&khugepaged_mm_lock);
- 
--		if (progress >= pages)
-+		if (cc->progress >= progress_max)
- 			break;
- 
- 		if (result == SCAN_ALLOC_HUGE_PAGE_FAIL) {
-@@ -2797,6 +2788,7 @@ int madvise_collapse(struct vm_area_stru
- 	if (!cc)
- 		return -ENOMEM;
- 	cc->is_khugepaged = false;
-+	cc->progress = 0;
- 
- 	mmgrab(mm);
- 	lru_add_drain_all();
-@@ -2831,7 +2823,7 @@ retry:
- 			mmap_locked = false;
- 			*lock_dropped = true;
- 			result = hpage_collapse_scan_file(mm, addr, file, pgoff,
--							  NULL, cc);
-+							  cc);
- 
- 			if (result == SCAN_PAGE_DIRTY_OR_WRITEBACK && !triggered_wb &&
- 			    mapping_can_writeback(file->f_mapping)) {
-@@ -2846,7 +2838,7 @@ retry:
- 			fput(file);
- 		} else {
- 			result = hpage_collapse_scan_pmd(mm, vma, addr,
--							 &mmap_locked, NULL, cc);
-+							 &mmap_locked, cc);
- 		}
- 		if (!mmap_locked)
- 			*lock_dropped = true;
+ 	if (madvise(gopts->area_dst, gopts->nr_pages * gopts->page_size, MADV_NOHUGEPAGE))
+@@ -1549,6 +1718,13 @@ uffd_test_case_t uffd_tests[] = {
+ 		.mem_targets = MEM_ANON,
+ 		.uffd_feature_required = UFFD_FEATURE_MOVE,
+ 		.test_case_ops = &uffd_move_test_pmd_case_ops,
++	},
++	{
++		.name = "move-pmd-huge-zeropage",
++		.uffd_fn = uffd_move_pmd_huge_zeropage_test,
++		.mem_targets = MEM_ANON,
++		.uffd_feature_required = UFFD_FEATURE_MOVE,
++		.test_case_ops = &uffd_move_test_pmd_case_ops,
+ 	},
+ 	{
+ 		.name = "move-pmd-split",
 _
 
-Patches currently in -mm which might be from vernon2gm@gmail.com are
+Patches currently in -mm which might be from chris@chrisdown.name are
 
-mm-khugepaged-refine-scan-progress-number-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch
 
