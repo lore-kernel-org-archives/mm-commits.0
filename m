@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D51682E413
-	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 00:42:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27A6422A4E9
+	for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 01:28:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772066571; cv=none; b=TrUMqqxeN92gvqH6T7KUXe9/VRveSVA6oLuzrE7+YE9qEi7NlsHTijIXA6Yqme+/uFHVRDvc4SnW6oBRA26oFCkL1SfrjGaUQSx257XzKDf9s7n/3mW3CgrRebjadAtJYwzfg/VQ2KXC/RYWar3MnS3XXxl5QAwdxXutk5VeQGg=
+	t=1772069304; cv=none; b=pj1qScJvNtUFRckYU9ixwLEplWZTqBTJCXIT7A1ktkH+hfxt2Wl/G5u9n54ZQK5QrFFObiMobqkM2sB0ah34eTlhdNhX0aGdCGdjvI5DMDSZEVgw3QretxUewup9QdTrpWcj9OR1IP4GHSf5g137QTVYmYpz6+aZ7bIok1zuS6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772066571; c=relaxed/simple;
-	bh=Ws9fruBFzh0r+jKKTiCDF9vbACialSqrvbDbp2hPBoE=;
-	h=Date:To:From:Subject:Message-Id; b=mlITMj/a1UUFPJ6yqCw6zOqnDlkjxGP0ZFUotv0MqY1i11xrbTyqeoEw+YBrqmX6O2KRTZ9rYQBfZB5f/ZD8SDlD4pDLACEP5hjIVt0Ymh+IowrWBJGUxc188DHe5t/QctDzJM+uPXHKCVoNdXVG88nVqtiRZyWeVwUdkW+62fo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OGdVNz0/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772069304; c=relaxed/simple;
+	bh=0rtSqt69PeWiqEArjZcd/2ojk+nGclCkkYQOHzqFR94=;
+	h=Date:To:From:Subject:Message-Id; b=nqwrTYBhBYbVQOIMKCLknuknKmK5c4CkzaeTkz5e16NmNgAD5Nn2k9nRWFojsD2bwMS4WGPuSqdRU945dM5boURx1NVNNCWMSD9Gsi0Ip9nNKgxo469Evhfx+Za1dgmxEXntKf4f6WyT7iK7aArSvRyNyO6zsGDWt4voJBOjJPg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gF0aDjry; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OGdVNz0/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73A27C116D0;
-	Thu, 26 Feb 2026 00:42:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gF0aDjry"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D1EEC116D0;
+	Thu, 26 Feb 2026 01:28:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772066571;
-	bh=Ws9fruBFzh0r+jKKTiCDF9vbACialSqrvbDbp2hPBoE=;
+	s=korg; t=1772069303;
+	bh=0rtSqt69PeWiqEArjZcd/2ojk+nGclCkkYQOHzqFR94=;
 	h=Date:To:From:Subject:From;
-	b=OGdVNz0/5SypbGWrheGQNHKVH8wkZsSCAfYfrn+mLkab4FBqkCrzXezpM0gGiNtSi
-	 /MTtXR7t5Nsd/8wnoj3IgctSGcZ2z6B8TnXBLcZdQ7sc08Q9aDBHOHSJ6qU83Ghexc
-	 2HNXQqqb5vNsduc+S7DFrEf+CAuiRfHMomw6O70g=
-Date: Wed, 25 Feb 2026 16:42:50 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,david@kernel.org,chrisl@kernel.org,brauner@kernel.org,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=gF0aDjrye7WJMKzqofBuxzACp+yuUD4VxPuI7sdy7NfldJIqC5l3GqofsYtoz3jK7
+	 6gqtXtHkx5zM0Pw9xX0gPITqTTYRW+9RAX9ggmot1oLxPRCnS7fahTKPQNH1iQcI3q
+	 YSJTvYLl2YeoIXUjvWNQdCJqjTYePMG97M24RFHA=
+Date: Wed, 25 Feb 2026 17:28:22 -0800
+To: mm-commits@vger.kernel.org,will@kernel.org,tstaudt@de.ibm.com,sourabhjain@linux.ibm.com,ryncsn@gmail.com,robh@kernel.org,lkp@intel.com,krzk@kernel.org,kernelfans@gmail.com,dyoung@redhat.com,chleroy@kernel.org,bhe@redhat.com,arnaud.lefebvre@clever-cloud.com,coxu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + folio_batch-rename-pagevec_size-to-folio_batch_size.patch added to mm-new branch
-Message-Id: <20260226004251.73A27C116D0@smtp.kernel.org>
+Subject: + crash_dump-dm-crypt-dont-print-in-arch-specific-code.patch added to mm-nonmm-unstable branch
+Message-Id: <20260226012823.7D1EEC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: folio_batch: rename PAGEVEC_SIZE to FOLIO_BATCH_SIZE
-has been added to the -mm mm-new branch.  Its filename is
-     folio_batch-rename-pagevec_size-to-folio_batch_size.patch
+     Subject: crash_dump/dm-crypt: don't print in arch-specific code
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     crash_dump-dm-crypt-dont-print-in-arch-specific-code.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/folio_batch-rename-pagevec_size-to-folio_batch_size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_dump-dm-crypt-dont-print-in-arch-specific-code.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,180 +58,111 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tal Zussman <tz2294@columbia.edu>
-Subject: folio_batch: rename PAGEVEC_SIZE to FOLIO_BATCH_SIZE
-Date: Wed, 25 Feb 2026 18:44:28 -0500
+From: Coiby Xu <coxu@redhat.com>
+Subject: crash_dump/dm-crypt: don't print in arch-specific code
+Date: Wed, 25 Feb 2026 14:03:44 +0800
 
-struct pagevec no longer exists.  Rename the macro appropriately.
+Patch series "kdump: Enable LUKS-encrypted dump target support in ARM64
+and PowerPC", v5.
 
-Link: https://lkml.kernel.org/r/20260225-pagevec_cleanup-v2-4-716868cc2d11@columbia.edu
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+CONFIG_CRASH_DM_CRYPT has been introduced to support LUKS-encrypted device
+dump target by addressing two challenges [1],
+
+ - Kdump kernel may not be able to decrypt the LUKS partition. For some
+   machines, a system administrator may not have a chance to enter the
+   password to decrypt the device in kdump initramfs after the 1st kernel
+   crashes
+
+ - LUKS2 by default use the memory-hard Argon2 key derivation function
+   which is quite memory-consuming compared to the limited memory reserved
+   for kdump.
+
+To also enable this feature for ARM64 and PowerPC, we need to add a device
+tree property dmcryptkeys [2] as similar to elfcorehdr to pass the memory
+address of the stored info of dm-crypt keys to the kdump kernel.
+
+
+This patch (of 3):
+
+When the vmcore dumping target is not a LUKS-encrypted target, it's
+expected that there is no dm-crypt key thus no need to return -ENOENT. 
+Also print more logs in crash_load_dm_crypt_keys.  The benefit is
+arch-specific code can be more succinct.
+
+Link: https://lkml.kernel.org/r/20260225060347.718905-1-coxu@redhat.com
+Link: https://lkml.kernel.org/r/20260225060347.718905-2-coxu@redhat.com
+Link: https://lore.kernel.org/all/20250502011246.99238-1-coxu@redhat.com/ [1]
+Link: https://github.com/devicetree-org/dt-schema/pull/181 [2]
+Signed-off-by: Coiby Xu <coxu@redhat.com>
+Suggested-by: Will Deacon <will@kernel.org>
+Cc: Arnaud Lefebvre <arnaud.lefebvre@clever-cloud.com>
+Cc: Baoquan he <bhe@redhat.com>
+Cc: Christophe Leroy (CS GROUP) <chleroy@kernel.org>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Krzysztof Kozlowski <krzk@kernel.org>
+Cc: Pingfan Liu <kernelfans@gmail.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
+Cc: Thomas Staudt <tstaudt@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/extent_io.c        |    4 ++--
- include/linux/folio_batch.h |    6 +++---
- include/linux/folio_queue.h |    6 +++---
- mm/shmem.c                  |    4 ++--
- mm/swap.c                   |    2 +-
- mm/swap_state.c             |    2 +-
- mm/truncate.c               |    6 +++---
- 7 files changed, 15 insertions(+), 15 deletions(-)
+ arch/x86/kernel/kexec-bzimage64.c |    6 +-----
+ kernel/crash_dump_dm_crypt.c      |    7 +++++--
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
---- a/fs/btrfs/extent_io.c~folio_batch-rename-pagevec_size-to-folio_batch_size
-+++ a/fs/btrfs/extent_io.c
-@@ -2095,13 +2095,13 @@ static void buffer_tree_tag_for_writebac
- struct eb_batch {
- 	unsigned int nr;
- 	unsigned int cur;
--	struct extent_buffer *ebs[PAGEVEC_SIZE];
-+	struct extent_buffer *ebs[FOLIO_BATCH_SIZE];
- };
+--- a/arch/x86/kernel/kexec-bzimage64.c~crash_dump-dm-crypt-dont-print-in-arch-specific-code
++++ a/arch/x86/kernel/kexec-bzimage64.c
+@@ -525,12 +525,8 @@ static void *bzImage64_load(struct kimag
+ 		if (ret)
+ 			return ERR_PTR(ret);
+ 		ret = crash_load_dm_crypt_keys(image);
+-		if (ret == -ENOENT) {
+-			kexec_dprintk("No dm crypt key to load\n");
+-		} else if (ret) {
+-			pr_err("Failed to load dm crypt keys\n");
++		if (ret)
+ 			return ERR_PTR(ret);
+-		}
+ 		if (image->dm_crypt_keys_addr &&
+ 		    cmdline_len + MAX_ELFCOREHDR_STR_LEN + MAX_DMCRYPTKEYS_STR_LEN >
+ 			    header->cmdline_size) {
+--- a/kernel/crash_dump_dm_crypt.c~crash_dump-dm-crypt-dont-print-in-arch-specific-code
++++ a/kernel/crash_dump_dm_crypt.c
+@@ -414,14 +414,16 @@ int crash_load_dm_crypt_keys(struct kima
  
- static inline bool eb_batch_add(struct eb_batch *batch, struct extent_buffer *eb)
- {
- 	batch->ebs[batch->nr++] = eb;
--	return (batch->nr < PAGEVEC_SIZE);
-+	return (batch->nr < FOLIO_BATCH_SIZE);
- }
+ 	if (key_count <= 0) {
+ 		kexec_dprintk("No dm-crypt keys\n");
+-		return -ENOENT;
++		return 0;
+ 	}
  
- static inline void eb_batch_init(struct eb_batch *batch)
---- a/include/linux/folio_batch.h~folio_batch-rename-pagevec_size-to-folio_batch_size
-+++ a/include/linux/folio_batch.h
-@@ -12,7 +12,7 @@
- #include <linux/types.h>
+ 	if (!is_dm_key_reused) {
+ 		image->dm_crypt_keys_addr = 0;
+ 		r = build_keys_header();
+-		if (r)
++		if (r) {
++			pr_err("Failed to build dm-crypt keys header, ret=%d\n", r);
+ 			return r;
++		}
+ 	}
  
- /* 31 pointers + header align the folio_batch structure to a power of two */
--#define PAGEVEC_SIZE	31
-+#define FOLIO_BATCH_SIZE	31
- 
- struct folio;
- 
-@@ -29,7 +29,7 @@ struct folio_batch {
- 	unsigned char nr;
- 	unsigned char i;
- 	bool percpu_pvec_drained;
--	struct folio *folios[PAGEVEC_SIZE];
-+	struct folio *folios[FOLIO_BATCH_SIZE];
- };
- 
- /**
-@@ -58,7 +58,7 @@ static inline unsigned int folio_batch_c
- 
- static inline unsigned int folio_batch_space(const struct folio_batch *fbatch)
- {
--	return PAGEVEC_SIZE - fbatch->nr;
-+	return FOLIO_BATCH_SIZE - fbatch->nr;
- }
- 
- /**
---- a/include/linux/folio_queue.h~folio_batch-rename-pagevec_size-to-folio_batch_size
-+++ a/include/linux/folio_queue.h
-@@ -29,12 +29,12 @@
-  */
- struct folio_queue {
- 	struct folio_batch	vec;		/* Folios in the queue segment */
--	u8			orders[PAGEVEC_SIZE]; /* Order of each folio */
-+	u8			orders[FOLIO_BATCH_SIZE]; /* Order of each folio */
- 	struct folio_queue	*next;		/* Next queue segment or NULL */
- 	struct folio_queue	*prev;		/* Previous queue segment of NULL */
- 	unsigned long		marks;		/* 1-bit mark per folio */
- 	unsigned long		marks2;		/* Second 1-bit mark per folio */
--#if PAGEVEC_SIZE > BITS_PER_LONG
-+#if FOLIO_BATCH_SIZE > BITS_PER_LONG
- #error marks is not big enough
- #endif
- 	unsigned int		rreq_id;
-@@ -70,7 +70,7 @@ static inline void folioq_init(struct fo
-  */
- static inline unsigned int folioq_nr_slots(const struct folio_queue *folioq)
- {
--	return PAGEVEC_SIZE;
-+	return FOLIO_BATCH_SIZE;
- }
- 
- /**
---- a/mm/shmem.c~folio_batch-rename-pagevec_size-to-folio_batch_size
-+++ a/mm/shmem.c
-@@ -1113,7 +1113,7 @@ static void shmem_undo_range(struct inod
- 	pgoff_t start = (lstart + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	pgoff_t end = (lend + 1) >> PAGE_SHIFT;
- 	struct folio_batch fbatch;
--	pgoff_t indices[PAGEVEC_SIZE];
-+	pgoff_t indices[FOLIO_BATCH_SIZE];
- 	struct folio *folio;
- 	bool same_folio;
- 	long nr_swaps_freed = 0;
-@@ -1510,7 +1510,7 @@ static int shmem_unuse_inode(struct inod
- 	struct address_space *mapping = inode->i_mapping;
- 	pgoff_t start = 0;
- 	struct folio_batch fbatch;
--	pgoff_t indices[PAGEVEC_SIZE];
-+	pgoff_t indices[FOLIO_BATCH_SIZE];
- 	int ret = 0;
- 
- 	do {
---- a/mm/swap.c~folio_batch-rename-pagevec_size-to-folio_batch_size
-+++ a/mm/swap.c
-@@ -1024,7 +1024,7 @@ EXPORT_SYMBOL(folios_put_refs);
- void release_pages(release_pages_arg arg, int nr)
- {
- 	struct folio_batch fbatch;
--	int refs[PAGEVEC_SIZE];
-+	int refs[FOLIO_BATCH_SIZE];
- 	struct encoded_page **encoded = arg.encoded_pages;
- 	int i;
- 
---- a/mm/swap_state.c~folio_batch-rename-pagevec_size-to-folio_batch_size
-+++ a/mm/swap_state.c
-@@ -385,7 +385,7 @@ void free_folio_and_swap_cache(struct fo
- void free_pages_and_swap_cache(struct encoded_page **pages, int nr)
- {
- 	struct folio_batch folios;
--	unsigned int refs[PAGEVEC_SIZE];
-+	unsigned int refs[FOLIO_BATCH_SIZE];
- 
- 	folio_batch_init(&folios);
- 	for (int i = 0; i < nr; i++) {
---- a/mm/truncate.c~folio_batch-rename-pagevec_size-to-folio_batch_size
-+++ a/mm/truncate.c
-@@ -369,7 +369,7 @@ void truncate_inode_pages_range(struct a
- 	pgoff_t		start;		/* inclusive */
- 	pgoff_t		end;		/* exclusive */
- 	struct folio_batch fbatch;
--	pgoff_t		indices[PAGEVEC_SIZE];
-+	pgoff_t		indices[FOLIO_BATCH_SIZE];
- 	pgoff_t		index;
- 	int		i;
- 	struct folio	*folio;
-@@ -534,7 +534,7 @@ EXPORT_SYMBOL(truncate_inode_pages_final
- unsigned long mapping_try_invalidate(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end, unsigned long *nr_failed)
- {
--	pgoff_t indices[PAGEVEC_SIZE];
-+	pgoff_t indices[FOLIO_BATCH_SIZE];
- 	struct folio_batch fbatch;
- 	pgoff_t index = start;
- 	unsigned long ret;
-@@ -672,7 +672,7 @@ failed:
- int invalidate_inode_pages2_range(struct address_space *mapping,
- 				  pgoff_t start, pgoff_t end)
- {
--	pgoff_t indices[PAGEVEC_SIZE];
-+	pgoff_t indices[FOLIO_BATCH_SIZE];
- 	struct folio_batch fbatch;
- 	pgoff_t index;
- 	int i;
+ 	kbuf.buffer = keys_header;
+@@ -432,6 +434,7 @@ int crash_load_dm_crypt_keys(struct kima
+ 	kbuf.mem = KEXEC_BUF_MEM_UNKNOWN;
+ 	r = kexec_add_buffer(&kbuf);
+ 	if (r) {
++		pr_err("Failed to call kexec_add_buffer, ret=%d\n", r);
+ 		kvfree((void *)kbuf.buffer);
+ 		return r;
+ 	}
 _
 
-Patches currently in -mm which might be from tz2294@columbia.edu are
+Patches currently in -mm which might be from coxu@redhat.com are
 
-mm-remove-stray-references-to-struct-pagevec.patch
-fs-remove-unncessary-pagevech-includes.patch
-folio_batch-rename-pagevech-to-folio_batchh.patch
-folio_batch-rename-pagevec_size-to-folio_batch_size.patch
+crash_dump-dm-crypt-dont-print-in-arch-specific-code.patch
+crash-align-the-declaration-of-crash_load_dm_crypt_keys-with-config_crash_dm_crypt.patch
+arm64ppc64le-kdump-pass-dm-crypt-keys-to-kdump-kernel.patch
 
