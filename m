@@ -1,113 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6D613016E2;
-	Thu, 26 Feb 2026 22:16:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0117A25B1CB;
+	Fri, 27 Feb 2026 01:56:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772144194; cv=none; b=PeBnII7TZO11z5Qbc3OKAi7Nji1wp9Qr/buJw5yQd1Ko+Ja5HdJuHZL0DJ99W9VVdM6hlX003Y0YMLXRwM+cLGzUi1FHTzoxUXGRsp7Vd9yvQKsPUIHd4THKbWuflAw5gsuj73mCClTmR32lIHi0iMFIavUTqTQreSCtqilC3jg=
+	t=1772157393; cv=none; b=p4ttLYtG3O3yRVeRUboKy4/5783NTOh0+ZqkzjMlc6eFc+yc9Upkrlo0JvmMliF76rni2IwrxjLpLTrEXQfCsppvzpxSz+UeDPULcpxu/dFTD/ONXfvcfQ51ZN146JNuSX9W46LtBc2R5hphG7Nm/0P1eQRQkeCJN8R5SnYKf7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772144194; c=relaxed/simple;
-	bh=BE0fpb4BhRoem7NlGuVlvqeNimwZSbowvwDgnccDyFg=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=IFnp252hVi0AWelW3FmS1bxfyu8BHwgpL+/XkElAmmfqx/3hZzl7PAywzVH8eD62U6TnTkL9aNVhgAeFq3cjmaDq+rzHwB7jCkN6QvJcp+KLhtMoh08X6f+HDSn/itrvoH4hWinBHYtN6ZBDJ9GJXakrrq4lVbU5BvRM/oL67k8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X1Wf65kj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772157393; c=relaxed/simple;
+	bh=CeL0o7iDozDNHrlUHISLQBri+jPvgiHF2jv/vUiwOI0=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=klxn0e1U5D82jYedXkQNFdK6J+18DWUAjM3AkT8CHh8nz8fkHkomVENe/OoA+3fogAuEkp1ID4RK4zGf7zRRpVGiNiWV3DLjqg7EneQfsf+jeUKKKuiPGlFeRlQpbG7Vt09qJqp95vasMI2/GoSL/n7u0gEsll+Dipg6V1gqQSY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jOwcbfPL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X1Wf65kj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B976C116C6;
-	Thu, 26 Feb 2026 22:16:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772144194;
-	bh=BE0fpb4BhRoem7NlGuVlvqeNimwZSbowvwDgnccDyFg=;
-	h=Date:From:To:Cc:Subject:From;
-	b=X1Wf65kj8xm3BDnBvQQlzXyKgJ2d7LCGkq4Nf8xLr52BY+yXsI61lTG0PF2taALKN
-	 nkUmWNT1ktI5VTO9rYzFQNPcM3bkvIuqFJIH9FJue1jsO0GShq13bms6vH9Jxza9+i
-	 m2mjxNvKb4a+V+dqgKBXp0mdxngHsrjmVbzYZVEU=
-Date: Thu, 26 Feb 2026 14:16:33 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org,
- mm-commits@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 7.0-rc2
-Message-Id: <20260226141633.fd525fd4a4fe2c0cc07596f5@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jOwcbfPL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9486EC116C6;
+	Fri, 27 Feb 2026 01:56:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1772157392;
+	bh=CeL0o7iDozDNHrlUHISLQBri+jPvgiHF2jv/vUiwOI0=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=jOwcbfPLMmfGhgKBn9tXEONS+8aPggiAFkMKwpdRnvywOBjMFPNNqN5yJu0hYeZtm
+	 /aolv9y+KqwMzjGTmuLWvxymdqskRnMKmVp0JiQ7jtum04hp7qswBa8k2AFV/6sZ+G
+	 hd1W2Nagsgd1bbkSuvQ3hYlZ34kc6Bs8gttkNScZVY2Qx6wX/hkahmLFUjUjel6spd
+	 5uOxVrtcx1v48NHhPtb9qq1eM7myBgKiznNUXaJWkTHmb3wcIpFYvefUbQUWywdrix
+	 VfA12tPcw+9VoJZg05j9WPMsuEjl8hFY976am8jwZPrASSQBTx10vsGg4c2ce93ngx
+	 CG3Md51cpKcFg==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 02F28393109B;
+	Fri, 27 Feb 2026 01:56:38 +0000 (UTC)
+Subject: Re: [GIT PULL] hotfixes for 7.0-rc2
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20260226141633.fd525fd4a4fe2c0cc07596f5@linux-foundation.org>
+References: <20260226141633.fd525fd4a4fe2c0cc07596f5@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20260226141633.fd525fd4a4fe2c0cc07596f5@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-02-26-14-14
+X-PR-Tracked-Commit-Id: 410aed670cddac1de4f0c2865f30ec623fd20f78
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 69062f234a2837d2302a41c2ba125521630deea8
+Message-Id: <177215739659.1937342.143122209456192930.pr-tracker-bot@kernel.org>
+Date: Fri, 27 Feb 2026 01:56:36 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
+The pull request you sent on Thu, 26 Feb 2026 14:16:33 -0800:
 
-Linus, please merge this batch of hotfixes, thanks.
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-02-26-14-14
 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/69062f234a2837d2302a41c2ba125521630deea8
 
+Thank you!
 
-The following changes since commit 6de23f81a5e08be8fbf5e8d7e9febc72a5b5f27f:
-
-  Linux 7.0-rc1 (2026-02-22 13:18:59 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-02-26-14-14
-
-for you to fetch changes up to 410aed670cddac1de4f0c2865f30ec623fd20f78:
-
-  MAINTAINERS: update Yosry Ahmed's email address (2026-02-24 11:13:28 -0800)
-
-----------------------------------------------------------------
-12 hotfixes.  7 are cc:stable.  8 are for MM.
-
-All are singletons - please see the changelogs for details.
-
-----------------------------------------------------------------
-Alexander Potapenko (2):
-      mm/kfence: disable KFENCE upon KASAN HW tags enablement
-      mm/kfence: fix KASAN hardware tag faults during late enablement
-
-Arnd Bergmann (1):
-      mm: change vma_alloc_folio_noprof() macro to inline function
-
-Daniele Alessandrelli (1):
-      mailmap: add entry for Daniele Alessandrelli
-
-Deepanshu Kartikey (1):
-      mm: thp: deny THP for files on anonymous inodes
-
-Kalesh Singh (1):
-      mm/tracing: rss_stat: ensure curr is false from kthread context
-
-Ming Lei (1):
-      mm: fix NULL NODE_DATA dereference for memoryless nodes on boot
-
-Phillip Lougher (1):
-      Squashfs: check metadata block offset is within range
-
-Pratyush Yadav (Google) (1):
-      liveupdate: luo_file: remember retrieve() status
-
-SeongJae Park (1):
-      mm/damon/core: disallow non-power of two min_region_sz
-
-Vlastimil Babka (SUSE) (1):
-      MAINTAINERS, mailmap: update e-mail address for Vlastimil Babka
-
-Yosry Ahmed (1):
-      MAINTAINERS: update Yosry Ahmed's email address
-
- .mailmap                     |  5 ++++-
- MAINTAINERS                  | 20 ++++++++++----------
- fs/squashfs/cache.c          |  3 +++
- include/linux/gfp.h          |  7 +++++--
- include/linux/liveupdate.h   |  9 ++++++---
- include/trace/events/kmem.h  |  8 +++++++-
- kernel/liveupdate/luo_file.c | 41 +++++++++++++++++++++++++----------------
- mm/damon/core.c              |  3 +++
- mm/huge_memory.c             |  3 +++
- mm/kfence/core.c             | 29 +++++++++++++++++++++++------
- mm/memfd_luo.c               |  7 ++++++-
- mm/mm_init.c                 |  6 +++++-
- mm/page_alloc.c              |  3 ++-
- 13 files changed, 102 insertions(+), 42 deletions(-)
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
