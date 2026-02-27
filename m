@@ -1,63 +1,97 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0117A25B1CB;
-	Fri, 27 Feb 2026 01:56:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF6FF240611
+	for <mm-commits@vger.kernel.org>; Fri, 27 Feb 2026 03:04:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772157393; cv=none; b=p4ttLYtG3O3yRVeRUboKy4/5783NTOh0+ZqkzjMlc6eFc+yc9Upkrlo0JvmMliF76rni2IwrxjLpLTrEXQfCsppvzpxSz+UeDPULcpxu/dFTD/ONXfvcfQ51ZN146JNuSX9W46LtBc2R5hphG7Nm/0P1eQRQkeCJN8R5SnYKf7Y=
+	t=1772161490; cv=none; b=ItvN5DEw4O7cQ24erbIUs9vmGU8vwaAYHDDKbMNJHM+9rkjFmrem3Aifq4a2w6USd15oWM/jOfz/n1BS/Y5SxHhIzjBoiH0KWHR88Nb1/PTfP68pUp2v+jkhbA3hhezsb0tSlskiXB6ClxT0+aaD/JlORCH59dShPgKrZYkzQPY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772157393; c=relaxed/simple;
-	bh=CeL0o7iDozDNHrlUHISLQBri+jPvgiHF2jv/vUiwOI0=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=klxn0e1U5D82jYedXkQNFdK6J+18DWUAjM3AkT8CHh8nz8fkHkomVENe/OoA+3fogAuEkp1ID4RK4zGf7zRRpVGiNiWV3DLjqg7EneQfsf+jeUKKKuiPGlFeRlQpbG7Vt09qJqp95vasMI2/GoSL/n7u0gEsll+Dipg6V1gqQSY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=jOwcbfPL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772161490; c=relaxed/simple;
+	bh=2EJwN6DSGXGMGqaB2YEmUs2BAY+MUSSpkMLH+TpdjZ0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=guLFE/Sa+d1SI7QGi2EX0kU1hIXDHVJI3t9KOYPpaWEkdyLsbqEBlerZuQ+kF9tuMYf5Xxq+AwM4rRrcsJPH5EbhiEL1BLkinGMHzZqxvLNtG0rgb4LIDGlhvfyyOdDijL+n5ZYqCuTgqyIeqsNGt2JoG3UiV19jCu9x9AQ9rnQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=X/TZnzt+; arc=none smtp.client-ip=209.85.214.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="jOwcbfPL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9486EC116C6;
-	Fri, 27 Feb 2026 01:56:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1772157392;
-	bh=CeL0o7iDozDNHrlUHISLQBri+jPvgiHF2jv/vUiwOI0=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=jOwcbfPLMmfGhgKBn9tXEONS+8aPggiAFkMKwpdRnvywOBjMFPNNqN5yJu0hYeZtm
-	 /aolv9y+KqwMzjGTmuLWvxymdqskRnMKmVp0JiQ7jtum04hp7qswBa8k2AFV/6sZ+G
-	 hd1W2Nagsgd1bbkSuvQ3hYlZ34kc6Bs8gttkNScZVY2Qx6wX/hkahmLFUjUjel6spd
-	 5uOxVrtcx1v48NHhPtb9qq1eM7myBgKiznNUXaJWkTHmb3wcIpFYvefUbQUWywdrix
-	 VfA12tPcw+9VoJZg05j9WPMsuEjl8hFY976am8jwZPrASSQBTx10vsGg4c2ce93ngx
-	 CG3Md51cpKcFg==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 02F28393109B;
-	Fri, 27 Feb 2026 01:56:38 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 7.0-rc2
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20260226141633.fd525fd4a4fe2c0cc07596f5@linux-foundation.org>
-References: <20260226141633.fd525fd4a4fe2c0cc07596f5@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-mm.kvack.org>
-X-PR-Tracked-Message-Id: <20260226141633.fd525fd4a4fe2c0cc07596f5@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-02-26-14-14
-X-PR-Tracked-Commit-Id: 410aed670cddac1de4f0c2865f30ec623fd20f78
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 69062f234a2837d2302a41c2ba125521630deea8
-Message-Id: <177215739659.1937342.143122209456192930.pr-tracker-bot@kernel.org>
-Date: Fri, 27 Feb 2026 01:56:36 +0000
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="X/TZnzt+"
+Received: by mail-pl1-f182.google.com with SMTP id d9443c01a7336-2a962230847so14821035ad.3
+        for <mm-commits@vger.kernel.org>; Thu, 26 Feb 2026 19:04:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1772161488; x=1772766288; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=ntbjsjy+0/DmmooK18iXTfGNQ+doO2mHVc7NK3zTZiA=;
+        b=X/TZnzt+NSVP0AeI9orqH5tLCI02J2xcxgn6RDgL9EssrNwjm302R6gtQBDmoQN21U
+         PY289ttNnhzTjL45AaSpO2ll/SsqwCIQRR4Tgqi1R1bY2MjqdvY0J8V4pFdtZFr+PwCk
+         6/ytoG6mTq7pSjbXXDutyOjnk+yABi8iaV51Q=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1772161488; x=1772766288;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ntbjsjy+0/DmmooK18iXTfGNQ+doO2mHVc7NK3zTZiA=;
+        b=PTBgegtEB8/1IwLcZQQ5M5evN8bg4IGc4I+Fy9A5bCXZ2v6GdkmWGexuGv91J267Ic
+         3ghBCNf9B54Kg3mDKmDEN5lTHKf5VSVtlVjut/vZq8C+igN7JZ9/myLngY2hy0tdD+Mi
+         mmzl5DJxX5pyXSyZ8VJtcw67ycI7AC198oK0ugUwAiTPSi3JUfcGLGnUX7hYyAHlQ7B3
+         tshHCJm4E5Iul1AGuUEFatXTdfCZB3zrYkTj/JaIdfsHJfdWUtthG/nKEh1LNBlaIhki
+         r6YR1EtJfZx8dAE1FkTd69pIJ3frc6CwNyAlphiuGoklahD9soqsMYXoyF2eeAAiJqeM
+         ZQUQ==
+X-Gm-Message-State: AOJu0YyA4l8Yxpz32EwosmRoUU9CdmFVA3dF79NQG7nRkvzUUyp28HiC
+	AhLcabMCPy/x0EdHKtqUs8x8D6xLCBdR1K4NGW8BjTdFpqzIt7kq5naomEjVqQGcEw==
+X-Gm-Gg: ATEYQzyRNmwQAHKMPIAocnmDY5rh7fqCNRBU3d3Wcc08oSlC7YNMN3GQlotaImPbNty
+	JdDiUxRzAafSZp5RaNxqCqRdY6BARD+zHcEUdvN06vMsDCKsm3S9C5GtTZymUurlSrJAQVD+JRY
+	hCOHQdsj3AK2ZSs22bp/++TsVYzY+FxjtxjERgku3PdH1iLoUzhrVlNfFwaV/9VeJMbzHKDW2Y9
+	g3onqLa3I4eIeTkKRzbBmxrWSllAidwhVRILJyRva+P2ETEIeF1ZhInK3S3OfuemAGNgl3jwQMj
+	AAU3ShjgoAIGD33pKB+irifKOe6hPOYiG7SAhKCkyFGJfPXdPt6I7jL/s/xN9EE9dIdH2xr09Gl
+	sJdGUqQ33uwS2DckJU4WdmJg/bCWyaufE4waZRXmTsWNBnbLoKgIH8IZ+j3yekMTmToWUm77Ydy
+	Vuq1uf8N+Hi+w+wn5k70YYniwP3vKC/VpGSiEAmg0mNuSlsn8LpWXQVDRL2NOUN+jVtXN3CEXJH
+	g==
+X-Received: by 2002:a17:903:41c6:b0:2ab:1dad:e500 with SMTP id d9443c01a7336-2ae2e408246mr13907825ad.18.1772161488250;
+        Thu, 26 Feb 2026 19:04:48 -0800 (PST)
+Received: from google.com ([2a00:79e0:2031:6:280f:e47e:6718:7698])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-2adfb5b2268sm41059855ad.6.2026.02.26.19.04.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 26 Feb 2026 19:04:47 -0800 (PST)
+Date: Fri, 27 Feb 2026 12:04:44 +0900
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org
+Cc: mm-commits@vger.kernel.org, surenb@google.com, 
+	senozhatsky@chromium.org, minchan@kernel.org, axboe@kernel.dk, gaoxu2@honor.com
+Subject: Re: +
+ zram-use-statically-allocated-compression-algorithm-names.patch added to
+ mm-new branch
+Message-ID: <rmumbso6umvp3bopvkrxgv2nan6bsxqj7h4sgw3urx5nhoxgyq@6wphu5i25zvk>
+References: <20260226164516.21CA7C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260226164516.21CA7C116C6@smtp.kernel.org>
 
-The pull request you sent on Thu, 26 Feb 2026 14:16:33 -0800:
+On (26/02/26 08:45), Andrew Morton wrote:
+> Currently, zram dynamically allocates memory for compressor algorithm
+> names when they are set by the user.  This requires careful memory
+> management, including explicit `kfree` calls and special handling to avoid
+> freeing statically defined default compressor names.
+> 
+> This patch refactors the way zram handles compression algorithm names. 
+> Instead of storing dynamically allocated copies, `zram->comp_algs` will
+> now store pointers directly to the static name strings defined within the
+> `zcomp_ops` backend structures, thereby removing the need for conditional
+> `kfree` calls.
+> 
+> Link: https://lkml.kernel.org/r/5bb2e9318d124dbcb2b743dcdce6a950@honor.com
+> Signed-off-by: gao xu <gaoxu2@honor.com>
+> Cc: Jens Axboe <axboe@kernel.dk>
+> Cc: Minchan Kim <minchan@kernel.org>
+> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+> Cc: Suren Baghdasaryan <surenb@google.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-02-26-14-14
-
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/69062f234a2837d2302a41c2ba125521630deea8
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
