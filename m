@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3031C4779BF
-	for <mm-commits@vger.kernel.org>; Fri, 27 Feb 2026 20:10:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2E73477E4B
+	for <mm-commits@vger.kernel.org>; Fri, 27 Feb 2026 20:10:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772223013; cv=none; b=UV4hd79V7G7Q4neDI1aBzEeKcG+50j1fPYbZJTcdJ60QSe11v7ZRD9M8/U6uTLQOfJJGC69CslFCRUzFFSvIxVziaZGg4RbxIOT422SlOppv0IPQV8StbeOzYPIt2RU+t/nOvdSJcuHlXlq7XlqF2AZcXFthcgVG+Q4TXbrXUeY=
+	t=1772223015; cv=none; b=J2doDuvhzXRhuaHlHvLU5c4zWjCSYHfWMZDuj4ONDSOMZFOcEeBICWtvynZz7rBSJDRJP4KJR+t5qgwDOiBwJ/w7OLmMdAdjEYy/j0/oBfPSCezMkudyVMdV+oUgUWbqVfT5HuwtvLOyOf4BByErFC5JtI4dm1LHIljBC16Bdx4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772223013; c=relaxed/simple;
-	bh=apK/xUyKclFz3fEcQ+AHszXruGEco6QFJ7aY8sKFTWI=;
-	h=Date:To:From:Subject:Message-Id; b=BCpmEtm9fWJrJCHTILI2wgYPZtv1XvNFYqEF/SJbC/ny+MORCDmt1Bk7zpVZ5neneQc3hFriBRHCWaCpwLbYCpJotEsczizaiZpPg/a1q/8ry1pYw5c59KEB4cb+bttzH6IWbczZ2SOqQQsmjCBFs/WxFwx456Y3Ghv6rmysUjg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jN6ZdMV2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772223015; c=relaxed/simple;
+	bh=uYOtCYbh4+nkFSZ2M2Bb3QxY1s3O7DU74UtkoVhlKQk=;
+	h=Date:To:From:Subject:Message-Id; b=Mg0u9Lk3ZbK84l8AWKQifGujKs3i/3a48vT++kZPQzLnUNo37i2MqlsUIJBoi7vqOWsa6Lq+OW2HnZ0+ZzuiI9d5rwqXzAZid9k0g98b7Kd4Iv/H2/PQZVfVTBaINRJ2YYWABsY0CA6qCFY0Dj4uss3c5SwLKSWJp7RD3ZuP77E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kKqHGdqA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jN6ZdMV2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A931BC2BC86;
-	Fri, 27 Feb 2026 20:10:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kKqHGdqA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78A94C2BC87;
+	Fri, 27 Feb 2026 20:10:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772223012;
-	bh=apK/xUyKclFz3fEcQ+AHszXruGEco6QFJ7aY8sKFTWI=;
+	s=korg; t=1772223015;
+	bh=uYOtCYbh4+nkFSZ2M2Bb3QxY1s3O7DU74UtkoVhlKQk=;
 	h=Date:To:From:Subject:From;
-	b=jN6ZdMV2HZEwQBm1ysTJC+cbDWa2Hwb8lwUW22NKglwrWfrDRWP9o0Z1re/kJf8cS
-	 /INN4LxbIDic36xbjtUmN6IZMnHHPIRr43kR9Dix1fKnRmpVWmn9P1aQthvaGFqA3y
-	 KeLttsxf/OVYy4lXCAQncrHZuiD6Vwepqgyv6Qkg=
-Date: Fri, 27 Feb 2026 12:10:12 -0800
+	b=kKqHGdqACHRZscWgZgbteTIp/7Vg7kTZeFtWRkS9sKNmNS8a3wbu32yhjvZLXr3NM
+	 bc8yg9Obd+GRuuMYB6h1qmVVp1+bfYfIF78cd2d8Cy9yBDuB2anj+97uYoEwV3AEvl
+	 suuG/9rcak4ePFXmgnb0BYDgWysPFcyl3fhS4IxY=
+Date: Fri, 27 Feb 2026 12:10:14 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,usamaarif642@gmail.com,rppt@kernel.org,roman.gushchin@linux.dev,rientjes@google.com,paul.walmsley@sifive.com,palmer@dabbelt.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,kernel@xen0n.name,harry.yoo@oracle.com,hannes@cmpxchg.org,fvdl@google.com,david@kernel.org,corbet@lwn.net,cl@gentwo.org,chenhuacai@kernel.org,bhe@redhat.com,aou@eecs.berkeley.edu,alex@ghiti.fr,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-remove-hugetlb_optimize_vmemmap_key-static-key.patch added to mm-new branch
-Message-Id: <20260227201012.A931BC2BC86@smtp.kernel.org>
+Subject: + mm-remove-the-branch-from-compound_head.patch added to mm-new branch
+Message-Id: <20260227201015.78A94C2BC87@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: remove hugetlb_optimize_vmemmap_key static key
+     Subject: mm: remove the branch from compound_head()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-remove-hugetlb_optimize_vmemmap_key-static-key.patch
+     mm-remove-the-branch-from-compound_head.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-remove-hugetlb_optimize_vmemmap_key-static-key.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-the-branch-from-compound_head.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,21 +67,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kiryl Shutsemau <kas@kernel.org>
-Subject: mm/hugetlb: remove hugetlb_optimize_vmemmap_key static key
-Date: Fri, 27 Feb 2026 19:42:53 +0000
+Subject: mm: remove the branch from compound_head()
+Date: Fri, 27 Feb 2026 19:42:54 +0000
 
-The hugetlb_optimize_vmemmap_key static key was used to guard fake head
-detection in compound_head() and related functions.  It allowed skipping
-the fake head checks entirely when HVO was not in use.
+The compound_head() function is a hot path.  For example, the zap path
+calls it for every leaf page table entry.
 
-With fake heads eliminated and the detection code removed, the static key
-serves no purpose.  Remove its definition and all increment/decrement
-calls.
+Rewrite the helper function in a branchless manner to eliminate the risk
+of CPU branch misprediction.
 
-Link: https://lkml.kernel.org/r/20260227194302.274384-16-kas@kernel.org
+Link: https://lkml.kernel.org/r/20260227194302.274384-17-kas@kernel.org
 Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Baoquan He <bhe@redhat.com>
@@ -101,80 +101,58 @@ Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 --
- mm/hugetlb_vmemmap.c       |   14 ++------------
- 2 files changed, 2 insertions(+), 14 deletions(-)
+ include/linux/page-flags.h |   27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
---- a/include/linux/page-flags.h~mm-hugetlb-remove-hugetlb_optimize_vmemmap_key-static-key
+--- a/include/linux/page-flags.h~mm-remove-the-branch-from-compound_head
 +++ a/include/linux/page-flags.h
-@@ -221,8 +221,6 @@ static __always_inline bool compound_inf
- 	return is_power_of_2(sizeof(struct page));
- }
- 
--DECLARE_STATIC_KEY_FALSE(hugetlb_optimize_vmemmap_key);
--
- static __always_inline int page_is_fake_head(const struct page *page)
+@@ -229,25 +229,32 @@ static __always_inline int page_is_fake_
+ static __always_inline unsigned long _compound_head(const struct page *page)
  {
- 	return page_fixed_fake_head(page) != page;
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb-remove-hugetlb_optimize_vmemmap_key-static-key
-+++ a/mm/hugetlb_vmemmap.c
-@@ -385,9 +385,6 @@ static int vmemmap_remap_alloc(unsigned
- 	return vmemmap_remap_range(start, end, &walk);
- }
+ 	unsigned long info = READ_ONCE(page->compound_info);
++	unsigned long mask;
  
--DEFINE_STATIC_KEY_FALSE(hugetlb_optimize_vmemmap_key);
--EXPORT_SYMBOL(hugetlb_optimize_vmemmap_key);
--
- static bool vmemmap_optimize_enabled = IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP_DEFAULT_ON);
- static int __init hugetlb_vmemmap_optimize_param(char *buf)
- {
-@@ -419,10 +416,8 @@ static int __hugetlb_vmemmap_restore_fol
- 	 * discarded vmemmap pages must be allocated and remapping.
- 	 */
- 	ret = vmemmap_remap_alloc(vmemmap_start, vmemmap_end, flags);
--	if (!ret) {
-+	if (!ret)
- 		folio_clear_hugetlb_vmemmap_optimized(folio);
--		static_branch_dec(&hugetlb_optimize_vmemmap_key);
--	}
+-	/* Bit 0 encodes PageTail() */
+-	if (!(info & 1))
+-		return (unsigned long)page;
++	if (!compound_info_has_mask()) {
++		/* Bit 0 encodes PageTail() */
++		if (info & 1)
++			return info - 1;
  
- 	return ret;
- }
-@@ -544,8 +539,6 @@ static int __hugetlb_vmemmap_optimize_fo
- 	if (!vmemmap_tail)
- 		return -ENOMEM;
+-	/*
+-	 * If compound_info_has_mask() is false, the rest of compound_info is
+-	 * the pointer to the head page.
+-	 */
+-	if (!compound_info_has_mask())
+-		return info - 1;
++		return (unsigned long)page;
++	}
  
--	static_branch_inc(&hugetlb_optimize_vmemmap_key);
--
  	/*
- 	 * Very Subtle
- 	 * If VMEMMAP_REMAP_NO_TLB_FLUSH is set, TLB flushing is not performed
-@@ -581,10 +574,8 @@ static int __hugetlb_vmemmap_optimize_fo
- 				 vmemmap_head, vmemmap_tail,
- 				 vmemmap_pages, flags);
- out:
--	if (ret) {
--		static_branch_dec(&hugetlb_optimize_vmemmap_key);
-+	if (ret)
- 		folio_clear_hugetlb_vmemmap_optimized(folio);
--	}
- 
- 	return ret;
+ 	 * If compound_info_has_mask() is true the rest of the info encodes
+ 	 * the mask that converts the address of the tail page to the head page.
+ 	 *
+ 	 * No need to clear bit 0 in the mask as 'page' always has it clear.
++	 *
++	 * Let's do it in a branchless manner.
+ 	 */
+-	return (unsigned long)page & info;
++
++	/* Non-tail: -1UL, Tail: 0 */
++	mask = (info & 1) - 1;
++
++	/* Non-tail: -1UL, Tail: info */
++	mask |= info;
++
++	return (unsigned long)page & mask;
  }
-@@ -650,7 +641,6 @@ static void __hugetlb_vmemmap_optimize_f
- 			register_page_bootmem_memmap(pfn_to_section_nr(spfn),
- 					&folio->page,
- 					HUGETLB_VMEMMAP_RESERVE_SIZE);
--			static_branch_inc(&hugetlb_optimize_vmemmap_key);
- 			continue;
- 		}
  
+ #define compound_head(page)	((typeof(page))_compound_head(page))
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
