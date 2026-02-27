@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11EF7477990
-	for <mm-commits@vger.kernel.org>; Fri, 27 Feb 2026 20:09:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B87FB46AF34
+	for <mm-commits@vger.kernel.org>; Fri, 27 Feb 2026 20:09:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772222984; cv=none; b=ZHXyz60QXcK7j4f39o8FoJ6wRruVoQFXV4ngxKCeCvhvEDXYPhGNM3CO8Wupm8NA/QWj29yy01fNeX4Sir5pHmZNGdJ0CadAxTkIxtVubxcxNfPN9muCiAaK7cv8JQaLqOMJnRvFFMdNQ5xh50X6VJfspKhUlcHWylMxic/ZMj0=
+	t=1772222986; cv=none; b=ejwgpDhH168w4KRYh+CNE2ZZ1kbioaxXQ2xzwC0+5PMf0dvPV60+g26iGoMxXDVIY2d6crTabX5ptDOzadI9VzUvle0Q02okSJTG6iDaBDJrpZTvanETiRAWk6aC+zwnWW6oDey2nAAHL60MOrJqwHaEiVgzR7piIvRYOWhwufo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772222984; c=relaxed/simple;
-	bh=YXM3+BnhQP0/S44tmVBdmtZFJvmJLb1nGCJbA+ieZUE=;
-	h=Date:To:From:Subject:Message-Id; b=WcnFlX6ZuCE3LLfpDqYT1Azt3MDeheb6q2AYfi+jAe0GIj/H152JVpnsnMA/QZpBZwlvaFupadaxxVVYk7pHpWuPp1KJge+g88n8mww/8eeL9zUmzchLR7lQQ18/ouXhPRSlQ33LcBQLAq/TZKA3awQsMVQjvljGvkJBfKGLym0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RurHAVIZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772222986; c=relaxed/simple;
+	bh=kLwqtWevFTxTLvIiJhRoCmoW4Afojf6+MC2YbhO5Se0=;
+	h=Date:To:From:Subject:Message-Id; b=H2uamZOh3ieUzXz1FEevwAhSm5c0m0rj5y/akJTcQ4D4hIMxHWiZkxCCD4O4nyYhZ/UDEm2YQy4PZ643SOZXSpznPTieOCPF7Gf+LD0Vy+eYeB5OokInDvgFaHvp+YOXs+Q9Bgb/5Ug8LiaGKkqIMsfAnUnYMHpcf/rLKiNcPuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uS0qq8SM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RurHAVIZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF844C116C6;
-	Fri, 27 Feb 2026 20:09:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uS0qq8SM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E6E0C116C6;
+	Fri, 27 Feb 2026 20:09:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772222983;
-	bh=YXM3+BnhQP0/S44tmVBdmtZFJvmJLb1nGCJbA+ieZUE=;
+	s=korg; t=1772222986;
+	bh=kLwqtWevFTxTLvIiJhRoCmoW4Afojf6+MC2YbhO5Se0=;
 	h=Date:To:From:Subject:From;
-	b=RurHAVIZMhl4jM96dEjVGSvYT/cdzIr5wJ8MEgTU+Kp/oDOszqa2fA+v2p5bWTqQD
-	 tijKTI2VynflEhHGS6wy7c1GXzEe5hUshuuGOKDEiQ9oCdRluyblO1VgF9JK82PhGy
-	 jHFNK74aQn846LYAYqCyKRURQSrWNja6gbJ0DlZM=
-Date: Fri, 27 Feb 2026 12:09:43 -0800
+	b=uS0qq8SMZdx6W0CPgJSmNE2YsgY1MO5poAIoM7Ebi93Kj9YT+UoRZlB9orLTR1qWz
+	 2Dlh5aKkukQbM2z+7noJAdm+R/UA3Ct+qvo3TuAWrKXkKd1468lexsFbEeh+HwmtA0
+	 8kjUa5QdYRpqernNL+Uo5npTVdQZ11Dfj0HyIlao=
+Date: Fri, 27 Feb 2026 12:09:45 -0800
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,usamaarif642@gmail.com,rppt@kernel.org,roman.gushchin@linux.dev,rientjes@google.com,paul.walmsley@sifive.com,palmer@dabbelt.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,kernel@xen0n.name,harry.yoo@oracle.com,hannes@cmpxchg.org,fvdl@google.com,david@kernel.org,corbet@lwn.net,cl@gentwo.org,chenhuacai@kernel.org,bhe@redhat.com,aou@eecs.berkeley.edu,alex@ghiti.fr,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-mm-align-vmemmap-to-maximal-folio-size.patch added to mm-new branch
-Message-Id: <20260227200943.AF844C116C6@smtp.kernel.org>
+Subject: + loongarch-mm-align-vmemmap-to-maximal-folio-size.patch added to mm-new branch
+Message-Id: <20260227200946.8E6E0C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv/mm: align vmemmap to maximal folio size
+     Subject: LoongArch/mm: align vmemmap to maximal folio size
 has been added to the -mm mm-new branch.  Its filename is
-     riscv-mm-align-vmemmap-to-maximal-folio-size.patch
+     loongarch-mm-align-vmemmap-to-maximal-folio-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-mm-align-vmemmap-to-maximal-folio-size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/loongarch-mm-align-vmemmap-to-maximal-folio-size.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +67,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kiryl Shutsemau <kas@kernel.org>
-Subject: riscv/mm: align vmemmap to maximal folio size
-Date: Fri, 27 Feb 2026 19:42:43 +0000
+Subject: LoongArch/mm: align vmemmap to maximal folio size
+Date: Fri, 27 Feb 2026 19:42:44 +0000
 
 The upcoming change to the HugeTLB vmemmap optimization (HVO) requires
 struct pages of the head page to be naturally aligned with regard to the
 folio size.
 
-Align vmemmap to the newly introduced MAX_FOLIO_VMEMMAP_ALIGN.
+Align vmemmap to MAX_FOLIO_VMEMMAP_ALIGN.
 
-Link: https://lkml.kernel.org/r/20260227194302.274384-6-kas@kernel.org
+Link: https://lkml.kernel.org/r/20260227194302.274384-7-kas@kernel.org
 Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -105,42 +105,21 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/mm/init.c   |    3 ++-
- include/linux/mmzone.h |   11 +++++++++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ arch/loongarch/include/asm/pgtable.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/arch/riscv/mm/init.c~riscv-mm-align-vmemmap-to-maximal-folio-size
-+++ a/arch/riscv/mm/init.c
-@@ -63,7 +63,8 @@ phys_addr_t phys_ram_base __ro_after_ini
- EXPORT_SYMBOL(phys_ram_base);
+--- a/arch/loongarch/include/asm/pgtable.h~loongarch-mm-align-vmemmap-to-maximal-folio-size
++++ a/arch/loongarch/include/asm/pgtable.h
+@@ -104,7 +104,8 @@ struct vm_area_struct;
+ 	 min(PTRS_PER_PGD * PTRS_PER_PUD * PTRS_PER_PMD * PTRS_PER_PTE * PAGE_SIZE, (1UL << cpu_vabits) / 2) - PMD_SIZE - VMEMMAP_SIZE - KFENCE_AREA_SIZE)
+ #endif
  
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
--#define VMEMMAP_ADDR_ALIGN	(1ULL << SECTION_SIZE_BITS)
-+#define VMEMMAP_ADDR_ALIGN	max(1ULL << SECTION_SIZE_BITS, \
-+				    MAX_FOLIO_VMEMMAP_ALIGN)
+-#define vmemmap		((struct page *)((VMALLOC_END + PMD_SIZE) & PMD_MASK))
++#define VMEMMAP_ALIGN	max(PMD_SIZE, MAX_FOLIO_VMEMMAP_ALIGN)
++#define vmemmap		((struct page *)(ALIGN(VMALLOC_END, VMEMMAP_ALIGN)))
+ #define VMEMMAP_END	((unsigned long)vmemmap + VMEMMAP_SIZE - 1)
  
- unsigned long vmemmap_start_pfn __ro_after_init;
- EXPORT_SYMBOL(vmemmap_start_pfn);
---- a/include/linux/mmzone.h~riscv-mm-align-vmemmap-to-maximal-folio-size
-+++ a/include/linux/mmzone.h
-@@ -92,6 +92,17 @@
- 
- #define MAX_FOLIO_NR_PAGES	(1UL << MAX_FOLIO_ORDER)
- 
-+/*
-+ * HugeTLB Vmemmap Optimization (HVO) requires struct pages of the head page to
-+ * be naturally aligned with regard to the folio size.
-+ *
-+ * HVO which is only active if the size of struct page is a power of 2.
-+ */
-+#define MAX_FOLIO_VMEMMAP_ALIGN \
-+	(IS_ENABLED(CONFIG_HUGETLB_PAGE_OPTIMIZE_VMEMMAP) && \
-+	 is_power_of_2(sizeof(struct page)) ? \
-+	 MAX_FOLIO_NR_PAGES * sizeof(struct page) : 0)
-+
- enum migratetype {
- 	MIGRATE_UNMOVABLE,
- 	MIGRATE_MOVABLE,
+ #define KFENCE_AREA_START	(VMEMMAP_END + 1)
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
