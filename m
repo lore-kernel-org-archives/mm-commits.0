@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D485C38B7C1
-	for <mm-commits@vger.kernel.org>; Fri, 27 Feb 2026 20:27:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 019BB44BCB6
+	for <mm-commits@vger.kernel.org>; Fri, 27 Feb 2026 20:56:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772224048; cv=none; b=t40KD0siH856IWb7F0kqc5Z0xPzkfjYXmXsYyGvGgpY/oimfOMbpYfjMs0xv0wGlgOLEAExi7FiYDBMu+OznEe7YBwmLyVsOOoJQ176U/4cZVCQFC961Bt7RkV3oHdvPOESsGlwl6i2BZxzuDmAD8FmhoAYV5yySt/Seu9FL29I=
+	t=1772225791; cv=none; b=sAr5Hy+9BUh0eU9eEOGMewMMvFlGuXY9DtfoQp9eXIfHpo5VeWVozNbkcmokkCAZuwIm0R/qnOnRXm0qzmt5Q4cYZX1+qaXIemvy5GIBniOdNaYjRUXYWESTCx7iPhzzxVwK1LqmcvdxX/vewZBxQOQMp5h2jUWEY25MnTXW9AQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772224048; c=relaxed/simple;
-	bh=DTGNFE21xKw0ScuW6Y+H/HGGG3FVIvNRFb1NAnU2zbM=;
-	h=Date:To:From:Subject:Message-Id; b=NxpLjjHgIS23MJxaS4ix6dgP1r8LNMm+ZBDb97hQV54CxVWrM5VzXM/CkJ0KZ1IeMAm7xB2X1JdPPbWRoi9/DjjOkvQBCvedWh8lsP6XM0e+91JxIjG7na+9NsoGHe8cqGiMOFuSa5o7jJeD0pEoEFojQkCGXQDSvQHpQX3bk10=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ovR1soxA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772225791; c=relaxed/simple;
+	bh=wIjZklgH5g2rAfdt5W+neih/dVmF8dcNplmaVPgiHKY=;
+	h=Date:To:From:Subject:Message-Id; b=rkYu37Ih20ijKqOMOoIpIejm3tVhXzT5oSuf8Q3tY1Kfpa4HSrh5Ta6lTpH5xmbi3DUbn5WwTTI3KeblzOKUnd/t8SK29fjPQtWYI2Pll8kfE90DW3Es0A2VHmzAUMK+51EiXjkrplQHEjju1KJuuEMxFs+WdjMiCHJZOOwiCiY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iW/FXha2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ovR1soxA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C8B4C116C6;
-	Fri, 27 Feb 2026 20:27:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iW/FXha2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A58DDC116C6;
+	Fri, 27 Feb 2026 20:56:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772224048;
-	bh=DTGNFE21xKw0ScuW6Y+H/HGGG3FVIvNRFb1NAnU2zbM=;
+	s=korg; t=1772225790;
+	bh=wIjZklgH5g2rAfdt5W+neih/dVmF8dcNplmaVPgiHKY=;
 	h=Date:To:From:Subject:From;
-	b=ovR1soxAHsBej/FOBYulB0hkeb8plHgAzvm4udRMemCCH0lxpqO31Zerxcs/NrFLM
-	 3Hkt3jPZ0L2Nax+4P4YfmHOfiHva703V9YTJA7uW2LuaQdw3Pdmosfc/DXl37z791f
-	 verF7H7Ie+m8b5AkMoC/Tlsf9vrYH/q5ihLUy2WY=
-Date: Fri, 27 Feb 2026 12:27:28 -0800
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=iW/FXha2xF0TS8v8LAUDe3122+3azVQP+7lPjsxmrgpX0mraSctATSd+ijPq4rcet
+	 p8MQFiIoOOILPzayZXM29eSUUjw5ITewhndVjgZbTOKB+zuT6XjD/Di8SHpFO05Urc
+	 7wBpanop2bNOPIHsI4u8ch7eiRq302ICkKOyX/ls=
+Date: Fri, 27 Feb 2026 12:56:30 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,osalvador@suse.de,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lenb@kernel.org,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch added to mm-new branch
-Message-Id: <20260227202728.8C8B4C116C6@smtp.kernel.org>
+Subject: + mm-introduce-zone-lock-wrappers.patch added to mm-new branch
+Message-Id: <20260227205630.A58DDC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: do non-safe region walk on kdamond_apply_schemes()
+     Subject: mm: introduce zone lock wrappers
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
+     mm-introduce-zone-lock-wrappers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-introduce-zone-lock-wrappers.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,105 +66,150 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: do non-safe region walk on kdamond_apply_schemes()
-Date: Fri, 27 Feb 2026 09:06:21 -0800
+From: Dmitry Ilvokhin <d@ilvokhin.com>
+Subject: mm: introduce zone lock wrappers
+Date: Fri, 27 Feb 2026 16:00:23 +0000
 
-kdamond_apply_schemes() is using damon_for_each_region_safe(), which is
-safe for deallocation of the region inside the loop.  However, the loop
-internal logic does not deallocate regions.  Hence it is only wasting the
-next pointer.  Also, it causes a problem.
+Patch series "mm: zone lock tracepoint instrumentation", v4.
 
-When an address filter is applied, and there is a region that intersects
-with the filter, the filter splits the region on the filter boundary.  The
-intention is to let DAMOS apply action to only filtered-in address ranges.
-However, it is using damon_for_each_region_safe(), which sets the next
-region before the execution of the iteration.  Hence, the region that
-split and now will be next to the previous region, is simply ignored.  As
-a result, DAMOS applies the action to target regions bit slower than
-expected, when the address filter is used.  Shouldn't be a big problem but
-definitely better to be fixed.  damos_skip_charged_region() was working
-around the issue using a double pointer hack.
+Zone lock contention can significantly impact allocation and reclaim
+latency, as it is a central synchronization point in the page allocator
+and reclaim paths.  Improved visibility into its behavior is therefore
+important for diagnosing performance issues in memory-intensive workloads.
 
-Use damon_for_each_region(), which is safe for this use case.  And drop
-the work around in damos_skip_charged_region().
+On some production workloads at Meta, we have observed noticeable zone
+lock contention.  Deeper analysis of lock holders and waiters is currently
+difficult with existing instrumentation.
 
-Link: https://lkml.kernel.org/r/20260227170623.95384-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+While generic lock contention_begin/contention_end tracepoints cover the
+slow path, they do not provide sufficient visibility into lock hold times.
+In particular, the lack of a release-side event makes it difficult to
+identify long lock holders and correlate them with waiters.  As a result,
+distinguishing between short bursts of contention and pathological long
+hold times requires additional instrumentation.
+
+This patch series adds dedicated tracepoint instrumentation to zone lock,
+following the existing mmap_lock tracing model.
+
+The goal is to enable detailed holder/waiter analysis and lock hold time
+measurements without affecting the fast path when tracing is disabled.
+
+The series is structured as follows:
+
+  1. Introduce zone lock wrappers.
+  2. Mechanically convert zone lock users to the wrappers.
+  3. Convert compaction to use the wrappers (requires minor
+     restructuring of compact_lock_irqsave()).
+  4. Rename zone->lock to zone->_lock.
+  5. Add zone lock tracepoints.
+
+The tracepoints are added via lightweight inline helpers in the wrappers. 
+When tracing is disabled, the fast path remains unchanged.
+
+
+This patch (of 5):
+
+Add thin wrappers around zone lock acquire/release operations.  This
+prepares the code for future tracepoint instrumentation without modifying
+individual call sites.
+
+Centralizing zone lock operations behind wrappers allows future
+instrumentation or debugging hooks to be added without touching all users.
+
+No functional change intended.  The wrappers are introduced in preparation
+for subsequent patches and are not yet used.
+
+Link: https://lkml.kernel.org/r/cover.1772206930.git.d@ilvokhin.com
+Link: https://lkml.kernel.org/r/849dee9c47df1e6fba97c9933af0d5a08b8e15d3.1772206930.git.d@ilvokhin.com
+Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ MAINTAINERS                 |    1 
+ include/linux/mmzone_lock.h |   38 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes
-+++ a/mm/damon/core.c
-@@ -1715,17 +1715,18 @@ static bool damos_valid_target(struct da
-  * This function checks if a given region should be skipped or not for the
-  * reason.  If only the starting part of the region has previously charged,
-  * this function splits the region into two so that the second one covers the
-- * area that not charged in the previous charge widnow and saves the second
-- * region in *rp and returns false, so that the caller can apply DAMON action
-- * to the second one.
-+ * area that not charged in the previous charge widnow, and return true.  The
-+ * caller can see the second one on the next iteration of the region walk.
-+ * Note that this means the caller should use damon_for_each_region() instead
-+ * of damon_for_each_region_safe().  If damon_for_each_region_safe() is used,
-+ * the second region will just be ignored.
-  *
-- * Return: true if the region should be entirely skipped, false otherwise.
-+ * Return: true if the region should be skipped, false otherwise.
-  */
- static bool damos_skip_charged_region(struct damon_target *t,
--		struct damon_region **rp, struct damos *s,
-+		struct damon_region *r, struct damos *s,
- 		unsigned long min_region_sz)
- {
--	struct damon_region *r = *rp;
- 	struct damos_quota *quota = &s->quota;
- 	unsigned long sz_to_skip;
- 
-@@ -1752,8 +1753,7 @@ static bool damos_skip_charged_region(st
- 				sz_to_skip = min_region_sz;
- 			}
- 			damon_split_region_at(t, r, sz_to_skip);
--			r = damon_next_region(r);
--			*rp = r;
-+			return true;
- 		}
- 		quota->charge_target_from = NULL;
- 		quota->charge_addr_from = 0;
-@@ -2012,7 +2012,7 @@ static void damon_do_apply_schemes(struc
- 		if (quota->esz && quota->charged_sz >= quota->esz)
- 			continue;
- 
--		if (damos_skip_charged_region(t, &r, s, c->min_region_sz))
-+		if (damos_skip_charged_region(t, r, s, c->min_region_sz))
- 			continue;
- 
- 		if (s->max_nr_snapshots &&
-@@ -2355,7 +2355,7 @@ static void damos_trace_stat(struct damo
- static void kdamond_apply_schemes(struct damon_ctx *c)
- {
- 	struct damon_target *t;
--	struct damon_region *r, *next_r;
-+	struct damon_region *r;
- 	struct damos *s;
- 	unsigned long sample_interval = c->attrs.sample_interval ?
- 		c->attrs.sample_interval : 1;
-@@ -2381,7 +2381,7 @@ static void kdamond_apply_schemes(struct
- 		if (c->ops.target_valid && c->ops.target_valid(t) == false)
- 			continue;
- 
--		damon_for_each_region_safe(r, next_r, t)
-+		damon_for_each_region(r, t)
- 			damon_do_apply_schemes(c, t, r);
- 	}
- 
+diff --git a/include/linux/mmzone_lock.h a/include/linux/mmzone_lock.h
+new file mode 100644
+--- /dev/null
++++ a/include/linux/mmzone_lock.h
+@@ -0,0 +1,38 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_MMZONE_LOCK_H
++#define _LINUX_MMZONE_LOCK_H
++
++#include <linux/mmzone.h>
++#include <linux/spinlock.h>
++
++static inline void zone_lock_init(struct zone *zone)
++{
++	spin_lock_init(&zone->lock);
++}
++
++#define zone_lock_irqsave(zone, flags)				\
++do {								\
++	spin_lock_irqsave(&(zone)->lock, flags);		\
++} while (0)
++
++#define zone_trylock_irqsave(zone, flags)			\
++({								\
++	spin_trylock_irqsave(&(zone)->lock, flags);		\
++})
++
++static inline void zone_unlock_irqrestore(struct zone *zone, unsigned long flags)
++{
++	spin_unlock_irqrestore(&zone->lock, flags);
++}
++
++static inline void zone_lock_irq(struct zone *zone)
++{
++	spin_lock_irq(&zone->lock);
++}
++
++static inline void zone_unlock_irq(struct zone *zone)
++{
++	spin_unlock_irq(&zone->lock);
++}
++
++#endif /* _LINUX_MMZONE_LOCK_H */
+--- a/MAINTAINERS~mm-introduce-zone-lock-wrappers
++++ a/MAINTAINERS
+@@ -16673,6 +16673,7 @@ F:	include/linux/memory.h
+ F:	include/linux/mm.h
+ F:	include/linux/mm_*.h
+ F:	include/linux/mmzone.h
++F:	include/linux/mmzone_lock.h
+ F:	include/linux/mmdebug.h
+ F:	include/linux/mmu_notifier.h
+ F:	include/linux/pagewalk.h
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from d@ilvokhin.com are
 
-mm-damon-core-set-quota-score-histogram-with-core-filters.patch
-mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
+mm-introduce-zone-lock-wrappers.patch
+mm-convert-zone-lock-users-to-wrappers.patch
+mm-convert-compaction-to-zone-lock-wrappers.patch
+mm-rename-zone-lock-to-zone-_lock.patch
+mm-add-tracepoints-for-zone-lock.patch
 
