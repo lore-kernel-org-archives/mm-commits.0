@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A66723E716D
-	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 19:08:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 347CB35F5EF
+	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 19:22:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772305708; cv=none; b=Yb6fv9HRhY1iPkfa85SnKkw0oQjtN5Qjk4v4tvhNv10kgdFgHZkdYkjDwY/ci1aFFUmLQdLK4YQgM7LTOpd0G6jQp96IjZlF2ulv//Rs2NOV7gxMw64Gqc4rKdOwmI6F8ZH5wchA1gKBUNoztIEd26KTh2MG0KWP8HAfQIK+/aY=
+	t=1772306555; cv=none; b=nklJQ1nFNkJ65x2H5M3oirBRJ+NIxQhrhv2+E6K8wD/m55MUNVCa43JQ0+/dOy5W/eokuxYj5OCNhu5NdEA+eVnp3aVbbThYfH2ZT0fzbAqcvgUTxzAx4bLV174Fir4H7HTJqU9CcUzJg0t5Fyq0g9tMDemqpRxRt6dbkSs5Pvw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772305708; c=relaxed/simple;
-	bh=vhcfrt76TYnFDreHHsUWvFT5RQnBgncW7CKQMs8jFS4=;
-	h=Date:To:From:Subject:Message-Id; b=O7DLtcjXtFAU/RZFE7ae/oF0R7XlD9rtifurWjye0+3AVIWy8QmbWSRBcpHJK476OARnjXxsjH65YB3VGyDkkjE82teM4bRSX7YqvFYIVK5jIzUlzoIMwH/N+c10FcrlzXUCM2OOp34YkDujm2kC+g9TaGJI969hnXF0HVg+qfY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XHyrJvw8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772306555; c=relaxed/simple;
+	bh=m4IvEtybZ2wVISJWnxD/CZhtfxWKhYaorPALdazg2rk=;
+	h=Date:To:From:Subject:Message-Id; b=hM+OShE3hNrWKf2teay4xNFlp4MjE28ourVEJmX89+l7siE5PPYzch/jrk2RxyOB1tk2yxQs7w4CwwEqyunn9knB6i1CfM7m3jCF9AOat/4dTnA/J3X1rdtAXJmJHHQ2Lm6y5Q1e1v+ygy6uGQcBZ/TQh1DxB8B7I0ET2lzAj0g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=On+iRVAI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XHyrJvw8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CFE4C116D0;
-	Sat, 28 Feb 2026 19:08:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="On+iRVAI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A85F3C116D0;
+	Sat, 28 Feb 2026 19:22:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772305708;
-	bh=vhcfrt76TYnFDreHHsUWvFT5RQnBgncW7CKQMs8jFS4=;
+	s=korg; t=1772306554;
+	bh=m4IvEtybZ2wVISJWnxD/CZhtfxWKhYaorPALdazg2rk=;
 	h=Date:To:From:Subject:From;
-	b=XHyrJvw8aJ6G6wnqO2uQsZeqJmi1WfN1u9CkyWg91ipfz99I8zDBS4t3mHa1/diaZ
-	 U92Q5KcdmSyXt0+6z7nGJzAX1L/z26IwYAl5bzptsfL5th9N2xxl6Rwfq+YfJYoQ00
-	 0bbJ4YaFcOVupgFA6vlh8z89s9gp+qDf35oY87jQ=
-Date: Sat, 28 Feb 2026 11:08:27 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,usamaarif642@gmail.com,tj@kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=On+iRVAI8ZHGckOqvgx+p2yGgkWrx6OlPQwseVBsWXJcGdVElZVVpoQn/7BCbsF6u
+	 EzqI383uFHcHtAPOgGgCYHCf2DYkoxcfImZkSosLLL/IGHrqf2LAmNADdx7kOawK/9
+	 Eerfje6S9Rz3OXJUwovZQZx9bC9NEfbyKqXByyhI=
+Date: Sat, 28 Feb 2026 11:22:34 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuzhao@google.com,yuanchu@google.com,wjl.linux@gmail.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,laoar.shao@gmail.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,21cnbao@gmail.com,lenohou@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats-update.patch added to mm-new branch
-Message-Id: <20260228190828.2CFE4C116D0@smtp.kernel.org>
+Subject: [failures] mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch removed from -mm tree
+Message-Id: <20260228192234.A85F3C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,302 +34,181 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats-update
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats-update.patch
+The quilt patch titled
+     Subject: mm/mglru: fix cgroup OOM during MGLRU state switching
+has been removed from the -mm tree.  Its filename was
+     mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats-update.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats-update
-Date: Sat, 28 Feb 2026 15:25:56 +0800
+From: Leno Hou <lenohou@gmail.com>
+Subject: mm/mglru: fix cgroup OOM during MGLRU state switching
+Date: Sun, 1 Mar 2026 00:10:08 +0800
 
-Link: https://lkml.kernel.org/r/20260228072556.31793-1-qi.zheng@linux.dev
-Co-developed-by: Yosry Ahmed <yosry@kernel.org>
-Signed-off-by: Yosry Ahmed <yosry@kernel.org>
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Allen Pais <apais@linux.microsoft.com>
+When the Multi-Gen LRU (MGLRU) state is toggled dynamically, a race
+condition exists between the state switching and the memory reclaim path. 
+This can lead to unexpected cgroup OOM kills, even when plenty of
+reclaimable memory is available.
+
+*** Problem Description ***
+
+The issue arises from a "reclaim vacuum" during the transition:
+
+1. When disabling MGLRU, lru_gen_change_state() sets lrugen->enabled to
+   false before the pages are drained from MGLRU lists back to
+   traditional LRU lists.
+2. Concurrent reclaimers in shrink_lruvec() see lrugen->enabled as false
+   and skip the MGLRU path.
+3. However, these pages might not have reached the traditional LRU lists
+   yet, or the changes are not yet visible to all CPUs due to a lack of
+   synchronization.
+4. get_scan_count() subsequently finds traditional LRU lists empty,
+   concludes there is no reclaimable memory, and triggers an OOM kill.
+
+A similar race can occur during enablement, where the reclaimer sees the
+new state but the MGLRU lists haven't been populated via fill_evictable()
+yet.
+
+*** Solution ***
+
+Introduce a 'draining' state to bridge the gap during transitions:
+
+- Use smp_store_release() and smp_load_acquire() to ensure the visibility
+  of 'enabled' and 'draining' flags across CPUs.
+- Modify shrink_lruvec() to allow a "joint reclaim" period. If an lruvec
+  is in the 'draining' state, the reclaimer will attempt to scan MGLRU
+  lists first, and then fall through to traditional LRU lists instead
+  of returning early. This ensures that folios are visible to at least
+  one reclaim path at any given time.
+
+*** Reproduction ***
+
+The issue was consistently reproduced on v6.1.157 and v6.18.3 using
+a high-pressure memory cgroup (v1) environment.
+
+Reproduction steps:
+1. Create a 16GB memcg and populate it with 10GB file cache (5GB active)
+   and 8GB active anonymous memory.
+2. Toggle MGLRU state while performing new memory allocations to force
+   direct reclaim.
+
+Reproduction script:
+
+#!/bin/bash
+# Fixed reproduction for memcg OOM during MGLRU toggle
+set -euo pipefail
+
+MGLRU_FILE="/sys/kernel/mm/lru_gen/enabled"
+CGROUP_PATH="/sys/fs/cgroup/memory/memcg_oom_test"
+
+# Switch MGLRU dynamically in the background
+switch_mglru() {
+    local orig_val=$(cat "$MGLRU_FILE")
+    if [[ "$orig_val" != "0x0000" ]]; then
+        echo n > "$MGLRU_FILE" &
+    else
+        echo y > "$MGLRU_FILE" &
+    fi
+}
+
+# Setup 16G memcg
+mkdir -p "$CGROUP_PATH"
+echo $((16 * 1024 * 1024 * 1024)) > "$CGROUP_PATH/memory.limit_in_bytes"
+echo $$ > "$CGROUP_PATH/cgroup.procs"
+
+# 1. Build memory pressure (File + Anon)
+dd if=/dev/urandom of=/tmp/test_file bs=1M count=10240
+dd if=/tmp/test_file of=/dev/null bs=1M # Warm up cache
+
+stress-ng --vm 1 --vm-bytes 8G --vm-keep -t 600 &
+sleep 5
+
+# 2. Trigger switch and concurrent allocation
+switch_mglru
+stress-ng --vm 1 --vm-bytes 2G --vm-populate --timeout 5s || echo "OOM Triggered"
+
+# Check OOM counter
+grep oom_kill "$CGROUP_PATH/memory.oom_control"
+
+Link: https://lkml.kernel.org/r/20260228161008.707-1-lenohou@gmail.com
+Signed-off-by: Leno Hou <lenohou@gmail.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chen Ridong <chenridong@huawei.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Imran Khan <imran.f.khan@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Wei Xu <weixugc@google.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Jialing Wang <wjl.linux@gmail.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 
- mm/memcontrol-v1.h         |    1 
- mm/memcontrol.c            |   89 ++++++++++++++++++++++++++---------
- 3 files changed, 68 insertions(+), 23 deletions(-)
+ include/linux/mmzone.h |    2 ++
+ mm/vmscan.c            |   14 +++++++++++---
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats-update
-+++ a/include/linux/memcontrol.h
-@@ -956,7 +956,6 @@ static inline void mod_memcg_page_state(
+--- a/include/linux/mmzone.h~mm-mglru-fix-cgroup-oom-during-mglru-state-switching
++++ a/include/linux/mmzone.h
+@@ -577,6 +577,8 @@ struct lru_gen_folio {
+ 	atomic_long_t refaulted[NR_HIST_GENS][ANON_AND_FILE][MAX_NR_TIERS];
+ 	/* whether the multi-gen LRU is enabled */
+ 	bool enabled;
++	/* whether the multi-gen LRU is draining to LRU */
++	bool draining;
+ 	/* the memcg generation this lru_gen_folio belongs to */
+ 	u8 gen;
+ 	/* the list segment this lru_gen_folio belongs to */
+--- a/mm/vmscan.c~mm-mglru-fix-cgroup-oom-during-mglru-state-switching
++++ a/mm/vmscan.c
+@@ -5305,7 +5305,8 @@ static void lru_gen_change_state(bool en
+ 			VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
+ 			VM_WARN_ON_ONCE(!state_is_valid(lruvec));
  
- unsigned long memcg_events(struct mem_cgroup *memcg, int event);
- unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx);
--
- unsigned long memcg_page_state_output(struct mem_cgroup *memcg, int item);
- bool memcg_stat_item_valid(int idx);
- bool memcg_vm_event_item_valid(enum vm_event_item idx);
---- a/mm/memcontrol.c~mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats-update
-+++ a/mm/memcontrol.c
-@@ -234,11 +234,19 @@ static inline void reparent_state_local(
- 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 		return;
+-			lruvec->lrugen.enabled = enabled;
++			smp_store_release(&lruvec->lrugen.enabled, enabled);
++			smp_store_release(&lruvec->lrugen.draining, true);
  
-+	/*
-+	 * Reparent stats exposed non-hierarchically. Flush @memcg's stats first
-+	 * to read its stats accurately , and conservatively flush @parent's
-+	 * stats after reparenting to avoid hiding a potentially large stat
-+	 * update (e.g. from callers of mem_cgroup_flush_stats_ratelimited()).
-+	 */
- 	__mem_cgroup_flush_stats(memcg, true);
+ 			while (!(enabled ? fill_evictable(lruvec) : drain_evictable(lruvec))) {
+ 				lruvec_unlock_irq(lruvec);
+@@ -5313,6 +5314,8 @@ static void lru_gen_change_state(bool en
+ 				lruvec_lock_irq(lruvec);
+ 			}
  
- 	/* The following counts are all non-hierarchical and need to be reparented. */
- 	reparent_memcg1_state_local(memcg, parent);
- 	reparent_memcg1_lruvec_state_local(memcg, parent);
++			smp_store_release(&lruvec->lrugen.draining, false);
 +
-+	__mem_cgroup_flush_stats(parent, true);
- }
- #else
- static inline void reparent_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent)
-@@ -442,7 +450,7 @@ struct lruvec_stats {
- 	long state[NR_MEMCG_NODE_STAT_ITEMS];
- 
- 	/* Non-hierarchical (CPU aggregated) state */
--	atomic_long_t state_local[NR_MEMCG_NODE_STAT_ITEMS];
-+	long state_local[NR_MEMCG_NODE_STAT_ITEMS];
- 
- 	/* Pending child counts during tree propagation */
- 	long state_pending[NR_MEMCG_NODE_STAT_ITEMS];
-@@ -485,7 +493,7 @@ unsigned long lruvec_page_state_local(st
- 		return 0;
- 
- 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
--	x = atomic_long_read(&(pn->lruvec_stats->state_local[i]));
-+	x = READ_ONCE(pn->lruvec_stats->state_local[i]);
- #ifdef CONFIG_SMP
- 	if (x < 0)
- 		x = 0;
-@@ -494,6 +502,9 @@ unsigned long lruvec_page_state_local(st
- }
- 
- #ifdef CONFIG_MEMCG_V1
-+static void __mod_memcg_lruvec_state(struct lruvec *lruvec,
-+				     enum node_stat_item idx, int val);
-+
- void reparent_memcg_lruvec_state_local(struct mem_cgroup *memcg,
- 				       struct mem_cgroup *parent, int idx)
- {
-@@ -506,12 +517,10 @@ void reparent_memcg_lruvec_state_local(s
- 	for_each_node(nid) {
- 		struct lruvec *child_lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 		struct lruvec *parent_lruvec = mem_cgroup_lruvec(parent, NODE_DATA(nid));
--		struct mem_cgroup_per_node *parent_pn;
- 		unsigned long value = lruvec_page_state_local(child_lruvec, idx);
- 
--		parent_pn = container_of(parent_lruvec, struct mem_cgroup_per_node, lruvec);
--
--		atomic_long_add(value, &(parent_pn->lruvec_stats->state_local[i]));
-+		__mod_memcg_lruvec_state(child_lruvec, idx, -value);
-+		__mod_memcg_lruvec_state(parent_lruvec, idx, value);
- 	}
- }
- #endif
-@@ -598,7 +607,7 @@ struct memcg_vmstats {
- 	unsigned long		events[NR_MEMCG_EVENTS];
- 
- 	/* Non-hierarchical (CPU aggregated) page state & events */
--	atomic_long_t		state_local[MEMCG_VMSTAT_SIZE];
-+	long			state_local[MEMCG_VMSTAT_SIZE];
- 	unsigned long		events_local[NR_MEMCG_EVENTS];
- 
- 	/* Pending child counts during tree propagation */
-@@ -835,7 +844,7 @@ unsigned long memcg_page_state_local(str
- 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
- 		return 0;
- 
--	x = atomic_long_read(&(memcg->vmstats->state_local[i]));
-+	x = READ_ONCE(memcg->vmstats->state_local[i]);
- #ifdef CONFIG_SMP
- 	if (x < 0)
- 		x = 0;
-@@ -843,6 +852,51 @@ unsigned long memcg_page_state_local(str
- 	return x;
- }
- 
-+static void __mod_memcg_state(struct mem_cgroup *memcg,
-+			      enum memcg_stat_item idx, int val)
-+{
-+	int i = memcg_stats_index(idx);
-+	int cpu;
-+
-+	if (mem_cgroup_disabled())
-+		return;
-+
-+	cpu = get_cpu();
-+
-+	this_cpu_add(memcg->vmstats_percpu->state[i], val);
-+	val = memcg_state_val_in_pages(idx, val);
-+	memcg_rstat_updated(memcg, val, cpu);
-+	trace_mod_memcg_state(memcg, idx, val);
-+
-+	put_cpu();
-+}
-+
-+static void __mod_memcg_lruvec_state(struct lruvec *lruvec,
-+				     enum node_stat_item idx, int val)
-+{
-+	struct mem_cgroup_per_node *pn;
-+	struct mem_cgroup *memcg;
-+	int i = memcg_stats_index(idx);
-+	int cpu;
-+
-+	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
-+	memcg = pn->memcg;
-+
-+	cpu = get_cpu();
-+
-+	/* Update memcg */
-+	this_cpu_add(memcg->vmstats_percpu->state[i], val);
-+
-+	/* Update lruvec */
-+	this_cpu_add(pn->lruvec_stats_percpu->state[i], val);
-+
-+	val = memcg_state_val_in_pages(idx, val);
-+	memcg_rstat_updated(memcg, val, cpu);
-+	trace_mod_memcg_lruvec_state(memcg, idx, val);
-+
-+	put_cpu();
-+}
-+
- void reparent_memcg_state_local(struct mem_cgroup *memcg,
- 				struct mem_cgroup *parent, int idx)
- {
-@@ -852,7 +906,8 @@ void reparent_memcg_state_local(struct m
- 	if (WARN_ONCE(BAD_STAT_IDX(i), "%s: missing stat item %d\n", __func__, idx))
- 		return;
- 
--	atomic_long_add(value, &(parent->vmstats->state_local[i]));
-+	__mod_memcg_state(memcg, idx, -value);
-+	__mod_memcg_state(parent, idx, value);
- }
- #endif
- 
-@@ -4174,8 +4229,6 @@ struct aggregate_control {
- 	long *aggregate;
- 	/* pointer to the non-hierarchichal (CPU aggregated) counters */
- 	long *local;
--	/* pointer to the atomic non-hierarchichal (CPU aggregated) counters */
--	atomic_long_t *alocal;
- 	/* pointer to the pending child counters during tree propagation */
- 	long *pending;
- 	/* pointer to the parent's pending counters, could be NULL */
-@@ -4213,12 +4266,8 @@ static void mem_cgroup_stat_aggregate(st
+ 			lruvec_unlock_irq(lruvec);
  		}
  
- 		/* Aggregate counts on this level and propagate upwards */
--		if (delta_cpu) {
--			if (ac->local)
--				ac->local[i] += delta_cpu;
--			else if (ac->alocal)
--				atomic_long_add(delta_cpu, &(ac->alocal[i]));
--		}
-+		if (delta_cpu)
-+			ac->local[i] += delta_cpu;
+@@ -5889,10 +5892,15 @@ static void shrink_lruvec(struct lruvec
+ 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
+ 	bool proportional_reclaim;
+ 	struct blk_plug plug;
++	bool lrugen_enabled = smp_load_acquire(&lruvec->lrugen.enabled);
++	bool lru_draining = smp_load_acquire(&lruvec->lrugen.draining);
  
- 		if (delta) {
- 			ac->aggregate[i] += delta;
-@@ -4289,8 +4338,7 @@ static void mem_cgroup_css_rstat_flush(s
+-	if (lru_gen_enabled() && !root_reclaim(sc)) {
++	if (lrugen_enabled || lru_draining && !root_reclaim(sc)) {
+ 		lru_gen_shrink_lruvec(lruvec, sc);
+-		return;
++
++		if (!lru_draining)
++			return;
++
+ 	}
  
- 	ac = (struct aggregate_control) {
- 		.aggregate = memcg->vmstats->state,
--		.local = NULL,
--		.alocal = memcg->vmstats->state_local,
-+		.local = memcg->vmstats->state_local,
- 		.pending = memcg->vmstats->state_pending,
- 		.ppending = parent ? parent->vmstats->state_pending : NULL,
- 		.cstat = statc->state,
-@@ -4323,8 +4371,7 @@ static void mem_cgroup_css_rstat_flush(s
- 
- 		ac = (struct aggregate_control) {
- 			.aggregate = lstats->state,
--			.local = NULL,
--			.alocal = lstats->state_local,
-+			.local = lstats->state_local,
- 			.pending = lstats->state_pending,
- 			.ppending = plstats ? plstats->state_pending : NULL,
- 			.cstat = lstatc->state,
---- a/mm/memcontrol-v1.h~mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats-update
-+++ a/mm/memcontrol-v1.h
-@@ -45,7 +45,6 @@ static inline bool do_memsw_account(void
- 
- unsigned long memcg_events_local(struct mem_cgroup *memcg, int event);
- unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx);
--void mod_memcg_page_state_local(struct mem_cgroup *memcg, int idx, unsigned long val);
- unsigned long memcg_page_state_local_output(struct mem_cgroup *memcg, int item);
- bool memcg1_alloc_events(struct mem_cgroup *memcg);
- void memcg1_free_events(struct mem_cgroup *memcg);
+ 	get_scan_count(lruvec, sc, nr);
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from lenohou@gmail.com are
 
-mm-vmscan-prepare-for-the-refactoring-the-move_folios_to_lru.patch
-mm-thp-prevent-memory-cgroup-release-in-folio_split_queue_lock_irqsave.patch
-mm-zswap-prevent-memory-cgroup-release-in-zswap_compress.patch
-mm-do-not-open-code-lruvec-lock.patch
-mm-vmscan-prepare-for-reparenting-traditional-lru-folios.patch
-mm-vmscan-prepare-for-reparenting-mglru-folios.patch
-mm-memcontrol-refactor-memcg_reparent_objcgs.patch
-mm-workingset-use-lruvec_lru_size-to-get-the-number-of-lru-pages.patch
-mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats.patch
-mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats-update.patch
-mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch
 
