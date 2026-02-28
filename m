@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 347CB35F5EF
-	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 19:22:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E5A133F8DA;
+	Sat, 28 Feb 2026 19:33:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772306555; cv=none; b=nklJQ1nFNkJ65x2H5M3oirBRJ+NIxQhrhv2+E6K8wD/m55MUNVCa43JQ0+/dOy5W/eokuxYj5OCNhu5NdEA+eVnp3aVbbThYfH2ZT0fzbAqcvgUTxzAx4bLV174Fir4H7HTJqU9CcUzJg0t5Fyq0g9tMDemqpRxRt6dbkSs5Pvw=
+	t=1772307188; cv=none; b=H0Tp5oJsTIQ2yg6nyhhRW9Dl9+4DptnjL/CEDE5JlRLovbSaLsSkYr6Moe0976WO8fWOFe3eBMi3Dil73Fvk1CiEYi6LTur5emeQ7v520u/JDSYZ3sYvSZvQff6VUrX7IsLZKQd30USwKvJA6dJ/mqS0SF9lFs+KodRLULndz/A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772306555; c=relaxed/simple;
-	bh=m4IvEtybZ2wVISJWnxD/CZhtfxWKhYaorPALdazg2rk=;
-	h=Date:To:From:Subject:Message-Id; b=hM+OShE3hNrWKf2teay4xNFlp4MjE28ourVEJmX89+l7siE5PPYzch/jrk2RxyOB1tk2yxQs7w4CwwEqyunn9knB6i1CfM7m3jCF9AOat/4dTnA/J3X1rdtAXJmJHHQ2Lm6y5Q1e1v+ygy6uGQcBZ/TQh1DxB8B7I0ET2lzAj0g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=On+iRVAI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772307188; c=relaxed/simple;
+	bh=DCOqyvKSn75Oz0wmRxY7e71iW8eEcTFv7hqiQsOwmQo=;
+	h=Date:To:From:Subject:Message-Id; b=qDhmzHKThmpmn6D3TO0yz7c137dlHwrqgJyV13gHFWLebxlNbICn2QTkGshusAM4SZIGumc3SiQua0njw5qYtnNQk9WvkVvtHrqQ9LQXdjVQdTxPjUc6nNC3OTTuDe2W6J8wKgg/OSFiMNAU4eWEpawX8t8RiWLLrFbFUjgpdvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZrGJKGTK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="On+iRVAI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A85F3C116D0;
-	Sat, 28 Feb 2026 19:22:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZrGJKGTK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3F68C116D0;
+	Sat, 28 Feb 2026 19:33:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772306554;
-	bh=m4IvEtybZ2wVISJWnxD/CZhtfxWKhYaorPALdazg2rk=;
+	s=korg; t=1772307188;
+	bh=DCOqyvKSn75Oz0wmRxY7e71iW8eEcTFv7hqiQsOwmQo=;
 	h=Date:To:From:Subject:From;
-	b=On+iRVAI8ZHGckOqvgx+p2yGgkWrx6OlPQwseVBsWXJcGdVElZVVpoQn/7BCbsF6u
-	 EzqI383uFHcHtAPOgGgCYHCf2DYkoxcfImZkSosLLL/IGHrqf2LAmNADdx7kOawK/9
-	 Eerfje6S9Rz3OXJUwovZQZx9bC9NEfbyKqXByyhI=
-Date: Sat, 28 Feb 2026 11:22:34 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuzhao@google.com,yuanchu@google.com,wjl.linux@gmail.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,laoar.shao@gmail.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,21cnbao@gmail.com,lenohou@gmail.com,akpm@linux-foundation.org
+	b=ZrGJKGTKTWQfZubafWWSxJyR7TwC3Z3Qff6aI6flKlkwDy7XoRmuu9OEYoXK1hp55
+	 gYyjML8/biMJrQ/9wvLCd8qLm9dkKpgtZ7oOkEJgIFJTG14LDw+TMN+PRQfcAgMTWy
+	 asDZFIVG/+02LdqRHX/P1A4dNe98aIktOwagyfcA=
+Date: Sat, 28 Feb 2026 11:33:07 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,hughd@google.com,dev.jain@arm.com,david@kernel.org,bas@dfinity.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch removed from -mm tree
-Message-Id: <20260228192234.A85F3C116D0@smtp.kernel.org>
+Subject: + mm-huge_memory-fix-a-folio_split-race-condition-with-folio_try_get.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260228193307.E3F68C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,181 +34,107 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/mglru: fix cgroup OOM during MGLRU state switching
-has been removed from the -mm tree.  Its filename was
-     mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch
+The patch titled
+     Subject: mm/huge_memory: fix a folio_split() race condition with folio_try_get()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-huge_memory-fix-a-folio_split-race-condition-with-folio_try_get.patch
 
-This patch was dropped because it had testing failures
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-a-folio_split-race-condition-with-folio_try_get.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Leno Hou <lenohou@gmail.com>
-Subject: mm/mglru: fix cgroup OOM during MGLRU state switching
-Date: Sun, 1 Mar 2026 00:10:08 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/huge_memory: fix a folio_split() race condition with folio_try_get()
+Date: Fri, 27 Feb 2026 20:06:14 -0500
 
-When the Multi-Gen LRU (MGLRU) state is toggled dynamically, a race
-condition exists between the state switching and the memory reclaim path. 
-This can lead to unexpected cgroup OOM kills, even when plenty of
-reclaimable memory is available.
+During a pagecache folio split, the values in the related xarray should
+not be changed from the original folio at xarray split time until all
+after-split folios are well formed and stored in the xarray.  Current use
+of xas_try_split() in __split_unmapped_folio() lets some after-split
+folios show up at wrong indices in the xarray.  When these misplaced
+after-split folios are unfrozen, before correct folios are stored via
+__xa_store(), and grabbed by folio_try_get(), they are returned to
+userspace at wrong file indices, causing data corruption.
 
-*** Problem Description ***
+Fix it by using the original folio in xas_try_split() calls, so that
+folio_try_get() can get the right after-split folios after the original
+folio is unfrozen.
 
-The issue arises from a "reclaim vacuum" during the transition:
+Uniform split, split_huge_page*(), is not affected, since it uses
+xas_split_alloc() and xas_split() only once and stores the original folio
+in the xarray.
 
-1. When disabling MGLRU, lru_gen_change_state() sets lrugen->enabled to
-   false before the pages are drained from MGLRU lists back to
-   traditional LRU lists.
-2. Concurrent reclaimers in shrink_lruvec() see lrugen->enabled as false
-   and skip the MGLRU path.
-3. However, these pages might not have reached the traditional LRU lists
-   yet, or the changes are not yet visible to all CPUs due to a lack of
-   synchronization.
-4. get_scan_count() subsequently finds traditional LRU lists empty,
-   concludes there is no reclaimable memory, and triggers an OOM kill.
+Fixes below points to the commit introduces the code, but folio_split() is
+used in a later commit 7460b470a131f ("mm/truncate: use folio_split() in
+truncate operation").
 
-A similar race can occur during enablement, where the reclaimer sees the
-new state but the MGLRU lists haven't been populated via fill_evictable()
-yet.
-
-*** Solution ***
-
-Introduce a 'draining' state to bridge the gap during transitions:
-
-- Use smp_store_release() and smp_load_acquire() to ensure the visibility
-  of 'enabled' and 'draining' flags across CPUs.
-- Modify shrink_lruvec() to allow a "joint reclaim" period. If an lruvec
-  is in the 'draining' state, the reclaimer will attempt to scan MGLRU
-  lists first, and then fall through to traditional LRU lists instead
-  of returning early. This ensures that folios are visible to at least
-  one reclaim path at any given time.
-
-*** Reproduction ***
-
-The issue was consistently reproduced on v6.1.157 and v6.18.3 using
-a high-pressure memory cgroup (v1) environment.
-
-Reproduction steps:
-1. Create a 16GB memcg and populate it with 10GB file cache (5GB active)
-   and 8GB active anonymous memory.
-2. Toggle MGLRU state while performing new memory allocations to force
-   direct reclaim.
-
-Reproduction script:
-
-#!/bin/bash
-# Fixed reproduction for memcg OOM during MGLRU toggle
-set -euo pipefail
-
-MGLRU_FILE="/sys/kernel/mm/lru_gen/enabled"
-CGROUP_PATH="/sys/fs/cgroup/memory/memcg_oom_test"
-
-# Switch MGLRU dynamically in the background
-switch_mglru() {
-    local orig_val=$(cat "$MGLRU_FILE")
-    if [[ "$orig_val" != "0x0000" ]]; then
-        echo n > "$MGLRU_FILE" &
-    else
-        echo y > "$MGLRU_FILE" &
-    fi
-}
-
-# Setup 16G memcg
-mkdir -p "$CGROUP_PATH"
-echo $((16 * 1024 * 1024 * 1024)) > "$CGROUP_PATH/memory.limit_in_bytes"
-echo $$ > "$CGROUP_PATH/cgroup.procs"
-
-# 1. Build memory pressure (File + Anon)
-dd if=/dev/urandom of=/tmp/test_file bs=1M count=10240
-dd if=/tmp/test_file of=/dev/null bs=1M # Warm up cache
-
-stress-ng --vm 1 --vm-bytes 8G --vm-keep -t 600 &
-sleep 5
-
-# 2. Trigger switch and concurrent allocation
-switch_mglru
-stress-ng --vm 1 --vm-bytes 2G --vm-populate --timeout 5s || echo "OOM Triggered"
-
-# Check OOM counter
-grep oom_kill "$CGROUP_PATH/memory.oom_control"
-
-Link: https://lkml.kernel.org/r/20260228161008.707-1-lenohou@gmail.com
-Signed-off-by: Leno Hou <lenohou@gmail.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Barry Song <21cnbao@gmail.com>
-Cc: Jialing Wang <wjl.linux@gmail.com>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20260228010614.2536430-1-ziy@nvidia.com
+Fixes: 00527733d0dc8 ("mm/huge_memory: add two new (not yet used) functions for folio_split()")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: Bas van Dijk <bas@dfinity.org>
+Closes: https://lore.kernel.org/all/CAKNNEtw5_kZomhkugedKMPOG-sxs5Q5OLumWJdiWXv+C9Yct0w@mail.gmail.com/
+Tested-by: Lance Yang <lance.yang@linux.dev>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 ++
- mm/vmscan.c            |   14 +++++++++++---
- 2 files changed, 13 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-mglru-fix-cgroup-oom-during-mglru-state-switching
-+++ a/include/linux/mmzone.h
-@@ -577,6 +577,8 @@ struct lru_gen_folio {
- 	atomic_long_t refaulted[NR_HIST_GENS][ANON_AND_FILE][MAX_NR_TIERS];
- 	/* whether the multi-gen LRU is enabled */
- 	bool enabled;
-+	/* whether the multi-gen LRU is draining to LRU */
-+	bool draining;
- 	/* the memcg generation this lru_gen_folio belongs to */
- 	u8 gen;
- 	/* the list segment this lru_gen_folio belongs to */
---- a/mm/vmscan.c~mm-mglru-fix-cgroup-oom-during-mglru-state-switching
-+++ a/mm/vmscan.c
-@@ -5305,7 +5305,8 @@ static void lru_gen_change_state(bool en
- 			VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
- 			VM_WARN_ON_ONCE(!state_is_valid(lruvec));
+--- a/mm/huge_memory.c~mm-huge_memory-fix-a-folio_split-race-condition-with-folio_try_get
++++ a/mm/huge_memory.c
+@@ -3631,6 +3631,7 @@ static int __split_unmapped_folio(struct
+ 	const bool is_anon = folio_test_anon(folio);
+ 	int old_order = folio_order(folio);
+ 	int start_order = split_type == SPLIT_TYPE_UNIFORM ? new_order : old_order - 1;
++	struct folio *origin_folio = folio;
+ 	int split_order;
  
--			lruvec->lrugen.enabled = enabled;
-+			smp_store_release(&lruvec->lrugen.enabled, enabled);
-+			smp_store_release(&lruvec->lrugen.draining, true);
- 
- 			while (!(enabled ? fill_evictable(lruvec) : drain_evictable(lruvec))) {
- 				lruvec_unlock_irq(lruvec);
-@@ -5313,6 +5314,8 @@ static void lru_gen_change_state(bool en
- 				lruvec_lock_irq(lruvec);
+ 	/*
+@@ -3656,7 +3657,13 @@ static int __split_unmapped_folio(struct
+ 				xas_split(xas, folio, old_order);
+ 			else {
+ 				xas_set_order(xas, folio->index, split_order);
+-				xas_try_split(xas, folio, old_order);
++				/*
++				 * use the original folio, so that a parallel
++				 * folio_try_get() waits on it until xarray is
++				 * updated with after-split folios and
++				 * the original one is unfrozen.
++				 */
++				xas_try_split(xas, origin_folio, old_order);
+ 				if (xas_error(xas))
+ 					return xas_error(xas);
  			}
- 
-+			smp_store_release(&lruvec->lrugen.draining, false);
-+
- 			lruvec_unlock_irq(lruvec);
- 		}
- 
-@@ -5889,10 +5892,15 @@ static void shrink_lruvec(struct lruvec
- 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
- 	bool proportional_reclaim;
- 	struct blk_plug plug;
-+	bool lrugen_enabled = smp_load_acquire(&lruvec->lrugen.enabled);
-+	bool lru_draining = smp_load_acquire(&lruvec->lrugen.draining);
- 
--	if (lru_gen_enabled() && !root_reclaim(sc)) {
-+	if (lrugen_enabled || lru_draining && !root_reclaim(sc)) {
- 		lru_gen_shrink_lruvec(lruvec, sc);
--		return;
-+
-+		if (!lru_draining)
-+			return;
-+
- 	}
- 
- 	get_scan_count(lruvec, sc, nr);
 _
 
-Patches currently in -mm which might be from lenohou@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
+mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release.patch
+mm-huge_memory-fix-a-folio_split-race-condition-with-folio_try_get.patch
 
