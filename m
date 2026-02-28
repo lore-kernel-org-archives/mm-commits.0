@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EEC92139C9
-	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 20:02:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2CB51DF261
+	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 20:02:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772308948; cv=none; b=PLKrnY3B3aFM0i0ojaFEPwI/L5l2C3fizaMSopORgb/t5Ww2F1x0YcnDCTzrmIljxOZPf0AR7jseolukBylQN+21McU5FaAsP3YVlJTabxE4PlHJXk4g/2VXYEawDnycGUBC5xDyXkGMg9IycVdMphqfhXJTTAigIMYimikV/9U=
+	t=1772308951; cv=none; b=mYX+2xdRIEx3Aim9YSKp04XgknMvsCC4GwUQgwnvGMS+6RNwPKp5OvTPXeMdT8xz4voxaJQiPXrdTJRoDCAUhoUIiw2BoNUVHKSQlk+AvPr9E8Lsbdj2Z7Cbf/L+I6NI3v9+qGzgYdu/TNv29e/2xpKi0Rj+HXQIIAAjnbaz/f8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772308948; c=relaxed/simple;
-	bh=sFkUB5ubSsAAOb6ou7CoJE3wB5fwPwX/l6hk+vyEejg=;
-	h=Date:To:From:Subject:Message-Id; b=vBBWxsCYEoDz9UDXGVblsvlCHSLw7t5lmZEYjhgRzsWBp45UwdDcMWzf3XzStpABwMVEvRiVuNMekNAMesJEU1RrOX5u9YwrL8O9n+R1JlpGsvl4xpw+zkVrJU8Y9eDjfr9hPXKRI98tUJ1nN36aF055A921KtwopDQQwU2HOBc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ppyU5aMj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772308951; c=relaxed/simple;
+	bh=AvElFMrHbl39hL+WIXWAq9h+zaJGqMDqebPhkQvZnmQ=;
+	h=Date:To:From:Subject:Message-Id; b=IttPDUUmBLjuB5HVj+fNE57f4SSUJusSQpg856ELB1G87OJEBe7ejJ/3+9wfEek1viYXhvCyqxpIbwuNhvbOT9MdA0rxK3as4j2dTGjfEoBNVKIxoVpv+itd5Ym6uN7Lqa0/Z4pFOx6fWyZ2iybG2R/vjtgqh5I1TmntwrQMh8k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zGCJsbZb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ppyU5aMj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2AA0C116D0;
-	Sat, 28 Feb 2026 20:02:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zGCJsbZb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77649C116D0;
+	Sat, 28 Feb 2026 20:02:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772308947;
-	bh=sFkUB5ubSsAAOb6ou7CoJE3wB5fwPwX/l6hk+vyEejg=;
+	s=korg; t=1772308951;
+	bh=AvElFMrHbl39hL+WIXWAq9h+zaJGqMDqebPhkQvZnmQ=;
 	h=Date:To:From:Subject:From;
-	b=ppyU5aMja6Q8T3KVrfpCZSMPe+GO834/rxOdSuxF47bHYOkz8hSYeLodhkTuihadW
-	 kSFoSUNgilvOGlRPW4UhYAryX9aYGAExPPQmF86elern2+/W/z8M2IaBGwjT8OvTBr
-	 BiyS/Dod0dnGdALG70SLg3tY8oichlEF8Lf+dY+w=
-Date: Sat, 28 Feb 2026 12:02:27 -0800
+	b=zGCJsbZbMzNStO94VPk+Ado/caTg6dlKxT2J+tGVlrq3suN8/UOByLk4xWS+wTjjN
+	 OiKEKbno+8iwKmLG0AdgtAsY1AI5nHlMiZVjXriRAnwb/e1T5eIe0a9YVe/HqC41OI
+	 TZsNk1vXzTbOOT/OeZ+32dFGc18LMZ6YpeQKzV9Y=
+Date: Sat, 28 Feb 2026 12:02:30 -0800
 To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,willy@infradead.org,will@kernel.org,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,axelrasmussen@google.com,apopple@nvidia.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-support-batched-checking-of-the-young-flag-for-mglru.patch added to mm-new branch
-Message-Id: <20260228200227.C2AA0C116D0@smtp.kernel.org>
+Subject: + arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes.patch added to mm-new branch
+Message-Id: <20260228200231.77649C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: support batched checking of the young flag for MGLRU
+     Subject: arm64: mm: implement the architecture-specific test_and_clear_young_ptes()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-support-batched-checking-of-the-young-flag-for-mglru.patch
+     arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-support-batched-checking-of-the-young-flag-for-mglru.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,44 +67,37 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: support batched checking of the young flag for MGLRU
-Date: Fri, 27 Feb 2026 17:44:39 +0800
+Subject: arm64: mm: implement the architecture-specific test_and_clear_young_ptes()
+Date: Fri, 27 Feb 2026 17:44:40 +0800
 
-Use the batched helper test_and_clear_young_ptes_notify() to check and
-clear the young flag to improve the performance during large folio
+Implement the Arm64 architecture-specific test_and_clear_young_ptes() to enable
+batched checking of young flags, improving performance during large folio
 reclamation when MGLRU is enabled.
 
-Meanwhile, we can also support batched checking the young and dirty flag
-when MGLRU walks the mm's pagetable to update the folios' generation
-counter.  Since MGLRU also checks the PTE dirty bit, use
-folio_pte_batch_flags() with FPB_MERGE_YOUNG_DIRTY set to detect batches
-of PTEs for a large folio.
+While we're at it, simplify ptep_test_and_clear_young() by calling
+test_and_clear_young_ptes(). Since callers guarantee that PTEs are present
+before calling these functions, we can use pte_cont() to check the CONT_PTE
+flag instead of pte_valid_cont().
 
-Then we can remove the ptep_test_and_clear_young_notify() since it has no
-users now.
+Performance testing:
+Enable MGLRU, then allocate 10G clean file-backed folios by mmap() in a memory
+cgroup, and try to reclaim 8G file-backed folios via the memory.reclaim interface.
+I can observe 60%+ performance improvement on my Arm64 32-core server (and about
+15% improvement on my X86 machine).
 
-Note that we also update the 'young' counter and 'mm_stats[MM_LEAF_YOUNG]'
-counter with the batched count in the lru_gen_look_around() and
-walk_pte_range().  However, the batched operations may inflate these two
-counters, because in a large folio not all PTEs may have been accessed. 
-(Additionally, tracking how many PTEs have been accessed within a large
-folio is not very meaningful, since the mm core actually tracks
-access/dirty on a per-folio basis, not per page).  The impact analysis is
-as follows:
+W/o patchset:
+real	0m0.470s
+user	0m0.000s
+sys	0m0.470s
 
-1. The 'mm_stats[MM_LEAF_YOUNG]' counter has no functional impact and
-   is mainly for debugging.
+W/ patchset:
+real	0m0.180s
+user	0m0.001s
+sys	0m0.179s
 
-2. The 'young' counter is used to decide whether to place the current
-   PMD entry into the bloom filters by suitable_to_scan() (so that next
-   time we can check whether it has been accessed again), which may set
-   the hash bit in the bloom filters for a PMD entry that hasn't seen much
-   access.  However, bloom filters inherently allow some error, so this
-   effect appears negligible.
-
-Link: https://lkml.kernel.org/r/f84233f95f209d59c3bc9c72a757af09337f0d40.1772185080.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/5d9298b94607b2bf4f1f92ea29a4c96217c5bcc1.1772185080.git.baolin.wang@linux.alibaba.com
 Reviewed-by: Rik van Riel <riel@surriel.com>
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -129,214 +122,40 @@ Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 ++--
- mm/internal.h          |    6 -----
- mm/rmap.c              |   28 ++++++++++++------------
- mm/vmscan.c            |   44 +++++++++++++++++++++++++++++----------
- 4 files changed, 50 insertions(+), 33 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
---- a/include/linux/mmzone.h~mm-support-batched-checking-of-the-young-flag-for-mglru
-+++ a/include/linux/mmzone.h
-@@ -684,7 +684,7 @@ struct lru_gen_memcg {
- 
- void lru_gen_init_pgdat(struct pglist_data *pgdat);
- void lru_gen_init_lruvec(struct lruvec *lruvec);
--bool lru_gen_look_around(struct page_vma_mapped_walk *pvmw);
-+bool lru_gen_look_around(struct page_vma_mapped_walk *pvmw, unsigned int nr);
- 
- void lru_gen_init_memcg(struct mem_cgroup *memcg);
- void lru_gen_exit_memcg(struct mem_cgroup *memcg);
-@@ -706,7 +706,8 @@ static inline void lru_gen_init_lruvec(s
- {
+--- a/arch/arm64/include/asm/pgtable.h~arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -1812,16 +1812,22 @@ static inline pte_t ptep_get_and_clear(s
+ 	return __ptep_get_and_clear(mm, addr, ptep);
  }
  
--static inline bool lru_gen_look_around(struct page_vma_mapped_walk *pvmw)
-+static inline bool lru_gen_look_around(struct page_vma_mapped_walk *pvmw,
-+		unsigned int nr)
++#define test_and_clear_young_ptes test_and_clear_young_ptes
++static inline int test_and_clear_young_ptes(struct vm_area_struct *vma,
++					    unsigned long addr, pte_t *ptep,
++					    unsigned int nr)
++{
++	if (likely(nr == 1 && !pte_cont(__ptep_get(ptep))))
++		return __ptep_test_and_clear_young(vma, addr, ptep);
++
++	return contpte_test_and_clear_young_ptes(vma, addr, ptep, nr);
++}
++
+ #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
+ static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
+ 				unsigned long addr, pte_t *ptep)
  {
- 	return false;
+-	pte_t orig_pte = __ptep_get(ptep);
+-
+-	if (likely(!pte_valid_cont(orig_pte)))
+-		return __ptep_test_and_clear_young(vma, addr, ptep);
+-
+-	return contpte_test_and_clear_young_ptes(vma, addr, ptep, 1);
++	return test_and_clear_young_ptes(vma, addr, ptep, 1);
  }
---- a/mm/internal.h~mm-support-batched-checking-of-the-young-flag-for-mglru
-+++ a/mm/internal.h
-@@ -1851,10 +1851,4 @@ static inline int pmdp_test_and_clear_yo
  
- #endif /* CONFIG_MMU_NOTIFIER */
- 
--static inline int ptep_test_and_clear_young_notify(struct vm_area_struct *vma,
--		unsigned long addr, pte_t *ptep)
--{
--	return test_and_clear_young_ptes_notify(vma, addr, ptep, 1);
--}
--
- #endif	/* __MM_INTERNAL_H */
---- a/mm/rmap.c~mm-support-batched-checking-of-the-young-flag-for-mglru
-+++ a/mm/rmap.c
-@@ -958,25 +958,21 @@ static bool folio_referenced_one(struct
- 			return false;
- 		}
- 
-+		if (pvmw.pte && folio_test_large(folio)) {
-+			const unsigned long end_addr = pmd_addr_end(address, vma->vm_end);
-+			const unsigned int max_nr = (end_addr - address) >> PAGE_SHIFT;
-+			pte_t pteval = ptep_get(pvmw.pte);
-+
-+			nr = folio_pte_batch(folio, pvmw.pte, pteval, max_nr);
-+			ptes += nr;
-+		}
-+
- 		if (lru_gen_enabled() && pvmw.pte) {
--			if (lru_gen_look_around(&pvmw))
-+			if (lru_gen_look_around(&pvmw, nr))
- 				referenced++;
- 		} else if (pvmw.pte) {
--			if (folio_test_large(folio)) {
--				unsigned long end_addr = pmd_addr_end(address, vma->vm_end);
--				unsigned int max_nr = (end_addr - address) >> PAGE_SHIFT;
--				pte_t pteval = ptep_get(pvmw.pte);
--
--				nr = folio_pte_batch(folio, pvmw.pte,
--						     pteval, max_nr);
--			}
--
--			ptes += nr;
- 			if (clear_flush_young_ptes_notify(vma, address, pvmw.pte, nr))
- 				referenced++;
--			/* Skip the batched PTEs */
--			pvmw.pte += nr - 1;
--			pvmw.address += (nr - 1) * PAGE_SIZE;
- 		} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
- 			if (pmdp_clear_flush_young_notify(vma, address,
- 						pvmw.pmd))
-@@ -995,6 +991,10 @@ static bool folio_referenced_one(struct
- 			page_vma_mapped_walk_done(&pvmw);
- 			break;
- 		}
-+
-+		/* Skip the batched PTEs */
-+		pvmw.pte += nr - 1;
-+		pvmw.address += (nr - 1) * PAGE_SIZE;
- 	}
- 
- 	if (referenced)
---- a/mm/vmscan.c~mm-support-batched-checking-of-the-young-flag-for-mglru
-+++ a/mm/vmscan.c
-@@ -3479,6 +3479,7 @@ static bool walk_pte_range(pmd_t *pmd, u
- 	struct pglist_data *pgdat = lruvec_pgdat(walk->lruvec);
- 	DEFINE_MAX_SEQ(walk->lruvec);
- 	int gen = lru_gen_from_seq(max_seq);
-+	unsigned int nr;
- 	pmd_t pmdval;
- 
- 	pte = pte_offset_map_rw_nolock(args->mm, pmd, start & PMD_MASK, &pmdval, &ptl);
-@@ -3497,11 +3498,13 @@ static bool walk_pte_range(pmd_t *pmd, u
- 
- 	lazy_mmu_mode_enable();
- restart:
--	for (i = pte_index(start), addr = start; addr != end; i++, addr += PAGE_SIZE) {
-+	for (i = pte_index(start), addr = start; addr != end; i += nr, addr += nr * PAGE_SIZE) {
- 		unsigned long pfn;
- 		struct folio *folio;
--		pte_t ptent = ptep_get(pte + i);
-+		pte_t *cur_pte = pte + i;
-+		pte_t ptent = ptep_get(cur_pte);
- 
-+		nr = 1;
- 		total++;
- 		walk->mm_stats[MM_LEAF_TOTAL]++;
- 
-@@ -3513,7 +3516,16 @@ restart:
- 		if (!folio)
- 			continue;
- 
--		if (!ptep_test_and_clear_young_notify(args->vma, addr, pte + i))
-+		if (folio_test_large(folio)) {
-+			const unsigned int max_nr = (end - addr) >> PAGE_SHIFT;
-+
-+			nr = folio_pte_batch_flags(folio, NULL, cur_pte, &ptent,
-+						   max_nr, FPB_MERGE_YOUNG_DIRTY);
-+			total += nr - 1;
-+			walk->mm_stats[MM_LEAF_TOTAL] += nr - 1;
-+		}
-+
-+		if (!test_and_clear_young_ptes_notify(args->vma, addr, cur_pte, nr))
- 			continue;
- 
- 		if (last != folio) {
-@@ -3526,8 +3538,8 @@ restart:
- 		if (pte_dirty(ptent))
- 			dirty = true;
- 
--		young++;
--		walk->mm_stats[MM_LEAF_YOUNG]++;
-+		young += nr;
-+		walk->mm_stats[MM_LEAF_YOUNG] += nr;
- 	}
- 
- 	walk_update_folio(walk, last, gen, dirty);
-@@ -4171,7 +4183,7 @@ static void lru_gen_age_node(struct pgli
-  * the PTE table to the Bloom filter. This forms a feedback loop between the
-  * eviction and the aging.
-  */
--bool lru_gen_look_around(struct page_vma_mapped_walk *pvmw)
-+bool lru_gen_look_around(struct page_vma_mapped_walk *pvmw, unsigned int nr)
- {
- 	int i;
- 	bool dirty;
-@@ -4189,12 +4201,13 @@ bool lru_gen_look_around(struct page_vma
- 	struct lruvec *lruvec;
- 	struct lru_gen_mm_state *mm_state;
- 	unsigned long max_seq;
-+	pte_t *cur_pte;
- 	int gen;
- 
- 	lockdep_assert_held(pvmw->ptl);
- 	VM_WARN_ON_ONCE_FOLIO(folio_test_lru(folio), folio);
- 
--	if (!ptep_test_and_clear_young_notify(vma, addr, pte))
-+	if (!test_and_clear_young_ptes_notify(vma, addr, pte, nr))
- 		return false;
- 
- 	if (spin_is_contended(pvmw->ptl))
-@@ -4234,10 +4247,12 @@ bool lru_gen_look_around(struct page_vma
- 
- 	pte -= (addr - start) / PAGE_SIZE;
- 
--	for (i = 0, addr = start; addr != end; i++, addr += PAGE_SIZE) {
-+	for (i = 0, addr = start, cur_pte = pte; addr != end;
-+	     i += nr, cur_pte += nr, addr += nr * PAGE_SIZE) {
- 		unsigned long pfn;
--		pte_t ptent = ptep_get(pte + i);
-+		pte_t ptent = ptep_get(cur_pte);
- 
-+		nr = 1;
- 		pfn = get_pte_pfn(ptent, vma, addr, pgdat);
- 		if (pfn == -1)
- 			continue;
-@@ -4246,7 +4261,14 @@ bool lru_gen_look_around(struct page_vma
- 		if (!folio)
- 			continue;
- 
--		if (!ptep_test_and_clear_young_notify(vma, addr, pte + i))
-+		if (folio_test_large(folio)) {
-+			const unsigned int max_nr = (end - addr) >> PAGE_SHIFT;
-+
-+			nr = folio_pte_batch_flags(folio, NULL, cur_pte, &ptent,
-+						   max_nr, FPB_MERGE_YOUNG_DIRTY);
-+		}
-+
-+		if (!test_and_clear_young_ptes_notify(vma, addr, cur_pte, nr))
- 			continue;
- 
- 		if (last != folio) {
-@@ -4259,7 +4281,7 @@ bool lru_gen_look_around(struct page_vma
- 		if (pte_dirty(ptent))
- 			dirty = true;
- 
--		young++;
-+		young += nr;
- 	}
- 
- 	walk_update_folio(walk, last, gen, dirty);
+ #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
