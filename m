@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C00063B8D79
-	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 22:05:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBA763B3BF9
+	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 22:05:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772316357; cv=none; b=odz2maiv00l6r51eTEm+UWKufg8/nSEwPgB3Xdl8PZYukx5CggAFOrH8TOGro2e3/31zUiEERy9sAJ3bou42tV3hc4U+qcC7bXgy5P1gh7gFYjoQOxyXn+pXGdCQB1SLqoGjT91kkuuxaKPJnZcIisZ2xtYbVAutyt8wi1hV4ng=
+	t=1772316359; cv=none; b=q0VXoQZYsV83cTe135bPrzeXbhBXb0599eOmEbtl6XB7pCol5Mly5RnPFsT66vYpLWMOyBMedQD/jzZue3FoDF3ISr7AsVnonj3+ioxTFDgdIt1mbnbcJZsyZJ/2NWlnMU8KJR0iOTXCDoZ5cwV1rwGbxdQbw3DiYFEvp/X58Rc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772316357; c=relaxed/simple;
-	bh=gdtV5wn+jGG3wwmcL3OPDquYOg2ExKCHBu0IqOcUTcE=;
-	h=Date:To:From:Subject:Message-Id; b=VOf+XnWEMenaiiq25Ia98mCdHAVLfELSDnjcHDF0Fa9kP06/MFKQJmFY1DlYQX6UUrTW2b3dx8nWH0TWDa/DDjrK0d5HQe1cN5wz2QAYPMA+z7vkN19muUuVhdt5Ro814lx7MaSzzVuUQDjxCsTdKqsAQCQ2X9BF/khJao7WAf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TahsF0a6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772316359; c=relaxed/simple;
+	bh=GiDsjNtzYizMvC3LAac/zde61WzRwwdljEUWNzBo9LA=;
+	h=Date:To:From:Subject:Message-Id; b=m26u4TrOVjZYxgJ5/aYSkGrL6IUMznEzrQj2Rzhtu/Vdu+7UAhey7u7RAiYX97t5zQ05yUMNWu/qBSQVuH0HZOPYd9VeAPtkZClEHIkWVE3dL2VrFAXRPzEn5cLAfaTV/QnTmBjr6MBSbCP/nrzasLR1cQaSjRuYGZluT7yQxTc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=01ZG/B/M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TahsF0a6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12115C116D0;
-	Sat, 28 Feb 2026 22:05:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="01ZG/B/M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E53CC116D0;
+	Sat, 28 Feb 2026 22:05:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772316357;
-	bh=gdtV5wn+jGG3wwmcL3OPDquYOg2ExKCHBu0IqOcUTcE=;
+	s=korg; t=1772316359;
+	bh=GiDsjNtzYizMvC3LAac/zde61WzRwwdljEUWNzBo9LA=;
 	h=Date:To:From:Subject:From;
-	b=TahsF0a6rCgUswYrQbyO6sjiwEXWJLMZc62MV9T/pyU6L/y4GNirkFDC9KW+VmsRU
-	 msAfXtxJM8+ZpmhzIrBXY1/8FBiB3VwgCeJ0BmgZJZp6+/JUKDAMooCprc4WVZj+N7
-	 //USX3ZKwlhALPYpV9Mc0vWMyjQFa3HJ/KIsr9Ok=
-Date: Sat, 28 Feb 2026 14:05:56 -0800
+	b=01ZG/B/M3qFnWC18pgHtFIRa8M8tyMcmSoO7dkmnOwc+wYq9WCVx7CKgCq8aY2Dy2
+	 3PBw0VmfBeBdNMVmp7NATEadeRZJgysZp+SaTeTSyKwOhAjMkGKGIKdBz/VJVGcnMf
+	 B+uvggRPjl5ygv8Ov3QI/ziTb4QD31RLMLnYIIF0=
+Date: Sat, 28 Feb 2026 14:05:58 -0800
 To: mm-commits@vger.kernel.org,legion@kernel.org,brauner@kernel.org,broonie@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-fchmodat2-clean-up-temporary-files-and-directories.patch added to mm-nonmm-unstable branch
-Message-Id: <20260228220557.12115C116D0@smtp.kernel.org>
+Subject: + selftests-fchmodat2-use-ksft_finished.patch added to mm-nonmm-unstable branch
+Message-Id: <20260228220559.2E53CC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/fchmodat2: clean up temporary files and directories
+     Subject: selftests/fchmodat2: use ksft_finished()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-fchmodat2-clean-up-temporary-files-and-directories.patch
+     selftests-fchmodat2-use-ksft_finished.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-fchmodat2-clean-up-temporary-files-and-directories.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-fchmodat2-use-ksft_finished.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,272 +59,34 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Mark Brown <broonie@kernel.org>
-Subject: selftests/fchmodat2: clean up temporary files and directories
-Date: Thu, 26 Feb 2026 22:24:42 +0000
+Subject: selftests/fchmodat2: use ksft_finished()
+Date: Thu, 26 Feb 2026 22:24:43 +0000
 
-Patch series "selftests/fchmodat2: Error handling and general", v4.
+The fchmodat2 test program open codes a version of ksft_finished(), use
+the standard version.
 
-I looked at the fchmodat2() tests since I've been experiencing some random
-intermittent segfaults with them in my test systems, while doing so I
-noticed these two issues.  Unfortunately I didn't figure out the original
-yet, unless I managed to fix it unwittingly.
-
-
-This patch (of 2):
-
-The fchmodat2() test program creates a temporary directory with a file and
-a symlink for every test it runs but never cleans these up, resulting in
-${TMPDIR} getting left with stale files after every run.  Restructure the
-program a bit to ensure that we clean these up, this is more invasive than
-it might otherwise be due to the extensive use of ksft_exit_fail_msg() in
-the program.
-
-As a side effect this also ensures that we report a consistent test name
-for the tests and always try both tests even if they are skipped.
-
-Link: https://lkml.kernel.org/r/20260226-selftests-fchmodat2-v4-0-a6419435f2e8@kernel.org
-Link: https://lkml.kernel.org/r/20260226-selftests-fchmodat2-v4-1-a6419435f2e8@kernel.org
+Link: https://lkml.kernel.org/r/20260226-selftests-fchmodat2-v4-2-a6419435f2e8@kernel.org
 Signed-off-by: Mark Brown <broonie@kernel.org>
 Acked-by: Alexey Gladkov <legion@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/fchmodat2/fchmodat2_test.c |  159 +++++++----
- 1 file changed, 110 insertions(+), 49 deletions(-)
+ tools/testing/selftests/fchmodat2/fchmodat2_test.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/tools/testing/selftests/fchmodat2/fchmodat2_test.c~selftests-fchmodat2-clean-up-temporary-files-and-directories
+--- a/tools/testing/selftests/fchmodat2/fchmodat2_test.c~selftests-fchmodat2-use-ksft_finished
 +++ a/tools/testing/selftests/fchmodat2/fchmodat2_test.c
-@@ -9,6 +9,11 @@
+@@ -196,8 +196,5 @@ int main(int argc, char **argv)
+ 	test_regfile();
+ 	test_symlink();
  
- #include "kselftest.h"
- 
-+struct testdir {
-+	char *dirname;
-+	int dfd;
-+};
-+
- int sys_fchmodat2(int dfd, const char *filename, mode_t mode, int flags)
- {
- 	int ret = syscall(__NR_fchmodat2, dfd, filename, mode, flags);
-@@ -16,9 +21,9 @@ int sys_fchmodat2(int dfd, const char *f
- 	return ret >= 0 ? ret : -errno;
+-	if (ksft_get_fail_cnt() + ksft_get_error_cnt() > 0)
+-		ksft_exit_fail();
+-	else
+-		ksft_exit_pass();
++	ksft_finished();
  }
- 
--int setup_testdir(void)
-+static void setup_testdir(struct testdir *testdir)
- {
--	int dfd, ret;
-+	int ret, dfd;
- 	char dirname[] = "/tmp/ksft-fchmodat2.XXXXXX";
- 
- 	/* Make the top-level directory. */
-@@ -26,21 +31,48 @@ int setup_testdir(void)
- 		ksft_exit_fail_msg("%s: failed to create tmpdir\n", __func__);
- 
- 	dfd = open(dirname, O_PATH | O_DIRECTORY);
--	if (dfd < 0)
--		ksft_exit_fail_msg("%s: failed to open tmpdir\n", __func__);
-+	if (dfd < 0) {
-+		ksft_perror("failed to open tmpdir");
-+		goto err;
-+	}
- 
- 	ret = openat(dfd, "regfile", O_CREAT | O_WRONLY | O_TRUNC, 0644);
--	if (ret < 0)
--		ksft_exit_fail_msg("%s: failed to create file in tmpdir\n",
--				__func__);
-+	if (ret < 0) {
-+		ksft_perror("failed to create file in tmpdir");
-+		goto err;
-+	}
- 	close(ret);
- 
- 	ret = symlinkat("regfile", dfd, "symlink");
--	if (ret < 0)
--		ksft_exit_fail_msg("%s: failed to create symlink in tmpdir\n",
--				__func__);
-+	if (ret < 0) {
-+		ksft_perror("symlinkat() failed");
-+		goto err_regfile;
-+	}
-+
-+	testdir->dirname = strdup(dirname);
-+	if (!testdir->dirname) {
-+		ksft_perror("Out of memory");
-+		goto err_symlink;
-+	}
-+	testdir->dfd = dfd;
-+
-+	return;
-+
-+err_symlink:
-+	unlinkat(testdir->dfd, "symlink", 0);
-+err_regfile:
-+	unlinkat(testdir->dfd, "regfile", 0);
-+err:
-+	unlink(dirname);
-+	ksft_exit_fail();
-+}
- 
--	return dfd;
-+static void cleanup_testdir(struct testdir *testdir)
-+{
-+	unlinkat(testdir->dfd, "regfile", 0);
-+	unlinkat(testdir->dfd, "symlink", 0);
-+	rmdir(testdir->dirname);
-+	free(testdir->dirname);
- }
- 
- int expect_mode(int dfd, const char *filename, mode_t expect_mode)
-@@ -48,61 +80,80 @@ int expect_mode(int dfd, const char *fil
- 	struct stat st;
- 	int ret = fstatat(dfd, filename, &st, AT_SYMLINK_NOFOLLOW);
- 
--	if (ret)
--		ksft_exit_fail_msg("%s: %s: fstatat failed\n",
--				__func__, filename);
-+	if (ret) {
-+		ksft_perror("fstatat() failed\n");
-+		return 0;
-+	}
- 
- 	return (st.st_mode == expect_mode);
- }
- 
- void test_regfile(void)
- {
--	int dfd, ret;
-+	struct testdir testdir;
-+	int ret;
- 
--	dfd = setup_testdir();
-+	setup_testdir(&testdir);
- 
--	ret = sys_fchmodat2(dfd, "regfile", 0640, 0);
-+	ret = sys_fchmodat2(testdir.dfd, "regfile", 0640, 0);
- 
--	if (ret < 0)
--		ksft_exit_fail_msg("%s: fchmodat2(noflag) failed\n", __func__);
-+	if (ret < 0) {
-+		ksft_perror("fchmodat2(noflag) failed");
-+		goto out;
-+	}
- 
--	if (!expect_mode(dfd, "regfile", 0100640))
--		ksft_exit_fail_msg("%s: wrong file mode bits after fchmodat2\n",
-+	if (!expect_mode(testdir.dfd, "regfile", 0100640)) {
-+		ksft_print_msg("%s: wrong file mode bits after fchmodat2\n",
- 				__func__);
-+		ret = 1;
-+		goto out;
-+	}
- 
--	ret = sys_fchmodat2(dfd, "regfile", 0600, AT_SYMLINK_NOFOLLOW);
-+	ret = sys_fchmodat2(testdir.dfd, "regfile", 0600, AT_SYMLINK_NOFOLLOW);
- 
--	if (ret < 0)
--		ksft_exit_fail_msg("%s: fchmodat2(AT_SYMLINK_NOFOLLOW) failed\n",
--				__func__);
-+	if (ret < 0) {
-+		ksft_perror("fchmodat2(AT_SYMLINK_NOFOLLOW) failed");
-+		goto out;
-+	}
- 
--	if (!expect_mode(dfd, "regfile", 0100600))
--		ksft_exit_fail_msg("%s: wrong file mode bits after fchmodat2 with nofollow\n",
--				__func__);
-+	if (!expect_mode(testdir.dfd, "regfile", 0100600)) {
-+		ksft_print_msg("%s: wrong file mode bits after fchmodat2 with nofollow\n",
-+			       __func__);
-+		ret = 1;
-+	}
- 
--	ksft_test_result_pass("fchmodat2(regfile)\n");
-+out:
-+	ksft_test_result(ret == 0, "fchmodat2(regfile)\n");
-+	cleanup_testdir(&testdir);
- }
- 
- void test_symlink(void)
- {
--	int dfd, ret;
-+	struct testdir testdir;
-+	int ret;
- 
--	dfd = setup_testdir();
-+	setup_testdir(&testdir);
- 
--	ret = sys_fchmodat2(dfd, "symlink", 0640, 0);
-+	ret = sys_fchmodat2(testdir.dfd, "symlink", 0640, 0);
- 
--	if (ret < 0)
--		ksft_exit_fail_msg("%s: fchmodat2(noflag) failed\n", __func__);
-+	if (ret < 0) {
-+		ksft_perror("fchmodat2(noflag) failed");
-+		goto err;
-+	}
-+
-+	if (!expect_mode(testdir.dfd, "regfile", 0100640)) {
-+		ksft_print_msg("%s: wrong file mode bits after fchmodat2\n",
-+			       __func__);
-+		goto err;
-+	}
-+
-+	if (!expect_mode(testdir.dfd, "symlink", 0120777)) {
-+		ksft_print_msg("%s: wrong symlink mode bits after fchmodat2\n",
-+			       __func__);
-+		goto err;
-+	}
- 
--	if (!expect_mode(dfd, "regfile", 0100640))
--		ksft_exit_fail_msg("%s: wrong file mode bits after fchmodat2\n",
--				__func__);
--
--	if (!expect_mode(dfd, "symlink", 0120777))
--		ksft_exit_fail_msg("%s: wrong symlink mode bits after fchmodat2\n",
--				__func__);
--
--	ret = sys_fchmodat2(dfd, "symlink", 0600, AT_SYMLINK_NOFOLLOW);
-+	ret = sys_fchmodat2(testdir.dfd, "symlink", 0600, AT_SYMLINK_NOFOLLOW);
- 
- 	/*
- 	 * On certain filesystems (xfs or btrfs), chmod operation fails. So we
-@@ -111,18 +162,28 @@ void test_symlink(void)
- 	 *
- 	 * https://sourceware.org/legacy-ml/libc-alpha/2020-02/msg00467.html
- 	 */
--	if (ret == 0 && !expect_mode(dfd, "symlink", 0120600))
--		ksft_exit_fail_msg("%s: wrong symlink mode bits after fchmodat2 with nofollow\n",
--				__func__);
--
--	if (!expect_mode(dfd, "regfile", 0100640))
--		ksft_exit_fail_msg("%s: wrong file mode bits after fchmodat2 with nofollow\n",
-+	if (ret == 0 && !expect_mode(testdir.dfd, "symlink", 0120600)) {
-+		ksft_print_msg("%s: wrong symlink mode bits after fchmodat2 with nofollow\n",
- 				__func__);
-+		ret = 1;
-+		goto err;
-+	}
-+
-+	if (!expect_mode(testdir.dfd, "regfile", 0100640)) {
-+		ksft_print_msg("%s: wrong file mode bits after fchmodat2 with nofollow\n",
-+			       __func__);
-+	}
- 
- 	if (ret != 0)
- 		ksft_test_result_skip("fchmodat2(symlink)\n");
- 	else
- 		ksft_test_result_pass("fchmodat2(symlink)\n");
-+	cleanup_testdir(&testdir);
-+	return;
-+
-+err:
-+	ksft_test_result_fail("fchmodat2(symlink)\n");
-+	cleanup_testdir(&testdir);
- }
- 
- #define NUM_TESTS 2
 _
 
 Patches currently in -mm which might be from broonie@kernel.org are
