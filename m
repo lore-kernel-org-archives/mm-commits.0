@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41C0633FE26
-	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 19:54:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12BC21F91D6
+	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 19:57:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772308444; cv=none; b=YAqgzAsdBLQAF+xfsWC7KV9bPtWyUehZTra26oSgG6bTjF30QN3UOmKh/ACuh+Cjm6+9cHDpSKzv/hUll+vL54hIZ+OLbua2e8lUCkyPWrP2ubeKwa5MPFDUNgcPnNGC6B+n9U9+AAX3yxlsYGOnO+WYWBE8bnhT37ILe4/NLO4=
+	t=1772308636; cv=none; b=qJDIvRYf/D2rKkv/lJjiLeHDjk5zr5n5/jGQxbB3HDFq5dri/EBoQbJth1B3B/TwsghPCl5i0p9ntJ/CAZNu/rhsfpi0+rSINCWUtj97/nvoC76d6gT/TyT/XTDGJBJRoXfw2rwDX30tlLsl5UxLOocNfun+aGOWg8TPjBaJZsI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772308444; c=relaxed/simple;
-	bh=/Rti3XQWb1zPEkBkN6fG7vgF4ua29uiN785aodNiSs0=;
-	h=Date:To:From:Subject:Message-Id; b=d7Z0Ibpm/rZ2aTfBVQ6tK218PxXAkI1es4BuJwtMhRSg4HP0IDSXhW/8bI38dXXsz7lPBktOErdGnC9gdwmK2F6n3X22hIX0u26FWwVCuI1p8qymOSsqQrRXO3GDsfxA1A5o3QKGmrWzqS3gETZuNr5ZVxcdPLgMs81XnU2RYII=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nWBDVsWl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772308636; c=relaxed/simple;
+	bh=UXNf1dhg6lP15RBNb6ApfwHsYCstITTB7dOErKn3VmM=;
+	h=Date:To:From:Subject:Message-Id; b=hE/mhxpSpUvkDMBzXKq+aUQhnRx7wnzCawhmOh9vaQhTRzK0g5HrgywZNFa9avKFSzlP8l7QUBPoQYCRB2QEtUsxNX4JpQ9AT9ius9pdhJIcgoRgGQ86XsSixYV9rLksmj8gQlXuHbLdYlgO4bYE7SqLsHVEVdJyIKOKEge9rAw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1MykB16F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nWBDVsWl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABCDDC116D0;
-	Sat, 28 Feb 2026 19:54:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1MykB16F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3618C116D0;
+	Sat, 28 Feb 2026 19:57:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772308443;
-	bh=/Rti3XQWb1zPEkBkN6fG7vgF4ua29uiN785aodNiSs0=;
+	s=korg; t=1772308635;
+	bh=UXNf1dhg6lP15RBNb6ApfwHsYCstITTB7dOErKn3VmM=;
 	h=Date:To:From:Subject:From;
-	b=nWBDVsWlqDmRu38L2USJsSFrN2fuPn3rW2D/RLzEI72A0NlaEK6yq9UfTkuiTJG45
-	 3kPxKW0f7w6l/JPpB2lAvuam8G0JiTih5M+rlSo6vsD3LpabQt4/gGdRIQejImdTqU
-	 TtnSgtllPNIL4R2DBfNM74Nc+hE2Rvr2tXVG/BK0=
-Date: Sat, 28 Feb 2026 11:54:03 -0800
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,david@kernel.org,akpm@linux-foundation.org
+	b=1MykB16FvdYkcevUgpXWOq2HTFTIZIsJ8fMeWRzkFMI5j1IPZKdVGOjwczBrgjrif
+	 6P4akTMPVtqc8/dwh61Nh6rpeQn6RUvvptL2q3Ji7a3hLs8AXPK4bGsU4z3Xs4riNV
+	 iKfi1mUK98rr4kAhr6BxkfnjEQWG9tUrX2oGV9DM=
+Date: Sat, 28 Feb 2026 11:57:15 -0800
+To: mm-commits@vger.kernel.org,vincent.guittot@linaro.org,tkhai@ya.ru,shuah@kernel.org,ptikhomirov@virtuozzo.com,peterz@infradead.org,mingo@redhat.com,kees@kernel.org,juri.lelli@redhat.com,jack@suse.cz,david@kernel.org,cyphar@cyphar.com,brauner@kernel.org,avagin@gmail.com,areber@redhat.com,alexander@mihalicyn.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-pagewalk-drop-fw_migration.patch added to mm-new branch
-Message-Id: <20260228195403.ABCDDC116D0@smtp.kernel.org>
+Subject: + pid-make-sub-init-creation-retryable.patch added to mm-nonmm-unstable branch
+Message-Id: <20260228195715.A3618C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/pagewalk: drop FW_MIGRATION
-has been added to the -mm mm-new branch.  Its filename is
-     mm-pagewalk-drop-fw_migration.patch
+     Subject: pid: make sub-init creation retryable
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     pid-make-sub-init-creation-retryable.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-pagewalk-drop-fw_migration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/pid-make-sub-init-creation-retryable.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,156 +58,129 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/pagewalk: drop FW_MIGRATION
-Date: Fri, 27 Feb 2026 22:29:52 +0100
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: pid: make sub-init creation retryable
+Date: Fri, 27 Feb 2026 13:03:41 +0100
 
-We removed the last user of FW_MIGRATION in commit 912aa825957f ("Revert
-"mm/ksm: convert break_ksm() from walk_page_range_vma() to folio_walk"").
+Patch series "pid: make sub-init creation retryable".
 
-So let's remove FW_MIGRATION and assign FW_ZEROPAGE bit 0.  Including
-leafops.h is no longer required.
 
-While at it, convert "expose_page" to "zeropage", as zeropages are now the
-only remaining use case for not exposing a page.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20260227212952.190691-1-david@kernel.org
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Currently we allow only one attempt to create init in a new namespace.  If
+the first fork() fails after alloc_pid() succeeds, free_pid() clears
+PIDNS_ADDING and thus disables further PID allocations.
+
+Nowadays this looks like an unnecessary limitation.  The original reason
+to handle "case PIDNS_ADDING" in free_pid() is gone, most probably after
+commit 69879c01a0c3 ("proc: Remove the now unnecessary internal mount of
+proc").
+
+Change free_pid() to keep ns->pid_allocated == PIDNS_ADDING, and change
+alloc_pid() to reset the cursor early, right after taking pidmap_lock.
+
+Test-case:
+
+	#define _GNU_SOURCE
+	#include <linux/sched.h>
+	#include <sys/syscall.h>
+	#include <sys/wait.h>
+	#include <assert.h>
+	#include <sched.h>
+	#include <errno.h>
+
+	int main(void)
+	{
+		struct clone_args args = {
+			.exit_signal = SIGCHLD,
+			.flags	= CLONE_PIDFD,
+			.pidfd	= 0,
+		};
+		unsigned long pidfd;
+		int pid;
+
+		assert(unshare(CLONE_NEWPID) == 0);
+
+		pid = syscall(__NR_clone3, &args, sizeof(args));
+		assert(pid == -1 && errno == EFAULT);
+
+		args.pidfd = (unsigned long)&pidfd;
+		pid = syscall(__NR_clone3, &args, sizeof(args));
+		if (pid)
+			assert(pid > 0 && wait(NULL) == pid);
+		else
+			assert(getpid() == 1);
+
+		return 0;
+	}
+
+Link: https://lkml.kernel.org/r/aaGHu3ixbw9Y7kFj@redhat.com
+Link: https://lkml.kernel.org/r/aaGIHa7vGdwhEc_D@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Andrei Vagin <avagin@gmail.com>
+Cc: Adrian Reber <areber@redhat.com>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Alexander Mikhalitsyn <alexander@mihalicyn.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Kirill Tkhai <tkhai@ya.ru>
+Cc: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagewalk.h |    8 -------
- mm/pagewalk.c            |   40 +++++++------------------------------
- 2 files changed, 9 insertions(+), 39 deletions(-)
+ kernel/pid.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
---- a/include/linux/pagewalk.h~mm-pagewalk-drop-fw_migration
-+++ a/include/linux/pagewalk.h
-@@ -148,14 +148,8 @@ int walk_page_mapping(struct address_spa
- 
- typedef int __bitwise folio_walk_flags_t;
- 
--/*
-- * Walk migration entries as well. Careful: a large folio might get split
-- * concurrently.
-- */
--#define FW_MIGRATION			((__force folio_walk_flags_t)BIT(0))
--
- /* Walk shared zeropages (small + huge) as well. */
--#define FW_ZEROPAGE			((__force folio_walk_flags_t)BIT(1))
-+#define FW_ZEROPAGE			((__force folio_walk_flags_t)BIT(0))
- 
- enum folio_walk_level {
- 	FW_LEVEL_PTE,
---- a/mm/pagewalk.c~mm-pagewalk-drop-fw_migration
-+++ a/mm/pagewalk.c
-@@ -5,7 +5,6 @@
- #include <linux/hugetlb.h>
- #include <linux/mmu_context.h>
- #include <linux/swap.h>
--#include <linux/leafops.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -841,9 +840,6 @@ int walk_page_mapping(struct address_spa
-  * VM as documented by vm_normal_page(). If requested, zeropages will be
-  * returned as well.
-  *
-- * As default, this function only considers present page table entries.
-- * If requested, it will also consider migration entries.
-- *
-  * If this function returns NULL it might either indicate "there is nothing" or
-  * "there is nothing suitable".
-  *
-@@ -854,11 +850,10 @@ int walk_page_mapping(struct address_spa
-  * that call.
-  *
-  * @fw->page will correspond to the page that is effectively referenced by
-- * @addr. However, for migration entries and shared zeropages @fw->page is
-- * set to NULL. Note that large folios might be mapped by multiple page table
-- * entries, and this function will always only lookup a single entry as
-- * specified by @addr, which might or might not cover more than a single page of
-- * the returned folio.
-+ * @addr. However, for shared zeropages @fw->page is set to NULL. Note that
-+ * large folios might be mapped by multiple page table entries, and this
-+ * function will always only lookup a single entry as specified by @addr, which
-+ * might or might not cover more than a single page of the returned folio.
-  *
-  * This function must *not* be used as a naive replacement for
-  * get_user_pages() / pin_user_pages(), especially not to perform DMA or
-@@ -885,7 +880,7 @@ struct folio *folio_walk_start(struct fo
- 		folio_walk_flags_t flags)
- {
- 	unsigned long entry_size;
--	bool expose_page = true;
-+	bool zeropage = false;
- 	struct page *page;
- 	pud_t *pudp, pud;
- 	pmd_t *pmdp, pmd;
-@@ -933,10 +928,6 @@ struct folio *folio_walk_start(struct fo
- 			if (page)
- 				goto found;
+--- a/kernel/pid.c~pid-make-sub-init-creation-retryable
++++ a/kernel/pid.c
+@@ -131,9 +131,8 @@ void free_pid(struct pid *pid)
+ 			wake_up_process(ns->child_reaper);
+ 			break;
+ 		case PIDNS_ADDING:
+-			/* Handle a fork failure of the first process */
+-			WARN_ON(ns->child_reaper);
+-			ns->pid_allocated = 0;
++			/* Only possible if the 1st fork fails */
++			WARN_ON(READ_ONCE(ns->child_reaper));
+ 			break;
  		}
--		/*
--		 * TODO: FW_MIGRATION support for PUD migration entries
--		 * once there are relevant users.
--		 */
- 		spin_unlock(ptl);
- 		goto not_found;
+ 
+@@ -236,6 +235,10 @@ struct pid *alloc_pid(struct pid_namespa
+ 	retried_preload = false;
+ 	idr_preload(GFP_KERNEL);
+ 	spin_lock(&pidmap_lock);
++	/* For the case when the previous attempt to create init failed */
++	if (ns->pid_allocated == PIDNS_ADDING)
++		idr_set_cursor(&ns->idr, 0);
++
+ 	for (tmp = ns, i = ns->level; i >= 0;) {
+ 		int tid = set_tid[ns->level - i];
+ 
+@@ -338,10 +341,6 @@ out_free:
+ 		idr_remove(&upid->ns->idr, upid->nr);
  	}
-@@ -970,16 +961,9 @@ pmd_table:
- 			} else if ((flags & FW_ZEROPAGE) &&
- 				    is_huge_zero_pmd(pmd)) {
- 				page = pfn_to_page(pmd_pfn(pmd));
--				expose_page = false;
-+				zeropage = true;
- 				goto found;
- 			}
--		} else if ((flags & FW_MIGRATION) &&
--			   pmd_is_migration_entry(pmd)) {
--			const softleaf_t entry = softleaf_from_pmd(pmd);
+ 
+-	/* On failure to allocate the first pid, reset the state */
+-	if (ns->pid_allocated == PIDNS_ADDING)
+-		idr_set_cursor(&ns->idr, 0);
 -
--			page = softleaf_to_page(entry);
--			expose_page = false;
--			goto found;
- 		}
- 		spin_unlock(ptl);
- 		goto not_found;
-@@ -1004,15 +988,7 @@ pte_table:
- 		if ((flags & FW_ZEROPAGE) &&
- 		    is_zero_pfn(pte_pfn(pte))) {
- 			page = pfn_to_page(pte_pfn(pte));
--			expose_page = false;
--			goto found;
--		}
--	} else if (!pte_none(pte)) {
--		const softleaf_t entry = softleaf_from_pte(pte);
--
--		if ((flags & FW_MIGRATION) && softleaf_is_migration(entry)) {
--			page = softleaf_to_page(entry);
--			expose_page = false;
-+			zeropage = true;
- 			goto found;
- 		}
- 	}
-@@ -1021,7 +997,7 @@ not_found:
- 	vma_pgtable_walk_end(vma);
- 	return NULL;
- found:
--	if (expose_page)
-+	if (!zeropage)
- 		/* Note: Offset from the mapped page, not the folio start. */
- 		fw->page = page + ((addr & (entry_size - 1)) >> PAGE_SHIFT);
- 	else
+ 	spin_unlock(&pidmap_lock);
+ 	idr_preload_end();
+ 
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap.patch
-mm-pagewalk-drop-fw_migration.patch
+exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent.patch
+do_notify_parent-sanitize-the-valid_signal-checks.patch
+complete_signal-kill-always-true-core_state-signal_group_exit-check.patch
+pid-make-sub-init-creation-retryable.patch
+pid-document-the-pidns_adding-checks-in-alloc_pid-and-copy_process.patch
 
