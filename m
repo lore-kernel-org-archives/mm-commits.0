@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2CB51DF261
-	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 20:02:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86CE0430B95
+	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 20:04:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772308951; cv=none; b=mYX+2xdRIEx3Aim9YSKp04XgknMvsCC4GwUQgwnvGMS+6RNwPKp5OvTPXeMdT8xz4voxaJQiPXrdTJRoDCAUhoUIiw2BoNUVHKSQlk+AvPr9E8Lsbdj2Z7Cbf/L+I6NI3v9+qGzgYdu/TNv29e/2xpKi0Rj+HXQIIAAjnbaz/f8=
+	t=1772309061; cv=none; b=dYiYAIIa+6zA0qIaGSr0ehkUle2iE7es1R9cv6yCzPY8WxCSyI8zpTx72dhO1AU1MZv1tjN6FLwdSvJPu2KvmWt0miBAo+Ksnam9M9e+PJ4frDt0WUud9x9LyBxc4m4rrdfkQOcb90XthbchdR8DoQ0s7t9YEguu1dbh2crs384=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772308951; c=relaxed/simple;
-	bh=AvElFMrHbl39hL+WIXWAq9h+zaJGqMDqebPhkQvZnmQ=;
-	h=Date:To:From:Subject:Message-Id; b=IttPDUUmBLjuB5HVj+fNE57f4SSUJusSQpg856ELB1G87OJEBe7ejJ/3+9wfEek1viYXhvCyqxpIbwuNhvbOT9MdA0rxK3as4j2dTGjfEoBNVKIxoVpv+itd5Ym6uN7Lqa0/Z4pFOx6fWyZ2iybG2R/vjtgqh5I1TmntwrQMh8k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zGCJsbZb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772309061; c=relaxed/simple;
+	bh=PWjW2+xeJcv6+irXDq5kuXZ7G1DpS4EmlmHsDRTqdAs=;
+	h=Date:To:From:Subject:Message-Id; b=O9T4aA76AaBwbi4KpJJGerMyiGDt0Jk3fvNQUO+awjecuJ8S99JW4aR7BF8X6ylprNUWKuBnTwYe8NAAZE0jUldaQ+W/wug4VzLWE5sK47GJW092D9ltDoIudbuFD+j53X6LH73CZSUSutmipFwc2Ez1kmKCIaTbTw4aY/FD1Q8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oVLBBBVx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zGCJsbZb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77649C116D0;
-	Sat, 28 Feb 2026 20:02:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oVLBBBVx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08E35C116D0;
+	Sat, 28 Feb 2026 20:04:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772308951;
-	bh=AvElFMrHbl39hL+WIXWAq9h+zaJGqMDqebPhkQvZnmQ=;
+	s=korg; t=1772309061;
+	bh=PWjW2+xeJcv6+irXDq5kuXZ7G1DpS4EmlmHsDRTqdAs=;
 	h=Date:To:From:Subject:From;
-	b=zGCJsbZbMzNStO94VPk+Ado/caTg6dlKxT2J+tGVlrq3suN8/UOByLk4xWS+wTjjN
-	 OiKEKbno+8iwKmLG0AdgtAsY1AI5nHlMiZVjXriRAnwb/e1T5eIe0a9YVe/HqC41OI
-	 TZsNk1vXzTbOOT/OeZ+32dFGc18LMZ6YpeQKzV9Y=
-Date: Sat, 28 Feb 2026 12:02:30 -0800
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,willy@infradead.org,will@kernel.org,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,axelrasmussen@google.com,apopple@nvidia.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=oVLBBBVxSn84gI2pw3V/GiNHC44VIm9K5U+tcsWAgFqYGYCo9NaCIpIFD1Imrz9GA
+	 EXGsa0H7i7i78TEfKMN010xUx65ye8amknt9Fgs0XZoAxHWQIIlwKLDKd+9/VM6BNw
+	 OmoyOpLiF8+LC5I7+moV5EzIzOw/XiTDTyU2LCWk=
+Date: Sat, 28 Feb 2026 12:04:20 -0800
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,philipp.reisner@linbit.com,minchan@kernel.org,lars.ellenberg@linbit.com,corbet@lwn.net,christoph.boehmwalder@linbit.com,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes.patch added to mm-new branch
-Message-Id: <20260228200231.77649C116D0@smtp.kernel.org>
+Subject: + zram-do-not-autocorrect-bad-recompression-parameters.patch added to mm-new branch
+Message-Id: <20260228200421.08E35C116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm64: mm: implement the architecture-specific test_and_clear_young_ptes()
+     Subject: zram: do not autocorrect bad recompression parameters
 has been added to the -mm mm-new branch.  Its filename is
-     arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes.patch
+     zram-do-not-autocorrect-bad-recompression-parameters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-autocorrect-bad-recompression-parameters.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,104 +66,93 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: arm64: mm: implement the architecture-specific test_and_clear_young_ptes()
-Date: Fri, 27 Feb 2026 17:44:40 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: do not autocorrect bad recompression parameters
+Date: Fri, 27 Feb 2026 17:21:07 +0900
 
-Implement the Arm64 architecture-specific test_and_clear_young_ptes() to enable
-batched checking of young flags, improving performance during large folio
-reclamation when MGLRU is enabled.
+Do not silently autocorrect bad recompression priority parameter value and
+just error out.
 
-While we're at it, simplify ptep_test_and_clear_young() by calling
-test_and_clear_young_ptes(). Since callers guarantee that PTEs are present
-before calling these functions, we can use pte_cont() to check the CONT_PTE
-flag instead of pte_valid_cont().
-
-Performance testing:
-Enable MGLRU, then allocate 10G clean file-backed folios by mmap() in a memory
-cgroup, and try to reclaim 8G file-backed folios via the memory.reclaim interface.
-I can observe 60%+ performance improvement on my Arm64 32-core server (and about
-15% improvement on my X86 machine).
-
-W/o patchset:
-real	0m0.470s
-user	0m0.000s
-sys	0m0.470s
-
-W/ patchset:
-real	0m0.180s
-user	0m0.001s
-sys	0m0.179s
-
-Link: https://lkml.kernel.org/r/5d9298b94607b2bf4f1f92ea29a4c96217c5bcc1.1772185080.git.baolin.wang@linux.alibaba.com
-Reviewed-by: Rik van Riel <riel@surriel.com>
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Link: https://lkml.kernel.org/r/8a5d53d19a8dbd51d7d81d153676895163e0735e.1772180459.git.senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: "Christoph Böhmwalder" <christoph.boehmwalder@linbit.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Lars Ellenberg <lars.ellenberg@linbit.com>
+Cc: Philipp Reisner <philipp.reisner@linbit.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ drivers/block/zram/zram_drv.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1812,16 +1812,22 @@ static inline pte_t ptep_get_and_clear(s
- 	return __ptep_get_and_clear(mm, addr, ptep);
- }
- 
-+#define test_and_clear_young_ptes test_and_clear_young_ptes
-+static inline int test_and_clear_young_ptes(struct vm_area_struct *vma,
-+					    unsigned long addr, pte_t *ptep,
-+					    unsigned int nr)
-+{
-+	if (likely(nr == 1 && !pte_cont(__ptep_get(ptep))))
-+		return __ptep_test_and_clear_young(vma, addr, ptep);
-+
-+	return contpte_test_and_clear_young_ptes(vma, addr, ptep, nr);
-+}
-+
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
- static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
- 				unsigned long addr, pte_t *ptep)
+--- a/drivers/block/zram/zram_drv.c~zram-do-not-autocorrect-bad-recompression-parameters
++++ a/drivers/block/zram/zram_drv.c
+@@ -2524,19 +2524,16 @@ static ssize_t recompress_store(struct d
+ 				struct device_attribute *attr,
+ 				const char *buf, size_t len)
  {
--	pte_t orig_pte = __ptep_get(ptep);
--
--	if (likely(!pte_valid_cont(orig_pte)))
--		return __ptep_test_and_clear_young(vma, addr, ptep);
--
--	return contpte_test_and_clear_young_ptes(vma, addr, ptep, 1);
-+	return test_and_clear_young_ptes(vma, addr, ptep, 1);
- }
++	u32 prio = ZRAM_SECONDARY_COMP, prio_max = ZRAM_MAX_COMPS;
+ 	struct zram *zram = dev_to_zram(dev);
+ 	char *args, *param, *val, *algo = NULL;
+ 	u64 num_recomp_pages = ULLONG_MAX;
+ 	struct zram_pp_ctl *ctl = NULL;
+ 	struct zram_pp_slot *pps;
+ 	u32 mode = 0, threshold = 0;
+-	u32 prio, prio_max;
+ 	struct page *page = NULL;
+ 	ssize_t ret;
  
- #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+-	prio = ZRAM_SECONDARY_COMP;
+-	prio_max = zram->num_active_comps;
+-
+ 	args = skip_spaces(buf);
+ 	while (*args) {
+ 		args = next_arg(args, &param, &val);
+@@ -2586,10 +2583,7 @@ static ssize_t recompress_store(struct d
+ 			if (ret)
+ 				return ret;
+ 
+-			if (prio == ZRAM_PRIMARY_COMP)
+-				prio = ZRAM_SECONDARY_COMP;
+-
+-			prio_max = prio + 1;
++			prio_max = min(prio + 1, ZRAM_MAX_COMPS);
+ 			continue;
+ 		}
+ 	}
+@@ -2609,7 +2603,7 @@ static ssize_t recompress_store(struct d
+ 				continue;
+ 
+ 			if (!strcmp(zram->comp_algs[prio], algo)) {
+-				prio_max = prio + 1;
++				prio_max = min(prio + 1, ZRAM_MAX_COMPS);
+ 				found = true;
+ 				break;
+ 			}
+@@ -2626,6 +2620,11 @@ static ssize_t recompress_store(struct d
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
++
++	if (prio < ZRAM_SECONDARY_COMP || prio >= ZRAM_MAX_COMPS) {
++		ret = -EINVAL;
++		goto out;
++	}
+ 
+ 	page = alloc_page(GFP_KERNEL);
+ 	if (!page) {
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-use-inline-helper-functions-instead-of-ugly-macros.patch
-mm-rename-ptep-pmdp_clear_young_notify-to-ptep-pmdp_test_and_clear_young_notify.patch
-mm-rmap-add-a-zone_device-folio-warning-in-folio_referenced.patch
-mm-add-a-batched-helper-to-clear-the-young-flag-for-large-folios.patch
-mm-support-batched-checking-of-the-young-flag-for-mglru.patch
-arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes.patch
+zram-rename-writeback_compressed-device-attr.patch
+zram-do-not-autocorrect-bad-recompression-parameters.patch
+zram-drop-num_active_comps.patch
+zram-recompression-priority-param-should-override-algo.patch
+zram-update-recompression-documentation.patch
+zram-remove-chained-recompression.patch
 
