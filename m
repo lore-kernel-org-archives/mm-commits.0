@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E5A133F8DA;
-	Sat, 28 Feb 2026 19:33:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13AA6313E31;
+	Sat, 28 Feb 2026 19:52:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772307188; cv=none; b=H0Tp5oJsTIQ2yg6nyhhRW9Dl9+4DptnjL/CEDE5JlRLovbSaLsSkYr6Moe0976WO8fWOFe3eBMi3Dil73Fvk1CiEYi6LTur5emeQ7v520u/JDSYZ3sYvSZvQff6VUrX7IsLZKQd30USwKvJA6dJ/mqS0SF9lFs+KodRLULndz/A=
+	t=1772308342; cv=none; b=mUZIuzo/k2E3LEDWKiQwhVNEek7BgFMIHYW77VIjT44mU1WvjEu7vPetL/RDbZdGLEclFnf+5pGuTn53O2UCQ6BusqhrRPSmNRXZPTdSUB2M35Fc3IODfcO3DvJM1a00JP5rQF6p0ozrA45ar4JziHvDyu2wLgM6NplcDXL3dUU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772307188; c=relaxed/simple;
-	bh=DCOqyvKSn75Oz0wmRxY7e71iW8eEcTFv7hqiQsOwmQo=;
-	h=Date:To:From:Subject:Message-Id; b=qDhmzHKThmpmn6D3TO0yz7c137dlHwrqgJyV13gHFWLebxlNbICn2QTkGshusAM4SZIGumc3SiQua0njw5qYtnNQk9WvkVvtHrqQ9LQXdjVQdTxPjUc6nNC3OTTuDe2W6J8wKgg/OSFiMNAU4eWEpawX8t8RiWLLrFbFUjgpdvA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZrGJKGTK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772308342; c=relaxed/simple;
+	bh=c2Zn/xxLojynkFcP3OA4wo7QpyGs7m+4o0ASAhCxny0=;
+	h=Date:To:From:Subject:Message-Id; b=hZyFwIbftXDPvWASNJ/18+SmClFpeNyzdJZLBlMEfAbs6kQSdZZp1mW3zpRcyg1PRpiUxely1iX94bf8pFM0XFf75mPkQtHsB7jIL530yseG0mIKOws4fh2V0OqK/AenBFAwtL3Wzjw5KLe3+B48jt+soqwr7NBFSLfEo+f2ADs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LWo7Y5hg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZrGJKGTK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3F68C116D0;
-	Sat, 28 Feb 2026 19:33:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LWo7Y5hg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90F2CC116D0;
+	Sat, 28 Feb 2026 19:52:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772307188;
-	bh=DCOqyvKSn75Oz0wmRxY7e71iW8eEcTFv7hqiQsOwmQo=;
+	s=korg; t=1772308341;
+	bh=c2Zn/xxLojynkFcP3OA4wo7QpyGs7m+4o0ASAhCxny0=;
 	h=Date:To:From:Subject:From;
-	b=ZrGJKGTKTWQfZubafWWSxJyR7TwC3Z3Qff6aI6flKlkwDy7XoRmuu9OEYoXK1hp55
-	 gYyjML8/biMJrQ/9wvLCd8qLm9dkKpgtZ7oOkEJgIFJTG14LDw+TMN+PRQfcAgMTWy
-	 asDZFIVG/+02LdqRHX/P1A4dNe98aIktOwagyfcA=
-Date: Sat, 28 Feb 2026 11:33:07 -0800
-To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,hughd@google.com,dev.jain@arm.com,david@kernel.org,bas@dfinity.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=LWo7Y5hg0SyE9/xyJSA2V3UOSaqoyuZaLxkx6mpTRoCrF2v2ZrrYPREBFp77AdFAO
+	 hTRpqZS+E/kyCVr3cMqcy8i5ObZfsYQomTNeD6609uRY/qIIWKPg7e6rtHTQ237Rn0
+	 BrR/Mj+fVmbENiyZfk9MLZBmVbe/gGj4Lnjis0YU=
+Date: Sat, 28 Feb 2026 11:52:20 -0800
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,stable@vger.kernel.org,dyoung@redhat.com,coxu@redhat.com,bhe@redhat.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-a-folio_split-race-condition-with-folio_try_get.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260228193307.E3F68C116D0@smtp.kernel.org>
+Subject: + crash_dump-dont-log-dm-crypt-key-bytes-in-read_key_from_user_keying.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260228195221.90F2CC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: fix a folio_split() race condition with folio_try_get()
+     Subject: crash_dump: don't log dm-crypt key bytes in read_key_from_user_keying
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-huge_memory-fix-a-folio_split-race-condition-with-folio_try_get.patch
+     crash_dump-dont-log-dm-crypt-key-bytes-in-read_key_from_user_keying.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-a-folio_split-race-condition-with-folio_try_get.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_dump-dont-log-dm-crypt-key-bytes-in-read_key_from_user_keying.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,83 +58,46 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: fix a folio_split() race condition with folio_try_get()
-Date: Fri, 27 Feb 2026 20:06:14 -0500
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: crash_dump: don't log dm-crypt key bytes in read_key_from_user_keying
+Date: Sat, 28 Feb 2026 00:00:09 +0100
 
-During a pagecache folio split, the values in the related xarray should
-not be changed from the original folio at xarray split time until all
-after-split folios are well formed and stored in the xarray.  Current use
-of xas_try_split() in __split_unmapped_folio() lets some after-split
-folios show up at wrong indices in the xarray.  When these misplaced
-after-split folios are unfrozen, before correct folios are stored via
-__xa_store(), and grabbed by folio_try_get(), they are returned to
-userspace at wrong file indices, causing data corruption.
+When debug logging is enabled, read_key_from_user_keying() logs the first
+8 bytes of the key payload and partially exposes the dm-crypt key.  Stop
+logging any key bytes.
 
-Fix it by using the original folio in xas_try_split() calls, so that
-folio_try_get() can get the right after-split folios after the original
-folio is unfrozen.
-
-Uniform split, split_huge_page*(), is not affected, since it uses
-xas_split_alloc() and xas_split() only once and stores the original folio
-in the xarray.
-
-Fixes below points to the commit introduces the code, but folio_split() is
-used in a later commit 7460b470a131f ("mm/truncate: use folio_split() in
-truncate operation").
-
-Link: https://lkml.kernel.org/r/20260228010614.2536430-1-ziy@nvidia.com
-Fixes: 00527733d0dc8 ("mm/huge_memory: add two new (not yet used) functions for folio_split()")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reported-by: Bas van Dijk <bas@dfinity.org>
-Closes: https://lore.kernel.org/all/CAKNNEtw5_kZomhkugedKMPOG-sxs5Q5OLumWJdiWXv+C9Yct0w@mail.gmail.com/
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20260227230008.858641-2-thorsten.blum@linux.dev
+Fixes: 479e58549b0f ("crash_dump: store dm crypt keys in kdump reserved memory")
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Coiby Xu <coxu@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ kernel/crash_dump_dm_crypt.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-a-folio_split-race-condition-with-folio_try_get
-+++ a/mm/huge_memory.c
-@@ -3631,6 +3631,7 @@ static int __split_unmapped_folio(struct
- 	const bool is_anon = folio_test_anon(folio);
- 	int old_order = folio_order(folio);
- 	int start_order = split_type == SPLIT_TYPE_UNIFORM ? new_order : old_order - 1;
-+	struct folio *origin_folio = folio;
- 	int split_order;
+--- a/kernel/crash_dump_dm_crypt.c~crash_dump-dont-log-dm-crypt-key-bytes-in-read_key_from_user_keying
++++ a/kernel/crash_dump_dm_crypt.c
+@@ -168,8 +168,8 @@ static int read_key_from_user_keying(str
  
- 	/*
-@@ -3656,7 +3657,13 @@ static int __split_unmapped_folio(struct
- 				xas_split(xas, folio, old_order);
- 			else {
- 				xas_set_order(xas, folio->index, split_order);
--				xas_try_split(xas, folio, old_order);
-+				/*
-+				 * use the original folio, so that a parallel
-+				 * folio_try_get() waits on it until xarray is
-+				 * updated with after-split folios and
-+				 * the original one is unfrozen.
-+				 */
-+				xas_try_split(xas, origin_folio, old_order);
- 				if (xas_error(xas))
- 					return xas_error(xas);
- 			}
+ 	memcpy(dm_key->data, ukp->data, ukp->datalen);
+ 	dm_key->key_size = ukp->datalen;
+-	kexec_dprintk("Get dm crypt key (size=%u) %s: %8ph\n", dm_key->key_size,
+-		      dm_key->key_desc, dm_key->data);
++	kexec_dprintk("Get dm crypt key (size=%u) %s\n", dm_key->key_size,
++		      dm_key->key_desc);
+ 
+ out:
+ 	up_read(&key->sem);
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
-mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release.patch
-mm-huge_memory-fix-a-folio_split-race-condition-with-folio_try_get.patch
+crash_dump-dont-log-dm-crypt-key-bytes-in-read_key_from_user_keying.patch
+fork-replace-simple_strtoul-with-kstrtoul-in-coredump_filter_setup.patch
+crash_dump-remove-redundant-less-than-zero-check.patch
 
