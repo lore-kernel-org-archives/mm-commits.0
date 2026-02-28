@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 426C936EA87
-	for <mm-commits@vger.kernel.org>; Fri, 27 Feb 2026 21:36:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AD55326927
+	for <mm-commits@vger.kernel.org>; Sat, 28 Feb 2026 18:58:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772228186; cv=none; b=ZHo+jJZEbuCoqex9F35HP+mifT/8diupzkzo7onfnluXFMRD4H4wSEliCosbRkYepv+Squ2qvWEvMQPJa1RSP6E07bvlDy5eI2f987Ni05Wi8rY9UYq4Gkb3GLtVt+jAJ1rL1GHzYC55rhzPme0eBkl70MpRiAK2rGAChY0BaMQ=
+	t=1772305113; cv=none; b=N53ZBSRflY0qRV/LvvLJtw2cUCABNzMCPMXyAH7B9qUcEOtZ4glS/U+NQgrBMPs0lqulpq6XpnwZoTtnQeKzRLrrPJ1R7TeIS19a1yVAcVZ35Ic0PK/OJiSr9DNpaQMdA528b3aZjW6pikvGt+gFDAGQNPU8vZqHUXbHbk0L3vw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772228186; c=relaxed/simple;
-	bh=d2adtB6XpEdCFmeqURdEjebWUjt3iSatlxwaZvpXKrY=;
-	h=Date:To:From:Subject:Message-Id; b=AjXcPje+hxYte/Z5RC/pSm4+rxoHXJRONJSQbaVLOWX2sgS8L2DhX8eEiivmfheLRXzc7EVcejjKwgzmjWUh+nldOPbwH+U6gkhwiy/65VI8G1x4J2s0TPiOW5bu6MZdaomy0awC8zHnc1JgIbHFZuljeQlfdfqzDweGLr7fQSM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LSWQ71MC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772305113; c=relaxed/simple;
+	bh=RTvrVwaVtHSCe3UQ1Q+NXfAGK8olCO/kIpmKlT0C9mw=;
+	h=Date:To:From:Subject:Message-Id; b=ZAdx/ucMv9E6XZOkov8WSHA8qBs3IaDqepKyuqyHnK6G2h2S4qv4u56Lqb39A5SlY00/lAK/I3aeW9KtetoCInfxCy/8i41n7cz9srZIqJZO0Pl78VqPd/ECCnfHs7KGz1IiCYR7d1QOQ9XXZeltM4Wp89m21Fs9LajJLvtaVko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iVxWltrZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LSWQ71MC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C59C7C19425;
-	Fri, 27 Feb 2026 21:36:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iVxWltrZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1737BC116D0;
+	Sat, 28 Feb 2026 18:58:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772228185;
-	bh=d2adtB6XpEdCFmeqURdEjebWUjt3iSatlxwaZvpXKrY=;
+	s=korg; t=1772305113;
+	bh=RTvrVwaVtHSCe3UQ1Q+NXfAGK8olCO/kIpmKlT0C9mw=;
 	h=Date:To:From:Subject:From;
-	b=LSWQ71MCyd8j2QKcQv3v9mbpB/L1Etk6bO79Gj+INKBTboK0Ak/dxgdEyYCzw6PCg
-	 wqsYM0eElIe8qDmX1RYtMn0O0hLErSND0t10X1+9MKx3LH84qyn/PVCyd7AAqtubXA
-	 50Jr1T2+z0lehvC+JyCvLyqGyPLxtp5FL1e4VLRI=
-Date: Fri, 27 Feb 2026 13:36:25 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
+	b=iVxWltrZozYEz2BnjaBCgerBI6KZfWtsjpxjk4YgT1EnhNbLZD0zPohy2zTTy/US1
+	 bnwi1+GXegzm/sXjQqCmoJZeFmjYosXAxV02zZH782c7WVMBIC/2Owe6ZV09IUVkhh
+	 pcsgPSXaeroiW1fcf41BIXZgqdDmh2va0GIP8IO0=
+Date: Sat, 28 Feb 2026 10:58:32 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuzhao@google.com,yuanchu@google.com,wjl.linux@gmail.com,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,laoar.shao@gmail.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,21cnbao@gmail.com,lenohou@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + khugepaged-remove-redundant-index-check-for-pmd-folios.patch added to mm-new branch
-Message-Id: <20260227213625.C59C7C19425@smtp.kernel.org>
+Subject: + mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch added to mm-new branch
+Message-Id: <20260228185833.1737BC116D0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: khugepaged: remove redundant index check for pmd-folios
+     Subject: mm/mglru: fix cgroup OOM during MGLRU state switching
 has been added to the -mm mm-new branch.  Its filename is
-     khugepaged-remove-redundant-index-check-for-pmd-folios.patch
+     mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/khugepaged-remove-redundant-index-check-for-pmd-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,81 +66,174 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: khugepaged: remove redundant index check for pmd-folios
-Date: Fri, 27 Feb 2026 20:05:01 +0530
+From: Leno Hou <lenohou@gmail.com>
+Subject: mm/mglru: fix cgroup OOM during MGLRU state switching
+Date: Sun, 1 Mar 2026 00:10:08 +0800
 
-Claim: folio_order(folio) == HPAGE_PMD_ORDER => folio->index == start.
+When the Multi-Gen LRU (MGLRU) state is toggled dynamically, a race
+condition exists between the state switching and the memory reclaim path. 
+This can lead to unexpected cgroup OOM kills, even when plenty of
+reclaimable memory is available.
 
-Proof: Both loops in hpage_collapse_scan_file and collapse_file, which
-iterate on the xarray, have the invariant that start <= folio->index <
-start + HPAGE_PMD_NR ...  (i)
+*** Problem Description ***
 
-A folio is always naturally aligned in the pagecache, therefore
-folio_order == HPAGE_PMD_ORDER => IS_ALIGNED(folio->index, HPAGE_PMD_NR) == true ... (ii)
+The issue arises from a "reclaim vacuum" during the transition:
 
-thp_vma_allowable_order -> thp_vma_suitable_order requires that the virtual
-offsets in the VMA are aligned to the order,
-=> IS_ALIGNED(start, HPAGE_PMD_NR) == true ... (iii)
+1. When disabling MGLRU, lru_gen_change_state() sets lrugen->enabled to
+   false before the pages are drained from MGLRU lists back to
+   traditional LRU lists.
+2. Concurrent reclaimers in shrink_lruvec() see lrugen->enabled as false
+   and skip the MGLRU path.
+3. However, these pages might not have reached the traditional LRU lists
+   yet, or the changes are not yet visible to all CPUs due to a lack of
+   synchronization.
+4. get_scan_count() subsequently finds traditional LRU lists empty,
+   concludes there is no reclaimable memory, and triggers an OOM kill.
 
-Combining (i), (ii) and (iii), the claim is proven.
+A similar race can occur during enablement, where the reclaimer sees the
+new state but the MGLRU lists haven't been populated via fill_evictable()
+yet.
 
-Therefore, remove this check.
-While at it, simplify the comments.
+*** Solution ***
 
-Link: https://lkml.kernel.org/r/20260227143501.1488110-1-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Introduce a 'draining' state to bridge the gap during transitions:
+
+- Use smp_store_release() and smp_load_acquire() to ensure the visibility
+  of 'enabled' and 'draining' flags across CPUs.
+- Modify shrink_lruvec() to allow a "joint reclaim" period. If an lruvec
+  is in the 'draining' state, the reclaimer will attempt to scan MGLRU
+  lists first, and then fall through to traditional LRU lists instead
+  of returning early. This ensures that folios are visible to at least
+  one reclaim path at any given time.
+
+*** Reproduction ***
+
+The issue was consistently reproduced on v6.1.157 and v6.18.3 using
+a high-pressure memory cgroup (v1) environment.
+
+Reproduction steps:
+1. Create a 16GB memcg and populate it with 10GB file cache (5GB active)
+   and 8GB active anonymous memory.
+2. Toggle MGLRU state while performing new memory allocations to force
+   direct reclaim.
+
+Reproduction script:
+
+#!/bin/bash
+# Fixed reproduction for memcg OOM during MGLRU toggle
+set -euo pipefail
+
+MGLRU_FILE="/sys/kernel/mm/lru_gen/enabled"
+CGROUP_PATH="/sys/fs/cgroup/memory/memcg_oom_test"
+
+# Switch MGLRU dynamically in the background
+switch_mglru() {
+    local orig_val=$(cat "$MGLRU_FILE")
+    if [[ "$orig_val" != "0x0000" ]]; then
+        echo n > "$MGLRU_FILE" &
+    else
+        echo y > "$MGLRU_FILE" &
+    fi
+}
+
+# Setup 16G memcg
+mkdir -p "$CGROUP_PATH"
+echo $((16 * 1024 * 1024 * 1024)) > "$CGROUP_PATH/memory.limit_in_bytes"
+echo $$ > "$CGROUP_PATH/cgroup.procs"
+
+# 1. Build memory pressure (File + Anon)
+dd if=/dev/urandom of=/tmp/test_file bs=1M count=10240
+dd if=/tmp/test_file of=/dev/null bs=1M # Warm up cache
+
+stress-ng --vm 1 --vm-bytes 8G --vm-keep -t 600 &
+sleep 5
+
+# 2. Trigger switch and concurrent allocation
+switch_mglru
+stress-ng --vm 1 --vm-bytes 2G --vm-populate --timeout 5s || echo "OOM Triggered"
+
+# Check OOM counter
+grep oom_kill "$CGROUP_PATH/memory.oom_control"
+
+Link: https://lkml.kernel.org/r/20260228161008.707-1-lenohou@gmail.com
+Signed-off-by: Leno Hou <lenohou@gmail.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Barry Song <21cnbao@gmail.com>
+Cc: Jialing Wang <wjl.linux@gmail.com>
+Cc: Yafang Shao <laoar.shao@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ include/linux/mmzone.h |    2 ++
+ mm/vmscan.c            |   14 +++++++++++---
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
---- a/mm/khugepaged.c~khugepaged-remove-redundant-index-check-for-pmd-folios
-+++ a/mm/khugepaged.c
-@@ -2015,9 +2015,7 @@ static enum scan_result collapse_file(st
- 		 * we locked the first folio, then a THP might be there already.
- 		 * This will be discovered on the first iteration.
- 		 */
--		if (folio_order(folio) == HPAGE_PMD_ORDER &&
--		    folio->index == start) {
--			/* Maybe PMD-mapped */
-+		if (folio_order(folio) == HPAGE_PMD_ORDER) {
- 			result = SCAN_PTE_MAPPED_HUGEPAGE;
- 			goto out_unlock;
- 		}
-@@ -2345,15 +2343,11 @@ static enum scan_result hpage_collapse_s
- 			continue;
+--- a/include/linux/mmzone.h~mm-mglru-fix-cgroup-oom-during-mglru-state-switching
++++ a/include/linux/mmzone.h
+@@ -577,6 +577,8 @@ struct lru_gen_folio {
+ 	atomic_long_t refaulted[NR_HIST_GENS][ANON_AND_FILE][MAX_NR_TIERS];
+ 	/* whether the multi-gen LRU is enabled */
+ 	bool enabled;
++	/* whether the multi-gen LRU is draining to LRU */
++	bool draining;
+ 	/* the memcg generation this lru_gen_folio belongs to */
+ 	u8 gen;
+ 	/* the list segment this lru_gen_folio belongs to */
+--- a/mm/vmscan.c~mm-mglru-fix-cgroup-oom-during-mglru-state-switching
++++ a/mm/vmscan.c
+@@ -5305,7 +5305,8 @@ static void lru_gen_change_state(bool en
+ 			VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
+ 			VM_WARN_ON_ONCE(!state_is_valid(lruvec));
+ 
+-			lruvec->lrugen.enabled = enabled;
++			smp_store_release(&lruvec->lrugen.enabled, enabled);
++			smp_store_release(&lruvec->lrugen.draining, true);
+ 
+ 			while (!(enabled ? fill_evictable(lruvec) : drain_evictable(lruvec))) {
+ 				lruvec_unlock_irq(lruvec);
+@@ -5313,6 +5314,8 @@ static void lru_gen_change_state(bool en
+ 				lruvec_lock_irq(lruvec);
+ 			}
+ 
++			smp_store_release(&lruvec->lrugen.draining, false);
++
+ 			lruvec_unlock_irq(lruvec);
  		}
  
--		if (folio_order(folio) == HPAGE_PMD_ORDER &&
--		    folio->index == start) {
--			/* Maybe PMD-mapped */
-+		if (folio_order(folio) == HPAGE_PMD_ORDER) {
- 			result = SCAN_PTE_MAPPED_HUGEPAGE;
- 			/*
--			 * For SCAN_PTE_MAPPED_HUGEPAGE, further processing
--			 * by the caller won't touch the page cache, and so
--			 * it's safe to skip LRU and refcount checks before
--			 * returning.
-+			 * PMD-sized THP implies that we can only try
-+			 * retracting the PTE table.
- 			 */
- 			folio_put(folio);
- 			break;
+@@ -5889,10 +5892,15 @@ static void shrink_lruvec(struct lruvec
+ 	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
+ 	bool proportional_reclaim;
+ 	struct blk_plug plug;
++	bool lrugen_enabled = smp_load_acquire(&lruvec->lrugen.enabled);
++	bool lru_draining = smp_load_acquire(&lruvec->lrugen.draining);
+ 
+-	if (lru_gen_enabled() && !root_reclaim(sc)) {
++	if (lrugen_enabled || lru_draining && !root_reclaim(sc)) {
+ 		lru_gen_shrink_lruvec(lruvec, sc);
+-		return;
++
++		if (!lru_draining)
++			return;
++
+ 	}
+ 
+ 	get_scan_count(lruvec, sc, nr);
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from lenohou@gmail.com are
 
-khugepaged-remove-redundant-index-check-for-pmd-folios.patch
+mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch
 
