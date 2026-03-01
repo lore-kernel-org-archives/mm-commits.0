@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57862430B99
-	for <mm-commits@vger.kernel.org>; Sun,  1 Mar 2026 19:32:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE97219CCF7
+	for <mm-commits@vger.kernel.org>; Sun,  1 Mar 2026 19:34:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772393542; cv=none; b=ASOZO9Ya1ZTEyQBvLjC2V2YaogqhPq65ytlgTYCCaaTl4n3BLHsVYcmRt7EE59buwCYYLOoTM+6vhRJcO8tWwBT51QMevs16YCq5p/Sc4V+dDbhy1AcrNWQ34gYiWQ+RmYEIUTsyFS98x0zwjuvJpeRjUX+L5jNONYdjWY8QuxI=
+	t=1772393662; cv=none; b=B34PbrHfwQQHD21S6rGVYfOdOMrTPkpU3lZwOTZ+gay0zcdYHLUB6diPcN5PkvI2H2qyLy95hiN22RGAoMdxgQrJawi5lw42urQcmj3qFPeU8G2724G4ANCb+nm9r3lW8Ls0pNeF/7eBh2hO/JCyFpdhPjo5PcGMNL7nSJcwfJM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772393542; c=relaxed/simple;
-	bh=W+BMSgU2VSSXDS3zmd/5zYIE9t9tV+EWBP9K4camp1E=;
-	h=Date:To:From:Subject:Message-Id; b=JFOQ59rSZZfDcgTJEbopjQWkQlSYzZ9l5JXQI5FnCJ41R+Eyg+pJoEQLABqO1i4snEdd5bpvoLLF8AZ4/HnMBNYFqI2Ndv9M4BNUDC6cSJ+oW5JjjRXEsnhtxFnAUO6U8TkMihirJThuxUHypOT68T7FCulo0KwZcSn09/FaVHA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jR6UnJsE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772393662; c=relaxed/simple;
+	bh=ykkxzQDv5g5oxht/zuPJ8SZNWmtQFbj5dOtGPtOCSAg=;
+	h=Date:To:From:Subject:Message-Id; b=KyifwGpETR+rrM38Pk+DemzAm7E3HvBv1oYxuYbRoPbhGWcdpT7KjIWrgB1gqFuhuyvQxgE/VgDtabb2aK2skAgmCi5kbRiBAIjfpDauS7rOOgNa0N753sJdIhe2VVIU+/hJTmhsigro3Rf4gR+xM7qk0Jw1k3vnU2CApNKwMuQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=smvkJ6Wz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jR6UnJsE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0F57C116C6;
-	Sun,  1 Mar 2026 19:32:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="smvkJ6Wz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73501C2BC86;
+	Sun,  1 Mar 2026 19:34:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772393541;
-	bh=W+BMSgU2VSSXDS3zmd/5zYIE9t9tV+EWBP9K4camp1E=;
+	s=korg; t=1772393662;
+	bh=ykkxzQDv5g5oxht/zuPJ8SZNWmtQFbj5dOtGPtOCSAg=;
 	h=Date:To:From:Subject:From;
-	b=jR6UnJsELC66qptR8xjWEx7sQd7XSePMLQDOSj5YQrHuqrIDflBhauSCQ85f9JGj5
-	 XkQsZIYwoL9GssOA39AW35dc5o4wFKID+iVzNHcxAVw7pDOH49LFbw/RQ6DNb7scrV
-	 xXRJsF4Gffn914aZTxLGFgiUqs3u1kgWTxz2jqUM=
-Date: Sun, 01 Mar 2026 11:32:21 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,will@kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kas@kernel.org,gorbunov.ivan@h-partners.com,david@kernel.org,gladyshev.ilya1@h-partners.com,akpm@linux-foundation.org
+	b=smvkJ6WzUvuceLaUBtZ07N6OuLMk7vSKvxS5QEnwlnJUHdPlV07UVYK3h/+wLAAE6
+	 yGJ7rsWHTKIWi4VJNwGt4UOweD1byNLWCvh1xt0ResseaqjcNIgcaYFKcoNFrEB/qn
+	 9GNqpfPHIBPJ5W7vVpi7+9NFxjxLbNbUcA6b7Yio=
+Date: Sun, 01 Mar 2026 11:34:21 -0800
+To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-ref_unless-functions-unless_zero-only.patch added to mm-new branch
-Message-Id: <20260301193221.C0F57C116C6@smtp.kernel.org>
+Subject: + crash_dump-use-sysfs_emit-in-sysfs-show-functions.patch added to mm-nonmm-unstable branch
+Message-Id: <20260301193422.73501C2BC86@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: make ref_unless functions unless_zero only
-has been added to the -mm mm-new branch.  Its filename is
-     mm-make-ref_unless-functions-unless_zero-only.patch
+     Subject: crash_dump: use sysfs_emit in sysfs show functions
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     crash_dump-use-sysfs_emit-in-sysfs-show-functions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-ref_unless-functions-unless_zero-only.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/crash_dump-use-sysfs_emit-in-sysfs-show-functions.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,99 +58,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Gladyshev Ilya <gladyshev.ilya1@h-partners.com>
-Subject: mm: make ref_unless functions unless_zero only
-Date: Sun, 1 Mar 2026 13:19:39 +0000
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: crash_dump: use sysfs_emit in sysfs show functions
+Date: Sun, 1 Mar 2026 13:51:07 +0100
 
-There are no users of (folio/page)_ref_add_unless(page, nr, u) with u != 0
-[1] and all current users are "internal" for page refcounting API.  This
-allows us to safely drop this parameter and reduce function semantics to
-the "unless zero" cases only.
+Replace sprintf() with sysfs_emit() in sysfs show functions.  sysfs_emit()
+is preferred for formatting sysfs output because it provides safer bounds
+checking.  No functional changes.
 
-If needed, these functions for the u!=0 cases can be trivially
-reintroduced later using the same atomic_add_unless operations as before.
-
-[1]: The last user was dropped in v5.18 kernel, commit 27674ef6c73f ("mm:
-remove the extra ZONE_DEVICE struct page refcount").  There is no trace of
-discussion as to why this cleanup wasn't done earlier.
-
-Link: https://lkml.kernel.org/r/a0c89b49d38c671a0bdd35069d15ee13e08314d2.1772370066.git.gladyshev.ilya1@h-partners.com
-Co-developed-by: Gorbunov Ivan <gorbunov.ivan@h-partners.com>
-Signed-off-by: Gorbunov Ivan <gorbunov.ivan@h-partners.com>
-Signed-off-by: Gladyshev Ilya <gladyshev.ilya1@h-partners.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Kiryl Shutsemau <kas@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yu Zhao <yuzhao@google.com>
+Link: https://lkml.kernel.org/r/20260301125106.911980-2-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |    2 +-
- include/linux/page_ref.h |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ kernel/crash_dump_dm_crypt.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/include/linux/mm.h~mm-make-ref_unless-functions-unless_zero-only
-+++ a/include/linux/mm.h
-@@ -1506,7 +1506,7 @@ static inline int folio_put_testzero(str
-  */
- static inline bool get_page_unless_zero(struct page *page)
+--- a/kernel/crash_dump_dm_crypt.c~crash_dump-use-sysfs_emit-in-sysfs-show-functions
++++ a/kernel/crash_dump_dm_crypt.c
+@@ -6,6 +6,7 @@
+ #include <linux/cc_platform.h>
+ #include <linux/configfs.h>
+ #include <linux/module.h>
++#include <linux/sysfs.h>
+ 
+ #define KEY_NUM_MAX 128	/* maximum dm crypt keys */
+ #define KEY_SIZE_MAX 256	/* maximum dm crypt key size */
+@@ -189,7 +190,7 @@ static inline struct config_key *to_conf
+ 
+ static ssize_t config_key_description_show(struct config_item *item, char *page)
  {
--	return page_ref_add_unless(page, 1, 0);
-+	return page_ref_add_unless_zero(page, 1);
+-	return sprintf(page, "%s\n", to_config_key(item)->description);
++	return sysfs_emit(page, "%s\n", to_config_key(item)->description);
  }
  
- static inline struct folio *folio_get_nontail_page(struct page *page)
---- a/include/linux/page_ref.h~mm-make-ref_unless-functions-unless_zero-only
-+++ a/include/linux/page_ref.h
-@@ -228,18 +228,18 @@ static inline int folio_ref_dec_return(s
- 	return page_ref_dec_return(&folio->page);
- }
+ static ssize_t config_key_description_store(struct config_item *item,
+@@ -265,7 +266,7 @@ static struct config_item *config_keys_m
  
--static inline bool page_ref_add_unless(struct page *page, int nr, int u)
-+static inline bool page_ref_add_unless_zero(struct page *page, int nr)
+ static ssize_t config_keys_count_show(struct config_item *item, char *page)
  {
--	bool ret = atomic_add_unless(&page->_refcount, nr, u);
-+	bool ret = atomic_add_unless(&page->_refcount, nr, 0);
- 
- 	if (page_ref_tracepoint_active(page_ref_mod_unless))
- 		__page_ref_mod_unless(page, nr, ret);
- 	return ret;
+-	return sprintf(page, "%d\n", key_count);
++	return sysfs_emit(page, "%d\n", key_count);
  }
  
--static inline bool folio_ref_add_unless(struct folio *folio, int nr, int u)
-+static inline bool folio_ref_add_unless_zero(struct folio *folio, int nr)
+ CONFIGFS_ATTR_RO(config_keys_, count);
+@@ -274,7 +275,7 @@ static bool is_dm_key_reused;
+ 
+ static ssize_t config_keys_reuse_show(struct config_item *item, char *page)
  {
--	return page_ref_add_unless(&folio->page, nr, u);
-+	return page_ref_add_unless_zero(&folio->page, nr);
+-	return sprintf(page, "%d\n", is_dm_key_reused);
++	return sysfs_emit(page, "%d\n", is_dm_key_reused);
  }
  
- /**
-@@ -255,12 +255,12 @@ static inline bool folio_ref_add_unless(
-  */
- static inline bool folio_try_get(struct folio *folio)
+ static ssize_t config_keys_reuse_store(struct config_item *item,
+@@ -321,7 +322,7 @@ static bool restore;
+ 
+ static ssize_t config_keys_restore_show(struct config_item *item, char *page)
  {
--	return folio_ref_add_unless(folio, 1, 0);
-+	return folio_ref_add_unless_zero(folio, 1);
+-	return sprintf(page, "%d\n", restore);
++	return sysfs_emit(page, "%d\n", restore);
  }
  
- static inline bool folio_ref_try_add(struct folio *folio, int count)
- {
--	return folio_ref_add_unless(folio, count, 0);
-+	return folio_ref_add_unless_zero(folio, count);
- }
- 
- static inline int page_ref_freeze(struct page *page, int count)
+ static ssize_t config_keys_restore_store(struct config_item *item,
 _
 
-Patches currently in -mm which might be from gladyshev.ilya1@h-partners.com are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
-mm-make-ref_unless-functions-unless_zero-only.patch
+crash_dump-dont-log-dm-crypt-key-bytes-in-read_key_from_user_keying.patch
+fork-replace-simple_strtoul-with-kstrtoul-in-coredump_filter_setup.patch
+crash_dump-remove-redundant-less-than-zero-check.patch
+crash_dump-fix-typo-in-function-name-read_key_from_user_keying.patch
+crash_dump-use-sysfs_emit-in-sysfs-show-functions.patch
 
