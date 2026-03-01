@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D645A33B6DC
-	for <mm-commits@vger.kernel.org>; Sun,  1 Mar 2026 19:26:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CC582E2852
+	for <mm-commits@vger.kernel.org>; Sun,  1 Mar 2026 19:26:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772393162; cv=none; b=fgoFZ+zqfEs/D8iKB1mHtOIXw36Ie+opF1O1jN0k/B+1ttomhGOdOPvReLbjM7hV6D3KI36RVdtdA3esK6MXRdnd8sSA/DYyFH87zl12nmHFAfUyEJyD8M3wK66xuB/bApABCkme+5ZLRGs8lZRY7GfWcyQr0YD2ONUpLOla9O4=
+	t=1772393165; cv=none; b=nt1V5YqbZjgHUYgddzvyA2YkSdl4Eifv2/hpxWHGQyVkN3XsOA//trpzUb7cqoMTfSycZaLjGQHv8vE/99JzMPlm6Nm6en06ILqL8ca3BP4jZol0ddTkMuXJUe7a5/dngB0LfvAW86XgcfONjbGxDZJqHcXAOmm2Tn48L2KeZpk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772393162; c=relaxed/simple;
-	bh=uOEtFGHp2b19p0wMMW8k7haQJL63iC7wMWXlNSFmPds=;
-	h=Date:To:From:Subject:Message-Id; b=Mp5Bwr8axS/aGBTly3QcLNFAla59UrzaKf9goLnDeQPw6Tx7i1dzRpVb4VXf+DdWqE8epXvpSNoWQScC/Ruxu6+72MoGX24orMu5bC+7EYrOGlJksmpPZ77clPkmvBjh3lntczEQZxY7DPQeQQhwuC0XK4QM3wRo8FYbNu0yLZk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lIZ7CpgJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772393165; c=relaxed/simple;
+	bh=qWAfYiq2Zp2nibbuthSH188+6SRT5HtqaONsR5aeEmQ=;
+	h=Date:To:From:Subject:Message-Id; b=KjhO5cd4y+Y+ZZlFuAe/EUAcdShKG992rnz2dhiLX7uPcdcNIDc5AzSz3ZMm94jf61S8J/r5GmD1Adu/nYqjAaUSmCVC3CM2SVCfbpbOU5dZjQWzqzAPS6Og4TLe5k6xet1WVq5kLUgCKDGP35oETcBUGGnB7X2GNHkfpB5UVvM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HBpXrf2R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lIZ7CpgJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A49BDC2BC86;
-	Sun,  1 Mar 2026 19:26:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HBpXrf2R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BBF0C2BC86;
+	Sun,  1 Mar 2026 19:26:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772393162;
-	bh=uOEtFGHp2b19p0wMMW8k7haQJL63iC7wMWXlNSFmPds=;
+	s=korg; t=1772393164;
+	bh=qWAfYiq2Zp2nibbuthSH188+6SRT5HtqaONsR5aeEmQ=;
 	h=Date:To:From:Subject:From;
-	b=lIZ7CpgJ+2H7x5HfNb9kvL4JQJXee6BqGw0r4aon6hetOCN9TH5sx7zAGDOtJJ/7A
-	 3HiuWezS+l8qO+3RG/kwRNhB5/oe1uaadUpcFAa8la/QxotX9LEBKqKMFdMqfmDQpe
-	 lDNVRt+dGN0ivczwhMCdn7IQNHlcZ69gjEEObo9c=
-Date: Sun, 01 Mar 2026 11:26:02 -0800
+	b=HBpXrf2RkGvXsZFdw9BM9tHL0GS0dDh5Mr6GZWBSOqmQBxDJAVa5nm9nZXfIr2Cpt
+	 iJKGUyklB8AS8Xp2mZsDwNGdUc9NQN0A5+lkGirJ5oUqg3IdGRZ4M/eot1fEwbTJfJ
+	 4YTW4NT3/vOr9FhzSafsJOrVjVtgPivFP71BmbvI=
+Date: Sun, 01 Mar 2026 11:26:04 -0800
 To: mm-commits@vger.kernel.org,objecting@objecting.org,akpm@linux-foundation.org,hlcj1234567@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-glob-add-explicit-include-for-exporth.patch added to mm-nonmm-unstable branch
-Message-Id: <20260301192602.A49BDC2BC86@smtp.kernel.org>
+Subject: + lib-glob-replace-bitwise-or-with-logical-operation-on-boolean.patch added to mm-nonmm-unstable branch
+Message-Id: <20260301192604.9BBF0C2BC86@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: glob: add explicit include for export.h
+     Subject: lib: glob: replace bitwise OR with logical operation on boolean
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-glob-add-explicit-include-for-exporth.patch
+     lib-glob-replace-bitwise-or-with-logical-operation-on-boolean.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-glob-add-explicit-include-for-exporth.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-glob-replace-bitwise-or-with-logical-operation-on-boolean.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,34 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Josh Law <hlcj1234567@gmail.com>
-Subject: lib: glob: add explicit include for export.h
-Date: Sun, 1 Mar 2026 15:21:41 +0000
+Subject: lib: glob: replace bitwise OR with logical operation on boolean
+Date: Sun, 1 Mar 2026 15:21:42 +0000
 
-Include <linux/export.h> explicitly instead of relying on it being
-implicitly included by <linux/module.h> for the EXPORT_SYMBOL macro.
+Using bitwise OR (|=) on a boolean variable is valid C, but replacing it
+with a direct logical assignment makes the intent clearer and appeases
+strict static analysis tools.
 
-Link: https://lkml.kernel.org/r/20260301152143.2572137-1-objecting@objecting.org
+Link: https://lkml.kernel.org/r/20260301152143.2572137-2-objecting@objecting.org
 Signed-off-by: Josh Law <objecting@objecting.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/glob.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/glob.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/glob.c~lib-glob-add-explicit-include-for-exporth
+--- a/lib/glob.c~lib-glob-replace-bitwise-or-with-logical-operation-on-boolean
 +++ a/lib/glob.c
-@@ -1,6 +1,7 @@
- // SPDX-License-Identifier: (GPL-2.0 OR MIT)
- #include <linux/module.h>
- #include <linux/glob.h>
-+#include <linux/export.h>
+@@ -96,7 +96,8 @@ bool __pure glob_match(char const *pat,
+ 					class += 2;
+ 					/* Any special action if a > b? */
+ 				}
+-				match |= (a <= c && c <= b);
++				if (a <= c && c <= b)
++					match = true;
+ 			} while ((a = *class++) != ']');
  
- /*
-  * The only reason this code can be compiled as a module is because the
+ 			if (match == inverted)
 _
 
 Patches currently in -mm which might be from hlcj1234567@gmail.com are
