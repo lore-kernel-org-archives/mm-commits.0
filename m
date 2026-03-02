@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7704848123B
-	for <mm-commits@vger.kernel.org>; Mon,  2 Mar 2026 20:31:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80D473C6A35
+	for <mm-commits@vger.kernel.org>; Mon,  2 Mar 2026 20:43:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772483503; cv=none; b=rpsv2AtgNhVEfW51IIEHi1v8+ewJarjHVBUFishHmuH8tO9id26sMAq+/hZ7y9yjnoVkDFnB511+e90J253/Sz77C7a2aDZ9W8118gxxB9i8O1WrGa0l4bcdqKDZseyxzRzE6QN4Ca0gEuMZMOkMqBwOcjL/7fGT0bD1kx2S2j0=
+	t=1772484190; cv=none; b=uXWts43rFQw8Vu4P2sjspYG+Xo0Pw4xBEHAlOd1arIE4bOTfHpFhjVMBnDaPoG65JBp8hUDe1ZJ4sqvxykHosXnt7E69R4/AjeDIsU9xIX2qIE6V9EYn+V7o/euT+jMdhfpruJ/fPKizPbFlZaPLI7nqEXZxQb0Zv9cv1KyTrDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772483503; c=relaxed/simple;
-	bh=I+x/pViWk67cwjaKZoovOpB4FC1osmH9ihN0ZBQLFk0=;
-	h=Date:To:From:Subject:Message-Id; b=tXkQGnIBp+5uTpGyWZcbSoDq+CzwOINNWrwlPWYTyVcrt0cExj989jGH9mufZjE6BeOguuT6tgWUKYoSQU7NUm+2dp24RLUJxRwe7RNBW1oZ24TU62YpwZpsOf9z6DpEGHWGNSpB5+tCYHwlbYEU+mn02RtW6sqZwKaF8qpHMsQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fdA4R2Cg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772484190; c=relaxed/simple;
+	bh=8Q/FdEaukdVFSP+uzfgYQMl+1DYAuzSf7hJH2/pCTro=;
+	h=Date:To:From:Subject:Message-Id; b=HRgr/rYUeXGAiEiSaQ4+uhryqjTW8qIS+mGhN2qx05ya7l/4W0FkwjiiDBxskoLqATZ8phpr+7Yyd9QUY/qv9Ap+adJt1de1ItPnNd6taBuLNkfSDTmkonNDG5fqb9V+O7mnpjTZeNfv8JuPpdbJchkmgF2ydeOtqAfDyDhA7v8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mmuVPgqm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fdA4R2Cg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E67FBC19423;
-	Mon,  2 Mar 2026 20:31:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mmuVPgqm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E824DC19423;
+	Mon,  2 Mar 2026 20:43:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772483503;
-	bh=I+x/pViWk67cwjaKZoovOpB4FC1osmH9ihN0ZBQLFk0=;
+	s=korg; t=1772484190;
+	bh=8Q/FdEaukdVFSP+uzfgYQMl+1DYAuzSf7hJH2/pCTro=;
 	h=Date:To:From:Subject:From;
-	b=fdA4R2Cg7sQhMtj0OjXWDx7Mwk+AwUVt8q8EYU82DZ+MniwYfaHns4RqPEPCamOkX
-	 zpv6hj1fsouKNzHNTUa+8xihVdZpmN43xk8kg599bxFP8vJQf+IDzF00mGLJXqEigt
-	 E/c/yKUXD67jMHnUIGC1UfLt0RdXQ3rqusSExjG4=
-Date: Mon, 02 Mar 2026 12:31:42 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,skhan@linuxfoundation.org,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hillf.zj@alibaba-inc.com,david@kernel.org,corbet@lwn.net,jane.chu@oracle.com,akpm@linux-foundation.org
+	b=mmuVPgqmFr3Yvj8WXNFnXI9Rr6k1CmELnwFgFDFG00y/xDlWey2CsBzm2GybEx4E+
+	 uwSIcWaKrfrFly71dpCURY94NCsCKH6h6eQ3QlZkDFRAir4Yty4Z0aQb9cPXGv51cF
+	 YFYL0NgSoQuh5Bn9K0v/VtEJdYfq9085a5/5sqqA=
+Date: Mon, 02 Mar 2026 12:43:09 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,peterx@redhat.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,dywoq.contact@gmail.com,david@kernel.org,aleks.koyf@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentation-fix-a-hugetlbfs-reservation-statement.patch added to mm-new branch
-Message-Id: <20260302203142.E67FBC19423@smtp.kernel.org>
+Subject: + mm-initialize-seq-in-gup_fast-to-remove-wmaybe-uninitialized-warning.patch added to mm-new branch
+Message-Id: <20260302204309.E824DC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Documentation: fix a hugetlbfs reservation statement
+     Subject: mm: initialize 'seq' in gup_fast to remove -Wmaybe-uninitialized warning
 has been added to the -mm mm-new branch.  Its filename is
-     documentation-fix-a-hugetlbfs-reservation-statement.patch
+     mm-initialize-seq-in-gup_fast-to-remove-wmaybe-uninitialized-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-fix-a-hugetlbfs-reservation-statement.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-initialize-seq-in-gup_fast-to-remove-wmaybe-uninitialized-warning.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,62 +66,46 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jane Chu <jane.chu@oracle.com>
-Subject: Documentation: fix a hugetlbfs reservation statement
-Date: Mon, 2 Mar 2026 13:10:15 -0700
+From: Alexey Suchkov <aleks.koyf@gmail.com>
+Subject: mm: initialize 'seq' in gup_fast to remove -Wmaybe-uninitialized warning
+Date: Mon, 2 Mar 2026 22:34:05 +0300
 
-Documentation/mm/hugetlbfs_reserv.rst has
-	if (resv_needed <= (resv_huge_pages - free_huge_pages))
-		resv_huge_pages += resv_needed;
-which describes this code in gather_surplus_pages()
-	needed = (h->resv_huge_pages + delta) - h->free_huge_pages;
-	if (needed <= 0) {
-		h->resv_huge_pages += delta;
-		return 0;
-	}
-which means if there are enough free hugepages to account for the new
-reservation, simply update the global reservation count without
-further action.
+The local variable 'seq' in gup_fast (mm/gup.c) was declared
+without initialization which, with gcc-15.2.1 can trigger:
 
-But the description is backwards, it should be
-	if (resv_needed <= (free_huge_pages - resv_huge_pages))
-instead.
+mm/gup.c:3165:20: warning: `seq' may be used uninitialized [-Wmaybe-uninitialized]
 
-Link: https://lkml.kernel.org/r/20260302201015.1824798-1-jane.chu@oracle.com
-Fixes: 70bc0dc578b3f ("Documentation: vm, add hugetlbfs reservation overview")
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Work around this by initializing 'seq' to 0.  This does not change
+behavior, since read_seqcount_retry() always writes to it before use.
+
+Link: https://lkml.kernel.org/r/20260302193405.37961-1-dywoq.contact@gmail.com
+Signed-off-by: Alexey Suchkov <dywoq.contact@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/hugetlbfs_reserv.rst |    2 +-
+ mm/gup.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/hugetlbfs_reserv.rst~documentation-fix-a-hugetlbfs-reservation-statement
-+++ a/Documentation/mm/hugetlbfs_reserv.rst
-@@ -155,7 +155,7 @@ are enough free huge pages to accommodat
- the global reservation count resv_huge_pages is adjusted something like the
- following::
+--- a/mm/gup.c~mm-initialize-seq-in-gup_fast-to-remove-wmaybe-uninitialized-warning
++++ a/mm/gup.c
+@@ -3131,7 +3131,7 @@ static unsigned long gup_fast(unsigned l
+ {
+ 	unsigned long flags;
+ 	int nr_pinned = 0;
+-	unsigned seq;
++	unsigned int seq = 0;
  
--	if (resv_needed <= (resv_huge_pages - free_huge_pages))
-+	if (resv_needed <= (free_huge_pages - resv_huge_pages)
- 		resv_huge_pages += resv_needed;
- 
- Note that the global lock hugetlb_lock is held when checking and adjusting
+ 	if (!IS_ENABLED(CONFIG_HAVE_GUP_FAST) ||
+ 	    !gup_fast_permitted(start, end))
 _
 
-Patches currently in -mm which might be from jane.chu@oracle.com are
+Patches currently in -mm which might be from aleks.koyf@gmail.com are
 
-documentation-fix-a-hugetlbfs-reservation-statement.patch
+mm-initialize-seq-in-gup_fast-to-remove-wmaybe-uninitialized-warning.patch
 
