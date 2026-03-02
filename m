@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 998AA349B16
-	for <mm-commits@vger.kernel.org>; Mon,  2 Mar 2026 23:52:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EF30349B16
+	for <mm-commits@vger.kernel.org>; Mon,  2 Mar 2026 23:54:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772495579; cv=none; b=cdDU5ZcMjiE4Eqkyek5WTkmyIWQ9x+Ot7FCgjZDA6y2Jkr+XDqEttqSXWZVHfkvX6f3s3KYP93ozxTJj5XKyWlDbW8gcXX01Nkn6eTlct5SAx82juufA2L+bdcafvaqBCO28c7fBvi51jIYV3IVMRe7aqUHitogNx2o0h8iUDrE=
+	t=1772495661; cv=none; b=Q0Rpfps8YzrLuPgS5e3aftQ/aggLP8M/MmnmgMDJ5AGbrkfFjWbb1KuaHdsrs6v7weQHaycW/ZSiHf7v+u7B5RSlG/+0gRPx8hVXgGfF/8/Nzvm2VcVMKsv9nXh6ojyuzy89o5PDhCZlvCz8xwN3SNx/AnYajK2b1Ht7nokagic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772495579; c=relaxed/simple;
-	bh=yVs9/7/xrFZvjRCfR/DN12rYBZs1noTl/bKdyJXHawQ=;
-	h=Date:To:From:Subject:Message-Id; b=sB3vn8wFm2tBsSu2uqN8ixzi9umoqHmvxMOWkk6VP/d/LYVSwPMO/X+58O2+USYV6zpyNOJKoQJxtLVqUoMeMasZwkKUh3guk8fanNhc94ulPzysvA7n7mJ85yjSYCzGDHWUKNcO5zSUkYzED5qxJxgElT3+QnD0ZinnYWsmqDs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hX24/hUS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772495661; c=relaxed/simple;
+	bh=ZbcapqefMz4mPZHRme7WPBcxFZeQ2pTVjnDvyMU3rF4=;
+	h=Date:To:From:Subject:Message-Id; b=V/4e1xpIss0SscKYbcwpwdP4nFdIzR5aDWE/OQa3/Lslb7Uth4YDPUrccN9/OA1ToOaIzCB04GyhTL+RDqYs6y6hG5HyU11pCHpWzmZLsXPaLCUuw8+0gwxoLUFSL+xbfOn0bbZyx6NdrHtUdSyrp01CREU9QGM1I3hWZ4qN+nc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2HlBKvkF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hX24/hUS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2058AC19423;
-	Mon,  2 Mar 2026 23:52:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2HlBKvkF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5B17C19423;
+	Mon,  2 Mar 2026 23:54:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772495579;
-	bh=yVs9/7/xrFZvjRCfR/DN12rYBZs1noTl/bKdyJXHawQ=;
+	s=korg; t=1772495660;
+	bh=ZbcapqefMz4mPZHRme7WPBcxFZeQ2pTVjnDvyMU3rF4=;
 	h=Date:To:From:Subject:From;
-	b=hX24/hUSY8hybO7Wtmk7tMwY2aM+yMs7p6BWS82hiRbn+ziYKEgw1lTk3AV/IWvrv
-	 ED5vFloCk5nnyJMpolImDMjoh8Kf527uYpi8dYsakm7dVfOhoWGiS0zam7E2Apw5jX
-	 aTTDmijTWXOpH7+x+R+cmhL5brPBwcU/FFDEjVsI=
-Date: Mon, 02 Mar 2026 15:52:58 -0800
-To: mm-commits@vger.kernel.org,linux@gurudas.dev,akpm@linux-foundation.org
+	b=2HlBKvkFUspJkedoWJ1jrDuO0qWFbvk1WfgnBL23/FxlaApV7ZzG932Qk4F8Sjw/j
+	 7csE6b54wZFSkWM/HbwConSl/Tv3BQgm28YYA7XpBg/KF1ZOSfGBmnvVMhdYT2vCXS
+	 04IzlMpoDwBQHc3T3oKbkinJYS+NUYj3V7t+xxIA=
+Date: Mon, 02 Mar 2026 15:54:20 -0800
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-update-guru-das-srinageshs-email-address.patch added to mm-nonmm-unstable branch
-Message-Id: <20260302235259.2058AC19423@smtp.kernel.org>
+Subject: + uaccess-correct-kernel-doc-parameter-format.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260302235420.B5B17C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: update Guru Das Srinagesh's email address
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mailmap-update-guru-das-srinageshs-email-address.patch
+     Subject: uaccess: correct kernel-doc parameter format
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     uaccess-correct-kernel-doc-parameter-format.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-guru-das-srinageshs-email-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uaccess-correct-kernel-doc-parameter-format.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,37 +58,49 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Guru Das Srinagesh <linux@gurudas.dev>
-Subject: mailmap: update Guru Das Srinagesh's email address
-Date: Sun, 01 Mar 2026 18:44:20 -0800
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: uaccess: correct kernel-doc parameter format
+Date: Sun, 1 Mar 2026 16:52:29 -0800
 
-Add my current email address and map previous addresses to it.
+Use the correct kernel-doc function parameter format to avoid kernel-doc
+warnings:
 
-Link: https://lkml.kernel.org/r/20260301-gds-mailmap-update-2-v1-1-5691415be73c@gurudas.dev
-Signed-off-by: Guru Das Srinagesh <linux@gurudas.dev>
+Warning: include/linux/uaccess.h:814 function parameter 'uptr' not
+ described in 'scoped_user_rw_access_size'
+Warning: include/linux/uaccess.h:826 function parameter 'uptr' not
+ described in 'scoped_user_rw_access'
+
+Link: https://lkml.kernel.org/r/20260302005229.3471955-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/uaccess.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/.mailmap~mailmap-update-guru-das-srinageshs-email-address
-+++ a/.mailmap
-@@ -300,7 +300,10 @@ Gokul Sriram Palanisamy <quic_gokulsri@q
- Govindaraj Saminathan <quic_gsamin@quicinc.com> <gsamin@codeaurora.org>
- Guo Ren <guoren@kernel.org> <guoren@linux.alibaba.com>
- Guo Ren <guoren@kernel.org> <ren_guo@c-sky.com>
--Guru Das Srinagesh <quic_gurus@quicinc.com> <gurus@codeaurora.org>
-+Guru Das Srinagesh <linux@gurudas.dev>
-+Guru Das Srinagesh <linux@gurudas.dev> <quic_gurus@quicinc.com>
-+Guru Das Srinagesh <linux@gurudas.dev> <gurus@codeaurora.org>
-+Guru Das Srinagesh <linux@gurudas.dev> <gurooodas@gmail.com>
- Gustavo Padovan <gustavo@las.ic.unicamp.br>
- Gustavo Padovan <padovan@profusion.mobi>
- Hamza Mahfooz <hamzamahfooz@linux.microsoft.com> <hamza.mahfooz@amd.com>
+--- a/include/linux/uaccess.h~uaccess-correct-kernel-doc-parameter-format
++++ a/include/linux/uaccess.h
+@@ -806,7 +806,7 @@ for (bool done = false; !done; done = tr
+ 
+ /**
+  * scoped_user_rw_access_size - Start a scoped user read/write access with given size
+- * @uptr	Pointer to the user space address to read from and write to
++ * @uptr:	Pointer to the user space address to read from and write to
+  * @size:	Size of the access starting from @uptr
+  * @elbl:	Error label to goto when the access region is rejected
+  *
+@@ -817,7 +817,7 @@ for (bool done = false; !done; done = tr
+ 
+ /**
+  * scoped_user_rw_access - Start a scoped user read/write access
+- * @uptr	Pointer to the user space address to read from and write to
++ * @uptr:	Pointer to the user space address to read from and write to
+  * @elbl:	Error label to goto when the access region is rejected
+  *
+  * The size of the access starting from @uptr is determined via sizeof(*@uptr)).
 _
 
-Patches currently in -mm which might be from linux@gurudas.dev are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mailmap-update-guru-das-srinageshs-email-address.patch
+uaccess-correct-kernel-doc-parameter-format.patch
 
