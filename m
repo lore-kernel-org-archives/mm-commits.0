@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B82038C2A0;
-	Mon,  2 Mar 2026 20:50:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A191F39150F
+	for <mm-commits@vger.kernel.org>; Mon,  2 Mar 2026 20:54:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772484648; cv=none; b=je9O/ZQWmignDYNDgqHeG6EG28D4rKa4c+PAB8soGGX2BTljc0fgenVDtgAye/fhfQ8D10F5/iX3D+pYiyDNX5W2PfDwjNEY801Y4XwRN0ZQqLTy/4qEMPb+swxQ7hn8xhMunkGNH7ZRRLqoPGw7cImwOxb08GnhLf5VZ/4ARK0=
+	t=1772484844; cv=none; b=uHay2YvuZ6kJ13rQMXfocq/vNFXD8EJJ+1yMIP6IiwMYn/YuqvNgvLvs5PScgZRzh1bKxgMtxqc8onTe7pxXHr5jmj3KB53giBGXJp+5X0/yWVQhFNO9osXj6P9ohNrVeGEu4X7tF+dNK2EFkZLNuw5h0bZeRK6xdUxA7aulwzk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772484648; c=relaxed/simple;
-	bh=pCLHO0vnQiSXr/GSP2+voEAuCidxHvmeIhB2m/IisHs=;
-	h=Date:To:From:Subject:Message-Id; b=MqLqajV/rekDJWe1niQ1OKm8Z9Yd0U+82grydNeOMYj95PScuNZhh9qrKlQnaYWXPhTSasSyd+UuqCkW0CXuEbLEWAybDeQ4xs5Imo8xVH++ljk1C+5Z0gPH72FIIJdB0NdJMxJJYF3S4km+SJ8Y9d2w78GeFMSe12YXlqB8bIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CgPkmcCQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772484844; c=relaxed/simple;
+	bh=c7ssq803acVYruLMH4ibt3nfvfC58kvCmJKoel+hkAo=;
+	h=Date:To:From:Subject:Message-Id; b=tVId3lro0bqghWmS3czi/Jdw9ZwCNl672jHZ8ryjUTXRD3S34CF2sGFOTVJ9XRqe0Yj9mx/4kwWmoaTMp9QlbHYxIUvK5llO6hheFMoS1izwYLvK90RfvOlUFWnZ1se4q4hoTCMpF1oZcRVIKJOHA3+X8/ir9Oh3kKVH+3oo2FM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pd3XEdL/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CgPkmcCQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A54B7C19425;
-	Mon,  2 Mar 2026 20:50:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pd3XEdL/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0A7FAC19423;
+	Mon,  2 Mar 2026 20:54:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772484647;
-	bh=pCLHO0vnQiSXr/GSP2+voEAuCidxHvmeIhB2m/IisHs=;
+	s=korg; t=1772484844;
+	bh=c7ssq803acVYruLMH4ibt3nfvfC58kvCmJKoel+hkAo=;
 	h=Date:To:From:Subject:From;
-	b=CgPkmcCQhXBI+a9KVqhec9owuSTntaLGCod+2L2hODJDFpZkJCFC6CXpnoA02DGwj
-	 cCHUSUKBkbhl/brKQeCkCq6AMZYYLqA/kOfFTaPQ1DwNssFNNcLHnXz7GV19zui9zL
-	 vsTKJ/Qs4hFWKZe5Upq28cDAQO3wm1w9aO4TFpjI=
-Date: Mon, 02 Mar 2026 12:50:46 -0800
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,surenb@google.com,stable@vger.kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,lorenzo.stoakes@oracle.com,akpm@linux-foundation.org
+	b=Pd3XEdL/aKc13ztqNg5xgpgdS1YVlQNiTz3QR0uT1lcWyZmqYmV6zbOJXC6OiuK7G
+	 cNMhZQlHgzN8L9mBXb3gft0fyBG5dXgk0QVBvaUm4aSHWd5HqaIoL1FllDttlQDE4c
+	 0hPpYIqNQFoOLkkAM0OzbCS9lkufFbKYHXasTGR0=
+Date: Mon, 02 Mar 2026 12:54:03 -0800
+To: mm-commits@vger.kernel.org,teknoraver@meta.com,joe@perches.com,technoboy85@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-memory-corruption-on-huge-zero-page-move.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260302205047.A54B7C19425@smtp.kernel.org>
+Subject: + get_maintainer-add-glob-pattern-support.patch added to mm-nonmm-unstable branch
+Message-Id: <20260302205404.0A7FAC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: fix memory corruption on huge zero page move
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-huge_memory-fix-memory-corruption-on-huge-zero-page-move.patch
+     Subject: get_maintainer: add ** glob pattern support
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     get_maintainer-add-glob-pattern-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-memory-corruption-on-huge-zero-page-move.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainer-add-glob-pattern-support.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,87 +58,94 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Subject: mm/huge_memory: fix memory corruption on huge zero page move
-Date: Mon, 2 Mar 2026 17:06:19 +0000
+From: Matteo Croce <technoboy85@gmail.com>
+Subject: get_maintainer: add ** glob pattern support
+Date: Mon, 2 Mar 2026 11:38:22 +0100
 
-In commit eb1521dad8f3 ("userfaultfd: handle zeropage moves by
-UFFDIO_MOVE"), handling was added to enable the moving of huge zero pages
-in move_pages_huge_pmd().
+Add support for the ** glob operator in MAINTAINERS F: and X: patterns,
+matching any number of path components (like Python's ** glob).
 
-This achieves this by setting src_folio to NULL, and adding subsequent
-checks for src_folio being NULL to determine whether to perform the usual
-move operations or to simply establish the huge zero page in the
-destination.
+The existing * to .* conversion with slash-count check is preserved.  **
+is converted to (?:.*), a non-capturing group used as a marker to bypass
+the slash-count check in file_match_pattern(), allowing the pattern to
+cross directory boundaries.
 
-As part of this change, when installing the destination huge zero page it
-invoked mk_huge_pmd() on src_page, correctly.
+This enables patterns like F: **/*[_-]kunit*.c to match files at any depth
+in the tree.
 
-However, commit e3981db444a0 ("mm: add folio_mk_pmd()") updated the code
-in the huge zero page branch from mk_huge_pmd(src_page, ...) to
-folio_mk_pmd(src_folio, ...), where src_folio is guaranteed to be NULL at
-this point.
-
-This resulted in an invocation of folio_mk_pmd(NULL, ...) in effect, which
-causes an invocation of page_to_pfn(0) and results in the installation of
-a corrupted PMD entry and undefined behaviour.
-
-This patch fixes the issue by obtaining the zero folio via
-page_folio(src_page) and feeding this into folio_mk_pmd().  This retains
-the use of folio_mk_pmd() whilst avoiding the memory corruption.
-
-Additionally, this code path was not updated to reflect the changes
-introduced by commit d82d09e48219 ("mm/huge_memory: mark PMD mappings of
-the huge zero folio special"), meaning a zero huge folio was installed but
-not marked special in this case.
-
-This patch additionally fixes that issue by invoking pmd_mkspecial().
-
-With thanks to Chris Down who exposed this bug by adding an explicit test
-for UFFDIO_MOVE in commit f07254dce67d ("selftests/mm: add UFFDIO_MOVE
-huge zeropage PMD regression test").
-
-Link: https://lkml.kernel.org/r/20260302170619.867056-1-lorenzo.stoakes@oracle.com
-Fixes: e3981db444a0 ("mm: add folio_mk_pmd()")
-Signed-off-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260302103822.77343-1-teknoraver@meta.com
+Signed-off-by: Matteo Croce <teknoraver@meta.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ MAINTAINERS               |    1 +
+ scripts/get_maintainer.pl |    9 +++++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-memory-corruption-on-huge-zero-page-move
-+++ a/mm/huge_memory.c
-@@ -2796,8 +2796,12 @@ int move_pages_huge_pmd(struct mm_struct
- 		/* Follow mremap() behavior and treat the entry dirty after the move */
- 		_dst_pmd = pmd_mkwrite(pmd_mkdirty(_dst_pmd), dst_vma);
- 	} else {
-+		struct folio *zero_folio = page_folio(src_page);
-+
-+		VM_WARN_ON_ONCE_FOLIO(!is_huge_zero_folio(zero_folio), zero_folio);
- 		src_pmdval = pmdp_huge_clear_flush(src_vma, src_addr, src_pmd);
--		_dst_pmd = folio_mk_pmd(src_folio, dst_vma->vm_page_prot);
-+		_dst_pmd = folio_mk_pmd(zero_folio, dst_vma->vm_page_prot);
-+		_dst_pmd = pmd_mkspecial(_dst_pmd);
+--- a/MAINTAINERS~get_maintainer-add-glob-pattern-support
++++ a/MAINTAINERS
+@@ -35,6 +35,7 @@ Descriptions of section entries and pref
+ 	   F:	drivers/net/	all files in and below drivers/net
+ 	   F:	drivers/net/*	all files in drivers/net, but not below
+ 	   F:	*/net/*		all files in "any top level directory"/net
++	   F:	fs/**/*foo*.c	all *foo*.c files in any subdirectory of fs
+ 	   One pattern per line.  Multiple F: lines acceptable.
+ 	X: *Excluded* files and directories that are NOT maintained, same
+ 	   rules as F:. Files exclusions are tested before file matches.
+--- a/scripts/get_maintainer.pl~get_maintainer-add-glob-pattern-support
++++ a/scripts/get_maintainer.pl
+@@ -375,8 +375,10 @@ sub read_maintainer_file {
+ 	    ##Filename pattern matching
+ 	    if ($type eq "F" || $type eq "X") {
+ 		$value =~ s@\.@\\\.@g;       ##Convert . to \.
++		$value =~ s/\*\*/\x00/g;     ##Convert ** to placeholder
+ 		$value =~ s/\*/\.\*/g;       ##Convert * to .*
+ 		$value =~ s/\?/\./g;         ##Convert ? to .
++		$value =~ s/\x00/(?:.*)/g;   ##Convert placeholder to (?:.*)
+ 		##if pattern is a directory and it lacks a trailing slash, add one
+ 		if ((-d $value)) {
+ 		    $value =~ s@([^/])$@$1/@;
+@@ -746,8 +748,10 @@ sub self_test {
+ 	if (($type eq "F" || $type eq "X") &&
+ 	    ($self_test eq "" || $self_test =~ /\bpatterns\b/)) {
+ 	    $value =~ s@\.@\\\.@g;       ##Convert . to \.
++	    $value =~ s/\*\*/\x00/g;     ##Convert ** to placeholder
+ 	    $value =~ s/\*/\.\*/g;       ##Convert * to .*
+ 	    $value =~ s/\?/\./g;         ##Convert ? to .
++	    $value =~ s/\x00/(?:.*)/g;   ##Convert placeholder to (?:.*)
+ 	    ##if pattern is a directory and it lacks a trailing slash, add one
+ 	    if ((-d $value)) {
+ 		$value =~ s@([^/])$@$1/@;
+@@ -921,7 +925,7 @@ sub get_maintainers {
+ 				my $value_pd = ($value =~ tr@/@@);
+ 				my $file_pd = ($file  =~ tr@/@@);
+ 				$value_pd++ if (substr($value,-1,1) ne "/");
+-				$value_pd = -1 if ($value =~ /^\.\*/);
++				$value_pd = -1 if ($value =~ /^(\.\*|\(\?:\.\*\))/);
+ 				if ($value_pd >= $file_pd &&
+ 				    range_is_maintained($start, $end) &&
+ 				    range_has_maintainer($start, $end)) {
+@@ -955,6 +959,7 @@ sub get_maintainers {
+ 			$line =~ s/([^\\])\.([^\*])/$1\?$2/g;
+ 			$line =~ s/([^\\])\.$/$1\?/g;	##Convert . back to ?
+ 			$line =~ s/\\\./\./g;       	##Convert \. to .
++			$line =~ s/\(\?:\.\*\)/\*\*/g;	##Convert (?:.*) to **
+ 			$line =~ s/\.\*/\*/g;       	##Convert .* to *
+ 		    }
+ 		    my $count = $line =~ s/^([A-Z]):/$1:\t/g;
+@@ -1048,7 +1053,7 @@ sub file_match_pattern {
+ 	if ($file =~ m@^$pattern@) {
+ 	    my $s1 = ($file =~ tr@/@@);
+ 	    my $s2 = ($pattern =~ tr@/@@);
+-	    if ($s1 == $s2) {
++	    if ($s1 == $s2 || $pattern =~ /\(\?:/) {
+ 		return 1;
+ 	    }
  	}
- 	set_pmd_at(mm, dst_addr, dst_pmd, _dst_pmd);
- 
 _
 
-Patches currently in -mm which might be from lorenzo.stoakes@oracle.com are
+Patches currently in -mm which might be from technoboy85@gmail.com are
 
-mm-huge_memory-fix-memory-corruption-on-huge-zero-page-move.patch
+get_maintainer-add-glob-pattern-support.patch
 
