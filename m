@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78C2C155A5D
-	for <mm-commits@vger.kernel.org>; Mon,  2 Mar 2026 22:57:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4B3D2D592C
+	for <mm-commits@vger.kernel.org>; Mon,  2 Mar 2026 23:05:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772492250; cv=none; b=PyV1L7VFa/TEavM2xhD/AlpWYOguaQpnRZcMciWpu564rPf5+LQgocB631HfEXZLqKTW5fna5Ww0+4nT3x979XKduRRDK2ldI6NZVfKXbke4GiPxNmJfdH6ZOKIeskXF+EAgAus/z2zmrF/ELiZNQBOPCIfqIByDwoJsK38tk2M=
+	t=1772492733; cv=none; b=Gca9QvNb12pGwm1bmYI2NpkyKe5qvDydV4cSifc7l19Az72hmw6a0hz2DS/mZfboVCFoR3VkNeCgcHXfFT2yWbxQ8BykuvY8IAUyIQdN7pR1RU+K+HHRKE0IWpp5NToLwDCkByL6b/1ddyXkx12m0BcTbHlX1/NUsWwjUH6k/SI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772492250; c=relaxed/simple;
-	bh=142v7ajadblFIl0wjzGNiVuqrnrM37YNEF03fM5ld08=;
-	h=Date:To:From:Subject:Message-Id; b=hnLu4ugkPe/Auzb+dZ25Ao/yCaOCwKQWIGYuIyfyekGMGSa1h8H6CRZTazxHnHdvDVE9ckQmQsqtHdPhwEIZ2SYzqOBbWbwJPjEQ9SC3mlI31bmlEtpN4W+TK3HXBcxT5SSjwM5bD43gRLG+Cto7EWURskw3vf3ipS3odbyMjlA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NJilSooY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772492733; c=relaxed/simple;
+	bh=vA+A+uuaHTyGPbHPRnrBcAi79HG/UP7l+tjrtcwtpUA=;
+	h=Date:To:From:Subject:Message-Id; b=hI7P8YK+Vj7/aVcxX4XDJ0RMWiRq7NYMW5FxpfKSy5iQhVG7nI71NRXS/Rhmhjts2hk6miZmk32Bonthegc2lrN3bEx8yPmBvGnoRTzKGiicgmgp/aJIjqtFpkVuObA6kysuBzRBoNM23rvB1xA++g/FT3q7jR1wF5E6logCdGw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J6E33jpx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NJilSooY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B6FDC19423;
-	Mon,  2 Mar 2026 22:57:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J6E33jpx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61735C19423;
+	Mon,  2 Mar 2026 23:05:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772492250;
-	bh=142v7ajadblFIl0wjzGNiVuqrnrM37YNEF03fM5ld08=;
+	s=korg; t=1772492733;
+	bh=vA+A+uuaHTyGPbHPRnrBcAi79HG/UP7l+tjrtcwtpUA=;
 	h=Date:To:From:Subject:From;
-	b=NJilSooYzQhvmJ349tbibnCdNl0JlMoKGtsJGHAmJFFZC0k4otlNBCTrTCVzSiKyw
-	 ibQQsvQcCS/FYW0dIap2OFcTLA8K8twQpu8+hZDjFp2CZ4PryfK0yzROANpRth8NjD
-	 WxjcikXnrJ0ndQZ9KqtJKZEVXv7At20e6SlYaBLY=
-Date: Mon, 02 Mar 2026 14:57:29 -0800
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,mpatocka@redhat.com,mhocko@suse.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=J6E33jpxuWcWkWuu9g4S7V/q/e1h5le1xUBS/gmBGVuLnI+uMwjcAPDWx6Yvu2xvd
+	 L+S7x9caVr7GSuUdeyKnfgODJfw+WBqIpqbOez4R9n7ZIbGRoiXcDlFU8mPk6tpu5i
+	 bMNORy5a0CT7vJGta4N1CBqJ8jgUbK+0RKYwJOm8=
+Date: Mon, 02 Mar 2026 15:05:32 -0800
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,gechangwei@live.cn,heming.zhao@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-fix-incorrect-size-reporting-on-allocation-failure.patch added to mm-new branch
-Message-Id: <20260302225730.0B6FDC19423@smtp.kernel.org>
+Subject: + ocfs2-fix-deadlock-when-creating-quota-file.patch added to mm-nonmm-unstable branch
+Message-Id: <20260302230533.61735C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: fix incorrect size reporting on allocation failure
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-fix-incorrect-size-reporting-on-allocation-failure.patch
+     Subject: ocfs2: fix deadlock when creating quota file
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-fix-deadlock-when-creating-quota-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-fix-incorrect-size-reporting-on-allocation-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-deadlock-when-creating-quota-file.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,49 +58,149 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: fix incorrect size reporting on allocation failure
-Date: Mon, 2 Mar 2026 12:47:39 +0100
+From: Heming Zhao <heming.zhao@suse.com>
+Subject: ocfs2: fix deadlock when creating quota file
+Date: Mon, 2 Mar 2026 14:17:05 +0800
 
-When __vmalloc_area_node() fails to allocate pages, the failure message
-may report an incorrect allocation size, for example:
+syzbot detected a circular locking dependency. the scenarios:
 
-  vmalloc error: size 0, failed to allocate pages, ...
+        CPU0                    CPU1
+        ----                    ----
+   lock(&ocfs2_quota_ip_alloc_sem_key);
+                                lock(&ocfs2_sysfile_lock_key[USER_QUOTA_SYSTEM_INODE]);
+                                lock(&ocfs2_quota_ip_alloc_sem_key);
+   lock(&ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]);
 
-This happens because the warning prints area->nr_pages * PAGE_SIZE.  At
-this point, area->nr_pages may be zero or partly populated thus it is not
-valid.
+or:
+       CPU0                    CPU1
+       ----                    ----
+  lock(&ocfs2_quota_ip_alloc_sem_key);
+                               lock(&dquot->dq_lock);
+                               lock(&ocfs2_quota_ip_alloc_sem_key);
+  lock(&ocfs2_sysfile_lock_key[ORPHAN_DIR_SYSTEM_INODE]);
 
-Report the originally requested allocation size instead by using
-nr_small_pages * PAGE_SIZE, which reflects the actual number of pages
-being requested by user.
+Following are the code paths for above scenarios:
 
-Link: https://lkml.kernel.org/r/20260302114740.2668450-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+path_openat
+ ocfs2_create
+  ocfs2_mknod
+  + ocfs2_reserve_new_inode
+  |  ocfs2_reserve_suballoc_bits
+  |   inode_lock(alloc_inode) //C0: hold INODE_ALLOC_SYSTEM_INODE
+  |    //ocfs2_free_alloc_context(inode_ac) is called at the end of
+  |    //caller ocfs2_mknod to handle the release
+  |
+  + ocfs2_get_init_inode
+     __dquot_initialize
+      dqget
+       ocfs2_acquire_dquot
+       + ocfs2_lock_global_qf
+       |  down_write(&OCFS2_I(oinfo->dqi_gqinode)->ip_alloc_sem)//A2:grabbing
+       + ocfs2_create_local_dquot
+          down_write(&OCFS2_I(lqinode)->ip_alloc_sem)//A3:grabbing
+
+evict
+ ocfs2_evict_inode
+  ocfs2_delete_inode
+   ocfs2_wipe_inode
+    + inode_lock(orphan_dir_inode) //B0:hold
+    + ...
+    + ocfs2_remove_inode
+       inode_lock(inode_alloc_inode) //INODE_ALLOC_SYSTEM_INODE
+        down_write(&inode->i_rwsem) //C1:grabbing
+
+generic_file_direct_write
+ ocfs2_direct_IO
+  __blockdev_direct_IO
+   dio_complete
+    ocfs2_dio_end_io
+     ocfs2_dio_end_io_write
+     + down_write(&oi->ip_alloc_sem) //A0:hold
+     + ocfs2_del_inode_from_orphan
+        inode_lock(orphan_dir_inode) //B1:grabbing
+
+Root cause for the circular locking:
+
+DIO completion path:
+ holds oi->ip_alloc_sem and is trying to acquire the orphan_dir_inode lock.
+
+evict path:
+ holds the orphan_dir_inode lock and is trying to acquire the
+ inode_alloc_inode lock.
+
+ocfs2_mknod path:
+ Holds the inode_alloc_inode lock (to allocate a new quota file) and is
+ blocked waiting for oi->ip_alloc_sem in ocfs2_acquire_dquot().
+
+How to fix:
+
+Replace down_write() with down_write_trylock() in ocfs2_acquire_dquot(). 
+If acquiring oi->ip_alloc_sem fails, return -EBUSY to abort the file
+creation routine and break the deadlock.
+
+Link: https://lkml.kernel.org/r/20260302061707.7092-1-heming.zhao@suse.com
+Signed-off-by: Heming Zhao <heming.zhao@suse.com>
+Reported-by: syzbot+78359d5fbb04318c35e9@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=78359d5fbb04318c35e9
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/quota_global.c |   16 +++++++++++++++-
+ fs/ocfs2/quota_local.c  |    4 +++-
+ 2 files changed, 18 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-fix-incorrect-size-reporting-on-allocation-failure
-+++ a/mm/vmalloc.c
-@@ -3894,7 +3894,7 @@ static void *__vmalloc_area_node(struct
- 		if (!fatal_signal_pending(current) && page_order == 0)
- 			warn_alloc(gfp_mask, NULL,
- 				"vmalloc error: size %lu, failed to allocate pages",
--				area->nr_pages * PAGE_SIZE);
-+				nr_small_pages * PAGE_SIZE);
- 		goto fail;
+--- a/fs/ocfs2/quota_global.c~ocfs2-fix-deadlock-when-creating-quota-file
++++ a/fs/ocfs2/quota_global.c
+@@ -311,11 +311,25 @@ int ocfs2_lock_global_qf(struct ocfs2_me
+ 	spin_unlock(&dq_data_lock);
+ 	if (ex) {
+ 		inode_lock(oinfo->dqi_gqinode);
+-		down_write(&OCFS2_I(oinfo->dqi_gqinode)->ip_alloc_sem);
++		if (!down_write_trylock(&OCFS2_I(oinfo->dqi_gqinode)->ip_alloc_sem)) {
++			inode_unlock(oinfo->dqi_gqinode);
++			status = -EBUSY;
++			goto bail;
++		}
+ 	} else {
+ 		down_read(&OCFS2_I(oinfo->dqi_gqinode)->ip_alloc_sem);
  	}
+ 	return 0;
++
++bail:
++	/* does a similar job as ocfs2_unlock_global_qf */
++	ocfs2_inode_unlock(oinfo->dqi_gqinode, ex);
++	brelse(oinfo->dqi_gqi_bh);
++	spin_lock(&dq_data_lock);
++	if (!--oinfo->dqi_gqi_count)
++		oinfo->dqi_gqi_bh = NULL;
++	spin_unlock(&dq_data_lock);
++	return status;
+ }
  
+ void ocfs2_unlock_global_qf(struct ocfs2_mem_dqinfo *oinfo, int ex)
+--- a/fs/ocfs2/quota_local.c~ocfs2-fix-deadlock-when-creating-quota-file
++++ a/fs/ocfs2/quota_local.c
+@@ -1224,7 +1224,9 @@ int ocfs2_create_local_dquot(struct dquo
+ 	int status;
+ 	u64 pcount;
+ 
+-	down_write(&OCFS2_I(lqinode)->ip_alloc_sem);
++	if (!down_write_trylock(&OCFS2_I(lqinode)->ip_alloc_sem))
++		return -EBUSY;
++
+ 	chunk = ocfs2_find_free_entry(sb, type, &offset);
+ 	if (!chunk) {
+ 		chunk = ocfs2_extend_local_quota_file(sb, type, &offset);
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from heming.zhao@suse.com are
 
-mm-vmalloc-fix-incorrect-size-reporting-on-allocation-failure.patch
+ocfs2-fix-deadlock-when-creating-quota-file.patch
 
