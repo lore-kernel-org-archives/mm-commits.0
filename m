@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C52A47DD5F
-	for <mm-commits@vger.kernel.org>; Mon,  2 Mar 2026 20:05:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CD9A47DD72
+	for <mm-commits@vger.kernel.org>; Mon,  2 Mar 2026 20:05:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772481927; cv=none; b=Ki5bm4T/xgFE+pxiqoXjEO0IYU4CmoCCz2qXx0CKMC8sZNL7gmZzr7xHA/zVX+/XlRmI3v32197/jsolHCzzqWyHorFh3aD7Iewl8KSM3htuY7kJucpLylsCkCCCgn70e0jz9QbfhE4xi1XLDSIFqtFr/931c9vVLxEVUPouLMA=
+	t=1772481929; cv=none; b=uBpT9cqUfoiym85vt986+d5xw7141oSqYXE7amaTCzunLdPDgW4AqzMQ7uNJQ+QSnQTqZnYzbDmtt3VLEbVKu1H6tecqCyuar0z9tzG3mtkpq04sXxBz45D0lgL9vKJSJy1zY35GBo6c41zb5Jn7ZOUToRbgGZ3x7h/mDTuhcKc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772481927; c=relaxed/simple;
-	bh=IVbVaYZcT/5Xgr4xSvVhw4sWTnGsKjX5AjPTyKFepwI=;
-	h=Date:To:From:Subject:Message-Id; b=SaBqJZ4ALLDmCBCnwBQ8mumRKBGuZx8+OTV4Rm1Pep1LBxvdN1gdI96MyMWDNIkMZJvQjJtUmziz0oMzL7nkQMyTcWpheasm0ocVSHmpYJR7HLmcj9q9wdAWHadAaSI7Gn9Lv9P1nhMuwB5R31ISxlzZgjHeFf0mbHY7W2VmPbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1Bxo3P8B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772481929; c=relaxed/simple;
+	bh=GRNSIb86Ki9KPWxT6aKc5oz/kVWcxFnHBAmBXXibqKk=;
+	h=Date:To:From:Subject:Message-Id; b=uSomKhqub0XPauQZd+mDeU2jwBN7J2KdPg7VtyImKSo1CrRBxIYncS6o0aODM2Z7hTwb6uyWTdKgZucHHl9icJoT7eoiWaNFCpidE0oy1fIe4Fn14PGoWDwR1d1YUT5iWTO5Ll5vSIbi4SfBQtr8DqffIH6seQFU+zMu4ITQTCQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hona7xUf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1Bxo3P8B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26831C19423;
-	Mon,  2 Mar 2026 20:05:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hona7xUf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E15BEC19423;
+	Mon,  2 Mar 2026 20:05:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772481927;
-	bh=IVbVaYZcT/5Xgr4xSvVhw4sWTnGsKjX5AjPTyKFepwI=;
+	s=korg; t=1772481929;
+	bh=GRNSIb86Ki9KPWxT6aKc5oz/kVWcxFnHBAmBXXibqKk=;
 	h=Date:To:From:Subject:From;
-	b=1Bxo3P8BMsWT6sP+4POwCtxzgos/HHG7c7JFrqhtetzYAT1PpaQWpeDesjSSUtSMo
-	 x5pdpjkBwAqDtm6IY/UA+wO3a+/aZhX+y+eo88EWHA+317flK/VaKv5M9VhqBY2Nrv
-	 GfVhIArVbqZLDD+0sP+l9PIFRPSeQ08JnQKGmoH4=
-Date: Mon, 02 Mar 2026 12:05:26 -0800
+	b=hona7xUf3oEA37TWEFSBmgNrCSsXcRaTMlr/tFkebw51HGrFF8uAzUZp/efNuexNs
+	 fmZndJLRnAapH5qKNOp8Dlu22M11PQAJwjdPUMtVnNRlV6gxy4zAe8+oSMDo7tfqhC
+	 IwewoP1ee/O3BPW2XDrPbhw42z1Y4r9fLWClyD9U=
+Date: Mon, 02 Mar 2026 12:05:28 -0800
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,jweiner@meta.com,hao.li@linux.dev,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-use-__account_obj_stock-in-the-locked-path.patch added to mm-new branch
-Message-Id: <20260302200527.26831C19423@smtp.kernel.org>
+Subject: + mm-memcg-separate-slab-stat-accounting-from-objcg-charge-cache.patch added to mm-new branch
+Message-Id: <20260302200528.E15BEC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: use __account_obj_stock() in the !locked path
+     Subject: mm: memcg: separate slab stat accounting from objcg charge cache
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-use-__account_obj_stock-in-the-locked-path.patch
+     mm-memcg-separate-slab-stat-accounting-from-objcg-charge-cache.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-use-__account_obj_stock-in-the-locked-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-separate-slab-stat-accounting-from-objcg-charge-cache.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +67,39 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: use __account_obj_stock() in the !locked path
-Date: Mon, 2 Mar 2026 14:50:17 -0500
+Subject: mm: memcg: separate slab stat accounting from objcg charge cache
+Date: Mon, 2 Mar 2026 14:50:18 -0500
 
-Make __account_obj_stock() usable for the case where the local trylock
-failed.  Then switch refill_obj_stock() over to it.
+Cgroup slab metrics are cached per-cpu the same way as the sub-page charge
+cache.  However, the intertwined code to manage those dependent caches
+right now is quite difficult to follow.
 
-This consolidates the mod_objcg_mlstate() call into one place and will
-make the next patch easier to follow.
+Specifically, cached slab stat updates occur in consume() if there was
+enough charge cache to satisfy the new object.  If that fails, whole pages
+are reserved, and slab stats are updated when the remainder of those
+pages, after subtracting the size of the new slab object, are put into the
+charge cache.  This already juggles a delicate mix of the object size, the
+page charge size, and the remainder to put into the byte cache.  Doing
+slab accounting in this path as well is fragile, and has recently caused a
+bug where the input parameters between the two caches were mixed up.
 
-Link: https://lkml.kernel.org/r/20260302195305.620713-5-hannes@cmpxchg.org
+Refactor the consume() and refill() paths into unlocked and locked
+variants that only do charge caching.  Then let the slab path manage its
+own lock section and open-code charging and accounting.
+
+This makes the slab stat cache subordinate to the charge cache:
+__refill_obj_stock() is called first to prepare it; __account_obj_stock()
+follows to hitch a ride.
+
+This results in a minor behavioral change: previously, a mismatching
+percpu stock would always be drained for the purpose of setting up slab
+account caching, even if there was no byte remainder to put into the
+charge cache.  Now, the stock is left alone, and slab accounting takes the
+uncached path if there is a mismatch.  This is exceedingly rare, and it
+was probably never worth draining the whole stock just to cache the slab
+stat update.
+
+Link: https://lkml.kernel.org/r/20260302195305.620713-6-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Hao Li <hao.li@linux.dev>
 Cc: Johannes Weiner <jweiner@meta.com>
@@ -88,38 +111,227 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |  100 ++++++++++++++++++++++++++++------------------
+ 1 file changed, 61 insertions(+), 39 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-use-__account_obj_stock-in-the-locked-path
+--- a/mm/memcontrol.c~mm-memcg-separate-slab-stat-accounting-from-objcg-charge-cache
 +++ a/mm/memcontrol.c
-@@ -3227,6 +3227,9 @@ static void __account_obj_stock(struct o
+@@ -3218,16 +3218,18 @@ static struct obj_stock_pcp *trylock_sto
+ 
+ static void unlock_stock(struct obj_stock_pcp *stock)
+ {
+-	local_unlock(&obj_stock.lock);
++	if (stock)
++		local_unlock(&obj_stock.lock);
+ }
+ 
++/* Call after __refill_obj_stock() to ensure stock->cached_objg == objcg */
+ static void __account_obj_stock(struct obj_cgroup *objcg,
+ 				struct obj_stock_pcp *stock, int nr,
+ 				struct pglist_data *pgdat, enum node_stat_item idx)
  {
  	int *bytes;
  
-+	if (!stock)
-+		goto direct;
-+
+-	if (!stock)
++	if (!stock || READ_ONCE(stock->cached_objcg) != objcg)
+ 		goto direct;
+ 
  	/*
- 	 * Save vmstat data in stock and skip vmstat array update unless
- 	 * accumulating over a page of vmstat data or when pgdat changes.
-@@ -3266,6 +3269,7 @@ static void __account_obj_stock(struct o
- 			nr = 0;
- 		}
- 	}
-+direct:
- 	if (nr)
+@@ -3274,8 +3276,20 @@ direct:
  		mod_objcg_mlstate(objcg, pgdat, idx, nr);
  }
-@@ -3382,7 +3386,7 @@ static void refill_obj_stock(struct obj_
- 	stock = trylock_stock();
+ 
+-static bool consume_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes,
+-			      struct pglist_data *pgdat, enum node_stat_item idx)
++static bool __consume_obj_stock(struct obj_cgroup *objcg,
++				struct obj_stock_pcp *stock,
++				unsigned int nr_bytes)
++{
++	if (objcg == READ_ONCE(stock->cached_objcg) &&
++	    stock->nr_bytes >= nr_bytes) {
++		stock->nr_bytes -= nr_bytes;
++		return true;
++	}
++
++	return false;
++}
++
++static bool consume_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes)
+ {
+ 	struct obj_stock_pcp *stock;
+ 	bool ret = false;
+@@ -3284,14 +3298,7 @@ static bool consume_obj_stock(struct obj
+ 	if (!stock)
+ 		return ret;
+ 
+-	if (objcg == READ_ONCE(stock->cached_objcg) && stock->nr_bytes >= nr_bytes) {
+-		stock->nr_bytes -= nr_bytes;
+-		ret = true;
+-
+-		if (pgdat)
+-			__account_obj_stock(objcg, stock, nr_bytes, pgdat, idx);
+-	}
+-
++	ret = __consume_obj_stock(objcg, stock, nr_bytes);
+ 	unlock_stock(stock);
+ 
+ 	return ret;
+@@ -3376,17 +3383,14 @@ static bool obj_stock_flush_required(str
+ 	return flush;
+ }
+ 
+-static void refill_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes,
+-		bool allow_uncharge, int nr_acct, struct pglist_data *pgdat,
+-		enum node_stat_item idx)
++static void __refill_obj_stock(struct obj_cgroup *objcg,
++			       struct obj_stock_pcp *stock,
++			       unsigned int nr_bytes,
++			       bool allow_uncharge)
+ {
+-	struct obj_stock_pcp *stock;
+ 	unsigned int nr_pages = 0;
+ 
+-	stock = trylock_stock();
  	if (!stock) {
- 		if (pgdat)
--			mod_objcg_mlstate(objcg, pgdat, idx, nr_acct);
-+			__account_obj_stock(objcg, NULL, nr_acct, pgdat, idx);
+-		if (pgdat)
+-			__account_obj_stock(objcg, NULL, nr_acct, pgdat, idx);
  		nr_pages = nr_bytes >> PAGE_SHIFT;
  		nr_bytes = nr_bytes & (PAGE_SIZE - 1);
  		atomic_add(nr_bytes, &objcg->nr_charged_bytes);
+@@ -3404,20 +3408,25 @@ static void refill_obj_stock(struct obj_
+ 	}
+ 	stock->nr_bytes += nr_bytes;
+ 
+-	if (pgdat)
+-		__account_obj_stock(objcg, stock, nr_acct, pgdat, idx);
+-
+ 	if (allow_uncharge && (stock->nr_bytes > PAGE_SIZE)) {
+ 		nr_pages = stock->nr_bytes >> PAGE_SHIFT;
+ 		stock->nr_bytes &= (PAGE_SIZE - 1);
+ 	}
+ 
+-	unlock_stock(stock);
+ out:
+ 	if (nr_pages)
+ 		obj_cgroup_uncharge_pages(objcg, nr_pages);
+ }
+ 
++static void refill_obj_stock(struct obj_cgroup *objcg,
++			     unsigned int nr_bytes,
++			     bool allow_uncharge)
++{
++	struct obj_stock_pcp *stock = trylock_stock();
++	__refill_obj_stock(objcg, stock, nr_bytes, allow_uncharge);
++	unlock_stock(stock);
++}
++
+ static int __obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp,
+ 			       size_t size, size_t *remainder)
+ {
+@@ -3432,13 +3441,12 @@ static int __obj_cgroup_charge(struct ob
+ 	return ret;
+ }
+ 
+-static int obj_cgroup_charge_account(struct obj_cgroup *objcg, gfp_t gfp, size_t size,
+-				     struct pglist_data *pgdat, enum node_stat_item idx)
++int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size)
+ {
+ 	size_t remainder;
+ 	int ret;
+ 
+-	if (likely(consume_obj_stock(objcg, size, pgdat, idx)))
++	if (likely(consume_obj_stock(objcg, size)))
+ 		return 0;
+ 
+ 	/*
+@@ -3465,20 +3473,15 @@ static int obj_cgroup_charge_account(str
+ 	 * race.
+ 	 */
+ 	ret = __obj_cgroup_charge(objcg, gfp, size, &remainder);
+-	if (!ret && (remainder || pgdat))
+-		refill_obj_stock(objcg, remainder, false, size, pgdat, idx);
++	if (!ret && remainder)
++		refill_obj_stock(objcg, remainder, false);
+ 
+ 	return ret;
+ }
+ 
+-int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size)
+-{
+-	return obj_cgroup_charge_account(objcg, gfp, size, NULL, 0);
+-}
+-
+ void obj_cgroup_uncharge(struct obj_cgroup *objcg, size_t size)
+ {
+-	refill_obj_stock(objcg, size, true, 0, NULL, 0);
++	refill_obj_stock(objcg, size, true);
+ }
+ 
+ static inline size_t obj_full_size(struct kmem_cache *s)
+@@ -3493,6 +3496,7 @@ static inline size_t obj_full_size(struc
+ bool __memcg_slab_post_alloc_hook(struct kmem_cache *s, struct list_lru *lru,
+ 				  gfp_t flags, size_t size, void **p)
+ {
++	size_t obj_size = obj_full_size(s);
+ 	struct obj_cgroup *objcg;
+ 	struct slab *slab;
+ 	unsigned long off;
+@@ -3533,6 +3537,7 @@ bool __memcg_slab_post_alloc_hook(struct
+ 	for (i = 0; i < size; i++) {
+ 		unsigned long obj_exts;
+ 		struct slabobj_ext *obj_ext;
++		struct obj_stock_pcp *stock;
+ 
+ 		slab = virt_to_slab(p[i]);
+ 
+@@ -3552,9 +3557,20 @@ bool __memcg_slab_post_alloc_hook(struct
+ 		 * TODO: we could batch this until slab_pgdat(slab) changes
+ 		 * between iterations, with a more complicated undo
+ 		 */
+-		if (obj_cgroup_charge_account(objcg, flags, obj_full_size(s),
+-					slab_pgdat(slab), cache_vmstat_idx(s)))
+-			return false;
++		stock = trylock_stock();
++		if (!stock || !__consume_obj_stock(objcg, stock, obj_size)) {
++			size_t remainder;
++
++			unlock_stock(stock);
++			if (__obj_cgroup_charge(objcg, flags, obj_size, &remainder))
++				return false;
++			stock = trylock_stock();
++			if (remainder)
++				__refill_obj_stock(objcg, stock, remainder, false);
++		}
++		__account_obj_stock(objcg, stock, obj_size,
++				    slab_pgdat(slab), cache_vmstat_idx(s));
++		unlock_stock(stock);
+ 
+ 		obj_exts = slab_obj_exts(slab);
+ 		get_slab_obj_exts(obj_exts);
+@@ -3576,6 +3592,7 @@ void __memcg_slab_free_hook(struct kmem_
+ 	for (int i = 0; i < objects; i++) {
+ 		struct obj_cgroup *objcg;
+ 		struct slabobj_ext *obj_ext;
++		struct obj_stock_pcp *stock;
+ 		unsigned int off;
+ 
+ 		off = obj_to_index(s, slab, p[i]);
+@@ -3585,8 +3602,13 @@ void __memcg_slab_free_hook(struct kmem_
+ 			continue;
+ 
+ 		obj_ext->objcg = NULL;
+-		refill_obj_stock(objcg, obj_size, true, -obj_size,
+-				 slab_pgdat(slab), cache_vmstat_idx(s));
++
++		stock = trylock_stock();
++		__refill_obj_stock(objcg, stock, obj_size, true);
++		__account_obj_stock(objcg, stock, -obj_size,
++				    slab_pgdat(slab), cache_vmstat_idx(s));
++		unlock_stock(stock);
++
+ 		obj_cgroup_put(objcg);
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
