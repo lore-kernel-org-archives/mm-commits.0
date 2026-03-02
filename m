@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2DF6320A00
-	for <mm-commits@vger.kernel.org>; Mon,  2 Mar 2026 23:08:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 998AA349B16
+	for <mm-commits@vger.kernel.org>; Mon,  2 Mar 2026 23:52:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772492895; cv=none; b=NrePQ9W+gosPlqT5WyWP0DNgyr7qrk1bsvZsVfgdGX61feNNUcKJ4AQenv7At9g13X7m47woi3lOiyIfLNQoie/z4lqnSj5D26WYz/etpSBeTie8IqB3FIzyY75WNFi6ha4k8xKrM2IoiqLn989bUGigg21jUVMY8+aVV52KQA0=
+	t=1772495579; cv=none; b=cdDU5ZcMjiE4Eqkyek5WTkmyIWQ9x+Ot7FCgjZDA6y2Jkr+XDqEttqSXWZVHfkvX6f3s3KYP93ozxTJj5XKyWlDbW8gcXX01Nkn6eTlct5SAx82juufA2L+bdcafvaqBCO28c7fBvi51jIYV3IVMRe7aqUHitogNx2o0h8iUDrE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772492895; c=relaxed/simple;
-	bh=ZMWj8RpM5Ose7GNKmF+u9eUpuDtwTPGiYcF48jDrePI=;
-	h=Date:To:From:Subject:Message-Id; b=Ny4YGPnS3r84hAPwaV8h0n76MYGbTbFpSmnz2Oqy6XrEvP9d+Rvl+5WY+W+a4A34eY0ZyJkuSL68oIOVDAOGHFzXIPka/NT4aAQXtMd887EHb4S8F/hdtgoh73rEvmX1CLp5a6dp3BWw0u9WSO13AHVDJY80XiOxNrdCFFQ0jzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ubfVEG8X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772495579; c=relaxed/simple;
+	bh=yVs9/7/xrFZvjRCfR/DN12rYBZs1noTl/bKdyJXHawQ=;
+	h=Date:To:From:Subject:Message-Id; b=sB3vn8wFm2tBsSu2uqN8ixzi9umoqHmvxMOWkk6VP/d/LYVSwPMO/X+58O2+USYV6zpyNOJKoQJxtLVqUoMeMasZwkKUh3guk8fanNhc94ulPzysvA7n7mJ85yjSYCzGDHWUKNcO5zSUkYzED5qxJxgElT3+QnD0ZinnYWsmqDs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hX24/hUS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ubfVEG8X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59CF3C19423;
-	Mon,  2 Mar 2026 23:08:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hX24/hUS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2058AC19423;
+	Mon,  2 Mar 2026 23:52:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772492894;
-	bh=ZMWj8RpM5Ose7GNKmF+u9eUpuDtwTPGiYcF48jDrePI=;
+	s=korg; t=1772495579;
+	bh=yVs9/7/xrFZvjRCfR/DN12rYBZs1noTl/bKdyJXHawQ=;
 	h=Date:To:From:Subject:From;
-	b=ubfVEG8XgZdxkeifFZDu2ekitCtMw7oucWUVVzYEguE78PK3+fz2Zsid6UDu7Dtdj
-	 3ipum1ob1UcCKqDbdNeiVi+/k/Leh4EENS756az2TUsTS16kbyVWOY/kTsBFl+M94n
-	 yowKFmFtbEgo/bG9ebaYIK0kBamTH9j1aDToLxbg=
-Date: Mon, 02 Mar 2026 15:08:13 -0800
-To: mm-commits@vger.kernel.org,visitorckw@gmail.com,rdunlap@infradead.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=hX24/hUSY8hybO7Wtmk7tMwY2aM+yMs7p6BWS82hiRbn+ziYKEgw1lTk3AV/IWvrv
+	 ED5vFloCk5nnyJMpolImDMjoh8Kf527uYpi8dYsakm7dVfOhoWGiS0zam7E2Apw5jX
+	 aTTDmijTWXOpH7+x+R+cmhL5brPBwcU/FFDEjVsI=
+Date: Mon, 02 Mar 2026 15:52:58 -0800
+To: mm-commits@vger.kernel.org,linux@gurudas.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-math-polynomial-remove-link-to-non-exist-file-and-fix-spelling.patch added to mm-nonmm-unstable branch
-Message-Id: <20260302230814.59CF3C19423@smtp.kernel.org>
+Subject: + mailmap-update-guru-das-srinageshs-email-address.patch added to mm-nonmm-unstable branch
+Message-Id: <20260302235259.2058AC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: math: polynomial: remove link to non-exist file and fix spelling
+     Subject: mailmap: update Guru Das Srinagesh's email address
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-math-polynomial-remove-link-to-non-exist-file-and-fix-spelling.patch
+     mailmap-update-guru-das-srinageshs-email-address.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-math-polynomial-remove-link-to-non-exist-file-and-fix-spelling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-guru-das-srinageshs-email-address.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,80 +58,37 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib: math: polynomial: remove link to non-exist file and fix spelling
-Date: Mon, 2 Mar 2026 10:28:09 +0100
+From: Guru Das Srinagesh <linux@gurudas.dev>
+Subject: mailmap: update Guru Das Srinagesh's email address
+Date: Sun, 01 Mar 2026 18:44:20 -0800
 
-The Baikal SoC and platform support was dropped from the kernel, remove
-the reference to non-exist file.  While at it, fix spelling.
+Add my current email address and map previous addresses to it.
 
-Link: https://lkml.kernel.org/r/20260302092831.2267785-4-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
-Reviewed-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Link: https://lkml.kernel.org/r/20260301-gds-mailmap-update-2-v1-1-5691415be73c@gurudas.dev
+Signed-off-by: Guru Das Srinagesh <linux@gurudas.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/math/polynomial.c |   20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+ .mailmap |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/lib/math/polynomial.c~lib-math-polynomial-remove-link-to-non-exist-file-and-fix-spelling
-+++ a/lib/math/polynomial.c
-@@ -16,16 +16,13 @@
- #include <linux/polynomial.h>
- 
- /*
-- * Originally this was part of drivers/hwmon/bt1-pvt.c.
-- * There the following conversion is used and should serve as an example here:
-+ * The following conversion is an example:
-  *
-  * The original translation formulae of the temperature (in degrees of Celsius)
-  * to PVT data and vice-versa are following:
-  *
-- * N = 1.8322e-8*(T^4) + 2.343e-5*(T^3) + 8.7018e-3*(T^2) + 3.9269*(T^1) +
-- *     1.7204e2
-- * T = -1.6743e-11*(N^4) + 8.1542e-8*(N^3) + -1.8201e-4*(N^2) +
-- *     3.1020e-1*(N^1) - 4.838e1
-+ * N = 1.8322e-8*(T^4) + 2.343e-5*(T^3) + 8.7018e-3*(T^2) + 3.9269*(T^1) + 1.7204e2
-+ * T = -1.6743e-11*(N^4) + 8.1542e-8*(N^3) + -1.8201e-4*(N^2) + 3.1020e-1*(N^1) - 4.838e1
-  *
-  * where T = [-48.380, 147.438]C and N = [0, 1023].
-  *
-@@ -36,10 +33,9 @@
-  * formulae to accept millidegrees of Celsius. Here what they look like after
-  * the alterations:
-  *
-- * N = (18322e-20*(T^4) + 2343e-13*(T^3) + 87018e-9*(T^2) + 39269e-3*T +
-- *     17204e2) / 1e4
-- * T = -16743e-12*(D^4) + 81542e-9*(D^3) - 182010e-6*(D^2) + 310200e-3*D -
-- *     48380
-+ * N = (18322e-20*(T^4) + 2343e-13*(T^3) + 87018e-9*(T^2) + 39269e-3*T + 17204e2) / 1e4
-+ * T = -16743e-12*(D^4) + 81542e-9*(D^3) - 182010e-6*(D^2) + 310200e-3*D - 48380
-+ *
-  * where T = [-48380, 147438] mC and N = [0, 1023].
-  *
-  * static const struct polynomial poly_temp_to_N = {
-@@ -69,13 +65,13 @@
-  * polynomial_calc - calculate a polynomial using integer arithmetic
-  *
-  * @poly: pointer to the descriptor of the polynomial
-- * @data: input value of the polynimal
-+ * @data: input value of the polynomial
-  *
-  * Calculate the result of a polynomial using only integer arithmetic. For
-  * this to work without too much loss of precision the coefficients has to
-  * be altered. This is called factor redistribution.
-  *
-- * Returns the result of the polynomial calculation.
-+ * Return: the result of the polynomial calculation.
-  */
- long polynomial_calc(const struct polynomial *poly, long data)
- {
+--- a/.mailmap~mailmap-update-guru-das-srinageshs-email-address
++++ a/.mailmap
+@@ -300,7 +300,10 @@ Gokul Sriram Palanisamy <quic_gokulsri@q
+ Govindaraj Saminathan <quic_gsamin@quicinc.com> <gsamin@codeaurora.org>
+ Guo Ren <guoren@kernel.org> <guoren@linux.alibaba.com>
+ Guo Ren <guoren@kernel.org> <ren_guo@c-sky.com>
+-Guru Das Srinagesh <quic_gurus@quicinc.com> <gurus@codeaurora.org>
++Guru Das Srinagesh <linux@gurudas.dev>
++Guru Das Srinagesh <linux@gurudas.dev> <quic_gurus@quicinc.com>
++Guru Das Srinagesh <linux@gurudas.dev> <gurus@codeaurora.org>
++Guru Das Srinagesh <linux@gurudas.dev> <gurooodas@gmail.com>
+ Gustavo Padovan <gustavo@las.ic.unicamp.br>
+ Gustavo Padovan <padovan@profusion.mobi>
+ Hamza Mahfooz <hamzamahfooz@linux.microsoft.com> <hamza.mahfooz@amd.com>
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from linux@gurudas.dev are
 
-lib-polynomial-move-to-math-subfolder.patch
-lib-math-polynomial-dont-use-proxy-headers.patch
-lib-math-polynomial-remove-link-to-non-exist-file-and-fix-spelling.patch
+mailmap-update-guru-das-srinageshs-email-address.patch
 
