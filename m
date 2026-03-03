@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BE2F372679
-	for <mm-commits@vger.kernel.org>; Tue,  3 Mar 2026 18:58:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D41535F606
+	for <mm-commits@vger.kernel.org>; Tue,  3 Mar 2026 22:10:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772564286; cv=none; b=g+LGeiIX2BCHrKXE0DkYNGqN1xfEvZ8TbBhg5fMV1QQBQRX8AZFZnJC1iiotEuVxaQ60IttrG6v2DdQhd+m2XIZf7i83Hl+Y3jl8JEM+n/o6SoNxelSUFCZp+Yz58X2xqylmYXB6wf6IwtS5m2G3yM3Qs8OzPBBl/y0CSGLUR9M=
+	t=1772575847; cv=none; b=ZDOnm+uUr29JtdVXuMRh63oYjoJoHdcKLEkq5BEL64qP7sEVAiPy9F1+4Qj7gNRI10PXfZTzqu5i3p3kY8SSGGqs5YHv0kHDyPi5INCaHCzB/uUolPnTg2md4hPRxZ67V4TcxBkLX1iZpe+rNwoV2CGuHIewAb6ALmVk0IzJN8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772564286; c=relaxed/simple;
-	bh=JWhUzpA9PVqVIwNMQKTaR4I2R2xMJCahGvi4sZAib9I=;
-	h=Date:To:From:Subject:Message-Id; b=DtPHnCma53tJFqu6X8306CoSSMvw9uCbydfdBwAIBCqzUvsof2iI65Ws0Z2Swu4Klku90W6YPEcX3gcJR3b1u9qfEBniNcSGoWb9dmy9wr8Jakn74ybaslDI2yst+oWB2+vzx3VN/WsLXLXDKxxBK08x14IPXQtqkuAp3cjlzfg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=keGDEFh/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772575847; c=relaxed/simple;
+	bh=FWqvtdAxUXRssU0Wf/qV+4tocwPMmGDhhq5+jqSsSRM=;
+	h=Date:To:From:Subject:Message-Id; b=BmkuPK/lsE2bV+9DhVAfRoxsZvSz7RYBzljF/mzXYy2iMIAhBXjW5uVe9o7IFYNQfQXRqQEx3+5TjTzQYsMBX/XQk3AjhDqiF3Q/4VH/SkpNB/t/M/gEuD9MB0mkcD7sj7IImV5nfmAqvBCG4PnuhbinLlpKBh2QPXZi26YyR8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rhNHdPsf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="keGDEFh/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA1A6C116C6;
-	Tue,  3 Mar 2026 18:58:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rhNHdPsf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C4F4C116C6;
+	Tue,  3 Mar 2026 22:10:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772564285;
-	bh=JWhUzpA9PVqVIwNMQKTaR4I2R2xMJCahGvi4sZAib9I=;
+	s=korg; t=1772575847;
+	bh=FWqvtdAxUXRssU0Wf/qV+4tocwPMmGDhhq5+jqSsSRM=;
 	h=Date:To:From:Subject:From;
-	b=keGDEFh/usw06fRw1AbAcQ2RN/ehaN5EPMqMlwr7Xnb44fsdloZOx4q+SAe5P/u8i
-	 0rmLXQ6k9g2IU/Mf/buMxB9Ef1aMDGCXIiAbhG6itii97pocefh/2PEC0dz9Qt6hOc
-	 zdsloDCBcLxOb8I5v52yn01qpfmoNWXyo5954ef8=
-Date: Tue, 03 Mar 2026 10:58:05 -0800
-To: mm-commits@vger.kernel.org,d@ilvokhin.com,akpm@linux-foundation.org
+	b=rhNHdPsfmvSWo+5GxySs8P5BzbgPIaC7y+SwvjfrLAzcs98NCLUck6fWAObaEM5Jb
+	 yKNQvmUQXOS6NUMCMVHBGbM6eah+qP4i1ncotiCVMIk6LbOoH1t0B0Sn3+94cOXR12
+	 0Eb5ZrB0emGmob3gsm6inTcNvTFgkWgMXmMPAXjo=
+Date: Tue, 03 Mar 2026 14:10:46 -0800
+To: mm-commits@vger.kernel.org,pmladek@suse.com,mhiramat@kernel.org,lance.yang@linux.dev,joel.granados@kernel.org,gregkh@linuxfoundation.org,atomlin@atomlin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rename-zone-lock-to-zone-_lock-fix-2.patch added to mm-new branch
-Message-Id: <20260303185805.BA1A6C116C6@smtp.kernel.org>
+Subject: + hung_task-refactor-detection-logic-and-atomicise-detection-count.patch added to mm-nonmm-unstable branch
+Message-Id: <20260303221047.0C4F4C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix remaining zone->lock references
-has been added to the -mm mm-new branch.  Its filename is
-     mm-rename-zone-lock-to-zone-_lock-fix-2.patch
+     Subject: hung_task: refactor detection logic and atomicise detection count
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     hung_task-refactor-detection-logic-and-atomicise-detection-count.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-zone-lock-to-zone-_lock-fix-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/hung_task-refactor-detection-logic-and-atomicise-detection-count.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,77 +58,186 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: mm: fix remaining zone->lock references
-Date: Tue, 3 Mar 2026 06:13:13 -0800
+From: Aaron Tomlin <atomlin@atomlin.com>
+Subject: hung_task: refactor detection logic and atomicise detection count
+Date: Tue, 3 Mar 2026 15:30:29 -0500
 
-Link: https://lkml.kernel.org/r/aabvc4Xhc9qBfaG7@shell.ilvokhin.com
-Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+Patch series "hung_task: Provide runtime reset interface for hung task
+detector", v9.
+
+This series introduces the ability to reset
+/proc/sys/kernel/hung_task_detect_count.
+
+Writing a "0" value to this file atomically resets the counter of detected
+hung tasks.  This functionality provides system administrators with the
+means to clear the cumulative diagnostic history following incident
+resolution, thereby simplifying subsequent monitoring without
+necessitating a system restart.
+
+
+This patch (of 3):
+
+The check_hung_task() function currently conflates two distinct
+responsibilities: validating whether a task is hung and handling the
+subsequent reporting (printing warnings, triggering panics, or
+tracepoints).
+
+This patch refactors the logic by introducing hung_task_info(), a function
+dedicated solely to reporting.  The actual detection check,
+task_is_hung(), is hoisted into the primary loop within
+check_hung_uninterruptible_tasks().  This separation clearly decouples the
+mechanism of detection from the policy of reporting.
+
+Furthermore, to facilitate future support for concurrent hung task
+detection, the global sysctl_hung_task_detect_count variable is converted
+from unsigned long to atomic_long_t.  Consequently, the counting logic is
+updated to accumulate the number of hung tasks locally (this_round_count)
+during the iteration.  The global counter is then updated atomically via
+atomic_long_cmpxchg_relaxed() once the loop concludes, rather than
+incrementally during the scan.
+
+These changes are strictly preparatory and introduce no functional change
+to the system's runtime behaviour.
+
+Link: https://lkml.kernel.org/r/20260303203031.4097316-1-atomlin@atomlin.com
+Link: https://lkml.kernel.org/r/20260303203031.4097316-2-atomlin@atomlin.com
+Signed-off-by: Aaron Tomlin <atomlin@atomlin.com>
+Reviewed-by: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Joel Granados <joel.granados@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/physical_memory.rst |    4 ++--
- Documentation/trace/events-kmem.rst  |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ kernel/hung_task.c |   58 ++++++++++++++++++++++++-------------------
+ 1 file changed, 33 insertions(+), 25 deletions(-)
 
---- a/Documentation/mm/physical_memory.rst~mm-rename-zone-lock-to-zone-_lock-fix-2
-+++ a/Documentation/mm/physical_memory.rst
-@@ -500,11 +500,11 @@ General
- ``nr_isolate_pageblock``
-   Number of isolated pageblocks. It is used to solve incorrect freepage counting
-   problem due to racy retrieving migratetype of pageblock. Protected by
--  ``zone->lock``. Defined only when ``CONFIG_MEMORY_ISOLATION`` is enabled.
-+  ``zone_lock``. Defined only when ``CONFIG_MEMORY_ISOLATION`` is enabled.
+--- a/kernel/hung_task.c~hung_task-refactor-detection-logic-and-atomicise-detection-count
++++ a/kernel/hung_task.c
+@@ -36,7 +36,7 @@ static int __read_mostly sysctl_hung_tas
+ /*
+  * Total number of tasks detected as hung since boot:
+  */
+-static unsigned long __read_mostly sysctl_hung_task_detect_count;
++static atomic_long_t sysctl_hung_task_detect_count = ATOMIC_LONG_INIT(0);
  
- ``span_seqlock``
-   The seqlock to protect ``zone_start_pfn`` and ``spanned_pages``. It is a
--  seqlock because it has to be read outside of ``zone->lock``, and it is done in
-+  seqlock because it has to be read outside of ``zone_lock``, and it is done in
-   the main allocator path. However, the seqlock is written quite infrequently.
-   Defined only when ``CONFIG_MEMORY_HOTPLUG`` is enabled.
+ /*
+  * Limit number of tasks checked in a batch.
+@@ -223,31 +223,29 @@ static inline void debug_show_blocker(st
+ }
+ #endif
  
---- a/Documentation/trace/events-kmem.rst~mm-rename-zone-lock-to-zone-_lock-fix-2
-+++ a/Documentation/trace/events-kmem.rst
-@@ -57,7 +57,7 @@ the per-CPU allocator (high performance)
+-static void check_hung_task(struct task_struct *t, unsigned long timeout,
+-		unsigned long prev_detect_count)
++/**
++ * hung_task_info - Print diagnostic details for a hung task
++ * @t: Pointer to the detected hung task.
++ * @timeout: Timeout threshold for detecting hung tasks
++ * @this_round_count: Count of hung tasks detected in the current iteration
++ *
++ * Print structured information about the specified hung task, if warnings
++ * are enabled or if the panic batch threshold is exceeded.
++ */
++static void hung_task_info(struct task_struct *t, unsigned long timeout,
++			   unsigned long this_round_count)
+ {
+-	unsigned long total_hung_task;
+-
+-	if (!task_is_hung(t, timeout))
+-		return;
+-
+-	/*
+-	 * This counter tracks the total number of tasks detected as hung
+-	 * since boot.
+-	 */
+-	sysctl_hung_task_detect_count++;
+-
+-	total_hung_task = sysctl_hung_task_detect_count - prev_detect_count;
+ 	trace_sched_process_hang(t);
  
- If pages are allocated directly from the buddy allocator, the
- mm_page_alloc_zone_locked event is triggered. This event is important as high
--amounts of activity imply high activity on the zone->lock. Taking this lock
-+amounts of activity imply high activity on the zone_lock. Taking this lock
- impairs performance by disabling interrupts, dirtying cache lines between
- CPUs and serialising many CPUs.
+-	if (sysctl_hung_task_panic && total_hung_task >= sysctl_hung_task_panic) {
++	if (sysctl_hung_task_panic && this_round_count >= sysctl_hung_task_panic) {
+ 		console_verbose();
+ 		hung_task_call_panic = true;
+ 	}
  
-@@ -79,11 +79,11 @@ contention on the lruvec->lru_lock.
-   mm_page_pcpu_drain		page=%p pfn=%lu order=%d cpu=%d migratetype=%d
+ 	/*
+-	 * Ok, the task did not get scheduled for more than 2 minutes,
+-	 * complain:
++	 * The given task did not get scheduled for more than
++	 * CONFIG_DEFAULT_HUNG_TASK_TIMEOUT. Therefore, complain
++	 * accordingly
+ 	 */
+ 	if (sysctl_hung_task_warnings || hung_task_call_panic) {
+ 		if (sysctl_hung_task_warnings > 0)
+@@ -297,18 +295,18 @@ static bool rcu_lock_break(struct task_s
  
- In front of the page allocator is a per-cpu page allocator. It exists only
--for order-0 pages, reduces contention on the zone->lock and reduces the
-+for order-0 pages, reduces contention on the zone_lock and reduces the
- amount of writing on struct page.
+ /*
+  * Check whether a TASK_UNINTERRUPTIBLE does not get woken up for
+- * a really long time (120 seconds). If that happens, print out
+- * a warning.
++ * a really long time. If that happens, print out a warning.
+  */
+ static void check_hung_uninterruptible_tasks(unsigned long timeout)
+ {
+ 	int max_count = sysctl_hung_task_check_count;
+ 	unsigned long last_break = jiffies;
+ 	struct task_struct *g, *t;
+-	unsigned long prev_detect_count = sysctl_hung_task_detect_count;
++	unsigned long total_count, this_round_count;
+ 	int need_warning = sysctl_hung_task_warnings;
+ 	unsigned long si_mask = hung_task_si_mask;
  
- When a per-CPU list is empty or pages of the wrong type are allocated,
--the zone->lock will be taken once and the per-CPU list refilled. The event
-+the zone_lock will be taken once and the per-CPU list refilled. The event
- triggered is mm_page_alloc_zone_locked for each page allocated with the
- event indicating whether it is for a percpu_refill or not.
++	total_count = atomic_long_read(&sysctl_hung_task_detect_count);
+ 	/*
+ 	 * If the system crashed already then all bets are off,
+ 	 * do not report extra hung tasks:
+@@ -316,10 +314,9 @@ static void check_hung_uninterruptible_t
+ 	if (test_taint(TAINT_DIE) || did_panic)
+ 		return;
  
-@@ -92,7 +92,7 @@ which triggers a mm_page_pcpu_drain even
+-
++	this_round_count = 0;
+ 	rcu_read_lock();
+ 	for_each_process_thread(g, t) {
+-
+ 		if (!max_count--)
+ 			goto unlock;
+ 		if (time_after(jiffies, last_break + HUNG_TASK_LOCK_BREAK)) {
+@@ -328,14 +325,25 @@ static void check_hung_uninterruptible_t
+ 			last_break = jiffies;
+ 		}
  
- The individual nature of the events is so that pages can be tracked
- between allocation and freeing. A number of drain or refill pages that occur
--consecutively imply the zone->lock being taken once. Large amounts of per-CPU
-+consecutively imply the zone_lock being taken once. Large amounts of per-CPU
- refills and drains could imply an imbalance between CPUs where too much work
- is being concentrated in one place. It could also indicate that the per-CPU
- lists should be a larger size. Finally, large amounts of refills on one CPU
+-		check_hung_task(t, timeout, prev_detect_count);
++		if (task_is_hung(t, timeout)) {
++			this_round_count++;
++			hung_task_info(t, timeout, this_round_count);
++		}
+ 	}
+  unlock:
+ 	rcu_read_unlock();
+ 
+-	if (!(sysctl_hung_task_detect_count - prev_detect_count))
++	if (!this_round_count)
+ 		return;
+ 
++	/*
++	 * This counter tracks the total number of tasks detected as hung
++	 * since boot.
++	 */
++	atomic_long_cmpxchg_relaxed(&sysctl_hung_task_detect_count,
++				    total_count, total_count +
++				    this_round_count);
++
+ 	if (need_warning || hung_task_call_panic) {
+ 		si_mask |= SYS_INFO_LOCKS;
+ 
 _
 
-Patches currently in -mm which might be from d@ilvokhin.com are
+Patches currently in -mm which might be from atomlin@atomlin.com are
 
-mm-introduce-zone-lock-wrappers.patch
-mm-convert-zone-lock-users-to-wrappers.patch
-mm-convert-compaction-to-zone-lock-wrappers.patch
-mm-rename-zone-lock-to-zone-_lock.patch
-mm-rename-zone-lock-to-zone-_lock-fix-2.patch
-mm-add-tracepoints-for-zone-lock.patch
+hung_task-refactor-detection-logic-and-atomicise-detection-count.patch
+hung_task-enable-runtime-reset-of-hung_task_detect_count.patch
 
