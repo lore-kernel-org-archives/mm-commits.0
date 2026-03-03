@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A926C6BFCE
-	for <mm-commits@vger.kernel.org>; Tue,  3 Mar 2026 01:35:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BE2F372679
+	for <mm-commits@vger.kernel.org>; Tue,  3 Mar 2026 18:58:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772501738; cv=none; b=GTGjY3GLH4mKJ0usw10jjAmbnAJ39uY45b19pyCI8sqyQziZnfsHIsMII9THAYxoyj/2DE9lzsPceP7FYromHOGxOPA+ksVmBOJg51vGxy9A2tfrfUt1I4Iqki4LwVm1pvWrLreGHb9V4dTaLD5DxzIgXZwCOaIPJK4Vdl75POg=
+	t=1772564286; cv=none; b=g+LGeiIX2BCHrKXE0DkYNGqN1xfEvZ8TbBhg5fMV1QQBQRX8AZFZnJC1iiotEuVxaQ60IttrG6v2DdQhd+m2XIZf7i83Hl+Y3jl8JEM+n/o6SoNxelSUFCZp+Yz58X2xqylmYXB6wf6IwtS5m2G3yM3Qs8OzPBBl/y0CSGLUR9M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772501738; c=relaxed/simple;
-	bh=9FIORy0ttAoIidT+i5G8KwSVSiClIFXtcC1/bdYzYbo=;
-	h=Date:To:From:Subject:Message-Id; b=UDcTjDwlS1dw4o/XrqLT7NDebK0raxnfsmK/yULL0UBUCD3gub+fvWVnU06nuWT0nMSOE7y4W3ZA950uHUcveLZhZwFG7Vpk5hQpntcJ1ULWmepufgGZehN/pojWrYUKADbWZGQtdyn5GxxV0xWA5FluIGAWY6/XavlC/rYLBn8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kHUHdtJf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772564286; c=relaxed/simple;
+	bh=JWhUzpA9PVqVIwNMQKTaR4I2R2xMJCahGvi4sZAib9I=;
+	h=Date:To:From:Subject:Message-Id; b=DtPHnCma53tJFqu6X8306CoSSMvw9uCbydfdBwAIBCqzUvsof2iI65Ws0Z2Swu4Klku90W6YPEcX3gcJR3b1u9qfEBniNcSGoWb9dmy9wr8Jakn74ybaslDI2yst+oWB2+vzx3VN/WsLXLXDKxxBK08x14IPXQtqkuAp3cjlzfg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=keGDEFh/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kHUHdtJf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 303E4C19423;
-	Tue,  3 Mar 2026 01:35:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="keGDEFh/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA1A6C116C6;
+	Tue,  3 Mar 2026 18:58:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772501738;
-	bh=9FIORy0ttAoIidT+i5G8KwSVSiClIFXtcC1/bdYzYbo=;
+	s=korg; t=1772564285;
+	bh=JWhUzpA9PVqVIwNMQKTaR4I2R2xMJCahGvi4sZAib9I=;
 	h=Date:To:From:Subject:From;
-	b=kHUHdtJf5w2O6rIw5ekx29rPcj6kVruwuX6+KkjFGwfjE70cpJ3fLsU6ydW6loYau
-	 HyoBNbAOGjNew0fNAGwWLMSChqBb56dYRh13+/40WcYPmpO/NVs8uY/Qqk71POw081
-	 N1YoNZu8BSKEIDhuYIa+Nfw08Td5L5FqrWLxRTY4=
-Date: Mon, 02 Mar 2026 17:35:37 -0800
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,inwardvessel@gmail.com,hannes@cmpxchg.org,wujianyue000@gmail.com,akpm@linux-foundation.org
+	b=keGDEFh/usw06fRw1AbAcQ2RN/ehaN5EPMqMlwr7Xnb44fsdloZOx4q+SAe5P/u8i
+	 0rmLXQ6k9g2IU/Mf/buMxB9Ef1aMDGCXIiAbhG6itii97pocefh/2PEC0dz9Qt6hOc
+	 zdsloDCBcLxOb8I5v52yn01qpfmoNWXyo5954ef8=
+Date: Tue, 03 Mar 2026 10:58:05 -0800
+To: mm-commits@vger.kernel.org,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [withdrawn] mm-optimize-stat-output-for-11%-sys-time-reduce.patch removed from -mm tree
-Message-Id: <20260303013538.303E4C19423@smtp.kernel.org>
+Subject: + mm-rename-zone-lock-to-zone-_lock-fix-2.patch added to mm-new branch
+Message-Id: <20260303185805.BA1A6C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,362 +34,109 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm, memcg: optimize stat output for 11% sys time reduction
-has been removed from the -mm tree.  Its filename was
-     mm-optimize-stat-output-for-11%-sys-time-reduce.patch
+The patch titled
+     Subject: mm: fix remaining zone->lock references
+has been added to the -mm mm-new branch.  Its filename is
+     mm-rename-zone-lock-to-zone-_lock-fix-2.patch
 
-This patch was dropped because it was withdrawn
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-zone-lock-to-zone-_lock-fix-2.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Jianyue Wu <wujianyue000@gmail.com>
-Subject: mm, memcg: optimize stat output for 11% sys time reduction
-Date: Fri, 23 Jan 2026 23:01:08 +0800
+From: Dmitry Ilvokhin <d@ilvokhin.com>
+Subject: mm: fix remaining zone->lock references
+Date: Tue, 3 Mar 2026 06:13:13 -0800
 
-Replace seq_buf_printf() calls in memcg stat formatting with a lightweight
-helper function and replace seq_printf() in numa stat output with direct
-seq operations to avoid printf format parsing overhead.
-
-Key changes:
-- Add memcg_seq_buf_print_stat() helper that embeds separator and
-  newline directly in the number buffer to reduce function calls
-- Replace seq_buf_printf() in memcg_stat_format() with
-  memcg_seq_buf_print_stat()
-- Replace seq_printf() in memory_numa_stat_show() and
-  memcg_numa_stat_show() with seq_puts() and seq_put_decimal_ull()
-- Update memory_stat_format() and related v1 stats formatting
-
-Performance improvement (1M reads of memory.stat + memory.numa_stat):
-- Before: real 0m9.663s, user 0m4.840s, sys 0m4.823s
-- After:  real 0m8.909s, user 0m4.661s, sys 0m4.247s
-- Result: ~11% sys time reduction
-
-Test script:
-  for ((i=1; i<=1000000; i++)); do
-      : > /dev/null < /sys/fs/cgroup/memory.stat
-      : > /dev/null < /sys/fs/cgroup/memory.numa_stat
-  done
-
-Link: https://lkml.kernel.org/r/20260123150108.43443-2-wujianyue000@gmail.com
-Signed-off-by: Jianyue Wu <wujianyue000@gmail.com>
-Suggested-by: JP Kobryn <inwardvessel@gmail.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Tested-by: JP Kobryn <inwardvessel@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Link: https://lkml.kernel.org/r/aabvc4Xhc9qBfaG7@shell.ilvokhin.com
+Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol-v1.c |   84 +++++++++++++++++++++++------------------
- mm/memcontrol-v1.h |    4 +
- mm/memcontrol.c    |   88 ++++++++++++++++++++++++++++++++++---------
- 3 files changed, 123 insertions(+), 53 deletions(-)
+ Documentation/mm/physical_memory.rst |    4 ++--
+ Documentation/trace/events-kmem.rst  |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/memcontrol.c~mm-optimize-stat-output-for-11%-sys-time-reduce
-+++ a/mm/memcontrol.c
-@@ -42,6 +42,7 @@
- #include <linux/bit_spinlock.h>
- #include <linux/rcupdate.h>
- #include <linux/limits.h>
-+#include <linux/sprintf.h>
- #include <linux/export.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
-@@ -1478,6 +1479,53 @@ static bool memcg_accounts_hugetlb(void)
- }
- #endif /* CONFIG_HUGETLB_PAGE */
+--- a/Documentation/mm/physical_memory.rst~mm-rename-zone-lock-to-zone-_lock-fix-2
++++ a/Documentation/mm/physical_memory.rst
+@@ -500,11 +500,11 @@ General
+ ``nr_isolate_pageblock``
+   Number of isolated pageblocks. It is used to solve incorrect freepage counting
+   problem due to racy retrieving migratetype of pageblock. Protected by
+-  ``zone->lock``. Defined only when ``CONFIG_MEMORY_ISOLATION`` is enabled.
++  ``zone_lock``. Defined only when ``CONFIG_MEMORY_ISOLATION`` is enabled.
  
-+/* Max 2^64 - 1 = 18446744073709551615 (20 digits) */
-+#define MEMCG_DEC_U64_MAX_LEN 20
-+
-+/**
-+ * memcg_seq_buf_print_stat - Write a name-value pair to a seq_buf with newline
-+ * @s: The seq_buf to write to
-+ * @prefix: Optional prefix string (can be NULL or "")
-+ * @name: The name string to write
-+ * @sep: Separator character between name and value (typically ' ' or '=')
-+ * @val: The u64 value to write
-+ *
-+ * This helper efficiently formats and writes "<prefix><name><sep><value>\n"
-+ * to a seq_buf. It manually converts the value to a string using num_to_str
-+ * and embeds the separator and newline in the buffer to minimize function
-+ * calls for better performance.
-+ *
-+ * The function checks for overflow at each step and returns early if any
-+ * operation would cause the buffer to overflow.
-+ *
-+ * Example: memcg_seq_buf_print_stat(s, "total_", "cache", ' ', 1048576)
-+ *          Output: "total_cache 1048576\n"
-+ */
-+void memcg_seq_buf_print_stat(struct seq_buf *s, const char *prefix,
-+			      const char *name, char sep, u64 val)
-+{
-+	char num_buf[MEMCG_DEC_U64_MAX_LEN + 2];  /* +2 for separator and newline */
-+	int num_len;
-+
-+	/* Embed separator at the beginning */
-+	num_buf[0] = sep;
-+
-+	/* Convert number starting at offset 1 */
-+	num_len = num_to_str(num_buf + 1, sizeof(num_buf) - 2, val, 0);
-+	if (num_len <= 0)
-+		return;
-+
-+	/* Embed newline at the end */
-+	num_buf[num_len + 1] = '\n';
-+
-+	if (prefix && *prefix && seq_buf_puts(s, prefix))
-+		return;
-+	if (seq_buf_puts(s, name))
-+		return;
-+	/* Output separator, value, and newline in one call */
-+	seq_buf_putmem(s, num_buf, num_len + 2);
-+}
-+
- static void memcg_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
- {
- 	int i;
-@@ -1503,26 +1551,26 @@ static void memcg_stat_format(struct mem
- 			continue;
- #endif
- 		size = memcg_page_state_output(memcg, memory_stats[i].idx);
--		seq_buf_printf(s, "%s %llu\n", memory_stats[i].name, size);
-+		memcg_seq_buf_print_stat(s, NULL, memory_stats[i].name, ' ', size);
+ ``span_seqlock``
+   The seqlock to protect ``zone_start_pfn`` and ``spanned_pages``. It is a
+-  seqlock because it has to be read outside of ``zone->lock``, and it is done in
++  seqlock because it has to be read outside of ``zone_lock``, and it is done in
+   the main allocator path. However, the seqlock is written quite infrequently.
+   Defined only when ``CONFIG_MEMORY_HOTPLUG`` is enabled.
  
- 		if (unlikely(memory_stats[i].idx == NR_SLAB_UNRECLAIMABLE_B)) {
- 			size += memcg_page_state_output(memcg,
- 							NR_SLAB_RECLAIMABLE_B);
--			seq_buf_printf(s, "slab %llu\n", size);
-+			memcg_seq_buf_print_stat(s, NULL, "slab", ' ', size);
- 		}
- 	}
+--- a/Documentation/trace/events-kmem.rst~mm-rename-zone-lock-to-zone-_lock-fix-2
++++ a/Documentation/trace/events-kmem.rst
+@@ -57,7 +57,7 @@ the per-CPU allocator (high performance)
  
- 	/* Accumulated memory events */
--	seq_buf_printf(s, "pgscan %lu\n",
--		       memcg_events(memcg, PGSCAN_KSWAPD) +
--		       memcg_events(memcg, PGSCAN_DIRECT) +
--		       memcg_events(memcg, PGSCAN_PROACTIVE) +
--		       memcg_events(memcg, PGSCAN_KHUGEPAGED));
--	seq_buf_printf(s, "pgsteal %lu\n",
--		       memcg_events(memcg, PGSTEAL_KSWAPD) +
--		       memcg_events(memcg, PGSTEAL_DIRECT) +
--		       memcg_events(memcg, PGSTEAL_PROACTIVE) +
--		       memcg_events(memcg, PGSTEAL_KHUGEPAGED));
-+	memcg_seq_buf_print_stat(s, NULL, "pgscan", ' ',
-+				 memcg_events(memcg, PGSCAN_KSWAPD) +
-+				 memcg_events(memcg, PGSCAN_DIRECT) +
-+				 memcg_events(memcg, PGSCAN_PROACTIVE) +
-+				 memcg_events(memcg, PGSCAN_KHUGEPAGED));
-+	memcg_seq_buf_print_stat(s, NULL, "pgsteal", ' ',
-+				 memcg_events(memcg, PGSTEAL_KSWAPD) +
-+				 memcg_events(memcg, PGSTEAL_DIRECT) +
-+				 memcg_events(memcg, PGSTEAL_PROACTIVE) +
-+				 memcg_events(memcg, PGSTEAL_KHUGEPAGED));
+ If pages are allocated directly from the buddy allocator, the
+ mm_page_alloc_zone_locked event is triggered. This event is important as high
+-amounts of activity imply high activity on the zone->lock. Taking this lock
++amounts of activity imply high activity on the zone_lock. Taking this lock
+ impairs performance by disabling interrupts, dirtying cache lines between
+ CPUs and serialising many CPUs.
  
- 	for (i = 0; i < ARRAY_SIZE(memcg_vm_event_stat); i++) {
- #ifdef CONFIG_MEMCG_V1
-@@ -1530,9 +1578,9 @@ static void memcg_stat_format(struct mem
- 		    memcg_vm_event_stat[i] == PGPGOUT)
- 			continue;
- #endif
--		seq_buf_printf(s, "%s %lu\n",
--			       vm_event_name(memcg_vm_event_stat[i]),
--			       memcg_events(memcg, memcg_vm_event_stat[i]));
-+		memcg_seq_buf_print_stat(s, NULL,
-+					 vm_event_name(memcg_vm_event_stat[i]), ' ',
-+					 memcg_events(memcg, memcg_vm_event_stat[i]));
- 	}
- }
+@@ -79,11 +79,11 @@ contention on the lruvec->lru_lock.
+   mm_page_pcpu_drain		page=%p pfn=%lu order=%d cpu=%d migratetype=%d
  
-@@ -4560,7 +4608,12 @@ static int memory_numa_stat_show(struct
- 		if (memory_stats[i].idx >= NR_VM_NODE_STAT_ITEMS)
- 			continue;
+ In front of the page allocator is a per-cpu page allocator. It exists only
+-for order-0 pages, reduces contention on the zone->lock and reduces the
++for order-0 pages, reduces contention on the zone_lock and reduces the
+ amount of writing on struct page.
  
--		seq_printf(m, "%s", memory_stats[i].name);
-+		/*
-+		 * Output format: "stat_name N0=value0 N1=value1 ...\n"
-+		 * Use seq_puts and seq_put_decimal_ull to avoid printf
-+		 * format parsing overhead in this hot path.
-+		 */
-+		seq_puts(m, memory_stats[i].name);
- 		for_each_node_state(nid, N_MEMORY) {
- 			u64 size;
- 			struct lruvec *lruvec;
-@@ -4568,7 +4621,8 @@ static int memory_numa_stat_show(struct
- 			lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
- 			size = lruvec_page_state_output(lruvec,
- 							memory_stats[i].idx);
--			seq_printf(m, " N%d=%llu", nid, size);
-+			seq_put_decimal_ull(m, " N", nid);
-+			seq_put_decimal_ull(m, "=", size);
- 		}
- 		seq_putc(m, '\n');
- 	}
---- a/mm/memcontrol-v1.c~mm-optimize-stat-output-for-11%-sys-time-reduce
-+++ a/mm/memcontrol-v1.c
-@@ -10,7 +10,7 @@
- #include <linux/poll.h>
- #include <linux/sort.h>
- #include <linux/file.h>
--#include <linux/seq_buf.h>
-+#include <linux/string.h>
+ When a per-CPU list is empty or pages of the wrong type are allocated,
+-the zone->lock will be taken once and the per-CPU list refilled. The event
++the zone_lock will be taken once and the per-CPU list refilled. The event
+ triggered is mm_page_alloc_zone_locked for each page allocated with the
+ event indicating whether it is for a percpu_refill or not.
  
- #include "internal.h"
- #include "swap.h"
-@@ -1816,26 +1816,39 @@ static int memcg_numa_stat_show(struct s
+@@ -92,7 +92,7 @@ which triggers a mm_page_pcpu_drain even
  
- 	mem_cgroup_flush_stats(memcg);
- 
-+	/*
-+	 * Output format: "stat_name=value N0=value0 N1=value1 ...\n"
-+	 * Use seq_puts and seq_put_decimal_ull to avoid printf format
-+	 * parsing overhead in this hot path.
-+	 */
- 	for (stat = stats; stat < ARRAY_END(stats); stat++) {
--		seq_printf(m, "%s=%lu", stat->name,
--			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
--						   false));
--		for_each_node_state(nid, N_MEMORY)
--			seq_printf(m, " N%d=%lu", nid,
--				   mem_cgroup_node_nr_lru_pages(memcg, nid,
--							stat->lru_mask, false));
-+		seq_puts(m, stat->name);
-+		seq_put_decimal_ull(m, "=",
-+				    mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
-+							    false));
-+		for_each_node_state(nid, N_MEMORY) {
-+			seq_put_decimal_ull(m, " N", nid);
-+			seq_put_decimal_ull(m, "=",
-+					    mem_cgroup_node_nr_lru_pages(memcg, nid,
-+									 stat->lru_mask,
-+									 false));
-+		}
- 		seq_putc(m, '\n');
- 	}
- 
- 	for (stat = stats; stat < ARRAY_END(stats); stat++) {
--
--		seq_printf(m, "hierarchical_%s=%lu", stat->name,
--			   mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
--						   true));
--		for_each_node_state(nid, N_MEMORY)
--			seq_printf(m, " N%d=%lu", nid,
--				   mem_cgroup_node_nr_lru_pages(memcg, nid,
--							stat->lru_mask, true));
-+		seq_puts(m, "hierarchical_");
-+		seq_puts(m, stat->name);
-+		seq_put_decimal_ull(m, "=",
-+				    mem_cgroup_nr_lru_pages(memcg, stat->lru_mask,
-+							    true));
-+		for_each_node_state(nid, N_MEMORY) {
-+			seq_put_decimal_ull(m, " N", nid);
-+			seq_put_decimal_ull(m, "=",
-+					    mem_cgroup_node_nr_lru_pages(memcg, nid,
-+									 stat->lru_mask,
-+									 true));
-+		}
- 		seq_putc(m, '\n');
- 	}
- 
-@@ -1901,17 +1914,17 @@ void memcg1_stat_format(struct mem_cgrou
- 		unsigned long nr;
- 
- 		nr = memcg_page_state_local_output(memcg, memcg1_stats[i]);
--		seq_buf_printf(s, "%s %lu\n", memcg1_stat_names[i], nr);
-+		memcg_seq_buf_print_stat(s, NULL, memcg1_stat_names[i], ' ', (u64)nr);
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
--		seq_buf_printf(s, "%s %lu\n", vm_event_name(memcg1_events[i]),
--			       memcg_events_local(memcg, memcg1_events[i]));
-+		memcg_seq_buf_print_stat(s, NULL, vm_event_name(memcg1_events[i]),
-+					 ' ', memcg_events_local(memcg, memcg1_events[i]));
- 
- 	for (i = 0; i < NR_LRU_LISTS; i++)
--		seq_buf_printf(s, "%s %lu\n", lru_list_name(i),
--			       memcg_page_state_local(memcg, NR_LRU_BASE + i) *
--			       PAGE_SIZE);
-+		memcg_seq_buf_print_stat(s, NULL, lru_list_name(i), ' ',
-+					 memcg_page_state_local(memcg, NR_LRU_BASE + i) *
-+					 PAGE_SIZE);
- 
- 	/* Hierarchical information */
- 	memory = memsw = PAGE_COUNTER_MAX;
-@@ -1919,28 +1932,27 @@ void memcg1_stat_format(struct mem_cgrou
- 		memory = min(memory, READ_ONCE(mi->memory.max));
- 		memsw = min(memsw, READ_ONCE(mi->memsw.max));
- 	}
--	seq_buf_printf(s, "hierarchical_memory_limit %llu\n",
--		       (u64)memory * PAGE_SIZE);
--	seq_buf_printf(s, "hierarchical_memsw_limit %llu\n",
--		       (u64)memsw * PAGE_SIZE);
-+	memcg_seq_buf_print_stat(s, NULL, "hierarchical_memory_limit", ' ',
-+				 (u64)memory * PAGE_SIZE);
-+	memcg_seq_buf_print_stat(s, NULL, "hierarchical_memsw_limit", ' ',
-+				 (u64)memsw * PAGE_SIZE);
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++) {
- 		unsigned long nr;
- 
- 		nr = memcg_page_state_output(memcg, memcg1_stats[i]);
--		seq_buf_printf(s, "total_%s %llu\n", memcg1_stat_names[i],
--			       (u64)nr);
-+		memcg_seq_buf_print_stat(s, "total_", memcg1_stat_names[i], ' ',
-+					 (u64)nr);
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg1_events); i++)
--		seq_buf_printf(s, "total_%s %llu\n",
--			       vm_event_name(memcg1_events[i]),
--			       (u64)memcg_events(memcg, memcg1_events[i]));
-+		memcg_seq_buf_print_stat(s, "total_", vm_event_name(memcg1_events[i]),
-+					 ' ', (u64)memcg_events(memcg, memcg1_events[i]));
- 
- 	for (i = 0; i < NR_LRU_LISTS; i++)
--		seq_buf_printf(s, "total_%s %llu\n", lru_list_name(i),
--			       (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
--			       PAGE_SIZE);
-+		memcg_seq_buf_print_stat(s, "total_", lru_list_name(i), ' ',
-+					 (u64)memcg_page_state(memcg, NR_LRU_BASE + i) *
-+					 PAGE_SIZE);
- 
- #ifdef CONFIG_DEBUG_VM
- 	{
-@@ -1955,8 +1967,8 @@ void memcg1_stat_format(struct mem_cgrou
- 			anon_cost += mz->lruvec.anon_cost;
- 			file_cost += mz->lruvec.file_cost;
- 		}
--		seq_buf_printf(s, "anon_cost %lu\n", anon_cost);
--		seq_buf_printf(s, "file_cost %lu\n", file_cost);
-+		memcg_seq_buf_print_stat(s, NULL, "anon_cost", ' ', (u64)anon_cost);
-+		memcg_seq_buf_print_stat(s, NULL, "file_cost", ' ', (u64)file_cost);
- 	}
- #endif
- }
---- a/mm/memcontrol-v1.h~mm-optimize-stat-output-for-11%-sys-time-reduce
-+++ a/mm/memcontrol-v1.h
-@@ -4,6 +4,7 @@
- #define __MM_MEMCONTROL_V1_H
- 
- #include <linux/cgroup-defs.h>
-+#include <linux/seq_buf.h>
- 
- /* Cgroup v1 and v2 common declarations */
- 
-@@ -30,6 +31,9 @@ int memory_stat_show(struct seq_file *m,
- void mem_cgroup_private_id_get_many(struct mem_cgroup *memcg, unsigned int n);
- struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg);
- 
-+void memcg_seq_buf_print_stat(struct seq_buf *s, const char *prefix,
-+			      const char *name, char sep, u64 val);
-+
- /* Cgroup v1-specific declarations */
- #ifdef CONFIG_MEMCG_V1
- 
+ The individual nature of the events is so that pages can be tracked
+ between allocation and freeing. A number of drain or refill pages that occur
+-consecutively imply the zone->lock being taken once. Large amounts of per-CPU
++consecutively imply the zone_lock being taken once. Large amounts of per-CPU
+ refills and drains could imply an imbalance between CPUs where too much work
+ is being concentrated in one place. It could also indicate that the per-CPU
+ lists should be a larger size. Finally, large amounts of refills on one CPU
 _
 
-Patches currently in -mm which might be from wujianyue000@gmail.com are
+Patches currently in -mm which might be from d@ilvokhin.com are
 
+mm-introduce-zone-lock-wrappers.patch
+mm-convert-zone-lock-users-to-wrappers.patch
+mm-convert-compaction-to-zone-lock-wrappers.patch
+mm-rename-zone-lock-to-zone-_lock.patch
+mm-rename-zone-lock-to-zone-_lock-fix-2.patch
+mm-add-tracepoints-for-zone-lock.patch
 
