@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCE6B37D13C;
-	Wed,  4 Mar 2026 17:44:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C44B937D121
+	for <mm-commits@vger.kernel.org>; Wed,  4 Mar 2026 17:45:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772646299; cv=none; b=KWNYasWXA0m0VjdkH0RD9BArrRd0SXcSXdm52QDsWng0IKjNOl3cCtDhRs5OUwn+vyTUDCYEaKTqjHoW6xLWGepz1eC0Ap066t3ggANKdP6IId0NJ3R6kNLw6RqLbvVpPXfWpTvDg9fBK60ZuYyCxtZSXZgNbmYrw39C2o8fWGw=
+	t=1772646303; cv=none; b=C8kwLPh5V6PF5vb+rYVWrk+6bUBgRH7WLSsLUqqiI6+wy9M2gV+NKZZBC89/XkNJoUkuUoraWHkJhMqRkxFtdwpqo7kK1ztcj8pNcgqGsZ1fWqOWtNDSZuQEGpx5ZJODlBNAPxx4yOpQKHPL6mXl/f7wqe/W2pjm032ohhlbEdI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772646299; c=relaxed/simple;
-	bh=buQ+gzgOa4Ep5hhRZzKl1M1l3gt0d0dm3Gkz/sM9Ccw=;
-	h=Date:To:From:Subject:Message-Id; b=RdNu55bly2pyC7/lAebLQfN8Xf6TowSHQuShibpnvd3EIEufAqC12XeWjT/QRwll4cCcE8Kc/hc3IeOhjU/DNlVthWviSGCyRolN2OZ16A8+EHd/BAWYVQDYKNxvqdxneD/xJA8LdUbnp0Ump6ndSA6tiTv5xAbciBTUmmqe2Dk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=viGycx1S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772646303; c=relaxed/simple;
+	bh=y8f4p7vdBddw9qJFnt6UqoZ6IYDBpc+iBUmuyG+uckw=;
+	h=Date:To:From:Subject:Message-Id; b=JxncDDK43DoekW4m+goFcZhqyGDy2w80Vboo/Tg2IC4yjOcRJQ51YbXmBhcxUoRrIAPn1ur5999H7HGYQhQvRFvfr1G8Te291Hm82ugJPyrDa5n2ncY4GJfetzhVbwL89A2UDi4AjAkSSkMGuEHytv1zNebnOA12UO9SJZe4dmk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kF77eo3S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="viGycx1S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A758AC2BC86;
-	Wed,  4 Mar 2026 17:44:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kF77eo3S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47CE7C4CEF7;
+	Wed,  4 Mar 2026 17:45:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772646299;
-	bh=buQ+gzgOa4Ep5hhRZzKl1M1l3gt0d0dm3Gkz/sM9Ccw=;
+	s=korg; t=1772646303;
+	bh=y8f4p7vdBddw9qJFnt6UqoZ6IYDBpc+iBUmuyG+uckw=;
 	h=Date:To:From:Subject:From;
-	b=viGycx1SLqg6myzdF88LY8N4RkTWt12zYZN79INcdZvO0AknMq8SjSzP5hT1VWzW7
-	 7aQp0MAnoum/zxEk0p/blYMrz5u+h/5DI4oHZWjUE37r3IjPSdOhiRZXRY69SHLXPM
-	 ycFranE82y19YpHAAEYrmfptucw55xsg99IBl9pI=
-Date: Wed, 04 Mar 2026 09:44:59 -0800
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,raul_pazemecxas@hotmail.com,akpm@linux-foundation.org
+	b=kF77eo3SSAsdXGcaEXiD/jeJ8p7YhLdxFI1H0DgfT6IuLVHQ3Xci/9/2QXURk/O8M
+	 PFNJrwltMyUfSnkGTBG1HNOMfjm3hvm+YOpvTXcZ47XdIIMDMXIpjRwSEpmdtIF6my
+	 eA0+OJiVhQFyvNQGkjrW0+cHpCGSOsolzN/TiFGM=
+Date: Wed, 04 Mar 2026 09:45:02 -0800
+To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,re@w6rz.net,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,anshuman.khandual@arm.com,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-core-clear-walk_control-on-inactive-context-in-damos_walk.patch removed from -mm tree
-Message-Id: <20260304174459.A758AC2BC86@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release.patch removed from -mm tree
+Message-Id: <20260304174503.47CE7C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,73 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: clear walk_control on inactive context in damos_walk()
+     Subject: mm/cma: move put_page_testzero() out of VM_WARN_ON in cma_release()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-clear-walk_control-on-inactive-context-in-damos_walk.patch
+     mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Raul Pazemecxas De Andrade <raul_pazemecxas@hotmail.com>
-Subject: mm/damon/core: clear walk_control on inactive context in damos_walk()
-Date: Mon, 23 Feb 2026 17:10:59 -0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/cma: move put_page_testzero() out of VM_WARN_ON in cma_release()
+Date: Tue, 24 Feb 2026 22:12:31 -0500
 
-damos_walk() sets ctx->walk_control to the caller-provided control
-structure before checking whether the context is running.  If the context
-is inactive (damon_is_running() returns false), the function returns
--EINVAL without clearing ctx->walk_control.  This leaves a dangling
-pointer to a stack-allocated structure that will be freed when the caller
-returns.
+When CONFIG_DEBUG_VM is not set, VM_WARN_ON is a NOP.  Putting any
+statement with side effect inside it is incorrect.  Collect all
+!put_page_testzero() results and check the sum using WARN instead after
+the loop.  It restores the same check in free_contig_range() before commit
+e0c1326779cc ("mm: page_alloc: add alloc_contig_frozen_{range,pages}()"),
+the commit prior to the Fixes one.
 
-This is structurally identical to the bug fixed in commit f9132fbc2e83
-("mm/damon/core: remove call_control in inactive contexts") for
-damon_call(), which had the same pattern of linking a control object and
-returning an error without unlinking it.
-
-The dangling walk_control pointer can cause:
-1. Use-after-free if the context is later started and kdamond
-   dereferences ctx->walk_control (e.g., in damos_walk_cancel()
-   which writes to control->canceled and calls complete())
-2. Permanent -EBUSY from subsequent damos_walk() calls, since the
-   stale pointer is non-NULL
-
-Nonetheless, the real user impact is quite restrictive.  The
-use-after-free is impossible because there is no damos_walk() callers who
-starts the context later.  The permanent -EBUSY can actually confuse
-users, as DAMON is not running.  But the symptom is kept only while the
-context is turned off.  Turning it on again will make DAMON internally
-uses a newly generated damon_ctx object that doesn't have the invalid
-damos_walk_control pointer, so everything will work fine again.
-
-Fix this by clearing ctx->walk_control under walk_control_lock before
-returning -EINVAL, mirroring the fix pattern from f9132fbc2e83.
-
-Link: https://lkml.kernel.org/r/20260224011102.56033-1-sj@kernel.org
-Fixes: bf0eaba0ff9c ("mm/damon/core: implement damos_walk()")
-Reported-by: Raul Pazemecxas De Andrade <raul_pazemecxas@hotmail.com>
-Closes: https://lore.kernel.org/CPUPR80MB8171025468965E583EF2490F956CA@CPUPR80MB8171.lamprd80.prod.outlook.com
-Signed-off-by: Raul Pazemecxas De Andrade <raul_pazemecxas@hotmail.com>
-Signed-off-by: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20260225031231.2352011-1-ziy@nvidia.com
+Fixes: 9bda131c6093 ("mm: cma: add cma_alloc_frozen{_compound}()")
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reported-by: Ron Economos <re@w6rz.net>
+Closes: https://lore.kernel.org/all/1b17c38f-30d3-4bb4-a7e1-e74b19ada885@w6rz.net/
+Suggested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Debugged-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Tested-by: Ron Economos <re@w6rz.net>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[6.14+]
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/cma.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-clear-walk_control-on-inactive-context-in-damos_walk
-+++ a/mm/damon/core.c
-@@ -1562,8 +1562,13 @@ int damos_walk(struct damon_ctx *ctx, st
- 	}
- 	ctx->walk_control = control;
- 	mutex_unlock(&ctx->walk_control_lock);
--	if (!damon_is_running(ctx))
-+	if (!damon_is_running(ctx)) {
-+		mutex_lock(&ctx->walk_control_lock);
-+		if (ctx->walk_control == control)
-+			ctx->walk_control = NULL;
-+		mutex_unlock(&ctx->walk_control_lock);
- 		return -EINVAL;
-+	}
- 	wait_for_completion(&control->completion);
- 	if (control->canceled)
- 		return -ECANCELED;
+--- a/mm/cma.c~mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release
++++ a/mm/cma.c
+@@ -1013,6 +1013,7 @@ bool cma_release(struct cma *cma, const
+ 		 unsigned long count)
+ {
+ 	struct cma_memrange *cmr;
++	unsigned long ret = 0;
+ 	unsigned long i, pfn;
+ 
+ 	cmr = find_cma_memrange(cma, pages, count);
+@@ -1021,7 +1022,9 @@ bool cma_release(struct cma *cma, const
+ 
+ 	pfn = page_to_pfn(pages);
+ 	for (i = 0; i < count; i++, pfn++)
+-		VM_WARN_ON(!put_page_testzero(pfn_to_page(pfn)));
++		ret += !put_page_testzero(pfn_to_page(pfn));
++
++	WARN(ret, "%lu pages are still in use!\n", ret);
+ 
+ 	__cma_release_frozen(cma, cmr, pages, count);
+ 
 _
 
-Patches currently in -mm which might be from raul_pazemecxas@hotmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
 
