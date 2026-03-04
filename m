@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E7E136F40A
-	for <mm-commits@vger.kernel.org>; Wed,  4 Mar 2026 17:45:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22AEE3CB2C8
+	for <mm-commits@vger.kernel.org>; Wed,  4 Mar 2026 17:45:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772646307; cv=none; b=UUHfZw131YA13nB/jPXwRCAbxmJ78DlTScuRTaEx7PO8t0hlW1f5drB3JyXCjWekymLV1ukuYk882cac3f+Ek3aU3JC/feay6dh+v8KHN9gj6Q2G1cj4hYrBoCLNzEZHA0qom2Nm56iO+au2M6wdNe6uBNok9XCh8cBs6wkGAds=
+	t=1772646311; cv=none; b=R97rSFssjDiKL5kcGPLcvS3Sr5Oyqh84EG596PIoUvAO5UXHf5bJioCEhmeEhfqN1vqahiutk7rUesU9SPssO3qlttRWsnFdua+u+P8cgN9na9biF3NIOtkZWa1vigCQ9Br4baU3jrvudMv62OiHOYUP2Jb/am+M5EwNfBr/TSg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772646307; c=relaxed/simple;
-	bh=+dtYAIMVUkmmEPOxMJ88rxVIbPdvXOmx93J/dUA79Yo=;
-	h=Date:To:From:Subject:Message-Id; b=Q6BMFPRqbYZCsBGpgkeiS9hgbhbeVKVVL18pEU63sNWUy1yxPGDT4jctIA064z34y/DH83k091blkHax0fscZRFzxfFnqELoYE+y3rnEtsivzxoEywT7GWZGIhGS0Y3fZ+Qh15n8a/nzG4tVUTOiuAbNUxisa+0RufQZdaw0yBE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gap17Ls/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772646311; c=relaxed/simple;
+	bh=6H0Qz65ldptbbed/l0raSYWXSC2WVJT+qUdFvh2pxZw=;
+	h=Date:To:From:Subject:Message-Id; b=IjwHhKXsAJx4FZu21+7ezIiWIdSSdYa6ZxDkjYl1UmXIH1dYxJIoIjLYf41xZVGEf+sUjYf3Lq36XEgymDEc6SrZxUDx6DsZG3OJGffV8DBJv88QoJvECKsZXeApYTBbceG+cfcwcc1j7CbxCcETzPPJ56eNH4XvaNZhsZhp5c8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HE7TWmOA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gap17Ls/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A2FFC4CEF7;
-	Wed,  4 Mar 2026 17:45:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HE7TWmOA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6F1CC19425;
+	Wed,  4 Mar 2026 17:45:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772646307;
-	bh=+dtYAIMVUkmmEPOxMJ88rxVIbPdvXOmx93J/dUA79Yo=;
+	s=korg; t=1772646310;
+	bh=6H0Qz65ldptbbed/l0raSYWXSC2WVJT+qUdFvh2pxZw=;
 	h=Date:To:From:Subject:From;
-	b=Gap17Ls/NT/E13QTgr+nrWaN7Lrifl+SqdxA4EUx/iDreik2D0aKE6wARmr2362Tk
-	 plWRrFGL2RpXxrqmgEYbbjtwJ3H9O9iT59mylccj56d2V9Z0vpBLo6A0uqrz7+fmwA
-	 wz3JLVc2E8xmuyJ+LgXCH2AayGj3QOedujR/r2Wk=
-Date: Wed, 04 Mar 2026 09:45:06 -0800
-To: mm-commits@vger.kernel.org,surenb@google.com,skhan@linuxfoundation.org,richardycc@google.com,philipp.reisner@linbit.com,minchan@kernel.org,lars.ellenberg@linbit.com,corbet@lwn.net,christoph.boehmwalder@linbit.com,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=HE7TWmOACZG6j14XXR6fwyS0mXQpFL9GaCk34M0mjsRmsq9jYBvggk1YnmtuGB8bw
+	 v7kjyvJQYB48afjNmmKHAty6oh5+wZz9wew/UgOjDuIOMIy8NefuVOfhG77Iz2G53p
+	 O+N21eBFI9y2HY1040hjBfKWSXrPMGhWVzKMro5I=
+Date: Wed, 04 Mar 2026 09:45:10 -0800
+To: mm-commits@vger.kernel.org,rppt@kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,ritesh.list@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] zram-rename-writeback_compressed-device-attr.patch removed from -mm tree
-Message-Id: <20260304174507.3A2FFC4CEF7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlbc-use-__pa-instead-of-virt_to_phys-in-early-bootmem-alloc-code.patch removed from -mm tree
+Message-Id: <20260304174510.B6F1CC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,215 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: rename writeback_compressed device attr
+     Subject: mm/hugetlb.c: use __pa() instead of virt_to_phys() in early bootmem alloc code
 has been removed from the -mm tree.  Its filename was
-     zram-rename-writeback_compressed-device-attr.patch
+     mm-hugetlbc-use-__pa-instead-of-virt_to_phys-in-early-bootmem-alloc-code.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: rename writeback_compressed device attr
-Date: Thu, 26 Feb 2026 11:54:21 +0900
+From: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Subject: mm/hugetlb.c: use __pa() instead of virt_to_phys() in early bootmem alloc code
+Date: Thu, 26 Feb 2026 17:56:30 +0530
 
-Rename writeback_compressed attr to compressed_writeback to avoid possible
-confusion and have more natural naming.  writeback_compressed may look
-like an alternative version of writeback while in fact
-writeback_compressed only sets a writeback property.  Make this
-distinction more clear with a new compressed_writeback name.
+Architecture like powerpc, checks for pfn_valid() in their virt_to_phys()
+implementation (when CONFIG_DEBUG_VIRTUAL is enabled) [1].  Commit
+d49004c5f0c1 "arch, mm: consolidate initialization of nodes, zones and
+memory map" changed the order of initialization between
+hugetlb_bootmem_alloc() and free_area_init().  This means, pfn_valid() can
+now return false in alloc_bootmem() path, since sparse_init() is not yet
+done.
 
-This updates a feature which is new in 7.0-rcX.
+Since, alloc_bootmem() uses memblock_alloc(.., MEMBLOCK_ALLOC_ACCESSIBLE),
+this means these allocations are always going to happen below high_memory,
+where __pa() should return valid physical addresses.  Hence this patch
+converts the two callers of virt_to_phys() in alloc_bootmem() path to
+__pa() to avoid this bootup warning:
 
-Link: https://lkml.kernel.org/r/20260226025429.1042083-1-senozhatsky@chromium.org
-Fixes: 4c1d61389e8e ("zram: introduce writeback_compressed device attribute")
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Richard Chang <richardycc@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: "Christoph Böhmwalder" <christoph.boehmwalder@linbit.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lars Ellenberg <lars.ellenberg@linbit.com>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+ ------------[ cut here ]------------
+ WARNING: arch/powerpc/include/asm/io.h:879 at virt_to_phys+0x44/0x1b8, CPU#0: swapper/0
+ Modules linked in:
+ <...>
+ NIP [c000000000601584] virt_to_phys+0x44/0x1b8
+ LR [c000000004075de4] alloc_bootmem+0x144/0x1a8
+ Call Trace:
+ [c000000004d1fb50] [c000000004075dd4] alloc_bootmem+0x134/0x1a8
+ [c000000004d1fba0] [c000000004075fac] __alloc_bootmem_huge_page+0x164/0x230
+ [c000000004d1fbe0] [c000000004030bc4] alloc_bootmem_huge_page+0x44/0x138
+ [c000000004d1fc10] [c000000004076e48] hugetlb_hstate_alloc_pages+0x350/0x5ac
+ [c000000004d1fd30] [c0000000040782f0] hugetlb_bootmem_alloc+0x15c/0x19c
+ [c000000004d1fd70] [c00000000406d7b4] mm_core_init_early+0x7c/0xdf4
+ [c000000004d1ff30] [c000000004011d84] start_kernel+0xac/0xc58
+ [c000000004d1ffe0] [c00000000000e99c] start_here_common+0x1c/0x20
+
+[1]: https://lore.kernel.org/linuxppc-dev/87tsv5h544.ritesh.list@gmail.com/
+
+Link: https://lkml.kernel.org/r/b4a7d2c6c4c1dd81dddc904fc21f01303290a4b8.1772107852.git.riteshh@linux.ibm.com
+Fixes: d49004c5f0c1 ("arch, mm: consolidate initialization of nodes, zones and memory map")
+Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram  |    4 +--
- Documentation/admin-guide/blockdev/zram.rst |    6 ++--
- drivers/block/zram/zram_drv.c               |   24 +++++++++---------
- drivers/block/zram/zram_drv.h               |    2 -
- 4 files changed, 18 insertions(+), 18 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-rename-writeback_compressed-device-attr
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -151,11 +151,11 @@ Description:
- 		The algorithm_params file is write-only and is used to setup
- 		compression algorithm parameters.
+--- a/mm/hugetlb.c~mm-hugetlbc-use-__pa-instead-of-virt_to_phys-in-early-bootmem-alloc-code
++++ a/mm/hugetlb.c
+@@ -3101,7 +3101,7 @@ static __init void *alloc_bootmem(struct
+ 			 * extract the actual node first.
+ 			 */
+ 			if (m)
+-				listnode = early_pfn_to_nid(PHYS_PFN(virt_to_phys(m)));
++				listnode = early_pfn_to_nid(PHYS_PFN(__pa(m)));
+ 		}
  
--What:		/sys/block/zram<id>/writeback_compressed
-+What:		/sys/block/zram<id>/compressed_writeback
- Date:		Decemeber 2025
- Contact:	Richard Chang <richardycc@google.com>
- Description:
--		The writeback_compressed device atrribute toggles compressed
-+		The compressed_writeback device atrribute toggles compressed
- 		writeback feature.
- 
- What:		/sys/block/zram<id>/writeback_batch_size
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-rename-writeback_compressed-device-attr
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -216,7 +216,7 @@ writeback_limit   	WO	specifies the maxi
- writeback_limit_enable  RW	show and set writeback_limit feature
- writeback_batch_size	RW	show and set maximum number of in-flight
- 				writeback operations
--writeback_compressed	RW	show and set compressed writeback feature
-+compressed_writeback	RW	show and set compressed writeback feature
- comp_algorithm    	RW	show and change the compression algorithm
- algorithm_params	WO	setup compression algorithm parameters
- compact           	WO	trigger memory compaction
-@@ -439,11 +439,11 @@ budget in next setting is user's job.
- By default zram stores written back pages in decompressed (raw) form, which
- means that writeback operation involves decompression of the page before
- writing it to the backing device.  This behavior can be changed by enabling
--`writeback_compressed` feature, which causes zram to write compressed pages
-+`compressed_writeback` feature, which causes zram to write compressed pages
- to the backing device, thus avoiding decompression overhead.  To enable
- this feature, execute::
- 
--	$ echo yes > /sys/block/zramX/writeback_compressed
-+	$ echo yes > /sys/block/zramX/compressed_writeback
- 
- Note that this feature should be configured before the `zramX` device is
- initialized.
---- a/drivers/block/zram/zram_drv.c~zram-rename-writeback_compressed-device-attr
-+++ a/drivers/block/zram/zram_drv.c
-@@ -549,7 +549,7 @@ static ssize_t bd_stat_show(struct devic
- 	return ret;
- }
- 
--static ssize_t writeback_compressed_store(struct device *dev,
-+static ssize_t compressed_writeback_store(struct device *dev,
- 					  struct device_attribute *attr,
- 					  const char *buf, size_t len)
- {
-@@ -564,12 +564,12 @@ static ssize_t writeback_compressed_stor
- 		return -EBUSY;
- 	}
- 
--	zram->wb_compressed = val;
-+	zram->compressed_wb = val;
- 
- 	return len;
- }
- 
--static ssize_t writeback_compressed_show(struct device *dev,
-+static ssize_t compressed_writeback_show(struct device *dev,
- 					 struct device_attribute *attr,
- 					 char *buf)
- {
-@@ -577,7 +577,7 @@ static ssize_t writeback_compressed_show
- 	struct zram *zram = dev_to_zram(dev);
- 
- 	guard(rwsem_read)(&zram->dev_lock);
--	val = zram->wb_compressed;
-+	val = zram->compressed_wb;
- 
- 	return sysfs_emit(buf, "%d\n", val);
- }
-@@ -946,7 +946,7 @@ static int zram_writeback_complete(struc
- 		goto out;
- 	}
- 
--	if (zram->wb_compressed) {
-+	if (zram->compressed_wb) {
- 		/*
- 		 * ZRAM_WB slots get freed, we need to preserve data required
- 		 * for read decompression.
-@@ -960,7 +960,7 @@ static int zram_writeback_complete(struc
- 	set_slot_flag(zram, index, ZRAM_WB);
- 	set_slot_handle(zram, index, req->blk_idx);
- 
--	if (zram->wb_compressed) {
-+	if (zram->compressed_wb) {
- 		if (huge)
- 			set_slot_flag(zram, index, ZRAM_HUGE);
- 		set_slot_size(zram, index, size);
-@@ -1100,7 +1100,7 @@ static int zram_writeback_slots(struct z
- 		 */
- 		if (!test_slot_flag(zram, index, ZRAM_PP_SLOT))
- 			goto next;
--		if (zram->wb_compressed)
-+		if (zram->compressed_wb)
- 			err = read_from_zspool_raw(zram, req->page, index);
- 		else
- 			err = read_from_zspool(zram, req->page, index);
-@@ -1429,7 +1429,7 @@ static void zram_async_read_endio(struct
- 	 *
- 	 * Keep the existing behavior for now.
+ 		if (m) {
+@@ -3160,7 +3160,7 @@ found:
+ 	 * The head struct page is used to get folio information by the HugeTLB
+ 	 * subsystem like zone id and node id.
  	 */
--	if (zram->wb_compressed == false) {
-+	if (zram->compressed_wb == false) {
- 		/* No decompression needed, complete the parent IO */
- 		bio_endio(req->parent);
- 		bio_put(bio);
-@@ -1508,7 +1508,7 @@ static int read_from_bdev_sync(struct zr
- 	flush_work(&req.work);
- 	destroy_work_on_stack(&req.work);
+-	memblock_reserved_mark_noinit(virt_to_phys((void *)m + PAGE_SIZE),
++	memblock_reserved_mark_noinit(__pa((void *)m + PAGE_SIZE),
+ 		huge_page_size(h) - PAGE_SIZE);
  
--	if (req.error || zram->wb_compressed == false)
-+	if (req.error || zram->compressed_wb == false)
- 		return req.error;
- 
- 	return decompress_bdev_page(zram, page, index);
-@@ -3007,7 +3007,7 @@ static DEVICE_ATTR_WO(writeback);
- static DEVICE_ATTR_RW(writeback_limit);
- static DEVICE_ATTR_RW(writeback_limit_enable);
- static DEVICE_ATTR_RW(writeback_batch_size);
--static DEVICE_ATTR_RW(writeback_compressed);
-+static DEVICE_ATTR_RW(compressed_writeback);
- #endif
- #ifdef CONFIG_ZRAM_MULTI_COMP
- static DEVICE_ATTR_RW(recomp_algorithm);
-@@ -3031,7 +3031,7 @@ static struct attribute *zram_disk_attrs
- 	&dev_attr_writeback_limit.attr,
- 	&dev_attr_writeback_limit_enable.attr,
- 	&dev_attr_writeback_batch_size.attr,
--	&dev_attr_writeback_compressed.attr,
-+	&dev_attr_compressed_writeback.attr,
- #endif
- 	&dev_attr_io_stat.attr,
- 	&dev_attr_mm_stat.attr,
-@@ -3091,7 +3091,7 @@ static int zram_add(void)
- 	init_rwsem(&zram->dev_lock);
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	zram->wb_batch_size = 32;
--	zram->wb_compressed = false;
-+	zram->compressed_wb = false;
- #endif
- 
- 	/* gendisk structure */
---- a/drivers/block/zram/zram_drv.h~zram-rename-writeback_compressed-device-attr
-+++ a/drivers/block/zram/zram_drv.h
-@@ -133,7 +133,7 @@ struct zram {
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	struct file *backing_dev;
- 	bool wb_limit_enable;
--	bool wb_compressed;
-+	bool compressed_wb;
- 	u32 wb_batch_size;
- 	u64 bd_wb_limit;
- 	struct block_device *bdev;
+ 	return 1;
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from ritesh.list@gmail.com are
 
-zram-do-not-autocorrect-bad-recompression-parameters.patch
-zram-drop-num_active_comps.patch
-zram-recompression-priority-param-should-override-algo.patch
-zram-update-recompression-documentation.patch
-zram-remove-chained-recompression.patch
+mm-kasan-fix-double-free-for-kasan-pxds.patch
 
