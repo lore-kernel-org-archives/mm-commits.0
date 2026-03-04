@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8E86F513;
-	Wed,  4 Mar 2026 02:06:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A34F3F513
+	for <mm-commits@vger.kernel.org>; Wed,  4 Mar 2026 02:09:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772589991; cv=none; b=KY2UbABf6YU/SrbFGoShtZxP20V+eUgQMKq6cfuRPC/Pa2f95uW0l6CFInVwVPgUH9KsnkofC5yeekAtEryZ8R43i7TP++EvASjWFLBUN5x6xnT7oFCg/5cFxHz8LUmeCETXb90sTJ/OcUL7dA+DtiuWGTAiEDM1NpUVvE195VU=
+	t=1772590167; cv=none; b=DIgITzsdSyI+NwH7EwNoeXzMP45KyZhrFjzTw6/MNVR1tiJvFRsIzo2ZmizSNCuNnsM4CsWlzpELGOOBGMtmq5VVBt3bq0cbqgDA1JnnzNbXxsvvD1m4hXD6B5TBAyKhcXiTyWvYs3FXxTTqU2sx4DrvQGMEsXxlsVXMqUbF0fw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772589991; c=relaxed/simple;
-	bh=l6n1/MVirCT1t8Uff3oa+jguL3arHGTyLd4riEuej3M=;
-	h=Date:To:From:Subject:Message-Id; b=EwQPn/8Nfaznfc/n0dLydLecmY2CqjQcACAYsA/L+kAGU9ABOXFbsJPv4EY0xDvG9vfpOIKknV+s0X28i3M1to7cJYsNpoluv4Zk8JyclpLrwAnxvczimj1DoFA8YRGr1L6eTkrdK7T+TyZbwu/mh/XpvSY0HK9rSHEiPIicm7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2CN+HeIN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772590167; c=relaxed/simple;
+	bh=DDdisWiG1RPLHnstKEisqmOGaKL6vxWHBMqMishnVR4=;
+	h=Date:To:From:Subject:Message-Id; b=h4LdIbcDpIVfkokm55RVYMaCmSnG7yTZzlA11UwPpcRXKFaeo7r7m+Eoo5zN0N4Hr9kBGjvaJTa8Jyb0EjSqc8vnaa9n+JtUJTCNV0awKf5FDs5TezZxRB19/viZ7mBi6kM3FtRZA5mjYynhPh+uMYNIrfowqNLwhwupd8uJXvw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WCt06gSn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2CN+HeIN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33B29C19422;
-	Wed,  4 Mar 2026 02:06:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WCt06gSn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E289C116C6;
+	Wed,  4 Mar 2026 02:09:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772589991;
-	bh=l6n1/MVirCT1t8Uff3oa+jguL3arHGTyLd4riEuej3M=;
+	s=korg; t=1772590167;
+	bh=DDdisWiG1RPLHnstKEisqmOGaKL6vxWHBMqMishnVR4=;
 	h=Date:To:From:Subject:From;
-	b=2CN+HeINQNpoatHNRESyg/dgPcy66z9ItwSHSHCg+Tb3dBxrPiD8iRwLZ4BVGzmSC
-	 SK4vbQk1+20LxnMNdETMRCM4NjKieLgGEQEhRC+hnrxRhdYFYqx45NuT6DgGEEydZI
-	 qui6tkRq3+DosZDd8zf6b7uwWFfw2RkClK83ZqGc=
-Date: Tue, 03 Mar 2026 18:06:30 -0800
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,ryan.roberts@arm.com,riel@surriel.com,richard.weiyang@gmail.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=WCt06gSnwzrUx8vtu1eCAaZCCjLY9rrORWNfzT1Ou8eoAWz0oeRwJmlh5vtZB26BA
+	 ojt0WT+L2FbMQkFJvExuCKO/GEtN8xofaTzOExjT9H+v0mOsyeZvxlhQBF1helRliJ
+	 uAaVZnTHOIYXG7AFUJUICMjW0mUhUkeGztmaUUTs=
+Date: Tue, 03 Mar 2026 18:09:26 -0800
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,mhocko@kernel.org,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,bingjiao@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rmap-fix-incorrect-pte-restoration-for-lazyfree-folios.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260304020631.33B29C19422@smtp.kernel.org>
+Subject: + mm-vmscan-fix-unintended-mtc-nmask-mutation-in-alloc_demote_folio.patch added to mm-new branch
+Message-Id: <20260304020927.2E289C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/rmap: fix incorrect pte restoration for lazyfree folios
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-rmap-fix-incorrect-pte-restoration-for-lazyfree-folios.patch
+     Subject: mm/vmscan: fix unintended mtc->nmask mutation in alloc_demote_folio()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmscan-fix-unintended-mtc-nmask-mutation-in-alloc_demote_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-fix-incorrect-pte-restoration-for-lazyfree-folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-fix-unintended-mtc-nmask-mutation-in-alloc_demote_folio.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,207 +66,79 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: mm/rmap: fix incorrect pte restoration for lazyfree folios
-Date: Tue, 3 Mar 2026 11:45:28 +0530
+From: Bing Jiao <bingjiao@google.com>
+Subject: mm/vmscan: fix unintended mtc->nmask mutation in alloc_demote_folio()
+Date: Tue, 3 Mar 2026 05:25:17 +0000
 
-We batch unmap anonymous lazyfree folios by folio_unmap_pte_batch.  If the
-batch has a mix of writable and non-writable bits, we may end up setting
-the entire batch writable.  Fix this by respecting writable bit during
-batching.
+In alloc_demote_folio(), mtc->nmask is set to NULL for the first
+allocation.  If that succeeds, it returns without restoring mtc->nmask to
+allowed_mask.  For subsequent allocations from the migrate_pages() batch,
+mtc->nmask will be NULL.  If the target node then becomes full, the
+fallback allocation will use nmask = NULL, allocating from any node
+allowed by the task cpuset, which for kswapd is all nodes.
 
-Although on a successful unmap of a lazyfree folio, the soft-dirty bit is
-lost, preserve it on pte restoration by respecting the bit during
-batching, to make the fix consistent w.r.t both writable bit and
-soft-dirty bit.
+To address this issue, use a local copy of the mtc structure with nmask =
+NULL for the first allocation attempt specifically, ensuring the original
+mtc remains unmodified.
 
-I was able to write the below reproducer and crash the kernel. 
-Explanation of reproducer (set 64K mTHP to always):
-
-Fault in a 64K large folio.  Split the VMA at mid-point with
-MADV_DONTFORK.  fork() - parent points to the folio with 8 writable ptes
-and 8 non-writable ptes.  Merge the VMAs with MADV_DOFORK so that
-folio_unmap_pte_batch() can determine all the 16 ptes as a batch.  Do
-MADV_FREE on the range to mark the folio as lazyfree.  Write to the memory
-to dirty the pte, eventually rmap will dirty the folio.  Then trigger
-reclaim, we will hit the pte restoration path, and the kernel will crash
-with the trace given below.
-
-The BUG happens at:
-
-	BUG_ON(atomic_inc_return(&ptc->anon_map_count) > 1 && rw);
-
-The code path is asking for anonymous page to be mapped writable into the
-pagetable.  The BUG_ON() firing implies that such a writable page has been
-mapped into the pagetables of more than one process, which breaks
-anonymous memory/CoW semantics.
-
-[   21.134473] kernel BUG at mm/page_table_check.c:118!
-[   21.134497] Internal error: Oops - BUG: 00000000f2000800 [#1]  SMP
-[   21.135917] Modules linked in:
-[   21.136085] CPU: 1 UID: 0 PID: 1735 Comm: dup-lazyfree Not tainted 7.0.0-rc1-00116-g018018a17770 #1028 PREEMPT
-[   21.136858] Hardware name: linux,dummy-virt (DT)
-[   21.137019] pstate: 21400005 (nzCv daif +PAN -UAO -TCO +DIT -SSBS BTYPE=--)
-[   21.137308] pc : page_table_check_set+0x28c/0x2a8
-[   21.137607] lr : page_table_check_set+0x134/0x2a8
-[   21.137885] sp : ffff80008a3b3340
-[   21.138124] x29: ffff80008a3b3340 x28: fffffdffc3d14400 x27: ffffd1a55e03d000
-[   21.138623] x26: 0040000000000040 x25: ffffd1a55f7dd000 x24: 0000000000000001
-[   21.139045] x23: 0000000000000001 x22: 0000000000000001 x21: ffffd1a55f217f30
-[   21.139629] x20: 0000000000134521 x19: 0000000000134519 x18: 005c43e000040000
-[   21.140027] x17: 0001400000000000 x16: 0001700000000000 x15: 000000000000ffff
-[   21.140578] x14: 000000000000000c x13: 005c006000000000 x12: 0000000000000020
-[   21.140828] x11: 0000000000000000 x10: 005c000000000000 x9 : ffffd1a55c079ee0
-[   21.141077] x8 : 0000000000000001 x7 : 005c03e000040000 x6 : 000000004000ffff
-[   21.141490] x5 : ffff00017fffce00 x4 : 0000000000000001 x3 : 0000000000000002
-[   21.141741] x2 : 0000000000134510 x1 : 0000000000000000 x0 : ffff0000c08228c0
-[   21.141991] Call trace:
-[   21.142093]  page_table_check_set+0x28c/0x2a8 (P)
-[   21.142265]  __page_table_check_ptes_set+0x144/0x1e8
-[   21.142441]  __set_ptes_anysz.constprop.0+0x160/0x1a8
-[   21.142766]  contpte_set_ptes+0xe8/0x140
-[   21.142907]  try_to_unmap_one+0x10c4/0x10d0
-[   21.143177]  rmap_walk_anon+0x100/0x250
-[   21.143315]  try_to_unmap+0xa0/0xc8
-[   21.143441]  shrink_folio_list+0x59c/0x18a8
-[   21.143759]  shrink_lruvec+0x664/0xbf0
-[   21.144043]  shrink_node+0x218/0x878
-[   21.144285]  __node_reclaim.constprop.0+0x98/0x338
-[   21.144763]  user_proactive_reclaim+0x2a4/0x340
-[   21.145056]  reclaim_store+0x3c/0x60
-[   21.145216]  dev_attr_store+0x20/0x40
-[   21.145585]  sysfs_kf_write+0x84/0xa8
-[   21.145835]  kernfs_fop_write_iter+0x130/0x1c8
-[   21.145994]  vfs_write+0x2b8/0x368
-[   21.146119]  ksys_write+0x70/0x110
-[   21.146240]  __arm64_sys_write+0x24/0x38
-[   21.146380]  invoke_syscall+0x50/0x120
-[   21.146513]  el0_svc_common.constprop.0+0x48/0xf8
-[   21.146679]  do_el0_svc+0x28/0x40
-[   21.146798]  el0_svc+0x34/0x110
-[   21.146926]  el0t_64_sync_handler+0xa0/0xe8
-[   21.147074]  el0t_64_sync+0x198/0x1a0
-[   21.147225] Code: f9400441 b4fff241 17ffff94 d4210000 (d4210000)
-[   21.147440] ---[ end trace 0000000000000000 ]---
-
-#define _GNU_SOURCE
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/mman.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <sched.h>
-#include <fcntl.h>
-
-void write_to_reclaim() {
-    const char *path = "/sys/devices/system/node/node0/reclaim";
-    const char *value = "409600000000";
-    int fd = open(path, O_WRONLY);
-    if (fd == -1) {
-        perror("open");
-        exit(EXIT_FAILURE);
-    }
-
-    if (write(fd, value, sizeof("409600000000") - 1) == -1) {
-        perror("write");
-        close(fd);
-        exit(EXIT_FAILURE);
-    }
-
-    printf("Successfully wrote %s to %s\n", value, path);
-    close(fd);
-}
-
-int main()
-{
-	char *ptr = mmap((void *)(1UL << 30), 1UL << 16, PROT_READ | PROT_WRITE,
-			 MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	if ((unsigned long)ptr != (1UL << 30)) {
-		perror("mmap");
-		return 1;
-	}
-
-	/* a 64K folio gets faulted in */
-	memset(ptr, 0, 1UL << 16);
-
-	/* 32K half will not be shared into child */
-	if (madvise(ptr, 1UL << 15, MADV_DONTFORK)) {
-		perror("madvise madv dontfork");
-		return 1;
-	}
-
-	pid_t pid = fork();
-
-	if (pid < 0) {
-		perror("fork");
-		return 1;
-	} else if (pid == 0) {
-		sleep(15);
-	} else {
-		/* merge VMAs. now first half of the 16 ptes are writable, the other half not. */
-		if (madvise(ptr, 1UL << 15, MADV_DOFORK)) {
-			perror("madvise madv fork");
-			return 1;
-		}
-		if (madvise(ptr, (1UL << 16), MADV_FREE)) {
-			perror("madvise madv free");
-			return 1;
-		}
-
-		/* dirty the large folio */
-		(*ptr) += 10;
-
-		write_to_reclaim();
-		// sleep(10);
-		waitpid(pid, NULL, 0);
-
-	}
-}
-
-Link: https://lkml.kernel.org/r/20260303061528.2429162-1-dev.jain@arm.com
-Fixes: 354dffd29575 ("mm: support batched unmap for lazyfree large folios during reclamation")
-Signed-off-by: Dev Jain <dev.jain@arm.com>
+Link: https://lkml.kernel.org/r/20260303052519.109244-1-bingjiao@google.com
+Fixes: 320080272892 ("mm/demotion: demote pages according to allocation fallback order")
+Signed-off-by: Bing Jiao <bingjiao@google.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-fix-incorrect-pte-restoration-for-lazyfree-folios
-+++ a/mm/rmap.c
-@@ -1955,7 +1955,14 @@ static inline unsigned int folio_unmap_p
- 	if (userfaultfd_wp(vma))
- 		return 1;
+--- a/mm/vmscan.c~mm-vmscan-fix-unintended-mtc-nmask-mutation-in-alloc_demote_folio
++++ a/mm/vmscan.c
+@@ -966,13 +966,11 @@ static void folio_check_dirty_writeback(
+ static struct folio *alloc_demote_folio(struct folio *src,
+ 		unsigned long private)
+ {
++	struct migration_target_control *mtc, target_nid_mtc;
+ 	struct folio *dst;
+-	nodemask_t *allowed_mask;
+-	struct migration_target_control *mtc;
  
--	return folio_pte_batch(folio, pvmw->pte, pte, max_nr);
-+	/*
-+	 * If unmap fails, we need to restore the ptes. To avoid accidentally
-+	 * upgrading write permissions for ptes that were not originally
-+	 * writable, and to avoid losing the soft-dirty bit, use the
-+	 * appropriate FPB flags.
-+	 */
-+	return folio_pte_batch_flags(folio, vma, pvmw->pte, &pte, max_nr,
-+				     FPB_RESPECT_WRITE | FPB_RESPECT_SOFT_DIRTY);
+ 	mtc = (struct migration_target_control *)private;
+ 
+-	allowed_mask = mtc->nmask;
+ 	/*
+ 	 * make sure we allocate from the target node first also trying to
+ 	 * demote or reclaim pages from the target node via kswapd if we are
+@@ -982,15 +980,13 @@ static struct folio *alloc_demote_folio(
+ 	 * a demotion of cold pages from the target memtier. This can result
+ 	 * in the kernel placing hot pages in slower(lower) memory tiers.
+ 	 */
+-	mtc->nmask = NULL;
+-	mtc->gfp_mask |= __GFP_THISNODE;
+-	dst = alloc_migration_target(src, (unsigned long)mtc);
++	target_nid_mtc = *mtc;
++	target_nid_mtc.nmask = NULL;
++	target_nid_mtc.gfp_mask |= __GFP_THISNODE;
++	dst = alloc_migration_target(src, (unsigned long)&target_nid_mtc);
+ 	if (dst)
+ 		return dst;
+ 
+-	mtc->gfp_mask &= ~__GFP_THISNODE;
+-	mtc->nmask = allowed_mask;
+-
+ 	return alloc_migration_target(src, (unsigned long)mtc);
  }
  
- /*
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from bingjiao@google.com are
 
-mm-rmap-fix-incorrect-pte-restoration-for-lazyfree-folios.patch
-khugepaged-remove-redundant-index-check-for-pmd-folios.patch
+mm-vmscan-fix-unintended-mtc-nmask-mutation-in-alloc_demote_folio.patch
 
