@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C44B937D121
-	for <mm-commits@vger.kernel.org>; Wed,  4 Mar 2026 17:45:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C06033C6A25;
+	Wed,  4 Mar 2026 17:45:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772646303; cv=none; b=C8kwLPh5V6PF5vb+rYVWrk+6bUBgRH7WLSsLUqqiI6+wy9M2gV+NKZZBC89/XkNJoUkuUoraWHkJhMqRkxFtdwpqo7kK1ztcj8pNcgqGsZ1fWqOWtNDSZuQEGpx5ZJODlBNAPxx4yOpQKHPL6mXl/f7wqe/W2pjm032ohhlbEdI=
+	t=1772646304; cv=none; b=nUR+oGsH4lebZLwSDNUQUZ0zzq39ZFxqg8t6VwmJY3eKAockPNbKtcg6pflLYjUjQyRUSMn1E4dvDeFgyEIN/YLIdYmnd7WnOeHXGscLUcNLlbEhiDFaEbhJT3FMb3aQA6r6OQ02tOCp86YPb2jmv63B75ptjAFnpl1IGLwwLf4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772646303; c=relaxed/simple;
-	bh=y8f4p7vdBddw9qJFnt6UqoZ6IYDBpc+iBUmuyG+uckw=;
-	h=Date:To:From:Subject:Message-Id; b=JxncDDK43DoekW4m+goFcZhqyGDy2w80Vboo/Tg2IC4yjOcRJQ51YbXmBhcxUoRrIAPn1ur5999H7HGYQhQvRFvfr1G8Te291Hm82ugJPyrDa5n2ncY4GJfetzhVbwL89A2UDi4AjAkSSkMGuEHytv1zNebnOA12UO9SJZe4dmk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kF77eo3S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772646304; c=relaxed/simple;
+	bh=dSmyk/Nox9RRYZXFpXt2GCY6hJy3SZ7O645wQUlrL0g=;
+	h=Date:To:From:Subject:Message-Id; b=UUWJ5Pf3Y9Fe7/Um7TMcMOcL1/2IqzPHP7sj5i1XhzMClkFeGLdTF28u1ULw2AgZMBge4pg3cXgrqiXkUyRUNyB4sMPt7E7lnFbofKaerLreqC1w5UXFEEZZR0guJfu5w7nwLKFmwd2EFzirQxYC9yeCbG0IbkD3z7OrBKjQ4aE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WDyTq8dz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kF77eo3S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47CE7C4CEF7;
-	Wed,  4 Mar 2026 17:45:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WDyTq8dz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97703C4CEF7;
+	Wed,  4 Mar 2026 17:45:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772646303;
-	bh=y8f4p7vdBddw9qJFnt6UqoZ6IYDBpc+iBUmuyG+uckw=;
+	s=korg; t=1772646304;
+	bh=dSmyk/Nox9RRYZXFpXt2GCY6hJy3SZ7O645wQUlrL0g=;
 	h=Date:To:From:Subject:From;
-	b=kF77eo3SSAsdXGcaEXiD/jeJ8p7YhLdxFI1H0DgfT6IuLVHQ3Xci/9/2QXURk/O8M
-	 PFNJrwltMyUfSnkGTBG1HNOMfjm3hvm+YOpvTXcZ47XdIIMDMXIpjRwSEpmdtIF6my
-	 eA0+OJiVhQFyvNQGkjrW0+cHpCGSOsolzN/TiFGM=
-Date: Wed, 04 Mar 2026 09:45:02 -0800
-To: mm-commits@vger.kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,re@w6rz.net,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,anshuman.khandual@arm.com,ziy@nvidia.com,akpm@linux-foundation.org
+	b=WDyTq8dz4rsIC3UQCog+vEIXTzyO/PDe/8hGaM7OIdBAm4e0imC4fEecTaL7AQwde
+	 XsJNmXtRhIig8RYXDgrElDHVDdc/mRXLQyNWI+6ZnPQOlvVNCLB/rOqA6YXpu3gBHV
+	 1zSjFtTT0+8NgS3S9w6vbmH8QddXiE8B9AAjukKM=
+Date: Wed, 04 Mar 2026 09:45:04 -0800
+To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,vbabka@suse.cz,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release.patch removed from -mm tree
-Message-Id: <20260304174503.47CE7C4CEF7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch removed from -mm tree
+Message-Id: <20260304174504.97703C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,73 +35,94 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/cma: move put_page_testzero() out of VM_WARN_ON in cma_release()
+     Subject: Revert "ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()"
 has been removed from the -mm tree.  Its filename was
-     mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release.patch
+     revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm/cma: move put_page_testzero() out of VM_WARN_ON in cma_release()
-Date: Tue, 24 Feb 2026 22:12:31 -0500
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: Revert "ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()"
+Date: Tue, 24 Feb 2026 16:24:34 -0800
 
-When CONFIG_DEBUG_VM is not set, VM_WARN_ON is a NOP.  Putting any
-statement with side effect inside it is incorrect.  Collect all
-!put_page_testzero() results and check the sum using WARN instead after
-the loop.  It restores the same check in free_contig_range() before commit
-e0c1326779cc ("mm: page_alloc: add alloc_contig_frozen_{range,pages}()"),
-the commit prior to the Fixes one.
+This change swapped out mod_node_page_state for lruvec_stat_add_folio. 
+But, these two APIs are not interchangeable: the lruvec version also
+increments memcg stats, in addition to "global" pgdat stats.
 
-Link: https://lkml.kernel.org/r/20260225031231.2352011-1-ziy@nvidia.com
-Fixes: 9bda131c6093 ("mm: cma: add cma_alloc_frozen{_compound}()")
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reported-by: Ron Economos <re@w6rz.net>
-Closes: https://lore.kernel.org/all/1b17c38f-30d3-4bb4-a7e1-e74b19ada885@w6rz.net/
-Suggested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+So after this change, the "pagetables" memcg stat in memory.stat always
+yields "0", which is a userspace visible regression.
+
+I tried to look for a refactor where we add a variant of
+lruvec_stat_mod_folio which takes a pgdat and a memcg instead of a folio,
+to try to adhere to the spirit of the original patch.  But at the end of
+the day this just means we have to call folio_memcg(ptdesc_folio(ptdesc))
+anyway, which doesn't really accomplish much.
+
+This regression is visible in master as well as 6.18 stable, so CC stable
+too.
+
+Link: https://lkml.kernel.org/r/20260225002434.2953895-1-axelrasmussen@google.com
+Fixes: f0c92726e89f ("ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()")
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Debugged-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Tested-by: Ron Economos <re@w6rz.net>
-Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/mm.h |   17 ++++++-----------
+ 1 file changed, 6 insertions(+), 11 deletions(-)
 
---- a/mm/cma.c~mm-cma-move-put_page_testzero-out-of-vm_warn_on-in-cma_release
-+++ a/mm/cma.c
-@@ -1013,6 +1013,7 @@ bool cma_release(struct cma *cma, const
- 		 unsigned long count)
+--- a/include/linux/mm.h~revert-ptdesc-remove-references-to-folios-from-__pagetable_ctor-and-pagetable_dtor
++++ a/include/linux/mm.h
+@@ -3514,26 +3514,21 @@ static inline bool ptlock_init(struct pt
+ static inline void ptlock_free(struct ptdesc *ptdesc) {}
+ #endif /* defined(CONFIG_SPLIT_PTE_PTLOCKS) */
+ 
+-static inline unsigned long ptdesc_nr_pages(const struct ptdesc *ptdesc)
+-{
+-	return compound_nr(ptdesc_page(ptdesc));
+-}
+-
+ static inline void __pagetable_ctor(struct ptdesc *ptdesc)
  {
- 	struct cma_memrange *cmr;
-+	unsigned long ret = 0;
- 	unsigned long i, pfn;
+-	pg_data_t *pgdat = NODE_DATA(memdesc_nid(ptdesc->pt_flags));
++	struct folio *folio = ptdesc_folio(ptdesc);
  
- 	cmr = find_cma_memrange(cma, pages, count);
-@@ -1021,7 +1022,9 @@ bool cma_release(struct cma *cma, const
+-	__SetPageTable(ptdesc_page(ptdesc));
+-	mod_node_page_state(pgdat, NR_PAGETABLE, ptdesc_nr_pages(ptdesc));
++	__folio_set_pgtable(folio);
++	lruvec_stat_add_folio(folio, NR_PAGETABLE);
+ }
  
- 	pfn = page_to_pfn(pages);
- 	for (i = 0; i < count; i++, pfn++)
--		VM_WARN_ON(!put_page_testzero(pfn_to_page(pfn)));
-+		ret += !put_page_testzero(pfn_to_page(pfn));
-+
-+	WARN(ret, "%lu pages are still in use!\n", ret);
+ static inline void pagetable_dtor(struct ptdesc *ptdesc)
+ {
+-	pg_data_t *pgdat = NODE_DATA(memdesc_nid(ptdesc->pt_flags));
++	struct folio *folio = ptdesc_folio(ptdesc);
  
- 	__cma_release_frozen(cma, cmr, pages, count);
+ 	ptlock_free(ptdesc);
+-	__ClearPageTable(ptdesc_page(ptdesc));
+-	mod_node_page_state(pgdat, NR_PAGETABLE, -ptdesc_nr_pages(ptdesc));
++	__folio_clear_pgtable(folio);
++	lruvec_stat_sub_folio(folio, NR_PAGETABLE);
+ }
  
+ static inline void pagetable_dtor_free(struct ptdesc *ptdesc)
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
 
