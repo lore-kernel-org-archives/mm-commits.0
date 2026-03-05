@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2CA6390C84
-	for <mm-commits@vger.kernel.org>; Wed,  4 Mar 2026 21:37:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56F4E369238
+	for <mm-commits@vger.kernel.org>; Thu,  5 Mar 2026 23:59:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772660277; cv=none; b=XNBavNnC/oBVGrE76qN6RVOkSMrAnH5ZW5upz2NDZ8MU2ZbGaAf5zZHvZFOfN2uJEWl/n1UG2tE1hMkMhGUIwVdf+3RShymOnzODffNKVH5H5gLIlGIP9hnkHAN8RA5eAtJs99chwUKmY2QGL2i8K+7bvfO2E0sz2WBErhmrQw0=
+	t=1772755175; cv=none; b=SQjcbrp9dLbxkNpp4M02Z73vtXAxBxo6Zx2hX7RBJ2GpZib+iCsVR7+c+YhF0KOZwKyiqIHXLzNe/o8ZOrbNUAXAcIZTSZyrZspRA8ttk4cUvm1hHiWDT205y2ZQ5u20sFPbiDazyOhvJlg2baZCNn6hQ0PUorF6i5uvJVLkkNk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772660277; c=relaxed/simple;
-	bh=6HfOHXKXvD2i3GQREhSk1bLKllB9KBGUsz8PkRETS18=;
-	h=Date:To:From:Subject:Message-Id; b=hnJkL8sOtuVHnGeQfIvnKG7g2OLmNxqALZQUL9lrQWtR7WtSPN3KU1s2mFk4q1Mlony5X7yRWUevowyRxZPXeksaQH8mm+VnbYmXBtP30B6S9obVeO+LhksJy/vZhJbG852tZh+W+PBLA4GgcEQZ+cxO/jCtHI1xD+FxlULczzM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IE+wcyfO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772755175; c=relaxed/simple;
+	bh=28TiFHys2S7p5WqLjes37McLqiIXbAiCI8T1+fGp/KM=;
+	h=Date:To:From:Subject:Message-Id; b=d362MsUWAecj6DrJVfWZmTIeSWmdIlyWx3TbbEjRcl8KI3DkiqIcaAWkbxy94AZ6RcBKDi6CIAyTrziVjV04pX1za2za38wWI/jBrcVLUu8eJVFzRydjUIYUHVLqBhkh5+r6o72RPoKF0dapXdmlNKp8OxbkaOhfNdhrVLq9cRg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Uu9IUy6j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IE+wcyfO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E7A4C4CEF7;
-	Wed,  4 Mar 2026 21:37:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Uu9IUy6j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C88FCC2BC87;
+	Thu,  5 Mar 2026 23:59:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772660277;
-	bh=6HfOHXKXvD2i3GQREhSk1bLKllB9KBGUsz8PkRETS18=;
+	s=korg; t=1772755174;
+	bh=28TiFHys2S7p5WqLjes37McLqiIXbAiCI8T1+fGp/KM=;
 	h=Date:To:From:Subject:From;
-	b=IE+wcyfOITG5xzQ24QsNH1Uh7hlSXFbqL8sS3KJDwO7wQtrSCWdGIJrnIOr76n5M/
-	 GmHLvqf089x8suTqacWJDozE6DnQQ5d1A/nWoFOXVnJnqT9dLgXi6f+cHhbef0bT2z
-	 pCBeCzscwb6jInfYdDYsipIkwa8Jh+eZVUHJS8KI=
-Date: Wed, 04 Mar 2026 13:37:56 -0800
-To: mm-commits@vger.kernel.org,kbingham@kernel.org,johannes.berg@intel.com,jan.kiszka@siemens.com,iii@linux.ibm.com,benjamin.berg@intel.com,akpm@linux-foundation.org
+	b=Uu9IUy6jyEOuPDKaz5KPmOq3K793FAbu5Ml4EHbxMcaPKXewfldfghLqPEL+53f3I
+	 9WnkSNLReRbUJt7k5z59ChwkTUVPFbcB4wrL7NdqSZvOkwQBJyx7ugNHVU70OX8RD4
+	 MAWoAJvJDpkhEcHv0eJugyV0DglUccjmdL0b7Vzk=
+Date: Thu, 05 Mar 2026 15:59:34 -0800
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,maciej.wieczor-retman@intel.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,ryabinin.a.a@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-symbols-handle-module-path-parameters.patch added to mm-nonmm-unstable branch
-Message-Id: <20260304213757.1E7A4C4CEF7@smtp.kernel.org>
+Subject: + kasan-fix-bug-type-classification-for-sw_tags-mode.patch added to mm-new branch
+Message-Id: <20260305235934.C88FCC2BC87@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: scripts/gdb/symbols: handle module path parameters
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     scripts-gdb-symbols-handle-module-path-parameters.patch
+     Subject: kasan: fix bug type classification for SW_TAGS mode
+has been added to the -mm mm-new branch.  Its filename is
+     kasan-fix-bug-type-classification-for-sw_tags-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-symbols-handle-module-path-parameters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-fix-bug-type-classification-for-sw_tags-mode.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,43 +66,83 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Benjamin Berg <benjamin.berg@intel.com>
-Subject: scripts/gdb/symbols: handle module path parameters
-Date: Wed, 4 Mar 2026 12:06:43 +0100
+From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Subject: kasan: fix bug type classification for SW_TAGS mode
+Date: Thu, 5 Mar 2026 19:56:59 +0100
 
-commit 581ee79a2547 ("scripts/gdb/symbols: make BPF debug info available
-to GDB") added support to make BPF debug information available to GDB. 
-However, the argument handling loop was slightly broken, causing it to
-fail if further modules were passed.  Fix it to append these passed
-modules to the instance variable after expansion.
+kasan_non_canonical_hook() derives orig_addr from kasan_shadow_to_mem(),
+but the pointer tag may remain in the top byte.  In SW_TAGS mode this
+tagged address is compared against PAGE_SIZE and TASK_SIZE, which leads to
+incorrect bug classification.
 
-Link: https://lkml.kernel.org/r/20260304110642.2020614-2-benjamin@sipsolutions.net
-Fixes: 581ee79a2547 ("scripts/gdb/symbols: make BPF debug info available to GDB")
-Signed-off-by: Benjamin Berg <benjamin.berg@intel.com>
-Reviewed-by: Johannes Berg <johannes.berg@intel.com>
-Cc: Ilya Leoshkevich <iii@linux.ibm.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
+As a result, NULL pointer dereferences may be reported as
+"wild-memory-access".
+
+Strip the tag before performing these range checks and use the untagged
+value when reporting addresses in these ranges.
+
+Before:
+  [ ] Unable to handle kernel paging request at virtual address ffef800000000000
+  [ ] KASAN: maybe wild-memory-access in range [0xff00000000000000-0xff0000000000000f]
+
+After:
+  [ ] Unable to handle kernel paging request at virtual address ffef800000000000
+  [ ] KASAN: null-ptr-deref in range [0x0000000000000000-0x000000000000000f]
+
+Link: https://lkml.kernel.org/r/20260305185659.20807-1-ryabinin.a.a@gmail.com
+Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Maciej Wieczor-Retman <maciej.wieczor-retman@intel.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/symbols.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/report.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/scripts/gdb/linux/symbols.py~scripts-gdb-symbols-handle-module-path-parameters
-+++ a/scripts/gdb/linux/symbols.py
-@@ -298,7 +298,7 @@ are loaded as well."""
-             if p == "-bpf":
-                 monitor_bpf = True
-             else:
--                p.append(os.path.abspath(os.path.expanduser(p)))
-+                self.module_paths.append(os.path.abspath(os.path.expanduser(p)))
-         self.module_paths.append(os.getcwd())
+--- a/mm/kasan/report.c~kasan-fix-bug-type-classification-for-sw_tags-mode
++++ a/mm/kasan/report.c
+@@ -638,7 +638,7 @@ void kasan_report_async(void)
+  */
+ void kasan_non_canonical_hook(unsigned long addr)
+ {
+-	unsigned long orig_addr;
++	unsigned long orig_addr, user_orig_addr;
+ 	const char *bug_type;
  
-         if self.breakpoint is not None:
+ 	/*
+@@ -650,6 +650,9 @@ void kasan_non_canonical_hook(unsigned l
+ 
+ 	orig_addr = (unsigned long)kasan_shadow_to_mem((void *)addr);
+ 
++	/* Strip pointer tag before comparing against userspace ranges */
++	user_orig_addr = (unsigned long)set_tag((void *)orig_addr, 0);
++
+ 	/*
+ 	 * For faults near the shadow address for NULL, we can be fairly certain
+ 	 * that this is a KASAN shadow memory access.
+@@ -661,11 +664,13 @@ void kasan_non_canonical_hook(unsigned l
+ 	 * address, but make it clear that this is not necessarily what's
+ 	 * actually going on.
+ 	 */
+-	if (orig_addr < PAGE_SIZE)
++	if (user_orig_addr < PAGE_SIZE) {
+ 		bug_type = "null-ptr-deref";
+-	else if (orig_addr < TASK_SIZE)
++		orig_addr = user_orig_addr;
++	} else if (user_orig_addr < TASK_SIZE) {
+ 		bug_type = "probably user-memory-access";
+-	else if (addr_in_shadow((void *)addr))
++		orig_addr = user_orig_addr;
++	} else if (addr_in_shadow((void *)addr))
+ 		bug_type = "probably wild-memory-access";
+ 	else
+ 		bug_type = "maybe wild-memory-access";
 _
 
-Patches currently in -mm which might be from benjamin.berg@intel.com are
+Patches currently in -mm which might be from ryabinin.a.a@gmail.com are
 
-scripts-gdb-symbols-handle-module-path-parameters.patch
+kasan-fix-bug-type-classification-for-sw_tags-mode.patch
 
