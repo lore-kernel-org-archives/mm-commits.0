@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E008235C1B4
-	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 22:44:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A02E29D273
+	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 22:44:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772837075; cv=none; b=o6/m8OmwyTqh5lcpS9X3sT3fxW02EchsqVMRb2fu+RrSZrxk4IM3XEhXuW3zlpO3XImSU9hSHXcIZXy5ao+mCCAxKt/csgL2ijg61AMWnpPeThU75YSIfQSyTiPQOqqUQFjsOXXvwUgdUqnwefyVnxt7KvN0ysloXVUKbnJ6ZmA=
+	t=1772837077; cv=none; b=HaLLDdSx2+EmZBvFK1onJBAsjtPVgUuURLyrYox8ea1kovcRQAcc2xNQFgzkMmeL5ZdI48yu02B8Kz61ojApuERF2W5MdqxFCEpj8Xzm5FcTdsVkex8t7s0GM0ZtmvC9861jK4IEc5NjryEeIoPfGsEhDHTxOmk3gB73WZxRZ5M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772837075; c=relaxed/simple;
-	bh=PRQw9yc8xd9OackcGO8h0qFD8rOsQ7HiUIJgUFlNIH0=;
-	h=Date:To:From:Subject:Message-Id; b=ovy/AvJFSDln+ztJti7WyVtVYBxkZtqsxy0DScVQl96zQxQYkswuDhRqHHwlx49jhxMmoQtOtXD0T/2k0G/wDsfikLRmGJDwbm/SxTIhlKvEurfoltjxkgsZZkaU4y+r7Sa0dX68Js+9WHu3QFOe/KCybZkZUXvmxvNk19nSCeE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S9lQitTo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772837077; c=relaxed/simple;
+	bh=+MRGWpwAs/RyhBw5NLIcB0sKm19EVafR8+rfW8V7orM=;
+	h=Date:To:From:Subject:Message-Id; b=RiwNSOEl/AJvuxQwKsB95sGlKPPnFwqa8fKezPHRetDIziR4j5YwqL7Pvgc+tICuMGyp6O8F+NPR7FzYd6BKkvwc1vsh2xou8PWzDBAc81YYkoe5BzgMe8sPe+nhWCI6ZqRmAiBcY15GBZ0hiZ7z82Aqy1P698UXfKTrSvu04zg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KuVuNHs6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S9lQitTo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9416CC4CEF7;
-	Fri,  6 Mar 2026 22:44:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KuVuNHs6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DED91C4CEF7;
+	Fri,  6 Mar 2026 22:44:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772837075;
-	bh=PRQw9yc8xd9OackcGO8h0qFD8rOsQ7HiUIJgUFlNIH0=;
+	s=korg; t=1772837077;
+	bh=+MRGWpwAs/RyhBw5NLIcB0sKm19EVafR8+rfW8V7orM=;
 	h=Date:To:From:Subject:From;
-	b=S9lQitTob/ltnjte0BK2j5wACk02jhGfKUifao9EbR5qATA5TTpY4sg/yWTxDrCgP
-	 HQmDGqOcg8A4NQ+3fPFTINiPkyQrH22kBZohw00T9eWPEsnX2nSGl1CmG36H11dl2E
-	 Vi6fkZaCadUicFUk+cRu4DDEcsR6XOoXUp1ljIh4=
-Date: Fri, 06 Mar 2026 14:44:35 -0800
+	b=KuVuNHs6GYm381MZ0CihcdPeRzvOat6HmqTRBaHg24YBc89qkHNNCI7auCoI/IXuf
+	 RCPeDkxIzhG2KHMhhDaoxyoZHkCK8ZpbB2LJbiybufJ/JBBSYvKInIL6TvwS+k5umF
+	 wrIGr/LNwncKhsZAthEsTsy+U0LLQT3lDTO4jAao=
+Date: Fri, 06 Mar 2026 14:44:36 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch added to mm-new branch
-Message-Id: <20260306224435.9416CC4CEF7@smtp.kernel.org>
+Subject: + mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch added to mm-new branch
+Message-Id: <20260306224436.DED91C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: add damon_merge_regions_of() debug_sanity check
+     Subject: mm/damon/core: add damon_split_region_at() debug_sanity check
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
+     mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,16 +67,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: add damon_merge_regions_of() debug_sanity check
-Date: Fri, 6 Mar 2026 07:29:09 -0800
+Subject: mm/damon/core: add damon_split_region_at() debug_sanity check
+Date: Fri, 6 Mar 2026 07:29:10 -0800
 
-damon_merge_regions_of() should be called only after aggregation is
-finished and therefore each region's nr_accesses and nr_accesses_bp match.
-There were bugs that broke the assumption, during development of online
-DAMON parameter updates and monitoring results handling changes.  Add a
-sanity check for that under CONFIG_DAMON_DEBUG_SANITY.
+damon_split_region_at() should be called with the correct address to split
+on.  Add a sanity check for that under CONFIG_DAMON_DEBUG_SANITY.
 
-Link: https://lkml.kernel.org/r/20260306152914.86303-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260306152914.86303-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
@@ -84,40 +81,41 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ mm/damon/core.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-add-damon_merge_regions_of-debug_sanity-check
+--- a/mm/damon/core.c~mm-damon-core-add-damon_split_region_at-debug_sanity-check
 +++ a/mm/damon/core.c
-@@ -2505,6 +2505,20 @@ static void damon_merge_two_regions(stru
- 	damon_destroy_region(r, t);
+@@ -2586,6 +2586,21 @@ static void kdamond_merge_regions(struct
+ 			threshold / 2 < max_thres);
  }
  
 +#ifdef CONFIG_DAMON_DEBUG_SANITY
-+static void damon_verify_merge_regions_of(struct damon_region *r)
++static void damon_verify_split_region_at(struct damon_region *r,
++		unsigned long sz_r)
 +{
-+	WARN_ONCE(r->nr_accesses != r->nr_accesses_bp / 10000,
-+			"nr_accesses (%u) != nr_accesses_bp (%u)\n",
-+			r->nr_accesses, r->nr_accesses_bp);
++	WARN_ONCE(sz_r == 0 || sz_r >= damon_sz_region(r),
++			"sz_r: %lu r: %lu-%lu (%lu)\n",
++			sz_r, r->ar.start, r->ar.end, damon_sz_region(r));
 +}
 +#else
-+static void damon_verify_merge_regions_of(struct damon_region *r)
++static void damon_verify_split_region_at(struct damon_region *r,
++		unsigned long sz_r)
 +{
 +}
 +#endif
 +
-+
  /*
-  * Merge adjacent regions having similar access frequencies
+  * Split a region in two
   *
-@@ -2518,6 +2532,7 @@ static void damon_merge_regions_of(struc
- 	struct damon_region *r, *prev = NULL, *next;
+@@ -2597,6 +2612,7 @@ static void damon_split_region_at(struct
+ {
+ 	struct damon_region *new;
  
- 	damon_for_each_region_safe(r, next, t) {
-+		damon_verify_merge_regions_of(r);
- 		if (abs(r->nr_accesses - r->last_nr_accesses) > thres)
- 			r->age = 0;
- 		else if ((r->nr_accesses == 0) != (r->last_nr_accesses == 0))
++	damon_verify_split_region_at(r, sz_r);
+ 	new = damon_new_region(r->ar.start + sz_r, r->ar.end);
+ 	if (!new)
+ 		return;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
