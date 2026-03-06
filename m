@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F133C18787A
-	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 00:01:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D95E2314B8F;
+	Fri,  6 Mar 2026 01:19:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772755280; cv=none; b=jqu0QCelVy9XG1G1MJnCHP6w3n7xcRKYJY9LIbIeWcyPTmc9xQ20V32pLemZz24exdqQWsbKnOh7rBqEcX40A2BK26lHXomVLr0zj4eGNyRS6EmGv3tksXqn+CniaBRQbyjzzllHfjulKsZQpqCG1hp8R8mnuKHqHwDoGKrrI18=
+	t=1772759948; cv=none; b=gMGA9E+VrbFe4pdxs5mT3x0eYF/JeV6RqfZuYdSLNhUTj05S3w9zQEzuLEsBHBObdasgSP/ugrl9LlK8kCEdNtDRc3c4JJqdE+Q0qBs/2JEC9Ohi3788OL6szsuRt9ff+a5zaW9Qh22258RVXAW3Nr6GiduF/ClvUB2jpKkqzWo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772755280; c=relaxed/simple;
-	bh=7jYgTIM6XQw7dsrCv+k1sdiQDF8YfJpYkC6kISD3xC0=;
-	h=Date:To:From:Subject:Message-Id; b=txneDCwU3L3HE3qVYgIQunoY4BvFk5mFeb6M6KCYvLdycydGDZ4Pb/64f8muJxhrT1gBzfk/rLxmykn0PO6CAnc1D0bHWft3tkbxOCjndEr7DurFxnl2e+W0vlOm7E/V6lvWMhdcBFSckMAx67c6VatzEVfg968eh/ArPwnZH9I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w7G66owK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772759948; c=relaxed/simple;
+	bh=YqBF38cmNK/9MVBLp+TYA6nIrdV8FmaVsAGE2Wbuhkg=;
+	h=Date:To:From:Subject:Message-Id; b=b1LHw87c7iPROe7omhwAZaqQf+OoJ558BKPJ2DK7QzDI9pRgu2DuO4ikiAx42jbeX/GPydpKzBahDhXnBPUCnYqCuQ70sGFvmrKVE/2YECNV6mKuiwxDWF/daudC33QnvACLigi/eGr+sejKnQzMno2WrMrTCBtZ2KoE1Fy+6Y8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sKGaqcIR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w7G66owK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 976A5C116C6;
-	Fri,  6 Mar 2026 00:01:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sKGaqcIR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67CE4C116C6;
+	Fri,  6 Mar 2026 01:19:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772755279;
-	bh=7jYgTIM6XQw7dsrCv+k1sdiQDF8YfJpYkC6kISD3xC0=;
+	s=korg; t=1772759947;
+	bh=YqBF38cmNK/9MVBLp+TYA6nIrdV8FmaVsAGE2Wbuhkg=;
 	h=Date:To:From:Subject:From;
-	b=w7G66owKup5NknLIc3zwMvbyzejp0FGsF/bJ78s0673iFmTlLm8QVLh0iMF85cic+
-	 5oPOGJiqUuW4sBiU7XDC6oIXHfmpzroETuGaqznv4wZ0GfjhHTCG1KGDtNTqgwh4RA
-	 ZxnQ8aNe51iVxTZ8NhKtwISsk3Js0BQ+JPgfL+iA=
-Date: Thu, 05 Mar 2026 16:01:18 -0800
-To: mm-commits@vger.kernel.org,d@ilvokhin.com,akpm@linux-foundation.org
+	b=sKGaqcIRO5MfmIx4CDHj6kxYs7B40J9Z9auGvvPQlQA7FUHeRFm58Zf+o5vdJMb4k
+	 XBbBtbtkc6ZNs1DpZBEgTK+o8uWeXY/kB2GeClOWZHddfKdKushq0wJ+9X1hv33y+s
+	 s0qRc3hsGF8u/fVhq5N5xj+pxgPuQuIVR65CJK8A=
+Date: Thu, 05 Mar 2026 17:19:06 -0800
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,leitao@debian.org,jthoughton@google.com,jhubbard@nvidia.com,jgg@nvidia.com,catalin.marinas@arm.com,apopple@nvidia.com,pjaroszynski@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-rename-zone-lock-to-zone-_lock-fix-3.patch added to mm-new branch
-Message-Id: <20260306000119.976A5C116C6@smtp.kernel.org>
+Subject: + arm64-contpte-fix-set_access_flags-no-op-check-for-smmu-ats-faults.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260306011907.67CE4C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: documentation: standardize on "zone lock" terminology
-has been added to the -mm mm-new branch.  Its filename is
-     mm-rename-zone-lock-to-zone-_lock-fix-3.patch
+     Subject: arm64: contpte: fix set_access_flags() no-op check for SMMU/ATS faults
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     arm64-contpte-fix-set_access_flags-no-op-check-for-smmu-ats-faults.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-zone-lock-to-zone-_lock-fix-3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-contpte-fix-set_access_flags-no-op-check-for-smmu-ats-faults.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,198 +58,133 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: mm: documentation: standardize on "zone lock" terminology
-Date: Thu, 5 Mar 2026 10:36:17 -0800
+From: Piotr Jaroszynski <pjaroszynski@nvidia.com>
+Subject: arm64: contpte: fix set_access_flags() no-op check for SMMU/ATS faults
+Date: Thu, 05 Mar 2026 15:26:29 -0800
 
-During review of the zone lock tracing series it was suggested to
-standardize documentation and comments on the term "zone lock" instead of
-using zone_lock or referring to the internal field zone->_lock.
+contpte_ptep_set_access_flags() compared the gathered ptep_get() value
+against the requested entry to detect no-ops.  ptep_get() ORs AF/dirty
+from all sub-PTEs in the CONT block, so a dirty sibling can make the
+target appear already-dirty.  When the gathered value matches entry, the
+function returns 0 even though the target sub-PTE still has PTE_RDONLY set
+in hardware.
 
-Update references accordingly.
+For a CPU with FEAT_HAFDBS this gathered view is fine, since hardware may
+set AF/dirty on any sub-PTE and CPU TLB behavior is effectively gathered
+across the CONT range.  But page-table walkers that evaluate each
+descriptor individually (e.g.  a CPU without DBM support, or an SMMU
+without HTTU, or with HA/HD disabled in CD.TCR) can keep faulting on the
+unchanged target sub-PTE, causing an infinite fault loop.
 
-Link: https://lkml.kernel.org/r/aanSnywUXTVPaYUj@shell.ilvokhin.com
-Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+Gathering can therefore cause false no-ops when only a sibling has been
+updated:
+ - write faults: target still has PTE_RDONLY (needs PTE_RDONLY cleared)
+ - read faults:  target still lacks PTE_AF
+
+Fix by checking each sub-PTE against the requested AF/dirty/write state
+(the same bits consumed by __ptep_set_access_flags()), using raw per-PTE
+values rather than the gathered ptep_get() view, before returning no-op. 
+Keep using the raw target PTE for the write-bit unfold decision.
+
+Per Arm ARM (DDI 0487) D8.7.1 ("The Contiguous bit"), any sub-PTE in a
+CONT range may become the effective cached translation and software must
+maintain consistent attributes across the range.
+
+Link: https://lkml.kernel.org/r/20260305-contpte-fault-loop-v2-1-0216f0026d7f@nvidia.com
+Fixes: 4602e5757bcc ("arm64/mm: wire up PTE_CONT for user mappings")
+Signed-off-by: Piotr Jaroszynski <pjaroszynski@nvidia.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: James Houghton <jthoughton@google.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Tested-by: Breno Leitao <leitao@debian.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/physical_memory.rst |    4 ++--
- Documentation/trace/events-kmem.rst  |    8 ++++----
- mm/compaction.c                      |    2 +-
- mm/internal.h                        |    2 +-
- mm/page_alloc.c                      |   12 ++++++------
- mm/page_isolation.c                  |    4 ++--
- mm/page_owner.c                      |    2 +-
- 7 files changed, 17 insertions(+), 17 deletions(-)
+ arch/arm64/mm/contpte.c |   53 +++++++++++++++++++++++++++++++++++---
+ 1 file changed, 49 insertions(+), 4 deletions(-)
 
---- a/Documentation/mm/physical_memory.rst~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/Documentation/mm/physical_memory.rst
-@@ -500,11 +500,11 @@ General
- ``nr_isolate_pageblock``
-   Number of isolated pageblocks. It is used to solve incorrect freepage counting
-   problem due to racy retrieving migratetype of pageblock. Protected by
--  ``zone_lock``. Defined only when ``CONFIG_MEMORY_ISOLATION`` is enabled.
-+  zone lock. Defined only when ``CONFIG_MEMORY_ISOLATION`` is enabled.
- 
- ``span_seqlock``
-   The seqlock to protect ``zone_start_pfn`` and ``spanned_pages``. It is a
--  seqlock because it has to be read outside of ``zone_lock``, and it is done in
-+  seqlock because it has to be read outside of zone lock, and it is done in
-   the main allocator path. However, the seqlock is written quite infrequently.
-   Defined only when ``CONFIG_MEMORY_HOTPLUG`` is enabled.
- 
---- a/Documentation/trace/events-kmem.rst~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/Documentation/trace/events-kmem.rst
-@@ -57,7 +57,7 @@ the per-CPU allocator (high performance)
- 
- If pages are allocated directly from the buddy allocator, the
- mm_page_alloc_zone_locked event is triggered. This event is important as high
--amounts of activity imply high activity on the zone_lock. Taking this lock
-+amounts of activity imply high activity on the zone lock. Taking this lock
- impairs performance by disabling interrupts, dirtying cache lines between
- CPUs and serialising many CPUs.
- 
-@@ -79,11 +79,11 @@ contention on the lruvec->lru_lock.
-   mm_page_pcpu_drain		page=%p pfn=%lu order=%d cpu=%d migratetype=%d
- 
- In front of the page allocator is a per-cpu page allocator. It exists only
--for order-0 pages, reduces contention on the zone_lock and reduces the
-+for order-0 pages, reduces contention on the zone lock and reduces the
- amount of writing on struct page.
- 
- When a per-CPU list is empty or pages of the wrong type are allocated,
--the zone_lock will be taken once and the per-CPU list refilled. The event
-+the zone lock will be taken once and the per-CPU list refilled. The event
- triggered is mm_page_alloc_zone_locked for each page allocated with the
- event indicating whether it is for a percpu_refill or not.
- 
-@@ -92,7 +92,7 @@ which triggers a mm_page_pcpu_drain even
- 
- The individual nature of the events is so that pages can be tracked
- between allocation and freeing. A number of drain or refill pages that occur
--consecutively imply the zone_lock being taken once. Large amounts of per-CPU
-+consecutively imply the zone lock being taken once. Large amounts of per-CPU
- refills and drains could imply an imbalance between CPUs where too much work
- is being concentrated in one place. It could also indicate that the per-CPU
- lists should be a larger size. Finally, large amounts of refills on one CPU
---- a/mm/compaction.c~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/mm/compaction.c
-@@ -1419,7 +1419,7 @@ static bool suitable_migration_target(st
- 		int order = cc->order > 0 ? cc->order : pageblock_order;
- 
- 		/*
--		 * We are checking page_order without zone->_lock taken. But
-+		 * We are checking page_order without zone lock taken. But
- 		 * the only small danger is that we skip a potentially suitable
- 		 * pageblock, so it's not worth to check order for valid range.
- 		 */
---- a/mm/internal.h~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/mm/internal.h
-@@ -729,7 +729,7 @@ static inline unsigned int buddy_order(s
-  * (d) a page and its buddy are in the same zone.
-  *
-  * For recording whether a page is in the buddy system, we set PageBuddy.
-- * Setting, clearing, and testing PageBuddy is serialized by zone->_lock.
-+ * Setting, clearing, and testing PageBuddy is serialized by zone lock.
-  *
-  * For recording page's order, we use page_private(page).
-  */
---- a/mm/page_alloc.c~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/mm/page_alloc.c
-@@ -2476,7 +2476,7 @@ enum rmqueue_mode {
- 
- /*
-  * Do the hard work of removing an element from the buddy allocator.
-- * Call me with the zone->_lock already held.
-+ * Call me with the zone lock already held.
-  */
- static __always_inline struct page *
- __rmqueue(struct zone *zone, unsigned int order, int migratetype,
-@@ -2504,7 +2504,7 @@ __rmqueue(struct zone *zone, unsigned in
- 	 * fallbacks modes with increasing levels of fragmentation risk.
- 	 *
- 	 * The fallback logic is expensive and rmqueue_bulk() calls in
--	 * a loop with the zone->_lock held, meaning the freelists are
-+	 * a loop with the zone lock held, meaning the freelists are
- 	 * not subject to any outside changes. Remember in *mode where
- 	 * we found pay dirt, to save us the search on the next call.
- 	 */
-@@ -7090,7 +7090,7 @@ int alloc_contig_frozen_range_noprof(uns
- 	 * pages.  Because of this, we reserve the bigger range and
- 	 * once this is done free the pages we are not interested in.
- 	 *
--	 * We don't have to hold zone->_lock here because the pages are
-+	 * We don't have to hold zone lock here because the pages are
- 	 * isolated thus they won't get removed from buddy.
- 	 */
- 	outer_start = find_large_buddy(start);
-@@ -7659,7 +7659,7 @@ void accept_page(struct page *page)
- 		return;
- 	}
- 
--	/* Unlocks zone->_lock */
-+	/* Unlocks zone lock */
- 	__accept_page(zone, &flags, page);
+--- a/arch/arm64/mm/contpte.c~arm64-contpte-fix-set_access_flags-no-op-check-for-smmu-ats-faults
++++ a/arch/arm64/mm/contpte.c
+@@ -599,6 +599,27 @@ void contpte_clear_young_dirty_ptes(stru
  }
+ EXPORT_SYMBOL_GPL(contpte_clear_young_dirty_ptes);
  
-@@ -7676,7 +7676,7 @@ static bool try_to_accept_memory_one(str
- 		return false;
- 	}
- 
--	/* Unlocks zone->_lock */
-+	/* Unlocks zone lock */
- 	__accept_page(zone, &flags, page);
- 
- 	return true;
-@@ -7817,7 +7817,7 @@ struct page *alloc_frozen_pages_nolock_n
++static bool contpte_all_subptes_match_access_flags(pte_t *ptep, pte_t entry)
++{
++	pte_t *cont_ptep = contpte_align_down(ptep);
++	/*
++	 * PFNs differ per sub-PTE. Match only bits consumed by
++	 * __ptep_set_access_flags(): AF, DIRTY and write permission.
++	 */
++	const pteval_t cmp_mask = PTE_RDONLY | PTE_AF | PTE_WRITE | PTE_DIRTY;
++	pteval_t entry_cmp = pte_val(entry) & cmp_mask;
++	int i;
++
++	for (i = 0; i < CONT_PTES; i++) {
++		pteval_t pte_cmp = pte_val(__ptep_get(cont_ptep + i)) & cmp_mask;
++
++		if (pte_cmp != entry_cmp)
++			return false;
++	}
++
++	return true;
++}
++
+ int contpte_ptep_set_access_flags(struct vm_area_struct *vma,
+ 					unsigned long addr, pte_t *ptep,
+ 					pte_t entry, int dirty)
+@@ -608,14 +629,38 @@ int contpte_ptep_set_access_flags(struct
+ 	int i;
  
  	/*
- 	 * Best effort allocation from percpu free list.
--	 * If it's empty attempt to spin_trylock zone->_lock.
-+	 * If it's empty attempt to spin_trylock zone lock.
+-	 * Gather the access/dirty bits for the contiguous range. If nothing has
+-	 * changed, its a noop.
++	 * Check whether all sub-PTEs in the CONT block already match the
++	 * requested access flags/write permission, using raw per-PTE values
++	 * rather than the gathered ptep_get() view.
++	 *
++	 * __ptep_set_access_flags() can update AF, dirty and write
++	 * permission, but only to make the mapping more permissive.
++	 *
++	 * ptep_get() gathers AF/dirty state across the whole CONT block,
++	 * which is correct for a CPU with FEAT_HAFDBS. But page-table
++	 * walkers that evaluate each descriptor individually (e.g. a CPU
++	 * without DBM support, or an SMMU without HTTU, or with HA/HD
++	 * disabled in CD.TCR) can keep faulting on the target sub-PTE if
++	 * only a sibling has been updated. Gathering can therefore cause
++	 * false no-ops when only a sibling has been updated:
++	 *  - write faults: target still has PTE_RDONLY (needs PTE_RDONLY cleared)
++	 *  - read faults:  target still lacks PTE_AF
++	 *
++	 * Per Arm ARM (DDI 0487) D8.7.1, any sub-PTE in a CONT range may
++	 * become the effective cached translation, so all entries must have
++	 * consistent attributes. Check the full CONT block before returning
++	 * no-op, and when any sub-PTE mismatches, proceed to update the whole
++	 * range.
  	 */
- 	page = get_page_from_freelist(alloc_gfp, order, alloc_flags, &ac);
+-	orig_pte = pte_mknoncont(ptep_get(ptep));
+-	if (pte_val(orig_pte) == pte_val(entry))
++	if (contpte_all_subptes_match_access_flags(ptep, entry))
+ 		return 0;
  
---- a/mm/page_isolation.c~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/mm/page_isolation.c
-@@ -212,7 +212,7 @@ static int set_migratetype_isolate(struc
- 	zone_unlock_irqrestore(zone, flags);
- 	if (mode == PB_ISOLATE_MODE_MEM_OFFLINE) {
- 		/*
--		 * printk() with zone->_lock held will likely trigger a
-+		 * printk() with zone lock held will likely trigger a
- 		 * lockdep splat, so defer it here.
- 		 */
- 		dump_page(unmovable, "unmovable page");
-@@ -553,7 +553,7 @@ void undo_isolate_page_range(unsigned lo
- /*
-  * Test all pages in the range is free(means isolated) or not.
-  * all pages in [start_pfn...end_pfn) must be in the same zone.
-- * zone->_lock must be held before call this.
-+ * zone lock must be held before call this.
-  *
-  * Returns the last tested pfn.
-  */
---- a/mm/page_owner.c~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/mm/page_owner.c
-@@ -799,7 +799,7 @@ static void init_pages_in_zone(struct zo
- 				continue;
- 
- 			/*
--			 * To avoid having to grab zone->_lock, be a little
-+			 * To avoid having to grab zone lock, be a little
- 			 * careful when reading buddy page order. The only
- 			 * danger is that we skip too much and potentially miss
- 			 * some early allocated pages, which is better than
+ 	/*
++	 * Use raw target pte (not gathered) for write-bit unfold decision.
++	 */
++	orig_pte = pte_mknoncont(__ptep_get(ptep));
++
++	/*
+ 	 * We can fix up access/dirty bits without having to unfold the contig
+ 	 * range. But if the write bit is changing, we must unfold.
+ 	 */
 _
 
-Patches currently in -mm which might be from d@ilvokhin.com are
+Patches currently in -mm which might be from pjaroszynski@nvidia.com are
 
-mm-introduce-zone-lock-wrappers.patch
-mm-convert-zone-lock-users-to-wrappers.patch
-mm-convert-compaction-to-zone-lock-wrappers.patch
-mm-rename-zone-lock-to-zone-_lock.patch
-mm-rename-zone-lock-to-zone-_lock-fix-2.patch
-mm-rename-zone-lock-to-zone-_lock-fix-3.patch
-mm-add-tracepoints-for-zone-lock.patch
+arm64-contpte-fix-set_access_flags-no-op-check-for-smmu-ats-faults.patch
 
