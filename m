@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F9D236CE0E;
-	Fri,  6 Mar 2026 17:20:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1DE7346FA0
+	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 17:31:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772817646; cv=none; b=cyoksLXRTohLqh1UwooGn4PnNuS/65Pmi3+vip9edMezAIqDE+AmgLN+matvcVBp5aGDOqddxBSEuTyTeeU38A+t+VUAQTnhsrz5Ur5q6aPzX29U4zpmEUt4JZ1MWLqZiNibKZbslwdNjmu6B9sIa8hOA6rhm9NfVWActpnvU6M=
+	t=1772818301; cv=none; b=fMNA7LCFkjLG6m5uw2yik6opYYE7yEkOThb4hv+3iXNJebtnuhjBLjH25X2Lw9c9Mys/f7YjArBbAqxHwYGqxuDaNj72ZJhh9UyomKE1sK9+4jSLH8xlVKCants/qRspWJbt3gSqZzOn/nTv8kD7So4z5NhPFu5zZXaZ7nyE7hc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772817646; c=relaxed/simple;
-	bh=qPdJe4Z47VypuH7RvMq+bzweb9b+eflRKiFyyrJPYZM=;
-	h=Date:To:From:Subject:Message-Id; b=DBRaaS7WO/EaKMAFRPML1GPlH9APTTGF27Qt9WbSiSSe2tbG7u8e7BQ5RkpUJvu1qi31kIX/Tpsj/YkFgc559II8kPa7u55uqjdnzBRgY1OQZTKBUORQ5bhZ94Kr9/Mug/CHAUrNuE0fSK27QFD58nieOuUwbWhvIpvb2/vtK4k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v+ssIZeN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772818301; c=relaxed/simple;
+	bh=VjXzYSc//I18q30FkA27aXU04yXwmzabHcA1DdEtKRY=;
+	h=Date:To:From:Subject:Message-Id; b=R2HJt9YOsjjQVItvPQtg2fACFxWBEGun0CiP9U/ATnA++106W3RjVNlMWECFn4MjKRrUYXrfjJwVh0Ez17ez9ZhwNjOOPXDJAd5+ZN1GzXQTsIAuCq2EgbVPZJQ/sfrX/AMNZemagNIQRiAH9vierb7H+Odn3mSeqKxnZT0EJsQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=19zjFz9w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v+ssIZeN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B195BC4CEF7;
-	Fri,  6 Mar 2026 17:20:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="19zjFz9w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 420ADC4CEF7;
+	Fri,  6 Mar 2026 17:31:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772817645;
-	bh=qPdJe4Z47VypuH7RvMq+bzweb9b+eflRKiFyyrJPYZM=;
+	s=korg; t=1772818301;
+	bh=VjXzYSc//I18q30FkA27aXU04yXwmzabHcA1DdEtKRY=;
 	h=Date:To:From:Subject:From;
-	b=v+ssIZeNMoI3Ei826nxlS6X+GWXbuWHGcgvaKvD+COt4AaKgGwfFMHLOdASt+FNtH
-	 +9jDpjldhU4fkVwPzvlHZ23OU7a5bebNQnmchfMcn+w6YidJJtVVcVuZ7I+OsXX91t
-	 pqjPU2NMOv4LknRzpKnuPkKQ3o9ocF5U1ZaKA5E0=
-Date: Fri, 06 Mar 2026 09:20:45 -0800
-To: mm-commits@vger.kernel.org,xemul@parallels.com,stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,osalvador@suse.de,muchun.song@linux.dev,ljs@kernel.org,JonasZhou@zhaoxin.com,hillf.zj@alibaba-inc.com,dgilbert@redhat.com,david@redhat.com,david@kernel.org,aarcange@redhat.com,jianhuizzzzz@gmail.com,akpm@linux-foundation.org
+	b=19zjFz9w3eQRHlnQKtMItDXTZbDIOTcKK6EJcZzMuVO7UOIuKYsrwj+iGX+8W08+D
+	 kfcrWJ0zyeGCWC1C5p/AA1/AE+I48V9D8DpDr4j9301NzV7EUUgrHmpHHRD4L44hUh
+	 gacos5VS8yaXS2Aw8jgbgtP2XcXaZrfrtmUWnoik=
+Date: Fri, 06 Mar 2026 09:31:40 -0800
+To: mm-commits@vger.kernel.org,ryabinin.a.a@gmail.com,peterz@infradead.org,nathan@kernel.org,morbo@google.com,kees@kernel.org,justinstitt@google.com,elver@google.com,andreyknvl@gmail.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260306172045.B195BC4CEF7@smtp.kernel.org>
+Subject: + ubsan-turn-off-kmsan-inside-of-ubsan-instrumentation.patch added to mm-new branch
+Message-Id: <20260306173141.420ADC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/userfaultfd: fix hugetlb fault mutex hash calculation
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation.patch
+     Subject: ubsan: turn off kmsan inside of ubsan instrumentation
+has been added to the -mm mm-new branch.  Its filename is
+     ubsan-turn-off-kmsan-inside-of-ubsan-instrumentation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ubsan-turn-off-kmsan-inside-of-ubsan-instrumentation.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,136 +66,59 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jianhui Zhou <jianhuizzzzz@gmail.com>
-Subject: mm/userfaultfd: fix hugetlb fault mutex hash calculation
-Date: Fri, 6 Mar 2026 21:59:26 +0800
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: ubsan: turn off kmsan inside of ubsan instrumentation
+Date: Fri, 6 Mar 2026 16:05:49 +0100
 
-In mfill_atomic_hugetlb(), linear_page_index() is used to calculate the
-page index for hugetlb_fault_mutex_hash().  However, linear_page_index()
-returns the index in PAGE_SIZE units, while hugetlb_fault_mutex_hash()
-expects the index in huge page units (as calculated by
-vma_hugecache_offset()).  This mismatch means that different addresses
-within the same huge page can produce different hash values, leading to
-the use of different mutexes for the same huge page.  This can cause races
-between faulting threads, which can corrupt the reservation map and
-trigger the BUG_ON in resv_map_release().
+The structure initialization in the two type mismatch handling functions
+causes a call to __msan_memset() to be generated inside of a UACCESS
+block, which in turn leads to an objtool warning about possibly leaking
+uaccess-enabled state:
 
-Fix this by replacing linear_page_index() with vma_hugecache_offset() and
-applying huge_page_mask() to align the address properly.  To make
-vma_hugecache_offset() available outside of mm/hugetlb.c, move it to
-include/linux/hugetlb.h as a static inline function.
+lib/ubsan.o: warning: objtool: __ubsan_handle_type_mismatch+0xda: call to __msan_memset() with UACCESS enabled
+lib/ubsan.o: warning: objtool: __ubsan_handle_type_mismatch_v1+0xf4: call to __msan_memset() with UACCESS enabled
 
-Link: https://lkml.kernel.org/r/tencent_F70AFD1D8067E3D2409764BC1A199DA6AF0A@qq.com
-Fixes: 60d4d2d2b40e ("userfaultfd: hugetlbfs: add __mcopy_atomic_hugetlb for huge page UFFDIO_COPY")
-Signed-off-by: Jianhui Zhou <jianhuizzzzz@gmail.com>
-Reported-by: syzbot+f525fd79634858f478e7@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=f525fd79634858f478e7
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: JonasZhou <JonasZhou@zhaoxin.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: <stable@vger.kernel.org>
+Most likely __msan_memset() is safe to be called here and could be added
+to the uaccess_safe_builtin[] list of safe functions, but seeing that the
+ubsan file itself already has kasan, ubsan and kcsan disabled itself, it
+is probably a good idea to also turn off kmsan here, in particular this
+also avoids the risk of recursing between ubsan and kcsan checks in other
+functions of this file.
+
+I saw this happen while testing randconfig builds with clang-22, but did
+not try older versions, or attempt to see which kernel change introduced
+the warning.
+
+Link: https://lkml.kernel.org/r/20260306150613.350029-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   17 +++++++++++++++++
- mm/hugetlb.c            |   11 -----------
- mm/userfaultfd.c        |    5 ++++-
- 3 files changed, 21 insertions(+), 12 deletions(-)
+ lib/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/hugetlb.h~mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation
-+++ a/include/linux/hugetlb.h
-@@ -796,6 +796,17 @@ static inline unsigned huge_page_shift(s
- 	return h->order + PAGE_SHIFT;
- }
+--- a/lib/Makefile~ubsan-turn-off-kmsan-inside-of-ubsan-instrumentation
++++ a/lib/Makefile
+@@ -308,6 +308,7 @@ obj-$(CONFIG_UBSAN) += ubsan.o
+ UBSAN_SANITIZE_ubsan.o := n
+ KASAN_SANITIZE_ubsan.o := n
+ KCSAN_SANITIZE_ubsan.o := n
++KMSAN_SANITIZE_ubsan.o := n
+ CFLAGS_ubsan.o := -fno-stack-protector $(DISABLE_KSTACK_ERASE)
  
-+/*
-+ * Convert the address within this vma to the page offset within
-+ * the mapping, huge page units here.
-+ */
-+static inline pgoff_t vma_hugecache_offset(struct hstate *h,
-+		struct vm_area_struct *vma, unsigned long address)
-+{
-+	return ((address - vma->vm_start) >> huge_page_shift(h)) +
-+		(vma->vm_pgoff >> huge_page_order(h));
-+}
-+
- static inline bool order_is_gigantic(unsigned int order)
- {
- 	return order > MAX_PAGE_ORDER;
-@@ -1197,6 +1208,12 @@ static inline unsigned int huge_page_shi
- 	return PAGE_SHIFT;
- }
- 
-+static inline pgoff_t vma_hugecache_offset(struct hstate *h,
-+		struct vm_area_struct *vma, unsigned long address)
-+{
-+	return linear_page_index(vma, address);
-+}
-+
- static inline bool hstate_is_gigantic(struct hstate *h)
- {
- 	return false;
---- a/mm/hugetlb.c~mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation
-+++ a/mm/hugetlb.c
-@@ -1006,17 +1006,6 @@ static long region_count(struct resv_map
- 	return chg;
- }
- 
--/*
-- * Convert the address within this vma to the page offset within
-- * the mapping, huge page units here.
-- */
--static pgoff_t vma_hugecache_offset(struct hstate *h,
--			struct vm_area_struct *vma, unsigned long address)
--{
--	return ((address - vma->vm_start) >> huge_page_shift(h)) +
--			(vma->vm_pgoff >> huge_page_order(h));
--}
--
- /**
-  * vma_kernel_pagesize - Page size granularity for this VMA.
-  * @vma: The user mapping.
---- a/mm/userfaultfd.c~mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation
-+++ a/mm/userfaultfd.c
-@@ -507,6 +507,7 @@ static __always_inline ssize_t mfill_ato
- 	pgoff_t idx;
- 	u32 hash;
- 	struct address_space *mapping;
-+	struct hstate *h;
- 
- 	/*
- 	 * There is no default zero huge page for all huge page sizes as
-@@ -564,6 +565,8 @@ retry:
- 			goto out_unlock;
- 	}
- 
-+	h = hstate_vma(dst_vma);
-+
- 	while (src_addr < src_start + len) {
- 		VM_WARN_ON_ONCE(dst_addr >= dst_start + len);
- 
-@@ -573,7 +576,7 @@ retry:
- 		 * in the case of shared pmds.  fault mutex prevents
- 		 * races with other faulting threads.
- 		 */
--		idx = linear_page_index(dst_vma, dst_addr);
-+		idx = vma_hugecache_offset(h, dst_vma, dst_addr & huge_page_mask(h));
- 		mapping = dst_vma->vm_file->f_mapping;
- 		hash = hugetlb_fault_mutex_hash(mapping, idx);
- 		mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ obj-$(CONFIG_SBITMAP) += sbitmap.o
 _
 
-Patches currently in -mm which might be from jianhuizzzzz@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation.patch
+ubsan-turn-off-kmsan-inside-of-ubsan-instrumentation.patch
+mm-vmscan-avoid-false-positive-wuninitialized-warning.patch
 
