@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3E54226CFE
-	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 01:47:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 367261519B4
+	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 01:49:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772761660; cv=none; b=DoOKR2S6R+P5FG+bLhmMvjuw0zZPBsbxgPh22jZusasGXxDQlTwOnnA02WVibnXdv9lG0Y5Jw/6SRGcLr/OnMZhlh5fSS/HC9cCcMOEakaRMVLE7d3H6hbTBKch3mNnXQVboi5qk6bqRsDSjgO8EGSE1fHeKMBKkTJoQrDVXA78=
+	t=1772761764; cv=none; b=QoQmek7BA5YzzwXhsPreQVm+HDq6fvHXbcbD91IO6pCjMPsajnYi1aK0pDYKNAZcqWK71F9TTDPA9gvvhAoOanugeVusNuEXyO60WanClRe4+XXpl99MpZBFwiSJaEXfyP8KovVozvT4r86ypLbyc/1/6r2XEKFdIrCYTGYyoOg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772761660; c=relaxed/simple;
-	bh=oe2URUUYqAJI1ok/3Q+sbD2WqAZjyNGgxlj1VYgq9Nk=;
-	h=Date:To:From:Subject:Message-Id; b=uakQV5DHrBDi069m8qJ/rzxWAYxZFiK+7vsVJulWPeea0s50cIV6yPyBBSKRSn43/9FtoRHO6DeJKMr4d7bUWHpv+HTjzue38Iro65RsRdvzxV88CdNVKnc8ipednVLjZmvBMQhKnQyPlqczoN5AoIE99T4G1Kw+tTqWgthwb84=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mBUiHGPf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772761764; c=relaxed/simple;
+	bh=YcR2j/wo21C2roIOljCnKyUmJZokKdI6qxtfFFRzZSM=;
+	h=Date:To:From:Subject:Message-Id; b=cI+JBpNX3EIe9myjX6vMIXfqKB11lreAmK8RE+GSG/OSHP/SNghypBlmzY1IWZM4eEM1mCHdhaCMGJ6+S6zQ/ZW8aScvefPDvJMCxdx7q2tdnY6d4JCR/QoS7v567EI/CdmkWNchHKoLuQiXzuIXXkB/+OM7nLHJkTRjR8Gr2Fs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z0sQfKVT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mBUiHGPf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3D1EC2BC87;
-	Fri,  6 Mar 2026 01:47:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z0sQfKVT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA31EC116C6;
+	Fri,  6 Mar 2026 01:49:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772761660;
-	bh=oe2URUUYqAJI1ok/3Q+sbD2WqAZjyNGgxlj1VYgq9Nk=;
+	s=korg; t=1772761763;
+	bh=YcR2j/wo21C2roIOljCnKyUmJZokKdI6qxtfFFRzZSM=;
 	h=Date:To:From:Subject:From;
-	b=mBUiHGPfWL970H1SW6/asj4xl3Imd2dcyyKvT/MeQNhMupNiAz0YDBqHVmKmWeR3/
-	 qjkMyVFohvmaHzs5DZSGiqhfmNUF/FsgJjGAaR0o/Zlx1O8lVN/uPuF+nacmM4uyQI
-	 25AeZK23n7ryGa8h2gQhZahjHUpxf1dbOy4N0mRs=
-Date: Thu, 05 Mar 2026 17:47:39 -0800
-To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@gentwo.org,zenghongling@kylinos.cn,akpm@linux-foundation.org
+	b=Z0sQfKVT39XfjRqzKEHGyiRRosBx5DO0ab4ZG2uhdRCwAhW2tx+ZkAVxQdNCG9UZB
+	 Jnf4J39hXDuqd+Zg426fnvNxO0dZS4GgDH0YVaTLUK2a6j6unDsLvjQnz/CfTOCsrx
+	 gOEwdu1UtxgFWrTKgGh+S100j7Whe/kkBcgYN0qw=
+Date: Thu, 05 Mar 2026 17:49:23 -0800
+To: mm-commits@vger.kernel.org,minchan@kernel.org,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory.patch added to mm-new branch
-Message-Id: <20260306014739.F3D1EC2BC87@smtp.kernel.org>
+Subject: + zram-use-gfp_kernel-for-post-processing-slot-allocation.patch added to mm-new branch
+Message-Id: <20260306014923.BA31EC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/percpu-internal.h: optimise pcpu_chunk_struct to save memory
+     Subject: zram: use GFP_KERNEL for post-processing slot allocation
 has been added to the -mm mm-new branch.  Its filename is
-     mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory.patch
+     zram-use-gfp_kernel-for-post-processing-slot-allocation.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-use-gfp_kernel-for-post-processing-slot-allocation.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,119 +66,45 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: zenghongling <zenghongling@kylinos.cn>
-Subject: mm/percpu-internal.h: optimise pcpu_chunk_struct to save memory
-Date: Thu, 5 Mar 2026 15:30:43 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: use GFP_KERNEL for post-processing slot allocation
+Date: Thu, 5 Mar 2026 11:16:03 +0900
 
-The pcpu_chunk_struct has a hole of 4 bytes and pushes the struct to three
-cachelines.  Relocating the three booleans upwards allows for the struct
-to only use two cachelines.
+Post-processing slot allocation used to be performed under slot bit-lock,
+so gfp was restricted, then we switched to a sleepable slot lock but gpf
+still remained restricted.  Drop that restriction and use GFP_KERNEL
+instead.
 
-Before:
-struct pcpu_chunk {
-        struct list_head           list;                 /*     0    16 */
-        int                        free_bytes;           /*    16     4 */
-        struct pcpu_block_md       chunk_md;             /*    20    32 */
-
-        /* XXX 4 bytes hole, try to pack */
-
-        long unsigned int *        bound_map;            /*    56     8 */
-        /* --- cacheline 1 boundary (64 bytes) --- */
-        void *                     base_addr __attribute__((__aligned__(64))); /*    64     8 */
-        long unsigned int *        alloc_map;            /*    72     8 */
-        struct pcpu_block_md *     md_blocks;            /*    80     8 */
-        void *                     data;                 /*    88     8 */
-        bool                       immutable;            /*    96     1 */
-        bool                       isolated;             /*    97     1 */
-
-        /* XXX 2 bytes hole, try to pack */
-
-        int                        start_offset;         /*   100     4 */
-        int                        end_offset;           /*   104     4 */
-
-        /* XXX 4 bytes hole, try to pack */
-
-        struct obj_cgroup * *      obj_cgroups;          /*   112     8 */
-        int                        nr_pages;             /*   120     4 */
-        int                        nr_populated;         /*   124     4 */
-        /* --- cacheline 2 boundary (128 bytes) --- */
-        int                        nr_empty_pop_pages;   /*   128     4 */
-
-        /* XXX 4 bytes hole, try to pack */
-
-        long unsigned int          populated[];          /*   136     0 */
-
-        /* size: 192, cachelines: 3, members: 17 */
-        /* sum members: 122, holes: 4, sum holes: 14 */
-        /* padding: 56 */
-        /* forced alignments: 1 */
-} __attribute__((__aligned__(64)));
-
-After:
-struct pcpu_chunk {
-        struct list_head           list;                 /*     0    16 */
-        int                        free_bytes;           /*    16     4 */
-        struct pcpu_block_md       chunk_md;             /*    20    32 */
-
-        /* XXX 4 bytes hole, try to pack */
-
-        long unsigned int *        bound_map;            /*    56     8 */
-        /* --- cacheline 1 boundary (64 bytes) --- */
-        void *                     base_addr __attribute__((__aligned__(64))); /*    64     8 */
-        long unsigned int *        alloc_map;            /*    72     8 */
-        struct pcpu_block_md *     md_blocks;            /*    80     8 */
-        void *                     data;                 /*    88     8 */
-        bool                       immutable;            /*    96     1 */
-        bool                       isolated;             /*    97     1 */
-
-        /* XXX 2 bytes hole, try to pack */
-
-        int                        start_offset;         /*   100     4 */
-        int                        end_offset;           /*   104     4 */
-        int                        nr_empty_pop_pages;   /*   108     4 */
-        struct obj_cgroup * *      obj_cgroups;          /*   112     8 */
-        int                        nr_pages;             /*   120     4 */
-        int                        nr_populated;         /*   124     4 */
-        /* --- cacheline 2 boundary (128 bytes) --- */
-        long unsigned int          populated[];          /*   128     0 */
-
-        /* size: 128, cachelines: 2, members: 17 */
-        /* sum members: 122, holes: 2, sum holes: 6 */
-        /* forced alignments: 1 */
-} __attribute__((__aligned__(64)));
-
-Link: https://lkml.kernel.org/r/20260305073043.571691-1-zenghongling@kylinos.cn
-Signed-off-by: zenghongling <zenghongling@kylinos.cn>
-Cc: Christoph Lameter <cl@gentwo.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Hongling Zeng <zenghongling@kylinos.cn>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20260305021619.617481-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Brian Geffon <bgeffon@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu-internal.h |    2 +-
+ drivers/block/zram/zram_drv.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/percpu-internal.h~mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory
-+++ a/mm/percpu-internal.h
-@@ -77,13 +77,13 @@ struct pcpu_chunk {
- 	int			end_offset;	/* additional area required to
- 						   have the region end page
- 						   aligned */
-+	int                     nr_empty_pop_pages; /* # of empty populated pages */
- #ifdef NEED_PCPUOBJ_EXT
- 	struct pcpuobj_ext	*obj_exts;	/* vector of object cgroups */
- #endif
+--- a/drivers/block/zram/zram_drv.c~zram-use-gfp_kernel-for-post-processing-slot-allocation
++++ a/drivers/block/zram/zram_drv.c
+@@ -297,7 +297,7 @@ static bool place_pp_slot(struct zram *z
+ 	struct zram_pp_slot *pps;
+ 	u32 bid;
  
- 	int			nr_pages;	/* # of pages served by this chunk */
- 	int			nr_populated;	/* # of populated pages */
--	int                     nr_empty_pop_pages; /* # of empty populated pages */
- 	unsigned long		populated[];	/* populated bitmap */
- };
+-	pps = kmalloc_obj(*pps, GFP_NOIO | __GFP_NOWARN);
++	pps = kmalloc_obj(*pps, GFP_KERNEL | __GFP_NOWARN);
+ 	if (!pps)
+ 		return false;
  
 _
 
-Patches currently in -mm which might be from zenghongling@kylinos.cn are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory.patch
+zram-do-not-autocorrect-bad-recompression-parameters.patch
+zram-drop-num_active_comps.patch
+zram-recompression-priority-param-should-override-algo.patch
+zram-update-recompression-documentation.patch
+zram-remove-chained-recompression.patch
+zram-use-gfp_kernel-for-post-processing-slot-allocation.patch
 
