@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EE9D54654
-	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 22:44:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E875854654
+	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 22:44:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772837070; cv=none; b=fmzyqwF8KZ+3tCgZ4jtN4NBWSoZizj/zZvveG3kyJBHJd/OT5/HKJMVqIv6Fcd3KgGiwIHkpkzVrortR2NN1zA3X9wtVpBClPUZBEq9ns5eKS3QIa859pSDYCXZ4sze/CLj2MuehFsRbhPxaSrB2VV03pliuLbE/odXTiFulWxY=
+	t=1772837071; cv=none; b=Ng9YxeZM1Ht1UmmSTW1z9nHwTDQaAuLOfTcHQTuD44bgg5WYqHMKFzqurWS2lGjXLNY1NgSIvDuuMw/PoebxF7Ny4T6tWABh0FLz1/dUtn5wVg3EK6Rq5kO7vbIdWaLY3KptFQpohpQ5DwlEpJQij5sRdX4wKJyE11aQrXN/yJI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772837070; c=relaxed/simple;
-	bh=LhTJqSFpMXvMwRDTpcAsbGMV5Y1wXblpnrEJ3fQlqCU=;
-	h=Date:To:From:Subject:Message-Id; b=rHJNh1FUjwesILbsdtvovbQlSXDa/gsMIcN41/hGMJ3KfvDnqRewHrW480Fg6sEuAs73iDpj4IFvm8ZjY5Alqco+VOafcI/miP4bew6QkhfBNNx8To1+el9L8PMQL4/We4T//N7Uhq+6ZkqHdQSv9hrhvUtjX/HP77f7Q6vmvBQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RdJjQ+CP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772837071; c=relaxed/simple;
+	bh=iU6RcYEqcS4690mkGIVdZJL3dDiHDKdddCQjDJYFBBo=;
+	h=Date:To:From:Subject:Message-Id; b=OmnWf0eMInXrRk2zBo/vAH6tJFuNenvEh51S1ZHnNCbwo+KcYM/kgXY3LMVG7GEMatdA4mvKWGohS9kQSUAUlrTjfk1nLtQa6HLbj0WH4LBdOm6vOt8iIg0azyCuxAbheboQr2aybicSVz4E4OgVBQFCUZnlYJ04kI470WrbqaY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EoE9ony8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RdJjQ+CP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9247DC4CEF7;
-	Fri,  6 Mar 2026 22:44:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EoE9ony8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBCA6C4CEF7;
+	Fri,  6 Mar 2026 22:44:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772837069;
-	bh=LhTJqSFpMXvMwRDTpcAsbGMV5Y1wXblpnrEJ3fQlqCU=;
+	s=korg; t=1772837070;
+	bh=iU6RcYEqcS4690mkGIVdZJL3dDiHDKdddCQjDJYFBBo=;
 	h=Date:To:From:Subject:From;
-	b=RdJjQ+CPjBBAczeVND16+Xxc6Ik949qZXHlo600tcsPOKLDJoqkrxHRRWq3KbZI4A
-	 UxbJAYBTfEIXQkfjiVI6yQwY+Cd7zR2sxzM8VOaOFAurmitojcekmGTht6rdnEJ5p/
-	 bLP9EirRQy1R2xrzbcmYTYYYHHE+U2A2X3VWf0u4=
-Date: Fri, 06 Mar 2026 14:44:28 -0800
+	b=EoE9ony83JOr769SGfi5UkV1x2Y9WOwTalQIMQqGUCZ5RTAKB/yf4SJpxmG2+BI73
+	 7eS4UWiw/9NAPmwgJ/B4WgtQ1S4tuMGCogksr6gakg8R8sO52iCD3lroFQ7qE8Tq90
+	 X/5he4xY50/rjgSfveMvo08OE+34GNKqQ3JNArVI=
+Date: Fri, 06 Mar 2026 14:44:30 -0800
 To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-add-config_damon_debug_sanity.patch added to mm-new branch
-Message-Id: <20260306224429.9247DC4CEF7@smtp.kernel.org>
+Subject: + mm-damon-core-add-damon_new_region-debug_sanity-check.patch added to mm-new branch
+Message-Id: <20260306224430.BBCA6C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: add CONFIG_DAMON_DEBUG_SANITY
+     Subject: mm/damon/core: add damon_new_region() debug_sanity check
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-add-config_damon_debug_sanity.patch
+     mm-damon-core-add-damon_new_region-debug_sanity-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-add-config_damon_debug_sanity.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-add-damon_new_region-debug_sanity-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -67,40 +67,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: add CONFIG_DAMON_DEBUG_SANITY
-Date: Fri, 6 Mar 2026 07:29:04 -0800
+Subject: mm/damon/core: add damon_new_region() debug_sanity check
+Date: Fri, 6 Mar 2026 07:29:05 -0800
 
-Patch series "mm/damon: add optional debugging-purpose sanity checks".
+damon_new_region() is supposed to be called with only valid address range
+arguments.  Do the check under DAMON_DEBUG_SANITY.
 
-DAMON code has a few assumptions that can be critical if violated. 
-Validating the assumptions in code can be useful at finding such critical
-bugs.  I was actually adding some such additional sanity checks in my
-personal tree, and those were useful at finding bugs that I made during
-the development of new patches.  We also found [1] sometimes the
-assumptions are misunderstood.  The validation can work as good
-documentation for such cases.
-
-Add some of such debugging purpose sanity checks.  Because those
-additional checks can impose more overhead, make those only optional via
-new config, CONFIG_DAMON_DEBUG_SANITY, that is recommended for only
-development and test setups.  And as recommended, enable it for DAMON
-kunit tests and selftests.
-
-Note that the verification only WARN_ON() for each of the insanity.  The
-developer or tester may better to set panic_on_oops together, like
-damon-tests/corr did [2].
-
-
-This patch (of 10):
-
-Add a new build config that will enable additional DAMON sanity checks. 
-It is recommended to be enabled on only development and test setups, since
-it can impose additional overhead.
-
-Link: https://lkml.kernel.org/r/20260306152914.86303-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20260306152914.86303-2-sj@kernel.org
-Link: https://lore.kernel.org/20251231070029.79682-1-sj@kernel.org [1]
-Link: https://github.com/damonitor/damon-tests/commit/a80fbee55e272f151b4e5809ee85898aea33e6ff [2]
+Link: https://lkml.kernel.org/r/20260306152914.86303-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
@@ -108,29 +81,37 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/Kconfig |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/damon/core.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/mm/damon/Kconfig~mm-damon-add-config_damon_debug_sanity
-+++ a/mm/damon/Kconfig
-@@ -12,6 +12,17 @@ config DAMON
- 	  See https://www.kernel.org/doc/html/latest/mm/damon/index.html for
- 	  more information.
+--- a/mm/damon/core.c~mm-damon-core-add-damon_new_region-debug_sanity-check
++++ a/mm/damon/core.c
+@@ -109,6 +109,17 @@ int damon_select_ops(struct damon_ctx *c
+ 	return err;
+ }
  
-+config DAMON_DEBUG_SANITY
-+	bool "Check sanity of DAMON code"
-+	depends on DAMON
-+	help
-+	  This enables additional DAMON debugging-purpose sanity checks in
-+	  DAMON code.  This can be useful for finding bugs, but impose
-+	  additional overhead.  This is therefore recommended to be enabled on
-+	  only development and test setups.
++#ifdef CONFIG_DAMON_DEBUG_SANITY
++static void damon_verify_new_region(unsigned long start, unsigned long end)
++{
++	WARN_ONCE(start >= end, "start %lu >= end %lu\n", start, end);
++}
++#else
++static void damon_verify_new_region(unsigned long start, unsigned long end)
++{
++}
++#endif
 +
-+	  If unsure, say N.
-+
- config DAMON_KUNIT_TEST
- 	bool "Test for damon" if !KUNIT_ALL_TESTS
- 	depends on DAMON && KUNIT=y
+ /*
+  * Construct a damon_region struct
+  *
+@@ -118,6 +129,7 @@ struct damon_region *damon_new_region(un
+ {
+ 	struct damon_region *region;
+ 
++	damon_verify_new_region(start, end);
+ 	region = kmem_cache_alloc(damon_region_cache, GFP_KERNEL);
+ 	if (!region)
+ 		return NULL;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
