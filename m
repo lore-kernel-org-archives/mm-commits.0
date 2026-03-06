@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB5003A6417
-	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 18:28:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D879D27A904
+	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 18:28:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772821721; cv=none; b=ecGfQiY8mcp+M2xkxGT2Ihq6fcA58ogFMvnTBo88OMghmhspyqcFhefP2YL4472s5SQEvJwTJIQodMcWQi1nIaRI1YqSRqq5xi64miITejzpQFIn2sDzPbDWrkNHBqx00hIqLWkDrLAQ37k622llNvAqZAbQgBpv6r40PE8Wg2w=
+	t=1772821722; cv=none; b=qZXU9iP01m6DiqWWzO/v2cEh66rsqOfkT9E87vHo3AMWnVUTeZqj2d+LiUcBV3Y0mSREZVnINo/5QDVo8KRErmB8iMlABv8Z2dN+/Jj/txdOpXLYYut6/Ec0eTv9RKvgEBFVZMWw5PDIY08zM5t4WmISC/xk20bsjXrrMOFI2vs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772821721; c=relaxed/simple;
-	bh=a94r16Ednd+y4ZCX8LbcsTWPiaivJ8MaaAwywGCwHDI=;
-	h=Date:To:From:Subject:Message-Id; b=ibx3WtxK2UgmVGRW9+Ff3UysvHCAk+6pxEVbthe3Ui2O1nd0DqEtjKm91CQp+73jqgI1JMY4cpZvnWe33phQ4pRhCSv0oypyufESGxGFuZ5Ey3QqxzH9jLTh7HGl784Ncc84AMtyhMnNyLQsoc4Xt9h7vQ3ffAVUVEN9luG+4+I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kn10S5KL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772821722; c=relaxed/simple;
+	bh=luvEMkZO483m/Qu6Md8A0jehSd9Ewmxaw7KbDoB7HJQ=;
+	h=Date:To:From:Subject:Message-Id; b=H+NvUnkLhe2zO3h6zi+LMFtOloJK605abUCVwR7UipskEz7PwbtwFG7J6eyiN55t6I8brvY4irEcErEXIbJVYx8WS74W+J+JuwGaVV5OiZS+NV8vFd0BUIIqgQtXLsMy8pRWkwH1fEHAmk+TYEKry+/g01znNjhFcGGbQq1dX3Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EFveH6Lr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kn10S5KL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 873E5C4CEF7;
-	Fri,  6 Mar 2026 18:28:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EFveH6Lr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 814D1C4CEF7;
+	Fri,  6 Mar 2026 18:28:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772821720;
-	bh=a94r16Ednd+y4ZCX8LbcsTWPiaivJ8MaaAwywGCwHDI=;
+	s=korg; t=1772821722;
+	bh=luvEMkZO483m/Qu6Md8A0jehSd9Ewmxaw7KbDoB7HJQ=;
 	h=Date:To:From:Subject:From;
-	b=kn10S5KLlZIU07rh0+R/l7CqiCp9glcM+Q+Wkq+ON4n2Zr35oelWtK/ntXtyCmwO1
-	 pzzwQnKCvxo4oJP5GxWGrqg8Scq54s+Z4RNRQwPUgcLB6pAmtP5GhV+QWpRqHcAMi5
-	 uMQmEcdoqycBqOWyGwnCnjBtU9Lbh3wM7yBmd7f0=
-Date: Fri, 06 Mar 2026 10:28:39 -0800
+	b=EFveH6LrTusP4/kNC3iTtR5lYET78UuKCdy6yghb1n6pExPUfc5QooL4uwwfhRfxN
+	 +c/HD3xKXhXrsMuGdsETYdwBdZNLnynjS5+OlHy0CNn8bTkwERdLFrTsBVS02HR8P5
+	 8s7hHgWfM1ZWLBLatTPmoQQdi+/KXBFsIY4aE6Ug=
+Date: Fri, 06 Mar 2026 10:28:42 -0800
 To: mm-commits@vger.kernel.org,objecting@objecting.org,akpm@linux-foundation.org,hlcj1234567@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-bug-fix-inconsistent-capitalization-in-bug-message.patch added to mm-nonmm-unstable branch
-Message-Id: <20260306182840.873E5C4CEF7@smtp.kernel.org>
+Subject: + lib-bug-remove-unnecessary-variable-initializations.patch added to mm-nonmm-unstable branch
+Message-Id: <20260306182842.814D1C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/bug: fix inconsistent capitalization in BUG message
+     Subject: lib/bug: remove unnecessary variable initializations
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-bug-fix-inconsistent-capitalization-in-bug-message.patch
+     lib-bug-remove-unnecessary-variable-initializations.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-bug-fix-inconsistent-capitalization-in-bug-message.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-bug-remove-unnecessary-variable-initializations.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Josh Law <hlcj1234567@gmail.com>
-Subject: lib/bug: fix inconsistent capitalization in BUG message
-Date: Fri, 6 Mar 2026 16:23:27 +0000
+Subject: lib/bug: remove unnecessary variable initializations
+Date: Fri, 6 Mar 2026 16:24:18 +0000
 
-Use lowercase "kernel BUG" consistently in pr_crit() messages.  The
-verbose path already uses "kernel BUG at %s:%u!" but the non-verbose
-fallback uses "Kernel BUG" with an uppercase 'K'.
+Remove the unnecessary initialization of 'rcu' to false in
+report_bug_entry() and report_bug(), as it is assigned by warn_rcu_enter()
+before its first use.
 
-Link: https://lkml.kernel.org/r/20260306162327.2815553-1-objecting@objecting.org
+Link: https://lkml.kernel.org/r/20260306162418.2815979-1-objecting@objecting.org
 Signed-off-by: Josh Law <objecting@objecting.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/bug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/bug.c~lib-bug-fix-inconsistent-capitalization-in-bug-message
+--- a/lib/bug.c~lib-bug-remove-unnecessary-variable-initializations
 +++ a/lib/bug.c
-@@ -254,7 +254,7 @@ static enum bug_trap_type __report_bug(s
- 	if (file)
- 		pr_crit("kernel BUG at %s:%u!\n", file, line);
- 	else
--		pr_crit("Kernel BUG at %pB [verbose debug info unavailable]\n",
-+		pr_crit("kernel BUG at %pB [verbose debug info unavailable]\n",
- 			(void *)bugaddr);
+@@ -263,7 +263,7 @@ static enum bug_trap_type __report_bug(s
+ enum bug_trap_type report_bug_entry(struct bug_entry *bug, struct pt_regs *regs)
+ {
+ 	enum bug_trap_type ret;
+-	bool rcu = false;
++	bool rcu;
  
- 	return BUG_TRAP_TYPE_BUG;
+ 	rcu = warn_rcu_enter();
+ 	ret = __report_bug(bug, bug_addr(bug), regs);
+@@ -275,7 +275,7 @@ enum bug_trap_type report_bug_entry(stru
+ enum bug_trap_type report_bug(unsigned long bugaddr, struct pt_regs *regs)
+ {
+ 	enum bug_trap_type ret;
+-	bool rcu = false;
++	bool rcu;
+ 
+ 	rcu = warn_rcu_enter();
+ 	ret = __report_bug(NULL, bugaddr, regs);
 _
 
 Patches currently in -mm which might be from hlcj1234567@gmail.com are
