@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8983B189BB6
-	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 01:38:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3E54226CFE
+	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 01:47:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772761125; cv=none; b=LF0N4LxHal2OVGqnnhsEalW1u+CWGuEpv5mFkDqFchg+sBb9kdhzhjzmN878a5Jh0f0nRxmEG4tmJKKTEyARWvwyl8EtLhZKU5TxbKpzimBVPaNoXhPzHluXvDJBl7WNWsZHmjtmyh+qpw/TgVoUh4RX4lnkkHUxuBzyPAK1wiM=
+	t=1772761660; cv=none; b=DoOKR2S6R+P5FG+bLhmMvjuw0zZPBsbxgPh22jZusasGXxDQlTwOnnA02WVibnXdv9lG0Y5Jw/6SRGcLr/OnMZhlh5fSS/HC9cCcMOEakaRMVLE7d3H6hbTBKch3mNnXQVboi5qk6bqRsDSjgO8EGSE1fHeKMBKkTJoQrDVXA78=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772761125; c=relaxed/simple;
-	bh=6jT+7Ou5msKbIO1DVeFfVLoF6BhGIb//txweib8Igs0=;
-	h=Date:To:From:Subject:Message-Id; b=tHlRgdDE0GLMe4ZqxRtgl0hylCDQXjShqsodLpBF8fzpuU6T5m1TCADmpP1xsXF8dIFQUCJPKXMjxNFBMkYYAhlYxjW60uXh1ZaCCbgyDeczO7xQt06OI3ktGBsjqL/t0za8quTjfOb3Rdbk/6UOypnf6itEd7VL3H+3ctJm0FI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SFzrUF6q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772761660; c=relaxed/simple;
+	bh=oe2URUUYqAJI1ok/3Q+sbD2WqAZjyNGgxlj1VYgq9Nk=;
+	h=Date:To:From:Subject:Message-Id; b=uakQV5DHrBDi069m8qJ/rzxWAYxZFiK+7vsVJulWPeea0s50cIV6yPyBBSKRSn43/9FtoRHO6DeJKMr4d7bUWHpv+HTjzue38Iro65RsRdvzxV88CdNVKnc8ipednVLjZmvBMQhKnQyPlqczoN5AoIE99T4G1Kw+tTqWgthwb84=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mBUiHGPf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SFzrUF6q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FCA6C116C6;
-	Fri,  6 Mar 2026 01:38:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mBUiHGPf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3D1EC2BC87;
+	Fri,  6 Mar 2026 01:47:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772761125;
-	bh=6jT+7Ou5msKbIO1DVeFfVLoF6BhGIb//txweib8Igs0=;
+	s=korg; t=1772761660;
+	bh=oe2URUUYqAJI1ok/3Q+sbD2WqAZjyNGgxlj1VYgq9Nk=;
 	h=Date:To:From:Subject:From;
-	b=SFzrUF6qkZ+KJPYPwnkxeprRMvF1U54SLvTaCI+/MBVlKirrEZk1GZ7vdT4QRIA3n
-	 1cCmRAdiPU/FveNvB0qjv+WFTqHc8rb2Fn+a6gARD4nbsp7HpyocHXeGv1cXE5ydQp
-	 OOoqLvaLXYYsq0UWMQhgJMte6lwnJNSVEOnmRYEU=
-Date: Thu, 05 Mar 2026 17:38:44 -0800
-To: mm-commits@vger.kernel.org,rppt@kernel.org,ljs@kernel.org,david@kernel.org,vbabka@kernel.org,akpm@linux-foundation.org
+	b=mBUiHGPfWL970H1SW6/asj4xl3Imd2dcyyKvT/MeQNhMupNiAz0YDBqHVmKmWeR3/
+	 qjkMyVFohvmaHzs5DZSGiqhfmNUF/FsgJjGAaR0o/Zlx1O8lVN/uPuF+nacmM4uyQI
+	 25AeZK23n7ryGa8h2gQhZahjHUpxf1dbOy4N0mRs=
+Date: Thu, 05 Mar 2026 17:47:39 -0800
+To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@gentwo.org,zenghongling@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-mm-related-procfs-files-to-mm-sections.patch added to mm-new branch
-Message-Id: <20260306013845.0FCA6C116C6@smtp.kernel.org>
+Subject: + mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory.patch added to mm-new branch
+Message-Id: <20260306014739.F3D1EC2BC87@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: add mm-related procfs files to MM sections
+     Subject: mm/percpu-internal.h: optimise pcpu_chunk_struct to save memory
 has been added to the -mm mm-new branch.  Its filename is
-     maintainers-add-mm-related-procfs-files-to-mm-sections.patch
+     mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-mm-related-procfs-files-to-mm-sections.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,53 +66,119 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
-Subject: MAINTAINERS: add mm-related procfs files to MM sections
-Date: Thu, 05 Mar 2026 09:26:29 +0100
+From: zenghongling <zenghongling@kylinos.cn>
+Subject: mm/percpu-internal.h: optimise pcpu_chunk_struct to save memory
+Date: Thu, 5 Mar 2026 15:30:43 +0800
 
-Some procfs files are very much related to memory management so let's have
-MAINTAINERS reflect that.
+The pcpu_chunk_struct has a hole of 4 bytes and pushes the struct to three
+cachelines.  Relocating the three booleans upwards allows for the struct
+to only use two cachelines.
 
-Add fs/proc/meminfo.c to MEMORY MANAGEMENT - CORE.
+Before:
+struct pcpu_chunk {
+        struct list_head           list;                 /*     0    16 */
+        int                        free_bytes;           /*    16     4 */
+        struct pcpu_block_md       chunk_md;             /*    20    32 */
 
-Add fs/proc/task_[no]mmu.c to MEMORY MAPPING.
+        /* XXX 4 bytes hole, try to pack */
 
-Link: https://lkml.kernel.org/r/20260305-maintainers-proc-v1-1-d6d09b3db3b6@kernel.org
-Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+        long unsigned int *        bound_map;            /*    56     8 */
+        /* --- cacheline 1 boundary (64 bytes) --- */
+        void *                     base_addr __attribute__((__aligned__(64))); /*    64     8 */
+        long unsigned int *        alloc_map;            /*    72     8 */
+        struct pcpu_block_md *     md_blocks;            /*    80     8 */
+        void *                     data;                 /*    88     8 */
+        bool                       immutable;            /*    96     1 */
+        bool                       isolated;             /*    97     1 */
+
+        /* XXX 2 bytes hole, try to pack */
+
+        int                        start_offset;         /*   100     4 */
+        int                        end_offset;           /*   104     4 */
+
+        /* XXX 4 bytes hole, try to pack */
+
+        struct obj_cgroup * *      obj_cgroups;          /*   112     8 */
+        int                        nr_pages;             /*   120     4 */
+        int                        nr_populated;         /*   124     4 */
+        /* --- cacheline 2 boundary (128 bytes) --- */
+        int                        nr_empty_pop_pages;   /*   128     4 */
+
+        /* XXX 4 bytes hole, try to pack */
+
+        long unsigned int          populated[];          /*   136     0 */
+
+        /* size: 192, cachelines: 3, members: 17 */
+        /* sum members: 122, holes: 4, sum holes: 14 */
+        /* padding: 56 */
+        /* forced alignments: 1 */
+} __attribute__((__aligned__(64)));
+
+After:
+struct pcpu_chunk {
+        struct list_head           list;                 /*     0    16 */
+        int                        free_bytes;           /*    16     4 */
+        struct pcpu_block_md       chunk_md;             /*    20    32 */
+
+        /* XXX 4 bytes hole, try to pack */
+
+        long unsigned int *        bound_map;            /*    56     8 */
+        /* --- cacheline 1 boundary (64 bytes) --- */
+        void *                     base_addr __attribute__((__aligned__(64))); /*    64     8 */
+        long unsigned int *        alloc_map;            /*    72     8 */
+        struct pcpu_block_md *     md_blocks;            /*    80     8 */
+        void *                     data;                 /*    88     8 */
+        bool                       immutable;            /*    96     1 */
+        bool                       isolated;             /*    97     1 */
+
+        /* XXX 2 bytes hole, try to pack */
+
+        int                        start_offset;         /*   100     4 */
+        int                        end_offset;           /*   104     4 */
+        int                        nr_empty_pop_pages;   /*   108     4 */
+        struct obj_cgroup * *      obj_cgroups;          /*   112     8 */
+        int                        nr_pages;             /*   120     4 */
+        int                        nr_populated;         /*   124     4 */
+        /* --- cacheline 2 boundary (128 bytes) --- */
+        long unsigned int          populated[];          /*   128     0 */
+
+        /* size: 128, cachelines: 2, members: 17 */
+        /* sum members: 122, holes: 2, sum holes: 6 */
+        /* forced alignments: 1 */
+} __attribute__((__aligned__(64)));
+
+Link: https://lkml.kernel.org/r/20260305073043.571691-1-zenghongling@kylinos.cn
+Signed-off-by: zenghongling <zenghongling@kylinos.cn>
+Cc: Christoph Lameter <cl@gentwo.org>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Hongling Zeng <zenghongling@kylinos.cn>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/percpu-internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-mm-related-procfs-files-to-mm-sections
-+++ a/MAINTAINERS
-@@ -16683,6 +16683,7 @@ F:	include/linux/ptdump.h
- F:	include/linux/vmpressure.h
- F:	include/linux/vmstat.h
- F:	include/trace/events/zone_lock.h
-+F:	fs/proc/meminfo.c
- F:	kernel/fork.c
- F:	mm/Kconfig
- F:	mm/debug.c
-@@ -16998,6 +16999,8 @@ S:	Maintained
- W:	http://www.linux-mm.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
- F:	include/trace/events/mmap.h
-+F:	fs/proc/task_mmu.c
-+F:	fs/proc/task_nommu.c
- F:	mm/interval_tree.c
- F:	mm/mincore.c
- F:	mm/mlock.c
+--- a/mm/percpu-internal.h~mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory
++++ a/mm/percpu-internal.h
+@@ -77,13 +77,13 @@ struct pcpu_chunk {
+ 	int			end_offset;	/* additional area required to
+ 						   have the region end page
+ 						   aligned */
++	int                     nr_empty_pop_pages; /* # of empty populated pages */
+ #ifdef NEED_PCPUOBJ_EXT
+ 	struct pcpuobj_ext	*obj_exts;	/* vector of object cgroups */
+ #endif
+ 
+ 	int			nr_pages;	/* # of pages served by this chunk */
+ 	int			nr_populated;	/* # of populated pages */
+-	int                     nr_empty_pop_pages; /* # of empty populated pages */
+ 	unsigned long		populated[];	/* populated bitmap */
+ };
+ 
 _
 
-Patches currently in -mm which might be from vbabka@kernel.org are
+Patches currently in -mm which might be from zenghongling@kylinos.cn are
 
-mm-page_alloc-effectively-disable-pcp-with-config_smp=n.patch
-mm-page_alloc-remove-irq-saving-restoring-from-pcp-locking.patch
-mm-page_alloc-remove-pcpu_spin_-wrappers.patch
-maintainers-add-mm-related-procfs-files-to-mm-sections.patch
+mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory.patch
 
