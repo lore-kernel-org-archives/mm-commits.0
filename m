@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C00F48BD39
-	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 21:33:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 472BB2ECD34
+	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 22:22:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772832823; cv=none; b=AA1ax8PtaCy3zTmFiYRrBbdXYL770anx3t558EBoozDT4xyeboC/3QqwhpSvc/EovkvNFo9kIbbDstQGekHximD1PrPzf1UXrb8Ut/kdi94C0lS/fSpelSITCk84toQH3euBiNEOWvB3GB7HFLe3knfvTiqiWDr50IWFcMj0gig=
+	t=1772835764; cv=none; b=SoyDf8sPL+PcYwajHEPDGoRQdY4vbPdaxSIfXiCTipRMx+0U5LlCatt34BVZKnyI911mE9xfLXpBbFwUjTPGyrwFOLmDJqmOuS0hwUXzz6R83B5NVKuezG2zY7c4d2/jH+neuGd7cVGyeIr76U8+4R81BBliUtTo0WnjX2svYHY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772832823; c=relaxed/simple;
-	bh=rhahE8jKx9hlco1pwb3Eawz//t+uBk1nAbL9h6FeWME=;
-	h=Date:To:From:Subject:Message-Id; b=lWWKgdMzKVrn6aNXQHlVtM90cLgDhTZjBRBDw8OQMYEepjj2k5WoBWc5jf0XLWPhpZQhM+trrr0+FllMHip7DolLPF/KLH2UdQaZD0PXNYAITTz71NZr9uvrIJti27ibqq3GBnsrKX7mQEMpjTet3ROBdPofOP6YmCF9+MkL3vk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AXAcTEPb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772835764; c=relaxed/simple;
+	bh=oe3/aeAd7mquiuOKMF0bLOHddwjxQm+NHqlBCk4pXSA=;
+	h=Date:To:From:Subject:Message-Id; b=tA+5htdHACyxYFCGBQT6wYXNaYOagmLB77oPnpyPndkggZVxCl6zSr/dMSzXZzbxltJW+N7OLN+5oD2FhDB+cJEeJOuJkabnY4xcyH1uknmoxlZW8ysO3aBOzczX+KZDoEUbbnZvl/oYzQuAzQo30w8k1Y8h6kqT1LNpO+U2lRI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vr3xSjrK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AXAcTEPb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D7C02C4CEF7;
-	Fri,  6 Mar 2026 21:33:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vr3xSjrK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2C9BC4CEF7;
+	Fri,  6 Mar 2026 22:22:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772832822;
-	bh=rhahE8jKx9hlco1pwb3Eawz//t+uBk1nAbL9h6FeWME=;
+	s=korg; t=1772835763;
+	bh=oe3/aeAd7mquiuOKMF0bLOHddwjxQm+NHqlBCk4pXSA=;
 	h=Date:To:From:Subject:From;
-	b=AXAcTEPbWG+4UPnxxCEhgF9XHmcQtZrW0AAdjnL9bp1He7cMvizPv758IaQVfKOIg
-	 Q4lYCmbG1vZ2aJkMyoNER9zyxD/oV9BAPPKq1GSYVc16tdwO8lPu1b5LEp7SvZDCTD
-	 a0kgjLmDKLGNBRcNEgiWTWv7CIsa/uwNXmdWlhFo=
-Date: Fri, 06 Mar 2026 13:33:42 -0800
-To: mm-commits@vger.kernel.org,liam.howlett@oracle.com,andrewjballance@gmail.com,aliceryhl@google.com,objecting@objecting.org,akpm@linux-foundation.org
+	b=Vr3xSjrKZtvzh8Lvlw7HyG0Tg/jOOo12AHWLQhBD6AIF4fyhQ43yT2EFie9kMi0MI
+	 PDJ2jpWvm32pY+AxUbtGAAsG6Io9eW7QWeZHM+JWwyFt5+2DCr7Jox/Yelhl6/Pv2u
+	 gIKfqRvBU0fyUyIXO4elf2HrVXBDtkuEWBsiaZg8=
+Date: Fri, 06 Mar 2026 14:22:43 -0800
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jason@zx2c4.com,jannh@google.com,david@kernel.org,anthony.yznaga@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch added to mm-new branch
-Message-Id: <20260306213342.D7C02C4CEF7@smtp.kernel.org>
+Subject: + mm-prevent-droppable-mappings-from-being-locked.patch added to mm-new branch
+Message-Id: <20260306222243.C2C9BC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/maple_tree: fix swapped arguments in mas_safe_pivot() call
+     Subject: mm: prevent droppable mappings from being locked
 has been added to the -mm mm-new branch.  Its filename is
-     lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
+     mm-prevent-droppable-mappings-from-being-locked.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-prevent-droppable-mappings-from-being-locked.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -66,63 +66,75 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Josh Law <objecting@objecting.org>
-Subject: lib/maple_tree: fix swapped arguments in mas_safe_pivot() call
-Date: Fri, 6 Mar 2026 20:08:20 +0000
+From: Anthony Yznaga <anthony.yznaga@oracle.com>
+Subject: mm: prevent droppable mappings from being locked
+Date: Fri, 6 Mar 2026 12:45:50 -0800
 
-The call to mas_safe_pivot() in mas_wr_extend_null() has the pivot index
-and maple type arguments swapped.  The function signature expects (mas,
-pivots, piv, type) but the call passes (mas, pivots, type, piv).
+Mappings created with MAP_DROPPABLE cannot be locked via mlock() due to
+the check in mlock_fixup().  However, they will be locked indirectly if
+they are created after mlockall(MCL_FUTURE).
 
-This causes the pivot index to be interpreted as a maple node type and
-vice versa, leading to incorrect pivot lookups.  In practice, this means a
-null-extending store into a maple tree node can read the wrong pivot
-value, potentially corrupting the range tracked by the maple state.  For a
-VMA maple tree, this could cause an incorrect vm_area_struct range to be
-returned during operations like mmap or munmap, leading to silent memory
-mapping corruption.
-
-Every other mas_safe_pivot() call site in the file passes the arguments in
-the correct (piv, type) order; this is the only one with them reversed.
-
-Link: https://lkml.kernel.org/r/20260306200820.2819999-1-objecting@objecting.org
-Fixes: 54a611b60590 ("Maple Tree: add new data structure")
-Signed-off-by: Josh Law <objecting@objecting.org>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andrew Ballance <andrewjballance@gmail.com>
+Link: https://lkml.kernel.org/r/20260306204550.8405-1-anthony.yznaga@oracle.com
+Fixes: 9651fcedf7b9 ("mm: add MAP_DROPPABLE for designating always lazily freeable mappings")
+Signed-off-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jason A. Donenfeld <jason@zx2c4.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |    3 +++
+ mm/mlock.c         |    4 ++--
+ mm/vma.c           |    2 +-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
---- a/lib/maple_tree.c~lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call
-+++ a/lib/maple_tree.c
-@@ -2932,7 +2932,7 @@ static inline void mas_extend_spanning_n
- 	    (r_mas->last < r_mas->max) &&
- 	    !mas_slot_locked(r_mas, r_wr_mas->slots, r_mas->offset + 1)) {
- 		r_mas->last = mas_safe_pivot(r_mas, r_wr_mas->pivots,
--					     r_wr_mas->type, r_mas->offset + 1);
-+					     r_mas->offset + 1, r_wr_mas->type);
- 		r_mas->offset++;
- 		r_wr_mas->r_max = r_mas->last;
- 	}
+--- a/include/linux/mm.h~mm-prevent-droppable-mappings-from-being-locked
++++ a/include/linux/mm.h
+@@ -573,6 +573,9 @@ enum {
+ /* This mask represents all the VMA flag bits used by mlock */
+ #define VM_LOCKED_MASK	(VM_LOCKED | VM_LOCKONFAULT)
+ 
++/* This mask prevents VMAs from being mlock'd */
++#define VM_NO_MLOCK_MASK	(VM_SPECIAL | VM_DROPPABLE)
++
+ /* These flags can be updated atomically via VMA/mmap read lock. */
+ #define VM_ATOMIC_SET_ALLOWED VM_MAYBE_GUARD
+ 
+--- a/mm/mlock.c~mm-prevent-droppable-mappings-from-being-locked
++++ a/mm/mlock.c
+@@ -472,9 +472,9 @@ static int mlock_fixup(struct vma_iterat
+ 	int ret = 0;
+ 	vm_flags_t oldflags = vma->vm_flags;
+ 
+-	if (newflags == oldflags || (oldflags & VM_SPECIAL) ||
++	if (newflags == oldflags || (oldflags & VM_NO_MLOCK_MASK) ||
+ 	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm) ||
+-	    vma_is_dax(vma) || vma_is_secretmem(vma) || (oldflags & VM_DROPPABLE))
++	    vma_is_dax(vma) || vma_is_secretmem(vma))
+ 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
+ 		goto out;
+ 
+--- a/mm/vma.c~mm-prevent-droppable-mappings-from-being-locked
++++ a/mm/vma.c
+@@ -2589,7 +2589,7 @@ static void __mmap_complete(struct mmap_
+ 
+ 	vm_stat_account(mm, vma->vm_flags, map->pglen);
+ 	if (vm_flags & VM_LOCKED) {
+-		if ((vm_flags & VM_SPECIAL) || vma_is_dax(vma) ||
++		if ((vm_flags & VM_NO_MLOCK_MASK) || vma_is_dax(vma) ||
+ 					is_vm_hugetlb_page(vma) ||
+ 					vma == get_gate_vma(mm))
+ 			vm_flags_clear(vma, VM_LOCKED_MASK);
 _
 
-Patches currently in -mm which might be from objecting@objecting.org are
+Patches currently in -mm which might be from anthony.yznaga@oracle.com are
 
-lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
-lib-glob-fix-grammar-and-replace-non-inclusive-terminology.patch
-lib-glob-add-explicit-include-for-exporth.patch
-lib-glob-replace-bitwise-or-with-logical-operation-on-boolean.patch
-lib-glob-clean-up-bool-abuse-in-pointer-arithmetic.patch
-lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
-lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch
-lib-inflate-fix-memory-leak-in-inflate_dynamic-on-inflate_codes-failure.patch
-lib-inflate-fix-grammar-in-comment-variable-to-variables.patch
-lib-inflate-fix-typo-this-results-to-the-results-in-comment.patch
-lib-bug-fix-inconsistent-capitalization-in-bug-message.patch
-lib-bug-remove-unnecessary-variable-initializations.patch
-lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
+mm-prevent-droppable-mappings-from-being-locked.patch
 
