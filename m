@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8983A3AA1B4
-	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 17:56:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0DBA18FDBD
+	for <mm-commits@vger.kernel.org>; Fri,  6 Mar 2026 18:05:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1772819797; cv=none; b=eZjUGVnNj/wa6riiMfFmDWvCW1Sxih50LVNPSQ9OEBAAXBgHMV/3dFa9k6iYj9YUTrvwgh0REHkayO/JpA+LiTv0nQ/4Pc5DtlW2vmZmmYftbvgn7ywewQIM97vNPHmkdMhpYido4Si2pRgWpdlhh3z0Dtw/3L4Wi88g6UTv0MU=
+	t=1772820348; cv=none; b=Uh5gRI33m8J0+sQc/xm9GbMfJa6Li3u0uOJLIo9NzW02XfsTK+MaMNK5zuxLTLMOvn52vCakjLaxa1FCPKF+srV2A4uaI02lSkXpQuIJc4+7oV7uwExnS4/LFwRLv9+xFq20vZfLoOh4AALB3xBqDrIJiL5CqxSZLtNHSk0V0JM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1772819797; c=relaxed/simple;
-	bh=tydQT26QS5GOWI0Ai0OWipKs1IdGdCkGkp2kHNlgQEo=;
-	h=Date:To:From:Subject:Message-Id; b=iojm75mqH2vKwPIMeNvapM97gydKbfOEmajMaWCrBLf3LgW4Rpcl6CQU1pnMRm0H+UFgRwccge/WDcNnDAF4dZk6+Vv5f2hprtR8Dkj73EpVTIOvR/HslcHasAxSMUFF0py3Cw6l11tmTn+Ul8H3iQUO3hCnQE2fy39mj4U10s0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eYCGpZdZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1772820348; c=relaxed/simple;
+	bh=9kjaydqhPoeJQ8VUdp6iO17B6704PU4oRTLKKE707zo=;
+	h=Date:To:From:Subject:Message-Id; b=XhLS5Q5iM/CN4JsAKprFLWaufcn115vuu8maz+yo4IdZMtj1sW+3/SurpH2XxSSRtBL/Gb4uUocOAebpvwA1hpr47aNthdZAjckR/6Z+kVt6PdaLiNKjThhw2mmYQ1eGXImprl1HUQIQUmjIgygEM6euTuQvCE5Cby3nAFvQjqk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yse/9SaA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eYCGpZdZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A903C4CEF7;
-	Fri,  6 Mar 2026 17:56:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yse/9SaA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F212C4CEF7;
+	Fri,  6 Mar 2026 18:05:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1772819797;
-	bh=tydQT26QS5GOWI0Ai0OWipKs1IdGdCkGkp2kHNlgQEo=;
+	s=korg; t=1772820348;
+	bh=9kjaydqhPoeJQ8VUdp6iO17B6704PU4oRTLKKE707zo=;
 	h=Date:To:From:Subject:From;
-	b=eYCGpZdZaM2PMkGca/5vXc7FRDS9belErV+13O3tDS3wA+u3mTZfF2HY3UMJ8Vgrc
-	 6ubIc3ctuC+aGvF2O4nwrcDaFuKTCsEhuNEy3PZ4Z55dtvFT8O4/qU++U0xk8r+37G
-	 ituLtypS4guggA3esCZhmaFc142Zt4QixGX6WCFk=
-Date: Fri, 06 Mar 2026 09:56:36 -0800
-To: mm-commits@vger.kernel.org,objecting@objecting.org,andriy.shevchenko@linux.intel.com,hlcj1234567@gmail.com,akpm@linux-foundation.org
+	b=Yse/9SaA1T7hcetSYOFDVEoYVQhDef14j1IN2njbYd4ZJixk+XHqaWx6KcNCrA1wi
+	 g+aoBlYcTCLlw1Rj/gia+FCPRjNsIEn1b/KpbRxgnGtNUzFviElcCqh9YVjYYRGzg1
+	 IOZ2zUAuLcOh/XZxyl3K6WrDQwiqPAJFIfdyst8Q=
+Date: Fri, 06 Mar 2026 10:05:47 -0800
+To: mm-commits@vger.kernel.org,objecting@objecting.org,akpm@linux-foundation.org,hlcj1234567@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-uuid-fix-typo-reversion-to-revision-in-comment.patch added to mm-nonmm-unstable branch
-Message-Id: <20260306175637.1A903C4CEF7@smtp.kernel.org>
+Subject: + lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch added to mm-nonmm-unstable branch
+Message-Id: <20260306180548.4F212C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/uuid: fix typo "reversion" to "revision" in comment
+     Subject: lib/inflate: fix memory leak in inflate_fixed() on inflate_codes() failure
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
+     lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,36 +59,38 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Josh Law <hlcj1234567@gmail.com>
-Subject: lib/uuid: fix typo "reversion" to "revision" in comment
-Date: Fri, 6 Mar 2026 16:12:50 +0000
+Subject: lib/inflate: fix memory leak in inflate_fixed() on inflate_codes() failure
+Date: Fri, 6 Mar 2026 16:16:12 +0000
 
-Fix a typo in __uuid_gen_common() where "reversion" (meaning to revert)
-was used instead of "revision" when describing the UUID variant field.
+When inflate_codes() fails in inflate_fixed(), only the length list 'l' is
+freed, but the Huffman tables 'tl' and 'td' are leaked.  Add the missing
+huft_free() calls on the error path.
 
-Link: https://lkml.kernel.org/r/20260306161250.2811500-1-objecting@objecting.org
+Link: https://lkml.kernel.org/r/20260306161612.2811703-1-objecting@objecting.org
 Signed-off-by: Josh Law <objecting@objecting.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/uuid.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/inflate.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/uuid.c~lib-uuid-fix-typo-reversion-to-revision-in-comment
-+++ a/lib/uuid.c
-@@ -54,7 +54,7 @@ EXPORT_SYMBOL(generate_random_guid);
- static void __uuid_gen_common(__u8 b[16])
- {
- 	get_random_bytes(b, 16);
--	/* reversion 0b10 */
-+	/* revision 0b10 */
- 	b[8] = (b[8] & 0x3F) | 0x80;
- }
+--- a/lib/inflate.c~lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure
++++ a/lib/inflate.c
+@@ -811,6 +811,8 @@ DEBG("<fix");
  
+   /* decompress until an end-of-block code */
+   if (inflate_codes(tl, td, bl, bd)) {
++    huft_free(tl);
++    huft_free(td);
+     free(l);
+     return 1;
+   }
 _
 
 Patches currently in -mm which might be from hlcj1234567@gmail.com are
 
 lib-glob-add-missing-spdx-license-identifier.patch
 lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
+lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch
 
