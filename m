@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9616346797
-	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 20:36:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6CB1346797
+	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 20:36:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773002176; cv=none; b=DfksXfKMdV6MudEiSZv08ecLIATpLcZZPQDgJCrHt2i+MQQOLUUyeFBcGxvjVfeeeMJtYKGCz9aBhYoB2yE6QUqhR5nH4jXkRS8W2FpG38enNkBBbygwfGQI9wrAtCy4JXlr5wcQdzLLigibThFyG1slOdYkhOxWT/azP6aiqJc=
+	t=1773002178; cv=none; b=szGjUg2/P69TEuhk34gHxot6Zj5oV7H/lQ4TfSFXjDKp9bBqBue5ptnj3NevXgdBVOWtIVnb9fju/q44T+ZM8nhuqjrgs4uWx6eAzo5R3dfiLWthUUH1tm3GhtNjXiXPFjiWKdcL4C2zmzN79qJdt4/fB8JrenO2ZH/MyV/A2rU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773002176; c=relaxed/simple;
-	bh=xr9rT9Qv50mw8hgy9aXTNyM9zfaqEFvUIJQ/nD8rp7I=;
-	h=Date:To:From:Subject:Message-Id; b=reYzsweO0vpiPh1pCFadX4QX46ibEijfyLfoH3nykuy//HBbmyufJG96Kaa7XospFq1zZt5fcy1SHj1Hjgu0gHipDDz+pCkLxPOqmLbtA1fKUC0kj8zKiwu3qCcdUDZm+e47DOcIB9EJRD3qGH5Lm+StlkkLwWo+g9I9KUADfAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2f6+CW2n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773002178; c=relaxed/simple;
+	bh=mc4PAm4XY3NjUygtVbvZJ2A6Jsp6C30VAi+mp9sfwwE=;
+	h=Date:To:From:Subject:Message-Id; b=Rj3LV2nKa/ohJWhms3LCiOz+Ohx3YkvptaQkhcBS/mM0IAxll4LY+dDT3M4pv4ZNTil2d5ILVxmIlyMdgaNQnkTKcIkPTVRaZebX8sLjOgnjD0E1tawvtntrsLapr0yTPpeWVr3d8thPMbO/jkFTe/hgCC56ypsAt3ItJGsT5qw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eh7OxXoR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2f6+CW2n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5793DC116C6;
-	Sun,  8 Mar 2026 20:36:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eh7OxXoR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D9BBC116C6;
+	Sun,  8 Mar 2026 20:36:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773002176;
-	bh=xr9rT9Qv50mw8hgy9aXTNyM9zfaqEFvUIJQ/nD8rp7I=;
+	s=korg; t=1773002178;
+	bh=mc4PAm4XY3NjUygtVbvZJ2A6Jsp6C30VAi+mp9sfwwE=;
 	h=Date:To:From:Subject:From;
-	b=2f6+CW2n5jVcoHUE5r3RZAk7z3vuXgVHoEDsMRfp7oaEPbDUv3Y02S80F9GmcHbXP
-	 33G6r1XQVBmUmWagD0uORb8/rENcbTM9mh41+8PcIt6jSwc68YIWdjeMJHHnUi4xhV
-	 A+IIcVZ/5d69JljwHDR2hAtvYCyetOs9tlWAvSXk=
-Date: Sun, 08 Mar 2026 13:36:15 -0700
+	b=eh7OxXoRqwoxfw3qIspN5I6x6QMr+OdvMni4bTfCmUc4Hw2Gl7rAn1FDh/Tj00Xtl
+	 prQq2iioeGNQgrxVBwHlGhUE6wWB0t5D2DfOoxnBM51QxY0FgdjbYFWvg3RAiwcS66
+	 QxuOs5CgNeFKFhYHbBA6cSK2u8aaK6JQw0hG1De0=
+Date: Sun, 08 Mar 2026 13:36:17 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch added to mm-new branch
-Message-Id: <20260308203616.5793DC116C6@smtp.kernel.org>
+Subject: + mm-damon-core-clarify-damon_set_attrs-usages.patch added to mm-new branch
+Message-Id: <20260308203618.8D9BBC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: add a test for damon_is_last_region()
+     Subject: mm/damon/core: clarify damon_set_attrs() usages
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
+     mm-damon-core-clarify-damon_set_attrs-usages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-clarify-damon_set_attrs-usages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: add a test for damon_is_last_region()
-Date: Sat, 7 Mar 2026 11:53:50 -0800
+Subject: mm/damon/core: clarify damon_set_attrs() usages
+Date: Sat, 7 Mar 2026 11:53:51 -0800
 
-There was a bug [1] in damon_is_last_region().  Add a kunit test to not
-reintroduce the bug.
+damon_set_attrs() is called for multiple purposes from multiple places. 
+Calling it in an unsafe context can make DAMON internal state polluted and
+results in unexpected behaviors.  Clarify when it is safe, and where it is
+being called.
 
-Link: https://lkml.kernel.org/r/20260307195356.203753-3-sj@kernel.org
-Link: https://lore.kernel.org/20260114152049.99727-1-sj@kernel.org/ [1]
+Link: https://lkml.kernel.org/r/20260307195356.203753-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
@@ -93,48 +94,30 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ mm/damon/core.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region
-+++ a/mm/damon/tests/core-kunit.h
-@@ -1311,6 +1311,28 @@ static void damon_test_apply_min_nr_regi
- 	damon_test_apply_min_nr_regions_for(test, 10, 2, 10, 2, 5);
- }
- 
-+static void damon_test_is_last_region(struct kunit *test)
-+{
-+	struct damon_region *r;
-+	struct damon_target *t;
-+	int i;
-+
-+	t = damon_new_target();
-+	if (!t)
-+		kunit_skip(test, "target alloc fail\n");
-+
-+	for (i = 0; i < 4; i++) {
-+		r = damon_new_region(i * 2, (i + 1) * 2);
-+		if (!r) {
-+			damon_free_target(t);
-+			kunit_skip(test, "region alloc %d fail\n", i);
-+		}
-+		damon_add_region(r, t);
-+		KUNIT_EXPECT_TRUE(test, damon_is_last_region(r, t));
-+	}
-+	damon_free_target(t);
-+}
-+
- static struct kunit_case damon_test_cases[] = {
- 	KUNIT_CASE(damon_test_target),
- 	KUNIT_CASE(damon_test_regions),
-@@ -1339,6 +1361,7 @@ static struct kunit_case damon_test_case
- 	KUNIT_CASE(damon_test_feed_loop_next_input),
- 	KUNIT_CASE(damon_test_set_filters_default_reject),
- 	KUNIT_CASE(damon_test_apply_min_nr_regions),
-+	KUNIT_CASE(damon_test_is_last_region),
- 	{},
- };
- 
+--- a/mm/damon/core.c~mm-damon-core-clarify-damon_set_attrs-usages
++++ a/mm/damon/core.c
+@@ -751,8 +751,16 @@ static bool damon_valid_intervals_goal(s
+  * @ctx:		monitoring context
+  * @attrs:		monitoring attributes
+  *
+- * This function should be called while the kdamond is not running, an access
+- * check results aggregation is not ongoing (e.g., from damon_call().
++ * This function updates monitoring results and next monitoring/damos operation
++ * schedules.  Because those are periodically updated by kdamond, this should
++ * be called from a safe contexts.  Such contexts include damon_ctx setup time
++ * while the kdamond is not yet started, and inside of kdamond_fn().
++ *
++ * In detail, all DAMON API callers directly call this function for initial
++ * setup of damon_ctx before calling damon_start().  Some of the API callers
++ * also indirectly call this function via damon_call() -> damon_commit() for
++ * online parameters updates.  Finally, kdamond_fn() itself use this for
++ * applying auto-tuned monitoring intervals.
+  *
+  * Every time interval is in micro-seconds.
+  *
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
