@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46C1628151C
-	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 20:36:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F29434EEE2
+	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 20:36:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773002183; cv=none; b=MUwQqNcwGI7x8N0U6ty8rY4OwQ+/TQA5IRWQhMNUu9m1pafPC6JeFzzzMeQaO5o74W9oMWxlvsziRj1CYvLCvdla/5igUkxWqB5LsHqmZWMz9K5C1KoJBa6NGYkOrPRocybBebC7u5qvDwr2M+iPRFJS+Zy+NT+dnXGQYXWkJlo=
+	t=1773002185; cv=none; b=rCRh/+meu5vMvlqhT4XJRKkWAoCQt4s0bmQnz9byGh9Xq1z4OYzaDPjpv75jZY5NIIflIY7wB8nfFYstVths0QB/eO+SBPByrcshQLQ1OMEnanykF+CiDeNkbZejuObbfPiFlKBzS+q0xP9eL5Mcxr4g0v+ENt85mOYoXb3x21k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773002183; c=relaxed/simple;
-	bh=yo5AMElzYuHBG7laejw/Z1FnABSSDIyNqo2ejhdcVJ0=;
-	h=Date:To:From:Subject:Message-Id; b=NesHluOAz2VLTEndkdVuFFKS2sKuD49axDOmiJxE0jqVRqw3eJHJWWmTSgSLZet2rkjKiBc+KwRO+KMjtR9eDcJpON0f9syY2zFLk6D/krVQIN0Xqdgf9naUzYbY4306KVZNV14JfNxpZvp4r+sE0HGeY0dIadeMIziyHXBPK7E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iB6Q0Sem; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773002185; c=relaxed/simple;
+	bh=VE5bjWRUkadbJxUMA//VkDFft611oWI+tO23+XYXxxs=;
+	h=Date:To:From:Subject:Message-Id; b=lrz331KqmQlQy+DEvAzwdZOhzuhTQg+wrcGiJfEB5mJzEzWzrAHeM5wpl2B/9l1B6RrwrmNgkUXoa0Nqoa3kCBKlfDEUUWzR5HrsLgwxX+ar2P+33pma/8TEplQjV75e4lxkS8ListHxCvNopy345yqZCZCyeSgvPyLeXIjn85c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eNkdWUED; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iB6Q0Sem"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFBCBC116C6;
-	Sun,  8 Mar 2026 20:36:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eNkdWUED"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFCECC116C6;
+	Sun,  8 Mar 2026 20:36:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773002182;
-	bh=yo5AMElzYuHBG7laejw/Z1FnABSSDIyNqo2ejhdcVJ0=;
+	s=korg; t=1773002184;
+	bh=VE5bjWRUkadbJxUMA//VkDFft611oWI+tO23+XYXxxs=;
 	h=Date:To:From:Subject:From;
-	b=iB6Q0SemUyPxsoAv7IOHTAv8jx8Hk7NpyyBgaQctAu1qK3k3lLut2zEKjbwwQgl3B
-	 JImw53pn3eeS6A3xPZJ9JBkxE203UGGL/kTUVf9W3riA5dPdeqVC8yZt+HQoLD1lTC
-	 trMIT+z5Nvz4jB7+60VhM6lemZCFeoQ6iXRfY2mc=
-Date: Sun, 08 Mar 2026 13:36:22 -0700
+	b=eNkdWUED7ScB8dRx2QmuzRJY30gMGkwXXB1nf794aCnajX7za5er0zABvzdNx4D3g
+	 hb1JIgozT5NRyBBolIl0FaPCcYQ1L2ChC6nzXimLZUnqpGOyDHXjQOUZOJoiUhmyNj
+	 Ced8yX5Xrf4Vlw1lhVOkwwufG6U7H2/kidbK4aMY=
+Date: Sun, 08 Mar 2026 13:36:24 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch added to mm-new branch
-Message-Id: <20260308203622.CFBCBC116C6@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch added to mm-new branch
+Message-Id: <20260308203624.CFCECC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damn/lru_sort: fix intervals autotune parameter name
+     Subject: Docs/mm/damon/maintainer-profile: use flexible review cadence
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
+     docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damn/lru_sort: fix intervals autotune parameter name
-Date: Sat, 7 Mar 2026 11:53:53 -0800
+Subject: Docs/mm/damon/maintainer-profile: use flexible review cadence
+Date: Sat, 7 Mar 2026 11:53:54 -0800
 
-The section name should be the same as the parameter name.  Fix it.
+The document mentions the maitainer is working in the usual 9-5 fashion. 
+The maintainer nowadays prefers working in a more flexible way.  Update
+the document to avoid contributors having a wrong time expectation.
 
-Link: https://lkml.kernel.org/r/20260307195356.203753-6-sj@kernel.org
-Fixes: ed581147a417 ("Docs/admin-guide/mm/damon/lru_sort: document intervals autotuning")
+Link: https://lkml.kernel.org/r/20260307195356.203753-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
@@ -92,22 +93,26 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/lru_sort.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/mm/damon/maintainer-profile.rst |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name
-+++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
-@@ -91,8 +91,8 @@ increases and decreases the effective le
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-use-flexible-review-cadence
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -63,10 +63,10 @@ management subsystem maintainer.
+ Review cadence
+ --------------
  
- Disabled by default.
+-The DAMON maintainer does the work on the usual work hour (09:00 to 17:00,
+-Mon-Fri) in PT (Pacific Time).  The response to patches will occasionally be
+-slow.  Do not hesitate to send a ping if you have not heard back within a week
+-of sending a patch.
++The DAMON maintainer usually work in a flexible way, except early morning in PT
++(Pacific Time).  The response to patches will occasionally be slow.  Do not
++hesitate to send a ping if you have not heard back within a week of sending a
++patch.
  
--Auto-tune monitoring intervals
--------------------------------
-+autotune_monitoring_intervals
-+-----------------------------
- 
- If this parameter is set as ``Y``, DAMON_LRU_SORT automatically tunes DAMON's
- sampling and aggregation intervals.  The auto-tuning aims to capture meaningful
+ Mailing tool
+ ------------
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
