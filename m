@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 198C434D917
-	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 20:36:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46C1628151C
+	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 20:36:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773002181; cv=none; b=HfLKaAB5DOjLt1uCShBY9BjcOOM8vvbhh0gjz3b5ryYIxCQVdrVxC4wqqmXJQjoTzDLlKPYvClyA5BpW/RkH2HxK5n0yX/z3FOh+VJX5W2+Kxl9yBcOjc9rRLE6nlwAl7QZZ9yPWOqkJspPw7/Y/KW3nb2cbu8Ia4luWeLsPpog=
+	t=1773002183; cv=none; b=MUwQqNcwGI7x8N0U6ty8rY4OwQ+/TQA5IRWQhMNUu9m1pafPC6JeFzzzMeQaO5o74W9oMWxlvsziRj1CYvLCvdla/5igUkxWqB5LsHqmZWMz9K5C1KoJBa6NGYkOrPRocybBebC7u5qvDwr2M+iPRFJS+Zy+NT+dnXGQYXWkJlo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773002181; c=relaxed/simple;
-	bh=nwUmpz9aiA4lk7n8IMO0nXRINC8SIo8rASXHJxYLbvk=;
-	h=Date:To:From:Subject:Message-Id; b=G/jloR83Usas93FsAxqdcD1bcJsuiwgiNmxqUSF0y1xNlWUdQA2Iowls2zFAJHE7sQ5Iln+Yf0Fc76y6ybux9xlU4CYGu50UWTyJvXGVwDgV47wjIYtKJWFT8YdjUs/CLwmYKgPG8kYN+Oz0igG08hMA08KBpIVGVs+cJk0mYZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=siAAZYkK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773002183; c=relaxed/simple;
+	bh=yo5AMElzYuHBG7laejw/Z1FnABSSDIyNqo2ejhdcVJ0=;
+	h=Date:To:From:Subject:Message-Id; b=NesHluOAz2VLTEndkdVuFFKS2sKuD49axDOmiJxE0jqVRqw3eJHJWWmTSgSLZet2rkjKiBc+KwRO+KMjtR9eDcJpON0f9syY2zFLk6D/krVQIN0Xqdgf9naUzYbY4306KVZNV14JfNxpZvp4r+sE0HGeY0dIadeMIziyHXBPK7E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iB6Q0Sem; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="siAAZYkK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACE3AC116C6;
-	Sun,  8 Mar 2026 20:36:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iB6Q0Sem"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFBCBC116C6;
+	Sun,  8 Mar 2026 20:36:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773002180;
-	bh=nwUmpz9aiA4lk7n8IMO0nXRINC8SIo8rASXHJxYLbvk=;
+	s=korg; t=1773002182;
+	bh=yo5AMElzYuHBG7laejw/Z1FnABSSDIyNqo2ejhdcVJ0=;
 	h=Date:To:From:Subject:From;
-	b=siAAZYkKeX8+AY2pAM1oK/Q/cgSWflGCilZkwl1knz5st7ffAfk73bsgo/3Ersajq
-	 F0TAh1H5kgwt82vCfq86akoQODJHJjYwZRUqrBOXHsu34oATvufSzr6vn5nsjCaQjF
-	 oCwoR3T+DrYbJv0m/zhh2DBHfG7ywIjaZodBd+kY=
-Date: Sun, 08 Mar 2026 13:36:20 -0700
+	b=iB6Q0SemUyPxsoAv7IOHTAv8jx8Hk7NpyyBgaQctAu1qK3k3lLut2zEKjbwwQgl3B
+	 JImw53pn3eeS6A3xPZJ9JBkxE203UGGL/kTUVf9W3riA5dPdeqVC8yZt+HQoLD1lTC
+	 trMIT+z5Nvz4jB7+60VhM6lemZCFeoQ6iXRfY2mc=
+Date: Sun, 08 Mar 2026 13:36:22 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-document-non-zero-length-damon_region-assumption.patch added to mm-new branch
-Message-Id: <20260308203620.ACE3AC116C6@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch added to mm-new branch
+Message-Id: <20260308203622.CFBCBC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: document non-zero length damon_region assumption
+     Subject: Docs/admin-guide/mm/damn/lru_sort: fix intervals autotune parameter name
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-document-non-zero-length-damon_region-assumption.patch
+     docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-document-non-zero-length-damon_region-assumption.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: document non-zero length damon_region assumption
-Date: Sat, 7 Mar 2026 11:53:52 -0800
+Subject: Docs/admin-guide/mm/damn/lru_sort: fix intervals autotune parameter name
+Date: Sat, 7 Mar 2026 11:53:53 -0800
 
-DAMON regions are assumed to always be non-zero length.  There was a
-confusion [1] about it, probably due to lack of the documentation. 
-Document it.
+The section name should be the same as the parameter name.  Fix it.
 
-Link: https://lkml.kernel.org/r/20260307195356.203753-5-sj@kernel.org
-Link: https://lore.kernel.org/20251231070029.79682-1-sj@kernel.org/ [1]
+Link: https://lkml.kernel.org/r/20260307195356.203753-6-sj@kernel.org
+Fixes: ed581147a417 ("Docs/admin-guide/mm/damon/lru_sort: document intervals autotuning")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
@@ -94,20 +92,22 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/admin-guide/mm/damon/lru_sort.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-document-non-zero-length-damon_region-assumption
-+++ a/include/linux/damon.h
-@@ -55,6 +55,8 @@ struct damon_size_range {
-  * @list:		List head for siblings.
-  * @age:		Age of this region.
-  *
-+ * For any use case, @ar should be non-zero positive size.
-+ *
-  * @nr_accesses is reset to zero for every &damon_attrs->aggr_interval and be
-  * increased for every &damon_attrs->sample_interval if an access to the region
-  * during the last sampling interval is found.  The update of this field should
+--- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name
++++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
+@@ -91,8 +91,8 @@ increases and decreases the effective le
+ 
+ Disabled by default.
+ 
+-Auto-tune monitoring intervals
+-------------------------------
++autotune_monitoring_intervals
++-----------------------------
+ 
+ If this parameter is set as ``Y``, DAMON_LRU_SORT automatically tunes DAMON's
+ sampling and aggregation intervals.  The auto-tuning aims to capture meaningful
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
