@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6CB1346797
-	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 20:36:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 198C434D917
+	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 20:36:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773002178; cv=none; b=szGjUg2/P69TEuhk34gHxot6Zj5oV7H/lQ4TfSFXjDKp9bBqBue5ptnj3NevXgdBVOWtIVnb9fju/q44T+ZM8nhuqjrgs4uWx6eAzo5R3dfiLWthUUH1tm3GhtNjXiXPFjiWKdcL4C2zmzN79qJdt4/fB8JrenO2ZH/MyV/A2rU=
+	t=1773002181; cv=none; b=HfLKaAB5DOjLt1uCShBY9BjcOOM8vvbhh0gjz3b5ryYIxCQVdrVxC4wqqmXJQjoTzDLlKPYvClyA5BpW/RkH2HxK5n0yX/z3FOh+VJX5W2+Kxl9yBcOjc9rRLE6nlwAl7QZZ9yPWOqkJspPw7/Y/KW3nb2cbu8Ia4luWeLsPpog=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773002178; c=relaxed/simple;
-	bh=mc4PAm4XY3NjUygtVbvZJ2A6Jsp6C30VAi+mp9sfwwE=;
-	h=Date:To:From:Subject:Message-Id; b=Rj3LV2nKa/ohJWhms3LCiOz+Ohx3YkvptaQkhcBS/mM0IAxll4LY+dDT3M4pv4ZNTil2d5ILVxmIlyMdgaNQnkTKcIkPTVRaZebX8sLjOgnjD0E1tawvtntrsLapr0yTPpeWVr3d8thPMbO/jkFTe/hgCC56ypsAt3ItJGsT5qw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eh7OxXoR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773002181; c=relaxed/simple;
+	bh=nwUmpz9aiA4lk7n8IMO0nXRINC8SIo8rASXHJxYLbvk=;
+	h=Date:To:From:Subject:Message-Id; b=G/jloR83Usas93FsAxqdcD1bcJsuiwgiNmxqUSF0y1xNlWUdQA2Iowls2zFAJHE7sQ5Iln+Yf0Fc76y6ybux9xlU4CYGu50UWTyJvXGVwDgV47wjIYtKJWFT8YdjUs/CLwmYKgPG8kYN+Oz0igG08hMA08KBpIVGVs+cJk0mYZI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=siAAZYkK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eh7OxXoR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D9BBC116C6;
-	Sun,  8 Mar 2026 20:36:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="siAAZYkK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACE3AC116C6;
+	Sun,  8 Mar 2026 20:36:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773002178;
-	bh=mc4PAm4XY3NjUygtVbvZJ2A6Jsp6C30VAi+mp9sfwwE=;
+	s=korg; t=1773002180;
+	bh=nwUmpz9aiA4lk7n8IMO0nXRINC8SIo8rASXHJxYLbvk=;
 	h=Date:To:From:Subject:From;
-	b=eh7OxXoRqwoxfw3qIspN5I6x6QMr+OdvMni4bTfCmUc4Hw2Gl7rAn1FDh/Tj00Xtl
-	 prQq2iioeGNQgrxVBwHlGhUE6wWB0t5D2DfOoxnBM51QxY0FgdjbYFWvg3RAiwcS66
-	 QxuOs5CgNeFKFhYHbBA6cSK2u8aaK6JQw0hG1De0=
-Date: Sun, 08 Mar 2026 13:36:17 -0700
+	b=siAAZYkKeX8+AY2pAM1oK/Q/cgSWflGCilZkwl1knz5st7ffAfk73bsgo/3Ersajq
+	 F0TAh1H5kgwt82vCfq86akoQODJHJjYwZRUqrBOXHsu34oATvufSzr6vn5nsjCaQjF
+	 oCwoR3T+DrYbJv0m/zhh2DBHfG7ywIjaZodBd+kY=
+Date: Sun, 08 Mar 2026 13:36:20 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-clarify-damon_set_attrs-usages.patch added to mm-new branch
-Message-Id: <20260308203618.8D9BBC116C6@smtp.kernel.org>
+Subject: + mm-damon-document-non-zero-length-damon_region-assumption.patch added to mm-new branch
+Message-Id: <20260308203620.ACE3AC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: clarify damon_set_attrs() usages
+     Subject: mm/damon: document non-zero length damon_region assumption
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-clarify-damon_set_attrs-usages.patch
+     mm-damon-document-non-zero-length-damon_region-assumption.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-clarify-damon_set_attrs-usages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-document-non-zero-length-damon_region-assumption.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: clarify damon_set_attrs() usages
-Date: Sat, 7 Mar 2026 11:53:51 -0800
+Subject: mm/damon: document non-zero length damon_region assumption
+Date: Sat, 7 Mar 2026 11:53:52 -0800
 
-damon_set_attrs() is called for multiple purposes from multiple places. 
-Calling it in an unsafe context can make DAMON internal state polluted and
-results in unexpected behaviors.  Clarify when it is safe, and where it is
-being called.
+DAMON regions are assumed to always be non-zero length.  There was a
+confusion [1] about it, probably due to lack of the documentation. 
+Document it.
 
-Link: https://lkml.kernel.org/r/20260307195356.203753-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260307195356.203753-5-sj@kernel.org
+Link: https://lore.kernel.org/20251231070029.79682-1-sj@kernel.org/ [1]
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
@@ -94,30 +94,20 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ include/linux/damon.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-clarify-damon_set_attrs-usages
-+++ a/mm/damon/core.c
-@@ -751,8 +751,16 @@ static bool damon_valid_intervals_goal(s
-  * @ctx:		monitoring context
-  * @attrs:		monitoring attributes
+--- a/include/linux/damon.h~mm-damon-document-non-zero-length-damon_region-assumption
++++ a/include/linux/damon.h
+@@ -55,6 +55,8 @@ struct damon_size_range {
+  * @list:		List head for siblings.
+  * @age:		Age of this region.
   *
-- * This function should be called while the kdamond is not running, an access
-- * check results aggregation is not ongoing (e.g., from damon_call().
-+ * This function updates monitoring results and next monitoring/damos operation
-+ * schedules.  Because those are periodically updated by kdamond, this should
-+ * be called from a safe contexts.  Such contexts include damon_ctx setup time
-+ * while the kdamond is not yet started, and inside of kdamond_fn().
++ * For any use case, @ar should be non-zero positive size.
 + *
-+ * In detail, all DAMON API callers directly call this function for initial
-+ * setup of damon_ctx before calling damon_start().  Some of the API callers
-+ * also indirectly call this function via damon_call() -> damon_commit() for
-+ * online parameters updates.  Finally, kdamond_fn() itself use this for
-+ * applying auto-tuned monitoring intervals.
-  *
-  * Every time interval is in micro-seconds.
-  *
+  * @nr_accesses is reset to zero for every &damon_attrs->aggr_interval and be
+  * increased for every &damon_attrs->sample_interval if an access to the region
+  * during the last sampling interval is found.  The update of this field should
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
