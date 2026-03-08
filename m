@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49CC1346797
-	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 20:36:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51C58346797
+	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 20:36:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773002168; cv=none; b=CzwSUlXY2Dk6aZs3QAXRCLTv8snT3G/gnerLozgbBQFAbyBni4+B2ADOx0+ejZ1aM1mOlYfG5fkzCA9j8SG8eCf+e7/fQ3w2poHZ5uFvpNiu0tFGgACb0cwuHaMl9PusL3XB7PiPVTL8vxOhZcGwbqDtyAdt+kSlQYTQmdPgWN4=
+	t=1773002170; cv=none; b=M93GjtRhmHXhgq240QWaTG9P5j71AuhUMAeBVkMlAkk09ksFWKnJQ87vVhkoFByxdrcki1nKl2izq+y1NKqFtFRxzuvuiULjBWSrDfeAt54aZ/46eZ9UZdDexlAFvwE1GmosPGnayI9RJGXKTSBWVKiyOp4qms5sbu013uLKd7o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773002168; c=relaxed/simple;
-	bh=q9LTsFTTiAh9mn5ZeWNaKBVVCrzaHJCCMllds5JaBhA=;
-	h=Date:To:From:Subject:Message-Id; b=OTemX9mppvomSr3taXyZH3ouq64Rbk2dHmJcBVZ05JB7b4fwh1kysQgcYagXT2KbyH3lXa0+MHdAD+ucOG0UVl8sigQPqSJab1pD4H4tKeNgpFKrQaF8P4HSCc2hEisMnYs3qzu5qutDfXRiqd+6GqItXRzaJQcNTNw2Km4bRUM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o6umwes1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773002170; c=relaxed/simple;
+	bh=UR/sWCbpU1aSxXzZ3YuahNu7Ms6a0aO605RpVjW20N4=;
+	h=Date:To:From:Subject:Message-Id; b=S2h+GBeJKaLKPMawhMzYVjRbwoTz0FQksDA71tDDFKI4tLsaRhKXTpSVEpmIbezbQ5QpF8CAfd7kNtNwv+c3ODW18PPGrxhealnx2ikEXsP6UQfCz7/R1M1KQd6gPqWGp52vULbqsINE61aJu9H/6lH4V7cEHZiugt/SIvKfOmQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d3k1D+kt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o6umwes1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CBB4FC116C6;
-	Sun,  8 Mar 2026 20:36:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d3k1D+kt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB1DCC116C6;
+	Sun,  8 Mar 2026 20:36:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773002167;
-	bh=q9LTsFTTiAh9mn5ZeWNaKBVVCrzaHJCCMllds5JaBhA=;
+	s=korg; t=1773002169;
+	bh=UR/sWCbpU1aSxXzZ3YuahNu7Ms6a0aO605RpVjW20N4=;
 	h=Date:To:From:Subject:From;
-	b=o6umwes1pAAeTqD1qGpd1hKpcI9vMgbSKVObUtqW4tQnjUNpRvB7+XgJA6iHghwCX
-	 6vj3nNgwAruSHJZVrv4xvypyLwAMd8amqbXSKpiHMxJzczYbEebXMFHvvI01baCuN6
-	 abyJYqJE5rs9ELfoJ1TuuE7s0FQ/3JsI4NBzgfgg=
-Date: Sun, 08 Mar 2026 13:36:07 -0700
+	b=d3k1D+kt/rF7xAx888b5rMQRUpwB1QCnL7UN4uqPhEKrzpDueqXdnvuBKXt8Ogv6D
+	 rHWEpKhP3ThLh7RCTEXijUDssJok8KuvPKt60Lv4bEu9Q1jMWfD8EMuYJr8ysEvU3f
+	 4BYR4GvaWAM12A07TOW7MVJCTUnBf6XVelP7VewY=
+Date: Sun, 08 Mar 2026 13:36:09 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch added to mm-new branch
-Message-Id: <20260308203607.CBB4FC116C6@smtp.kernel.org>
+Subject: + mm-damon-core-use-time_before-for-next_apply_sis.patch added to mm-new branch
+Message-Id: <20260308203609.DB1DCC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: remove damos_set_next_apply_sis() duplicates
+     Subject: mm/damon/core: use time_before() for next_apply_sis
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
+     mm-damon-core-use-time_before-for-next_apply_sis.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-use-time_before-for-next_apply_sis.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,113 +70,51 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: remove damos_set_next_apply_sis() duplicates
-Date: Sat, 7 Mar 2026 11:49:12 -0800
+Subject: mm/damon/core: use time_before() for next_apply_sis
+Date: Sat, 7 Mar 2026 11:49:13 -0800
 
-Patch series "mm/damon/core: make passed_sample_intervals comparisons
-overflow-safe".
+damon_ctx->passed_sample_intervals and damos->next_apply_sis are unsigned
+long, and compared via normal comparison operators.  It is unsafe from
+overflow.  Use time_before(), which is safe from overflow when correctly
+used, instead.
 
-DAMON accounts time using its own jiffies-like time counter, namely
-damon_ctx->passed_sample_intervals.  The counter is incremented on each
-iteration of kdamond_fn() main loop, which sleeps at least one sample
-interval.  Hence the name is like that.
-
-DAMON has time-periodic operations including monitoring results
-aggregation and DAMOS action application.  DAMON sets the next time to do
-each of such operations in the passed_sample_intervals unit.  And it does
-the operation when the counter becomes the same to or larger than the
-pre-set values, and update the next time for the operation.  Note that the
-operation is done not only when the values exactly match but also when the
-time is passed, because the values can be updated for online-committed
-DAMON parameters.
-
-The counter is 'unsigned long' type, and the comparison is done using
-normal comparison operators.  It is not safe from overflows.  This can
-cause rare and limited but odd situations.
-
-Let's suppose there is an operation that should be executed every 20
-sampling intervals, and the passed_sample_intervals value for next
-execution of the operation is ULONG_MAX - 3.  Once the
-passed_sample_intervals reaches ULONG_MAX - 3, the operation will be
-executed, and the next time value for doing the operation becomes 17
-(ULONG_MAX - 3 + 20), since overflow happens.  In the next iteration of
-the kdamond_fn() main loop, passed_sample_intervals is larger than the
-next operation time value, so the operation will be executed again.  It
-will continue executing the operation for each iteration, until the
-passed_sample_intervals also overflows.
-
-Note that this will not be common and problematic in the real world.  The
-sampling interval, which takes for each passed_sample_intervals increment,
-is 5 ms by default.  And it is usually [auto-]tuned for hundreds of
-milliseconds.  That means it takes about 248 days or 4,971 days to have
-the overflow on 32 bit machines when the sampling interval is 5 ms and 100
-ms, respectively (1<<32 * sampling_interval_in_seconds / 3600 / 24).  On
-64 bit machines, the numbers become 2924712086.77536 and 58494241735.5072
-years.  So the real user impact is negligible.  But still this is better
-to be fixed as long as the fix is simple and efficient.
-
-Fix this by simply replacing the overflow-unsafe native comparison
-operators with the existing overflow-safe time comparison helpers.
-
-The first patch only cleans up the next DAMOS action application time
-setup for consistency and reduced code.  The second and the third patches
-update DAMOS action application time setup and rest, respectively.
-
-
-This patch (of 3):
-
-There is a function for damos->next_apply_sis setup.  But some places are
-open-coding it.  Consistently use the helper.
-
-Link: https://lkml.kernel.org/r/20260307194915.203169-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260307194915.203169-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ mm/damon/core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-damos_set_next_apply_sis-duplicates
+--- a/mm/damon/core.c~mm-damon-core-use-time_before-for-next_apply_sis
 +++ a/mm/damon/core.c
-@@ -2450,8 +2450,6 @@ static void kdamond_apply_schemes(struct
- 	struct damon_target *t;
- 	struct damon_region *r;
- 	struct damos *s;
--	unsigned long sample_interval = c->attrs.sample_interval ?
--		c->attrs.sample_interval : 1;
+@@ -2095,7 +2095,7 @@ static void damon_do_apply_schemes(struc
+ 	damon_for_each_scheme(s, c) {
+ 		struct damos_quota *quota = &s->quota;
+ 
+-		if (c->passed_sample_intervals < s->next_apply_sis)
++		if (time_before(c->passed_sample_intervals, s->next_apply_sis))
+ 			continue;
+ 
+ 		if (!s->wmarks.activated)
+@@ -2453,7 +2453,7 @@ static void kdamond_apply_schemes(struct
  	bool has_schemes_to_apply = false;
  
  	damon_for_each_scheme(s, c) {
-@@ -2482,9 +2480,7 @@ static void kdamond_apply_schemes(struct
- 		if (c->passed_sample_intervals < s->next_apply_sis)
+-		if (c->passed_sample_intervals < s->next_apply_sis)
++		if (time_before(c->passed_sample_intervals, s->next_apply_sis))
+ 			continue;
+ 
+ 		if (!s->wmarks.activated)
+@@ -2477,7 +2477,7 @@ static void kdamond_apply_schemes(struct
+ 	}
+ 
+ 	damon_for_each_scheme(s, c) {
+-		if (c->passed_sample_intervals < s->next_apply_sis)
++		if (time_before(c->passed_sample_intervals, s->next_apply_sis))
  			continue;
  		damos_walk_complete(c, s);
--		s->next_apply_sis = c->passed_sample_intervals +
--			(s->apply_interval_us ? s->apply_interval_us :
--			 c->attrs.aggr_interval) / sample_interval;
-+		damos_set_next_apply_sis(s, c);
- 		s->last_applied = NULL;
- 		damos_trace_stat(c, s);
- 	}
-@@ -2858,7 +2854,6 @@ static void kdamond_init_ctx(struct damo
- {
- 	unsigned long sample_interval = ctx->attrs.sample_interval ?
- 		ctx->attrs.sample_interval : 1;
--	unsigned long apply_interval;
- 	struct damos *scheme;
- 
- 	ctx->passed_sample_intervals = 0;
-@@ -2869,9 +2864,7 @@ static void kdamond_init_ctx(struct damo
- 		ctx->attrs.intervals_goal.aggrs;
- 
- 	damon_for_each_scheme(scheme, ctx) {
--		apply_interval = scheme->apply_interval_us ?
--			scheme->apply_interval_us : ctx->attrs.aggr_interval;
--		scheme->next_apply_sis = apply_interval / sample_interval;
-+		damos_set_next_apply_sis(scheme, ctx);
- 		damos_set_filters_default_reject(scheme);
- 	}
- }
+ 		damos_set_next_apply_sis(s, c);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
