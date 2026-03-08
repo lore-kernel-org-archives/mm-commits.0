@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C8D9346FC6
-	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 21:06:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BCBA1D47B4
+	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 21:10:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773003976; cv=none; b=lgSIJHMSQcfFM0k+Tshefb1h5DGXwea5POMuN/y2CE0aX8Gs+Go1i71+7TdVJ5m96msmQFgOxkj2sE0xySlpb1Bj6fA3Q0qfTakvZ9XaZbB+cIVYsz7r2SLM46AEb7r6DdXZE9TQXwX1mC0a/9JPZ0vg4e/ihWx4qSBMyjBk4Go=
+	t=1773004215; cv=none; b=uYt/fUx0ZQx90ASHIs+Rmz9qKbnsPr/vVh3EKRmr8ayqHWLO54lk2cy4hshB+QLb8O7YOSZNsR1RaAHoFBUZF9IIRLBzC3nvFx08WGkL8qtU7K39rwxVRq8pZhSNrB0Eww9z5Ds1oAgXD+vPHv5oDunmcx1Aj64/lgqgPoa42to=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773003976; c=relaxed/simple;
-	bh=B+eheg2gR7ZxVwUSgWNmNwO4yPRtvUzzYCkMWQI1saI=;
-	h=Date:To:From:Subject:Message-Id; b=BUHwCWN+RHCs0Us4QrXw+QK4fwisC3wNgEULpOopd4QQSPAkRfyPGOIImuNN6kcNfIFAXVhVaKdCz1YCOZO2kdk+sUQmhTYQFrWPgiQJKTC833UwWImb357CC2uhHJooikK2PyQhZtdx/60rDHPPNUjAGdOJQBLWy8/WaMThXjY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DW1dPbBV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773004215; c=relaxed/simple;
+	bh=3FEoRSeyFX0YhWMWlVnsC7HbrVSie2tC4mIThTaPXYw=;
+	h=Date:To:From:Subject:Message-Id; b=Kc1myCCcvK0BqRZe/BAMZtPoqEtW6vPUz3reu8cjw8ievv1bMgnoOIR6wevhX5lcFG6X0IS4h8xypps5B+1t74slDP8ZXPHsoolTQzZ9Q1wIm1+1bGwGvRSc0Lv1ma4x2zMTaxdLxsE/GlVQTzG5apjuc4/ciM9wMVUtTqQmFxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dhsArl4U; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DW1dPbBV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37E05C116C6;
-	Sun,  8 Mar 2026 21:06:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dhsArl4U"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F9DCC116C6;
+	Sun,  8 Mar 2026 21:10:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773003976;
-	bh=B+eheg2gR7ZxVwUSgWNmNwO4yPRtvUzzYCkMWQI1saI=;
+	s=korg; t=1773004214;
+	bh=3FEoRSeyFX0YhWMWlVnsC7HbrVSie2tC4mIThTaPXYw=;
 	h=Date:To:From:Subject:From;
-	b=DW1dPbBVL6ErFaR6RqpjDh5c63KNYsoS5Z37kKeKOMFbwCnU30xlXgtdr+2azqOvO
-	 WUpybii0TFyD1QUNdtgEsrvdk5j1MFtBALSAd0h1p3VGaWs6EggcacsJQgDHlXVAFc
-	 XSQxWD4oyhGWxYDTq0NvLH/Kb93YIB5MMcgbrRys=
-Date: Sun, 08 Mar 2026 14:06:15 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,lance.yang@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,leitao@debian.org,akpm@linux-foundation.org
+	b=dhsArl4UiJjWZPcVJyIz7gBI390JIGJSqTdG3ydi1WHnRTlh2skc1VH37RQ5a7F0l
+	 hn2wntkpyEDk08+iPsuc3t9lD7N2o1+1v1qeaWxv1jDhdxqpeOwxV+iK6C3co8Hnqi
+	 mP+AUIncmh94jjzbzjibSWVpGfm+T34gHWY7Alqk=
+Date: Sun, 08 Mar 2026 14:10:13 -0700
+To: mm-commits@vger.kernel.org,xemul@parallels.com,rppt@kernel.org,peterx@redhat.com,osalvador@suse.de,muchun.song@linux.dev,ljs@kernel.org,JonasZhou@zhaoxin.com,hillf.zj@alibaba-inc.com,dgilbert@redhat.com,david@kernel.org,aarcange@redhat.com,jianhuizzzzz@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-ratelimit-min_free_kbytes-adjustment-messages.patch added to mm-new branch
-Message-Id: <20260308210616.37E05C116C6@smtp.kernel.org>
+Subject: + mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation-v2.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260308211014.8F9DCC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: ratelimit min_free_kbytes adjustment messages
-has been added to the -mm mm-new branch.  Its filename is
-     mm-ratelimit-min_free_kbytes-adjustment-messages.patch
+     Subject: mm/userfaultfd: fix hugetlb fault mutex hash calculation
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation-v2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-ratelimit-min_free_kbytes-adjustment-messages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation-v2.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,77 +58,53 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm: ratelimit min_free_kbytes adjustment messages
-Date: Sat, 07 Mar 2026 08:08:08 -0800
+From: Jianhui Zhou <jianhuizzzzz@gmail.com>
+Subject: mm/userfaultfd: fix hugetlb fault mutex hash calculation
+Date: Sat, 7 Mar 2026 22:35:39 +0800
 
-The "raising min_free_kbytes" pr_info message in
-set_recommended_min_free_kbytes() and the "min_free_kbytes is not updated
-to" pr_warn in calculate_min_free_kbytes() can spam the kernel log when
-called repeatedly.
+remove unnecessary vma_hugecache_offset() stub
 
-Switch the pr_info in set_recommended_min_free_kbytes() and the pr_warn in
-calculate_min_free_kbytes() to their _ratelimited variants to prevent the
-log spam for this message.
-
-Link: https://lkml.kernel.org/r/20260307-thp_logs-v3-4-a45d2c8f3685@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
+Link: https://lkml.kernel.org/r/20260307143542.179953-1-jianhuizzzzz@gmail.com
+Fixes: 60d4d2d2b40e ("userfaultfd: hugetlbfs: add __mcopy_atomic_hugetlb for huge page UFFDIO_COPY")
+Reported-by: syzbot+f525fd79634858f478e7@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=f525fd79634858f478e7
+Signed-off-by: Jianhui Zhou <jianhuizzzzz@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: JonasZhou <JonasZhou@zhaoxin.com>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    4 ++--
- mm/page_alloc.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/hugetlb.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/mm/khugepaged.c~mm-ratelimit-min_free_kbytes-adjustment-messages
-+++ a/mm/khugepaged.c
-@@ -2693,8 +2693,8 @@ void set_recommended_min_free_kbytes(voi
- 
- 	if (recommended_min > min_free_kbytes) {
- 		if (user_min_free_kbytes >= 0)
--			pr_info("raising min_free_kbytes from %d to %lu to help transparent hugepage allocations\n",
--				min_free_kbytes, recommended_min);
-+			pr_info_ratelimited("raising min_free_kbytes from %d to %lu to help transparent hugepage allocations\n",
-+					    min_free_kbytes, recommended_min);
- 
- 		min_free_kbytes = recommended_min;
- 	}
---- a/mm/page_alloc.c~mm-ratelimit-min_free_kbytes-adjustment-messages
-+++ a/mm/page_alloc.c
-@@ -6513,8 +6513,8 @@ void calculate_min_free_kbytes(void)
- 	if (new_min_free_kbytes > user_min_free_kbytes)
- 		min_free_kbytes = clamp(new_min_free_kbytes, 128, 262144);
- 	else
--		pr_warn("min_free_kbytes is not updated to %d because user defined value %d is preferred\n",
--				new_min_free_kbytes, user_min_free_kbytes);
-+		pr_warn_ratelimited("min_free_kbytes is not updated to %d because user defined value %d is preferred\n",
-+				    new_min_free_kbytes, user_min_free_kbytes);
- 
+--- a/include/linux/hugetlb.h~mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation-v2
++++ a/include/linux/hugetlb.h
+@@ -1208,12 +1208,6 @@ static inline unsigned int huge_page_shi
+ 	return PAGE_SHIFT;
  }
  
+-static inline pgoff_t vma_hugecache_offset(struct hstate *h,
+-		struct vm_area_struct *vma, unsigned long address)
+-{
+-	return linear_page_index(vma, address);
+-}
+-
+ static inline bool hstate_is_gigantic(struct hstate *h)
+ {
+ 	return false;
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from jianhuizzzzz@gmail.com are
 
-mm-khugepaged-export-set_recommended_min_free_kbytes.patch
-mm-huge_memory-refactor-anon_enabled_store-with-change_anon_orders.patch
-mm-huge_memory-refactor-enabled_store-with-change_enabled.patch
-mm-ratelimit-min_free_kbytes-adjustment-messages.patch
+mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation.patch
+mm-userfaultfd-fix-hugetlb-fault-mutex-hash-calculation-v2.patch
 
