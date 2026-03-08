@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E55FA318B96
-	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 21:17:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68ADF293C42
+	for <mm-commits@vger.kernel.org>; Sun,  8 Mar 2026 21:26:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773004633; cv=none; b=tnznA6ACkdKHcirL5gYg23/n3LoTZEMM11OLpI2cIusrn6ocKLeUsdOtC3Kp8ijHshUQXZ5JXASEYeG3//ZsWvrc0zQSIxc+X46RnTlyDwwCIcDGf6QLrpaMtVMRU7WD/IEG4M9gyUZxVJhUtNOKEqRCW6wqa2zKKEFGUsgGijE=
+	t=1773005169; cv=none; b=PWf9kwpevSYhsPtc1DkGDOWhts/qla0C49OXLrWYMf2S5F9lXDcbRw0LMTGflbDW2R8/Duut9MsCn+SxnLaLHjZf88Emw/FJxr5/aUHegKrgOMxBfzUUVsWCF/Bf3JsbTDpv8SH95PsOAFe5ITiK51367dknZztzVIbDIKkIFHw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773004633; c=relaxed/simple;
-	bh=/0iRLveWMa0s+vWu5dc7RjMpyxBl4/3OU9aRuipWNks=;
-	h=Date:To:From:Subject:Message-Id; b=VVLdO+6MheDsif7ACEKRvE42mIbDtEGVq/Mx5sGJWsCbNITlKePfl1xxeRuFxYKeyL96BW/yWx/DZu5VkDZiPBUkGixietSp80nFIACRaIx3UutdWPNbjRGzxwQfJB6DMVUZS07W6E065FbcxzYEwLDwC8wdEC7qsQxv79wGE4U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YNPCsm0/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773005169; c=relaxed/simple;
+	bh=ZBv9VXpaDLlMyk/fNbnfsV7Poz8suYCY0n/Ncp9knIk=;
+	h=Date:To:From:Subject:Message-Id; b=DblSFlmrdIbOMaRo3MTd3DOaVFF3/SQ4JRTXcVg+CYL27nhNdhBIgWdNjB6X0zpHZsf32aa1npXlQI2+KdlYn3iJPSnoK5vmiEp7S6FVhan6+U08uz1KV4th8IfTUsqDoOw1jAgUucUEIMISrXSe6YaUc7N733lpvZFjt5ojvOE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oaxMurJd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YNPCsm0/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E84EC116C6;
-	Sun,  8 Mar 2026 21:17:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oaxMurJd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8772C116C6;
+	Sun,  8 Mar 2026 21:26:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773004632;
-	bh=/0iRLveWMa0s+vWu5dc7RjMpyxBl4/3OU9aRuipWNks=;
+	s=korg; t=1773005168;
+	bh=ZBv9VXpaDLlMyk/fNbnfsV7Poz8suYCY0n/Ncp9knIk=;
 	h=Date:To:From:Subject:From;
-	b=YNPCsm0/2+FhCpHZkHPfAnltrQxR8b+ynvgwUSEJf0tfbo90Wvq/0C5j8CvJBmLF2
-	 6zAgHmJ7PoXzZ3CXLQ5zyzHciJ4feQtlTFryBVmFpVJpnnz1vJr0bvXTpp1/tpciOj
-	 PDjcTy1JL0yuQ181ijyIep78mOkbOFTEubQmsee0=
-Date: Sun, 08 Mar 2026 14:17:11 -0700
-To: mm-commits@vger.kernel.org,objecting@objecting.org,akpm@linux-foundation.org
+	b=oaxMurJd7r1Rw8+YT9SFRVFOQ/AnsUBJLuJ8uBdjVJwT6YJ4zzXs0oW2fx8N6pQZ6
+	 C9w9+GQust3+CTljvO191W/I5UJ3Bjd4aHmBHsIHGXfOLZgjwHY7o/UXjEcZDCrJXt
+	 wgodXnGeDCTh7v+sw8++ZX5DHdymzNLdpPQ8xRRc=
+Date: Sun, 08 Mar 2026 14:26:08 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,xu.xin16@zte.com.cn,wang.yaxin@zte.com.cn,lkp@intel.com,jiang.kun2@zte.com.cn,bsingharora@gmail.com,arnd@arndb.de,linux@weissschuh.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-bootconfig-fix-typo-budy-in-_xbc_exit-comment.patch added to mm-nonmm-unstable branch
-Message-Id: <20260308211712.5E84EC116C6@smtp.kernel.org>
+Subject: + tools-headers-uapi-sync-linux-taskstatsh.patch added to mm-nonmm-unstable branch
+Message-Id: <20260308212608.D8772C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/bootconfig: fix typo "budy" in _xbc_exit() comment
+     Subject: tools headers UAPI: sync linux/taskstats.h
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-bootconfig-fix-typo-budy-in-_xbc_exit-comment.patch
+     tools-headers-uapi-sync-linux-taskstatsh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-bootconfig-fix-typo-budy-in-_xbc_exit-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-headers-uapi-sync-linux-taskstatsh.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,50 +58,343 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Josh Law <objecting@objecting.org>
-Subject: lib/bootconfig: fix typo "budy" in _xbc_exit() comment
-Date: Sat, 7 Mar 2026 12:26:46 +0000
+From: Thomas Weißschuh <linux@weissschuh.net>
+Subject: tools headers UAPI: sync linux/taskstats.h
+Date: Sat, 07 Mar 2026 09:47:52 +0100
 
-Fix a spelling error in the _xbc_exit() kernel-doc comment where "budy
-system" was written instead of "buddy system".
+Patch series "tools/getdelays: use the static UAPI headers from
+tools/include/uapi".
 
-Link: https://lkml.kernel.org/r/20260307122646.2838540-1-objecting@objecting.org
-Signed-off-by: Josh Law <objecting@objecting.org>
+The include directory ../../usr/include is only present if an in-tree
+kernel build with CONFIG_HEADERS_INSTALL was done before.  Otherwise the
+system UAPI headers are used, which most likely are not the most recent
+ones.
+
+To make sure to always have access to up-to-date UAPI headers, use the
+static copy in tools/include/uapi.
+
+
+This patch (of 2):
+
+To give the accounting tools access to the new fields introduced in commit
+503efe850c74 ("delayacct: add timestamp of delay max")
+
+Link: https://lkml.kernel.org/r/20260307-accounting-taskstats-h-v1-0-0b75915c6ce5@weissschuh.net
+Link: https://lkml.kernel.org/r/20260307-accounting-taskstats-h-v1-1-0b75915c6ce5@weissschuh.net
+Signed-off-by: Thomas Weißschuh <linux@weissschuh.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Jiang Kun <jiang.kun2@zte.com.cn>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: xu xin <xu.xin16@zte.com.cn>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bootconfig.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/include/uapi/linux/taskstats.h |  291 +++++++++++++++++++++++++
+ 1 file changed, 291 insertions(+)
 
---- a/lib/bootconfig.c~lib-bootconfig-fix-typo-budy-in-_xbc_exit-comment
-+++ a/lib/bootconfig.c
-@@ -911,7 +911,7 @@ static int __init xbc_parse_tree(void)
- 
- /**
-  * _xbc_exit() - Clean up all parsed bootconfig
-- * @early: Set true if this is called before budy system is initialized.
-+ * @early: Set true if this is called before buddy system is initialized.
-  *
-  * This clears all data structures of parsed bootconfig on memory.
-  * If you need to reuse xbc_init() with new boot config, you can
+diff --git a/tools/include/uapi/linux/taskstats.h a/tools/include/uapi/linux/taskstats.h
+new file mode 100644
+--- /dev/null
++++ a/tools/include/uapi/linux/taskstats.h
+@@ -0,0 +1,291 @@
++/* SPDX-License-Identifier: LGPL-2.1 WITH Linux-syscall-note */
++/* taskstats.h - exporting per-task statistics
++ *
++ * Copyright (C) Shailabh Nagar, IBM Corp. 2006
++ *           (C) Balbir Singh,   IBM Corp. 2006
++ *           (C) Jay Lan,        SGI, 2006
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of version 2.1 of the GNU Lesser General Public License
++ * as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it would be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#ifndef _LINUX_TASKSTATS_H
++#define _LINUX_TASKSTATS_H
++
++#include <linux/types.h>
++#include <linux/time_types.h>
++
++/* Format for per-task data returned to userland when
++ *	- a task exits
++ *	- listener requests stats for a task
++ *
++ * The struct is versioned. Newer versions should only add fields to
++ * the bottom of the struct to maintain backward compatibility.
++ *
++ *
++ * To add new fields
++ *	a) bump up TASKSTATS_VERSION
++ *	b) add comment indicating new version number at end of struct
++ *	c) add new fields after version comment; maintain 64-bit alignment
++ */
++
++
++#define TASKSTATS_VERSION	17
++#define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
++					 * in linux/sched.h */
++
++struct taskstats {
++
++	/* The version number of this struct. This field is always set to
++	 * TAKSTATS_VERSION, which is defined in <linux/taskstats.h>.
++	 * Each time the struct is changed, the value should be incremented.
++	 */
++	__u16	version;
++	__u32	ac_exitcode;		/* Exit status */
++
++	/* The accounting flags of a task as defined in <linux/acct.h>
++	 * Defined values are AFORK, ASU, ACOMPAT, ACORE, AXSIG, and AGROUP.
++	 * (AGROUP since version 12).
++	 */
++	__u8	ac_flag;		/* Record flags */
++	__u8	ac_nice;		/* task_nice */
++
++	/* Delay accounting fields start
++	 *
++	 * All values, until comment "Delay accounting fields end" are
++	 * available only if delay accounting is enabled, even though the last
++	 * few fields are not delays
++	 *
++	 * xxx_count is the number of delay values recorded
++	 * xxx_delay_total is the corresponding cumulative delay in nanoseconds
++	 *
++	 * xxx_delay_total wraps around to zero on overflow
++	 * xxx_count incremented regardless of overflow
++	 */
++
++	/* Delay waiting for cpu, while runnable
++	 * count, delay_total NOT updated atomically
++	 */
++	__u64	cpu_count __attribute__((aligned(8)));
++	__u64	cpu_delay_total;
++
++	/* Following four fields atomically updated using task->delays->lock */
++
++	/* Delay waiting for synchronous block I/O to complete
++	 * does not account for delays in I/O submission
++	 */
++	__u64	blkio_count;
++	__u64	blkio_delay_total;
++
++	/* Delay waiting for page fault I/O (swap in only) */
++	__u64	swapin_count;
++	__u64	swapin_delay_total;
++
++	/* cpu "wall-clock" running time
++	 * On some architectures, value will adjust for cpu time stolen
++	 * from the kernel in involuntary waits due to virtualization.
++	 * Value is cumulative, in nanoseconds, without a corresponding count
++	 * and wraps around to zero silently on overflow
++	 */
++	__u64	cpu_run_real_total;
++
++	/* cpu "virtual" running time
++	 * Uses time intervals seen by the kernel i.e. no adjustment
++	 * for kernel's involuntary waits due to virtualization.
++	 * Value is cumulative, in nanoseconds, without a corresponding count
++	 * and wraps around to zero silently on overflow
++	 */
++	__u64	cpu_run_virtual_total;
++	/* Delay accounting fields end */
++	/* version 1 ends here */
++
++	/* Basic Accounting Fields start */
++	char	ac_comm[TS_COMM_LEN];	/* Command name */
++	__u8	ac_sched __attribute__((aligned(8)));
++					/* Scheduling discipline */
++	__u8	ac_pad[3];
++	__u32	ac_uid __attribute__((aligned(8)));
++					/* User ID */
++	__u32	ac_gid;			/* Group ID */
++	__u32	ac_pid;			/* Process ID */
++	__u32	ac_ppid;		/* Parent process ID */
++	/* __u32 range means times from 1970 to 2106 */
++	__u32	ac_btime;		/* Begin time [sec since 1970] */
++	__u64	ac_etime __attribute__((aligned(8)));
++					/* Elapsed time [usec] */
++	__u64	ac_utime;		/* User CPU time [usec] */
++	__u64	ac_stime;		/* SYstem CPU time [usec] */
++	__u64	ac_minflt;		/* Minor Page Fault Count */
++	__u64	ac_majflt;		/* Major Page Fault Count */
++	/* Basic Accounting Fields end */
++
++	/* Extended accounting fields start */
++	/* Accumulated RSS usage in duration of a task, in MBytes-usecs.
++	 * The current rss usage is added to this counter every time
++	 * a tick is charged to a task's system time. So, at the end we
++	 * will have memory usage multiplied by system time. Thus an
++	 * average usage per system time unit can be calculated.
++	 */
++	__u64	coremem;		/* accumulated RSS usage in MB-usec */
++	/* Accumulated virtual memory usage in duration of a task.
++	 * Same as acct_rss_mem1 above except that we keep track of VM usage.
++	 */
++	__u64	virtmem;		/* accumulated VM  usage in MB-usec */
++
++	/* High watermark of RSS and virtual memory usage in duration of
++	 * a task, in KBytes.
++	 */
++	__u64	hiwater_rss;		/* High-watermark of RSS usage, in KB */
++	__u64	hiwater_vm;		/* High-water VM usage, in KB */
++
++	/* The following four fields are I/O statistics of a task. */
++	__u64	read_char;		/* bytes read */
++	__u64	write_char;		/* bytes written */
++	__u64	read_syscalls;		/* read syscalls */
++	__u64	write_syscalls;		/* write syscalls */
++	/* Extended accounting fields end */
++
++#define TASKSTATS_HAS_IO_ACCOUNTING
++	/* Per-task storage I/O accounting starts */
++	__u64	read_bytes;		/* bytes of read I/O */
++	__u64	write_bytes;		/* bytes of write I/O */
++	__u64	cancelled_write_bytes;	/* bytes of cancelled write I/O */
++
++	__u64  nvcsw;			/* voluntary_ctxt_switches */
++	__u64  nivcsw;			/* nonvoluntary_ctxt_switches */
++
++	/* time accounting for SMT machines */
++	__u64	ac_utimescaled;		/* utime scaled on frequency etc */
++	__u64	ac_stimescaled;		/* stime scaled on frequency etc */
++	__u64	cpu_scaled_run_real_total; /* scaled cpu_run_real_total */
++
++	/* Delay waiting for memory reclaim */
++	__u64	freepages_count;
++	__u64	freepages_delay_total;
++
++
++	/* Delay waiting for thrashing page */
++	__u64	thrashing_count;
++	__u64	thrashing_delay_total;
++
++	/* v10: 64-bit btime to avoid overflow */
++	__u64	ac_btime64;		/* 64-bit begin time */
++
++	/* v11: Delay waiting for memory compact */
++	__u64	compact_count;
++	__u64	compact_delay_total;
++
++	/* v12 begin */
++	__u32   ac_tgid;	/* thread group ID */
++	/* Thread group walltime up to now. This is total process walltime if
++	 * AGROUP flag is set.
++	 */
++	__u64	ac_tgetime __attribute__((aligned(8)));
++	/* Lightweight information to identify process binary files.
++	 * This leaves userspace to match this to a file system path, using
++	 * MAJOR() and MINOR() macros to identify a device and mount point,
++	 * the inode to identify the executable file. This is /proc/self/exe
++	 * at the end, so matching the most recent exec(). Values are zero
++	 * for kernel threads.
++	 */
++	__u64   ac_exe_dev;     /* program binary device ID */
++	__u64   ac_exe_inode;   /* program binary inode number */
++	/* v12 end */
++
++	/* v13: Delay waiting for write-protect copy */
++	__u64    wpcopy_count;
++	__u64    wpcopy_delay_total;
++
++	/* v14: Delay waiting for IRQ/SOFTIRQ */
++	__u64    irq_count;
++	__u64    irq_delay_total;
++
++	/* v15: add Delay max and Delay min */
++
++	/* v16: move Delay max and Delay min to the end of taskstat */
++	__u64	cpu_delay_max;
++	__u64	cpu_delay_min;
++
++	__u64	blkio_delay_max;
++	__u64	blkio_delay_min;
++
++	__u64	swapin_delay_max;
++	__u64	swapin_delay_min;
++
++	__u64	freepages_delay_max;
++	__u64	freepages_delay_min;
++
++	__u64	thrashing_delay_max;
++	__u64	thrashing_delay_min;
++
++	__u64	compact_delay_max;
++	__u64	compact_delay_min;
++
++	__u64	wpcopy_delay_max;
++	__u64	wpcopy_delay_min;
++
++	__u64	irq_delay_max;
++	__u64	irq_delay_min;
++
++	/*v17: delay max timestamp record*/
++	struct __kernel_timespec cpu_delay_max_ts;
++	struct __kernel_timespec blkio_delay_max_ts;
++	struct __kernel_timespec swapin_delay_max_ts;
++	struct __kernel_timespec freepages_delay_max_ts;
++	struct __kernel_timespec thrashing_delay_max_ts;
++	struct __kernel_timespec compact_delay_max_ts;
++	struct __kernel_timespec wpcopy_delay_max_ts;
++	struct __kernel_timespec irq_delay_max_ts;
++};
++
++
++/*
++ * Commands sent from userspace
++ * Not versioned. New commands should only be inserted at the enum's end
++ * prior to __TASKSTATS_CMD_MAX
++ */
++
++enum {
++	TASKSTATS_CMD_UNSPEC = 0,	/* Reserved */
++	TASKSTATS_CMD_GET,		/* user->kernel request/get-response */
++	TASKSTATS_CMD_NEW,		/* kernel->user event */
++	__TASKSTATS_CMD_MAX,
++};
++
++#define TASKSTATS_CMD_MAX (__TASKSTATS_CMD_MAX - 1)
++
++enum {
++	TASKSTATS_TYPE_UNSPEC = 0,	/* Reserved */
++	TASKSTATS_TYPE_PID,		/* Process id */
++	TASKSTATS_TYPE_TGID,		/* Thread group id */
++	TASKSTATS_TYPE_STATS,		/* taskstats structure */
++	TASKSTATS_TYPE_AGGR_PID,	/* contains pid + stats */
++	TASKSTATS_TYPE_AGGR_TGID,	/* contains tgid + stats */
++	TASKSTATS_TYPE_NULL,		/* contains nothing */
++	__TASKSTATS_TYPE_MAX,
++};
++
++#define TASKSTATS_TYPE_MAX (__TASKSTATS_TYPE_MAX - 1)
++
++enum {
++	TASKSTATS_CMD_ATTR_UNSPEC = 0,
++	TASKSTATS_CMD_ATTR_PID,
++	TASKSTATS_CMD_ATTR_TGID,
++	TASKSTATS_CMD_ATTR_REGISTER_CPUMASK,
++	TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK,
++	__TASKSTATS_CMD_ATTR_MAX,
++};
++
++#define TASKSTATS_CMD_ATTR_MAX (__TASKSTATS_CMD_ATTR_MAX - 1)
++
++/* NETLINK_GENERIC related info */
++
++#define TASKSTATS_GENL_NAME	"TASKSTATS"
++#define TASKSTATS_GENL_VERSION	0x1
++
++#endif /* _LINUX_TASKSTATS_H */
 _
 
-Patches currently in -mm which might be from objecting@objecting.org are
+Patches currently in -mm which might be from linux@weissschuh.net are
 
-lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
-lib-glob-fix-grammar-and-replace-non-inclusive-terminology.patch
-lib-glob-add-explicit-include-for-exporth.patch
-lib-glob-replace-bitwise-or-with-logical-operation-on-boolean.patch
-lib-glob-clean-up-bool-abuse-in-pointer-arithmetic.patch
-lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
-lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch
-lib-inflate-fix-memory-leak-in-inflate_dynamic-on-inflate_codes-failure.patch
-lib-inflate-fix-grammar-in-comment-variable-to-variables.patch
-lib-inflate-fix-typo-this-results-to-the-results-in-comment.patch
-lib-bug-fix-inconsistent-capitalization-in-bug-message.patch
-lib-bug-remove-unnecessary-variable-initializations.patch
-lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
-lib-decompress_bunzip2-fix-32-bit-shift-undefined-behavior.patch
-maintainers-add-josh-law-as-reviewer-for-library-code.patch
-lib-bootconfig-fix-typo-budy-in-_xbc_exit-comment.patch
+tools-headers-uapi-sync-linux-taskstatsh.patch
+tools-getdelays-use-the-static-uapi-headers-from-tools-include-uapi.patch
 
