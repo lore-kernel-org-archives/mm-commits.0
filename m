@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74088175A75
-	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 19:03:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10435218AB9
+	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 19:16:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773083020; cv=none; b=ZHpht6ioDUTpRrJhhQCa4cKlWqIuqxHJFUZZRPKD2ThnpJRe9A1ysjUHCMLpKNTub5AOLGUjauetwvAwYhCum79j102x7STDCw2GkSU+GOSCzgxcQ2nejAk20GHcx2ssZ6K45dsdnoWP36kab+eWvcVSnZQNaxKJ1t/SeCZZWio=
+	t=1773083789; cv=none; b=U33/0ecj0RVWXj3cWZj6/QS2+zNWzzyja8SkteiSxCXBQZg1SutMqnPg/R280y3AuYNjcJmJKic60xc8U0JZYhGW84n5bIi7e68Um5kfMt8L0D6DR+ef504Yi18EmR71kYDjB+t2iSsqIhRxwSfyoMUWpiidDKzsgbUmcgLHPHU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773083020; c=relaxed/simple;
-	bh=di7WyrQbxAfVVtrAjiYN17/fgxxT+u6ZiPowNj6KKpA=;
-	h=Date:To:From:Subject:Message-Id; b=AbnRy63ECr3/uPaaq7YaHGvL3xqhJa01xCLog4E4KbH4azck7GmQSogKDBxI3Muh46L01C+iSNqTEKYr7i6oOXK/eLsCQf11oweNPUu2Fqcnakxhr41z8Kc1fEXsErFIafnXF45DfQPyhn/kKbBNZu/l5ennIIdPK2a/nxGgQe8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bzeEHymE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773083789; c=relaxed/simple;
+	bh=/h/fM+7w+Q8bPx+4PBpB6tTw7Cvt5gfZX57zBkhjDiU=;
+	h=Date:To:From:Subject:Message-Id; b=AlvPU9kzUUqwQgetPc4Jqy8Jt5J8eSfxDpvfrzKkTJqYhRip7QMjxYS+K2tOCjHtE2VznFfjDsbmomGkJdUgWNA/+w911svqVRMhYsiJy2FpcVB2dCcDbVEvaFJvmF9ZgBA4yJMXZBUvLpapq7YZYRn5H04ovYo//dxonC9pogw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PpXuSjB/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bzeEHymE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21AC1C4CEF7;
-	Mon,  9 Mar 2026 19:03:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PpXuSjB/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B1BD4C4CEF7;
+	Mon,  9 Mar 2026 19:16:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773083020;
-	bh=di7WyrQbxAfVVtrAjiYN17/fgxxT+u6ZiPowNj6KKpA=;
+	s=korg; t=1773083788;
+	bh=/h/fM+7w+Q8bPx+4PBpB6tTw7Cvt5gfZX57zBkhjDiU=;
 	h=Date:To:From:Subject:From;
-	b=bzeEHymEP5EyTnZHTSVf7n4EcDzq5mwGOflRH1FQXLG5NfpG9GKqn5U0O84oc2QhD
-	 aLqZQM+W+lMRON9W2O07cf8F0At+Tl+z7z9fTGqRuVqBwZWcuNfW5QaqZ8rBmSWnpi
-	 zCUZCNKOIfQAJ4FCcdOZld+jvPEKA+KkfCzf0QTU=
-Date: Mon, 09 Mar 2026 12:03:41 -0700
-To: mm-commits@vger.kernel.org,lukas@wunner.de,herbert@gondor.apana.org.au,dhowells@redhat.com,ignat@cloudflare.com,akpm@linux-foundation.org
+	b=PpXuSjB/YGb792vWzQoYDBrDzMia7eAFByQHU66Ncwy9k/hIlzymvfLsV7SUR0VK7
+	 YO6P1ok9Dclxg+4La7iWigLzEsJubtzv1sflVEYWCBZkSSF/HMWs5iySk8C4WDPrtK
+	 fahIDk5gSBue56ivAoheBPhzRkeiqZM7lIjxRn3Q=
+Date: Mon, 09 Mar 2026 12:16:29 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,jason@zx2c4.com,jannh@google.com,david@kernel.org,anthony.yznaga@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-update-email-address-for-ignat-korchagin.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260309190340.21AC1C4CEF7@smtp.kernel.org>
+Subject: [to-be-updated] mm-prevent-droppable-mappings-from-being-locked.patch removed from -mm tree
+Message-Id: <20260309191628.B1BD4C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,99 +34,83 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: MAINTAINERS: update email address for Ignat Korchagin
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-update-email-address-for-ignat-korchagin.patch
+The quilt patch titled
+     Subject: mm: prevent droppable mappings from being locked
+has been removed from the -mm tree.  Its filename was
+     mm-prevent-droppable-mappings-from-being-locked.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-email-address-for-ignat-korchagin.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Ignat Korchagin <ignat@cloudflare.com>
-Subject: MAINTAINERS: update email address for Ignat Korchagin
-Date: Mon, 9 Mar 2026 17:34:45 +0000
+From: Anthony Yznaga <anthony.yznaga@oracle.com>
+Subject: mm: prevent droppable mappings from being locked
+Date: Fri, 6 Mar 2026 12:45:50 -0800
 
-Since I'm moving from Cloudflare update my email address in the
-MAINTAINERS file and add an entry to .mailmap so nothing gets lost.
+Mappings created with MAP_DROPPABLE cannot be locked via mlock() due to
+the check in mlock_fixup().  However, they will be locked indirectly if
+they are created after mlockall(MCL_FUTURE).
 
-Link: https://lkml.kernel.org/r/20260309173445.71393-1-ignat@cloudflare.com
-Signed-off-by: Ignat Korchagin <ignat@cloudflare.com>
-Acked-by: Lukas Wunner <lukas@wunner.de>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Link: https://lkml.kernel.org/r/20260306204550.8405-1-anthony.yznaga@oracle.com
+Fixes: 9651fcedf7b9 ("mm: add MAP_DROPPABLE for designating always lazily freeable mappings")
+Signed-off-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jason A. Donenfeld <jason@zx2c4.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    1 +
- MAINTAINERS |    8 ++++----
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ include/linux/mm.h |    3 +++
+ mm/mlock.c         |    4 ++--
+ mm/vma.c           |    2 +-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
---- a/.mailmap~maintainers-update-email-address-for-ignat-korchagin
-+++ a/.mailmap
-@@ -322,6 +322,7 @@ Henrik Rydberg <rydberg@bitmath.org>
- Herbert Xu <herbert@gondor.apana.org.au>
- Huacai Chen <chenhuacai@kernel.org> <chenhc@lemote.com>
- Huacai Chen <chenhuacai@kernel.org> <chenhuacai@loongson.cn>
-+Ignat Korchagin <ignat@linux.win> <ignat@cloudflare.com>
- Ike Panhc <ikepanhc@gmail.com> <ike.pan@canonical.com>
- J. Bruce Fields <bfields@fieldses.org> <bfields@redhat.com>
- J. Bruce Fields <bfields@fieldses.org> <bfields@citi.umich.edu>
---- a/MAINTAINERS~maintainers-update-email-address-for-ignat-korchagin
-+++ a/MAINTAINERS
-@@ -4025,7 +4025,7 @@ F:	drivers/hwmon/asus_wmi_sensors.c
- ASYMMETRIC KEYS
- M:	David Howells <dhowells@redhat.com>
- M:	Lukas Wunner <lukas@wunner.de>
--M:	Ignat Korchagin <ignat@cloudflare.com>
-+M:	Ignat Korchagin <ignat@linux.win>
- L:	keyrings@vger.kernel.org
- L:	linux-crypto@vger.kernel.org
- S:	Maintained
-@@ -4038,7 +4038,7 @@ F:	include/linux/verification.h
+--- a/include/linux/mm.h~mm-prevent-droppable-mappings-from-being-locked
++++ a/include/linux/mm.h
+@@ -573,6 +573,9 @@ enum {
+ /* This mask represents all the VMA flag bits used by mlock */
+ #define VM_LOCKED_MASK	(VM_LOCKED | VM_LOCKONFAULT)
  
- ASYMMETRIC KEYS - ECDSA
- M:	Lukas Wunner <lukas@wunner.de>
--M:	Ignat Korchagin <ignat@cloudflare.com>
-+M:	Ignat Korchagin <ignat@linux.win>
- R:	Stefan Berger <stefanb@linux.ibm.com>
- L:	linux-crypto@vger.kernel.org
- S:	Maintained
-@@ -4048,14 +4048,14 @@ F:	include/crypto/ecc*
++/* This mask prevents VMAs from being mlock'd */
++#define VM_NO_MLOCK_MASK	(VM_SPECIAL | VM_DROPPABLE)
++
+ /* These flags can be updated atomically via VMA/mmap read lock. */
+ #define VM_ATOMIC_SET_ALLOWED VM_MAYBE_GUARD
  
- ASYMMETRIC KEYS - GOST
- M:	Lukas Wunner <lukas@wunner.de>
--M:	Ignat Korchagin <ignat@cloudflare.com>
-+M:	Ignat Korchagin <ignat@linux.win>
- L:	linux-crypto@vger.kernel.org
- S:	Odd fixes
- F:	crypto/ecrdsa*
+--- a/mm/mlock.c~mm-prevent-droppable-mappings-from-being-locked
++++ a/mm/mlock.c
+@@ -472,9 +472,9 @@ static int mlock_fixup(struct vma_iterat
+ 	int ret = 0;
+ 	vm_flags_t oldflags = vma->vm_flags;
  
- ASYMMETRIC KEYS - RSA
- M:	Lukas Wunner <lukas@wunner.de>
--M:	Ignat Korchagin <ignat@cloudflare.com>
-+M:	Ignat Korchagin <ignat@linux.win>
- L:	linux-crypto@vger.kernel.org
- S:	Maintained
- F:	crypto/rsa*
+-	if (newflags == oldflags || (oldflags & VM_SPECIAL) ||
++	if (newflags == oldflags || (oldflags & VM_NO_MLOCK_MASK) ||
+ 	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm) ||
+-	    vma_is_dax(vma) || vma_is_secretmem(vma) || (oldflags & VM_DROPPABLE))
++	    vma_is_dax(vma) || vma_is_secretmem(vma))
+ 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
+ 		goto out;
+ 
+--- a/mm/vma.c~mm-prevent-droppable-mappings-from-being-locked
++++ a/mm/vma.c
+@@ -2589,7 +2589,7 @@ static void __mmap_complete(struct mmap_
+ 
+ 	vm_stat_account(mm, vma->vm_flags, map->pglen);
+ 	if (vm_flags & VM_LOCKED) {
+-		if ((vm_flags & VM_SPECIAL) || vma_is_dax(vma) ||
++		if ((vm_flags & VM_NO_MLOCK_MASK) || vma_is_dax(vma) ||
+ 					is_vm_hugetlb_page(vma) ||
+ 					vma == get_gate_vma(mm))
+ 			vm_flags_clear(vma, VM_LOCKED_MASK);
 _
 
-Patches currently in -mm which might be from ignat@cloudflare.com are
+Patches currently in -mm which might be from anthony.yznaga@oracle.com are
 
-maintainers-update-email-address-for-ignat-korchagin.patch
+mm-prevent-droppable-mappings-from-being-locked-fix.patch
 
