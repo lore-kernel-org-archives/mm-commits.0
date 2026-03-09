@@ -1,135 +1,142 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B5D53939B5
-	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 10:47:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B28542367B5
+	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 17:41:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773053268; cv=none; b=iBgz+0ytz7a6ImO/05aEzBYdrjHzNNLbgI0ToyAWh10nkslaQFW3oxAlP/RmuwN7cRR8c2MZBk4l3SKBQlwL+S7H0lDyAWKzIH7iNAzFwboPG9WUtyITkhPN8htvKM1+5FXzKqlgUyeAR2feli2EMsEzhUt4erfGMeLIGXHzy/o=
+	t=1773078117; cv=none; b=IaFAW0IkwEoex0RXeiD7f0CLXtLlXIBngendzmtsG53eJ+YbYrhEMf/ihxnGsw/V20WPcB8dFHGZZ47sXtT0WVS9YyPZ1ri4AByZz4mqC+3okU7F9q7YBk7pBeg6S+iWHh83szRDoFhu4m/+4MIfFb6JOSFYGdTe9prK/sAZ8kM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773053268; c=relaxed/simple;
-	bh=dyJlDWhgWsRCO+gOiZRFkno+qqdcOrlbb349BcivbQk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=j5/QRhIYuJmmb8nsp2pPa1VH5h9/iPwGWx3e9uMMEeoPQDiXVmUBVw/E0/hg5CmUGw1b9IJ+Peqy54ZSWVxGoGn2Df442mJ+lpRRQRYINEUjgUt10rd4RqX2Veu5fMZIUKTjCXH5iHnPks+DjoXKD5M8kl9OeNVe+Ri+GN+4XD8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=hMPCmrTg; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1773078117; c=relaxed/simple;
+	bh=gwH5ssWhShHK5kMz3oMErzJY8/KMzwwk7wloZrPXZn4=;
+	h=Date:To:From:Subject:Message-Id; b=gxoQHk7XP4q/xPL4ML/rxJAvk+VFsr3mH4zXxj0QfJjshIZnwA6kRETuTFpVe9L6sFffzTx8bUe7cBlqpIYnQOLa1PgBNmUu+bQVHYHiU5aAuum2NqAEnQK56sveEdA0hN66ShV1OfdstCznuQ+2bWB0lvr+jQWfGssYDYWjtPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eBQnTsRU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="hMPCmrTg"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1773053265;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ZdZOwrPl3gvdedWKPAiRadD+I0w5wetF5I5tAZO3Dbo=;
-	b=hMPCmrTg+VuPc502PS4islPNGbAWLRwscBRsnpCCeyeAsoOVHoDFlyrrmw16xpMXXQgdWf
-	AFpq+3rVzTreM4oKPogS94tPijPa890R1lUk6POyL5pbH4AnjpE0ry3Vhy2a2vRaJLVweh
-	78UdJ8u7+LSoSvjNrHD6nypwT7b5isk=
-Received: from mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-148-iC7wUawuNbSyMSJyzcZlpA-1; Mon,
- 09 Mar 2026 06:47:39 -0400
-X-MC-Unique: iC7wUawuNbSyMSJyzcZlpA-1
-X-Mimecast-MFC-AGG-ID: iC7wUawuNbSyMSJyzcZlpA_1773053257
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id B834918005B6;
-	Mon,  9 Mar 2026 10:47:36 +0000 (UTC)
-Received: from fedora (unknown [10.45.224.43])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id A27F6180049D;
-	Mon,  9 Mar 2026 10:47:29 +0000 (UTC)
-Received: by fedora (nbSMTP-1.00) for uid 1000
-	oleg@redhat.com; Mon,  9 Mar 2026 11:47:36 +0100 (CET)
-Date: Mon, 9 Mar 2026 11:47:28 +0100
-From: Oleg Nesterov <oleg@redhat.com>
-To: Deepanshu Kartikey <kartikey406@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
-	vschneid@redhat.com, vincent.guittot@linaro.org, surenb@google.com,
-	stable@vger.kernel.org, rppt@kernel.org, rostedt@goodmis.org,
-	peterz@infradead.org, mingo@redhat.com, mhocko@suse.com,
-	mgorman@suse.de, lorenzo.stoakes@oracle.com,
-	liam.howlett@oracle.com, kees@kernel.org, juri.lelli@redhat.com,
-	dietmar.eggemann@arm.com, david@kernel.org, bsegall@google.com,
-	brauner@kernel.org
-Subject: Re: + kernel-fork-validate-exit_signal-in-clone-syscall.patch added
- to mm-nonmm-unstable branch
-Message-ID: <aa6lQIECL7dChKkI@redhat.com>
-References: <20260308213116.7E884C116C6@smtp.kernel.org>
- <aa6ZrCZoEYgsPXka@redhat.com>
- <CADhLXY6zH2A88dSDeTdsQJ77dEOPX5fkHu7PvhKL1beXGxs6Tw@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eBQnTsRU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44356C4CEF7;
+	Mon,  9 Mar 2026 17:41:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1773078117;
+	bh=gwH5ssWhShHK5kMz3oMErzJY8/KMzwwk7wloZrPXZn4=;
+	h=Date:To:From:Subject:From;
+	b=eBQnTsRU86i5Rz2tk1Du0FMpxmbwTlvAKOyk2Vo4mpDOCVOseTxwV93QoAhoU3cne
+	 cG1B5dRrMqITCxyonosJtgaCBDsNBYw7etiTV2IOiRxSbah202LHEyyg/pbQbBPs43
+	 QK6QbJ7KaT9sRpcJkl+fCFIcsexaE/tyLYgn7+N4=
+Date: Mon, 09 Mar 2026 10:41:56 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch added to mm-new branch
+Message-Id: <20260309174157.44356C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CADhLXY6zH2A88dSDeTdsQJ77dEOPX5fkHu7PvhKL1beXGxs6Tw@mail.gmail.com>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
 
-On 03/09, Deepanshu Kartikey wrote:
->
-> > Well, kernel_clone() has more users which doesn't validate .exit_signal,
-> > say sys_ia32_clone().
-> >
-> > we need to move the valid_signal() check from copy_clone_args_from_user()
-> > to kernel_clone() or copy_process()...
-> >
-> > So. This should fix my
-> >
-> >         [PATCH] do_notify_parent: sanitize the valid_signal() checks
-> >         https://lore.kernel.org/all/aZsfg0Y055yuAvsq@redhat.com/
-> >
-> > do_notify_parent-sanitize-the-valid_signal-checks.patch in -mm tree.
-> >
-> > Somehow I was very sure that copy_process() paths already have the valid_signal()
-> > check but my memory fooled me.
-> >
-> > But this is a user visible change which can cause other bug reports...
-> > Perhaps we should revert do_notify_parent-sanitize-the-valid_signal-checks.patch
-> > and this patch?
-> >
-> > Even if I think that the new valid_signal() check "fixes" the undocumented
-> > behaviour, unlikely there is a sane application which passes non-valid exit
-> > signal to sys_clone(). But who knows...
-> >
-> > Oleg.
-> >
->
-> Hi Oleg,
->
-> Thank you for the review.
->
-> You are correct that fixing only the clone() syscall is incomplete.
-> sys_ia32_clone() and other kernel_clone() callers would remain
-> unprotected. I will send a v2 with the valid_signal() check moved
-> to kernel_clone() to cover all callers.
->
-> Regarding your do_notify_parent patch — since v2 will fix the root
-> cause at kernel_clone(), your patch in the -mm tree can be dropped.
 
-Well. my patch can be dropped with or without your v2. It is just
-a cleanup and I still think it is a good cleanup...
+The patch titled
+     Subject: selftest: memcg: skip memcg_sock test if address family not supported
+has been added to the -mm mm-new branch.  Its filename is
+     selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch
 
-But without your fix it is wrong. From the changelog:
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch
 
-	The "sig" argument of do_notify_parent() must always be valid
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-this is not true because (contrary to what I thought) sys_clone doesn't
-validate exit_signal. The
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
-	WARN_ON_ONCE(!valid_signal(sig))
+The mm-new branch of mm.git is not included in linux-next
 
-added by that patch allowed to notice the problem you are trying to fix.
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
-But again, this (your patch) is a user-visible change, and I am worried
-even if I think this change is good.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Oleg.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Waiman Long <longman@redhat.com>
+Subject: selftest: memcg: skip memcg_sock test if address family not supported
+Date: Mon, 9 Mar 2026 12:02:05 -0400
+
+On systems where IPv6 isn't enabled or not configured to support
+SOCK_STREAM, the test_memcg_sock test always fails.  The purpose of the
+test_memcg_sock test is to verify that memory.stat.sock and memory.current
+values are close.  If the socket() call fails, there is no way we can test
+that.  I believe it is better to just skip the test in this case instead
+of reporting a test failure hinting that there may be something wrong with
+the memcg code.
+
+Link: https://lkml.kernel.org/r/20260309160205.651754-1-longman@redhat.com
+Fixes: 5f8f019380b8 ("selftests: cgroup/memcontrol: add basic test for socket accounting")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/testing/selftests/cgroup/test_memcontrol.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -1280,8 +1280,11 @@ static int tcp_server(const char *cgroup
+ 	saddr.sin6_port = htons(srv_args->port);
+ 
+ 	sk = socket(AF_INET6, SOCK_STREAM, 0);
+-	if (sk < 0)
++	if (sk < 0) {
++		/* Pass back errno to the ctl_fd */
++		write(ctl_fd, &errno, sizeof(errno));
+ 		return ret;
++	}
+ 
+ 	if (setsockopt(sk, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
+ 		goto cleanup;
+@@ -1414,6 +1417,9 @@ static int test_memcg_sock(const char *r
+ 
+ 		if (!err)
+ 			break;
++		if (err == EAFNOSUPPORT)
++			/* Skip if address family not supported by protocol */
++			goto skip;
+ 		if (err != EADDRINUSE)
+ 			goto cleanup;
+ 
+@@ -1460,6 +1466,9 @@ cleanup:
+ 	free(memcg);
+ 
+ 	return ret;
++skip:
++	ret = KSFT_SKIP;
++	goto cleanup;
+ }
+ 
+ /*
+_
+
+Patches currently in -mm which might be from longman@redhat.com are
+
+selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch
 
