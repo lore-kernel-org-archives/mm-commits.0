@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 667F02E0413
-	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 17:49:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94BBC28DB46
+	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 17:49:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773078595; cv=none; b=dJKodbWHNW1wSK9fVPLk6fgMNCIXDX5dVimNxX4BEpgjzy/A3OnUjZ4EsnwLoznFErL9x9Yl0sMHAngCEJfxKUF9sJYYKheFkdoxmy4OuSjatMWOABxdjMCDPoiUr3Gkp2FkfyFahWNm7XDGIZQEqbXxbs+VDYxF1IQfJXWe9o4=
+	t=1773078598; cv=none; b=nzB4E8dxMMj3i8uPQHNXcjrKm2iUooY1ViqE3VKaGQLQj4U/5HKIie0UW25hIDFKQRPDrP7hf0rTx38TFpH3XQURaGU8RYD1uJIS1FYzfMMZwqShm74E/v8KhohllyINmKu/2CyDlcmrxFAbTO6uj0ub5dISlW54jgTyU9RgKlw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773078595; c=relaxed/simple;
-	bh=WN69H9E6OXp6sVPOrzhie01/eVvp897l+HKbzZVEQfg=;
-	h=Date:To:From:Subject:Message-Id; b=o+gDmbzKZw49o07EyGz+rY6GjJgqQkw6qjTHeV9qdWcdZOaFAAbuJlMm2zGPnHPlP255aPNL8DJgIQ5yxuokPx7CP4gx8MphgZhkQORq1bzyeh3EBK12Wka2Orgtd9pAmQbO+SzkFYGDuX8S7byth9mps/8O84ob//kAAjX2+i8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yMqYKCLn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773078598; c=relaxed/simple;
+	bh=B8iprO8Kg54D29vTYwoSaLJMdTLcbc8UaU/O1HUi8oU=;
+	h=Date:To:From:Subject:Message-Id; b=i9nUFXTXinlSHduwozqNqCFPcUyZAB3stoyNtaEnA71+PfxgVenGL6Qfm4hi/ErLmOZYwiRMvxRO9KUUWRAkY6FxgYAX40mRtCYPAfgivGXnEjWojMQEgxzsbnKLVHHrbLSSiGWEACFZbKThUd7v2+ohl6ASgkLpF48/6aWBKQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uyxuc1GV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yMqYKCLn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5B3BC4CEF7;
-	Mon,  9 Mar 2026 17:49:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uyxuc1GV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E4FEC4CEF7;
+	Mon,  9 Mar 2026 17:49:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773078594;
-	bh=WN69H9E6OXp6sVPOrzhie01/eVvp897l+HKbzZVEQfg=;
+	s=korg; t=1773078598;
+	bh=B8iprO8Kg54D29vTYwoSaLJMdTLcbc8UaU/O1HUi8oU=;
 	h=Date:To:From:Subject:From;
-	b=yMqYKCLnLUcARBIMFCbdRAFVDUCsbKIyVzfJU4kIf4CW5pKqi5x6ogXm6B/nddQIz
-	 m47StKWmTH1COWlin1NhLgkHKxEoLP0jQvz6BXGLoZaMAOsxjNtMYZ/lQ1YhOr4rOn
-	 SKcjPFVF7OCe5gzghTtELqGfB/YP2iyodmxQiP9M=
-Date: Mon, 09 Mar 2026 10:49:54 -0700
+	b=uyxuc1GVHxPr3MBVo7wr1lHioiOGBGCQXSR46DjR3SbYF+qlFJ/VytY7HoR6U4Ib0
+	 Kpqv6XZh0guwzGK0rIW5om6TLGufsWtoMJ3d+VCF1Gxij2BJLeoG3/gzBdzEGZVeJk
+	 ICOwEgtcSTOPgmSlhvSfzEkg3xNalsJxW/2+lRV0=
+Date: Mon, 09 Mar 2026 10:49:57 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,pbonzini@redhat.com,osalvador@suse.de,npiggin@gmail.com,muchun.song@linux.dev,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam.howlett@oracle.com,jannh@google.com,dan.j.williams@intel.com,chleroy@kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-move-vma_kernel_pagesize-from-hugetlb-to-mmh.patch added to mm-new branch
-Message-Id: <20260309174954.D5B3BC4CEF7@smtp.kernel.org>
+Subject: + mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac.patch added to mm-new branch
+Message-Id: <20260309174958.0E4FEC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: move vma_kernel_pagesize() from hugetlb to mm.h
+     Subject: mm: move vma_mmu_pagesize() from hugetlb to vma.c
 has been added to the -mm mm-new branch.  Its filename is
-     mm-move-vma_kernel_pagesize-from-hugetlb-to-mmh.patch
+     mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-vma_kernel_pagesize-from-hugetlb-to-mmh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,60 +70,27 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm: move vma_kernel_pagesize() from hugetlb to mm.h
-Date: Mon, 9 Mar 2026 16:18:58 +0100
+Subject: mm: move vma_mmu_pagesize() from hugetlb to vma.c
+Date: Mon, 9 Mar 2026 16:18:59 +0100
 
-Patch series "mm: move vma_(kernel|mmu)_pagesize() out of hugetlb.c", v2.
+vma_mmu_pagesize() is also queried on non-hugetlb VMAs and does not really
+belong into hugetlb.c.
 
-Looking into vma_(kernel|mmu)_pagesize(), I realized that there is one
-scenario where DAX would not do the right thing when the kernel is not
-compiled with hugetlb support.
+PPC64 provides a custom overwrite with CONFIG_HUGETLB_PAGE, see
+arch/powerpc/mm/book3s64/slice.c, so we cannot easily make this a static
+inline function.
 
-Without hugetlb support, vma_(kernel|mmu)_pagesize() will always return
-PAGE_SIZE instead of using the ->pagesize() result provided by dax-device
-code.
+So let's move it to vma.c and add some proper kerneldoc.
 
-Fix that by moving vma_kernel_pagesize() to core MM code, where it
-belongs.  I don't think this is stable material, but am not 100% sure.
+To make vma tests happy, add a simple vma_kernel_pagesize() stub in
+tools/testing/vma/include/custom.h.
 
-Also, move vma_mmu_pagesize() while at it.  Remove the unnecessary
-hugetlb.h inclusion from KVM code.
-
-
-This patch (of 4):
-
-In the past, only hugetlb had special "vma_kernel_pagesize()"
-requirements, so it provided its own implementation.
-
-In commit 05ea88608d4e ("mm, hugetlbfs: introduce ->pagesize() to
-vm_operations_struct") we generalized that approach by providing a
-vm_ops->pagesize() callback to be used by device-dax.
-
-Once device-dax started using that callback in commit c1d53b92b95c
-("device-dax: implement ->pagesize() for smaps to report MMUPageSize") it
-was missed that CONFIG_DEV_DAX does not depend on hugetlb support.
-
-So building a kernel with CONFIG_DEV_DAX but without CONFIG_HUGETLBFS
-would not pick up that value.
-
-Fix it by moving vma_kernel_pagesize() to mm.h, providing only a single
-implementation.  While at it, improve the kerneldoc a bit.
-
-Ideally, we'd move vma_mmu_pagesize() as well to the header.  However, its
-__weak symbol might be overwritten by a PPC variant in hugetlb code.  So
-let's leave it in there for now, as it really only matters for some
-hugetlb oddities.
-
-This was found by code inspection.
-
-Link: https://lkml.kernel.org/r/20260309151901.123947-1-david@kernel.org
-Link: https://lkml.kernel.org/r/20260309151901.123947-2-david@kernel.org
-Fixes: c1d53b92b95c ("device-dax: implement ->pagesize() for smaps to report MMUPageSize")
+Link: https://lkml.kernel.org/r/20260309151901.123947-3-david@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
@@ -138,89 +105,105 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    7 -------
- include/linux/mm.h      |   20 ++++++++++++++++++++
- mm/hugetlb.c            |   17 -----------------
- 3 files changed, 20 insertions(+), 24 deletions(-)
+ include/linux/hugetlb.h            |    7 -------
+ include/linux/mm.h                 |    2 ++
+ mm/hugetlb.c                       |   11 -----------
+ mm/vma.c                           |   21 +++++++++++++++++++++
+ tools/testing/vma/include/custom.h |    5 +++++
+ 5 files changed, 28 insertions(+), 18 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-move-vma_kernel_pagesize-from-hugetlb-to-mmh
+--- a/include/linux/hugetlb.h~mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac
 +++ a/include/linux/hugetlb.h
 @@ -777,8 +777,6 @@ static inline unsigned long huge_page_si
  	return (unsigned long)PAGE_SIZE << h->order;
  }
  
--extern unsigned long vma_kernel_pagesize(struct vm_area_struct *vma);
+-extern unsigned long vma_mmu_pagesize(struct vm_area_struct *vma);
 -
- extern unsigned long vma_mmu_pagesize(struct vm_area_struct *vma);
- 
  static inline unsigned long huge_page_mask(struct hstate *h)
-@@ -1188,11 +1186,6 @@ static inline unsigned long huge_page_ma
+ {
+ 	return h->mask;
+@@ -1186,11 +1184,6 @@ static inline unsigned long huge_page_ma
  	return PAGE_MASK;
  }
  
--static inline unsigned long vma_kernel_pagesize(struct vm_area_struct *vma)
+-static inline unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
 -{
 -	return PAGE_SIZE;
 -}
 -
- static inline unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
+ static inline unsigned int huge_page_order(struct hstate *h)
  {
- 	return PAGE_SIZE;
---- a/include/linux/mm.h~mm-move-vma_kernel_pagesize-from-hugetlb-to-mmh
+ 	return 0;
+--- a/include/linux/mm.h~mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac
 +++ a/include/linux/mm.h
-@@ -1359,6 +1359,26 @@ static inline bool vma_is_shared_maywrit
- 	return is_shared_maywrite(&vma->flags);
+@@ -1379,6 +1379,8 @@ static inline unsigned long vma_kernel_p
+ 	return PAGE_SIZE;
  }
  
-+/**
-+ * vma_kernel_pagesize - Default page size granularity for this VMA.
-+ * @vma: The user mapping.
-+ *
-+ * The kernel page size specifies in which granularity VMA modifications
-+ * can be performed. Folios in this VMA will be aligned to, and at least
-+ * the size of the number of bytes returned by this function.
-+ *
-+ * The default kernel page size is not affected by Transparent Huge Pages
-+ * being in effect.
-+ *
-+ * Return: The default page size granularity for this VMA.
-+ */
-+static inline unsigned long vma_kernel_pagesize(struct vm_area_struct *vma)
-+{
-+	if (unlikely(vma->vm_ops && vma->vm_ops->pagesize))
-+		return vma->vm_ops->pagesize(vma);
-+	return PAGE_SIZE;
-+}
++unsigned long vma_mmu_pagesize(struct vm_area_struct *vma);
 +
  static inline
  struct vm_area_struct *vma_find(struct vma_iterator *vmi, unsigned long max)
  {
---- a/mm/hugetlb.c~mm-move-vma_kernel_pagesize-from-hugetlb-to-mmh
+--- a/mm/hugetlb.c~mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac
 +++ a/mm/hugetlb.c
-@@ -1006,23 +1006,6 @@ static long region_count(struct resv_map
- 	return chg;
+@@ -1007,17 +1007,6 @@ static long region_count(struct resv_map
  }
  
--/**
-- * vma_kernel_pagesize - Page size granularity for this VMA.
-- * @vma: The user mapping.
-- *
-- * Folios in this VMA will be aligned to, and at least the size of the
-- * number of bytes returned by this function.
-- *
-- * Return: The default size of the folios allocated when backing a VMA.
-- */
--unsigned long vma_kernel_pagesize(struct vm_area_struct *vma)
--{
--	if (vma->vm_ops && vma->vm_ops->pagesize)
--		return vma->vm_ops->pagesize(vma);
--	return PAGE_SIZE;
--}
--EXPORT_SYMBOL_GPL(vma_kernel_pagesize);
--
  /*
-  * Return the page size being used by the MMU to back a VMA. In the majority
-  * of cases, the page size used by the kernel matches the MMU size. On
+- * Return the page size being used by the MMU to back a VMA. In the majority
+- * of cases, the page size used by the kernel matches the MMU size. On
+- * architectures where it differs, an architecture-specific 'strong'
+- * version of this symbol is required.
+- */
+-__weak unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
+-{
+-	return vma_kernel_pagesize(vma);
+-}
+-
+-/*
+  * Flags for MAP_PRIVATE reservations.  These are stored in the bottom
+  * bits of the reservation map pointer, which are always clear due to
+  * alignment.
+--- a/mm/vma.c~mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac
++++ a/mm/vma.c
+@@ -3300,3 +3300,24 @@ int insert_vm_struct(struct mm_struct *m
+ 
+ 	return 0;
+ }
++
++/**
++ * vma_mmu_pagesize - Default MMU page size granularity for this VMA.
++ * @vma: The user mapping.
++ *
++ * In the common case, the default page size used by the MMU matches the
++ * default page size used by the kernel (see vma_kernel_pagesize()). On
++ * architectures where it differs, an architecture-specific 'strong' version
++ * of this symbol is required.
++ *
++ * The default MMU page size is not affected by Transparent Huge Pages
++ * being in effect, or any usage of larger MMU page sizes (either through
++ * architectural huge-page mappings or other explicit/implicit coalescing of
++ * virtual ranges performed by the MMU).
++ *
++ * Return: The default MMU page size granularity for this VMA.
++ */
++__weak unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
++{
++	return vma_kernel_pagesize(vma);
++}
+--- a/tools/testing/vma/include/custom.h~mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac
++++ a/tools/testing/vma/include/custom.h
+@@ -118,3 +118,8 @@ static __always_inline vma_flags_t __mk_
+ 			vma_flags_set_flag(&flags, bits[i]);
+ 	return flags;
+ }
++
++static inline unsigned long vma_kernel_pagesize(struct vm_area_struct *vma)
++{
++	return PAGE_SIZE;
++}
 _
 
 Patches currently in -mm which might be from david@kernel.org are
