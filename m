@@ -1,131 +1,124 @@
-Received: from mail-wr1-f54.google.com (mail-wr1-f54.google.com [209.85.221.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B48B8321445
-	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 21:47:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C607D345758;
+	Mon,  9 Mar 2026 23:38:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773092874; cv=none; b=tooGacmEzCaygOHATaFvr26IBFt3NgcfsbNzXnPzQa056omDgpkOuEqpFL5KkeRhPbu8XroGynhqJqxtu3FXXgAPqmi9+7G6RMzwkmFUG6iVBodpnpNc71alssNICJbO1v+wqdIDtr6eOw71IOZ6GTT6KZjDcBxomc5DuCu9/JA=
+	t=1773099527; cv=none; b=Ze/jw9OPsyolHfefb0INyNBgkEV3UrTRnIPAmMglppiRvPBnyg+2ghfPqklv4MpI0On0Ma7r2DLRqRU9MaRogWpt6lM1sGjnXbhjjSP60wZLBD4lU6B+pbS/PcZQ8PAZcXXxYAV4p9xUFqaoj0NvZU4f8fgTkzQX+zrCQj/c+LY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773092874; c=relaxed/simple;
-	bh=fYVhR0T5JlIvKWHDRMcHnHaiW+1ektBeyGYt5+/MXaM=;
-	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 MIME-Version:Content-Type; b=dMdc96t5b3EtYlZ5mPYqgoCceq8WqS2+YV2c1H5oWcZ3o3bxBu8PC5IDa+vmFVrcpmZO+IWYXVRzpShCYTRzl9cY7vT9Em2hmtShNO3LZkIO246or9MI4ohGd8rY5JwEzXk48HXDb9b04puou5JMsAHuMVJ8ELvEKAKBQhOz4fI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=JHb+sN7d; arc=none smtp.client-ip=209.85.221.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1773099527; c=relaxed/simple;
+	bh=FykBWcFe23lE0fFQ+0Q1RwNiAvy8eDPcpckP4pBtT7Q=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=PRllY5Rr9Y+F3+S6ry00BLdI3x9EzCtsgTPQMRsVUopJ53kIqjR21dYl/Np9C3265rTYfcPUhCVIDvQLW4gc21JX2kI/VbCfmlI2taM8gW8MQ8xhnHwuu0BRoAHU27eirZhEU+melZrmq8Y9HhQBWMRL8k6fpFostiJnL2LesT8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ctBzW0Pn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JHb+sN7d"
-Received: by mail-wr1-f54.google.com with SMTP id ffacd0b85a97d-439b97a8a8cso8126630f8f.1
-        for <mm-commits@vger.kernel.org>; Mon, 09 Mar 2026 14:47:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773092871; x=1773697671; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:subject:references
-         :in-reply-to:message-id:cc:to:from:date:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=fYVhR0T5JlIvKWHDRMcHnHaiW+1ektBeyGYt5+/MXaM=;
-        b=JHb+sN7duUXpETdB00UVrDhHrPQwVFcoyq93wrwf5/9Rq1EtZiMrO1bv97E9OfqCl5
-         bB4eUpTxMLkY+nStZkn3s1eB4Ctw8vo8SxtzjpwkteB76rek0tT4gIE1rdozYqjG9q8c
-         /mF2fDwhI6sDSBjgo+R93YWlqhlMn0GDuNLDXM8vux3pKHdjr24enpSJWojvXn1Wn8Od
-         fo9q8NFuXkMFqTNK9gH0HMXLKNvvjxrowbV87gOurc3mqxdkrL6899uvxdsGQW6Jsv7f
-         gSThyseQlym2PWWICOAgc3lMMd/8n408CSujdPtBqd1S9d0t7sIP/e/bl5/QECnQLkjq
-         N4WA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773092871; x=1773697671;
-        h=content-transfer-encoding:mime-version:subject:references
-         :in-reply-to:message-id:cc:to:from:date:x-gm-gg:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=fYVhR0T5JlIvKWHDRMcHnHaiW+1ektBeyGYt5+/MXaM=;
-        b=vflYwgCNMKtL+pPo3U1zBabH7FKz+b/lknEk+iJUfWLz7+wB5qUs8MUql23YivK2nw
-         XFbMI9h3Btuzznuw0AEU4+Z0gzFGifRkQeD1Evqpm+TVpBgoGhM2ska45qT8Qnro4MU8
-         xe9l+1yd34nsnkOgeSWqOlUZ74HnJBQ8Ji/n1OBqpQ6kM55fprDm25x+soRsCcpMR2kP
-         bxaS2XwNChAEyd1/jSYj4Wb6IGB77kx4pqddZhyKrxWYF+HKrLkhcaV5WZg/PcEqyPOc
-         4Ii37xURcBuF4rT34jOlBfBfcVZwnMIFao6U7mBc4klHqChXaDu6VIkvZhwozLodYADT
-         +M5g==
-X-Gm-Message-State: AOJu0YyGT/kbgPl1dwTyeTVPG8ER7pIbsG1xAi8fmhGoP2ea+UZVf09i
-	fAMlr4OYEgoR0JI363hA+MwVGwRyawJlc6Ppt9GnGfvyomxcC8tNAd87zmTF/yz/8H4pgw==
-X-Gm-Gg: ATEYQzyOS9U3dWCOudj+O9pxhUTlFRlTP2jZjz/Udz4dyKpaG3DEpcFTaT7ShLyUTbZ
-	aqDPhZ7CSop3I6EHkth233AIGaTuKcROBUzZOIx4JoDtRpFhQJQn88RQ4daHHOwWC7nulH16tqR
-	zZDXqCIfkGklxkOecw158QRt/TYk5m7sVwQQkGuFwwk18UTgIhhPEtlD/tZMkzjRV+SlL1C+sQO
-	vQZ2axpNOTU18FPbkfBYpmBuwzO7sLVCL+xyzgyQMh9Wg/NfpnQ7uUDZfJu9PIEZVWLwQh5ZtEp
-	WF9G6ELL9nr9CpLMiwWuxH0OJoxv4hu5B7BoxmPd0cbnw+w2cbIA17UPeTb1VC0jFS9DQ/Q1MwW
-	u2tcP/kAghE1ZqPUK6VXNlMfC80CEQ7Vd6ChzegEtYQPZlpx5yJJGUHm3pXI2TvbbQKmUGzaqDb
-	gygiupjtY6Fwy3xQFA
-X-Received: by 2002:a05:6000:26cc:b0:439:bc31:a056 with SMTP id ffacd0b85a97d-439da8a6cbdmr24391618f8f.51.1773092870833;
-        Mon, 09 Mar 2026 14:47:50 -0700 (PDT)
-Received: from [127.0.0.1] ([86.1.69.5])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-439dad8d95dsm32638525f8f.7.2026.03.09.14.47.50
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 09 Mar 2026 14:47:50 -0700 (PDT)
-Date: Mon, 9 Mar 2026 21:47:51 +0000
-From: Josh Law <hlcj1234567@gmail.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, objecting@objecting.org
-Message-ID: <ed6f028e-b8f7-45f2-bb04-c5195c629b69@gmail.com>
-In-Reply-To: <5629bf19-9f07-45da-b32d-534f8e7dc80c@gmail.com>
-References: <20260309202433.1ED14C4CEF7@smtp.kernel.org> <2583e57b-fb3e-4e43-9d93-a3db4c816c11@gmail.com> <20260309134310.6036ef100f81a943f0fe6e2b@linux-foundation.org> <b1324259-8cad-4fef-94b9-2a72ac5e54f4@gmail.com> <5629bf19-9f07-45da-b32d-534f8e7dc80c@gmail.com>
-Subject: Re: +
- lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation.patch added
- to mm-nonmm-unstable branch
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ctBzW0Pn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20BAFC4CEF7;
+	Mon,  9 Mar 2026 23:38:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1773099527;
+	bh=FykBWcFe23lE0fFQ+0Q1RwNiAvy8eDPcpckP4pBtT7Q=;
+	h=Date:From:To:Cc:Subject:From;
+	b=ctBzW0PnltS9HVS48yHYDmydDQQY2lN9rew4C6+WJnP8JqzF23lLjJPF/T59cadw8
+	 R2wkZ7Z3CxU6Jp8kG7sdFgBvYwUHn/0aFA1SkJsuTgGMXBAPmEQ0eeDr3aBCE/3TEB
+	 E9nQJEzqOHrNLKHvogIjOtMNgs6PxyM3lOpghi6s=
+Date: Mon, 9 Mar 2026 16:38:46 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Linus Torvalds <torvalds@linuxfoundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 7.0-rc4
+Message-Id: <20260309163846.f59b3518cba71b9587576e7f@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-X-Correlation-ID: <ed6f028e-b8f7-45f2-bb04-c5195c629b69@gmail.com>
-
-9 Mar 2026 20:54:29 Josh Law <hlcj1234567@gmail.com>:
-
-> 9 Mar 2026 20:45:45 Josh Law <hlcj1234567@gmail.com>:
->
->> 9 Mar 2026 20:43:11 Andrew Morton <akpm@linux-foundation.org>:
->>
->>> On Mon, 9 Mar 2026 20:35:07 +0000 Josh Law <hlcj1234567@gmail.com> wrot=
-e:
->>>
->>>> Do you think these patches require Cc: stable?
->>>> Idk the severity of the bug to you, the swapped arguments got Cc stabl=
-e,=C2=A0 overflow could cause some screwy bugs
->>>
->>> Probably not - is there any reason to believe any callers will hit this=
-?
->>
->> I=E2=80=99ve been looking at the callers. While most are in-kernel const=
-ants, xt_string in Netfilter allows for dynamic patterns. Even if it's curr=
-ently mitigated elsewhere, hardening the allocation logic in ts_bm and ts_k=
-mp feels like a 'must-have' for stable trees to prevent future heap overflo=
-w vectors. Basically... Better safe than sorry!
->>
->>
->> V/R
->>
->>
->>
->> Josh law
->
-> Yeah, I now think Cc: stable is a need for both of the overflows, I am th=
-inking about that 32 bit shift aswell, but that probably won't need it
-
-Cc: <stable@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
 
-These patches (ts_bm and ts_kmp) fix a potential heap overflow. The pattern=
- length calculation can wrap during a size_t addition, leading to an unders=
-ized allocation. Because the textsearch library is reachable from userspace=
- via Netfilter's xt_string module, this is a security risk that should be b=
-ackported to LTS kernels.
+Linus, please merge this batch of hotfixes, thanks.
 
 
 
-V/R
+The following changes since commit 410aed670cddac1de4f0c2865f30ec623fd20f78:
 
+  MAINTAINERS: update Yosry Ahmed's email address (2026-02-24 11:13:28 -0800)
 
+are available in the Git repository at:
 
-Josh law
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-03-09-16-36
 
+for you to fetch changes up to b12bbe35c7c1e431f2fa01fe9291daa52fb7ab43:
 
-(This is my final input :D)
+  MAINTAINERS, mailmap: update email address for Lorenzo Stoakes (2026-03-04 10:06:40 -0800)
+
+----------------------------------------------------------------
+15 hotfixes.  6 are cc:stable.  14 are for MM.
+
+Singletons, with one doubleton - please see the changelogs for details.
+
+----------------------------------------------------------------
+Axel Rasmussen (1):
+      Revert "ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()"
+
+Hao Li (1):
+      memcg: fix slab accounting in refill_obj_stock() trylock path
+
+Jason Xing (1):
+      MAINTAINERS: add RELAY entry
+
+Lorenzo Stoakes (Oracle) (1):
+      MAINTAINERS, mailmap: update email address for Lorenzo Stoakes
+
+Mike Rapoport (Microsoft) (1):
+      tools/testing: fix testing/vma and testing/radix-tree build
+
+Pratyush Yadav (Google) (2):
+      mm: memfd_luo: always make all folios uptodate
+      mm: memfd_luo: always dirty all folios
+
+Randy Dunlap (2):
+      uaccess: correct kernel-doc parameter format
+      mm/mmu_notifier: clean up mmu_notifier.h kernel-doc
+
+Raul Pazemecxas De Andrade (1):
+      mm/damon/core: clear walk_control on inactive context in damos_walk()
+
+Ritesh Harjani (IBM) (1):
+      mm/hugetlb.c: use __pa() instead of virt_to_phys() in early bootmem alloc code
+
+Sergey Senozhatsky (1):
+      zram: rename writeback_compressed device attr
+
+Vlastimil Babka (SUSE) (1):
+      MAINTAINERS: add co-maintainer and reviewer for SLAB ALLOCATOR
+
+Zi Yan (2):
+      mm/cma: move put_page_testzero() out of VM_WARN_ON in cma_release()
+      mm/huge_memory: fix a folio_split() race condition with folio_try_get()
+
+ .mailmap                                    |  3 +-
+ Documentation/ABI/testing/sysfs-block-zram  |  4 +--
+ Documentation/admin-guide/blockdev/zram.rst |  6 ++--
+ MAINTAINERS                                 | 33 ++++++++++++-------
+ drivers/block/zram/zram_drv.c               | 24 +++++++-------
+ drivers/block/zram/zram_drv.h               |  2 +-
+ include/linux/mm.h                          | 17 ++++------
+ include/linux/mmu_notifier.h                | 31 +++++++++---------
+ include/linux/uaccess.h                     |  4 +--
+ mm/cma.c                                    |  5 ++-
+ mm/damon/core.c                             |  7 ++++-
+ mm/huge_memory.c                            | 13 +++++---
+ mm/hugetlb.c                                |  4 +--
+ mm/memcontrol.c                             |  2 +-
+ mm/memfd_luo.c                              | 49 +++++++++++++++++++++++++----
+ tools/include/linux/gfp.h                   |  4 +++
+ tools/include/linux/overflow.h              | 19 +++++++++++
+ tools/include/linux/slab.h                  |  9 ++++++
+ 18 files changed, 163 insertions(+), 73 deletions(-)
+
