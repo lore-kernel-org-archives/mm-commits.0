@@ -1,72 +1,72 @@
-Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
+Received: from mail-wr1-f48.google.com (mail-wr1-f48.google.com [209.85.221.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08B3E36A008
-	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 20:27:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D07B0258EFF
+	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 20:35:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773088053; cv=none; b=X8GDt7pIM3OrVTSYRkD8g1zYOf4qqjRIOA9jmnwRWNSo4e+k1331ejyjKw9OpCG4t1wj4g1I0SzqGUERXkazBrqUHravg2ytOROZi5uEawTFxlnXD2qvDSAXa9DTz5uGApvDgX+TZP3fjn8wJFbef81UabdISJgqXddX4jdlOqM=
+	t=1773088510; cv=none; b=eLVLlai100fpfiZ/AAiFl9lbtaNU5/VmPvGYb3YPDwD19jIc1o8mci4Kd2BhL+PN/DGY2VQQcZRKMELxkiMLpgCpoNeguhHaMpa4nmzFaFRt0ega8aK38txsJiCGssOQsVlITPHFK1hjwweyHGdY4uAUTc0UUNwCp8koS0VnSV0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773088053; c=relaxed/simple;
-	bh=AE/a4wroBZeq3Vn1aXe3fXKTSTzU3iXt4vjn5Dyiar8=;
+	s=arc-20240116; t=1773088510; c=relaxed/simple;
+	bh=1IXWQuHyAAqrYkG295KJoPeXz93gGS8v+qjLKA52VF8=;
 	h=Date:From:To:Cc:Message-ID:In-Reply-To:References:Subject:
-	 MIME-Version:Content-Type; b=HtHRooNEiZm8QsjhTRP9mYsfP3ByfJlyfR4wcR5f97wzUMv1rZGRv3BHbDLPGiFcpx1IzDRuk9wARnTQtVMEBVX9eiH1seI/lJ79q0WgGZBw/oYXOWr1wr3j2Eng1FbQJB6GSwnh1ewNhpihYmn7ENAacXfLi04c6cL47NKUPIA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ePHpU4tQ; arc=none smtp.client-ip=209.85.128.51
+	 MIME-Version:Content-Type; b=ewOSWfKR6bLpjyTqBW15OdFE3JvDdHrCSpp9LStWtsUYKxTWenmUs7rh30GHYGtLWvfmxLpdeBeC3zmbwpxTEuYddpL6PnOfXqBEyc1KYZgMTwxelU76RiFNCTQlCfel5OKN9L2IZGQEknzI17Ygs9W4E1F7oE7NroCYBEA43yk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=H36akbOK; arc=none smtp.client-ip=209.85.221.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ePHpU4tQ"
-Received: by mail-wm1-f51.google.com with SMTP id 5b1f17b1804b1-4853c1ca73aso11171815e9.2
-        for <mm-commits@vger.kernel.org>; Mon, 09 Mar 2026 13:27:31 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="H36akbOK"
+Received: by mail-wr1-f48.google.com with SMTP id ffacd0b85a97d-439b790af67so5046751f8f.0
+        for <mm-commits@vger.kernel.org>; Mon, 09 Mar 2026 13:35:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1773088050; x=1773692850; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1773088507; x=1773693307; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:subject:references
          :in-reply-to:message-id:cc:to:from:date:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=AE/a4wroBZeq3Vn1aXe3fXKTSTzU3iXt4vjn5Dyiar8=;
-        b=ePHpU4tQXMu5SwWMBKfYBhavMDd0amlXChVpenyrGJsbleeoBfzX0tXL6Tq/6AshJf
-         ylJOcVv6Jk/aYmdypRgQxrFp38UAFXAimv0nfawknBEnbOgBSZtFtSiU7MQ+TL9py6Lf
-         PHu07BB0KRhDY4H4e2qvge3r8Dt7siNpumWJ75AZZtSGoqnNjmPTOC8m15++DAXIYe3i
-         +fKlPxSZb5hHl2sMdUMm+trOhFvGyyd1ZX1M7HP9akKL7qkia0Jihq5kJ6kufXVlTJQi
-         gUCv0GjP+q7O7yohQn/PZOR2aH6nOhOwu4byTajzvL7R0ymFXd3dOhP2FZ5FHnI+5qfm
-         4gmg==
+        bh=1IXWQuHyAAqrYkG295KJoPeXz93gGS8v+qjLKA52VF8=;
+        b=H36akbOKttgykX1aVZSYg5LS+k95Kk3R98xd2Aw+831XzNImRS393yP/liEgNxh7oC
+         JC5ghx0z4wIYcF5+sa3+uATR7DBxvo1k5vaXjzhKZwfpX4SWj/9IvOg9iDlyPZz/va2V
+         9kxzmH7WzrO/71BrCDdFyXYGwEmxYMZaJamGSOUyN002InGy8lrdipeGNM0JEoX6VBjI
+         uRSZ3AnRm8mPpz3Xd9e47nYp4fnEC52rfnlcUs8WFgULOgLJVkq0qm3sL5sgxRwIOpMM
+         pTSwDXvcIXX06hTbKGSxis96BxAHdRte86Rovs/RfV70kma6tpEcw8A1dGqODMQTHJll
+         p+EQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1773088050; x=1773692850;
+        d=1e100.net; s=20230601; t=1773088507; x=1773693307;
         h=content-transfer-encoding:mime-version:subject:references
          :in-reply-to:message-id:cc:to:from:date:x-gm-gg:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=AE/a4wroBZeq3Vn1aXe3fXKTSTzU3iXt4vjn5Dyiar8=;
-        b=Jxz1p/gs1aVnKhu2j+UH8CktFRBsUukZbRUxlFXQv6ZkNMXDrKIVWmAARRekEli2CJ
-         6pi1+yqgTVBBfUwPolHNX3iwxjhxF7sl70XNSjWpaC8s+5sP4eqzUXNNoOvl4hOutaQT
-         zltBWo8E72P5C+zEj2OyB6aNKfm/sUxje8ElxraDPjZtcJNFyhsr/+CnrmxdxnOLA1/F
-         OojLZcMKHLACjTK6ctsCaiARJz1mg3V8PNA1dc07KK5ik8u0YrgTSLdkXXijX/bswCr/
-         yMpu2WycabRDOU87WjXJ8CxN4qUDnf8Xsa1G/DreD6EJRGWc8MiWSYDsJ30RkOw691Pl
-         aT/Q==
-X-Gm-Message-State: AOJu0YxYWgyu0kxPkFnCjDnk53S1gNR54eXjNxolnOHzSrJdbA/HXBxO
-	0FNgnLWPrpLHchwYd+rBLZE7g1Qy59tYV9e8yyD+/Cg0/dYJuylkD1g6+1gbyUDYOcoTyw==
-X-Gm-Gg: ATEYQzygN+g6yYkkkJwl7YIz47xE7sqi+xjyquwIMUQWVtTRxjj/LzDGeshE+TEHZt8
-	gqvg0sgawryyWwxuMQd7tO0ODUWfcQ61zB4PikQYFQZaZ8FPp937tohfW/NIvaLJBd7p6P0MgL8
-	bPibT6l62q/9WlThvY8Vqif/zYqPRNSDTcvO+t957tk+F1zJyPBeP3KtTnfl2bwisbJohIKU1Kx
-	uRFsJc2rVLuquuy/mBx8MBV/8v+UoUb/aGlSHwViCONHFshok1GDneBc0d4XYGCnVu40f9D4hWC
-	ToxmC6GlJtmgHfhjSl+Fk/mM0p1hxp46nGugQ/R5g98lp/HiLO7ydEXwpZmjIsv8Pq1nHLeIoU0
-	dGuF1nRBmkyG1xSu1Punbczjtn2IsdLXZ3z1oUrfLsxx07fWgOpa8yf8Go+MF2U4gaKfJwoy6Y8
-	YBCdoTtQaYOaFow+ro
-X-Received: by 2002:a05:600c:138a:b0:47e:e076:c7a5 with SMTP id 5b1f17b1804b1-4852691cf3amr235490845e9.11.1773088049995;
-        Mon, 09 Mar 2026 13:27:29 -0700 (PDT)
+        bh=1IXWQuHyAAqrYkG295KJoPeXz93gGS8v+qjLKA52VF8=;
+        b=XmFq2DlO2hyruQ1aMKSHDtc36g6Vwdvt7snMfKd3+gxm6xG6AmzQJB6QZYaOuPk92Q
+         QIwiqkvLLmi35umQSR2CWOWPtGUBDB2o2bXt3VUC/eTne+1ammd3BqGm93qC7nVluqDu
+         cxhYrBm0BCH75zjpRHtuurUnAZCPgVwlJEqR4JN2miL1dKcarL3T242F4yggcBEF7T7z
+         yjZ+rFOPUGh9DmZYWld41sTJOvu/0JXcTQO2VmptTPYOCGLEUfIrcnhhUFHGIRT3Nj6i
+         Ytmw93w0Wmo2BcA5kg6zC2awUjrs0IoZ2qqwmCk5bwGN3QNSdpKh5MseC+eDkJlGtSxM
+         v2fA==
+X-Gm-Message-State: AOJu0Yw09MSm4qUrZb4GfGJkMpiD/TOn3Dl6+nkR9OaWBGFeIMTB3TXe
+	cUJSXVIDzj3g4OeRBbQ/figitX5YopZfoc9UKT08lYGtiN+/FnZulpfE
+X-Gm-Gg: ATEYQzySh8mhWc+y20W3nhpQWL6u2dS9cchWMlyoirXOvdeT5S7shOcBu8UkH9Ud1NO
+	3RCBOVA2LNY+yyFN9l5wxOmRzSwBLqX2NfQ76A1wGxGkJx8vJYHT+YBM3+9aMdn9o/VtkjN6olG
+	P5WhoTSyBRW0RJapQ8cLFbp2tCWlQJcxcFIx6ATCU3hl0r/jd6BnMSbngHI4vGnkn0OjSOZTBx3
+	QU/PVPD4eufX5llTdxg3WU07GT5Hvk9vWyQ955o1rqEoMRksnmxEurHSDyyJROIuQGfpgM+KVUg
+	WF0oh+gTp/8Vqov73CD6oCiw1wo2ws8aqIRI/KnlMWAXceBXYyKJAPTKd9NGdkSCt8ni+dbseGL
+	dmT3QG6jgDRCLBuMpkFNySvnXgUptsvmg88Oeb2jt+xOlowi2E2CSqyNCCTInuiIE36zZ2dRWhC
+	1l2zjViy89RK33XGqm
+X-Received: by 2002:a5d:5f82:0:b0:439:ddc0:4bef with SMTP id ffacd0b85a97d-439eff2fbd3mr1832560f8f.8.1773088506852;
+        Mon, 09 Mar 2026 13:35:06 -0700 (PDT)
 Received: from [127.0.0.1] ([86.1.69.5])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-48541b8d4easm16659785e9.15.2026.03.09.13.27.29
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-439dae46353sm34177466f8f.33.2026.03.09.13.35.06
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 09 Mar 2026 13:27:29 -0700 (PDT)
-Date: Mon, 9 Mar 2026 20:27:29 +0000
+        Mon, 09 Mar 2026 13:35:06 -0700 (PDT)
+Date: Mon, 9 Mar 2026 20:35:07 +0000
 From: Josh Law <hlcj1234567@gmail.com>
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: mm-commits@vger.kernel.org, objecting@objecting.org
-Message-ID: <58cace1f-394f-43dd-ac9a-40335f5961ae@gmail.com>
-In-Reply-To: <20260309202431.DBE90C4CEF7@smtp.kernel.org>
-References: <20260309202431.DBE90C4CEF7@smtp.kernel.org>
+Message-ID: <2583e57b-fb3e-4e43-9d93-a3db4c816c11@gmail.com>
+In-Reply-To: <20260309202433.1ED14C4CEF7@smtp.kernel.org>
+References: <20260309202433.1ED14C4CEF7@smtp.kernel.org>
 Subject: Re: +
- lib-ts_bm-fix-integer-overflow-in-pattern-length-calculation.patch added to
- mm-nonmm-unstable branch
+ lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation.patch added
+ to mm-nonmm-unstable branch
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -75,22 +75,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
-X-Correlation-ID: <58cace1f-394f-43dd-ac9a-40335f5961ae@gmail.com>
+X-Correlation-ID: <2583e57b-fb3e-4e43-9d93-a3db4c816c11@gmail.com>
 
-9 Mar 2026 20:24:34 Andrew Morton <akpm@linux-foundation.org>:
+9 Mar 2026 20:24:36 Andrew Morton <akpm@linux-foundation.org>:
 
 >
 > The patch titled
-> =C2=A0=C2=A0=C2=A0=C2=A0 Subject: lib/ts_bm: fix integer overflow in patt=
-ern length calculation
+> =C2=A0=C2=A0=C2=A0=C2=A0 Subject: lib/ts_kmp: fix integer overflow in pat=
+tern length calculation
 > has been added to the -mm mm-nonmm-unstable branch.=C2=A0 Its filename is
-> =C2=A0=C2=A0=C2=A0=C2=A0 lib-ts_bm-fix-integer-overflow-in-pattern-length=
--calculation.patch
+> =C2=A0=C2=A0=C2=A0=C2=A0 lib-ts_kmp-fix-integer-overflow-in-pattern-lengt=
+h-calculation.patch
 >
 > This patch will shortly appear at
 > =C2=A0=C2=A0=C2=A0=C2=A0 https://git.kernel.org/pub/scm/linux/kernel/git/=
-akpm/25-new.git/tree/patches/lib-ts_bm-fix-integer-overflow-in-pattern-leng=
-th-calculation.patch
+akpm/25-new.git/tree/patches/lib-ts_kmp-fix-integer-overflow-in-pattern-len=
+gth-calculation.patch
 >
 > This patch will later appear in the mm-nonmm-unstable branch at
 > =C2=A0=C2=A0=C2=A0 git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -112,55 +112,56 @@ ng your code ***
 >
 > ------------------------------------------------------
 > From: Josh Law <objecting@objecting.org>
-> Subject: lib/ts_bm: fix integer overflow in pattern length calculation
-> Date: Sun, 8 Mar 2026 20:20:27 +0000
+> Subject: lib/ts_kmp: fix integer overflow in pattern length calculation
+> Date: Sun, 8 Mar 2026 20:20:28 +0000
 >
-> The ts_bm algorithm stores its good_shift[] table and pattern in a single
-> allocation sized from the pattern length.=C2=A0 If the good_shift[] size
+> The ts_kmp algorithm stores its prefix_tbl[] table and pattern in a singl=
+e
+> allocation sized from the pattern length.=C2=A0 If the prefix_tbl[] size
 > calculation wraps, the resulting allocation can be too small and
 > subsequent pattern copies can overflow it.
 >
 > Fix this by rejecting zero-length patterns and by using overflow helpers
 > before calculating the combined allocation size.
 >
-> Link: https://lkml.kernel.org/r/20260308202028.2889285-1-objecting@object=
+> Link: https://lkml.kernel.org/r/20260308202028.2889285-2-objecting@object=
 ing.org
 > Signed-off-by: Josh Law <objecting@objecting.org>
 > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 > ---
 >
-> lib/ts_bm.c |=C2=A0=C2=A0 18 ++++++++++++++++--
+> lib/ts_kmp.c |=C2=A0=C2=A0 18 ++++++++++++++++--
 > 1 file changed, 16 insertions(+), 2 deletions(-)
 >
-> --- a/lib/ts_bm.c~lib-ts_bm-fix-integer-overflow-in-pattern-length-calcul=
-ation
-> +++ a/lib/ts_bm.c
-> @@ -163,8 +163,22 @@ static struct ts_config *bm_init(const v
+> --- a/lib/ts_kmp.c~lib-ts_kmp-fix-integer-overflow-in-pattern-length-calc=
+ulation
+> +++ a/lib/ts_kmp.c
+> @@ -94,8 +94,22 @@ static struct ts_config *kmp_init(const
 > =C2=A0=C2=A0=C2=A0 struct ts_config *conf;
-> =C2=A0=C2=A0=C2=A0 struct ts_bm *bm;
+> =C2=A0=C2=A0=C2=A0 struct ts_kmp *kmp;
 > =C2=A0=C2=A0=C2=A0 int i;
 > -=C2=A0=C2=A0 unsigned int prefix_tbl_len =3D len * sizeof(unsigned int);
-> -=C2=A0=C2=A0 size_t priv_size =3D sizeof(*bm) + len + prefix_tbl_len;
+> -=C2=A0=C2=A0 size_t priv_size =3D sizeof(*kmp) + len + prefix_tbl_len;
 > +=C2=A0=C2=A0 unsigned int prefix_tbl_len;
 > +=C2=A0=C2=A0 size_t priv_size;
 > +
-> +=C2=A0=C2=A0 /* Zero-length patterns would underflow bm_find()'s initial=
- shift. */
+> +=C2=A0=C2=A0 /* Zero-length patterns would make kmp_find() read beyond k=
+mp->pattern. */
 > +=C2=A0=C2=A0 if (unlikely(!len))
 > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 return ERR_PTR(-EINVAL);
 > +
 > +=C2=A0=C2=A0 /*
-> +=C2=A0=C2=A0=C2=A0 * bm->pattern is stored immediately after the good_sh=
-ift[] table.
+> +=C2=A0=C2=A0=C2=A0 * kmp->pattern is stored immediately after the prefix=
+_tbl[] table.
 > +=C2=A0=C2=A0=C2=A0 * Reject lengths that would wrap while sizing either =
 region.
 > +=C2=A0=C2=A0=C2=A0 */
-> +=C2=A0=C2=A0 if (unlikely(check_mul_overflow(len, sizeof(*bm->good_shift=
-),
+> +=C2=A0=C2=A0 if (unlikely(check_mul_overflow(len, sizeof(*kmp->prefix_tb=
+l),
 > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
 =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 &prefix_tbl_len) ||
 > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 check=
-_add_overflow(sizeof(*bm), (size_t)len, &priv_size) ||
+_add_overflow(sizeof(*kmp), (size_t)len, &priv_size) ||
 > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 check=
 _add_overflow(priv_size, prefix_tbl_len, &priv_size)))
 > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 return ERR_PTR(-EINVAL);
@@ -193,13 +194,13 @@ h
 > lib-ts_bm-fix-integer-overflow-in-pattern-length-calculation.patch
 > lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation.patch
 
-Yay! thanks Andrew
+Do you think these patches require Cc: stable?
+Idk the severity of the bug to you, the swapped arguments got Cc stable,=C2=
+=A0 overflow could cause some screwy bugs
 
 
 V/R
 
 
-(Your favourite reviewer totally)
 
-
-Josh law
+Josh Law
