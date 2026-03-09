@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FE7A2E1F0E
-	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 17:50:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D25B92E6CD5
+	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 17:50:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773078602; cv=none; b=cxh3Znnmemj0ZqPAlyteHlbDLepMzzGDUZxX49FqZBBpO0GB/nhnlEow4qaKdPWcpcT5JyjNPHq7TWDGdKJK9Los4V0i24OzNMxtOmHAmBq7xe+6TiPoCHKZnQpQQf4pmLgfR/0UkTvM9aXUePaQTShGVh2qhLI/qSvoEhpkleQ=
+	t=1773078604; cv=none; b=h0+4FZEVQnjfZwKMSSd+umxBmUFEeAFhuJnjzZDWpXq0ESSunF5vrRsWQ/t/R00gXgA9MvfbQuYg03o14wgxAIg8+L+Msmr1NH7LkgVqoQjXc9yJKLLtRzdL7+6tr4K3MIMt7wJGgTAjIEpyja00Gy9JIRw/LA6bVe0EIl+Npk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773078602; c=relaxed/simple;
-	bh=JjXiP7+Bf4yspgMXcL1J8aZ7snkJVwSyXXfUUQjvgaM=;
-	h=Date:To:From:Subject:Message-Id; b=pwaznWdfruLkckNqwOhf6B42qaNNvxNoFE9Ku4cyCnji3Z+pUjJRIaURipH/1iryjtR1WSpbQL57V00es/2onTgpL/ilC7hRM9na42qDWjPoJsnJRkQPY5COUPWNN8pqDPA2Rj0b8JuqJs+1HMVZ+Hyqsk88rQ89fjzghtSp+bM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xdbWMsSX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773078604; c=relaxed/simple;
+	bh=GM6zeLS+C2/MagkAh78Wk7pz9bHG8w+Ek5P01jTP2Es=;
+	h=Date:To:From:Subject:Message-Id; b=DkiDPo7zutnFoAVm1fupiwK93786p99SSgLW4Ow6Bo2txuTyhKzICiZ3v3/f/cDVCuVO5atGhv+TF0Pb4RVR8MZYWQkdABvW0xzFarPdKwvT6UR/bCKg4BAz4tyt13PuJmPP9vNG3GB0ctDS8rwtbRxWh9DKDlRk7wrHajn8djg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eLaqgzt2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xdbWMsSX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3E32C2BC87;
-	Mon,  9 Mar 2026 17:50:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eLaqgzt2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3801DC2BC9E;
+	Mon,  9 Mar 2026 17:50:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773078602;
-	bh=JjXiP7+Bf4yspgMXcL1J8aZ7snkJVwSyXXfUUQjvgaM=;
+	s=korg; t=1773078604;
+	bh=GM6zeLS+C2/MagkAh78Wk7pz9bHG8w+Ek5P01jTP2Es=;
 	h=Date:To:From:Subject:From;
-	b=xdbWMsSXpmsLwCJOlrXOfcqGTC2Fj9LkQbXOMb5SRn8Lrb9+i0pFIk8Zc1xgHv2hv
-	 epOEoNs1LqA2WwU02aXSLCJTa3rMPSP+VRdOMEpuFreFPzgz4fZpeEz+JXkh5JXuMZ
-	 8ghwPQH5WZFg5ttpi2QEmeNGuuLAwzcWE4WGnyjo=
-Date: Mon, 09 Mar 2026 10:50:01 -0700
+	b=eLaqgzt2Ao0gaefAARmIyzJINMz1BWTRaBUpE1/gm65fRg3uQxhRe1G5c41IpDEs8
+	 F9JvhytNErWSnYed4+GqDKpbyINPQN1rCcpXYyI/6zuMDwIkxUse8tvQI528mHJ05x
+	 lLGTtg/Gcpe4h8iIcUDceh9famQj8iV8FqVLkK/I=
+Date: Mon, 09 Mar 2026 10:50:03 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,pbonzini@redhat.com,osalvador@suse.de,npiggin@gmail.com,muchun.song@linux.dev,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam.howlett@oracle.com,jannh@google.com,dan.j.williams@intel.com,chleroy@kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kvm-remove-hugetlbh-inclusion.patch added to mm-new branch
-Message-Id: <20260309175001.F3E32C2BC87@smtp.kernel.org>
+Subject: + kvm-ppc-remove-hugetlbh-inclusion.patch added to mm-new branch
+Message-Id: <20260309175004.3801DC2BC9E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: KVM: remove hugetlb.h inclusion
+     Subject: KVM: PPC: remove hugetlb.h inclusion
 has been added to the -mm mm-new branch.  Its filename is
-     kvm-remove-hugetlbh-inclusion.patch
+     kvm-ppc-remove-hugetlbh-inclusion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-remove-hugetlbh-inclusion.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-ppc-remove-hugetlbh-inclusion.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: KVM: remove hugetlb.h inclusion
-Date: Mon, 9 Mar 2026 16:19:00 +0100
+Subject: KVM: PPC: remove hugetlb.h inclusion
+Date: Mon, 9 Mar 2026 16:19:01 +0100
 
 hugetlb.h is no longer required now that we moved vma_kernel_pagesize() to
 mm.h.
 
-Link: https://lkml.kernel.org/r/20260309151901.123947-4-david@kernel.org
+Link: https://lkml.kernel.org/r/20260309151901.123947-5-david@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -96,19 +96,19 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- virt/kvm/kvm_main.c |    1 -
+ arch/powerpc/kvm/book3s_hv.c |    1 -
  1 file changed, 1 deletion(-)
 
---- a/virt/kvm/kvm_main.c~kvm-remove-hugetlbh-inclusion
-+++ a/virt/kvm/kvm_main.c
-@@ -41,7 +41,6 @@
- #include <linux/spinlock.h>
- #include <linux/compat.h>
- #include <linux/srcu.h>
+--- a/arch/powerpc/kvm/book3s_hv.c~kvm-ppc-remove-hugetlbh-inclusion
++++ a/arch/powerpc/kvm/book3s_hv.c
+@@ -36,7 +36,6 @@
+ #include <linux/gfp.h>
+ #include <linux/vmalloc.h>
+ #include <linux/highmem.h>
 -#include <linux/hugetlb.h>
- #include <linux/slab.h>
- #include <linux/sort.h>
- #include <linux/bsearch.h>
+ #include <linux/kvm_irqfd.h>
+ #include <linux/irqbypass.h>
+ #include <linux/module.h>
 _
 
 Patches currently in -mm which might be from david@kernel.org are
