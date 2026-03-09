@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7654940F8DC
-	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 19:33:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 347EE2C08BC
+	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 19:37:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773084811; cv=none; b=fG5SXL/l7jHiJt1y74Wf4jiJVvH2wXIpO1neRHL7I54MLnjYCBcuPQ0ZLXTFM15+jgDI2H9iy2bWi9mYjTyMtr1g5U/xDJGch1v7f9jccSnfSiHOAstfixvPWKQXvBtb9aplh7rjFN0AjkTnGxu8ojXYVse5P/qP0kgIELY1rRQ=
+	t=1773085045; cv=none; b=jOWb6qoUUGLgs/FOGKTn21Xe0D975TWQ+MbYTGop0adavRwAeR6cGN2abmxHB5I0IK+yCfY2NvOuuD8btUwHut5nIUcHebbwzR3aTNN/QWSCdICYbLE340STRuJHR01j3KzlqtmdGtgyXVOXvUr3N/v6iDfS0AnZPt1KUVre38Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773084811; c=relaxed/simple;
-	bh=/WFWbdYDC2geZmy2z/GVAG2JEoPHlRrhYNfSnOThcGw=;
-	h=Date:To:From:Subject:Message-Id; b=RVk6/2FIx8xmMWpp2YLPuzn/I1C5S6CrALzrLrAoppxKohCd4u3hkRieYCQTMxgDYUfu6mCXfVMLROoXyTS2NJQ7f6v/RK9g4ZGlB0SS0dVeV7nMeqo1eyyZt3FlgTKPAYcLvlWJ32jrEEA0GTRfFcReI4t94xBMUqrCXFxFkCQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QRKckXZZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773085045; c=relaxed/simple;
+	bh=NyQZa6o0jJkbgcNuEkDZ3gjvdt4zTOjqpd9UGCarfc4=;
+	h=Date:To:From:Subject:Message-Id; b=f4qzSkHhcf8tQDjgfzfETKq131xrpB+VtFvE/MHiYgh0GJxhZ8yKYZ7UpNotdVxou52j0ZZK1N0EagocjeuA8RN03kEhJ43cbHb68sDKmlf0w9EXobLGA4QZSNBjAJPPiwMYBXLpR2yyznawukSMjBIzYPhinkmHwMs2K9drArE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XpnJOKvR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QRKckXZZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFC26C4CEF7;
-	Mon,  9 Mar 2026 19:33:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XpnJOKvR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0CACC4CEF7;
+	Mon,  9 Mar 2026 19:37:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773084811;
-	bh=/WFWbdYDC2geZmy2z/GVAG2JEoPHlRrhYNfSnOThcGw=;
+	s=korg; t=1773085044;
+	bh=NyQZa6o0jJkbgcNuEkDZ3gjvdt4zTOjqpd9UGCarfc4=;
 	h=Date:To:From:Subject:From;
-	b=QRKckXZZqpcsn03rw/wIKk1NL/gfFuo7mSxIsr7fb5l5eV4V/klphCH63MEHCzjGW
-	 28m7K7EyvcTQpGwzuGh+kIobv5CIHIxnALbvDrjAkteVFZlvHSMHbqhII5JzAlbe69
-	 rEDgTz672Tre/xMQtqQn1EnjmG306BPID+xn0tAA=
-Date: Mon, 09 Mar 2026 12:33:30 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,leitao@debian.org,akpm@linux-foundation.org
+	b=XpnJOKvRp5j1GEGSaNujv8HMqj4NrdsQ2PyDIMmQSzM1AuMrDjqSPK2jLZrLc4ZJV
+	 VEkrmXcSw0hYqZJFo6J0l28LhJzpNrsq4qb5INx0P0Mh9AxcG6hsjXnZL67OxsDSZ8
+	 rLInSNUBxCybFPnO5+PXNH6jwktYz6JiC2FOwm78=
+Date: Mon, 09 Mar 2026 12:37:24 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usama.arif@linux.dev,usamaarif642@gmail.com,surenb@google.com,songmuchun@bytedance.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-thp-sysfs-interface-test.patch added to mm-new branch
-Message-Id: <20260309193330.EFC26C4CEF7@smtp.kernel.org>
+Subject: + mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix.patch added to mm-unstable branch
+Message-Id: <20260309193724.B0CACC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add THP sysfs interface test
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-thp-sysfs-interface-test.patch
+     Subject: mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-thp-sysfs-interface-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,744 +58,84 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: selftests/mm: add THP sysfs interface test
-Date: Mon, 09 Mar 2026 05:00:34 -0700
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix
+Date: Mon, 9 Mar 2026 19:29:39 +0800
 
-Add a shell-based selftest that exercises the full set of THP sysfs knobs:
-enabled (global and per-size anon), defrag, use_zero_page, hpage_pmd_size,
-shmem_enabled (global and per-size), shrink_underused, khugepaged/
-tunables, and per-size stats files.
+Reset pn->orig_objcg to NULL to prevent obj_cgroup_put() from being called
+agagin in __mem_cgroup_free().
 
-Each writable knob is tested for valid writes, invalid-input rejection,
-idempotent writes, and mode transitions where applicable.  All original
-values are saved before testing and restored afterwards.
-
-The test uses the kselftest KTAP framework (ktap_helpers.sh) for
-structured TAP 13 output, making results parseable by the kselftest
-harness.  The test plan is printed at the end since the number of test
-points is dynamic (depends on available hugepage sizes and sysfs files).
-
-This is particularly useful for validating the refactoring of
-enabled_store() and anon_enabled_store() to use sysfs_match_string() and
-the new change_enabled()/change_anon_orders() helpers.
-
-Link: https://lkml.kernel.org/r/20260309-thp_selftest_v2-v1-1-a00cef41da44@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
+Link: https://lkml.kernel.org/r/20260309112939.31937-1-qi.zheng@linux.dev
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reported-by: Usama Arif <usama.arif@linux.dev>
+Cc: Allen Pais <apais@linux.microsoft.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chen Ridong <chenridong@huawei.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+Cc: Harry Yoo <harry.yoo@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Imran Khan <imran.f.khan@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yosry Ahmed <yosry@kernel.org>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile          |    1 
- tools/testing/selftests/mm/run_vmtests.sh    |    2 
- tools/testing/selftests/mm/thp_sysfs_test.sh |  666 +++++++++++++++++
- 3 files changed, 669 insertions(+)
+ mm/memcontrol.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-thp-sysfs-interface-test
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -180,6 +180,7 @@ TEST_FILES += charge_reserved_hugetlb.sh
- TEST_FILES += hugetlb_reparenting_test.sh
- TEST_FILES += test_page_frag.sh
- TEST_FILES += run_vmtests.sh
-+TEST_FILES += thp_sysfs_test.sh
+--- a/mm/memcontrol.c~mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix
++++ a/mm/memcontrol.c
+@@ -4056,8 +4056,14 @@ free_objcg:
+ 	for_each_node(nid) {
+ 		struct mem_cgroup_per_node *pn = memcg->nodeinfo[nid];
  
- # required by charge_reserved_hugetlb.sh
- TEST_FILES += write_hugetlb_memory.sh
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-thp-sysfs-interface-test
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -491,6 +491,8 @@ CATEGORY="thp" run_test ./khugepaged -s
- 
- CATEGORY="thp" run_test ./transhuge-stress -d 20
- 
-+CATEGORY="thp" run_test ./thp_sysfs_test.sh
-+
- # Try to create XFS if not provided
- if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
-     if [ "${HAVE_HUGEPAGES}" = "1" ]; then
-diff --git a/tools/testing/selftests/mm/thp_sysfs_test.sh a/tools/testing/selftests/mm/thp_sysfs_test.sh
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/mm/thp_sysfs_test.sh
-@@ -0,0 +1,666 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Test THP sysfs interface.
-+#
-+# Exercises the full set of THP sysfs knobs: enabled (global and
-+# per-size anon), defrag, use_zero_page, hpage_pmd_size, shmem_enabled
-+# (global and per-size), shrink_underused, khugepaged/ tunables, and
-+# per-size stats files.  Each writable knob is tested for valid writes,
-+# invalid-input rejection, idempotent writes, and mode transitions
-+# where applicable.  All original values are saved before testing and
-+# restored afterwards.
-+#
-+# Author: Breno Leitao <leitao@debian.org>
-+
-+DIR="$(dirname "$(readlink -f "$0")")"
-+. "${DIR}"/../kselftest/ktap_helpers.sh
-+
-+THP_SYSFS=/sys/kernel/mm/transparent_hugepage
-+
-+# Read the currently active mode from a sysfs enabled file.
-+# The active mode is enclosed in brackets, e.g. "always [madvise] never"
-+get_active_mode() {
-+	local path="$1"
-+	local content
-+
-+	content=$(cat "$path")
-+	echo "$content" | grep -o '\[.*\]' | tr -d '[]'
-+}
-+
-+# Test that writing a mode and reading it back gives the expected result.
-+test_mode() {
-+	local path="$1"
-+	local mode="$2"
-+	local label="$3"
-+	local active
-+
-+	if ! echo "$mode" > "$path" 2>/dev/null; then
-+		ktap_test_fail "$label: write '$mode'"
-+		return
-+	fi
-+
-+	active=$(get_active_mode "$path")
-+	if [ "$active" = "$mode" ]; then
-+		ktap_test_pass "$label: write '$mode'"
-+	else
-+		ktap_test_fail "$label: write '$mode', read back '$active'"
-+	fi
-+}
-+
-+# Test that writing an invalid mode is rejected.
-+test_invalid() {
-+	local path="$1"
-+	local mode="$2"
-+	local label="$3"
-+	local saved
-+
-+	saved=$(get_active_mode "$path")
-+
-+	if echo "$mode" > "$path" 2>/dev/null; then
-+		# Write succeeded -- check if mode actually changed (it shouldn't)
-+		local active
-+		active=$(get_active_mode "$path")
-+		if [ "$active" = "$saved" ]; then
-+			# Some shells don't propagate the error, but mode unchanged
-+			ktap_test_pass "$label: reject '$mode'"
-+		else
-+			ktap_test_fail "$label: '$mode' should have been rejected but mode changed to '$active'"
-+		fi
-+	else
-+		ktap_test_pass "$label: reject '$mode'"
-+	fi
-+}
-+
-+# Test that writing the same mode twice doesn't crash or change state.
-+test_idempotent() {
-+	local path="$1"
-+	local mode="$2"
-+	local label="$3"
-+
-+	echo "$mode" > "$path" 2>/dev/null
-+	echo "$mode" > "$path" 2>/dev/null
-+	local active
-+	active=$(get_active_mode "$path")
-+	if [ "$active" = "$mode" ]; then
-+		ktap_test_pass "$label: idempotent '$mode'"
-+	else
-+		ktap_test_fail "$label: idempotent '$mode', got '$active'"
-+	fi
-+}
-+
-+# Write a numeric value, read it back, verify match.
-+test_numeric() {
-+	local path="$1"
-+	local value="$2"
-+	local label="$3"
-+	local readback
-+
-+	if ! echo "$value" > "$path" 2>/dev/null; then
-+		ktap_test_fail "$label: write '$value'"
-+		return
-+	fi
-+
-+	readback=$(cat "$path" 2>/dev/null)
-+	if [ "$readback" = "$value" ]; then
-+		ktap_test_pass "$label: write '$value'"
-+	else
-+		ktap_test_fail "$label: write '$value', read back '$readback'"
-+	fi
-+}
-+
-+# Verify that an out-of-range or invalid numeric value is rejected.
-+test_numeric_invalid() {
-+	local path="$1"
-+	local value="$2"
-+	local label="$3"
-+	local saved readback
-+
-+	saved=$(cat "$path" 2>/dev/null)
-+
-+	if echo "$value" > "$path" 2>/dev/null; then
-+		readback=$(cat "$path" 2>/dev/null)
-+		if [ "$readback" = "$saved" ]; then
-+			ktap_test_pass "$label: reject '$value'"
-+		else
-+			ktap_test_fail "$label: '$value' should have been rejected but value changed to '$readback'"
-+		fi
-+	else
-+		ktap_test_pass "$label: reject '$value'"
-+	fi
-+}
-+
-+# Verify a read-only file: readable, returns a numeric value, rejects writes.
-+test_readonly() {
-+	local path="$1"
-+	local label="$2"
-+	local val
-+
-+	val=$(cat "$path" 2>/dev/null)
-+	if [ -z "$val" ]; then
-+		ktap_test_fail "$label: read returned empty"
-+		return
-+	fi
-+
-+	if ! echo "$val" | grep -qE '^[0-9]+$'; then
-+		ktap_test_fail "$label: expected numeric, got '$val'"
-+		return
-+	fi
-+
-+	if echo "0" > "$path" 2>/dev/null; then
-+		local after
-+		after=$(cat "$path" 2>/dev/null)
-+		if [ "$after" = "$val" ]; then
-+			ktap_test_pass "$label: read-only (value=$val)"
-+		else
-+			ktap_test_fail "$label: write should have been rejected but value changed"
-+		fi
-+	else
-+		ktap_test_pass "$label: read-only (value=$val)"
-+	fi
-+}
-+
-+# --- Precondition checks ---
-+
-+ktap_print_header
-+
-+if [ ! -d "$THP_SYSFS" ]; then
-+	ktap_skip_all "THP sysfs not found at $THP_SYSFS"
-+	exit "$KSFT_SKIP"
-+fi
-+
-+if [ "$(id -u)" -ne 0 ]; then
-+	ktap_skip_all "must be run as root"
-+	exit "$KSFT_SKIP"
-+fi
-+
-+# --- Test global THP enabled ---
-+
-+GLOBAL_ENABLED="$THP_SYSFS/enabled"
-+
-+if [ ! -f "$GLOBAL_ENABLED" ]; then
-+	ktap_test_skip "global enabled file not found"
-+else
-+	ktap_print_msg "Testing global THP enabled ($GLOBAL_ENABLED)"
-+
-+	# Save current setting
-+	saved_global=$(get_active_mode "$GLOBAL_ENABLED")
-+
-+	# Valid modes for global
-+	test_mode "$GLOBAL_ENABLED" "always" "global"
-+	test_mode "$GLOBAL_ENABLED" "madvise" "global"
-+	test_mode "$GLOBAL_ENABLED" "never" "global"
-+
-+	# "inherit" is not valid for global THP
-+	test_invalid "$GLOBAL_ENABLED" "inherit" "global"
-+
-+	# Invalid strings
-+	test_invalid "$GLOBAL_ENABLED" "bogus" "global"
-+	test_invalid "$GLOBAL_ENABLED" "" "global (empty)"
-+
-+	# Idempotent writes
-+	test_idempotent "$GLOBAL_ENABLED" "always" "global"
-+	test_idempotent "$GLOBAL_ENABLED" "never" "global"
-+
-+	# Restore
-+	echo "$saved_global" > "$GLOBAL_ENABLED" 2>/dev/null
-+fi
-+
-+# --- Test global defrag ---
-+
-+GLOBAL_DEFRAG="$THP_SYSFS/defrag"
-+
-+if [ ! -f "$GLOBAL_DEFRAG" ]; then
-+	ktap_test_skip "defrag file not found"
-+else
-+	ktap_print_msg "Testing global THP defrag ($GLOBAL_DEFRAG)"
-+
-+	saved_defrag=$(get_active_mode "$GLOBAL_DEFRAG")
-+
-+	# Valid modes
-+	test_mode "$GLOBAL_DEFRAG" "always" "defrag"
-+	test_mode "$GLOBAL_DEFRAG" "defer" "defrag"
-+	test_mode "$GLOBAL_DEFRAG" "defer+madvise" "defrag"
-+	test_mode "$GLOBAL_DEFRAG" "madvise" "defrag"
-+	test_mode "$GLOBAL_DEFRAG" "never" "defrag"
-+
-+	# Invalid
-+	test_invalid "$GLOBAL_DEFRAG" "bogus" "defrag"
-+	test_invalid "$GLOBAL_DEFRAG" "" "defrag (empty)"
-+	test_invalid "$GLOBAL_DEFRAG" "inherit" "defrag"
-+
-+	# Idempotent
-+	test_idempotent "$GLOBAL_DEFRAG" "always" "defrag"
-+	test_idempotent "$GLOBAL_DEFRAG" "never" "defrag"
-+
-+	# Mode transitions: cycle through all 5
-+	echo "always" > "$GLOBAL_DEFRAG"
-+	test_mode "$GLOBAL_DEFRAG" "defer" "defrag (always->defer)"
-+	test_mode "$GLOBAL_DEFRAG" "defer+madvise" "defrag (defer->defer+madvise)"
-+	test_mode "$GLOBAL_DEFRAG" "madvise" "defrag (defer+madvise->madvise)"
-+	test_mode "$GLOBAL_DEFRAG" "never" "defrag (madvise->never)"
-+	test_mode "$GLOBAL_DEFRAG" "always" "defrag (never->always)"
-+
-+	# Restore
-+	echo "$saved_defrag" > "$GLOBAL_DEFRAG" 2>/dev/null
-+fi
-+
-+# --- Test use_zero_page ---
-+
-+USE_ZERO_PAGE="$THP_SYSFS/use_zero_page"
-+
-+if [ ! -f "$USE_ZERO_PAGE" ]; then
-+	ktap_test_skip "use_zero_page file not found"
-+else
-+	ktap_print_msg "Testing use_zero_page ($USE_ZERO_PAGE)"
-+
-+	saved_uzp=$(cat "$USE_ZERO_PAGE" 2>/dev/null)
-+
-+	# Valid values
-+	test_numeric "$USE_ZERO_PAGE" "0" "use_zero_page"
-+	test_numeric "$USE_ZERO_PAGE" "1" "use_zero_page"
-+
-+	# Invalid values
-+	test_numeric_invalid "$USE_ZERO_PAGE" "2" "use_zero_page"
-+	test_numeric_invalid "$USE_ZERO_PAGE" "-1" "use_zero_page"
-+	test_numeric_invalid "$USE_ZERO_PAGE" "bogus" "use_zero_page"
-+
-+	# Idempotent
-+	echo "1" > "$USE_ZERO_PAGE" 2>/dev/null
-+	test_numeric "$USE_ZERO_PAGE" "1" "use_zero_page (idempotent)"
-+	echo "0" > "$USE_ZERO_PAGE" 2>/dev/null
-+	test_numeric "$USE_ZERO_PAGE" "0" "use_zero_page (idempotent)"
-+
-+	# Restore
-+	echo "$saved_uzp" > "$USE_ZERO_PAGE" 2>/dev/null
-+fi
-+
-+# --- Test hpage_pmd_size ---
-+
-+HPAGE_PMD_SIZE_FILE="$THP_SYSFS/hpage_pmd_size"
-+
-+if [ ! -f "$HPAGE_PMD_SIZE_FILE" ]; then
-+	ktap_test_skip "hpage_pmd_size file not found"
-+else
-+	ktap_print_msg "Testing hpage_pmd_size ($HPAGE_PMD_SIZE_FILE)"
-+
-+	test_readonly "$HPAGE_PMD_SIZE_FILE" "hpage_pmd_size"
-+fi
-+
-+# --- Test global shmem_enabled ---
-+
-+SHMEM_ENABLED="$THP_SYSFS/shmem_enabled"
-+
-+if [ ! -f "$SHMEM_ENABLED" ]; then
-+	ktap_test_skip "shmem_enabled file not found (CONFIG_SHMEM not set?)"
-+else
-+	ktap_print_msg "Testing global shmem_enabled ($SHMEM_ENABLED)"
-+
-+	saved_shmem=$(get_active_mode "$SHMEM_ENABLED")
-+
-+	# Valid modes
-+	test_mode "$SHMEM_ENABLED" "always" "shmem_enabled"
-+	test_mode "$SHMEM_ENABLED" "within_size" "shmem_enabled"
-+	test_mode "$SHMEM_ENABLED" "advise" "shmem_enabled"
-+	test_mode "$SHMEM_ENABLED" "never" "shmem_enabled"
-+	test_mode "$SHMEM_ENABLED" "deny" "shmem_enabled"
-+	test_mode "$SHMEM_ENABLED" "force" "shmem_enabled"
-+
-+	# Invalid
-+	test_invalid "$SHMEM_ENABLED" "bogus" "shmem_enabled"
-+	test_invalid "$SHMEM_ENABLED" "inherit" "shmem_enabled"
-+	test_invalid "$SHMEM_ENABLED" "" "shmem_enabled (empty)"
-+
-+	# Idempotent
-+	test_idempotent "$SHMEM_ENABLED" "always" "shmem_enabled"
-+	test_idempotent "$SHMEM_ENABLED" "never" "shmem_enabled"
-+
-+	# Mode transitions: cycle through all 6
-+	echo "always" > "$SHMEM_ENABLED"
-+	test_mode "$SHMEM_ENABLED" "within_size" "shmem_enabled (always->within_size)"
-+	test_mode "$SHMEM_ENABLED" "advise" "shmem_enabled (within_size->advise)"
-+	test_mode "$SHMEM_ENABLED" "never" "shmem_enabled (advise->never)"
-+	test_mode "$SHMEM_ENABLED" "deny" "shmem_enabled (never->deny)"
-+	test_mode "$SHMEM_ENABLED" "force" "shmem_enabled (deny->force)"
-+	test_mode "$SHMEM_ENABLED" "always" "shmem_enabled (force->always)"
-+
-+	# Restore
-+	echo "$saved_shmem" > "$SHMEM_ENABLED" 2>/dev/null
-+fi
-+
-+# --- Test shrink_underused ---
-+
-+SHRINK_UNDERUSED="$THP_SYSFS/shrink_underused"
-+
-+if [ ! -f "$SHRINK_UNDERUSED" ]; then
-+	ktap_test_skip "shrink_underused file not found"
-+else
-+	ktap_print_msg "Testing shrink_underused ($SHRINK_UNDERUSED)"
-+
-+	saved_shrink=$(cat "$SHRINK_UNDERUSED" 2>/dev/null)
-+
-+	# Valid values
-+	test_numeric "$SHRINK_UNDERUSED" "0" "shrink_underused"
-+	test_numeric "$SHRINK_UNDERUSED" "1" "shrink_underused"
-+
-+	# Invalid values
-+	test_numeric_invalid "$SHRINK_UNDERUSED" "2" "shrink_underused"
-+	test_numeric_invalid "$SHRINK_UNDERUSED" "bogus" "shrink_underused"
-+
-+	# Restore
-+	echo "$saved_shrink" > "$SHRINK_UNDERUSED" 2>/dev/null
-+fi
-+
-+# --- Test per-size anon THP enabled ---
-+
-+found_anon=0
-+for dir in "$THP_SYSFS"/hugepages-*; do
-+	[ -d "$dir" ] || continue
-+
-+	ANON_ENABLED="$dir/enabled"
-+	[ -f "$ANON_ENABLED" ] || continue
-+
-+	found_anon=1
-+	size=$(basename "$dir")
-+	ktap_print_msg "Testing per-size anon THP enabled ($size)"
-+
-+	# Save current setting
-+	saved_anon=$(get_active_mode "$ANON_ENABLED")
-+
-+	# Valid modes for per-size anon (includes inherit)
-+	test_mode "$ANON_ENABLED" "always" "$size"
-+	test_mode "$ANON_ENABLED" "inherit" "$size"
-+	test_mode "$ANON_ENABLED" "madvise" "$size"
-+	test_mode "$ANON_ENABLED" "never" "$size"
-+
-+	# Invalid strings
-+	test_invalid "$ANON_ENABLED" "bogus" "$size"
-+
-+	# Idempotent writes
-+	test_idempotent "$ANON_ENABLED" "always" "$size"
-+	test_idempotent "$ANON_ENABLED" "inherit" "$size"
-+	test_idempotent "$ANON_ENABLED" "never" "$size"
-+
-+	# Mode transitions: verify each mode clears the others
-+	echo "always" > "$ANON_ENABLED"
-+	test_mode "$ANON_ENABLED" "madvise" "$size (always->madvise)"
-+	test_mode "$ANON_ENABLED" "inherit" "$size (madvise->inherit)"
-+	test_mode "$ANON_ENABLED" "never" "$size (inherit->never)"
-+	test_mode "$ANON_ENABLED" "always" "$size (never->always)"
-+
-+	# Restore
-+	echo "$saved_anon" > "$ANON_ENABLED" 2>/dev/null
-+
-+	# Only test one size in detail to keep output manageable,
-+	# but do a quick smoke test on the rest
-+	break
-+done
-+
-+if [ $found_anon -eq 0 ]; then
-+	ktap_test_skip "no per-size anon THP directories found"
-+fi
-+
-+# Quick smoke test: all other sizes accept valid modes
-+first=1
-+for dir in "$THP_SYSFS"/hugepages-*; do
-+	[ -d "$dir" ] || continue
-+	ANON_ENABLED="$dir/enabled"
-+	[ -f "$ANON_ENABLED" ] || continue
-+
-+	# Skip the first one (already tested in detail)
-+	if [ $first -eq 1 ]; then
-+		first=0
-+		continue
-+	fi
-+
-+	size=$(basename "$dir")
-+	saved=$(get_active_mode "$ANON_ENABLED")
-+
-+	smoke_failed=0
-+	for mode in always inherit madvise never; do
-+		echo "$mode" > "$ANON_ENABLED" 2>/dev/null
-+		active=$(get_active_mode "$ANON_ENABLED")
-+		if [ "$active" != "$mode" ]; then
-+			ktap_test_fail "$size: smoke test '$mode' got '$active'"
-+			smoke_failed=1
-+			break
-+		fi
-+	done
-+	[ $smoke_failed -eq 0 ] && ktap_test_pass "$size: smoke test all modes"
-+
-+	echo "$saved" > "$ANON_ENABLED" 2>/dev/null
-+done
-+
-+# --- Test per-size shmem_enabled ---
-+
-+found_shmem=0
-+for dir in "$THP_SYSFS"/hugepages-*; do
-+	[ -d "$dir" ] || continue
-+
-+	SHMEM_SIZE_ENABLED="$dir/shmem_enabled"
-+	[ -f "$SHMEM_SIZE_ENABLED" ] || continue
-+
-+	found_shmem=1
-+	size=$(basename "$dir")
-+	ktap_print_msg "Testing per-size shmem_enabled ($size)"
-+
-+	# Save current setting
-+	saved_shmem_size=$(get_active_mode "$SHMEM_SIZE_ENABLED")
-+
-+	# Valid modes for per-size shmem
-+	test_mode "$SHMEM_SIZE_ENABLED" "always" "$size shmem"
-+	test_mode "$SHMEM_SIZE_ENABLED" "inherit" "$size shmem"
-+	test_mode "$SHMEM_SIZE_ENABLED" "within_size" "$size shmem"
-+	test_mode "$SHMEM_SIZE_ENABLED" "advise" "$size shmem"
-+	test_mode "$SHMEM_SIZE_ENABLED" "never" "$size shmem"
-+
-+	# Invalid: deny and force are not valid for per-size
-+	test_invalid "$SHMEM_SIZE_ENABLED" "bogus" "$size shmem"
-+	test_invalid "$SHMEM_SIZE_ENABLED" "deny" "$size shmem"
-+	test_invalid "$SHMEM_SIZE_ENABLED" "force" "$size shmem"
-+
-+	# Mode transitions
-+	echo "always" > "$SHMEM_SIZE_ENABLED"
-+	test_mode "$SHMEM_SIZE_ENABLED" "inherit" "$size shmem (always->inherit)"
-+	test_mode "$SHMEM_SIZE_ENABLED" "within_size" "$size shmem (inherit->within_size)"
-+	test_mode "$SHMEM_SIZE_ENABLED" "advise" "$size shmem (within_size->advise)"
-+	test_mode "$SHMEM_SIZE_ENABLED" "never" "$size shmem (advise->never)"
-+	test_mode "$SHMEM_SIZE_ENABLED" "always" "$size shmem (never->always)"
-+
-+	# Restore
-+	echo "$saved_shmem_size" > "$SHMEM_SIZE_ENABLED" 2>/dev/null
-+
-+	# Only test one size in detail
-+	break
-+done
-+
-+if [ $found_shmem -eq 0 ]; then
-+	ktap_test_skip "no per-size shmem_enabled files found"
-+fi
-+
-+# Quick smoke test: remaining sizes with shmem_enabled
-+first=1
-+for dir in "$THP_SYSFS"/hugepages-*; do
-+	[ -d "$dir" ] || continue
-+	SHMEM_SIZE_ENABLED="$dir/shmem_enabled"
-+	[ -f "$SHMEM_SIZE_ENABLED" ] || continue
-+
-+	if [ $first -eq 1 ]; then
-+		first=0
-+		continue
-+	fi
-+
-+	size=$(basename "$dir")
-+	saved=$(get_active_mode "$SHMEM_SIZE_ENABLED")
-+
-+	smoke_failed=0
-+	for mode in always inherit within_size advise never; do
-+		echo "$mode" > "$SHMEM_SIZE_ENABLED" 2>/dev/null
-+		active=$(get_active_mode "$SHMEM_SIZE_ENABLED")
-+		if [ "$active" != "$mode" ]; then
-+			ktap_test_fail "$size shmem: smoke test '$mode' got '$active'"
-+			smoke_failed=1
-+			break
-+		fi
-+	done
-+	[ $smoke_failed -eq 0 ] && ktap_test_pass "$size shmem: smoke test all modes"
-+
-+	echo "$saved" > "$SHMEM_SIZE_ENABLED" 2>/dev/null
-+done
-+
-+# --- Test khugepaged tunables ---
-+
-+KHUGEPAGED="$THP_SYSFS/khugepaged"
-+
-+if [ ! -d "$KHUGEPAGED" ]; then
-+	ktap_test_skip "khugepaged directory not found"
-+else
-+	ktap_print_msg "Testing khugepaged tunables ($KHUGEPAGED)"
-+
-+	# Compute HPAGE_PMD_NR for boundary tests
-+	pmd_size=$(cat "$HPAGE_PMD_SIZE_FILE" 2>/dev/null)
-+	page_size=$(getconf PAGE_SIZE)
-+	if [ -n "$pmd_size" ] && [ -n "$page_size" ] && [ "$page_size" -gt 0 ]; then
-+		hpage_pmd_nr=$((pmd_size / page_size))
-+	else
-+		hpage_pmd_nr=512
-+	fi
-+
-+	# Save all tunable values
-+	saved_khp_defrag=$(cat "$KHUGEPAGED/defrag" 2>/dev/null)
-+	saved_khp_max_ptes_none=$(cat "$KHUGEPAGED/max_ptes_none" 2>/dev/null)
-+	saved_khp_max_ptes_swap=$(cat "$KHUGEPAGED/max_ptes_swap" 2>/dev/null)
-+	saved_khp_max_ptes_shared=$(cat "$KHUGEPAGED/max_ptes_shared" 2>/dev/null)
-+	saved_khp_pages_to_scan=$(cat "$KHUGEPAGED/pages_to_scan" 2>/dev/null)
-+	saved_khp_scan_sleep=$(cat "$KHUGEPAGED/scan_sleep_millisecs" 2>/dev/null)
-+	saved_khp_alloc_sleep=$(cat "$KHUGEPAGED/alloc_sleep_millisecs" 2>/dev/null)
-+
-+	# khugepaged/defrag (0/1 flag)
-+	if [ -f "$KHUGEPAGED/defrag" ]; then
-+		test_numeric "$KHUGEPAGED/defrag" "0" "khugepaged/defrag"
-+		test_numeric "$KHUGEPAGED/defrag" "1" "khugepaged/defrag"
-+		test_numeric_invalid "$KHUGEPAGED/defrag" "2" "khugepaged/defrag"
-+		test_numeric_invalid "$KHUGEPAGED/defrag" "bogus" "khugepaged/defrag"
-+	fi
-+
-+	# khugepaged/max_ptes_none (0 .. HPAGE_PMD_NR-1)
-+	if [ -f "$KHUGEPAGED/max_ptes_none" ]; then
-+		test_numeric "$KHUGEPAGED/max_ptes_none" "0" "khugepaged/max_ptes_none"
-+		test_numeric "$KHUGEPAGED/max_ptes_none" "$((hpage_pmd_nr - 1))" \
-+			"khugepaged/max_ptes_none"
-+		test_numeric_invalid "$KHUGEPAGED/max_ptes_none" "$hpage_pmd_nr" \
-+			"khugepaged/max_ptes_none (boundary)"
-+	fi
-+
-+	# khugepaged/max_ptes_swap (0 .. HPAGE_PMD_NR-1)
-+	if [ -f "$KHUGEPAGED/max_ptes_swap" ]; then
-+		test_numeric "$KHUGEPAGED/max_ptes_swap" "0" "khugepaged/max_ptes_swap"
-+		test_numeric "$KHUGEPAGED/max_ptes_swap" "$((hpage_pmd_nr - 1))" \
-+			"khugepaged/max_ptes_swap"
-+		test_numeric_invalid "$KHUGEPAGED/max_ptes_swap" "$hpage_pmd_nr" \
-+			"khugepaged/max_ptes_swap (boundary)"
-+	fi
-+
-+	# khugepaged/max_ptes_shared (0 .. HPAGE_PMD_NR-1)
-+	if [ -f "$KHUGEPAGED/max_ptes_shared" ]; then
-+		test_numeric "$KHUGEPAGED/max_ptes_shared" "0" "khugepaged/max_ptes_shared"
-+		test_numeric "$KHUGEPAGED/max_ptes_shared" "$((hpage_pmd_nr - 1))" \
-+			"khugepaged/max_ptes_shared"
-+		test_numeric_invalid "$KHUGEPAGED/max_ptes_shared" "$hpage_pmd_nr" \
-+			"khugepaged/max_ptes_shared (boundary)"
-+	fi
-+
-+	# khugepaged/pages_to_scan (1 .. UINT_MAX, 0 rejected)
-+	if [ -f "$KHUGEPAGED/pages_to_scan" ]; then
-+		test_numeric "$KHUGEPAGED/pages_to_scan" "1" "khugepaged/pages_to_scan"
-+		test_numeric "$KHUGEPAGED/pages_to_scan" "8" "khugepaged/pages_to_scan"
-+		test_numeric_invalid "$KHUGEPAGED/pages_to_scan" "0" \
-+			"khugepaged/pages_to_scan (reject 0)"
-+	fi
-+
-+	# khugepaged/scan_sleep_millisecs
-+	if [ -f "$KHUGEPAGED/scan_sleep_millisecs" ]; then
-+		test_numeric "$KHUGEPAGED/scan_sleep_millisecs" "0" \
-+			"khugepaged/scan_sleep_millisecs"
-+		test_numeric "$KHUGEPAGED/scan_sleep_millisecs" "1000" \
-+			"khugepaged/scan_sleep_millisecs"
-+	fi
-+
-+	# khugepaged/alloc_sleep_millisecs
-+	if [ -f "$KHUGEPAGED/alloc_sleep_millisecs" ]; then
-+		test_numeric "$KHUGEPAGED/alloc_sleep_millisecs" "0" \
-+			"khugepaged/alloc_sleep_millisecs"
-+		test_numeric "$KHUGEPAGED/alloc_sleep_millisecs" "1000" \
-+			"khugepaged/alloc_sleep_millisecs"
-+	fi
-+
-+	# khugepaged/pages_collapsed (read-only)
-+	if [ -f "$KHUGEPAGED/pages_collapsed" ]; then
-+		test_readonly "$KHUGEPAGED/pages_collapsed" "khugepaged/pages_collapsed"
-+	fi
-+
-+	# khugepaged/full_scans (read-only)
-+	if [ -f "$KHUGEPAGED/full_scans" ]; then
-+		test_readonly "$KHUGEPAGED/full_scans" "khugepaged/full_scans"
-+	fi
-+
-+	# Restore all values
-+	[ -n "$saved_khp_defrag" ] && \
-+		echo "$saved_khp_defrag" > "$KHUGEPAGED/defrag" 2>/dev/null
-+	[ -n "$saved_khp_max_ptes_none" ] && \
-+		echo "$saved_khp_max_ptes_none" > "$KHUGEPAGED/max_ptes_none" 2>/dev/null
-+	[ -n "$saved_khp_max_ptes_swap" ] && \
-+		echo "$saved_khp_max_ptes_swap" > "$KHUGEPAGED/max_ptes_swap" 2>/dev/null
-+	[ -n "$saved_khp_max_ptes_shared" ] && \
-+		echo "$saved_khp_max_ptes_shared" > "$KHUGEPAGED/max_ptes_shared" 2>/dev/null
-+	[ -n "$saved_khp_pages_to_scan" ] && \
-+		echo "$saved_khp_pages_to_scan" > "$KHUGEPAGED/pages_to_scan" 2>/dev/null
-+	[ -n "$saved_khp_scan_sleep" ] && \
-+		echo "$saved_khp_scan_sleep" > "$KHUGEPAGED/scan_sleep_millisecs" 2>/dev/null
-+	[ -n "$saved_khp_alloc_sleep" ] && \
-+		echo "$saved_khp_alloc_sleep" > "$KHUGEPAGED/alloc_sleep_millisecs" 2>/dev/null
-+fi
-+
-+# --- Test per-size stats files ---
-+
-+found_stats=0
-+for dir in "$THP_SYSFS"/hugepages-*; do
-+	[ -d "$dir" ] || continue
-+	[ -d "$dir/stats" ] || continue
-+
-+	found_stats=1
-+	size=$(basename "$dir")
-+	ktap_print_msg "Testing per-size stats ($size)"
-+
-+	for stat_file in "$dir"/stats/*; do
-+		[ -f "$stat_file" ] || continue
-+		stat_name=$(basename "$stat_file")
-+		val=$(cat "$stat_file" 2>/dev/null)
-+
-+		if [ -z "$val" ]; then
-+			ktap_test_fail "$size/stats/$stat_name: read returned empty"
-+			continue
-+		fi
-+
-+		if echo "$val" | grep -qE '^[0-9]+$'; then
-+			ktap_test_pass "$size/stats/$stat_name: readable (value=$val)"
-+		else
-+			ktap_test_fail "$size/stats/$stat_name: expected numeric, got '$val'"
-+		fi
-+	done
-+
-+	# Only test one size
-+	break
-+done
-+
-+if [ $found_stats -eq 0 ]; then
-+	ktap_test_skip "no per-size stats directories found"
-+fi
-+
-+# --- Done ---
-+
-+# The test count is dynamic (depends on available sysfs files and hugepage
-+# sizes), so print the plan at the end.  TAP 13 allows trailing plans.
-+KSFT_NUM_TESTS=$((KTAP_CNT_PASS + KTAP_CNT_FAIL + KTAP_CNT_SKIP))
-+echo "1..$KSFT_NUM_TESTS"
-+ktap_finished
+-		if (pn && pn->orig_objcg)
++		if (pn && pn->orig_objcg) {
+ 			obj_cgroup_put(pn->orig_objcg);
++			/*
++			 * Reset pn->orig_objcg to NULL to prevent obj_cgroup_put()
++			 * from being called agagin in __mem_cgroup_free().
++			 */
++			pn->orig_objcg = NULL;
++		}
+ 	}
+ 	free_shrinker_info(memcg);
+ offline_kmem:
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-khugepaged-export-set_recommended_min_free_kbytes.patch
-mm-huge_memory-refactor-anon_enabled_store-with-change_anon_orders.patch
-mm-huge_memory-refactor-enabled_store-with-change_enabled.patch
-mm-ratelimit-min_free_kbytes-adjustment-messages.patch
-selftests-mm-add-thp-sysfs-interface-test.patch
+mm-vmscan-prepare-for-the-refactoring-the-move_folios_to_lru.patch
+mm-thp-prevent-memory-cgroup-release-in-folio_split_queue_lock_irqsave.patch
+mm-zswap-prevent-memory-cgroup-release-in-zswap_compress.patch
+mm-do-not-open-code-lruvec-lock.patch
+mm-vmscan-prepare-for-reparenting-traditional-lru-folios.patch
+mm-vmscan-prepare-for-reparenting-mglru-folios.patch
+mm-memcontrol-refactor-memcg_reparent_objcgs.patch
+mm-workingset-use-lruvec_lru_size-to-get-the-number-of-lru-pages.patch
+mm-memcontrol-refactor-mod_memcg_state-and-mod_memcg_lruvec_state.patch
+mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats.patch
+mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch
+mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix.patch
 
