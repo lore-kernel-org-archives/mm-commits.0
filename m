@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B28542367B5
-	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 17:41:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C30E41F181F
+	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 17:44:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773078117; cv=none; b=IaFAW0IkwEoex0RXeiD7f0CLXtLlXIBngendzmtsG53eJ+YbYrhEMf/ihxnGsw/V20WPcB8dFHGZZ47sXtT0WVS9YyPZ1ri4AByZz4mqC+3okU7F9q7YBk7pBeg6S+iWHh83szRDoFhu4m/+4MIfFb6JOSFYGdTe9prK/sAZ8kM=
+	t=1773078298; cv=none; b=CWj57YBfGBb1XwLw0L6sJOKJDgQV7xKGwqnMmfBCP1Lb3BeLvNUrTF7MzMeYULfAwHQLrt8ZwXJuBFRSDj8wKlpOAoIiTrCdK7eCJmlaBEa7RIQzjhNnCX9+HONqhFejV+LM3j3UGNDhe15CxvUFYCGbdBltZKboDhSZXemgGKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773078117; c=relaxed/simple;
-	bh=gwH5ssWhShHK5kMz3oMErzJY8/KMzwwk7wloZrPXZn4=;
-	h=Date:To:From:Subject:Message-Id; b=gxoQHk7XP4q/xPL4ML/rxJAvk+VFsr3mH4zXxj0QfJjshIZnwA6kRETuTFpVe9L6sFffzTx8bUe7cBlqpIYnQOLa1PgBNmUu+bQVHYHiU5aAuum2NqAEnQK56sveEdA0hN66ShV1OfdstCznuQ+2bWB0lvr+jQWfGssYDYWjtPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eBQnTsRU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773078298; c=relaxed/simple;
+	bh=iW4i4G6FBnQuLZbAh1gw6lTAabseywYi1ioZrZNc+jo=;
+	h=Date:To:From:Subject:Message-Id; b=jXHn7TJnzJhbfNbUPMLBZlOWjvMmh+WUcqV45r5CcYyNJILdWg92QPD7m3dDl/nPAkoyx5G3JjeN73LXiGF31l35C9WIQBATXzQEmjWCxYNe8pYnaup7nk3oSwd4kH/tuDD8YT16fDV/Nul9zS0EMsftx4jpKOm061s3545kziY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qTgqjYFk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eBQnTsRU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44356C4CEF7;
-	Mon,  9 Mar 2026 17:41:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qTgqjYFk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47CD1C4CEF7;
+	Mon,  9 Mar 2026 17:44:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773078117;
-	bh=gwH5ssWhShHK5kMz3oMErzJY8/KMzwwk7wloZrPXZn4=;
+	s=korg; t=1773078298;
+	bh=iW4i4G6FBnQuLZbAh1gw6lTAabseywYi1ioZrZNc+jo=;
 	h=Date:To:From:Subject:From;
-	b=eBQnTsRU86i5Rz2tk1Du0FMpxmbwTlvAKOyk2Vo4mpDOCVOseTxwV93QoAhoU3cne
-	 cG1B5dRrMqITCxyonosJtgaCBDsNBYw7etiTV2IOiRxSbah202LHEyyg/pbQbBPs43
-	 QK6QbJ7KaT9sRpcJkl+fCFIcsexaE/tyLYgn7+N4=
-Date: Mon, 09 Mar 2026 10:41:56 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
+	b=qTgqjYFk/ci/1YQpceReU5/mZtWKGL8w+8FBgMMKTLKEiwdnH7k0Vqk9FgtIjQTZo
+	 1q/Juzl/75Bq5euyWaGR01IuhxUV/kjM6b5vEVyRjcFOTsjWzq7aV5PfWeV4cB2G69
+	 diyJxu+xzAS0ojQilfsYouXdRW2Kdypu422UOTxA=
+Date: Mon, 09 Mar 2026 10:44:57 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,nathan@kernel.org,morbo@google.com,ljs@kernel.org,liam.howlett@oracle.com,justinstitt@google.com,david@kernel.org,qq570070308@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch added to mm-new branch
-Message-Id: <20260309174157.44356C4CEF7@smtp.kernel.org>
+Subject: + mm-optimize-the-implementation-of-warn_on_once_gfp.patch added to mm-new branch
+Message-Id: <20260309174458.47CD1C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest: memcg: skip memcg_sock test if address family not supported
+     Subject: mm: optimize the implementation of WARN_ON_ONCE_GFP()
 has been added to the -mm mm-new branch.  Its filename is
-     selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch
+     mm-optimize-the-implementation-of-warn_on_once_gfp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-optimize-the-implementation-of-warn_on_once_gfp.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,74 +69,58 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: selftest: memcg: skip memcg_sock test if address family not supported
-Date: Mon, 9 Mar 2026 12:02:05 -0400
+From: Xie Yuanbin <qq570070308@gmail.com>
+Subject: mm: optimize the implementation of WARN_ON_ONCE_GFP()
+Date: Mon, 9 Mar 2026 23:38:11 +0800
 
-On systems where IPv6 isn't enabled or not configured to support
-SOCK_STREAM, the test_memcg_sock test always fails.  The purpose of the
-test_memcg_sock test is to verify that memory.stat.sock and memory.current
-values are close.  If the socket() call fails, there is no way we can test
-that.  I believe it is better to just skip the test in this case instead
-of reporting a test failure hinting that there may be something wrong with
-the memcg code.
+As shown in the commit message of commit 242b872239f6a7deacbc
+("include/linux/once_lite.h: fix judgment in WARN_ONCE with clang"), the
+code "unlikely(a && b)" may generate poor assembly code if it is actually
+"unlikely(a) && unlikely(b)" or "unlikely(a) && b".
 
-Link: https://lkml.kernel.org/r/20260309160205.651754-1-longman@redhat.com
-Fixes: 5f8f019380b8 ("selftests: cgroup/memcontrol: add basic test for socket accounting")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
+WARN_ON_ONCE_GFP() may be used in the hot path code:
+1. The argument cond shoud be unlikely.
+2. When "1." is true, !(gfp & __GFP_NOWARN) is unlikely, otherwise, a
+   WARN may be triggered, which is a very unlikely case.
+3. When "1. && 2." is true, just like the implementation of WARN_ONCE(),
+   !__warned can be unlikely.
+
+Reorder __ret_warn_once judgement to first and split out the unlikely() in
+WARN_ON_ONCE_GFP() to optimize performance.
+
+Link: https://lkml.kernel.org/r/20260309153811.40958-1-qq570070308@gmail.com
+Signed-off-by: Xie Yuanbin <qq570070308@gmail.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Bill Wendling <morbo@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ mm/internal.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -1280,8 +1280,11 @@ static int tcp_server(const char *cgroup
- 	saddr.sin6_port = htons(srv_args->port);
- 
- 	sk = socket(AF_INET6, SOCK_STREAM, 0);
--	if (sk < 0)
-+	if (sk < 0) {
-+		/* Pass back errno to the ctl_fd */
-+		write(ctl_fd, &errno, sizeof(errno));
- 		return ret;
-+	}
- 
- 	if (setsockopt(sk, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
- 		goto cleanup;
-@@ -1414,6 +1417,9 @@ static int test_memcg_sock(const char *r
- 
- 		if (!err)
- 			break;
-+		if (err == EAFNOSUPPORT)
-+			/* Skip if address family not supported by protocol */
-+			goto skip;
- 		if (err != EADDRINUSE)
- 			goto cleanup;
- 
-@@ -1460,6 +1466,9 @@ cleanup:
- 	free(memcg);
- 
- 	return ret;
-+skip:
-+	ret = KSFT_SKIP;
-+	goto cleanup;
- }
- 
- /*
+--- a/mm/internal.h~mm-optimize-the-implementation-of-warn_on_once_gfp
++++ a/mm/internal.h
+@@ -94,7 +94,8 @@ struct pagetable_move_control {
+ 	static bool __section(".data..once") __warned;			\
+ 	int __ret_warn_once = !!(cond);					\
+ 									\
+-	if (unlikely(!(gfp & __GFP_NOWARN) && __ret_warn_once && !__warned)) { \
++	if (unlikely(__ret_warn_once) &&				\
++	    unlikely(!(gfp & __GFP_NOWARN)) && unlikely(!__warned)) {	\
+ 		__warned = true;					\
+ 		WARN_ON(1);						\
+ 	}								\
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from qq570070308@gmail.com are
 
-selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch
+mm-optimize-the-implementation-of-warn_on_once_gfp.patch
 
