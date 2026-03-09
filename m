@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62CC81F7569
-	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 20:04:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5B081F7569
+	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 20:04:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773086658; cv=none; b=UvHx1fNPBCWCSLCNGpnsG76Hm2t6Di/4eATtoGGDhoZ6vUSZWuhFdmxoVjREYckN0diYEL45b9m3QzBiKqMT741y2MuN2Qri0DDzge4uKLPScOAbIIqprCvXFcYi5PY7nYgXieZyaSl7snHvkA2k1XH0B/16UT6HqA7P3zHCAO8=
+	t=1773086659; cv=none; b=PXJGz9zXTwlYjzCAExk9b13IWAbMkkuoBxEZTOmcQFJ+6QwL9dA9FDKGQXj7bZmNSwVu2xGNJILsFfkQjPdAbPNq2QnX1J+exywL2IW9Q/2Om8RYbipxl50JhidylBZyeBSjFFO1eD/S6k2WY9FhM9qjdytjb1vdenrzteD3iHI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773086658; c=relaxed/simple;
-	bh=YW456T0NF8C/zI4AJ3Gg9NDVUDK+jajMYx+08jnKiic=;
-	h=Date:To:From:Subject:Message-Id; b=J56l5raOghoapiLJHQwiRc+ZgH+Cbx4ayZAL0qN47dIwoy998gleed+ifkFb/t+r0rdM8KnjtaT/G8HGWAJrCG5UvlU+RdZzDKORHwlovo78SudxZXbN3zF1CDqSS9q9EahFrMA7xUy/iSI6wPtAXZBvllJNL/YTA+u+OODl7AQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i4uw90+P; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773086659; c=relaxed/simple;
+	bh=xJhJMATC8VJKHS7WzKIkli8Rzh5mBjW3+mdEF0xCc88=;
+	h=Date:To:From:Subject:Message-Id; b=HCiAq5Tgu2J0YZ7uvBKnTqXUO30ccEkbggelfr/lxDRgm2gkYnrwhlZC7R5x7t+N7l6ITytK1WVIjxO4VHUo4ZndlvCNihbadhAxxsNlD++I5WwyRj8MYQ7jUZXStGJ90sbgCIbBYIotbOhUfKJ4GYI2Sc+7svx9tiSNhNEv4Tc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YEiHw5mc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i4uw90+P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED3CAC4CEF7;
-	Mon,  9 Mar 2026 20:04:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YEiHw5mc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53DDCC4CEF7;
+	Mon,  9 Mar 2026 20:04:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773086658;
-	bh=YW456T0NF8C/zI4AJ3Gg9NDVUDK+jajMYx+08jnKiic=;
+	s=korg; t=1773086659;
+	bh=xJhJMATC8VJKHS7WzKIkli8Rzh5mBjW3+mdEF0xCc88=;
 	h=Date:To:From:Subject:From;
-	b=i4uw90+P6pwQswhcTDjkr0prk8nwrBGhd2WKr6aJPVzccW1WHHr0TZzbSyejyiMOY
-	 p0pKb81DqmYXLmk2Rz7rpvFbz3fa0Tu1IZHtKxF/0naOfdc5281OtPhiMw0y+eEqWb
-	 2HZHTvejA6nPISysC9l9izmuvUdl4KCMXaUr8aCU=
-Date: Mon, 09 Mar 2026 13:04:17 -0700
+	b=YEiHw5mckt+767r5h/79tgDGaP/q/AfEwm0D9jrxDHCiG1ciHFzMovZHi3HS6hge8
+	 XqBScVir7qQg2tbWNa8dD/dzm8LmHyDJSLB3YLsPIbqyJgUcMBF/r3FQ2iOidKz1nt
+	 k2AwJ1i/SzV3qRXPcCPJh3RdLZ+dK12mFYI4tQX0=
+Date: Mon, 09 Mar 2026 13:04:18 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,usamaarif642@gmail.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,lance.yang@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-refactor-anon_enabled_store-with-change_anon_orders.patch added to mm-new branch
-Message-Id: <20260309200417.ED3CAC4CEF7@smtp.kernel.org>
+Subject: + mm-huge_memory-refactor-enabled_store-with-change_enabled.patch added to mm-new branch
+Message-Id: <20260309200419.53DDCC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: huge_memory: refactor anon_enabled_store() with change_anon_orders()
+     Subject: mm: huge_memory: refactor enabled_store() with change_enabled()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-refactor-anon_enabled_store-with-change_anon_orders.patch
+     mm-huge_memory-refactor-enabled_store-with-change_enabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-refactor-anon_enabled_store-with-change_anon_orders.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-refactor-enabled_store-with-change_enabled.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,27 +70,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Breno Leitao <leitao@debian.org>
-Subject: mm: huge_memory: refactor anon_enabled_store() with change_anon_orders()
-Date: Mon, 09 Mar 2026 04:07:31 -0700
+Subject: mm: huge_memory: refactor enabled_store() with change_enabled()
+Date: Mon, 09 Mar 2026 04:07:32 -0700
 
-Consolidate the repeated spin_lock/set_bit/clear_bit pattern in
-anon_enabled_store() into a new change_anon_orders() helper that loops
-over an orders[] array, setting the bit for the selected mode and clearing
-the others.
+Refactor enabled_store() to use a new change_enabled() helper.  Introduce
+a separate enum global_enabled_mode and global_enabled_mode_strings[],
+mirroring the anon_enabled_mode pattern from the previous commit.
 
-Introduce enum anon_enabled_mode and anon_enabled_mode_strings[] for the
-per-order anon THP setting.
+A separate enum is necessary because the global THP setting does not
+support "inherit", only "always", "madvise", and "never".  Reusing
+anon_enabled_mode would leave a NULL gap in the string array, causing
+sysfs_match_string() to stop early and fail to match entries after the
+gap.
 
-Use sysfs_match_string() with the anon_enabled_mode_strings[] table to
-replace the if/else chain of sysfs_streq() calls.
+The helper uses the same loop pattern as change_anon_orders(), iterating
+over an array of flag bit positions and using
+test_and_set_bit()/test_and_clear_bit() to track whether the state
+actually changed.
 
-The helper uses test_and_set_bit()/test_and_clear_bit() to track whether
-the state actually changed, so start_stop_khugepaged() is only called when
-needed.  When the mode is unchanged, set_recommended_min_free_kbytes() is
-called directly to preserve the watermark recalculation behavior of the
-original code.
-
-Link: https://lkml.kernel.org/r/20260309-thp_logs-v4-2-926b9840083e@debian.org
+Link: https://lkml.kernel.org/r/20260309-thp_logs-v4-3-926b9840083e@debian.org
 Signed-off-by: Breno Leitao <leitao@debian.org>
 Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -111,102 +109,74 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   84 +++++++++++++++++++++++++++------------------
- 1 file changed, 52 insertions(+), 32 deletions(-)
+ mm/huge_memory.c |   63 ++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 48 insertions(+), 15 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-refactor-anon_enabled_store-with-change_anon_orders
+--- a/mm/huge_memory.c~mm-huge_memory-refactor-enabled_store-with-change_enabled
 +++ a/mm/huge_memory.c
-@@ -316,6 +316,20 @@ static ssize_t enabled_show(struct kobje
- 	return sysfs_emit(buf, "%s\n", output);
- }
+@@ -330,30 +330,63 @@ static const char * const anon_enabled_m
+ 	[ANON_ENABLED_NEVER]	= "never",
+ };
  
-+enum anon_enabled_mode {
-+	ANON_ENABLED_ALWAYS	= 0,
-+	ANON_ENABLED_MADVISE	= 1,
-+	ANON_ENABLED_INHERIT	= 2,
-+	ANON_ENABLED_NEVER	= 3,
++enum global_enabled_mode {
++	GLOBAL_ENABLED_ALWAYS	= 0,
++	GLOBAL_ENABLED_MADVISE	= 1,
++	GLOBAL_ENABLED_NEVER	= 2,
 +};
 +
-+static const char * const anon_enabled_mode_strings[] = {
-+	[ANON_ENABLED_ALWAYS]	= "always",
-+	[ANON_ENABLED_MADVISE]	= "madvise",
-+	[ANON_ENABLED_INHERIT]	= "inherit",
-+	[ANON_ENABLED_NEVER]	= "never",
++static const char * const global_enabled_mode_strings[] = {
++	[GLOBAL_ENABLED_ALWAYS]		= "always",
++	[GLOBAL_ENABLED_MADVISE]	= "madvise",
++	[GLOBAL_ENABLED_NEVER]		= "never",
 +};
 +
- static ssize_t enabled_store(struct kobject *kobj,
- 			     struct kobj_attribute *attr,
- 			     const char *buf, size_t count)
-@@ -515,48 +529,54 @@ static ssize_t anon_enabled_show(struct
- 	return sysfs_emit(buf, "%s\n", output);
- }
- 
-+static bool change_anon_orders(int order, enum anon_enabled_mode mode)
++static bool change_enabled(enum global_enabled_mode mode)
 +{
-+	static unsigned long *orders[] = {
-+		&huge_anon_orders_always,
-+		&huge_anon_orders_madvise,
-+		&huge_anon_orders_inherit,
++	static const unsigned long thp_flags[] = {
++		TRANSPARENT_HUGEPAGE_FLAG,
++		TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
 +	};
-+	enum anon_enabled_mode m;
++	enum global_enabled_mode m;
 +	bool changed = false;
 +
-+	spin_lock(&huge_anon_orders_lock);
-+	for (m = 0; m < ARRAY_SIZE(orders); m++) {
++	for (m = 0; m < ARRAY_SIZE(thp_flags); m++) {
 +		if (m == mode)
-+			changed |= !test_and_set_bit(order, orders[m]);
++			changed |= !test_and_set_bit(thp_flags[m],
++						     &transparent_hugepage_flags);
 +		else
-+			changed |= test_and_clear_bit(order, orders[m]);
++			changed |= test_and_clear_bit(thp_flags[m],
++						      &transparent_hugepage_flags);
 +	}
-+	spin_unlock(&huge_anon_orders_lock);
 +
 +	return changed;
 +}
 +
- static ssize_t anon_enabled_store(struct kobject *kobj,
- 				  struct kobj_attribute *attr,
- 				  const char *buf, size_t count)
+ static ssize_t enabled_store(struct kobject *kobj,
+ 			     struct kobj_attribute *attr,
+ 			     const char *buf, size_t count)
  {
- 	int order = to_thpsize(kobj)->order;
 -	ssize_t ret = count;
 +	int mode;
  
 -	if (sysfs_streq(buf, "always")) {
--		spin_lock(&huge_anon_orders_lock);
--		clear_bit(order, &huge_anon_orders_inherit);
--		clear_bit(order, &huge_anon_orders_madvise);
--		set_bit(order, &huge_anon_orders_always);
--		spin_unlock(&huge_anon_orders_lock);
--	} else if (sysfs_streq(buf, "inherit")) {
--		spin_lock(&huge_anon_orders_lock);
--		clear_bit(order, &huge_anon_orders_always);
--		clear_bit(order, &huge_anon_orders_madvise);
--		set_bit(order, &huge_anon_orders_inherit);
--		spin_unlock(&huge_anon_orders_lock);
+-		clear_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-		set_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
 -	} else if (sysfs_streq(buf, "madvise")) {
--		spin_lock(&huge_anon_orders_lock);
--		clear_bit(order, &huge_anon_orders_always);
--		clear_bit(order, &huge_anon_orders_inherit);
--		set_bit(order, &huge_anon_orders_madvise);
--		spin_unlock(&huge_anon_orders_lock);
+-		clear_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
+-		set_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
 -	} else if (sysfs_streq(buf, "never")) {
--		spin_lock(&huge_anon_orders_lock);
--		clear_bit(order, &huge_anon_orders_always);
--		clear_bit(order, &huge_anon_orders_inherit);
--		clear_bit(order, &huge_anon_orders_madvise);
--		spin_unlock(&huge_anon_orders_lock);
+-		clear_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags);
 -	} else
 -		ret = -EINVAL;
-+	mode = sysfs_match_string(anon_enabled_mode_strings, buf);
++	mode = sysfs_match_string(global_enabled_mode_strings, buf);
 +	if (mode < 0)
 +		return -EINVAL;
  
 -	if (ret > 0) {
--		int err;
-+	if (change_anon_orders(order, mode)) {
-+		int err = start_stop_khugepaged();
- 
--		err = start_stop_khugepaged();
++	if (change_enabled(mode)) {
+ 		int err = start_stop_khugepaged();
++
  		if (err)
 -			ret = err;
 +			return err;
@@ -219,11 +189,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		set_recommended_min_free_kbytes();
  	}
 -	return ret;
-+
 +	return count;
  }
  
- static struct kobj_attribute anon_enabled_attr =
+ static struct kobj_attribute enabled_attr = __ATTR_RW(enabled);
 _
 
 Patches currently in -mm which might be from leitao@debian.org are
