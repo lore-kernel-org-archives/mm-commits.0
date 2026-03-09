@@ -1,118 +1,137 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C46A31E5724
-	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 05:32:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7F99387362
+	for <mm-commits@vger.kernel.org>; Mon,  9 Mar 2026 09:58:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773034335; cv=none; b=GGL/mLQsSWVgrcgks6auXXgLj9BDA41+vLPcJUCKE9WkraZlGuuZeS/ccGhH/cRsoCa2VDKR90S7MA/wwWz8i1fLi2+ORcrIdKHeNSYS4BsuJi+m3GJQWefUVfj5QNrRUTC4wSFHN4tC94woYAQ2T+k2diGycRP6bjvZj0ugBhU=
+	t=1773050303; cv=none; b=dlBBIVyaQeKqoWHJk4OxMC+Oq9k1yM4H+QMt73C/WtDHgQ8NWyco/PlFoHCXTmaSTofYa5r+2dPzLgCIEWzikZ2E56dh4HPmisZenAG336a0IEjHsTo8dm5lnAlOFCFF6/127Kjqm1CTU5vFMUxDVUaxoxhkMxa14v7uoA2n7mc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773034335; c=relaxed/simple;
-	bh=q55Ezu53LF2JoaM7pgtvj/PcW0f9uc49G8zZpyrYvQo=;
-	h=Date:To:From:Subject:Message-Id; b=WnjXmZ/CypiDZj0xvS0Rq1V/3sEwt/VRw1WTQQhWXGDOw7/yJdwMD7vmDw/BkcpKfCFoWhTwQ2E/c6UIyKJpPJA0uaSrjAWX9toPFiL1kDxBS94LzUg8BjkJNeQLEoJQ9ysUMBrWcnefBcfDff/KfQ09+qrZimMBYrfnWEiJdhQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dSzthk9U; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773050303; c=relaxed/simple;
+	bh=TKtS+mWpfNFlIw9PvyYvUy6md/YBVnYJn8E5SEV4WJw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=tq1x29Nu7ohrTe003+KP2KcIPDuMPErkyl5TY0Dpr2br7aGBBngEdYI/W4rYqAksqp9ldUnVamwpQ6A3pwZYLyr6L2Y9fiJZ/FTIToffcJG8pha2Td9bSxaqOc+gbHQQ0uFWAZKGinyoTykvcZ3g9UeflKCrlYeqCZeo1TMhjEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=i0AjcZzY; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dSzthk9U"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48A0AC4CEF7;
-	Mon,  9 Mar 2026 05:32:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773034335;
-	bh=q55Ezu53LF2JoaM7pgtvj/PcW0f9uc49G8zZpyrYvQo=;
-	h=Date:To:From:Subject:From;
-	b=dSzthk9UfwrTKk5S8EOyn0Gcywf43ITDiKXJz37X9orblt1QyTJIRkz/uyyCxnDgA
-	 FHsZs9ey1nu0C3xGNrGuoWlNVtfQ4lj7Pm675DlfxRbZdTKqgUediF8Vk85++9WGFo
-	 yC8P01BGitk7RfkbckIo7DZFT3VvBaBckLFWI1oQ=
-Date: Sun, 08 Mar 2026 22:32:14 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,lorenzo.stoakes@oracle.com,lkp@intel.com,liam.howlett@oracle.com,jason@zx2c4.com,jannh@google.com,david@kernel.org,anthony.yznaga@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-prevent-droppable-mappings-from-being-locked-fix-fix.patch added to mm-new branch
-Message-Id: <20260309053215.48A0AC4CEF7@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="i0AjcZzY"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1773050301;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Q29TAPJjZcqFDUsZTpin10HBszzZCi1LeR65DfvcJOs=;
+	b=i0AjcZzYWdQJQz6JVcbUo4N5czVU0hdFmlG1qrsBTXsysthSggWHp9YdFR86gp/ehZNzxE
+	nv/Tg4/LVkIkkua681a8Mnl7SCAxR5KHHQ70xdf2aXBokv7ADQEsAPCivkuiK347/a5b7k
+	zk7HxHI6d2Um9weqNHV8HWoGA9WimCo=
+Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-397-rMahIKGjPQCdQ64YCE1v4g-1; Mon,
+ 09 Mar 2026 05:58:16 -0400
+X-MC-Unique: rMahIKGjPQCdQ64YCE1v4g-1
+X-Mimecast-MFC-AGG-ID: rMahIKGjPQCdQ64YCE1v4g_1773050293
+Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 1519F1956089;
+	Mon,  9 Mar 2026 09:58:13 +0000 (UTC)
+Received: from fedora (unknown [10.45.224.43])
+	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id E9D93180075D;
+	Mon,  9 Mar 2026 09:58:05 +0000 (UTC)
+Received: by fedora (nbSMTP-1.00) for uid 1000
+	oleg@redhat.com; Mon,  9 Mar 2026 10:58:12 +0100 (CET)
+Date: Mon, 9 Mar 2026 10:58:04 +0100
+From: Oleg Nesterov <oleg@redhat.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, vschneid@redhat.com,
+	vincent.guittot@linaro.org, surenb@google.com,
+	stable@vger.kernel.org, rppt@kernel.org, rostedt@goodmis.org,
+	peterz@infradead.org, mingo@redhat.com, mhocko@suse.com,
+	mgorman@suse.de, lorenzo.stoakes@oracle.com,
+	liam.howlett@oracle.com, kees@kernel.org, Kartikey406@gmail.com,
+	juri.lelli@redhat.com, dietmar.eggemann@arm.com, david@kernel.org,
+	bsegall@google.com, brauner@kernel.org
+Subject: Re: + kernel-fork-validate-exit_signal-in-clone-syscall.patch added
+ to mm-nonmm-unstable branch
+Message-ID: <aa6ZrCZoEYgsPXka@redhat.com>
+References: <20260308213116.7E884C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260308213116.7E884C116C6@smtp.kernel.org>
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
 
+On 03/08, Andrew Morton wrote:
+>
+> From: Deepanshu Kartikey <kartikey406@gmail.com>
+> Subject: kernel/fork: validate exit_signal in clone() syscall
+> Date: Sat, 7 Mar 2026 12:12:02 +0530
+>
+> When a child process exits, it sends exit_signal to its parent via
+> do_notify_parent().  The clone() syscall constructs exit_signal as:
+>
+>   (lower_32_bits(clone_flags) & CSIGNAL)
+>
+> CSIGNAL is 0xff, so values in the range 65-255 are possible.  However,
+> valid_signal() only accepts signals up to _NSIG (64 on x86_64), causing a
+> WARN_ON in do_notify_parent() when the process exits:
+>
+>   WARNING: kernel/signal.c:2174 do_notify_parent+0xc7e/0xd70
 
-The patch titled
-     Subject: mm-prevent-droppable-mappings-from-being-locked-fix-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-prevent-droppable-mappings-from-being-locked-fix-fix.patch
+Aaah. Thanks Deepanshu! My bad, please see below.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-prevent-droppable-mappings-from-being-locked-fix-fix.patch
+> The comment above kernel_clone() states that callers are expected to
+> validate exit_signal.
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Yes, and man 2 clone says:
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+      The termination signal is specified in the low byte of flags (clone()) or in cl_args.exit_signal (clone3()).
+      If no signal (i.e., zero) is specified, then the parent process is not signaled when the child terminates.
 
-The mm-new branch of mm.git is not included in linux-next
+it doesn't document that nonzero non-valid signal acts as .exit_signal == 0.
 
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
+> --- a/kernel/fork.c~kernel-fork-validate-exit_signal-in-clone-syscall
+> +++ a/kernel/fork.c
+> @@ -2800,7 +2800,8 @@ SYSCALL_DEFINE5(clone, unsigned long, cl
+>  		.stack		= newsp,
+>  		.tls		= tls,
+>  	};
+> -
+> +	if (!valid_signal(args.exit_signal))
+> +		return -EINVAL;
+>  	return kernel_clone(&args);
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Well, kernel_clone() has more users which doesn't validate .exit_signal,
+say sys_ia32_clone().
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+we need to move the valid_signal() check from copy_clone_args_from_user()
+to kernel_clone() or copy_process()...
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+So. This should fix my
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-prevent-droppable-mappings-from-being-locked-fix-fix
-Date: Sun Mar  8 10:28:48 PM PDT 2026
+	[PATCH] do_notify_parent: sanitize the valid_signal() checks
+	https://lore.kernel.org/all/aZsfg0Y055yuAvsq@redhat.com/
 
-fix non-ascii junk from email demessification
+do_notify_parent-sanitize-the-valid_signal-checks.patch in -mm tree.
 
-Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason A. Donenfeld <jason@zx2c4.com>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Somehow I was very sure that copy_process() paths already have the valid_signal()
+check but my memory fooled me.
 
- tools/testing/vma/include/dup.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+But this is a user visible change which can cause other bug reports...
+Perhaps we should revert do_notify_parent-sanitize-the-valid_signal-checks.patch
+and this patch?
 
---- a/tools/testing/vma/include/dup.h~mm-prevent-droppable-mappings-from-being-locked-fix-fix
-+++ a/tools/testing/vma/include/dup.h
-@@ -351,7 +351,7 @@ enum {
- #define VM_LOCKED_MASK	(VM_LOCKED | VM_LOCKONFAULT)
- 
- /* This mask prevents VMAs from being mlock'd */
--#define VM_NO_MLOCK_MASK       (VM_SPECIAL | VM_DROPPABLE)
-+#define VM_NO_MLOCK_MASK	(VM_SPECIAL | VM_DROPPABLE)
- 
- #define TASK_EXEC ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0)
- 
-_
+Even if I think that the new valid_signal() check "fixes" the undocumented
+behaviour, unlikely there is a sane application which passes non-valid exit
+signal to sys_clone(). But who knows...
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
-maple_tree-add-cp_is_new_root-helper-fix-fix.patch
-mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix.patch
-mm-rename-zone-lock-to-zone-_lock-fix.patch
-mm-page_reporting-add-page_reporting_order_unspecified-fix.patch
-mm-prevent-droppable-mappings-from-being-locked-fix-fix.patch
-kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
+Oleg.
 
