@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E34343B961A
-	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 16:43:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F195C39DBCA
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 16:43:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773161002; cv=none; b=D5FCQESEEBhHgoAvjgcSSOBUgWs2Lql0rYY8DuUkQt2T6DNK8l5j8x4K4xFu2c/zwGhHYpdTXwFdoaBWp61+gQI6YztnlWyzyaQz669MLnTESQtq/5zZ7Ps3CarDDimtBZfdOzdLj2U00592gqvXk76465i3lBE2QY0al5mJBx4=
+	t=1773161004; cv=none; b=Que2L8TjLI5FfDGyOurufqKLGKmgQiR9QtwqgkWCi3VSPis0V+BH5bTmtkFbqX21tNjkhcdvV6mf0cX2TRdX0LPcXRN3yTQA240vCBR9ob4mo4NMjAU8VLdg1EnBOz4Ze514MapDqdWx08StvBcxfH8A6NZg6P11lP+HC51x+mU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773161002; c=relaxed/simple;
-	bh=XXF5cb2oyWqEPfizNsD+ITdCLv0zqFNnvhpCMbKCW1o=;
-	h=Date:To:From:Subject:Message-Id; b=Zgh98f3uynbF/8kAgssmShn69wA4NKws/L6Al5bgULcFUNen3shG4A0uP6FE+db5qvyB0WuUgBF07yaRT8lEo8Wsd5a4rwhUP1IZsdw6fU166VCid6BS0BSMqQs/H+BSSUBLUlgu+180wFytzXfT0QT8VaGA/64pTLPYJ5kKyCM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jXXdLS1e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773161004; c=relaxed/simple;
+	bh=LtQ+e2V14p4I36d4umY1PMceOlNWB0A0u65RwihyhW4=;
+	h=Date:To:From:Subject:Message-Id; b=CWK9+t9XDbKK12w8hrKBPHA2bXAqJzsXDm7WyxK2PhxVZW5eLnTigReNXnIR99rtZLvsNC9enX3dRummtdf07NMJ5MMv3wldyNwMXNmfjtcnGXF8fqa7d1vzFcPzcnlIWa/NMMGkKyi/LyqCYmOtmWJ9Eu/+YPdr4hhFX4XFWt0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=A7KvAfnc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jXXdLS1e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76C7CC19423;
-	Tue, 10 Mar 2026 16:43:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="A7KvAfnc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEC3DC19423;
+	Tue, 10 Mar 2026 16:43:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773161001;
-	bh=XXF5cb2oyWqEPfizNsD+ITdCLv0zqFNnvhpCMbKCW1o=;
+	s=korg; t=1773161003;
+	bh=LtQ+e2V14p4I36d4umY1PMceOlNWB0A0u65RwihyhW4=;
 	h=Date:To:From:Subject:From;
-	b=jXXdLS1eM5rv+JGZehwxUIDnH4rT4JZ1t8TixCewvLMKKOEuwZCX9KK0mRyDLEOnI
-	 StflxBlQF8TWr0fYeoxDw6L4kz+0WYkGk3yzOw6vFPqox9P+geMIZrxBTBQjn2s9v1
-	 xmoWWacCl9zLu/0mXDhrROpdoBjc55dAR+rFt3KI=
-Date: Tue, 10 Mar 2026 09:43:20 -0700
+	b=A7KvAfncArs/zCdozmxNxhcyDJsVwhbe+eLamH2KlmrE0nPAAcR9FT0aW1rXX0Rzu
+	 +GEUINDyj+T/i0G0RrXZOArNaNXEXF3jReDECx0nrQF/Kvy/HFOKRbj/VkvhRUWwi1
+	 3d8RUzFNIZx7hItKk1ca///wV20je9HNIwl5QOqg=
+Date: Tue, 10 Mar 2026 09:43:23 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.anjum@collabora.com,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,ritesh.list@gmail.com,osalvador@suse.de,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-fix-double-increment-in-linked-list-cleanup-in-compaction_test.patch added to mm-new branch
-Message-Id: <20260310164321.76C7CC19423@smtp.kernel.org>
+Subject: + selftests-mm-move-hwpoison-setup-into-run_test-and-silence-modprobe-output-for-memory-failure-category.patch added to mm-new branch
+Message-Id: <20260310164323.AEC3DC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: fix double increment in linked list cleanup in compaction_test
+     Subject: selftests/mm: move hwpoison setup into run_test() and silence modprobe output for memory-failure category
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-fix-double-increment-in-linked-list-cleanup-in-compaction_test.patch
+     selftests-mm-move-hwpoison-setup-into-run_test-and-silence-modprobe-output-for-memory-failure-category.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-double-increment-in-linked-list-cleanup-in-compaction_test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-move-hwpoison-setup-into-run_test-and-silence-modprobe-output-for-memory-failure-category.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,26 +70,46 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: fix double increment in linked list cleanup in compaction_test
-Date: Tue, 10 Mar 2026 15:19:29 +0530
+Subject: selftests/mm: move hwpoison setup into run_test() and silence modprobe output for memory-failure category
+Date: Tue, 10 Mar 2026 15:19:30 +0530
 
-The cleanup loop of allocated memory currently uses:
+run_vmtests.sh contains special handling to ensure the hwpoison_inject
+module is available for the memory-failure tests.  This logic was
+implemented outside of run_test(), making the setup category-specific but
+managed globally.
 
-    for (entry = list; entry != NULL; entry = entry->next) {
-        munmap(entry->map, MAP_SIZE);
-        if (!entry->next)
-            break;
-        entry = entry->next;
-    }
+Move the hwpoison_inject handling into run_test() and restrict it
+to the memory-failure category so that:
+1. the module is checked and loaded only when memory-failure tests run,
+2. the test is skipped if the module or the debugfs interface
+(/sys/kernel/debug/hwpoison/) is not available.
+3. the module is unloaded after the test if it was loaded by the script.
 
-The inner entry = entry->next causes the loop to skip every other node,
-resulting in only half of the mapped regions being unmapped.
+This localizes category-specific setup and makes the test flow consistent
+with other per-category preparations.
 
-Remove the redundant increment to ensure every entry is visited and
-unmapped during cleanup.
+While updating this logic, fix the module availability check.  The script
+previously used:
 
-Link: https://lkml.kernel.org/r/00fdaa3c84427958f51eaefa7603094a090fcebc.1773134177.git.sayalip@linux.ibm.com
-Fixes: bd67d5c15cc1 ("Test compaction of mlocked memory")
+	modprobe -R hwpoison_inject
+
+The -R option prints the resolved module name to stdout, causing every run
+to print:
+
+	hwpoison_inject
+
+in the test output, even when no action is required, introducing
+unnecessary noise.
+
+Replace this with:
+
+	modprobe -n hwpoison_inject
+
+which verifies that the module is loadable without producing output,
+keeping the selftest logs clean and consistent.
+
+Link: https://lkml.kernel.org/r/832afc6c34a784ca433b506622cdc98fe9540f79.1773134177.git.sayalip@linux.ibm.com
+Fixes: ff4ef2fbd101 ("selftests/mm: add memory failure anonymous page test")
 Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -110,21 +130,78 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/compaction_test.c |    3 ---
- 1 file changed, 3 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |   46 ++++++++++++--------
+ 1 file changed, 28 insertions(+), 18 deletions(-)
 
---- a/tools/testing/selftests/mm/compaction_test.c~selftests-mm-fix-double-increment-in-linked-list-cleanup-in-compaction_test
-+++ a/tools/testing/selftests/mm/compaction_test.c
-@@ -263,9 +263,6 @@ int main(int argc, char **argv)
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-move-hwpoison-setup-into-run_test-and-silence-modprobe-output-for-memory-failure-category
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -250,6 +250,27 @@ run_test() {
+ 			fi
+ 		fi
  
- 	for (entry = list; entry != NULL; entry = entry->next) {
- 		munmap(entry->map, MAP_SIZE);
--		if (!entry->next)
--			break;
--		entry = entry->next;
- 	}
++		# Ensure hwpoison_inject is available for memory-failure tests
++		if [ "${CATEGORY}" = "memory-failure" ]; then
++			# Try to load hwpoison_inject if not present.
++			HWPOISON_DIR=/sys/kernel/debug/hwpoison/
++			if [ ! -d "$HWPOISON_DIR" ]; then
++				if ! modprobe -n hwpoison_inject > /dev/null 2>&1; then
++					echo "Module hwpoison_inject not found, skipping..." \
++						| tap_prefix
++					skip=1
++				else
++					modprobe hwpoison_inject > /dev/null 2>&1
++					LOADED_MOD=1
++				fi
++			fi
++
++			if [ ! -d "$HWPOISON_DIR" ]; then
++				echo "hwpoison debugfs interface not present" | tap_prefix
++				skip=1
++			fi
++		fi
++
+ 		local test=$(pretty_name "$*")
+ 		local title="running $*"
+ 		local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
+@@ -261,6 +282,12 @@ run_test() {
+ 		else
+ 			local ret=$ksft_skip
+ 		fi
++
++		# Unload hwpoison_inject if we loaded it
++		if [ -n "${LOADED_MOD}" ]; then
++			modprobe -r hwpoison_inject > /dev/null 2>&1
++		fi
++
+ 		count_total=$(( count_total + 1 ))
+ 		if [ $ret -eq 0 ]; then
+ 			count_pass=$(( count_pass + 1 ))
+@@ -542,24 +569,7 @@ CATEGORY="page_frag" run_test ./test_pag
  
- 	if (check_compaction(mem_free, hugepage_size,
+ CATEGORY="rmap" run_test ./rmap
+ 
+-# Try to load hwpoison_inject if not present.
+-HWPOISON_DIR=/sys/kernel/debug/hwpoison/
+-if [ ! -d "$HWPOISON_DIR" ]; then
+-	if ! modprobe -q -R hwpoison_inject; then
+-		echo "Module hwpoison_inject not found, skipping..."
+-	else
+-		modprobe hwpoison_inject > /dev/null 2>&1
+-		LOADED_MOD=1
+-	fi
+-fi
+-
+-if [ -d "$HWPOISON_DIR" ]; then
+-	CATEGORY="memory-failure" run_test ./memory-failure
+-fi
+-
+-if [ -n "${LOADED_MOD}" ]; then
+-	modprobe -r hwpoison_inject > /dev/null 2>&1
+-fi
++CATEGORY="memory-failure" run_test ./memory-failure
+ 
+ if [ "${HAVE_HUGEPAGES}" = 1 ]; then
+ 	echo "$orig_nr_hugepgs" > /proc/sys/vm/nr_hugepages
 _
 
 Patches currently in -mm which might be from sayalip@linux.ibm.com are
