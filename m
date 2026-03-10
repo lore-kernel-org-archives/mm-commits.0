@@ -1,124 +1,122 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C607D345758;
-	Mon,  9 Mar 2026 23:38:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D33D534EEF9
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 16:19:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773099527; cv=none; b=Ze/jw9OPsyolHfefb0INyNBgkEV3UrTRnIPAmMglppiRvPBnyg+2ghfPqklv4MpI0On0Ma7r2DLRqRU9MaRogWpt6lM1sGjnXbhjjSP60wZLBD4lU6B+pbS/PcZQ8PAZcXXxYAV4p9xUFqaoj0NvZU4f8fgTkzQX+zrCQj/c+LY=
+	t=1773159582; cv=none; b=PD0ivqh089Ul4QsomekdpUyq2P4LkCngGXxN2pkqisFemvNmqzF55ycRGIhktuBUIhL41bK28cempX8RQNRKfBfHqA1dyqgXU19UdTZpWFYK4Bzx90JsiQMTZp32Xl5uY10Gsg92P8mdUV0foze/QatHky9fRWxkgBr/PrVhXCM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773099527; c=relaxed/simple;
-	bh=FykBWcFe23lE0fFQ+0Q1RwNiAvy8eDPcpckP4pBtT7Q=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=PRllY5Rr9Y+F3+S6ry00BLdI3x9EzCtsgTPQMRsVUopJ53kIqjR21dYl/Np9C3265rTYfcPUhCVIDvQLW4gc21JX2kI/VbCfmlI2taM8gW8MQ8xhnHwuu0BRoAHU27eirZhEU+melZrmq8Y9HhQBWMRL8k6fpFostiJnL2LesT8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ctBzW0Pn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773159582; c=relaxed/simple;
+	bh=pBFVnelM5S3atwW36A5N/z0vqtG+fLN1mCWGD2nD2lM=;
+	h=Date:To:From:Subject:Message-Id; b=rsc1L5GnDbD6+9emPDtlZ5EsTH0JGlDr7owBnSv2lU+EhNu+xcuvTDPZriBM6YthR1TB7IuV0IbSKoQL1uaRJc7knhsmMOkFxCxlA48MI7iikjHrIPOzC9t67n+XV1d1rmA71hS8elooIkUl9yKFeSS8PXY6rRhYrsbyZZ6HiuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s6jP64zx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ctBzW0Pn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20BAFC4CEF7;
-	Mon,  9 Mar 2026 23:38:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s6jP64zx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B737C19425;
+	Tue, 10 Mar 2026 16:19:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773099527;
-	bh=FykBWcFe23lE0fFQ+0Q1RwNiAvy8eDPcpckP4pBtT7Q=;
-	h=Date:From:To:Cc:Subject:From;
-	b=ctBzW0PnltS9HVS48yHYDmydDQQY2lN9rew4C6+WJnP8JqzF23lLjJPF/T59cadw8
-	 R2wkZ7Z3CxU6Jp8kG7sdFgBvYwUHn/0aFA1SkJsuTgGMXBAPmEQ0eeDr3aBCE/3TEB
-	 E9nQJEzqOHrNLKHvogIjOtMNgs6PxyM3lOpghi6s=
-Date: Mon, 9 Mar 2026 16:38:46 -0700
+	s=korg; t=1773159582;
+	bh=pBFVnelM5S3atwW36A5N/z0vqtG+fLN1mCWGD2nD2lM=;
+	h=Date:To:From:Subject:From;
+	b=s6jP64zxHHmfpPlSfE8HYYnC+hOvHCYAAFFRzpPcH0lycr8z6CZ+aLxGkJqVIi+fu
+	 WPXiRVRgrq9wzjU+BRGrC6JOdGw2jEJo2dclUf5In1gx1Yq1qL88mROeHAvGC3Kont
+	 98mEsQv+URKMq+bwHrgVawcbLr2uWfB0EcuF2hHU=
+Date: Tue, 10 Mar 2026 09:19:41 -0700
+To: mm-commits@vger.kernel.org,minchan@kernel.org,gaoxu2@honor.com,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linuxfoundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 7.0-rc4
-Message-Id: <20260309163846.f59b3518cba71b9587576e7f@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + zram-do-not-permit-params-change-after-init.patch added to mm-new branch
+Message-Id: <20260310161942.4B737C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
+The patch titled
+     Subject: zram: do not permit params change after init
+has been added to the -mm mm-new branch.  Its filename is
+     zram-do-not-permit-params-change-after-init.patch
 
-Linus, please merge this batch of hotfixes, thanks.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-permit-params-change-after-init.patch
 
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
 
-The following changes since commit 410aed670cddac1de4f0c2865f30ec623fd20f78:
+The mm-new branch of mm.git is not included in linux-next
 
-  MAINTAINERS: update Yosry Ahmed's email address (2026-02-24 11:13:28 -0800)
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
-are available in the Git repository at:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-03-09-16-36
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-for you to fetch changes up to b12bbe35c7c1e431f2fa01fe9291daa52fb7ab43:
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
-  MAINTAINERS, mailmap: update email address for Lorenzo Stoakes (2026-03-04 10:06:40 -0800)
+------------------------------------------------------
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: do not permit params change after init
+Date: Tue, 10 Mar 2026 15:01:41 +0900
 
-----------------------------------------------------------------
-15 hotfixes.  6 are cc:stable.  14 are for MM.
+First, algorithm_params_store(), like any sysfs handler, should grab
+device init lock.
 
-Singletons, with one doubleton - please see the changelogs for details.
+Second, like any write() sysfs handler, it should grab device init lock in
+exclusive mode.
 
-----------------------------------------------------------------
-Axel Rasmussen (1):
-      Revert "ptdesc: remove references to folios from __pagetable_ctor() and pagetable_dtor()"
+Third, it should not permit change of algos' parameters after device init,
+as this doesn't make sense - we cannot compress with one C/D dict and then
+just change C/D dict to a different one, for example.
 
-Hao Li (1):
-      memcg: fix slab accounting in refill_obj_stock() trylock path
+Link: https://lkml.kernel.org/r/20260310060407.1133800-1-senozhatsky@chromium.org
+Fixes: 4eac932103a5d ("zram: introduce algorithm_params device attribute")
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: gao xu <gaoxu2@honor.com>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Jason Xing (1):
-      MAINTAINERS: add RELAY entry
+ drivers/block/zram/zram_drv.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-Lorenzo Stoakes (Oracle) (1):
-      MAINTAINERS, mailmap: update email address for Lorenzo Stoakes
+--- a/drivers/block/zram/zram_drv.c~zram-do-not-permit-params-change-after-init
++++ a/drivers/block/zram/zram_drv.c
+@@ -1769,6 +1769,10 @@ static ssize_t algorithm_params_store(st
+ 	if (prio < ZRAM_PRIMARY_COMP || prio >= ZRAM_MAX_COMPS)
+ 		return -EINVAL;
+ 
++	guard(rwsem_write)(&zram->dev_lock);
++	if (init_done(zram))
++		return -EBUSY;
++
+ 	ret = comp_params_store(zram, prio, level, dict_path, &deflate_params);
+ 	return ret ? ret : len;
+ }
+_
 
-Mike Rapoport (Microsoft) (1):
-      tools/testing: fix testing/vma and testing/radix-tree build
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-Pratyush Yadav (Google) (2):
-      mm: memfd_luo: always make all folios uptodate
-      mm: memfd_luo: always dirty all folios
-
-Randy Dunlap (2):
-      uaccess: correct kernel-doc parameter format
-      mm/mmu_notifier: clean up mmu_notifier.h kernel-doc
-
-Raul Pazemecxas De Andrade (1):
-      mm/damon/core: clear walk_control on inactive context in damos_walk()
-
-Ritesh Harjani (IBM) (1):
-      mm/hugetlb.c: use __pa() instead of virt_to_phys() in early bootmem alloc code
-
-Sergey Senozhatsky (1):
-      zram: rename writeback_compressed device attr
-
-Vlastimil Babka (SUSE) (1):
-      MAINTAINERS: add co-maintainer and reviewer for SLAB ALLOCATOR
-
-Zi Yan (2):
-      mm/cma: move put_page_testzero() out of VM_WARN_ON in cma_release()
-      mm/huge_memory: fix a folio_split() race condition with folio_try_get()
-
- .mailmap                                    |  3 +-
- Documentation/ABI/testing/sysfs-block-zram  |  4 +--
- Documentation/admin-guide/blockdev/zram.rst |  6 ++--
- MAINTAINERS                                 | 33 ++++++++++++-------
- drivers/block/zram/zram_drv.c               | 24 +++++++-------
- drivers/block/zram/zram_drv.h               |  2 +-
- include/linux/mm.h                          | 17 ++++------
- include/linux/mmu_notifier.h                | 31 +++++++++---------
- include/linux/uaccess.h                     |  4 +--
- mm/cma.c                                    |  5 ++-
- mm/damon/core.c                             |  7 ++++-
- mm/huge_memory.c                            | 13 +++++---
- mm/hugetlb.c                                |  4 +--
- mm/memcontrol.c                             |  2 +-
- mm/memfd_luo.c                              | 49 +++++++++++++++++++++++++----
- tools/include/linux/gfp.h                   |  4 +++
- tools/include/linux/overflow.h              | 19 +++++++++++
- tools/include/linux/slab.h                  |  9 ++++++
- 18 files changed, 163 insertions(+), 73 deletions(-)
+zram-do-not-autocorrect-bad-recompression-parameters.patch
+zram-drop-num_active_comps.patch
+zram-recompression-priority-param-should-override-algo.patch
+zram-update-recompression-documentation.patch
+zram-remove-chained-recompression.patch
+zram-do-not-permit-params-change-after-init.patch
 
