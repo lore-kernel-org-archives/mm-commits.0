@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B39A3C0620
-	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 18:00:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D4623CFF42
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 18:00:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773165645; cv=none; b=Bt3wytJvYQRGIdmW4L6sX2/CW4v5fU1MKRJHSwYDrA7RxGOutVTtEg1uF3M5gmsCsVG3C3rN9F+u9TipHjGYV/YtGjtDF3lZ52o7ifAYcBz1pdd3jbMbppA1u+WNbHdBANl0vOgthX5ocC0uC916iaHW0gN7301PAB7wdySlMB8=
+	t=1773165648; cv=none; b=LNig1Hm1HI8blgvU5cw0YgStJnDyzjvP2Gmx/vAwjsa/PbpCQiVLafNuD2/sybtXrNqDqkLWB7Rrim8KWIfXojQ2f4HIE3oZR6dXHFf9aIuA8T/2ydAt1RuNaUG9ozdMaYN6lFH6vGRhj69d1g8qi+7d57NXWDmVWoR7toMyLzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773165645; c=relaxed/simple;
-	bh=1zdiYE0ZnJCHriDR2/sz0DEaYTTtjzD+Vhx1qIC7Opk=;
-	h=Date:To:From:Subject:Message-Id; b=IVX44kTnlGiyZrmdFhKbDA0XgM8eb6E4hV1Es6K6png6IlWq2BsUIKhVm0N5UQtNWTwwmWIQDxeVoSty6iEJz4CB5WUk1FNA3fdZrV5NtE2fsiGAQlcHvB1q6jfA9y91qefxt/l+41OVS67c+KTzEdH9PTFzCovgWPfRRraWw4Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zb8rCFur; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773165648; c=relaxed/simple;
+	bh=gng7rf7KReq1DvFmMeMCWjfj9czaqRy+3TJZ3iuZPZM=;
+	h=Date:To:From:Subject:Message-Id; b=qeG2dOJIrCjrQaoVfQn02GhrU48Wyyi2fsT/flYbwVWnPLQeuxXP2ug4tPnJbNPuWsPXoDCDjCqg7YTQbn37ZwH+7RATtbxAt0SjYRQR9NJlNu2wt5Szkb1nAwcXg0H8YrbePhfJZ/iKvsa+Sk1uP/C4CVDXFvfgeRnTgANrY1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qK1hY649; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zb8rCFur"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 391ACC19423;
-	Tue, 10 Mar 2026 18:00:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qK1hY649"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6D65C19423;
+	Tue, 10 Mar 2026 18:00:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773165645;
-	bh=1zdiYE0ZnJCHriDR2/sz0DEaYTTtjzD+Vhx1qIC7Opk=;
+	s=korg; t=1773165647;
+	bh=gng7rf7KReq1DvFmMeMCWjfj9czaqRy+3TJZ3iuZPZM=;
 	h=Date:To:From:Subject:From;
-	b=zb8rCFurN55mOoRHSYICurfjrpvJ7LtjZhFXuLfkM+bMZrIw7Ch07tCLPEy+NixE9
-	 VtdXCvdZn5Bpe+NpoziDnm9vJjHa6Ove1DJRkZ4k1jHoVCOSLeC5LhHnENFZOGa6i+
-	 3XZi4D1ef1CS0RcnpaOaGni4NiKlfTPP+ima4SoA=
-Date: Tue, 10 Mar 2026 11:00:44 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=qK1hY649SwbcDmTXUW5c1M8tWYVIhpR6lUoPdstjCRVWRewTFxvP+p9aVgGznL8QB
+	 ZpMjdSTrYrA0guAh2kfoURDwJnD99E/eNrE+NEUr1PbGmQAkcSBSV8cT4Q+rfN4tli
+	 j4qgcsATHYltIcptZYw0gh4fuDbqS5LtxB+YuWsA=
+Date: Tue, 10 Mar 2026 11:00:47 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-introduce-damos_quota_goal_tuner.patch added to mm-new branch
-Message-Id: <20260310180045.391ACC19423@smtp.kernel.org>
+Subject: + mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch added to mm-new branch
+Message-Id: <20260310180047.B6D65C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: introduce damos_quota_goal_tuner
+     Subject: mm/damon/core: allow quota goals set zero effective size quota
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-introduce-damos_quota_goal_tuner.patch
+     mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-introduce-damos_quota_goal_tuner.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,154 +70,115 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: introduce damos_quota_goal_tuner
-Date: Mon, 9 Mar 2026 18:05:17 -0700
+Subject: mm/damon/core: allow quota goals set zero effective size quota
+Date: Mon, 9 Mar 2026 18:05:18 -0700
 
-Patch series "mm/damon: support multiple goal-based quota tuning
-algorithms".
+User-explicit quotas (size and time quotas) having zero value means the
+quotas are unset.  And, effective size quota is set as the minimum value
+of the explicit quotas.  When quota goals are set, the goal-based quota
+tuner can make it lower.  But the existing only single tuner never sets
+the effective size quota zero.  Because of the fact, DAMON core assumes
+zero effective quota means the user has set no quota.
 
-Aim-oriented DAMOS quota auto-tuning uses a single tuning algorithm.  The
-algorithm is designed to find a quota value that should be consistently
-kept for achieving the aimed goal for long term.  It is useful and
-reliable at automatically operating systems that have dynamic environments
-in the long term.
+Multiple tuners are now allowed, though.  In the future, some tuners might
+want to set a zero effective size quota.  There is no reason to restrict
+that.  Meanwhile, because of the current implementation, it will only
+deactivate all quotas and make the scheme work at its full speed.
 
-As always, however, no single algorithm fits all.  When the environment
-has static characteristics or there are control towers in not only the
-kernel space but also the user space, the algorithm shows some
-limitations.  In such environments, users want kernel work in a more short
-term deterministic way.  Actually there were at least two reports [1,2] of
-such cases.
+Introduce a dedicated function for checking if no quota is set.  The
+function checks the fact by showing if the user-set explicit quotas are
+zero and no goal is installed.  It is decoupled from zero effective quota,
+and hence allows future tuners set zero effective quota for intentionally
+deactivating the scheme by a purpose.
 
-Extend DAMOS quotas goal to support multiple quota tuning algorithms that
-users can select.  Keep the current algorithm as the default one, to not
-break the old users.  Also give it a name, "consist", as it is designed to
-"consistently" apply the DAMOS action.  And introduce a new tuning
-algorithm, namely "temporal".  It is designed to apply the DAMOS action
-only temporally, in a deterministic way.  In more detail, as long as the
-goal is under-achieved, it uses the maximum quota available.  Once the
-goal is over-achieved, it sets the quota zero.
-
-Tests
-=====
-
-I confirmed the feature is working as expected using the latest version of
-DAMON user-space tool, like below.
-
-    $ # start DAMOS for reclaiming memory aiming 30% free memory
-    $ sudo ./damo/damo start --damos_action pageout \
-            --damos_quota_goal_tuner temporal \
-            --damos_quota_goal node_mem_free_bp 30% 0 \
-            --damos_quota_interval 1s \
-            --damos_quota_space 100M
-
-Note that >=3.1.8 version of DAMON user-space tool supports this feature
-(--damos_quota_goal_tuner).  As expected, DAMOS stops reclaiming memory as
-soon as the goal amount of free memory is made.  When 'consist' tuner is
-used, the reclamation was continued even after the goal amount of free
-memory is made, resulting in more than goal amount of free memory, as
-expected.
-
-Patch Sequence
-==============
-
-First four patches implement the features.  Patch 1 extends core API to
-allow multiple tuners and make the current tuner as the default and only
-available tuner, namely 'consist'.  Patch 2 allows future tuners setting
-zero effective quota.  Patch 3 introduces the second tuner, namely
-'temporal'.  Patch 4 further extends DAMON sysfs API to let users use
-that.
-
-Three following patches (patches 5-7) update design, usage, and ABI
-documents, respectively.
-
-Final four patches (patches 8-11) are for adding tests.  The eighth patch
-(patch 8) extends the kunit test for online parameters commit for
-validating the goal_tuner.  The ninth and the tenth patches (patches 9-10)
-extend the testing-purpose DAMON sysfs control helper and DAMON status
-dumping tool to support the newly added feature.  The final eleventh one
-(patch 11) extends the existing online commit selftest to cover the new
-feature.
-
-This patch (of 11):
-
-DAMOS quota goal feature utilizes a single feedback loop based algorithm
-for automatic tuning of the effective quota.  It is useful in dynamic
-environments that operate systems with only kernels in the long term. 
-But, no one fits all.  It is not very easy to control in environments
-having more controlled characteristics and user-space control towers.  We
-actually got multiple reports [1,2] of use cases that the algorithm is not
-optimal.
-
-Introduce a new field of 'struct damos_quotas', namely 'goal_tuner'.  It
-specifies what tuning algorithm the given scheme should use, and allows
-DAMON API callers to set it as they want.  Nonetheless, this commit
-introduces no new tuning algorithm but only the interface.  This commit
-hence makes no behavioral change.  A new algorithm will be added by the
-following commit.
-
-Link: https://lkml.kernel.org/r/20260310010529.91162-2-sj@kernel.org
-Link: https://lore.kernel.org/CALa+Y17__d=ZsM1yX+MXx0ozVdsXnFqF4p0g+kATEitrWyZFfg@mail.gmail.com [1]
-Link: https://lore.kernel.org/20260204022537.814-1-yunjeong.mun@sk.com [2]
+Link: https://lkml.kernel.org/r/20260310010529.91162-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   10 ++++++++++
- mm/damon/core.c       |    1 +
- 2 files changed, 11 insertions(+)
+ mm/damon/core.c |   31 ++++++++++++++++++++++++++-----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-introduce-damos_quota_goal_tuner
-+++ a/include/linux/damon.h
-@@ -216,11 +216,20 @@ struct damos_quota_goal {
- };
- 
- /**
-+ * enum damos_quota_goal_tuner - Goal-based quota tuning logic.
-+ * @DAMOS_QUOTA_GOAL_TUNER_CONSIST:	Aim long term consistent quota.
-+ */
-+enum damos_quota_goal_tuner {
-+	DAMOS_QUOTA_GOAL_TUNER_CONSIST,
-+};
-+
-+/**
-  * struct damos_quota - Controls the aggressiveness of the given scheme.
-  * @reset_interval:	Charge reset interval in milliseconds.
-  * @ms:			Maximum milliseconds that the scheme can use.
-  * @sz:			Maximum bytes of memory that the action can be applied.
-  * @goals:		Head of quota tuning goals (&damos_quota_goal) list.
-+ * @goal_tuner:		Goal-based @esz tuning algorithm to use.
-  * @esz:		Effective size quota in bytes.
-  *
-  * @weight_sz:		Weight of the region's size for prioritization.
-@@ -262,6 +271,7 @@ struct damos_quota {
- 	unsigned long ms;
- 	unsigned long sz;
- 	struct list_head goals;
-+	enum damos_quota_goal_tuner goal_tuner;
- 	unsigned long esz;
- 
- 	unsigned int weight_sz;
---- a/mm/damon/core.c~mm-damon-core-introduce-damos_quota_goal_tuner
+--- a/mm/damon/core.c~mm-damon-core-allow-quota-goals-set-zero-effective-size-quota
 +++ a/mm/damon/core.c
-@@ -912,6 +912,7 @@ static int damos_commit_quota(struct dam
- 	err = damos_commit_quota_goals(dst, src);
- 	if (err)
- 		return err;
-+	dst->goal_tuner = src->goal_tuner;
- 	dst->weight_sz = src->weight_sz;
- 	dst->weight_nr_accesses = src->weight_nr_accesses;
- 	dst->weight_age = src->weight_age;
+@@ -387,6 +387,11 @@ void damos_destroy_quota_goal(struct dam
+ 	damos_free_quota_goal(g);
+ }
+ 
++static bool damos_quota_goals_empty(struct damos_quota *q)
++{
++	return list_empty(&q->goals);
++}
++
+ /* initialize fields of @quota that normally API users wouldn't set */
+ static struct damos_quota *damos_quota_init(struct damos_quota *quota)
+ {
+@@ -1789,12 +1794,24 @@ static bool __damos_valid_target(struct
+ 		r->age <= s->pattern.max_age_region;
+ }
+ 
++/*
++ * damos_quota_is_set() - Return if the given quota is actually set.
++ * @quota:	The quota to check.
++ *
++ * Returns true if the quota is set, false otherwise.
++ */
++static bool damos_quota_is_set(struct damos_quota *quota)
++{
++	return quota->esz || quota->sz || quota->ms ||
++		!damos_quota_goals_empty(quota);
++}
++
+ static bool damos_valid_target(struct damon_ctx *c, struct damon_region *r,
+ 		struct damos *s)
+ {
+ 	bool ret = __damos_valid_target(r, s);
+ 
+-	if (!ret || !s->quota.esz || !c->ops.get_scheme_score)
++	if (!ret || !damos_quota_is_set(&s->quota) || !c->ops.get_scheme_score)
+ 		return ret;
+ 
+ 	return c->ops.get_scheme_score(c, r, s) >= s->quota.min_score;
+@@ -2064,7 +2081,8 @@ static void damos_apply_scheme(struct da
+ 	}
+ 
+ 	if (c->ops.apply_scheme) {
+-		if (quota->esz && quota->charged_sz + sz > quota->esz) {
++		if (damos_quota_is_set(quota) &&
++				quota->charged_sz + sz > quota->esz) {
+ 			sz = ALIGN_DOWN(quota->esz - quota->charged_sz,
+ 					c->min_region_sz);
+ 			if (!sz)
+@@ -2083,7 +2101,8 @@ static void damos_apply_scheme(struct da
+ 		quota->total_charged_ns += timespec64_to_ns(&end) -
+ 			timespec64_to_ns(&begin);
+ 		quota->charged_sz += sz;
+-		if (quota->esz && quota->charged_sz >= quota->esz) {
++		if (damos_quota_is_set(quota) &&
++				quota->charged_sz >= quota->esz) {
+ 			quota->charge_target_from = t;
+ 			quota->charge_addr_from = r->ar.end + 1;
+ 		}
+@@ -2111,7 +2130,8 @@ static void damon_do_apply_schemes(struc
+ 			continue;
+ 
+ 		/* Check the quota */
+-		if (quota->esz && quota->charged_sz >= quota->esz)
++		if (damos_quota_is_set(quota) &&
++				quota->charged_sz >= quota->esz)
+ 			continue;
+ 
+ 		if (damos_skip_charged_region(t, r, s, c->min_region_sz))
+@@ -2396,7 +2416,8 @@ static void damos_adjust_quota(struct da
+ 	/* New charge window starts */
+ 	if (time_after_eq(jiffies, quota->charged_from +
+ 				msecs_to_jiffies(quota->reset_interval))) {
+-		if (quota->esz && quota->charged_sz >= quota->esz)
++		if (damos_quota_is_set(quota) &&
++				quota->charged_sz >= quota->esz)
+ 			s->stat.qt_exceeds++;
+ 		quota->total_charged_sz += quota->charged_sz;
+ 		quota->charged_from = jiffies;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
