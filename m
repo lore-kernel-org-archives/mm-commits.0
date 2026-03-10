@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED5039DBCA
-	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 16:43:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D4573B635E
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 16:43:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773160995; cv=none; b=TaqefaALc0SOB1HvwFlKMakTrXl599YZB0chLcvWDpX5xwPtQPOn++BSaqIgc8VJccgNO0PwCxV0ksiRt8DZajIOCEbDas8E1TVRrTbmQSZxzP3X4L+IsX5iTRGuLW8WQMT0sWK3FpithhyvUDOaExnDrBjQE4keFlDJqwLMeYQ=
+	t=1773160997; cv=none; b=WrL+T+b7xiF9Xk5Bs9FcmY7xItCz6KGThkA9JPH3Ax0z1dtL9Tzp7sEsMkc3IYWjZapMuHIw5klayLKpj7O77ElxZDHHMLyV+zZpf/+j0dPf6gl4BRZcOewb5D3w1vsiU3gW0TCjxn2AzdN6bAO65jxg1K0Q8onEJgSr8jt2Aqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773160995; c=relaxed/simple;
-	bh=ynWLXnEBu0WnAvz6inv41LLpQNdzn8m36W0LsAdmI+k=;
-	h=Date:To:From:Subject:Message-Id; b=sfAmhR/h56hLwEojLtTEc8e+/ZuDfUM3okYmjR7jORHNumjXtx+kyud1DU1FyDTBk3LC15zjw9oz7wtx/vhWL2i9GJoTGzBh4aJ/kzysARdKJvY60fUKgrBEo5+LH69tKGfgrqbIWlaDCS8Ict7O5yZhL1SbRhsXD969rPCH5lw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X+71wk6n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773160997; c=relaxed/simple;
+	bh=oH20GL09t7coVIh3zAT7KuB5hIRQTkMo35J3xhkpoEo=;
+	h=Date:To:From:Subject:Message-Id; b=O7KFfSRtf4uyv6CZbSQn+749RzIW6F5M45vjmJpqEL65H2v59quEAqi7AlxEhPW2EwUrdPfvlF0R/5hbWa6jHsHjUlMQ1aM2ywEULUYeyXWWsQXHD9xuEckr6fYIME6mc4pYFWaWcud542fXhVR05BcPRlzw0E59pUcx7FFEFcM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q0y7z3rp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X+71wk6n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94451C19423;
-	Tue, 10 Mar 2026 16:43:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q0y7z3rp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2DE7C19423;
+	Tue, 10 Mar 2026 16:43:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773160994;
-	bh=ynWLXnEBu0WnAvz6inv41LLpQNdzn8m36W0LsAdmI+k=;
+	s=korg; t=1773160997;
+	bh=oH20GL09t7coVIh3zAT7KuB5hIRQTkMo35J3xhkpoEo=;
 	h=Date:To:From:Subject:From;
-	b=X+71wk6ndNHkeixP0KwhfRPM7GpVhhrCSq4xVO0PaC+DF5A2foFbeuGzkxKuUyoCw
-	 mLSa+ZI6JkddbupDPyRa3lTLKe4MZOuhkUn5dniXX43p+IGQ0DP6p2XiXZVatCmgPk
-	 5WgfX1xvbJWbQwnx/J92wLHVt73tyXLzJdcOwmwM=
-Date: Tue, 10 Mar 2026 09:43:14 -0700
+	b=q0y7z3rpSNb01S5EVldmlfJcu7BTO5KsTHejYGCKkRptVmx6hXuO0v426qXLf9Vnj
+	 szfQ51NGLf0+ie5VEw7ZvuY83Cvs0gkLKaR351WceqVvjnXzbkdDoyvmqegwLqz6lX
+	 OB+7mP6zpPxCRBoU4rRmjjYZVho+nvg2V64aL/7E=
+Date: Tue, 10 Mar 2026 09:43:16 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.anjum@collabora.com,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,ritesh.list@gmail.com,osalvador@suse.de,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-ensure-destination-is-hugetlb-backed-in-hugepage-mremap.patch added to mm-new branch
-Message-Id: <20260310164314.94451C19423@smtp.kernel.org>
+Subject: + selftests-mm-skip-uffd-wp-mremap-if-uffd-write-protect-is-unsupported.patch added to mm-new branch
+Message-Id: <20260310164316.E2DE7C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: ensure destination is hugetlb-backed in hugepage-mremap
+     Subject: selftests/mm: skip uffd-wp-mremap if UFFD write-protect is unsupported
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-ensure-destination-is-hugetlb-backed-in-hugepage-mremap.patch
+     selftests-mm-skip-uffd-wp-mremap-if-uffd-write-protect-is-unsupported.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-ensure-destination-is-hugetlb-backed-in-hugepage-mremap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-uffd-wp-mremap-if-uffd-write-protect-is-unsupported.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,31 +70,61 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: ensure destination is hugetlb-backed in hugepage-mremap
-Date: Tue, 10 Mar 2026 15:19:26 +0530
+Subject: selftests/mm: skip uffd-wp-mremap if UFFD write-protect is unsupported
+Date: Tue, 10 Mar 2026 15:19:27 +0530
 
-The hugepage-mremap selftest reserves the destination address using a
-anonymous base-page mapping before calling mremap() with MREMAP_FIXED,
-while the source region is hugetlb-backed.
+The uffd-wp-mremap test requires the UFFD_FEATURE_PAGEFAULT_FLAG_WP
+capability.  On systems where userfaultfd write-protect is not supported,
+uffd_register() fails and the test reports failures.
 
-When remapping a hugetlb mapping into a base-page VMA may fail with:
+Check for the required feature at startup and skip the test when the
+UFFD_FEATURE_PAGEFAULT_FLAG_WP capability is not present, preventing false
+failures on unsupported configurations.
 
-    mremap: Device or resource busy
+Before patch:
+ running ./uffd-wp-mremap
+ ------------------------
+  [INFO] detected THP size: 256 KiB
+  [INFO] detected THP size: 512 KiB
+  [INFO] detected THP size: 1024 KiB
+  [INFO] detected THP size: 2048 KiB
+  [INFO] detected hugetlb page size: 2048 KiB
+  [INFO] detected hugetlb page size: 1048576 KiB
+ 1..24
+  [RUN] test_one_folio(size=65536, private=false, swapout=false,
+  hugetlb=false)
+ not ok 1 uffd_register() failed
+  [RUN] test_one_folio(size=65536, private=true, swapout=false,
+  hugetlb=false)
+ not ok 2 uffd_register() failed
+  [RUN] test_one_folio(size=65536, private=false, swapout=true,
+  hugetlb=false)
+ not ok 3 uffd_register() failed
+  [RUN] test_one_folio(size=65536, private=true, swapout=true,
+  hugetlb=false)
+ not ok 4 uffd_register() failed
+  [RUN] test_one_folio(size=262144, private=false, swapout=false,
+  hugetlb=false)
+ not ok 5 uffd_register() failed
+  [RUN] test_one_folio(size=524288, private=false, swapout=false,
+  hugetlb=false)
+ not ok 6 uffd_register() failed
+ .
+ .
+ .
+ Bail out! 24 out of 24 tests failed
+  Totals: pass:0 fail:24 xfail:0 xpass:0 skip:0 error:0
+ [FAIL]
+not ok 1 uffd-wp-mremap # exit=1
 
-This is observed on powerpc hash MMU systems where slice constraints and
-page size incompatibilities prevent the remap.
+After patch:
+ running ./uffd-wp-mremap
+ ------------------------
+ 1..0 # SKIP uffd-wp feature not supported
+ [SKIP]
+ok 1 uffd-wp-mremap # SKIP
 
-Ensure the destination region is created using MAP_HUGETLB so that both
-source and destination VMAs are hugetlb-backed and compatible.  Also add
-MAP_POPULATE to the destination mapping to prefault hugepages, matching
-the behaviour used for other hugetlb mappiing in the test and ensuring
-deterministic behaviour.
-
-This ensures the test reliably exercises hugetlb mremap instead of failing
-due to VMA type mismatch.
-
-Link: https://lkml.kernel.org/r/2c8858154273159f964236810c7304dec665b28b.1773134177.git.sayalip@linux.ibm.com
-Fixes: 12b613206474 ("mm, hugepages: add hugetlb vma mremap() test")
+Link: https://lkml.kernel.org/r/afbe6bf8ca508d810bc1c9d749483711edae9751.1773134177.git.sayalip@linux.ibm.com
 Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -115,22 +145,38 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugepage-mremap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/uffd-wp-mremap.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/tools/testing/selftests/mm/hugepage-mremap.c~selftests-mm-ensure-destination-is-hugetlb-backed-in-hugepage-mremap
-+++ a/tools/testing/selftests/mm/hugepage-mremap.c
-@@ -136,8 +136,8 @@ int main(int argc, char *argv[])
- 		ksft_exit_fail_msg("mmap3: %s\n", strerror(errno));
+--- a/tools/testing/selftests/mm/uffd-wp-mremap.c~selftests-mm-skip-uffd-wp-mremap-if-uffd-write-protect-is-unsupported
++++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
+@@ -19,6 +19,17 @@ static size_t thpsizes[20];
+ static int nr_hugetlbsizes;
+ static size_t hugetlbsizes[10];
  
- 	suggested_addr = 0x7faa40000000;
--	void *vaddr =
--		mmap((void *)suggested_addr, length, PROTECTION, FLAGS, -1, 0);
-+	void *vaddr = mmap((void *)suggested_addr, length, PROTECTION,
-+			MAP_HUGETLB | MAP_SHARED | MAP_POPULATE, fd, 0);
- 	ksft_print_msg("Map vaddr: Returned address is %p\n", vaddr);
- 	if (vaddr == MAP_FAILED)
- 		ksft_exit_fail_msg("mmap2: %s\n", strerror(errno));
++static void uffd_wp_feature_supported(void)
++{
++	uint64_t features;
++
++	if (uffd_get_features(&features) && errno == ENOENT)
++		ksft_exit_skip("failed to get available features (%d)\n", errno);
++
++	if (!(features & UFFD_FEATURE_PAGEFAULT_FLAG_WP))
++		ksft_exit_skip("uffd-wp feature not supported\n");
++}
++
+ static int detect_thp_sizes(size_t sizes[], int max)
+ {
+ 	int count = 0;
+@@ -336,6 +347,8 @@ int main(int argc, char **argv)
+ 	struct thp_settings settings;
+ 	int i, j, plan = 0;
+ 
++	uffd_wp_feature_supported();
++
+ 	pagesize = getpagesize();
+ 	nr_thpsizes = detect_thp_sizes(thpsizes, ARRAY_SIZE(thpsizes));
+ 	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
 _
 
 Patches currently in -mm which might be from sayalip@linux.ibm.com are
