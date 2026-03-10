@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF85B2857F0
-	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 18:01:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB3373C660E
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 18:01:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773165660; cv=none; b=f7VHtMudC+0wZZW+BkhA54lAoNx8V2J9LWqGMRak/xp0YpMR0RRqoAEtJQ7xJWo2ifnqLsy1TRvUdKHqfWgCwBbb2jAe076e1qZD4sOD+PCdG+Cws+FZkN1764IW8n5vxwAOz72ZcLVeU5Ba5JqQ2L/F6qlEtsGj+SpGareK6lM=
+	t=1773165662; cv=none; b=inFDwYToGSkiS5zpgq4/+54f2PaRTuRnNBCn3rtH2qjhM4WtIzRqWs8cN+Fkt2TGpn79HF4xKdq+OsXFtjmT6snjnoyyIg/cNB6kZR6ERFaDnN8Na48STVpkMMUk5M1r6BbolyHP7lfQIRGw10NVH7ukh7SCr6n/UqLgOv1GmQw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773165660; c=relaxed/simple;
-	bh=MMlbgp+yH4muNYWeV8pufwrnD8LjSDLlfvtmiZ5W6k8=;
-	h=Date:To:From:Subject:Message-Id; b=g10e4ZMjGkpf4tWv2v3gdNvV6gPKwZVhcnLZWitNTqRoeXm+q0wXipnlxO5nt7fCGDXK4awR2oyoqMlq2GoNNvYi5qLG23oajJqo3qRUXSJisK69mBBIY7LxrHRudbo33V0zzaMQC4vfR1EdmGKBrzZx02sgwip4db1vMhC6ISk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PJMDJVx9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773165662; c=relaxed/simple;
+	bh=nlG1TOBZu5yzr2fsPK8/R/3gL/TjsVZcCS8hnBuKHPw=;
+	h=Date:To:From:Subject:Message-Id; b=KpKIdrnvEb4tDcL9HvbJNr/pOi5Y+78bTpkVHVo0Vcr6R+UFYyXM/RQHVuK2srW6+iz6RfrXh/gqrHeTYjnT7wrTjMgxEN6q9AxnuaGMUKdAtGM8au3qOPFNfP2lEK6YMAMbg2FIdJupPQGQ5MJkZb4zVUuwVAzDAo0bQFl3iO0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0SwwFO8S; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PJMDJVx9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E6B1C19423;
-	Tue, 10 Mar 2026 18:01:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0SwwFO8S"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7472DC19423;
+	Tue, 10 Mar 2026 18:01:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773165660;
-	bh=MMlbgp+yH4muNYWeV8pufwrnD8LjSDLlfvtmiZ5W6k8=;
+	s=korg; t=1773165662;
+	bh=nlG1TOBZu5yzr2fsPK8/R/3gL/TjsVZcCS8hnBuKHPw=;
 	h=Date:To:From:Subject:From;
-	b=PJMDJVx9ODpSX/UKEke6tVzb3yvkqEmtgpJ6Fu43zUnyfGEfQlcBZZzNPKF+ytAL8
-	 YIC6PULXY0UTg8q16qAWoEhoeUHT8Iwq69L6kqrE91DUikIkVMkPJ6sKakU6CBdnYf
-	 ACy/QKyYJA/xlBv5IBMyfG8wDkbeug4JiTH0gdSo=
-Date: Tue, 10 Mar 2026 11:00:59 -0700
+	b=0SwwFO8S1Jnzr6fMBCoQNmqgm3+iaQ7mu03YjdRf6EfqRs/vf3w8crefpZx12Cd+7
+	 ClhQGut5Zxo5HI7qqM7gqVn3lUTliE6vYALBZhOgHIL4swDI6ABfoKIq2faQoKZ56g
+	 q+2IWfT2f6PxUQezzfegTX7MsXiLH9wIm2zsCsqc=
+Date: Tue, 10 Mar 2026 11:01:01 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-test-goal_tuner-commit.patch added to mm-new branch
-Message-Id: <20260310180100.6E6B1C19423@smtp.kernel.org>
+Subject: + selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch added to mm-new branch
+Message-Id: <20260310180102.7472DC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test goal_tuner commit
+     Subject: selftests/damon/_damon_sysfs: support goal_tuner setup
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
+     selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,46 +70,61 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: test goal_tuner commit
-Date: Mon, 9 Mar 2026 18:05:24 -0700
+Subject: selftests/damon/_damon_sysfs: support goal_tuner setup
+Date: Mon, 9 Mar 2026 18:05:25 -0700
 
-Extend damos_commit_quota() kunit test for the newly added goal_tuner
-parameter.
+Add support of goal_tuner setup to the test-purpose DAMON sysfs interface
+control helper, _damon_sysfs.py.
 
-Link: https://lkml.kernel.org/r/20260310010529.91162-9-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260310010529.91162-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/damon/_damon_sysfs.py |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-goal_tuner-commit
-+++ a/mm/damon/tests/core-kunit.h
-@@ -693,6 +693,7 @@ static void damos_test_commit_quota(stru
- 		.reset_interval = 1,
- 		.ms = 2,
- 		.sz = 3,
-+		.goal_tuner = DAMOS_QUOTA_GOAL_TUNER_CONSIST,
- 		.weight_sz = 4,
- 		.weight_nr_accesses = 5,
- 		.weight_age = 6,
-@@ -701,6 +702,7 @@ static void damos_test_commit_quota(stru
- 		.reset_interval = 7,
- 		.ms = 8,
- 		.sz = 9,
-+		.goal_tuner = DAMOS_QUOTA_GOAL_TUNER_TEMPORAL,
- 		.weight_sz = 10,
- 		.weight_nr_accesses = 11,
- 		.weight_age = 12,
-@@ -714,6 +716,7 @@ static void damos_test_commit_quota(stru
- 	KUNIT_EXPECT_EQ(test, dst.reset_interval, src.reset_interval);
- 	KUNIT_EXPECT_EQ(test, dst.ms, src.ms);
- 	KUNIT_EXPECT_EQ(test, dst.sz, src.sz);
-+	KUNIT_EXPECT_EQ(test, dst.goal_tuner, src.goal_tuner);
- 	KUNIT_EXPECT_EQ(test, dst.weight_sz, src.weight_sz);
- 	KUNIT_EXPECT_EQ(test, dst.weight_nr_accesses, src.weight_nr_accesses);
- 	KUNIT_EXPECT_EQ(test, dst.weight_age, src.weight_age);
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-support-goal_tuner-setup
++++ a/tools/testing/selftests/damon/_damon_sysfs.py
+@@ -130,15 +130,16 @@ class DamosQuota:
+     sz = None                   # size quota, in bytes
+     ms = None                   # time quota
+     goals = None                # quota goals
++    goal_tuner = None           # quota goal tuner
+     reset_interval_ms = None    # quota reset interval
+     weight_sz_permil = None
+     weight_nr_accesses_permil = None
+     weight_age_permil = None
+     scheme = None               # owner scheme
+ 
+-    def __init__(self, sz=0, ms=0, goals=None, reset_interval_ms=0,
+-                 weight_sz_permil=0, weight_nr_accesses_permil=0,
+-                 weight_age_permil=0):
++    def __init__(self, sz=0, ms=0, goals=None, goal_tuner='consist',
++                 reset_interval_ms=0, weight_sz_permil=0,
++                 weight_nr_accesses_permil=0, weight_age_permil=0):
+         self.sz = sz
+         self.ms = ms
+         self.reset_interval_ms = reset_interval_ms
+@@ -146,6 +147,7 @@ class DamosQuota:
+         self.weight_nr_accesses_permil = weight_nr_accesses_permil
+         self.weight_age_permil = weight_age_permil
+         self.goals = goals if goals is not None else []
++        self.goal_tuner = goal_tuner
+         for idx, goal in enumerate(self.goals):
+             goal.idx = idx
+             goal.quota = self
+@@ -191,6 +193,10 @@ class DamosQuota:
+             err = goal.stage()
+             if err is not None:
+                 return err
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'goal_tuner'), self.goal_tuner)
++        if err is not None:
++            return err
+         return None
+ 
+ class DamosWatermarks:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
