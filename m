@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D33D534EEF9
-	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 16:19:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF5C523ABAA
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 16:24:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773159582; cv=none; b=PD0ivqh089Ul4QsomekdpUyq2P4LkCngGXxN2pkqisFemvNmqzF55ycRGIhktuBUIhL41bK28cempX8RQNRKfBfHqA1dyqgXU19UdTZpWFYK4Bzx90JsiQMTZp32Xl5uY10Gsg92P8mdUV0foze/QatHky9fRWxkgBr/PrVhXCM=
+	t=1773159888; cv=none; b=mLcBYwuqNu5vM4OD66EP3Xo6DLV1oXivUki6izs0j4Xu2ca9FrkEuroBNOxv50zgeYHEDSfdAduWnkdBNRebk65v7iZ6+ZaKpPrZJ2VjcMG9zkQbxhQ4bEQNaT6uMIqmusVUJkah8BYhmRJn1EMxPD1Yv9l03ffsUlfg7HO7NIY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773159582; c=relaxed/simple;
-	bh=pBFVnelM5S3atwW36A5N/z0vqtG+fLN1mCWGD2nD2lM=;
-	h=Date:To:From:Subject:Message-Id; b=rsc1L5GnDbD6+9emPDtlZ5EsTH0JGlDr7owBnSv2lU+EhNu+xcuvTDPZriBM6YthR1TB7IuV0IbSKoQL1uaRJc7knhsmMOkFxCxlA48MI7iikjHrIPOzC9t67n+XV1d1rmA71hS8elooIkUl9yKFeSS8PXY6rRhYrsbyZZ6HiuI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s6jP64zx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773159888; c=relaxed/simple;
+	bh=fGsLSHMLbgXJ+0lVJVtK9vTpzqsZb9wypjAr+xr2pQg=;
+	h=Date:To:From:Subject:Message-Id; b=exLNrsuL5FfSY9aKVSl2NE8L8eJkQh56bmnA1OOGE6C5xxKRShmbm1Vni0NYUukZrCjd2fyCKoVPZ5kpD6NMUXCP4+4P+a8mLIBNtLZr1d9BnAaOeRStIBXwgx5WDoB/WBcVaz1jZVmr5NOsPZbjRwK3qeo2DFGPqyEkqY+BtG8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F+xlRxMX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s6jP64zx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B737C19425;
-	Tue, 10 Mar 2026 16:19:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F+xlRxMX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27AA1C19423;
+	Tue, 10 Mar 2026 16:24:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773159582;
-	bh=pBFVnelM5S3atwW36A5N/z0vqtG+fLN1mCWGD2nD2lM=;
+	s=korg; t=1773159888;
+	bh=fGsLSHMLbgXJ+0lVJVtK9vTpzqsZb9wypjAr+xr2pQg=;
 	h=Date:To:From:Subject:From;
-	b=s6jP64zxHHmfpPlSfE8HYYnC+hOvHCYAAFFRzpPcH0lycr8z6CZ+aLxGkJqVIi+fu
-	 WPXiRVRgrq9wzjU+BRGrC6JOdGw2jEJo2dclUf5In1gx1Yq1qL88mROeHAvGC3Kont
-	 98mEsQv+URKMq+bwHrgVawcbLr2uWfB0EcuF2hHU=
-Date: Tue, 10 Mar 2026 09:19:41 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,gaoxu2@honor.com,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=F+xlRxMX8kcld1pG72IUv46+3L3LuXPnsxkGk4CVyLcyXEwPqt0vuUTrMgf7DhXuk
+	 R9E514u41Js+yicTZoq+xY+oWyQYXalIFsQ/HHF+EsCmb3OFDswdtam1SRWCVuCEKw
+	 wzrO8Hl84oPg7k5uozT3KqWdukysmwa+78zhGQ3w=
+Date: Tue, 10 Mar 2026 09:24:47 -0700
+To: mm-commits@vger.kernel.org,thomas.weissschuh@linutronix.de,rppt@kernel.org,pjw@kernel.org,palmer@dabbelt.com,aou@eecs.berkeley.edu,alex@ghiti.fr,wangruikang@iscas.ac.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-do-not-permit-params-change-after-init.patch added to mm-new branch
-Message-Id: <20260310161942.4B737C19425@smtp.kernel.org>
+Subject: + riscv-patch-avoid-early-page_to_phys.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260310162448.27AA1C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: do not permit params change after init
-has been added to the -mm mm-new branch.  Its filename is
-     zram-do-not-permit-params-change-after-init.patch
+     Subject: riscv: avoid early page_to_phys()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     riscv-patch-avoid-early-page_to_phys.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-permit-params-change-after-init.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-patch-avoid-early-page_to_phys.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,54 +58,74 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: do not permit params change after init
-Date: Tue, 10 Mar 2026 15:01:41 +0900
+From: Vivian Wang <wangruikang@iscas.ac.cn>
+Subject: riscv: avoid early page_to_phys()
+Date: Tue, 10 Mar 2026 16:25:33 +0800
 
-First, algorithm_params_store(), like any sysfs handler, should grab
-device init lock.
+Similarly to commit 8d09e2d569f6 ("arm64: patching: avoid early
+page_to_phys()"), avoid using phys_to_page() for the kernel address case
+in patch_map().
 
-Second, like any write() sysfs handler, it should grab device init lock in
-exclusive mode.
+Since this is called from apply_boot_alternatives() in setup_arch(), and
+commit 4267739cabb8 ("arch, mm: consolidate initialization of SPARSE
+memory model") has moved sparse_init() to after setup_arch(),
+phys_to_page() is not available there yet, and it panics on boot with
+SPARSEMEM on RV32, which does not use SPARSEMEM_VMEMMAP.
 
-Third, it should not permit change of algos' parameters after device init,
-as this doesn't make sense - we cannot compress with one C/D dict and then
-just change C/D dict to a different one, for example.
-
-Link: https://lkml.kernel.org/r/20260310060407.1133800-1-senozhatsky@chromium.org
-Fixes: 4eac932103a5d ("zram: introduce algorithm_params device attribute")
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: gao xu <gaoxu2@honor.com>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: https://lkml.kernel.org/r/20260310-riscv-sparsemem-alternatives-fix-v1-1-659d5dd257e2@iscas.ac.cn
+Fixes: 4267739cabb8 ("arch, mm: consolidate initialization of SPARSE memory model")
+Signed-off-by: Vivian Wang <wangruikang@iscas.ac.cn>
+Reported-by: Thomas Wei√üschuh <thomas.weissschuh@linutronix.de>
+Closes: https://lore.kernel.org/r/20260223144108-dcace0b9-02e8-4b67-a7ce-f263bed36f26@linutronix.de/
+Suggested-by: Mike Rapoport <rppt@kernel.org>
+Tested-by: Thomas Weiﬂschuh <thomas.weissschuh@linutronix.de>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <pjw@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/riscv/kernel/patch.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-do-not-permit-params-change-after-init
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1769,6 +1769,10 @@ static ssize_t algorithm_params_store(st
- 	if (prio < ZRAM_PRIMARY_COMP || prio >= ZRAM_MAX_COMPS)
- 		return -EINVAL;
+--- a/arch/riscv/kernel/patch.c~riscv-patch-avoid-early-page_to_phys
++++ a/arch/riscv/kernel/patch.c
+@@ -42,19 +42,20 @@ static inline bool is_kernel_exittext(ui
+ static __always_inline void *patch_map(void *addr, const unsigned int fixmap)
+ {
+ 	uintptr_t uintaddr = (uintptr_t) addr;
+-	struct page *page;
++	phys_addr_t phys;
  
-+	guard(rwsem_write)(&zram->dev_lock);
-+	if (init_done(zram))
-+		return -EBUSY;
-+
- 	ret = comp_params_store(zram, prio, level, dict_path, &deflate_params);
- 	return ret ? ret : len;
+-	if (core_kernel_text(uintaddr) || is_kernel_exittext(uintaddr))
+-		page = phys_to_page(__pa_symbol(addr));
+-	else if (IS_ENABLED(CONFIG_STRICT_MODULE_RWX))
+-		page = vmalloc_to_page(addr);
+-	else
+-		return addr;
++	if (core_kernel_text(uintaddr) || is_kernel_exittext(uintaddr)) {
++		phys = __pa_symbol(addr);
++	} else if (IS_ENABLED(CONFIG_STRICT_MODULE_RWX)) {
++		struct page *page = vmalloc_to_page(addr);
+ 
+-	BUG_ON(!page);
++		BUG_ON(!page);
++		phys = page_to_phys(page) + offset_in_page(addr);
++	} else {
++		return addr;
++	}
+ 
+-	return (void *)set_fixmap_offset(fixmap, page_to_phys(page) +
+-					 offset_in_page(addr));
++	return (void *)set_fixmap_offset(fixmap, phys);
  }
+ 
+ static void patch_unmap(int fixmap)
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from wangruikang@iscas.ac.cn are
 
-zram-do-not-autocorrect-bad-recompression-parameters.patch
-zram-drop-num_active_comps.patch
-zram-recompression-priority-param-should-override-algo.patch
-zram-update-recompression-documentation.patch
-zram-remove-chained-recompression.patch
-zram-do-not-permit-params-change-after-init.patch
+riscv-patch-avoid-early-page_to_phys.patch
 
