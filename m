@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C5A22C11F3
-	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 16:43:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73DEE3B6C17
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 16:43:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773160988; cv=none; b=B59oYxJS1ndBIjs5weLm5E1lEssUwWLeZt0w/vky38Si0AK/dFuuWF0nOALDxPfKCQZPrFoijBzC49xU7wKot54FGVqQ6xnW3edoQg8wbJnbLIEih1n2xHNX2yICU4JitzgWnJsTyKunESkIQBquwAHqsZuFGHl2W0uGznVKlco=
+	t=1773160990; cv=none; b=pTqJ/Y6AytgoefsUMyg/Xq1CRR3tHb4NsmRWla/eiYs9vKIDJuzLhhhpDSISB3m8HNcMFqz0TeaIlITBHS6V8kX0Pz4juM03yNfl3WoEmriq13w4FGkf2Ci068IKe+1VakqUi8EAe6/R+73/iUwy0h6y5wI8kIMnmT92Mx67IEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773160988; c=relaxed/simple;
-	bh=xi/CX2h/6aVpo7QVmHJYSRxD3DhDNkBGypOreBPHH+4=;
-	h=Date:To:From:Subject:Message-Id; b=C8/oZr2dG7YRIclVOGgbamOaMwFIyeq4saP1PmjKCJK6rDxrRISSzaFEkQjxSsUZQE0BcQ+e9mv4riQRUaJRtvojelre5TwXFcZKQFJ02uvfFybUSXUxNzX2tavoVhhwQcjSxouaHMZFD4m/RNUzbuyKH0Y3wvOLyTeV/hhtw6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YxBPNy3N; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773160990; c=relaxed/simple;
+	bh=OrMs8zy9oIVh81tJWiSzk8ZJF7XUxyco+L/I/UCY2v0=;
+	h=Date:To:From:Subject:Message-Id; b=ETpaSkPCL/r7IVsw8ZkiUvwWlvzXsHZlnEb6pzc0k6hNFZlKn0jOc1Ad4fDC7VCLQULNSSk8mIFiOmjeggBXjAn4KFytgFavT6z06Wwq99OmQAyJxYT8z0tBtp3OX64NpnluJXX9BeKT7EOslyaW+AycEvQzrdl39KnDf2jT3lc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tg5HUBy8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YxBPNy3N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 89180C19423;
-	Tue, 10 Mar 2026 16:43:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tg5HUBy8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06E91C19423;
+	Tue, 10 Mar 2026 16:43:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773160987;
-	bh=xi/CX2h/6aVpo7QVmHJYSRxD3DhDNkBGypOreBPHH+4=;
+	s=korg; t=1773160990;
+	bh=OrMs8zy9oIVh81tJWiSzk8ZJF7XUxyco+L/I/UCY2v0=;
 	h=Date:To:From:Subject:From;
-	b=YxBPNy3N5+plO2St+Jy35tZ67uHbpPQfCuT2sMNeVJO/2DdNVXxs+UGzt74OR64vs
-	 s4i8SJHclUcPUFaXn2N6bVwDROnDy7NpxiCkfbsfWIsEMQQsP/ESIg0aYmGir7KNmx
-	 XJLXG6bGC2aEbScswWVMdu40em3LPkts5lryrqMw=
-Date: Tue, 10 Mar 2026 09:43:06 -0700
+	b=Tg5HUBy8ga/5TJrtHmMnvBpCdUa9lkoGLeXDc7dm2QfIeuvI/yP+F5g6n7u9sVZMx
+	 ZZSMFoEq7vPOSLfgcOtAjyB55BDKIrViPIDlz0Br2flXGkRVw42IIdGy1n9glK4LLk
+	 DJQAJmvrwDzL4xalJUFjPYq+lvr0L5VQzt6HcxJ8=
+Date: Tue, 10 Mar 2026 09:43:09 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.anjum@collabora.com,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,ritesh.list@gmail.com,osalvador@suse.de,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-size-tmpfs-according-to-pmd-page-size-in-split_huge_page_test.patch added to mm-new branch
-Message-Id: <20260310164307.89180C19423@smtp.kernel.org>
+Subject: + selftest-mm-adjust-hugepage-mremap-test-size-for-large-huge-pages.patch added to mm-new branch
+Message-Id: <20260310164310.06E91C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: size tmpfs according to PMD page size in split_huge_page_test
+     Subject: selftest/mm: adjust hugepage-mremap test size for large huge pages
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-size-tmpfs-according-to-pmd-page-size-in-split_huge_page_test.patch
+     selftest-mm-adjust-hugepage-mremap-test-size-for-large-huge-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-size-tmpfs-according-to-pmd-page-size-in-split_huge_page_test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-mm-adjust-hugepage-mremap-test-size-for-large-huge-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,73 +70,76 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: size tmpfs according to PMD page size in split_huge_page_test
-Date: Tue, 10 Mar 2026 15:19:23 +0530
+Subject: selftest/mm: adjust hugepage-mremap test size for large huge pages
+Date: Tue, 10 Mar 2026 15:19:24 +0530
 
-The split_file_backed_thp() test mounts a tmpfs with a fixed size of "4m".
-This works on systems with smaller PMD page sizes, but fails on
-configurations where the PMD huge page size is larger (e.g.  16MB).
+The hugepage-mremap selftest uses a default size of 10MB, which is
+sufficient for small huge page sizes.  However, when the huge page size is
+large (e.g.  1GB), 10MB is smaller than a single huge page.  As a result,
+the test does not trigger PMD sharing and the corresponding unshare path
+in mremap(), causing the test to fail (mremap succeeds where a failure is
+expected).
 
-On such systems, the fixed 4MB tmpfs is insufficient to allocate even a
-single PMD-sized THP, causing the test to fail.
-
-Fix this by sizing the tmpfs dynamically based on the runtime
-pmd_pagesize, allocating space for two PMD-sized pages.
+Update run_vmtest.sh to use twice the huge page size when the huge page
+size exceeds 10MB, while retaining the 10MB default for smaller huge
+pages.  This ensures the test exercises the intended PMD sharing and
+unsharing paths for larger huge page sizes.
 
 Before patch:
-  running ./split_huge_page_test /tmp/xfs_dir_YTrI5E
-  --------------------------------------------------
-  TAP version 13
-  1..55
-  ok 1 Split zero filled huge pages successful
-  ok 2 Split huge pages to order 0 successful
-  ok 3 Split huge pages to order 2 successful
-  ok 4 Split huge pages to order 3 successful
-  ok 5 Split huge pages to order 4 successful
-  ok 6 Split huge pages to order 5 successful
-  ok 7 Split huge pages to order 6 successful
-  ok 8 Split huge pages to order 7 successful
-  ok 9 Split PTE-mapped huge pages successful
-   Please enable pr_debug in split_huge_pages_in_file() for more info.
-   Failed to write data to testing file: Success (0)
-  Bail out! Error occurred
-   Planned tests != run tests (55 != 9)
-   Totals: pass:9 fail:0 xfail:0 xpass:0 skip:0 error:0
+ running ./hugepage-mremap
+ ------------------------------
+ TAP version 13
+ 1..1
+  Map haddr: Returned address is 0x7eaa40000000
+  Map daddr: Returned address is 0x7daa40000000
+  Map vaddr: Returned address is 0x7faa40000000
+  Address returned by mmap() = 0x7fffaa600000
+  Mremap: Returned address is 0x7faa40000000
+  First hex is 0
+  First hex is 3020100
+ Bail out! mremap: Expected failure, but call succeeded
+ Planned tests != run tests (1 != 0)
+ Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
  [FAIL]
+ not ok 1 hugepage-mremap # exit=1
+
+Before patch:
+ running ./hugepage-mremap
+ ------------------------------
+ TAP version 13
+ 1..1
+  Map haddr: Returned address is 0x7eaa40000000
+  Map daddr: Returned address is 0x7daa40000000
+  Map vaddr: Returned address is 0x7faa40000000
+  Address returned by mmap() = 0x7fffaa600000
+  Mremap: Returned address is 0x7faa40000000
+  First hex is 0
+  First hex is 3020100
+ Bail out! mremap: Expected failure, but call succeeded
+ Planned tests != run tests (1 != 0)
+ Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
+ [FAIL]
+ not ok 1 hugepage-mremap # exit=1
 
 After patch:
-  --------------------------------------------------
-  running ./split_huge_page_test /tmp/xfs_dir_bMvj6o
-  --------------------------------------------------
-  TAP version 13
-  1..55
-  ok 1 Split zero filled huge pages successful
-  ok 2 Split huge pages to order 0 successful
-  ok 3 Split huge pages to order 2 successful
-  ok 4 Split huge pages to order 3 successful
-  ok 5 Split huge pages to order 4 successful
-  ok 6 Split huge pages to order 5 successful
-  ok 7 Split huge pages to order 6 successful
-  ok 8 Split huge pages to order 7 successful
-  ok 9 Split PTE-mapped huge pages successful
-   Please enable pr_debug in split_huge_pages_in_file() for more info.
-   Please check dmesg for more information
-  ok 10 File-backed THP split to order 0 test done
-   Please enable pr_debug in split_huge_pages_in_file() for more info.
-   Please check dmesg for more information
-  ok 11 File-backed THP split to order 1 test done
-   Please enable pr_debug in split_huge_pages_in_file() for more info.
-   Please check dmesg for more information
-  ok 12 File-backed THP split to order 2 test done
-...
-  ok 55 Split PMD-mapped pagecache folio to order 7 at
-    in-folio offset 128 passed
-   Totals: pass:55 fail:0 xfail:0 xpass:0 skip:0 error:0
-   [PASS]
-ok 1 split_huge_page_test /tmp/xfs_dir_bMvj6o
+ running ./hugepage-mremap 2048
+ ------------------------------
+ TAP version 13
+ 1..1
+  Map haddr: Returned address is 0x7eaa40000000
+  Map daddr: Returned address is 0x7daa40000000
+  Map vaddr: Returned address is 0x7faa40000000
+  Address returned by mmap() = 0x7fff13000000
+  Mremap: Returned address is 0x7faa40000000
+  First hex is 0
+  First hex is 3020100
+  ok 1 Read same data
+ Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+ [PASS]
+ ok 1 hugepage-mremap 2048
 
-Link: https://lkml.kernel.org/r/4284688bbec0901d25f88ee1b55c7495fa26b125.1773134177.git.sayalip@linux.ibm.com
-Fixes: fbe37501b252 ("mm: huge_memory: debugfs for file-backed THP split")
+Link: https://lkml.kernel.org/r/a5fc759e5896898bf930382f4a353771f4249204.1773134177.git.sayalip@linux.ibm.com
+Fixes: f77a286de48c ("mm, hugepages: make memory size variable in hugepage-mremap selftest")
 Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -157,30 +160,31 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/run_vmtests.sh |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-size-tmpfs-according-to-pmd-page-size-in-split_huge_page_test
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -484,6 +484,8 @@ static void split_file_backed_thp(int or
- 	char tmpfs_template[] = "/tmp/thp_split_XXXXXX";
- 	const char *tmpfs_loc = mkdtemp(tmpfs_template);
- 	char testfile[INPUT_MAX];
-+	unsigned long size = 2 * pmd_pagesize;
-+	char opts[64];
- 	ssize_t num_written, num_read;
- 	char *file_buf1, *file_buf2;
- 	uint64_t pgoff_start = 0, pgoff_end = 1024;
-@@ -503,7 +505,8 @@ static void split_file_backed_thp(int or
- 		file_buf1[i] = (char)i;
- 	memset(file_buf2, 0, pmd_pagesize);
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftest-mm-adjust-hugepage-mremap-test-size-for-large-huge-pages
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -293,7 +293,18 @@ echo "$shmmax" > /proc/sys/kernel/shmmax
+ echo "$shmall" > /proc/sys/kernel/shmall
  
--	status = mount("tmpfs", tmpfs_loc, "tmpfs", 0, "huge=always,size=4m");
-+	snprintf(opts, sizeof(opts), "huge=always,size=%lu", size);
-+	status = mount("tmpfs", tmpfs_loc, "tmpfs", 0, opts);
- 
- 	if (status)
- 		ksft_exit_fail_msg("Unable to create a tmpfs for testing\n");
+ CATEGORY="hugetlb" run_test ./map_hugetlb
+-CATEGORY="hugetlb" run_test ./hugepage-mremap
++
++# If the huge page size is larger than 10MB, increase the test memory size
++# to twice the huge page size (in MB) to ensure the test exercises PMD sharing
++# and the unshare path in hugepage-mremap. Otherwise, run the test with
++# the default 10MB memory size.
++if [ "$hpgsize_KB" -gt 10240 ]; then
++	len_mb=$(( (2 * hpgsize_KB) / 1024 ))
++	CATEGORY="hugetlb" run_test ./hugepage-mremap "${len_mb}"
++else
++	CATEGORY="hugetlb" run_test ./hugepage-mremap
++fi
++
+ CATEGORY="hugetlb" run_test ./hugepage-vmemmap
+ CATEGORY="hugetlb" run_test ./hugetlb-madvise
+ CATEGORY="hugetlb" run_test ./hugetlb_dio
 _
 
 Patches currently in -mm which might be from sayalip@linux.ibm.com are
