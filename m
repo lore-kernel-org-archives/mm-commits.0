@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 865A43C6A5A
-	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 18:00:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A78703C9434
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 18:00:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773165652; cv=none; b=DbiwjDlktzpKgBho7HV7VLbVaZJxOdzTSGi3SasUpne8Vh3EZ81fdnqhUW+xb9Yg7d36Z96x2jN9zkkAxfKJSmpFRATZ88AM0ObbprrNyJl4kSv/FYyJyN533B/9HD6DGmCnQK3rhXU8/EYtdUF+Ru7werAqocJK7r9PHl8N3tU=
+	t=1773165654; cv=none; b=Vn/HgkjDzfgrL63s9eu45iIeK+xP3kS83Nr7z6ojjnjfmk8JlclYkn4u6VDzPJID6pHOnhXybaLgzhPZjfx4KCq8/msOMj/OGQNzHusJUGrT2prtECuSRSamHuFg94UDoihqAh1mgZNAl8f9Z9gDtikJW7znW5Bbbrmfmmz/Cds=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773165652; c=relaxed/simple;
-	bh=LaA/tLwq/bJhKxg0RuGI268CUOfY2O/i/Dc4gizsKkM=;
-	h=Date:To:From:Subject:Message-Id; b=XMyNMflQfuD22PUGL1kAB8BdkVEKSGVvTNmMKN1lUwb1XFkl62gMwEZGto2tUtTQOPG2ADi7BUC/nNVTzlm7z+k371sp7KpZDBBJIRrzNxoViseF4fSqG8ZDeo4F7RmA3P36zxxpN8jE44JhNVvTJPDhCPBvNi6nMBuGAMJG8XY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2lVQ4S1z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773165654; c=relaxed/simple;
+	bh=8ygJn82osMWq3XZFyPEmo6uVDbPzcBzNvtr4sVzIJZE=;
+	h=Date:To:From:Subject:Message-Id; b=DHO2bpTP1zfTwXS0QjZFX8BulIJyfj5264iJTabeL1ep8Ekgr2yAMNblK0iVSnTbID5k2aBkLqlLZ/ClRrbuNNL1af0g9mjWA+PfU9ICQWoOEb8ZGebdVO4v/deWGdf49+eZ3iiCpj9EKzxWeLJllIAaxN69V+1SQ5rodUGEKBw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kcYp4kKY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2lVQ4S1z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AF3AC19423;
-	Tue, 10 Mar 2026 18:00:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kcYp4kKY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5CA17C19423;
+	Tue, 10 Mar 2026 18:00:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773165652;
-	bh=LaA/tLwq/bJhKxg0RuGI268CUOfY2O/i/Dc4gizsKkM=;
+	s=korg; t=1773165654;
+	bh=8ygJn82osMWq3XZFyPEmo6uVDbPzcBzNvtr4sVzIJZE=;
 	h=Date:To:From:Subject:From;
-	b=2lVQ4S1ziGLSNH6zOOOkClrNauP7WKpaaQLhXKinZgHFZscTVhHNfk4FWx4lKl1x9
-	 7huj4WReJ3QzOtpAyjpGVqwRhwU7R7xROEsMKKlbghz6hxSpsPopyTqeTV6RMk/QRm
-	 PZYJCxeo+3VWZlakOm6soDnCd4H88tsh13oOCy4M=
-Date: Tue, 10 Mar 2026 11:00:51 -0700
+	b=kcYp4kKYIW/7o991UPlvpFUAq2WAgGmdB66GHrF7f+rw6kPP+U9/XH0MZTV6jXbky
+	 ubpuqcokXg/IqoRcAsljHAOG7gn/Er6Fvu8ZRdZv7S4lsiFAqsvKL/ZuKnkzdOGMsf
+	 7nLjj+/N0nxfZpH6Sya8p/SJ8lPNfo/R9tNho5ro=
+Date: Tue, 10 Mar 2026 11:00:53 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch added to mm-new branch
-Message-Id: <20260310180052.4AF3AC19423@smtp.kernel.org>
+Subject: + docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch added to mm-new branch
+Message-Id: <20260310180054.5CA17C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: implement quotas->goal_tuner file
+     Subject: Docs/mm/damon/design: document the goal-based quota tuner selections
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
+     docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,116 +70,41 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: implement quotas->goal_tuner file
-Date: Mon, 9 Mar 2026 18:05:20 -0700
+Subject: Docs/mm/damon/design: document the goal-based quota tuner selections
+Date: Mon, 9 Mar 2026 18:05:21 -0700
 
-Add a new DAMON sysfs interface file, namely 'goal_tuner' under the DAMOS
-quotas directory.  It is connected to the damos_quota->goal_tuner field. 
-Users can therefore select their favorite goal-based quotas tuning
-algorithm by writing the name of the tuner to the file.  Reading the file
-returns the name of the currently selected tuner.
+Update the design document for the newly added goal-based quota tuner
+selection feature.
 
-Link: https://lkml.kernel.org/r/20260310010529.91162-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260310010529.91162-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   58 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+ Documentation/mm/damon/design.rst |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1488,6 +1488,7 @@ struct damon_sysfs_quotas {
- 	unsigned long sz;
- 	unsigned long reset_interval_ms;
- 	unsigned long effective_sz;	/* Effective size quota in bytes */
-+	enum damos_quota_goal_tuner goal_tuner;
- };
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-the-goal-based-quota-tuner-selections
++++ a/Documentation/mm/damon/design.rst
+@@ -566,6 +566,18 @@ aggressiveness (the quota) of the corres
+ is under achieving the goal, DAMOS automatically increases the quota.  If DAMOS
+ is over achieving the goal, it decreases the quota.
  
- static struct damon_sysfs_quotas *damon_sysfs_quotas_alloc(void)
-@@ -1610,6 +1611,58 @@ static ssize_t effective_bytes_show(stru
- 	return sysfs_emit(buf, "%lu\n", quotas->effective_sz);
- }
- 
-+struct damos_sysfs_qgoal_tuner_name {
-+	enum damos_quota_goal_tuner tuner;
-+	char *name;
-+};
++There are two such tuning algorithms that users can select as they need.
 +
-+static struct damos_sysfs_qgoal_tuner_name damos_sysfs_qgoal_tuner_names[] = {
-+	{
-+		.tuner = DAMOS_QUOTA_GOAL_TUNER_CONSIST,
-+		.name = "consist",
-+	},
-+	{
-+		.tuner = DAMOS_QUOTA_GOAL_TUNER_TEMPORAL,
-+		.name = "temporal",
-+	},
-+};
++- ``consist``: A proportional feedback loop based algorithm.  Tries to find an
++  optimum quota that should be consistently kept, to keep achieving the goal.
++  Useful for kernel-only operation on dynamic and long-running environments.
++  This is the default selection.  If unsure, use this.
++- ``temporal``: More straightforward algorithm.  Tries to achieve the goal as
++  fast as possible, using maximum allowed quota, but only for a temporal short
++  time.  When the quota is under-achieved, this algorithm keeps tuning quota to
++  a maximum allowed one.  Once the quota is [over]-achieved, this sets the
++  quota zero.  Useful for deterministic control required environments.
 +
-+static ssize_t goal_tuner_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	struct damon_sysfs_quotas *quotas = container_of(kobj,
-+			struct damon_sysfs_quotas, kobj);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(damos_sysfs_qgoal_tuner_names); i++) {
-+		struct damos_sysfs_qgoal_tuner_name *tuner_name;
-+
-+		tuner_name = &damos_sysfs_qgoal_tuner_names[i];
-+		if (tuner_name->tuner == quotas->goal_tuner)
-+			return sysfs_emit(buf, "%s\n", tuner_name->name);
-+	}
-+	return -EINVAL;
-+}
-+
-+static ssize_t goal_tuner_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	struct damon_sysfs_quotas *quotas = container_of(kobj,
-+			struct damon_sysfs_quotas, kobj);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(damos_sysfs_qgoal_tuner_names); i++) {
-+		struct damos_sysfs_qgoal_tuner_name *tuner_name;
-+
-+		tuner_name = &damos_sysfs_qgoal_tuner_names[i];
-+		if (sysfs_streq(buf, tuner_name->name)) {
-+			quotas->goal_tuner = tuner_name->tuner;
-+			return count;
-+		}
-+	}
-+	return -EINVAL;
-+}
-+
- static void damon_sysfs_quotas_release(struct kobject *kobj)
- {
- 	kfree(container_of(kobj, struct damon_sysfs_quotas, kobj));
-@@ -1627,11 +1680,15 @@ static struct kobj_attribute damon_sysfs
- static struct kobj_attribute damon_sysfs_quotas_effective_bytes_attr =
- 		__ATTR_RO_MODE(effective_bytes, 0400);
- 
-+static struct kobj_attribute damon_sysfs_quotas_goal_tuner_attr =
-+		__ATTR_RW_MODE(goal_tuner, 0600);
-+
- static struct attribute *damon_sysfs_quotas_attrs[] = {
- 	&damon_sysfs_quotas_ms_attr.attr,
- 	&damon_sysfs_quotas_sz_attr.attr,
- 	&damon_sysfs_quotas_reset_interval_ms_attr.attr,
- 	&damon_sysfs_quotas_effective_bytes_attr.attr,
-+	&damon_sysfs_quotas_goal_tuner_attr.attr,
- 	NULL,
- };
- ATTRIBUTE_GROUPS(damon_sysfs_quotas);
-@@ -2718,6 +2775,7 @@ static struct damos *damon_sysfs_mk_sche
- 		.weight_sz = sysfs_weights->sz,
- 		.weight_nr_accesses = sysfs_weights->nr_accesses,
- 		.weight_age = sysfs_weights->age,
-+		.goal_tuner = sysfs_quotas->goal_tuner,
- 	};
- 	struct damos_watermarks wmarks = {
- 		.metric = sysfs_wmarks->metric,
+ The goal can be specified with five parameters, namely ``target_metric``,
+ ``target_value``, ``current_value``, ``nid`` and ``path``.  The auto-tuning
+ mechanism tries to make ``current_value`` of ``target_metric`` be same to
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
