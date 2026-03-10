@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94D59392C27
-	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 17:07:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EC9A3D3499
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 17:19:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773162448; cv=none; b=ItH7paDqe/JS3jr+xyfwZFunWymVRpDD09rCR/Exxm+lVHrOHl2R/3FBvRGhzbqwgPM7rjRStJ6e8abecTerEOcXZ3YyFBomHFxbeTSWa8LPlHBDndFjxgymbxQmV5THt59hz3Q9lXcvvywUOXo0n5WnXHxFuEi7g37j3CZqYVY=
+	t=1773163172; cv=none; b=FiSjF8zzMgdZietS+Mu7ueyVsxsOLQ2f+U4rVuXVYVsFwuAX0w53NayjALhyYCBHhwCfkp7DZpxgpWX/NL/RvbPO5hv4WAi6XIaVJ5G+YM4x1z625qcV+0ocLQ0okR5IFK7wteuopFiVX9ZcqeJ+mJda7JjFBSNofWtNVj5QClI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773162448; c=relaxed/simple;
-	bh=RY+hWlwOnkGoiW5O2nn5qxHk//gPSsFgp3kB1MosNIQ=;
-	h=Date:To:From:Subject:Message-Id; b=BrSG6zqfV/Jgz8jqRvzpj8a4Tf/UKI7ZC0OlArVQs5FGV7NrE20UHprAq3KGlYgy0GvslT9hRD+6IYmGq4nvnf6uCx1crIWkX+IS/jrORAdkJFu+NvdfprB8CxeSYeL9m91+d54ZKU4rm6+bjIxgHEHgRA4oQQAmqtZ+xiQoJKw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fxkDLR95; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773163172; c=relaxed/simple;
+	bh=WVWCqLhiG9RC9Ux13aJ5hQkqUea2bMaKuludtYS7Uco=;
+	h=Date:To:From:Subject:Message-Id; b=SqoufPVooqKlntBY1vPuF12WJDpgJwFExBQ0lm07zByR2LQRvETXwiP2pBnahgChHqYif59TyjqoE+Y3w3Un1aoujbmyLeJ4CKte3+oyzN5BXOQryJvekJURNnYUCcwp+3md0P1VNq78qkjCPnuTvPBl61Rw6+IKUOrG2b9P620=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XoSSFrPx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fxkDLR95"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 281EBC19423;
-	Tue, 10 Mar 2026 17:07:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XoSSFrPx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC802C2BC9E;
+	Tue, 10 Mar 2026 17:19:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773162448;
-	bh=RY+hWlwOnkGoiW5O2nn5qxHk//gPSsFgp3kB1MosNIQ=;
+	s=korg; t=1773163172;
+	bh=WVWCqLhiG9RC9Ux13aJ5hQkqUea2bMaKuludtYS7Uco=;
 	h=Date:To:From:Subject:From;
-	b=fxkDLR953R4jWZf9L8wtUgdoJCH/3wO04/q/uAV/sGrZEleZBY7N6eTKU+luHrOh2
-	 NsKx77kmmGb/8FP6Zoqpop4NxPS9Bf+wTHgzb/evxBZ3v5PhUoOpTszDOZIEOZyRCe
-	 nm6DrM9RoSqyFvWE1B2oW9b+u0Mxrkl5idJLNPYw=
-Date: Tue, 10 Mar 2026 10:07:27 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
+	b=XoSSFrPxFygJ8k+3QWOyMISELhudmX7gncix2R8Z2J+ZVmeY9wT/5fY53rdRKvsk/
+	 jwLL/l2XucNhLIQuFStcsAA4ZQH1Xz/ilP7zpBjUlKRU+bnXp8bvrH7RYTIxnGuk0V
+	 VnDDMhQssvBEl7/KyCV5P4b+Yn2/Mp0ixknCEEfw=
+Date: Tue, 10 Mar 2026 10:19:31 -0700
+To: mm-commits@vger.kernel.org,akinobu.mita@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch added to mm-new branch
-Message-Id: <20260310170728.281EBC19423@smtp.kernel.org>
+Subject: + docs-mm-fix-typo-in-numa_memory_policyrst.patch added to mm-unstable branch
+Message-Id: <20260310171931.EC802C2BC9E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest: memcg: skip memcg_sock test if address family not supported
-has been added to the -mm mm-new branch.  Its filename is
-     selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch
+     Subject: docs: mm: fix typo in numa_memory_policy.rst
+has been added to the -mm mm-unstable branch.  Its filename is
+     docs-mm-fix-typo-in-numa_memory_policyrst.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-fix-typo-in-numa_memory_policyrst.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,70 +58,34 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: selftest: memcg: skip memcg_sock test if address family not supported
-Date: Tue, 10 Mar 2026 10:39:35 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: docs: mm: fix typo in numa_memory_policy.rst
+Date: Wed, 11 Mar 2026 00:18:37 +0900
 
-The test_memcg_sock test in memcontrol.c sets up an IPv6 socket and send
-data over it to consume memory and verify that memory.stat.sock and
-memory.current values are close.
+Fix a typo: MPOL_INTERLEAVED -> MPOL_INTERLEAVE.
 
-On systems where IPv6 isn't enabled or not configured to support
-SOCK_STREAM, the test_memcg_sock test always fails.  When the socket()
-call fails, there is no way we can test the memory consumption and verify
-the above claim.  I believe it is better to just skip the test in this
-case instead of reporting a test failure hinting that there may be
-something wrong with the memcg code.
-
-Link: https://lkml.kernel.org/r/20260310143936.720592-1-longman@redhat.com
-Fixes: 5f8f019380b8 ("selftests: cgroup/memcontrol: add basic test for socket accounting")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20260310151837.5888-1-akinobu.mita@gmail.com
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_memcontrol.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/mm/numa_memory_policy.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -1280,8 +1280,11 @@ static int tcp_server(const char *cgroup
- 	saddr.sin6_port = htons(srv_args->port);
+--- a/Documentation/admin-guide/mm/numa_memory_policy.rst~docs-mm-fix-typo-in-numa_memory_policyrst
++++ a/Documentation/admin-guide/mm/numa_memory_policy.rst
+@@ -217,7 +217,7 @@ MPOL_PREFERRED
+ 	the MPOL_F_STATIC_NODES or MPOL_F_RELATIVE_NODES flags
+ 	described below.
  
- 	sk = socket(AF_INET6, SOCK_STREAM, 0);
--	if (sk < 0)
-+	if (sk < 0) {
-+		/* Pass back errno to the ctl_fd */
-+		write(ctl_fd, &errno, sizeof(errno));
- 		return ret;
-+	}
- 
- 	if (setsockopt(sk, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
- 		goto cleanup;
-@@ -1412,6 +1415,12 @@ static int test_memcg_sock(const char *r
- 			goto cleanup;
- 		close(args.ctl[0]);
- 
-+		/* Skip if address family not supported by protocol */
-+		if (err == EAFNOSUPPORT) {
-+			ret = KSFT_SKIP;
-+			goto cleanup;
-+		}
-+
- 		if (!err)
- 			break;
- 		if (err != EADDRINUSE)
+-MPOL_INTERLEAVED
++MPOL_INTERLEAVE
+ 	This mode specifies that page allocations be interleaved, on a
+ 	page granularity, across the nodes specified in the policy.
+ 	This mode also behaves slightly differently, based on the
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-selftest-memcg-skp-memcg_sock-test-if-address-family-not-supported.patch
+docs-mm-fix-typo-in-numa_memory_policyrst.patch
 
