@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F2673C9423
-	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 18:01:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE8813C9423
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 18:01:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773165664; cv=none; b=UWA7TCikeD5angN/Nf/1cxLlD1mUlYoiHQAZjWYd0Qm4VloJwSoCqUd/A2XKGHVYDsSjQ1nV5ToC2HjHJvGPGockGX90qN0oOGdCiRq/psAnExSdSqN/gzkaf80g3THFM+N32b4uigX/QKk+hQIbrLYLNYi7Xjuh48l/t2VVbrI=
+	t=1773165666; cv=none; b=FpKiYDUiJ5f0jxFc6LGZgAVY1Eof94blU+a8XF2DtjceTUH14e9xMvC5eslkZyI4TJEBKoVMBFEmLqbwb/VSXWaSBp6Khlv+fZUTS7blW3jq6rUBVtD4dEF0IemVfuatxyfxN4Rnw+t/P+cTIpQ38S8PpHfyT0ndGQ61lcomfg4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773165664; c=relaxed/simple;
-	bh=XykjHBPEnxuYTKmovszlNl8kiCzOR7oTjma4fim0aq4=;
-	h=Date:To:From:Subject:Message-Id; b=qW6kHVzSLcRujklbXZhOwo8X0jKt4fblQxwnCkNDtqMLEfqod5TIAq5xjQ856L2SreJZYwfy4gbcp0n8NwbbVQlkxKHUu6tnFGTMTyE7GtOqcfFn67CxHHSleptkCLN6BNtubXKrjnHMAMg3LY9+qhKUPjHJFIBV9nP1Tdei7Do=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w4yl57OM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773165666; c=relaxed/simple;
+	bh=qJigIA/ryEUUve14vWOGuDWhLHJIEfcO7GGS+aErB9k=;
+	h=Date:To:From:Subject:Message-Id; b=g2w16yYEL6V7yyjprXVBK9Z/OWXN1b+Tbv6Tl+fyODDbvETWJlprSqWGKC/jZtgC2iONU72gROJseeDQkXqGM2I/L9NuFdz6zCdc0MKVKLVmSJESV0zjZqgTFMTGw63siDKzGLB0G2NPJujquhCjIOgbVSWmgazI8k6FKoyIO+U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v9T+vxAZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w4yl57OM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E9BAC19425;
-	Tue, 10 Mar 2026 18:01:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v9T+vxAZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42107C19425;
+	Tue, 10 Mar 2026 18:01:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773165664;
-	bh=XykjHBPEnxuYTKmovszlNl8kiCzOR7oTjma4fim0aq4=;
+	s=korg; t=1773165666;
+	bh=qJigIA/ryEUUve14vWOGuDWhLHJIEfcO7GGS+aErB9k=;
 	h=Date:To:From:Subject:From;
-	b=w4yl57OMcCw5SknoMtOgdmxOmNXq6sRESGwOSsMC6DHC3IdVummhmULKIhaoQxbNM
-	 8D/N6SLaMASNqgTRvLCMk3ErYrq8UxS+5D+9ynyaW8Zz7A2GlIG2ya+xR6uc/ISN5H
-	 VKRjH//YeVC8Ye1v59HoUcF3jWMSAun7JyVsE92g=
-Date: Tue, 10 Mar 2026 11:01:03 -0700
+	b=v9T+vxAZsb7q2/PnqZ/Pkwa2TxiZ94jk9xxzYS/zs/OJ9keqU8l4rGrtng+JMnfXA
+	 t71MRWsvvtVflGLrSEpcbkVRHmPz0x0L9QorrU6/pu1J2xDXm9g8myltAganbmoj/c
+	 BVecVlfSvvez5bFL5CO12r0wABw474SXk3d8VVAU=
+Date: Tue, 10 Mar 2026 11:01:05 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch added to mm-new branch
-Message-Id: <20260310180104.5E9BAC19425@smtp.kernel.org>
+Subject: + selftests-damon-sysfspy-test-goal_tuner-commit.patch added to mm-new branch
+Message-Id: <20260310180106.42107C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/drgn_dump_damon_status: support quota goal_tuner dumping
+     Subject: selftests/damon/sysfs.py: test goal_tuner commit
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
+     selftests-damon-sysfspy-test-goal_tuner-commit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-test-goal_tuner-commit.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,30 +70,43 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/drgn_dump_damon_status: support quota goal_tuner dumping
-Date: Mon, 9 Mar 2026 18:05:26 -0700
+Subject: selftests/damon/sysfs.py: test goal_tuner commit
+Date: Mon, 9 Mar 2026 18:05:27 -0700
 
-Update drgn_dump_damon_status.py, which is being used to dump the
-in-kernel DAMON status for tests, to dump goal_tuner setup status.
+Extend the near-full DAMON parameters commit selftest to commit goal_tuner
+and confirm the internal status is updated as expected.
 
-Link: https://lkml.kernel.org/r/20260310010529.91162-11-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260310010529.91162-12-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/drgn_dump_damon_status.py |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/damon/sysfs.py |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/tools/testing/selftests/damon/drgn_dump_damon_status.py~selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping
-+++ a/tools/testing/selftests/damon/drgn_dump_damon_status.py
-@@ -110,6 +110,7 @@ def damos_quota_to_dict(quota):
-         ['reset_interval', int],
-         ['ms', int], ['sz', int],
-         ['goals', damos_quota_goals_to_list],
-+        ['goal_tuner', int],
-         ['esz', int],
-         ['weight_sz', int],
-         ['weight_nr_accesses', int],
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-test-goal_tuner-commit
++++ a/tools/testing/selftests/damon/sysfs.py
+@@ -67,6 +67,12 @@ def assert_quota_committed(quota, dump):
+     assert_true(dump['sz'] == quota.sz, 'sz', dump)
+     for idx, qgoal in enumerate(quota.goals):
+         assert_quota_goal_committed(qgoal, dump['goals'][idx])
++    tuner_val = {
++            'consist': 0,
++            'temporal': 1,
++            }
++    assert_true(dump['goal_tuner'] == tuner_val[quota.goal_tuner],
++                'goal_tuner', dump)
+     assert_true(dump['weight_sz'] == quota.weight_sz_permil, 'weight_sz', dump)
+     assert_true(dump['weight_nr_accesses'] == quota.weight_nr_accesses_permil,
+                 'weight_nr_accesses', dump)
+@@ -231,6 +237,7 @@ def main():
+                         metric='node_mem_used_bp',
+                         target_value=9950,
+                         nid=1)],
++                    goal_tuner='temporal',
+                     reset_interval_ms=1500,
+                     weight_sz_permil=20,
+                     weight_nr_accesses_permil=200,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
