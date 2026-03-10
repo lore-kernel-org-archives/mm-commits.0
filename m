@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D4573B635E
-	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 16:43:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3C1840DFC3
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 16:43:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773160997; cv=none; b=WrL+T+b7xiF9Xk5Bs9FcmY7xItCz6KGThkA9JPH3Ax0z1dtL9Tzp7sEsMkc3IYWjZapMuHIw5klayLKpj7O77ElxZDHHMLyV+zZpf/+j0dPf6gl4BRZcOewb5D3w1vsiU3gW0TCjxn2AzdN6bAO65jxg1K0Q8onEJgSr8jt2Aqs=
+	t=1773160999; cv=none; b=AV9XVeaj3y8/vBkei95+qL6Z3zcP81XmTCu/jM0zTqMqAZOhhN6IOyBq3hCwUl6ZN7rW4Yj46coaP6bCaoo7bRtoKTMC1TlGDBlgCqaXaMqnqNxj7Ex7Q4LWe+4PZoT950dYbT4xRzZ7ueu+tsaKC1XjiQIyNfVVSS1zy+3u1Wc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773160997; c=relaxed/simple;
-	bh=oH20GL09t7coVIh3zAT7KuB5hIRQTkMo35J3xhkpoEo=;
-	h=Date:To:From:Subject:Message-Id; b=O7KFfSRtf4uyv6CZbSQn+749RzIW6F5M45vjmJpqEL65H2v59quEAqi7AlxEhPW2EwUrdPfvlF0R/5hbWa6jHsHjUlMQ1aM2ywEULUYeyXWWsQXHD9xuEckr6fYIME6mc4pYFWaWcud542fXhVR05BcPRlzw0E59pUcx7FFEFcM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q0y7z3rp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773160999; c=relaxed/simple;
+	bh=E5d85eZBnJT6nIcRPPcix8QRae8XEMSdHUNZneb8fo4=;
+	h=Date:To:From:Subject:Message-Id; b=BuZ6R/LNK8nfoCrBJubLCqOznT6XsY1ECthZzFvGtgBh1pA5YTx2YttpDI6hG/eruoCOadF5Y09BE/rHl78Hmz7J5yy27ICgKBTqBU1BkY0n7ceU05kTTQaqevsls5H5Spwn8nMDVUyM4L1SAK3kZmwbi5lPvkgTK6i96h8zKUc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GoyIOJOE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q0y7z3rp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2DE7C19423;
-	Tue, 10 Mar 2026 16:43:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GoyIOJOE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 349E8C19423;
+	Tue, 10 Mar 2026 16:43:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773160997;
-	bh=oH20GL09t7coVIh3zAT7KuB5hIRQTkMo35J3xhkpoEo=;
+	s=korg; t=1773160999;
+	bh=E5d85eZBnJT6nIcRPPcix8QRae8XEMSdHUNZneb8fo4=;
 	h=Date:To:From:Subject:From;
-	b=q0y7z3rpSNb01S5EVldmlfJcu7BTO5KsTHejYGCKkRptVmx6hXuO0v426qXLf9Vnj
-	 szfQ51NGLf0+ie5VEw7ZvuY83Cvs0gkLKaR351WceqVvjnXzbkdDoyvmqegwLqz6lX
-	 OB+7mP6zpPxCRBoU4rRmjjYZVho+nvg2V64aL/7E=
-Date: Tue, 10 Mar 2026 09:43:16 -0700
+	b=GoyIOJOEissdh+HNmWDjpgoge2ftQ4CRSindHO+F+44c4rwvOIqPRzWSY2IwlksGN
+	 2VtjfLwKY11Gisfpdm5shLsSQ9c368b9Zqo3FgjJ03XULlXuDMTznbVsRLZIor5JxG
+	 7cqFRpVSlDt1B6iZUI1RrJV5ko8l6mHRQ3qAcfsk=
+Date: Tue, 10 Mar 2026 09:43:18 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,usama.anjum@collabora.com,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,ritesh.list@gmail.com,osalvador@suse.de,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-uffd-wp-mremap-if-uffd-write-protect-is-unsupported.patch added to mm-new branch
-Message-Id: <20260310164316.E2DE7C19423@smtp.kernel.org>
+Subject: + selftests-mm-skip-uffd-stress-test-when-nr_pages_per_cpu-is-zero.patch added to mm-new branch
+Message-Id: <20260310164319.349E8C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: skip uffd-wp-mremap if UFFD write-protect is unsupported
+     Subject: selftests/mm: skip uffd-stress test when nr_pages_per_cpu is zero
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-skip-uffd-wp-mremap-if-uffd-write-protect-is-unsupported.patch
+     selftests-mm-skip-uffd-stress-test-when-nr_pages_per_cpu-is-zero.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-uffd-wp-mremap-if-uffd-write-protect-is-unsupported.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-uffd-stress-test-when-nr_pages_per_cpu-is-zero.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,61 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: skip uffd-wp-mremap if UFFD write-protect is unsupported
-Date: Tue, 10 Mar 2026 15:19:27 +0530
+Subject: selftests/mm: skip uffd-stress test when nr_pages_per_cpu is zero
+Date: Tue, 10 Mar 2026 15:19:28 +0530
 
-The uffd-wp-mremap test requires the UFFD_FEATURE_PAGEFAULT_FLAG_WP
-capability.  On systems where userfaultfd write-protect is not supported,
-uffd_register() fails and the test reports failures.
+uffd-stress currently fails when the computed nr_pages_per_cpu evaluates
+to zero:
 
-Check for the required feature at startup and skip the test when the
-UFFD_FEATURE_PAGEFAULT_FLAG_WP capability is not present, preventing false
-failures on unsupported configurations.
+nr_pages_per_cpu = bytes / page_size / nr_parallel
 
-Before patch:
- running ./uffd-wp-mremap
- ------------------------
-  [INFO] detected THP size: 256 KiB
-  [INFO] detected THP size: 512 KiB
-  [INFO] detected THP size: 1024 KiB
-  [INFO] detected THP size: 2048 KiB
-  [INFO] detected hugetlb page size: 2048 KiB
-  [INFO] detected hugetlb page size: 1048576 KiB
- 1..24
-  [RUN] test_one_folio(size=65536, private=false, swapout=false,
-  hugetlb=false)
- not ok 1 uffd_register() failed
-  [RUN] test_one_folio(size=65536, private=true, swapout=false,
-  hugetlb=false)
- not ok 2 uffd_register() failed
-  [RUN] test_one_folio(size=65536, private=false, swapout=true,
-  hugetlb=false)
- not ok 3 uffd_register() failed
-  [RUN] test_one_folio(size=65536, private=true, swapout=true,
-  hugetlb=false)
- not ok 4 uffd_register() failed
-  [RUN] test_one_folio(size=262144, private=false, swapout=false,
-  hugetlb=false)
- not ok 5 uffd_register() failed
-  [RUN] test_one_folio(size=524288, private=false, swapout=false,
-  hugetlb=false)
- not ok 6 uffd_register() failed
- .
- .
- .
- Bail out! 24 out of 24 tests failed
-  Totals: pass:0 fail:24 xfail:0 xpass:0 skip:0 error:0
- [FAIL]
-not ok 1 uffd-wp-mremap # exit=1
+This can occur on systems with large hugepage sizes (e.g.  1GB) and a high
+number of CPUs, where the total allocated memory is sufficient overall but
+not enough to provide at least one page per cpu.
 
-After patch:
- running ./uffd-wp-mremap
- ------------------------
- 1..0 # SKIP uffd-wp feature not supported
- [SKIP]
-ok 1 uffd-wp-mremap # SKIP
+In such cases, the failure is due to insufficient test resources rather
+than incorrect kernel behaviour.  Update the test to treat this condition
+as a test skip instead of reporting an error.
 
-Link: https://lkml.kernel.org/r/afbe6bf8ca508d810bc1c9d749483711edae9751.1773134177.git.sayalip@linux.ibm.com
+Link: https://lkml.kernel.org/r/cca7aee2b9ed290ed1ac231edf2c9451e01ca204.1773134177.git.sayalip@linux.ibm.com
+Fixes: db0f1c138f18 ("selftests/mm: print some details when uffd-stress gets bad params")
 Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -145,38 +108,24 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-wp-mremap.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ tools/testing/selftests/mm/uffd-stress.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-wp-mremap.c~selftests-mm-skip-uffd-wp-mremap-if-uffd-write-protect-is-unsupported
-+++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
-@@ -19,6 +19,17 @@ static size_t thpsizes[20];
- static int nr_hugetlbsizes;
- static size_t hugetlbsizes[10];
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-skip-uffd-stress-test-when-nr_pages_per_cpu-is-zero
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -491,9 +491,9 @@ int main(int argc, char **argv)
  
-+static void uffd_wp_feature_supported(void)
-+{
-+	uint64_t features;
-+
-+	if (uffd_get_features(&features) && errno == ENOENT)
-+		ksft_exit_skip("failed to get available features (%d)\n", errno);
-+
-+	if (!(features & UFFD_FEATURE_PAGEFAULT_FLAG_WP))
-+		ksft_exit_skip("uffd-wp feature not supported\n");
-+}
-+
- static int detect_thp_sizes(size_t sizes[], int max)
- {
- 	int count = 0;
-@@ -336,6 +347,8 @@ int main(int argc, char **argv)
- 	struct thp_settings settings;
- 	int i, j, plan = 0;
+ 	gopts->nr_pages_per_cpu = bytes / gopts->page_size / gopts->nr_parallel;
+ 	if (!gopts->nr_pages_per_cpu) {
+-		_err("pages_per_cpu = 0, cannot test (%lu / %lu / %lu)",
+-			bytes, gopts->page_size, gopts->nr_parallel);
+-		usage();
++		ksft_print_msg("pages_per_cpu = 0, cannot test (%lu / %lu / %lu)\n",
++			       bytes, gopts->page_size, gopts->nr_parallel);
++		return KSFT_SKIP;
+ 	}
  
-+	uffd_wp_feature_supported();
-+
- 	pagesize = getpagesize();
- 	nr_thpsizes = detect_thp_sizes(thpsizes, ARRAY_SIZE(thpsizes));
- 	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
+ 	bounces = atoi(argv[3]);
 _
 
 Patches currently in -mm which might be from sayalip@linux.ibm.com are
