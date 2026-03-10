@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 427873E1D05
-	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 20:12:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73FE53C5538
+	for <mm-commits@vger.kernel.org>; Tue, 10 Mar 2026 20:16:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773173525; cv=none; b=ftfzWuJBu9io9lQreKo4QiXPBHgECDnA3DugZOaBVrWTpazIou5oczBaWAzi129HnupR7qQDbizCXsiVsTUwdUNG105Qjf75hRby90JzlhyYZ+UC1WwPePUtCaAohi/t36tFFrWXGazVSZjceZZvXKUE+U9HCKmbowoZIIfnV9M=
+	t=1773173769; cv=none; b=Ei6Z7Dk0os/jApxqtNrU0bVEs1xcW/Zqf/y0V8JAdiXoKBJ1J33wtA0HAGw9vfDvW/hgEy0rLxIoZcjyTsu+nGmjZdzDGXfnr5YlO8PMiWgANLVxOyPnXu21JhKbdEvgXwJzcdMlZVr2cgvFZZPEXtijA9zrpvZ4FDG8zsNv8+M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773173525; c=relaxed/simple;
-	bh=uC2+ObaW1fF867gFmFF20zzqE9pv12oYZnF3AYq58GU=;
-	h=Date:To:From:Subject:Message-Id; b=q8hKAZMBaE2yGvA3bPjdppGzUOvxnNi2diMtpV8PQheDLo72O+x4wfxaqsq0qbEYngBFCJdipDfx177G/cJPMzSkJXjNwZI2z6dDmr9IKZmMkVEettUKOdSzPfKtS+P+cj4FeVA88bNNiTcyNZBn8XLIQk8hM/dXkhT+UYqc0YA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Omo+fTRW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773173769; c=relaxed/simple;
+	bh=GwYo9+awRwSvr/1BTD4wEG72Cvqbw2p5T1L5XYAnFAU=;
+	h=Date:To:From:Subject:Message-Id; b=Qo/MgNMuG88wW3gEk06zrGxEnFegnIH2J6Hdw0uKjbEtIk564PRr4LqPOLhvvR1Xh+w7wI3MmDteO31JWuyp6X/kKPRJ0lJKn4d/wGE6C2aI1TAsvncon3t/ovN2pBK7wiIUGbrcqB75nSYzHTBgWMnHPNy0iiCuT3riq+c3quk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NwTD2muW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Omo+fTRW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F142EC19423;
-	Tue, 10 Mar 2026 20:12:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NwTD2muW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6F5AC19423;
+	Tue, 10 Mar 2026 20:16:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773173525;
-	bh=uC2+ObaW1fF867gFmFF20zzqE9pv12oYZnF3AYq58GU=;
+	s=korg; t=1773173769;
+	bh=GwYo9+awRwSvr/1BTD4wEG72Cvqbw2p5T1L5XYAnFAU=;
 	h=Date:To:From:Subject:From;
-	b=Omo+fTRWoEitR3345EnjYUpmiCQzIQkYyfa3S9s4dEx1HODO7O9QuMl//eaJUsshP
-	 W4DmTGLX1hkN/MPEb2KZeUNKWxhDsIOzluXD1DYbNKQFqLjRvXh4Op4KwN6DM8xOIy
-	 3hdhx999ubLTCUWeHk9neKRmgsqfj0WJcsNWfdO8=
-Date: Tue, 10 Mar 2026 13:12:04 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,rppt@kernel.org,oleg@redhat.com,neil@brown.name,mingo@kernel.org,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,ebiederm@xmission.com,bvanassche@acm.org,brauner@kernel.org,ethantidmore06@gmail.com,akpm@linux-foundation.org
+	b=NwTD2muWiVYkOLs4/imKETEIuiKgqYVPb1dakijsaTEiaUDyrrMBIX5B3jft+1M1s
+	 eYh+b9kNHrKfLomvo7vkqebWgRapmyazfJOTLy+PVFjoLg/DRorsv1R6dPqXbN+Lh+
+	 l5tASodIDwAlhdPEEUO1Gapdab6En1J23Ri0Ejgg=
+Date: Tue, 10 Mar 2026 13:16:08 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,thomas.hellstrom@linux.intel.com,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,jhubbard@nvidia.com,jgg@ziepe.ca,gourry@gourry.net,david@kernel.org,byungchul@sk.com,balbirs@nvidia.com,apopple@nvidia.com,dave@stgolabs.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] proc-fix-pointer-error-dereference.patch removed from -mm tree
-Message-Id: <20260310201204.F142EC19423@smtp.kernel.org>
+Subject: [merged] mm-migrate_device-remove-dead-migration-entry-check-in-migrate_vma_collect_huge_pmd.patch removed from -mm tree
+Message-Id: <20260310201608.E6F5AC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: proc: fix pointer error dereference
+     Subject: mm/migrate_device: remove dead migration entry check in migrate_vma_collect_huge_pmd()
 has been removed from the -mm tree.  Its filename was
-     proc-fix-pointer-error-dereference.patch
+     mm-migrate_device-remove-dead-migration-entry-check-in-migrate_vma_collect_huge_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ethan Tidmore <ethantidmore06@gmail.com>
-Subject: proc: fix pointer error dereference
-Date: Thu, 19 Feb 2026 16:10:01 -0600
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: mm/migrate_device: remove dead migration entry check in migrate_vma_collect_huge_pmd()
+Date: Wed, 11 Feb 2026 17:46:11 -0800
 
-The function try_lookup_noperm() can return an error pointer.  Add check
-for error pointer.
+The softleaf_is_migration() check is unreachable as entries that are not
+device_private are filtered out.  Similarly, the PTE-level equivalent in
+migrate_vma_collect_pmd() skips migration entries.
 
-Detected by Smatch:
-fs/proc/base.c:2148 proc_fill_cache() error:
-'child' dereferencing possible ERR_PTR()
+This dead branch also contained a double spin_unlock(ptl) bug.
 
-Link: https://lkml.kernel.org/r/20260219221001.1117135-1-ethantidmore06@gmail.com
-Fixes: 61a28784028e ("[PATCH] proc: Remove the hard coded inode numbers")
-Signed-off-by: Ethan Tidmore <ethantidmore06@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Bart van Assche <bvanassche@acm.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: NeilBrown <neil@brown.name>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Link: https://lkml.kernel.org/r/20260212014611.416695-1-dave@stgolabs.net
+Fixes: a30b48bf1b244 ("mm/migrate_device: implement THP migration of zone device pages")
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+Suggested-by: Matthew Brost <matthew.brost@intel.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: Balbir Singh <balbirs@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Mathew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ying Huang <ying.huang@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/migrate_device.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/fs/proc/base.c~proc-fix-pointer-error-dereference
-+++ a/fs/proc/base.c
-@@ -2128,6 +2128,9 @@ bool proc_fill_cache(struct file *file,
- 	ino_t ino = 1;
+--- a/mm/migrate_device.c~mm-migrate_device-remove-dead-migration-entry-check-in-migrate_vma_collect_huge_pmd
++++ a/mm/migrate_device.c
+@@ -175,12 +175,6 @@ static int migrate_vma_collect_huge_pmd(
+ 			return migrate_vma_collect_skip(start, end, walk);
+ 		}
  
- 	child = try_lookup_noperm(&qname, dir);
-+	if (IS_ERR(child))
-+		goto end_instantiate;
-+
- 	if (!child) {
- 		DECLARE_WAIT_QUEUE_HEAD_ONSTACK(wq);
- 		child = d_alloc_parallel(dir, &qname, &wq);
+-		if (softleaf_is_migration(entry)) {
+-			migration_entry_wait_on_locked(entry, ptl);
+-			spin_unlock(ptl);
+-			return -EAGAIN;
+-		}
+-
+ 		if (softleaf_is_device_private_write(entry))
+ 			write = MIGRATE_PFN_WRITE;
+ 	} else {
 _
 
-Patches currently in -mm which might be from ethantidmore06@gmail.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
