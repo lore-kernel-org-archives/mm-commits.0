@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C261E1A6834
-	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 17:48:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5E4F2116E0
+	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 18:02:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773251302; cv=none; b=oHaWGrnRKp8UvrpsnQcJF6TjB0OXBEAb+lPsrzQuZgnlXgTmnYRsFbY9OjRywCQDfHPrV5GGE2ffZFeTGyLGkEmxWj35vuMqD+gZ2DHZKy+6iiUoGx0OZhI5CQ4s1SZRtCbsXyUoPY5AP2Tt9NYPeuuxdWOWa9sRrWI+nyHKp+I=
+	t=1773252154; cv=none; b=Shnz2GeOGUrKPaYcXyctb6oeB7ZQwVF3VnQfzABufZX1K1+RbN4qr4dVgdsKtOD5LaArfu04LDGcyUc5wb+A2mz2SfEVz0FRNkcDQAzdpnTfc31u+Uy/6pCBMoLISpWxLSKPkWR0US3Clrd16zAouxtP4xs9DXFvEaI8+0o63Uk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773251302; c=relaxed/simple;
-	bh=R3Zv+ef1NVrDItuz+iFXFksKVjJLUo/8NOCZMOat8tU=;
-	h=Date:To:From:Subject:Message-Id; b=JznhfZZAzjHRbdPIIwcEIMxsHprcqbFgpfSK5R7tnFT3AQ1IZWdp0/clG/RQi3OYT707x6u6tNEOJ6SrOz2U+T6fFj7mpublBr1aTJF4pQM+P/7mfKm84jWxd9rDWoUhaNbFou2yVYhLTtMwaxfXmnZlHjV3CMwpEcnbeYgi+fA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gXzJnATx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773252154; c=relaxed/simple;
+	bh=lMrNEauiji9BxY8ftswOjDZVya5DMTBN3sKRbDoXIxg=;
+	h=Date:To:From:Subject:Message-Id; b=ajPiqMsncw92BoM3A8mEfl53bq8UspWRtVyO86sir3SIBIWg5ErtRoPy8NereOzTYOOr/BUstr6Gix0DOySfQpmLhj5FxXb8llq+HQo9KNQEV235XD7fjsZsNcpRcg0het4D1kcz0oV9LQDB8vIqiSOrza9yf88sTU5zZCat9X8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eg5aJ5kI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gXzJnATx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42D6DC4CEF7;
-	Wed, 11 Mar 2026 17:48:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eg5aJ5kI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4520FC19421;
+	Wed, 11 Mar 2026 18:02:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773251302;
-	bh=R3Zv+ef1NVrDItuz+iFXFksKVjJLUo/8NOCZMOat8tU=;
+	s=korg; t=1773252154;
+	bh=lMrNEauiji9BxY8ftswOjDZVya5DMTBN3sKRbDoXIxg=;
 	h=Date:To:From:Subject:From;
-	b=gXzJnATxzGqI1oY12TLUblqVeiv4UYKkXFCN/6qMgaZMWmjQhbb1WQoVI7tFBKj17
-	 Vcrx+hJSNedXnwxQArtyWqnc2+0OUPldpq/O9FcEU59tu//pQpNoUMiTJ39dRKbXdE
-	 YrEKSnzStTy6KqK8Ll6SIZEH24yrZV3vo8B7pTD4=
-Date: Wed, 11 Mar 2026 10:48:21 -0700
-To: mm-commits@vger.kernel.org,tglx@kernel.org,bblock@linux.ibm.com,akpm@linux-foundation.org
+	b=Eg5aJ5kImrLKUZowwba2Heo7p+V7M/cCji8h+wvyg4YZPen/eNRKFQ1ex3CQql1Rz
+	 ZjxVMEMlqI5vg20ujf5WGJh0cMOF2yGPUuZCcH9ca20ZkwMP1fOVBr9BIWieQ1ppx6
+	 uSFgyNCOh388twtoUzPqOJPPwlUlfH67NxWkp9Ps=
+Date: Wed, 11 Mar 2026 11:02:33 -0700
+To: mm-commits@vger.kernel.org,ljs@kernel.org,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects.patch added to mm-nonmm-unstable branch
-Message-Id: <20260311174822.42D6DC4CEF7@smtp.kernel.org>
+Subject: + mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix.patch added to mm-unstable branch
+Message-Id: <20260311180234.4520FC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: debugobjects: allow to configure the amount of pre-allocated objects
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects.patch
+     Subject: mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,130 +58,73 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Benjamin Block <bblock@linux.ibm.com>
-Subject: debugobjects: allow to configure the amount of pre-allocated objects
-Date: Wed, 25 Feb 2026 17:05:08 +0100
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix
+Date: Wed, 11 Mar 2026 10:19:00 +0100
 
-To debug object operations a certain amount of metadata has to be kept per
-object that is tracked.  During boot a static amount of pre- allocated
-objects is set aside to be used for this task until such a time a dynamic
-allocator can be used.  Once a dynamic allocator can be used an initial
-amount of objects is pre-allocated to be used when needed.
+tet's call the local variable simply "addr", per Lorenzo
 
-So far the amount of such initially statically, and later dynamically
-pre-allocated objects is set fixed at `64 * 16 = 1024`.  But depending on
-the system this might not be enough during boot, when only the static
-amount of pre-allocated objects is used; and once this happens ODEBUG
-disables itself permanently.
-
-On s390 it has been observed, that even with 16384 such pre-allocated
-objects ODEBUG would still be disabled during boot.
-
-Similarly to other debug features like KMEMLEAK add a Kconfig option
-CONFIG_DEBUG_OBJECTS_POOL_SIZE_SHIFT that allows to increase the amount of
-pre-allocated objects (in both the static and later dynamic cases).  Use
-it as exponential, rather than linear value to allow for head-room to grow
-into once set in a configuration.
-
-The calculation is done as such:
-    N_OBJECTS = 2^DEBUG_OBJECTS_POOL_SIZE_SHIFT * N_BATCH
-
-By default it is set to 6, so the actual amount is unchanged, unless
-the new options is changed:
-    N_OBJECTS = 2^6 * 16
-    N_OBJECTS = 1024
-
-For the previously mentioned observations on s390 it was necessary to
-increase the option to 11 in order to have enough space during boot.
-
-Link: https://lkml.kernel.org/r/70f06193b3c3581802710ebcef74671e50c4c979.1772035270.git.bblock@linux.ibm.com
-Signed-off-by: Benjamin Block <bblock@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@kernel.org>
+Link: https://lkml.kernel.org/r/f7732d1c-0e85-4a14-948a-912c417018b5@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug  |   32 ++++++++++++++++++++++++++++++++
- lib/debugobjects.c |   15 +++++++++++++--
- 2 files changed, 45 insertions(+), 2 deletions(-)
+ mm/memory.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/lib/debugobjects.c~debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects
-+++ a/lib/debugobjects.c
-@@ -22,11 +22,18 @@
- #define ODEBUG_HASH_BITS	14
- #define ODEBUG_HASH_SIZE	(1 << ODEBUG_HASH_BITS)
+--- a/mm/memory.c~mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix
++++ a/mm/memory.c
+@@ -2081,17 +2081,17 @@ static void __zap_vma_range(struct mmu_g
+ 			return;
+ 		__unmap_hugepage_range(tlb, vma, start, end, NULL, zap_flags);
+ 	} else {
+-		unsigned long next, cur = start;
++		unsigned long next, addr = start;
+ 		pgd_t *pgd;
  
--/* Must be power of two */
-+/*
-+ * Must be power of two.
-+ * Please change Kconfig help text of DEBUG_OBJECTS_POOL_SIZE_SHIFT when
-+ * changed.
-+ */
- #define ODEBUG_BATCH_SIZE	16
- 
-+#define ODEBUG_POOL_SHIFT	CONFIG_DEBUG_OBJECTS_POOL_SIZE_SHIFT
-+static_assert(ODEBUG_POOL_SHIFT >= 0);
-+
- /* Initial values. Must all be a multiple of batch size */
--#define ODEBUG_POOL_SIZE	(64 * ODEBUG_BATCH_SIZE)
-+#define ODEBUG_POOL_SIZE	((1 << ODEBUG_POOL_SHIFT) * ODEBUG_BATCH_SIZE)
- #define ODEBUG_POOL_MIN_LEVEL	(ODEBUG_POOL_SIZE / 4)
- 
- #define ODEBUG_POOL_PERCPU_SIZE	(8 * ODEBUG_BATCH_SIZE)
-@@ -586,6 +593,10 @@ static void debug_objects_oom(void)
- 	struct debug_bucket *db = obj_hash;
- 	HLIST_HEAD(freelist);
- 
-+	/*
-+	 * Please change Kconfig help text of DEBUG_OBJECTS_POOL_SIZE_SHIFT
-+	 * when changed.
-+	 */
- 	pr_warn("Out of memory. ODEBUG disabled\n");
- 
- 	for (int i = 0; i < ODEBUG_HASH_SIZE; i++, db++) {
---- a/lib/Kconfig.debug~debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects
-+++ a/lib/Kconfig.debug
-@@ -812,6 +812,38 @@ config DEBUG_OBJECTS_PERCPU_COUNTER
- 	  percpu counter routines to track the life time of percpu counter
- 	  objects and validate the percpu counter operations.
- 
-+config DEBUG_OBJECTS_POOL_SIZE_SHIFT
-+	int "Metadata objects pool size"
-+	depends on DEBUG_OBJECTS
-+	range 0 21
-+	default 6
-+	help
-+	  To debug object operations a certain amount of metadata has to be
-+	  kept per object that is tracked. During boot a static amount of pre-
-+	  allocated objects is set aside to be used for this task until such a
-+	  time a dynamic allocator can be used. Once a dynamic allocator can be
-+	  used an initial amount of objects is pre-allocated to be used when
-+	  needed.
-+
-+	  This option sets the amount of both: the amount of initially
-+	  statically allocated objects; and later the amount of dynamically
-+	  pre-allocated objects. It is used as exponent to the power of 2,
-+	  multiplied by the batch size used to set how many objects are move
-+	  between pools at once.
-+
-+	  For example, when left at the default of 6:
-+	      N_OBJECTS = 2^DEBUG_OBJECTS_POOL_SIZE_SHIFT * N_BATCH
-+	      N_OBJECTS = 2^6 * 16
-+	      N_OBJECTS = 1024
-+	  By increasing the option by 1, you double the amount of objects.
-+
-+	  An indication that you need to increase this option is that during
-+	  boot you see messages like this:
-+	      ODEBUG: Out of memory. ODEBUG disabled
-+
-+	  If in doubt, leave the default.
-+
-+
- config DEBUG_OBJECTS_ENABLE_DEFAULT
- 	int "debug_objects bootup default value (0-1)"
- 	range 0 1
+ 		tlb_start_vma(tlb, vma);
+-		pgd = pgd_offset(vma->vm_mm, cur);
++		pgd = pgd_offset(vma->vm_mm, addr);
+ 		do {
+-			next = pgd_addr_end(cur, end);
++			next = pgd_addr_end(addr, end);
+ 			if (pgd_none_or_clear_bad(pgd))
+ 				continue;
+-			next = zap_p4d_range(tlb, vma, pgd, cur, next, details);
+-		} while (pgd++, cur = next, cur != end);
++			next = zap_p4d_range(tlb, vma, pgd, addr, next, details);
++		} while (pgd++, addr = next, addr != end);
+ 		tlb_end_vma(tlb, vma);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from bblock@linux.ibm.com are
+Patches currently in -mm which might be from david@kernel.org are
 
-debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects.patch
+mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap.patch
+mm-pagewalk-drop-fw_migration.patch
+mm-madvise-drop-range-checks-in-madvise_free_single_vma.patch
+mm-memory-remove-zap_details-parameter-from-zap_page_range_single.patch
+mm-memory-remove-zap_details-parameter-from-zap_page_range_single-fix.patch
+mm-memory-inline-unmap_mapping_range_vma-into-unmap_mapping_range_tree.patch
+mm-memory-simplify-calculation-in-unmap_mapping_range_tree.patch
+mm-oom_kill-use-mmu_notify_clear-in-__oom_reap_task_mm.patch
+mm-oom_kill-factor-out-zapping-of-vma-into-zap_vma_for_reaping.patch
+mm-memory-rename-unmap_single_vma-to-__zap_vma_range.patch
+mm-memory-move-adjusting-of-address-range-to-unmap_vmas.patch
+mm-memory-convert-details-even_cows-into-details-skip_cows.patch
+mm-memory-use-__zap_vma_range-in-zap_vma_for_reaping.patch
+mm-memory-inline-unmap_page_range-into-__zap_vma_range.patch
+mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix.patch
+mm-rename-zap_vma_pages-to-zap_vma.patch
+mm-rename-zap_page_range_single_batched-to-zap_vma_range_batched.patch
+mm-rename-zap_page_range_single-to-zap_vma_range.patch
+mm-rename-zap_vma_ptes-to-zap_special_vma_range.patch
+mm-memory-support-vm_mixedmap-in-zap_special_vma_range.patch
+kasan-docs-slub-is-the-only-remaining-slab-implementation.patch
+mm-move-vma_kernel_pagesize-from-hugetlb-to-mmh.patch
+mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac.patch
+kvm-remove-hugetlbh-inclusion.patch
+kvm-ppc-remove-hugetlbh-inclusion.patch
 
