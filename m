@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED7773043DC
-	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 20:51:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14F7530100D
+	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 20:51:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773262299; cv=none; b=U9DRgmhK22efAph92dZeplvJPz/EZUW+rc4kx0kPB32J/GloTPvaIVMb6iUElJI7D+B72LiRt5SAtn8hzOMngQfoPSlE+ky9ZSQAUMdkmRPsjtNh+EeuY8fHr8BR+9HZncUF7AUIK0dFHSaGwfey90UQS4Hrqtwmk2QdbpziIS4=
+	t=1773262300; cv=none; b=D5MpTnyV8fHW+xouBwgAwTSE3N7LrwzB+Ql1fboy86f4tSUNZHKNcTXato7G8Wxa8YBqV4+svWgQVkiEmZv7TMATxov2LdbBnf8Q0tSZTs2HMBlrc5kGrsHEoGdrh7ziK70cIShj+/GN6/eot7MyBVus3PE4DvnQmrFsqySjBa0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773262299; c=relaxed/simple;
-	bh=ze9KP4MuQs02qCw7WLY2VXYqdrZJ4ObqaG9IBn5/+nQ=;
-	h=Date:To:From:Subject:Message-Id; b=NHcBXN8p3AReu0WPlRtdbCsyVbHnkVYAJkS4it0Tcj0A5kGfCMw2FS3lPaU7+hoQIBLEkboX//4MDdg6feq3wdr/bf4pjZ25oDn+1jxMfqg9X9lF1Fn5jxf26RFZ1kSrh/jfMAuFq1MImqiGFGbCGU+05qfFHCGGtSZ1krqRqhk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u89lyz9g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773262300; c=relaxed/simple;
+	bh=4X8ds09vdZPtc830ZoZ2qLaggx5L0it21dWwNyRQ/aY=;
+	h=Date:To:From:Subject:Message-Id; b=grkIlAZf2ikUou4jMNX2bP219qlH5x9/F/dV4HzkI6KvV2Wse1Yxvi/3p7oPXZvJ66JmbJ95vI22mgJ1j5vM8veCWtN80WfnXciMtoiQDUW3hy9AWbjPGwPCIfdv2mo0io4N57DW6SUcTcIba2c0xm+pYueYKYlL1dQCDOGaNQc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mLPN6EzI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u89lyz9g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AED1C4CEF7;
-	Wed, 11 Mar 2026 20:51:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mLPN6EzI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD8E4C4CEF7;
+	Wed, 11 Mar 2026 20:51:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773262298;
-	bh=ze9KP4MuQs02qCw7WLY2VXYqdrZJ4ObqaG9IBn5/+nQ=;
+	s=korg; t=1773262299;
+	bh=4X8ds09vdZPtc830ZoZ2qLaggx5L0it21dWwNyRQ/aY=;
 	h=Date:To:From:Subject:From;
-	b=u89lyz9gcH7GPh+mQ5xpDmxqZcJVCyzq4VKPN+VAU3hgNvnz8Wux++1V4rQYfXsSI
-	 GK98Y+h2Yxz1T2R64I6tzBrwagPA5mprgaVZ2X3GzI4hNd78RqzF14Ks5+snKFlFLo
-	 8cCB50FJHRfKGzfiODeMb3tqlOUv7zuiZJQm5Xkw=
-Date: Wed, 11 Mar 2026 13:51:37 -0700
+	b=mLPN6EzIdnqmEoFwkqsDK0yQGDd1FJrlzlkSw1LENMB6R9GLdYwvOyR07xN5MqZwR
+	 mrr2Jxa+pKgVwlzuJNw5KgSE9DsfnU1+soykbiLdVf80WtFJzE8jMfyG5A1iiGf7eB
+	 fwcIGqJ468xsM0TeRCWMyEaBPhTFALpPBPpKFFkk=
+Date: Wed, 11 Mar 2026 13:51:39 -0700
 To: mm-commits@vger.kernel.org,yangyingliang@huawei.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch added to mm-new branch
-Message-Id: <20260311205138.7AED1C4CEF7@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch added to mm-new branch
+Message-Id: <20260311205139.BD8E4C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/reclaim: respect addr_unit on default monitoring region setup
+     Subject: mm/damon/lru_sort: respect addr_unit on default monitoring region setup
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
+     mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,32 +70,32 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/reclaim: respect addr_unit on default monitoring region setup
-Date: Tue, 10 Mar 2026 22:29:25 -0700
+Subject: mm/damon/lru_sort: respect addr_unit on default monitoring region setup
+Date: Tue, 10 Mar 2026 22:29:26 -0700
 
 In the past, damon_set_region_biggest_system_ram_default(), which is the
 core function for setting the default monitoring target region of
-DAMON_RECLAIM, didn't support addr_unit.  Hence DAMON_RECLAIM was silently
-ignoring the user input for addr_unit when the user doesn't explicitly set
-the monitoring target regions, and therefore the default target region is
-being used.  No real problem from that ignorance was reported so far. 
-But, the implicit rule is only making things confusing.  Also, the default
-target region setup function is updated to support addr_unit.  Hence there
-is no reason to keep ignoring it.  Respect the user-passed addr_unit for
-the default target monitoring region use case.
+DAMON_LRU_SORT, didn't support addr_unit.  Hence DAMON_LRU_SORT was
+silently ignoring the user input for addr_unit when the user doesn't
+explicitly set the monitoring target regions, and therefore the default
+target region is being used.  No real problem from that ignorance was
+reported so far.  But, the implicit rule is only making things confusing. 
+Also, the default target region setup function is updated to support
+addr_unit.  Hence there is no reason to keep ignoring it.  Respect the
+user-passed addr_unit for the default target monitoring region use case.
 
-Link: https://lkml.kernel.org/r/20260311052927.93921-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260311052927.93921-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Yang yingliang <yangyingliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |    6 ------
+ mm/damon/lru_sort.c |    6 ------
  1 file changed, 6 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup
-+++ a/mm/damon/reclaim.c
-@@ -201,12 +201,6 @@ static int damon_reclaim_apply_parameter
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup
++++ a/mm/damon/lru_sort.c
+@@ -291,12 +291,6 @@ static int damon_lru_sort_apply_paramete
  	if (err)
  		return err;
  
