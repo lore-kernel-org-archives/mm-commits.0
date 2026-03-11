@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E37B3750B1
-	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 20:41:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E948F37C921
+	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 20:41:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773261696; cv=none; b=mf5KIPD+qAB5CFKoYfkAsW/ww+Be5UuDjjVcRhVfsIf45Q347JSyO6yiaOE3IwXKgt4Q1AZmVhgLQdnbH1qz8ZNqYeQaCZnz89l/Cs+eQQtuDAzZewcbF0D3lUCS1sn/copLc/5eGvzMi8MSENFAG4GyOkFtaCNRUGz4SOckNhI=
+	t=1773261698; cv=none; b=stEfBxw+pM6AQFFwnQo4FA+IIxsPrd0snHDRXGp4Tw0/2xqddVUmZhBbA3Y4DuhcVviSfdt2s9DBfDftXZmjToUKqYXbpdC+V+MnxT9AJkwMGaApz+gMzewXei9S5feCW7IkJ0z0KdFPVhGdWn1Pkd7gpmWWWHj4egdXpY4BseQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773261696; c=relaxed/simple;
-	bh=k/m+rLrn8Lhwo51SmltiZG+nP2BUratiyiQ2m4yW2p0=;
-	h=Date:To:From:Subject:Message-Id; b=W+pbzM9aMK7LR6dAEzA5i/zC8JvPfl4MXLK39ZxSxjWqraKcSHDEtfHuvoJ0p4UzQfW1MHpGUBHgmyyOIlEFQnGpj4/E9xDSDo2lFQTpCeCYM9lC6iIsbRcRJkG+X8+JfCg2R41W+hA2WQZC9MHH+D7NgWpyAkEiqglfO1Ibd78=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HXO0dqF+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773261698; c=relaxed/simple;
+	bh=ohbzzByJiZ26SWIRGUNk36cshoJdm+A3d+Sf3ZA69R8=;
+	h=Date:To:From:Subject:Message-Id; b=F6j10oeC2OUq52asZfwI93AJD5CUIF5PtxPbaR89UE2WSblX8U5yDvOJiUBJ6dp5vUNoF7/eAJ/rRAHFpoUmfoeMwBntyUX3a2sfk3VnHB7j3fXpIESVre6JjEQRmu/vhgvHuw0UOJW7K/5HBguXA7AHt1nqUC0jVQxT/fObRkk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GupwIl7D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HXO0dqF+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBE01C4CEF7;
-	Wed, 11 Mar 2026 20:41:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GupwIl7D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8931EC4CEF7;
+	Wed, 11 Mar 2026 20:41:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773261696;
-	bh=k/m+rLrn8Lhwo51SmltiZG+nP2BUratiyiQ2m4yW2p0=;
+	s=korg; t=1773261697;
+	bh=ohbzzByJiZ26SWIRGUNk36cshoJdm+A3d+Sf3ZA69R8=;
 	h=Date:To:From:Subject:From;
-	b=HXO0dqF+UoWiT1+BfWGiRo5CQ+xt1MzD6Gz2V3tsIDY7dtlf3HHIK5ev+I0E29rr+
-	 4rnWk+w6CojwC2Hf5e77z1jz0sjqNulOMMAyQjCxqkb3GVR4vcbRFVRhEBtddPcqMe
-	 FTIp2nBTb94EwQJuC5E7sa2RsQXat6z9kwRM1zSE=
-Date: Wed, 11 Mar 2026 13:41:35 -0700
+	b=GupwIl7DWDNfsk+lZmoYI+il2aOE7JxKUOmtdEm7RtnGFFHvSgxTh+eOEaKI6LEPV
+	 DpK+iyXSd3InbvJ2xrwUdX4zUFJ1XygZqxfqiN2/a6oKwAxn8Ds+Zv+9UrYQL5wCNK
+	 XzZGFLuA9kq1wtAtS1ADntV1Yo5OE0OPZbogo+i0=
+Date: Wed, 11 Mar 2026 13:41:36 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,osalvador@suse.de,mhocko@suse.com,luckd0g@163.com,liam.howlett@oracle.com,jannh@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-correct-invalid-map-count-check.patch added to mm-new branch
-Message-Id: <20260311204135.EBE01C4CEF7@smtp.kernel.org>
+Subject: + mm-abstract-reading-sysctl_max_map_count-and-read_once.patch added to mm-new branch
+Message-Id: <20260311204137.8931EC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: correct invalid map count check
+     Subject: mm: abstract reading sysctl_max_map_count, and READ_ONCE()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mremap-correct-invalid-map-count-check.patch
+     mm-abstract-reading-sysctl_max_map_count-and-read_once.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-correct-invalid-map-count-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-abstract-reading-sysctl_max_map_count-and-read_once.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,101 +70,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm/mremap: correct invalid map count check
-Date: Wed, 11 Mar 2026 17:24:36 +0000
+Subject: mm: abstract reading sysctl_max_map_count, and READ_ONCE()
+Date: Wed, 11 Mar 2026 17:24:37 +0000
 
-Patch series "mm: improve map count checks".
+Concurrent reads and writes of sysctl_max_map_count are possible, so we
+should READ_ONCE() and WRITE_ONCE().
 
-Firstly, in mremap(), it appears that our map count checks have been overly
-conservative - there is simply no reason to require that we have headroom
-of 4 mappings prior to moving the VMA, we only need headroom of 2 VMAs
-since commit 659ace584e7a ("mmap: don't return ENOMEM when mapcount is
-temporarily exceeded in munmap()").
+The sysctl procfs logic already enforces WRITE_ONCE(), so abstract the
+read side with get_sysctl_max_map_count().
 
-Likely the original headroom of 4 mappings was a mistake, and 3 was
-actually intended.
+While we're here, also move the field to mm/internal.h and add the getter
+there since only mm interacts with it, there's no need for anybody else to
+have access.
 
-Next, we access sysctl_max_map_count in a number of places without being
-all that careful about how we do so.
+Finally, update the VMA userland tests to reflect the change.
 
-We introduce a simple helper that READ_ONCE()'s the field
-(get_sysctl_max_map_count()) to ensure that the field is accessed
-correctly.  The WRITE_ONCE() side is already handled by the sysctl procfs
-code in proc_int_conv().
-
-We also move this field to internal.h as there's no reason for anybody
-else to access it outside of mm.  Unfortunately we have to maintain the
-extern variable, as mmap.c implements the procfs code.
-
-Finally, we are accessing current->mm->map_count without holding the mmap
-write lock, which is also not correct, so this series ensures the lock is
-head before we access it.
-
-We also abstract the check to a helper function, and add ASCII diagrams to
-explain why we're doing what we're doing.
-
-
-This patch (of 3):
-
-We currently check to see, if on moving a VMA when doing mremap(), if it
-might violate the sys.vm.max_map_count limit.
-
-This was introduced in the mists of time prior to 2.6.12.
-
-At this point in time, as now, the move_vma() operation would copy the VMA
-(+1 mapping if not merged), then potentially split the source VMA upon
-unmap.
-
-Prior to commit 659ace584e7a ("mmap: don't return ENOMEM when mapcount is
-temporarily exceeded in munmap()"), a VMA split would check whether
-mm->map_count >= sysctl_max_map_count prior to a split before it ran.
-
-On unmap of the source VMA, if we are moving a partial VMA, we might split
-the VMA twice.
-
-This would mean, on invocation of split_vma() (as was), we'd check whether
-mm->map_count >= sysctl_max_map_count with a map count elevated by one,
-then again with a map count elevated by two, ending up with a map count
-elevated by three.
-
-At this point we'd reduce the map count on unmap.
-
-At the start of move_vma(), there was a check that has remained throughout
-mremap()'s history of mm->map_count >= sysctl_max_map_count - 3 (which
-implies mm->mmap_count + 4 > sysctl_max_map_count - that is, we must have
-headroom for 4 additional mappings).
-
-After mm->map_count is elevated by 3, it is decremented by one once the
-unmap completes. The mmap write lock is held, so nothing else will observe
-mm->map_count > sysctl_max_map_count.
-
-It appears this check was always incorrect - it should have either be one
-of 'mm->map_count > sysctl_max_map_count - 3' or 'mm->map_count >=
-sysctl_max_map_count - 2'.
-
-After commit 659ace584e7a ("mmap: don't return ENOMEM when mapcount is
-temporarily exceeded in munmap()"), the map count check on split is
-eliminated in the newly introduced __split_vma(), which the unmap path
-uses, and has that path check whether mm->map_count >=
-sysctl_max_map_count.
-
-This is valid since, net, an unmap can only cause an increase in map count
-of 1 (split both sides, unmap middle).
-
-Since we only copy a VMA and (if MREMAP_DONTUNMAP is not set) unmap
-afterwards, the maximum number of additional mappings that will actually be
-subject to any check will be 2.
-
-Therefore, update the check to assert this corrected value. Additionally,
-update the check introduced by commit ea2c3f6f5545 ("mm,mremap: bail out
-earlier in mremap_to under map pressure") to account for this.
-
-While we're here, clean up the comment prior to that.
-
-Link: https://lkml.kernel.org/r/cover.1773249037.git.ljs@kernel.org
-Link: https://lkml.kernel.org/r/73e218c67dcd197c5331840fb011e2c17155bfb0.1773249037.git.ljs@kernel.org
+Link: https://lkml.kernel.org/r/0715259eb37cbdfde4f9e5db92a20ec7110a1ce5.1773249037.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Jann Horn <jannh@google.com>
+Cc: Jianzhou Zhao <luckd0g@163.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
@@ -172,59 +96,160 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Jianzhou Zhao <luckd0g@163.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
+ include/linux/mm.h                 |    2 --
+ mm/internal.h                      |    6 ++++++
+ mm/mmap.c                          |    2 +-
+ mm/mremap.c                        |    4 ++--
+ mm/nommu.c                         |    2 +-
+ mm/vma.c                           |    6 +++---
+ tools/testing/vma/include/custom.h |    3 ---
+ tools/testing/vma/include/dup.h    |    9 +++++++++
+ tools/testing/vma/main.c           |    2 ++
+ 9 files changed, 24 insertions(+), 12 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-correct-invalid-map-count-check
-+++ a/mm/mremap.c
-@@ -1041,10 +1041,11 @@ static unsigned long prep_move_vma(struc
- 	vm_flags_t dummy = vma->vm_flags;
+--- a/include/linux/mm.h~mm-abstract-reading-sysctl_max_map_count-and-read_once
++++ a/include/linux/mm.h
+@@ -207,8 +207,6 @@ static inline void __mm_zero_struct_page
+ #define MAPCOUNT_ELF_CORE_MARGIN	(5)
+ #define DEFAULT_MAX_MAP_COUNT	(USHRT_MAX - MAPCOUNT_ELF_CORE_MARGIN)
+ 
+-extern int sysctl_max_map_count;
+-
+ extern unsigned long sysctl_user_reserve_kbytes;
+ extern unsigned long sysctl_admin_reserve_kbytes;
+ 
+--- a/mm/internal.h~mm-abstract-reading-sysctl_max_map_count-and-read_once
++++ a/mm/internal.h
+@@ -1864,4 +1864,10 @@ static inline int pmdp_test_and_clear_yo
+ 
+ #endif /* CONFIG_MMU_NOTIFIER */
+ 
++extern int sysctl_max_map_count;
++static inline int get_sysctl_max_map_count(void)
++{
++	return READ_ONCE(sysctl_max_map_count);
++}
++
+ #endif	/* __MM_INTERNAL_H */
+--- a/mm/mmap.c~mm-abstract-reading-sysctl_max_map_count-and-read_once
++++ a/mm/mmap.c
+@@ -375,7 +375,7 @@ unsigned long do_mmap(struct file *file,
+ 		return -EOVERFLOW;
+ 
+ 	/* Too many mappings? */
+-	if (mm->map_count > sysctl_max_map_count)
++	if (mm->map_count > get_sysctl_max_map_count())
+ 		return -ENOMEM;
  
  	/*
--	 * We'd prefer to avoid failure later on in do_munmap:
--	 * which may split one vma into three before unmapping.
-+	 * We'd prefer to avoid failure later on in do_munmap: we copy a VMA,
-+	 * which may not merge, then (if MREMAP_DONTUNMAP is not set) unmap the
-+	 * source, which may split, causing a net increase of 2 mappings.
+--- a/mm/mremap.c~mm-abstract-reading-sysctl_max_map_count-and-read_once
++++ a/mm/mremap.c
+@@ -1045,7 +1045,7 @@ static unsigned long prep_move_vma(struc
+ 	 * which may not merge, then (if MREMAP_DONTUNMAP is not set) unmap the
+ 	 * source, which may split, causing a net increase of 2 mappings.
  	 */
--	if (current->mm->map_count >= sysctl_max_map_count - 3)
-+	if (current->mm->map_count + 2 > sysctl_max_map_count)
+-	if (current->mm->map_count + 2 > sysctl_max_map_count)
++	if (current->mm->map_count + 2 > get_sysctl_max_map_count())
  		return -ENOMEM;
  
  	if (vma->vm_ops && vma->vm_ops->may_split) {
-@@ -1804,20 +1805,15 @@ static unsigned long check_mremap_params
- 		return -EINVAL;
- 
- 	/*
--	 * move_vma() need us to stay 4 maps below the threshold, otherwise
--	 * it will bail out at the very beginning.
--	 * That is a problem if we have already unmapped the regions here
--	 * (new_addr, and old_addr), because userspace will not know the
--	 * state of the vma's after it gets -ENOMEM.
--	 * So, to avoid such scenario we can pre-compute if the whole
--	 * operation has high chances to success map-wise.
--	 * Worst-scenario case is when both vma's (new_addr and old_addr) get
--	 * split in 3 before unmapping it.
--	 * That means 2 more maps (1 for each) to the ones we already hold.
--	 * Check whether current map count plus 2 still leads us to 4 maps below
--	 * the threshold, otherwise return -ENOMEM here to be more safe.
-+	 * We may unmap twice before invoking move_vma(), that is if new_len <
-+	 * old_len (shrinking), and in the MREMAP_FIXED case, unmapping part of
-+	 * a VMA located at the destination.
-+	 *
-+	 * In the worst case, both unmappings will cause splits, resulting in a
-+	 * net increased map count of 2. In move_vma() we check for headroom of
-+	 * 2 additional mappings, so check early to avoid bailing out then.
+@@ -1813,7 +1813,7 @@ static unsigned long check_mremap_params
+ 	 * net increased map count of 2. In move_vma() we check for headroom of
+ 	 * 2 additional mappings, so check early to avoid bailing out then.
  	 */
--	if ((current->mm->map_count + 2) >= sysctl_max_map_count - 3)
-+	if (current->mm->map_count + 4 > sysctl_max_map_count)
+-	if (current->mm->map_count + 4 > sysctl_max_map_count)
++	if (current->mm->map_count + 4 > get_sysctl_max_map_count())
  		return -ENOMEM;
  
  	return 0;
+--- a/mm/nommu.c~mm-abstract-reading-sysctl_max_map_count-and-read_once
++++ a/mm/nommu.c
+@@ -1317,7 +1317,7 @@ static int split_vma(struct vma_iterator
+ 		return -ENOMEM;
+ 
+ 	mm = vma->vm_mm;
+-	if (mm->map_count >= sysctl_max_map_count)
++	if (mm->map_count >= get_sysctl_max_map_count())
+ 		return -ENOMEM;
+ 
+ 	region = kmem_cache_alloc(vm_region_jar, GFP_KERNEL);
+--- a/mm/vma.c~mm-abstract-reading-sysctl_max_map_count-and-read_once
++++ a/mm/vma.c
+@@ -590,7 +590,7 @@ out_free_vma:
+ static int split_vma(struct vma_iterator *vmi, struct vm_area_struct *vma,
+ 		     unsigned long addr, int new_below)
+ {
+-	if (vma->vm_mm->map_count >= sysctl_max_map_count)
++	if (vma->vm_mm->map_count >= get_sysctl_max_map_count())
+ 		return -ENOMEM;
+ 
+ 	return __split_vma(vmi, vma, addr, new_below);
+@@ -1394,7 +1394,7 @@ static int vms_gather_munmap_vmas(struct
+ 		 * its limit temporarily, to help free resources as expected.
+ 		 */
+ 		if (vms->end < vms->vma->vm_end &&
+-		    vms->vma->vm_mm->map_count >= sysctl_max_map_count) {
++		    vms->vma->vm_mm->map_count >= get_sysctl_max_map_count()) {
+ 			error = -ENOMEM;
+ 			goto map_count_exceeded;
+ 		}
+@@ -2868,7 +2868,7 @@ int do_brk_flags(struct vma_iterator *vm
+ 	if (!may_expand_vm(mm, vm_flags, len >> PAGE_SHIFT))
+ 		return -ENOMEM;
+ 
+-	if (mm->map_count > sysctl_max_map_count)
++	if (mm->map_count > get_sysctl_max_map_count())
+ 		return -ENOMEM;
+ 
+ 	if (security_vm_enough_memory_mm(mm, len >> PAGE_SHIFT))
+--- a/tools/testing/vma/include/custom.h~mm-abstract-reading-sysctl_max_map_count-and-read_once
++++ a/tools/testing/vma/include/custom.h
+@@ -21,9 +21,6 @@ extern unsigned long dac_mmap_min_addr;
+ #define VM_BUG_ON(_expr) (BUG_ON(_expr))
+ #define VM_BUG_ON_VMA(_expr, _vma) (BUG_ON(_expr))
+ 
+-/* We hardcode this for now. */
+-#define sysctl_max_map_count 0x1000000UL
+-
+ #define TASK_SIZE ((1ul << 47)-PAGE_SIZE)
+ 
+ /*
+--- a/tools/testing/vma/include/dup.h~mm-abstract-reading-sysctl_max_map_count-and-read_once
++++ a/tools/testing/vma/include/dup.h
+@@ -419,6 +419,9 @@ struct vma_iterator {
+ 
+ #define EMPTY_VMA_FLAGS ((vma_flags_t){ })
+ 
++#define MAPCOUNT_ELF_CORE_MARGIN	(5)
++#define DEFAULT_MAX_MAP_COUNT	(USHRT_MAX - MAPCOUNT_ELF_CORE_MARGIN)
++
+ /* What action should be taken after an .mmap_prepare call is complete? */
+ enum mmap_action_type {
+ 	MMAP_NOTHING,		/* Mapping is complete, no further action. */
+@@ -1342,3 +1345,9 @@ static inline void vma_set_file(struct v
+ 	swap(vma->vm_file, file);
+ 	fput(file);
+ }
++
++extern int sysctl_max_map_count;
++static inline int get_sysctl_max_map_count(void)
++{
++	return READ_ONCE(sysctl_max_map_count);
++}
+--- a/tools/testing/vma/main.c~mm-abstract-reading-sysctl_max_map_count-and-read_once
++++ a/tools/testing/vma/main.c
+@@ -14,6 +14,8 @@
+ #include "tests/mmap.c"
+ #include "tests/vma.c"
+ 
++int sysctl_max_map_count __read_mostly = DEFAULT_MAX_MAP_COUNT;
++
+ /* Helper functions which utilise static kernel functions. */
+ 
+ struct vm_area_struct *merge_existing(struct vma_merge_struct *vmg)
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
