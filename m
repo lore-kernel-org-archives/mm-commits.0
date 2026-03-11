@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFD223254A0
-	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 19:24:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18A042F6586
+	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 19:26:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773257080; cv=none; b=YeQKywWyDw7acVLtUOp49d8rb+bFcrUdPylBF0QJQR6PeKUUsYbk2DQpQVpa2bPYJWhtv5UZlHsho3MI7MzdxcfoBDkj7CWEKlfc6knZd8Rl1AgO31AFD53WnhT349UczuNtih85OfmBdC0CAAu1iFCUiOOCXH93ZBSRBnEFtSg=
+	t=1773257187; cv=none; b=kgzCM1xfI9oy9ylO8KJmJTCkk8vEnlX3BVej+OLLK+EFqKbw3jFzcavjeayNevwsPJDtU0euprYGU3LZIY8O4CDItSEMs0ocj3z7qZ467MdUzggrF/q541upEPJS3Jff/mntMvi+qu7uYU7zoBHBdSE9X6JaxpHFtvJ0FcrmddY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773257080; c=relaxed/simple;
-	bh=K42CDLC3Rm688x0SIfESXISo34t9k46lEaiboB6uJ5c=;
-	h=Date:To:From:Subject:Message-Id; b=pY401D/bNKWrnok1eykkErCgsTQ9vFLfGVX+sHP6KChHTvH66nBLX5F0clLrzzm8uV3gb7XlBMMC7NDank+/yiwxkCP75ptW64b77Sr4eJD6Zf4pDDfYCpzk8DybtPyLCCgkI3r+H/bp26dPU5VCBy9Npf7/eXxO4iGHUbVoFVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yj6Pp4Zc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773257187; c=relaxed/simple;
+	bh=Ol5Sqr0aSwg2/2C91aSrgCTeCHbqNFnwfNvndKAgZZo=;
+	h=Date:To:From:Subject:Message-Id; b=KhvZVi8xGHFU15P8eZ+owNPiFWJHqfuWb8bS1NUGyFac7iskWkO28FRMouQONgkD3tbNggVKussiKBKhw6WLurwyZRcN0BNGA6/SiUtzbSEDNaJa+50sgB7JwB+n8QZZMJSD4uW/I2xCsLKoEom9gBrYyK7CZEjhHTr3QWwLnuQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PZOmLS61; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yj6Pp4Zc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A143C4CEF7;
-	Wed, 11 Mar 2026 19:24:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PZOmLS61"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABE2EC4CEF7;
+	Wed, 11 Mar 2026 19:26:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773257080;
-	bh=K42CDLC3Rm688x0SIfESXISo34t9k46lEaiboB6uJ5c=;
+	s=korg; t=1773257186;
+	bh=Ol5Sqr0aSwg2/2C91aSrgCTeCHbqNFnwfNvndKAgZZo=;
 	h=Date:To:From:Subject:From;
-	b=yj6Pp4Zc8bExGesHYn7JQCBQmlJRyyxacc5d0nXc/blkCNMS+dc5zyXPZS/gU9zsQ
-	 Lt/1jtRhCSgwRIiCqkLEy1Q4Bbgvkb6kfBZBcAC2zHOrF286CzZx3LEAEMBOipP1OE
-	 98vwEWW4B+2pMgQT5fVfVS37aOE9KvzHJW7oMIkg=
-Date: Wed, 11 Mar 2026 12:24:39 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=PZOmLS61j9cs1ffFmobuCA7HCAKFvBb72sb6ei/RP6RsY39iqlp0zhNs+zTB2yj15
+	 E0kO4wlnbuKxJx9L2CHJYIxwpjpDM47qVTNjzWT95u7ISrZhUwK2GYOh3eInXvQfGw
+	 Qe5iFwlDUtiK+qvQ6pd9MxbBNY/R4lqFxXauUrys=
+Date: Wed, 11 Mar 2026 12:26:26 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,seanjc@google.com,peterx@redhat.com,pbonzini@redhat.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kalyazin@amazon.com,jthoughton@google.com,hughd@google.com,david@kernel.org,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,aarcange@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-pagemap_ioctl-remove-hungarian-notation.patch added to mm-new branch
-Message-Id: <20260311192440.6A143C4CEF7@smtp.kernel.org>
+Subject: + userfaultfd-introduce-vm_uffd_ops-fix.patch added to mm-unstable branch
+Message-Id: <20260311192626.ABE2EC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: pagemap_ioctl: remove hungarian notation
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-pagemap_ioctl-remove-hungarian-notation.patch
+     Subject: userfaultfd: allow registration of WP_ASYNC for any VMA
+has been added to the -mm mm-unstable branch.  Its filename is
+     userfaultfd-introduce-vm_uffd_ops-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-pagemap_ioctl-remove-hungarian-notation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-introduce-vm_uffd_ops-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,83 +59,80 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: pagemap_ioctl: remove hungarian notation
-Date: Wed, 11 Mar 2026 20:07:37 +0200
+Subject: userfaultfd: allow registration of WP_ASYNC for any VMA
+Date: Wed, 11 Mar 2026 20:21:38 +0200
 
-Replace lpBaseAddress with addr and dwRegionSize with size.
+Registration of a VMA with WP_ASYNC userfaulfd context in write-protect
+mode does not require any VMA-specific resolution of user faults and these
+faults are completely handled by the generic page fault handler.
 
-Link: https://lkml.kernel.org/r/20260311180737.3767545-1-rppt@kernel.org
+This functionality existed since the introduction of WP_ASYNC mode and it
+allows tracking writes to SysV shared memory mappings (shmget(2) and
+shmat(2)).
+
+Move the check for WP mode before checking for presence of ->uffd_ops in a
+VMA to restore the original behaviour.
+
+Link: https://lkml.kernel.org/r/abG5HFV8yoEHOFkh@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: James Houghton <jthoughton@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nikita Kalyazin <kalyazin@amazon.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/pagemap_ioctl.c |   20 +++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/userfaultfd.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-pagemap_ioctl-remove-hungarian-notation
-+++ a/tools/testing/selftests/mm/pagemap_ioctl.c
-@@ -113,13 +113,13 @@ int init_uffd(void)
- 	return 0;
- }
- 
--int wp_init(void *lpBaseAddress, long dwRegionSize)
-+int wp_init(void *addr, long size)
+--- a/mm/userfaultfd.c~userfaultfd-introduce-vm_uffd_ops-fix
++++ a/mm/userfaultfd.c
+@@ -2044,22 +2044,22 @@ bool vma_can_userfault(struct vm_area_st
  {
- 	struct uffdio_register uffdio_register;
- 	struct uffdio_writeprotect wp;
+ 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
  
--	uffdio_register.range.start = (unsigned long)lpBaseAddress;
--	uffdio_register.range.len = dwRegionSize;
-+	uffdio_register.range.start = (unsigned long)addr;
-+	uffdio_register.range.len = size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		ksft_exit_fail_msg("ioctl(UFFDIO_REGISTER) %d %s\n", errno, strerror(errno));
-@@ -127,8 +127,8 @@ int wp_init(void *lpBaseAddress, long dw
- 	if (!(uffdio_register.ioctls & UFFDIO_WRITEPROTECT))
- 		ksft_exit_fail_msg("ioctl set is incorrect\n");
+-	/* only VMAs that implement vm_uffd_ops are supported */
+-	if (!ops)
+-		return false;
+-
+ 	vm_flags &= __VM_UFFD_FLAGS;
  
--	wp.range.start = (unsigned long)lpBaseAddress;
--	wp.range.len = dwRegionSize;
-+	wp.range.start = (unsigned long)addr;
-+	wp.range.len = size;
- 	wp.mode = UFFDIO_WRITEPROTECT_MODE_WP;
+-	if (vma->vm_flags & VM_DROPPABLE)
+-		return false;
+-
+ 	/*
+-	 * If wp async enabled, and WP is the only mode enabled, allow any
++	 * If WP is the only mode enabled and context is wp async, allow any
+ 	 * memory type.
+ 	 */
+ 	if (wp_async && (vm_flags == VM_UFFD_WP))
+ 		return true;
  
- 	if (ioctl(uffd, UFFDIO_WRITEPROTECT, &wp))
-@@ -137,21 +137,21 @@ int wp_init(void *lpBaseAddress, long dw
- 	return 0;
- }
- 
--int wp_free(void *lpBaseAddress, long dwRegionSize)
-+int wp_free(void *addr, long size)
- {
- 	struct uffdio_register uffdio_register;
- 
--	uffdio_register.range.start = (unsigned long)lpBaseAddress;
--	uffdio_register.range.len = dwRegionSize;
-+	uffdio_register.range.start = (unsigned long)addr;
-+	uffdio_register.range.len = size;
- 	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
- 	if (ioctl(uffd, UFFDIO_UNREGISTER, &uffdio_register.range))
- 		ksft_exit_fail_msg("ioctl unregister failure\n");
- 	return 0;
- }
- 
--int wp_addr_range(void *lpBaseAddress, int dwRegionSize)
-+int wp_addr_range(void *addr, int size)
- {
--	if (pagemap_ioctl(lpBaseAddress, dwRegionSize, NULL, 0,
-+	if (pagemap_ioctl(addr, size, NULL, 0,
- 			  PM_SCAN_WP_MATCHING | PM_SCAN_CHECK_WPASYNC,
- 			  0, PAGE_IS_WRITTEN, 0, 0, PAGE_IS_WRITTEN) < 0)
- 		ksft_exit_fail_msg("error %d %d %s\n", 1, errno, strerror(errno));
++	/* For any other mode reject VMAs that don't implement vm_uffd_ops */
++	if (!ops)
++		return false;
++
++	if (vma->vm_flags & VM_DROPPABLE)
++		return false;
++
+ 	/*
+ 	 * If user requested uffd-wp but not enabled pte markers for
+ 	 * uffd-wp, then only anonymous memory is supported
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
@@ -162,6 +148,7 @@ userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
 userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
 userfaultfd-move-vma_can_userfault-out-of-line.patch
 userfaultfd-introduce-vm_uffd_ops.patch
+userfaultfd-introduce-vm_uffd_ops-fix.patch
 shmem-userfaultfd-use-a-vma-callback-to-handle-uffdio_continue.patch
 userfaultfd-introduce-vm_uffd_ops-alloc_folio.patch
 shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops.patch
