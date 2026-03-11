@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5E4F2116E0
-	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 18:02:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94F2B238D54
+	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 18:12:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773252154; cv=none; b=Shnz2GeOGUrKPaYcXyctb6oeB7ZQwVF3VnQfzABufZX1K1+RbN4qr4dVgdsKtOD5LaArfu04LDGcyUc5wb+A2mz2SfEVz0FRNkcDQAzdpnTfc31u+Uy/6pCBMoLISpWxLSKPkWR0US3Clrd16zAouxtP4xs9DXFvEaI8+0o63Uk=
+	t=1773252767; cv=none; b=bTT71oSeUvwas7dYDamPHCIBQug4cpw+HOnlEoeREkIwHq0VxQIty2iDwddDOYMdwnUr0Rb5QqFYkKVMbgMXpSqrqjJXZUczpuhr/kyAZ2g3RwuODQdL58vgozWOydi1HV/jS49xR/csjJ9qVPsxkXbxjYnHEMCtEqmbcm7TRFI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773252154; c=relaxed/simple;
-	bh=lMrNEauiji9BxY8ftswOjDZVya5DMTBN3sKRbDoXIxg=;
-	h=Date:To:From:Subject:Message-Id; b=ajPiqMsncw92BoM3A8mEfl53bq8UspWRtVyO86sir3SIBIWg5ErtRoPy8NereOzTYOOr/BUstr6Gix0DOySfQpmLhj5FxXb8llq+HQo9KNQEV235XD7fjsZsNcpRcg0het4D1kcz0oV9LQDB8vIqiSOrza9yf88sTU5zZCat9X8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eg5aJ5kI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773252767; c=relaxed/simple;
+	bh=jMFTmp1cTYW/Gbzn7+dGRsGiv8PZ6ZWPT9apTgNTeP8=;
+	h=Date:To:From:Subject:Message-Id; b=Wc72xonCFjeG2C2Fi3+wxkDihUS7q6GOZtcMgusLGQSGBRYsUAKdCueuVAyayTEn0jxk6As7yd3LPeQ8JsE7QWudStJTVDwJbKxJkERwnnXiw/tp1XjqMcFzZPz+fa7aRMNbQH22Z4dUYXjvRsojta+zDJZtdWrLjr0eBYVG8jo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=exwB28Cx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eg5aJ5kI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4520FC19421;
-	Wed, 11 Mar 2026 18:02:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="exwB28Cx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F19E9C4CEF7;
+	Wed, 11 Mar 2026 18:12:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773252154;
-	bh=lMrNEauiji9BxY8ftswOjDZVya5DMTBN3sKRbDoXIxg=;
+	s=korg; t=1773252767;
+	bh=jMFTmp1cTYW/Gbzn7+dGRsGiv8PZ6ZWPT9apTgNTeP8=;
 	h=Date:To:From:Subject:From;
-	b=Eg5aJ5kImrLKUZowwba2Heo7p+V7M/cCji8h+wvyg4YZPen/eNRKFQ1ex3CQql1Rz
-	 ZjxVMEMlqI5vg20ujf5WGJh0cMOF2yGPUuZCcH9ca20ZkwMP1fOVBr9BIWieQ1ppx6
-	 uSFgyNCOh388twtoUzPqOJPPwlUlfH67NxWkp9Ps=
-Date: Wed, 11 Mar 2026 11:02:33 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,david@kernel.org,akpm@linux-foundation.org
+	b=exwB28CxNC10QgFUyIkEbd8vWCfUQDmmNDhK229ShZKjUoOLTiB0uKu77S1wol7kK
+	 mB+YaUW355TmkQW82UmbDKWxDm4j6QTJ/BxUIglkguC13iRZUIF0gaD2fcEXod06QG
+	 T95MPpppUMYGwdaGk1j0AmKpALCwJ0df+R69aA2A=
+Date: Wed, 11 Mar 2026 11:12:46 -0700
+To: mm-commits@vger.kernel.org,minchan@kernel.org,gaoxu2@honor.com,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix.patch added to mm-unstable branch
-Message-Id: <20260311180234.4520FC19421@smtp.kernel.org>
+Subject: + zram-do-not-permit-params-change-after-init.patch added to mm-unstable branch
+Message-Id: <20260311181246.F19E9C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix
+     Subject: zram: do not permit params change after init
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix.patch
+     zram-do-not-permit-params-change-after-init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-permit-params-change-after-init.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,73 +58,74 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix
-Date: Wed, 11 Mar 2026 10:19:00 +0100
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: do not permit params change after init
+Date: Wed, 11 Mar 2026 17:42:44 +0900
 
-tet's call the local variable simply "addr", per Lorenzo
+Patch series "zram: recompression cleanups and tweaks", v2.
 
-Link: https://lkml.kernel.org/r/f7732d1c-0e85-4a14-948a-912c417018b5@kernel.org
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+This series is a somewhat random mix of fixups, recompression cleanups and
+improvements partly based on internal conversations.  A few patches in the
+series remove unexpected or confusing behaviour, e.g.  auto correction of
+bad priority= param for recompression, which should have always been just
+an error.  Then it also removes "chain recompression" which has a tricky,
+unexpected and confusing behaviour at times.  We also unify and harden the
+handling of algo/priority params.  There is also an addition of missing
+device lock in algorithm_params_store() which previously permitted
+modification of algo params while the device is active.
+
+
+This patch (of 6):
+
+First, algorithm_params_store(), like any sysfs handler, should grab
+device lock.
+
+Second, like any write() sysfs handler, it should grab device lock in
+exclusive mode.
+
+Third, it should not permit change of algos' parameters after device init,
+as this doesn't make sense - we cannot compress with one C/D dict and then
+just change C/D dict to a different one, for example.
+
+Another thing to notice is that algorithm_params_store() accesses device's
+->comp_algs for algo priority lookup, which should be protected by device
+lock in exclusive mode in general.
+
+Link: https://lkml.kernel.org/r/20260311084312.1766036-1-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20260311084312.1766036-2-senozhatsky@chromium.org
+Fixes: 4eac932103a5d ("zram: introduce algorithm_params device attribute")
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Brian Geffon <bgeffon@google.com>
+Cc: gao xu <gaoxu2@honor.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/block/zram/zram_drv.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/memory.c~mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix
-+++ a/mm/memory.c
-@@ -2081,17 +2081,17 @@ static void __zap_vma_range(struct mmu_g
- 			return;
- 		__unmap_hugepage_range(tlb, vma, start, end, NULL, zap_flags);
- 	} else {
--		unsigned long next, cur = start;
-+		unsigned long next, addr = start;
- 		pgd_t *pgd;
- 
- 		tlb_start_vma(tlb, vma);
--		pgd = pgd_offset(vma->vm_mm, cur);
-+		pgd = pgd_offset(vma->vm_mm, addr);
- 		do {
--			next = pgd_addr_end(cur, end);
-+			next = pgd_addr_end(addr, end);
- 			if (pgd_none_or_clear_bad(pgd))
- 				continue;
--			next = zap_p4d_range(tlb, vma, pgd, cur, next, details);
--		} while (pgd++, cur = next, cur != end);
-+			next = zap_p4d_range(tlb, vma, pgd, addr, next, details);
-+		} while (pgd++, addr = next, addr != end);
- 		tlb_end_vma(tlb, vma);
+--- a/drivers/block/zram/zram_drv.c~zram-do-not-permit-params-change-after-init
++++ a/drivers/block/zram/zram_drv.c
+@@ -1750,6 +1750,10 @@ static ssize_t algorithm_params_store(st
+ 		}
  	}
- }
+ 
++	guard(rwsem_write)(&zram->dev_lock);
++	if (init_done(zram))
++		return -EBUSY;
++
+ 	/* Lookup priority by algorithm name */
+ 	if (algo) {
+ 		s32 p;
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap.patch
-mm-pagewalk-drop-fw_migration.patch
-mm-madvise-drop-range-checks-in-madvise_free_single_vma.patch
-mm-memory-remove-zap_details-parameter-from-zap_page_range_single.patch
-mm-memory-remove-zap_details-parameter-from-zap_page_range_single-fix.patch
-mm-memory-inline-unmap_mapping_range_vma-into-unmap_mapping_range_tree.patch
-mm-memory-simplify-calculation-in-unmap_mapping_range_tree.patch
-mm-oom_kill-use-mmu_notify_clear-in-__oom_reap_task_mm.patch
-mm-oom_kill-factor-out-zapping-of-vma-into-zap_vma_for_reaping.patch
-mm-memory-rename-unmap_single_vma-to-__zap_vma_range.patch
-mm-memory-move-adjusting-of-address-range-to-unmap_vmas.patch
-mm-memory-convert-details-even_cows-into-details-skip_cows.patch
-mm-memory-use-__zap_vma_range-in-zap_vma_for_reaping.patch
-mm-memory-inline-unmap_page_range-into-__zap_vma_range.patch
-mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix.patch
-mm-rename-zap_vma_pages-to-zap_vma.patch
-mm-rename-zap_page_range_single_batched-to-zap_vma_range_batched.patch
-mm-rename-zap_page_range_single-to-zap_vma_range.patch
-mm-rename-zap_vma_ptes-to-zap_special_vma_range.patch
-mm-memory-support-vm_mixedmap-in-zap_special_vma_range.patch
-kasan-docs-slub-is-the-only-remaining-slab-implementation.patch
-mm-move-vma_kernel_pagesize-from-hugetlb-to-mmh.patch
-mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac.patch
-kvm-remove-hugetlbh-inclusion.patch
-kvm-ppc-remove-hugetlbh-inclusion.patch
+zram-do-not-permit-params-change-after-init.patch
+zram-do-not-autocorrect-bad-recompression-parameters.patch
+zram-drop-num_active_comps.patch
+zram-update-recompression-documentation.patch
+zram-remove-chained-recompression.patch
+zram-unify-and-harden-algo-priority-params-handling.patch
 
