@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18A042F6586
-	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 19:26:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 725622DA759
+	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 20:33:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773257187; cv=none; b=kgzCM1xfI9oy9ylO8KJmJTCkk8vEnlX3BVej+OLLK+EFqKbw3jFzcavjeayNevwsPJDtU0euprYGU3LZIY8O4CDItSEMs0ocj3z7qZ467MdUzggrF/q541upEPJS3Jff/mntMvi+qu7uYU7zoBHBdSE9X6JaxpHFtvJ0FcrmddY=
+	t=1773261229; cv=none; b=VvRD3bPPHD8JuR0broxYrHXrzThtVMsPGN23ycMpew3cV6kDMTuEOOPESqfWPQPl6fxZ1kXLKvyTR04pyN9hlEjDYgeB99H/74FeC3uEnX8hrKoSQMitOU8BnEUWFE54UQESa1cy2lYPJ57Y3xyoCU/5t9QAcJSBC/VPjrsSxAw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773257187; c=relaxed/simple;
-	bh=Ol5Sqr0aSwg2/2C91aSrgCTeCHbqNFnwfNvndKAgZZo=;
-	h=Date:To:From:Subject:Message-Id; b=KhvZVi8xGHFU15P8eZ+owNPiFWJHqfuWb8bS1NUGyFac7iskWkO28FRMouQONgkD3tbNggVKussiKBKhw6WLurwyZRcN0BNGA6/SiUtzbSEDNaJa+50sgB7JwB+n8QZZMJSD4uW/I2xCsLKoEom9gBrYyK7CZEjhHTr3QWwLnuQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PZOmLS61; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773261229; c=relaxed/simple;
+	bh=yfcE5w6J80rjkclNgDovcsEQKnBbIbTkG5pXzsBwCDA=;
+	h=Date:To:From:Subject:Message-Id; b=aAgJsI1GcfqIkAmfd7pi+rO7FQUIu3t0R7Omq3m1/SkcfztAduSnYwh3dvuvmVshRZowXhXYB79/3LRgujsWuZtmhKzrBTckrchJUZ9L9SJPCpjcm9tOlyyPVpEh035GrZ3PV4LN2zaKaCv3V5Q2c9E/irV8duOqvBY4Yy0+dV0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gMSbDav7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PZOmLS61"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABE2EC4CEF7;
-	Wed, 11 Mar 2026 19:26:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gMSbDav7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85851C116C6;
+	Wed, 11 Mar 2026 20:33:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773257186;
-	bh=Ol5Sqr0aSwg2/2C91aSrgCTeCHbqNFnwfNvndKAgZZo=;
+	s=korg; t=1773261228;
+	bh=yfcE5w6J80rjkclNgDovcsEQKnBbIbTkG5pXzsBwCDA=;
 	h=Date:To:From:Subject:From;
-	b=PZOmLS61j9cs1ffFmobuCA7HCAKFvBb72sb6ei/RP6RsY39iqlp0zhNs+zTB2yj15
-	 E0kO4wlnbuKxJx9L2CHJYIxwpjpDM47qVTNjzWT95u7ISrZhUwK2GYOh3eInXvQfGw
-	 Qe5iFwlDUtiK+qvQ6pd9MxbBNY/R4lqFxXauUrys=
-Date: Wed, 11 Mar 2026 12:26:26 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,seanjc@google.com,peterx@redhat.com,pbonzini@redhat.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kalyazin@amazon.com,jthoughton@google.com,hughd@google.com,david@kernel.org,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,aarcange@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=gMSbDav7w0FuCYm/nyZNSpX9qHRCM3qvZB6Bd4+445neTUMB0ywqmWa24xc5wOQqw
+	 sOv7PPE9zF7yCB6aK4d7BR9OqcU0luClw8BHOB5Nf1mlPQPO3XFxD/xJ8Zl3KaP6cH
+	 mAqwKKWYnMNm0CDr3UwE5txfON+X38+i7LNbE5VI=
+Date: Wed, 11 Mar 2026 13:33:48 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,shuah@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,hannes@cmpxchg.org,longman@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-introduce-vm_uffd_ops-fix.patch added to mm-unstable branch
-Message-Id: <20260311192626.ABE2EC4CEF7@smtp.kernel.org>
+Subject: + selftest-memcg-skip-memcg_sock-test-if-address-family-not-supported.patch added to mm-new branch
+Message-Id: <20260311203348.85851C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: allow registration of WP_ASYNC for any VMA
-has been added to the -mm mm-unstable branch.  Its filename is
-     userfaultfd-introduce-vm_uffd_ops-fix.patch
+     Subject: selftest: memcg: skip memcg_sock test if address family not supported
+has been added to the -mm mm-new branch.  Its filename is
+     selftest-memcg-skip-memcg_sock-test-if-address-family-not-supported.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-introduce-vm_uffd_ops-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-memcg-skip-memcg_sock-test-if-address-family-not-supported.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,100 +69,71 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: userfaultfd: allow registration of WP_ASYNC for any VMA
-Date: Wed, 11 Mar 2026 20:21:38 +0200
+From: Waiman Long <longman@redhat.com>
+Subject: selftest: memcg: skip memcg_sock test if address family not supported
+Date: Wed, 11 Mar 2026 16:05:26 -0400
 
-Registration of a VMA with WP_ASYNC userfaulfd context in write-protect
-mode does not require any VMA-specific resolution of user faults and these
-faults are completely handled by the generic page fault handler.
+The test_memcg_sock test in memcontrol.c sets up an IPv6 socket and send
+data over it to consume memory and verify that memory.stat.sock and
+memory.current values are close.
 
-This functionality existed since the introduction of WP_ASYNC mode and it
-allows tracking writes to SysV shared memory mappings (shmget(2) and
-shmat(2)).
+On systems where IPv6 isn't enabled or not configured to support
+SOCK_STREAM, the test_memcg_sock test always fails.  When the socket()
+call fails, there is no way we can test the memory consumption and verify
+the above claim.  I believe it is better to just skip the test in this
+case instead of reporting a test failure hinting that there may be
+something wrong with the memcg code.
 
-Move the check for WP mode before checking for presence of ->uffd_ops in a
-VMA to restore the original behaviour.
-
-Link: https://lkml.kernel.org/r/abG5HFV8yoEHOFkh@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20260311200526.885899-1-longman@redhat.com
+Fixes: 5f8f019380b8 ("selftests: cgroup/memcontrol: add basic test for socket accounting")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Acked-by: Michal Koutný <mkoutny@suse.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nikita Kalyazin <kalyazin@amazon.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ tools/testing/selftests/cgroup/test_memcontrol.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/mm/userfaultfd.c~userfaultfd-introduce-vm_uffd_ops-fix
-+++ a/mm/userfaultfd.c
-@@ -2044,22 +2044,22 @@ bool vma_can_userfault(struct vm_area_st
- {
- 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
+--- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftest-memcg-skip-memcg_sock-test-if-address-family-not-supported
++++ a/tools/testing/selftests/cgroup/test_memcontrol.c
+@@ -1280,8 +1280,11 @@ static int tcp_server(const char *cgroup
+ 	saddr.sin6_port = htons(srv_args->port);
  
--	/* only VMAs that implement vm_uffd_ops are supported */
--	if (!ops)
--		return false;
--
- 	vm_flags &= __VM_UFFD_FLAGS;
+ 	sk = socket(AF_INET6, SOCK_STREAM, 0);
+-	if (sk < 0)
++	if (sk < 0) {
++		/* Pass back errno to the ctl_fd */
++		write(ctl_fd, &errno, sizeof(errno));
+ 		return ret;
++	}
  
--	if (vma->vm_flags & VM_DROPPABLE)
--		return false;
--
- 	/*
--	 * If wp async enabled, and WP is the only mode enabled, allow any
-+	 * If WP is the only mode enabled and context is wp async, allow any
- 	 * memory type.
- 	 */
- 	if (wp_async && (vm_flags == VM_UFFD_WP))
- 		return true;
+ 	if (setsockopt(sk, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
+ 		goto cleanup;
+@@ -1412,6 +1415,12 @@ static int test_memcg_sock(const char *r
+ 			goto cleanup;
+ 		close(args.ctl[0]);
  
-+	/* For any other mode reject VMAs that don't implement vm_uffd_ops */
-+	if (!ops)
-+		return false;
++		/* Skip if address family not supported by protocol */
++		if (err == EAFNOSUPPORT) {
++			ret = KSFT_SKIP;
++			goto cleanup;
++		}
 +
-+	if (vma->vm_flags & VM_DROPPABLE)
-+		return false;
-+
- 	/*
- 	 * If user requested uffd-wp but not enabled pte markers for
- 	 * uffd-wp, then only anonymous memory is supported
+ 		if (!err)
+ 			break;
+ 		if (err != EADDRINUSE)
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from longman@redhat.com are
 
-mm-dont-special-case-mmu-for-is_zero_pfn-and-my_zero_pfn.patch
-mm-rename-my_zero_pfn-to-zero_pfn.patch
-arch-mm-consolidate-empty_zero_page.patch
-mm-cache-struct-page-for-empty_zero_page-and-return-it-from-zero_page.patch
-userfaultfd-introduce-mfill_copy_folio_locked-helper.patch
-userfaultfd-introduce-struct-mfill_state.patch
-userfaultfd-introduce-mfill_get_pmd-helper.patch
-userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
-userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
-userfaultfd-move-vma_can_userfault-out-of-line.patch
-userfaultfd-introduce-vm_uffd_ops.patch
-userfaultfd-introduce-vm_uffd_ops-fix.patch
-shmem-userfaultfd-use-a-vma-callback-to-handle-uffdio_continue.patch
-userfaultfd-introduce-vm_uffd_ops-alloc_folio.patch
-shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops.patch
-userfaultfd-mfill_atomic-remove-retry-logic.patch
-selftests-mm-pagemap_ioctl-remove-hungarian-notation.patch
+selftest-memcg-skip-memcg_sock-test-if-address-family-not-supported.patch
 
