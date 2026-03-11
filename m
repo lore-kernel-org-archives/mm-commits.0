@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF6C73750B1
-	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 20:41:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 064B340DFB1
+	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 20:51:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773261700; cv=none; b=nnjWyMZTQko1PNq4XPGtH6Z/mK2iJP6zGew1Wk+WQuulAgKu8HX0RMyPMlWOgDoDRASaKc3nBEKkNAgxF3NQ3CYMbSXGia3tSIqEw6eoslLrFc9zQQlyLi2RlVaPH42wqWSxGPkLXmHkclIiPlmhEDKrdc1IKdVYHGXz7me9OLI=
+	t=1773262294; cv=none; b=ezTZ6Y8o3+a/iDbpKIMjhuxK+KBJmF7tixjqnUMfYKW66Q0e+0Hd4DjYl6uwBdhgYGmmARNw37idiJr1PzAngzGLxZWl2DvRX4/dEzJbYptDKjHOF/VyE65RsAJi4naVW4Su5p4VOZ2vtn+0jEQ2XTfNrkDg3hvSGOAc7bcKf8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773261700; c=relaxed/simple;
-	bh=wEsdX94CQvMiEssD0+A2qZ7UswPQKOf2RAedxeiwnzk=;
-	h=Date:To:From:Subject:Message-Id; b=KXH06HU2tndt1GltoJvHyUgd2bXb0PDskAky61zmvKII30C1E0LyJg4iRhYm0ZL+hi3xG/JZlY8lq501SIoDb2XJJcfXyzrkeAwZo7ngQiuXRQVuqefsofhMUtMEWvx6i7vqfaC/JQxW6i1xMIaDZ9fRyf51AT+YI9/p4VFxEEk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ngb6zibS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773262294; c=relaxed/simple;
+	bh=Zm/y7P0j1lDjxVz4bvWidxIkLSZR/XjKZTJo4kW/sfI=;
+	h=Date:To:From:Subject:Message-Id; b=FDLt0leL8tRvgYl/0E2iyaB/J+4OdyCfJVJvynxbwEdSkfEjux/V7HcxK6wOwG5feIKkLa2qwT4+fkWlla7HYmGSsDECvYxFyiKrIBRA6N4wu4CYol8+000Wm4Ct7DmUr/uOgWClDMX/EzOE8lu229bynhVps9Qo9soJUIFeKWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2ef+BU2/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ngb6zibS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F9D8C4CEF7;
-	Wed, 11 Mar 2026 20:41:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2ef+BU2/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7523AC4CEF7;
+	Wed, 11 Mar 2026 20:51:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773261700;
-	bh=wEsdX94CQvMiEssD0+A2qZ7UswPQKOf2RAedxeiwnzk=;
+	s=korg; t=1773262293;
+	bh=Zm/y7P0j1lDjxVz4bvWidxIkLSZR/XjKZTJo4kW/sfI=;
 	h=Date:To:From:Subject:From;
-	b=Ngb6zibSt2vZARLrgSt9OkdyMS3/oZe+2hrj/SScTZXUl2zoWEZCrTnEH5nRN011K
-	 00jm5iUAMKAng8/7pPT4p3eABQjPTLuooxKFMm+Nr9WeubmzJu2pxpprEgSFDtwpIX
-	 6al022xlPbXk62AsbrdbVJL+ninPvHHSHCI08bNE=
-Date: Wed, 11 Mar 2026 13:41:39 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,osalvador@suse.de,mhocko@suse.com,luckd0g@163.com,liam.howlett@oracle.com,jannh@google.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=2ef+BU2/+hVhA5kmANuWS66Q/ets7PBbFl04P/s7gnBSvLCP2JtVULFnx136baOZc
+	 R54/lNDLiOUGtAssSLArKk4QYLe7euMlqXjDJqC/2kz4vgzwsLVQiLwoNhDGzJzfvV
+	 8/TCRp1hlrF9PXz+XNOFTH5OwLxcWXOJycp+CDQg=
+Date: Wed, 11 Mar 2026 13:51:32 -0700
+To: mm-commits@vger.kernel.org,yangyingliang@huawei.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mremap-check-map-count-under-mmap-write-lock-and-abstract.patch added to mm-new branch
-Message-Id: <20260311204140.3F9D8C4CEF7@smtp.kernel.org>
+Subject: + mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch added to mm-new branch
+Message-Id: <20260311205133.7523AC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mremap: check map count under mmap write lock and abstract
+     Subject: mm/damon/core: fix wrong end address assignment on walk_system_ram()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mremap-check-map-count-under-mmap-write-lock-and-abstract.patch
+     mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mremap-check-map-count-under-mmap-write-lock-and-abstract.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,167 +69,117 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm/mremap: check map count under mmap write lock and abstract
-Date: Wed, 11 Mar 2026 17:24:38 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: fix wrong end address assignment on walk_system_ram()
+Date: Tue, 10 Mar 2026 22:29:22 -0700
 
-We are checking the mmap count in check_mremap_params(), prior to
-obtaining an mmap write lock, which means that accesses to
-current->mm->map_count might race with this field being updated.
+Patch series "mm/damon: support addr_unit on default monitoring targets
+for modules".
 
-Resolve this by only checking this field after the mmap write lock is held.
+DAMON_RECLAIM and DAMON_LRU_SORT support 'addr_unit' parameters only when
+the monitoring target address range is explicitly set.  This was
+intentional for making the initial 'addr_unit' support change small.  Now
+'addr_unit' support is being quite stabilized.  Having the corner case of
+the support is only making the code inconsistent with implicit rules.  The
+inconsistency makes it easy to confuse [1] readers.  After all, there is
+no real reason to keep 'addr_unit' support incomplete.  Add the support
+for the case to improve the readability and more completely support
+'addr_unit'.
 
-Additionally, abstract this check into a helper function with extensive
-ASCII documentation of what's going on.
+This series is constructed with five patches.  The first one (patch 1)
+fixes a small bug that mistakenly assigns inclusive end address to open
+end address, which was found from this work.  The second and third ones
+(patches 2 and 3) extend the default monitoring target setting functions
+in the core layer one by one, to support the 'addr_unit' while making no
+visible changes.  The final two patches (patches 4 and 5) update
+DAMON_RECLAIM and DAMON_LRU_SORT to support 'addr_unit' for the default
+monitoring target address ranges, by passing the user input to the core
+functions.
 
-Link: https://lkml.kernel.org/r/18be0b48eaa8e8804eb745974ee729c3ade0c687.1773249037.git.ljs@kernel.org
-Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Reported-by: Jianzhou Zhao <luckd0g@163.com>
-Closes: https://lore.kernel.org/all/1a7d4c26.6b46.19cdbe7eaf0.Coremail.luckd0g@163.com/
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+
+This patch (of 5):
+
+'struct damon_addr_range' and 'struct resource' represent different types
+of address ranges.  'damon_addr_range' is for end-open ranges ([start,
+end)).  'resource' is for fully-closed ranges ([start, end]).  But
+walk_system_ram() is assigning resource->end to damon_addr_range->end
+without the inclusiveness adjustment.  As a result, the function returns
+an address range that is missing the last one byte.
+
+The function is being used to find and set the biggest system ram as the
+default monitoring target for DAMON_RECLAIM and DAMON_LRU_SORT.  Missing
+the last byte of the big range shouldn't be a real problem for the real
+use cases.  That said, the loss is definitely an unintended behavior.  Do
+the correct adjustment.
+
+Link: https://lkml.kernel.org/r/20260311052927.93921-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260311052927.93921-2-sj@kernel.org
+Link: https://lore.kernel.org/20260131015643.79158-1-sj@kernel.org [1]
+Fixes: 43b0536cb471 ("mm/damon: introduce DAMON-based Reclamation (DAMON_RECLAIM)")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Yang yingliang <yangyingliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   88 ++++++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 75 insertions(+), 13 deletions(-)
+ mm/damon/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mremap.c~mm-mremap-check-map-count-under-mmap-write-lock-and-abstract
-+++ a/mm/mremap.c
-@@ -1028,6 +1028,75 @@ static void vrm_stat_account(struct vma_
- 		mm->locked_vm += pages;
- }
+--- a/mm/damon/core.c~mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram
++++ a/mm/damon/core.c
+@@ -3060,7 +3060,7 @@ static int walk_system_ram(struct resour
  
-+static bool __check_map_count_against_split(struct mm_struct *mm,
-+					    bool before_unmaps)
-+{
-+	const int sys_map_count = get_sysctl_max_map_count();
-+	int map_count = mm->map_count;
-+
-+	mmap_assert_write_locked(mm);
-+
-+	/*
-+	 * At the point of shrinking the VMA, if new_len < old_len, we unmap
-+	 * thusly in the worst case:
-+	 *
-+	 *              old_addr+old_len                    old_addr+old_len
-+	 * |---------------.----.---------|    |---------------|    |---------|
-+	 * |               .    .         | -> |      +1       | -1 |   +1    |
-+	 * |---------------.----.---------|    |---------------|    |---------|
-+	 *        old_addr+new_len                     old_addr+new_len
-+	 *
-+	 * At the point of removing the portion of an existing VMA to make space
-+	 * for the moved VMA if MREMAP_FIXED, we unmap thusly in the worst case:
-+	 *
-+	 *   new_addr   new_addr+new_len         new_addr   new_addr+new_len
-+	 * |----.---------------.---------|    |----|               |---------|
-+	 * |    .               .         | -> | +1 |      -1       |   +1    |
-+	 * |----.---------------.---------|    |----|               |---------|
-+	 *
-+	 * Therefore, before we consider the move anything, we have to account
-+	 * for 2 additional VMAs possibly being created upon these unmappings.
-+	 */
-+	if (before_unmaps)
-+		map_count += 2;
-+
-+	/*
-+	 * At the point of MOVING the VMA:
-+	 *
-+	 * We start by copying a VMA, which creates an additional VMA if no
-+	 * merge occurs, then if not MREMAP_DONTUNMAP, we unmap the source VMA.
-+	 * In the worst case we might then observe:
-+	 *
-+	 *   new_addr   new_addr+new_len         new_addr   new_addr+new_len
-+	 * |----|               |---------|    |----|---------------|---------|
-+	 * |    |               |         | -> |    |      +1       |         |
-+	 * |----|               |---------|    |----|---------------|---------|
-+	 *
-+	 *   old_addr   old_addr+old_len         old_addr   old_addr+old_len
-+	 * |----.---------------.---------|    |----|               |---------|
-+	 * |    .               .         | -> | +1 |      -1       |   +1    |
-+	 * |----.---------------.---------|    |----|               |---------|
-+	 *
-+	 * Therefore we must check to ensure we have headroom of 2 additional
-+	 * VMAs.
-+	 */
-+	return map_count + 2 <= sys_map_count;
-+}
-+
-+/* Do we violate the map count limit if we split VMAs when moving the VMA? */
-+static bool check_map_count_against_split(void)
-+{
-+	return __check_map_count_against_split(current->mm,
-+					       /*before_unmaps=*/false);
-+}
-+
-+/* Do we violate the map count limit if we split VMAs prior to early unmaps? */
-+static bool check_map_count_against_split_early(void)
-+{
-+	return __check_map_count_against_split(current->mm,
-+					       /*before_unmaps=*/true);
-+}
-+
- /*
-  * Perform checks before attempting to write a VMA prior to it being
-  * moved.
-@@ -1045,7 +1114,7 @@ static unsigned long prep_move_vma(struc
- 	 * which may not merge, then (if MREMAP_DONTUNMAP is not set) unmap the
- 	 * source, which may split, causing a net increase of 2 mappings.
- 	 */
--	if (current->mm->map_count + 2 > get_sysctl_max_map_count())
-+	if (!check_map_count_against_split())
- 		return -ENOMEM;
- 
- 	if (vma->vm_ops && vma->vm_ops->may_split) {
-@@ -1804,18 +1873,6 @@ static unsigned long check_mremap_params
- 	if (vrm_overlaps(vrm))
- 		return -EINVAL;
- 
--	/*
--	 * We may unmap twice before invoking move_vma(), that is if new_len <
--	 * old_len (shrinking), and in the MREMAP_FIXED case, unmapping part of
--	 * a VMA located at the destination.
--	 *
--	 * In the worst case, both unmappings will cause splits, resulting in a
--	 * net increased map count of 2. In move_vma() we check for headroom of
--	 * 2 additional mappings, so check early to avoid bailing out then.
--	 */
--	if (current->mm->map_count + 4 > get_sysctl_max_map_count())
--		return -ENOMEM;
--
+ 	if (a->end - a->start < resource_size(res)) {
+ 		a->start = res->start;
+-		a->end = res->end;
++		a->end = res->end + 1;
+ 	}
  	return 0;
  }
- 
-@@ -1925,6 +1982,11 @@ static unsigned long do_mremap(struct vm
- 		return -EINTR;
- 	vrm->mmap_locked = true;
- 
-+	if (!check_map_count_against_split_early()) {
-+		mmap_write_unlock(mm);
-+		return -ENOMEM;
-+	}
-+
- 	if (vrm_move_only(vrm)) {
- 		res = remap_move(vrm);
- 	} else {
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-rename-vma-flag-helpers-to-be-more-readable.patch
-mm-add-vma_desc_test_all-and-use-it.patch
-mm-always-inline-__mk_vma_flags-and-invoked-functions.patch
-mm-reintroduce-vma_flags_test-as-a-singular-flag-test.patch
-mm-reintroduce-vma_desc_test-as-a-singular-flag-test.patch
-tools-testing-vma-add-test-for-vma_flags_test-vma_desc_test.patch
-tools-testing-vma-add-test-for-vma_flags_test-vma_desc_test-fix.patch
-mm-mremap-correct-invalid-map-count-check.patch
-mm-abstract-reading-sysctl_max_map_count-and-read_once.patch
-mm-mremap-check-map-count-under-mmap-write-lock-and-abstract.patch
+mm-damon-core-set-quota-score-histogram-with-core-filters.patch
+mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
+mm-damon-core-split-regions-for-min_nr_regions.patch
+mm-damon-vaddr-do-not-split-regions-for-min_nr_regions.patch
+mm-damon-test-core-kunit-add-damon_apply_min_nr_regions-test.patch
+mm-damon-add-config_damon_debug_sanity.patch
+mm-damon-core-add-damon_new_region-debug_sanity-check.patch
+mm-damon-core-add-damon_del_region-debug_sanity-check.patch
+mm-damon-core-add-damon_nr_regions-debug_sanity-check.patch
+mm-damon-core-add-damon_merge_two_regions-debug_sanity-check.patch
+mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
+mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
+mm-damon-core-add-damon_reset_aggregated-debug_sanity-check.patch
+mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
+selftests-damon-config-enable-damon_debug_sanity.patch
+mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
+docs-mm-damon-design-document-the-power-of-two-limitation-for-addr_unit.patch
+mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
+mm-damon-core-use-time_before-for-next_apply_sis.patch
+mm-damon-core-use-time_after_eq-in-kdamond_fn.patch
+mm-damon-core-use-mult_frac.patch
+mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
+mm-damon-core-clarify-damon_set_attrs-usages.patch
+mm-damon-document-non-zero-length-damon_region-assumption.patch
+docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
+docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
+docs-mm-damon-index-fix-typo-autoamted-automated.patch
+mm-damon-core-introduce-damos_quota_goal_tuner.patch
+mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
+mm-damon-core-introduce-damos_quota_goal_tuner_temporal.patch
+mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
+docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
+docs-admin-guide-mm-damon-usage-document-goal_tuner-sysfs-file.patch
+docs-abi-damon-update-for-goal_tuner.patch
+mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
+selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
+selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
+selftests-damon-sysfspy-test-goal_tuner-commit.patch
+mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
+mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
+mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
+mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
+mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
 
