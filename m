@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF8AD3148D3
-	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 20:51:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED7773043DC
+	for <mm-commits@vger.kernel.org>; Wed, 11 Mar 2026 20:51:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773262297; cv=none; b=hXaA3gznzzZU1lqVurKj8t1j+7tnayU0CUcPQdgql/yXL8CUlYvXs8OAKABWLz0QqL5NU/22dRVFQ3x+jLZbOBT1NNrdSUh/FBNfnJMBA/WXeJDDRLdvLz4cWvFPtkO1qf2RJCUZY8z9tbpfKRSEXvpGrXcVDuxabumZwyTNITI=
+	t=1773262299; cv=none; b=U9DRgmhK22efAph92dZeplvJPz/EZUW+rc4kx0kPB32J/GloTPvaIVMb6iUElJI7D+B72LiRt5SAtn8hzOMngQfoPSlE+ky9ZSQAUMdkmRPsjtNh+EeuY8fHr8BR+9HZncUF7AUIK0dFHSaGwfey90UQS4Hrqtwmk2QdbpziIS4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773262297; c=relaxed/simple;
-	bh=TyNmtew6DOLS+HdmFJ3uXKfD0ing3eju21b//xdIsig=;
-	h=Date:To:From:Subject:Message-Id; b=mIugJtynmbzGkIycZ/U2qe7lGf/vxDHmoJc59vidUVsIWXqml6S8CkLwTKlptOCFkpzMdJlh8JIwZZyJHYdjnaDodnQc2dalCpfMg5wXRz9g4N4fDXGT37B3ZEpUybqDfzTW9GUVpRZBIx5xjWKzvOQQFHEr2LboVGZnKLx4Jps=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nWE5s4wa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773262299; c=relaxed/simple;
+	bh=ze9KP4MuQs02qCw7WLY2VXYqdrZJ4ObqaG9IBn5/+nQ=;
+	h=Date:To:From:Subject:Message-Id; b=NHcBXN8p3AReu0WPlRtdbCsyVbHnkVYAJkS4it0Tcj0A5kGfCMw2FS3lPaU7+hoQIBLEkboX//4MDdg6feq3wdr/bf4pjZ25oDn+1jxMfqg9X9lF1Fn5jxf26RFZ1kSrh/jfMAuFq1MImqiGFGbCGU+05qfFHCGGtSZ1krqRqhk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u89lyz9g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nWE5s4wa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F0C6C4CEF7;
-	Wed, 11 Mar 2026 20:51:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u89lyz9g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AED1C4CEF7;
+	Wed, 11 Mar 2026 20:51:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773262296;
-	bh=TyNmtew6DOLS+HdmFJ3uXKfD0ing3eju21b//xdIsig=;
+	s=korg; t=1773262298;
+	bh=ze9KP4MuQs02qCw7WLY2VXYqdrZJ4ObqaG9IBn5/+nQ=;
 	h=Date:To:From:Subject:From;
-	b=nWE5s4waphR4A+zsdBrFyiOlRK0DZIqYhly1/T3xjkPrpa0GtHXIIVrytpz7bAyg+
-	 AOpQERlZ5QHL6MFopvmM6qmnIh2RmU7Wbwfzac23KXJy1Jh1tKbWAZLx55Z+xvxEtD
-	 dumWI7uIjH9q0y4Al7SWf13y0cvrw9xsGxbteTg8=
-Date: Wed, 11 Mar 2026 13:51:35 -0700
+	b=u89lyz9gcH7GPh+mQ5xpDmxqZcJVCyzq4VKPN+VAU3hgNvnz8Wux++1V4rQYfXsSI
+	 GK98Y+h2Yxz1T2R64I6tzBrwagPA5mprgaVZ2X3GzI4hNd78RqzF14Ks5+snKFlFLo
+	 8cCB50FJHRfKGzfiODeMb3tqlOUv7zuiZJQm5Xkw=
+Date: Wed, 11 Mar 2026 13:51:37 -0700
 To: mm-commits@vger.kernel.org,yangyingliang@huawei.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch added to mm-new branch
-Message-Id: <20260311205136.7F0C6C4CEF7@smtp.kernel.org>
+Subject: + mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch added to mm-new branch
+Message-Id: <20260311205138.7AED1C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: receive addr_unit on damon_set_region_biggest_system_ram_default()
+     Subject: mm/damon/reclaim: respect addr_unit on default monitoring region setup
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
+     mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,105 +70,44 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: receive addr_unit on damon_set_region_biggest_system_ram_default()
-Date: Tue, 10 Mar 2026 22:29:24 -0700
+Subject: mm/damon/reclaim: respect addr_unit on default monitoring region setup
+Date: Tue, 10 Mar 2026 22:29:25 -0700
 
-damon_find_biggest_system_ram() was not supporting addr_unit in the past. 
-Hence, its caller, damon_set_region_biggest_system_ram_default(), was also
-not supporting addr_unit.  The previous commit has updated the inner
-function to support addr_unit.  There is no more reason to not support
-addr_unit on damon_set_region_biggest_system_ram_default().  Rather, it
-makes unnecessary inconsistency on support of addr_unit.  Update it to
-receive addr_unit and handle it inside.
+In the past, damon_set_region_biggest_system_ram_default(), which is the
+core function for setting the default monitoring target region of
+DAMON_RECLAIM, didn't support addr_unit.  Hence DAMON_RECLAIM was silently
+ignoring the user input for addr_unit when the user doesn't explicitly set
+the monitoring target regions, and therefore the default target region is
+being used.  No real problem from that ignorance was reported so far. 
+But, the implicit rule is only making things confusing.  Also, the default
+target region setup function is updated to support addr_unit.  Hence there
+is no reason to keep ignoring it.  Respect the user-passed addr_unit for
+the default target monitoring region use case.
 
-Link: https://lkml.kernel.org/r/20260311052927.93921-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260311052927.93921-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Yang yingliang <yangyingliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    1 +
- mm/damon/core.c       |    7 ++++---
- mm/damon/lru_sort.c   |    1 +
- mm/damon/reclaim.c    |    1 +
- mm/damon/stat.c       |    2 +-
- 5 files changed, 8 insertions(+), 4 deletions(-)
+ mm/damon/reclaim.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default
-+++ a/include/linux/damon.h
-@@ -988,6 +988,7 @@ int damos_walk(struct damon_ctx *ctx, st
- 
- int damon_set_region_biggest_system_ram_default(struct damon_target *t,
- 				unsigned long *start, unsigned long *end,
-+				unsigned long addr_unit,
- 				unsigned long min_region_sz);
- 
- #endif	/* CONFIG_DAMON */
---- a/mm/damon/core.c~mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default
-+++ a/mm/damon/core.c
-@@ -3103,6 +3103,7 @@ static bool damon_find_biggest_system_ra
-  * @t:		The monitoring target to set the region.
-  * @start:	The pointer to the start address of the region.
-  * @end:	The pointer to the end address of the region.
-+ * @addr_unit:	The address unit for the damon_ctx of @t.
-  * @min_region_sz:	Minimum region size.
-  *
-  * This function sets the region of @t as requested by @start and @end.  If the
-@@ -3115,7 +3116,7 @@ static bool damon_find_biggest_system_ra
-  */
- int damon_set_region_biggest_system_ram_default(struct damon_target *t,
- 			unsigned long *start, unsigned long *end,
--			unsigned long min_region_sz)
-+			unsigned long addr_unit, unsigned long min_region_sz)
- {
- 	struct damon_addr_range addr_range;
- 
-@@ -3123,12 +3124,12 @@ int damon_set_region_biggest_system_ram_
- 		return -EINVAL;
- 
- 	if (!*start && !*end &&
--		!damon_find_biggest_system_ram(start, end, 1))
-+			!damon_find_biggest_system_ram(start, end, addr_unit))
- 		return -EINVAL;
- 
- 	addr_range.start = *start;
- 	addr_range.end = *end;
--	return damon_set_regions(t, &addr_range, 1, min_region_sz);
-+	return damon_set_regions(t, &addr_range, addr_unit, min_region_sz);
- }
- 
- /*
---- a/mm/damon/lru_sort.c~mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default
-+++ a/mm/damon/lru_sort.c
-@@ -345,6 +345,7 @@ static int damon_lru_sort_apply_paramete
- 	err = damon_set_region_biggest_system_ram_default(param_target,
- 					&monitor_region_start,
- 					&monitor_region_end,
-+					param_ctx->addr_unit,
- 					param_ctx->min_region_sz);
- 	if (err)
- 		goto out;
---- a/mm/damon/reclaim.c~mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup
 +++ a/mm/damon/reclaim.c
-@@ -251,6 +251,7 @@ static int damon_reclaim_apply_parameter
- 	err = damon_set_region_biggest_system_ram_default(param_target,
- 					&monitor_region_start,
- 					&monitor_region_end,
-+					param_ctx->addr_unit,
- 					param_ctx->min_region_sz);
+@@ -201,12 +201,6 @@ static int damon_reclaim_apply_parameter
  	if (err)
- 		goto out;
---- a/mm/damon/stat.c~mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default
-+++ a/mm/damon/stat.c
-@@ -181,7 +181,7 @@ static struct damon_ctx *damon_stat_buil
- 		goto free_out;
- 	damon_add_target(ctx, target);
- 	if (damon_set_region_biggest_system_ram_default(target, &start, &end,
--							ctx->min_region_sz))
-+				ctx->addr_unit, ctx->min_region_sz))
- 		goto free_out;
- 	return ctx;
- free_out:
+ 		return err;
+ 
+-	/*
+-	 * If monitor_region_start/end are unset, always silently
+-	 * reset addr_unit to 1.
+-	 */
+-	if (!monitor_region_start && !monitor_region_end)
+-		addr_unit = 1;
+ 	param_ctx->addr_unit = addr_unit;
+ 	param_ctx->min_region_sz = max(DAMON_MIN_REGION_SZ / addr_unit, 1);
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
