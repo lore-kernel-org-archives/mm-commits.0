@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3957EDDCD
-	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2026 21:37:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0903923EABA
+	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2026 21:49:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773351464; cv=none; b=lGufMG4P0pLGwdJRc6p8yb4NIcLRCyNf2w8YHDaavfL+CEcozmMCg5g89hYSBdcMNNoMv6Pr7A7LBAi1d2huntwJk8v+6afW/6pRRH9+ZMLeISD+tGu2ORhJ15/V0Wefp2BLfKIzzhJfsryscHJssSYc6MGf8ULblco8QmNbJE8=
+	t=1773352195; cv=none; b=kyxjYJ4eonZ5oQNpJscVLLOb/iZa8B5ZkKhteONv4I1M4MV5zgrIPpUz0atPuFvasv+b2rNIA+jfNc9XH1/7gEquvArN7UQPOkByyLXsEHRvmhpjiDEAnNcqXtRr9FYla2e0Pclnr6cM9KIasqkzC8FYrggDUDJxovOyNkMFabs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773351464; c=relaxed/simple;
-	bh=VSsppNNOQXT6zkJI1YyIBNDF9EJi8uymE+GW5CZEOWA=;
-	h=Date:To:From:Subject:Message-Id; b=Zqa3HkoYN87nR924GlErcrKIcJXvyTwVwnPmAao4cbu6MHQkBgsVzezws2dS5bMb/np2k0V3uMZOPerh2p/ZT3bPNubuz882o7CB0+4goqvtmhaalfbUDDNW+OvwBpW8kZptWyAD0zLby5lK8RdJdIfXNSh+ffqGmxT7zWAx6d0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gW1LgNoq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773352195; c=relaxed/simple;
+	bh=e4iUYk8K65+6EIu4rxaOH5BTF6GlKHLG9YlwFS/eEcY=;
+	h=Date:To:From:Subject:Message-Id; b=NHQdxEW2JTf5ztKYmdw4NPt0tecmEVd2WUgUg1Vt65N68NRJQBGHtnPDmgTS3GyYcDJ0S6v0E9bEp2yKGfPyQvj6FjxtL6OTgZo0j7tZ9pAQ/pla14ywmljQs6pBQy9Kb1g4RRXIGRg6icVfc+p0J4OnBstIyaHA1uZgryDzV74=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cRoNr4R1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gW1LgNoq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0985C4CEF7;
-	Thu, 12 Mar 2026 21:37:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cRoNr4R1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CD64C4CEF7;
+	Thu, 12 Mar 2026 21:49:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773351463;
-	bh=VSsppNNOQXT6zkJI1YyIBNDF9EJi8uymE+GW5CZEOWA=;
+	s=korg; t=1773352194;
+	bh=e4iUYk8K65+6EIu4rxaOH5BTF6GlKHLG9YlwFS/eEcY=;
 	h=Date:To:From:Subject:From;
-	b=gW1LgNoq+TmpKT/gNNoZ90oyb1Dq4af+QLs5O7ClD2gnL3FT4V5iCdbWIwFohXP31
-	 IhAx2f2Rsd7sL7md9CSRfgn0Myle2SuD3i4vZgkZn3ZGQjJUiPsfNx80A9GveP7oP8
-	 D7TH4H/XSaTiEQ2Jl0YwA+nmcJ1nzForNFhiSg+A=
-Date: Thu, 12 Mar 2026 14:37:43 -0700
-To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,corbet@lwn.net,bvanassche@acm.org,apw@canonical.com,sashal@kernel.org,akpm@linux-foundation.org
+	b=cRoNr4R1xiE5gKA+9M1juH6eNEOJva8VKfpppFVt7hq88gLBu5AsYsdlLaa9gNyxW
+	 ZtM3Ih2xFeagGipzNXF1WYxNMRhpzvq3/82RbzBEtPmMhFMAKxMZ/nLACQOLetjP+F
+	 HVnf1ze7BKlBtkcJ8UmTfK8X83u5mPFrWLvPZhfE=
+Date: Thu, 12 Mar 2026 14:49:53 -0700
+To: mm-commits@vger.kernel.org,mhiramat@kernel.org,akpm@linux-foundation.org,objecting@objecting.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + checkpatch-add-support-for-assisted-by-tag.patch added to mm-nonmm-unstable branch
-Message-Id: <20260312213743.B0985C4CEF7@smtp.kernel.org>
+Subject: [obsolete] lib-bootconfig-check-bounds-before-writing-in-__xbc_open_brace.patch removed from -mm tree
+Message-Id: <20260312214954.7CD64C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,91 +34,72 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: checkpatch: add support for Assisted-by tag
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     checkpatch-add-support-for-assisted-by-tag.patch
+The quilt patch titled
+     Subject: lib/bootconfig: check bounds before writing in __xbc_open_brace()
+has been removed from the -mm tree.  Its filename was
+     lib-bootconfig-check-bounds-before-writing-in-__xbc_open_brace.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-support-for-assisted-by-tag.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Sasha Levin <sashal@kernel.org>
-Subject: checkpatch: add support for Assisted-by tag
-Date: Wed, 11 Mar 2026 17:58:17 -0400
+From: Josh Law <objecting@objecting.org>
+Subject: lib/bootconfig: check bounds before writing in __xbc_open_brace()
+Date: Thu, 12 Mar 2026 19:11:42 +0000
 
-The Assisted-by tag was introduced in
-Documentation/process/coding-assistants.rst for attributing AI tool
-contributions to kernel patches.  However, checkpatch.pl did not recognize
-this tag, causing two issues:
+The bounds check for brace_index happens after the array write.  While the
+current call pattern prevents an actual out-of-bounds access (the previous
+call would have returned an error), the write-before-check pattern is
+fragile and would become a real out-of-bounds write if the error return
+were ever not propagated.
 
-  WARNING: Non-standard signature: Assisted-by:
-  ERROR: Unrecognized email address: 'AGENT_NAME:MODEL_VERSION'
+Move the bounds check before the array write so the function is
+self-contained and safe regardless of caller behavior.
 
-Fix this by:
-1. Adding Assisted-by to the recognized $signature_tags list
-2. Skipping email validation for Assisted-by lines since they use the
-   AGENT_NAME:MODEL_VERSION format instead of an email address
-3. Warning when the Assisted-by value doesn't match the expected format
-
-Link: https://lkml.kernel.org/r/20260311215818.518930-1-sashal@kernel.org
-Signed-off-by: Sasha Levin <sashal@kernel.org>
-Reported-by: Bart Van Assche <bvanassche@acm.org>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Link: https://lkml.kernel.org/r/20260312191143.28719-3-objecting@objecting.org
+Signed-off-by: Josh Law <objecting@objecting.org>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ lib/bootconfig.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-add-support-for-assisted-by-tag
-+++ a/scripts/checkpatch.pl
-@@ -641,6 +641,7 @@ our $signature_tags = qr{(?xi:
- 	Reviewed-by:|
- 	Reported-by:|
- 	Suggested-by:|
-+	Assisted-by:|
- 	To:|
- 	Cc:
- )};
-@@ -3105,6 +3106,15 @@ sub process {
- 				}
- 			}
+--- a/lib/bootconfig.c~lib-bootconfig-check-bounds-before-writing-in-__xbc_open_brace
++++ a/lib/bootconfig.c
+@@ -532,9 +532,9 @@ static char *skip_spaces_until_newline(c
+ static int __init __xbc_open_brace(char *p)
+ {
+ 	/* Push the last key as open brace */
+-	open_brace[brace_index++] = xbc_node_index(last_parent);
+ 	if (brace_index >= XBC_DEPTH_MAX)
+ 		return xbc_parse_error("Exceed max depth of braces", p);
++	open_brace[brace_index++] = xbc_node_index(last_parent);
  
-+			# Assisted-by uses AGENT_NAME:MODEL_VERSION format, not email
-+			if ($sign_off =~ /^Assisted-by:/i) {
-+				if ($email !~ /^\S+:\S+/) {
-+					WARN("BAD_SIGN_OFF",
-+					     "Assisted-by expects 'AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]' format\n" . $herecurr);
-+				}
-+				next;
-+			}
-+
- 			my ($email_name, $name_comment, $email_address, $comment) = parse_email($email);
- 			my $suggested_email = format_email(($email_name, $name_comment, $email_address, $comment));
- 			if ($suggested_email eq "") {
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from sashal@kernel.org are
+Patches currently in -mm which might be from objecting@objecting.org are
 
-checkpatch-add-support-for-assisted-by-tag.patch
+lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
+lib-glob-fix-grammar-and-replace-non-inclusive-terminology.patch
+lib-glob-add-explicit-include-for-exporth.patch
+lib-glob-replace-bitwise-or-with-logical-operation-on-boolean.patch
+lib-glob-clean-up-bool-abuse-in-pointer-arithmetic.patch
+lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
+lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch
+lib-inflate-fix-memory-leak-in-inflate_dynamic-on-inflate_codes-failure.patch
+lib-inflate-fix-grammar-in-comment-variable-to-variables.patch
+lib-inflate-fix-typo-this-results-to-the-results-in-comment.patch
+lib-bug-fix-inconsistent-capitalization-in-bug-message.patch
+lib-bug-remove-unnecessary-variable-initializations.patch
+lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
+lib-decompress_bunzip2-fix-32-bit-shift-undefined-behavior.patch
+maintainers-add-josh-law-as-reviewer-for-library-code.patch
+lib-bootconfig-fix-typo-budy-in-_xbc_exit-comment.patch
+lib-ts_bm-fix-integer-overflow-in-pattern-length-calculation.patch
+lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation.patch
+lib-bootconfig-fix-off-by-one-in-xbc_verify_tree-unclosed-brace-error.patch
+lib-bootconfig-fix-snprintf-truncation-check-in-xbc_node_compose_key_after.patch
 
