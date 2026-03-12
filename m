@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AE943D669E
-	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2026 21:23:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3957EDDCD
+	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2026 21:37:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773350632; cv=none; b=PSXaQZqdSRNkOJkWWkMCaLLLupeEenLfULh0AfF7W2aIrS2krh4G8IQrTzcgSU0/zMHVInvqihB6XbRK5U1RwDeBl+AQVCBSUfs0KDd+D+LGmzK9muqbUV9fN/OBnLYF17kbGcbLHR7Gr2e/4XQeCV6A2KJ19SPdfixnaXc+uhg=
+	t=1773351464; cv=none; b=lGufMG4P0pLGwdJRc6p8yb4NIcLRCyNf2w8YHDaavfL+CEcozmMCg5g89hYSBdcMNNoMv6Pr7A7LBAi1d2huntwJk8v+6afW/6pRRH9+ZMLeISD+tGu2ORhJ15/V0Wefp2BLfKIzzhJfsryscHJssSYc6MGf8ULblco8QmNbJE8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773350632; c=relaxed/simple;
-	bh=zJH4VK61HwCn7kUhCwgGWv9lS9ywXoc2hamEVnnv3og=;
-	h=Date:To:From:Subject:Message-Id; b=E58EFAnV6qc7GdKBQ07HxyprLGcA4GdUKdy7uhuiTFjurn6Q7CSt9mzuRS+FZ/6KQEtHUxME4B6H6neuB74UOQHrqKIkiWNravs2BB8qta/yYYTfnk7hkeaWw/N8HvYYZOxS1ul3EDCKdFYJshXeoXWDElspIZt++7IRsVYoWkI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VOa2U2sZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773351464; c=relaxed/simple;
+	bh=VSsppNNOQXT6zkJI1YyIBNDF9EJi8uymE+GW5CZEOWA=;
+	h=Date:To:From:Subject:Message-Id; b=Zqa3HkoYN87nR924GlErcrKIcJXvyTwVwnPmAao4cbu6MHQkBgsVzezws2dS5bMb/np2k0V3uMZOPerh2p/ZT3bPNubuz882o7CB0+4goqvtmhaalfbUDDNW+OvwBpW8kZptWyAD0zLby5lK8RdJdIfXNSh+ffqGmxT7zWAx6d0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gW1LgNoq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VOa2U2sZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 546BCC4CEF7;
-	Thu, 12 Mar 2026 21:23:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gW1LgNoq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0985C4CEF7;
+	Thu, 12 Mar 2026 21:37:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773350631;
-	bh=zJH4VK61HwCn7kUhCwgGWv9lS9ywXoc2hamEVnnv3og=;
+	s=korg; t=1773351463;
+	bh=VSsppNNOQXT6zkJI1YyIBNDF9EJi8uymE+GW5CZEOWA=;
 	h=Date:To:From:Subject:From;
-	b=VOa2U2sZKW1MIt9XniqitbIlcHMrtPQk6QbxpV6DtJPwsXyJJiSwejLtedO1jP/2v
-	 tUKDeF3JtASyRWHzSAzlo5oXJOR3qDCnDpx4OYVMGr3GzuYagG6TB3lQmWBlt9s8s5
-	 xlB9wyezhMGAazsfKjsLP5b5HSk9NOTtEz8/TPHY=
-Date: Thu, 12 Mar 2026 14:23:50 -0700
-To: mm-commits@vger.kernel.org,wei.liu@kernel.org,viro@zeniv.linux.org.uk,vigneshr@ti.com,vbabka@kernel.org,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,richard@nod.at,pfalcato@suse.de,miquel.raynal@bootlin.com,mhocko@suse.com,mcoquelin.stm32@gmail.com,martin.petersen@oracle.com,marc.dionne@auristor.com,longli@microsoft.com,ljs@kernel.org,liam.howlett@oracle.com,kys@microsoft.com,jannh@google.com,jack@suse.cz,haiyangz@microsoft.com,gregkh@linuxfoundation.org,dhowells@redhat.com,decui@microsoft.com,david@kernel.org,corbet@lwn.net,clemens@ladisch.de,brauner@kernel.org,bostroesser@gmail.com,arnd@arndb.de,alexandre.torgue@foss.st.com,alexander.shishkin@linux.intel.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=gW1LgNoq+TmpKT/gNNoZ90oyb1Dq4af+QLs5O7ClD2gnL3FT4V5iCdbWIwFohXP31
+	 IhAx2f2Rsd7sL7md9CSRfgn0Myle2SuD3i4vZgkZn3ZGQjJUiPsfNx80A9GveP7oP8
+	 D7TH4H/XSaTiEQ2Jl0YwA+nmcJ1nzForNFhiSg+A=
+Date: Thu, 12 Mar 2026 14:37:43 -0700
+To: mm-commits@vger.kernel.org,lukas.bulwahn@gmail.com,joe@perches.com,dwaipayanray1@gmail.com,corbet@lwn.net,bvanassche@acm.org,apw@canonical.com,sashal@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-various-small-mmap_prepare-cleanups-fix.patch added to mm-new branch
-Message-Id: <20260312212351.546BCC4CEF7@smtp.kernel.org>
+Subject: + checkpatch-add-support-for-assisted-by-tag.patch added to mm-nonmm-unstable branch
+Message-Id: <20260312213743.B0985C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-various-small-mmap_prepare-cleanups-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-various-small-mmap_prepare-cleanups-fix.patch
+     Subject: checkpatch: add support for Assisted-by tag
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     checkpatch-add-support-for-assisted-by-tag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-various-small-mmap_prepare-cleanups-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/checkpatch-add-support-for-assisted-by-tag.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,77 +58,67 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-various-small-mmap_prepare-cleanups-fix
-Date: Thu Mar 12 02:11:42 PM PDT 2026
+From: Sasha Levin <sashal@kernel.org>
+Subject: checkpatch: add support for Assisted-by tag
+Date: Wed, 11 Mar 2026 17:58:17 -0400
 
-fix build
+The Assisted-by tag was introduced in
+Documentation/process/coding-assistants.rst for attributing AI tool
+contributions to kernel patches.  However, checkpatch.pl did not recognize
+this tag, causing two issues:
 
-mm/util.c: In function 'mmap_action_prepare':
-mm/util.c:1451:1: error: control reaches end of non-void function [-Werror=return-type]
- 1451 | }
+  WARNING: Non-standard signature: Assisted-by:
+  ERROR: Unrecognized email address: 'AGENT_NAME:MODEL_VERSION'
 
+Fix this by:
+1. Adding Assisted-by to the recognized $signature_tags list
+2. Skipping email validation for Assisted-by lines since they use the
+   AGENT_NAME:MODEL_VERSION format instead of an email address
+3. Warning when the Assisted-by value doesn't match the expected format
 
-Cc: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexandre Torgue <alexandre.torgue@foss.st.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bodo Stroesser <bostroesser@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Clemens Ladisch <clemens@ladisch.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Dexuan Cui <decui@microsoft.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lkml.kernel.org/r/20260311215818.518930-1-sashal@kernel.org
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+Reported-by: Bart Van Assche <bvanassche@acm.org>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: K. Y. Srinivasan <kys@microsoft.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Long Li <longli@microsoft.com>
-Cc: Marc Dionne <marc.dionne@auristor.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Miquel Raynal <miquel.raynal@bootlin.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vignesh Raghavendra <vigneshr@ti.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Liu <wei.liu@kernel.org>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    2 ++
- 1 file changed, 2 insertions(+)
+ scripts/checkpatch.pl |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
---- a/mm/util.c~mm-various-small-mmap_prepare-cleanups-fix
-+++ a/mm/util.c
-@@ -1356,6 +1356,8 @@ int mmap_action_prepare(struct vm_area_d
- 		return remap_pfn_range_prepare(desc, action);
- 	case MMAP_IO_REMAP_PFN:
- 		return io_remap_pfn_range_prepare(desc, action);
-+	default:
-+		BUG();
- 	}
- }
- EXPORT_SYMBOL(mmap_action_prepare);
+--- a/scripts/checkpatch.pl~checkpatch-add-support-for-assisted-by-tag
++++ a/scripts/checkpatch.pl
+@@ -641,6 +641,7 @@ our $signature_tags = qr{(?xi:
+ 	Reviewed-by:|
+ 	Reported-by:|
+ 	Suggested-by:|
++	Assisted-by:|
+ 	To:|
+ 	Cc:
+ )};
+@@ -3105,6 +3106,15 @@ sub process {
+ 				}
+ 			}
+ 
++			# Assisted-by uses AGENT_NAME:MODEL_VERSION format, not email
++			if ($sign_off =~ /^Assisted-by:/i) {
++				if ($email !~ /^\S+:\S+/) {
++					WARN("BAD_SIGN_OFF",
++					     "Assisted-by expects 'AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]' format\n" . $herecurr);
++				}
++				next;
++			}
++
+ 			my ($email_name, $name_comment, $email_address, $comment) = parse_email($email);
+ 			my $suggested_email = format_email(($email_name, $name_comment, $email_address, $comment));
+ 			if ($suggested_email eq "") {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sashal@kernel.org are
 
-maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
-maple_tree-add-cp_is_new_root-helper-fix-fix.patch
-mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix.patch
-mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix.patch
-mm-rename-zone-lock-to-zone-_lock-fix.patch
-mm-page_reporting-add-page_reporting_order_unspecified-fix.patch
-mm-various-small-mmap_prepare-cleanups-fix.patch
-kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
-decode_stacktrace-decode-caller-address-checkpatch-fixes.patch
+checkpatch-add-support-for-assisted-by-tag.patch
 
