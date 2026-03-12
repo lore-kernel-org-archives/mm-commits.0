@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A7F13DC4AB
-	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2026 22:45:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 299BA23ED5B
+	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2026 23:04:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773355549; cv=none; b=PW5C+VI3IOKqtDDEsusbzulWIPDoD6pcbbIxNpc+wTg8GTkpRogMRGyufpWAH+7Y5EALb4Io0uiRByv70K1IHL4t++VVQBaegkfIB4PEUpzRUhVZJyW0lekMKVi8oF7NHfz+5dQ8YUyyWRZ8K4opzbV4XUSDz1OdLLBBmRn7gOA=
+	t=1773356646; cv=none; b=CPZp0+6ymjP1L7RQPfHYsaSviqIxznhJDFl5gAVnoVUi4cOHP3Xb5F7kd2t/RN37TEciZ6z8p/aWz7V7wJiNMwT5yZcUONQNtVHcg6Lo5NSzNqII3YtqpSik6JD42WF1ajbPt6tMbfzsho4U/rKv2HG5aC/QBuLdIRTvJXOIuQ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773355549; c=relaxed/simple;
-	bh=IgQ7NXp34erkG1IJ93NJHsTYpVIBAJI/1WFgwCk1ETc=;
-	h=Date:To:From:Subject:Message-Id; b=hTcj1epYg8eSX6TIP1VIWzag/krcqYWw2X+y/w7yDIuPO/tE10E13jq1c468qQg1BttU7vuYmLZGdhibi9VEbyyB7uoP0sotstpkVmGiv7zpGDv7YSL+k8h1MgiSXY+JYRfcrg0laCq8cvIwnS3VBV9+dUQVQqnuJVHf72JQPTE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jIDzhIVM; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773356646; c=relaxed/simple;
+	bh=IwUSpbTTXEZ7ciTLOlHSJJ9THHmWD16VgCbdWdbi7b8=;
+	h=Date:To:From:Subject:Message-Id; b=o8ZRFSc+qD5dWiVobiI7RBLQaDzoWakG8tsTNyhjwRiinUmbRKPVONcnoh+1cBPSsQvnh0PLT27bHbCRR3aK8ynJuhrxRVI9kkd8jpC7ejTrDPZYI8jrDmWEjUX690Dvfkb92ExmcntYkV5i1EZU2K9xiGtP0Ki9qngfQGO681Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ga1akc+a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jIDzhIVM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C48D9C4CEF7;
-	Thu, 12 Mar 2026 22:45:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ga1akc+a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0E78C4CEF7;
+	Thu, 12 Mar 2026 23:04:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773355548;
-	bh=IgQ7NXp34erkG1IJ93NJHsTYpVIBAJI/1WFgwCk1ETc=;
+	s=korg; t=1773356645;
+	bh=IwUSpbTTXEZ7ciTLOlHSJJ9THHmWD16VgCbdWdbi7b8=;
 	h=Date:To:From:Subject:From;
-	b=jIDzhIVMU7ADkQKDtvk2ZA67prTBv3COBeGE3HtC1/T5miIs6fU5+tZVXhCqCZiJr
-	 QCMt2GVlDETFDEQPM1ggUa/2ODaS+xvcH7Gas4/nsvybkpFmHI6kC6a0w6zLO6Htrl
-	 a5nK6LanFPCNHTc60/KIVm+hok3d6x4Sxj6KpTWU=
-Date: Thu, 12 Mar 2026 15:45:48 -0700
-To: mm-commits@vger.kernel.org,objecting@objecting.org,akpm@linux-foundation.org
+	b=Ga1akc+a1jZS8XkUK+flxIso8lDidJKADQCGlI6cFVMhiXQvmmrvzTA6dsf2voThr
+	 9k+GEYqN8c6wri339U6+D1VQlSOxutMtsb+yVfdmTMZW4zdorjHiaalTNS8sBsTpdq
+	 g+e6p8Y+1M0cG4q5P6gY6zyb0vPzxF7yADohlYQc=
+Date: Thu, 12 Mar 2026 16:04:05 -0700
+To: mm-commits@vger.kernel.org,youngjun.park@lge.com,geliang@kernel.org,chrisl@kernel.org,baohua@kernel.org,zhuhui@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning.patch added to mm-nonmm-unstable branch
-Message-Id: <20260312224548.C48D9C4CEF7@smtp.kernel.org>
+Subject: + mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation-v5.patch added to mm-unstable branch
+Message-Id: <20260312230405.B0E78C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/glob: initialize back_str to silence uninitialized variable warning
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning.patch
+     Subject: mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation-v5
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation-v5.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation-v5.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,57 +58,41 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Josh Law <objecting@objecting.org>
-Subject: lib/glob: initialize back_str to silence uninitialized variable warning
-Date: Thu, 12 Mar 2026 21:52:49 +0000
+From: Hui Zhu <zhuhui@kylinos.cn>
+Subject: mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation-v5
+Date: Thu, 12 Mar 2026 10:30:24 +0800
 
-back_str is only used when back_pat is non-NULL, and both are always set
-together, so it is safe in practice.  Initialize back_str to NULL to make
-this safety invariant explicit and silence compiler/static analysis
-warnings.
 
-Link: https://lkml.kernel.org/r/20260312215249.50165-1-objecting@objecting.org
-Signed-off-by: Josh Law <objecting@objecting.org>
+initialize `flags', per Chris
+
+Link: https://lkml.kernel.org/r/20260312023024.903143-1-hui.zhu@linux.dev
+Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
+Reviewed-by: Youngjun Park <youngjun.park@lge.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Acked-by: Chris Li <chrisl@kernel.org>
+Acked-by: Geliang Tang <geliang@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/glob.c |    2 +-
+ mm/swapfile.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/glob.c~lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning
-+++ a/lib/glob.c
-@@ -47,7 +47,7 @@ bool __pure glob_match(char const *pat,
- 	 * (no exception for /), it can be easily proved that there's
- 	 * never a need to backtrack multiple levels.
- 	 */
--	char const *back_pat = NULL, *back_str;
-+	char const *back_pat = NULL, *back_str = NULL;
+--- a/mm/swapfile.c~mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation-v5
++++ a/mm/swapfile.c
+@@ -602,7 +602,7 @@ static struct swap_cluster_info *isolate
+ 		struct swap_info_struct *si, struct list_head *list)
+ {
+ 	struct swap_cluster_info *ci, *found = NULL;
+-	u8 flags;
++	u8 flags = CLUSTER_FLAG_NONE;
  
- 	/*
- 	 * Loop over each token (character or class) in pat, matching
+ 	spin_lock(&si->lock);
+ 	list_for_each_entry(ci, list, list) {
 _
 
-Patches currently in -mm which might be from objecting@objecting.org are
+Patches currently in -mm which might be from zhuhui@kylinos.cn are
 
-lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
-lib-glob-fix-grammar-and-replace-non-inclusive-terminology.patch
-lib-glob-add-explicit-include-for-exporth.patch
-lib-glob-replace-bitwise-or-with-logical-operation-on-boolean.patch
-lib-glob-clean-up-bool-abuse-in-pointer-arithmetic.patch
-lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
-lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch
-lib-inflate-fix-memory-leak-in-inflate_dynamic-on-inflate_codes-failure.patch
-lib-inflate-fix-grammar-in-comment-variable-to-variables.patch
-lib-inflate-fix-typo-this-results-to-the-results-in-comment.patch
-lib-bug-fix-inconsistent-capitalization-in-bug-message.patch
-lib-bug-remove-unnecessary-variable-initializations.patch
-lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
-lib-decompress_bunzip2-fix-32-bit-shift-undefined-behavior.patch
-maintainers-add-josh-law-as-reviewer-for-library-code.patch
-lib-bootconfig-fix-typo-budy-in-_xbc_exit-comment.patch
-lib-ts_bm-fix-integer-overflow-in-pattern-length-calculation.patch
-lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation.patch
-lib-bootconfig-fix-off-by-one-in-xbc_verify_tree-unclosed-brace-error.patch
-lib-bootconfig-fix-snprintf-truncation-check-in-xbc_node_compose_key_after.patch
-lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning.patch
+mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation.patch
+mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation-v4.patch
+mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation-v5.patch
 
