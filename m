@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCD952F3C26
-	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2026 22:36:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A7F13DC4AB
+	for <mm-commits@vger.kernel.org>; Thu, 12 Mar 2026 22:45:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773355012; cv=none; b=twt098irotrcQpn1RY8V2huMQ+rfRk9a++teRw3EsgMq6VJgMi49Cf3H1WMGOHPNkplFsYOmL8Csja0XjGQG+FFrsoK8zSE9/13gRsXsaShquZ3ZYliUyopu6TtIwgp2Kzj5VyZvdRc+Ap6oRilz2To7sGFBI9jO3hszkV/rrTI=
+	t=1773355549; cv=none; b=PW5C+VI3IOKqtDDEsusbzulWIPDoD6pcbbIxNpc+wTg8GTkpRogMRGyufpWAH+7Y5EALb4Io0uiRByv70K1IHL4t++VVQBaegkfIB4PEUpzRUhVZJyW0lekMKVi8oF7NHfz+5dQ8YUyyWRZ8K4opzbV4XUSDz1OdLLBBmRn7gOA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773355012; c=relaxed/simple;
-	bh=XH61TRVN14aq69+eYeKbOvKeBSBwxOSfJoeZAib99UE=;
-	h=Date:To:From:Subject:Message-Id; b=DCdao84vJofCEo3C80Uz5N56k5rwmXrBK7N9+X2bStkyx77A3e+YhaPlyOUAqn85ob2DlUStcllEKZVQwXvJSPZH8yVnYuT5h/oz8QtmZp/lHWplYyy45WQ8XGfYguFuLFTLlEHtpDDZSN035BvzwWIYBKZojCiv7gUDm0UEJpY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h5vzyEMa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773355549; c=relaxed/simple;
+	bh=IgQ7NXp34erkG1IJ93NJHsTYpVIBAJI/1WFgwCk1ETc=;
+	h=Date:To:From:Subject:Message-Id; b=hTcj1epYg8eSX6TIP1VIWzag/krcqYWw2X+y/w7yDIuPO/tE10E13jq1c468qQg1BttU7vuYmLZGdhibi9VEbyyB7uoP0sotstpkVmGiv7zpGDv7YSL+k8h1MgiSXY+JYRfcrg0laCq8cvIwnS3VBV9+dUQVQqnuJVHf72JQPTE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jIDzhIVM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h5vzyEMa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C46AC4CEF7;
-	Thu, 12 Mar 2026 22:36:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jIDzhIVM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C48D9C4CEF7;
+	Thu, 12 Mar 2026 22:45:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773355012;
-	bh=XH61TRVN14aq69+eYeKbOvKeBSBwxOSfJoeZAib99UE=;
+	s=korg; t=1773355548;
+	bh=IgQ7NXp34erkG1IJ93NJHsTYpVIBAJI/1WFgwCk1ETc=;
 	h=Date:To:From:Subject:From;
-	b=h5vzyEMa8gr62+FmZBE0fCCeSLkLLwy3p/jf4E7tDlflgIL70TBMNtv7/a0bjA+oV
-	 Dwj8QVIk2+PYCgMjFn3YVc8D+OFCZJHwpGYweXAOM8zUnLxBb/BDIN7Dh95ctTTj1C
-	 lY86nm9Ci3gWcLuK1EwO26FS9WkYUqrTtfiquh2A=
-Date: Thu, 12 Mar 2026 15:36:51 -0700
-To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,julia.lawall@inria.fr,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,kexinsun@smail.nju.edu.cn,akpm@linux-foundation.org
+	b=jIDzhIVMU7ADkQKDtvk2ZA67prTBv3COBeGE3HtC1/T5miIs6fU5+tZVXhCqCZiJr
+	 QCMt2GVlDETFDEQPM1ggUa/2ODaS+xvcH7Gas4/nsvybkpFmHI6kC6a0w6zLO6Htrl
+	 a5nK6LanFPCNHTc60/KIVm+hok3d6x4Sxj6KpTWU=
+Date: Thu, 12 Mar 2026 15:45:48 -0700
+To: mm-commits@vger.kernel.org,objecting@objecting.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-update-outdated-comment.patch added to mm-unstable branch
-Message-Id: <20260312223652.3C46AC4CEF7@smtp.kernel.org>
+Subject: + lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning.patch added to mm-nonmm-unstable branch
+Message-Id: <20260312224548.C48D9C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: update outdated comment
-has been added to the -mm mm-unstable branch.  Its filename is
-     kasan-update-outdated-comment.patch
+     Subject: lib/glob: initialize back_str to silence uninitialized variable warning
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-update-outdated-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,65 +58,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kexin Sun <kexinsun@smail.nju.edu.cn>
-Subject: kasan: update outdated comment
-Date: Thu, 12 Mar 2026 13:38:12 +0800
+From: Josh Law <objecting@objecting.org>
+Subject: lib/glob: initialize back_str to silence uninitialized variable warning
+Date: Thu, 12 Mar 2026 21:52:49 +0000
 
-kmalloc_large() was renamed kmalloc_large_noprof() by commit 7bd230a26648
-("mm/slab: enable slab allocation tagging for kmalloc and friends"), and
-subsequently renamed __kmalloc_large_noprof() by commit a0a44d9175b3 ("mm,
-slab: don't wrap internal functions with alloc_hooks()"), making it an
-internal implementation detail.
+back_str is only used when back_pat is non-NULL, and both are always set
+together, so it is safe in practice.  Initialize back_str to NULL to make
+this safety invariant explicit and silence compiler/static analysis
+warnings.
 
-Large kmalloc allocations are now performed through the public kmalloc()
-interface directly, making the reference to KMALLOC_MAX_SIZE also stale
-(KMALLOC_MAX_CACHE_SIZE would be more accurate).  Remove the references to
-kmalloc_large() and KMALLOC_MAX_SIZE, and rephrase the description for
-large kmalloc allocations.
-
-Link: https://lkml.kernel.org/r/20260312053812.1365-1-kexinsun@smail.nju.edu.cn
-Signed-off-by: Kexin Sun <kexinsun@smail.nju.edu.cn>
-Suggested-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Assisted-by: unnamed:deepseek-v3.2 coccinelle
-Reviewed-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Julia Lawall <julia.lawall@inria.fr>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Link: https://lkml.kernel.org/r/20260312215249.50165-1-objecting@objecting.org
+Signed-off-by: Josh Law <objecting@objecting.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/glob.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/kasan.h~kasan-update-outdated-comment
-+++ a/include/linux/kasan.h
-@@ -352,8 +352,8 @@ bool __kasan_mempool_poison_object(void
-  * kasan_mempool_unpoison_object().
-  *
-  * This function operates on all slab allocations including large kmalloc
-- * allocations (the ones returned by kmalloc_large() or by kmalloc() with the
-- * size > KMALLOC_MAX_SIZE).
-+ * allocations (i.e. the ones backed directly by the buddy allocator rather
-+ * than kmalloc slab caches).
-  *
-  * Return: true if the allocation can be safely reused; false otherwise.
-  */
-@@ -381,8 +381,8 @@ void __kasan_mempool_unpoison_object(voi
-  * original tags based on the pointer value.
-  *
-  * This function operates on all slab allocations including large kmalloc
-- * allocations (the ones returned by kmalloc_large() or by kmalloc() with the
-- * size > KMALLOC_MAX_SIZE).
-+ * allocations (i.e. the ones backed directly by the buddy allocator rather
-+ * than kmalloc slab caches).
-  */
- static __always_inline void kasan_mempool_unpoison_object(void *ptr,
- 							  size_t size)
+--- a/lib/glob.c~lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning
++++ a/lib/glob.c
+@@ -47,7 +47,7 @@ bool __pure glob_match(char const *pat,
+ 	 * (no exception for /), it can be easily proved that there's
+ 	 * never a need to backtrack multiple levels.
+ 	 */
+-	char const *back_pat = NULL, *back_str;
++	char const *back_pat = NULL, *back_str = NULL;
+ 
+ 	/*
+ 	 * Loop over each token (character or class) in pat, matching
 _
 
-Patches currently in -mm which might be from kexinsun@smail.nju.edu.cn are
+Patches currently in -mm which might be from objecting@objecting.org are
 
-kasan-update-outdated-comment.patch
+lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
+lib-glob-fix-grammar-and-replace-non-inclusive-terminology.patch
+lib-glob-add-explicit-include-for-exporth.patch
+lib-glob-replace-bitwise-or-with-logical-operation-on-boolean.patch
+lib-glob-clean-up-bool-abuse-in-pointer-arithmetic.patch
+lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
+lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch
+lib-inflate-fix-memory-leak-in-inflate_dynamic-on-inflate_codes-failure.patch
+lib-inflate-fix-grammar-in-comment-variable-to-variables.patch
+lib-inflate-fix-typo-this-results-to-the-results-in-comment.patch
+lib-bug-fix-inconsistent-capitalization-in-bug-message.patch
+lib-bug-remove-unnecessary-variable-initializations.patch
+lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
+lib-decompress_bunzip2-fix-32-bit-shift-undefined-behavior.patch
+maintainers-add-josh-law-as-reviewer-for-library-code.patch
+lib-bootconfig-fix-typo-budy-in-_xbc_exit-comment.patch
+lib-ts_bm-fix-integer-overflow-in-pattern-length-calculation.patch
+lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation.patch
+lib-bootconfig-fix-off-by-one-in-xbc_verify_tree-unclosed-brace-error.patch
+lib-bootconfig-fix-snprintf-truncation-check-in-xbc_node_compose_key_after.patch
+lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning.patch
 
