@@ -1,205 +1,161 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0B142FE07D
-	for <mm-commits@vger.kernel.org>; Fri, 13 Mar 2026 03:06:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 570A521770B;
+	Fri, 13 Mar 2026 15:00:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773371206; cv=none; b=Br9gnsx/ZDHm0aTVBBkcEQXKjWuYtse6nSH7QldXkiqXFObhp1cEv5J5KxlrMHm2XeXFLs0nkYhDdTAsuimx3p/lYxZ1Ugdje3VFyJfWS2Obfo+W6XbOEI4GBM5ZEw9XScHOWWZhjmY/NtGR2czidKgTsAFpfo10Gb2JIhDTx2I=
+	t=1773414058; cv=none; b=clST9d4Mqmcr59k0YZs71CKi2Q2fx1j7oKivcvZmYaew3SC3yI3RmUNJ7WdcUxBiJkzutSDLvy6uvoEHKPXZiJC3JmeVBEI3Au03Vnu3Gzo9mm+HGBPdq9crHg2pbphNTVH0LX2eg3DecMON5PoMVOU3yLN9g6gsa4ujzEy6Znk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773371206; c=relaxed/simple;
-	bh=vDoHGHMK31jZzXq900nOQkqHlFXBrmfNEMLGnoG669U=;
-	h=Date:To:From:Subject:Message-Id; b=T+RduyM7QDmR7OiLZu6BFbRC8DRTSGZRcVGnzOV/mhF4FDgcE6TsDi71iwxur8t6Qa1vCfIUSj5+WnJz7DVzmnDfbpFPG+KTIcMtIBMfzoZVxPq4TQepsrkT87drZEUgmGplUkkgDXWsagUAzQKmALPwJoaYIHJSB0mHR2ePK58=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=syc0Xlx1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773414058; c=relaxed/simple;
+	bh=c6LBU7XJk1IiaPu8DZnHkyMvzaSk2SyumHxHJ9AXqDc=;
+	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
+	 Content-Disposition:In-Reply-To; b=QDjOUZpAMEZowk3EJad1nJc5U43cX5Fe6u5Yzu6HedlQfv9uwpVSnCE9woiHYJAcgfxH+rKXbzy3NvKds/YbtLWB8OevOSZeoMzezeVOz5MbY1mnoMMS1hU/W59m0SCk14Pg9USH4pgprA9PD3PNIoTOnOyxlpAd4GPt9h4Q3VQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gQP4QY7j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="syc0Xlx1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3795EC4CEF7;
-	Fri, 13 Mar 2026 03:06:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773371206;
-	bh=vDoHGHMK31jZzXq900nOQkqHlFXBrmfNEMLGnoG669U=;
-	h=Date:To:From:Subject:From;
-	b=syc0Xlx1dCxCf9OgjLoVEjBpS/ZnRhzwwQQ/0nQI5EPJ2gs7VTWV3jIskql3dssdJ
-	 CSZM4FpeWBYYq8vsIsc+M0sokbCDN1tMXmcPbLxKl83muftg92OOHxDrv34UIW+O5D
-	 XUfPEP9TiwjF8G92W7myh3/a3zFqNc1hdYms6wVw=
-Date: Thu, 12 Mar 2026 20:06:45 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,gaoxu2@honor.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-optimize-lz4-dictionary-compression-performance-v2.patch added to mm-new branch
-Message-Id: <20260313030646.3795EC4CEF7@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gQP4QY7j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09655C19421;
+	Fri, 13 Mar 2026 15:00:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1773414057;
+	bh=c6LBU7XJk1IiaPu8DZnHkyMvzaSk2SyumHxHJ9AXqDc=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=gQP4QY7jrRaQZI/TPm8j+LG6X6CjmJDC1LSul8Kfv1G4NRf7b4Noz7XmHRE4KYR68
+	 8Y+QMGfCXeoQnAGygWkYgEVuku9VnnMaGiV7cqbfospN1uxpXkdbXak4JhcShry7iD
+	 aR2x/I4iKXuyYPKsrQkNrvYMloEjfydHM6JFHpcKBl/wJtM4LsEdHkkdaNhSzp4Rtj
+	 kkjyIsTfCv2BrUs6IWuLlM4OQQiqpFWqMUWFOu2xeTDofZCdtXR4/s9kAkgl3+lR2S
+	 STl8QylAB3CoLh++D8n2FdmoZr5K7sXeIb41MAf2oBWuYm8qhrN0hM3GMx/venLW5T
+	 HyAlsOJS3m5rA==
+Date: Fri, 13 Mar 2026 16:00:38 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Josh Law <hlcj1234567@gmail.com>, 
+	"Lorenzo Stoakes (Oracle)" <ljs@kernel.org>, Vlastimil Babka <vbabka@suse.com>
+Cc: linux-block@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Jens Axboe <axboe@kernel.dk>, Andrew Morton <akpm@linux-foundation.org>, 
+	linux-kernel@vger.kernel.org, Josh Law <objecting@objecting.org>, mm-commits@vger.kernel.org
+Subject: Re: [PATCH] MAINTAINERS: add Josh Law as reviewer for library code
+Message-ID: <20260313-anvisiert-gemeckert-352414e3d58d@brauner>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20260307221931.2848601-1-objecting@objecting.org>
+ <3cd25de5-3737-49f4-aa8b-eaaee471af50@lucifer.local>
+ <ee644e1b-5759-477f-8aec-35c91a5a938e@suse.com>
+ <20260307222154.2848660-1-objecting@objecting.org>
+ <667b75ad-bce9-4997-8ebf-8077952c2797@gmail.com>
 
+On Sat, Mar 07, 2026 at 10:19:31PM +0000, Josh Law wrote:
+> Add myself as a designated reviewer for the library code to help review
+> incoming patches and improvements.
+> 
+> Signed-off-by: Josh Law <objecting@objecting.org>
+> ---
+>  MAINTAINERS | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 96e97d25e1c2..8fd03ab9c657 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -14613,6 +14613,7 @@ F:	tools/testing/nvdimm/
+>  
+>  LIBRARY CODE
+>  M:	Andrew Morton <akpm@linux-foundation.org>
+> +R:	Josh Law <objecting@objecting.org>
+>  L:	linux-kernel@vger.kernel.org
+>  S:	Supported
+>  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-nonmm-unstable
+> -- 
+> 2.43.0
+> 
 
-The patch titled
-     Subject: zram: optimize LZ4 dictionary compression performance
-has been added to the -mm mm-new branch.  Its filename is
-     zram-optimize-lz4-dictionary-compression-performance-v2.patch
+On Fri, Mar 13, 2026 at 10:17:53AM +0000, Lorenzo Stoakes (Oracle) wrote:
+> On Sat, Mar 07, 2026 at 10:19:31PM +0000, Josh Law wrote:
+> > Add myself as a designated reviewer for the library code to help review
+> > incoming patches and improvements.
+> >
+> > Signed-off-by: Josh Law <objecting@objecting.org>
+> 
+> Sorry but NAK, I appreciate your enthusiasm but this is literally _all_
+> library code, and you don't have a long track history in the kernel.
+> 
+> Also in [0], [1], etc. you aren't demonstrating a great deal of maturity,
+> so I don't think it's appropriate for you to be added at this time.
+> 
+> I really don't think a 'catch all' category should be getting arbitrary
+> extra reviewers in any case.
+> 
+> Please take some time to contribute to the kernel, establish yourself, and
+> then look to reviewership for a specific category.
+> 
+> Thanks, Lorenzo
+> 
+> > ---
+> >  MAINTAINERS | 1 +
+> >  1 file changed, 1 insertion(+)
+> >
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index 96e97d25e1c2..8fd03ab9c657 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -14613,6 +14613,7 @@ F:	tools/testing/nvdimm/
+> >
+> >  LIBRARY CODE
+> >  M:	Andrew Morton <akpm@linux-foundation.org>
+> > +R:	Josh Law <objecting@objecting.org>
+> >  L:	linux-kernel@vger.kernel.org
+> >  S:	Supported
+> >  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-nonmm-unstable
+> > --
+> > 2.43.0
+> >
+> >
+> 
+> [0]:https://lore.kernel.org/all/c41dbb9d-b8a5-4b5f-9f71-3fe1bed210b6@gmail.com/
+> [1]:https://lore.kernel.org/linux-mm/40767ecf-7e25-48f5-a604-c43b835b6b66@gmail.com/
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-optimize-lz4-dictionary-compression-performance-v2.patch
+On Fri, Mar 13, 2026 at 11:49:03AM +0100, Vlastimil Babka wrote:
+> On 3/13/26 11:17, Lorenzo Stoakes (Oracle) wrote:
+> > On Sat, Mar 07, 2026 at 10:19:31PM +0000, Josh Law wrote:
+> >> Add myself as a designated reviewer for the library code to help review
+> >> incoming patches and improvements.
+> >>
+> >> Signed-off-by: Josh Law <objecting@objecting.org>
+> > 
+> > Sorry but NAK, I appreciate your enthusiasm but this is literally _all_
+> > library code, and you don't have a long track history in the kernel.
+> 
+> Agreed, just a week after first appearance on lists is really quite too soon.
+> 
+> Yes, getting Cc'd thanks to R: entry is one thing, but that can be achieved
+> with lei as well. The other aspect of R: is giving weigh in replies to
+> (potentially new) contributors and that's why it's not given out rather that
+> quickly.
+> 
+> > Also in [0], [1], etc. you aren't demonstrating a great deal of maturity,
+> > so I don't think it's appropriate for you to be added at this time.
+> > 
+> > I really don't think a 'catch all' category should be getting arbitrary
+> > extra reviewers in any case.
+> 
+> Agreed. Many of the files under lib/ are listed in other sections with their
+> own maintainers. They were not cc'd on this MAINTAINERS update and yet it
+> would affect all patches to their files too, so they could at least have a
+> say. It's unfortunate that it's how this catch-all works. Maybe X: entries
+> could be used by the specific maintainers in the catch-all section, although
+> it's somewhat tedious.
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+Agreed. I'm sorry but there is no meaningful track record that would
+justify this addition. lib/ encompasses locking.c, iov_iter.c,
+rhashtable.c and a ton of other stuff that is consumed by literally the
+whole kernel from core to drivers. If this was something innocous I
+wouldn't care but there's a lot of really gnarly but important stuff in
+there.
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: gao xu <gaoxu2@honor.com>
-Subject: zram: optimize LZ4 dictionary compression performance
-Date: Fri, 13 Mar 2026 02:41:14 +0000
-
-Calling `LZ4_loadDict()` repeatedly in Zram causes significant overhead
-due to its internal dictionary pre-processing.  This commit introduces a
-template stream mechanism to pre-process the dictionary only once when the
-dictionary is initially set or modified.  It then efficiently copies this
-state for subsequent compressions.
-
-Verification Test Items:
-Test Platform: android16-6.12
-1. Collect Anonymous Page Dataset
-1) Apply the following patch:
-static bool zram_meta_alloc(struct zram *zram, u64 disksize)
-	if (!huge_class_size)
--		huge_class_size = zs_huge_class_size(zram->mem_pool);
-+		huge_class_size = 0;
-
-2）Install multiple apps and monkey testing until SwapFree is close to 0.
-
-3）Execute the following command to export data:
-dd if=/dev/block/zram0 of=/data/samples/zram_dump.img bs=4K
-
-2. Train Dictionary
-Since LZ4 does not have a dedicated dictionary training tool, the zstd
-tool can be used for training[1]. The command is as follows:
-zstd --train /data/samples/* --split=4096 --maxdict=64KB -o /vendor/etc/dict_data
-
-3. Test Code
-adb shell "dd if=/data/samples/zram_dump.img of=/dev/test_pattern bs=4096 count=131072 conv=fsync"
-adb shell "swapoff /dev/block/zram0"
-adb shell "echo 1 > /sys/block/zram0/reset"
-adb shell "echo lz4 > /sys/block/zram0/comp_algorithm"
-adb shell "echo dict=/vendor/etc/dict_data   >  /sys/block/zram0/algorithm_params"
-adb shell "echo 6G > /sys/block/zram0/disksize"
-echo "Start Compression"
-adb shell "taskset 80 dd if=/dev/test_pattern of=/dev/block/zram0 bs=4096 count=131072 conv=fsync"
-echo.
-echo "Start Decompression"
-adb shell "taskset 80 dd if=/dev/block/zram0 of=/dev/output_result bs=4096 count=131072 conv=fsync"
-echo "mm_stat:"
-adb shell "cat /sys/block/zram0/mm_stat"
-echo.
-Note: To ensure stable test results, it is best to lock the CPU frequency
-before executing the test.
-
-LZ4 supports dictionaries up to 64KB. Below are the test results for
-compression rates at various dictionary sizes:
-dict_size          base        patch
-  4 KB          156M/s      219M/s
-  8 KB          136M/s      217M/s
- 16KB           98M/s       214M/s
- 32KB           66M/s       225M/s
- 64KB           38M/s       224M/s
-
-When an LZ4 compression dictionary is enabled, compression speed is
-negatively impacted by the dictionary's size; larger dictionaries result
-in slower compression.  This patch eliminates the influence of dictionary
-size on compression speed, ensuring consistent performance regardless of
-dictionary scale.
-
-Link: https://lkml.kernel.org/r/698181478c9c4b10aa21b4a847bdc706@honor.com
-Link: https://github.com/lz4/lz4?tab=readme-ov-file [1]
-Signed-off-by: gao xu <gaoxu2@honor.com>
-Acked-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/block/zram/backend_lz4.c |   29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
-
---- a/drivers/block/zram/backend_lz4.c~zram-optimize-lz4-dictionary-compression-performance-v2
-+++ a/drivers/block/zram/backend_lz4.c
-@@ -14,13 +14,38 @@ struct lz4_ctx {
- 
- static void lz4_release_params(struct zcomp_params *params)
- {
-+	LZ4_stream_t *dict_stream = params->drv_data;
-+
-+	params->drv_data = NULL;
-+	if (!dict_stream)
-+		return;
-+
-+	kfree(dict_stream);
- }
- 
- static int lz4_setup_params(struct zcomp_params *params)
- {
-+	LZ4_stream_t *dict_stream;
-+	int ret;
-+
- 	if (params->level == ZCOMP_PARAM_NOT_SET)
- 		params->level = LZ4_ACCELERATION_DEFAULT;
- 
-+	if (!params->dict || !params->dict_sz)
-+		return 0;
-+
-+	dict_stream = kzalloc_obj(*dict_stream, GFP_KERNEL);
-+	if (!dict_stream)
-+		return -ENOMEM;
-+
-+	ret = LZ4_loadDict(dict_stream,
-+			   params->dict, params->dict_sz);
-+	if (ret != params->dict_sz) {
-+		kfree(dict_stream);
-+		return -EINVAL;
-+	}
-+	params->drv_data = dict_stream;
-+
- 	return 0;
- }
- 
-@@ -79,9 +104,7 @@ static int lz4_compress(struct zcomp_par
- 					zctx->mem);
- 	} else {
- 		/* Cstrm needs to be reset */
--		ret = LZ4_loadDict(zctx->cstrm, params->dict, params->dict_sz);
--		if (ret != params->dict_sz)
--			return -EINVAL;
-+		memcpy(zctx->cstrm, params->drv_data, sizeof(*zctx->cstrm));
- 		ret = LZ4_compress_fast_continue(zctx->cstrm, req->src,
- 						 req->dst, req->src_len,
- 						 req->dst_len, params->level);
-_
-
-Patches currently in -mm which might be from gaoxu2@honor.com are
-
-zram-use-statically-allocated-compression-algorithm-names.patch
-zram-optimize-lz4-dictionary-compression-performance-v2.patch
-
+And yes, all of the externally maintained files should be dropped from
+the generic lib/ catch-all ideally.
