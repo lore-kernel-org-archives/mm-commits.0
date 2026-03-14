@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA1B51A6819
-	for <mm-commits@vger.kernel.org>; Sat, 14 Mar 2026 22:28:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB50B1F7569
+	for <mm-commits@vger.kernel.org>; Sat, 14 Mar 2026 22:55:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773527303; cv=none; b=GBGVg7P5XiqzEIfeM+Kg17ePXeX6O50nJadkr4WKC/R5YVd1zpm6W8aAZJWp/8lpdeG07I1Z9oO6t0dUkezNBCOALl3b53oU3CFw572WCJYCfLk+gIfVce89YiHIw5pnQ9sottJ8DtS8WnvBg7U3da1eDJp/C//NVXK7a51Q/aY=
+	t=1773528935; cv=none; b=cRJh2uu8NvWbS+aI3PfuN2t93WIZb+drgcnGSAXKnXxPjzwR6EbNBmmiwR6Y8ZPLswCn1U2fLAui9BXMakcREYBTCJKpR39XsyY/qHd89duSTpEQ0O2XBHZw68fWU9XLl+cKn0D7P7RdogPFnIIlEkC/FctyIkDzzn9/9IV2hik=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773527303; c=relaxed/simple;
-	bh=mWOWXtzvDXnLgsGFo9ouwooe9dQa+idGdNdeZW7WY/k=;
-	h=Date:To:From:Subject:Message-Id; b=onM+Js5+J+r1fhvNyMUfEAJkBiaM6N2WRsTUHbTWioeW7+sBVT7B5oFLMhE2SwUuB+xJ1jUYSqCN3QQpFwA+9hF/Eqnq3YJpYsfUPga9z/IK4QLwsXozUtAjeab8Sjy2PBV0Jz3B6ebcj1AxW2mPQPYV3nnrBmwxg6L1p+3LFNI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E/RSshmQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773528935; c=relaxed/simple;
+	bh=hkHmupJ/8R/19DhNP3ChT4PgwFkg9EARvzIZJBRmr9g=;
+	h=Date:To:From:Subject:Message-Id; b=Y0M8BSlRbm9GeGJlFi9CmG/QU6NWLRi/mw+awLMwHNBJ10wgx5N3xjTDp1CgdfzsC3TAsFysC8n7qAhR7WSBAelb9YbXX1pNnEslPvaBTH9in5JGeQhMLdBayNzh6N7jgCc5fZNX1QlFnpOiI1LHhKISmenXUQakMsmUzqDaUAc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ObG1yB72; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E/RSshmQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE6DEC116C6;
-	Sat, 14 Mar 2026 22:28:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ObG1yB72"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50467C116C6;
+	Sat, 14 Mar 2026 22:55:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773527303;
-	bh=mWOWXtzvDXnLgsGFo9ouwooe9dQa+idGdNdeZW7WY/k=;
+	s=korg; t=1773528935;
+	bh=hkHmupJ/8R/19DhNP3ChT4PgwFkg9EARvzIZJBRmr9g=;
 	h=Date:To:From:Subject:From;
-	b=E/RSshmQqeyQ2bEXhcvve9BZ1JmAZAtd7p8XOh2ENN+pvB1mr7Qo4C5PR9GR4IgNj
-	 G8ZXWhYCrdc4AX5yFS7wz2qVUd45NoPMEqSev8Off48avHqaUyzsfBW1GgZguZHVpT
-	 dNzr5jNiJHVqg5H9Cp4vpYYWH1ylPy1wWKaMP+BI=
-Date: Sat, 14 Mar 2026 15:28:22 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,hughd@google.com,dev.jain@arm.com,david@kernel.org,bas@dfinity.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,adam.bratschikaye@dfinity.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=ObG1yB72gdUsMjQ6ZOfOGK9jUspjFFJNs/z7GT7dIHBJpaPOQSGYip1vIAr/V0jyu
+	 tXOzfQCvq/rzpdSscdTbh+LzoeoODzGoT2SrnxIUtCl013IMX2x74mF1XTt+9/RsFg
+	 oJ6gH8m1mPXDsf6RmZJTT8d2Fl/F4+joJa+kfv4s=
+Date: Sat, 14 Mar 2026 15:55:34 -0700
+To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,objecting@objecting.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-folio_split-and-filemap_get_entry-race-test.patch added to mm-new branch
-Message-Id: <20260314222822.EE6DEC116C6@smtp.kernel.org>
+Subject: [merged] lib-bootconfig-fix-typo-budy-in-_xbc_exit-comment.patch removed from -mm tree
+Message-Id: <20260314225535.50467C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,491 +34,63 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: selftests/mm: add folio_split() and filemap_get_entry() race test
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-folio_split-and-filemap_get_entry-race-test.patch
+The quilt patch titled
+     Subject: lib/bootconfig: fix typo "budy" in _xbc_exit() comment
+has been removed from the -mm tree.  Its filename was
+     lib-bootconfig-fix-typo-budy-in-_xbc_exit-comment.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-folio_split-and-filemap_get_entry-race-test.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: add folio_split() and filemap_get_entry() race test
-Date: Fri, 13 Mar 2026 07:40:37 -0400
+From: Josh Law <objecting@objecting.org>
+Subject: lib/bootconfig: fix typo "budy" in _xbc_exit() comment
+Date: Sat, 7 Mar 2026 12:26:46 +0000
 
-The added folio_split_race_test is a modified C port of the race condition
-test from [1].  The test creates shmem huge pages shared by both a parent
-and a child processes, where the parent process punches holes in the shmem
-to cause folio_split() in the kernel and the child process reads the shmem
-in 16 threads to cause filemap_get_entry() in the kernel.
+Fix a spelling error in the _xbc_exit() kernel-doc comment where "budy
+system" was written instead of "buddy system".
 
-filemap_get_entry() reads the folio and xarray split by folio_split()
-locklessly.  The original test[2] is written in rust and uses memfd (shmem
-backed).  This C port uses shmem directly.
-
-Note: the initial rust to C conversion is done by Cursor.
-
-Link: https://lore.kernel.org/all/CAKNNEtw5_kZomhkugedKMPOG-sxs5Q5OLumWJdiWXv+C9Yct0w@mail.gmail.com/ [1]
-Link: https://github.com/dfinity/thp-madv-remove-test [2]
-Link: https://lkml.kernel.org/r/20260313114037.3593642-1-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Bas van Dijk <bas@dfinity.org>
-Cc: Adam Bratschi-Kaye <adam.bratschikaye@dfinity.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/20260307122646.2838540-1-objecting@objecting.org
+Signed-off-by: Josh Law <objecting@objecting.org>
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile                |    1 
- tools/testing/selftests/mm/folio_split_race_test.c |  380 +++++++++++
- tools/testing/selftests/mm/run_vmtests.sh          |    2 
- 3 files changed, 383 insertions(+)
+ lib/bootconfig.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tools/testing/selftests/mm/folio_split_race_test.c a/tools/testing/selftests/mm/folio_split_race_test.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/folio_split_race_test.c
-@@ -0,0 +1,380 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * The parent process creates a shmem and forks. The child creates a THP on the
-+ * mapping, fills all pages with known patterns, and then continuously verifies
-+ * non-punched pages. The parent punches holes via MADV_REMOVE on the shmem
-+ * while the child reads.
-+ *
-+ * It tests the race condition between folio_split() and filemap_get_entry(),
-+ * where the hole punches on shmem lead to folio_split() and reading the shmem
-+ * lead to filemap_get_entry().
-+ */
-+
-+#define _GNU_SOURCE
-+#include <assert.h>
-+#include <errno.h>
-+#include <linux/mman.h>
-+#include <pthread.h>
-+#include <stdatomic.h>
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <sys/stat.h>
-+#include <sys/wait.h>
-+#include <unistd.h>
-+#include "vm_util.h"
-+#include "kselftest.h"
-+#include "thp_settings.h"
-+
-+uint64_t page_size;
-+uint64_t pmd_pagesize;
-+#define NR_PMD_PAGE 5
-+#define FILE_SIZE (pmd_pagesize * NR_PMD_PAGE)
-+#define TOTAL_PAGES (FILE_SIZE / page_size)
-+
-+/* Every N-th to N+M-th pages are punched; not aligned with huge page boundaries. */
-+#define PUNCH_INTERVAL 50 /* N */
-+#define PUNCH_SIZE_FACTOR 3 /* M */
-+
-+#define NUM_READER_THREADS 16
-+#define FILL_BYTE 0xAF
-+#define NUM_ITERATIONS 100
-+
-+#define CHILD_READY 1
-+#define CHILD_FAILED 2
-+/* Shared control block: MAP_SHARED anonymous so parent and child see same values. */
-+struct SharedCtl {
-+	atomic_uint_fast32_t ready;
-+	atomic_uint_fast32_t stop;
-+	atomic_size_t child_failures;
-+	atomic_size_t child_verified;
-+};
-+
-+static int get_errno(void)
-+{
-+	return errno;
-+}
-+
-+static void fill_page(unsigned char *base, size_t page_idx)
-+{
-+	unsigned char *page_ptr = base + page_idx * page_size;
-+	uint64_t idx = (uint64_t)page_idx;
-+
-+	memset(page_ptr, FILL_BYTE, page_size);
-+	memcpy(page_ptr, &idx, sizeof(idx));
-+}
-+
-+/* Returns true if valid, false if corrupted. */
-+static bool check_page(unsigned char *base, size_t page_idx)
-+{
-+	unsigned char *page_ptr = base + page_idx * page_size;
-+	uint64_t expected_idx = (uint64_t)page_idx;
-+	uint64_t got_idx;
-+
-+	memcpy(&got_idx, page_ptr, 8);
-+
-+	if (got_idx != expected_idx) {
-+		size_t off;
-+		int all_zero = 1;
-+
-+		for (off = 0; off < page_size; off++) {
-+			if (page_ptr[off] != 0) {
-+				all_zero = 0;
-+				break;
-+			}
-+		}
-+		if (all_zero) {
-+			ksft_print_msg(
-+				"CORRUPTED: page %zu (huge page %zu) is ALL ZEROS\n",
-+				page_idx,
-+				(page_idx * page_size) / pmd_pagesize);
-+		} else {
-+			ksft_print_msg(
-+				"CORRUPTED: page %zu (huge page %zu): expected idx %zu, got %lu\n",
-+				page_idx, (page_idx * page_size) / pmd_pagesize,
-+				page_idx, (unsigned long)got_idx);
-+		}
-+		return false;
-+	}
-+	return true;
-+}
-+
-+struct reader_arg {
-+	unsigned char *base;
-+	struct SharedCtl *ctl;
-+	int tid;
-+	atomic_size_t *failures;
-+	atomic_size_t *verified;
-+};
-+
-+static void *reader_thread(void *arg)
-+{
-+	struct reader_arg *ra = (struct reader_arg *)arg;
-+	unsigned char *base = ra->base;
-+	struct SharedCtl *ctl = ra->ctl;
-+	int tid = ra->tid;
-+	atomic_size_t *failures = ra->failures;
-+	atomic_size_t *verified = ra->verified;
-+	size_t page_idx;
-+
-+	while (atomic_load_explicit(&ctl->stop, memory_order_acquire) == 0) {
-+		for (page_idx = (size_t)tid; page_idx < TOTAL_PAGES;
-+		     page_idx += NUM_READER_THREADS) {
-+			if (page_idx % PUNCH_INTERVAL >= 0 &&
-+			    page_idx % PUNCH_INTERVAL < PUNCH_SIZE_FACTOR)
-+				continue;
-+			if (check_page(base, page_idx))
-+				atomic_fetch_add_explicit(verified, 1,
-+							  memory_order_relaxed);
-+			else
-+				atomic_fetch_add_explicit(failures, 1,
-+							  memory_order_relaxed);
-+		}
-+		if (atomic_load_explicit(failures, memory_order_relaxed) > 0)
-+			break;
-+	}
-+
-+	return NULL;
-+}
-+
-+static void child_reader_loop(unsigned char *base, struct SharedCtl *ctl)
-+{
-+	pthread_t threads[NUM_READER_THREADS];
-+	struct reader_arg args[NUM_READER_THREADS];
-+	atomic_size_t failures = 0;
-+	atomic_size_t verified = 0;
-+	size_t page_idx;
-+	size_t recheck = 0;
-+	int i;
-+
-+	for (i = 0; i < NUM_READER_THREADS; i++) {
-+		args[i].base = base;
-+		args[i].ctl = ctl;
-+		args[i].tid = i;
-+		args[i].failures = &failures;
-+		args[i].verified = &verified;
-+		if (pthread_create(&threads[i], NULL, reader_thread,
-+				   &args[i]) != 0)
-+			ksft_exit_fail_msg("pthread_create failed\n");
-+	}
-+
-+	for (i = 0; i < NUM_READER_THREADS; i++)
-+		pthread_join(threads[i], NULL);
-+
-+	/* Post-sleep recheck */
-+	usleep(1000); /* 1 ms */
-+
-+	for (page_idx = 0; page_idx < TOTAL_PAGES; page_idx++) {
-+		if (page_idx % PUNCH_INTERVAL >= 0 &&
-+		    page_idx % PUNCH_INTERVAL < PUNCH_SIZE_FACTOR)
-+			continue;
-+		if (!check_page(base, page_idx))
-+			recheck++;
-+	}
-+	if (recheck)
-+		ksft_print_msg("post-sleep failures: %zu\n", recheck);
-+
-+	atomic_store_explicit(&ctl->child_failures,
-+			      atomic_load_explicit(&failures,
-+						   memory_order_relaxed),
-+			      memory_order_release);
-+	atomic_store_explicit(&ctl->child_verified,
-+			      atomic_load_explicit(&verified,
-+						   memory_order_relaxed),
-+			      memory_order_release);
-+}
-+
-+/* Returns number of corrupted pages. */
-+static size_t verify_pages(unsigned char *base, const bool *is_punched)
-+{
-+	size_t failures = 0;
-+	size_t page_idx;
-+	size_t non_punched = 0;
-+
-+	for (page_idx = 0; page_idx < TOTAL_PAGES; page_idx++) {
-+		if (is_punched[page_idx])
-+			continue;
-+		if (!check_page(base, page_idx)) {
-+			failures++;
-+			if (failures >= 100)
-+				return failures;
-+		}
-+		non_punched++;
-+	}
-+	if (failures)
-+		ksft_print_msg("  %zu non-punched pages are corrupted!\n",
-+			failures);
-+	return failures;
-+}
-+
-+/* Run a single iteration. Returns total number of corrupted pages. */
-+static size_t run_iteration(void)
-+{
-+	struct SharedCtl *ctl;
-+	pid_t pid;
-+	unsigned char *parent_base;
-+	bool *is_punched;
-+	size_t i;
-+	size_t child_failures, child_verified, parent_failures;
-+	int status;
-+	size_t n_punched = 0;
-+
-+	ctl = (struct SharedCtl *)mmap(NULL, sizeof(struct SharedCtl), PROT_READ | PROT_WRITE,
-+				MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-+	if (ctl == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap ctl failed: %d\n", get_errno());
-+
-+	memset(ctl, 0, sizeof(struct SharedCtl));
-+
-+	parent_base = mmap(NULL, FILE_SIZE, PROT_READ | PROT_WRITE,
-+			   MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-+
-+	if (parent_base == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap failed: %d\n", get_errno());
-+
-+	pid = fork();
-+	if (pid < 0)
-+		ksft_exit_fail_msg("fork failed: %d\n", get_errno());
-+
-+	if (pid == 0) {
-+		/* ---- Child process ---- */
-+		unsigned char *child_base = parent_base;
-+
-+		if (madvise(child_base, FILE_SIZE, MADV_HUGEPAGE) != 0)
-+			ksft_exit_fail_msg("madvise(MADV_HUGEPAGE) failed: %d\n",
-+				get_errno());
-+
-+		for (i = 0; i < TOTAL_PAGES; i++)
-+			fill_page(child_base, i);
-+
-+		if (!check_huge_shmem(child_base, NR_PMD_PAGE, pmd_pagesize)) {
-+			atomic_store_explicit(&ctl->ready, CHILD_FAILED, memory_order_release);
-+			ksft_print_msg("No shmem THP is allocated\n");
-+			_exit(0);
-+		}
-+
-+		atomic_store_explicit(&ctl->ready, CHILD_READY, memory_order_release);
-+		child_reader_loop(child_base, ctl);
-+
-+		munmap(child_base, FILE_SIZE);
-+		_exit(0);
-+	}
-+
-+	/* ---- Parent process ---- */
-+	while (atomic_load_explicit(&ctl->ready, memory_order_acquire) == 0)
-+		usleep(1000);
-+
-+	if (ctl->ready == CHILD_FAILED)
-+		ksft_exit_fail_msg("Child process error\n");
-+
-+	is_punched = calloc(TOTAL_PAGES, sizeof(bool));
-+	if (!is_punched)
-+		ksft_exit_fail_msg("calloc is_punched failed\n");
-+
-+	for (i = 0; i < TOTAL_PAGES; i++) {
-+		int j;
-+
-+		if (i % PUNCH_INTERVAL != 0)
-+			continue;
-+		if (madvise(parent_base + i * page_size,
-+			    PUNCH_SIZE_FACTOR * page_size, MADV_REMOVE) != 0) {
-+			ksft_exit_fail_msg(
-+				"madvise(MADV_REMOVE) failed on page %zu: %d\n",
-+				i, get_errno());
-+		}
-+		for (j = 0; j < PUNCH_SIZE_FACTOR && i + j < TOTAL_PAGES; j++)
-+			is_punched[i + j] = true;
-+
-+		i += PUNCH_SIZE_FACTOR;
-+
-+		n_punched += PUNCH_SIZE_FACTOR;
-+	}
-+
-+	atomic_store_explicit(&ctl->stop, 1, memory_order_release);
-+
-+	if (waitpid(pid, &status, 0) != pid)
-+		ksft_exit_fail_msg("waitpid failed\n");
-+
-+	child_failures = atomic_load_explicit(&ctl->child_failures,
-+					      memory_order_acquire);
-+	child_verified = atomic_load_explicit(&ctl->child_verified,
-+					      memory_order_acquire);
-+	if (child_failures)
-+		ksft_print_msg("Child: %zu pages verified, %zu failures\n",
-+			child_verified, child_failures);
-+
-+	parent_failures = verify_pages(parent_base, is_punched);
-+	if (parent_failures)
-+		ksft_print_msg("Parent verification failures: %zu\n",
-+			parent_failures);
-+
-+	munmap(parent_base, FILE_SIZE);
-+	munmap(ctl, sizeof(struct SharedCtl));
-+	free(is_punched);
-+
-+	(void)n_punched;
-+	return child_failures + parent_failures;
-+}
-+
-+int main(void)
-+{
-+	size_t iter;
-+	size_t failures;
-+	struct thp_settings current_settings;
-+	bool failed = false;
-+
-+	ksft_print_header();
-+
-+	if (!thp_is_enabled())
-+		ksft_exit_skip("Transparent Hugepages not available\n");
-+
-+	if (geteuid() != 0) {
-+		ksft_print_msg("Please run the benchmark as root\n");
-+		ksft_finished();
-+	}
-+
-+	thp_save_settings();
-+	thp_read_settings(&current_settings);
-+	current_settings.shmem_enabled = SHMEM_ADVISE;
-+	thp_write_settings(&current_settings);
-+
-+	ksft_set_plan(1);
-+
-+	page_size = getpagesize();
-+	pmd_pagesize = read_pmd_pagesize();
-+
-+	ksft_print_msg("folio split race test\n");
-+	ksft_print_msg("=======================================================\n");
-+	ksft_print_msg("Shmem size:       %zu MiB\n", FILE_SIZE / 1024 / 1024);
-+	ksft_print_msg("Total pages:     %zu\n", TOTAL_PAGES);
-+	ksft_print_msg("Child readers:   %d\n", NUM_READER_THREADS);
-+	ksft_print_msg("Punching every %dth to %dth page\n", PUNCH_INTERVAL,
-+	       PUNCH_INTERVAL + PUNCH_SIZE_FACTOR);
-+	ksft_print_msg("Iterations:      %d\n", NUM_ITERATIONS);
-+
-+	for (iter = 1; iter <= NUM_ITERATIONS; iter++) {
-+		failures = run_iteration();
-+		if (failures > 0) {
-+			failed = true;
-+			ksft_print_msg(
-+				"FAILED on iteration %zu: %zu pages corrupted by cross-process MADV_REMOVE!\n",
-+				iter, failures);
-+			break;
-+		}
-+	}
-+
-+	thp_restore_settings();
-+
-+	if (failed) {
-+		ksft_test_result_fail("Test failed\n");
-+		ksft_exit_fail();
-+	} else {
-+		ksft_test_result_pass("All %d iterations passed\n", NUM_ITERATIONS);
-+		ksft_exit_pass();
-+	}
-+
-+	return 0;
-+}
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-folio_split-and-filemap_get_entry-race-test
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -105,6 +105,7 @@ TEST_GEN_FILES += droppable
- TEST_GEN_FILES += guard-regions
- TEST_GEN_FILES += merge
- TEST_GEN_FILES += rmap
-+TEST_GEN_FILES += folio_split_race_test
+--- a/lib/bootconfig.c~lib-bootconfig-fix-typo-budy-in-_xbc_exit-comment
++++ a/lib/bootconfig.c
+@@ -911,7 +911,7 @@ static int __init xbc_parse_tree(void)
  
- ifneq ($(ARCH),arm64)
- TEST_GEN_FILES += soft-dirty
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-folio_split-and-filemap_get_entry-race-test
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -555,6 +555,8 @@ if [ -n "${MOUNTED_XFS}" ]; then
-     rm -f ${XFS_IMG}
- fi
- 
-+CATEGORY="thp" run_test ./folio_split_race_test
-+
- CATEGORY="migration" run_test ./migration
- 
- CATEGORY="mkdirty" run_test ./mkdirty
+ /**
+  * _xbc_exit() - Clean up all parsed bootconfig
+- * @early: Set true if this is called before budy system is initialized.
++ * @early: Set true if this is called before buddy system is initialized.
+  *
+  * This clears all data structures of parsed bootconfig on memory.
+  * If you need to reuse xbc_init() with new boot config, you can
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from objecting@objecting.org are
 
-selftests-mm-add-folio_split-and-filemap_get_entry-race-test.patch
+lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
+lib-glob-fix-grammar-and-replace-non-inclusive-terminology.patch
+lib-glob-add-explicit-include-for-exporth.patch
+lib-glob-replace-bitwise-or-with-logical-operation-on-boolean.patch
+lib-glob-clean-up-bool-abuse-in-pointer-arithmetic.patch
+lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
+lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch
+lib-inflate-fix-memory-leak-in-inflate_dynamic-on-inflate_codes-failure.patch
+lib-inflate-fix-grammar-in-comment-variable-to-variables.patch
+lib-inflate-fix-typo-this-results-to-the-results-in-comment.patch
+lib-bug-fix-inconsistent-capitalization-in-bug-message.patch
+lib-bug-remove-unnecessary-variable-initializations.patch
+lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
+lib-decompress_bunzip2-fix-32-bit-shift-undefined-behavior.patch
+lib-ts_bm-fix-integer-overflow-in-pattern-length-calculation.patch
+lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation.patch
+lib-bootconfig-fix-off-by-one-in-xbc_verify_tree-unclosed-brace-error.patch
+lib-bootconfig-fix-snprintf-truncation-check-in-xbc_node_compose_key_after.patch
+lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning.patch
 
