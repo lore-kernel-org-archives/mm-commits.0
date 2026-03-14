@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49B87378800
-	for <mm-commits@vger.kernel.org>; Sat, 14 Mar 2026 22:59:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7BA03793CA
+	for <mm-commits@vger.kernel.org>; Sat, 14 Mar 2026 23:21:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773529185; cv=none; b=KIeH7QJpIaee9UsSTcu333efptcsB3j7WUzAQ2Yi9qCyfP1y/AMxgNHeBaToIPajmTlCbzU8MRw6bsRjP7rzYF9SUDAG7/0MEIiO/CoHP+BC/UnpltOXKoNCjcvxE+Xc2kje8DGj+dqnKJcTD+2ERwwSk8uYwQuncnKX3xalKWM=
+	t=1773530468; cv=none; b=g0Y5eb1dfhwWEjtYU4A/e1z2wQTkehOQHbwgOG+EXD5WWlsOYdqIg5jwwrs0qXFUeyI6p1X3wnC10DxngDHUXlNngl2QPo8P2lXEO0WsO4U7y7Ao8jidU+WG7mUDthcziYKZoD785HOQ50ACWuo45NattrT7seRdozZaJnO1RlA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773529185; c=relaxed/simple;
-	bh=4BMRmEvAjCqPPMENOBQBqCx332ijHQZg6KUG5lQJBFI=;
-	h=Date:To:From:Subject:Message-Id; b=omrwAW1hSq2aKBPMe6fwoidNmPN605yjgUCD2A501tjEjBACzRFqk1ZctjkraX7rprqjsYE3wCCVEFnKzNWVXd1nVp3N6Ip+vpTr676c00LE9CIiYDdgHarbOFn6J9nNFAAJND34ddL0Uy/EypIrwkTwVtfR8+qjnlp4rm0Gm5g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UNBjNbcd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773530468; c=relaxed/simple;
+	bh=N9l9co0YhDjBgdoCM7CTnagCi4+FZe/6tORLg4jMems=;
+	h=Date:To:From:Subject:Message-Id; b=QlP3N7BgYcgrdTkn6bdmpZYE+TLdc2rh+eNmuRJPXJrm69wLz+vxAzxt6myUJLITcA34HWeiBP63YDgWj2oYmxyufcriYIYA4h1RTM2pZnCGoVBE8IB2P3UF9hJKfUusuGFTZJ2DajSFhyGOnU4SA15uioHuRltyS/idriej0cs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jdKa+vHG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UNBjNbcd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B47EEC116C6;
-	Sat, 14 Mar 2026 22:59:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jdKa+vHG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C989EC116C6;
+	Sat, 14 Mar 2026 23:21:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773529184;
-	bh=4BMRmEvAjCqPPMENOBQBqCx332ijHQZg6KUG5lQJBFI=;
+	s=korg; t=1773530467;
+	bh=N9l9co0YhDjBgdoCM7CTnagCi4+FZe/6tORLg4jMems=;
 	h=Date:To:From:Subject:From;
-	b=UNBjNbcdOZipdCncLPoUJTZBNygVbvUcRBo/CAc7Lm/tq5VwtS1C82wgpiKhQZR3m
-	 F8IdUdOV6PTbo8i6nWZY/t4U2bG53R8OUjDQ7JkpDJqKOi8GIl/nMmVwlS5poDF2H9
-	 8if7fkfWu7xWEqi5NXr8X+HY76+5mRENd1Y85kaE=
-Date: Sat, 14 Mar 2026 15:59:44 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=jdKa+vHGMs6bJRvzIImSa8wCua3Srp14j2hbnlZar/ssiVZBBGirbzbdBRnOVXX/Q
+	 gdqlf0B9zgSiS56qgbmiJyOcVVR6oHGMPueyLT9hOMEnGjQ8h0eZJhwKj2yud3iBZV
+	 KixU2pQUtV/QklVnbYFcHtaM0WeMpCO3qxBm8ki4=
+Date: Sat, 14 Mar 2026 16:21:07 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,ljs@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-documentation-for-the-mmap_prepare-file-operation-callback-fix.patch added to mm-new branch
-Message-Id: <20260314225944.B47EEC116C6@smtp.kernel.org>
+Subject: + mm-add-mmap_action_simple_ioremap-fix.patch added to mm-new branch
+Message-Id: <20260314232107.C989EC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs: mmap_prepare: fix sphinx warnings and format
+     Subject: mm-add-mmap_action_simple_ioremap-fix
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-documentation-for-the-mmap_prepare-file-operation-callback-fix.patch
+     mm-add-mmap_action_simple_ioremap-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-documentation-for-the-mmap_prepare-file-operation-callback-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-mmap_action_simple_ioremap-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,172 +69,44 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Docs: mmap_prepare: fix sphinx warnings and format
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-add-mmap_action_simple_ioremap-fix
+Date: Sat Mar 14 04:19:36 PM PDT 2026
 
-Fix 'make htmldocs' build warnings, headings style, and quoting
-style.
+randyfy mmap_prepare.rst
 
-Documentation/filesystems/mmap_prepare.rst: WARNING: document isn't included in any toctree [toc.not_included]
-Documentation/filesystems/mmap_prepare.rst:60: WARNING: Pygments lexer name 'Cw' is not known [misc.highlighting_failure]
-Documentation/filesystems/mmap_prepare.rst:132: ERROR: Anonymous hyperlink mismatch: 1 references but 0 targets.
-See "backrefs" attribute for IDs. [docutils]
-
-Link: https://lkml.kernel.org/r/f0e33b51-d465-462d-b0f6-98a1db66bb15@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/index.rst        |    1 
- Documentation/filesystems/mmap_prepare.rst |   74 +++++++++----------
- 2 files changed, 38 insertions(+), 37 deletions(-)
+ Documentation/filesystems/mmap_prepare.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/filesystems/index.rst~mm-add-documentation-for-the-mmap_prepare-file-operation-callback-fix
-+++ a/Documentation/filesystems/index.rst
-@@ -29,6 +29,7 @@ algorithms work.
-    fiemap
-    files
-    locks
-+   mmap_prepare
-    multigrain-ts
-    mount_api
-    quota
---- a/Documentation/filesystems/mmap_prepare.rst~mm-add-documentation-for-the-mmap_prepare-file-operation-callback-fix
+--- a/Documentation/filesystems/mmap_prepare.rst~mm-add-mmap_action_simple_ioremap-fix
 +++ a/Documentation/filesystems/mmap_prepare.rst
-@@ -5,19 +5,19 @@ mmap_prepare callback HOWTO
- ===========================
+@@ -127,7 +127,7 @@ pointer. These are:
+ * mmap_action_ioremap_full() - Same as mmap_action_ioremap(), only remaps
+   the entire mapping from ``start_pfn`` onward.
  
- Introduction
--############
-+============
+-* `mmap_action_simple_ioremap()` - Sets up an I/O remap from a specified
++* mmap_action_simple_ioremap() - Sets up an I/O remap from a specified
+   physical address and over a specified length.
  
--The `struct file->f_op->mmap()` callback has been deprecated as it is both a
-+The ``struct file->f_op->mmap()`` callback has been deprecated as it is both a
- stability and security risk, and doesn't always permit the merging of adjacent
- mappings resulting in unnecessary memory fragmentation.
- 
--It has been replaced with the `file->f_op->mmap_prepare()` callback which solves
--these problems.
-+It has been replaced with the ``file->f_op->mmap_prepare()`` callback which
-+solves these problems.
- 
- ## How To Use
- 
--In your driver's `struct file_operations` struct, specify an `mmap_prepare`
--callback rather than an `mmap` one, e.g. for ext4:
-+In your driver's struct file_operations struct, specify an ``mmap_prepare``
-+callback rather than an ``mmap`` one, e.g. for ext4:
- 
- 
- .. code-block:: C
-@@ -27,9 +27,9 @@ callback rather than an `mmap` one, e.g.
-         .mmap_prepare    = ext4_file_mmap_prepare,
-     };
- 
--This has a signature of `int (*mmap_prepare)(struct vm_area_desc *)`.
-+This has a signature of ``int (*mmap_prepare)(struct vm_area_desc *)``.
- 
--Examining the `struct vm_area_desc` type:
-+Examining the struct vm_area_desc type:
- 
- .. code-block:: C
- 
-@@ -57,7 +57,7 @@ Examining the `struct vm_area_desc` type
- This is straightforward - you have all the fields you need to set up the
- mapping, and you can update the mutable and writable fields, for instance:
- 
--.. code-block:: Cw
-+.. code-block:: C
- 
-     static int ext4_file_mmap_prepare(struct vm_area_desc *desc)
-     {
-@@ -78,54 +78,54 @@ mapping, and you can update the mutable
-     }
- 
- Importantly, you no longer have to dance around with reference counts or locks
--when updating these fields - __you can simply go ahead and change them__.
-+when updating these fields - **you can simply go ahead and change them**.
- 
- Everything is taken care of by the mapping code.
- 
- VMA Flags
--=========
-+---------
- 
--Along with `mmap_prepare`, VMA flags have undergone an overhaul. Where before
--you would invoke one of `vm_flags_init()`, `vm_flags_reset()`, `vm_flags_set()`,
--`vm_flags_clear()`, and `vm_flags_mod()` to modify flags (and to have the
-+Along with ``mmap_prepare``, VMA flags have undergone an overhaul. Where before
-+you would invoke one of vm_flags_init(), vm_flags_reset(), vm_flags_set(),
-+vm_flags_clear(), and vm_flags_mod() to modify flags (and to have the
- locking done correctly for you, this is no longer necessary.
- 
--Also, the legacy approach of specifying VMA flags via `VM_READ`, `VM_WRITE`,
--etc. - i.e. using a `VM_xxx` macro has changed too.
-+Also, the legacy approach of specifying VMA flags via ``VM_READ``, ``VM_WRITE``,
-+etc. - i.e. using a ``-VM_xxx``- macro has changed too.
- 
--When implementing `mmap_prepare()`, reference flags by their bit number, defined
--as a `VMA_xxx_BIT` macro, e.g. `VMA_READ_BIT`, `VMA_WRITE_BIT` etc., and use one
--of (where `desc` is a pointer to `struct vma_area_desc`):
--
--* `vma_desc_test_flags(desc, ...)` - Specify a comma-separated list of flags you
--  wish to test for (whether _any_ are set), e.g. - `vma_desc_test_flags(desc,
--  VMA_WRITE_BIT, VMA_MAYWRITE_BIT)` - returns `true` if either are set,
--  otherwise `false`.
--* `vma_desc_set_flags(desc, ...)` - Update the VMA descriptor flags to set
-+When implementing mmap_prepare(), reference flags by their bit number, defined
-+as a ``VMA_xxx_BIT`` macro, e.g. ``VMA_READ_BIT``, ``VMA_WRITE_BIT`` etc.,
-+and use one of (where ``desc`` is a pointer to struct vma_area_desc):
-+
-+* ``vma_desc_test_flags(desc, ...)`` - Specify a comma-separated list of flags
-+  you wish to test for (whether _any_ are set), e.g. - ``vma_desc_test_flags(
-+  desc, VMA_WRITE_BIT, VMA_MAYWRITE_BIT)`` - returns ``true`` if either are set,
-+  otherwise ``false``.
-+* ``vma_desc_set_flags(desc, ...)`` - Update the VMA descriptor flags to set
-   additional flags specified by a comma-separated list,
--  e.g. - `vma_desc_set_flags(desc, VMA_PFNMAP_BIT, VMA_IO_BIT)`.
--* `vma_desc_clear_flags(desc, ...)` - Update the VMA descriptor flags to clear
--  flags specified by a comma-separated list, e.g. - `vma_desc_clear_flags(desc,
--  VMA_WRITE_BIT, VMA_MAYWRITE_BIT)`.
-+  e.g. - ``vma_desc_set_flags(desc, VMA_PFNMAP_BIT, VMA_IO_BIT)``.
-+* ``vma_desc_clear_flags(desc, ...)`` - Update the VMA descriptor flags to clear
-+  flags specified by a comma-separated list, e.g. - ``vma_desc_clear_flags(
-+  desc, VMA_WRITE_BIT, VMA_MAYWRITE_BIT)``.
- 
- Actions
- =======
- 
- You can now very easily have actions be performed upon a mapping once set up by
--utilising simple helper functions invoked upon the `struct vm_area_desc`
-+utilising simple helper functions invoked upon the struct vm_area_desc
- pointer. These are:
- 
--* `mmap_action_remap()` - Remaps a range consisting only of PFNs for a specific
-+* mmap_action_remap() - Remaps a range consisting only of PFNs for a specific
-   range starting a virtual address and PFN number of a set size.
- 
--* `mmap_action_remap_full()` - Same as `mmap_action_remap()`, only remaps the
--  entire mapping from `start_pfn` onward.
-+* mmap_action_remap_full() - Same as mmap_action_remap(), only remaps the
-+  entire mapping from ``start_pfn`` onward.
- 
--* `mmap_action_ioremap()` - Same as `mmap_action_remap()`, only performs an I/O
-+* mmap_action_ioremap() - Same as mmap_action_remap(), only performs an I/O
-   remap.
- 
--* `mmap_action_ioremap_full()` - Same as `mmap_action_ioremap()`, only remaps
--  the entire mapping from `start_pfn` onward.
-+* mmap_action_ioremap_full() - Same as mmap_action_ioremap(), only remaps
-+  the entire mapping from ``start_pfn`` onward.
- 
--**NOTE:** The 'action' field should never normally be manipulated directly,
-+**NOTE:** The ``action`` field should never normally be manipulated directly,
- rather you ought to use one of these helpers.
+ **NOTE:** The ``action`` field should never normally be manipulated directly,
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-add-documentation-for-the-mmap_prepare-file-operation-callback-fix.patch
+maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
+maple_tree-add-cp_is_new_root-helper-fix-fix.patch
+mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix.patch
+mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix.patch
+mm-rename-zone-lock-to-zone-_lock-fix.patch
+mm-page_reporting-add-page_reporting_order_unspecified-fix.patch
+mm-various-small-mmap_prepare-cleanups-fix.patch
+mm-add-mmap_action_simple_ioremap-fix.patch
+mm-add-mmap_action_map_kernel_pages-fix.patch
+kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
+decode_stacktrace-decode-caller-address-checkpatch-fixes.patch
 
