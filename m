@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4305156677
-	for <mm-commits@vger.kernel.org>; Sat, 14 Mar 2026 20:45:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62C1B30E85B
+	for <mm-commits@vger.kernel.org>; Sat, 14 Mar 2026 21:45:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773521110; cv=none; b=r8Irg3A86kZXzGdRjT8B33HqQ+9Qyx+qdn9OgCMP0a9dq7xFxoE07OWCd+mEWcsR23xW5KeMcRke0aEUk7DqtwC6SSkN3TS9e7QEiBqnhkBgHB03cOyeeA1c6Wa2eFNLFYWUGFUG/JgzJZ17TitK0i6HeldO7pyZCcCJErGPf2Q=
+	t=1773524716; cv=none; b=B10GnhosvYrKxrzRx8AOIDy65bEwht0zRv3iAFdtagPwaQ6s6nY6r5oHmjaNQORhf0DIXicqu6H7p1TvFjMpUouQcCGXX0wXIjNfL0fIyUAlB7DXiCb1S8DB7khvFAzTyjMx9myA4GZqoWuTEHmpkizjJ7EKBnbR1JnMnO+ebrk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773521110; c=relaxed/simple;
-	bh=f4RJBo4uHyp3EODB2YcjEO+X3OxaJUACGVtmIb+ta9k=;
-	h=Date:To:From:Subject:Message-Id; b=M0NCist2iJGeYPCknlNZ+CqzClfXCdDGoYMwButodFmrmTRmZ7vW4YGPzAo5Rx8Gch3G+KnjyY+dAF4atDuR+KEeeCDEwU+9N36QvYH8k3LlxCdMZLS26taCFy0kfctPz7hqmqZ0a9LUDKs3GSeadZaek3D1/ho0sXVf1sT9K7k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XGCBF6HP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773524716; c=relaxed/simple;
+	bh=9hvc7YH6Vu7kHXyaZFiP/EpHjsoTdpXUvwP38B7CpPY=;
+	h=Date:To:From:Subject:Message-Id; b=ZTCkt3W4Bv9E7QeXalJx3V+E0e3f6aNhsLZPd3+od39clSDHA3Y7jwm10DWpfu6DL27gWTt+EtkXyWIW0sD87/yNdEJYNiu4068Joe6eDViq3fWzsyzg/BBEqV33n3RA2e4mTo21BrnWB/sDDnuCr/0xew0Z+juuQMb0XqweDbo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E4LYFB3c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XGCBF6HP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F71FC116C6;
-	Sat, 14 Mar 2026 20:45:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E4LYFB3c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED89AC116C6;
+	Sat, 14 Mar 2026 21:45:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773521110;
-	bh=f4RJBo4uHyp3EODB2YcjEO+X3OxaJUACGVtmIb+ta9k=;
+	s=korg; t=1773524716;
+	bh=9hvc7YH6Vu7kHXyaZFiP/EpHjsoTdpXUvwP38B7CpPY=;
 	h=Date:To:From:Subject:From;
-	b=XGCBF6HPlYgb22WGw/3V9Bo+QX00B1NYtHzqIYeHm9wnT6JFWV01U2jnZpy7CYOzp
-	 gkcxHXpbWsQnGsihgpD7mZ6fhUsryoyXAhMSKeawVk1PJ0gCMNIEtuSELaB7TG1AiX
-	 aQUy0UMygBRZd1BuIa17UPlpAPeYmc3R4m/59Y0A=
-Date: Sat, 14 Mar 2026 13:45:09 -0700
-To: mm-commits@vger.kernel.org,yangyingliang@huawei.com,sj@kernel.org,akpm@linux-foundation.org
+	b=E4LYFB3cU/YeXKw90ECxsqbPayvaDL76zjsVHCXRJeloWJyTZHTYeVrDY79fK8AFH
+	 jCIhpdyJ5nBpHr6ZEyQyyWnqNYGVlTrVzFThpR5WSkGaIhoas94ATepV3ic3ScGnPK
+	 7X1TWm1mc1QPSL9bGLC6DF9/4E+XGUGq0+rx6kq4=
+Date: Sat, 14 Mar 2026 14:45:15 -0700
+To: mm-commits@vger.kernel.org,objecting@objecting.org,mathieu.desnoyers@efficios.com,dennis@kernel.org,devnexen@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch added to mm-new branch
-Message-Id: <20260314204510.6F71FC116C6@smtp.kernel.org>
+Subject: + lib-introduce-hierarchical-per-cpu-counters-fix.patch added to mm-unstable branch
+Message-Id: <20260314214515.ED89AC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: fix wrong damon_set_regions() argument
-has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
+     Subject: lib: fix compare_delta parameter order in percpu_counter_tree
+has been added to the -mm mm-unstable branch.  Its filename is
+     lib-introduce-hierarchical-per-cpu-counters-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-introduce-hierarchical-per-cpu-counters-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,79 +58,65 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: fix wrong damon_set_regions() argument
-Date: Fri, 13 Mar 2026 16:49:08 -0700
+From: David Carlier <devnexen@gmail.com>
+Subject: lib: fix compare_delta parameter order in percpu_counter_tree
+Date: Fri, 13 Mar 2026 17:54:24 +0000
 
-The third argument is the length of the second parameter.  But addr_unit
-is wrongly being passed.  Fix it.
+The compare_delta() helper takes (delta, accuracy_neg, accuracy_pos), but
+every call site passes (delta, accuracy_pos, accuracy_neg) — the last
+two arguments are consistently swapped.
 
-Link: https://lkml.kernel.org/r/20260314001854.79623-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Yang yingliang <yangyingliang@huawei.com>
+The documented invariant (include/linux/percpu_counter_tree.h) is:
+
+  (precise_sum - under) <= approx_sum <= (precise_sum + over)
+
+Which means precise_sum is in [approx_sum - over, approx_sum + under].
+
+For a positive delta (v - approx_sum >= 0), accuracy_pos must be
+"under" (the maximum amount precise_sum can exceed approx_sum).
+For a negative delta, accuracy_neg must be "over". Since under > over
+always (batch_size * M vs (batch_size - 1) * M), swapping them causes
+false definitive results: the functions return 1 ("v > counter") when
+the correct answer is 0 (indeterminate).
+
+This affects all comparison functions:
+- percpu_counter_tree_approximate_compare_value()
+- percpu_counter_tree_approximate_compare()
+- percpu_counter_tree_precise_compare_value()
+- percpu_counter_tree_precise_compare()
+
+The precise variants are also affected because their approximate
+fast-path can short-circuit with a wrong result, skipping the precise
+sum computation.
+
+Fix by swapping the parameter order in compare_delta() itself, since all
+call sites are consistently swapped.
+
+Link: https://lkml.kernel.org/r/20260313175424.132735-1-devnexen@gmail.com
+Signed-off-by: David Carlier <devnexen@gmail.com>
+Reviewed-by: Josh Law <objecting@objecting.org>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    2 +-
+ lib/percpu_counter_tree.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix
-+++ a/mm/damon/core.c
-@@ -3129,7 +3129,7 @@ int damon_set_region_biggest_system_ram_
+--- a/lib/percpu_counter_tree.c~lib-introduce-hierarchical-per-cpu-counters-fix
++++ a/lib/percpu_counter_tree.c
+@@ -458,7 +458,7 @@ long percpu_counter_tree_precise_sum(str
+ EXPORT_SYMBOL_GPL(percpu_counter_tree_precise_sum);
  
- 	addr_range.start = *start;
- 	addr_range.end = *end;
--	return damon_set_regions(t, &addr_range, addr_unit, min_region_sz);
-+	return damon_set_regions(t, &addr_range, 1, min_region_sz);
- }
- 
- /*
+ static
+-int compare_delta(long delta, unsigned long accuracy_neg, unsigned long accuracy_pos)
++int compare_delta(long delta, unsigned long accuracy_pos, unsigned long accuracy_neg)
+ {
+ 	if (delta >= 0) {
+ 		if (delta <= accuracy_pos)
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from devnexen@gmail.com are
 
-mm-damon-core-set-quota-score-histogram-with-core-filters.patch
-mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
-mm-damon-core-split-regions-for-min_nr_regions.patch
-mm-damon-vaddr-do-not-split-regions-for-min_nr_regions.patch
-mm-damon-test-core-kunit-add-damon_apply_min_nr_regions-test.patch
-mm-damon-add-config_damon_debug_sanity.patch
-mm-damon-core-add-damon_new_region-debug_sanity-check.patch
-mm-damon-core-add-damon_del_region-debug_sanity-check.patch
-mm-damon-core-add-damon_nr_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_two_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
-mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
-mm-damon-core-add-damon_reset_aggregated-debug_sanity-check.patch
-mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
-selftests-damon-config-enable-damon_debug_sanity.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
-docs-mm-damon-design-document-the-power-of-two-limitation-for-addr_unit.patch
-mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
-mm-damon-core-use-time_before-for-next_apply_sis.patch
-mm-damon-core-use-time_after_eq-in-kdamond_fn.patch
-mm-damon-core-use-mult_frac.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
-mm-damon-core-clarify-damon_set_attrs-usages.patch
-mm-damon-document-non-zero-length-damon_region-assumption.patch
-docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
-docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
-docs-mm-damon-index-fix-typo-autoamted-automated.patch
-mm-damon-core-introduce-damos_quota_goal_tuner.patch
-mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
-mm-damon-core-introduce-damos_quota_goal_tuner_temporal.patch
-mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
-docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
-docs-admin-guide-mm-damon-usage-document-goal_tuner-sysfs-file.patch
-docs-abi-damon-update-for-goal_tuner.patch
-mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
-selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
-selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
-selftests-damon-sysfspy-test-goal_tuner-commit.patch
-mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
-mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
-mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
-mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
+lib-introduce-hierarchical-per-cpu-counters-fix.patch
 
