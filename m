@@ -1,144 +1,113 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C58F17262B
-	for <mm-commits@vger.kernel.org>; Sun, 15 Mar 2026 22:28:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D2F7296BD6
+	for <mm-commits@vger.kernel.org>; Sun, 15 Mar 2026 23:38:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773613712; cv=none; b=rgbkyQlfVNkCKSnMQwYFt9b5bt5mXCmAuiZxfJSV2Fnww3f4WeIEZ06X+/kxSfZ3Sik4IJarcBV0f85W4q7FiPdVB/7C1pmRaRV7F/uiG+f42Tu3HeAdDjwjFZiHHiNJi+2BbL2YOb3zRdSlDWGzrR8Wrnc7JiDM4h7mJBqu9TM=
+	t=1773617898; cv=none; b=DjjnDYT4FtaBiKB7VKoDWc0LHHU93+1oXAx9rWPsrL3FzC0TdUR9ydSx8q3ECBpl/MQQRBW3xMMTfDS0e+1d8U5CWOujgtZTQQksAjLZ2uN11wa9FtqAcaHuCET8kx3o9YLY25mVA9MjxJV3DF1g3d3zN6YaBWiUnRWy9hz0wvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773613712; c=relaxed/simple;
-	bh=Bsj9kfeXKidpffULh3ymzcTHwomo+amtdgpvtlq2rIU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=flGe+03zUqTQKL3WZ7KZ3v6OeGLI0CiYUX4NWj006nenkAuyxQjiVXcpCocE/Z3so73VwD/v9O2oViiP0LXtG/SDOMu7o4x2egauFORfzskV94LF9FDsvWlyTBthYUybSp9PyNO2Q8NmNY3HanNGMVjhNh4rVaBfK84VCz/BwcI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Zw8/0JNC; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	s=arc-20240116; t=1773617898; c=relaxed/simple;
+	bh=TBIv/jSLY6mNGOukVDZ2RCMCBG1wFhQHtj+Jr2KVwwY=;
+	h=Date:To:From:Subject:Message-Id; b=Pld6ZvLjA9A8VVn9llnwm/CRWU2BiXE9P74m0i1G5i3EEqouL0IsX23PXJXXPsIC9g4KBQoBU503v7EVZ3KNXe3aIyUSMFGQZKZSemhZdLblYvp4PuuaHDzqGDHG/zJutXStsCjYgeGr1xEnvQbSlBMhKnoTBI/RArWzkLXNfBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E+pMgD0N; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Zw8/0JNC"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:From:References:To:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Cc:Content-ID:Content-Description;
-	bh=cf57Hz0JCY3qMX3uDCicuVGXagPrm85jcc9KCVkQjug=; b=Zw8/0JNC5Ss7du2pg4D9pIqmGE
-	S1fx+ggYpxHu0CT5XCKWcwp9Rw4qVwdLFs+vp3tNZNHlXZC74VEebPfQE/CalGaKoyuoF67a0J0yp
-	jSyjvZ2A9tITV4N3NsJqhPCgGjZmk4J/mp/uLu8r1tv57xheAuYuCeVlA3HM9ma0z7SFCZ2G6EfIn
-	sT//vS+iyER3V1yJmOUAx7mAN2hL7VISHdbCUImivmudgt8klfeLlErOd8N56OJ1OuR0qHuvd93MF
-	4biriPJN1/k3lG7G+5g7mHXL+BVjKKamn4D0zS1WMyDZEA5gzekKrD9zAISusRJLDZEPuiubINDa0
-	SZu83AjQ==;
-Received: from [50.53.43.113] (helo=[192.168.254.34])
-	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w1twj-00000002y9j-1ZuP;
-	Sun, 15 Mar 2026 22:28:29 +0000
-Message-ID: <b8128160-2ff4-4c4b-b307-6bc070514ca6@infradead.org>
-Date: Sun, 15 Mar 2026 15:28:29 -0700
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E+pMgD0N"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0D0DC4CEF7;
+	Sun, 15 Mar 2026 23:38:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1773617897;
+	bh=TBIv/jSLY6mNGOukVDZ2RCMCBG1wFhQHtj+Jr2KVwwY=;
+	h=Date:To:From:Subject:From;
+	b=E+pMgD0NBAZKl6RC7E1jdyH5yehGgu4qvlwTTK+b8aKXkJrY0XjrqJUjcabJsR21v
+	 XM7kRQ/aDajktFJ2vFW/n3ZtQyxnfQYwJm5TM4mkP3AQkhZR/1v9F6i0Vv70u/vjlX
+	 8XqH1T1mkliOGvxhOkhz3jZacKt/4swvkO0dnUkM=
+Date: Sun, 15 Mar 2026 16:38:16 -0700
+To: mm-commits@vger.kernel.org,ljs@kernel.org,rdunlap@infradead.org,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-add-mmap_action_map_kernel_pages-fix-3.patch added to mm-new branch
+Message-Id: <20260315233817.A0D0DC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: + mm-add-mmap_action_map_kernel_pages-fix-2.patch added to mm-new
- branch
-To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
- ljs@kernel.org
-References: <20260314232908.73E42C116C6@smtp.kernel.org>
-Content-Language: en-US
+
+
+The patch titled
+     Subject: Docs: mmap_prepare: don't italicize structs
+has been added to the -mm mm-new branch.  Its filename is
+     mm-add-mmap_action_map_kernel_pages-fix-3.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-mmap_action_map_kernel_pages-fix-3.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <20260314232908.73E42C116C6@smtp.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: Docs: mmap_prepare: don't italicize structs
+Date: Sun, 15 Mar 2026 15:45:06 -0700
 
+Using a single quote mark `struct xyz` causes the html output to be
+produced as italic.  Omit the quote marks so that kernel-doc's automarkup
+can make the "struct xyz" bold monospace ("code" style") in the generated
+html.
 
+Link: https://lkml.kernel.org/r/20260315224506.1973566-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-On 3/14/26 4:29 PM, Andrew Morton wrote:
-> The patch titled
->      Subject: mm-add-mmap_action_map_kernel_pages-fix-2
-> has been added to the -mm mm-new branch.  Its filename is
->      mm-add-mmap_action_map_kernel_pages-fix-2.patch
-> 
-> This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-mmap_action_map_kernel_pages-fix-2.patch
-> 
-> This patch will later appear in the mm-new branch at
->     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> 
-> Note, mm-new is a provisional staging ground for work-in-progress
-> patches, and acceptance into mm-new is a notification for others take
-> notice and to finish up reviews.  Please do not hesitate to respond to
-> review feedback and post updated versions to replace or incrementally
-> fixup patches in mm-new.
-> 
-> The mm-new branch of mm.git is not included in linux-next
-> 
-> If a few days of testing in mm-new is successful, the patch will me moved
-> into mm.git's mm-unstable branch, which is included in linux-next
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next via various
-> branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-> and is updated there most days
-> 
-> ------------------------------------------------------
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: mm-add-mmap_action_map_kernel_pages-fix-2
-> Date: Sat Mar 14 04:27:41 PM PDT 2026
-> 
-> randyfy mmap_prepare.rst
-> 
-> Cc: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-> Cc: Randy Dunlap <rdunlap@infradead.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
+ Documentation/filesystems/mmap_prepare.rst |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-LGTM. Thanks.
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Randy Dunlap <rdunlap@infradead.org>
+--- a/Documentation/filesystems/mmap_prepare.rst~mm-add-mmap_action_map_kernel_pages-fix-3
++++ a/Documentation/filesystems/mmap_prepare.rst
+@@ -130,11 +130,11 @@ pointer. These are:
+ * mmap_action_simple_ioremap() - Sets up an I/O remap from a specified
+   physical address and over a specified length.
+ 
+-* mmap_action_map_kernel_pages() - Maps a specified array of `struct page`
++* mmap_action_map_kernel_pages() - Maps a specified array of struct page
+   pointers in the VMA from a specific offset.
+ 
+-* mmap_action_map_kernel_pages_full() - Maps a specified array of `struct
+-  page` pointers over the entire VMA. The caller must ensure there are
++* mmap_action_map_kernel_pages_full() - Maps a specified array of struct
++  page pointers over the entire VMA. The caller must ensure there are
+   sufficient entries in the page array to cover the entire range of the
+   described VMA.
+ 
+_
 
-> 
->  Documentation/filesystems/mmap_prepare.rst |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> --- a/Documentation/filesystems/mmap_prepare.rst~mm-add-mmap_action_map_kernel_pages-fix-2
-> +++ a/Documentation/filesystems/mmap_prepare.rst
-> @@ -130,10 +130,10 @@ pointer. These are:
->  * mmap_action_simple_ioremap() - Sets up an I/O remap from a specified
->    physical address and over a specified length.
->  
-> -* `mmap_action_map_kernel_pages()` - Maps a specified array of `struct page`
-> +* mmap_action_map_kernel_pages() - Maps a specified array of `struct page`
->    pointers in the VMA from a specific offset.
->  
-> -* `mmap_action_map_kernel_pages_full()` - Maps a specified array of `struct
-> +* mmap_action_map_kernel_pages_full() - Maps a specified array of `struct
->    page` pointers over the entire VMA. The caller must ensure there are
->    sufficient entries in the page array to cover the entire range of the
->    described VMA.
-> _
-> 
-> Patches currently in -mm which might be from akpm@linux-foundation.org are
-> 
-> maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
-> maple_tree-add-cp_is_new_root-helper-fix-fix.patch
-> mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix.patch
-> mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix.patch
-> mm-rename-zone-lock-to-zone-_lock-fix.patch
-> mm-page_reporting-add-page_reporting_order_unspecified-fix.patch
-> mm-various-small-mmap_prepare-cleanups-fix.patch
-> mm-add-mmap_action_simple_ioremap-fix.patch
-> mm-add-mmap_action_map_kernel_pages-fix.patch
-> mm-add-mmap_action_map_kernel_pages-fix-2.patch
-> kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
-> decode_stacktrace-decode-caller-address-checkpatch-fixes.patch
-> 
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
--- 
-~Randy
+mm-add-documentation-for-the-mmap_prepare-file-operation-callback-fix.patch
+mm-add-mmap_action_map_kernel_pages-fix-3.patch
+
