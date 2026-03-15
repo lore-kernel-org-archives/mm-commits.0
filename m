@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ECAB38A713
-	for <mm-commits@vger.kernel.org>; Sat, 14 Mar 2026 23:33:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C831C1A294
+	for <mm-commits@vger.kernel.org>; Sun, 15 Mar 2026 00:09:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773531209; cv=none; b=p/wXFKsaqRawNWKLiTZwDrdmOtU/LnCxg2P1cfQd2ywIChkMPwMK0SXAeuPi3uxSeHUHCuQT9fB6sZfxbu8EACfHS/hAKokCWN4zO2lO5gFfUWnC7dgOoYpSnKcnVKF1oppQaz2ihLkVljqk21TZB5GJrIf9hv9r/80aFrSaJjE=
+	t=1773533388; cv=none; b=ohyDUMsAaXVJD3WX1fve7oEmQyvi4GO988r0N2O+X2pqlgUe4BdRl4ULkVfKUK3/EF2jQTIeFTcVY9BrY9OZiDoIHcXU0dReX5MEp/PWodh2XF1Nw3JlRi1J0vlqrG5ZHIJtk2/FAnEzHasi9B/mu1LHzHEoH1RPrFXd6vH6FDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773531209; c=relaxed/simple;
-	bh=dqoiWGQJ45KTQIHGoFwRryL0SEA9sJzo6BoZ2VSI5gQ=;
-	h=Date:To:From:Subject:Message-Id; b=fjnMw5uJzfSo6GmeTUj509rsoLSoWY4XCy5iMjlPvPS5yVcawL0ZdluToiugz+4C0vse47QOXaOfop+Aa3k/6miDoUgG8mu6D2r4VHN6wbHK1X4KlTTMgVBiEWWEqS3pQKrk16qY/TyV2C3dzTBsoKG09CPOIeGs9QmvgM0yLeA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=miDtXrKe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773533388; c=relaxed/simple;
+	bh=nTuCAdFaTLQ+oxjloRPOLzKJltNNnXVJ7Jl1dArqnlw=;
+	h=Date:To:From:Subject:Message-Id; b=RNz+6j6G9dSbVvIQsHtcm/NNER+yqPjQYIoz68T7LopkIMRZpBBw66ICbiLQWhOijnhA9l6OSYVKuUaBmcwExLffM+JsfXRj7igTm09ON4lG2hKF0/TDm61GugtHBTku6Rnd5CkG8ZqpwpGAspBwu75RtvRfItZu5zh5MOiLfTM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NOIlm9Sz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="miDtXrKe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34AA8C116C6;
-	Sat, 14 Mar 2026 23:33:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NOIlm9Sz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9DFFC116C6;
+	Sun, 15 Mar 2026 00:09:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773531209;
-	bh=dqoiWGQJ45KTQIHGoFwRryL0SEA9sJzo6BoZ2VSI5gQ=;
+	s=korg; t=1773533387;
+	bh=nTuCAdFaTLQ+oxjloRPOLzKJltNNnXVJ7Jl1dArqnlw=;
 	h=Date:To:From:Subject:From;
-	b=miDtXrKec6mu6HLREPkMPKQNK7tiRF0bMiwLvAroIOZlEj9BKze0XMeL72etDKP3y
-	 ImJZ3CYOzQXXHSEiO6vrhYR6sC7o6uHummb/suCshajeFkIX2VreOsuDgHJ629zuA/
-	 ZAUr0F+3ILl5jla6M3Ozt8krOe86moqKWJNGFK5o=
-Date: Sat, 14 Mar 2026 16:33:28 -0700
-To: mm-commits@vger.kernel.org,wangjinchao600@gmail.com,skhan@linuxfoundation.org,pmladek@suse.com,max.kellermann@ionos.com,lihuafei1@huawei.com,irogers@google.com,eranian@google.com,dianders@chromium.org,cuiyunhui@bytedance.com,corbet@lwn.net,mrungta@google.com,akpm@linux-foundation.org
+	b=NOIlm9SzSD1YSb/8MJSx4Y3Q52wLEpGRAT4qoOncg1zPHmHM/ebzV+n+BRWgY1cHG
+	 X/9NwxzvL2WjxuZhetW4pntGLvxceMJZRgB+h/PQs11W2+muqRmLO37w/WcSves4VC
+	 g29x/1cyotJrVrWVXKlTR8NC82e8LY2wMD8cD4zk=
+Date: Sat, 14 Mar 2026 17:09:47 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,hughd@google.com,dev.jain@arm.com,david@kernel.org,bas@dfinity.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,adam.bratschikaye@dfinity.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + doc-watchdog-document-buddy-detector.patch added to mm-nonmm-unstable branch
-Message-Id: <20260314233329.34AA8C116C6@smtp.kernel.org>
+Subject: [to-be-updated] selftests-mm-add-folio_split-and-filemap_get_entry-race-test.patch removed from -mm tree
+Message-Id: <20260315000947.A9DFFC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,262 +34,463 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: doc: watchdog: document buddy detector
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     doc-watchdog-document-buddy-detector.patch
+The quilt patch titled
+     Subject: selftests/mm: add folio_split() and filemap_get_entry() race test
+has been removed from the -mm tree.  Its filename was
+     selftests-mm-add-folio_split-and-filemap_get_entry-race-test.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/doc-watchdog-document-buddy-detector.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Mayank Rungta <mrungta@google.com>
-Subject: doc: watchdog: document buddy detector
-Date: Thu, 12 Mar 2026 16:22:06 -0700
+From: Zi Yan <ziy@nvidia.com>
+Subject: selftests/mm: add folio_split() and filemap_get_entry() race test
+Date: Fri, 13 Mar 2026 07:40:37 -0400
 
-The current documentation generalizes the hardlockup detector as primarily
-NMI-perf-based and lacks details on the SMP "Buddy" detector.
+The added folio_split_race_test is a modified C port of the race condition
+test from [1].  The test creates shmem huge pages shared by both a parent
+and a child processes, where the parent process punches holes in the shmem
+to cause folio_split() in the kernel and the child process reads the shmem
+in 16 threads to cause filemap_get_entry() in the kernel.
 
-Update the documentation to add a detailed description of the Buddy
-detector, and also restructure the "Implementation" section to explicitly
-separate "Softlockup Detector", "Hardlockup Detector (NMI/Perf)", and
-"Hardlockup Detector (Buddy)".
+filemap_get_entry() reads the folio and xarray split by folio_split()
+locklessly.  The original test[2] is written in rust and uses memfd (shmem
+backed).  This C port uses shmem directly.
 
-Clarify that the softlockup hrtimer acts as the heartbeat generator for
-both hardlockup mechanisms and centralize the configuration details in a
-"Frequency and Heartbeats" section.
+Note: the initial rust to C conversion is done by Cursor.
 
-Link: https://lkml.kernel.org/r/20260312-hardlockup-watchdog-fixes-v2-5-45bd8a0cc7ed@google.com
-Signed-off-by: Mayank Rungta <mrungta@google.com>
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Li Huafei <lihuafei1@huawei.com>
-Cc: Max Kellermann <max.kellermann@ionos.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Stephane Erainan <eranian@google.com>
-Cc: Wang Jinchao <wangjinchao600@gmail.com>
-Cc: Yunhui Cui <cuiyunhui@bytedance.com>
+Link: https://lore.kernel.org/all/CAKNNEtw5_kZomhkugedKMPOG-sxs5Q5OLumWJdiWXv+C9Yct0w@mail.gmail.com/ [1]
+Link: https://github.com/dfinity/thp-madv-remove-test [2]
+Link: https://lkml.kernel.org/r/20260313114037.3593642-1-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: Bas van Dijk <bas@dfinity.org>
+Cc: Adam Bratschi-Kaye <adam.bratschikaye@dfinity.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/lockup-watchdogs.rst |  171 +++++++++------
- 1 file changed, 112 insertions(+), 59 deletions(-)
+ tools/testing/selftests/mm/Makefile                |    1 
+ tools/testing/selftests/mm/folio_split_race_test.c |  380 +++++++++++
+ tools/testing/selftests/mm/run_vmtests.sh          |    2 
+ 3 files changed, 383 insertions(+)
 
---- a/Documentation/admin-guide/lockup-watchdogs.rst~doc-watchdog-document-buddy-detector
-+++ a/Documentation/admin-guide/lockup-watchdogs.rst
-@@ -30,22 +30,23 @@ timeout is set through the confusingly n
- to cause the system to reboot automatically after a specified amount
- of time.
+diff --git a/tools/testing/selftests/mm/folio_split_race_test.c a/tools/testing/selftests/mm/folio_split_race_test.c
+new file mode 100644
+--- /dev/null
++++ a/tools/testing/selftests/mm/folio_split_race_test.c
+@@ -0,0 +1,380 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * The parent process creates a shmem and forks. The child creates a THP on the
++ * mapping, fills all pages with known patterns, and then continuously verifies
++ * non-punched pages. The parent punches holes via MADV_REMOVE on the shmem
++ * while the child reads.
++ *
++ * It tests the race condition between folio_split() and filemap_get_entry(),
++ * where the hole punches on shmem lead to folio_split() and reading the shmem
++ * lead to filemap_get_entry().
++ */
++
++#define _GNU_SOURCE
++#include <assert.h>
++#include <errno.h>
++#include <linux/mman.h>
++#include <pthread.h>
++#include <stdatomic.h>
++#include <stdbool.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/mman.h>
++#include <sys/stat.h>
++#include <sys/wait.h>
++#include <unistd.h>
++#include "vm_util.h"
++#include "kselftest.h"
++#include "thp_settings.h"
++
++uint64_t page_size;
++uint64_t pmd_pagesize;
++#define NR_PMD_PAGE 5
++#define FILE_SIZE (pmd_pagesize * NR_PMD_PAGE)
++#define TOTAL_PAGES (FILE_SIZE / page_size)
++
++/* Every N-th to N+M-th pages are punched; not aligned with huge page boundaries. */
++#define PUNCH_INTERVAL 50 /* N */
++#define PUNCH_SIZE_FACTOR 3 /* M */
++
++#define NUM_READER_THREADS 16
++#define FILL_BYTE 0xAF
++#define NUM_ITERATIONS 100
++
++#define CHILD_READY 1
++#define CHILD_FAILED 2
++/* Shared control block: MAP_SHARED anonymous so parent and child see same values. */
++struct SharedCtl {
++	atomic_uint_fast32_t ready;
++	atomic_uint_fast32_t stop;
++	atomic_size_t child_failures;
++	atomic_size_t child_verified;
++};
++
++static int get_errno(void)
++{
++	return errno;
++}
++
++static void fill_page(unsigned char *base, size_t page_idx)
++{
++	unsigned char *page_ptr = base + page_idx * page_size;
++	uint64_t idx = (uint64_t)page_idx;
++
++	memset(page_ptr, FILL_BYTE, page_size);
++	memcpy(page_ptr, &idx, sizeof(idx));
++}
++
++/* Returns true if valid, false if corrupted. */
++static bool check_page(unsigned char *base, size_t page_idx)
++{
++	unsigned char *page_ptr = base + page_idx * page_size;
++	uint64_t expected_idx = (uint64_t)page_idx;
++	uint64_t got_idx;
++
++	memcpy(&got_idx, page_ptr, 8);
++
++	if (got_idx != expected_idx) {
++		size_t off;
++		int all_zero = 1;
++
++		for (off = 0; off < page_size; off++) {
++			if (page_ptr[off] != 0) {
++				all_zero = 0;
++				break;
++			}
++		}
++		if (all_zero) {
++			ksft_print_msg(
++				"CORRUPTED: page %zu (huge page %zu) is ALL ZEROS\n",
++				page_idx,
++				(page_idx * page_size) / pmd_pagesize);
++		} else {
++			ksft_print_msg(
++				"CORRUPTED: page %zu (huge page %zu): expected idx %zu, got %lu\n",
++				page_idx, (page_idx * page_size) / pmd_pagesize,
++				page_idx, (unsigned long)got_idx);
++		}
++		return false;
++	}
++	return true;
++}
++
++struct reader_arg {
++	unsigned char *base;
++	struct SharedCtl *ctl;
++	int tid;
++	atomic_size_t *failures;
++	atomic_size_t *verified;
++};
++
++static void *reader_thread(void *arg)
++{
++	struct reader_arg *ra = (struct reader_arg *)arg;
++	unsigned char *base = ra->base;
++	struct SharedCtl *ctl = ra->ctl;
++	int tid = ra->tid;
++	atomic_size_t *failures = ra->failures;
++	atomic_size_t *verified = ra->verified;
++	size_t page_idx;
++
++	while (atomic_load_explicit(&ctl->stop, memory_order_acquire) == 0) {
++		for (page_idx = (size_t)tid; page_idx < TOTAL_PAGES;
++		     page_idx += NUM_READER_THREADS) {
++			if (page_idx % PUNCH_INTERVAL >= 0 &&
++			    page_idx % PUNCH_INTERVAL < PUNCH_SIZE_FACTOR)
++				continue;
++			if (check_page(base, page_idx))
++				atomic_fetch_add_explicit(verified, 1,
++							  memory_order_relaxed);
++			else
++				atomic_fetch_add_explicit(failures, 1,
++							  memory_order_relaxed);
++		}
++		if (atomic_load_explicit(failures, memory_order_relaxed) > 0)
++			break;
++	}
++
++	return NULL;
++}
++
++static void child_reader_loop(unsigned char *base, struct SharedCtl *ctl)
++{
++	pthread_t threads[NUM_READER_THREADS];
++	struct reader_arg args[NUM_READER_THREADS];
++	atomic_size_t failures = 0;
++	atomic_size_t verified = 0;
++	size_t page_idx;
++	size_t recheck = 0;
++	int i;
++
++	for (i = 0; i < NUM_READER_THREADS; i++) {
++		args[i].base = base;
++		args[i].ctl = ctl;
++		args[i].tid = i;
++		args[i].failures = &failures;
++		args[i].verified = &verified;
++		if (pthread_create(&threads[i], NULL, reader_thread,
++				   &args[i]) != 0)
++			ksft_exit_fail_msg("pthread_create failed\n");
++	}
++
++	for (i = 0; i < NUM_READER_THREADS; i++)
++		pthread_join(threads[i], NULL);
++
++	/* Post-sleep recheck */
++	usleep(1000); /* 1 ms */
++
++	for (page_idx = 0; page_idx < TOTAL_PAGES; page_idx++) {
++		if (page_idx % PUNCH_INTERVAL >= 0 &&
++		    page_idx % PUNCH_INTERVAL < PUNCH_SIZE_FACTOR)
++			continue;
++		if (!check_page(base, page_idx))
++			recheck++;
++	}
++	if (recheck)
++		ksft_print_msg("post-sleep failures: %zu\n", recheck);
++
++	atomic_store_explicit(&ctl->child_failures,
++			      atomic_load_explicit(&failures,
++						   memory_order_relaxed),
++			      memory_order_release);
++	atomic_store_explicit(&ctl->child_verified,
++			      atomic_load_explicit(&verified,
++						   memory_order_relaxed),
++			      memory_order_release);
++}
++
++/* Returns number of corrupted pages. */
++static size_t verify_pages(unsigned char *base, const bool *is_punched)
++{
++	size_t failures = 0;
++	size_t page_idx;
++	size_t non_punched = 0;
++
++	for (page_idx = 0; page_idx < TOTAL_PAGES; page_idx++) {
++		if (is_punched[page_idx])
++			continue;
++		if (!check_page(base, page_idx)) {
++			failures++;
++			if (failures >= 100)
++				return failures;
++		}
++		non_punched++;
++	}
++	if (failures)
++		ksft_print_msg("  %zu non-punched pages are corrupted!\n",
++			failures);
++	return failures;
++}
++
++/* Run a single iteration. Returns total number of corrupted pages. */
++static size_t run_iteration(void)
++{
++	struct SharedCtl *ctl;
++	pid_t pid;
++	unsigned char *parent_base;
++	bool *is_punched;
++	size_t i;
++	size_t child_failures, child_verified, parent_failures;
++	int status;
++	size_t n_punched = 0;
++
++	ctl = (struct SharedCtl *)mmap(NULL, sizeof(struct SharedCtl), PROT_READ | PROT_WRITE,
++				MAP_SHARED | MAP_ANONYMOUS, -1, 0);
++	if (ctl == MAP_FAILED)
++		ksft_exit_fail_msg("mmap ctl failed: %d\n", get_errno());
++
++	memset(ctl, 0, sizeof(struct SharedCtl));
++
++	parent_base = mmap(NULL, FILE_SIZE, PROT_READ | PROT_WRITE,
++			   MAP_SHARED | MAP_ANONYMOUS, -1, 0);
++
++	if (parent_base == MAP_FAILED)
++		ksft_exit_fail_msg("mmap failed: %d\n", get_errno());
++
++	pid = fork();
++	if (pid < 0)
++		ksft_exit_fail_msg("fork failed: %d\n", get_errno());
++
++	if (pid == 0) {
++		/* ---- Child process ---- */
++		unsigned char *child_base = parent_base;
++
++		if (madvise(child_base, FILE_SIZE, MADV_HUGEPAGE) != 0)
++			ksft_exit_fail_msg("madvise(MADV_HUGEPAGE) failed: %d\n",
++				get_errno());
++
++		for (i = 0; i < TOTAL_PAGES; i++)
++			fill_page(child_base, i);
++
++		if (!check_huge_shmem(child_base, NR_PMD_PAGE, pmd_pagesize)) {
++			atomic_store_explicit(&ctl->ready, CHILD_FAILED, memory_order_release);
++			ksft_print_msg("No shmem THP is allocated\n");
++			_exit(0);
++		}
++
++		atomic_store_explicit(&ctl->ready, CHILD_READY, memory_order_release);
++		child_reader_loop(child_base, ctl);
++
++		munmap(child_base, FILE_SIZE);
++		_exit(0);
++	}
++
++	/* ---- Parent process ---- */
++	while (atomic_load_explicit(&ctl->ready, memory_order_acquire) == 0)
++		usleep(1000);
++
++	if (ctl->ready == CHILD_FAILED)
++		ksft_exit_fail_msg("Child process error\n");
++
++	is_punched = calloc(TOTAL_PAGES, sizeof(bool));
++	if (!is_punched)
++		ksft_exit_fail_msg("calloc is_punched failed\n");
++
++	for (i = 0; i < TOTAL_PAGES; i++) {
++		int j;
++
++		if (i % PUNCH_INTERVAL != 0)
++			continue;
++		if (madvise(parent_base + i * page_size,
++			    PUNCH_SIZE_FACTOR * page_size, MADV_REMOVE) != 0) {
++			ksft_exit_fail_msg(
++				"madvise(MADV_REMOVE) failed on page %zu: %d\n",
++				i, get_errno());
++		}
++		for (j = 0; j < PUNCH_SIZE_FACTOR && i + j < TOTAL_PAGES; j++)
++			is_punched[i + j] = true;
++
++		i += PUNCH_SIZE_FACTOR;
++
++		n_punched += PUNCH_SIZE_FACTOR;
++	}
++
++	atomic_store_explicit(&ctl->stop, 1, memory_order_release);
++
++	if (waitpid(pid, &status, 0) != pid)
++		ksft_exit_fail_msg("waitpid failed\n");
++
++	child_failures = atomic_load_explicit(&ctl->child_failures,
++					      memory_order_acquire);
++	child_verified = atomic_load_explicit(&ctl->child_verified,
++					      memory_order_acquire);
++	if (child_failures)
++		ksft_print_msg("Child: %zu pages verified, %zu failures\n",
++			child_verified, child_failures);
++
++	parent_failures = verify_pages(parent_base, is_punched);
++	if (parent_failures)
++		ksft_print_msg("Parent verification failures: %zu\n",
++			parent_failures);
++
++	munmap(parent_base, FILE_SIZE);
++	munmap(ctl, sizeof(struct SharedCtl));
++	free(is_punched);
++
++	(void)n_punched;
++	return child_failures + parent_failures;
++}
++
++int main(void)
++{
++	size_t iter;
++	size_t failures;
++	struct thp_settings current_settings;
++	bool failed = false;
++
++	ksft_print_header();
++
++	if (!thp_is_enabled())
++		ksft_exit_skip("Transparent Hugepages not available\n");
++
++	if (geteuid() != 0) {
++		ksft_print_msg("Please run the benchmark as root\n");
++		ksft_finished();
++	}
++
++	thp_save_settings();
++	thp_read_settings(&current_settings);
++	current_settings.shmem_enabled = SHMEM_ADVISE;
++	thp_write_settings(&current_settings);
++
++	ksft_set_plan(1);
++
++	page_size = getpagesize();
++	pmd_pagesize = read_pmd_pagesize();
++
++	ksft_print_msg("folio split race test\n");
++	ksft_print_msg("=======================================================\n");
++	ksft_print_msg("Shmem size:       %zu MiB\n", FILE_SIZE / 1024 / 1024);
++	ksft_print_msg("Total pages:     %zu\n", TOTAL_PAGES);
++	ksft_print_msg("Child readers:   %d\n", NUM_READER_THREADS);
++	ksft_print_msg("Punching every %dth to %dth page\n", PUNCH_INTERVAL,
++	       PUNCH_INTERVAL + PUNCH_SIZE_FACTOR);
++	ksft_print_msg("Iterations:      %d\n", NUM_ITERATIONS);
++
++	for (iter = 1; iter <= NUM_ITERATIONS; iter++) {
++		failures = run_iteration();
++		if (failures > 0) {
++			failed = true;
++			ksft_print_msg(
++				"FAILED on iteration %zu: %zu pages corrupted by cross-process MADV_REMOVE!\n",
++				iter, failures);
++			break;
++		}
++	}
++
++	thp_restore_settings();
++
++	if (failed) {
++		ksft_test_result_fail("Test failed\n");
++		ksft_exit_fail();
++	} else {
++		ksft_test_result_pass("All %d iterations passed\n", NUM_ITERATIONS);
++		ksft_exit_pass();
++	}
++
++	return 0;
++}
+--- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-folio_split-and-filemap_get_entry-race-test
++++ a/tools/testing/selftests/mm/Makefile
+@@ -105,6 +105,7 @@ TEST_GEN_FILES += droppable
+ TEST_GEN_FILES += guard-regions
+ TEST_GEN_FILES += merge
+ TEST_GEN_FILES += rmap
++TEST_GEN_FILES += folio_split_race_test
  
-+Configuration
-+=============
-+
-+A kernel knob is provided that allows administrators to configure
-+this period. The "watchdog_thresh" parameter (default 10 seconds)
-+controls the threshold. The right value for a particular environment
-+is a trade-off between fast response to lockups and detection overhead.
-+
- Implementation
- ==============
+ ifneq ($(ARCH),arm64)
+ TEST_GEN_FILES += soft-dirty
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-folio_split-and-filemap_get_entry-race-test
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -555,6 +555,8 @@ if [ -n "${MOUNTED_XFS}" ]; then
+     rm -f ${XFS_IMG}
+ fi
  
--The soft and hard lockup detectors are built on top of the hrtimer and
--perf subsystems, respectively. A direct consequence of this is that,
--in principle, they should work in any architecture where these
--subsystems are present.
--
--A periodic hrtimer runs to generate interrupts and kick the watchdog
--job. An NMI perf event is generated every "watchdog_thresh"
--(compile-time initialized to 10 and configurable through sysctl of the
--same name) seconds to check for hardlockups. If any CPU in the system
--does not receive any hrtimer interrupt during that time the
--'hardlockup detector' (the handler for the NMI perf event) will
--generate a kernel warning or call panic, depending on the
--configuration.
-+The soft lockup detector is built on top of the hrtimer subsystem.
-+The hard lockup detector is built on top of the perf subsystem
-+(on architectures that support it) or uses an SMP "buddy" system.
++CATEGORY="thp" run_test ./folio_split_race_test
 +
-+Softlockup Detector
-+-------------------
+ CATEGORY="migration" run_test ./migration
  
- The watchdog job runs in a stop scheduling thread that updates a
- timestamp every time it is scheduled. If that timestamp is not updated
-@@ -55,53 +56,105 @@ will dump useful debug information to th
- will call panic if it was instructed to do so or resume execution of
- other kernel code.
- 
--The period of the hrtimer is 2*watchdog_thresh/5, which means it has
--two or three chances to generate an interrupt before the hardlockup
--detector kicks in.
--
--As explained above, a kernel knob is provided that allows
--administrators to configure the period of the hrtimer and the perf
--event. The right value for a particular environment is a trade-off
--between fast response to lockups and detection overhead.
--
--Detection Overhead
--------------------
--
--The hardlockup detector checks for lockups using a periodic NMI perf
--event. This means the time to detect a lockup can vary depending on
--when the lockup occurs relative to the NMI check window.
--
--**Best Case:**
--In the best case scenario, the lockup occurs just before the first
--heartbeat is due. The detector will notice the missing hrtimer
--interrupt almost immediately during the next check.
--
--::
--
--  Time 100.0: cpu 1 heartbeat
--  Time 100.1: hardlockup_check, cpu1 stores its state
--  Time 103.9: Hard Lockup on cpu1
--  Time 104.0: cpu 1 heartbeat never comes
--  Time 110.1: hardlockup_check, cpu1 checks the state again, should be the same, declares lockup
--
--  Time to detection: ~6 seconds
--
--**Worst Case:**
--In the worst case scenario, the lockup occurs shortly after a valid
--interrupt (heartbeat) which itself happened just after the NMI check.
--The next NMI check sees that the interrupt count has changed (due to
--that one heartbeat), assumes the CPU is healthy, and resets the
--baseline. The lockup is only detected at the subsequent check.
--
--::
--
--  Time 100.0: hardlockup_check, cpu1 stores its state
--  Time 100.1: cpu 1 heartbeat
--  Time 100.2: Hard Lockup on cpu1
--  Time 110.0: hardlockup_check, cpu1 stores its state (misses lockup as state changed)
--  Time 120.0: hardlockup_check, cpu1 checks the state again, should be the same, declares lockup
-+Frequency and Heartbeats
-+------------------------
-+
-+The hrtimer used by the softlockup detector serves a dual purpose:
-+it detects softlockups, and it also generates the interrupts
-+(heartbeats) that the hardlockup detectors use to verify CPU liveness.
-+
-+The period of this hrtimer is 2*watchdog_thresh/5. This means the
-+hrtimer has two or three chances to generate an interrupt before the
-+NMI hardlockup detector kicks in.
-+
-+Hardlockup Detector (NMI/Perf)
-+------------------------------
-+
-+On architectures that support NMI (Non-Maskable Interrupt) perf events,
-+a periodic NMI is generated every "watchdog_thresh" seconds.
-+
-+If any CPU in the system does not receive any hrtimer interrupt
-+(heartbeat) during the "watchdog_thresh" window, the 'hardlockup
-+detector' (the handler for the NMI perf event) will generate a kernel
-+warning or call panic.
-+
-+**Detection Overhead (NMI):**
-+
-+The time to detect a lockup can vary depending on when the lockup
-+occurs relative to the NMI check window. Examples below assume a watchdog_thresh of 10.
-+
-+* **Best Case:** The lockup occurs just before the first heartbeat is
-+  due. The detector will notice the missing hrtimer interrupt almost
-+  immediately during the next check.
-+
-+  ::
-+
-+    Time 100.0: cpu 1 heartbeat
-+    Time 100.1: hardlockup_check, cpu1 stores its state
-+    Time 103.9: Hard Lockup on cpu1
-+    Time 104.0: cpu 1 heartbeat never comes
-+    Time 110.1: hardlockup_check, cpu1 checks the state again, should be the same, declares lockup
-+
-+    Time to detection: ~6 seconds
-+
-+* **Worst Case:** The lockup occurs shortly after a valid interrupt
-+  (heartbeat) which itself happened just after the NMI check. The next
-+  NMI check sees that the interrupt count has changed (due to that one
-+  heartbeat), assumes the CPU is healthy, and resets the baseline. The
-+  lockup is only detected at the subsequent check.
-+
-+  ::
-+
-+    Time 100.0: hardlockup_check, cpu1 stores its state
-+    Time 100.1: cpu 1 heartbeat
-+    Time 100.2: Hard Lockup on cpu1
-+    Time 110.0: hardlockup_check, cpu1 stores its state (misses lockup as state changed)
-+    Time 120.0: hardlockup_check, cpu1 checks the state again, should be the same, declares lockup
-+
-+    Time to detection: ~20 seconds
-+
-+Hardlockup Detector (Buddy)
-+---------------------------
-+
-+On architectures or configurations where NMI perf events are not
-+available (or disabled), the kernel may use the "buddy" hardlockup
-+detector. This mechanism requires SMP (Symmetric Multi-Processing).
-+
-+In this mode, each CPU is assigned a "buddy" CPU to monitor. The
-+monitoring CPU runs its own hrtimer (the same one used for softlockup
-+detection) and checks if the buddy CPU's hrtimer interrupt count has
-+increased.
-+
-+To ensure timeliness and avoid false positives, the buddy system performs
-+checks at every hrtimer interval (2*watchdog_thresh/5, which is 4 seconds
-+by default). It uses a missed-interrupt threshold of 3. If the buddy's
-+interrupt count has not changed for 3 consecutive checks, it is assumed
-+that the buddy CPU is hardlocked (interrupts disabled). The monitoring
-+CPU will then trigger the hardlockup response (warning or panic).
-+
-+**Detection Overhead (Buddy):**
-+
-+With a default check interval of 4 seconds (watchdog_thresh = 10):
-+
-+* **Best case:** Lockup occurs just before a check.
-+    Detected in ~8s (0s till 1st check + 4s till 2nd + 4s till 3rd).
-+* **Worst case:** Lockup occurs just after a check.
-+    Detected in ~12s (4s till 1st check + 4s till 2nd + 4s till 3rd).
-+
-+**Limitations of the Buddy Detector:**
-+
-+1.  **All-CPU Lockup:** If all CPUs lock up simultaneously, the buddy
-+    detector cannot detect the condition because the monitoring CPUs
-+    are also frozen.
-+2.  **Stack Traces:** Unlike the NMI detector, the buddy detector
-+    cannot directly interrupt the locked CPU to grab a stack trace.
-+    It relies on architecture-specific mechanisms (like NMI backtrace
-+    support) to try and retrieve the status of the locked CPU. If
-+    such support is missing, the log may only show that a lockup
-+    occurred without providing the locked CPU's stack.
- 
--  Time to detection: ~20 seconds
-+Watchdog Core Exclusion
-+=======================
- 
- By default, the watchdog runs on all online cores.  However, on a
- kernel configured with NO_HZ_FULL, by default the watchdog runs only
+ CATEGORY="mkdirty" run_test ./mkdirty
 _
 
-Patches currently in -mm which might be from mrungta@google.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-watchdog-return-early-in-watchdog_hardlockup_check.patch
-watchdog-update-saved-interrupts-during-check.patch
-doc-watchdog-clarify-hardlockup-detection-timing.patch
-watchdog-hardlockup-improve-buddy-system-detection-timeliness.patch
-doc-watchdog-document-buddy-detector.patch
 
