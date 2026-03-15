@@ -1,148 +1,121 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 378F0256C70
-	for <mm-commits@vger.kernel.org>; Sun, 15 Mar 2026 20:04:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D24919539F;
+	Sun, 15 Mar 2026 20:43:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773605099; cv=none; b=ezhnZQsI4J2oDsbrMjHFjKveA4NsSn9e4Jbbt5lbaXMb8psrwqxUMyh/e7Zy22ef7RQ/1Fs3iOrlJpavPq3/D3MjBWEfqzsHUN6G8hjBcauF5OcRf4Q3Klg5fUGOi1CScdRRaSCoWyF7IkSVqXaTp7DIyQlAVrAPBY6DVab6dE8=
+	t=1773607418; cv=none; b=lJfJktyc8jz4HaGzzvDzOHbC1yVqdk3n4u5eT/jiXthaaKODFoHqOWJwAbtzi6eVbocRIu53i9JrdOEsdsfYy1qNyfG3EWC4bLBjL+rYPaJ1DFmeH5tWJ9e1cwq1r3n8ZR0XPPSAoYp8DR35xVepUjJiZh25wnXu6yze8eBm3iA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773605099; c=relaxed/simple;
-	bh=eySMtCqDk3b45FqY6RtQy4qxp8aL2LrSVSKBgOZrOxs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=kbaoYkg5EQQXwMsrjpO1Ju2bGITC+hX58rwuZEO7WdnN3+8w49f/5G+OQOsOEhiauBGwQq4L3Y01kj7j2iqsmuzcjAxkwuPH9ABPDAYPWSe9msHJvGfvxm3Zgv6Q3EzdYi6lk7yfZEzKf+hhGki6Ho1Uxk9h+5XEZEG5CZYAQho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=M8519zTG; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1773607418; c=relaxed/simple;
+	bh=m+AZNwVISlRtlPucyx9mZpMA7diB7VjTP/3aEWFd8cg=;
+	h=Date:To:From:Subject:Message-Id; b=hPPun6HHhWdvD59IX9amTNa6r0RSVKoeYEy8DrMrKa2a8ZxhY2+Tvy1dfgPszsd4d6rpO/m0/LhsjX+WgPNuKnTjEpBOf9S5Pxl2nCdt2+sHrwH9/zzq7BG60//5X1V/UgojwVC+SdoxQ4c3OGZpnbC3CX5OP8Yk+OTLcaqRrtI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d/mSeMrf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="M8519zTG"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1773605097;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Av64PTZTx00+LrXHrjvSdBtdr+FbvrIm9xicioz1uvg=;
-	b=M8519zTGECUMFmpfQAwROPM6h7wyw0qsMKhe9CYbAR7ZANnmEfibn/GG/utO3AXVeCDvxe
-	VKMC4ZsNWcfL9gXNGH7FsDlov+a9JT7CMSln1/elH8zoDBXbhCL7JJSMBBhRdBLwl0Aphy
-	uXsv8QuTdycrDAvsG8X5Yp9FgEbOz64=
-Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-646-oSkMaxtcO9SkFNLVhD3Jrw-1; Sun,
- 15 Mar 2026 16:04:55 -0400
-X-MC-Unique: oSkMaxtcO9SkFNLVhD3Jrw-1
-X-Mimecast-MFC-AGG-ID: oSkMaxtcO9SkFNLVhD3Jrw_1773605094
-Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 5505B1956088;
-	Sun, 15 Mar 2026 20:04:54 +0000 (UTC)
-Received: from fedora (unknown [10.45.225.204])
-	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with SMTP id DE3B019560B7;
-	Sun, 15 Mar 2026 20:04:51 +0000 (UTC)
-Received: by fedora (nbSMTP-1.00) for uid 1000
-	oleg@redhat.com; Sun, 15 Mar 2026 21:04:53 +0100 (CET)
-Date: Sun, 15 Mar 2026 21:04:50 +0100
-From: Oleg Nesterov <oleg@redhat.com>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Deepanshu Kartikey <kartikey406@gmail.com>
-Cc: mm-commits@vger.kernel.org, mjguzik@gmail.com, kees@kernel.org,
-	brauner@kernel.org
-Subject: Re: [withdrawn]
- do_notify_parent-sanitize-the-valid_signal-checks.patch removed from -mm
- tree
-Message-ID: <abcQ4o0BipVJkT_8@redhat.com>
-References: <20260309200920.56FCFC4CEF7@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d/mSeMrf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0897C4CEF7;
+	Sun, 15 Mar 2026 20:43:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1773607418;
+	bh=m+AZNwVISlRtlPucyx9mZpMA7diB7VjTP/3aEWFd8cg=;
+	h=Date:To:From:Subject:From;
+	b=d/mSeMrfhm7pvCWdx44c4UJ4xCrqtzPvVl9w0pVLREdNdybFY33rhU0RxWXHQxfiI
+	 3gKIT90dLfPa6G5ENBLRNAAs7YPPBh43a1uqB151wF6V6WodCPHkRSz8M842LWepYr
+	 vZz61hVEC2NHTzKIYobYGoW4qy7bofYFVpn0M1cc=
+Date: Sun, 15 Mar 2026 13:43:37 -0700
+To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,oleg@redhat.com,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kees@kernel.org,Kartikey406@gmail.com,juri.lelli@redhat.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,brauner@kernel.org,kartikey406@gmail.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] kernel-fork-validate-exit_signal-in-clone-syscall.patch removed from -mm tree
+Message-Id: <20260315204337.F0897C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20260309200920.56FCFC4CEF7@smtp.kernel.org>
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
 
-On 03/09, Andrew Morton wrote:
->
-> The quilt patch titled
->      Subject: do_notify_parent: sanitize the valid_signal() checks
-> has been removed from the -mm tree.  Its filename was
->      do_notify_parent-sanitize-the-valid_signal-checks.patch
->
-> This patch was dropped because it was withdrawn
 
-OK, thanks!
+The quilt patch titled
+     Subject: kernel/fork: validate exit_signal in clone() syscall
+has been removed from the -mm tree.  Its filename was
+     kernel-fork-validate-exit_signal-in-clone-syscall.patch
 
-but then please also drop kernel-fork-validate-exit_signal-in-clone-syscall.patch
-from Deepanshu (cc'ed).
+This patch was dropped because an updated version will be issued
 
-Because that patch:
+------------------------------------------------------
+From: Deepanshu Kartikey <kartikey406@gmail.com>
+Subject: kernel/fork: validate exit_signal in clone() syscall
+Date: Sat, 7 Mar 2026 12:12:02 +0530
 
-	- is not complete in any case
+When a child process exits, it sends exit_signal to its parent via
+do_notify_parent().  The clone() syscall constructs exit_signal as:
 
-	- makes no sense (at least with its current changelog) without
-	  do_notify_parent-sanitize-the-valid_signal-checks.patch
+  (lower_32_bits(clone_flags) & CSIGNAL)
 
-If Deepanshu sends V2 (with the updated changelog), we can reconsider
-both patches from Deepanshu and me.
+CSIGNAL is 0xff, so values in the range 65-255 are possible.  However,
+valid_signal() only accepts signals up to _NSIG (64 on x86_64), causing a
+WARN_ON in do_notify_parent() when the process exits:
 
-Oleg.
+  WARNING: kernel/signal.c:2174 do_notify_parent+0xc7e/0xd70
 
-> ------------------------------------------------------
-> From: Oleg Nesterov <oleg@redhat.com>
-> Subject: do_notify_parent: sanitize the valid_signal() checks
-> Date: Sun, 22 Feb 2026 16:23:47 +0100
-> 
-> The "sig" argument of do_notify_parent() must always be valid and it does
-> WARN_ON_ONCE(sig == -1) at the start.  The 2nd valid_signal() check before
-> __send_signal_locked() must always be true or we have a bug.
-> 
-> This is confusing.  Change do_notify_parent() to WARN and return early if
-> valid_signal(sig) is false.
-> 
-> Link: https://lkml.kernel.org/r/aZsfg0Y055yuAvsq@redhat.com
-> Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-> Cc: Christian Brauner <brauner@kernel.org>
-> Cc: Kees Cook <kees@kernel.org>
-> Cc: Mateusz Guzik <mjguzik@gmail.com>
-> Cc; Deepanshu Kartikey <kartikey406@gmail.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  kernel/signal.c |    5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> --- a/kernel/signal.c~do_notify_parent-sanitize-the-valid_signal-checks
-> +++ a/kernel/signal.c
-> @@ -2173,7 +2173,8 @@ bool do_notify_parent(struct task_struct
->  	bool autoreap = false;
->  	u64 utime, stime;
->  
-> -	WARN_ON_ONCE(sig == -1);
-> +	if (WARN_ON_ONCE(!valid_signal(sig)))
-> +		return false;
->  
->  	/* do_notify_parent_cldstop should have been called instead.  */
->  	WARN_ON_ONCE(task_is_stopped_or_traced(tsk));
-> @@ -2254,7 +2255,7 @@ bool do_notify_parent(struct task_struct
->  	 * Send with __send_signal as si_pid and si_uid are in the
->  	 * parent's namespaces.
->  	 */
-> -	if (valid_signal(sig) && sig)
-> +	if (sig)
->  		__send_signal_locked(sig, &info, tsk->parent, PIDTYPE_TGID, false);
->  	__wake_up_parent(tsk, tsk->parent);
->  	spin_unlock_irqrestore(&psig->siglock, flags);
-> _
-> 
-> Patches currently in -mm which might be from oleg@redhat.com are
-> 
-> exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent.patch
-> complete_signal-kill-always-true-core_state-signal_group_exit-check.patch
-> pid-make-sub-init-creation-retryable.patch
-> pid-document-the-pidns_adding-checks-in-alloc_pid-and-copy_process.patch
-> 
+The syzkaller reproducer triggers this by calling clone() with flags=0x80,
+resulting in exit_signal = (0x80 & CSIGNAL) = 128, which exceeds _NSIG and
+is not a valid signal.
+
+The comment above kernel_clone() states that callers are expected to
+validate exit_signal.  clone3() correctly does this:
+
+  if (unlikely((args.exit_signal & ~((u64)CSIGNAL)) ||
+               !valid_signal(args.exit_signal)))
+          return -EINVAL;
+
+The clone() syscall has no such check.  Add the missing valid_signal()
+check to clone(), consistent with the existing validation in clone3().
+
+Link: https://lkml.kernel.org/r/20260307064202.353405-1-kartikey406@gmail.com
+Fixes: 3f2c788a1314 ("fork: prevent accidental access to clone3 features")
+Signed-off-by: Deepanshu Kartikey <Kartikey406@gmail.com>
+Reported-by: syzbot+bbe6b99feefc3a0842de@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=bbe6b99feefc3a0842de
+Tested-by: syzbot+bbe6b99feefc3a0842de@syzkaller.appspotmail.com
+Cc: Ben Segall <bsegall@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Valentin Schneider <vschneid@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ kernel/fork.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/kernel/fork.c~kernel-fork-validate-exit_signal-in-clone-syscall
++++ a/kernel/fork.c
+@@ -2796,7 +2796,8 @@ SYSCALL_DEFINE5(clone, unsigned long, cl
+ 		.stack		= newsp,
+ 		.tls		= tls,
+ 	};
+-
++	if (!valid_signal(args.exit_signal))
++		return -EINVAL;
+ 	return kernel_clone(&args);
+ }
+ #endif
+_
+
+Patches currently in -mm which might be from kartikey406@gmail.com are
+
 
