@@ -1,37 +1,37 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C19A57262B
-	for <mm-commits@vger.kernel.org>; Sun, 15 Mar 2026 22:28:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C58F17262B
+	for <mm-commits@vger.kernel.org>; Sun, 15 Mar 2026 22:28:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773613708; cv=none; b=IHk4S/KQ4g7pn/TUfKqr8Zf2MzUkedCaqXkycBIGuzJ0WFvLdaBSC39glaIVHkyBl1eXBow0xaVGUD8aHlkrglOQWkBhLbVqPLaLGxDCo7f3VW9zqbPWWWVmSBjLlFyathLh32lmOQCMJRXG9H5AQJPyquek+q+eUbgoQLxcous=
+	t=1773613712; cv=none; b=rgbkyQlfVNkCKSnMQwYFt9b5bt5mXCmAuiZxfJSV2Fnww3f4WeIEZ06X+/kxSfZ3Sik4IJarcBV0f85W4q7FiPdVB/7C1pmRaRV7F/uiG+f42Tu3HeAdDjwjFZiHHiNJi+2BbL2YOb3zRdSlDWGzrR8Wrnc7JiDM4h7mJBqu9TM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773613708; c=relaxed/simple;
-	bh=7CwVkOCfIT05S84MkZXqul+2LwH554vcW5JzOBj9MSA=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:References:
-	 In-Reply-To:Content-Type; b=ez/LM67jT0slR2GyRmE/Pj1xmSX+ykVw79xa2UhlN9qUtbRs9io8V6B5ha6lg+7yCKPN/ecJGkGskbEypdn0c3aEf39tojrGulm05FiszKIto8VBzmoT89ejNtM5d6UdN4qbVTy6hh75LoL19vHoulQtA1+ygkicai+DslYeSJg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=iivkr75O; arc=none smtp.client-ip=198.137.202.133
+	s=arc-20240116; t=1773613712; c=relaxed/simple;
+	bh=Bsj9kfeXKidpffULh3ymzcTHwomo+amtdgpvtlq2rIU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=flGe+03zUqTQKL3WZ7KZ3v6OeGLI0CiYUX4NWj006nenkAuyxQjiVXcpCocE/Z3so73VwD/v9O2oViiP0LXtG/SDOMu7o4x2egauFORfzskV94LF9FDsvWlyTBthYUybSp9PyNO2Q8NmNY3HanNGMVjhNh4rVaBfK84VCz/BwcI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Zw8/0JNC; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="iivkr75O"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Zw8/0JNC"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:References:To:Subject:From:MIME-Version:Date:
+	Content-Type:In-Reply-To:From:References:To:Subject:MIME-Version:Date:
 	Message-ID:Sender:Reply-To:Cc:Content-ID:Content-Description;
-	bh=uMfej4JBii9T5tXlHy8c12EEC95/Ulg6vSlYq0DZYYo=; b=iivkr75OORN1eOFoISSLe+XF1/
-	CKyGfNSDmpribDUlTzjxjZw8HBQyiLrXmWuHs/MKXWyNz3sa/k2QBLMhfMtWLcJYvYUbpVJtTH+cN
-	FsPpPJpD9uUVFp0UwjrwNN6ph53FyXaHz8yIBrbHn9O8AYziHITwegEATzEYneN5qr6s9tXbVmMRF
-	LnoHuqL/yjn3WqB+Uae9pJYBxL4nFcRZm/VEHH4Fw3RIS22OxFYw7rH86fRv2C2Ux2HKRPAM2DTwv
-	eJhd+ykH+LuqQqvJ9cr1DIvTInY+owxmV2wBFNWX//6zDg6W9X8GzyyfVIN1yeY1TJQ8WkP3lmCHA
-	GzvBMlMw==;
+	bh=cf57Hz0JCY3qMX3uDCicuVGXagPrm85jcc9KCVkQjug=; b=Zw8/0JNC5Ss7du2pg4D9pIqmGE
+	S1fx+ggYpxHu0CT5XCKWcwp9Rw4qVwdLFs+vp3tNZNHlXZC74VEebPfQE/CalGaKoyuoF67a0J0yp
+	jSyjvZ2A9tITV4N3NsJqhPCgGjZmk4J/mp/uLu8r1tv57xheAuYuCeVlA3HM9ma0z7SFCZ2G6EfIn
+	sT//vS+iyER3V1yJmOUAx7mAN2hL7VISHdbCUImivmudgt8klfeLlErOd8N56OJ1OuR0qHuvd93MF
+	4biriPJN1/k3lG7G+5g7mHXL+BVjKKamn4D0zS1WMyDZEA5gzekKrD9zAISusRJLDZEPuiubINDa0
+	SZu83AjQ==;
 Received: from [50.53.43.113] (helo=[192.168.254.34])
 	by bombadil.infradead.org with esmtpsa (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1w1twc-00000002y9C-2Kw9;
-	Sun, 15 Mar 2026 22:28:22 +0000
-Message-ID: <cbaec2e4-9d53-417d-bfec-6a0a40e86553@infradead.org>
-Date: Sun, 15 Mar 2026 15:28:21 -0700
+	id 1w1twj-00000002y9j-1ZuP;
+	Sun, 15 Mar 2026 22:28:29 +0000
+Message-ID: <b8128160-2ff4-4c4b-b307-6bc070514ca6@infradead.org>
+Date: Sun, 15 Mar 2026 15:28:29 -0700
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -39,27 +39,27 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: + mm-add-mmap_action_simple_ioremap-fix.patch added to mm-new
+Subject: Re: + mm-add-mmap_action_map_kernel_pages-fix-2.patch added to mm-new
  branch
 To: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
  ljs@kernel.org
-References: <20260314232107.C989EC116C6@smtp.kernel.org>
+References: <20260314232908.73E42C116C6@smtp.kernel.org>
 Content-Language: en-US
-In-Reply-To: <20260314232107.C989EC116C6@smtp.kernel.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <20260314232908.73E42C116C6@smtp.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 3/14/26 4:21 PM, Andrew Morton wrote:
+On 3/14/26 4:29 PM, Andrew Morton wrote:
 > The patch titled
->      Subject: mm-add-mmap_action_simple_ioremap-fix
+>      Subject: mm-add-mmap_action_map_kernel_pages-fix-2
 > has been added to the -mm mm-new branch.  Its filename is
->      mm-add-mmap_action_simple_ioremap-fix.patch
+>      mm-add-mmap_action_map_kernel_pages-fix-2.patch
 > 
 > This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-mmap_action_simple_ioremap-fix.patch
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-mmap_action_map_kernel_pages-fix-2.patch
 > 
 > This patch will later appear in the mm-new branch at
 >     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -89,8 +89,8 @@ On 3/14/26 4:21 PM, Andrew Morton wrote:
 > 
 > ------------------------------------------------------
 > From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: mm-add-mmap_action_simple_ioremap-fix
-> Date: Sat Mar 14 04:19:36 PM PDT 2026
+> Subject: mm-add-mmap_action_map_kernel_pages-fix-2
+> Date: Sat Mar 14 04:27:41 PM PDT 2026
 > 
 > randyfy mmap_prepare.rst
 > 
@@ -99,35 +99,29 @@ On 3/14/26 4:21 PM, Andrew Morton wrote:
 > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 > ---
 
-That change LGTM.
+LGTM. Thanks.
 Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Tested-by: Randy Dunlap <rdunlap@infradead.org>
 
-
-Not related to this patch, but at line 98 of
-mmap_prepare.rst I now see a reference to
-struct vma_area_desc. I think that should be
-struct vm_area_desc. (?)
-
-For some reason 'git grep vma_area_desc' does not even
-find one occurrence of that string for me, while
-good ole 'grep -rs vma_area_desc' does find it.
-
 > 
->  Documentation/filesystems/mmap_prepare.rst |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  Documentation/filesystems/mmap_prepare.rst |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> --- a/Documentation/filesystems/mmap_prepare.rst~mm-add-mmap_action_simple_ioremap-fix
+> --- a/Documentation/filesystems/mmap_prepare.rst~mm-add-mmap_action_map_kernel_pages-fix-2
 > +++ a/Documentation/filesystems/mmap_prepare.rst
-> @@ -127,7 +127,7 @@ pointer. These are:
->  * mmap_action_ioremap_full() - Same as mmap_action_ioremap(), only remaps
->    the entire mapping from ``start_pfn`` onward.
->  
-> -* `mmap_action_simple_ioremap()` - Sets up an I/O remap from a specified
-> +* mmap_action_simple_ioremap() - Sets up an I/O remap from a specified
+> @@ -130,10 +130,10 @@ pointer. These are:
+>  * mmap_action_simple_ioremap() - Sets up an I/O remap from a specified
 >    physical address and over a specified length.
 >  
->  **NOTE:** The ``action`` field should never normally be manipulated directly,
+> -* `mmap_action_map_kernel_pages()` - Maps a specified array of `struct page`
+> +* mmap_action_map_kernel_pages() - Maps a specified array of `struct page`
+>    pointers in the VMA from a specific offset.
+>  
+> -* `mmap_action_map_kernel_pages_full()` - Maps a specified array of `struct
+> +* mmap_action_map_kernel_pages_full() - Maps a specified array of `struct
+>    page` pointers over the entire VMA. The caller must ensure there are
+>    sufficient entries in the page array to cover the entire range of the
+>    described VMA.
 > _
 > 
 > Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,6 +135,7 @@ good ole 'grep -rs vma_area_desc' does find it.
 > mm-various-small-mmap_prepare-cleanups-fix.patch
 > mm-add-mmap_action_simple_ioremap-fix.patch
 > mm-add-mmap_action_map_kernel_pages-fix.patch
+> mm-add-mmap_action_map_kernel_pages-fix-2.patch
 > kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
 > decode_stacktrace-decode-caller-address-checkpatch-fixes.patch
 > 
