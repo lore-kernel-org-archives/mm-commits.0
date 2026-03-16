@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D2F7296BD6
-	for <mm-commits@vger.kernel.org>; Sun, 15 Mar 2026 23:38:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1849176FB1
+	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 01:57:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773617898; cv=none; b=DjjnDYT4FtaBiKB7VKoDWc0LHHU93+1oXAx9rWPsrL3FzC0TdUR9ydSx8q3ECBpl/MQQRBW3xMMTfDS0e+1d8U5CWOujgtZTQQksAjLZ2uN11wa9FtqAcaHuCET8kx3o9YLY25mVA9MjxJV3DF1g3d3zN6YaBWiUnRWy9hz0wvg=
+	t=1773626245; cv=none; b=ZAgbDJ62OGLlRHaRjpOFXq7EB5lQYBpXLC1zKBnflBRv62y2tABqkm1+hg3ehezIgREdEFjs+kfxJXM0Wi6WtQxw1/+2kxweb+a2VJ072AYTHt83iTokhs9ewDqUIHx77g9day/7a/To15BuChT5aW4pKab7Lsa83nrwnbkMwKY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773617898; c=relaxed/simple;
-	bh=TBIv/jSLY6mNGOukVDZ2RCMCBG1wFhQHtj+Jr2KVwwY=;
-	h=Date:To:From:Subject:Message-Id; b=Pld6ZvLjA9A8VVn9llnwm/CRWU2BiXE9P74m0i1G5i3EEqouL0IsX23PXJXXPsIC9g4KBQoBU503v7EVZ3KNXe3aIyUSMFGQZKZSemhZdLblYvp4PuuaHDzqGDHG/zJutXStsCjYgeGr1xEnvQbSlBMhKnoTBI/RArWzkLXNfBE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E+pMgD0N; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773626245; c=relaxed/simple;
+	bh=ERMiD+g0JcdEYBSKnIjJLxQWH175GlKgc56V+23eBjQ=;
+	h=Date:To:From:Subject:Message-Id; b=QA7dGAUVY5+YmhmcYzdlzv1/WVGz7JpPWgn/1qH4yVM1aGIKCU9slOZsyXADNj8qUvOzz0UrYKJUvZUfP0+IUBoiSMKSlo9aB+tqD0TZ9UYZ0xxqphZy8gssWFpkeGJ44NCRC1nQw6t1whx121gkSdlovs8fSpj5rq7yoL9nf/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Goz+Lozq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E+pMgD0N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0D0DC4CEF7;
-	Sun, 15 Mar 2026 23:38:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Goz+Lozq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E767C4CEF7;
+	Mon, 16 Mar 2026 01:57:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773617897;
-	bh=TBIv/jSLY6mNGOukVDZ2RCMCBG1wFhQHtj+Jr2KVwwY=;
+	s=korg; t=1773626244;
+	bh=ERMiD+g0JcdEYBSKnIjJLxQWH175GlKgc56V+23eBjQ=;
 	h=Date:To:From:Subject:From;
-	b=E+pMgD0NBAZKl6RC7E1jdyH5yehGgu4qvlwTTK+b8aKXkJrY0XjrqJUjcabJsR21v
-	 XM7kRQ/aDajktFJ2vFW/n3ZtQyxnfQYwJm5TM4mkP3AQkhZR/1v9F6i0Vv70u/vjlX
-	 8XqH1T1mkliOGvxhOkhz3jZacKt/4swvkO0dnUkM=
-Date: Sun, 15 Mar 2026 16:38:16 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=Goz+LozqRpY4EWJlxocQf6l3ZxzKB4Bpa56v493yk9XR9yD7yTjMOCv+bAqQ9+gjL
+	 cy1MMKEpKl8mWD3GkVLiJFLtRyGbyffnPPKl22fCfP4ylJnMLdXGi+tygbKxVZp8Kx
+	 mLE/TQKkb9s5O85Xjmv8Bl2aKoG2mbQrV+HpQSAs=
+Date: Sun, 15 Mar 2026 18:57:23 -0700
+To: mm-commits@vger.kernel.org,richardycc@google.com,minchan@kernel.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-mmap_action_map_kernel_pages-fix-3.patch added to mm-new branch
-Message-Id: <20260315233817.A0D0DC4CEF7@smtp.kernel.org>
+Subject: + zram-propagate-read_from_bdev_async-errors.patch added to mm-new branch
+Message-Id: <20260316015724.6E767C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs: mmap_prepare: don't italicize structs
+     Subject: zram: propagate read_from_bdev_async() errors
 has been added to the -mm mm-new branch.  Its filename is
-     mm-add-mmap_action_map_kernel_pages-fix-3.patch
+     zram-propagate-read_from_bdev_async-errors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-mmap_action_map_kernel_pages-fix-3.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-propagate-read_from_bdev_async-errors.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,45 +69,84 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Docs: mmap_prepare: don't italicize structs
-Date: Sun, 15 Mar 2026 15:45:06 -0700
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: propagate read_from_bdev_async() errors
+Date: Mon, 16 Mar 2026 10:53:32 +0900
 
-Using a single quote mark `struct xyz` causes the html output to be
-produced as italic.  Omit the quote marks so that kernel-doc's automarkup
-can make the "struct xyz" bold monospace ("code" style") in the generated
-html.
+When read_from_bdev_async() fails to chain bio, for instance fails to
+allocate request or bio, we need to propagate the error condition so that
+upper layer is aware of it.  zram already does that by setting
+BLK_STS_IOERR ->bi_status, but only for sync reads.  Change async read
+path to return its error status so that async errors are also handled.
 
-Link: https://lkml.kernel.org/r/20260315224506.1973566-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Link: https://lkml.kernel.org/r/20260316015354.114465-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Suggested-by: Brian Geffon <bgeffon@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Richard Chang <richardycc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/mmap_prepare.rst |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/zram/zram_drv.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/Documentation/filesystems/mmap_prepare.rst~mm-add-mmap_action_map_kernel_pages-fix-3
-+++ a/Documentation/filesystems/mmap_prepare.rst
-@@ -130,11 +130,11 @@ pointer. These are:
- * mmap_action_simple_ioremap() - Sets up an I/O remap from a specified
-   physical address and over a specified length.
+--- a/drivers/block/zram/zram_drv.c~zram-propagate-read_from_bdev_async-errors
++++ a/drivers/block/zram/zram_drv.c
+@@ -1445,21 +1445,21 @@ static void zram_async_read_endio(struct
+ 	queue_work(system_highpri_wq, &req->work);
+ }
  
--* mmap_action_map_kernel_pages() - Maps a specified array of `struct page`
-+* mmap_action_map_kernel_pages() - Maps a specified array of struct page
-   pointers in the VMA from a specific offset.
+-static void read_from_bdev_async(struct zram *zram, struct page *page,
+-				 u32 index, unsigned long blk_idx,
+-				 struct bio *parent)
++static int read_from_bdev_async(struct zram *zram, struct page *page,
++				u32 index, unsigned long blk_idx,
++				struct bio *parent)
+ {
+ 	struct zram_rb_req *req;
+ 	struct bio *bio;
  
--* mmap_action_map_kernel_pages_full() - Maps a specified array of `struct
--  page` pointers over the entire VMA. The caller must ensure there are
-+* mmap_action_map_kernel_pages_full() - Maps a specified array of struct
-+  page pointers over the entire VMA. The caller must ensure there are
-   sufficient entries in the page array to cover the entire range of the
-   described VMA.
+ 	req = kmalloc_obj(*req, GFP_NOIO);
+ 	if (!req)
+-		return;
++		return -ENOMEM;
  
+ 	bio = bio_alloc(zram->bdev, 1, parent->bi_opf, GFP_NOIO);
+ 	if (!bio) {
+ 		kfree(req);
+-		return;
++		return -ENOMEM;
+ 	}
+ 
+ 	req->zram = zram;
+@@ -1475,6 +1475,8 @@ static void read_from_bdev_async(struct
+ 	__bio_add_page(bio, page, PAGE_SIZE, 0);
+ 	bio_inc_remaining(parent);
+ 	submit_bio(bio);
++
++	return 0;
+ }
+ 
+ static void zram_sync_read(struct work_struct *w)
+@@ -1523,8 +1525,7 @@ static int read_from_bdev(struct zram *z
+ 			return -EIO;
+ 		return read_from_bdev_sync(zram, page, index, blk_idx);
+ 	}
+-	read_from_bdev_async(zram, page, index, blk_idx, parent);
+-	return 0;
++	return read_from_bdev_async(zram, page, index, blk_idx, parent);
+ }
+ #else
+ static inline void reset_bdev(struct zram *zram) {};
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-add-documentation-for-the-mmap_prepare-file-operation-callback-fix.patch
-mm-add-mmap_action_map_kernel_pages-fix-3.patch
+zram-do-not-permit-params-change-after-init.patch
+zram-do-not-autocorrect-bad-recompression-parameters.patch
+zram-drop-num_active_comps.patch
+zram-update-recompression-documentation.patch
+zram-remove-chained-recompression.patch
+zram-unify-and-harden-algo-priority-params-handling.patch
+zram-propagate-read_from_bdev_async-errors.patch
 
