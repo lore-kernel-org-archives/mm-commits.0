@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 813311A9FAF
-	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 17:42:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ED29330D2F
+	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 18:28:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773682950; cv=none; b=HHfqzp4vpG3HU4AJIxFOvNZVEGO3lbLlM+rD7DtPoFMhESmJQcajOIhkgPzyBp4z9dwTi2HxwdsRX53sHlcSYmfqxR1xK0uh31xTrov8TtSGgOsIZrSjUqLGBACT4k0CWezqX621IqmxC0DMng7JomsGgJpNVUC1hchezYIg+Eo=
+	t=1773685722; cv=none; b=L79VGG7yoeRTdHcO7Q1YiGp2FCt3rdSLkbzlPvpZdV7wXbxacSxqWb3qpXlb1OKkMVDnH2fh3ffWei67CDmTC9MrYi1y4JpD5PF7ZvvTlk2waf/cuQHCCkMN3mwcDBOfpr8mR1aCI+kbvdB5TtQExHTaWlyo6krlvo6+LwUhtLw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773682950; c=relaxed/simple;
-	bh=5F2rHkIjw6Bg3TB7ql0Jtrl+wbXEu+PxH/1TEb2thdQ=;
-	h=Date:To:From:Subject:Message-Id; b=OEimZmYe8qrBuhl/qQgofClLkiiRQ4NhGaFO/emRtcBceSOFy4407RQ24a7BfPuv0p2LQeyqaRNXmloDUNf4lfFZ+ER8lPNzougIenDWiJBcMvovQog4nxDKRLzQ9Sld8NzZr2tSXSH7tbK0+woEyJ+2tPhzssTBvMVlJG1WxJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RHPXa9CN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773685722; c=relaxed/simple;
+	bh=WJ9teP5/BJAcPbdIU+h6KduAyCdjTifMpovNMH3lJHs=;
+	h=Date:To:From:Subject:Message-Id; b=npXBJOx7xs8aPm6p774puxGglqWuVpPTNVQXcQaEOpeMh00QCiHTAhMcTUsbaLKosUW/hUkQV/A0uzGfdH/FQB7GXdtHPo3UavG7H4KHkuzKxEIC4L9qz2QIl6PTfhsI0EcGKuAI5J0wuWW7Jz3X5RZ/IUDcXzFMYzOJZjZQ4mg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fp6O3/pU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RHPXa9CN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B89FC19421;
-	Mon, 16 Mar 2026 17:42:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fp6O3/pU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAB7EC2BCAF;
+	Mon, 16 Mar 2026 18:28:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773682950;
-	bh=5F2rHkIjw6Bg3TB7ql0Jtrl+wbXEu+PxH/1TEb2thdQ=;
+	s=korg; t=1773685721;
+	bh=WJ9teP5/BJAcPbdIU+h6KduAyCdjTifMpovNMH3lJHs=;
 	h=Date:To:From:Subject:From;
-	b=RHPXa9CNgiUFokmsoBcnaI36rC4+vasoMnHUceW0C/50F7aTOMrs/9rTouaFz2y0U
-	 HcvUSlK15H9uoLWyO/IzvtMUPt514lEbxpxzvW1NhChstfmoJXgCTcA2YTcMVKESzn
-	 HFQGCkCS4hM8vS6d8XfKuk175A+46ZK+vfG+DKtY=
-Date: Mon, 16 Mar 2026 10:42:29 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,avagin@google.com,akpm@linux-foundation.org
+	b=Fp6O3/pUpCVR8DpKfSgToyGfFkcnOZrd5nhUcxU1J0neU3dn4EwV0vGy/kdNJP7n6
+	 BsAQbGZRkGVfmAy7lRUJmftDDqQIR9hWE15Xr3kOsBsSg4QrXciEGsDXyztpHergQe
+	 8vKuq0toTh1I7fqZuxR4qfd0FgWzk12tay4bG/c4=
+Date: Mon, 16 Mar 2026 11:28:41 -0700
+To: mm-commits@vger.kernel.org,thomas.weissschuh@linutronix.de,rppt@kernel.org,pjw@kernel.org,palmer@dabbelt.com,aou@eecs.berkeley.edu,alex@ghiti.fr,wangruikang@iscas.ac.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy-fix.patch added to mm-unstable branch
-Message-Id: <20260316174230.1B89FC19421@smtp.kernel.org>
+Subject: + riscv-patch-avoid-early-page_to_phys.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260316182841.DAB7EC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: fix lock leak in mfill_get_vma()
-has been added to the -mm mm-unstable branch.  Its filename is
-     userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy-fix.patch
+     Subject: riscv: avoid early page_to_phys()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     riscv-patch-avoid-early-page_to_phys.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-patch-avoid-early-page_to_phys.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,61 +58,74 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrei Vagin <avagin@google.com>
-Subject: userfaultfd: fix lock leak in mfill_get_vma()
-Date: Mon, 16 Mar 2026 17:38:28 +0000
+From: Vivian Wang <wangruikang@iscas.ac.cn>
+Subject: riscv: avoid early page_to_phys()
+Date: Tue, 10 Mar 2026 16:25:33 +0800
 
-In mfill_get_vma(), both the per-VMA lock (via uffd_mfill_lock()) and the
-map_changing_lock are acquired.  However, state->vma was only assigned at
-the very end of the function.  If any validation checks failed after lock
-acquisition but before this assignment, the function would jump to the
-out_unlock label and call mfill_put_vma(state).
+Similarly to commit 8d09e2d569f6 ("arm64: patching: avoid early
+page_to_phys()"), avoid using phys_to_page() for the kernel address case
+in patch_map().
 
-Since mfill_put_vma() only performs cleanup if state->vma is non-NULL,
-these error paths would leak both the per-VMA lock and the
-map_changing_lock.
+Since this is called from apply_boot_alternatives() in setup_arch(), and
+commit 4267739cabb8 ("arch, mm: consolidate initialization of SPARSE
+memory model") has moved sparse_init() to after setup_arch(),
+phys_to_page() is not available there yet, and it panics on boot with
+SPARSEMEM on RV32, which does not use SPARSEMEM_VMEMMAP.
 
-Link: https://lkml.kernel.org/r/20260316173829.1126728-1-avagin@google.com
-Reported-by: syzbot+cf5ad2009a9bae03cb23@syzkaller.appspotmail.com
-Signed-off-by: Andrei Vagin <avagin@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20260310-riscv-sparsemem-alternatives-fix-v1-1-659d5dd257e2@iscas.ac.cn
+Fixes: 4267739cabb8 ("arch, mm: consolidate initialization of SPARSE memory model")
+Signed-off-by: Vivian Wang <wangruikang@iscas.ac.cn>
+Reported-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Closes: https://lore.kernel.org/r/20260223144108-dcace0b9-02e8-4b67-a7ce-f263bed36f26@linutronix.de/
+Suggested-by: Mike Rapoport <rppt@kernel.org>
+Tested-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <pjw@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/riscv/kernel/patch.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy-fix
-+++ a/mm/userfaultfd.c
-@@ -188,6 +188,7 @@ static int mfill_get_vma(struct mfill_st
- 	 * request the user to retry later
- 	 */
- 	down_read(&ctx->map_changing_lock);
-+	state->vma = dst_vma;
- 	err = -EAGAIN;
- 	if (atomic_read(&ctx->mmap_changing))
- 		goto out_unlock;
-@@ -210,7 +211,7 @@ static int mfill_get_vma(struct mfill_st
- 		goto out_unlock;
+--- a/arch/riscv/kernel/patch.c~riscv-patch-avoid-early-page_to_phys
++++ a/arch/riscv/kernel/patch.c
+@@ -42,19 +42,20 @@ static inline bool is_kernel_exittext(ui
+ static __always_inline void *patch_map(void *addr, const unsigned int fixmap)
+ {
+ 	uintptr_t uintaddr = (uintptr_t) addr;
+-	struct page *page;
++	phys_addr_t phys;
  
- 	if (is_vm_hugetlb_page(dst_vma))
--		goto out;
-+		return 0;
+-	if (core_kernel_text(uintaddr) || is_kernel_exittext(uintaddr))
+-		page = phys_to_page(__pa_symbol(addr));
+-	else if (IS_ENABLED(CONFIG_STRICT_MODULE_RWX))
+-		page = vmalloc_to_page(addr);
+-	else
+-		return addr;
++	if (core_kernel_text(uintaddr) || is_kernel_exittext(uintaddr)) {
++		phys = __pa_symbol(addr);
++	} else if (IS_ENABLED(CONFIG_STRICT_MODULE_RWX)) {
++		struct page *page = vmalloc_to_page(addr);
  
- 	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
- 		goto out_unlock;
-@@ -218,8 +219,6 @@ static int mfill_get_vma(struct mfill_st
- 	    uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE))
- 		goto out_unlock;
+-	BUG_ON(!page);
++		BUG_ON(!page);
++		phys = page_to_phys(page) + offset_in_page(addr);
++	} else {
++		return addr;
++	}
  
--out:
--	state->vma = dst_vma;
- 	return 0;
+-	return (void *)set_fixmap_offset(fixmap, page_to_phys(page) +
+-					 offset_in_page(addr));
++	return (void *)set_fixmap_offset(fixmap, phys);
+ }
  
- out_unlock:
+ static void patch_unmap(int fixmap)
 _
 
-Patches currently in -mm which might be from avagin@google.com are
+Patches currently in -mm which might be from wangruikang@iscas.ac.cn are
 
-userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy-fix.patch
+riscv-patch-avoid-early-page_to_phys.patch
 
