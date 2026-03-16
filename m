@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B38B2D94AF
-	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 15:42:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 448333B7B9A
+	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 15:59:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773675727; cv=none; b=NUd7vgQ9lq6ZLTh7tEKmxDrcNXnFG0UBkMoFUe32ummR/8vj36QXqEIurQzJxtwcRvdj0PNrNxow68zJzFoW1fnskZnyVFbOb4uPdvZDSzX39a6JwA/bxsMvrR95Q6/rs5UkXD1bm3nlGtUrt45lSHOifmnCY+svQfDWbxrybzY=
+	t=1773676745; cv=none; b=uc9z3yCDIuzJWH+Ct2IXV9e+I0pc2FvpC6q8vS+2JmM89SK6+KG7lOR/v7jQiC+r4gxjBbvgJFHIPZZVOh6fhRkWEaZxY3DlHbgWS8f68L7RbZT0xkeXR/5qyfXKR+6b1aHg1HY6Q+HlV9fu57Ge208YCsFtBDrXd5Trp5aWpsE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773675727; c=relaxed/simple;
-	bh=zuizUDw2yjVNEZVq2EALz2nBUPukulevWA7qi6tCKjg=;
-	h=Date:To:From:Subject:Message-Id; b=AVE9etppM1C8yowjRjCxPjPAESZoIlkKATcgJYancQKooXw+r+cWufHK+0LotTr0yFBI9xew2J2fngOaLUQ72fYVtEjPxD+ZJSKyD25vs8FlFN2y4su4Ad2SYPKNvT2BuZVFVFyTerRWxHQq1C0Hl2M4yknlRE/cv5XAISPxQSM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aB/qvaTo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773676745; c=relaxed/simple;
+	bh=wgIKacEQ/fmz39gUy9LhnQ8Lkdjzi4MZ6K2bNaGWXng=;
+	h=Date:To:From:Subject:Message-Id; b=nh39/DPnlzK1n+Bs/WcmDSkLBu0d3QwYhp/DEt6p4wT/K2mtO6yqdzt06VHQn+LjPOzR5bM+nJdPKY5kAPSRQf82GTtmWJDbksh7h8dBY8F2vpcQ92M7uU6ILcTbxjBJWF2BuX5YpZq1+n2DvlBeYbD6HGh6gsrxSOvT+erSaKQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rfVxv8qt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aB/qvaTo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5CA4C19421;
-	Mon, 16 Mar 2026 15:42:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rfVxv8qt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC41EC19425;
+	Mon, 16 Mar 2026 15:59:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773675726;
-	bh=zuizUDw2yjVNEZVq2EALz2nBUPukulevWA7qi6tCKjg=;
+	s=korg; t=1773676745;
+	bh=wgIKacEQ/fmz39gUy9LhnQ8Lkdjzi4MZ6K2bNaGWXng=;
 	h=Date:To:From:Subject:From;
-	b=aB/qvaToNqEyVawD10sBYuXrGTX5JzEF8kz9SXUR1xkvy6kv9ybVfoSBTrbj2l6QO
-	 FnBoZXpJ5XSqsNTimr8zfNdhjKnxfuBUwEAOdDkowFTbAEo06mvQjH7Ban8ND5AnkI
-	 7m/hq188BGSe4r6IAawxnV/inqTw+0A0lmGU9NC0=
-Date: Mon, 16 Mar 2026 08:42:06 -0700
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,oleg@redhat.com,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,ljs@kernel.org,Liam.Howlett@oracle.com,liam.howlett@oracle.com,kees@kernel.org,Kartikey406@gmail.com,juri.lelli@redhat.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,brauner@kernel.org,kartikey406@gmail.com,akpm@linux-foundation.org
+	b=rfVxv8qtX/7efvr6BNTXnK0QqMimFawrgrEMZs8AO35+Gk/Fe8/2yl2TOkMnY9+J0
+	 4Vx7UaLw+iDVuhC/gFHxGiOkKbrE8aI+tNrx3YDYHg33y1MU6hstTL7e645qPo3lau
+	 3tZBl/6EXhPvhV9dtfnOoZxzq61CgPb1chzdpLpU=
+Date: Mon, 16 Mar 2026 08:59:04 -0700
+To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,sweettea-kernel@dorminy.me,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,richard.weiyang@gmail.com,paulmck@kernel.org,objecting@objecting.org,mjguzik@gmail.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liumartin@google.com,linmiaohe@huawei.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,cl@linux.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,aboorvad@linux.ibm.com,devnexen@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-fork-validate-exit_signal-in-kernel_clone.patch added to mm-nonmm-unstable branch
-Message-Id: <20260316154206.C5CA4C19421@smtp.kernel.org>
+Subject: + lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons.patch added to mm-unstable branch
+Message-Id: <20260316155904.EC41EC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/fork: validate exit_signal in kernel_clone()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kernel-fork-validate-exit_signal-in-kernel_clone.patch
+     Subject: lib: add kunit boundary tests for percpu_counter_tree comparisons
+has been added to the -mm mm-unstable branch.  Its filename is
+     lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-fork-validate-exit_signal-in-kernel_clone.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,103 +58,273 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Deepanshu Kartikey <kartikey406@gmail.com>
-Subject: kernel/fork: validate exit_signal in kernel_clone()
-Date: Mon, 16 Mar 2026 20:49:56 +0530
+From: David Carlier <devnexen@gmail.com>
+Subject: lib: add kunit boundary tests for percpu_counter_tree comparisons
+Date: Mon, 16 Mar 2026 14:38:05 +0000
 
-When a child process exits, it sends exit_signal to its parent via
-do_notify_parent().  The clone() syscall constructs exit_signal as:
+Add boundary tests for all four comparison APIs to validate that
+the accuracy parameters are correctly applied:
 
-(lower_32_bits(clone_flags) & CSIGNAL)
+- percpu_counter_tree_approximate_compare_value()
+- percpu_counter_tree_precise_compare_value()
+- percpu_counter_tree_approximate_compare()
+- percpu_counter_tree_precise_compare()
 
-CSIGNAL is 0xff, so values in the range 65-255 are possible.  However,
-valid_signal() only accepts signals up to _NSIG (64 on x86_64).  A
-non-zero non-valid exit_signal acts the same as exit_signal == 0: the
-parent process is not signaled when the child terminates.
+The single-value tests probe the accuracy range boundaries (at,
+beyond, and in the asymmetric gap between under and over) to catch
+swapped accuracy parameters. The two-counter tests verify the
+symmetric combined accuracy boundary for counter-to-counter
+comparisons.
 
-The syzkaller reproducer triggers this by calling clone() with flags=0x80,
-resulting in exit_signal = (0x80 & CSIGNAL) = 128, which exceeds _NSIG and
-is not a valid signal.
-
-The v1 of this patch added the check only in the clone() syscall handler,
-which is incomplete.  kernel_clone() has other callers such as
-sys_ia32_clone() which would remain unprotected.  Move the check to
-kernel_clone() to cover all callers.
-
-Since the valid_signal() check is now in kernel_clone() and covers all
-callers including clone3(), the same check in copy_clone_args_from_user()
-becomes redundant and is removed.  The higher 32bits check for clone3() is
-kept as it is clone3() specific.
-
-Note that this is a user-visible change: previously, passing an invalid
-exit_signal to clone() was silently accepted.  The man page for clone()
-does not document any defined behavior for invalid exit_signal values, so
-rejecting them with -EINVAL is the correct behavior.  It is unlikely that
-any sane application relies on passing an invalid exit_signal.
-
-Link: https://lkml.kernel.org/r/20260316151956.563558-1-kartikey406@gmail.com
-Fixes: 3f2c788a1314 ("fork: prevent accidental access to clone3 features")
-Signed-off-by: Deepanshu Kartikey <Kartikey406@gmail.com>
-Reported-by: syzbot+bbe6b99feefc3a0842de@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=bbe6b99feefc3a0842de
-Tested-by: syzbot+bbe6b99feefc3a0842de@syzkaller.appspotmail.com
-Link: https://lore.kernel.org/all/20260307064202.353405-1-kartikey406@gmail.com/T/ [v1]
-Link: https://lore.kernel.org/all/20260316104536.558108-1-kartikey406@gmail.com/T/ [v2]
-Cc: Ben Segall <bsegall@google.com>
+Link: https://lkml.kernel.org/r/20260316143805.36805-2-devnexen@gmail.com
+Signed-off-by: David Carlier <devnexen@gmail.com>
+Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Reviewed-by: Josh Law <objecting@objecting.org>
+Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Liam R . Howlett" <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Martin Liu <liumartin@google.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Paul E. McKenney" <paulmck@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ lib/tests/percpu_counter_tree_kunit.c |  190 ++++++++++++++++++++++++
+ 1 file changed, 190 insertions(+)
 
---- a/kernel/fork.c~kernel-fork-validate-exit_signal-in-kernel_clone
-+++ a/kernel/fork.c
-@@ -2642,6 +2642,9 @@ pid_t kernel_clone(struct kernel_clone_a
- 	    (args->pidfd == args->parent_tid))
- 		return -EINVAL;
+--- a/lib/tests/percpu_counter_tree_kunit.c~lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons
++++ a/lib/tests/percpu_counter_tree_kunit.c
+@@ -86,6 +86,194 @@ static void check_counters(struct kunit
+ 	KUNIT_EXPECT_EQ(test, 0, percpu_counter_tree_approximate_compare(&counter[0], &counter[1]));
+ }
  
-+	if (!valid_signal(args->exit_signal))
-+		return -EINVAL;
++static void hpcc_test_compare_value_boundaries(struct kunit *test)
++{
++	struct percpu_counter_tree pct;
++	struct percpu_counter_tree_level_item *counter_items;
++	unsigned long under = 0, over = 0;
++	int ret;
 +
- 	/*
- 	 * Determine whether and which event to report to ptracer.  When
- 	 * called from kernel_thread or CLONE_UNTRACED is explicitly
-@@ -2840,11 +2843,9 @@ static noinline int copy_clone_args_from
- 		return -EINVAL;
- 
- 	/*
--	 * Verify that higher 32bits of exit_signal are unset and that
--	 * it is a valid signal
-+	 * Verify that higher 32bits of exit_signal are unset
- 	 */
--	if (unlikely((args.exit_signal & ~((u64)CSIGNAL)) ||
--		     !valid_signal(args.exit_signal)))
-+	if (unlikely(args.exit_signal & ~((u64)CSIGNAL)))
- 		return -EINVAL;
- 
- 	if ((args.flags & CLONE_INTO_CGROUP) &&
++	counter_items = kzalloc(percpu_counter_tree_items_size(), GFP_KERNEL);
++	KUNIT_ASSERT_PTR_NE(test, counter_items, NULL);
++	ret = percpu_counter_tree_init(&pct, counter_items, 32, GFP_KERNEL);
++	KUNIT_ASSERT_EQ(test, ret, 0);
++
++	percpu_counter_tree_set(&pct, 0);
++	percpu_counter_tree_approximate_accuracy_range(&pct, &under, &over);
++
++	/*
++	 * With approx_sum = precise_sum = 0, from the accuracy invariant:
++	 *   approx_sum - over <= precise_sum <= approx_sum + under
++	 * Positive deltas use 'under' as tolerance, negative use 'over'.
++	 */
++
++	/* --- percpu_counter_tree_approximate_compare_value --- */
++
++	/* At boundary: indeterminate */
++	KUNIT_EXPECT_EQ(test, 0,
++		percpu_counter_tree_approximate_compare_value(&pct,
++			(long)under));
++	KUNIT_EXPECT_EQ(test, 0,
++		percpu_counter_tree_approximate_compare_value(&pct,
++			-(long)over));
++
++	/* Beyond boundary: definitive */
++	KUNIT_EXPECT_EQ(test, 1,
++		percpu_counter_tree_approximate_compare_value(&pct,
++			(long)(under + 1)));
++	KUNIT_EXPECT_EQ(test, -1,
++		percpu_counter_tree_approximate_compare_value(&pct,
++			-(long)(over + 1)));
++
++	/* Asymmetric gap: catches swapped accuracy parameters */
++	if (under != over) {
++		if (under > over) {
++			KUNIT_EXPECT_EQ(test, 0,
++				percpu_counter_tree_approximate_compare_value(
++					&pct, (long)(over + 1)));
++			KUNIT_EXPECT_EQ(test, -1,
++				percpu_counter_tree_approximate_compare_value(
++					&pct, -(long)(over + 1)));
++		} else {
++			KUNIT_EXPECT_EQ(test, 1,
++				percpu_counter_tree_approximate_compare_value(
++					&pct, (long)(under + 1)));
++			KUNIT_EXPECT_EQ(test, 0,
++				percpu_counter_tree_approximate_compare_value(
++					&pct, -(long)(under + 1)));
++		}
++	}
++
++	/* --- percpu_counter_tree_precise_compare_value --- */
++
++	/*
++	 * With approx_sum = precise_sum = 0, the precise comparison
++	 * must return the exact result. At boundary values the
++	 * approximate fast-path returns indeterminate, exercising
++	 * the precise sum fallback.
++	 */
++	KUNIT_EXPECT_EQ(test, 0,
++		percpu_counter_tree_precise_compare_value(&pct, 0));
++	KUNIT_EXPECT_EQ(test, 1,
++		percpu_counter_tree_precise_compare_value(&pct,
++			(long)under));
++	KUNIT_EXPECT_EQ(test, -1,
++		percpu_counter_tree_precise_compare_value(&pct,
++			-(long)over));
++	KUNIT_EXPECT_EQ(test, 1,
++		percpu_counter_tree_precise_compare_value(&pct,
++			(long)(under + 1)));
++	KUNIT_EXPECT_EQ(test, -1,
++		percpu_counter_tree_precise_compare_value(&pct,
++			-(long)(over + 1)));
++
++	if (under != over) {
++		if (under > over) {
++			KUNIT_EXPECT_EQ(test, 1,
++				percpu_counter_tree_precise_compare_value(
++					&pct, (long)(over + 1)));
++			KUNIT_EXPECT_EQ(test, -1,
++				percpu_counter_tree_precise_compare_value(
++					&pct, -(long)(over + 1)));
++		} else {
++			KUNIT_EXPECT_EQ(test, 1,
++				percpu_counter_tree_precise_compare_value(
++					&pct, (long)(under + 1)));
++			KUNIT_EXPECT_EQ(test, -1,
++				percpu_counter_tree_precise_compare_value(
++					&pct, -(long)(under + 1)));
++		}
++	}
++
++	percpu_counter_tree_destroy(&pct);
++	kfree(counter_items);
++}
++
++static void hpcc_test_compare_counter_boundaries(struct kunit *test)
++{
++	struct percpu_counter_tree pct[2];
++	struct percpu_counter_tree_level_item *counter_items;
++	unsigned long under = 0, over = 0;
++	unsigned long combined;
++	int ret;
++
++	counter_items = kzalloc(percpu_counter_tree_items_size() * 2,
++				GFP_KERNEL);
++	KUNIT_ASSERT_PTR_NE(test, counter_items, NULL);
++	ret = percpu_counter_tree_init_many(pct, counter_items, 2, 32,
++					    GFP_KERNEL);
++	KUNIT_ASSERT_EQ(test, ret, 0);
++
++	percpu_counter_tree_approximate_accuracy_range(&pct[0],
++						       &under, &over);
++
++	/*
++	 * Both counters have the same configuration. The combined
++	 * accuracy for two-counter comparison is symmetric:
++	 *   accuracy_pos = over + under = under + over = accuracy_neg
++	 */
++	combined = under + over;
++
++	/* --- percpu_counter_tree_approximate_compare --- */
++
++	/* At boundary: indeterminate */
++	percpu_counter_tree_set(&pct[0], (long)combined);
++	percpu_counter_tree_set(&pct[1], 0);
++	KUNIT_EXPECT_EQ(test, 0,
++		percpu_counter_tree_approximate_compare(&pct[0], &pct[1]));
++
++	percpu_counter_tree_set(&pct[0], 0);
++	percpu_counter_tree_set(&pct[1], (long)combined);
++	KUNIT_EXPECT_EQ(test, 0,
++		percpu_counter_tree_approximate_compare(&pct[0], &pct[1]));
++
++	/* Beyond boundary: definitive */
++	percpu_counter_tree_set(&pct[0], (long)(combined + 1));
++	percpu_counter_tree_set(&pct[1], 0);
++	KUNIT_EXPECT_EQ(test, 1,
++		percpu_counter_tree_approximate_compare(&pct[0], &pct[1]));
++
++	percpu_counter_tree_set(&pct[0], 0);
++	percpu_counter_tree_set(&pct[1], (long)(combined + 1));
++	KUNIT_EXPECT_EQ(test, -1,
++		percpu_counter_tree_approximate_compare(&pct[0], &pct[1]));
++
++	/* --- percpu_counter_tree_precise_compare --- */
++
++	/* At boundary: precise gives exact result */
++	percpu_counter_tree_set(&pct[0], (long)combined);
++	percpu_counter_tree_set(&pct[1], 0);
++	KUNIT_EXPECT_EQ(test, 1,
++		percpu_counter_tree_precise_compare(&pct[0], &pct[1]));
++
++	percpu_counter_tree_set(&pct[0], 0);
++	percpu_counter_tree_set(&pct[1], (long)combined);
++	KUNIT_EXPECT_EQ(test, -1,
++		percpu_counter_tree_precise_compare(&pct[0], &pct[1]));
++
++	/* Beyond boundary: definitive */
++	percpu_counter_tree_set(&pct[0], (long)(combined + 1));
++	percpu_counter_tree_set(&pct[1], 0);
++	KUNIT_EXPECT_EQ(test, 1,
++		percpu_counter_tree_precise_compare(&pct[0], &pct[1]));
++
++	percpu_counter_tree_set(&pct[0], 0);
++	percpu_counter_tree_set(&pct[1], (long)(combined + 1));
++	KUNIT_EXPECT_EQ(test, -1,
++		percpu_counter_tree_precise_compare(&pct[0], &pct[1]));
++
++	/* Equal counters */
++	percpu_counter_tree_set(&pct[0], 42);
++	percpu_counter_tree_set(&pct[1], 42);
++	KUNIT_EXPECT_EQ(test, 0,
++		percpu_counter_tree_approximate_compare(&pct[0], &pct[1]));
++	KUNIT_EXPECT_EQ(test, 0,
++		percpu_counter_tree_precise_compare(&pct[0], &pct[1]));
++
++	percpu_counter_tree_destroy_many(pct, 2);
++	kfree(counter_items);
++}
++
+ static int multi_thread_worker_fn(void *data)
+ {
+ 	struct multi_thread_test_data *td = data;
+@@ -383,6 +571,8 @@ static struct kunit_case hpcc_test_cases
+ 	KUNIT_CASE(hpcc_test_single_thread_random),
+ 	KUNIT_CASE(hpcc_test_multi_thread_batch_increment),
+ 	KUNIT_CASE(hpcc_test_multi_thread_random_walk),
++	KUNIT_CASE(hpcc_test_compare_value_boundaries),
++	KUNIT_CASE(hpcc_test_compare_counter_boundaries),
+ 	KUNIT_CASE(hpcc_test_init_one),
+ 	KUNIT_CASE(hpcc_test_set),
+ 	{}
 _
 
-Patches currently in -mm which might be from kartikey406@gmail.com are
+Patches currently in -mm which might be from devnexen@gmail.com are
 
-kernel-fork-validate-exit_signal-in-kernel_clone.patch
+lib-introduce-hierarchical-per-cpu-counters-fix.patch
+lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons.patch
 
