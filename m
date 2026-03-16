@@ -1,89 +1,118 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3FF3238166;
-	Mon, 16 Mar 2026 19:17:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94C5D34B438
+	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 19:42:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773688648; cv=none; b=ZdVTAxzzu4Oxjn8Jy5CwDhstWrWslXdh8pbJxK7RW1PzJNsMabdIKTBXG4JyyiRkaGx8jCellpAKdh7Jb+xogrynwni09pY8wBPxPuljXq747LhHwkbIUoHEpoh3Ahs1Q+N18pCQYBnYpePyqgHkz5gSsGCpXx7DnphcKrW7lrc=
+	t=1773690125; cv=none; b=QhRUMe31t3juklXk4X1uicyhTgklNKFWSf7/HbwDz0o8yGRNeQvVA+XF8jNNRDxpIiA3r0k75Bnkhlpmky+cSXOzcdNZAIHlVoMVfAhMNg5dyIEczgk9MH3CNRF0coA8sS2AEe8uhN4L2/843rmevlAUza4V9o8AYd99tXTpoxY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773688648; c=relaxed/simple;
-	bh=Mcl7mrfaevdnL+TnJ+uRqetMxeqPaZ97LeaI3YnhJsA=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=IvXeCnKmMuT9T2Sfiq70xdHciRkIb8zWy4fXly9cRkc7iUTRTjSVBEn+a9pPrK+ftQhH5/ykjNfY0YTLUwHjI5OObYJMmoFYUnOWH/aZinXf3eA0Dn4Vbzu0peeYTTt4QnIXma2rgImgS0/QrlQ0J2id8EJR2gy9Lb9D3av+Q0M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gGNOiEke; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773690125; c=relaxed/simple;
+	bh=EM5Wb/Vn4OMkMx2LkxVCaRvLQ3QBY6UWYvJK+iYXYdI=;
+	h=Date:To:From:Subject:Message-Id; b=rVgMMCHDw9b8ALW4ylOE93V/QVnqGp5SmEpkddBFhvaKQ0c4PGRy4r+Rgvhs/7M5OtX6Yt/c0s2AX9kN6ZZSfgFzBc+zsmLIh+CWpseqG+qaAhO7n2CBVNDpmsnXmFzHOdxm5WSqKreVic3iMwZRHZRwKsDmTLnlDR/C/k0CNZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UU9PX+kQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gGNOiEke"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3950AC19421;
-	Mon, 16 Mar 2026 19:17:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UU9PX+kQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16A01C19421;
+	Mon, 16 Mar 2026 19:42:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773688648;
-	bh=Mcl7mrfaevdnL+TnJ+uRqetMxeqPaZ97LeaI3YnhJsA=;
-	h=Date:From:To:Cc:Subject:From;
-	b=gGNOiEkeJkDyjYOrxgQw3qo+ZNF2CX4D4ZuiSivjHU065nWXNtEIO9J1aqia5Qpea
-	 V5fGXfk3lc0jdgtH2HTAce+HHHZyOQPKjdAcNspncbwbBOlRbF+B9MRbDVw8VGWb8Q
-	 aSeoDv91blV37x+jiEFWL6zsnVPcViJosmTQ+cMc=
-Date: Mon, 16 Mar 2026 12:17:27 -0700
+	s=korg; t=1773690125;
+	bh=EM5Wb/Vn4OMkMx2LkxVCaRvLQ3QBY6UWYvJK+iYXYdI=;
+	h=Date:To:From:Subject:From;
+	b=UU9PX+kQNapB9REHbHbERMAJHEkm//U+62uuWGgAQk7onPNzt4Jdbm6HDUa/GGUOe
+	 nfEnhK6ELqppAqHo6z6YuAtiy/x1Wdpi1OMurQpyabis9qDY1UhPlCglzrDv5cBmC4
+	 xvERX0xi3ZZM9mzOqWzgP4ezTEMHcEjc0kRX5Aw4=
+Date: Mon, 16 Mar 2026 12:42:04 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yanglincheng@kylinos.cn,ryan.roberts@arm.com,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,vernon2gm@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linuxfoundation.org>
-Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: [GIT PULL] hotfixes for 7.0-rc5
-Message-Id: <20260316121727.54468f0e01ca280c17f2b735@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-khugepaged-skip-lazy-free-folios-fix.patch added to mm-unstable branch
+Message-Id: <20260316194205.16A01C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of hotfixes, thanks.
+The patch titled
+     Subject: mm-khugepaged-skip-lazy-free-folios-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-khugepaged-skip-lazy-free-folios-fix.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-skip-lazy-free-folios-fix.patch
 
-The following changes since commit b4f0dd314b39ea154f62f3bd3115ed0470f9f71e:
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
-  Merge tag 'mm-hotfixes-stable-2026-03-09-16-36' of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm (2026-03-10 12:47:56 -0700)
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-are available in the Git repository at:
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-03-16-12-15
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
-for you to fetch changes up to 182b9b3d8d1d36500f58e4f3dc82b144d6487bdf:
+------------------------------------------------------
+From: Vernon Yang <vernon2gm@gmail.com>
+Subject: mm-khugepaged-skip-lazy-free-folios-fix
+Date: Thu, 26 Feb 2026 15:55:45 +0800
 
-  MAINTAINERS: update email address for Ignat Korchagin (2026-03-10 16:01:49 -0700)
+add comment about VM_DROPPABLE in code, make it clearer
 
-----------------------------------------------------------------
-6 hotfixes.  4 are cc:stable.  3 are for MM.
+Link: https://lkml.kernel.org/r/i4uowkt4h2ev47obm5h2vtd4zbk6fyw5g364up7kkjn2vmcikq@auepvqethj5r
+Signed-off-by: Vernon Yang <yanglincheng@kylinos.cn>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand (arm) <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-All are singletons - please see the changelogs for details.
+ mm/khugepaged.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-----------------------------------------------------------------
-Chris Down (1):
-      mm/huge_memory: fix use of NULL folio in move_pages_huge_pmd()
+--- a/mm/khugepaged.c~mm-khugepaged-skip-lazy-free-folios-fix
++++ a/mm/khugepaged.c
+@@ -578,6 +578,10 @@ static enum scan_result __collapse_huge_
+ 		folio = page_folio(page);
+ 		VM_BUG_ON_FOLIO(!folio_test_anon(folio), folio);
+ 
++		/*
++		 * If the vma has the VM_DROPPABLE flag, the collapse will
++		 * preserve the lazyfree property without needing to skip.
++		 */
+ 		if (cc->is_khugepaged && !(vma->vm_flags & VM_DROPPABLE) &&
+ 		    folio_test_lazyfree(folio) && !pte_dirty(pteval)) {
+ 			result = SCAN_PAGE_LAZYFREE;
+@@ -1332,6 +1336,10 @@ static enum scan_result hpage_collapse_s
+ 		}
+ 		folio = page_folio(page);
+ 
++		/*
++		 * If the vma has the VM_DROPPABLE flag, the collapse will
++		 * preserve the lazyfree property without needing to skip.
++		 */
+ 		if (cc->is_khugepaged && !(vma->vm_flags & VM_DROPPABLE) &&
+ 		    folio_test_lazyfree(folio) && !pte_dirty(pteval)) {
+ 			result = SCAN_PAGE_LAZYFREE;
+_
 
-Dev Jain (1):
-      mm/rmap: fix incorrect pte restoration for lazyfree folios
+Patches currently in -mm which might be from vernon2gm@gmail.com are
 
-Ignat Korchagin (1):
-      MAINTAINERS: update email address for Ignat Korchagin
-
-Randy Dunlap (1):
-      build_bug.h: correct function parameters names in kernel-doc
-
-Thorsten Blum (1):
-      crash_dump: don't log dm-crypt key bytes in read_key_from_user_keying
-
-Wei Yang (1):
-      mm/huge_memory: fix early failure try_to_migrate() when split huge pmd for shared THP
-
- .mailmap                     |  1 +
- MAINTAINERS                  |  8 ++++----
- include/linux/build_bug.h    |  4 +++-
- kernel/crash_dump_dm_crypt.c |  4 ++--
- mm/huge_memory.c             |  3 ++-
- mm/rmap.c                    | 21 +++++++++++++++++----
- 6 files changed, 29 insertions(+), 12 deletions(-)
+mm-khugepaged-refine-scan-progress-number-fix.patch
+mm-khugepaged-skip-lazy-free-folios-fix.patch
 
