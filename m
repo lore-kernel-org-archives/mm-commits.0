@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 448333B7B9A
-	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 15:59:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92C7E315D46
+	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 16:07:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773676745; cv=none; b=uc9z3yCDIuzJWH+Ct2IXV9e+I0pc2FvpC6q8vS+2JmM89SK6+KG7lOR/v7jQiC+r4gxjBbvgJFHIPZZVOh6fhRkWEaZxY3DlHbgWS8f68L7RbZT0xkeXR/5qyfXKR+6b1aHg1HY6Q+HlV9fu57Ge208YCsFtBDrXd5Trp5aWpsE=
+	t=1773677238; cv=none; b=StxCTOr9RtBO9SlGrlA25obt/+GTxeymlnDx9Iobog1zVsQzxlFz1xAIF1+By0sc2PcUFYK2ocCyrMm8PbG5xqebFkF1Qt8xN7q5k3pV+ykz4oNQR9jdql7On/zxHO8aX7Sjr6pbgmccB3SsKl3gS4z/v7U+hrMxyVmpJrrXhIc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773676745; c=relaxed/simple;
-	bh=wgIKacEQ/fmz39gUy9LhnQ8Lkdjzi4MZ6K2bNaGWXng=;
-	h=Date:To:From:Subject:Message-Id; b=nh39/DPnlzK1n+Bs/WcmDSkLBu0d3QwYhp/DEt6p4wT/K2mtO6yqdzt06VHQn+LjPOzR5bM+nJdPKY5kAPSRQf82GTtmWJDbksh7h8dBY8F2vpcQ92M7uU6ILcTbxjBJWF2BuX5YpZq1+n2DvlBeYbD6HGh6gsrxSOvT+erSaKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rfVxv8qt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773677238; c=relaxed/simple;
+	bh=WTf6Qh9y3V64E3epKkvK6XCDO6hXo2ZtYS2nSFqnx2U=;
+	h=Date:To:From:Subject:Message-Id; b=oqE5PkqCUm9NXHdU6a4inXojZnJqGUR7k2Gz1VycI54JjREhcF7KpIdMqgF+/KYycSHudNUVC+Cv7Ol3iQ70FpxtWgYHtfTqs0sOnmM08PujjrgF9C1n8VRwlkuu0Jazj1K1/Uv7RfcYcbrHztZTlhxWfBHb45gQ3eVzEFOMm3s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XcEaSQVJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rfVxv8qt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC41EC19425;
-	Mon, 16 Mar 2026 15:59:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XcEaSQVJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24F4CC19421;
+	Mon, 16 Mar 2026 16:07:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773676745;
-	bh=wgIKacEQ/fmz39gUy9LhnQ8Lkdjzi4MZ6K2bNaGWXng=;
+	s=korg; t=1773677238;
+	bh=WTf6Qh9y3V64E3epKkvK6XCDO6hXo2ZtYS2nSFqnx2U=;
 	h=Date:To:From:Subject:From;
-	b=rfVxv8qtX/7efvr6BNTXnK0QqMimFawrgrEMZs8AO35+Gk/Fe8/2yl2TOkMnY9+J0
-	 4Vx7UaLw+iDVuhC/gFHxGiOkKbrE8aI+tNrx3YDYHg33y1MU6hstTL7e645qPo3lau
-	 3tZBl/6EXhPvhV9dtfnOoZxzq61CgPb1chzdpLpU=
-Date: Mon, 16 Mar 2026 08:59:04 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,willy@infradead.org,viro@zeniv.linux.org.uk,vbabka@suse.cz,tj@kernel.org,sweettea-kernel@dorminy.me,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,roman.gushchin@linux.dev,rientjes@google.com,richard.weiyang@gmail.com,paulmck@kernel.org,objecting@objecting.org,mjguzik@gmail.com,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liumartin@google.com,linmiaohe@huawei.com,liam.howlett@oracle.com,hannes@cmpxchg.org,dennis@kernel.org,david@redhat.com,cl@linux.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,aboorvad@linux.ibm.com,devnexen@gmail.com,akpm@linux-foundation.org
+	b=XcEaSQVJLITjfYmvQtwVlQoAznDfXHCJcL2LhXl2gVcAlmWog2+QfLBeysD1Jwrk6
+	 YJusOEnwGFTf0aFhzGzX42D1LU7t3SVgBnYIsGvTpdo3Tb4FJETp2h3vLQvbP0g4W8
+	 wqsO6LahcVZ2h70v/JocuGDH1KKqvEUfc8irUvKc=
+Date: Mon, 16 Mar 2026 09:07:17 -0700
+To: mm-commits@vger.kernel.org,yosry@kernel.org,nphamcs@gmail.com,hannes@cmpxchg.org,chengming.zhou@linux.dev,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons.patch added to mm-unstable branch
-Message-Id: <20260316155904.EC41EC19425@smtp.kernel.org>
+Subject: + mm-zswap-add-missing-kunmap_local.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260316160718.24F4CC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: add kunit boundary tests for percpu_counter_tree comparisons
-has been added to the -mm mm-unstable branch.  Its filename is
-     lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons.patch
+     Subject: mm/zswap: add missing kunmap_local()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-zswap-add-missing-kunmap_local.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-add-missing-kunmap_local.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,273 +58,83 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: David Carlier <devnexen@gmail.com>
-Subject: lib: add kunit boundary tests for percpu_counter_tree comparisons
-Date: Mon, 16 Mar 2026 14:38:05 +0000
+From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
+Subject: mm/zswap: add missing kunmap_local()
+Date: Mon, 16 Mar 2026 14:01:22 +0000
 
-Add boundary tests for all four comparison APIs to validate that
-the accuracy parameters are correctly applied:
+Commit e2c3b6b21c77 ("mm: zswap: use SG list decompression APIs from
+zsmalloc") updated zswap_decompress() to use the scatterwalk API to copy
+data for uncompressed pages.
 
-- percpu_counter_tree_approximate_compare_value()
-- percpu_counter_tree_precise_compare_value()
-- percpu_counter_tree_approximate_compare()
-- percpu_counter_tree_precise_compare()
+In doing so, it mapped kernel memory locally for 32-bit kernels using
+kmap_local_folio(), however it never unmapped this memory.
 
-The single-value tests probe the accuracy range boundaries (at,
-beyond, and in the asymmetric gap between under and over) to catch
-swapped accuracy parameters. The two-counter tests verify the
-symmetric combined accuracy boundary for counter-to-counter
-comparisons.
+This resulted in the linked syzbot report where a BUG_ON() is triggered
+due to leaking the kmap slot.
 
-Link: https://lkml.kernel.org/r/20260316143805.36805-2-devnexen@gmail.com
-Signed-off-by: David Carlier <devnexen@gmail.com>
-Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Reviewed-by: Josh Law <objecting@objecting.org>
-Cc: Aboorva Devarajan <aboorvad@linux.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Liam R . Howlett" <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Martin Liu <liumartin@google.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mateusz Guzik <mjguzik@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Sweet Tea Dorminy <sweettea-kernel@dorminy.me>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
+This patch fixes the issue by explicitly unmapping the established kmap.
+
+Link: https://lkml.kernel.org/r/20260316140122.339697-1-ljs@kernel.org
+Fixes: e2c3b6b21c77 ("mm: zswap: use SG list decompression APIs from zsmalloc")
+Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Reported-by: syzbot+fe426bef95363177631d@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/69b75e2c.050a0220.12d28.015a.GAE@google.com
+Acked-by: Yosry Ahmed <yosry@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/tests/percpu_counter_tree_kunit.c |  190 ++++++++++++++++++++++++
- 1 file changed, 190 insertions(+)
+ mm/zswap.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/lib/tests/percpu_counter_tree_kunit.c~lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons
-+++ a/lib/tests/percpu_counter_tree_kunit.c
-@@ -86,6 +86,194 @@ static void check_counters(struct kunit
- 	KUNIT_EXPECT_EQ(test, 0, percpu_counter_tree_approximate_compare(&counter[0], &counter[1]));
- }
+--- a/mm/zswap.c~mm-zswap-add-missing-kunmap_local
++++ a/mm/zswap.c
+@@ -942,9 +942,14 @@ static bool zswap_decompress(struct zswa
  
-+static void hpcc_test_compare_value_boundaries(struct kunit *test)
-+{
-+	struct percpu_counter_tree pct;
-+	struct percpu_counter_tree_level_item *counter_items;
-+	unsigned long under = 0, over = 0;
-+	int ret;
+ 	/* zswap entries of length PAGE_SIZE are not compressed. */
+ 	if (entry->length == PAGE_SIZE) {
++		void *dst;
 +
-+	counter_items = kzalloc(percpu_counter_tree_items_size(), GFP_KERNEL);
-+	KUNIT_ASSERT_PTR_NE(test, counter_items, NULL);
-+	ret = percpu_counter_tree_init(&pct, counter_items, 32, GFP_KERNEL);
-+	KUNIT_ASSERT_EQ(test, ret, 0);
+ 		WARN_ON_ONCE(input->length != PAGE_SIZE);
+-		memcpy_from_sglist(kmap_local_folio(folio, 0), input, 0, PAGE_SIZE);
 +
-+	percpu_counter_tree_set(&pct, 0);
-+	percpu_counter_tree_approximate_accuracy_range(&pct, &under, &over);
-+
-+	/*
-+	 * With approx_sum = precise_sum = 0, from the accuracy invariant:
-+	 *   approx_sum - over <= precise_sum <= approx_sum + under
-+	 * Positive deltas use 'under' as tolerance, negative use 'over'.
-+	 */
-+
-+	/* --- percpu_counter_tree_approximate_compare_value --- */
-+
-+	/* At boundary: indeterminate */
-+	KUNIT_EXPECT_EQ(test, 0,
-+		percpu_counter_tree_approximate_compare_value(&pct,
-+			(long)under));
-+	KUNIT_EXPECT_EQ(test, 0,
-+		percpu_counter_tree_approximate_compare_value(&pct,
-+			-(long)over));
-+
-+	/* Beyond boundary: definitive */
-+	KUNIT_EXPECT_EQ(test, 1,
-+		percpu_counter_tree_approximate_compare_value(&pct,
-+			(long)(under + 1)));
-+	KUNIT_EXPECT_EQ(test, -1,
-+		percpu_counter_tree_approximate_compare_value(&pct,
-+			-(long)(over + 1)));
-+
-+	/* Asymmetric gap: catches swapped accuracy parameters */
-+	if (under != over) {
-+		if (under > over) {
-+			KUNIT_EXPECT_EQ(test, 0,
-+				percpu_counter_tree_approximate_compare_value(
-+					&pct, (long)(over + 1)));
-+			KUNIT_EXPECT_EQ(test, -1,
-+				percpu_counter_tree_approximate_compare_value(
-+					&pct, -(long)(over + 1)));
-+		} else {
-+			KUNIT_EXPECT_EQ(test, 1,
-+				percpu_counter_tree_approximate_compare_value(
-+					&pct, (long)(under + 1)));
-+			KUNIT_EXPECT_EQ(test, 0,
-+				percpu_counter_tree_approximate_compare_value(
-+					&pct, -(long)(under + 1)));
-+		}
-+	}
-+
-+	/* --- percpu_counter_tree_precise_compare_value --- */
-+
-+	/*
-+	 * With approx_sum = precise_sum = 0, the precise comparison
-+	 * must return the exact result. At boundary values the
-+	 * approximate fast-path returns indeterminate, exercising
-+	 * the precise sum fallback.
-+	 */
-+	KUNIT_EXPECT_EQ(test, 0,
-+		percpu_counter_tree_precise_compare_value(&pct, 0));
-+	KUNIT_EXPECT_EQ(test, 1,
-+		percpu_counter_tree_precise_compare_value(&pct,
-+			(long)under));
-+	KUNIT_EXPECT_EQ(test, -1,
-+		percpu_counter_tree_precise_compare_value(&pct,
-+			-(long)over));
-+	KUNIT_EXPECT_EQ(test, 1,
-+		percpu_counter_tree_precise_compare_value(&pct,
-+			(long)(under + 1)));
-+	KUNIT_EXPECT_EQ(test, -1,
-+		percpu_counter_tree_precise_compare_value(&pct,
-+			-(long)(over + 1)));
-+
-+	if (under != over) {
-+		if (under > over) {
-+			KUNIT_EXPECT_EQ(test, 1,
-+				percpu_counter_tree_precise_compare_value(
-+					&pct, (long)(over + 1)));
-+			KUNIT_EXPECT_EQ(test, -1,
-+				percpu_counter_tree_precise_compare_value(
-+					&pct, -(long)(over + 1)));
-+		} else {
-+			KUNIT_EXPECT_EQ(test, 1,
-+				percpu_counter_tree_precise_compare_value(
-+					&pct, (long)(under + 1)));
-+			KUNIT_EXPECT_EQ(test, -1,
-+				percpu_counter_tree_precise_compare_value(
-+					&pct, -(long)(under + 1)));
-+		}
-+	}
-+
-+	percpu_counter_tree_destroy(&pct);
-+	kfree(counter_items);
-+}
-+
-+static void hpcc_test_compare_counter_boundaries(struct kunit *test)
-+{
-+	struct percpu_counter_tree pct[2];
-+	struct percpu_counter_tree_level_item *counter_items;
-+	unsigned long under = 0, over = 0;
-+	unsigned long combined;
-+	int ret;
-+
-+	counter_items = kzalloc(percpu_counter_tree_items_size() * 2,
-+				GFP_KERNEL);
-+	KUNIT_ASSERT_PTR_NE(test, counter_items, NULL);
-+	ret = percpu_counter_tree_init_many(pct, counter_items, 2, 32,
-+					    GFP_KERNEL);
-+	KUNIT_ASSERT_EQ(test, ret, 0);
-+
-+	percpu_counter_tree_approximate_accuracy_range(&pct[0],
-+						       &under, &over);
-+
-+	/*
-+	 * Both counters have the same configuration. The combined
-+	 * accuracy for two-counter comparison is symmetric:
-+	 *   accuracy_pos = over + under = under + over = accuracy_neg
-+	 */
-+	combined = under + over;
-+
-+	/* --- percpu_counter_tree_approximate_compare --- */
-+
-+	/* At boundary: indeterminate */
-+	percpu_counter_tree_set(&pct[0], (long)combined);
-+	percpu_counter_tree_set(&pct[1], 0);
-+	KUNIT_EXPECT_EQ(test, 0,
-+		percpu_counter_tree_approximate_compare(&pct[0], &pct[1]));
-+
-+	percpu_counter_tree_set(&pct[0], 0);
-+	percpu_counter_tree_set(&pct[1], (long)combined);
-+	KUNIT_EXPECT_EQ(test, 0,
-+		percpu_counter_tree_approximate_compare(&pct[0], &pct[1]));
-+
-+	/* Beyond boundary: definitive */
-+	percpu_counter_tree_set(&pct[0], (long)(combined + 1));
-+	percpu_counter_tree_set(&pct[1], 0);
-+	KUNIT_EXPECT_EQ(test, 1,
-+		percpu_counter_tree_approximate_compare(&pct[0], &pct[1]));
-+
-+	percpu_counter_tree_set(&pct[0], 0);
-+	percpu_counter_tree_set(&pct[1], (long)(combined + 1));
-+	KUNIT_EXPECT_EQ(test, -1,
-+		percpu_counter_tree_approximate_compare(&pct[0], &pct[1]));
-+
-+	/* --- percpu_counter_tree_precise_compare --- */
-+
-+	/* At boundary: precise gives exact result */
-+	percpu_counter_tree_set(&pct[0], (long)combined);
-+	percpu_counter_tree_set(&pct[1], 0);
-+	KUNIT_EXPECT_EQ(test, 1,
-+		percpu_counter_tree_precise_compare(&pct[0], &pct[1]));
-+
-+	percpu_counter_tree_set(&pct[0], 0);
-+	percpu_counter_tree_set(&pct[1], (long)combined);
-+	KUNIT_EXPECT_EQ(test, -1,
-+		percpu_counter_tree_precise_compare(&pct[0], &pct[1]));
-+
-+	/* Beyond boundary: definitive */
-+	percpu_counter_tree_set(&pct[0], (long)(combined + 1));
-+	percpu_counter_tree_set(&pct[1], 0);
-+	KUNIT_EXPECT_EQ(test, 1,
-+		percpu_counter_tree_precise_compare(&pct[0], &pct[1]));
-+
-+	percpu_counter_tree_set(&pct[0], 0);
-+	percpu_counter_tree_set(&pct[1], (long)(combined + 1));
-+	KUNIT_EXPECT_EQ(test, -1,
-+		percpu_counter_tree_precise_compare(&pct[0], &pct[1]));
-+
-+	/* Equal counters */
-+	percpu_counter_tree_set(&pct[0], 42);
-+	percpu_counter_tree_set(&pct[1], 42);
-+	KUNIT_EXPECT_EQ(test, 0,
-+		percpu_counter_tree_approximate_compare(&pct[0], &pct[1]));
-+	KUNIT_EXPECT_EQ(test, 0,
-+		percpu_counter_tree_precise_compare(&pct[0], &pct[1]));
-+
-+	percpu_counter_tree_destroy_many(pct, 2);
-+	kfree(counter_items);
-+}
-+
- static int multi_thread_worker_fn(void *data)
- {
- 	struct multi_thread_test_data *td = data;
-@@ -383,6 +571,8 @@ static struct kunit_case hpcc_test_cases
- 	KUNIT_CASE(hpcc_test_single_thread_random),
- 	KUNIT_CASE(hpcc_test_multi_thread_batch_increment),
- 	KUNIT_CASE(hpcc_test_multi_thread_random_walk),
-+	KUNIT_CASE(hpcc_test_compare_value_boundaries),
-+	KUNIT_CASE(hpcc_test_compare_counter_boundaries),
- 	KUNIT_CASE(hpcc_test_init_one),
- 	KUNIT_CASE(hpcc_test_set),
- 	{}
++		dst = kmap_local_folio(folio, 0);
++		memcpy_from_sglist(dst, input, 0, PAGE_SIZE);
+ 		dlen = PAGE_SIZE;
++		kunmap_local(dst);
+ 	} else {
+ 		sg_init_table(&output, 1);
+ 		sg_set_folio(&output, folio, PAGE_SIZE, 0);
 _
 
-Patches currently in -mm which might be from devnexen@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-lib-introduce-hierarchical-per-cpu-counters-fix.patch
-lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons.patch
+mm-zswap-add-missing-kunmap_local.patch
+mm-rename-vma-flag-helpers-to-be-more-readable.patch
+mm-add-vma_desc_test_all-and-use-it.patch
+mm-always-inline-__mk_vma_flags-and-invoked-functions.patch
+mm-reintroduce-vma_flags_test-as-a-singular-flag-test.patch
+mm-reintroduce-vma_desc_test-as-a-singular-flag-test.patch
+tools-testing-vma-add-test-for-vma_flags_test-vma_desc_test.patch
+tools-testing-vma-add-test-for-vma_flags_test-vma_desc_test-fix.patch
+mm-mremap-correct-invalid-map-count-check.patch
+mm-abstract-reading-sysctl_max_map_count-and-read_once.patch
+mm-mremap-check-map-count-under-mmap-write-lock-and-abstract.patch
+mm-various-small-mmap_prepare-cleanups.patch
+mm-add-documentation-for-the-mmap_prepare-file-operation-callback.patch
+mm-document-vm_operations_struct-open-the-same-as-close.patch
+mm-add-vm_ops-mapped-hook.patch
+fs-afs-correctly-drop-reference-count-on-mapping-failure.patch
+mm-add-mmap_action_simple_ioremap.patch
+misc-open-dice-replace-deprecated-mmap-hook-with-mmap_prepare.patch
+hpet-replace-deprecated-mmap-hook-with-mmap_prepare.patch
+mtdchar-replace-deprecated-mmap-hook-with-mmap_prepare-clean-up.patch
+stm-replace-deprecated-mmap-hook-with-mmap_prepare.patch
+staging-vme_user-replace-deprecated-mmap-hook-with-mmap_prepare.patch
+mm-allow-handling-of-stacked-mmap_prepare-hooks-in-more-drivers.patch
+drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare.patch
+uio-replace-deprecated-mmap-hook-with-mmap_prepare-in-uio_info.patch
+mm-add-mmap_action_map_kernel_pages.patch
 
