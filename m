@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3A1F2BE630
-	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 16:55:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 408763CF049
+	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 17:02:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773680130; cv=none; b=rOX3AWZd7oRyjhQVDqK3/rX+ohtAEuVYLPpVrrlqUGaABCknuxCLNsDWjAKYOgjrGPqLZT/J9Q0jT6N3IYnQfSTYwtWJT0myvukEaK2rMnfOm3YNinZrn0Hc+KDh5U2pfTDccNAsN1ZisXJoKMpYN20mFoi3dwoPa/R3YV/5Z58=
+	t=1773680540; cv=none; b=hjAuipGjBPVj0nz6TnMcIWVD1BULbl8by/6eXF9nRWeCCRJSal56lBOCNxOqiVhZ1oS5Hzk50GLVxviNCrZ5uoZBGHT1Z2CiK+3QOAwSgo5iPirrgQgneWIiz9wU0Is0FA7YYrVsTclNgh6z7L1HJwbT886c8ZTp88QSWWpNjNE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773680130; c=relaxed/simple;
-	bh=VT0Yzi2fV68TtfrBYHc1QcuxV2DOwcIo/0eEjTMbWe4=;
-	h=Date:To:From:Subject:Message-Id; b=HIqoABr3bQtPDK6cTEJLVsxh2i1ePsRg3TfcV3IefgW4X1EFwIU6KmCM+s+h2ng+TXj+YB+/IDvg9F6RQOcMYNndtrAbgDwRwvG4BxNlU73UeoNfKySMxZXJc4nIYUEEPbdNfZO6IpJE+O/nJ/VzBTL+BXS4X3yVgtYmwKJBOfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DimTcX6g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773680540; c=relaxed/simple;
+	bh=OI/G9//3OZLHhBH1jkEcQuo0fKC/D460/UWXXn5D7Q8=;
+	h=Date:To:From:Subject:Message-Id; b=maHS+49V417o8gijcQssn0+H/H8jT+5XYqU0XHO37ua8Xf6cxc0K2oDW99nSIDxWw9M7MSGkqyDx/5a3xF9ESAAnXieG2rPYw5nNrKljTxvuGbzAdWnByNtdLYNdFyLsd2osWyD8sQg8+GMRMNSO8QXe8RYOcHF68X6Krz5kM/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IDZHRhYc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DimTcX6g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E248C19421;
-	Mon, 16 Mar 2026 16:55:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IDZHRhYc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDD43C19421;
+	Mon, 16 Mar 2026 17:02:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773680130;
-	bh=VT0Yzi2fV68TtfrBYHc1QcuxV2DOwcIo/0eEjTMbWe4=;
+	s=korg; t=1773680539;
+	bh=OI/G9//3OZLHhBH1jkEcQuo0fKC/D460/UWXXn5D7Q8=;
 	h=Date:To:From:Subject:From;
-	b=DimTcX6gxywLFP/WZ52F7Kw/Ez+d3tlMGtZE0DKzBofeQ69srM2Rl1bGShnRhrqnx
-	 2ts2bd/zCpsix9qvz8bEXEoD7/ac708dyQjsYOnHdsK7VeGy//rjayJiMi4mgValJh
-	 arjFXZUmU6wXprCv/IVqWsRlAPkdsV6ElGRj2ofU=
-Date: Mon, 16 Mar 2026 09:55:29 -0700
-To: mm-commits@vger.kernel.org,neelnatu@google.com,kees@kernel.org,dmantipov@yandex.ru,djwong@kernel.org,andriy.shevchenko@intel.com,shuvampandey1@gmail.com,akpm@linux-foundation.org
+	b=IDZHRhYcAklNe0oo3ljnYXWbFhZeaNvmITGnNmiUk1E0FRB9a8cvsgb+FAlXN0CEK
+	 F/fLTisZ/Kaq4/Tw5AighhnyVqHD4ggB2rPnNRkaexN9r8sAO/ntiWHzJd+kq5K5IZ
+	 fRmEaG6M4U2eYPekfU7yl3EyRhdapoW3JhH0sJYM=
+Date: Mon, 16 Mar 2026 10:02:19 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,kartikey406@gmail.com,harry.yoo@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-tests-extend-cmdline-kunit-with-next_arg-tests.patch added to mm-nonmm-unstable branch
-Message-Id: <20260316165530.3E248C19421@smtp.kernel.org>
+Subject: + userfaultfd-introduce-struct-mfill_state-fix.patch added to mm-unstable branch
+Message-Id: <20260316170219.BDD43C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/tests: extend cmdline KUnit with next_arg() tests
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-tests-extend-cmdline-kunit-with-next_arg-tests.patch
+     Subject: userfaultfd-introduce-struct-mfill_state-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     userfaultfd-introduce-struct-mfill_state-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-tests-extend-cmdline-kunit-with-next_arg-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-introduce-struct-mfill_state-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,88 +58,38 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shuvam Pandey <shuvampandey1@gmail.com>
-Subject: lib/tests: extend cmdline KUnit with next_arg() tests
-Date: Mon, 16 Mar 2026 15:57:27 +0545
+From: Harry Yoo <harry.yoo@oracle.com>
+Subject: userfaultfd-introduce-struct-mfill_state-fix
+Date: Mon, 16 Mar 2026 15:19:49 +0900
 
-The cmdline KUnit suite covers get_option() and get_options(), but it
-does not exercise next_arg().
+fix folio_add_new_anon_rmap() WARN
 
-Extend the suite with one test for a quoted value containing spaces and
-one regression test for a bare quote token after a normal parameter.
-
-The regression test covers the bare quote token path fixed by commit
-9847f21225c4 ("lib/cmdline: avoid page fault in next_arg").
-
-Link: https://lkml.kernel.org/r/20260316101227.15807-1-shuvampandey1@gmail.com
-Signed-off-by: Shuvam Pandey <shuvampandey1@gmail.com>
-Cc: Neel Natu <neelnatu@google.com>
-Cc: Dmitry Antipov <dmantipov@yandex.ru>
-Cc: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
+Link: https://lkml.kernel.org/r/abehBY7QakYF9bK4@hyeyoo
+Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
+Reported-by: Deepanshu Kartikey <kartikey406@gmail.com>
+Reported-by: syzbot+e24a2e34fad0efbac047@syzkaller.appspotmail.com
+Closes: https://lkml.kernel.org/r/69b703e6.050a0220.248e02.0101.GAE@google.com
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/tests/cmdline_kunit.c |   38 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ mm/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/tests/cmdline_kunit.c~lib-tests-extend-cmdline-kunit-with-next_arg-tests
-+++ a/lib/tests/cmdline_kunit.c
-@@ -194,12 +194,50 @@ static void cmdline_test_memparse(struct
- 	}
- }
- 
-+static void cmdline_test_next_arg_quoted_value(struct kunit *test)
-+{
-+	char in[] = "foo=\"bar baz\" qux=1";
-+	char *next, *param, *val;
-+
-+	next = next_arg(in, &param, &val);
-+	KUNIT_EXPECT_STREQ(test, param, "foo");
-+	KUNIT_ASSERT_NOT_NULL(test, val);
-+	KUNIT_EXPECT_STREQ(test, val, "bar baz");
-+	KUNIT_EXPECT_STREQ(test, next, "qux=1");
-+
-+	next = next_arg(next, &param, &val);
-+	KUNIT_EXPECT_STREQ(test, param, "qux");
-+	KUNIT_ASSERT_NOT_NULL(test, val);
-+	KUNIT_EXPECT_STREQ(test, val, "1");
-+	KUNIT_EXPECT_STREQ(test, next, "");
-+}
-+
-+static void cmdline_test_next_arg_bare_quote_regression(struct kunit *test)
-+{
-+	char in[] = "foo=bar \"";
-+	char *next, *param, *val;
-+
-+	next = next_arg(in, &param, &val);
-+	KUNIT_EXPECT_STREQ(test, param, "foo");
-+	KUNIT_ASSERT_NOT_NULL(test, val);
-+	KUNIT_EXPECT_STREQ(test, val, "bar");
-+	KUNIT_EXPECT_STREQ(test, next, "\"");
-+
-+	/* This hits the i == 0 quoted-token case fixed by 9847f21225c4. */
-+	next = next_arg(next, &param, &val);
-+	KUNIT_EXPECT_STREQ(test, param, "");
-+	KUNIT_EXPECT_PTR_EQ(test, val, NULL);
-+	KUNIT_EXPECT_STREQ(test, next, "");
-+}
-+
- static struct kunit_case cmdline_test_cases[] = {
- 	KUNIT_CASE(cmdline_test_noint),
- 	KUNIT_CASE(cmdline_test_lead_int),
- 	KUNIT_CASE(cmdline_test_tail_int),
- 	KUNIT_CASE(cmdline_test_range),
- 	KUNIT_CASE(cmdline_test_memparse),
-+	KUNIT_CASE(cmdline_test_next_arg_quoted_value),
-+	KUNIT_CASE(cmdline_test_next_arg_bare_quote_regression),
- 	{}
- };
- 
+--- a/mm/userfaultfd.c~userfaultfd-introduce-struct-mfill_state-fix
++++ a/mm/userfaultfd.c
+@@ -734,7 +734,7 @@ static __always_inline ssize_t mfill_ato
+ 		.dst_start = dst_start,
+ 		.src_start = src_start,
+ 		.flags = flags,
+-
++		.len = len,
+ 		.src_addr = src_start,
+ 		.dst_addr = dst_start,
+ 	};
 _
 
-Patches currently in -mm which might be from shuvampandey1@gmail.com are
+Patches currently in -mm which might be from harry.yoo@oracle.com are
 
-lib-tests-extend-cmdline-kunit-with-next_arg-tests.patch
+userfaultfd-introduce-struct-mfill_state-fix.patch
 
