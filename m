@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F4A733291F
-	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 16:47:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3A1F2BE630
+	for <mm-commits@vger.kernel.org>; Mon, 16 Mar 2026 16:55:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773679628; cv=none; b=YEClgf253yTN1wvrXFtDk61k763XUZ0ka7R8n9ad7bWPFrwYmPsIgm2h+gRoBwLXq4kR9EnFy3hQUlsFw0eVaCPbuI9ayCL0SscQi+Z31jW3PcFuapibRuXUSp1l2abm3IwFOzJa9T+yMacJnTBWSPhOdLjVCN1LwsL91LUSEeE=
+	t=1773680130; cv=none; b=rOX3AWZd7oRyjhQVDqK3/rX+ohtAEuVYLPpVrrlqUGaABCknuxCLNsDWjAKYOgjrGPqLZT/J9Q0jT6N3IYnQfSTYwtWJT0myvukEaK2rMnfOm3YNinZrn0Hc+KDh5U2pfTDccNAsN1ZisXJoKMpYN20mFoi3dwoPa/R3YV/5Z58=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773679628; c=relaxed/simple;
-	bh=RFKA6sxHBJnU1WyrUKjN0BAeI0crB2lo7rLgBcB4/zw=;
-	h=Date:To:From:Subject:Message-Id; b=VvqiZv56B4dPS3bCtyvcXBLek51oHzxOG8DElMq8ceCEBmnx/kVxOvavFLx7MzXeMkq0WuxrlL+h0n1mcA/wJ5GW3lErfX61qDKo6yiNOMrQYbXmGHBdhJM615Neo33XRkXccXBa8I20AwPTS/JHO2N9ZK1I5U84oOX8i6gfwJE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=s2jL0oex; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773680130; c=relaxed/simple;
+	bh=VT0Yzi2fV68TtfrBYHc1QcuxV2DOwcIo/0eEjTMbWe4=;
+	h=Date:To:From:Subject:Message-Id; b=HIqoABr3bQtPDK6cTEJLVsxh2i1ePsRg3TfcV3IefgW4X1EFwIU6KmCM+s+h2ng+TXj+YB+/IDvg9F6RQOcMYNndtrAbgDwRwvG4BxNlU73UeoNfKySMxZXJc4nIYUEEPbdNfZO6IpJE+O/nJ/VzBTL+BXS4X3yVgtYmwKJBOfk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DimTcX6g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="s2jL0oex"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 272C3C19421;
-	Mon, 16 Mar 2026 16:47:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DimTcX6g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E248C19421;
+	Mon, 16 Mar 2026 16:55:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773679628;
-	bh=RFKA6sxHBJnU1WyrUKjN0BAeI0crB2lo7rLgBcB4/zw=;
+	s=korg; t=1773680130;
+	bh=VT0Yzi2fV68TtfrBYHc1QcuxV2DOwcIo/0eEjTMbWe4=;
 	h=Date:To:From:Subject:From;
-	b=s2jL0oexegUuOGIPeS3IOfSqGRsgKVxQCZXzYTvkFVhMJjEXYxAxoHWPw03TMyT6S
-	 sROekSwLCq8GyY6EXdhRCYNBi19gOf+RQbkL3CO/ojoTlsI0syfpgxFxClS3QBsONK
-	 ytxzwMeavsLwEUzG+b7dFAXAy/plFd8Fm5QEGq5g=
-Date: Mon, 16 Mar 2026 09:47:07 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,rostedt@goodmis.org,mhocko@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,tballasi@linux.microsoft.com,akpm@linux-foundation.org
+	b=DimTcX6gxywLFP/WZ52F7Kw/Ez+d3tlMGtZE0DKzBofeQ69srM2Rl1bGShnRhrqnx
+	 2ts2bd/zCpsix9qvz8bEXEoD7/ac708dyQjsYOnHdsK7VeGy//rjayJiMi4mgValJh
+	 arjFXZUmU6wXprCv/IVqWsRlAPkdsV6ElGRj2ofU=
+Date: Mon, 16 Mar 2026 09:55:29 -0700
+To: mm-commits@vger.kernel.org,neelnatu@google.com,kees@kernel.org,dmantipov@yandex.ru,djwong@kernel.org,andriy.shevchenko@intel.com,shuvampandey1@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-add-pids-to-vmscan-tracepoints.patch added to mm-unstable branch
-Message-Id: <20260316164708.272C3C19421@smtp.kernel.org>
+Subject: + lib-tests-extend-cmdline-kunit-with-next_arg-tests.patch added to mm-nonmm-unstable branch
+Message-Id: <20260316165530.3E248C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: vmscan: add PIDs to vmscan tracepoints
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-add-pids-to-vmscan-tracepoints.patch
+     Subject: lib/tests: extend cmdline KUnit with next_arg() tests
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-tests-extend-cmdline-kunit-with-next_arg-tests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-add-pids-to-vmscan-tracepoints.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-tests-extend-cmdline-kunit-with-next_arg-tests.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,110 +58,88 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Thomas Ballasi <tballasi@linux.microsoft.com>
-Subject: mm: vmscan: add PIDs to vmscan tracepoints
-Date: Mon, 16 Mar 2026 09:09:08 -0700
+From: Shuvam Pandey <shuvampandey1@gmail.com>
+Subject: lib/tests: extend cmdline KUnit with next_arg() tests
+Date: Mon, 16 Mar 2026 15:57:27 +0545
 
-The changes aims at adding additionnal tracepoints variables to help
-debuggers attribute them to specific processes.
+The cmdline KUnit suite covers get_option() and get_options(), but it
+does not exercise next_arg().
 
-Link: https://lkml.kernel.org/r/20260316160908.42727-4-tballasi@linux.microsoft.com
-Signed-off-by: Thomas Ballasi <tballasi@linux.microsoft.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Extend the suite with one test for a quoted value containing spaces and
+one regression test for a bare quote token after a normal parameter.
+
+The regression test covers the bare quote token path fixed by commit
+9847f21225c4 ("lib/cmdline: avoid page fault in next_arg").
+
+Link: https://lkml.kernel.org/r/20260316101227.15807-1-shuvampandey1@gmail.com
+Signed-off-by: Shuvam Pandey <shuvampandey1@gmail.com>
+Cc: Neel Natu <neelnatu@google.com>
+Cc: Dmitry Antipov <dmantipov@yandex.ru>
+Cc: Andy Shevchenko <andriy.shevchenko@intel.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ lib/tests/cmdline_kunit.c |   38 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
---- a/include/trace/events/vmscan.h~mm-vmscan-add-pids-to-vmscan-tracepoints
-+++ a/include/trace/events/vmscan.h
-@@ -140,10 +140,12 @@ DECLARE_EVENT_CLASS(mm_vmscan_direct_rec
- 		__entry->memcg_id	= mem_cgroup_id(memcg);
- 	),
+--- a/lib/tests/cmdline_kunit.c~lib-tests-extend-cmdline-kunit-with-next_arg-tests
++++ a/lib/tests/cmdline_kunit.c
+@@ -194,12 +194,50 @@ static void cmdline_test_memparse(struct
+ 	}
+ }
  
--	TP_printk("order=%d gfp_flags=%s memcg_id=%llu",
-+	TP_printk("order=%d gfp_flags=%s pid=%d memcg_id=%llu %s",
- 		__entry->order,
- 		show_gfp_flags(__entry->gfp_flags),
--		__entry->memcg_id)
-+		__entry->ent.pid,
-+		__entry->memcg_id,
-+		__event_in_irq() ? "(in-irq)" : "")
- );
++static void cmdline_test_next_arg_quoted_value(struct kunit *test)
++{
++	char in[] = "foo=\"bar baz\" qux=1";
++	char *next, *param, *val;
++
++	next = next_arg(in, &param, &val);
++	KUNIT_EXPECT_STREQ(test, param, "foo");
++	KUNIT_ASSERT_NOT_NULL(test, val);
++	KUNIT_EXPECT_STREQ(test, val, "bar baz");
++	KUNIT_EXPECT_STREQ(test, next, "qux=1");
++
++	next = next_arg(next, &param, &val);
++	KUNIT_EXPECT_STREQ(test, param, "qux");
++	KUNIT_ASSERT_NOT_NULL(test, val);
++	KUNIT_EXPECT_STREQ(test, val, "1");
++	KUNIT_EXPECT_STREQ(test, next, "");
++}
++
++static void cmdline_test_next_arg_bare_quote_regression(struct kunit *test)
++{
++	char in[] = "foo=bar \"";
++	char *next, *param, *val;
++
++	next = next_arg(in, &param, &val);
++	KUNIT_EXPECT_STREQ(test, param, "foo");
++	KUNIT_ASSERT_NOT_NULL(test, val);
++	KUNIT_EXPECT_STREQ(test, val, "bar");
++	KUNIT_EXPECT_STREQ(test, next, "\"");
++
++	/* This hits the i == 0 quoted-token case fixed by 9847f21225c4. */
++	next = next_arg(next, &param, &val);
++	KUNIT_EXPECT_STREQ(test, param, "");
++	KUNIT_EXPECT_PTR_EQ(test, val, NULL);
++	KUNIT_EXPECT_STREQ(test, next, "");
++}
++
+ static struct kunit_case cmdline_test_cases[] = {
+ 	KUNIT_CASE(cmdline_test_noint),
+ 	KUNIT_CASE(cmdline_test_lead_int),
+ 	KUNIT_CASE(cmdline_test_tail_int),
+ 	KUNIT_CASE(cmdline_test_range),
+ 	KUNIT_CASE(cmdline_test_memparse),
++	KUNIT_CASE(cmdline_test_next_arg_quoted_value),
++	KUNIT_CASE(cmdline_test_next_arg_bare_quote_regression),
+ 	{}
+ };
  
- DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_direct_reclaim_begin,
-@@ -185,9 +187,11 @@ DECLARE_EVENT_CLASS(mm_vmscan_direct_rec
- 		__entry->memcg_id	= mem_cgroup_id(memcg);
- 	),
- 
--	TP_printk("nr_reclaimed=%lu memcg_id=%llu",
-+	TP_printk("nr_reclaimed=%lu pid=%d memcg_id=%llu %s",
- 		__entry->nr_reclaimed,
--		__entry->memcg_id)
-+		__entry->ent.pid,
-+		__entry->memcg_id,
-+		__event_in_irq() ? "(in-irq)" : "")
- );
- 
- DEFINE_EVENT(mm_vmscan_direct_reclaim_end_template, mm_vmscan_direct_reclaim_end,
-@@ -248,17 +252,19 @@ TRACE_EVENT(mm_shrink_slab_start,
- 		__entry->memcg_id = mem_cgroup_id(memcg);
- 	),
- 
--	TP_printk("%pS %p: nid: %d memcg_id: %llu objects to shrink %ld gfp_flags %s cache items %ld delta %lld total_scan %ld priority %d",
-+	TP_printk("%pS %p: nid: %d pid: %d memcg_id: %llu objects to shrink %ld gfp_flags %s cache items %ld delta %lld total_scan %ld priority %d %s",
- 		__entry->shrink,
- 		__entry->shr,
- 		__entry->nid,
-+		__entry->ent.pid,
- 		__entry->memcg_id,
- 		__entry->nr_objects_to_shrink,
- 		show_gfp_flags(__entry->gfp_flags),
- 		__entry->cache_items,
- 		__entry->delta,
- 		__entry->total_scan,
--		__entry->priority)
-+		__entry->priority,
-+		__event_in_irq() ? "(in-irq)" : "")
- );
- 
- TRACE_EVENT(mm_shrink_slab_end,
-@@ -290,15 +296,17 @@ TRACE_EVENT(mm_shrink_slab_end,
- 		__entry->memcg_id = mem_cgroup_id(memcg);
- 	),
- 
--	TP_printk("%pS %p: nid: %d memcg_id: %llu unused scan count %ld new scan count %ld total_scan %ld last shrinker return val %d",
-+	TP_printk("%pS %p: nid: %d pid: %d memcg_id: %llu unused scan count %ld new scan count %ld total_scan %ld last shrinker return val %d %s",
- 		__entry->shrink,
- 		__entry->shr,
- 		__entry->nid,
-+		__entry->ent.pid,
- 		__entry->memcg_id,
- 		__entry->unused_scan,
- 		__entry->new_scan,
- 		__entry->total_scan,
--		__entry->retval)
-+		__entry->retval,
-+		__event_in_irq() ? "(in-irq)" : "")
- );
- 
- TRACE_EVENT(mm_vmscan_lru_isolate,
 _
 
-Patches currently in -mm which might be from tballasi@linux.microsoft.com are
+Patches currently in -mm which might be from shuvampandey1@gmail.com are
 
-mm-vmscan-add-cgroup-ids-to-vmscan-tracepoints.patch
-mm-vmscan-add-pids-to-vmscan-tracepoints.patch
+lib-tests-extend-cmdline-kunit-with-next_arg-tests.patch
 
