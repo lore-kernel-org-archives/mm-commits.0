@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14FBA337B81
-	for <mm-commits@vger.kernel.org>; Tue, 17 Mar 2026 17:46:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F0FA332628
+	for <mm-commits@vger.kernel.org>; Tue, 17 Mar 2026 17:46:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773769599; cv=none; b=mUzm813Jd0ynQQNWYre/X8I70e/n+84a8slFmlTKVzkW4jKNz7AhyFngdlOkkRLYC9BOEHe0roW1xaw6BV/KSON+uCYLK6GF18HhmwoOtCKDULjzVgf9OpITuDbbw22oiJxu7GOCebmyMNFfPnio2dpDltPtzqS+13YDbkAtuYg=
+	t=1773769602; cv=none; b=qf6L+LMQ+Vy/YCaSlhjIwqFIPxNhO7zpULaR/tc0W1x6NGprBs+DlBgydEE1Gz/rGVxQjC1PCNpYCZYx3qh+7d3V0zr2YLaQuGxSArY3LEARRscupwI7TSEp7y3CMkUHIlUpATr19Cb3eWX2+S6Sl64betRGxbErn1yXf83hnZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773769599; c=relaxed/simple;
-	bh=045VsvZQPtccsqqeVXnkfxy4cQ2eQsPPRA8fq4TmHvs=;
-	h=Date:To:From:Subject:Message-Id; b=H1nskNrj0sU2QVEtkY8xFsYSPBM2D7YtRGTEBBL/fX8PvDGN93qku6uQPXSECmLFeAVq52Pff4raFA56wkkWWXHBHGnLArWrCCd1dW5kbjaSDmuoFnzjvpCQv/MF+PFUgkFgDvkWJ2rtRzihe9AQJAU3Pe9UPuQm8dQBtuSnJ8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LM1tc7ef; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773769602; c=relaxed/simple;
+	bh=hP3BWdEqXFzuDqIZhpvhnQIqE0kOztlu3bEx68E/oII=;
+	h=Date:To:From:Subject:Message-Id; b=Zwx4FJikZKWoFfcbDiwdgl2EF5C03CBkyi9L9v4hNvJCrXAScZOjSwJ9ksffS1Etf8FyMyfPAm1i9wknbk6rvfQ5D5gB6gicDdwUPZlkIe+TVt5vaAua5SP6zerCGU8s/pQEdLWOCls8BC5fYQmUNc9Bzb4A0mjkZ1dNR6p6m5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DI/4n9LO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LM1tc7ef"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F3D8C4CEF7;
-	Tue, 17 Mar 2026 17:46:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DI/4n9LO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B9C2C4CEF7;
+	Tue, 17 Mar 2026 17:46:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773769598;
-	bh=045VsvZQPtccsqqeVXnkfxy4cQ2eQsPPRA8fq4TmHvs=;
+	s=korg; t=1773769602;
+	bh=hP3BWdEqXFzuDqIZhpvhnQIqE0kOztlu3bEx68E/oII=;
 	h=Date:To:From:Subject:From;
-	b=LM1tc7ef/jX7NQetid4EChDA8cht6vV4L3P7LPpNrh+EUN5KxIgBp9xLpgF5qmRNd
-	 5h/4H/9myTc58RjAKuXS6rya5hfu9Wj4Kc96DRfOrtHhEL/OsHfQNkBHf44q7MAtxb
-	 3XIrcIgwsDs6WsBvlblUTJZzH4Tc19lbjj6qeBYU=
-Date: Tue, 17 Mar 2026 10:46:38 -0700
-To: mm-commits@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,epetron@amazon.de,mclapinski@google.com,akpm@linux-foundation.org
+	b=DI/4n9LOkbqjbQaR3xee67N4m2amFzGdl0gOeCbjS/OLsiAjyqwT6qv3C0SGpD/rN
+	 y70/ZIB6Qs+zJiiAxTFlal1B4yavm4tXFnRFW7RFFZ1GGTMezHGxTGcfYsmrb5dLon
+	 jMJFxNS/oH+fvtvJaoShw3bvxqLnmlfZmEcDyHX0=
+Date: Tue, 17 Mar 2026 10:46:41 -0700
+To: mm-commits@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,mclapinski@google.com,graf@amazon.com,epetron@amazon.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-fix-deferred-init-of-kho-scratch.patch added to mm-new branch
-Message-Id: <20260317174638.9F3D8C4CEF7@smtp.kernel.org>
+Subject: + kho-make-preserved-pages-compatible-with-deferred-struct-page-init.patch added to mm-new branch
+Message-Id: <20260317174642.0B9C2C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: fix deferred init of kho scratch
+     Subject: kho: make preserved pages compatible with deferred struct page init
 has been added to the -mm mm-new branch.  Its filename is
-     kho-fix-deferred-init-of-kho-scratch.patch
+     kho-make-preserved-pages-compatible-with-deferred-struct-page-init.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-fix-deferred-init-of-kho-scratch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-make-preserved-pages-compatible-with-deferred-struct-page-init.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,145 +69,101 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Michal Clapinski <mclapinski@google.com>
-Subject: kho: fix deferred init of kho scratch
-Date: Tue, 17 Mar 2026 15:15:33 +0100
+From: Evangelos Petrongonas <epetron@amazon.de>
+Subject: kho: make preserved pages compatible with deferred struct page init
+Date: Tue, 17 Mar 2026 15:15:34 +0100
 
-Currently, if DEFERRED is enabled, kho_release_scratch will initialize the
-struct pages and set migratetype of kho scratch.  Unless the whole scratch
-fit below first_deferred_pfn, some of that will be overwritten either by
-deferred_init_pages or memmap_init_reserved_pages.
+When CONFIG_DEFERRED_STRUCT_PAGE_INIT is enabled, struct page
+initialization is deferred to parallel kthreads that run later in the boot
+process.
 
-To fix it, I modified kho_release_scratch to only set the migratetype on
-already initialized pages.  Then, modified init_pageblock_migratetype to
-set the migratetype to CMA if the page is located inside scratch.
+During KHO restoration, kho_preserved_memory_reserve() writes metadata for
+each preserved memory region.  However, if the struct page has not been
+initialized, this write targets uninitialized memory, potentially leading
+to errors like: BUG: unable to handle page fault for address: ...
 
-Link: https://lkml.kernel.org/r/20260317141534.815634-3-mclapinski@google.com
+Fix this by introducing kho_get_preserved_page(), which ensures all struct
+pages in a preserved region are initialized by calling
+init_deferred_page() which is a no-op when the struct page is already
+initialized.
+
+Link: https://lkml.kernel.org/r/20260317141534.815634-4-mclapinski@google.com
+Signed-off-by: Evangelos Petrongonas <epetron@amazon.de>
+Co-developed-by: Michal Clapinski <mclapinski@google.com>
 Signed-off-by: Michal Clapinski <mclapinski@google.com>
+Reviewed-by: Pratyush Yadav (Google) <pratyush@kernel.org>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Graf <graf@amazon.com>
-Cc: Evangelos Petrongonas <epetron@amazon.de>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav (Google) <pratyush@kernel.org>
 Cc: Samiullah Khawaja <skhawaja@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h           |    2 --
- kernel/liveupdate/kexec_handover.c |   10 ++++++----
- mm/memblock.c                      |   22 ----------------------
- mm/page_alloc.c                    |    7 +++++++
- 4 files changed, 13 insertions(+), 28 deletions(-)
+ kernel/liveupdate/Kconfig          |    2 --
+ kernel/liveupdate/kexec_handover.c |   27 ++++++++++++++++++++++++++-
+ 2 files changed, 26 insertions(+), 3 deletions(-)
 
---- a/include/linux/memblock.h~kho-fix-deferred-init-of-kho-scratch
-+++ a/include/linux/memblock.h
-@@ -614,11 +614,9 @@ static inline void memtest_report_meminf
- #ifdef CONFIG_MEMBLOCK_KHO_SCRATCH
- void memblock_set_kho_scratch_only(void);
- void memblock_clear_kho_scratch_only(void);
--void memmap_init_kho_scratch_pages(void);
- #else
- static inline void memblock_set_kho_scratch_only(void) { }
- static inline void memblock_clear_kho_scratch_only(void) { }
--static inline void memmap_init_kho_scratch_pages(void) {}
- #endif
+--- a/kernel/liveupdate/Kconfig~kho-make-preserved-pages-compatible-with-deferred-struct-page-init
++++ a/kernel/liveupdate/Kconfig
+@@ -1,12 +1,10 @@
+ # SPDX-License-Identifier: GPL-2.0-only
  
- #endif /* _LINUX_MEMBLOCK_H */
---- a/kernel/liveupdate/kexec_handover.c~kho-fix-deferred-init-of-kho-scratch
+ menu "Live Update and Kexec HandOver"
+-	depends on !DEFERRED_STRUCT_PAGE_INIT
+ 
+ config KEXEC_HANDOVER
+ 	bool "kexec handover"
+ 	depends on ARCH_SUPPORTS_KEXEC_HANDOVER && ARCH_SUPPORTS_KEXEC_FILE
+-	depends on !DEFERRED_STRUCT_PAGE_INIT
+ 	select MEMBLOCK_KHO_SCRATCH
+ 	select KEXEC_FILE
+ 	select LIBFDT
+--- a/kernel/liveupdate/kexec_handover.c~kho-make-preserved-pages-compatible-with-deferred-struct-page-init
 +++ a/kernel/liveupdate/kexec_handover.c
-@@ -1477,8 +1477,7 @@ static void __init kho_release_scratch(v
- {
- 	phys_addr_t start, end;
- 	u64 i;
--
--	memmap_init_kho_scratch_pages();
-+	int nid;
- 
- 	/*
- 	 * Mark scratch mem as CMA before we return it. That way we
-@@ -1486,10 +1485,13 @@ static void __init kho_release_scratch(v
- 	 * we can reuse it as scratch memory again later.
- 	 */
- 	__for_each_mem_range(i, &memblock.memory, NULL, NUMA_NO_NODE,
--			     MEMBLOCK_KHO_SCRATCH, &start, &end, NULL) {
-+			     MEMBLOCK_KHO_SCRATCH, &start, &end, &nid) {
- 		ulong start_pfn = pageblock_start_pfn(PFN_DOWN(start));
- 		ulong end_pfn = pageblock_align(PFN_UP(end));
- 		ulong pfn;
-+#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-+		end_pfn = min(end_pfn, NODE_DATA(nid)->first_deferred_pfn);
-+#endif
- 
- 		for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages)
- 			init_pageblock_migratetype(pfn_to_page(pfn),
-@@ -1500,8 +1502,8 @@ static void __init kho_release_scratch(v
- void __init kho_memory_init(void)
- {
- 	if (kho_in.scratch_phys) {
--		kho_scratch = phys_to_virt(kho_in.scratch_phys);
- 		kho_release_scratch();
-+		kho_scratch = phys_to_virt(kho_in.scratch_phys);
- 
- 		if (kho_mem_retrieve(kho_get_fdt()))
- 			kho_in.fdt_phys = 0;
---- a/mm/memblock.c~kho-fix-deferred-init-of-kho-scratch
-+++ a/mm/memblock.c
-@@ -959,28 +959,6 @@ __init void memblock_clear_kho_scratch_o
- {
- 	kho_scratch_only = false;
+@@ -471,6 +471,31 @@ struct page *kho_restore_pages(phys_addr
  }
--
--__init void memmap_init_kho_scratch_pages(void)
--{
--	phys_addr_t start, end;
--	unsigned long pfn;
--	int nid;
--	u64 i;
--
--	if (!IS_ENABLED(CONFIG_DEFERRED_STRUCT_PAGE_INIT))
--		return;
--
--	/*
--	 * Initialize struct pages for free scratch memory.
--	 * The struct pages for reserved scratch memory will be set up in
--	 * reserve_bootmem_region()
--	 */
--	__for_each_mem_range(i, &memblock.memory, NULL, NUMA_NO_NODE,
--			     MEMBLOCK_KHO_SCRATCH, &start, &end, &nid) {
--		for (pfn = PFN_UP(start); pfn < PFN_DOWN(end); pfn++)
--			init_deferred_page(pfn, nid);
--	}
--}
- #endif
+ EXPORT_SYMBOL_GPL(kho_restore_pages);
  
- /**
---- a/mm/page_alloc.c~kho-fix-deferred-init-of-kho-scratch
-+++ a/mm/page_alloc.c
-@@ -55,6 +55,7 @@
- #include <linux/cacheinfo.h>
- #include <linux/pgalloc_tag.h>
- #include <linux/mmzone_lock.h>
-+#include <linux/kexec_handover.h>
- #include <asm/div64.h>
- #include "internal.h"
- #include "shuffle.h"
-@@ -549,6 +550,12 @@ void __meminit init_pageblock_migratetyp
- 		     migratetype < MIGRATE_PCPTYPES))
- 		migratetype = MIGRATE_UNMOVABLE;
- 
-+	/*
-+	 * Mark KHO scratch as CMA so no unmovable allocations are made there.
-+	 */
-+	if (unlikely(kho_scratch_overlap(page_to_phys(page), PAGE_SIZE)))
-+		migratetype = MIGRATE_CMA;
++/*
++ * With CONFIG_DEFERRED_STRUCT_PAGE_INIT, struct pages in higher memory regions
++ * may not be initialized yet at the time KHO deserializes preserved memory.
++ * KHO uses the struct page to store metadata and a later initialization would
++ * overwrite it.
++ * Ensure all the struct pages in the preservation are
++ * initialized. kho_preserved_memory_reserve() marks the reservation as noinit
++ * to make sure they don't get re-initialized later.
++ */
++static struct page *__init kho_get_preserved_page(phys_addr_t phys,
++						  unsigned int order)
++{
++	unsigned long pfn = PHYS_PFN(phys);
++	int nid;
 +
- 	flags = migratetype;
++	if (!IS_ENABLED(CONFIG_DEFERRED_STRUCT_PAGE_INIT))
++		return pfn_to_page(pfn);
++
++	nid = early_pfn_to_nid(pfn);
++	for (unsigned long i = 0; i < (1UL << order); i++)
++		init_deferred_page(pfn + i, nid);
++
++	return pfn_to_page(pfn);
++}
++
+ static int __init kho_preserved_memory_reserve(phys_addr_t phys,
+ 					       unsigned int order)
+ {
+@@ -479,7 +504,7 @@ static int __init kho_preserved_memory_r
+ 	u64 sz;
  
- #ifdef CONFIG_MEMORY_ISOLATION
+ 	sz = 1 << (order + PAGE_SHIFT);
+-	page = phys_to_page(phys);
++	page = kho_get_preserved_page(phys, order);
+ 
+ 	/* Reserve the memory preserved in KHO in memblock */
+ 	memblock_reserve(phys, sz);
 _
 
-Patches currently in -mm which might be from mclapinski@google.com are
+Patches currently in -mm which might be from epetron@amazon.de are
 
-kho-make-kho_scratch_overlap-usable-outside-debugging.patch
-kho-fix-deferred-init-of-kho-scratch.patch
+kho-make-preserved-pages-compatible-with-deferred-struct-page-init.patch
 
