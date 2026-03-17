@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF1243793D3
-	for <mm-commits@vger.kernel.org>; Tue, 17 Mar 2026 17:32:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E7981A6802
+	for <mm-commits@vger.kernel.org>; Tue, 17 Mar 2026 17:46:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773768758; cv=none; b=JNo2x7fxSGuQVbl7/qmht8rGxH/bihPQwiDMV9Mu8E5+YqGymzq+3NF0hrw0IqW1et0qwI0LzCn60QPKG2JGR7X7IKEw5mjNwYi5X8yw+m4x4+vIIpFgD6pEB4775KdNoAE75dGvJO/ay0rvPBI+EiEvBRCvh4Po2QFOSL1DnDo=
+	t=1773769595; cv=none; b=DqdPl4aBtAASVgK4VjquGicEFQ7m+qXNo+NOpLASzFJ126QTFtjM+00XbjaEx74DKpwPJ3ewuCcdJcq2PjtyLZSAYtDs3wbfmIxonlEFBvCDaTajnaR1CRaUzrKPLJTOMn8IDvg3S8CrO6sJdpeqhnU8BVXj20veqpQPMafWAdI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773768758; c=relaxed/simple;
-	bh=ca14dC/6GG9oY90yGmohRFDAFMSmgyMTEXazHpcGXR4=;
-	h=Date:To:From:Subject:Message-Id; b=OV4cXTisLaHS+F0pITrXsziR5j+PC47UxbnTXHVB+wnMawEQtBISTwF+Em1P6oXimPjHO8MBOJAo3m7dt+R46ZCPSRy7bmYPbDmCxhvfeYqsE9D6stgzfB/yAly4KJy/HqzJPi5PLWfrBGScaNLCL+SWIMkZ6BSxwNDTop0j5ak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gU3UuTzg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773769595; c=relaxed/simple;
+	bh=i8Ec/ZMiTHiTrqvO0JWlmnFyt4+iZRcZ0IWvbPL+sTg=;
+	h=Date:To:From:Subject:Message-Id; b=WeI+7lskoSqTHhqT7WSvHjQw+JuF2Wob3d2Y+CrDYgun1oO2uOqiPDHYS0xnZDIXKLGd5vl686z2DXz3F7d3Db5FzczX1egf305YfwVq6i9UQHItjScsSmAWKqF4EJ1itgJ31oV7V42MEcuqu3xL5fgZnLCZ9eJk8ZBO+UTNnrQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CE5K94NT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gU3UuTzg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79292C4CEF7;
-	Tue, 17 Mar 2026 17:32:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CE5K94NT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AAD66C4CEF7;
+	Tue, 17 Mar 2026 17:46:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773768758;
-	bh=ca14dC/6GG9oY90yGmohRFDAFMSmgyMTEXazHpcGXR4=;
+	s=korg; t=1773769594;
+	bh=i8Ec/ZMiTHiTrqvO0JWlmnFyt4+iZRcZ0IWvbPL+sTg=;
 	h=Date:To:From:Subject:From;
-	b=gU3UuTzgbt50eYvUvhTSnlQLAacUEeHLO6JZYmu1oO4zleITaOhR/xTRAcGINH4yZ
-	 OlmKiDBLzz/ozsS84xWOEuEDef9FJu7FTUPSkujyjsspmwNJ53bYGab0M5tGhx5O4D
-	 PqYchR4pcwDv3biGJFpPKRacAkFA4/shlN7oOxwY=
-Date: Tue, 17 Mar 2026 10:32:37 -0700
-To: mm-commits@vger.kernel.org,yangyingliang@huawei.com,sj@kernel.org,akpm@linux-foundation.org
+	b=CE5K94NTu9aB8MuI4Q3qXzlnfdII7cmJvAjxCzyRIf3qrRgXLb09bzzwbKqwkh3vA
+	 6DJ+WQUb0ihwDQzi2IZfXIvEFLUJtDalXAaQFvXkV7+j6DGbKY5eY0Qz02mHsFBcbR
+	 xGEboRTzjhjvg/yt7QL6SZWstxLv9flPpKxEnpME=
+Date: Tue, 17 Mar 2026 10:46:34 -0700
+To: mm-commits@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,epetron@amazon.de,mclapinski@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram-fix.patch added to mm-unstable branch
-Message-Id: <20260317173238.79292C4CEF7@smtp.kernel.org>
+Subject: + kho-make-kho_scratch_overlap-usable-outside-debugging.patch added to mm-new branch
+Message-Id: <20260317174634.AAD66C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: verify found biggest system ram
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram-fix.patch
+     Subject: kho: make kho_scratch_overlap usable outside debugging
+has been added to the -mm mm-new branch.  Its filename is
+     kho-make-kho_scratch_overlap-usable-outside-debugging.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-make-kho_scratch_overlap-usable-outside-debugging.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,89 +69,178 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: verify found biggest system ram
-Date: Mon, 16 Mar 2026 23:32:48 -0700
+From: Michal Clapinski <mclapinski@google.com>
+Subject: kho: make kho_scratch_overlap usable outside debugging
+Date: Tue, 17 Mar 2026 15:15:32 +0100
 
-On 32 bit systems having PAE (>4 GiB physical memory address sapce), the
-final start and end address could overflow, resulting in returning an
-invalid address range.  Verify the returning region.  Also remove the
-resource validation after walk_system_ram_res(), since the validation
-means not a lot.
+Patch series "kho: add support for deferred struct page init", v7.
 
-Link: https://lkml.kernel.org/r/20260317144725.88524-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Yang yingliang <yangyingliang@huawei.com>
+When CONFIG_DEFERRED_STRUCT_PAGE_INIT (hereinafter DEFERRED) is enabled,
+struct page initialization is deferred to parallel kthreads that run later
+in the boot process.
+
+Currently, KHO is incompatible with DEFERRED.  This series fixes that
+incompatibility.
+
+
+This patch (of 3):
+
+Also return false if kho_scratch is NULL.
+
+Link: https://lkml.kernel.org/r/20260317141534.815634-1-mclapinski@google.com
+Link: https://lkml.kernel.org/r/20260317141534.815634-2-mclapinski@google.com
+Signed-off-by: Michal Clapinski <mclapinski@google.com>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
+Cc: Samiullah Khawaja <skhawaja@google.com>
+Cc: Evangelos Petrongonas <epetron@amazon.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/kexec_handover.h              |    6 +++
+ kernel/liveupdate/Makefile                  |    1 
+ kernel/liveupdate/kexec_handover.c          |   28 +++++++++++++++---
+ kernel/liveupdate/kexec_handover_debug.c    |   25 ----------------
+ kernel/liveupdate/kexec_handover_internal.h |    7 +++-
+ 5 files changed, 35 insertions(+), 32 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram-fix
-+++ a/mm/damon/core.c
-@@ -3089,11 +3089,10 @@ static bool damon_find_biggest_system_ra
- 	struct resource res = {};
+--- a/include/linux/kexec_handover.h~kho-make-kho_scratch_overlap-usable-outside-debugging
++++ a/include/linux/kexec_handover.h
+@@ -35,6 +35,7 @@ void *kho_restore_vmalloc(const struct k
+ int kho_add_subtree(const char *name, void *fdt);
+ void kho_remove_subtree(void *fdt);
+ int kho_retrieve_subtree(const char *name, phys_addr_t *phys);
++bool kho_scratch_overlap(phys_addr_t phys, size_t size);
  
- 	walk_system_ram_res(0, -1, &res, walk_system_ram);
--	if (res.end < res.start)
--		return false;
--
- 	*start = damon_res_to_core_addr(res.start, addr_unit);
- 	*end = damon_res_to_core_addr(res.end + 1, addr_unit);
-+	if (*end <= *start)
-+		return false;
- 	return true;
+ void kho_memory_init(void);
+ 
+@@ -109,6 +110,11 @@ static inline int kho_retrieve_subtree(c
+ 	return -EOPNOTSUPP;
  }
  
++static inline bool kho_scratch_overlap(phys_addr_t phys, size_t size)
++{
++	return false;
++}
++
+ static inline void kho_memory_init(void) { }
+ 
+ static inline void kho_populate(phys_addr_t fdt_phys, u64 fdt_len,
+--- a/kernel/liveupdate/kexec_handover.c~kho-make-kho_scratch_overlap-usable-outside-debugging
++++ a/kernel/liveupdate/kexec_handover.c
+@@ -820,7 +820,8 @@ int kho_preserve_folio(struct folio *fol
+ 	const unsigned long pfn = folio_pfn(folio);
+ 	const unsigned int order = folio_order(folio);
+ 
+-	if (WARN_ON(kho_scratch_overlap(pfn << PAGE_SHIFT, PAGE_SIZE << order)))
++	if (WARN_ON(kho_scratch_overlap_debug(pfn << PAGE_SHIFT,
++					      PAGE_SIZE << order)))
+ 		return -EINVAL;
+ 
+ 	return kho_radix_add_page(tree, pfn, order);
+@@ -864,10 +865,9 @@ int kho_preserve_pages(struct page *page
+ 	unsigned long failed_pfn = 0;
+ 	int err = 0;
+ 
+-	if (WARN_ON(kho_scratch_overlap(start_pfn << PAGE_SHIFT,
+-					nr_pages << PAGE_SHIFT))) {
++	if (WARN_ON(kho_scratch_overlap_debug(start_pfn << PAGE_SHIFT,
++					      nr_pages << PAGE_SHIFT)))
+ 		return -EINVAL;
+-	}
+ 
+ 	while (pfn < end_pfn) {
+ 		unsigned int order =
+@@ -1327,6 +1327,26 @@ int kho_retrieve_subtree(const char *nam
+ }
+ EXPORT_SYMBOL_GPL(kho_retrieve_subtree);
+ 
++bool kho_scratch_overlap(phys_addr_t phys, size_t size)
++{
++	phys_addr_t scratch_start, scratch_end;
++	unsigned int i;
++
++	if (!kho_scratch)
++		return false;
++
++	for (i = 0; i < kho_scratch_cnt; i++) {
++		scratch_start = kho_scratch[i].addr;
++		scratch_end = kho_scratch[i].addr + kho_scratch[i].size;
++
++		if (phys < scratch_end && (phys + size) > scratch_start)
++			return true;
++	}
++
++	return false;
++}
++EXPORT_SYMBOL_GPL(kho_scratch_overlap);
++
+ static int __init kho_mem_retrieve(const void *fdt)
+ {
+ 	struct kho_radix_tree tree;
+diff --git a/kernel/liveupdate/kexec_handover_debug.c a/kernel/liveupdate/kexec_handover_debug.c
+deleted file mode 100644
+--- a/kernel/liveupdate/kexec_handover_debug.c
++++ /dev/null
+@@ -1,25 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * kexec_handover_debug.c - kexec handover optional debug functionality
+- * Copyright (C) 2025 Google LLC, Pasha Tatashin <pasha.tatashin@soleen.com>
+- */
+-
+-#define pr_fmt(fmt) "KHO: " fmt
+-
+-#include "kexec_handover_internal.h"
+-
+-bool kho_scratch_overlap(phys_addr_t phys, size_t size)
+-{
+-	phys_addr_t scratch_start, scratch_end;
+-	unsigned int i;
+-
+-	for (i = 0; i < kho_scratch_cnt; i++) {
+-		scratch_start = kho_scratch[i].addr;
+-		scratch_end = kho_scratch[i].addr + kho_scratch[i].size;
+-
+-		if (phys < scratch_end && (phys + size) > scratch_start)
+-			return true;
+-	}
+-
+-	return false;
+-}
+--- a/kernel/liveupdate/kexec_handover_internal.h~kho-make-kho_scratch_overlap-usable-outside-debugging
++++ a/kernel/liveupdate/kexec_handover_internal.h
+@@ -41,9 +41,12 @@ static inline void kho_debugfs_fdt_remov
+ #endif /* CONFIG_KEXEC_HANDOVER_DEBUGFS */
+ 
+ #ifdef CONFIG_KEXEC_HANDOVER_DEBUG
+-bool kho_scratch_overlap(phys_addr_t phys, size_t size);
++static inline bool kho_scratch_overlap_debug(phys_addr_t phys, size_t size)
++{
++	return kho_scratch_overlap(phys, size);
++}
+ #else
+-static inline bool kho_scratch_overlap(phys_addr_t phys, size_t size)
++static inline bool kho_scratch_overlap_debug(phys_addr_t phys, size_t size)
+ {
+ 	return false;
+ }
+--- a/kernel/liveupdate/Makefile~kho-make-kho_scratch_overlap-usable-outside-debugging
++++ a/kernel/liveupdate/Makefile
+@@ -7,7 +7,6 @@ luo-y :=								\
+ 		luo_session.o
+ 
+ obj-$(CONFIG_KEXEC_HANDOVER)		+= kexec_handover.o
+-obj-$(CONFIG_KEXEC_HANDOVER_DEBUG)	+= kexec_handover_debug.o
+ obj-$(CONFIG_KEXEC_HANDOVER_DEBUGFS)	+= kexec_handover_debugfs.o
+ 
+ obj-$(CONFIG_LIVEUPDATE)		+= luo.o
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from mclapinski@google.com are
 
-mm-damon-stat-monitor-all-system-ram-resources.patch
-mm-damon-core-set-quota-score-histogram-with-core-filters.patch
-mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
-mm-damon-core-split-regions-for-min_nr_regions.patch
-mm-damon-vaddr-do-not-split-regions-for-min_nr_regions.patch
-mm-damon-test-core-kunit-add-damon_apply_min_nr_regions-test.patch
-mm-damon-add-config_damon_debug_sanity.patch
-mm-damon-core-add-damon_new_region-debug_sanity-check.patch
-mm-damon-core-add-damon_del_region-debug_sanity-check.patch
-mm-damon-core-add-damon_nr_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_two_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
-mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
-mm-damon-core-add-damon_reset_aggregated-debug_sanity-check.patch
-mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
-selftests-damon-config-enable-damon_debug_sanity.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
-docs-mm-damon-design-document-the-power-of-two-limitation-for-addr_unit.patch
-mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
-mm-damon-core-use-time_before-for-next_apply_sis.patch
-mm-damon-core-use-time_after_eq-in-kdamond_fn.patch
-mm-damon-core-use-mult_frac.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
-mm-damon-core-clarify-damon_set_attrs-usages.patch
-mm-damon-document-non-zero-length-damon_region-assumption.patch
-docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
-docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
-docs-mm-damon-index-fix-typo-autoamted-automated.patch
-mm-damon-core-introduce-damos_quota_goal_tuner.patch
-mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
-mm-damon-core-introduce-damos_quota_goal_tuner_temporal.patch
-mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
-docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
-docs-admin-guide-mm-damon-usage-document-goal_tuner-sysfs-file.patch
-docs-abi-damon-update-for-goal_tuner.patch
-mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
-selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
-selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
-selftests-damon-sysfspy-test-goal_tuner-commit.patch
-mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
-mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
-mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram-fix.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
-mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
-mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
+kho-make-kho_scratch_overlap-usable-outside-debugging.patch
+kho-fix-deferred-init-of-kho-scratch.patch
 
