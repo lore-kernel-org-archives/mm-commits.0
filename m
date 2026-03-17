@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C12D36680F
-	for <mm-commits@vger.kernel.org>; Tue, 17 Mar 2026 03:59:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D4D229D26C
+	for <mm-commits@vger.kernel.org>; Tue, 17 Mar 2026 17:12:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773719998; cv=none; b=k3tITryV+eBFJ8+odVyYzG2lXiVBpv+RqHY7zG/zabce8AYdgDj8UhTVJmTaIpQK1oW7hZVkr55MJcbYf5l0Y8v5FBXu4CL+nv6GjsFFyXtgHg4jzFh3hI7n/2m6/kR8Q+yyctfoG3BplaJbL3LPRGESDenXMa11lZCuCDACbO4=
+	t=1773767532; cv=none; b=muScCnJBrHURp4ChjsezjpXyoVaKkS7AYwfjIm+S5zgNL3Kz3ZBMDfza+KX9Xnfj1+oxlYqJC1OKnSm9XotMUoFgV5b5qYOmaIoWVylB/0YNhQHHKKu3bmLvygSgpA4xChULJ/ddRypOt6ZpYVf2NibD9shMkcNc7Q4pcL1YNIk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773719998; c=relaxed/simple;
-	bh=9xQfMjUwCXKRXnTvDUPuTmazmgSnFuFFaCo7kT4gkWU=;
-	h=Date:To:From:Subject:Message-Id; b=QXvjLrpVTKT2h34n96M3rRLgfIkRNpRaQwmmOzrS/WIZKv6L+mHYAz7Qk98usuX/ohymXKaSZKWO7lxi9bTfeGfzFmGNZ3qhpZso6xwTwGUmbwFDsCUpv0CtfZ6cdhhhT0178kUE+0n0AFfJTMMyUoD2/sD/sm6x93A5KvyqYHA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eSmMCAhe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773767532; c=relaxed/simple;
+	bh=//9gXbLitBqlyqEEub8r+gSApE309ShBirIQjiYMRf0=;
+	h=Date:To:From:Subject:Message-Id; b=sfqzHxRP0m0i0y2CkWiVhrUnRKoz+7jtXydwm35fVJmQ+cwH3nSSveh0QmBtICM/30VA6YZgoveDBBxdcmW+S58ENqpgl48X8APLpC386pSU/Dtjh8QR55VfOMYUr9lOTWbP2hdG+2UM91vbKYAQmT7uJplctqKwKCnT+c5JNnA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eHjYtsuK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eSmMCAhe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B7CAC4CEF7;
-	Tue, 17 Mar 2026 03:59:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eHjYtsuK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0E29C4CEF7;
+	Tue, 17 Mar 2026 17:12:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773719997;
-	bh=9xQfMjUwCXKRXnTvDUPuTmazmgSnFuFFaCo7kT4gkWU=;
+	s=korg; t=1773767532;
+	bh=//9gXbLitBqlyqEEub8r+gSApE309ShBirIQjiYMRf0=;
 	h=Date:To:From:Subject:From;
-	b=eSmMCAhePmQOr45rIp+Z/ZG81VRU9SROCnliQ6n/DtTXB7Sbmgv6rNrqqt4y98tt1
-	 S2ynXxDn+l6LyM0xsUHfgY4A4KFY6HBA4MJvEerfxtNaZNhvyF6EQBOof6W/6wvDa8
-	 dZL/YyNT2I0c+rSSdbFwkaFL9IBKo3SKA8KPM44Q=
-Date: Mon, 16 Mar 2026 20:59:56 -0700
-To: mm-commits@vger.kernel.org,minchan@kernel.org,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=eHjYtsuK8jCGQRek8l/IHwHBJFCiESf5LHyMsUz2DjR3t2ytjDo1C8KP4R/EupME3
+	 jBCEQliaUBdFO9vrhW27pNsS++YdTM0ZKLqv1Hvvc5IPLIajRt5WnOK3Oc85q74Ax1
+	 XcZ9BH69mdxoh3Q0BNCYHYdQlCaoxDwTJ48o1R4o=
+Date: Tue, 17 Mar 2026 10:12:11 -0700
+To: mm-commits@vger.kernel.org,mathieu.desnoyers@efficios.com,broonie@kernel.org,devnexen@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-change-scan_slots-to-return-void.patch added to mm-new branch
-Message-Id: <20260317035957.8B7CAC4CEF7@smtp.kernel.org>
+Subject: + lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons-fix.patch added to mm-unstable branch
+Message-Id: <20260317171211.F0E29C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: change scan_slots to return void
-has been added to the -mm mm-new branch.  Its filename is
-     zram-change-scan_slots-to-return-void.patch
+     Subject: lib: skip percpu_counter_tree boundary kunit tests on single-CPU
+has been added to the -mm mm-unstable branch.  Its filename is
+     lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-change-scan_slots-to-return-void.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,81 +58,58 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: change scan_slots to return void
-Date: Tue, 17 Mar 2026 12:23:19 +0900
+From: David Carlier <devnexen@gmail.com>
+Subject: lib: skip percpu_counter_tree boundary kunit tests on single-CPU
+Date: Tue, 17 Mar 2026 15:39:15 +0000
 
-scan_slots_for_writeback() and scan_slots_for_recompress() work in a "best
-effort" fashion, if they cannot allocate memory for a new pp-slot
-candidate they just return and post-processing selects slots that were
-successfully scanned thus far.  scan_slots functions never return errors
-and their callers never check the return status, so convert them to return
-void.
+On single-CPU topologies, accuracy_multiplier is zero, making both
+approx_accuracy_range.under and .over zero.  The boundary tests in
+hpcc_test_compare_value_boundaries and
+hpcc_test_compare_counter_boundaries then degenerate to comparing 0 vs 0,
+which correctly returns 0 (equal) but the tests expect nonzero results.
 
-Link: https://lkml.kernel.org/r/20260317032349.753645-1-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
+Skip these boundary tests with kunit_skip() when accuracy is zero, since
+approximation boundaries are meaningless without multi-CPU carry
+propagation.  Use percpu_counter_tree_items_size() as the topology check
+before any allocations to avoid leaking memory on skip.
+
+Link: https://lkml.kernel.org/r/20260317153915.43559-1-devnexen@gmail.com
+Signed-off-by: David Carlier <devnexen@gmail.com>
+Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Reviewed-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ lib/tests/percpu_counter_tree_kunit.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-change-scan_slots-to-return-void
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1212,9 +1212,9 @@ static int parse_mode(char *val, u32 *mo
- 	return 0;
- }
+--- a/lib/tests/percpu_counter_tree_kunit.c~lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons-fix
++++ a/lib/tests/percpu_counter_tree_kunit.c
+@@ -93,6 +93,9 @@ static void hpcc_test_compare_value_boun
+ 	unsigned long under = 0, over = 0;
+ 	int ret;
  
--static int scan_slots_for_writeback(struct zram *zram, u32 mode,
--				    unsigned long lo, unsigned long hi,
--				    struct zram_pp_ctl *ctl)
-+static void scan_slots_for_writeback(struct zram *zram, u32 mode,
-+				     unsigned long lo, unsigned long hi,
-+				     struct zram_pp_ctl *ctl)
- {
- 	u32 index = lo;
++	if (!percpu_counter_tree_items_size())
++		kunit_skip(test, "no approximation accuracy on single-CPU topology");
++
+ 	counter_items = kzalloc(percpu_counter_tree_items_size(), GFP_KERNEL);
+ 	KUNIT_ASSERT_PTR_NE(test, counter_items, NULL);
+ 	ret = percpu_counter_tree_init(&pct, counter_items, 32, GFP_KERNEL);
+@@ -197,6 +200,9 @@ static void hpcc_test_compare_counter_bo
+ 	unsigned long combined;
+ 	int ret;
  
-@@ -1246,8 +1246,6 @@ next:
- 			break;
- 		index++;
- 	}
--
--	return 0;
- }
- 
- static ssize_t writeback_store(struct device *dev,
-@@ -2379,8 +2377,8 @@ static bool highest_priority_algorithm(s
- 	return true;
- }
- 
--static int scan_slots_for_recompress(struct zram *zram, u32 mode, u32 prio,
--				     struct zram_pp_ctl *ctl)
-+static void scan_slots_for_recompress(struct zram *zram, u32 mode, u32 prio,
-+				      struct zram_pp_ctl *ctl)
- {
- 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
- 	unsigned long index;
-@@ -2415,8 +2413,6 @@ next:
- 		if (!ok)
- 			break;
- 	}
--
--	return 0;
- }
- 
- /*
++	if (!percpu_counter_tree_items_size())
++		kunit_skip(test, "no approximation accuracy on single-CPU topology");
++
+ 	counter_items = kzalloc(percpu_counter_tree_items_size() * 2,
+ 				GFP_KERNEL);
+ 	KUNIT_ASSERT_PTR_NE(test, counter_items, NULL);
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from devnexen@gmail.com are
 
-zram-do-not-permit-params-change-after-init.patch
-zram-do-not-autocorrect-bad-recompression-parameters.patch
-zram-drop-num_active_comps.patch
-zram-update-recompression-documentation.patch
-zram-remove-chained-recompression.patch
-zram-unify-and-harden-algo-priority-params-handling.patch
-zram-propagate-read_from_bdev_async-errors.patch
-zram-change-scan_slots-to-return-void.patch
+lib-introduce-hierarchical-per-cpu-counters-fix.patch
+lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons.patch
+lib-add-kunit-boundary-tests-for-percpu_counter_tree-comparisons-fix.patch
 
