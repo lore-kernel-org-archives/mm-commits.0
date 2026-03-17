@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA25815624B;
-	Tue, 17 Mar 2026 19:50:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58F35326938
+	for <mm-commits@vger.kernel.org>; Tue, 17 Mar 2026 19:51:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773777032; cv=none; b=Dg5UjnaV2yQR0GMUpAVHG1MuflUNwU/xAaY3+C/C/fLCtmttYHQbd++sE5bUjkwEvCjfOfsrBJjlJ3uIwCyGb9+BpK2iTMsXOGD407OfTQU4Ncx2H6RFZxeRyOBK4HJMR+mKTeKrE/6bG/0ILwIDgim+3wyMK/tAtH/ycJieeCw=
+	t=1773777074; cv=none; b=ZX+TUSwOIUpp/YCXa6YueQfHQBEl5kz6LsEiqKPMnM9yjhyiBiG1v4K7TKi5E5CoUty4nOn1fXj8PgdRJGOiMdLUytln5XIPipb+E4LuF0aktidXY3yq097vCLY/CgIxDfWGeOAUR45rWI5By5B05uZaC8oXrQ4p7qLsL3dk8Bk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773777032; c=relaxed/simple;
-	bh=mw3UWYrIDInNC8rvnn2qTkNDP7Ch20Xwj37cxzUohtk=;
-	h=Date:To:From:Subject:Message-Id; b=jB/cf6Km94/lNaAlGNXw250c6UGhtljyDC6LiSCIjqHMkwidaiI44KP27u+HVATaA9jkxBxCKmVrfC+chPpGyiTiutGPemJwAFtTyFv3GRMS28hr8QpwyLpOgW7fimtHOLJFTlZ9bPEXwYscfRCIpZbx9aZq8Hahx8Do9JYw948=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KgFVURgq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773777074; c=relaxed/simple;
+	bh=Ya/IXXctPlapsCBi9D4H1D72aBhsVKnnlUvAIIIVS5U=;
+	h=Date:To:From:Subject:Message-Id; b=r+aUDxQfirlViq+g06ilQmjvQydqK5oxOY3aRFEGIG78EYOpUafbMQe0bNFAuY9lJWogPWc5FAi8PU8HWYzCNnsxt+2eF30YO/RfjHU/2PSiJW/cGmUktnihuNxzNbsqaVS/dZNr6PZjGEilwWz/dYJF5UpVB+d1UgRQHaxYaLY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kyZw0NsP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KgFVURgq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F203C4CEF7;
-	Tue, 17 Mar 2026 19:50:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kyZw0NsP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E87A6C4CEF7;
+	Tue, 17 Mar 2026 19:51:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773777032;
-	bh=mw3UWYrIDInNC8rvnn2qTkNDP7Ch20Xwj37cxzUohtk=;
+	s=korg; t=1773777074;
+	bh=Ya/IXXctPlapsCBi9D4H1D72aBhsVKnnlUvAIIIVS5U=;
 	h=Date:To:From:Subject:From;
-	b=KgFVURgqQ8+N4q+TtkyzBG42r3+eBPcCZ8GDavBlqFmtjk+5lVlQP53p/mjDXtSwH
-	 CK9BuiigGCAuB6aNOjsw1PXgUty15cq8TkgLoUW3wzdIvaKScyvivxQJk3rrc/0k1P
-	 pta2Gn2QYGaOGaydPkdSgR0Rc3sQA85QFxCgS6vo=
-Date: Tue, 17 Mar 2026 12:50:31 -0700
-To: mm-commits@vger.kernel.org,xiangzao@linux.alibaba.com,willy@infradead.org,stable@vger.kernel.org,p.raghav@samsung.com,mcgrof@kernel.org,lorenzo.stoakes@oracle.com,kas@kernel.org,hare@suse.de,djwong@kernel.org,dhowells@redhat.com,dchinner@redhat.com,david@kernel.org,da.gomez@samsung.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=kyZw0NsPzS8OxXFYcjFhUjeO+Og0nfEkpBhn/rxxK7Vkl08febU0BLgsuUTqD4RiI
+	 +7MpgTqYMIKLor7/GJmq/PmgI+VzSrWRjyxHidXDneC4twm/X3hyaAv/aPaE2FcacH
+	 vF11T1xpZ83yjVgS+cyo67fGX1jcA5FQekDC1T8E=
+Date: Tue, 17 Mar 2026 12:51:13 -0700
+To: mm-commits@vger.kernel.org,yosry@kernel.org,yosry.ahmed@linux.dev,senozhatsky@chromium.org,nphamcs@gmail.com,kanchana.p.sridhar@intel.com,herbert@gondor.apana.org.au,hannes@cmpxchg.org,chengming.zhou@linux.dev,kanchanapsridhar2026@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260317195032.5F203C4CEF7@smtp.kernel.org>
+Subject: [obsolete] mm-zswap-consistently-use-is_err_or_null-to-check-acomp_ctx-resources.patch removed from -mm tree
+Message-Id: <20260317195113.E87A6C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,173 +34,62 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm: filemap: fix nr_pages calculation overflow in filemap_map_pages()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch
+The quilt patch titled
+     Subject: mm: zswap: Consistently use IS_ERR_OR_NULL() to check acomp_ctx resources.
+has been removed from the -mm tree.  Its filename was
+     mm-zswap-consistently-use-is_err_or_null-to-check-acomp_ctx-resources.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: filemap: fix nr_pages calculation overflow in filemap_map_pages()
-Date: Tue, 17 Mar 2026 17:29:55 +0800
+From: "Kanchana P. Sridhar" <kanchanapsridhar2026@gmail.com>
+Subject: mm: zswap: Consistently use IS_ERR_OR_NULL() to check acomp_ctx resources.
+Date: Fri, 13 Mar 2026 22:16:32 -0700
 
-When running stress-ng on my Arm64 machine with v7.0-rc3 kernel, I
-encountered some very strange crash issues showing up as "Bad page state":
+Use IS_ERR_OR_NULL() in zswap_cpu_comp_prepare() to check for valid
+acomp/req, making it consistent with acomp_ctx_dealloc().
 
-"
-[  734.496287] BUG: Bad page state in process stress-ng-env  pfn:415735fb
-[  734.496427] page: refcount:0 mapcount:1 mapping:0000000000000000 index:0x4cf316 pfn:0x415735fb
-[  734.496434] flags: 0x57fffe000000800(owner_2|node=1|zone=2|lastcpupid=0x3ffff)
-[  734.496439] raw: 057fffe000000800 0000000000000000 dead000000000122 0000000000000000
-[  734.496440] raw: 00000000004cf316 0000000000000000 0000000000000000 0000000000000000
-[  734.496442] page dumped because: nonzero mapcount
-"
-
-After analyzing this page's state, it is hard to understand why the
-mapcount is not 0 while the refcount is 0, since this page is not where
-the issue first occurred.  By enabling the CONFIG_DEBUG_VM config, I can
-reproduce the crash as well and captured the first warning where the issue
-appears:
-
-"
-[  734.469226] page: refcount:33 mapcount:0 mapping:00000000bef2d187 index:0x81a0 pfn:0x415735c0
-[  734.469304] head: order:5 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
-[  734.469315] memcg:ffff000807a8ec00
-[  734.469320] aops:ext4_da_aops ino:100b6f dentry name(?):"stress-ng-mmaptorture-9397-0-2736200540"
-[  734.469335] flags: 0x57fffe400000069(locked|uptodate|lru|head|node=1|zone=2|lastcpupid=0x3ffff)
-......
-[  734.469364] page dumped because: VM_WARN_ON_FOLIO((_Generic((page + nr_pages - 1),
-const struct page *: (const struct folio *)_compound_head(page + nr_pages - 1), struct page *:
-(struct folio *)_compound_head(page + nr_pages - 1))) != folio)
-[  734.469390] ------------[ cut here ]------------
-[  734.469393] WARNING: ./include/linux/rmap.h:351 at folio_add_file_rmap_ptes+0x3b8/0x468,
-CPU#90: stress-ng-mlock/9430
-[  734.469551]  folio_add_file_rmap_ptes+0x3b8/0x468 (P)
-[  734.469555]  set_pte_range+0xd8/0x2f8
-[  734.469566]  filemap_map_folio_range+0x190/0x400
-[  734.469579]  filemap_map_pages+0x348/0x638
-[  734.469583]  do_fault_around+0x140/0x198
-......
-[  734.469640]  el0t_64_sync+0x184/0x188
-"
-
-The code that triggers the warning is: "VM_WARN_ON_FOLIO(page_folio(page +
-nr_pages - 1) != folio, folio)", which indicates that set_pte_range()
-tried to map beyond the large folio's size.
-
-By adding more debug information, I found that 'nr_pages' had overflowed
-in filemap_map_pages(), causing set_pte_range() to establish mappings for
-a range exceeding the folio size, potentially corrupting fields of pages
-that do not belong to this folio (e.g., page->_mapcount).
-
-After above analysis, I think the possible race is as follows:
-
-CPU 0                                                  CPU 1
-filemap_map_pages()                                   ext4_setattr()
-   //get and lock folio with old inode->i_size
-   next_uptodate_folio()
-
-                                                          .......
-                                                          //shrink the inode->i_size
-                                                          i_size_write(inode, attr->ia_size);
-
-   //calculate the end_pgoff with the new inode->i_size
-   file_end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE) - 1;
-   end_pgoff = min(end_pgoff, file_end);
-
-   ......
-   //nr_pages can be overflowed, cause xas.xa_index > end_pgoff
-   end = folio_next_index(folio) - 1;
-   nr_pages = min(end, end_pgoff) - xas.xa_index + 1;
-
-   ......
-   //map large folio
-   filemap_map_folio_range()
-                                                          ......
-                                                          //truncate folios
-                                                          truncate_pagecache(inode, inode->i_size);
-
-To fix this issue, move the 'end_pgoff' calculation before
-next_uptodate_folio(), so the retrieved folio stays consistent with the
-file end to avoid 'nr_pages' calculation overflow.  After this patch, the
-crash issue is gone.
-
-Link: https://lkml.kernel.org/r/1cf1ac59018fc647a87b0dad605d4056a71c14e4.1773739704.git.baolin.wang@linux.alibaba.com
-Fixes: 743a2753a02e ("filemap: cap PTE range to be created to allowed zero fill in folio_map_range()")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reported-by: Yuanhe Shu <xiangzao@linux.alibaba.com>
-Tested-by: Yuanhe Shu <xiangzao@linux.alibaba.com>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Daniel Gomez <da.gomez@samsung.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260314051632.17931-3-kanchanapsridhar2026@gmail.com
+Co-developed-by: Kanchana P. Sridhar <kanchanapsridhar2026@gmail.com>
+Signed-off-by: Kanchana P. Sridhar <kanchanapsridhar2026@gmail.com>
+Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
+Acked-by: Yosry Ahmed <yosry.ahmed@linux.dev>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Yosry Ahmed <yosry@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/zswap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages
-+++ a/mm/filemap.c
-@@ -3883,14 +3883,19 @@ vm_fault_t filemap_map_pages(struct vm_f
- 	unsigned int nr_pages = 0, folio_type;
- 	unsigned short mmap_miss = 0, mmap_miss_saved;
+--- a/mm/zswap.c~mm-zswap-consistently-use-is_err_or_null-to-check-acomp_ctx-resources
++++ a/mm/zswap.c
+@@ -804,7 +804,7 @@ static int zswap_cpu_comp_prepare(unsign
+ 	 * error pointer, never NULL.
+ 	 */
+ 	acomp_ctx->acomp = crypto_alloc_acomp_node(pool->tfm_name, 0, 0, cpu_to_node(cpu));
+-	if (IS_ERR(acomp_ctx->acomp)) {
++	if (IS_ERR_OR_NULL(acomp_ctx->acomp)) {
+ 		pr_err("could not alloc crypto acomp %s : %pe\n",
+ 				pool->tfm_name, acomp_ctx->acomp);
+ 		ret = PTR_ERR(acomp_ctx->acomp);
+@@ -813,7 +813,7 @@ static int zswap_cpu_comp_prepare(unsign
  
-+	/*
-+	 * Recalculate end_pgoff based on file_end before calling
-+	 * next_uptodate_folio() to avoid races with concurrent
-+	 * truncation.
-+	 */
-+	file_end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE) - 1;
-+	end_pgoff = min(end_pgoff, file_end);
-+
- 	rcu_read_lock();
- 	folio = next_uptodate_folio(&xas, mapping, end_pgoff);
- 	if (!folio)
- 		goto out;
- 
--	file_end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE) - 1;
--	end_pgoff = min(end_pgoff, file_end);
--
- 	/*
- 	 * Do not allow to map with PMD across i_size to preserve
- 	 * SIGBUS semantics.
+ 	/* acomp_request_alloc() returns NULL in case of an error. */
+ 	acomp_ctx->req = acomp_request_alloc(acomp_ctx->acomp);
+-	if (!acomp_ctx->req) {
++	if (IS_ERR_OR_NULL(acomp_ctx->req)) {
+ 		pr_err("could not alloc crypto acomp_request %s\n",
+ 		       pool->tfm_name);
+ 		goto fail;
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from kanchanapsridhar2026@gmail.com are
 
-mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch
-mm-use-inline-helper-functions-instead-of-ugly-macros.patch
-mm-rename-ptep-pmdp_clear_young_notify-to-ptep-pmdp_test_and_clear_young_notify.patch
-mm-rmap-add-a-zone_device-folio-warning-in-folio_referenced.patch
-mm-add-a-batched-helper-to-clear-the-young-flag-for-large-folios.patch
-mm-support-batched-checking-of-the-young-flag-for-mglru.patch
-arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes.patch
+mm-zswap-remove-redundant-checks-in-zswap_cpu_comp_dead.patch
+mm-zswap-tie-per-cpu-acomp_ctx-lifetime-to-the-pool.patch
 
