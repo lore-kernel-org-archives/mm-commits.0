@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ED743E9F61
-	for <mm-commits@vger.kernel.org>; Wed, 18 Mar 2026 19:08:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A973E2D249B
+	for <mm-commits@vger.kernel.org>; Wed, 18 Mar 2026 19:19:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773860900; cv=none; b=VE0Fuyo/Eolz2nL8VS3MtfLtTk8B0Y2jr9GUuXrY50AqDdxFEcR9U68TVAxw/JK9XsTfuK6Su6INdWgjUPM8mc1FUgUL7BB0fo3Y53VioYQ38LOph/LV1u6ohCc8CeMhVbbVCeJIP7GhrUVN/xCt02Ad36j4diuHJ+5GUTlyDIw=
+	t=1773861570; cv=none; b=LD+SRJTVKP3tWxjh3diiNbc4dtTjjO7mDoXapMmYMo6RhlMrvPZjob98CfTCPZgHnBQZaJG0j7Dg0XMqdb+qKkAb+h9utl3CqkoMiip7BeIsmSdTwVF1BIDFrxU5rEZ9p4kL6iFphcRYI0IpVXt54gLZB6eBpExNkWYft6C9HWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773860900; c=relaxed/simple;
-	bh=DNcdKv8A8h1QCToKnhLVoXqDECh2Ao8k3hXW7RXD9YA=;
-	h=Date:To:From:Subject:Message-Id; b=KMe5vfsvCzVPWpBQ+Sx1M3H/IDczlMUtJA1Bq9rvhKLI4iM9T2/1mWynlOQn7DW83w3XgMdAKTqOWTiz9DWeLfx6wvdVnLwK4lURPv+kUPpk7cx+N7m0HzEOSrp5Ci8ubKDXd3hFoPhs8q2fT81LiVPfUCFI20A2+KNdSThRLRg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ta1tONqb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773861570; c=relaxed/simple;
+	bh=vVHIKZSrRhoeiNZ/Gx9+ejzu7bqPvmc5fRdFrg/JBfs=;
+	h=Date:To:From:Subject:Message-Id; b=bLf6uTXRKs0zK8HySCmuPJvr0RiLWtSNb+ORhfR2sgelZRUPzgVgRHEMifO1vcD72wWCwIfC7OKN2pKhmDr2dhKFv54z9m1r+JFwSJSWrHv2XVOmviU02l3r9kdgl3y3Gqeo1rlwgBA/+ljsgugpviy2ihJfgC2LkCWXaRLCaQs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k3ggZPh7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ta1tONqb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D2099C19421;
-	Wed, 18 Mar 2026 19:08:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k3ggZPh7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46E85C2BCAF;
+	Wed, 18 Mar 2026 19:19:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773860899;
-	bh=DNcdKv8A8h1QCToKnhLVoXqDECh2Ao8k3hXW7RXD9YA=;
+	s=korg; t=1773861570;
+	bh=vVHIKZSrRhoeiNZ/Gx9+ejzu7bqPvmc5fRdFrg/JBfs=;
 	h=Date:To:From:Subject:From;
-	b=Ta1tONqbVLYKFais34JKSZ6ni76SaQrCuygjy8w0wqB42dV284c2GhJTzTrIBqcfj
-	 +QwR1de7nknpy5uFZeF/aicKx8lvObZQ9InKUMsi8WbJt4r8M5W+D8zp4RFx+8o1eg
-	 o63sGaSHQ2Qb0CARkgCaasACPn4a7WYB5F0B6pYY=
-Date: Wed, 18 Mar 2026 12:08:19 -0700
-To: mm-commits@vger.kernel.org,ivan.djelic@parrot.com,akpm@linux-foundation.org,objecting@objecting.org,akpm@linux-foundation.org
+	b=k3ggZPh7+IbFw5ICbPc9RHqsOziq9ZIXhc5PTwJvEiNB0lcLzDs3j3XsDIvQJE4H9
+	 4ZQX9pKgjvZnQrHvooFGfWnxj+ijyS4vZoKtAMy1I8zPtk96wxJqMJ4C4xb8cjgGQ8
+	 afm9AUYYsJpPYh/GVLm6eVPCQlQe/fvFlaYIQCKQ=
+Date: Wed, 18 Mar 2026 12:19:29 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,danisjiang@gmail.com,moonafterrain@outlook.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-bch-fix-signed-shift-overflow-in-build_mod8_tables.patch added to mm-nonmm-unstable branch
-Message-Id: <20260318190819.D2099C19421@smtp.kernel.org>
+Subject: + ocfs2-dlm-validate-qr_numregions-in-dlm_match_regions.patch added to mm-nonmm-unstable branch
+Message-Id: <20260318191930.46E85C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/bch: fix signed shift overflow in build_mod8_tables
+     Subject: ocfs2/dlm: validate qr_numregions in dlm_match_regions()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-bch-fix-signed-shift-overflow-in-build_mod8_tables.patch
+     ocfs2-dlm-validate-qr_numregions-in-dlm_match_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-bch-fix-signed-shift-overflow-in-build_mod8_tables.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-dlm-validate-qr_numregions-in-dlm_match_regions.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,55 +58,76 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Josh Law <objecting@objecting.org>
-Subject: lib/bch: fix signed shift overflow in build_mod8_tables
-Date: Wed, 18 Mar 2026 07:48:06 +0000
+From: Junrui Luo <moonafterrain@outlook.com>
+Subject: ocfs2/dlm: validate qr_numregions in dlm_match_regions()
+Date: Sat, 07 Mar 2026 15:21:08 +0800
 
-Cast loop variable to unsigned int before left-shifting to avoid undefined
-behavior when i >= 128 and b == 3 (i << 24 overflows signed int).
+Patch series "ocfs2/dlm: fix two bugs in dlm_match_regions()".
 
-Link: https://lkml.kernel.org/r/20260318074806.16527-3-objecting@objecting.org
-Signed-off-by: Josh Law <objecting@objecting.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ivan Djelic <ivan.djelic@parrot.com>
+In dlm_match_regions(), the qr_numregions field from a DLM_QUERY_REGION
+network message is used to drive loops over the qr_regions buffer without
+sufficient validation.  This series fixes two issues:
+
+- Patch 1 adds a bounds check to reject messages where qr_numregions
+  exceeds O2NM_MAX_REGIONS. The o2net layer only validates message
+  byte length; it does not constrain field values, so a crafted message
+  can set qr_numregions up to 255 and trigger out-of-bounds reads past
+  the 1024-byte qr_regions buffer.
+
+- Patch 2 fixes an off-by-one in the local-vs-remote comparison loop,
+  which uses '<=' instead of '<', reading one entry past the valid range
+  even when qr_numregions is within bounds.
+
+
+This patch (of 2):
+
+The qr_numregions field from a DLM_QUERY_REGION network message is used
+directly as loop bounds in dlm_match_regions() without checking against
+O2NM_MAX_REGIONS.  Since qr_regions is sized for at most O2NM_MAX_REGIONS
+(32) entries, a crafted message with qr_numregions > 32 causes
+out-of-bounds reads past the qr_regions buffer.
+
+Add a bounds check for qr_numregions before entering the loops.
+
+Link: https://lkml.kernel.org/r/SYBPR01MB7881A334D02ACEE5E0645801AF7BA@SYBPR01MB7881.ausprd01.prod.outlook.com
+Link: https://lkml.kernel.org/r/SYBPR01MB788166F524AD04E262E174BEAF7BA@SYBPR01MB7881.ausprd01.prod.outlook.com
+Fixes: ea2034416b54 ("ocfs2/dlm: Add message DLM_QUERY_REGION")
+Signed-off-by: Junrui Luo <moonafterrain@outlook.com>
+Reported-by: Yuhao Jiang <danisjiang@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bch.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmdomain.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/lib/bch.c~lib-bch-fix-signed-shift-overflow-in-build_mod8_tables
-+++ a/lib/bch.c
-@@ -1116,7 +1116,7 @@ static void build_mod8_tables(struct bch
- 		for (b = 0; b < 4; b++) {
- 			/* we want to compute (p(X).X^(8*b+deg(g))) mod g(X) */
- 			tab = bch->mod8_tab + (b*256+i)*l;
--			data = i << (8*b);
-+			data = (unsigned int)i << (8*b);
- 			while (data) {
- 				d = deg(data);
- 				/* subtract X^d.g(X) from p(X).X^(8*b+deg(g)) */
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-dlm-validate-qr_numregions-in-dlm_match_regions
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -980,6 +980,14 @@ static int dlm_match_regions(struct dlm_
+ 		goto bail;
+ 	}
+ 
++	if (qr->qr_numregions > O2NM_MAX_REGIONS) {
++		mlog(ML_ERROR, "Domain %s: Joining node %d has invalid "
++		     "number of heartbeat regions %u\n",
++		     qr->qr_domain, qr->qr_node, qr->qr_numregions);
++		status = -EINVAL;
++		goto bail;
++	}
++
+ 	r = remote;
+ 	for (i = 0; i < qr->qr_numregions; ++i) {
+ 		mlog(0, "Region %.*s\n", O2HB_MAX_REGION_NAME_LEN, r);
 _
 
-Patches currently in -mm which might be from objecting@objecting.org are
+Patches currently in -mm which might be from moonafterrain@outlook.com are
 
-lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
-lib-glob-fix-grammar-and-replace-non-inclusive-terminology.patch
-lib-glob-add-explicit-include-for-exporth.patch
-lib-glob-replace-bitwise-or-with-logical-operation-on-boolean.patch
-lib-glob-clean-up-bool-abuse-in-pointer-arithmetic.patch
-lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
-lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch
-lib-inflate-fix-memory-leak-in-inflate_dynamic-on-inflate_codes-failure.patch
-lib-inflate-fix-grammar-in-comment-variable-to-variables.patch
-lib-inflate-fix-typo-this-results-to-the-results-in-comment.patch
-lib-bug-fix-inconsistent-capitalization-in-bug-message.patch
-lib-bug-remove-unnecessary-variable-initializations.patch
-lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
-lib-decompress_bunzip2-fix-32-bit-shift-undefined-behavior.patch
-lib-ts_bm-fix-integer-overflow-in-pattern-length-calculation.patch
-lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation.patch
-lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning.patch
-lib-bch-fix-signed-left-shift-undefined-behavior.patch
-lib-bch-fix-signed-shift-overflow-in-build_mod8_tables.patch
+ocfs2-dlm-validate-qr_numregions-in-dlm_match_regions.patch
+ocfs2-dlm-fix-off-by-one-in-dlm_match_regions-region-comparison.patch
 
