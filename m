@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B2F73A7846
-	for <mm-commits@vger.kernel.org>; Wed, 18 Mar 2026 20:05:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1002B3F7869
+	for <mm-commits@vger.kernel.org>; Wed, 18 Mar 2026 20:13:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773864329; cv=none; b=lsVGcNrfdRmu6p4TaGg90j8/R6FhzXOSTl79dDymfDu0POoYK/4a7nSwVHogRMKGNQkrQh7KStBM9RkLSApSoBXA/IsWL9kXsz9HGwCAkXTXRvGGhFSDpDlbgAnr2cCAw2tvlopk6enC0ClxELRZKr51d61A6EO66YAr+yE/dOs=
+	t=1773864814; cv=none; b=FjH9YuUNc+yaZCfoW1ffbhoyhrsYRRru0ElydRKSUpnw+3D7kmN5GaF7VhdZT/AM1mICR4lJEZCAXOmKQ9rY/6ER8v4HBTtT2HKr9IkQJ2TyADg7mrK1S4S2dx73zvoy9GpWr/KWkGqln6/bkikVN2ijaE8WyRc55CYq2DHnha8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773864329; c=relaxed/simple;
-	bh=EFe4Z1Rnedt652APCf6SZNy1dveu+aljWwfzgOTNbOw=;
-	h=Date:To:From:Subject:Message-Id; b=NPVVITi/Lw502yCGOsRwvoGsipke4/MyT5gq11R/ujL+3F31UXv/ZDmPsa9mswXK5Nw3BLkZgWvD+JP3ED3xjp57gmg4y4CxCQRApCdgzn7McLCH1U4GyvdVb09sTuvqUFyDN64+XXfhKYLYK0x1ZMbVxt8LfipP3scNlLQZGZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b5Snp7XP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773864814; c=relaxed/simple;
+	bh=TZVuHfPtSPPU0MnOX5iR9vXRUeRgtTlbrN4JTUkXE4A=;
+	h=Date:To:From:Subject:Message-Id; b=u25Pqumw0Fg2YMDzf5oBrfOJApg6g79NKPa3bOu9OoOtgOSBPtEJMgOj7TDMX/mlDcSPvEjOE+yVOF5Lg7TQMpaM64P5e+pPhkB7AcnctMAUtTjyH3X+LCW5BCAQ4NKVTd1uGEjdc7loXZeUQgUbbSWw7agDYcjJ3OK8ArUKpH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sLmBIh5Q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b5Snp7XP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A8FCC19421;
-	Wed, 18 Mar 2026 20:05:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sLmBIh5Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 915DFC19421;
+	Wed, 18 Mar 2026 20:13:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773864329;
-	bh=EFe4Z1Rnedt652APCf6SZNy1dveu+aljWwfzgOTNbOw=;
+	s=korg; t=1773864813;
+	bh=TZVuHfPtSPPU0MnOX5iR9vXRUeRgtTlbrN4JTUkXE4A=;
 	h=Date:To:From:Subject:From;
-	b=b5Snp7XPXLIZoKDViiayjBzcIP3r+pw8ksL9AU5MNIygzyMKLK7qSQ6TI60rcwAMs
-	 4gf5JILm0a5B77U6ejo2qtjaSk1ZyQ+Dx0mpfDwtiCea3Pu7nKjR8zmN4308jV5Oxr
-	 UqeXYm0Wcnk7jydampxX9X+UtuYcqPcH2NJYH0zc=
-Date: Wed, 18 Mar 2026 13:05:28 -0700
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,richard@nod.at,rdunlap@infradead.org,pmladek@suse.com,petr.pavlu@suse.com,peterz@infradead.org,nathan@kernel.org,mcgrof@kernel.org,masahiroy@kernel.org,linux@leemhuis.info,laurent.pinchart@ideasonboard.com,kees@kernel.org,jgross@suse.com,james.bottomley@HansenPartnership.com,gregkh@linuxfoundation.org,geert@linux-m68k.org,deller@gmx.de,david@davidgow.net,corbet@lwn.net,sashal@kernel.org,akpm@linux-foundation.org
+	b=sLmBIh5QfgIjxylOLUih/By26wT1h2sLhVjIEWzqoWbAZljy1vDzBtE/SyR7oYsFp
+	 zUavKoLt3EYMjpEXqz+QBKyDCz1yZ2f0AgNICB/y2Y1pMRJwjZ12Kn8k5zdALb6QPn
+	 Judb733XxmIq6IwCsHWERRf8hHugrPXQ5XcaqC3g=
+Date: Wed, 18 Mar 2026 13:13:33 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,roman.gushchin@linux.dev,npache@redhat.com,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,david@fromorbit.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kallsyms-add-kunit-tests-for-lineinfo-feature.patch added to mm-nonmm-unstable branch
-Message-Id: <20260318200529.2A8FCC19421@smtp.kernel.org>
+Subject: + mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty.patch added to mm-new branch
+Message-Id: <20260318201333.915DFC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kallsyms: add KUnit tests for lineinfo feature
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kallsyms-add-kunit-tests-for-lineinfo-feature.patch
+     Subject: mm: list_lru: lock_list_lru_of_memcg() cannot return NULL if !skip_empty
+has been added to the -mm mm-new branch.  Its filename is
+     mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kallsyms-add-kunit-tests-for-lineinfo-feature.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,933 +69,109 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sasha Levin <sashal@kernel.org>
-Subject: kallsyms: add KUnit tests for lineinfo feature
-Date: Wed, 11 Mar 2026 23:06:48 -0400
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: list_lru: lock_list_lru_of_memcg() cannot return NULL if !skip_empty
+Date: Wed, 18 Mar 2026 15:53:19 -0400
 
-Add a KUnit test module (CONFIG_LINEINFO_KUNIT_TEST) that verifies the
-kallsyms lineinfo feature produces correct source file:line annotations in
-stack traces.
+Patch series "mm: switch THP shrinker to list_lru", v3.
 
-Export sprint_backtrace() and sprint_backtrace_build_id() as GPL symbols
-so the test module can exercise the backtrace APIs.
+The open-coded deferred split queue has issues. It's not NUMA-aware
+(when cgroup is enabled), and it's more complicated in the callsites
+interacting with it. Switching to list_lru fixes the NUMA problem and
+streamlines things. It also simplifies planned shrinker work.
 
-Link: https://lkml.kernel.org/r/20260312030649.674699-5-sashal@kernel.org
-Signed-off-by: Sasha Levin <sashal@kernel.org>
-Assisted-by: Claude:claude-opus-4-6
-Cc: David Gow <david@davidgow.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: James Bottomley <james.bottomley@HansenPartnership.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Juegren Gross <jgross@suse.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Petr Pavlu <petr.pavlu@suse.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thorsten Leemhuis <linux@leemhuis.info>
+Patches 1-4 are cleanups and small refactors in list_lru code. They're
+basically independent, but make the THP shrinker conversion easier.
+
+Patch 5 extends the list_lru API to allow the caller to control the
+locking scope. The THP shrinker has private state it needs to keep
+synchronized with the LRU state.
+
+Patch 6 extends the list_lru API with a convenience helper to do
+list_lru head allocation (memcg_list_lru_alloc) when coming from a
+folio. Anon THPs are instantiated in several places, and with the
+folio reparenting patches pending, folio_memcg() access is now a more
+delicate dance. This avoids having to replicate that dance everywhere.
+
+Patch 7 finally switches the deferred_split_queue to list_lru.
+
+
+This patch (of 7):
+
+skip_empty is only for the shrinker to abort and skip a list that's empty
+or whose cgroup is being deleted.
+
+For list additions and deletions, the cgroup hierarchy is walked upwards
+until a valid list_lru head is found, or it will fall back to the node
+list.  Acquiring the lock won't fail.  Remove the NULL checks in those
+callers.
+
+Link: https://lkml.kernel.org/r/20260318200352.1039011-1-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20260318200352.1039011-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                |    1 
- kernel/kallsyms.c          |    2 
- lib/Kconfig.debug          |   10 
- lib/tests/Makefile         |    3 
- lib/tests/lineinfo_kunit.c |  813 +++++++++++++++++++++++++++++++++++
- 5 files changed, 829 insertions(+)
+ mm/list_lru.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/kernel/kallsyms.c~kallsyms-add-kunit-tests-for-lineinfo-feature
-+++ a/kernel/kallsyms.c
-@@ -625,6 +625,7 @@ int sprint_backtrace(char *buffer, unsig
+--- a/mm/list_lru.c~mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty
++++ a/mm/list_lru.c
+@@ -165,8 +165,6 @@ bool list_lru_add(struct list_lru *lru,
+ 	struct list_lru_one *l;
+ 
+ 	l = lock_list_lru_of_memcg(lru, nid, memcg, false, false);
+-	if (!l)
+-		return false;
+ 	if (list_empty(item)) {
+ 		list_add_tail(item, &l->list);
+ 		/* Set shrinker bit if the first element was added */
+@@ -203,9 +201,8 @@ bool list_lru_del(struct list_lru *lru,
  {
- 	return __sprint_symbol(buffer, address, -1, 1, 0);
- }
-+EXPORT_SYMBOL_GPL(sprint_backtrace);
- 
- /**
-  * sprint_backtrace_build_id - Look up a backtrace symbol and return it in a text buffer
-@@ -645,6 +646,7 @@ int sprint_backtrace_build_id(char *buff
- {
- 	return __sprint_symbol(buffer, address, -1, 1, 1);
- }
-+EXPORT_SYMBOL_GPL(sprint_backtrace_build_id);
- 
- /* To avoid using get_symbol_offset for every symbol, we carry prefix along. */
- struct kallsym_iter {
---- a/lib/Kconfig.debug~kallsyms-add-kunit-tests-for-lineinfo-feature
-+++ a/lib/Kconfig.debug
-@@ -3080,6 +3080,16 @@ config LONGEST_SYM_KUNIT_TEST
- 
- 	  If unsure, say N.
- 
-+config LINEINFO_KUNIT_TEST
-+	tristate "KUnit tests for kallsyms lineinfo" if !KUNIT_ALL_TESTS
-+	depends on KUNIT && KALLSYMS_LINEINFO
-+	default KUNIT_ALL_TESTS
-+	help
-+	  KUnit tests for the kallsyms source line info feature.
-+	  Verifies that stack traces include correct (file.c:line) annotations.
-+
-+	  If unsure, say N.
-+
- config HW_BREAKPOINT_KUNIT_TEST
- 	bool "Test hw_breakpoint constraints accounting" if !KUNIT_ALL_TESTS
- 	depends on HAVE_HW_BREAKPOINT
-diff --git a/lib/tests/lineinfo_kunit.c a/lib/tests/lineinfo_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/tests/lineinfo_kunit.c
-@@ -0,0 +1,813 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * KUnit tests for kallsyms lineinfo (CONFIG_KALLSYMS_LINEINFO).
-+ *
-+ * Copyright (c) 2026 Sasha Levin <sashal@kernel.org>
-+ *
-+ * Verifies that sprint_symbol() and related APIs append correct
-+ * " (file.c:NNN)" annotations to kernel symbol lookups.
-+ *
-+ * Build with: CONFIG_LINEINFO_KUNIT_TEST=m (or =y)
-+ * Run with:   ./tools/testing/kunit/kunit.py run lineinfo
-+ */
-+
-+#include <kunit/test.h>
-+#include <linux/kallsyms.h>
-+#include <linux/module.h>
-+#include <linux/smp.h>
-+#include <linux/string.h>
-+#include <linux/slab.h>
-+#include <linux/mod_lineinfo.h>
-+
-+/* --------------- helpers --------------- */
-+
-+static char *alloc_sym_buf(struct kunit *test)
-+{
-+	return kunit_kzalloc(test, KSYM_SYMBOL_LEN, GFP_KERNEL);
-+}
-+
-+/*
-+ * Return true if @buf contains a lineinfo annotation matching
-+ * the pattern " (<path>:<digits>)".
-+ *
-+ * The path may be a full path like "lib/tests/lineinfo_kunit.c" or
-+ * a shortened form from module lineinfo (e.g., just a directory name).
-+ */
-+static bool has_lineinfo(const char *buf)
-+{
-+	const char *p, *colon, *end;
-+
-+	p = strstr(buf, " (");
-+	if (!p)
-+		return false;
-+	p += 2; /* skip " (" */
-+
-+	colon = strchr(p, ':');
-+	if (!colon || colon == p)
-+		return false;
-+
-+	/* After colon: one or more digits then ')' */
-+	end = colon + 1;
-+	if (*end < '0' || *end > '9')
-+		return false;
-+	while (*end >= '0' && *end <= '9')
-+		end++;
-+	return *end == ')';
-+}
-+
-+/*
-+ * Extract line number from a lineinfo annotation.
-+ * Returns 0 if not found.
-+ */
-+static unsigned int extract_line(const char *buf)
-+{
-+	const char *p, *colon;
-+	unsigned int line = 0;
-+
-+	p = strstr(buf, " (");
-+	if (!p)
-+		return 0;
-+
-+	colon = strchr(p + 2, ':');
-+	if (!colon)
-+		return 0;
-+
-+	colon++;
-+	while (*colon >= '0' && *colon <= '9') {
-+		line = line * 10 + (*colon - '0');
-+		colon++;
-+	}
-+	return line;
-+}
-+
-+/*
-+ * Check if the lineinfo annotation contains the given filename substring.
-+ */
-+static bool lineinfo_contains_file(const char *buf, const char *name)
-+{
-+	const char *p, *colon;
-+
-+	p = strstr(buf, " (");
-+	if (!p)
-+		return false;
-+
-+	colon = strchr(p + 2, ':');
-+	if (!colon)
-+		return false;
-+
-+	/* Search for @name between '(' and ':' */
-+	return strnstr(p + 1, name, colon - p - 1) != NULL;
-+}
-+
-+/* --------------- target functions --------------- */
-+
-+static noinline int lineinfo_target_normal(void)
-+{
-+	barrier();
-+	return 42;
-+}
-+
-+static noinline int lineinfo_target_short(void)
-+{
-+	barrier();
-+	return 1;
-+}
-+
-+static noinline int lineinfo_target_with_arg(int x)
-+{
-+	barrier();
-+	return x + 1;
-+}
-+
-+static noinline int lineinfo_target_many_lines(void)
-+{
-+	int a = 0;
-+
-+	barrier();
-+	a += 1;
-+	a += 2;
-+	a += 3;
-+	a += 4;
-+	a += 5;
-+	a += 6;
-+	a += 7;
-+	a += 8;
-+	a += 9;
-+	a += 10;
-+	barrier();
-+	return a;
-+}
-+
-+static __always_inline int lineinfo_inline_helper(void)
-+{
-+	return 99;
-+}
-+
-+static noinline int lineinfo_inline_caller(void)
-+{
-+	barrier();
-+	return lineinfo_inline_helper();
-+}
-+
-+/* 10-deep call chain */
-+static noinline int lineinfo_chain_10(void) { barrier(); return 10; }
-+static noinline int lineinfo_chain_9(void)  { barrier(); return lineinfo_chain_10(); }
-+static noinline int lineinfo_chain_8(void)  { barrier(); return lineinfo_chain_9(); }
-+static noinline int lineinfo_chain_7(void)  { barrier(); return lineinfo_chain_8(); }
-+static noinline int lineinfo_chain_6(void)  { barrier(); return lineinfo_chain_7(); }
-+static noinline int lineinfo_chain_5(void)  { barrier(); return lineinfo_chain_6(); }
-+static noinline int lineinfo_chain_4(void)  { barrier(); return lineinfo_chain_5(); }
-+static noinline int lineinfo_chain_3(void)  { barrier(); return lineinfo_chain_4(); }
-+static noinline int lineinfo_chain_2(void)  { barrier(); return lineinfo_chain_3(); }
-+static noinline int lineinfo_chain_1(void)  { barrier(); return lineinfo_chain_2(); }
-+
-+/* --------------- Group A: Basic lineinfo presence --------------- */
-+
-+static void test_normal_function(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+
-+	sprint_symbol(buf, addr);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in: %s", buf);
-+	KUNIT_EXPECT_TRUE_MSG(test,
-+			      lineinfo_contains_file(buf, "lineinfo_kunit.c"),
-+			      "Wrong file in: %s", buf);
-+}
-+
-+static void test_static_function(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_short;
-+
-+	sprint_symbol(buf, addr);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in: %s", buf);
-+}
-+
-+static void test_noinline_function(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_with_arg;
-+
-+	sprint_symbol(buf, addr);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in: %s", buf);
-+}
-+
-+static void test_inline_function(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_inline_caller;
-+
-+	sprint_symbol(buf, addr);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo for inline caller in: %s", buf);
-+	KUNIT_EXPECT_TRUE_MSG(test,
-+			      lineinfo_contains_file(buf, "lineinfo_kunit.c"),
-+			      "Wrong file in: %s", buf);
-+}
-+
-+static void test_short_function(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_short;
-+
-+	sprint_symbol(buf, addr);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo for short function in: %s", buf);
-+}
-+
-+static void test_many_lines_function(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_many_lines;
-+	unsigned int line;
-+
-+	sprint_symbol(buf, addr);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in: %s", buf);
-+	line = extract_line(buf);
-+	KUNIT_EXPECT_GT_MSG(test, line, (unsigned int)0,
-+			    "Line number should be > 0 in: %s", buf);
-+}
-+
-+/* --------------- Group B: Deep call chain --------------- */
-+
-+typedef int (*chain_fn_t)(void);
-+
-+static void test_deep_call_chain(struct kunit *test)
-+{
-+	static const chain_fn_t chain_fns[] = {
-+		lineinfo_chain_1,  lineinfo_chain_2,
-+		lineinfo_chain_3,  lineinfo_chain_4,
-+		lineinfo_chain_5,  lineinfo_chain_6,
-+		lineinfo_chain_7,  lineinfo_chain_8,
-+		lineinfo_chain_9,  lineinfo_chain_10,
-+	};
-+	char *buf = alloc_sym_buf(test);
-+	int i, found = 0;
-+
-+	/* Call chain to prevent dead-code elimination */
-+	KUNIT_ASSERT_EQ(test, lineinfo_chain_1(), 10);
-+
-+	for (i = 0; i < ARRAY_SIZE(chain_fns); i++) {
-+		unsigned long addr = (unsigned long)chain_fns[i];
-+
-+		sprint_symbol(buf, addr);
-+		if (has_lineinfo(buf))
-+			found++;
-+	}
-+
-+	/*
-+	 * Not every tiny function gets DWARF line info (compiler may
-+	 * omit it for very small stubs), but at least some should.
-+	 */
-+	KUNIT_EXPECT_GT_MSG(test, found, 0,
-+			    "None of the 10 chain functions had lineinfo");
-+}
-+
-+/* --------------- Group C: sprint_symbol API variants --------------- */
-+
-+static void test_sprint_symbol_format(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+
-+	sprint_symbol(buf, addr);
-+
-+	/* Should contain +0x and /0x for offset/size */
-+	KUNIT_EXPECT_NOT_NULL_MSG(test, strstr(buf, "+0x"),
-+				  "Missing offset in: %s", buf);
-+	KUNIT_EXPECT_NOT_NULL_MSG(test, strstr(buf, "/0x"),
-+				  "Missing size in: %s", buf);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in: %s", buf);
-+}
-+
-+static void test_sprint_backtrace(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+
-+	/* sprint_backtrace subtracts 1 internally to handle tail calls */
-+	sprint_backtrace(buf, addr + 1);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in backtrace: %s", buf);
-+	KUNIT_EXPECT_TRUE_MSG(test,
-+			      lineinfo_contains_file(buf, "lineinfo_kunit.c"),
-+			      "Wrong file in backtrace: %s", buf);
-+}
-+
-+static void test_sprint_backtrace_build_id(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+
-+	sprint_backtrace_build_id(buf, addr + 1);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in backtrace_build_id: %s", buf);
-+}
-+
-+static void test_sprint_symbol_no_offset(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+
-+	sprint_symbol_no_offset(buf, addr);
-+	/* No "+0x" in output */
-+	KUNIT_EXPECT_NULL_MSG(test, strstr(buf, "+0x"),
-+			      "Unexpected offset in no_offset: %s", buf);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in no_offset: %s", buf);
-+}
-+
-+/* --------------- Group D: printk format specifiers --------------- */
-+
-+static void test_pS_format(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	void *addr = lineinfo_target_normal;
-+
-+	snprintf(buf, KSYM_SYMBOL_LEN, "%pS", addr);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in %%pS: %s", buf);
-+}
-+
-+static void test_pBb_format(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	/*
-+	 * %pBb uses sprint_backtrace_build_id which subtracts 1 from the
-+	 * address, so pass addr+1 to resolve back to the function.
-+	 */
-+	void *addr = (void *)((unsigned long)lineinfo_target_normal + 1);
-+
-+	snprintf(buf, KSYM_SYMBOL_LEN, "%pBb", addr);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in %%pBb: %s", buf);
-+}
-+
-+static void test_pSR_format(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	void *addr = lineinfo_target_normal;
-+
-+	snprintf(buf, KSYM_SYMBOL_LEN, "%pSR", addr);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in %%pSR: %s", buf);
-+}
-+
-+/* --------------- Group E: Address edge cases --------------- */
-+
-+static void test_symbol_start_addr(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+
-+	sprint_symbol(buf, addr);
-+	KUNIT_EXPECT_NOT_NULL_MSG(test, strstr(buf, "+0x0/"),
-+				  "Expected +0x0/ at function start: %s", buf);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo at function start: %s", buf);
-+}
-+
-+static void test_symbol_nonzero_offset(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+
-+	/*
-+	 * sprint_backtrace subtracts 1 internally.
-+	 * Passing addr+2 resolves to addr+1 which is inside the function
-+	 * at a non-zero offset.
-+	 */
-+	sprint_backtrace(buf, addr + 2);
-+	KUNIT_EXPECT_TRUE_MSG(test,
-+			      strnstr(buf, "lineinfo_target_normal",
-+				      KSYM_SYMBOL_LEN) != NULL,
-+			      "Didn't resolve to expected function: %s", buf);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo at non-zero offset: %s", buf);
-+}
-+
-+static void test_unknown_address(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+
-+	sprint_symbol(buf, 1UL);
-+	/* Should be "0x1" with no lineinfo */
-+	KUNIT_EXPECT_NOT_NULL_MSG(test, strstr(buf, "0x1"),
-+				  "Expected hex address for bogus addr: %s", buf);
-+	KUNIT_EXPECT_FALSE_MSG(test, has_lineinfo(buf),
-+			       "Unexpected lineinfo for bogus addr: %s", buf);
-+}
-+
-+static void test_kernel_function_lineinfo(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)sprint_symbol;
-+
-+	sprint_symbol(buf, addr);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo for sprint_symbol: %s", buf);
-+	KUNIT_EXPECT_TRUE_MSG(test,
-+			      lineinfo_contains_file(buf, "kallsyms.c"),
-+			      "Expected kallsyms.c in: %s", buf);
-+}
-+
-+static void test_assembly_no_lineinfo(struct kunit *test)
-+{
-+#if IS_BUILTIN(CONFIG_LINEINFO_KUNIT_TEST)
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)_text;
-+
-+	sprint_symbol(buf, addr);
-+	/*
-+	 * _text is typically an asm entry point with no DWARF line info.
-+	 * If it has lineinfo, it's a C-based entry — skip in that case.
-+	 */
-+	if (has_lineinfo(buf))
-+		kunit_skip(test, "_text has lineinfo (C entry?): %s", buf);
-+
-+	KUNIT_EXPECT_FALSE_MSG(test, has_lineinfo(buf),
-+			       "Unexpected lineinfo for asm symbol: %s", buf);
-+#else
-+	kunit_skip(test, "_text not accessible from modules");
-+#endif
-+}
-+
-+/* --------------- Group F: Module path --------------- */
-+
-+static void test_module_function_lineinfo(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+
-+	if (!IS_MODULE(CONFIG_LINEINFO_KUNIT_TEST)) {
-+		kunit_skip(test, "Test only meaningful when built as module");
-+		return;
-+	}
-+
-+	sprint_symbol(buf, addr);
-+	KUNIT_EXPECT_NOT_NULL_MSG(test,
-+				  strstr(buf, "[lineinfo_kunit"),
-+				  "Missing module name in: %s", buf);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo for module function: %s", buf);
-+	KUNIT_EXPECT_TRUE_MSG(test,
-+			      lineinfo_contains_file(buf, "lineinfo_kunit.c"),
-+			      "Wrong file for module function: %s", buf);
-+}
-+
-+/* --------------- Group G: Stress --------------- */
-+
-+struct lineinfo_stress_data {
-+	unsigned long addr;
-+	atomic_t failures;
-+};
-+
-+static void lineinfo_stress_fn(void *info)
-+{
-+	struct lineinfo_stress_data *data = info;
-+	char buf[KSYM_SYMBOL_LEN];
-+	int i;
-+
-+	for (i = 0; i < 100; i++) {
-+		sprint_symbol(buf, data->addr);
-+		if (!has_lineinfo(buf))
-+			atomic_inc(&data->failures);
-+	}
-+}
-+
-+static void test_concurrent_sprint_symbol(struct kunit *test)
-+{
-+	struct lineinfo_stress_data data;
-+
-+	data.addr = (unsigned long)lineinfo_target_normal;
-+	atomic_set(&data.failures, 0);
-+
-+	on_each_cpu(lineinfo_stress_fn, &data, 1);
-+
-+	KUNIT_EXPECT_EQ_MSG(test, atomic_read(&data.failures), 0,
-+			    "Concurrent lineinfo failures detected");
-+}
-+
-+static void test_rapid_sprint_symbol(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+	int i, failures = 0;
-+
-+	for (i = 0; i < 1000; i++) {
-+		sprint_symbol(buf, addr);
-+		if (!has_lineinfo(buf))
-+			failures++;
-+	}
-+
-+	KUNIT_EXPECT_EQ_MSG(test, failures, 0,
-+			    "Rapid sprint_symbol failures: %d/1000", failures);
-+}
-+
-+/* --------------- Group H: Safety and plausibility --------------- */
-+
-+static void test_line_number_plausible(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+	unsigned int line;
-+
-+	sprint_symbol(buf, addr);
-+	KUNIT_ASSERT_TRUE(test, has_lineinfo(buf));
-+
-+	line = extract_line(buf);
-+	KUNIT_EXPECT_GT_MSG(test, line, (unsigned int)0,
-+			    "Line number should be > 0");
-+	KUNIT_EXPECT_LT_MSG(test, line, (unsigned int)10000,
-+			    "Line number %u implausibly large for this file",
-+			    line);
-+}
-+
-+static void test_buffer_no_overflow(struct kunit *test)
-+{
-+	const size_t canary_size = 16;
-+	char *buf;
-+	int i;
-+
-+	buf = kunit_kzalloc(test, KSYM_SYMBOL_LEN + canary_size, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_NULL(test, buf);
-+
-+	/* Fill canary area past KSYM_SYMBOL_LEN with 0xAA */
-+	memset(buf + KSYM_SYMBOL_LEN, 0xAA, canary_size);
-+
-+	sprint_symbol(buf, (unsigned long)lineinfo_target_normal);
-+
-+	/* Verify canary bytes are untouched */
-+	for (i = 0; i < canary_size; i++) {
-+		KUNIT_EXPECT_EQ_MSG(test,
-+				    (unsigned char)buf[KSYM_SYMBOL_LEN + i],
-+				    (unsigned char)0xAA,
-+				    "Buffer overflow at offset %d past KSYM_SYMBOL_LEN",
-+				    i);
-+	}
-+}
-+
-+static void test_dump_stack_no_crash(struct kunit *test)
-+{
-+	/* Just verify dump_stack() completes without panic */
-+	dump_stack();
-+	KUNIT_SUCCEED(test);
-+}
-+
-+static void test_sprint_symbol_build_id(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+
-+	sprint_symbol_build_id(buf, addr);
-+	KUNIT_EXPECT_TRUE_MSG(test, has_lineinfo(buf),
-+			      "No lineinfo in sprint_symbol_build_id: %s", buf);
-+}
-+
-+static void test_sleb128_edge_cases(struct kunit *test)
-+{
-+	u32 pos;
-+	int32_t result;
-+
-+	/* Value 0: single byte 0x00 */
-+	{
-+		static const u8 data[] = { 0x00 };
-+
-+		pos = 0;
-+		result = lineinfo_read_sleb128(data, &pos, sizeof(data));
-+		KUNIT_EXPECT_EQ(test, result, (int32_t)0);
-+		KUNIT_EXPECT_EQ(test, pos, (u32)1);
-+	}
-+
-+	/* Value -1: single byte 0x7F */
-+	{
-+		static const u8 data[] = { 0x7f };
-+
-+		pos = 0;
-+		result = lineinfo_read_sleb128(data, &pos, sizeof(data));
-+		KUNIT_EXPECT_EQ(test, result, (int32_t)-1);
-+		KUNIT_EXPECT_EQ(test, pos, (u32)1);
-+	}
-+
-+	/* Value 1: single byte 0x01 */
-+	{
-+		static const u8 data[] = { 0x01 };
-+
-+		pos = 0;
-+		result = lineinfo_read_sleb128(data, &pos, sizeof(data));
-+		KUNIT_EXPECT_EQ(test, result, (int32_t)1);
-+		KUNIT_EXPECT_EQ(test, pos, (u32)1);
-+	}
-+
-+	/* Value -64: single byte 0x40 */
-+	{
-+		static const u8 data[] = { 0x40 };
-+
-+		pos = 0;
-+		result = lineinfo_read_sleb128(data, &pos, sizeof(data));
-+		KUNIT_EXPECT_EQ(test, result, (int32_t)-64);
-+		KUNIT_EXPECT_EQ(test, pos, (u32)1);
-+	}
-+
-+	/* Value 63: single byte 0x3F */
-+	{
-+		static const u8 data[] = { 0x3f };
-+
-+		pos = 0;
-+		result = lineinfo_read_sleb128(data, &pos, sizeof(data));
-+		KUNIT_EXPECT_EQ(test, result, (int32_t)63);
-+		KUNIT_EXPECT_EQ(test, pos, (u32)1);
-+	}
-+
-+	/* Value -128: two bytes 0x80 0x7F */
-+	{
-+		static const u8 data[] = { 0x80, 0x7f };
-+
-+		pos = 0;
-+		result = lineinfo_read_sleb128(data, &pos, sizeof(data));
-+		KUNIT_EXPECT_EQ(test, result, (int32_t)-128);
-+		KUNIT_EXPECT_EQ(test, pos, (u32)2);
-+	}
-+}
-+
-+static void test_uleb128_edge_cases(struct kunit *test)
-+{
-+	u32 pos, result;
-+
-+	/* Value 0: single byte 0x00 */
-+	{
-+		static const u8 data[] = { 0x00 };
-+
-+		pos = 0;
-+		result = lineinfo_read_uleb128(data, &pos, sizeof(data));
-+		KUNIT_EXPECT_EQ(test, result, (u32)0);
-+		KUNIT_EXPECT_EQ(test, pos, (u32)1);
-+	}
-+
-+	/* Value 127: single byte 0x7F */
-+	{
-+		static const u8 data[] = { 0x7F };
-+
-+		pos = 0;
-+		result = lineinfo_read_uleb128(data, &pos, sizeof(data));
-+		KUNIT_EXPECT_EQ(test, result, (u32)127);
-+		KUNIT_EXPECT_EQ(test, pos, (u32)1);
-+	}
-+
-+	/* Value 128: two bytes 0x80 0x01 */
-+	{
-+		static const u8 data[] = { 0x80, 0x01 };
-+
-+		pos = 0;
-+		result = lineinfo_read_uleb128(data, &pos, sizeof(data));
-+		KUNIT_EXPECT_EQ(test, result, (u32)128);
-+		KUNIT_EXPECT_EQ(test, pos, (u32)2);
-+	}
-+
-+	/* Max u32 0xFFFFFFFF: 5 bytes */
-+	{
-+		static const u8 data[] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x0F };
-+
-+		pos = 0;
-+		result = lineinfo_read_uleb128(data, &pos, sizeof(data));
-+		KUNIT_EXPECT_EQ(test, result, (u32)0xFFFFFFFF);
-+		KUNIT_EXPECT_EQ(test, pos, (u32)5);
-+	}
-+
-+	/* Truncated input: pos >= end returns 0 */
-+	{
-+		static const u8 data[] = { 0x80 };
-+
-+		pos = 0;
-+		result = lineinfo_read_uleb128(data, &pos, 0);
-+		KUNIT_EXPECT_EQ_MSG(test, result, (u32)0,
-+				    "Expected 0 for empty input");
-+	}
-+
-+	/* Truncated mid-varint: continuation byte but end reached */
-+	{
-+		static const u8 data[] = { 0x80 };
-+
-+		pos = 0;
-+		result = lineinfo_read_uleb128(data, &pos, 1);
-+		KUNIT_EXPECT_EQ_MSG(test, result, (u32)0,
-+				    "Expected 0 for truncated varint");
-+		KUNIT_EXPECT_EQ(test, pos, (u32)1);
-+	}
-+}
-+
-+static void test_line_number_accuracy(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_normal;
-+	unsigned int line;
-+
-+	sprint_symbol(buf, addr);
-+	KUNIT_ASSERT_TRUE(test, has_lineinfo(buf));
-+
-+	line = extract_line(buf);
-+
-+	/*
-+	 * lineinfo_target_normal is defined around line 103-107.
-+	 * Allow wide range: KASAN instrumentation and module lineinfo
-+	 * address mapping can shift the reported line significantly.
-+	 */
-+	KUNIT_EXPECT_GE_MSG(test, line, (unsigned int)50,
-+			    "Line %u too low for lineinfo_target_normal", line);
-+	KUNIT_EXPECT_LE_MSG(test, line, (unsigned int)300,
-+			    "Line %u too high for lineinfo_target_normal", line);
-+}
-+
-+static void test_many_lines_mid_function(struct kunit *test)
-+{
-+	char *buf = alloc_sym_buf(test);
-+	unsigned long addr = (unsigned long)lineinfo_target_many_lines;
-+	unsigned int line;
-+	unsigned long mid_addr;
-+
-+	/* Get function size from sprint_symbol output */
-+	sprint_symbol(buf, addr);
-+	KUNIT_ASSERT_TRUE(test, has_lineinfo(buf));
-+
-+	/* Try an address 8 bytes into the function (past prologue) */
-+	mid_addr = addr + 8;
-+	sprint_symbol(buf, mid_addr);
-+
-+	/*
-+	 * Should still resolve to lineinfo_target_many_lines.
-+	 * Lineinfo should be present with a plausible line number.
-+	 */
-+	KUNIT_EXPECT_TRUE_MSG(test,
-+			      strnstr(buf, "lineinfo_target_many_lines",
-+				      KSYM_SYMBOL_LEN) != NULL,
-+			      "Mid-function addr resolved to wrong symbol: %s",
-+			      buf);
-+	if (has_lineinfo(buf)) {
-+		line = extract_line(buf);
-+		KUNIT_EXPECT_GE_MSG(test, line, (unsigned int)50,
-+				    "Line %u too low for mid-function", line);
-+		KUNIT_EXPECT_LE_MSG(test, line, (unsigned int)700,
-+				    "Line %u too high for mid-function", line);
-+	}
-+}
-+
-+/* --------------- Suite registration --------------- */
-+
-+static struct kunit_case lineinfo_test_cases[] = {
-+	/* Group A: Basic lineinfo presence */
-+	KUNIT_CASE(test_normal_function),
-+	KUNIT_CASE(test_static_function),
-+	KUNIT_CASE(test_noinline_function),
-+	KUNIT_CASE(test_inline_function),
-+	KUNIT_CASE(test_short_function),
-+	KUNIT_CASE(test_many_lines_function),
-+	/* Group B: Deep call chain */
-+	KUNIT_CASE(test_deep_call_chain),
-+	/* Group C: sprint_symbol API variants */
-+	KUNIT_CASE(test_sprint_symbol_format),
-+	KUNIT_CASE(test_sprint_backtrace),
-+	KUNIT_CASE(test_sprint_backtrace_build_id),
-+	KUNIT_CASE(test_sprint_symbol_no_offset),
-+	/* Group D: printk format specifiers */
-+	KUNIT_CASE(test_pS_format),
-+	KUNIT_CASE(test_pBb_format),
-+	KUNIT_CASE(test_pSR_format),
-+	/* Group E: Address edge cases */
-+	KUNIT_CASE(test_symbol_start_addr),
-+	KUNIT_CASE(test_symbol_nonzero_offset),
-+	KUNIT_CASE(test_unknown_address),
-+	KUNIT_CASE(test_kernel_function_lineinfo),
-+	KUNIT_CASE(test_assembly_no_lineinfo),
-+	/* Group F: Module path */
-+	KUNIT_CASE(test_module_function_lineinfo),
-+	/* Group G: Stress */
-+	KUNIT_CASE_SLOW(test_concurrent_sprint_symbol),
-+	KUNIT_CASE_SLOW(test_rapid_sprint_symbol),
-+	/* Group H: Safety and plausibility */
-+	KUNIT_CASE(test_line_number_plausible),
-+	KUNIT_CASE(test_buffer_no_overflow),
-+	KUNIT_CASE(test_dump_stack_no_crash),
-+	KUNIT_CASE(test_sprint_symbol_build_id),
-+	/* Group I: Encoding/decoding and accuracy */
-+	KUNIT_CASE(test_sleb128_edge_cases),
-+	KUNIT_CASE(test_uleb128_edge_cases),
-+	KUNIT_CASE(test_line_number_accuracy),
-+	KUNIT_CASE(test_many_lines_mid_function),
-+	{}
-+};
-+
-+static struct kunit_suite lineinfo_test_suite = {
-+	.name = "lineinfo",
-+	.test_cases = lineinfo_test_cases,
-+};
-+kunit_test_suites(&lineinfo_test_suite);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("KUnit tests for kallsyms lineinfo");
-+MODULE_AUTHOR("Sasha Levin");
---- a/lib/tests/Makefile~kallsyms-add-kunit-tests-for-lineinfo-feature
-+++ a/lib/tests/Makefile
-@@ -36,6 +36,9 @@ obj-$(CONFIG_LIVEUPDATE_TEST) += liveupd
- CFLAGS_longest_symbol_kunit.o += $(call cc-disable-warning, missing-prototypes)
- obj-$(CONFIG_LONGEST_SYM_KUNIT_TEST) += longest_symbol_kunit.o
- 
-+CFLAGS_lineinfo_kunit.o += -fno-inline-functions-called-once
-+obj-$(CONFIG_LINEINFO_KUNIT_TEST) += lineinfo_kunit.o
-+
- obj-$(CONFIG_MEMCPY_KUNIT_TEST) += memcpy_kunit.o
- obj-$(CONFIG_MIN_HEAP_KUNIT_TEST) += min_heap_kunit.o
- CFLAGS_overflow_kunit.o = $(call cc-disable-warning, tautological-constant-out-of-range-compare)
---- a/MAINTAINERS~kallsyms-add-kunit-tests-for-lineinfo-feature
-+++ a/MAINTAINERS
-@@ -13729,6 +13729,7 @@ M:	Sasha Levin <sashal@kernel.org>
- S:	Maintained
- F:	Documentation/admin-guide/kallsyms-lineinfo.rst
- F:	include/linux/mod_lineinfo.h
-+F:	lib/tests/lineinfo_kunit.c
- F:	scripts/gen-mod-lineinfo.sh
- F:	scripts/gen_lineinfo.c
- 
+ 	struct list_lru_node *nlru = &lru->node[nid];
+ 	struct list_lru_one *l;
++
+ 	l = lock_list_lru_of_memcg(lru, nid, memcg, false, false);
+-	if (!l)
+-		return false;
+ 	if (!list_empty(item)) {
+ 		list_del_init(item);
+ 		l->nr_items--;
 _
 
-Patches currently in -mm which might be from sashal@kernel.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-checkpatch-add-support-for-assisted-by-tag.patch
-kallsyms-embed-source-file-line-info-in-kernel-stack-traces.patch
-kallsyms-extend-lineinfo-to-loadable-modules.patch
-kallsyms-delta-compress-lineinfo-tables-for-27x-size-reduction.patch
-kallsyms-add-kunit-tests-for-lineinfo-feature.patch
+mm-vmalloc-streamline-vmalloc-memory-accounting.patch
+mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter.patch
+mm-memcontrol-split-out-__obj_cgroup_charge.patch
+mm-memcontrol-use-__account_obj_stock-in-the-locked-path.patch
+mm-memcg-separate-slab-stat-accounting-from-objcg-charge-cache.patch
+mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty.patch
+mm-list_lru-deduplicate-unlock_list_lru.patch
+mm-list_lru-move-list-dead-check-to-lock_list_lru_of_memcg.patch
+mm-list_lru-deduplicate-lock_list_lru.patch
+mm-list_lru-introduce-caller-locking-for-additions-and-deletions.patch
+mm-list_lru-introduce-folio_memcg_list_lru_alloc.patch
+mm-switch-deferred-split-shrinker-to-list_lru.patch
 
