@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D68141D6193
-	for <mm-commits@vger.kernel.org>; Wed, 18 Mar 2026 18:06:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 453D13CB2C9
+	for <mm-commits@vger.kernel.org>; Wed, 18 Mar 2026 18:20:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773857163; cv=none; b=e55/y8jwxX5nUQUIL+x5R+fF/HFA52ij70h0vaeme+uE6WUe7EBazCoGOlriu0UqWml6s3A0sVfaoqb8UbKGMks3StqlaEOIAIpHu7XXmeQK7zfggPPzgSQ86znzl1TqFy2VDrI4wVSlej/nH0VEyCcHBy2f8XjQy2JqWLk4PwM=
+	t=1773858016; cv=none; b=GA/FlEIzAe1OCW9xKQsd0agz5Mn9qdk5MsjeVAKnsPvduLRodnt/9VW+eXI6XKBS/HMVApHWe1UQ2BEkKpYl3maej+ycSxnmUtetF072AzryMI3VbJCO9frBe/QPzT9gz1gWu6qyQVCIN78yUGREqVd6kZybvvCfdBGduLCidBM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773857163; c=relaxed/simple;
-	bh=d91OxTwxn94B01LLme6njOQdB63aa09y00cB+wz29KM=;
-	h=Date:To:From:Subject:Message-Id; b=B3+1N5g+jTEIjzKIqChQyeenv3C4l1nSc52jqg7CtwFH8XK6/PhVIRGsgcoqYzQyP+TtDFCC1QWzqKEY5vRg2RTDS/i2/A1mh/X7jbio9lt4EmTbxB1KLs+9CBaqCxUYStOav7UZ3kz95BtPmpebbDU0Wr+89TQQvmip5maFRTs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zJhSvscL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773858016; c=relaxed/simple;
+	bh=fZlzTCH6Oo/ru/euJXSh9S30M2ztbAwWXnjhaoECvXE=;
+	h=Date:To:From:Subject:Message-Id; b=Wmvom6Kp+9+XmV4pFtOjijOGkrrTmLVTVhjb1jvsqCiMwaq3Dv6uCP5y3VIhIxOis0cqFNNSGE4oPGJC/bRo396JoGoQgH6cHjec4ZX/qTWxUnehCYYuPUC/G1H0NbOZ1zL/f2SirznCLwpcI3f8cBnnQRegpgGPYMCcVQ8DfFc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fl+87n0+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zJhSvscL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88FB2C19421;
-	Wed, 18 Mar 2026 18:06:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fl+87n0+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC9C3C19421;
+	Wed, 18 Mar 2026 18:20:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773857163;
-	bh=d91OxTwxn94B01LLme6njOQdB63aa09y00cB+wz29KM=;
+	s=korg; t=1773858015;
+	bh=fZlzTCH6Oo/ru/euJXSh9S30M2ztbAwWXnjhaoECvXE=;
 	h=Date:To:From:Subject:From;
-	b=zJhSvscLldUETUL6F2VJspRK3esRQBbGyRfnZHL2yjAwSI40nXOtJ+sLtg04T4lrn
-	 VHJz0/dIJdDeyTX/NvAvTqD7tx4Mctd6pdDmSwNs9htFsZci9LRmVrDiUUEpvNszqC
-	 dvnpuP0HcfVUbbhqi0PinQPiIeqSMJDIiut9qysQ=
-Date: Wed, 18 Mar 2026 11:06:03 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,dmatlack@google.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=Fl+87n0+Ng9nKEoHau7jXUP50VfKoXpYGN+Qr8KWHGG+slSAN9hjpzTQ60lpuBdgx
+	 QXy5npfWRUNWM/2qaPaxhLrresYIn4IWx/vSiZedXeDytwaZOSHI4mkqHw0AiLrebX
+	 +vmPlzx7HizP6kfZQxcdzHdCtQUis/NmmxU6qsT4=
+Date: Wed, 18 Mar 2026 11:20:15 -0700
+To: mm-commits@vger.kernel.org,puranjay@kernel.org,ljs@kernel.org,david@kernel.org,broonie@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + liveupdate-make-unregister-functions-return-void.patch added to mm-new branch
-Message-Id: <20260318180603.88FB2C19421@smtp.kernel.org>
+Subject: + mm-rename-zap_page_range_single-to-zap_vma_range-fix.patch added to mm-unstable branch
+Message-Id: <20260318182015.BC9C3C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: liveupdate: make unregister functions return void
-has been added to the -mm mm-new branch.  Its filename is
-     liveupdate-make-unregister-functions-return-void.patch
+     Subject: mm-rename-zap_page_range_single-to-zap_vma_range-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-rename-zap_page_range_single-to-zap_vma_range-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-make-unregister-functions-return-void.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rename-zap_page_range_single-to-zap_vma_range-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,126 +58,44 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: liveupdate: make unregister functions return void
-Date: Wed, 18 Mar 2026 10:16:46 -0400
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-rename-zap_page_range_single-to-zap_vma_range-fix
+Date: Wed Mar 18 11:18:24 AM PDT 2026
 
-Change liveupdate_unregister_file_handler and liveupdate_unregister_flb to
-return void instead of an error code.  This follows the design principle
-that unregistration during module unload should not fail, as the unload
-cannot be stopped at that point.
+fix rustfmtcheck
 
-Link: https://lkml.kernel.org/r/20260318141637.1870220-18-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: David Matlack <dmatlack@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+Reported-by: Mark Brown <broonie@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Puranjay Mohan <puranjay@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/liveupdate.h   |   14 ++++++--------
- kernel/liveupdate/luo_file.c |    6 ++----
- kernel/liveupdate/luo_flb.c  |    8 +++-----
- 3 files changed, 11 insertions(+), 17 deletions(-)
+ drivers/android/binder/page_range.rs |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/liveupdate.h~liveupdate-make-unregister-functions-return-void
-+++ a/include/linux/liveupdate.h
-@@ -231,12 +231,12 @@ bool liveupdate_enabled(void);
- int liveupdate_reboot(void);
+--- a/drivers/android/binder/page_range.rs~mm-rename-zap_page_range_single-to-zap_vma_range-fix
++++ a/drivers/android/binder/page_range.rs
+@@ -762,7 +762,7 @@ unsafe extern "C" fn rust_shrink_free_pa
+     if let Some(unchecked_vma) = mmap_read.vma_lookup(vma_addr) {
+         if let Some(vma) = check_vma(unchecked_vma, range_ptr) {
+             let user_page_addr = vma_addr + (page_index << PAGE_SHIFT);
+-        vma.zap_vma_range(user_page_addr, PAGE_SIZE);
++            vma.zap_vma_range(user_page_addr, PAGE_SIZE);
+         }
+     }
  
- int liveupdate_register_file_handler(struct liveupdate_file_handler *fh);
--int liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh);
-+void liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh);
- 
- int liveupdate_register_flb(struct liveupdate_file_handler *fh,
- 			    struct liveupdate_flb *flb);
--int liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
--			      struct liveupdate_flb *flb);
-+void liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
-+			       struct liveupdate_flb *flb);
- 
- int liveupdate_flb_get_incoming(struct liveupdate_flb *flb, void **objp);
- int liveupdate_flb_get_outgoing(struct liveupdate_flb *flb, void **objp);
-@@ -258,9 +258,8 @@ static inline int liveupdate_register_fi
- 	return -EOPNOTSUPP;
- }
- 
--static inline int liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh)
-+static inline void liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh)
- {
--	return -EOPNOTSUPP;
- }
- 
- static inline int liveupdate_register_flb(struct liveupdate_file_handler *fh,
-@@ -269,10 +268,9 @@ static inline int liveupdate_register_fl
- 	return -EOPNOTSUPP;
- }
- 
--static inline int liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
--					    struct liveupdate_flb *flb)
-+static inline void liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
-+					     struct liveupdate_flb *flb)
- {
--	return -EOPNOTSUPP;
- }
- 
- static inline int liveupdate_flb_get_incoming(struct liveupdate_flb *flb,
---- a/kernel/liveupdate/luo_file.c~liveupdate-make-unregister-functions-return-void
-+++ a/kernel/liveupdate/luo_file.c
-@@ -874,15 +874,13 @@ int liveupdate_register_file_handler(str
-  * Unregisters the file handler from the liveupdate core. This function
-  * reverses the operations of liveupdate_register_file_handler().
-  */
--int liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh)
-+void liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh)
- {
- 	if (!liveupdate_enabled())
--		return -EOPNOTSUPP;
-+		return;
- 
- 	scoped_guard(rwsem_write, &luo_file_handler_lock) {
- 		luo_flb_unregister_all(fh);
- 		list_del(&ACCESS_PRIVATE(fh, list));
- 	}
--
--	return 0;
- }
---- a/kernel/liveupdate/luo_flb.c~liveupdate-make-unregister-functions-return-void
-+++ a/kernel/liveupdate/luo_flb.c
-@@ -476,18 +476,16 @@ int liveupdate_register_flb(struct liveu
-  * owner module (acquired during registration) is released.
-  *
-  */
--int liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
--			      struct liveupdate_flb *flb)
-+void liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
-+			       struct liveupdate_flb *flb)
- {
- 	if (!liveupdate_enabled())
--		return -EOPNOTSUPP;
-+		return;
- 
- 	guard(rwsem_write)(&luo_flb_lock);
- 	guard(rwsem_write)(&ACCESS_PRIVATE(fh, flb_lock));
- 
- 	luo_flb_unregister_one(fh, flb);
--
--	return 0;
- }
- 
- /**
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmalloc-export-clear_vm_uninitialized_flag.patch
-kho-fix-kasan-support-for-restored-vmalloc-regions.patch
-liveupdate-protect-file-handler-list-with-rwsem.patch
-liveupdate-protect-flb-lists-with-rwsem.patch
-liveupdate-remove-file-handler-module-refcounting.patch
-liveupdate-defer-flb-module-refcounting-to-active-sessions.patch
-liveupdate-remove-luo_session_quiesce.patch
-liveupdate-auto-unregister-flbs-on-file-handler-unregistration.patch
-liveupdate-remove-liveupdate_test_unregister.patch
-liveupdate-make-unregister-functions-return-void.patch
+maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
+maple_tree-add-cp_is_new_root-helper-fix-fix.patch
+mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix.patch
+mm-rename-zap_page_range_single-to-zap_vma_range-fix.patch
+mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix.patch
+mm-page_reporting-add-page_reporting_order_unspecified-fix.patch
+mm-rename-zone-lock-to-zone-_lock-fix.patch
+kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
+decode_stacktrace-decode-caller-address-checkpatch-fixes.patch
 
