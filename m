@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8FB53B8BA7
-	for <mm-commits@vger.kernel.org>; Wed, 18 Mar 2026 18:05:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59880363C60
+	for <mm-commits@vger.kernel.org>; Wed, 18 Mar 2026 18:05:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773857147; cv=none; b=sPpuEA7PDJCkveC9NDwf3QZPbTTekl6x31dqghyuv7JHm2/trB5i4SCgtqbqLRJpvMHO1kDbUNz0HTwqLna4+QbfMeOWQFKNeLxfBF/xLQnjdQW1t4mvQ2bpEwoQwAvdBYwXbyfmlZKs31c0EEHyx0ahWOMfBJkYPQp+2p8hU7A=
+	t=1773857150; cv=none; b=HHMNjONF+Pgx1KeYMJec9tDlTFlXtrA/n6H9/7ejFxXb8B01kL0iJrhL0IdNqMcsV0aFDsabHC0Y1Fy4dKa6VyogaA/hLXLugdryaEpivQaXdImoEH2KFSGUy2e81RWovUoxIt9DAZhCDDD6NddKAud7aZ5jemQb5rkAmSE0FaY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773857147; c=relaxed/simple;
-	bh=LwqrCacGr2/Bg7J0Sb3bhVMLUtTz2Ecld3f213TCjxM=;
-	h=Date:To:From:Subject:Message-Id; b=ktZQ3Rrc/YFKGck6E+C5MN887FtPZYySyd9aBqXjc2Gqx9nvJzP/wBUVoHI4EVg4zVjaO6CwUCBr3AfbjzB3GXhD7pDXPyByQ8J2sbP9F9iuJILo2wn0Ji7dS8OWnql1MlN8czmhKs47cz67Gzs+09sgA3C9dPWgVk3si8SpQhI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rODPOeg8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773857150; c=relaxed/simple;
+	bh=1qAMTEzPUDPtEWlBLUCrnqO4InIZUXrAgw9Q8RQ0sMw=;
+	h=Date:To:From:Subject:Message-Id; b=YeRwGrbzMIn98+g15w1mAW5+Zb3xpcaeHx5kxlBvxj6iTx3grnscMoX0PqmdqhBQpLhWwIuLmF7tuJr5jEPj8I0ar+iDc8q9lXm58z9Xt1YArncJbd1r2OOscFDaGNYSxpD3M+jN/TC+Q9CDAQJHhaSBwSv07YInsDWcUnFlj54=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XvXh6HWP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rODPOeg8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 055E7C19421;
-	Wed, 18 Mar 2026 18:05:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XvXh6HWP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3A8AC19421;
+	Wed, 18 Mar 2026 18:05:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773857147;
-	bh=LwqrCacGr2/Bg7J0Sb3bhVMLUtTz2Ecld3f213TCjxM=;
+	s=korg; t=1773857150;
+	bh=1qAMTEzPUDPtEWlBLUCrnqO4InIZUXrAgw9Q8RQ0sMw=;
 	h=Date:To:From:Subject:From;
-	b=rODPOeg82l3cSg/O5GLXkmmX2bf1D2VLu0S0quZp3OLicnbKX6/KH+i1f14E5e0VG
-	 IGk14PP6atBe5j57iKrfFJYE7VaPh9uLTs0yuRyd4JfLsol2tSwQ5bG6OjULx49iUj
-	 d4dBS2Ina46HXMLdDXBKma/fysKiUMaJPyte7/jU=
-Date: Wed, 18 Mar 2026 11:05:46 -0700
+	b=XvXh6HWPpuudk6wXssXjlvpNhZsPW6rdvK27FkC3zTdYoa8Zcgcn2TwJErDqXtpM2
+	 VL272MUw4GwJVLTEy2EfK/enHW41DTNnb7xP0p3urOxWDhVbW8p94HPmSiAOf9tjSf
+	 7ZX0cvV5L1OdV8G811XaBJmbXHGqnScyRVvci8hk=
+Date: Wed, 18 Mar 2026 11:05:49 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,dmatlack@google.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + liveupdate-protect-flb-lists-with-rwsem.patch added to mm-new branch
-Message-Id: <20260318180547.055E7C19421@smtp.kernel.org>
+Subject: + liveupdate-remove-file-handler-module-refcounting.patch added to mm-new branch
+Message-Id: <20260318180549.F3A8AC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: liveupdate: protect FLB lists with rwsem
+     Subject: liveupdate: remove file handler module refcounting
 has been added to the -mm mm-new branch.  Its filename is
-     liveupdate-protect-flb-lists-with-rwsem.patch
+     liveupdate-remove-file-handler-module-refcounting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-protect-flb-lists-with-rwsem.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-remove-file-handler-module-refcounting.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,140 +70,112 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: liveupdate: protect FLB lists with rwsem
-Date: Wed, 18 Mar 2026 10:16:40 -0400
+Subject: liveupdate: remove file handler module refcounting
+Date: Wed, 18 Mar 2026 10:16:41 -0400
 
-Because liveupdate FLB objects will soon drop their persistent module
-references when registered, list traversals must be protected against
-concurrent module unloading.
+File handlers do not need to pin modules indefinitely or during active
+live update sessions.  The VFS 'struct file' pins the file handler's
+module via f_op->owner during active sessions, making dynamic reference
+counting unnecessary for handlers.
 
-Introduce two read-write semaphores to provide this protection:
-1. A global luo_flb_lock protects the global registry of FLBs.
-2. A per-handler flb_lock protects the handler's specific list of FLB
-   dependencies.
+When a file is preserved, the live update core obtains a 'struct file' via
+fdget().  As long as the file is kept open within the live update session,
+the module is pinned by the VFS and cannot be unloaded.
 
-Read locks are used during concurrent list traversals (e.g., during
-preservation and serialization).  Write locks are taken during
-registration and unregistration.  When both locks are required, the global
-luo_flb_lock is strictly acquired before the per-handler flb_lock to
-prevent deadlocks.
+Similarly, during deserialization, file handlers are matched based on the
+compatible string.  Because the handler list is protected by
+luo_file_handler_lock, there is no race that requires dynamic module
+refcounting.
 
-Link: https://lkml.kernel.org/r/20260318141637.1870220-12-pasha.tatashin@soleen.com
+Removing these module references ensures that modules implementing file
+handlers can be unloaded when no longer providing active files.
+
+Link: https://lkml.kernel.org/r/20260318141637.1870220-13-pasha.tatashin@soleen.com
+Suggested-by: David Matlack <dmatlack@google.com>
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: David Matlack <dmatlack@google.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/liveupdate.h   |    3 +++
- kernel/liveupdate/luo_file.c |    1 +
- kernel/liveupdate/luo_flb.c  |   16 ++++++++++++++++
- 3 files changed, 20 insertions(+)
+ kernel/liveupdate/luo_file.c |   28 +++++++---------------------
+ 1 file changed, 7 insertions(+), 21 deletions(-)
 
---- a/include/linux/liveupdate.h~liveupdate-protect-flb-lists-with-rwsem
-+++ a/include/linux/liveupdate.h
-@@ -12,6 +12,7 @@
- #include <linux/kho/abi/luo.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
-+#include <linux/rwsem.h>
- #include <linux/types.h>
- #include <uapi/linux/liveupdate.h>
- 
-@@ -107,6 +108,8 @@ struct liveupdate_file_handler {
- 	struct list_head __private list;
- 	/* A list of FLB dependencies. */
- 	struct list_head __private flb_list;
-+	/* Protects flb_list */
-+	struct rw_semaphore __private flb_lock;
- };
- 
- /**
---- a/kernel/liveupdate/luo_file.c~liveupdate-protect-flb-lists-with-rwsem
+--- a/kernel/liveupdate/luo_file.c~liveupdate-remove-file-handler-module-refcounting
 +++ a/kernel/liveupdate/luo_file.c
-@@ -873,6 +873,7 @@ int liveupdate_register_file_handler(str
+@@ -836,7 +836,6 @@ void luo_file_set_destroy(struct luo_fil
+ int liveupdate_register_file_handler(struct liveupdate_file_handler *fh)
+ {
+ 	struct liveupdate_file_handler *fh_iter;
+-	int err;
+ 
+ 	if (!liveupdate_enabled())
+ 		return -EOPNOTSUPP;
+@@ -861,17 +860,11 @@ int liveupdate_register_file_handler(str
+ 			if (!strcmp(fh_iter->compatible, fh->compatible)) {
+ 				pr_err("File handler registration failed: Compatible string '%s' already registered.\n",
+ 				       fh->compatible);
+-				err = -EEXIST;
+-				goto err_resume;
++				luo_session_resume();
++				return -EEXIST;
+ 			}
  		}
  
+-		/* Pin the module implementing the handler */
+-		if (!try_module_get(fh->ops->owner)) {
+-			err = -EAGAIN;
+-			goto err_resume;
+-		}
+-
  		INIT_LIST_HEAD(&ACCESS_PRIVATE(fh, flb_list));
-+		init_rwsem(&ACCESS_PRIVATE(fh, flb_lock));
+ 		init_rwsem(&ACCESS_PRIVATE(fh, flb_lock));
  		INIT_LIST_HEAD(&ACCESS_PRIVATE(fh, list));
- 		list_add_tail(&ACCESS_PRIVATE(fh, list), &luo_file_handler_list);
+@@ -882,10 +875,6 @@ int liveupdate_register_file_handler(str
+ 	liveupdate_test_register(fh);
+ 
+ 	return 0;
+-
+-err_resume:
+-	luo_session_resume();
+-	return err;
+ }
+ 
+ /**
+@@ -907,8 +896,6 @@ err_resume:
+  */
+ int liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh)
+ {
+-	int err = -EBUSY;
+-
+ 	if (!liveupdate_enabled())
+ 		return -EOPNOTSUPP;
+ 
+@@ -918,19 +905,18 @@ int liveupdate_unregister_file_handler(s
+ 		goto err_register;
+ 
+ 	scoped_guard(rwsem_write, &luo_file_handler_lock) {
+-		if (!list_empty(&ACCESS_PRIVATE(fh, flb_list)))
+-			goto err_resume;
++		if (!list_empty(&ACCESS_PRIVATE(fh, flb_list))) {
++			luo_session_resume();
++			goto err_register;
++		}
+ 
+ 		list_del(&ACCESS_PRIVATE(fh, list));
  	}
---- a/kernel/liveupdate/luo_flb.c~liveupdate-protect-flb-lists-with-rwsem
-+++ a/kernel/liveupdate/luo_flb.c
-@@ -49,6 +49,7 @@
- #include <linux/liveupdate.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
-+#include <linux/rwsem.h>
- #include <linux/slab.h>
- #include <linux/unaligned.h>
- #include "luo_internal.h"
-@@ -70,6 +71,7 @@ struct luo_flb_global {
- 	long count;
- };
+-	module_put(fh->ops->owner);
+ 	luo_session_resume();
  
-+static DECLARE_RWSEM(luo_flb_lock);
- static struct luo_flb_global luo_flb_global = {
- 	.list = LIST_HEAD_INIT(luo_flb_global.list),
- };
-@@ -240,6 +242,8 @@ int luo_flb_file_preserve(struct liveupd
- 	struct luo_flb_link *iter;
- 	int err = 0;
+ 	return 0;
  
-+	guard(rwsem_read)(&ACCESS_PRIVATE(fh, flb_lock));
-+
- 	list_for_each_entry(iter, flb_list, list) {
- 		err = luo_flb_file_preserve_one(iter->flb);
- 		if (err)
-@@ -272,6 +276,8 @@ void luo_flb_file_unpreserve(struct live
- 	struct list_head *flb_list = &ACCESS_PRIVATE(fh, flb_list);
- 	struct luo_flb_link *iter;
- 
-+	guard(rwsem_read)(&ACCESS_PRIVATE(fh, flb_lock));
-+
- 	list_for_each_entry_reverse(iter, flb_list, list)
- 		luo_flb_file_unpreserve_one(iter->flb);
+-err_resume:
+-	luo_session_resume();
+ err_register:
+ 	liveupdate_test_register(fh);
+-	return err;
++	return -EBUSY;
  }
-@@ -292,6 +298,8 @@ void luo_flb_file_finish(struct liveupda
- 	struct list_head *flb_list = &ACCESS_PRIVATE(fh, flb_list);
- 	struct luo_flb_link *iter;
- 
-+	guard(rwsem_read)(&ACCESS_PRIVATE(fh, flb_lock));
-+
- 	list_for_each_entry_reverse(iter, flb_list, list)
- 		luo_flb_file_finish_one(iter->flb);
- }
-@@ -355,6 +363,9 @@ int liveupdate_register_flb(struct liveu
- 	if (!luo_session_quiesce())
- 		return -EBUSY;
- 
-+	guard(rwsem_write)(&luo_flb_lock);
-+	guard(rwsem_write)(&ACCESS_PRIVATE(fh, flb_lock));
-+
- 	/* Check that this FLB is not already linked to this file handler */
- 	err = -EEXIST;
- 	list_for_each_entry(iter, flb_list, list) {
-@@ -444,6 +455,9 @@ int liveupdate_unregister_flb(struct liv
- 	if (!luo_session_quiesce())
- 		return -EBUSY;
- 
-+	guard(rwsem_write)(&luo_flb_lock);
-+	guard(rwsem_write)(&ACCESS_PRIVATE(fh, flb_lock));
-+
- 	/* Find and remove the link from the file handler's list */
- 	list_for_each_entry(iter, flb_list, list) {
- 		if (iter->flb == flb) {
-@@ -638,6 +652,8 @@ void luo_flb_serialize(void)
- 	struct liveupdate_flb *gflb;
- 	int i = 0;
- 
-+	guard(rwsem_read)(&luo_flb_lock);
-+
- 	list_private_for_each_entry(gflb, &luo_flb_global.list, private.list) {
- 		struct luo_flb_private *private = luo_flb_get_private(gflb);
- 
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
