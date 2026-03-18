@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 133031D6193
-	for <mm-commits@vger.kernel.org>; Wed, 18 Mar 2026 18:06:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D68141D6193
+	for <mm-commits@vger.kernel.org>; Wed, 18 Mar 2026 18:06:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773857161; cv=none; b=hrNthsM29pLgrl4aMJUDh5TL3zlMuf0o4/R1xCJSrSOjlX4z5yfhjpOpA9LZ8Q5FJ5KTLzeiWPf5dACOfYfyrvlwBraUVy9rRLyK9R09WeF3srJ/34SNQzmU9GPjC3yrJsh/9LJqmJJfI755jns3coJgpkstfi7eSiSY+0sWgYY=
+	t=1773857163; cv=none; b=e55/y8jwxX5nUQUIL+x5R+fF/HFA52ij70h0vaeme+uE6WUe7EBazCoGOlriu0UqWml6s3A0sVfaoqb8UbKGMks3StqlaEOIAIpHu7XXmeQK7zfggPPzgSQ86znzl1TqFy2VDrI4wVSlej/nH0VEyCcHBy2f8XjQy2JqWLk4PwM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773857161; c=relaxed/simple;
-	bh=UfnkbUfnc5i337HMusB9dkvEJ/w6UqRKsn6n3UXasMQ=;
-	h=Date:To:From:Subject:Message-Id; b=ScdIi3i4Kw4CF56ZqByq+C3B06wnw7NxWL2U+eDem215/yDiMVZph6/MYb9CmrK66sescivvj+qgCwQ6VkA/E2hr0+v2PkaxfD63cI2Am1S9d9X4azcxiGxxNpzM1JrDlx5oYjh9pLX3AiUT9mzw7/HDhmF1iFPtzYYTcCVjoow=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jkEvBmGK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773857163; c=relaxed/simple;
+	bh=d91OxTwxn94B01LLme6njOQdB63aa09y00cB+wz29KM=;
+	h=Date:To:From:Subject:Message-Id; b=B3+1N5g+jTEIjzKIqChQyeenv3C4l1nSc52jqg7CtwFH8XK6/PhVIRGsgcoqYzQyP+TtDFCC1QWzqKEY5vRg2RTDS/i2/A1mh/X7jbio9lt4EmTbxB1KLs+9CBaqCxUYStOav7UZ3kz95BtPmpebbDU0Wr+89TQQvmip5maFRTs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zJhSvscL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jkEvBmGK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A74D8C19421;
-	Wed, 18 Mar 2026 18:06:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zJhSvscL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88FB2C19421;
+	Wed, 18 Mar 2026 18:06:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773857160;
-	bh=UfnkbUfnc5i337HMusB9dkvEJ/w6UqRKsn6n3UXasMQ=;
+	s=korg; t=1773857163;
+	bh=d91OxTwxn94B01LLme6njOQdB63aa09y00cB+wz29KM=;
 	h=Date:To:From:Subject:From;
-	b=jkEvBmGKq4V4AqtL1854VcHfr7UKwG998QEx3+s2SYT+TLnPDj0B15oqbu2r3YQn+
-	 +UJrhjwJq68ImCsCEYqA6+Vcf0qzwvKTcRRUcfGI8lQWaB5jO0HjKwje6yLMCtq4C9
-	 CUbU7k9SWwVEet1N0yrl1I1x0WpzUYAxXcIplNXo=
-Date: Wed, 18 Mar 2026 11:06:00 -0700
+	b=zJhSvscLldUETUL6F2VJspRK3esRQBbGyRfnZHL2yjAwSI40nXOtJ+sLtg04T4lrn
+	 VHJz0/dIJdDeyTX/NvAvTqD7tx4Mctd6pdDmSwNs9htFsZci9LRmVrDiUUEpvNszqC
+	 dvnpuP0HcfVUbbhqi0PinQPiIeqSMJDIiut9qysQ=
+Date: Wed, 18 Mar 2026 11:06:03 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,dmatlack@google.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + liveupdate-remove-liveupdate_test_unregister.patch added to mm-new branch
-Message-Id: <20260318180600.A74D8C19421@smtp.kernel.org>
+Subject: + liveupdate-make-unregister-functions-return-void.patch added to mm-new branch
+Message-Id: <20260318180603.88FB2C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: liveupdate: remove liveupdate_test_unregister()
+     Subject: liveupdate: make unregister functions return void
 has been added to the -mm mm-new branch.  Its filename is
-     liveupdate-remove-liveupdate_test_unregister.patch
+     liveupdate-make-unregister-functions-return-void.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-remove-liveupdate_test_unregister.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-make-unregister-functions-return-void.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: liveupdate: remove liveupdate_test_unregister()
-Date: Wed, 18 Mar 2026 10:16:45 -0400
+Subject: liveupdate: make unregister functions return void
+Date: Wed, 18 Mar 2026 10:16:46 -0400
 
-Now that file handler unregistration automatically unregisters all
-associated file handlers (FLBs), the liveupdate_test_unregister() function
-is no longer needed.  Remove it along with its usages and declarations.
+Change liveupdate_unregister_file_handler and liveupdate_unregister_flb to
+return void instead of an error code.  This follows the design principle
+that unregistration during module unload should not fail, as the unload
+cannot be stopped at that point.
 
-Link: https://lkml.kernel.org/r/20260318141637.1870220-17-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20260318141637.1870220-18-pasha.tatashin@soleen.com
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: David Matlack <dmatlack@google.com>
 Cc: Mike Rapoport <rppt@kernel.org>
@@ -85,62 +86,97 @@ Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/luo_file.c     |    2 --
- kernel/liveupdate/luo_internal.h |    2 --
- lib/tests/liveupdate.c           |   18 ------------------
- 3 files changed, 22 deletions(-)
+ include/linux/liveupdate.h   |   14 ++++++--------
+ kernel/liveupdate/luo_file.c |    6 ++----
+ kernel/liveupdate/luo_flb.c  |    8 +++-----
+ 3 files changed, 11 insertions(+), 17 deletions(-)
 
---- a/kernel/liveupdate/luo_file.c~liveupdate-remove-liveupdate_test_unregister
-+++ a/kernel/liveupdate/luo_file.c
-@@ -879,8 +879,6 @@ int liveupdate_unregister_file_handler(s
- 	if (!liveupdate_enabled())
- 		return -EOPNOTSUPP;
+--- a/include/linux/liveupdate.h~liveupdate-make-unregister-functions-return-void
++++ a/include/linux/liveupdate.h
+@@ -231,12 +231,12 @@ bool liveupdate_enabled(void);
+ int liveupdate_reboot(void);
  
--	liveupdate_test_unregister(fh);
--
+ int liveupdate_register_file_handler(struct liveupdate_file_handler *fh);
+-int liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh);
++void liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh);
+ 
+ int liveupdate_register_flb(struct liveupdate_file_handler *fh,
+ 			    struct liveupdate_flb *flb);
+-int liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
+-			      struct liveupdate_flb *flb);
++void liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
++			       struct liveupdate_flb *flb);
+ 
+ int liveupdate_flb_get_incoming(struct liveupdate_flb *flb, void **objp);
+ int liveupdate_flb_get_outgoing(struct liveupdate_flb *flb, void **objp);
+@@ -258,9 +258,8 @@ static inline int liveupdate_register_fi
+ 	return -EOPNOTSUPP;
+ }
+ 
+-static inline int liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh)
++static inline void liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh)
+ {
+-	return -EOPNOTSUPP;
+ }
+ 
+ static inline int liveupdate_register_flb(struct liveupdate_file_handler *fh,
+@@ -269,10 +268,9 @@ static inline int liveupdate_register_fl
+ 	return -EOPNOTSUPP;
+ }
+ 
+-static inline int liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
+-					    struct liveupdate_flb *flb)
++static inline void liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
++					     struct liveupdate_flb *flb)
+ {
+-	return -EOPNOTSUPP;
+ }
+ 
+ static inline int liveupdate_flb_get_incoming(struct liveupdate_flb *flb,
+--- a/kernel/liveupdate/luo_file.c~liveupdate-make-unregister-functions-return-void
++++ a/kernel/liveupdate/luo_file.c
+@@ -874,15 +874,13 @@ int liveupdate_register_file_handler(str
+  * Unregisters the file handler from the liveupdate core. This function
+  * reverses the operations of liveupdate_register_file_handler().
+  */
+-int liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh)
++void liveupdate_unregister_file_handler(struct liveupdate_file_handler *fh)
+ {
+ 	if (!liveupdate_enabled())
+-		return -EOPNOTSUPP;
++		return;
+ 
  	scoped_guard(rwsem_write, &luo_file_handler_lock) {
  		luo_flb_unregister_all(fh);
  		list_del(&ACCESS_PRIVATE(fh, list));
---- a/kernel/liveupdate/luo_internal.h~liveupdate-remove-liveupdate_test_unregister
-+++ a/kernel/liveupdate/luo_internal.h
-@@ -108,10 +108,8 @@ void luo_flb_serialize(void);
+ 	}
+-
+-	return 0;
+ }
+--- a/kernel/liveupdate/luo_flb.c~liveupdate-make-unregister-functions-return-void
++++ a/kernel/liveupdate/luo_flb.c
+@@ -476,18 +476,16 @@ int liveupdate_register_flb(struct liveu
+  * owner module (acquired during registration) is released.
+  *
+  */
+-int liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
+-			      struct liveupdate_flb *flb)
++void liveupdate_unregister_flb(struct liveupdate_file_handler *fh,
++			       struct liveupdate_flb *flb)
+ {
+ 	if (!liveupdate_enabled())
+-		return -EOPNOTSUPP;
++		return;
  
- #ifdef CONFIG_LIVEUPDATE_TEST
- void liveupdate_test_register(struct liveupdate_file_handler *fh);
--void liveupdate_test_unregister(struct liveupdate_file_handler *fh);
- #else
- static inline void liveupdate_test_register(struct liveupdate_file_handler *fh) { }
--static inline void liveupdate_test_unregister(struct liveupdate_file_handler *fh) { }
- #endif
+ 	guard(rwsem_write)(&luo_flb_lock);
+ 	guard(rwsem_write)(&ACCESS_PRIVATE(fh, flb_lock));
  
- #endif /* _LINUX_LUO_INTERNAL_H */
---- a/lib/tests/liveupdate.c~liveupdate-remove-liveupdate_test_unregister
-+++ a/lib/tests/liveupdate.c
-@@ -135,24 +135,6 @@ void liveupdate_test_register(struct liv
- 		TEST_NFLBS, fh->compatible);
+ 	luo_flb_unregister_one(fh, flb);
+-
+-	return 0;
  }
  
--void liveupdate_test_unregister(struct liveupdate_file_handler *fh)
--{
--	int err, i;
--
--	for (i = 0; i < TEST_NFLBS; i++) {
--		struct liveupdate_flb *flb = &test_flbs[i];
--
--		err = liveupdate_unregister_flb(fh, flb);
--		if (err) {
--			pr_err("Failed to unregister %s %pe\n",
--			       flb->compatible, ERR_PTR(err));
--		}
--	}
--
--	pr_info("Unregistered %d FLBs from file handler: [%s]\n",
--		TEST_NFLBS, fh->compatible);
--}
--
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Pasha Tatashin <pasha.tatashin@soleen.com>");
- MODULE_DESCRIPTION("In-kernel test for LUO mechanism");
+ /**
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
