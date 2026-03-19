@@ -1,122 +1,80 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f73.google.com (mail-wm1-f73.google.com [209.85.128.73])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A11A935836D
-	for <mm-commits@vger.kernel.org>; Wed, 18 Mar 2026 20:43:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2F161A9FA4
+	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 08:39:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773866636; cv=none; b=QcreptenI2ZhR2u2tSn7QKH4Eg3f9UvMm7s0L7nvAJNOexdEGRhm0h1tXuuWuMt1wK2MZMxnvl9gDFsDMOpCMblGR9GJAu93poS81ww/aM3l3niwAi5jJO45PunER9+AYAuTSCRfcp5UtVi9YSUaYan8slqBc7rC9Y0BZ8DK9Es=
+	t=1773909579; cv=none; b=TW4VOA2gP3E7o/CzG7tAOoi8Av7VtFRnKc74rH5P6yK1unhv0JFqAg2Gnv1lY5Xvl21viQYfsc/UgQCg1J1UOkx7JDsh2piJlHbC/tOvSQq+sj7RSQFshl2PJxuJG+ckAKnIzOaSOffqJ95o9zleKFHC+ICBaRDEEpT03l5jG0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773866636; c=relaxed/simple;
-	bh=2/Fdy89C1yjxZftZX/WgNWi+LFX0PUF4ticWaVM2c/Q=;
-	h=Date:To:From:Subject:Message-Id; b=pcY3c3Ewj5MSrsHOgOBEJ5ASxct6LmbW1ZlCJIXcp2pbcECW0Fnp2ldfLPK1pHpFVWSIpn+BeArrc+9EuQQ4Km8n8TH8cmaXEJneBFuY8CGR+uEHRrvYQdilZ5ogltivBW6ycjDjfziXuwP5kq/qlRKU0CQf5PzuPCIGEeM9sr0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H3FGOAG8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773909579; c=relaxed/simple;
+	bh=tBIdknSGrjtD6rAYV22rPpTp1SM1tpZPUCj7i+Db8Tg=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=Ci/pN3vcVSaGuZNBns/RV7gIcTkS08ykurd9TO+WTLGVV4cfE+xbzV7rnEjd1tGsrqmNTgIcoy+JUWiFQ7NrGZ25iLGTt33R/uRuMNYG/QmNNKpAE1uU7Y8F5Brfi4stLScrNDT0rhRfN4bDpS1ia35TtK8kwwtPmJGS19wCrpM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--aliceryhl.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=fs2wFi4m; arc=none smtp.client-ip=209.85.128.73
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--aliceryhl.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H3FGOAG8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 394A9C19421;
-	Wed, 18 Mar 2026 20:43:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773866636;
-	bh=2/Fdy89C1yjxZftZX/WgNWi+LFX0PUF4ticWaVM2c/Q=;
-	h=Date:To:From:Subject:From;
-	b=H3FGOAG8zcV2+l8LcYvcx4R7iFRdnzaz+OMfH5HCNyk+W86ynqEW0PK/HCqqnpbBd
-	 KadV9bl0XvgUu9xgo55XYylfdtyhWjYyPO/T9fsQyUpo4O2W/rBI+CmmjF40AMk3UQ
-	 4I02AVCALxUmmrCKNmathck+eKTNPKMecHUDOjfs=
-Date: Wed, 18 Mar 2026 13:43:55 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-damon-stat-monitor-all-system-ram-resources-fix.patch removed from -mm tree
-Message-Id: <20260318204356.394A9C19421@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="fs2wFi4m"
+Received: by mail-wm1-f73.google.com with SMTP id 5b1f17b1804b1-485355493aeso4790205e9.1
+        for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 01:39:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20251104; t=1773909576; x=1774514376; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=vw/6kwAy2eSoRjg9UV0ll7INGdWJyYzd1P4t3vfb/Rw=;
+        b=fs2wFi4mSL1+s0sRg1fzzkxM1cog/w/9idjHzoeuHtdlpBUOY0g78iBXQJsuvPFfaY
+         g22ttzUkGRENgGJPCdRuA0h3EH7pMgkTcXkK10c+Uqh4QAUgte/5P1pAvGd/n1PM9/XI
+         Ti5zWO5G/tIzP974Biywkj2hugjlcZbF22y8lcOn/HX6FfyBmOSSaekENHAqgPAzHK0b
+         fmZH6xF3VFw3h6hfxwtWfTyIY9mPAsRnOAklPQ/QtaDgFMmVRH+gE+/o/s77SEGSRDK3
+         w2iRHfv661v7kJZutKjUQPA0B+mKJxsWWlLDZ12T0LqDhqY78ysBzCNd77AP4yCERGBI
+         TDdQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773909576; x=1774514376;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=vw/6kwAy2eSoRjg9UV0ll7INGdWJyYzd1P4t3vfb/Rw=;
+        b=d9Nkf1DpmFLNdPtjFTF50HiTQ1o1pfrPxAimyHK16tOR5++2WXPJT6qGMJ1lOmEsGz
+         nXV46ieQVT+trm0/gez296xVKd7/8ojf68E/KdbLFBKkxXMPOJLOCd9TlNOkiIWyqd3a
+         GhJKiXVQ6q5Ma5JgoCR8/bsLSvLjMUi061Eyizn46ZHT79qdXNExVpS/NmpU1VKA5IDx
+         Z34qZxaxSz3jVc24hWk+91rgHJ1tnWKW7hJhbZDmrmD/TdLNLDLf4s08a5YcWe3RLQQP
+         UfZ757FB0LwVFODugBuirWBNAd1wpCCBWAaW1UA9kuPfkl9QgWlycua0PSC7lVyUR2hR
+         Wdvw==
+X-Gm-Message-State: AOJu0Yw7AYxAPODmT8lzqqP8HQH0+uqcBkoRIWXtO8E7TEgTa5nanVyZ
+	oUwZeDR6084MRqt9FH7tWtE4r7eYkclBc1XmONxcLoMbryVNWz8Ap/xqeJaD2KleRfood/dC92V
+	lqiIF6HjcC/VCm8S1Uw==
+X-Received: from wmim24.prod.google.com ([2002:a7b:cb98:0:b0:486:7a8:4f4e])
+ (user=aliceryhl job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a05:600c:1d0b:b0:485:363b:fafe with SMTP id 5b1f17b1804b1-486f441bc8dmr106876315e9.1.1773909576019;
+ Thu, 19 Mar 2026 01:39:36 -0700 (PDT)
+Date: Thu, 19 Mar 2026 08:39:34 +0000
+In-Reply-To: <20260318182015.BC9C3C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+References: <20260318182015.BC9C3C19421@smtp.kernel.org>
+Message-ID: <abu2Rh-yMHL7QNH0@google.com>
+Subject: Re: + mm-rename-zap_page_range_single-to-zap_vma_range-fix.patch
+ added to mm-unstable branch
+From: Alice Ryhl <aliceryhl@google.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, puranjay@kernel.org, ljs@kernel.org, 
+	david@kernel.org, broonie@kernel.org
+Content-Type: text/plain; charset="utf-8"
 
+On Wed, Mar 18, 2026 at 11:20:15AM -0700, Andrew Morton wrote:
+> --- a/drivers/android/binder/page_range.rs~mm-rename-zap_page_range_single-to-zap_vma_range-fix
+> +++ a/drivers/android/binder/page_range.rs
+> @@ -762,7 +762,7 @@ unsafe extern "C" fn rust_shrink_free_pa
+>      if let Some(unchecked_vma) = mmap_read.vma_lookup(vma_addr) {
+>          if let Some(vma) = check_vma(unchecked_vma, range_ptr) {
+>              let user_page_addr = vma_addr + (page_index << PAGE_SHIFT);
+> -        vma.zap_vma_range(user_page_addr, PAGE_SIZE);
+> +            vma.zap_vma_range(user_page_addr, PAGE_SIZE);
+>          }
+>      }
 
-The quilt patch titled
-     Subject: mm/damon/stat: return error if monitoring target region is invalid
-has been removed from the -mm tree.  Its filename was
-     mm-damon-stat-monitor-all-system-ram-resources-fix.patch
-
-This patch was dropped because it was folded into mm-damon-stat-monitor-all-system-ram-resources.patch
-
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/stat: return error if monitoring target region is invalid
-Date: Mon, 16 Mar 2026 22:11:22 -0700
-
-On 32bit systems with LPAE, the end address might be overflowed or
-truncated, resulting in invalid range (the end address is equal or smaller
-than the start address).  Return an error for the case.
-
-Link: https://lkml.kernel.org/r/20260317053631.87907-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/damon/stat.c |    2 ++
- 1 file changed, 2 insertions(+)
-
---- a/mm/damon/stat.c~mm-damon-stat-monitor-all-system-ram-resources-fix
-+++ a/mm/damon/stat.c
-@@ -188,6 +188,8 @@ static int damon_stat_set_monitoring_reg
- 			arg.res.start, addr_unit);
- 	addr_range.end = damon_stat_res_to_core_addr(
- 			arg.res.end + 1, addr_unit);
-+	if (addr_range.end <= addr_range.start)
-+		return -EINVAL;
- 	return damon_set_regions(t, &addr_range, 1, min_region_sz);
- }
- 
-_
-
-Patches currently in -mm which might be from sj@kernel.org are
-
-mm-damon-stat-monitor-all-system-ram-resources.patch
-mm-damon-core-set-quota-score-histogram-with-core-filters.patch
-mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
-mm-damon-core-split-regions-for-min_nr_regions.patch
-mm-damon-vaddr-do-not-split-regions-for-min_nr_regions.patch
-mm-damon-test-core-kunit-add-damon_apply_min_nr_regions-test.patch
-mm-damon-add-config_damon_debug_sanity.patch
-mm-damon-core-add-damon_new_region-debug_sanity-check.patch
-mm-damon-core-add-damon_del_region-debug_sanity-check.patch
-mm-damon-core-add-damon_nr_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_two_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
-mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
-mm-damon-core-add-damon_reset_aggregated-debug_sanity-check.patch
-mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
-selftests-damon-config-enable-damon_debug_sanity.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
-docs-mm-damon-design-document-the-power-of-two-limitation-for-addr_unit.patch
-mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
-mm-damon-core-use-time_before-for-next_apply_sis.patch
-mm-damon-core-use-time_after_eq-in-kdamond_fn.patch
-mm-damon-core-use-mult_frac.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
-mm-damon-core-clarify-damon_set_attrs-usages.patch
-mm-damon-document-non-zero-length-damon_region-assumption.patch
-docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
-docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
-docs-mm-damon-index-fix-typo-autoamted-automated.patch
-mm-damon-core-introduce-damos_quota_goal_tuner.patch
-mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
-mm-damon-core-introduce-damos_quota_goal_tuner_temporal.patch
-mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
-docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
-docs-admin-guide-mm-damon-usage-document-goal_tuner-sysfs-file.patch
-docs-abi-damon-update-for-goal_tuner.patch
-mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
-selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
-selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
-selftests-damon-sysfspy-test-goal_tuner-commit.patch
-mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
-mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
-mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram-fix.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
-mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
-mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
-
+LGTM!
