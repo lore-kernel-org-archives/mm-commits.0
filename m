@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 481B33F8817
-	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 20:57:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C273B3C1C;
+	Thu, 19 Mar 2026 21:54:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773953826; cv=none; b=O0+Tc1Jf/nQvUN2IU42kIloluk06VyQQwRBdQrYd3fZCeLuqK4nBhNealoIMHbbV7t0kXQM2sAtLKWRLTZHWLJlFXw7TOKT2phmhoYCUcSPImdkGYKiiHxGot1pclzhQKNKpHvyB5On69GZo6H3Arfhl+pLDjtdYY03QPj77LNM=
+	t=1773957300; cv=none; b=Fqahfp+PawbTpfKfE6S4ycrJvA0tXJ/c3bmI/JvPLZXxDAyxn3b3A1JQ9WZ4ZjMqaP1jtgE5+hEWaIi4CnV+eSHQ5FS+isp79UGY6k4x4PnGOTVxilarZULtlKOhsFBG5RhYlX4b2n8B4he5v5J83OwJlOqIAaxHzDBG0ZldzOU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773953826; c=relaxed/simple;
-	bh=xD3tmCN6gdVgfnaM+oq1zhMacKNfUfJw3fDEuwgu6lo=;
-	h=Date:To:From:Subject:Message-Id; b=j2eVQb82m0sSOesyRfzsK1amuXU3mzEReP9OXhiPLmsfrm5KI8t1iTkJCd3VUui+/lu/X9UYpnEwWWh6wiH++rWzlSpIZbOlMwPXFrxxUAXAKclQa6i060jdGZc/LM3RPb3Kxoj7ZHm2K9GkuMqrqRFIrzR2xH5zTzt0HEcQkog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UfzpVmIK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773957300; c=relaxed/simple;
+	bh=PGvjNF+u5mxc9/jzb7SvtfBCe34b+Gh0nsZtRPjMLxA=;
+	h=Date:To:From:Subject:Message-Id; b=fjiyGlxBIhVEiDS2TNI0Al96S18kLZjPESq7kov4tP+Tn8pabm1KcNz5tI7xpcbgOI1GBHJeQP6/2YcMXcIQb2c7K6lRm6eZteZ7DoNRVLTk1sxDkDCxoJSOlgDr4xqXtDlL4sT33/UozcBLmmITG/YWWJYsZlM73cRkyUZX3aY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fhj6mIF0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UfzpVmIK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0DD0C2BCAF;
-	Thu, 19 Mar 2026 20:57:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fhj6mIF0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B578C19424;
+	Thu, 19 Mar 2026 21:54:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773953825;
-	bh=xD3tmCN6gdVgfnaM+oq1zhMacKNfUfJw3fDEuwgu6lo=;
+	s=korg; t=1773957299;
+	bh=PGvjNF+u5mxc9/jzb7SvtfBCe34b+Gh0nsZtRPjMLxA=;
 	h=Date:To:From:Subject:From;
-	b=UfzpVmIKDt4ipozctQN/O2qp3DT7L2/K98JxdPYWhWTrqQVgrExjkYeMTfbRRxd1H
-	 1xbXA1NvOTWGltErkPvdeLyy4H2obaHlRAgAdJLV+sjeoYOflx+frtb4ELdUrxxYkK
-	 n/W3F6dW3b+OnDRv8vhRKVmJ3dTPyme8bWKBtmMs=
-Date: Thu, 19 Mar 2026 13:57:05 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liwang@redhat.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,chuhu@redhat.com,akpm@linux-foundation.org
+	b=fhj6mIF0NM0SS8dFrl1Qap5tBlgA+kE0JjPE7Sr7jKv6zPc35sYSz2M5oxXeuHmK9
+	 Z7/Sp0gipK+OiX/J5rt6rxXkgdGoivL7M8hAg7vCNz7z9Uscq+O1QGK48rg8ptas3m
+	 moQ1kqOswviLEgby0hLbc5LnF+sXSjfMPp5ygbtY=
+Date: Thu, 19 Mar 2026 14:54:58 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-transhuge_stress-skip-the-test-when-thp-not-available.patch added to mm-new branch
-Message-Id: <20260319205705.D0DD0C2BCAF@smtp.kernel.org>
+Subject: + mm-damon-core-avoid-use-of-half-online-committed-context.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260319215459.8B578C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: transhuge_stress: skip the test when thp not available
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-transhuge_stress-skip-the-test-when-thp-not-available.patch
+     Subject: mm/damon/core: avoid use of half-online-committed context
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-avoid-use-of-half-online-committed-context.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-transhuge_stress-skip-the-test-when-thp-not-available.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-avoid-use-of-half-online-committed-context.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,86 +58,161 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Chunyu Hu <chuhu@redhat.com>
-Subject: selftests/mm: transhuge_stress: skip the test when thp not available
-Date: Fri, 20 Mar 2026 00:06:56 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: avoid use of half-online-committed context
+Date: Thu, 19 Mar 2026 07:52:17 -0700
 
-The test requires thp, skip the test when thp is not available to avoid
-false positive.
+One major usage of damon_call() is online DAMON parameters update.  It is
+done by calling damon_commit_ctx() inside the damon_call() callback
+function.  damon_commit_ctx() can fail for two reasons: 1) invalid
+parameters and 2) internal memory allocation failures.  In case of
+failures, the damon_ctx that attempted to be updated (commit destination)
+can be partially updated (or, corrupted from a perspective), and therefore
+shouldn't be used anymore.  The function only ensures the damon_ctx object
+can safely deallocated using damon_destroy_ctx().
 
-Tested with thp disabled kernel.
-Before the fix:
-  # --------------------------------
-  # running ./transhuge-stress -d 20
-  # --------------------------------
-  # TAP version 13
-  # 1..1
-  # transhuge-stress: allocate 1453 transhuge pages, using 2907 MiB virtual memory and 11 MiB of ram
-  # Bail out! MADV_HUGEPAGE# Planned tests != run tests (1 != 0)
-  # # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
-  # [FAIL]
-  not ok 60 transhuge-stress -d 20 # exit=1
+The API callers are, however, calling damon_commit_ctx() only after
+asserting the parameters are valid, to avoid damon_commit_ctx() fails due
+to invalid input parameters.  But it can still theoretically fail if the
+internal memory allocation fails.  In the case, DAMON may run with the
+partially updated damon_ctx.  This can result in unexpected behaviors
+including even NULL pointer dereference in case of damos_commit_dests()
+failure [1].  Such allocation failure is arguably too small to fail, so
+the real world impact would be rare.  But, given the bad consequence, this
+needs to be fixed.
 
-After the fix:
-  # --------------------------------
-  # running ./transhuge-stress -d 20
-  # --------------------------------
-  # TAP version 13
-  # 1..0 # SKIP Transparent Hugepages not available
-  # [SKIP]
-  ok 5 transhuge-stress -d 20 # SKIP
+Avoid such partially-committed (maybe-corrupted) damon_ctx use by saving
+the damon_commit_ctx() failure on the damon_ctx object.  For this,
+introduce damon_ctx->maybe_corrupted field.  damon_commit_ctx() sets it
+when it is failed.  kdamond_call() checks if the field is set after each
+damon_call_control->fn() is executed.  If it is set, ignore remaining
+callback requests and return.  All kdamond_call() callers including
+kdamond_fn() also check the maybe_corrupted field right after
+kdamond_call() invocations.  If the field is set, break the kdamond_fn()
+main loop so that DAMON sill doesn't use the context that might be
+corrupted.
 
-Link: https://lkml.kernel.org/r/20260319160656.1480279-6-chuhu@redhat.com
-Signed-off-by: Chunyu Hu <chuhu@redhat.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Li Wang <liwang@redhat.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20260319145218.86197-1-sj@kernel.org
+Link: https://lore.kernel.org/20260319043309.97966-1-sj@kernel.org [1]
+Fixes: 3301f1861d34 ("mm/damon/sysfs: handle commit command using damon_call()")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/transhuge-stress.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/damon.h |    6 ++++++
+ mm/damon/core.c       |    8 ++++++++
+ 2 files changed, 14 insertions(+)
 
---- a/tools/testing/selftests/mm/transhuge-stress.c~selftests-mm-transhuge_stress-skip-the-test-when-thp-not-available
-+++ a/tools/testing/selftests/mm/transhuge-stress.c
-@@ -17,6 +17,7 @@
- #include <sys/mman.h>
- #include "vm_util.h"
- #include "kselftest.h"
-+#include "thp_settings.h"
+--- a/include/linux/damon.h~mm-damon-core-avoid-use-of-half-online-committed-context
++++ a/include/linux/damon.h
+@@ -810,6 +810,12 @@ struct damon_ctx {
+ 	struct damos_walk_control *walk_control;
+ 	struct mutex walk_control_lock;
  
- int backing_fd = -1;
- int mmap_flags = MAP_ANONYMOUS | MAP_NORESERVE | MAP_PRIVATE;
-@@ -37,6 +38,9 @@ int main(int argc, char **argv)
- 
- 	ksft_print_header();
- 
-+	if (!thp_is_enabled())
-+		ksft_exit_skip("Transparent Hugepages not available\n");
++	/*
++	 * indicate if this may be corrupted.  Currentonly this is set only for
++	 * damon_commit_ctx() failure.
++	 */
++	bool maybe_corrupted;
 +
- 	ram = sysconf(_SC_PHYS_PAGES);
- 	if (ram > SIZE_MAX / psize() / 4)
- 		ram = SIZE_MAX / 4;
+ 	/* Working thread of the given DAMON context */
+ 	struct task_struct *kdamond;
+ 	/* Protects @kdamond field access */
+--- a/mm/damon/core.c~mm-damon-core-avoid-use-of-half-online-committed-context
++++ a/mm/damon/core.c
+@@ -1252,6 +1252,7 @@ int damon_commit_ctx(struct damon_ctx *d
+ {
+ 	int err;
+ 
++	dst->maybe_corrupted = true;
+ 	if (!is_power_of_2(src->min_region_sz))
+ 		return -EINVAL;
+ 
+@@ -1277,6 +1278,7 @@ int damon_commit_ctx(struct damon_ctx *d
+ 	dst->addr_unit = src->addr_unit;
+ 	dst->min_region_sz = src->min_region_sz;
+ 
++	dst->maybe_corrupted = false;
+ 	return 0;
+ }
+ 
+@@ -2678,6 +2680,8 @@ static void kdamond_call(struct damon_ct
+ 			complete(&control->completion);
+ 		else if (control->canceled && control->dealloc_on_cancel)
+ 			kfree(control);
++		if (ctx->maybe_corrupted)
++			break;
+ 	}
+ 
+ 	mutex_lock(&ctx->call_controls_lock);
+@@ -2707,6 +2711,8 @@ static int kdamond_wait_activation(struc
+ 		kdamond_usleep(min_wait_time);
+ 
+ 		kdamond_call(ctx, false);
++		if (ctx->maybe_corrupted)
++			return -EINVAL;
+ 		damos_walk_cancel(ctx);
+ 	}
+ 	return -EBUSY;
+@@ -2790,6 +2796,8 @@ static int kdamond_fn(void *data)
+ 		 * kdamond_merge_regions() if possible, to reduce overhead
+ 		 */
+ 		kdamond_call(ctx, false);
++		if (ctx->maybe_corrupted)
++			break;
+ 		if (!list_empty(&ctx->schemes))
+ 			kdamond_apply_schemes(ctx);
+ 		else
 _
 
-Patches currently in -mm which might be from chuhu@redhat.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-selftests-mm-guard-regions-skip-collapse-test-when-thp-not-enabled.patch
-selftests-mm-soft-dirty-skip-two-tests-when-thp-is-not-available.patch
-selftests-mm-move-write_file-helper-to-vm_util.patch
-selftests-mm-split_huge_page_test-skip-the-test-when-thp-is-not-available.patch
-selftests-mm-transhuge_stress-skip-the-test-when-thp-not-available.patch
+mm-damon-stat-monitor-all-system-ram-resources.patch
+mm-damon-core-avoid-use-of-half-online-committed-context.patch
+mm-damon-core-set-quota-score-histogram-with-core-filters.patch
+mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
+mm-damon-core-split-regions-for-min_nr_regions.patch
+mm-damon-vaddr-do-not-split-regions-for-min_nr_regions.patch
+mm-damon-test-core-kunit-add-damon_apply_min_nr_regions-test.patch
+mm-damon-add-config_damon_debug_sanity.patch
+mm-damon-core-add-damon_new_region-debug_sanity-check.patch
+mm-damon-core-add-damon_del_region-debug_sanity-check.patch
+mm-damon-core-add-damon_nr_regions-debug_sanity-check.patch
+mm-damon-core-add-damon_merge_two_regions-debug_sanity-check.patch
+mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
+mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
+mm-damon-core-add-damon_reset_aggregated-debug_sanity-check.patch
+mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
+selftests-damon-config-enable-damon_debug_sanity.patch
+mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
+docs-mm-damon-design-document-the-power-of-two-limitation-for-addr_unit.patch
+mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
+mm-damon-core-use-time_before-for-next_apply_sis.patch
+mm-damon-core-use-time_after_eq-in-kdamond_fn.patch
+mm-damon-core-use-mult_frac.patch
+mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
+mm-damon-core-clarify-damon_set_attrs-usages.patch
+mm-damon-document-non-zero-length-damon_region-assumption.patch
+docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
+docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
+docs-mm-damon-index-fix-typo-autoamted-automated.patch
+mm-damon-core-introduce-damos_quota_goal_tuner.patch
+mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
+mm-damon-core-introduce-damos_quota_goal_tuner_temporal.patch
+mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
+docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
+docs-admin-guide-mm-damon-usage-document-goal_tuner-sysfs-file.patch
+docs-abi-damon-update-for-goal_tuner.patch
+mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
+selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
+selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
+selftests-damon-sysfspy-test-goal_tuner-commit.patch
+mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
+mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
+mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram-fix.patch
+mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
+mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
+mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
+mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
 
