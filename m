@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A87DF3783D6
-	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:49:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 881E33385AC
+	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:49:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773960564; cv=none; b=po0yvaf72xBVQKXlAwvpNNf1LTt4gjdnkB4ladwkIp4OCc7fP/muS4nzMnHFL7ynosjiQvOasiraSgHgKJV1fdjkL7Gqa8PqbqDMB6vpeQG/5X5AAw20cgmuT3MBV+iueWFXS2wu35k5Yg040xBTo6pGqBWMQewSqvqmnQy1ulI=
+	t=1773960566; cv=none; b=ai5U1DzH4k/suRMh6PXPV0xTwNUNt8EwHk2MuL4864l44XP5ZemlNoC0WD8yd/82A3P4vQH4vz1O/4+kJddXFTGznuT1xlUoK70Uj6RpmuyJNGIp7aehGOec+kSYPxh3mKoD0xCaVq5rie6cKwNKLyAGuR8tbOPwEQJxMPJPo64=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773960564; c=relaxed/simple;
-	bh=cU9S1wPluPsvcsW29m06rAD9NxCaqm66VkCfi2RGSV8=;
-	h=Date:To:From:Subject:Message-Id; b=NxCtuTvaKifVaSV0WCexC09wmtNRcicRTpLRFaP25eRF+ftCQf108M8j9nlkij6cRRrXd9Pbp/mfh9ORPbUyv6OZ0UeUrLB+vnNIkLw2RMHnmqyx/2e90I4MDhvdGs8exGgeUbO8ao9DQsC6kFarddO2RCYNZWHsyfuxxfF3r1s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=njn9Sovg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773960566; c=relaxed/simple;
+	bh=0k7p/vgQXHevoN9MtjJEjkAVta1ivxDkr+8hWMdZKeY=;
+	h=Date:To:From:Subject:Message-Id; b=mMowvKCp6+GAcyblVoWXWhhYY66uD641et11F1XhTKEstnhkLPv/20tLRdAjRU/zk14PCv4gobX6sBcc3xk305Ao/bNfUmmr9sQarb4FCnfkEW/uBRZXN5nODe+kirnGLc/efafD+gImKcr2p7CreN/HtuabAl0h9i92dPG/DHs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EazXXvk5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="njn9Sovg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E63FC19424;
-	Thu, 19 Mar 2026 22:49:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EazXXvk5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A6D6C19424;
+	Thu, 19 Mar 2026 22:49:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773960564;
-	bh=cU9S1wPluPsvcsW29m06rAD9NxCaqm66VkCfi2RGSV8=;
+	s=korg; t=1773960566;
+	bh=0k7p/vgQXHevoN9MtjJEjkAVta1ivxDkr+8hWMdZKeY=;
 	h=Date:To:From:Subject:From;
-	b=njn9Sovge22A5s3jmiSXTGq9Z0TJsBY9k1KNjdooD+nDZvCTK610t9MWypeG4dTxo
-	 7cBPQsOFCnLjt4WAX+VcDBId4JocWe1wL0nmo9uiJ6RG/qgjO+h/5We5I4J5qjvRSr
-	 MzA0tnF2C6ccRxum7aWJBJ3duppUvCp3KZB1y1ZE=
-Date: Thu, 19 Mar 2026 15:49:23 -0700
+	b=EazXXvk5aUM1yy8IcsqGcBMxNiwa5N6yf2LPx98bqGLWMFxkr260BADf+BHGRvJ5i
+	 z00Az86HJlds9RHITG4bPv+9zwG17i1GvlJ2LQkeg7XV0ORx2AATGaLXc+gY7PcWXY
+	 wGrB+CiEu5QRljwt9r2RyMZDatqcm8OISy4dUXjQ=
+Date: Thu, 19 Mar 2026 15:49:25 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jianghaoran@kylinos.cn,duanchenghao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path.patch added to mm-new branch
-Message-Id: <20260319224924.1E63FC19424@smtp.kernel.org>
+Subject: + mm-memfd_luo-remove-unnecessary-memset-in-zero-size-memfd-path.patch added to mm-new branch
+Message-Id: <20260319224926.2A6D6C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memfd_luo: optimize shmem_recalc_inode calls in retrieve path
+     Subject: mm/memfd_luo: remove unnecessary memset in zero-size memfd path
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path.patch
+     mm-memfd_luo-remove-unnecessary-memset-in-zero-size-memfd-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-remove-unnecessary-memset-in-zero-size-memfd-path.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,29 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Chenghao Duan <duanchenghao@kylinos.cn>
-Subject: mm/memfd_luo: optimize shmem_recalc_inode calls in retrieve path
-Date: Thu, 19 Mar 2026 09:28:43 +0800
+Subject: mm/memfd_luo: remove unnecessary memset in zero-size memfd path
+Date: Thu, 19 Mar 2026 09:28:44 +0800
 
-Patch series "Modify memfd_luo code".
+The memset(kho_vmalloc, 0, sizeof(*kho_vmalloc)) call in the zero-size
+file handling path is unnecessary because the allocation of the ser
+structure already uses the __GFP_ZERO flag, ensuring the memory is already
+zero-initialized.
 
-I found several modifiable points while reading the code.
-
-
-This patch (of 3):
-
-Move shmem_recalc_inode() out of the loop in memfd_luo_retrieve_folios()
-to improve performance when restoring large memfds.
-
-Currently, shmem_recalc_inode() is called for each folio during restore,
-which is O(n) expensive operations.  This patch collects the number of
-successfully added folios and calls shmem_recalc_inode() once after the
-loop completes, reducing complexity to O(1).
-
-Additionally, fix the error path to also call shmem_recalc_inode() for the
-folios that were successfully added before the error occurred.
-
-Link: https://lkml.kernel.org/r/20260319012845.29570-1-duanchenghao@kylinos.cn
-Link: https://lkml.kernel.org/r/20260319012845.29570-2-duanchenghao@kylinos.cn
+Link: https://lkml.kernel.org/r/20260319012845.29570-3-duanchenghao@kylinos.cn
 Signed-off-by: Chenghao Duan <duanchenghao@kylinos.cn>
 Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Haoran Jiang <jianghaoran@kylinos.cn>
@@ -101,45 +87,18 @@ Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd_luo.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/memfd_luo.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/memfd_luo.c~mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path
+--- a/mm/memfd_luo.c~mm-memfd_luo-remove-unnecessary-memset-in-zero-size-memfd-path
 +++ a/mm/memfd_luo.c
-@@ -412,6 +412,7 @@ static int memfd_luo_retrieve_folios(str
- 	struct folio *folio;
- 	int err = -EIO;
- 	long i;
-+	u64 nr_added = 0;
- 
- 	for (i = 0; i < nr_folios; i++) {
- 		const struct memfd_luo_folio_ser *pfolio = &folios_ser[i];
-@@ -463,12 +464,15 @@ static int memfd_luo_retrieve_folios(str
- 			goto unlock_folio;
- 		}
- 
--		shmem_recalc_inode(inode, 1, 0);
-+		nr_added++;
- 		folio_add_lru(folio);
- 		folio_unlock(folio);
- 		folio_put(folio);
+@@ -105,7 +105,6 @@ static int memfd_luo_preserve_folios(str
+ 	if (!size) {
+ 		*nr_foliosp = 0;
+ 		*out_folios_ser = NULL;
+-		memset(kho_vmalloc, 0, sizeof(*kho_vmalloc));
+ 		return 0;
  	}
- 
-+	if (nr_added)
-+		shmem_recalc_inode(inode, nr_added, 0);
-+
- 	return 0;
- 
- unlock_folio:
-@@ -487,6 +491,9 @@ put_folios:
- 			folio_put(folio);
- 	}
- 
-+	if (nr_added)
-+		shmem_recalc_inode(inode, nr_added, 0);
-+
- 	return err;
- }
  
 _
 
