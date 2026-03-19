@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83F624A07
-	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:16:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2874A266576
+	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:17:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773958619; cv=none; b=F4PanvDf931REIdUCgc54GDP+AJNYhDxRCAvXEffSRO83LYteXxjkTTw+iZuVRtGUHuBb3Mfw5ZdPnfRl0erDF30X20Dgw5DhNrByujPgvwJciclYYq1tdlvji2KurQfykXE5ZbZ2OUcS2FThm/woMuEtMEmcx+2uijAmPpkYFw=
+	t=1773958622; cv=none; b=hboYyf7ViYZV/GjcH0zy2chi8yt2FiwwX8jN42IG+u+Z/4+ZDRrowA249YPuVrNaUToOph/WtnBuj8cZo+E5wJcxqmL6uj+r0oe4lx0W3Oo7+WRDXVCCZ6ND0kK2nrpwgxbIC2Bhr0Q2IWk3wur4SVj/Zm2ywGr/nd/3T3nq2mY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773958619; c=relaxed/simple;
-	bh=AEImAgE+B+r9ZLQUmdsgxXse+N19ONxaCDvZ/1x3u2Y=;
-	h=Date:To:From:Subject:Message-Id; b=c/49Zi+kJ58gwKh/K7ioh+Y42IDhQhHetldcb7WXNf00obPvLbK/1Nsr9cJ2431TO/NET8LumqlDjHRXEoXO9zyTqauHYn5cFco3TUZ76KoMf6byDkNiojDfMkmxMrUXsgRrukV16xuI49ov+y5HsqQGdGWv00+gLD95TXXzYaI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mwXwmpJa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773958622; c=relaxed/simple;
+	bh=gPD8pVAnB0LJq93J9eefSn5nPY0L2SjN/mvD4ajlHCQ=;
+	h=Date:To:From:Subject:Message-Id; b=VVcjG777CbwFcniKXtZsnoD1NMfggF8YNGDqIXWkZU5WDh3giiVZX8NoN6P6jm/qbEtdOXVUIjPEgcrcD1VQHS7lP/65+i/kSKs5SB6u3NwG7GjFuztssyTCV4hdprzesyrhv3/Os+po0/OOqQ9sh/f+10lW75W/qJxzmRjgDfo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lX8Mvntv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mwXwmpJa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10A4CC19424;
-	Thu, 19 Mar 2026 22:16:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lX8Mvntv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2660C19424;
+	Thu, 19 Mar 2026 22:17:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773958619;
-	bh=AEImAgE+B+r9ZLQUmdsgxXse+N19ONxaCDvZ/1x3u2Y=;
+	s=korg; t=1773958621;
+	bh=gPD8pVAnB0LJq93J9eefSn5nPY0L2SjN/mvD4ajlHCQ=;
 	h=Date:To:From:Subject:From;
-	b=mwXwmpJaOc04womIclwn1v/lr2ZYhiZXZaHmYbtQdfGTeS2laXcLKkRq3UO1jfsy5
-	 aXDvc2XDmILfcTksC083IAMhuerY6Z4cR0PL1WnMyigfO3kq7WUqEmLe7U+oqpuRdC
-	 PQOR9sxTjnBIxm5uIJZS77plqvEA8BwJFHoe0CRk=
-Date: Thu, 19 Mar 2026 15:16:58 -0700
+	b=lX8MvntvoO7EhZh8vPhxU4Ptm7LB+o4pTgniO5Pm8KVXSz7iWSKbrA4KS8DpvXkNl
+	 JoHaYahAQnS25bE96pfUBrHQLb7CT1hjhrnM8EApqBoPur7qPZLmbKikgwy6xMOZx8
+	 3crV4MTtm9gNL7tihzsMfiUHnFEdby68CZyrgRqI=
+Date: Thu, 19 Mar 2026 15:17:01 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,lance.yang@linux.dev,kirill@shutemov.name,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-have-zap_huge_pmd-return-a-boolean-add-kdoc.patch added to mm-new branch
-Message-Id: <20260319221659.10A4CC19424@smtp.kernel.org>
+Subject: + mm-huge_memory-handle-buggy-pmd-entry-in-zap_huge_pmd.patch added to mm-new branch
+Message-Id: <20260319221701.B2660C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: have zap_huge_pmd return a boolean, add kdoc
+     Subject: mm/huge_memory: handle buggy PMD entry in zap_huge_pmd()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-have-zap_huge_pmd-return-a-boolean-add-kdoc.patch
+     mm-huge_memory-handle-buggy-pmd-entry-in-zap_huge_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-have-zap_huge_pmd-return-a-boolean-add-kdoc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-handle-buggy-pmd-entry-in-zap_huge_pmd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,20 +70,28 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm/huge_memory: have zap_huge_pmd return a boolean, add kdoc
-Date: Thu, 19 Mar 2026 13:00:09 +0000
+Subject: mm/huge_memory: handle buggy PMD entry in zap_huge_pmd()
+Date: Thu, 19 Mar 2026 13:00:10 +0000
 
-There's no need to use the ancient approach of returning an integer here,
-just return a boolean.
+A recent bug I analysed [0] managed to, through a bug in the userfaultfd
+implementation, reach an invalid point in the zap_huge_pmd() code where
+the PMD was none of:
 
-Also update flush_needed to be a boolean, similarly.
+- A non-DAX, PFN or mixed map.
+- The huge zero folio
+- A present PMD entry
+- A softleaf entry
 
-Also add a kdoc comment describing the function.
+The code at this point calls folio_test_anon() on a known-NULL folio. 
+Having logic like this explicitly NULL dereference in the code is hard to
+understand, and makes debugging potentially more difficult.
 
-Link: https://lkml.kernel.org/r/8bb854291383ff4713427e6d903d6d79435eb153.1773924928.git.ljs@kernel.org
+Add an else branch to handle this case and WARN().
+
+Link: https://lkml.kernel.org/r/1ec18767b106a1ee1ed6e33e332c3ad5531dc636.1773924928.git.ljs@kernel.org
+Link: https://lore.kernel.org/all/6b3d7ad7-49e1-407a-903d-3103704160d8@lucifer.local/ [1]
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand (ARM) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -92,6 +100,7 @@ Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nico Pache <npache@redhat.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
@@ -99,91 +108,22 @@ Cc: Kiryl Shutsemau <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    4 ++--
- mm/huge_memory.c        |   23 ++++++++++++++++-------
- 2 files changed, 18 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-have-zap_huge_pmd-return-a-boolean-add-kdoc
-+++ a/include/linux/huge_mm.h
-@@ -27,8 +27,8 @@ static inline void huge_pud_set_accessed
- vm_fault_t do_huge_pmd_wp_page(struct vm_fault *vmf);
- bool madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 			   pmd_t *pmd, unsigned long addr, unsigned long next);
--int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma, pmd_t *pmd,
--		 unsigned long addr);
-+bool zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma, pmd_t *pmd,
-+		  unsigned long addr);
- int zap_huge_pud(struct mmu_gather *tlb, struct vm_area_struct *vma, pud_t *pud,
- 		 unsigned long addr);
- bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
---- a/mm/huge_memory.c~mm-huge_memory-have-zap_huge_pmd-return-a-boolean-add-kdoc
+--- a/mm/huge_memory.c~mm-huge_memory-handle-buggy-pmd-entry-in-zap_huge_pmd
 +++ a/mm/huge_memory.c
-@@ -2325,11 +2325,20 @@ static inline void zap_deposited_table(s
- 	mm_dec_nr_ptes(mm);
- }
- 
--int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+/**
-+ * zap_huge_pmd - Zap a huge THP which is of PMD size.
-+ * @tlb: The MMU gather TLB state associated with the operation.
-+ * @vma: The VMA containing the range to zap.
-+ * @pmd: A pointer to the leaf PMD entry.
-+ * @addr: The virtual address for the range to zap.
-+ *
-+ * Returns: %true on success, %false otherwise.
-+ */
-+bool zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		 pmd_t *pmd, unsigned long addr)
- {
- 	struct folio *folio = NULL;
--	int flush_needed = 1;
-+	bool flush_needed = true;
- 	spinlock_t *ptl;
- 	pmd_t orig_pmd;
- 
-@@ -2337,7 +2346,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 
- 	ptl = __pmd_trans_huge_lock(pmd, vma);
- 	if (!ptl)
--		return 0;
-+		return false;
- 	/*
- 	 * For architectures like ppc64 we look at deposited pgtable
- 	 * when calling pmdp_huge_get_and_clear. So do the
-@@ -2352,13 +2361,13 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 		if (arch_needs_pgtable_deposit())
- 			zap_deposited_table(tlb->mm, pmd);
- 		spin_unlock(ptl);
--		return 1;
-+		return true;
- 	}
- 	if (is_huge_zero_pmd(orig_pmd)) {
- 		if (!vma_is_dax(vma) || arch_needs_pgtable_deposit())
- 			zap_deposited_table(tlb->mm, pmd);
- 		spin_unlock(ptl);
--		return 1;
-+		return true;
- 	}
- 
- 	if (pmd_present(orig_pmd)) {
-@@ -2372,7 +2381,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 		const softleaf_t entry = softleaf_from_pmd(orig_pmd);
- 
- 		folio = softleaf_to_folio(entry);
--		flush_needed = 0;
-+		flush_needed = false;
+@@ -2385,6 +2385,10 @@ bool zap_huge_pmd(struct mmu_gather *tlb
  
  		if (!thp_migration_supported())
  			WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
-@@ -2406,7 +2415,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 	if (flush_needed)
- 		tlb_remove_page_size(tlb, &folio->page, HPAGE_PMD_SIZE);
++	} else {
++		WARN_ON_ONCE(true);
++		spin_unlock(ptl);
++		return true;
+ 	}
  
--	return 1;
-+	return true;
- }
- 
- #ifndef pmd_move_must_withdraw
+ 	if (folio_test_anon(folio)) {
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
