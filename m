@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2F4B318EE6
-	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:17:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10893346FAD
+	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:17:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773958630; cv=none; b=Xq6cSD3iOLJlFWVLdsyBhTl8434orZO8TuPGaaG2iXUQFfNgbL0MHMEtWoC/vvXigQ1nAzWDcvaoioCJcHomNJVv04Ftxo7exEe22+fxdqkst+y7tDhYRzf8kpWT+BmRjkAELTlT7fWHTUXE3N//TqLb+0mHDD/sX0njidgSlyg=
+	t=1773958633; cv=none; b=JMJbveCg+0L5+o8pFtSSINS+GwfXm/Rw3J7YgZBdnXfl6fDxUaP3oTHiSmUh5Vwm8/Iabvna0xC26cyccZTdHrv2FNKH551uJ/Ctl41R8m+r64KhFPnzA1jA8Sh7MDfUEjYFQZLJyIvNIvLGK3PN30Sspt1Yvwv3Gl20V3uZbC0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773958630; c=relaxed/simple;
-	bh=9ahl8MLu04LcKE//p5ACDyYBO+fGW4N57puuD9CedbY=;
-	h=Date:To:From:Subject:Message-Id; b=t/WPv82s+5N0Yaf5f3T06XX0WthrD5FfwjU2YJdUuRoP+G+E3rfUVPhNvdssedkpOyGLigRbupG/VnrjGWKPMbNUX/YR+u4pTwF3kqpwuq2Hj8y/gkZlaFT35txgcJeaKfuOm5m0C4rx84FdYthiM7Rk1Tto5U+LbZvYtuwfijA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KurDy1f8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773958633; c=relaxed/simple;
+	bh=Uxix3ROQ8E/s5nGbnVHI5u9+pyXHRaMkS4AbbuW9BC0=;
+	h=Date:To:From:Subject:Message-Id; b=MumW+1cCswGMOIvuJegfYZliOb2dRConAmJ6azqCUvoELhge7Ic/Sbn78hZyInw5wFbFDc9fIpqeovoc454vECaFPGKDMuoKh0seynzXvnRluNkLKppX4ll62kxDe8Grw3Kxm1OH+AJR8lLlbewpCWELY9J/7Bs7iQpFcXPOM+k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q/iZG0Eb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KurDy1f8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 708EAC19424;
-	Thu, 19 Mar 2026 22:17:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q/iZG0Eb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0DFDC19424;
+	Thu, 19 Mar 2026 22:17:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773958630;
-	bh=9ahl8MLu04LcKE//p5ACDyYBO+fGW4N57puuD9CedbY=;
+	s=korg; t=1773958632;
+	bh=Uxix3ROQ8E/s5nGbnVHI5u9+pyXHRaMkS4AbbuW9BC0=;
 	h=Date:To:From:Subject:From;
-	b=KurDy1f8UWrG4HdNmTztJj0iO/S3A7tyZeneAsrN07pwSkS5BTPjTzqH9PYhv3Ls6
-	 LPrpVc6U6vjevTh4Bf0Qcxwu+C8dGRMptlO3MLL7Ep1gaGVVP+fu48YZRlltSScVzD
-	 GfUTm95kjYPf5jYNmgdSIXDtlcn2EZkgr5IDYSQk=
-Date: Thu, 19 Mar 2026 15:17:09 -0700
+	b=Q/iZG0EbCC3DvgtmywEbOsCYhzdHDiDs2lLEY4gZOCpJD+yBbNON1p8cWRVzUHlp2
+	 ewbNElbDeqh1b0YtM7Q/HNj4bpvM6xfeot19w1AHDVaeMXno+sdl8ylRFeNqa9oyJk
+	 BI0xvf+HOXaCr8A193C4MIUoor05OKM+uCkI9ldc=
+Date: Thu, 19 Mar 2026 15:17:12 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,lance.yang@linux.dev,kirill@shutemov.name,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-deduplicate-zap_huge_pmd-further-by-tracking-state.patch added to mm-new branch
-Message-Id: <20260319221710.708EAC19424@smtp.kernel.org>
+Subject: + mm-huge_memory-have-zap_huge_pmd-use-vm_normal_folio_pmd.patch added to mm-new branch
+Message-Id: <20260319221712.A0DFDC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: deduplicate zap_huge_pmd() further by tracking state
+     Subject: mm/huge_memory: have zap_huge_pmd() use vm_normal_folio_pmd()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-deduplicate-zap_huge_pmd-further-by-tracking-state.patch
+     mm-huge_memory-have-zap_huge_pmd-use-vm_normal_folio_pmd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-deduplicate-zap_huge_pmd-further-by-tracking-state.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-have-zap_huge_pmd-use-vm_normal_folio_pmd.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,24 +70,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm/huge_memory: deduplicate zap_huge_pmd() further by tracking state
-Date: Thu, 19 Mar 2026 13:00:14 +0000
+Subject: mm/huge_memory: have zap_huge_pmd() use vm_normal_folio_pmd()
+Date: Thu, 19 Mar 2026 13:00:15 +0000
 
-The flush_needed boolean is really tracking whether a PMD entry is
-present, so use it that way directly and rename it to is_present.
+Rather than having special handling for the 'special huge' and huge zero
+pages, have vm_normal_folio_pmd() figure this out for us, and use the
+presence of a folio to determine whether to exit early.
 
-Deduplicate the folio_remove_rmap_pmd() and folio map count warning
-between present and device private by tracking where we need to remove the
-rmap.
+We can therefore delete code, move the 'present or not' logic up and make
+things clearer this way.
 
-We can also remove the comment about using flush_needed to track whether a
-PMD entry is present as it's now irrelevant.
-
-Link: https://lkml.kernel.org/r/440f68edcb597c28918d89b0be279d498561c89a.1773924928.git.ljs@kernel.org
+Link: https://lkml.kernel.org/r/d2bfe24c36ab1cc28f3dd6bea2835fd895c1ae4e.1773924928.git.ljs@kernel.org
+Suggested-by: David Hildenbrand (ARM) <david@kernel.org>
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand (ARM) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -105,84 +102,60 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/huge_memory.c |   28 +++++++++++++---------------
  1 file changed, 13 insertions(+), 15 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-deduplicate-zap_huge_pmd-further-by-tracking-state
+--- a/mm/huge_memory.c~mm-huge_memory-have-zap_huge_pmd-use-vm_normal_folio_pmd
 +++ a/mm/huge_memory.c
-@@ -2337,9 +2337,10 @@ static inline void zap_deposited_table(s
- bool zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+@@ -2338,9 +2338,9 @@ bool zap_huge_pmd(struct mmu_gather *tlb
  		 pmd_t *pmd, unsigned long addr)
  {
-+	bool needs_remove_rmap = false;
- 	struct folio *folio = NULL;
+ 	bool needs_remove_rmap = false;
+-	struct folio *folio = NULL;
  	bool needs_deposit = false;
--	bool flush_needed = false;
-+	bool is_present = false;
+ 	bool is_present = false;
++	struct folio *folio;
  	spinlock_t *ptl;
  	pmd_t orig_pmd;
  
-@@ -2356,6 +2357,7 @@ bool zap_huge_pmd(struct mmu_gather *tlb
- 	 */
- 	orig_pmd = pmdp_huge_get_and_clear_full(vma, addr, pmd,
- 						tlb->fullmm);
-+
+@@ -2360,28 +2360,26 @@ bool zap_huge_pmd(struct mmu_gather *tlb
+ 
  	arch_check_zapped_pmd(vma, orig_pmd);
  	tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
- 	if (vma_is_special_huge(vma))
-@@ -2365,17 +2367,15 @@ bool zap_huge_pmd(struct mmu_gather *tlb
- 		goto out;
- 	}
+-	if (vma_is_special_huge(vma))
+-		goto out;
+-	if (is_huge_zero_pmd(orig_pmd)) {
+-		needs_deposit = !vma_is_dax(vma);
+-		goto out;
+-	}
  
--	if (pmd_present(orig_pmd)) {
-+	is_present = pmd_present(orig_pmd);
-+	if (is_present) {
- 		folio = pmd_folio(orig_pmd);
--
--		flush_needed = true;
--		folio_remove_rmap_pmd(folio, &folio->page, vma);
--		WARN_ON_ONCE(folio_mapcount(folio) < 0);
-+		needs_remove_rmap = true;
+-	is_present = pmd_present(orig_pmd);
+-	if (is_present) {
+-		folio = pmd_folio(orig_pmd);
+-		needs_remove_rmap = true;
++	if (pmd_present(orig_pmd)) {
++		folio = vm_normal_folio_pmd(vma, addr, orig_pmd);
++		if (folio) {
++			needs_remove_rmap = true;
++			is_present = true;
++		} else if (is_huge_zero_pmd(orig_pmd)) {
++			needs_deposit = !vma_is_dax(vma);
++		}
  	} else if (pmd_is_valid_softleaf(orig_pmd)) {
- 		const softleaf_t entry = softleaf_from_pmd(orig_pmd);
- 
- 		folio = softleaf_to_folio(entry);
+-		const softleaf_t entry = softleaf_from_pmd(orig_pmd);
 -
-+		needs_remove_rmap = folio_is_device_private(folio);
+-		folio = softleaf_to_folio(entry);
++		folio = softleaf_to_folio(softleaf_from_pmd(orig_pmd));
+ 		needs_remove_rmap = folio_is_device_private(folio);
  		if (!thp_migration_supported())
  			WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
  	} else {
-@@ -2390,27 +2390,25 @@ bool zap_huge_pmd(struct mmu_gather *tlb
- 		add_mm_counter(tlb->mm, mm_counter_file(folio),
- 			       -HPAGE_PMD_NR);
- 
--		/*
--		 * Use flush_needed to indicate whether the PMD entry
--		 * is present, instead of checking pmd_present() again.
--		 */
--		if (flush_needed && pmd_young(orig_pmd) &&
-+		if (is_present && pmd_young(orig_pmd) &&
- 		    likely(vma_has_recency(vma)))
- 			folio_mark_accessed(folio);
+ 		WARN_ON_ONCE(true);
+-		goto out;
++		folio = NULL;
  	}
++	if (!folio)
++		goto out;
  
--	if (folio_is_device_private(folio)) {
-+	if (needs_remove_rmap) {
- 		folio_remove_rmap_pmd(folio, &folio->page, vma);
- 		WARN_ON_ONCE(folio_mapcount(folio) < 0);
--		folio_put(folio);
- 	}
- 
- out:
- 	if (arch_needs_pgtable_deposit() || needs_deposit)
- 		zap_deposited_table(tlb->mm, pmd);
- 
-+	if (needs_remove_rmap && !is_present)
-+		folio_put(folio);
-+
- 	spin_unlock(ptl);
--	if (flush_needed)
-+	if (is_present)
- 		tlb_remove_page_size(tlb, &folio->page, HPAGE_PMD_SIZE);
- 	return true;
- }
+ 	if (folio_test_anon(folio)) {
+ 		needs_deposit = true;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
