@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53288266576
-	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:17:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A6CD266576
+	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:17:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773958624; cv=none; b=K5hYrhr664+0ftouCLmJKeMFTYLwewE5wKHxsoooOZcdufHVem9NteZ5YAiGwf91gTyTc7d/hzO/lJXfm6FMRAkWkHV3H6tcz8HCUABm5RtoVQB3PXIriSgIMLsKhkjFWwawJYsR+rDJMu17OrW3a30Rff9h7SpSks5WlheHdd0=
+	t=1773958626; cv=none; b=k9qF6JVMo7B99ExbW8tYDz8M22KMqqGNx05cirizq0PMqGbcAif0h04+vk8a71DZ8vVisJoRmaY0HlQJ6j8sTtn838eIeXjuAiZQBnw0QiY5WcBpxtrehV604bHuRJk7TNmdkvECzSti00KnfAA3e9NVgQ5+J+WJwEj5PMgMae0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773958624; c=relaxed/simple;
-	bh=nLPJW/6DSo1V3x2SsE4zCwlmprbXiT99VJC2fqbJZ3s=;
-	h=Date:To:From:Subject:Message-Id; b=newm2APAzbhcS21YSloWbPhugCzoI599krMx+fSj2nx6CWQYul7lcqGyQghxt30I2nE5QLE7wJTw66HhRElrshj0lrqgGlfmqOq0UVd82AbLB0k1mALWxsLDjIR9rISKk1t+nEMZhgqx7xGtyjrmDXbecITG8KAxJ/kFzs958ZY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gMxOeB7n; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773958626; c=relaxed/simple;
+	bh=1djKiaoFnabnLPX4uY4yvcm8ncMT9NSQ+nBxE1S03RM=;
+	h=Date:To:From:Subject:Message-Id; b=VvbuyO+dshrzc2sz7mGbj5AbMmvYWbMd7zodbb06lm8BwnWjP+h9q3zxrluBdJB7NzKlNk06O8/YlRo6AVXX1gtemkALErQfhfuEwP5uHDb7OIbYEMZ6Coty2gAmHFS5cyrXPMCRv9jjwq0mVhLUWIQWFin/bQ9MhwiYqYIzv/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RsPHkZNd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gMxOeB7n"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E575EC19424;
-	Thu, 19 Mar 2026 22:17:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RsPHkZNd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F9C6C19424;
+	Thu, 19 Mar 2026 22:17:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773958624;
-	bh=nLPJW/6DSo1V3x2SsE4zCwlmprbXiT99VJC2fqbJZ3s=;
+	s=korg; t=1773958626;
+	bh=1djKiaoFnabnLPX4uY4yvcm8ncMT9NSQ+nBxE1S03RM=;
 	h=Date:To:From:Subject:From;
-	b=gMxOeB7nrcnHUHqdJ/cfU4jy2uIk95WsgLUHyMRfw9OYZ5omXCkU3RRsdnXx0CIpk
-	 D2nCuauKGd76S/6HuAzjlLtDPt5bUw5qY8lWl+0PAVFxvaFPbZJkh16u2ETGwpCumw
-	 fRWSZKyjExvNIBsVmxj7XrGN91nAdekKB/hTuJlg=
-Date: Thu, 19 Mar 2026 15:17:03 -0700
+	b=RsPHkZNdS7I+l5tLw+wSnVcdF9nAIDpgqmW8LessC8E+pLpHGTwnpaeVljuJAJ9mi
+	 bOMDhWMas2jMfXt2RkpQITIEFBOMxNpU/NR46wfLdvuTNigPY1TSvCKne/uMVOv/YZ
+	 2wtotLDnuURa+7eyE5w2+C4aUcvgTnVGXphpIGiU=
+Date: Thu, 19 Mar 2026 15:17:05 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,lance.yang@linux.dev,kirill@shutemov.name,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-add-a-common-exit-path-to-zap_huge_pmd.patch added to mm-new branch
-Message-Id: <20260319221703.E575EC19424@smtp.kernel.org>
+Subject: + mm-huge_memory-remove-unnecessary-vm_bug_on_page.patch added to mm-new branch
+Message-Id: <20260319221706.0F9C6C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: add a common exit path to zap_huge_pmd()
+     Subject: mm/huge_memory: remove unnecessary VM_BUG_ON_PAGE()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-add-a-common-exit-path-to-zap_huge_pmd.patch
+     mm-huge_memory-remove-unnecessary-vm_bug_on_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-a-common-exit-path-to-zap_huge_pmd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-remove-unnecessary-vm_bug_on_page.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,21 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm/huge_memory: add a common exit path to zap_huge_pmd()
-Date: Thu, 19 Mar 2026 13:00:11 +0000
+Subject: mm/huge_memory: remove unnecessary VM_BUG_ON_PAGE()
+Date: Thu, 19 Mar 2026 13:00:12 +0000
 
-Other than when we acquire the PTL, we always need to unlock the PTL, and
-optionally need to flush on exit.
+This has been around since the beginnings of the THP implementation.  I
+think we can safely assume that, if we have a THP folio, it will have a
+head page.
 
-The code is currently very duplicated in this respect, so default
-flush_needed to false, set it true in the case in which it's required,
-then share the same logic for all exit paths.
-
-This also makes flush_needed make more sense as a function-scope value (we
-don't need to flush for the PFN map/mixed map, zero huge, error cases for
-instance).
-
-Link: https://lkml.kernel.org/r/f5d3d47da1bc1607fc01604c0e803c3248d8a1fb.1773924928.git.ljs@kernel.org
+Link: https://lkml.kernel.org/r/3fcbddfbfd0408364fad4548be83455a59d17f79.1773924928.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -103,70 +96,18 @@ Cc: Kiryl Shutsemau <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-add-a-common-exit-path-to-zap_huge_pmd
+--- a/mm/huge_memory.c~mm-huge_memory-remove-unnecessary-vm_bug_on_page
 +++ a/mm/huge_memory.c
-@@ -2338,7 +2338,7 @@ bool zap_huge_pmd(struct mmu_gather *tlb
- 		 pmd_t *pmd, unsigned long addr)
- {
- 	struct folio *folio = NULL;
--	bool flush_needed = true;
-+	bool flush_needed = false;
- 	spinlock_t *ptl;
- 	pmd_t orig_pmd;
- 
-@@ -2360,19 +2360,18 @@ bool zap_huge_pmd(struct mmu_gather *tlb
- 	if (vma_is_special_huge(vma)) {
- 		if (arch_needs_pgtable_deposit())
- 			zap_deposited_table(tlb->mm, pmd);
--		spin_unlock(ptl);
--		return true;
-+		goto out;
- 	}
- 	if (is_huge_zero_pmd(orig_pmd)) {
- 		if (!vma_is_dax(vma) || arch_needs_pgtable_deposit())
- 			zap_deposited_table(tlb->mm, pmd);
--		spin_unlock(ptl);
--		return true;
-+		goto out;
- 	}
- 
- 	if (pmd_present(orig_pmd)) {
- 		struct page *page = pmd_page(orig_pmd);
- 
-+		flush_needed = true;
+@@ -2375,7 +2375,6 @@ bool zap_huge_pmd(struct mmu_gather *tlb
  		folio = page_folio(page);
  		folio_remove_rmap_pmd(folio, page, vma);
  		WARN_ON_ONCE(folio_mapcount(folio) < 0);
-@@ -2381,14 +2380,12 @@ bool zap_huge_pmd(struct mmu_gather *tlb
+-		VM_BUG_ON_PAGE(!PageHead(page), page);
+ 	} else if (pmd_is_valid_softleaf(orig_pmd)) {
  		const softleaf_t entry = softleaf_from_pmd(orig_pmd);
- 
- 		folio = softleaf_to_folio(entry);
--		flush_needed = false;
- 
- 		if (!thp_migration_supported())
- 			WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
- 	} else {
- 		WARN_ON_ONCE(true);
--		spin_unlock(ptl);
--		return true;
-+		goto out;
- 	}
- 
- 	if (folio_test_anon(folio)) {
-@@ -2415,10 +2412,10 @@ bool zap_huge_pmd(struct mmu_gather *tlb
- 		folio_put(folio);
- 	}
- 
-+out:
- 	spin_unlock(ptl);
- 	if (flush_needed)
- 		tlb_remove_page_size(tlb, &folio->page, HPAGE_PMD_SIZE);
--
- 	return true;
- }
  
 _
 
