@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C256237A48D
-	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:44:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A87DF3783D6
+	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:49:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773960297; cv=none; b=M34oPOzeFic2SUEEkZ+TjmsVZnfykdcHFAqVITg6b9yoLSx2onNvOCemd5/wPB9CtXJJTuBKXhki3ajV4gRTzVhbWcAxxbPFgDFERN9viQebkxKUSoq/8NpWTvhYiOdO+UkHukBvzN/fbeWO3tBtlbtoYYSqU/QjaUPt9/J7PIw=
+	t=1773960564; cv=none; b=po0yvaf72xBVQKXlAwvpNNf1LTt4gjdnkB4ladwkIp4OCc7fP/muS4nzMnHFL7ynosjiQvOasiraSgHgKJV1fdjkL7Gqa8PqbqDMB6vpeQG/5X5AAw20cgmuT3MBV+iueWFXS2wu35k5Yg040xBTo6pGqBWMQewSqvqmnQy1ulI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773960297; c=relaxed/simple;
-	bh=NlzP2fsjrWh6vHevW3EAiWMMFvR9ybvpi3Jsm5dEyd0=;
-	h=Date:To:From:Subject:Message-Id; b=HaIJHySR565b/dnVXQ9DFupKcJ+YVq/YJ4/USc+4nGBxmXycDCXdHFjk6723bV9nBPQBeEJRgUir2KFxc6BcIXJqLbGFNPjEjNU0R2FqUwuSUhuFtseznRrFsqMV99LAdSu6jdK9mPkMOUkWtUtGWZPDY6fznwVBj9Ft35U6gPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cFo4vo1D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773960564; c=relaxed/simple;
+	bh=cU9S1wPluPsvcsW29m06rAD9NxCaqm66VkCfi2RGSV8=;
+	h=Date:To:From:Subject:Message-Id; b=NxCtuTvaKifVaSV0WCexC09wmtNRcicRTpLRFaP25eRF+ftCQf108M8j9nlkij6cRRrXd9Pbp/mfh9ORPbUyv6OZ0UeUrLB+vnNIkLw2RMHnmqyx/2e90I4MDhvdGs8exGgeUbO8ao9DQsC6kFarddO2RCYNZWHsyfuxxfF3r1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=njn9Sovg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cFo4vo1D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 488D2C2BC9E;
-	Thu, 19 Mar 2026 22:44:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="njn9Sovg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E63FC19424;
+	Thu, 19 Mar 2026 22:49:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773960297;
-	bh=NlzP2fsjrWh6vHevW3EAiWMMFvR9ybvpi3Jsm5dEyd0=;
+	s=korg; t=1773960564;
+	bh=cU9S1wPluPsvcsW29m06rAD9NxCaqm66VkCfi2RGSV8=;
 	h=Date:To:From:Subject:From;
-	b=cFo4vo1Dgm0QaysYYq3zgH46iECMTFs6c8O32QNlpgoUquFpTn5I8DZTveqM2yAFa
-	 mVHr0QamDVFk7OcvRbtUvahSFqfUqICRiIbWiN0TMbqI5BqVn47JvzjJ08bx2a8wmB
-	 nM/8RpNko32OWo34AWs9PxNn1dcy2Vmo4ps7hpIY=
-Date: Thu, 19 Mar 2026 15:44:56 -0700
-To: mm-commits@vger.kernel.org,richardycc@google.com,minchan@kernel.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=njn9Sovge22A5s3jmiSXTGq9Z0TJsBY9k1KNjdooD+nDZvCTK610t9MWypeG4dTxo
+	 7cBPQsOFCnLjt4WAX+VcDBId4JocWe1wL0nmo9uiJ6RG/qgjO+h/5We5I4J5qjvRSr
+	 MzA0tnF2C6ccRxum7aWJBJ3duppUvCp3KZB1y1ZE=
+Date: Thu, 19 Mar 2026 15:49:23 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jianghaoran@kylinos.cn,duanchenghao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-do-not-slot_free-written-back-slots.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260319224457.488D2C2BC9E@smtp.kernel.org>
+Subject: + mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path.patch added to mm-new branch
+Message-Id: <20260319224924.1E63FC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: do not slot_free() written-back slots
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     zram-do-not-slot_free-written-back-slots.patch
+     Subject: mm/memfd_luo: optimize shmem_recalc_inode calls in retrieve path
+has been added to the -mm mm-new branch.  Its filename is
+     mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-slot_free-written-back-slots.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,106 +69,83 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: do not slot_free() written-back slots
-Date: Thu, 19 Mar 2026 12:44:56 +0900
+From: Chenghao Duan <duanchenghao@kylinos.cn>
+Subject: mm/memfd_luo: optimize shmem_recalc_inode calls in retrieve path
+Date: Thu, 19 Mar 2026 09:28:43 +0800
 
-slot_free() basically completely resets the slots by clearing all of its
-flags and attributes.  While zram_writeback_complete() restores some of
-flags back (those that are necessary for async read decompression) we
-still lose a lot of slot's metadata.  For example, slot's ac-time, or
-ZRAM_INCOMPRESSIBLE.
+Patch series "Modify memfd_luo code".
 
-Do not slot_free() on writeback, instead clear only those flags/attrs that
-we need to clear.
+I found several modifiable points while reading the code.
 
-Link: https://lkml.kernel.org/r/20260319034912.1894770-1-senozhatsky@chromium.org
-Fixes: d38fab605c667 ("zram: introduce compressed data writeback")
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Richard Chang <richardycc@google.com>
+
+This patch (of 3):
+
+Move shmem_recalc_inode() out of the loop in memfd_luo_retrieve_folios()
+to improve performance when restoring large memfds.
+
+Currently, shmem_recalc_inode() is called for each folio during restore,
+which is O(n) expensive operations.  This patch collects the number of
+successfully added folios and calls shmem_recalc_inode() once after the
+loop completes, reducing complexity to O(1).
+
+Additionally, fix the error path to also call shmem_recalc_inode() for the
+folios that were successfully added before the error occurred.
+
+Link: https://lkml.kernel.org/r/20260319012845.29570-1-duanchenghao@kylinos.cn
+Link: https://lkml.kernel.org/r/20260319012845.29570-2-duanchenghao@kylinos.cn
+Signed-off-by: Chenghao Duan <duanchenghao@kylinos.cn>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Haoran Jiang <jianghaoran@kylinos.cn>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   39 +++++++++++---------------------
- 1 file changed, 14 insertions(+), 25 deletions(-)
+ mm/memfd_luo.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-do-not-slot_free-written-back-slots
-+++ a/drivers/block/zram/zram_drv.c
-@@ -917,9 +917,8 @@ static void zram_account_writeback_submi
+--- a/mm/memfd_luo.c~mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path
++++ a/mm/memfd_luo.c
+@@ -412,6 +412,7 @@ static int memfd_luo_retrieve_folios(str
+ 	struct folio *folio;
+ 	int err = -EIO;
+ 	long i;
++	u64 nr_added = 0;
  
- static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
- {
--	u32 size, index = req->pps->index;
--	int err, prio;
--	bool huge;
-+	u32 index = req->pps->index;
-+	int err;
+ 	for (i = 0; i < nr_folios; i++) {
+ 		const struct memfd_luo_folio_ser *pfolio = &folios_ser[i];
+@@ -463,12 +464,15 @@ static int memfd_luo_retrieve_folios(str
+ 			goto unlock_folio;
+ 		}
  
- 	err = blk_status_to_errno(req->bio.bi_status);
- 	if (err) {
-@@ -946,28 +945,13 @@ static int zram_writeback_complete(struc
- 		goto out;
+-		shmem_recalc_inode(inode, 1, 0);
++		nr_added++;
+ 		folio_add_lru(folio);
+ 		folio_unlock(folio);
+ 		folio_put(folio);
  	}
  
--	if (zram->compressed_wb) {
--		/*
--		 * ZRAM_WB slots get freed, we need to preserve data required
--		 * for read decompression.
--		 */
--		size = get_slot_size(zram, index);
--		prio = get_slot_comp_priority(zram, index);
--		huge = test_slot_flag(zram, index, ZRAM_HUGE);
--	}
--
--	slot_free(zram, index);
--	set_slot_flag(zram, index, ZRAM_WB);
-+	clear_slot_flag(zram, index, ZRAM_IDLE);
-+	if (test_slot_flag(zram, index, ZRAM_HUGE))
-+		atomic64_dec(&zram->stats.huge_pages);
-+	atomic64_sub(get_slot_size(zram, index), &zram->stats.compr_data_size);
-+	zs_free(zram->mem_pool, get_slot_handle(zram, index));
- 	set_slot_handle(zram, index, req->blk_idx);
--
--	if (zram->compressed_wb) {
--		if (huge)
--			set_slot_flag(zram, index, ZRAM_HUGE);
--		set_slot_size(zram, index, size);
--		set_slot_comp_priority(zram, index, prio);
--	}
--
--	atomic64_inc(&zram->stats.pages_stored);
-+	set_slot_flag(zram, index, ZRAM_WB);
++	if (nr_added)
++		shmem_recalc_inode(inode, nr_added, 0);
++
+ 	return 0;
  
- out:
- 	slot_unlock(zram, index);
-@@ -2010,8 +1994,13 @@ static void slot_free(struct zram *zram,
- 	set_slot_comp_priority(zram, index, 0);
- 
- 	if (test_slot_flag(zram, index, ZRAM_HUGE)) {
-+		/*
-+		 * Writeback completion decrements ->huge_pages but keeps
-+		 * ZRAM_HUGE flag for deferred decompression path.
-+		 */
-+		if (!test_slot_flag(zram, index, ZRAM_WB))
-+			atomic64_dec(&zram->stats.huge_pages);
- 		clear_slot_flag(zram, index, ZRAM_HUGE);
--		atomic64_dec(&zram->stats.huge_pages);
+ unlock_folio:
+@@ -487,6 +491,9 @@ put_folios:
+ 			folio_put(folio);
  	}
  
- 	if (test_slot_flag(zram, index, ZRAM_WB)) {
++	if (nr_added)
++		shmem_recalc_inode(inode, nr_added, 0);
++
+ 	return err;
+ }
+ 
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from duanchenghao@kylinos.cn are
 
-zram-do-not-slot_free-written-back-slots.patch
-zram-do-not-permit-params-change-after-init.patch
-zram-do-not-autocorrect-bad-recompression-parameters.patch
-zram-drop-num_active_comps.patch
-zram-update-recompression-documentation.patch
-zram-remove-chained-recompression.patch
-zram-unify-and-harden-algo-priority-params-handling.patch
-zram-propagate-read_from_bdev_async-errors.patch
-zram-change-scan_slots-to-return-void.patch
+mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path.patch
+mm-memfd_luo-remove-unnecessary-memset-in-zero-size-memfd-path.patch
+mm-memfd_luo-use-i_size_write-to-set-inode-size-during-retrieve.patch
 
