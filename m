@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAD0236826B
-	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 19:27:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55A84387368
+	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 20:37:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773948465; cv=none; b=ZH368EDN6JyYE7kGE0Zm4z7ULOPE5imN4BWMn7TdLzRSwvFp53HJ5hzOpKLQt7zifnHLPRNuOW23WLKwb+vjZO0RfN6hPyTU41mHjc9629lkFqt9rNxhvuNaQhB/HVkcyuF+ZEwQO+vmt103/eifnF01jd1zC8hkm/LWE7tDw8M=
+	t=1773952634; cv=none; b=fhFiR/zGJCvHUQsjGQKnDzqQqyv9ShDiCT0PZatzcq7uPv8X8FCx9/uQDo2dGlTrcpAhp0KmgOd6Xzk9TkG58hW9vjtCQNXthAfp7C6OfYnF0gcUFhZ631vCgOcIAL52SHKjyCGJ6YwK6scBszhGYw0IUWGxdHtKueB/7QFY8Fw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773948465; c=relaxed/simple;
-	bh=Ph49yzIbp5PMs5/CSZdRa2euHGkG2MFR/9RAntDLhnA=;
-	h=Date:To:From:Subject:Message-Id; b=Y20RKwUHux/zwqS8UgKBbEGjHA+MK8SGl2dSMEYjTpF73Txrame9cLDsKv68yTa2KFGC7s5cju/5G581/T1yvZ2tP6ec4E6wpYbU5FKnzjniux+NG+MUJ5pyanttXMnyRS0l6W0Am62Uh12DIOCJkLGsfXCrP0s8TD+bX3/CgS0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EorsBsDx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773952634; c=relaxed/simple;
+	bh=hSJD/om78uUzDSDmlBqpObkVN1MmPMNXNblseJWJjEk=;
+	h=Date:To:From:Subject:Message-Id; b=Cr/LAzeGJs7upY/TU752C7NeJTO9d6ArWfZPttbjMx0MMltZbsvbhb0CPhDmpByDukTXtDIO8JEYkeEs8Rh8L2gteyAwppsc3p/ZVTfdPel3RYZhoTQ8d1Ike2Ah9+9ZVUd455GeBy8WvYkwrOC3YmwEuDnm+nkpD78EgzAEoC8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mZFSDUFH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EorsBsDx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6312DC19424;
-	Thu, 19 Mar 2026 19:27:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mZFSDUFH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D312BC19424;
+	Thu, 19 Mar 2026 20:37:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773948464;
-	bh=Ph49yzIbp5PMs5/CSZdRa2euHGkG2MFR/9RAntDLhnA=;
+	s=korg; t=1773952633;
+	bh=hSJD/om78uUzDSDmlBqpObkVN1MmPMNXNblseJWJjEk=;
 	h=Date:To:From:Subject:From;
-	b=EorsBsDxu5tfITTmQ966f31xVInznBvkOOgoQZee0Kxke2oI0gYxSbb8MvEPgdbqw
-	 EVHpfMRpb31cI6YDNkOrEbKLfsF7/837t3zdZt2zh2taz10rqy1OxwmyfNyA25t5GP
-	 7rTh6QomJNxXmK+8otDcskbutM7g3k4cZFbgS5u8=
-Date: Thu, 19 Mar 2026 12:27:43 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,hughd@google.com,dev.jain@arm.com,david@kernel.org,bas@dfinity.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,adam.bratschikaye@dfinity.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=mZFSDUFH6Rm7Aqlu0QUzQwwhQzCJg72k5eTtfK3Uqi5zjrRnWeIOewCOKOIF6AgQJ
+	 hedD8bgQPCqi5VZVPiApPs55W3Q8Ok7+tbbsCcHuQQ4b3Hy2wzZLo6U78sYIKIozti
+	 BihEpHb4NZLNbyCeh95f8ujbm7U/QBPxn5umYmmY=
+Date: Thu, 19 Mar 2026 13:37:13 -0700
+To: mm-commits@vger.kernel.org,brauner@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-folio_split-and-filemap_get_entry-race-test.patch added to mm-new branch
-Message-Id: <20260319192744.6312DC19424@smtp.kernel.org>
+Subject: + kernel-fork-validate-exit_signal-in-kernel_clone-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20260319203713.D312BC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add folio_split() and filemap_get_entry() race test
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-folio_split-and-filemap_get_entry-race-test.patch
+     Subject: kernel-fork-validate-exit_signal-in-kernel_clone-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kernel-fork-validate-exit_signal-in-kernel_clone-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-folio_split-and-filemap_get_entry-race-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-fork-validate-exit_signal-in-kernel_clone-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,366 +58,40 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: add folio_split() and filemap_get_entry() race test
-Date: Thu, 19 Mar 2026 15:04:08 -0400
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: kernel-fork-validate-exit_signal-in-kernel_clone-fix
+Date: Thu, 19 Mar 2026 18:16:49 +0100
 
-The added folio_split_race_test is a modified C port of the race condition
-test from [1].  The test creates shmem huge pages, where the main thread
-punches holes in the shmem to cause folio_split() in the kernel and a set
-of 16 threads reads the shmem to cause filemap_get_entry() in the kernel. 
-filemap_get_entry() reads the folio and xarray split by folio_split()
-locklessly.  The original test[2] is written in rust and uses memfd (shmem
-backed).  This C port uses shmem directly and use a single process.
+the comment above kernel_clone() should be updated
 
-Note: the initial rust to C conversion is done by Cursor.
-
-Link: https://lore.kernel.org/all/CAKNNEtw5_kZomhkugedKMPOG-sxs5Q5OLumWJdiWXv+C9Yct0w@mail.gmail.com/ [1]
-Link: https://github.com/dfinity/thp-madv-remove-test [2]
-Link: https://lkml.kernel.org/r/20260319190409.294523-1-ziy@nvidia.com
-Signed-off-by: Bas van Dijk <bas@dfinity.org>
-Signed-off-by: Adam Bratschi-Kaye <adam.bratschikaye@dfinity.org>
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Link: https://lkml.kernel.org/r/abwvgU17W8wuW2-J@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile                |    1 
- tools/testing/selftests/mm/folio_split_race_test.c |  292 +++++++++++
- tools/testing/selftests/mm/run_vmtests.sh          |    2 
- 3 files changed, 295 insertions(+)
+ kernel/fork.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/tools/testing/selftests/mm/folio_split_race_test.c a/tools/testing/selftests/mm/folio_split_race_test.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/mm/folio_split_race_test.c
-@@ -0,0 +1,292 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * The test creates shmem PMD huge pages, fills all pages with known patterns,
-+ * then continuously verifies non-punched pages with 16 threads. Meanwhile, the
-+ * main thread punches holes via MADV_REMOVE on the shmem.
-+ *
-+ * It tests the race condition between folio_split() and filemap_get_entry(),
-+ * where the hole punches on shmem lead to folio_split() and reading the shmem
-+ * lead to filemap_get_entry().
-+ */
-+
-+#define _GNU_SOURCE
-+#include <errno.h>
-+#include <linux/mman.h>
-+#include <pthread.h>
-+#include <stdatomic.h>
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/mman.h>
-+#include <signal.h>
-+#include <unistd.h>
-+#include "vm_util.h"
-+#include "kselftest.h"
-+#include "thp_settings.h"
-+
-+uint64_t page_size;
-+uint64_t pmd_pagesize;
-+#define NR_PMD_PAGE 5
-+#define FILE_SIZE (pmd_pagesize * NR_PMD_PAGE)
-+#define TOTAL_PAGES (FILE_SIZE / page_size)
-+
-+/* Every N-th to N+M-th pages are punched; not aligned with huge page boundaries. */
-+#define PUNCH_INTERVAL 50 /* N */
-+#define PUNCH_SIZE_FACTOR 3 /* M */
-+
-+#define NUM_READER_THREADS 16
-+#define FILL_BYTE 0xAF
-+#define NUM_ITERATIONS 100
-+
-+/* Shared control block: control reading threads and record stats */
-+struct shared_ctl {
-+	atomic_uint_fast32_t stop;
-+	atomic_size_t reader_failures;
-+	atomic_size_t reader_verified;
-+};
-+
-+static void fill_page(unsigned char *base, size_t page_idx)
-+{
-+	unsigned char *page_ptr = base + page_idx * page_size;
-+	uint64_t idx = (uint64_t)page_idx;
-+
-+	memset(page_ptr, FILL_BYTE, page_size);
-+	memcpy(page_ptr, &idx, sizeof(idx));
-+}
-+
-+/* Returns true if valid, false if corrupted. */
-+static bool check_page(unsigned char *base, size_t page_idx)
-+{
-+	unsigned char *page_ptr = base + page_idx * page_size;
-+	uint64_t expected_idx = (uint64_t)page_idx;
-+	uint64_t got_idx;
-+
-+	memcpy(&got_idx, page_ptr, 8);
-+
-+	if (got_idx != expected_idx) {
-+		size_t off;
-+		int all_zero = 1;
-+
-+		for (off = 0; off < page_size; off++) {
-+			if (page_ptr[off] != 0) {
-+				all_zero = 0;
-+				break;
-+			}
-+		}
-+		if (all_zero) {
-+			ksft_print_msg(
-+				"CORRUPTED: page %zu (huge page %zu) is ALL ZEROS\n",
-+				page_idx,
-+				(page_idx * page_size) / pmd_pagesize);
-+		} else {
-+			ksft_print_msg(
-+				"CORRUPTED: page %zu (huge page %zu): expected idx %zu, got %lu\n",
-+				page_idx, (page_idx * page_size) / pmd_pagesize,
-+				page_idx, (unsigned long)got_idx);
-+		}
-+		return false;
-+	}
-+	return true;
-+}
-+
-+struct reader_arg {
-+	unsigned char *base;
-+	struct shared_ctl *ctl;
-+	int tid;
-+	atomic_size_t *failures;
-+	atomic_size_t *verified;
-+};
-+
-+static void *reader_thread(void *arg)
-+{
-+	struct reader_arg *ra = (struct reader_arg *)arg;
-+	unsigned char *base = ra->base;
-+	struct shared_ctl *ctl = ra->ctl;
-+	int tid = ra->tid;
-+	atomic_size_t *failures = ra->failures;
-+	atomic_size_t *verified = ra->verified;
-+	size_t page_idx;
-+
-+	while (atomic_load_explicit(&ctl->stop, memory_order_acquire) == 0) {
-+		for (page_idx = (size_t)tid; page_idx < TOTAL_PAGES;
-+		     page_idx += NUM_READER_THREADS) {
-+			/*
-+			 * page_idx % PUNCH_INTERVAL is in [0, PUNCH_INTERVAL),
-+			 * skip [0, PUNCH_SIZE_FACTOR)
-+			 */
-+			if (page_idx % PUNCH_INTERVAL < PUNCH_SIZE_FACTOR)
-+				continue;
-+			if (check_page(base, page_idx))
-+				atomic_fetch_add_explicit(verified, 1,
-+							  memory_order_relaxed);
-+			else
-+				atomic_fetch_add_explicit(failures, 1,
-+							  memory_order_relaxed);
-+		}
-+		if (atomic_load_explicit(failures, memory_order_relaxed) > 0)
-+			break;
-+	}
-+
-+	return NULL;
-+}
-+
-+static void create_readers(pthread_t *threads, struct reader_arg *args,
-+			   unsigned char *base, struct shared_ctl *ctl)
-+{
-+	int i;
-+
-+	for (i = 0; i < NUM_READER_THREADS; i++) {
-+		args[i].base = base;
-+		args[i].ctl = ctl;
-+		args[i].tid = i;
-+		args[i].failures = &ctl->reader_failures;
-+		args[i].verified = &ctl->reader_verified;
-+		if (pthread_create(&threads[i], NULL, reader_thread,
-+				   &args[i]) != 0)
-+			ksft_exit_fail_msg("pthread_create failed\n");
-+	}
-+}
-+
-+/* Run a single iteration. Returns total number of corrupted pages. */
-+static size_t run_iteration(void)
-+{
-+	size_t reader_failures, reader_verified;
-+	struct reader_arg args[NUM_READER_THREADS];
-+	pthread_t threads[NUM_READER_THREADS];
-+	unsigned char *mmap_base;
-+	struct shared_ctl ctl;
-+	size_t i;
-+
-+	memset(&ctl, 0, sizeof(struct shared_ctl));
-+
-+	mmap_base = mmap(NULL, FILE_SIZE, PROT_READ | PROT_WRITE,
-+			 MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-+
-+	if (mmap_base == MAP_FAILED)
-+		ksft_exit_fail_msg("mmap failed: %d\n", errno);
-+
-+	if (madvise(mmap_base, FILE_SIZE, MADV_HUGEPAGE) != 0)
-+		ksft_exit_fail_msg("madvise(MADV_HUGEPAGE) failed: %d\n",
-+				   errno);
-+
-+	for (i = 0; i < TOTAL_PAGES; i++)
-+		fill_page(mmap_base, i);
-+
-+	if (!check_huge_shmem(mmap_base, NR_PMD_PAGE, pmd_pagesize))
-+		ksft_exit_fail_msg("No shmem THP is allocated\n");
-+
-+	create_readers(threads, args, mmap_base, &ctl);
-+
-+	for (i = 0; i < TOTAL_PAGES; i++) {
-+		if (i % PUNCH_INTERVAL != 0)
-+			continue;
-+		if (madvise(mmap_base + i * page_size,
-+			    PUNCH_SIZE_FACTOR * page_size, MADV_REMOVE) != 0) {
-+			ksft_exit_fail_msg(
-+				"madvise(MADV_REMOVE) failed on page %zu: %d\n",
-+				i, errno);
-+		}
-+
-+		i += PUNCH_SIZE_FACTOR;
-+	}
-+
-+	atomic_store_explicit(&ctl.stop, 1, memory_order_release);
-+
-+	for (i = 0; i < NUM_READER_THREADS; i++)
-+		pthread_join(threads[i], NULL);
-+
-+	reader_failures = atomic_load_explicit(&ctl.reader_failures,
-+					       memory_order_acquire);
-+	reader_verified = atomic_load_explicit(&ctl.reader_verified,
-+					       memory_order_acquire);
-+	if (reader_failures)
-+		ksft_print_msg("Child: %zu pages verified, %zu failures\n",
-+			       reader_verified, reader_failures);
-+
-+	munmap(mmap_base, FILE_SIZE);
-+
-+	return reader_failures;
-+}
-+
-+static void thp_cleanup_handler(int signum)
-+{
-+	thp_restore_settings();
-+	/*
-+	 * Restore default handler and re-raise the signal to exit.
-+	 * This is to ensure the test process exits with the correct
-+	 * status code corresponding to the signal.
-+	 */
-+	signal(signum, SIG_DFL);
-+	raise(signum);
-+}
-+
-+static void thp_settings_cleanup(void)
-+{
-+	thp_restore_settings();
-+}
-+
-+int main(void)
-+{
-+	struct thp_settings current_settings;
-+	bool failed = false;
-+	size_t failures;
-+	size_t iter;
-+
-+	ksft_print_header();
-+
-+	if (!thp_is_enabled())
-+		ksft_exit_skip("Transparent Hugepages not available\n");
-+
-+	if (geteuid() != 0)
-+		ksft_exit_skip("Please run the test as root\n");
-+
-+	thp_save_settings();
-+	/* make sure thp settings are restored */
-+	if (atexit(thp_settings_cleanup) != 0)
-+		ksft_exit_fail_msg("atexit failed\n");
-+
-+	signal(SIGINT, thp_cleanup_handler);
-+	signal(SIGTERM, thp_cleanup_handler);
-+
-+	thp_read_settings(&current_settings);
-+	current_settings.shmem_enabled = SHMEM_ADVISE;
-+	thp_write_settings(&current_settings);
-+
-+	ksft_set_plan(1);
-+
-+	page_size = getpagesize();
-+	pmd_pagesize = read_pmd_pagesize();
-+
-+	ksft_print_msg("folio split race test\n");
-+	ksft_print_msg("===================================================\n");
-+	ksft_print_msg("Shmem size:       %zu MiB\n", FILE_SIZE / 1024 / 1024);
-+	ksft_print_msg("Total pages:     %zu\n", TOTAL_PAGES);
-+	ksft_print_msg("Child readers:   %d\n", NUM_READER_THREADS);
-+	ksft_print_msg("Punching every %dth to %dth page\n", PUNCH_INTERVAL,
-+		       PUNCH_INTERVAL + PUNCH_SIZE_FACTOR);
-+	ksft_print_msg("Iterations:      %d\n", NUM_ITERATIONS);
-+
-+	for (iter = 1; iter <= NUM_ITERATIONS; iter++) {
-+		failures = run_iteration();
-+		if (failures > 0) {
-+			failed = true;
-+			ksft_print_msg(
-+				"FAILED on iteration %zu: %zu pages corrupted by MADV_REMOVE!\n",
-+				iter, failures);
-+			break;
-+		}
-+	}
-+
-+	if (failed) {
-+		ksft_test_result_fail("Test failed\n");
-+		ksft_exit_fail();
-+	} else {
-+		ksft_test_result_pass("All %d iterations passed\n",
-+				      NUM_ITERATIONS);
-+		ksft_exit_pass();
-+	}
-+
-+	return 0;
-+}
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-folio_split-and-filemap_get_entry-race-test
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -105,6 +105,7 @@ TEST_GEN_FILES += droppable
- TEST_GEN_FILES += guard-regions
- TEST_GEN_FILES += merge
- TEST_GEN_FILES += rmap
-+TEST_GEN_FILES += folio_split_race_test
- 
- ifneq ($(ARCH),arm64)
- TEST_GEN_FILES += soft-dirty
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-add-folio_split-and-filemap_get_entry-race-test
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -553,6 +553,8 @@ if [ -n "${MOUNTED_XFS}" ]; then
-     rm -f ${XFS_IMG}
- fi
- 
-+CATEGORY="thp" run_test ./folio_split_race_test
-+
- CATEGORY="migration" run_test ./migration
- 
- CATEGORY="mkdirty" run_test ./mkdirty
+--- a/kernel/fork.c~kernel-fork-validate-exit_signal-in-kernel_clone-fix
++++ a/kernel/fork.c
+@@ -2615,8 +2615,6 @@ struct task_struct *create_io_thread(int
+  *
+  * It copies the process, and if successful kick-starts
+  * it and waits for it to finish using the VM if required.
+- *
+- * args->exit_signal is expected to be checked for sanity by the caller.
+  */
+ pid_t kernel_clone(struct kernel_clone_args *args)
+ {
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-selftests-mm-add-folio_split-and-filemap_get_entry-race-test.patch
+exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent.patch
+complete_signal-kill-always-true-core_state-signal_group_exit-check.patch
+pid-make-sub-init-creation-retryable.patch
+pid-document-the-pidns_adding-checks-in-alloc_pid-and-copy_process.patch
+kernel-fork-validate-exit_signal-in-kernel_clone-fix.patch
+do_notify_parent-sanitize-the-valid_signal-checks.patch
 
