@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F37C3A9DA1
-	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:34:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C256237A48D
+	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:44:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773959674; cv=none; b=DOjGimQDTwHtW/QDjZ1CFuDhcV3mhB5hS0xv98VKDycSs7KiISiNKjQfzoTrQxuE4HjHIPhrZRGfhlF4SNIId85idSs7akcrzpEoraU5K7ZV3RU0W3OIhZ+SYqD5AtV6kNtu5Sfg8UQN5pqfndC7CO3yDz2zD+UJzo705mf8+hw=
+	t=1773960297; cv=none; b=M34oPOzeFic2SUEEkZ+TjmsVZnfykdcHFAqVITg6b9yoLSx2onNvOCemd5/wPB9CtXJJTuBKXhki3ajV4gRTzVhbWcAxxbPFgDFERN9viQebkxKUSoq/8NpWTvhYiOdO+UkHukBvzN/fbeWO3tBtlbtoYYSqU/QjaUPt9/J7PIw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773959674; c=relaxed/simple;
-	bh=puK43d0eiS+BH/8TnOrMengbNiH09Hfi6X6ewyf/kOo=;
-	h=Date:To:From:Subject:Message-Id; b=TWnxBp8O6dDIBj2NCuW8Q8KAMJE6cRR+916gMiP6paAvZCdvpAVhDTjQ3NFuLQE2ASStXM09Q6Bsyi+BDHK58kLNguL7IwP4jve3V26od0lXykrMDx6cI1ZQIK6/hny96vqr63zIEVTC5jeoRTfBPXZSokswOpJE+9sAcblYvrs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QT1Ytwdj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773960297; c=relaxed/simple;
+	bh=NlzP2fsjrWh6vHevW3EAiWMMFvR9ybvpi3Jsm5dEyd0=;
+	h=Date:To:From:Subject:Message-Id; b=HaIJHySR565b/dnVXQ9DFupKcJ+YVq/YJ4/USc+4nGBxmXycDCXdHFjk6723bV9nBPQBeEJRgUir2KFxc6BcIXJqLbGFNPjEjNU0R2FqUwuSUhuFtseznRrFsqMV99LAdSu6jdK9mPkMOUkWtUtGWZPDY6fznwVBj9Ft35U6gPU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cFo4vo1D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QT1Ytwdj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08410C19424;
-	Thu, 19 Mar 2026 22:34:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cFo4vo1D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 488D2C2BC9E;
+	Thu, 19 Mar 2026 22:44:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773959674;
-	bh=puK43d0eiS+BH/8TnOrMengbNiH09Hfi6X6ewyf/kOo=;
+	s=korg; t=1773960297;
+	bh=NlzP2fsjrWh6vHevW3EAiWMMFvR9ybvpi3Jsm5dEyd0=;
 	h=Date:To:From:Subject:From;
-	b=QT1YtwdjoBJsTIjy2PgvONjHGxNdonF9Iv/x2AXzIICs5n/jC34iLLiNzdNEaiAZw
-	 82t/74gqnUh4um6FXqT3bFQdUZcw0CGw7zKHDhTL0s3Kf4nfeAHpRn/Pd/tfZRCukS
-	 06eTlAFcq9DeT0AXM06iMEQKqIFLSx7syBMxmZjo=
-Date: Thu, 19 Mar 2026 15:34:33 -0700
-To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,zhuhui@kylinos.cn,akpm@linux-foundation.org
+	b=cFo4vo1Dgm0QaysYYq3zgH46iECMTFs6c8O32QNlpgoUquFpTn5I8DZTveqM2yAFa
+	 mVHr0QamDVFk7OcvRbtUvahSFqfUqICRiIbWiN0TMbqI5BqVn47JvzjJ08bx2a8wmB
+	 nM/8RpNko32OWo34AWs9PxNn1dcy2Vmo4ps7hpIY=
+Date: Thu, 19 Mar 2026 15:44:56 -0700
+To: mm-commits@vger.kernel.org,richardycc@google.com,minchan@kernel.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zsmalloc-return-ebusy-for-zspage-migration-lock-contention.patch added to mm-new branch
-Message-Id: <20260319223434.08410C19424@smtp.kernel.org>
+Subject: + zram-do-not-slot_free-written-back-slots.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260319224457.488D2C2BC9E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zsmalloc: return -EBUSY for zspage migration lock contention
-has been added to the -mm mm-new branch.  Its filename is
-     zsmalloc-return-ebusy-for-zspage-migration-lock-contention.patch
+     Subject: zram: do not slot_free() written-back slots
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     zram-do-not-slot_free-written-back-slots.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zsmalloc-return-ebusy-for-zspage-migration-lock-contention.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-slot_free-written-back-slots.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,68 +58,106 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: teawater <zhuhui@kylinos.cn>
-Subject: zsmalloc: return -EBUSY for zspage migration lock contention
-Date: Thu, 19 Mar 2026 14:59:24 +0800
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: do not slot_free() written-back slots
+Date: Thu, 19 Mar 2026 12:44:56 +0900
 
-movable_operations::migrate_page() should return an appropriate error code
-for temporary migration failures so the migration core can handle them
-correctly.
+slot_free() basically completely resets the slots by clearing all of its
+flags and attributes.  While zram_writeback_complete() restores some of
+flags back (those that are necessary for async read decompression) we
+still lose a lot of slot's metadata.  For example, slot's ac-time, or
+ZRAM_INCOMPRESSIBLE.
 
-zs_page_migrate() currently returns -EINVAL when zspage_write_trylock()
-fails.  That path reflects transient lock contention, not invalid input,
-so -EINVAL is clearly wrong.
+Do not slot_free() on writeback, instead clear only those flags/attrs that
+we need to clear.
 
-However, -EAGAIN is also inappropriate here: the zspage's reader-lock
-owner may hold the lock for an unbounded duration due to slow
-decompression or reader-lock owner preemption.  Since migration retries
-are bounded by NR_MAX_MIGRATE_PAGES_RETRY and performed with virtually no
-delay between attempts, there is no guarantee the lock will be released in
-time for a retry to succeed.  -EAGAIN implies "try again soon", which does
-not hold in this case.
-
-Return -EBUSY instead, which more accurately conveys that the resource is
-occupied and migration cannot proceed at this time.
-
-Link: https://lkml.kernel.org/r/20260319065924.69337-1-hui.zhu@linux.dev
-Acked-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Signed-off-by: teawater <zhuhui@kylinos.cn>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: https://lkml.kernel.org/r/20260319034912.1894770-1-senozhatsky@chromium.org
+Fixes: d38fab605c667 ("zram: introduce compressed data writeback")
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Richard Chang <richardycc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |   39 +++++++++++---------------------
+ 1 file changed, 14 insertions(+), 25 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-return-ebusy-for-zspage-migration-lock-contention
-+++ a/mm/zsmalloc.c
-@@ -1727,7 +1727,19 @@ static int zs_page_migrate(struct page *
- 	if (!zspage_write_trylock(zspage)) {
- 		spin_unlock(&class->lock);
- 		write_unlock(&pool->lock);
--		return -EINVAL;
-+		/*
-+		 * Return -EBUSY but not -EAGAIN: the zspage's reader-lock
-+		 * owner may hold the lock for an unbounded duration due to a
-+		 * slow decompression or reader-lock owner preemption.
-+		 * Since migration retries are bounded by
-+		 * NR_MAX_MIGRATE_PAGES_RETRY and performed with virtually no
-+		 * delay between attempts, there is no guarantee the lock will
-+		 * be released in time for a retry to succeed.
-+		 * -EAGAIN implies "try again soon", which does not hold here.
-+		 * -EBUSY more accurately conveys "resource is occupied,
-+		 * migration cannot proceed".
-+		 */
-+		return -EBUSY;
+--- a/drivers/block/zram/zram_drv.c~zram-do-not-slot_free-written-back-slots
++++ a/drivers/block/zram/zram_drv.c
+@@ -917,9 +917,8 @@ static void zram_account_writeback_submi
+ 
+ static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
+ {
+-	u32 size, index = req->pps->index;
+-	int err, prio;
+-	bool huge;
++	u32 index = req->pps->index;
++	int err;
+ 
+ 	err = blk_status_to_errno(req->bio.bi_status);
+ 	if (err) {
+@@ -946,28 +945,13 @@ static int zram_writeback_complete(struc
+ 		goto out;
  	}
  
- 	/* We're committed, tell the world that this is a Zsmalloc page. */
+-	if (zram->compressed_wb) {
+-		/*
+-		 * ZRAM_WB slots get freed, we need to preserve data required
+-		 * for read decompression.
+-		 */
+-		size = get_slot_size(zram, index);
+-		prio = get_slot_comp_priority(zram, index);
+-		huge = test_slot_flag(zram, index, ZRAM_HUGE);
+-	}
+-
+-	slot_free(zram, index);
+-	set_slot_flag(zram, index, ZRAM_WB);
++	clear_slot_flag(zram, index, ZRAM_IDLE);
++	if (test_slot_flag(zram, index, ZRAM_HUGE))
++		atomic64_dec(&zram->stats.huge_pages);
++	atomic64_sub(get_slot_size(zram, index), &zram->stats.compr_data_size);
++	zs_free(zram->mem_pool, get_slot_handle(zram, index));
+ 	set_slot_handle(zram, index, req->blk_idx);
+-
+-	if (zram->compressed_wb) {
+-		if (huge)
+-			set_slot_flag(zram, index, ZRAM_HUGE);
+-		set_slot_size(zram, index, size);
+-		set_slot_comp_priority(zram, index, prio);
+-	}
+-
+-	atomic64_inc(&zram->stats.pages_stored);
++	set_slot_flag(zram, index, ZRAM_WB);
+ 
+ out:
+ 	slot_unlock(zram, index);
+@@ -2010,8 +1994,13 @@ static void slot_free(struct zram *zram,
+ 	set_slot_comp_priority(zram, index, 0);
+ 
+ 	if (test_slot_flag(zram, index, ZRAM_HUGE)) {
++		/*
++		 * Writeback completion decrements ->huge_pages but keeps
++		 * ZRAM_HUGE flag for deferred decompression path.
++		 */
++		if (!test_slot_flag(zram, index, ZRAM_WB))
++			atomic64_dec(&zram->stats.huge_pages);
+ 		clear_slot_flag(zram, index, ZRAM_HUGE);
+-		atomic64_dec(&zram->stats.huge_pages);
+ 	}
+ 
+ 	if (test_slot_flag(zram, index, ZRAM_WB)) {
 _
 
-Patches currently in -mm which might be from zhuhui@kylinos.cn are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation.patch
-mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation-v4.patch
-mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation-v5.patch
-zsmalloc-return-ebusy-for-zspage-migration-lock-contention.patch
+zram-do-not-slot_free-written-back-slots.patch
+zram-do-not-permit-params-change-after-init.patch
+zram-do-not-autocorrect-bad-recompression-parameters.patch
+zram-drop-num_active_comps.patch
+zram-update-recompression-documentation.patch
+zram-remove-chained-recompression.patch
+zram-unify-and-harden-algo-priority-params-handling.patch
+zram-propagate-read_from_bdev_async-errors.patch
+zram-change-scan_slots-to-return-void.patch
 
