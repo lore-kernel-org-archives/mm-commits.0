@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94FD233C1AD;
-	Fri, 20 Mar 2026 19:18:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1488E1DE4E0
+	for <mm-commits@vger.kernel.org>; Fri, 20 Mar 2026 19:22:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774034310; cv=none; b=m6Il32Ubs+HCYCLeGShcvxOg1COEzU0AZBeXIveJ3e8W4PzvB1d6ubsa8ubcYauBi0mbb8KCzPbKRHhYWnQ8cTT1apblhp30n5z5IyLgtl+Oelga2PzFLAuR7e53K2f7rOpTMfjGCFp4uFUEv8c453wQcbwQhiACZOH3Y6E3x1g=
+	t=1774034548; cv=none; b=gkX+nMIzANWfNRw8RDmsjMSmdTMYT9uqE7PIhrA1/X1/vv50KHyDDWiy9ccmjOWEDx7U2K5Hx1B/MzGQqJXY1iBP8Sgl9LFdteZbEbnJWRXhvP2mZ0Qc4U29z4Z+mMI0O3ZOp9eU9n7sY6IxxBjFYlA/k6WNOcaBg+wNRq8xMXY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774034310; c=relaxed/simple;
-	bh=FXAUvl2mgFDs1DUh0JZrB5wp+9dH7cNGL8fPZrohgNA=;
-	h=Date:To:From:Subject:Message-Id; b=awS5NUK5apnkllrgCoTyoY8WW+5LKj4jF78G1u+9NMuD1fP/9Nl1Ft5E+mbv3kZCsQPxfeGQfKWsk266Mca0GgVyFNHFMNw5CzgFlEKuoYVI/sitPdw18ix/Herd8l/xBAlxcCnpneXung9hh7TiafuxLySZMbZgdmiDZ1q94Rs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m4uYofSg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774034548; c=relaxed/simple;
+	bh=d4Q/8e5gjWy276asN58xqNUEIT8om756i9gh1PHMWK8=;
+	h=Date:To:From:Subject:Message-Id; b=o1uryh4i0mUD6yHG+yTf2bfVT3MGYiO0AZtqWQPQ8YJzmZmu6YeuHU3OLseQovKlDeAZlcD7wNFFcZlFpk/KP1yI29yjU0jg9Viq5oE74w8vt2LMTX+SwtG2RknVEF8vA9gaJ7zhg+LGbbvnlub7bgYB+ji/dUTFWjcXcLlNDZA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NoX5pqT0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m4uYofSg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 319D4C4CEF7;
-	Fri, 20 Mar 2026 19:18:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NoX5pqT0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FA7CC19425;
+	Fri, 20 Mar 2026 19:22:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774034310;
-	bh=FXAUvl2mgFDs1DUh0JZrB5wp+9dH7cNGL8fPZrohgNA=;
+	s=korg; t=1774034547;
+	bh=d4Q/8e5gjWy276asN58xqNUEIT8om756i9gh1PHMWK8=;
 	h=Date:To:From:Subject:From;
-	b=m4uYofSg8rI54V6QAqIzlIiNOPss9HnrPQPV6+xjsW/3Wre+E1BDqLimVZkPLSfdL
-	 vJ4I+2ArV3N4B0szpOTLNxso1tyQZMiDTnn0bm+dB2+1ZSCIJT8AuVzbv1q96Z88ci
-	 jbO+CriYjT9zjnEH2Cf0CM2C00hANZ6ssjbf7THY=
-Date: Fri, 20 Mar 2026 12:18:29 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,alex@ghiti.fr,akpm@linux-foundation.org
+	b=NoX5pqT0eY90AumNi9AJllCvgnlDIpOgfCHVxFgb2zYzAAoTsJuXDIAmbdYUkPfv+
+	 cDXBVgoEKktiKbeTWmdWz9dqANsZgNEdRK+Aga0YO2eunTGvCXy0Ey8WfY9xkgPDQM
+	 raokThz1OD6DAmpnCzR4771nfysj8VNzK2xUqMaQ=
+Date: Fri, 20 Mar 2026 12:22:27 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-fix-swap-cache-memcg-accounting.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260320191830.319D4C4CEF7@smtp.kernel.org>
+Subject: + mm-damon-core-avoid-use-of-half-online-committed-context-fix.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260320192227.9FA7CC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swap: fix swap cache memcg accounting
+     Subject: mm/damon/core: let kdamond_call() with cancel regardless of maybe_corrupted
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-swap-fix-swap-cache-memcg-accounting.patch
+     mm-damon-core-avoid-use-of-half-online-committed-context-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-fix-swap-cache-memcg-accounting.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-avoid-use-of-half-online-committed-context-fix.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,66 +58,82 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Alexandre Ghiti <alex@ghiti.fr>
-Subject: mm/swap: fix swap cache memcg accounting
-Date: Fri, 20 Mar 2026 06:05:59 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: let kdamond_call() with cancel regardless of maybe_corrupted
+Date: Thu, 19 Mar 2026 20:09:27 -0700
 
-The swap readahead path was recently refactored and while doing this, the
-order between the charging of the folio in the memcg and the addition of
-the folio in the swap cache was inverted.
+Otherwise, damon_call() callers could indefinitely wait [1].
 
-Since the accounting of the folio is done while adding the folio to the
-swap cache and the folio is not charged in the memcg yet, the accounting
-is then done at the node level, which is wrong.
-
-Fix this by charging the folio in the memcg before adding it to the swap cache.
-
-Link: https://lkml.kernel.org/r/20260320050601.1833108-1-alex@ghiti.fr
-Fixes: 2732acda82c9 ("mm, swap: use swap cache as the swap in synchronize layer")
-Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
-Acked-by: Kairui Song <kasong@tencent.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260320031553.2479-1-sj@kernel.org
+Link: https://sashiko.dev/#/patchset/20260319145218.86197-1-sj%40kernel.org [1]
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/damon/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swap_state.c~mm-swap-fix-swap-cache-memcg-accounting
-+++ a/mm/swap_state.c
-@@ -494,6 +494,10 @@ static struct folio *__swap_cache_prepar
- 
- 	__folio_set_locked(folio);
- 	__folio_set_swapbacked(folio);
-+
-+	if (!charged && mem_cgroup_swapin_charge_folio(folio, NULL, gfp, entry))
-+		goto failed;
-+
- 	for (;;) {
- 		ret = swap_cache_add_folio(folio, entry, &shadow);
- 		if (!ret)
-@@ -514,11 +518,6 @@ static struct folio *__swap_cache_prepar
- 			goto failed;
+--- a/mm/damon/core.c~mm-damon-core-avoid-use-of-half-online-committed-context-fix
++++ a/mm/damon/core.c
+@@ -2680,7 +2680,7 @@ static void kdamond_call(struct damon_ct
+ 			complete(&control->completion);
+ 		else if (control->canceled && control->dealloc_on_cancel)
+ 			kfree(control);
+-		if (ctx->maybe_corrupted)
++		if (!cancel && ctx->maybe_corrupted)
+ 			break;
  	}
  
--	if (!charged && mem_cgroup_swapin_charge_folio(folio, NULL, gfp, entry)) {
--		swap_cache_del_folio(folio);
--		goto failed;
--	}
--
- 	memcg1_swapin(entry, folio_nr_pages(folio));
- 	if (shadow)
- 		workingset_refault(folio, shadow);
 _
 
-Patches currently in -mm which might be from alex@ghiti.fr are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-swap-fix-swap-cache-memcg-accounting.patch
+mm-damon-stat-monitor-all-system-ram-resources.patch
+mm-damon-core-avoid-use-of-half-online-committed-context.patch
+mm-damon-core-avoid-use-of-half-online-committed-context-fix.patch
+mm-damon-core-set-quota-score-histogram-with-core-filters.patch
+mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
+mm-damon-core-split-regions-for-min_nr_regions.patch
+mm-damon-vaddr-do-not-split-regions-for-min_nr_regions.patch
+mm-damon-test-core-kunit-add-damon_apply_min_nr_regions-test.patch
+mm-damon-add-config_damon_debug_sanity.patch
+mm-damon-core-add-damon_new_region-debug_sanity-check.patch
+mm-damon-core-add-damon_del_region-debug_sanity-check.patch
+mm-damon-core-add-damon_nr_regions-debug_sanity-check.patch
+mm-damon-core-add-damon_merge_two_regions-debug_sanity-check.patch
+mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
+mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
+mm-damon-core-add-damon_reset_aggregated-debug_sanity-check.patch
+mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
+selftests-damon-config-enable-damon_debug_sanity.patch
+mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
+docs-mm-damon-design-document-the-power-of-two-limitation-for-addr_unit.patch
+mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
+mm-damon-core-use-time_before-for-next_apply_sis.patch
+mm-damon-core-use-time_after_eq-in-kdamond_fn.patch
+mm-damon-core-use-mult_frac.patch
+mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
+mm-damon-core-clarify-damon_set_attrs-usages.patch
+mm-damon-document-non-zero-length-damon_region-assumption.patch
+docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
+docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
+docs-mm-damon-index-fix-typo-autoamted-automated.patch
+mm-damon-core-introduce-damos_quota_goal_tuner.patch
+mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
+mm-damon-core-introduce-damos_quota_goal_tuner_temporal.patch
+mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
+docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
+docs-admin-guide-mm-damon-usage-document-goal_tuner-sysfs-file.patch
+docs-abi-damon-update-for-goal_tuner.patch
+mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
+selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
+selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
+selftests-damon-sysfspy-test-goal_tuner-commit.patch
+mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
+mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
+mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram-fix.patch
+mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
+mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
+mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
+mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
 
