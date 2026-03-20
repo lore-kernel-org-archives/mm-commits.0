@@ -1,298 +1,116 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45AEF37B3F5
-	for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 22:58:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7C5419CCF5
+	for <mm-commits@vger.kernel.org>; Fri, 20 Mar 2026 02:33:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1773961132; cv=none; b=PAVo/axJrd+LktQ+A+wiC0Lx3JiSUuOoqHf9EdHy0qao4CkDjywCekOSX+DRTLyzCYFhR+1PUbPtgV5P8hrL1de/Mipqzhp7obZXkMDYgz3yvCs/IzlElBc1mltZvcEy30LJnfufghp+eZWh/64y3x4Sjlb5rb3t79ARNQsdiK8=
+	t=1773974031; cv=none; b=LQ8OxfSaurywkkeiNbxUaXFjcXQTMnGfGhfvQPkHTcIIUG+tD/rHmY8TYOB6ByDY6lecljOJHWls2BYR0tqB/rqTg5RLT4mchRy52lV2DyjPle8mKK3rITwRAhHqyMqY1aw+/qKWLZrWS9w5WrOQ+aE1+xGtiJIAVqaXbXBB4HI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1773961132; c=relaxed/simple;
-	bh=OTFft9VS5DDzxRKFmZ35OAvMdP2Wq12WwAB4ZwMNkkE=;
-	h=Date:To:From:Subject:Message-Id; b=BNvUh8JU+QRTDZReToi1QAye7wL7SpxIfJuvlr95bzRTgFnibj0IIHKMalRx2yNnXTkVXRYPhb8yWXTliXH/jP8Y+UcYlt/9q0zi3p8ex5Xoa24Hjn5Pi6FSEbRMf6WsbMVsVa6d/dpOfJAw36TWGbkKsInluoMikdkSCa07XIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GiHDxxaX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1773974031; c=relaxed/simple;
+	bh=al3fogu+8oML75BIthbC+aR+QGQGekkQZUuy6YrgCj4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=SQARYGMyCqMq8JnpFavPcx3y+Cb5t5Uis6/OcxjTdAuXanyUJGYjMiXlPNYRzeZ5RIlwSLEWUaSTVWe9tpCE4asH932txIV819hktK6CuHzU9DbPXGgVSeCwOLOiNPFeLydIl+6ax7z0nYkS31Mi8XyuP+8NSPAgur7smAIXkqs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=FH4u3kRw; arc=none smtp.client-ip=209.85.216.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GiHDxxaX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9B04C19424;
-	Thu, 19 Mar 2026 22:58:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1773961131;
-	bh=OTFft9VS5DDzxRKFmZ35OAvMdP2Wq12WwAB4ZwMNkkE=;
-	h=Date:To:From:Subject:From;
-	b=GiHDxxaXCSivfd2wNvnhZcY7Kx2a0XjGeTL+vSy2MhWkXdRLH34a2MHm39LSKt7kL
-	 PO/Q8IvBcJ78kwfHAKWwg0gm2u6IgF0JXHH4ME+Op1rgTVfyDUI+VdhTRXORcVwkBH
-	 g+5lVVeWJsslzLty/7UUoYEilqeQcVymG69nNOVs=
-Date: Thu, 19 Mar 2026 15:58:51 -0700
-To: mm-commits@vger.kernel.org,yuzhao@google.com,yuanchu@google.com,wjl.linux@gmail.com,weixugc@google.com,ryncsn@gmail.com,laoar.shao@gmail.com,bfguo@icloud.com,baohua@kernel.org,axelrasmussen@google.com,lenohou@gmail.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch added to mm-new branch
-Message-Id: <20260319225851.D9B04C19424@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="FH4u3kRw"
+Received: by mail-pj1-f47.google.com with SMTP id 98e67ed59e1d1-35a1cc6e478so1058386a91.0
+        for <mm-commits@vger.kernel.org>; Thu, 19 Mar 2026 19:33:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1773974029; x=1774578829; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=S+2jipR+ofpTCeJN6fflI6Waqwz0II2MU/wU4uYVEEM=;
+        b=FH4u3kRwqxOHFiFtaBRbkeDA58/CAVs9RIv44xyY2eOsfCTx8fvpdqXwsLhHH5GTM7
+         rwJMJhdsGnGYlSTCyxkUxkxL5BQwZVmaGlH/bJ55YJo7S37adOK+Xewcjj2dpMtfAHE+
+         roD1ojAjHaSadXc0lEqjs1e5Y+ggVmKS+1Yn4=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1773974029; x=1774578829;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=S+2jipR+ofpTCeJN6fflI6Waqwz0II2MU/wU4uYVEEM=;
+        b=QsmHFfZlnggsQ7zB2xi8CU7F/iGk8nouD3ZuWshq+EZ3OqyGj29sNjB2EYrYT1GvPb
+         +htwzb0oPiaCt0Lujc8Ev5+EsZfWP4lVPfdlCFvCngUZeQYbDCo9Zc8Dq35sP7kPEx28
+         ZC2LTktGPbFx7b0wjTMD7rs9TVgGrL5kxIDx+5rW/nCLTGfuNEubhi0kCXSUFSwIuwqN
+         29hnQoHdOL2DMyXZNV9g8YHclkVsZsaHwBEimQdTsFDgxFI+yRjWbI4yfhbsC2CATNnY
+         IDHvk7ZXYzd9PO6+lSdphq0DZ1CO67f7nHnEfx4coV5w5lkac6UUQVACBNn3kTqhSsRh
+         TiPA==
+X-Gm-Message-State: AOJu0Yxq6sI3aTl/nQGGshxvpBEBH3+f0nBL1qvfWswGdcH5oEMySNfz
+	Z8+N0XWZdHH0qVtoRiiuFrQ5cwdASFmKP/591t4+0vtPjkOO6VCu7VRgnADmLOTv7A==
+X-Gm-Gg: ATEYQzzaUCCVE/DS6FbRYmYP5yxkkhsdh+V36VkbMv4QmFULF98YJiUwo38oY16l+kr
+	STLaqp22Qi1aGBrDy1EaHMGC+DoqCKn2LpAkYe2RhotMC5BET/aaE0D6jAUbVKAI19nIbjIqhOd
+	ZGCWXSQRMsIKvcLyVgfn9krSLjcrMRbY9o79gXXGWu18SBEh6wJLhWnFLYrP7AVmnBkufX5Wphl
+	T22F3re+dJlPuqtsjvjFAl9SBhnmyGQVDqdHmb2ateAqNZ4SAvA/3L+v46pTUgOKyseKuQvde9H
+	3+YH1TMiVXmpHcsbCKr7dk9Bo+ClBRkne/4XXru1l+O3dGOuZ+zWZhuLF9nDg1641lu0pwXZs1L
+	VEEw6JndMKxz1lMSMv00Rr/VyHYc5hI9HDuzh8CiHf2twMsBkR7euyv5K1pUAekRP0vmV2coE3Y
+	HMMpjjGPdXQnXGSAI7GFb830Uai3wHrjIqikKz4sr9lnGDTg1AWOG18VGCLt0e3A==
+X-Received: by 2002:a17:90b:1d47:b0:35b:a656:a60f with SMTP id 98e67ed59e1d1-35bd2d146e7mr978123a91.28.1773974029203;
+        Thu, 19 Mar 2026 19:33:49 -0700 (PDT)
+Received: from google.com ([2a00:79e0:2031:6:65ca:c086:eef:123e])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-35bd40e4bfdsm436032a91.9.2026.03.19.19.33.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 19 Mar 2026 19:33:48 -0700 (PDT)
+Date: Fri, 20 Mar 2026 11:33:46 +0900
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org, richardycc@google.com, minchan@kernel.org, 
+	bgeffon@google.com, senozhatsky@chromium.org
+Subject: Re: + zram-do-not-slot_free-written-back-slots.patch added to
+ mm-hotfixes-unstable branch
+Message-ID: <abyxpYQNHD0sZLVd@google.com>
+References: <20260319224457.488D2C2BC9E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260319224457.488D2C2BC9E@smtp.kernel.org>
 
+On (26/03/19 15:44), Andrew Morton wrote:
+> The patch titled
+>      Subject: zram: do not slot_free() written-back slots
+> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+>      zram-do-not-slot_free-written-back-slots.patch
+> 
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-slot_free-written-back-slots.patch
+> 
+> This patch will later appear in the mm-hotfixes-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via various
+> branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there most days
+> 
+> ------------------------------------------------------
+> From: Sergey Senozhatsky <senozhatsky@chromium.org>
+> Subject: zram: do not slot_free() written-back slots
+> Date: Thu, 19 Mar 2026 12:44:56 +0900
+> 
+> slot_free() basically completely resets the slots by clearing all of its
+> flags and attributes.  While zram_writeback_complete() restores some of
+> flags back (those that are necessary for async read decompression) we
+> still lose a lot of slot's metadata.  For example, slot's ac-time, or
+> ZRAM_INCOMPRESSIBLE.
+> 
+> Do not slot_free() on writeback, instead clear only those flags/attrs that
+> we need to clear.
 
-The patch titled
-     Subject: mm/mglru: fix cgroup OOM during MGLRU state switching
-has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch
+Hello Andrew,
+I just sent a v2 with updated commit message [1]
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Leno Hou <lenohou@gmail.com>
-Subject: mm/mglru: fix cgroup OOM during MGLRU state switching
-Date: Thu, 19 Mar 2026 00:30:49 +0800
-
-When the Multi-Gen LRU (MGLRU) state is toggled dynamically, a race
-condition exists between the state switching and the memory reclaim path. 
-This can lead to unexpected cgroup OOM kills, even when plenty of
-reclaimable memory is available.
-
-Problem Description
-==================
-The issue arises from a "reclaim vacuum" during the transition.
-
-1. When disabling MGLRU, lru_gen_change_state() sets lrugen->enabled to
-   false before the pages are drained from MGLRU lists back to traditional
-   LRU lists.
-2. Concurrent reclaimers in shrink_lruvec() see lrugen->enabled as false
-   and skip the MGLRU path.
-3. However, these pages might not have reached the traditional LRU lists
-   yet, or the changes are not yet visible to all CPUs due to a lack
-   of synchronization.
-4. get_scan_count() subsequently finds traditional LRU lists empty,
-   concludes there is no reclaimable memory, and triggers an OOM kill.
-
-A similar race can occur during enablement, where the reclaimer sees the
-new state but the MGLRU lists haven't been populated via fill_evictable()
-yet.
-
-Solution
-========
-Introduce a 'switching' state (`lru_switch`) to bridge the transition.
-When transitioning, the system enters this intermediate state where
-the reclaimer is forced to attempt both MGLRU and traditional reclaim
-paths sequentially. This ensures that folios remain visible to at least
-one reclaim mechanism until the transition is fully materialized across
-all CPUs.
-
-Race & Mitigation
-================
-A race window exists between checking the 'draining' state and performing
-the actual list operations. For instance, a reclaimer might observe the
-draining state as false just before it changes, leading to a suboptimal
-reclaim path decision.
-
-However, this impact is effectively mitigated by the kernel's reclaim
-retry mechanism (e.g., in do_try_to_free_pages). If a reclaimer pass fails
-to find eligible folios due to a state transition race, subsequent retries
-in the loop will observe the updated state and correctly direct the scan
-to the appropriate LRU lists. This ensures the transient inconsistency
-does not escalate into a terminal OOM kill.
-
-This effectively reduce the race window that previously triggered OOMs
-under high memory pressure.
-
-This fix has been verified on v7.0.0-rc1; dynamic toggling of MGLRU
-functions correctly without triggering unexpected OOM kills.
-
-Link: https://lkml.kernel.org/r/20260319-b4-switch-mglru-v2-v5-1-8898491e5f17@gmail.com
-Signed-off-by: Leno Hou <lenohou@gmail.com>
-Acked-by: Yafang Shao <laoar.shao@gmail.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Jialing Wang <wjl.linux@gmail.com>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Kairui Song <ryncsn@gmail.com>
-Cc: Bingfang Guo <bfguo@icloud.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/mm_inline.h |   11 +++++++++++
- mm/rmap.c                 |    7 ++++++-
- mm/vmscan.c               |   33 ++++++++++++++++++++++++---------
- 3 files changed, 41 insertions(+), 10 deletions(-)
-
---- a/include/linux/mm_inline.h~mm-mglru-fix-cgroup-oom-during-mglru-state-switching
-+++ a/include/linux/mm_inline.h
-@@ -102,6 +102,12 @@ static __always_inline enum lru_list fol
- 
- #ifdef CONFIG_LRU_GEN
- 
-+static inline bool lru_gen_switching(void)
-+{
-+	DECLARE_STATIC_KEY_FALSE(lru_switch);
-+
-+	return static_branch_unlikely(&lru_switch);
-+}
- #ifdef CONFIG_LRU_GEN_ENABLED
- static inline bool lru_gen_enabled(void)
- {
-@@ -315,6 +321,11 @@ static inline bool lru_gen_enabled(void)
- {
- 	return false;
- }
-+
-+static inline bool lru_gen_switching(void)
-+{
-+	return false;
-+}
- 
- static inline bool lru_gen_in_fault(void)
- {
---- a/mm/rmap.c~mm-mglru-fix-cgroup-oom-during-mglru-state-switching
-+++ a/mm/rmap.c
-@@ -973,7 +973,12 @@ static bool folio_referenced_one(struct
- 			nr = folio_pte_batch(folio, pvmw.pte, pteval, max_nr);
- 		}
- 
--		if (lru_gen_enabled() && pvmw.pte) {
-+		/*
-+		 * When LRU is switching, we don’t know where the surrounding folios
-+		 * are. —they could be on active/inactive lists or on MGLRU. So the
-+		 * simplest approach is to disable this look-around optimization.
-+		 */
-+		if (lru_gen_enabled() && !lru_gen_switching() && pvmw.pte) {
- 			if (lru_gen_look_around(&pvmw, nr))
- 				referenced++;
- 		} else if (pvmw.pte) {
---- a/mm/vmscan.c~mm-mglru-fix-cgroup-oom-during-mglru-state-switching
-+++ a/mm/vmscan.c
-@@ -886,7 +886,7 @@ static enum folio_references folio_check
- 	if (referenced_ptes == -1)
- 		return FOLIOREF_KEEP;
- 
--	if (lru_gen_enabled()) {
-+	if (lru_gen_enabled() && !lru_gen_switching()) {
- 		if (!referenced_ptes)
- 			return FOLIOREF_RECLAIM;
- 
-@@ -2286,7 +2286,7 @@ static void prepare_scan_control(pg_data
- 	unsigned long file;
- 	struct lruvec *target_lruvec;
- 
--	if (lru_gen_enabled())
-+	if (lru_gen_enabled() && !lru_gen_switching())
- 		return;
- 
- 	target_lruvec = mem_cgroup_lruvec(sc->target_mem_cgroup, pgdat);
-@@ -2625,6 +2625,7 @@ static bool can_age_anon_pages(struct lr
- 
- #ifdef CONFIG_LRU_GEN
- 
-+DEFINE_STATIC_KEY_FALSE(lru_switch);
- #ifdef CONFIG_LRU_GEN_ENABLED
- DEFINE_STATIC_KEY_ARRAY_TRUE(lru_gen_caps, NR_LRU_GEN_CAPS);
- #define get_cap(cap)	static_branch_likely(&lru_gen_caps[cap])
-@@ -5318,6 +5319,8 @@ static void lru_gen_change_state(bool en
- 	if (enabled == lru_gen_enabled())
- 		goto unlock;
- 
-+	static_branch_enable_cpuslocked(&lru_switch);
-+
- 	if (enabled)
- 		static_branch_enable_cpuslocked(&lru_gen_caps[LRU_GEN_CORE]);
- 	else
-@@ -5348,6 +5351,9 @@ static void lru_gen_change_state(bool en
- 
- 		cond_resched();
- 	} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)));
-+
-+	static_branch_disable_cpuslocked(&lru_switch);
-+
- unlock:
- 	mutex_unlock(&state_mutex);
- 	put_online_mems();
-@@ -5920,9 +5926,12 @@ static void shrink_lruvec(struct lruvec
- 	bool proportional_reclaim;
- 	struct blk_plug plug;
- 
--	if (lru_gen_enabled() && !root_reclaim(sc)) {
-+	if ((lru_gen_enabled() || lru_gen_switching()) && !root_reclaim(sc)) {
- 		lru_gen_shrink_lruvec(lruvec, sc);
--		return;
-+
-+		if (!lru_gen_switching())
-+			return;
-+
- 	}
- 
- 	get_scan_count(lruvec, sc, nr);
-@@ -6182,10 +6191,13 @@ static void shrink_node(pg_data_t *pgdat
- 	struct lruvec *target_lruvec;
- 	bool reclaimable = false;
- 
--	if (lru_gen_enabled() && root_reclaim(sc)) {
-+	if ((lru_gen_enabled() || lru_gen_switching()) && root_reclaim(sc)) {
- 		memset(&sc->nr, 0, sizeof(sc->nr));
- 		lru_gen_shrink_node(pgdat, sc);
--		return;
-+
-+		if (!lru_gen_switching())
-+			return;
-+
- 	}
- 
- 	target_lruvec = mem_cgroup_lruvec(sc->target_mem_cgroup, pgdat);
-@@ -6455,7 +6467,7 @@ static void snapshot_refaults(struct mem
- 	struct lruvec *target_lruvec;
- 	unsigned long refaults;
- 
--	if (lru_gen_enabled())
-+	if (lru_gen_enabled() && !lru_gen_switching())
- 		return;
- 
- 	target_lruvec = mem_cgroup_lruvec(target_memcg, pgdat);
-@@ -6845,9 +6857,12 @@ static void kswapd_age_node(struct pglis
- 	struct mem_cgroup *memcg;
- 	struct lruvec *lruvec;
- 
--	if (lru_gen_enabled()) {
-+	if (lru_gen_enabled() || lru_gen_switching()) {
- 		lru_gen_age_node(pgdat, sc);
--		return;
-+
-+		if (!lru_gen_switching())
-+			return;
-+
- 	}
- 
- 	lruvec = mem_cgroup_lruvec(NULL, pgdat);
-_
-
-Patches currently in -mm which might be from lenohou@gmail.com are
-
-mm-mglru-fix-cgroup-oom-during-mglru-state-switching.patch
-
+[1] https://lore.kernel.org/linux-mm/20260320023143.2372879-1-senozhatsky@chromium.org
