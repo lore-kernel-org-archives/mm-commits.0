@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8EB3225417
-	for <mm-commits@vger.kernel.org>; Sat, 21 Mar 2026 01:21:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD79D1C5D44
+	for <mm-commits@vger.kernel.org>; Sat, 21 Mar 2026 01:21:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774056072; cv=none; b=GjoymksjoPvvIFW1gQTTRj7/IwKZDFiKasM00sRnI2oDEKoCA/fWqpkBP2nqMNha5fYB1bAN1uu1M+LlKMCCjmhkQ8nCzymGNCdujtaQh2AML6Gvk3nJP+rHIyoAImno5c5kh1tfV/surICrPNqALL9hWQ00nSpfuXncG1w1YJM=
+	t=1774056074; cv=none; b=NNuDJMtyZEDR897rVUxzqRjRmWksvCDQT1+IGrYHnpPnyNpKpZP6ggV47wRnT3AZYxNzlT8gos03d3NMmNvI5maWTVT6jjAGtJoPeWu20Z+TdjU+3P5avdM5bT83ZcG6glL9DdH/w8SyQtQYh/tFw7BJ/c/+x5DAnjEf8QOoERc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774056072; c=relaxed/simple;
-	bh=WxqN67UcacsroUgxL2xNqkjk9VjkKorqv6BhRT1Upg8=;
-	h=Date:To:From:Subject:Message-Id; b=RDNerQrtKdBclFtZ9NbuWGQ778xgxf3g59bFzhYz5CMDMI2G9Xb93KGzsVv6vMWMadVkhcPffTmvKklAphcpuEMVIjcIgne/+nkAJbHaa8iCq3+iqOfsqwZQ7K8c45nTULC2X+zRz8axQqD1nJb8sXJ4Aido04E8tNnoCfVfGjw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LkKhwrs2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774056074; c=relaxed/simple;
+	bh=kTYCXzPuHlYePlJqKvqBTQ5ace1V7Dd7pFREIMtWtUM=;
+	h=Date:To:From:Subject:Message-Id; b=scY2tgvN67YaTN5Fl9PsDV8c5JRgLbsW69EWdTuOX2lhhHItLSmX4ztkKfbL8YSwTkm4epQplb/D4zbR1ZEGj9rzAKItoNoPNC8njlJoHpP45r7X3IciWjVkx06grHuBgxMozujhvb2+tkjLbeIj9yZ5xjGU/Gwaaoup72UOVc8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ovmmTewf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LkKhwrs2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B02D3C4CEF7;
-	Sat, 21 Mar 2026 01:21:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ovmmTewf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2D02C4CEF7;
+	Sat, 21 Mar 2026 01:21:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774056072;
-	bh=WxqN67UcacsroUgxL2xNqkjk9VjkKorqv6BhRT1Upg8=;
+	s=korg; t=1774056074;
+	bh=kTYCXzPuHlYePlJqKvqBTQ5ace1V7Dd7pFREIMtWtUM=;
 	h=Date:To:From:Subject:From;
-	b=LkKhwrs216AyL4RmnAR+xYjXjcLXHVkbKAVRaoB4FgCG/lx7aMe1PU+WjtD3rF8Ju
-	 Hp/CM12Wy+RMTkfZamXmBVtJyqtEW8mThL39V+8JcbDySKOImzy3cn+VUVQWltzMIb
-	 pHE9wT9kkgseK6UKdFwKhT1NNGbIiKL3BK1Jtprc=
-Date: Fri, 20 Mar 2026 18:21:12 -0700
-To: mm-commits@vger.kernel.org,richard@nod.at,marscheng@google.com,jserv@ccns.ncku.edu.tw,hch@infradead.org,eleanor15x@gmail.com,chengzhihao1@huawei.com,visitorckw@gmail.com,akpm@linux-foundation.org
+	b=ovmmTewfDksQYrc6UFb+Vg2AgQ80o0U+rR7EyzPx5tvb/xt5C8fJtyzraANDmUsPZ
+	 ZAlJWoJgLBP56OABhLbXBMKaB7kcEd/SxfZGHGsr+ej8YcyCTBbLusLRhumL6sJizt
+	 Q6qq8tlNfi+p9CdwoxUmSjSjCwMIQbcdunASBXsM=
+Date: Fri, 20 Mar 2026 18:21:14 -0700
+To: mm-commits@vger.kernel.org,visitorckw@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final.patch added to mm-nonmm-unstable branch
-Message-Id: <20260321012112.B02D3C4CEF7@smtp.kernel.org>
+Subject: + lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20260321012114.A2D02C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/list_sort: Remove dummy cmp() calls to speed up merge_final()
+     Subject: lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final.patch
+     lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,72 +58,41 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kuan-Wei Chiu <visitorckw@gmail.com>
-Subject: lib/list_sort: Remove dummy cmp() calls to speed up merge_final()
-Date: Fri, 20 Mar 2026 18:09:38 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix
+Date: Fri Mar 20 06:19:29 PM PDT 2026
 
-Historically, list_sort() implemented a hack in merge_final():
-    if (unlikely(!++count))
-        cmp(priv, b, b);
+remove now-unused local
 
-This was introduced 16 years ago in commit 835cc0c8477f ("lib: more
-scalable list_sort()") so that callers could periodically invoke
-cond_resched() within their comparison functions when merging highly
-unbalanced lists.
-
-An audit of the kernel tree reveals that fs/ubifs/ was the sole user of
-this mechanism.  Recent discussions and inspections by Richard Weinberger
-confirm that UBIFS lists are strictly bounded in size (a few thousand
-elements at most), meaning it does not strictly rely on these dummy
-callbacks to prevent soft lockups.
-
-For the vast majority of list_sort() users (such as block layer IO
-schedulers and file systems), this hack results in completely wasted
-function calls.  In the worst-case scenario (merging an already sorted
-list where 'a' is exhausted quickly), it results in approximately
-(N/2)/256 unnecessary cmp() invocations.
-
-Remove the dummy cmp(priv, b, b) fallback from merge_final().  This saves
-unnecessary function calls, avoids branching overhead in the tight loop,
-and slightly speeds up the final merge step for all generic list_sort()
-users.
-
-Link: https://lkml.kernel.org/r/20260320180938.1827148-3-visitorckw@gmail.com
-Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
-Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mars Cheng <marscheng@google.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Yu-Chun Lin <eleanor15x@gmail.com>
-Cc: Zhihao Cheng <chengzhihao1@huawei.com>
+Cc: Kuan-Wei Chiu <visitorckw@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/list_sort.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ lib/list_sort.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/lib/list_sort.c~lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final
+--- a/lib/list_sort.c~lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix
 +++ a/lib/list_sort.c
-@@ -76,15 +76,6 @@ static void merge_final(void *priv, list
- 	/* Finish linking remainder of list b on to tail */
- 	tail->next = b;
- 	do {
--		/*
--		 * If the merge is highly unbalanced (e.g. the input is
--		 * already sorted), this loop may run many iterations.
--		 * Continue callbacks to the client even though no
--		 * element comparison is needed, so the client's cmp()
--		 * routine can invoke cond_resched() periodically.
--		 */
--		if (unlikely(!++count))
--			cmp(priv, b, b);
- 		b->prev = tail;
- 		tail = b;
- 		b = b->next;
+@@ -50,7 +50,6 @@ static void merge_final(void *priv, list
+ 			struct list_head *a, struct list_head *b)
+ {
+ 	struct list_head *tail = head;
+-	u8 count = 0;
+ 
+ 	for (;;) {
+ 		/* if equal, take 'a' -- important for sort stability */
 _
 
-Patches currently in -mm which might be from visitorckw@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ubifs-remove-unnecessary-cond_resched-from-list_sort-compare.patch
-lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final.patch
+maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
+maple_tree-add-cp_is_new_root-helper-fix-fix.patch
+mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix.patch
+mm-rename-zap_page_range_single-to-zap_vma_range-fix.patch
+mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix.patch
+mm-page_reporting-add-page_reporting_order_unspecified-fix.patch
+mm-rename-zone-lock-to-zone-_lock-fix.patch
+kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
+decode_stacktrace-decode-caller-address-checkpatch-fixes.patch
+lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix.patch
 
