@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF08F1A3165
-	for <mm-commits@vger.kernel.org>; Sat, 21 Mar 2026 02:27:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48DE3284693
+	for <mm-commits@vger.kernel.org>; Sat, 21 Mar 2026 02:58:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774060056; cv=none; b=cwjw3DI8saC7azxMUY3lM8G+C7rCjV1UFU5z5gN1TUNLwRkERUqjDZyAJU2Uqqiw34CCR69SLIsEHIw2CMYB4nngIiRvRD0TH4jWmPlyOfqaEsBWYAc2RBuBZTNEpbBXX4/Eaqk6F/Iv8+3TyCQ+uiyxxLBaopr8ZxeZ7WrLtYg=
+	t=1774061903; cv=none; b=DmXCpURy+qErGaG4nq31oLvdk1eeDQnjHxbD/i7h5A/2lnq4ALXe7m+sp7XHXywSnxHMcYi7I5tGb9ysXwtKitMxUJmKhkZBfAk29OHMIetaw3uYxCI7y6C06YxbX0zMwje+983Gty76oJxXKt19ReLQ3H95cm4CZGkmHopJE88=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774060056; c=relaxed/simple;
-	bh=RHYwRmcMpw7CoWreOZqh2YKjzwhewb9cKUtKWST49NU=;
-	h=Date:To:From:Subject:Message-Id; b=k9I5DcwyqksmNPGLlwPgl7UWzhfSYxS+3GMYXyTd9lL1qpFofG34JanBWkxMOyZL7wezOuwg29fzyf4v+7+NubHE2WaQrAMwcOXCqK/z6rKUYP5scXWjQfWMNzUWweyLjSWBLkb+p6pY99JEAswWD88ZMxsIMRgP4MVU0a1s1qI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hkk/KyX3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774061903; c=relaxed/simple;
+	bh=3X4rtgbcvRAwPoujYnVCUnYPo8cMakTYHb37kgExTRw=;
+	h=Date:To:From:Subject:Message-Id; b=gc8M/y83b4cg0FTUSgznAf2TTei9uI0j6YaE9PT2BzYqWeWX0Hlk6EgQuU+EtEPKJ26+D8utco3fg1bnXsUXJfSlhl+7NnUTlLPwZkRxn1UG4MlFI86K7ubqA3hy3YCpKSSkSEOp7ISUWondTfybvvYKqdzcXxooiZoggZbJ6h8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bwEcrOlV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hkk/KyX3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5767EC4CEF7;
-	Sat, 21 Mar 2026 02:27:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bwEcrOlV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E989DC4CEF7;
+	Sat, 21 Mar 2026 02:58:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774060056;
-	bh=RHYwRmcMpw7CoWreOZqh2YKjzwhewb9cKUtKWST49NU=;
+	s=korg; t=1774061903;
+	bh=3X4rtgbcvRAwPoujYnVCUnYPo8cMakTYHb37kgExTRw=;
 	h=Date:To:From:Subject:From;
-	b=Hkk/KyX34mUAbH/zSLH/juVIdK8ejZAmcDKDqP/xhIwnuv1ZIUz2vccq8n+GiEDhS
-	 yNTEvtnQfpDukS0P4erLhqz/ea6DR+40tMFN1CNNsD+ye35SBm9SUTwiDZKo6YsGFX
-	 Wc6SnDschxLNC3b3/A0hQkAvqA/4jOpDk/mVa2rI=
-Date: Fri, 20 Mar 2026 19:27:35 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=bwEcrOlVWW5dhD/cVrvh7eg8WtMNwOQMTUHd+8uTRR3eSWgnSj28QzeA1ha0/lAtW
+	 J2p6XuzRZ6aUIAdC3Ri7i1p8Y6LUPgA4LmRY9uCtB4MKcLfF/Nt47UKVsVJ4iYP8V+
+	 IfA8rpJxehP90SFQOr1YflwhZJyvsPi4jP4QeMT0=
+Date: Fri, 20 Mar 2026 19:58:22 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,lkp@intel.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,chris@chrisdown.name,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-add-mmap_action_simple_ioremap-fix.patch added to mm-unstable branch
-Message-Id: <20260321022736.5767EC4CEF7@smtp.kernel.org>
+Subject: + selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch added to mm-unstable branch
+Message-Id: <20260321025822.E989DC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-add-mmap_action_simple_ioremap-fix
+     Subject: selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-add-mmap_action_simple_ioremap-fix.patch
+     selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-add-mmap_action_simple_ioremap-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,33 +59,41 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-mmap_action_simple_ioremap-fix
-Date: Fri Mar 20 07:26:50 PM PDT 2026
+Subject: selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix
+Date: Fri Mar 20 07:55:26 PM PDT 2026
 
-fix warning
+fix build
 
-mm/util.c: In function 'mmap_action_complete':
-mm/util.c:1520:9: warning: enumeration value 'MMAP_MAP_KERNEL_PAGES' not handled in switch [-Wswitch]
- 1520 |         switch (action->type) {
-      |         ^~~~~~
-
-Cc: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202603210319.P5MPyTEf-lkp@intel.com/
+Cc: Chris Down <chris@chrisdown.name>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/mm/vm_util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/util.c~mm-add-mmap_action_simple_ioremap-fix
-+++ a/mm/util.c
-@@ -1465,6 +1465,7 @@ int mmap_action_complete(struct vm_area_
- 	case MMAP_REMAP_PFN:
- 	case MMAP_IO_REMAP_PFN:
- 	case MMAP_SIMPLE_IO_REMAP:
-+	casr MMAP_MAP_KERNEL_PAGES:
- 		WARN_ON_ONCE(1); /* nommu cannot handle this. */
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -130,7 +130,7 @@ bool pagemap_is_huge_zero(int fd, char *
+ {
+ 	uint64_t categories;
  
- 		err = -EINVAL;
+-	if (!pagemap_scan_supported(fd, start))
++	if (!pagemap_scan_supported(fd))
+ 		return false;
+ 
+ 	categories = pagemap_scan_get_categories(fd, start);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,10 +105,8 @@ mm-rename-zap_page_range_single-to-zap_vma_range-fix.patch
 mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix.patch
 mm-page_reporting-add-page_reporting_order_unspecified-fix.patch
 mm-rename-zone-lock-to-zone-_lock-fix.patch
-mm-add-mmap_action_simple_ioremap-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
 kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
 decode_stacktrace-decode-caller-address-checkpatch-fixes.patch
 lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix.patch
-a.patch
-a-fix.patch
 
