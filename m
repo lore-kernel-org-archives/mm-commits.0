@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 854B53D0902
-	for <mm-commits@vger.kernel.org>; Fri, 20 Mar 2026 23:32:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1C8F175A80
+	for <mm-commits@vger.kernel.org>; Sat, 21 Mar 2026 01:21:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774049550; cv=none; b=CDNwI9Ag0lrFd5WXsqJ5HKhDoIr5NUXWNC2g7IcTIb5i1pYJT5jKpmWw5FU1oNcOwUIHy/Ny0BN5jPbGnBPs8voDBOkFasLxMK4bAhwPed6GDzQR0kvuCUSRBz9dnKfR58DmAzct2bs/tIR69hlEbINdbhURiSYLyatYxbHUEAg=
+	t=1774056070; cv=none; b=qAbrE1QuPo+g05cPxLKgNkKkkr322BHpkyuUrVZ0nn4M30CrK1SOBrvHFGox7ZAiZlWcXIl12x52WnhBBONyzhrOEpQF1DLSauEhjnqWpeuX8lNGmaZ+bDKkDt0/MPpHBXnzfq1daU+woyTZeYSYDaqmCCAglbjdpgy8O0G0kNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774049550; c=relaxed/simple;
-	bh=2Rhbssm2ylayOHiv7vglVygbKawr19UOktmBp9NMfTg=;
-	h=Date:To:From:Subject:Message-Id; b=hyTRIZ+Q5RE2mPR7UlaCRqV1qt0HIS0j9mRViYjzKoE3NLl931VaH+OD9BVzFzyn9a1MaDgVvlRzzL+QBn+zXDgx272KImOTtAYRjvajM3L3LudXiOqVKKjI4DWCQj4f2/C7HyYez2EaO/iX5/mENtyZ1Pa/XXh84SycfjXy6c0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r4xmZ3XO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774056070; c=relaxed/simple;
+	bh=1lDzkCM5Itduz7P39EsmKflLzc9fF3SIFdpMJeCSEK0=;
+	h=Date:To:From:Subject:Message-Id; b=L5DoZgRvqC4IMoQ5gl09UBNuP1Mgi4MBuIfzaPFxG4VSw98Oszr7WPWtUjX/Cta02kzOYC2FqorTbp0OKpE/88Ka5NteBRUOFeQzfLO/9/laAbfmtFsfgrNMajYOlSAMNibQYBf+liTUnLn58JbGcrwz77Zqnql+PLZ9B/Wes1I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h8GlIj5q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r4xmZ3XO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9C3EC4CEF7;
-	Fri, 20 Mar 2026 23:32:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h8GlIj5q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F39EC4CEF7;
+	Sat, 21 Mar 2026 01:21:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774049550;
-	bh=2Rhbssm2ylayOHiv7vglVygbKawr19UOktmBp9NMfTg=;
+	s=korg; t=1774056070;
+	bh=1lDzkCM5Itduz7P39EsmKflLzc9fF3SIFdpMJeCSEK0=;
 	h=Date:To:From:Subject:From;
-	b=r4xmZ3XOEy3X6gfKkNTck2b/uGoeOIOtdiKjS3TK7B9HMGXoVtLiK7/hYbpMpgvXg
-	 xsIBs9p5c8K1j808HY9ugo5f9drYLivu1c7aMaCSH0NKCxrNgoxQYevBMSRCWz+wCH
-	 PT8Mo7NR5ObSi6l5b3jK7AZwHeHFsAu+ZHh6jUEw=
-Date: Fri, 20 Mar 2026 16:32:29 -0700
-To: mm-commits@vger.kernel.org,peterz@infradead.org,nathan@kernel.org,morbo@google.com,mingo@kernel.org,justinstitt@google.com,jackmanb@google.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=h8GlIj5qLBhJU5qzu0LgpavhULx1/9Q5+62HvqizhBoUPlEQIHhChrtHrZEzBjDYz
+	 WSs0PdsrCfN6iSzHq7hFVurUyV2Omf7ynfUbMeA7zGFGO3pjPzJoKXWI5DCZDgDxwX
+	 azgZJM/uMBFSB/ri813cU2p22fy8d7rKk7h8i/GM=
+Date: Fri, 20 Mar 2026 18:21:09 -0700
+To: mm-commits@vger.kernel.org,richard@nod.at,marscheng@google.com,jserv@ccns.ncku.edu.tw,hch@infradead.org,eleanor15x@gmail.com,chengzhihao1@huawei.com,visitorckw@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bug-shut-up-format-attribute-warning-for-clang-as-well.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260320233229.E9C3EC4CEF7@smtp.kernel.org>
+Subject: + ubifs-remove-unnecessary-cond_resched-from-list_sort-compare.patch added to mm-nonmm-unstable branch
+Message-Id: <20260321012110.2F39EC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/bug.c: shut up format attribute warning for clang as well
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     bug-shut-up-format-attribute-warning-for-clang-as-well.patch
+     Subject: ubifs: remove unnecessary cond_resched() from list_sort() compare
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ubifs-remove-unnecessary-cond_resched-from-list_sort-compare.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bug-shut-up-format-attribute-warning-for-clang-as-well.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ubifs-remove-unnecessary-cond_resched-from-list_sort-compare.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,63 +58,97 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: lib/bug.c: shut up format attribute warning for clang as well
-Date: Fri, 20 Mar 2026 22:14:25 +0100
+From: Kuan-Wei Chiu <visitorckw@gmail.com>
+Subject: ubifs: remove unnecessary cond_resched() from list_sort() compare
+Date: Fri, 20 Mar 2026 18:09:37 +0000
 
-Like gcc, clang-22 now also warns about a function that it
-incorrectly identifies as a printf-style format:
+Patch series "lib/list_sort: Clean up list_sort() scheduling workarounds",
+v3.
 
-lib/bug.c:190:22: error: diagnostic behavior may be improved by adding the 'format(printf, 1, 0)' attribute to the declaration of '__warn_printf' [-Werror,-Wmissing-format-attribute]
-  179 | static void __warn_printf(const char *fmt, struct pt_regs *regs)
-      | __attribute__((format(printf, 1, 0)))
-  180 | {
-  181 |         if (!fmt)
-  182 |                 return;
-  183 |
-  184 | #ifdef HAVE_ARCH_BUG_FORMAT_ARGS
-  185 |         if (regs) {
-  186 |                 struct arch_va_list _args;
-  187 |                 va_list *args = __warn_args(&_args, regs);
-  188 |
-  189 |                 if (args) {
-  190 |                         vprintk(fmt, *args);
-      |                                           ^
+Historically, list_sort() included a hack in merge_final() that
+periodically invoked dummy cmp(priv, b, b) calls when merging highly
+unbalanced lists.  This allowed the caller to invoke cond_resched() within
+their comparison callbacks to avoid soft lockups.  
 
-Turn off this warning for all compilers and versions.
+However, an audit of the kernel tree shows that fs/ubifs/ has been the
+sole user of this mechanism.  For all other generic list_sort() users,
+this results in wasted function calls and unnecessary overhead in a tight
+loop.
 
-Link: https://lkml.kernel.org/r/20260320211528.2474389-1-arnd@kernel.org
-Fixes: d36067d6ea00 ("bug: Hush suggest-attribute=format for __warn_printf()")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Recent discussions and code inspection confirmed that the lists being
+sorted in UBIFS are bounded in size (a few thousand elements at most), and
+the comparison functions are extremely lightweight.  Therefore, UBIFS does
+not actually need to rely on this mechanism.
+
+
+This patch (of 2):
+
+Historically, UBIFS embedded cond_resched() calls inside its list_sort()
+comparison callbacks (data_nodes_cmp, nondata_nodes_cmp, and
+replay_entries_cmp) to prevent soft lockups when sorting long lists.
+
+However, further inspection by Richard Weinberger reveals that these
+compare functions are extremely lightweight and do not perform any
+blocking MTD I/O. Furthermore, the lists being sorted are strictly
+bounded in size:
+- In the GC case, the list contains at most the number of nodes that
+  fit into a single LEB.
+- In the replay case, the list spans across a few LEBs from the UBIFS
+  journal, amounting to at most a few thousand elements.
+
+Since the compare functions are called a few thousand times at most, the
+overhead of frequent scheduling points is unjustified.  Removing the
+cond_resched() calls simplifies the comparison logic and reduces
+unnecessary context switch checks during the sort.
+
+Link: https://lkml.kernel.org/r/20260320180938.1827148-1-visitorckw@gmail.com
+Link: https://lkml.kernel.org/r/20260320180938.1827148-2-visitorckw@gmail.com
+Signed-off-by: Kuan-Wei Chiu <visitorckw@gmail.com>
+Cc: Ching-Chun (Jim) Huang <jserv@ccns.ncku.edu.tw>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Mars Cheng <marscheng@google.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Yu-Chun Lin <eleanor15x@gmail.com>
+Cc: Zhihao Cheng <chengzhihao1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bug.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ubifs/gc.c     |    2 --
+ fs/ubifs/replay.c |    1 -
+ 2 files changed, 3 deletions(-)
 
---- a/lib/bug.c~bug-shut-up-format-attribute-warning-for-clang-as-well
-+++ a/lib/bug.c
-@@ -174,8 +174,7 @@ struct bug_entry *find_bug(unsigned long
- }
+--- a/fs/ubifs/gc.c~ubifs-remove-unnecessary-cond_resched-from-list_sort-compare
++++ a/fs/ubifs/gc.c
+@@ -109,7 +109,6 @@ static int data_nodes_cmp(void *priv, co
+ 	struct ubifs_info *c = priv;
+ 	struct ubifs_scan_node *sa, *sb;
  
- __diag_push();
--__diag_ignore(GCC, all, "-Wsuggest-attribute=format",
--	      "Not a valid __printf() conversion candidate.");
-+__diag_ignore_all("-Wmissing-format-attribute", "Not a valid __printf() conversion candidate.");
- static void __warn_printf(const char *fmt, struct pt_regs *regs)
- {
- 	if (!fmt)
+-	cond_resched();
+ 	if (a == b)
+ 		return 0;
+ 
+@@ -153,7 +152,6 @@ static int nondata_nodes_cmp(void *priv,
+ 	struct ubifs_info *c = priv;
+ 	struct ubifs_scan_node *sa, *sb;
+ 
+-	cond_resched();
+ 	if (a == b)
+ 		return 0;
+ 
+--- a/fs/ubifs/replay.c~ubifs-remove-unnecessary-cond_resched-from-list_sort-compare
++++ a/fs/ubifs/replay.c
+@@ -305,7 +305,6 @@ static int replay_entries_cmp(void *priv
+ 	struct ubifs_info *c = priv;
+ 	struct replay_entry *ra, *rb;
+ 
+-	cond_resched();
+ 	if (a == b)
+ 		return 0;
+ 
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from visitorckw@gmail.com are
 
-bug-shut-up-format-attribute-warning-for-clang-as-well.patch
-ubsan-turn-off-kmsan-inside-of-ubsan-instrumentation.patch
-mm-vmscan-avoid-false-positive-wuninitialized-warning.patch
+ubifs-remove-unnecessary-cond_resched-from-list_sort-compare.patch
+lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final.patch
 
