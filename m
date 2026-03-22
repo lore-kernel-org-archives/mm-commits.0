@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64CEC364952
-	for <mm-commits@vger.kernel.org>; Sun, 22 Mar 2026 00:37:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0085B2E9EC7
+	for <mm-commits@vger.kernel.org>; Sun, 22 Mar 2026 00:37:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774139851; cv=none; b=OoRp6V6BPJF/+PVP4MEN4lE97NQSVeKAIwRi/qXAENH4Hi2G2ERP4e+/jU6h3TGobFlczlSA3KBmFCrA5xthpMkCivvrv7OLdz5CEKbC2nkCaGnmOpTtPtfHv1HmqhkXWiF/NZhiZjhN+dZqx4gMndgGJY7FWtbh5z/Hr7C8AFY=
+	t=1774139853; cv=none; b=J1D8XLkhTEyYrbfGwrogWyekVmrRftUZ/OkuecgVn4qyVyi4KxW0mCbQcDDJLXzoY6CFMIwr4SiwZRYauctf5iLw1wbHsClwKRHbLMPdSKyJnpPdgF2jpyb1Xol963pXKmQJnoSDVZgVjjVRUem4LnKtNxfwMy3qbjCv9UuoBHA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774139851; c=relaxed/simple;
-	bh=e0StW82FzVKUPK8JpTqzcEQuF4XIPsZTeb5jJUbcYHI=;
-	h=Date:To:From:Subject:Message-Id; b=LKNr48S4R6GCt9c24t9dihjXE6zpbMF6j0xo4PYOcuD+sfCJSdEo/YlJXDyPHtmUreACs6Z6tnVrAP/zAPnkSiwoKMFfslbH/CkNUho6H3Wmp+CKeMjyZVjkjHib9qEnBZw3De2xNwFqJv1agmiVBEkSkyEyThtgohG48PlIF1E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iltAwVLh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774139853; c=relaxed/simple;
+	bh=Qwo29qbQaWopKQnJjGg4y3zoXAi0n3wB05lghJbKIdY=;
+	h=Date:To:From:Subject:Message-Id; b=dHKykEYrXpiXHFIfBE5UQSsZLwdLobfFLOA2DZ1gFBL7zU9UJdrYY+nhF3voGTXAa9o8QI9uxk1fd7U7kcM3B/IuhlcxuHQ9mIgLIqfkZfPeTsWvX2p9MMEYFt6xWXGXJq4usdxxlFIXIvbSs3WD3oJM9sZVTFtbPkJ8KTJncFs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qYTe42ss; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iltAwVLh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38780C19421;
-	Sun, 22 Mar 2026 00:37:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qYTe42ss"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 85E1CC19421;
+	Sun, 22 Mar 2026 00:37:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774139851;
-	bh=e0StW82FzVKUPK8JpTqzcEQuF4XIPsZTeb5jJUbcYHI=;
+	s=korg; t=1774139852;
+	bh=Qwo29qbQaWopKQnJjGg4y3zoXAi0n3wB05lghJbKIdY=;
 	h=Date:To:From:Subject:From;
-	b=iltAwVLhmxJMJGzp2n0u9hf7KgyR2trL/lqre8Q8Eu48o2GCxPu3GzjNXm3pTldbE
-	 hTMTyQQInEhvcS/8O5vAPPAKMBP0pVA/ZODhM7wRdAGwYqprAd2WJy9yWq8ozUuEDu
-	 6Kqxn6DHqVh4adSZeVsHrw0nAeun05GQB636kt0w=
-Date: Sat, 21 Mar 2026 17:37:30 -0700
-To: mm-commits@vger.kernel.org,richardycc@google.com,minchan@kernel.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=qYTe42ssXSGFcsXDA12YjjHPuNR/v2rzO75bop2K1re5Mpg433uCyDD5qE4tj6I24
+	 Bfra8KHoLXzCQ4BGxsovYRh1PUvifjUSKjwKem/c8TTPV7YoJvlxTke7m/qG+1k8ap
+	 s6dySI26/KV06GWka+H+b521VLp0cNE6JBM+6qcI=
+Date: Sat, 21 Mar 2026 17:37:31 -0700
+To: mm-commits@vger.kernel.org,thomas.weissschuh@linutronix.de,rppt@kernel.org,pjw@kernel.org,palmer@dabbelt.com,aou@eecs.berkeley.edu,alex@ghiti.fr,wangruikang@iscas.ac.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] zram-do-not-slot_free-written-back-slots.patch removed from -mm tree
-Message-Id: <20260322003731.38780C19421@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] riscv-patch-avoid-early-page_to_phys.patch removed from -mm tree
+Message-Id: <20260322003732.85E1CC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,126 +35,81 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: do not slot_free() written-back slots
+     Subject: riscv: avoid early page_to_phys()
 has been removed from the -mm tree.  Its filename was
-     zram-do-not-slot_free-written-back-slots.patch
+     riscv-patch-avoid-early-page_to_phys.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: do not slot_free() written-back slots
-Date: Thu, 19 Mar 2026 12:44:56 +0900
+From: Vivian Wang <wangruikang@iscas.ac.cn>
+Subject: riscv: avoid early page_to_phys()
+Date: Tue, 10 Mar 2026 16:25:33 +0800
 
-slot_free() basically completely resets the slots by clearing all of
-its flags and attributes.  While zram_writeback_complete() restores
-some of flags back (those that are necessary for async read
-decompression) we still lose a lot of slot's metadata.  For example,
-slot's ac-time, or ZRAM_INCOMPRESSIBLE.
+Similarly to commit 8d09e2d569f6 ("arm64: patching: avoid early
+page_to_phys()"), avoid using phys_to_page() for the kernel address case
+in patch_map().
 
-More importantly, restoring flags/attrs requires extra attention as
-some of the flags are directly affecting zram device stats.  And the
-original code did not pay that attention.  Namely ZRAM_HUGE slots
-handling in zram_writeback_complete().  The call to slot_free() would
-decrement ->huge_pages, however when zram_writeback_complete() restored
-the slot's ZRAM_HUGE flag, it would not get reflected in an incremented
-->huge_pages.  So when the slot would finally get freed, slot_free()
-would decrement ->huge_pages again, leading to underflow.
+Since this is called from apply_boot_alternatives() in setup_arch(), and
+commit 4267739cabb8 ("arch, mm: consolidate initialization of SPARSE
+memory model") has moved sparse_init() to after setup_arch(),
+phys_to_page() is not available there yet, and it panics on boot with
+SPARSEMEM on RV32, which does not use SPARSEMEM_VMEMMAP.
 
-Fix this by open-coding the required memory free and stats updates in
-zram_writeback_complete(), rather than calling the destructive
-slot_free().  Since we now preserve the ZRAM_HUGE flag on written-back
-slots (for the deferred decompression path), we also update slot_free()
-to skip decrementing ->huge_pages if ZRAM_WB is set.
-
-Link: https://lkml.kernel.org/r/20260320023143.2372879-1-senozhatsky@chromium.org
-Link: https://lkml.kernel.org/r/20260319034912.1894770-1-senozhatsky@chromium.org
-Fixes: d38fab605c667 ("zram: introduce compressed data writeback")
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Brian Geffon <bgeffon@google.com>
-Cc: Richard Chang <richardycc@google.com>
+Link: https://lkml.kernel.org/r/20260310-riscv-sparsemem-alternatives-fix-v1-1-659d5dd257e2@iscas.ac.cn
+Fixes: 4267739cabb8 ("arch, mm: consolidate initialization of SPARSE memory model")
+Signed-off-by: Vivian Wang <wangruikang@iscas.ac.cn>
+Reported-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Closes: https://lore.kernel.org/r/20260223144108-dcace0b9-02e8-4b67-a7ce-f263bed36f26@linutronix.de/
+Suggested-by: Mike Rapoport <rppt@kernel.org>
+Tested-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <pjw@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   39 +++++++++++---------------------
- 1 file changed, 14 insertions(+), 25 deletions(-)
+ arch/riscv/kernel/patch.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-do-not-slot_free-written-back-slots
-+++ a/drivers/block/zram/zram_drv.c
-@@ -917,9 +917,8 @@ static void zram_account_writeback_submi
- 
- static int zram_writeback_complete(struct zram *zram, struct zram_wb_req *req)
+--- a/arch/riscv/kernel/patch.c~riscv-patch-avoid-early-page_to_phys
++++ a/arch/riscv/kernel/patch.c
+@@ -42,19 +42,20 @@ static inline bool is_kernel_exittext(ui
+ static __always_inline void *patch_map(void *addr, const unsigned int fixmap)
  {
--	u32 size, index = req->pps->index;
--	int err, prio;
--	bool huge;
-+	u32 index = req->pps->index;
-+	int err;
+ 	uintptr_t uintaddr = (uintptr_t) addr;
+-	struct page *page;
++	phys_addr_t phys;
  
- 	err = blk_status_to_errno(req->bio.bi_status);
- 	if (err) {
-@@ -946,28 +945,13 @@ static int zram_writeback_complete(struc
- 		goto out;
- 	}
+-	if (core_kernel_text(uintaddr) || is_kernel_exittext(uintaddr))
+-		page = phys_to_page(__pa_symbol(addr));
+-	else if (IS_ENABLED(CONFIG_STRICT_MODULE_RWX))
+-		page = vmalloc_to_page(addr);
+-	else
+-		return addr;
++	if (core_kernel_text(uintaddr) || is_kernel_exittext(uintaddr)) {
++		phys = __pa_symbol(addr);
++	} else if (IS_ENABLED(CONFIG_STRICT_MODULE_RWX)) {
++		struct page *page = vmalloc_to_page(addr);
  
--	if (zram->compressed_wb) {
--		/*
--		 * ZRAM_WB slots get freed, we need to preserve data required
--		 * for read decompression.
--		 */
--		size = get_slot_size(zram, index);
--		prio = get_slot_comp_priority(zram, index);
--		huge = test_slot_flag(zram, index, ZRAM_HUGE);
--	}
--
--	slot_free(zram, index);
--	set_slot_flag(zram, index, ZRAM_WB);
-+	clear_slot_flag(zram, index, ZRAM_IDLE);
-+	if (test_slot_flag(zram, index, ZRAM_HUGE))
-+		atomic64_dec(&zram->stats.huge_pages);
-+	atomic64_sub(get_slot_size(zram, index), &zram->stats.compr_data_size);
-+	zs_free(zram->mem_pool, get_slot_handle(zram, index));
- 	set_slot_handle(zram, index, req->blk_idx);
--
--	if (zram->compressed_wb) {
--		if (huge)
--			set_slot_flag(zram, index, ZRAM_HUGE);
--		set_slot_size(zram, index, size);
--		set_slot_comp_priority(zram, index, prio);
--	}
--
--	atomic64_inc(&zram->stats.pages_stored);
-+	set_slot_flag(zram, index, ZRAM_WB);
+-	BUG_ON(!page);
++		BUG_ON(!page);
++		phys = page_to_phys(page) + offset_in_page(addr);
++	} else {
++		return addr;
++	}
  
- out:
- 	slot_unlock(zram, index);
-@@ -2010,8 +1994,13 @@ static void slot_free(struct zram *zram,
- 	set_slot_comp_priority(zram, index, 0);
+-	return (void *)set_fixmap_offset(fixmap, page_to_phys(page) +
+-					 offset_in_page(addr));
++	return (void *)set_fixmap_offset(fixmap, phys);
+ }
  
- 	if (test_slot_flag(zram, index, ZRAM_HUGE)) {
-+		/*
-+		 * Writeback completion decrements ->huge_pages but keeps
-+		 * ZRAM_HUGE flag for deferred decompression path.
-+		 */
-+		if (!test_slot_flag(zram, index, ZRAM_WB))
-+			atomic64_dec(&zram->stats.huge_pages);
- 		clear_slot_flag(zram, index, ZRAM_HUGE);
--		atomic64_dec(&zram->stats.huge_pages);
- 	}
- 
- 	if (test_slot_flag(zram, index, ZRAM_WB)) {
+ static void patch_unmap(int fixmap)
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from wangruikang@iscas.ac.cn are
 
-zram-do-not-permit-params-change-after-init.patch
-zram-do-not-autocorrect-bad-recompression-parameters.patch
-zram-drop-num_active_comps.patch
-zram-update-recompression-documentation.patch
-zram-remove-chained-recompression.patch
-zram-unify-and-harden-algo-priority-params-handling.patch
-zram-propagate-read_from_bdev_async-errors.patch
-zram-change-scan_slots-to-return-void.patch
 
