@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1267B280335
-	for <mm-commits@vger.kernel.org>; Sun, 22 Mar 2026 00:21:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92492175A6E
+	for <mm-commits@vger.kernel.org>; Sun, 22 Mar 2026 00:35:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774138885; cv=none; b=b3INzrxH0TMBuHwsbZFf8HM/jA/UFcrbXl8uNtvSbF2zLHJqwysCKWEZko1q4c2HD2kT1zSsK/+wkQPoFF9pe3G3MjZlYQVEsw/gFGB39vPPabvXmaCXF2PhYzceCZZ5df0x1BvMDj0wJVvAXuX8t6lu9ccSbIq5A7aOVI6CXQA=
+	t=1774139706; cv=none; b=kZ7c7WI87RkZ86x+IklnFKDOSc7LME4sULixisJJmBriG8lMtwg10bUxebsj3DoL7WlLCDBDEn5133M7CDzy9wiZ1dy1UAUSkWyZjfTTQ31rbYiFssTcVhq53XxvIqq1QaMKKJtXqvMn1OQsMPO+P8692NtwGYjv4le5pu9JpJ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774138885; c=relaxed/simple;
-	bh=YhISAJ4SoTWMwH/lxR6SC/oSPVnP6Wcjr+bzeRNZQ/g=;
-	h=Date:To:From:Subject:Message-Id; b=fkTumrqWBQ44B38yXjL7Tb3Vmad5nmYtiUnUXg9gbEr8p5SNPLN1Rfc2SXsEGwqexOy7jN2GHJl4tKOaMh4bY320OgA3Xpso6syi+32+QqG08+F+S2ubmboIp09XoTZreAqlDT6cLV4cVH4FfvI2xEVkhAMZrvx0iOnUTcUU4SY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z3DKZo/R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774139706; c=relaxed/simple;
+	bh=PXLAjLA1SQeQkqiRDJWu0nsK3HrTRdYXwdrNI0GvXQo=;
+	h=Date:To:From:Subject:Message-Id; b=WLdKrhhe0BwXIGTcWPegjJP+7pzXAQ2apRM1lNwAL1KpXK06fXaVE2MDI5ZOgKXQsaOG0ustDZEUbpI1QGU3Ys3E44zlS3Dq5pAz+nE9a5Dp3CYOEonYgZOXVpilhiC7aHXT8TL9lsKB8gv6jD8uU0B+Z16IVkrirsoN5Nih/gQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=buo55gZ3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z3DKZo/R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A6DCC19421;
-	Sun, 22 Mar 2026 00:21:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="buo55gZ3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 474CCC19421;
+	Sun, 22 Mar 2026 00:35:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774138884;
-	bh=YhISAJ4SoTWMwH/lxR6SC/oSPVnP6Wcjr+bzeRNZQ/g=;
+	s=korg; t=1774139706;
+	bh=PXLAjLA1SQeQkqiRDJWu0nsK3HrTRdYXwdrNI0GvXQo=;
 	h=Date:To:From:Subject:From;
-	b=Z3DKZo/RZDROT1EotPhw/PQDkrxnyu2Re/RL4DVBCnRFt/kLueuX3LpOs2jK4mMfF
-	 qelRjFzgTHoidS2dAPxyHIt5454R7TAMpxGFO3/saeSMTMU6NgwAj1OQ30iGP5RDRZ
-	 69JOC9EJRg2Kdd03qfMXAt+4w2SD0LknwLa8ClLg=
-Date: Sat, 21 Mar 2026 17:21:23 -0700
-To: mm-commits@vger.kernel.org,kexinsun@smail.nju.edu.cn,akpm@linux-foundation.org
+	b=buo55gZ3EJ064x2sGjtaB5Bo0S9AgN/tvvVC6Ltf1/dtwnKFZkWM5M7aDSWm83jtn
+	 0rsWtjO0LIl+knG9CUWauvDFD1PKkTld7bA1y4mVP+qS5Y1DbnklJNqCjnNHvv1BCO
+	 iiEuPAab90K/JG6B3djGq0pQUFuflGaJ77PxzQN8=
+Date: Sat, 21 Mar 2026 17:35:05 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-base-memory-fix-stale-reference-to-memory_block_add_nid.patch added to mm-new branch
-Message-Id: <20260322002124.5A6DCC19421@smtp.kernel.org>
+Subject: [folded-merged] mm-damon-core-avoid-use-of-half-online-committed-context-fix.patch removed from -mm tree
+Message-Id: <20260322003506.474CCC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,76 +34,89 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: drivers/base/memory: fix stale reference to memory_block_add_nid()
-has been added to the -mm mm-new branch.  Its filename is
-     drivers-base-memory-fix-stale-reference-to-memory_block_add_nid.patch
+The quilt patch titled
+     Subject: mm/damon/core: let kdamond_call() with cancel regardless of maybe_corrupted
+has been removed from the -mm tree.  Its filename was
+     mm-damon-core-avoid-use-of-half-online-committed-context-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-memory-fix-stale-reference-to-memory_block_add_nid.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was folded into mm-damon-core-avoid-use-of-half-online-committed-context.patch
 
 ------------------------------------------------------
-From: Kexin Sun <kexinsun@smail.nju.edu.cn>
-Subject: drivers/base/memory: fix stale reference to memory_block_add_nid()
-Date: Sat, 21 Mar 2026 18:57:04 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: let kdamond_call() with cancel regardless of maybe_corrupted
+Date: Thu, 19 Mar 2026 20:09:27 -0700
 
-The function memory_block_add_nid() was renamed to
-memory_block_add_nid_early() by commit 0a947c14e48c ("drivers/base: move
-memory_block_add_nid() into the caller").  Update the stale reference in
-add_memory_block().
+Otherwise, damon_call() callers could indefinitely wait [1].
 
-Assisted-by: unnamed:deepseek-v3.2 coccinelle
-Link: https://lkml.kernel.org/r/20260321105704.6093-1-kexinsun@smail.nju.edu.cn
-Signed-off-by: Kexin Sun <kexinsun@smail.nju.edu.cn>
+Link: https://lkml.kernel.org/r/20260320031553.2479-1-sj@kernel.org
+Link: https://sashiko.dev/#/patchset/20260319145218.86197-1-sj%40kernel.org [1]
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    2 +-
+ mm/damon/core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/base/memory.c~drivers-base-memory-fix-stale-reference-to-memory_block_add_nid
-+++ a/drivers/base/memory.c
-@@ -815,7 +815,7 @@ static int add_memory_block(unsigned lon
- 		/*
- 		 * MEM_ONLINE at this point implies early memory. With NUMA,
- 		 * we'll determine the zone when setting the node id via
--		 * memory_block_add_nid(). Memory hotplug updated the zone
-+		 * memory_block_add_nid_early(). Memory hotplug updated the zone
- 		 * manually when memory onlining/offlining succeeds.
- 		 */
- 		mem->zone = early_node_zone_for_memory_block(mem, NUMA_NO_NODE);
+--- a/mm/damon/core.c~mm-damon-core-avoid-use-of-half-online-committed-context-fix
++++ a/mm/damon/core.c
+@@ -2680,7 +2680,7 @@ static void kdamond_call(struct damon_ct
+ 			complete(&control->completion);
+ 		else if (control->canceled && control->dealloc_on_cancel)
+ 			kfree(control);
+-		if (ctx->maybe_corrupted)
++		if (!cancel && ctx->maybe_corrupted)
+ 			break;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from kexinsun@smail.nju.edu.cn are
+Patches currently in -mm which might be from sj@kernel.org are
 
-kasan-update-outdated-comment.patch
-mm-vmalloc-update-outdated-comment-for-renamed-vread.patch
-mm-update-outdated-comments-for-removed-scan_swap_map_slots.patch
-drivers-base-memory-fix-stale-reference-to-memory_block_add_nid.patch
+mm-damon-core-avoid-use-of-half-online-committed-context.patch
+mm-damon-stat-monitor-all-system-ram-resources.patch
+mm-damon-core-set-quota-score-histogram-with-core-filters.patch
+mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
+mm-damon-core-split-regions-for-min_nr_regions.patch
+mm-damon-vaddr-do-not-split-regions-for-min_nr_regions.patch
+mm-damon-test-core-kunit-add-damon_apply_min_nr_regions-test.patch
+mm-damon-add-config_damon_debug_sanity.patch
+mm-damon-core-add-damon_new_region-debug_sanity-check.patch
+mm-damon-core-add-damon_del_region-debug_sanity-check.patch
+mm-damon-core-add-damon_nr_regions-debug_sanity-check.patch
+mm-damon-core-add-damon_merge_two_regions-debug_sanity-check.patch
+mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
+mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
+mm-damon-core-add-damon_reset_aggregated-debug_sanity-check.patch
+mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
+selftests-damon-config-enable-damon_debug_sanity.patch
+mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
+docs-mm-damon-design-document-the-power-of-two-limitation-for-addr_unit.patch
+mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
+mm-damon-core-use-time_before-for-next_apply_sis.patch
+mm-damon-core-use-time_after_eq-in-kdamond_fn.patch
+mm-damon-core-use-mult_frac.patch
+mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
+mm-damon-core-clarify-damon_set_attrs-usages.patch
+mm-damon-document-non-zero-length-damon_region-assumption.patch
+docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
+docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
+docs-mm-damon-index-fix-typo-autoamted-automated.patch
+mm-damon-core-introduce-damos_quota_goal_tuner.patch
+mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
+mm-damon-core-introduce-damos_quota_goal_tuner_temporal.patch
+mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
+docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
+docs-admin-guide-mm-damon-usage-document-goal_tuner-sysfs-file.patch
+docs-abi-damon-update-for-goal_tuner.patch
+mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
+selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
+selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
+selftests-damon-sysfspy-test-goal_tuner-commit.patch
+mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
+mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
+mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram-fix.patch
+mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
+mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
+mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
+mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
 
