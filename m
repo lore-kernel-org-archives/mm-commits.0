@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92492175A6E
-	for <mm-commits@vger.kernel.org>; Sun, 22 Mar 2026 00:35:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9337040DFD8
+	for <mm-commits@vger.kernel.org>; Sun, 22 Mar 2026 00:37:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774139706; cv=none; b=kZ7c7WI87RkZ86x+IklnFKDOSc7LME4sULixisJJmBriG8lMtwg10bUxebsj3DoL7WlLCDBDEn5133M7CDzy9wiZ1dy1UAUSkWyZjfTTQ31rbYiFssTcVhq53XxvIqq1QaMKKJtXqvMn1OQsMPO+P8692NtwGYjv4le5pu9JpJ0=
+	t=1774139847; cv=none; b=eueFDjahrm3xc34eMXr9x9HN1qtkpJxIsOFrxNBMUG4qyNOLPacJ1GWRhANOCX1EIvdnUZIkYSuEXrD+7jrmsp5zcmNeGKmhfbtX3qfic6aQ9FP8gBS//iPCu/axiB1rrcEEo3zLoh5KcTt/DJjt5NUjVk+y2ejF3W9cGsMMfhQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774139706; c=relaxed/simple;
-	bh=PXLAjLA1SQeQkqiRDJWu0nsK3HrTRdYXwdrNI0GvXQo=;
-	h=Date:To:From:Subject:Message-Id; b=WLdKrhhe0BwXIGTcWPegjJP+7pzXAQ2apRM1lNwAL1KpXK06fXaVE2MDI5ZOgKXQsaOG0ustDZEUbpI1QGU3Ys3E44zlS3Dq5pAz+nE9a5Dp3CYOEonYgZOXVpilhiC7aHXT8TL9lsKB8gv6jD8uU0B+Z16IVkrirsoN5Nih/gQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=buo55gZ3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774139847; c=relaxed/simple;
+	bh=rrYvNSa+Ppr06++8fHn+jwqTTELxHy1GUiK1J+d8xAw=;
+	h=Date:To:From:Subject:Message-Id; b=T/Ve5wqlEf00s36wjLPDtWryayoXFc8JZPYBZiubcnZd0QladnjZ6Ren92lku/XsOvlH/fcHW39VnrzPn5DF4enCST9tV82Bj4T32VfsYYkrO5RxAy2P5o2JFOcuHpdiOd+T+KOXvFVTWuD2tc13qS6k7zInPzyeSa7t0YFIdvE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sqhEAaOO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="buo55gZ3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 474CCC19421;
-	Sun, 22 Mar 2026 00:35:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sqhEAaOO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 465E2C19421;
+	Sun, 22 Mar 2026 00:37:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774139706;
-	bh=PXLAjLA1SQeQkqiRDJWu0nsK3HrTRdYXwdrNI0GvXQo=;
+	s=korg; t=1774139847;
+	bh=rrYvNSa+Ppr06++8fHn+jwqTTELxHy1GUiK1J+d8xAw=;
 	h=Date:To:From:Subject:From;
-	b=buo55gZ3EJ064x2sGjtaB5Bo0S9AgN/tvvVC6Ltf1/dtwnKFZkWM5M7aDSWm83jtn
-	 0rsWtjO0LIl+knG9CUWauvDFD1PKkTld7bA1y4mVP+qS5Y1DbnklJNqCjnNHvv1BCO
-	 iiEuPAab90K/JG6B3djGq0pQUFuflGaJ77PxzQN8=
-Date: Sat, 21 Mar 2026 17:35:05 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=sqhEAaOOvg2xCsnk+1hmZpoPA+HMkHuMkdmZqNj/JO3YyLtlvsgkinxR6mrNaOVan
+	 VP5U4IoF/UDf44HYnZAe4RHrxOoKbxieRsoTom9JupffpkhTr6GBm76ulqCgPQA/Dj
+	 75Cb79U1eVx6a2RvPqphn86hdW4er5zqAXrLyb+k=
+Date: Sat, 21 Mar 2026 17:37:26 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,sashal@kernel.org,riel@surriel.com,liam.howlett@oracle.com,jiakaipeanut@gmail.com,jannh@google.com,harry.yoo@oracle.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-damon-core-avoid-use-of-half-online-committed-context-fix.patch removed from -mm tree
-Message-Id: <20260322003506.474CCC19421@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-rmap-clear-vma-anon_vma-on-error.patch removed from -mm tree
+Message-Id: <20260322003727.465E2C19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,88 +35,160 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: let kdamond_call() with cancel regardless of maybe_corrupted
+     Subject: mm/rmap: clear vma->anon_vma on error
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-avoid-use-of-half-online-committed-context-fix.patch
+     mm-rmap-clear-vma-anon_vma-on-error.patch
 
-This patch was dropped because it was folded into mm-damon-core-avoid-use-of-half-online-committed-context.patch
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: let kdamond_call() with cancel regardless of maybe_corrupted
-Date: Thu, 19 Mar 2026 20:09:27 -0700
+From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
+Subject: mm/rmap: clear vma->anon_vma on error
+Date: Wed, 18 Mar 2026 12:26:32 +0000
 
-Otherwise, damon_call() callers could indefinitely wait [1].
+Commit 542eda1a8329 ("mm/rmap: improve anon_vma_clone(),
+unlink_anon_vmas() comments, add asserts") alters the way errors are
+handled, but overlooked one important aspect of clean up.
 
-Link: https://lkml.kernel.org/r/20260320031553.2479-1-sj@kernel.org
-Link: https://sashiko.dev/#/patchset/20260319145218.86197-1-sj%40kernel.org [1]
-Signed-off-by: SeongJae Park <sj@kernel.org>
+When a VMA encounters an error state in anon_vma_clone() (that is, on
+attempted allocation of anon_vma_chain objects), it cleans up partially
+established state in cleanup_partial_anon_vmas(), before returning an
+error.
+
+However, this occurs prior to anon_vma->num_active_vmas being incremented,
+and it also fails to clear the VMA's vma->anon_vma field, which remains in
+place.
+
+This is immediately an inconsistent state, because
+anon_vma->num_active_vmas is supposed to track the number of VMAs whose
+vma->anon_vma field references that anon_vma, and now that count is
+off-by-negative-1 for each VMA for which this error state has occurred.
+
+When VMAs are unlinked from this anon_vma, unlink_anon_vmas() will
+eventually underflow anon_vma->num_active_vmas, which will trigger a
+warning.
+
+This will always eventually happen, as we unlink anon_vma's at process
+teardown.
+
+It could also cause maybe_reuse_anon_vma() to incorrectly permit the reuse
+of an anon_vma which has active VMAs attached, which will lead to a
+persistently invalid state.
+
+The solution is to clear the VMA's anon_vma field when we clean up partial
+state, as the fact we are doing so indicates clearly that the VMA is not
+correctly integrated into the anon_vma tree and thus this field is
+invalid.
+
+Link: https://lkml.kernel.org/r/20260318122632.63404-1-ljs@kernel.org
+Fixes: 542eda1a8329 ("mm/rmap: improve anon_vma_clone(), unlink_anon_vmas() comments, add asserts")
+Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Reported-by: Sasha Levin <sashal@kernel.org>
+Closes: https://lore.kernel.org/linux-mm/20260302151547.2389070-1-sashal@kernel.org/
+Reported-by: Jiakai Xu <jiakaipeanut@gmail.com>
+Closes: https://lore.kernel.org/linux-mm/CAFb8wJvRhatRD-9DVmr5v5pixTMPEr3UKjYBJjCd09OfH55CKg@mail.gmail.com/
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Tested-by: Jiakai Xu <jiakaipeanut@gmail.com>
+Acked-by: Harry Yoo <harry.yoo@oracle.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Sasha Levin (Microsoft) <sashal@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-avoid-use-of-half-online-committed-context-fix
-+++ a/mm/damon/core.c
-@@ -2680,7 +2680,7 @@ static void kdamond_call(struct damon_ct
- 			complete(&control->completion);
- 		else if (control->canceled && control->dealloc_on_cancel)
- 			kfree(control);
--		if (ctx->maybe_corrupted)
-+		if (!cancel && ctx->maybe_corrupted)
- 			break;
+--- a/mm/rmap.c~mm-rmap-clear-vma-anon_vma-on-error
++++ a/mm/rmap.c
+@@ -457,6 +457,13 @@ static void cleanup_partial_anon_vmas(st
+ 		list_del(&avc->same_vma);
+ 		anon_vma_chain_free(avc);
  	}
++
++	/*
++	 * The anon_vma assigned to this VMA is no longer valid, as we were not
++	 * able to correctly clone AVC state. Avoid inconsistent anon_vma tree
++	 * state by resetting.
++	 */
++	vma->anon_vma = NULL;
+ }
  
+ /**
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-damon-core-avoid-use-of-half-online-committed-context.patch
-mm-damon-stat-monitor-all-system-ram-resources.patch
-mm-damon-core-set-quota-score-histogram-with-core-filters.patch
-mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
-mm-damon-core-split-regions-for-min_nr_regions.patch
-mm-damon-vaddr-do-not-split-regions-for-min_nr_regions.patch
-mm-damon-test-core-kunit-add-damon_apply_min_nr_regions-test.patch
-mm-damon-add-config_damon_debug_sanity.patch
-mm-damon-core-add-damon_new_region-debug_sanity-check.patch
-mm-damon-core-add-damon_del_region-debug_sanity-check.patch
-mm-damon-core-add-damon_nr_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_two_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
-mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
-mm-damon-core-add-damon_reset_aggregated-debug_sanity-check.patch
-mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
-selftests-damon-config-enable-damon_debug_sanity.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
-docs-mm-damon-design-document-the-power-of-two-limitation-for-addr_unit.patch
-mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
-mm-damon-core-use-time_before-for-next_apply_sis.patch
-mm-damon-core-use-time_after_eq-in-kdamond_fn.patch
-mm-damon-core-use-mult_frac.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
-mm-damon-core-clarify-damon_set_attrs-usages.patch
-mm-damon-document-non-zero-length-damon_region-assumption.patch
-docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
-docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
-docs-mm-damon-index-fix-typo-autoamted-automated.patch
-mm-damon-core-introduce-damos_quota_goal_tuner.patch
-mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
-mm-damon-core-introduce-damos_quota_goal_tuner_temporal.patch
-mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
-docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
-docs-admin-guide-mm-damon-usage-document-goal_tuner-sysfs-file.patch
-docs-abi-damon-update-for-goal_tuner.patch
-mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
-selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
-selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
-selftests-damon-sysfspy-test-goal_tuner-commit.patch
-mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
-mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
-mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram-fix.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
-mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
-mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
+mm-rename-vma-flag-helpers-to-be-more-readable.patch
+mm-add-vma_desc_test_all-and-use-it.patch
+mm-always-inline-__mk_vma_flags-and-invoked-functions.patch
+mm-reintroduce-vma_flags_test-as-a-singular-flag-test.patch
+mm-reintroduce-vma_desc_test-as-a-singular-flag-test.patch
+tools-testing-vma-add-test-for-vma_flags_test-vma_desc_test.patch
+tools-testing-vma-add-test-for-vma_flags_test-vma_desc_test-fix.patch
+mm-mremap-correct-invalid-map-count-check.patch
+mm-abstract-reading-sysctl_max_map_count-and-read_once.patch
+mm-mremap-check-map-count-under-mmap-write-lock-and-abstract.patch
+mm-vma-add-vma_flags_empty-vma_flags_and-vma_flags_diff_pair.patch
+tools-testing-vma-add-unit-tests-flag-empty-diff_pair-and.patch
+mm-vma-add-further-vma_flags_t-unions.patch
+tools-testing-vma-convert-bulk-of-test-code-to-vma_flags_t.patch
+mm-vma-use-new-vma-flags-for-sticky-flags-logic.patch
+tools-testing-vma-fix-vma-flag-tests.patch
+mm-vma-add-append_vma_flags-helper.patch
+tools-testing-vma-add-simple-test-for-append_vma_flags.patch
+mm-unexport-vm_brk_flags-and-eliminate-vm_flags-parameter.patch
+mm-vma-introduce-vma_flags_same.patch
+mm-vma-introduce-_to_-helpers.patch
+tools-testing-vma-test-that-legacy-flag-helpers-work-correctly.patch
+mm-vma-introduce-vma_test-and-make-inlining-consistent.patch
+tools-testing-vma-update-vma-flag-tests-to-test-vma_test.patch
+mm-introduce-vma_flags_count-and-vma_test_single_mask.patch
+tools-testing-vma-test-vma_flags_countvma_test_single_mask.patch
+mm-convert-do_brk_flags-to-use-vma_flags_t.patch
+mm-update-vma_supports_mlock-to-use-new-vma-flags.patch
+mm-vma-introduce-vma_clear_flags.patch
+tools-testing-vma-update-vma-tests-to-test-vma_clear_flags.patch
+mm-vma-convert-as-much-as-we-can-in-mm-vmac-to-vma_flags_t.patch
+tools-bitmap-add-missing-bitmap_copy-implementation.patch
+mm-vma-convert-vma_modify_flags-to-use-vma_flags_t.patch
+mm-vma-convert-__mmap_region-to-use-vma_flags_t.patch
+mm-simplify-vma-flag-tests-of-excluded-flags.patch
+mm-various-small-mmap_prepare-cleanups.patch
+mm-add-documentation-for-the-mmap_prepare-file-operation-callback.patch
+mm-document-vm_operations_struct-open-the-same-as-close.patch
+mm-avoid-deadlock-when-holding-rmap-on-mmap_prepare-error.patch
+mm-switch-the-rmap-lock-held-option-off-in-compat-layer.patch
+mm-vma-remove-superfluous-map-hold_file_rmap_lock.patch
+mm-have-mmap_action_complete-handle-the-rmap-lock-and-unmap.patch
+mm-add-vm_ops-mapped-hook.patch
+fs-afs-revert-mmap_prepare-change.patch
+fs-afs-restore-mmap_prepare-implementation.patch
+mm-add-mmap_action_simple_ioremap.patch
+misc-open-dice-replace-deprecated-mmap-hook-with-mmap_prepare.patch
+hpet-replace-deprecated-mmap-hook-with-mmap_prepare.patch
+mtdchar-replace-deprecated-mmap-hook-with-mmap_prepare-clean-up.patch
+stm-replace-deprecated-mmap-hook-with-mmap_prepare.patch
+staging-vme_user-replace-deprecated-mmap-hook-with-mmap_prepare.patch
+mm-allow-handling-of-stacked-mmap_prepare-hooks-in-more-drivers.patch
+drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare.patch
+uio-replace-deprecated-mmap-hook-with-mmap_prepare-in-uio_info.patch
+mm-add-mmap_action_map_kernel_pages.patch
+mm-on-remap-assert-that-input-range-within-the-proposed-vma.patch
+mm-huge_memory-simplify-vma_is_specal_huge.patch
+mm-huge-avoid-big-else-branch-in-zap_huge_pmd.patch
+mm-huge_memory-have-zap_huge_pmd-return-a-boolean-add-kdoc.patch
+mm-huge_memory-handle-buggy-pmd-entry-in-zap_huge_pmd.patch
+mm-huge_memory-add-a-common-exit-path-to-zap_huge_pmd.patch
+mm-huge_memory-remove-unnecessary-vm_bug_on_page.patch
+mm-huge_memory-deduplicate-zap-deposited-table-call.patch
+mm-huge_memory-remove-unnecessary-sanity-checks.patch
+mm-huge_memory-use-mm-instead-of-tlb-mm.patch
+mm-huge_memory-separate-out-the-folio-part-of-zap_huge_pmd.patch
+mm-add-softleaf_is_valid_pmd_entry-pmd_to_softleaf_folio.patch
+mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd.patch
+mm-huge_memory-add-and-use-has_deposited_pgtable.patch
 
