@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E357C311C32;
-	Sat, 21 Mar 2026 18:28:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1267B280335
+	for <mm-commits@vger.kernel.org>; Sun, 22 Mar 2026 00:21:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774117702; cv=none; b=u2X9JPOdThDEoRB0yQwzIfT6rgXWYo2aya24C8uXmQk7g5L7tbfAbxp0ei7jezFDKDaTKfMN6H5pZwl45Q4TLN5z0tG4qy4MaymBIBpS5Dt3csI8Sd9V8yXvISSqVbim4ZfCfU7RElyF7YJjfQUrazzRrlt4tl43BCDVWDQQOiI=
+	t=1774138885; cv=none; b=b3INzrxH0TMBuHwsbZFf8HM/jA/UFcrbXl8uNtvSbF2zLHJqwysCKWEZko1q4c2HD2kT1zSsK/+wkQPoFF9pe3G3MjZlYQVEsw/gFGB39vPPabvXmaCXF2PhYzceCZZ5df0x1BvMDj0wJVvAXuX8t6lu9ccSbIq5A7aOVI6CXQA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774117702; c=relaxed/simple;
-	bh=oBID60Mn8tY5owzZdEfs3uUWxHGjP8bqVh4u8vKqC1I=;
-	h=Date:To:From:Subject:Message-Id; b=hG6ZzTsZoPhGGI7t/38PmyoIbM3BgfjjaFVheU5jh0QNDKewUQquecClJOntFLSiVP+2UDfM6kFXQW28MWI5gdo2nBelTeSUVKrjRSYDDkT9QtcPbq9FxFwFfF5uQVN/zxF9P3E9zYgupUdujLm5sK+rKM0audg5B5W3m3n/5IA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O3agV0h3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774138885; c=relaxed/simple;
+	bh=YhISAJ4SoTWMwH/lxR6SC/oSPVnP6Wcjr+bzeRNZQ/g=;
+	h=Date:To:From:Subject:Message-Id; b=fkTumrqWBQ44B38yXjL7Tb3Vmad5nmYtiUnUXg9gbEr8p5SNPLN1Rfc2SXsEGwqexOy7jN2GHJl4tKOaMh4bY320OgA3Xpso6syi+32+QqG08+F+S2ubmboIp09XoTZreAqlDT6cLV4cVH4FfvI2xEVkhAMZrvx0iOnUTcUU4SY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z3DKZo/R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O3agV0h3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73CDBC19421;
-	Sat, 21 Mar 2026 18:28:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z3DKZo/R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A6DCC19421;
+	Sun, 22 Mar 2026 00:21:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774117701;
-	bh=oBID60Mn8tY5owzZdEfs3uUWxHGjP8bqVh4u8vKqC1I=;
+	s=korg; t=1774138884;
+	bh=YhISAJ4SoTWMwH/lxR6SC/oSPVnP6Wcjr+bzeRNZQ/g=;
 	h=Date:To:From:Subject:From;
-	b=O3agV0h3ecRj2P+HasF1y7uR5K03DzEIiUylmwqosLEYdRXKrea1tdCFqlDxJHgTu
-	 qEssKGq2QZQJvrMgxKYjZOlFpJJDE6SDIXU5Ct1LKqK9wgle6KsyRDy+vwgmsHmfUj
-	 VGrCTtluhZs9Zd3tcCN4oe9a+bUd6QReR9r13UTM=
-Date: Sat, 21 Mar 2026 11:28:20 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,objecting@objecting.org,akpm@linux-foundation.org
+	b=Z3DKZo/RZDROT1EotPhw/PQDkrxnyu2Re/RL4DVBCnRFt/kLueuX3LpOs2jK4mMfF
+	 qelRjFzgTHoidS2dAPxyHIt5454R7TAMpxGFO3/saeSMTMU6NgwAj1OQ30iGP5RDRZ
+	 69JOC9EJRg2Kdd03qfMXAt+4w2SD0LknwLa8ClLg=
+Date: Sat, 21 Mar 2026 17:21:23 -0700
+To: mm-commits@vger.kernel.org,kexinsun@smail.nju.edu.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-check-contexts-nr-in-repeat_call_fn.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260321182821.73CDBC19421@smtp.kernel.org>
+Subject: + drivers-base-memory-fix-stale-reference-to-memory_block_add_nid.patch added to mm-new branch
+Message-Id: <20260322002124.5A6DCC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: check contexts->nr in repeat_call_fn
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-sysfs-check-contexts-nr-in-repeat_call_fn.patch
+     Subject: drivers/base/memory: fix stale reference to memory_block_add_nid()
+has been added to the -mm mm-new branch.  Its filename is
+     drivers-base-memory-fix-stale-reference-to-memory_block_add_nid.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-check-contexts-nr-in-repeat_call_fn.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-memory-fix-stale-reference-to-memory_block_add_nid.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,78 +69,41 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Josh Law <objecting@objecting.org>
-Subject: mm/damon/sysfs: check contexts->nr in repeat_call_fn
-Date: Sat, 21 Mar 2026 10:54:26 -0700
+From: Kexin Sun <kexinsun@smail.nju.edu.cn>
+Subject: drivers/base/memory: fix stale reference to memory_block_add_nid()
+Date: Sat, 21 Mar 2026 18:57:04 +0800
 
-damon_sysfs_repeat_call_fn() calls damon_sysfs_upd_tuned_intervals(),
-damon_sysfs_upd_schemes_stats(), and
-damon_sysfs_upd_schemes_effective_quotas() without checking contexts->nr. 
-If nr_contexts is set to 0 via sysfs while DAMON is running, these
-functions dereference contexts_arr[0] and cause a NULL pointer
-dereference.  Add the missing check.
+The function memory_block_add_nid() was renamed to
+memory_block_add_nid_early() by commit 0a947c14e48c ("drivers/base: move
+memory_block_add_nid() into the caller").  Update the stale reference in
+add_memory_block().
 
-For example, the issue can be reproduced using DAMON sysfs interface and
-DAMON user-space tool (damo) [1] like below.
-
-    $ sudo damo start --refresh_interval 1s
-    $ echo 0 | sudo tee \
-            /sys/kernel/mm/damon/admin/kdamonds/0/contexts/nr_contexts
-
-Link: https://patch.msgid.link/20260320163559.178101-3-objecting@objecting.org
-Link: https://lkml.kernel.org/r/20260321175427.86000-4-sj@kernel.org
-Link: https://github.com/damonitor/damo [1]
-Fixes: d809a7c64ba8 ("mm/damon/sysfs: implement refresh_ms file internal work")
-Signed-off-by: Josh Law <objecting@objecting.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[6.17+]
+Assisted-by: unnamed:deepseek-v3.2 coccinelle
+Link: https://lkml.kernel.org/r/20260321105704.6093-1-kexinsun@smail.nju.edu.cn
+Signed-off-by: Kexin Sun <kexinsun@smail.nju.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/base/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-check-contexts-nr-in-repeat_call_fn
-+++ a/mm/damon/sysfs.c
-@@ -1620,9 +1620,12 @@ static int damon_sysfs_repeat_call_fn(vo
- 
- 	if (!mutex_trylock(&damon_sysfs_lock))
- 		return 0;
-+	if (sysfs_kdamond->contexts->nr != 1)
-+		goto out;
- 	damon_sysfs_upd_tuned_intervals(sysfs_kdamond);
- 	damon_sysfs_upd_schemes_stats(sysfs_kdamond);
- 	damon_sysfs_upd_schemes_effective_quotas(sysfs_kdamond);
-+out:
- 	mutex_unlock(&damon_sysfs_lock);
- 	return 0;
- }
+--- a/drivers/base/memory.c~drivers-base-memory-fix-stale-reference-to-memory_block_add_nid
++++ a/drivers/base/memory.c
+@@ -815,7 +815,7 @@ static int add_memory_block(unsigned lon
+ 		/*
+ 		 * MEM_ONLINE at this point implies early memory. With NUMA,
+ 		 * we'll determine the zone when setting the node id via
+-		 * memory_block_add_nid(). Memory hotplug updated the zone
++		 * memory_block_add_nid_early(). Memory hotplug updated the zone
+ 		 * manually when memory onlining/offlining succeeds.
+ 		 */
+ 		mem->zone = early_node_zone_for_memory_block(mem, NUMA_NO_NODE);
 _
 
-Patches currently in -mm which might be from objecting@objecting.org are
+Patches currently in -mm which might be from kexinsun@smail.nju.edu.cn are
 
-mm-damon-sysfs-fix-param_ctx-leak-on-damon_sysfs_new_test_ctx-failure.patch
-mm-damon-sysfs-check-contexts-nr-before-accessing-contexts_arr.patch
-mm-damon-sysfs-check-contexts-nr-in-repeat_call_fn.patch
-lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
-mm-damon-core-document-damos_commit_dests-failure-semantics.patch
-lib-glob-fix-grammar-and-replace-non-inclusive-terminology.patch
-lib-glob-add-explicit-include-for-exporth.patch
-lib-glob-replace-bitwise-or-with-logical-operation-on-boolean.patch
-lib-glob-clean-up-bool-abuse-in-pointer-arithmetic.patch
-lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
-lib-inflate-fix-memory-leak-in-inflate_fixed-on-inflate_codes-failure.patch
-lib-inflate-fix-memory-leak-in-inflate_dynamic-on-inflate_codes-failure.patch
-lib-inflate-fix-grammar-in-comment-variable-to-variables.patch
-lib-inflate-fix-typo-this-results-to-the-results-in-comment.patch
-lib-bug-fix-inconsistent-capitalization-in-bug-message.patch
-lib-bug-remove-unnecessary-variable-initializations.patch
-lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
-lib-decompress_bunzip2-fix-32-bit-shift-undefined-behavior.patch
-lib-ts_bm-fix-integer-overflow-in-pattern-length-calculation.patch
-lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation.patch
-lib-glob-initialize-back_str-to-silence-uninitialized-variable-warning.patch
-lib-bch-fix-signed-left-shift-undefined-behavior.patch
-lib-bch-fix-signed-shift-overflow-in-build_mod8_tables.patch
+kasan-update-outdated-comment.patch
+mm-vmalloc-update-outdated-comment-for-renamed-vread.patch
+mm-update-outdated-comments-for-removed-scan_swap_map_slots.patch
+drivers-base-memory-fix-stale-reference-to-memory_block_add_nid.patch
 
