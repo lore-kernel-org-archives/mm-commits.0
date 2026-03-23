@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 581F438736A
-	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 17:24:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 650533C661C
+	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 17:43:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774286646; cv=none; b=c7h0nIA1KSNlIjU1ssWgN5ad5E1vrcUgGq0eCEhBlSLR1U4Hr+bsAEBBNufcxj29pME4RSIfsUlG+qwRxqq+KKRQnZfq3E0hJ71vy4gyOw8rYlv0pfV6rScXF02uZJDEmMf2h8rc/ATS49E7k31fc8a2x7MPnyZpGmK1pC3ICJw=
+	t=1774287797; cv=none; b=sckvuIRCNpg6Wv4/tBCioViXHNXzxQ8mxQgTusTr3Bw+lrz0zY31ZTS2XN4efQ8P0PnaEpd1/uGXDHiSaUI2T9ltH3LCbucuMJ4lrHTvogdjadsa3uucX94xmx/48GdGf3tO8k14SiclqWwy1vE9PN3dEdgGhzz8Darq0PIVPOk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774286646; c=relaxed/simple;
-	bh=iTRvHr5CosEKYfORZ67WYLhj8wYcpBGfMpCLQ+g+Dz8=;
-	h=Date:To:From:Subject:Message-Id; b=YTvxm08jSYNQYGporUyVG1ojRFIZSXfbaAp7jU5KuV/65DoyfKLiSz7bKONAb6fILYwD0046d7gDp6OxpRO8NtAtVWhvlyuCdSS3JcS8+Spq8N+lqEWC6df9S6tzE1F3G4Jn8APTDBBbqmadql3ascKoToWlVEoRw5fIDtRCPQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sj1VOd3/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774287797; c=relaxed/simple;
+	bh=6omY8M8Ok1l98iJZa4kGUkOjIE6oI5xiy+5hkPbVqs8=;
+	h=Date:To:From:Subject:Message-Id; b=sSXRZZBEqDpRH82y8L3wvtyJzTJv3n4BA0myjwIoq3Z3+xF2Lad+OpqWl0BGwUP2waQCQedEYzJqrIeBuxcaUQ27K4pApYb9mMzqUxRB35RtnWUvGJp3Qzha+9w1iEyMyL7uQQ1bDqbo/YhMkI4lFrmn4tD4rsh/8Lw8fdjpzJU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JMlKoA/B; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sj1VOd3/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF356C4CEF7;
-	Mon, 23 Mar 2026 17:24:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JMlKoA/B"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2476C2BC9E;
+	Mon, 23 Mar 2026 17:43:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774286646;
-	bh=iTRvHr5CosEKYfORZ67WYLhj8wYcpBGfMpCLQ+g+Dz8=;
+	s=korg; t=1774287797;
+	bh=6omY8M8Ok1l98iJZa4kGUkOjIE6oI5xiy+5hkPbVqs8=;
 	h=Date:To:From:Subject:From;
-	b=Sj1VOd3/hsvXFWpZBoU4rxpS5qTth43qeLiig4pr6pz5fA38siJ+H4NZgyrwXrRL8
-	 LACUm6HGAe6kYIf7TNgtm4HRue8kepkWBR3mw5HR7lTMctgV4jmalviK0vHO0+LKUK
-	 Zifl9Dioxl1PR9gXSDt5Sf9SNJufT4yb2f/dGlnA=
-Date: Mon, 23 Mar 2026 10:24:05 -0700
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,rostedt@goodmis.org,ritesh.list@gmail.com,peterz@infradead.org,mingo@redhat.com,mgorman@suse.de,juri.lelli@redhat.com,huang.ying.caritas@gmail.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,baolin.wang@linux.alibaba.com,donettom@linux.ibm.com,akpm@linux-foundation.org
+	b=JMlKoA/BoJ9FDUInzIVq1g3SXM4nbxvMs7Y/HM+SMJpqRGnhecOyOGSGeYrBR4fkW
+	 UoJz6PtIS6MxJPISFm1GGgk63T7Gy7yAXPzXMF0m51OVufDXThEnpDaGttyO+14V0e
+	 jtuAda07z/IDwsdAamgEAYvvBt5Rc2ipSdldbwg0=
+Date: Mon, 23 Mar 2026 10:43:16 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memory-tiering-do-not-allow-promotion-if-numa_balancing_memory_tiering-is-disabled.patch added to mm-new branch
-Message-Id: <20260323172405.EF356C4CEF7@smtp.kernel.org>
+Subject: + mm-kmemleak-add-config_debug_kmemleak_verbose-build-option.patch added to mm-new branch
+Message-Id: <20260323174316.F2476C2BC9E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memory tiering: do not allow promotion if NUMA_BALANCING_MEMORY_TIERING is disabled
+     Subject: mm: kmemleak: add CONFIG_DEBUG_KMEMLEAK_VERBOSE build option
 has been added to the -mm mm-new branch.  Its filename is
-     memory-tiering-do-not-allow-promotion-if-numa_balancing_memory_tiering-is-disabled.patch
+     mm-kmemleak-add-config_debug_kmemleak_verbose-build-option.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memory-tiering-do-not-allow-promotion-if-numa_balancing_memory_tiering-is-disabled.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-kmemleak-add-config_debug_kmemleak_verbose-build-option.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,91 +69,86 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Donet Tom <donettom@linux.ibm.com>
-Subject: memory tiering: do not allow promotion if NUMA_BALANCING_MEMORY_TIERING is disabled
-Date: Mon, 23 Mar 2026 04:48:49 -0500
+From: Breno Leitao <leitao@debian.org>
+Subject: mm: kmemleak: add CONFIG_DEBUG_KMEMLEAK_VERBOSE build option
+Date: Mon, 23 Mar 2026 04:12:13 -0700
 
-In the current implementation, if NUMA_BALANCING_MEMORY_TIERING is
-disabled and the pages are on the lower tier, the pages may still be
-promoted.
+Add a Kconfig option to default kmemleak verbose mode on at build time. 
+This option depends on DEBUG_KMEMLEAK_AUTO_SCAN since verbose reporting is
+only meaningful when the automatic scanning thread is running.
 
-This happens because task_numa_work() updates the last_cpupid field to
-record the last access time only when NUMA_BALANCING_MEMORY_TIERING is
-enabled and the folio is on the lower tier.  If
-NUMA_BALANCING_MEMORY_TIERING is disabled, the last_cpupid field can
-retains a valid last CPU id.
+When enabled, kmemleak prints full details (backtrace, hex dump, address)
+of unreferenced objects to dmesg as they are detected during scanning,
+removing the need to manually read /sys/kernel/debug/kmemleak.
 
-In should_numa_migrate_memory(), the decision checks whether
-NUMA_BALANCING_MEMORY_TIERING is disabled, the folio is on the lower tier,
-and last_cpupid is invalid.  However, the last_cpupid can be valid when
-NUMA_BALANCING_MEMORY_TIERING is disabled, the condition evaluates to
-false and migration is allowed.
+Making this a compile-time option rather than a boot parameter allows
+debug kernel flavors to enable verbose kmemleak reporting by default
+without requiring changes to boot arguments.  A machine can simply swap to
+a debug kernel and benefit from kmemleak reporting automatically.
 
-This patch prevents promotion when NUMA_BALANCING_MEMORY_TIERING is
-disabled and the folio is on the lower tier.
+By surfacing leak reports directly in dmesg, they are automatically
+forwarded through any kernel logging infrastructure and can be easily
+captured by log aggregation tooling, making it practical to monitor memory
+leaks across large fleets.
 
-Behavior before this change:
-============================
-  - If NUMA_BALANCING_NORMAL is enabled, migration occurs between
-    nodes within the same memory tier, and promotion from lower
-    tier to higher tier may also happen.
+The verbose setting can still be toggled at runtime via
+/sys/module/kmemleak/parameters/verbose.
 
-  - If NUMA_BALANCING_MEMORY_TIERING is enabled, promotion from
-    lower tier to higher tier nodes is allowed.
-
-Behavior after this change:
-===========================
-  - If NUMA_BALANCING_NORMAL is enabled, migration will occur only
-    between nodes within the same memory tier.
-
-  - If NUMA_BALANCING_MEMORY_TIERING is enabled, promotion from lower
-    tier to higher tier nodes will be allowed.
-
-  - If both NUMA_BALANCING_MEMORY_TIERING and NUMA_BALANCING_NORMAL are
-    enabled, both migration (same tier) and promotion (cross tier) are
-    allowed.
-
-Link: https://lkml.kernel.org/r/20260323094849.3903-1-donettom@linux.ibm.com
-Fixes: 33024536bafd ("memory tiering: hot page selection with hint page fault latency")
-Signed-off-by: Donet Tom <donettom@linux.ibm.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Ben Segall <bsegall@google.com>
+Link: https://lkml.kernel.org/r/20260323-kmemleak_report-v1-1-ba2cdd9c11b9@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: "Huang, Ying" <huang.ying.caritas@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/fair.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/Kconfig.debug |   11 +++++++++++
+ mm/kmemleak.c    |    2 +-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
---- a/kernel/sched/fair.c~memory-tiering-do-not-allow-promotion-if-numa_balancing_memory_tiering-is-disabled
-+++ a/kernel/sched/fair.c
-@@ -2024,8 +2024,12 @@ bool should_numa_migrate_memory(struct t
- 	this_cpupid = cpu_pid_to_cpupid(dst_cpu, current->pid);
- 	last_cpupid = folio_xchg_last_cpupid(folio, this_cpupid);
+--- a/mm/Kconfig.debug~mm-kmemleak-add-config_debug_kmemleak_verbose-build-option
++++ a/mm/Kconfig.debug
+@@ -297,6 +297,17 @@ config DEBUG_KMEMLEAK_AUTO_SCAN
  
-+	/*
-+	 * Do not allow promotion if NUMA_BALANCING_MEMORY_TIERING is disabled
-+	 * and the pages are on the lower tier.
-+	 */
- 	if (!(sysctl_numa_balancing_mode & NUMA_BALANCING_MEMORY_TIERING) &&
--	    !node_is_toptier(src_nid) && !cpupid_valid(last_cpupid))
-+	    !node_is_toptier(src_nid))
- 		return false;
+ 	  If unsure, say Y.
  
- 	/*
++config DEBUG_KMEMLEAK_VERBOSE
++	bool "Default kmemleak to verbose mode"
++	depends on DEBUG_KMEMLEAK_AUTO_SCAN
++	help
++	  Say Y here to have kmemleak print unreferenced object details
++	  (backtrace, hex dump, address) to dmesg when new memory leaks are
++	  detected during automatic scanning. This can also be toggled at
++	  runtime via /sys/module/kmemleak/parameters/verbose.
++
++	  If unsure, say N.
++
+ config PER_VMA_LOCK_STATS
+ 	bool "Statistics for per-vma locks"
+ 	depends on PER_VMA_LOCK
+--- a/mm/kmemleak.c~mm-kmemleak-add-config_debug_kmemleak_verbose-build-option
++++ a/mm/kmemleak.c
+@@ -241,7 +241,7 @@ static int kmemleak_skip_disable;
+ /* If there are leaks that can be reported */
+ static bool kmemleak_found_leaks;
+ 
+-static bool kmemleak_verbose;
++static bool kmemleak_verbose = IS_ENABLED(CONFIG_DEBUG_KMEMLEAK_VERBOSE);
+ module_param_named(verbose, kmemleak_verbose, bool, 0600);
+ 
+ static void kmemleak_disable(void);
 _
 
-Patches currently in -mm which might be from donettom@linux.ibm.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-memory-tiering-do-not-allow-promotion-if-numa_balancing_memory_tiering-is-disabled.patch
+mm-khugepaged-export-set_recommended_min_free_kbytes.patch
+mm-huge_memory-refactor-anon_enabled_store-with-set_anon_enabled_mode.patch
+mm-huge_memory-refactor-enabled_store-with-set_global_enabled_mode.patch
+mm-ratelimit-min_free_kbytes-adjustment-messages.patch
+mm-kmemleak-add-config_debug_kmemleak_verbose-build-option.patch
 
