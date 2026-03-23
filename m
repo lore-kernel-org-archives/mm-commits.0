@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0F26381AFC
-	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 21:59:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12BAD3822A6
+	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 21:59:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774303183; cv=none; b=rZ4qqB6bBVhrtsfYZLyGr8FKeLBCD2sKjdzeknWJmAA46xwcSDBxl89Aikx43yxnGAnd+nR9wPc5l3MZlf/+GOD4hUh/6tlwnnI7Lg59Y9ml+96jBYzMzEm8u6HSSAcb3HjWW0m9N8/S30sNxMDraV7FDRLrFeCXq2jDVIk/vws=
+	t=1774303188; cv=none; b=tnmLcYDIXJNzx85M4dh0wXe/R8oVOc83QSNqDKkEplPvfxVZPVuVpu+gWQtTUFLna3c4kgkWZGlVABMGH4/0p/cwwwOxjImcZSFDVBZJODsHbDq2nfISddpHr2XGV0nTAMOfYhxdoqn9+zH/vfXQIr9YZNa/93wMa4TbygaBiME=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774303183; c=relaxed/simple;
-	bh=3zHxiGpmmgsChPyyYBQGhWC20/34WC4Szj/sxlzvaJQ=;
-	h=Date:To:From:Subject:Message-Id; b=sBZdhChhJcR6AGXB8arUkf5ucDlPHi1FHjtaEfItwdTgdrKb5I/9ovKfZOLgOZuSFNMBLDH6GG7MRyfyc8++mERv/CJl058m3bwKI84EbAqHigUDat3742rlACcstj15kZs4xHfuZRrLErOLzsWUIeIymdmuOGEzVDLs3udlHSg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kvRvtyXk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774303188; c=relaxed/simple;
+	bh=QhEOoOgRyQVUFcNbF2N2IbtaMeFLreb6wlOjYykHCsY=;
+	h=Date:To:From:Subject:Message-Id; b=rYfpZtazQBOAW1w92B6diO1huaKVcf/WDcBaTi9qM/Jgo09AjYA+blqKrWCmDZz5mQ4/cXM54JpF7kWFaENYscPA6HmayPDWnmVLSabdNyIkZfcogOXb84aJ7NU/mrvLBnEit7ALtqRyXq64yyAa3G4bwiOQBpbSQ2GPpnsZhb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bvQ3lCu1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kvRvtyXk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49758C4CEF7;
-	Mon, 23 Mar 2026 21:59:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bvQ3lCu1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56738C4CEF7;
+	Mon, 23 Mar 2026 21:59:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774303182;
-	bh=3zHxiGpmmgsChPyyYBQGhWC20/34WC4Szj/sxlzvaJQ=;
+	s=korg; t=1774303187;
+	bh=QhEOoOgRyQVUFcNbF2N2IbtaMeFLreb6wlOjYykHCsY=;
 	h=Date:To:From:Subject:From;
-	b=kvRvtyXkmKNm8JJWwSFWUkyV6eDPMt9UXMgvmiK3Re9L9TvWl9r+HQqSpvqUgnuR3
-	 BFbmrWOnd4nCry5vUW/SCptfmZnfeRxldfkv3APAHVqCn7iNCr/G9gpmdwnbURv+mO
-	 O4rBeUQRIO6gn+krPjw3BwWNYqZShWftWCwk6j9E=
-Date: Mon, 23 Mar 2026 14:59:41 -0700
+	b=bvQ3lCu1urUAX8uk7KN7OKOwMrbDxmn3LqdJG3hqLefsVWXevqSW8LNzPmZgDDtXe
+	 FoTfhvb6Qidh5SrJZHGZrCIIeMk6NOO3DOCFyho3CGNaewNkgjMxyGmUU8QmktU3ER
+	 luvVk81+muDiWQEI4qSXnoimmzSulOS7970YMhrs=
+Date: Mon, 23 Mar 2026 14:59:46 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,graf@amazon.com,david@kernel.org,corbet@lwn.net,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-add-size-parameter-to-kho_add_subtree.patch added to mm-nonmm-unstable branch
-Message-Id: <20260323215942.49758C4CEF7@smtp.kernel.org>
+Subject: + kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree.patch added to mm-nonmm-unstable branch
+Message-Id: <20260323215947.56738C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: add size parameter to kho_add_subtree()
+     Subject: kho: rename fdt parameter to blob in kho_add/remove_subtree()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-add-size-parameter-to-kho_add_subtree.patch
+     kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-add-size-parameter-to-kho_add_subtree.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,85 +59,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Breno Leitao <leitao@debian.org>
-Subject: kho: add size parameter to kho_add_subtree()
-Date: Mon, 16 Mar 2026 04:54:31 -0700
+Subject: kho: rename fdt parameter to blob in kho_add/remove_subtree()
+Date: Mon, 16 Mar 2026 04:54:32 -0700
 
-Patch series "kho: history: track previous kernel version and kexec boot
-count", v9.
+Since kho_add_subtree() now accepts arbitrary data blobs (not just FDTs),
+rename the parameter from 'fdt' to 'blob' to better reflect its purpose. 
+Apply the same rename to kho_remove_subtree() for consistency.
 
-Use Kexec Handover (KHO) to pass the previous kernel's version string and
-the number of kexec reboots since the last cold boot to the next kernel,
-and print it at boot time.
+Also rename kho_debugfs_fdt_add() and kho_debugfs_fdt_remove() to
+kho_debugfs_blob_add() and kho_debugfs_blob_remove() respectively, with
+the same parameter rename from 'fdt' to 'blob'.
 
-Example
-=======
-	[    0.000000] Linux version 6.19.0-rc3-upstream-00047-ge5d992347849
-	...
-	[    0.000000] KHO: exec from: 6.19.0-rc4-next-20260107upstream-00004-g3071b0dc4498 (count 1)
-
-Motivation
-==========
-
-Bugs that only reproduce when kexecing from specific kernel versions are
-difficult to diagnose.  These issues occur when a buggy kernel kexecs into
-a new kernel, with the bug manifesting only in the second kernel.
-
-Recent examples include:
-
- * eb2266312507 ("x86/boot: Fix page table access in 5-level to 4-level paging transition")
- * 77d48d39e991 ("efistub/tpm: Use ACPI reclaim memory for event log to avoid corruption")
- * 64b45dd46e15 ("x86/efi: skip memattr table on kexec boot")
-
-As kexec-based reboots become more common, these version-dependent bugs
-are appearing more frequently.  At scale, correlating crashes to the
-previous kernel version is challenging, especially when issues only occur
-in specific transition scenarios.
-
-Some bugs manifest only after multiple consecutive kexec reboots. 
-Tracking the kexec count helps identify these cases (this metric is
-already used by live update sub-system).
-
-KHO provides a reliable mechanism to pass information between kernels.  By
-carrying the previous kernel's release string and kexec count forward, we
-can print this context at boot time to aid debugging.
-
-The goal of this feature is to have this information being printed in
-early boot, so, users can trace back kernel releases in kexec.  Systemd is
-not helpful because we cannot assume that the previous kernel has systemd
-or even write access to the disk (common when using Linux as bootloaders)
-
-
-This patch (of 6):
-
-kho_add_subtree() assumes the fdt argument is always an FDT and calls
-fdt_totalsize() on it in the debugfs code path.  This assumption will
-break if a caller passes arbitrary data instead of an FDT.
-
-When CONFIG_KEXEC_HANDOVER_DEBUGFS is enabled, kho_debugfs_fdt_add() calls
-__kho_debugfs_fdt_add(), which executes:
-
-    f->wrapper.size = fdt_totalsize(fdt);
-
-Fix this by adding an explicit size parameter to kho_add_subtree() so
-callers specify the blob size.  This allows subtrees to contain arbitrary
-data formats, not just FDTs.  Update all callers:
-
-  - memblock.c: use fdt_totalsize(fdt)
-  - luo_core.c: use fdt_totalsize(fdt_out)
-  - test_kho.c: use fdt_totalsize()
-  - kexec_handover.c (root fdt): use fdt_totalsize(kho_out.fdt)
-
-Also update __kho_debugfs_fdt_add() to receive the size explicitly instead
-of computing it internally via fdt_totalsize().  In kho_in_debugfs_init(),
-pass fdt_totalsize() for the root FDT and sub-blobs since all current
-users are FDTs.  A subsequent patch will persist the size in the KHO FDT
-so the incoming side can handle non-FDT blobs correctly.
-
-Link: https://lkml.kernel.org/r/20260323110747.193569-1-duanchenghao@kylinos.cn
-Link: https://lkml.kernel.org/r/20260316-kho-v9-1-ed6dcd951988@debian.org
+Link: https://lkml.kernel.org/r/20260316-kho-v9-2-ed6dcd951988@debian.org
 Signed-off-by: Breno Leitao <leitao@debian.org>
-Suggested-by: Pratyush Yadav <pratyush@kernel.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -152,196 +88,246 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec_handover.h              |    4 ++--
- kernel/liveupdate/kexec_handover.c          |    8 +++++---
- kernel/liveupdate/kexec_handover_debugfs.c  |   15 +++++++++------
- kernel/liveupdate/kexec_handover_internal.h |    5 +++--
- kernel/liveupdate/luo_core.c                |    3 ++-
- lib/test_kho.c                              |    3 ++-
- mm/memblock.c                               |    2 +-
- 7 files changed, 24 insertions(+), 16 deletions(-)
+ Documentation/admin-guide/mm/kho.rst        |    2 -
+ include/linux/kexec_handover.h              |    8 ++--
+ kernel/liveupdate/kexec_handover.c          |   33 +++++++++---------
+ kernel/liveupdate/kexec_handover_debugfs.c  |   25 +++++++------
+ kernel/liveupdate/kexec_handover_internal.h |   16 ++++----
+ 5 files changed, 43 insertions(+), 41 deletions(-)
 
---- a/include/linux/kexec_handover.h~kho-add-size-parameter-to-kho_add_subtree
+--- a/Documentation/admin-guide/mm/kho.rst~kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree
++++ a/Documentation/admin-guide/mm/kho.rst
+@@ -80,5 +80,5 @@ stabilized.
+     it finished to interpret their metadata.
+ 
+ ``/sys/kernel/debug/kho/in/sub_fdts/``
+-    Similar to ``kho/out/sub_fdts/``, but contains sub FDT blobs
++    Similar to ``kho/out/sub_fdts/``, but contains sub blobs
+     of KHO producers passed from the old kernel.
+--- a/include/linux/kexec_handover.h~kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree
 +++ a/include/linux/kexec_handover.h
-@@ -32,7 +32,7 @@ void kho_restore_free(void *mem);
+@@ -32,8 +32,8 @@ void kho_restore_free(void *mem);
  struct folio *kho_restore_folio(phys_addr_t phys);
  struct page *kho_restore_pages(phys_addr_t phys, unsigned long nr_pages);
  void *kho_restore_vmalloc(const struct kho_vmalloc *preservation);
--int kho_add_subtree(const char *name, void *fdt);
-+int kho_add_subtree(const char *name, void *fdt, size_t size);
- void kho_remove_subtree(void *fdt);
+-int kho_add_subtree(const char *name, void *fdt, size_t size);
+-void kho_remove_subtree(void *fdt);
++int kho_add_subtree(const char *name, void *blob, size_t size);
++void kho_remove_subtree(void *blob);
  int kho_retrieve_subtree(const char *name, phys_addr_t *phys);
  
-@@ -97,7 +97,7 @@ static inline void *kho_restore_vmalloc(
+ void kho_memory_init(void);
+@@ -97,12 +97,12 @@ static inline void *kho_restore_vmalloc(
  	return NULL;
  }
  
--static inline int kho_add_subtree(const char *name, void *fdt)
-+static inline int kho_add_subtree(const char *name, void *fdt, size_t size)
+-static inline int kho_add_subtree(const char *name, void *fdt, size_t size)
++static inline int kho_add_subtree(const char *name, void *blob, size_t size)
  {
  	return -EOPNOTSUPP;
  }
---- a/kernel/liveupdate/kexec_handover.c~kho-add-size-parameter-to-kho_add_subtree
+ 
+-static inline void kho_remove_subtree(void *fdt) { }
++static inline void kho_remove_subtree(void *blob) { }
+ 
+ static inline int kho_retrieve_subtree(const char *name, phys_addr_t *phys)
+ {
+--- a/kernel/liveupdate/kexec_handover.c~kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree
 +++ a/kernel/liveupdate/kexec_handover.c
-@@ -727,6 +727,7 @@ err_disable_kho:
-  * kho_add_subtree - record the physical address of a sub FDT in KHO root tree.
+@@ -724,13 +724,13 @@ err_disable_kho:
+ }
+ 
+ /**
+- * kho_add_subtree - record the physical address of a sub FDT in KHO root tree.
++ * kho_add_subtree - record the physical address of a sub blob in KHO root tree.
   * @name: name of the sub tree.
-  * @fdt: the sub tree blob.
-+ * @size: size of the blob in bytes.
+- * @fdt: the sub tree blob.
++ * @blob: the sub tree blob.
+  * @size: size of the blob in bytes.
   *
   * Creates a new child node named @name in KHO root FDT and records
-  * the physical address of @fdt. The pages of @fdt must also be preserved
-@@ -738,7 +739,7 @@ err_disable_kho:
+- * the physical address of @fdt. The pages of @fdt must also be preserved
++ * the physical address of @blob. The pages of @blob must also be preserved
+  * by KHO for the new kernel to retrieve it after kexec.
+  *
+  * A debugfs blob entry is also created at
+@@ -739,9 +739,9 @@ err_disable_kho:
   *
   * Return: 0 on success, error code on failure
   */
--int kho_add_subtree(const char *name, void *fdt)
-+int kho_add_subtree(const char *name, void *fdt, size_t size)
+-int kho_add_subtree(const char *name, void *fdt, size_t size)
++int kho_add_subtree(const char *name, void *blob, size_t size)
  {
- 	phys_addr_t phys = virt_to_phys(fdt);
+-	phys_addr_t phys = virt_to_phys(fdt);
++	phys_addr_t phys = virt_to_phys(blob);
  	void *root_fdt = kho_out.fdt;
-@@ -763,7 +764,7 @@ int kho_add_subtree(const char *name, vo
+ 	int err = -ENOMEM;
+ 	int off, fdt_err;
+@@ -764,7 +764,8 @@ int kho_add_subtree(const char *name, vo
  	if (err < 0)
  		goto out_pack;
  
--	WARN_ON_ONCE(kho_debugfs_fdt_add(&kho_out.dbg, name, fdt, false));
-+	WARN_ON_ONCE(kho_debugfs_fdt_add(&kho_out.dbg, name, fdt, size, false));
+-	WARN_ON_ONCE(kho_debugfs_fdt_add(&kho_out.dbg, name, fdt, size, false));
++	WARN_ON_ONCE(kho_debugfs_blob_add(&kho_out.dbg, name, blob,
++					  size, false));
  
  out_pack:
  	fdt_pack(root_fdt);
-@@ -1431,7 +1432,8 @@ static __init int kho_init(void)
+@@ -773,9 +774,9 @@ out_pack:
+ }
+ EXPORT_SYMBOL_GPL(kho_add_subtree);
+ 
+-void kho_remove_subtree(void *fdt)
++void kho_remove_subtree(void *blob)
+ {
+-	phys_addr_t target_phys = virt_to_phys(fdt);
++	phys_addr_t target_phys = virt_to_phys(blob);
+ 	void *root_fdt = kho_out.fdt;
+ 	int off;
+ 	int err;
+@@ -797,7 +798,7 @@ void kho_remove_subtree(void *fdt)
+ 
+ 		if ((phys_addr_t)*val == target_phys) {
+ 			fdt_del_node(root_fdt, off);
+-			kho_debugfs_fdt_remove(&kho_out.dbg, fdt);
++			kho_debugfs_blob_remove(&kho_out.dbg, blob);
+ 			break;
+ 		}
+ 	}
+@@ -1293,11 +1294,11 @@ bool is_kho_boot(void)
+ EXPORT_SYMBOL_GPL(is_kho_boot);
+ 
+ /**
+- * kho_retrieve_subtree - retrieve a preserved sub FDT by its name.
+- * @name: the name of the sub FDT passed to kho_add_subtree().
+- * @phys: if found, the physical address of the sub FDT is stored in @phys.
++ * kho_retrieve_subtree - retrieve a preserved sub blob by its name.
++ * @name: the name of the sub blob passed to kho_add_subtree().
++ * @phys: if found, the physical address of the sub blob is stored in @phys.
+  *
+- * Retrieve a preserved sub FDT named @name and store its physical
++ * Retrieve a preserved sub blob named @name and store its physical
+  * address in @phys.
+  *
+  * Return: 0 on success, error code on failure
+@@ -1431,9 +1432,9 @@ static __init int kho_init(void)
+ 			init_cma_reserved_pageblock(pfn_to_page(pfn));
  	}
  
- 	WARN_ON_ONCE(kho_debugfs_fdt_add(&kho_out.dbg, "fdt",
--					 kho_out.fdt, true));
-+					 kho_out.fdt,
-+					 fdt_totalsize(kho_out.fdt), true));
+-	WARN_ON_ONCE(kho_debugfs_fdt_add(&kho_out.dbg, "fdt",
+-					 kho_out.fdt,
+-					 fdt_totalsize(kho_out.fdt), true));
++	WARN_ON_ONCE(kho_debugfs_blob_add(&kho_out.dbg, "fdt",
++					  kho_out.fdt,
++					  fdt_totalsize(kho_out.fdt), true));
  
  	return 0;
  
---- a/kernel/liveupdate/kexec_handover_debugfs.c~kho-add-size-parameter-to-kho_add_subtree
+--- a/kernel/liveupdate/kexec_handover_debugfs.c~kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree
 +++ a/kernel/liveupdate/kexec_handover_debugfs.c
-@@ -25,7 +25,7 @@ struct fdt_debugfs {
+@@ -24,8 +24,9 @@ struct fdt_debugfs {
+ 	struct dentry *file;
  };
  
- static int __kho_debugfs_fdt_add(struct list_head *list, struct dentry *dir,
--				 const char *name, const void *fdt)
-+				 const char *name, const void *fdt, size_t size)
+-static int __kho_debugfs_fdt_add(struct list_head *list, struct dentry *dir,
+-				 const char *name, const void *fdt, size_t size)
++static int __kho_debugfs_blob_add(struct list_head *list, struct dentry *dir,
++				  const char *name, const void *blob,
++				  size_t size)
  {
  	struct fdt_debugfs *f;
  	struct dentry *file;
-@@ -35,7 +35,7 @@ static int __kho_debugfs_fdt_add(struct
+@@ -34,7 +35,7 @@ static int __kho_debugfs_fdt_add(struct
+ 	if (!f)
  		return -ENOMEM;
  
- 	f->wrapper.data = (void *)fdt;
--	f->wrapper.size = fdt_totalsize(fdt);
-+	f->wrapper.size = size;
+-	f->wrapper.data = (void *)fdt;
++	f->wrapper.data = (void *)blob;
+ 	f->wrapper.size = size;
  
  	file = debugfs_create_blob(name, 0400, dir, &f->wrapper);
- 	if (IS_ERR(file)) {
-@@ -50,7 +50,7 @@ static int __kho_debugfs_fdt_add(struct
+@@ -49,8 +50,8 @@ static int __kho_debugfs_fdt_add(struct
+ 	return 0;
  }
  
- int kho_debugfs_fdt_add(struct kho_debugfs *dbg, const char *name,
--			const void *fdt, bool root)
-+			const void *fdt, size_t size, bool root)
+-int kho_debugfs_fdt_add(struct kho_debugfs *dbg, const char *name,
+-			const void *fdt, size_t size, bool root)
++int kho_debugfs_blob_add(struct kho_debugfs *dbg, const char *name,
++			 const void *blob, size_t size, bool root)
  {
  	struct dentry *dir;
  
-@@ -59,7 +59,7 @@ int kho_debugfs_fdt_add(struct kho_debug
+@@ -59,15 +60,15 @@ int kho_debugfs_fdt_add(struct kho_debug
  	else
  		dir = dbg->sub_fdt_dir;
  
--	return __kho_debugfs_fdt_add(&dbg->fdt_list, dir, name, fdt);
-+	return __kho_debugfs_fdt_add(&dbg->fdt_list, dir, name, fdt, size);
+-	return __kho_debugfs_fdt_add(&dbg->fdt_list, dir, name, fdt, size);
++	return __kho_debugfs_blob_add(&dbg->fdt_list, dir, name, blob, size);
  }
  
- void kho_debugfs_fdt_remove(struct kho_debugfs *dbg, void *fdt)
-@@ -113,7 +113,8 @@ __init void kho_in_debugfs_init(struct k
+-void kho_debugfs_fdt_remove(struct kho_debugfs *dbg, void *fdt)
++void kho_debugfs_blob_remove(struct kho_debugfs *dbg, void *blob)
+ {
+ 	struct fdt_debugfs *ff;
+ 
+ 	list_for_each_entry(ff, &dbg->fdt_list, list) {
+-		if (ff->wrapper.data == fdt) {
++		if (ff->wrapper.data == blob) {
+ 			debugfs_remove(ff->file);
+ 			list_del(&ff->list);
+ 			kfree(ff);
+@@ -113,8 +114,8 @@ __init void kho_in_debugfs_init(struct k
  		goto err_rmdir;
  	}
  
--	err = __kho_debugfs_fdt_add(&dbg->fdt_list, dir, "fdt", fdt);
-+	err = __kho_debugfs_fdt_add(&dbg->fdt_list, dir, "fdt", fdt,
-+				    fdt_totalsize(fdt));
+-	err = __kho_debugfs_fdt_add(&dbg->fdt_list, dir, "fdt", fdt,
+-				    fdt_totalsize(fdt));
++	err = __kho_debugfs_blob_add(&dbg->fdt_list, dir, "fdt", fdt,
++				     fdt_totalsize(fdt));
  	if (err)
  		goto err_rmdir;
  
-@@ -121,6 +122,7 @@ __init void kho_in_debugfs_init(struct k
- 		int len = 0;
- 		const char *name = fdt_get_name(fdt, child, NULL);
- 		const u64 *fdt_phys;
-+		void *sub_fdt;
- 
- 		fdt_phys = fdt_getprop(fdt, child, KHO_FDT_SUB_TREE_PROP_NAME, &len);
- 		if (!fdt_phys)
-@@ -130,8 +132,9 @@ __init void kho_in_debugfs_init(struct k
- 				name, len);
+@@ -133,8 +134,8 @@ __init void kho_in_debugfs_init(struct k
  			continue;
  		}
-+		sub_fdt = phys_to_virt(*fdt_phys);
- 		err = __kho_debugfs_fdt_add(&dbg->fdt_list, sub_fdt_dir, name,
--					    phys_to_virt(*fdt_phys));
-+					    sub_fdt, fdt_totalsize(sub_fdt));
+ 		sub_fdt = phys_to_virt(*fdt_phys);
+-		err = __kho_debugfs_fdt_add(&dbg->fdt_list, sub_fdt_dir, name,
+-					    sub_fdt, fdt_totalsize(sub_fdt));
++		err = __kho_debugfs_blob_add(&dbg->fdt_list, sub_fdt_dir, name,
++					     sub_fdt, fdt_totalsize(sub_fdt));
  		if (err) {
  			pr_warn("failed to add fdt %s to debugfs: %pe\n", name,
  				ERR_PTR(err));
---- a/kernel/liveupdate/kexec_handover_internal.h~kho-add-size-parameter-to-kho_add_subtree
+--- a/kernel/liveupdate/kexec_handover_internal.h~kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree
 +++ a/kernel/liveupdate/kexec_handover_internal.h
-@@ -27,7 +27,7 @@ int kho_debugfs_init(void);
+@@ -26,19 +26,19 @@ extern unsigned int kho_scratch_cnt;
+ int kho_debugfs_init(void);
  void kho_in_debugfs_init(struct kho_debugfs *dbg, const void *fdt);
  int kho_out_debugfs_init(struct kho_debugfs *dbg);
- int kho_debugfs_fdt_add(struct kho_debugfs *dbg, const char *name,
--			const void *fdt, bool root);
-+			const void *fdt, size_t size, bool root);
- void kho_debugfs_fdt_remove(struct kho_debugfs *dbg, void *fdt);
+-int kho_debugfs_fdt_add(struct kho_debugfs *dbg, const char *name,
+-			const void *fdt, size_t size, bool root);
+-void kho_debugfs_fdt_remove(struct kho_debugfs *dbg, void *fdt);
++int kho_debugfs_blob_add(struct kho_debugfs *dbg, const char *name,
++			 const void *blob, size_t size, bool root);
++void kho_debugfs_blob_remove(struct kho_debugfs *dbg, void *blob);
  #else
  static inline int kho_debugfs_init(void) { return 0; }
-@@ -35,7 +35,8 @@ static inline void kho_in_debugfs_init(s
+ static inline void kho_in_debugfs_init(struct kho_debugfs *dbg,
  				       const void *fdt) { }
  static inline int kho_out_debugfs_init(struct kho_debugfs *dbg) { return 0; }
- static inline int kho_debugfs_fdt_add(struct kho_debugfs *dbg, const char *name,
--				      const void *fdt, bool root) { return 0; }
-+				      const void *fdt, size_t size,
-+				      bool root) { return 0; }
- static inline void kho_debugfs_fdt_remove(struct kho_debugfs *dbg,
- 					  void *fdt) { }
+-static inline int kho_debugfs_fdt_add(struct kho_debugfs *dbg, const char *name,
+-				      const void *fdt, size_t size,
+-				      bool root) { return 0; }
+-static inline void kho_debugfs_fdt_remove(struct kho_debugfs *dbg,
+-					  void *fdt) { }
++static inline int kho_debugfs_blob_add(struct kho_debugfs *dbg,
++				       const char *name, const void *blob,
++				       size_t size, bool root) { return 0; }
++static inline void kho_debugfs_blob_remove(struct kho_debugfs *dbg,
++					   void *blob) { }
  #endif /* CONFIG_KEXEC_HANDOVER_DEBUGFS */
---- a/kernel/liveupdate/luo_core.c~kho-add-size-parameter-to-kho_add_subtree
-+++ a/kernel/liveupdate/luo_core.c
-@@ -172,7 +172,8 @@ static int __init luo_fdt_setup(void)
- 	if (err)
- 		goto exit_free;
  
--	err = kho_add_subtree(LUO_FDT_KHO_ENTRY_NAME, fdt_out);
-+	err = kho_add_subtree(LUO_FDT_KHO_ENTRY_NAME, fdt_out,
-+			      fdt_totalsize(fdt_out));
- 	if (err)
- 		goto exit_free;
- 	luo_global.fdt_out = fdt_out;
---- a/lib/test_kho.c~kho-add-size-parameter-to-kho_add_subtree
-+++ a/lib/test_kho.c
-@@ -143,7 +143,8 @@ static int kho_test_preserve(struct kho_
- 	if (err)
- 		goto err_unpreserve_data;
- 
--	err = kho_add_subtree(KHO_TEST_FDT, folio_address(state->fdt));
-+	err = kho_add_subtree(KHO_TEST_FDT, folio_address(state->fdt),
-+			      fdt_totalsize(folio_address(state->fdt)));
- 	if (err)
- 		goto err_unpreserve_data;
- 
---- a/mm/memblock.c~kho-add-size-parameter-to-kho_add_subtree
-+++ a/mm/memblock.c
-@@ -2510,7 +2510,7 @@ static int __init prepare_kho_fdt(void)
- 	if (err)
- 		goto err_unpreserve_fdt;
- 
--	err = kho_add_subtree(MEMBLOCK_KHO_FDT, fdt);
-+	err = kho_add_subtree(MEMBLOCK_KHO_FDT, fdt, fdt_totalsize(fdt));
- 	if (err)
- 		goto err_unpreserve_fdt;
- 
+ #ifdef CONFIG_KEXEC_HANDOVER_DEBUG
 _
 
 Patches currently in -mm which might be from leitao@debian.org are
