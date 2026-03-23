@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EE443CF672
-	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 17:45:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69F25327C09;
+	Mon, 23 Mar 2026 19:13:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774287904; cv=none; b=JRDkaxrjZh+YJZzPFUiQ152sDBr99Cs09+K5ncGYMAO5wob4aa7Apfg7RF6rmbgkkI07QH7AdYwyToXVxrjsFDyn3VuvOkhvIB+QNZrMBBbEyWzmeeVw3VOcLFnnZGCRSkpiMpUSgzSXIffzaCAVvii29Kz9wMsTSnZMYE4On9M=
+	t=1774293201; cv=none; b=XjB/1Co1J3cu9jQbXthXLwNbyhFTnUWowyDxHXdmUiDp85SXUEwfGk4Qa16y+NNMCKzqXP1O7UoQTs1WhjvsJnuF9+DLzB1/8NdSBpSzoXqcFLn+KZvT89eK5ELzTl+7tCun8DhpxSWaapaQnORPubV9NXQIPvSY/f999IZPK/g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774287904; c=relaxed/simple;
-	bh=ElxlaFfDKKXTb45DZ2iVkRUFEPBbz3PKUUlq41DXV3c=;
-	h=Date:To:From:Subject:Message-Id; b=ZAy7nEopS50OSssB1BlzY2Pyx4ZHhv9gl5ifkZyqnXbS25FMPj7XZcEL9UncwAfaq8k/IjWg2p3zDHwJkNLTZ4RY29UIuHvI2jW/lYHUZaoSHEWI+zuhKAjin0BJW7dOkZX4vSqaaqRAGJ4pHfisSBsSs/hl6t59HtHv6Sp86A8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JnG0etzu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774293201; c=relaxed/simple;
+	bh=F48kMF2IkiJijqlgL/VGOlGk1zpqxg2N5smXrL1ImlA=;
+	h=Date:To:From:Subject:Message-Id; b=jIfFqO7bq+ShZ+irCEXw/jaBmiZLL3lrvL9UD4B6mp4/xm3lW4pB5pgpxdX1OkJ8ByclII6zmqCGnNO0hWn0QUjWd22mNK80dJFlLnS9Iby1V9elS8EY7PcwmQ4mGColDnLPQW/lgRSwTemWGFoLahYYMJdhA6U6bntsq9gMmPI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NgDdAxg6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JnG0etzu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65C45C4CEF7;
-	Mon, 23 Mar 2026 17:45:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NgDdAxg6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17585C4CEF7;
+	Mon, 23 Mar 2026 19:13:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774287903;
-	bh=ElxlaFfDKKXTb45DZ2iVkRUFEPBbz3PKUUlq41DXV3c=;
+	s=korg; t=1774293201;
+	bh=F48kMF2IkiJijqlgL/VGOlGk1zpqxg2N5smXrL1ImlA=;
 	h=Date:To:From:Subject:From;
-	b=JnG0etzupl/2oFL+QnoWV4a8eD6Cfbegf0kDOzEJXQv1gD689JfQFIWpVqMVq9ZwA
-	 pdkODYmrB8apCOS5zJQ700DWQyeWYWIDix24f3+yYoEW6eFPy0nPTe3Yy2S5ygFjk7
-	 dtY1f9dt3Pfnxmv6jKDklSmb8GPKC/RyFDvmB+e8=
-Date: Mon, 23 Mar 2026 10:45:02 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=NgDdAxg6U1QtKPMKYprbTFwKX7oyfSWnbVg9cVBvJSDJe6sWFLNhQEO7hxsusuJOs
+	 SPPpmJITEMSp9xbfsSvzPXCv5gXQ7EzEOp02AFuHCaJugan92BStlGJyvFFRP0reiP
+	 Lda3DfVNDY/jm7yJagqgbA9n3huD9aCN2B9I7NkM=
+Date: Mon, 23 Mar 2026 12:13:20 -0700
+To: mm-commits@vger.kernel.org,yuehaibing@huawei.com,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,almasrymina@google.com,devnexen@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-add-and-use-has_deposited_pgtable-fix.patch added to mm-unstable branch
-Message-Id: <20260323174503.65C45C4CEF7@smtp.kernel.org>
+Subject: + mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260323191321.17585C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-huge_memory-add-and-use-has_deposited_pgtable-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-add-and-use-has_deposited_pgtable-fix.patch
+     Subject: mm/hugetlb: restore reservation on error in hugetlb_mfill_atomic_pte() resubmission path
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-and-use-has_deposited_pgtable-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,129 +58,49 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm-huge_memory-add-and-use-has_deposited_pgtable-fix
-Date: Mon, 23 Mar 2026 11:42:01 +0000
+From: David Carlier <devnexen@gmail.com>
+Subject: mm/hugetlb: restore reservation on error in hugetlb_mfill_atomic_pte() resubmission path
+Date: Sun, 22 Mar 2026 05:21:20 +0000
 
-resolve an issue with us performing folio_put() on a folio before checking
-it again to see if a table was deposited, as per Sashiko.
+When the resubmission path in hugetlb_mfill_atomic_pte() allocates a new
+hugetlb folio via alloc_hugetlb_folio(), a VMA reservation is consumed. 
+If copy_user_large_folio() subsequently fails, folio_put() restores the
+global hugetlb pool count through free_huge_folio(), but the per-VMA
+reservation map entry is left in an inconsistent state.
 
+Add the missing restore_reserve_on_error() call before folio_put(),
+matching the first-attempt error path which already handles this
+correctly.
 
-Link: https://lkml.kernel.org/r/0a917f80-902f-49b0-a75f-1bbaf23d7f94@lucifer.local
-Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
+Link: https://lkml.kernel.org/r/20260322052120.14021-1-devnexen@gmail.com
+Fixes: 8cc5fcbb5be8 ("mm, hugetlb: fix racy resv_huge_pages underflow on UFFDIO_COPY")
+Signed-off-by: David Carlier <devnexen@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: yuehaibing <yuehaibing@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-add-and-use-has_deposited_pgtable-fix
-+++ a/mm/huge_memory.c
-@@ -2397,6 +2397,7 @@ bool zap_huge_pmd(struct mmu_gather *tlb
- 	struct mm_struct *mm = tlb->mm;
- 	struct folio *folio = NULL;
- 	bool is_present = false;
-+	bool has_deposit;
- 	spinlock_t *ptl;
- 	pmd_t orig_pmd;
- 
-@@ -2418,10 +2419,10 @@ bool zap_huge_pmd(struct mmu_gather *tlb
- 
- 	is_present = pmd_present(orig_pmd);
- 	folio = normal_or_softleaf_folio_pmd(vma, addr, orig_pmd, is_present);
-+	has_deposit = has_deposited_pgtable(vma, orig_pmd, folio);
- 	if (folio)
- 		zap_huge_pmd_folio(mm, vma, orig_pmd, folio, is_present);
--
--	if (has_deposited_pgtable(vma, orig_pmd, folio))
-+	if (has_deposit)
- 		zap_deposited_table(mm, pmd);
- 
- 	spin_unlock(ptl);
+--- a/mm/hugetlb.c~mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path
++++ a/mm/hugetlb.c
+@@ -6306,6 +6306,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 		folio_put(*foliop);
+ 		*foliop = NULL;
+ 		if (ret) {
++			restore_reserve_on_error(h, dst_vma, dst_addr, folio);
+ 			folio_put(folio);
+ 			goto out;
+ 		}
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from devnexen@gmail.com are
 
-mm-rename-vma-flag-helpers-to-be-more-readable.patch
-mm-add-vma_desc_test_all-and-use-it.patch
-mm-always-inline-__mk_vma_flags-and-invoked-functions.patch
-mm-reintroduce-vma_flags_test-as-a-singular-flag-test.patch
-mm-reintroduce-vma_desc_test-as-a-singular-flag-test.patch
-tools-testing-vma-add-test-for-vma_flags_test-vma_desc_test.patch
-tools-testing-vma-add-test-for-vma_flags_test-vma_desc_test-fix.patch
-mm-mremap-correct-invalid-map-count-check.patch
-mm-abstract-reading-sysctl_max_map_count-and-read_once.patch
-mm-mremap-check-map-count-under-mmap-write-lock-and-abstract.patch
-mm-vma-add-vma_flags_empty-vma_flags_and-vma_flags_diff_pair.patch
-tools-testing-vma-add-unit-tests-flag-empty-diff_pair-and.patch
-mm-vma-add-further-vma_flags_t-unions.patch
-tools-testing-vma-convert-bulk-of-test-code-to-vma_flags_t.patch
-mm-vma-use-new-vma-flags-for-sticky-flags-logic.patch
-tools-testing-vma-fix-vma-flag-tests.patch
-mm-vma-add-append_vma_flags-helper.patch
-tools-testing-vma-add-simple-test-for-append_vma_flags.patch
-mm-unexport-vm_brk_flags-and-eliminate-vm_flags-parameter.patch
-mm-vma-introduce-vma_flags_same.patch
-mm-vma-introduce-_to_-helpers.patch
-tools-testing-vma-test-that-legacy-flag-helpers-work-correctly.patch
-mm-vma-introduce-vma_test-and-make-inlining-consistent.patch
-tools-testing-vma-update-vma-flag-tests-to-test-vma_test.patch
-mm-introduce-vma_flags_count-and-vma_test_single_mask.patch
-tools-testing-vma-test-vma_flags_countvma_test_single_mask.patch
-mm-convert-do_brk_flags-to-use-vma_flags_t.patch
-mm-update-vma_supports_mlock-to-use-new-vma-flags.patch
-mm-vma-introduce-vma_clear_flags.patch
-tools-testing-vma-update-vma-tests-to-test-vma_clear_flags.patch
-mm-vma-convert-as-much-as-we-can-in-mm-vmac-to-vma_flags_t.patch
-tools-bitmap-add-missing-bitmap_copy-implementation.patch
-mm-vma-convert-vma_modify_flags-to-use-vma_flags_t.patch
-mm-vma-convert-__mmap_region-to-use-vma_flags_t.patch
-mm-simplify-vma-flag-tests-of-excluded-flags.patch
-mm-various-small-mmap_prepare-cleanups.patch
-mm-add-documentation-for-the-mmap_prepare-file-operation-callback.patch
-mm-document-vm_operations_struct-open-the-same-as-close.patch
-mm-avoid-deadlock-when-holding-rmap-on-mmap_prepare-error.patch
-mm-switch-the-rmap-lock-held-option-off-in-compat-layer.patch
-mm-vma-remove-superfluous-map-hold_file_rmap_lock.patch
-mm-have-mmap_action_complete-handle-the-rmap-lock-and-unmap.patch
-mm-add-vm_ops-mapped-hook.patch
-fs-afs-revert-mmap_prepare-change.patch
-fs-afs-restore-mmap_prepare-implementation.patch
-mm-add-mmap_action_simple_ioremap.patch
-misc-open-dice-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-hpet-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-mtdchar-replace-deprecated-mmap-hook-with-mmap_prepare-clean-up.patch
-stm-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-staging-vme_user-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-mm-allow-handling-of-stacked-mmap_prepare-hooks-in-more-drivers.patch
-drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-uio-replace-deprecated-mmap-hook-with-mmap_prepare-in-uio_info.patch
-mm-add-mmap_action_map_kernel_pages.patch
-mm-on-remap-assert-that-input-range-within-the-proposed-vma.patch
-mm-huge_memory-simplify-vma_is_specal_huge.patch
-mm-huge-avoid-big-else-branch-in-zap_huge_pmd.patch
-mm-huge_memory-have-zap_huge_pmd-return-a-boolean-add-kdoc.patch
-mm-huge_memory-handle-buggy-pmd-entry-in-zap_huge_pmd.patch
-mm-huge_memory-add-a-common-exit-path-to-zap_huge_pmd.patch
-mm-huge_memory-remove-unnecessary-vm_bug_on_page.patch
-mm-huge_memory-deduplicate-zap-deposited-table-call.patch
-mm-huge_memory-remove-unnecessary-sanity-checks.patch
-mm-huge_memory-use-mm-instead-of-tlb-mm.patch
-mm-huge_memory-separate-out-the-folio-part-of-zap_huge_pmd.patch
-mm-add-softleaf_is_valid_pmd_entry-pmd_to_softleaf_folio.patch
-mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd.patch
-mm-huge_memory-add-and-use-has_deposited_pgtable.patch
-mm-huge_memory-add-and-use-has_deposited_pgtable-fix.patch
+mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
+mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix-fix-2.patch
 
