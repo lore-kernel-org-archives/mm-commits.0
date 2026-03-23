@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 509B4372661
-	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 21:12:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0F26381AFC
+	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 21:59:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774300350; cv=none; b=ad19jSy18+vK+Y2xZDpLv3OJdgxNIHBMfLLfI54dl2X32dwzY6JzVpVh2Y2vUF96VSK6I4gPoFd5Q90oq4sAD92YFrHfRPy6heObBg6NRew5DnaLDw+jjcvJ0lprhCNJH2+zqUPAMSP7XngBXFEJJu5dg5nH0gbKMUqOaqC9+1k=
+	t=1774303183; cv=none; b=rZ4qqB6bBVhrtsfYZLyGr8FKeLBCD2sKjdzeknWJmAA46xwcSDBxl89Aikx43yxnGAnd+nR9wPc5l3MZlf/+GOD4hUh/6tlwnnI7Lg59Y9ml+96jBYzMzEm8u6HSSAcb3HjWW0m9N8/S30sNxMDraV7FDRLrFeCXq2jDVIk/vws=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774300350; c=relaxed/simple;
-	bh=BuhEs8QaIKBVGcBcRg8Rx4EUxtUC75RTI80KRKk2lJI=;
-	h=Date:To:From:Subject:Message-Id; b=czXi2Y3uABgO29kLPfyVZYVaXDA0iYnFLBPSXl4D6CCVeTsgpNK7PqVmKDNydhISWFWPUYqMyM0cvtWpJj7chSad+7EBCw5TX3dXpiODBlATSt4zjsnmQibDaFGcwPMmUmx/aLRNDUAFX96w1E23Xi3dpMRzelEW1FRkmXV4rMo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AHX2LqxL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774303183; c=relaxed/simple;
+	bh=3zHxiGpmmgsChPyyYBQGhWC20/34WC4Szj/sxlzvaJQ=;
+	h=Date:To:From:Subject:Message-Id; b=sBZdhChhJcR6AGXB8arUkf5ucDlPHi1FHjtaEfItwdTgdrKb5I/9ovKfZOLgOZuSFNMBLDH6GG7MRyfyc8++mERv/CJl058m3bwKI84EbAqHigUDat3742rlACcstj15kZs4xHfuZRrLErOLzsWUIeIymdmuOGEzVDLs3udlHSg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kvRvtyXk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AHX2LqxL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E42B1C4CEF7;
-	Mon, 23 Mar 2026 21:12:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kvRvtyXk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49758C4CEF7;
+	Mon, 23 Mar 2026 21:59:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774300350;
-	bh=BuhEs8QaIKBVGcBcRg8Rx4EUxtUC75RTI80KRKk2lJI=;
+	s=korg; t=1774303182;
+	bh=3zHxiGpmmgsChPyyYBQGhWC20/34WC4Szj/sxlzvaJQ=;
 	h=Date:To:From:Subject:From;
-	b=AHX2LqxL25/H+m8Si/FxtFaYr9D7w/eh4WrYse3esxZolwFuvvX5Yhj7CpKiNBsv/
-	 /Pip4v40DOPrHqrqgzcwix5YyWezeplCa7Wk54PFJaWVD4Gw9xMd1jYtDPcAU6WgfP
-	 7UROMtwDSgdVVNdcvm1wR4A4qOmpsdZPyFlsWClA=
-Date: Mon, 23 Mar 2026 14:12:29 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=kvRvtyXkmKNm8JJWwSFWUkyV6eDPMt9UXMgvmiK3Re9L9TvWl9r+HQqSpvqUgnuR3
+	 BFbmrWOnd4nCry5vUW/SCptfmZnfeRxldfkv3APAHVqCn7iNCr/G9gpmdwnbURv+mO
+	 O4rBeUQRIO6gn+krPjw3BwWNYqZShWftWCwk6j9E=
+Date: Mon, 23 Mar 2026 14:59:41 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,graf@amazon.com,david@kernel.org,corbet@lwn.net,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix.patch added to mm-unstable branch
-Message-Id: <20260323211229.E42B1C4CEF7@smtp.kernel.org>
+Subject: + kho-add-size-parameter-to-kho_add_subtree.patch added to mm-nonmm-unstable branch
+Message-Id: <20260323215942.49758C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix.patch
+     Subject: kho: add size parameter to kho_add_subtree()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     kho-add-size-parameter-to-kho_add_subtree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-add-size-parameter-to-kho_add_subtree.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,104 +58,303 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix
-Date: Mon, 23 Mar 2026 11:22:32 +0000
+From: Breno Leitao <leitao@debian.org>
+Subject: kho: add size parameter to kho_add_subtree()
+Date: Mon, 16 Mar 2026 04:54:31 -0700
 
-avoid bisection hazard
+Patch series "kho: history: track previous kernel version and kexec boot
+count", v9.
 
-Link: https://lkml.kernel.org/r/d0cc6161-77a4-42ba-a411-96c23c78df1b@lucifer.local
-Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Use Kexec Handover (KHO) to pass the previous kernel's version string and
+the number of kexec reboots since the last cold boot to the next kernel,
+and print it at boot time.
+
+Example
+=======
+	[    0.000000] Linux version 6.19.0-rc3-upstream-00047-ge5d992347849
+	...
+	[    0.000000] KHO: exec from: 6.19.0-rc4-next-20260107upstream-00004-g3071b0dc4498 (count 1)
+
+Motivation
+==========
+
+Bugs that only reproduce when kexecing from specific kernel versions are
+difficult to diagnose.  These issues occur when a buggy kernel kexecs into
+a new kernel, with the bug manifesting only in the second kernel.
+
+Recent examples include:
+
+ * eb2266312507 ("x86/boot: Fix page table access in 5-level to 4-level paging transition")
+ * 77d48d39e991 ("efistub/tpm: Use ACPI reclaim memory for event log to avoid corruption")
+ * 64b45dd46e15 ("x86/efi: skip memattr table on kexec boot")
+
+As kexec-based reboots become more common, these version-dependent bugs
+are appearing more frequently.  At scale, correlating crashes to the
+previous kernel version is challenging, especially when issues only occur
+in specific transition scenarios.
+
+Some bugs manifest only after multiple consecutive kexec reboots. 
+Tracking the kexec count helps identify these cases (this metric is
+already used by live update sub-system).
+
+KHO provides a reliable mechanism to pass information between kernels.  By
+carrying the previous kernel's release string and kexec count forward, we
+can print this context at boot time to aid debugging.
+
+The goal of this feature is to have this information being printed in
+early boot, so, users can trace back kernel releases in kexec.  Systemd is
+not helpful because we cannot assume that the previous kernel has systemd
+or even write access to the disk (common when using Linux as bootloaders)
+
+
+This patch (of 6):
+
+kho_add_subtree() assumes the fdt argument is always an FDT and calls
+fdt_totalsize() on it in the debugfs code path.  This assumption will
+break if a caller passes arbitrary data instead of an FDT.
+
+When CONFIG_KEXEC_HANDOVER_DEBUGFS is enabled, kho_debugfs_fdt_add() calls
+__kho_debugfs_fdt_add(), which executes:
+
+    f->wrapper.size = fdt_totalsize(fdt);
+
+Fix this by adding an explicit size parameter to kho_add_subtree() so
+callers specify the blob size.  This allows subtrees to contain arbitrary
+data formats, not just FDTs.  Update all callers:
+
+  - memblock.c: use fdt_totalsize(fdt)
+  - luo_core.c: use fdt_totalsize(fdt_out)
+  - test_kho.c: use fdt_totalsize()
+  - kexec_handover.c (root fdt): use fdt_totalsize(kho_out.fdt)
+
+Also update __kho_debugfs_fdt_add() to receive the size explicitly instead
+of computing it internally via fdt_totalsize().  In kho_in_debugfs_init(),
+pass fdt_totalsize() for the root FDT and sub-blobs since all current
+users are FDTs.  A subsequent patch will persist the size in the KHO FDT
+so the incoming side can handle non-FDT blobs correctly.
+
+Link: https://lkml.kernel.org/r/20260323110747.193569-1-duanchenghao@kylinos.cn
+Link: https://lkml.kernel.org/r/20260316-kho-v9-1-ed6dcd951988@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Suggested-by: Pratyush Yadav <pratyush@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kexec_handover.h              |    4 ++--
+ kernel/liveupdate/kexec_handover.c          |    8 +++++---
+ kernel/liveupdate/kexec_handover_debugfs.c  |   15 +++++++++------
+ kernel/liveupdate/kexec_handover_internal.h |    5 +++--
+ kernel/liveupdate/luo_core.c                |    3 ++-
+ lib/test_kho.c                              |    3 ++-
+ mm/memblock.c                               |    2 +-
+ 7 files changed, 24 insertions(+), 16 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix
-+++ a/mm/huge_memory.c
-@@ -2404,7 +2404,7 @@ bool zap_huge_pmd(struct mmu_gather *tlb
- 		zap_huge_pmd_folio(mm, vma, orig_pmd, folio, is_present,
- 				   &has_deposit);
- 	else if (is_huge_zero_pmd(orig_pmd))
--		has_deposit = !vma_is_dax(vma);
-+		has_deposit = has_deposit || !vma_is_dax(vma);
+--- a/include/linux/kexec_handover.h~kho-add-size-parameter-to-kho_add_subtree
++++ a/include/linux/kexec_handover.h
+@@ -32,7 +32,7 @@ void kho_restore_free(void *mem);
+ struct folio *kho_restore_folio(phys_addr_t phys);
+ struct page *kho_restore_pages(phys_addr_t phys, unsigned long nr_pages);
+ void *kho_restore_vmalloc(const struct kho_vmalloc *preservation);
+-int kho_add_subtree(const char *name, void *fdt);
++int kho_add_subtree(const char *name, void *fdt, size_t size);
+ void kho_remove_subtree(void *fdt);
+ int kho_retrieve_subtree(const char *name, phys_addr_t *phys);
  
- 	if (has_deposit)
- 		zap_deposited_table(mm, pmd);
+@@ -97,7 +97,7 @@ static inline void *kho_restore_vmalloc(
+ 	return NULL;
+ }
+ 
+-static inline int kho_add_subtree(const char *name, void *fdt)
++static inline int kho_add_subtree(const char *name, void *fdt, size_t size)
+ {
+ 	return -EOPNOTSUPP;
+ }
+--- a/kernel/liveupdate/kexec_handover.c~kho-add-size-parameter-to-kho_add_subtree
++++ a/kernel/liveupdate/kexec_handover.c
+@@ -727,6 +727,7 @@ err_disable_kho:
+  * kho_add_subtree - record the physical address of a sub FDT in KHO root tree.
+  * @name: name of the sub tree.
+  * @fdt: the sub tree blob.
++ * @size: size of the blob in bytes.
+  *
+  * Creates a new child node named @name in KHO root FDT and records
+  * the physical address of @fdt. The pages of @fdt must also be preserved
+@@ -738,7 +739,7 @@ err_disable_kho:
+  *
+  * Return: 0 on success, error code on failure
+  */
+-int kho_add_subtree(const char *name, void *fdt)
++int kho_add_subtree(const char *name, void *fdt, size_t size)
+ {
+ 	phys_addr_t phys = virt_to_phys(fdt);
+ 	void *root_fdt = kho_out.fdt;
+@@ -763,7 +764,7 @@ int kho_add_subtree(const char *name, vo
+ 	if (err < 0)
+ 		goto out_pack;
+ 
+-	WARN_ON_ONCE(kho_debugfs_fdt_add(&kho_out.dbg, name, fdt, false));
++	WARN_ON_ONCE(kho_debugfs_fdt_add(&kho_out.dbg, name, fdt, size, false));
+ 
+ out_pack:
+ 	fdt_pack(root_fdt);
+@@ -1431,7 +1432,8 @@ static __init int kho_init(void)
+ 	}
+ 
+ 	WARN_ON_ONCE(kho_debugfs_fdt_add(&kho_out.dbg, "fdt",
+-					 kho_out.fdt, true));
++					 kho_out.fdt,
++					 fdt_totalsize(kho_out.fdt), true));
+ 
+ 	return 0;
+ 
+--- a/kernel/liveupdate/kexec_handover_debugfs.c~kho-add-size-parameter-to-kho_add_subtree
++++ a/kernel/liveupdate/kexec_handover_debugfs.c
+@@ -25,7 +25,7 @@ struct fdt_debugfs {
+ };
+ 
+ static int __kho_debugfs_fdt_add(struct list_head *list, struct dentry *dir,
+-				 const char *name, const void *fdt)
++				 const char *name, const void *fdt, size_t size)
+ {
+ 	struct fdt_debugfs *f;
+ 	struct dentry *file;
+@@ -35,7 +35,7 @@ static int __kho_debugfs_fdt_add(struct
+ 		return -ENOMEM;
+ 
+ 	f->wrapper.data = (void *)fdt;
+-	f->wrapper.size = fdt_totalsize(fdt);
++	f->wrapper.size = size;
+ 
+ 	file = debugfs_create_blob(name, 0400, dir, &f->wrapper);
+ 	if (IS_ERR(file)) {
+@@ -50,7 +50,7 @@ static int __kho_debugfs_fdt_add(struct
+ }
+ 
+ int kho_debugfs_fdt_add(struct kho_debugfs *dbg, const char *name,
+-			const void *fdt, bool root)
++			const void *fdt, size_t size, bool root)
+ {
+ 	struct dentry *dir;
+ 
+@@ -59,7 +59,7 @@ int kho_debugfs_fdt_add(struct kho_debug
+ 	else
+ 		dir = dbg->sub_fdt_dir;
+ 
+-	return __kho_debugfs_fdt_add(&dbg->fdt_list, dir, name, fdt);
++	return __kho_debugfs_fdt_add(&dbg->fdt_list, dir, name, fdt, size);
+ }
+ 
+ void kho_debugfs_fdt_remove(struct kho_debugfs *dbg, void *fdt)
+@@ -113,7 +113,8 @@ __init void kho_in_debugfs_init(struct k
+ 		goto err_rmdir;
+ 	}
+ 
+-	err = __kho_debugfs_fdt_add(&dbg->fdt_list, dir, "fdt", fdt);
++	err = __kho_debugfs_fdt_add(&dbg->fdt_list, dir, "fdt", fdt,
++				    fdt_totalsize(fdt));
+ 	if (err)
+ 		goto err_rmdir;
+ 
+@@ -121,6 +122,7 @@ __init void kho_in_debugfs_init(struct k
+ 		int len = 0;
+ 		const char *name = fdt_get_name(fdt, child, NULL);
+ 		const u64 *fdt_phys;
++		void *sub_fdt;
+ 
+ 		fdt_phys = fdt_getprop(fdt, child, KHO_FDT_SUB_TREE_PROP_NAME, &len);
+ 		if (!fdt_phys)
+@@ -130,8 +132,9 @@ __init void kho_in_debugfs_init(struct k
+ 				name, len);
+ 			continue;
+ 		}
++		sub_fdt = phys_to_virt(*fdt_phys);
+ 		err = __kho_debugfs_fdt_add(&dbg->fdt_list, sub_fdt_dir, name,
+-					    phys_to_virt(*fdt_phys));
++					    sub_fdt, fdt_totalsize(sub_fdt));
+ 		if (err) {
+ 			pr_warn("failed to add fdt %s to debugfs: %pe\n", name,
+ 				ERR_PTR(err));
+--- a/kernel/liveupdate/kexec_handover_internal.h~kho-add-size-parameter-to-kho_add_subtree
++++ a/kernel/liveupdate/kexec_handover_internal.h
+@@ -27,7 +27,7 @@ int kho_debugfs_init(void);
+ void kho_in_debugfs_init(struct kho_debugfs *dbg, const void *fdt);
+ int kho_out_debugfs_init(struct kho_debugfs *dbg);
+ int kho_debugfs_fdt_add(struct kho_debugfs *dbg, const char *name,
+-			const void *fdt, bool root);
++			const void *fdt, size_t size, bool root);
+ void kho_debugfs_fdt_remove(struct kho_debugfs *dbg, void *fdt);
+ #else
+ static inline int kho_debugfs_init(void) { return 0; }
+@@ -35,7 +35,8 @@ static inline void kho_in_debugfs_init(s
+ 				       const void *fdt) { }
+ static inline int kho_out_debugfs_init(struct kho_debugfs *dbg) { return 0; }
+ static inline int kho_debugfs_fdt_add(struct kho_debugfs *dbg, const char *name,
+-				      const void *fdt, bool root) { return 0; }
++				      const void *fdt, size_t size,
++				      bool root) { return 0; }
+ static inline void kho_debugfs_fdt_remove(struct kho_debugfs *dbg,
+ 					  void *fdt) { }
+ #endif /* CONFIG_KEXEC_HANDOVER_DEBUGFS */
+--- a/kernel/liveupdate/luo_core.c~kho-add-size-parameter-to-kho_add_subtree
++++ a/kernel/liveupdate/luo_core.c
+@@ -172,7 +172,8 @@ static int __init luo_fdt_setup(void)
+ 	if (err)
+ 		goto exit_free;
+ 
+-	err = kho_add_subtree(LUO_FDT_KHO_ENTRY_NAME, fdt_out);
++	err = kho_add_subtree(LUO_FDT_KHO_ENTRY_NAME, fdt_out,
++			      fdt_totalsize(fdt_out));
+ 	if (err)
+ 		goto exit_free;
+ 	luo_global.fdt_out = fdt_out;
+--- a/lib/test_kho.c~kho-add-size-parameter-to-kho_add_subtree
++++ a/lib/test_kho.c
+@@ -143,7 +143,8 @@ static int kho_test_preserve(struct kho_
+ 	if (err)
+ 		goto err_unpreserve_data;
+ 
+-	err = kho_add_subtree(KHO_TEST_FDT, folio_address(state->fdt));
++	err = kho_add_subtree(KHO_TEST_FDT, folio_address(state->fdt),
++			      fdt_totalsize(folio_address(state->fdt)));
+ 	if (err)
+ 		goto err_unpreserve_data;
+ 
+--- a/mm/memblock.c~kho-add-size-parameter-to-kho_add_subtree
++++ a/mm/memblock.c
+@@ -2510,7 +2510,7 @@ static int __init prepare_kho_fdt(void)
+ 	if (err)
+ 		goto err_unpreserve_fdt;
+ 
+-	err = kho_add_subtree(MEMBLOCK_KHO_FDT, fdt);
++	err = kho_add_subtree(MEMBLOCK_KHO_FDT, fdt, fdt_totalsize(fdt));
+ 	if (err)
+ 		goto err_unpreserve_fdt;
+ 
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-rename-vma-flag-helpers-to-be-more-readable.patch
-mm-add-vma_desc_test_all-and-use-it.patch
-mm-always-inline-__mk_vma_flags-and-invoked-functions.patch
-mm-reintroduce-vma_flags_test-as-a-singular-flag-test.patch
-mm-reintroduce-vma_desc_test-as-a-singular-flag-test.patch
-tools-testing-vma-add-test-for-vma_flags_test-vma_desc_test.patch
-tools-testing-vma-add-test-for-vma_flags_test-vma_desc_test-fix.patch
-mm-mremap-correct-invalid-map-count-check.patch
-mm-abstract-reading-sysctl_max_map_count-and-read_once.patch
-mm-mremap-check-map-count-under-mmap-write-lock-and-abstract.patch
-mm-vma-add-vma_flags_empty-vma_flags_and-vma_flags_diff_pair.patch
-tools-testing-vma-add-unit-tests-flag-empty-diff_pair-and.patch
-mm-vma-add-further-vma_flags_t-unions.patch
-tools-testing-vma-convert-bulk-of-test-code-to-vma_flags_t.patch
-mm-vma-use-new-vma-flags-for-sticky-flags-logic.patch
-tools-testing-vma-fix-vma-flag-tests.patch
-mm-vma-add-append_vma_flags-helper.patch
-tools-testing-vma-add-simple-test-for-append_vma_flags.patch
-mm-unexport-vm_brk_flags-and-eliminate-vm_flags-parameter.patch
-mm-vma-introduce-vma_flags_same.patch
-mm-vma-introduce-_to_-helpers.patch
-tools-testing-vma-test-that-legacy-flag-helpers-work-correctly.patch
-mm-vma-introduce-vma_test-and-make-inlining-consistent.patch
-tools-testing-vma-update-vma-flag-tests-to-test-vma_test.patch
-mm-introduce-vma_flags_count-and-vma_test_single_mask.patch
-tools-testing-vma-test-vma_flags_countvma_test_single_mask.patch
-mm-convert-do_brk_flags-to-use-vma_flags_t.patch
-mm-update-vma_supports_mlock-to-use-new-vma-flags.patch
-mm-vma-introduce-vma_clear_flags.patch
-tools-testing-vma-update-vma-tests-to-test-vma_clear_flags.patch
-mm-vma-convert-as-much-as-we-can-in-mm-vmac-to-vma_flags_t.patch
-tools-bitmap-add-missing-bitmap_copy-implementation.patch
-mm-vma-convert-vma_modify_flags-to-use-vma_flags_t.patch
-mm-vma-convert-__mmap_region-to-use-vma_flags_t.patch
-mm-simplify-vma-flag-tests-of-excluded-flags.patch
-mm-various-small-mmap_prepare-cleanups.patch
-mm-add-documentation-for-the-mmap_prepare-file-operation-callback.patch
-mm-document-vm_operations_struct-open-the-same-as-close.patch
-mm-avoid-deadlock-when-holding-rmap-on-mmap_prepare-error.patch
-mm-switch-the-rmap-lock-held-option-off-in-compat-layer.patch
-mm-vma-remove-superfluous-map-hold_file_rmap_lock.patch
-mm-have-mmap_action_complete-handle-the-rmap-lock-and-unmap.patch
-mm-add-vm_ops-mapped-hook.patch
-fs-afs-revert-mmap_prepare-change.patch
-fs-afs-restore-mmap_prepare-implementation.patch
-mm-add-mmap_action_simple_ioremap.patch
-misc-open-dice-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-hpet-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-mtdchar-replace-deprecated-mmap-hook-with-mmap_prepare-clean-up.patch
-stm-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-staging-vme_user-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-mm-allow-handling-of-stacked-mmap_prepare-hooks-in-more-drivers.patch
-drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-uio-replace-deprecated-mmap-hook-with-mmap_prepare-in-uio_info.patch
-mm-add-mmap_action_map_kernel_pages.patch
-mm-on-remap-assert-that-input-range-within-the-proposed-vma.patch
-mm-huge_memory-simplify-vma_is_specal_huge.patch
-mm-huge-avoid-big-else-branch-in-zap_huge_pmd.patch
-mm-huge_memory-have-zap_huge_pmd-return-a-boolean-add-kdoc.patch
-mm-huge_memory-handle-buggy-pmd-entry-in-zap_huge_pmd.patch
-mm-huge_memory-add-a-common-exit-path-to-zap_huge_pmd.patch
-mm-huge_memory-remove-unnecessary-vm_bug_on_page.patch
-mm-huge_memory-deduplicate-zap-deposited-table-call.patch
-mm-huge_memory-remove-unnecessary-sanity-checks.patch
-mm-huge_memory-use-mm-instead-of-tlb-mm.patch
-mm-huge_memory-separate-out-the-folio-part-of-zap_huge_pmd.patch
-mm-add-softleaf_is_valid_pmd_entry-pmd_to_softleaf_folio.patch
-mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd.patch
-mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix.patch
-mm-huge_memory-add-and-use-has_deposited_pgtable.patch
-mm-huge_memory-add-and-use-has_deposited_pgtable-fix.patch
+mm-khugepaged-export-set_recommended_min_free_kbytes.patch
+mm-huge_memory-refactor-anon_enabled_store-with-set_anon_enabled_mode.patch
+mm-huge_memory-refactor-enabled_store-with-set_global_enabled_mode.patch
+mm-ratelimit-min_free_kbytes-adjustment-messages.patch
+mm-kmemleak-add-config_debug_kmemleak_verbose-build-option.patch
+kho-add-size-parameter-to-kho_add_subtree.patch
+kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree.patch
+kho-persist-blob-size-in-kho-fdt.patch
+kho-fix-kho_in_debugfs_init-to-handle-non-fdt-blobs.patch
+kho-kexec-metadata-track-previous-kernel-chain.patch
+kho-document-kexec-metadata-tracking-feature.patch
 
