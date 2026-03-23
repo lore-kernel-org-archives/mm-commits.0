@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A996313534
-	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 22:23:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D498384237
+	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 22:48:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774304601; cv=none; b=qoD6z9I6ELvGo28zeFgtQZ9S0zpN4dyYtLj3HkZ+tcDcppSC/P6QUx1Xw+YG86m7dOdV2ZepRAEmuIWy/75PtG5KOGEiG4vD5IRNRjddffVFJhlN3/P0ImFQuGqbrdsVl2Sux6nWYltAnkeqHkR9V5wXQZlMCwo+Uv0sSTS0WUQ=
+	t=1774306133; cv=none; b=P2rWsG2Rx1ob71yuQby6pAPDJM4H9VLBVh4Z448cgSNlU7vpBbu4zPYoZNPpv72Ax2PUdAsE+NFGF4WVff+g0hxvpC2dFG9jnMfiGWUHERZdeOj8+yiejuukB1kXkpTdirFiy0I4+DzuAwx1mcj1ptwHCDc03EMvrf8ia8+ELWI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774304601; c=relaxed/simple;
-	bh=5J2ggUd8STpiXxfNX3chfMpuss7lB9s3memFjbOCAbA=;
-	h=Date:To:From:Subject:Message-Id; b=aHynYWizX3dDe01NonAYl2hl8kmKepBfPi9IBQSrliZY2JEeVmvegZUuK+Q3yCsgAlaUfzp4nOFeb7FyMByDg0E6RLSOWyU/yMgomhh3IBiuJtkUfCOi+BLMn2nwNDInMY48I/FeFedQh7Ec5HdaMZG4s0KiuUBLaLj7x8T1TGU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YCsD9U+c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774306133; c=relaxed/simple;
+	bh=m8sKXOCWsHqrsuG0Rd40Kyse/1rYyoMO/hfhV3DWJOo=;
+	h=Date:To:From:Subject:Message-Id; b=qIw7J0YK/Zqv4YCHAu/Sh+/zIUMSDntO8bA8O3AD+VrTIA090RQM2peqN2vSmeB45yRVn76SjPLQDi3iQ54tiHbAR1xiX1SDPkFrY3i+3VAFGF2gyjTktW1+wxWuW3FIliKrYaHlbF9mrod/Pu1ikCpTysoMaGh/LoZwyXdX3TU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xyrRfhee; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YCsD9U+c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1B98C4CEF7;
-	Mon, 23 Mar 2026 22:23:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xyrRfhee"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19ACEC4CEF7;
+	Mon, 23 Mar 2026 22:48:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774304600;
-	bh=5J2ggUd8STpiXxfNX3chfMpuss7lB9s3memFjbOCAbA=;
+	s=korg; t=1774306133;
+	bh=m8sKXOCWsHqrsuG0Rd40Kyse/1rYyoMO/hfhV3DWJOo=;
 	h=Date:To:From:Subject:From;
-	b=YCsD9U+cWf3RIOCn2QAPemGX3CSpiolcnW5rvJsc7gjQo4SStnegGZVfjiU+YyQSS
-	 6ubn03XPtnjdM27LsRKifi7hoASIB1rSzfk8iVc8N5/uvZ0lIKeqjMPkUK+5dzqvRI
-	 Qnd+trb8lo4tAUz+XYRp9Hhoe8t/Vh+UMklBePzU=
-Date: Mon, 23 Mar 2026 15:23:20 -0700
-To: mm-commits@vger.kernel.org,peterz@infradead.org,nathan@kernel.org,morbo@google.com,mingo@kernel.org,justinstitt@google.com,jackmanb@google.com,andriy.shevchenko@linux.intel.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=xyrRfhee/5ypFNrOA6E3tWp2IMHhmWpqFT9fwkBSoGtt5gB5fe+nf4gJE4OcRzIlR
+	 KTQRwEUTvjKrjX1CBW8JOfuVPG9540TcpQ6oObG2GwaNyn61hYMatLELt3DbjZCa32
+	 VJRra/h9Qbi4IFAfEP/0Vvd1mZ0McdI25F3uUCNw=
+Date: Mon, 23 Mar 2026 15:48:52 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,rafael@kernel.org,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + bug-avoid-format-attribute-warning-for-clang-as-well.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260323222320.A1B98C4CEF7@smtp.kernel.org>
+Subject: + mm-swap-pm-hibernate-fix-swapoff-race-in-uswsusp-by-pinning-swap-device.patch added to mm-new branch
+Message-Id: <20260323224853.19ACEC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: bug: avoid format attribute warning for clang as well
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     bug-avoid-format-attribute-warning-for-clang-as-well.patch
+     Subject: mm/swap, PM: hibernate: fix swapoff race in uswsusp by pinning swap device
+has been added to the -mm mm-new branch.  Its filename is
+     mm-swap-pm-hibernate-fix-swapoff-race-in-uswsusp-by-pinning-swap-device.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bug-avoid-format-attribute-warning-for-clang-as-well.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-pm-hibernate-fix-swapoff-race-in-uswsusp-by-pinning-swap-device.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,77 +69,331 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: bug: avoid format attribute warning for clang as well
-Date: Mon, 23 Mar 2026 21:55:16 +0100
+From: Youngjun Park <youngjun.park@lge.com>
+Subject: mm/swap, PM: hibernate: fix swapoff race in uswsusp by pinning swap device
+Date: Tue, 24 Mar 2026 01:08:21 +0900
 
-Like gcc, clang-22 now also warns about a function that it incorrectly
-identifies as a printf-style format:
+Patch series "mm/swap, PM: hibernate: fix swapoff race in uswsusp by
+pinning swap device", v8.
 
-lib/bug.c:190:22: error: diagnostic behavior may be improved by adding the 'format(printf, 1, 0)' attribute to the declaration of '__warn_printf' [-Werror,-Wmissing-format-attribute]
-  179 | static void __warn_printf(const char *fmt, struct pt_regs *regs)
-      | __attribute__((format(printf, 1, 0)))
-  180 | {
-  181 |         if (!fmt)
-  182 |                 return;
-  183 |
-  184 | #ifdef HAVE_ARCH_BUG_FORMAT_ARGS
-  185 |         if (regs) {
-  186 |                 struct arch_va_list _args;
-  187 |                 va_list *args = __warn_args(&_args, regs);
-  188 |
-  189 |                 if (args) {
-  190 |                         vprintk(fmt, *args);
-      |                                           ^
+Currently, in the uswsusp path, only the swap type value is retrieved at
+lookup time without holding a reference. If swapoff races after the type
+is acquired, subsequent slot allocations operate on a stale swap device.
 
-Revert the change that added a gcc-specific workaround, and instead add
-the generic annotation that avoid the warning.
+Additionally, grabbing and releasing the swap device reference on every
+slot allocation is inefficient across the entire hibernation swap path.
 
-Link: https://lkml.kernel.org/r/20260323205534.1284284-1-arnd@kernel.org
-Fixes: d36067d6ea00 ("bug: Hush suggest-attribute=format for __warn_printf()")
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Suggested-by: Brendan Jackman <jackmanb@google.com>
-Link: https://lore.kernel.org/all/20251208141618.2805983-1-andriy.shevchenko@linux.intel.com/T/#u
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Bill Wendling <morbo@google.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Justin Stitt <justinstitt@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+This patch series addresses these issues:
+- Patch 1: Fixes the swapoff race in uswsusp by pinning the swap device
+  from the point it is looked up until the session completes.
+- Patch 2: Removes the overhead of per-slot reference counting in alloc/free
+  paths and cleans up the redundant SWP_WRITEOK check.
+
+
+This patch (of 8):
+
+Hibernation via uswsusp (/dev/snapshot ioctls) has a race window: after
+selecting the resume swap area but before user space is frozen, swapoff
+may run and invalidate the selected swap device.
+
+Fix this by pinning the swap device with SWP_HIBERNATION while it is in
+use.  The pin is exclusive, which is sufficient since hibernate_acquire()
+already prevents concurrent hibernation sessions.
+
+The kernel swsusp path (sysfs-based hibernate/resume) uses
+find_hibernation_swap_type() which is not affected by the pin.  It freezes
+user space before touching swap, so swapoff cannot race.
+
+Introduce dedicated helpers:
+- pin_hibernation_swap_type(): Look up and pin the swap device.
+  Used by the uswsusp path.
+- find_hibernation_swap_type(): Lookup without pinning.
+  Used by the kernel swsusp path.
+- unpin_hibernation_swap_type(): Clear the hibernation pin.
+
+While a swap device is pinned, swapoff is prevented from proceeding.
+
+Link: https://lkml.kernel.org/r/20260323160822.1409904-1-youngjun.park@lge.com
+Link: https://lkml.kernel.org/r/20260323160822.1409904-2-youngjun.park@lge.com
+Signed-off-by: Youngjun Park <youngjun.park@lge.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bug.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ include/linux/swap.h |    5 +
+ kernel/power/swap.c  |    2 
+ kernel/power/user.c  |   15 +++-
+ mm/swapfile.c        |  135 ++++++++++++++++++++++++++++++++++++-----
+ 4 files changed, 136 insertions(+), 21 deletions(-)
 
---- a/lib/bug.c~bug-avoid-format-attribute-warning-for-clang-as-well
-+++ a/lib/bug.c
-@@ -173,10 +173,8 @@ struct bug_entry *find_bug(unsigned long
- 	return module_find_bug(bugaddr);
+--- a/include/linux/swap.h~mm-swap-pm-hibernate-fix-swapoff-race-in-uswsusp-by-pinning-swap-device
++++ a/include/linux/swap.h
+@@ -213,6 +213,7 @@ enum {
+ 	SWP_PAGE_DISCARD = (1 << 10),	/* freed swap page-cluster discards */
+ 	SWP_STABLE_WRITES = (1 << 11),	/* no overwrite PG_writeback pages */
+ 	SWP_SYNCHRONOUS_IO = (1 << 12),	/* synchronous IO is efficient */
++	SWP_HIBERNATION = (1 << 13),	/* pinned for hibernation */
+ 					/* add others here before... */
+ };
+ 
+@@ -433,7 +434,9 @@ static inline long get_nr_swap_pages(voi
  }
  
--__diag_push();
--__diag_ignore(GCC, all, "-Wsuggest-attribute=format",
--	      "Not a valid __printf() conversion candidate.");
--static void __warn_printf(const char *fmt, struct pt_regs *regs)
-+static __printf(1, 0)
-+void __warn_printf(const char *fmt, struct pt_regs *regs)
- {
- 	if (!fmt)
- 		return;
-@@ -195,7 +193,6 @@ static void __warn_printf(const char *fm
+ extern void si_swapinfo(struct sysinfo *);
+-int swap_type_of(dev_t device, sector_t offset);
++extern int pin_hibernation_swap_type(dev_t device, sector_t offset);
++extern void unpin_hibernation_swap_type(int type);
++extern int find_hibernation_swap_type(dev_t device, sector_t offset);
+ int find_first_swap(dev_t *device);
+ extern unsigned int count_swap_pages(int, int);
+ extern sector_t swapdev_block(int, pgoff_t);
+--- a/kernel/power/swap.c~mm-swap-pm-hibernate-fix-swapoff-race-in-uswsusp-by-pinning-swap-device
++++ a/kernel/power/swap.c
+@@ -341,7 +341,7 @@ static int swsusp_swap_check(void)
+ 	 * This is called before saving the image.
+ 	 */
+ 	if (swsusp_resume_device)
+-		res = swap_type_of(swsusp_resume_device, swsusp_resume_block);
++		res = find_hibernation_swap_type(swsusp_resume_device, swsusp_resume_block);
+ 	else
+ 		res = find_first_swap(&swsusp_resume_device);
+ 	if (res < 0)
+--- a/kernel/power/user.c~mm-swap-pm-hibernate-fix-swapoff-race-in-uswsusp-by-pinning-swap-device
++++ a/kernel/power/user.c
+@@ -71,7 +71,7 @@ static int snapshot_open(struct inode *i
+ 	memset(&data->handle, 0, sizeof(struct snapshot_handle));
+ 	if ((filp->f_flags & O_ACCMODE) == O_RDONLY) {
+ 		/* Hibernating.  The image device should be accessible. */
+-		data->swap = swap_type_of(swsusp_resume_device, 0);
++		data->swap = pin_hibernation_swap_type(swsusp_resume_device, 0);
+ 		data->mode = O_RDONLY;
+ 		data->free_bitmaps = false;
+ 		error = pm_notifier_call_chain_robust(PM_HIBERNATION_PREPARE, PM_POST_HIBERNATION);
+@@ -90,8 +90,10 @@ static int snapshot_open(struct inode *i
+ 			data->free_bitmaps = !error;
+ 		}
+ 	}
+-	if (error)
++	if (error) {
++		unpin_hibernation_swap_type(data->swap);
+ 		hibernate_release();
++	}
  
- 	printk("%s", fmt);
+ 	data->frozen = false;
+ 	data->ready = false;
+@@ -115,6 +117,7 @@ static int snapshot_release(struct inode
+ 	data = filp->private_data;
+ 	data->dev = 0;
+ 	free_all_swap_pages(data->swap);
++	unpin_hibernation_swap_type(data->swap);
+ 	if (data->frozen) {
+ 		pm_restore_gfp_mask();
+ 		free_basic_memory_bitmaps();
+@@ -236,10 +239,16 @@ static int snapshot_set_swap_area(struct
+ 	}
+ 
+ 	/*
++	 * Unpin the swap device if a swap area was already
++	 * set by SNAPSHOT_SET_SWAP_AREA.
++	 */
++	unpin_hibernation_swap_type(data->swap);
++
++	/*
+ 	 * User space encodes device types as two-byte values,
+ 	 * so we need to recode them
+ 	 */
+-	data->swap = swap_type_of(swdev, offset);
++	data->swap = pin_hibernation_swap_type(swdev, offset);
+ 	if (data->swap < 0)
+ 		return swdev ? -ENODEV : -EINVAL;
+ 	data->dev = swdev;
+--- a/mm/swapfile.c~mm-swap-pm-hibernate-fix-swapoff-race-in-uswsusp-by-pinning-swap-device
++++ a/mm/swapfile.c
+@@ -133,7 +133,7 @@ static DEFINE_PER_CPU(struct percpu_swap
+ /* May return NULL on invalid type, caller must check for NULL return */
+ static struct swap_info_struct *swap_type_to_info(int type)
+ {
+-	if (type >= MAX_SWAPFILES)
++	if (type < 0 || type >= MAX_SWAPFILES)
+ 		return NULL;
+ 	return READ_ONCE(swap_info[type]); /* rcu_dereference() */
  }
--__diag_pop();
+@@ -2138,22 +2138,15 @@ void swap_free_hibernation_slot(swp_entr
+ 	put_swap_device(si);
+ }
  
- static enum bug_trap_type __report_bug(struct bug_entry *bug, unsigned long bugaddr, struct pt_regs *regs)
+-/*
+- * Find the swap type that corresponds to given device (if any).
+- *
+- * @offset - number of the PAGE_SIZE-sized block of the device, starting
+- * from 0, in which the swap header is expected to be located.
+- *
+- * This is needed for the suspend to disk (aka swsusp).
+- */
+-int swap_type_of(dev_t device, sector_t offset)
++static int __find_hibernation_swap_type(dev_t device, sector_t offset)
  {
+ 	int type;
+ 
++	lockdep_assert_held(&swap_lock);
++
+ 	if (!device)
+-		return -1;
++		return -EINVAL;
+ 
+-	spin_lock(&swap_lock);
+ 	for (type = 0; type < nr_swapfiles; type++) {
+ 		struct swap_info_struct *sis = swap_info[type];
+ 
+@@ -2163,16 +2156,118 @@ int swap_type_of(dev_t device, sector_t
+ 		if (device == sis->bdev->bd_dev) {
+ 			struct swap_extent *se = first_se(sis);
+ 
+-			if (se->start_block == offset) {
+-				spin_unlock(&swap_lock);
++			if (se->start_block == offset)
+ 				return type;
+-			}
+ 		}
+ 	}
+-	spin_unlock(&swap_lock);
+ 	return -ENODEV;
+ }
+ 
++/**
++ * pin_hibernation_swap_type - Pin the swap device for hibernation
++ * @device: Block device containing the resume image
++ * @offset: Offset identifying the swap area
++ *
++ * Locate the swap device for @device/@offset and mark it as pinned
++ * for hibernation. While pinned, swapoff() is prevented.
++ *
++ * Only one uswsusp context may pin a swap device at a time.
++ * If already pinned, this function returns -EBUSY.
++ *
++ * Return:
++ * >= 0 on success (swap type).
++ * -EINVAL if @device is invalid.
++ * -ENODEV if the swap device is not found.
++ * -EBUSY if the device is already pinned for hibernation.
++ */
++int pin_hibernation_swap_type(dev_t device, sector_t offset)
++{
++	int type;
++	struct swap_info_struct *si;
++
++	spin_lock(&swap_lock);
++
++	type = __find_hibernation_swap_type(device, offset);
++	if (type < 0) {
++		spin_unlock(&swap_lock);
++		return type;
++	}
++
++	si = swap_type_to_info(type);
++	if (WARN_ON_ONCE(!si)) {
++		spin_unlock(&swap_lock);
++		return -ENODEV;
++	}
++
++	/*
++	 * hibernate_acquire() prevents concurrent hibernation sessions.
++	 * This check additionally guards against double-pinning within
++	 * the same session.
++	 */
++	if (WARN_ON_ONCE(si->flags & SWP_HIBERNATION)) {
++		spin_unlock(&swap_lock);
++		return -EBUSY;
++	}
++
++	si->flags |= SWP_HIBERNATION;
++
++	spin_unlock(&swap_lock);
++	return type;
++}
++
++/**
++ * unpin_hibernation_swap_type - Unpin the swap device for hibernation
++ * @type: Swap type previously returned by pin_hibernation_swap_type()
++ *
++ * Clear the hibernation pin on the given swap device, allowing
++ * swapoff() to proceed normally.
++ *
++ * If @type does not refer to a valid swap device, this function
++ * does nothing.
++ */
++void unpin_hibernation_swap_type(int type)
++{
++	struct swap_info_struct *si;
++
++	spin_lock(&swap_lock);
++	si = swap_type_to_info(type);
++	if (!si) {
++		spin_unlock(&swap_lock);
++		return;
++	}
++	si->flags &= ~SWP_HIBERNATION;
++	spin_unlock(&swap_lock);
++}
++
++/**
++ * find_hibernation_swap_type - Find swap type for hibernation
++ * @device: Block device containing the resume image
++ * @offset: Offset within the device identifying the swap area
++ *
++ * Locate the swap device corresponding to @device and @offset.
++ *
++ * Unlike pin_hibernation_swap_type(), this function only performs a
++ * lookup and does not mark the swap device as pinned for hibernation.
++ *
++ * This is safe in the sysfs-based hibernation path where user space
++ * is already frozen and swapoff() cannot run concurrently.
++ *
++ * Return:
++ * A non-negative swap type on success.
++ * -EINVAL if @device is invalid.
++ * -ENODEV if no matching swap device is found.
++ */
++int find_hibernation_swap_type(dev_t device, sector_t offset)
++{
++	int type;
++
++	spin_lock(&swap_lock);
++	type = __find_hibernation_swap_type(device, offset);
++	spin_unlock(&swap_lock);
++
++	return type;
++}
++
+ int find_first_swap(dev_t *device)
+ {
+ 	int type;
+@@ -2936,6 +3031,14 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 		spin_unlock(&swap_lock);
+ 		goto out_dput;
+ 	}
++
++	/* Refuse swapoff while the device is pinned for hibernation */
++	if (p->flags & SWP_HIBERNATION) {
++		err = -EBUSY;
++		spin_unlock(&swap_lock);
++		goto out_dput;
++	}
++
+ 	if (!security_vm_enough_memory_mm(current->mm, p->pages))
+ 		vm_unacct_memory(p->pages);
+ 	else {
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from youngjun.park@lge.com are
 
-bug-avoid-format-attribute-warning-for-clang-as-well.patch
-ubsan-turn-off-kmsan-inside-of-ubsan-instrumentation.patch
-mm-vmscan-avoid-false-positive-wuninitialized-warning.patch
+maintainers-add-myself-as-reviewer-for-swap.patch
+mm-swap-pm-hibernate-fix-swapoff-race-in-uswsusp-by-pinning-swap-device.patch
+mm-swap-remove-redundant-swap-device-reference-in-alloc-free.patch
 
