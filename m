@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23021382F27
-	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 22:48:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 319B95C613
+	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 23:24:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774306137; cv=none; b=K67vufosMRKZQZivibx48icY+evywgjnxPXqWvQClZ314lCpSF5sCUUSfGwkxEJso2FTB4XuKyC7s2IZJYgSZ7C+ZGVkL+V/tXvEKcjyNdvY3B9wjBUuXxrYBLMfieQwgz0ClVeO8RYqODREd2EFkVS0C3kWssW2aApSih20P+E=
+	t=1774308270; cv=none; b=Go/1SFAG7BdneBRWmfDxcDmeELToqXpVsD54cBBQtp7XNSbHdbs4ZwELyHwojUssFj/Rpj8c5wVXuB1cZHgNvdEv1H1SxUx30tK6A12YAbfkE3pu5PnsaaSANKCpJ9dW9eFIm8E7jHe/txOjdlvn8Exb9CdTXrIZXoLJ7DVqj7Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774306137; c=relaxed/simple;
-	bh=BJCwWeLGaKzllloYob2XjscK0cwBEkl78RhnMPHO/hA=;
-	h=Date:To:From:Subject:Message-Id; b=cFb3uXOuk5DN/DptUFjHksxqKpc/jrBCQ2Z7GFmAFcZ/s1t4BF1arVuqfsI9dimQ88Ldu6zbzsQlLWeyPIvs18TgJIiCdua1d4eHRKBB9NWAdvikoQv1OiiF2z0iBILYoFUagX08GkwDcgeHHZeCucIEPMjAJY4OGLCDhhk+Z8M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PzKW6KEP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774308270; c=relaxed/simple;
+	bh=Bp7UJln7g9LZBGouSSZytmwt7Vq4e2DdOol1V8op56k=;
+	h=Date:To:From:Subject:Message-Id; b=BhMa1Vpx5GKoRxdKoKa26XzI+JMdlSRGEffpljvMHtPZWwv4xj3s0HT6AKFtTeXC/0vNOxVJ3X1QArRNAxm5PMBeIRKuxcqvAgv9y3sx66f7cRZpPDxJLPJp5RUgQxSdHcO4AQSY0Alf4BVsfkdzWg7rIuHRw/u82swB5DFyVLE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2VTLcTIs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PzKW6KEP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEF85C4CEF7;
-	Mon, 23 Mar 2026 22:48:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2VTLcTIs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B61F0C4CEF7;
+	Mon, 23 Mar 2026 23:24:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774306136;
-	bh=BJCwWeLGaKzllloYob2XjscK0cwBEkl78RhnMPHO/hA=;
+	s=korg; t=1774308269;
+	bh=Bp7UJln7g9LZBGouSSZytmwt7Vq4e2DdOol1V8op56k=;
 	h=Date:To:From:Subject:From;
-	b=PzKW6KEPRDGvftVPb+e79JtYZPml1mbdfPjrKBh3QueDdEgTIZcnXBDM2XdXViWcS
-	 Ftz0op6hgsiRk8Gsm4pDVjOz2oKig2jadEmcxF4ruFKA13KFeOVTqPK+qim3LMkVi3
-	 AuSK7RZXvTob5jZEb6hbxOxJdeHmYl9zRVlKqLUk=
-Date: Mon, 23 Mar 2026 15:48:56 -0700
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,rafael@kernel.org,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,youngjun.park@lge.com,akpm@linux-foundation.org
+	b=2VTLcTIsSJiBaBxT8vCJS3NTJ4zj2Xgf+tBB3dob3/ptjlLVGo/RxImA9AnyjNJ1n
+	 2ctMVLG4AiyLig+D8a3Rx5Hm/LYZU2vNC18CUBodqqY6Og0aa7zDfIlG1c7sCP2rQK
+	 xhOh1nncVMdA2ptWd+21xqxBB0JPbCQeujd/mhRo=
+Date: Mon, 23 Mar 2026 16:24:29 -0700
+To: mm-commits@vger.kernel.org,wangjinchao600@gmail.com,skhan@linuxfoundation.org,mrungta@google.com,max.kellermann@ionos.com,lihuafei1@huawei.com,irogers@google.com,eranian@google.com,dianders@chromium.org,cuiyunhui@bytedance.com,corbet@lwn.net,pmladek@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-remove-redundant-swap-device-reference-in-alloc-free.patch added to mm-new branch
-Message-Id: <20260323224856.AEF85C4CEF7@smtp.kernel.org>
+Subject: + doc-watchdog-futher-improvements.patch added to mm-nonmm-unstable branch
+Message-Id: <20260323232429.B61F0C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/swap: remove redundant swap device reference in alloc/free
-has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-remove-redundant-swap-device-reference-in-alloc-free.patch
+     Subject: doc: watchdog: futher improvements
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     doc-watchdog-futher-improvements.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-remove-redundant-swap-device-reference-in-alloc-free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/doc-watchdog-futher-improvements.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,152 +58,90 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Youngjun Park <youngjun.park@lge.com>
-Subject: mm/swap: remove redundant swap device reference in alloc/free
-Date: Tue, 24 Mar 2026 01:08:22 +0900
+From: Petr Mladek <pmladek@suse.com>
+Subject: doc: watchdog: futher improvements
+Date: Mon, 23 Mar 2026 18:21:38 +0100
 
-In the previous commit, uswsusp was modified to pin the swap device when
-the swap type is determined, ensuring the device remains valid throughout
-the hibernation I/O path.
+Make further additions and alterations to the watchdog documentation.
 
-Therefore, it is no longer necessary to repeatedly get and put the swap
-device reference for each swap slot allocation and free operation.
-
-For hibernation via the sysfs interface, user-space tasks are frozen
-before swap allocation begins, so swapoff cannot race with allocation. 
-After resume, tasks remain frozen while swap slots are freed, so
-additional reference management is not required there either.
-
-Remove the redundant swap device get/put operations from the hibernation
-swap allocation and free paths.
-
-Also remove the SWP_WRITEOK check before allocation, as the cluster
-allocation logic already validates the swap device state.
-
-Update function comments to document the caller's responsibility for
-ensuring swap device stability.
-
-Link: https://lkml.kernel.org/r/20260323160822.1409904-3-youngjun.park@lge.com
-Signed-off-by: Youngjun Park <youngjun.park@lge.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: "Rafael J . Wysocki" <rafael@kernel.org>
+Link: https://lkml.kernel.org/r/acF3tXBxSr0KOP9b@pathway.suse.cz
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Reviewed-by: Douglas Anderson <dianders@chromium.org>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Li Huafei <lihuafei1@huawei.com>
+Cc: Max Kellermann <max.kellermann@ionos.com>
+Cc: Mayank Rungta <mrungta@google.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Stephane Erainan <eranian@google.com>
+Cc: Wang Jinchao <wangjinchao600@gmail.com>
+Cc: Yunhui Cui <cuiyunhui@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   68 +++++++++++++++++++++++++-----------------------
- 1 file changed, 36 insertions(+), 32 deletions(-)
+ Documentation/admin-guide/lockup-watchdogs.rst |   38 ++++++++-------
+ 1 file changed, 21 insertions(+), 17 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-remove-redundant-swap-device-reference-in-alloc-free
-+++ a/mm/swapfile.c
-@@ -2077,7 +2077,16 @@ out:
- }
+--- a/Documentation/admin-guide/lockup-watchdogs.rst~doc-watchdog-futher-improvements
++++ a/Documentation/admin-guide/lockup-watchdogs.rst
+@@ -41,32 +41,36 @@ is a trade-off between fast response to
+ Implementation
+ ==============
  
- #ifdef CONFIG_HIBERNATION
--/* Allocate a slot for hibernation */
-+/**
-+ * swap_alloc_hibernation_slot() - Allocate a swap slot for hibernation.
-+ * @type: swap device type index to allocate from.
-+ *
-+ * The caller must ensure the swap device is stable, either by pinning
-+ * it (SWP_HIBERNATION) or by freezing user-space.
-+ *
-+ * Return: a valid swp_entry_t on success, or an empty entry (val == 0)
-+ * on failure.
-+ */
- swp_entry_t swap_alloc_hibernation_slot(int type)
- {
- 	struct swap_info_struct *pcp_si, *si = swap_type_to_info(type);
-@@ -2088,46 +2097,42 @@ swp_entry_t swap_alloc_hibernation_slot(
- 	if (!si)
- 		goto fail;
- 
--	/* This is called for allocating swap entry, not cache */
--	if (get_swap_device_info(si)) {
--		if (si->flags & SWP_WRITEOK) {
--			/*
--			 * Try the local cluster first if it matches the device. If
--			 * not, try grab a new cluster and override local cluster.
--			 */
--			local_lock(&percpu_swap_cluster.lock);
--			pcp_si = this_cpu_read(percpu_swap_cluster.si[0]);
--			pcp_offset = this_cpu_read(percpu_swap_cluster.offset[0]);
--			if (pcp_si == si && pcp_offset) {
--				ci = swap_cluster_lock(si, pcp_offset);
--				if (cluster_is_usable(ci, 0))
--					offset = alloc_swap_scan_cluster(si, ci, NULL, pcp_offset);
--				else
--					swap_cluster_unlock(ci);
--			}
--			if (!offset)
--				offset = cluster_alloc_swap_entry(si, NULL);
--			local_unlock(&percpu_swap_cluster.lock);
--			if (offset)
--				entry = swp_entry(si->type, offset);
--		}
--		put_swap_device(si);
-+	/*
-+	 * Try the local cluster first if it matches the device. If
-+	 * not, try grab a new cluster and override local cluster.
-+	 */
-+	local_lock(&percpu_swap_cluster.lock);
-+	pcp_si = this_cpu_read(percpu_swap_cluster.si[0]);
-+	pcp_offset = this_cpu_read(percpu_swap_cluster.offset[0]);
-+	if (pcp_si == si && pcp_offset) {
-+		ci = swap_cluster_lock(si, pcp_offset);
-+		if (cluster_is_usable(ci, 0))
-+			offset = alloc_swap_scan_cluster(si, ci, NULL, pcp_offset);
-+		else
-+			swap_cluster_unlock(ci);
- 	}
-+	if (!offset)
-+		offset = cluster_alloc_swap_entry(si, NULL);
-+	local_unlock(&percpu_swap_cluster.lock);
-+	if (offset)
-+		entry = swp_entry(si->type, offset);
+-The soft lockup detector is built on top of the hrtimer subsystem.
+-The hard lockup detector is built on top of the perf subsystem
+-(on architectures that support it) or uses an SMP "buddy" system.
++The soft and hard lockup detectors are built around a hrtimer.
++In addition, the softlockup detector regularly schedules a job, and
++the hard lockup detector might use Perf/NMI events on architectures
++that support it.
 +
- fail:
- 	return entry;
- }
++Frequency and Heartbeats
++------------------------
++
++The core of the detectors in a hrtimer. It servers multiple purpose:
++
++- schedules watchdog job for the softlockup detector
++- bumps the interrupt counter for hardlockup detectors (heartbeat)
++- detects softlockups
++- detects hardlockups in Buddy mode
++
++The period of this hrtimer is 2*watchdog_thresh/5, which is 4 seconds
++by default. The hrtimer has two or three chances to generate an interrupt
++(heartbeat) before the hardlockup detector kicks in.
  
--/* Free a slot allocated by swap_alloc_hibernation_slot */
-+/**
-+ * swap_free_hibernation_slot() - Free a swap slot allocated for hibernation.
-+ * @entry: swap entry to free.
-+ *
-+ * The caller must ensure the swap device is stable.
-+ */
- void swap_free_hibernation_slot(swp_entry_t entry)
- {
--	struct swap_info_struct *si;
-+	struct swap_info_struct *si = __swap_entry_to_info(entry);
- 	struct swap_cluster_info *ci;
- 	pgoff_t offset = swp_offset(entry);
+ Softlockup Detector
+ -------------------
  
--	si = get_swap_device(entry);
--	if (WARN_ON(!si))
--		return;
+-The watchdog job runs in a stop scheduling thread that updates a
+-timestamp every time it is scheduled. If that timestamp is not updated
+-for 2*watchdog_thresh seconds (the softlockup threshold) the
++The watchdog job is scheduled by the hrtimer and runs in a stop scheduling
++thread. It updates a timestamp every time it is scheduled. If that timestamp
++is not updated for 2*watchdog_thresh seconds (the softlockup threshold) the
+ 'softlockup detector' (coded inside the hrtimer callback function)
+ will dump useful debug information to the system log, after which it
+ will call panic if it was instructed to do so or resume execution of
+ other kernel code.
+ 
+-Frequency and Heartbeats
+-------------------------
 -
- 	ci = swap_cluster_lock(si, offset);
- 	__swap_cluster_put_entry(ci, offset % SWAPFILE_CLUSTER);
- 	__swap_cluster_free_entries(si, ci, offset % SWAPFILE_CLUSTER, 1);
-@@ -2135,7 +2140,6 @@ void swap_free_hibernation_slot(swp_entr
+-The hrtimer used by the softlockup detector serves a dual purpose:
+-it detects softlockups, and it also generates the interrupts
+-(heartbeats) that the hardlockup detectors use to verify CPU liveness.
+-
+-The period of this hrtimer is 2*watchdog_thresh/5. This means the
+-hrtimer has two or three chances to generate an interrupt before the
+-NMI hardlockup detector kicks in.
+-
+ Hardlockup Detector (NMI/Perf)
+ ------------------------------
  
- 	/* In theory readahead might add it to the swap cache by accident */
- 	__try_to_reclaim_swap(si, offset, TTRS_ANYWAY);
--	put_swap_device(si);
- }
- 
- static int __find_hibernation_swap_type(dev_t device, sector_t offset)
 _
 
-Patches currently in -mm which might be from youngjun.park@lge.com are
+Patches currently in -mm which might be from pmladek@suse.com are
 
-maintainers-add-myself-as-reviewer-for-swap.patch
-mm-swap-pm-hibernate-fix-swapoff-race-in-uswsusp-by-pinning-swap-device.patch
-mm-swap-remove-redundant-swap-device-reference-in-alloc-free.patch
+hung_task-increment-the-global-counter-immediately.patch
+doc-watchdog-futher-improvements.patch
 
