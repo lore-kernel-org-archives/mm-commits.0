@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E163345729;
-	Mon, 23 Mar 2026 22:18:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A996313534
+	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 22:23:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774304317; cv=none; b=OJSbwftXh7yqmE4KfDINB0DGVJJl5n8mmdrvE4R46QS/tl5pO4l1eDRpLnN6/oDK+7Uiqnvvra0w+2M2ohCVVHLqor7Eyt6Y6mOVl4AC1coqx24O1z+yr07+5fP4z3Bf9ceh96qgsie2DIhjydQzj8YiIk48xX6tfM1UncGAgN0=
+	t=1774304601; cv=none; b=qoD6z9I6ELvGo28zeFgtQZ9S0zpN4dyYtLj3HkZ+tcDcppSC/P6QUx1Xw+YG86m7dOdV2ZepRAEmuIWy/75PtG5KOGEiG4vD5IRNRjddffVFJhlN3/P0ImFQuGqbrdsVl2Sux6nWYltAnkeqHkR9V5wXQZlMCwo+Uv0sSTS0WUQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774304317; c=relaxed/simple;
-	bh=o/+Kg9/bBW5TqV/W+gUBtz++JcR9+Hvj9c2EEedZ2p0=;
-	h=Date:To:From:Subject:Message-Id; b=D9tzMGI/uoHHieUKQZr7tf+C27x3N8XsjqwpfJxVks6K3Lie8QGpD3qTKtKIf9h6DyZqtpJemkc7qUj6nyR/iczwQtkJTSwfnEc4VYIqgie8RObfSwfddc4IGJzA/gLF/wYgY5DkqGMsoqakEWi6zfDTp510gQJ4ZOKgGLr5wH8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pX7+NvzI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774304601; c=relaxed/simple;
+	bh=5J2ggUd8STpiXxfNX3chfMpuss7lB9s3memFjbOCAbA=;
+	h=Date:To:From:Subject:Message-Id; b=aHynYWizX3dDe01NonAYl2hl8kmKepBfPi9IBQSrliZY2JEeVmvegZUuK+Q3yCsgAlaUfzp4nOFeb7FyMByDg0E6RLSOWyU/yMgomhh3IBiuJtkUfCOi+BLMn2nwNDInMY48I/FeFedQh7Ec5HdaMZG4s0KiuUBLaLj7x8T1TGU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YCsD9U+c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pX7+NvzI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 086ADC4CEF7;
-	Mon, 23 Mar 2026 22:18:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YCsD9U+c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1B98C4CEF7;
+	Mon, 23 Mar 2026 22:23:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774304317;
-	bh=o/+Kg9/bBW5TqV/W+gUBtz++JcR9+Hvj9c2EEedZ2p0=;
+	s=korg; t=1774304600;
+	bh=5J2ggUd8STpiXxfNX3chfMpuss7lB9s3memFjbOCAbA=;
 	h=Date:To:From:Subject:From;
-	b=pX7+NvzIQqr6UB4fcGx+BBTcKjUsFHx94e6tLxVbeLUImPlVR476AYVOL6wPsZmGc
-	 rQNH9khtuoqWpza8w86kS2yTHMKZ0U3RWaZqRU5dZynkZH5GKeyeeYmPbrvMgp6K7Q
-	 W7rCm7bmW09crHzoX4zjjtJfWvRwLwe43m4gKXJI=
-Date: Mon, 23 Mar 2026 15:18:36 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,akpm@linux-foundation.org
+	b=YCsD9U+cWf3RIOCn2QAPemGX3CSpiolcnW5rvJsc7gjQo4SStnegGZVfjiU+YyQSS
+	 6ubn03XPtnjdM27LsRKifi7hoASIB1rSzfk8iVc8N5/uvZ0lIKeqjMPkUK+5dzqvRI
+	 Qnd+trb8lo4tAUz+XYRp9Hhoe8t/Vh+UMklBePzU=
+Date: Mon, 23 Mar 2026 15:23:20 -0700
+To: mm-commits@vger.kernel.org,peterz@infradead.org,nathan@kernel.org,morbo@google.com,mingo@kernel.org,justinstitt@google.com,jackmanb@google.com,andriy.shevchenko@linux.intel.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-fix-pmd-pud-checks-in-follow_pfnmap_start.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260323221837.086ADC4CEF7@smtp.kernel.org>
+Subject: + bug-avoid-format-attribute-warning-for-clang-as-well.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260323222320.A1B98C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory: fix PMD/PUD checks in follow_pfnmap_start()
+     Subject: bug: avoid format attribute warning for clang as well
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memory-fix-pmd-pud-checks-in-follow_pfnmap_start.patch
+     bug-avoid-format-attribute-warning-for-clang-as-well.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-fix-pmd-pud-checks-in-follow_pfnmap_start.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bug-avoid-format-attribute-warning-for-clang-as-well.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,145 +58,77 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/memory: fix PMD/PUD checks in follow_pfnmap_start()
-Date: Mon, 23 Mar 2026 21:20:18 +0100
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: bug: avoid format attribute warning for clang as well
+Date: Mon, 23 Mar 2026 21:55:16 +0100
 
-follow_pfnmap_start() suffers from two problems:
+Like gcc, clang-22 now also warns about a function that it incorrectly
+identifies as a printf-style format:
 
-(1) We are not re-fetching the pmd/pud after taking the PTL
+lib/bug.c:190:22: error: diagnostic behavior may be improved by adding the 'format(printf, 1, 0)' attribute to the declaration of '__warn_printf' [-Werror,-Wmissing-format-attribute]
+  179 | static void __warn_printf(const char *fmt, struct pt_regs *regs)
+      | __attribute__((format(printf, 1, 0)))
+  180 | {
+  181 |         if (!fmt)
+  182 |                 return;
+  183 |
+  184 | #ifdef HAVE_ARCH_BUG_FORMAT_ARGS
+  185 |         if (regs) {
+  186 |                 struct arch_va_list _args;
+  187 |                 va_list *args = __warn_args(&_args, regs);
+  188 |
+  189 |                 if (args) {
+  190 |                         vprintk(fmt, *args);
+      |                                           ^
 
-Therefore, we are not properly stabilizing what the lock lock actually
-protects.  If there is concurrent zapping, we would indicate to the caller
-that we found an entry, however, that entry might already have been
-invalidated, or contain a different PFN after taking the lock.
+Revert the change that added a gcc-specific workaround, and instead add
+the generic annotation that avoid the warning.
 
-Properly use pmdp_get() / pudp_get() after taking the lock.
-
-(2) pmd_leaf() / pud_leaf() are not well defined on non-present entries
-
-pmd_leaf()/pud_leaf() could wrongly trigger on non-present entries.
-
-There is no real guarantee that pmd_leaf()/pud_leaf() returns something
-reasonable on non-present entries.  Most architectures indeed either
-perform a present check or make it work by smart use of flags.
-
-However, for example loongarch checks the _PAGE_HUGE flag in pmd_leaf(),
-and always sets the _PAGE_HUGE flag in __swp_entry_to_pmd().  Whereby
-pmd_trans_huge() explicitly checks pmd_present(), pmd_leaf() does not do
-that.
-
-Let's check pmd_present()/pud_present() before assuming "the is a present
-PMD leaf" when spotting pmd_leaf()/pud_leaf(), like other page table
-handling code that traverses user page tables does.
-
-Given that non-present PMD entries are likely rare in VM_IO|VM_PFNMAP, (1)
-is likely more relevant than (2).  It is questionable how often (1) would
-actually trigger, but let's CC stable to be sure.
-
-This was found by code inspection.
-
-Link: https://lkml.kernel.org/r/20260323-follow_pfnmap_fix-v1-1-5b0ec10872b3@kernel.org
-Fixes: 6da8e9634bb7 ("mm: new follow_pfnmap API")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260323205534.1284284-1-arnd@kernel.org
+Fixes: d36067d6ea00 ("bug: Hush suggest-attribute=format for __warn_printf()")
+Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Suggested-by: Brendan Jackman <jackmanb@google.com>
+Link: https://lore.kernel.org/all/20251208141618.2805983-1-andriy.shevchenko@linux.intel.com/T/#u
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Bill Wendling <morbo@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ lib/bug.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/mm/memory.c~mm-memory-fix-pmd-pud-checks-in-follow_pfnmap_start
-+++ a/mm/memory.c
-@@ -6815,11 +6815,16 @@ retry:
+--- a/lib/bug.c~bug-avoid-format-attribute-warning-for-clang-as-well
++++ a/lib/bug.c
+@@ -173,10 +173,8 @@ struct bug_entry *find_bug(unsigned long
+ 	return module_find_bug(bugaddr);
+ }
  
- 	pudp = pud_offset(p4dp, address);
- 	pud = pudp_get(pudp);
--	if (pud_none(pud))
-+	if (!pud_present(pud))
- 		goto out;
- 	if (pud_leaf(pud)) {
- 		lock = pud_lock(mm, pudp);
--		if (!unlikely(pud_leaf(pud))) {
-+		pud = pudp_get(pudp);
-+
-+		if (unlikely(!pud_present(pud))) {
-+			spin_unlock(lock);
-+			goto out;
-+		} else if (unlikely(!pud_leaf(pud))) {
- 			spin_unlock(lock);
- 			goto retry;
- 		}
-@@ -6831,9 +6836,16 @@ retry:
+-__diag_push();
+-__diag_ignore(GCC, all, "-Wsuggest-attribute=format",
+-	      "Not a valid __printf() conversion candidate.");
+-static void __warn_printf(const char *fmt, struct pt_regs *regs)
++static __printf(1, 0)
++void __warn_printf(const char *fmt, struct pt_regs *regs)
+ {
+ 	if (!fmt)
+ 		return;
+@@ -195,7 +193,6 @@ static void __warn_printf(const char *fm
  
- 	pmdp = pmd_offset(pudp, address);
- 	pmd = pmdp_get_lockless(pmdp);
-+	if (!pmd_present(pmd))
-+		goto out;
- 	if (pmd_leaf(pmd)) {
- 		lock = pmd_lock(mm, pmdp);
--		if (!unlikely(pmd_leaf(pmd))) {
-+		pmd = pmdp_get(pmdp);
-+
-+		if (unlikely(!pmd_present(pmd))) {
-+			spin_unlock(lock);
-+			goto out;
-+		} else if (unlikely(!pmd_leaf(pmd))) {
- 			spin_unlock(lock);
- 			goto retry;
- 		}
+ 	printk("%s", fmt);
+ }
+-__diag_pop();
+ 
+ static enum bug_trap_type __report_bug(struct bug_entry *bug, unsigned long bugaddr, struct pt_regs *regs)
+ {
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-memory-fix-pmd-pud-checks-in-follow_pfnmap_start.patch
-mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap.patch
-mm-pagewalk-drop-fw_migration.patch
-mm-madvise-drop-range-checks-in-madvise_free_single_vma.patch
-mm-memory-remove-zap_details-parameter-from-zap_page_range_single.patch
-mm-memory-remove-zap_details-parameter-from-zap_page_range_single-fix.patch
-mm-memory-inline-unmap_mapping_range_vma-into-unmap_mapping_range_tree.patch
-mm-memory-simplify-calculation-in-unmap_mapping_range_tree.patch
-mm-oom_kill-use-mmu_notify_clear-in-__oom_reap_task_mm.patch
-mm-oom_kill-factor-out-zapping-of-vma-into-zap_vma_for_reaping.patch
-mm-memory-rename-unmap_single_vma-to-__zap_vma_range.patch
-mm-memory-move-adjusting-of-address-range-to-unmap_vmas.patch
-mm-memory-convert-details-even_cows-into-details-skip_cows.patch
-mm-memory-use-__zap_vma_range-in-zap_vma_for_reaping.patch
-mm-memory-inline-unmap_page_range-into-__zap_vma_range.patch
-mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix.patch
-mm-rename-zap_vma_pages-to-zap_vma.patch
-mm-rename-zap_page_range_single_batched-to-zap_vma_range_batched.patch
-mm-rename-zap_page_range_single-to-zap_vma_range.patch
-mm-rename-zap_vma_ptes-to-zap_special_vma_range.patch
-mm-memory-support-vm_mixedmap-in-zap_special_vma_range.patch
-kasan-docs-slub-is-the-only-remaining-slab-implementation.patch
-mm-move-vma_kernel_pagesize-from-hugetlb-to-mmh.patch
-mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac.patch
-kvm-remove-hugetlbh-inclusion.patch
-kvm-ppc-remove-hugetlbh-inclusion.patch
-mm-memory_hotplug-remove-for_each_valid_pfn-usage.patch
-mm-sparse-remove-warn_ons-from-onlineoffline_mem_sections.patch
-mm-kconfig-make-config_memory_hotplug-depend-on-config_sparsemem_vmemmap.patch
-mm-memory_hotplug-simplify-check_pfn_span.patch
-mm-sparse-remove-config_sparsemem_vmemmap-leftovers-for-config_memory_hotplug.patch
-mm-bootmem_info-remove-handling-for-config_sparsemem_vmemmap.patch
-mm-bootmem_info-avoid-using-sparse_decode_mem_map.patch
-mm-sparse-remove-sparse_decode_mem_map.patch
-mm-sparse-remove-config_memory_hotplug-specific-usemap-allocation-handling.patch
-mm-prepare-to-move-subsection_map_init-to-mm-sparse-vmemmapc.patch
-mm-sparse-drop-set_section_nid-from-sparse_add_section.patch
-mm-sparse-move-sparse_init_one_section-to-internalh.patch
-mm-sparse-move-sparse_init_one_section-to-internalh-fix.patch
-mm-sparse-move-__section_mark_present-to-internalh.patch
-mm-sparse-move-memory-hotplug-bits-to-sparse-vmemmapc.patch
-mm-remove-config_arch_enable_memory_hotremove.patch
-mm-introduce-config_numa_migration-and-simplify-config_migration.patch
+bug-avoid-format-attribute-warning-for-clang-as-well.patch
+ubsan-turn-off-kmsan-inside-of-ubsan-instrumentation.patch
+mm-vmscan-avoid-false-positive-wuninitialized-warning.patch
 
