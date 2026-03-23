@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1DB23815D6
-	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 21:59:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91A333783C8
+	for <mm-commits@vger.kernel.org>; Mon, 23 Mar 2026 22:00:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774303199; cv=none; b=Mir+Owhz0gV106FngxHo8gwjlfMU6+2MXPw54jYbaHtIUnXXvwnNsBf1MHCjPcr2HIbiihH4VANPpRIPqoccWyrr7J89bPQE4SdWAWIVfbrVyRg3IrR/X7/9/2j0OuBEUiijXFuJ8zyvLjTpUzbJR/pbV+MOxSVyhopompwUa9g=
+	t=1774303202; cv=none; b=hqMrclzZ/NiV8vRRE9E43n6MCuJvuMYCaVnyVMk+B6dfVqantzW3z/4HS9+guhAmka+vflMFE8tivzh25QEkoUAlUMCSc4CEZKpoXqv4YV0RP6eSuqTBiPggebIuv3nq15fuJaz8Vw4KWsKV/PM8s7WVTC/kGBa/oIAuDQ58ryM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774303199; c=relaxed/simple;
-	bh=vOaamtjSH5GwaFN3hsmJ+3n0jdgUxVspIiPWbTWU6Bw=;
-	h=Date:To:From:Subject:Message-Id; b=L5YnWiAJ79v+N4IdNCpulAKlJ0kb+J32KDCF/ZOXfgNHrQhkpyvFVwy4fZOwAvwH0QBp+VkMj+zI7mg/XuxQkQWlQfY2BN1E+0XErz55e9USRqdVuIh3wfuJBva6e6uhGtAevFq8jO987wCZ6IswBUeMcJm4iHvJjORIvfGsBUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z+WTAIzZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774303202; c=relaxed/simple;
+	bh=n6EBJY1LOSTGKkF/EeGoMzinOvjJ51/Rr3weer2gCRs=;
+	h=Date:To:From:Subject:Message-Id; b=Cx2EWmg5vW3xAMY/drHRO4NjNZQkn84cCDuUlhM7AwUzs44o2qk+XZVa5zqUHayvnFl8XF/BGVy2QHWPZX8LrZAGOnc+gYTPV2fFj3hfTD4MxiXeBVGBG65s31FpgWkQ/zIoil5jYiKQn1q28GGeD9m/pH33EMA9cA+FmOxbjEk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vrlzmDLA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z+WTAIzZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A079BC4CEF7;
-	Mon, 23 Mar 2026 21:59:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vrlzmDLA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAE43C4CEF7;
+	Mon, 23 Mar 2026 22:00:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774303198;
-	bh=vOaamtjSH5GwaFN3hsmJ+3n0jdgUxVspIiPWbTWU6Bw=;
+	s=korg; t=1774303202;
+	bh=n6EBJY1LOSTGKkF/EeGoMzinOvjJ51/Rr3weer2gCRs=;
 	h=Date:To:From:Subject:From;
-	b=Z+WTAIzZk/+dbFvzWQzsXBV+Yid0BLfgcsHk7mtGdoEOFMpH6cqZAzo6VcR44qLzf
-	 /Rd4saFNmYg3DYgEznippWh+5QjOFx5VxzLWQntiXFh1baV8kCprPA9HjRde4SSvhG
-	 Uhntvo6DCptuEeyztOG9o57ilj0nMsppFH9Eg+gI=
-Date: Mon, 23 Mar 2026 14:59:58 -0700
+	b=vrlzmDLAyb0VL+uloor2cqJY/xp4LlyvdNTlgYO8vr4MQ9BMtuBySyzifsM6JSN5r
+	 WeA6HCe8+p0bR3pleuJWojm2nKUPYYeakiVeZs1B0M8V/qgZExnGkE3W4gf2v8QkJw
+	 QFDdEll8RnCUA8XmIeoyVEUs0c3iVYLZeY2Wncgc=
+Date: Mon, 23 Mar 2026 15:00:01 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,graf@amazon.com,david@kernel.org,corbet@lwn.net,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kho-kexec-metadata-track-previous-kernel-chain.patch added to mm-nonmm-unstable branch
-Message-Id: <20260323215958.A079BC4CEF7@smtp.kernel.org>
+Subject: + kho-document-kexec-metadata-tracking-feature.patch added to mm-nonmm-unstable branch
+Message-Id: <20260323220001.EAE43C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kho: kexec-metadata: track previous kernel chain
+     Subject: kho: document kexec-metadata tracking feature
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kho-kexec-metadata-track-previous-kernel-chain.patch
+     kho-document-kexec-metadata-tracking-feature.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-kexec-metadata-track-previous-kernel-chain.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kho-document-kexec-metadata-tracking-feature.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,63 +59,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Breno Leitao <leitao@debian.org>
-Subject: kho: kexec-metadata: track previous kernel chain
-Date: Mon, 16 Mar 2026 04:54:35 -0700
+Subject: kho: document kexec-metadata tracking feature
+Date: Mon, 16 Mar 2026 04:54:36 -0700
 
-Use Kexec Handover (KHO) to pass the previous kernel's version string and
-the number of kexec reboots since the last cold boot to the next kernel,
-and print it at boot time.
+Add documentation for the kexec-metadata feature that tracks the previous
+kernel version and kexec boot count across kexec reboots.  This helps
+diagnose bugs that only reproduce when kexecing from specific kernel
+versions.
 
-Example output:
-    [    0.000000] KHO: exec from: 6.19.0-rc4-next-20260107 (count 1)
-
-Motivation
-==========
-
-Bugs that only reproduce when kexecing from specific kernel versions are
-difficult to diagnose.  These issues occur when a buggy kernel kexecs into
-a new kernel, with the bug manifesting only in the second kernel.
-
-Recent examples include the following commits:
-
- * commit eb2266312507 ("x86/boot: Fix page table access in
-   5-level to 4-level paging transition")
- * commit 77d48d39e991 ("efistub/tpm: Use ACPI reclaim memory
-   for event log to avoid corruption")
- * commit 64b45dd46e15 ("x86/efi: skip memattr table on kexec
-   boot")
-
-As kexec-based reboots become more common, these version-dependent bugs
-are appearing more frequently.  At scale, correlating crashes to the
-previous kernel version is challenging, especially when issues only occur
-in specific transition scenarios.
-
-Implementation
-==============
-
-The kexec metadata is stored as a plain C struct (struct
-kho_kexec_metadata) rather than FDT format, for simplicity and direct
-field access.  It is registered via kho_add_subtree() as a separate
-subtree, keeping it independent from the core KHO ABI.  This design
-choice:
-
- - Keeps the core KHO ABI minimal and stable
- - Allows the metadata format to evolve independently
- - Avoids requiring version bumps for all KHO consumers (LUO, etc.)
-   when the metadata format changes
-
-The struct kho_kexec_metadata contains two fields:
- - previous_release: The kernel version that initiated the kexec
- - kexec_count: Number of kexec boots since last cold boot
-
-On cold boot, kexec_count starts at 0 and increments with each kexec.  The
-count helps identify issues that only manifest after multiple consecutive
-kexec reboots.
-
-Link: https://lkml.kernel.org/r/20260316-kho-v9-5-ed6dcd951988@debian.org
+Link: https://lkml.kernel.org/r/20260316-kho-v9-6-ed6dcd951988@debian.org
 Signed-off-by: Breno Leitao <leitao@debian.org>
-Acked-by: SeongJae Park <sj@kernel.org>
+Suggested-by: Mike Rapoport <rppt@kernel.org>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -123,197 +79,64 @@ Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kho/abi/kexec_metadata.h |   46 ++++++++++
- kernel/liveupdate/kexec_handover.c     |   98 +++++++++++++++++++++++
- 2 files changed, 144 insertions(+)
+ Documentation/admin-guide/mm/kho.rst |   39 +++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/include/linux/kho/abi/kexec_metadata.h a/include/linux/kho/abi/kexec_metadata.h
-new file mode 100644
---- /dev/null
-+++ a/include/linux/kho/abi/kexec_metadata.h
-@@ -0,0 +1,46 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+
-+/**
-+ * DOC: Kexec Metadata ABI
-+ *
-+ * The "kexec-metadata" subtree stores optional metadata about the kexec chain.
-+ * It is registered via kho_add_subtree(), keeping it independent from the core
-+ * KHO ABI. This allows the metadata format to evolve without affecting other
-+ * KHO consumers.
-+ *
-+ * The metadata is stored as a plain C struct rather than FDT format for
-+ * simplicity and direct field access.
-+ *
-+ * Copyright (c) 2026 Meta Platforms, Inc. and affiliates.
-+ * Copyright (c) 2026 Breno Leitao <leitao@debian.org>
-+ */
-+
-+#ifndef _LINUX_KHO_ABI_KEXEC_METADATA_H
-+#define _LINUX_KHO_ABI_KEXEC_METADATA_H
-+
-+#include <linux/types.h>
-+#include <linux/utsname.h>
-+
-+#define KHO_KEXEC_METADATA_VERSION 1
-+
-+/**
-+ * struct kho_kexec_metadata - Kexec metadata passed between kernels
-+ * @version: ABI version of this struct (must be first field)
-+ * @previous_release: Kernel version string that initiated the kexec
-+ * @kexec_count: Number of kexec boots since last cold boot
-+ *
-+ * This structure is preserved across kexec and allows the new kernel to
-+ * identify which kernel it was booted from and how many kexec reboots
-+ * have occurred.
-+ *
-+ * __NEW_UTS_LEN is part of uABI, so it safe to use it in here.
-+ */
-+struct kho_kexec_metadata {
-+	u32 version;
-+	char previous_release[__NEW_UTS_LEN + 1];
-+	u32 kexec_count;
-+} __packed;
-+
-+#define KHO_METADATA_NODE_NAME "kexec-metadata"
-+
-+#endif /* _LINUX_KHO_ABI_KEXEC_METADATA_H */
---- a/kernel/liveupdate/kexec_handover.c~kho-kexec-metadata-track-previous-kernel-chain
-+++ a/kernel/liveupdate/kexec_handover.c
-@@ -18,7 +18,9 @@
- #include <linux/kexec.h>
- #include <linux/kexec_handover.h>
- #include <linux/kho_radix_tree.h>
-+#include <linux/utsname.h>
- #include <linux/kho/abi/kexec_handover.h>
-+#include <linux/kho/abi/kexec_metadata.h>
- #include <linux/libfdt.h>
- #include <linux/list.h>
- #include <linux/memblock.h>
-@@ -1268,6 +1270,8 @@ EXPORT_SYMBOL_GPL(kho_restore_free);
- struct kho_in {
- 	phys_addr_t fdt_phys;
- 	phys_addr_t scratch_phys;
-+	char previous_release[__NEW_UTS_LEN + 1];
-+	u32 kexec_count;
- 	struct kho_debugfs dbg;
- };
+--- a/Documentation/admin-guide/mm/kho.rst~kho-document-kexec-metadata-tracking-feature
++++ a/Documentation/admin-guide/mm/kho.rst
+@@ -42,6 +42,45 @@ For example, if you used ``reserve_mem``
+ an early memory reservation, the new kernel will have that memory at the
+ same physical address as the old kernel.
  
-@@ -1392,6 +1396,96 @@ static __init int kho_out_fdt_setup(void
- 	return err;
- }
++Kexec Metadata
++==============
++
++KHO automatically tracks metadata about the kexec chain, passing information
++about the previous kernel to the next kernel. This feature helps diagnose
++bugs that only reproduce when kexecing from specific kernel versions.
++
++On each KHO kexec, the kernel logs the previous kernel's version and the
++number of kexec reboots since the last cold boot::
++
++    [    0.000000] KHO: exec from: 6.19.0-rc4-next-20260107 (count 1)
++
++The metadata includes:
++
++``previous_release``
++    The kernel version string (from ``uname -r``) of the kernel that
++    initiated the kexec.
++
++``kexec_count``
++    The number of kexec boots since the last cold boot. On cold boot,
++    this counter starts at 0 and increments with each kexec. This helps
++    identify issues that only manifest after multiple consecutive kexec
++    reboots.
++
++Use Cases
++---------
++
++This metadata is particularly useful for debugging kexec transition bugs,
++where a buggy kernel kexecs into a new kernel and the bug manifests only
++in the second kernel. Examples of such bugs include:
++
++- Memory corruption from the previous kernel affecting the new kernel
++- Incorrect hardware state left by the previous kernel
++- Firmware/ACPI state issues that only appear in kexec scenarios
++
++At scale, correlating crashes to the previous kernel version enables
++faster root cause analysis when issues only occur in specific kernel
++transition scenarios.
++
+ debugfs Interfaces
+ ==================
  
-+static void __init kho_in_kexec_metadata(void)
-+{
-+	struct kho_kexec_metadata *metadata;
-+	phys_addr_t metadata_phys;
-+	size_t blob_size;
-+	int err;
-+
-+	err = kho_retrieve_subtree(KHO_METADATA_NODE_NAME, &metadata_phys,
-+				   &blob_size);
-+	if (err)
-+		/* This is fine, previous kernel didn't export metadata */
-+		return;
-+
-+	/* Check that, at least, "version" is present */
-+	if (blob_size < sizeof(u32)) {
-+		pr_warn("kexec-metadata blob too small (%zu bytes)\n",
-+			blob_size);
-+		return;
-+	}
-+
-+	metadata = phys_to_virt(metadata_phys);
-+
-+	if (metadata->version != KHO_KEXEC_METADATA_VERSION) {
-+		pr_warn("kexec-metadata version %u not supported (expected %u)\n",
-+			metadata->version, KHO_KEXEC_METADATA_VERSION);
-+		return;
-+	}
-+
-+	if (blob_size < sizeof(*metadata)) {
-+		pr_warn("kexec-metadata blob too small for v%u (%zu < %zu)\n",
-+			metadata->version, blob_size, sizeof(*metadata));
-+		return;
-+	}
-+
-+	/*
-+	 * Copy data to the kernel structure that will persist during
-+	 * kernel lifetime.
-+	 */
-+	kho_in.kexec_count = metadata->kexec_count;
-+	strscpy(kho_in.previous_release, metadata->previous_release,
-+		sizeof(kho_in.previous_release));
-+
-+	pr_info("exec from: %s (count %u)\n",
-+		kho_in.previous_release, kho_in.kexec_count);
-+}
-+
-+/*
-+ * Create kexec metadata to pass kernel version and boot count to the
-+ * next kernel. This keeps the core KHO ABI minimal and allows the
-+ * metadata format to evolve independently.
-+ */
-+static __init int kho_out_kexec_metadata(void)
-+{
-+	struct kho_kexec_metadata *metadata;
-+	int err;
-+
-+	metadata = kho_alloc_preserve(sizeof(*metadata));
-+	if (IS_ERR(metadata))
-+		return PTR_ERR(metadata);
-+
-+	metadata->version = KHO_KEXEC_METADATA_VERSION;
-+	strscpy(metadata->previous_release, init_uts_ns.name.release,
-+		sizeof(metadata->previous_release));
-+	/* kho_in.kexec_count is set to 0 on cold boot */
-+	metadata->kexec_count = kho_in.kexec_count + 1;
-+
-+	err = kho_add_subtree(KHO_METADATA_NODE_NAME, metadata,
-+			      sizeof(*metadata));
-+	if (err)
-+		kho_unpreserve_free(metadata);
-+
-+	return err;
-+}
-+
-+static int __init kho_kexec_metadata_init(const void *fdt)
-+{
-+	int err;
-+
-+	if (fdt)
-+		kho_in_kexec_metadata();
-+
-+	/* Populate kexec metadata for the possible next kexec */
-+	err = kho_out_kexec_metadata();
-+	if (err)
-+		pr_warn("failed to initialize kexec-metadata subtree: %d\n",
-+			err);
-+
-+	return err;
-+}
-+
- static __init int kho_init(void)
- {
- 	struct kho_radix_tree *tree = &kho_out.radix_tree;
-@@ -1430,6 +1524,10 @@ static __init int kho_init(void)
- 		return 0;
- 	}
- 
-+	err = kho_kexec_metadata_init(fdt);
-+	if (err)
-+		goto err_free_fdt;
-+
- 	for (int i = 0; i < kho_scratch_cnt; i++) {
- 		unsigned long base_pfn = PHYS_PFN(kho_scratch[i].addr);
- 		unsigned long count = kho_scratch[i].size >> PAGE_SHIFT;
 _
 
 Patches currently in -mm which might be from leitao@debian.org are
