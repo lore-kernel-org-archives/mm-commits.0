@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28C5836215C
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A81F363091
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388586; cv=none; b=Aa4ZWeY3B2VMkN8w7HWAR1RI47CbNd45dkmjzG1KGyp2rrxfoK+PmHYRvT2+OcGx8lz3G9Mmzpf9yY6ElLLfayIViC50kaUnidZqvMxBX1fRnaLRfCx/7as3bo+a5vakDmYNiI65mI3ANOfJirwv4inPT23LIzCiu0AzqLGaFz8=
+	t=1774388587; cv=none; b=eXcVX3ajs+j2MQgxUMQeYqtZpQhE523BlTbQ0iEwzEFj+aFoZj9QQjRC3qrjlfCvkHl0KDr5rLiKH/T+hWQIjDMEDS0jHDPuRa2OFvw703zfUTrCkSLFUe33RCDlApcYIbB3kvOlW4VisYhw/P45fg+i8PPkiaRFcInB4m1+r10=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388586; c=relaxed/simple;
-	bh=SK/ZGN6G2iwtaOwuU6yFXxdpYfdJt9NfAfH6EHpL1mg=;
-	h=Date:To:From:Subject:Message-Id; b=WW67pAlKJ/nahQi5s4qOHB/vt/Rf9qWmAXBlRCC7slb47Ir9EOoYSoEaaGzRJyaO4aFIJa34Pmk66J7JDp8iGTl7pGlmNDuXkrl5VS830DkB0AiRv+Bo7iWYbcqkOtJLOCYXsxZpWLzLrURVy7JhDrge28JirQCiwjE6Xtc4B4k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NqbarGAb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388587; c=relaxed/simple;
+	bh=HcPBd25rtRYz6pv61CFgUOLUl0aBBVRvXRtTHiAaS8w=;
+	h=Date:To:From:Subject:Message-Id; b=N1g5CJImmn10kly6ByJKz3vJ5QLfcaE9wrHkZaLeo0KT2obITFUhpO0SJC1HPgWjEAT8w7M6DI/Ox6d5phLQ/WhbAWMHCukRzx2Zy/xMPERTvIUhaosy4hxasanRUTG4zURwEnSuRJUAM5LD68PYdyCX/SIPDMBjpEsLq0sOFh0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=awy3TojV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NqbarGAb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01236C19424;
-	Tue, 24 Mar 2026 21:43:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="awy3TojV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FD5AC19424;
+	Tue, 24 Mar 2026 21:43:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388586;
-	bh=SK/ZGN6G2iwtaOwuU6yFXxdpYfdJt9NfAfH6EHpL1mg=;
+	s=korg; t=1774388587;
+	bh=HcPBd25rtRYz6pv61CFgUOLUl0aBBVRvXRtTHiAaS8w=;
 	h=Date:To:From:Subject:From;
-	b=NqbarGAbXjO8yuJ9LAJbZkOdDfIiPvTKFSw/mg246+zBar/VBBMmCcv37LBSb33eW
-	 UJe7G5qZuAdCaNQBflvgDhib7/6gTKu5d5hNhCL+5kgziwXv7KO9oCjYOOkRmOPwrY
-	 uIfquW2v5qQgB4qkmJDP5f27hDj6dN6JA9H3Jh8g=
-Date: Tue, 24 Mar 2026 14:43:05 -0700
+	b=awy3TojVe62f14FyPE1k2ofy7pCFHYh6qTT+4p/k8yH4Mw+pCtNRI3CvWzPxBWDce
+	 owrVvc6tdd1ebd+IrCJxiE3tLZ3usDJC+FAexyp8Iq/Jd/ZKtItnbCcaOs/w0A+85k
+	 p55QPGk3YmHqKbcnYFAOIQjQJK2hFLsqs1vQtyeE=
+Date: Tue, 24 Mar 2026 14:43:06 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,yanglincheng@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-add-trace_mm_khugepaged_scan-event.patch removed from -mm tree
-Message-Id: <20260324214306.01236C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-khugepaged-refine-scan-progress-number.patch removed from -mm tree
+Message-Id: <20260324214307.5FD5AC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,105 +35,88 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: khugepaged: add trace_mm_khugepaged_scan event
+     Subject: mm: khugepaged: refine scan progress number
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-add-trace_mm_khugepaged_scan-event.patch
+     mm-khugepaged-refine-scan-progress-number.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Vernon Yang <yanglincheng@kylinos.cn>
-Subject: mm: khugepaged: add trace_mm_khugepaged_scan event
-Date: Sat, 21 Feb 2026 17:39:15 +0800
+Subject: mm: khugepaged: refine scan progress number
+Date: Sat, 21 Feb 2026 17:39:16 +0800
 
-Patch series "Improve khugepaged scan logic", v8.
+Currently, each scan always increases "progress" by HPAGE_PMD_NR,
+even if only scanning a single PTE/PMD entry.
 
-This series improves the khugepaged scan logic and reduces CPU consumption
-by prioritizing scanning tasks that access memory frequently.
+- When only scanning a sigle PTE entry, let me provide a detailed
+  example:
 
-The following data is traced by bpftrace[1] on a desktop system.  After
-the system has been left idle for 10 minutes upon booting, a lot of
+static int hpage_collapse_scan_pmd()
+{
+	for (addr = start_addr, _pte = pte; _pte < pte + HPAGE_PMD_NR;
+	     _pte++, addr += PAGE_SIZE) {
+		pte_t pteval = ptep_get(_pte);
+		...
+		if (pte_uffd_wp(pteval)) { <-- first scan hit
+			result = SCAN_PTE_UFFD_WP;
+			goto out_unmap;
+		}
+	}
+}
+
+During the first scan, if pte_uffd_wp(pteval) is true, the loop exits
+directly.  In practice, only one PTE is scanned before termination.  Here,
+"progress += 1" reflects the actual number of PTEs scanned, but previously
+"progress += HPAGE_PMD_NR" always.
+
+- When the memory has been collapsed to PMD, let me provide a detailed
+  example:
+
+The following data is traced by bpftrace on a desktop system.  After the
+system has been left idle for 10 minutes upon booting, a lot of
 SCAN_PMD_MAPPED or SCAN_NO_PTE_TABLE are observed during a full scan by
 khugepaged.
 
-@scan_pmd_status[1]: 1           ## SCAN_SUCCEED
-@scan_pmd_status[6]: 2           ## SCAN_EXCEED_SHARED_PTE
-@scan_pmd_status[3]: 142         ## SCAN_PMD_MAPPED
-@scan_pmd_status[2]: 178         ## SCAN_NO_PTE_TABLE
-total progress size: 674 MB
-Total time         : 419 seconds ## include khugepaged_scan_sleep_millisecs
+From trace_mm_khugepaged_scan_pmd and trace_mm_khugepaged_scan_file, the
+following statuses were observed, with frequency mentioned next to them:
 
-The khugepaged has below phenomenon: the khugepaged list is scanned in a
-FIFO manner, as long as the task is not destroyed,
-1. the task no longer has memory that can be collapsed into hugepage,
-   continues scan it always.
-2. the task at the front of the khugepaged scan list is cold, they are
-   still scanned first.
-3. everyone scan at intervals of khugepaged_scan_sleep_millisecs
-   (default 10s). If we always scan the above two cases first, the valid
-   scan will have to wait for a long time.
+SCAN_SUCCEED          : 1
+SCAN_EXCEED_SHARED_PTE: 2
+SCAN_PMD_MAPPED       : 142
+SCAN_NO_PTE_TABLE     : 178
+total progress size   : 674 MB
+Total time            : 419 seconds, include khugepaged_scan_sleep_millisecs
 
-For the first case, when the memory is either SCAN_PMD_MAPPED or
-SCAN_NO_PTE_TABLE or SCAN_PTE_MAPPED_HUGEPAGE [5], just skip it.
+The khugepaged_scan list save all task that support collapse into
+hugepage, as long as the task is not destroyed, khugepaged will not remove
+it from the khugepaged_scan list.  This exist a phenomenon where task has
+already collapsed all memory regions into hugepage, but khugepaged
+continues to scan it, which wastes CPU time and invalid, and due to
+khugepaged_scan_sleep_millisecs (default 10s) causes a long wait for
+scanning a large number of invalid task, so scanning really valid task is
+later.
 
-For the second case, if the user has explicitly informed us via
-MADV_FREE that these folios will be freed, just skip it only.
+After applying this patch, when the memory is either SCAN_PMD_MAPPED or
+SCAN_NO_PTE_TABLE, just skip it, as follow:
 
-The below is some performance test results.
+SCAN_EXCEED_SHARED_PTE: 2
+SCAN_PMD_MAPPED       : 147
+SCAN_NO_PTE_TABLE     : 173
+total progress size   : 45 MB
+Total time            : 20 seconds
 
-kernbench results (testing on x86_64 machine):
+SCAN_PTE_MAPPED_HUGEPAGE is the same, for detailed data, refer to
+https://lore.kernel.org/linux-mm/4qdu7owpmxfh3ugsue775fxarw5g2gcggbxdf5psj75nnu7z2u@cv2uu2yocaxq
 
-                     baseline w/o patches   test w/ patches
-Amean     user-32    18522.51 (   0.00%)    18333.64 *   1.02%*
-Amean     syst-32     1137.96 (   0.00%)     1113.79 *   2.12%*
-Amean     elsp-32      666.04 (   0.00%)      659.44 *   0.99%*
-BAmean-95 user-32    18520.01 (   0.00%)    18323.57 (   1.06%)
-BAmean-95 syst-32     1137.68 (   0.00%)     1110.50 (   2.39%)
-BAmean-95 elsp-32      665.92 (   0.00%)      659.06 (   1.03%)
-BAmean-99 user-32    18520.01 (   0.00%)    18323.57 (   1.06%)
-BAmean-99 syst-32     1137.68 (   0.00%)     1110.50 (   2.39%)
-BAmean-99 elsp-32      665.92 (   0.00%)      659.06 (   1.03%)
-
-Create three task[2]: hot1 -> cold -> hot2. After all three task are
-created, each allocate memory 128MB. the hot1/hot2 task continuously
-access 128 MB memory, while the cold task only accesses its memory
-briefly andthen call madvise(MADV_FREE). Here are the performance test
-results:
-(Throughput bigger is better, other smaller is better)
-
-Testing on x86_64 machine:
-
-| task hot2           | without patch | with patch    |  delta  |
-|---------------------|---------------|---------------|---------|
-| total accesses time |  3.14 sec     |  2.93 sec     | -6.69%  |
-| cycles per access   |  4.96         |  2.21         | -55.44% |
-| Throughput          |  104.38 M/sec |  111.89 M/sec | +7.19%  |
-| dTLB-load-misses    |  284814532    |  69597236     | -75.56% |
-
-Testing on qemu-system-x86_64 -enable-kvm:
-
-| task hot2           | without patch | with patch    |  delta  |
-|---------------------|---------------|---------------|---------|
-| total accesses time |  3.35 sec     |  2.96 sec     | -11.64% |
-| cycles per access   |  7.29         |  2.07         | -71.60% |
-| Throughput          |  97.67 M/sec  |  110.77 M/sec | +13.41% |
-| dTLB-load-misses    |  241600871    |  3216108      | -98.67% |
-
-
-This patch (of 4):
-
-Add mm_khugepaged_scan event to track the total time for full scan and the
-total number of pages scanned of khugepaged.
-
-Link: https://lkml.kernel.org/r/20260221093918.1456187-2-vernon2gm@gmail.com
+Link: https://lkml.kernel.org/r/20260221093918.1456187-3-vernon2gm@gmail.com
 Signed-off-by: Vernon Yang <yanglincheng@kylinos.cn>
-Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: Dev Jain <dev.jain@arm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand (arm) <david@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
@@ -145,54 +128,142 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |   25 +++++++++++++++++++++++++
- mm/khugepaged.c                    |    2 ++
- 2 files changed, 27 insertions(+)
+ mm/khugepaged.c |   42 ++++++++++++++++++++++++++++++++----------
+ 1 file changed, 32 insertions(+), 10 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-add-trace_mm_khugepaged_scan-event
-+++ a/include/trace/events/huge_memory.h
-@@ -237,5 +237,30 @@ TRACE_EVENT(mm_khugepaged_collapse_file,
- 		__print_symbolic(__entry->result, SCAN_STATUS))
- );
- 
-+TRACE_EVENT(mm_khugepaged_scan,
-+
-+	TP_PROTO(struct mm_struct *mm, unsigned int progress,
-+		 bool full_scan_finished),
-+
-+	TP_ARGS(mm, progress, full_scan_finished),
-+
-+	TP_STRUCT__entry(
-+		__field(struct mm_struct *, mm)
-+		__field(unsigned int, progress)
-+		__field(bool, full_scan_finished)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->mm = mm;
-+		__entry->progress = progress;
-+		__entry->full_scan_finished = full_scan_finished;
-+	),
-+
-+	TP_printk("mm=%p, progress=%u, full_scan_finished=%d",
-+		__entry->mm,
-+		__entry->progress,
-+		__entry->full_scan_finished)
-+);
-+
- #endif /* __HUGE_MEMORY_H */
- #include <trace/define_trace.h>
---- a/mm/khugepaged.c~mm-khugepaged-add-trace_mm_khugepaged_scan-event
+--- a/mm/khugepaged.c~mm-khugepaged-refine-scan-progress-number
 +++ a/mm/khugepaged.c
-@@ -2527,6 +2527,8 @@ breakouterloop_mmap_lock:
- 		collect_mm_slot(slot);
- 	}
+@@ -68,7 +68,10 @@ enum scan_result {
+ static struct task_struct *khugepaged_thread __read_mostly;
+ static DEFINE_MUTEX(khugepaged_mutex);
  
-+	trace_mm_khugepaged_scan(mm, progress, khugepaged_scan.mm_slot == NULL);
-+
- 	return progress;
+-/* default scan 8*HPAGE_PMD_NR ptes (or vmas) every 10 second */
++/*
++ * default scan 8*HPAGE_PMD_NR ptes, pmd_mapped, no_pte_table or vmas
++ * every 10 second.
++ */
+ static unsigned int khugepaged_pages_to_scan __read_mostly;
+ static unsigned int khugepaged_pages_collapsed;
+ static unsigned int khugepaged_full_scans;
+@@ -1231,7 +1234,8 @@ out_nolock:
  }
  
+ static enum scan_result hpage_collapse_scan_pmd(struct mm_struct *mm,
+-		struct vm_area_struct *vma, unsigned long start_addr, bool *mmap_locked,
++		struct vm_area_struct *vma, unsigned long start_addr,
++		bool *mmap_locked, unsigned int *cur_progress,
+ 		struct collapse_control *cc)
+ {
+ 	pmd_t *pmd;
+@@ -1247,19 +1251,27 @@ static enum scan_result hpage_collapse_s
+ 	VM_BUG_ON(start_addr & ~HPAGE_PMD_MASK);
+ 
+ 	result = find_pmd_or_thp_or_none(mm, start_addr, &pmd);
+-	if (result != SCAN_SUCCEED)
++	if (result != SCAN_SUCCEED) {
++		if (cur_progress)
++			*cur_progress = 1;
+ 		goto out;
++	}
+ 
+ 	memset(cc->node_load, 0, sizeof(cc->node_load));
+ 	nodes_clear(cc->alloc_nmask);
+ 	pte = pte_offset_map_lock(mm, pmd, start_addr, &ptl);
+ 	if (!pte) {
++		if (cur_progress)
++			*cur_progress = 1;
+ 		result = SCAN_NO_PTE_TABLE;
+ 		goto out;
+ 	}
+ 
+ 	for (addr = start_addr, _pte = pte; _pte < pte + HPAGE_PMD_NR;
+ 	     _pte++, addr += PAGE_SIZE) {
++		if (cur_progress)
++			*cur_progress += 1;
++
+ 		pte_t pteval = ptep_get(_pte);
+ 		if (pte_none_or_zero(pteval)) {
+ 			++none_or_zero;
+@@ -2279,8 +2291,9 @@ out:
+ 	return result;
+ }
+ 
+-static enum scan_result hpage_collapse_scan_file(struct mm_struct *mm, unsigned long addr,
+-		struct file *file, pgoff_t start, struct collapse_control *cc)
++static enum scan_result hpage_collapse_scan_file(struct mm_struct *mm,
++		unsigned long addr, struct file *file, pgoff_t start,
++		unsigned int *cur_progress, struct collapse_control *cc)
+ {
+ 	struct folio *folio = NULL;
+ 	struct address_space *mapping = file->f_mapping;
+@@ -2370,6 +2383,12 @@ static enum scan_result hpage_collapse_s
+ 		}
+ 	}
+ 	rcu_read_unlock();
++	if (cur_progress) {
++		if (result == SCAN_PTE_MAPPED_HUGEPAGE)
++			*cur_progress = 1;
++		else
++			*cur_progress = HPAGE_PMD_NR;
++	}
+ 
+ 	if (result == SCAN_SUCCEED) {
+ 		if (cc->is_khugepaged &&
+@@ -2448,6 +2467,7 @@ static unsigned int khugepaged_scan_mm_s
+ 
+ 		while (khugepaged_scan.address < hend) {
+ 			bool mmap_locked = true;
++			unsigned int cur_progress = 0;
+ 
+ 			cond_resched();
+ 			if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
+@@ -2464,7 +2484,8 @@ static unsigned int khugepaged_scan_mm_s
+ 				mmap_read_unlock(mm);
+ 				mmap_locked = false;
+ 				*result = hpage_collapse_scan_file(mm,
+-					khugepaged_scan.address, file, pgoff, cc);
++					khugepaged_scan.address, file, pgoff,
++					&cur_progress, cc);
+ 				fput(file);
+ 				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
+ 					mmap_read_lock(mm);
+@@ -2478,7 +2499,8 @@ static unsigned int khugepaged_scan_mm_s
+ 				}
+ 			} else {
+ 				*result = hpage_collapse_scan_pmd(mm, vma,
+-					khugepaged_scan.address, &mmap_locked, cc);
++					khugepaged_scan.address, &mmap_locked,
++					&cur_progress, cc);
+ 			}
+ 
+ 			if (*result == SCAN_SUCCEED)
+@@ -2486,7 +2508,7 @@ static unsigned int khugepaged_scan_mm_s
+ 
+ 			/* move to next address */
+ 			khugepaged_scan.address += HPAGE_PMD_SIZE;
+-			progress += HPAGE_PMD_NR;
++			progress += cur_progress;
+ 			if (!mmap_locked)
+ 				/*
+ 				 * We released mmap_lock so break loop.  Note
+@@ -2809,7 +2831,7 @@ retry:
+ 			mmap_locked = false;
+ 			*lock_dropped = true;
+ 			result = hpage_collapse_scan_file(mm, addr, file, pgoff,
+-							  cc);
++							  NULL, cc);
+ 
+ 			if (result == SCAN_PAGE_DIRTY_OR_WRITEBACK && !triggered_wb &&
+ 			    mapping_can_writeback(file->f_mapping)) {
+@@ -2824,7 +2846,7 @@ retry:
+ 			fput(file);
+ 		} else {
+ 			result = hpage_collapse_scan_pmd(mm, vma, addr,
+-							 &mmap_locked, cc);
++							 &mmap_locked, NULL, cc);
+ 		}
+ 		if (!mmap_locked)
+ 			*lock_dropped = true;
 _
 
 Patches currently in -mm which might be from yanglincheng@kylinos.cn are
