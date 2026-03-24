@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F34F2459ED
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:12:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B37733BBCD
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:13:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774386743; cv=none; b=LaLbsp06B7ig2KxRdrzq2SHnKVhPov8t4a5W5k9ZTaAQ2RYBLdS9ceW9ORk4vMo846PqZvWQ1mcx6ixsQimwtrfEjDsS1VS1k+M7z2AhkifAt7+VSq/MkRMxvPd1rg2Ckxr8N98skexDO7Hv13Bqm5aCKPhQt2rBWc5xuKYR0X8=
+	t=1774386796; cv=none; b=a26HaIe+f+JT6iwh9egRZVycFZHVwbV3EdU1wi4fJutJGSHqJXa0bcNEYAAPXewHwLVpr218HT5usVrQb8G9vrDGAUi8GbdZIgdj6DzId1Io06K319RIIUAsjUZiyjXTm+SKAcawKszwz5Ak7+ka5C1QfWnJJGK0onCLvay8NB0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774386743; c=relaxed/simple;
-	bh=wjZdu5oiwpmym+iGlCtNJd32qWnLSLMH7wA+Z1lzoi0=;
-	h=Date:To:From:Subject:Message-Id; b=pFcL6OQEEUo/dphHOlGZ/SEpxfWLONI02dxISjalX/XTzIykUXjfwqst1JElnylWk2foi6JEmKx1NS35SRzhg3a4gMyaZP/YSxrAQQQgwdfgPlQyDELKIGFEBt2v7ePqx8UcsjRL0aSzbot92b+epdkDqMQUCkqLG3ox/GZ/090=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PRJFuNks; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774386796; c=relaxed/simple;
+	bh=3BBOSm1bRw2NrjJUA86n70LwpNSf/RmMqmch6gj4xd8=;
+	h=Date:To:From:Subject:Message-Id; b=AFrlCKC4QkHSU+Ppeny7nioTgsR17bqkK/4NXNIkILFPa2WVTdjavIgpCAdR6jeYqFiR2iKom2Wl0WeVk0imKH9SQI4mxczDx+7tAJtnoqbQeQk18fNG9+CpIKKMNwHLCVWEWMDFT0h1Ak1nUdWx+6WDU4lIOGekt6Y0DenxKZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JTE/1OYc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PRJFuNks"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE00FC19424;
-	Tue, 24 Mar 2026 21:12:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JTE/1OYc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09654C19424;
+	Tue, 24 Mar 2026 21:13:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774386742;
-	bh=wjZdu5oiwpmym+iGlCtNJd32qWnLSLMH7wA+Z1lzoi0=;
+	s=korg; t=1774386796;
+	bh=3BBOSm1bRw2NrjJUA86n70LwpNSf/RmMqmch6gj4xd8=;
 	h=Date:To:From:Subject:From;
-	b=PRJFuNkskJuf0vak+wVmoY1QzTqxlbk7OIi8E4WCA9//efBzZSlFQz2Mh6eS9Uf/k
-	 Dw/c61y0uRuVInxeas5nnt1onYO67ARs93r8MsTREnCOHpQXgq1VnLS02mp337fqfQ
-	 v/4Kse+hAvua0hKyT2BW9h9l3FeuzJI8IRsPrJus=
-Date: Tue, 24 Mar 2026 14:12:22 -0700
-To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,lkp@intel.com,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,ryncsn@gmail.com,akpm@linux-foundation.org
+	b=JTE/1OYctElwFOX4hmonfxRULBl+X66T2I5eVlEzi1ulNHRpv+cOVEdllvIFnDeo7
+	 90vEiDpnAIIF5llD242RWMvBRwxhZ8g8qlhRIrsAOdpbXB4cI1zPGiJY6BVkXy2xsB
+	 zj9XK5GwcJ3B+siPfws89PWDosc4iuUtYX/wNARk=
+Date: Tue, 24 Mar 2026 14:13:15 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yanglincheng@kylinos.cn,ryan.roberts@arm.com,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,vernon2gm@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-swap-use-the-swap-table-to-track-the-swap-count-fix.patch removed from -mm tree
-Message-Id: <20260324211222.BE00FC19424@smtp.kernel.org>
+Subject: [folded-merged] mm-khugepaged-skip-lazy-free-folios-fix.patch removed from -mm tree
+Message-Id: <20260324211316.09654C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,68 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-swap-use-the-swap-table-to-track-the-swap-count-fix
+     Subject: mm-khugepaged-skip-lazy-free-folios-fix
 has been removed from the -mm tree.  Its filename was
-     mm-swap-use-the-swap-table-to-track-the-swap-count-fix.patch
+     mm-khugepaged-skip-lazy-free-folios-fix.patch
 
-This patch was dropped because it was folded into mm-swap-use-the-swap-table-to-track-the-swap-count.patch
+This patch was dropped because it was folded into mm-khugepaged-skip-lazy-free-folios.patch
 
 ------------------------------------------------------
-From: Kairui Song <ryncsn@gmail.com>
-Subject: mm-swap-use-the-swap-table-to-track-the-swap-count-fix
-Date: Wed, 18 Feb 2026 20:22:54 +0800
+From: Vernon Yang <vernon2gm@gmail.com>
+Subject: mm-khugepaged-skip-lazy-free-folios-fix
+Date: Thu, 26 Feb 2026 15:55:45 +0800
 
-fix build
+add comment about VM_DROPPABLE in code, make it clearer
 
-Link: https://lkml.kernel.org/r/aZWuLZi-vYi3vAWe@KASONG-MC4
-Signed-off-by: Kairui Song <ryncsn@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202602181835.58TEynxc-lkp@intel.com/
-Acked-by: Chris Li <chrisl@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
+Link: https://lkml.kernel.org/r/i4uowkt4h2ev47obm5h2vtd4zbk6fyw5g364up7kkjn2vmcikq@auepvqethj5r
+Signed-off-by: Vernon Yang <yanglincheng@kylinos.cn>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: David Hildenbrand (arm) <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
---- a/mm/swapfile.c~mm-swap-use-the-swap-table-to-track-the-swap-count-fix
-+++ a/mm/swapfile.c
-@@ -1624,7 +1624,7 @@ static int __swap_cluster_dup_entry(stru
+--- a/mm/khugepaged.c~mm-khugepaged-skip-lazy-free-folios-fix
++++ a/mm/khugepaged.c
+@@ -578,6 +578,10 @@ static enum scan_result __collapse_huge_
+ 		folio = page_folio(page);
+ 		VM_BUG_ON_FOLIO(!folio_test_anon(folio), folio);
+ 
++		/*
++		 * If the vma has the VM_DROPPABLE flag, the collapse will
++		 * preserve the lazyfree property without needing to skip.
++		 */
+ 		if (cc->is_khugepaged && !(vma->vm_flags & VM_DROPPABLE) &&
+ 		    folio_test_lazyfree(folio) && !pte_dirty(pteval)) {
+ 			result = SCAN_PAGE_LAZYFREE;
+@@ -1332,6 +1336,10 @@ static enum scan_result hpage_collapse_s
  		}
- 	} else if (count == SWP_TB_COUNT_MAX) {
- 		VM_WARN_ON_ONCE(ci->extend_table[ci_off] >=
--				(BIT(BITS_PER_TYPE(ci->extend_table[0]))) - 1);
-+                               type_max(typeof(ci->extend_table[0])));
- 		++ci->extend_table[ci_off];
- 	} else {
- 		/* Never happens unless counting went wrong */
+ 		folio = page_folio(page);
+ 
++		/*
++		 * If the vma has the VM_DROPPABLE flag, the collapse will
++		 * preserve the lazyfree property without needing to skip.
++		 */
+ 		if (cc->is_khugepaged && !(vma->vm_flags & VM_DROPPABLE) &&
+ 		    folio_test_lazyfree(folio) && !pte_dirty(pteval)) {
+ 			result = SCAN_PAGE_LAZYFREE;
 _
 
-Patches currently in -mm which might be from ryncsn@gmail.com are
+Patches currently in -mm which might be from vernon2gm@gmail.com are
 
-mm-swap-use-the-swap-table-to-track-the-swap-count.patch
+mm-khugepaged-refine-scan-progress-number-fix.patch
+mm-khugepaged-skip-lazy-free-folios.patch
 
