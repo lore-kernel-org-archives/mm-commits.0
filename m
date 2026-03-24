@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BCC1361641
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C865836164E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388529; cv=none; b=AUv8gwUtP5BP7FYrzeTslaVEexKWyKGi3sk5dISsZK+zucdtqjsQoPK4U4OnD8E1SfUjrWhN4CLKNVshJuuRIYcsLEv2El/2GtRby7l1aMKhVQ6aTO1W6MEK50NRTgqZciAJhd3DFqlvor7EkORzdkKwiCeb2zkJeNvlpsX4GeM=
+	t=1774388530; cv=none; b=AC292T2e/1tdG/x/5xzKZvV74CZCVtMENmSeTBMALu44DYs9sI32kprO3O0oUJU6nm+d31ixTtTH46A/BLPd2kdLZQFCVRex+vxfoItQePkzIepfKTu8yQMVgEiwEsdwp3L/VwTiqSR6K4ybVEuIESZDshy+6DBEPIOZ2sgAbmM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388529; c=relaxed/simple;
-	bh=zta96CJwCbwZ2jnbnrIZXkYPSiNn7P9PlP8U3yhse6g=;
-	h=Date:To:From:Subject:Message-Id; b=FRGT+fFaWX/RtiTfu4bpF0GjbMWnj1Cwhl8SVjfDKMotdAbNFqgQSZyTth/mRJRgVffrzQ4lZt4SshmGRP+zA1tEKS/Ij23/ZOtV4AsML7lTpmutHxrIbejEcjC9FOhz/S95od68l14w5GyNVBIlDkjSyHiHBMLCBwUmT6h59So=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S9Gk5zSQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388530; c=relaxed/simple;
+	bh=P34Tx5azp81qS6YJt9yg4vPJA8+NySpKoajYj1RwBUY=;
+	h=Date:To:From:Subject:Message-Id; b=dcg0nOwb9rbNMqCBmaO2nvffXo6SROzEtkq4TxriayMwr1l3PuLA47g3yjl0VVCjtyQRuWnl77peTppVWhSinI2rw7Q2zq9pY6hDodqBJOlGRf2gAeRkJf/tB2fALroZmlybtFzMaZp+cux2MSWpVrVNu95a+aUQgG36C6F41FQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hl3KVeKE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S9Gk5zSQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED9EAC2BCB1;
-	Tue, 24 Mar 2026 21:42:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hl3KVeKE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F91BC2BCB2;
+	Tue, 24 Mar 2026 21:42:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388529;
-	bh=zta96CJwCbwZ2jnbnrIZXkYPSiNn7P9PlP8U3yhse6g=;
+	s=korg; t=1774388530;
+	bh=P34Tx5azp81qS6YJt9yg4vPJA8+NySpKoajYj1RwBUY=;
 	h=Date:To:From:Subject:From;
-	b=S9Gk5zSQS8/0o/1ykVNt4LjqM+0W5dmOyzRoKBjqU+3KLBPklQ6ACKGKLL3sqDy66
-	 rhhULJSO1imfEXjfD8lK21FbgvptNS62vv8Aj6R3v61Ru5YPzIkFSN64m1iEhxyi9e
-	 DpoRHDWtJoyxnZ/ZdJnvfGLGSxD8SYB7I7DKW8yw=
-Date: Tue, 24 Mar 2026 14:42:08 -0700
+	b=hl3KVeKEHZtDA8eA9284Dc7G4O/8JhhF/Xz368idBizeyQL4PqU9VTKBQTYOB8F0E
+	 PSlxNB3L2ocfyFBAmjhIXSrRwHlCZqsWbA3Fktsy04l1jI3Th6DQxgdLGHU7Sddhsv
+	 KTcooc2EXSOxNmLOurJou7QzGTOeIcPRvsjzbyys=
+Date: Tue, 24 Mar 2026 14:42:10 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,sidhartha.kumar@oracle.com,lists@nerdbynature.de,kuninori.morimoto.gx@renesas.com,geert@linux-m68k.org,arnd@arndb.de,andrewjballance@gmail.com,aliceryhl@google.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-pass-maple-copy-node-to-mas_wmb_replace.patch removed from -mm tree
-Message-Id: <20260324214208.ED9EAC2BCB1@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-dont-pass-end-to-mas_wr_append.patch removed from -mm tree
+Message-Id: <20260324214210.9F91BC2BCB2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: pass maple copy node to mas_wmb_replace()
+     Subject: maple_tree: don't pass end to mas_wr_append()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-pass-maple-copy-node-to-mas_wmb_replace.patch
+     maple_tree-dont-pass-end-to-mas_wr_append.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: pass maple copy node to mas_wmb_replace()
-Date: Fri, 30 Jan 2026 15:59:33 -0500
+Subject: maple_tree: don't pass end to mas_wr_append()
+Date: Fri, 30 Jan 2026 15:59:34 -0500
 
-mas_wmb_replace() is called in three places with the same setup, move the
-setup into the function itself.  The function needs to be relocated as it
-calls mtree_range_walk().
+Figure out the end internally.  This is necessary for future cleanups.
 
-Link: https://lkml.kernel.org/r/20260130205935.2559335-29-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20260130205935.2559335-30-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
 Cc: Andrew Ballance <andrewjballance@gmail.com>
@@ -67,127 +65,41 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   60 ++++++++++++++++++---------------------------
- 1 file changed, 25 insertions(+), 35 deletions(-)
+ lib/maple_tree.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-pass-maple-copy-node-to-mas_wmb_replace
+--- a/lib/maple_tree.c~maple_tree-dont-pass-end-to-mas_wr_append
 +++ a/lib/maple_tree.c
-@@ -1901,26 +1901,6 @@ static inline void mas_topiary_replace(s
- }
- 
+@@ -3309,18 +3309,17 @@ static inline unsigned char mas_wr_new_e
  /*
-- * mas_wmb_replace() - Write memory barrier and replace
-- * @mas: The maple state
-- * @old_enode: The old maple encoded node that is being replaced.
-- * @new_height: The new height of the tree as a result of the operation
-- *
-- * Updates gap as necessary.
-- */
--static inline void mas_wmb_replace(struct ma_state *mas,
--		struct maple_enode *old_enode, unsigned char new_height)
--{
--	/* Insert the new data in the tree */
--	mas_topiary_replace(mas, old_enode, new_height);
--
--	if (mte_is_leaf(mas->node))
--		return;
--
--	mas_update_gap(mas);
--}
--
--/*
-  * node_copy() - Copy from one node to another.
+  * mas_wr_append: Attempt to append
+  * @wr_mas: the maple write state
+- * @new_end: The end of the node after the modification
   *
-  * @mas: The maple state
-@@ -2087,6 +2067,28 @@ dead_node:
- }
- 
- /*
-+ * mas_wmb_replace() - Write memory barrier and replace
-+ * @mas: The maple state
-+ * @cp: The maple copy node
-+ *
-+ * Updates gap as necessary.
-+ */
-+static inline void mas_wmb_replace(struct ma_state *mas, struct maple_copy *cp)
-+{
-+	struct maple_enode *old_enode;
-+
-+	old_enode = mas->node;
-+	mas->node = mt_slot_locked(mas->tree, cp->slot, 0);
-+	/* Insert the new data in the tree */
-+	mas_topiary_replace(mas, old_enode, cp->height);
-+	if (!mte_is_leaf(mas->node))
-+		mas_update_gap(mas);
-+
-+	mtree_range_walk(mas);
-+}
-+
-+
-+/*
-  * cp_leaf_init() - Initialize a maple_copy node for the leaf level of a
-  * spanning store
-  * @cp: The maple copy node
-@@ -3044,7 +3046,6 @@ done:
+  * This is currently unsafe in rcu mode since the end of the node may be cached
+  * by readers while the node contents may be updated which could result in
+  * inaccurate information.
   */
- static void mas_wr_spanning_store(struct ma_wr_state *wr_mas)
+-static inline void mas_wr_append(struct ma_wr_state *wr_mas,
+-		unsigned char new_end)
++static inline void mas_wr_append(struct ma_wr_state *wr_mas)
  {
--	struct maple_enode *old_enode;
- 	struct maple_copy cp;
- 	struct ma_state *mas;
- 	struct ma_state sib;
-@@ -3112,10 +3113,7 @@ static void mas_wr_spanning_store(struct
- 		cp_data_write(&cp, mas);
- 	} while (spanning_ascend(&cp, mas, wr_mas, &r_wr_mas, &sib));
+ 	struct ma_state *mas = wr_mas->mas;
+ 	void __rcu **slots;
+ 	unsigned char end = mas->end;
++	unsigned char new_end = mas_wr_new_end(wr_mas);
  
--	old_enode = mas->node;
--	mas->node = mt_slot_locked(mas->tree, cp.slot, 0);
--	mas_wmb_replace(mas, old_enode, cp.height);
--	mtree_range_walk(mas);
-+	mas_wmb_replace(mas, &cp);
- }
- 
- /*
-@@ -3433,7 +3431,6 @@ static inline void split_data(struct map
-  */
- static void mas_wr_split(struct ma_wr_state *wr_mas)
- {
--	struct maple_enode *old_enode;
- 	struct ma_state parent;
- 	struct ma_state *mas;
- 	struct maple_copy cp;
-@@ -3454,10 +3451,7 @@ static void mas_wr_split(struct ma_wr_st
- 		cp_data_write(&cp, mas);
- 	} while (split_ascend(&cp, wr_mas, &sib, &parent));
- 
--	old_enode = mas->node;
--	mas->node = mt_slot_locked(mas->tree, cp.slot, 0);
--	mas_wmb_replace(mas, old_enode, cp.height);
--	mtree_range_walk(mas);
-+	mas_wmb_replace(mas, &cp);
- }
- 
- /*
-@@ -3470,7 +3464,6 @@ static void mas_wr_split(struct ma_wr_st
-  */
- static void mas_wr_rebalance(struct ma_wr_state *wr_mas)
- {
--	struct maple_enode *old_enode;
- 	struct ma_state parent;
- 	struct ma_state *mas;
- 	struct maple_copy cp;
-@@ -3501,10 +3494,7 @@ static void mas_wr_rebalance(struct ma_w
- 		cp_data_write(&cp, mas);
- 	} while (rebalance_ascend(&cp, wr_mas, &sib, &parent));
- 
--	old_enode = mas->node;
--	mas->node = mt_slot_locked(mas->tree, cp.slot, 0);
--	mas_wmb_replace(mas, old_enode, cp.height);
--	mtree_range_walk(mas);
-+	mas_wmb_replace(mas, &cp);
- }
- 
- /*
+ 	if (new_end < mt_pivots[wr_mas->type]) {
+ 		wr_mas->pivots[new_end] = wr_mas->pivots[end];
+@@ -3513,7 +3512,7 @@ static inline void mas_wr_store_entry(st
+ 			mas_update_gap(mas);
+ 		break;
+ 	case wr_append:
+-		mas_wr_append(wr_mas, new_end);
++		mas_wr_append(wr_mas);
+ 		break;
+ 	case wr_slot_store:
+ 		mas_wr_slot_store(wr_mas);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
