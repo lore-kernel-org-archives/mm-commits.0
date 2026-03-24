@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8294A35F185
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:16:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50E6335AC0C;
+	Tue, 24 Mar 2026 21:41:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774386963; cv=none; b=TgAxcW0bvayEtYTHgmD7HNUoHhfEo+8YKiYHkMW9TINKAILwyIlNloKyJ/ZksS0FoI+j8Tk5INdIQ9p9W4ZoGvGkQEuQtEtmKpjfdbPZJsteJIhe5nmsaBJlzvYuPA/IN+vtpSKKlI1QnChCus4i7teag3HlUJ+Zf0wmrS6MzU4=
+	t=1774388473; cv=none; b=NGNSfNgTc+Zr8RVFBoutrriDsQv71LSctlWfuTYLw0c94lejy4sQ9AzgE0vC3qnQk3vmv993GKI/eL1dg0CBHwpvca2wEkbCdkfDg8ukkSFfQh/gtjmxAVoKtxh3dZKVs1DUnIRMaXXHX8AGFw/XFqU8tVpbmU4nZzUqv2O8p5k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774386963; c=relaxed/simple;
-	bh=d/ILLw9LYPEZB8tHUTVZRLl8ntMejCeOUN9/vD3TB5c=;
-	h=Date:To:From:Subject:Message-Id; b=ZoLy4kZJttWtwCe6QSxMZis/18U6cKF9hJmk4WAZGGbw9Z4G5EON5WXl7fLGBhjKvBRuIMS64VpCZ68McbyFkulhmeBMCAhc0jUojvmnIWG0zx/C1x4+7y3ASmeiXpWkQQvDucecqX991bo+uGa5zWJmFG8r4dDoUDrvXZb4AK8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=atl4Kq3i; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388473; c=relaxed/simple;
+	bh=bweIcAyabg5TG1diVnVNaGrd6gYn+9SwZSe6VcLlZDA=;
+	h=Date:To:From:Subject:Message-Id; b=lxnU/Km6dGKc4/vzN7+iMBVCFL+G3osC4yAs84/2IB4MxBBTTHPDdSL4C77jhVd319Rn55qC9XG+bXqrR3AQR4G4nPJAJUXnFYLdO+hTgm28R7Lcz75t+bdVC+2osclU1PJJTMTFC1v8LROObf+SirDaQUyLosfjt909sJgckoQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X7Y43cO1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="atl4Kq3i"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BBC26C19424;
-	Tue, 24 Mar 2026 21:16:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X7Y43cO1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E21B1C19424;
+	Tue, 24 Mar 2026 21:41:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774386962;
-	bh=d/ILLw9LYPEZB8tHUTVZRLl8ntMejCeOUN9/vD3TB5c=;
+	s=korg; t=1774388473;
+	bh=bweIcAyabg5TG1diVnVNaGrd6gYn+9SwZSe6VcLlZDA=;
 	h=Date:To:From:Subject:From;
-	b=atl4Kq3i2BFa8A4TExN2+T+3dNqQOhbhBtfln81xymY+4458LOMzvkNaVMPqGOsc4
-	 v0J0bg3GOk2VxYTuhY7C2/FDTNsdCrsniJLw1kK72oe11/Q27rDnfqeCwYXdex0n1h
-	 rOUYe8nTrz93P4cmOuiRHjKKvPey4/pb1zLarVww=
-Date: Tue, 24 Mar 2026 14:16:02 -0700
-To: mm-commits@vger.kernel.org,muchun.song@linux.dev,david@kernel.org,kas@kernel.org,akpm@linux-foundation.org
+	b=X7Y43cO1TAmvMW+Vt0w0ZxUOk/fE0/y92O37cEUWA1aBotZhBg3L09ivcm9hSFurC
+	 jhTPJjy0nVURpxwIQdxDK+Dr/BWNnJv+23nf+0UR7LGZBM2SSBA/rtpuicY1dvWdSs
+	 M0WNAOwt9XukyTxxSlEHXl+LqqUPx9pINn5GFgQE=
+Date: Tue, 24 Mar 2026 14:41:12 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,mail@carstengrohmann.de,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] hugetlb-update-vmemmap_deduprst-fix.patch removed from -mm tree
-Message-Id: <20260324211602.BBC26C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-speed-up-hibernation-allocation-and-writeout.patch removed from -mm tree
+Message-Id: <20260324214112.E21B1C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,90 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hugetlb: update vmemmap_dedup.rst
+     Subject: mm, swap: speed up hibernation allocation and writeout
 has been removed from the -mm tree.  Its filename was
-     hugetlb-update-vmemmap_deduprst-fix.patch
+     mm-swap-speed-up-hibernation-allocation-and-writeout.patch
 
-This patch was dropped because it was folded into hugetlb-update-vmemmap_deduprst.patch
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kiryl Shutsemau <kas@kernel.org>
-Subject: hugetlb: update vmemmap_dedup.rst
-Date: Mon, 2 Mar 2026 10:56:28 +0000
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: speed up hibernation allocation and writeout
+Date: Mon, 16 Feb 2026 22:58:02 +0800
 
-Update the documentation regarding vmemmap optimization for hugetlb to
-reflect the changes in how the kernel maps the tail pages.
+Since commit 0ff67f990bd4 ("mm, swap: remove swap slot cache"),
+hibernation has been using the swap slot slow allocation path for
+simplification, which turns out might cause regression for some devices
+because the allocator now rotates clusters too often, leading to slower
+allocation and more random distribution of data.
 
-Fake heads no longer exist. Remove their description.
+Fast allocation is not complex, so implement hibernation support as well.
 
-Link: https://lkml.kernel.org/r/20260302105630.303492-1-kas@kernel.org
-Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Test result with Samsung SSD 830 Series (SATA II, 3.0 Gbps) shows the
+performance is several times better [1]:
+6.19:               324 seconds
+After this series:  35 seconds
+
+Link: https://lkml.kernel.org/r/20260216-hibernate-perf-v4-1-1ba9f0bf1ec9@tencent.com
+Link: https://lore.kernel.org/linux-mm/8b4bdcfa-ce3f-4e23-839f-31367df7c18f@gmx.de/ [1]
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Fixes: 0ff67f990bd4 ("mm, swap: remove swap slot cache")
+Reported-by: Carsten Grohmann <mail@carstengrohmann.de>
+Closes: https://lore.kernel.org/linux-mm/20260206121151.dea3633d1f0ded7bbf49c22e@linux-foundation.org/
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/vmemmap_dedup.rst |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/swapfile.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
---- a/Documentation/mm/vmemmap_dedup.rst~hugetlb-update-vmemmap_deduprst-fix
-+++ a/Documentation/mm/vmemmap_dedup.rst
-@@ -128,8 +128,8 @@ The first page of ``struct page`` (page
- contains the 4 ``struct page`` necessary to describe the HugeTLB. The remaining
- pages of ``struct page`` (page 1 to page 7) are tail pages.
+--- a/mm/swapfile.c~mm-swap-speed-up-hibernation-allocation-and-writeout
++++ a/mm/swapfile.c
+@@ -1926,8 +1926,9 @@ out:
+ /* Allocate a slot for hibernation */
+ swp_entry_t swap_alloc_hibernation_slot(int type)
+ {
+-	struct swap_info_struct *si = swap_type_to_info(type);
+-	unsigned long offset;
++	struct swap_info_struct *pcp_si, *si = swap_type_to_info(type);
++	unsigned long pcp_offset, offset = SWAP_ENTRY_INVALID;
++	struct swap_cluster_info *ci;
+ 	swp_entry_t entry = {0};
  
--The optimization is only applied when the size of the struct page is a power-of-2
--In this case, all tail pages of the same order are identical. See
-+The optimization is only applied when the size of the struct page is a power
-+of 2. In this case, all tail pages of the same order are identical. See
- compound_head(). This allows us to remap the tail pages of the vmemmap to a
- shared, read-only page. The head page is also remapped to a new page. This
- allows the original vmemmap pages to be freed.
-@@ -143,7 +143,7 @@ Here is how things look after remapping:
-  |           |                     |     1     | ------┐
-  |           |                     +-----------+       |
-  |           |                     |     2     | ------┼        +----------------------------+
-- |           |                     +-----------+       |        | A single, per-node page    |
-+ |           |                     +-----------+       |        | A single, per-zone page    |
-  |           |                     |     3     | ------┼------> | frame shared among all     |
-  |           |                     +-----------+       |        | hugepages of the same size |
-  |           |                     |     4     | ------┼        +----------------------------+
+ 	if (!si)
+@@ -1937,11 +1938,21 @@ swp_entry_t swap_alloc_hibernation_slot(
+ 	if (get_swap_device_info(si)) {
+ 		if (si->flags & SWP_WRITEOK) {
+ 			/*
+-			 * Grab the local lock to be compliant
+-			 * with swap table allocation.
++			 * Try the local cluster first if it matches the device. If
++			 * not, try grab a new cluster and override local cluster.
+ 			 */
+ 			local_lock(&percpu_swap_cluster.lock);
+-			offset = cluster_alloc_swap_entry(si, NULL);
++			pcp_si = this_cpu_read(percpu_swap_cluster.si[0]);
++			pcp_offset = this_cpu_read(percpu_swap_cluster.offset[0]);
++			if (pcp_si == si && pcp_offset) {
++				ci = swap_cluster_lock(si, pcp_offset);
++				if (cluster_is_usable(ci, 0))
++					offset = alloc_swap_scan_cluster(si, ci, NULL, pcp_offset);
++				else
++					swap_cluster_unlock(ci);
++			}
++			if (!offset)
++				offset = cluster_alloc_swap_entry(si, NULL);
+ 			local_unlock(&percpu_swap_cluster.lock);
+ 			if (offset)
+ 				entry = swp_entry(si->type, offset);
 _
 
-Patches currently in -mm which might be from kas@kernel.org are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-move-max_folio_order-definition-to-mmzoneh.patch
-mm-change-the-interface-of-prep_compound_tail.patch
-mm-rename-the-compound_head-field-in-the-struct-page-to-compound_info.patch
-mm-move-set-clear_compound_head-next-to-compound_head.patch
-riscv-mm-align-vmemmap-to-maximal-folio-size.patch
-loongarch-mm-align-vmemmap-to-maximal-folio-size.patch
-mm-rework-compound_head-for-power-of-2-sizeofstruct-page.patch
-mm-sparse-check-memmap-alignment-for-compound_info_has_mask.patch
-mm-hugetlb-defer-vmemmap-population-for-bootmem-hugepages.patch
-mm-hugetlb-refactor-code-around-vmemmap_walk.patch
-x86-vdso-undefine-config_hugetlb_page_optimize_vmemmap-for-vdso32.patch
-mm-hugetlb-remove-fake-head-pages.patch
-mm-drop-fake-head-checks.patch
-hugetlb-remove-vmemmap_synchronize_rcu.patch
-mm-hugetlb-remove-hugetlb_optimize_vmemmap_key-static-key.patch
-mm-remove-the-branch-from-compound_head.patch
-hugetlb-update-vmemmap_deduprst.patch
-mm-slab-use-compound_head-in-page_slab.patch
 
