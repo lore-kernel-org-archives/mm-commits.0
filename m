@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B58CE78F26
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:41:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C0D13612E7
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:41:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388507; cv=none; b=KXCGiiG9pPvGk2dcuL5bAq5C6zw4f2tlbgvFEgtAtenxi5V6SVhauS/fBGEeRSbbLSv2gUNZcChfk0F04KQch8jylf+sHdNLSJUr73rAVrDWw2JYJiGicpsd6G9sXiFyIzV/pp0diH95AyTrUYzqPPXh/Pz77X/3mcJGVFohgfM=
+	t=1774388509; cv=none; b=M2LIs75h129d1+oeiTC7ie1c7Jtr+LFeCZkCcl/BVWgxI8aK6fbpiWx4rxxs79AhsbiOxbiq97rZwZXuw38qat2xMBUZd4N6HiIO2SbS1Nbv8lsG5p0WNZbs1dpOVgNlpao6GS2Kxj4kEVWV4iJLajav9qKS0+lxU2e8AIed/jg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388507; c=relaxed/simple;
-	bh=ikT/EDSxtQGN7UAHmdth2cwXTP61ha4vC2XzaTww67k=;
-	h=Date:To:From:Subject:Message-Id; b=P2XM7+2AO7BlHb5hbiivh7viOQgz/PZ0t0vWnOqmKvM3TGZyxQEk+J4Kw/BgiXfKsXj5uMH1q2nL7VUK5fK6J+MVWb8aNDLj5CGmeu/CVFvjLnFqodKNrdtPv3fISrxRnbgRYR4VFe/aK3y97vpPfBixO+Ww+JkfsyIga7b0UMQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oHQ+qw0w; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388509; c=relaxed/simple;
+	bh=XYFp1r/vQ/o5EcYe7PknrQCm7oL3AGQq9/oCe9rR4VQ=;
+	h=Date:To:From:Subject:Message-Id; b=fjjss3fP+krRK8wZfhRGmXNGm8GCjI1xX+iRjavkAy15QM4JxilSHgC9RQPSf15USszvd1JRFjHnBs4DVYMv1FFQ3LccFUgAacm8l88wZNNxg9+EEa3JL6KGVNZ3w8DkcHMGFRYUBT2dCnOCtGbUgrrjw0Gs+qU1O3eI5zMCvDY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wlFwMWTH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oHQ+qw0w"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74018C19424;
-	Tue, 24 Mar 2026 21:41:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wlFwMWTH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A91FC19424;
+	Tue, 24 Mar 2026 21:41:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388507;
-	bh=ikT/EDSxtQGN7UAHmdth2cwXTP61ha4vC2XzaTww67k=;
+	s=korg; t=1774388509;
+	bh=XYFp1r/vQ/o5EcYe7PknrQCm7oL3AGQq9/oCe9rR4VQ=;
 	h=Date:To:From:Subject:From;
-	b=oHQ+qw0w6q8IJ50RNG1rhpoLPpXBdOvN7op74S/b5sN229EPO8JIXuiy01CwF6k1I
-	 F7gysp0Bvj1t+/TBEJgHfvPY/nUEr0mjgI2YprFrD6YzNiX4cBa11wEuiq1O8VuQyA
-	 y9VkyDGKHV4aOa32Y7xgA1cNbIxt5R4d6xrEqs+U=
-Date: Tue, 24 Mar 2026 14:41:46 -0700
+	b=wlFwMWTHpjVKlhRMiIQ5PiKE1+gIAA3D4CHPyjcBvVqy40UnEsX9XeHKi2KCli9Xe
+	 volLv8CE8bWxW0f7vq5FY2T3qcuzWqr98hQQ+3jpQJu7R/6QX6TEg7EwelGBEoM7ZX
+	 llD5kEJoOtcrYok98AXSooF7P1B0lfREdxP0tcgA=
+Date: Tue, 24 Mar 2026 14:41:48 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,sidhartha.kumar@oracle.com,lists@nerdbynature.de,kuninori.morimoto.gx@renesas.com,geert@linux-m68k.org,arnd@arndb.de,andrewjballance@gmail.com,aliceryhl@google.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-introduce-ma_leaf_max_gap.patch removed from -mm tree
-Message-Id: <20260324214147.74018C19424@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-add-gap-support-slot-and-pivot-sizes-for-maple-copy.patch removed from -mm tree
+Message-Id: <20260324214149.2A91FC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: introduce ma_leaf_max_gap()
+     Subject: maple_tree: add gap support, slot and pivot sizes for maple copy
 has been removed from the -mm tree.  Its filename was
-     maple_tree-introduce-ma_leaf_max_gap.patch
+     maple_tree-add-gap-support-slot-and-pivot-sizes-for-maple-copy.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: introduce ma_leaf_max_gap()
-Date: Fri, 30 Jan 2026 15:59:20 -0500
+Subject: maple_tree: add gap support, slot and pivot sizes for maple copy
+Date: Fri, 30 Jan 2026 15:59:21 -0500
 
-This is the same as mas_leaf_max_gap(), but the information necessary is
-known without a maple state in future code.  Adding this function now
-simplifies the review for a subsequent patch.
+Add plumbing work for using maple copy as a normal node for a source of
+copy operations.  This is needed later.
 
-Link: https://lkml.kernel.org/r/20260130205935.2559335-16-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20260130205935.2559335-17-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
 Cc: Andrew Ballance <andrewjballance@gmail.com>
@@ -67,100 +66,62 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   48 ++++++++++++++++++++++++++-------------------
- 1 file changed, 28 insertions(+), 20 deletions(-)
+ include/linux/maple_tree.h |    1 +
+ lib/maple_tree.c           |    5 +++++
+ 2 files changed, 6 insertions(+)
 
---- a/lib/maple_tree.c~maple_tree-introduce-ma_leaf_max_gap
+--- a/include/linux/maple_tree.h~maple_tree-add-gap-support-slot-and-pivot-sizes-for-maple-copy
++++ a/include/linux/maple_tree.h
+@@ -165,6 +165,7 @@ struct maple_copy {
+ 	} src[4];
+ 	/* Simulated node */
+ 	void __rcu *slot[3];
++	unsigned long gap[3];
+ 	unsigned long min;
+ 	union {
+ 		unsigned long pivot[3];
+--- a/lib/maple_tree.c~maple_tree-add-gap-support-slot-and-pivot-sizes-for-maple-copy
 +++ a/lib/maple_tree.c
-@@ -1315,26 +1315,14 @@ void wr_mas_setup(struct ma_wr_state *wr
- 	wr_mas->r_max = mas_safe_pivot(mas, wr_mas->pivots, mas->offset,
- 				       wr_mas->type);
- }
--
--/*
-- * mas_leaf_max_gap() - Returns the largest gap in a leaf node
-- * @mas: the maple state
-- *
-- * Return: The maximum gap in the leaf.
-- */
--static unsigned long mas_leaf_max_gap(struct ma_state *mas)
-+static inline unsigned long ma_leaf_max_gap(struct maple_node *mn,
-+		enum maple_type mt, unsigned long min, unsigned long max,
-+		unsigned long *pivots, void __rcu **slots)
- {
--	enum maple_type mt;
- 	unsigned long pstart, gap, max_gap;
--	struct maple_node *mn;
--	unsigned long *pivots;
--	void __rcu **slots;
- 	unsigned char i;
- 	unsigned char max_piv;
+@@ -101,6 +101,7 @@ static const unsigned long mt_max[] = {
+ 	[maple_leaf_64]		= ULONG_MAX,
+ 	[maple_range_64]	= ULONG_MAX,
+ 	[maple_arange_64]	= ULONG_MAX,
++	[maple_copy]		= ULONG_MAX,
+ };
+ #define mt_node_max(x) mt_max[mte_node_type(x)]
+ #endif
+@@ -110,6 +111,7 @@ static const unsigned char mt_slots[] =
+ 	[maple_leaf_64]		= MAPLE_RANGE64_SLOTS,
+ 	[maple_range_64]	= MAPLE_RANGE64_SLOTS,
+ 	[maple_arange_64]	= MAPLE_ARANGE64_SLOTS,
++	[maple_copy]		= 3,
+ };
+ #define mt_slot_count(x) mt_slots[mte_node_type(x)]
  
--	mt = mte_node_type(mas->node);
--	mn = mas_mn(mas);
--	slots = ma_slots(mn, mt);
- 	max_gap = 0;
- 	if (unlikely(ma_is_dense(mt))) {
- 		gap = 0;
-@@ -1356,26 +1344,25 @@ static unsigned long mas_leaf_max_gap(st
- 	 * Check the first implied pivot optimizes the loop below and slot 1 may
- 	 * be skipped if there is a gap in slot 0.
- 	 */
--	pivots = ma_pivots(mn, mt);
- 	if (likely(!slots[0])) {
--		max_gap = pivots[0] - mas->min + 1;
-+		max_gap = pivots[0] - min + 1;
- 		i = 2;
- 	} else {
- 		i = 1;
- 	}
+@@ -118,6 +120,7 @@ static const unsigned char mt_pivots[] =
+ 	[maple_leaf_64]		= MAPLE_RANGE64_SLOTS - 1,
+ 	[maple_range_64]	= MAPLE_RANGE64_SLOTS - 1,
+ 	[maple_arange_64]	= MAPLE_ARANGE64_SLOTS - 1,
++	[maple_copy]		= 3,
+ };
+ #define mt_pivot_count(x) mt_pivots[mte_node_type(x)]
  
- 	/* reduce max_piv as the special case is checked before the loop */
--	max_piv = ma_data_end(mn, mt, pivots, mas->max) - 1;
-+	max_piv = ma_data_end(mn, mt, pivots, max) - 1;
- 	/*
- 	 * Check end implied pivot which can only be a gap on the right most
- 	 * node.
- 	 */
--	if (unlikely(mas->max == ULONG_MAX) && !slots[max_piv + 1]) {
-+	if (unlikely(max == ULONG_MAX) && !slots[max_piv + 1]) {
- 		gap = ULONG_MAX - pivots[max_piv];
- 		if (gap > max_gap)
- 			max_gap = gap;
+@@ -126,6 +129,7 @@ static const unsigned char mt_min_slots[
+ 	[maple_leaf_64]		= (MAPLE_RANGE64_SLOTS / 2) - 2,
+ 	[maple_range_64]	= (MAPLE_RANGE64_SLOTS / 2) - 2,
+ 	[maple_arange_64]	= (MAPLE_ARANGE64_SLOTS / 2) - 1,
++	[maple_copy]		= 1, /* Should never be used */
+ };
+ #define mt_min_slot_count(x) mt_min_slots[mte_node_type(x)]
  
--		if (max_gap > pivots[max_piv] - mas->min)
-+		if (max_gap > pivots[max_piv] - min)
- 			return max_gap;
- 	}
- 
-@@ -1396,6 +1383,27 @@ static unsigned long mas_leaf_max_gap(st
- }
- 
- /*
-+ * mas_leaf_max_gap() - Returns the largest gap in a leaf node
-+ * @mas: the maple state
-+ *
-+ * Return: The maximum gap in the leaf.
-+ */
-+static inline unsigned long mas_leaf_max_gap(struct ma_state *mas)
-+{
-+	enum maple_type mt;
-+	struct maple_node *mn;
-+	unsigned long *pivots;
-+	void __rcu **slots;
-+
-+	mn = mas_mn(mas);
-+	mt = mte_node_type(mas->node);
-+	slots = ma_slots(mn, mt);
-+	pivots = ma_pivots(mn, mt);
-+
-+	return ma_leaf_max_gap(mn, mt, mas->min, mas->max, pivots, slots);
-+}
-+
-+/*
-  * ma_max_gap() - Get the maximum gap in a maple node (non-leaf)
-  * @node: The maple node
-  * @gaps: The pointer to the gaps
+@@ -627,6 +631,7 @@ static inline unsigned long *ma_gaps(str
+ 	case maple_arange_64:
+ 		return node->ma64.gap;
+ 	case maple_copy:
++		return node->cp.gap;
+ 	case maple_range_64:
+ 	case maple_leaf_64:
+ 	case maple_dense:
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
