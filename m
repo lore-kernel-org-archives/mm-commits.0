@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C60FC3630A1
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75D7336495B
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388593; cv=none; b=jTVPSj0rwcGZM/bg7ODGRopn7DcdP3GX2uYxUyMBVaKJoH9AXrES3mDRYcB+HAWIQUMQh0UbMQl8y3kmMxGj63oMqM0c+76gx77rwtyK/W/zznONCAmbiwmafdUDKwpUjuXty+5/ZtuTGElyhAsgfwzHMdJvEx5SF6Rg23ibCWM=
+	t=1774388596; cv=none; b=iF3nYLc7ieyVk/EhjFLInjTnFwe++YLUX1GfKRoU0wwyy/m2WOqxn2fhf9UPiLDxiQZPvM35CYWQTrnFwf2wxiKPr7DGx5KbaWCohpNOjaqpIfWZgwHlyECN+yvvaZBnCGbOK8aTOVm4/8yXmZRkUW31KwIe00LjfZvshmTHKuM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388593; c=relaxed/simple;
-	bh=0zOXL2m84y/1VA4OG7+F3qpicE6rzwaiTgsBDRqMjZs=;
-	h=Date:To:From:Subject:Message-Id; b=JMv4WeU59it/IgpevZGR0NS8NFjiAw5KS79OIvZNkIAALoCOfrfUxkDjdnmQxbogUr4SaQCuTDLzkuU3+1Myf3PA3JBk6mrFAknmIBiNVRLG82DWfYV72UQusSrdet5U5INf/nBeC9eUQ3FL3X6LVr9k4k3Bq/PPr4q5TaO+eco=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eAOKnqy+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388596; c=relaxed/simple;
+	bh=2SI1ZaxDqCqTc2j4xql9TDodFJPFADV8IVR+qkbGbXg=;
+	h=Date:To:From:Subject:Message-Id; b=phGQaem1xhci1LJXXEuQ/I17J4mEyM7czQDseAjdwiNsE0nHrsIq+PsWqeoFz5ptfICVbhxtrBQUEyqxjU9qSDVHgmPvmv2YV5fIHADWSbCX+ncivhkpTRifcixyZYwIZt5gKbONaScG4Z7cyTTGKHqU3foHS4Swxa6w/peSlwY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vzb8D3/V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eAOKnqy+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EC92C2BC9E;
-	Tue, 24 Mar 2026 21:43:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vzb8D3/V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46F06C2BCB2;
+	Tue, 24 Mar 2026 21:43:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388593;
-	bh=0zOXL2m84y/1VA4OG7+F3qpicE6rzwaiTgsBDRqMjZs=;
+	s=korg; t=1774388596;
+	bh=2SI1ZaxDqCqTc2j4xql9TDodFJPFADV8IVR+qkbGbXg=;
 	h=Date:To:From:Subject:From;
-	b=eAOKnqy+6cRMYfTFiq9cQGlkSluOCilnLQ+4qpRjcXHWuhEGDzj97qBmv2aNUfJby
-	 Y1AKwR+pdSq+cn8/9YUlgwPcKvACwbEzaXri/90uPEDmizQKGBwBB/L9JtlR0S5G4i
-	 /JCtV91CsLTmgL86BUTFoAys7OrlRd1Xh5+SdeOk=
-Date: Tue, 24 Mar 2026 14:43:13 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,pratyush@kernel.org,akpm@linux-foundation.org
+	b=vzb8D3/VpPY1Ih9MmJqrcCJ1FXadqdJvn0es77WP1kT0D4uBYzhqcDD+XRRuSfIs+
+	 xbiCMHiL5fKwLBiUtTMk2FnH++vuOPN338aUtjxa7URAZKzBnzeGSrh1VcM5dtz7xa
+	 kMmzEq0CtZQlp++HPicpXSTfmYIbV2YzuusKLqtQ=
+Date: Tue, 24 Mar 2026 14:43:15 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,rientjes@google.com,ran.xiaokai@zte.com.cn,pratyush@kernel.org,pasha.tatashin@soleen.com,jgg@nvidia.com,graf@amazon.com,dmatlack@google.com,changyuanl@google.com,bhe@redhat.com,jasonmiu@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kho-move-alloc-tag-init-to-kho_init_foliopages.patch removed from -mm tree
-Message-Id: <20260324214313.9EC92C2BC9E@smtp.kernel.org>
+Subject: [merged mm-stable] kho-remove-finalize-state-and-clients.patch removed from -mm tree
+Message-Id: <20260324214316.46F06C2BCB2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,82 +35,319 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho: move alloc tag init to kho_init_{folio,pages}()
+     Subject: kho: remove finalize state and clients
 has been removed from the -mm tree.  Its filename was
-     kho-move-alloc-tag-init-to-kho_init_foliopages.patch
+     kho-remove-finalize-state-and-clients.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
-Subject: kho: move alloc tag init to kho_init_{folio,pages}()
-Date: Fri, 13 Feb 2026 09:59:12 +0100
+From: Jason Miu <jasonmiu@google.com>
+Subject: kho: remove finalize state and clients
+Date: Thu, 5 Feb 2026 18:14:28 -0800
 
-Commit 8f1081892d62 ("kho: simplify page initialization in
-kho_restore_page()") cleaned up the page initialization logic by moving
-the folio and 0-order-page paths into separate functions.  It missed
-moving the alloc tag initialization.
+Eliminate the `kho_finalize()` function and its associated state from the
+KHO subsystem.  The transition to a radix tree for memory tracking makes
+the explicit "finalize" state and its serialization step obsolete.
 
-Do it now to keep the two paths cleanly separated.  While at it, touch up
-the comments to be a tiny bit shorter (mainly so it doesn't end up
-splitting into a multiline comment).  This is purely a cosmetic change and
-there should be no change in behaviour.
+Remove the `kho_finalize()` and `kho_finalized()` APIs and their stub
+implementations.  Update KHO client code and the debugfs interface to no
+longer call or depend on the `kho_finalize()` mechanism.
 
-Link: https://lkml.kernel.org/r/20260213085914.2778107-1-pratyush@kernel.org
-Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
+Complete the move towards a stateless KHO, simplifying the overall design
+by removing unnecessary state management.
+
+Link: https://lkml.kernel.org/r/20260206021428.3386442-3-jasonmiu@google.com
+Signed-off-by: Jason Miu <jasonmiu@google.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Graf <graf@amazon.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Changyuan Lyu <changyuanl@google.com>
+Cc: David Matlack <dmatlack@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
+Cc: Ran Xiaokai <ran.xiaokai@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ Documentation/admin-guide/mm/kho.rst        |   53 +++---------------
+ Documentation/core-api/kho/index.rst        |   12 ----
+ kernel/liveupdate/kexec_handover.c          |   21 -------
+ kernel/liveupdate/kexec_handover_debugfs.c  |   23 -------
+ kernel/liveupdate/kexec_handover_internal.h |    3 -
+ kernel/liveupdate/luo_core.c                |   12 ----
+ tools/testing/selftests/kho/init.c          |   20 ------
+ 7 files changed, 13 insertions(+), 131 deletions(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-move-alloc-tag-init-to-kho_init_foliopages
+--- a/Documentation/admin-guide/mm/kho.rst~kho-remove-finalize-state-and-clients
++++ a/Documentation/admin-guide/mm/kho.rst
+@@ -28,20 +28,10 @@ per NUMA node scratch regions on boot.
+ Perform a KHO kexec
+ ===================
+ 
+-First, before you perform a KHO kexec, you need to move the system into
+-the :ref:`KHO finalization phase <kho-finalization-phase>` ::
+-
+-  $ echo 1 > /sys/kernel/debug/kho/out/finalize
+-
+-After this command, the KHO FDT is available in
+-``/sys/kernel/debug/kho/out/fdt``. Other subsystems may also register
+-their own preserved sub FDTs under
+-``/sys/kernel/debug/kho/out/sub_fdts/``.
+-
+-Next, load the target payload and kexec into it. It is important that you
+-use the ``-s`` parameter to use the in-kernel kexec file loader, as user
+-space kexec tooling currently has no support for KHO with the user space
+-based file loader ::
++To perform a KHO kexec, load the target payload and kexec into it. It
++is important that you use the ``-s`` parameter to use the in-kernel
++kexec file loader, as user space kexec tooling currently has no
++support for KHO with the user space based file loader ::
+ 
+   # kexec -l /path/to/bzImage --initrd /path/to/initrd -s
+   # kexec -e
+@@ -52,40 +42,19 @@ For example, if you used ``reserve_mem``
+ an early memory reservation, the new kernel will have that memory at the
+ same physical address as the old kernel.
+ 
+-Abort a KHO exec
+-================
+-
+-You can move the system out of KHO finalization phase again by calling ::
+-
+-  $ echo 0 > /sys/kernel/debug/kho/out/active
+-
+-After this command, the KHO FDT is no longer available in
+-``/sys/kernel/debug/kho/out/fdt``.
+-
+ debugfs Interfaces
+ ==================
+ 
++These debugfs interfaces are available when the kernel is compiled with
++``CONFIG_KEXEC_HANDOVER_DEBUGFS`` enabled.
++
+ Currently KHO creates the following debugfs interfaces. Notice that these
+ interfaces may change in the future. They will be moved to sysfs once KHO is
+ stabilized.
+ 
+-``/sys/kernel/debug/kho/out/finalize``
+-    Kexec HandOver (KHO) allows Linux to transition the state of
+-    compatible drivers into the next kexec'ed kernel. To do so,
+-    device drivers will instruct KHO to preserve memory regions,
+-    which could contain serialized kernel state.
+-    While the state is serialized, they are unable to perform
+-    any modifications to state that was serialized, such as
+-    handed over memory allocations.
+-
+-    When this file contains "1", the system is in the transition
+-    state. When contains "0", it is not. To switch between the
+-    two states, echo the respective number into this file.
+-
+ ``/sys/kernel/debug/kho/out/fdt``
+-    When KHO state tree is finalized, the kernel exposes the
+-    flattened device tree blob that carries its current KHO
+-    state in this file. Kexec user space tooling can use this
++    The kernel exposes the flattened device tree blob that carries its
++    current KHO state in this file. Kexec user space tooling can use this
+     as input file for the KHO payload image.
+ 
+ ``/sys/kernel/debug/kho/out/scratch_len``
+@@ -100,8 +69,8 @@ stabilized.
+     it should place its payload images.
+ 
+ ``/sys/kernel/debug/kho/out/sub_fdts/``
+-    In the KHO finalization phase, KHO producers register their own
+-    FDT blob under this directory.
++    KHO producers can register their own FDT or another binary blob under
++    this directory.
+ 
+ ``/sys/kernel/debug/kho/in/fdt``
+     When the kernel was booted with Kexec HandOver (KHO),
+--- a/Documentation/core-api/kho/index.rst~kho-remove-finalize-state-and-clients
++++ a/Documentation/core-api/kho/index.rst
+@@ -71,18 +71,6 @@ for boot memory allocations and as targe
+ of that memory region may be reserved. These reservations are irrelevant for
+ the next KHO, because kexec can overwrite even the original kernel.
+ 
+-.. _kho-finalization-phase:
+-
+-KHO finalization phase
+-======================
+-
+-To enable user space based kexec file loader, the kernel needs to be able to
+-provide the FDT that describes the current kernel's state before
+-performing the actual kexec. The process of generating that FDT is
+-called serialization. When the FDT is generated, some properties
+-of the system may become immutable because they are already written down
+-in the FDT. That state is called the KHO finalization phase.
+-
+ Kexec Handover Radix Tree
+ =========================
+ 
+--- a/kernel/liveupdate/kexec_handover.c~kho-remove-finalize-state-and-clients
 +++ a/kernel/liveupdate/kexec_handover.c
-@@ -219,8 +219,11 @@ static int __kho_preserve_order(struct k
- /* For physically contiguous 0-order pages. */
- static void kho_init_pages(struct page *page, unsigned long nr_pages)
- {
--	for (unsigned long i = 0; i < nr_pages; i++)
-+	for (unsigned long i = 0; i < nr_pages; i++) {
- 		set_page_count(page + i, 1);
-+		/* Clear each page's codetag to avoid accounting mismatch. */
-+		clear_page_tag_ref(page + i);
-+	}
+@@ -68,8 +68,7 @@ early_param("kho", kho_parse_enable);
+ 
+ struct kho_out {
+ 	void *fdt;
+-	bool finalized;
+-	struct mutex lock; /* protects KHO FDT finalization */
++	struct mutex lock; /* protects KHO FDT */
+ 
+ 	struct kho_radix_tree radix_tree;
+ 	struct kho_debugfs dbg;
+@@ -80,7 +79,6 @@ static struct kho_out kho_out = {
+ 	.radix_tree = {
+ 		.lock = __MUTEX_INITIALIZER(kho_out.radix_tree.lock),
+ 	},
+-	.finalized = false,
+ };
+ 
+ /**
+@@ -1241,23 +1239,6 @@ void kho_restore_free(void *mem)
+ }
+ EXPORT_SYMBOL_GPL(kho_restore_free);
+ 
+-int kho_finalize(void)
+-{
+-	if (!kho_enable)
+-		return -EOPNOTSUPP;
+-
+-	guard(mutex)(&kho_out.lock);
+-	kho_out.finalized = true;
+-
+-	return 0;
+-}
+-
+-bool kho_finalized(void)
+-{
+-	guard(mutex)(&kho_out.lock);
+-	return kho_out.finalized;
+-}
+-
+ struct kho_in {
+ 	phys_addr_t fdt_phys;
+ 	phys_addr_t scratch_phys;
+--- a/kernel/liveupdate/kexec_handover_debugfs.c~kho-remove-finalize-state-and-clients
++++ a/kernel/liveupdate/kexec_handover_debugfs.c
+@@ -76,24 +76,6 @@ void kho_debugfs_fdt_remove(struct kho_d
+ 	}
  }
  
- static void kho_init_folio(struct page *page, unsigned int order)
-@@ -229,6 +232,8 @@ static void kho_init_folio(struct page *
+-static int kho_out_finalize_get(void *data, u64 *val)
+-{
+-	*val = kho_finalized();
+-
+-	return 0;
+-}
+-
+-static int kho_out_finalize_set(void *data, u64 val)
+-{
+-	if (val)
+-		return kho_finalize();
+-	else
+-		return -EINVAL;
+-}
+-
+-DEFINE_DEBUGFS_ATTRIBUTE(kho_out_finalize_fops, kho_out_finalize_get,
+-			 kho_out_finalize_set, "%llu\n");
+-
+ static int scratch_phys_show(struct seq_file *m, void *v)
+ {
+ 	for (int i = 0; i < kho_scratch_cnt; i++)
+@@ -199,11 +181,6 @@ __init int kho_out_debugfs_init(struct k
+ 	if (IS_ERR(f))
+ 		goto err_rmdir;
  
- 	/* Head page gets refcount of 1. */
- 	set_page_count(page, 1);
-+	/* Clear head page's codetag to avoid accounting mismatch. */
-+	clear_page_tag_ref(page);
+-	f = debugfs_create_file("finalize", 0600, dir, NULL,
+-				&kho_out_finalize_fops);
+-	if (IS_ERR(f))
+-		goto err_rmdir;
+-
+ 	dbg->dir = dir;
+ 	dbg->sub_fdt_dir = sub_fdt_dir;
+ 	return 0;
+--- a/kernel/liveupdate/kexec_handover_internal.h~kho-remove-finalize-state-and-clients
++++ a/kernel/liveupdate/kexec_handover_internal.h
+@@ -22,9 +22,6 @@ struct kho_debugfs {};
+ extern struct kho_scratch *kho_scratch;
+ extern unsigned int kho_scratch_cnt;
  
- 	/* For higher order folios, tail pages get a page count of zero. */
- 	for (unsigned long i = 1; i < nr_pages; i++)
-@@ -265,14 +270,6 @@ static struct page *kho_restore_page(phy
- 	else
- 		kho_init_pages(page, nr_pages);
+-bool kho_finalized(void);
+-int kho_finalize(void);
+-
+ #ifdef CONFIG_KEXEC_HANDOVER_DEBUGFS
+ int kho_debugfs_init(void);
+ void kho_in_debugfs_init(struct kho_debugfs *dbg, const void *fdt);
+--- a/kernel/liveupdate/luo_core.c~kho-remove-finalize-state-and-clients
++++ a/kernel/liveupdate/luo_core.c
+@@ -230,17 +230,7 @@ int liveupdate_reboot(void)
  
--	/* Always mark headpage's codetag as empty to avoid accounting mismatch */
--	clear_page_tag_ref(page);
--	if (!is_folio) {
--		/* Also do that for the non-compound tail pages */
--		for (unsigned int i = 1; i < nr_pages; i++)
--			clear_page_tag_ref(page + i);
+ 	luo_flb_serialize();
+ 
+-	err = kho_finalize();
+-	if (err) {
+-		pr_err("kho_finalize failed %d\n", err);
+-		/*
+-		 * kho_finalize() may return libfdt errors, to aboid passing to
+-		 * userspace unknown errors, change this to EAGAIN.
+-		 */
+-		err = -EAGAIN;
 -	}
 -
- 	adjust_managed_page_count(page, nr_pages);
- 	return page;
+-	return err;
++	return 0;
  }
+ 
+ /**
+--- a/tools/testing/selftests/kho/init.c~kho-remove-finalize-state-and-clients
++++ a/tools/testing/selftests/kho/init.c
+@@ -11,7 +11,6 @@
+ /* from arch/x86/include/asm/setup.h */
+ #define COMMAND_LINE_SIZE	2048
+ 
+-#define KHO_FINALIZE "/debugfs/kho/out/finalize"
+ #define KERNEL_IMAGE "/kernel"
+ 
+ static int mount_filesystems(void)
+@@ -22,22 +21,6 @@ static int mount_filesystems(void)
+ 	return mount("proc", "/proc", "proc", 0, NULL);
+ }
+ 
+-static int kho_enable(void)
+-{
+-	const char enable[] = "1";
+-	int fd;
+-
+-	fd = open(KHO_FINALIZE, O_RDWR);
+-	if (fd < 0)
+-		return -1;
+-
+-	if (write(fd, enable, sizeof(enable)) != sizeof(enable))
+-		return 1;
+-
+-	close(fd);
+-	return 0;
+-}
+-
+ static long kexec_file_load(int kernel_fd, int initrd_fd,
+ 			    unsigned long cmdline_len, const char *cmdline,
+ 			    unsigned long flags)
+@@ -78,9 +61,6 @@ int main(int argc, char *argv[])
+ 	if (mount_filesystems())
+ 		goto err_reboot;
+ 
+-	if (kho_enable())
+-		goto err_reboot;
+-
+ 	if (kexec_load())
+ 		goto err_reboot;
+ 
 _
 
-Patches currently in -mm which might be from pratyush@kernel.org are
+Patches currently in -mm which might be from jasonmiu@google.com are
 
-kho-make-sure-preservations-do-not-span-multiple-numa-nodes.patch
-kho-drop-restriction-on-maximum-page-order.patch
 
