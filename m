@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50564364E80
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92AC8364053
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388617; cv=none; b=M1dL/0lV5KwsfITJ417Q9I3x6rxzk69BPZcC62c7jzmRQauq0czj4wIBOSOR19Lpp5TY+2LqNXDxC2MKbaJrjSEjXMiCBgeJkfhQSRIl1DIEq+mMZp5qZGUvxxExgj3ZKJ/fupn1RkZdjwnDExL6BMeJDJ6NBrZlaJlFBLtj/6w=
+	t=1774388618; cv=none; b=lHIrJg1i9DEJTWC7LbqkTIojR9gNbm6S5N693thpMr/LCva/zVcam7hP6l6kRm+mMhXXq5RGQbwmrAk//wcSo8ghV2sP/M32GKJD2cHMclbHuuQqIZSMEqfjr+/MeI5DD0G3MNWV1wDUa811Vm6/wyzaa1rJPRHFP0qGyuSIgmA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388617; c=relaxed/simple;
-	bh=82WMI2asguQqWsCO7yae3P96dY9enJuuFCuvRQNZcgM=;
-	h=Date:To:From:Subject:Message-Id; b=lG8zQOoYTEiFbrY/37OH+QFTrRy/BoBU367MXF9cvTQEGXacTW0GFdblr+IZHEMSKpMvXyUuvZcaBKByF+/dhVUpKjvQfkS8PzAsxyMHk64XIpNx01+WSVXGPhuXryP34Yuw/DVfvwzBA1cq3rgCvgzfSZymRM+SXGnUFPNH5zw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jRNojDbm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388618; c=relaxed/simple;
+	bh=LzWkYIHF3+uTTe5MOLlMpwEuqGYN9gxIcvT5SQhbHaw=;
+	h=Date:To:From:Subject:Message-Id; b=PuMdXBOLKqlg99xaAbpUxbO4rCKyFw+BqPoPYly8tmfKZvYXy3qorhPfb7oXTy2FYkHVmGZWMOY152CAndUsDuHk5ePWxz/gpzyXtjlEANPI2WtI5rf3SiwwZQV2zHKSyIVFho/34QXj29llMykIQkuDKeu9ZRtA/nvqYEplg1E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HX2hA3Q7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jRNojDbm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 217D7C19424;
-	Tue, 24 Mar 2026 21:43:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HX2hA3Q7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68AB3C19424;
+	Tue, 24 Mar 2026 21:43:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388617;
-	bh=82WMI2asguQqWsCO7yae3P96dY9enJuuFCuvRQNZcgM=;
+	s=korg; t=1774388618;
+	bh=LzWkYIHF3+uTTe5MOLlMpwEuqGYN9gxIcvT5SQhbHaw=;
 	h=Date:To:From:Subject:From;
-	b=jRNojDbmLmpTzUaW7lQu4Oq/8PLWNa/VkRNOoCOk4duzE9WFtECPDDpoepbJTsSe2
-	 9sgge0dKD2pU/3E7NkgQO4z7Z3HKpN6XNt1aAqajrYHlB9rkGi1Zn1mRyO805nVjSY
-	 84iilp5L8sDYygJKRHOFVNH8NwfGeBp2FwijPoGw=
-Date: Tue, 24 Mar 2026 14:43:36 -0700
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,kees@kernel.org,glider@google.com,dvyukov@google.com,corbet@lwn.net,elver@google.com,akpm@linux-foundation.org
+	b=HX2hA3Q7+UM8Oc6isMYWFccKBBvhtjwfk5CgfU8NWm56MaYI3blIY6eThrMqzGPfV
+	 TYvA+cChHcsqDkGFFoFhzPfSlkth8lhHRVGtySpFFya7aUP4KJ0W8LoUDj4hx97GdO
+	 3tiAvPQ3EHEat3HFKHjtIRTfrPMRLFOzr45LCZJs=
+Date: Tue, 24 Mar 2026 14:43:37 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,surenb@google.com,rppt@kernel.org,pratyush@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,graf@amazon.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kfence-add-kfencefault-parameter.patch removed from -mm tree
-Message-Id: <20260324214337.217D7C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-export-clear_vm_uninitialized_flag.patch removed from -mm tree
+Message-Id: <20260324214338.68AB3C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,283 +35,99 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kfence: add kfence.fault parameter
+     Subject: mm/vmalloc: export clear_vm_uninitialized_flag()
 has been removed from the -mm tree.  Its filename was
-     kfence-add-kfencefault-parameter.patch
+     mm-vmalloc-export-clear_vm_uninitialized_flag.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: add kfence.fault parameter
-Date: Wed, 25 Feb 2026 21:36:05 +0100
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: mm/vmalloc: export clear_vm_uninitialized_flag()
+Date: Wed, 25 Feb 2026 17:38:56 -0500
 
-Add kfence.fault parameter to control the behavior when a KFENCE error is
-detected (similar in spirit to kasan.fault=<mode>).
+Patch series "Fix KASAN support for KHO restored vmalloc regions".
 
-The supported modes for kfence.fault=<mode> are:
+When KHO restores a vmalloc area, it maps existing physical pages into a
+newly allocated virtual memory area.  However, because these areas were
+not properly unpoisoned, KASAN would treat any access to the restored
+region as out-of-bounds, as seen in the following trace:
 
-  - report: print the error report and continue (default).
-  - oops: print the error report and oops.
-  - panic: print the error report and panic.
+BUG: KASAN: vmalloc-out-of-bounds in kho_test_restore_data.isra.0+0x17b/0x2cd
+Read of size 8 at addr ffffc90000025000 by task swapper/0/1
+[...]
+Call Trace:
+[...]
+kasan_report+0xe8/0x120
+kho_test_restore_data.isra.0+0x17b/0x2cd
+kho_test_init+0x15a/0x1f0
+do_one_initcall+0xd5/0x4b0
 
-In particular, the 'oops' mode offers a trade-off between no mitigation
-on report and panicking outright (if panic_on_oops is not set).
+The fix involves deferring KASAN's default poisoning by using the
+VM_UNINITIALIZED flag during allocation, manually unpoisoning the memory
+once it is correctly mapped, and then clearing the uninitialized flag
+using a newly exported helper.
 
-Link: https://lkml.kernel.org/r/20260225203639.3159463-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+
+This patch (of 2):
+
+Make clear_vm_uninitialized_flag() available to other parts of the kernel
+that need to manage vmalloc areas manually, such as KHO for restoring
+vmallocs.
+
+Link: https://lkml.kernel.org/r/20260225220223.1695350-1-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20260225223857.1714801-2-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Acked-by: Pratyush Yadav (Google) <pratyush@kernel.org>
+Cc: Alexander Graf <graf@amazon.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    6 +
- Documentation/dev-tools/kfence.rst              |    7 ++
- mm/kfence/core.c                                |   23 ++++--
- mm/kfence/kfence.h                              |   16 ++++
- mm/kfence/report.c                              |   49 +++++++++++++-
- 5 files changed, 89 insertions(+), 12 deletions(-)
+ mm/internal.h |    2 ++
+ mm/vmalloc.c  |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~kfence-add-kfencefault-parameter
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -2959,6 +2959,12 @@ Kernel parameters
- 			Format: <bool>
- 			Default: CONFIG_KFENCE_DEFERRABLE
- 
-+	kfence.fault=	[MM,KFENCE] Controls the behavior when a KFENCE
-+			error is detected.
-+			report - print the error report and continue (default).
-+			oops   - print the error report and oops.
-+			panic  - print the error report and panic.
-+
- 	kfence.sample_interval=
- 			[MM,KFENCE] KFENCE's sample interval in milliseconds.
- 			Format: <unsigned integer>
---- a/Documentation/dev-tools/kfence.rst~kfence-add-kfencefault-parameter
-+++ a/Documentation/dev-tools/kfence.rst
-@@ -81,6 +81,13 @@ tables being allocated.
- Error reports
- ~~~~~~~~~~~~~
- 
-+The boot parameter ``kfence.fault`` can be used to control the behavior when a
-+KFENCE error is detected:
-+
-+- ``kfence.fault=report``: Print the error report and continue (default).
-+- ``kfence.fault=oops``: Print the error report and oops.
-+- ``kfence.fault=panic``: Print the error report and panic.
-+
- A typical out-of-bounds access looks like this::
- 
-     ==================================================================
---- a/mm/kfence/core.c~kfence-add-kfencefault-parameter
-+++ a/mm/kfence/core.c
-@@ -51,7 +51,7 @@
- 
- /* === Data ================================================================= */
- 
--static bool kfence_enabled __read_mostly;
-+bool kfence_enabled __read_mostly;
- static bool disabled_by_warn __read_mostly;
- 
- unsigned long kfence_sample_interval __read_mostly = CONFIG_KFENCE_SAMPLE_INTERVAL;
-@@ -336,6 +336,7 @@ out:
- static check_canary_attributes bool check_canary_byte(u8 *addr)
- {
- 	struct kfence_metadata *meta;
-+	enum kfence_fault fault;
- 	unsigned long flags;
- 
- 	if (likely(*addr == KFENCE_CANARY_PATTERN_U8(addr)))
-@@ -345,8 +346,9 @@ static check_canary_attributes bool chec
- 
- 	meta = addr_to_metadata((unsigned long)addr);
- 	raw_spin_lock_irqsave(&meta->lock, flags);
--	kfence_report_error((unsigned long)addr, false, NULL, meta, KFENCE_ERROR_CORRUPTION);
-+	fault = kfence_report_error((unsigned long)addr, false, NULL, meta, KFENCE_ERROR_CORRUPTION);
- 	raw_spin_unlock_irqrestore(&meta->lock, flags);
-+	kfence_handle_fault(fault);
- 
- 	return false;
+--- a/mm/internal.h~mm-vmalloc-export-clear_vm_uninitialized_flag
++++ a/mm/internal.h
+@@ -1469,6 +1469,8 @@ int __must_check vmap_pages_range_noflus
  }
-@@ -525,11 +527,14 @@ static void kfence_guarded_free(void *ad
- 	raw_spin_lock_irqsave(&meta->lock, flags);
- 
- 	if (!kfence_obj_allocated(meta) || meta->addr != (unsigned long)addr) {
-+		enum kfence_fault fault;
-+
- 		/* Invalid or double-free, bail out. */
- 		atomic_long_inc(&counters[KFENCE_COUNTER_BUGS]);
--		kfence_report_error((unsigned long)addr, false, NULL, meta,
--				    KFENCE_ERROR_INVALID_FREE);
-+		fault = kfence_report_error((unsigned long)addr, false, NULL, meta,
-+					    KFENCE_ERROR_INVALID_FREE);
- 		raw_spin_unlock_irqrestore(&meta->lock, flags);
-+		kfence_handle_fault(fault);
- 		return;
- 	}
- 
-@@ -831,7 +836,8 @@ static void kfence_check_all_canary(void
- static int kfence_check_canary_callback(struct notifier_block *nb,
- 					unsigned long reason, void *arg)
- {
--	kfence_check_all_canary();
-+	if (READ_ONCE(kfence_enabled))
-+		kfence_check_all_canary();
- 	return NOTIFY_OK;
- }
- 
-@@ -1266,6 +1272,7 @@ bool kfence_handle_page_fault(unsigned l
- 	struct kfence_metadata *to_report = NULL;
- 	unsigned long unprotected_page = 0;
- 	enum kfence_error_type error_type;
-+	enum kfence_fault fault;
- 	unsigned long flags;
- 
- 	if (!is_kfence_address((void *)addr))
-@@ -1324,12 +1331,14 @@ out:
- 	if (to_report) {
- 		raw_spin_lock_irqsave(&to_report->lock, flags);
- 		to_report->unprotected_page = unprotected_page;
--		kfence_report_error(addr, is_write, regs, to_report, error_type);
-+		fault = kfence_report_error(addr, is_write, regs, to_report, error_type);
- 		raw_spin_unlock_irqrestore(&to_report->lock, flags);
- 	} else {
- 		/* This may be a UAF or OOB access, but we can't be sure. */
--		kfence_report_error(addr, is_write, regs, NULL, KFENCE_ERROR_INVALID);
-+		fault = kfence_report_error(addr, is_write, regs, NULL, KFENCE_ERROR_INVALID);
- 	}
- 
-+	kfence_handle_fault(fault);
-+
- 	return kfence_unprotect(addr); /* Unprotect and let access proceed. */
- }
---- a/mm/kfence/kfence.h~kfence-add-kfencefault-parameter
-+++ a/mm/kfence/kfence.h
-@@ -16,6 +16,8 @@
- 
- #include "../slab.h" /* for struct kmem_cache */
- 
-+extern bool kfence_enabled;
-+
- /*
-  * Get the canary byte pattern for @addr. Use a pattern that varies based on the
-  * lower 3 bits of the address, to detect memory corruptions with higher
-@@ -140,8 +142,18 @@ enum kfence_error_type {
- 	KFENCE_ERROR_INVALID_FREE,	/* Invalid free. */
- };
- 
--void kfence_report_error(unsigned long address, bool is_write, struct pt_regs *regs,
--			 const struct kfence_metadata *meta, enum kfence_error_type type);
-+enum kfence_fault {
-+	KFENCE_FAULT_NONE,
-+	KFENCE_FAULT_REPORT,
-+	KFENCE_FAULT_OOPS,
-+	KFENCE_FAULT_PANIC,
-+};
-+
-+enum kfence_fault
-+kfence_report_error(unsigned long address, bool is_write, struct pt_regs *regs,
-+		    const struct kfence_metadata *meta, enum kfence_error_type type);
-+
-+void kfence_handle_fault(enum kfence_fault fault);
- 
- void kfence_print_object(struct seq_file *seq, const struct kfence_metadata *meta) __must_hold(&meta->lock);
- 
---- a/mm/kfence/report.c~kfence-add-kfencefault-parameter
-+++ a/mm/kfence/report.c
-@@ -7,9 +7,12 @@
- 
- #include <linux/stdarg.h>
- 
-+#include <linux/bug.h>
-+#include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/lockdep.h>
- #include <linux/math.h>
-+#include <linux/panic.h>
- #include <linux/printk.h>
- #include <linux/sched/debug.h>
- #include <linux/seq_file.h>
-@@ -29,6 +32,26 @@
- #define ARCH_FUNC_PREFIX ""
  #endif
  
-+static enum kfence_fault kfence_fault __ro_after_init = KFENCE_FAULT_REPORT;
++void clear_vm_uninitialized_flag(struct vm_struct *vm);
 +
-+static int __init early_kfence_fault(char *arg)
-+{
-+	if (!arg)
-+		return -EINVAL;
-+
-+	if (!strcmp(arg, "report"))
-+		kfence_fault = KFENCE_FAULT_REPORT;
-+	else if (!strcmp(arg, "oops"))
-+		kfence_fault = KFENCE_FAULT_OOPS;
-+	else if (!strcmp(arg, "panic"))
-+		kfence_fault = KFENCE_FAULT_PANIC;
-+	else
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+early_param("kfence.fault", early_kfence_fault);
-+
- /* Helper function to either print to a seq_file or to console. */
- __printf(2, 3)
- static void seq_con_printf(struct seq_file *seq, const char *fmt, ...)
-@@ -189,8 +212,9 @@ static const char *get_access_type(bool
- 	return str_write_read(is_write);
+ int __must_check __vmap_pages_range_noflush(unsigned long addr,
+ 			       unsigned long end, pgprot_t prot,
+ 			       struct page **pages, unsigned int page_shift);
+--- a/mm/vmalloc.c~mm-vmalloc-export-clear_vm_uninitialized_flag
++++ a/mm/vmalloc.c
+@@ -3183,7 +3183,7 @@ void __init vm_area_register_early(struc
+ 	kasan_populate_early_vm_area_shadow(vm->addr, vm->size);
  }
  
--void kfence_report_error(unsigned long address, bool is_write, struct pt_regs *regs,
--			 const struct kfence_metadata *meta, enum kfence_error_type type)
-+enum kfence_fault
-+kfence_report_error(unsigned long address, bool is_write, struct pt_regs *regs,
-+		    const struct kfence_metadata *meta, enum kfence_error_type type)
+-static void clear_vm_uninitialized_flag(struct vm_struct *vm)
++void clear_vm_uninitialized_flag(struct vm_struct *vm)
  {
- 	unsigned long stack_entries[KFENCE_STACK_DEPTH] = { 0 };
- 	const ptrdiff_t object_index = meta ? meta - kfence_metadata : -1;
-@@ -206,7 +230,7 @@ void kfence_report_error(unsigned long a
- 
- 	/* Require non-NULL meta, except if KFENCE_ERROR_INVALID. */
- 	if (WARN_ON(type != KFENCE_ERROR_INVALID && !meta))
--		return;
-+		return KFENCE_FAULT_NONE;
- 
  	/*
- 	 * Because we may generate reports in printk-unfriendly parts of the
-@@ -282,6 +306,25 @@ void kfence_report_error(unsigned long a
- 
- 	/* We encountered a memory safety error, taint the kernel! */
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_STILL_OK);
-+
-+	return kfence_fault;
-+}
-+
-+void kfence_handle_fault(enum kfence_fault fault)
-+{
-+	switch (fault) {
-+	case KFENCE_FAULT_NONE:
-+	case KFENCE_FAULT_REPORT:
-+		break;
-+	case KFENCE_FAULT_OOPS:
-+		BUG();
-+		break;
-+	case KFENCE_FAULT_PANIC:
-+		/* Disable KFENCE to avoid recursion if check_on_panic is set. */
-+		WRITE_ONCE(kfence_enabled, false);
-+		panic("kfence.fault=panic set ...\n");
-+		break;
-+	}
- }
- 
- #ifdef CONFIG_PRINTK
+ 	 * Before removing VM_UNINITIALIZED,
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
+liveupdate-protect-file-handler-list-with-rwsem.patch
+liveupdate-protect-flb-lists-with-rwsem.patch
+liveupdate-remove-file-handler-module-refcounting.patch
+liveupdate-defer-flb-module-refcounting-to-active-sessions.patch
+liveupdate-remove-luo_session_quiesce.patch
+liveupdate-auto-unregister-flbs-on-file-handler-unregistration.patch
+liveupdate-remove-liveupdate_test_unregister.patch
+liveupdate-make-unregister-functions-return-void.patch
+liveupdate-prevent-double-management-of-files.patch
+selftests-liveupdate-add-test-for-double-preservation.patch
 
