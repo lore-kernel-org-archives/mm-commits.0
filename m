@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 800CF36164E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 297223624A5
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388532; cv=none; b=F+5PqlZAOSwPKNuz2bOZTWQ4lgBwhKhNWANUHGT+Ale5X5p44JmwC6qWteBSd66rVp+WGMTnXRdR6OR0uicFC2m/Fh9YGLKOeYCEEc/ePzRd5jTUYVJcqKoVXHxw/VhVBTS978D6l9H8kWhn3mXmnKOnOe3irgCk4l3YgdR1AkY=
+	t=1774388534; cv=none; b=PFPQPPkLf13Ci5UmnJrICslHj8ak4vvHlihIVioTSd0XT84kDBEaoBWU2qViy7OLqV8I+49bVsfV7SS2TDlvuQS2JmTh0JbhHAdJhTYxUpe3lZSdwW3qUIzu0vcY4qIlVgXa70reu/CuiN5OVoUTMX9tz5qzGazuBk5F3xprdSQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388532; c=relaxed/simple;
-	bh=jT7PQUusTKpLQ6SD/OcGCW2Ect9dpR2Wz6YqcFFsjaE=;
-	h=Date:To:From:Subject:Message-Id; b=ODPGGa1IyC5zkOgSexzX/VLVn7y58Ow74kBtV7MHno514qNP3ZNPbzpbkj/GZzj7ouv9GB3VPFZVQbWSXP0Xi2/U9V7RTmvq+zA8DyiVT3P7/Z+DngsGrrZ5k7H2WPR655Rvus3eFw3BchB0Zt/gj2AKE8xvykaAwyWphu8If9A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WT4LiSNj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388534; c=relaxed/simple;
+	bh=EblP6jEy/mbAl5HHgnnNFKskjFD3BHNQtWpAa2lY8rg=;
+	h=Date:To:From:Subject:Message-Id; b=HG+PwsuS6UYVLnEIT9MYTnRVA9MzmpvIIogcmpzts3/3vXTHTlIo4JUsG9KlCtVl1/cnZ8Jrvfm4xajBR0+9ONJakiNIM6BR8aEQC7kt4/6NlvL7GC02prIerLUhO2To06g2asHCmlEBanFgdF69yIuug9zSPacHw/Qsl05pTgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TTGMMzui; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WT4LiSNj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B01FC2BCC4;
-	Tue, 24 Mar 2026 21:42:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TTGMMzui"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02456C19424;
+	Tue, 24 Mar 2026 21:42:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388532;
-	bh=jT7PQUusTKpLQ6SD/OcGCW2Ect9dpR2Wz6YqcFFsjaE=;
+	s=korg; t=1774388534;
+	bh=EblP6jEy/mbAl5HHgnnNFKskjFD3BHNQtWpAa2lY8rg=;
 	h=Date:To:From:Subject:From;
-	b=WT4LiSNj6L/A52lzou4d+uA0E7MP3Hm8Rw2Ym7i9nt+XTBgZJo3y0TcLu/aX7+NTN
-	 F/3PiSnVfxTWJq+avQtP+ToP5aK8xjhN1o0CEBT3SsmemGyOkg9sQyGHS/2w3KBmqt
-	 MpQlSui6Y2PHUx9jL2pnP6oa97xGcQZOgF5vNsjc=
-Date: Tue, 24 Mar 2026 14:42:11 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,sidhartha.kumar@oracle.com,lists@nerdbynature.de,kuninori.morimoto.gx@renesas.com,geert@linux-m68k.org,arnd@arndb.de,andrewjballance@gmail.com,aliceryhl@google.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
+	b=TTGMMzuio0iQUEQCkVuw3tu9wDO4Yu+wlpRi2vtQ/H5FDgHTuDWWjKhp5He3w8DJ6
+	 tVzmoF2/YLAm7byzG3Try6FNVpp4HIfarxgL9r1/Ezg6nVbz36EcHSWLXosC91vkck
+	 Ka1cEkrR0Tv2a2pU+2/tg1r7eNoLvWSwNtR0Pm90=
+Date: Tue, 24 Mar 2026 14:42:13 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,tglx@linutronix.de,mpe@ellerman.id.au,mingo@redhat.com,maddy@linux.ibm.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,catalin.marinas@arm.com,bp@alien8.de,sgsu.park@samsung.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-clean-up-mas_wr_node_store.patch removed from -mm tree
-Message-Id: <20260324214212.5B01FC2BCC4@smtp.kernel.org>
+Subject: [merged mm-stable] mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access.patch removed from -mm tree
+Message-Id: <20260324214214.02456C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,146 +35,153 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: clean up mas_wr_node_store()
+     Subject: mm/pkeys: remove unused tsk parameter from arch_set_user_pkey_access()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-clean-up-mas_wr_node_store.patch
+     mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: clean up mas_wr_node_store()
-Date: Fri, 30 Jan 2026 15:59:35 -0500
+From: Seongsu Park <sgsu.park@samsung.com>
+Subject: mm/pkeys: remove unused tsk parameter from arch_set_user_pkey_access()
+Date: Thu, 19 Feb 2026 15:35:06 +0900
 
-The new_end does not need to be passed in as the data is already being
-checked.  This allows for other areas to skip getting the node new_end in
-the calling function.
+The tsk parameter in arch_set_user_pkey_access() is never used in the
+function implementations across all architectures (arm64, powerpc, x86).
 
-The type was incorrectly void * instead of void __rcu *, which isn't an
-issue but is technically incorrect.
-
-Move the variable assignment to after the declarations to clean up the
-initial setup.
-
-Ensure there is something to copy before calling memcpy().
-
-Link: https://lkml.kernel.org/r/20260130205935.2559335-31-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Alice Ryhl <aliceryhl@google.com>
-Cc: Andrew Ballance <andrewjballance@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christian Kujau <lists@nerdbynature.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Sidhartha Kumar <sidhartha.kumar@oracle.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20260219063506.545148-1-sgsu.park@samsung.com
+Signed-off-by: Seongsu Park <sgsu.park@samsung.com>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   42 ++++++++++++++++++++++++++----------------
- 1 file changed, 26 insertions(+), 16 deletions(-)
+ arch/arm64/include/asm/pkeys.h   |    3 +--
+ arch/arm64/mm/mmu.c              |    2 +-
+ arch/powerpc/include/asm/pkeys.h |    8 +++-----
+ arch/powerpc/mm/book3s64/pkeys.c |    3 +--
+ arch/x86/include/asm/pkeys.h     |    3 +--
+ arch/x86/kernel/fpu/xstate.c     |    3 +--
+ arch/x86/mm/pkeys.c              |    3 +--
+ mm/mprotect.c                    |    2 +-
+ 8 files changed, 10 insertions(+), 17 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-clean-up-mas_wr_node_store
-+++ a/lib/maple_tree.c
-@@ -3122,20 +3122,28 @@ static void mas_wr_spanning_store(struct
-  *
-  * Attempts to reuse the node, but may allocate.
+--- a/arch/arm64/include/asm/pkeys.h~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/arm64/include/asm/pkeys.h
+@@ -12,8 +12,7 @@
+ 
+ #define arch_max_pkey() 8
+ 
+-int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-		unsigned long init_val);
++int arch_set_user_pkey_access(int pkey, unsigned long init_val);
+ 
+ static inline bool arch_pkeys_enabled(void)
+ {
+--- a/arch/arm64/mm/mmu.c~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/arm64/mm/mmu.c
+@@ -2206,7 +2206,7 @@ void __cpu_replace_ttbr1(pgd_t *pgdp, bo
+ }
+ 
+ #ifdef CONFIG_ARCH_HAS_PKEYS
+-int arch_set_user_pkey_access(struct task_struct *tsk, int pkey, unsigned long init_val)
++int arch_set_user_pkey_access(int pkey, unsigned long init_val)
+ {
+ 	u64 new_por;
+ 	u64 old_por;
+--- a/arch/powerpc/include/asm/pkeys.h~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/powerpc/include/asm/pkeys.h
+@@ -143,10 +143,8 @@ static inline int arch_override_mprotect
+ 	return __arch_override_mprotect_pkey(vma, prot, pkey);
+ }
+ 
+-extern int __arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-				       unsigned long init_val);
+-static inline int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-					    unsigned long init_val)
++extern int __arch_set_user_pkey_access(int pkey, unsigned long init_val);
++static inline int arch_set_user_pkey_access(int pkey, unsigned long init_val)
+ {
+ 	if (!mmu_has_feature(MMU_FTR_PKEY))
+ 		return -EINVAL;
+@@ -160,7 +158,7 @@ static inline int arch_set_user_pkey_acc
+ 	if (pkey == 0)
+ 		return init_val ? -EINVAL : 0;
+ 
+-	return __arch_set_user_pkey_access(tsk, pkey, init_val);
++	return __arch_set_user_pkey_access(pkey, init_val);
+ }
+ 
+ static inline bool arch_pkeys_enabled(void)
+--- a/arch/powerpc/mm/book3s64/pkeys.c~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/powerpc/mm/book3s64/pkeys.c
+@@ -335,8 +335,7 @@ static inline void init_iamr(int pkey, u
+  * Set the access rights in AMR IAMR and UAMOR registers for @pkey to that
+  * specified in @init_val.
   */
--static inline void mas_wr_node_store(struct ma_wr_state *wr_mas,
--				     unsigned char new_end)
-+static inline void mas_wr_node_store(struct ma_wr_state *wr_mas)
+-int __arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-				unsigned long init_val)
++int __arch_set_user_pkey_access(int pkey, unsigned long init_val)
  {
--	struct ma_state *mas = wr_mas->mas;
--	void __rcu **dst_slots;
--	unsigned long *dst_pivots;
--	unsigned char dst_offset, offset_end = wr_mas->offset_end;
-+	unsigned char dst_offset, offset_end;
-+	unsigned char copy_size, node_pivots;
- 	struct maple_node reuse, *newnode;
--	unsigned char copy_size, node_pivots = mt_pivots[wr_mas->type];
--	bool in_rcu = mt_in_rcu(mas->tree);
--	unsigned char height = mas_mt_height(mas);
-+	unsigned long *dst_pivots;
-+	void __rcu **dst_slots;
-+	unsigned char new_end;
-+	struct ma_state *mas;
-+	bool in_rcu;
+ 	u64 new_amr_bits = 0x0ul;
+ 	u64 new_iamr_bits = 0x0ul;
+--- a/arch/x86/include/asm/pkeys.h~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/x86/include/asm/pkeys.h
+@@ -9,8 +9,7 @@
+  */
+ #define arch_max_pkey() (cpu_feature_enabled(X86_FEATURE_OSPKE) ? 16 : 1)
  
--	if (mas->last == wr_mas->end_piv)
-+	mas = wr_mas->mas;
-+	trace_ma_op(TP_FCT, mas);
-+	in_rcu = mt_in_rcu(mas->tree);
-+	offset_end = wr_mas->offset_end;
-+	node_pivots = mt_pivots[wr_mas->type];
-+	/* Assume last adds an entry */
-+	new_end = mas->end + 1 - offset_end + mas->offset;
-+	if (mas->last == wr_mas->end_piv) {
- 		offset_end++; /* don't copy this offset */
-+		new_end--;
-+	}
+-extern int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-		unsigned long init_val);
++extern int arch_set_user_pkey_access(int pkey, unsigned long init_val);
  
- 	/* set up node. */
- 	if (in_rcu) {
-@@ -3149,13 +3157,16 @@ static inline void mas_wr_node_store(str
- 	dst_pivots = ma_pivots(newnode, wr_mas->type);
- 	dst_slots = ma_slots(newnode, wr_mas->type);
- 	/* Copy from start to insert point */
--	memcpy(dst_pivots, wr_mas->pivots, sizeof(unsigned long) * mas->offset);
--	memcpy(dst_slots, wr_mas->slots, sizeof(void *) * mas->offset);
-+	if (mas->offset) {
-+		memcpy(dst_pivots, wr_mas->pivots, sizeof(unsigned long) * mas->offset);
-+		memcpy(dst_slots, wr_mas->slots, sizeof(void __rcu *) * mas->offset);
-+	}
- 
- 	/* Handle insert of new range starting after old range */
- 	if (wr_mas->r_min < mas->index) {
- 		rcu_assign_pointer(dst_slots[mas->offset], wr_mas->content);
- 		dst_pivots[mas->offset++] = mas->index - 1;
-+		new_end++;
- 	}
- 
- 	/* Store the new entry and range end. */
-@@ -3174,7 +3185,7 @@ static inline void mas_wr_node_store(str
- 	/* Copy to the end of node if necessary. */
- 	copy_size = mas->end - offset_end + 1;
- 	memcpy(dst_slots + dst_offset, wr_mas->slots + offset_end,
--	       sizeof(void *) * copy_size);
-+	       sizeof(void __rcu *) * copy_size);
- 	memcpy(dst_pivots + dst_offset, wr_mas->pivots + offset_end,
- 	       sizeof(unsigned long) * (copy_size - 1));
- 
-@@ -3187,7 +3198,7 @@ done:
- 		struct maple_enode *old_enode = mas->node;
- 
- 		mas->node = mt_mk_node(newnode, wr_mas->type);
--		mas_replace_node(mas, old_enode, height);
-+		mas_replace_node(mas, old_enode, mas_mt_height(mas));
- 	} else {
- 		memcpy(wr_mas->node, newnode, sizeof(struct maple_node));
- 	}
-@@ -3503,7 +3514,6 @@ static void mas_wr_rebalance(struct ma_w
- static inline void mas_wr_store_entry(struct ma_wr_state *wr_mas)
+ static inline bool arch_pkeys_enabled(void)
  {
- 	struct ma_state *mas = wr_mas->mas;
--	unsigned char new_end = mas_wr_new_end(wr_mas);
+--- a/arch/x86/kernel/fpu/xstate.c~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/x86/kernel/fpu/xstate.c
+@@ -1080,8 +1080,7 @@ void __user *get_xsave_addr_user(struct
+  * This will go out and modify PKRU register to set the access
+  * rights for @pkey to @init_val.
+  */
+-int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+-			      unsigned long init_val)
++int arch_set_user_pkey_access(int pkey, unsigned long init_val)
+ {
+ 	u32 old_pkru, new_pkru_bits = 0;
+ 	int pkey_shift;
+--- a/arch/x86/mm/pkeys.c~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/arch/x86/mm/pkeys.c
+@@ -42,8 +42,7 @@ int __execute_only_pkey(struct mm_struct
+ 	 * Set up PKRU so that it denies access for everything
+ 	 * other than execution.
+ 	 */
+-	ret = arch_set_user_pkey_access(current, execute_only_pkey,
+-			PKEY_DISABLE_ACCESS);
++	ret = arch_set_user_pkey_access(execute_only_pkey, PKEY_DISABLE_ACCESS);
+ 	/*
+ 	 * If the PKRU-set operation failed somehow, just return
+ 	 * 0 and effectively disable execute-only support.
+--- a/mm/mprotect.c~mm-pkeys-remove-unused-tsk-parameter-from-arch_set_user_pkey_access
++++ a/mm/mprotect.c
+@@ -978,7 +978,7 @@ SYSCALL_DEFINE2(pkey_alloc, unsigned lon
+ 	if (pkey == -1)
+ 		goto out;
  
- 	switch (mas->store_type) {
- 	case wr_exact_fit:
-@@ -3518,7 +3528,7 @@ static inline void mas_wr_store_entry(st
- 		mas_wr_slot_store(wr_mas);
- 		break;
- 	case wr_node_store:
--		mas_wr_node_store(wr_mas, new_end);
-+		mas_wr_node_store(wr_mas);
- 		break;
- 	case wr_spanning_store:
- 		mas_wr_spanning_store(wr_mas);
+-	ret = arch_set_user_pkey_access(current, pkey, init_val);
++	ret = arch_set_user_pkey_access(pkey, init_val);
+ 	if (ret) {
+ 		mm_pkey_free(current->mm, pkey);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from Liam.Howlett@oracle.com are
+Patches currently in -mm which might be from sgsu.park@samsung.com are
 
 
