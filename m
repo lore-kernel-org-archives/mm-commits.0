@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 302FF36495B
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBD1036494E
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388599; cv=none; b=BMAENLVWyoVlakoDxiyaQ5sdlkaeWn551+LNG5MEAkiAMNYbNfIL0Bn+BlLC13ae0Mq2eP4bZS0N9B90tKDGONou5YWA8kTWnx02+Pf2u2HAl0GjzeRmrJ3TzWpFn9OhVtv4x8qowNZWHObJB8Xd+vx4H3I0co+an2cpyawjps0=
+	t=1774388600; cv=none; b=uK3SpLG0ccPcxQjlTu6lGb+H+7YroAYRUtgJiygZ+iPiOt73kKNhJxoFzoVhK/3kK55AaUKC9ixJzmfI+6U5swM/krJPmQjvXV7Ea6D76XcWG/L6jQxtKQMQNZ9UXgpHbpNaHzoI0cW9OMU9NnEECBEMDKmkyKwlWOiCqBcy+o0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388599; c=relaxed/simple;
-	bh=E1zsOXRStYCPhQMoJXzBXpS63uULjrU6NNjaOpT5Okc=;
-	h=Date:To:From:Subject:Message-Id; b=fwppQF4RN9zn3IF1jOFoxq8rNLOrZmhSnCG7qwMNnpW5gYBj+DumGaidBtHB/2oKzIcVZJLaSW/wF7/R4/HlWogCR/epgY/aVNmQuzanf6cE2IQ3cLqHr+Mx0++AKnh7El28q9BW1wozdEitbBSGIxgN3IczjA6l2xR7UaIInXM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J1F9GJD3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388600; c=relaxed/simple;
+	bh=nptuP231siyt2ngCvC84u+hQdypKeplj6dhMkajPmXE=;
+	h=Date:To:From:Subject:Message-Id; b=ZYHQAsrVvMV6kbCkd0Pr2SXXn0/gmywBrhVs42ooo1Q/7Nb35Q0WmZl8CKIsPe6XjaXxIGcikfeaC+uLBHuIsB0YrKG+CAgI10WcLviXVJ2XOBZv2vNSBPXOWPD8KGhIdGRc9lFR9wd/3f4RmFT5mOq0l4+ru4Bcy0Chy578kCo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K/Lyb58K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J1F9GJD3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03C43C19424;
-	Tue, 24 Mar 2026 21:43:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K/Lyb58K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4BDEC19424;
+	Tue, 24 Mar 2026 21:43:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388599;
-	bh=E1zsOXRStYCPhQMoJXzBXpS63uULjrU6NNjaOpT5Okc=;
+	s=korg; t=1774388600;
+	bh=nptuP231siyt2ngCvC84u+hQdypKeplj6dhMkajPmXE=;
 	h=Date:To:From:Subject:From;
-	b=J1F9GJD3VpH8nJYqTSobjiqhfnNhNmAyQeDmKNngenDcQTzyQeGD2EF8uukxOvTqM
-	 c/SaUXoqmt0YusQo7FBAdVYkBCS4MNuKFQyG6Y8h9SGfwPKoycKtwe+yjSMNaPMs1d
-	 uVAyfm6bEhOjmsuAMEwa/0pnXfGPC7GMINEXyyGU=
-Date: Tue, 24 Mar 2026 14:43:18 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,urezki@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=K/Lyb58KZoLdIpBJf9I8qGI0JHBMPPcmDq803XwYYHzDm4HhlzbRE94aMtLg1d+K9
+	 LbVuRD2E9td6sW5qwCTNfurUsh6F5TdTvGIrejktg2O/mYFH7F7q/FYq4i2Xs/brjC
+	 4GuoSiVnS9uHJqefivFSbr+p9CID6Ifys+XLtC+4=
+Date: Tue, 24 Mar 2026 14:43:20 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,tballasi@linux.microsoft.com,shakeel.butt@linux.dev,mhocko@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,rostedt@goodmis.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter.patch removed from -mm tree
-Message-Id: <20260324214319.03C43C19424@smtp.kernel.org>
+Subject: [merged mm-stable] tracing-add-__event_in_irq-helpers.patch removed from -mm tree
+Message-Id: <20260324214320.A4BDEC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,148 +35,100 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: switch to native NR_VMALLOC vmstat counter
+     Subject: tracing: add __event_in_*irq() helpers
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter.patch
+     tracing-add-__event_in_irq-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: switch to native NR_VMALLOC vmstat counter
-Date: Mon, 23 Feb 2026 11:01:07 -0500
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: tracing: add __event_in_*irq() helpers
+Date: Mon, 16 Mar 2026 09:09:06 -0700
 
-Eliminates the custom memcg counter and results in a single, consolidated
-accounting call in vmalloc code.
+Patch series "mm: vmscan: add PID and cgroup ID to vmscan tracepoints", v8.
 
-Link: https://lkml.kernel.org/r/20260223160147.3792777-2-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reviewed-by: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+
+This patch (of 3):
+
+Some trace events want to expose in their output if they were triggered in
+an interrupt or softirq context.  Instead of recording this in the event
+structure itself, as this information is stored in the flags portion of
+the event header, add helper macros that can be used in the print format:
+
+  TP_printk("val=%d %s", __entry->val, __event_in_irq() ? "(in-irq)" : "")
+
+This will output "(in-irq)" for the event in the trace data if the event
+was triggered in hard or soft interrupt context.
+
+Link: https://lkml.kernel.org/r/20260316160908.42727-1-tballasi@linux.microsoft.com
+Link: https://lore.kernel.org/all/20251229132942.31a2b583@gandalf.local.home/
+Link: https://lkml.kernel.org/r/20260316160908.42727-2-tballasi@linux.microsoft.com
+Signed-off-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Signed-off-by: Thomas Ballasi <tballasi@linux.microsoft.com>
+Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 -
- mm/memcontrol.c            |    4 ++--
- mm/vmalloc.c               |   16 ++++------------
- 3 files changed, 6 insertions(+), 15 deletions(-)
+ include/trace/stages/stage3_trace_output.h |    8 ++++++++
+ include/trace/stages/stage7_class_define.h |   19 +++++++++++++++++++
+ 2 files changed, 27 insertions(+)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter
-+++ a/include/linux/memcontrol.h
-@@ -35,7 +35,6 @@ enum memcg_stat_item {
- 	MEMCG_SWAP = NR_VM_NODE_STAT_ITEMS,
- 	MEMCG_SOCK,
- 	MEMCG_PERCPU_B,
--	MEMCG_VMALLOC,
- 	MEMCG_KMEM,
- 	MEMCG_ZSWAP_B,
- 	MEMCG_ZSWAPPED,
---- a/mm/memcontrol.c~mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter
-+++ a/mm/memcontrol.c
-@@ -317,6 +317,7 @@ static const unsigned int memcg_node_sta
- 	NR_SHMEM_THPS,
- 	NR_FILE_THPS,
- 	NR_ANON_THPS,
-+	NR_VMALLOC,
- 	NR_KERNEL_STACK_KB,
- 	NR_PAGETABLE,
- 	NR_SECONDARY_PAGETABLE,
-@@ -352,7 +353,6 @@ static const unsigned int memcg_stat_ite
- 	MEMCG_SWAP,
- 	MEMCG_SOCK,
- 	MEMCG_PERCPU_B,
--	MEMCG_VMALLOC,
- 	MEMCG_KMEM,
- 	MEMCG_ZSWAP_B,
- 	MEMCG_ZSWAPPED,
-@@ -1364,7 +1364,7 @@ static const struct memory_stat memory_s
- 	{ "sec_pagetables",		NR_SECONDARY_PAGETABLE		},
- 	{ "percpu",			MEMCG_PERCPU_B			},
- 	{ "sock",			MEMCG_SOCK			},
--	{ "vmalloc",			MEMCG_VMALLOC			},
-+	{ "vmalloc",			NR_VMALLOC			},
- 	{ "shmem",			NR_SHMEM			},
- #ifdef CONFIG_ZSWAP
- 	{ "zswap",			MEMCG_ZSWAP_B			},
---- a/mm/vmalloc.c~mm-memcontrol-switch-to-native-nr_vmalloc-vmstat-counter
-+++ a/mm/vmalloc.c
-@@ -3459,9 +3459,6 @@ void vfree(const void *addr)
+--- a/include/trace/stages/stage3_trace_output.h~tracing-add-__event_in_irq-helpers
++++ a/include/trace/stages/stage3_trace_output.h
+@@ -150,3 +150,11 @@
  
- 	if (unlikely(vm->flags & VM_FLUSH_RESET_PERMS))
- 		vm_reset_perms(vm);
--	/* All pages of vm should be charged to same memcg, so use first one. */
--	if (vm->nr_pages && !(vm->flags & VM_MAP_PUT_PAGES))
--		mod_memcg_page_state(vm->pages[0], MEMCG_VMALLOC, -vm->nr_pages);
- 	for (i = 0; i < vm->nr_pages; i++) {
- 		struct page *page = vm->pages[i];
+ #undef __get_buf
+ #define __get_buf(len)		trace_seq_acquire(p, (len))
++
++#undef __event_in_hardirq
++#undef __event_in_softirq
++#undef __event_in_irq
++
++#define __event_in_hardirq()	(__entry->ent.flags & TRACE_FLAG_HARDIRQ)
++#define __event_in_softirq()	(__entry->ent.flags & TRACE_FLAG_SOFTIRQ)
++#define __event_in_irq()	(__entry->ent.flags & (TRACE_FLAG_HARDIRQ | TRACE_FLAG_SOFTIRQ))
+--- a/include/trace/stages/stage7_class_define.h~tracing-add-__event_in_irq-helpers
++++ a/include/trace/stages/stage7_class_define.h
+@@ -26,6 +26,25 @@
+ #undef __print_hex_dump
+ #undef __get_buf
  
-@@ -3471,7 +3468,7 @@ void vfree(const void *addr)
- 		 * can be freed as an array of order-0 allocations
- 		 */
- 		if (!(vm->flags & VM_MAP_PUT_PAGES))
--			dec_node_page_state(page, NR_VMALLOC);
-+			mod_lruvec_page_state(page, NR_VMALLOC, -1);
- 		__free_page(page);
- 		cond_resched();
- 	}
-@@ -3662,7 +3659,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 			continue;
- 		}
- 
--		mod_node_page_state(page_pgdat(page), NR_VMALLOC, 1 << large_order);
-+		mod_lruvec_page_state(page, NR_VMALLOC, 1 << large_order);
- 
- 		split_page(page, large_order);
- 		for (i = 0; i < (1U << large_order); i++)
-@@ -3709,7 +3706,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 							pages + nr_allocated);
- 
- 			for (i = nr_allocated; i < nr_allocated + nr; i++)
--				inc_node_page_state(pages[i], NR_VMALLOC);
-+				mod_lruvec_page_state(pages[i], NR_VMALLOC, 1);
- 
- 			nr_allocated += nr;
- 
-@@ -3735,7 +3732,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 		if (unlikely(!page))
- 			break;
- 
--		mod_node_page_state(page_pgdat(page), NR_VMALLOC, 1 << order);
-+		mod_lruvec_page_state(page, NR_VMALLOC, 1 << order);
- 
- 		/*
- 		 * High-order allocations must be able to be treated as
-@@ -3879,11 +3876,6 @@ static void *__vmalloc_area_node(struct
- 			vmalloc_gfp_adjust(gfp_mask, page_order), node,
- 			page_order, nr_small_pages, area->pages);
- 
--	/* All pages of vm should be charged to same memcg, so use first one. */
--	if (gfp_mask & __GFP_ACCOUNT && area->nr_pages)
--		mod_memcg_page_state(area->pages[0], MEMCG_VMALLOC,
--				     area->nr_pages);
--
- 	/*
- 	 * If not enough pages were obtained to accomplish an
- 	 * allocation request, free them via vfree() if any.
++#undef __event_in_hardirq
++#undef __event_in_softirq
++#undef __event_in_irq
++
++/*
++ * The TRACE_FLAG_* are enums. Instead of using TRACE_DEFINE_ENUM(),
++ * use their hardcoded values. These values are parsed by user space
++ * tooling elsewhere so they will never change.
++ *
++ * See "enum trace_flag_type" in linux/trace_events.h:
++ *   TRACE_FLAG_HARDIRQ
++ *   TRACE_FLAG_SOFTIRQ
++ */
++
++/* This is what is displayed in the format files */
++#define __event_in_hardirq()	(REC->common_flags & 0x8)
++#define __event_in_softirq()	(REC->common_flags & 0x10)
++#define __event_in_irq()	(REC->common_flags & 0x18)
++
+ /*
+  * The below is not executed in the kernel. It is only what is
+  * displayed in the print format for userspace to parse.
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-mm-memcontrol-split-out-__obj_cgroup_charge.patch
-mm-memcontrol-use-__account_obj_stock-in-the-locked-path.patch
-mm-memcg-separate-slab-stat-accounting-from-objcg-charge-cache.patch
-mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty.patch
-mm-list_lru-deduplicate-unlock_list_lru.patch
-mm-list_lru-move-list-dead-check-to-lock_list_lru_of_memcg.patch
-mm-list_lru-deduplicate-lock_list_lru.patch
-mm-list_lru-introduce-caller-locking-for-additions-and-deletions.patch
-mm-list_lru-introduce-folio_memcg_list_lru_alloc.patch
-mm-switch-deferred-split-shrinker-to-list_lru.patch
 
