@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE94B364058
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D7DE36215C
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388576; cv=none; b=p7RdQnwcOaN5AuMtCWLTt0dr7rMKRjo+Z9VHg0qiNgrTLHOXnI5kss3JWhgiiWZhgtWnDws53nnmhkjIQI1FgKttW6HiA9RgI14xwWTSw2n4zvl3q//KbwofierlMl7ownf9+oJkz+ho4fmWrfWsGVfLniBE6oMIa3R7DU/Gh4A=
+	t=1774388578; cv=none; b=Y4l+kZZ8/9sln8Xw2TP3cNEOHTKuZ0iVV4W88faL1fBBRkPfhsIHvjxZ4fPJDR4iiMlbhalhrlt3ZIAN0DrB94U5mLj+C+y8OiMLKmPzMO66yZE7wBs+F/fZUpltOqfIcGJN6ghNZnYqEEVKT3TubgQS9jVfi7l/D3voGm1+qeY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388576; c=relaxed/simple;
-	bh=D66mFzzf6rVfvxeUH+t/83qMyNO3RiqyyE1fX54TKQw=;
-	h=Date:To:From:Subject:Message-Id; b=RKLZod/dCoYEg6lbGUhKKCbCjzkD6tRmRDsIGmeJpsNHABfIyPLMciPwVW8rw/putrSWFl5Xta77Wa4e2i3sDSp514//WOfAtglUPyfN/87UBR9sKoUQ2IVrcFh6vl6mGbI+chsHpz8VsoKHPBfnQ+TZNI2u6Bt4e1zGdKnyI1U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tsrFv1YQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388578; c=relaxed/simple;
+	bh=SLyCdKxUkwAixJ8B6ShJTTgKJGjHjZRN4pJef8HZ+jU=;
+	h=Date:To:From:Subject:Message-Id; b=oFCuR3ujgFkycXuSy2PdopjjZJ/kAYTQ6lAhsPpVSI3bG5fG/MjHxRpHrpPRCDKSE0BqSwRQAn8FuXYerjEEt1awIS64cAIHjOt+1yGyreog56yB+UWvofsK+kWvpAdIJd5vF7UQ0ATTJJAZx3KprUWmeBna7FMTOOGp7/fjTwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BHVK+yVu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tsrFv1YQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7D92C19424;
-	Tue, 24 Mar 2026 21:42:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BHVK+yVu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 04799C2BC9E;
+	Tue, 24 Mar 2026 21:42:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388576;
-	bh=D66mFzzf6rVfvxeUH+t/83qMyNO3RiqyyE1fX54TKQw=;
+	s=korg; t=1774388578;
+	bh=SLyCdKxUkwAixJ8B6ShJTTgKJGjHjZRN4pJef8HZ+jU=;
 	h=Date:To:From:Subject:From;
-	b=tsrFv1YQZYgLN6/ZaBphigzqDY5m2T8kLOlClZitFIAL+aK4yR4sjDM/F740yltoG
-	 kmpaKKIRp7/pGDdJBvXO97tsKc8L7qmimmnd4cYNk/T5l+z3pXDnreLEMjUhfo9/nl
-	 L0aGyXzwNfdwffNqxbW4awRx1wRfcj/4Xh5I68AQ=
-Date: Tue, 24 Mar 2026 14:42:56 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,david@kernel.org,lirongqing@baidu.com,akpm@linux-foundation.org
+	b=BHVK+yVuYCluMJ+xa+3nvIJYuyXHKOl1C+QGWVtmZqYD/KICn0p8rDyrfZzGoC3qq
+	 YT2t8pKB6Jf9NevzxDqpi3lUnbIY5tWwhorN+DA7vz1B6h+Xbf83IFki38eDA9LzI7
+	 VffEeTg6zpdiOZpjA15HsXU6F0JeuujHSu/Nnkds=
+Date: Tue, 24 Mar 2026 14:42:57 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,david@kernel.org,baolin.wang@linux.alibaba.com,qin.yuA@h3c.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mmu_notifiers-use-hlist_for_each_entry_srcu-for-srcu-list-traversal.patch removed from -mm tree
-Message-Id: <20260324214256.B7D92C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_idlec-remove-redundant-mmu-notifier-in-aging-code.patch removed from -mm tree
+Message-Id: <20260324214258.04799C2BC9E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,129 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mmu_notifiers: use hlist_for_each_entry_srcu() for SRCU list traversal
+     Subject: mm/page_idle.c: remove redundant mmu notifier in aging code
 has been removed from the -mm tree.  Its filename was
-     mm-mmu_notifiers-use-hlist_for_each_entry_srcu-for-srcu-list-traversal.patch
+     mm-page_idlec-remove-redundant-mmu-notifier-in-aging-code.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li RongQing <lirongqing@baidu.com>
-Subject: mm/mmu_notifiers: use hlist_for_each_entry_srcu() for SRCU list traversal
-Date: Wed, 4 Feb 2026 03:09:37 -0500
+From: qinyu <qin.yuA@h3c.com>
+Subject: mm/page_idle.c: remove redundant mmu notifier in aging code
+Date: Tue, 3 Feb 2026 18:26:49 +0800
 
-The mmu_notifier_subscriptions list is protected by SRCU.  While the
-current code uses hlist_for_each_entry_rcu() with an explicit SRCU lockdep
-check, it is more appropriate to use the dedicated
-hlist_for_each_entry_srcu() macro.
+Now we have mmu_notifier_clear_young immediately follows
+pmdp_clear_young_notify which internally calls mmu_notifier_clear_young,
+this is redundant.  change it with non-notify variant and keep consistent
+with ptep aging code.
 
-This change aligns the code with the preferred kernel API for
-SRCU-protected lists, improving code clarity and ensuring that the
-synchronization method is explicitly documented by the iterator name
-itself.
-
-Link: https://lkml.kernel.org/r/20260204080937.2472-1-lirongqing@baidu.com
-Signed-off-by: Li RongQing <lirongqing@baidu.com>
-Acked-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20260203102649.2486836-1-qin.yuA@h3c.com
+Signed-off-by: qinyu <qin.yuA@h3c.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Acked-by: David Hildenbrand (arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/page_idle.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mmu_notifier.c~mm-mmu_notifiers-use-hlist_for_each_entry_srcu-for-srcu-list-traversal
-+++ a/mm/mmu_notifier.c
-@@ -309,7 +309,7 @@ static void mn_hlist_release(struct mmu_
- 	 * ->release returns.
- 	 */
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist,
-+	hlist_for_each_entry_srcu(subscription, &subscriptions->list, hlist,
- 				 srcu_read_lock_held(&srcu))
- 		/*
- 		 * If ->release runs before mmu_notifier_unregister it must be
-@@ -372,7 +372,7 @@ int __mmu_notifier_clear_flush_young(str
- 	int young = 0, id;
+--- a/mm/page_idle.c~mm-page_idlec-remove-redundant-mmu-notifier-in-aging-code
++++ a/mm/page_idle.c
+@@ -74,7 +74,7 @@ static bool page_idle_clear_pte_refs_one
+ 			pmd_t pmdval = pmdp_get(pvmw.pmd);
  
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(subscription,
-+	hlist_for_each_entry_srcu(subscription,
- 				 &mm->notifier_subscriptions->list, hlist,
- 				 srcu_read_lock_held(&srcu)) {
- 		if (subscription->ops->clear_flush_young)
-@@ -392,7 +392,7 @@ int __mmu_notifier_clear_young(struct mm
- 	int young = 0, id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(subscription,
-+	hlist_for_each_entry_srcu(subscription,
- 				 &mm->notifier_subscriptions->list, hlist,
- 				 srcu_read_lock_held(&srcu)) {
- 		if (subscription->ops->clear_young)
-@@ -411,7 +411,7 @@ int __mmu_notifier_test_young(struct mm_
- 	int young = 0, id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(subscription,
-+	hlist_for_each_entry_srcu(subscription,
- 				 &mm->notifier_subscriptions->list, hlist,
- 				 srcu_read_lock_held(&srcu)) {
- 		if (subscription->ops->test_young) {
-@@ -466,7 +466,7 @@ static int mn_hlist_invalidate_range_sta
- 	int id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist,
-+	hlist_for_each_entry_srcu(subscription, &subscriptions->list, hlist,
- 				 srcu_read_lock_held(&srcu)) {
- 		const struct mmu_notifier_ops *ops = subscription->ops;
- 
-@@ -504,7 +504,7 @@ static int mn_hlist_invalidate_range_sta
- 		 * notifiers and one or more failed start, any that succeeded
- 		 * start are expecting their end to be called.  Do so now.
- 		 */
--		hlist_for_each_entry_rcu(subscription, &subscriptions->list,
-+		hlist_for_each_entry_srcu(subscription, &subscriptions->list,
- 					 hlist, srcu_read_lock_held(&srcu)) {
- 			if (!subscription->ops->invalidate_range_end)
- 				continue;
-@@ -542,7 +542,7 @@ mn_hlist_invalidate_end(struct mmu_notif
- 	int id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(subscription, &subscriptions->list, hlist,
-+	hlist_for_each_entry_srcu(subscription, &subscriptions->list, hlist,
- 				 srcu_read_lock_held(&srcu)) {
- 		if (subscription->ops->invalidate_range_end) {
- 			if (!mmu_notifier_range_blockable(range))
-@@ -577,7 +577,7 @@ void __mmu_notifier_arch_invalidate_seco
- 	int id;
- 
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(subscription,
-+	hlist_for_each_entry_srcu(subscription,
- 				 &mm->notifier_subscriptions->list, hlist,
- 				 srcu_read_lock_held(&srcu)) {
- 		if (subscription->ops->arch_invalidate_secondary_tlbs)
-@@ -713,7 +713,7 @@ find_get_mmu_notifier(struct mm_struct *
- 	struct mmu_notifier *subscription;
- 
- 	spin_lock(&mm->notifier_subscriptions->lock);
--	hlist_for_each_entry_rcu(subscription,
-+	hlist_for_each_entry_srcu(subscription,
- 				 &mm->notifier_subscriptions->list, hlist,
- 				 lockdep_is_held(&mm->notifier_subscriptions->lock)) {
- 		if (subscription->ops != ops)
+ 			if (likely(pmd_present(pmdval)))
+-				referenced |= pmdp_clear_young_notify(vma, addr, pvmw.pmd);
++				referenced |= pmdp_test_and_clear_young(vma, addr, pvmw.pmd);
+ 			referenced |= mmu_notifier_clear_young(vma->vm_mm, addr, addr + PMD_SIZE);
+ 		} else {
+ 			/* unexpected pmd-mapped page? */
 _
 
-Patches currently in -mm which might be from lirongqing@baidu.com are
+Patches currently in -mm which might be from qin.yuA@h3c.com are
 
 
