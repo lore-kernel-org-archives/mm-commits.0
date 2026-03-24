@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7379E364029
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16D08361DA6
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388556; cv=none; b=Xm6Fe+eZzF1aV9yiVX+bgCuKDIBpiUiuNBCrUtRZg/FpVfIu5NxHJExZXCVCjU0RCJ8LpCzV19qdo8TlDXHZ0cMokne/Z4ju3Rpvi7ae6sY3BBocozKxhPJCiOthGrluuNGbnxb/CsCPSmvPDyZehOnb3OxFLKQn3oYKE31MK/s=
+	t=1774388558; cv=none; b=rzoYMffBu5KPhngSlHHoPLjTz40a/mg4iIrb5QE0xWuGHQL2RZRKRLLM1whcanVlrgdLLp5KqdjcjNpVJR+1GG3WDSZZSILMBMKyTsatMkPtMQ4ZJAWk70nkrCkm4zlpMMFxE+4EArUAxvEl052uN+YVPOVzMx86/1gXXp6Ntpk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388556; c=relaxed/simple;
-	bh=yRA9mAh/GQQYgNlFjdt1H2Nm68p0v6rf0h38kZYEjmk=;
-	h=Date:To:From:Subject:Message-Id; b=lqq4tOJtMNDDnAauEKy3O7YncnVbfmnY6+Jl0cT5xrsYXoIO7d6KKsUrJEFbcEG5+8NjM26QqpWyfZRHqZeIzuLUmyV4pbJXRHxDPqrM2jfJQTzqe3hgZGmEoS++5mJRr+ZQuBS7Es1kYbxsf1cxPOqef/3nbzTfHbizKouGJNg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hhaZ7syV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388558; c=relaxed/simple;
+	bh=5j0HurvfXrO3YwXB03Tbk7wmYnEyMMDLGsdZPv7uHZc=;
+	h=Date:To:From:Subject:Message-Id; b=jRjjab3a6ZkCkmhPtFM62yhpLpjs5lLfffCBFbELr90RDobkwK62K7dHbLo3KzTQYOjlZHzah4xKcx37QWBK+B4kWgA72EUbBGosIjZwP3YP3XGQ/fuZlUeHNLHa2yotXlGAKBAlr1R/D+pw/n3DpCuTv4571XS9Zds3iQvoyVA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=i1l1OOMg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hhaZ7syV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46122C19424;
-	Tue, 24 Mar 2026 21:42:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="i1l1OOMg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3CA4C19424;
+	Tue, 24 Mar 2026 21:42:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388556;
-	bh=yRA9mAh/GQQYgNlFjdt1H2Nm68p0v6rf0h38kZYEjmk=;
+	s=korg; t=1774388558;
+	bh=5j0HurvfXrO3YwXB03Tbk7wmYnEyMMDLGsdZPv7uHZc=;
 	h=Date:To:From:Subject:From;
-	b=hhaZ7syVy57Pdn3B8qyDzo6dSQ0a8Qbs5Z6KuUYAZ1Fzs+36I1WaN3PzHkt7warFN
-	 GvjZNBvOrYnF5Zaj7zd+9zzQ3wh4HKxfSOkUcN2De2iXygLZeURzc0HD2w+DZLPuzy
-	 +TypuyAPzdH8LuSmNAYDYTqZm9S7/zKugUQMX5hQ=
-Date: Tue, 24 Mar 2026 14:42:35 -0700
+	b=i1l1OOMgvXQYFYKUcjC6qt+D2q/PmILFTcEE18kz7l32dZkyBAEgJ+x4MEqXHFVhI
+	 C+vz6s1+ih4Iy0WhhK2eUKtwQkAKldK5TVx8Kxg7t09IpPW3XixDgV0WekdMpW63V0
+	 HaNqPDCJpFiD7dba0BwfIkoRDeFBiUEMWLZqsNAE=
+Date: Tue, 24 Mar 2026 14:42:37 -0700
 To: mm-commits@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,jgg@nvidia.com,hughd@google.com,graf@amazon.com,baolin.wang@linux.alibaba.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] memfd-export-memfd_addget_seals.patch removed from -mm tree
-Message-Id: <20260324214236.46122C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memfd_luo-preserve-file-seals.patch removed from -mm tree
+Message-Id: <20260324214237.E3CA4C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,96 +35,179 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memfd: export memfd_{add,get}_seals()
+     Subject: mm: memfd_luo: preserve file seals
 has been removed from the -mm tree.  Its filename was
-     memfd-export-memfd_addget_seals.patch
+     mm-memfd_luo-preserve-file-seals.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
-Subject: memfd: export memfd_{add,get}_seals()
-Date: Mon, 16 Feb 2026 19:59:32 +0100
+Subject: mm: memfd_luo: preserve file seals
+Date: Mon, 16 Feb 2026 19:59:33 +0100
 
-Patch series "mm: memfd_luo: preserve file seals", v2.
+File seals are used on memfd for making shared memory communication with
+untrusted peers safer and simpler.  Seals provide a guarantee that certain
+operations won't be allowed on the file such as writes or truncations. 
+Maintaining these guarantees across a live update will help keeping such
+use cases secure.
 
-This series adds support for preserving file seals when preserving a memfd
-using LUO.  Patch 1 exports some memfd seal manipulation functions and
-patch 2 adds support for preserving them.  Since it makes changes to the
-serialized data structure for memfd, it also bumps the version number.
+These guarantees will also be needed for IOMMUFD preservation with LUO. 
+Normally when IOMMUFD maps a memfd, it pins all its pages to make sure any
+truncation operations on the memfd don't lead to IOMMUFD using freed
+memory.  This doesn't work with LUO since the preserved memfd might have
+completely different pages after a live update, and mapping them back to
+the IOMMUFD will cause all sorts of problems.  Using and preserving the
+seals allows IOMMUFD preservation logic to trust the memfd.
 
+Since the uABI defines seals as an int, preserve them by introducing a new
+u32 field.  There are currently only 6 possible seals, so the extra bits
+are unused and provide room for future expansion.  Since the seals are
+uABI, it is safe to use them directly in the ABI.  While at it, also add a
+u32 flags field.  It makes sure the struct is nicely aligned, and can be
+used later to support things like MFD_CLOEXEC.
 
-This patch (of 2):
+Since the serialization structure is changed, bump the version number to
+"memfd-v2".
 
-Support for preserving file seals will be added to memfd preservation
-using the Live Update Orchestrator (LUO).  Export memfd_{add,get}_seals)()
-so memfd_luo can use them to manipulate the seals.
+It is important to note that the memfd-v2 version only supports seals that
+existed when this version was defined.  This set is defined by
+MEMFD_LUO_ALL_SEALS.  Any new seal might bring a completely different
+semantic with it and the parser for memfd-v2 cannot be expected to deal
+with that.  If there are any future seals added, they will need another
+version bump.
 
-Link: https://lkml.kernel.org/r/20260216185946.1215770-1-pratyush@kernel.org
-Link: https://lkml.kernel.org/r/20260216185946.1215770-2-pratyush@kernel.org
+Link: https://lkml.kernel.org/r/20260216185946.1215770-3-pratyush@kernel.org
 Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Samiullah Khawaja <skhawaja@google.com>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memfd.h |   12 ++++++++++++
- mm/memfd.c            |    4 ++--
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ include/linux/kho/abi/memfd.h |   18 +++++++++++++++-
+ mm/memfd_luo.c                |   35 ++++++++++++++++++++++++++++++--
+ 2 files changed, 50 insertions(+), 3 deletions(-)
 
---- a/include/linux/memfd.h~memfd-export-memfd_addget_seals
-+++ a/include/linux/memfd.h
-@@ -18,6 +18,8 @@ struct folio *memfd_alloc_folio(struct f
-  */
- int memfd_check_seals_mmap(struct file *file, vm_flags_t *vm_flags_ptr);
- struct file *memfd_alloc_file(const char *name, unsigned int flags);
-+int memfd_get_seals(struct file *file);
-+int memfd_add_seals(struct file *file, unsigned int seals);
- #else
- static inline long memfd_fcntl(struct file *f, unsigned int c, unsigned int a)
- {
-@@ -37,6 +39,16 @@ static inline struct file *memfd_alloc_f
- {
- 	return ERR_PTR(-EINVAL);
- }
+--- a/include/linux/kho/abi/memfd.h~mm-memfd_luo-preserve-file-seals
++++ a/include/linux/kho/abi/memfd.h
+@@ -56,10 +56,24 @@ struct memfd_luo_folio_ser {
+ 	u64 index;
+ } __packed;
+ 
++/*
++ * The set of seals this version supports preserving. If support for any new
++ * seals is needed, add it here and bump version.
++ */
++#define MEMFD_LUO_ALL_SEALS (F_SEAL_SEAL | \
++			     F_SEAL_SHRINK | \
++			     F_SEAL_GROW | \
++			     F_SEAL_WRITE | \
++			     F_SEAL_FUTURE_WRITE | \
++			     F_SEAL_EXEC)
 +
-+static inline int memfd_get_seals(struct file *file)
-+{
-+	return -EINVAL;
-+}
+ /**
+  * struct memfd_luo_ser - Main serialization structure for a memfd.
+  * @pos:       The file's current position (f_pos).
+  * @size:      The total size of the file in bytes (i_size).
++ * @seals:     The seals present on the memfd. The seals are uABI so it is safe
++ *             to directly use them in the ABI.
++ * @flags:     Flags for the file. Unused flag bits must be set to 0.
+  * @nr_folios: Number of folios in the folios array.
+  * @folios:    KHO vmalloc descriptor pointing to the array of
+  *             struct memfd_luo_folio_ser.
+@@ -67,11 +81,13 @@ struct memfd_luo_folio_ser {
+ struct memfd_luo_ser {
+ 	u64 pos;
+ 	u64 size;
++	u32 seals;
++	u32 flags;
+ 	u64 nr_folios;
+ 	struct kho_vmalloc folios;
+ } __packed;
+ 
+ /* The compatibility string for memfd file handler */
+-#define MEMFD_LUO_FH_COMPATIBLE	"memfd-v1"
++#define MEMFD_LUO_FH_COMPATIBLE	"memfd-v2"
+ 
+ #endif /* _LINUX_KHO_ABI_MEMFD_H */
+--- a/mm/memfd_luo.c~mm-memfd_luo-preserve-file-seals
++++ a/mm/memfd_luo.c
+@@ -79,6 +79,8 @@
+ #include <linux/shmem_fs.h>
+ #include <linux/vmalloc.h>
+ #include <linux/memfd.h>
++#include <uapi/linux/memfd.h>
 +
-+static inline int memfd_add_seals(struct file *file, unsigned int seals)
-+{
-+	return -EINVAL;
-+}
- #endif
+ #include "internal.h"
  
- #endif /* __LINUX_MEMFD_H */
---- a/mm/memfd.c~memfd-export-memfd_addget_seals
-+++ a/mm/memfd.c
-@@ -227,7 +227,7 @@ static unsigned int *memfd_file_seals_pt
- 		     F_SEAL_WRITE | \
- 		     F_SEAL_FUTURE_WRITE)
+ static int memfd_luo_preserve_folios(struct file *file,
+@@ -259,7 +261,7 @@ static int memfd_luo_preserve(struct liv
+ 	struct memfd_luo_folio_ser *folios_ser;
+ 	struct memfd_luo_ser *ser;
+ 	u64 nr_folios;
+-	int err = 0;
++	int err = 0, seals;
  
--static int memfd_add_seals(struct file *file, unsigned int seals)
-+int memfd_add_seals(struct file *file, unsigned int seals)
- {
- 	struct inode *inode = file_inode(file);
- 	unsigned int *file_seals;
-@@ -309,7 +309,7 @@ unlock:
- 	return error;
- }
+ 	inode_lock(inode);
+ 	shmem_freeze(inode, true);
+@@ -271,8 +273,21 @@ static int memfd_luo_preserve(struct liv
+ 		goto err_unlock;
+ 	}
  
--static int memfd_get_seals(struct file *file)
-+int memfd_get_seals(struct file *file)
- {
- 	unsigned int *seals = memfd_file_seals_ptr(file);
++	seals = memfd_get_seals(args->file);
++	if (seals < 0) {
++		err = seals;
++		goto err_free_ser;
++	}
++
++	/* Make sure the file only has the seals supported by this version. */
++	if (seals & ~MEMFD_LUO_ALL_SEALS) {
++		err = -EOPNOTSUPP;
++		goto err_free_ser;
++	}
++
+ 	ser->pos = args->file->f_pos;
+ 	ser->size = i_size_read(inode);
++	ser->seals = seals;
+ 
+ 	err = memfd_luo_preserve_folios(args->file, &ser->folios,
+ 					&folios_ser, &nr_folios);
+@@ -486,13 +501,29 @@ static int memfd_luo_retrieve(struct liv
+ 	if (!ser)
+ 		return -EINVAL;
+ 
+-	file = memfd_alloc_file("", 0);
++	/* Make sure the file only has seals supported by this version. */
++	if (ser->seals & ~MEMFD_LUO_ALL_SEALS) {
++		err = -EOPNOTSUPP;
++		goto free_ser;
++	}
++
++	/*
++	 * The seals are preserved. Allow sealing here so they can be added
++	 * later.
++	 */
++	file = memfd_alloc_file("", MFD_ALLOW_SEALING);
+ 	if (IS_ERR(file)) {
+ 		pr_err("failed to setup file: %pe\n", file);
+ 		err = PTR_ERR(file);
+ 		goto free_ser;
+ 	}
+ 
++	err = memfd_add_seals(file, ser->seals);
++	if (err) {
++		pr_err("failed to add seals: %pe\n", ERR_PTR(err));
++		goto put_file;
++	}
++
+ 	vfs_setpos(file, ser->pos, MAX_LFS_FILESIZE);
+ 	file->f_inode->i_size = ser->size;
  
 _
 
