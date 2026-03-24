@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DF27361DB2
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02AED364029
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388538; cv=none; b=TQON/kiUzS6L49C8ouFIjETU6GjTOolWu+C2g382TkLgBRea9l1DH7LkKBUsHQkCyD5BaK9byq5lr/t22ArF/YEXQz4Ccnv29SV1IOZct2oY+FEBd6HeAmYgcXHbpzChodMfMEyET6pjo1IMbJcJ+acyFpyny6bDUYyriEMUUaw=
+	t=1774388540; cv=none; b=O4/3fm6YevnhD3SWUdg3KryQNr/2xI3Kx3bv3hQQaSeEKq3zqkciq4euJsM4ltLU8aoRrg7H+r4Y2i1C/DrkxUZlNVdvl/ZuAoLtDAOE1fBMITKCkg1lrRkoAwWwanp92RoahpA6Pf02mFh5XdT9fHucAvsaT6E194zWS2pA87Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388538; c=relaxed/simple;
-	bh=pb3PVefDRE+gYq2AKjSvO7e9ZpR7+oSSd6UO5KbRdjY=;
-	h=Date:To:From:Subject:Message-Id; b=Zpd9cl1a+mMjhqjGh6l2/B06av+YKjnw0NFCCuEYXe/SrWJD5+YJmjh0cqXs+2UKNsALew1Bq+y5X8dwFAkhKRB9UkNvHsFTZeYnrKPOd/jvTxPcSOwKk517rlP9beM557Cv7HyRX/ot3trvHO4AvX1J3+IYRCgjweS76vF8uSY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jUFfS9Eo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388540; c=relaxed/simple;
+	bh=2n7hI8qgQv7uWPCkU3CvReTPS7ukkDvE6uS2xOOxZ88=;
+	h=Date:To:From:Subject:Message-Id; b=MgDzSZVTmsdxbO7wBF7q+hXozp4WRHRajSxDkEJAPVfHkwVKruaaulIPqgq4v2jryfEAriofDx0xCpEbMKoPCB/QzCwhpksSkPG8RhrieTRpHJqCsa4KpjT074PZdMoqnUc6dYBW5+de+WFLP2cE9O63mmVXQr3t8cP5LPpQkTI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m9EiDxxQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jUFfS9Eo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E080BC19424;
-	Tue, 24 Mar 2026 21:42:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m9EiDxxQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFF29C19424;
+	Tue, 24 Mar 2026 21:42:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388537;
-	bh=pb3PVefDRE+gYq2AKjSvO7e9ZpR7+oSSd6UO5KbRdjY=;
+	s=korg; t=1774388539;
+	bh=2n7hI8qgQv7uWPCkU3CvReTPS7ukkDvE6uS2xOOxZ88=;
 	h=Date:To:From:Subject:From;
-	b=jUFfS9EoeG6AijPM2gxd5P37aRQeIqd8faWjUTvAf4H1erQI/9q1q/1pCkzmCfEsG
-	 b0Bk+ifbc35I2uc48v9WhqpXXV7WgAGwNnpfkXsW7iZEV2bN4iJhaiBRqJ8ph0jhq3
-	 m3jWpFA4a4aqMR3nM+sk+qqPZyQdtzGvQdIFuB6o=
-Date: Tue, 24 Mar 2026 14:42:16 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,ying.huang@linux.alibaba.com,xuanzhuo@linux.alibaba.com,weixugc@google.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,rakie.kim@sk.com,muchun.song@linux.dev,mst@redhat.com,mhocko@suse.com,matthew.brost@intel.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,joshua.hahnjy@gmail.com,jasowang@redhat.com,hannes@cmpxchg.org,gourry@gourry.net,eperezma@redhat.com,david@kernel.org,byungchul@sk.com,axelrasmussen@google.com,apopple@nvidia.com,jp.kobryn@linux.dev,akpm@linux-foundation.org
+	b=m9EiDxxQugmM5BBvV663edz4DyEseAu3zvHvsTHt0wM7o3I87tuRlY3u2uzz+tC2u
+	 D0C8TGEzaFBtyUt0IpmfH+l8REmVeQJMyS+IAp5TIZDLLbmk5Dg6lli3puVJsUAqv2
+	 j3jbYXCAPxCOsGifGY5YCaJwOxdRogXz8NwZkTJ0=
+Date: Tue, 24 Mar 2026 14:42:19 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,ryncsn@gmail.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,lkp@intel.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-move-pgscan-pgsteal-pgrefill-to-node-stats.patch removed from -mm tree
-Message-Id: <20260324214216.E080BC19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-protect-si-swap_file-properly-and-use-as-a-mount-indicator.patch removed from -mm tree
+Message-Id: <20260324214219.CFF29C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,400 +35,242 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: move pgscan, pgsteal, pgrefill to node stats
+     Subject: mm, swap: protect si->swap_file properly and use as a mount indicator
 has been removed from the -mm tree.  Its filename was
-     mm-move-pgscan-pgsteal-pgrefill-to-node-stats.patch
+     mm-swap-protect-si-swap_file-properly-and-use-as-a-mount-indicator.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "JP Kobryn (Meta)" <jp.kobryn@linux.dev>
-Subject: mm: move pgscan, pgsteal, pgrefill to node stats
-Date: Thu, 19 Feb 2026 15:58:46 -0800
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: protect si->swap_file properly and use as a mount indicator
+Date: Wed, 18 Feb 2026 04:06:26 +0800
 
-There are situations where reclaim kicks in on a system with free memory. 
-One possible cause is a NUMA imbalance scenario where one or more nodes
-are under pressure.  It would help if we could easily identify such nodes.
+Patch series "mm, swap: swap table phase III: remove swap_map", v3.
 
-Move the pgscan, pgsteal, and pgrefill counters from vm_event_item to
-node_stat_item to provide per-node reclaim visibility.  With these
-counters as node stats, the values are now displayed in the per-node
-section of /proc/zoneinfo, which allows for quick identification of the
-affected nodes.
+This series removes the static swap_map and uses the swap table for the
+swap count directly.  This saves about ~30% memory usage for the static
+swap metadata.  For example, this saves 256MB of memory when mounting a
+1TB swap device.  Performance is slightly better too, since the double
+update of the swap table and swap_map is now gone.
 
-/proc/vmstat continues to report the same counters, aggregated across all
-nodes.  But the ordering of these items within the readout changes as they
-move from the vm events section to the node stats section.
+Test results:
 
-Memcg accounting of these counters is preserved.  The relocated counters
-remain visible in memory.stat alongside the existing aggregate pgscan and
-pgsteal counters.
+Mounting a swap device:
+=======================
+Mount a 1TB brd device as SWAP, just to verify the memory save:
 
-However, this change affects how the global counters are accumulated. 
-Previously, the global event count update was gated on !cgroup_reclaim(),
-excluding memcg-based reclaim from /proc/vmstat.  Now that
-mod_lruvec_state() is being used to update the counters, the global
-counters will include all reclaim.  This is consistent with how pgdemote
-counters are already tracked.
+`free -m` before:
+               total        used        free      shared  buff/cache   available
+Mem:            1465        1051         417           1          61         413
+Swap:        1054435           0     1054435
 
-Finally, the virtio_balloon driver is updated to use
-global_node_page_state() to fetch the counters, as they are no longer
-accessible through the vm_events array.
+`free -m` after:
+               total        used        free      shared  buff/cache   available
+Mem:            1465         795         672           1          62         670
+Swap:        1054435           0     1054435
 
-Link: https://lkml.kernel.org/r/20260219235846.161910-1-jp.kobryn@linux.dev
-Signed-off-by: JP Kobryn <jp.kobryn@linux.dev>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michael S. Tsirkin <mst@redhat.com>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Byungchul Park <byungchul@sk.com>
+Idle memory usage is reduced by ~256MB just as expected.  And following
+this design we should be able to save another ~512MB in a next phase.
+
+Build kernel test:
+==================
+Test using ZSWAP with NVME SWAP, make -j48, defconfig, in a x86_64 VM
+with 5G RAM, under global pressure, avg of 32 test run:
+
+                Before            After:
+System time:    1038.97s          1013.75s (-2.4%)
+
+Test using ZRAM as SWAP, make -j12, tinyconfig, in a ARM64 VM with 1.5G
+RAM, under global pressure, avg of 32 test run:
+
+                Before            After:
+System time:    67.75s            66.65s (-1.6%)
+
+The result is slightly better.
+
+Redis / Valkey benchmark:
+=========================
+Test using ZRAM as SWAP, in a ARM64 VM with 1.5G RAM, under global pressure,
+avg of 64 test run:
+
+Server: valkey-server --maxmemory 2560M
+Client: redis-benchmark -r 3000000 -n 3000000 -d 1024 -c 12 -P 32 -t get
+
+        no persistence              with BGSAVE
+Before: 472705.71 RPS               369451.68 RPS
+After:  481197.93 RPS (+1.8%)       374922.32 RPS (+1.5%)
+
+In conclusion, performance is better in all cases, and memory usage is
+much lower.
+
+The swap cgroup array will also be merged into the swap table in a later
+phase, saving the other ~60% part of the static swap metadata and making
+all the swap metadata dynamic.  The improved API for swap operations also
+reduces the lock contention and makes more batching operations possible.
+
+
+This patch (of 12):
+
+/proc/swaps uses si->swap_map as the indicator to check if the swap
+device is mounted. swap_map will be removed soon, so change it to use
+si->swap_file instead because:
+
+- si->swap_file is exactly the only dynamic content that /proc/swaps is
+  interested in. Previously, it was checking si->swap_map just to ensure
+  si->swap_file is available. si->swap_map is set under mutex
+  protection, and after si->swap_file is set, so having si->swap_map set
+  guarantees si->swap_file is set.
+
+- Checking si->flags doesn't work here. SWP_WRITEOK is cleared during
+  swapoff, but /proc/swaps is supposed to show the device under swapoff
+  too to report the swapoff progress. And SWP_USED is set even if the
+  device hasn't been properly set up.
+
+We can have another flag, but the easier way is to just check
+si->swap_file directly. So protect si->swap_file setting with mutext,
+and set si->swap_file only when the swap device is truly enabled.
+
+/proc/swaps only interested in si->swap_file and a few static data
+reading. Only si->swap_file needs protection. Reading other static
+fields is always fine.
+
+Link: https://lkml.kernel.org/r/20260218-swap-table-p3-v3-0-f4e34be021a7@tencent.com
+Link: https://lkml.kernel.org/r/20260218-swap-table-p3-v3-1-f4e34be021a7@tencent.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: Chris Li <chrisl@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Eugenio Pérez <eperezma@redhat.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mathew Brost <matthew.brost@intel.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Kairui Song <ryncsn@gmail.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |    8 ++--
- include/linux/mmzone.h          |   13 ++++++
- include/linux/vm_event_item.h   |   13 ------
- mm/memcontrol.c                 |   56 ++++++++++++++++++++----------
- mm/vmscan.c                     |   39 ++++++--------------
- mm/vmstat.c                     |   26 ++++++-------
- 6 files changed, 82 insertions(+), 73 deletions(-)
+ mm/swapfile.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
---- a/drivers/virtio/virtio_balloon.c~mm-move-pgscan-pgsteal-pgrefill-to-node-stats
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -369,13 +369,13 @@ static inline unsigned int update_balloo
- 	update_stat(vb, idx++, VIRTIO_BALLOON_S_ALLOC_STALL, stall);
+--- a/mm/swapfile.c~mm-swap-protect-si-swap_file-properly-and-use-as-a-mount-indicator
++++ a/mm/swapfile.c
+@@ -110,6 +110,7 @@ struct swap_info_struct *swap_info[MAX_S
  
- 	update_stat(vb, idx++, VIRTIO_BALLOON_S_ASYNC_SCAN,
--		    pages_to_bytes(events[PGSCAN_KSWAPD]));
-+		    pages_to_bytes(global_node_page_state(PGSCAN_KSWAPD)));
- 	update_stat(vb, idx++, VIRTIO_BALLOON_S_DIRECT_SCAN,
--		    pages_to_bytes(events[PGSCAN_DIRECT]));
-+		    pages_to_bytes(global_node_page_state(PGSCAN_DIRECT)));
- 	update_stat(vb, idx++, VIRTIO_BALLOON_S_ASYNC_RECLAIM,
--		    pages_to_bytes(events[PGSTEAL_KSWAPD]));
-+		    pages_to_bytes(global_node_page_state(PGSTEAL_KSWAPD)));
- 	update_stat(vb, idx++, VIRTIO_BALLOON_S_DIRECT_RECLAIM,
--		    pages_to_bytes(events[PGSTEAL_DIRECT]));
-+		    pages_to_bytes(global_node_page_state(PGSTEAL_DIRECT)));
+ static struct kmem_cache *swap_table_cachep;
  
- #ifdef CONFIG_HUGETLB_PAGE
- 	update_stat(vb, idx++, VIRTIO_BALLOON_S_HTLB_PGALLOC,
---- a/include/linux/mmzone.h~mm-move-pgscan-pgsteal-pgrefill-to-node-stats
-+++ a/include/linux/mmzone.h
-@@ -255,6 +255,19 @@ enum node_stat_item {
- 	PGDEMOTE_DIRECT,
- 	PGDEMOTE_KHUGEPAGED,
- 	PGDEMOTE_PROACTIVE,
-+	PGSTEAL_KSWAPD,
-+	PGSTEAL_DIRECT,
-+	PGSTEAL_KHUGEPAGED,
-+	PGSTEAL_PROACTIVE,
-+	PGSTEAL_ANON,
-+	PGSTEAL_FILE,
-+	PGSCAN_KSWAPD,
-+	PGSCAN_DIRECT,
-+	PGSCAN_KHUGEPAGED,
-+	PGSCAN_PROACTIVE,
-+	PGSCAN_ANON,
-+	PGSCAN_FILE,
-+	PGREFILL,
- #ifdef CONFIG_HUGETLB_PAGE
- 	NR_HUGETLB,
- #endif
---- a/include/linux/vm_event_item.h~mm-move-pgscan-pgsteal-pgrefill-to-node-stats
-+++ a/include/linux/vm_event_item.h
-@@ -38,21 +38,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PGFREE, PGACTIVATE, PGDEACTIVATE, PGLAZYFREE,
- 		PGFAULT, PGMAJFAULT,
- 		PGLAZYFREED,
--		PGREFILL,
- 		PGREUSE,
--		PGSTEAL_KSWAPD,
--		PGSTEAL_DIRECT,
--		PGSTEAL_KHUGEPAGED,
--		PGSTEAL_PROACTIVE,
--		PGSCAN_KSWAPD,
--		PGSCAN_DIRECT,
--		PGSCAN_KHUGEPAGED,
--		PGSCAN_PROACTIVE,
- 		PGSCAN_DIRECT_THROTTLE,
--		PGSCAN_ANON,
--		PGSCAN_FILE,
--		PGSTEAL_ANON,
--		PGSTEAL_FILE,
- #ifdef CONFIG_NUMA
- 		PGSCAN_ZONE_RECLAIM_SUCCESS,
- 		PGSCAN_ZONE_RECLAIM_FAILED,
---- a/mm/memcontrol.c~mm-move-pgscan-pgsteal-pgrefill-to-node-stats
-+++ a/mm/memcontrol.c
-@@ -330,6 +330,19 @@ static const unsigned int memcg_node_sta
- 	PGDEMOTE_DIRECT,
- 	PGDEMOTE_KHUGEPAGED,
- 	PGDEMOTE_PROACTIVE,
-+	PGSTEAL_KSWAPD,
-+	PGSTEAL_DIRECT,
-+	PGSTEAL_KHUGEPAGED,
-+	PGSTEAL_PROACTIVE,
-+	PGSTEAL_ANON,
-+	PGSTEAL_FILE,
-+	PGSCAN_KSWAPD,
-+	PGSCAN_DIRECT,
-+	PGSCAN_KHUGEPAGED,
-+	PGSCAN_PROACTIVE,
-+	PGSCAN_ANON,
-+	PGSCAN_FILE,
-+	PGREFILL,
- #ifdef CONFIG_HUGETLB_PAGE
- 	NR_HUGETLB,
- #endif
-@@ -443,17 +456,8 @@ static const unsigned int memcg_vm_event
- #endif
- 	PSWPIN,
- 	PSWPOUT,
--	PGSCAN_KSWAPD,
--	PGSCAN_DIRECT,
--	PGSCAN_KHUGEPAGED,
--	PGSCAN_PROACTIVE,
--	PGSTEAL_KSWAPD,
--	PGSTEAL_DIRECT,
--	PGSTEAL_KHUGEPAGED,
--	PGSTEAL_PROACTIVE,
- 	PGFAULT,
- 	PGMAJFAULT,
--	PGREFILL,
- 	PGACTIVATE,
- 	PGDEACTIVATE,
- 	PGLAZYFREE,
-@@ -1400,6 +1404,15 @@ static const struct memory_stat memory_s
- 	{ "pgdemote_direct",		PGDEMOTE_DIRECT		},
- 	{ "pgdemote_khugepaged",	PGDEMOTE_KHUGEPAGED	},
- 	{ "pgdemote_proactive",		PGDEMOTE_PROACTIVE	},
-+	{ "pgsteal_kswapd",		PGSTEAL_KSWAPD		},
-+	{ "pgsteal_direct",		PGSTEAL_DIRECT		},
-+	{ "pgsteal_khugepaged",		PGSTEAL_KHUGEPAGED	},
-+	{ "pgsteal_proactive",		PGSTEAL_PROACTIVE	},
-+	{ "pgscan_kswapd",		PGSCAN_KSWAPD		},
-+	{ "pgscan_direct",		PGSCAN_DIRECT		},
-+	{ "pgscan_khugepaged",		PGSCAN_KHUGEPAGED	},
-+	{ "pgscan_proactive",		PGSCAN_PROACTIVE	},
-+	{ "pgrefill",			PGREFILL		},
- #ifdef CONFIG_NUMA_BALANCING
- 	{ "pgpromote_success",		PGPROMOTE_SUCCESS	},
- #endif
-@@ -1443,6 +1456,15 @@ static int memcg_page_state_output_unit(
- 	case PGDEMOTE_DIRECT:
- 	case PGDEMOTE_KHUGEPAGED:
- 	case PGDEMOTE_PROACTIVE:
-+	case PGSTEAL_KSWAPD:
-+	case PGSTEAL_DIRECT:
-+	case PGSTEAL_KHUGEPAGED:
-+	case PGSTEAL_PROACTIVE:
-+	case PGSCAN_KSWAPD:
-+	case PGSCAN_DIRECT:
-+	case PGSCAN_KHUGEPAGED:
-+	case PGSCAN_PROACTIVE:
-+	case PGREFILL:
- #ifdef CONFIG_NUMA_BALANCING
- 	case PGPROMOTE_SUCCESS:
- #endif
-@@ -1514,15 +1536,15 @@ static void memcg_stat_format(struct mem
++/* Protects si->swap_file for /proc/swaps usage */
+ static DEFINE_MUTEX(swapon_mutex);
  
- 	/* Accumulated memory events */
- 	seq_buf_printf(s, "pgscan %lu\n",
--		       memcg_events(memcg, PGSCAN_KSWAPD) +
--		       memcg_events(memcg, PGSCAN_DIRECT) +
--		       memcg_events(memcg, PGSCAN_PROACTIVE) +
--		       memcg_events(memcg, PGSCAN_KHUGEPAGED));
-+		       memcg_page_state(memcg, PGSCAN_KSWAPD) +
-+		       memcg_page_state(memcg, PGSCAN_DIRECT) +
-+		       memcg_page_state(memcg, PGSCAN_PROACTIVE) +
-+		       memcg_page_state(memcg, PGSCAN_KHUGEPAGED));
- 	seq_buf_printf(s, "pgsteal %lu\n",
--		       memcg_events(memcg, PGSTEAL_KSWAPD) +
--		       memcg_events(memcg, PGSTEAL_DIRECT) +
--		       memcg_events(memcg, PGSTEAL_PROACTIVE) +
--		       memcg_events(memcg, PGSTEAL_KHUGEPAGED));
-+		       memcg_page_state(memcg, PGSTEAL_KSWAPD) +
-+		       memcg_page_state(memcg, PGSTEAL_DIRECT) +
-+		       memcg_page_state(memcg, PGSTEAL_PROACTIVE) +
-+		       memcg_page_state(memcg, PGSTEAL_KHUGEPAGED));
- 
- 	for (i = 0; i < ARRAY_SIZE(memcg_vm_event_stat); i++) {
- #ifdef CONFIG_MEMCG_V1
---- a/mm/vmscan.c~mm-move-pgscan-pgsteal-pgrefill-to-node-stats
-+++ a/mm/vmscan.c
-@@ -1984,7 +1984,7 @@ static unsigned long shrink_inactive_lis
- 	unsigned long nr_taken;
- 	struct reclaim_stat stat;
- 	bool file = is_file_lru(lru);
--	enum vm_event_item item;
-+	enum node_stat_item item;
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	bool stalled = false;
- 
-@@ -2010,10 +2010,8 @@ static unsigned long shrink_inactive_lis
- 
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
- 	item = PGSCAN_KSWAPD + reclaimer_offset(sc);
--	if (!cgroup_reclaim(sc))
--		__count_vm_events(item, nr_scanned);
--	count_memcg_events(lruvec_memcg(lruvec), item, nr_scanned);
--	__count_vm_events(PGSCAN_ANON + file, nr_scanned);
-+	mod_lruvec_state(lruvec, item, nr_scanned);
-+	mod_lruvec_state(lruvec, PGSCAN_ANON + file, nr_scanned);
- 
- 	spin_unlock_irq(&lruvec->lru_lock);
- 
-@@ -2030,10 +2028,8 @@ static unsigned long shrink_inactive_lis
- 					stat.nr_demoted);
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
- 	item = PGSTEAL_KSWAPD + reclaimer_offset(sc);
--	if (!cgroup_reclaim(sc))
--		__count_vm_events(item, nr_reclaimed);
--	count_memcg_events(lruvec_memcg(lruvec), item, nr_reclaimed);
--	__count_vm_events(PGSTEAL_ANON + file, nr_reclaimed);
-+	mod_lruvec_state(lruvec, item, nr_reclaimed);
-+	mod_lruvec_state(lruvec, PGSTEAL_ANON + file, nr_reclaimed);
- 
- 	lru_note_cost_unlock_irq(lruvec, file, stat.nr_pageout,
- 					nr_scanned - nr_reclaimed);
-@@ -2120,9 +2116,7 @@ static void shrink_active_list(unsigned
- 
- 	__mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, nr_taken);
- 
--	if (!cgroup_reclaim(sc))
--		__count_vm_events(PGREFILL, nr_scanned);
--	count_memcg_events(lruvec_memcg(lruvec), PGREFILL, nr_scanned);
-+	mod_lruvec_state(lruvec, PGREFILL, nr_scanned);
- 
- 	spin_unlock_irq(&lruvec->lru_lock);
- 
-@@ -4543,7 +4537,7 @@ static int scan_folios(unsigned long nr_
+ static DECLARE_WAIT_QUEUE_HEAD(proc_poll_wait);
+@@ -2532,7 +2533,8 @@ static void drain_mmlist(void)
+ /*
+  * Free all of a swapdev's extent information
+  */
+-static void destroy_swap_extents(struct swap_info_struct *sis)
++static void destroy_swap_extents(struct swap_info_struct *sis,
++				 struct file *swap_file)
  {
- 	int i;
- 	int gen;
--	enum vm_event_item item;
-+	enum node_stat_item item;
- 	int sorted = 0;
- 	int scanned = 0;
- 	int isolated = 0;
-@@ -4551,7 +4545,6 @@ static int scan_folios(unsigned long nr_
- 	int scan_batch = min(nr_to_scan, MAX_LRU_BATCH);
- 	int remaining = scan_batch;
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
--	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 
- 	VM_WARN_ON_ONCE(!list_empty(list));
- 
-@@ -4602,13 +4595,9 @@ static int scan_folios(unsigned long nr_
+ 	while (!RB_EMPTY_ROOT(&sis->swap_extent_root)) {
+ 		struct rb_node *rb = sis->swap_extent_root.rb_node;
+@@ -2543,7 +2545,6 @@ static void destroy_swap_extents(struct
  	}
  
- 	item = PGSCAN_KSWAPD + reclaimer_offset(sc);
--	if (!cgroup_reclaim(sc)) {
--		__count_vm_events(item, isolated);
--		__count_vm_events(PGREFILL, sorted);
--	}
--	count_memcg_events(memcg, item, isolated);
--	count_memcg_events(memcg, PGREFILL, sorted);
--	__count_vm_events(PGSCAN_ANON + type, isolated);
-+	mod_lruvec_state(lruvec, item, isolated);
-+	mod_lruvec_state(lruvec, PGREFILL, sorted);
-+	mod_lruvec_state(lruvec, PGSCAN_ANON + type, isolated);
- 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, scan_batch,
- 				scanned, skipped, isolated,
- 				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
-@@ -4693,7 +4682,7 @@ static int evict_folios(unsigned long nr
- 	LIST_HEAD(clean);
- 	struct folio *folio;
- 	struct folio *next;
--	enum vm_event_item item;
-+	enum node_stat_item item;
- 	struct reclaim_stat stat;
- 	struct lru_gen_mm_walk *walk;
- 	bool skip_retry = false;
-@@ -4757,10 +4746,8 @@ retry:
- 					stat.nr_demoted);
+ 	if (sis->flags & SWP_ACTIVATED) {
+-		struct file *swap_file = sis->swap_file;
+ 		struct address_space *mapping = swap_file->f_mapping;
  
- 	item = PGSTEAL_KSWAPD + reclaimer_offset(sc);
--	if (!cgroup_reclaim(sc))
--		__count_vm_events(item, reclaimed);
--	count_memcg_events(memcg, item, reclaimed);
--	__count_vm_events(PGSTEAL_ANON + type, reclaimed);
-+	mod_lruvec_state(lruvec, item, reclaimed);
-+	mod_lruvec_state(lruvec, PGSTEAL_ANON + type, reclaimed);
+ 		sis->flags &= ~SWP_ACTIVATED;
+@@ -2626,9 +2627,9 @@ EXPORT_SYMBOL_GPL(add_swap_extent);
+  * Typically it is in the 1-4 megabyte range.  So we can have hundreds of
+  * extents in the rbtree. - akpm.
+  */
+-static int setup_swap_extents(struct swap_info_struct *sis, sector_t *span)
++static int setup_swap_extents(struct swap_info_struct *sis,
++			      struct file *swap_file, sector_t *span)
+ {
+-	struct file *swap_file = sis->swap_file;
+ 	struct address_space *mapping = swap_file->f_mapping;
+ 	struct inode *inode = mapping->host;
+ 	int ret;
+@@ -2646,7 +2647,7 @@ static int setup_swap_extents(struct swa
+ 		sis->flags |= SWP_ACTIVATED;
+ 		if ((sis->flags & SWP_FS_OPS) &&
+ 		    sio_pool_init() != 0) {
+-			destroy_swap_extents(sis);
++			destroy_swap_extents(sis, swap_file);
+ 			return -ENOMEM;
+ 		}
+ 		return ret;
+@@ -2857,7 +2858,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	flush_work(&p->reclaim_work);
+ 	flush_percpu_swap_cluster(p);
  
- 	spin_unlock_irq(&lruvec->lru_lock);
+-	destroy_swap_extents(p);
++	destroy_swap_extents(p, p->swap_file);
+ 	if (p->flags & SWP_CONTINUED)
+ 		free_swap_count_continuations(p);
  
---- a/mm/vmstat.c~mm-move-pgscan-pgsteal-pgrefill-to-node-stats
-+++ a/mm/vmstat.c
-@@ -1276,6 +1276,19 @@ const char * const vmstat_text[] = {
- 	[I(PGDEMOTE_DIRECT)]			= "pgdemote_direct",
- 	[I(PGDEMOTE_KHUGEPAGED)]		= "pgdemote_khugepaged",
- 	[I(PGDEMOTE_PROACTIVE)]			= "pgdemote_proactive",
-+	[I(PGSTEAL_KSWAPD)]			= "pgsteal_kswapd",
-+	[I(PGSTEAL_DIRECT)]			= "pgsteal_direct",
-+	[I(PGSTEAL_KHUGEPAGED)]			= "pgsteal_khugepaged",
-+	[I(PGSTEAL_PROACTIVE)]			= "pgsteal_proactive",
-+	[I(PGSTEAL_ANON)]			= "pgsteal_anon",
-+	[I(PGSTEAL_FILE)]			= "pgsteal_file",
-+	[I(PGSCAN_KSWAPD)]			= "pgscan_kswapd",
-+	[I(PGSCAN_DIRECT)]			= "pgscan_direct",
-+	[I(PGSCAN_KHUGEPAGED)]			= "pgscan_khugepaged",
-+	[I(PGSCAN_PROACTIVE)]			= "pgscan_proactive",
-+	[I(PGSCAN_ANON)]			= "pgscan_anon",
-+	[I(PGSCAN_FILE)]			= "pgscan_file",
-+	[I(PGREFILL)]				= "pgrefill",
- #ifdef CONFIG_HUGETLB_PAGE
- 	[I(NR_HUGETLB)]				= "nr_hugetlb",
- #endif
-@@ -1318,21 +1331,8 @@ const char * const vmstat_text[] = {
- 	[I(PGMAJFAULT)]				= "pgmajfault",
- 	[I(PGLAZYFREED)]			= "pglazyfreed",
+@@ -2945,7 +2946,7 @@ static void *swap_start(struct seq_file
+ 		return SEQ_START_TOKEN;
  
--	[I(PGREFILL)]				= "pgrefill",
- 	[I(PGREUSE)]				= "pgreuse",
--	[I(PGSTEAL_KSWAPD)]			= "pgsteal_kswapd",
--	[I(PGSTEAL_DIRECT)]			= "pgsteal_direct",
--	[I(PGSTEAL_KHUGEPAGED)]			= "pgsteal_khugepaged",
--	[I(PGSTEAL_PROACTIVE)]			= "pgsteal_proactive",
--	[I(PGSCAN_KSWAPD)]			= "pgscan_kswapd",
--	[I(PGSCAN_DIRECT)]			= "pgscan_direct",
--	[I(PGSCAN_KHUGEPAGED)]			= "pgscan_khugepaged",
--	[I(PGSCAN_PROACTIVE)]			= "pgscan_proactive",
- 	[I(PGSCAN_DIRECT_THROTTLE)]		= "pgscan_direct_throttle",
--	[I(PGSCAN_ANON)]			= "pgscan_anon",
--	[I(PGSCAN_FILE)]			= "pgscan_file",
--	[I(PGSTEAL_ANON)]			= "pgsteal_anon",
--	[I(PGSTEAL_FILE)]			= "pgsteal_file",
+ 	for (type = 0; (si = swap_type_to_info(type)); type++) {
+-		if (!(si->flags & SWP_USED) || !si->swap_map)
++		if (!(si->swap_file))
+ 			continue;
+ 		if (!--l)
+ 			return si;
+@@ -2966,7 +2967,7 @@ static void *swap_next(struct seq_file *
  
- #ifdef CONFIG_NUMA
- 	[I(PGSCAN_ZONE_RECLAIM_SUCCESS)]	= "zone_reclaim_success",
+ 	++(*pos);
+ 	for (; (si = swap_type_to_info(type)); type++) {
+-		if (!(si->flags & SWP_USED) || !si->swap_map)
++		if (!(si->swap_file))
+ 			continue;
+ 		return si;
+ 	}
+@@ -3376,7 +3377,6 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		goto bad_swap;
+ 	}
+ 
+-	si->swap_file = swap_file;
+ 	mapping = swap_file->f_mapping;
+ 	dentry = swap_file->f_path.dentry;
+ 	inode = mapping->host;
+@@ -3426,7 +3426,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 
+ 	si->max = maxpages;
+ 	si->pages = maxpages - 1;
+-	nr_extents = setup_swap_extents(si, &span);
++	nr_extents = setup_swap_extents(si, swap_file, &span);
+ 	if (nr_extents < 0) {
+ 		error = nr_extents;
+ 		goto bad_swap_unlock_inode;
+@@ -3535,6 +3535,8 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	prio = DEF_SWAP_PRIO;
+ 	if (swap_flags & SWAP_FLAG_PREFER)
+ 		prio = swap_flags & SWAP_FLAG_PRIO_MASK;
++
++	si->swap_file = swap_file;
+ 	enable_swap_info(si, prio, swap_map, cluster_info, zeromap);
+ 
+ 	pr_info("Adding %uk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s\n",
+@@ -3559,10 +3561,9 @@ bad_swap:
+ 	kfree(si->global_cluster);
+ 	si->global_cluster = NULL;
+ 	inode = NULL;
+-	destroy_swap_extents(si);
++	destroy_swap_extents(si, swap_file);
+ 	swap_cgroup_swapoff(si->type);
+ 	spin_lock(&swap_lock);
+-	si->swap_file = NULL;
+ 	si->flags = 0;
+ 	spin_unlock(&swap_lock);
+ 	vfree(swap_map);
 _
 
-Patches currently in -mm which might be from jp.kobryn@linux.dev are
+Patches currently in -mm which might be from kasong@tencent.com are
 
 
