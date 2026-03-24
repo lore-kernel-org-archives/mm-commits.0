@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1FF835E93D
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:41:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94A863612F0
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:41:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388501; cv=none; b=cRRem1CUKD8HtP/sAgph2vcgksQudMDVCM2pY7W/4dOKED2Cq3vvJ22L5xahceFMvIp+iXGOZkK6B6cPPMtNSxgxYpJems2F3rGjzIyo8JJBKBSpqE5SmJopbfqPtWIG2Afi3M6uMuL5kLZ5TO6p+8GMPqJ1vtar9pMKq31MNkQ=
+	t=1774388502; cv=none; b=Li566GwTJFMbGyXY2q2c/OLc2XDw9DESBpGjJONSfSMCLDCpvALeOGeq1Q2nK33bOPLUb7rIw6XC5yq1oSkRJi8/Od8Rg2jAn/52lwZu5IPXPNfm5tpZNZYRAswYagtb3mTZjzTzsFLgIwflGluGjDpDwJO3N3YQRuMnNjTYVPA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388501; c=relaxed/simple;
-	bh=74fwF2e2rGxqI4OiPPfq41kg/Roazxea0UNOkqYMz2I=;
-	h=Date:To:From:Subject:Message-Id; b=ElIrUxxrwzOXZPrJxptU06K8mM6LWftF1iAPjlMLi1Wfdy2eHLQqacbyAfTFeSlz1JVUengubaHgJ/mRdI6qMQjFHEyjTJqNc2Flp5wo552hmqO7rMeX62RzWGrFOmqk8orfncmWjpqGGYo7mZc4xET+voj5BURlPx3A2zWRx9A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=h/FnTIhi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388502; c=relaxed/simple;
+	bh=3PDGvcwyBxdXVeen/fuzHw2Mcuez0hzIUqLz3GbDCEk=;
+	h=Date:To:From:Subject:Message-Id; b=Kh3DA4GNfRlsffbuW2b+IqbfWHuTf7NfuJfgq1FTX2lR7KIyyJo35+683RDamnwc3xC05ykNYAVuUdmWAHtQFek6/Tl1EhhrVwrMiR5byEJ2yk9Av2KGcc0AadTDxX6jIwkh5VvWVsYuggygvNAlhTgunUuJSJ9os46lTFZ9VTo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gp1U09jC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="h/FnTIhi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9755C2BCB1;
-	Tue, 24 Mar 2026 21:41:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gp1U09jC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B2C4C19424;
+	Tue, 24 Mar 2026 21:41:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388500;
-	bh=74fwF2e2rGxqI4OiPPfq41kg/Roazxea0UNOkqYMz2I=;
+	s=korg; t=1774388502;
+	bh=3PDGvcwyBxdXVeen/fuzHw2Mcuez0hzIUqLz3GbDCEk=;
 	h=Date:To:From:Subject:From;
-	b=h/FnTIhiW3b7nGhcAy81O1OQC/wMLxNYXJk6/VvLvlaV7w1hXjZr/FlRY8dLqqERR
-	 zLv8QIhdgOwKyCCzAVTOehUkgZI6KHC7X+zyCzmzI9JcktK2CGkLjKya5AsO4IANaR
-	 6J2GdE4s3XkxcJX1bOj0HMmj+f9gS0IxD4lVVaHY=
-Date: Tue, 24 Mar 2026 14:41:40 -0700
+	b=Gp1U09jCfxY0PplsPDhKN/I3jXS/kRitPrRBE7R+J6EmeSycHF5cN3hEODeqgc/70
+	 QX1oZDci7i61U3d4JsAYPc69TMcH3bPY9ms0E+BCKgybjiiXsk2CbYpJkczvyk5mPf
+	 ykNYvzkuV4WF/ZCHw8Ejp4A0Rv3hYG9kNhNU7iqg=
+Date: Tue, 24 Mar 2026 14:41:41 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,sidhartha.kumar@oracle.com,lists@nerdbynature.de,kuninori.morimoto.gx@renesas.com,geert@linux-m68k.org,arnd@arndb.de,andrewjballance@gmail.com,aliceryhl@google.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-introduce-maple_copy-node-and-use-it-in-mas_spanning_rebalance.patch removed from -mm tree
-Message-Id: <20260324214140.B9755C2BCB1@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-testing-update-for-spanning-store.patch removed from -mm tree
+Message-Id: <20260324214142.6B2C4C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: introduce maple_copy node and use it in mas_spanning_rebalance()
+     Subject: maple_tree: testing update for spanning store
 has been removed from the -mm tree.  Its filename was
-     maple_tree-introduce-maple_copy-node-and-use-it-in-mas_spanning_rebalance.patch
+     maple_tree-testing-update-for-spanning-store.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: introduce maple_copy node and use it in mas_spanning_rebalance()
-Date: Fri, 30 Jan 2026 15:59:16 -0500
+Subject: maple_tree: testing update for spanning store
+Date: Fri, 30 Jan 2026 15:59:17 -0500
 
-Introduce an internal-memory only node type called maple_copy to
-facilitate internal copy operations.  Use it in mas_spanning_rebalance()
-for just the leaf nodes.  Initially, the maple_copy node is used to
-configure the source nodes and copy the data into the big_node.
+Spanning store had some corner cases which showed up during rcu stress
+testing.  Add explicit tests for those cases.
 
-The maple_copy contains a list of source entries with start and end
-offsets.  One of the maple_copy entries can be itself with an offset of 0
-to 2, representing the data where the store partially overwrites entries,
-or fully overwrites the entry.  The side effect is that the source nodes
-no longer have to worry about partially copying the existing offset if it
-is not fully overwritten.
+At the same time add some locking for easier visibility of the rcu stress
+testing.  Only a single dump of the tree will happen on the first detected
+issue instead of flooding the console with output.
 
-This is in preparation of removal of the maple big_node, but for the time
-being the data is copied to the big node to limit the change size.
-
-Link: https://lkml.kernel.org/r/20260130205935.2559335-12-Liam.Howlett@oracle.com
+Link: https://lkml.kernel.org/r/20260130205935.2559335-13-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
 Cc: Andrew Ballance <andrewjballance@gmail.com>
@@ -78,254 +70,280 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/maple_tree.h |   26 ++++++
- lib/maple_tree.c           |  140 ++++++++++++++++++++++++++++++++---
- 2 files changed, 157 insertions(+), 9 deletions(-)
+ tools/testing/radix-tree/maple.c |  172 +++++++++++++++++++++++++++--
+ 1 file changed, 163 insertions(+), 9 deletions(-)
 
---- a/include/linux/maple_tree.h~maple_tree-introduce-maple_copy-node-and-use-it-in-mas_spanning_rebalance
-+++ a/include/linux/maple_tree.h
-@@ -139,6 +139,7 @@ enum maple_type {
- 	maple_leaf_64,
- 	maple_range_64,
- 	maple_arange_64,
-+	maple_copy,
+--- a/tools/testing/radix-tree/maple.c~maple_tree-testing-update-for-spanning-store
++++ a/tools/testing/radix-tree/maple.c
+@@ -38,6 +38,7 @@ struct rcu_test_struct2 {
+ 
+ 	unsigned long index[RCU_RANGE_COUNT];
+ 	unsigned long last[RCU_RANGE_COUNT];
++	pthread_mutex_t dump;
  };
  
- enum store_type {
-@@ -154,6 +155,30 @@ enum store_type {
- 	wr_slot_store,
- };
+ struct rcu_test_struct3 {
+@@ -33997,8 +33998,25 @@ static void *rcu_reader_fwd(void *ptr)
+ 				}
+ 			}
  
-+struct maple_copy {
-+	struct {
-+		struct maple_node *node;
-+		unsigned long max;
-+		unsigned char start;
-+		unsigned char end;
-+		enum maple_type mt;
-+	} src[4];
-+	/* Simulated node */
-+	void __rcu *slot[3];
-+	unsigned long min;
-+	union {
-+		unsigned long pivot[3];
-+		struct {
-+			void *_pad[2];
-+			unsigned long max;
-+		};
-+	};
-+	unsigned char end;
+-			RCU_MT_BUG_ON(test, mas.index != r_start);
+-			RCU_MT_BUG_ON(test, mas.last != r_end);
++			if (mas.index != r_start) {
++				if (pthread_mutex_trylock(&test->dump) != 0) {
++					rcu_read_unlock();
++					goto quit;
++				}
++				printk("start is wrong: %lx (%lu) vs expected %lx (%lu)\n",
++				       mas.index, mas.index, r_start, r_start);
++				RCU_MT_BUG_ON(test, mas.index != r_start);
++			}
 +
-+	/*Avoid passing these around */
-+	unsigned char s_count;
-+};
-+
- /**
-  * DOC: Maple tree flags
-  *
-@@ -299,6 +324,7 @@ struct maple_node {
- 		};
- 		struct maple_range_64 mr64;
- 		struct maple_arange_64 ma64;
-+		struct maple_copy cp;
- 	};
- };
++			if (mas.last != r_end) {
++				if (pthread_mutex_trylock(&test->dump) != 0) {
++					rcu_read_unlock();
++					goto quit;
++				}
++				printk("last is wrong: %lx (%lu) vs expected %lx (%lu)\n",
++				       mas.last, mas.last, r_end, r_end);
++				RCU_MT_BUG_ON(test, mas.last != r_end);
++			}
  
---- a/lib/maple_tree.c~maple_tree-introduce-maple_copy-node-and-use-it-in-mas_spanning_rebalance
-+++ a/lib/maple_tree.c
-@@ -605,6 +605,8 @@ static inline unsigned long *ma_pivots(s
- 	case maple_range_64:
- 	case maple_leaf_64:
- 		return node->mr64.pivot;
-+	case maple_copy:
-+		return node->cp.pivot;
- 	case maple_dense:
- 		return NULL;
+ 			if (i == reader->flip) {
+ 				alt = xa_mk_value(index + i + RCU_RANGE_COUNT);
+@@ -34014,7 +34032,8 @@ static void *rcu_reader_fwd(void *ptr)
+ 				else if (entry == alt)
+ 					toggled  = true;
+ 				else {
+-					printk("!!%lu-%lu -> %p not %p or %p\n", mas.index, mas.last, entry, expected, alt);
++					printk("!!%lu-%lu -> %p not %p or %p\n",
++					       mas.index, mas.last, entry, expected, alt);
+ 					RCU_MT_BUG_ON(test, 1);
+ 				}
+ 
+@@ -34047,9 +34066,11 @@ static void *rcu_reader_fwd(void *ptr)
+ 		usleep(test->pause);
  	}
-@@ -624,6 +626,7 @@ static inline unsigned long *ma_gaps(str
- 	switch (type) {
- 	case maple_arange_64:
- 		return node->ma64.gap;
-+	case maple_copy:
- 	case maple_range_64:
- 	case maple_leaf_64:
- 	case maple_dense:
-@@ -690,6 +693,7 @@ static inline void mte_set_pivot(struct
- 	case maple_arange_64:
- 		node->ma64.pivot[piv] = val;
- 		break;
-+	case maple_copy:
- 	case maple_dense:
- 		break;
- 	}
-@@ -711,6 +715,8 @@ static inline void __rcu **ma_slots(stru
- 	case maple_range_64:
- 	case maple_leaf_64:
- 		return mn->mr64.slot;
-+	case maple_copy:
-+		return mn->cp.slot;
- 	case maple_dense:
- 		return mn->slot;
- 	}
-@@ -2595,6 +2601,110 @@ dead_node:
+ 
++quit:
+ 	rcu_unregister_thread();
  	return NULL;
  }
++
+ /* RCU reader in decreasing index */
+ static void *rcu_reader_rev(void *ptr)
+ {
+@@ -34119,13 +34140,17 @@ static void *rcu_reader_rev(void *ptr)
+ 				line = __LINE__;
  
-+/*
-+ * cp_leaf_init() - Initialize a maple_copy node for the leaf level of a
-+ * spanning store
-+ * @cp: The maple copy node
-+ * @mas: The maple state
-+ * @l_wr_mas: The left write state of the spanning store
-+ * @r_wr_mas: The right write state of the spanning store
-+ */
-+static inline void cp_leaf_init(struct maple_copy *cp,
-+		struct ma_state *mas, struct ma_wr_state *l_wr_mas,
-+		struct ma_wr_state *r_wr_mas)
-+{
-+	unsigned char end = 0;
+ 			if (mas.index != r_start) {
++				if (pthread_mutex_trylock(&test->dump) != 0) {
++					rcu_read_unlock();
++					goto quit;
++				}
 +
-+	/*
-+	 * WARNING: The use of RCU_INIT_POINTER() makes it extremely important
-+	 * to not expose the maple_copy node to any readers.  Exposure may
-+	 * result in buggy code when a compiler reorders the instructions.
-+	 */
+ 				alt = xa_mk_value(index + i * 2 + 1 +
+ 						  RCU_RANGE_COUNT);
+ 				mt_dump(test->mt, mt_dump_dec);
+-				printk("Error: %lu-%lu %p != %lu-%lu %p %p line %d i %d\n",
+-				       mas.index, mas.last, entry,
+-				       r_start, r_end, expected, alt,
+-				       line, i);
++				printk("Error: %p %lu-%lu %p != %lu-%lu %p %p line %d i %d\n",
++				       mas.node, mas.index, mas.last, entry,
++				       r_start, r_end, expected, alt, line, i);
+ 			}
+ 			RCU_MT_BUG_ON(test, mas.index != r_start);
+ 			RCU_MT_BUG_ON(test, mas.last != r_end);
+@@ -34180,6 +34205,7 @@ static void *rcu_reader_rev(void *ptr)
+ 		usleep(test->pause);
+ 	}
+ 
++quit:
+ 	rcu_unregister_thread();
+ 	return NULL;
+ }
+@@ -34329,6 +34355,7 @@ static void rcu_stress(struct maple_tree
+ 	test.seen_modified = 0;
+ 	test.thread_count = 0;
+ 	test.start = test.stop = false;
++	pthread_mutex_init(&test.dump, NULL);
+ 	seed = time(NULL);
+ 	srand(seed);
+ 	for (i = 0; i < RCU_RANGE_COUNT; i++) {
+@@ -34414,6 +34441,7 @@ struct rcu_test_struct {
+ 	unsigned long removed;		/* The index of the removed entry */
+ 	unsigned long added;		/* The index of the removed entry */
+ 	unsigned long toggle;		/* The index of the removed entry */
++	pthread_mutex_t dump;
+ };
+ 
+ static inline
+@@ -34506,7 +34534,9 @@ static void *rcu_loop(void *ptr)
+ 			/* Out of the interesting range */
+ 			if (mas.index < test->index || mas.index > test->last) {
+ 				if (entry != expected) {
+-					printk("%lx - %lx = %p not %p\n",
++					if (pthread_mutex_trylock(&test->dump) != 0)
++						break;
++					printk("\nERROR: %lx - %lx = %p not %p\n",
+ 					       mas.index, mas.last, entry, expected);
+ 				}
+ 				MT_BUG_ON(test->mt, entry != expected);
+@@ -34854,6 +34884,7 @@ static noinline void __init check_rcu_th
+ 	vals.range_end = ULONG_MAX;
+ 	vals.seen_entry2 = 0;
+ 	vals.seen_entry3 = 0;
++	pthread_mutex_init(&vals.dump, NULL);
+ 
+ 	run_check_rcu(mt, &vals);
+ 	mtree_destroy(mt);
+@@ -35250,6 +35281,8 @@ static noinline void __init check_spanni
+ {
+ 	unsigned long i, max = 5000;
+ 	MA_STATE(mas, mt, 1200, 2380);
++	struct maple_enode *enode;
++	struct maple_node *pnode;
+ 
+ 	for (i = 0; i <= max; i++)
+ 		mtree_test_store_range(mt, i * 10, i * 10 + 5, &i);
+@@ -35410,6 +35443,128 @@ static noinline void __init check_spanni
+ 	mas_set_range(&mas, 76, 875);
+ 	mas_store_gfp(&mas, NULL, GFP_KERNEL);
+ 	mtree_unlock(mt);
++	mtree_destroy(mt);
 +
-+	/* Create entries to insert including split entries to left and right */
-+	if (l_wr_mas->r_min < mas->index) {
-+		end++;
-+		RCU_INIT_POINTER(cp->slot[0], l_wr_mas->content);
-+		cp->pivot[0] = mas->index - 1;
-+	}
-+	RCU_INIT_POINTER(cp->slot[end], l_wr_mas->entry);
-+	cp->pivot[end] = mas->last;
++	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
++	for (i = 0; i <= max; i++)
++		mtree_test_store_range(mt, i * 10, i * 10 + 5, &i);
 +
-+	if (r_wr_mas->end_piv > mas->last) {
-+		end++;
-+		RCU_INIT_POINTER(cp->slot[end],
-+				 r_wr_mas->slots[r_wr_mas->offset_end]);
-+		cp->pivot[end] = r_wr_mas->end_piv;
-+	}
-+
-+	cp->min = l_wr_mas->r_min;
-+	cp->max = cp->pivot[end];
-+	cp->end = end;
-+}
-+
-+static inline void append_wr_mas_cp(struct maple_copy *cp,
-+	struct ma_wr_state *wr_mas, unsigned char start, unsigned char end)
-+{
-+	unsigned char count;
-+
-+	count = cp->s_count;
-+	cp->src[count].node = wr_mas->node;
-+	cp->src[count].mt = wr_mas->type;
-+	if (wr_mas->mas->end <= end)
-+		cp->src[count].max = wr_mas->mas->max;
++	if (MAPLE_32BIT)
++		i = 49750; /* 0xC25B */
 +	else
-+		cp->src[count].max = wr_mas->pivots[end];
++		i = 49835; /* 0xC2AB */
 +
-+	cp->src[count].start = start;
-+	cp->src[count].end = end;
-+	cp->s_count++;
-+}
++	mtree_lock(mt);
++	/* Store a null across a boundary that ends in a null */
++	mas_set(&mas, i); /* 0xC2AB */
++	MT_BUG_ON(mt, mas_walk(&mas) == NULL);
++	MT_BUG_ON(mt, mas.end != mas.offset);
++	MT_BUG_ON(mt, mas_next_range(&mas, ULONG_MAX) != NULL);
++	mas_set_range(&mas, i, mas.last - 1);
++	mas_store_gfp(&mas, NULL, GFP_KERNEL);
++	mt_validate(mt);
 +
-+static inline void init_cp_src(struct maple_copy *cp)
-+{
-+	cp->src[cp->s_count].node = ma_mnode_ptr(cp);
-+	cp->src[cp->s_count].mt = maple_copy;
-+	cp->src[cp->s_count].max = cp->max;
-+	cp->src[cp->s_count].start = 0;
-+	cp->src[cp->s_count].end = cp->end;
-+	cp->s_count++;
-+}
++	/* Store a null across a boundary that starts and ends in a null */
++	mas_set(&mas, 49849);
++	MT_BUG_ON(mt, mas_walk(&mas) != NULL);
++	MT_BUG_ON(mt, mas.index != 49846);
++	mas_set(&mas, 49876);
++	MT_BUG_ON(mt, mas_walk(&mas) != NULL);
++	MT_BUG_ON(mt, mas.last != 49879);
++	mas_set_range(&mas, 49849, 49876);
++	mas_store_gfp(&mas, NULL, GFP_KERNEL);
++	/* Results in 49846-49879: (nil) */
++	MT_BUG_ON(mt, mas.index != 49846);
++	MT_BUG_ON(mt, mas.last != 49879);
++	mt_validate(mt);
 +
-+static inline
-+void cp_data_write(struct maple_copy *cp, struct maple_big_node *b_node)
-+{
-+	struct maple_node *src;
-+	unsigned char s;
-+	unsigned char src_end, s_offset;
-+	unsigned long *b_pivots, *cp_pivots;
-+	void __rcu **b_slots, **cp_slots;
-+	enum maple_type s_mt;
++	/* Store a null across a boundary that starts and ends next to nulls */
++	mas_set(&mas, 49800);
++	MT_BUG_ON(mt, mas_walk(&mas) == NULL);
++	MT_BUG_ON(mt, mas.index != 49800);
++	mas_set(&mas, 49815);
++	MT_BUG_ON(mt, mas_walk(&mas) == NULL);
++	MT_BUG_ON(mt, mas.last != 49815);
++	mas_set_range(&mas, 49800, 49815);
++	mas_store_gfp(&mas, NULL, GFP_KERNEL);
++	/* Results in 49846-49879: (nil) */
++	MT_BUG_ON(mt, mas.index != 49796);
++	MT_BUG_ON(mt, mas.last != 49819);
++	mt_validate(mt);
 +
-+	b_node->b_end = 0;
++	/* Store a value across a boundary that starts and ends in a null */
++	mas_set(&mas, 49907);
++	MT_BUG_ON(mt, mas_walk(&mas) != NULL);
++	MT_BUG_ON(mt, mas.index != 49906);
++	mas_set(&mas, 49928);
++	MT_BUG_ON(mt, mas_walk(&mas) != NULL);
++	MT_BUG_ON(mt, mas.last != 49929);
++	mas_set_range(&mas, 49907, 49928);
++	mas_store_gfp(&mas, check_spanning_write, GFP_KERNEL);
++	MT_BUG_ON(mt, mas.index != 49907);
++	MT_BUG_ON(mt, mas.last != 49928);
++	mt_validate(mt);
 +
-+	s = 0;
-+	b_pivots = b_node->pivot;
-+	b_slots = (void __rcu **)b_node->slot;
-+	do {
-+		unsigned char size;
++	/* Store a value across a node boundary that causes a 3 way split */
 +
-+		src = cp->src[s].node;
-+		s_mt = cp->src[s].mt;
-+		s_offset = cp->src[s].start;
-+		src_end = cp->src[s].end;
-+		size = src_end - s_offset + 1;
-+		cp_pivots = ma_pivots(src, s_mt) + s_offset;
-+		cp_slots = ma_slots(src, s_mt) + s_offset;
-+		memcpy(b_slots, cp_slots, size * sizeof(void __rcu *));
-+		if (size > 1)
-+			memcpy(b_pivots, cp_pivots, (size - 1) * sizeof(unsigned long));
-+		b_pivots[size - 1] = cp->src[s].max;
-+		b_pivots += size;
-+		b_slots += size;
-+		b_node->b_end += size;
-+	} while (++s < cp->s_count);
-+}
++	if (MAPLE_32BIT)
++		i = 49590; /* 0xc1b6 */
++	else
++		i = 49670; /* 0xC206 */
 +
- static void mas_spanning_rebalance_loop(struct ma_state *mas,
- 		struct maple_subtree_state *mast, unsigned char count)
- {
-@@ -2750,10 +2860,11 @@ static void mas_spanning_rebalance(struc
- 
- 
- static noinline void mas_wr_spanning_rebalance(struct ma_state *mas,
--		struct ma_wr_state *wr_mas, struct ma_wr_state *r_wr_mas)
-+		struct ma_wr_state *l_wr_mas, struct ma_wr_state *r_wr_mas)
- {
- 	struct maple_subtree_state mast;
- 	struct maple_big_node b_node;
-+	struct maple_copy cp;
- 	unsigned char height;
- 	MA_STATE(l_mas, mas->tree, mas->index, mas->index);
- 	MA_STATE(r_mas, mas->tree, mas->index, mas->last);
-@@ -2765,15 +2876,26 @@ static noinline void mas_wr_spanning_reb
- 	mast.orig_l = &mast_l_mas;
- 	mast.orig_r = r_wr_mas->mas;
- 	memset(&b_node, 0, sizeof(struct maple_big_node));
--	/* Copy l_mas and store the value in b_node. */
--	mas_store_b_node(wr_mas, &b_node, mast.orig_l->end);
--	/* Copy r_mas into b_node if there is anything to copy. */
--	if (mast.orig_r->max > mast.orig_r->last)
--		mas_mab_cp(mast.orig_r, mast.orig_r->offset,
--			   mast.orig_r->end, &b_node, b_node.b_end + 1);
--	else
--		b_node.b_end++;
-+	cp.s_count = 0;
-+	cp_leaf_init(&cp, mas, l_wr_mas, r_wr_mas);
-+	/* Copy left 0 - offset */
-+	if (l_wr_mas->mas->offset) {
-+		unsigned char off = l_wr_mas->mas->offset - 1;
++	mas_set(&mas, i);
++	MT_BUG_ON(mt, mas_walk(&mas) == NULL);
++	MT_BUG_ON(mt, mas.index != i);
++	MT_BUG_ON(mt, mas.end != mt_slot_count(mas.node) - 1);
++	enode = mas.node;
++	MT_BUG_ON(mt, mas_next_range(&mas, ULONG_MAX) != NULL);
++	MT_BUG_ON(mt, mas.index != i + 6);
++	MT_BUG_ON(mt, mas.end != mt_slot_count(mas.node) - 1);
++	MT_BUG_ON(mt, enode == mas.node);
++	mas_set_range(&mas, i + 2, i + 7);
++	mas_store_gfp(&mas, check_spanning_write, GFP_KERNEL);
++	MT_BUG_ON(mt, mas.index != i + 2);
++	MT_BUG_ON(mt, mas.last != i + 7);
++	mt_validate(mt);
 +
-+		append_wr_mas_cp(&cp, l_wr_mas, 0, off);
-+		cp.src[cp.s_count - 1].max = cp.min - 1;
++	/* 2 levels of basically the same testing */
++
++	if (MAPLE_32BIT) {
++		/* 32bit needs a bit more work to fill the nodes.
++		 * The two parent nodes need to be filled (they have one space
++		 * vacant) without causing a split at the store locations (or
++		 * the siblings).
++		 */
++		i = 44426;
++		mas_set(&mas, i);
++		mas_store_gfp(&mas, check_spanning_write, GFP_KERNEL);
++		i = 45126;
++		mas_set(&mas, i);
++		mas_store_gfp(&mas, check_spanning_write, GFP_KERNEL);
++		i = 44790;
++	} else {
++		/* 48950 - 48955 => ptr, 48956 - 48959 => NULL */
++		i = 48950;
++
 +	}
++	mas_set(&mas, i);
++	MT_BUG_ON(mt, mas_walk(&mas) == NULL);
++	MT_BUG_ON(mt, mas.index != i);
++	MT_BUG_ON(mt, mas.end != mt_slot_count(mas.node) - 1);
++	enode = mas.node;
++	pnode = mte_parent(enode);
++	MT_BUG_ON(mt, mas_next_range(&mas, ULONG_MAX) != NULL);
++	MT_BUG_ON(mt, mas.index != i + 6);
++	MT_BUG_ON(mt, mas.end != mt_slot_count(mas.node) - 1);
++	MT_BUG_ON(mt, enode == mas.node);
++	MT_BUG_ON(mt, pnode == mte_parent(mas.node));
++	mas_set_range(&mas, i + 2, i + 8);
++	mas_store_gfp(&mas, NULL, GFP_KERNEL);
++	mt_validate(mt);
 +
-+	init_cp_src(&cp);
-+
-+	/* Copy right from offset_end + 1 to end */
-+	if (r_wr_mas->mas->end != r_wr_mas->offset_end)
-+		append_wr_mas_cp(&cp, r_wr_mas, r_wr_mas->offset_end + 1,
-+			       r_wr_mas->mas->end);
-+
++	mtree_unlock(mt);
++	mtree_destroy(mt);
++	rcu_barrier();
+ }
+ /* End of spanning write testing */
  
-+	b_node.type = l_wr_mas->type;
-+	cp_data_write(&cp, &b_node);
- 	/* Stop spanning searches by searching for just index. */
- 	mast.orig_l->last = mas->index;
+@@ -36029,7 +36184,6 @@ static inline int check_vma_modification
+ 	return 0;
+ }
  
+-
+ void farmer_tests(void)
+ {
+ 	struct maple_node *node;
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
