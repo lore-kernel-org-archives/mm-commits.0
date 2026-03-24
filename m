@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B63672E06EA
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:10:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02D3E248F6F
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:11:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774386638; cv=none; b=mMe9taiz3x0EJQS70lo80JwEO8Quu1OsPVFJ3Zp7iOizISzplSr7FCYGLlc4mra+ElBVSLTqkcVGASZ1KQBCPaKmVmhNFpvkVFdhY0Ix+nqwrXOdeHYDpC3WS09uMZhMJ8ajJpB8P605oaA8KrUPwHi9ID0mepXfSvv6kHfkMYQ=
+	t=1774386676; cv=none; b=SiV0gtsI4m9t7g4T5cpr7rIpQOEPrYKOE8N5WhFPqoweFFQiw23MqHRaNcwPSa46VXKA18WGq7I+BBJbolADydyDwKgvU1B0h0IDURm+h9a0cDoSWD/JAAgnfh8Dnb+ZQMiXGtEyyjv9knuK32fYpDV6cgAUPgCDFiuVkEVch8g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774386638; c=relaxed/simple;
-	bh=GJCQ+jSzeZI4ZvAMWDVM1hfzOISml2+bYSRXvEFljS0=;
-	h=Date:To:From:Subject:Message-Id; b=BkDL97jszBKZtHWrEUp62RhUZAx53HyqhX1oVpWBWWV234Ld+xDXd7PFQ6LuLnbg6W/DRSGy4gBHWq0uPZSskTouszSYlnzOSmC8JAyDTTobZBeQHIpeMrQZp7m6OCqDhDAgpkA9nclruzvq03tJ3m6TeRbzKYGjwpaErSpCGrw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=USnAzuHf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774386676; c=relaxed/simple;
+	bh=sNu+uY93Qp3o9mDKxL1LVCT6VeKGoUS6KnxDSKy1dRk=;
+	h=Date:To:From:Subject:Message-Id; b=Spl1sQzheDtkuhjEmR39Bz2KS07+msGRtWGGUIj4jX1kraOtQ6AIF/Lv4tSoVasM+0qdRI9xGzpIpBM9xNuU2HW22z+gWd17suKeMu48wcluPQeYlvzEuQFKK3ljKQDs1y+8lOzagJ3V4kDEwbV4yIyQC8BlkoFRX4/Olj4E+OE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xKhueAK4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="USnAzuHf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 356D6C19424;
-	Tue, 24 Mar 2026 21:10:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xKhueAK4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B8DBC19424;
+	Tue, 24 Mar 2026 21:11:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774386638;
-	bh=GJCQ+jSzeZI4ZvAMWDVM1hfzOISml2+bYSRXvEFljS0=;
+	s=korg; t=1774386675;
+	bh=sNu+uY93Qp3o9mDKxL1LVCT6VeKGoUS6KnxDSKy1dRk=;
 	h=Date:To:From:Subject:From;
-	b=USnAzuHfT7yx5fh6AUjcmF7IVOYwnShGdi1c1FQ+CobIrPdhsAfM1UfDbuKP2mIuz
-	 v0MCZjx7O823oYlV1ZHzSkrbNZqkZwu0gEUCNz0f7GKBaRB0Aze1vfdd5wspMpk786
-	 71HePtQROJOf15sLqmFmssgOqB2WME/G+JWkbJZM=
-Date: Tue, 24 Mar 2026 14:10:37 -0700
-To: mm-commits@vger.kernel.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=xKhueAK4kdqNKYc2k/Qlbt1C5gUxAEIEf0hge3v+KaNGUHkHkttLSpGibp+579XeS
+	 +fkr3Eu5Byb8nkfe1GoioC5X9nfBXepBDfHWWw+7HqVEsaYU7Dfl4vewggbSGkoj3y
+	 oFMIz9IA16e6PidFjJe6Tq//76bpG44u1r3wG0ss=
+Date: Tue, 24 Mar 2026 14:11:15 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch removed from -mm tree
-Message-Id: <20260324211038.356D6C19424@smtp.kernel.org>
+Subject: [folded-merged] maple_tree-add-cp_is_new_root-helper-fix.patch removed from -mm tree
+Message-Id: <20260324211115.8B8DBC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,71 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes
+     Subject: maple_tree-add-cp_is_new_root-helper-fix
 has been removed from the -mm tree.  Its filename was
-     maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes.patch
+     maple_tree-add-cp_is_new_root-helper-fix.patch
 
-This patch was dropped because it was folded into maple_tree-start-using-maple-copy-node-for-destination.patch
+This patch was dropped because it was folded into maple_tree-add-cp_is_new_root-helper.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes
-Date: Sat Jan 31 12:29:16 PM PST 2026
+From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Subject: maple_tree-add-cp_is_new_root-helper-fix
+Date: Tue, 3 Feb 2026 12:26:44 -0500
 
-ERROR: code indent should use tabs where possible
-#492: FILE: lib/maple_tree.c:3167:
-+^I^I^I^I^I         slot_max, ma_pivots(mn, mt),$
+remove warnings on older compilers
 
-ERROR: code indent should use tabs where possible
-#493: FILE: lib/maple_tree.c:3168:
-+^I^I^I^I^I         ma_slots(mn, mt));$
-
-total: 2 errors, 0 warnings, 721 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/maple_tree-start-using-maple-copy-node-for-destination.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Link: https://lkml.kernel.org/r/malwmirqnpuxqkqrobcmzfkmmxipoyzwfs2nwc5fbpxlt2r2ej@wchmjtaljvw3
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/maple_tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/maple_tree.c~maple_tree-start-using-maple-copy-node-for-destination-checkpatch-fixes
+--- a/lib/maple_tree.c~maple_tree-add-cp_is_new_root-helper-fix
 +++ a/lib/maple_tree.c
-@@ -3164,8 +3164,8 @@ static inline void cp_dst_to_slots(struc
- 		if (mt_is_alloc(mas->tree)) {
- 			if (ma_is_leaf(mt)) {
- 				cp->gap[d] = ma_leaf_max_gap(mn, mt, slot_min,
--					         slot_max, ma_pivots(mn, mt),
--					         ma_slots(mn, mt));
-+						 slot_max, ma_pivots(mn, mt),
-+						 ma_slots(mn, mt));
- 			} else {
- 				unsigned long *gaps = ma_gaps(mn, mt);
- 
+@@ -3361,7 +3361,7 @@ static inline bool cp_is_new_root(struct
+ 		 * read-side operations that can view it until it is insert into
+ 		 * the tree after an rcu_assign_pointer() call.
+ 		 */
+-		RCU_INIT_POINTER(cp->slot[0], mt_mk_node(cp->dst[0].node, mt));
++		ma_init_slot(cp->slot[0], cp->dst[0].node, mt);
+ 		cp->height++;
+ 	}
+ 	WARN_ON_ONCE(cp->dst[0].node != mte_to_node(
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Liam.Howlett@oracle.com are
 
+maple_tree-fix-mas_dup_alloc-sparse-warning.patch
+maple_tree-move-mas_spanning_rebalance-loop-to-function.patch
+maple_tree-extract-use-of-big-node-from-mas_wr_spanning_store.patch
+maple_tree-remove-unnecessary-assignment-of-orig_l-index.patch
+maple_tree-inline-mas_spanning_rebalance-into-mas_wr_spanning_rebalance.patch
+maple_tree-make-ma_wr_states-reliable-for-reuse-in-spanning-store.patch
+maple_tree-remove-l_wr_mas-from-mas_wr_spanning_rebalance.patch
+maple_tree-dont-pass-through-height-in-mas_wr_spanning_store.patch
+maple_tree-move-maple_subtree_state-from-mas_wr_spanning_store-to-mas_wr_spanning_rebalance.patch
+maple_tree-correct-right-ma_wr_state-end-pivot-in-mas_wr_spanning_store.patch
+maple_tree-introduce-maple_copy-node-and-use-it-in-mas_spanning_rebalance.patch
+maple_tree-testing-update-for-spanning-store.patch
+maple_tree-inline-mas_spanning_rebalance_loop-into-mas_wr_spanning_rebalance.patch
+maple_tree-change-initial-big-node-setup-in-mas_wr_spanning_rebalance.patch
+maple_tree-introduce-ma_leaf_max_gap.patch
+maple_tree-add-gap-support-slot-and-pivot-sizes-for-maple-copy.patch
 maple_tree-start-using-maple-copy-node-for-destination.patch
-maple_tree-add-cp_is_new_root-helper-fix-fix.patch
-mm-centralizefix-comments-about-compound_mapcount-in-new-sync_with_folio_pmd_zap-fix.patch
-mm-rename-zap_page_range_single-to-zap_vma_range-fix.patch
-mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix.patch
-mm-page_reporting-add-page_reporting_order_unspecified-fix.patch
-mm-rename-zone-lock-to-zone-_lock-fix.patch
-mm-switch-the-rmap-lock-held-option-off-in-compat-layer-fix.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
-decode_stacktrace-decode-caller-address-checkpatch-fixes.patch
-lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix.patch
+maple_tree-inline-mas_wr_spanning_rebalance.patch
+maple_tree-remove-unnecessary-return-statements.patch
+maple_tree-separate-wr_split_store-and-wr_rebalance-store-type-code-path.patch
+maple_tree-add-cp_is_new_root-helper.patch
+maple_tree-use-maple-copy-node-for-mas_wr_rebalance-operation.patch
+maple_tree-add-test-for-rebalance-calculation-off-by-one.patch
+maple_tree-add-copy_tree_location-helper.patch
+maple_tree-add-cp_converged-helper.patch
+maple_tree-use-maple-copy-node-for-mas_wr_split.patch
+maple_tree-remove-maple-big-node-and-subtree-structs.patch
+maple_tree-pass-maple-copy-node-to-mas_wmb_replace.patch
+maple_tree-dont-pass-end-to-mas_wr_append.patch
+maple_tree-clean-up-mas_wr_node_store.patch
 
