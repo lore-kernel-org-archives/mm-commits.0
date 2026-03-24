@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF85C383C6A
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:44:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C8B037CD3F
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:44:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388670; cv=none; b=Hly8Q2QE4dw+5JEHggBbBFsYVj46WgF8z27nOHAucGFtZJnoZ1c5O0KRmjVzSahd///tJiQG8QP0FuiR3Kk6Bh8wGuV+X6CFMUYU9NRocQEnfzOvChwhFEHosCWG0xSUMa607FgjaliDBrZ+xG9wgn+CgHCiRL6JeyIasx9uEf0=
+	t=1774388672; cv=none; b=DLKE+XjPs0LXlSj0s1rByUCwbLz0XZw4EFQE8wye91wpuDTNkQBRXOhgGBOFirmYg1Wikgc55pnaxPGIiCejwvGHxvqvAdNDLDt+eng41UM87dQ87uUC/n0MVTWfeDxVrEPmccD2jR7wZLWBf8+AyqQPle/HlW0aN6ColeTV9/Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388670; c=relaxed/simple;
-	bh=8LwE+7y695dE0afV2Iz6HQ76k7ez0ymDFzcPjClksD0=;
-	h=Date:To:From:Subject:Message-Id; b=cv9NxEDmDzl6UR82M5aggnrYy/JdAlQ4ACeXfQ7VxYk31lZgjg+H0SH+xFPPDqnuUyyg73c8jxK/Cqse07Z2mHc8UsITJGl9/+BVhPrvF2yBYIbEB9NcnvewHWo2HtEx+ZDjgiFBhII7lEA8DMIGb8yFmMiJNO2EjZP2p2y19M0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tWFdzBBl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388672; c=relaxed/simple;
+	bh=nmeCtAnVbS0SG1trcjvrHTXftnb4xMqAobC84PIoaaw=;
+	h=Date:To:From:Subject:Message-Id; b=XEVyO8WV87KI1mJmwsuN8gYejQ5ysyPIqQ4cIbCQpeE6JBmtMU+xv8R/GRZlar2Aoh4z0rq5cW+8libb4sIIkJvFy5GaXAeqHsCJHdWBortDV1K/vvAcHvRbvKTx5QP00WlnHAKO0xWs8pMl6urfvzziOH6y4+IlzBA7MZM4SBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l9pBLhoF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tWFdzBBl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7EAEC2BC9E;
-	Tue, 24 Mar 2026 21:44:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l9pBLhoF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2C3DC19424;
+	Tue, 24 Mar 2026 21:44:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388670;
-	bh=8LwE+7y695dE0afV2Iz6HQ76k7ez0ymDFzcPjClksD0=;
+	s=korg; t=1774388672;
+	bh=nmeCtAnVbS0SG1trcjvrHTXftnb4xMqAobC84PIoaaw=;
 	h=Date:To:From:Subject:From;
-	b=tWFdzBBlww/Q3LS0LZPBGQlzjoCn6xjhpFTSktakD3WLgeDxdf7/SuTskaj9/YvaJ
-	 iNg2NQsFSWYaDDqkHYgVjFK6cR3QoxuECj9PqqbawVXmjY8auGJPRUeqxTM6Sn/aL7
-	 b3hTmOGeMINmjANlp363GpfBUdjA406spvlcteOM=
-Date: Tue, 24 Mar 2026 14:44:30 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,surenb@google.com,rostedt@goodmis.org,mhocko@suse.com,mgorman@techsingularity.net,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,bigeasy@linutronix.de,vbabka@kernel.org,akpm@linux-foundation.org
+	b=l9pBLhoFzA6SeryQ7qvjTYK+eczKHAmDHjn1LuLMaS/2AXS+aTuTAdrQrJ2qnvTHh
+	 3w0PuYLZR50TjfWOQm+vJbDNyeWhBtf8OPnKv/QJ/NZhnwyxClUNVy/J81fxNAzyb3
+	 eq7/M1CNpZDjF2xpj5XJd09cZUOn0KogR908IEDc=
+Date: Tue, 24 Mar 2026 14:44:31 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuzhao@google.com,will@kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,kas@kernel.org,gorbunov.ivan@h-partners.com,david@kernel.org,gladyshev.ilya1@h-partners.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-remove-pcpu_spin_-wrappers.patch removed from -mm tree
-Message-Id: <20260324214430.A7EAEC2BC9E@smtp.kernel.org>
+Subject: [merged mm-stable] mm-make-ref_unless-functions-unless_zero-only.patch removed from -mm tree
+Message-Id: <20260324214431.F2C3DC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,91 +35,106 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: remove pcpu_spin_* wrappers
+     Subject: mm: make ref_unless functions unless_zero only
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-remove-pcpu_spin_-wrappers.patch
+     mm-make-ref_unless-functions-unless_zero-only.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@kernel.org>
-Subject: mm/page_alloc: remove pcpu_spin_* wrappers
-Date: Fri, 27 Feb 2026 18:08:00 +0100
+From: Gladyshev Ilya <gladyshev.ilya1@h-partners.com>
+Subject: mm: make ref_unless functions unless_zero only
+Date: Sun, 1 Mar 2026 13:19:39 +0000
 
-We only ever use pcpu_spin_trylock()/unlock() with struct per_cpu_pages so
-refactor the helpers to remove the generic layer.
+There are no users of (folio/page)_ref_add_unless(page, nr, u) with u != 0
+[1] and all current users are "internal" for page refcounting API.  This
+allows us to safely drop this parameter and reduce function semantics to
+the "unless zero" cases only.
 
-No functional change intended.
+If needed, these functions for the u!=0 cases can be trivially
+reintroduced later using the same atomic_add_unless operations as before.
 
-Link: https://lkml.kernel.org/r/20260227-b4-pcp-locking-cleanup-v1-3-f7e22e603447@kernel.org
-Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+[1]: The last user was dropped in v5.18 kernel, commit 27674ef6c73f ("mm:
+remove the extra ZONE_DEVICE struct page refcount").  There is no trace of
+discussion as to why this cleanup wasn't done earlier.
+
+Link: https://lkml.kernel.org/r/a0c89b49d38c671a0bdd35069d15ee13e08314d2.1772370066.git.gladyshev.ilya1@h-partners.com
+Co-developed-by: Gorbunov Ivan <gorbunov.ivan@h-partners.com>
+Signed-off-by: Gorbunov Ivan <gorbunov.ivan@h-partners.com>
+Signed-off-by: Gladyshev Ilya <gladyshev.ilya1@h-partners.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Kiryl Shutsemau <kas@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+ include/linux/mm.h       |    2 +-
+ include/linux/page_ref.h |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-pcpu_spin_-wrappers
-+++ a/mm/page_alloc.c
-@@ -111,35 +111,29 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
- #endif
- 
- /*
-- * Generic helper to lookup and a per-cpu variable with an embedded spinlock.
-- * Return value should be used with equivalent unlock helper.
-+ * A helper to lookup and trylock pcp with embedded spinlock.
-+ * The return value should be used with the unlock helper.
-+ * NULL return value means the trylock failed.
+--- a/include/linux/mm.h~mm-make-ref_unless-functions-unless_zero-only
++++ a/include/linux/mm.h
+@@ -1506,7 +1506,7 @@ static inline int folio_put_testzero(str
   */
--#define pcpu_spin_trylock(type, member, ptr)				\
-+#ifdef CONFIG_SMP
-+#define pcp_spin_trylock(ptr)						\
- ({									\
--	type *_ret;							\
-+	struct per_cpu_pages *_ret;					\
- 	pcpu_task_pin();						\
- 	_ret = this_cpu_ptr(ptr);					\
--	if (!spin_trylock(&_ret->member)) {				\
-+	if (!spin_trylock(&_ret->lock)) {				\
- 		pcpu_task_unpin();					\
- 		_ret = NULL;						\
- 	}								\
- 	_ret;								\
- })
+ static inline bool get_page_unless_zero(struct page *page)
+ {
+-	return page_ref_add_unless(page, 1, 0);
++	return page_ref_add_unless_zero(page, 1);
+ }
  
--#define pcpu_spin_unlock(member, ptr)					\
-+#define pcp_spin_unlock(ptr)						\
- ({									\
--	spin_unlock(&ptr->member);					\
-+	spin_unlock(&ptr->lock);					\
- 	pcpu_task_unpin();						\
- })
+ static inline struct folio *folio_get_nontail_page(struct page *page)
+--- a/include/linux/page_ref.h~mm-make-ref_unless-functions-unless_zero-only
++++ a/include/linux/page_ref.h
+@@ -228,18 +228,18 @@ static inline int folio_ref_dec_return(s
+ 	return page_ref_dec_return(&folio->page);
+ }
  
--/* struct per_cpu_pages specific helpers.*/
--#ifdef CONFIG_SMP
--#define pcp_spin_trylock(ptr)						\
--		pcpu_spin_trylock(struct per_cpu_pages, lock, ptr)
--
--#define pcp_spin_unlock(ptr)						\
--		pcpu_spin_unlock(lock, ptr)
--
- /*
-  * On CONFIG_SMP=n the UP implementation of spin_trylock() never fails and thus
-  * is not compatible with our locking scheme. However we do not need pcp for
+-static inline bool page_ref_add_unless(struct page *page, int nr, int u)
++static inline bool page_ref_add_unless_zero(struct page *page, int nr)
+ {
+-	bool ret = atomic_add_unless(&page->_refcount, nr, u);
++	bool ret = atomic_add_unless(&page->_refcount, nr, 0);
+ 
+ 	if (page_ref_tracepoint_active(page_ref_mod_unless))
+ 		__page_ref_mod_unless(page, nr, ret);
+ 	return ret;
+ }
+ 
+-static inline bool folio_ref_add_unless(struct folio *folio, int nr, int u)
++static inline bool folio_ref_add_unless_zero(struct folio *folio, int nr)
+ {
+-	return page_ref_add_unless(&folio->page, nr, u);
++	return page_ref_add_unless_zero(&folio->page, nr);
+ }
+ 
+ /**
+@@ -255,12 +255,12 @@ static inline bool folio_ref_add_unless(
+  */
+ static inline bool folio_try_get(struct folio *folio)
+ {
+-	return folio_ref_add_unless(folio, 1, 0);
++	return folio_ref_add_unless_zero(folio, 1);
+ }
+ 
+ static inline bool folio_ref_try_add(struct folio *folio, int count)
+ {
+-	return folio_ref_add_unless(folio, count, 0);
++	return folio_ref_add_unless_zero(folio, count);
+ }
+ 
+ static inline int page_ref_freeze(struct page *page, int count)
 _
 
-Patches currently in -mm which might be from vbabka@kernel.org are
+Patches currently in -mm which might be from gladyshev.ilya1@h-partners.com are
 
-maintainers-add-mm-related-procfs-files-to-mm-sections.patch
 
