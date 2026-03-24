@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50E6335AC0C;
-	Tue, 24 Mar 2026 21:41:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9019F35F5FB
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:41:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388473; cv=none; b=NGNSfNgTc+Zr8RVFBoutrriDsQv71LSctlWfuTYLw0c94lejy4sQ9AzgE0vC3qnQk3vmv993GKI/eL1dg0CBHwpvca2wEkbCdkfDg8ukkSFfQh/gtjmxAVoKtxh3dZKVs1DUnIRMaXXHX8AGFw/XFqU8tVpbmU4nZzUqv2O8p5k=
+	t=1774388474; cv=none; b=gfBhRduxAxrQO3rlmQpWNu/ecHrB0JGcZTDPinIkMmSiIEWVKGpMazDskWqZyEYXvdiWZV9wwsU0KCPrR+tNUBI5RjmlBMZolDwuehYyPga8CDyREIBAUkWpUsWI4UjckDu1wWVFs89BvrdilJWt5+Iex0VXt3MxnbqVM86Pm80=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388473; c=relaxed/simple;
-	bh=bweIcAyabg5TG1diVnVNaGrd6gYn+9SwZSe6VcLlZDA=;
-	h=Date:To:From:Subject:Message-Id; b=lxnU/Km6dGKc4/vzN7+iMBVCFL+G3osC4yAs84/2IB4MxBBTTHPDdSL4C77jhVd319Rn55qC9XG+bXqrR3AQR4G4nPJAJUXnFYLdO+hTgm28R7Lcz75t+bdVC+2osclU1PJJTMTFC1v8LROObf+SirDaQUyLosfjt909sJgckoQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X7Y43cO1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388474; c=relaxed/simple;
+	bh=TZaRH7zNjtxRGG3jSKSvRnwQnxAMRwTxWHjDf+/adnw=;
+	h=Date:To:From:Subject:Message-Id; b=jBOFzWMm+bA0vO8LMOp1pJGasajgv+fdtfcf4umdLvvmUODXMywQ5dGqmpvZ1L2Mxvg1VYL2liK2HyizV8R7cCwnfwcE29ZcjrVmQnlXlbXdUoM7zwr44QvW0NrHBk3uHabm5GO5nPC4AFGvV6sO1NuT/lAsoV2VE+JU4hHvDZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zpjd27AK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X7Y43cO1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E21B1C19424;
-	Tue, 24 Mar 2026 21:41:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zpjd27AK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A7F9C19424;
+	Tue, 24 Mar 2026 21:41:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388473;
-	bh=bweIcAyabg5TG1diVnVNaGrd6gYn+9SwZSe6VcLlZDA=;
+	s=korg; t=1774388474;
+	bh=TZaRH7zNjtxRGG3jSKSvRnwQnxAMRwTxWHjDf+/adnw=;
 	h=Date:To:From:Subject:From;
-	b=X7Y43cO1TAmvMW+Vt0w0ZxUOk/fE0/y92O37cEUWA1aBotZhBg3L09ivcm9hSFurC
-	 jhTPJjy0nVURpxwIQdxDK+Dr/BWNnJv+23nf+0UR7LGZBM2SSBA/rtpuicY1dvWdSs
-	 M0WNAOwt9XukyTxxSlEHXl+LqqUPx9pINn5GFgQE=
-Date: Tue, 24 Mar 2026 14:41:12 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,mail@carstengrohmann.de,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=Zpjd27AKaU5wkDM0h7aWPaoneqnFVGNvQcGO+6N67aCsBWe0QdAAhvRAVV3o/GjtB
+	 PdHWtC0QoKhQaGhDYw4l3xYA4pQigo3Uev17GOjP8x70rHnXkjZ/UyMAUHxKId23Td
+	 gfkwwSdyHE2CNj8xne8sDQFKHOli8yk1EAdL5o5g=
+Date: Tue, 24 Mar 2026 14:41:13 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,hu.shengming@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-speed-up-hibernation-allocation-and-writeout.patch removed from -mm tree
-Message-Id: <20260324214112.E21B1C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-avoid-overcounting-bulk-alloc-in-watermark-check.patch removed from -mm tree
+Message-Id: <20260324214114.3A7F9C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,90 +35,53 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: speed up hibernation allocation and writeout
+     Subject: mm/page_alloc: avoid overcounting bulk alloc in watermark check
 has been removed from the -mm tree.  Its filename was
-     mm-swap-speed-up-hibernation-allocation-and-writeout.patch
+     mm-page_alloc-avoid-overcounting-bulk-alloc-in-watermark-check.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: speed up hibernation allocation and writeout
-Date: Mon, 16 Feb 2026 22:58:02 +0800
+From: Shengming Hu <hu.shengming@zte.com.cn>
+Subject: mm/page_alloc: avoid overcounting bulk alloc in watermark check
+Date: Thu, 29 Jan 2026 22:38:14 +0800
 
-Since commit 0ff67f990bd4 ("mm, swap: remove swap slot cache"),
-hibernation has been using the swap slot slow allocation path for
-simplification, which turns out might cause regression for some devices
-because the allocator now rotates clusters too often, leading to slower
-allocation and more random distribution of data.
+alloc_pages_bulk_noprof() only fills NULL slots and already tracks how
+many entries are pre-populated via nr_populated.
 
-Fast allocation is not complex, so implement hibernation support as well.
+The fast watermark check was adding nr_pages unconditionally, which can
+overestimate the demand.  Use (nr_pages - nr_populated) instead, as an
+upper bound on the remaining pages this call can still allocate without
+scanning the whole array.
 
-Test result with Samsung SSD 830 Series (SATA II, 3.0 Gbps) shows the
-performance is several times better [1]:
-6.19:               324 seconds
-After this series:  35 seconds
-
-Link: https://lkml.kernel.org/r/20260216-hibernate-perf-v4-1-1ba9f0bf1ec9@tencent.com
-Link: https://lore.kernel.org/linux-mm/8b4bdcfa-ce3f-4e23-839f-31367df7c18f@gmx.de/ [1]
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Fixes: 0ff67f990bd4 ("mm, swap: remove swap slot cache")
-Reported-by: Carsten Grohmann <mail@carstengrohmann.de>
-Closes: https://lore.kernel.org/linux-mm/20260206121151.dea3633d1f0ded7bbf49c22e@linux-foundation.org/
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/tencent_F36C5B5FB4DED98C79D9BDEE1210CD338C06@qq.com
+Signed-off-by: Shengming Hu <hu.shengming@zte.com.cn>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/swapfile.c~mm-swap-speed-up-hibernation-allocation-and-writeout
-+++ a/mm/swapfile.c
-@@ -1926,8 +1926,9 @@ out:
- /* Allocate a slot for hibernation */
- swp_entry_t swap_alloc_hibernation_slot(int type)
- {
--	struct swap_info_struct *si = swap_type_to_info(type);
--	unsigned long offset;
-+	struct swap_info_struct *pcp_si, *si = swap_type_to_info(type);
-+	unsigned long pcp_offset, offset = SWAP_ENTRY_INVALID;
-+	struct swap_cluster_info *ci;
- 	swp_entry_t entry = {0};
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-overcounting-bulk-alloc-in-watermark-check
++++ a/mm/page_alloc.c
+@@ -5136,7 +5136,7 @@ unsigned long alloc_pages_bulk_noprof(gf
  
- 	if (!si)
-@@ -1937,11 +1938,21 @@ swp_entry_t swap_alloc_hibernation_slot(
- 	if (get_swap_device_info(si)) {
- 		if (si->flags & SWP_WRITEOK) {
- 			/*
--			 * Grab the local lock to be compliant
--			 * with swap table allocation.
-+			 * Try the local cluster first if it matches the device. If
-+			 * not, try grab a new cluster and override local cluster.
- 			 */
- 			local_lock(&percpu_swap_cluster.lock);
--			offset = cluster_alloc_swap_entry(si, NULL);
-+			pcp_si = this_cpu_read(percpu_swap_cluster.si[0]);
-+			pcp_offset = this_cpu_read(percpu_swap_cluster.offset[0]);
-+			if (pcp_si == si && pcp_offset) {
-+				ci = swap_cluster_lock(si, pcp_offset);
-+				if (cluster_is_usable(ci, 0))
-+					offset = alloc_swap_scan_cluster(si, ci, NULL, pcp_offset);
-+				else
-+					swap_cluster_unlock(ci);
-+			}
-+			if (!offset)
-+				offset = cluster_alloc_swap_entry(si, NULL);
- 			local_unlock(&percpu_swap_cluster.lock);
- 			if (offset)
- 				entry = swp_entry(si->type, offset);
+ 		cond_accept_memory(zone, 0, alloc_flags);
+ retry_this_zone:
+-		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK) + nr_pages;
++		mark = wmark_pages(zone, alloc_flags & ALLOC_WMARK_MASK) + nr_pages - nr_populated;
+ 		if (zone_watermark_fast(zone, 0,  mark,
+ 				zonelist_zone_idx(ac.preferred_zoneref),
+ 				alloc_flags, gfp)) {
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from hu.shengming@zte.com.cn are
 
 
