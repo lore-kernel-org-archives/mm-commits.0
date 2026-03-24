@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C92CC36215C
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DD3C364053
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388588; cv=none; b=SBjI7zEPvV3Z4B5TKzfhxxl9O9Rofc7frx2UzKs6HK6AHm7bYBrYwOcxuUGMBjr2QJE9sBso36FKL7BpHvhsk+mtOEuFdsv7UpNTlvZa2+ZmQUtTJuy/sobjjaIzCKbRAREOCoOA67/DU6nOg7gRmx5J4sEMMdIGE8jpvGZWLEc=
+	t=1774388590; cv=none; b=HcxhIZedXGRYkSlo1TBd/8OUHtdllcxJWTq4EcA2nvUGCNyZeZQ32DrV7wsXEIG1vo8e3ea2D7hg/8ul7ju6khg1+ILfd9YsqTBWFHDUyictvTmG0PUUflQZUAXJ1fuTsJAOO263/tRteJvZdgSkphtYdqoWwgBcc60ONtWNDZA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388588; c=relaxed/simple;
-	bh=Csm4KmEH2f7IVhDK/V3TCefKoM2aDsNQ72IJDWn2VPc=;
-	h=Date:To:From:Subject:Message-Id; b=Jr7UuOF9yg08TiUZSG/XA2indxiOn67ijnCLtmPGEqcXq0a4qC4gsQiB9MDigLUPAx1NzXBi0jmfXuBkBy7lHee+A0WNUCaIhepbl3V86SJV1pogL+o2SyrrkoumOhPTNIYmu8uWuUHsNDobrMV4TzCK2euogaP57Jd7ulUiBDo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QjOdkxKk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388590; c=relaxed/simple;
+	bh=z1NishS7oKniWh+/BwHejlxzTZa417w9wgnWR5hfPG4=;
+	h=Date:To:From:Subject:Message-Id; b=Xvg+ckPEZXEVfo0BFnAtNh2xzCVkodHsi7z/094SQeBVEzV+ZFgjtcbX3rrnG22bNM1x3WD2pQA6GbT3NkZDEb3Uc1e0nMXzTKPKciBiewEc2ajdTb7oBLvErbUjasS1RKNU6MUt+OYOGrxebf/7DK44tvnX4+yjt0UKr/ok2fM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ClzMGUAG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QjOdkxKk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2D05C19424;
-	Tue, 24 Mar 2026 21:43:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ClzMGUAG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC89DC19424;
+	Tue, 24 Mar 2026 21:43:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388588;
-	bh=Csm4KmEH2f7IVhDK/V3TCefKoM2aDsNQ72IJDWn2VPc=;
+	s=korg; t=1774388589;
+	bh=z1NishS7oKniWh+/BwHejlxzTZa417w9wgnWR5hfPG4=;
 	h=Date:To:From:Subject:From;
-	b=QjOdkxKk5MoXL551YUkhfbJjhp0b67H1Ois+7qmz8Ld8b+y0SHL3N6pomJY2t5iuI
-	 2n1m2Bn4a8rPnNy9bl/R6b+vvXsrwYIpbjNntclmK86HBjsrY86iP4FdQu6QDqAkU1
-	 wv7R5uSFovXnWeJTXHYwoSzcC2CkaLQWx8SAX1dA=
-Date: Tue, 24 Mar 2026 14:43:08 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yanglincheng@kylinos.cn,ryan.roberts@arm.com,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,vernon2gm@gmail.com,akpm@linux-foundation.org
+	b=ClzMGUAGDXz+IeFSz3HhJOhgL/B61sQlXWVVjYOUcfP2+ENyhV3vvTbVISMmFLxpf
+	 EkEmcT2Rkr3Uqq6az/WI4RFuumOh4eFjewOhgahR/yS1rc+q9HTxM2dWr+lvLhzAz7
+	 2arf+s30oBbnr0Xh01XSatkWdtjAACwLVWk9Tb5A=
+Date: Tue, 24 Mar 2026 14:43:09 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,rostedt@goodmis.org,npache@redhat.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,yanglincheng@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-refine-scan-progress-number-fix.patch removed from -mm tree
-Message-Id: <20260324214308.A2D05C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-add-folio_test_lazyfree-helper.patch removed from -mm tree
+Message-Id: <20260324214309.DC89DC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-khugepaged-refine-scan-progress-number-fix
+     Subject: mm: add folio_test_lazyfree helper
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-refine-scan-progress-number-fix.patch
+     mm-add-folio_test_lazyfree-helper.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Vernon Yang <vernon2gm@gmail.com>
-Subject: mm-khugepaged-refine-scan-progress-number-fix
-Date: Thu, 26 Feb 2026 22:31:34 +0800
+From: Vernon Yang <yanglincheng@kylinos.cn>
+Subject: mm: add folio_test_lazyfree helper
+Date: Sat, 21 Feb 2026 17:39:17 +0800
 
-Based on previous discussions [1], v2 as follow, and testing shows the
-same performance benefits. Just make code cleaner, no function changes.
+Add folio_test_lazyfree() function to identify lazy-free folios to improve
+code readability.
 
-
-Link: https://lkml.kernel.org/r/hbftflvdmnranprul4zkq3d2iymqm7ta2a7fwiphggsmt36gt7@bihvv5jg2ko5
-Link: https://lore.kernel.org/linux-mm/zdvzmoop5xswqcyiwmvvrdfianm4ccs3gryfecwbm4bhuh7ebo@7an4huwgbuwo [1]
+Link: https://lkml.kernel.org/r/20260221093918.1456187-4-vernon2gm@gmail.com
 Signed-off-by: Vernon Yang <yanglincheng@kylinos.cn>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand (arm) <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
@@ -70,268 +68,59 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   78 ++++++++++++++++++++--------------------------
- 1 file changed, 35 insertions(+), 43 deletions(-)
+ include/linux/page-flags.h |    5 +++++
+ mm/rmap.c                  |    2 +-
+ mm/vmscan.c                |    5 ++---
+ 3 files changed, 8 insertions(+), 4 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-refine-scan-progress-number-fix
-+++ a/mm/khugepaged.c
-@@ -69,8 +69,8 @@ static struct task_struct *khugepaged_th
- static DEFINE_MUTEX(khugepaged_mutex);
+--- a/include/linux/page-flags.h~mm-add-folio_test_lazyfree-helper
++++ a/include/linux/page-flags.h
+@@ -724,6 +724,11 @@ static __always_inline bool folio_test_a
+ 	return ((unsigned long)folio->mapping & FOLIO_MAPPING_ANON) != 0;
+ }
  
- /*
-- * default scan 8*HPAGE_PMD_NR ptes, pmd_mapped, no_pte_table or vmas
-- * every 10 second.
-+ * default scan 8*HPAGE_PMD_NR ptes, pte_mapped_hugepage, pmd_mapped,
-+ * no_pte_table or vmas every 10 second.
-  */
- static unsigned int khugepaged_pages_to_scan __read_mostly;
- static unsigned int khugepaged_pages_collapsed;
-@@ -103,6 +103,9 @@ struct collapse_control {
- 	/* Num pages scanned per node */
- 	u32 node_load[MAX_NUMNODES];
- 
-+	/* Num pages scanned (see khugepaged_pages_to_scan) */
-+	unsigned int progress;
++static __always_inline bool folio_test_lazyfree(const struct folio *folio)
++{
++	return folio_test_anon(folio) && !folio_test_swapbacked(folio);
++}
 +
- 	/* nodemask for allocation fallback */
- 	nodemask_t alloc_nmask;
- };
-@@ -1235,8 +1238,7 @@ out_nolock:
- 
- static enum scan_result hpage_collapse_scan_pmd(struct mm_struct *mm,
- 		struct vm_area_struct *vma, unsigned long start_addr,
--		bool *mmap_locked, unsigned int *cur_progress,
--		struct collapse_control *cc)
-+		bool *mmap_locked, struct collapse_control *cc)
+ static __always_inline bool PageAnonNotKsm(const struct page *page)
  {
- 	pmd_t *pmd;
- 	pte_t *pte, *_pte;
-@@ -1252,8 +1254,7 @@ static enum scan_result hpage_collapse_s
- 
- 	result = find_pmd_or_thp_or_none(mm, start_addr, &pmd);
- 	if (result != SCAN_SUCCEED) {
--		if (cur_progress)
--			*cur_progress = 1;
-+		cc->progress++;
- 		goto out;
- 	}
- 
-@@ -1261,16 +1262,14 @@ static enum scan_result hpage_collapse_s
- 	nodes_clear(cc->alloc_nmask);
- 	pte = pte_offset_map_lock(mm, pmd, start_addr, &ptl);
- 	if (!pte) {
--		if (cur_progress)
--			*cur_progress = 1;
-+		cc->progress++;
- 		result = SCAN_NO_PTE_TABLE;
- 		goto out;
- 	}
- 
- 	for (addr = start_addr, _pte = pte; _pte < pte + HPAGE_PMD_NR;
- 	     _pte++, addr += PAGE_SIZE) {
--		if (cur_progress)
--			*cur_progress += 1;
-+		cc->progress++;
- 
- 		pte_t pteval = ptep_get(_pte);
- 		if (pte_none_or_zero(pteval)) {
-@@ -2293,7 +2292,7 @@ out:
- 
- static enum scan_result hpage_collapse_scan_file(struct mm_struct *mm,
- 		unsigned long addr, struct file *file, pgoff_t start,
--		unsigned int *cur_progress, struct collapse_control *cc)
-+		struct collapse_control *cc)
- {
- 	struct folio *folio = NULL;
- 	struct address_space *mapping = file->f_mapping;
-@@ -2383,12 +2382,10 @@ static enum scan_result hpage_collapse_s
+ 	unsigned long flags = (unsigned long)page_folio(page)->mapping;
+--- a/mm/rmap.c~mm-add-folio_test_lazyfree-helper
++++ a/mm/rmap.c
+@@ -2060,7 +2060,7 @@ static bool try_to_unmap_one(struct foli
  		}
- 	}
- 	rcu_read_unlock();
--	if (cur_progress) {
--		if (result == SCAN_PTE_MAPPED_HUGEPAGE)
--			*cur_progress = 1;
--		else
--			*cur_progress = HPAGE_PMD_NR;
--	}
-+	if (result == SCAN_PTE_MAPPED_HUGEPAGE)
-+		cc->progress++;
-+	else
-+		cc->progress += HPAGE_PMD_NR;
  
- 	if (result == SCAN_SUCCEED) {
- 		if (cc->is_khugepaged &&
-@@ -2404,8 +2401,8 @@ static enum scan_result hpage_collapse_s
- 	return result;
- }
- 
--static unsigned int khugepaged_scan_mm_slot(unsigned int pages, enum scan_result *result,
--					    struct collapse_control *cc)
-+static void khugepaged_scan_mm_slot(unsigned int progress_max,
-+		enum scan_result *result, struct collapse_control *cc)
- 	__releases(&khugepaged_mm_lock)
- 	__acquires(&khugepaged_mm_lock)
- {
-@@ -2413,9 +2410,8 @@ static unsigned int khugepaged_scan_mm_s
- 	struct mm_slot *slot;
- 	struct mm_struct *mm;
- 	struct vm_area_struct *vma;
--	int progress = 0;
-+	unsigned int progress_prev = cc->progress;
- 
--	VM_BUG_ON(!pages);
- 	lockdep_assert_held(&khugepaged_mm_lock);
- 	*result = SCAN_FAIL;
- 
-@@ -2438,7 +2434,7 @@ static unsigned int khugepaged_scan_mm_s
- 	if (unlikely(!mmap_read_trylock(mm)))
- 		goto breakouterloop_mmap_lock;
- 
--	progress++;
-+	cc->progress++;
- 	if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
- 		goto breakouterloop;
- 
-@@ -2448,17 +2444,17 @@ static unsigned int khugepaged_scan_mm_s
- 
- 		cond_resched();
- 		if (unlikely(hpage_collapse_test_exit_or_disable(mm))) {
--			progress++;
-+			cc->progress++;
- 			break;
- 		}
- 		if (!thp_vma_allowable_order(vma, vma->vm_flags, TVA_KHUGEPAGED, PMD_ORDER)) {
--			progress++;
-+			cc->progress++;
- 			continue;
- 		}
- 		hstart = round_up(vma->vm_start, HPAGE_PMD_SIZE);
- 		hend = round_down(vma->vm_end, HPAGE_PMD_SIZE);
- 		if (khugepaged_scan.address > hend) {
--			progress++;
-+			cc->progress++;
- 			continue;
- 		}
- 		if (khugepaged_scan.address < hstart)
-@@ -2467,7 +2463,6 @@ static unsigned int khugepaged_scan_mm_s
- 
- 		while (khugepaged_scan.address < hend) {
- 			bool mmap_locked = true;
--			unsigned int cur_progress = 0;
- 
- 			cond_resched();
- 			if (unlikely(hpage_collapse_test_exit_or_disable(mm)))
-@@ -2484,8 +2479,7 @@ static unsigned int khugepaged_scan_mm_s
- 				mmap_read_unlock(mm);
- 				mmap_locked = false;
- 				*result = hpage_collapse_scan_file(mm,
--					khugepaged_scan.address, file, pgoff,
--					&cur_progress, cc);
-+					khugepaged_scan.address, file, pgoff, cc);
- 				fput(file);
- 				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
- 					mmap_read_lock(mm);
-@@ -2499,8 +2493,7 @@ static unsigned int khugepaged_scan_mm_s
- 				}
- 			} else {
- 				*result = hpage_collapse_scan_pmd(mm, vma,
--					khugepaged_scan.address, &mmap_locked,
--					&cur_progress, cc);
-+					khugepaged_scan.address, &mmap_locked, cc);
- 			}
- 
- 			if (*result == SCAN_SUCCEED)
-@@ -2508,7 +2501,6 @@ static unsigned int khugepaged_scan_mm_s
- 
- 			/* move to next address */
- 			khugepaged_scan.address += HPAGE_PMD_SIZE;
--			progress += cur_progress;
- 			if (!mmap_locked)
+ 		if (!pvmw.pte) {
+-			if (folio_test_anon(folio) && !folio_test_swapbacked(folio)) {
++			if (folio_test_lazyfree(folio)) {
+ 				if (unmap_huge_pmd_locked(vma, pvmw.address, pvmw.pmd, folio))
+ 					goto walk_done;
  				/*
- 				 * We released mmap_lock so break loop.  Note
-@@ -2518,7 +2510,7 @@ static unsigned int khugepaged_scan_mm_s
- 				 * correct result back to caller.
- 				 */
- 				goto breakouterloop_mmap_lock;
--			if (progress >= pages)
-+			if (cc->progress >= progress_max)
- 				goto breakouterloop;
+--- a/mm/vmscan.c~mm-add-folio_test_lazyfree-helper
++++ a/mm/vmscan.c
+@@ -963,8 +963,7 @@ static void folio_check_dirty_writeback(
+ 	 * They could be mistakenly treated as file lru. So further anon
+ 	 * test is needed.
+ 	 */
+-	if (!folio_is_file_lru(folio) ||
+-	    (folio_test_anon(folio) && !folio_test_swapbacked(folio))) {
++	if (!folio_is_file_lru(folio) || folio_test_lazyfree(folio)) {
+ 		*dirty = false;
+ 		*writeback = false;
+ 		return;
+@@ -1508,7 +1507,7 @@ retry:
+ 			}
  		}
- 	}
-@@ -2549,9 +2541,8 @@ breakouterloop_mmap_lock:
- 		collect_mm_slot(slot);
- 	}
  
--	trace_mm_khugepaged_scan(mm, progress, khugepaged_scan.mm_slot == NULL);
--
--	return progress;
-+	trace_mm_khugepaged_scan(mm, cc->progress - progress_prev,
-+				 khugepaged_scan.mm_slot == NULL);
- }
- 
- static int khugepaged_has_work(void)
-@@ -2567,13 +2558,14 @@ static int khugepaged_wait_event(void)
- 
- static void khugepaged_do_scan(struct collapse_control *cc)
- {
--	unsigned int progress = 0, pass_through_head = 0;
--	unsigned int pages = READ_ONCE(khugepaged_pages_to_scan);
-+	const unsigned int progress_max = READ_ONCE(khugepaged_pages_to_scan);
-+	unsigned int pass_through_head = 0;
- 	bool wait = true;
- 	enum scan_result result = SCAN_SUCCEED;
- 
- 	lru_add_drain_all();
- 
-+	cc->progress = 0;
- 	while (true) {
- 		cond_resched();
- 
-@@ -2585,13 +2577,12 @@ static void khugepaged_do_scan(struct co
- 			pass_through_head++;
- 		if (khugepaged_has_work() &&
- 		    pass_through_head < 2)
--			progress += khugepaged_scan_mm_slot(pages - progress,
--							    &result, cc);
-+			khugepaged_scan_mm_slot(progress_max, &result, cc);
- 		else
--			progress = pages;
-+			cc->progress = progress_max;
- 		spin_unlock(&khugepaged_mm_lock);
- 
--		if (progress >= pages)
-+		if (cc->progress >= progress_max)
- 			break;
- 
- 		if (result == SCAN_ALLOC_HUGE_PAGE_FAIL) {
-@@ -2797,6 +2788,7 @@ int madvise_collapse(struct vm_area_stru
- 	if (!cc)
- 		return -ENOMEM;
- 	cc->is_khugepaged = false;
-+	cc->progress = 0;
- 
- 	mmgrab(mm);
- 	lru_add_drain_all();
-@@ -2831,7 +2823,7 @@ retry:
- 			mmap_locked = false;
- 			*lock_dropped = true;
- 			result = hpage_collapse_scan_file(mm, addr, file, pgoff,
--							  NULL, cc);
-+							  cc);
- 
- 			if (result == SCAN_PAGE_DIRTY_OR_WRITEBACK && !triggered_wb &&
- 			    mapping_can_writeback(file->f_mapping)) {
-@@ -2846,7 +2838,7 @@ retry:
- 			fput(file);
- 		} else {
- 			result = hpage_collapse_scan_pmd(mm, vma, addr,
--							 &mmap_locked, NULL, cc);
-+							 &mmap_locked, cc);
- 		}
- 		if (!mmap_locked)
- 			*lock_dropped = true;
+-		if (folio_test_anon(folio) && !folio_test_swapbacked(folio)) {
++		if (folio_test_lazyfree(folio)) {
+ 			/* follow __remove_mapping for reference */
+ 			if (!folio_ref_freeze(folio, 1))
+ 				goto keep_locked;
 _
 
-Patches currently in -mm which might be from vernon2gm@gmail.com are
+Patches currently in -mm which might be from yanglincheng@kylinos.cn are
 
 
