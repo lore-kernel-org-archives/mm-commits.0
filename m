@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8622378D6B
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:44:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 711683612FB;
+	Tue, 24 Mar 2026 21:44:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388661; cv=none; b=FC1jC5QnEPYCW8G9WFBYrg6aC7Jojr/1oAqRsSWXvsaPRijEzndK2HSqQRBZ+q6AJ1AR0qnXWx/Tl/JKnBx7B5l0NFO+4gd0oeVl/4Ai+E8DQQU91f7JpLzJFqg+8Xjru90nrw1yNKPsFLQOp79prb68Ugq62NlEsVkz+Y9WTLQ=
+	t=1774388663; cv=none; b=u9hREI3zPNe092Df+00o0Y1YZeZ27cLfoc2qCq4wSZO6EPixj+A2QtB8N1nxVhYMIu061KPAk8A7pJRE/QOKus/Cnp8BdxxtoIXHE7C3B+NPYVfVlsquThrfFjR74z1Bo+pR4m9SJLNijU/UaWBXz3sxnI/Qc2yfsZ3Xv9/K+Q4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388661; c=relaxed/simple;
-	bh=KewBKcBYPvfH2xnYZqj0+7LrBnnI8BQXwtJS1APSgKY=;
-	h=Date:To:From:Subject:Message-Id; b=j9WrcYHREGELb/O0GBP9GJEPXd02lCh9acPOUO7nvYF6dIHFKDHhjqpDehSgHYKkwdgvVfoNUseaJfC4h5Obd9MwTj43Q6GNFdmA87SO5bH5ybmn/tNUt5uE8tn+ioy72NkuOAKiLnrVYUMXx5NyPYV3RG69R3Q0YVBV4ccQQ6A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fz3voszX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388663; c=relaxed/simple;
+	bh=yNTvDX5kYkgO4L5zJrlm8IZqihJMaBU8Nq5wH0jULgs=;
+	h=Date:To:From:Subject:Message-Id; b=tWN3k1UopexV9ScxyFEVnZp03Fceasb7RD4xKa3+qUdmMtfYzBDyAulNzD8XOZG4ITaePQbSDv74JtklNCplrAD4W9ovvS93m5if5M22QpoRixjkA7E8tJD83he2rOpOssmrMkxiVAqCNEOsZUlIHXpwenFmN96aPnEMkyy6Tpc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sYETECGD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fz3voszX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B03BEC19424;
-	Tue, 24 Mar 2026 21:44:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sYETECGD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40BCAC19424;
+	Tue, 24 Mar 2026 21:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388661;
-	bh=KewBKcBYPvfH2xnYZqj0+7LrBnnI8BQXwtJS1APSgKY=;
+	s=korg; t=1774388663;
+	bh=yNTvDX5kYkgO4L5zJrlm8IZqihJMaBU8Nq5wH0jULgs=;
 	h=Date:To:From:Subject:From;
-	b=Fz3voszXy77ZTkyuCOET0nEBEEMvNkmrpOTeIhkEs7uXLKlkP97UI8fgJvtG/9V/V
-	 7KA0ZZPPptwD72PYlWU1iYdgr40GxDX9E0paAhN18wa4u7+FmmYR7ZnoA6QlfR2wsm
-	 xUdrX/fWHUeSLKmUoKxFRnevwbPtXht1huGr+unw=
-Date: Tue, 24 Mar 2026 14:44:21 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,rppt@kernel.org,lorenzo.stoakes@oracle.com,david@kernel.org,anshuman.khandual@arm.com,akpm@linux-foundation.org
+	b=sYETECGD8+BEDGSKrbQhBnkz/+RYmwGWpMy0mCWvvrDt9do/xP4Pktleeq/XXrQjt
+	 sHN7ncK18CUV8xYnpa2+8q495nTS1Dk11Hpvuo73RZaC8TDxXH4VSBNuVZ7TrnNs/L
+	 oStiE16sHpXTd+yjop5uy5g4Cgdk7LdZhbCp9MLE=
+Date: Tue, 24 Mar 2026 14:44:22 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,venkat88@linux.ibm.com,stable@vger.kernel.org,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,ritesh.list@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-replace-read_once-in-pud_trans_unstable.patch removed from -mm tree
-Message-Id: <20260324214421.B03BEC19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kasan-fix-double-free-for-kasan-pxds.patch removed from -mm tree
+Message-Id: <20260324214423.40BCAC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,48 +35,150 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: replace READ_ONCE() in pud_trans_unstable()
+     Subject: mm/kasan: fix double free for kasan pXds
 has been removed from the -mm tree.  Its filename was
-     mm-replace-read_once-in-pud_trans_unstable.patch
+     mm-kasan-fix-double-free-for-kasan-pxds.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: replace READ_ONCE() in pud_trans_unstable()
-Date: Fri, 27 Feb 2026 04:03:00 +0000
+From: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Subject: mm/kasan: fix double free for kasan pXds
+Date: Tue, 24 Feb 2026 18:53:16 +0530
 
-Replace READ_ONCE() with the existing standard page table accessor for PUD
-aka pudp_get() in pud_trans_unstable().  This does not create any
-functional change for platforms that do not override pudp_get(), which
-still defaults to READ_ONCE().
+kasan_free_pxd() assumes the page table is always struct page aligned. 
+But that's not always the case for all architectures.  E.g.  In case of
+powerpc with 64K pagesize, PUD table (of size 4096) comes from slab cache
+named pgtable-2^9.  Hence instead of page_to_virt(pxd_page()) let's just
+directly pass the start of the pxd table which is passed as the 1st
+argument.
 
-Link: https://lkml.kernel.org/r/20260227040300.2091901-1-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+This fixes the below double free kasan issue seen with PMEM:
+
+radix-mmu: Mapped 0x0000047d10000000-0x0000047f90000000 with 2.00 MiB pages
+==================================================================
+BUG: KASAN: double-free in kasan_remove_zero_shadow+0x9c4/0xa20
+Free of addr c0000003c38e0000 by task ndctl/2164
+
+CPU: 34 UID: 0 PID: 2164 Comm: ndctl Not tainted 6.19.0-rc1-00048-gea1013c15392 #157 VOLUNTARY
+Hardware name: IBM,9080-HEX POWER10 (architected) 0x800200 0xf000006 of:IBM,FW1060.00 (NH1060_012) hv:phyp pSeries
+Call Trace:
+ dump_stack_lvl+0x88/0xc4 (unreliable)
+ print_report+0x214/0x63c
+ kasan_report_invalid_free+0xe4/0x110
+ check_slab_allocation+0x100/0x150
+ kmem_cache_free+0x128/0x6e0
+ kasan_remove_zero_shadow+0x9c4/0xa20
+ memunmap_pages+0x2b8/0x5c0
+ devm_action_release+0x54/0x70
+ release_nodes+0xc8/0x1a0
+ devres_release_all+0xe0/0x140
+ device_unbind_cleanup+0x30/0x120
+ device_release_driver_internal+0x3e4/0x450
+ unbind_store+0xfc/0x110
+ drv_attr_store+0x78/0xb0
+ sysfs_kf_write+0x114/0x140
+ kernfs_fop_write_iter+0x264/0x3f0
+ vfs_write+0x3bc/0x7d0
+ ksys_write+0xa4/0x190
+ system_call_exception+0x190/0x480
+ system_call_vectored_common+0x15c/0x2ec
+---- interrupt: 3000 at 0x7fff93b3d3f4
+NIP:  00007fff93b3d3f4 LR: 00007fff93b3d3f4 CTR: 0000000000000000
+REGS: c0000003f1b07e80 TRAP: 3000   Not tainted  (6.19.0-rc1-00048-gea1013c15392)
+MSR:  800000000280f033 <SF,VEC,VSX,EE,PR,FP,ME,IR,DR,RI,LE>  CR: 48888208  XER: 00000000
+<...>
+NIP [00007fff93b3d3f4] 0x7fff93b3d3f4
+LR [00007fff93b3d3f4] 0x7fff93b3d3f4
+---- interrupt: 3000
+
+ The buggy address belongs to the object at c0000003c38e0000
+  which belongs to the cache pgtable-2^9 of size 4096
+ The buggy address is located 0 bytes inside of
+  4096-byte region [c0000003c38e0000, c0000003c38e1000)
+
+ The buggy address belongs to the physical page:
+ page: refcount:0 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x3c38c
+ head: order:2 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+ memcg:c0000003bfd63e01
+ flags: 0x63ffff800000040(head|node=6|zone=0|lastcpupid=0x7ffff)
+ page_type: f5(slab)
+ raw: 063ffff800000040 c000000140058980 5deadbeef0000122 0000000000000000
+ raw: 0000000000000000 0000000080200020 00000000f5000000 c0000003bfd63e01
+ head: 063ffff800000040 c000000140058980 5deadbeef0000122 0000000000000000
+ head: 0000000000000000 0000000080200020 00000000f5000000 c0000003bfd63e01
+ head: 063ffff800000002 c00c000000f0e301 00000000ffffffff 00000000ffffffff
+ head: ffffffffffffffff 0000000000000000 00000000ffffffff 0000000000000004
+ page dumped because: kasan: bad access detected
+
+[  138.953636] [   T2164] Memory state around the buggy address:
+[  138.953643] [   T2164]  c0000003c38dff00: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  138.953652] [   T2164]  c0000003c38dff80: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  138.953661] [   T2164] >c0000003c38e0000: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  138.953669] [   T2164]                    ^
+[  138.953675] [   T2164]  c0000003c38e0080: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  138.953684] [   T2164]  c0000003c38e0100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[  138.953692] [   T2164] ==================================================================
+[  138.953701] [   T2164] Disabling lock debugging due to kernel taint
+
+Link: https://lkml.kernel.org/r/2f9135c7866c6e0d06e960993b8a5674a9ebc7ec.1771938394.git.ritesh.list@gmail.com
+Fixes: 0207df4fa1a8 ("kernel/memremap, kasan: make ZONE_DEVICE with work with KASAN")
+Signed-off-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Reported-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: "Ritesh Harjani (IBM)" <ritesh.list@gmail.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/init.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/pgtable.h~mm-replace-read_once-in-pud_trans_unstable
-+++ a/include/linux/pgtable.h
-@@ -2004,7 +2004,7 @@ static inline int pud_trans_unstable(pud
- {
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && \
- 	defined(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD)
--	pud_t pudval = READ_ONCE(*pud);
-+	pud_t pudval = pudp_get(pud);
+--- a/mm/kasan/init.c~mm-kasan-fix-double-free-for-kasan-pxds
++++ a/mm/kasan/init.c
+@@ -292,7 +292,7 @@ static void kasan_free_pte(pte_t *pte_st
+ 			return;
+ 	}
  
- 	if (pud_none(pudval) || pud_trans_huge(pudval))
- 		return 1;
+-	pte_free_kernel(&init_mm, (pte_t *)page_to_virt(pmd_page(*pmd)));
++	pte_free_kernel(&init_mm, pte_start);
+ 	pmd_clear(pmd);
+ }
+ 
+@@ -307,7 +307,7 @@ static void kasan_free_pmd(pmd_t *pmd_st
+ 			return;
+ 	}
+ 
+-	pmd_free(&init_mm, (pmd_t *)page_to_virt(pud_page(*pud)));
++	pmd_free(&init_mm, pmd_start);
+ 	pud_clear(pud);
+ }
+ 
+@@ -322,7 +322,7 @@ static void kasan_free_pud(pud_t *pud_st
+ 			return;
+ 	}
+ 
+-	pud_free(&init_mm, (pud_t *)page_to_virt(p4d_page(*p4d)));
++	pud_free(&init_mm, pud_start);
+ 	p4d_clear(p4d);
+ }
+ 
+@@ -337,7 +337,7 @@ static void kasan_free_p4d(p4d_t *p4d_st
+ 			return;
+ 	}
+ 
+-	p4d_free(&init_mm, (p4d_t *)page_to_virt(pgd_page(*pgd)));
++	p4d_free(&init_mm, p4d_start);
+ 	pgd_clear(pgd);
+ }
+ 
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from ritesh.list@gmail.com are
 
 
