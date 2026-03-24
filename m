@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D30A0378D6B
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:44:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28C70378D6B
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:44:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388655; cv=none; b=f4BvEb8hI3vQbnK6dGwTGlRlhlbjj7CT6KmQcnd0M7pYMlatN3dInk00aWtj5csL+/G6PiUQ1HOFlN9d7OGGFagcvFmE6tLGyEpMBYwBIDh/yr2mYHhljJoiACBjFhwQubqqaantaV07iH8WTB1Ci1n41BEx13tdYwWPxtJdplY=
+	t=1774388657; cv=none; b=nrjCx68A32pqmlh3XWNs87M61J0QWjLaZqhYBJL/7mg+x2dAj0glJZ96kOx64jggR1IuoC7jGfWoUFd+ytqot/zhCLwCGLemAKewzOAwAUgx/Rrq1Z1/MMNng3bm8GLjb9u3Q/Jn0fGLDpaNuSNZ7m9akbIe/mBYK9FqK1g2OaQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388655; c=relaxed/simple;
-	bh=LgYh4y0uza/AYuQsPgPHic6nmDGb63853bKYqtgQ8Ho=;
-	h=Date:To:From:Subject:Message-Id; b=FnBg1CtkZ5wTYwTl+15cGt7CZbOHs3tv5NlyfCGiDdvwQVbzqzpwTV9a5uRyfkzo88rgFUVIxR7Y0b6YwVSIGaTrPjohTUQuqy9voCfUKzYKf+/bxyfdDB/71rlLijkZc2OXLNVr06oacpeAN+l2xJ+dYIF97DC1V7q9VvPt7Iw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EzNA8G8b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388657; c=relaxed/simple;
+	bh=yqtSqFWKLVdaG/Jmnk5T6Dht/z7up7YIKtccrj0QlsQ=;
+	h=Date:To:From:Subject:Message-Id; b=hhKcIH/I+jMN7bRwJliOnfbJ3qBQH2/GkPnX0WbVAbD38Ai/vmlIydbY4/8myMidYGrOiZr3VOoMUXYs2bnBNTV4wpF6E6cpXc8us9Qsy7A5tJGmgi68N7jzC7A/nH3TSJgfiaoGzKF7zU88xuNIijCB3fYfilXFD66Nt1xMyzI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mIMxn4ie; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EzNA8G8b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8E45C19424;
-	Tue, 24 Mar 2026 21:44:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mIMxn4ie"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01043C19424;
+	Tue, 24 Mar 2026 21:44:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388655;
-	bh=LgYh4y0uza/AYuQsPgPHic6nmDGb63853bKYqtgQ8Ho=;
+	s=korg; t=1774388657;
+	bh=yqtSqFWKLVdaG/Jmnk5T6Dht/z7up7YIKtccrj0QlsQ=;
 	h=Date:To:From:Subject:From;
-	b=EzNA8G8brwV3NnGfv3w47Bac9VvkSuBRBY2oqc7BLLH+XHEuJm8jII7ucvdpzX0yE
-	 3mSrA2m0llO9wWFawi38MbAFipHWRk88o4mZcOBTaPe3lt7JIacXuKeuvoLis2ZLFe
-	 xFk3EV5L13ThdPutsAXSKVKLqpQe4S5aBE3onEZI=
-Date: Tue, 24 Mar 2026 14:44:15 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=mIMxn4ielQx80P+FUSEYJJp8iDQJ2hNTlrzklJFbii9GTvWj/30gg4uSuJ4oD1TR2
+	 BB2j/WXf9nTFU8O7R8Oin4OHYjGk+vJ2Gul4+zuyWU1Jk/GDjJXOZIWNYTinj9lkdg
+	 nxFi9IUTVd7iHige9c6H7qgU5f9L5nU1ZJUwwWvk=
+Date: Tue, 24 Mar 2026 14:44:16 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch removed from -mm tree
-Message-Id: <20260324214415.A8E45C19424@smtp.kernel.org>
+Subject: [merged mm-stable] khugepaged-remove-redundant-index-check-for-pmd-folios.patch removed from -mm tree
+Message-Id: <20260324214417.01043C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,151 +35,88 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: do non-safe region walk on kdamond_apply_schemes()
+     Subject: khugepaged: remove redundant index check for pmd-folios
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes.patch
+     khugepaged-remove-redundant-index-check-for-pmd-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: do non-safe region walk on kdamond_apply_schemes()
-Date: Fri, 27 Feb 2026 09:06:21 -0800
+From: Dev Jain <dev.jain@arm.com>
+Subject: khugepaged: remove redundant index check for pmd-folios
+Date: Fri, 27 Feb 2026 20:05:01 +0530
 
-kdamond_apply_schemes() is using damon_for_each_region_safe(), which is
-safe for deallocation of the region inside the loop.  However, the loop
-internal logic does not deallocate regions.  Hence it is only wasting the
-next pointer.  Also, it causes a problem.
+Claim: folio_order(folio) == HPAGE_PMD_ORDER => folio->index == start.
 
-When an address filter is applied, and there is a region that intersects
-with the filter, the filter splits the region on the filter boundary.  The
-intention is to let DAMOS apply action to only filtered-in address ranges.
-However, it is using damon_for_each_region_safe(), which sets the next
-region before the execution of the iteration.  Hence, the region that
-split and now will be next to the previous region, is simply ignored.  As
-a result, DAMOS applies the action to target regions bit slower than
-expected, when the address filter is used.  Shouldn't be a big problem but
-definitely better to be fixed.  damos_skip_charged_region() was working
-around the issue using a double pointer hack.
+Proof: Both loops in hpage_collapse_scan_file and collapse_file, which
+iterate on the xarray, have the invariant that start <= folio->index <
+start + HPAGE_PMD_NR ...  (i)
 
-Use damon_for_each_region(), which is safe for this use case.  And drop
-the work around in damos_skip_charged_region().
+A folio is always naturally aligned in the pagecache, therefore
+folio_order == HPAGE_PMD_ORDER => IS_ALIGNED(folio->index, HPAGE_PMD_NR) == true ... (ii)
 
-Link: https://lkml.kernel.org/r/20260227170623.95384-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
+thp_vma_allowable_order -> thp_vma_suitable_order requires that the virtual
+offsets in the VMA are aligned to the order,
+=> IS_ALIGNED(start, HPAGE_PMD_NR) == true ... (iii)
+
+Combining (i), (ii) and (iii), the claim is proven.
+
+Therefore, remove this check.
+While at it, simplify the comments.
+
+Link: https://lkml.kernel.org/r/20260227143501.1488110-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ mm/khugepaged.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-do-non-safe-region-walk-on-kdamond_apply_schemes
-+++ a/mm/damon/core.c
-@@ -1717,17 +1717,18 @@ static bool damos_valid_target(struct da
-  * This function checks if a given region should be skipped or not for the
-  * reason.  If only the starting part of the region has previously charged,
-  * this function splits the region into two so that the second one covers the
-- * area that not charged in the previous charge widnow and saves the second
-- * region in *rp and returns false, so that the caller can apply DAMON action
-- * to the second one.
-+ * area that not charged in the previous charge widnow, and return true.  The
-+ * caller can see the second one on the next iteration of the region walk.
-+ * Note that this means the caller should use damon_for_each_region() instead
-+ * of damon_for_each_region_safe().  If damon_for_each_region_safe() is used,
-+ * the second region will just be ignored.
-  *
-- * Return: true if the region should be entirely skipped, false otherwise.
-+ * Return: true if the region should be skipped, false otherwise.
-  */
- static bool damos_skip_charged_region(struct damon_target *t,
--		struct damon_region **rp, struct damos *s,
-+		struct damon_region *r, struct damos *s,
- 		unsigned long min_region_sz)
- {
--	struct damon_region *r = *rp;
- 	struct damos_quota *quota = &s->quota;
- 	unsigned long sz_to_skip;
- 
-@@ -1754,8 +1755,7 @@ static bool damos_skip_charged_region(st
- 				sz_to_skip = min_region_sz;
- 			}
- 			damon_split_region_at(t, r, sz_to_skip);
--			r = damon_next_region(r);
--			*rp = r;
-+			return true;
+--- a/mm/khugepaged.c~khugepaged-remove-redundant-index-check-for-pmd-folios
++++ a/mm/khugepaged.c
+@@ -2023,9 +2023,7 @@ static enum scan_result collapse_file(st
+ 		 * we locked the first folio, then a THP might be there already.
+ 		 * This will be discovered on the first iteration.
+ 		 */
+-		if (folio_order(folio) == HPAGE_PMD_ORDER &&
+-		    folio->index == start) {
+-			/* Maybe PMD-mapped */
++		if (folio_order(folio) == HPAGE_PMD_ORDER) {
+ 			result = SCAN_PTE_MAPPED_HUGEPAGE;
+ 			goto out_unlock;
  		}
- 		quota->charge_target_from = NULL;
- 		quota->charge_addr_from = 0;
-@@ -2014,7 +2014,7 @@ static void damon_do_apply_schemes(struc
- 		if (quota->esz && quota->charged_sz >= quota->esz)
+@@ -2353,15 +2351,11 @@ static enum scan_result hpage_collapse_s
  			continue;
+ 		}
  
--		if (damos_skip_charged_region(t, &r, s, c->min_region_sz))
-+		if (damos_skip_charged_region(t, r, s, c->min_region_sz))
- 			continue;
- 
- 		if (s->max_nr_snapshots &&
-@@ -2357,7 +2357,7 @@ static void damos_trace_stat(struct damo
- static void kdamond_apply_schemes(struct damon_ctx *c)
- {
- 	struct damon_target *t;
--	struct damon_region *r, *next_r;
-+	struct damon_region *r;
- 	struct damos *s;
- 	unsigned long sample_interval = c->attrs.sample_interval ?
- 		c->attrs.sample_interval : 1;
-@@ -2383,7 +2383,7 @@ static void kdamond_apply_schemes(struct
- 		if (c->ops.target_valid && c->ops.target_valid(t) == false)
- 			continue;
- 
--		damon_for_each_region_safe(r, next_r, t)
-+		damon_for_each_region(r, t)
- 			damon_do_apply_schemes(c, t, r);
- 	}
- 
+-		if (folio_order(folio) == HPAGE_PMD_ORDER &&
+-		    folio->index == start) {
+-			/* Maybe PMD-mapped */
++		if (folio_order(folio) == HPAGE_PMD_ORDER) {
+ 			result = SCAN_PTE_MAPPED_HUGEPAGE;
+ 			/*
+-			 * For SCAN_PTE_MAPPED_HUGEPAGE, further processing
+-			 * by the caller won't touch the page cache, and so
+-			 * it's safe to skip LRU and refcount checks before
+-			 * returning.
++			 * PMD-sized THP implies that we can only try
++			 * retracting the PTE table.
+ 			 */
+ 			folio_put(folio);
+ 			break;
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-damon-add-config_damon_debug_sanity.patch
-mm-damon-core-add-damon_new_region-debug_sanity-check.patch
-mm-damon-core-add-damon_del_region-debug_sanity-check.patch
-mm-damon-core-add-damon_nr_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_two_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
-mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
-mm-damon-core-add-damon_reset_aggregated-debug_sanity-check.patch
-mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
-selftests-damon-config-enable-damon_debug_sanity.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
-docs-mm-damon-design-document-the-power-of-two-limitation-for-addr_unit.patch
-mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
-mm-damon-core-use-time_before-for-next_apply_sis.patch
-mm-damon-core-use-time_after_eq-in-kdamond_fn.patch
-mm-damon-core-use-mult_frac.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
-mm-damon-core-clarify-damon_set_attrs-usages.patch
-mm-damon-document-non-zero-length-damon_region-assumption.patch
-docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
-docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
-docs-mm-damon-index-fix-typo-autoamted-automated.patch
-mm-damon-core-introduce-damos_quota_goal_tuner.patch
-mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
-mm-damon-core-introduce-damos_quota_goal_tuner_temporal.patch
-mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
-docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
-docs-admin-guide-mm-damon-usage-document-goal_tuner-sysfs-file.patch
-docs-abi-damon-update-for-goal_tuner.patch
-mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
-selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
-selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
-selftests-damon-sysfspy-test-goal_tuner-commit.patch
-mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
-mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
-mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram-fix.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
-mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
-mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
 
