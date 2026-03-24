@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61A03365A0B
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:44:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B0EE365A0B
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:44:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388668; cv=none; b=D4MoBE3dKRZzLV3NV91y22k5YvY9mhfK5eSlk6eV8gWJ5ag5xrLTdz6rzmKB18r/xMfTSxAqY8BbQuNcNdzo0WEI/Xl9r/s5Gy7NZs2NLEcQh5Kui4DI+PB5mbWKOZePVOxqX4psL5osbQaS+aw8k7YKaVKKWtbNX1PpV6ABE6M=
+	t=1774388669; cv=none; b=ZF8YEAjrQLEH12ws6y7VSgT3zxh9By96o5bv4NybnnjkhBYH5vxESXIepBOCy7vvVjdLVc1c3OBFA51ykjVlQX53oTHxDnxo8jSSL31K5CPSXttShs7/CzNfB8DSMlqpWPe4vI8Am871ht7KkPbkDQj9q9Dzeqo/XkBSGf66+7c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388668; c=relaxed/simple;
-	bh=xkmVtoXwYAH08fCdOEq2vUqlaDCtPJDMofiGvlxB4u0=;
-	h=Date:To:From:Subject:Message-Id; b=gSKoY+94d2mXKEHbdYDlvwdmQfNzFTskDP7ButqDAQg+pTCwPlgpda7nNgYsBYfcoaqOjEHwDu0UxanFWCWdRwAwsU0ufbnDonXoLeUF4vDEaQzXb9WQxqDFeRxM0fTl2inLBrMKljNgFYQyEObyC87j/yZ6nJwSpeX/kDQJsjs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I/hZBDC9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388669; c=relaxed/simple;
+	bh=qYbaMqDwVc04e4UZI7t8TM1NpaULDi3Qnjv8knXN8GY=;
+	h=Date:To:From:Subject:Message-Id; b=hrKNnI0WAPokkrYaRsYOQqbFg6zbFwik6Gz1Rsbtqy9bKOrpO7M8cl/LF6F+VEe5/OYFsE/ig1XvOdd1pBPfJqdWK4rAst5Tvew9Tc+4x1kIbKWRn4o7x55/u2unPv7/J3Ysxh9adxgTyAr55YQYVpzXJMD9J+JIhBfhcGjuJtY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WpXy5URW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I/hZBDC9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37AE3C19424;
-	Tue, 24 Mar 2026 21:44:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WpXy5URW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72309C2BC9E;
+	Tue, 24 Mar 2026 21:44:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388668;
-	bh=xkmVtoXwYAH08fCdOEq2vUqlaDCtPJDMofiGvlxB4u0=;
+	s=korg; t=1774388669;
+	bh=qYbaMqDwVc04e4UZI7t8TM1NpaULDi3Qnjv8knXN8GY=;
 	h=Date:To:From:Subject:From;
-	b=I/hZBDC9Uk7kUbAZT3NmRc4zJzfRfn7M9lOo/aGU/3LYkTiyPP+vdT3NPiB+ut9Sg
-	 5EM4dZ8eVaQbdxKjGktoDvi/VsJXV0ZRlExDovcZZXvQEwwq0FfqyhCYGLZxhE9Rhr
-	 SSPlV2B2jsXucRk6e6/6ujYUsyISJZSUqLtW1j2Q=
-Date: Tue, 24 Mar 2026 14:44:27 -0700
+	b=WpXy5URWhMwhvD9AtpUi+pKSDsYt5MBpvz+AajBeS8G9/ruJjDLE7Lsz6+aikPZNi
+	 npqDxkY3VgtbehGAMAWqosAxF+oQNUaDUDF00aInL0yS4MNvreAFPrUXFnB7nrPWPN
+	 lJxR6l7aSZaTNKSxlcFflgF/dp0i5GH7+PesAq80=
+Date: Tue, 24 Mar 2026 14:44:28 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,surenb@google.com,rostedt@goodmis.org,mhocko@suse.com,mgorman@techsingularity.net,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,bigeasy@linutronix.de,vbabka@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-page_alloc-effectively-disable-pcp-with-config_smp=n.patch removed from -mm tree
-Message-Id: <20260324214428.37AE3C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_alloc-remove-irq-saving-restoring-from-pcp-locking.patch removed from -mm tree
+Message-Id: <20260324214429.72309C2BC9E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,90 +35,33 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_alloc: effectively disable pcp with CONFIG_SMP=n
+     Subject: mm/page_alloc: remove IRQ saving/restoring from pcp locking
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-effectively-disable-pcp-with-config_smp=n.patch
+     mm-page_alloc-remove-irq-saving-restoring-from-pcp-locking.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@kernel.org>
-Subject: mm/page_alloc: effectively disable pcp with CONFIG_SMP=n
-Date: Fri, 27 Feb 2026 18:07:58 +0100
+Subject: mm/page_alloc: remove IRQ saving/restoring from pcp locking
+Date: Fri, 27 Feb 2026 18:07:59 +0100
 
-Patch series "mm/page_alloc: pcp locking cleanup".
+Effectively revert commit 038a102535eb ("mm/page_alloc: prevent pcp
+corruption with SMP=n").  The original problem is now avoided by
+pcp_spin_trylock() always failing on CONFIG_SMP=n, so we do not need to
+disable IRQs anymore.
 
-This is a followup to the hotfix 038a102535eb ("mm/page_alloc: prevent pcp
-corruption with SMP=n"), to simplify the code and deal with the original
-issue properly.  The previous RFC attempt [1] argued for changing the UP
-spinlock implementation, which was discouraged, but thanks to David's
-off-list suggestion, we can achieve the goal without changing the spinlock
-implementation.
+It's not a complete revert, because keeping the pcp_spin_(un)lock()
+wrappers is useful.  Rename them from _maybe_irqsave/restore to _nopin. 
+The difference from pcp_spin_trylock()/pcp_spin_unlock() is that the
+_nopin variants don't perform pcpu_task_pin/unpin().
 
-The main change in Patch 1 relies on the fact that on UP we don't need the
-pcp lists for scalability, so just make them always bypassed during
-alloc/free by making the pcp trylock an unconditional failure.
-
-The various drain paths that use pcp_spin_lock_maybe_irqsave() continue to
-exist but will never do any work in practice.  In Patch 2 we can again
-remove the irq saving from them that commit 038a102535eb added.
-
-Besides simpler code with all the ugly UP_flags removed, we get less bloat
-with CONFIG_SMP=n for mm/page_alloc.o as a result:
-
-add/remove: 25/28 grow/shrink: 4/5 up/down: 2105/-6665 (-4560)
-Function                                     old     new   delta
-get_page_from_freelist                      5689    7248   +1559
-free_unref_folios                           2006    2324    +318
-make_alloc_exact                             270     286     +16
-__zone_watermark_ok                          306     322     +16
-drain_pages_zone.isra                        119     109     -10
-decay_pcp_high                               181     149     -32
-setup_pcp_cacheinfo                          193     147     -46
-__free_frozen_pages                         1339    1089    -250
-alloc_pages_bulk_noprof                     1054     419    -635
-free_frozen_page_commit                      907       -    -907
-try_to_claim_block                          1975       -   -1975
-__rmqueue_pcplist                           2614       -   -2614
-Total: Before=54624, After=50064, chg -8.35%
-
-
-This patch (of 3):
-
-The page allocator has been using a locking scheme for its percpu page
-caches (pcp) based on spin_trylock() with no _irqsave() part.  The trick
-is that if we interrupt the locked section, we fail the trylock and just
-fallback to the slowpath taking the zone lock.  That's more expensive, but
-rare, so we don't need to pay the irqsave/restore cost all the time in the
-fastpaths.
-
-It's similar to but not exactly local_trylock_t (which is also newer
-anyway) because in some cases we do lock the pcp of a non-local cpu to
-drain it, in a way that's cheaper than using IPI or queue_work_on().
-
-The complication of this scheme has been UP non-debug spinlock
-implementation which assumes spin_trylock() can't fail on UP and has no
-state to track whether it's locked.  It just doesn't anticipate this usage
-scenario.  So to work around that we disable IRQs only on UP, complicating
-the implementation.  Also recently we found years old bug in where we
-didn't disable IRQs in related paths - see 038a102535eb ("mm/page_alloc:
-prevent pcp corruption with SMP=n").
-
-We can avoid this UP complication by realizing that we do not need the pcp
-caching for scalability on UP in the first place.  Removing it completely
-with #ifdefs is not worth the trouble either.  Just make
-pcp_spin_trylock() return NULL unconditionally on CONFIG_SMP=n.  This
-makes the slowpaths unconditional, and we can remove the IRQ save/restore
-handling in pcp_spin_trylock()/unlock() completely.
-
-Link: https://lkml.kernel.org/r/20260227-b4-pcp-locking-cleanup-v1-0-f7e22e603447@kernel.org
-Link: https://lkml.kernel.org/r/20260227-b4-pcp-locking-cleanup-v1-1-f7e22e603447@kernel.org
-Link: https://lore.kernel.org/all/d762c46b-36f0-471a-b5b4-23c8cf5628ae@suse.cz/ [1]
+Link: https://lkml.kernel.org/r/20260227-b4-pcp-locking-cleanup-v1-2-f7e22e603447@kernel.org
 Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -129,239 +72,127 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   94 +++++++++++++++++-----------------------------
- 1 file changed, 35 insertions(+), 59 deletions(-)
+ mm/page_alloc.c |   46 ++++++++++++++++------------------------------
+ 1 file changed, 16 insertions(+), 30 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-effectively-disable-pcp-with-config_smp=n
+--- a/mm/page_alloc.c~mm-page_alloc-remove-irq-saving-restoring-from-pcp-locking
 +++ a/mm/page_alloc.c
-@@ -94,23 +94,6 @@ typedef int __bitwise fpi_t;
- static DEFINE_MUTEX(pcp_batch_high_lock);
- #define MIN_PERCPU_PAGELIST_HIGH_FRACTION (8)
+@@ -154,24 +154,14 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
+ 		BUG_ON(1)
+ #endif
  
 -#if defined(CONFIG_SMP) || defined(CONFIG_PREEMPT_RT)
--/*
-- * On SMP, spin_trylock is sufficient protection.
-- * On PREEMPT_RT, spin_trylock is equivalent on both SMP and UP.
-- * Pass flags to a no-op inline function to typecheck and silence the unused
-- * variable warning.
-- */
--static inline void __pcp_trylock_noop(unsigned long *flags) { }
--#define pcp_trylock_prepare(flags)	__pcp_trylock_noop(&(flags))
--#define pcp_trylock_finish(flags)	__pcp_trylock_noop(&(flags))
+-static inline void __flags_noop(unsigned long *flags) { }
+-#define pcp_spin_lock_maybe_irqsave(ptr, flags)		\
+-({							\
+-	 __flags_noop(&(flags));			\
+-	 spin_lock(&(ptr)->lock);			\
+-})
+-#define pcp_spin_unlock_maybe_irqrestore(ptr, flags)	\
+-({							\
+-	 spin_unlock(&(ptr)->lock);			\
+-	 __flags_noop(&(flags));			\
+-})
 -#else
--
--/* UP spin_trylock always succeeds so disable IRQs to prevent re-entrancy. */
--#define pcp_trylock_prepare(flags)	local_irq_save(flags)
--#define pcp_trylock_finish(flags)	local_irq_restore(flags)
+-#define pcp_spin_lock_maybe_irqsave(ptr, flags)		\
+-		spin_lock_irqsave(&(ptr)->lock, flags)
+-#define pcp_spin_unlock_maybe_irqrestore(ptr, flags)	\
+-		spin_unlock_irqrestore(&(ptr)->lock, flags)
 -#endif
--
- /*
-  * Locking a pcp requires a PCP lookup followed by a spinlock. To avoid
-  * a migration causing the wrong PCP to be locked and remote memory being
-@@ -149,31 +132,28 @@ static inline void __pcp_trylock_noop(un
- 	pcpu_task_unpin();						\
- })
++/*
++ * In some cases we do not need to pin the task to the CPU because we are
++ * already given a specific cpu's pcp pointer.
++ */
++#define pcp_spin_lock_nopin(ptr)			\
++		spin_lock(&(ptr)->lock)
++#define pcp_spin_unlock_nopin(ptr)			\
++		spin_unlock(&(ptr)->lock)
  
--/* struct per_cpu_pages specific helpers. */
--#define pcp_spin_trylock(ptr, UP_flags)					\
--({									\
--	struct per_cpu_pages *__ret;					\
--	pcp_trylock_prepare(UP_flags);					\
--	__ret = pcpu_spin_trylock(struct per_cpu_pages, lock, ptr);	\
--	if (!__ret)							\
--		pcp_trylock_finish(UP_flags);				\
--	__ret;								\
--})
--
--#define pcp_spin_unlock(ptr, UP_flags)					\
--({									\
--	pcpu_spin_unlock(lock, ptr);					\
--	pcp_trylock_finish(UP_flags);					\
--})
-+/* struct per_cpu_pages specific helpers.*/
-+#ifdef CONFIG_SMP
-+#define pcp_spin_trylock(ptr)						\
-+		pcpu_spin_trylock(struct per_cpu_pages, lock, ptr)
-+
-+#define pcp_spin_unlock(ptr)						\
-+		pcpu_spin_unlock(lock, ptr)
- 
- /*
-- * With the UP spinlock implementation, when we spin_lock(&pcp->lock) (for i.e.
-- * a potentially remote cpu drain) and get interrupted by an operation that
-- * attempts pcp_spin_trylock(), we can't rely on the trylock failure due to UP
-- * spinlock assumptions making the trylock a no-op. So we have to turn that
-- * spin_lock() to a spin_lock_irqsave(). This works because on UP there are no
-- * remote cpu's so we can only be locking the only existing local one.
-+ * On CONFIG_SMP=n the UP implementation of spin_trylock() never fails and thus
-+ * is not compatible with our locking scheme. However we do not need pcp for
-+ * scalability in the first place, so just make all the trylocks fail and take
-+ * the slow path unconditionally.
-  */
-+#else
-+#define pcp_spin_trylock(ptr)		\
-+		NULL
-+
-+#define pcp_spin_unlock(ptr)		\
-+		BUG_ON(1)
-+#endif
-+
- #if defined(CONFIG_SMP) || defined(CONFIG_PREEMPT_RT)
- static inline void __flags_noop(unsigned long *flags) { }
- #define pcp_spin_lock_maybe_irqsave(ptr, flags)		\
-@@ -2858,7 +2838,7 @@ static int nr_pcp_high(struct per_cpu_pa
-  */
- static bool free_frozen_page_commit(struct zone *zone,
- 		struct per_cpu_pages *pcp, struct page *page, int migratetype,
--		unsigned int order, fpi_t fpi_flags, unsigned long *UP_flags)
-+		unsigned int order, fpi_t fpi_flags)
+ #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
+ DEFINE_PER_CPU(int, numa_node);
+@@ -2568,7 +2558,6 @@ static int rmqueue_bulk(struct zone *zon
+ bool decay_pcp_high(struct zone *zone, struct per_cpu_pages *pcp)
  {
- 	int high, batch;
- 	int to_free, to_free_batched;
-@@ -2918,9 +2898,9 @@ static bool free_frozen_page_commit(stru
- 		if (to_free == 0 || pcp->count == 0)
- 			break;
+ 	int high_min, to_drain, to_drain_batched, batch;
+-	unsigned long UP_flags;
+ 	bool todo = false;
  
--		pcp_spin_unlock(pcp, *UP_flags);
-+		pcp_spin_unlock(pcp);
+ 	high_min = READ_ONCE(pcp->high_min);
+@@ -2588,9 +2577,9 @@ bool decay_pcp_high(struct zone *zone, s
+ 	to_drain = pcp->count - pcp->high;
+ 	while (to_drain > 0) {
+ 		to_drain_batched = min(to_drain, batch);
+-		pcp_spin_lock_maybe_irqsave(pcp, UP_flags);
++		pcp_spin_lock_nopin(pcp);
+ 		free_pcppages_bulk(zone, to_drain_batched, pcp, 0);
+-		pcp_spin_unlock_maybe_irqrestore(pcp, UP_flags);
++		pcp_spin_unlock_nopin(pcp);
+ 		todo = true;
  
--		pcp = pcp_spin_trylock(zone->per_cpu_pageset, *UP_flags);
-+		pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 		if (!pcp) {
- 			ret = false;
- 			break;
-@@ -2932,7 +2912,7 @@ static bool free_frozen_page_commit(stru
- 		 * returned in an unlocked state.
- 		 */
- 		if (smp_processor_id() != cpu) {
--			pcp_spin_unlock(pcp, *UP_flags);
-+			pcp_spin_unlock(pcp);
- 			ret = false;
- 			break;
- 		}
-@@ -2964,7 +2944,6 @@ static bool free_frozen_page_commit(stru
- static void __free_frozen_pages(struct page *page, unsigned int order,
- 				fpi_t fpi_flags)
+ 		to_drain -= to_drain_batched;
+@@ -2607,15 +2596,14 @@ bool decay_pcp_high(struct zone *zone, s
+  */
+ void drain_zone_pages(struct zone *zone, struct per_cpu_pages *pcp)
  {
 -	unsigned long UP_flags;
- 	struct per_cpu_pages *pcp;
- 	struct zone *zone;
- 	unsigned long pfn = page_to_pfn(page);
-@@ -3000,12 +2979,12 @@ static void __free_frozen_pages(struct p
- 		add_page_to_zone_llist(zone, page, order);
- 		return;
+ 	int to_drain, batch;
+ 
+ 	batch = READ_ONCE(pcp->batch);
+ 	to_drain = min(pcp->count, batch);
+ 	if (to_drain > 0) {
+-		pcp_spin_lock_maybe_irqsave(pcp, UP_flags);
++		pcp_spin_lock_nopin(pcp);
+ 		free_pcppages_bulk(zone, to_drain, pcp, 0);
+-		pcp_spin_unlock_maybe_irqrestore(pcp, UP_flags);
++		pcp_spin_unlock_nopin(pcp);
  	}
--	pcp = pcp_spin_trylock(zone->per_cpu_pageset, UP_flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (pcp) {
- 		if (!free_frozen_page_commit(zone, pcp, page, migratetype,
--						order, fpi_flags, &UP_flags))
-+						order, fpi_flags))
- 			return;
--		pcp_spin_unlock(pcp, UP_flags);
-+		pcp_spin_unlock(pcp);
- 	} else {
- 		free_one_page(zone, page, pfn, order, fpi_flags);
- 	}
-@@ -3026,7 +3005,6 @@ void free_frozen_pages_nolock(struct pag
-  */
- void free_unref_folios(struct folio_batch *folios)
+ }
+ #endif
+@@ -2626,11 +2614,10 @@ void drain_zone_pages(struct zone *zone,
+ static void drain_pages_zone(unsigned int cpu, struct zone *zone)
  {
+ 	struct per_cpu_pages *pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
 -	unsigned long UP_flags;
- 	struct per_cpu_pages *pcp = NULL;
- 	struct zone *locked_zone = NULL;
- 	int i, j;
-@@ -3069,7 +3047,7 @@ void free_unref_folios(struct folio_batc
- 		if (zone != locked_zone ||
- 		    is_migrate_isolate(migratetype)) {
- 			if (pcp) {
--				pcp_spin_unlock(pcp, UP_flags);
-+				pcp_spin_unlock(pcp);
- 				locked_zone = NULL;
- 				pcp = NULL;
- 			}
-@@ -3088,7 +3066,7 @@ void free_unref_folios(struct folio_batc
- 			 * trylock is necessary as folios may be getting freed
- 			 * from IRQ or SoftIRQ context after an IO completion.
- 			 */
--			pcp = pcp_spin_trylock(zone->per_cpu_pageset, UP_flags);
-+			pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 			if (unlikely(!pcp)) {
- 				free_one_page(zone, &folio->page, pfn,
- 					      order, FPI_NONE);
-@@ -3106,14 +3084,14 @@ void free_unref_folios(struct folio_batc
+ 	int count;
  
- 		trace_mm_page_free_batched(&folio->page);
- 		if (!free_frozen_page_commit(zone, pcp, &folio->page,
--				migratetype, order, FPI_NONE, &UP_flags)) {
-+				migratetype, order, FPI_NONE)) {
- 			pcp = NULL;
- 			locked_zone = NULL;
+ 	do {
+-		pcp_spin_lock_maybe_irqsave(pcp, UP_flags);
++		pcp_spin_lock_nopin(pcp);
+ 		count = pcp->count;
+ 		if (count) {
+ 			int to_drain = min(count,
+@@ -2639,7 +2626,7 @@ static void drain_pages_zone(unsigned in
+ 			free_pcppages_bulk(zone, to_drain, pcp, 0);
+ 			count -= to_drain;
  		}
- 	}
- 
- 	if (pcp)
--		pcp_spin_unlock(pcp, UP_flags);
-+		pcp_spin_unlock(pcp);
- 	folio_batch_reinit(folios);
+-		pcp_spin_unlock_maybe_irqrestore(pcp, UP_flags);
++		pcp_spin_unlock_nopin(pcp);
+ 	} while (count);
  }
  
-@@ -3371,10 +3349,9 @@ static struct page *rmqueue_pcplist(stru
- 	struct per_cpu_pages *pcp;
- 	struct list_head *list;
- 	struct page *page;
--	unsigned long UP_flags;
- 
- 	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
--	pcp = pcp_spin_trylock(zone->per_cpu_pageset, UP_flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (!pcp)
- 		return NULL;
- 
-@@ -3386,7 +3363,7 @@ static struct page *rmqueue_pcplist(stru
- 	pcp->free_count >>= 1;
- 	list = &pcp->lists[order_to_pindex(migratetype, order)];
- 	page = __rmqueue_pcplist(zone, order, migratetype, alloc_flags, pcp, list);
--	pcp_spin_unlock(pcp, UP_flags);
-+	pcp_spin_unlock(pcp);
- 	if (page) {
- 		__count_zid_vm_events(PGALLOC, page_zonenum(page), 1 << order);
- 		zone_statistics(preferred_zone, zone, 1);
-@@ -5067,7 +5044,6 @@ unsigned long alloc_pages_bulk_noprof(gf
- 			struct page **page_array)
+@@ -6123,7 +6110,6 @@ static void zone_pcp_update_cacheinfo(st
  {
- 	struct page *page;
--	unsigned long UP_flags;
- 	struct zone *zone;
- 	struct zoneref *z;
  	struct per_cpu_pages *pcp;
-@@ -5161,7 +5137,7 @@ retry_this_zone:
- 		goto failed;
+ 	struct cpu_cacheinfo *cci;
+-	unsigned long UP_flags;
  
- 	/* spin_trylock may fail due to a parallel drain or IRQ reentrancy. */
--	pcp = pcp_spin_trylock(zone->per_cpu_pageset, UP_flags);
-+	pcp = pcp_spin_trylock(zone->per_cpu_pageset);
- 	if (!pcp)
- 		goto failed;
+ 	pcp = per_cpu_ptr(zone->per_cpu_pageset, cpu);
+ 	cci = get_cpu_cacheinfo(cpu);
+@@ -6134,12 +6120,12 @@ static void zone_pcp_update_cacheinfo(st
+ 	 * This can reduce zone lock contention without hurting
+ 	 * cache-hot pages sharing.
+ 	 */
+-	pcp_spin_lock_maybe_irqsave(pcp, UP_flags);
++	pcp_spin_lock_nopin(pcp);
+ 	if ((cci->per_cpu_data_slice_size >> PAGE_SHIFT) > 3 * pcp->batch)
+ 		pcp->flags |= PCPF_FREE_HIGH_BATCH;
+ 	else
+ 		pcp->flags &= ~PCPF_FREE_HIGH_BATCH;
+-	pcp_spin_unlock_maybe_irqrestore(pcp, UP_flags);
++	pcp_spin_unlock_nopin(pcp);
+ }
  
-@@ -5180,7 +5156,7 @@ retry_this_zone:
- 		if (unlikely(!page)) {
- 			/* Try and allocate at least one page */
- 			if (!nr_account) {
--				pcp_spin_unlock(pcp, UP_flags);
-+				pcp_spin_unlock(pcp);
- 				goto failed;
- 			}
- 			break;
-@@ -5192,7 +5168,7 @@ retry_this_zone:
- 		page_array[nr_populated++] = page;
- 	}
- 
--	pcp_spin_unlock(pcp, UP_flags);
-+	pcp_spin_unlock(pcp);
- 
- 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
- 	zone_statistics(zonelist_zone(ac.preferred_zoneref), zone, nr_account);
+ void setup_pcp_cacheinfo(unsigned int cpu)
 _
 
 Patches currently in -mm which might be from vbabka@kernel.org are
