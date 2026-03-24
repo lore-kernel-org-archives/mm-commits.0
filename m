@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E71BE382374
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:44:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28E02382374
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:44:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388676; cv=none; b=YrhH39fDmKOSllJhZpdQPcSYnTtIHoovJNnw2oFWNwQTm+OpgwZ4Uhg2i8YQXlZTQKhyTY+kLhHo/QMty4i+iJz971QOMHX0eIXwvU0ySIL+ySoWudr0/PdlEPfTfTyBpiy4kiA7XUcUOk0xtcGtTrp6FaYR5YNgM8OzcXx8C1o=
+	t=1774388677; cv=none; b=tUe5pkihJWPR6nW6p3O/8mAw1APDbZxQp+PASDvV2fmV3rUNdAcV5SVFv6MtB+SLQHiQnr2QGxH2ZZ8ziZfxEh4Y6opS3AkgjlFwzSR5Q/SLCvBB5v8M8af60sOdicKcoQ1lld5msAU6QYnSSClVXxy90pVjTMcDMS1+kYVxEVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388676; c=relaxed/simple;
-	bh=pto9R4kPE0uG//Yp5oF6XnvN3H58cUMEOadjebAWSUU=;
-	h=Date:To:From:Subject:Message-Id; b=bqKLOdoX7cxhTm5YcHurto2IlUQBsb9Qy3IpnCnSDlQDd8eGAbaCkth4LDjhNIgNfZcUjf4D0THd2t+WvZuEfpopzVIaMqUrqLsmW4kmGN2oHlju9EE2jFRHDSXf3JfDj7SxzPh2EqWn9fW/0p+FIYT5WkbrHjIOLehZKBQF/OI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0l4dqPkW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388677; c=relaxed/simple;
+	bh=sRSmz7alSjkgHTFe2YuGtVcvmW5WKKFkjxpcb2DE7ew=;
+	h=Date:To:From:Subject:Message-Id; b=MKRgVHwFLxa6TIkRI0oLdsupt0eE1fEcMX1rAlPJwYJSFTOddAVym6F1LGcwhLHHHUjWg2f4jq25DaNB3ZJlt4JVOG9l0GdG+w882+aET/nMNoQz2SxVBN1rOHnw3ehxlkpx4AhsXkqfEBfSRrP9Ro5d+na7JxdEkNP9xe/hXhw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K8hDLKOq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0l4dqPkW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEDB4C2BCB1;
-	Tue, 24 Mar 2026 21:44:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K8hDLKOq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 028C7C2BC9E;
+	Tue, 24 Mar 2026 21:44:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388675;
-	bh=pto9R4kPE0uG//Yp5oF6XnvN3H58cUMEOadjebAWSUU=;
+	s=korg; t=1774388677;
+	bh=sRSmz7alSjkgHTFe2YuGtVcvmW5WKKFkjxpcb2DE7ew=;
 	h=Date:To:From:Subject:From;
-	b=0l4dqPkWTCc8lA86zqzQfvxdj1R2RsFmIzR6m0UAS+yLBvq4yL7045D2GaiE8y7OZ
-	 ySspRJQhfOiqOBhSFMANZFmxV4FJ/PGnXgxQf211cN0zDs5SiROVWp+cWvaZpENuX9
-	 evOv4p0g1P0utizrgN1/Z8V2D+bJQhVXUWl3U2Z4=
-Date: Tue, 24 Mar 2026 14:44:35 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,urezki@gmail.com,mpatocka@redhat.com,bhe@redhat.com,mhocko@suse.com,akpm@linux-foundation.org
+	b=K8hDLKOqDGp5l6Fb7zj1NTxETyY4strbnKzv5IiiEeoKB4polYK33RvSdQpxcV5F0
+	 tMYhAdmugaBEXg3sD38rpkVtbxoYWMEpFVxcT4py5XipKLXsaMXLF3key6TRx/6S6U
+	 LasXB3SWfAZ/y30KL6Lbo9m0k4LLHC4LcsbiF1qA=
+Date: Tue, 24 Mar 2026 14:44:36 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,vbabka@kernel.org,skhan@linuxfoundation.org,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,corbet@lwn.net,andreyknvl@gmail.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] vmalloc-support-__gfp_retry_mayfail-and-__gfp_noretry.patch removed from -mm tree
-Message-Id: <20260324214435.BEDB4C2BCB1@smtp.kernel.org>
+Subject: [merged mm-stable] kasan-docs-slub-is-the-only-remaining-slab-implementation.patch removed from -mm tree
+Message-Id: <20260324214437.028C7C2BC9E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,134 +35,94 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: vmalloc: support __GFP_RETRY_MAYFAIL and __GFP_NORETRY
+     Subject: kasan: docs: SLUB is the only remaining slab implementation
 has been removed from the -mm tree.  Its filename was
-     vmalloc-support-__gfp_retry_mayfail-and-__gfp_noretry.patch
+     kasan-docs-slub-is-the-only-remaining-slab-implementation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: vmalloc: support __GFP_RETRY_MAYFAIL and __GFP_NORETRY
-Date: Mon, 2 Mar 2026 12:47:40 +0100
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: kasan: docs: SLUB is the only remaining slab implementation
+Date: Tue, 3 Mar 2026 13:04:16 +0100
 
-__GFP_RETRY_MAYFAIL and __GFP_NORETRY haven't been supported so far
-because their semantic (i.e.  to not trigger OOM killer) is not possible
-with the existing vmalloc page table allocation which is allowing for the
-OOM killer.
+We have only the SLUB implementation left in the kernel (referred to as
+"slab").  Therefore, there is nothing special regarding KASAN modes when
+it comes to the slab allocator anymore.
 
-Example: __vmalloc(size, GFP_KERNEL | __GFP_RETRY_MAYFAIL);
+Drop the stale comment regarding differing SLUB vs. SLAB support.
 
-<snip>
- vmalloc_test/55 invoked oom-killer:
- gfp_mask=0x40dc0(
- GFP_KERNEL|__GFP_ZERO|__GFP_COMP), order=0, oom_score_adj=0
- active_anon:0 inactive_anon:0 isolated_anon:0
-  active_file:0 inactive_file:0 isolated_file:0
-  unevictable:0 dirty:0 writeback:0
-  slab_reclaimable:700 slab_unreclaimable:33708
-  mapped:0 shmem:0 pagetables:5174
-  sec_pagetables:0 bounce:0
-  kernel_misc_reclaimable:0
-  free:850 free_pcp:319 free_cma:0
- CPU: 4 UID: 0 PID: 639 Comm: vmalloc_test/55 ...
- Hardware name: QEMU Standard PC (i440FX + PIIX, ...
- Call Trace:
-  <TASK>
-  dump_stack_lvl+0x5d/0x80
-  dump_header+0x43/0x1b3
-  out_of_memory.cold+0x8/0x78
-  __alloc_pages_slowpath.constprop.0+0xef5/0x1130
-  __alloc_frozen_pages_noprof+0x312/0x330
-  alloc_pages_mpol+0x7d/0x160
-  alloc_pages_noprof+0x50/0xa0
-  __pte_alloc_kernel+0x1e/0x1f0
-  ...
-<snip>
-
-There are usecases for these modifiers when a large allocation request
-should rather fail than trigger OOM killer which wouldn't be able to
-handle the situation anyway [1].
-
-While we cannot change existing page table allocation code easily we can
-piggy back on scoped NOWAIT allocation for them that we already have in
-place.  The rationale is that the bulk of the consumed memory is sitting
-in pages backing the vmalloc allocation.  Page tables are only
-participating a tiny fraction.  Moreover page tables for virtually
-allocated areas are never reclaimed so the longer the system runs to less
-likely they are.  It makes sense to allow an approximation of
-__GFP_RETRY_MAYFAIL and __GFP_NORETRY even if the page table allocation
-part is much weaker.  This doesn't break the failure mode while it allows
-for the no OOM semantic.
-
-[1] https://lore.kernel.org/all/32bd9bed-a939-69c4-696d-f7f9a5fe31d8@redhat.com/T/#u
-
-Link: https://lkml.kernel.org/r/20260302114740.2668450-2-urezki@gmail.com
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Tested-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Link: https://lkml.kernel.org/r/20260303120416.62580-1-david@kernel.org
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ Documentation/dev-tools/kasan.rst |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/vmalloc.c~vmalloc-support-__gfp_retry_mayfail-and-__gfp_noretry
-+++ a/mm/vmalloc.c
-@@ -3797,6 +3797,8 @@ static void defer_vm_area_cleanup(struct
-  * non-blocking (no __GFP_DIRECT_RECLAIM) - memalloc_noreclaim_save()
-  * GFP_NOFS - memalloc_nofs_save()
-  * GFP_NOIO - memalloc_noio_save()
-+ * __GFP_RETRY_MAYFAIL, __GFP_NORETRY - memalloc_noreclaim_save()
-+ * to prevent OOMs
-  *
-  * Returns a flag cookie to pair with restore.
-  */
-@@ -3805,7 +3807,8 @@ memalloc_apply_gfp_scope(gfp_t gfp_mask)
- {
- 	unsigned int flags = 0;
+--- a/Documentation/dev-tools/kasan.rst~kasan-docs-slub-is-the-only-remaining-slab-implementation
++++ a/Documentation/dev-tools/kasan.rst
+@@ -75,9 +75,6 @@ Software Tag-Based KASAN supports slab,
+ Hardware Tag-Based KASAN supports slab, page_alloc, and non-executable vmalloc
+ memory.
  
--	if (!gfpflags_allow_blocking(gfp_mask))
-+	if (!gfpflags_allow_blocking(gfp_mask) ||
-+			(gfp_mask & (__GFP_RETRY_MAYFAIL | __GFP_NORETRY)))
- 		flags = memalloc_noreclaim_save();
- 	else if ((gfp_mask & (__GFP_FS | __GFP_IO)) == __GFP_IO)
- 		flags = memalloc_nofs_save();
-@@ -3933,7 +3936,8 @@ fail:
-  * GFP_KERNEL_ACCOUNT. Xfs uses __GFP_NOLOCKDEP.
-  */
- #define GFP_VMALLOC_SUPPORTED (GFP_KERNEL | GFP_ATOMIC | GFP_NOWAIT |\
--				__GFP_NOFAIL |  __GFP_ZERO | __GFP_NORETRY |\
-+				__GFP_NOFAIL | __GFP_ZERO |\
-+				__GFP_NORETRY | __GFP_RETRY_MAYFAIL |\
- 				GFP_NOFS | GFP_NOIO | GFP_KERNEL_ACCOUNT |\
- 				GFP_USER | __GFP_NOLOCKDEP)
+-For slab, both software KASAN modes support SLUB and SLAB allocators, while
+-Hardware Tag-Based KASAN only supports SLUB.
+-
+ Usage
+ -----
  
-@@ -3964,12 +3968,15 @@ static gfp_t vmalloc_fix_flags(gfp_t fla
-  * virtual range with protection @prot.
-  *
-  * Supported GFP classes: %GFP_KERNEL, %GFP_ATOMIC, %GFP_NOWAIT,
-- * %GFP_NOFS and %GFP_NOIO. Zone modifiers are not supported.
-+ * %__GFP_RETRY_MAYFAIL, %__GFP_NORETRY, %GFP_NOFS and %GFP_NOIO.
-+ * Zone modifiers are not supported.
-  * Please note %GFP_ATOMIC and %GFP_NOWAIT are supported only
-  * by __vmalloc().
-  *
-- * Retry modifiers: only %__GFP_NOFAIL is supported; %__GFP_NORETRY
-- * and %__GFP_RETRY_MAYFAIL are not supported.
-+ * Retry modifiers: only %__GFP_NOFAIL is fully supported;
-+ * %__GFP_NORETRY and %__GFP_RETRY_MAYFAIL are supported with limitation,
-+ * i.e. page tables are allocated with NOWAIT semantic so they might fail
-+ * under moderate memory pressure.
-  *
-  * %__GFP_NOWARN can be used to suppress failure messages.
-  *
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from david@kernel.org are
 
+mm-memory-fix-pmd-pud-checks-in-follow_pfnmap_start.patch
+mm-madvise-drop-range-checks-in-madvise_free_single_vma.patch
+mm-memory-remove-zap_details-parameter-from-zap_page_range_single.patch
+mm-memory-remove-zap_details-parameter-from-zap_page_range_single-fix.patch
+mm-memory-inline-unmap_mapping_range_vma-into-unmap_mapping_range_tree.patch
+mm-memory-simplify-calculation-in-unmap_mapping_range_tree.patch
+mm-oom_kill-use-mmu_notify_clear-in-__oom_reap_task_mm.patch
+mm-oom_kill-factor-out-zapping-of-vma-into-zap_vma_for_reaping.patch
+mm-memory-rename-unmap_single_vma-to-__zap_vma_range.patch
+mm-memory-move-adjusting-of-address-range-to-unmap_vmas.patch
+mm-memory-convert-details-even_cows-into-details-skip_cows.patch
+mm-memory-use-__zap_vma_range-in-zap_vma_for_reaping.patch
+mm-memory-inline-unmap_page_range-into-__zap_vma_range.patch
+mm-memory-inline-unmap_page_range-into-__zap_vma_range-fix.patch
+mm-rename-zap_vma_pages-to-zap_vma.patch
+mm-rename-zap_page_range_single_batched-to-zap_vma_range_batched.patch
+mm-rename-zap_page_range_single-to-zap_vma_range.patch
+mm-rename-zap_vma_ptes-to-zap_special_vma_range.patch
+mm-memory-support-vm_mixedmap-in-zap_special_vma_range.patch
+mm-move-vma_kernel_pagesize-from-hugetlb-to-mmh.patch
+mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac.patch
+kvm-remove-hugetlbh-inclusion.patch
+kvm-ppc-remove-hugetlbh-inclusion.patch
+mm-memory_hotplug-remove-for_each_valid_pfn-usage.patch
+mm-sparse-remove-warn_ons-from-onlineoffline_mem_sections.patch
+mm-kconfig-make-config_memory_hotplug-depend-on-config_sparsemem_vmemmap.patch
+mm-memory_hotplug-simplify-check_pfn_span.patch
+mm-sparse-remove-config_sparsemem_vmemmap-leftovers-for-config_memory_hotplug.patch
+mm-bootmem_info-remove-handling-for-config_sparsemem_vmemmap.patch
+mm-bootmem_info-avoid-using-sparse_decode_mem_map.patch
+mm-sparse-remove-sparse_decode_mem_map.patch
+mm-sparse-remove-config_memory_hotplug-specific-usemap-allocation-handling.patch
+mm-prepare-to-move-subsection_map_init-to-mm-sparse-vmemmapc.patch
+mm-sparse-drop-set_section_nid-from-sparse_add_section.patch
+mm-sparse-move-sparse_init_one_section-to-internalh.patch
+mm-sparse-move-sparse_init_one_section-to-internalh-fix.patch
+mm-sparse-move-__section_mark_present-to-internalh.patch
+mm-sparse-move-memory-hotplug-bits-to-sparse-vmemmapc.patch
+mm-remove-config_arch_enable_memory_hotremove.patch
+mm-introduce-config_numa_migration-and-simplify-config_migration.patch
 
