@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F083837B02A
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:44:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C6BA37A48B
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:44:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388652; cv=none; b=ENcy89N/Gk0L+v7WVAlMQLyJPsRYMmNWOg063qhCypLNi/BgkYJooQybglSE6nGf6a5iqzY6NaIlhd5zTMmOgEViyIUwY88zbBfZ02ZHMSrQtWh9/yMncLXP7h6HHVMn1jpU0YoWL+xs28RmWkA5GIn/Kz8FyFNMqkLz2dHv038=
+	t=1774388653; cv=none; b=HiFcn+okqiRWHls0F7Uns1/eiLgFvyvzW/KRiZBBxzRwPr1oy8d53ubTzXiof0Q2WK8rGOV9hdJ8ocbk373pjeJzQ1TI7wq9MpnG0GHGqrLJnu8By55CgQGtuQmrC3y2XeoB/ssyEpfqKpRSET7iGqT5MwU8B07tmp0mUDS15Mc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388652; c=relaxed/simple;
-	bh=yMTI8M/aZ0GkA5nOvJ8zdiIjceQzSZAMIhMgYzsPe8k=;
-	h=Date:To:From:Subject:Message-Id; b=gD40BElo/ULElH7bCPfKLPeOT174IFB5t743OaBdd4MdGZGgRtuXV+heSOrBtpUrn4BG6b9VTMARKghdu/7bCnQAc67Xc5X9zWyyV5qOJ3oCi5+BZQR4XpQBvQtJInCJ425kAMJZPFCcGGBPNGokt10mqruL13/F11hcgFD/2vE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NRMK8xww; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388653; c=relaxed/simple;
+	bh=1EOFIC3bVAax0R+VoL3PtOPm97L4Mdsxt7UffKDerOg=;
+	h=Date:To:From:Subject:Message-Id; b=iWLuweIobgiHCrPzhHcDAJePJUJVdMlEWPdvdSjkSdqYrKWmFb3N6SprrIS6lNwB8uxAVzaZJhrNs/mCKi/5DRTqipdQRCK4xm17KhM4z3DVflDc1DMzxhhzUDgNtoDeUh6/8Cj+daqZI/M8uSIs71oGH8wyFT3d6PigupaA6lg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PMkoHzYg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NRMK8xww"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA63DC19424;
-	Tue, 24 Mar 2026 21:44:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PMkoHzYg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EE04C2BCB2;
+	Tue, 24 Mar 2026 21:44:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388651;
-	bh=yMTI8M/aZ0GkA5nOvJ8zdiIjceQzSZAMIhMgYzsPe8k=;
+	s=korg; t=1774388653;
+	bh=1EOFIC3bVAax0R+VoL3PtOPm97L4Mdsxt7UffKDerOg=;
 	h=Date:To:From:Subject:From;
-	b=NRMK8xwwYaTM2sZireuGcurOa80QPy/5QoT9XLhhA1QPQmWh5vzTKJ8nUXL76b2Wa
-	 Damo2B5f9/K0XaS57VCbAf7TRsPg/VkitN4cn5t+DNmQs/aZeA6QIzdghRUyZeT0ZJ
-	 wHVhkq4pKQ4ZxsD4QkgDWFfaEVZMOvSgMyPbWqJ4=
-Date: Tue, 24 Mar 2026 14:44:11 -0700
+	b=PMkoHzYgxIElQfi9QGoVZPEbK9IR0IkQrIr6sgL1lZkfOoK9TY/01vVvG5qMwnmiw
+	 3NuAy6XLHw6S7BoZuLKrt3WHYe9WbRe4oHPJywraRRECZuNXeYAnJqAUT4vUeoL9zw
+	 reMsCMKTSfindXN/oOwij/3w+vyNNpAYMiN5L/+g=
+Date: Tue, 24 Mar 2026 14:44:12 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@suse.cz,usamaarif642@gmail.com,rppt@kernel.org,roman.gushchin@linux.dev,rientjes@google.com,paul.walmsley@sifive.com,palmer@dabbelt.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,lorenzo.stoakes@oracle.com,kernel@xen0n.name,harry.yoo@oracle.com,hannes@cmpxchg.org,fvdl@google.com,david@kernel.org,corbet@lwn.net,cl@gentwo.org,chenhuacai@kernel.org,bhe@redhat.com,aou@eecs.berkeley.edu,alex@ghiti.fr,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] hugetlb-update-vmemmap_deduprst.patch removed from -mm tree
-Message-Id: <20260324214411.CA63DC19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-slab-use-compound_head-in-page_slab.patch removed from -mm tree
+Message-Id: <20260324214413.3EE04C2BCB2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: hugetlb: update vmemmap_dedup.rst
+     Subject: mm/slab: use compound_head() in page_slab()
 has been removed from the -mm tree.  Its filename was
-     hugetlb-update-vmemmap_deduprst.patch
+     mm-slab-use-compound_head-in-page_slab.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kiryl Shutsemau <kas@kernel.org>
-Subject: hugetlb: update vmemmap_dedup.rst
-Date: Fri, 27 Feb 2026 19:42:55 +0000
+Subject: mm/slab: use compound_head() in page_slab()
+Date: Fri, 27 Feb 2026 19:42:56 +0000
 
-Update the documentation regarding vmemmap optimization for hugetlb to
-reflect the changes in how the kernel maps the tail pages.
+page_slab() contained an open-coded implementation of compound_head().
 
-Fake heads no longer exist. Remove their description.
+Replace the duplicated code with a direct call to compound_head().
 
-[kas@kernel.org: update vmemmap_dedup.rst]
-  Link: https://lkml.kernel.org/r/20260302105630.303492-1-kas@kernel.org
-Link: https://lkml.kernel.org/r/20260227194302.274384-18-kas@kernel.org
+Link: https://lkml.kernel.org/r/20260227194302.274384-19-kas@kernel.org
 Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Baoquan He <bhe@redhat.com>
@@ -72,98 +69,42 @@ Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Paul Walmsley <paul.walmsley@sifive.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/vmemmap_dedup.rst |   60 +++++++++++----------------
- 1 file changed, 26 insertions(+), 34 deletions(-)
+ mm/slab.h |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
---- a/Documentation/mm/vmemmap_dedup.rst~hugetlb-update-vmemmap_deduprst
-+++ a/Documentation/mm/vmemmap_dedup.rst
-@@ -124,33 +124,35 @@ Here is how things look before optimizat
-  |           |
-  +-----------+
- 
--The value of page->compound_info is the same for all tail pages. The first
--page of ``struct page`` (page 0) associated with the HugeTLB page contains the 4
--``struct page`` necessary to describe the HugeTLB. The only use of the remaining
--pages of ``struct page`` (page 1 to page 7) is to point to page->compound_info.
--Therefore, we can remap pages 1 to 7 to page 0. Only 1 page of ``struct page``
--will be used for each HugeTLB page. This will allow us to free the remaining
--7 pages to the buddy allocator.
-+The first page of ``struct page`` (page 0) associated with the HugeTLB page
-+contains the 4 ``struct page`` necessary to describe the HugeTLB. The remaining
-+pages of ``struct page`` (page 1 to page 7) are tail pages.
-+
-+The optimization is only applied when the size of the struct page is a power
-+of 2. In this case, all tail pages of the same order are identical. See
-+compound_head(). This allows us to remap the tail pages of the vmemmap to a
-+shared, read-only page. The head page is also remapped to a new page. This
-+allows the original vmemmap pages to be freed.
- 
- Here is how things look after remapping::
- 
--    HugeTLB                  struct pages(8 pages)         page frame(8 pages)
-- +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-- |           |                     |     0     | -------------> |     0     |
-- |           |                     +-----------+                +-----------+
-- |           |                     |     1     | ---------------^ ^ ^ ^ ^ ^ ^
-- |           |                     +-----------+                  | | | | | |
-- |           |                     |     2     | -----------------+ | | | | |
-- |           |                     +-----------+                    | | | | |
-- |           |                     |     3     | -------------------+ | | | |
-- |           |                     +-----------+                      | | | |
-- |           |                     |     4     | ---------------------+ | | |
-- |    PMD    |                     +-----------+                        | | |
-- |   level   |                     |     5     | -----------------------+ | |
-- |  mapping  |                     +-----------+                          | |
-- |           |                     |     6     | -------------------------+ |
-- |           |                     +-----------+                            |
-- |           |                     |     7     | ---------------------------+
-+    HugeTLB                  struct pages(8 pages)                 page frame (new)
-+ +-----------+ ---virt_to_page---> +-----------+   mapping to   +----------------+
-+ |           |                     |     0     | -------------> |       0        |
-+ |           |                     +-----------+                +----------------+
-+ |           |                     |     1     | ------┐
-+ |           |                     +-----------+       |
-+ |           |                     |     2     | ------┼        +----------------------------+
-+ |           |                     +-----------+       |        | A single, per-zone page    |
-+ |           |                     |     3     | ------┼------> | frame shared among all     |
-+ |           |                     +-----------+       |        | hugepages of the same size |
-+ |           |                     |     4     | ------┼        +----------------------------+
-+ |           |                     +-----------+       |
-+ |           |                     |     5     | ------┼
-+ |    PMD    |                     +-----------+       |
-+ |   level   |                     |     6     | ------┼
-+ |  mapping  |                     +-----------+       |
-+ |           |                     |     7     | ------┘
-  |           |                     +-----------+
-  |           |
-  |           |
-@@ -172,16 +174,6 @@ The contiguous bit is used to increase t
- (last) level. So this type of HugeTLB page can be optimized only when its
- size of the ``struct page`` structs is greater than **1** page.
- 
--Notice: The head vmemmap page is not freed to the buddy allocator and all
--tail vmemmap pages are mapped to the head vmemmap page frame. So we can see
--more than one ``struct page`` struct with ``PG_head`` (e.g. 8 per 2 MB HugeTLB
--page) associated with each HugeTLB page. The ``compound_head()`` can handle
--this correctly. There is only **one** head ``struct page``, the tail
--``struct page`` with ``PG_head`` are fake head ``struct page``.  We need an
--approach to distinguish between those two different types of ``struct page`` so
--that ``compound_head()`` can return the real head ``struct page`` when the
--parameter is the tail ``struct page`` but with ``PG_head``.
+--- a/mm/slab.h~mm-slab-use-compound_head-in-page_slab
++++ a/mm/slab.h
+@@ -131,19 +131,7 @@ static_assert(IS_ALIGNED(offsetof(struct
+  */
+ static inline struct slab *page_slab(const struct page *page)
+ {
+-	unsigned long info;
 -
- Device DAX
- ==========
+-	info = READ_ONCE(page->compound_info);
+-	if (info & 1) {
+-		/* See compound_head() */
+-		if (compound_info_has_mask()) {
+-			unsigned long p = (unsigned long)page;
+-			page = (struct page *)(p & info);
+-		} else {
+-			page = (struct page *)(info - 1);
+-		}
+-	}
+-
++	page = compound_head(page);
+ 	if (data_race(page->page_type >> 24) != PGTY_slab)
+ 		page = NULL;
  
 _
 
