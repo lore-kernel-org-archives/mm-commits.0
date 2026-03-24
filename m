@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29D9F1684BE
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 23:16:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFAD235C185
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 23:18:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774394175; cv=none; b=HKUYJSYyU1hBYra0Zdapo15yVigDumE+tZKJYajcPZVG0exr34exWCNen/AUHW4KwwuQYQOXhD376rojhi7c5w/n7TYtj2vRNJJGgRVDBrOwAK5wON23HwJmT2gU5g8Lt5M4JldnN0+VRBepGSjGTw/SGhvPjARyDqO7BFGjH0A=
+	t=1774394301; cv=none; b=su5rBIjTQ/Hm5bnRGveuNZ3uHTfHZFEpeXgquG1D49oNyIHFlpluqyWtdzFM3GQU2xGmB5PQU8wiYVGw16TOdYcz5ROKnxExPptYFHCRpcBFbuZZFi0+iEGVMkXveOTp7dU+AUTKwdkfRBTp2c0VgKrkJ2cXicU6zdHCzS0Wv2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774394175; c=relaxed/simple;
-	bh=CyUAj8Je+OuB5R929cXL+Gu8YeCwExp+lkxebrVT/x0=;
-	h=Date:To:From:Subject:Message-Id; b=iRD9iwF+2rg2kg/FOhGqXXgI+vgj5ziVQdDblR0SgyXxYELVXTs9xKvFEqZp3BLvBaWUBHNEPdqX1TP0b+xD51CnB1ooB8A3QbsS/0PIeu60/aqYQnHmCtzbWQ3nU3F1GQjYlAaXzrbLOzfw738xARyiRz4/wOUNaPAtOfR+Ylw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aImU9Yo6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774394301; c=relaxed/simple;
+	bh=xGILtIlB7oS8jUbp8gVUH7XTYpqfaxGstaHR434TS64=;
+	h=Date:To:From:Subject:Message-Id; b=mLAyKo1CtjQ3myrdLN++mEhQ/qc9r9j2L3LZMqBeae9CgPMs2B9QPqKJGtTnVKuTixfq6lxLCf+desgP4W9lb5YJJ0WROiE5UbSIu1zm1647QZXk/tAj7MRAkBju8RY6/GuySQD4Cb//NPyKCQvgICGR+569iw4ytMEJuHxdPEA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vEn4yor8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aImU9Yo6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFAC3C19424;
-	Tue, 24 Mar 2026 23:16:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vEn4yor8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9297FC19424;
+	Tue, 24 Mar 2026 23:18:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774394175;
-	bh=CyUAj8Je+OuB5R929cXL+Gu8YeCwExp+lkxebrVT/x0=;
+	s=korg; t=1774394301;
+	bh=xGILtIlB7oS8jUbp8gVUH7XTYpqfaxGstaHR434TS64=;
 	h=Date:To:From:Subject:From;
-	b=aImU9Yo6Gs9F1U/85u/4Muhlt77SPESnuVa1qIIQ0Wpv4Hv+RNKvP67IS3KbElR+B
-	 IuuV5YxhvUDMu+OO1EkbzVOoNqaecgjT7al9Z7l0GmYGxTbyMnhJ/z4KnLHqgdDY8p
-	 SyqXPCt2udIy78ZtGS80Xk8twF5GufoXhR4yZakI=
-Date: Tue, 24 Mar 2026 16:16:14 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,devnexen@gmail.com,akpm@linux-foundation.org
+	b=vEn4yor8JNf4dXyI5PWRPInfu4UXIkgoUmnRUtKxDZo5Lsif9OJJkBhGTZkxqZxwg
+	 xd339Ns63WFRfEgn/1VC/OH/i7aPAnJYJmM83HDC99kvXYg+iQpiszySKj4PMXVzZv
+	 XTIcYhALZzP7g0xr2bFz5OlgCEwUa0tc+aROmVWQ=
+Date: Tue, 24 Mar 2026 16:18:20 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuvraj.sakshith@oss.qualcomm.com,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mst@redhat.com,mhocko@suse.com,mhklinux@outlook.com,lorenzo.stoakes@oracle.com,longli@microsoft.com,liam.howlett@oracle.com,kys@microsoft.com,jasowang@redhat.com,jackmanb@google.com,hannes@cmpxchg.org,haiyangz@microsoft.com,eperezma@redhat.com,decui@microsoft.com,david@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix-fix-2-fix.patch removed from -mm tree
-Message-Id: <20260324231614.EFAC3C19424@smtp.kernel.org>
+Subject: [folded-merged] mm-page_reporting-add-page_reporting_order_unspecified-fix.patch removed from -mm tree
+Message-Id: <20260324231821.9297FC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,44 +35,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix-fix-2-fix
+     Subject: mm-page_reporting-add-page_reporting_order_unspecified-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix-fix-2-fix.patch
+     mm-page_reporting-add-page_reporting_order_unspecified-fix.patch
 
-This patch was dropped because it was folded into mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch
+This patch was dropped because it was folded into mm-page_reporting-add-page_reporting_order_unspecified.patch
 
 ------------------------------------------------------
-From: David Carlier <devnexen@gmail.com>
-Subject: mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix-fix-2-fix
-Date: Mon, 23 Mar 2026 06:30:06 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_reporting-add-page_reporting_order_unspecified-fix
+Date: Tue Mar  3 02:33:57 PM PST 2026
 
-add newline, per Qi Zheng
+tweak whitespace, per David
 
-Link: https://lkml.kernel.org/r/20260323063007.7783-1-devnexen@gmail.com
-Fixes: 098fad3e1621 ("mm: memcontrol: convert objcg to be per-memcg per-node type")
-Signed-off-by: David Carlier <devnexen@gmail.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Dexuan Cui <decui@microsoft.com>
+Cc: Eugenio Pérez <eperezma@redhat.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: K. Y. Srinivasan <kys@microsoft.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Long Li <longli@microsoft.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michael Kelley <mhklinux@outlook.com>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Liu <wei.liu@kernel.org>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: Yuvraj Sakshith <yuvraj.sakshith@oss.qualcomm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_reporting.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix-fix-2-fix
-+++ a/mm/memcontrol.c
-@@ -4058,6 +4058,7 @@ free_objcg:
- 	for_each_node(nid) {
- 		struct mem_cgroup_per_node *pn = memcg->nodeinfo[nid];
- 		objcg = rcu_replace_pointer(pn->objcg, NULL, true);
-+
- 		if (objcg)
- 			percpu_ref_kill(&objcg->refcnt);
+--- a/mm/page_reporting.c~mm-page_reporting-add-page_reporting_order_unspecified-fix
++++ a/mm/page_reporting.c
+@@ -371,7 +371,7 @@ int page_reporting_register(struct page_
  
+ 	if (page_reporting_order == -1) {
+ 		if (prdev->order != PAGE_REPORTING_ORDER_UNSPECIFIED &&
+-			prdev->order <= MAX_PAGE_ORDER)
++		    prdev->order <= MAX_PAGE_ORDER)
+ 			page_reporting_order = prdev->order;
+ 		else
+ 			page_reporting_order = pageblock_order;
 _
 
-Patches currently in -mm which might be from devnexen@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
-mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch
-mm-page_io-fix-pswpin-undercount-for-large-folios-in-sio_read_complete.patch
+mm-page_reporting-add-page_reporting_order_unspecified.patch
+mm-rename-zone-lock-to-zone-_lock-fix.patch
+mm-switch-the-rmap-lock-held-option-off-in-compat-layer-fix.patch
+selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
+kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
+decode_stacktrace-decode-caller-address-checkpatch-fixes.patch
+lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix.patch
 
