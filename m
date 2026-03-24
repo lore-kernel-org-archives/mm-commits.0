@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CDF2364053
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50564364E80
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388616; cv=none; b=GYp6SsLafmNbA1GqHEjtPM63rkpg2OEiuYZT4kE3/wtBCUAefGL5/llwH8C5Q8IqqaryrF0NXc7Agj77ghIAXX696fAjjobQ+9jOKzv27RPR2nIAyKQDTWkNamJTY39NfWYYXrS8+Wx2HCHCLRcx2gJ4TUGShf7jhud7W4gn6NM=
+	t=1774388617; cv=none; b=M1dL/0lV5KwsfITJ417Q9I3x6rxzk69BPZcC62c7jzmRQauq0czj4wIBOSOR19Lpp5TY+2LqNXDxC2MKbaJrjSEjXMiCBgeJkfhQSRIl1DIEq+mMZp5qZGUvxxExgj3ZKJ/fupn1RkZdjwnDExL6BMeJDJ6NBrZlaJlFBLtj/6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388616; c=relaxed/simple;
-	bh=+bCgAKMDGh43kqT4ZkF6y+9Jwyty2eiV3/A1BOxdZN4=;
-	h=Date:To:From:Subject:Message-Id; b=rVVxQsHaDI3F2egAWZpHO0Uhhmv8kEq3my1ocrBwvWt/YYOaxr7i8on5aRX4VPPJM07LAmaREAPskGJSVQAQ2wPuH6HNHUHP4WJ5tvmYiNiSMdmVt+PSbpT/WZJOkV2n+ZUZ0goKCoKxiuPxcXE88AQBWQPh0xCKNGLY4axP6aM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sKh9Gyqc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388617; c=relaxed/simple;
+	bh=82WMI2asguQqWsCO7yae3P96dY9enJuuFCuvRQNZcgM=;
+	h=Date:To:From:Subject:Message-Id; b=lG8zQOoYTEiFbrY/37OH+QFTrRy/BoBU367MXF9cvTQEGXacTW0GFdblr+IZHEMSKpMvXyUuvZcaBKByF+/dhVUpKjvQfkS8PzAsxyMHk64XIpNx01+WSVXGPhuXryP34Yuw/DVfvwzBA1cq3rgCvgzfSZymRM+SXGnUFPNH5zw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jRNojDbm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sKh9Gyqc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8F41C19424;
-	Tue, 24 Mar 2026 21:43:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jRNojDbm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 217D7C19424;
+	Tue, 24 Mar 2026 21:43:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388616;
-	bh=+bCgAKMDGh43kqT4ZkF6y+9Jwyty2eiV3/A1BOxdZN4=;
+	s=korg; t=1774388617;
+	bh=82WMI2asguQqWsCO7yae3P96dY9enJuuFCuvRQNZcgM=;
 	h=Date:To:From:Subject:From;
-	b=sKh9GyqcQiY4YkiohAqf5Xj9B+QydATyvX8gq+7YtzvzkUbw7MzRtW7Kc1XA5r+Xp
-	 BLjZz96SmHiHUqsMvi9GfXprbynuxdxB+DbEepNfjLiN251pC6fdKBkNYUHx2Q/dJ/
-	 dOovCbynBwQH4Rvb/ygATyIbLB1LtGKH8zfLaLTw=
-Date: Tue, 24 Mar 2026 14:43:35 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,tglx@kernel.org,surenb@google.com,rppt@kernel.org,rick.p.edgecombe@intel.com,pjw@kernel.org,palmer@dabbelt.com,mingo@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,hpa@zytor.com,debug@rivosinc.com,david@kernel.org,dave.hansen@linux.intel.com,broonie@kernel.org,bp@alien8.de,aou@eecs.berkeley.edu,alex@ghiti.fr,catalin.marinas@arm.com,akpm@linux-foundation.org
+	b=jRNojDbmLmpTzUaW7lQu4Oq/8PLWNa/VkRNOoCOk4duzE9WFtECPDDpoepbJTsSe2
+	 9sgge0dKD2pU/3E7NkgQO4z7Z3HKpN6XNt1aAqajrYHlB9rkGi1Zn1mRyO805nVjSY
+	 84iilp5L8sDYygJKRHOFVNH8NwfGeBp2FwijPoGw=
+Date: Tue, 24 Mar 2026 14:43:36 -0700
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,kees@kernel.org,glider@google.com,dvyukov@google.com,corbet@lwn.net,elver@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-do-not-map-the-shadow-stack-as-thp.patch removed from -mm tree
-Message-Id: <20260324214335.E8F41C19424@smtp.kernel.org>
+Subject: [merged mm-stable] kfence-add-kfencefault-parameter.patch removed from -mm tree
+Message-Id: <20260324214337.217D7C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,283 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: do not map the shadow stack as THP
+     Subject: kfence: add kfence.fault parameter
 has been removed from the -mm tree.  Its filename was
-     mm-do-not-map-the-shadow-stack-as-thp.patch
+     kfence-add-kfencefault-parameter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: mm: do not map the shadow stack as THP
-Date: Wed, 25 Feb 2026 16:14:02 +0000
+From: Marco Elver <elver@google.com>
+Subject: kfence: add kfence.fault parameter
+Date: Wed, 25 Feb 2026 21:36:05 +0100
 
-The default shadow stack size allocated on first prctl() for the main
-thread or subsequently on clone() is either half of RLIMIT_STACK or half
-of a thread's stack size (for arm64).  Both of these are likely to be
-suitable for a THP allocation and the kernel is more aggressive in
-creating such mappings.  However, it does not make much sense to use a
-huge page.  It didn't make sense for the normal stacks either, see commit
-c4608d1bf7c6 ("mm: mmap: map MAP_STACK to VM_NOHUGEPAGE").
+Add kfence.fault parameter to control the behavior when a KFENCE error is
+detected (similar in spirit to kasan.fault=<mode>).
 
-Force VM_NOHUGEPAGE when allocating/mapping the shadow stack.  As per
-commit 7190b3c8bd2b ("mm: mmap: map MAP_STACK to VM_NOHUGEPAGE only if THP
-is enabled"), only pass this flag if TRANSPARENT_HUGEPAGE is enabled as
-not to confuse CRIU tools.
+The supported modes for kfence.fault=<mode> are:
 
-Link: https://lkml.kernel.org/r/20260225161404.3157851-6-catalin.marinas@arm.com
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Tested-by: Deepak Gupta <debug@rivosinc.com>
-Reviewed-by: Mark Brown <broonie@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <pjw@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Gleixner <tglx@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Will Deacon <will@kernel.org>
+  - report: print the error report and continue (default).
+  - oops: print the error report and oops.
+  - panic: print the error report and panic.
+
+In particular, the 'oops' mode offers a trade-off between no mitigation
+on report and panicking outright (if panic_on_oops is not set).
+
+Link: https://lkml.kernel.org/r/20260225203639.3159463-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/kernel-parameters.txt |    6 +
+ Documentation/dev-tools/kfence.rst              |    7 ++
+ mm/kfence/core.c                                |   23 ++++--
+ mm/kfence/kfence.h                              |   16 ++++
+ mm/kfence/report.c                              |   49 +++++++++++++-
+ 5 files changed, 89 insertions(+), 12 deletions(-)
 
---- a/mm/util.c~mm-do-not-map-the-shadow-stack-as-thp
-+++ a/mm/util.c
-@@ -629,14 +629,18 @@ unsigned long vm_mmap_shadow_stack(unsig
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long ret, unused;
-+	vm_flags_t vm_flags = VM_SHADOW_STACK;
+--- a/Documentation/admin-guide/kernel-parameters.txt~kfence-add-kfencefault-parameter
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -2959,6 +2959,12 @@ Kernel parameters
+ 			Format: <bool>
+ 			Default: CONFIG_KFENCE_DEFERRABLE
  
- 	flags |= MAP_ANONYMOUS | MAP_PRIVATE;
- 	if (addr)
- 		flags |= MAP_FIXED_NOREPLACE;
- 
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
-+		vm_flags |= VM_NOHUGEPAGE;
++	kfence.fault=	[MM,KFENCE] Controls the behavior when a KFENCE
++			error is detected.
++			report - print the error report and continue (default).
++			oops   - print the error report and oops.
++			panic  - print the error report and panic.
 +
- 	mmap_write_lock(mm);
- 	ret = do_mmap(NULL, addr, len, PROT_READ | PROT_WRITE, flags,
--		      VM_SHADOW_STACK, 0, &unused, NULL);
-+		      vm_flags, 0, &unused, NULL);
- 	mmap_write_unlock(mm);
+ 	kfence.sample_interval=
+ 			[MM,KFENCE] KFENCE's sample interval in milliseconds.
+ 			Format: <unsigned integer>
+--- a/Documentation/dev-tools/kfence.rst~kfence-add-kfencefault-parameter
++++ a/Documentation/dev-tools/kfence.rst
+@@ -81,6 +81,13 @@ tables being allocated.
+ Error reports
+ ~~~~~~~~~~~~~
  
- 	return ret;
++The boot parameter ``kfence.fault`` can be used to control the behavior when a
++KFENCE error is detected:
++
++- ``kfence.fault=report``: Print the error report and continue (default).
++- ``kfence.fault=oops``: Print the error report and oops.
++- ``kfence.fault=panic``: Print the error report and panic.
++
+ A typical out-of-bounds access looks like this::
+ 
+     ==================================================================
+--- a/mm/kfence/core.c~kfence-add-kfencefault-parameter
++++ a/mm/kfence/core.c
+@@ -51,7 +51,7 @@
+ 
+ /* === Data ================================================================= */
+ 
+-static bool kfence_enabled __read_mostly;
++bool kfence_enabled __read_mostly;
+ static bool disabled_by_warn __read_mostly;
+ 
+ unsigned long kfence_sample_interval __read_mostly = CONFIG_KFENCE_SAMPLE_INTERVAL;
+@@ -336,6 +336,7 @@ out:
+ static check_canary_attributes bool check_canary_byte(u8 *addr)
+ {
+ 	struct kfence_metadata *meta;
++	enum kfence_fault fault;
+ 	unsigned long flags;
+ 
+ 	if (likely(*addr == KFENCE_CANARY_PATTERN_U8(addr)))
+@@ -345,8 +346,9 @@ static check_canary_attributes bool chec
+ 
+ 	meta = addr_to_metadata((unsigned long)addr);
+ 	raw_spin_lock_irqsave(&meta->lock, flags);
+-	kfence_report_error((unsigned long)addr, false, NULL, meta, KFENCE_ERROR_CORRUPTION);
++	fault = kfence_report_error((unsigned long)addr, false, NULL, meta, KFENCE_ERROR_CORRUPTION);
+ 	raw_spin_unlock_irqrestore(&meta->lock, flags);
++	kfence_handle_fault(fault);
+ 
+ 	return false;
+ }
+@@ -525,11 +527,14 @@ static void kfence_guarded_free(void *ad
+ 	raw_spin_lock_irqsave(&meta->lock, flags);
+ 
+ 	if (!kfence_obj_allocated(meta) || meta->addr != (unsigned long)addr) {
++		enum kfence_fault fault;
++
+ 		/* Invalid or double-free, bail out. */
+ 		atomic_long_inc(&counters[KFENCE_COUNTER_BUGS]);
+-		kfence_report_error((unsigned long)addr, false, NULL, meta,
+-				    KFENCE_ERROR_INVALID_FREE);
++		fault = kfence_report_error((unsigned long)addr, false, NULL, meta,
++					    KFENCE_ERROR_INVALID_FREE);
+ 		raw_spin_unlock_irqrestore(&meta->lock, flags);
++		kfence_handle_fault(fault);
+ 		return;
+ 	}
+ 
+@@ -831,7 +836,8 @@ static void kfence_check_all_canary(void
+ static int kfence_check_canary_callback(struct notifier_block *nb,
+ 					unsigned long reason, void *arg)
+ {
+-	kfence_check_all_canary();
++	if (READ_ONCE(kfence_enabled))
++		kfence_check_all_canary();
+ 	return NOTIFY_OK;
+ }
+ 
+@@ -1266,6 +1272,7 @@ bool kfence_handle_page_fault(unsigned l
+ 	struct kfence_metadata *to_report = NULL;
+ 	unsigned long unprotected_page = 0;
+ 	enum kfence_error_type error_type;
++	enum kfence_fault fault;
+ 	unsigned long flags;
+ 
+ 	if (!is_kfence_address((void *)addr))
+@@ -1324,12 +1331,14 @@ out:
+ 	if (to_report) {
+ 		raw_spin_lock_irqsave(&to_report->lock, flags);
+ 		to_report->unprotected_page = unprotected_page;
+-		kfence_report_error(addr, is_write, regs, to_report, error_type);
++		fault = kfence_report_error(addr, is_write, regs, to_report, error_type);
+ 		raw_spin_unlock_irqrestore(&to_report->lock, flags);
+ 	} else {
+ 		/* This may be a UAF or OOB access, but we can't be sure. */
+-		kfence_report_error(addr, is_write, regs, NULL, KFENCE_ERROR_INVALID);
++		fault = kfence_report_error(addr, is_write, regs, NULL, KFENCE_ERROR_INVALID);
+ 	}
+ 
++	kfence_handle_fault(fault);
++
+ 	return kfence_unprotect(addr); /* Unprotect and let access proceed. */
+ }
+--- a/mm/kfence/kfence.h~kfence-add-kfencefault-parameter
++++ a/mm/kfence/kfence.h
+@@ -16,6 +16,8 @@
+ 
+ #include "../slab.h" /* for struct kmem_cache */
+ 
++extern bool kfence_enabled;
++
+ /*
+  * Get the canary byte pattern for @addr. Use a pattern that varies based on the
+  * lower 3 bits of the address, to detect memory corruptions with higher
+@@ -140,8 +142,18 @@ enum kfence_error_type {
+ 	KFENCE_ERROR_INVALID_FREE,	/* Invalid free. */
+ };
+ 
+-void kfence_report_error(unsigned long address, bool is_write, struct pt_regs *regs,
+-			 const struct kfence_metadata *meta, enum kfence_error_type type);
++enum kfence_fault {
++	KFENCE_FAULT_NONE,
++	KFENCE_FAULT_REPORT,
++	KFENCE_FAULT_OOPS,
++	KFENCE_FAULT_PANIC,
++};
++
++enum kfence_fault
++kfence_report_error(unsigned long address, bool is_write, struct pt_regs *regs,
++		    const struct kfence_metadata *meta, enum kfence_error_type type);
++
++void kfence_handle_fault(enum kfence_fault fault);
+ 
+ void kfence_print_object(struct seq_file *seq, const struct kfence_metadata *meta) __must_hold(&meta->lock);
+ 
+--- a/mm/kfence/report.c~kfence-add-kfencefault-parameter
++++ a/mm/kfence/report.c
+@@ -7,9 +7,12 @@
+ 
+ #include <linux/stdarg.h>
+ 
++#include <linux/bug.h>
++#include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/lockdep.h>
+ #include <linux/math.h>
++#include <linux/panic.h>
+ #include <linux/printk.h>
+ #include <linux/sched/debug.h>
+ #include <linux/seq_file.h>
+@@ -29,6 +32,26 @@
+ #define ARCH_FUNC_PREFIX ""
+ #endif
+ 
++static enum kfence_fault kfence_fault __ro_after_init = KFENCE_FAULT_REPORT;
++
++static int __init early_kfence_fault(char *arg)
++{
++	if (!arg)
++		return -EINVAL;
++
++	if (!strcmp(arg, "report"))
++		kfence_fault = KFENCE_FAULT_REPORT;
++	else if (!strcmp(arg, "oops"))
++		kfence_fault = KFENCE_FAULT_OOPS;
++	else if (!strcmp(arg, "panic"))
++		kfence_fault = KFENCE_FAULT_PANIC;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++early_param("kfence.fault", early_kfence_fault);
++
+ /* Helper function to either print to a seq_file or to console. */
+ __printf(2, 3)
+ static void seq_con_printf(struct seq_file *seq, const char *fmt, ...)
+@@ -189,8 +212,9 @@ static const char *get_access_type(bool
+ 	return str_write_read(is_write);
+ }
+ 
+-void kfence_report_error(unsigned long address, bool is_write, struct pt_regs *regs,
+-			 const struct kfence_metadata *meta, enum kfence_error_type type)
++enum kfence_fault
++kfence_report_error(unsigned long address, bool is_write, struct pt_regs *regs,
++		    const struct kfence_metadata *meta, enum kfence_error_type type)
+ {
+ 	unsigned long stack_entries[KFENCE_STACK_DEPTH] = { 0 };
+ 	const ptrdiff_t object_index = meta ? meta - kfence_metadata : -1;
+@@ -206,7 +230,7 @@ void kfence_report_error(unsigned long a
+ 
+ 	/* Require non-NULL meta, except if KFENCE_ERROR_INVALID. */
+ 	if (WARN_ON(type != KFENCE_ERROR_INVALID && !meta))
+-		return;
++		return KFENCE_FAULT_NONE;
+ 
+ 	/*
+ 	 * Because we may generate reports in printk-unfriendly parts of the
+@@ -282,6 +306,25 @@ void kfence_report_error(unsigned long a
+ 
+ 	/* We encountered a memory safety error, taint the kernel! */
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_STILL_OK);
++
++	return kfence_fault;
++}
++
++void kfence_handle_fault(enum kfence_fault fault)
++{
++	switch (fault) {
++	case KFENCE_FAULT_NONE:
++	case KFENCE_FAULT_REPORT:
++		break;
++	case KFENCE_FAULT_OOPS:
++		BUG();
++		break;
++	case KFENCE_FAULT_PANIC:
++		/* Disable KFENCE to avoid recursion if check_on_panic is set. */
++		WRITE_ONCE(kfence_enabled, false);
++		panic("kfence.fault=panic set ...\n");
++		break;
++	}
+ }
+ 
+ #ifdef CONFIG_PRINTK
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from elver@google.com are
 
 
