@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEE75364058
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CF3E18027
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388553; cv=none; b=OUaDXR0LXChPMBMeJ9SzgLJzI5LXR5LzczTgXf6NX/pNAnyllHTJ7wJoW5B7TjK+5hIEVFNsC/0L3HPKzhkU87l76OjAJnWSRzHamUpgbcBTtZi+oDhvIf7V1hG9rixFCqquGebrokMoi0HPBpgxESl6f2sZn/VdQPhlJ/pj9nc=
+	t=1774388555; cv=none; b=dArclWphPY5otsqOfW1IyYxQNWkyFScoAaKLc0R2lqJe/5OgNa7XTLVXu7+Jq2xWzRfYczvMhXOnEwrL/EDocyyLxjGnsDMluw/GdiJ1FBI/9cIIpbS9WhvdWjtFsX1wgw2Bf23CV2sjLoZ46EwC97ERAx51GuEnqfc+kZnQZGU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388553; c=relaxed/simple;
-	bh=NPRLEcY9Q1Srlj0JFoZoJtGYZ1lgA8UPSNnTpOe1H1c=;
-	h=Date:To:From:Subject:Message-Id; b=BCSlrhY1aXA9mqi52Bm3Dma5FVVH6NU7bgLG2Zba5zStRGnzCqa3QulNEFJH/ScLetzQQbOilkgSQscUKtKS4BdQKJAgsM1FiEo2TzpBBXKYSEaM1jw0hG9aDe1B6wtqoWKeo0+ga6ruyKzDjCfTWivzjAsfB8Beyy4hjrQTBXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t0eZbafi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388555; c=relaxed/simple;
+	bh=d/F5zkBQqwZ5sQDyLWZhhHx40ABdK5K6LweECCQ9+yI=;
+	h=Date:To:From:Subject:Message-Id; b=pJmDfcfUAf556xu4AHSucsj2IVENnQlKxgmgYIuWQ09tcEdzZ/VjiQ9OptBS/5riVbviMmYBLaPUCiACpPk8iJgwH/2L0ulMhpvpt2gwL84tYK31as6S7jskZPzgbgawfx978htS0JgXx/WdaymuTU+FK+JdBP92W1Q+c0nQV9Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XteDNzwD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t0eZbafi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4B7FC19424;
-	Tue, 24 Mar 2026 21:42:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XteDNzwD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01279C19424;
+	Tue, 24 Mar 2026 21:42:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388553;
-	bh=NPRLEcY9Q1Srlj0JFoZoJtGYZ1lgA8UPSNnTpOe1H1c=;
+	s=korg; t=1774388555;
+	bh=d/F5zkBQqwZ5sQDyLWZhhHx40ABdK5K6LweECCQ9+yI=;
 	h=Date:To:From:Subject:From;
-	b=t0eZbafiDckzE4v91sWtEdgeKgj+2zWVJBmPhUaCl/RL9padPQPEeQ/VdUK3lGOQO
-	 DPCQHzseBFwCb/Ay4vbB+i5yy9Jh3HUsMh2uUbDorU5oZBLbhdh+aXJaFDPP32VtES
-	 NSJsQ+hbAuFUhBsN0jUrL8spTH6htS0zqc2kQNaU=
-Date: Tue, 24 Mar 2026 14:42:33 -0700
+	b=XteDNzwDVbi+6X/VUnYqLq9Pd2AhcC8hKzzXnHnkFh1Xk9N1KgR72w5qPe0uWcuZp
+	 E+sKHD3Le5WTlofcnv60k66nJmotgWhOdqUM3Xf8swS8eG1SNGXGmpRO4/pc5XpgoB
+	 yRBonKar9G/JfssQIoPp+Ag+GvfBFURE4sTjFazI=
+Date: Tue, 24 Mar 2026 14:42:34 -0700
 To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,ryncsn@gmail.com,nphamcs@gmail.com,lorenzo.stoakes@oracle.com,lkp@intel.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-simplify-checking-if-a-folio-is-swapped.patch removed from -mm tree
-Message-Id: <20260324214233.A4B7FC19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-swap-no-need-to-clear-the-shadow-explicitly.patch removed from -mm tree
+Message-Id: <20260324214235.01279C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm, swap: simplify checking if a folio is swapped
+     Subject: mm, swap: no need to clear the shadow explicitly
 has been removed from the -mm tree.  Its filename was
-     mm-swap-simplify-checking-if-a-folio-is-swapped.patch
+     mm-swap-no-need-to-clear-the-shadow-explicitly.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: simplify checking if a folio is swapped
-Date: Wed, 18 Feb 2026 04:06:36 +0800
+Subject: mm, swap: no need to clear the shadow explicitly
+Date: Wed, 18 Feb 2026 04:06:37 +0800
 
-Clean up and simplify how we check if a folio is swapped.  The helper
-already requires the folio to be in swap cache and locked.  That's enough
-to pin the swap cluster from being freed, so there is no need to lock
-anything else to avoid UAF.
+Since we no longer bypass the swap cache, every swap-in will clear the
+swap shadow by inserting the folio into the swap table.  The only place we
+may seem to need to free the swap shadow is when the swap slots are freed
+directly without a folio (swap_put_entries_direct).  But with the swap
+table, that is not needed either.  Freeing a slot in the swap table will
+set the table entry to NULL, which erases the shadow just fine.
 
-And besides, we have cleaned up and defined the swap operation to be
-mostly folio based, and now the only place a folio will have any of its
-swap slots' count increased from 0 to 1 is folio_dup_swap, which also
-requires the folio lock.  So as we are holding the folio lock here, a
-folio can't change its swap status from not swapped (all swap slots have a
-count of 0) to swapped (any slot has a swap count larger than 0).
+So just delete all explicit shadow clearing, it's no longer needed.  Also,
+rearrange the freeing.
 
-So there won't be any false negatives of this helper if we simply depend
-on the folio lock to stabilize the cluster.
-
-We are only using this helper to determine if we can and should release
-the swap cache.  So false positives are completely harmless, and also
-already exist before.  Depending on the timing, previously, it's also
-possible that a racing thread releases the swap count right after
-releasing the ci lock and before this helper returns.  In any case, the
-worst that could happen is we leave a clean swap cache.  It will still be
-reclaimed when under pressure just fine.
-
-So, in conclusion, we can simplify and make the check much simpler and
-lockless.  Also, rename it to folio_maybe_swapped to reflect the design.
-
-Link: https://lkml.kernel.org/r/20260218-swap-table-p3-v3-11-f4e34be021a7@tencent.com
+Link: https://lkml.kernel.org/r/20260218-swap-table-p3-v3-12-f4e34be021a7@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Acked-by: Chris Li <chrisl@kernel.org>
 Cc: Baoquan He <bhe@redhat.com>
@@ -88,155 +72,69 @@ Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.h     |    5 +-
- mm/swapfile.c |   82 ++++++++++++++++++++++++++----------------------
- 2 files changed, 48 insertions(+), 39 deletions(-)
+ mm/swap.h       |    1 -
+ mm/swap_state.c |   21 ---------------------
+ mm/swapfile.c   |    2 --
+ 3 files changed, 24 deletions(-)
 
---- a/mm/swapfile.c~mm-swap-simplify-checking-if-a-folio-is-swapped
+--- a/mm/swapfile.c~mm-swap-no-need-to-clear-the-shadow-explicitly
 +++ a/mm/swapfile.c
-@@ -1743,7 +1743,11 @@ again:
-  * @subpage: if not NULL, only increase the swap count of this subpage.
-  *
-  * Typically called when the folio is unmapped and have its swap entry to
-- * take its palce.
-+ * take its place: Swap entries allocated to a folio has count == 0 and pinned
-+ * by swap cache. The swap cache pin doesn't increase the swap count. This
-+ * helper sets the initial count == 1 and increases the count as the folio is
-+ * unmapped and swap entries referencing the slots are generated to replace
-+ * the folio.
-  *
-  * Context: Caller must ensure the folio is locked and in the swap cache.
-  * NOTE: The caller also has to ensure there is no raced call to
-@@ -1942,49 +1946,44 @@ int swp_swapcount(swp_entry_t entry)
- 	return count < 0 ? 0 : count;
+@@ -1287,7 +1287,6 @@ static void swap_range_alloc(struct swap
+ static void swap_range_free(struct swap_info_struct *si, unsigned long offset,
+ 			    unsigned int nr_entries)
+ {
+-	unsigned long begin = offset;
+ 	unsigned long end = offset + nr_entries - 1;
+ 	void (*swap_slot_free_notify)(struct block_device *, unsigned long);
+ 	unsigned int i;
+@@ -1312,7 +1311,6 @@ static void swap_range_free(struct swap_
+ 			swap_slot_free_notify(si->bdev, offset);
+ 		offset++;
+ 	}
+-	__swap_cache_clear_shadow(swp_entry(si->type, begin), nr_entries);
+ 
+ 	/*
+ 	 * Make sure that try_to_unuse() observes si->inuse_pages reaching 0
+--- a/mm/swap.h~mm-swap-no-need-to-clear-the-shadow-explicitly
++++ a/mm/swap.h
+@@ -290,7 +290,6 @@ void __swap_cache_del_folio(struct swap_
+ 			    struct folio *folio, swp_entry_t entry, void *shadow);
+ void __swap_cache_replace_folio(struct swap_cluster_info *ci,
+ 				struct folio *old, struct folio *new);
+-void __swap_cache_clear_shadow(swp_entry_t entry, int nr_ents);
+ 
+ void show_swap_cache_info(void);
+ void swapcache_clear(struct swap_info_struct *si, swp_entry_t entry, int nr);
+--- a/mm/swap_state.c~mm-swap-no-need-to-clear-the-shadow-explicitly
++++ a/mm/swap_state.c
+@@ -350,27 +350,6 @@ void __swap_cache_replace_folio(struct s
+ 	}
  }
  
--static bool swap_page_trans_huge_swapped(struct swap_info_struct *si,
--					 swp_entry_t entry, int order)
-+/*
-+ * folio_maybe_swapped - Test if a folio covers any swap slot with count > 0.
-+ *
-+ * Check if a folio is swapped. Holding the folio lock ensures the folio won't
-+ * go from not-swapped to swapped because the initial swap count increment can
-+ * only be done by folio_dup_swap, which also locks the folio. But a concurrent
-+ * decrease of swap count is possible through swap_put_entries_direct, so this
-+ * may return a false positive.
-+ *
-+ * Context: Caller must ensure the folio is locked and in the swap cache.
-+ */
-+static bool folio_maybe_swapped(struct folio *folio)
- {
-+	swp_entry_t entry = folio->swap;
- 	struct swap_cluster_info *ci;
--	unsigned int nr_pages = 1 << order;
--	unsigned long roffset = swp_offset(entry);
--	unsigned long offset = round_down(roffset, nr_pages);
--	unsigned int ci_off;
--	int i;
-+	unsigned int ci_off, ci_end;
- 	bool ret = false;
- 
--	ci = swap_cluster_lock(si, offset);
--	if (nr_pages == 1) {
--		ci_off = roffset % SWAPFILE_CLUSTER;
--		if (swp_tb_get_count(__swap_table_get(ci, ci_off)))
--			ret = true;
--		goto unlock_out;
--	}
--	for (i = 0; i < nr_pages; i++) {
--		ci_off = (offset + i) % SWAPFILE_CLUSTER;
--		if (swp_tb_get_count(__swap_table_get(ci, ci_off))) {
--			ret = true;
--			break;
--		}
--	}
--unlock_out:
--	swap_cluster_unlock(ci);
--	return ret;
+-/**
+- * __swap_cache_clear_shadow - Clears a set of shadows in the swap cache.
+- * @entry: The starting index entry.
+- * @nr_ents: How many slots need to be cleared.
+- *
+- * Context: Caller must ensure the range is valid, all in one single cluster,
+- * not occupied by any folio, and lock the cluster.
+- */
+-void __swap_cache_clear_shadow(swp_entry_t entry, int nr_ents)
+-{
+-	struct swap_cluster_info *ci = __swap_entry_to_cluster(entry);
+-	unsigned int ci_off = swp_cluster_offset(entry), ci_end;
+-	unsigned long old;
+-
+-	ci_end = ci_off + nr_ents;
+-	do {
+-		old = __swap_table_xchg(ci, ci_off, null_to_swp_tb());
+-		WARN_ON_ONCE(swp_tb_is_folio(old) || swp_tb_get_count(old));
+-	} while (++ci_off < ci_end);
 -}
 -
--static bool folio_swapped(struct folio *folio)
--{
--	swp_entry_t entry = folio->swap;
--	struct swap_info_struct *si;
--
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
- 	VM_WARN_ON_ONCE_FOLIO(!folio_test_swapcache(folio), folio);
- 
--	si = __swap_entry_to_info(entry);
--	if (!IS_ENABLED(CONFIG_THP_SWAP) || likely(!folio_test_large(folio)))
--		return swap_entry_swapped(si, entry);
-+	ci = __swap_entry_to_cluster(entry);
-+	ci_off = swp_cluster_offset(entry);
-+	ci_end = ci_off + folio_nr_pages(folio);
-+	/*
-+	 * Extra locking not needed, folio lock ensures its swap entries
-+	 * won't be released, the backing data won't be gone either.
-+	 */
-+	rcu_read_lock();
-+	do {
-+		if (__swp_tb_get_count(__swap_table_get(ci, ci_off))) {
-+			ret = true;
-+			break;
-+		}
-+	} while (++ci_off < ci_end);
-+	rcu_read_unlock();
- 
--	return swap_page_trans_huge_swapped(si, entry, folio_order(folio));
-+	return ret;
- }
- 
- static bool folio_swapcache_freeable(struct folio *folio)
-@@ -2030,7 +2029,7 @@ bool folio_free_swap(struct folio *folio
- {
- 	if (!folio_swapcache_freeable(folio))
- 		return false;
--	if (folio_swapped(folio))
-+	if (folio_maybe_swapped(folio))
- 		return false;
- 
- 	swap_cache_del_folio(folio);
-@@ -3703,6 +3702,8 @@ void si_swapinfo(struct sysinfo *val)
+ /*
+  * If we are the only user, then try to free up the swap cache.
   *
-  * Context: Caller must ensure there is no race condition on the reference
-  * owner. e.g., locking the PTL of a PTE containing the entry being increased.
-+ * Also the swap entry must have a count >= 1. Otherwise folio_dup_swap should
-+ * be used.
-  */
- int swap_dup_entry_direct(swp_entry_t entry)
- {
-@@ -3714,6 +3715,13 @@ int swap_dup_entry_direct(swp_entry_t en
- 		return -EINVAL;
- 	}
- 
-+	/*
-+	 * The caller must be increasing the swap count from a direct
-+	 * reference of the swap slot (e.g. a swap entry in page table).
-+	 * So the swap count must be >= 1.
-+	 */
-+	VM_WARN_ON_ONCE(!swap_entry_swapped(si, entry));
-+
- 	return swap_dup_entries_cluster(si, swp_offset(entry), 1);
- }
- 
---- a/mm/swap.h~mm-swap-simplify-checking-if-a-folio-is-swapped
-+++ a/mm/swap.h
-@@ -195,12 +195,13 @@ extern int swap_retry_table_alloc(swp_en
-  *
-  * folio_alloc_swap(): the entry point for a folio to be swapped
-  * out. It allocates swap slots and pins the slots with swap cache.
-- * The slots start with a swap count of zero.
-+ * The slots start with a swap count of zero. The slots are pinned
-+ * by swap cache reference which doesn't contribute to swap count.
-  *
-  * folio_dup_swap(): increases the swap count of a folio, usually
-  * during it gets unmapped and a swap entry is installed to replace
-  * it (e.g., swap entry in page table). A swap slot with swap
-- * count == 0 should only be increasd by this helper.
-+ * count == 0 can only be increased by this helper.
-  *
-  * folio_put_swap(): does the opposite thing of folio_dup_swap().
-  */
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
