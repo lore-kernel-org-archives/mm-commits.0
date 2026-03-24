@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 395CC364053
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2D8B36C0C8
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:43:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388609; cv=none; b=mc0UfvxAqT0cLbNsQjrtcF7YGVJmK9dkbg1Va6JFA3vnHWv8K0CqhIbtNnK0CGP/VCipoANweu5zeHqhzIY6lxBddxJxPgi4/Ms3Pp0s6EucN94dLry7Hb8NroZB7mUbg9QSRcmTxGe5QSiERmnEikR1Ae8OvTVC2PP1uBDqK0k=
+	t=1774388610; cv=none; b=V0zzFg6ODRkngo4Nxdz3ezmcO+iq3UxZeMTrQZlCI/tIlzfYbHpiQ9WST7T5ng+c05kq8jFwSoF6v3CwWbqW+AVX8jfo4DZQpsA1SLcx9WZoCal+j1/LkiFvu8xvGdLTv95rftE3Socq8YnYgrsvY3cMZLVaynY3zixzywplpro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388609; c=relaxed/simple;
-	bh=tN8CvzgjrN/5Xv0BwbJOGlWszSW3OyMg4xPxfzIV1gA=;
-	h=Date:To:From:Subject:Message-Id; b=ftprXq/kfCAI1RF2rXEzLM61fT8RFycFzVZNfxIVyWGuVTtLblpEUDUJ4pLeHGrqxMzR4pmTecG8yAfhp6i60MyPfnP0mgeiBV1++Qy22jgcXDUY+pESait1WLcz7JYImejfRmIGAuR8pQeye4vfY34aoTSttSEjxe4j1Wm1rRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jGokrxqU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388610; c=relaxed/simple;
+	bh=HpI/Tm+I+c0d0g0h2Uog41iJ5LqyELXYrkdiCDP2Cx4=;
+	h=Date:To:From:Subject:Message-Id; b=DIOKID1YGqf+q1JvOSLSkk6VE0BgOV5T35PiR/ktyFNnOIttb0wJcFJe4jbQ59KSqI9V84YGjV8U1sDom3AYb4R7qzl+pZykYm1oEMq07MI0SdB5xqfSz8znoi2nrL3lqW/XDT5p4Sbgep8DvhPa0KlwGph+1yo43g2u6QvypIY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hk0EAq7a; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jGokrxqU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10FCAC19424;
-	Tue, 24 Mar 2026 21:43:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hk0EAq7a"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70857C2BC9E;
+	Tue, 24 Mar 2026 21:43:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388609;
-	bh=tN8CvzgjrN/5Xv0BwbJOGlWszSW3OyMg4xPxfzIV1gA=;
+	s=korg; t=1774388610;
+	bh=HpI/Tm+I+c0d0g0h2Uog41iJ5LqyELXYrkdiCDP2Cx4=;
 	h=Date:To:From:Subject:From;
-	b=jGokrxqUAUEnLuC+veqp2oG0oFLhXfD7L94OokL3/kWwljWDNKU6dxDavnVeQDY3/
-	 PY/X4lIq7kiSwFLNBw5J2CMm5yNVvF21cBn8Fe8YHCc35LChPVU7clSR2vE/mMK81R
-	 dH9kgVmuORpbJbw4ndyr5x8c67KuMRWIMSP6w+7o=
-Date: Tue, 24 Mar 2026 14:43:28 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,roman.gushchin@linux.dev,muchun.song@linux.dev,jack@suse.cz,david@fromorbit.com,mkoutny@suse.com,akpm@linux-foundation.org
+	b=Hk0EAq7aSZIM/pXu3ZJXCCtSY8RaNxnKb7N93ccX0iF5npYmR9ShBgjVWXEQ3Le1X
+	 nVTTPXFAUHPuynkWZ8dA6dBLZfon7klKpu9wrZUBnGuBo0ii3HyrOcLBTwsoVf18o0
+	 /nvBtfmnR62WyWIK2ESuRUtDTn9/Cm4EJMFQkQqA=
+Date: Tue, 24 Mar 2026 14:43:29 -0700
+To: mm-commits@vger.kernel.org,will@kernel.org,vbabka@suse.cz,tglx@kernel.org,surenb@google.com,rppt@kernel.org,rick.p.edgecombe@intel.com,pjw@kernel.org,palmer@dabbelt.com,mingo@redhat.com,mhocko@suse.com,lorenzo.stoakes@oracle.com,Liam.Howlett@oracle.com,hpa@zytor.com,debug@rivosinc.com,david@kernel.org,dave.hansen@linux.intel.com,broonie@kernel.org,bp@alien8.de,aou@eecs.berkeley.edu,alex@ghiti.fr,catalin.marinas@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-do-not-allocate-shrinker-info-with-cgroupmemory=nokmem.patch removed from -mm tree
-Message-Id: <20260324214329.10FCAC19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-vm_mmap_shadow_stack-as-a-helper-for-vm_shadow_stack-mappings.patch removed from -mm tree
+Message-Id: <20260324214330.70857C2BC9E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,74 +35,114 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: do not allocate shrinker info with cgroup.memory=nokmem
+     Subject: mm: introduce vm_mmap_shadow_stack() as a helper for VM_SHADOW_STACK mappings
 has been removed from the -mm tree.  Its filename was
-     mm-do-not-allocate-shrinker-info-with-cgroupmemory=nokmem.patch
+     mm-introduce-vm_mmap_shadow_stack-as-a-helper-for-vm_shadow_stack-mappings.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Michal Koutný <mkoutny@suse.com>
-Subject: mm: do not allocate shrinker info with cgroup.memory=nokmem
-Date: Wed, 25 Feb 2026 19:38:44 +0100
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: introduce vm_mmap_shadow_stack() as a helper for VM_SHADOW_STACK mappings
+Date: Wed, 25 Feb 2026 16:13:58 +0000
 
-There'd be no work for memcg-aware shrinkers when kernel memory is not
-accounted per cgroup, so we can skip allocating per memcg shrinker data. 
-This saves some memory, avoids holding shrinker_mutex with O(nr_memcgs)
-and saves work in shrink_slab_memcg().
+Patch series "mm: arch/shstk: Common shadow stack mapping helper and
+VM_NOHUGEPAGE", v2.
 
-Then there are SHRINKER_NONSLAB shrinkers which handle non-kernel memory
-so nokmem should not disable their per-memcg behavior.  Such shrinkers
-(e.g.  deferred_split_shrinker) still need access to per-memcg data (see
-also commit 0a432dcbeb32e ("mm: shrinker: make shrinker not depend on
-memcg kmem")).
+A series to extract the common shadow stack mmap into a separate helper
+for arm64, riscv and x86.
 
-The savings with this patch come on container hosts that create many
-superblocks (each with own shrinker) but tracking and processing per-memcg
-data is pointless with nokmem (shrink_slab_memcg() is partially guarded
-with !memcg_kmem_online already).
 
-The patch uses "boottime" predicate mem_cgroup_kmem_disabled() (not
-memcg_kmem_online()) to avoid mistakenly un-MEMCG_AWARE-ing shrinkers
-registered before first non-root memcg is mkdir'd.
+This patch (of 5):
 
-[mkoutny@suse.com: update comment, per Qi Zheng]
-  Link: https://lkml.kernel.org/r/20260309-cgroup-ml-nokmem-shrinker-v2-1-3e7a7eefb6c9@suse.com
-Link: https://lkml.kernel.org/r/20260225-cgroup-ml-nokmem-shrinker-v1-1-d703899bdda4@suse.com
-Signed-off-by: Michal Koutný <mkoutny@suse.com>
-Reviewed-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
+arm64, riscv and x86 use a similar pattern for mapping the user shadow
+stack (cloned from x86).  Extract this into a helper to facilitate code
+reuse.
+
+The call to do_mmap() from the new helper uses PROT_READ|PROT_WRITE prot
+bits instead of the PROT_READ with an explicit VM_WRITE vm_flag.  The x86
+intent was to avoid PROT_WRITE implying normal write since the shadow
+stack is not writable by normal stores.  However, from a kernel
+perspective, the vma is writeable.  Functionally there is no difference.
+
+Link: https://lkml.kernel.org/r/20260225161404.3157851-1-catalin.marinas@arm.com
+Link: https://lkml.kernel.org/r/20260225161404.3157851-2-catalin.marinas@arm.com
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Tested-by: Deepak Gupta <debug@rivosinc.com>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Paul Walmsley <pjw@kernel.org>
+Cc: Thomas Gleixner <tglx@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shrinker.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/mm.h |    2 ++
+ mm/util.c          |   25 +++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+)
 
---- a/mm/shrinker.c~mm-do-not-allocate-shrinker-info-with-cgroupmemory=nokmem
-+++ a/mm/shrinker.c
-@@ -219,6 +219,8 @@ static int shrinker_memcg_alloc(struct s
+--- a/include/linux/mm.h~mm-introduce-vm_mmap_shadow_stack-as-a-helper-for-vm_shadow_stack-mappings
++++ a/include/linux/mm.h
+@@ -3903,6 +3903,8 @@ extern int vm_munmap(unsigned long, size
+ extern unsigned long __must_check vm_mmap(struct file *, unsigned long,
+         unsigned long, unsigned long,
+         unsigned long, unsigned long);
++extern unsigned long __must_check vm_mmap_shadow_stack(unsigned long addr,
++		unsigned long len, unsigned long flags);
  
- 	if (mem_cgroup_disabled())
- 		return -ENOSYS;
-+	if (mem_cgroup_kmem_disabled() && !(shrinker->flags & SHRINKER_NONSLAB))
-+		return -ENOSYS;
+ struct vm_unmapped_area_info {
+ #define VM_UNMAPPED_AREA_TOPDOWN 1
+--- a/mm/util.c~mm-introduce-vm_mmap_shadow_stack-as-a-helper-for-vm_shadow_stack-mappings
++++ a/mm/util.c
+@@ -618,6 +618,31 @@ unsigned long vm_mmap(struct file *file,
+ }
+ EXPORT_SYMBOL(vm_mmap);
  
- 	mutex_lock(&shrinker_mutex);
- 	id = idr_alloc(&shrinker_idr, shrinker, 0, 0, GFP_KERNEL);
-@@ -721,6 +723,7 @@ non_memcg:
- 	 *  - non-memcg-aware shrinkers
- 	 *  - !CONFIG_MEMCG
- 	 *  - memcg is disabled by kernel command line
-+	 *  - non-slab shrinkers: when memcg kmem is disabled
- 	 */
- 	size = sizeof(*shrinker->nr_deferred);
- 	if (flags & SHRINKER_NUMA_AWARE)
++#ifdef CONFIG_ARCH_HAS_USER_SHADOW_STACK
++/*
++ * Perform a userland memory mapping for a shadow stack into the current
++ * process address space. This is intended to be used by architectures that
++ * support user shadow stacks.
++ */
++unsigned long vm_mmap_shadow_stack(unsigned long addr, unsigned long len,
++		unsigned long flags)
++{
++	struct mm_struct *mm = current->mm;
++	unsigned long ret, unused;
++
++	flags |= MAP_ANONYMOUS | MAP_PRIVATE;
++	if (addr)
++		flags |= MAP_FIXED_NOREPLACE;
++
++	mmap_write_lock(mm);
++	ret = do_mmap(NULL, addr, len, PROT_READ | PROT_WRITE, flags,
++		      VM_SHADOW_STACK, 0, &unused, NULL);
++	mmap_write_unlock(mm);
++
++	return ret;
++}
++#endif /* CONFIG_ARCH_HAS_USER_SHADOW_STACK */
++
+ /**
+  * __vmalloc_array - allocate memory for a virtually contiguous array.
+  * @n: number of elements.
 _
 
-Patches currently in -mm which might be from mkoutny@suse.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
 
