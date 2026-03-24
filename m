@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 894EC402BAB
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 15:03:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8843388E42
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 15:04:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774364614; cv=none; b=a8nIUFxNM+eHozZuKneEBgcWIo+p3FTPVwdw3CFseRW0efgycu33/2Tht0RFSbVrRJHCKiBZHasptEAchsFLTosk3lvmKGMlm8yhvDMAMOwoxjom0npoubwTfs9muFgX/aRE0IngFqnX59/G5HEYZSwLya6GPTY0AbKQ87McUrw=
+	t=1774364661; cv=none; b=sm9YM/UN8yV2QhhJ54bStuyUYIxC1kc1ROzFAzil5ywUmlXLJ1CBVvoVWgnZtLFrcVsqH+p2Ez/uZKA1+EFi9AVrhM7d55Td/Eb5vYnUPvyvX0yktSDPfVxEesuXSE8cZWo4usDmWxWtdCwe36duEe2FjpxtNJ8m+jtk2dCSMc4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774364614; c=relaxed/simple;
-	bh=PVhMX2Rg7CX8FnNgNldvL46RnzeKcmhT4v7UEj+cDSw=;
-	h=Date:To:From:Subject:Message-Id; b=HXmRJ4dyaLM/3QDYlum6UxlnnLbqHiWL/91QnPUb2V44zBoc3KE/no9FInJiGU9R0ZbyQcGjxFBVCZHdR5ObJeljKVit+BZsobGE43a5AWLBT4+M8DIc4QVe34/Z5W51oipimP6MKhytIc8NxEhYWT0+mtRD58prlStHxHAfmeg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=msFYXT4Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774364661; c=relaxed/simple;
+	bh=NCNgB1sI4m8v5YyVwX5W80trjf4tziCXl97F5f638E4=;
+	h=Date:To:From:Subject:Message-Id; b=n0MofAlHZOMvqYQdk9eWUrWzhxxBwACW+sxONaW8XJygafHXKYvT+EOOdb2Kh7fqridvcBYZx5AZMNApq+BvwnwWMXgeLMXUBCiTXg+s9naD09Dx0Go1UJZZVbdxwepr367Ia64gSLP2jUhyzhzOSJuYJuvWwQWE6bcZtBzAr8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JvDoWsp+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="msFYXT4Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7FDBC2BC87;
-	Tue, 24 Mar 2026 15:03:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JvDoWsp+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F6E1C19424;
+	Tue, 24 Mar 2026 15:04:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774364614;
-	bh=PVhMX2Rg7CX8FnNgNldvL46RnzeKcmhT4v7UEj+cDSw=;
+	s=korg; t=1774364661;
+	bh=NCNgB1sI4m8v5YyVwX5W80trjf4tziCXl97F5f638E4=;
 	h=Date:To:From:Subject:From;
-	b=msFYXT4ZmOkHq2mYJUHHo24JICNy2SllSs9Uptd9ovtXmgTTk9IEAQg4PLvv43xtX
-	 tLaPuK3i9R6s24aAQUocrXXnTj+jMXOQd4zMnSwIhf4OGncr+Jnq5ZBkz1KhuPIFmh
-	 38DbzjSWspgUh1lPZqQX+F/WqI3WxHDnzA9tL0B0=
-Date: Tue, 24 Mar 2026 08:03:33 -0700
-To: mm-commits@vger.kernel.org,skhawaja@google.com,shuah@kernel.org,rppt@kernel.org,pratyush@kernel.org,dmatlack@google.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=JvDoWsp+9JZ47cPFcpFmaYn/P9tHt0qWymuh2HODbVwWma0wkKoP3yVcsIEWIfO3w
+	 dxovBKSZgtBABRVbYoeYluWsNI9U3TL9kulW7jJSVKeCAu2zzYQwYlCC2HIEBoQ2QC
+	 0Y8bJVKvnztnlviKRotQeTXM37S78d5YG1IftrXg=
+Date: Tue, 24 Mar 2026 08:04:21 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,devnexen@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-liveupdate-add-test-for-double-preservation.patch added to mm-new branch
-Message-Id: <20260324150333.E7FDBC2BC87@smtp.kernel.org>
+Subject: + mm-page_io-fix-pswpin-undercount-for-large-folios-in-sio_read_complete.patch added to mm-new branch
+Message-Id: <20260324150421.9F6E1C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: liveupdate: add test for double preservation
+     Subject: mm/page_io: fix PSWPIN undercount for large folios in sio_read_complete()
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-liveupdate-add-test-for-double-preservation.patch
+     mm-page_io-fix-pswpin-undercount-for-large-folios-in-sio_read_complete.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-liveupdate-add-test-for-double-preservation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_io-fix-pswpin-undercount-for-large-folios-in-sio_read_complete.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,89 +69,51 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: selftests: liveupdate: add test for double preservation
-Date: Mon, 23 Mar 2026 20:31:45 +0000
+From: David Carlier <devnexen@gmail.com>
+Subject: mm/page_io: fix PSWPIN undercount for large folios in sio_read_complete()
+Date: Mon, 23 Mar 2026 23:13:15 +0000
 
-Verify that a file can only be preserved once across all active sessions. 
-Attempting to preserve it a second time, whether in the same or a
-different session, should fail with EBUSY.
+sio_read_complete() uses sio->pages to account global PSWPIN vm events,
+but sio->pages tracks the number of bvec entries (folios), not base pages.
+For large folios this undercounts compared to the per-memcg path which
+correctly uses folio_nr_pages(), and compared to the bdev read paths which
+also use folio_nr_pages().
 
-Link: https://lkml.kernel.org/r/20260323203145.148057-3-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Samiullah Khawaja <skhawaja@google.com>
-Cc: David Matlack <dmatlack@google.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pratyush Yadav <pratyush@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
+Use sio->len >> PAGE_SHIFT instead, which gives the correct base page
+count since sio->len is accumulated via folio_size(folio).
+
+Link: https://lkml.kernel.org/r/20260323231315.240137-1-devnexen@gmail.com
+Fixes: 6a8c068774ad ("mm/page_io: use a folio in sio_read_complete()")
+Signed-off-by: David Carlier <devnexen@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/liveupdate/liveupdate.c |   41 ++++++++++++++
- 1 file changed, 41 insertions(+)
+ mm/page_io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/liveupdate/liveupdate.c~selftests-liveupdate-add-test-for-double-preservation
-+++ a/tools/testing/selftests/liveupdate/liveupdate.c
-@@ -345,4 +345,45 @@ TEST_F(liveupdate_device, preserve_unsup
- 	ASSERT_EQ(close(session_fd), 0);
- }
- 
-+/*
-+ * Test Case: Prevent Double Preservation
-+ *
-+ * Verifies that a file (memfd) can only be preserved once across all active
-+ * sessions. Attempting to preserve it a second time, whether in the same or
-+ * a different session, should fail with EBUSY.
-+ */
-+TEST_F(liveupdate_device, prevent_double_preservation)
-+{
-+	int session_fd1, session_fd2, mem_fd;
-+	int ret;
-+
-+	self->fd1 = open(LIVEUPDATE_DEV, O_RDWR);
-+	if (self->fd1 < 0 && errno == ENOENT)
-+		SKIP(return, "%s does not exist", LIVEUPDATE_DEV);
-+	ASSERT_GE(self->fd1, 0);
-+
-+	session_fd1 = create_session(self->fd1, "double-preserve-session-1");
-+	ASSERT_GE(session_fd1, 0);
-+	session_fd2 = create_session(self->fd1, "double-preserve-session-2");
-+	ASSERT_GE(session_fd2, 0);
-+
-+	mem_fd = memfd_create("test-memfd", 0);
-+	ASSERT_GE(mem_fd, 0);
-+
-+	/* First preservation should succeed */
-+	ASSERT_EQ(preserve_fd(session_fd1, mem_fd, 0x1111), 0);
-+
-+	/* Second preservation in a different session should fail with EBUSY */
-+	ret = preserve_fd(session_fd2, mem_fd, 0x2222);
-+	EXPECT_EQ(ret, -EBUSY);
-+
-+	/* Second preservation in the same session (different token) should fail with EBUSY */
-+	ret = preserve_fd(session_fd1, mem_fd, 0x3333);
-+	EXPECT_EQ(ret, -EBUSY);
-+
-+	ASSERT_EQ(close(mem_fd), 0);
-+	ASSERT_EQ(close(session_fd1), 0);
-+	ASSERT_EQ(close(session_fd2), 0);
-+}
-+
- TEST_HARNESS_MAIN
+--- a/mm/page_io.c~mm-page_io-fix-pswpin-undercount-for-large-folios-in-sio_read_complete
++++ a/mm/page_io.c
+@@ -497,7 +497,7 @@ static void sio_read_complete(struct kio
+ 			folio_mark_uptodate(folio);
+ 			folio_unlock(folio);
+ 		}
+-		count_vm_events(PSWPIN, sio->pages);
++		count_vm_events(PSWPIN, sio->len >> PAGE_SHIFT);
+ 	} else {
+ 		for (p = 0; p < sio->pages; p++) {
+ 			struct folio *folio = page_folio(sio->bvec[p].bv_page);
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from devnexen@gmail.com are
 
-mm-vmalloc-export-clear_vm_uninitialized_flag.patch
-kho-fix-kasan-support-for-restored-vmalloc-regions.patch
-liveupdate-protect-file-handler-list-with-rwsem.patch
-liveupdate-protect-flb-lists-with-rwsem.patch
-liveupdate-remove-file-handler-module-refcounting.patch
-liveupdate-defer-flb-module-refcounting-to-active-sessions.patch
-liveupdate-remove-luo_session_quiesce.patch
-liveupdate-auto-unregister-flbs-on-file-handler-unregistration.patch
-liveupdate-remove-liveupdate_test_unregister.patch
-liveupdate-make-unregister-functions-return-void.patch
-liveupdate-prevent-double-management-of-files.patch
-selftests-liveupdate-add-test-for-double-preservation.patch
+mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
+mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix-fix-2.patch
+mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix-fix-fix-2-fix.patch
+mm-page_io-fix-pswpin-undercount-for-large-folios-in-sio_read_complete.patch
 
