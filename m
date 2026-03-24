@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B46F836164E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:41:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74C0378F26
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:41:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388517; cv=none; b=V1kEDfIcU1UNq40c0dOhc1NXAfro80Cnvfsvm1LdZgA9mxwrGvWFPXXrXqVB0rn01y9aucE1E6UeaqoYvuAlBoGbFoofFEnMTHMshWiR+6DzjFxcCKBqmc4IYQIoeeYdrgN/anxudFMOJKl1R6XYwT1CxYmEuzQEu79RRcLsols=
+	t=1774388519; cv=none; b=cvWUXTSZBQrpa6LB1f7ibZ3JlLN39DYY+H69dACdyJLV/AhGn+7pIMVifdCkbUYAy1R9BBYltsGOYW5rMO3R3HzWRD5unl8zgOpK0mnOJx36bLRWHdxdI+6BTAGFLHsnFNv9qGIGyaX2ZG7a9cYMyjDzhC7VzDX6dg9DyuxIGwA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388517; c=relaxed/simple;
-	bh=Sy8q2+6bcldS8m4h7xXBDcwdkPnbDb0SxxDF4ycUSgE=;
-	h=Date:To:From:Subject:Message-Id; b=Wjd8cgZhSOZfBwzZt66wyUjGcQhhQbYU7cuP4Ib456NGYA1lZFwmrkazt9wVjRgtpbnzG0P1AbenSrvqVanbyj2xaV1VlgjWY4fyFW6Pb5BVpJTsaVxxgDH16PH84Pdo1k/1pfhlD7oZyzF1BRtKqGofbYYX95YnCpiw50T4ZPI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=icsMiCD5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388519; c=relaxed/simple;
+	bh=sK6QeTZrNw/2go5NIu+i1nKvdMqywsGKo0JAFlQa5wU=;
+	h=Date:To:From:Subject:Message-Id; b=AZku/trOteskZKQr8jKto84F01f9B16Y9p+JQTjO0vkrZlFXVCp8+t94rvuLsxufcBMD8DE8Yx+eKMi5GUOQ77Te0M8bM1Wc7pWeiF3N+VWIlYFF5+yIbKj4JnbvEmoV3OonTaeiEk+1zxfo3j5hHA3VJWEKVFKcZjVbjzSHOUM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JMS/SPn/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="icsMiCD5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D2ADC19424;
-	Tue, 24 Mar 2026 21:41:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JMS/SPn/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4436EC19424;
+	Tue, 24 Mar 2026 21:41:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388517;
-	bh=Sy8q2+6bcldS8m4h7xXBDcwdkPnbDb0SxxDF4ycUSgE=;
+	s=korg; t=1774388519;
+	bh=sK6QeTZrNw/2go5NIu+i1nKvdMqywsGKo0JAFlQa5wU=;
 	h=Date:To:From:Subject:From;
-	b=icsMiCD5HKhUKxiqk9NagZwXQnkSFqdrbQw1JIdusEIn3WjXeiJqfNSglszXDOyIj
-	 tyagdeTNYJ2DLrvi/x3xGasctffwJXZTpcp+2XCQWyJuM4ZWO8KreTkVZP+OP6Iyji
-	 U+XvnRCelEpUXkJLQh0Bcfk3fmFpFL+VSCPIwQRE=
-Date: Tue, 24 Mar 2026 14:41:57 -0700
+	b=JMS/SPn/XiJURQKfNMCBa3Y9IsJMFWP+9rJ5BgjdC9sC2gjzSNoq1pOaJsAyDEu3u
+	 5leDRw5eux+DahnCAAJsRyQ1j1DSQ7ucEksP0lF9Fh8D3DgdNIkJ+Td4rQEzJKvQcs
+	 Rai1aIIRmQgkolN3Jzyq6Mj8dQghh5tCYEKBrJV8=
+Date: Tue, 24 Mar 2026 14:41:58 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,sidhartha.kumar@oracle.com,lists@nerdbynature.de,kuninori.morimoto.gx@renesas.com,geert@linux-m68k.org,arnd@arndb.de,andrewjballance@gmail.com,aliceryhl@google.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-add-cp_is_new_root-helper.patch removed from -mm tree
-Message-Id: <20260324214157.8D2ADC19424@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-use-maple-copy-node-for-mas_wr_rebalance-operation.patch removed from -mm tree
+Message-Id: <20260324214159.4436EC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: add cp_is_new_root() helper
+     Subject: maple_tree: use maple copy node for mas_wr_rebalance() operation
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-cp_is_new_root-helper.patch
+     maple_tree-use-maple-copy-node-for-mas_wr_rebalance-operation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: add cp_is_new_root() helper
-Date: Fri, 30 Jan 2026 15:59:26 -0500
+Subject: maple_tree: use maple copy node for mas_wr_rebalance() operation
+Date: Fri, 30 Jan 2026 15:59:27 -0500
 
-Add a helper to do what is needed when the maple copy node contains a new
-root node.  This is useful for future commits and is self-documenting
-code.
+Stop using the maple big node for rebalance operations by changing to more
+align with spanning store.  The rebalance operation needs its own data
+calculation in rebalance_data().
 
-[Liam.Howlett@oracle.com: remove warnings on older compilers]
-  Link: https://lkml.kernel.org/r/malwmirqnpuxqkqrobcmzfkmmxipoyzwfs2nwc5fbpxlt2r2ej@wchmjtaljvw3
-[akpm@linux-foundation.org: s/cp->slot[0]/&cp->slot[0]/, per Liam]
-Link: https://lkml.kernel.org/r/20260130205935.2559335-22-Liam.Howlett@oracle.com
+In the event of too much data, the rebalance tries to push the data using
+push_data_sib().  If there is insufficient data, the rebalance operation
+will rebalance against a sibling (found with rebalance_sib()).
+
+The rebalance starts at the leaf and works its way upward in the tree
+using rebalance_ascend().  Most of the code is shared with spanning store
+such as the copy node having a new root, but is fundamentally different in
+that the data must come from a sibling.
+
+A parent maple state is used to track the parent location to avoid
+multiple mas_ascend() calls.  The maple state tree location is copied from
+the parent to the mas (child) in the ascend step.  Ascending itself is
+done in the main loop.
+
+Link: https://lkml.kernel.org/r/20260130205935.2559335-23-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
 Cc: Andrew Ballance <andrewjballance@gmail.com>
@@ -70,96 +81,255 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   70 ++++++++++++++++++++++++---------------------
- 1 file changed, 38 insertions(+), 32 deletions(-)
+ lib/maple_tree.c |  213 +++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 206 insertions(+), 7 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-add-cp_is_new_root-helper
+--- a/lib/maple_tree.c~maple_tree-use-maple-copy-node-for-mas_wr_rebalance-operation
 +++ a/lib/maple_tree.c
-@@ -3337,6 +3337,43 @@ static void mas_spanning_rebalance(struc
- 	mas_spanning_rebalance_loop(mas, mast, count);
+@@ -2305,6 +2305,19 @@ static inline void mte_mid_split_check(s
+ 	*split = mid_split;
  }
  
-+static inline bool cp_is_new_root(struct maple_copy *cp, struct ma_state *mas)
++static inline void rebalance_sib(struct ma_state *parent, struct ma_state *sib)
 +{
-+	if (cp->min || cp->max != ULONG_MAX)
++	*sib = *parent;
++	/* Prioritize move right to pull data left */
++	if (sib->offset < sib->end)
++		sib->offset++;
++	else
++		sib->offset--;
++
++	mas_descend(sib);
++	sib->end = mas_data_end(sib);
++}
++
+ static inline
+ void spanning_sib(struct ma_wr_state *l_wr_mas,
+ 		struct ma_wr_state *r_wr_mas, struct ma_state *nneighbour)
+@@ -2855,6 +2868,112 @@ static inline void cp_data_calc(struct m
+ 	cp->data += r_wr_mas->mas->end - r_wr_mas->offset_end;
+ }
+ 
++static bool data_fits(struct ma_state *sib, struct ma_state *mas,
++		struct maple_copy *cp)
++{
++	unsigned char new_data;
++	enum maple_type type;
++	unsigned char space;
++	unsigned char end;
++
++	type = mte_node_type(mas->node);
++	space = 2 * mt_slots[type];
++	end = sib->end;
++
++	new_data = end + 1 + cp->data;
++	if (new_data > space)
 +		return false;
 +
-+	if (cp->d_count != 1) {
-+		enum maple_type mt = maple_arange_64;
++	/*
++	 * This is off by one by design.  The extra space is left to reduce
++	 * jitter in operations that add then remove two entries.
++	 *
++	 * end is an index while new space and data are both sizes.  Adding one
++	 * to end to convert the index to a size means that the below
++	 * calculation should be <=, but we want to keep an extra space in nodes
++	 * to reduce jitter.
++	 *
++	 * Note that it is still possible to get a full node on the left by the
++	 * NULL landing exactly on the split.  The NULL ending of a node happens
++	 * in the dst_setup() function, where we will either increase the split
++	 * by one or decrease it by one, if possible.  In the case of split
++	 * (this case), it is always possible to shift the spilt by one - again
++	 * because there is at least one slot free by the below checking.
++	 */
++	if (new_data < space)
++		return true;
 +
-+		if (!mt_is_alloc(mas->tree))
-+			mt = maple_range_64;
++	return false;
++}
 +
-+		cp->data = cp->d_count;
-+		cp->s_count = 0;
-+		dst_setup(cp, mas, mt);
-+		init_cp_src(cp);
-+		node_copy(mas, cp->src[0].node, 0, cp->data, cp->max, maple_copy,
-+			  cp->dst[0].node, 0, mt);
-+		node_finalise(cp->dst[0].node, mt, cp->end + 1);
-+		/*
-+		 * Warning, see cp_leaf_init() comment and rcu_assign_pointer()
-+		 * documentation.  Since this is a new root, there are no
-+		 * read-side operations that can view it until it is insert into
-+		 * the tree after an rcu_assign_pointer() call.
-+		 */
-+		ma_init_slot(&cp->slot[0], cp->dst[0].node, mt);
-+		cp->height++;
++static inline void push_data_sib(struct maple_copy *cp, struct ma_state *mas,
++		struct ma_state *sib, struct ma_state *parent)
++{
++
++	if (mte_is_root(mas->node))
++		goto no_push;
++
++
++	*sib = *parent;
++	if (sib->offset) {
++		sib->offset--;
++		mas_descend(sib);
++		sib->end = mas_data_end(sib);
++		if (data_fits(sib, mas, cp))	/* Push left */
++			return;
++
++		*sib = *parent;
 +	}
-+	WARN_ON_ONCE(cp->dst[0].node != mte_to_node(
-+				mt_slot_locked(mas->tree, cp->slot, 0)));
-+	cp->dst[0].node->parent = ma_parent_ptr(mas_tree_parent(mas));
-+	mas->min = 0;
-+	mas->max = ULONG_MAX;
-+	mas->depth = 0;
-+	mas->node = mas_root_locked(mas);
-+	return true;
++
++	if (sib->offset >= sib->end)
++		goto no_push;
++
++	sib->offset++;
++	mas_descend(sib);
++	sib->end = mas_data_end(sib);
++	if (data_fits(sib, mas, cp))		/* Push right*/
++		return;
++
++no_push:
++	sib->end = 0;
++}
++
++/*
++ * rebalance_data() - Calculate the @cp data, populate @sib if insufficient or
++ * if the data can be pushed into a sibling.
++ * @cp: The maple copy node
++ * @wr_mas: The left write maple state
++ * @sib: The maple state of the sibling.
++ *
++ * Note: @cp->data is a size and not indexed by 0. @sib->end may be set to 0 to
++ * indicate it will not be used.
++ *
++ */
++static inline void rebalance_data(struct maple_copy *cp,
++		struct ma_wr_state *wr_mas, struct ma_state *sib,
++		struct ma_state *parent)
++{
++	cp_data_calc(cp, wr_mas, wr_mas);
++	sib->end = 0;
++	if (cp->data > mt_slots[wr_mas->type]) {
++		push_data_sib(cp, wr_mas->mas, sib, parent);
++		if (sib->end)
++			goto use_sib;
++	} else if (cp->data <= mt_min_slots[wr_mas->type]) {
++		if ((wr_mas->mas->min != 0) ||
++		    (wr_mas->mas->max != ULONG_MAX)) {
++			rebalance_sib(parent, sib);
++			goto use_sib;
++		}
++	}
++
++	return;
++
++use_sib:
++
++	cp->data += sib->end + 1;
 +}
 +
  /*
-  * spanning_ascend() - See if a spanning store operation has to keep walking up
-  * the tree
-@@ -3359,39 +3396,8 @@ static bool spanning_ascend(struct maple
- 	}
+  * spanning_data() - Calculate the @cp data and populate @sib if insufficient
+  * @cp: The maple copy node
+@@ -3413,6 +3532,55 @@ static bool spanning_ascend(struct maple
+ }
  
- 	cp_dst_to_slots(cp, l_wr_mas->mas->min, r_wr_mas->mas->max, mas);
--	if (!cp->min && cp->max == ULONG_MAX) {
--		/* New root */
--		if (cp->d_count != 1) {
--			enum maple_type mt = maple_arange_64;
--
--			if (!mt_is_alloc(mas->tree))
--				mt = maple_range_64;
--
--			cp->data = cp->d_count;
--			cp->s_count = 0;
--			dst_setup(cp, mas, mt);
--			init_cp_src(cp);
--			node_copy(mas, cp->src[0].node, 0, cp->data, cp->max, maple_copy,
--				  cp->dst[0].node, 0, mt);
--			node_finalise(cp->dst[0].node, mt, cp->end + 1);
--			/*
--			 * Warning, see cp_leaf_init() comment and rcu_assign_pointer()
--			 * documentation.  Since this is a new root, there are no
--			 * read-side operations that can view it until it is insert into
--			 * the tree after an rcu_assign_pointer() call.
--			 */
--			ma_init_slot(&cp->slot[0], cp->dst[0].node, mt);
--			cp->height++;
--		}
--		WARN_ON_ONCE(cp->dst[0].node != mte_to_node(
--				mt_slot_locked(mas->tree, cp->slot, 0)));
--		cp->dst[0].node->parent = ma_parent_ptr(mas_tree_parent(mas));
--		mas->min = 0;
--		mas->max = ULONG_MAX;
--		mas->depth = 0;
--		mas->node = mas_root_locked(mas);
+ /*
++ * rebalance_ascend() - Ascend the tree and set up for the next loop - if
++ * necessary
++ *
++ * Return: True if there another rebalancing operation on the next level is
++ * needed, false otherwise.
++ */
++static inline bool rebalance_ascend(struct maple_copy *cp,
++		struct ma_wr_state *wr_mas, struct ma_state *sib,
++		struct ma_state *parent)
++{
++	struct ma_state *mas;
++	unsigned long min, max;
++
++	mas = wr_mas->mas;
++	if (!sib->end) {
++		min = mas->min;
++		max = mas->max;
++	} else if (sib->min > mas->max) { /* Move right succeeded */
++		min = mas->min;
++		max = sib->max;
++		wr_mas->offset_end = parent->offset + 1;
++	} else {
++		min = sib->min;
++		max = mas->max;
++		wr_mas->offset_end = parent->offset;
++		parent->offset--;
++	}
++
++	cp_dst_to_slots(cp, min, max, mas);
 +	if (cp_is_new_root(cp, mas))
- 		return false;
--	}
++		return false;
++
++	if (cp->d_count == 1 && !sib->end) {
++		cp->dst[0].node->parent = ma_parent_ptr(mas_mn(mas)->parent);
++		return false;
++	}
++
++	cp->height++;
++	mas->node = parent->node;
++	mas->offset = parent->offset;
++	mas->min = parent->min;
++	mas->max = parent->max;
++	mas->end = parent->end;
++	mas->depth = parent->depth;
++	wr_mas_setup(wr_mas, mas);
++	return true;
++}
++
++/*
+  * mas_rebalance() - Rebalance a given node.
+  * @mas: The maple state
+  * @b_node: The big maple node.
+@@ -4379,16 +4547,47 @@ static noinline_for_kasan void mas_wr_sp
+  * mas_wr_rebalance() - Insufficient data in one node needs to either get data
+  * from a sibling or absorb a sibling all together.
+  * @wr_mas: The write maple state
++ *
++ * Rebalance is different than a spanning store in that the write state is
++ * already at the leaf node that's being altered.
+  */
+-static noinline_for_kasan void mas_wr_rebalance(struct ma_wr_state *wr_mas)
++static void mas_wr_rebalance(struct ma_wr_state *wr_mas)
+ {
+-	struct maple_big_node b_node;
++	struct maple_enode *old_enode;
++	struct ma_state parent;
++	struct ma_state *mas;
++	struct maple_copy cp;
++	struct ma_state sib;
  
- 	/* Converged and has a single destination */
- 	if ((cp->d_count == 1) &&
+-	trace_ma_write(__func__, wr_mas->mas, 0, wr_mas->entry);
+-	memset(&b_node, 0, sizeof(struct maple_big_node));
+-	mas_store_b_node(wr_mas, &b_node, wr_mas->offset_end);
+-	WARN_ON_ONCE(wr_mas->mas->store_type != wr_rebalance);
+-	return mas_rebalance(wr_mas->mas, &b_node);
++	/*
++	 * Rebalancing occurs if a node is insufficient.  Data is rebalanced
++	 * against the node to the right if it exists, otherwise the node to the
++	 * left of this node is rebalanced against this node.  If rebalancing
++	 * causes just one node to be produced instead of two, then the parent
++	 * is also examined and rebalanced if it is insufficient.  Every level
++	 * tries to combine the data in the same way.  If one node contains the
++	 * entire range of the tree, then that node is used as a new root node.
++	 */
++
++	mas = wr_mas->mas;
++	trace_ma_op(TP_FCT, mas);
++	parent = *mas;
++	cp_leaf_init(&cp, mas, wr_mas, wr_mas);
++	do {
++		if (!mte_is_root(parent.node)) {
++			mas_ascend(&parent);
++			parent.end = mas_data_end(&parent);
++		}
++		rebalance_data(&cp, wr_mas, &sib, &parent);
++		multi_src_setup(&cp, wr_mas, wr_mas, &sib);
++		dst_setup(&cp, mas, wr_mas->type);
++		cp_data_write(&cp, mas);
++	} while (rebalance_ascend(&cp, wr_mas, &sib, &parent));
++
++	old_enode = mas->node;
++	mas->node = mt_slot_locked(mas->tree, cp.slot, 0);
++	mas_wmb_replace(mas, old_enode, cp.height);
++	mtree_range_walk(mas);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
