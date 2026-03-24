@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61A1136166E
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC42E317160
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388524; cv=none; b=stf+lxsgAK91Zecc786bh/aKcKDRdMOhja/ysei6lSxS7poRH9PA9spKfXwMQUmR0cNllImVVtqptHmJU6p6T0+ImrVqGlGRSpo3Fare2f5iQzgC/Z0kGIIvR92qgUSg3zLYKcRYPgn7IqQ2iT8LyTUa/eotWiqBl1pApkE9imk=
+	t=1774388525; cv=none; b=D6ZT24ld0a9YLs1GHZRfMle6UgjaoW7fNHmGCoS9iKPAYEpL/hI5b4/ra8JOIE3hGpa5zpiGruzk8RT1n1zDuyHWpkExOnZ6dpc/Mo/VTlEtaFGPeNUWTW2qgBP5NFs1z5J66isJRS+MHMok8viGiFTVLqZcnBhddZHq0Hsm9VY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388524; c=relaxed/simple;
-	bh=pLwWVGcvV0U66zz54YZUwj9gmFfBfl87wQaWjcRmCgs=;
-	h=Date:To:From:Subject:Message-Id; b=YXRx89l8BUOiLXxeoTnlB5RUjDvIdlyzI6o9Eav3cL87sU5t/PNThobLNMWOdAaeKl1gec64mpqBEU437+gG9Tj/6hsTYibBwHT+7h+RO38wLPQgeaDXKmWVcRVlg8pQUslFapHsZAPHi7PVrPXntdxK+n6M9bXjCtvN7VBm6mY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T+XchD5P; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388525; c=relaxed/simple;
+	bh=76Q0TjwdaB/h7Hz4xE/sYu3bqoX19F/mFp2HIVlcCsM=;
+	h=Date:To:From:Subject:Message-Id; b=B+ElBVTWsTDteuyqs2qHAP8+CcIQJSfT7I/doMR/rYoBHg9e7vCOC3SkEjn1pPnRZjMtIWCCa9QLfT137an2xG4WLWwgwvUNO3d8k6dB/jWI5SPQ8ZioycHDLpUcK58WsdLzD6upgbh+EMfqZuQsgw6q/F9d3suxDa3sEu0VidI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CVcdHG1V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T+XchD5P"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 007F2C19424;
-	Tue, 24 Mar 2026 21:42:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CVcdHG1V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3D82C19424;
+	Tue, 24 Mar 2026 21:42:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388524;
-	bh=pLwWVGcvV0U66zz54YZUwj9gmFfBfl87wQaWjcRmCgs=;
+	s=korg; t=1774388525;
+	bh=76Q0TjwdaB/h7Hz4xE/sYu3bqoX19F/mFp2HIVlcCsM=;
 	h=Date:To:From:Subject:From;
-	b=T+XchD5PB7SfXY8GyM75I/AyivCIWrYL6uQwzNPJ0E6sap2cH/V+oxTAhtvAx040Q
-	 k7CqRStiXtQEAwm+93HRCwMFTGIOpZhZwYOBo9NHKJjyHxV6SAdyxELArXDQefE/Me
-	 Ak89y2nzYMCFjH2pyKouRJWzmKrX2LdaX/3bVOYY=
-Date: Tue, 24 Mar 2026 14:42:03 -0700
+	b=CVcdHG1VFld0FLmAMvg6okA+UW56oG1GuWrqwOzUTE4Rt7PCCgPFFooIYAEO/hmJU
+	 enEPenTS8wGsC60I6GQOa0UaeRv2vmdxOtQg+DCRW9bkDXfQiIQtqplGEwJV3IAybq
+	 O84gkPdbDXJHvcPJbyRkEUexvnfGlRtZkLtvNTSg=
+Date: Tue, 24 Mar 2026 14:42:05 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,sj@kernel.org,sidhartha.kumar@oracle.com,lists@nerdbynature.de,kuninori.morimoto.gx@renesas.com,geert@linux-m68k.org,arnd@arndb.de,andrewjballance@gmail.com,aliceryhl@google.com,Liam.Howlett@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maple_tree-add-cp_converged-helper.patch removed from -mm tree
-Message-Id: <20260324214204.007F2C19424@smtp.kernel.org>
+Subject: [merged mm-stable] maple_tree-use-maple-copy-node-for-mas_wr_split.patch removed from -mm tree
+Message-Id: <20260324214205.A3D82C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,24 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: maple_tree: add cp_converged() helper
+     Subject: maple_tree: use maple copy node for mas_wr_split()
 has been removed from the -mm tree.  Its filename was
-     maple_tree-add-cp_converged-helper.patch
+     maple_tree-use-maple-copy-node-for-mas_wr_split.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Subject: maple_tree: add cp_converged() helper
-Date: Fri, 30 Jan 2026 15:59:30 -0500
+Subject: maple_tree: use maple copy node for mas_wr_split()
+Date: Fri, 30 Jan 2026 15:59:31 -0500
 
-When the maple copy node converges into a single entry, then certain
-operations can stop ascending the tree.
+Instead of using the maple big node, use the maple copy node for reduced
+stack usage and aligning with mas_wr_rebalance() and
+mas_wr_spanning_store().
 
-This is used more later.
+Splitting a node is similar to rebalancing, but a new evaluation of when
+to ascend is needed.  The only other difference is that the data is pushed
+and never rebalanced at each level.
 
-Link: https://lkml.kernel.org/r/20260130205935.2559335-26-Liam.Howlett@oracle.com
+The testing must also align with the changes to this commit to ensure the
+test suite continues to pass.
+
+Link: https://lkml.kernel.org/r/20260130205935.2559335-27-Liam.Howlett@oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
 Cc: Andrew Ballance <andrewjballance@gmail.com>
@@ -68,40 +74,252 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/maple_tree.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ lib/maple_tree.c                 |   99 +++++++++++++++++++++++++++--
+ lib/test_maple_tree.c            |   55 +++++++++++++---
+ tools/testing/radix-tree/maple.c |   11 +++
+ 3 files changed, 149 insertions(+), 16 deletions(-)
 
---- a/lib/maple_tree.c~maple_tree-add-cp_converged-helper
+--- a/lib/maple_tree.c~maple_tree-use-maple-copy-node-for-mas_wr_split
 +++ a/lib/maple_tree.c
-@@ -3493,6 +3493,16 @@ static inline bool cp_is_new_root(struct
- 	return true;
+@@ -4543,18 +4543,105 @@ static inline void mas_wr_append(struct
  }
  
-+static inline bool cp_converged(struct maple_copy *cp, struct ma_state *mas,
-+				struct ma_state *sib)
+ /*
++ * split_ascend() - See if a split operation has to keep walking up the tree
++ * @cp: The maple_copy node
++ * @wr_mas: The maple write state
++ * @sib: the maple state of the sibling
++ *
++ * Return: true if another split operation on the next level is needed, false
++ * otherwise
++ */
++static inline bool split_ascend(struct maple_copy *cp,
++		struct ma_wr_state *wr_mas, struct ma_state *sib,
++		struct ma_state *parent)
 +{
-+	if (cp->d_count != 1 || sib->end)
++	struct ma_state *mas;
++	unsigned long min, max;
++
++	mas = wr_mas->mas;
++	min = mas->min; /* push right, or normal split */
++	max = mas->max;
++	wr_mas->offset_end = parent->offset;
++	if (sib->end) {
++		if (sib->max < mas->min) {
++			min = sib->min; /* push left */
++			parent->offset--;
++		} else {
++			max = sib->max; /* push right */
++			wr_mas->offset_end++;
++		}
++	}
++
++	cp_dst_to_slots(cp, min, max, mas);
++	if (cp_is_new_root(cp, mas))
 +		return false;
 +
-+	cp->dst[0].node->parent = ma_parent_ptr(mas_mn(mas)->parent);
++	if (cp_converged(cp, mas, sib))
++		return false;
++
++	cp->height++;
++	copy_tree_location(parent, mas);
++	wr_mas_setup(wr_mas, mas);
 +	return true;
 +}
 +
++/*
++ * split_data() - Calculate the @cp data, populate @sib if the data can be
++ * pushed into a sibling.
++ * @cp: The maple copy node
++ * @wr_mas: The left write maple state
++ * @sib: The maple state of the sibling.
++ *
++ * Note: @cp->data is a size and not indexed by 0. @sib->end may be set to 0 to
++ * indicate it will not be used.
++ *
++ */
++static inline void split_data(struct maple_copy *cp,
++		struct ma_wr_state *wr_mas, struct ma_state *sib,
++		struct ma_state *parent)
++{
++	cp_data_calc(cp, wr_mas, wr_mas);
++	if (cp->data <= mt_slots[wr_mas->type]) {
++		sib->end = 0;
++		return;
++	}
++
++	push_data_sib(cp, wr_mas->mas, sib, parent);
++	if (sib->end)
++		cp->data += sib->end + 1;
++}
++
++/*
+  * mas_wr_split() - Expand one node into two
+  * @wr_mas: The write maple state
+  */
+-static noinline_for_kasan void mas_wr_split(struct ma_wr_state *wr_mas)
++static void mas_wr_split(struct ma_wr_state *wr_mas)
+ {
+-	struct maple_big_node b_node;
++	struct maple_enode *old_enode;
++	struct ma_state parent;
++	struct ma_state *mas;
++	struct maple_copy cp;
++	struct ma_state sib;
+ 
++	mas = wr_mas->mas;
+ 	trace_ma_write(TP_FCT, wr_mas->mas, 0, wr_mas->entry);
+-	memset(&b_node, 0, sizeof(struct maple_big_node));
+-	mas_store_b_node(wr_mas, &b_node, wr_mas->offset_end);
+-	WARN_ON_ONCE(wr_mas->mas->store_type != wr_split_store);
+-	return mas_split(wr_mas->mas, &b_node);
++	parent = *mas;
++	cp_leaf_init(&cp, mas, wr_mas, wr_mas);
++	do {
++		if (!mte_is_root(parent.node)) {
++			mas_ascend(&parent);
++			parent.end = mas_data_end(&parent);
++		}
++		split_data(&cp, wr_mas, &sib, &parent);
++		multi_src_setup(&cp, wr_mas, wr_mas, &sib);
++		dst_setup(&cp, mas, wr_mas->type);
++		cp_data_write(&cp, mas);
++	} while (split_ascend(&cp, wr_mas, &sib, &parent));
++
++	old_enode = mas->node;
++	mas->node = mt_slot_locked(mas->tree, cp.slot, 0);
++	mas_wmb_replace(mas, old_enode, cp.height);
++	mtree_range_walk(mas);
+ }
+ 
  /*
-  * spanning_ascend() - See if a spanning store operation has to keep walking up
-  * the tree
-@@ -3575,10 +3585,8 @@ static inline bool rebalance_ascend(stru
- 	if (cp_is_new_root(cp, mas))
- 		return false;
+--- a/lib/test_maple_tree.c~maple_tree-use-maple-copy-node-for-mas_wr_split
++++ a/lib/test_maple_tree.c
+@@ -1024,6 +1024,7 @@ static noinline void __init check_ranges
+ 	mt_set_non_kernel(10);
+ 	check_store_range(mt, r[10], r[11], xa_mk_value(r[10]), 0);
+ 	MT_BUG_ON(mt, !mt_height(mt));
++	mt_validate(mt);
+ 	mtree_destroy(mt);
  
--	if (cp->d_count == 1 && !sib->end) {
--		cp->dst[0].node->parent = ma_parent_ptr(mas_mn(mas)->parent);
-+	if (cp_converged(cp, mas, sib))
- 		return false;
--	}
+ 	/* Create tree of 1-200 */
+@@ -1031,11 +1032,13 @@ static noinline void __init check_ranges
+ 	/* Store 45-168 */
+ 	check_store_range(mt, r[10], r[11], xa_mk_value(r[10]), 0);
+ 	MT_BUG_ON(mt, !mt_height(mt));
++	mt_validate(mt);
+ 	mtree_destroy(mt);
  
- 	cp->height++;
- 	copy_tree_location(parent, mas);
+ 	check_seq(mt, 30, false);
+ 	check_store_range(mt, 6, 18, xa_mk_value(6), 0);
+ 	MT_BUG_ON(mt, !mt_height(mt));
++	mt_validate(mt);
+ 	mtree_destroy(mt);
+ 
+ 	/* Overwrite across multiple levels. */
+@@ -1061,6 +1064,7 @@ static noinline void __init check_ranges
+ 	check_load(mt, r[13] + 1, xa_mk_value(r[13] + 1));
+ 	check_load(mt, 135, NULL);
+ 	check_load(mt, 140, NULL);
++	mt_validate(mt);
+ 	mt_set_non_kernel(0);
+ 	MT_BUG_ON(mt, !mt_height(mt));
+ 	mtree_destroy(mt);
+@@ -1285,14 +1289,20 @@ static noinline void __init check_ranges
+ 		MT_BUG_ON(mt, mt_height(mt) >= 4);
+ 	}
+ 	/*  Cause a 3 child split all the way up the tree. */
+-	for (i = 5; i < 215; i += 10)
++	for (i = 5; i < 215; i += 10) {
+ 		check_store_range(mt, 11450 + i, 11450 + i + 1, NULL, 0);
+-	for (i = 5; i < 65; i += 10)
++		mt_validate(mt);
++	}
++	for (i = 5; i < 65; i += 10) {
+ 		check_store_range(mt, 11770 + i, 11770 + i + 1, NULL, 0);
++		mt_validate(mt);
++	}
+ 
+ 	MT_BUG_ON(mt, mt_height(mt) >= 4);
+-	for (i = 5; i < 45; i += 10)
++	for (i = 5; i < 45; i += 10) {
+ 		check_store_range(mt, 11700 + i, 11700 + i + 1, NULL, 0);
++		mt_validate(mt);
++	}
+ 	if (!MAPLE_32BIT)
+ 		MT_BUG_ON(mt, mt_height(mt) < 4);
+ 	mtree_destroy(mt);
+@@ -1304,17 +1314,42 @@ static noinline void __init check_ranges
+ 		val2 = (i+1)*10;
+ 		check_store_range(mt, val, val2, xa_mk_value(val), 0);
+ 		MT_BUG_ON(mt, mt_height(mt) >= 4);
++		mt_validate(mt);
+ 	}
+ 	/* Fill parents and leaves before split. */
+-	for (i = 5; i < 455; i += 10)
+-		check_store_range(mt, 7800 + i, 7800 + i + 1, NULL, 0);
++	val = 7660;
++	for (i = 5; i < 490; i += 5) {
++		val += 5;
++		check_store_range(mt, val, val + 1, NULL, 0);
++		mt_validate(mt);
++		MT_BUG_ON(mt, mt_height(mt) >= 4);
++	}
+ 
+-	for (i = 1; i < 16; i++)
+-		check_store_range(mt, 8185 + i, 8185 + i + 1,
+-				  xa_mk_value(8185+i), 0);
+-	MT_BUG_ON(mt, mt_height(mt) >= 4);
++	val = 9460;
++	/* Fill parents and leaves before split. */
++	for (i = 1; i < 10; i++) {
++		val++;
++		check_store_range(mt, val, val + 1, xa_mk_value(val), 0);
++		mt_validate(mt);
++	}
++
++	val = 8000;
++	for (i = 1; i < 14; i++) {
++		val++;
++		check_store_range(mt, val, val + 1, xa_mk_value(val), 0);
++		mt_validate(mt);
++	}
++
++
++	check_store_range(mt, 8051, 8051, xa_mk_value(8081), 0);
++	check_store_range(mt, 8052, 8052, xa_mk_value(8082), 0);
++	check_store_range(mt, 8083, 8083, xa_mk_value(8083), 0);
++	check_store_range(mt, 8084, 8084, xa_mk_value(8084), 0);
++	check_store_range(mt, 8085, 8085, xa_mk_value(8085), 0);
+ 	/* triple split across multiple levels. */
+-	check_store_range(mt, 8184, 8184, xa_mk_value(8184), 0);
++	check_store_range(mt, 8099, 8100, xa_mk_value(1), 0);
++
++	mt_validate(mt);
+ 	if (!MAPLE_32BIT)
+ 		MT_BUG_ON(mt, mt_height(mt) != 4);
+ }
+--- a/tools/testing/radix-tree/maple.c~maple_tree-use-maple-copy-node-for-mas_wr_split
++++ a/tools/testing/radix-tree/maple.c
+@@ -35406,7 +35406,18 @@ static noinline void __init check_spanni
+ 	mt_init_flags(mt, MT_FLAGS_ALLOC_RANGE);
+ 	for (i = 0; i <= max; i++)
+ 		mtree_test_store_range(mt, i * 10, i * 10 + 5, &i);
++
+ 	mtree_lock(mt);
++	if (MAPLE_32BIT) {
++		i = 47811;
++		do {
++			mas_set(&mas, i);
++			mas_store_gfp(&mas, check_spanning_write, GFP_KERNEL);
++			i++;
++			mas_ascend(&mas);
++		} while (mas_data_end(&mas) < mt_slot_count(mas.node) - 1);
++	}
++
+ 	mas_set(&mas, 47606);
+ 	mas_store_gfp(&mas, check_spanning_write, GFP_KERNEL);
+ 	mas_set(&mas, 47607);
 _
 
 Patches currently in -mm which might be from Liam.Howlett@oracle.com are
