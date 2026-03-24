@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1A9534C989
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2F6134C141
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 21:42:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774388559; cv=none; b=Hb1jbimEKXBlB3D/2c4mUGH+Qnefzb2ffSwAaOag4UjjiZISscUpU/Vcdco5xfPfgVNtpycpubzfSxiUNpIbhmAUszD3sSN+zgTTIQeav7Y/5plU4luyK48zp4znS1Rq0LnKhzxnRxHQErVDNoBrVk2AfAD0isutU0acuk9rZXI=
+	t=1774388561; cv=none; b=H6nqP3YNcH3LnwzO+BSy6oXlZLUw4RnjUzqo6NumLb01EYhD0c6Ga+uf8/qc08g7QZg+nesXaUe6CaIZm0DaAOC7QMS24fqJMyaoTKkB9RyUp9tyyrIO6irQCaflZC/vOVlwBTFFj1XVyvkkMjYNoK3xNvFHUwU2/4sWRrSi4LE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774388559; c=relaxed/simple;
-	bh=jgrwkNJVCqLDyP4AhqVwjLHQTa/UM4JdfkZtCqyEHBI=;
-	h=Date:To:From:Subject:Message-Id; b=KDGfwVeaexmXJC2pnclQmEf3dMGMU9lQL8YvAu2hGouEEOz+uIGMGWBQVq1RH3gWggy7ub1TEMxuwMArsL+AI4/huDHVbohIHXFTNjAw8D+f/wcYHWZS+MnnKwEcaKNlpOZk64eBRbemNtC0E/P3nvYwXtIiFy1C/1MunMM/lpA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LadJVJGi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774388561; c=relaxed/simple;
+	bh=mhShd+i4bL5DPQ/l0bwgnyZrX5vs0mTEnye+voWrio4=;
+	h=Date:To:From:Subject:Message-Id; b=RqPG2W1DcF6UklRfYXad/8UsjrJV+kQL+HYB1Jwu2cxMT+0x8lBXlmvb3x432W66sOBomWbQQRRwOL/X2bdWufDfLufpV7vxord+nwGzLGGaRKWAHQCGqjYv8FYsFo3mibxtlt96eUivFoPnRaJaJYLBD9LHQyXuYtgYu7kDwA4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0MaOeYgA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LadJVJGi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AC29C19424;
-	Tue, 24 Mar 2026 21:42:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0MaOeYgA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD479C19424;
+	Tue, 24 Mar 2026 21:42:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774388559;
-	bh=jgrwkNJVCqLDyP4AhqVwjLHQTa/UM4JdfkZtCqyEHBI=;
+	s=korg; t=1774388560;
+	bh=mhShd+i4bL5DPQ/l0bwgnyZrX5vs0mTEnye+voWrio4=;
 	h=Date:To:From:Subject:From;
-	b=LadJVJGincnfAqCAAoZQJYKyweHr4na6TAMi4CcTfZXchFkosA0T+V9A/zgyw5aNF
-	 kxoOrMfu0cALABD17AiyEBReSd4VAC7vQrVTBPmhSYTwKIUgnn2wmTlZPf6K9IXkBb
-	 UhyXDAMdGTU3+fL43xmu3peR4tPoN/MSHdwUornc=
-Date: Tue, 24 Mar 2026 14:42:38 -0700
-To: mm-commits@vger.kernel.org,zuoze1@huawei.com,yanquanmin1@huawei.com,wangkefeng.wang@huawei.com,sj@kernel.org,gutierrez.asier@huawei-partners.com,akpm@linux-foundation.org
+	b=0MaOeYgAp2XSKwu/fMYUPe0db9OVHEx7vq/YiPA4FFixWyLslyjs/NfHX+Z9G/AY8
+	 StlVFaRuPXCaIA73O1c3TeUQdrlkO7+3WeB6i0MIHjXnZz5pbklxuLMmBtXGI2pIEp
+	 Uh7TEdhVWItTfVnT/HN3a6X+Mt2WYE2jaKcr9qss=
+Date: Tue, 24 Mar 2026 14:42:40 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@gmail.com,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,chenridong@huaweicloud.com,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-remove-unused-target-param-of-get_scheme_score.patch removed from -mm tree
-Message-Id: <20260324214239.7AC29C19424@smtp.kernel.org>
+Subject: [merged mm-stable] memcg-consolidate-private-id-refcount-get-put-helpers.patch removed from -mm tree
+Message-Id: <20260324214240.BD479C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,114 +35,152 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon: remove unused target param of get_scheme_score()
+     Subject: memcg: consolidate private id refcount get/put helpers
 has been removed from the -mm tree.  Its filename was
-     mm-damon-remove-unused-target-param-of-get_scheme_score.patch
+     memcg-consolidate-private-id-refcount-get-put-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
-Subject: mm/damon: remove unused target param of get_scheme_score()
-Date: Fri, 13 Feb 2026 14:50:32 +0000
+From: Kairui Song <kasong@tencent.com>
+Subject: memcg: consolidate private id refcount get/put helpers
+Date: Fri, 13 Feb 2026 18:03:32 +0800
 
-damon_target is not used by get_scheme_score operations, nor with virtual
-neither with physical addresses.
+We currently have two different sets of helpers for getting or putting the
+private IDs' refcount for order 0 and large folios.  This is redundant. 
+Just use one and always acquire the refcount of the swapout folio size
+unless it's zero, and put the refcount using the folio size if the charge
+failed, since the folio size can't change.  Then there is no need to
+update the refcount for tail pages.
 
-Link: https://lkml.kernel.org/r/20260213145032.1740407-1-gutierrez.asier@huawei-partners.com
-Signed-off-by: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Quanmin Yan <yanquanmin1@huawei.com>
-Cc: ze zuo <zuoze1@huawei.com>
+Same for freeing, then only one pair of get/put helper is needed now.
+
+The performance might be slightly better, too: both "inc unless zero" and
+"add unless zero" use the same cmpxchg implementation.  For large folios,
+we saved an atomic operation.  And for both order 0 and large folios, we
+saved a branch.
+
+Link: https://lkml.kernel.org/r/20260213-memcg-privid-v1-1-d8cb7afcf831@tencent.com
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Chen Ridong <chenridong@huaweicloud.com>
+Acked-by: Shakeel Butt <shakeel.butt@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    3 +--
- mm/damon/core.c       |   10 +++++-----
- mm/damon/paddr.c      |    3 +--
- mm/damon/vaddr.c      |    3 +--
- 4 files changed, 8 insertions(+), 11 deletions(-)
+ mm/memcontrol-v1.c |    5 +----
+ mm/memcontrol-v1.h |    4 ++--
+ mm/memcontrol.c    |   29 +++++++----------------------
+ 3 files changed, 10 insertions(+), 28 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-remove-unused-target-param-of-get_scheme_score
-+++ a/include/linux/damon.h
-@@ -647,8 +647,7 @@ struct damon_operations {
- 	void (*prepare_access_checks)(struct damon_ctx *context);
- 	unsigned int (*check_accesses)(struct damon_ctx *context);
- 	int (*get_scheme_score)(struct damon_ctx *context,
--			struct damon_target *t, struct damon_region *r,
--			struct damos *scheme);
-+			struct damon_region *r, struct damos *scheme);
- 	unsigned long (*apply_scheme)(struct damon_ctx *context,
- 			struct damon_target *t, struct damon_region *r,
- 			struct damos *scheme, unsigned long *sz_filter_passed);
---- a/mm/damon/core.c~mm-damon-remove-unused-target-param-of-get_scheme_score
-+++ a/mm/damon/core.c
-@@ -1689,15 +1689,15 @@ static bool __damos_valid_target(struct
- 		r->age <= s->pattern.max_age_region;
+--- a/mm/memcontrol.c~memcg-consolidate-private-id-refcount-get-put-helpers
++++ a/mm/memcontrol.c
+@@ -3634,13 +3634,7 @@ static void mem_cgroup_private_id_remove
+ 	}
  }
  
--static bool damos_valid_target(struct damon_ctx *c, struct damon_target *t,
--		struct damon_region *r, struct damos *s)
-+static bool damos_valid_target(struct damon_ctx *c, struct damon_region *r,
-+		struct damos *s)
+-void __maybe_unused mem_cgroup_private_id_get_many(struct mem_cgroup *memcg,
+-					   unsigned int n)
+-{
+-	refcount_add(n, &memcg->id.ref);
+-}
+-
+-static void mem_cgroup_private_id_put_many(struct mem_cgroup *memcg, unsigned int n)
++static inline void mem_cgroup_private_id_put(struct mem_cgroup *memcg, unsigned int n)
  {
- 	bool ret = __damos_valid_target(r, s);
- 
- 	if (!ret || !s->quota.esz || !c->ops.get_scheme_score)
- 		return ret;
- 
--	return c->ops.get_scheme_score(c, t, r, s) >= s->quota.min_score;
-+	return c->ops.get_scheme_score(c, r, s) >= s->quota.min_score;
+ 	if (refcount_sub_and_test(n, &memcg->id.ref)) {
+ 		mem_cgroup_private_id_remove(memcg);
+@@ -3650,14 +3644,9 @@ static void mem_cgroup_private_id_put_ma
+ 	}
  }
  
- /*
-@@ -2021,7 +2021,7 @@ static void damon_do_apply_schemes(struc
- 				s->max_nr_snapshots <= s->stat.nr_snapshots)
- 			continue;
- 
--		if (damos_valid_target(c, t, r, s))
-+		if (damos_valid_target(c, r, s))
- 			damos_apply_scheme(c, t, r, s);
- 
- 		if (damon_is_last_region(r, t))
-@@ -2319,7 +2319,7 @@ static void damos_adjust_quota(struct da
- 		damon_for_each_region(r, t) {
- 			if (!__damos_valid_target(r, s))
- 				continue;
--			score = c->ops.get_scheme_score(c, t, r, s);
-+			score = c->ops.get_scheme_score(c, r, s);
- 			c->regions_score_histogram[score] +=
- 				damon_sz_region(r);
- 			if (score > max_score)
---- a/mm/damon/paddr.c~mm-damon-remove-unused-target-param-of-get_scheme_score
-+++ a/mm/damon/paddr.c
-@@ -343,8 +343,7 @@ static unsigned long damon_pa_apply_sche
- }
- 
- static int damon_pa_scheme_score(struct damon_ctx *context,
--		struct damon_target *t, struct damon_region *r,
--		struct damos *scheme)
-+		struct damon_region *r, struct damos *scheme)
+-static inline void mem_cgroup_private_id_put(struct mem_cgroup *memcg)
++struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg, unsigned int n)
  {
- 	switch (scheme->action) {
- 	case DAMOS_PAGEOUT:
---- a/mm/damon/vaddr.c~mm-damon-remove-unused-target-param-of-get_scheme_score
-+++ a/mm/damon/vaddr.c
-@@ -985,8 +985,7 @@ static unsigned long damon_va_apply_sche
+-	mem_cgroup_private_id_put_many(memcg, 1);
+-}
+-
+-struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg)
+-{
+-	while (!refcount_inc_not_zero(&memcg->id.ref)) {
++	while (!refcount_add_not_zero(n, &memcg->id.ref)) {
+ 		/*
+ 		 * The root cgroup cannot be destroyed, so it's refcount must
+ 		 * always be >= 1.
+@@ -3957,7 +3946,7 @@ static void mem_cgroup_css_offline(struc
+ 
+ 	drain_all_stock(memcg);
+ 
+-	mem_cgroup_private_id_put(memcg);
++	mem_cgroup_private_id_put(memcg, 1);
  }
  
- static int damon_va_scheme_score(struct damon_ctx *context,
--		struct damon_target *t, struct damon_region *r,
--		struct damos *scheme)
-+		struct damon_region *r, struct damos *scheme)
- {
+ static void mem_cgroup_css_released(struct cgroup_subsys_state *css)
+@@ -5247,19 +5236,15 @@ int __mem_cgroup_try_charge_swap(struct
+ 		return 0;
+ 	}
  
- 	switch (scheme->action) {
+-	memcg = mem_cgroup_private_id_get_online(memcg);
++	memcg = mem_cgroup_private_id_get_online(memcg, nr_pages);
+ 
+ 	if (!mem_cgroup_is_root(memcg) &&
+ 	    !page_counter_try_charge(&memcg->swap, nr_pages, &counter)) {
+ 		memcg_memory_event(memcg, MEMCG_SWAP_MAX);
+ 		memcg_memory_event(memcg, MEMCG_SWAP_FAIL);
+-		mem_cgroup_private_id_put(memcg);
++		mem_cgroup_private_id_put(memcg, nr_pages);
+ 		return -ENOMEM;
+ 	}
+-
+-	/* Get references for the tail pages, too */
+-	if (nr_pages > 1)
+-		mem_cgroup_private_id_get_many(memcg, nr_pages - 1);
+ 	mod_memcg_state(memcg, MEMCG_SWAP, nr_pages);
+ 
+ 	swap_cgroup_record(folio, mem_cgroup_private_id(memcg), entry);
+@@ -5288,7 +5273,7 @@ void __mem_cgroup_uncharge_swap(swp_entr
+ 				page_counter_uncharge(&memcg->swap, nr_pages);
+ 		}
+ 		mod_memcg_state(memcg, MEMCG_SWAP, -nr_pages);
+-		mem_cgroup_private_id_put_many(memcg, nr_pages);
++		mem_cgroup_private_id_put(memcg, nr_pages);
+ 	}
+ 	rcu_read_unlock();
+ }
+--- a/mm/memcontrol-v1.c~memcg-consolidate-private-id-refcount-get-put-helpers
++++ a/mm/memcontrol-v1.c
+@@ -635,11 +635,8 @@ void memcg1_swapout(struct folio *folio,
+ 	 * have an ID allocated to it anymore, charge the closest online
+ 	 * ancestor for the swap instead and transfer the memory+swap charge.
+ 	 */
+-	swap_memcg = mem_cgroup_private_id_get_online(memcg);
+ 	nr_entries = folio_nr_pages(folio);
+-	/* Get references for the tail pages, too */
+-	if (nr_entries > 1)
+-		mem_cgroup_private_id_get_many(swap_memcg, nr_entries - 1);
++	swap_memcg = mem_cgroup_private_id_get_online(memcg, nr_entries);
+ 	mod_memcg_state(swap_memcg, MEMCG_SWAP, nr_entries);
+ 
+ 	swap_cgroup_record(folio, mem_cgroup_private_id(swap_memcg), entry);
+--- a/mm/memcontrol-v1.h~memcg-consolidate-private-id-refcount-get-put-helpers
++++ a/mm/memcontrol-v1.h
+@@ -27,8 +27,8 @@ void drain_all_stock(struct mem_cgroup *
+ unsigned long memcg_events(struct mem_cgroup *memcg, int event);
+ int memory_stat_show(struct seq_file *m, void *v);
+ 
+-void mem_cgroup_private_id_get_many(struct mem_cgroup *memcg, unsigned int n);
+-struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg);
++struct mem_cgroup *mem_cgroup_private_id_get_online(struct mem_cgroup *memcg,
++						    unsigned int n);
+ 
+ /* Cgroup v1-specific declarations */
+ #ifdef CONFIG_MEMCG_V1
 _
 
-Patches currently in -mm which might be from gutierrez.asier@huawei-partners.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-docs-mm-damon-design-document-damon-actions-when-transparent_hugepage-is-off.patch
 
