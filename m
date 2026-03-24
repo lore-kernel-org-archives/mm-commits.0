@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0109529BDB1
-	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 18:55:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 791C7264614
+	for <mm-commits@vger.kernel.org>; Tue, 24 Mar 2026 19:18:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774378554; cv=none; b=HSSSlOjoMi/NIgm8rA+hT685Y1vA9sjcHh2Ms4uY/7M1VsMI/G8XJbI3ZnvFuHdbsHv689x/Ox9r1NQsAUpI3Xh2w/vibcL/fACmxW+HNYquuh4CYeelFUiPXuZUBgS4xRfFDThUWeIeT11A2LaLj/D7g8q6P8vnDo19AKsGfGQ=
+	t=1774379910; cv=none; b=XZ7oGhArOAc1WvLi25affDBagt+XLyEY67e5OVW4Y5Lfo4GYfJHgWaPm7kJLPncSXmBZqBP/M6GO812onBNMqzxRmkzihaWKM7D9xKDg4kCGCKCEF9xeqv7rZ3eYqSgu5ZUfy/Lhsn2kLkTrJXMBMmRR5uO/xqCjSDdsSQCUubk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774378554; c=relaxed/simple;
-	bh=5B6e64nu5Zb9sC3IdE9+RHG2kHdUiq8f88LzOGBfj8E=;
-	h=Date:To:From:Subject:Message-Id; b=ZidBumNSWc6+ydpv/8LEJVhrX+Az+iEoZg2IULOy79EcRmuFHwtgajUxtmsCFTuHXork0JlwDyuZgOC9s12ix+uDXhxkOCWJ7BPleBWqAclEdv9bjQ+Vy2LssHhpcbf9QSxalB4ri1JsA0PyDGRup/wgxmS3au6A4qHUWqv7ltI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GnsGcGEV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774379910; c=relaxed/simple;
+	bh=g8qwRtiDkx0piNaE7lOSLpbKJpT6JHJwEs12mLiNqqI=;
+	h=Date:To:From:Subject:Message-Id; b=eT/dN4Eu4B3UJw/3DsjjBSCf4oTJ+uCNWh1dAxWKa26pZPCWaPuDP+0m8k65mudDyo0ofpIBdX+JSXn7W3FfvJuwcuLbKiCGAlhhY3ijvnnAze0NYHT7l1Al/3AcE/WC0Pcu/NInBBfLwm4+XTuD/4O63N0/w9Js2niOKsmnigk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Te+toYbm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GnsGcGEV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EC66C4AF09;
-	Tue, 24 Mar 2026 18:55:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Te+toYbm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 073B0C19424;
+	Tue, 24 Mar 2026 19:18:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774378553;
-	bh=5B6e64nu5Zb9sC3IdE9+RHG2kHdUiq8f88LzOGBfj8E=;
+	s=korg; t=1774379910;
+	bh=g8qwRtiDkx0piNaE7lOSLpbKJpT6JHJwEs12mLiNqqI=;
 	h=Date:To:From:Subject:From;
-	b=GnsGcGEVZiyIQC09pSKBwsqTVXQ1npwQXdNnJgv68HPeVDXRqIhpCLmgrRtdo5hX6
-	 0oUjau0lKw9CrJ+aLgH7QyxFKgeaE3KmCOqY/JGadnlxZXNtJYEzTKuW/3QubVwbK+
-	 j+daEjidBlgSX0TIGRErBOC12Jjx3yHwX/I4wUDY=
-Date: Tue, 24 Mar 2026 11:55:52 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,weixugc@google.com,usamaarif642@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,ljs@kernel.org,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=Te+toYbmjzVkylwTG40KkfJWP5yseEqEzhDlvzcPawMNczjasdvyzT3qZ/hHJopUN
+	 WzUFr8MtPgfsDMCwRfPAjDeGryPlAFhucFcJ606mSri03ZzN3nUMcZOoR0S9r3WjGU
+	 4EHod08hLL8Et1noMltYm7sUYFnXpQcBZS8++4EE=
+Date: Tue, 24 Mar 2026 12:18:29 -0700
+To: mm-commits@vger.kernel.org,pmladek@suse.com,objecting@objecting.org,kees@kernel.org,dhowells@redhat.com,davidgow@google.com,lk@c--e.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-prepare-for-reparenting-mglru-folios-fix.patch added to mm-unstable branch
-Message-Id: <20260324185553.7EC66C4AF09@smtp.kernel.org>
+Subject: + lib-kunit_iov_iter-improve-error-detection.patch added to mm-nonmm-unstable branch
+Message-Id: <20260324191830.073B0C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fix: mm: vmscan: prepare for reparenting MGLRU folios
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmscan-prepare-for-reparenting-mglru-folios-fix.patch
+     Subject: lib: kunit_iov_iter: improve error detection
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-kunit_iov_iter-improve-error-detection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-prepare-for-reparenting-mglru-folios-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-kunit_iov_iter-improve-error-detection.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,73 +58,90 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: fix: mm: vmscan: prepare for reparenting MGLRU folios
-Date: Tue, 24 Mar 2026 19:49:37 +0800
+From: "Christian A. Ehrhardt" <lk@c--e.de>
+Subject: lib: kunit_iov_iter: improve error detection
+Date: Mon, 23 Mar 2026 22:23:48 +0100
 
-The lru_to_folio() returns the tail folio, and the lruvec_add_folio() adds
-folio to the head, so the tail page is colder.  Since we always assume
-that the folios in child memcg (about to go offline) are always colder, we
-should use list_splice_tail_init() to reparent the child folios to the
-tail of the lru list of parent memcg.
+Patch series "Fix length calculation bug in extract_kvec_to_sg".
 
-Link: https://lkml.kernel.org/r/20260324114937.28569-1-qi.zheng@linux.dev
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reported-by: Harry Yoo <harry.yoo@oracle.com>
-Cc: Allen Pais <apais@linux.microsoft.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Imran Khan <imran.f.khan@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+There is a bug in extract_kvec_to_sg() where the length of a scatterlist
+segment is miscalculated.  The actual fix is a one-liner and it is quite
+obvious from reading the code that this is what was intened.
+
+As this is a core library function this series first adds test cases to
+the kunit_iov_iter test that demonstrate that there is a bug before
+actually fixing it in the last commit.
+
+The bug was orignally introduced into kernel v6.3 where the function lived
+in fs/netfs/iterator.c.  It was later moved to lib/scatterlist.c in v6.5. 
+Thus the actual fix is only marked for backports to v6.5+.
+
+
+This patch (of 3):
+
+In the kunit_iov_iter test prevent the kernel buffer from being a single
+physically contiguous region.
+
+Additionally, make sure that the test pattern written to a page in the
+buffer depends on the offset of the page within the buffer.
+
+Link: https://lkml.kernel.org/r/20260323212350.807118-1-lk@c--e.de
+Link: https://lkml.kernel.org/r/20260323212350.807118-2-lk@c--e.de
+Signed-off-by: Christian A. Ehrhardt <lk@c--e.de>
+Reviewed-by: Josh Law <objecting@objecting.org>
+Tested-by: Josh Law <objecting@objecting.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: David Gow <davidgow@google.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/tests/kunit_iov_iter.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-prepare-for-reparenting-mglru-folios-fix
-+++ a/mm/vmscan.c
-@@ -4513,8 +4513,8 @@ static void __lru_gen_reparent_memcg(str
- 		int parent_lru_active = lru_gen_is_active(parent_lruvec, gen) ? LRU_ACTIVE : 0;
+--- a/lib/tests/kunit_iov_iter.c~lib-kunit_iov_iter-improve-error-detection
++++ a/lib/tests/kunit_iov_iter.c
+@@ -13,6 +13,7 @@
+ #include <linux/uio.h>
+ #include <linux/bvec.h>
+ #include <linux/folio_queue.h>
++#include <linux/minmax.h>
+ #include <kunit/test.h>
  
- 		/* Assuming that child pages are colder than parent pages */
--		list_splice_init(&child_lrugen->folios[gen][type][zone],
--				 &parent_lrugen->folios[gen][type][zone]);
-+		list_splice_tail_init(&child_lrugen->folios[gen][type][zone],
-+				      &parent_lrugen->folios[gen][type][zone]);
+ MODULE_DESCRIPTION("iov_iter testing");
+@@ -37,7 +38,7 @@ static const struct kvec_test_range kvec
  
- 		WRITE_ONCE(child_lrugen->nr_pages[gen][type][zone], 0);
- 		WRITE_ONCE(parent_lrugen->nr_pages[gen][type][zone],
+ static inline u8 pattern(unsigned long x)
+ {
+-	return x & 0xff;
++	return (u8)x + (u8)(x >> 8) + (u8)(x >> 16);
+ }
+ 
+ static void iov_kunit_unmap(void *data)
+@@ -52,6 +53,7 @@ static void *__init iov_kunit_create_buf
+ 	struct page **pages;
+ 	unsigned long got;
+ 	void *buffer;
++	unsigned int i;
+ 
+ 	pages = kunit_kcalloc(test, npages, sizeof(struct page *), GFP_KERNEL);
+         KUNIT_ASSERT_NOT_ERR_OR_NULL(test, pages);
+@@ -62,6 +64,9 @@ static void *__init iov_kunit_create_buf
+ 		release_pages(pages, got);
+ 		KUNIT_ASSERT_EQ(test, got, npages);
+ 	}
++	/* Make sure that we don't get a physically contiguous buffer. */
++	for (i = 0; i < npages / 4; ++i)
++		swap(pages[i], pages[i + npages/2]);
+ 
+ 	buffer = vmap(pages, npages, VM_MAP | VM_MAP_PUT_PAGES, PAGE_KERNEL);
+         KUNIT_ASSERT_NOT_ERR_OR_NULL(test, buffer);
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from lk@c--e.de are
 
-mm-vmscan-prepare-for-the-refactoring-the-move_folios_to_lru.patch
-mm-thp-prevent-memory-cgroup-release-in-folio_split_queue_lock_irqsave.patch
-mm-zswap-prevent-memory-cgroup-release-in-zswap_compress.patch
-mm-do-not-open-code-lruvec-lock.patch
-mm-vmscan-prepare-for-reparenting-traditional-lru-folios.patch
-mm-vmscan-prepare-for-reparenting-mglru-folios.patch
-mm-vmscan-prepare-for-reparenting-mglru-folios-fix.patch
-mm-memcontrol-refactor-memcg_reparent_objcgs.patch
-mm-workingset-use-lruvec_lru_size-to-get-the-number-of-lru-pages.patch
-mm-memcontrol-refactor-mod_memcg_state-and-mod_memcg_lruvec_state.patch
-mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats.patch
-mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch
-mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type-fix.patch
+lib-kunit_iov_iter-improve-error-detection.patch
+lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg.patch
+lib-fix-length-calculation-in-extract_kvec_to_sg.patch
 
