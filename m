@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E0E26A0C7
-	for <mm-commits@vger.kernel.org>; Wed, 25 Mar 2026 04:33:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B89B3043C8
+	for <mm-commits@vger.kernel.org>; Wed, 25 Mar 2026 04:34:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774413199; cv=none; b=a+pULRUvcfcxYIk2nhUebug6x1Q29aIh18cCSl/gRifIA2zNbGBl/yEp7ROkrHig/5LjL9wm9b43bAZ7zLD+x0bg/GHOvganmFI4fbQpx/Oc8HDK9TUuGqq3N4codV18Wy85BvIfpQ2dh81Ocu4UwGqmvoQCv59WQGauVCP2tus=
+	t=1774413261; cv=none; b=iB/E8Lh7xaQfRADtUTLN70yQgeFCdnhYpft/7NEqo7nTgQvw1gO9NJAnYy0fOTIHc3yZyLdn22N4TNwvuF66qWvZ1y8eYToMc1qz4w6l2KYX5CODvc5lNm+m/2wVnY9mvdO9Mbc+KRBoFsiZ/JEKP/jLvOuu5lZBcVZKMz8lb6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774413199; c=relaxed/simple;
-	bh=FsuZf2CLO1T8y9/3BPG26zAM87rcCVUEF6I03rJ4d1o=;
-	h=Date:To:From:Subject:Message-Id; b=tqbXml45NRevy86qJi281lLLlCq1b5aJd/wFUyjwcV3isnlW7qxEGjOAT0AnubMfXtcSUB1KtNATa4JBYRFpfIiSL7IqoVAPmNhRJmk2Otm6aSRUknDJT1JDFwyBjNAvnjD18PCcAyFjX+VCqF7wQ+qXoRwqCOUR9tNh+BbZ2B0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x6jMDGdY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774413261; c=relaxed/simple;
+	bh=Fo2h8Bl9odYW8VSNxoY1x5oMz55Mas/474ADDk8kmRA=;
+	h=Date:To:From:Subject:Message-Id; b=kBZXWX0K1Z+bpjcf2Uxefo+wKMo9RfXmDZ5mJ9tDU3+aUGeArI2NwIbhLZFZPfURDXvDP3QU84hNYh2PHknN3/B/3xq/XIz+07t5FsGaLvX9sRS8l1MLT0WwYtptaPsxEX30xAiIj7X6npHlbX2rvCrky52ZoceFNIIAT/BBLq8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0tUAmncN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x6jMDGdY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72DD6C4CEF7;
-	Wed, 25 Mar 2026 04:33:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0tUAmncN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AD46C4CEF7;
+	Wed, 25 Mar 2026 04:34:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774413198;
-	bh=FsuZf2CLO1T8y9/3BPG26zAM87rcCVUEF6I03rJ4d1o=;
+	s=korg; t=1774413260;
+	bh=Fo2h8Bl9odYW8VSNxoY1x5oMz55Mas/474ADDk8kmRA=;
 	h=Date:To:From:Subject:From;
-	b=x6jMDGdYVInNd5vJVbINO+zGAQJBbrjAmwyxfbTBHv2A/3XBI5mYFfjHR42pM7qZo
-	 9MiXpemdGwJhl1C+/oEq2TTLpbjBK8jEZbV/pZjwwMHqO7mjnwh6j65ounJ/tdT+yZ
-	 tZqprUSDUM3EA2JQsyCX7MN6UKMLy9NtGkdkRBIw=
-Date: Tue, 24 Mar 2026 21:33:17 -0700
-To: mm-commits@vger.kernel.org,wangjinchao600@gmail.com,rioo.tsukatsukii@gmail.com,pmladek@suse.com,joel.granados@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=0tUAmncNk0uyALBi3Ccf4joot7Gr2Bs281aAvXz0rTgtHKft8/xLDcToNMIO5p0IF
+	 +KJUmMJU2CprVVAW5c7BZCoo0dZMoFxWHSsAQcm1e/HABSC+DNEysRmsMZdvkt3wZx
+	 OCtZ+s1sXTi3BQ1AVf+E5i8+Ih4y9+DCuTBgwnh0=
+Date: Tue, 24 Mar 2026 21:34:19 -0700
+To: mm-commits@vger.kernel.org,mhiramat@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch removed from -mm tree
-Message-Id: <20260325043318.72DD6C4CEF7@smtp.kernel.org>
+Subject: [folded-merged] decode_stacktrace-decode-caller-address-checkpatch-fixes.patch removed from -mm tree
+Message-Id: <20260325043420.8AD46C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix
+     Subject: decode_stacktrace-decode-caller-address-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix.patch
+     decode_stacktrace-decode-caller-address-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch
+This patch was dropped because it was folded into decode_stacktrace-decode-caller-address.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix
-Date: Fri Feb 20 01:05:15 PM PST 2026
+Subject: decode_stacktrace-decode-caller-address-checkpatch-fixes
+Date: Tue Mar 10 11:48:47 AM PDT 2026
 
-fix spello, add comment
+WARNING: 'substract' may be misspelled - perhaps 'subtract'?
+#106: FILE: scripts/decode_stacktrace.sh:198:
++	# symbol, substract one from that to point the call instruction.
+ 	          ^^^^^^^^^
 
-Cc: Joel Granados <joel.granados@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Rio <rioo.tsukatsukii@gmail.com>
-Cc: Wang Jinchao <wangjinchao600@gmail.com>
+Please run checkpatch prior to sending patches
+
+Cc: Masami Hiramatsu (Google) <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/decode_stacktrace.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/panic.c~kernel-panic-increase-buffer-size-for-verbose-taint-logging-fix
-+++ a/kernel/panic.c
-@@ -801,6 +801,8 @@ EXPORT_SYMBOL(panic);
-  * Documentation/admin-guide/tainted-kernels.rst, including its
-  * small shell script that prints the TAINT_FLAGS_COUNT bits of
-  * /proc/sys/kernel/tainted.
-+ *
-+ * Also, update TAINT_BUF_MAX below.
-  */
- const struct taint_flag taint_flags[TAINT_FLAGS_COUNT] = {
- 	TAINT_FLAG(PROPRIETARY_MODULE,		'P', 'G'),
-@@ -854,7 +856,7 @@ static void print_tainted_seq(struct seq
- 	}
- }
- 
--/* 350 can accomadate all taint flags in verbose mode, with some headroom */
-+/* 350 can accommodate all taint flags in verbose mode, with some headroom */
- #define TAINT_BUF_MAX 350
- 
- static const char *_print_tainted(bool verbose)
+--- a/scripts/decode_stacktrace.sh~decode_stacktrace-decode-caller-address-checkpatch-fixes
++++ a/scripts/decode_stacktrace.sh
+@@ -195,7 +195,7 @@ parse_symbol() {
+ 	# Evaluate it to find the actual address
+ 	# The stack trace shows the return address, which is the next
+ 	# instruction after the actual call, so as long as it's in the same
+-	# symbol, substract one from that to point the call instruction.
++	# symbol, subtract one from that to point the call instruction.
+ 	if [[ $decode_retaddr == false && $offset != 0 ]]; then
+ 		expr=$((expr-1))
+ 	else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,7 +78,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 selftests-mm-skip-uffd-wp-mremap-if-uffd-write-protect-is-unsupported-fix.patch
 mm-switch-the-rmap-lock-held-option-off-in-compat-layer-fix.patch
 selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-kernel-panic-increase-buffer-size-for-verbose-taint-logging.patch
-decode_stacktrace-decode-caller-address-checkpatch-fixes.patch
+decode_stacktrace-decode-caller-address.patch
 lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix.patch
 
