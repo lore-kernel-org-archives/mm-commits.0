@@ -1,71 +1,170 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 788B41A9FBA
-	for <mm-commits@vger.kernel.org>; Wed, 25 Mar 2026 18:55:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29F1932D0DE
+	for <mm-commits@vger.kernel.org>; Wed, 25 Mar 2026 18:55:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774464928; cv=none; b=R1iLbTCfZ8sqGxieUZCIPmdg/elLL9UVpvQ9HjPFLoNfAl7NuXzzaRMyNRfUXPI50H9IzH0O8fk+VmkSe5/YmvGWiGMsgG6nGJglN8meUqEYTQys3Ld8l96uSi5eoK+HCIft+c1ypSj2up8YYHT+16Bz0zaN5MewhZyxrph75mY=
+	t=1774464938; cv=none; b=YERCSqtgiROI5BeG6EqPkAcZ8fY2zeKyTyA0dcQPrpAJyPVXwOn1D/tklWJJMtZUfBgrE0Q9Smjf2haRCZvZjz2e2dvNcsW4zekkYibWM1bkTkCwI4BJzXhxfXu7WadN0zrdujFs7l2fDv2vHoi/71Mu3eyTlJk0t0GQ24XW05Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774464928; c=relaxed/simple;
-	bh=gCpgv71YAuPWYxlUpAKh5yR1pwL59q1mR4nx0JLXsB8=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=H18cGkk9K/GaxmL8OppL/NHB77Un9s7Nbui7bqdJ4ve0RFrXwB6CleMt9iOIyy/ctZBh0O/aNof/A7lemKCWsF3nFeP6D52oc9ZcKDs+e1T9afp6GcLrwbml+hB/nTZjvNV8UYV1H4k4Tc2qoH0rWR3QJ1R5M2B76wWVoBKDpJU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pt/19dd8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774464938; c=relaxed/simple;
+	bh=T35CbGD4Yyx2arXXfZE4fh4ER3Y2fOnFQ5qVXzfjEFs=;
+	h=Date:To:From:Subject:Message-Id; b=Jl3SeIgKEszmzLHM+GtpwZ+4j929OUxCFSCSvcoLL7SUzOt4kzLWtCiFfjiRhSAmo9c9x6f2yHlJYmp8fE1z1/EqKOszeaPcJoqxCmNWGXr+a1rDwVDJKr5Tj22slCp4wmnm2Tk0JNw0ACD98JqPe88QZbZ5gOhVbweof4OYQYU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QrXnj2oj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pt/19dd8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09435C4CEF7;
-	Wed, 25 Mar 2026 18:55:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QrXnj2oj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B653BC4CEF7;
+	Wed, 25 Mar 2026 18:55:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774464928;
-	bh=gCpgv71YAuPWYxlUpAKh5yR1pwL59q1mR4nx0JLXsB8=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=pt/19dd8T1wENBBzaFHMGahgmVZedYhFHjRhQG6D7MN7P+zQX50qmizG+cAYvW/Fj
-	 hFi+siJSXe+lUMhPM87Bknxdq4RKu1dcbXPGrzpvXUdoPZK4Sg2dB1GAZM5JrPngjQ
-	 jBijwPVJPWzeE7d4jbvlZAJ72NxMbF7i4jA5/60M=
-Date: Wed, 25 Mar 2026 11:55:27 -0700
+	s=korg; t=1774464937;
+	bh=T35CbGD4Yyx2arXXfZE4fh4ER3Y2fOnFQ5qVXzfjEFs=;
+	h=Date:To:From:Subject:From;
+	b=QrXnj2oj+gn2q8KDtkSeEKtfV/fNbHB6kIOqjEKxdauPNbXe86Xj2l2Y3IQOu9hmM
+	 G+nb9kqeGEWZ4Kc3oU3QCAoUUeJ8sBYZWzjZDXigeRpsUUdrzodSKog2zymdKaP3yc
+	 r+V2xvYpIox6vbr636L9wE+zosMQSng6pgE1Uqz0=
+Date: Wed, 25 Mar 2026 11:55:37 -0700
+To: mm-commits@vger.kernel.org,tglx@kernel.org,bblock@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Thomas Gleixner <tglx@kernel.org>
-Cc: mm-commits@vger.kernel.org, bblock@linux.ibm.com
-Subject: Re: +
- debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects.patch
- added to mm-nonmm-unstable branch
-Message-Id: <20260325115527.36034bfd3d91d6f258526c74@linux-foundation.org>
-In-Reply-To: <87qzp7et8k.ffs@tglx>
-References: <20260311174822.42D6DC4CEF7@smtp.kernel.org>
-	<87qzp7et8k.ffs@tglx>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [to-be-updated] debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects.patch removed from -mm tree
+Message-Id: <20260325185537.B653BC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-
-On Wed, 25 Mar 2026 18:03:55 +0100 Thomas Gleixner <tglx@kernel.org> wrote:
-
-> Andrew!
-> 
-> On Wed, Mar 11 2026 at 10:48, Andrew Morton wrote:
-> > The patch titled
-> >      Subject: debugobjects: allow to configure the amount of pre-allocated objects
-> > has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-> >      debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects.patch
-> 
-> Can you please drop this. The underlying problem is not explained at
-> all and the question I asked vs. deferred page init is not answered.
-> 
-
-Yep, no probs, I agree that this isn't the one.
-
-Benjamin, please do pursue this - the issue is real and has been around
-for a long time!
 
 
-btw, I was retaining this in mm.git in a permaparked state, with a
-note-to-self.  So I had no plan to upstream it until everything is
-sorted, or a replacement is available.  I do hold onto things for too
-long, to get them more testing and to keep myself a bit focussed on the
-issue.
+The quilt patch titled
+     Subject: debugobjects: allow to configure the amount of pre-allocated objects
+has been removed from the -mm tree.  Its filename was
+     debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects.patch
+
+This patch was dropped because an updated version will be issued
+
+------------------------------------------------------
+From: Benjamin Block <bblock@linux.ibm.com>
+Subject: debugobjects: allow to configure the amount of pre-allocated objects
+Date: Wed, 25 Feb 2026 17:05:08 +0100
+
+To debug object operations a certain amount of metadata has to be kept per
+object that is tracked.  During boot a static amount of preallocated
+objects are set aside to be used for this task until a dynamic allocator
+can be used.  Once a dynamic allocator can be used an initial amount of
+objects are pre-allocated to be used when needed.
+
+So far the amount of such initially statically, and later dynamically
+pre-allocated objects is set fixed at `64 * 16 = 1024`.  But depending on
+the system this might not be enough during boot, when only the static
+amount of pre-allocated objects is used; and once this happens ODEBUG
+disables itself permanently.
+
+On s390 it has been observed, that even with 16384 such pre-allocated
+objects ODEBUG would still be disabled during boot.
+
+Similarly to other debug features like KMEMLEAK add a Kconfig option
+CONFIG_DEBUG_OBJECTS_POOL_SIZE_SHIFT that allows to increase the amount of
+pre-allocated objects (in both the static and later dynamic cases).  Use
+it as exponential, rather than linear value to allow for head-room to grow
+into once set in a configuration.
+
+The calculation is done as such:
+    N_OBJECTS = 2^DEBUG_OBJECTS_POOL_SIZE_SHIFT * N_BATCH
+
+By default it is set to 6, so the actual amount is unchanged, unless
+the new options is changed:
+    N_OBJECTS = 2^6 * 16
+    N_OBJECTS = 1024
+
+For the previously mentioned observations on s390 it was necessary to
+increase the option to 11 in order to have enough space during boot.
+
+Link: https://lkml.kernel.org/r/70f06193b3c3581802710ebcef74671e50c4c979.1772035270.git.bblock@linux.ibm.com
+Signed-off-by: Benjamin Block <bblock@linux.ibm.com>
+Cc: Thomas Gleixner <tglx@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ lib/Kconfig.debug  |   32 ++++++++++++++++++++++++++++++++
+ lib/debugobjects.c |   15 +++++++++++++--
+ 2 files changed, 45 insertions(+), 2 deletions(-)
+
+--- a/lib/debugobjects.c~debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects
++++ a/lib/debugobjects.c
+@@ -22,11 +22,18 @@
+ #define ODEBUG_HASH_BITS	14
+ #define ODEBUG_HASH_SIZE	(1 << ODEBUG_HASH_BITS)
+ 
+-/* Must be power of two */
++/*
++ * Must be power of two.
++ * Please change Kconfig help text of DEBUG_OBJECTS_POOL_SIZE_SHIFT when
++ * changed.
++ */
+ #define ODEBUG_BATCH_SIZE	16
+ 
++#define ODEBUG_POOL_SHIFT	CONFIG_DEBUG_OBJECTS_POOL_SIZE_SHIFT
++static_assert(ODEBUG_POOL_SHIFT >= 0);
++
+ /* Initial values. Must all be a multiple of batch size */
+-#define ODEBUG_POOL_SIZE	(64 * ODEBUG_BATCH_SIZE)
++#define ODEBUG_POOL_SIZE	((1 << ODEBUG_POOL_SHIFT) * ODEBUG_BATCH_SIZE)
+ #define ODEBUG_POOL_MIN_LEVEL	(ODEBUG_POOL_SIZE / 4)
+ 
+ #define ODEBUG_POOL_PERCPU_SIZE	(8 * ODEBUG_BATCH_SIZE)
+@@ -586,6 +593,10 @@ static void debug_objects_oom(void)
+ 	struct debug_bucket *db = obj_hash;
+ 	HLIST_HEAD(freelist);
+ 
++	/*
++	 * Please change Kconfig help text of DEBUG_OBJECTS_POOL_SIZE_SHIFT
++	 * when changed.
++	 */
+ 	pr_warn("Out of memory. ODEBUG disabled\n");
+ 
+ 	for (int i = 0; i < ODEBUG_HASH_SIZE; i++, db++) {
+--- a/lib/Kconfig.debug~debugobjects-allow-to-configure-the-amount-of-pre-allocated-objects
++++ a/lib/Kconfig.debug
+@@ -812,6 +812,38 @@ config DEBUG_OBJECTS_PERCPU_COUNTER
+ 	  percpu counter routines to track the life time of percpu counter
+ 	  objects and validate the percpu counter operations.
+ 
++config DEBUG_OBJECTS_POOL_SIZE_SHIFT
++	int "Metadata objects pool size"
++	depends on DEBUG_OBJECTS
++	range 0 21
++	default 6
++	help
++	  To debug object operations a certain amount of metadata has to be
++	  kept per object that is tracked. During boot a static amount of pre-
++	  allocated objects is set aside to be used for this task until such a
++	  time a dynamic allocator can be used. Once a dynamic allocator can be
++	  used an initial amount of objects is pre-allocated to be used when
++	  needed.
++
++	  This option sets the amount of both: the amount of initially
++	  statically allocated objects; and later the amount of dynamically
++	  pre-allocated objects. It is used as exponent to the power of 2,
++	  multiplied by the batch size used to set how many objects are move
++	  between pools at once.
++
++	  For example, when left at the default of 6:
++	      N_OBJECTS = 2^DEBUG_OBJECTS_POOL_SIZE_SHIFT * N_BATCH
++	      N_OBJECTS = 2^6 * 16
++	      N_OBJECTS = 1024
++	  By increasing the option by 1, you double the amount of objects.
++
++	  An indication that you need to increase this option is that during
++	  boot you see messages like this:
++	      ODEBUG: Out of memory. ODEBUG disabled
++
++	  If in doubt, leave the default.
++
++
+ config DEBUG_OBJECTS_ENABLE_DEFAULT
+ 	int "debug_objects bootup default value (0-1)"
+ 	range 0 1
+_
+
+Patches currently in -mm which might be from bblock@linux.ibm.com are
+
+
