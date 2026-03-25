@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3469B3E716D
-	for <mm-commits@vger.kernel.org>; Wed, 25 Mar 2026 14:47:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 730A53ED5D1
+	for <mm-commits@vger.kernel.org>; Wed, 25 Mar 2026 14:48:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774450042; cv=none; b=Gyb5NFXppfSQFPC2wEu1PIKENbvLI032YwVol1mOTKc6VNMT7KfB0o1FMh6vcAFaUVvm+x0tLwnAz8j/Je/OgfKPWhNiUivvYQfPB5rgwQkT7nUgzx7V7Raitg/z55LZaARukgHM3/DoBwUZjnb2536XG2dEmukMSBhTnFk2q2w=
+	t=1774450109; cv=none; b=E7SdctdKSy3SuP7lmpFfCuvBQHQkYMGe37KnESjLJtTluyyeFMqtbwg7l1np0PU81ldVpwpzpmjFMtGvMoo2/bVQzzVpgFQO/qPGeVYEAw2y1Qt0XeVUgzOswLfDCrVzsgHOMcn9fHWWi03hMda7Jp8HW8cbtvK6nZ9k0JY39Zs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774450042; c=relaxed/simple;
-	bh=7r+PV58vpZiSC1Z8sQ6YJqC+C/h2aOor9L4a3KCjn34=;
-	h=Date:To:From:Subject:Message-Id; b=e2P1/sgj+OWAJJjqMLT90X5x9/DXt8s+uzvBD76h6mX7M5TQhardh0cnNm/a+Mx+rLnIYqyQBirVioY00q37S2dpf7Ixnl6ncmkShfyi2B40xdzOJfHCLySauO4zMeM0W7X4tiDaCv0o5G8sp7O+P9DZJ9xYgvoE/DFssz8VWJo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rUAlbKof; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774450109; c=relaxed/simple;
+	bh=Vv5SDkGuufk+oqyDLuBGG2cNo3xzdkNws3d9RbXw7vc=;
+	h=Date:To:From:Subject:Message-Id; b=Wkr952BmPxgj6aIV6/KpPgPYzKzobqb/opxcmFtldoxLQ6sV0ha+EMjOIWPGdmZD0JJUKcuDT23/ybLapDwFNKjcLIBu8Dm1W5JA8Lif4z/TtKTc7nSr569gfeNDPb01NqgVx7Dsvb7fS9MZ+iUqN6w6FBKelKYcOb5D4KmgeH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pYb29f1u; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rUAlbKof"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F79DC4CEF7;
-	Wed, 25 Mar 2026 14:47:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pYb29f1u"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1197FC4CEF7;
+	Wed, 25 Mar 2026 14:48:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774450041;
-	bh=7r+PV58vpZiSC1Z8sQ6YJqC+C/h2aOor9L4a3KCjn34=;
+	s=korg; t=1774450109;
+	bh=Vv5SDkGuufk+oqyDLuBGG2cNo3xzdkNws3d9RbXw7vc=;
 	h=Date:To:From:Subject:From;
-	b=rUAlbKofctN8sdMhc3H0+5QP2R3fQR3RT2mpobnKk/qiHMU2mEAFZdtI9h31bdH/8
-	 PXq5TZx2lZcAnuwpDHFIieKMPYpP6mt96R47ENNOJNddD839qbSj9XoNqRwHCtI+w/
-	 cej5N/LTOqUkVMMxbNi6wP/3iTF0zlI503KgLtl0=
-Date: Wed, 25 Mar 2026 07:47:21 -0700
-To: mm-commits@vger.kernel.org,d@ilvokhin.com,akpm@linux-foundation.org
+	b=pYb29f1u+7Ez04Yge6jvcVXROcS8QCQxblq3KmhnLq9R7Ece+NpiL9fvnzc6bAg8z
+	 SIJkc4zDPeprmoxBSEFvr/zyZORXBelKpx0x4dg5xHpw4ZTotm/LHgg4nZmI2zf2YM
+	 die7sAqtigf039Kj4q+MnLibOfW2BM7IQ8cRX8p0=
+Date: Wed, 25 Mar 2026 07:48:28 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,rostedt@goodmis.org,osalvador@suse.de,mhocko@suse.com,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lenb@kernel.org,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,axelrasmussen@google.com,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-rename-zone-lock-to-zone-_lock-fix-3.patch removed from -mm tree
-Message-Id: <20260325144721.9F79DC4CEF7@smtp.kernel.org>
+Subject: [obsolete] mm-introduce-zone-lock-wrappers.patch removed from -mm tree
+Message-Id: <20260325144829.1197FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,201 +35,154 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: documentation: standardize on "zone lock" terminology
+     Subject: mm: introduce zone lock wrappers
 has been removed from the -mm tree.  Its filename was
-     mm-rename-zone-lock-to-zone-_lock-fix-3.patch
+     mm-introduce-zone-lock-wrappers.patch
 
-This patch was dropped because it was folded into mm-rename-zone-lock-to-zone-_lock.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: mm: documentation: standardize on "zone lock" terminology
-Date: Thu, 5 Mar 2026 10:36:17 -0800
+Subject: mm: introduce zone lock wrappers
+Date: Fri, 27 Feb 2026 16:00:23 +0000
 
-During review of the zone lock tracing series it was suggested to
-standardize documentation and comments on the term "zone lock" instead of
-using zone_lock or referring to the internal field zone->_lock.
+Patch series "mm: zone lock tracepoint instrumentation", v4.
 
-Update references accordingly.
+Zone lock contention can significantly impact allocation and reclaim
+latency, as it is a central synchronization point in the page allocator
+and reclaim paths.  Improved visibility into its behavior is therefore
+important for diagnosing performance issues in memory-intensive workloads.
 
-Link: https://lkml.kernel.org/r/aanSnywUXTVPaYUj@shell.ilvokhin.com
+On some production workloads at Meta, we have observed noticeable zone
+lock contention.  Deeper analysis of lock holders and waiters is currently
+difficult with existing instrumentation.
+
+While generic lock contention_begin/contention_end tracepoints cover the
+slow path, they do not provide sufficient visibility into lock hold times.
+In particular, the lack of a release-side event makes it difficult to
+identify long lock holders and correlate them with waiters.  As a result,
+distinguishing between short bursts of contention and pathological long
+hold times requires additional instrumentation.
+
+This patch series adds dedicated tracepoint instrumentation to zone lock,
+following the existing mmap_lock tracing model.
+
+The goal is to enable detailed holder/waiter analysis and lock hold time
+measurements without affecting the fast path when tracing is disabled.
+
+The series is structured as follows:
+
+  1. Introduce zone lock wrappers.
+  2. Mechanically convert zone lock users to the wrappers.
+  3. Convert compaction to use the wrappers (requires minor
+     restructuring of compact_lock_irqsave()).
+  4. Rename zone->lock to zone->_lock.
+  5. Add zone lock tracepoints.
+
+The tracepoints are added via lightweight inline helpers in the wrappers. 
+When tracing is disabled, the fast path remains unchanged.
+
+
+This patch (of 5):
+
+Add thin wrappers around zone lock acquire/release operations.  This
+prepares the code for future tracepoint instrumentation without modifying
+individual call sites.
+
+Centralizing zone lock operations behind wrappers allows future
+instrumentation or debugging hooks to be added without touching all users.
+
+No functional change intended.  The wrappers are introduced in preparation
+for subsequent patches and are not yet used.
+
+Link: https://lkml.kernel.org/r/cover.1772206930.git.d@ilvokhin.com
+Link: https://lkml.kernel.org/r/849dee9c47df1e6fba97c9933af0d5a08b8e15d3.1772206930.git.d@ilvokhin.com
 Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/physical_memory.rst |    4 ++--
- Documentation/trace/events-kmem.rst  |    8 ++++----
- mm/compaction.c                      |    2 +-
- mm/internal.h                        |    2 +-
- mm/page_alloc.c                      |   12 ++++++------
- mm/page_isolation.c                  |    4 ++--
- mm/page_owner.c                      |    2 +-
- 7 files changed, 17 insertions(+), 17 deletions(-)
+ MAINTAINERS                 |    1 
+ include/linux/mmzone_lock.h |   38 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 39 insertions(+)
 
---- a/Documentation/mm/physical_memory.rst~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/Documentation/mm/physical_memory.rst
-@@ -500,11 +500,11 @@ General
- ``nr_isolate_pageblock``
-   Number of isolated pageblocks. It is used to solve incorrect freepage counting
-   problem due to racy retrieving migratetype of pageblock. Protected by
--  ``zone_lock``. Defined only when ``CONFIG_MEMORY_ISOLATION`` is enabled.
-+  zone lock. Defined only when ``CONFIG_MEMORY_ISOLATION`` is enabled.
- 
- ``span_seqlock``
-   The seqlock to protect ``zone_start_pfn`` and ``spanned_pages``. It is a
--  seqlock because it has to be read outside of ``zone_lock``, and it is done in
-+  seqlock because it has to be read outside of zone lock, and it is done in
-   the main allocator path. However, the seqlock is written quite infrequently.
-   Defined only when ``CONFIG_MEMORY_HOTPLUG`` is enabled.
- 
---- a/Documentation/trace/events-kmem.rst~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/Documentation/trace/events-kmem.rst
-@@ -57,7 +57,7 @@ the per-CPU allocator (high performance)
- 
- If pages are allocated directly from the buddy allocator, the
- mm_page_alloc_zone_locked event is triggered. This event is important as high
--amounts of activity imply high activity on the zone_lock. Taking this lock
-+amounts of activity imply high activity on the zone lock. Taking this lock
- impairs performance by disabling interrupts, dirtying cache lines between
- CPUs and serialising many CPUs.
- 
-@@ -79,11 +79,11 @@ contention on the lruvec->lru_lock.
-   mm_page_pcpu_drain		page=%p pfn=%lu order=%d cpu=%d migratetype=%d
- 
- In front of the page allocator is a per-cpu page allocator. It exists only
--for order-0 pages, reduces contention on the zone_lock and reduces the
-+for order-0 pages, reduces contention on the zone lock and reduces the
- amount of writing on struct page.
- 
- When a per-CPU list is empty or pages of the wrong type are allocated,
--the zone_lock will be taken once and the per-CPU list refilled. The event
-+the zone lock will be taken once and the per-CPU list refilled. The event
- triggered is mm_page_alloc_zone_locked for each page allocated with the
- event indicating whether it is for a percpu_refill or not.
- 
-@@ -92,7 +92,7 @@ which triggers a mm_page_pcpu_drain even
- 
- The individual nature of the events is so that pages can be tracked
- between allocation and freeing. A number of drain or refill pages that occur
--consecutively imply the zone_lock being taken once. Large amounts of per-CPU
-+consecutively imply the zone lock being taken once. Large amounts of per-CPU
- refills and drains could imply an imbalance between CPUs where too much work
- is being concentrated in one place. It could also indicate that the per-CPU
- lists should be a larger size. Finally, large amounts of refills on one CPU
---- a/mm/compaction.c~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/mm/compaction.c
-@@ -1419,7 +1419,7 @@ static bool suitable_migration_target(st
- 		int order = cc->order > 0 ? cc->order : pageblock_order;
- 
- 		/*
--		 * We are checking page_order without zone->_lock taken. But
-+		 * We are checking page_order without zone lock taken. But
- 		 * the only small danger is that we skip a potentially suitable
- 		 * pageblock, so it's not worth to check order for valid range.
- 		 */
---- a/mm/internal.h~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/mm/internal.h
-@@ -727,7 +727,7 @@ static inline unsigned int buddy_order(s
-  * (d) a page and its buddy are in the same zone.
-  *
-  * For recording whether a page is in the buddy system, we set PageBuddy.
-- * Setting, clearing, and testing PageBuddy is serialized by zone->_lock.
-+ * Setting, clearing, and testing PageBuddy is serialized by zone lock.
-  *
-  * For recording page's order, we use page_private(page).
-  */
---- a/mm/page_alloc.c~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/mm/page_alloc.c
-@@ -2442,7 +2442,7 @@ enum rmqueue_mode {
- 
- /*
-  * Do the hard work of removing an element from the buddy allocator.
-- * Call me with the zone->_lock already held.
-+ * Call me with the zone lock already held.
-  */
- static __always_inline struct page *
- __rmqueue(struct zone *zone, unsigned int order, int migratetype,
-@@ -2470,7 +2470,7 @@ __rmqueue(struct zone *zone, unsigned in
- 	 * fallbacks modes with increasing levels of fragmentation risk.
- 	 *
- 	 * The fallback logic is expensive and rmqueue_bulk() calls in
--	 * a loop with the zone->_lock held, meaning the freelists are
-+	 * a loop with the zone lock held, meaning the freelists are
- 	 * not subject to any outside changes. Remember in *mode where
- 	 * we found pay dirt, to save us the search on the next call.
- 	 */
-@@ -7048,7 +7048,7 @@ int alloc_contig_frozen_range_noprof(uns
- 	 * pages.  Because of this, we reserve the bigger range and
- 	 * once this is done free the pages we are not interested in.
- 	 *
--	 * We don't have to hold zone->_lock here because the pages are
-+	 * We don't have to hold zone lock here because the pages are
- 	 * isolated thus they won't get removed from buddy.
- 	 */
- 	outer_start = find_large_buddy(start);
-@@ -7617,7 +7617,7 @@ void accept_page(struct page *page)
- 		return;
- 	}
- 
--	/* Unlocks zone->_lock */
-+	/* Unlocks zone lock */
- 	__accept_page(zone, &flags, page);
- }
- 
-@@ -7634,7 +7634,7 @@ static bool try_to_accept_memory_one(str
- 		return false;
- 	}
- 
--	/* Unlocks zone->_lock */
-+	/* Unlocks zone lock */
- 	__accept_page(zone, &flags, page);
- 
- 	return true;
-@@ -7775,7 +7775,7 @@ struct page *alloc_frozen_pages_nolock_n
- 
- 	/*
- 	 * Best effort allocation from percpu free list.
--	 * If it's empty attempt to spin_trylock zone->_lock.
-+	 * If it's empty attempt to spin_trylock zone lock.
- 	 */
- 	page = get_page_from_freelist(alloc_gfp, order, alloc_flags, &ac);
- 
---- a/mm/page_isolation.c~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/mm/page_isolation.c
-@@ -212,7 +212,7 @@ static int set_migratetype_isolate(struc
- 	zone_unlock_irqrestore(zone, flags);
- 	if (mode == PB_ISOLATE_MODE_MEM_OFFLINE) {
- 		/*
--		 * printk() with zone->_lock held will likely trigger a
-+		 * printk() with zone lock held will likely trigger a
- 		 * lockdep splat, so defer it here.
- 		 */
- 		dump_page(unmovable, "unmovable page");
-@@ -553,7 +553,7 @@ void undo_isolate_page_range(unsigned lo
- /*
-  * Test all pages in the range is free(means isolated) or not.
-  * all pages in [start_pfn...end_pfn) must be in the same zone.
-- * zone->_lock must be held before call this.
-+ * zone lock must be held before call this.
-  *
-  * Returns the last tested pfn.
-  */
---- a/mm/page_owner.c~mm-rename-zone-lock-to-zone-_lock-fix-3
-+++ a/mm/page_owner.c
-@@ -799,7 +799,7 @@ static void init_pages_in_zone(struct zo
- 				continue;
- 
- 			/*
--			 * To avoid having to grab zone->_lock, be a little
-+			 * To avoid having to grab zone lock, be a little
- 			 * careful when reading buddy page order. The only
- 			 * danger is that we skip too much and potentially miss
- 			 * some early allocated pages, which is better than
+diff --git a/include/linux/mmzone_lock.h a/include/linux/mmzone_lock.h
+new file mode 100644
+--- /dev/null
++++ a/include/linux/mmzone_lock.h
+@@ -0,0 +1,38 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_MMZONE_LOCK_H
++#define _LINUX_MMZONE_LOCK_H
++
++#include <linux/mmzone.h>
++#include <linux/spinlock.h>
++
++static inline void zone_lock_init(struct zone *zone)
++{
++	spin_lock_init(&zone->lock);
++}
++
++#define zone_lock_irqsave(zone, flags)				\
++do {								\
++	spin_lock_irqsave(&(zone)->lock, flags);		\
++} while (0)
++
++#define zone_trylock_irqsave(zone, flags)			\
++({								\
++	spin_trylock_irqsave(&(zone)->lock, flags);		\
++})
++
++static inline void zone_unlock_irqrestore(struct zone *zone, unsigned long flags)
++{
++	spin_unlock_irqrestore(&zone->lock, flags);
++}
++
++static inline void zone_lock_irq(struct zone *zone)
++{
++	spin_lock_irq(&zone->lock);
++}
++
++static inline void zone_unlock_irq(struct zone *zone)
++{
++	spin_unlock_irq(&zone->lock);
++}
++
++#endif /* _LINUX_MMZONE_LOCK_H */
+--- a/MAINTAINERS~mm-introduce-zone-lock-wrappers
++++ a/MAINTAINERS
+@@ -16662,6 +16662,7 @@ F:	include/linux/memory.h
+ F:	include/linux/mm.h
+ F:	include/linux/mm_*.h
+ F:	include/linux/mmzone.h
++F:	include/linux/mmzone_lock.h
+ F:	include/linux/mmdebug.h
+ F:	include/linux/mmu_notifier.h
+ F:	include/linux/pagewalk.h
 _
 
 Patches currently in -mm which might be from d@ilvokhin.com are
 
-mm-introduce-zone-lock-wrappers.patch
 mm-convert-zone-lock-users-to-wrappers.patch
 mm-convert-compaction-to-zone-lock-wrappers.patch
 mm-rename-zone-lock-to-zone-_lock.patch
