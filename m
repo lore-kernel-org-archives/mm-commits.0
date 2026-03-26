@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BFE2355F49
-	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 03:27:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C99EA92E
+	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 03:54:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774495621; cv=none; b=VQ1cVQZ32vaxMjb5kqAB9uGrqMByZgVYHa8aXJJRTsPShgDPg0XXNyyB4EVmKnMygLLzZaHO1g87EqUV/2eDYyoknTdRCNDjqdb9ERD1akI21mwuGF/UkKkxN778LQSIhtLAKeGaaDfjBh22A9MyBUjmhIWDIYjnXM2+g6hEgY0=
+	t=1774497257; cv=none; b=uf831TSWPLMYx6E/5i6vr/7qt4Bu86JZhbgrCUA7eKbQ4GqZkQZbITBpjVax3bAm6HTLH3HMV7xrhc8FXzSCBupU8RYnpDz2/5LYdvKatA4O1PCtr3JnRElKnIGB3tB6IZ5l0r6DV/uz02rvoUOj1GFWQ7th6GGMlyz8m0EbdAs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774495621; c=relaxed/simple;
-	bh=cwXrj9Y7FiV29MXA6b78yRDazXwUHUd7jhxwJ5UqswM=;
-	h=Date:To:From:Subject:Message-Id; b=NApi20CaNyGWBujhmrKjoKek6ipZFGi/nIjSvvpo9Qx5uxi5FbPJMP1kJNUPTTQMAhL6yhp9neAkLBT5RjxqngWqcHzwdC/RZ3KaSQzbi9H9/w5B3DcXrXWB0Q7q4cCvrPQ3Zmg8mD/wTewZ6zRvTXLYjMcFAw9TONgul/elvMI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JL4/J8sA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774497257; c=relaxed/simple;
+	bh=uIT8+bPuwgpM6uz4P73dxp9mXlyjzlGQGNKVBT7gPFs=;
+	h=Date:To:From:Subject:Message-Id; b=pVrYipDqhopMTrxyuSkG/9vPyTBH+poVbz7ysJkxAAsbZjmwnM4KDuBKRtSHhTVwbCKixfeot4oH7rTzT1YFe1NwKTUXnPoQT9lMlded6dQEDRdOgFuTXUx4DWTlWhp5ls9sXdwIWZtroQsTpeE8AHn/J/Tzi+Jc5okWjygRTWE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cVoT74ow; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JL4/J8sA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1D66C4CEF7;
-	Thu, 26 Mar 2026 03:27:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cVoT74ow"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C648BC19424;
+	Thu, 26 Mar 2026 03:54:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774495621;
-	bh=cwXrj9Y7FiV29MXA6b78yRDazXwUHUd7jhxwJ5UqswM=;
+	s=korg; t=1774497256;
+	bh=uIT8+bPuwgpM6uz4P73dxp9mXlyjzlGQGNKVBT7gPFs=;
 	h=Date:To:From:Subject:From;
-	b=JL4/J8sASyn9OOfyRqLtjOhUJvjnrBv5K5JzoffgfVZ9T+tchaXfIautA8Kmd2CVZ
-	 iuwx6QfaDgQQhvTWqou42fCx0/7yOrjYOk3aekaHpHjXL7X1xPemyqb4rDROeLcZ2t
-	 g9LXKPn4mAV77SAQRnDT0mP8Njg2sXEBBgQzABqI=
-Date: Wed, 25 Mar 2026 20:27:00 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,weixugc@google.com,usamaarif642@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,ljs@kernel.org,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry@kernel.org,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=cVoT74ow+u/0X6iRwtiZNrhkN7IKwkMRf3fS2U84Cm+0gjW2Xb2pI/tL/BkDoHLpC
+	 M2Rbyl0apaI6AMUqo20yNKvvRsjRN3SZEbYzib56vEsCVpWNw0hAZOxr3G9Hq0My9n
+	 cwHt8u0QjYulDCv3UFznRbM78Bll4oZkJecNzjBY=
+Date: Wed, 25 Mar 2026 20:54:16 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,leotimmins1974@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-change-val-type-to-long-in-__mod_memcg_lruvec_state-fix.patch added to mm-new branch
-Message-Id: <20260326032700.F1D66C4CEF7@smtp.kernel.org>
+Subject: + liveupdate-propagate-file-deserialization-failures.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260326035416.C648BC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: fix unexpected massive positive number in memcg_state_val_in_pages()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memcontrol-change-val-type-to-long-in-__mod_memcg_lruvec_state-fix.patch
+     Subject: liveupdate: propagate file deserialization failures
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     liveupdate-propagate-file-deserialization-failures.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-change-val-type-to-long-in-__mod_memcg_lruvec_state-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-propagate-file-deserialization-failures.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,85 +58,71 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: memcontrol: fix unexpected massive positive number in memcg_state_val_in_pages()
-Date: Wed, 25 Mar 2026 22:13:25 +0800
+From: Leo Timmins <leotimmins1974@gmail.com>
+Subject: liveupdate: propagate file deserialization failures
+Date: Wed, 25 Mar 2026 12:46:07 +0800
 
-In memcg_state_val_in_pages(), if the passed val is negative, the
-expression val * unit / PAGE_SIZE could be implicitly converted to a
-massive positive number when compared with 1UL in the max() macro.  This
-leads to returning an incorrect massive positive value.
+Patch series "liveupdate: fix incoming error handling and teardown paths",
+v2.
 
-Fix this by using abs(val) to calculate the magnitude first, and then
-restoring the sign of the value before returning the result. 
-Additionally, use mult_frac() to prevent potential overflow during the
-multiplication of val and unit.
+This series fixes two issues in LUO's incoming-side error handling and
+teardown paths.
 
-Link: https://lkml.kernel.org/r/e19052a28a7b604c012bfdfc900fd09543976284.1774447069.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reported-by: Harry Yoo (Oracle) <harry@kernel.org>
-Cc: Allen Pais <apais@linux.microsoft.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Imran Khan <imran.f.khan@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+The first patch makes session deserialization fail when file
+deserialization fails, instead of silently continuing with a partially
+restored session.
+
+The second patch initializes incoming FLB state before the finish
+pathdecrements its refcount, so the last-user cleanup path does not run
+from an uninitialized count.  (and now utilises pr_warn instead of
+WARN_ON).
+
+
+This patch (of 2):
+
+luo_session_deserialize() ignored the return value from
+luo_file_deserialize().  As a result, a session could be left partially
+restored even though the /dev/liveupdate open path treats deserialization
+failures as fatal.
+
+Propagate the error so a failed file deserialization aborts session
+deserialization instead of silently continuing.
+
+Link: https://lkml.kernel.org/r/20260325044608.8407-1-leotimmins1974@gmail.com
+Link: https://lkml.kernel.org/r/20260325044608.8407-2-leotimmins1974@gmail.com
+Fixes: 16cec0d26521 ("liveupdate: luo_session: add ioctls for file preservation")
+Signed-off-by: Leo Timmins <leotimmins1974@gmail.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ kernel/liveupdate/luo_session.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-change-val-type-to-long-in-__mod_memcg_lruvec_state-fix
-+++ a/mm/memcontrol.c
-@@ -787,11 +787,14 @@ static int memcg_page_state_unit(int ite
- static long memcg_state_val_in_pages(int idx, long val)
- {
- 	int unit = memcg_page_state_unit(idx);
-+	long res;
+--- a/kernel/liveupdate/luo_session.c~liveupdate-propagate-file-deserialization-failures
++++ a/kernel/liveupdate/luo_session.c
+@@ -558,8 +558,13 @@ int luo_session_deserialize(void)
+ 		}
  
- 	if (!val || unit == PAGE_SIZE)
- 		return val;
--	else
--		return max(val * unit / PAGE_SIZE, 1UL);
-+
-+	res = max(mult_frac(abs(val), unit, PAGE_SIZE), 1UL);
-+
-+	return val < 0 ? -res : res;
- }
+ 		scoped_guard(mutex, &session->mutex) {
+-			luo_file_deserialize(&session->file_set,
+-					     &sh->ser[i].file_set_ser);
++			err = luo_file_deserialize(&session->file_set,
++						   &sh->ser[i].file_set_ser);
++		}
++		if (err) {
++			pr_warn("Failed to deserialize files for session [%s] %pe\n",
++				session->name, ERR_PTR(err));
++			return err;
+ 		}
+ 	}
  
- #ifdef CONFIG_MEMCG_V1
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from leotimmins1974@gmail.com are
 
-mm-vmscan-prepare-for-the-refactoring-the-move_folios_to_lru.patch
-mm-thp-prevent-memory-cgroup-release-in-folio_split_queue_lock_irqsave.patch
-mm-zswap-prevent-memory-cgroup-release-in-zswap_compress.patch
-mm-do-not-open-code-lruvec-lock.patch
-mm-vmscan-prepare-for-reparenting-traditional-lru-folios.patch
-mm-vmscan-prepare-for-reparenting-mglru-folios.patch
-mm-memcontrol-refactor-memcg_reparent_objcgs.patch
-mm-workingset-use-lruvec_lru_size-to-get-the-number-of-lru-pages.patch
-mm-memcontrol-refactor-mod_memcg_state-and-mod_memcg_lruvec_state.patch
-mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats.patch
-mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch
-mm-memcontrol-correct-the-type-of-stats_updates-to-unsigned-long.patch
-mm-memcontrol-change-val-type-to-long-in-__mod_memcg_lruvec_state.patch
-mm-memcontrol-change-val-type-to-long-in-__mod_memcg_lruvec_state-fix.patch
-mm-memcontrol-correct-the-nr_pages-parameter-type-of-mem_cgroup_update_lru_size.patch
+liveupdate-propagate-file-deserialization-failures.patch
+liveupdate-initialize-incoming-flb-state-before-finish.patch
 
