@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0F5A3A5437
-	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 21:29:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2691332604;
+	Thu, 26 Mar 2026 22:40:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774560575; cv=none; b=IDscw5UOpV4+34NEHK3WbStINHGy9StBuGWq2z6gLOY+mnQQrO4ZaM7RPsdXpsyNXHJ5B/tu7PahMPIzaPAB9eIPv5LM0lHUNxBAwOrN5viXqYx0sZ6SrgBZ0/3bj8svcvGDBgfZAad28Rm7Gqmx0zwl8qnwC+I08aVbZmAnhpk=
+	t=1774564803; cv=none; b=BeF7ycT+qb+RPNzGnL9KducPI8cJx84v8ykt9TrrDgA47q8U53qQaU5kRcLbCHEGa4Ron7exs7ZcvDXhUNvT1jshZB21CN5JKGir2utW6EcQW3NP7FvghHpQwvCaF67fTOAEFD47/04HO1K7barw9nAzw9xP6xljVDqJSeKri2o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774560575; c=relaxed/simple;
-	bh=5E5UGJ34th6jX4uMtGeEUKwv8Pf8RrLLZCE8XKrmolo=;
-	h=Date:To:From:Subject:Message-Id; b=S5ctjc1RCBSJJ5dZCEbPGwikASBIZKikJU+YFJzYOIgZZjVKtcadhT3SSyhM9Xqgb15zRoY7bUKiYs1DnzaHxRe2q6FlAc9CxW3QpimGW9D19ZqV/Nk/a79bEjfAooeMV2jqNCXeqYYfiWxD51SCst6qbRqelTndsLiaMHfYA18=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PEN+B/R3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774564803; c=relaxed/simple;
+	bh=oh80rKsHBrtYcSrCoMb+q7py+fza9k3+/UWp0y1ZT8c=;
+	h=Date:To:From:Subject:Message-Id; b=t12J+2DmuUnbEPPsWUHUMFiUkSfSBOcJBRyDuS7bIx1VxSnN1wR7x6WxrRPAzbOK7zZNAMkXV8eg8I8FcGd6r8EARi28f+LTd9Y9tIVZf/zCflgdmr89d7kov5trQlXPuxri/tCsKNTkfDOB1OrJbO6Vw02l622e3hQMmqS05yA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Exhf8utC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PEN+B/R3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A49FC19423;
-	Thu, 26 Mar 2026 21:29:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Exhf8utC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5354C116C6;
+	Thu, 26 Mar 2026 22:40:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774560575;
-	bh=5E5UGJ34th6jX4uMtGeEUKwv8Pf8RrLLZCE8XKrmolo=;
+	s=korg; t=1774564802;
+	bh=oh80rKsHBrtYcSrCoMb+q7py+fza9k3+/UWp0y1ZT8c=;
 	h=Date:To:From:Subject:From;
-	b=PEN+B/R34/bMOoCG6CZ8hYftXgNdXcYqWYDbDUBdSrURx6gYocb2cIeKfyW6T4kcZ
-	 pd9hOgUTwlNQq2z2GNXbFKLPt2/DxCqEsE2q1l4VkZOgTVLS3uMCEO0+IeX1Bht3/Z
-	 WZwXeXBd/W9ZZ1MEH+zxwj6O6a0CoyCRXr6MlGgo=
-Date: Thu, 26 Mar 2026 14:29:35 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,kasong@tencent.com,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=Exhf8utClP4KNk9G51G9SWgFUmq/jp9ScqvJ8AYDW6utttW07AUtPYKArxnOOGcZk
+	 EQS2q0XHZSTzhOyAy0bOg5J4n468/V5A6MMC+xTe7Cu2xjIda2mqgIq8BVi+B0M6pa
+	 8AcibKhCvs/Ne8jSJZ6GdHiAiILP6KjiOmveArls=
+Date: Thu, 26 Mar 2026 15:40:01 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,pmladek@suse.com,kees@kernel.org,dhowells@redhat.com,davidgow@google.com,lk@c--e.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-update-mglru-entry-to-reflect-current-status.patch added to mm-unstable branch
-Message-Id: <20260326212935.8A49FC19423@smtp.kernel.org>
+Subject: + lib-scatterlist-fix-length-calculations-in-extract_kvec_to_sg.patch added to mm-nonmm-unstable branch
+Message-Id: <20260326224002.A5354C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: update MGLRU entry to reflect current status
-has been added to the -mm mm-unstable branch.  Its filename is
-     maintainers-update-mglru-entry-to-reflect-current-status.patch
+     Subject: lib/scatterlist: fix length calculations in extract_kvec_to_sg
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-scatterlist-fix-length-calculations-in-extract_kvec_to_sg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-mglru-entry-to-reflect-current-status.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-scatterlist-fix-length-calculations-in-extract_kvec_to_sg.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,141 +58,98 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: MAINTAINERS: update MGLRU entry to reflect current status
-Date: Thu, 26 Mar 2026 18:56:29 +0000
+From: "Christian A. Ehrhardt" <lk@c--e.de>
+Subject: lib/scatterlist: fix length calculations in extract_kvec_to_sg
+Date: Thu, 26 Mar 2026 22:49:01 +0100
 
-We are moving to a far more proactive model of maintainership within mm
-and thus put a great deal of emphasis on sub-maintainers being active
-within the community both in terms of code contributions and review.
+Patch series "Fix bugs in extract_iter_to_sg()", v3.
 
-The MGLRU has not had much activity since being added to the kernel and
-the current maintainers who kindly stepped up have unfortunately not been
-able to contribute a great deal to it for over a year, nor engage all that
-heavily in review.
+Fix bugs in the kvec and user variants of extract_iter_to_sg.  This series
+is growing due to useful remarks made by sashiko.dev.
 
-As a result, and within no negative connotations implied whatsoever, it
-seems appropriate to downgrade the current maintainers to reviewers.
+The main bugs are:
+- The length for an sglist entry when extracting from
+  a kvec can exceed the number of bytes in the page. This
+  is obviously not intended.
+- When extracting a user buffer the sglist is temporarily
+  used as a scratch buffer for extracted page pointers.
+  If the sglist already contains some elements this scratch
+  buffer could overlap with existing entries in the sglist.
 
-At this time nobody is quite exercising the maintainer role in this area
-of the kernel, but there is encouraging activity from a number of people
-who are trusted elsewhere in the kernel, and who have contributed relevant
-work or review.
+The series adds test cases to the kunit_iov_iter test that demonstrate all
+of these bugs.  Additionally, there is a memory leak fix for the test
+itself.
 
-Therefore add further reviewers, and at this stage - to reflect the
-reality on the ground - we will not have any sub-maintainers listed at
-all.
+The bugs were orignally introduced into kernel v6.3 where the function
+lived in fs/netfs/iterator.c.  It was later moved to lib/scatterlist.c in
+v6.5.  Thus the actual fix is only marked for backports to v6.5+.
 
-Each of the files listed are shared with other sections in MAINTAINERS, so
-this doesn't reduce sub-maintainer coverage.
 
-Link: https://lkml.kernel.org/r/20260326185629.355476-1-ljs@kernel.org
-Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Acked-by: Axel Rasmussen <axelrasmussen@google.com>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+This patch (of 5):
+
+When extracting from a kvec to a scatterlist, do not cross page
+boundaries.  The required length was already calculated but not used as
+intended.
+
+Adjust the copied length if the loop runs out of sglist entries without
+extracting everything.
+
+While there, return immediately from extract_iter_to_sg if there are no
+sglist entries at all.
+
+A subsequent commit will add kunit test cases that demonstrate that the
+patch is necessary.
+
+Link: https://lkml.kernel.org/r/20260326214905.818170-1-lk@c--e.de
+Link: https://lkml.kernel.org/r/20260326214905.818170-2-lk@c--e.de
+Fixes: 018584697533 ("netfs: Add a function to extract an iterator into a scatterlist")
+Signed-off-by: Christian A. Ehrhardt <lk@c--e.de>
+Cc: David Gow <davidgow@google.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: <stable@vger.kernel.org>	[v6.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ lib/scatterlist.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/MAINTAINERS~maintainers-update-mglru-entry-to-reflect-current-status
-+++ a/MAINTAINERS
-@@ -16757,8 +16757,12 @@ F:	mm/migrate_device.c
+--- a/lib/scatterlist.c~lib-scatterlist-fix-length-calculations-in-extract_kvec_to_sg
++++ a/lib/scatterlist.c
+@@ -1247,7 +1247,7 @@ static ssize_t extract_kvec_to_sg(struct
+ 			else
+ 				page = virt_to_page((void *)kaddr);
  
- MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU)
- M:	Andrew Morton <akpm@linux-foundation.org>
--M:	Axel Rasmussen <axelrasmussen@google.com>
--M:	Yuanchu Xie <yuanchu@google.com>
-+R:	Kairui Song <kasong@tencent.com>
-+R:	Qi Zheng <qi.zheng@linux.dev>
-+R:	Shakeel Butt <shakeel.butt@linux.dev>
-+R:	Barry Song <baohua@kernel.org>
-+R:	Axel Rasmussen <axelrasmussen@google.com>
-+R:	Yuanchu Xie <yuanchu@google.com>
- R:	Wei Xu <weixugc@google.com>
- L:	linux-mm@kvack.org
- S:	Maintained
+-			sg_set_page(sg, page, len, off);
++			sg_set_page(sg, page, seg, off);
+ 			sgtable->nents++;
+ 			sg++;
+ 			sg_max--;
+@@ -1256,6 +1256,7 @@ static ssize_t extract_kvec_to_sg(struct
+ 			kaddr += PAGE_SIZE;
+ 			off = 0;
+ 		} while (len > 0 && sg_max > 0);
++		ret -= len;
+ 
+ 		if (maxsize <= 0 || sg_max == 0)
+ 			break;
+@@ -1409,7 +1410,7 @@ ssize_t extract_iter_to_sg(struct iov_it
+ 			   struct sg_table *sgtable, unsigned int sg_max,
+ 			   iov_iter_extraction_t extraction_flags)
+ {
+-	if (maxsize == 0)
++	if (maxsize == 0 || sg_max == 0)
+ 		return 0;
+ 
+ 	switch (iov_iter_type(iter)) {
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from lk@c--e.de are
 
-mm-rename-vma-flag-helpers-to-be-more-readable.patch
-mm-add-vma_desc_test_all-and-use-it.patch
-mm-always-inline-__mk_vma_flags-and-invoked-functions.patch
-mm-reintroduce-vma_flags_test-as-a-singular-flag-test.patch
-mm-reintroduce-vma_desc_test-as-a-singular-flag-test.patch
-tools-testing-vma-add-test-for-vma_flags_test-vma_desc_test.patch
-mm-mremap-correct-invalid-map-count-check.patch
-mm-abstract-reading-sysctl_max_map_count-and-read_once.patch
-mm-mremap-check-map-count-under-mmap-write-lock-and-abstract.patch
-mm-vma-add-vma_flags_empty-vma_flags_and-vma_flags_diff_pair.patch
-tools-testing-vma-add-unit-tests-flag-empty-diff_pair-and.patch
-mm-vma-add-further-vma_flags_t-unions.patch
-tools-testing-vma-convert-bulk-of-test-code-to-vma_flags_t.patch
-mm-vma-use-new-vma-flags-for-sticky-flags-logic.patch
-tools-testing-vma-fix-vma-flag-tests.patch
-mm-vma-add-append_vma_flags-helper.patch
-tools-testing-vma-add-simple-test-for-append_vma_flags.patch
-mm-unexport-vm_brk_flags-and-eliminate-vm_flags-parameter.patch
-mm-vma-introduce-vma_flags_same.patch
-mm-vma-introduce-_to_-helpers.patch
-tools-testing-vma-test-that-legacy-flag-helpers-work-correctly.patch
-mm-vma-introduce-vma_test-and-make-inlining-consistent.patch
-tools-testing-vma-update-vma-flag-tests-to-test-vma_test.patch
-mm-introduce-vma_flags_count-and-vma_test_single_mask.patch
-tools-testing-vma-test-vma_flags_countvma_test_single_mask.patch
-mm-convert-do_brk_flags-to-use-vma_flags_t.patch
-mm-update-vma_supports_mlock-to-use-new-vma-flags.patch
-mm-vma-introduce-vma_clear_flags.patch
-tools-testing-vma-update-vma-tests-to-test-vma_clear_flags.patch
-mm-vma-convert-as-much-as-we-can-in-mm-vmac-to-vma_flags_t.patch
-tools-bitmap-add-missing-bitmap_copy-implementation.patch
-mm-vma-convert-vma_modify_flags-to-use-vma_flags_t.patch
-mm-vma-convert-__mmap_region-to-use-vma_flags_t.patch
-mm-simplify-vma-flag-tests-of-excluded-flags.patch
-mm-various-small-mmap_prepare-cleanups.patch
-mm-add-documentation-for-the-mmap_prepare-file-operation-callback.patch
-mm-document-vm_operations_struct-open-the-same-as-close.patch
-mm-avoid-deadlock-when-holding-rmap-on-mmap_prepare-error.patch
-mm-switch-the-rmap-lock-held-option-off-in-compat-layer.patch
-mm-vma-remove-superfluous-map-hold_file_rmap_lock.patch
-mm-have-mmap_action_complete-handle-the-rmap-lock-and-unmap.patch
-mm-add-vm_ops-mapped-hook.patch
-fs-afs-revert-mmap_prepare-change.patch
-fs-afs-restore-mmap_prepare-implementation.patch
-mm-add-mmap_action_simple_ioremap.patch
-misc-open-dice-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-hpet-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-mtdchar-replace-deprecated-mmap-hook-with-mmap_prepare-clean-up.patch
-stm-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-staging-vme_user-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-mm-allow-handling-of-stacked-mmap_prepare-hooks-in-more-drivers.patch
-drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare.patch
-uio-replace-deprecated-mmap-hook-with-mmap_prepare-in-uio_info.patch
-mm-add-mmap_action_map_kernel_pages.patch
-mm-on-remap-assert-that-input-range-within-the-proposed-vma.patch
-mm-huge_memory-simplify-vma_is_specal_huge.patch
-mm-huge-avoid-big-else-branch-in-zap_huge_pmd.patch
-mm-huge_memory-have-zap_huge_pmd-return-a-boolean-add-kdoc.patch
-mm-huge_memory-handle-buggy-pmd-entry-in-zap_huge_pmd.patch
-mm-huge_memory-add-a-common-exit-path-to-zap_huge_pmd.patch
-mm-huge_memory-remove-unnecessary-vm_bug_on_page.patch
-mm-huge_memory-deduplicate-zap-deposited-table-call.patch
-mm-huge_memory-remove-unnecessary-sanity-checks.patch
-mm-huge_memory-use-mm-instead-of-tlb-mm.patch
-mm-huge_memory-separate-out-the-folio-part-of-zap_huge_pmd.patch
-mm-add-softleaf_is_valid_pmd_entry-pmd_to_softleaf_folio.patch
-mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd.patch
-mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix.patch
-mm-huge_memory-add-and-use-has_deposited_pgtable.patch
-mm-huge_memory-add-and-use-has_deposited_pgtable-fix.patch
-maintainers-update-mglru-entry-to-reflect-current-status.patch
+lib-scatterlist-fix-length-calculations-in-extract_kvec_to_sg.patch
+lib-scatterlist-fix-temp-buffer-in-extract_user_to_sg.patch
+lib-kunit_iov_iter-fix-memory-leaks.patch
+lib-kunit_iov_iter-improve-error-detection.patch
+lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg.patch
 
