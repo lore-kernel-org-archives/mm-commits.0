@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 267083BE659
-	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 23:39:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5D90384241
+	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 23:39:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774568359; cv=none; b=RS3/2YkcVxuZ+2G3eI9FkhqZCkP1FiI+WrpfRJJqu0ff21yzG9z6sd+MHTC1R0Tsg2fH9K+sHv51tmhwbKg8Av/U70qhmiM0/J4ES0NDvrK/XW8hGDsm3lhztAIxBF56Dsi1oUKzdVwgL8Ml3pvpZqpfhxZk0wgN2OyxbC4nkHg=
+	t=1774568360; cv=none; b=u3+CsO66fc5geUVGmBjJ5zdx3oaTlhBklwy/3NT+iWBU1DkB+dBas28JDSjAzwjau6fijVDIRqlTJ1mpJAjbclkJ1yDg5hEGU6Ug7lALPFfK87QxCkb5KKGI1asjQry+r6UwkohTgHs0t9vmq7EYDHe3r2A0l6rgx/JCn/9vCiM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774568359; c=relaxed/simple;
-	bh=8Ofy2DpOgAUrLQ4A/ussL99P4yyD0yuXWXE2vn80ipU=;
-	h=Date:To:From:Subject:Message-Id; b=KWlw4A+jpVxS0Y2LB5+WQWDZ1VOLyKBD6e4C1WorHJXAemvLznH3sYn4u/pLJOzWFsbwVaTuVzgJZEqEmf1dPlKcQuz3dhso6INQnNZhRcxhjx1mLGl1oexpeetpWjSQ6P/62gws7oIMAf/bHC4wxd6HNcVrVjVntcGPiRRpgXQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q0UbZuHW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774568360; c=relaxed/simple;
+	bh=9AXH9kmhekudtGdXyXpszPA6ZE+yyzLXUvqTbObSTjY=;
+	h=Date:To:From:Subject:Message-Id; b=EnT+Wc+ih77luSziLtwnoBtlKjXoFKR+e3XUm6S4PY5RuFooyQnf4YBgtLiTIZU4SmCiEs6SWSbBi8Q5EDkha+7vmVXdHJZ3nQX12q8qqoS7RfrNH4mw96cFsc3eq1KePPsxqrLt1PzSUtTZedK0irl+lkzjDDnBtqwVoEJtLMM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r0CkRXYW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q0UbZuHW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAD6CC116C6;
-	Thu, 26 Mar 2026 23:39:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r0CkRXYW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A90C116C6;
+	Thu, 26 Mar 2026 23:39:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774568359;
-	bh=8Ofy2DpOgAUrLQ4A/ussL99P4yyD0yuXWXE2vn80ipU=;
+	s=korg; t=1774568360;
+	bh=9AXH9kmhekudtGdXyXpszPA6ZE+yyzLXUvqTbObSTjY=;
 	h=Date:To:From:Subject:From;
-	b=Q0UbZuHWEHUo+2GJrkl2UgmWQh1+O4e0wRCnnnBmeUPKkF7h3y/sYqCPhBSCxZCg2
-	 8s0krjN+OEb61lfB8JN+L5aVSsRns34BPlPf5KqpBR2AqS38qUlvkKEkSomBz7FsfU
-	 ISSs+iLMXKZMml0CH+LzkzF2pA28M+oo6mPSTCDw=
-Date: Thu, 26 Mar 2026 16:39:18 -0700
+	b=r0CkRXYW0lGJCgjwKYVnmtf1LjD4QhSAuNKImtHcQSdKUL+HRikLRUgfREeft2esx
+	 FcAvdKagYPJ0vQHaUyxUWJlLX/3NvEjP6AHZSqyvzSpFGaCVqeUEArSo/6xrrUnS/h
+	 M1BAbLZ5LGW8kkDPVKegOsNduapTL3n3dfknDNAg=
+Date: Thu, 26 Mar 2026 16:39:19 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jianghaoran@kylinos.cn,duanchenghao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd_luo-remove-folio-from-page-cache-when-accounting-fails.patch added to mm-new branch
-Message-Id: <20260326233918.EAD6CC116C6@smtp.kernel.org>
+Subject: + mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios.patch added to mm-new branch
+Message-Id: <20260326233920.40A90C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memfd_luo: remove folio from page cache when accounting fails
+     Subject: mm/memfd_luo: fix integer overflow in memfd_luo_preserve_folios
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memfd_luo-remove-folio-from-page-cache-when-accounting-fails.patch
+     mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-remove-folio-from-page-cache-when-accounting-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,27 +70,28 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Chenghao Duan <duanchenghao@kylinos.cn>
-Subject: mm/memfd_luo: remove folio from page cache when accounting fails
-Date: Thu, 26 Mar 2026 16:47:26 +0800
+Subject: mm/memfd_luo: fix integer overflow in memfd_luo_preserve_folios
+Date: Thu, 26 Mar 2026 16:47:27 +0800
 
-In memfd_luo_retrieve_folios(), when shmem_inode_acct_blocks() fails
-after successfully adding the folio to the page cache, the code jumps
-to unlock_folio without removing the folio from the page cache.
+In memfd_luo_preserve_folios(), two variables had types that could cause
+silent data loss with large files:
 
-This leaves the folio permanently abandoned in the page cache:
-- The folio was added via shmem_add_to_page_cache() which set up
-  mapping, index, and incremented nrpages/shmem stats.
-- folio_unlock() and folio_put() do not remove it from the cache.
-- folio_add_lru() was never called, so it cannot be reclaimed.
+1. 'size' was declared as 'long', truncating the 64-bit result of
+   i_size_read(). On 32-bit systems a 4GB file would be truncated to 0,
+   causing the function to return early and discard all data.
 
-Fix by adding a remove_from_cache label that calls filemap_remove_folio()
-before unlocking, matching the error handling pattern in
-shmem_alloc_and_add_folio().
+2. 'max_folios' was declared as 'unsigned int', causing overflow for
+   sparse files larger than 4TB. For example, a 16TB+4KB file would
+   calculate 0x100000001 folios but truncate to 1 when assigned to
+   max_folios, causing memfd_pin_folios() to pin only the first folio.
+
+Fix by changing both variables to 'u64' to match the types returned
+by i_size_read() and the folio count calculations.
 
 This issue was identified by the AI review.
 https://sashiko.dev/#/patchset/20260323110747.193569-1-duanchenghao@kylinos.cn
 
-Link: https://lkml.kernel.org/r/20260326084727.118437-7-duanchenghao@kylinos.cn
+Link: https://lkml.kernel.org/r/20260326084727.118437-8-duanchenghao@kylinos.cn
 Signed-off-by: Chenghao Duan <duanchenghao@kylinos.cn>
 Cc: Haoran Jiang <jianghaoran@kylinos.cn>
 Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
@@ -99,29 +100,22 @@ Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd_luo.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memfd_luo.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memfd_luo.c~mm-memfd_luo-remove-folio-from-page-cache-when-accounting-fails
+--- a/mm/memfd_luo.c~mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios
 +++ a/mm/memfd_luo.c
-@@ -461,7 +461,7 @@ static int memfd_luo_retrieve_folios(str
- 		if (err) {
- 			pr_err("shmem: failed to account folio index %ld(%ld pages): %d\n",
- 			       i, npages, err);
--			goto unlock_folio;
-+			goto remove_from_cache;
- 		}
- 
- 		nr_added_pages += npages;
-@@ -474,6 +474,8 @@ static int memfd_luo_retrieve_folios(str
- 
- 	return 0;
- 
-+remove_from_cache:
-+	filemap_remove_folio(folio);
- unlock_folio:
- 	folio_unlock(folio);
- 	folio_put(folio);
+@@ -90,8 +90,8 @@ static int memfd_luo_preserve_folios(str
+ {
+ 	struct inode *inode = file_inode(file);
+ 	struct memfd_luo_folio_ser *folios_ser;
+-	unsigned int max_folios;
+-	long i, size, nr_pinned;
++	u64 size, max_folios;
++	long i, nr_pinned;
+ 	struct folio **folios;
+ 	int err = -EINVAL;
+ 	pgoff_t offset;
 _
 
 Patches currently in -mm which might be from duanchenghao@kylinos.cn are
