@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEFB7348440
-	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 23:39:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F346E384241
+	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 23:39:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774568356; cv=none; b=FJVjpRhMkjylCyTgsrATcGrY4RWVp4vuZ1cFzDh+c3GoO8a4YkfDMSsV5ILIDWO9kvV7j7g3PI0+gb8Lf0WDapVCVSz0531xZZQ0FyXH421qIewA5uIHOEFGGDjAf4rLX36mAlqcDkKt3GxgNqS+wiJSV/hbz7p7qOBGey76w3g=
+	t=1774568358; cv=none; b=IP3rrElC58H5VzclqGz3gw62DvTM6hIvqFHWl9YmWBPwjGWdaP+fD+eVZS4eEP09ZK7CrQcB0Ji171sVpsKjafCBAgMDQSQ+PMqABnHT2ajeBy5vtkc2PGmGRT1Clo4oQXUIqW7rt0myHD8sPNsU9kXUfDuynJbDMes9+K4z03s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774568356; c=relaxed/simple;
-	bh=MsffnnCaD+Rz7lizm9kF5CdWR9WXVYfE/8lTkKEXDWQ=;
-	h=Date:To:From:Subject:Message-Id; b=lrnCPYQ/Q84vHpRMoY97Cy+O8rM80ZsohXcXuviT5r2HCuJdo70JLbuWvj6JXlexhzFV85gjJqg1IqOCjuBNuwgyGqW++AuqB8MM8sVUaE0omJ31FjQ5jEx7VzgA7EGZzj0eNylPDBlfMC+c99XZqnjG3F9jalCY9n5ZQyyWNsI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BDzzgPiu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774568358; c=relaxed/simple;
+	bh=w1aJ/f16VrieXawYccBOQu52YcWMpmmQoEl/ecZZvjE=;
+	h=Date:To:From:Subject:Message-Id; b=IUK2OmjnftbWY5MhgNRQxs7MhbAgblGI2AngCDbYBuKJePiXTTBFSwf+7y8dYX1Da0etabHK2MNvfEi+4b+45kKkld/dsppgmN3Sx6MZnQ9C92DawKZ2j1XJ4JXZ2jCKqF8vsOgOHgrYGZn9aIBw4yatVEcp2LlIqEe8XTm7pJY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aLhp2rio; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BDzzgPiu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76028C116C6;
-	Thu, 26 Mar 2026 23:39:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aLhp2rio"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB98AC116C6;
+	Thu, 26 Mar 2026 23:39:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774568356;
-	bh=MsffnnCaD+Rz7lizm9kF5CdWR9WXVYfE/8lTkKEXDWQ=;
+	s=korg; t=1774568357;
+	bh=w1aJ/f16VrieXawYccBOQu52YcWMpmmQoEl/ecZZvjE=;
 	h=Date:To:From:Subject:From;
-	b=BDzzgPiurfBcA4X1EmEyDhwYRbri/DS2r2C7WATfnfe1/u6WMe8HH2Sd1TlvpNrxs
-	 tiUuuPljlIWI0PJ8NW6TYxFDp9gxYjH7LR6psoj+2JVnAN6RAj67TqWbUxATUu3L+H
-	 KG2ixSzBljvPwBqPaV4yevRlNsqHiGVFT9OasbVg=
-Date: Thu, 26 Mar 2026 16:39:15 -0700
+	b=aLhp2riofS/qvnNjpnLGLW1l/xIaHackgvBvTPSwIrYb7uLjCNSpFG30Vzg+prFDe
+	 8fXi3GOXf+tANeO1rVz+6Wc9EvRXHc09RHd4UK9hClRjbPIV6gIPXBE7fxegsnQuMP
+	 UVZ1ra/hRe1F2/x01xi28Z0I4moB7yoyWr3GnOwU=
+Date: Thu, 26 Mar 2026 16:39:16 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jianghaoran@kylinos.cn,duanchenghao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd_luo-use-i_size_write-to-set-inode-size-during-retrieve.patch added to mm-new branch
-Message-Id: <20260326233916.76028C116C6@smtp.kernel.org>
+Subject: + mm-memfd_luo-fix-physical-address-conversion-in-put_folios-cleanup.patch added to mm-new branch
+Message-Id: <20260326233917.AB98AC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memfd_luo: use i_size_write() to set inode size during retrieve
+     Subject: mm/memfd_luo: fix physical address conversion in put_folios cleanup
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memfd_luo-use-i_size_write-to-set-inode-size-during-retrieve.patch
+     mm-memfd_luo-fix-physical-address-conversion-in-put_folios-cleanup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-use-i_size_write-to-set-inode-size-during-retrieve.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-fix-physical-address-conversion-in-put_folios-cleanup.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,38 +70,55 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Chenghao Duan <duanchenghao@kylinos.cn>
-Subject: mm/memfd_luo: use i_size_write() to set inode size during retrieve
-Date: Thu, 26 Mar 2026 16:47:24 +0800
+Subject: mm/memfd_luo: fix physical address conversion in put_folios cleanup
+Date: Thu, 26 Mar 2026 16:47:25 +0800
 
-Use i_size_write() instead of directly assigning to inode->i_size when
-restoring the memfd size in memfd_luo_retrieve(), to keep code
-consistency.
+In memfd_luo_retrieve_folios()'s put_folios cleanup path:
 
-No functional change intended.
+1. kho_restore_folio() expects a phys_addr_t (physical address) but
+   receives a raw PFN (pfolio->pfn). This causes kho_restore_page() to
+   check the wrong physical address (pfn << PAGE_SHIFT instead of the
+   actual physical address).
 
-Link: https://lkml.kernel.org/r/20260326084727.118437-5-duanchenghao@kylinos.cn
+2. This loop lacks the !pfolio->pfn check that exists in the main
+   retrieval loop and memfd_luo_discard_folios(), which could
+   incorrectly process sparse file holes where pfn=0.
+
+Fix by converting PFN to physical address with PFN_PHYS() and adding
+the !pfolio->pfn check, matching the pattern used elsewhere in this file.
+
+This issue was identified by the AI review.
+https://sashiko.dev/#/patchset/20260323110747.193569-1-duanchenghao@kylinos.cn
+
+Link: https://lkml.kernel.org/r/20260326084727.118437-6-duanchenghao@kylinos.cn
 Signed-off-by: Chenghao Duan <duanchenghao@kylinos.cn>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Haoran Jiang <jianghaoran@kylinos.cn>
 Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd_luo.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memfd_luo.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/memfd_luo.c~mm-memfd_luo-use-i_size_write-to-set-inode-size-during-retrieve
+--- a/mm/memfd_luo.c~mm-memfd_luo-fix-physical-address-conversion-in-put_folios-cleanup
 +++ a/mm/memfd_luo.c
-@@ -530,7 +530,7 @@ static int memfd_luo_retrieve(struct liv
+@@ -484,8 +484,13 @@ put_folios:
+ 	 */
+ 	for (long j = i + 1; j < nr_folios; j++) {
+ 		const struct memfd_luo_folio_ser *pfolio = &folios_ser[j];
++		phys_addr_t phys;
+ 
+-		folio = kho_restore_folio(pfolio->pfn);
++		if (!pfolio->pfn)
++			continue;
++
++		phys = PFN_PHYS(pfolio->pfn);
++		folio = kho_restore_folio(phys);
+ 		if (folio)
+ 			folio_put(folio);
  	}
- 
- 	vfs_setpos(file, ser->pos, MAX_LFS_FILESIZE);
--	file->f_inode->i_size = ser->size;
-+	i_size_write(file_inode(file), ser->size);
- 
- 	if (ser->nr_folios) {
- 		folios_ser = kho_restore_vmalloc(&ser->folios);
 _
 
 Patches currently in -mm which might be from duanchenghao@kylinos.cn are
