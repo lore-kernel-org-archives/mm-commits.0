@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEC8019006B
-	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 17:06:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 423D434A78D
+	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 17:07:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774544760; cv=none; b=u7Jx9pLVyaQYAyAebOTnAaHtdDTUBswyFWjZ/qtqCx8FaGHH7qLaWEVokfQEyU4q6IzjFxGFIAwfM2H0gvQR74jJ3OUdD8f3cNFMci0WU7oReXmFzG8LX/ksWPFAqCqy0pJtXMAGvaS9+lFt7R+wxdG6t1OsjLW3YaNyU7XL3es=
+	t=1774544827; cv=none; b=NfzkA4hOZ1TwX81bc5XAl9O3+ibh3gkwjBbmhLi8G8JeWgt5KVhgtpuZh1hsje8nnbAcK6DcEdAHxKVzrmK1Em4zyq8VRtKF7oalXhP8OQdtwcHH/HNbzrpy5oI/ClTO+uH/bS5/UY1subRngZe5hUBM9s/qAonkbbmbUWOI7t8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774544760; c=relaxed/simple;
-	bh=zbnak03UdRsJrk1jnLbut0966d09yp3s0MLVu7/vJzE=;
-	h=Date:To:From:Subject:Message-Id; b=Rt30iHj5txjsHAcDCQKV5HQ96oik/OcVUVgPnJVuxYidMXep+jyt3keABJp3gXpWCtoUGxC0G9P7qIt3dd9J6p3i3AiCSgrtMlqKQNm6RvWZTiczEgAlXSZwOLwHLAK3HJXvN14FfthdKAjM7aCNIGb959nCPsFQ2xaVRUtLMb0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u4VczCB/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774544827; c=relaxed/simple;
+	bh=GoJ5MGHvcJ5Lgl6kU2UvUD7wLOQ0XqcmZp+3zOX5d/g=;
+	h=Date:To:From:Subject:Message-Id; b=FVHVMvSyfchd+FxVAkDiU4zjLBfKEX6XFUdJVh7QuApe+QYXHibn0QGtc/Wnxj+uyF9DRtSYdw4echo+hOSVdOpsKJpSbeeUwxaBakjINyQy9Cf3qFgiEwM5Xh9JAhsiX+ZsPBBXfNymNQoZ7KodKo7l/qC0tz+DBbLvlP/XJT8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lXAC0MSC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u4VczCB/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86A23C2BCB0;
-	Thu, 26 Mar 2026 17:06:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lXAC0MSC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CDAC1C116C6;
+	Thu, 26 Mar 2026 17:07:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774544760;
-	bh=zbnak03UdRsJrk1jnLbut0966d09yp3s0MLVu7/vJzE=;
+	s=korg; t=1774544826;
+	bh=GoJ5MGHvcJ5Lgl6kU2UvUD7wLOQ0XqcmZp+3zOX5d/g=;
 	h=Date:To:From:Subject:From;
-	b=u4VczCB/3KxOTc4KxrFeCxtkye3MU/tCW8ZvrS3NS9WsT9pfTNm81bLD5/mpnX5BX
-	 iA10d8LHmbkBWsGi/fMhgWWAkYiTkopr0IrFS4S71ynbA1J2oe5ehyEGGXm9MV/43M
-	 ihN7O02Hy061GBb/JZQ8QGctRueGClmWkvqrG3eo=
-Date: Thu, 26 Mar 2026 10:05:59 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,avagin@google.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=lXAC0MSCuskGYeyAM1bwb28eUoe2tBgaPovnXaLtCKl1m/qDbjXdGl1EcqZfGjkTN
+	 5EQPp2cKa5CYeiN2yIGF9VLnRMrrwpag7BjM6GQNpXKJmRZE0roHz6OecoTTn8cBNr
+	 X/2IS6S8opOUCWFvxT06TcnH41ebVZCXLDQDMhZw=
+Date: Thu, 26 Mar 2026 10:07:06 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,seanjc@google.com,peterx@redhat.com,pbonzini@redhat.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,kalyazin@amazon.com,jthoughton@google.com,hughd@google.com,david@kernel.org,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,aarcange@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy-fix-fix.patch removed from -mm tree
-Message-Id: <20260326170600.86A23C2BCB0@smtp.kernel.org>
+Subject: [folded-merged] userfaultfd-introduce-vm_uffd_ops-fix.patch removed from -mm tree
+Message-Id: <20260326170706.CDAC1C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,102 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy-fix-fix
+     Subject: userfaultfd: allow registration of WP_ASYNC for any VMA
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy-fix-fix.patch
+     userfaultfd-introduce-vm_uffd_ops-fix.patch
 
-This patch was dropped because it was folded into userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
+This patch was dropped because it was folded into userfaultfd-introduce-vm_uffd_ops.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy-fix-fix
-Date: Wed Mar 25 03:23:43 PM PDT 2026
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: userfaultfd: allow registration of WP_ASYNC for any VMA
+Date: Wed, 11 Mar 2026 20:21:38 +0200
 
-update mfill_copy_folio_retry() for
-userfaultfd-introduce-mfill_get_pmd-helper-fix.patch
+Registration of a VMA with WP_ASYNC userfaulfd context in write-protect
+mode does not require any VMA-specific resolution of user faults and these
+faults are completely handled by the generic page fault handler.
 
-Link: https://lkml.kernel.org/r/20260316173829.1126728-1-avagin@google.com
-Signed-off-by: Mike Rapoport <rppt@kernel.org>
-Cc: Andrei Vagin <avagin@google.com>
+This functionality existed since the introduction of WP_ASYNC mode and it
+allows tracking writes to SysV shared memory mappings (shmget(2) and
+shmat(2)).
+
+Move the check for WP mode before checking for presence of ->uffd_ops in a
+VMA to restore the original behaviour.
+
+Link: https://lkml.kernel.org/r/abG5HFV8yoEHOFkh@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nikita Kalyazin <kalyazin@amazon.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/userfaultfd.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy-fix-fix
+--- a/mm/userfaultfd.c~userfaultfd-introduce-vm_uffd_ops-fix
 +++ a/mm/userfaultfd.c
-@@ -427,7 +427,7 @@ static int mfill_copy_folio_retry(struct
- 	if (err)
- 		return err;
+@@ -2042,22 +2042,22 @@ bool vma_can_userfault(struct vm_area_st
+ {
+ 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
  
--	err = mfill_get_pmd(state);
-+	err = mfill_establish_pmd(state);
- 	if (err)
- 		return err;
+-	/* only VMAs that implement vm_uffd_ops are supported */
+-	if (!ops)
+-		return false;
+-
+ 	vm_flags &= __VM_UFFD_FLAGS;
  
+-	if (vma->vm_flags & VM_DROPPABLE)
+-		return false;
+-
+ 	/*
+-	 * If wp async enabled, and WP is the only mode enabled, allow any
++	 * If WP is the only mode enabled and context is wp async, allow any
+ 	 * memory type.
+ 	 */
+ 	if (wp_async && (vm_flags == VM_UFFD_WP))
+ 		return true;
+ 
++	/* For any other mode reject VMAs that don't implement vm_uffd_ops */
++	if (!ops)
++		return false;
++
++	if (vma->vm_flags & VM_DROPPABLE)
++		return false;
++
+ 	/*
+ 	 * If user requested uffd-wp but not enabled pte markers for
+ 	 * uffd-wp, then only anonymous memory is supported
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
+userfaultfd-introduce-mfill_copy_folio_locked-helper.patch
+userfaultfd-introduce-struct-mfill_state.patch
+userfaultfd-introduce-mfill_get_pmd-helper.patch
+userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
 userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
-selftests-mm-skip-uffd-wp-mremap-if-uffd-write-protect-is-unsupported-fix.patch
-mm-switch-the-rmap-lock-held-option-off-in-compat-layer-fix.patch
-selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
-lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix.patch
+userfaultfd-move-vma_can_userfault-out-of-line.patch
+userfaultfd-introduce-vm_uffd_ops.patch
+shmem-userfaultfd-use-a-vma-callback-to-handle-uffdio_continue.patch
+userfaultfd-introduce-vm_uffd_ops-alloc_folio.patch
+shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops.patch
+userfaultfd-mfill_atomic-remove-retry-logic.patch
+selftests-mm-pagemap_ioctl-remove-hungarian-notation.patch
 
