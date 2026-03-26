@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18F0932C92A
-	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 22:40:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34600348440
+	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 23:39:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774564808; cv=none; b=BLGNxmk6Zf2+IkycBvG7VFsihW9VwCsPvfJYvWpXGnP25qK991JnL38o5Ls0EbYbFyS6FEvEHTkEapTcrOVzHosAPY99Qs3J0seuPnaGpyldBODcRWbqKwBQrJHcWpebkNQ9HKfj7VMyoTCe+xo8v9aLOQAK0rFVW5kWbLO6ufw=
+	t=1774568352; cv=none; b=DR4Ko1XvGBIYNq5TvZf9S96lPQnZDOkuuaRbXsdLQO6AVpnrczXwjMgBHy3M/kgA7HCnJPvNbXHgG4ZX1grp+TR0slSeLJYxCwNDirv42K+Y2FhYAymo6koiwkV7ZC5d/VIU/1bdFk497FOqsHo8DWpxHLNDPUGlKM0NzLQlUvs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774564808; c=relaxed/simple;
-	bh=WtzR22MusWNrvp5MNOFUNVBKG3oclpKYhjES+QBJYMQ=;
-	h=Date:To:From:Subject:Message-Id; b=Ea7fzn8kNWYtUXud6RDWqS3tO9vh4rsEZ35TIvfCBLKUhUKESRt9n0A8VLw4ppfFcqHqQ5+ovQ+fCjinBcRGDoJTTZGnaaFFC0KxnitM6Kw2HaWtOpIVUKwz4pn7WfmpZ6bfP6jtj0D6OK9AcDn6byUoqEBvlNE9ZD4uo6h415k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EB1f6m7k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774568352; c=relaxed/simple;
+	bh=eKiXBJlVHGIkRpBU1oHJPWE3WZhvQmIdVddjDjE3quA=;
+	h=Date:To:From:Subject:Message-Id; b=eakIIjFMU6jlDRAUqr63AUkCGBJnxq8gwGDsEKFK0Qhr2teYENOBm1s3RXA+BSR1uBCgN492HgDDwUFjFp09L8t/KxYhT8d5FT7w/ofv87cDZS6Z5xXQIuCu+6vZ3An1klTXn72DBG0Cod419okv9PJGjpvpGEMQlTOtJFKAu50=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uy2390Hv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EB1f6m7k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7F47C116C6;
-	Thu, 26 Mar 2026 22:40:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uy2390Hv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9AB2C116C6;
+	Thu, 26 Mar 2026 23:39:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774564807;
-	bh=WtzR22MusWNrvp5MNOFUNVBKG3oclpKYhjES+QBJYMQ=;
+	s=korg; t=1774568352;
+	bh=eKiXBJlVHGIkRpBU1oHJPWE3WZhvQmIdVddjDjE3quA=;
 	h=Date:To:From:Subject:From;
-	b=EB1f6m7kX932LrnC8XHC7iNQA3bpHCRA2eBJvtnVTiNVIIS8oiDjBY+LODUE8B6AO
-	 tzYBCIqLTwNXW5s15xc8EWLcSJEghCDejJMyuUMNn4HlawM/kwUrZ8SBHFbNMS3i9S
-	 LEw8EjBvp2qnVIIk9p0cfzseEbSAjmsRpUch1khw=
-Date: Thu, 26 Mar 2026 15:40:07 -0700
-To: mm-commits@vger.kernel.org,pmladek@suse.com,kees@kernel.org,dhowells@redhat.com,davidgow@google.com,lk@c--e.de,akpm@linux-foundation.org
+	b=uy2390HvQR4jY1Ko0s/RIRQ6ORtV+m9kcmTYfFARtA6budt5ZwNGcJnua1i6e39lr
+	 aZzC+uEjM1IUNViBMPB3g7vxDz2rIW2182b91mxztDhURWvwb25STGcaZZ7X+cqhcb
+	 CEDyUd3vXJLXVciw5P8azTGIMXIGXz7J48sCqvk8=
+Date: Thu, 26 Mar 2026 16:39:11 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jianghaoran@kylinos.cn,duanchenghao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg.patch added to mm-nonmm-unstable branch
-Message-Id: <20260326224007.B7F47C116C6@smtp.kernel.org>
+Subject: + mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch added to mm-new branch
+Message-Id: <20260326233911.E9AB2C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: kunit_iov_iter: add tests for extract_iter_to_sg
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg.patch
+     Subject: mm/memfd: use folio_nr_pages() for shmem inode accounting
+has been added to the -mm mm-new branch.  Its filename is
+     mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,269 +69,75 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Christian A. Ehrhardt" <lk@c--e.de>
-Subject: lib: kunit_iov_iter: add tests for extract_iter_to_sg
-Date: Thu, 26 Mar 2026 22:49:05 +0100
+From: Chenghao Duan <duanchenghao@kylinos.cn>
+Subject: mm/memfd: use folio_nr_pages() for shmem inode accounting
+Date: Thu, 26 Mar 2026 16:47:21 +0800
 
-Add test cases that test extract_iter_to_sg.
+Patch series "Modify memfd_luo code", v3.
 
-For each iterator type an iterator is loaded with a suitable buffer.  The
-iterator is then extracted to a scatterlist with multiple calls to
-extract_iter_to_sg.  The final scatterlist is copied into a scratch
-buffer.
+memfd_luo_retrieve_folios() called shmem_inode_acct_blocks() and
+shmem_recalc_inode() with hardcoded 1 instead of the actual folio page
+count.  memfd may use large folios (THP/hugepages), causing quota/limit
+under-accounting and incorrect stat output.
 
-The test passes if the scratch buffer contains the same data as the
-original buffer.
+Fix by using folio_nr_pages(folio) for both functions.
 
-The new tests demonstrate bugs in extract_iter_to_sg for kvec and user
-iterators that are fixed by the previous commits.
+Issue found by AI review and suggested by Pratyush Yadav <pratyush@kernel.org>.
+https://sashiko.dev/#/patchset/20260319012845.29570-1-duanchenghao%40kylinos.cn
 
-Link: https://lkml.kernel.org/r/20260326214905.818170-6-lk@c--e.de
-Signed-off-by: Christian A. Ehrhardt <lk@c--e.de>
-Cc: David Howells <dhowells@redhat.com>
-Cc: David Gow <davidgow@google.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
+Link: https://lkml.kernel.org/r/20260326084727.118437-1-duanchenghao@kylinos.cn
+Link: https://lkml.kernel.org/r/20260326084727.118437-2-duanchenghao@kylinos.cn
+Signed-off-by: Chenghao Duan <duanchenghao@kylinos.cn>
+Suggested-by: Pratyush Yadav <pratyush@kernel.org>
+Cc: Haoran Jiang <jianghaoran@kylinos.cn>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/tests/kunit_iov_iter.c |  203 +++++++++++++++++++++++++++++++++++
- 1 file changed, 203 insertions(+)
+ mm/memfd_luo.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/lib/tests/kunit_iov_iter.c~lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg
-+++ a/lib/tests/kunit_iov_iter.c
-@@ -13,7 +13,9 @@
- #include <linux/uio.h>
- #include <linux/bvec.h>
- #include <linux/folio_queue.h>
-+#include <linux/scatterlist.h>
- #include <linux/minmax.h>
-+#include <linux/mman.h>
- #include <kunit/test.h>
+--- a/mm/memfd_luo.c~mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting
++++ a/mm/memfd_luo.c
+@@ -410,6 +410,7 @@ static int memfd_luo_retrieve_folios(str
+ 	struct inode *inode = file_inode(file);
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct folio *folio;
++	long npages;
+ 	int err = -EIO;
+ 	long i;
  
- MODULE_DESCRIPTION("iov_iter testing");
-@@ -1016,6 +1018,202 @@ stop:
- 	KUNIT_SUCCEED(test);
- }
+@@ -456,14 +457,15 @@ static int memfd_luo_retrieve_folios(str
+ 		if (flags & MEMFD_LUO_FOLIO_DIRTY)
+ 			folio_mark_dirty(folio);
  
-+struct iov_kunit_iter_to_sg_data {
-+	struct sg_table *sgt;
-+	u8 *buffer, *scratch;
-+	u8 __user *ubuf;
-+	struct page **pages;
-+	size_t npages;
-+};
-+
-+static void __init
-+iov_kunit_iter_unpin_sgt(void *data)
-+{
-+	struct sg_table *sgt = data;
-+
-+	for (unsigned int i = 0; i < sgt->nents; ++i)
-+		unpin_user_page(sg_page(&sgt->sgl[i]));
-+}
-+
-+static void __init
-+iov_kunit_iter_to_sg_init(struct kunit *test, size_t bufsize, bool user,
-+			  struct iov_kunit_iter_to_sg_data *data)
-+{
-+	struct page **spages;
-+	struct scatterlist *sg;
-+	unsigned long uaddr;
-+	size_t i;
-+
-+	data->npages = bufsize / PAGE_SIZE;
-+	sg = kunit_kmalloc_array(test, data->npages, sizeof(*sg), GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, sg);
-+	sg_init_table(sg, data->npages);
-+	data->sgt = kunit_kzalloc(test, sizeof(*data->sgt), GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, data->sgt);
-+	data->sgt->orig_nents = 0;
-+	data->sgt->sgl = sg;
-+
-+	data->buffer = NULL;
-+	data->ubuf = NULL;
-+	if (user) {
-+		uaddr = kunit_vm_mmap(test, NULL, 0, bufsize,
-+				      PROT_READ | PROT_WRITE,
-+				      MAP_ANONYMOUS | MAP_PRIVATE, 0);
-+		KUNIT_ASSERT_NE(test, uaddr, 0);
-+		data->ubuf = (u8 __user *)uaddr;
-+		for (i = 0; i < bufsize; ++i)
-+			put_user(pattern(i), data->ubuf + i);
-+	} else {
-+		data->buffer = iov_kunit_create_buffer(test, &data->pages,
-+						       data->npages);
-+		for (i = 0; i < bufsize; ++i)
-+			data->buffer[i] = pattern(i);
-+	}
-+	data->scratch = iov_kunit_create_buffer(test, &spages, data->npages);
-+	memset(data->scratch, 0, bufsize);
-+}
-+
-+static void __init
-+iov_kunit_iter_to_sg_check(struct kunit *test, struct iov_iter *iter,
-+			   size_t bufsize,
-+			   struct iov_kunit_iter_to_sg_data *data)
-+{
-+	static const size_t tail = 16 * PAGE_SIZE;
-+	size_t i;
-+
-+	KUNIT_ASSERT_LT(test, tail, bufsize);
-+
-+	if (iov_iter_extract_will_pin(iter))
-+		kunit_add_action_or_reset(test, iov_kunit_iter_unpin_sgt,
-+					  data->sgt);
-+
-+	i = extract_iter_to_sg(iter, bufsize, data->sgt, 0, 0);
-+	KUNIT_ASSERT_EQ(test, i, 0);
-+	KUNIT_ASSERT_EQ(test, data->sgt->nents, 0);
-+
-+	i = extract_iter_to_sg(iter, bufsize - tail, data->sgt, 1, 0);
-+	KUNIT_ASSERT_LE(test, i, bufsize - tail);
-+	KUNIT_ASSERT_EQ(test, data->sgt->nents, 1);
-+
-+	i += extract_iter_to_sg(iter, bufsize - tail - i, data->sgt,
-+				data->npages - data->sgt->nents, 0);
-+	KUNIT_ASSERT_EQ(test, i, bufsize - tail);
-+	KUNIT_ASSERT_LE(test, data->sgt->nents, data->npages);
-+
-+	i += extract_iter_to_sg(iter, tail, data->sgt,
-+				data->npages - data->sgt->nents, 0);
-+	KUNIT_ASSERT_EQ(test, i, bufsize);
-+	KUNIT_ASSERT_LE(test, data->sgt->nents, data->npages);
-+
-+	sg_mark_end(&data->sgt->sgl[data->sgt->nents - 1]);
-+
-+	i = sg_copy_to_buffer(data->sgt->sgl, data->sgt->nents,
-+			      data->scratch, bufsize);
-+	KUNIT_ASSERT_EQ(test, i, bufsize);
-+
-+	for (i = 0; i < bufsize; ++i) {
-+		KUNIT_EXPECT_EQ_MSG(test, data->scratch[i], pattern(i),
-+				    "at i=%zx", i);
-+		if (data->scratch[i] != pattern(i))
-+			break;
-+	}
-+
-+	KUNIT_EXPECT_EQ(test, i, bufsize);
-+}
-+
-+static void __init iov_kunit_iter_to_sg_kvec(struct kunit *test)
-+{
-+	struct iov_kunit_iter_to_sg_data data;
-+	struct iov_iter iter;
-+	struct kvec kvec;
-+	size_t bufsize;
-+
-+	bufsize = 0x100000;
-+	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
-+
-+	kvec.iov_base = data.buffer;
-+	kvec.iov_len = bufsize;
-+	iov_iter_kvec(&iter, READ, &kvec, 1, bufsize);
-+
-+	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
-+}
-+
-+static void __init iov_kunit_iter_to_sg_bvec(struct kunit *test)
-+{
-+	struct iov_kunit_iter_to_sg_data data;
-+	struct page *p, *can_merge = NULL;
-+	size_t i, k, bufsize;
-+	struct bio_vec *bvec;
-+	struct iov_iter iter;
-+
-+	bufsize = 0x100000;
-+	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
-+
-+	bvec = kunit_kmalloc_array(test, data.npages, sizeof(*bvec),
-+				   GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, bvec);
-+	k = 0;
-+	for (i = 0; i < data.npages; ++i) {
-+		p = data.pages[i];
-+		if (p == can_merge)
-+			bvec[k-1].bv_len += PAGE_SIZE;
-+		else
-+			bvec_set_page(&bvec[k++], p, PAGE_SIZE, 0);
-+		can_merge = p + 1;
-+	}
-+	iov_iter_bvec(&iter, READ, bvec, k, bufsize);
-+
-+	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
-+}
-+
-+static void __init iov_kunit_iter_to_sg_folioq(struct kunit *test)
-+{
-+	struct iov_kunit_iter_to_sg_data data;
-+	struct folio_queue *folioq;
-+	struct iov_iter iter;
-+	size_t bufsize;
-+
-+	bufsize = 0x100000;
-+	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
-+
-+	folioq = iov_kunit_create_folioq(test);
-+	iov_kunit_load_folioq(test, &iter, READ, folioq, data.pages,
-+			      data.npages);
-+
-+	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
-+}
-+
-+static void __init iov_kunit_iter_to_sg_xarray(struct kunit *test)
-+{
-+	struct iov_kunit_iter_to_sg_data data;
-+	struct xarray *xarray;
-+	struct iov_iter iter;
-+	size_t bufsize;
-+
-+	bufsize = 0x100000;
-+	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
-+
-+	xarray = iov_kunit_create_xarray(test);
-+	iov_kunit_load_xarray(test, &iter, READ, xarray, data.pages,
-+			      data.npages);
-+
-+	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
-+}
-+
-+static void __init iov_kunit_iter_to_sg_ubuf(struct kunit *test)
-+{
-+	struct iov_kunit_iter_to_sg_data data;
-+	struct iov_iter iter;
-+	size_t bufsize;
-+
-+	bufsize = 0x100000;
-+	iov_kunit_iter_to_sg_init(test, bufsize, true, &data);
-+
-+	iov_iter_ubuf(&iter, READ, data.ubuf, bufsize);
-+
-+	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
-+}
-+
- static struct kunit_case __refdata iov_kunit_cases[] = {
- 	KUNIT_CASE(iov_kunit_copy_to_kvec),
- 	KUNIT_CASE(iov_kunit_copy_from_kvec),
-@@ -1029,6 +1227,11 @@ static struct kunit_case __refdata iov_k
- 	KUNIT_CASE(iov_kunit_extract_pages_bvec),
- 	KUNIT_CASE(iov_kunit_extract_pages_folioq),
- 	KUNIT_CASE(iov_kunit_extract_pages_xarray),
-+	KUNIT_CASE(iov_kunit_iter_to_sg_kvec),
-+	KUNIT_CASE(iov_kunit_iter_to_sg_bvec),
-+	KUNIT_CASE(iov_kunit_iter_to_sg_folioq),
-+	KUNIT_CASE(iov_kunit_iter_to_sg_xarray),
-+	KUNIT_CASE(iov_kunit_iter_to_sg_ubuf),
- 	{}
- };
+-		err = shmem_inode_acct_blocks(inode, 1);
++		npages = folio_nr_pages(folio);
++		err = shmem_inode_acct_blocks(inode, npages);
+ 		if (err) {
+-			pr_err("shmem: failed to account folio index %ld: %d\n",
+-			       i, err);
++			pr_err("shmem: failed to account folio index %ld(%ld pages): %d\n",
++			       i, npages, err);
+ 			goto unlock_folio;
+ 		}
  
+-		shmem_recalc_inode(inode, 1, 0);
++		shmem_recalc_inode(inode, npages, 0);
+ 		folio_add_lru(folio);
+ 		folio_unlock(folio);
+ 		folio_put(folio);
 _
 
-Patches currently in -mm which might be from lk@c--e.de are
+Patches currently in -mm which might be from duanchenghao@kylinos.cn are
 
-lib-scatterlist-fix-length-calculations-in-extract_kvec_to_sg.patch
-lib-scatterlist-fix-temp-buffer-in-extract_user_to_sg.patch
-lib-kunit_iov_iter-fix-memory-leaks.patch
-lib-kunit_iov_iter-improve-error-detection.patch
-lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg.patch
+mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch
+mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path.patch
+mm-memfd_luo-remove-unnecessary-memset-in-zero-size-memfd-path.patch
+mm-memfd_luo-use-i_size_write-to-set-inode-size-during-retrieve.patch
+mm-memfd_luo-fix-physical-address-conversion-in-put_folios-cleanup.patch
+mm-memfd_luo-remove-folio-from-page-cache-when-accounting-fails.patch
+mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios.patch
 
