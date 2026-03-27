@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C4235478D
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 23:05:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67D62315D46
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 23:12:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774652704; cv=none; b=mUgk8zLVypvc35DQqyMhSuA+ycRHWi9Wb+rXdGNHUJ3wupaIFmMhGSt8JqYsyWgaBppB+ETvprUkSjjYfUiXR2+e8K5ia6thQJjU7b5603uLS9TmMiF52D2QrZd4C5GQ469sOEwju5mEwImLBbGfsn4T/nJYdxb1+Ep/CYZM6ec=
+	t=1774653168; cv=none; b=AcpgWiucOTQiQg0pHzrrWW6zQ+7qQSWO8sTugb1K/LblHIehdUJwoECOfUQ9KhuWPYpFB++EHf65jnFmQvTLMLplbcJ2xUwqhEnnOKm9+QhTi63PMl/nskOhhSnUVPFsWbLO/XXtDt7fLSTqE5SIq5wvEDM6tz3t6Z0LYft8WiQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774652704; c=relaxed/simple;
-	bh=qonTJvaj18aZxmrzkhz3b2NYmwaETU2b5HPDTYLps2s=;
-	h=Date:To:From:Subject:Message-Id; b=eQwoNOmDGM8XHDLugA+9ilvvCORJn8V/zAc21nyLmRaHUox/OWA2QQSQQD1S24+M86GA68XzLBcbUPwWzPZBwrGJWPT8vZfw3yJC5FZFGpZUJKDGMp8STQds+JvSfNnTJ/FMe0OBJebVTvLbU6wprJpla7o9DGf2dmhPiPNBAec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uUddNsd6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774653168; c=relaxed/simple;
+	bh=eHnh3ZWl24HV6RsTmVCxPDl7bggw2KKchxdsdogrjB0=;
+	h=Date:To:From:Subject:Message-Id; b=g0CvAgM369dh9HSGWpuTMNCVTv0qAn84w0aB/T685AUWJl6aekULo0rMSnKSIWLxQ+ZEqsiZIxqfNQ+75Yq+Y4B2vaOIysmfCkDH082dZHylWCwcVaGNWGxaVLoHAZ5lioeVemK0Tis793M+LtdGOVWVFk+nwuNZbvRw0SEUreQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=onWPDJ8L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uUddNsd6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CED38C19423;
-	Fri, 27 Mar 2026 23:05:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="onWPDJ8L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3585FC19423;
+	Fri, 27 Mar 2026 23:12:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774652703;
-	bh=qonTJvaj18aZxmrzkhz3b2NYmwaETU2b5HPDTYLps2s=;
+	s=korg; t=1774653168;
+	bh=eHnh3ZWl24HV6RsTmVCxPDl7bggw2KKchxdsdogrjB0=;
 	h=Date:To:From:Subject:From;
-	b=uUddNsd6HCOaeK70FofJRCeJjWxPFVcu/9XVu0dtJX/LOLODsF0ULpBDMCsWsddks
-	 fSRamoqYFPlPy+4N9833W0iw8v6HySPodJUQLQGkbJWP0n5qPyNyQmjyZkVPGA575O
-	 4lFK6gAT+wriuPo2INZ/F/24zS3IP9pF/Wu0078E=
-Date: Fri, 27 Mar 2026 16:05:03 -0700
+	b=onWPDJ8LxElgh7XGRLFGVUxrzXs1HHOh0Edo+YYJDjOCSgSSeDVWYvBmMeaACTojW
+	 yYhflLTFsF9iK34yO4HTjuFLKPYxUmiqeDbZaoYWkNkLteurmATx3B0+GnkePFf4zr
+	 Qz83wslk+oJTlxR5kcX/aUTTeD4yQOfn/iVffudg=
+Date: Fri, 27 Mar 2026 16:12:47 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch removed from -mm tree
-Message-Id: <20260327230503.CED38C19423@smtp.kernel.org>
+Subject: + mm-vma-cleanup-error-handling-path-in-vma_expand.patch added to mm-new branch
+Message-Id: <20260327231248.3585FC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,33 +34,91 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: KVM: PPC: use vma_start_write_killable() in kvmppc_memslot_page_merge()
-has been removed from the -mm tree.  Its filename was
-     kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
+The patch titled
+     Subject: mm/vma: cleanup error handling path in vma_expand()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vma-cleanup-error-handling-path-in-vma_expand.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-cleanup-error-handling-path-in-vma_expand.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: KVM: PPC: use vma_start_write_killable() in kvmppc_memslot_page_merge()
-Date: Thu, 26 Mar 2026 01:08:36 -0700
+Subject: mm/vma: cleanup error handling path in vma_expand()
+Date: Fri, 27 Mar 2026 13:54:52 -0700
 
-Replace vma_start_write() with vma_start_write_killable(), improving
-reaction time to the kill signal.  Replace vma_start_write() in
-kvmppc_memslot_page_merge().
+Patch series "Use killable vma write locking in most places", v6.
 
-Link: https://lkml.kernel.org/r/20260326080836.695207-7-surenb@google.com
+Now that we have vma_start_write_killable() we can replace most of the
+vma_start_write() calls with it, improving reaction time to the kill
+signal.
+
+There are several places which are left untouched by this patchset:
+
+1. free_pgtables() because function should free page tables even if a
+   fatal signal is pending.
+
+2. userfaultd code, where some paths calling vma_start_write() can
+   handle EINTR and some can't without a deeper code refactoring.
+
+3. mpol_rebind_mm() which is used by cpusset controller for migrations
+   and operates on a remote mm.  Incomplete operations here would result
+   in an inconsistent cgroup state.
+
+4. vm_flags_{set|mod|clear} require refactoring that involves moving
+   vma_start_write() out of these functions and replacing it with
+   vma_assert_write_locked(), then callers of these functions should lock
+   the vma themselves using vma_start_write_killable() whenever possible.
+
+
+This patch (of 6):
+
+vma_expand() error handling is a bit confusing with "if (ret) return ret;"
+mixed with "if (!ret && ...) ret = ...;".  Simplify the code to check for
+errors and return immediately after an operation that might fail.  This
+also makes later changes to this function more readable.  Change variable
+name for storing the error code from "ret" to "err".
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/20260327205457.604224-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20260327205457.604224-2-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Suggested-by: Jann Horn <jannh@google.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
 Cc: Byungchul Park <byungchul@sk.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -68,13 +126,10 @@ Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Gregory Price <gourry@gourry.net>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Jann Horn <jannh@google.com>
 Cc: Janosch Frank <frankja@linux.ibm.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Kees Cook <kees@kernel.org>
 Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
@@ -90,30 +145,57 @@ Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_uvmem.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/vma.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge
-+++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -410,7 +410,10 @@ static int kvmppc_memslot_page_merge(str
- 			ret = H_STATE;
- 			break;
- 		}
--		vma_start_write(vma);
-+		if (vma_start_write_killable(vma)) {
-+			ret = H_STATE;
-+			break;
-+		}
- 		/* Copy vm_flags to avoid partial modifications in ksm_madvise */
- 		vm_flags = vma->vm_flags;
- 		ret = ksm_madvise(vma, vma->vm_start, vma->vm_end,
+--- a/mm/vma.c~mm-vma-cleanup-error-handling-path-in-vma_expand
++++ a/mm/vma.c
+@@ -1170,7 +1170,7 @@ int vma_expand(struct vma_merge_struct *
+ 	vma_flags_t sticky_flags =
+ 		vma_flags_and_mask(&vmg->vma_flags, VMA_STICKY_FLAGS);
+ 	vma_flags_t target_sticky;
+-	int ret = 0;
++	int err = 0;
+ 
+ 	mmap_assert_write_locked(vmg->mm);
+ 	vma_start_write(target);
+@@ -1200,12 +1200,16 @@ int vma_expand(struct vma_merge_struct *
+ 	 * Note that, by convention, callers ignore OOM for this case, so
+ 	 * we don't need to account for vmg->give_up_on_mm here.
+ 	 */
+-	if (remove_next)
+-		ret = dup_anon_vma(target, next, &anon_dup);
+-	if (!ret && vmg->copied_from)
+-		ret = dup_anon_vma(target, vmg->copied_from, &anon_dup);
+-	if (ret)
+-		return ret;
++	if (remove_next) {
++		err = dup_anon_vma(target, next, &anon_dup);
++		if (err)
++			return err;
++	}
++	if (vmg->copied_from) {
++		err = dup_anon_vma(target, vmg->copied_from, &anon_dup);
++		if (err)
++			return err;
++	}
+ 
+ 	if (remove_next) {
+ 		vma_flags_t next_sticky;
 _
 
 Patches currently in -mm which might be from surenb@google.com are
 
-a.patch
+mm-vma-cleanup-error-handling-path-in-vma_expand.patch
+mm-use-vma_start_write_killable-in-mm-syscalls.patch
+mm-khugepaged-use-vma_start_write_killable-in-collapse_huge_page.patch
+mm-vma-use-vma_start_write_killable-in-vma-operations.patch
+mm-use-vma_start_write_killable-in-process_vma_walk_lock.patch
+kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
 mm-vmscan-prevent-mglru-reclaim-from-pinning-address-space.patch
 
