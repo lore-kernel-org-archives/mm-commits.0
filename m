@@ -1,150 +1,78 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73F3B37F73E
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 23:13:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ED53324B31
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 23:24:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774653187; cv=none; b=kG0qqHJ2UNNU+3JWKy/aOhFUrISi+BiIRnh0b+kqBVcaqRQLXOAnbGazzZrygSMoBzRHwZsF+Dac4QEvprje7aVttLD52wY3Dz21VJRqSmsFZ0wLT6vW9G2f7c3+xg6zO3MVnLzz+JkhJq4jK5yEoZG1z/eWsu/CfV0mQXXxrcI=
+	t=1774653881; cv=none; b=kJ7a2MdP6CpckB+zwcIywRmB/O0kg1PweFZchJHApjRmwtclovge5Ri9ZhsvuMte3VAZWKWHVmA4H//UHivwTMFVfWVnvfqe6HDvIiQhDRYOeZ6e0weUvToQD9SJpZbVUb2mSmT9c7rl0yZ3aYcAYA0Z9DBQ3d4g4M4TrNVuTJE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774653187; c=relaxed/simple;
-	bh=SxWKOAgr4u0rFKaD1gHCUtUiMeWEJOVJZt0qXCI8+YI=;
-	h=Date:To:From:Subject:Message-Id; b=qJb44lEQvFmJRR7rfKhX7FXAKz7m0aFRNFwUPxgrVqQUpnph+11fjp4Iz3V50oALn8cfiBLb6yQRDYoG4Mm7HyAQOPjJvc9fAhNcjaTbUCk/PStCYZk6gvXgsCQdU7vEpEmOmS1COe4+BzUaF4ocCyVP6EeELK8gOXp+HI5ywAo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0aOCv75d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774653881; c=relaxed/simple;
+	bh=BZCJWAUgewil1cVy19bLkYZDwL5VWM6XEKObjoUBWHk=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=rCbZ0JMpu8TK4Q15Za43yEXmdSsqovoquLPqVFhbbxQrBa1/LHiC0XfZvA9jsRuUKucOnbdCDi5u4bHu7FeX/E/mEHmzktsGAC3gLF5ms4bSiFW6sgaE9qDaZJ8XbGp4RRd1IzpZ8u6XOmhp1UeMMUR2n8STcgxMaUHASLkwAkM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iYK66ZKz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0aOCv75d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2154C19423;
-	Fri, 27 Mar 2026 23:13:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774653187;
-	bh=SxWKOAgr4u0rFKaD1gHCUtUiMeWEJOVJZt0qXCI8+YI=;
-	h=Date:To:From:Subject:From;
-	b=0aOCv75d2Gsv8JU6Fu5WpNJtOEBaA9cRVtOSh4SxUUzE+X57bShqgHKgxLMiFMlJV
-	 HV2/nXdJgvhdIhZGwRRD1aYqBDTwJsE+cb2ycoNHXutzrwaqcWpiRkp9GNAW4O1zh8
-	 zc9Y15dA3eJ7HdY7EQ9JmgYJLtBFbSioNC/prENM=
-Date: Fri, 27 Mar 2026 16:13:06 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch added to mm-new branch
-Message-Id: <20260327231306.F2154C19423@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iYK66ZKz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C18C8C19423;
+	Fri, 27 Mar 2026 23:24:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1774653881;
+	bh=BZCJWAUgewil1cVy19bLkYZDwL5VWM6XEKObjoUBWHk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=iYK66ZKzC3dn47EFu1Lmqb/j+cxZbjeenvDqkrqp6C+oS0udmq8DLATekpKIkAxu+
+	 DYvzeYrPZiQp73yis5XySa8cdm4lQ/unn8vxU30qtwjY3HZd1TGjK9Vnxii6a3slFv
+	 FTSSfYXcxPD4KFjUUvG/BKU6o6KUpwkUhdvaJLHW1GIxKKhU0zGzT4ziWwIcRgUMNi
+	 23cTfJWPEDe6ATpMb/eYBEMKPren2v7w5Z6VIsowMcQt+KZtW4CGk9ivoGBfWHaMpN
+	 jfW8Gi8uIKtu3dAhcZuZItpDu4//XppBE7wOaDDoZ46732Qmp1vi9fRCYTsomTNIbx
+	 FaiDbFJILuadw==
+From: SeongJae Park <sj@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: SeongJae Park <sj@kernel.org>,
+	mm-commits@vger.kernel.org,
+	rppt@kernel.org,
+	pratyush@kernel.org,
+	pasha.tatashin@soleen.com,
+	jianghaoran@kylinos.cn,
+	duanchenghao@kylinos.cn
+Subject: Re: + mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch added to mm-new branch
+Date: Fri, 27 Mar 2026 16:24:39 -0700
+Message-ID: <20260327232439.65902-1-sj@kernel.org>
+X-Mailer: git-send-email 2.47.3
+In-Reply-To: <20260326233911.E9AB2C116C6@smtp.kernel.org>
+References: 
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+
+Hello Andrew,
+
+On Thu, 26 Mar 2026 16:39:11 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
+
+> 
+> The patch titled
+>      Subject: mm/memfd: use folio_nr_pages() for shmem inode accounting
+> has been added to the -mm mm-new branch.  Its filename is
+>      mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch
+[...]
+> ------------------------------------------------------
+> From: Chenghao Duan <duanchenghao@kylinos.cn>
+> Subject: mm/memfd: use folio_nr_pages() for shmem inode accounting
+> Date: Thu, 26 Mar 2026 16:47:21 +0800
+> 
+> Patch series "Modify memfd_luo code", v3.
+
+Seems the "This patch (of N):" line is missed.
+
+Not an issue for me, but just wanted to let you know since it seems it is not
+your real intention.
 
 
-The patch titled
-     Subject: KVM: PPC: use vma_start_write_killable() in kvmppc_memslot_page_merge()
-has been added to the -mm mm-new branch.  Its filename is
-     kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
+Thanks,
+SJ
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: KVM: PPC: use vma_start_write_killable() in kvmppc_memslot_page_merge()
-Date: Fri, 27 Mar 2026 13:54:57 -0700
-
-Replace vma_start_write() with vma_start_write_killable(), improving
-reaction time to the kill signal.  Replace vma_start_write() in
-kvmppc_memslot_page_merge().
-
-Link: https://lkml.kernel.org/r/20260327205457.604224-7-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/powerpc/kvm/book3s_hv_uvmem.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge
-+++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -410,7 +410,10 @@ static int kvmppc_memslot_page_merge(str
- 			ret = H_STATE;
- 			break;
- 		}
--		vma_start_write(vma);
-+		if (vma_start_write_killable(vma)) {
-+			ret = H_STATE;
-+			break;
-+		}
- 		/* Copy vm_flags to avoid partial modifications in ksm_madvise */
- 		vm_flags = vma->vm_flags;
- 		ret = ksm_madvise(vma, vma->vm_start, vma->vm_end,
-_
-
-Patches currently in -mm which might be from surenb@google.com are
-
-mm-vma-cleanup-error-handling-path-in-vma_expand.patch
-mm-use-vma_start_write_killable-in-mm-syscalls.patch
-mm-khugepaged-use-vma_start_write_killable-in-collapse_huge_page.patch
-mm-vma-use-vma_start_write_killable-in-vma-operations.patch
-mm-use-vma_start_write_killable-in-process_vma_walk_lock.patch
-kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
-mm-vmscan-prevent-mglru-reclaim-from-pinning-address-space.patch
-
+[...]
