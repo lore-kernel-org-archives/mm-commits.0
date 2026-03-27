@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6614F188596
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 02:11:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0920C329E5A;
+	Fri, 27 Mar 2026 02:15:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774577497; cv=none; b=V+rK4VeBaSiVvI3CKdWY+MwdtUbPPxgihizlT70HZLcByHA76UtY7GUptUE1zY4pD5kKCui/PbPNiJY7BjEzeEvILiHVA2iJPtzBjDj3WaLV/1TH5pudpyIUlgQlmmBpNb2u4lVlam6N8EgVKnDgtqoY7PFsqaTAsh41iaYsbBA=
+	t=1774577726; cv=none; b=dthh41AsSWfOySQ2XTzVj2gR1qsPBaD4WHTxr1nL1q2r4XtbWZxoYCyDGlobQfgTXnODnbtmejn/7xYmb6Gl0AV6D959Ft2SlarF7Qkok9t3vUGRtkI2TJRBMiht8by4a2xI8ETPX9z/LUOcSIDdMtXgedafL4MgAiIuu7oKu38=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774577497; c=relaxed/simple;
-	bh=smal/k3VrRVmy1jCLGduoexwNOgn9yy3gnjuoGPWAS0=;
-	h=Date:To:From:Subject:Message-Id; b=lJQaioAGRUM6fOy8STkaBSrtc3F9JZy1e4lBltEu7Ugpp1f4dXGAOGNz0ru2R+QKfuWademQNkWc5c5XJspzK96mDk0/v4ZGokQDJQwJQenQEAUsn3UCxM6Sgg9X+QNdJaN/UEbZfYcRbMKXV5shhLzdOsN0di3Zgchsg44LA/E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vOaeb15Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774577726; c=relaxed/simple;
+	bh=CtAWkGMvmgaWzI6n1vOUwGCglJtxx00IEzrd0BAI64Y=;
+	h=Date:To:From:Subject:Message-Id; b=A4zrK0Epm+7OWkKWktlocWJeKCmZPEaaL/KAa3LFwWOQRHFciRJ1PKTLfDCssiS7IFGhswPIV8vX8NMy4Ms4GNXYGhGfRYvG+xKff/MDHqqw/V3nRk/x7RfiUfZjo+2BKnQEmRtqp18WTX5libYPxvpi8aD1Wib2MIaNH+dm0gw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AIKx6qeW; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vOaeb15Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6B11C116C6;
-	Fri, 27 Mar 2026 02:11:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AIKx6qeW"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79721C19423;
+	Fri, 27 Mar 2026 02:15:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774577497;
-	bh=smal/k3VrRVmy1jCLGduoexwNOgn9yy3gnjuoGPWAS0=;
+	s=korg; t=1774577725;
+	bh=CtAWkGMvmgaWzI6n1vOUwGCglJtxx00IEzrd0BAI64Y=;
 	h=Date:To:From:Subject:From;
-	b=vOaeb15QNEh+wH5Q8p0lK47O4Lb30mP8LRtkDZmvoFrnKkg5/L+LUkLFMIV084iS1
-	 NBoCRFOc5CECsLw512IyXZxaUMEDfS+fd/SMjSXChm62IBXIemx4pCfva7NFdDfHaT
-	 u7nPvsgyLGMIUAnFB2eqwV5Xx+vuXIkldltuIa7o=
-Date: Thu, 26 Mar 2026 19:11:36 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@collabora.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,colin.i.king@gmail.com,avagin@google.com,audra@redhat.com,akpm@linux-foundation.org
+	b=AIKx6qeWVQHVSCKMHAMmFpWVSQS776sQ3eQT5zr1OZ1ON3FNdUA1Zk3GAc/NVW5I3
+	 u4+oRRv+GOk6zVKb798zQrw8TJchlokduRe0kE/PLIMsOl6Ncobp4pq42BC+xwNvXi
+	 kJaoIIeU67Usp7atDwk0zQslk8T7oETwJWXjPNdQ=
+Date: Thu, 26 Mar 2026 19:15:24 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,koichiro.den@canonical.com,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,dave@stgolabs.net,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-fix-soft-dirty-kselftest-supported-check.patch removed from -mm tree
-Message-Id: <20260327021136.E6B11C116C6@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmscan-avoid-false-positive-wuninitialized-warning.patch removed from -mm tree
+Message-Id: <20260327021525.79721C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,117 +35,130 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: fix soft-dirty kselftest supported check
+     Subject: mm/vmscan: avoid false-positive -Wuninitialized warning
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-fix-soft-dirty-kselftest-supported-check.patch
+     mm-vmscan-avoid-false-positive-wuninitialized-warning.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Audra Mitchell <audra@redhat.com>
-Subject: selftests/mm: fix soft-dirty kselftest supported check
-Date: Fri, 20 Mar 2026 14:39:15 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm/vmscan: avoid false-positive -Wuninitialized warning
+Date: Fri, 13 Feb 2026 13:38:56 +0100
 
-On architectures with separate user address space, such as s390 or those
-without an MMU, the soft-dirty kselftest may fail when checking to see if
-the feature is supported.
+When the -fsanitize=bounds sanitizer is enabled, gcc-16 sometimes runs
+into a corner case in the read_ctrl_pos() pos function, where it sees
+possible undefined behavior from the 'tier' index overflowing, presumably
+in the case that this was called with a negative tier:
 
-  # --------------------
-  # running ./soft-dirty
-  # --------------------
-  # TAP version 13
-  # 1..15
-  # Bail out! PAGEMAP_SCAN succeeded unexpectedly
-  # # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
-  # [FAIL]
-  not ok 1 soft-dirty # exit=1
-  # SUMMARY: PASS=0 SKIP=0 FAIL=1
+In function 'get_tier_idx',
+    inlined from 'isolate_folios' at mm/vmscan.c:4671:14:
+mm/vmscan.c: In function 'isolate_folios':
+mm/vmscan.c:4645:29: error: 'pv.refaulted' is used uninitialized [-Werror=uninitialized]
 
-The soft-dirty test will initate an ioctl with the PAGEMAP_SCAN flag with
-an invalid address for the page_region.  This is done intentionally to
-have the ioctl return with an expected EFAULT and with the correct
-categories returned.
+This can happen with CONFIG_UBSAN_ARRAY_BOUNDS=y.  The actual warning
+only shows up in some configurations with that, so either there is some
+other dependency, or an element of chance based on gcc optimizations.
 
-However, on architectures with separate user address space, such as s390
-or those without an MMU, the call to __access_ok (used to validate the
-variables provided with the ioctl) will always return true and we will not
-fail as expected.
+Part of the problem seems to be that read_ctrl_pos() has unusual calling
+conventions since commit 37a260870f2c ("mm/mglru: rework type selection")
+where passing MAX_NR_TIERS makes it accumulate all tiers but passing a
+smaller positive number makes it read a single tier instead.
 
-        if (IS_ENABLED(CONFIG_ALTERNATE_USER_ADDRESS_SPACE) ||
-            !IS_ENABLED(CONFIG_MMU))
-                return true;
+Avoid this case by splitting read_ctrl_pos() into two separate helpers
+that each only do one of the two cases.  This avoids the warning as far as
+I can tell, and seems a bit easier to understand to me.
 
-Let's simplify the check for PAGEMAP_SCAN and provide a valid page_region
-address so that we get a non-errno return if it is supported.
-
-Link: https://lkml.kernel.org/r/20260320184010.759461-2-audra@redhat.com
-Fixes: 600bca580579 ("selftests/mm: check that PAGEMAP_SCAN returns correct categories")
-Signed-off-by: Audra Mitchell <audra@redhat.com>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Colin Ian King <colin.i.king@gmail.com>
+Link: https://lkml.kernel.org/r/20260213123902.3466040-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Koichiro Den <koichiro.den@canonical.com>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/vm_util.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ mm/vmscan.c |   37 +++++++++++++++++++++++++------------
+ 1 file changed, 25 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-fix-soft-dirty-kselftest-supported-check
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -67,20 +67,26 @@ static uint64_t pagemap_scan_get_categor
- }
- 
- /* `start` is any valid address. */
--static bool pagemap_scan_supported(int fd, char *start)
-+static bool pagemap_scan_supported(int fd)
+--- a/mm/vmscan.c~mm-vmscan-avoid-false-positive-wuninitialized-warning
++++ a/mm/vmscan.c
+@@ -3125,20 +3125,15 @@ struct ctrl_pos {
+ static void read_ctrl_pos(struct lruvec *lruvec, int type, int tier, int gain,
+ 			  struct ctrl_pos *pos)
  {
-+	const size_t pagesize = getpagesize();
- 	static int supported = -1;
--	int ret;
-+	struct page_region r;
-+	void *test_area;
+-	int i;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	int hist = lru_hist_from_seq(lrugen->min_seq[type]);
  
- 	if (supported != -1)
- 		return supported;
- 
--	/* Provide an invalid address in order to trigger EFAULT. */
--	ret = __pagemap_scan_get_categories(fd, start, (struct page_region *) ~0UL);
--	if (ret == 0)
--		ksft_exit_fail_msg("PAGEMAP_SCAN succeeded unexpectedly\n");
+ 	pos->gain = gain;
+-	pos->refaulted = pos->total = 0;
 -
--	supported = errno == EFAULT;
-+	test_area = mmap(0, pagesize, PROT_READ | PROT_WRITE,
-+			MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-+	if (test_area == MAP_FAILED) {
-+		ksft_print_msg("WARN: mmap() failed: %s\n", strerror(errno));
-+		supported = 0;
-+	} else {
-+		supported = __pagemap_scan_get_categories(fd, test_area, &r) >= 0;
-+		ksft_print_msg("errno: %d\n", errno);
-+		munmap(test_area, pagesize);
-+	}
- 
- 	return supported;
+-	for (i = tier % MAX_NR_TIERS; i <= min(tier, MAX_NR_TIERS - 1); i++) {
+-		pos->refaulted += lrugen->avg_refaulted[type][i] +
+-				  atomic_long_read(&lrugen->refaulted[hist][type][i]);
+-		pos->total += lrugen->avg_total[type][i] +
+-			      lrugen->protected[hist][type][i] +
+-			      atomic_long_read(&lrugen->evicted[hist][type][i]);
+-	}
++	pos->refaulted = lrugen->avg_refaulted[type][tier] +
++			 atomic_long_read(&lrugen->refaulted[hist][type][tier]);
++	pos->total = lrugen->avg_total[type][tier] +
++		     lrugen->protected[hist][type][tier] +
++		     atomic_long_read(&lrugen->evicted[hist][type][tier]);
  }
-@@ -90,7 +96,7 @@ static bool page_entry_is(int fd, char *
+ 
+ static void reset_ctrl_pos(struct lruvec *lruvec, int type, bool carryover)
+@@ -4775,6 +4770,24 @@ static int get_tier_idx(struct lruvec *l
+ 	return tier - 1;
+ }
+ 
++static void aggregate_ctrl_pos(struct lruvec *lruvec, int type, int gain,
++			       struct ctrl_pos *pos)
++{
++	struct lru_gen_folio *lrugen = &lruvec->lrugen;
++	int hist = lru_hist_from_seq(lrugen->min_seq[type]);
++
++	pos->gain = gain;
++	pos->refaulted = pos->total = 0;
++
++	for (int i = 0; i < MAX_NR_TIERS; i++) {
++		pos->refaulted += lrugen->avg_refaulted[type][i] +
++				  atomic_long_read(&lrugen->refaulted[hist][type][i]);
++		pos->total += lrugen->avg_total[type][i] +
++			      lrugen->protected[hist][type][i] +
++			      atomic_long_read(&lrugen->evicted[hist][type][i]);
++	}
++}
++
+ static int get_type_to_scan(struct lruvec *lruvec, int swappiness)
  {
- 	bool m = pagemap_get_entry(fd, start) & pagemap_flags;
+ 	struct ctrl_pos sp, pv;
+@@ -4788,8 +4801,8 @@ static int get_type_to_scan(struct lruve
+ 	 * Compare the sum of all tiers of anon with that of file to determine
+ 	 * which type to scan.
+ 	 */
+-	read_ctrl_pos(lruvec, LRU_GEN_ANON, MAX_NR_TIERS, swappiness, &sp);
+-	read_ctrl_pos(lruvec, LRU_GEN_FILE, MAX_NR_TIERS, MAX_SWAPPINESS - swappiness, &pv);
++	aggregate_ctrl_pos(lruvec, LRU_GEN_ANON, swappiness, &sp);
++	aggregate_ctrl_pos(lruvec, LRU_GEN_FILE, MAX_SWAPPINESS - swappiness, &pv);
  
--	if (pagemap_scan_supported(fd, start)) {
-+	if (pagemap_scan_supported(fd)) {
- 		bool s = pagemap_scan_get_categories(fd, start) & pagescan_flags;
- 
- 		if (m == s)
+ 	return positive_ctrl_err(&sp, &pv);
+ }
 _
 
-Patches currently in -mm which might be from audra@redhat.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+bug-avoid-format-attribute-warning-for-clang-as-well.patch
+ubsan-turn-off-kmsan-inside-of-ubsan-instrumentation.patch
 
