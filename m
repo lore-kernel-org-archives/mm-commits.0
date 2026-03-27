@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 053F8279DC9
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 05:51:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED561223DD6
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 05:56:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774590668; cv=none; b=LaiS0BXv3MYTSRuk6AzEFJ0i+RhklS9YcnTNFFzURLMfwCtUH01xOGN8OyaJf6ae58SxbUdhQbUJz3yblvCoZWVaEtxUZ5IrHZc/TFe4BrCQbR1vZu0Znf56++9Q9/GZ5xJJn4UNIblVXjpeFStIl63M+tLsoLK4nO6ho4HaU0o=
+	t=1774590988; cv=none; b=fKHiQnzJRBtDXL+HVxpIDbL+SypJYnKFmzL4h2cIGwJrUSnW7a5A0C5awlySiW43E9PjfLHePJOPmBIKCMXhkps88k9IVFbMxAREcuqEm6IVFy431AwVVP8XilHmeR+pbNKtj2b6CzM8sB6nqro6OLv3sQ2VGFspqDYAcsT1R7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774590668; c=relaxed/simple;
-	bh=upCIZGkDfMmOLD3rqR4LdlPxC4K9VbF1YmFdgT2s5/E=;
-	h=Date:To:From:Subject:Message-Id; b=Aj60/hSqprILqByOvS4WMZba3hvXe3EQeBzu/WDoUC4dIeAWTPv/tgYQ0emoDVFbjkJve9b42qn1OL7nUl0/3DW9RUyzPqobMcnxP5BkxI6HK4GWKPD3aLtgIYo96zUe0M13VffpXzNkgM0mI7EHfKuJaQMocD3wl55bD5veM+w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TkUZjil4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774590988; c=relaxed/simple;
+	bh=fU2sRQQKNZlRUaO119z6IL/heWi8+dnhKZyk/zZg6Gc=;
+	h=Date:To:From:Subject:Message-Id; b=jwEET0aM+XVgfRVm80dKC5lla3Z/2QVm6o3gVJxG1GjoBrYPjiJ3hogmXYqxffRySVFoCLUMk1oVHUeBfTGlOOgTLumP6KkJ8B3fo6a/5g69fXT4YUXnHDBgVouFEb3hJ0f2usWzOxdEKnshOlKdT3iP86UZEUzfRMDmQ0gSKsM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M+438gCS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TkUZjil4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD3A4C19423;
-	Fri, 27 Mar 2026 05:51:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M+438gCS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93477C19423;
+	Fri, 27 Mar 2026 05:56:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774590667;
-	bh=upCIZGkDfMmOLD3rqR4LdlPxC4K9VbF1YmFdgT2s5/E=;
+	s=korg; t=1774590987;
+	bh=fU2sRQQKNZlRUaO119z6IL/heWi8+dnhKZyk/zZg6Gc=;
 	h=Date:To:From:Subject:From;
-	b=TkUZjil43daYygDvjlqbwNDtNyTEns+mpSPbdhvV2wo8S4QhPr88qXOWkungsqbB5
-	 YC7a1x6QetW9B/UcoAkucHFvQhlncT72Sm2G7SRhjWbM1hwd1a2TBMPrJ53300vjT/
-	 nwhk3P+cpSPnjgaF3YYMlydB52UKwLDjISBbeMZM=
-Date: Thu, 26 Mar 2026 22:51:07 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,ljs@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=M+438gCS1g8ZpD1CJ8spMdFQYM8Yt6kjuUlwecwaNXPhMq2ywy2uPQymxDlhJRk3l
+	 lmU9DrqOjPfwj9TjtXZaKmPwh4HBfm5CSTUE4Llfo1P3E3mfLi6Y1p3XpFdIjiRopU
+	 ESN6TQHdV2l+HDgMApQHUpL3IFMbtLBU/86zDxhI=
+Date: Thu, 26 Mar 2026 22:56:27 -0700
+To: mm-commits@vger.kernel.org,mhklinux@outlook.com,ljs@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-switch-the-rmap-lock-held-option-off-in-compat-layer-fix.patch removed from -mm tree
-Message-Id: <20260327055107.BD3A4C19423@smtp.kernel.org>
+Subject: + drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare-fix.patch added to mm-unstable branch
+Message-Id: <20260327055627.93477C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,44 +34,60 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm-switch-the-rmap-lock-held-option-off-in-compat-layer-fix
-has been removed from the -mm tree.  Its filename was
-     mm-switch-the-rmap-lock-held-option-off-in-compat-layer-fix.patch
+The patch titled
+     Subject: drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare-fix.patch
 
-This patch was dropped because it was folded into mm-switch-the-rmap-lock-held-option-off-in-compat-layer.patch
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-switch-the-rmap-lock-held-option-off-in-compat-layer-fix
-Date: Tue Mar 24 07:31:31 AM PDT 2026
+Subject: drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare-fix
+Date: Thu Mar 26 10:54:42 PM PDT 2026
 
-fix comment typo, per Vlastimil
+restore struct vmbus_channel comment, per Michael Kelley
 
 Cc: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Michael Kelley <mhklinux@outlook.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    2 +-
+ include/linux/hyperv.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/util.c~mm-switch-the-rmap-lock-held-option-off-in-compat-layer-fix
-+++ a/mm/util.c
-@@ -1215,7 +1215,7 @@ int compat_vma_mmap(struct file *file, s
- 	if (err)
- 		return err;
+--- a/include/linux/hyperv.h~drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare-fix
++++ a/include/linux/hyperv.h
+@@ -1015,7 +1015,7 @@ struct vmbus_channel {
+ 	/* The max size of a packet on this channel */
+ 	u32 max_pkt_size;
  
--	/* being invoked from .mmmap means we don't have to enforce this. */
-+	/* being invoked from .mmap means we don't have to enforce this. */
- 	action->hide_from_rmap_until_complete = false;
+-	/* function to mmap_prepare ring buffer memory to the channel's sysfs ring attribute */
++	/*  function to mmap ring buffer memory to the channel's sysfs ring attribute */
+ 	int (*mmap_prepare_ring_buffer)(struct vmbus_channel *channel, struct vm_area_desc *desc);
  
- 	set_vma_from_desc(vma, &desc);
+ 	/* boolean to control visibility of sysfs for ring buffer */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-switch-the-rmap-lock-held-option-off-in-compat-layer.patch
+drivers-hv-vmbus-replace-deprecated-mmap-hook-with-mmap_prepare-fix.patch
 selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test-fix.patch
 selftests-mm-skip-uffd-wp-mremap-if-uffd-write-protect-is-unsupported-fix.patch
 lib-list_sort-remove-dummy-cmp-calls-to-speed-up-merge_final-fix.patch
