@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6A642848AF
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 01:12:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DFE726290
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 01:19:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774573971; cv=none; b=ssNkq/a7JTR77XnKIaKmoXQYF+N94qAxZNXb3paq7Cqmp4iNYKZNx3kiDc19L385OcW7SEVzBua3dqN85ynSQ+DNjdUcnoMaeWxTScazAmKoh4CHBsdBd/6TbqzzMIfNTDIVJiD5CNC3FHcnHCEUcAfKkEdjPvNQLxzhBouTcg8=
+	t=1774574350; cv=none; b=JjsBTt9Kd5zrzeCCqBp1GCkLJwWf4YUe+ho3znavnp+yo+pq69gIciY6ks41dGkeFLc+qQL+cjEODWezOS7Prr5J7jmzkv9lzlryCi+JK8oqDGPHOK/wLsaYxzwqca0U27pNqFSMeMuKj4IPDGM8AXymdsxUksRLIvjU/uv87lQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774573971; c=relaxed/simple;
-	bh=tA0a55B/0OeghYS8BzNySwIsOojfAKJ+wH0K5LlBNiY=;
-	h=Date:To:From:Subject:Message-Id; b=aG0iBQljtJAoVhpKNisNNwFfrvpcDP8j77NITYBg1c1vwW7fQbslkOCFEpT0P2moMir38dbeITkf0BvwUPSHgd4dZdcC87OsGktB1OuE4FMeGFLgCNmD0P6uKjn5FdQLav5VNZxxGZQP3MPae8547PdMKG6sHLpSGzmbE8G2PIo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x5rPV1H6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774574350; c=relaxed/simple;
+	bh=36MhKpFNtWwlMNboiu70me7FKNEbAgJqBgYF4B3k830=;
+	h=Date:To:From:Subject:Message-Id; b=jHaYJuWgHbXO9ZZzM3j2jIdQozmZ6Csj+3Vhira4XyKUcjbSz5kMNOA0MduWOPwExwDPqBF3rw3jrTMlGnLxX+ZKdB8wbC3QQYd4jFX3Tr01z4i7hZ1eJMP8V+LbVJJ7O1bX0wvkag/H99oQwjMkTC1DltEyvskUqzjeaNJxjNg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sGExy22O; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x5rPV1H6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 416DEC116C6;
-	Fri, 27 Mar 2026 01:12:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sGExy22O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACF3AC116C6;
+	Fri, 27 Mar 2026 01:19:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774573971;
-	bh=tA0a55B/0OeghYS8BzNySwIsOojfAKJ+wH0K5LlBNiY=;
+	s=korg; t=1774574349;
+	bh=36MhKpFNtWwlMNboiu70me7FKNEbAgJqBgYF4B3k830=;
 	h=Date:To:From:Subject:From;
-	b=x5rPV1H6MEvgDIXIBIARxXYwrfWQO5JAYQpxhFkvdWDsrdecF4oSzgkezY8NuYlxe
-	 IXkPgQUHXhdzvzGvFlV4BLT4kn1FDm9AfefX/z6Ud+LHcqprINxg1T1PQP0fgYqddK
-	 RPaw8uRTT3SRRTJ/Iq+Jqc4nNSua7M9vxOAaMvF0=
-Date: Thu, 26 Mar 2026 18:12:50 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,hao.ge@linux.dev,akpm@linux-foundation.org
+	b=sGExy22OUhwcQtuV1J0L4Wy71VXM8bHM33CCAcc8iQakAUzAqwDkbvRuW/GXxx9Ok
+	 iw1PDBqt3LzG8t9NSfqfJOb0igjj4EMd5APt8PM4QEhOVxTzID91ZRR2zORW42ijW/
+	 ubOGgf8lP8bsaDC1CAjcey8ckl2ILm51ufKRZKyI=
+Date: Thu, 26 Mar 2026 18:19:09 -0700
+To: mm-commits@vger.kernel.org,skhawaja@google.com,shuah@kernel.org,rppt@kernel.org,pratyush@kernel.org,dmatlack@google.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch added to mm-new branch
-Message-Id: <20260327011251.416DEC116C6@smtp.kernel.org>
+Subject: + liveupdate-prevent-double-management-of-files.patch added to mm-new branch
+Message-Id: <20260327011909.ACF3AC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/alloc_tag: clear codetag for pages allocated before page_ext initialization
+     Subject: liveupdate: prevent double management of files
 has been added to the -mm mm-new branch.  Its filename is
-     mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch
+     liveupdate-prevent-double-management-of-files.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-prevent-double-management-of-files.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,264 +69,190 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hao Ge <hao.ge@linux.dev>
-Subject: mm/alloc_tag: clear codetag for pages allocated before page_ext initialization
-Date: Thu, 26 Mar 2026 22:05:54 +0800
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: liveupdate: prevent double management of files
+Date: Thu, 26 Mar 2026 16:39:41 +0000
 
-Due to initialization ordering, page_ext is allocated and initialized
-relatively late during boot.  Some pages have already been allocated and
-freed before page_ext becomes available, leaving their codetag
-uninitialized.
+Patch series "liveupdate: prevent double preservation", v4.
 
-A clear example is in init_section_page_ext(): alloc_page_ext() calls
-kmemleak_alloc().  If the slab cache has no free objects, it falls back to
-the buddy allocator to allocate memory.  However, at this point page_ext
-is not yet fully initialized, so these newly allocated pages have no
-codetag set.  These pages may later be reclaimed by KASAN, which causes
-the warning to trigger when they are freed because their codetag ref is
-still empty.
+Currently, LUO does not prevent the same file from being managed twice
+across different active sessions.
 
-Use a global array to track pages allocated before page_ext is fully
-initialized.  The array size is fixed at 8192 entries, and will emit a
-warning if this limit is exceeded.  When page_ext initialization
-completes, set their codetag to empty to avoid warnings when they are
-freed later.
+Because LUO preserves files of absolutely different types: memfd, and
+upcoming vfiofd [1], iommufd [2], guestmefd (and possible kvmfd/cpufd).
+There is no common private data or guarantee on how to prevent that the
+same file is not preserved twice beside using inode or some slower and
+expensive method like hashtables.
 
-The following warning is observed when this issue occurs:
-[    9.582133] ------------[ cut here ]------------
-[    9.582137] alloc_tag was not set
-[    9.582139] WARNING: ./include/linux/alloc_tag.h:164 at __pgalloc_tag_sub+0x40f/0x550, CPU#5: systemd/1
-[    9.582190] CPU: 5 UID: 0 PID: 1 Comm: systemd Not tainted 7.0.0-rc4 #1 PREEMPT(lazy)
-[    9.582192] Hardware name: Red Hat KVM, BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
-[    9.582194] RIP: 0010:__pgalloc_tag_sub+0x40f/0x550
-[    9.582196] Code: 00 00 4c 29 e5 48 8b 05 1f 88 56 05 48 8d 4c ad 00 48 8d 2c c8 e9 87 fd ff ff 0f 0b 0f 0b e9 f3 fe ff ff 48 8d 3d 61 2f ed 03 <67> 48 0f b9 3a e9 b3 fd ff ff 0f 0b eb e4 e8 5e cd 14 02 4c 89 c7
-[    9.582197] RSP: 0018:ffffc9000001f940 EFLAGS: 00010246
-[    9.582200] RAX: dffffc0000000000 RBX: 1ffff92000003f2b RCX: 1ffff110200d806c
-[    9.582201] RDX: ffff8881006c0360 RSI: 0000000000000004 RDI: ffffffff9bc7b460
-[    9.582202] RBP: 0000000000000000 R08: 0000000000000000 R09: fffffbfff3a62324
-[    9.582203] R10: ffffffff9d311923 R11: 0000000000000000 R12: ffffea0004001b00
-[    9.582204] R13: 0000000000002000 R14: ffffea0000000000 R15: ffff8881006c0360
-[    9.582206] FS:  00007ffbbcf2d940(0000) GS:ffff888450479000(0000) knlGS:0000000000000000
-[    9.582208] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[    9.582210] CR2: 000055ee3aa260d0 CR3: 0000000148b67005 CR4: 0000000000770ef0
-[    9.582211] PKRU: 55555554
-[    9.582212] Call Trace:
-[    9.582213]  <TASK>
-[    9.582214]  ? __pfx___pgalloc_tag_sub+0x10/0x10
-[    9.582216]  ? check_bytes_and_report+0x68/0x140
-[    9.582219]  __free_frozen_pages+0x2e4/0x1150
-[    9.582221]  ? __free_slab+0xc2/0x2b0
-[    9.582224]  qlist_free_all+0x4c/0xf0
-[    9.582227]  kasan_quarantine_reduce+0x15d/0x180
-[    9.582229]  __kasan_slab_alloc+0x69/0x90
-[    9.582232]  kmem_cache_alloc_noprof+0x14a/0x500
-[    9.582234]  do_getname+0x96/0x310
-[    9.582237]  do_readlinkat+0x91/0x2f0
-[    9.582239]  ? __pfx_do_readlinkat+0x10/0x10
-[    9.582240]  ? get_random_bytes_user+0x1df/0x2c0
-[    9.582244]  __x64_sys_readlinkat+0x96/0x100
-[    9.582246]  do_syscall_64+0xce/0x650
-[    9.582250]  ? __x64_sys_getrandom+0x13a/0x1e0
-[    9.582252]  ? __pfx___x64_sys_getrandom+0x10/0x10
-[    9.582254]  ? do_syscall_64+0x114/0x650
-[    9.582255]  ? ksys_read+0xfc/0x1d0
-[    9.582258]  ? __pfx_ksys_read+0x10/0x10
-[    9.582260]  ? do_syscall_64+0x114/0x650
-[    9.582262]  ? do_syscall_64+0x114/0x650
-[    9.582264]  ? __pfx_fput_close_sync+0x10/0x10
-[    9.582266]  ? file_close_fd_locked+0x178/0x2a0
-[    9.582268]  ? __x64_sys_faccessat2+0x96/0x100
-[    9.582269]  ? __x64_sys_close+0x7d/0xd0
-[    9.582271]  ? do_syscall_64+0x114/0x650
-[    9.582273]  ? do_syscall_64+0x114/0x650
-[    9.582275]  ? clear_bhb_loop+0x50/0xa0
-[    9.582277]  ? clear_bhb_loop+0x50/0xa0
-[    9.582279]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
-[    9.582280] RIP: 0033:0x7ffbbda345ee
-[    9.582282] Code: 0f 1f 40 00 48 8b 15 29 38 0d 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff c3 0f 1f 40 00 f3 0f 1e fa 49 89 ca b8 0b 01 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d fa 37 0d 00 f7 d8 64 89 01 48
-[    9.582284] RSP: 002b:00007ffe2ad8de58 EFLAGS: 00000202 ORIG_RAX: 000000000000010b
-[    9.582286] RAX: ffffffffffffffda RBX: 000055ee3aa25570 RCX: 00007ffbbda345ee
-[    9.582287] RDX: 000055ee3aa25570 RSI: 00007ffe2ad8dee0 RDI: 00000000ffffff9c
-[    9.582288] RBP: 0000000000001000 R08: 0000000000000003 R09: 0000000000001001
-[    9.582289] R10: 0000000000001000 R11: 0000000000000202 R12: 0000000000000033
-[    9.582290] R13: 00007ffe2ad8dee0 R14: 00000000ffffff9c R15: 00007ffe2ad8deb0
-[    9.582292]  </TASK>
-[    9.582293] ---[ end trace 0000000000000000 ]---
 
-Link: https://lkml.kernel.org/r/20260326140554.191996-1-hao.ge@linux.dev
-Fixes: 93d5440ece3c ("alloc_tag: uninline code gated by mem_alloc_profiling_key in page allocator")
-Signed-off-by: Hao Ge <hao.ge@linux.dev>
-Suggested-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+This patch (of 4)
+
+Currently, LUO does not prevent the same file from being managed twice
+across different active sessions.
+
+Use a global xarray luo_preserved_files to keep track of file identifiers
+being preserved by LUO.  Update luo_preserve_file() to check and insert
+the file identifier into this xarray when it is preserved, and erase it in
+luo_file_unpreserve_files() when it is released.
+
+To allow handlers to define what constitutes a "unique" file (e.g.,
+different struct file objects pointing to the same hardware resource), add
+a get_id() callback to struct liveupdate_file_ops.  If not provided, the
+default identifier is the struct file pointer itself.
+
+This ensures that the same file (or resource) cannot be managed by
+multiple sessions.  If another session attempts to preserve an already
+managed file, it will now fail with -EBUSY.
+
+Link: https://lkml.kernel.org/r/20260326163943.574070-1-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20260326163943.574070-2-pasha.tatashin@soleen.com
+Link: https://lore.kernel.org/all/20260129212510.967611-1-dmatlack@google.com [1]
+Link: https://lore.kernel.org/all/20260203220948.2176157-1-skhawaja@google.com [2]
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Samiullah Khawaja <skhawaja@google.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: David Matlack <dmatlack@google.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/alloc_tag.h   |    2 
- include/linux/pgalloc_tag.h |    2 
- lib/alloc_tag.c             |   92 ++++++++++++++++++++++++++++++++++
- mm/page_alloc.c             |    7 ++
- 4 files changed, 102 insertions(+), 1 deletion(-)
+ include/linux/liveupdate.h   |    2 ++
+ kernel/liveupdate/luo_file.c |   32 ++++++++++++++++++++++++++++++--
+ 2 files changed, 32 insertions(+), 2 deletions(-)
 
---- a/include/linux/alloc_tag.h~mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization
-+++ a/include/linux/alloc_tag.h
-@@ -74,6 +74,8 @@ static inline void set_codetag_empty(uni
+--- a/include/linux/liveupdate.h~liveupdate-prevent-double-management-of-files
++++ a/include/linux/liveupdate.h
+@@ -64,6 +64,7 @@ struct liveupdate_file_op_args {
+  *                finish, in order to do successful finish calls for all
+  *                resources in the session.
+  * @finish:       Required. Final cleanup in the new kernel.
++ * @get_id:       Optional. Returns a unique identifier for the file.
+  * @owner:        Module reference
+  *
+  * All operations (except can_preserve) receive a pointer to a
+@@ -79,6 +80,7 @@ struct liveupdate_file_ops {
+ 	int (*retrieve)(struct liveupdate_file_op_args *args);
+ 	bool (*can_finish)(struct liveupdate_file_op_args *args);
+ 	void (*finish)(struct liveupdate_file_op_args *args);
++	unsigned long (*get_id)(struct file *file);
+ 	struct module *owner;
+ };
  
- #ifdef CONFIG_MEM_ALLOC_PROFILING
- 
-+void alloc_tag_add_early_pfn(unsigned long pfn);
-+
- #define ALLOC_TAG_SECTION_NAME	"alloc_tags"
- 
- struct codetag_bytes {
---- a/include/linux/pgalloc_tag.h~mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization
-+++ a/include/linux/pgalloc_tag.h
-@@ -181,7 +181,7 @@ static inline struct alloc_tag *__pgallo
- 
- 	if (get_page_tag_ref(page, &ref, &handle)) {
- 		alloc_tag_sub_check(&ref);
--		if (ref.ct)
-+		if (ref.ct && !is_codetag_empty(&ref))
- 			tag = ct_to_alloc_tag(ref.ct);
- 		put_page_tag_ref(handle);
- 	}
---- a/lib/alloc_tag.c~mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization
-+++ a/lib/alloc_tag.c
-@@ -6,6 +6,7 @@
- #include <linux/kallsyms.h>
+--- a/kernel/liveupdate/luo_file.c~liveupdate-prevent-double-management-of-files
++++ a/kernel/liveupdate/luo_file.c
+@@ -108,6 +108,7 @@
+ #include <linux/liveupdate.h>
  #include <linux/module.h>
- #include <linux/page_ext.h>
-+#include <linux/pgalloc_tag.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_buf.h>
- #include <linux/seq_file.h>
-@@ -26,6 +27,96 @@ static bool mem_profiling_support;
+ #include <linux/sizes.h>
++#include <linux/xarray.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include "luo_internal.h"
+@@ -115,6 +116,9 @@
+ static DECLARE_RWSEM(luo_file_handler_lock);
+ static LIST_HEAD(luo_file_handler_list);
  
- static struct codetag_type *alloc_tag_cttype;
++/* Keep track of files being preserved by LUO */
++static DEFINE_XARRAY(luo_preserved_files);
++
+ /* 2 4K pages, give space for 128 files per file_set */
+ #define LUO_FILE_PGCNT		2ul
+ #define LUO_FILE_MAX							\
+@@ -204,6 +208,12 @@ static void luo_free_files_mem(struct lu
+ 	file_set->files = NULL;
+ }
  
-+#ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
-+
-+/*
-+ * Track page allocations before page_ext is initialized.
-+ * Some pages are allocated before page_ext becomes available, leaving
-+ * their codetag uninitialized. Track these early PFNs so we can clear
-+ * their codetag refs later to avoid warnings when they are freed.
-+ *
-+ * Early allocations include:
-+ *   - Base allocations independent of CPU count
-+ *   - Per-CPU allocations (e.g., CPU hotplug callbacks during smp_init,
-+ *     such as trace ring buffers, scheduler per-cpu data)
-+ *
-+ * For simplicity, we fix the size to 8192.
-+ * If insufficient, a warning will be triggered to alert the user.
-+ */
-+#define EARLY_ALLOC_PFN_MAX		8192
-+
-+static unsigned long early_pfns[EARLY_ALLOC_PFN_MAX] __initdata;
-+static atomic_t early_pfn_count __initdata = ATOMIC_INIT(0);
-+
-+static void __init __alloc_tag_add_early_pfn(unsigned long pfn)
++static unsigned long luo_get_id(struct liveupdate_file_handler *fh,
++				struct file *file)
 +{
-+	int old_idx, new_idx;
-+
-+	do {
-+		old_idx = atomic_read(&early_pfn_count);
-+		if (old_idx >= EARLY_ALLOC_PFN_MAX) {
-+			pr_warn_once("Early page allocations before page_ext init exceeded EARLY_ALLOC_PFN_MAX (%d)\n",
-+				      EARLY_ALLOC_PFN_MAX);
-+			return;
-+		}
-+		new_idx = old_idx + 1;
-+	} while (!atomic_try_cmpxchg(&early_pfn_count, &old_idx, new_idx));
-+
-+	early_pfns[old_idx] = pfn;
++	return fh->ops->get_id ? fh->ops->get_id(file) : (unsigned long)file;
 +}
 +
-+static void (*alloc_tag_add_early_pfn_ptr)(unsigned long pfn) __refdata =
-+		__alloc_tag_add_early_pfn;
-+
-+void alloc_tag_add_early_pfn(unsigned long pfn)
-+{
-+	if (static_key_enabled(&mem_profiling_compressed))
-+		return;
-+
-+	if (alloc_tag_add_early_pfn_ptr)
-+		alloc_tag_add_early_pfn_ptr(pfn);
-+}
-+
-+static void __init clear_early_alloc_pfn_tag_refs(void)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < atomic_read(&early_pfn_count); i++) {
-+		unsigned long pfn = early_pfns[i];
-+
-+		if (pfn_valid(pfn)) {
-+			struct page *page = pfn_to_page(pfn);
-+			union pgtag_ref_handle handle;
-+			union codetag_ref ref;
-+
-+			if (get_page_tag_ref(page, &ref, &handle)) {
-+				/*
-+				 * An early-allocated page could be freed and reallocated
-+				 * after its page_ext is initialized but before we clear it.
-+				 * In that case, it already has a valid tag set.
-+				 * We should not overwrite that valid tag with CODETAG_EMPTY.
-+				 */
-+				if (ref.ct) {
-+					put_page_tag_ref(handle);
-+					continue;
-+				}
-+
-+				set_codetag_empty(&ref);
-+				update_page_tag_ref(handle, &ref);
-+				put_page_tag_ref(handle);
-+			}
-+		}
-+
-+	}
-+	atomic_set(&early_pfn_count, 0);
-+
-+	alloc_tag_add_early_pfn_ptr = NULL;
-+}
-+#else /* !CONFIG_MEM_ALLOC_PROFILING_DEBUG */
-+inline void alloc_tag_add_early_pfn(unsigned long pfn) {}
-+static inline void __init clear_early_alloc_pfn_tag_refs(void) {}
-+#endif
-+
- #ifdef CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU
- DEFINE_PER_CPU(struct alloc_tag_counters, _shared_alloc_tag);
- EXPORT_SYMBOL(_shared_alloc_tag);
-@@ -760,6 +851,7 @@ static __init bool need_page_alloc_taggi
- 
- static __init void init_page_alloc_tagging(void)
+ static bool luo_token_is_used(struct luo_file_set *file_set, u64 token)
  {
-+	clear_early_alloc_pfn_tag_refs();
- }
+ 	struct luo_file *iter;
+@@ -249,6 +259,7 @@ static bool luo_token_is_used(struct luo
+  * Context: Can be called from an ioctl handler during normal system operation.
+  * Return: 0 on success. Returns a negative errno on failure:
+  *         -EEXIST if the token is already used.
++ *         -EBUSY if the file descriptor is already preserved by another session.
+  *         -EBADF if the file descriptor is invalid.
+  *         -ENOSPC if the file_set is full.
+  *         -ENOENT if no compatible handler is found.
+@@ -291,10 +302,15 @@ int luo_preserve_file(struct luo_file_se
+ 	if (err)
+ 		goto err_free_files_mem;
  
- struct page_ext_operations page_alloc_tagging_ops = {
---- a/mm/page_alloc.c~mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization
-+++ a/mm/page_alloc.c
-@@ -1256,6 +1256,13 @@ void __pgalloc_tag_add(struct page *page
- 		alloc_tag_add(&ref, task->alloc_tag, PAGE_SIZE * nr);
- 		update_page_tag_ref(handle, &ref);
- 		put_page_tag_ref(handle);
-+	} else {
-+		/*
-+		 * page_ext is not available yet, record the pfn so we can
-+		 * clear the tag ref later when page_ext is initialized.
-+		 */
-+		alloc_tag_add_early_pfn(page_to_pfn(page));
-+		alloc_tag_set_inaccurate(current->alloc_tag);
- 	}
- }
+-	err = luo_flb_file_preserve(fh);
++	err = xa_insert(&luo_preserved_files, luo_get_id(fh, file),
++			file, GFP_KERNEL);
+ 	if (err)
+ 		goto err_free_files_mem;
  
++	err = luo_flb_file_preserve(fh);
++	if (err)
++		goto err_erase_xa;
++
+ 	luo_file = kzalloc_obj(*luo_file);
+ 	if (!luo_file) {
+ 		err = -ENOMEM;
+@@ -323,6 +339,8 @@ err_kfree:
+ 	kfree(luo_file);
+ err_flb_unpreserve:
+ 	luo_flb_file_unpreserve(fh);
++err_erase_xa:
++	xa_erase(&luo_preserved_files, luo_get_id(fh, file));
+ err_free_files_mem:
+ 	luo_free_files_mem(file_set);
+ err_fput:
+@@ -366,6 +384,8 @@ void luo_file_unpreserve_files(struct lu
+ 		luo_file->fh->ops->unpreserve(&args);
+ 		luo_flb_file_unpreserve(luo_file->fh);
+ 
++		xa_erase(&luo_preserved_files,
++			 luo_get_id(luo_file->fh, luo_file->file));
+ 		list_del(&luo_file->list);
+ 		file_set->count--;
+ 
+@@ -609,6 +629,11 @@ int luo_retrieve_file(struct luo_file_se
+ 	luo_file->file = args.file;
+ 	/* Get reference so we can keep this file in LUO until finish */
+ 	get_file(luo_file->file);
++
++	WARN_ON(xa_insert(&luo_preserved_files,
++			  luo_get_id(luo_file->fh, luo_file->file),
++			  luo_file->file, GFP_KERNEL));
++
+ 	*filep = luo_file->file;
+ 	luo_file->retrieve_status = 1;
+ 
+@@ -704,8 +729,11 @@ int luo_file_finish(struct luo_file_set
+ 
+ 		luo_file_finish_one(file_set, luo_file);
+ 
+-		if (luo_file->file)
++		if (luo_file->file) {
++			xa_erase(&luo_preserved_files,
++				 luo_get_id(luo_file->fh, luo_file->file));
+ 			fput(luo_file->file);
++		}
+ 		list_del(&luo_file->list);
+ 		file_set->count--;
+ 		mutex_destroy(&luo_file->mutex);
 _
 
-Patches currently in -mm which might be from hao.ge@linux.dev are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch
+liveupdate-protect-file-handler-list-with-rwsem.patch
+liveupdate-protect-flb-lists-with-rwsem.patch
+liveupdate-remove-file-handler-module-refcounting.patch
+liveupdate-defer-flb-module-refcounting-to-active-sessions.patch
+liveupdate-remove-luo_session_quiesce.patch
+liveupdate-auto-unregister-flbs-on-file-handler-unregistration.patch
+liveupdate-remove-liveupdate_test_unregister.patch
+liveupdate-make-unregister-functions-return-void.patch
+liveupdate-prevent-double-management-of-files.patch
+memfd-implement-get_id-for-memfd_luo.patch
+selftests-liveupdate-add-test-for-double-preservation.patch
 
