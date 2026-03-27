@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E59641B808;
-	Fri, 27 Mar 2026 00:43:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDF2D2CCB9;
+	Fri, 27 Mar 2026 00:46:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774572236; cv=none; b=EZu8KgzYOekTzAEzTfhOUDfIVznQN1+lGfUT7Qw7cWiu+UfR3ARCZE5jI8eLbUa0GOGvfyxV8dVSvnGA29ON0JDwAOdL9h/moYWfCahbqVVDTCBhTz+lwcdifwLnqw5RhiLy+LFABYFrhURwcmX4zqVX32923xrOIBLnApaWbH0=
+	t=1774572361; cv=none; b=Tt+EMn5g0mBYSn4YgduuIBXY41XRk1uoj0oogT6WTs+kN2LC9N/rIe+3JwfHBSxKhZLDUSeuEHKUZU6wn2hOQY4G2x8/2HwwSHPj9dABg5P9KeF9OzgXda3xs0RfM3Q4cpjYZ0BeU8eTr7vkx0Y+Z/F9jEAzX5sni90RxRKmB6s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774572236; c=relaxed/simple;
-	bh=A1baT92GkExPeLSVcPdQDvtQiYQMSXImJ3IARwj7h3o=;
-	h=Date:To:From:Subject:Message-Id; b=imLj2cbg/wEAH5ODtP3HrGKrcGop9aBmqW/WcuzWzZ0nbRT96bXT1cC9Gsy9JQvG7J0JI08ATP3IPxb7GI5ex55SITuPnNR8zJaEudF2dWLOIlbLogZGEbENZPHaaZ5lmN/7SVBgMvczE/j5bb7US1O7NwcAYp48xMj3fdSNiuk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OCqRmyww; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774572361; c=relaxed/simple;
+	bh=X/q9L9lNaYJ1zDNt2gLBdjjyKznsRE9enCZAIwwdpQs=;
+	h=Date:To:From:Subject:Message-Id; b=M50fSj8nwtac+SRliH8CVe+J3jeq473hEubMjCrH7m2Ggaheb90HiEXFP41nVtnTgzafEp6Sp/mzUoCiMiO5sMqmxCRgnI0+s7m3GV94KTHHE2MW0j6KXU9YhuGvUkIobXV3Mf3tnlmS4uQ8qxVPlq0t/t7rIz2nesDGhtkz44s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GaHwecRK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OCqRmyww"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2720C116C6;
-	Fri, 27 Mar 2026 00:43:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GaHwecRK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72694C116C6;
+	Fri, 27 Mar 2026 00:46:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774572235;
-	bh=A1baT92GkExPeLSVcPdQDvtQiYQMSXImJ3IARwj7h3o=;
+	s=korg; t=1774572360;
+	bh=X/q9L9lNaYJ1zDNt2gLBdjjyKznsRE9enCZAIwwdpQs=;
 	h=Date:To:From:Subject:From;
-	b=OCqRmywwFlKSumVS3fOrad2x+GuqEf7mZxJiwZkG0FHjhVBT+lOzZEPw6aLvV9MTy
-	 gbTh1NVPE0zpwtCPV1cZGt0/Z496TPxIeJkGvgR0xYfaBHhMh8sQu+/qKu4QrtOB0N
-	 JjXpYDkUJ6LEKqtt/LW3zeG8Wd1KoPOYhQ59qXB8=
-Date: Thu, 26 Mar 2026 17:43:55 -0700
+	b=GaHwecRKI55haNyU2gOnJ9iX503C6YbLjgN2Dz9x69DyVAQC6p5Jo7SuOJ9LdyYGH
+	 4vzRUmJAy2Il1r82EPsTy0Y2CkZdgFflhz8DHejGomfQSnJQpkiGKG4X+MEwfju1kP
+	 v7gyOFAVgZxCPKFPoIOCFaGesqtzV2sWzYrliGK0=
+Date: Thu, 26 Mar 2026 17:45:59 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,miklos@szeredi.hu,jack@suse.cz,hch@infradead.org,hannes@cmpxchg.org,joannelkoong@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260327004355.A2720C116C6@smtp.kernel.org>
+Subject: [to-be-updated] mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch removed from -mm tree
+Message-Id: <20260327004600.72694C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: mm: start background writeback based on per-wb threshold for strictlimit BDIs
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Joanne Koong <joannelkoong@gmail.com>
@@ -116,5 +100,4 @@ _
 
 Patches currently in -mm which might be from joannelkoong@gmail.com are
 
-mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch
 
