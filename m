@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6424D5478D
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 23:05:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C4235478D
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 23:05:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774652702; cv=none; b=YKPRkauxIZLRaQVPcZFSRvXya+bqBUZfdROHW/lUlSoZhrgqWwnWcxKrhx/Gdn1yQJrQqnx+r5+0BW3nXmHXZy9twTSuTmOpKp+LuSsHhfvMb0BgrAhusjG/dbISrA96sGkUWbmURkI7rgjKF1Z8S6A8DcxDM9Rp9XjjeMWnT4s=
+	t=1774652704; cv=none; b=mUgk8zLVypvc35DQqyMhSuA+ycRHWi9Wb+rXdGNHUJ3wupaIFmMhGSt8JqYsyWgaBppB+ETvprUkSjjYfUiXR2+e8K5ia6thQJjU7b5603uLS9TmMiF52D2QrZd4C5GQ469sOEwju5mEwImLBbGfsn4T/nJYdxb1+Ep/CYZM6ec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774652702; c=relaxed/simple;
-	bh=kFZbCZfsPeo/YHPegT8XNqc5vTngSYH1unVKByQ3MKE=;
-	h=Date:To:From:Subject:Message-Id; b=ZqOorOnwNqPYqBaBsQ4x16rFFEcf6UtJWWJUtmNG4uv/bMM07l0nlgolsiKqhkE5bcTFsGvgqHuJ5prT7ivwdh5itF55HIqn1yuhtS0ejgGgta9Q/mrAM1JAih/mE+Oe15F2p3uFKpHrE35mJ5Bp5cCPOq5lx1V+YKCdQtwZSm0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nrKm8cvE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774652704; c=relaxed/simple;
+	bh=qonTJvaj18aZxmrzkhz3b2NYmwaETU2b5HPDTYLps2s=;
+	h=Date:To:From:Subject:Message-Id; b=eQwoNOmDGM8XHDLugA+9ilvvCORJn8V/zAc21nyLmRaHUox/OWA2QQSQQD1S24+M86GA68XzLBcbUPwWzPZBwrGJWPT8vZfw3yJC5FZFGpZUJKDGMp8STQds+JvSfNnTJ/FMe0OBJebVTvLbU6wprJpla7o9DGf2dmhPiPNBAec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uUddNsd6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nrKm8cvE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12408C19423;
-	Fri, 27 Mar 2026 23:05:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uUddNsd6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CED38C19423;
+	Fri, 27 Mar 2026 23:05:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774652702;
-	bh=kFZbCZfsPeo/YHPegT8XNqc5vTngSYH1unVKByQ3MKE=;
+	s=korg; t=1774652703;
+	bh=qonTJvaj18aZxmrzkhz3b2NYmwaETU2b5HPDTYLps2s=;
 	h=Date:To:From:Subject:From;
-	b=nrKm8cvEH4bAc/rGiQ6BbCyhRkSWKyuHdrdEOHQThzUjlzYKvhOV68OrGAuCxNogq
-	 pLmJZHZ3ksX+PHFsIqvTsoU6EYmjXclFFeC+6vXfLUe6uoZVaBjGxHxD0M6wuAW4Ur
-	 dY993Mncn3snpkP3gzUVktD39k78iKZH907F//cw=
-Date: Fri, 27 Mar 2026 16:05:01 -0700
+	b=uUddNsd6HCOaeK70FofJRCeJjWxPFVcu/9XVu0dtJX/LOLODsF0ULpBDMCsWsddks
+	 fSRamoqYFPlPy+4N9833W0iw8v6HySPodJUQLQGkbJWP0n5qPyNyQmjyZkVPGA575O
+	 4lFK6gAT+wriuPo2INZ/F/24zS3IP9pF/Wu0078E=
+Date: Fri, 27 Mar 2026 16:05:03 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-use-vma_start_write_killable-in-process_vma_walk_lock.patch removed from -mm tree
-Message-Id: <20260327230502.12408C19423@smtp.kernel.org>
+Subject: [to-be-updated] kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch removed from -mm tree
+Message-Id: <20260327230503.CED38C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: use vma_start_write_killable() in process_vma_walk_lock()
+     Subject: KVM: PPC: use vma_start_write_killable() in kvmppc_memslot_page_merge()
 has been removed from the -mm tree.  Its filename was
-     mm-use-vma_start_write_killable-in-process_vma_walk_lock.patch
+     kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: use vma_start_write_killable() in process_vma_walk_lock()
-Date: Thu, 26 Mar 2026 01:08:35 -0700
+Subject: KVM: PPC: use vma_start_write_killable() in kvmppc_memslot_page_merge()
+Date: Thu, 26 Mar 2026 01:08:36 -0700
 
-Replace vma_start_write() with vma_start_write_killable() when
-process_vma_walk_lock() is used with PGWALK_WRLOCK option.
-Adjust its direct and indirect users to check for a possible error
-and handle it. Ensure users handle EINTR correctly and do not ignore
-it.
+Replace vma_start_write() with vma_start_write_killable(), improving
+reaction time to the kill signal.  Replace vma_start_write() in
+kvmppc_memslot_page_merge().
 
-Link: https://lkml.kernel.org/r/20260326080836.695207-6-surenb@google.com
+Link: https://lkml.kernel.org/r/20260326080836.695207-7-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
+Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
+Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -76,9 +75,9 @@ Cc: Kees Cook <kees@kernel.org>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
 Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
@@ -86,7 +85,6 @@ Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
@@ -95,143 +93,27 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   12 ++++++------
- mm/mempolicy.c     |    1 +
- mm/pagewalk.c      |   22 +++++++++++++++-------
- 3 files changed, 22 insertions(+), 13 deletions(-)
+ arch/powerpc/kvm/book3s_hv_uvmem.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/fs/proc/task_mmu.c~mm-use-vma_start_write_killable-in-process_vma_walk_lock
-+++ a/fs/proc/task_mmu.c
-@@ -1774,15 +1774,15 @@ static ssize_t clear_refs_write(struct f
- 	struct vm_area_struct *vma;
- 	enum clear_refs_types type;
- 	int itype;
--	int rv;
-+	int err;
- 
- 	if (count > sizeof(buffer) - 1)
- 		count = sizeof(buffer) - 1;
- 	if (copy_from_user(buffer, buf, count))
- 		return -EFAULT;
--	rv = kstrtoint(strstrip(buffer), 10, &itype);
--	if (rv < 0)
--		return rv;
-+	err = kstrtoint(strstrip(buffer), 10, &itype);
-+	if (err)
-+		return err;
- 	type = (enum clear_refs_types)itype;
- 	if (type < CLEAR_REFS_ALL || type >= CLEAR_REFS_LAST)
- 		return -EINVAL;
-@@ -1824,7 +1824,7 @@ static ssize_t clear_refs_write(struct f
- 						0, mm, 0, -1UL);
- 			mmu_notifier_invalidate_range_start(&range);
+--- a/arch/powerpc/kvm/book3s_hv_uvmem.c~kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge
++++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
+@@ -410,7 +410,10 @@ static int kvmppc_memslot_page_merge(str
+ 			ret = H_STATE;
+ 			break;
  		}
--		walk_page_range(mm, 0, -1, &clear_refs_walk_ops, &cp);
-+		err = walk_page_range(mm, 0, -1, &clear_refs_walk_ops, &cp);
- 		if (type == CLEAR_REFS_SOFT_DIRTY) {
- 			mmu_notifier_invalidate_range_end(&range);
- 			flush_tlb_mm(mm);
-@@ -1837,7 +1837,7 @@ out_mm:
- 	}
- 	put_task_struct(task);
- 
--	return count;
-+	return err ? : count;
- }
- 
- const struct file_operations proc_clear_refs_operations = {
---- a/mm/mempolicy.c~mm-use-vma_start_write_killable-in-process_vma_walk_lock
-+++ a/mm/mempolicy.c
-@@ -969,6 +969,7 @@ static const struct mm_walk_ops queue_pa
-  *      (a hugetlbfs page or a transparent huge page being counted as 1).
-  * -EIO - a misplaced page found, when MPOL_MF_STRICT specified without MOVEs.
-  * -EFAULT - a hole in the memory range, when MPOL_MF_DISCONTIG_OK unspecified.
-+ * -EINTR - walk got terminated due to pending fatal signal.
-  */
- static long
- queue_pages_range(struct mm_struct *mm, unsigned long start, unsigned long end,
---- a/mm/pagewalk.c~mm-use-vma_start_write_killable-in-process_vma_walk_lock
-+++ a/mm/pagewalk.c
-@@ -443,14 +443,13 @@ static inline void process_mm_walk_lock(
- 		mmap_assert_write_locked(mm);
- }
- 
--static inline void process_vma_walk_lock(struct vm_area_struct *vma,
--					 enum page_walk_lock walk_lock)
-+static int process_vma_walk_lock(struct vm_area_struct *vma,
-+				 enum page_walk_lock walk_lock)
- {
- #ifdef CONFIG_PER_VMA_LOCK
- 	switch (walk_lock) {
- 	case PGWALK_WRLOCK:
 -		vma_start_write(vma);
--		break;
-+		return vma_start_write_killable(vma);
- 	case PGWALK_WRLOCK_VERIFY:
- 		vma_assert_write_locked(vma);
- 		break;
-@@ -462,6 +461,7 @@ static inline void process_vma_walk_lock
- 		break;
- 	}
- #endif
-+	return 0;
- }
- 
- /*
-@@ -505,7 +505,9 @@ int walk_page_range_mm_unsafe(struct mm_
- 			if (ops->pte_hole)
- 				err = ops->pte_hole(start, next, -1, &walk);
- 		} else { /* inside vma */
--			process_vma_walk_lock(vma, ops->walk_lock);
-+			err = process_vma_walk_lock(vma, ops->walk_lock);
-+			if (err)
-+				break;
- 			walk.vma = vma;
- 			next = min(end, vma->vm_end);
- 			vma = find_vma(mm, vma->vm_end);
-@@ -722,6 +724,7 @@ int walk_page_range_vma_unsafe(struct vm
- 		.vma		= vma,
- 		.private	= private,
- 	};
-+	int err;
- 
- 	if (start >= end || !walk.mm)
- 		return -EINVAL;
-@@ -729,7 +732,9 @@ int walk_page_range_vma_unsafe(struct vm
- 		return -EINVAL;
- 
- 	process_mm_walk_lock(walk.mm, ops->walk_lock);
--	process_vma_walk_lock(vma, ops->walk_lock);
-+	err = process_vma_walk_lock(vma, ops->walk_lock);
-+	if (err)
-+		return err;
- 	return __walk_page_range(start, end, &walk);
- }
- 
-@@ -752,6 +757,7 @@ int walk_page_vma(struct vm_area_struct
- 		.vma		= vma,
- 		.private	= private,
- 	};
-+	int err;
- 
- 	if (!walk.mm)
- 		return -EINVAL;
-@@ -759,7 +765,9 @@ int walk_page_vma(struct vm_area_struct
- 		return -EINVAL;
- 
- 	process_mm_walk_lock(walk.mm, ops->walk_lock);
--	process_vma_walk_lock(vma, ops->walk_lock);
-+	err = process_vma_walk_lock(vma, ops->walk_lock);
-+	if (err)
-+		return err;
- 	return __walk_page_range(vma->vm_start, vma->vm_end, &walk);
- }
- 
++		if (vma_start_write_killable(vma)) {
++			ret = H_STATE;
++			break;
++		}
+ 		/* Copy vm_flags to avoid partial modifications in ksm_madvise */
+ 		vm_flags = vma->vm_flags;
+ 		ret = ksm_madvise(vma, vma->vm_start, vma->vm_end,
 _
 
 Patches currently in -mm which might be from surenb@google.com are
 
 a.patch
-kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
 mm-vmscan-prevent-mglru-reclaim-from-pinning-address-space.patch
 
