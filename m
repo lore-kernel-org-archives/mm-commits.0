@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 677E27261C;
-	Fri, 27 Mar 2026 00:59:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6A642848AF
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 01:12:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774573171; cv=none; b=sXWcvBXH87HFC0N1FTcG8mxLVaXwlDeZLbbFZLLlEIz6hn0vqdAMb5GxLxSyAJCke4uOhzLQTu2AN4mRg5GheS7qRXmbbL/VOF8mnVlhgGSTujUmABU2HPUCuWNSZoBN0OCg4rus5E5G5t+5cZnu54Jmgz4/8ZYLmXD/WgeZEbY=
+	t=1774573971; cv=none; b=ssNkq/a7JTR77XnKIaKmoXQYF+N94qAxZNXb3paq7Cqmp4iNYKZNx3kiDc19L385OcW7SEVzBua3dqN85ynSQ+DNjdUcnoMaeWxTScazAmKoh4CHBsdBd/6TbqzzMIfNTDIVJiD5CNC3FHcnHCEUcAfKkEdjPvNQLxzhBouTcg8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774573171; c=relaxed/simple;
-	bh=7AQVPZU1kUZly34CyGmu2dCnKE901wXCVHYnWIGmgeU=;
-	h=Date:To:From:Subject:Message-Id; b=lth7NZhbzckKVv95rJk+QkhZIgS13o+f9SVk8ixaZzXd+JTlj72CtNJtCmZ56NqLmg50861w/nLyCj6SqAng0NSa47MOTDx1AOssiZ/9hTKXPV8LH98nuBWpJeoaBO1aMG6H2rGiAXTcqk3WhDqPWaIqbkghCs/u8PBAA7695Yk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gM/P2V+L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774573971; c=relaxed/simple;
+	bh=tA0a55B/0OeghYS8BzNySwIsOojfAKJ+wH0K5LlBNiY=;
+	h=Date:To:From:Subject:Message-Id; b=aG0iBQljtJAoVhpKNisNNwFfrvpcDP8j77NITYBg1c1vwW7fQbslkOCFEpT0P2moMir38dbeITkf0BvwUPSHgd4dZdcC87OsGktB1OuE4FMeGFLgCNmD0P6uKjn5FdQLav5VNZxxGZQP3MPae8547PdMKG6sHLpSGzmbE8G2PIo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x5rPV1H6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gM/P2V+L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB256C116C6;
-	Fri, 27 Mar 2026 00:59:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x5rPV1H6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 416DEC116C6;
+	Fri, 27 Mar 2026 01:12:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774573171;
-	bh=7AQVPZU1kUZly34CyGmu2dCnKE901wXCVHYnWIGmgeU=;
+	s=korg; t=1774573971;
+	bh=tA0a55B/0OeghYS8BzNySwIsOojfAKJ+wH0K5LlBNiY=;
 	h=Date:To:From:Subject:From;
-	b=gM/P2V+LJBUI9+wTQvNUGNfn/yIqyW0RpVu8oESP1TF9d1ctFmATpcqu040xw3+Ig
-	 o/OCSpdwD8ii944ec4qsNeZTqcAs732VYuRveIe1stLwXBwsswPjVINJk6x5G8EFvD
-	 dBpQZ2Xp+jgGgZxXlELpIF62B2ZxxhLvTW1NB2dE=
-Date: Thu, 26 Mar 2026 17:59:29 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=x5rPV1H6MEvgDIXIBIARxXYwrfWQO5JAYQpxhFkvdWDsrdecF4oSzgkezY8NuYlxe
+	 IXkPgQUHXhdzvzGvFlV4BLT4kn1FDm9AfefX/z6Ud+LHcqprINxg1T1PQP0fgYqddK
+	 RPaw8uRTT3SRRTJ/Iq+Jqc4nNSua7M9vxOAaMvF0=
+Date: Thu, 26 Mar 2026 18:12:50 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,hao.ge@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260327005930.EB256C116C6@smtp.kernel.org>
+Subject: + mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch added to mm-new branch
+Message-Id: <20260327011251.416DEC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: dealloc repeat_call_control if damon_call() fails
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch
+     Subject: mm/alloc_tag: clear codetag for pages allocated before page_ext initialization
+has been added to the -mm mm-new branch.  Its filename is
+     mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,87 +69,264 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: dealloc repeat_call_control if damon_call() fails
-Date: Thu, 26 Mar 2026 17:32:22 -0700
+From: Hao Ge <hao.ge@linux.dev>
+Subject: mm/alloc_tag: clear codetag for pages allocated before page_ext initialization
+Date: Thu, 26 Mar 2026 22:05:54 +0800
 
-damon_call() for repeat_call_control of DAMON_SYSFS could fail if somehow
-the kdamond is stopped before the damon_call().  It could happen, for
-example, when te damon context was made for monitroing of a virtual
-address processes, and the process is terminated immediately, before the
-damon_call() invocation.  In the case, the dyanmically allocated
-repeat_call_control is not deallocated and leaked.
+Due to initialization ordering, page_ext is allocated and initialized
+relatively late during boot.  Some pages have already been allocated and
+freed before page_ext becomes available, leaving their codetag
+uninitialized.
 
-Fix the leak by deallocating the repeat_call_control under the
-damon_call() failure.
+A clear example is in init_section_page_ext(): alloc_page_ext() calls
+kmemleak_alloc().  If the slab cache has no free objects, it falls back to
+the buddy allocator to allocate memory.  However, at this point page_ext
+is not yet fully initialized, so these newly allocated pages have no
+codetag set.  These pages may later be reclaimed by KASAN, which causes
+the warning to trigger when they are freed because their codetag ref is
+still empty.
 
-This issue is discovered by sashiko [1].
+Use a global array to track pages allocated before page_ext is fully
+initialized.  The array size is fixed at 8192 entries, and will emit a
+warning if this limit is exceeded.  When page_ext initialization
+completes, set their codetag to empty to avoid warnings when they are
+freed later.
 
-Link: https://lkml.kernel.org/r/20260327003224.55752-1-sj@kernel.org
-Link: https://lore.kernel.org/20260320020630.962-1-sj@kernel.org [1]
-Fixes: 04a06b139ec0 ("mm/damon/sysfs: use dynamically allocated repeat mode damon_call_control")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[6.17+]
+The following warning is observed when this issue occurs:
+[    9.582133] ------------[ cut here ]------------
+[    9.582137] alloc_tag was not set
+[    9.582139] WARNING: ./include/linux/alloc_tag.h:164 at __pgalloc_tag_sub+0x40f/0x550, CPU#5: systemd/1
+[    9.582190] CPU: 5 UID: 0 PID: 1 Comm: systemd Not tainted 7.0.0-rc4 #1 PREEMPT(lazy)
+[    9.582192] Hardware name: Red Hat KVM, BIOS rel-1.16.3-0-ga6ed6b701f0a-prebuilt.qemu.org 04/01/2014
+[    9.582194] RIP: 0010:__pgalloc_tag_sub+0x40f/0x550
+[    9.582196] Code: 00 00 4c 29 e5 48 8b 05 1f 88 56 05 48 8d 4c ad 00 48 8d 2c c8 e9 87 fd ff ff 0f 0b 0f 0b e9 f3 fe ff ff 48 8d 3d 61 2f ed 03 <67> 48 0f b9 3a e9 b3 fd ff ff 0f 0b eb e4 e8 5e cd 14 02 4c 89 c7
+[    9.582197] RSP: 0018:ffffc9000001f940 EFLAGS: 00010246
+[    9.582200] RAX: dffffc0000000000 RBX: 1ffff92000003f2b RCX: 1ffff110200d806c
+[    9.582201] RDX: ffff8881006c0360 RSI: 0000000000000004 RDI: ffffffff9bc7b460
+[    9.582202] RBP: 0000000000000000 R08: 0000000000000000 R09: fffffbfff3a62324
+[    9.582203] R10: ffffffff9d311923 R11: 0000000000000000 R12: ffffea0004001b00
+[    9.582204] R13: 0000000000002000 R14: ffffea0000000000 R15: ffff8881006c0360
+[    9.582206] FS:  00007ffbbcf2d940(0000) GS:ffff888450479000(0000) knlGS:0000000000000000
+[    9.582208] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    9.582210] CR2: 000055ee3aa260d0 CR3: 0000000148b67005 CR4: 0000000000770ef0
+[    9.582211] PKRU: 55555554
+[    9.582212] Call Trace:
+[    9.582213]  <TASK>
+[    9.582214]  ? __pfx___pgalloc_tag_sub+0x10/0x10
+[    9.582216]  ? check_bytes_and_report+0x68/0x140
+[    9.582219]  __free_frozen_pages+0x2e4/0x1150
+[    9.582221]  ? __free_slab+0xc2/0x2b0
+[    9.582224]  qlist_free_all+0x4c/0xf0
+[    9.582227]  kasan_quarantine_reduce+0x15d/0x180
+[    9.582229]  __kasan_slab_alloc+0x69/0x90
+[    9.582232]  kmem_cache_alloc_noprof+0x14a/0x500
+[    9.582234]  do_getname+0x96/0x310
+[    9.582237]  do_readlinkat+0x91/0x2f0
+[    9.582239]  ? __pfx_do_readlinkat+0x10/0x10
+[    9.582240]  ? get_random_bytes_user+0x1df/0x2c0
+[    9.582244]  __x64_sys_readlinkat+0x96/0x100
+[    9.582246]  do_syscall_64+0xce/0x650
+[    9.582250]  ? __x64_sys_getrandom+0x13a/0x1e0
+[    9.582252]  ? __pfx___x64_sys_getrandom+0x10/0x10
+[    9.582254]  ? do_syscall_64+0x114/0x650
+[    9.582255]  ? ksys_read+0xfc/0x1d0
+[    9.582258]  ? __pfx_ksys_read+0x10/0x10
+[    9.582260]  ? do_syscall_64+0x114/0x650
+[    9.582262]  ? do_syscall_64+0x114/0x650
+[    9.582264]  ? __pfx_fput_close_sync+0x10/0x10
+[    9.582266]  ? file_close_fd_locked+0x178/0x2a0
+[    9.582268]  ? __x64_sys_faccessat2+0x96/0x100
+[    9.582269]  ? __x64_sys_close+0x7d/0xd0
+[    9.582271]  ? do_syscall_64+0x114/0x650
+[    9.582273]  ? do_syscall_64+0x114/0x650
+[    9.582275]  ? clear_bhb_loop+0x50/0xa0
+[    9.582277]  ? clear_bhb_loop+0x50/0xa0
+[    9.582279]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+[    9.582280] RIP: 0033:0x7ffbbda345ee
+[    9.582282] Code: 0f 1f 40 00 48 8b 15 29 38 0d 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff c3 0f 1f 40 00 f3 0f 1e fa 49 89 ca b8 0b 01 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d fa 37 0d 00 f7 d8 64 89 01 48
+[    9.582284] RSP: 002b:00007ffe2ad8de58 EFLAGS: 00000202 ORIG_RAX: 000000000000010b
+[    9.582286] RAX: ffffffffffffffda RBX: 000055ee3aa25570 RCX: 00007ffbbda345ee
+[    9.582287] RDX: 000055ee3aa25570 RSI: 00007ffe2ad8dee0 RDI: 00000000ffffff9c
+[    9.582288] RBP: 0000000000001000 R08: 0000000000000003 R09: 0000000000001001
+[    9.582289] R10: 0000000000001000 R11: 0000000000000202 R12: 0000000000000033
+[    9.582290] R13: 00007ffe2ad8dee0 R14: 00000000ffffff9c R15: 00007ffe2ad8deb0
+[    9.582292]  </TASK>
+[    9.582293] ---[ end trace 0000000000000000 ]---
+
+Link: https://lkml.kernel.org/r/20260326140554.191996-1-hao.ge@linux.dev
+Fixes: 93d5440ece3c ("alloc_tag: uninline code gated by mem_alloc_profiling_key in page allocator")
+Signed-off-by: Hao Ge <hao.ge@linux.dev>
+Suggested-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/alloc_tag.h   |    2 
+ include/linux/pgalloc_tag.h |    2 
+ lib/alloc_tag.c             |   92 ++++++++++++++++++++++++++++++++++
+ mm/page_alloc.c             |    7 ++
+ 4 files changed, 102 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails
-+++ a/mm/damon/sysfs.c
-@@ -1670,7 +1670,8 @@ static int damon_sysfs_turn_damon_on(str
- 	repeat_call_control->data = kdamond;
- 	repeat_call_control->repeat = true;
- 	repeat_call_control->dealloc_on_cancel = true;
--	damon_call(ctx, repeat_call_control);
-+	if (damon_call(ctx, repeat_call_control))
-+		kfree(repeat_call_control);
- 	return err;
+--- a/include/linux/alloc_tag.h~mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization
++++ a/include/linux/alloc_tag.h
+@@ -74,6 +74,8 @@ static inline void set_codetag_empty(uni
+ 
+ #ifdef CONFIG_MEM_ALLOC_PROFILING
+ 
++void alloc_tag_add_early_pfn(unsigned long pfn);
++
+ #define ALLOC_TAG_SECTION_NAME	"alloc_tags"
+ 
+ struct codetag_bytes {
+--- a/include/linux/pgalloc_tag.h~mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization
++++ a/include/linux/pgalloc_tag.h
+@@ -181,7 +181,7 @@ static inline struct alloc_tag *__pgallo
+ 
+ 	if (get_page_tag_ref(page, &ref, &handle)) {
+ 		alloc_tag_sub_check(&ref);
+-		if (ref.ct)
++		if (ref.ct && !is_codetag_empty(&ref))
+ 			tag = ct_to_alloc_tag(ref.ct);
+ 		put_page_tag_ref(handle);
+ 	}
+--- a/lib/alloc_tag.c~mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization
++++ a/lib/alloc_tag.c
+@@ -6,6 +6,7 @@
+ #include <linux/kallsyms.h>
+ #include <linux/module.h>
+ #include <linux/page_ext.h>
++#include <linux/pgalloc_tag.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_buf.h>
+ #include <linux/seq_file.h>
+@@ -26,6 +27,96 @@ static bool mem_profiling_support;
+ 
+ static struct codetag_type *alloc_tag_cttype;
+ 
++#ifdef CONFIG_MEM_ALLOC_PROFILING_DEBUG
++
++/*
++ * Track page allocations before page_ext is initialized.
++ * Some pages are allocated before page_ext becomes available, leaving
++ * their codetag uninitialized. Track these early PFNs so we can clear
++ * their codetag refs later to avoid warnings when they are freed.
++ *
++ * Early allocations include:
++ *   - Base allocations independent of CPU count
++ *   - Per-CPU allocations (e.g., CPU hotplug callbacks during smp_init,
++ *     such as trace ring buffers, scheduler per-cpu data)
++ *
++ * For simplicity, we fix the size to 8192.
++ * If insufficient, a warning will be triggered to alert the user.
++ */
++#define EARLY_ALLOC_PFN_MAX		8192
++
++static unsigned long early_pfns[EARLY_ALLOC_PFN_MAX] __initdata;
++static atomic_t early_pfn_count __initdata = ATOMIC_INIT(0);
++
++static void __init __alloc_tag_add_early_pfn(unsigned long pfn)
++{
++	int old_idx, new_idx;
++
++	do {
++		old_idx = atomic_read(&early_pfn_count);
++		if (old_idx >= EARLY_ALLOC_PFN_MAX) {
++			pr_warn_once("Early page allocations before page_ext init exceeded EARLY_ALLOC_PFN_MAX (%d)\n",
++				      EARLY_ALLOC_PFN_MAX);
++			return;
++		}
++		new_idx = old_idx + 1;
++	} while (!atomic_try_cmpxchg(&early_pfn_count, &old_idx, new_idx));
++
++	early_pfns[old_idx] = pfn;
++}
++
++static void (*alloc_tag_add_early_pfn_ptr)(unsigned long pfn) __refdata =
++		__alloc_tag_add_early_pfn;
++
++void alloc_tag_add_early_pfn(unsigned long pfn)
++{
++	if (static_key_enabled(&mem_profiling_compressed))
++		return;
++
++	if (alloc_tag_add_early_pfn_ptr)
++		alloc_tag_add_early_pfn_ptr(pfn);
++}
++
++static void __init clear_early_alloc_pfn_tag_refs(void)
++{
++	unsigned int i;
++
++	for (i = 0; i < atomic_read(&early_pfn_count); i++) {
++		unsigned long pfn = early_pfns[i];
++
++		if (pfn_valid(pfn)) {
++			struct page *page = pfn_to_page(pfn);
++			union pgtag_ref_handle handle;
++			union codetag_ref ref;
++
++			if (get_page_tag_ref(page, &ref, &handle)) {
++				/*
++				 * An early-allocated page could be freed and reallocated
++				 * after its page_ext is initialized but before we clear it.
++				 * In that case, it already has a valid tag set.
++				 * We should not overwrite that valid tag with CODETAG_EMPTY.
++				 */
++				if (ref.ct) {
++					put_page_tag_ref(handle);
++					continue;
++				}
++
++				set_codetag_empty(&ref);
++				update_page_tag_ref(handle, &ref);
++				put_page_tag_ref(handle);
++			}
++		}
++
++	}
++	atomic_set(&early_pfn_count, 0);
++
++	alloc_tag_add_early_pfn_ptr = NULL;
++}
++#else /* !CONFIG_MEM_ALLOC_PROFILING_DEBUG */
++inline void alloc_tag_add_early_pfn(unsigned long pfn) {}
++static inline void __init clear_early_alloc_pfn_tag_refs(void) {}
++#endif
++
+ #ifdef CONFIG_ARCH_MODULE_NEEDS_WEAK_PER_CPU
+ DEFINE_PER_CPU(struct alloc_tag_counters, _shared_alloc_tag);
+ EXPORT_SYMBOL(_shared_alloc_tag);
+@@ -760,6 +851,7 @@ static __init bool need_page_alloc_taggi
+ 
+ static __init void init_page_alloc_tagging(void)
+ {
++	clear_early_alloc_pfn_tag_refs();
+ }
+ 
+ struct page_ext_operations page_alloc_tagging_ops = {
+--- a/mm/page_alloc.c~mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization
++++ a/mm/page_alloc.c
+@@ -1256,6 +1256,13 @@ void __pgalloc_tag_add(struct page *page
+ 		alloc_tag_add(&ref, task->alloc_tag, PAGE_SIZE * nr);
+ 		update_page_tag_ref(handle, &ref);
+ 		put_page_tag_ref(handle);
++	} else {
++		/*
++		 * page_ext is not available yet, record the pfn so we can
++		 * clear the tag ref later when page_ext is initialized.
++		 */
++		alloc_tag_add_early_pfn(page_to_pfn(page));
++		alloc_tag_set_inaccurate(current->alloc_tag);
+ 	}
  }
  
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from hao.ge@linux.dev are
 
-mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch
-mm-damon-add-config_damon_debug_sanity.patch
-mm-damon-core-add-damon_new_region-debug_sanity-check.patch
-mm-damon-core-add-damon_del_region-debug_sanity-check.patch
-mm-damon-core-add-damon_nr_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_two_regions-debug_sanity-check.patch
-mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
-mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
-mm-damon-core-add-damon_reset_aggregated-debug_sanity-check.patch
-mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
-selftests-damon-config-enable-damon_debug_sanity.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
-docs-mm-damon-design-document-the-power-of-two-limitation-for-addr_unit.patch
-mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
-mm-damon-core-use-time_before-for-next_apply_sis.patch
-mm-damon-core-use-time_after_eq-in-kdamond_fn.patch
-mm-damon-core-use-mult_frac.patch
-mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
-mm-damon-core-clarify-damon_set_attrs-usages.patch
-mm-damon-document-non-zero-length-damon_region-assumption.patch
-docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
-docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
-docs-mm-damon-index-fix-typo-autoamted-automated.patch
-mm-damon-core-introduce-damos_quota_goal_tuner.patch
-mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
-mm-damon-core-introduce-damos_quota_goal_tuner_temporal.patch
-mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
-docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
-docs-admin-guide-mm-damon-usage-document-goal_tuner-sysfs-file.patch
-docs-abi-damon-update-for-goal_tuner.patch
-mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
-selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
-selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
-selftests-damon-sysfspy-test-goal_tuner-commit.patch
-mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
-mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
-mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
-mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
-mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
+mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch
 
