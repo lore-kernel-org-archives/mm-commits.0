@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5D90384241
-	for <mm-commits@vger.kernel.org>; Thu, 26 Mar 2026 23:39:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E59641B808;
+	Fri, 27 Mar 2026 00:43:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774568360; cv=none; b=u3+CsO66fc5geUVGmBjJ5zdx3oaTlhBklwy/3NT+iWBU1DkB+dBas28JDSjAzwjau6fijVDIRqlTJ1mpJAjbclkJ1yDg5hEGU6Ug7lALPFfK87QxCkb5KKGI1asjQry+r6UwkohTgHs0t9vmq7EYDHe3r2A0l6rgx/JCn/9vCiM=
+	t=1774572236; cv=none; b=EZu8KgzYOekTzAEzTfhOUDfIVznQN1+lGfUT7Qw7cWiu+UfR3ARCZE5jI8eLbUa0GOGvfyxV8dVSvnGA29ON0JDwAOdL9h/moYWfCahbqVVDTCBhTz+lwcdifwLnqw5RhiLy+LFABYFrhURwcmX4zqVX32923xrOIBLnApaWbH0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774568360; c=relaxed/simple;
-	bh=9AXH9kmhekudtGdXyXpszPA6ZE+yyzLXUvqTbObSTjY=;
-	h=Date:To:From:Subject:Message-Id; b=EnT+Wc+ih77luSziLtwnoBtlKjXoFKR+e3XUm6S4PY5RuFooyQnf4YBgtLiTIZU4SmCiEs6SWSbBi8Q5EDkha+7vmVXdHJZ3nQX12q8qqoS7RfrNH4mw96cFsc3eq1KePPsxqrLt1PzSUtTZedK0irl+lkzjDDnBtqwVoEJtLMM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r0CkRXYW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774572236; c=relaxed/simple;
+	bh=A1baT92GkExPeLSVcPdQDvtQiYQMSXImJ3IARwj7h3o=;
+	h=Date:To:From:Subject:Message-Id; b=imLj2cbg/wEAH5ODtP3HrGKrcGop9aBmqW/WcuzWzZ0nbRT96bXT1cC9Gsy9JQvG7J0JI08ATP3IPxb7GI5ex55SITuPnNR8zJaEudF2dWLOIlbLogZGEbENZPHaaZ5lmN/7SVBgMvczE/j5bb7US1O7NwcAYp48xMj3fdSNiuk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OCqRmyww; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r0CkRXYW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A90C116C6;
-	Thu, 26 Mar 2026 23:39:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OCqRmyww"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2720C116C6;
+	Fri, 27 Mar 2026 00:43:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774568360;
-	bh=9AXH9kmhekudtGdXyXpszPA6ZE+yyzLXUvqTbObSTjY=;
+	s=korg; t=1774572235;
+	bh=A1baT92GkExPeLSVcPdQDvtQiYQMSXImJ3IARwj7h3o=;
 	h=Date:To:From:Subject:From;
-	b=r0CkRXYW0lGJCgjwKYVnmtf1LjD4QhSAuNKImtHcQSdKUL+HRikLRUgfREeft2esx
-	 FcAvdKagYPJ0vQHaUyxUWJlLX/3NvEjP6AHZSqyvzSpFGaCVqeUEArSo/6xrrUnS/h
-	 M1BAbLZ5LGW8kkDPVKegOsNduapTL3n3dfknDNAg=
-Date: Thu, 26 Mar 2026 16:39:19 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jianghaoran@kylinos.cn,duanchenghao@kylinos.cn,akpm@linux-foundation.org
+	b=OCqRmywwFlKSumVS3fOrad2x+GuqEf7mZxJiwZkG0FHjhVBT+lOzZEPw6aLvV9MTy
+	 gbTh1NVPE0zpwtCPV1cZGt0/Z496TPxIeJkGvgR0xYfaBHhMh8sQu+/qKu4QrtOB0N
+	 JjXpYDkUJ6LEKqtt/LW3zeG8Wd1KoPOYhQ59qXB8=
+Date: Thu, 26 Mar 2026 17:43:55 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,stable@vger.kernel.org,miklos@szeredi.hu,jack@suse.cz,hch@infradead.org,hannes@cmpxchg.org,joannelkoong@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios.patch added to mm-new branch
-Message-Id: <20260326233920.40A90C116C6@smtp.kernel.org>
+Subject: + mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260327004355.A2720C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memfd_luo: fix integer overflow in memfd_luo_preserve_folios
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios.patch
+     Subject: mm: start background writeback based on per-wb threshold for strictlimit BDIs
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,62 +58,63 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Chenghao Duan <duanchenghao@kylinos.cn>
-Subject: mm/memfd_luo: fix integer overflow in memfd_luo_preserve_folios
-Date: Thu, 26 Mar 2026 16:47:27 +0800
+From: Joanne Koong <joannelkoong@gmail.com>
+Subject: mm: start background writeback based on per-wb threshold for strictlimit BDIs
+Date: Thu, 26 Mar 2026 16:46:29 -0700
 
-In memfd_luo_preserve_folios(), two variables had types that could cause
-silent data loss with large files:
+The proactive nr_dirty > gdtc->bg_thresh check in balance_dirty_pages()
+only checks the global dirty threshold to start background writeback
+while the writer is still free-running, but for strictlimit BDIs (eg
+fuse), the per-wb dirty count can exceed the per-wb background threshold
+while the global threshold is not yet exceeded, so background writeback
+for this case never gets proactively started.
 
-1. 'size' was declared as 'long', truncating the 64-bit result of
-   i_size_read(). On 32-bit systems a 4GB file would be truncated to 0,
-   causing the function to return early and discard all data.
+This leads to severe stalls and degraded throughput.  On fuse, buffered
+write performance drops from 1400 MiB/s to 2000 KiB/s.
 
-2. 'max_folios' was declared as 'unsigned int', causing overflow for
-   sparse files larger than 4TB. For example, a 16TB+4KB file would
-   calculate 0x100000001 folios but truncate to 1 when assigned to
-   max_folios, causing memfd_pin_folios() to pin only the first folio.
+Add a per-wb threshold check for strictlimit BDIs so that background
+writeback is started when wb_dirty exceeds wb_bg_thresh, which drains
+dirty pages before the writer hits the throttle wall, matching the
+proactive behavior that the global check provides for non-strictlimit
+BDIs.
 
-Fix by changing both variables to 'u64' to match the types returned
-by i_size_read() and the folio count calculations.
+fio runs on fuse show about a 3-4% improvement in perf for buffered
+writes:
+fio --name=writeback_test --ioengine=psync --rw=write --bs=128k \
+    --size=2G --numjobs=4 --ramp_time=10 --runtime=20 \
+    --time_based --group_reporting=1 --direct=0
 
-This issue was identified by the AI review.
-https://sashiko.dev/#/patchset/20260323110747.193569-1-duanchenghao@kylinos.cn
-
-Link: https://lkml.kernel.org/r/20260326084727.118437-8-duanchenghao@kylinos.cn
-Signed-off-by: Chenghao Duan <duanchenghao@kylinos.cn>
-Cc: Haoran Jiang <jianghaoran@kylinos.cn>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+Link: https://lkml.kernel.org/r/20260326234629.840938-2-joannelkoong@gmail.com
+Fixes: 64dd89ae01f2 ("mm/block/fs: remove laptop_mode") 
+Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd_luo.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page-writeback.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/memfd_luo.c~mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios
-+++ a/mm/memfd_luo.c
-@@ -90,8 +90,8 @@ static int memfd_luo_preserve_folios(str
- {
- 	struct inode *inode = file_inode(file);
- 	struct memfd_luo_folio_ser *folios_ser;
--	unsigned int max_folios;
--	long i, size, nr_pinned;
-+	u64 size, max_folios;
-+	long i, nr_pinned;
- 	struct folio **folios;
- 	int err = -EINVAL;
- 	pgoff_t offset;
+--- a/mm/page-writeback.c~mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis
++++ a/mm/page-writeback.c
+@@ -1835,7 +1835,9 @@ static int balance_dirty_pages(struct bd
+ 			balance_domain_limits(mdtc, strictlimit);
+ 		}
+ 
+-		if (nr_dirty > gdtc->bg_thresh && !writeback_in_progress(wb))
++		if (!writeback_in_progress(wb) &&
++		    (nr_dirty > gdtc->bg_thresh ||
++		     (strictlimit && gdtc->wb_dirty > gdtc->wb_bg_thresh)))
+ 			wb_start_background_writeback(wb);
+ 
+ 		/*
 _
 
-Patches currently in -mm which might be from duanchenghao@kylinos.cn are
+Patches currently in -mm which might be from joannelkoong@gmail.com are
 
-mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch
-mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path.patch
-mm-memfd_luo-remove-unnecessary-memset-in-zero-size-memfd-path.patch
-mm-memfd_luo-use-i_size_write-to-set-inode-size-during-retrieve.patch
-mm-memfd_luo-fix-physical-address-conversion-in-put_folios-cleanup.patch
-mm-memfd_luo-remove-folio-from-page-cache-when-accounting-fails.patch
-mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios.patch
+mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch
 
