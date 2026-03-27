@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A42CA1946BC
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 00:56:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 677E27261C;
+	Fri, 27 Mar 2026 00:59:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774572991; cv=none; b=BMDos8oynQqVmYQ9K5XIcmspVyYrCkNQqU/ECmxShICQ6ocQg+oGjToVuuW/V/6RhA0UG/Y/SMZbg8+DdzHU0/VQy+ubPbaeRnbuTcv5ukfNc05A7QuGJzfCLj90NcmXAubaXr9TCRrMIcHRpctTVa5N3y9sdiW1a53RaGn+Xno=
+	t=1774573171; cv=none; b=sXWcvBXH87HFC0N1FTcG8mxLVaXwlDeZLbbFZLLlEIz6hn0vqdAMb5GxLxSyAJCke4uOhzLQTu2AN4mRg5GheS7qRXmbbL/VOF8mnVlhgGSTujUmABU2HPUCuWNSZoBN0OCg4rus5E5G5t+5cZnu54Jmgz4/8ZYLmXD/WgeZEbY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774572991; c=relaxed/simple;
-	bh=VgKvI6bGtlNrjinur4BFNQ7BUYH2EttykvG2U4Y4itI=;
-	h=Date:To:From:Subject:Message-Id; b=PatIsSloUF2UowAGwEfRDB6pNOSyc43fT58kNL7Ns5FI4+PW8bcS5RO410Mh86unTzYnQATLq+SVN6Q9V/iOq/k15hHKY5rRz0GHzT0sjxQH/9IdhyoIOUrjthpd1yEQzGgXJ8PBw4wZ0AMvalSueFDOtIeFhMaFV5eNXDbSyCQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J0nWg5SE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774573171; c=relaxed/simple;
+	bh=7AQVPZU1kUZly34CyGmu2dCnKE901wXCVHYnWIGmgeU=;
+	h=Date:To:From:Subject:Message-Id; b=lth7NZhbzckKVv95rJk+QkhZIgS13o+f9SVk8ixaZzXd+JTlj72CtNJtCmZ56NqLmg50861w/nLyCj6SqAng0NSa47MOTDx1AOssiZ/9hTKXPV8LH98nuBWpJeoaBO1aMG6H2rGiAXTcqk3WhDqPWaIqbkghCs/u8PBAA7695Yk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gM/P2V+L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J0nWg5SE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2FF7DC19423;
-	Fri, 27 Mar 2026 00:56:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gM/P2V+L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB256C116C6;
+	Fri, 27 Mar 2026 00:59:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774572991;
-	bh=VgKvI6bGtlNrjinur4BFNQ7BUYH2EttykvG2U4Y4itI=;
+	s=korg; t=1774573171;
+	bh=7AQVPZU1kUZly34CyGmu2dCnKE901wXCVHYnWIGmgeU=;
 	h=Date:To:From:Subject:From;
-	b=J0nWg5SEKicUWqZMZG1DQEWB8VbBC02hhiAYhN4YfQWTQZych6E37/64cRlh5fFYo
-	 VyfcWmK9effKrcAmzyRN3noZMd+v1ZFw3+eCt5g1ielhREDOs9M3iXUb8lVDDFR5Fw
-	 R6vrrT7q0n3qXfF4kqkt8Fw0omp/InUFKUv0nSIU=
-Date: Thu, 26 Mar 2026 17:56:30 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,miklos@szeredi.hu,jack@suse.cz,hch@infradead.org,hannes@cmpxchg.org,joannelkoong@gmail.com,akpm@linux-foundation.org
+	b=gM/P2V+LJBUI9+wTQvNUGNfn/yIqyW0RpVu8oESP1TF9d1ctFmATpcqu040xw3+Ig
+	 o/OCSpdwD8ii944ec4qsNeZTqcAs732VYuRveIe1stLwXBwsswPjVINJk6x5G8EFvD
+	 dBpQZ2Xp+jgGgZxXlELpIF62B2ZxxhLvTW1NB2dE=
+Date: Thu, 26 Mar 2026 17:59:29 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch added to mm-new branch
-Message-Id: <20260327005631.2FF7DC19423@smtp.kernel.org>
+Subject: + mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260327005930.EB256C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: start background writeback based on per-wb threshold for strictlimit BDIs
-has been added to the -mm mm-new branch.  Its filename is
-     mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch
+     Subject: mm/damon/sysfs: dealloc repeat_call_control if damon_call() fails
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,78 +58,87 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Joanne Koong <joannelkoong@gmail.com>
-Subject: mm: start background writeback based on per-wb threshold for strictlimit BDIs
-Date: Thu, 26 Mar 2026 16:46:29 -0700
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs: dealloc repeat_call_control if damon_call() fails
+Date: Thu, 26 Mar 2026 17:32:22 -0700
 
-The proactive nr_dirty > gdtc->bg_thresh check in balance_dirty_pages()
-only checks the global dirty threshold to start background writeback while
-the writer is still free-running, but for strictlimit BDIs (eg fuse), the
-per-wb dirty count can exceed the per-wb background threshold while the
-global threshold is not yet exceeded, so background writeback for this
-case never gets proactively started.
+damon_call() for repeat_call_control of DAMON_SYSFS could fail if somehow
+the kdamond is stopped before the damon_call().  It could happen, for
+example, when te damon context was made for monitroing of a virtual
+address processes, and the process is terminated immediately, before the
+damon_call() invocation.  In the case, the dyanmically allocated
+repeat_call_control is not deallocated and leaked.
 
-Add a per-wb threshold check for strictlimit BDIs so that background
-writeback is started when wb_dirty exceeds wb_bg_thresh, which drains
-dirty pages before the writer hits the throttle wall, matching the
-proactive behavior that the global check provides for non-strictlimit
-BDIs.
+Fix the leak by deallocating the repeat_call_control under the
+damon_call() failure.
 
-fio runs on fuse show about a 3-4% improvement in perf for buffered
-writes:
-fio --name=writeback_test --ioengine=psync --rw=write --bs=128k \
-    --size=2G --numjobs=4 --ramp_time=10 --runtime=20 \
-    --time_based --group_reporting=1 --direct=0
+This issue is discovered by sashiko [1].
 
-Link: https://lkml.kernel.org/r/20260326234629.840938-2-joannelkoong@gmail.com
-Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20260327003224.55752-1-sj@kernel.org
+Link: https://lore.kernel.org/20260320020630.962-1-sj@kernel.org [1]
+Fixes: 04a06b139ec0 ("mm/damon/sysfs: use dynamically allocated repeat mode damon_call_control")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[6.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ mm/damon/sysfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/page-writeback.c~mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis
-+++ a/mm/page-writeback.c
-@@ -1835,7 +1835,9 @@ static int balance_dirty_pages(struct bd
- 			balance_domain_limits(mdtc, strictlimit);
- 		}
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails
++++ a/mm/damon/sysfs.c
+@@ -1670,7 +1670,8 @@ static int damon_sysfs_turn_damon_on(str
+ 	repeat_call_control->data = kdamond;
+ 	repeat_call_control->repeat = true;
+ 	repeat_call_control->dealloc_on_cancel = true;
+-	damon_call(ctx, repeat_call_control);
++	if (damon_call(ctx, repeat_call_control))
++		kfree(repeat_call_control);
+ 	return err;
+ }
  
--		if (nr_dirty > gdtc->bg_thresh && !writeback_in_progress(wb))
-+		if (!writeback_in_progress(wb) &&
-+		    (nr_dirty > gdtc->bg_thresh ||
-+		     (strictlimit && gdtc->wb_dirty > gdtc->wb_bg_thresh)))
- 			wb_start_background_writeback(wb);
- 
- 		/*
-@@ -1862,15 +1864,9 @@ free_running:
- 		 * Unconditionally start background writeback if it's not
- 		 * already in progress. We need to do this because the global
- 		 * dirty threshold check above (nr_dirty > gdtc->bg_thresh)
--		 * doesn't account for these cases:
--		 *
--		 * a) strictlimit BDIs: throttling is calculated using per-wb
--		 * thresholds. The per-wb threshold can be exceeded even when
--		 * nr_dirty < gdtc->bg_thresh
--		 *
--		 * b) memcg-based throttling: memcg uses its own dirty count and
--		 * thresholds and can trigger throttling even when global
--		 * nr_dirty < gdtc->bg_thresh
-+		 * doesn't account for the memcg-based throttling case. memcg
-+		 * uses its own dirty count and thresholds and can trigger
-+		 * throttling even when global nr_dirty < gdtc->bg_thresh
- 		 *
- 		 * Writeback needs to be started else the writer stalls in the
- 		 * throttle loop waiting for dirty pages to be written back
 _
 
-Patches currently in -mm which might be from joannelkoong@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-reinstate-unconditional-writeback-start-in-balance_dirty_pages.patch
-mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch
+mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch
+mm-damon-add-config_damon_debug_sanity.patch
+mm-damon-core-add-damon_new_region-debug_sanity-check.patch
+mm-damon-core-add-damon_del_region-debug_sanity-check.patch
+mm-damon-core-add-damon_nr_regions-debug_sanity-check.patch
+mm-damon-core-add-damon_merge_two_regions-debug_sanity-check.patch
+mm-damon-core-add-damon_merge_regions_of-debug_sanity-check.patch
+mm-damon-core-add-damon_split_region_at-debug_sanity-check.patch
+mm-damon-core-add-damon_reset_aggregated-debug_sanity-check.patch
+mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
+selftests-damon-config-enable-damon_debug_sanity.patch
+mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
+docs-mm-damon-design-document-the-power-of-two-limitation-for-addr_unit.patch
+mm-damon-core-remove-damos_set_next_apply_sis-duplicates.patch
+mm-damon-core-use-time_before-for-next_apply_sis.patch
+mm-damon-core-use-time_after_eq-in-kdamond_fn.patch
+mm-damon-core-use-mult_frac.patch
+mm-damon-tests-core-kunit-add-a-test-for-damon_is_last_region.patch
+mm-damon-core-clarify-damon_set_attrs-usages.patch
+mm-damon-document-non-zero-length-damon_region-assumption.patch
+docs-admin-guide-mm-damn-lru_sort-fix-intervals-autotune-parameter-name.patch
+docs-mm-damon-maintainer-profile-use-flexible-review-cadence.patch
+docs-mm-damon-index-fix-typo-autoamted-automated.patch
+mm-damon-core-introduce-damos_quota_goal_tuner.patch
+mm-damon-core-allow-quota-goals-set-zero-effective-size-quota.patch
+mm-damon-core-introduce-damos_quota_goal_tuner_temporal.patch
+mm-damon-sysfs-schemes-implement-quotas-goal_tuner-file.patch
+docs-mm-damon-design-document-the-goal-based-quota-tuner-selections.patch
+docs-admin-guide-mm-damon-usage-document-goal_tuner-sysfs-file.patch
+docs-abi-damon-update-for-goal_tuner.patch
+mm-damon-tests-core-kunit-test-goal_tuner-commit.patch
+selftests-damon-_damon_sysfs-support-goal_tuner-setup.patch
+selftests-damon-drgn_dump_damon_status-support-quota-goal_tuner-dumping.patch
+selftests-damon-sysfspy-test-goal_tuner-commit.patch
+mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
+mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
+mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default.patch
+mm-damon-core-receive-addr_unit-on-damon_set_region_biggest_system_ram_default-fix.patch
+mm-damon-reclaim-respect-addr_unit-on-default-monitoring-region-setup.patch
+mm-damon-lru_sort-respect-addr_unit-on-default-monitoring-region-setup.patch
 
