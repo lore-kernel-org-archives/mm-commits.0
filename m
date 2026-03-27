@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B37A23115B5
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:31:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B87B93090F4
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:31:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774632700; cv=none; b=XxOgtzd/4EtPZz7yJS0e5iNECUjWJpzauwLJzMHcTXdXS7ZOb32naBzv7L30kWHZ1kuIxHYWuNPRd7hGvuLvPDOwY8YJCuFye5g39FwPyCsoQ+FIQvZbbSXksNiFArX8W5PSAx+lKP5aG47v/a0UkP3cm4trKNOaoeGDodzJUyU=
+	t=1774632702; cv=none; b=QWSfevTjxoYRAuVTzD0Ws9N6mm4FFFqJtb7qCjIQ27PT2aGkInLtc4FHNAEW2DzxwaS7ipzljHR5e7KdV0r0kMKWqO3YvfRXZB/4mbIt82hd7R1lEGBIsCUksxHg7PXBSGdwlHbq8/sT44de8WM+fM1y8qTMHG3sUU7ZkC1fLUI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774632700; c=relaxed/simple;
-	bh=CZxXMNDadCETDIBfiQ0qjU1IAgqn40LnfHmp0s09yF4=;
-	h=Date:To:From:Subject:Message-Id; b=dNmKBKSXqG3d+br1EeXErjxNNISvRJkTN86Ovadnkt0YjV6JUoDauwCwmdDGXeqgCDMb5/MuKW511oSkBH3OGC+yKROVISETrrpj9Yiu8Rl1pInfzMXuXiYGdUSxBqdg2E1zQJ5uu1hZyhmkl/L5BbcXsGkQEBdVzo9L879EXZg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZD+q7miG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774632702; c=relaxed/simple;
+	bh=c/ETKRbYaYiRdF1JC6EWOxxWdyXt0CmjuLctmTIxvwQ=;
+	h=Date:To:From:Subject:Message-Id; b=mhu+hbR/rjX7PaW8r931FQxOmL7nk2a3ZbyFJWrdSJpCUbLOJoKKwDN7YNuU8t/19ebpT3fJAvnZ7zNubIzXZb4icj+LoZK41rNoEfVAxw2BNr0OauVh4eKtskJAeQFCWElBjHhTSpyatEsMjZ81dg8P+XChE9yxpa/pKPRw7VM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1NnLSwO0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZD+q7miG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55AF2C19423;
-	Fri, 27 Mar 2026 17:31:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1NnLSwO0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45525C19423;
+	Fri, 27 Mar 2026 17:31:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774632700;
-	bh=CZxXMNDadCETDIBfiQ0qjU1IAgqn40LnfHmp0s09yF4=;
+	s=korg; t=1774632702;
+	bh=c/ETKRbYaYiRdF1JC6EWOxxWdyXt0CmjuLctmTIxvwQ=;
 	h=Date:To:From:Subject:From;
-	b=ZD+q7miGMgT7hiwyTfwm3Ujh1r+TMCPnRvlUvg4hZ9Dr7oXj//hGSrTbui8pLeKEH
-	 GtIxCEPuR6XnV1khQs/+78j9uQ1FkCEWmBo17BsOiuC+Wr+veVKFWW0Tn6Qt4zhe2A
-	 Z1Hom8Wb8LzrhXMB5GpQntNiUQ6BP94vp7bnduGA=
-Date: Fri, 27 Mar 2026 10:31:39 -0700
+	b=1NnLSwO0oWzJ3ZevcwRZ+0w6JhQ9hQNZApSMXuO3TN/ND2s+4E7uQSiPYMoP4JMmf
+	 gkQOUdslbL37ApYSi5w5OQOmdt9WeuPUVulabZgbAQ3YALiGTrpI7sdxClja2Nffm9
+	 vVwwJCZs7z7AwC9AOg+YG1wjQUNPrG/giFlHdK2Q=
+Date: Fri, 27 Mar 2026 10:31:41 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] arm-xor-remove-in_interrupt-handling.patch removed from -mm tree
-Message-Id: <20260327173140.55AF2C19423@smtp.kernel.org>
+Subject: [to-be-updated] um-xor-cleanup-xorh.patch removed from -mm tree
+Message-Id: <20260327173142.45525C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm/xor: remove in_interrupt() handling
+     Subject: um/xor: cleanup xor.h
 has been removed from the -mm tree.  Its filename was
-     arm-xor-remove-in_interrupt-handling.patch
+     um-xor-cleanup-xorh.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: arm/xor: remove in_interrupt() handling
-Date: Tue, 24 Mar 2026 07:21:38 +0100
+Subject: um/xor: cleanup xor.h
+Date: Tue, 24 Mar 2026 07:21:39 +0100
 
-xor_blocks can't be called from interrupt context, so remove the handling
-for that.
+Since commit c055e3eae0f1 ("crypto: xor - use ktime for template
+benchmarking") the benchmarking works just fine even for TT_MODE_INFCPU,
+so drop the workarounds.  Note that for CPUs supporting AVX2, which
+includes almost everything built in the last 10 years, the AVX2
+implementation is forced anyway.
 
-Link: https://lkml.kernel.org/r/20260324062211.3216301-3-hch@lst.de
+CONFIG_X86_32 is always correctly set for UM in arch/x86/um/Kconfig, so
+don't override it either.
+
+Link: https://lkml.kernel.org/r/20260324062211.3216301-4-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Richard Weinberger <richard@nod.at>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -80,7 +87,6 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Richard Henderson <richard.henderson@linaro.org>
-Cc: Richard Weinberger <richard@nod.at>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Song Liu <song@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
@@ -91,92 +97,39 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/xor.h |   41 ++++++++++-------------------------
- 1 file changed, 12 insertions(+), 29 deletions(-)
+ arch/um/include/asm/xor.h |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
---- a/arch/arm/include/asm/xor.h~arm-xor-remove-in_interrupt-handling
-+++ a/arch/arm/include/asm/xor.h
-@@ -4,7 +4,6 @@
-  *
-  *  Copyright (C) 2001 Russell King
-  */
--#include <linux/hardirq.h>
- #include <asm-generic/xor.h>
- #include <asm/hwcap.h>
- #include <asm/neon.h>
-@@ -156,13 +155,9 @@ static void
- xor_neon_2(unsigned long bytes, unsigned long * __restrict p1,
- 	   const unsigned long * __restrict p2)
- {
--	if (in_interrupt()) {
--		xor_arm4regs_2(bytes, p1, p2);
--	} else {
--		kernel_neon_begin();
--		xor_block_neon_inner.do_2(bytes, p1, p2);
--		kernel_neon_end();
--	}
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_2(bytes, p1, p2);
-+	kernel_neon_end();
- }
+--- a/arch/um/include/asm/xor.h~um-xor-cleanup-xorh
++++ a/arch/um/include/asm/xor.h
+@@ -2,23 +2,7 @@
+ #ifndef _ASM_UM_XOR_H
+ #define _ASM_UM_XOR_H
  
- static void
-@@ -170,13 +165,9 @@ xor_neon_3(unsigned long bytes, unsigned
- 	   const unsigned long * __restrict p2,
- 	   const unsigned long * __restrict p3)
- {
--	if (in_interrupt()) {
--		xor_arm4regs_3(bytes, p1, p2, p3);
--	} else {
--		kernel_neon_begin();
--		xor_block_neon_inner.do_3(bytes, p1, p2, p3);
--		kernel_neon_end();
--	}
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_3(bytes, p1, p2, p3);
-+	kernel_neon_end();
- }
+-#ifdef CONFIG_64BIT
+-#undef CONFIG_X86_32
+-#define TT_CPU_INF_XOR_DEFAULT (AVX_SELECT(&xor_block_sse_pf64))
+-#else
+-#define CONFIG_X86_32 1
+-#define TT_CPU_INF_XOR_DEFAULT (AVX_SELECT(&xor_block_8regs))
+-#endif
+-
+ #include <asm/cpufeature.h>
+ #include <../../x86/include/asm/xor.h>
+-#include <linux/time-internal.h>
+-
+-#ifdef CONFIG_UML_TIME_TRAVEL_SUPPORT
+-#undef XOR_SELECT_TEMPLATE
+-/* pick an arbitrary one - measuring isn't possible with inf-cpu */
+-#define XOR_SELECT_TEMPLATE(x)	\
+-	(time_travel_mode == TT_MODE_INFCPU ? TT_CPU_INF_XOR_DEFAULT : x)
+-#endif
  
- static void
-@@ -185,13 +176,9 @@ xor_neon_4(unsigned long bytes, unsigned
- 	   const unsigned long * __restrict p3,
- 	   const unsigned long * __restrict p4)
- {
--	if (in_interrupt()) {
--		xor_arm4regs_4(bytes, p1, p2, p3, p4);
--	} else {
--		kernel_neon_begin();
--		xor_block_neon_inner.do_4(bytes, p1, p2, p3, p4);
--		kernel_neon_end();
--	}
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_4(bytes, p1, p2, p3, p4);
-+	kernel_neon_end();
- }
- 
- static void
-@@ -201,13 +188,9 @@ xor_neon_5(unsigned long bytes, unsigned
- 	   const unsigned long * __restrict p4,
- 	   const unsigned long * __restrict p5)
- {
--	if (in_interrupt()) {
--		xor_arm4regs_5(bytes, p1, p2, p3, p4, p5);
--	} else {
--		kernel_neon_begin();
--		xor_block_neon_inner.do_5(bytes, p1, p2, p3, p4, p5);
--		kernel_neon_end();
--	}
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_5(bytes, p1, p2, p3, p4, p5);
-+	kernel_neon_end();
- }
- 
- static struct xor_block_template xor_block_neon = {
+ #endif
 _
 
 Patches currently in -mm which might be from hch@lst.de are
 
-um-xor-cleanup-xorh.patch
 xor-move-to-lib-raid.patch
 xor-small-cleanups.patch
 xor-cleanup-registration-and-probing.patch
