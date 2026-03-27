@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0920C329E5A;
-	Fri, 27 Mar 2026 02:15:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4721A74BE1
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 05:34:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774577726; cv=none; b=dthh41AsSWfOySQ2XTzVj2gR1qsPBaD4WHTxr1nL1q2r4XtbWZxoYCyDGlobQfgTXnODnbtmejn/7xYmb6Gl0AV6D959Ft2SlarF7Qkok9t3vUGRtkI2TJRBMiht8by4a2xI8ETPX9z/LUOcSIDdMtXgedafL4MgAiIuu7oKu38=
+	t=1774589674; cv=none; b=QVpAwSCY989haTgMv8m2TywXGGY9HkTLXvTYfHaDWiExpqJ56Ua4Zbqo0tls+7q2nmm7c2DBsez/69PCLkKtet8i+E6SRvkdMdcO2sG1iAVab/LPBmIzQ6xuurMgHb7V9HPJrlQ/Z3ibmxY6T0Xjg8kQ00/D++yp/bqStfFD4Qo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774577726; c=relaxed/simple;
-	bh=CtAWkGMvmgaWzI6n1vOUwGCglJtxx00IEzrd0BAI64Y=;
-	h=Date:To:From:Subject:Message-Id; b=A4zrK0Epm+7OWkKWktlocWJeKCmZPEaaL/KAa3LFwWOQRHFciRJ1PKTLfDCssiS7IFGhswPIV8vX8NMy4Ms4GNXYGhGfRYvG+xKff/MDHqqw/V3nRk/x7RfiUfZjo+2BKnQEmRtqp18WTX5libYPxvpi8aD1Wib2MIaNH+dm0gw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AIKx6qeW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774589674; c=relaxed/simple;
+	bh=+9fDCZPV5nnmdqpM7qgLK+aC8bXJR9xTvEOMFt0IgFk=;
+	h=Date:To:From:Subject:Message-Id; b=fL7fzuPPeGGvj4VRUm+q368N8SW0qi86144+VHir7GrNgSuJYuGvyKd1T7icOboRZ93J2nAlivqbUDmBZMa5xXJWEv4Nd06bDi0CtWzXOdceG85qgZUTHWl9dr4lF2hVsK37awYnmLTe7PdA1X+6Js9h3KBAu+ex909BxEFcOOQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gmdpG9Hy; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AIKx6qeW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79721C19423;
-	Fri, 27 Mar 2026 02:15:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gmdpG9Hy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8A61C19423;
+	Fri, 27 Mar 2026 05:34:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774577725;
-	bh=CtAWkGMvmgaWzI6n1vOUwGCglJtxx00IEzrd0BAI64Y=;
+	s=korg; t=1774589674;
+	bh=+9fDCZPV5nnmdqpM7qgLK+aC8bXJR9xTvEOMFt0IgFk=;
 	h=Date:To:From:Subject:From;
-	b=AIKx6qeWVQHVSCKMHAMmFpWVSQS776sQ3eQT5zr1OZ1ON3FNdUA1Zk3GAc/NVW5I3
-	 u4+oRRv+GOk6zVKb798zQrw8TJchlokduRe0kE/PLIMsOl6Ncobp4pq42BC+xwNvXi
-	 kJaoIIeU67Usp7atDwk0zQslk8T7oETwJWXjPNdQ=
-Date: Thu, 26 Mar 2026 19:15:24 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,mhocko@kernel.org,ljs@kernel.org,koichiro.den@canonical.com,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,dave@stgolabs.net,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=gmdpG9Hy2ggtX7HBsngGXz/sD9zPLaFeY7GBuuHX9rbdNvK6QzlivbOGt9NymAoCj
+	 ftg/3+bcDacie5ijOMkVJvNsZmqr8axJUebNjxQ6SwDjOfKIuz+XJPENj29gHkM252
+	 rHSCUR0/Gqd5oExeMYPOn+6Nmmzz/LDwGWiPKCHg=
+Date: Thu, 26 Mar 2026 22:34:33 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,nathan@kernel.org,morbo@google.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,justinstitt@google.com,david.laight.linux@gmail.com,david@kernel.org,qq570070308@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmscan-avoid-false-positive-wuninitialized-warning.patch removed from -mm tree
-Message-Id: <20260327021525.79721C19423@smtp.kernel.org>
+Subject: [nacked] mm-optimize-the-implementation-of-warn_on_once_gfp.patch removed from -mm tree
+Message-Id: <20260327053433.E8A61C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,130 +35,66 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmscan: avoid false-positive -Wuninitialized warning
+     Subject: mm: optimize the implementation of WARN_ON_ONCE_GFP()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-avoid-false-positive-wuninitialized-warning.patch
+     mm-optimize-the-implementation-of-warn_on_once_gfp.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm/vmscan: avoid false-positive -Wuninitialized warning
-Date: Fri, 13 Feb 2026 13:38:56 +0100
+From: Xie Yuanbin <qq570070308@gmail.com>
+Subject: mm: optimize the implementation of WARN_ON_ONCE_GFP()
+Date: Mon, 9 Mar 2026 23:38:11 +0800
 
-When the -fsanitize=bounds sanitizer is enabled, gcc-16 sometimes runs
-into a corner case in the read_ctrl_pos() pos function, where it sees
-possible undefined behavior from the 'tier' index overflowing, presumably
-in the case that this was called with a negative tier:
+As shown in the commit message of commit 242b872239f6a7deacbc
+("include/linux/once_lite.h: fix judgment in WARN_ONCE with clang"), the
+code "unlikely(a && b)" may generate poor assembly code if it is actually
+"unlikely(a) && unlikely(b)" or "unlikely(a) && b".
 
-In function 'get_tier_idx',
-    inlined from 'isolate_folios' at mm/vmscan.c:4671:14:
-mm/vmscan.c: In function 'isolate_folios':
-mm/vmscan.c:4645:29: error: 'pv.refaulted' is used uninitialized [-Werror=uninitialized]
+WARN_ON_ONCE_GFP() may be used in the hot path code:
+1. The argument cond should be unlikely.
+2. When "1." is true, !(gfp & __GFP_NOWARN) is unlikely, otherwise, a
+   WARN may be triggered, which is a very unlikely case.
+3. When "1. && 2." is true, just like the implementation of WARN_ONCE(),
+   !__warned can be unlikely.
 
-This can happen with CONFIG_UBSAN_ARRAY_BOUNDS=y.  The actual warning
-only shows up in some configurations with that, so either there is some
-other dependency, or an element of chance based on gcc optimizations.
+Reorder __ret_warn_once judgement to first and split out the unlikely() in
+WARN_ON_ONCE_GFP() to optimize performance.
 
-Part of the problem seems to be that read_ctrl_pos() has unusual calling
-conventions since commit 37a260870f2c ("mm/mglru: rework type selection")
-where passing MAX_NR_TIERS makes it accumulate all tiers but passing a
-smaller positive number makes it read a single tier instead.
-
-Avoid this case by splitting read_ctrl_pos() into two separate helpers
-that each only do one of the two cases.  This avoids the warning as far as
-I can tell, and seems a bit easier to understand to me.
-
-Link: https://lkml.kernel.org/r/20260213123902.3466040-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20260309153811.40958-1-qq570070308@gmail.com
+Signed-off-by: Xie Yuanbin <qq570070308@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Bill Wendling <morbo@google.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Koichiro Den <koichiro.den@canonical.com>
+Cc: Justin Stitt <justinstitt@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: <stable@vger.kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: David Laight <david.laight.linux@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   37 +++++++++++++++++++++++++------------
- 1 file changed, 25 insertions(+), 12 deletions(-)
+ mm/internal.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-avoid-false-positive-wuninitialized-warning
-+++ a/mm/vmscan.c
-@@ -3125,20 +3125,15 @@ struct ctrl_pos {
- static void read_ctrl_pos(struct lruvec *lruvec, int type, int tier, int gain,
- 			  struct ctrl_pos *pos)
- {
--	int i;
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	int hist = lru_hist_from_seq(lrugen->min_seq[type]);
- 
- 	pos->gain = gain;
--	pos->refaulted = pos->total = 0;
--
--	for (i = tier % MAX_NR_TIERS; i <= min(tier, MAX_NR_TIERS - 1); i++) {
--		pos->refaulted += lrugen->avg_refaulted[type][i] +
--				  atomic_long_read(&lrugen->refaulted[hist][type][i]);
--		pos->total += lrugen->avg_total[type][i] +
--			      lrugen->protected[hist][type][i] +
--			      atomic_long_read(&lrugen->evicted[hist][type][i]);
--	}
-+	pos->refaulted = lrugen->avg_refaulted[type][tier] +
-+			 atomic_long_read(&lrugen->refaulted[hist][type][tier]);
-+	pos->total = lrugen->avg_total[type][tier] +
-+		     lrugen->protected[hist][type][tier] +
-+		     atomic_long_read(&lrugen->evicted[hist][type][tier]);
- }
- 
- static void reset_ctrl_pos(struct lruvec *lruvec, int type, bool carryover)
-@@ -4775,6 +4770,24 @@ static int get_tier_idx(struct lruvec *l
- 	return tier - 1;
- }
- 
-+static void aggregate_ctrl_pos(struct lruvec *lruvec, int type, int gain,
-+			       struct ctrl_pos *pos)
-+{
-+	struct lru_gen_folio *lrugen = &lruvec->lrugen;
-+	int hist = lru_hist_from_seq(lrugen->min_seq[type]);
-+
-+	pos->gain = gain;
-+	pos->refaulted = pos->total = 0;
-+
-+	for (int i = 0; i < MAX_NR_TIERS; i++) {
-+		pos->refaulted += lrugen->avg_refaulted[type][i] +
-+				  atomic_long_read(&lrugen->refaulted[hist][type][i]);
-+		pos->total += lrugen->avg_total[type][i] +
-+			      lrugen->protected[hist][type][i] +
-+			      atomic_long_read(&lrugen->evicted[hist][type][i]);
-+	}
-+}
-+
- static int get_type_to_scan(struct lruvec *lruvec, int swappiness)
- {
- 	struct ctrl_pos sp, pv;
-@@ -4788,8 +4801,8 @@ static int get_type_to_scan(struct lruve
- 	 * Compare the sum of all tiers of anon with that of file to determine
- 	 * which type to scan.
- 	 */
--	read_ctrl_pos(lruvec, LRU_GEN_ANON, MAX_NR_TIERS, swappiness, &sp);
--	read_ctrl_pos(lruvec, LRU_GEN_FILE, MAX_NR_TIERS, MAX_SWAPPINESS - swappiness, &pv);
-+	aggregate_ctrl_pos(lruvec, LRU_GEN_ANON, swappiness, &sp);
-+	aggregate_ctrl_pos(lruvec, LRU_GEN_FILE, MAX_SWAPPINESS - swappiness, &pv);
- 
- 	return positive_ctrl_err(&sp, &pv);
- }
+--- a/mm/internal.h~mm-optimize-the-implementation-of-warn_on_once_gfp
++++ a/mm/internal.h
+@@ -94,7 +94,8 @@ struct pagetable_move_control {
+ 	static bool __section(".data..once") __warned;			\
+ 	int __ret_warn_once = !!(cond);					\
+ 									\
+-	if (unlikely(!(gfp & __GFP_NOWARN) && __ret_warn_once && !__warned)) { \
++	if (unlikely(__ret_warn_once) &&				\
++	    unlikely(!(gfp & __GFP_NOWARN)) && unlikely(!__warned)) {	\
+ 		__warned = true;					\
+ 		WARN_ON(1);						\
+ 	}								\
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from qq570070308@gmail.com are
 
-bug-avoid-format-attribute-warning-for-clang-as-well.patch
-ubsan-turn-off-kmsan-inside-of-ubsan-instrumentation.patch
 
