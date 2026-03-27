@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9ED3F35F5E9
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:32:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87DEF3FA5E1
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:32:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774632738; cv=none; b=dl8maUYoTmkdnI6ln0yPe1j3w6LwE35hVx8/yso0rFVqjLjMRBOy3/+xJHhulO6QSL7ShZ98tFVgsRkM6ZNbnMW/POWWxB/oUhoYGlXuZfpdjJeJ765kwI8p2Y37S41R7qmmD5UPcwHXP08po+QYFs079641zuNWcBgdtLJMPDI=
+	t=1774632740; cv=none; b=JW5s08pglcuXph+lLOLhr9zeAp1uYeaZ9OgtFmX5hvRYX+Y5sbmPwki8W2ecsSP1qkslGC3amW6geh66l0HMfnxXMO8sZIbt5M85hBD78UmFZOmWl8TbOXETi/Zi0m5xc6nswBquVXRCg6h3ZOi8My1tbQYFMJ3ojrzm9Y83+3I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774632738; c=relaxed/simple;
-	bh=VNrFQKAU9SWi/ZdklsxfwBeg/q/PFFrPmYerVQ7Ya3U=;
-	h=Date:To:From:Subject:Message-Id; b=OupNPaBO7euEtO6zM5lsHbScRB30qusOk++enTbszIdnAkI+f83CnHUetIa2LOAoRsy7P37H4djEnKCZacGFVI/5Rra6vggwY7dkEfsZ0E9siKQkARxYHs8erlMOpvv9MkRR98HyBGeRbtsYtICtUL0xNc8tZkzxVxR+yq37zbI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yYLI7Bzf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774632740; c=relaxed/simple;
+	bh=i4Dl1/tx0FiAm34BEq2UW+b8WW7RNq5R1en6sH5oOLQ=;
+	h=Date:To:From:Subject:Message-Id; b=L/YZDdDsHdpHxHQXp0yT5OMnys4ivZNna1U/zmD17vgbkfaq4S2DvHB5ivWaK11r9HYvcB/nLzl7I6yyBNBnZJXUEeaRrf0U/XAAhJLLAU2qs4jQSkHSgY3zCJ2ry6ugrq+ydAcDoaVKWqcWXxz8CiRHvCpzhgiIQ1vdU2Uz2x4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DIyNSl18; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yYLI7Bzf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37724C19423;
-	Fri, 27 Mar 2026 17:32:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DIyNSl18"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27552C19423;
+	Fri, 27 Mar 2026 17:32:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774632738;
-	bh=VNrFQKAU9SWi/ZdklsxfwBeg/q/PFFrPmYerVQ7Ya3U=;
+	s=korg; t=1774632740;
+	bh=i4Dl1/tx0FiAm34BEq2UW+b8WW7RNq5R1en6sH5oOLQ=;
 	h=Date:To:From:Subject:From;
-	b=yYLI7BzfxZEesB5dej+XYxWe96S4kSQi7CIBEviluXBItzmZ8RUT+Z+DhVVs3OOGI
-	 00uX9LeoFW96xES3xpb1Ep6t7kkXT3VPf9QODUWDigUieXbJ3Q0F8xfbBDUnfnHZIQ
-	 9cXHcseg0yrlw9HZm6lW9utsh3lWW+3FvbEwlDS8=
-Date: Fri, 27 Mar 2026 10:32:17 -0700
+	b=DIyNSl18x08hNsktDfWW6Ct4vzLl4U+sXEW129/L1a2K1sEpZ03Z0cQL4nlDL/Nai
+	 3LiCsc4Ql7TntH6uPRJDrDBlXh3QSXdtvYfRDxr0eo/SNiuu/097rS9OefrYEiCyMa
+	 IzQ7RQXs/xAgp6+yVrv4D0YUUBguXoQ5CygyzFzw=
+Date: Fri, 27 Mar 2026 10:32:19 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] xor-add-a-better-public-api.patch removed from -mm tree
-Message-Id: <20260327173218.37724C19423@smtp.kernel.org>
+Subject: [to-be-updated] async_xor-use-xor_gen.patch removed from -mm tree
+Message-Id: <20260327173220.27552C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xor: add a better public API
+     Subject: async_xor: use xor_gen
 has been removed from the -mm tree.  Its filename was
-     xor-add-a-better-public-api.patch
+     async_xor-use-xor_gen.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: xor: add a better public API
-Date: Tue, 24 Mar 2026 07:21:57 +0100
+Subject: async_xor: use xor_gen
+Date: Tue, 24 Mar 2026 07:21:58 +0100
 
-xor_blocks is very annoying to use, because it is limited to 4 + 1
-sources / destinations, has an odd argument order and is completely
-undocumented.
+Replace use of the loop around xor_blocks with the easier to use xor_gen
+API.
 
-Lift the code that loops around it from btrfs and async_tx/async_xor into
-common code under the name xor_gen and properly document it.
-
-Link: https://lkml.kernel.org/r/20260324062211.3216301-22-hch@lst.de
+Link: https://lkml.kernel.org/r/20260324062211.3216301-23-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -95,65 +91,81 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/raid/xor.h |    2 ++
- lib/raid/xor/xor-core.c  |   32 ++++++++++++++++++++++++++++++++
- 2 files changed, 34 insertions(+)
+ crypto/async_tx/async_xor.c |   34 ++++++++++------------------------
+ 1 file changed, 10 insertions(+), 24 deletions(-)
 
---- a/include/linux/raid/xor.h~xor-add-a-better-public-api
-+++ a/include/linux/raid/xor.h
-@@ -7,4 +7,6 @@
- extern void xor_blocks(unsigned int count, unsigned int bytes,
- 	void *dest, void **srcs);
+--- a/crypto/async_tx/async_xor.c~async_xor-use-xor_gen
++++ a/crypto/async_tx/async_xor.c
+@@ -103,7 +103,6 @@ do_sync_xor_offs(struct page *dest, unsi
+ {
+ 	int i;
+ 	int xor_src_cnt = 0;
+-	int src_off = 0;
+ 	void *dest_buf;
+ 	void **srcs;
  
-+void xor_gen(void *dest, void **srcs, unsigned int src_cnt, unsigned int bytes);
+@@ -117,23 +116,12 @@ do_sync_xor_offs(struct page *dest, unsi
+ 		if (src_list[i])
+ 			srcs[xor_src_cnt++] = page_address(src_list[i]) +
+ 				(src_offs ? src_offs[i] : offset);
+-	src_cnt = xor_src_cnt;
 +
- #endif /* _XOR_H */
---- a/lib/raid/xor/xor-core.c~xor-add-a-better-public-api
-+++ a/lib/raid/xor/xor-core.c
-@@ -46,6 +46,38 @@ xor_blocks(unsigned int src_count, unsig
+ 	/* set destination address */
+ 	dest_buf = page_address(dest) + offset;
+-
+ 	if (submit->flags & ASYNC_TX_XOR_ZERO_DST)
+ 		memset(dest_buf, 0, len);
+-
+-	while (src_cnt > 0) {
+-		/* process up to 'MAX_XOR_BLOCKS' sources */
+-		xor_src_cnt = min(src_cnt, MAX_XOR_BLOCKS);
+-		xor_blocks(xor_src_cnt, len, dest_buf, &srcs[src_off]);
+-
+-		/* drop completed sources */
+-		src_cnt -= xor_src_cnt;
+-		src_off += xor_src_cnt;
+-	}
+-
++	xor_gen(dest_buf, srcs, xor_src_cnt, len);
+ 	async_tx_sync_epilog(submit);
  }
- EXPORT_SYMBOL(xor_blocks);
  
-+/**
-+ * xor_gen - generate RAID-style XOR information
-+ * @dest:	destination vector
-+ * @srcs:	source vectors
-+ * @src_cnt:	number of source vectors
-+ * @bytes:	length in bytes of each vector
-+ *
-+ * Performs bit-wise XOR operation into @dest for each of the @src_cnt vectors
-+ * in @srcs for a length of @bytes bytes.  @src_count must be non-zero, and the
-+ * memory pointed to by @dest and each member of @srcs must be at least 64-byte
-+ * aligned.  @bytes must be non-zero and a multiple of 512.
-+ *
-+ * Note: for typical RAID uses, @dest either needs to be zeroed, or filled with
-+ * the first disk, which then needs to be removed from @srcs.
-+ */
-+void xor_gen(void *dest, void **srcs, unsigned int src_cnt, unsigned int bytes)
-+{
-+	unsigned int src_off = 0;
-+
-+	WARN_ON_ONCE(bytes & 511);
-+
-+	while (src_cnt > 0) {
-+		unsigned int this_cnt = min(src_cnt, MAX_XOR_BLOCKS);
-+
-+		xor_blocks(this_cnt, bytes, dest, srcs + src_off);
-+
-+		src_cnt -= this_cnt;
-+		src_off += this_cnt;
-+	}
-+}
-+EXPORT_SYMBOL(xor_gen);
-+
- /* Set of all registered templates.  */
- static struct xor_block_template *__initdata template_list;
- static bool __initdata xor_forced = false;
+@@ -168,11 +156,10 @@ dma_xor_aligned_offsets(struct dma_devic
+  *
+  * honored flags: ASYNC_TX_ACK, ASYNC_TX_XOR_ZERO_DST, ASYNC_TX_XOR_DROP_DST
+  *
+- * xor_blocks always uses the dest as a source so the
+- * ASYNC_TX_XOR_ZERO_DST flag must be set to not include dest data in
+- * the calculation.  The assumption with dma engines is that they only
+- * use the destination buffer as a source when it is explicitly specified
+- * in the source list.
++ * xor_gen always uses the dest as a source so the ASYNC_TX_XOR_ZERO_DST flag
++ * must be set to not include dest data in the calculation.  The assumption with
++ * dma engines is that they only use the destination buffer as a source when it
++ * is explicitly specified in the source list.
+  *
+  * src_list note: if the dest is also a source it must be at index zero.
+  * The contents of this array will be overwritten if a scribble region
+@@ -259,11 +246,10 @@ EXPORT_SYMBOL_GPL(async_xor_offs);
+  *
+  * honored flags: ASYNC_TX_ACK, ASYNC_TX_XOR_ZERO_DST, ASYNC_TX_XOR_DROP_DST
+  *
+- * xor_blocks always uses the dest as a source so the
+- * ASYNC_TX_XOR_ZERO_DST flag must be set to not include dest data in
+- * the calculation.  The assumption with dma engines is that they only
+- * use the destination buffer as a source when it is explicitly specified
+- * in the source list.
++ * xor_gen always uses the dest as a source so the ASYNC_TX_XOR_ZERO_DST flag
++ * must be set to not include dest data in the calculation.  The assumption with
++ * dma engines is that they only use the destination buffer as a source when it
++ * is explicitly specified in the source list.
+  *
+  * src_list note: if the dest is also a source it must be at index zero.
+  * The contents of this array will be overwritten if a scribble region
 _
 
 Patches currently in -mm which might be from hch@lst.de are
 
-async_xor-use-xor_gen.patch
 btrfs-use-xor_gen.patch
 xor-pass-the-entire-operation-to-the-low-level-ops.patch
 xor-use-static_call-for-xor_gen.patch
