@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57CA4377029
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:49:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B50AE3783C4
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:49:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774633766; cv=none; b=kM1QBEkmvcRFOlys05VlD+VkLi9liNBS0Fh+jo/X2KoYvilxNnOUOdNivrWZ7KS/mSicFXzCxPC6BjJGYHYTnFhHvZ1ZnMA4zS32SnTMcXPv8LbkSPJqEe6aoDJhM/fnsWm2CTZ+IKCLZKIJiFGs7CSRUSQq4Yafk6VIU+jSjhI=
+	t=1774633768; cv=none; b=jffKrnRdY02PVjbw+u0I3K5bxCFaub+Ni46qjKG4QkRWT5Dx4HK2NKCBb9oK9hec35MhF9mssFVUFFHfbLkjOAfkkRcGrg7K6rHZs56jgtsHD08Qc+WLLg2Ga4VOwO1HgIvaXZRiXKbuEv4LwpCU2i1D3bv3pcw2umY9NWXWlNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774633766; c=relaxed/simple;
-	bh=Uh4CraLVH0o9xpvGBRnDQLjIHEqpWICO9+ON3QrX3Yc=;
-	h=Date:To:From:Subject:Message-Id; b=IFU+gas8o7I2b+bSXf57iyBI1yLM4rUs6giSd7mw2OrL1HCW6i1dWJ5Zefs8GFyI02/4/Nrzpm7CMlGRZLE6p0qiw9VM2BRvjaebnAcEUswXg6QKoOpwwj7T7Df/NxZW4clZ5d5z3as5AoMNCAcBKCxFn+cY1JM8auefMGXD2bU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=11AsbjhN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774633768; c=relaxed/simple;
+	bh=z9aZqFX2iFuzdkxMr/kZ2hZBaW/4gWJT/KHvsv0XJXE=;
+	h=Date:To:From:Subject:Message-Id; b=FUD6marbNv+NzMAsa8jVO3xlLoHGpA8snrJlyMzd1+SvxK/wQ83zcYiIL4aS+U3ahtpvdgCSJIpnrjtdlH5FJuONi1YtdO0jAviq6/n7D/ceLFA1toUFNAEBDBTIso0Ya+eUTlldhDdJmzvh4d7SrIXDbb7nPv6l3HaC0l/bABg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r09DzrGP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="11AsbjhN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFA90C19423;
-	Fri, 27 Mar 2026 17:49:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r09DzrGP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D093C19423;
+	Fri, 27 Mar 2026 17:49:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774633765;
-	bh=Uh4CraLVH0o9xpvGBRnDQLjIHEqpWICO9+ON3QrX3Yc=;
+	s=korg; t=1774633768;
+	bh=z9aZqFX2iFuzdkxMr/kZ2hZBaW/4gWJT/KHvsv0XJXE=;
 	h=Date:To:From:Subject:From;
-	b=11AsbjhNSPKypvmeXoQsu9ZjPHw5Dgwmn0Ah1H2mCA9BPuMPiQeENbsipBNlfP/zl
-	 NLQ0MXV2zGtFzQl3jF53lAKvsIoBkuNNv34m5XMTCGijtWhL69bVWsztc7fpchX6eA
-	 qeAC2vqcHN94T//UbKa9cxHcq75fx+WtHKGCdNm4=
-Date: Fri, 27 Mar 2026 10:49:25 -0700
+	b=r09DzrGPlXlPG8AKacSfTcDx9qz8gCYmF6/P1tPntRwYfvoC73kLdyW1PDN1O3ptc
+	 bhHi0gEF8ueVuAXv6d0/Ydg4zR171UBuxCWWlqphj7LcI7riVT11ACjGWaAEl27vvw
+	 8PjNuYNplh73Bq/O+skHvmMMYh5t/EVj5Du12Vx4=
+Date: Fri, 27 Mar 2026 10:49:27 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + arm-xor-remove-in_interrupt-handling.patch added to mm-nonmm-unstable branch
-Message-Id: <20260327174925.CFA90C19423@smtp.kernel.org>
+Subject: + arm64-xor-fix-conflicting-attributes-for-xor_block_template.patch added to mm-nonmm-unstable branch
+Message-Id: <20260327174928.4D093C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: arm/xor: remove in_interrupt() handling
+     Subject: arm64/xor: fix conflicting attributes for xor_block_template
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     arm-xor-remove-in_interrupt-handling.patch
+     arm64-xor-fix-conflicting-attributes-for-xor_block_template.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm-xor-remove-in_interrupt-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-xor-fix-conflicting-attributes-for-xor_block_template.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,13 +59,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: arm/xor: remove in_interrupt() handling
-Date: Fri, 27 Mar 2026 07:16:34 +0100
+Subject: arm64/xor: fix conflicting attributes for xor_block_template
+Date: Fri, 27 Mar 2026 07:16:35 +0100
 
-xor_blocks can't be called from interrupt context, so remove the handling
-for that.
+Commit 2c54b423cf85 ("arm64/xor: use EOR3 instructions when available")
+changes the definition to __ro_after_init instead of const, but failed to
+update the external declaration in xor.h.  This was not found because
+xor-neon.c doesn't include <asm/xor.h>, and can't easily do that due to
+current architecture of the XOR code.
 
-Link: https://lkml.kernel.org/r/20260327061704.3707577-3-hch@lst.de
+Link: https://lkml.kernel.org/r/20260327061704.3707577-4-hch@lst.de
+Fixes: 2c54b423cf85 ("arm64/xor: use EOR3 instructions when available")
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -107,87 +111,20 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/xor.h |   41 ++++++++++-------------------------
- 1 file changed, 12 insertions(+), 29 deletions(-)
+ arch/arm64/include/asm/xor.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm/include/asm/xor.h~arm-xor-remove-in_interrupt-handling
-+++ a/arch/arm/include/asm/xor.h
-@@ -4,7 +4,6 @@
-  *
-  *  Copyright (C) 2001 Russell King
-  */
--#include <linux/hardirq.h>
- #include <asm-generic/xor.h>
- #include <asm/hwcap.h>
- #include <asm/neon.h>
-@@ -156,13 +155,9 @@ static void
+--- a/arch/arm64/include/asm/xor.h~arm64-xor-fix-conflicting-attributes-for-xor_block_template
++++ a/arch/arm64/include/asm/xor.h
+@@ -13,7 +13,7 @@
+ 
+ #ifdef CONFIG_KERNEL_MODE_NEON
+ 
+-extern struct xor_block_template const xor_block_inner_neon;
++extern struct xor_block_template xor_block_inner_neon __ro_after_init;
+ 
+ static void
  xor_neon_2(unsigned long bytes, unsigned long * __restrict p1,
- 	   const unsigned long * __restrict p2)
- {
--	if (in_interrupt()) {
--		xor_arm4regs_2(bytes, p1, p2);
--	} else {
--		kernel_neon_begin();
--		xor_block_neon_inner.do_2(bytes, p1, p2);
--		kernel_neon_end();
--	}
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_2(bytes, p1, p2);
-+	kernel_neon_end();
- }
- 
- static void
-@@ -170,13 +165,9 @@ xor_neon_3(unsigned long bytes, unsigned
- 	   const unsigned long * __restrict p2,
- 	   const unsigned long * __restrict p3)
- {
--	if (in_interrupt()) {
--		xor_arm4regs_3(bytes, p1, p2, p3);
--	} else {
--		kernel_neon_begin();
--		xor_block_neon_inner.do_3(bytes, p1, p2, p3);
--		kernel_neon_end();
--	}
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_3(bytes, p1, p2, p3);
-+	kernel_neon_end();
- }
- 
- static void
-@@ -185,13 +176,9 @@ xor_neon_4(unsigned long bytes, unsigned
- 	   const unsigned long * __restrict p3,
- 	   const unsigned long * __restrict p4)
- {
--	if (in_interrupt()) {
--		xor_arm4regs_4(bytes, p1, p2, p3, p4);
--	} else {
--		kernel_neon_begin();
--		xor_block_neon_inner.do_4(bytes, p1, p2, p3, p4);
--		kernel_neon_end();
--	}
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_4(bytes, p1, p2, p3, p4);
-+	kernel_neon_end();
- }
- 
- static void
-@@ -201,13 +188,9 @@ xor_neon_5(unsigned long bytes, unsigned
- 	   const unsigned long * __restrict p4,
- 	   const unsigned long * __restrict p5)
- {
--	if (in_interrupt()) {
--		xor_arm4regs_5(bytes, p1, p2, p3, p4, p5);
--	} else {
--		kernel_neon_begin();
--		xor_block_neon_inner.do_5(bytes, p1, p2, p3, p4, p5);
--		kernel_neon_end();
--	}
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_5(bytes, p1, p2, p3, p4, p5);
-+	kernel_neon_end();
- }
- 
- static struct xor_block_template xor_block_neon = {
 _
 
 Patches currently in -mm which might be from hch@lst.de are
