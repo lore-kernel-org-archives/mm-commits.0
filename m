@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD80A3FADEE
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:31:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5FCC3FB7CA
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:32:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774632718; cv=none; b=QP4O1XSCEjhiGYispd+4WSGvKkg2AAxhGPVPWZLfqYggi8CLUmqo0sKhehMqKSUgOth5n+x1FFd5fvsxACdC9vPPXIG6t9oF9QtgcNgbz9IscVUsq3OdpQKv9atotiZFaNU0xdG148fpgUj7ry/VPopdtJTZEz3CWA4Yosx1AVc=
+	t=1774632720; cv=none; b=mGZzDEWXnIPpEOgBfOBilX3kGkWMXQeyUDOm6H2L7LuKHyS8HhyqwLGKfB3TDrde2zHvkHjcbYIN3btQsapgGrQG+awi2dFaiv3YmqAG2F49RV2ypoccYVj5medARzwQy7XVF1FZL8X8OJucYwWTlG76bMZsKsyPluyIebR9ISo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774632718; c=relaxed/simple;
-	bh=sYFNi14twGKiJ4CGWabH6I+W5pVnnEKUUvi2J5g6NtY=;
-	h=Date:To:From:Subject:Message-Id; b=q/Sg+Hv1XUPBLkJ77g3f1NwXHBy1WtsDvrwwqhR+rXADNpfHq0YHxrhA3wjBqLI93BYkxzJ2HYGWaj2A3wVO5n52NoqeuSgC9RPcg2cGwncCkDaGO2izhIgkSuC7tjwQa3VUEkIbP5v1tPL4AjMMKUQx5FUPK52YZvZJFaJFCEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pg9CjG8r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774632720; c=relaxed/simple;
+	bh=qkwkZm+ZxtEZJRRhSeuaCY3VT+5j9GDEzp8h45VVXVc=;
+	h=Date:To:From:Subject:Message-Id; b=sGKs5kcg1cRKhKfIrpBIK7oSwqhpHgZY2+TCyIt/ZQvf66tQyK6ljwhbd4jVNJLan/UafMM3O/BnAX2Xa2wLc6RzB8FlmoCrRGs+N21AZOXmGl+a64uNyj7lchG/S5nnl5mHUMU4M/bHM7Yh0sE8ZaG2kt2zpf4QmHL9y05M6Fs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qz4fKOng; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pg9CjG8r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24296C19423;
-	Fri, 27 Mar 2026 17:31:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qz4fKOng"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45CBDC19423;
+	Fri, 27 Mar 2026 17:32:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774632718;
-	bh=sYFNi14twGKiJ4CGWabH6I+W5pVnnEKUUvi2J5g6NtY=;
+	s=korg; t=1774632720;
+	bh=qkwkZm+ZxtEZJRRhSeuaCY3VT+5j9GDEzp8h45VVXVc=;
 	h=Date:To:From:Subject:From;
-	b=pg9CjG8rswFD4nbOUFl6VcS/spQW8eCMBrfwAkenLA6gi6vn4AnGyT6N497Gu1Ekq
-	 PYSDKo4Ct23KEgFeNTFfrafelazMSkjc4++M08D+zq95hRM8JEz0XdXD3FejAk7wio
-	 wGjJvDJmn6Qx1D3GNvlpsHNpGFGJtSDBoJpdRqoc=
-Date: Fri, 27 Mar 2026 10:31:57 -0700
+	b=qz4fKOngypQ7GG48KIMBsVyITfG0H2Sfr6Ihuj1YG07WJSkXSj3JAqxxIF8yZd2Ue
+	 1pWl9D9agP30h1SxO+Q9fMp+zdT4I58euMoYrFpb7Ralfo9WN+L3oXzZ8+ULkA6Ag4
+	 TD6C92GkMXcNeitu1mnFg68xN0OzFWOf5Oy9oO2Y=
+Date: Fri, 27 Mar 2026 10:31:59 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] arm-move-the-xor-code-to-lib-raid.patch removed from -mm tree
-Message-Id: <20260327173158.24296C19423@smtp.kernel.org>
+Subject: [to-be-updated] arm64-move-the-xor-code-to-lib-raid.patch removed from -mm tree
+Message-Id: <20260327173200.45CBDC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm: move the XOR code to lib/raid/
+     Subject: arm64: move the XOR code to lib/raid/
 has been removed from the -mm tree.  Its filename was
-     arm-move-the-xor-code-to-lib-raid.patch
+     arm64-move-the-xor-code-to-lib-raid.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: arm: move the XOR code to lib/raid/
-Date: Tue, 24 Mar 2026 07:21:47 +0100
+Subject: arm64: move the XOR code to lib/raid/
+Date: Tue, 24 Mar 2026 07:21:48 +0100
 
-Move the optimized XOR into lib/raid and include it it in the main xor.ko
-instead of building a separate module for it.
+Move the optimized XOR into lib/raid and include it it in the main
+xor.ko instead of building a separate module for it.
 
-Link: https://lkml.kernel.org/r/20260324062211.3216301-12-hch@lst.de
+Note that this drops the CONFIG_KERNEL_MODE_NEON dependency, as that is
+always set for arm64.
+
+Link: https://lkml.kernel.org/r/20260324062211.3216301-13-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -91,169 +94,40 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/xor.h       |  190 -----------------------------
- arch/arm/lib/Makefile            |    5 
- arch/arm/lib/xor-neon.c          |   39 -----
- lib/raid/xor/Makefile            |    8 +
- lib/raid/xor/arm/xor-neon-glue.c |   58 ++++++++
- lib/raid/xor/arm/xor-neon.c      |   31 ++++
- lib/raid/xor/arm/xor.c           |  136 ++++++++++++++++++++
- 7 files changed, 235 insertions(+), 232 deletions(-)
+ arch/arm64/include/asm/xor.h       |   58 ----
+ arch/arm64/lib/Makefile            |    6 
+ arch/arm64/lib/xor-neon.c          |  339 ---------------------------
+ lib/raid/xor/Makefile              |    4 
+ lib/raid/xor/arm64/xor-neon-glue.c |   57 ++++
+ lib/raid/xor/arm64/xor-neon.c      |  325 +++++++++++++++++++++++++
+ 6 files changed, 389 insertions(+), 400 deletions(-)
 
---- a/arch/arm/include/asm/xor.h~arm-move-the-xor-code-to-lib-raid
-+++ a/arch/arm/include/asm/xor.h
-@@ -1,198 +1,12 @@
+--- a/arch/arm64/include/asm/xor.h~arm64-move-the-xor-code-to-lib-raid
++++ a/arch/arm64/include/asm/xor.h
+@@ -1,73 +1,21 @@
  /* SPDX-License-Identifier: GPL-2.0-only */
  /*
-- *  arch/arm/include/asm/xor.h
+- * arch/arm64/include/asm/xor.h
 - *
-  *  Copyright (C) 2001 Russell King
+  * Authors: Jackie Liu <liuyun01@kylinos.cn>
+  * Copyright (C) 2018,Tianjin KYLIN Information Technology Co., Ltd.
   */
+ 
+-#include <linux/hardirq.h>
  #include <asm-generic/xor.h>
 -#include <asm/hwcap.h>
- #include <asm/neon.h>
+ #include <asm/simd.h>
  
--#define __XOR(a1, a2) a1 ^= a2
--
--#define GET_BLOCK_2(dst) \
--	__asm__("ldmia	%0, {%1, %2}" \
--		: "=r" (dst), "=r" (a1), "=r" (a2) \
--		: "0" (dst))
--
--#define GET_BLOCK_4(dst) \
--	__asm__("ldmia	%0, {%1, %2, %3, %4}" \
--		: "=r" (dst), "=r" (a1), "=r" (a2), "=r" (a3), "=r" (a4) \
--		: "0" (dst))
--
--#define XOR_BLOCK_2(src) \
--	__asm__("ldmia	%0!, {%1, %2}" \
--		: "=r" (src), "=r" (b1), "=r" (b2) \
--		: "0" (src)); \
--	__XOR(a1, b1); __XOR(a2, b2);
--
--#define XOR_BLOCK_4(src) \
--	__asm__("ldmia	%0!, {%1, %2, %3, %4}" \
--		: "=r" (src), "=r" (b1), "=r" (b2), "=r" (b3), "=r" (b4) \
--		: "0" (src)); \
--	__XOR(a1, b1); __XOR(a2, b2); __XOR(a3, b3); __XOR(a4, b4)
--
--#define PUT_BLOCK_2(dst) \
--	__asm__ __volatile__("stmia	%0!, {%2, %3}" \
--		: "=r" (dst) \
--		: "0" (dst), "r" (a1), "r" (a2))
--
--#define PUT_BLOCK_4(dst) \
--	__asm__ __volatile__("stmia	%0!, {%2, %3, %4, %5}" \
--		: "=r" (dst) \
--		: "0" (dst), "r" (a1), "r" (a2), "r" (a3), "r" (a4))
--
--static void
--xor_arm4regs_2(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2)
--{
--	unsigned int lines = bytes / sizeof(unsigned long) / 4;
--	register unsigned int a1 __asm__("r4");
--	register unsigned int a2 __asm__("r5");
--	register unsigned int a3 __asm__("r6");
--	register unsigned int a4 __asm__("r10");
--	register unsigned int b1 __asm__("r8");
--	register unsigned int b2 __asm__("r9");
--	register unsigned int b3 __asm__("ip");
--	register unsigned int b4 __asm__("lr");
--
--	do {
--		GET_BLOCK_4(p1);
--		XOR_BLOCK_4(p2);
--		PUT_BLOCK_4(p1);
--	} while (--lines);
--}
--
--static void
--xor_arm4regs_3(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2,
--	       const unsigned long * __restrict p3)
--{
--	unsigned int lines = bytes / sizeof(unsigned long) / 4;
--	register unsigned int a1 __asm__("r4");
--	register unsigned int a2 __asm__("r5");
--	register unsigned int a3 __asm__("r6");
--	register unsigned int a4 __asm__("r10");
--	register unsigned int b1 __asm__("r8");
--	register unsigned int b2 __asm__("r9");
--	register unsigned int b3 __asm__("ip");
--	register unsigned int b4 __asm__("lr");
--
--	do {
--		GET_BLOCK_4(p1);
--		XOR_BLOCK_4(p2);
--		XOR_BLOCK_4(p3);
--		PUT_BLOCK_4(p1);
--	} while (--lines);
--}
--
--static void
--xor_arm4regs_4(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2,
--	       const unsigned long * __restrict p3,
--	       const unsigned long * __restrict p4)
--{
--	unsigned int lines = bytes / sizeof(unsigned long) / 2;
--	register unsigned int a1 __asm__("r8");
--	register unsigned int a2 __asm__("r9");
--	register unsigned int b1 __asm__("ip");
--	register unsigned int b2 __asm__("lr");
--
--	do {
--		GET_BLOCK_2(p1);
--		XOR_BLOCK_2(p2);
--		XOR_BLOCK_2(p3);
--		XOR_BLOCK_2(p4);
--		PUT_BLOCK_2(p1);
--	} while (--lines);
--}
--
--static void
--xor_arm4regs_5(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2,
--	       const unsigned long * __restrict p3,
--	       const unsigned long * __restrict p4,
--	       const unsigned long * __restrict p5)
--{
--	unsigned int lines = bytes / sizeof(unsigned long) / 2;
--	register unsigned int a1 __asm__("r8");
--	register unsigned int a2 __asm__("r9");
--	register unsigned int b1 __asm__("ip");
--	register unsigned int b2 __asm__("lr");
--
--	do {
--		GET_BLOCK_2(p1);
--		XOR_BLOCK_2(p2);
--		XOR_BLOCK_2(p3);
--		XOR_BLOCK_2(p4);
--		XOR_BLOCK_2(p5);
--		PUT_BLOCK_2(p1);
--	} while (--lines);
--}
--
--static struct xor_block_template xor_block_arm4regs = {
--	.name	= "arm4regs",
--	.do_2	= xor_arm4regs_2,
--	.do_3	= xor_arm4regs_3,
--	.do_4	= xor_arm4regs_4,
--	.do_5	= xor_arm4regs_5,
--};
--
 -#ifdef CONFIG_KERNEL_MODE_NEON
 -
--extern struct xor_block_template const xor_block_neon_inner;
+-extern struct xor_block_template const xor_block_inner_neon;
 -
 -static void
 -xor_neon_2(unsigned long bytes, unsigned long * __restrict p1,
 -	   const unsigned long * __restrict p2)
 -{
--	kernel_neon_begin();
--	xor_block_neon_inner.do_2(bytes, p1, p2);
--	kernel_neon_end();
+-	scoped_ksimd()
+-		xor_block_inner_neon.do_2(bytes, p1, p2);
 -}
 -
 -static void
@@ -261,9 +135,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	   const unsigned long * __restrict p2,
 -	   const unsigned long * __restrict p3)
 -{
--	kernel_neon_begin();
--	xor_block_neon_inner.do_3(bytes, p1, p2, p3);
--	kernel_neon_end();
+-	scoped_ksimd()
+-		xor_block_inner_neon.do_3(bytes, p1, p2, p3);
 -}
 -
 -static void
@@ -272,9 +145,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	   const unsigned long * __restrict p3,
 -	   const unsigned long * __restrict p4)
 -{
--	kernel_neon_begin();
--	xor_block_neon_inner.do_4(bytes, p1, p2, p3, p4);
--	kernel_neon_end();
+-	scoped_ksimd()
+-		xor_block_inner_neon.do_4(bytes, p1, p2, p3, p4);
 -}
 -
 -static void
@@ -284,279 +156,743 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	   const unsigned long * __restrict p4,
 -	   const unsigned long * __restrict p5)
 -{
--	kernel_neon_begin();
--	xor_block_neon_inner.do_5(bytes, p1, p2, p3, p4, p5);
--	kernel_neon_end();
+-	scoped_ksimd()
+-		xor_block_inner_neon.do_5(bytes, p1, p2, p3, p4, p5);
 -}
 -
--static struct xor_block_template xor_block_neon = {
--	.name	= "neon",
--	.do_2	= xor_neon_2,
--	.do_3	= xor_neon_3,
--	.do_4	= xor_neon_4,
+-static struct xor_block_template xor_block_arm64 = {
+-	.name   = "arm64_neon",
+-	.do_2   = xor_neon_2,
+-	.do_3   = xor_neon_3,
+-	.do_4   = xor_neon_4,
 -	.do_5	= xor_neon_5
 -};
--
--#endif /* CONFIG_KERNEL_MODE_NEON */
-+extern struct xor_block_template xor_block_arm4regs;
-+extern struct xor_block_template xor_block_neon;
++extern struct xor_block_template xor_block_arm64;
++void __init xor_neon_init(void);
  
  #define arch_xor_init arch_xor_init
  static __always_inline void __init arch_xor_init(void)
---- a/arch/arm/lib/Makefile~arm-move-the-xor-code-to-lib-raid
-+++ a/arch/arm/lib/Makefile
-@@ -39,9 +39,4 @@ endif
- $(obj)/csumpartialcopy.o:	$(obj)/csumpartialcopygeneric.S
- $(obj)/csumpartialcopyuser.o:	$(obj)/csumpartialcopygeneric.S
+ {
++	xor_neon_init();
+ 	xor_register(&xor_block_8regs);
+ 	xor_register(&xor_block_32regs);
+ 	if (cpu_has_neon())
+ 		xor_register(&xor_block_arm64);
+ }
+-
+-#endif /* ! CONFIG_KERNEL_MODE_NEON */
+--- a/arch/arm64/lib/Makefile~arm64-move-the-xor-code-to-lib-raid
++++ a/arch/arm64/lib/Makefile
+@@ -5,12 +5,6 @@ lib-y		:= clear_user.o delay.o copy_from
+ 		   memset.o memcmp.o strcmp.o strncmp.o strlen.o	\
+ 		   strnlen.o strchr.o strrchr.o tishift.o
  
--ifeq ($(CONFIG_KERNEL_MODE_NEON),y)
--  CFLAGS_xor-neon.o		+= $(CC_FLAGS_FPU)
--  obj-$(CONFIG_XOR_BLOCKS)	+= xor-neon.o
+-ifeq ($(CONFIG_KERNEL_MODE_NEON), y)
+-obj-$(CONFIG_XOR_BLOCKS)	+= xor-neon.o
+-CFLAGS_xor-neon.o		+= $(CC_FLAGS_FPU)
+-CFLAGS_REMOVE_xor-neon.o	+= $(CC_FLAGS_NO_FPU)
 -endif
 -
+ lib-$(CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE) += uaccess_flushcache.o
+ 
  obj-$(CONFIG_FUNCTION_ERROR_INJECTION) += error-inject.o
-diff --git a/arch/arm/lib/xor-neon.c a/arch/arm/lib/xor-neon.c
+diff --git a/arch/arm64/lib/xor-neon.c a/arch/arm64/lib/xor-neon.c
 deleted file mode 100644
---- a/arch/arm/lib/xor-neon.c
+--- a/arch/arm64/lib/xor-neon.c
 +++ /dev/null
-@@ -1,39 +0,0 @@
+@@ -1,339 +0,0 @@
 -// SPDX-License-Identifier: GPL-2.0-only
 -/*
-- * linux/arch/arm/lib/xor-neon.c
+- * arch/arm64/lib/xor-neon.c
 - *
-- * Copyright (C) 2013 Linaro Ltd <ard.biesheuvel@linaro.org>
+- * Authors: Jackie Liu <liuyun01@kylinos.cn>
+- * Copyright (C) 2018,Tianjin KYLIN Information Technology Co., Ltd.
 - */
 -
 -#include <linux/raid/xor.h>
 -#include <linux/raid/xor_impl.h>
 -#include <linux/module.h>
+-#include <asm/neon-intrinsics.h>
 -
--MODULE_DESCRIPTION("NEON accelerated XOR implementation");
--MODULE_LICENSE("GPL");
+-static void xor_arm64_neon_2(unsigned long bytes, unsigned long * __restrict p1,
+-	const unsigned long * __restrict p2)
+-{
+-	uint64_t *dp1 = (uint64_t *)p1;
+-	uint64_t *dp2 = (uint64_t *)p2;
 -
--#ifndef __ARM_NEON__
--#error You should compile this file with '-march=armv7-a -mfloat-abi=softfp -mfpu=neon'
--#endif
+-	register uint64x2_t v0, v1, v2, v3;
+-	long lines = bytes / (sizeof(uint64x2_t) * 4);
 -
--/*
-- * Pull in the reference implementations while instructing GCC (through
-- * -ftree-vectorize) to attempt to exploit implicit parallelism and emit
-- * NEON instructions. Clang does this by default at O2 so no pragma is
-- * needed.
-- */
--#ifdef CONFIG_CC_IS_GCC
--#pragma GCC optimize "tree-vectorize"
--#endif
+-	do {
+-		/* p1 ^= p2 */
+-		v0 = veorq_u64(vld1q_u64(dp1 +  0), vld1q_u64(dp2 +  0));
+-		v1 = veorq_u64(vld1q_u64(dp1 +  2), vld1q_u64(dp2 +  2));
+-		v2 = veorq_u64(vld1q_u64(dp1 +  4), vld1q_u64(dp2 +  4));
+-		v3 = veorq_u64(vld1q_u64(dp1 +  6), vld1q_u64(dp2 +  6));
 -
--#define NO_TEMPLATE
--#include "../../../lib/raid/xor/xor-8regs.c"
+-		/* store */
+-		vst1q_u64(dp1 +  0, v0);
+-		vst1q_u64(dp1 +  2, v1);
+-		vst1q_u64(dp1 +  4, v2);
+-		vst1q_u64(dp1 +  6, v3);
 -
--struct xor_block_template const xor_block_neon_inner = {
+-		dp1 += 8;
+-		dp2 += 8;
+-	} while (--lines > 0);
+-}
+-
+-static void xor_arm64_neon_3(unsigned long bytes, unsigned long * __restrict p1,
+-	const unsigned long * __restrict p2,
+-	const unsigned long * __restrict p3)
+-{
+-	uint64_t *dp1 = (uint64_t *)p1;
+-	uint64_t *dp2 = (uint64_t *)p2;
+-	uint64_t *dp3 = (uint64_t *)p3;
+-
+-	register uint64x2_t v0, v1, v2, v3;
+-	long lines = bytes / (sizeof(uint64x2_t) * 4);
+-
+-	do {
+-		/* p1 ^= p2 */
+-		v0 = veorq_u64(vld1q_u64(dp1 +  0), vld1q_u64(dp2 +  0));
+-		v1 = veorq_u64(vld1q_u64(dp1 +  2), vld1q_u64(dp2 +  2));
+-		v2 = veorq_u64(vld1q_u64(dp1 +  4), vld1q_u64(dp2 +  4));
+-		v3 = veorq_u64(vld1q_u64(dp1 +  6), vld1q_u64(dp2 +  6));
+-
+-		/* p1 ^= p3 */
+-		v0 = veorq_u64(v0, vld1q_u64(dp3 +  0));
+-		v1 = veorq_u64(v1, vld1q_u64(dp3 +  2));
+-		v2 = veorq_u64(v2, vld1q_u64(dp3 +  4));
+-		v3 = veorq_u64(v3, vld1q_u64(dp3 +  6));
+-
+-		/* store */
+-		vst1q_u64(dp1 +  0, v0);
+-		vst1q_u64(dp1 +  2, v1);
+-		vst1q_u64(dp1 +  4, v2);
+-		vst1q_u64(dp1 +  6, v3);
+-
+-		dp1 += 8;
+-		dp2 += 8;
+-		dp3 += 8;
+-	} while (--lines > 0);
+-}
+-
+-static void xor_arm64_neon_4(unsigned long bytes, unsigned long * __restrict p1,
+-	const unsigned long * __restrict p2,
+-	const unsigned long * __restrict p3,
+-	const unsigned long * __restrict p4)
+-{
+-	uint64_t *dp1 = (uint64_t *)p1;
+-	uint64_t *dp2 = (uint64_t *)p2;
+-	uint64_t *dp3 = (uint64_t *)p3;
+-	uint64_t *dp4 = (uint64_t *)p4;
+-
+-	register uint64x2_t v0, v1, v2, v3;
+-	long lines = bytes / (sizeof(uint64x2_t) * 4);
+-
+-	do {
+-		/* p1 ^= p2 */
+-		v0 = veorq_u64(vld1q_u64(dp1 +  0), vld1q_u64(dp2 +  0));
+-		v1 = veorq_u64(vld1q_u64(dp1 +  2), vld1q_u64(dp2 +  2));
+-		v2 = veorq_u64(vld1q_u64(dp1 +  4), vld1q_u64(dp2 +  4));
+-		v3 = veorq_u64(vld1q_u64(dp1 +  6), vld1q_u64(dp2 +  6));
+-
+-		/* p1 ^= p3 */
+-		v0 = veorq_u64(v0, vld1q_u64(dp3 +  0));
+-		v1 = veorq_u64(v1, vld1q_u64(dp3 +  2));
+-		v2 = veorq_u64(v2, vld1q_u64(dp3 +  4));
+-		v3 = veorq_u64(v3, vld1q_u64(dp3 +  6));
+-
+-		/* p1 ^= p4 */
+-		v0 = veorq_u64(v0, vld1q_u64(dp4 +  0));
+-		v1 = veorq_u64(v1, vld1q_u64(dp4 +  2));
+-		v2 = veorq_u64(v2, vld1q_u64(dp4 +  4));
+-		v3 = veorq_u64(v3, vld1q_u64(dp4 +  6));
+-
+-		/* store */
+-		vst1q_u64(dp1 +  0, v0);
+-		vst1q_u64(dp1 +  2, v1);
+-		vst1q_u64(dp1 +  4, v2);
+-		vst1q_u64(dp1 +  6, v3);
+-
+-		dp1 += 8;
+-		dp2 += 8;
+-		dp3 += 8;
+-		dp4 += 8;
+-	} while (--lines > 0);
+-}
+-
+-static void xor_arm64_neon_5(unsigned long bytes, unsigned long * __restrict p1,
+-	const unsigned long * __restrict p2,
+-	const unsigned long * __restrict p3,
+-	const unsigned long * __restrict p4,
+-	const unsigned long * __restrict p5)
+-{
+-	uint64_t *dp1 = (uint64_t *)p1;
+-	uint64_t *dp2 = (uint64_t *)p2;
+-	uint64_t *dp3 = (uint64_t *)p3;
+-	uint64_t *dp4 = (uint64_t *)p4;
+-	uint64_t *dp5 = (uint64_t *)p5;
+-
+-	register uint64x2_t v0, v1, v2, v3;
+-	long lines = bytes / (sizeof(uint64x2_t) * 4);
+-
+-	do {
+-		/* p1 ^= p2 */
+-		v0 = veorq_u64(vld1q_u64(dp1 +  0), vld1q_u64(dp2 +  0));
+-		v1 = veorq_u64(vld1q_u64(dp1 +  2), vld1q_u64(dp2 +  2));
+-		v2 = veorq_u64(vld1q_u64(dp1 +  4), vld1q_u64(dp2 +  4));
+-		v3 = veorq_u64(vld1q_u64(dp1 +  6), vld1q_u64(dp2 +  6));
+-
+-		/* p1 ^= p3 */
+-		v0 = veorq_u64(v0, vld1q_u64(dp3 +  0));
+-		v1 = veorq_u64(v1, vld1q_u64(dp3 +  2));
+-		v2 = veorq_u64(v2, vld1q_u64(dp3 +  4));
+-		v3 = veorq_u64(v3, vld1q_u64(dp3 +  6));
+-
+-		/* p1 ^= p4 */
+-		v0 = veorq_u64(v0, vld1q_u64(dp4 +  0));
+-		v1 = veorq_u64(v1, vld1q_u64(dp4 +  2));
+-		v2 = veorq_u64(v2, vld1q_u64(dp4 +  4));
+-		v3 = veorq_u64(v3, vld1q_u64(dp4 +  6));
+-
+-		/* p1 ^= p5 */
+-		v0 = veorq_u64(v0, vld1q_u64(dp5 +  0));
+-		v1 = veorq_u64(v1, vld1q_u64(dp5 +  2));
+-		v2 = veorq_u64(v2, vld1q_u64(dp5 +  4));
+-		v3 = veorq_u64(v3, vld1q_u64(dp5 +  6));
+-
+-		/* store */
+-		vst1q_u64(dp1 +  0, v0);
+-		vst1q_u64(dp1 +  2, v1);
+-		vst1q_u64(dp1 +  4, v2);
+-		vst1q_u64(dp1 +  6, v3);
+-
+-		dp1 += 8;
+-		dp2 += 8;
+-		dp3 += 8;
+-		dp4 += 8;
+-		dp5 += 8;
+-	} while (--lines > 0);
+-}
+-
+-struct xor_block_template xor_block_inner_neon __ro_after_init = {
 -	.name	= "__inner_neon__",
--	.do_2	= xor_8regs_2,
--	.do_3	= xor_8regs_3,
--	.do_4	= xor_8regs_4,
--	.do_5	= xor_8regs_5,
+-	.do_2	= xor_arm64_neon_2,
+-	.do_3	= xor_arm64_neon_3,
+-	.do_4	= xor_arm64_neon_4,
+-	.do_5	= xor_arm64_neon_5,
 -};
--EXPORT_SYMBOL(xor_block_neon_inner);
-diff --git a/lib/raid/xor/arm/xor.c a/lib/raid/xor/arm/xor.c
-new file mode 100644
---- /dev/null
-+++ a/lib/raid/xor/arm/xor.c
-@@ -0,0 +1,136 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ *  Copyright (C) 2001 Russell King
-+ */
-+#include <linux/raid/xor_impl.h>
-+#include <asm/xor.h>
-+
-+#define __XOR(a1, a2) a1 ^= a2
-+
-+#define GET_BLOCK_2(dst) \
-+	__asm__("ldmia	%0, {%1, %2}" \
-+		: "=r" (dst), "=r" (a1), "=r" (a2) \
-+		: "0" (dst))
-+
-+#define GET_BLOCK_4(dst) \
-+	__asm__("ldmia	%0, {%1, %2, %3, %4}" \
-+		: "=r" (dst), "=r" (a1), "=r" (a2), "=r" (a3), "=r" (a4) \
-+		: "0" (dst))
-+
-+#define XOR_BLOCK_2(src) \
-+	__asm__("ldmia	%0!, {%1, %2}" \
-+		: "=r" (src), "=r" (b1), "=r" (b2) \
-+		: "0" (src)); \
-+	__XOR(a1, b1); __XOR(a2, b2);
-+
-+#define XOR_BLOCK_4(src) \
-+	__asm__("ldmia	%0!, {%1, %2, %3, %4}" \
-+		: "=r" (src), "=r" (b1), "=r" (b2), "=r" (b3), "=r" (b4) \
-+		: "0" (src)); \
-+	__XOR(a1, b1); __XOR(a2, b2); __XOR(a3, b3); __XOR(a4, b4)
-+
-+#define PUT_BLOCK_2(dst) \
-+	__asm__ __volatile__("stmia	%0!, {%2, %3}" \
-+		: "=r" (dst) \
-+		: "0" (dst), "r" (a1), "r" (a2))
-+
-+#define PUT_BLOCK_4(dst) \
-+	__asm__ __volatile__("stmia	%0!, {%2, %3, %4, %5}" \
-+		: "=r" (dst) \
-+		: "0" (dst), "r" (a1), "r" (a2), "r" (a3), "r" (a4))
-+
-+static void
-+xor_arm4regs_2(unsigned long bytes, unsigned long * __restrict p1,
-+	       const unsigned long * __restrict p2)
-+{
-+	unsigned int lines = bytes / sizeof(unsigned long) / 4;
-+	register unsigned int a1 __asm__("r4");
-+	register unsigned int a2 __asm__("r5");
-+	register unsigned int a3 __asm__("r6");
-+	register unsigned int a4 __asm__("r10");
-+	register unsigned int b1 __asm__("r8");
-+	register unsigned int b2 __asm__("r9");
-+	register unsigned int b3 __asm__("ip");
-+	register unsigned int b4 __asm__("lr");
-+
-+	do {
-+		GET_BLOCK_4(p1);
-+		XOR_BLOCK_4(p2);
-+		PUT_BLOCK_4(p1);
-+	} while (--lines);
-+}
-+
-+static void
-+xor_arm4regs_3(unsigned long bytes, unsigned long * __restrict p1,
-+	       const unsigned long * __restrict p2,
-+	       const unsigned long * __restrict p3)
-+{
-+	unsigned int lines = bytes / sizeof(unsigned long) / 4;
-+	register unsigned int a1 __asm__("r4");
-+	register unsigned int a2 __asm__("r5");
-+	register unsigned int a3 __asm__("r6");
-+	register unsigned int a4 __asm__("r10");
-+	register unsigned int b1 __asm__("r8");
-+	register unsigned int b2 __asm__("r9");
-+	register unsigned int b3 __asm__("ip");
-+	register unsigned int b4 __asm__("lr");
-+
-+	do {
-+		GET_BLOCK_4(p1);
-+		XOR_BLOCK_4(p2);
-+		XOR_BLOCK_4(p3);
-+		PUT_BLOCK_4(p1);
-+	} while (--lines);
-+}
-+
-+static void
-+xor_arm4regs_4(unsigned long bytes, unsigned long * __restrict p1,
-+	       const unsigned long * __restrict p2,
-+	       const unsigned long * __restrict p3,
-+	       const unsigned long * __restrict p4)
-+{
-+	unsigned int lines = bytes / sizeof(unsigned long) / 2;
-+	register unsigned int a1 __asm__("r8");
-+	register unsigned int a2 __asm__("r9");
-+	register unsigned int b1 __asm__("ip");
-+	register unsigned int b2 __asm__("lr");
-+
-+	do {
-+		GET_BLOCK_2(p1);
-+		XOR_BLOCK_2(p2);
-+		XOR_BLOCK_2(p3);
-+		XOR_BLOCK_2(p4);
-+		PUT_BLOCK_2(p1);
-+	} while (--lines);
-+}
-+
-+static void
-+xor_arm4regs_5(unsigned long bytes, unsigned long * __restrict p1,
-+	       const unsigned long * __restrict p2,
-+	       const unsigned long * __restrict p3,
-+	       const unsigned long * __restrict p4,
-+	       const unsigned long * __restrict p5)
-+{
-+	unsigned int lines = bytes / sizeof(unsigned long) / 2;
-+	register unsigned int a1 __asm__("r8");
-+	register unsigned int a2 __asm__("r9");
-+	register unsigned int b1 __asm__("ip");
-+	register unsigned int b2 __asm__("lr");
-+
-+	do {
-+		GET_BLOCK_2(p1);
-+		XOR_BLOCK_2(p2);
-+		XOR_BLOCK_2(p3);
-+		XOR_BLOCK_2(p4);
-+		XOR_BLOCK_2(p5);
-+		PUT_BLOCK_2(p1);
-+	} while (--lines);
-+}
-+
-+struct xor_block_template xor_block_arm4regs = {
-+	.name	= "arm4regs",
-+	.do_2	= xor_arm4regs_2,
-+	.do_3	= xor_arm4regs_3,
-+	.do_4	= xor_arm4regs_4,
-+	.do_5	= xor_arm4regs_5,
-+};
-diff --git a/lib/raid/xor/arm/xor-neon.c a/lib/raid/xor/arm/xor-neon.c
+-EXPORT_SYMBOL(xor_block_inner_neon);
+-
+-static inline uint64x2_t eor3(uint64x2_t p, uint64x2_t q, uint64x2_t r)
+-{
+-	uint64x2_t res;
+-
+-	asm(ARM64_ASM_PREAMBLE ".arch_extension sha3\n"
+-	    "eor3 %0.16b, %1.16b, %2.16b, %3.16b"
+-	    : "=w"(res) : "w"(p), "w"(q), "w"(r));
+-	return res;
+-}
+-
+-static void xor_arm64_eor3_3(unsigned long bytes,
+-	unsigned long * __restrict p1,
+-	const unsigned long * __restrict p2,
+-	const unsigned long * __restrict p3)
+-{
+-	uint64_t *dp1 = (uint64_t *)p1;
+-	uint64_t *dp2 = (uint64_t *)p2;
+-	uint64_t *dp3 = (uint64_t *)p3;
+-
+-	register uint64x2_t v0, v1, v2, v3;
+-	long lines = bytes / (sizeof(uint64x2_t) * 4);
+-
+-	do {
+-		/* p1 ^= p2 ^ p3 */
+-		v0 = eor3(vld1q_u64(dp1 + 0), vld1q_u64(dp2 + 0),
+-			  vld1q_u64(dp3 + 0));
+-		v1 = eor3(vld1q_u64(dp1 + 2), vld1q_u64(dp2 + 2),
+-			  vld1q_u64(dp3 + 2));
+-		v2 = eor3(vld1q_u64(dp1 + 4), vld1q_u64(dp2 + 4),
+-			  vld1q_u64(dp3 + 4));
+-		v3 = eor3(vld1q_u64(dp1 + 6), vld1q_u64(dp2 + 6),
+-			  vld1q_u64(dp3 + 6));
+-
+-		/* store */
+-		vst1q_u64(dp1 + 0, v0);
+-		vst1q_u64(dp1 + 2, v1);
+-		vst1q_u64(dp1 + 4, v2);
+-		vst1q_u64(dp1 + 6, v3);
+-
+-		dp1 += 8;
+-		dp2 += 8;
+-		dp3 += 8;
+-	} while (--lines > 0);
+-}
+-
+-static void xor_arm64_eor3_4(unsigned long bytes,
+-	unsigned long * __restrict p1,
+-	const unsigned long * __restrict p2,
+-	const unsigned long * __restrict p3,
+-	const unsigned long * __restrict p4)
+-{
+-	uint64_t *dp1 = (uint64_t *)p1;
+-	uint64_t *dp2 = (uint64_t *)p2;
+-	uint64_t *dp3 = (uint64_t *)p3;
+-	uint64_t *dp4 = (uint64_t *)p4;
+-
+-	register uint64x2_t v0, v1, v2, v3;
+-	long lines = bytes / (sizeof(uint64x2_t) * 4);
+-
+-	do {
+-		/* p1 ^= p2 ^ p3 */
+-		v0 = eor3(vld1q_u64(dp1 + 0), vld1q_u64(dp2 + 0),
+-			  vld1q_u64(dp3 + 0));
+-		v1 = eor3(vld1q_u64(dp1 + 2), vld1q_u64(dp2 + 2),
+-			  vld1q_u64(dp3 + 2));
+-		v2 = eor3(vld1q_u64(dp1 + 4), vld1q_u64(dp2 + 4),
+-			  vld1q_u64(dp3 + 4));
+-		v3 = eor3(vld1q_u64(dp1 + 6), vld1q_u64(dp2 + 6),
+-			  vld1q_u64(dp3 + 6));
+-
+-		/* p1 ^= p4 */
+-		v0 = veorq_u64(v0, vld1q_u64(dp4 + 0));
+-		v1 = veorq_u64(v1, vld1q_u64(dp4 + 2));
+-		v2 = veorq_u64(v2, vld1q_u64(dp4 + 4));
+-		v3 = veorq_u64(v3, vld1q_u64(dp4 + 6));
+-
+-		/* store */
+-		vst1q_u64(dp1 + 0, v0);
+-		vst1q_u64(dp1 + 2, v1);
+-		vst1q_u64(dp1 + 4, v2);
+-		vst1q_u64(dp1 + 6, v3);
+-
+-		dp1 += 8;
+-		dp2 += 8;
+-		dp3 += 8;
+-		dp4 += 8;
+-	} while (--lines > 0);
+-}
+-
+-static void xor_arm64_eor3_5(unsigned long bytes,
+-	unsigned long * __restrict p1,
+-	const unsigned long * __restrict p2,
+-	const unsigned long * __restrict p3,
+-	const unsigned long * __restrict p4,
+-	const unsigned long * __restrict p5)
+-{
+-	uint64_t *dp1 = (uint64_t *)p1;
+-	uint64_t *dp2 = (uint64_t *)p2;
+-	uint64_t *dp3 = (uint64_t *)p3;
+-	uint64_t *dp4 = (uint64_t *)p4;
+-	uint64_t *dp5 = (uint64_t *)p5;
+-
+-	register uint64x2_t v0, v1, v2, v3;
+-	long lines = bytes / (sizeof(uint64x2_t) * 4);
+-
+-	do {
+-		/* p1 ^= p2 ^ p3 */
+-		v0 = eor3(vld1q_u64(dp1 + 0), vld1q_u64(dp2 + 0),
+-			  vld1q_u64(dp3 + 0));
+-		v1 = eor3(vld1q_u64(dp1 + 2), vld1q_u64(dp2 + 2),
+-			  vld1q_u64(dp3 + 2));
+-		v2 = eor3(vld1q_u64(dp1 + 4), vld1q_u64(dp2 + 4),
+-			  vld1q_u64(dp3 + 4));
+-		v3 = eor3(vld1q_u64(dp1 + 6), vld1q_u64(dp2 + 6),
+-			  vld1q_u64(dp3 + 6));
+-
+-		/* p1 ^= p4 ^ p5 */
+-		v0 = eor3(v0, vld1q_u64(dp4 + 0), vld1q_u64(dp5 + 0));
+-		v1 = eor3(v1, vld1q_u64(dp4 + 2), vld1q_u64(dp5 + 2));
+-		v2 = eor3(v2, vld1q_u64(dp4 + 4), vld1q_u64(dp5 + 4));
+-		v3 = eor3(v3, vld1q_u64(dp4 + 6), vld1q_u64(dp5 + 6));
+-
+-		/* store */
+-		vst1q_u64(dp1 + 0, v0);
+-		vst1q_u64(dp1 + 2, v1);
+-		vst1q_u64(dp1 + 4, v2);
+-		vst1q_u64(dp1 + 6, v3);
+-
+-		dp1 += 8;
+-		dp2 += 8;
+-		dp3 += 8;
+-		dp4 += 8;
+-		dp5 += 8;
+-	} while (--lines > 0);
+-}
+-
+-static int __init xor_neon_init(void)
+-{
+-	if (cpu_have_named_feature(SHA3)) {
+-		xor_block_inner_neon.do_3 = xor_arm64_eor3_3;
+-		xor_block_inner_neon.do_4 = xor_arm64_eor3_4;
+-		xor_block_inner_neon.do_5 = xor_arm64_eor3_5;
+-	}
+-	return 0;
+-}
+-module_init(xor_neon_init);
+-
+-static void __exit xor_neon_exit(void)
+-{
+-}
+-module_exit(xor_neon_exit);
+-
+-MODULE_AUTHOR("Jackie Liu <liuyun01@kylinos.cn>");
+-MODULE_DESCRIPTION("ARMv8 XOR Extensions");
+-MODULE_LICENSE("GPL");
+diff --git a/lib/raid/xor/arm64/xor-neon.c a/lib/raid/xor/arm64/xor-neon.c
 new file mode 100664
 --- /dev/null
-+++ a/lib/raid/xor/arm/xor-neon.c
-@@ -0,0 +1,31 @@
++++ a/lib/raid/xor/arm64/xor-neon.c
+@@ -0,0 +1,325 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
-+ * Copyright (C) 2013 Linaro Ltd <ard.biesheuvel@linaro.org>
++ * Authors: Jackie Liu <liuyun01@kylinos.cn>
++ * Copyright (C) 2018,Tianjin KYLIN Information Technology Co., Ltd.
 + */
 +
 +#include <linux/raid/xor_impl.h>
-+
-+#ifndef __ARM_NEON__
-+#error You should compile this file with '-march=armv7-a -mfloat-abi=softfp -mfpu=neon'
-+#endif
-+
-+/*
-+ * Pull in the reference implementations while instructing GCC (through
-+ * -ftree-vectorize) to attempt to exploit implicit parallelism and emit
-+ * NEON instructions. Clang does this by default at O2 so no pragma is
-+ * needed.
-+ */
-+#ifdef CONFIG_CC_IS_GCC
-+#pragma GCC optimize "tree-vectorize"
-+#endif
-+
-+#define NO_TEMPLATE
-+#include "../xor-8regs.c"
-+
-+struct xor_block_template const xor_block_neon_inner = {
-+	.name	= "__inner_neon__",
-+	.do_2	= xor_8regs_2,
-+	.do_3	= xor_8regs_3,
-+	.do_4	= xor_8regs_4,
-+	.do_5	= xor_8regs_5,
-+};
-diff --git a/lib/raid/xor/arm/xor-neon-glue.c a/lib/raid/xor/arm/xor-neon-glue.c
-new file mode 100644
---- /dev/null
-+++ a/lib/raid/xor/arm/xor-neon-glue.c
-@@ -0,0 +1,58 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ *  Copyright (C) 2001 Russell King
-+ */
-+#include <linux/raid/xor_impl.h>
++#include <linux/cache.h>
++#include <asm/neon-intrinsics.h>
 +#include <asm/xor.h>
 +
-+extern struct xor_block_template const xor_block_neon_inner;
++static void xor_arm64_neon_2(unsigned long bytes, unsigned long * __restrict p1,
++	const unsigned long * __restrict p2)
++{
++	uint64_t *dp1 = (uint64_t *)p1;
++	uint64_t *dp2 = (uint64_t *)p2;
++
++	register uint64x2_t v0, v1, v2, v3;
++	long lines = bytes / (sizeof(uint64x2_t) * 4);
++
++	do {
++		/* p1 ^= p2 */
++		v0 = veorq_u64(vld1q_u64(dp1 +  0), vld1q_u64(dp2 +  0));
++		v1 = veorq_u64(vld1q_u64(dp1 +  2), vld1q_u64(dp2 +  2));
++		v2 = veorq_u64(vld1q_u64(dp1 +  4), vld1q_u64(dp2 +  4));
++		v3 = veorq_u64(vld1q_u64(dp1 +  6), vld1q_u64(dp2 +  6));
++
++		/* store */
++		vst1q_u64(dp1 +  0, v0);
++		vst1q_u64(dp1 +  2, v1);
++		vst1q_u64(dp1 +  4, v2);
++		vst1q_u64(dp1 +  6, v3);
++
++		dp1 += 8;
++		dp2 += 8;
++	} while (--lines > 0);
++}
++
++static void xor_arm64_neon_3(unsigned long bytes, unsigned long * __restrict p1,
++	const unsigned long * __restrict p2,
++	const unsigned long * __restrict p3)
++{
++	uint64_t *dp1 = (uint64_t *)p1;
++	uint64_t *dp2 = (uint64_t *)p2;
++	uint64_t *dp3 = (uint64_t *)p3;
++
++	register uint64x2_t v0, v1, v2, v3;
++	long lines = bytes / (sizeof(uint64x2_t) * 4);
++
++	do {
++		/* p1 ^= p2 */
++		v0 = veorq_u64(vld1q_u64(dp1 +  0), vld1q_u64(dp2 +  0));
++		v1 = veorq_u64(vld1q_u64(dp1 +  2), vld1q_u64(dp2 +  2));
++		v2 = veorq_u64(vld1q_u64(dp1 +  4), vld1q_u64(dp2 +  4));
++		v3 = veorq_u64(vld1q_u64(dp1 +  6), vld1q_u64(dp2 +  6));
++
++		/* p1 ^= p3 */
++		v0 = veorq_u64(v0, vld1q_u64(dp3 +  0));
++		v1 = veorq_u64(v1, vld1q_u64(dp3 +  2));
++		v2 = veorq_u64(v2, vld1q_u64(dp3 +  4));
++		v3 = veorq_u64(v3, vld1q_u64(dp3 +  6));
++
++		/* store */
++		vst1q_u64(dp1 +  0, v0);
++		vst1q_u64(dp1 +  2, v1);
++		vst1q_u64(dp1 +  4, v2);
++		vst1q_u64(dp1 +  6, v3);
++
++		dp1 += 8;
++		dp2 += 8;
++		dp3 += 8;
++	} while (--lines > 0);
++}
++
++static void xor_arm64_neon_4(unsigned long bytes, unsigned long * __restrict p1,
++	const unsigned long * __restrict p2,
++	const unsigned long * __restrict p3,
++	const unsigned long * __restrict p4)
++{
++	uint64_t *dp1 = (uint64_t *)p1;
++	uint64_t *dp2 = (uint64_t *)p2;
++	uint64_t *dp3 = (uint64_t *)p3;
++	uint64_t *dp4 = (uint64_t *)p4;
++
++	register uint64x2_t v0, v1, v2, v3;
++	long lines = bytes / (sizeof(uint64x2_t) * 4);
++
++	do {
++		/* p1 ^= p2 */
++		v0 = veorq_u64(vld1q_u64(dp1 +  0), vld1q_u64(dp2 +  0));
++		v1 = veorq_u64(vld1q_u64(dp1 +  2), vld1q_u64(dp2 +  2));
++		v2 = veorq_u64(vld1q_u64(dp1 +  4), vld1q_u64(dp2 +  4));
++		v3 = veorq_u64(vld1q_u64(dp1 +  6), vld1q_u64(dp2 +  6));
++
++		/* p1 ^= p3 */
++		v0 = veorq_u64(v0, vld1q_u64(dp3 +  0));
++		v1 = veorq_u64(v1, vld1q_u64(dp3 +  2));
++		v2 = veorq_u64(v2, vld1q_u64(dp3 +  4));
++		v3 = veorq_u64(v3, vld1q_u64(dp3 +  6));
++
++		/* p1 ^= p4 */
++		v0 = veorq_u64(v0, vld1q_u64(dp4 +  0));
++		v1 = veorq_u64(v1, vld1q_u64(dp4 +  2));
++		v2 = veorq_u64(v2, vld1q_u64(dp4 +  4));
++		v3 = veorq_u64(v3, vld1q_u64(dp4 +  6));
++
++		/* store */
++		vst1q_u64(dp1 +  0, v0);
++		vst1q_u64(dp1 +  2, v1);
++		vst1q_u64(dp1 +  4, v2);
++		vst1q_u64(dp1 +  6, v3);
++
++		dp1 += 8;
++		dp2 += 8;
++		dp3 += 8;
++		dp4 += 8;
++	} while (--lines > 0);
++}
++
++static void xor_arm64_neon_5(unsigned long bytes, unsigned long * __restrict p1,
++	const unsigned long * __restrict p2,
++	const unsigned long * __restrict p3,
++	const unsigned long * __restrict p4,
++	const unsigned long * __restrict p5)
++{
++	uint64_t *dp1 = (uint64_t *)p1;
++	uint64_t *dp2 = (uint64_t *)p2;
++	uint64_t *dp3 = (uint64_t *)p3;
++	uint64_t *dp4 = (uint64_t *)p4;
++	uint64_t *dp5 = (uint64_t *)p5;
++
++	register uint64x2_t v0, v1, v2, v3;
++	long lines = bytes / (sizeof(uint64x2_t) * 4);
++
++	do {
++		/* p1 ^= p2 */
++		v0 = veorq_u64(vld1q_u64(dp1 +  0), vld1q_u64(dp2 +  0));
++		v1 = veorq_u64(vld1q_u64(dp1 +  2), vld1q_u64(dp2 +  2));
++		v2 = veorq_u64(vld1q_u64(dp1 +  4), vld1q_u64(dp2 +  4));
++		v3 = veorq_u64(vld1q_u64(dp1 +  6), vld1q_u64(dp2 +  6));
++
++		/* p1 ^= p3 */
++		v0 = veorq_u64(v0, vld1q_u64(dp3 +  0));
++		v1 = veorq_u64(v1, vld1q_u64(dp3 +  2));
++		v2 = veorq_u64(v2, vld1q_u64(dp3 +  4));
++		v3 = veorq_u64(v3, vld1q_u64(dp3 +  6));
++
++		/* p1 ^= p4 */
++		v0 = veorq_u64(v0, vld1q_u64(dp4 +  0));
++		v1 = veorq_u64(v1, vld1q_u64(dp4 +  2));
++		v2 = veorq_u64(v2, vld1q_u64(dp4 +  4));
++		v3 = veorq_u64(v3, vld1q_u64(dp4 +  6));
++
++		/* p1 ^= p5 */
++		v0 = veorq_u64(v0, vld1q_u64(dp5 +  0));
++		v1 = veorq_u64(v1, vld1q_u64(dp5 +  2));
++		v2 = veorq_u64(v2, vld1q_u64(dp5 +  4));
++		v3 = veorq_u64(v3, vld1q_u64(dp5 +  6));
++
++		/* store */
++		vst1q_u64(dp1 +  0, v0);
++		vst1q_u64(dp1 +  2, v1);
++		vst1q_u64(dp1 +  4, v2);
++		vst1q_u64(dp1 +  6, v3);
++
++		dp1 += 8;
++		dp2 += 8;
++		dp3 += 8;
++		dp4 += 8;
++		dp5 += 8;
++	} while (--lines > 0);
++}
++
++struct xor_block_template xor_block_inner_neon __ro_after_init = {
++	.name	= "__inner_neon__",
++	.do_2	= xor_arm64_neon_2,
++	.do_3	= xor_arm64_neon_3,
++	.do_4	= xor_arm64_neon_4,
++	.do_5	= xor_arm64_neon_5,
++};
++
++static inline uint64x2_t eor3(uint64x2_t p, uint64x2_t q, uint64x2_t r)
++{
++	uint64x2_t res;
++
++	asm(ARM64_ASM_PREAMBLE ".arch_extension sha3\n"
++	    "eor3 %0.16b, %1.16b, %2.16b, %3.16b"
++	    : "=w"(res) : "w"(p), "w"(q), "w"(r));
++	return res;
++}
++
++static void xor_arm64_eor3_3(unsigned long bytes,
++	unsigned long * __restrict p1,
++	const unsigned long * __restrict p2,
++	const unsigned long * __restrict p3)
++{
++	uint64_t *dp1 = (uint64_t *)p1;
++	uint64_t *dp2 = (uint64_t *)p2;
++	uint64_t *dp3 = (uint64_t *)p3;
++
++	register uint64x2_t v0, v1, v2, v3;
++	long lines = bytes / (sizeof(uint64x2_t) * 4);
++
++	do {
++		/* p1 ^= p2 ^ p3 */
++		v0 = eor3(vld1q_u64(dp1 + 0), vld1q_u64(dp2 + 0),
++			  vld1q_u64(dp3 + 0));
++		v1 = eor3(vld1q_u64(dp1 + 2), vld1q_u64(dp2 + 2),
++			  vld1q_u64(dp3 + 2));
++		v2 = eor3(vld1q_u64(dp1 + 4), vld1q_u64(dp2 + 4),
++			  vld1q_u64(dp3 + 4));
++		v3 = eor3(vld1q_u64(dp1 + 6), vld1q_u64(dp2 + 6),
++			  vld1q_u64(dp3 + 6));
++
++		/* store */
++		vst1q_u64(dp1 + 0, v0);
++		vst1q_u64(dp1 + 2, v1);
++		vst1q_u64(dp1 + 4, v2);
++		vst1q_u64(dp1 + 6, v3);
++
++		dp1 += 8;
++		dp2 += 8;
++		dp3 += 8;
++	} while (--lines > 0);
++}
++
++static void xor_arm64_eor3_4(unsigned long bytes,
++	unsigned long * __restrict p1,
++	const unsigned long * __restrict p2,
++	const unsigned long * __restrict p3,
++	const unsigned long * __restrict p4)
++{
++	uint64_t *dp1 = (uint64_t *)p1;
++	uint64_t *dp2 = (uint64_t *)p2;
++	uint64_t *dp3 = (uint64_t *)p3;
++	uint64_t *dp4 = (uint64_t *)p4;
++
++	register uint64x2_t v0, v1, v2, v3;
++	long lines = bytes / (sizeof(uint64x2_t) * 4);
++
++	do {
++		/* p1 ^= p2 ^ p3 */
++		v0 = eor3(vld1q_u64(dp1 + 0), vld1q_u64(dp2 + 0),
++			  vld1q_u64(dp3 + 0));
++		v1 = eor3(vld1q_u64(dp1 + 2), vld1q_u64(dp2 + 2),
++			  vld1q_u64(dp3 + 2));
++		v2 = eor3(vld1q_u64(dp1 + 4), vld1q_u64(dp2 + 4),
++			  vld1q_u64(dp3 + 4));
++		v3 = eor3(vld1q_u64(dp1 + 6), vld1q_u64(dp2 + 6),
++			  vld1q_u64(dp3 + 6));
++
++		/* p1 ^= p4 */
++		v0 = veorq_u64(v0, vld1q_u64(dp4 + 0));
++		v1 = veorq_u64(v1, vld1q_u64(dp4 + 2));
++		v2 = veorq_u64(v2, vld1q_u64(dp4 + 4));
++		v3 = veorq_u64(v3, vld1q_u64(dp4 + 6));
++
++		/* store */
++		vst1q_u64(dp1 + 0, v0);
++		vst1q_u64(dp1 + 2, v1);
++		vst1q_u64(dp1 + 4, v2);
++		vst1q_u64(dp1 + 6, v3);
++
++		dp1 += 8;
++		dp2 += 8;
++		dp3 += 8;
++		dp4 += 8;
++	} while (--lines > 0);
++}
++
++static void xor_arm64_eor3_5(unsigned long bytes,
++	unsigned long * __restrict p1,
++	const unsigned long * __restrict p2,
++	const unsigned long * __restrict p3,
++	const unsigned long * __restrict p4,
++	const unsigned long * __restrict p5)
++{
++	uint64_t *dp1 = (uint64_t *)p1;
++	uint64_t *dp2 = (uint64_t *)p2;
++	uint64_t *dp3 = (uint64_t *)p3;
++	uint64_t *dp4 = (uint64_t *)p4;
++	uint64_t *dp5 = (uint64_t *)p5;
++
++	register uint64x2_t v0, v1, v2, v3;
++	long lines = bytes / (sizeof(uint64x2_t) * 4);
++
++	do {
++		/* p1 ^= p2 ^ p3 */
++		v0 = eor3(vld1q_u64(dp1 + 0), vld1q_u64(dp2 + 0),
++			  vld1q_u64(dp3 + 0));
++		v1 = eor3(vld1q_u64(dp1 + 2), vld1q_u64(dp2 + 2),
++			  vld1q_u64(dp3 + 2));
++		v2 = eor3(vld1q_u64(dp1 + 4), vld1q_u64(dp2 + 4),
++			  vld1q_u64(dp3 + 4));
++		v3 = eor3(vld1q_u64(dp1 + 6), vld1q_u64(dp2 + 6),
++			  vld1q_u64(dp3 + 6));
++
++		/* p1 ^= p4 ^ p5 */
++		v0 = eor3(v0, vld1q_u64(dp4 + 0), vld1q_u64(dp5 + 0));
++		v1 = eor3(v1, vld1q_u64(dp4 + 2), vld1q_u64(dp5 + 2));
++		v2 = eor3(v2, vld1q_u64(dp4 + 4), vld1q_u64(dp5 + 4));
++		v3 = eor3(v3, vld1q_u64(dp4 + 6), vld1q_u64(dp5 + 6));
++
++		/* store */
++		vst1q_u64(dp1 + 0, v0);
++		vst1q_u64(dp1 + 2, v1);
++		vst1q_u64(dp1 + 4, v2);
++		vst1q_u64(dp1 + 6, v3);
++
++		dp1 += 8;
++		dp2 += 8;
++		dp3 += 8;
++		dp4 += 8;
++		dp5 += 8;
++	} while (--lines > 0);
++}
++
++void __init xor_neon_init(void)
++{
++	if (cpu_have_named_feature(SHA3)) {
++		xor_block_inner_neon.do_3 = xor_arm64_eor3_3;
++		xor_block_inner_neon.do_4 = xor_arm64_eor3_4;
++		xor_block_inner_neon.do_5 = xor_arm64_eor3_5;
++	}
++}
+diff --git a/lib/raid/xor/arm64/xor-neon-glue.c a/lib/raid/xor/arm64/xor-neon-glue.c
+new file mode 100644
+--- /dev/null
++++ a/lib/raid/xor/arm64/xor-neon-glue.c
+@@ -0,0 +1,57 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * Authors: Jackie Liu <liuyun01@kylinos.cn>
++ * Copyright (C) 2018,Tianjin KYLIN Information Technology Co., Ltd.
++ */
++
++#include <linux/raid/xor_impl.h>
++#include <asm/simd.h>
++#include <asm/xor.h>
++
++extern struct xor_block_template const xor_block_inner_neon;
 +
 +static void
 +xor_neon_2(unsigned long bytes, unsigned long * __restrict p1,
 +	   const unsigned long * __restrict p2)
 +{
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_2(bytes, p1, p2);
-+	kernel_neon_end();
++	scoped_ksimd()
++		xor_block_inner_neon.do_2(bytes, p1, p2);
 +}
 +
 +static void
@@ -564,9 +900,8 @@ new file mode 100644
 +	   const unsigned long * __restrict p2,
 +	   const unsigned long * __restrict p3)
 +{
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_3(bytes, p1, p2, p3);
-+	kernel_neon_end();
++	scoped_ksimd()
++		xor_block_inner_neon.do_3(bytes, p1, p2, p3);
 +}
 +
 +static void
@@ -575,9 +910,8 @@ new file mode 100644
 +	   const unsigned long * __restrict p3,
 +	   const unsigned long * __restrict p4)
 +{
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_4(bytes, p1, p2, p3, p4);
-+	kernel_neon_end();
++	scoped_ksimd()
++		xor_block_inner_neon.do_4(bytes, p1, p2, p3, p4);
 +}
 +
 +static void
@@ -587,37 +921,35 @@ new file mode 100644
 +	   const unsigned long * __restrict p4,
 +	   const unsigned long * __restrict p5)
 +{
-+	kernel_neon_begin();
-+	xor_block_neon_inner.do_5(bytes, p1, p2, p3, p4, p5);
-+	kernel_neon_end();
++	scoped_ksimd()
++		xor_block_inner_neon.do_5(bytes, p1, p2, p3, p4, p5);
 +}
 +
-+struct xor_block_template xor_block_neon = {
-+	.name	= "neon",
-+	.do_2	= xor_neon_2,
-+	.do_3	= xor_neon_3,
-+	.do_4	= xor_neon_4,
++struct xor_block_template xor_block_arm64 = {
++	.name   = "arm64_neon",
++	.do_2   = xor_neon_2,
++	.do_3   = xor_neon_3,
++	.do_4   = xor_neon_4,
 +	.do_5	= xor_neon_5
 +};
---- a/lib/raid/xor/Makefile~arm-move-the-xor-code-to-lib-raid
+--- a/lib/raid/xor/Makefile~arm64-move-the-xor-code-to-lib-raid
 +++ a/lib/raid/xor/Makefile
-@@ -9,3 +9,11 @@ xor-y				+= xor-8regs-prefetch.o
- xor-y				+= xor-32regs-prefetch.o
+@@ -13,7 +13,11 @@ xor-$(CONFIG_ARM)		+= arm/xor.o
+ ifeq ($(CONFIG_ARM),y)
+ xor-$(CONFIG_KERNEL_MODE_NEON)	+= arm/xor-neon.o arm/xor-neon-glue.o
+ endif
++xor-$(CONFIG_ARM64)		+= arm64/xor-neon.o arm64/xor-neon-glue.o
  
- xor-$(CONFIG_ALPHA)		+= alpha/xor.o
-+xor-$(CONFIG_ARM)		+= arm/xor.o
-+ifeq ($(CONFIG_ARM),y)
-+xor-$(CONFIG_KERNEL_MODE_NEON)	+= arm/xor-neon.o arm/xor-neon-glue.o
-+endif
+ 
+ CFLAGS_arm/xor-neon.o		+= $(CC_FLAGS_FPU)
+ CFLAGS_REMOVE_arm/xor-neon.o	+= $(CC_FLAGS_NO_FPU)
 +
-+
-+CFLAGS_arm/xor-neon.o		+= $(CC_FLAGS_FPU)
-+CFLAGS_REMOVE_arm/xor-neon.o	+= $(CC_FLAGS_NO_FPU)
++CFLAGS_arm64/xor-neon.o		+= $(CC_FLAGS_FPU)
++CFLAGS_REMOVE_arm64/xor-neon.o	+= $(CC_FLAGS_NO_FPU)
 _
 
 Patches currently in -mm which might be from hch@lst.de are
 
-arm64-move-the-xor-code-to-lib-raid.patch
 loongarch-move-the-xor-code-to-lib-raid.patch
 powerpc-move-the-xor-code-to-lib-raid.patch
 riscv-move-the-xor-code-to-lib-raid.patch
