@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D9F2363084
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:51:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F7393FD156
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:51:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774633886; cv=none; b=ccLGC65ykTKjy3t2R0/spqhwS2vL+HT4GfqNk6f+ImtXuY/y6SPoACK0Y4/FOXNKi92bdO3ZGdDAK6VC7EK/pdJjHLVu0z9/kWxEDTXOnprJ5QV/Qf4wnvUixM8pltrz6HQVFPUecqbHsiSdW6aIRBRmgJwJMzv/N7QkdewmbqY=
+	t=1774633889; cv=none; b=fVFsHVfNFx+6vy3tubzFhEZMCBmZP77YTyCGqj9gJoGDth4O9D0SeKZSj1DjvzauainJXvUbvl03fySSD4PMtpH6UMx4f3S4WU8qA1XTD8GhSDzwJkQ2nxWv3xYQvjsQMNMto8Tc16A/rriPcmpyAd3UPQz0nr+Dad+VjOUR/Fk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774633886; c=relaxed/simple;
-	bh=qY5TXHm4pfspA8LHkKMisT5MdrC1antCujxSBcB/5NQ=;
-	h=Date:To:From:Subject:Message-Id; b=KHtUKUmmkkoGiwKbgDYPiW8QzJ/o+eyHc4pCHLD6QOVkEeaqVQD8B7y8BfkyRrKomrosOSh+GAMt7iElh0x0jkWSJ7M98ooDHUlQYpJE8A/ntGMOM9YCsaJIggteQXdoHTdCrtzxlS8V/8BS5Zpme2y4vBXOwz6EnZdy7J6g4Nc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wXnmNSkm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774633889; c=relaxed/simple;
+	bh=aRjLZ8pYf8np79SztJ05ocgdrIVaeCHubd3B6mA+Qkc=;
+	h=Date:To:From:Subject:Message-Id; b=KprcVnarw3HbOgCQxeQ1PBPWwkM9j2sofFlz/NPpf9aT6MMeUs4gXHg8AR7HsDzxlzCwbwTopYGyg4NVgJ4ZTDTdBDviH8Y/BK2mRG+Z4saRjmOUpdRqEYDlolsFNmf2Lf5Vdyv/6TEdB40DlFDmP4dgOh3mJZEgeE4opHytsJE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NQ3XKxUR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wXnmNSkm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F702C19423;
-	Fri, 27 Mar 2026 17:51:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NQ3XKxUR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E17E4C19424;
+	Fri, 27 Mar 2026 17:51:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774633886;
-	bh=qY5TXHm4pfspA8LHkKMisT5MdrC1antCujxSBcB/5NQ=;
+	s=korg; t=1774633889;
+	bh=aRjLZ8pYf8np79SztJ05ocgdrIVaeCHubd3B6mA+Qkc=;
 	h=Date:To:From:Subject:From;
-	b=wXnmNSkmCLpniT8U7QKDc6nGpJ5OwVQ+Zaxg1Km2hTvQh8F335FpX6UiFLrtDvOGF
-	 VcRZiuXDvoEvxuDN3mUF80wQ9nqmtHbzfoUhdoO4+nSASfoRGAg0auWdZqpFvG9Lrz
-	 U3q7jDl3az6h7rXajeOFvkTtpap8IMtrSjU/Qo2M=
-Date: Fri, 27 Mar 2026 10:51:25 -0700
+	b=NQ3XKxUR6/o/O5Wycnl9ydxf869Z9amoiXVwJm1L66CaiLJbNiG7FbBQ7EtX6queh
+	 PT5q8CFpHzxdGCdnmvPlqBqtOWOKlds9n194O4i2m3v2KbhM53NZdvh+Xr5dcjVwZD
+	 O4wVv7mY1gpd0Rb9NX1ryNv/cNUYQPbZvqk42Vc0=
+Date: Fri, 27 Mar 2026 10:51:28 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xor-add-a-better-public-api.patch added to mm-nonmm-unstable branch
-Message-Id: <20260327175126.0F702C19423@smtp.kernel.org>
+Subject: + xor-add-a-better-public-api-2.patch added to mm-nonmm-unstable branch
+Message-Id: <20260327175128.E17E4C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -37,10 +37,10 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 The patch titled
      Subject: xor: add a better public API
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xor-add-a-better-public-api.patch
+     xor-add-a-better-public-api-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xor-add-a-better-public-api.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xor-add-a-better-public-api-2.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -60,7 +60,7 @@ and is updated there most days
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
 Subject: xor: add a better public API
-Date: Fri, 27 Mar 2026 07:16:54 +0100
+Date: Fri, 27 Mar 2026 07:16:55 +0100
 
 xor_blocks is very annoying to use, because it is limited to 4 + 1 sources
 / destinations, has an odd argument order and is completely undocumented.
@@ -68,7 +68,7 @@ xor_blocks is very annoying to use, because it is limited to 4 + 1 sources
 Lift the code that loops around it from btrfs and async_tx/async_xor into
 common code under the name xor_gen and properly document it.
 
-Link: https://lkml.kernel.org/r/20260327061704.3707577-23-hch@lst.de
+Link: https://lkml.kernel.org/r/20260327061704.3707577-24-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -110,60 +110,20 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/raid/xor.h |    2 ++
- lib/raid/xor/xor-core.c  |   32 ++++++++++++++++++++++++++++++++
- 2 files changed, 34 insertions(+)
+ lib/raid/xor/xor-core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/raid/xor.h~xor-add-a-better-public-api
-+++ a/include/linux/raid/xor.h
-@@ -7,4 +7,6 @@
- extern void xor_blocks(unsigned int count, unsigned int bytes,
- 	void *dest, void **srcs);
- 
-+void xor_gen(void *dest, void **srcs, unsigned int src_cnt, unsigned int bytes);
-+
- #endif /* _XOR_H */
---- a/lib/raid/xor/xor-core.c~xor-add-a-better-public-api
+--- a/lib/raid/xor/xor-core.c~xor-add-a-better-public-api-2
 +++ a/lib/raid/xor/xor-core.c
-@@ -46,6 +46,38 @@ xor_blocks(unsigned int src_count, unsig
- }
- EXPORT_SYMBOL(xor_blocks);
+@@ -65,6 +65,8 @@ void xor_gen(void *dest, void **srcs, un
+ {
+ 	unsigned int src_off = 0;
  
-+/**
-+ * xor_gen - generate RAID-style XOR information
-+ * @dest:	destination vector
-+ * @srcs:	source vectors
-+ * @src_cnt:	number of source vectors
-+ * @bytes:	length in bytes of each vector
-+ *
-+ * Performs bit-wise XOR operation into @dest for each of the @src_cnt vectors
-+ * in @srcs for a length of @bytes bytes.  @src_cnt must be non-zero, and the
-+ * memory pointed to by @dest and each member of @srcs must be at least 64-byte
-+ * aligned.  @bytes must be non-zero and a multiple of 512.
-+ *
-+ * Note: for typical RAID uses, @dest either needs to be zeroed, or filled with
-+ * the first disk, which then needs to be removed from @srcs.
-+ */
-+void xor_gen(void *dest, void **srcs, unsigned int src_cnt, unsigned int bytes)
-+{
-+	unsigned int src_off = 0;
-+
-+	WARN_ON_ONCE(bytes & 511);
-+
-+	while (src_cnt > 0) {
-+		unsigned int this_cnt = min(src_cnt, MAX_XOR_BLOCKS);
-+
-+		xor_blocks(this_cnt, bytes, dest, srcs + src_off);
-+
-+		src_cnt -= this_cnt;
-+		src_off += this_cnt;
-+	}
-+}
-+EXPORT_SYMBOL(xor_gen);
-+
- /* Set of all registered templates.  */
- static struct xor_block_template *__initdata template_list;
- static bool __initdata xor_forced = false;
++	WARN_ON_ONCE(in_interrupt());
++	WARN_ON_ONCE(bytes == 0);
+ 	WARN_ON_ONCE(bytes & 511);
+ 
+ 	while (src_cnt > 0) {
 _
 
 Patches currently in -mm which might be from hch@lst.de are
