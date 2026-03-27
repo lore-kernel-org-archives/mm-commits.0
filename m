@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6F323FE362;
-	Fri, 27 Mar 2026 17:52:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD6D63FF8B6;
+	Fri, 27 Mar 2026 17:54:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774633974; cv=none; b=fzhJWgnYII8SNx7+IOrEOlTqyYGEWzK3dGHl8Uw6HXNv/87H2cJ/mMMbwYgDYizeBSkYHiyAlcJA6PzPbxfz/tS/+e5npJVmdwlh2GdzgCXYMBesK9wYzUXMxhiCT60JqLmvkGIMp6wCGu9TYvn5PNRU54c+uWt6t5C2wx4c+0o=
+	t=1774634048; cv=none; b=Pb8J5y7FG4cpbztFBMcZ8/05LhnygNxsYeoZl+Xc2efa99ZW5OoJdCtjvSrHH8bHIAiKbThDdOhO8v+feug3AoKaWNe68YJ2vIxK2nLur1klmmuiLSz7qi9iK0lAoP1uKaS3m7WXQ8xqcyWj3NXkex5JOaTMMQ0zsm0inD20ffw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774633974; c=relaxed/simple;
-	bh=DupfEdME4n3J9GIhP++80G1+fIhn11d9i7wblGyQNuI=;
-	h=Date:To:From:Subject:Message-Id; b=ZEDYldSKF5RAOSn7t1241F5+b+JUeEvKYae6pxHpzRGZHQ1LotyiAKEDNrvuhova7cfr4EpQWQgA3dH4EcDr6j45x0Lp5T+gWJFfbpIUzFJsH0EdtoGLh/5diu0bDpF4Q3f9JlU0caUOVOjbmHJds+VC9UhuWzmKgSOt4wCtQrI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C3epP8Tp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774634048; c=relaxed/simple;
+	bh=gKRf2dO2Y9TYrm4TtDbByCL6jPJ+QpHEGRBnilB2hWY=;
+	h=Date:To:From:Subject:Message-Id; b=n1Ueez3nj7dy0cHx/DmL/z6vTacdl1lU3JGLxRzjOZyxOTek9IbF2xu65YX5gnlT8XcscZnAB/X7mynrsCbh3eJn0/ojTFaTfDj189P3tKy4eQmi/XX9yy+fAYCJwXnmS1InmfHJFv2VjIHhUi5a/R53GqYWmhs3lvX5GLK7eUM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kvntzzCH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C3epP8Tp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE7BEC19423;
-	Fri, 27 Mar 2026 17:52:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kvntzzCH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45C20C19423;
+	Fri, 27 Mar 2026 17:54:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774633974;
-	bh=DupfEdME4n3J9GIhP++80G1+fIhn11d9i7wblGyQNuI=;
+	s=korg; t=1774634048;
+	bh=gKRf2dO2Y9TYrm4TtDbByCL6jPJ+QpHEGRBnilB2hWY=;
 	h=Date:To:From:Subject:From;
-	b=C3epP8TpVQuIx/tagNUBT/rViKmu6HsCJULOR82QXHJWDYcqVDfRtz2dYEmJgYO24
-	 XzzRUiF6ERsnuTdILGcMwjTSUXuLjLjgLJzQXCVkXWUYsDXE4Fow/WJjw6NW5BrBAD
-	 FqEPMgljUEq45agu6S79N/eg/SDMZfJikz7Z5NBw=
-Date: Fri, 27 Mar 2026 10:52:54 -0700
+	b=kvntzzCHN45gUYPPa4hVGb+RJAf/H23QZoG8UHAbaRIlW7biclA6nykUmeyV4FOi4
+	 amqrfJex7fJlgYCaEion3zcAXRQARAe/pXM7QSMLPCNM8APgxzOOMIA75oIYGYuPAb
+	 lZr2ms98A1iePoiNdnv9l7sia+78KHJvg2od7Tx8=
+Date: Fri, 27 Mar 2026 10:54:07 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,liam.howlett@oracle.com,jeffxu@chromium.org,jannh@google.com,david@kernel.org,antonius@bluedragonsec.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mseal-update-vma-end-correctly-on-merge.patch removed from -mm tree
-Message-Id: <20260327175254.AE7BEC19423@smtp.kernel.org>
+Subject: + mm-mseal-update-vma-end-correctly-on-merge.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260327175408.45C20C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm/mseal: update VMA end correctly on merge
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
      mm-mseal-update-vma-end-correctly-on-merge.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-update-vma-end-correctly-on-merge.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
 Subject: mm/mseal: update VMA end correctly on merge
-Date: Fri, 27 Mar 2026 09:06:40 +0000
+Date: Fri, 27 Mar 2026 17:31:04 +0000
 
 Previously we stored the end of the current VMA in curr_end, and then upon
 iterating to the next VMA updated curr_start to curr_end to advance to the
@@ -58,14 +74,18 @@ an incorrect curr_start on the next iteration.
 Resolve the issue by setting curr_end to vma->vm_end unconditionally to
 ensure this value remains updated should this occur.
 
-Link: https://lkml.kernel.org/r/20260327090640.146308-1-ljs@kernel.org
+While we're here, eliminate this entire class of bug by simply setting
+const curr_[start/end] to be clamped to the input range and VMAs, which
+also happens to simplify the logic.
+
+Link: https://lkml.kernel.org/r/20260327173104.322405-1-ljs@kernel.org
 Fixes: 6c2da14ae1e0 ("mm/mseal: rework mseal apply logic")
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Reported-by: Antonius <antonius@bluedragonsec.com>
 Closes: https://lore.kernel.org/linux-mm/CAK8a0jwWGj9-SgFk0yKFh7i8jMkwKm5b0ao9=kmXWjO54veX2g@mail.gmail.com/
-Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Suggested-by: David Hildenbrand (ARM) <david@kernel.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jeff Xu <jeffxu@chromium.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -73,32 +93,40 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mseal.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/mseal.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
 --- a/mm/mseal.c~mm-mseal-update-vma-end-correctly-on-merge
 +++ a/mm/mseal.c
-@@ -66,7 +66,7 @@ static int mseal_apply(struct mm_struct
+@@ -56,7 +56,6 @@ static int mseal_apply(struct mm_struct
+ 		unsigned long start, unsigned long end)
+ {
+ 	struct vm_area_struct *vma, *prev;
+-	unsigned long curr_start = start;
+ 	VMA_ITERATOR(vmi, mm, start);
+ 
+ 	/* We know there are no gaps so this will be non-NULL. */
+@@ -66,6 +65,7 @@ static int mseal_apply(struct mm_struct
  		prev = vma;
  
  	for_each_vma_range(vmi, vma, end) {
--		const unsigned long curr_end = MIN(vma->vm_end, end);
-+		unsigned long curr_end = MIN(vma->vm_end, end);
++		const unsigned long curr_start = MAX(vma->vm_start, start);
+ 		const unsigned long curr_end = MIN(vma->vm_end, end);
  
  		if (!(vma->vm_flags & VM_SEALED)) {
- 			vm_flags_t vm_flags = vma->vm_flags | VM_SEALED;
-@@ -76,6 +76,7 @@ static int mseal_apply(struct mm_struct
- 			if (IS_ERR(vma))
- 				return PTR_ERR(vma);
- 			vm_flags_set(vma, VM_SEALED);
-+			curr_end = vma->vm_end; /* Merge may have updated. */
+@@ -79,7 +79,6 @@ static int mseal_apply(struct mm_struct
  		}
  
  		prev = vma;
+-		curr_start = curr_end;
+ 	}
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
 
+mm-mseal-update-vma-end-correctly-on-merge.patch
 mm-rename-vma-flag-helpers-to-be-more-readable.patch
 mm-add-vma_desc_test_all-and-use-it.patch
 mm-always-inline-__mk_vma_flags-and-invoked-functions.patch
