@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2E4F3FF8BF
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:51:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F26A53FD156
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:51:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774633891; cv=none; b=n4GiKlFKRocJb56qq06tUSOgv3jUmaChnEY94GIK7uwyK8JwednnADGjUBq8aDgdQzpkfL/wL+HBJof3D0Sz3tZNyzAmL9ZLKfStrhQSJ9ZdNeHrWGDulTbxWCOkz+KgCA/Qc4/cDUlpeRWPcKqD7mOmoZzvcfXDTCgtxSn1VCs=
+	t=1774633894; cv=none; b=WCkLTCza4PSAHfdDktfyxg8Oeo3Yd2j67xfgZCMqoeCW5r5GEB8nA8xmA2NpqA00CSGI6rtR+VBAypY2GpTmhexw69Rv6IXDcDDKdodYtViEex8Zrd/WojFPYZ+pgMFFP2kWQxGUlegpCYJaF6gL4biFl/+hUZar6D6tC3RM7eE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774633891; c=relaxed/simple;
-	bh=NNEcz1mIOFpjtLdNxb0HPzHk2WMf+DvZXAtdRlqPeYw=;
-	h=Date:To:From:Subject:Message-Id; b=U5onKMoP3mVpYm5S/lQsMPXkZ3kyD209MLYvhM9o8XMoqfwhLaGTmDEdM2+6dKwdYklTJKSLavHGQKdFJCsbk30l0pik1zx2sPKNSanVAm9pPH27M/01YhyHWd3axSyvNvuMg58xmwW05KnBmgYv26KZRAdKOemAQiw+JzLEP6Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1XXpDv87; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774633894; c=relaxed/simple;
+	bh=ujdmBjhwk3GHWvQBOSq1Wl71dN90D7BTTqEOTgUZV6Q=;
+	h=Date:To:From:Subject:Message-Id; b=cpNukpkR/2K/u9mvyFbJbMwYldS6QJ0lSWU/P4w2BpULNsbNhvm8tX5RLg6Q2z/CSD8ZTPBOt9AGD/PN2oSErlKrVAAnhBKEzMSIJ7Ijd49KBPGzx/ng6BQHAR0gBeQTzoFtBMDSSSKO6lrPHpZn5TI5fDs/LQeojoOu8QtrAVQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G+5VSL22; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1XXpDv87"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5138FC19423;
-	Fri, 27 Mar 2026 17:51:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G+5VSL22"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA6CAC19423;
+	Fri, 27 Mar 2026 17:51:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774633891;
-	bh=NNEcz1mIOFpjtLdNxb0HPzHk2WMf+DvZXAtdRlqPeYw=;
+	s=korg; t=1774633893;
+	bh=ujdmBjhwk3GHWvQBOSq1Wl71dN90D7BTTqEOTgUZV6Q=;
 	h=Date:To:From:Subject:From;
-	b=1XXpDv87hKRm05GwbbjYad97wdMCi03WNG//anPEczOTX8NdXrwglryf319z4ytoD
-	 VykMFu3T+Yc2X3qMIY/Pu/6GgaXbxhqpHzussXeCrX1WxL1M2IkVPilfqQKCEfByXa
-	 Z9y80W+sow88tXI8oiwMUgMbDQqBGUZLyeiRZkS0=
-Date: Fri, 27 Mar 2026 10:51:30 -0700
+	b=G+5VSL22F9lMs9L91CMI/ZetHVCt652eppozuPCF4TbTiML+M3pLXA2Qff9+R8pFD
+	 XEvTxQ0DcSUuwrVBC2m3HhLFCAuKVFaKLIwW4TLVEmRrxhk5FEYPM5x27uQ7wCGd+o
+	 Ed6xoRmE8b0loX3fXRyf/ifWOXEscE9VYmwrZ6XI=
+Date: Fri, 27 Mar 2026 10:51:33 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + async_xor-use-xor_gen.patch added to mm-nonmm-unstable branch
-Message-Id: <20260327175131.5138FC19423@smtp.kernel.org>
+Subject: + btrfs-use-xor_gen.patch added to mm-nonmm-unstable branch
+Message-Id: <20260327175133.CA6CAC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: async_xor: use xor_gen
+     Subject: btrfs: use xor_gen
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     async_xor-use-xor_gen.patch
+     btrfs-use-xor_gen.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/async_xor-use-xor_gen.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/btrfs-use-xor_gen.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,14 +59,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: async_xor: use xor_gen
-Date: Fri, 27 Mar 2026 07:16:56 +0100
+Subject: btrfs: use xor_gen
+Date: Fri, 27 Mar 2026 07:16:57 +0100
 
-Replace use of the loop around xor_blocks with the easier to use xor_gen
-API.
+Use the new xor_gen helper instead of open coding the loop around
+xor_blocks.  This helper is very similar to the existing run_xor helper in
+btrfs, except that the destination buffer is passed explicitly.
 
-Link: https://lkml.kernel.org/r/20260327061704.3707577-25-hch@lst.de
+Link: https://lkml.kernel.org/r/20260327061704.3707577-26-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: David Sterba <dsterba@suse.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -80,7 +82,6 @@ Cc: Chris Mason <clm@fb.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David S. Miller <davem@davemloft.net>
-Cc: David Sterba <dsterba@suse.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Herbert Xu <herbert@gondor.apana.org.au>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -107,77 +108,66 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/async_tx/async_xor.c |   34 ++++++++++------------------------
- 1 file changed, 10 insertions(+), 24 deletions(-)
+ fs/btrfs/raid56.c |   27 ++++-----------------------
+ 1 file changed, 4 insertions(+), 23 deletions(-)
 
---- a/crypto/async_tx/async_xor.c~async_xor-use-xor_gen
-+++ a/crypto/async_tx/async_xor.c
-@@ -103,7 +103,6 @@ do_sync_xor_offs(struct page *dest, unsi
- {
- 	int i;
- 	int xor_src_cnt = 0;
--	int src_off = 0;
- 	void *dest_buf;
- 	void **srcs;
+--- a/fs/btrfs/raid56.c~btrfs-use-xor_gen
++++ a/fs/btrfs/raid56.c
+@@ -618,26 +618,6 @@ static void cache_rbio(struct btrfs_raid
+ }
  
-@@ -117,23 +116,12 @@ do_sync_xor_offs(struct page *dest, unsi
- 		if (src_list[i])
- 			srcs[xor_src_cnt++] = page_address(src_list[i]) +
- 				(src_offs ? src_offs[i] : offset);
--	src_cnt = xor_src_cnt;
-+
- 	/* set destination address */
- 	dest_buf = page_address(dest) + offset;
+ /*
+- * helper function to run the xor_blocks api.  It is only
+- * able to do MAX_XOR_BLOCKS at a time, so we need to
+- * loop through.
+- */
+-static void run_xor(void **pages, int src_cnt, ssize_t len)
+-{
+-	int src_off = 0;
+-	int xor_src_cnt = 0;
+-	void *dest = pages[src_cnt];
 -
- 	if (submit->flags & ASYNC_TX_XOR_ZERO_DST)
- 		memset(dest_buf, 0, len);
--
--	while (src_cnt > 0) {
--		/* process up to 'MAX_XOR_BLOCKS' sources */
+-	while(src_cnt > 0) {
 -		xor_src_cnt = min(src_cnt, MAX_XOR_BLOCKS);
--		xor_blocks(xor_src_cnt, len, dest_buf, &srcs[src_off]);
+-		xor_blocks(xor_src_cnt, len, dest, pages + src_off);
 -
--		/* drop completed sources */
 -		src_cnt -= xor_src_cnt;
 -		src_off += xor_src_cnt;
 -	}
+-}
 -
-+	xor_gen(dest_buf, srcs, xor_src_cnt, len);
- 	async_tx_sync_epilog(submit);
- }
+-/*
+  * Returns true if the bio list inside this rbio covers an entire stripe (no
+  * rmw required).
+  */
+@@ -1434,7 +1414,8 @@ static void generate_pq_vertical_step(st
+ 	} else {
+ 		/* raid5 */
+ 		memcpy(pointers[rbio->nr_data], pointers[0], step);
+-		run_xor(pointers + 1, rbio->nr_data - 1, step);
++		xor_gen(pointers[rbio->nr_data], pointers + 1, rbio->nr_data - 1,
++				step);
+ 	}
+ 	for (stripe = stripe - 1; stripe >= 0; stripe--)
+ 		kunmap_local(pointers[stripe]);
+@@ -2034,7 +2015,7 @@ pstripe:
+ 		pointers[rbio->nr_data - 1] = p;
  
-@@ -168,11 +156,10 @@ dma_xor_aligned_offsets(struct dma_devic
-  *
-  * honored flags: ASYNC_TX_ACK, ASYNC_TX_XOR_ZERO_DST, ASYNC_TX_XOR_DROP_DST
-  *
-- * xor_blocks always uses the dest as a source so the
-- * ASYNC_TX_XOR_ZERO_DST flag must be set to not include dest data in
-- * the calculation.  The assumption with dma engines is that they only
-- * use the destination buffer as a source when it is explicitly specified
-- * in the source list.
-+ * xor_gen always uses the dest as a source so the ASYNC_TX_XOR_ZERO_DST flag
-+ * must be set to not include dest data in the calculation.  The assumption with
-+ * dma engines is that they only use the destination buffer as a source when it
-+ * is explicitly specified in the source list.
-  *
-  * src_list note: if the dest is also a source it must be at index zero.
-  * The contents of this array will be overwritten if a scribble region
-@@ -259,11 +246,10 @@ EXPORT_SYMBOL_GPL(async_xor_offs);
-  *
-  * honored flags: ASYNC_TX_ACK, ASYNC_TX_XOR_ZERO_DST, ASYNC_TX_XOR_DROP_DST
-  *
-- * xor_blocks always uses the dest as a source so the
-- * ASYNC_TX_XOR_ZERO_DST flag must be set to not include dest data in
-- * the calculation.  The assumption with dma engines is that they only
-- * use the destination buffer as a source when it is explicitly specified
-- * in the source list.
-+ * xor_gen always uses the dest as a source so the ASYNC_TX_XOR_ZERO_DST flag
-+ * must be set to not include dest data in the calculation.  The assumption with
-+ * dma engines is that they only use the destination buffer as a source when it
-+ * is explicitly specified in the source list.
-  *
-  * src_list note: if the dest is also a source it must be at index zero.
-  * The contents of this array will be overwritten if a scribble region
+ 		/* Xor in the rest */
+-		run_xor(pointers, rbio->nr_data - 1, step);
++		xor_gen(p, pointers, rbio->nr_data - 1, step);
+ 	}
+ 
+ cleanup:
+@@ -2672,7 +2653,7 @@ static bool verify_one_parity_step(struc
+ 	} else {
+ 		/* RAID5. */
+ 		memcpy(pointers[nr_data], pointers[0], step);
+-		run_xor(pointers + 1, nr_data - 1, step);
++		xor_gen(pointers[nr_data], pointers + 1, nr_data - 1, step);
+ 	}
+ 
+ 	/* Check scrubbing parity and repair it. */
 _
 
 Patches currently in -mm which might be from hch@lst.de are
