@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F7393FD156
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:51:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2E4F3FF8BF
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:51:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774633889; cv=none; b=fVFsHVfNFx+6vy3tubzFhEZMCBmZP77YTyCGqj9gJoGDth4O9D0SeKZSj1DjvzauainJXvUbvl03fySSD4PMtpH6UMx4f3S4WU8qA1XTD8GhSDzwJkQ2nxWv3xYQvjsQMNMto8Tc16A/rriPcmpyAd3UPQz0nr+Dad+VjOUR/Fk=
+	t=1774633891; cv=none; b=n4GiKlFKRocJb56qq06tUSOgv3jUmaChnEY94GIK7uwyK8JwednnADGjUBq8aDgdQzpkfL/wL+HBJof3D0Sz3tZNyzAmL9ZLKfStrhQSJ9ZdNeHrWGDulTbxWCOkz+KgCA/Qc4/cDUlpeRWPcKqD7mOmoZzvcfXDTCgtxSn1VCs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774633889; c=relaxed/simple;
-	bh=aRjLZ8pYf8np79SztJ05ocgdrIVaeCHubd3B6mA+Qkc=;
-	h=Date:To:From:Subject:Message-Id; b=KprcVnarw3HbOgCQxeQ1PBPWwkM9j2sofFlz/NPpf9aT6MMeUs4gXHg8AR7HsDzxlzCwbwTopYGyg4NVgJ4ZTDTdBDviH8Y/BK2mRG+Z4saRjmOUpdRqEYDlolsFNmf2Lf5Vdyv/6TEdB40DlFDmP4dgOh3mJZEgeE4opHytsJE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NQ3XKxUR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774633891; c=relaxed/simple;
+	bh=NNEcz1mIOFpjtLdNxb0HPzHk2WMf+DvZXAtdRlqPeYw=;
+	h=Date:To:From:Subject:Message-Id; b=U5onKMoP3mVpYm5S/lQsMPXkZ3kyD209MLYvhM9o8XMoqfwhLaGTmDEdM2+6dKwdYklTJKSLavHGQKdFJCsbk30l0pik1zx2sPKNSanVAm9pPH27M/01YhyHWd3axSyvNvuMg58xmwW05KnBmgYv26KZRAdKOemAQiw+JzLEP6Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1XXpDv87; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NQ3XKxUR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E17E4C19424;
-	Fri, 27 Mar 2026 17:51:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1XXpDv87"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5138FC19423;
+	Fri, 27 Mar 2026 17:51:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774633889;
-	bh=aRjLZ8pYf8np79SztJ05ocgdrIVaeCHubd3B6mA+Qkc=;
+	s=korg; t=1774633891;
+	bh=NNEcz1mIOFpjtLdNxb0HPzHk2WMf+DvZXAtdRlqPeYw=;
 	h=Date:To:From:Subject:From;
-	b=NQ3XKxUR6/o/O5Wycnl9ydxf869Z9amoiXVwJm1L66CaiLJbNiG7FbBQ7EtX6queh
-	 PT5q8CFpHzxdGCdnmvPlqBqtOWOKlds9n194O4i2m3v2KbhM53NZdvh+Xr5dcjVwZD
-	 O4wVv7mY1gpd0Rb9NX1ryNv/cNUYQPbZvqk42Vc0=
-Date: Fri, 27 Mar 2026 10:51:28 -0700
+	b=1XXpDv87hKRm05GwbbjYad97wdMCi03WNG//anPEczOTX8NdXrwglryf319z4ytoD
+	 VykMFu3T+Yc2X3qMIY/Pu/6GgaXbxhqpHzussXeCrX1WxL1M2IkVPilfqQKCEfByXa
+	 Z9y80W+sow88tXI8oiwMUgMbDQqBGUZLyeiRZkS0=
+Date: Fri, 27 Mar 2026 10:51:30 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xor-add-a-better-public-api-2.patch added to mm-nonmm-unstable branch
-Message-Id: <20260327175128.E17E4C19424@smtp.kernel.org>
+Subject: + async_xor-use-xor_gen.patch added to mm-nonmm-unstable branch
+Message-Id: <20260327175131.5138FC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xor: add a better public API
+     Subject: async_xor: use xor_gen
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xor-add-a-better-public-api-2.patch
+     async_xor-use-xor_gen.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xor-add-a-better-public-api-2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/async_xor-use-xor_gen.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: xor: add a better public API
-Date: Fri, 27 Mar 2026 07:16:55 +0100
+Subject: async_xor: use xor_gen
+Date: Fri, 27 Mar 2026 07:16:56 +0100
 
-xor_blocks is very annoying to use, because it is limited to 4 + 1 sources
-/ destinations, has an odd argument order and is completely undocumented.
+Replace use of the loop around xor_blocks with the easier to use xor_gen
+API.
 
-Lift the code that loops around it from btrfs and async_tx/async_xor into
-common code under the name xor_gen and properly document it.
-
-Link: https://lkml.kernel.org/r/20260327061704.3707577-24-hch@lst.de
+Link: https://lkml.kernel.org/r/20260327061704.3707577-25-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -110,20 +107,77 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/xor/xor-core.c |    2 ++
- 1 file changed, 2 insertions(+)
+ crypto/async_tx/async_xor.c |   34 ++++++++++------------------------
+ 1 file changed, 10 insertions(+), 24 deletions(-)
 
---- a/lib/raid/xor/xor-core.c~xor-add-a-better-public-api-2
-+++ a/lib/raid/xor/xor-core.c
-@@ -65,6 +65,8 @@ void xor_gen(void *dest, void **srcs, un
+--- a/crypto/async_tx/async_xor.c~async_xor-use-xor_gen
++++ a/crypto/async_tx/async_xor.c
+@@ -103,7 +103,6 @@ do_sync_xor_offs(struct page *dest, unsi
  {
- 	unsigned int src_off = 0;
+ 	int i;
+ 	int xor_src_cnt = 0;
+-	int src_off = 0;
+ 	void *dest_buf;
+ 	void **srcs;
  
-+	WARN_ON_ONCE(in_interrupt());
-+	WARN_ON_ONCE(bytes == 0);
- 	WARN_ON_ONCE(bytes & 511);
+@@ -117,23 +116,12 @@ do_sync_xor_offs(struct page *dest, unsi
+ 		if (src_list[i])
+ 			srcs[xor_src_cnt++] = page_address(src_list[i]) +
+ 				(src_offs ? src_offs[i] : offset);
+-	src_cnt = xor_src_cnt;
++
+ 	/* set destination address */
+ 	dest_buf = page_address(dest) + offset;
+-
+ 	if (submit->flags & ASYNC_TX_XOR_ZERO_DST)
+ 		memset(dest_buf, 0, len);
+-
+-	while (src_cnt > 0) {
+-		/* process up to 'MAX_XOR_BLOCKS' sources */
+-		xor_src_cnt = min(src_cnt, MAX_XOR_BLOCKS);
+-		xor_blocks(xor_src_cnt, len, dest_buf, &srcs[src_off]);
+-
+-		/* drop completed sources */
+-		src_cnt -= xor_src_cnt;
+-		src_off += xor_src_cnt;
+-	}
+-
++	xor_gen(dest_buf, srcs, xor_src_cnt, len);
+ 	async_tx_sync_epilog(submit);
+ }
  
- 	while (src_cnt > 0) {
+@@ -168,11 +156,10 @@ dma_xor_aligned_offsets(struct dma_devic
+  *
+  * honored flags: ASYNC_TX_ACK, ASYNC_TX_XOR_ZERO_DST, ASYNC_TX_XOR_DROP_DST
+  *
+- * xor_blocks always uses the dest as a source so the
+- * ASYNC_TX_XOR_ZERO_DST flag must be set to not include dest data in
+- * the calculation.  The assumption with dma engines is that they only
+- * use the destination buffer as a source when it is explicitly specified
+- * in the source list.
++ * xor_gen always uses the dest as a source so the ASYNC_TX_XOR_ZERO_DST flag
++ * must be set to not include dest data in the calculation.  The assumption with
++ * dma engines is that they only use the destination buffer as a source when it
++ * is explicitly specified in the source list.
+  *
+  * src_list note: if the dest is also a source it must be at index zero.
+  * The contents of this array will be overwritten if a scribble region
+@@ -259,11 +246,10 @@ EXPORT_SYMBOL_GPL(async_xor_offs);
+  *
+  * honored flags: ASYNC_TX_ACK, ASYNC_TX_XOR_ZERO_DST, ASYNC_TX_XOR_DROP_DST
+  *
+- * xor_blocks always uses the dest as a source so the
+- * ASYNC_TX_XOR_ZERO_DST flag must be set to not include dest data in
+- * the calculation.  The assumption with dma engines is that they only
+- * use the destination buffer as a source when it is explicitly specified
+- * in the source list.
++ * xor_gen always uses the dest as a source so the ASYNC_TX_XOR_ZERO_DST flag
++ * must be set to not include dest data in the calculation.  The assumption with
++ * dma engines is that they only use the destination buffer as a source when it
++ * is explicitly specified in the source list.
+  *
+  * src_list note: if the dest is also a source it must be at index zero.
+  * The contents of this array will be overwritten if a scribble region
 _
 
 Patches currently in -mm which might be from hch@lst.de are
