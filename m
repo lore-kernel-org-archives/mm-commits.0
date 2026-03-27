@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A386C2652AF
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 02:09:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6614F188596
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 02:11:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774577377; cv=none; b=hVVxLddR7YLPRMveQVWoqZbV04hT9ycvhSx0BFhHKkcn5SYf+ZfBHs0dRwBNLc5pnfxWY4dkQQRMb+jsi/Te+mcqMIz2zSmW9FDEFfrXoBmg3yb0Po1w/SGJx2oL2p8HbJOxRpTKdeZDQ8u+EXRlqkxia3h7UKWUuO+Qq/r8IIs=
+	t=1774577497; cv=none; b=V+rK4VeBaSiVvI3CKdWY+MwdtUbPPxgihizlT70HZLcByHA76UtY7GUptUE1zY4pD5kKCui/PbPNiJY7BjEzeEvILiHVA2iJPtzBjDj3WaLV/1TH5pudpyIUlgQlmmBpNb2u4lVlam6N8EgVKnDgtqoY7PFsqaTAsh41iaYsbBA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774577377; c=relaxed/simple;
-	bh=dHpwvVWBtA5AbF9giPoxE4xT7s+OZQqkLn7SEJeG3mM=;
-	h=Date:To:From:Subject:Message-Id; b=bh4oGhnNb2IezNO/eeN/nz0ZO5ZbzC3e9DZQzQoEcl+zHn3OkFgxpWBEy2MC1q1AAiKCjUGEpVF2IMQJgStce1UELrw+aLv0/G5wNa8CM0OKqBMOkuAAzQmxQ6is8kbpm+0A6K9+KoVJ7nNTiiXtYouXJop9VI4+DL77mZ8TpZo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E0Elc8yE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774577497; c=relaxed/simple;
+	bh=smal/k3VrRVmy1jCLGduoexwNOgn9yy3gnjuoGPWAS0=;
+	h=Date:To:From:Subject:Message-Id; b=lJQaioAGRUM6fOy8STkaBSrtc3F9JZy1e4lBltEu7Ugpp1f4dXGAOGNz0ru2R+QKfuWademQNkWc5c5XJspzK96mDk0/v4ZGokQDJQwJQenQEAUsn3UCxM6Sgg9X+QNdJaN/UEbZfYcRbMKXV5shhLzdOsN0di3Zgchsg44LA/E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vOaeb15Q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E0Elc8yE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18D7AC2BCB2;
-	Fri, 27 Mar 2026 02:09:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vOaeb15Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6B11C116C6;
+	Fri, 27 Mar 2026 02:11:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774577377;
-	bh=dHpwvVWBtA5AbF9giPoxE4xT7s+OZQqkLn7SEJeG3mM=;
+	s=korg; t=1774577497;
+	bh=smal/k3VrRVmy1jCLGduoexwNOgn9yy3gnjuoGPWAS0=;
 	h=Date:To:From:Subject:From;
-	b=E0Elc8yE8dXdyNGaznrg+NxTDhEHxCMdunSaNaOkwpPDJwTUdzheri5LC11nJjQg9
-	 ajhEnFujJcTf15Zi2G0p3RtoRdl2ezMd33GufThb7l8t0IvmtihzMqXWtFLAl4cvus
-	 8gZ6NNBBAoetklb98jFo9OoDpqC77xdjk1DGGJG8=
-Date: Thu, 26 Mar 2026 19:09:36 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,nathan@kernel.org,morbo@google.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,justinstitt@google.com,david.laight.linux@gmail.com,david@kernel.org,qq570070308@gmail.com,akpm@linux-foundation.org
+	b=vOaeb15QNEh+wH5Q8p0lK47O4Lb30mP8LRtkDZmvoFrnKkg5/L+LUkLFMIV084iS1
+	 NBoCRFOc5CECsLw512IyXZxaUMEDfS+fd/SMjSXChm62IBXIemx4pCfva7NFdDfHaT
+	 u7nPvsgyLGMIUAnFB2eqwV5Xx+vuXIkldltuIa7o=
+Date: Thu, 26 Mar 2026 19:11:36 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.anjum@collabora.com,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,colin.i.king@gmail.com,avagin@google.com,audra@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [nacked] mm-debug-optimize-once-judgment-with-clang.patch removed from -mm tree
-Message-Id: <20260327020937.18D7AC2BCB2@smtp.kernel.org>
+Subject: [to-be-updated] selftests-mm-fix-soft-dirty-kselftest-supported-check.patch removed from -mm tree
+Message-Id: <20260327021136.E6B11C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,117 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/debug: optimize once judgment with clang
+     Subject: selftests/mm: fix soft-dirty kselftest supported check
 has been removed from the -mm tree.  Its filename was
-     mm-debug-optimize-once-judgment-with-clang.patch
+     selftests-mm-fix-soft-dirty-kselftest-supported-check.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Xie Yuanbin <qq570070308@gmail.com>
-Subject: mm/debug: optimize once judgment with clang
-Date: Mon, 9 Mar 2026 23:34:05 +0800
+From: Audra Mitchell <audra@redhat.com>
+Subject: selftests/mm: fix soft-dirty kselftest supported check
+Date: Fri, 20 Mar 2026 14:39:15 -0400
 
-commit 242b872239f6a7deacbc ("include/linux/once_lite.h: fix judgment in
-WARN_ONCE with clang") helps optimize performance and size under the clang
-compiler, but the modification is not complete.
+On architectures with separate user address space, such as s390 or those
+without an MMU, the soft-dirty kselftest may fail when checking to see if
+the feature is supported.
 
-Port the modification to VM_WARN_ON_ONCE_PAGE(), VM_WARN_ON_ONCE_FOLIO(),
-VM_WARN_ON_ONCE_MM() and VM_WARN_ON_ONCE_VMA().
+  # --------------------
+  # running ./soft-dirty
+  # --------------------
+  # TAP version 13
+  # 1..15
+  # Bail out! PAGEMAP_SCAN succeeded unexpectedly
+  # # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
+  # [FAIL]
+  not ok 1 soft-dirty # exit=1
+  # SUMMARY: PASS=0 SKIP=0 FAIL=1
 
-Link: https://lkml.kernel.org/r/20260309153405.20130-1-qq570070308@gmail.com
-Signed-off-by: Xie Yuanbin <qq570070308@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Bill Wendling <morbo@google.com>
+The soft-dirty test will initate an ioctl with the PAGEMAP_SCAN flag with
+an invalid address for the page_region.  This is done intentionally to
+have the ioctl return with an expected EFAULT and with the correct
+categories returned.
+
+However, on architectures with separate user address space, such as s390
+or those without an MMU, the call to __access_ok (used to validate the
+variables provided with the ioctl) will always return true and we will not
+fail as expected.
+
+        if (IS_ENABLED(CONFIG_ALTERNATE_USER_ADDRESS_SPACE) ||
+            !IS_ENABLED(CONFIG_MMU))
+                return true;
+
+Let's simplify the check for PAGEMAP_SCAN and provide a valid page_region
+address so that we get a non-errno return if it is supported.
+
+Link: https://lkml.kernel.org/r/20260320184010.759461-2-audra@redhat.com
+Fixes: 600bca580579 ("selftests/mm: check that PAGEMAP_SCAN returns correct categories")
+Signed-off-by: Audra Mitchell <audra@redhat.com>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: Colin Ian King <colin.i.king@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Justin Stitt <justinstitt@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmdebug.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/vm_util.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
---- a/include/linux/mmdebug.h~mm-debug-optimize-once-judgment-with-clang
-+++ a/include/linux/mmdebug.h
-@@ -60,7 +60,7 @@ void vma_iter_dump_tree(const struct vma
- 	static bool __section(".data..once") __warned;			\
- 	int __ret_warn_once = !!(cond);					\
- 									\
--	if (unlikely(__ret_warn_once && !__warned)) {			\
-+	if (unlikely(__ret_warn_once) && unlikely(!__warned)) {		\
- 		dump_page(page, "VM_WARN_ON_ONCE_PAGE(" __stringify(cond)")");\
- 		__warned = true;					\
- 		WARN_ON(1);						\
-@@ -80,7 +80,7 @@ void vma_iter_dump_tree(const struct vma
- 	static bool __section(".data..once") __warned;			\
- 	int __ret_warn_once = !!(cond);					\
- 									\
--	if (unlikely(__ret_warn_once && !__warned)) {			\
-+	if (unlikely(__ret_warn_once) && unlikely(!__warned)) {		\
- 		dump_page(&folio->page, "VM_WARN_ON_ONCE_FOLIO(" __stringify(cond)")");\
- 		__warned = true;					\
- 		WARN_ON(1);						\
-@@ -91,7 +91,7 @@ void vma_iter_dump_tree(const struct vma
- 	static bool __section(".data..once") __warned;			\
- 	int __ret_warn_once = !!(cond);					\
- 									\
--	if (unlikely(__ret_warn_once && !__warned)) {			\
-+	if (unlikely(__ret_warn_once) && unlikely(!__warned)) {		\
- 		dump_mm(mm);						\
- 		__warned = true;					\
- 		WARN_ON(1);						\
-@@ -102,7 +102,7 @@ void vma_iter_dump_tree(const struct vma
- 	static bool __section(".data..once") __warned;			\
- 	int __ret_warn_once = !!(cond);					\
- 									\
--	if (unlikely(__ret_warn_once && !__warned)) {			\
-+	if (unlikely(__ret_warn_once) && unlikely(!__warned)) {		\
- 		dump_vma(vma);						\
- 		__warned = true;					\
- 		WARN_ON(1);						\
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-fix-soft-dirty-kselftest-supported-check
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -67,20 +67,26 @@ static uint64_t pagemap_scan_get_categor
+ }
+ 
+ /* `start` is any valid address. */
+-static bool pagemap_scan_supported(int fd, char *start)
++static bool pagemap_scan_supported(int fd)
+ {
++	const size_t pagesize = getpagesize();
+ 	static int supported = -1;
+-	int ret;
++	struct page_region r;
++	void *test_area;
+ 
+ 	if (supported != -1)
+ 		return supported;
+ 
+-	/* Provide an invalid address in order to trigger EFAULT. */
+-	ret = __pagemap_scan_get_categories(fd, start, (struct page_region *) ~0UL);
+-	if (ret == 0)
+-		ksft_exit_fail_msg("PAGEMAP_SCAN succeeded unexpectedly\n");
+-
+-	supported = errno == EFAULT;
++	test_area = mmap(0, pagesize, PROT_READ | PROT_WRITE,
++			MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
++	if (test_area == MAP_FAILED) {
++		ksft_print_msg("WARN: mmap() failed: %s\n", strerror(errno));
++		supported = 0;
++	} else {
++		supported = __pagemap_scan_get_categories(fd, test_area, &r) >= 0;
++		ksft_print_msg("errno: %d\n", errno);
++		munmap(test_area, pagesize);
++	}
+ 
+ 	return supported;
+ }
+@@ -90,7 +96,7 @@ static bool page_entry_is(int fd, char *
+ {
+ 	bool m = pagemap_get_entry(fd, start) & pagemap_flags;
+ 
+-	if (pagemap_scan_supported(fd, start)) {
++	if (pagemap_scan_supported(fd)) {
+ 		bool s = pagemap_scan_get_categories(fd, start) & pagescan_flags;
+ 
+ 		if (m == s)
 _
 
-Patches currently in -mm which might be from qq570070308@gmail.com are
+Patches currently in -mm which might be from audra@redhat.com are
 
-mm-optimize-the-implementation-of-warn_on_once_gfp.patch
 
