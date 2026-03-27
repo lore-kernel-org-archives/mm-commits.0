@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9053637104F
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:31:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 885333F7AA3
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:31:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774632708; cv=none; b=YzSPQndAvb0WWym3LJs5OPRU5ywhXv+Bf5DDz3QxJCGGJRM6TvokgkifyKU/MqgGZfVlYP8UuFToNIw/TeeARI+qwo8JoQsQ6fpqNoyNU7QGB49WHXp4GW4ZT1ERAyUJQBwHfKCiy8wXRh8ni6oL7zkB2WN6l5Op1+QKFwHQ9uw=
+	t=1774632710; cv=none; b=C0ebNJN687jCpqgRgJRyv7ZLiyiFFOIBuoVqisOWm29KT+XgymmPEQIgofVEMf9k0WK9CDSM1Ugg0jKlQmQhWB7662N4rtU4WXy+le/7u3X1j111f3c+eE7W1NgVUwjDHDlf5MZqCTq2fjDoyeL2CEWHwuqCWlLnojpIdXwV5GM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774632708; c=relaxed/simple;
-	bh=6fKbNdpcoyjwynZN1F25qf5T2czMlBCxvQM6lNZQnDg=;
-	h=Date:To:From:Subject:Message-Id; b=HoSxD9Wn6+ua8BgGEywW7e85L/rk+DfipKB8vjh253GS5e53nj+0DZsXe8M8xaFfEu7mrzrQVEF3qcV7sziKXrwARKJCZgEDYfKdpRlEYYvNWG1nssaheHKbNZEnqW7tGl9Uc1JZP6ZYGQzshDSu2E08eupwlp/jbBp9gzdgweU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FarXH6dk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774632710; c=relaxed/simple;
+	bh=gCJwWqG585DmptXMJWAh7duayg9aodqSbJAwLhsh6DY=;
+	h=Date:To:From:Subject:Message-Id; b=A7T5D3SzuACWfhOqp8kTx0usgNdfIC/vpaFJbWyCB3+DWtI5+dwuINwII4qpXsT/XG1K0B5EbsMOk2aY7YUKZyx1JZ3E6PL3431D0Nghkb7Ud9pW2lIRcfKA/6JssYsi2BaOOVdmE1rI9TfdbV1UeBOQULOKzkCBpnKRnaX85FI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WeVeEkuG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FarXH6dk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C44BC19424;
-	Fri, 27 Mar 2026 17:31:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WeVeEkuG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F063C19423;
+	Fri, 27 Mar 2026 17:31:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774632708;
-	bh=6fKbNdpcoyjwynZN1F25qf5T2czMlBCxvQM6lNZQnDg=;
+	s=korg; t=1774632710;
+	bh=gCJwWqG585DmptXMJWAh7duayg9aodqSbJAwLhsh6DY=;
 	h=Date:To:From:Subject:From;
-	b=FarXH6dkhhKRSD+i8Owyp0SR4RTDlflRoYTpuGH/TtB+IziXUOWmBcS7bnAubNwtA
-	 IGzsfRs/9R3AtYwpNq5ZSz+EqNP0/F+Fx6Hlqeqlh5B0iywhlR1CHq9B4NeGNNePx3
-	 +TYMaQoMwHIUW15k95PbcQo8jSyc1R5/WRiKx2J8=
-Date: Fri, 27 Mar 2026 10:31:47 -0700
+	b=WeVeEkuGukRdoMlhqNBB1RNf9nvlS+Cv5pZGnNkH4cI05RpGm9f+V+6GuiLn6WCbN
+	 Df6yet9G/sebBFLF1wE8kACj80VOQBzqNpKeNqJFQKLlFe6ZV3ucTQ6ebPe0N20W+S
+	 Ziloj2g63sEm+U7xIl6JWT/Jhd/RoROe8WOGQzjg=
+Date: Fri, 27 Mar 2026 10:31:49 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] xor-cleanup-registration-and-probing.patch removed from -mm tree
-Message-Id: <20260327173148.2C44BC19424@smtp.kernel.org>
+Subject: [to-be-updated] xor-split-xorh.patch removed from -mm tree
+Message-Id: <20260327173150.2F063C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xor: cleanup registration and probing
+     Subject: xor: split xor.h
 has been removed from the -mm tree.  Its filename was
-     xor-cleanup-registration-and-probing.patch
+     xor-split-xorh.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: xor: cleanup registration and probing
-Date: Tue, 24 Mar 2026 07:21:42 +0100
+Subject: xor: split xor.h
+Date: Tue, 24 Mar 2026 07:21:43 +0100
 
-Originally, the XOR code benchmarked all algorithms at load time, but it
-has since then been hacked multiple times to allow forcing an algorithm,
-and then commit 524ccdbdfb52 ("crypto: xor - defer load time benchmark to
-a later time") changed the logic to a two-step process or registration and
-benchmarking, but only when built-in.
+Keep xor.h for the public API, and split the struct xor_block_template
+definition that is only needed by the xor.ko core and
+architecture-specific optimizations into a separate xor_impl.h header.
 
-Rework this, so that the XOR_TRY_TEMPLATES macro magic now always just
-deals with adding the templates to the list, and benchmarking is always
-done in a second pass; for modular builds from module_init, and for the
-built-in case using a separate init call level.
-
-Link: https://lkml.kernel.org/r/20260324062211.3216301-7-hch@lst.de
+Link: https://lkml.kernel.org/r/20260324062211.3216301-8-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -99,168 +92,117 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/xor/xor-core.c |   98 ++++++++++++++++++--------------------
- 1 file changed, 48 insertions(+), 50 deletions(-)
+ arch/arm/lib/xor-neon.c       |    1 +
+ arch/arm64/lib/xor-neon.c     |    1 +
+ arch/s390/lib/xor.c           |    2 +-
+ include/linux/raid/xor.h      |   22 +---------------------
+ include/linux/raid/xor_impl.h |   25 +++++++++++++++++++++++++
+ lib/raid/xor/xor-core.c       |    1 +
+ 6 files changed, 30 insertions(+), 22 deletions(-)
 
---- a/lib/raid/xor/xor-core.c~xor-cleanup-registration-and-probing
-+++ a/lib/raid/xor/xor-core.c
-@@ -52,29 +52,14 @@ EXPORT_SYMBOL(xor_blocks);
+--- a/arch/arm64/lib/xor-neon.c~xor-split-xorh
++++ a/arch/arm64/lib/xor-neon.c
+@@ -7,6 +7,7 @@
+  */
  
- /* Set of all registered templates.  */
- static struct xor_block_template *__initdata template_list;
-+static bool __initdata xor_forced = false;
+ #include <linux/raid/xor.h>
++#include <linux/raid/xor_impl.h>
+ #include <linux/module.h>
+ #include <asm/neon-intrinsics.h>
  
--#ifndef MODULE
- static void __init do_xor_register(struct xor_block_template *tmpl)
- {
- 	tmpl->next = template_list;
- 	template_list = tmpl;
- }
+--- a/arch/arm/lib/xor-neon.c~xor-split-xorh
++++ a/arch/arm/lib/xor-neon.c
+@@ -6,6 +6,7 @@
+  */
  
--static int __init register_xor_blocks(void)
--{
--	active_template = XOR_SELECT_TEMPLATE(NULL);
+ #include <linux/raid/xor.h>
++#include <linux/raid/xor_impl.h>
+ #include <linux/module.h>
+ 
+ MODULE_DESCRIPTION("NEON accelerated XOR implementation");
+--- a/arch/s390/lib/xor.c~xor-split-xorh
++++ a/arch/s390/lib/xor.c
+@@ -8,7 +8,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/export.h>
+-#include <linux/raid/xor.h>
++#include <linux/raid/xor_impl.h>
+ #include <asm/xor.h>
+ 
+ static void xor_xc_2(unsigned long bytes, unsigned long * __restrict p1,
+--- a/include/linux/raid/xor.h~xor-split-xorh
++++ a/include/linux/raid/xor.h
+@@ -7,24 +7,4 @@
+ extern void xor_blocks(unsigned int count, unsigned int bytes,
+ 	void *dest, void **srcs);
+ 
+-struct xor_block_template {
+-        struct xor_block_template *next;
+-        const char *name;
+-        int speed;
+-	void (*do_2)(unsigned long, unsigned long * __restrict,
+-		     const unsigned long * __restrict);
+-	void (*do_3)(unsigned long, unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict);
+-	void (*do_4)(unsigned long, unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict);
+-	void (*do_5)(unsigned long, unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict);
+-};
 -
--	if (!active_template) {
--#define xor_speed	do_xor_register
--		// register all the templates and pick the first as the default
--		XOR_TRY_TEMPLATES;
--#undef xor_speed
--		active_template = template_list;
--	}
--	return 0;
--}
 -#endif
--
- #define BENCH_SIZE	4096
- #define REPS		800U
- 
-@@ -85,9 +70,6 @@ do_xor_speed(struct xor_block_template *
- 	unsigned long reps;
- 	ktime_t min, start, t0;
- 
--	tmpl->next = template_list;
--	template_list = tmpl;
--
- 	preempt_disable();
- 
- 	reps = 0;
-@@ -111,63 +93,79 @@ do_xor_speed(struct xor_block_template *
- 	pr_info("   %-16s: %5d MB/sec\n", tmpl->name, speed);
- }
- 
--static int __init
--calibrate_xor_blocks(void)
-+static int __init calibrate_xor_blocks(void)
- {
- 	void *b1, *b2;
- 	struct xor_block_template *f, *fastest;
- 
--	fastest = XOR_SELECT_TEMPLATE(NULL);
--
--	if (fastest) {
--		printk(KERN_INFO "xor: automatically using best "
--				 "checksumming function   %-10s\n",
--		       fastest->name);
--		goto out;
--	}
-+	if (xor_forced)
-+		return 0;
- 
- 	b1 = (void *) __get_free_pages(GFP_KERNEL, 2);
- 	if (!b1) {
--		printk(KERN_WARNING "xor: Yikes!  No memory available.\n");
-+		pr_warn("xor: Yikes!  No memory available.\n");
- 		return -ENOMEM;
- 	}
- 	b2 = b1 + 2*PAGE_SIZE + BENCH_SIZE;
- 
--	/*
--	 * If this arch/cpu has a short-circuited selection, don't loop through
--	 * all the possible functions, just test the best one
--	 */
--
--#define xor_speed(templ)	do_xor_speed((templ), b1, b2)
--
--	printk(KERN_INFO "xor: measuring software checksum speed\n");
--	template_list = NULL;
--	XOR_TRY_TEMPLATES;
-+	pr_info("xor: measuring software checksum speed\n");
- 	fastest = template_list;
--	for (f = fastest; f; f = f->next)
-+	for (f = template_list; f; f = f->next) {
-+		do_xor_speed(f, b1, b2);
- 		if (f->speed > fastest->speed)
- 			fastest = f;
--
-+	}
-+	active_template = fastest;
- 	pr_info("xor: using function: %s (%d MB/sec)\n",
- 	       fastest->name, fastest->speed);
- 
-+	free_pages((unsigned long)b1, 2);
-+	return 0;
-+}
++#endif /* _XOR_H */
+diff --git a/include/linux/raid/xor_impl.h a/include/linux/raid/xor_impl.h
+new file mode 100644
+--- /dev/null
++++ a/include/linux/raid/xor_impl.h
+@@ -0,0 +1,25 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _XOR_IMPL_H
++#define _XOR_IMPL_H
 +
-+static int __init xor_init(void)
-+{
-+	/*
-+	 * If this arch/cpu has a short-circuited selection, don't loop through
-+	 * all the possible functions, just use the best one.
-+	 */
-+	active_template = XOR_SELECT_TEMPLATE(NULL);
-+	if (active_template) {
-+		pr_info("xor: automatically using best checksumming function   %-10s\n",
-+			active_template->name);
-+		xor_forced = true;
-+		return 0;
-+	}
++struct xor_block_template {
++	struct xor_block_template *next;
++	const char *name;
++	int speed;
++	void (*do_2)(unsigned long, unsigned long * __restrict,
++		     const unsigned long * __restrict);
++	void (*do_3)(unsigned long, unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict);
++	void (*do_4)(unsigned long, unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict);
++	void (*do_5)(unsigned long, unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict);
++};
 +
-+#define xor_speed	do_xor_register
-+	XOR_TRY_TEMPLATES;
- #undef xor_speed
- 
--	free_pages((unsigned long)b1, 2);
--out:
--	active_template = fastest;
-+#ifdef MODULE
-+	return calibrate_xor_blocks();
-+#else
-+	/*
-+	 * Pick the first template as the temporary default until calibration
-+	 * happens.
-+	 */
-+	active_template = template_list;
- 	return 0;
-+#endif
- }
- 
--static __exit void xor_exit(void) { }
-+static __exit void xor_exit(void)
-+{
-+}
- 
- MODULE_DESCRIPTION("RAID-5 checksumming functions");
- MODULE_LICENSE("GPL");
- 
-+/*
-+ * When built-in we must register the default template before md, but we don't
-+ * want calibration to run that early as that would delay the boot process.
-+ */
- #ifndef MODULE
--/* when built-in xor.o must initialize before drivers/md/md.o */
--core_initcall(register_xor_blocks);
-+__initcall(calibrate_xor_blocks);
- #endif
--
--module_init(calibrate_xor_blocks);
-+core_initcall(xor_init);
- module_exit(xor_exit);
++#endif /* _XOR_IMPL_H */
+--- a/lib/raid/xor/xor-core.c~xor-split-xorh
++++ a/lib/raid/xor/xor-core.c
+@@ -9,6 +9,7 @@
+ #include <linux/module.h>
+ #include <linux/gfp.h>
+ #include <linux/raid/xor.h>
++#include <linux/raid/xor_impl.h>
+ #include <linux/jiffies.h>
+ #include <linux/preempt.h>
+ #include <asm/xor.h>
 _
 
 Patches currently in -mm which might be from hch@lst.de are
 
-xor-split-xorh.patch
 xor-remove-macro-abuse-for-xor-implementation-registrations.patch
 xor-move-generic-implementations-out-of-asm-generic-xorh.patch
 alpha-move-the-xor-code-to-lib-raid.patch
