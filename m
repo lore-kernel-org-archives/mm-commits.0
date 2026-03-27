@@ -1,78 +1,65 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ED53324B31
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 23:24:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDC8933D4F2
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 23:32:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774653881; cv=none; b=kJ7a2MdP6CpckB+zwcIywRmB/O0kg1PweFZchJHApjRmwtclovge5Ri9ZhsvuMte3VAZWKWHVmA4H//UHivwTMFVfWVnvfqe6HDvIiQhDRYOeZ6e0weUvToQD9SJpZbVUb2mSmT9c7rl0yZ3aYcAYA0Z9DBQ3d4g4M4TrNVuTJE=
+	t=1774654330; cv=none; b=exyNKQ6ZVLLJmQ315qEt0Pf2H+Ga1rsRHodmUb3iz48WrRw96O5QOelOVohBojFK9gZqjFnfLUTip5pJu23oDXuHV7OohdxnxYBjOfncZ+Q/qydOT5TCsjtxIoFhoI89mypXwswQUElGZmK9Y+gQMgmDSThOSa/Em11mrH7fGbE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774653881; c=relaxed/simple;
-	bh=BZCJWAUgewil1cVy19bLkYZDwL5VWM6XEKObjoUBWHk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=rCbZ0JMpu8TK4Q15Za43yEXmdSsqovoquLPqVFhbbxQrBa1/LHiC0XfZvA9jsRuUKucOnbdCDi5u4bHu7FeX/E/mEHmzktsGAC3gLF5ms4bSiFW6sgaE9qDaZJ8XbGp4RRd1IzpZ8u6XOmhp1UeMMUR2n8STcgxMaUHASLkwAkM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=iYK66ZKz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774654330; c=relaxed/simple;
+	bh=hSxjXfrhPo3bJa/w3vBME44FaxAZr6+qx2RhZtJBcE4=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=rDBr3UDWxo/ycZcDHvyxzYzPEbRx+8CIkb7Ueg8BXZ53Mjqt+3ybPMK/IxLy8XxM4f2+UAnH2IKcM+EIoXQqdx0yrMXPV0SU/5+7JSPLVyU6ms2YJIHu/A5qLZz/xI3XI19Akm4osGwlVEkicu4A74iWEhGirZFh4IhiF9ex2cc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rWXZBB7R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="iYK66ZKz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C18C8C19423;
-	Fri, 27 Mar 2026 23:24:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1774653881;
-	bh=BZCJWAUgewil1cVy19bLkYZDwL5VWM6XEKObjoUBWHk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=iYK66ZKzC3dn47EFu1Lmqb/j+cxZbjeenvDqkrqp6C+oS0udmq8DLATekpKIkAxu+
-	 DYvzeYrPZiQp73yis5XySa8cdm4lQ/unn8vxU30qtwjY3HZd1TGjK9Vnxii6a3slFv
-	 FTSSfYXcxPD4KFjUUvG/BKU6o6KUpwkUhdvaJLHW1GIxKKhU0zGzT4ziWwIcRgUMNi
-	 23cTfJWPEDe6ATpMb/eYBEMKPren2v7w5Z6VIsowMcQt+KZtW4CGk9ivoGBfWHaMpN
-	 jfW8Gi8uIKtu3dAhcZuZItpDu4//XppBE7wOaDDoZ46732Qmp1vi9fRCYTsomTNIbx
-	 FaiDbFJILuadw==
-From: SeongJae Park <sj@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: SeongJae Park <sj@kernel.org>,
-	mm-commits@vger.kernel.org,
-	rppt@kernel.org,
-	pratyush@kernel.org,
-	pasha.tatashin@soleen.com,
-	jianghaoran@kylinos.cn,
-	duanchenghao@kylinos.cn
-Subject: Re: + mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch added to mm-new branch
-Date: Fri, 27 Mar 2026 16:24:39 -0700
-Message-ID: <20260327232439.65902-1-sj@kernel.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260326233911.E9AB2C116C6@smtp.kernel.org>
-References: 
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rWXZBB7R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AB7EC19423;
+	Fri, 27 Mar 2026 23:32:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1774654330;
+	bh=hSxjXfrhPo3bJa/w3vBME44FaxAZr6+qx2RhZtJBcE4=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=rWXZBB7ReK5d3jFFcxQFZgeq6vCrKu7OaVoXrDIMM9k1dLjVsmXo6oJF29hqi/EEV
+	 rWjvLoYAWbhwksJVns6wII3z10uw3390tcQM/C5cKFWFbYles55sfxqhm7GoANSzj1
+	 ukQzckXMvbNCV+5KnDveRtDxO+5THZLjn/y1BW30=
+Date: Fri, 27 Mar 2026 16:32:09 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: SeongJae Park <sj@kernel.org>
+Cc: mm-commits@vger.kernel.org, rppt@kernel.org, pratyush@kernel.org,
+ pasha.tatashin@soleen.com, jianghaoran@kylinos.cn, duanchenghao@kylinos.cn
+Subject: Re: + mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch
+ added to mm-new branch
+Message-Id: <20260327163209.f8087931130ec1d02912d407@linux-foundation.org>
+In-Reply-To: <20260327232439.65902-1-sj@kernel.org>
+References: <20260326233911.E9AB2C116C6@smtp.kernel.org>
+	<20260327232439.65902-1-sj@kernel.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hello Andrew,
+On Fri, 27 Mar 2026 16:24:39 -0700 SeongJae Park <sj@kernel.org> wrote:
 
-On Thu, 26 Mar 2026 16:39:11 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
-
+> > From: Chenghao Duan <duanchenghao@kylinos.cn>
+> > Subject: mm/memfd: use folio_nr_pages() for shmem inode accounting
+> > Date: Thu, 26 Mar 2026 16:47:21 +0800
+> > 
+> > Patch series "Modify memfd_luo code", v3.
 > 
-> The patch titled
->      Subject: mm/memfd: use folio_nr_pages() for shmem inode accounting
-> has been added to the -mm mm-new branch.  Its filename is
->      mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch
-[...]
-> ------------------------------------------------------
-> From: Chenghao Duan <duanchenghao@kylinos.cn>
-> Subject: mm/memfd: use folio_nr_pages() for shmem inode accounting
-> Date: Thu, 26 Mar 2026 16:47:21 +0800
-> 
-> Patch series "Modify memfd_luo code", v3.
+> Seems the "This patch (of N):" line is missed.
 
-Seems the "This patch (of N):" line is missed.
+grr, thanks.
 
-Not an issue for me, but just wanted to let you know since it seems it is not
-your real intention.
+	if grep -q "^Patch series" $p ; then
+		if ! grep -q "^This patch " $p; then
+			echo $p: "This patch"
+		fi
+	fi
 
-
-Thanks,
-SJ
-
-[...]
+there, plugged.
