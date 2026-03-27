@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4041C3FA5DD
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:32:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A974F372B32
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:49:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774632748; cv=none; b=DvI7mfXnhcjgmf1+DWh+1USXgo83NQRGK2gbRBLtKfmTEGee2FU2TkxtuS8u7gl4el8Zb756CtksH2T5n7GMw2D+0dW+qzAWOQJSTEZnbuZgEVPEGkjnnyeXEWTe3qJag8ZkcTzn8syqC60Q8+HcgCOsihamTSshoAq8MaNYL50=
+	t=1774633763; cv=none; b=C3Rb+bZecd204KaOYZaQYfLjbSQidkjVVETThdytsimxwt8ZX/onjd6FdIebryUPrjHKdGk285uzZ0vGScNEspJbMcTrJOWLSTP62EvfzfAuSyn4leG11Zy6PPcNPd3ZIAUYQCsmiz+OJcN8DzPyZecGGOb8nYoVE+BRRPC6q4k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774632748; c=relaxed/simple;
-	bh=wFONN0dOJQSIifXLmEN5/FDXzen0W0zUiq+JP4n0DpU=;
-	h=Date:To:From:Subject:Message-Id; b=a8tR4uQxYxB6y0qZfe714qciRDBaUFrPM3i17ZqLhLkVxCmiAa3Gx7A0qrhBrkhTyhsj+JFzE6mR/AuOZIlw9PkEUDk1hE24c4Yi4ku6pT4ayrj7wzbyOm2qxB/NhCOot04hDVRVvuYa3WjsRpobJbgzOE0fX+GQBrlQIbGR+Po=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Fw37PSOA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774633763; c=relaxed/simple;
+	bh=jpzofBPIfLdgTByKHjuNzA9cbbAURHCcE3t5wlxCPeI=;
+	h=Date:To:From:Subject:Message-Id; b=PtYpXpg4yYlo6dD7qlsrrebTcsPER4LFijoYiRQeOlG8rPpYDo45dNy2P9GkVBqL0SZ6ODmNvxcLWb5ayTkT6OmjEkrNoADu29P4OtFIpYmGfY6yGA1RI4BsNNkKxauSDhFhqdkzP6uD/kXYTJwh8B6XSXOJdD3zyW63CeHJMPo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E6TxIHx3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Fw37PSOA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1584FC19423;
-	Fri, 27 Mar 2026 17:32:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E6TxIHx3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48806C19423;
+	Fri, 27 Mar 2026 17:49:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774632748;
-	bh=wFONN0dOJQSIifXLmEN5/FDXzen0W0zUiq+JP4n0DpU=;
+	s=korg; t=1774633763;
+	bh=jpzofBPIfLdgTByKHjuNzA9cbbAURHCcE3t5wlxCPeI=;
 	h=Date:To:From:Subject:From;
-	b=Fw37PSOAAs8bEQHw0otSm/hwBZxYp+tUdgjX325Yq49G1AFwlzHSp+xzwDs/yLu1m
-	 SFKsLaMkx/7UEti0LIQN4cOYy6LdT33vOy42WwcIJPVRhWpNr+x1mJkdnmdlxGnoti
-	 +zPjGYWIeNkgau76TEfIKEU12bqA1BjsEFY0zROw=
-Date: Fri, 27 Mar 2026 10:32:27 -0700
+	b=E6TxIHx3C61el8A+v43Vbm/l/4zbMHOCy2M5e655uHq7AT0k6Ae23PcJVguXWQ3LH
+	 5Hr3mx8cRrlwGWcnjmUi4DHo5Yfc6DSUSoNJF/oL8ySI33jAI+bNTwF2uAt5Rjje/1
+	 fIPIDrbw58Z22mjFcplGwHfkynE/QYi858UMSzr0=
+Date: Fri, 27 Mar 2026 10:49:22 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] xor-add-a-kunit-test-case.patch removed from -mm tree
-Message-Id: <20260327173228.1584FC19423@smtp.kernel.org>
+Subject: + xor-assert-that-xor_blocks-is-not-call-from-interrupt-context.patch added to mm-nonmm-unstable branch
+Message-Id: <20260327174923.48806C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,22 +34,62 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: xor: add a kunit test case
-has been removed from the -mm tree.  Its filename was
-     xor-add-a-kunit-test-case.patch
+The patch titled
+     Subject: xor: assert that xor_blocks is not call from interrupt context
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     xor-assert-that-xor_blocks-is-not-call-from-interrupt-context.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xor-assert-that-xor_blocks-is-not-call-from-interrupt-context.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: xor: add a kunit test case
-Date: Tue, 24 Mar 2026 07:22:02 +0100
+Subject: xor: assert that xor_blocks is not call from interrupt context
+Date: Fri, 27 Mar 2026 07:16:33 +0100
 
-Add a test case for the XOR routines loosely based on the CRC kunit
-test.
+Patch series "cleanup the RAID5 XOR library", v4.
 
-Link: https://lkml.kernel.org/r/20260324062211.3216301-27-hch@lst.de
+The XOR library used for the RAID5 parity is a bit of a mess right now. 
+The main file sits in crypto/ despite not being cryptography and not using
+the crypto API, with the generic implementations sitting in
+include/asm-generic and the arch implementations sitting in an asm/ header
+in theory.  The latter doesn't work for many cases, so architectures often
+build the code directly into the core kernel, or create another module for
+the architecture code.
+
+Change this to a single module in lib/ that also contains the architecture
+optimizations, similar to the library work Eric Biggers has done for the
+CRC and crypto libraries later.  After that it changes to better calling
+conventions that allow for smarter architecture implementations (although
+none is contained here yet), and uses static_call to avoid indirection
+function call overhead.
+
+
+This patch (of 28):
+
+Most of the optimized xor_blocks versions require FPU/vector registers,
+which generally are not supported in interrupt context.
+
+Both callers already are in user context, so enforce this at the highest
+level.
+
+Link: https://lkml.kernel.org/r/20260327061704.3707577-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20260327061704.3707577-2-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -91,251 +131,50 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/.kunitconfig          |    3 
- lib/raid/Kconfig               |   11 +
- lib/raid/xor/Makefile          |    2 
- lib/raid/xor/tests/Makefile    |    3 
- lib/raid/xor/tests/xor_kunit.c |  187 +++++++++++++++++++++++++++++++
- 5 files changed, 205 insertions(+), 1 deletion(-)
+ crypto/xor.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/raid/Kconfig~xor-add-a-kunit-test-case
-+++ a/lib/raid/Kconfig
-@@ -17,3 +17,14 @@ config XOR_BLOCKS_ARCH
- 	default y if X86_32
- 	default y if X86_64
- 	bool
-+
-+config XOR_KUNIT_TEST
-+	tristate "KUnit tests for xor_gen" if !KUNIT_ALL_TESTS
-+	depends on KUNIT
-+	depends on XOR_BLOCKS
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Unit tests for the XOR library functions.
-+
-+	  This is intended to help people writing architecture-specific
-+	  optimized versions.  If unsure, say N.
-diff --git a/lib/raid/.kunitconfig a/lib/raid/.kunitconfig
-new file mode 100644
---- /dev/null
-+++ a/lib/raid/.kunitconfig
-@@ -0,0 +1,3 @@
-+CONFIG_KUNIT=y
-+CONFIG_BTRFS_FS=y
-+CONFIG_XOR_KUNIT_TEST=y
---- a/lib/raid/xor/Makefile~xor-add-a-kunit-test-case
-+++ a/lib/raid/xor/Makefile
-@@ -29,7 +29,7 @@ xor-$(CONFIG_SPARC64)		+= sparc/xor-spar
- xor-$(CONFIG_S390)		+= s390/xor.o
- xor-$(CONFIG_X86_32)		+= x86/xor-avx.o x86/xor-sse.o x86/xor-mmx.o
- xor-$(CONFIG_X86_64)		+= x86/xor-avx.o x86/xor-sse.o
--
-+obj-y				+= tests/
+--- a/crypto/xor.c~xor-assert-that-xor_blocks-is-not-call-from-interrupt-context
++++ a/crypto/xor.c
+@@ -28,6 +28,8 @@ xor_blocks(unsigned int src_count, unsig
+ {
+ 	unsigned long *p1, *p2, *p3, *p4;
  
- CFLAGS_arm/xor-neon.o		+= $(CC_FLAGS_FPU)
- CFLAGS_REMOVE_arm/xor-neon.o	+= $(CC_FLAGS_NO_FPU)
-diff --git a/lib/raid/xor/tests/Makefile a/lib/raid/xor/tests/Makefile
-new file mode 100644
---- /dev/null
-+++ a/lib/raid/xor/tests/Makefile
-@@ -0,0 +1,3 @@
-+# SPDX-License-Identifier: GPL-2.0-only
++	WARN_ON_ONCE(!in_task() || irqs_disabled() || softirq_count());
 +
-+obj-$(CONFIG_XOR_KUNIT_TEST) += xor_kunit.o
-diff --git a/lib/raid/xor/tests/xor_kunit.c a/lib/raid/xor/tests/xor_kunit.c
-new file mode 100644
---- /dev/null
-+++ a/lib/raid/xor/tests/xor_kunit.c
-@@ -0,0 +1,187 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/*
-+ * Unit test the XOR library functions.
-+ *
-+ * Copyright 2024 Google LLC
-+ * Copyright 2026 Christoph Hellwig
-+ *
-+ * Based on the CRC tests by Eric Biggers <ebiggers@google.com>.
-+ */
-+#include <kunit/test.h>
-+#include <linux/prandom.h>
-+#include <linux/string_choices.h>
-+#include <linux/vmalloc.h>
-+#include <linux/raid/xor.h>
-+
-+#define XOR_KUNIT_SEED			42
-+#define XOR_KUNIT_MAX_BYTES		16384
-+#define XOR_KUNIT_MAX_BUFFERS		64
-+#define XOR_KUNIT_NUM_TEST_ITERS	1000
-+
-+static struct rnd_state rng;
-+static void *test_buffers[XOR_KUNIT_MAX_BUFFERS];
-+static void *test_dest;
-+static void *test_ref;
-+static size_t test_buflen;
-+
-+static u32 rand32(void)
-+{
-+	return prandom_u32_state(&rng);
-+}
-+
-+/* Reference implementation using dumb byte-wise XOR */
-+static void xor_ref(void *dest, void **srcs, unsigned int src_cnt,
-+		unsigned int bytes)
-+{
-+	unsigned int off, idx;
-+	u8 *d = dest;
-+
-+	for (off = 0; off < bytes; off++) {
-+		for (idx = 0; idx < src_cnt; idx++) {
-+			u8 *src = srcs[idx];
-+
-+			d[off] ^= src[off];
-+		}
-+	}
-+}
-+
-+/* Generate a random length that is a multiple of 512. */
-+static unsigned int random_length(unsigned int max_length)
-+{
-+	return (rand32() % (max_length + 1)) & ~511;
-+}
-+
-+/* Generate a random alignment that is a multiple of 64. */
-+static unsigned int random_alignment(unsigned int max_alignment)
-+{
-+	return (rand32() % (max_alignment + 1)) & ~63;
-+}
-+
-+static void xor_generate_random_data(void)
-+{
-+	int i;
-+
-+	prandom_bytes_state(&rng, test_dest, test_buflen);
-+	memcpy(test_ref, test_dest, test_buflen);
-+	for (i = 0; i < XOR_KUNIT_MAX_BUFFERS; i++)
-+		prandom_bytes_state(&rng, test_buffers[i], test_buflen);
-+}
-+
-+/* Test that xor_gen gives the same result as a reference implementation. */
-+static void xor_test(struct kunit *test)
-+{
-+	void *aligned_buffers[XOR_KUNIT_MAX_BUFFERS];
-+	size_t i;
-+
-+	for (i = 0; i < XOR_KUNIT_NUM_TEST_ITERS; i++) {
-+		unsigned int nr_buffers =
-+			(rand32() % XOR_KUNIT_MAX_BUFFERS) + 1;
-+		unsigned int len = random_length(XOR_KUNIT_MAX_BYTES);
-+		unsigned int max_alignment, align = 0;
-+		void *buffers;
-+
-+		if (rand32() % 8 == 0)
-+			/* Refresh the data occasionally. */
-+			xor_generate_random_data();
-+
-+		/*
-+		 * If we're not using the entire buffer size, inject randomize
-+		 * alignment into the buffer.
-+		 */
-+		max_alignment = XOR_KUNIT_MAX_BYTES - len;
-+		if (max_alignment == 0) {
-+			buffers = test_buffers;
-+		} else if (rand32() % 2 == 0) {
-+			/* Use random alignments mod 64 */
-+			int j;
-+
-+			for (j = 0; j < nr_buffers; j++)
-+				aligned_buffers[j] = test_buffers[j] +
-+					random_alignment(max_alignment);
-+			buffers = aligned_buffers;
-+			align = random_alignment(max_alignment);
-+		} else {
-+			/* Go up to the guard page, to catch buffer overreads */
-+			int j;
-+
-+			align = test_buflen - len;
-+			for (j = 0; j < nr_buffers; j++)
-+				aligned_buffers[j] = test_buffers[j] + align;
-+			buffers = aligned_buffers;
-+		}
-+
-+		/*
-+		 * Compute the XOR, and verify that it equals the XOR computed
-+		 * by a simple byte-at-a-time reference implementation.
-+		 */
-+		xor_ref(test_ref + align, buffers, nr_buffers, len);
-+		xor_gen(test_dest + align, buffers, nr_buffers, len);
-+		KUNIT_EXPECT_MEMEQ_MSG(test, test_ref + align,
-+				test_dest + align, len,
-+				"Wrong result with buffers=%u, len=%u, unaligned=%s, at_end=%s",
-+				nr_buffers, len,
-+				str_yes_no(max_alignment),
-+				str_yes_no(align + len == test_buflen));
-+	}
-+}
-+
-+static struct kunit_case xor_test_cases[] = {
-+	KUNIT_CASE(xor_test),
-+	{},
-+};
-+
-+static int xor_suite_init(struct kunit_suite *suite)
-+{
-+	int i;
-+
-+	/*
-+	 * Allocate the test buffer using vmalloc() with a page-aligned length
-+	 * so that it is immediately followed by a guard page.  This allows
-+	 * buffer overreads to be detected, even in assembly code.
-+	 */
-+	test_buflen = round_up(XOR_KUNIT_MAX_BYTES, PAGE_SIZE);
-+	test_ref = vmalloc(test_buflen);
-+	if (!test_ref)
-+		return -ENOMEM;
-+	test_dest = vmalloc(test_buflen);
-+	if (!test_dest)
-+		goto out_free_ref;
-+	for (i = 0; i < XOR_KUNIT_MAX_BUFFERS; i++) {
-+		test_buffers[i] = vmalloc(test_buflen);
-+		if (!test_buffers[i])
-+			goto out_free_buffers;
-+	}
-+
-+	prandom_seed_state(&rng, XOR_KUNIT_SEED);
-+	xor_generate_random_data();
-+	return 0;
-+
-+out_free_buffers:
-+	while (--i >= 0)
-+		vfree(test_buffers[i]);
-+	vfree(test_dest);
-+out_free_ref:
-+	vfree(test_ref);
-+	return -ENOMEM;
-+}
-+
-+static void xor_suite_exit(struct kunit_suite *suite)
-+{
-+	int i;
-+
-+	vfree(test_ref);
-+	vfree(test_dest);
-+	for (i = 0; i < XOR_KUNIT_MAX_BUFFERS; i++)
-+		vfree(test_buffers[i]);
-+}
-+
-+static struct kunit_suite xor_test_suite = {
-+	.name		= "xor",
-+	.test_cases	= xor_test_cases,
-+	.suite_init	= xor_suite_init,
-+	.suite_exit	= xor_suite_exit,
-+};
-+kunit_test_suite(xor_test_suite);
-+
-+MODULE_DESCRIPTION("Unit test for the XOR library functions");
-+MODULE_LICENSE("GPL");
+ 	p1 = (unsigned long *) srcs[0];
+ 	if (src_count == 1) {
+ 		active_template->do_2(bytes, dest, p1);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
 
+xor-assert-that-xor_blocks-is-not-call-from-interrupt-context.patch
+arm-xor-remove-in_interrupt-handling.patch
+arm64-xor-fix-conflicting-attributes-for-xor_block_template.patch
+um-xor-cleanup-xorh.patch
+xor-move-to-lib-raid.patch
+xor-small-cleanups.patch
+xor-cleanup-registration-and-probing.patch
+xor-split-xorh.patch
+xor-remove-macro-abuse-for-xor-implementation-registrations.patch
+xor-move-generic-implementations-out-of-asm-generic-xorh.patch
+alpha-move-the-xor-code-to-lib-raid.patch
+arm-move-the-xor-code-to-lib-raid.patch
+arm64-move-the-xor-code-to-lib-raid.patch
+loongarch-move-the-xor-code-to-lib-raid.patch
+powerpc-move-the-xor-code-to-lib-raid.patch
+riscv-move-the-xor-code-to-lib-raid.patch
+sparc-move-the-xor-code-to-lib-raid.patch
+s390-move-the-xor-code-to-lib-raid.patch
+x86-move-the-xor-code-to-lib-raid.patch
+xor-avoid-indirect-calls-for-arm64-optimized-ops.patch
+xor-make-xorko-self-contained-in-lib-raid.patch
+xor-add-a-better-public-api.patch
+xor-add-a-better-public-api-2.patch
+async_xor-use-xor_gen.patch
+btrfs-use-xor_gen.patch
+xor-pass-the-entire-operation-to-the-low-level-ops.patch
+xor-use-static_call-for-xor_gen.patch
+xor-add-a-kunit-test-case.patch
 
