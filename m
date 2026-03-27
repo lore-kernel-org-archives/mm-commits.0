@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63BEF36167C
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:00:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 024BD25B305
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:22:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774630843; cv=none; b=Im72bjQUkocfbAlZNrMkByYy14yjht9HcPUrHcvhqI6E+Wa5SLo2CMUPp0VLS6o85MO3lWCp2Du9LvyPRF+1oWPYvx1qGhycu0sqvEy2nlEkYi6XtqCXv5dwzDVzQvEqsZJt3rC7VSeYCDfM3+lerFDx8ziAY69u4eMkQsvFCQM=
+	t=1774632153; cv=none; b=CTmMM3LpS861X7IcAGON1KmzpbbKN/L0UfZUmwCEIj/QopXsJXFHHYxIhzGViO/yVNSwYPYcWwusfxssm4wm9i3NQgOOg6Su1Flbn9kZuekdPV7GzHTKT+6EpQNkcAd65UzOhDGNiiGBQoJGRxPXKa62oXwZ1QVwAhX4tK5iiqI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774630843; c=relaxed/simple;
-	bh=0Wztim9udMnXV5P5iboYTlTaiLUBLAkyhcO/7ggh+YA=;
-	h=Date:To:From:Subject:Message-Id; b=MuZr9f+Ogg8TpBYnYUqY/aY0KHDg7V9qEDc4stf+F+4i20U7gjPHpXpOgiR3KWPbN4peGg+2/1byPICfkfpe3mR5tJDZdnrtwbRy4nQCSB5zV8gFki+hUcPO/hXsoI8FyLvG3KjA1BrAnx+QjOy+Uv8hdtYdt0zI4NAIb07LB/Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kkU0adv8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774632153; c=relaxed/simple;
+	bh=07ho/e0f3EUEYNNeF29E7If3+GQZjVJ2B6GxugKgAo4=;
+	h=Date:To:From:Subject:Message-Id; b=iKHBvpsOhHAuwfHOQZ6rmEyznyz2qdYh4CL0uiQTz4V8dgH9aPAreEgaQZ3oQND+S3HVL833U/dhmI+d8lr8gA+M8iQRU18eiTEYreAMv1ZrgSywugKnwX3lTGVbf7Cch5o0rxet7lV2l3cUzZ20zRHVFw5uMTpUShY56bKpyxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zt850Ezu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kkU0adv8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00550C19423;
-	Fri, 27 Mar 2026 17:00:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zt850Ezu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 851FCC19423;
+	Fri, 27 Mar 2026 17:22:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774630843;
-	bh=0Wztim9udMnXV5P5iboYTlTaiLUBLAkyhcO/7ggh+YA=;
+	s=korg; t=1774632152;
+	bh=07ho/e0f3EUEYNNeF29E7If3+GQZjVJ2B6GxugKgAo4=;
 	h=Date:To:From:Subject:From;
-	b=kkU0adv8SAznPc8he1t4uPwR1Pt1CdL7To9GfAcEqrTqZLufMiMEmoAHDhRs5o+vu
-	 dSgK9av2zHELAZhHzoh0cDjj0nmcTkMuYgM43A50sORsEZGado5K7+TuPJG0vgQfC9
-	 IQxd9FYebBbpbuH5c33UJeC+9Jhy87CoYUitR2sE=
-Date: Fri, 27 Mar 2026 10:00:42 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=zt850EzuD6G/Ki2eD7v7Hibo4w629xG+NNicaUnEogFHP1rqFwAMacPT2n8/OaujN
+	 DmOX+X2MbX16Tm85zI1+wkq5qrEtCgj8qpAcftGWbRKu44dUuxlX7qjVVHNkwqj09W
+	 FcsohwyuHoCvxYRseDdGKbNWlaCNwjJPEYmnBoEc=
+Date: Fri, 27 Mar 2026 10:22:31 -0700
+To: mm-commits@vger.kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch added to mm-new branch
-Message-Id: <20260327170043.00550C19423@smtp.kernel.org>
+Subject: + liveupdate-safely-print-untrusted-strings.patch added to mm-new branch
+Message-Id: <20260327172232.851FCC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: KVM: PPC: use vma_start_write_killable() in kvmppc_memslot_page_merge()
+     Subject: liveupdate: safely print untrusted strings
 has been added to the -mm mm-new branch.  Its filename is
-     kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
+     liveupdate-safely-print-untrusted-strings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-safely-print-untrusted-strings.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,82 +69,108 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: KVM: PPC: use vma_start_write_killable() in kvmppc_memslot_page_merge()
-Date: Thu, 26 Mar 2026 01:08:36 -0700
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: liveupdate: safely print untrusted strings
+Date: Fri, 27 Mar 2026 03:33:25 +0000
 
-Replace vma_start_write() with vma_start_write_killable(), improving
-reaction time to the kill signal.  Replace vma_start_write() in
-kvmppc_memslot_page_merge().
+Patch series "liveupdate: Fix module unloading and unregister API", v3.
 
-Link: https://lkml.kernel.org/r/20260326080836.695207-7-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
+This patch series addresses an issue with how LUO handles module reference
+counting and unregistration during a module unload (e.g., via rmmod).
+
+Currently, modules that register live update file handlers are pinned for
+the entire duration they are registered.  This prevents the modules from
+being unloaded gracefully, even when no live update session is in
+progress.
+
+Furthermore, if a module is forcefully unloaded, the unregistration
+functions return an error (e.g.  -EBUSY) if a session is active, which is
+ignored by the kernel's module unload path, leaving dangling pointers in
+the LUO global lists.
+
+To resolve these issues, this series introduces the following changes:
+1. Adds a global read-write semaphore (luo_register_rwlock) to protect
+   the registration lists for both file handlers and FLBs.
+2. Reduces the scope of module reference counting for file handlers and
+   FLBs. Instead of pinning modules indefinitely upon registration,
+   references are now taken only when they are actively used in a live
+   update session (e.g., during preservation, retrieval, or
+   deserialization).
+3. Removes the global luo_session_quiesce() mechanism since module
+   unload behavior now handles active sessions implicitly.
+4. Introduces auto-unregistration of FLBs during file handler
+   unregistration to prevent leaving dangling resources.
+5. Changes the unregistration functions to return void instead of
+   an error code.
+6. Fixes a data race in luo_flb_get_private() by introducing a spinlock
+   for thread-safe lazy initialization.
+7. Strengthens security by using %.*s when printing untrusted deserialized
+   compatible strings and session names to prevent out-of-bounds reads.
+
+
+This patch (of 10):
+
+Deserialized strings from KHO data (such as file handler compatible
+strings and session names) are provided by the previous kernel and might
+not be null-terminated if the data is corrupted or maliciously crafted.
+
+When printing these strings in error messages, use the %.*s format
+specifier with the maximum buffer size to prevent out-of-bounds reads into
+adjacent kernel memory.
+
+Link: https://lkml.kernel.org/r/20260327033335.696621-1-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20260327033335.696621-2-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: David Matlack <dmatlack@google.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
+Cc: Samiullah Khawaja <skhawaja@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_uvmem.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/liveupdate/luo_file.c    |    3 ++-
+ kernel/liveupdate/luo_session.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge
-+++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -410,7 +410,10 @@ static int kvmppc_memslot_page_merge(str
- 			ret = H_STATE;
- 			break;
+--- a/kernel/liveupdate/luo_file.c~liveupdate-safely-print-untrusted-strings
++++ a/kernel/liveupdate/luo_file.c
+@@ -813,7 +813,8 @@ int luo_file_deserialize(struct luo_file
  		}
--		vma_start_write(vma);
-+		if (vma_start_write_killable(vma)) {
-+			ret = H_STATE;
-+			break;
-+		}
- 		/* Copy vm_flags to avoid partial modifications in ksm_madvise */
- 		vm_flags = vma->vm_flags;
- 		ret = ksm_madvise(vma, vma->vm_start, vma->vm_end,
+ 
+ 		if (!handler_found) {
+-			pr_warn("No registered handler for compatible '%s'\n",
++			pr_warn("No registered handler for compatible '%.*s'\n",
++				(int)sizeof(file_ser[i].compatible),
+ 				file_ser[i].compatible);
+ 			return -ENOENT;
+ 		}
+--- a/kernel/liveupdate/luo_session.c~liveupdate-safely-print-untrusted-strings
++++ a/kernel/liveupdate/luo_session.c
+@@ -544,7 +544,8 @@ int luo_session_deserialize(void)
+ 
+ 		session = luo_session_alloc(sh->ser[i].name);
+ 		if (IS_ERR(session)) {
+-			pr_warn("Failed to allocate session [%s] during deserialization %pe\n",
++			pr_warn("Failed to allocate session [%.*s] during deserialization %pe\n",
++				(int)sizeof(sh->ser[i].name),
+ 				sh->ser[i].name, session);
+ 			return PTR_ERR(session);
+ 		}
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-vma-cleanup-error-handling-path-in-vma_expand.patch
-mm-use-vma_start_write_killable-in-mm-syscalls.patch
-mm-khugepaged-use-vma_start_write_killable-in-collapse_huge_page.patch
-mm-vma-use-vma_start_write_killable-in-vma-operations.patch
-mm-use-vma_start_write_killable-in-process_vma_walk_lock.patch
-kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
+liveupdate-prevent-double-management-of-files.patch
+memfd-implement-get_id-for-memfd_luo.patch
+selftests-liveupdate-add-test-for-double-preservation.patch
+liveupdate-safely-print-untrusted-strings.patch
+liveupdate-synchronize-lazy-initialization-of-flb-private-state.patch
+liveupdate-protect-file-handler-list-with-rwsem.patch
+liveupdate-protect-flb-lists-with-luo_register_rwlock.patch
+liveupdate-defer-flb-module-refcounting-to-active-sessions.patch
+liveupdate-remove-luo_session_quiesce.patch
+liveupdate-auto-unregister-flbs-on-file-handler-unregistration.patch
+liveupdate-remove-liveupdate_test_unregister.patch
+liveupdate-make-unregister-functions-return-void.patch
+liveupdate-defer-file-handler-module-refcounting-to-active-sessions.patch
 
