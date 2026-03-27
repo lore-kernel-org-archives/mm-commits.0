@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06726364E9C
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:31:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B37A23115B5
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:31:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774632699; cv=none; b=Sar/gb7Us2iq7c868RvNBUzT5VFO3zrDvPpIOuAqvefX+RqG8ac9zEmHI25u4ZBnIseqxdY+shK/gC8uWS5o/1mupT63yWz81idy0dwcHvct7VbOE/WR5nL7nyBh6tKAQpRJEhGnCBCyqIDWLAxqRMOy8YstgFfJPiPtYR1LwsA=
+	t=1774632700; cv=none; b=XxOgtzd/4EtPZz7yJS0e5iNECUjWJpzauwLJzMHcTXdXS7ZOb32naBzv7L30kWHZ1kuIxHYWuNPRd7hGvuLvPDOwY8YJCuFye5g39FwPyCsoQ+FIQvZbbSXksNiFArX8W5PSAx+lKP5aG47v/a0UkP3cm4trKNOaoeGDodzJUyU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774632699; c=relaxed/simple;
-	bh=cVzejXKywjuUlHr3YRyV4rSCkUzqlG0r4q2rZInTnhU=;
-	h=Date:To:From:Subject:Message-Id; b=IwvzDcLRLj24njHnKOP8M9pV+3wvmsmPNS0YUD/Zf6I6IovfVZ2vTtyqfARmzOmgFKfpQ0AYIUgQxofLmA6yfPY4QFXwOmS06f3/CW4DGLim2rtHIFhnyw/zdCIkTTTyutPRV3nXZpY+rpvkv9rGhsh4lc7E4dPUxzTDG3XikKs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RwvTRuKJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774632700; c=relaxed/simple;
+	bh=CZxXMNDadCETDIBfiQ0qjU1IAgqn40LnfHmp0s09yF4=;
+	h=Date:To:From:Subject:Message-Id; b=dNmKBKSXqG3d+br1EeXErjxNNISvRJkTN86Ovadnkt0YjV6JUoDauwCwmdDGXeqgCDMb5/MuKW511oSkBH3OGC+yKROVISETrrpj9Yiu8Rl1pInfzMXuXiYGdUSxBqdg2E1zQJ5uu1hZyhmkl/L5BbcXsGkQEBdVzo9L879EXZg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZD+q7miG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RwvTRuKJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58FA9C19423;
-	Fri, 27 Mar 2026 17:31:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZD+q7miG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55AF2C19423;
+	Fri, 27 Mar 2026 17:31:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774632698;
-	bh=cVzejXKywjuUlHr3YRyV4rSCkUzqlG0r4q2rZInTnhU=;
+	s=korg; t=1774632700;
+	bh=CZxXMNDadCETDIBfiQ0qjU1IAgqn40LnfHmp0s09yF4=;
 	h=Date:To:From:Subject:From;
-	b=RwvTRuKJT5PN508RxgucPRrjLuJ8s1lE7dmvojTfro5CZ87riik8w4LWMAaJW9UTQ
-	 1h1V8xPVjF2oDQRzckY4uIo0HvUADQHuh1EFWi99gqKKG9GfObTINarERuS18H3p+5
-	 HWuR1bhFKaZpc3Stsc2l7vBxMKhd4rFo7Aimm0M0=
-Date: Fri, 27 Mar 2026 10:31:37 -0700
+	b=ZD+q7miGMgT7hiwyTfwm3Ujh1r+TMCPnRvlUvg4hZ9Dr7oXj//hGSrTbui8pLeKEH
+	 GtIxCEPuR6XnV1khQs/+78j9uQ1FkCEWmBo17BsOiuC+Wr+veVKFWW0Tn6Qt4zhe2A
+	 Z1Hom8Wb8LzrhXMB5GpQntNiUQ6BP94vp7bnduGA=
+Date: Fri, 27 Mar 2026 10:31:39 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] xor-assert-that-xor_blocks-is-not-from-preemptible-user-context.patch removed from -mm tree
-Message-Id: <20260327173138.58FA9C19423@smtp.kernel.org>
+Subject: [to-be-updated] arm-xor-remove-in_interrupt-handling.patch removed from -mm tree
+Message-Id: <20260327173140.55AF2C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xor: assert that xor_blocks is not from preemptible user context
+     Subject: arm/xor: remove in_interrupt() handling
 has been removed from the -mm tree.  Its filename was
-     xor-assert-that-xor_blocks-is-not-from-preemptible-user-context.patch
+     arm-xor-remove-in_interrupt-handling.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: xor: assert that xor_blocks is not from preemptible user context
-Date: Tue, 24 Mar 2026 07:21:37 +0100
+Subject: arm/xor: remove in_interrupt() handling
+Date: Tue, 24 Mar 2026 07:21:38 +0100
 
-Patch series "cleanup the RAID5 XOR library", v3.
+xor_blocks can't be called from interrupt context, so remove the handling
+for that.
 
-The XOR library used for the RAID5 parity is a bit of a mess right now. 
-The main file sits in crypto/ despite not being cryptography and not using
-the crypto API, with the generic implementations sitting in
-include/asm-generic and the arch implementations sitting in an asm/ header
-in theory.  The latter doesn't work for many cases, so architectures often
-build the code directly into the core kernel, or create another module for
-the architecture code.
-
-Change this to a single module in lib/ that also contains the architecture
-optimizations, similar to the library work Eric Biggers has done for the
-CRC and crypto libraries later.  After that it changes to better calling
-conventions that allow for smarter architecture implementations (although
-none is contained here yet), and uses static_call to avoid indirection
-function call overhead.
-
-
-This patch (of 26):
-
-Most of the optimized xor_blocks versions require FPU/vector registers,
-which generally are not supported in interrupt context.
-
-Both callers already are in user context, so enforce this at the highest
-level.
-
-Link: https://lkml.kernel.org/r/20260324062211.3216301-1-hch@lst.de
-Link: https://lkml.kernel.org/r/20260324062211.3216301-2-hch@lst.de
+Link: https://lkml.kernel.org/r/20260324062211.3216301-3-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -115,25 +91,91 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/xor.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/include/asm/xor.h |   41 ++++++++++-------------------------
+ 1 file changed, 12 insertions(+), 29 deletions(-)
 
---- a/crypto/xor.c~xor-assert-that-xor_blocks-is-not-from-preemptible-user-context
-+++ a/crypto/xor.c
-@@ -28,6 +28,8 @@ xor_blocks(unsigned int src_count, unsig
+--- a/arch/arm/include/asm/xor.h~arm-xor-remove-in_interrupt-handling
++++ a/arch/arm/include/asm/xor.h
+@@ -4,7 +4,6 @@
+  *
+  *  Copyright (C) 2001 Russell King
+  */
+-#include <linux/hardirq.h>
+ #include <asm-generic/xor.h>
+ #include <asm/hwcap.h>
+ #include <asm/neon.h>
+@@ -156,13 +155,9 @@ static void
+ xor_neon_2(unsigned long bytes, unsigned long * __restrict p1,
+ 	   const unsigned long * __restrict p2)
  {
- 	unsigned long *p1, *p2, *p3, *p4;
+-	if (in_interrupt()) {
+-		xor_arm4regs_2(bytes, p1, p2);
+-	} else {
+-		kernel_neon_begin();
+-		xor_block_neon_inner.do_2(bytes, p1, p2);
+-		kernel_neon_end();
+-	}
++	kernel_neon_begin();
++	xor_block_neon_inner.do_2(bytes, p1, p2);
++	kernel_neon_end();
+ }
  
-+	lockdep_assert_preemption_enabled();
-+
- 	p1 = (unsigned long *) srcs[0];
- 	if (src_count == 1) {
- 		active_template->do_2(bytes, dest, p1);
+ static void
+@@ -170,13 +165,9 @@ xor_neon_3(unsigned long bytes, unsigned
+ 	   const unsigned long * __restrict p2,
+ 	   const unsigned long * __restrict p3)
+ {
+-	if (in_interrupt()) {
+-		xor_arm4regs_3(bytes, p1, p2, p3);
+-	} else {
+-		kernel_neon_begin();
+-		xor_block_neon_inner.do_3(bytes, p1, p2, p3);
+-		kernel_neon_end();
+-	}
++	kernel_neon_begin();
++	xor_block_neon_inner.do_3(bytes, p1, p2, p3);
++	kernel_neon_end();
+ }
+ 
+ static void
+@@ -185,13 +176,9 @@ xor_neon_4(unsigned long bytes, unsigned
+ 	   const unsigned long * __restrict p3,
+ 	   const unsigned long * __restrict p4)
+ {
+-	if (in_interrupt()) {
+-		xor_arm4regs_4(bytes, p1, p2, p3, p4);
+-	} else {
+-		kernel_neon_begin();
+-		xor_block_neon_inner.do_4(bytes, p1, p2, p3, p4);
+-		kernel_neon_end();
+-	}
++	kernel_neon_begin();
++	xor_block_neon_inner.do_4(bytes, p1, p2, p3, p4);
++	kernel_neon_end();
+ }
+ 
+ static void
+@@ -201,13 +188,9 @@ xor_neon_5(unsigned long bytes, unsigned
+ 	   const unsigned long * __restrict p4,
+ 	   const unsigned long * __restrict p5)
+ {
+-	if (in_interrupt()) {
+-		xor_arm4regs_5(bytes, p1, p2, p3, p4, p5);
+-	} else {
+-		kernel_neon_begin();
+-		xor_block_neon_inner.do_5(bytes, p1, p2, p3, p4, p5);
+-		kernel_neon_end();
+-	}
++	kernel_neon_begin();
++	xor_block_neon_inner.do_5(bytes, p1, p2, p3, p4, p5);
++	kernel_neon_end();
+ }
+ 
+ static struct xor_block_template xor_block_neon = {
 _
 
 Patches currently in -mm which might be from hch@lst.de are
 
-arm-xor-remove-in_interrupt-handling.patch
 um-xor-cleanup-xorh.patch
 xor-move-to-lib-raid.patch
 xor-small-cleanups.patch
