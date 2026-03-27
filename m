@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B87B93090F4
-	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:31:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 959F637104F
+	for <mm-commits@vger.kernel.org>; Fri, 27 Mar 2026 17:31:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774632702; cv=none; b=QWSfevTjxoYRAuVTzD0Ws9N6mm4FFFqJtb7qCjIQ27PT2aGkInLtc4FHNAEW2DzxwaS7ipzljHR5e7KdV0r0kMKWqO3YvfRXZB/4mbIt82hd7R1lEGBIsCUksxHg7PXBSGdwlHbq8/sT44de8WM+fM1y8qTMHG3sUU7ZkC1fLUI=
+	t=1774632704; cv=none; b=HgJ+ipaR1NrC+6Nl+obhg8DvJs6BpSx5YywEcrw6OWyg3EbuhP+/x3O3wDumw6Ld1gBHqVIilSISYdcyf7/F1DctTPN3tpzj6boHXkwGUgXphxwg24QKqlA59Eq0JhXd4b1fwsLJatJNpuE4mrfjstncV12JTxZzjka6GcGELZk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774632702; c=relaxed/simple;
-	bh=c/ETKRbYaYiRdF1JC6EWOxxWdyXt0CmjuLctmTIxvwQ=;
-	h=Date:To:From:Subject:Message-Id; b=mhu+hbR/rjX7PaW8r931FQxOmL7nk2a3ZbyFJWrdSJpCUbLOJoKKwDN7YNuU8t/19ebpT3fJAvnZ7zNubIzXZb4icj+LoZK41rNoEfVAxw2BNr0OauVh4eKtskJAeQFCWElBjHhTSpyatEsMjZ81dg8P+XChE9yxpa/pKPRw7VM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1NnLSwO0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774632704; c=relaxed/simple;
+	bh=zQ1JklVKOvqd+Jxc9jJ6oJ5fa67mg+JeLULezVwXFEw=;
+	h=Date:To:From:Subject:Message-Id; b=qL0RMQyPeuCF+BAIttsRL3JfMQBhPGNfYccDLNDEGjhwIgJmaAKLadS9RhOpH0TG4d0yU6nGMTd2kMmAqy/Kn99dMkbFRZodHGpf4LIlo+CJgQO++0AYrHyk1q/HyCBasR72Pq/CG6GeM11SY03MTZJ8/gSAwl1SOh16yeCOo80=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H++oxSPB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1NnLSwO0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45525C19423;
-	Fri, 27 Mar 2026 17:31:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H++oxSPB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39498C19423;
+	Fri, 27 Mar 2026 17:31:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774632702;
-	bh=c/ETKRbYaYiRdF1JC6EWOxxWdyXt0CmjuLctmTIxvwQ=;
+	s=korg; t=1774632704;
+	bh=zQ1JklVKOvqd+Jxc9jJ6oJ5fa67mg+JeLULezVwXFEw=;
 	h=Date:To:From:Subject:From;
-	b=1NnLSwO0oWzJ3ZevcwRZ+0w6JhQ9hQNZApSMXuO3TN/ND2s+4E7uQSiPYMoP4JMmf
-	 gkQOUdslbL37ApYSi5w5OQOmdt9WeuPUVulabZgbAQ3YALiGTrpI7sdxClja2Nffm9
-	 vVwwJCZs7z7AwC9AOg+YG1wjQUNPrG/giFlHdK2Q=
-Date: Fri, 27 Mar 2026 10:31:41 -0700
+	b=H++oxSPBzXRw7IR8Mvi3ZnxrsXyN2Peeahlj7LqdPbMtl8n9zc03hq4NJ+wnKe3aL
+	 1MmSLJAp0/0iOLdUIL+8xvV0s9kkK4uwMX4agmu7W/1cWePXwpb/S/QfHw/yl1W9Cc
+	 pkkcQtOhSfNPqW/uzg/wYXe7g+EqK++FGhMbisEA=
+Date: Fri, 27 Mar 2026 10:31:43 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] um-xor-cleanup-xorh.patch removed from -mm tree
-Message-Id: <20260327173142.45525C19423@smtp.kernel.org>
+Subject: [to-be-updated] xor-move-to-lib-raid.patch removed from -mm tree
+Message-Id: <20260327173144.39498C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,29 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: um/xor: cleanup xor.h
+     Subject: xor: move to lib/raid/
 has been removed from the -mm tree.  Its filename was
-     um-xor-cleanup-xorh.patch
+     xor-move-to-lib-raid.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: um/xor: cleanup xor.h
-Date: Tue, 24 Mar 2026 07:21:39 +0100
+Subject: xor: move to lib/raid/
+Date: Tue, 24 Mar 2026 07:21:40 +0100
 
-Since commit c055e3eae0f1 ("crypto: xor - use ktime for template
-benchmarking") the benchmarking works just fine even for TT_MODE_INFCPU,
-so drop the workarounds.  Note that for CPUs supporting AVX2, which
-includes almost everything built in the last 10 years, the AVX2
-implementation is forced anyway.
+Move the RAID XOR code to lib/raid/ as it has nothing to do with the
+crypto API.
 
-CONFIG_X86_32 is always correctly set for UM in arch/x86/um/Kconfig, so
-don't override it either.
-
-Link: https://lkml.kernel.org/r/20260324062211.3216301-4-hch@lst.de
+Link: https://lkml.kernel.org/r/20260324062211.3216301-5-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Richard Weinberger <richard@nod.at>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -87,6 +80,7 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Richard Henderson <richard.henderson@linaro.org>
+Cc: Richard Weinberger <richard@nod.at>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Song Liu <song@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
@@ -97,40 +91,452 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/xor.h |   16 ----------------
- 1 file changed, 16 deletions(-)
+ crypto/Kconfig          |    2 
+ crypto/Makefile         |    1 
+ crypto/xor.c            |  176 --------------------------------------
+ lib/Kconfig             |    1 
+ lib/Makefile            |    2 
+ lib/raid/Kconfig        |    4 
+ lib/raid/Makefile       |    3 
+ lib/raid/xor/Makefile   |    5 +
+ lib/raid/xor/xor-core.c |  176 ++++++++++++++++++++++++++++++++++++++
+ 9 files changed, 190 insertions(+), 180 deletions(-)
 
---- a/arch/um/include/asm/xor.h~um-xor-cleanup-xorh
-+++ a/arch/um/include/asm/xor.h
-@@ -2,23 +2,7 @@
- #ifndef _ASM_UM_XOR_H
- #define _ASM_UM_XOR_H
+--- a/crypto/Kconfig~xor-move-to-lib-raid
++++ a/crypto/Kconfig
+@@ -2,8 +2,6 @@
+ #
+ # Generic algorithms support
+ #
+-config XOR_BLOCKS
+-	tristate
  
--#ifdef CONFIG_64BIT
--#undef CONFIG_X86_32
--#define TT_CPU_INF_XOR_DEFAULT (AVX_SELECT(&xor_block_sse_pf64))
--#else
--#define CONFIG_X86_32 1
--#define TT_CPU_INF_XOR_DEFAULT (AVX_SELECT(&xor_block_8regs))
+ #
+ # async_tx api: hardware offloaded memory transfer/transform support
+--- a/crypto/Makefile~xor-move-to-lib-raid
++++ a/crypto/Makefile
+@@ -196,7 +196,6 @@ obj-$(CONFIG_CRYPTO_ECRDSA) += ecrdsa_ge
+ #
+ # generic algorithms and the async_tx api
+ #
+-obj-$(CONFIG_XOR_BLOCKS) += xor.o
+ obj-$(CONFIG_ASYNC_CORE) += async_tx/
+ obj-$(CONFIG_ASYMMETRIC_KEY_TYPE) += asymmetric_keys/
+ crypto_simd-y := simd.o
+diff --git a/crypto/xor.c a/crypto/xor.c
+deleted file mode 100644
+--- a/crypto/xor.c
++++ /dev/null
+@@ -1,176 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-or-later
+-/*
+- * xor.c : Multiple Devices driver for Linux
+- *
+- * Copyright (C) 1996, 1997, 1998, 1999, 2000,
+- * Ingo Molnar, Matti Aarnio, Jakub Jelinek, Richard Henderson.
+- *
+- * Dispatch optimized RAID-5 checksumming functions.
+- */
+-
+-#define BH_TRACE 0
+-#include <linux/module.h>
+-#include <linux/gfp.h>
+-#include <linux/raid/xor.h>
+-#include <linux/jiffies.h>
+-#include <linux/preempt.h>
+-#include <asm/xor.h>
+-
+-#ifndef XOR_SELECT_TEMPLATE
+-#define XOR_SELECT_TEMPLATE(x) (x)
 -#endif
 -
- #include <asm/cpufeature.h>
- #include <../../x86/include/asm/xor.h>
--#include <linux/time-internal.h>
+-/* The xor routines to use.  */
+-static struct xor_block_template *active_template;
 -
--#ifdef CONFIG_UML_TIME_TRAVEL_SUPPORT
--#undef XOR_SELECT_TEMPLATE
--/* pick an arbitrary one - measuring isn't possible with inf-cpu */
--#define XOR_SELECT_TEMPLATE(x)	\
--	(time_travel_mode == TT_MODE_INFCPU ? TT_CPU_INF_XOR_DEFAULT : x)
+-void
+-xor_blocks(unsigned int src_count, unsigned int bytes, void *dest, void **srcs)
+-{
+-	unsigned long *p1, *p2, *p3, *p4;
+-
+-	lockdep_assert_preemption_enabled();
+-
+-	p1 = (unsigned long *) srcs[0];
+-	if (src_count == 1) {
+-		active_template->do_2(bytes, dest, p1);
+-		return;
+-	}
+-
+-	p2 = (unsigned long *) srcs[1];
+-	if (src_count == 2) {
+-		active_template->do_3(bytes, dest, p1, p2);
+-		return;
+-	}
+-
+-	p3 = (unsigned long *) srcs[2];
+-	if (src_count == 3) {
+-		active_template->do_4(bytes, dest, p1, p2, p3);
+-		return;
+-	}
+-
+-	p4 = (unsigned long *) srcs[3];
+-	active_template->do_5(bytes, dest, p1, p2, p3, p4);
+-}
+-EXPORT_SYMBOL(xor_blocks);
+-
+-/* Set of all registered templates.  */
+-static struct xor_block_template *__initdata template_list;
+-
+-#ifndef MODULE
+-static void __init do_xor_register(struct xor_block_template *tmpl)
+-{
+-	tmpl->next = template_list;
+-	template_list = tmpl;
+-}
+-
+-static int __init register_xor_blocks(void)
+-{
+-	active_template = XOR_SELECT_TEMPLATE(NULL);
+-
+-	if (!active_template) {
+-#define xor_speed	do_xor_register
+-		// register all the templates and pick the first as the default
+-		XOR_TRY_TEMPLATES;
+-#undef xor_speed
+-		active_template = template_list;
+-	}
+-	return 0;
+-}
 -#endif
+-
+-#define BENCH_SIZE	4096
+-#define REPS		800U
+-
+-static void __init
+-do_xor_speed(struct xor_block_template *tmpl, void *b1, void *b2)
+-{
+-	int speed;
+-	unsigned long reps;
+-	ktime_t min, start, t0;
+-
+-	tmpl->next = template_list;
+-	template_list = tmpl;
+-
+-	preempt_disable();
+-
+-	reps = 0;
+-	t0 = ktime_get();
+-	/* delay start until time has advanced */
+-	while ((start = ktime_get()) == t0)
+-		cpu_relax();
+-	do {
+-		mb(); /* prevent loop optimization */
+-		tmpl->do_2(BENCH_SIZE, b1, b2);
+-		mb();
+-	} while (reps++ < REPS || (t0 = ktime_get()) == start);
+-	min = ktime_sub(t0, start);
+-
+-	preempt_enable();
+-
+-	// bytes/ns == GB/s, multiply by 1000 to get MB/s [not MiB/s]
+-	speed = (1000 * reps * BENCH_SIZE) / (unsigned int)ktime_to_ns(min);
+-	tmpl->speed = speed;
+-
+-	pr_info("   %-16s: %5d MB/sec\n", tmpl->name, speed);
+-}
+-
+-static int __init
+-calibrate_xor_blocks(void)
+-{
+-	void *b1, *b2;
+-	struct xor_block_template *f, *fastest;
+-
+-	fastest = XOR_SELECT_TEMPLATE(NULL);
+-
+-	if (fastest) {
+-		printk(KERN_INFO "xor: automatically using best "
+-				 "checksumming function   %-10s\n",
+-		       fastest->name);
+-		goto out;
+-	}
+-
+-	b1 = (void *) __get_free_pages(GFP_KERNEL, 2);
+-	if (!b1) {
+-		printk(KERN_WARNING "xor: Yikes!  No memory available.\n");
+-		return -ENOMEM;
+-	}
+-	b2 = b1 + 2*PAGE_SIZE + BENCH_SIZE;
+-
+-	/*
+-	 * If this arch/cpu has a short-circuited selection, don't loop through
+-	 * all the possible functions, just test the best one
+-	 */
+-
+-#define xor_speed(templ)	do_xor_speed((templ), b1, b2)
+-
+-	printk(KERN_INFO "xor: measuring software checksum speed\n");
+-	template_list = NULL;
+-	XOR_TRY_TEMPLATES;
+-	fastest = template_list;
+-	for (f = fastest; f; f = f->next)
+-		if (f->speed > fastest->speed)
+-			fastest = f;
+-
+-	pr_info("xor: using function: %s (%d MB/sec)\n",
+-	       fastest->name, fastest->speed);
+-
+-#undef xor_speed
+-
+-	free_pages((unsigned long)b1, 2);
+-out:
+-	active_template = fastest;
+-	return 0;
+-}
+-
+-static __exit void xor_exit(void) { }
+-
+-MODULE_DESCRIPTION("RAID-5 checksumming functions");
+-MODULE_LICENSE("GPL");
+-
+-#ifndef MODULE
+-/* when built-in xor.o must initialize before drivers/md/md.o */
+-core_initcall(register_xor_blocks);
+-#endif
+-
+-module_init(calibrate_xor_blocks);
+-module_exit(xor_exit);
+--- a/lib/Kconfig~xor-move-to-lib-raid
++++ a/lib/Kconfig
+@@ -138,6 +138,7 @@ config TRACE_MMIO_ACCESS
  
- #endif
+ source "lib/crc/Kconfig"
+ source "lib/crypto/Kconfig"
++source "lib/raid/Kconfig"
+ 
+ config XXHASH
+ 	tristate
+--- a/lib/Makefile~xor-move-to-lib-raid
++++ a/lib/Makefile
+@@ -120,7 +120,7 @@ endif
+ obj-$(CONFIG_DEBUG_INFO_REDUCED) += debug_info.o
+ CFLAGS_debug_info.o += $(call cc-option, -femit-struct-debug-detailed=any)
+ 
+-obj-y += math/ crc/ crypto/ tests/ vdso/
++obj-y += math/ crc/ crypto/ tests/ vdso/ raid/
+ 
+ obj-$(CONFIG_GENERIC_IOMAP) += iomap.o
+ obj-$(CONFIG_HAS_IOMEM) += iomap_copy.o devres.o
+diff --git a/lib/raid/Kconfig a/lib/raid/Kconfig
+new file mode 100644
+--- /dev/null
++++ a/lib/raid/Kconfig
+@@ -0,0 +1,4 @@
++# SPDX-License-Identifier: GPL-2.0
++
++config XOR_BLOCKS
++	tristate
+diff --git a/lib/raid/Makefile a/lib/raid/Makefile
+new file mode 100644
+--- /dev/null
++++ a/lib/raid/Makefile
+@@ -0,0 +1,3 @@
++# SPDX-License-Identifier: GPL-2.0
++
++obj-y				+= xor/
+diff --git a/lib/raid/xor/Makefile a/lib/raid/xor/Makefile
+new file mode 100644
+--- /dev/null
++++ a/lib/raid/xor/Makefile
+@@ -0,0 +1,5 @@
++# SPDX-License-Identifier: GPL-2.0
++
++obj-$(CONFIG_XOR_BLOCKS)	+= xor.o
++
++xor-y				+= xor-core.o
+diff --git a/lib/raid/xor/xor-core.c a/lib/raid/xor/xor-core.c
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/xor-core.c
+@@ -0,0 +1,176 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * xor.c : Multiple Devices driver for Linux
++ *
++ * Copyright (C) 1996, 1997, 1998, 1999, 2000,
++ * Ingo Molnar, Matti Aarnio, Jakub Jelinek, Richard Henderson.
++ *
++ * Dispatch optimized RAID-5 checksumming functions.
++ */
++
++#define BH_TRACE 0
++#include <linux/module.h>
++#include <linux/gfp.h>
++#include <linux/raid/xor.h>
++#include <linux/jiffies.h>
++#include <linux/preempt.h>
++#include <asm/xor.h>
++
++#ifndef XOR_SELECT_TEMPLATE
++#define XOR_SELECT_TEMPLATE(x) (x)
++#endif
++
++/* The xor routines to use.  */
++static struct xor_block_template *active_template;
++
++void
++xor_blocks(unsigned int src_count, unsigned int bytes, void *dest, void **srcs)
++{
++	unsigned long *p1, *p2, *p3, *p4;
++
++	lockdep_assert_preemption_enabled();
++
++	p1 = (unsigned long *) srcs[0];
++	if (src_count == 1) {
++		active_template->do_2(bytes, dest, p1);
++		return;
++	}
++
++	p2 = (unsigned long *) srcs[1];
++	if (src_count == 2) {
++		active_template->do_3(bytes, dest, p1, p2);
++		return;
++	}
++
++	p3 = (unsigned long *) srcs[2];
++	if (src_count == 3) {
++		active_template->do_4(bytes, dest, p1, p2, p3);
++		return;
++	}
++
++	p4 = (unsigned long *) srcs[3];
++	active_template->do_5(bytes, dest, p1, p2, p3, p4);
++}
++EXPORT_SYMBOL(xor_blocks);
++
++/* Set of all registered templates.  */
++static struct xor_block_template *__initdata template_list;
++
++#ifndef MODULE
++static void __init do_xor_register(struct xor_block_template *tmpl)
++{
++	tmpl->next = template_list;
++	template_list = tmpl;
++}
++
++static int __init register_xor_blocks(void)
++{
++	active_template = XOR_SELECT_TEMPLATE(NULL);
++
++	if (!active_template) {
++#define xor_speed	do_xor_register
++		// register all the templates and pick the first as the default
++		XOR_TRY_TEMPLATES;
++#undef xor_speed
++		active_template = template_list;
++	}
++	return 0;
++}
++#endif
++
++#define BENCH_SIZE	4096
++#define REPS		800U
++
++static void __init
++do_xor_speed(struct xor_block_template *tmpl, void *b1, void *b2)
++{
++	int speed;
++	unsigned long reps;
++	ktime_t min, start, t0;
++
++	tmpl->next = template_list;
++	template_list = tmpl;
++
++	preempt_disable();
++
++	reps = 0;
++	t0 = ktime_get();
++	/* delay start until time has advanced */
++	while ((start = ktime_get()) == t0)
++		cpu_relax();
++	do {
++		mb(); /* prevent loop optimization */
++		tmpl->do_2(BENCH_SIZE, b1, b2);
++		mb();
++	} while (reps++ < REPS || (t0 = ktime_get()) == start);
++	min = ktime_sub(t0, start);
++
++	preempt_enable();
++
++	// bytes/ns == GB/s, multiply by 1000 to get MB/s [not MiB/s]
++	speed = (1000 * reps * BENCH_SIZE) / (unsigned int)ktime_to_ns(min);
++	tmpl->speed = speed;
++
++	pr_info("   %-16s: %5d MB/sec\n", tmpl->name, speed);
++}
++
++static int __init
++calibrate_xor_blocks(void)
++{
++	void *b1, *b2;
++	struct xor_block_template *f, *fastest;
++
++	fastest = XOR_SELECT_TEMPLATE(NULL);
++
++	if (fastest) {
++		printk(KERN_INFO "xor: automatically using best "
++				 "checksumming function   %-10s\n",
++		       fastest->name);
++		goto out;
++	}
++
++	b1 = (void *) __get_free_pages(GFP_KERNEL, 2);
++	if (!b1) {
++		printk(KERN_WARNING "xor: Yikes!  No memory available.\n");
++		return -ENOMEM;
++	}
++	b2 = b1 + 2*PAGE_SIZE + BENCH_SIZE;
++
++	/*
++	 * If this arch/cpu has a short-circuited selection, don't loop through
++	 * all the possible functions, just test the best one
++	 */
++
++#define xor_speed(templ)	do_xor_speed((templ), b1, b2)
++
++	printk(KERN_INFO "xor: measuring software checksum speed\n");
++	template_list = NULL;
++	XOR_TRY_TEMPLATES;
++	fastest = template_list;
++	for (f = fastest; f; f = f->next)
++		if (f->speed > fastest->speed)
++			fastest = f;
++
++	pr_info("xor: using function: %s (%d MB/sec)\n",
++	       fastest->name, fastest->speed);
++
++#undef xor_speed
++
++	free_pages((unsigned long)b1, 2);
++out:
++	active_template = fastest;
++	return 0;
++}
++
++static __exit void xor_exit(void) { }
++
++MODULE_DESCRIPTION("RAID-5 checksumming functions");
++MODULE_LICENSE("GPL");
++
++#ifndef MODULE
++/* when built-in xor.o must initialize before drivers/md/md.o */
++core_initcall(register_xor_blocks);
++#endif
++
++module_init(calibrate_xor_blocks);
++module_exit(xor_exit);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
 
-xor-move-to-lib-raid.patch
 xor-small-cleanups.patch
 xor-cleanup-registration-and-probing.patch
 xor-split-xorh.patch
