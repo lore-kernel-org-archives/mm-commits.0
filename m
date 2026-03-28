@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47446239E80
-	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 17:00:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E21D970830
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 17:01:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774717226; cv=none; b=CBlPJD//7R6TMvjY0gTrneAFAXH9JT/8cgkD4NC5B6CUx5+10AuBIfcfWEWTMMCcseiYPPvlSNz5XQzJ4RKkX8M4qud3TeFcr1PSBiGJ5GUYfaELn1fjhAzdLOH7Mv8hr3JLlAvo37zod15O4QqneU0Of7HDRAm6uypFTk56Kw0=
+	t=1774717263; cv=none; b=SzEZsqqHM4RSy4MFGPPeejambLgyxwTCdsTO4UI9Y13s9ENELtpgh/Dx+FI+MjVVG/jAqEU+YYcBkNk6vBqEv2P0gAB1Y2KB5NxwfDSBCe2y9b0T3v42doxNyxcfFReYrdRf4p5B47fsmpqxrqJCKLirU7eQEC6ZHTQ2RFvCKWc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774717226; c=relaxed/simple;
-	bh=LYPrt38NH6F8rkzLDnRi70SM03dHV6QMBjVcgOOXrPQ=;
-	h=Date:To:From:Subject:Message-Id; b=qDkNYC68c31L8ozqVW2IY6kjIWgmktDPTgsudeED8GZSyUsRcYZ8gJUdgbDpjd35NJ+M9x6p+94xfUfQ23fA/fG1aUb7KXcWff/DyBSM72msVo7wAasbaEaT2HRBv+q+ssz1kOighCHuwdGsld+bCS1QTgUm6+ru5LLTI7kRlns=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vh74tdoP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774717263; c=relaxed/simple;
+	bh=se4CdJX6lDoIifrTDAhEYyaksWDWVwwrBzE2wNuUWbI=;
+	h=Date:To:From:Subject:Message-Id; b=iOUgmbRTlWshO6uERY7tibvxmkQcVz0UfAlDlDcBhONZewnFN7lMCSiqcmUum8r+HLVzMdMrkVjW/VOeLTmIctkqhXlVmcC881kbVW6NygNT9m0AXjPcc2T7TUfeH/gG6DabIkiftgMmXamRmKiIaDRtNQ6MwWVEvWHJG/sH0B0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bu71Atoj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vh74tdoP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CFE9AC4CEF7;
-	Sat, 28 Mar 2026 17:00:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bu71Atoj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75202C4CEF7;
+	Sat, 28 Mar 2026 17:01:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774717225;
-	bh=LYPrt38NH6F8rkzLDnRi70SM03dHV6QMBjVcgOOXrPQ=;
+	s=korg; t=1774717262;
+	bh=se4CdJX6lDoIifrTDAhEYyaksWDWVwwrBzE2wNuUWbI=;
 	h=Date:To:From:Subject:From;
-	b=Vh74tdoPA1S0qIBKMPonktz0XZPzSoFmKnZhWy2XNcNGrjiUaRm/G7yx+CoVFfUBe
-	 mxbTcETZbmSEUwvObK4xwz2WMJQsYwbXqcttAsmryHScit2panhvSXxj5yLW3jkNx8
-	 sF4yO9NBSIf/AHCV+UrlTwKYal1Vydy97RYJY0Xw=
-Date: Sat, 28 Mar 2026 10:00:25 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=bu71AtojtxPjjHONKhsRf29dhwdLsiOf7nQYWpPUeraL5pum2/KcWm7wEaQp8ylJP
+	 igKDxKmrwAMXYIarKQc8J3eepdXtQwbl3dvww+8jUYacR5XUcUx3gxejEpST2kBZOU
+	 Y6eh2CAW0m6LvCUrug3TuDsV/u7JwD2t90JsSTb8=
+Date: Sat, 28 Mar 2026 10:01:01 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix.patch removed from -mm tree
-Message-Id: <20260328170025.CFE9AC4CEF7@smtp.kernel.org>
+Subject: [folded-merged] mm-huge_memory-add-and-use-has_deposited_pgtable-fix.patch removed from -mm tree
+Message-Id: <20260328170102.75202C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix
+     Subject: mm-huge_memory-add-and-use-has_deposited_pgtable-fix
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix.patch
+     mm-huge_memory-add-and-use-has_deposited_pgtable-fix.patch
 
-This patch was dropped because it was folded into mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd.patch
+This patch was dropped because it was folded into mm-huge_memory-add-and-use-has_deposited_pgtable.patch
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix
-Date: Mon, 23 Mar 2026 11:22:32 +0000
+Subject: mm-huge_memory-add-and-use-has_deposited_pgtable-fix
+Date: Mon, 23 Mar 2026 11:42:01 +0000
 
-avoid bisection hazard
+resolve an issue with us performing folio_put() on a folio before checking
+it again to see if a table was deposited, as per Sashiko.
 
-Link: https://lkml.kernel.org/r/d0cc6161-77a4-42ba-a411-96c23c78df1b@lucifer.local
+
+Link: https://lkml.kernel.org/r/0a917f80-902f-49b0-a75f-1bbaf23d7f94@lucifer.local
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd-fix
+--- a/mm/huge_memory.c~mm-huge_memory-add-and-use-has_deposited_pgtable-fix
 +++ a/mm/huge_memory.c
-@@ -2481,7 +2481,7 @@ bool zap_huge_pmd(struct mmu_gather *tlb
- 		zap_huge_pmd_folio(mm, vma, orig_pmd, folio, is_present,
- 				   &has_deposit);
- 	else if (is_huge_zero_pmd(orig_pmd))
--		has_deposit = !vma_is_dax(vma);
-+		has_deposit = has_deposit || !vma_is_dax(vma);
+@@ -2474,6 +2474,7 @@ bool zap_huge_pmd(struct mmu_gather *tlb
+ 	struct mm_struct *mm = tlb->mm;
+ 	struct folio *folio = NULL;
+ 	bool is_present = false;
++	bool has_deposit;
+ 	spinlock_t *ptl;
+ 	pmd_t orig_pmd;
  
- 	if (has_deposit)
+@@ -2495,10 +2496,10 @@ bool zap_huge_pmd(struct mmu_gather *tlb
+ 
+ 	is_present = pmd_present(orig_pmd);
+ 	folio = normal_or_softleaf_folio_pmd(vma, addr, orig_pmd, is_present);
++	has_deposit = has_deposited_pgtable(vma, orig_pmd, folio);
+ 	if (folio)
+ 		zap_huge_pmd_folio(mm, vma, orig_pmd, folio, is_present);
+-
+-	if (has_deposited_pgtable(vma, orig_pmd, folio))
++	if (has_deposit)
  		zap_deposited_table(mm, pmd);
+ 
+ 	spin_unlock(ptl);
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
@@ -139,6 +165,5 @@ mm-huge_memory-separate-out-the-folio-part-of-zap_huge_pmd.patch
 mm-add-softleaf_is_valid_pmd_entry-pmd_to_softleaf_folio.patch
 mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd.patch
 mm-huge_memory-add-and-use-has_deposited_pgtable.patch
-mm-huge_memory-add-and-use-has_deposited_pgtable-fix.patch
 maintainers-update-mglru-entry-to-reflect-current-status.patch
 
