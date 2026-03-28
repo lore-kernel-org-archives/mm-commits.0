@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBC1033A6F9;
-	Sat, 28 Mar 2026 04:25:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3626C1A9FA8
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:25:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774671947; cv=none; b=G85w/PypVh/FIWzP/TarNTLJ45Sw3c1zXmPAAd5L8SgmTxWQcEQd+UXWLXY9Y9G26jLTqr48PSXCoFIThoxhZZdQdxeRMKbldVULUXfEJQNFFL93VxSm+uxOqXU8TechWnVHEKgzL8wT8H4qXb+Qp950TV8i3JjMc/ExnWiUTeM=
+	t=1774671949; cv=none; b=hnM4kid8Zt3pZuoV6VHTyHslf5itbrkKQOg8ThIqIxxPdUf9wCNW2+b19dhOlkIebchGnJfT5obE4T6pigyrN/PJX4S2G9SQ1xetMON3CgKwv2QlGPs1xOqwi+JS85OhQPsOyDOqAVuOHJ0M96fnj6qc7j/ICTxnxnUMmkMbHBE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774671947; c=relaxed/simple;
-	bh=4vTYs+xQAUuGk4y8NNmd9eqztVFDT26xA77hTWq7WQg=;
-	h=Date:To:From:Subject:Message-Id; b=tpcPZ/7MIb91CtOxiwXH8j0yocuqLmv3NSpvTGdVlU3zMLRwmrW6tcmFKoDN6TT+tK7vfbDJFxnrkg+FWkKhHkc9D3pPq0kh8U5xCw4hEpjYspP6MLJ+ghB396VnsNz/O7h9VoeGSTP0zgXY2F3njgVA8O5jd0Mh8kVxj9HXL5E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bCxsZUEI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774671949; c=relaxed/simple;
+	bh=FZgKmciPqK5uQr1vvtpAksxJZvRPsbzFH9oPztQGC+Q=;
+	h=Date:To:From:Subject:Message-Id; b=jp9OhZoMkwBNloW0p062IEsPrs77G/Ux2Lo+AID4lOBRzoZzq2718VK1MFdj0feisz9abA8qTZ1pZK30Zw78dgyRN3FbURyMm73G9qUP1d00JUVZMwvbyA0tK9Fd+QJ7IFsJhxNy+3AWqmZOtpHKR05t6aNKuyiTAfyw5v4ynUo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RE4DsIpe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bCxsZUEI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B38A5C4CEF7;
-	Sat, 28 Mar 2026 04:25:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RE4DsIpe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E2B0C4CEF7;
+	Sat, 28 Mar 2026 04:25:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774671947;
-	bh=4vTYs+xQAUuGk4y8NNmd9eqztVFDT26xA77hTWq7WQg=;
+	s=korg; t=1774671949;
+	bh=FZgKmciPqK5uQr1vvtpAksxJZvRPsbzFH9oPztQGC+Q=;
 	h=Date:To:From:Subject:From;
-	b=bCxsZUEIp/Tl7V+yJqOnoyk4I2FDNZFUoLmum1OwgPu1AnNQYT9injCpBJ6YanI8+
-	 sXffWBFSihDQ4NefDaX8w4qax1DCDw0VT7H0nKBjeeRWOxqTmyJCtXikYXWQfqbPwC
-	 ruH3ltcqMXlQLL02y9pDQ/rUxcRbdsSmUJWRBekM=
-Date: Fri, 27 Mar 2026 21:25:47 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,akpm@linux-foundation.org,objecting@objecting.org,akpm@linux-foundation.org
+	b=RE4DsIpeJR81KiFHuYH1Oso2i40uE3NORMsNPqr5fS/X1JM7zKH4Ns9BW8VI0xjva
+	 Kdx1yEjCPfUrzhMUn8WklE9vciCJ/rqRjEECaUwL1pKaHBWwmb1Rg+/T0IEzCeCqgO
+	 tULBus8wE5LdTQFye504DIpRJYkMdDeNkxU628gU=
+Date: Fri, 27 Mar 2026 21:25:48 -0700
+To: mm-commits@vger.kernel.org,shuah@kernel.org,richard.weiyang@gmail.com,reddybalavignesh9979@gmail.com,chelsyratnawat2001@gmail.com,aleksey.oladko@virtuozzo.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation.patch removed from -mm tree
-Message-Id: <20260328042547.B38A5C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] selftests-fix-arch-normalization-to-handle-command-line-argument.patch removed from -mm tree
+Message-Id: <20260328042549.0E2B0C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,135 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/ts_kmp: fix integer overflow in pattern length calculation
+     Subject: selftests: fix ARCH normalization to handle command-line argument
 has been removed from the -mm tree.  Its filename was
-     lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation.patch
+     selftests-fix-arch-normalization-to-handle-command-line-argument.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Josh Law <objecting@objecting.org>
-Subject: lib/ts_kmp: fix integer overflow in pattern length calculation
-Date: Sun, 8 Mar 2026 20:20:28 +0000
+From: Aleksei Oladko <aleksey.oladko@virtuozzo.com>
+Subject: selftests: fix ARCH normalization to handle command-line argument
+Date: Mon, 9 Mar 2026 20:51:45 +0000
 
-The ts_kmp algorithm stores its prefix_tbl[] table and pattern in a single
-allocation sized from the pattern length.  If the prefix_tbl[] size
-calculation wraps, the resulting allocation can be too small and
-subsequent pattern copies can overflow it.
+Several selftests Makefiles (e.g.  prctl, breakpoints, etc) attempt to
+normalize the ARCH variable by converting x86_64 and i.86 to x86. 
+However, it uses the conditional assignment operator '?='.
 
-Fix this by rejecting zero-length patterns and by using overflow helpers
-before calculating the combined allocation size.
+When ARCH is passed as a command-line argument (e.g., during an rpmbuild
+process), the '?=' operator ignores the shell command and the sed
+transformation.  This leads to an incorrect ARCH value being used, which
+causes build failures
 
+  # make -C tools/testing/selftests TARGETS=prctl ARCH=x86_64
+  make: Entering directory '/build/tools/testing/selftests'
+  make[1]: Entering directory '/build/tools/testing/selftests/prctl'
+  make[1]: *** No targets.  Stop.
+  make[1]: Leaving directory '/build/tools/testing/selftests/prctl'
+  make: *** [Makefile:197: all] Error 2
 
-This fixes a potential heap overflow.  The pattern length calculation can
-wrap during a size_t addition, leading to an undersized allocation. 
-Because the textsearch library is reachable from userspace via Netfilter's
-xt_string module, this is a security risk that should be backported to LTS
-kernels.
+Change the assignment to use 'override' and ':=' to ensure the
+normalization logic is applied regardless of how the ARCH variable was
+initially defined.
 
-Link: https://lkml.kernel.org/r/20260308202028.2889285-2-objecting@objecting.org
-Signed-off-by: Josh Law <objecting@objecting.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260309205145.572778-1-aleksey.oladko@virtuozzo.com
+Signed-off-by: Aleksei Oladko <aleksey.oladko@virtuozzo.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Bala-Vignesh-Reddy <reddybalavignesh9979@gmail.com>
+Cc: Chelsy Ratnawat <chelsyratnawat2001@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ts_kmp.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ tools/testing/selftests/breakpoints/Makefile                 |    4 ++--
+ tools/testing/selftests/ipc/Makefile                         |    8 ++++----
+ tools/testing/selftests/prctl/Makefile                       |    4 ++--
+ tools/testing/selftests/sparc64/Makefile                     |    4 ++--
+ tools/testing/selftests/thermal/intel/power_floor/Makefile   |    4 ++--
+ tools/testing/selftests/thermal/intel/workload_hint/Makefile |    4 ++--
+ 6 files changed, 14 insertions(+), 14 deletions(-)
 
---- a/lib/ts_kmp.c~lib-ts_kmp-fix-integer-overflow-in-pattern-length-calculation
-+++ a/lib/ts_kmp.c
-@@ -94,8 +94,22 @@ static struct ts_config *kmp_init(const
- 	struct ts_config *conf;
- 	struct ts_kmp *kmp;
- 	int i;
--	unsigned int prefix_tbl_len = len * sizeof(unsigned int);
--	size_t priv_size = sizeof(*kmp) + len + prefix_tbl_len;
-+	unsigned int prefix_tbl_len;
-+	size_t priv_size;
-+
-+	/* Zero-length patterns would make kmp_find() read beyond kmp->pattern. */
-+	if (unlikely(!len))
-+		return ERR_PTR(-EINVAL);
-+
-+	/*
-+	 * kmp->pattern is stored immediately after the prefix_tbl[] table.
-+	 * Reject lengths that would wrap while sizing either region.
-+	 */
-+	if (unlikely(check_mul_overflow(len, sizeof(*kmp->prefix_tbl),
-+					&prefix_tbl_len) ||
-+		     check_add_overflow(sizeof(*kmp), (size_t)len, &priv_size) ||
-+		     check_add_overflow(priv_size, prefix_tbl_len, &priv_size)))
-+		return ERR_PTR(-EINVAL);
+--- a/tools/testing/selftests/breakpoints/Makefile~selftests-fix-arch-normalization-to-handle-command-line-argument
++++ a/tools/testing/selftests/breakpoints/Makefile
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ # Taken from perf makefile
+-uname_M := $(shell uname -m 2>/dev/null || echo not)
+-ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/x86/ -e s/x86_64/x86/)
++ARCH ?= $(shell uname -m 2>/dev/null || echo not)
++override ARCH := $(shell echo $(ARCH) | sed -e s/i.86/x86/ -e s/x86_64/x86/)
  
- 	conf = alloc_ts_config(priv_size, gfp_mask);
- 	if (IS_ERR(conf))
+ TEST_GEN_PROGS := step_after_suspend_test
+ 
+--- a/tools/testing/selftests/ipc/Makefile~selftests-fix-arch-normalization-to-handle-command-line-argument
++++ a/tools/testing/selftests/ipc/Makefile
+@@ -1,12 +1,12 @@
+ # SPDX-License-Identifier: GPL-2.0
+-uname_M := $(shell uname -m 2>/dev/null || echo not)
+-ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
++ARCH ?= $(shell uname -m 2>/dev/null || echo not)
++override ARCH := $(shell echo $(ARCH) | sed -e s/i.86/i386/)
+ ifeq ($(ARCH),i386)
+-        ARCH := x86
++        override ARCH := x86
+ 	CFLAGS := -DCONFIG_X86_32 -D__i386__
+ endif
+ ifeq ($(ARCH),x86_64)
+-	ARCH := x86
++        override ARCH := x86
+ 	CFLAGS := -DCONFIG_X86_64 -D__x86_64__
+ endif
+ 
+--- a/tools/testing/selftests/prctl/Makefile~selftests-fix-arch-normalization-to-handle-command-line-argument
++++ a/tools/testing/selftests/prctl/Makefile
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ ifndef CROSS_COMPILE
+-uname_M := $(shell uname -m 2>/dev/null || echo not)
+-ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/x86/ -e s/x86_64/x86/)
++ARCH ?= $(shell uname -m 2>/dev/null || echo not)
++override ARCH := $(shell echo $(ARCH) | sed -e s/i.86/x86/ -e s/x86_64/x86/)
+ 
+ ifeq ($(ARCH),x86)
+ TEST_PROGS := disable-tsc-ctxt-sw-stress-test disable-tsc-on-off-stress-test \
+--- a/tools/testing/selftests/sparc64/Makefile~selftests-fix-arch-normalization-to-handle-command-line-argument
++++ a/tools/testing/selftests/sparc64/Makefile
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+-uname_M := $(shell uname -m 2>/dev/null || echo not)
+-ARCH ?= $(shell echo $(uname_M) | sed -e s/x86_64/x86/)
++ARCH ?= $(shell uname -m 2>/dev/null || echo not)
++override ARCH := $(shell echo $(ARCH) | sed -e s/x86_64/x86/)
+ 
+ ifneq ($(ARCH),sparc64)
+ nothing:
+--- a/tools/testing/selftests/thermal/intel/power_floor/Makefile~selftests-fix-arch-normalization-to-handle-command-line-argument
++++ a/tools/testing/selftests/thermal/intel/power_floor/Makefile
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ ifndef CROSS_COMPILE
+-uname_M := $(shell uname -m 2>/dev/null || echo not)
+-ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/x86/ -e s/x86_64/x86/)
++ARCH ?= $(shell uname -m 2>/dev/null || echo not)
++override ARCH := $(shell echo $(ARCH) | sed -e s/i.86/x86/ -e s/x86_64/x86/)
+ 
+ ifeq ($(ARCH),x86)
+ TEST_GEN_PROGS := power_floor_test
+--- a/tools/testing/selftests/thermal/intel/workload_hint/Makefile~selftests-fix-arch-normalization-to-handle-command-line-argument
++++ a/tools/testing/selftests/thermal/intel/workload_hint/Makefile
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ ifndef CROSS_COMPILE
+-uname_M := $(shell uname -m 2>/dev/null || echo not)
+-ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/x86/ -e s/x86_64/x86/)
++ARCH ?= $(shell uname -m 2>/dev/null || echo not)
++override ARCH := $(shell echo $(ARCH) | sed -e s/i.86/x86/ -e s/x86_64/x86/)
+ 
+ ifeq ($(ARCH),x86)
+ TEST_GEN_PROGS := workload_hint_test
 _
 
-Patches currently in -mm which might be from objecting@objecting.org are
+Patches currently in -mm which might be from aleksey.oladko@virtuozzo.com are
 
-mm-damon-core-document-damos_commit_dests-failure-semantics.patch
-lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
-lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
 
