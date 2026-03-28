@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A096D2DEA75
-	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:24:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA5FD2DEA75
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:24:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774671879; cv=none; b=mA4ayZVE7F1d08A5f4zn38/6Q97gcTVDd2cfdBrTD6m0fRhIpQljzASoJsUsNe1njz/hu/3gBIrALgsQvB8Ej0acOo7xnvt9Il+HThg9f645k6t+jHdIt9AdS0eenxjNECJhjzPZXIiyYKxQlX8xFStuQZ5J4u4xZYlagnNh4/c=
+	t=1774671880; cv=none; b=pl8XjBFBBoWDPLEkhXtSFH8KmuVVUcqSXyhlmkYURYNpKkzlNEAJTJzCv30V8hn7rg4IWC7CoXAO5WhUlwuzuM6NcYgYWn0R1HMm19DLhuEt0tW5t0fwu/NluiMcHffTv1pfiXSRVG2yJz8lzDEsAvA2EJ0v7IkFZxbru82F4g0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774671879; c=relaxed/simple;
-	bh=zYkwLyYWNNpsfXintmQwwaGaJbGLr8MVi1didwYq+m4=;
-	h=Date:To:From:Subject:Message-Id; b=PAVObThw2oZlQ/zSJSafkqQA2ht+uHvkgwl4mOnPxUHGkvgmW92nspRCe3RbJ42QUc2eKNQJ7m+pTxrRzszO8LJNIfKiIb535qDYd+JkRqH8yUnfA7dAUKXTXgNvcdqgtzrivnvcWo9DxQ/2+NnqpUqU3ByDmf4HafmLSMIH8o0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t/uG28+I; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774671880; c=relaxed/simple;
+	bh=qRtbdrfgRZFi7tQQwvIodWmGkjdoJPyiy+8Ig3r5i0I=;
+	h=Date:To:From:Subject:Message-Id; b=IbZBJ26u5tDZTdG+trYzrhYIGxAL1z2EOVHDm11+EYUj+u9KWZz+lG3gIzw2xaXg/fnIanImE76DpO/X77cjMJEcp+mnzgU1yuvzwuyTg832AXl2NscwXaal9TSjXwc5MBviGYlk6vmPlFcsF03Y1u3CVbICMCgeRb3Ny1uEdEw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Iilzb987; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t/uG28+I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49492C4CEF7;
-	Sat, 28 Mar 2026 04:24:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Iilzb987"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8356FC4CEF7;
+	Sat, 28 Mar 2026 04:24:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774671879;
-	bh=zYkwLyYWNNpsfXintmQwwaGaJbGLr8MVi1didwYq+m4=;
+	s=korg; t=1774671880;
+	bh=qRtbdrfgRZFi7tQQwvIodWmGkjdoJPyiy+8Ig3r5i0I=;
 	h=Date:To:From:Subject:From;
-	b=t/uG28+IZT30VFkkpmB8dPJmk0M3Il2cyQjLFEhDD01qzM2AFtXpXg89mcK+CSMf4
-	 0PmRdH96Ox0Ul7EN94bZrsPA+CgEqU0kUEe/P6+fc6+feCqU4lRkIs0SzMhKyHHpj6
-	 uPwHFyp93d0hBLY7u1nw7GlyJ0DQZr/rloq+39uA=
-Date: Fri, 27 Mar 2026 21:24:38 -0700
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,ljs@kernel.org,Liam.Howlett@oracle.com,legion@kernel.org,kees@kernel.org,juri.lelli@redhat.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,akpm@linux-foundation.org,mge@meta.com,akpm@linux-foundation.org
+	b=Iilzb987HgfmUK0f/3+pyZNy7mXrv9x53s3Aw7IkxLz7BcruyaxAgbVyUpjOrBOT8
+	 ND6T/4XlkF24QpbPwB/nP4iWNxHhVOUaktc/5go1dHkbtKWIjAC25hcRrSHBY26aKC
+	 E3lY3cN2V7n6TrmIMyn0ZNf2QraMykFJbrDzA434=
+Date: Fri, 27 Mar 2026 21:24:39 -0700
+To: mm-commits@vger.kernel.org,vkoskiv@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] unshare-fix-nsproxy-leak-in-ksys_unshare-on-set_cred_ucounts-failure.patch removed from -mm tree
-Message-Id: <20260328042439.49492C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-bloat-o-meter-rename-file-arguments-to-match-output.patch removed from -mm tree
+Message-Id: <20260328042440.8356FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,96 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: unshare: fix nsproxy leak in ksys_unshare() on set_cred_ucounts() failure
+     Subject: scripts/bloat-o-meter: rename file arguments to match output
 has been removed from the -mm tree.  Its filename was
-     unshare-fix-nsproxy-leak-in-ksys_unshare-on-set_cred_ucounts-failure.patch
+     scripts-bloat-o-meter-rename-file-arguments-to-match-output.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Michal Grzedzicki <mge@meta.com>
-Subject: unshare: fix nsproxy leak in ksys_unshare() on set_cred_ucounts() failure
-Date: Fri, 13 Feb 2026 11:39:59 -0800
+From: Valtteri Koskivuori <vkoskiv@gmail.com>
+Subject: scripts/bloat-o-meter: rename file arguments to match output
+Date: Thu, 12 Feb 2026 23:39:33 +0200
 
-When set_cred_ucounts() fails in ksys_unshare() new_nsproxy is leaked.
+The output of bloat-o-meter already uses the words 'old' and 'new' for
+symbol size in the table header, so reflect that in the corresponding
+argument names.
 
-Let's call put_nsproxy() if that happens.
-
-Link: https://lkml.kernel.org/r/20260213193959.2556730-1-mge@meta.com
-Fixes: 905ae01c4ae2 ("Add a reference to ucounts for each cred")
-Signed-off-by: Michal Grzedzicki <mge@meta.com>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexey Gladkov (Intel) <legion@kernel.org>
-Cc: Ben Segall <bsegall@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lkml.kernel.org/r/20260212213941.3984330-1-vkoskiv@gmail.com
+Signed-off-by: Valtteri Koskivuori <vkoskiv@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ scripts/bloat-o-meter |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/fork.c~unshare-fix-nsproxy-leak-in-ksys_unshare-on-set_cred_ucounts-failure
-+++ a/kernel/fork.c
-@@ -3174,11 +3174,10 @@ int ksys_unshare(unsigned long unshare_f
- 					 new_cred, new_fs);
- 	if (err)
- 		goto bad_unshare_cleanup_cred;
--
- 	if (new_cred) {
- 		err = set_cred_ucounts(new_cred);
- 		if (err)
--			goto bad_unshare_cleanup_cred;
-+			goto bad_unshare_cleanup_nsproxy;
- 	}
+--- a/scripts/bloat-o-meter~scripts-bloat-o-meter-rename-file-arguments-to-match-output
++++ a/scripts/bloat-o-meter
+@@ -18,8 +18,8 @@ group.add_argument('-c', help='categoriz
+ group.add_argument('-d', help='Show delta of Data Section', action='store_true')
+ group.add_argument('-t', help='Show delta of text Section', action='store_true')
+ parser.add_argument('-p', dest='prefix', help='Arch prefix for the tool being used. Useful in cross build scenarios')
+-parser.add_argument('file1', help='First file to compare')
+-parser.add_argument('file2', help='Second file to compare')
++parser.add_argument('file_old', help='First file to compare')
++parser.add_argument('file_new', help='Second file to compare')
  
- 	if (new_fs || new_fd || do_sysvsem || new_cred || new_nsproxy) {
-@@ -3194,8 +3193,10 @@ int ksys_unshare(unsigned long unshare_f
- 			shm_init_task(current);
- 		}
+ args = parser.parse_args()
  
--		if (new_nsproxy)
-+		if (new_nsproxy) {
- 			switch_task_namespaces(current, new_nsproxy);
-+			new_nsproxy = NULL;
-+		}
+@@ -86,7 +86,7 @@ def calc(oldfile, newfile, format):
  
- 		task_lock(current);
+ def print_result(symboltype, symbolformat):
+     grow, shrink, add, remove, up, down, delta, old, new, otot, ntot = \
+-    calc(args.file1, args.file2, symbolformat)
++    calc(args.file_old, args.file_new, symbolformat)
  
-@@ -3224,13 +3225,15 @@ int ksys_unshare(unsigned long unshare_f
- 
- 	perf_event_namespaces(current);
- 
-+bad_unshare_cleanup_nsproxy:
-+	if (new_nsproxy)
-+		put_nsproxy(new_nsproxy);
- bad_unshare_cleanup_cred:
- 	if (new_cred)
- 		put_cred(new_cred);
- bad_unshare_cleanup_fd:
- 	if (new_fd)
- 		put_files_struct(new_fd);
--
- bad_unshare_cleanup_fs:
- 	if (new_fs)
- 		free_fs_struct(new_fs);
+     print("add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
+           (add, remove, grow, shrink, up, -down, up-down))
 _
 
-Patches currently in -mm which might be from mge@meta.com are
+Patches currently in -mm which might be from vkoskiv@gmail.com are
 
 
