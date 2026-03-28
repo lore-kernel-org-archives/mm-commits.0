@@ -1,101 +1,90 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D50393491F5;
-	Sat, 28 Mar 2026 17:49:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C9111EB5C2
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 20:30:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774720146; cv=none; b=b5nvajblOTg8a1hcnzh65wqlJyF45XAaPWE2X5fBBT/Q+H6p4wYV50+D4BZlUQLd24beNjk6rKN1ImHD3FbGhxJg6APCyeVJ4qemNVafjMjNkCUP27Hl3H3Sb3Ou4ir7FPe+ZMGygraAyihXR+Vwiqq8gqx6rFVYNFseqjn1jUU=
+	t=1774729847; cv=none; b=LdqkiBAamm37L7pmSBqiZ88YxyTIGE1mj5Ni5JbdcR0Ww+ugKEuhUkOawptQndfV6ynxqwby5qrvckZk5OsAVydBS0BRX40cg7+kPCojJunMh6j52NnyDgt+YV1mGFLa1+Ez9ZEccjC+PxkbpkVYte62q9CRMF3U+a7Tg40TUeU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774720146; c=relaxed/simple;
-	bh=dKl5Ev2JkKCfZFM2QBz1yv5YQSqYGiO+Zq8rSPe3O4c=;
-	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=dWJAqa2atfoZJWtKFfs/V6bkfDETh9oX+i1KyoZXLUDqKTgSctgVVqw36V3lZwQf0GsbMBVu8gzf/PMrAsOXzCDSXOolnTigUSP2P5F7ZbCWIhWu7AoxyQ/D2lIIvF1oaqFAGYNY/qcbAeXGnfiNc9xMKK+412EeKrtGY86amT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ppWh2Uei; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774729847; c=relaxed/simple;
+	bh=Z36vYPOBmJISGoB9ut5JdTs85Aqd980UWTRI27bKrzg=;
+	h=Date:To:From:Subject:Message-Id; b=QBi22irFK6D6BJdrlwXd6uT7MAjxFWnJ/3F6EAppMnudnxZNMP1YCfAjy8e8rhuu8PMpQsxH7TyjzrMphBkKBM3y+3uh/KJzq4yP1lrWEHGyEaqgbrsE2i4dIq0f+Nojf0NLEJcl1YaTzAh/BVRwZv9V1tyCfgiwocmcBeyDkCQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gLhaW/PM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ppWh2Uei"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 436BDC4CEF7;
-	Sat, 28 Mar 2026 17:49:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gLhaW/PM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 163DBC4CEF7;
+	Sat, 28 Mar 2026 20:30:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774720146;
-	bh=dKl5Ev2JkKCfZFM2QBz1yv5YQSqYGiO+Zq8rSPe3O4c=;
-	h=Date:From:To:Cc:Subject:From;
-	b=ppWh2UeinNAOpe+n4gw2MNeAHyLbU0436KkQlytVr7GrSXPRj61PmcJOUKx3kj7U0
-	 XI21P4TWD+ABXgMw88cs95u9Pl5O/WugdAF3GlWIyneu5sU7K4Kwzzz6/HNFy2AsM5
-	 poUGF2PSco6qn94+Uhu+vjJRr5weXVQil01MHywE=
-Date: Sat, 28 Mar 2026 10:49:05 -0700
+	s=korg; t=1774729847;
+	bh=Z36vYPOBmJISGoB9ut5JdTs85Aqd980UWTRI27bKrzg=;
+	h=Date:To:From:Subject:From;
+	b=gLhaW/PMye+hwzgIO7wB7KrsmB6Mi/a8KioNDfDA4/gLQSz0pVEA/MoJCDpzL99Vo
+	 EPp3XDDNxEyvBRcE/nEvSU/QNf02t3/JvDY5GPOfvGJBVTqwm1bnWB/Uo5IAPxyq2M
+	 H3bJ8gR7dIU3q838PEPUoR7WzQLPEtyc0fguFktw=
+Date: Sat, 28 Mar 2026 13:30:46 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@suse.cz,toke@redhat.com,rppt@kernel.org,hannes@cmpxchg.org,david@redhat.com,asml.silence@gmail.com,byungchul@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Linus Torvalds <torvalds@linuxfoundation.org>
-Cc: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-mm@kvack.org
-Subject: [GIT PULL] Additional hotfixes for 7.0-rc6
-Message-Id: <20260328104905.4f602f792bacc66ff1495ecd@linux-foundation.org>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: [folded-merged] mm-introduce-a-new-page-type-for-page-pool-in-page-type-v5.patch removed from -mm tree
+Message-Id: <20260328203047.163DBC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
 
-Linus, please merge this batch of hotfixes, thanks.
+The quilt patch titled
+     Subject: mm-introduce-a-new-page-type-for-page-pool-in-page-type-v5
+has been removed from the -mm tree.  Its filename was
+     mm-introduce-a-new-page-type-for-page-pool-in-page-type-v5.patch
 
+This patch was dropped because it was folded into mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch
 
-The following changes since commit 24f9515de8778410e4b84c85b196c9850d2c1e18:
+------------------------------------------------------
+From: Byungchul Park <byungchul@sk.com>
+Subject: mm-introduce-a-new-page-type-for-page-pool-in-page-type-v5
+Date: Tue, 17 Mar 2026 07:31:13 +0900
 
-  Merge tag 'for-linus' of git://git.kernel.org/pub/scm/virt/kvm/kvm (2026-03-24 13:11:26 -0700)
+gate the sanity check, per Johannes
 
-are available in the Git repository at:
+Link: https://lkml.kernel.org/r/20260316223113.20097-1-byungchul@sk.com
+Suggested-by: David Hildenbrand <david@redhat.com>
+Co-developed-by: Pavel Begunkov <asml.silence@gmail.com>
+Signed-off-by: Pavel Begunkov <asml.silence@gmail.com>
+Signed-off-by: Byungchul Park <byungchul@sk.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Toke Høiland-Jørgensen <toke@redhat.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-03-28-10-45
+ mm/page_alloc.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-for you to fetch changes up to 2697dd8ae721db4f6a53d4f4cbd438212a80f8dc:
+--- a/mm/page_alloc.c~mm-introduce-a-new-page-type-for-page-pool-in-page-type-v5
++++ a/mm/page_alloc.c
+@@ -1379,9 +1379,11 @@ __always_inline bool __free_pages_prepar
+ 	}
+ 	if (unlikely(page_has_type(page))) {
+ 		/* networking expects to clear its page type before releasing */
+-		if (unlikely(PageNetpp(page))) {
+-			bad_page(page, "page_pool leak");
+-			return false;
++		if (is_check_pages_enabled()) {
++			if (unlikely(PageNetpp(page))) {
++				bad_page(page, "page_pool leak");
++				return false;
++			}
+ 		}
+ 		/* Reset the page_type (which overlays _mapcount) */
+ 		page->page_type = UINT_MAX;
+_
 
-  mm/mseal: update VMA end correctly on merge (2026-03-27 20:48:38 -0700)
+Patches currently in -mm which might be from byungchul@sk.com are
 
-----------------------------------------------------------------
-10 hotfixes.  8 are cc:stable.  9 are for MM.
-
-There's a 3-patch series of DAMON fixes from Josh Law and SeongJae Park.
-The rest are singletons - please see the changelogs for details.
-
-----------------------------------------------------------------
-Alexandre Ghiti (1):
-      mm/swap: fix swap cache memcg accounting
-
-Arnd Bergmann (1):
-      bug: avoid format attribute warning for clang as well
-
-David Hildenbrand (Arm) (1):
-      mm/memory: fix PMD/PUD checks in follow_pfnmap_start()
-
-Harry Yoo (Oracle) (1):
-      MAINTAINERS, mailmap: update email address for Harry Yoo
-
-Jinjiang Tu (1):
-      mm/huge_memory: fix folio isn't locked in softleaf_to_folio()
-
-Josh Law (3):
-      mm/damon/sysfs: fix param_ctx leak on damon_sysfs_new_test_ctx() failure
-      mm/damon/sysfs: check contexts->nr before accessing contexts_arr[0]
-      mm/damon/sysfs: check contexts->nr in repeat_call_fn
-
-Lorenzo Stoakes (Oracle) (1):
-      mm/mseal: update VMA end correctly on merge
-
-Max Boone (1):
-      mm/pagewalk: fix race between concurrent split and refault
-
- .mailmap                |  1 +
- MAINTAINERS             |  4 ++--
- include/linux/leafops.h | 32 +++++++++++++++++++++-----------
- lib/bug.c               |  7 ++-----
- mm/damon/sysfs.c        | 10 +++++++++-
- mm/memory.c             | 18 +++++++++++++++---
- mm/mseal.c              |  3 +--
- mm/pagewalk.c           | 25 ++++++++++++++++++++++---
- mm/swap_state.c         |  9 ++++-----
- 9 files changed, 77 insertions(+), 32 deletions(-)
+mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch
 
