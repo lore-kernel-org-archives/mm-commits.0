@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EB0D2D1913
-	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:24:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 774A42D1913
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:24:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774671888; cv=none; b=JNSXEmN7fBdyDnQwvT9jmMnNuwZRWVPjHqncyj4OY6BNARP60Opg6pU/bNQzahkLQBoEZHmxf6uCWahzJsaVw+YfseMcvq1QpZjJ0NrSXiQmRDNWA0cTFrgFiLjmIUh83WPH6E2bK9ujdGDmOTBLpRJj6EuAoI1zamJQ7UGFCBU=
+	t=1774671889; cv=none; b=TLMIqBS6oLwHaMP6ovAXrbSkn0p+VR5cHFbJ5kQnh6i7moSQkvd9TsKz8l8S/AMiWW8UPTTzCMchdNEGD+iETExnosAS8VUqP9Mn7ti5giB9FBcoVOu4/fjbkGsxBDxRb3gqefNmw/P/FST1XQRuxkFWMyZCBpmX6y5uvlk7A94=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774671888; c=relaxed/simple;
-	bh=lxntcEuLaBO3qFvnvJA1GgJVNZuJWmO6oZyNHx8z1KI=;
-	h=Date:To:From:Subject:Message-Id; b=q4aWE0SD/Z/yr112esEf2MXvyyPBXqBvPIRC96ab4JPQ6ThN9wFyQ74O0ldlSqILmio+9IdMgL7UeNFe8TeGsMjqZ/iGkhlxt/IfDfxA635m0VTOJvXR8UEenLX7gvZ8WjJmqVUL3ld5kkS3faT01lAqi4RfI15iQ8gTsalC9Bk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EuVhr2XR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774671889; c=relaxed/simple;
+	bh=1+JNcp2Ljdxb06ndk6pL8L8gK7o/4uSF0gd8d6hEtVc=;
+	h=Date:To:From:Subject:Message-Id; b=UVFEeTJT+s21sa9RB5BPE4OO15dXtTb5nTi0SeW7kQpRoGMmkNDlA6cDRwPSGLH4FIfDfWOWO3APxdckX9atxn1Bf/4GND32vgoWlRAMJlbVjL0+tDzpKFprmel7rtfbolVT6+oevz4EM6baeRIxRIiP428WCoJl4WTO5vjWf1g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XxqrQ30i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EuVhr2XR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 132C0C4CEF7;
-	Sat, 28 Mar 2026 04:24:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XxqrQ30i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E0EBC4CEF7;
+	Sat, 28 Mar 2026 04:24:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774671888;
-	bh=lxntcEuLaBO3qFvnvJA1GgJVNZuJWmO6oZyNHx8z1KI=;
+	s=korg; t=1774671889;
+	bh=1+JNcp2Ljdxb06ndk6pL8L8gK7o/4uSF0gd8d6hEtVc=;
 	h=Date:To:From:Subject:From;
-	b=EuVhr2XRWqF/wAPTyg4Z643XJanER8LFnN+V7i0B9YN2DYEGtgQtvE3Agm+13ir6q
-	 JPD2qyZlXGKSkBAa0ZBZzQazob3XuRICgczwvUjuHLKUdEh5Tf0dDw8ofIvvOcAeSe
-	 g/thBaqVOMfLZnwrVbpCb6YjeAmFNaiaDXw/2Isk=
-Date: Fri, 27 Mar 2026 21:24:47 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,richard.weiyang@gmail.com,jouyeol8739@gmail.com,akpm@linux-foundation.org
+	b=XxqrQ30iHt7lC5VAiQbeXfjEYZnVv2JQyZjfcdpeI7izUVshFk9qzTAlxWjPhBaSD
+	 sxVujXVf62XROAh+PZhnwlMuXxGkK91Tvj26ZCUe0X0hfGvPgf1Fy5Hms3hc7+oDf6
+	 nS23I+gzixPSAPyUnQREyJ6NY3rZh8W11JJVsRQg=
+Date: Fri, 27 Mar 2026 21:24:48 -0700
+To: mm-commits@vger.kernel.org,mjguzik@gmail.com,kees@kernel.org,brauner@kernel.org,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] selftests-ipc-skip-msgque-test-when-msg_copy-is-unsupported.patch removed from -mm tree
-Message-Id: <20260328042448.132C0C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent.patch removed from -mm tree
+Message-Id: <20260328042449.4E0EBC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,49 +35,72 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/ipc: skip msgque test when MSG_COPY is unsupported
+     Subject: exit: kill unnecessary thread_group_leader() checks in exit_notify() and do_notify_parent()
 has been removed from the -mm tree.  Its filename was
-     selftests-ipc-skip-msgque-test-when-msg_copy-is-unsupported.patch
+     exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: UYeol Jo <jouyeol8739@gmail.com>
-Subject: selftests/ipc: skip msgque test when MSG_COPY is unsupported
-Date: Tue, 10 Feb 2026 22:53:59 +0900
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: exit: kill unnecessary thread_group_leader() checks in exit_notify() and do_notify_parent()
+Date: Sun, 22 Feb 2026 16:23:37 +0100
 
-msgque kselftest uses msgrcv(..., MSG_COPY) to copy messages.  When the
-kernel is built without CONFIG_CHECKPOINT_RESTORE, prepare_copy() is
-stubbed out and msgrcv() returns -ENOSYS.  The test currently reports this
-as a failure even though it is simply a missing feature/configuration.
+thread_group_empty(tsk) is only possible if tsk is a group leader, and
+thread_group_empty() already does the thread_group_leader() check.
 
-Skip the test when msgrcv() fails with ENOSYS.
+So it makes no sense to check "thread_group_leader() &&
+thread_group_empty()"; thread_group_empty() alone is enough.
 
-Link: https://lkml.kernel.org/r/20260210135359.178636-1-jouyeol8739@gmail.com
-Signed-off-by: UYeol Jo <jouyeol8739@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Link: https://lkml.kernel.org/r/aZsfeegKZPZZszJh@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Mateusz Guzik <mjguzik@gmail.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc; Deepanshu Kartikey <kartikey406@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/ipc/msgque.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/exit.c   |    8 +++-----
+ kernel/signal.c |    3 +--
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/ipc/msgque.c~selftests-ipc-skip-msgque-test-when-msg_copy-is-unsupported
-+++ a/tools/testing/selftests/ipc/msgque.c
-@@ -161,6 +161,9 @@ int dump_queue(struct msgque_data *msgqu
- 		ret = msgrcv(msgque->msq_id, &msgque->messages[i].mtype,
- 				MAX_MSG_SIZE, i, IPC_NOWAIT | MSG_COPY);
- 		if (ret < 0) {
-+			if (errno == ENOSYS)
-+				ksft_exit_skip("MSG_COPY not supported\n");
-+
- 			ksft_test_result_fail("Failed to copy IPC message: %m (%d)\n", errno);
- 			return -errno;
- 		}
+--- a/kernel/exit.c~exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent
++++ a/kernel/exit.c
+@@ -748,14 +748,12 @@ static void exit_notify(struct task_stru
+ 	tsk->exit_state = EXIT_ZOMBIE;
+ 
+ 	if (unlikely(tsk->ptrace)) {
+-		int sig = thread_group_leader(tsk) &&
+-				thread_group_empty(tsk) &&
+-				!ptrace_reparented(tsk) ?
+-			tsk->exit_signal : SIGCHLD;
++		int sig = thread_group_empty(tsk) && !ptrace_reparented(tsk)
++			  ? tsk->exit_signal : SIGCHLD;
+ 		autoreap = do_notify_parent(tsk, sig);
+ 	} else if (thread_group_leader(tsk)) {
+ 		autoreap = thread_group_empty(tsk) &&
+-			do_notify_parent(tsk, tsk->exit_signal);
++			   do_notify_parent(tsk, tsk->exit_signal);
+ 	} else {
+ 		autoreap = true;
+ 		/* untraced sub-thread */
+--- a/kernel/signal.c~exit-kill-unnecessary-thread_group_leader-checks-in-exit_notify-and-do_notify_parent
++++ a/kernel/signal.c
+@@ -2178,8 +2178,7 @@ bool do_notify_parent(struct task_struct
+ 	/* do_notify_parent_cldstop should have been called instead.  */
+ 	WARN_ON_ONCE(task_is_stopped_or_traced(tsk));
+ 
+-	WARN_ON_ONCE(!tsk->ptrace &&
+-	       (tsk->group_leader != tsk || !thread_group_empty(tsk)));
++	WARN_ON_ONCE(!tsk->ptrace && !thread_group_empty(tsk));
+ 
+ 	/* ptraced, or group-leader without sub-threads */
+ 	do_notify_pidfd(tsk);
 _
 
-Patches currently in -mm which might be from jouyeol8739@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
+kernel-fork-validate-exit_signal-in-kernel_clone-fix.patch
 
