@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92CB822B584
-	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:25:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EDF222B584
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:25:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774671907; cv=none; b=HW2Oifm5f65gP7XyvBJj32Y1v07Ih0PpTDalrGch44I6ZgY1jf2HM12wf2Q7JiJxV4TUVrqjUlX57Nt8gPENwsewDCj0Z8dRDDG7dH1zHHyr4dkdicr7x68QeclxnM1aOFtLhA7ph0gVMwLM+Xsw1VVWx6dfO94l6WwzzfpdkwA=
+	t=1774671908; cv=none; b=kK2z+2bPCOOggVvn+xsfHFUnBQVEsaqM1siMJAO9WH63BFVNrwPo8OMiSiotK6GlMcYiZtUT1NjtP1+UGwJ/uSABUwsJuT0StcxJjKM2VmXgficPAvC9BkXpcY+/W8mGIDgX7d2mfJS+t60AFtcy46rqXDdrXNft+0q5LxS0/IA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774671907; c=relaxed/simple;
-	bh=Ivos4Oq7LsXC/Z4TjJP1/yiLE2JBEFXJg1vInGVlzbQ=;
-	h=Date:To:From:Subject:Message-Id; b=OG9TsMcWMaERV8S+i7Tf9yNwToFSsNuhUT+Y/uxFiYhEmNrOck0FzeE4m7F+JziMr1owYyU1jeyVTEwEEJZkjAkzZ0EjnaYXR1X9sl91wcduCd3C4zOpGUOwtFmYw9JymZOZ+UAaL+FFs5JVhoPpRw7MoywrIn4Mjkb6Vb5NAfw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JG2jGJzQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774671908; c=relaxed/simple;
+	bh=6RERU4kMK0fMY0tKaWdhCAOy5WgG9BejI+cXUwxNXeE=;
+	h=Date:To:From:Subject:Message-Id; b=ca2Gd6iRWD73z/qGSELGIgWWhTe4zKEx3COVuNVvOis4uzr2i+xbXKxLqL2NXEfSklaN4QIssboTQKaX2AWa+DNDPme1VnWYfamdFFFDcXZQ25lVN2eT+eQs8Ytf2RlkCQLVeUQUDfOfQpx4JHSBEXfTDGwUyA1IMAGOuav4oEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ryqVk5V1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JG2jGJzQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 200D2C4CEF7;
-	Sat, 28 Mar 2026 04:25:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ryqVk5V1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73739C4CEF7;
+	Sat, 28 Mar 2026 04:25:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774671907;
-	bh=Ivos4Oq7LsXC/Z4TjJP1/yiLE2JBEFXJg1vInGVlzbQ=;
+	s=korg; t=1774671908;
+	bh=6RERU4kMK0fMY0tKaWdhCAOy5WgG9BejI+cXUwxNXeE=;
 	h=Date:To:From:Subject:From;
-	b=JG2jGJzQ+PJvefZIu0y7x7zzswBDMDmDd9iy8G6tF/wXNmPt6uWU8OLnswb8lhaH7
-	 xF+eZYUCMGeg0CMC4HwF5iKad0COB2Cvo9R7oFVSbvPMdez2tStnuHPPQHdjebBiPY
-	 HI+kMmR1q1eX3dcmd0uOHi9KsykZzTyjtur1KuvY=
-Date: Fri, 27 Mar 2026 21:25:06 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=ryqVk5V17Wnn79bSeGqwmUsGMqI112Pfwq5cnWq//rV3Orv8Ybz/jVqTi9lwW/d1p
+	 lA2MasqSBpJulgngkUqju6AEfgPLHdLn6/dmCru5H1cC7Ru/HsVfoEPrTzLKUxxR2D
+	 PsZ13FVEZbGRSSMHjsuFBldCWpMROmLgK7MWOUOs=
+Date: Fri, 27 Mar 2026 21:25:07 -0700
+To: mm-commits@vger.kernel.org,teknoraver@meta.com,joe@perches.com,technoboy85@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] crash_dump-use-sysfs_emit-in-sysfs-show-functions.patch removed from -mm tree
-Message-Id: <20260328042507.200D2C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] get_maintainer-add-glob-pattern-support.patch removed from -mm tree
+Message-Id: <20260328042508.73739C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: crash_dump: use sysfs_emit in sysfs show functions
+     Subject: get_maintainer: add ** glob pattern support
 has been removed from the -mm tree.  Its filename was
-     crash_dump-use-sysfs_emit-in-sysfs-show-functions.patch
+     get_maintainer-add-glob-pattern-support.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: crash_dump: use sysfs_emit in sysfs show functions
-Date: Sun, 1 Mar 2026 13:51:07 +0100
+From: Matteo Croce <technoboy85@gmail.com>
+Subject: get_maintainer: add ** glob pattern support
+Date: Mon, 2 Mar 2026 11:38:22 +0100
 
-Replace sprintf() with sysfs_emit() in sysfs show functions.  sysfs_emit()
-is preferred for formatting sysfs output because it provides safer bounds
-checking.  No functional changes.
+Add support for the ** glob operator in MAINTAINERS F: and X: patterns,
+matching any number of path components (like Python's ** glob).
 
-Link: https://lkml.kernel.org/r/20260301125106.911980-2-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+The existing * to .* conversion with slash-count check is preserved.  **
+is converted to (?:.*), a non-capturing group used as a marker to bypass
+the slash-count check in file_match_pattern(), allowing the pattern to
+cross directory boundaries.
+
+This enables patterns like F: **/*[_-]kunit*.c to match files at any depth
+in the tree.
+
+Link: https://lkml.kernel.org/r/20260302103822.77343-1-teknoraver@meta.com
+Signed-off-by: Matteo Croce <teknoraver@meta.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_dump_dm_crypt.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ MAINTAINERS               |    1 +
+ scripts/get_maintainer.pl |    9 +++++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
---- a/kernel/crash_dump_dm_crypt.c~crash_dump-use-sysfs_emit-in-sysfs-show-functions
-+++ a/kernel/crash_dump_dm_crypt.c
-@@ -6,6 +6,7 @@
- #include <linux/cc_platform.h>
- #include <linux/configfs.h>
- #include <linux/module.h>
-+#include <linux/sysfs.h>
- 
- #define KEY_NUM_MAX 128	/* maximum dm crypt keys */
- #define KEY_SIZE_MAX 256	/* maximum dm crypt key size */
-@@ -189,7 +190,7 @@ static inline struct config_key *to_conf
- 
- static ssize_t config_key_description_show(struct config_item *item, char *page)
- {
--	return sprintf(page, "%s\n", to_config_key(item)->description);
-+	return sysfs_emit(page, "%s\n", to_config_key(item)->description);
- }
- 
- static ssize_t config_key_description_store(struct config_item *item,
-@@ -265,7 +266,7 @@ static struct config_item *config_keys_m
- 
- static ssize_t config_keys_count_show(struct config_item *item, char *page)
- {
--	return sprintf(page, "%d\n", key_count);
-+	return sysfs_emit(page, "%d\n", key_count);
- }
- 
- CONFIGFS_ATTR_RO(config_keys_, count);
-@@ -274,7 +275,7 @@ static bool is_dm_key_reused;
- 
- static ssize_t config_keys_reuse_show(struct config_item *item, char *page)
- {
--	return sprintf(page, "%d\n", is_dm_key_reused);
-+	return sysfs_emit(page, "%d\n", is_dm_key_reused);
- }
- 
- static ssize_t config_keys_reuse_store(struct config_item *item,
-@@ -321,7 +322,7 @@ static bool restore;
- 
- static ssize_t config_keys_restore_show(struct config_item *item, char *page)
- {
--	return sprintf(page, "%d\n", restore);
-+	return sysfs_emit(page, "%d\n", restore);
- }
- 
- static ssize_t config_keys_restore_store(struct config_item *item,
+--- a/MAINTAINERS~get_maintainer-add-glob-pattern-support
++++ a/MAINTAINERS
+@@ -35,6 +35,7 @@ Descriptions of section entries and pref
+ 	   F:	drivers/net/	all files in and below drivers/net
+ 	   F:	drivers/net/*	all files in drivers/net, but not below
+ 	   F:	*/net/*		all files in "any top level directory"/net
++	   F:	fs/**/*foo*.c	all *foo*.c files in any subdirectory of fs
+ 	   One pattern per line.  Multiple F: lines acceptable.
+ 	X: *Excluded* files and directories that are NOT maintained, same
+ 	   rules as F:. Files exclusions are tested before file matches.
+--- a/scripts/get_maintainer.pl~get_maintainer-add-glob-pattern-support
++++ a/scripts/get_maintainer.pl
+@@ -375,8 +375,10 @@ sub read_maintainer_file {
+ 	    ##Filename pattern matching
+ 	    if ($type eq "F" || $type eq "X") {
+ 		$value =~ s@\.@\\\.@g;       ##Convert . to \.
++		$value =~ s/\*\*/\x00/g;     ##Convert ** to placeholder
+ 		$value =~ s/\*/\.\*/g;       ##Convert * to .*
+ 		$value =~ s/\?/\./g;         ##Convert ? to .
++		$value =~ s/\x00/(?:.*)/g;   ##Convert placeholder to (?:.*)
+ 		##if pattern is a directory and it lacks a trailing slash, add one
+ 		if ((-d $value)) {
+ 		    $value =~ s@([^/])$@$1/@;
+@@ -746,8 +748,10 @@ sub self_test {
+ 	if (($type eq "F" || $type eq "X") &&
+ 	    ($self_test eq "" || $self_test =~ /\bpatterns\b/)) {
+ 	    $value =~ s@\.@\\\.@g;       ##Convert . to \.
++	    $value =~ s/\*\*/\x00/g;     ##Convert ** to placeholder
+ 	    $value =~ s/\*/\.\*/g;       ##Convert * to .*
+ 	    $value =~ s/\?/\./g;         ##Convert ? to .
++	    $value =~ s/\x00/(?:.*)/g;   ##Convert placeholder to (?:.*)
+ 	    ##if pattern is a directory and it lacks a trailing slash, add one
+ 	    if ((-d $value)) {
+ 		$value =~ s@([^/])$@$1/@;
+@@ -921,7 +925,7 @@ sub get_maintainers {
+ 				my $value_pd = ($value =~ tr@/@@);
+ 				my $file_pd = ($file  =~ tr@/@@);
+ 				$value_pd++ if (substr($value,-1,1) ne "/");
+-				$value_pd = -1 if ($value =~ /^\.\*/);
++				$value_pd = -1 if ($value =~ /^(\.\*|\(\?:\.\*\))/);
+ 				if ($value_pd >= $file_pd &&
+ 				    range_is_maintained($start, $end) &&
+ 				    range_has_maintainer($start, $end)) {
+@@ -955,6 +959,7 @@ sub get_maintainers {
+ 			$line =~ s/([^\\])\.([^\*])/$1\?$2/g;
+ 			$line =~ s/([^\\])\.$/$1\?/g;	##Convert . back to ?
+ 			$line =~ s/\\\./\./g;       	##Convert \. to .
++			$line =~ s/\(\?:\.\*\)/\*\*/g;	##Convert (?:.*) to **
+ 			$line =~ s/\.\*/\*/g;       	##Convert .* to *
+ 		    }
+ 		    my $count = $line =~ s/^([A-Z]):/$1:\t/g;
+@@ -1048,7 +1053,7 @@ sub file_match_pattern {
+ 	if ($file =~ m@^$pattern@) {
+ 	    my $s1 = ($file =~ tr@/@@);
+ 	    my $s2 = ($pattern =~ tr@/@@);
+-	    if ($s1 == $s2) {
++	    if ($s1 == $s2 || $pattern =~ /\(\?:/) {
+ 		return 1;
+ 	    }
+ 	}
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from technoboy85@gmail.com are
 
 
