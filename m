@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 075F72D1913
-	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:24:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E47C1315D43
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:24:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774671877; cv=none; b=Vj9iUhLRTDMtekDJ4W6N8PIvh10v5K4XTaA8g64fRjRmrXw8neDA4IDNb4kHdI+49PUrRQA+cHH4Lt/udAA+uy7PRi2bXYWNuZ79SN5cpJkA6iV9872Sq+yZkTUOOc+Kq1dzrJ+3pbr/bV4XhOACcHs5zQdhH6VpyW9PzEFxGss=
+	t=1774671878; cv=none; b=lsWrnK0V+0EPDxcgILNdP2NubVIYhmC4uuigTYegTZ0ZlVG78L2wm9GChPlAy37lzTDLkzloH8NXqtAB4ZXy6Uo2Iqmta84TfDf5+UnYKwO0prLVeBkOxV8B475OedirSCYBTahG/9sToMsisNuGsOx3iZ/353RYwO5SbYTrF00=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774671877; c=relaxed/simple;
-	bh=3WpcAIoX0ZwBWRgDinPCHHRKX21+Bze8YKm+hcaEZWI=;
-	h=Date:To:From:Subject:Message-Id; b=d+iplL7CfbDet/xZd9gkZ1ZE0dOAA76H8sjmmHUOpjtrGzo196DcLNhZtZ3xWrLSeHsDtShEXmwJYXzt0ZLjELeKSYha4h+TDP2BaXY9dKZMrNSUDIQ8RDbn+wH1Qm4W7SVICG/rk+B4y13bXMNfEJzzvzAC2vi3D30c9tvQxVE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RGDT6TYE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774671878; c=relaxed/simple;
+	bh=ZA2nbxsnDeqKbaMhYGYc65VDUbMUE9Q8Y7E9Q0VRm5Y=;
+	h=Date:To:From:Subject:Message-Id; b=TFfkQlw0i9yLrQ3M00myqnywoEZBTqHE76+/F7za6UMQypf4ugVCc94sR45JlBBatxuHcHoXkMrhTpBD7l6un5JZMIM7m4pZrrNsQIpR0DwNsEKi1iKulUcJFgFCJmDr9i6jC/xhm9NZqcSoa4FG5S+3FRuF03n246dLNigHkCg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FTiWpR2W; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RGDT6TYE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75C25C4CEF7;
-	Sat, 28 Mar 2026 04:24:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FTiWpR2W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9412C4CEF7;
+	Sat, 28 Mar 2026 04:24:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774671876;
-	bh=3WpcAIoX0ZwBWRgDinPCHHRKX21+Bze8YKm+hcaEZWI=;
+	s=korg; t=1774671877;
+	bh=ZA2nbxsnDeqKbaMhYGYc65VDUbMUE9Q8Y7E9Q0VRm5Y=;
 	h=Date:To:From:Subject:From;
-	b=RGDT6TYEfQ5f15an+WvnADyUzP/2S6uhK5eFUAljoDHgcf2QML7hQzHKWkRioS0yS
-	 0ALk+oDELEsU6M4VaCPZN0kL7+Wf9ItuSHY4vRxf7bQNkkNczvxrDXazAFXqvBFiPR
-	 o5P8M7t7hjynAlP9C2qtV0wELSPsxfTGyDxD7Uns=
-Date: Fri, 27 Mar 2026 21:24:35 -0700
-To: mm-commits@vger.kernel.org,oleg@redhat.com,brauner@kernel.org,jaime.saguillo@gmail.com,akpm@linux-foundation.org
+	b=FTiWpR2WCd96puvj7LWtfugOHsJ9g/Mt99CD50efkEC2u8N8WmGSplGsrtnPmoJC9
+	 UtKbIa1zOXk3iWWjiZVy7DZQne+lsDUyraN66JJJ/pG7idOpEqBIuGFvY2WD/HXqqu
+	 D2srou8zGd0cdn0uvfrfFmOs3pp3f9AAsH540s2A=
+Date: Fri, 27 Mar 2026 21:24:37 -0700
+To: mm-commits@vger.kernel.org,gnoack3000@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] proc-array-drop-stale-fixme-about-rcu-in-task_sig.patch removed from -mm tree
-Message-Id: <20260328042436.75C25C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-spellingtxt-add-bindedbound.patch removed from -mm tree
+Message-Id: <20260328042437.A9412C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,47 +35,41 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: proc: array: drop stale FIXME about RCU in task_sig()
+     Subject: scripts/spelling.txt: add "binded||bound"
 has been removed from the -mm tree.  Its filename was
-     proc-array-drop-stale-fixme-about-rcu-in-task_sig.patch
+     scripts-spellingtxt-add-bindedbound.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jaime Saguillo Revilla <jaime.saguillo@gmail.com>
-Subject: proc: array: drop stale FIXME about RCU in task_sig()
-Date: Sun, 15 Feb 2026 12:45:11 +0000
+From: Günther Noack <gnoack3000@gmail.com>
+Subject: scripts/spelling.txt: add "binded||bound"
+Date: Sat, 14 Feb 2026 15:08:54 +0100
 
-task_sig() already wraps the SigQ rlimit read in an explicit RCU read-side
-critical section.  Drop the stale FIXME comment and keep using
-task_ucounts() for the ucounts access.
+The correct passive of "to bind" is "bound", not "binded".  This is often
+used in the context of the BSD socket bind(2) operation.
 
-No functional change.
-
-Link: https://lkml.kernel.org/r/20260215124511.14227-1-jaime.saguillo@gmail.com
-Signed-off-by: Jaime Saguillo Revilla <jaime.saguillo@gmail.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>
+Link: https://lkml.kernel.org/r/20260214140854.42247-1-gnoack3000@gmail.com
+Signed-off-by: Günther Noack <gnoack3000@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/spelling.txt |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/proc/array.c~proc-array-drop-stale-fixme-about-rcu-in-task_sig
-+++ a/fs/proc/array.c
-@@ -280,7 +280,7 @@ static inline void task_sig(struct seq_f
- 		blocked = p->blocked;
- 		collect_sigign_sigcatch(p, &ignored, &caught);
- 		num_threads = get_nr_threads(p);
--		rcu_read_lock();  /* FIXME: is this correct? */
-+		rcu_read_lock();
- 		qsize = get_rlimit_value(task_ucounts(p), UCOUNT_RLIMIT_SIGPENDING);
- 		rcu_read_unlock();
- 		qlim = task_rlimit(p, RLIMIT_SIGPENDING);
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-bindedbound
++++ a/scripts/spelling.txt
+@@ -257,6 +257,7 @@ begining||beginning
+ beter||better
+ betweeen||between
+ bianries||binaries
++binded||bound
+ bitmast||bitmask
+ bitwiedh||bitwidth
+ boardcast||broadcast
 _
 
-Patches currently in -mm which might be from jaime.saguillo@gmail.com are
+Patches currently in -mm which might be from gnoack3000@gmail.com are
 
 
