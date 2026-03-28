@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2FDF9443;
-	Sat, 28 Mar 2026 00:39:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71C689443;
+	Sat, 28 Mar 2026 00:39:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774658362; cv=none; b=PhDl/VUbu5kcQ5bN6JjUtUyFj7bAi8gq+HAz++ch2UPyDvG1VQWODl4R3fMAnP9tZVn78I3pk+osmIYA/e1WtwZFl03ZZyeRvOenB+iRmSktP94YKY5q1f4O6NIgDqle5WagQ/t/JyZcod8Ers/7/15ppK81jj9fnt9D+HTY7k4=
+	t=1774658363; cv=none; b=kc6CAGVkws2JUb3y0Mx9X+GhEQGa3xHAh5fcoCHDgGZORrBIaF8HJSXo8LvH9jF1zxBmvMarvACAA8zB2J1rTTfKb4wKnX0XOBzMsGoeJdCEVUz69DIGQQFjDi5jiOL56gdBVK6lljAiR3+tgHX6Sgek6AtYtWPJThCTzpjOPOo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774658362; c=relaxed/simple;
-	bh=fsOV1n5FrQjS6m9h/T7zYpM7/IAPRDWlm6S3W4qNx38=;
-	h=Date:To:From:Subject:Message-Id; b=dcR9k/5osyDe7KkOvLSkqOX/iNEnisjIAVWQAq/SMio3SNvD+BXbvrrIzqUMATpbqQo37/au2eKBp20vjNzZv1CGMPDULhX4iVFUAgm6oSY77sa+XDRwSMZ22NlmmkcPl1uRgvInr0N6eGWXXlSx/t1qyvXEMd8AhA9hFxIMHv4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NyZlSEPZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774658363; c=relaxed/simple;
+	bh=dmikLBa0CZ75SlkL+xtKjn0h1A+xvRJA1L4pb4PRwVQ=;
+	h=Date:To:From:Subject:Message-Id; b=jRdHJWbE4dl2svCC1rDTvY74kkvDn24vPKknBP0aKqOQrkPjWc4FV2qE9+O5oiAWgcOeM6Uo7MJ8W6fSMwhrGICm0mPyafKyZ0dTkIAQB7B4LRedvfrNE2Fm5LmnBS/tRlHM07iK5bnUOUz3slE7npGv0gsALjma2BENt1KEdBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ytFFcPVV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NyZlSEPZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B853C2BCB1;
-	Sat, 28 Mar 2026 00:39:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ytFFcPVV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35B8AC19423;
+	Sat, 28 Mar 2026 00:39:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774658361;
-	bh=fsOV1n5FrQjS6m9h/T7zYpM7/IAPRDWlm6S3W4qNx38=;
+	s=korg; t=1774658363;
+	bh=dmikLBa0CZ75SlkL+xtKjn0h1A+xvRJA1L4pb4PRwVQ=;
 	h=Date:To:From:Subject:From;
-	b=NyZlSEPZhIIFcGzFMo2EPGgqtL6QHBoSlq/23Coc4iUsNuI6BwkHxKKJvMqS87074
-	 mFkXkXCSUfOtBond/zKiret0Cfpg0gMeMxzDacHCbgIrS3fHN+ZV793yrhazncQyFr
-	 gm4AHBVTRXC2L5FY4Fqub6JUOHuK0Oi3Tl/JgoGc=
-Date: Fri, 27 Mar 2026 17:39:21 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,akpm@linux-foundation.org
+	b=ytFFcPVVRZQjz5lv65Qj3/HjEpv5hd6/H4bAvbHv+TYTtLlS/OKyzw8IRnFABZIh7
+	 2ZrdBgbkacraNzcntCeHD07ZZRfo0m+sM3Dcx9jmNgaCEKfua2Br3lsTWsZm+DD3vo
+	 uCzq/VMDIeBW0oS0QqfVm8ZQfw0XuQe5KLue3cZc=
+Date: Fri, 27 Mar 2026 17:39:22 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,mboone@akamai.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-fix-pmd-pud-checks-in-follow_pfnmap_start.patch removed from -mm tree
-Message-Id: <20260328003921.8B853C2BCB1@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-pagewalk-fix-race-between-concurrent-split-and-refault.patch removed from -mm tree
+Message-Id: <20260328003923.35B8AC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,148 +35,162 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory: fix PMD/PUD checks in follow_pfnmap_start()
+     Subject: mm/pagewalk: fix race between concurrent split and refault
 has been removed from the -mm tree.  Its filename was
-     mm-memory-fix-pmd-pud-checks-in-follow_pfnmap_start.patch
+     mm-pagewalk-fix-race-between-concurrent-split-and-refault.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/memory: fix PMD/PUD checks in follow_pfnmap_start()
-Date: Mon, 23 Mar 2026 21:20:18 +0100
+From: Max Boone <mboone@akamai.com>
+Subject: mm/pagewalk: fix race between concurrent split and refault
+Date: Wed, 25 Mar 2026 10:59:16 +0100
 
-follow_pfnmap_start() suffers from two problems:
+The splitting of a PUD entry in walk_pud_range() can race with a
+concurrent thread refaulting the PUD leaf entry causing it to try walking
+a PMD range that has disappeared.
 
-(1) We are not re-fetching the pmd/pud after taking the PTL
+An example and reproduction of this is to try reading numa_maps of a
+process while VFIO-PCI is setting up DMA (specifically the
+vfio_pin_pages_remote call) on a large BAR for that process.
 
-Therefore, we are not properly stabilizing what the lock actually
-protects.  If there is concurrent zapping, we would indicate to the
-caller that we found an entry, however, that entry might already have
-been invalidated, or contain a different PFN after taking the lock.
+This will trigger a kernel BUG:
+vfio-pci 0000:03:00.0: enabling device (0000 -> 0002)
+BUG: unable to handle page fault for address: ffffa23980000000
+PGD 0 P4D 0
+Oops: Oops: 0000 [#1] SMP NOPTI
+...
+RIP: 0010:walk_pgd_range+0x3b5/0x7a0
+Code: 8d 43 ff 48 89 44 24 28 4d 89 ce 4d 8d a7 00 00 20 00 48 8b 4c 24
+28 49 81 e4 00 00 e0 ff 49 8d 44 24 ff 48 39 c8 4c 0f 43 e3 <49> f7 06
+   9f ff ff ff 75 3b 48 8b 44 24 20 48 8b 40 28 48 85 c0 74
+RSP: 0018:ffffac23e1ecf808 EFLAGS: 00010287
+RAX: 00007f44c01fffff RBX: 00007f4500000000 RCX: 00007f44ffffffff
+RDX: 0000000000000000 RSI: 000ffffffffff000 RDI: ffffffff93378fe0
+RBP: ffffac23e1ecf918 R08: 0000000000000004 R09: ffffa23980000000
+R10: 0000000000000020 R11: 0000000000000004 R12: 00007f44c0200000
+R13: 00007f44c0000000 R14: ffffa23980000000 R15: 00007f44c0000000
+FS:  00007fe884739580(0000) GS:ffff9b7d7a9c0000(0000)
+knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: ffffa23980000000 CR3: 000000c0650e2005 CR4: 0000000000770ef0
+PKRU: 55555554
+Call Trace:
+ <TASK>
+ __walk_page_range+0x195/0x1b0
+ walk_page_vma+0x62/0xc0
+ show_numa_map+0x12b/0x3b0
+ seq_read_iter+0x297/0x440
+ seq_read+0x11d/0x140
+ vfs_read+0xc2/0x340
+ ksys_read+0x5f/0xe0
+ do_syscall_64+0x68/0x130
+ ? get_page_from_freelist+0x5c2/0x17e0
+ ? mas_store_prealloc+0x17e/0x360
+ ? vma_set_page_prot+0x4c/0xa0
+ ? __alloc_pages_noprof+0x14e/0x2d0
+ ? __mod_memcg_lruvec_state+0x8d/0x140
+ ? __lruvec_stat_mod_folio+0x76/0xb0
+ ? __folio_mod_stat+0x26/0x80
+ ? do_anonymous_page+0x705/0x900
+ ? __handle_mm_fault+0xa8d/0x1000
+ ? __count_memcg_events+0x53/0xf0
+ ? handle_mm_fault+0xa5/0x360
+ ? do_user_addr_fault+0x342/0x640
+ ? arch_exit_to_user_mode_prepare.constprop.0+0x16/0xa0
+ ? irqentry_exit_to_user_mode+0x24/0x100
+ entry_SYSCALL_64_after_hwframe+0x76/0x7e
+RIP: 0033:0x7fe88464f47e
+Code: c0 e9 b6 fe ff ff 50 48 8d 3d be 07 0b 00 e8 69 01 02 00 66 0f 1f
+84 00 00 00 00 00 64 8b 04 25 18 00 00 00 85 c0 75 14 0f 05 <48> 3d 00
+   f0 ff ff 77 5a c3 66 0f 1f 84 00 00 00 00 00 48 83 ec 28
+RSP: 002b:00007ffe6cd9a9b8 EFLAGS: 00000246 ORIG_RAX: 0000000000000000
+RAX: ffffffffffffffda RBX: 0000000000020000 RCX: 00007fe88464f47e
+RDX: 0000000000020000 RSI: 00007fe884543000 RDI: 0000000000000003
+RBP: 00007fe884543000 R08: 00007fe884542010 R09: 0000000000000000
+R10: fffffffffffffbc5 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000000003 R14: 0000000000020000 R15: 0000000000020000
+ </TASK>
 
-Properly use pmdp_get() / pudp_get() after taking the lock.
+Fix this by validating the PUD entry in walk_pmd_range() using a stable
+snapshot (pudp_get()).  If the PUD is not present or is a leaf, retry the
+walk via ACTION_AGAIN instead of descending further.  This mirrors the
+retry logic in walk_pte_range(), which lets walk_pmd_range() retry if the
+PTE is not being got by pte_offset_map_lock().
 
-(2) pmd_leaf() / pud_leaf() are not well defined on non-present entries
-
-pmd_leaf()/pud_leaf() could wrongly trigger on non-present entries.
-
-There is no real guarantee that pmd_leaf()/pud_leaf() returns something
-reasonable on non-present entries.  Most architectures indeed either
-perform a present check or make it work by smart use of flags.
-
-However, for example loongarch checks the _PAGE_HUGE flag in pmd_leaf(),
-and always sets the _PAGE_HUGE flag in __swp_entry_to_pmd().  Whereby
-pmd_trans_huge() explicitly checks pmd_present(), pmd_leaf() does not do
-that.
-
-Let's check pmd_present()/pud_present() before assuming "the is a present
-PMD leaf" when spotting pmd_leaf()/pud_leaf(), like other page table
-handling code that traverses user page tables does.
-
-Given that non-present PMD entries are likely rare in VM_IO|VM_PFNMAP, (1)
-is likely more relevant than (2).  It is questionable how often (1) would
-actually trigger, but let's CC stable to be sure.
-
-This was found by code inspection.
-
-Link: https://lkml.kernel.org/r/20260323-follow_pfnmap_fix-v1-1-5b0ec10872b3@kernel.org
-Fixes: 6da8e9634bb7 ("mm: new follow_pfnmap API")
+Link: https://lkml.kernel.org/r/20260325-pagewalk-check-pmd-refault-v2-1-707bff33bc60@akamai.com
+Fixes: f9e54c3a2f5b ("vfio/pci: implement huge_fault support")
+Co-developed-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Signed-off-by: Max Boone <mboone@akamai.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Xu <peterx@redhat.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ mm/pagewalk.c |   25 ++++++++++++++++++++++---
+ 1 file changed, 22 insertions(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-memory-fix-pmd-pud-checks-in-follow_pfnmap_start
-+++ a/mm/memory.c
-@@ -6815,11 +6815,16 @@ retry:
+--- a/mm/pagewalk.c~mm-pagewalk-fix-race-between-concurrent-split-and-refault
++++ a/mm/pagewalk.c
+@@ -97,6 +97,7 @@ static int walk_pte_range(pmd_t *pmd, un
+ static int walk_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
+ 			  struct mm_walk *walk)
+ {
++	pud_t pudval = pudp_get(pud);
+ 	pmd_t *pmd;
+ 	unsigned long next;
+ 	const struct mm_walk_ops *ops = walk->ops;
+@@ -105,6 +106,24 @@ static int walk_pmd_range(pud_t *pud, un
+ 	int err = 0;
+ 	int depth = real_depth(3);
  
- 	pudp = pud_offset(p4dp, address);
- 	pud = pudp_get(pudp);
--	if (pud_none(pud))
-+	if (!pud_present(pud))
- 		goto out;
- 	if (pud_leaf(pud)) {
- 		lock = pud_lock(mm, pudp);
--		if (!unlikely(pud_leaf(pud))) {
-+		pud = pudp_get(pudp);
++	/*
++	 * For PTE handling, pte_offset_map_lock() takes care of checking
++	 * whether there actually is a page table. But it also has to be
++	 * very careful about concurrent page table reclaim.
++	 *
++	 * Similarly, we have to be careful here - a PUD entry that points
++	 * to a PMD table cannot go away, so we can just walk it. But if
++	 * it's something else, we need to ensure we didn't race something,
++	 * so need to retry.
++	 *
++	 * A pertinent example of this is a PUD refault after PUD split -
++	 * we will need to split again or risk accessing invalid memory.
++	 */
++	if (!pud_present(pudval) || pud_leaf(pudval)) {
++		walk->action = ACTION_AGAIN;
++		return 0;
++	}
 +
-+		if (unlikely(!pud_present(pud))) {
-+			spin_unlock(lock);
-+			goto out;
-+		} else if (unlikely(!pud_leaf(pud))) {
- 			spin_unlock(lock);
- 			goto retry;
- 		}
-@@ -6831,9 +6836,16 @@ retry:
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+ again:
+@@ -218,12 +237,12 @@ static int walk_pud_range(p4d_t *p4d, un
+ 		else if (pud_leaf(*pud) || !pud_present(*pud))
+ 			continue; /* Nothing to do. */
  
- 	pmdp = pmd_offset(pudp, address);
- 	pmd = pmdp_get_lockless(pmdp);
-+	if (!pmd_present(pmd))
-+		goto out;
- 	if (pmd_leaf(pmd)) {
- 		lock = pmd_lock(mm, pmdp);
--		if (!unlikely(pmd_leaf(pmd))) {
-+		pmd = pmdp_get(pmdp);
+-		if (pud_none(*pud))
+-			goto again;
+-
+ 		err = walk_pmd_range(pud, addr, next, walk);
+ 		if (err)
+ 			break;
 +
-+		if (unlikely(!pmd_present(pmd))) {
-+			spin_unlock(lock);
-+			goto out;
-+		} else if (unlikely(!pmd_leaf(pmd))) {
- 			spin_unlock(lock);
- 			goto retry;
- 		}
++		if (walk->action == ACTION_AGAIN)
++			goto again;
+ 	} while (pud++, addr = next, addr != end);
+ 
+ 	return err;
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from mboone@akamai.com are
 
-mm-madvise-drop-range-checks-in-madvise_free_single_vma.patch
-mm-memory-remove-zap_details-parameter-from-zap_page_range_single.patch
-mm-memory-inline-unmap_mapping_range_vma-into-unmap_mapping_range_tree.patch
-mm-memory-simplify-calculation-in-unmap_mapping_range_tree.patch
-mm-oom_kill-use-mmu_notify_clear-in-__oom_reap_task_mm.patch
-mm-oom_kill-factor-out-zapping-of-vma-into-zap_vma_for_reaping.patch
-mm-memory-rename-unmap_single_vma-to-__zap_vma_range.patch
-mm-memory-move-adjusting-of-address-range-to-unmap_vmas.patch
-mm-memory-convert-details-even_cows-into-details-skip_cows.patch
-mm-memory-use-__zap_vma_range-in-zap_vma_for_reaping.patch
-mm-memory-inline-unmap_page_range-into-__zap_vma_range.patch
-mm-rename-zap_vma_pages-to-zap_vma.patch
-mm-rename-zap_page_range_single_batched-to-zap_vma_range_batched.patch
-mm-rename-zap_page_range_single-to-zap_vma_range.patch
-mm-rename-zap_vma_ptes-to-zap_special_vma_range.patch
-mm-memory-support-vm_mixedmap-in-zap_special_vma_range.patch
-mm-move-vma_kernel_pagesize-from-hugetlb-to-mmh.patch
-mm-move-vma_mmu_pagesize-from-hugetlb-to-vmac.patch
-kvm-remove-hugetlbh-inclusion.patch
-kvm-ppc-remove-hugetlbh-inclusion.patch
-mm-memory_hotplug-fix-possible-race-in-scan_movable_pages.patch
-mm-memory_hotplug-remove-for_each_valid_pfn-usage.patch
-mm-sparse-remove-warn_ons-from-onlineoffline_mem_sections.patch
-mm-kconfig-make-config_memory_hotplug-depend-on-config_sparsemem_vmemmap.patch
-mm-memory_hotplug-simplify-check_pfn_span.patch
-mm-sparse-remove-config_sparsemem_vmemmap-leftovers-for-config_memory_hotplug.patch
-mm-bootmem_info-remove-handling-for-config_sparsemem_vmemmap.patch
-mm-bootmem_info-avoid-using-sparse_decode_mem_map.patch
-mm-sparse-remove-sparse_decode_mem_map.patch
-mm-sparse-remove-config_memory_hotplug-specific-usemap-allocation-handling.patch
-mm-prepare-to-move-subsection_map_init-to-mm-sparse-vmemmapc.patch
-mm-sparse-drop-set_section_nid-from-sparse_add_section.patch
-mm-sparse-move-sparse_init_one_section-to-internalh.patch
-mm-sparse-move-sparse_init_one_section-to-internalh-fix.patch
-mm-sparse-move-__section_mark_present-to-internalh.patch
-mm-sparse-move-memory-hotplug-bits-to-sparse-vmemmapc.patch
-mm-remove-config_arch_enable_memory_hotremove.patch
-mm-introduce-config_numa_migration-and-simplify-config_migration.patch
 
