@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 809BF337BB0
-	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:26:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 891A5337BB0
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:26:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774671965; cv=none; b=L5AvLIyOpWfDyc+DdUjwQQYIjlHHDkN+xzdKBpH9PFZyVhokTpFdHy176Iu0x2E/uH06+DThKLspGSKbAmU4vlRAtTG35cHsLInVN2x9ZVLSYBiRZGM8o3Rvsu/6uquezDn0KY5MkUNFK82I31hSDkz784bCF8sN56z5l9f7oVc=
+	t=1774671966; cv=none; b=V5Hqx0b+oWGp+gGNyPl0Mhp8lUOS8c4NRZR0FQ2k7uNoj3nYAXLOtDMNyeihTMTpNfy2W6ClkUWbCO1PVfsZ/HEiXnAt8T77qmU5RXGMqxyo/rfZyD8NhC7u/W2oP++4Re7brNB3ZS98C6e+weomI/xUcH/zd5kIVw9s1ikihZE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774671965; c=relaxed/simple;
-	bh=7iInZNj4ZvdWHU/hwcjI4mwezcC0JLcze58HcLjZTrU=;
-	h=Date:To:From:Subject:Message-Id; b=bDWEY6PasdNPw824Tk6ZtITvagcQgi8M9SXFUl7O96o7OIU3BjEMrmN4YSyN7t9arqEJwFjboFy4a8z20LjXn1xvUocKtsFVr7u5mlIzG6dnMoew62LSbxChFE0gUvp29A48KH875+3DKQ4ceB4oq702hiLKRc/59apMvn0OZqA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2Rr6n7az; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774671966; c=relaxed/simple;
+	bh=lyCgjnlWg2rIhnHuKmrMlWutQfba383WJH2UnFwVFfs=;
+	h=Date:To:From:Subject:Message-Id; b=H8BtdC6fTPsnaQW/T13jRlwCzpnwAVJc3FGYHEyVqQscDS9Zzy9E+Bpf42QdTQrVldneWQ8k3OWse3zCfxRAtSnakzaGAYge24bfVcLLIgLLARiA4oJyRk9hyGomZw+a6zWC77ej2DZF2mVmOfkUhFDmbViGDun01QEGakCnF4E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oZTzZIP0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2Rr6n7az"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 266FDC4CEF7;
-	Sat, 28 Mar 2026 04:26:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oZTzZIP0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 548CCC4CEF7;
+	Sat, 28 Mar 2026 04:26:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774671965;
-	bh=7iInZNj4ZvdWHU/hwcjI4mwezcC0JLcze58HcLjZTrU=;
+	s=korg; t=1774671966;
+	bh=lyCgjnlWg2rIhnHuKmrMlWutQfba383WJH2UnFwVFfs=;
 	h=Date:To:From:Subject:From;
-	b=2Rr6n7azpZ6gbWfN5UP531JHyxmZLgPlo8lN2bnnSde1GovYjErONozCaCePUhgl6
-	 FJnZm8TCZ/JVibGAy71fGl5yfOnWnJCs2Dzz5g4Mradvo7yrzf+lXjb+oQMQ8sJGWs
-	 Vh8F6vqrxIifQLAvY+v4rSx+gu3NKODwbSPU+Rxw=
-Date: Fri, 27 Mar 2026 21:26:04 -0700
-To: mm-commits@vger.kernel.org,wangjinchao600@gmail.com,skhan@linuxfoundation.org,mrungta@google.com,max.kellermann@ionos.com,lihuafei1@huawei.com,irogers@google.com,eranian@google.com,dianders@chromium.org,cuiyunhui@bytedance.com,corbet@lwn.net,pmladek@suse.com,akpm@linux-foundation.org
+	b=oZTzZIP03DPn+0UllY3k52IZaeyOHorQAmdzTlHY2n6agjU3djZOLBThnbhKsXSYP
+	 qSLQsZWcHwDTYhht8xf8+C3OCsj+gaPWV900YxOAX0Zg2ypUgVRrd942pwbTT3rFTM
+	 MNGQ4/whbV7eyCmZJVQXJHOyixKBdPSfOrSCN1Vg=
+Date: Fri, 27 Mar 2026 21:26:05 -0700
+To: mm-commits@vger.kernel.org,Kartikey406@gmail.com,oleg@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] doc-watchdog-futher-improvements.patch removed from -mm tree
-Message-Id: <20260328042605.266FDC4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] do_notify_parent-sanitize-the-valid_signal-checks.patch removed from -mm tree
+Message-Id: <20260328042606.548CCC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,96 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: doc: watchdog: futher improvements
+     Subject: do_notify_parent: sanitize the valid_signal() checks
 has been removed from the -mm tree.  Its filename was
-     doc-watchdog-futher-improvements.patch
+     do_notify_parent-sanitize-the-valid_signal-checks.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: doc: watchdog: futher improvements
-Date: Mon, 23 Mar 2026 18:21:38 +0100
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: do_notify_parent: sanitize the valid_signal() checks
+Date: Tue, 17 Mar 2026 14:58:18 +0100
 
-Make further additions and alterations to the watchdog documentation.
+Now that kernel_clone() checks valid_signal(args->exit_signal), the "sig"
+argument of do_notify_parent() must always be valid or we have a bug.
 
-Link: https://lkml.kernel.org/r/acF3tXBxSr0KOP9b@pathway.suse.cz
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Douglas Anderson <dianders@chromium.org>
-Cc: Ian Rogers <irogers@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Li Huafei <lihuafei1@huawei.com>
-Cc: Max Kellermann <max.kellermann@ionos.com>
-Cc: Mayank Rungta <mrungta@google.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Stephane Erainan <eranian@google.com>
-Cc: Wang Jinchao <wangjinchao600@gmail.com>
-Cc: Yunhui Cui <cuiyunhui@bytedance.com>
+However, do_notify_parent() only checks that sig != -1 at the start, then
+it does another valid_signal() check before __send_signal_locked().
+
+This is confusing.  Change do_notify_parent() to WARN and return early if
+valid_signal(sig) is false.
+
+Link: https://lkml.kernel.org/r/abld-ilvMEZ7VgMw@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Deepanshu Kartikey <Kartikey406@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/lockup-watchdogs.rst |   38 ++++++++-------
- 1 file changed, 21 insertions(+), 17 deletions(-)
+ kernel/signal.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/lockup-watchdogs.rst~doc-watchdog-futher-improvements
-+++ a/Documentation/admin-guide/lockup-watchdogs.rst
-@@ -41,32 +41,36 @@ is a trade-off between fast response to
- Implementation
- ==============
+--- a/kernel/signal.c~do_notify_parent-sanitize-the-valid_signal-checks
++++ a/kernel/signal.c
+@@ -2171,7 +2171,8 @@ bool do_notify_parent(struct task_struct
+ 	bool autoreap = false;
+ 	u64 utime, stime;
  
--The soft lockup detector is built on top of the hrtimer subsystem.
--The hard lockup detector is built on top of the perf subsystem
--(on architectures that support it) or uses an SMP "buddy" system.
-+The soft and hard lockup detectors are built around a hrtimer.
-+In addition, the softlockup detector regularly schedules a job, and
-+the hard lockup detector might use Perf/NMI events on architectures
-+that support it.
-+
-+Frequency and Heartbeats
-+------------------------
-+
-+The core of the detectors in a hrtimer. It servers multiple purpose:
-+
-+- schedules watchdog job for the softlockup detector
-+- bumps the interrupt counter for hardlockup detectors (heartbeat)
-+- detects softlockups
-+- detects hardlockups in Buddy mode
-+
-+The period of this hrtimer is 2*watchdog_thresh/5, which is 4 seconds
-+by default. The hrtimer has two or three chances to generate an interrupt
-+(heartbeat) before the hardlockup detector kicks in.
+-	WARN_ON_ONCE(sig == -1);
++	if (WARN_ON_ONCE(!valid_signal(sig)))
++		return false;
  
- Softlockup Detector
- -------------------
- 
--The watchdog job runs in a stop scheduling thread that updates a
--timestamp every time it is scheduled. If that timestamp is not updated
--for 2*watchdog_thresh seconds (the softlockup threshold) the
-+The watchdog job is scheduled by the hrtimer and runs in a stop scheduling
-+thread. It updates a timestamp every time it is scheduled. If that timestamp
-+is not updated for 2*watchdog_thresh seconds (the softlockup threshold) the
- 'softlockup detector' (coded inside the hrtimer callback function)
- will dump useful debug information to the system log, after which it
- will call panic if it was instructed to do so or resume execution of
- other kernel code.
- 
--Frequency and Heartbeats
--------------------------
--
--The hrtimer used by the softlockup detector serves a dual purpose:
--it detects softlockups, and it also generates the interrupts
--(heartbeats) that the hardlockup detectors use to verify CPU liveness.
--
--The period of this hrtimer is 2*watchdog_thresh/5. This means the
--hrtimer has two or three chances to generate an interrupt before the
--NMI hardlockup detector kicks in.
--
- Hardlockup Detector (NMI/Perf)
- ------------------------------
- 
+ 	/* do_notify_parent_cldstop should have been called instead.  */
+ 	WARN_ON_ONCE(task_is_stopped_or_traced(tsk));
+@@ -2252,7 +2253,7 @@ bool do_notify_parent(struct task_struct
+ 	 * Send with __send_signal as si_pid and si_uid are in the
+ 	 * parent's namespaces.
+ 	 */
+-	if (valid_signal(sig) && sig)
++	if (sig)
+ 		__send_signal_locked(sig, &info, tsk->parent, PIDTYPE_TGID, false);
+ 	__wake_up_parent(tsk, tsk->parent);
+ 	spin_unlock_irqrestore(&psig->siglock, flags);
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
+kernel-fork-validate-exit_signal-in-kernel_clone-fix.patch
 
