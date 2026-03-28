@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50BE51A9FA8
-	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:25:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5A351A9FA8
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:25:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774671955; cv=none; b=U+yzBQ9fNL6wLcSKTnUCJZ5M/CcsFFxRxtoxro5s4srWP/X3ivkyzDdbs81mM+iO0ZSEHbWFu8MfxlNw3L0g1tYfYIfB2vVQr17EW6UeOby+WndVBZe70DSbO3HL/K452LOUKu++qDYugRo+DiuTcj99g/CZ2a8rq2PICtHrLPA=
+	t=1774671956; cv=none; b=q/klDzeYfcGj4WMeKO8AS5Z1kU5m3JVQE6xlavrw8/jmiZZxZVtcZgeUYwMgEhWtD1IcbaR/NwOhG4rER1X4CKZyQZFR9Ml05xMaS2OHsZczqbnssxnrC+35WsUl2PvcApaa15KCVnYM/hrBZg/HipjshUQSRr/uH9RQBiPpWOM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774671955; c=relaxed/simple;
-	bh=82xoMyiwl65wKPSc6PzDKSq7diYqu60fBKp0tG1ifMI=;
-	h=Date:To:From:Subject:Message-Id; b=a9ZJaO8GRjWLCePfqgg1g9CwqhniZ3U4YkN1lupF548erJg87I/Xs/cGFArAS6ifxzMAxWldnTJ4g18vjGtzbE2PQUm+pcJKklkcazXvFIZOGpdhlKDN/IRrJQsIr26XN4ZH8vHSDKpsiqfAQ4nuctdjpyasXkyGt4d9MrJXkFc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nW/kqxBS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774671956; c=relaxed/simple;
+	bh=DwPZyhoiNsXKafvDOty7axRZAMb9S3CoVZwhzlhkHYo=;
+	h=Date:To:From:Subject:Message-Id; b=tvCDIwr1QKzh7q63zeL3tceiAcZKJMRE4x6NeSoqz8w+DgbsHsL4CFOWeiaVdPakeDrpkicnd6/F/2EEC93DO8rqDqkUqnElTr9tX/eJyZb2Lx01iq6dVvvcPlLXFJZmT5vy0i+isMpx38uFEcvU5pxMVZNsTvAWsWQcrJ7i+BE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZCOavgBX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nW/kqxBS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2810CC4CEF7;
-	Sat, 28 Mar 2026 04:25:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZCOavgBX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49FE6C4CEF7;
+	Sat, 28 Mar 2026 04:25:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774671955;
-	bh=82xoMyiwl65wKPSc6PzDKSq7diYqu60fBKp0tG1ifMI=;
+	s=korg; t=1774671956;
+	bh=DwPZyhoiNsXKafvDOty7axRZAMb9S3CoVZwhzlhkHYo=;
 	h=Date:To:From:Subject:From;
-	b=nW/kqxBSeU+sLAUyG19RNM5RgeMCDEtKAqldwak89zInU01MF90B33c1AKmlJ9XTr
-	 w7y/tFk9zWdg9d5W0IBftSS7YEPbnRnCs8F8ACAW6FFw/Uw4mgvQCZ3nmZLj6XDYCs
-	 2xWnbf5gG7xxK2oYpODAf94KZFCc+/U6go8AmOOA=
-Date: Fri, 27 Mar 2026 21:25:54 -0700
-To: mm-commits@vger.kernel.org,vgoyal@redhat.com,dyoung@redhat.com,bhe@redhat.com,ebiggers@kernel.org,akpm@linux-foundation.org
+	b=ZCOavgBXhPrUvdqoe6/kZHFuU0fS7H+AG3o9Pt5zAgm3fvcqlAiIvPWUMb09M57O6
+	 3qNysgtrU5b02EMbmJiUCNAXiZ16sOBRkDAf+mmd0IeREAWEkgWG/8U4/sL07Wxs8B
+	 NKsOQXaljW2Frk7Ie0OrVr0/lMCK9jTVm8AeSckg=
+Date: Fri, 27 Mar 2026 21:25:55 -0700
+To: mm-commits@vger.kernel.org,bhe@redhat.com,ebiggers@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kernel-crash-remove-inclusion-of-crypto-sha1h.patch removed from -mm tree
-Message-Id: <20260328042555.2810CC4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] kernel-kexec-remove-inclusion-of-crypto-hashh.patch removed from -mm tree
+Message-Id: <20260328042556.49FE6C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kernel/crash: remove inclusion of crypto/sha1.h
+     Subject: kernel/kexec: remove inclusion of crypto/hash.h
 has been removed from the -mm tree.  Its filename was
-     kernel-crash-remove-inclusion-of-crypto-sha1h.patch
+     kernel-kexec-remove-inclusion-of-crypto-hashh.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Eric Biggers <ebiggers@kernel.org>
-Subject: kernel/crash: remove inclusion of crypto/sha1.h
-Date: Sat, 14 Mar 2026 13:42:43 -0700
+Subject: kernel/kexec: remove inclusion of crypto/hash.h
+Date: Sat, 14 Mar 2026 13:41:44 -0700
 
-Several files related to kernel crash dumps include crypto/sha1.h but
-never use any of its functionality.  Remove these includes so that these
-files don't unnecessarily come up in searches for which kernel code is
-still using the obsolete SHA-1 algorithm.
+kexec_core.c does not do any cryptographic hashing, so the header
+crypto/hash.h is not needed at all.
 
-Link: https://lkml.kernel.org/r/20260314204243.45001-1-ebiggers@kernel.org
+Link: https://lkml.kernel.org/r/20260314204144.44884-1-ebiggers@kernel.org
 Signed-off-by: Eric Biggers <ebiggers@kernel.org>
 Cc: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/crash_core.c    |    2 --
- kernel/crash_reserve.c |    2 --
- kernel/vmcore_info.c   |    2 --
- 3 files changed, 6 deletions(-)
+ kernel/kexec_core.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/kernel/crash_core.c~kernel-crash-remove-inclusion-of-crypto-sha1h
-+++ a/kernel/crash_core.c
-@@ -27,8 +27,6 @@
+--- a/kernel/kexec_core.c~kernel-kexec-remove-inclusion-of-crypto-hashh
++++ a/kernel/kexec_core.c
+@@ -47,7 +47,6 @@
  #include <asm/page.h>
  #include <asm/sections.h>
  
--#include <crypto/sha1.h>
--
- #include "kallsyms_internal.h"
+-#include <crypto/hash.h>
  #include "kexec_internal.h"
  
---- a/kernel/crash_reserve.c~kernel-crash-remove-inclusion-of-crypto-sha1h
-+++ a/kernel/crash_reserve.c
-@@ -20,8 +20,6 @@
- #include <asm/page.h>
- #include <asm/sections.h>
- 
--#include <crypto/sha1.h>
--
- #include "kallsyms_internal.h"
- #include "kexec_internal.h"
- 
---- a/kernel/vmcore_info.c~kernel-crash-remove-inclusion-of-crypto-sha1h
-+++ a/kernel/vmcore_info.c
-@@ -18,8 +18,6 @@
- #include <asm/page.h>
- #include <asm/sections.h>
- 
--#include <crypto/sha1.h>
--
- #include "kallsyms_internal.h"
- #include "kexec_internal.h"
- 
+ atomic_t __kexec_lock = ATOMIC_INIT(0);
 _
 
 Patches currently in -mm which might be from ebiggers@kernel.org are
