@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B9C433557B;
-	Sat, 28 Mar 2026 04:25:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A96733557B
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:25:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774671922; cv=none; b=ILTkhubK8FizFx4neoA1qWKcKGPhJJiTCxKus5ZmhUEC/dUD/GYXqvnHc+YvK49xiwY2sVJdK8wg2W8OvEnbPQkbZfrtEK6oLdQuIKb+7oKETM5pWtT1Fa02IQ1h8aA+3cPNUwTo9A4JdKq6mpmSWccIyK5VJ+gtscDrN8HZMlI=
+	t=1774671923; cv=none; b=rSJhOhsNsiJUDBpEGZR0r5re8iliSJCrRwPnRn6Rd4aMvMIhHJEnklj4sDrdqL43o78IQ2hT4UJJty0nCmgKPGKoTF7AVL5lkg3Pjk+nlG4oZSusnb1bQiR8c66V2vCBtTkGkzDd/R03bhNUXBa+Foj0929OBaNYGn8xugUsriI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774671922; c=relaxed/simple;
-	bh=8FPl9/q8zv53IgGIRA/JD2ZGMSCaF1t5e0LsHHVCG+c=;
-	h=Date:To:From:Subject:Message-Id; b=Xc2YZI2NPGAmn6RVqMM+tUu3tSh/7oAyNOLk6JKH3yxi8Gj93XVGSXAMU0S9a19p20r1XBzNDdCHroEWUPuE7hrPLEYnusFg2e5HYO3tUDUxIvIqSWRhLS/97oqCERdKhFTYu5KM+FffBtTmd7vO9VeG2fqU4jpNZMTsIxQxacc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2PzSyEiB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774671923; c=relaxed/simple;
+	bh=kcHr2aOhakyXAxk+RPwwy7pZYK+4bymRMW2uvImXSFI=;
+	h=Date:To:From:Subject:Message-Id; b=oWPdtbJgA2+6qTJJT0NZQiKI4Z1ensV8kHxaYMrPhDwPVStYlru2F6iu5pBqC7TkRzc00S4xmU6eT/ZO3/mR8cIY6F/ge6RpgCIEqIN2uZoDnVWnOg2NDw2pB+rmFOE9A+84iB/MMACy0AwNsUcxxPQZKSWyL48MoXpMB7mDCEw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RQqhG3b7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2PzSyEiB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02CC7C4CEF7;
-	Sat, 28 Mar 2026 04:25:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RQqhG3b7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4267CC4CEF7;
+	Sat, 28 Mar 2026 04:25:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774671922;
-	bh=8FPl9/q8zv53IgGIRA/JD2ZGMSCaF1t5e0LsHHVCG+c=;
+	s=korg; t=1774671923;
+	bh=kcHr2aOhakyXAxk+RPwwy7pZYK+4bymRMW2uvImXSFI=;
 	h=Date:To:From:Subject:From;
-	b=2PzSyEiBrHW6uyPHzlr11BODdwHLb+5fsxgrF1n29trCf/KeQxaGwRcG5xuGgmCZ0
-	 5/twDkpLUp1SUgXJZT0mDq6NhH5bVv5fOhug8FK2gnbiSbekir2sEOA6fUpPnGLwvn
-	 Vbw5Oe9oA1rg0DywrILUSnxFAWXYb3zocK9YdcIM=
-Date: Fri, 27 Mar 2026 21:25:21 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,kbingham@kernel.org,johannes.berg@intel.com,jan.kiszka@siemens.com,iii@linux.ibm.com,benjamin.berg@intel.com,akpm@linux-foundation.org
+	b=RQqhG3b7ew7JJxADJw/SfjbPpSMSrRLbkavSqB7+lELd0ym09Owuj0nTu5iYjSGnE
+	 GwVR3EVfzhAmI0HrvwufFeWXPwmgSQlVKhjG3341fPMn9+Mep5+qqX3L+3eWu8DYi/
+	 qkv1xWwCiyzyYtDBz2cZhLN/hmcqODIxdshDH58Q=
+Date: Fri, 27 Mar 2026 21:25:22 -0700
+To: mm-commits@vger.kernel.org,andriy.shevchenko@linux.intel.com,objecting@objecting.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] scripts-gdb-symbols-handle-module-path-parameters.patch removed from -mm tree
-Message-Id: <20260328042522.02CC7C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-uuid-fix-typo-reversion-to-revision-in-comment.patch removed from -mm tree
+Message-Id: <20260328042523.4267CC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: scripts/gdb/symbols: handle module path parameters
+     Subject: lib/uuid: fix typo "reversion" to "revision" in comment
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-symbols-handle-module-path-parameters.patch
+     lib-uuid-fix-typo-reversion-to-revision-in-comment.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Benjamin Berg <benjamin.berg@intel.com>
-Subject: scripts/gdb/symbols: handle module path parameters
-Date: Wed, 4 Mar 2026 12:06:43 +0100
+From: Josh Law <objecting@objecting.org>
+Subject: lib/uuid: fix typo "reversion" to "revision" in comment
+Date: Fri, 6 Mar 2026 16:12:50 +0000
 
-commit 581ee79a2547 ("scripts/gdb/symbols: make BPF debug info available
-to GDB") added support to make BPF debug information available to GDB. 
-However, the argument handling loop was slightly broken, causing it to
-fail if further modules were passed.  Fix it to append these passed
-modules to the instance variable after expansion.
+Fix a typo in __uuid_gen_common() where "reversion" (meaning to revert)
+was used instead of "revision" when describing the UUID variant field.
 
-Link: https://lkml.kernel.org/r/20260304110642.2020614-2-benjamin@sipsolutions.net
-Fixes: 581ee79a2547 ("scripts/gdb/symbols: make BPF debug info available to GDB")
-Signed-off-by: Benjamin Berg <benjamin.berg@intel.com>
-Reviewed-by: Johannes Berg <johannes.berg@intel.com>
-Cc: Ilya Leoshkevich <iii@linux.ibm.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260306161250.2811500-1-objecting@objecting.org
+Signed-off-by: Josh Law <objecting@objecting.org>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/symbols.py |    2 +-
+ lib/uuid.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/gdb/linux/symbols.py~scripts-gdb-symbols-handle-module-path-parameters
-+++ a/scripts/gdb/linux/symbols.py
-@@ -298,7 +298,7 @@ are loaded as well."""
-             if p == "-bpf":
-                 monitor_bpf = True
-             else:
--                p.append(os.path.abspath(os.path.expanduser(p)))
-+                self.module_paths.append(os.path.abspath(os.path.expanduser(p)))
-         self.module_paths.append(os.getcwd())
+--- a/lib/uuid.c~lib-uuid-fix-typo-reversion-to-revision-in-comment
++++ a/lib/uuid.c
+@@ -54,7 +54,7 @@ EXPORT_SYMBOL(generate_random_guid);
+ static void __uuid_gen_common(__u8 b[16])
+ {
+ 	get_random_bytes(b, 16);
+-	/* reversion 0b10 */
++	/* revision 0b10 */
+ 	b[8] = (b[8] & 0x3F) | 0x80;
+ }
  
-         if self.breakpoint is not None:
 _
 
-Patches currently in -mm which might be from benjamin.berg@intel.com are
+Patches currently in -mm which might be from objecting@objecting.org are
 
+mm-damon-core-document-damos_commit_dests-failure-semantics.patch
+lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
+lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
 
