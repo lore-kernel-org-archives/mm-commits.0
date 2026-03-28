@@ -1,64 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF93EC2FD;
-	Sat, 28 Mar 2026 04:01:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B15D3C2FD
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:02:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774670509; cv=none; b=tsMjIm7fzIYnCYFyB/UPhFVdd8NgNvc4jO6rZ6IBIXKd9ByYPFtdUpixqxyWlvN2LVqAh6AVT89OootNbovl+WhGXsqhaOFtIq5dJ0bD+j2LAGpstYVKKCAZBg+TGmnzOGl5+fvyz2mIeq/EQaQlAfQwl8nj8arqCHDmjkAdKfU=
+	t=1774670524; cv=none; b=PWv1XjpIif8iJZxKP+btNENTQaITmKQeHkVqseNTVAm+s2HkhHuYC2fuUqUS+bkM6+E7f4crjGyqf8Wst7ORUxAdfmHfrN7thJLmopkRXJjrRzUXrffg510iItc8aI20TiKmx6/ZOTr71s2rwAQPNp8VGsM8KoPZEf7lBC71n0I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774670509; c=relaxed/simple;
-	bh=xYdBGSuKe/2Uz+P/xMdEru42IC0I9uypbpuiMNDXlsU=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=CCY/H61gu/ge5Ksoqe0//mCeCvPmHaTn5v8KUEx8LmgFMqCo0IBXexrwFlQfrnFe3M0+lViZBamSxQd05E3PaEyce8SHUR/wUSHKOWwfIyPoGrNKqpCaUDdcHC8Lj/JZN/GBrCqopAESnlss6mZ3krrGSxrbW8X0XTFdXv7K9vk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cYsj/zhn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774670524; c=relaxed/simple;
+	bh=YpqqWes328dwWRv6W8zOIP1asyEZmBVcFqaZii2tj5I=;
+	h=Date:To:From:Subject:Message-Id; b=rRAvQGTXW/QXS97180Trp2uoUQxPzgIjRvqPb4U6+WEKw1TI0D8dmGkCVmwPemjB4TTpxpl/Rhzka0WkbNrAcybpquWJu9OZ82AgM5QehiGJaMtUm/SOxhKVivCDg5OGDWEVj9fO8Udk0zAUrbVriefvJLibycwPTSxmXck5vjE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2W9oxcze; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cYsj/zhn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19095C4CEF7;
-	Sat, 28 Mar 2026 04:01:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2W9oxcze"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44C6FC19424;
+	Sat, 28 Mar 2026 04:02:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774670508;
-	bh=xYdBGSuKe/2Uz+P/xMdEru42IC0I9uypbpuiMNDXlsU=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=cYsj/zhnC9B2FaRI8QVi2AIF8xWhVBKJQGhE/YIDeDtOpKYitKlOsfPIeeIrpw1vq
-	 QK+TMSc6Pk8gh1SjO2NjDYDu0OoOZ3K6eLPzDPLIDtDlYlzodRg3wnVoV7tKk01SG5
-	 1hBJ8jKMNYpy09nc/dImYa6CN8mdYeIUzCdcuses=
-Date: Fri, 27 Mar 2026 21:01:47 -0700
+	s=korg; t=1774670524;
+	bh=YpqqWes328dwWRv6W8zOIP1asyEZmBVcFqaZii2tj5I=;
+	h=Date:To:From:Subject:From;
+	b=2W9oxczepN2cWoUGenag0j3uhyKcnyvnrYXQhS3qeyQTK9XsUWyWqaXQ4eQ0fkiaG
+	 nFU3Y+9esMRRzhQVIstUFzVKogRGhyEgUHEjcyuwvdnt0s5I86W4y5O3N2MdiuIddv
+	 qqZg18wwnvtRKfsqWv8yuUPINldMQsYn2dR3WmMM=
+Date: Fri, 27 Mar 2026 21:02:03 -0700
+To: mm-commits@vger.kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: mm-commits@vger.kernel.org, xiangzao@linux.alibaba.com,
- willy@infradead.org, stable@vger.kernel.org, p.raghav@samsung.com,
- mcgrof@kernel.org, ljs@kernel.org, kas@kernel.org, hare@suse.de,
- djwong@kernel.org, dhowells@redhat.com, dchinner@redhat.com,
- david@kernel.org, da.gomez@samsung.com, brauner@kernel.org
-Subject: Re: [merged mm-hotfixes-stable]
- mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch
- removed from -mm tree
-Message-Id: <20260327210147.b481ba4e68a652f4936dc260@linux-foundation.org>
-In-Reply-To: <011665ea-ebde-4c5e-9eb9-b9adffff056f@linux.alibaba.com>
-References: <20260328003911.5D84BC19423@smtp.kernel.org>
-	<011665ea-ebde-4c5e-9eb9-b9adffff056f@linux.alibaba.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260328040204.44C6FC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-
-On Sat, 28 Mar 2026 10:02:09 +0800 Baolin Wang <baolin.wang@linux.alibaba.com> wrote:
-
-> What happened to this fix patch? The commit message doesn't belong to my 
-> original patch.
-
-Crap, thanks for noticing.  At some point I must have pasted in the
-changelog text from "mm/huge_memory: fix folio isn't locked in
-softleaf_to_folio()".  Redone as below:
 
 
+The patch titled
+     Subject: mm: filemap: fix nr_pages calculation overflow in filemap_map_pages()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch
 
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
 Subject: mm: filemap: fix nr_pages calculation overflow in filemap_map_pages()
 Date: Tue, 17 Mar 2026 17:29:55 +0800
@@ -194,4 +193,21 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	 * Do not allow to map with PMD across i_size to preserve
  	 * SIGBUS semantics.
 _
+
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+
+mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch
+mm-use-inline-helper-functions-instead-of-ugly-macros.patch
+mm-rename-ptep-pmdp_clear_young_notify-to-ptep-pmdp_test_and_clear_young_notify.patch
+mm-rmap-add-a-zone_device-folio-warning-in-folio_referenced.patch
+mm-add-a-batched-helper-to-clear-the-young-flag-for-large-folios.patch
+mm-support-batched-checking-of-the-young-flag-for-mglru.patch
+arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes.patch
+mm-change-to-return-bool-for-ptep_test_and_clear_young.patch
+mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes.patch
+mm-change-to-return-bool-for-pmdp_test_and_clear_young.patch
+mm-change-to-return-bool-for-pmdp_clear_flush_young.patch
+mm-change-to-return-bool-for-pudp_test_and_clear_young.patch
+mm-change-to-return-bool-for-the-mmu-notifiers-young-flag-check.patch
+mm-vmscan-fix-dirty-folios-throttling-on-cgroup-v1-for-mglru.patch
 
