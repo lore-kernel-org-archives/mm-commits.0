@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 316A89443;
-	Sat, 28 Mar 2026 00:39:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 709B79443;
+	Sat, 28 Mar 2026 00:39:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774658359; cv=none; b=ZNRDyNWtt14W6zIPxQ6evHr6Ado2Zy+0VuD9zVvOPLnwVS021R7/3nHM/YA8RZYXqvs0rpjIrKPdlCKm1bf0obp2Fh7De2C74a7R/Au/mfnAuG6aIL5Om/aTpdfGX/wGICo4zVwIaw79EV2ljp4IruEn3jDRYHErMJtx6yc6+Oo=
+	t=1774658360; cv=none; b=BWTQy49lm+sRMZgQ48fcV3+oL1nVnbZ+lUUALAJ1DuVVM8X+FmbOojj6GjJM1kWMHCLd4aYyH6MTGexJwPJPvtDrD0wU8/VqMpI327vhUWxCmytDj7SCOksgp42Onq+1m0c9cjI+w4BjGuEYrNzivS3jSsVpihmrg67ko94tw8c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774658359; c=relaxed/simple;
-	bh=iNwKRnNqQvSnURVsvBbhw1/uVUJVdmhggt42ZZe7g0o=;
-	h=Date:To:From:Subject:Message-Id; b=IqfUNu8zxDJgieed764nxAGXyhKaGf3sGIcSzIg8O7EOPcR4ZQO7ySGz+xkUXv4AwKCCUiI+/DhbjMSXZJoH9XUCoAK5wyDPXPthDqA3B3bmGX+fXgA5Z4rZJMfyoKnIFReWWeiWJE5KmtSbJYG5+Rkxv4AGYj5Ov1BbGIPeHl8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SP+TfDxK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774658360; c=relaxed/simple;
+	bh=7cpAsVyuyg87M3+Wqf6b58oK8qw7wjxNntQBjtGbY4M=;
+	h=Date:To:From:Subject:Message-Id; b=ZMAmC/2X9jvV6FW2jq8g8jTOStgEtVAuKJm53yndGeXj4lFGFm5quDJW5q4no5dbZivQPGvMO5GNoZk2k1/R9c+mnpjfnXDabZiDW5JhWUt1aFeKb8vtAZn9p9f4y2h2YNGsel3PEyrtJn9XpVIpHlo9Ojb43W8nfg0QW8ED3lw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n0f96Lq5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SP+TfDxK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EED94C19423;
-	Sat, 28 Mar 2026 00:39:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n0f96Lq5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4516EC2BCB1;
+	Sat, 28 Mar 2026 00:39:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774658359;
-	bh=iNwKRnNqQvSnURVsvBbhw1/uVUJVdmhggt42ZZe7g0o=;
+	s=korg; t=1774658360;
+	bh=7cpAsVyuyg87M3+Wqf6b58oK8qw7wjxNntQBjtGbY4M=;
 	h=Date:To:From:Subject:From;
-	b=SP+TfDxKRgO/eoC+1ztQtRtIcvmibQie9eq1ypvRmec28DJ+oGz1YTAogqxQn2xd2
-	 plteDZbyLe0DnqOsAE0xJCIC00xUmvPa1JvyYPGZZCUIXncYxBcCNQQT6JbTjY8foz
-	 QVNxGy28IeSYM+hcuVxrnvBso1FRA9tfdT8Z6xuc=
-Date: Fri, 27 Mar 2026 17:39:18 -0700
+	b=n0f96Lq5/fU913oLpd7DYws6NU7KMKVeeoim3vJj1hmsxFcizNAIcWZTEnO0dsacv
+	 IKPDR8pNZI8IE65WQNEl9WoUl5jNSHZMQG0nzRFJi5zFyXkfR7cQ3F9TtrHpKYvLRH
+	 YL1Alhc54T6RevPfpgXHHBUDNY4wt5bxWExntC08=
+Date: Fri, 27 Mar 2026 17:39:19 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,objecting@objecting.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-check-contexts-nr-before-accessing-contexts_arr.patch removed from -mm tree
-Message-Id: <20260328003918.EED94C19423@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-check-contexts-nr-in-repeat_call_fn.patch removed from -mm tree
+Message-Id: <20260328003920.4516EC2BCB1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/sysfs: check contexts->nr before accessing contexts_arr[0]
+     Subject: mm/damon/sysfs: check contexts->nr in repeat_call_fn
 has been removed from the -mm tree.  Its filename was
-     mm-damon-sysfs-check-contexts-nr-before-accessing-contexts_arr.patch
+     mm-damon-sysfs-check-contexts-nr-in-repeat_call_fn.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Josh Law <objecting@objecting.org>
-Subject: mm/damon/sysfs: check contexts->nr before accessing contexts_arr[0]
-Date: Sat, 21 Mar 2026 10:54:25 -0700
+Subject: mm/damon/sysfs: check contexts->nr in repeat_call_fn
+Date: Sat, 21 Mar 2026 10:54:26 -0700
 
-Multiple sysfs command paths dereference contexts_arr[0] without first
-verifying that kdamond->contexts->nr == 1.  A user can set nr_contexts to
-0 via sysfs while DAMON is running, causing NULL pointer dereferences.
+damon_sysfs_repeat_call_fn() calls damon_sysfs_upd_tuned_intervals(),
+damon_sysfs_upd_schemes_stats(), and
+damon_sysfs_upd_schemes_effective_quotas() without checking contexts->nr. 
+If nr_contexts is set to 0 via sysfs while DAMON is running, these
+functions dereference contexts_arr[0] and cause a NULL pointer
+dereference.  Add the missing check.
 
-In more detail, the issue can be triggered by privileged users like
-below.
+For example, the issue can be reproduced using DAMON sysfs interface and
+DAMON user-space tool (damo) [1] like below.
 
-First, start DAMON and make contexts directory empty
-(kdamond->contexts->nr == 0).
+    $ sudo damo start --refresh_interval 1s
+    $ echo 0 | sudo tee \
+            /sys/kernel/mm/damon/admin/kdamonds/0/contexts/nr_contexts
 
-    # damo start
-    # cd /sys/kernel/mm/damon/admin/kdamonds/0
-    # echo 0 > contexts/nr_contexts
-
-Then, each of below commands will cause the NULL pointer dereference.
-
-    # echo update_schemes_stats > state
-    # echo update_schemes_tried_regions > state
-    # echo update_schemes_tried_bytes > state
-    # echo update_schemes_effective_quotas > state
-    # echo update_tuned_intervals > state
-
-Guard all commands (except OFF) at the entry point of
-damon_sysfs_handle_cmd().
-
-Link: https://lkml.kernel.org/r/20260321175427.86000-3-sj@kernel.org
-Fixes: 0ac32b8affb5 ("mm/damon/sysfs: support DAMOS stats")
+Link: https://patch.msgid.link/20260320163559.178101-3-objecting@objecting.org
+Link: https://lkml.kernel.org/r/20260321175427.86000-4-sj@kernel.org
+Link: https://github.com/damonitor/damo [1]
+Fixes: d809a7c64ba8 ("mm/damon/sysfs: implement refresh_ms file internal work")
 Signed-off-by: Josh Law <objecting@objecting.org>
 Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[5.18+]
+Cc: <stable@vger.kernel.org>	[6.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/damon/sysfs.c |    3 +++
  1 file changed, 3 insertions(+)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-check-contexts-nr-before-accessing-contexts_arr
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-check-contexts-nr-in-repeat_call_fn
 +++ a/mm/damon/sysfs.c
-@@ -1749,6 +1749,9 @@ static int damon_sysfs_update_schemes_tr
- static int damon_sysfs_handle_cmd(enum damon_sysfs_cmd cmd,
- 		struct damon_sysfs_kdamond *kdamond)
- {
-+	if (cmd != DAMON_SYSFS_CMD_OFF && kdamond->contexts->nr != 1)
-+		return -EINVAL;
-+
- 	switch (cmd) {
- 	case DAMON_SYSFS_CMD_ON:
- 		return damon_sysfs_turn_damon_on(kdamond);
+@@ -1620,9 +1620,12 @@ static int damon_sysfs_repeat_call_fn(vo
+ 
+ 	if (!mutex_trylock(&damon_sysfs_lock))
+ 		return 0;
++	if (sysfs_kdamond->contexts->nr != 1)
++		goto out;
+ 	damon_sysfs_upd_tuned_intervals(sysfs_kdamond);
+ 	damon_sysfs_upd_schemes_stats(sysfs_kdamond);
+ 	damon_sysfs_upd_schemes_effective_quotas(sysfs_kdamond);
++out:
+ 	mutex_unlock(&damon_sysfs_lock);
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from objecting@objecting.org are
