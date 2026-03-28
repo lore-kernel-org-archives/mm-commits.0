@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BBF922B584
-	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:25:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96FE822B584
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:25:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774671901; cv=none; b=s9uzFPgGzNQrx3VDzong99hso9PEaxY5JGFnCW/8/a0T+7Ek9MU6hoin3FSaerHB+bx50AHpJ21EoQPjtgMMdV3ocGsA9j1VqwP4BMTEfvo83PyFumL0yz3QFLMe4Bo8ZeODTQPEIs8VrmyRxCMkrFm+fuhRsH5UqEjd2tre1Rk=
+	t=1774671902; cv=none; b=DBTT1CHwkuwlUonvuXMP88pqCNA42qg8/A1DWA6ck8YAjtPlq23lxYLjlw+Brj5cBC2EtWAgou23XIxphrgNmjM5MoSIwlbJ5GJdP41fJ+1K4LAFrZ7L/TcsX3FHMNFn4WnrkAiNt3gMF/c8379gd07Q7/IOpH/EPfvwq3PY9lM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774671901; c=relaxed/simple;
-	bh=2b+KM+groGHR5QrnYDBwO4fdXeWdiRoS8GmQK+R8R8Y=;
-	h=Date:To:From:Subject:Message-Id; b=WzKXJu4udhGaFjQaEVeQhhelhpxK1Wspu8/PBdzGOPRbXY7OnxCmsp/W+Y1rtebR+3eb7ddu2vN13iX1D9AsBLGA4xLEljqPpa6AUutCgJ8JL7wfqKHHpsXYUgoc9E8iG8tIIzFO7Wd4X/DaDu83kx+qUT5GnexvQUOtKfQ28BI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZvsluYFr; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774671902; c=relaxed/simple;
+	bh=IdcnNtVLwa1C6EJagzc3WNWO39fudveMCxFfLFcEgnA=;
+	h=Date:To:From:Subject:Message-Id; b=Oi53fJfzMabOYrxZKmXOQgG17/2CNy+12i67VJqq8qiRe11aloBAm4UutSjIHCCGN4ZI50ZGPpN74O0sERJAvqFf6a0gfL+yfo4zIOTWNQJEQwVxdztYTk+vDfTgfUvvYK+gejb+UW2e6AifF12KvyTc02Tvbo/sxygqgnHlCBY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ETkAGB9/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZvsluYFr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13078C4CEF7;
-	Sat, 28 Mar 2026 04:25:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ETkAGB9/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3D8D4C4CEF7;
+	Sat, 28 Mar 2026 04:25:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774671901;
-	bh=2b+KM+groGHR5QrnYDBwO4fdXeWdiRoS8GmQK+R8R8Y=;
+	s=korg; t=1774671902;
+	bh=IdcnNtVLwa1C6EJagzc3WNWO39fudveMCxFfLFcEgnA=;
 	h=Date:To:From:Subject:From;
-	b=ZvsluYFrPcSKkmCohI95ZuKRKpx/4wqzZuWotBhjsku66w4nkKopp6cwkNi/mzYg0
-	 AzU4Ggc8gEpZPPZ6h9LM3aYXI0QQZJazIP1TxkSdsHnND9bFHxh8cybNVnsQXIUOdY
-	 H/ZXT6hiJupE/aCNP6Y6usCLC8qB/nvGBwPyW6KU=
-Date: Fri, 27 Mar 2026 21:25:00 -0700
-To: mm-commits@vger.kernel.org,legion@kernel.org,brauner@kernel.org,broonie@kernel.org,akpm@linux-foundation.org
+	b=ETkAGB9/zKAzeMFEUyCwSY9trmKZQAe2jxLthelgdArbyfSHcE22zYlqFe1SS/Qxs
+	 xBFPXmjZVn8GXNN3N+OyxYo2dWp02gsPOW7vlEfh8NpdIman8huUU4afABxcqJqHew
+	 PEJSHOJD92ouqwtXh0sUKQM1uQRwXoL7r5bTSEIQ=
+Date: Fri, 27 Mar 2026 21:25:01 -0700
+To: mm-commits@vger.kernel.org,objecting@objecting.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] selftests-fchmodat2-use-ksft_finished.patch removed from -mm tree
-Message-Id: <20260328042501.13078C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-glob-fix-grammar-and-replace-non-inclusive-terminology.patch removed from -mm tree
+Message-Id: <20260328042502.3D8D4C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,45 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/fchmodat2: use ksft_finished()
+     Subject: lib: glob: fix grammar and replace non-inclusive terminology
 has been removed from the -mm tree.  Its filename was
-     selftests-fchmodat2-use-ksft_finished.patch
+     lib-glob-fix-grammar-and-replace-non-inclusive-terminology.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: selftests/fchmodat2: use ksft_finished()
-Date: Thu, 26 Feb 2026 22:24:43 +0000
+From: Josh Law <objecting@objecting.org>
+Subject: lib: glob: fix grammar and replace non-inclusive terminology
+Date: Sun, 1 Mar 2026 15:45:53 +0000
 
-The fchmodat2 test program open codes a version of ksft_finished(), use
-the standard version.
+Fix a missing article ('a') in the comment describing the glob
+implementation, and replace 'blacklists' with 'denylists' to align with
+the kernel's inclusive terminology guidelines.
 
-Link: https://lkml.kernel.org/r/20260226-selftests-fchmodat2-v4-2-a6419435f2e8@kernel.org
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Acked-by: Alexey Gladkov <legion@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
+Link: https://lkml.kernel.org/r/20260301154553.2592681-1-objecting@objecting.org
+Signed-off-by: Josh Law <objecting@objecting.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/fchmodat2/fchmodat2_test.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ lib/glob.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/fchmodat2/fchmodat2_test.c~selftests-fchmodat2-use-ksft_finished
-+++ a/tools/testing/selftests/fchmodat2/fchmodat2_test.c
-@@ -196,8 +196,5 @@ int main(int argc, char **argv)
- 	test_regfile();
- 	test_symlink();
- 
--	if (ksft_get_fail_cnt() + ksft_get_error_cnt() > 0)
--		ksft_exit_fail();
--	else
--		ksft_exit_pass();
-+	ksft_finished();
- }
+--- a/lib/glob.c~lib-glob-fix-grammar-and-replace-non-inclusive-terminology
++++ a/lib/glob.c
+@@ -21,7 +21,7 @@ MODULE_LICENSE("Dual MIT/GPL");
+  * Pattern metacharacters are ?, *, [ and \.
+  * (And, inside character classes, !, - and ].)
+  *
+- * This is small and simple implementation intended for device blacklists
++ * This is a small and simple implementation intended for device denylists
+  * where a string is matched against a number of patterns.  Thus, it
+  * does not preprocess the patterns.  It is non-recursive, and run-time
+  * is at most quadratic: strlen(@str)*strlen(@pat).
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from objecting@objecting.org are
 
+mm-damon-core-document-damos_commit_dests-failure-semantics.patch
+lib-maple_tree-fix-swapped-arguments-in-mas_safe_pivot-call.patch
+lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
 
