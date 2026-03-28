@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 891A5337BB0
-	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:26:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A9DC337BB0
+	for <mm-commits@vger.kernel.org>; Sat, 28 Mar 2026 04:26:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774671966; cv=none; b=V5Hqx0b+oWGp+gGNyPl0Mhp8lUOS8c4NRZR0FQ2k7uNoj3nYAXLOtDMNyeihTMTpNfy2W6ClkUWbCO1PVfsZ/HEiXnAt8T77qmU5RXGMqxyo/rfZyD8NhC7u/W2oP++4Re7brNB3ZS98C6e+weomI/xUcH/zd5kIVw9s1ikihZE=
+	t=1774671968; cv=none; b=tXQqLQE9PuMvjqMeQTwKwXCz8uxdjy5vh4LsR+yxzjIQ4uVwdoUMsmRYmvqOpnp0W/JVrztdhve/TzX515IQFVlMFYc4KfEw5nNR2C7bed2evXRN4nq0eIVxtMMIVzWobwSbsu+7GhnFVqsHWV3nBXnxUw9yQ1rztVWwcWvBWpo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774671966; c=relaxed/simple;
-	bh=lyCgjnlWg2rIhnHuKmrMlWutQfba383WJH2UnFwVFfs=;
-	h=Date:To:From:Subject:Message-Id; b=H8BtdC6fTPsnaQW/T13jRlwCzpnwAVJc3FGYHEyVqQscDS9Zzy9E+Bpf42QdTQrVldneWQ8k3OWse3zCfxRAtSnakzaGAYge24bfVcLLIgLLARiA4oJyRk9hyGomZw+a6zWC77ej2DZF2mVmOfkUhFDmbViGDun01QEGakCnF4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oZTzZIP0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774671968; c=relaxed/simple;
+	bh=syP4tyZu65pABLWNlOaWqzdzr06+dqCg2C+7PrrVF2g=;
+	h=Date:To:From:Subject:Message-Id; b=jun8HWm0vQB/rAB2PQg97VcHCZiFSZ1+qh9/cgatlFnCQhG5tNs9DjkIJuvdQtUP09+bVK0h5OOC6PR0T3VFTlEJAT8QyGRDwMC3s+WmCYg4YnqR6mW9FgeXVlObVpnwSr+wuKq86MBQNnQrnj1dBtgP7QrBTRBECZPBcguAUCA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zzi1tv0h; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oZTzZIP0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 548CCC4CEF7;
-	Sat, 28 Mar 2026 04:26:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zzi1tv0h"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CCCC2C4CEF7;
+	Sat, 28 Mar 2026 04:26:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774671966;
-	bh=lyCgjnlWg2rIhnHuKmrMlWutQfba383WJH2UnFwVFfs=;
+	s=korg; t=1774671967;
+	bh=syP4tyZu65pABLWNlOaWqzdzr06+dqCg2C+7PrrVF2g=;
 	h=Date:To:From:Subject:From;
-	b=oZTzZIP03DPn+0UllY3k52IZaeyOHorQAmdzTlHY2n6agjU3djZOLBThnbhKsXSYP
-	 qSLQsZWcHwDTYhht8xf8+C3OCsj+gaPWV900YxOAX0Zg2ypUgVRrd942pwbTT3rFTM
-	 MNGQ4/whbV7eyCmZJVQXJHOyixKBdPSfOrSCN1Vg=
-Date: Fri, 27 Mar 2026 21:26:05 -0700
-To: mm-commits@vger.kernel.org,Kartikey406@gmail.com,oleg@redhat.com,akpm@linux-foundation.org
+	b=Zzi1tv0hx5c7jXeXUir7k64dVdRsUSusqnZabyj5PLVgAveI5+o5cVlCfcxrokSO3
+	 eKbqhpYQZFWjX8rCZCPFeCcttKXxRpM2Fm6Pm4ub1jr2Ecxzb2LmiiWYKgEDx1AZR3
+	 syZ5tT0t5l5Y5P4Ewp4B4eLPm19y94wc0LuBYrgw=
+Date: Fri, 27 Mar 2026 21:26:07 -0700
+To: mm-commits@vger.kernel.org,rdunlap@infradead.org,derkling@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] do_notify_parent-sanitize-the-valid_signal-checks.patch removed from -mm tree
-Message-Id: <20260328042606.548CCC4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] scripts-decodecode-return-0-on-success.patch removed from -mm tree
+Message-Id: <20260328042607.CCCC2C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,60 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: do_notify_parent: sanitize the valid_signal() checks
+     Subject: scripts/decodecode: return 0 on success
 has been removed from the -mm tree.  Its filename was
-     do_notify_parent-sanitize-the-valid_signal-checks.patch
+     scripts-decodecode-return-0-on-success.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: do_notify_parent: sanitize the valid_signal() checks
-Date: Tue, 17 Mar 2026 14:58:18 +0100
+From: Patrick Bellasi <derkling@google.com>
+Subject: scripts/decodecode: return 0 on success
+Date: Wed, 18 Mar 2026 15:05:45 +0000
 
-Now that kernel_clone() checks valid_signal(args->exit_signal), the "sig"
-argument of do_notify_parent() must always be valid or we have a bug.
+The decodecode script always returns an exit code of 1, regardless of
+whether the operation was successful or not.  This is because the
+"cleanup" function, which is registered to run on any script exit via
+"trap cleanup EXIT", contains an unconditional "exit 1".
 
-However, do_notify_parent() only checks that sig != -1 at the start, then
-it does another valid_signal() check before __send_signal_locked().
+Remove the "exit 1" from the "cleanup" function so that it only performs
+the necessary file cleanup without forcing a non-zero exit status.
 
-This is confusing.  Change do_notify_parent() to WARN and return early if
-valid_signal(sig) is false.
+Do that to ensure successful script executions now exit with code 0. 
+Exits due to errors are all handled by the "die()" function and will still
+correctly exit with code 1.
 
-Link: https://lkml.kernel.org/r/abld-ilvMEZ7VgMw@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Deepanshu Kartikey <Kartikey406@gmail.com>
+Link: https://lkml.kernel.org/r/20260318150545.2809311-1-derkling@google.com
+Signed-off-by: Patrick Bellasi <derkling@google.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ scripts/decodecode |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/kernel/signal.c~do_notify_parent-sanitize-the-valid_signal-checks
-+++ a/kernel/signal.c
-@@ -2171,7 +2171,8 @@ bool do_notify_parent(struct task_struct
- 	bool autoreap = false;
- 	u64 utime, stime;
+--- a/scripts/decodecode~scripts-decodecode-return-0-on-success
++++ a/scripts/decodecode
+@@ -12,7 +12,6 @@ faultlinenum=1
  
--	WARN_ON_ONCE(sig == -1);
-+	if (WARN_ON_ONCE(!valid_signal(sig)))
-+		return false;
+ cleanup() {
+ 	rm -f $T $T.s $T.o $T.oo $T.aa $T.dis
+-	exit 1
+ }
  
- 	/* do_notify_parent_cldstop should have been called instead.  */
- 	WARN_ON_ONCE(task_is_stopped_or_traced(tsk));
-@@ -2252,7 +2253,7 @@ bool do_notify_parent(struct task_struct
- 	 * Send with __send_signal as si_pid and si_uid are in the
- 	 * parent's namespaces.
- 	 */
--	if (valid_signal(sig) && sig)
-+	if (sig)
- 		__send_signal_locked(sig, &info, tsk->parent, PIDTYPE_TGID, false);
- 	__wake_up_parent(tsk, tsk->parent);
- 	spin_unlock_irqrestore(&psig->siglock, flags);
+ die() {
+@@ -49,7 +48,7 @@ done
+ 
+ if [ -z "$code" ]; then
+ 	rm $T
+-	exit
++	die "Code line not found"
+ fi
+ 
+ echo $code
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from derkling@google.com are
 
-kernel-fork-validate-exit_signal-in-kernel_clone-fix.patch
 
