@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8FDC255E43
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C20A52701B8
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744915; cv=none; b=YpfKVBbL+58dSsP3Authn7TNQrAFNINRTnnsR1dWVmyy15//jSATAGv5O5de0Wu2MdUwRGNysokLBCAHJP0t89CwAexy4BSyDZX3Knx0uO2TgG5iNVxM2Fs/icbWdwYke4cfh7KzU/OmlEz2HMUm7nae1aiXoRvyD7VHzLDJYnc=
+	t=1774744916; cv=none; b=ePMbtbWNB2/56kU56EGL1cnqh8x8C940hNJzCtQfWd0ARXqihraDld7AfjG7nCJH6oN8wB6/L9xMOfaLuw2w8xf6bq4FJtf4crAv9//xRziD0Ogq19H8AsSTw6/sDZewtFDz9dt8iuGNzxyaCaxPTAYqIUhz23jKQhPFYJh0WVQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744915; c=relaxed/simple;
-	bh=hLEXj43wYh77gsCp7fFrbPRJ6meedkMYRFzt32B+unU=;
-	h=Date:To:From:Subject:Message-Id; b=Y3RxdPTjMIhqM7HfTzDEcWP9XRaReZ2kH/6I8Fs+ESYR9GDspl+1GvklwPP8vs/5A1cDG5yqpn5r/30VQg/2hgFD/691YM9KI8fOFp2Hh8orKBtDgR6X4T/QOE5goST8FGnMxMrY/9tG7WGEx/sd1mCaxWr7XfrJyFjN98svM9M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YPnCUtjK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744916; c=relaxed/simple;
+	bh=wgdGaF4nXz2WGhPqfLv8wES0xkuIEu6IK+rzTvyBySQ=;
+	h=Date:To:From:Subject:Message-Id; b=abTGJFAIPB8Pf7kZIdxG/+1Uk7C+j27dSZarqOjmUObSkd9hga5AlSUyjmJQOSGo5OZX+rC3uL+hPdrcwvgV8iLiH+tau48Fcv+HBVVmHNlq7VZRFNCPM2EWJkPHiWyfU7vu2QF67fQb6Xu5+nBtf3LRHmLwlsPy6V5TfhbI27Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XzfAUcyI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YPnCUtjK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A992C4CEF7;
-	Sun, 29 Mar 2026 00:41:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XzfAUcyI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A6F3C4CEF7;
+	Sun, 29 Mar 2026 00:41:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744915;
-	bh=hLEXj43wYh77gsCp7fFrbPRJ6meedkMYRFzt32B+unU=;
+	s=korg; t=1774744916;
+	bh=wgdGaF4nXz2WGhPqfLv8wES0xkuIEu6IK+rzTvyBySQ=;
 	h=Date:To:From:Subject:From;
-	b=YPnCUtjKx5HWgDUJwRtevaSloz/L4joxxQl5bPtwNQMoekQx2vzLz76p/XPvwZRDo
-	 cDvRjS/+QvV0rNRdWxasIV2po0EMoTQhe78PVK5R2afDto5lBLvBM98qPI6APtS1tp
-	 V2+ZN/b0qf41d5n1dIPVU8KA5hgp1yMK/fna8YB4=
-Date: Sat, 28 Mar 2026 17:41:55 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,corbet@lwn.net,aethernet65535@gmail.com,akpm@linux-foundation.org
+	b=XzfAUcyIt7pbC6Zvp09fex+SRkFjRinmMOP0k2zIMItYUS4FI9GjAW3IndnCBb5os
+	 3ss5/s8c+vtRf8ArBxbW63Joa4kK5eMpwR/dktScGeyJBYul6lYGoaOmhjAqLiLJuF
+	 3xPvADga3z90XlR2xmLNhth8Uc3nsU/YT5f/pguw=
+Date: Sat, 28 Mar 2026 17:41:56 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,minchan@kernel.org,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-damon-document-exclusivity-of-special-purpose-modules.patch removed from -mm tree
-Message-Id: <20260329004155.7A992C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] zram-change-scan_slots-to-return-void.patch removed from -mm tree
+Message-Id: <20260329004156.9A6F3C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,104 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/mm/damon: document exclusivity of special-purpose modules
+     Subject: zram: change scan_slots to return void
 has been removed from the -mm tree.  Its filename was
-     docs-mm-damon-document-exclusivity-of-special-purpose-modules.patch
+     zram-change-scan_slots-to-return-void.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Liew Rui Yan <aethernet65535@gmail.com>
-Subject: Docs/mm/damon: document exclusivity of special-purpose modules
-Date: Sun, 15 Mar 2026 09:29:44 -0700
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: change scan_slots to return void
+Date: Tue, 17 Mar 2026 12:23:19 +0900
 
-Add a section in design.rst to explain that DAMON special-purpose kernel
-modules (LRU_SORT, RECLAIM, STAT) run in an exclusive manner and return
--EBUSY if another is already running.
+scan_slots_for_writeback() and scan_slots_for_recompress() work in a "best
+effort" fashion, if they cannot allocate memory for a new pp-slot
+candidate they just return and post-processing selects slots that were
+successfully scanned thus far.  scan_slots functions never return errors
+and their callers never check the return status, so convert them to return
+void.
 
-Update lru_sort.rst, reclaim.rst and stat.rst by adding cross-references
-to this exclusivity rule at the end of their respective Example sections.
-
-This change is motivated from another discussion [1].
-
-Link: https://lkml.kernel.org/r/20260315162945.80994-1-sj@kernel.org
-Link: https://lore.kernel.org/damon/20260314002119.79742-1-sj@kernel.org/T/#t [1]
-Signed-off-by: Liew Rui Yan <aethernet65535@gmail.com>
+Link: https://lkml.kernel.org/r/20260317032349.753645-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Reviewed-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/lru_sort.rst |    5 +++++
- Documentation/admin-guide/mm/damon/reclaim.rst  |    5 +++++
- Documentation/admin-guide/mm/damon/stat.rst     |    5 +++++
- Documentation/mm/damon/design.rst               |    4 ++++
- 4 files changed, 19 insertions(+)
+ drivers/block/zram/zram_drv.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-mm-damon-document-exclusivity-of-special-purpose-modules
-+++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
-@@ -351,3 +351,8 @@ the LRU-list based page granularity recl
-     # echo 400 > wmarks_mid
-     # echo 200 > wmarks_low
-     # echo Y > enabled
-+
-+Note that this module (damon_lru_sort) cannot run simultaneously with other
-+DAMON-based special-purpose modules.  Refer to :ref:`DAMON design special
-+purpose modules exclusivity <damon_design_special_purpose_modules_exclusivity>`
-+for more details.
---- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-mm-damon-document-exclusivity-of-special-purpose-modules
-+++ a/Documentation/admin-guide/mm/damon/reclaim.rst
-@@ -318,6 +318,11 @@ granularity reclamation. ::
-     # echo 200 > wmarks_low
-     # echo Y > enabled
+--- a/drivers/block/zram/zram_drv.c~zram-change-scan_slots-to-return-void
++++ a/drivers/block/zram/zram_drv.c
+@@ -1196,9 +1196,9 @@ static int parse_mode(char *val, u32 *mo
+ 	return 0;
+ }
  
-+Note that this module (damon_reclaim) cannot run simultaneously with other
-+DAMON-based special-purpose modules.  Refer to :ref:`DAMON design special
-+purpose modules exclusivity <damon_design_special_purpose_modules_exclusivity>`
-+for more details.
-+
- .. [1] https://research.google/pubs/pub48551/
- .. [2] https://lwn.net/Articles/787611/
- .. [3] https://www.kernel.org/doc/html/latest/mm/free_page_reporting.html
---- a/Documentation/admin-guide/mm/damon/stat.rst~docs-mm-damon-document-exclusivity-of-special-purpose-modules
-+++ a/Documentation/admin-guide/mm/damon/stat.rst
-@@ -45,6 +45,11 @@ You can enable DAMON_STAT by setting the
- Setting it as ``N`` disables DAMON_STAT.  The default value is set by
- ``CONFIG_DAMON_STAT_ENABLED_DEFAULT`` build config option.
+-static int scan_slots_for_writeback(struct zram *zram, u32 mode,
+-				    unsigned long lo, unsigned long hi,
+-				    struct zram_pp_ctl *ctl)
++static void scan_slots_for_writeback(struct zram *zram, u32 mode,
++				     unsigned long lo, unsigned long hi,
++				     struct zram_pp_ctl *ctl)
+ {
+ 	u32 index = lo;
  
-+Note that this module (damon_stat) cannot run simultaneously with other
-+DAMON-based special-purpose modules.  Refer to :ref:`DAMON design special
-+purpose modules exclusivity <damon_design_special_purpose_modules_exclusivity>`
-+for more details.
-+
- .. _damon_stat_aggr_interval_us:
+@@ -1230,8 +1230,6 @@ next:
+ 			break;
+ 		index++;
+ 	}
+-
+-	return 0;
+ }
  
- aggr_interval_us
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-document-exclusivity-of-special-purpose-modules
-+++ a/Documentation/mm/damon/design.rst
-@@ -853,6 +853,10 @@ more detail, please read the usage docum
- (:doc:`/admin-guide/mm/damon/stat`, :doc:`/admin-guide/mm/damon/reclaim` and
- :doc:`/admin-guide/mm/damon/lru_sort`).
+ static ssize_t writeback_store(struct device *dev,
+@@ -2368,8 +2366,8 @@ static bool highest_priority_algorithm(s
+ 	return true;
+ }
  
-+.. _damon_design_special_purpose_modules_exclusivity:
-+
-+Note that these modules currently run in an exclusive manner.  If one of those
-+is already running, others will return ``-EBUSY`` upon start requests.
+-static int scan_slots_for_recompress(struct zram *zram, u32 mode, u32 prio,
+-				     struct zram_pp_ctl *ctl)
++static void scan_slots_for_recompress(struct zram *zram, u32 mode, u32 prio,
++				      struct zram_pp_ctl *ctl)
+ {
+ 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
+ 	unsigned long index;
+@@ -2404,8 +2402,6 @@ next:
+ 		if (!ok)
+ 			break;
+ 	}
+-
+-	return 0;
+ }
  
- Sample DAMON Modules
- --------------------
+ /*
 _
 
-Patches currently in -mm which might be from aethernet65535@gmail.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
 
