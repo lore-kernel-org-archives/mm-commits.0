@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46A491A6835
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A87D824EAB1
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744856; cv=none; b=Dw0lO/t9RCdsdgCr0NaSB7g2caNDDZ/bqwypfWbGKp8f99g+2cqMw7DJRZjiMZ9NvDEI/7l/yzyilW0OFntcrVngcCkGNlNdn3Ak5RkmQTbvkLtHpOylnYxU76w/7z+W9z+SGQCSGbHfMQr7aeeTSwXEtnXTTHJptEKMEUkW160=
+	t=1774744857; cv=none; b=qa5kyF0xfmCeqT74kvrBQU3C2iRH15ozznIgOGkz59Wgd2b26JRYxwGkhbcIDpEX5sQM252CMP9T7ZkryHf4Mg8uWprL6J1SV4SDXeyLAnGH/6m8ew50O6PEizsfQbG716vrFpNIcaMuMDrc8BNb7Gikz+au/tizWAxFZBPhho8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744856; c=relaxed/simple;
-	bh=ecTd5RSGGo3q5TNmmgXasEFrTg/+K8xo36et5927OVg=;
-	h=Date:To:From:Subject:Message-Id; b=BNdh5YvXwH470quj8RTpk0CTX5BjimeV6d0RzupETZlh+pKUG8Vma1sf/4HFz8j5p8N1dVR/0zL4SGhePc63Tj9ZKHx/Z9EkCAWsDRutvJqWb7UwXLM/V8F2rMmb/qJHZLBNqLQX3dBVogwR5xV/4Q+ZiiJUR2P3Dsw3BP20BiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xv3epUFI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744857; c=relaxed/simple;
+	bh=913sxvAZQXdOcO1gedlHlOcL6RC+DGqRpGE4NMEFEqQ=;
+	h=Date:To:From:Subject:Message-Id; b=S4bhCeiMBwTJVOhBGTi0i6KQMWEQObwO2A1OdAEQhcNYm0W4+MZyGIsazhoI6yOTsOnUhgAijoVea8o/B2plHyNLNVYSoLcpRroLW9WUaBYhLdPUM8BbyWKczbU1peUw9G+hUbBVh4zwaRltfWIn4zeMURmmiIWXCvvTaWQ3Kog=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NefcnXFz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xv3epUFI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD652C4CEF7;
-	Sun, 29 Mar 2026 00:40:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NefcnXFz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69013C4CEF7;
+	Sun, 29 Mar 2026 00:40:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744856;
-	bh=ecTd5RSGGo3q5TNmmgXasEFrTg/+K8xo36et5927OVg=;
+	s=korg; t=1774744857;
+	bh=913sxvAZQXdOcO1gedlHlOcL6RC+DGqRpGE4NMEFEqQ=;
 	h=Date:To:From:Subject:From;
-	b=Xv3epUFI1nY2IKZbjs20Adf2CBtYegFYpSE9T7BdRYJw8+7JWMOrNsZjBAeEv32NV
-	 c/O/EaySJNW/aB9tDsSLw/r+KIGu0WVY7giboDHJfV+r4XcWQ6P5CiiFzZnYuE3SSl
-	 KjjtSlEvBdVmeapSdvalUEOrQpm1tE/86lQcrtwU=
-Date: Sat, 28 Mar 2026 17:40:55 -0700
+	b=NefcnXFzTunExM5g4i2wFmFhRWekVia7Yvo1kAblCVoSdEkGMhqZj6d2m1HWNXRSc
+	 /IWb0l5DufqfploMMXASqsPBewSAoKWnPvV1pbr42/ewDtMpMvmpXGm2b0CJaN3hVY
+	 MtClFzjCk1WzfFe4pASrcz34HPcGZlrH9VWxivVA=
+Date: Sat, 28 Mar 2026 17:40:56 -0700
 To: mm-commits@vger.kernel.org,minchan@kernel.org,gaoxu2@honor.com,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-drop-num_active_comps.patch removed from -mm tree
-Message-Id: <20260329004055.DD652C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] zram-update-recompression-documentation.patch removed from -mm tree
+Message-Id: <20260329004057.69013C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,119 +35,125 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: drop ->num_active_comps
+     Subject: zram: update recompression documentation
 has been removed from the -mm tree.  Its filename was
-     zram-drop-num_active_comps.patch
+     zram-update-recompression-documentation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: drop ->num_active_comps
-Date: Wed, 11 Mar 2026 17:42:46 +0900
+Subject: zram: update recompression documentation
+Date: Wed, 11 Mar 2026 17:42:47 +0900
 
-It's not entirely correct to use ->num_active_comps for max-prio limit, as
-->num_active_comps just tells the number of configured algorithms, not the
-max configured priority.  For instance, in the following theoretical
-example:
+Emphasize usage of the `priority` parameter for recompression and explain
+why `algo` parameter can lead to unexpected behavior and thus is not
+recommended.
 
-    [lz4] [nil] [nil] [deflate]
-
-->num_active_comps is 2, while the actual max-prio is 3.
-
-Drop ->num_active_comps and use ZRAM_MAX_COMPS instead.
-
-Link: https://lkml.kernel.org/r/20260311084312.1766036-4-senozhatsky@chromium.org
+Link: https://lkml.kernel.org/r/20260311084312.1766036-5-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Suggested-by: Minchan Kim <minchan@kernel.org>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: gao xu <gaoxu2@honor.com>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   29 ++++++++++++++++-------------
- drivers/block/zram/zram_drv.h |    1 -
- 2 files changed, 16 insertions(+), 14 deletions(-)
+ Documentation/admin-guide/blockdev/zram.rst |   40 ++++++++----------
+ 1 file changed, 18 insertions(+), 22 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-drop-num_active_comps
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2324,6 +2324,18 @@ static int zram_bvec_write(struct zram *
- #define RECOMPRESS_IDLE		(1 << 0)
- #define RECOMPRESS_HUGE		(1 << 1)
+--- a/Documentation/admin-guide/blockdev/zram.rst~zram-update-recompression-documentation
++++ a/Documentation/admin-guide/blockdev/zram.rst
+@@ -462,7 +462,7 @@ know it via /sys/block/zram0/bd_stat's 3
+ recompression
+ -------------
  
-+static bool highest_priority_algorithm(struct zram *zram, u32 prio)
-+{
-+	u32 p;
-+
-+	for (p = prio + 1; p < ZRAM_MAX_COMPS; p++) {
-+		if (zram->comp_algs[p])
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
- static int scan_slots_for_recompress(struct zram *zram, u32 mode, u32 prio_max,
- 				     struct zram_pp_ctl *ctl)
- {
-@@ -2471,12 +2483,11 @@ static int recompress_slot(struct zram *
- 		 * Secondary algorithms failed to re-compress the page
- 		 * in a way that would save memory.
- 		 *
--		 * Mark the object incompressible if the max-priority
--		 * algorithm couldn't re-compress it.
-+		 * Mark the object incompressible if the max-priority (the
-+		 * last configured one) algorithm couldn't re-compress it.
- 		 */
--		if (prio < zram->num_active_comps)
--			return 0;
--		set_slot_flag(zram, index, ZRAM_INCOMPRESSIBLE);
-+		if (highest_priority_algorithm(zram, prio))
-+			set_slot_flag(zram, index, ZRAM_INCOMPRESSIBLE);
- 		return 0;
- 	}
+-With CONFIG_ZRAM_MULTI_COMP, zram can recompress pages using alternative
++With `CONFIG_ZRAM_MULTI_COMP`, zram can recompress pages using alternative
+ (secondary) compression algorithms. The basic idea is that alternative
+ compression algorithm can provide better compression ratio at a price of
+ (potentially) slower compression/decompression speeds. Alternative compression
+@@ -471,7 +471,7 @@ that default algorithm failed to compres
+ recompression - pages that are cold and sit in the memory can be recompressed
+ using more effective algorithm and, hence, reduce zsmalloc memory usage.
  
-@@ -2608,12 +2619,6 @@ static ssize_t recompress_store(struct d
- 		}
- 	}
+-With CONFIG_ZRAM_MULTI_COMP, zram supports up to 4 compression algorithms:
++With `CONFIG_ZRAM_MULTI_COMP`, zram supports up to 4 compression algorithms:
+ one primary and up to 3 secondary ones. Primary zram compressor is explained
+ in "3) Select compression algorithm", secondary algorithms are configured
+ using recomp_algorithm device attribute.
+@@ -495,34 +495,43 @@ configuration:::
+ 	#select deflate recompression algorithm, priority 2
+ 	echo "algo=deflate priority=2" > /sys/block/zramX/recomp_algorithm
  
--	prio_max = min(prio_max, (u32)zram->num_active_comps);
--	if (prio >= prio_max) {
--		ret = -EINVAL;
--		goto out;
--	}
+-Another device attribute that CONFIG_ZRAM_MULTI_COMP enables is recompress,
++Another device attribute that `CONFIG_ZRAM_MULTI_COMP` enables is `recompress`,
+ which controls recompression.
+ 
+ Examples:::
+ 
+ 	#IDLE pages recompression is activated by `idle` mode
+-	echo "type=idle" > /sys/block/zramX/recompress
++	echo "type=idle priority=1" > /sys/block/zramX/recompress
+ 
+ 	#HUGE pages recompression is activated by `huge` mode
+-	echo "type=huge" > /sys/block/zram0/recompress
++	echo "type=huge priority=2" > /sys/block/zram0/recompress
+ 
+ 	#HUGE_IDLE pages recompression is activated by `huge_idle` mode
+-	echo "type=huge_idle" > /sys/block/zramX/recompress
++	echo "type=huge_idle priority=1" > /sys/block/zramX/recompress
+ 
+ The number of idle pages can be significant, so user-space can pass a size
+ threshold (in bytes) to the recompress knob: zram will recompress only pages
+ of equal or greater size:::
+ 
+ 	#recompress all pages larger than 3000 bytes
+-	echo "threshold=3000" > /sys/block/zramX/recompress
++	echo "threshold=3000 priority=1" > /sys/block/zramX/recompress
+ 
+ 	#recompress idle pages larger than 2000 bytes
+-	echo "type=idle threshold=2000" > /sys/block/zramX/recompress
++	echo "type=idle threshold=2000 priority=1" > \
++		/sys/block/zramX/recompress
+ 
+ It is also possible to limit the number of pages zram re-compression will
+ attempt to recompress:::
+ 
+-	echo "type=huge_idle max_pages=42" > /sys/block/zramX/recompress
++	echo "type=huge_idle priority=1 max_pages=42" > \
++		/sys/block/zramX/recompress
++
++It is advised to always specify `priority` parameter.  While it is also
++possible to specify `algo` parameter, so that `zram` will use algorithm's
++name to determine the priority, it is not recommended, since it can lead to
++unexpected results when the same algorithm is configured with different
++priorities (e.g. different parameters).  `priority` is the only way to
++guarantee that the expected algorithm will be used.
+ 
+ During re-compression for every page, that matches re-compression criteria,
+ ZRAM iterates the list of registered alternative compression algorithms in
+@@ -533,19 +542,6 @@ no secondary algorithms left to try. If
+ successfully re-compressed the page such a page is marked as incompressible,
+ so ZRAM will not attempt to re-compress it in the future.
+ 
+-This re-compression behaviour, when it iterates through the list of
+-registered compression algorithms, increases our chances of finding the
+-algorithm that successfully compresses a particular page. Sometimes, however,
+-it is convenient (and sometimes even necessary) to limit recompression to
+-only one particular algorithm so that it will not try any other algorithms.
+-This can be achieved by providing a `algo` or `priority` parameter:::
 -
- 	if (prio < ZRAM_SECONDARY_COMP || prio >= ZRAM_MAX_COMPS) {
- 		ret = -EINVAL;
- 		goto out;
-@@ -2826,7 +2831,6 @@ static void zram_destroy_comps(struct zr
- 		if (!comp)
- 			continue;
- 		zcomp_destroy(comp);
--		zram->num_active_comps--;
- 	}
+-	#use zstd algorithm only (if registered)
+-	echo "type=huge algo=zstd" > /sys/block/zramX/recompress
+-
+-	#use zstd algorithm only (if zstd was registered under priority 1)
+-	echo "type=huge priority=1" > /sys/block/zramX/recompress
+-
+ memory tracking
+ ===============
  
- 	for (prio = ZRAM_PRIMARY_COMP; prio < ZRAM_MAX_COMPS; prio++)
-@@ -2891,7 +2895,6 @@ static ssize_t disksize_store(struct dev
- 		}
- 
- 		zram->comps[prio] = comp;
--		zram->num_active_comps++;
- 	}
- 	zram->disksize = disksize;
- 	set_capacity_and_notify(zram->disk, zram->disksize >> SECTOR_SHIFT);
---- a/drivers/block/zram/zram_drv.h~zram-drop-num_active_comps
-+++ a/drivers/block/zram/zram_drv.h
-@@ -125,7 +125,6 @@ struct zram {
- 	 */
- 	u64 disksize;	/* bytes */
- 	const char *comp_algs[ZRAM_MAX_COMPS];
--	s8 num_active_comps;
- 	/*
- 	 * zram is claimed so open request will be failed
- 	 */
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
