@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B22A27F017
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:42:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDD30280A56
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:42:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744961; cv=none; b=t998Bcl7CMy0uVfj1fDS4nSKkNVm2b78/5SBWgJU58hoU3MMcY0L3gorxT0zeVDwDm8+AA01PeeHCm6VWXJ32vJIEPNLBIDjYk94KOd4GsC0eROA270ybjo4x4Jjll89284B3Zp4G7aZuNFkVdFTddml4ZbBXr2RtnxxviIlCRQ=
+	t=1774744962; cv=none; b=Jk77UlorYK8/cMsKSrC5zRPJxA/1S3OMATVDGM44N+IYsnHmCWu38qL8u6RzoyylAOC3BiFV0plYZbCzLQnBwDwEh7dWg1ZA4yI993LozwXJnpcg6kmfSSx2H6pzXUkA3qmr2IqdoSuV7pToY8v5g/EXRx/detz3riEOu7JGUGA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744961; c=relaxed/simple;
-	bh=XM3oF0sGyeeoQ0B8EjR/xkRFkuHJdYsWrct9YiFfT34=;
-	h=Date:To:From:Subject:Message-Id; b=CYHHhLYH39LROWofwy34I40lDzpsETtVFKnUmjsTT1fOFFT6qxL5YEKU3JAMe1EzE2H4iikgmOh8vvKZVetu4+PwaMgkcQrL/xm3LuSJCtT8z+Jy3SfYXPiJHeUebyOQ/o6Bnk6C9jeH4ZeskQh1OvxfjhMcJyhr5LPLlxz+8u8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KJbVNYtL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744962; c=relaxed/simple;
+	bh=LgTvnbOP6DcIcF6U4yzbTNXuSrcTpMYlHNlzEdfQW2o=;
+	h=Date:To:From:Subject:Message-Id; b=sZppbU6YRfRUUPFMzAOjMIp6cBam64QqGNEpBnCjmokRb5Xy94NlxULAJJcg+JkDQ7HgYwwRYzW052brRRkj2EpUZJ6cDjPdtjea92fVR93ZbG2fvEAjY02yIr6lIStPD7irqRetU1XnKiiDHZz3w8OMLubrEoQRTkf0y/EK4Hw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uXS/qY9L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KJbVNYtL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 549A4C4CEF7;
-	Sun, 29 Mar 2026 00:42:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uXS/qY9L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C4C2C4CEF7;
+	Sun, 29 Mar 2026 00:42:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744961;
-	bh=XM3oF0sGyeeoQ0B8EjR/xkRFkuHJdYsWrct9YiFfT34=;
+	s=korg; t=1774744962;
+	bh=LgTvnbOP6DcIcF6U4yzbTNXuSrcTpMYlHNlzEdfQW2o=;
 	h=Date:To:From:Subject:From;
-	b=KJbVNYtLk1IjKVbQV5LBMZiTOcDdGo+J2LHOejvAWaoITicZnoSK2g9UJUfCN+SPJ
-	 QhyQl/Tc6IBJHjfCpAyp4iiPIVk8v1I2fD3FmsEYuUWY66xEmo/PBNE5dp+ZRh7Nx2
-	 Kbql+XVg4AeqxTRJHQjhunV6I4ODFVgoPCOiFObY=
-Date: Sat, 28 Mar 2026 17:42:40 -0700
+	b=uXS/qY9LI0W7m0mM5nQAXK+1xJtMT1GXOY7RKDDhG1sLMx9jNrl2mIMm8AKsh6h7P
+	 aX9zNokXPi3GioKW8gB/qsKcWFAge2ClM8a83bAdC8ofzwpPVJYdNtqaqzp0h2RvEE
+	 tiANELYa1ATkHlArJZhYi9BmPCHvtH+9U01BigyI=
+Date: Sat, 28 Mar 2026 17:42:42 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,ritesh.list@gmail.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-change-to-return-bool-for-pmdp_test_and_clear_young.patch removed from -mm tree
-Message-Id: <20260329004241.549A4C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-change-to-return-bool-for-pmdp_clear_flush_young.patch removed from -mm tree
+Message-Id: <20260329004242.8C4C2C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,193 +35,126 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: change to return bool for pmdp_test_and_clear_young()
+     Subject: mm: change to return bool for pmdp_clear_flush_young()
 has been removed from the -mm tree.  Its filename was
-     mm-change-to-return-bool-for-pmdp_test_and_clear_young.patch
+     mm-change-to-return-bool-for-pmdp_clear_flush_young.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: change to return bool for pmdp_test_and_clear_young()
-Date: Sat, 21 Mar 2026 14:42:51 +0800
+Subject: mm: change to return bool for pmdp_clear_flush_young()
+Date: Sat, 21 Mar 2026 14:42:52 +0800
 
-Callers use pmdp_test_and_clear_young() to clear the young flag and check
-whether it was set for this PMD entry.  Change the return type to bool to
-make the intention clearer.
+The pmdp_clear_flush_young() is used to clear the young flag and flush the
+TLB, returning whether the young flag was set for this PMD entry.  Change
+the return type to bool to make the intention clearer.
 
-Link: https://lkml.kernel.org/r/f1d31307a13365d3d0fed5809727dcc2dd59631b.1774075004.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/a668b9a974c0d675e7a41f6973bcbe3336e8b373.1774075004.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h             |    5 +---
- arch/powerpc/include/asm/book3s/64/pgtable.h |   10 ++++----
- arch/powerpc/mm/book3s64/pgtable.c           |    4 +--
- arch/riscv/include/asm/pgtable.h             |    4 +--
- arch/s390/include/asm/pgtable.h              |    4 +--
- arch/x86/include/asm/pgtable.h               |    4 +--
- arch/x86/mm/pgtable.c                        |    6 ++---
- include/linux/pgtable.h                      |   19 ++++++++---------
- 8 files changed, 27 insertions(+), 29 deletions(-)
+ arch/s390/include/asm/pgtable.h |    4 ++--
+ arch/x86/include/asm/pgtable.h  |    4 ++--
+ arch/x86/mm/pgtable.c           |    6 +++---
+ include/linux/pgtable.h         |   10 +++++-----
+ mm/pgtable-generic.c            |    7 ++++---
+ 5 files changed, 16 insertions(+), 15 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-change-to-return-bool-for-pmdp_test_and_clear_young
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1320,9 +1320,8 @@ static inline bool __ptep_clear_flush_yo
- 
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
- #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
--static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
--					    unsigned long address,
--					    pmd_t *pmdp)
-+static inline bool pmdp_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long address, pmd_t *pmdp)
- {
- 	/* Operation applies to PMD table entry only if FEAT_HAFT is enabled */
- 	VM_WARN_ON(pmd_table(READ_ONCE(*pmdp)) && !system_supports_haft());
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-change-to-return-bool-for-pmdp_test_and_clear_young
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -1161,13 +1161,13 @@ pud_hugepage_update(struct mm_struct *mm
-  * For radix we should always find H_PAGE_HASHPTE zero. Hence
-  * the below will work for radix too
-  */
--static inline int __pmdp_test_and_clear_young(struct mm_struct *mm,
--					      unsigned long addr, pmd_t *pmdp)
-+static inline bool __pmdp_test_and_clear_young(struct mm_struct *mm,
-+		unsigned long addr, pmd_t *pmdp)
- {
- 	unsigned long old;
- 
- 	if ((pmd_raw(*pmdp) & cpu_to_be64(_PAGE_ACCESSED | H_PAGE_HASHPTE)) == 0)
--		return 0;
-+		return false;
- 	old = pmd_hugepage_update(mm, addr, pmdp, _PAGE_ACCESSED, 0);
- 	return ((old & _PAGE_ACCESSED) != 0);
- }
-@@ -1300,8 +1300,8 @@ extern int pudp_set_access_flags(struct
- 				 pud_t entry, int dirty);
- 
- #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
--extern int pmdp_test_and_clear_young(struct vm_area_struct *vma,
--				     unsigned long address, pmd_t *pmdp);
-+bool pmdp_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long address, pmd_t *pmdp);
- #define __HAVE_ARCH_PUDP_TEST_AND_CLEAR_YOUNG
- extern int pudp_test_and_clear_young(struct vm_area_struct *vma,
- 				     unsigned long address, pud_t *pudp);
---- a/arch/powerpc/mm/book3s64/pgtable.c~mm-change-to-return-bool-for-pmdp_test_and_clear_young
-+++ a/arch/powerpc/mm/book3s64/pgtable.c
-@@ -98,8 +98,8 @@ int pudp_set_access_flags(struct vm_area
- }
- 
- 
--int pmdp_test_and_clear_young(struct vm_area_struct *vma,
--			      unsigned long address, pmd_t *pmdp)
-+bool pmdp_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long address, pmd_t *pmdp)
- {
- 	return __pmdp_test_and_clear_young(vma->vm_mm, address, pmdp);
- }
---- a/arch/riscv/include/asm/pgtable.h~mm-change-to-return-bool-for-pmdp_test_and_clear_young
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -1015,8 +1015,8 @@ static inline int pmdp_set_access_flags(
- }
- 
- #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
--static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
--					unsigned long address, pmd_t *pmdp)
-+static inline bool pmdp_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long address, pmd_t *pmdp)
- {
- 	return ptep_test_and_clear_young(vma, address, (pte_t *)pmdp);
- }
---- a/arch/s390/include/asm/pgtable.h~mm-change-to-return-bool-for-pmdp_test_and_clear_young
+--- a/arch/s390/include/asm/pgtable.h~mm-change-to-return-bool-for-pmdp_clear_flush_young
 +++ a/arch/s390/include/asm/pgtable.h
-@@ -1683,8 +1683,8 @@ static inline int pmdp_set_access_flags(
+@@ -1693,8 +1693,8 @@ static inline bool pmdp_test_and_clear_y
  }
  
- #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
--static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
--					    unsigned long addr, pmd_t *pmdp)
-+static inline bool pmdp_test_and_clear_young(struct vm_area_struct *vma,
+ #define __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
+-static inline int pmdp_clear_flush_young(struct vm_area_struct *vma,
+-					 unsigned long addr, pmd_t *pmdp)
++static inline bool pmdp_clear_flush_young(struct vm_area_struct *vma,
 +		unsigned long addr, pmd_t *pmdp)
  {
- 	pmd_t pmd = *pmdp;
- 
---- a/arch/x86/include/asm/pgtable.h~mm-change-to-return-bool-for-pmdp_test_and_clear_young
+ 	VM_BUG_ON(addr & ~HPAGE_MASK);
+ 	return pmdp_test_and_clear_young(vma, addr, pmdp);
+--- a/arch/x86/include/asm/pgtable.h~mm-change-to-return-bool-for-pmdp_clear_flush_young
 +++ a/arch/x86/include/asm/pgtable.h
-@@ -1295,8 +1295,8 @@ extern int pudp_set_access_flags(struct
- 				 pud_t entry, int dirty);
- 
- #define __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
--extern int pmdp_test_and_clear_young(struct vm_area_struct *vma,
--				     unsigned long addr, pmd_t *pmdp);
-+bool pmdp_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long addr, pmd_t *pmdp);
- extern int pudp_test_and_clear_young(struct vm_area_struct *vma,
+@@ -1301,8 +1301,8 @@ extern int pudp_test_and_clear_young(str
  				     unsigned long addr, pud_t *pudp);
  
---- a/arch/x86/mm/pgtable.c~mm-change-to-return-bool-for-pmdp_test_and_clear_young
+ #define __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
+-extern int pmdp_clear_flush_young(struct vm_area_struct *vma,
+-				  unsigned long address, pmd_t *pmdp);
++bool pmdp_clear_flush_young(struct vm_area_struct *vma,
++		unsigned long address, pmd_t *pmdp);
+ 
+ 
+ #define __HAVE_ARCH_PMDP_HUGE_GET_AND_CLEAR
+--- a/arch/x86/mm/pgtable.c~mm-change-to-return-bool-for-pmdp_clear_flush_young
 +++ a/arch/x86/mm/pgtable.c
-@@ -456,10 +456,10 @@ bool ptep_test_and_clear_young(struct vm
+@@ -503,10 +503,10 @@ bool ptep_clear_flush_young(struct vm_ar
  }
  
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
--int pmdp_test_and_clear_young(struct vm_area_struct *vma,
--			      unsigned long addr, pmd_t *pmdp)
-+bool pmdp_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long addr, pmd_t *pmdp)
- {
--	int ret = 0;
-+	bool ret = false;
- 
- 	if (pmd_young(*pmdp))
- 		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED,
---- a/include/linux/pgtable.h~mm-change-to-return-bool-for-pmdp_test_and_clear_young
-+++ a/include/linux/pgtable.h
-@@ -507,25 +507,24 @@ static inline bool ptep_test_and_clear_y
- 
- #ifndef __HAVE_ARCH_PMDP_TEST_AND_CLEAR_YOUNG
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG)
--static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
--					    unsigned long address,
--					    pmd_t *pmdp)
-+static inline bool pmdp_test_and_clear_young(struct vm_area_struct *vma,
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-int pmdp_clear_flush_young(struct vm_area_struct *vma,
+-			   unsigned long address, pmd_t *pmdp)
++bool pmdp_clear_flush_young(struct vm_area_struct *vma,
 +		unsigned long address, pmd_t *pmdp)
  {
- 	pmd_t pmd = *pmdp;
--	int r = 1;
-+	bool young = true;
-+
- 	if (!pmd_young(pmd))
--		r = 0;
-+		young = false;
- 	else
- 		set_pmd_at(vma->vm_mm, address, pmdp, pmd_mkold(pmd));
--	return r;
-+	return young;
- }
+-	int young;
++	bool young;
+ 
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 
+--- a/include/linux/pgtable.h~mm-change-to-return-bool-for-pmdp_clear_flush_young
++++ a/include/linux/pgtable.h
+@@ -536,18 +536,18 @@ bool ptep_clear_flush_young(struct vm_ar
+ 
+ #ifndef __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-extern int pmdp_clear_flush_young(struct vm_area_struct *vma,
+-				  unsigned long address, pmd_t *pmdp);
++bool pmdp_clear_flush_young(struct vm_area_struct *vma,
++		unsigned long address, pmd_t *pmdp);
  #else
--static inline int pmdp_test_and_clear_young(struct vm_area_struct *vma,
--					    unsigned long address,
--					    pmd_t *pmdp)
-+static inline bool pmdp_test_and_clear_young(struct vm_area_struct *vma,
+ /*
+  * Despite relevant to THP only, this API is called from generic rmap code
+  * under PageTransHuge(), hence needs a dummy implementation for !THP
+  */
+-static inline int pmdp_clear_flush_young(struct vm_area_struct *vma,
+-					 unsigned long address, pmd_t *pmdp)
++static inline bool pmdp_clear_flush_young(struct vm_area_struct *vma,
 +		unsigned long address, pmd_t *pmdp)
  {
  	BUILD_BUG();
 -	return 0;
 +	return false;
  }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_ARCH_HAS_NONLEAF_PMD_YOUNG */
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  #endif
+--- a/mm/pgtable-generic.c~mm-change-to-return-bool-for-pmdp_clear_flush_young
++++ a/mm/pgtable-generic.c
+@@ -124,10 +124,11 @@ int pmdp_set_access_flags(struct vm_area
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
+-int pmdp_clear_flush_young(struct vm_area_struct *vma,
+-			   unsigned long address, pmd_t *pmdp)
++bool pmdp_clear_flush_young(struct vm_area_struct *vma,
++		unsigned long address, pmd_t *pmdp)
+ {
+-	int young;
++	bool young;
++
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 	young = pmdp_test_and_clear_young(vma, address, pmdp);
+ 	if (young)
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
