@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A87D824EAB1
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A20F255F28
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744857; cv=none; b=qa5kyF0xfmCeqT74kvrBQU3C2iRH15ozznIgOGkz59Wgd2b26JRYxwGkhbcIDpEX5sQM252CMP9T7ZkryHf4Mg8uWprL6J1SV4SDXeyLAnGH/6m8ew50O6PEizsfQbG716vrFpNIcaMuMDrc8BNb7Gikz+au/tizWAxFZBPhho8=
+	t=1774744859; cv=none; b=I8Aj3EBxpvfIyrvYbimgos8AwaOCO+ez83oPZxLZajBo3zigEU4oAGzJKDeRCCeM6JbMSdjaSF6OxsvBwL6sQbDngF+87O0hgj6KKnOpPfBTmCXkiMdnEUK0eRw3Wk7EinC4zYC2qY6IWeknutARBAPRACKCVKtnx0YUJxnljFs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744857; c=relaxed/simple;
-	bh=913sxvAZQXdOcO1gedlHlOcL6RC+DGqRpGE4NMEFEqQ=;
-	h=Date:To:From:Subject:Message-Id; b=S4bhCeiMBwTJVOhBGTi0i6KQMWEQObwO2A1OdAEQhcNYm0W4+MZyGIsazhoI6yOTsOnUhgAijoVea8o/B2plHyNLNVYSoLcpRroLW9WUaBYhLdPUM8BbyWKczbU1peUw9G+hUbBVh4zwaRltfWIn4zeMURmmiIWXCvvTaWQ3Kog=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NefcnXFz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744859; c=relaxed/simple;
+	bh=C5a4aUv3+/JKiRuvV9tChRpQ8MAHBSsimWKbSJnZgs4=;
+	h=Date:To:From:Subject:Message-Id; b=ASrBk/8Q1LIXUgf0BuK6zGc6ng44ShLLXozIJLGorPiX1+jcqE/j1IW8W9ohM2wcV2D+SD0Lr0sBeGBDy2adt/utRb05L6fZ8cVpzwK2hmebptIQ6Sx3mGTHtPp3nMdiILD6U6R2GwCA6eC/6bo63SucaCohRjtnX+7OLTC7uyc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=maydXgc5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NefcnXFz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69013C4CEF7;
-	Sun, 29 Mar 2026 00:40:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="maydXgc5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7F1FC4CEF7;
+	Sun, 29 Mar 2026 00:40:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744857;
-	bh=913sxvAZQXdOcO1gedlHlOcL6RC+DGqRpGE4NMEFEqQ=;
+	s=korg; t=1774744859;
+	bh=C5a4aUv3+/JKiRuvV9tChRpQ8MAHBSsimWKbSJnZgs4=;
 	h=Date:To:From:Subject:From;
-	b=NefcnXFzTunExM5g4i2wFmFhRWekVia7Yvo1kAblCVoSdEkGMhqZj6d2m1HWNXRSc
-	 /IWb0l5DufqfploMMXASqsPBewSAoKWnPvV1pbr42/ewDtMpMvmpXGm2b0CJaN3hVY
-	 MtClFzjCk1WzfFe4pASrcz34HPcGZlrH9VWxivVA=
-Date: Sat, 28 Mar 2026 17:40:56 -0700
+	b=maydXgc5jcydXr7pSNpN0OTF95dOD2dv0P1EQNi/IuMbEjQGrJQiZf6RQRxLLQqrV
+	 L7Lw7xb5QZQTUvHDObnBVkVPaf6BtJF/JEZSkDyWu8wuSgm1P4eNo21PlV0zzYt1tl
+	 zs/0f8I88c4+QUIeoBUgQnlYTV9isflHViaPGgVs=
+Date: Sat, 28 Mar 2026 17:40:58 -0700
 To: mm-commits@vger.kernel.org,minchan@kernel.org,gaoxu2@honor.com,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-update-recompression-documentation.patch removed from -mm tree
-Message-Id: <20260329004057.69013C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] zram-remove-chained-recompression.patch removed from -mm tree
+Message-Id: <20260329004058.E7F1FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,23 +35,38 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: update recompression documentation
+     Subject: zram: remove chained recompression
 has been removed from the -mm tree.  Its filename was
-     zram-update-recompression-documentation.patch
+     zram-remove-chained-recompression.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: update recompression documentation
-Date: Wed, 11 Mar 2026 17:42:47 +0900
+Subject: zram: remove chained recompression
+Date: Wed, 11 Mar 2026 17:42:48 +0900
 
-Emphasize usage of the `priority` parameter for recompression and explain
-why `algo` parameter can lead to unexpected behavior and thus is not
-recommended.
+Chained recompression has unpredictable behavior and is not useful in
+practice.
 
-Link: https://lkml.kernel.org/r/20260311084312.1766036-5-senozhatsky@chromium.org
+First, systems usually configure just one alternative recompression
+algorithm, which has slower compression/decompression but better
+compression ratio.  A single alternative algorithm doesn't need chaining.
+
+Second, even with multiple recompression algorithms, chained recompression
+is suboptimal.  If a lower priority algorithm succeeds, the page is never
+attempted with a higher priority algorithm, leading to worse memory
+savings.  If a lower priority algorithm fails, the page is still attempted
+with a higher priority algorithm, wasting resources on the failed lower
+priority attempt.
+
+In either case, the system would be better off targeting a specific
+priority directly.
+
+Chained recompression also significantly complicates the code.  Remove it.
+
+Link: https://lkml.kernel.org/r/20260311084312.1766036-6-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: gao xu <gaoxu2@honor.com>
@@ -60,100 +75,197 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |   40 ++++++++----------
- 1 file changed, 18 insertions(+), 22 deletions(-)
+ Documentation/admin-guide/blockdev/zram.rst |    9 -
+ drivers/block/zram/zram_drv.c               |   84 +++++-------------
+ 2 files changed, 24 insertions(+), 69 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-update-recompression-documentation
+--- a/Documentation/admin-guide/blockdev/zram.rst~zram-remove-chained-recompression
 +++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -462,7 +462,7 @@ know it via /sys/block/zram0/bd_stat's 3
- recompression
- -------------
+@@ -533,15 +533,6 @@ unexpected results when the same algorit
+ priorities (e.g. different parameters).  `priority` is the only way to
+ guarantee that the expected algorithm will be used.
  
--With CONFIG_ZRAM_MULTI_COMP, zram can recompress pages using alternative
-+With `CONFIG_ZRAM_MULTI_COMP`, zram can recompress pages using alternative
- (secondary) compression algorithms. The basic idea is that alternative
- compression algorithm can provide better compression ratio at a price of
- (potentially) slower compression/decompression speeds. Alternative compression
-@@ -471,7 +471,7 @@ that default algorithm failed to compres
- recompression - pages that are cold and sit in the memory can be recompressed
- using more effective algorithm and, hence, reduce zsmalloc memory usage.
- 
--With CONFIG_ZRAM_MULTI_COMP, zram supports up to 4 compression algorithms:
-+With `CONFIG_ZRAM_MULTI_COMP`, zram supports up to 4 compression algorithms:
- one primary and up to 3 secondary ones. Primary zram compressor is explained
- in "3) Select compression algorithm", secondary algorithms are configured
- using recomp_algorithm device attribute.
-@@ -495,34 +495,43 @@ configuration:::
- 	#select deflate recompression algorithm, priority 2
- 	echo "algo=deflate priority=2" > /sys/block/zramX/recomp_algorithm
- 
--Another device attribute that CONFIG_ZRAM_MULTI_COMP enables is recompress,
-+Another device attribute that `CONFIG_ZRAM_MULTI_COMP` enables is `recompress`,
- which controls recompression.
- 
- Examples:::
- 
- 	#IDLE pages recompression is activated by `idle` mode
--	echo "type=idle" > /sys/block/zramX/recompress
-+	echo "type=idle priority=1" > /sys/block/zramX/recompress
- 
- 	#HUGE pages recompression is activated by `huge` mode
--	echo "type=huge" > /sys/block/zram0/recompress
-+	echo "type=huge priority=2" > /sys/block/zram0/recompress
- 
- 	#HUGE_IDLE pages recompression is activated by `huge_idle` mode
--	echo "type=huge_idle" > /sys/block/zramX/recompress
-+	echo "type=huge_idle priority=1" > /sys/block/zramX/recompress
- 
- The number of idle pages can be significant, so user-space can pass a size
- threshold (in bytes) to the recompress knob: zram will recompress only pages
- of equal or greater size:::
- 
- 	#recompress all pages larger than 3000 bytes
--	echo "threshold=3000" > /sys/block/zramX/recompress
-+	echo "threshold=3000 priority=1" > /sys/block/zramX/recompress
- 
- 	#recompress idle pages larger than 2000 bytes
--	echo "type=idle threshold=2000" > /sys/block/zramX/recompress
-+	echo "type=idle threshold=2000 priority=1" > \
-+		/sys/block/zramX/recompress
- 
- It is also possible to limit the number of pages zram re-compression will
- attempt to recompress:::
- 
--	echo "type=huge_idle max_pages=42" > /sys/block/zramX/recompress
-+	echo "type=huge_idle priority=1 max_pages=42" > \
-+		/sys/block/zramX/recompress
-+
-+It is advised to always specify `priority` parameter.  While it is also
-+possible to specify `algo` parameter, so that `zram` will use algorithm's
-+name to determine the priority, it is not recommended, since it can lead to
-+unexpected results when the same algorithm is configured with different
-+priorities (e.g. different parameters).  `priority` is the only way to
-+guarantee that the expected algorithm will be used.
- 
- During re-compression for every page, that matches re-compression criteria,
- ZRAM iterates the list of registered alternative compression algorithms in
-@@ -533,19 +542,6 @@ no secondary algorithms left to try. If
- successfully re-compressed the page such a page is marked as incompressible,
- so ZRAM will not attempt to re-compress it in the future.
- 
--This re-compression behaviour, when it iterates through the list of
--registered compression algorithms, increases our chances of finding the
--algorithm that successfully compresses a particular page. Sometimes, however,
--it is convenient (and sometimes even necessary) to limit recompression to
--only one particular algorithm so that it will not try any other algorithms.
--This can be achieved by providing a `algo` or `priority` parameter:::
--
--	#use zstd algorithm only (if registered)
--	echo "type=huge algo=zstd" > /sys/block/zramX/recompress
--
--	#use zstd algorithm only (if zstd was registered under priority 1)
--	echo "type=huge priority=1" > /sys/block/zramX/recompress
+-During re-compression for every page, that matches re-compression criteria,
+-ZRAM iterates the list of registered alternative compression algorithms in
+-order of their priorities. ZRAM stops either when re-compression was
+-successful (re-compressed object is smaller in size than the original one)
+-and matches re-compression criteria (e.g. size threshold) or when there are
+-no secondary algorithms left to try. If none of the secondary algorithms can
+-successfully re-compressed the page such a page is marked as incompressible,
+-so ZRAM will not attempt to re-compress it in the future.
 -
  memory tracking
  ===============
  
+--- a/drivers/block/zram/zram_drv.c~zram-remove-chained-recompression
++++ a/drivers/block/zram/zram_drv.c
+@@ -2336,7 +2336,7 @@ static bool highest_priority_algorithm(s
+ 	return true;
+ }
+ 
+-static int scan_slots_for_recompress(struct zram *zram, u32 mode, u32 prio_max,
++static int scan_slots_for_recompress(struct zram *zram, u32 mode, u32 prio,
+ 				     struct zram_pp_ctl *ctl)
+ {
+ 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
+@@ -2362,8 +2362,8 @@ static int scan_slots_for_recompress(str
+ 		    test_slot_flag(zram, index, ZRAM_INCOMPRESSIBLE))
+ 			goto next;
+ 
+-		/* Already compressed with same of higher priority */
+-		if (get_slot_comp_priority(zram, index) + 1 >= prio_max)
++		/* Already compressed with same or higher priority */
++		if (get_slot_comp_priority(zram, index) >= prio)
+ 			goto next;
+ 
+ 		ok = place_pp_slot(zram, ctl, index);
+@@ -2384,8 +2384,7 @@ next:
+  * Corresponding ZRAM slot should be locked.
+  */
+ static int recompress_slot(struct zram *zram, u32 index, struct page *page,
+-			   u64 *num_recomp_pages, u32 threshold, u32 prio,
+-			   u32 prio_max)
++			   u64 *num_recomp_pages, u32 threshold, u32 prio)
+ {
+ 	struct zcomp_strm *zstrm = NULL;
+ 	unsigned long handle_old;
+@@ -2397,6 +2396,9 @@ static int recompress_slot(struct zram *
+ 	void *src;
+ 	int ret = 0;
+ 
++	if (!zram->comps[prio])
++		return -EINVAL;
++
+ 	handle_old = get_slot_handle(zram, index);
+ 	if (!handle_old)
+ 		return -EINVAL;
+@@ -2419,51 +2421,10 @@ static int recompress_slot(struct zram *
+ 	 */
+ 	clear_slot_flag(zram, index, ZRAM_IDLE);
+ 
+-	class_index_old = zs_lookup_class_index(zram->mem_pool, comp_len_old);
+-
+-	prio = max(prio, get_slot_comp_priority(zram, index) + 1);
+-	/*
+-	 * Recompression slots scan should not select slots that are
+-	 * already compressed with a higher priority algorithm, but
+-	 * just in case
+-	 */
+-	if (prio >= prio_max)
+-		return 0;
+-
+-	/*
+-	 * Iterate the secondary comp algorithms list (in order of priority)
+-	 * and try to recompress the page.
+-	 */
+-	for (; prio < prio_max; prio++) {
+-		if (!zram->comps[prio])
+-			continue;
+-
+-		zstrm = zcomp_stream_get(zram->comps[prio]);
+-		src = kmap_local_page(page);
+-		ret = zcomp_compress(zram->comps[prio], zstrm,
+-				     src, &comp_len_new);
+-		kunmap_local(src);
+-
+-		if (ret) {
+-			zcomp_stream_put(zstrm);
+-			zstrm = NULL;
+-			break;
+-		}
+-
+-		class_index_new = zs_lookup_class_index(zram->mem_pool,
+-							comp_len_new);
+-
+-		/* Continue until we make progress */
+-		if (class_index_new >= class_index_old ||
+-		    (threshold && comp_len_new >= threshold)) {
+-			zcomp_stream_put(zstrm);
+-			zstrm = NULL;
+-			continue;
+-		}
+-
+-		/* Recompression was successful so break out */
+-		break;
+-	}
++	zstrm = zcomp_stream_get(zram->comps[prio]);
++	src = kmap_local_page(page);
++	ret = zcomp_compress(zram->comps[prio], zstrm, src, &comp_len_new);
++	kunmap_local(src);
+ 
+ 	/*
+ 	 * Decrement the limit (if set) on pages we can recompress, even
+@@ -2474,11 +2435,18 @@ static int recompress_slot(struct zram *
+ 	if (*num_recomp_pages)
+ 		*num_recomp_pages -= 1;
+ 
+-	/* Compression error */
+-	if (ret)
++	if (ret) {
++		zcomp_stream_put(zstrm);
+ 		return ret;
++	}
++
++	class_index_old = zs_lookup_class_index(zram->mem_pool, comp_len_old);
++	class_index_new = zs_lookup_class_index(zram->mem_pool, comp_len_new);
++
++	if (class_index_new >= class_index_old ||
++	    (threshold && comp_len_new >= threshold)) {
++		zcomp_stream_put(zstrm);
+ 
+-	if (!zstrm) {
+ 		/*
+ 		 * Secondary algorithms failed to re-compress the page
+ 		 * in a way that would save memory.
+@@ -2528,11 +2496,11 @@ static ssize_t recompress_store(struct d
+ 				struct device_attribute *attr,
+ 				const char *buf, size_t len)
+ {
+-	u32 prio = ZRAM_SECONDARY_COMP, prio_max = ZRAM_MAX_COMPS;
+ 	struct zram *zram = dev_to_zram(dev);
+ 	char *args, *param, *val, *algo = NULL;
+ 	u64 num_recomp_pages = ULLONG_MAX;
+ 	struct zram_pp_ctl *ctl = NULL;
++	u32 prio = ZRAM_SECONDARY_COMP;
+ 	struct zram_pp_slot *pps;
+ 	u32 mode = 0, threshold = 0;
+ 	struct page *page = NULL;
+@@ -2586,8 +2554,6 @@ static ssize_t recompress_store(struct d
+ 			ret = kstrtouint(val, 10, &prio);
+ 			if (ret)
+ 				return ret;
+-
+-			prio_max = min(prio + 1, ZRAM_MAX_COMPS);
+ 			continue;
+ 		}
+ 	}
+@@ -2607,7 +2573,6 @@ static ssize_t recompress_store(struct d
+ 				continue;
+ 
+ 			if (!strcmp(zram->comp_algs[prio], algo)) {
+-				prio_max = min(prio + 1, ZRAM_MAX_COMPS);
+ 				found = true;
+ 				break;
+ 			}
+@@ -2636,7 +2601,7 @@ static ssize_t recompress_store(struct d
+ 		goto out;
+ 	}
+ 
+-	scan_slots_for_recompress(zram, mode, prio_max, ctl);
++	scan_slots_for_recompress(zram, mode, prio, ctl);
+ 
+ 	ret = len;
+ 	while ((pps = select_pp_slot(ctl))) {
+@@ -2650,8 +2615,7 @@ static ssize_t recompress_store(struct d
+ 			goto next;
+ 
+ 		err = recompress_slot(zram, pps->index, page,
+-				      &num_recomp_pages, threshold,
+-				      prio, prio_max);
++				      &num_recomp_pages, threshold, prio);
+ next:
+ 		slot_unlock(zram, pps->index);
+ 		release_pp_slot(zram, pps);
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
