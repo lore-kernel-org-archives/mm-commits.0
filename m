@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0D7C20E023
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C12F234994
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744801; cv=none; b=LejnMtXrPu/QsSM8cMcK2YGp/VK2e0uLHmlC72CPKY7R6sVwdFONNM9IzAaynL2nNePweSfKOpHYtcQl1jHlOmDR8BbVgrLV/uizUbU6dIMfh/XEL9O2MJtBSZLvLv9Jvoi5tqk0XdFI6BnEWAmf7A6p99wbWADxkYarihMK22o=
+	t=1774744803; cv=none; b=SgAOrjfa2AzJKO+3kQeSiXVWV2wNJrL/0IzTTdLpYTp/jWpQA1ZsmP8NFKpSVtnCAJ7R/DrRF2LOfHsbdshFfZFc/9FIJEpYCiH8z7txbrOed5UyrzEAMCLQJWr62/vmHPL8M/u/nPDv59gC/DF2H5T1n6sE7pcCQF7wiFTZ3eM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744801; c=relaxed/simple;
-	bh=uBfYKUtIeSWzf/FurJqrN3D/JaA9JssHveEpNAuz0i0=;
-	h=Date:To:From:Subject:Message-Id; b=aQLi8Bfwkmr4kMiDyV4fplXQv6h/2FAMJ8dPM5KloAiA/CRqIXUWbt7gDsvm+7yQ/T7SIP5YN4tfhr+QNmFlMIgYoWauSUh70hokEwrBP1xG571gc5YgpzBapwH3+WjDkqroCjYDaD9+SSITvGqGVHRVIp8UxrhQJw5FCx1Fm5E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hu88mBxB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744803; c=relaxed/simple;
+	bh=DpYkB2k1cyO7K+W0ASdqJFkg/foPOKvMHQyX+0W0u2I=;
+	h=Date:To:From:Subject:Message-Id; b=S548mD/VQi0OelNbvC46yuaQPaZwln4rRsz8K3P9yAm1bNn6wSHaBuUmBas5vE5rGmzAMo5jNyX32l8aG3cR0dmWsMSkMnVSXC3a/mwLt3tPC8vUZDyxvem7uAF4OkgHZO6jzteLrhkRiVDagEMgox9+w0FPMTTnEWANaHZLYDM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XHQ+ASzm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hu88mBxB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A0F7C4CEF7;
-	Sun, 29 Mar 2026 00:40:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XHQ+ASzm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F143DC4CEF7;
+	Sun, 29 Mar 2026 00:40:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744801;
-	bh=uBfYKUtIeSWzf/FurJqrN3D/JaA9JssHveEpNAuz0i0=;
+	s=korg; t=1774744803;
+	bh=DpYkB2k1cyO7K+W0ASdqJFkg/foPOKvMHQyX+0W0u2I=;
 	h=Date:To:From:Subject:From;
-	b=hu88mBxB79ZiOZ5k6Pn69OC5eEivLcp+OqSEE87fy61Su4nqaoCkFLpFBm0ThpJIQ
-	 SsDTgfP57nsatsRCT4CjFHoWbd0X6anUlbFOveuGD1ir+FkwqfZwxvLmI4iP4YqyWz
-	 Cllq0K+RXdihx3IeAaKcicciKyxXb53CJIhOZzXo=
-Date: Sat, 28 Mar 2026 17:40:00 -0700
+	b=XHQ+ASzmv5iOBojiLCtkiNddTh5joiNgtSByS760tMK06arKVZhToH491xbJ3bH+W
+	 xJneYR7YhHU0ejWbocg7TDW8KesFmBBMMy6A3KHsp0OJpE8zv/TMtRtYPnga0BTBJB
+	 Zb/5frMvqhufglHAhdws02ulkKYmi4ISF6E0+4xE=
+Date: Sat, 28 Mar 2026 17:40:02 -0700
 To: mm-commits@vger.kernel.org,zbestahu@gmail.com,xiang@kernel.org,willy@infradead.org,vishal.l.verma@intel.com,vbabka@kernel.org,tony.luck@intel.com,surenb@google.com,rppt@kernel.org,reinette.chatre@intel.com,pfalcato@suse.de,osalvador@suse.de,naohiro.aota@wdc.com,muchun.song@linux.dev,mhocko@suse.com,lihongbo22@huawei.com,liam.howlett@oracle.com,jth@kernel.org,jgg@ziepe.ca,jefflexu@linux.alibaba.com,jannh@google.com,james.morse@arm.com,jack@suse.cz,hughd@google.com,guochunhai@vivo.com,gregkh@linuxfoundation.org,dlemoal@kernel.org,dhavale@google.com,david@kernel.org,dave.martin@arm.com,dave.jiang@intel.com,dan.j.williams@intel.com,chao@kernel.org,baolin.wang@linux.alibaba.com,babu.moger@amd.com,arnd@arndb.de,almaz.alexandrovich@paragon-software.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-always-inline-__mk_vma_flags-and-invoked-functions.patch removed from -mm tree
-Message-Id: <20260329004001.5A0F7C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-reintroduce-vma_flags_test-as-a-singular-flag-test.patch removed from -mm tree
+Message-Id: <20260329004002.F143DC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: always inline __mk_vma_flags() and invoked functions
+     Subject: mm: reintroduce vma_flags_test() as a singular flag test
 has been removed from the -mm tree.  Its filename was
-     mm-always-inline-__mk_vma_flags-and-invoked-functions.patch
+     mm-reintroduce-vma_flags_test-as-a-singular-flag-test.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm: always inline __mk_vma_flags() and invoked functions
-Date: Thu, 5 Mar 2026 10:50:16 +0000
+Subject: mm: reintroduce vma_flags_test() as a singular flag test
+Date: Thu, 5 Mar 2026 10:50:17 +0000
 
-Be explicit about __mk_vma_flags() (which is used by the mk_vma_flags()
-macro) always being inline, as we rely on the compiler to evaluate the
-loop in this function and determine that it can replace the code with the
-an equivalent constant value, e.g. that:
+Since we've now renamed vma_flags_test() to vma_flags_test_any() to be
+very clear as to what we are in fact testing, we now have the opportunity
+to bring vma_flags_test() back, but for explicitly testing a single VMA
+flag.
 
-__mk_vma_flags(2, (const vma_flag_t []){ VMA_WRITE_BIT, VMA_EXEC_BIT });
+This is useful, as often flag tests are against a single flag, and
+vma_flags_test_any(flags, VMA_READ_BIT) reads oddly and potentially causes
+confusion.
 
-Can be replaced with:
+We use sparse to enforce that users won't accidentally pass vm_flags_t to
+this function without it being flagged so this should make it harder to
+get this wrong.
 
-(1UL << VMA_WRITE_BIT) | (1UL << VMA_EXEC_BIT)
+Of course, passing vma_flags_t to the function is impossible, as it is a
+struct.
 
-= (1UL << 1) | (1UL << 2) = 6
+Also update the VMA tests to reflect this change.
 
-Most likely an 'inline' will suffice for this, but be explicit as we can
-be.
-
-Also update all of the functions __mk_vma_flags() ultimately invokes to be
-always inline too.
-
-Note that test_bitmap_const_eval() asserts that the relevant bitmap
-functions result in build time constant values.
-
-Additionally, vma_flag_set() operates on a vma_flags_t type, so it is
-inconsistently named versus other VMA flags functions.
-
-We only use vma_flag_set() in __mk_vma_flags() so we don't need to worry
-about its new name being rather cumbersome, so rename it to
-vma_flags_set_flag() to disambiguate it from vma_flags_set().
-
-Also update the VMA test headers to reflect the changes.
-
-Link: https://lkml.kernel.org/r/241f49c52074d436edbb9c6a6662a8dc142a8f43.1772704455.git.ljs@kernel.org
+Link: https://lkml.kernel.org/r/f33f8d7f16c3f3d286a1dc2cba12c23683073134.1772704455.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Pedro Falcato <pfalcato@suse.de>
@@ -119,90 +106,93 @@ Cc: Yue Hu <zbestahu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h                 |    8 +++++---
- include/linux/mm_types.h           |    2 +-
- tools/testing/vma/include/custom.h |    5 +++--
- tools/testing/vma/include/dup.h    |    5 +++--
- 4 files changed, 12 insertions(+), 8 deletions(-)
+ include/linux/mm.h              |   17 +++++++++++++++--
+ mm/hugetlb.c                    |    2 +-
+ mm/shmem.c                      |    4 ++--
+ tools/testing/vma/include/dup.h |    8 ++++++++
+ 4 files changed, 26 insertions(+), 5 deletions(-)
 
---- a/include/linux/mm.h~mm-always-inline-__mk_vma_flags-and-invoked-functions
+--- a/include/linux/mm.h~mm-reintroduce-vma_flags_test-as-a-singular-flag-test
 +++ a/include/linux/mm.h
-@@ -1030,21 +1030,23 @@ static inline bool vma_test_atomic_flag(
+@@ -1051,6 +1051,19 @@ static __always_inline vma_flags_t __mk_
  }
  
- /* Set an individual VMA flag in flags, non-atomically. */
--static inline void vma_flag_set(vma_flags_t *flags, vma_flag_t bit)
-+static __always_inline void vma_flags_set_flag(vma_flags_t *flags,
+ /*
++ * Test whether a specific VMA flag is set, e.g.:
++ *
++ * if (vma_flags_test(flags, VMA_READ_BIT)) { ... }
++ */
++static __always_inline bool vma_flags_test(const vma_flags_t *flags,
 +		vma_flag_t bit)
++{
++	const unsigned long *bitmap = flags->__vma_flags;
++
++	return test_bit((__force int)bit, bitmap);
++}
++
++/*
+  * Helper macro which bitwise-or combines the specified input flags into a
+  * vma_flags_t bitmap value. E.g.:
+  *
+@@ -1956,8 +1969,8 @@ static inline bool vma_desc_is_cow_mappi
  {
- 	unsigned long *bitmap = flags->__vma_flags;
+ 	const vma_flags_t *flags = &desc->vma_flags;
  
- 	__set_bit((__force int)bit, bitmap);
+-	return vma_flags_test_any(flags, VMA_MAYWRITE_BIT) &&
+-		!vma_flags_test_any(flags, VMA_SHARED_BIT);
++	return vma_flags_test(flags, VMA_MAYWRITE_BIT) &&
++		!vma_flags_test(flags, VMA_SHARED_BIT);
  }
  
--static inline vma_flags_t __mk_vma_flags(size_t count, const vma_flag_t *bits)
-+static __always_inline vma_flags_t __mk_vma_flags(size_t count,
-+		const vma_flag_t *bits)
+ #ifndef CONFIG_MMU
+--- a/mm/hugetlb.c~mm-reintroduce-vma_flags_test-as-a-singular-flag-test
++++ a/mm/hugetlb.c
+@@ -6593,7 +6593,7 @@ long hugetlb_reserve_pages(struct inode
+ 	 * attempt will be made for VM_NORESERVE to allocate a page
+ 	 * without using reserves
+ 	 */
+-	if (vma_flags_test_any(&vma_flags, VMA_NORESERVE_BIT))
++	if (vma_flags_test(&vma_flags, VMA_NORESERVE_BIT))
+ 		return 0;
+ 
+ 	/*
+--- a/mm/shmem.c~mm-reintroduce-vma_flags_test-as-a-singular-flag-test
++++ a/mm/shmem.c
+@@ -3086,7 +3086,7 @@ static struct inode *__shmem_get_inode(s
+ 	spin_lock_init(&info->lock);
+ 	atomic_set(&info->stop_eviction, 0);
+ 	info->seals = F_SEAL_SEAL;
+-	info->flags = vma_flags_test_any(&flags, VMA_NORESERVE_BIT)
++	info->flags = vma_flags_test(&flags, VMA_NORESERVE_BIT)
+ 		? SHMEM_F_NORESERVE : 0;
+ 	info->i_crtime = inode_get_mtime(inode);
+ 	info->fsflags = (dir == NULL) ? 0 :
+@@ -5827,7 +5827,7 @@ static struct file *__shmem_file_setup(s
+ 				       unsigned int i_flags)
  {
- 	vma_flags_t flags;
- 	int i;
+ 	const unsigned long shmem_flags =
+-		vma_flags_test_any(&flags, VMA_NORESERVE_BIT) ? SHMEM_F_NORESERVE : 0;
++		vma_flags_test(&flags, VMA_NORESERVE_BIT) ? SHMEM_F_NORESERVE : 0;
+ 	struct inode *inode;
+ 	struct file *res;
  
- 	vma_flags_clear_all(&flags);
- 	for (i = 0; i < count; i++)
--		vma_flag_set(&flags, bits[i]);
-+		vma_flags_set_flag(&flags, bits[i]);
- 	return flags;
- }
- 
---- a/include/linux/mm_types.h~mm-always-inline-__mk_vma_flags-and-invoked-functions
-+++ a/include/linux/mm_types.h
-@@ -1056,7 +1056,7 @@ struct vm_area_struct {
- } __randomize_layout;
- 
- /* Clears all bits in the VMA flags bitmap, non-atomically. */
--static inline void vma_flags_clear_all(vma_flags_t *flags)
-+static __always_inline void vma_flags_clear_all(vma_flags_t *flags)
- {
- 	bitmap_zero(flags->__vma_flags, NUM_VMA_FLAG_BITS);
- }
---- a/tools/testing/vma/include/custom.h~mm-always-inline-__mk_vma_flags-and-invoked-functions
-+++ a/tools/testing/vma/include/custom.h
-@@ -102,7 +102,8 @@ static inline void vma_lock_init(struct
- 		refcount_set(&vma->vm_refcnt, 0);
- }
- 
--static inline vma_flags_t __mk_vma_flags(size_t count, const vma_flag_t *bits)
-+static __always_inline vma_flags_t __mk_vma_flags(size_t count,
-+		const vma_flag_t *bits)
- {
- 	vma_flags_t flags;
- 	int i;
-@@ -114,6 +115,6 @@ static inline vma_flags_t __mk_vma_flags
- 	vma_flags_clear_all(&flags);
- 	for (i = 0; i < count; i++)
- 		if (bits[i] < NUM_VMA_FLAG_BITS)
--			vma_flag_set(&flags, bits[i]);
-+			vma_flags_set_flag(&flags, bits[i]);
- 	return flags;
- }
---- a/tools/testing/vma/include/dup.h~mm-always-inline-__mk_vma_flags-and-invoked-functions
+--- a/tools/testing/vma/include/dup.h~mm-reintroduce-vma_flags_test-as-a-singular-flag-test
 +++ a/tools/testing/vma/include/dup.h
-@@ -780,12 +780,13 @@ static inline void vma_flags_clear_word(
- 	*bitmap &= ~value;
- }
+@@ -844,6 +844,14 @@ static inline vma_flags_t __mk_vma_flags
+ #define mk_vma_flags(...) __mk_vma_flags(COUNT_ARGS(__VA_ARGS__), \
+ 					 (const vma_flag_t []){__VA_ARGS__})
  
--static inline void vma_flags_clear_all(vma_flags_t *flags)
-+static __always_inline void vma_flags_clear_all(vma_flags_t *flags)
- {
- 	bitmap_zero(ACCESS_PRIVATE(flags, __vma_flags), NUM_VMA_FLAG_BITS);
- }
- 
--static inline void vma_flag_set(vma_flags_t *flags, vma_flag_t bit)
-+static __always_inline void vma_flags_set_flag(vma_flags_t *flags,
++static __always_inline bool vma_flags_test(const vma_flags_t *flags,
 +		vma_flag_t bit)
++{
++	const unsigned long *bitmap = flags->__vma_flags;
++
++	return test_bit((__force int)bit, bitmap);
++}
++
+ static __always_inline bool vma_flags_test_any_mask(const vma_flags_t *flags,
+ 		vma_flags_t to_test)
  {
- 	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
- 
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
