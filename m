@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34A06277CB8
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:42:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75B3C277CB8
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:42:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744955; cv=none; b=H/Hzf99jaAtW279oElZPBj16QuXqyWpAHZiok8t2RzKhx5MuQxmwxB6Cl5sSpRhMdJEZQZDP+XmzPfCSIuW79xbjOqT8rekuWe3sHW/K/en3oOfD8GCOrHPBfi9qWevXIJ/VJwn4R+sDMIEmrRprwfzkVh5HF2W+O/NRePv/SRg=
+	t=1774744956; cv=none; b=m/QGR5Nzr3VlF7SxNhUVkELrDFPzgl6BEG4wSfY1G/cAn/ngzw8JQpbm62vtDk/sp+GBhP8QbwI13HS5Fz/5G4/PexLCouF17cYyvYVksTGLOXO3RNdVuC8T7SgFViomMJrt5QF5nU74lSoGLfCvnvQgS3bW7pUAN5aaZ8YjfcE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744955; c=relaxed/simple;
-	bh=+4rmANo9j47jJpR4ua1dzscKtRnCi/bpUHLYFhZg1A4=;
-	h=Date:To:From:Subject:Message-Id; b=DyPGP5ITF12sX6myw/cjNhm4PX1m22et5doK+utaxFgRiuJoaW4mGJamKRZdgQqC+QpQFpxo+Gi8g8mw4EMj+D6x/7awHwIT3tUz++luQzlWP+T+t7jSe5txXbJ5TDqtdNB7onu6BPXspYme1zCtat2206ysgWCaaJsD7/dB1Qo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x1XQXcxS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744956; c=relaxed/simple;
+	bh=jEQe5LkYnqav0S+qFYRAyVrzYrHt536oFlttJs7EuyU=;
+	h=Date:To:From:Subject:Message-Id; b=mYQy3BCuOH26U8WzYwy83BhR9lCW4CiknnkkwNdT1k9cjJ5fsPAdCT1d5sRh4skDZpN+ipQ2MgCvn7eN/qNlY1w1COsEFH3ptEELgTI1tAf7rNW+QfQcj1Ao9/ucYjZqXi3GQ9MWA4UlahHM/phvcryoMDDI/PuKC9LRRsEiJ8E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U+sLoSCY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x1XQXcxS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C3B4C4CEF7;
-	Sun, 29 Mar 2026 00:42:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U+sLoSCY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D381C4CEF7;
+	Sun, 29 Mar 2026 00:42:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744955;
-	bh=+4rmANo9j47jJpR4ua1dzscKtRnCi/bpUHLYFhZg1A4=;
+	s=korg; t=1774744956;
+	bh=jEQe5LkYnqav0S+qFYRAyVrzYrHt536oFlttJs7EuyU=;
 	h=Date:To:From:Subject:From;
-	b=x1XQXcxS6BWiYi6X9Sa1YDVpFakZOG/NE7SdmQGwJM70ijaoShxYW3gBujbBYSPvZ
-	 WgyWq6NDUETdG26utgMQjfzajVRfkFaXTF+3MFPaH7K/RCNxrnIqNcDC8Uy+jaWFAh
-	 dKnBlk1jC5ffhrCQs+NHzRmuOL6OSRUDEF2lf7WA=
-Date: Sat, 28 Mar 2026 17:42:34 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,akpm@linux-foundation.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
+	b=U+sLoSCYcW4+i1dxubGPD9yPoB4/sLTR8mOyKv+GwWSsVDSwXgegrkW3abeXYOLD6
+	 clO8QmOrNR4GtU/WBP9lJKkbUb+nd05HMnj/Oi0Ale+i0dxeG9gUYOjTHcAi9N8Ux4
+	 Rt8gqCQGykGTXxnHGdRMYv/MZjdO4CzVj10bZxSY=
+Date: Sat, 28 Mar 2026 17:42:35 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,tony.luck@intel.com,kees@kernel.org,julia.lawall@inria.fr,gpiccoli@igalia.com,akpm@linux-foundation.org,kexinsun@smail.nju.edu.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mark-early-init-static-variables-with-__meminitdata.patch removed from -mm tree
-Message-Id: <20260329004235.0C3B4C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmalloc-update-outdated-comment-for-renamed-vread.patch removed from -mm tree
+Message-Id: <20260329004236.4D381C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,85 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: mark early-init static variables with __meminitdata
+     Subject: mm: vmalloc: update outdated comment for renamed vread()
 has been removed from the -mm tree.  Its filename was
-     mm-mark-early-init-static-variables-with-__meminitdata.patch
+     mm-vmalloc-update-outdated-comment-for-renamed-vread.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: mm: mark early-init static variables with __meminitdata
-Date: Sat, 21 Mar 2026 20:08:47 +0800
+From: Kexin Sun <kexinsun@smail.nju.edu.cn>
+Subject: mm: vmalloc: update outdated comment for renamed vread()
+Date: Sat, 21 Mar 2026 18:58:20 +0800
 
-Static variables defined inside __meminit functions should also be marked
-with __meminitdata, so that their storage is placed in the .init.data
-section and reclaimed with free_initmem(), thereby reducing permanent .bss
-memory usage when CONFIG_MEMORY_HOTPLUG is disabled.
+The function vread() was renamed to vread_iter() in commit 4c91c07c93bb
+("mm: vmalloc: convert vread() to vread_iter()"), converting from a
+buffer-based to an iterator-based interface.
 
-Link: https://lkml.kernel.org/r/20260321120847.8159-1-pilgrimtao@gmail.com
-Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+Update the kdoc of vread_iter() to reflect the new interface: replace
+references to @buf with @iter, drop the stale "kernel's buffer"
+requirement, and update the self-reference from vread() to vread_iter().
+
+Also update the stale vread() reference in pstore's ram_core.c.
+
+Assisted-by: unnamed:deepseek-v3.2 coccinelle
+Link: https://lkml.kernel.org/r/20260321105820.7134-1-kexinsun@smail.nju.edu.cn
+Signed-off-by: Kexin Sun <kexinsun@smail.nju.edu.cn>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+Cc: Julia Lawall <julia.lawall@inria.fr>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c        |    2 +-
- mm/sparse-vmemmap.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/pstore/ram_core.c |    2 +-
+ mm/vmalloc.c         |   10 +++++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/mm_init.c~mm-mark-early-init-static-variables-with-__meminitdata
-+++ a/mm/mm_init.c
-@@ -812,7 +812,7 @@ void __meminit reserve_bootmem_region(ph
- static bool __meminit
- overlap_memmap_init(unsigned long zone, unsigned long *pfn)
- {
--	static struct memblock_region *r;
-+	static struct memblock_region *r __meminitdata;
- 
- 	if (mirrored_kernelcore && zone == ZONE_MOVABLE) {
- 		if (!r || *pfn >= memblock_region_memory_end_pfn(r)) {
---- a/mm/sparse-vmemmap.c~mm-mark-early-init-static-variables-with-__meminitdata
-+++ a/mm/sparse-vmemmap.c
-@@ -62,7 +62,7 @@ void * __meminit vmemmap_alloc_block(uns
- 	if (slab_is_available()) {
- 		gfp_t gfp_mask = GFP_KERNEL|__GFP_RETRY_MAYFAIL|__GFP_NOWARN;
- 		int order = get_order(size);
--		static bool warned;
-+		static bool warned __meminitdata;
- 		struct page *page;
- 
- 		page = alloc_pages_node(node, gfp_mask, order);
+--- a/fs/pstore/ram_core.c~mm-vmalloc-update-outdated-comment-for-renamed-vread
++++ a/fs/pstore/ram_core.c
+@@ -450,7 +450,7 @@ static void *persistent_ram_vmap(phys_ad
+ 		pages[i] = pfn_to_page(addr >> PAGE_SHIFT);
+ 	}
+ 	/*
+-	 * VM_IOREMAP used here to bypass this region during vread()
++	 * VM_IOREMAP used here to bypass this region during vread_iter()
+ 	 * and kmap_atomic() (i.e. kcore) to avoid __va() failures.
+ 	 */
+ 	vaddr = vmap(pages, page_count, VM_MAP | VM_IOREMAP, prot);
+--- a/mm/vmalloc.c~mm-vmalloc-update-outdated-comment-for-renamed-vread
++++ a/mm/vmalloc.c
+@@ -4575,20 +4575,20 @@ finished:
+  * @count:        number of bytes to be read.
+  *
+  * This function checks that addr is a valid vmalloc'ed area, and
+- * copy data from that area to a given buffer. If the given memory range
++ * copies data from that area to a given iterator. If the given memory range
+  * of [addr...addr+count) includes some valid address, data is copied to
+- * proper area of @buf. If there are memory holes, they'll be zero-filled.
++ * proper area of @iter. If there are memory holes, they'll be zero-filled.
+  * IOREMAP area is treated as memory hole and no copy is done.
+  *
+  * If [addr...addr+count) doesn't includes any intersects with alive
+- * vm_struct area, returns 0. @buf should be kernel's buffer.
++ * vm_struct area, returns 0.
+  *
+- * Note: In usual ops, vread() is never necessary because the caller
++ * Note: In usual ops, vread_iter() is never necessary because the caller
+  * should know vmalloc() area is valid and can use memcpy().
+  * This is for routines which have to access vmalloc area without
+  * any information, as /proc/kcore.
+  *
+- * Return: number of bytes for which addr and buf should be increased
++ * Return: number of bytes for which addr and iter should be advanced
+  * (same number as @count) or %0 if [addr...addr+count) doesn't
+  * include any intersection with valid vmalloc area
+  */
 _
 
-Patches currently in -mm which might be from chengkaitao@kylinos.cn are
+Patches currently in -mm which might be from kexinsun@smail.nju.edu.cn are
 
 
