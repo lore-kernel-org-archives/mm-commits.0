@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 331E6261B91
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B905C255E43
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744883; cv=none; b=kj3V7761xnxi+THRBYMjIZPmBFhz94djbWtqr2pvXbF+UOY2Q4Y0ydm+rKjKZ1lVhtHg7YYHFXJ+p851UGBSyPkrm0fHD5yj1eszKxOJBGsf2il0fvD0USHUDsZ1vJ6zIY3YpJLoezrenWQal3Flg9rLFNPFoetYPV64/GBciuw=
+	t=1774744884; cv=none; b=jwKe5r61UPyWE7w46Agsk4MNFj/5OrfyxzQWEWIs9IDUMNfDUDPsmHAUXbGykqglyqyEqmh/EDDlBuz4WFDxwaFTbMI0CnqqCFVocpnhteZreiqQ9FS09p/1XXTCamKhAtTNWZultkpxKYEhH9ireS4BF05U1za0LPZhtbgpF7I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744883; c=relaxed/simple;
-	bh=CFl01WEh14dSdh9ck/66Sva85AplYvXPzqJpAd/IduQ=;
-	h=Date:To:From:Subject:Message-Id; b=FI7LtDm32mar9SEGBp5LUAyFNpZegdYPqZE7v420JKijYtlsjwoiVamSmOV/4lPkDJIa2ulvaYxEVX9PBcUW1vfRwEfTR/dgZvppuTBx2fltwLB1CfIjriFwL4xNtw+ZAPUSWnbJ3x3BPY2hTKlB6UIvx72c9ouF7k+ELQu1JvE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QbZxBtau; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744884; c=relaxed/simple;
+	bh=cbq/rwz4ILpWjaEHmSuKT+FeolljMC3X1PTiBHAlo7k=;
+	h=Date:To:From:Subject:Message-Id; b=pZPKB3jTc2WrDt3M7o6esAXVym6H2usJzKSdNMhpiUQnbv/2qbOnoS2AKKgDFoL9TNbU/LgVnCK/OdjdSQpH4zDEtyC/pplINV4gEuFMkWcGp9bIAg7pnXqxX51RZSU7TN6wx6btRgGWN9DAAxbhoMwxbDfMtoF87KMBR4feV8I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=w2zOlNwz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QbZxBtau"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BDC0C4CEF7;
-	Sun, 29 Mar 2026 00:41:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="w2zOlNwz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 904C3C4CEF7;
+	Sun, 29 Mar 2026 00:41:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744883;
-	bh=CFl01WEh14dSdh9ck/66Sva85AplYvXPzqJpAd/IduQ=;
+	s=korg; t=1774744884;
+	bh=cbq/rwz4ILpWjaEHmSuKT+FeolljMC3X1PTiBHAlo7k=;
 	h=Date:To:From:Subject:From;
-	b=QbZxBtau7dY6K9EkndjSEExGNobavfgnjhKMW0bhMa8+vQl9achBsgrqIA9hghZc/
-	 CiwkxbprW3S9FSBgwy+Bd1GQmxMhWu9U4iA/OQI25HfIGNlF88nGMaiXghM8+QFtpP
-	 6AmtXu82UBVFGLX8V9edzu2YcS2X+TmRFHv5nvno=
-Date: Sat, 28 Mar 2026 17:41:22 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,lance.yang@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,leitao@debian.org,akpm@linux-foundation.org
+	b=w2zOlNwzM6S1zP5ofMvEMJIKV5yRq3Qbg/D76tBjxWjWWKEoIQdijqkVkdWevij+C
+	 FeNRpvbR3LLCtj4cwxUan+YU6CxH3V+HOEp1jnOEhWEujBMxMPwogTjLLPPpG9CoT6
+	 HsB4olffWaoiYHHCmTdrKVEuH7befQ9ZK/EXTqLg=
+Date: Sat, 28 Mar 2026 17:41:24 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-ratelimit-min_free_kbytes-adjustment-messages.patch removed from -mm tree
-Message-Id: <20260329004123.0BDC0C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-pagemap_ioctl-remove-hungarian-notation.patch removed from -mm tree
+Message-Id: <20260329004124.904C3C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,89 +35,105 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: ratelimit min_free_kbytes adjustment messages
+     Subject: selftests/mm: pagemap_ioctl: remove hungarian notation
 has been removed from the -mm tree.  Its filename was
-     mm-ratelimit-min_free_kbytes-adjustment-messages.patch
+     selftests-mm-pagemap_ioctl-remove-hungarian-notation.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm: ratelimit min_free_kbytes adjustment messages
-Date: Tue, 17 Mar 2026 08:33:59 -0700
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: selftests/mm: pagemap_ioctl: remove hungarian notation
+Date: Wed, 11 Mar 2026 20:07:37 +0200
 
-The "raising min_free_kbytes" pr_info message in
-set_recommended_min_free_kbytes() and the "min_free_kbytes is not updated
-to" pr_warn in calculate_min_free_kbytes() can spam the kernel log when
-called repeatedly.
+Replace lpBaseAddress with addr and dwRegionSize with size.
 
-Switch the pr_info in set_recommended_min_free_kbytes() and the pr_warn in
-calculate_min_free_kbytes() to their _ratelimited variants to prevent the
-log spam for this message.
-
-Link: https://lkml.kernel.org/r/20260317-thp_logs-v7-4-31eb98fa5a8b@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Link: https://lkml.kernel.org/r/20260311180737.3767545-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    4 ++--
- mm/page_alloc.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ tools/testing/selftests/mm/pagemap_ioctl.c |   20 +++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- a/mm/khugepaged.c~mm-ratelimit-min_free_kbytes-adjustment-messages
-+++ a/mm/khugepaged.c
-@@ -2701,8 +2701,8 @@ void set_recommended_min_free_kbytes(voi
- 
- 	if (recommended_min > min_free_kbytes) {
- 		if (user_min_free_kbytes >= 0)
--			pr_info("raising min_free_kbytes from %d to %lu to help transparent hugepage allocations\n",
--				min_free_kbytes, recommended_min);
-+			pr_info_ratelimited("raising min_free_kbytes from %d to %lu to help transparent hugepage allocations\n",
-+					    min_free_kbytes, recommended_min);
- 
- 		min_free_kbytes = recommended_min;
- 	}
---- a/mm/page_alloc.c~mm-ratelimit-min_free_kbytes-adjustment-messages
-+++ a/mm/page_alloc.c
-@@ -6514,8 +6514,8 @@ void calculate_min_free_kbytes(void)
- 	if (new_min_free_kbytes > user_min_free_kbytes)
- 		min_free_kbytes = clamp(new_min_free_kbytes, 128, 262144);
- 	else
--		pr_warn("min_free_kbytes is not updated to %d because user defined value %d is preferred\n",
--				new_min_free_kbytes, user_min_free_kbytes);
-+		pr_warn_ratelimited("min_free_kbytes is not updated to %d because user defined value %d is preferred\n",
-+				    new_min_free_kbytes, user_min_free_kbytes);
- 
+--- a/tools/testing/selftests/mm/pagemap_ioctl.c~selftests-mm-pagemap_ioctl-remove-hungarian-notation
++++ a/tools/testing/selftests/mm/pagemap_ioctl.c
+@@ -113,13 +113,13 @@ int init_uffd(void)
+ 	return 0;
  }
  
+-int wp_init(void *lpBaseAddress, long dwRegionSize)
++int wp_init(void *addr, long size)
+ {
+ 	struct uffdio_register uffdio_register;
+ 	struct uffdio_writeprotect wp;
+ 
+-	uffdio_register.range.start = (unsigned long)lpBaseAddress;
+-	uffdio_register.range.len = dwRegionSize;
++	uffdio_register.range.start = (unsigned long)addr;
++	uffdio_register.range.len = size;
+ 	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
+ 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
+ 		ksft_exit_fail_msg("ioctl(UFFDIO_REGISTER) %d %s\n", errno, strerror(errno));
+@@ -127,8 +127,8 @@ int wp_init(void *lpBaseAddress, long dw
+ 	if (!(uffdio_register.ioctls & UFFDIO_WRITEPROTECT))
+ 		ksft_exit_fail_msg("ioctl set is incorrect\n");
+ 
+-	wp.range.start = (unsigned long)lpBaseAddress;
+-	wp.range.len = dwRegionSize;
++	wp.range.start = (unsigned long)addr;
++	wp.range.len = size;
+ 	wp.mode = UFFDIO_WRITEPROTECT_MODE_WP;
+ 
+ 	if (ioctl(uffd, UFFDIO_WRITEPROTECT, &wp))
+@@ -137,21 +137,21 @@ int wp_init(void *lpBaseAddress, long dw
+ 	return 0;
+ }
+ 
+-int wp_free(void *lpBaseAddress, long dwRegionSize)
++int wp_free(void *addr, long size)
+ {
+ 	struct uffdio_register uffdio_register;
+ 
+-	uffdio_register.range.start = (unsigned long)lpBaseAddress;
+-	uffdio_register.range.len = dwRegionSize;
++	uffdio_register.range.start = (unsigned long)addr;
++	uffdio_register.range.len = size;
+ 	uffdio_register.mode = UFFDIO_REGISTER_MODE_WP;
+ 	if (ioctl(uffd, UFFDIO_UNREGISTER, &uffdio_register.range))
+ 		ksft_exit_fail_msg("ioctl unregister failure\n");
+ 	return 0;
+ }
+ 
+-int wp_addr_range(void *lpBaseAddress, int dwRegionSize)
++int wp_addr_range(void *addr, int size)
+ {
+-	if (pagemap_ioctl(lpBaseAddress, dwRegionSize, NULL, 0,
++	if (pagemap_ioctl(addr, size, NULL, 0,
+ 			  PM_SCAN_WP_MATCHING | PM_SCAN_CHECK_WPASYNC,
+ 			  0, PAGE_IS_WRITTEN, 0, 0, PAGE_IS_WRITTEN) < 0)
+ 		ksft_exit_fail_msg("error %d %d %s\n", 1, errno, strerror(errno));
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-kmemleak-add-config_debug_kmemleak_verbose-build-option.patch
-kho-add-size-parameter-to-kho_add_subtree.patch
-kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree.patch
-kho-persist-blob-size-in-kho-fdt.patch
-kho-fix-kho_in_debugfs_init-to-handle-non-fdt-blobs.patch
-kho-kexec-metadata-track-previous-kernel-chain.patch
-kho-document-kexec-metadata-tracking-feature.patch
+userfaultfd-introduce-mfill_copy_folio_locked-helper.patch
+userfaultfd-introduce-struct-mfill_state.patch
+userfaultfd-introduce-mfill_get_pmd-helper.patch
+userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
+userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
+userfaultfd-move-vma_can_userfault-out-of-line.patch
+userfaultfd-introduce-vm_uffd_ops.patch
+shmem-userfaultfd-use-a-vma-callback-to-handle-uffdio_continue.patch
+userfaultfd-introduce-vm_uffd_ops-alloc_folio.patch
+shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops.patch
+userfaultfd-mfill_atomic-remove-retry-logic.patch
 
