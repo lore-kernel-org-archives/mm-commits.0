@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 112F613AD1C
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:42:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4649513AD1C
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:42:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744959; cv=none; b=s4PgSd6GgNoPF/zp4HvSmtU2kDIkZGQb16hq6GbQbpXRFA6GnwHd27aSNl0HQQCwBQXrruY2i4T7K31Ccn2wauVnoc4XEHotI9Vglx+ywiVaRIuMm3u+h//Zpyg/CwbFvwRfU1W5/eTJrv4mmcSeFtYMT6ChqOPFmmQnATSKQQc=
+	t=1774744960; cv=none; b=PWsIZJKJQ3I9SZgSoSxz4OXhDQgA0ZHU1w7LgQps4IOheDhL5+r+5/O89HvrPC3/1yC3bkOMsUF05uv0OEdG8Fct7qrs4PK6vbQ53cezDdu5Q0IBvMcOYYmsEdUHOYLbhu6Rx/N2iktJxsF7lbi7j/fqfiSgYPGZ0AkCr0+jHLI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744959; c=relaxed/simple;
-	bh=o4v57BbtypPFg2fXmhxw5mzKkK932i0gxHR9sdg5Qxg=;
-	h=Date:To:From:Subject:Message-Id; b=n5ptWnw5tg/t2uJ7BmmEzjF77M245xNRSHKDLAEvQC3bmIJQoI1p/EnIf0/lu3FS3ktZz81Lvzke/ldUUEF+YVN9cKc7puH3Wnbr88y+rzGgIvAgvCjffKVq3Z90pIUcAj1evfGH3Cris7vtIUHsjLDohezjYzPTUQe56yYyVPc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=za5gPQm1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744960; c=relaxed/simple;
+	bh=ZCos2a5ikWLbv0FqFuGpiwSV+I2nVUHejSnPjctO8+4=;
+	h=Date:To:From:Subject:Message-Id; b=YOZVisGiq30oT9ju+KmdbWygEh3y9cZdvfIVPQwkVkV7oEQ6ulYX9axUPjaG/qst6ZrqgZGWefZI4RdlbhxUBC6sA2drjgiKNRdTLOpe3E1zmU4ALtj2le0WEFbsAgZbZfv86HZ8flD+QjSE7pWgv9qOuOUoE+uNjpWZOyqGbds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ictcdzp+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="za5gPQm1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB282C4CEF7;
-	Sun, 29 Mar 2026 00:42:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ictcdzp+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D95FC4CEF7;
+	Sun, 29 Mar 2026 00:42:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744958;
-	bh=o4v57BbtypPFg2fXmhxw5mzKkK932i0gxHR9sdg5Qxg=;
+	s=korg; t=1774744960;
+	bh=ZCos2a5ikWLbv0FqFuGpiwSV+I2nVUHejSnPjctO8+4=;
 	h=Date:To:From:Subject:From;
-	b=za5gPQm1dso/bVRvfXgTqulhxpykwbi+N8B+ztv47XJDeW1f7VJHgKWTqYMS1QnZ2
-	 lXVQk9inHc5W3m4WQNa5qeO/5FV6aTxzRLKYk8egS7LgRhd3uejzE7t4OhzrCaNUBL
-	 YhHEqiXf5c2guzQEW8WRlgEfArZUKXGRGR9VSqR0=
-Date: Sat, 28 Mar 2026 17:42:38 -0700
+	b=ictcdzp+2ANJRXcocWeNSDbqgNP1c7Aoki83UPK2Fd1GTkAhpUkt3GSu1qyeEBMAg
+	 1hAYgqy5htGEnrYf9bOBuSeZu6vOVeWbc7IbFLgZD2w1xJutg6wrQlUIcwIu9dzjYa
+	 MGi1prW8LFt0UqArTICZdrJYF6fr9hF8+RfSrXfk=
+Date: Sat, 28 Mar 2026 17:42:39 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,ritesh.list@gmail.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-change-to-return-bool-for-ptep_test_and_clear_young.patch removed from -mm tree
-Message-Id: <20260329004238.DB282C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes.patch removed from -mm tree
+Message-Id: <20260329004240.1D95FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,34 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: change to return bool for ptep_test_and_clear_young()
+     Subject: mm: change to return bool for ptep_clear_flush_young()/clear_flush_young_ptes()
 has been removed from the -mm tree.  Its filename was
-     mm-change-to-return-bool-for-ptep_test_and_clear_young.patch
+     mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: change to return bool for ptep_test_and_clear_young()
-Date: Sat, 21 Mar 2026 14:42:49 +0800
+Subject: mm: change to return bool for ptep_clear_flush_young()/clear_flush_young_ptes()
+Date: Sat, 21 Mar 2026 14:42:50 +0800
 
-Patch series "change young flag check functions to return bool", v2.
+The ptep_clear_flush_young() and clear_flush_young_ptes() are used to
+clear the young flag and flush the TLB, returning whether the young flag
+was set.  Change the return type to bool to make the intention clearer.
 
-This is a cleanup patchset to change all young flag check functions to
-return bool, as discussed with David in the previous thread[1].  Since
-callers only care about whether the young flag was set, returning bool
-makes the intention clearer.  No functional changes intended.
-
-
-This patch (of 6):
-
-Callers use ptep_test_and_clear_young() to clear the young flag and check
-whether it was set.  Change the return type to bool to make the intention
-clearer.
-
-Link: https://lkml.kernel.org/r/cover.1774075004.git.baolin.wang@linux.alibaba.com
-Link: https://lkml.kernel.org/r/57e70efa9703d43959aa645246ea3cbdba14fa17.1774075004.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/24af5144b96103631594501f77d4525f2475c1be.1774075004.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
@@ -74,304 +63,226 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h             |   16 +++++++---------
+ arch/arm64/include/asm/pgtable.h             |   17 ++++++++---------
  arch/arm64/mm/contpte.c                      |    7 +++----
- arch/microblaze/include/asm/pgtable.h        |    2 +-
- arch/parisc/include/asm/pgtable.h            |    7 ++++---
- arch/powerpc/include/asm/book3s/32/pgtable.h |    4 ++--
- arch/powerpc/include/asm/book3s/64/pgtable.h |    6 +++---
- arch/powerpc/include/asm/nohash/pgtable.h    |    4 ++--
+ arch/parisc/include/asm/pgtable.h            |    2 +-
+ arch/parisc/kernel/cache.c                   |    8 ++++----
+ arch/powerpc/include/asm/nohash/64/pgtable.h |    2 +-
  arch/riscv/include/asm/pgtable.h             |    4 ++--
- arch/riscv/mm/pgtable.c                      |    7 +++----
  arch/s390/include/asm/pgtable.h              |    4 ++--
  arch/x86/include/asm/pgtable.h               |    4 ++--
- arch/x86/mm/pgtable.c                        |    6 +++---
- arch/xtensa/include/asm/pgtable.h            |    9 ++++-----
- include/linux/pgtable.h                      |   16 ++++++++--------
- 14 files changed, 46 insertions(+), 50 deletions(-)
+ arch/x86/mm/pgtable.c                        |    4 ++--
+ include/linux/pgtable.h                      |    8 ++++----
+ mm/pgtable-generic.c                         |    7 ++++---
+ 11 files changed, 33 insertions(+), 34 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_test_and_clear_young
+--- a/arch/arm64/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes
 +++ a/arch/arm64/include/asm/pgtable.h
-@@ -1282,9 +1282,8 @@ static inline void __pte_clear(struct mm
- 	__set_pte(ptep, __pte(0));
+@@ -1298,10 +1298,10 @@ static inline bool __ptep_test_and_clear
+ 	return pte_young(pte);
  }
  
--static inline int __ptep_test_and_clear_young(struct vm_area_struct *vma,
--					      unsigned long address,
--					      pte_t *ptep)
-+static inline bool __ptep_test_and_clear_young(struct vm_area_struct *vma,
+-static inline int __ptep_clear_flush_young(struct vm_area_struct *vma,
+-					 unsigned long address, pte_t *ptep)
++static inline bool __ptep_clear_flush_young(struct vm_area_struct *vma,
 +		unsigned long address, pte_t *ptep)
  {
- 	pte_t old_pte, pte;
+-	int young = __ptep_test_and_clear_young(vma, address, ptep);
++	bool young = __ptep_test_and_clear_young(vma, address, ptep);
  
-@@ -1646,7 +1645,7 @@ extern void contpte_clear_full_ptes(stru
- extern pte_t contpte_get_and_clear_full_ptes(struct mm_struct *mm,
- 				unsigned long addr, pte_t *ptep,
+ 	if (young) {
+ 		/*
+@@ -1647,7 +1647,7 @@ extern pte_t contpte_get_and_clear_full_
  				unsigned int nr, int full);
--int contpte_test_and_clear_young_ptes(struct vm_area_struct *vma,
-+bool contpte_test_and_clear_young_ptes(struct vm_area_struct *vma,
+ bool contpte_test_and_clear_young_ptes(struct vm_area_struct *vma,
  				unsigned long addr, pte_t *ptep, unsigned int nr);
- int contpte_clear_flush_young_ptes(struct vm_area_struct *vma,
+-int contpte_clear_flush_young_ptes(struct vm_area_struct *vma,
++bool contpte_clear_flush_young_ptes(struct vm_area_struct *vma,
  				unsigned long addr, pte_t *ptep, unsigned int nr);
-@@ -1813,9 +1812,8 @@ static inline pte_t ptep_get_and_clear(s
+ extern void contpte_wrprotect_ptes(struct mm_struct *mm, unsigned long addr,
+ 				pte_t *ptep, unsigned int nr);
+@@ -1829,8 +1829,8 @@ static inline bool ptep_test_and_clear_y
  }
  
- #define test_and_clear_young_ptes test_and_clear_young_ptes
--static inline int test_and_clear_young_ptes(struct vm_area_struct *vma,
--					    unsigned long addr, pte_t *ptep,
--					    unsigned int nr)
-+static inline bool test_and_clear_young_ptes(struct vm_area_struct *vma,
+ #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+-static inline int ptep_clear_flush_young(struct vm_area_struct *vma,
+-				unsigned long addr, pte_t *ptep)
++static inline bool ptep_clear_flush_young(struct vm_area_struct *vma,
++		unsigned long addr, pte_t *ptep)
+ {
+ 	pte_t orig_pte = __ptep_get(ptep);
+ 
+@@ -1841,9 +1841,8 @@ static inline int ptep_clear_flush_young
+ }
+ 
+ #define clear_flush_young_ptes clear_flush_young_ptes
+-static inline int clear_flush_young_ptes(struct vm_area_struct *vma,
+-					 unsigned long addr, pte_t *ptep,
+-					 unsigned int nr)
++static inline bool clear_flush_young_ptes(struct vm_area_struct *vma,
 +		unsigned long addr, pte_t *ptep, unsigned int nr)
  {
  	if (likely(nr == 1 && !pte_cont(__ptep_get(ptep))))
- 		return __ptep_test_and_clear_young(vma, addr, ptep);
-@@ -1824,8 +1822,8 @@ static inline int test_and_clear_young_p
- }
- 
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
--static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
--				unsigned long addr, pte_t *ptep)
-+static inline bool ptep_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long addr, pte_t *ptep)
- {
- 	return test_and_clear_young_ptes(vma, addr, ptep, 1);
- }
---- a/arch/arm64/mm/contpte.c~mm-change-to-return-bool-for-ptep_test_and_clear_young
+ 		return __ptep_clear_flush_young(vma, addr, ptep);
+--- a/arch/arm64/mm/contpte.c~mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes
 +++ a/arch/arm64/mm/contpte.c
-@@ -508,9 +508,8 @@ pte_t contpte_get_and_clear_full_ptes(st
+@@ -534,11 +534,10 @@ bool contpte_test_and_clear_young_ptes(s
  }
- EXPORT_SYMBOL_GPL(contpte_get_and_clear_full_ptes);
+ EXPORT_SYMBOL_GPL(contpte_test_and_clear_young_ptes);
  
--int contpte_test_and_clear_young_ptes(struct vm_area_struct *vma,
--					unsigned long addr, pte_t *ptep,
--					unsigned int nr)
-+bool contpte_test_and_clear_young_ptes(struct vm_area_struct *vma,
+-int contpte_clear_flush_young_ptes(struct vm_area_struct *vma,
+-				unsigned long addr, pte_t *ptep,
+-				unsigned int nr)
++bool contpte_clear_flush_young_ptes(struct vm_area_struct *vma,
 +		unsigned long addr, pte_t *ptep, unsigned int nr)
  {
- 	/*
- 	 * ptep_clear_flush_young() technically requires us to clear the access
-@@ -525,7 +524,7 @@ int contpte_test_and_clear_young_ptes(st
- 	 */
+-	int young;
++	bool young;
  
- 	unsigned long end = addr + nr * PAGE_SIZE;
--	int young = 0;
-+	bool young = false;
+ 	young = contpte_test_and_clear_young_ptes(vma, addr, ptep, nr);
  
- 	ptep = contpte_align_addr_ptep(&addr, &end, ptep, nr);
- 	for (; addr != end; ptep++, addr += PAGE_SIZE)
---- a/arch/microblaze/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_test_and_clear_young
-+++ a/arch/microblaze/include/asm/pgtable.h
-@@ -318,7 +318,7 @@ static inline void set_pte(pte_t *ptep,
- 
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
- struct vm_area_struct;
--static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
-+static inline bool ptep_test_and_clear_young(struct vm_area_struct *vma,
- 		unsigned long address, pte_t *ptep)
- {
- 	return (pte_update(ptep, _PAGE_ACCESSED, 0) & _PAGE_ACCESSED) != 0;
---- a/arch/parisc/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_test_and_clear_young
+--- a/arch/parisc/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes
 +++ a/arch/parisc/include/asm/pgtable.h
-@@ -438,16 +438,17 @@ static inline pte_t ptep_get(pte_t *ptep
- }
- #define ptep_get ptep_get
- 
--static inline int ptep_test_and_clear_young(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep)
-+static inline bool ptep_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long addr, pte_t *ptep)
- {
- 	pte_t pte;
- 
- 	pte = ptep_get(ptep);
- 	if (!pte_young(pte)) {
--		return 0;
-+		return false;
- 	}
- 	set_pte_at(vma->vm_mm, addr, ptep, pte_mkold(pte));
--	return 1;
-+	return true;
- }
- 
- int ptep_clear_flush_young(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep);
---- a/arch/powerpc/include/asm/book3s/32/pgtable.h~mm-change-to-return-bool-for-ptep_test_and_clear_young
-+++ a/arch/powerpc/include/asm/book3s/32/pgtable.h
-@@ -295,8 +295,8 @@ static inline pte_basic_t pte_update(str
-  * for our hash-based implementation, we fix that up here.
-  */
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
--static inline int __ptep_test_and_clear_young(struct mm_struct *mm,
--					      unsigned long addr, pte_t *ptep)
-+static inline bool __ptep_test_and_clear_young(struct mm_struct *mm,
-+		unsigned long addr, pte_t *ptep)
- {
- 	unsigned long old;
- 	old = pte_update(mm, addr, ptep, _PAGE_ACCESSED, 0, 0);
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-change-to-return-bool-for-ptep_test_and_clear_young
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -349,13 +349,13 @@ static inline unsigned long pte_update(s
-  * For radix: H_PAGE_HASHPTE should be zero. Hence we can use the same
-  * function for both hash and radix.
-  */
--static inline int __ptep_test_and_clear_young(struct mm_struct *mm,
--					      unsigned long addr, pte_t *ptep)
-+static inline bool __ptep_test_and_clear_young(struct mm_struct *mm,
-+		unsigned long addr, pte_t *ptep)
- {
- 	unsigned long old;
- 
- 	if ((pte_raw(*ptep) & cpu_to_be64(_PAGE_ACCESSED | H_PAGE_HASHPTE)) == 0)
--		return 0;
-+		return false;
- 	old = pte_update(mm, addr, ptep, _PAGE_ACCESSED, 0, 0);
- 	return (old & _PAGE_ACCESSED) != 0;
- }
---- a/arch/powerpc/include/asm/nohash/pgtable.h~mm-change-to-return-bool-for-ptep_test_and_clear_young
-+++ a/arch/powerpc/include/asm/nohash/pgtable.h
-@@ -101,8 +101,8 @@ static inline pte_basic_t pte_update(str
- }
- #endif
- 
--static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
--					    unsigned long addr, pte_t *ptep)
-+static inline bool ptep_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long addr, pte_t *ptep)
- {
- 	unsigned long old;
- 
---- a/arch/riscv/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_test_and_clear_young
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -659,8 +659,8 @@ static inline void pte_clear(struct mm_s
- extern int ptep_set_access_flags(struct vm_area_struct *vma, unsigned long address,
- 				 pte_t *ptep, pte_t entry, int dirty);
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG	/* defined in mm/pgtable.c */
--extern int ptep_test_and_clear_young(struct vm_area_struct *vma, unsigned long address,
--				     pte_t *ptep);
-+bool ptep_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long address, pte_t *ptep);
- 
- #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
- static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
---- a/arch/riscv/mm/pgtable.c~mm-change-to-return-bool-for-ptep_test_and_clear_young
-+++ a/arch/riscv/mm/pgtable.c
-@@ -29,12 +29,11 @@ int ptep_set_access_flags(struct vm_area
+@@ -451,7 +451,7 @@ static inline bool ptep_test_and_clear_y
  	return true;
  }
  
--int ptep_test_and_clear_young(struct vm_area_struct *vma,
--			      unsigned long address,
--			      pte_t *ptep)
-+bool ptep_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long address, pte_t *ptep)
- {
- 	if (!pte_young(ptep_get(ptep)))
--		return 0;
-+		return false;
- 	return test_and_clear_bit(_PAGE_ACCESSED_OFFSET, &pte_val(*ptep));
+-int ptep_clear_flush_young(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep);
++bool ptep_clear_flush_young(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep);
+ pte_t ptep_clear_flush(struct vm_area_struct *vma, unsigned long addr, pte_t *ptep);
+ 
+ struct mm_struct;
+--- a/arch/parisc/kernel/cache.c~mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes
++++ a/arch/parisc/kernel/cache.c
+@@ -781,18 +781,18 @@ void flush_anon_page(struct vm_area_stru
+ 	__flush_cache_page(vma, vmaddr, PFN_PHYS(page_to_pfn(page)));
  }
- EXPORT_SYMBOL_GPL(ptep_test_and_clear_young);
---- a/arch/s390/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_test_and_clear_young
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1164,8 +1164,8 @@ pte_t ptep_xchg_direct(struct mm_struct
- pte_t ptep_xchg_lazy(struct mm_struct *, unsigned long, pte_t *, pte_t);
  
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
--static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
--					    unsigned long addr, pte_t *ptep)
-+static inline bool ptep_test_and_clear_young(struct vm_area_struct *vma,
+-int ptep_clear_flush_young(struct vm_area_struct *vma, unsigned long addr,
+-			   pte_t *ptep)
++bool ptep_clear_flush_young(struct vm_area_struct *vma,
 +		unsigned long addr, pte_t *ptep)
  {
- 	pte_t pte = *ptep;
+ 	pte_t pte = ptep_get(ptep);
  
---- a/arch/x86/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_test_and_clear_young
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -1232,8 +1232,8 @@ extern int ptep_set_access_flags(struct
- 				 pte_t entry, int dirty);
- 
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
--extern int ptep_test_and_clear_young(struct vm_area_struct *vma,
--				     unsigned long addr, pte_t *ptep);
-+bool ptep_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long addr, pte_t *ptep);
- 
- #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
- extern int ptep_clear_flush_young(struct vm_area_struct *vma,
---- a/arch/x86/mm/pgtable.c~mm-change-to-return-bool-for-ptep_test_and_clear_young
-+++ a/arch/x86/mm/pgtable.c
-@@ -443,10 +443,10 @@ int pudp_set_access_flags(struct vm_area
- }
- #endif
- 
--int ptep_test_and_clear_young(struct vm_area_struct *vma,
--			      unsigned long addr, pte_t *ptep)
-+bool ptep_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long addr, pte_t *ptep)
- {
--	int ret = 0;
-+	bool ret = false;
- 
- 	if (pte_young(*ptep))
- 		ret = test_and_clear_bit(_PAGE_BIT_ACCESSED,
---- a/arch/xtensa/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_test_and_clear_young
-+++ a/arch/xtensa/include/asm/pgtable.h
-@@ -304,15 +304,14 @@ set_pmd(pmd_t *pmdp, pmd_t pmdval)
- 
- struct vm_area_struct;
- 
--static inline int
--ptep_test_and_clear_young(struct vm_area_struct *vma, unsigned long addr,
--			  pte_t *ptep)
-+static inline bool ptep_test_and_clear_young(struct vm_area_struct *vma,
-+		unsigned long addr, pte_t *ptep)
- {
- 	pte_t pte = *ptep;
  	if (!pte_young(pte))
 -		return 0;
 +		return false;
- 	update_pte(ptep, pte_mkold(pte));
+ 	set_pte(ptep, pte_mkold(pte));
+ #if CONFIG_FLUSH_PAGE_ACCESSED
+ 	__flush_cache_page(vma, addr, PFN_PHYS(pte_pfn(pte)));
+ #endif
 -	return 1;
 +	return true;
  }
  
- static inline pte_t
---- a/include/linux/pgtable.h~mm-change-to-return-bool-for-ptep_test_and_clear_young
-+++ a/include/linux/pgtable.h
-@@ -491,17 +491,17 @@ static inline pgd_t pgdp_get(pgd_t *pgdp
- #endif
+ /*
+--- a/arch/powerpc/include/asm/nohash/64/pgtable.h~mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes
++++ a/arch/powerpc/include/asm/nohash/64/pgtable.h
+@@ -155,7 +155,7 @@ static inline void huge_ptep_set_wrprote
+ #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+ #define ptep_clear_flush_young(__vma, __address, __ptep)		\
+ ({									\
+-	int __young = ptep_test_and_clear_young(__vma, __address, __ptep);\
++	bool __young = ptep_test_and_clear_young(__vma, __address, __ptep);\
+ 	__young;							\
+ })
  
- #ifndef __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
--static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
--					    unsigned long address,
--					    pte_t *ptep)
-+static inline bool ptep_test_and_clear_young(struct vm_area_struct *vma,
+--- a/arch/riscv/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes
++++ a/arch/riscv/include/asm/pgtable.h
+@@ -695,8 +695,8 @@ static inline void ptep_set_wrprotect(st
+ }
+ 
+ #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+-static inline int ptep_clear_flush_young(struct vm_area_struct *vma,
+-					 unsigned long address, pte_t *ptep)
++static inline bool ptep_clear_flush_young(struct vm_area_struct *vma,
 +		unsigned long address, pte_t *ptep)
  {
- 	pte_t pte = ptep_get(ptep);
--	int r = 1;
-+	bool young = true;
-+
- 	if (!pte_young(pte))
--		r = 0;
-+		young = false;
- 	else
- 		set_pte_at(vma->vm_mm, address, ptep, pte_mkold(pte));
--	return r;
-+	return young;
+ 	/*
+ 	 * This comment is borrowed from x86, but applies equally to RISC-V:
+--- a/arch/s390/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1174,8 +1174,8 @@ static inline bool ptep_test_and_clear_y
+ }
+ 
+ #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+-static inline int ptep_clear_flush_young(struct vm_area_struct *vma,
+-					 unsigned long address, pte_t *ptep)
++static inline bool ptep_clear_flush_young(struct vm_area_struct *vma,
++		unsigned long address, pte_t *ptep)
+ {
+ 	return ptep_test_and_clear_young(vma, address, ptep);
+ }
+--- a/arch/x86/include/asm/pgtable.h~mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes
++++ a/arch/x86/include/asm/pgtable.h
+@@ -1236,8 +1236,8 @@ bool ptep_test_and_clear_young(struct vm
+ 		unsigned long addr, pte_t *ptep);
+ 
+ #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+-extern int ptep_clear_flush_young(struct vm_area_struct *vma,
+-				  unsigned long address, pte_t *ptep);
++bool ptep_clear_flush_young(struct vm_area_struct *vma,
++		unsigned long address, pte_t *ptep);
+ 
+ #define __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ static inline pte_t ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
+--- a/arch/x86/mm/pgtable.c~mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes
++++ a/arch/x86/mm/pgtable.c
+@@ -483,8 +483,8 @@ int pudp_test_and_clear_young(struct vm_
  }
  #endif
  
-@@ -1123,10 +1123,10 @@ static inline int clear_flush_young_ptes
-  *
-  * Returns: whether any PTE was young.
+-int ptep_clear_flush_young(struct vm_area_struct *vma,
+-			   unsigned long address, pte_t *ptep)
++bool ptep_clear_flush_young(struct vm_area_struct *vma,
++		unsigned long address, pte_t *ptep)
+ {
+ 	/*
+ 	 * On x86 CPUs, clearing the accessed bit without a TLB flush
+--- a/include/linux/pgtable.h~mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes
++++ a/include/linux/pgtable.h
+@@ -531,8 +531,8 @@ static inline int pmdp_test_and_clear_yo
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+-int ptep_clear_flush_young(struct vm_area_struct *vma,
+-			   unsigned long address, pte_t *ptep);
++bool ptep_clear_flush_young(struct vm_area_struct *vma,
++		unsigned long address, pte_t *ptep);
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PMDP_CLEAR_YOUNG_FLUSH
+@@ -1086,10 +1086,10 @@ static inline void wrprotect_ptes(struct
+  * Context: The caller holds the page table lock.  The PTEs map consecutive
+  * pages that belong to the same folio.  The PTEs are all in the same PMD.
   */
--static inline int test_and_clear_young_ptes(struct vm_area_struct *vma,
-+static inline bool test_and_clear_young_ptes(struct vm_area_struct *vma,
+-static inline int clear_flush_young_ptes(struct vm_area_struct *vma,
++static inline bool clear_flush_young_ptes(struct vm_area_struct *vma,
  		unsigned long addr, pte_t *ptep, unsigned int nr)
  {
 -	int young = 0;
 +	bool young = false;
  
  	for (;;) {
- 		young |= ptep_test_and_clear_young(vma, addr, ptep);
+ 		young |= ptep_clear_flush_young(vma, addr, ptep);
+--- a/mm/pgtable-generic.c~mm-change-to-return-bool-for-ptep_clear_flush_young-clear_flush_young_ptes
++++ a/mm/pgtable-generic.c
+@@ -81,10 +81,11 @@ int ptep_set_access_flags(struct vm_area
+ #endif
+ 
+ #ifndef __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+-int ptep_clear_flush_young(struct vm_area_struct *vma,
+-			   unsigned long address, pte_t *ptep)
++bool ptep_clear_flush_young(struct vm_area_struct *vma,
++		unsigned long address, pte_t *ptep)
+ {
+-	int young;
++	bool young;
++
+ 	young = ptep_test_and_clear_young(vma, address, ptep);
+ 	if (young)
+ 		flush_tlb_page(vma, address);
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
