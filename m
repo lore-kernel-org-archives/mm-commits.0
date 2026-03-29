@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B02D3255E43
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50219255E43
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744911; cv=none; b=RzSkOKaBDjbvvljYQlZv7s0EHEgZvtzaFJcuNhltXN1WSmDUhfbJWNeuXBgld4OHUrjhq3DxoUZxMD/iXsRIN987D0SU5uC2mek0D6TvDXhZGr69mnGzMyGo0nvIYRMTjX8PMRUMx2V3QgW+FY16kT+Ok80XKYi7LjmUl/Mi3jk=
+	t=1774744913; cv=none; b=iLUBxWqBGfBR9OVVDFhyCBG5X3TGeK4nN0/41FUzmniR2x1aVuaUfCZiAgKnbqDOsW3xurdAlRv64BjxfWutmH4n0iTuFBd/zYBNPGpFISnhqBwhFg4zJLTdxki6Fwn8VMCAof5rsS5vY8a3Q4852InMhglCpwmAsYuqpA+3Low=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744911; c=relaxed/simple;
-	bh=/ja4deF+Ok60gReBTf6BELb9XSg8emOi3GP3fY0ZIqU=;
-	h=Date:To:From:Subject:Message-Id; b=Bw/GVhGEMuO4E2bw3Yi6fzMd7VZAfAwVqhMa+dHwExwtaCFNbJ5hnYaUVc//bMgZ6+6JkCU4hWZIFRyBMoVsu6puxT4ixv2QyOSZ8TjKXwsuSnQ3aT45Kgd/2ZExihnwwKkObY8k7QT7iiE23klIfy9HBupXKoM6LpB2NpTXVhk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gJXW33ot; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744913; c=relaxed/simple;
+	bh=Evsp4SPZhb6a2fi+NZYTBuULNOMHUZm473AKqEftdWE=;
+	h=Date:To:From:Subject:Message-Id; b=pXm7SKv9Gc8F0ukS9V9xS2lkSZSxb/uSjfehep8ZIa1Q5321OV1S9zaiISU3+r2/m96r9k+cnL+Et0p6naK56HAWdkQBZXUg8zBKwgyb5Mevw2azysbeLcDuHgNcTpPClgd2iSkr8h0SKN8fdZcud9+5nSjt8fCQeuP7WBXc9ms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yBbw9R3R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gJXW33ot"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 817FCC4CEF7;
-	Sun, 29 Mar 2026 00:41:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yBbw9R3R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28066C4CEF7;
+	Sun, 29 Mar 2026 00:41:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744911;
-	bh=/ja4deF+Ok60gReBTf6BELb9XSg8emOi3GP3fY0ZIqU=;
+	s=korg; t=1774744913;
+	bh=Evsp4SPZhb6a2fi+NZYTBuULNOMHUZm473AKqEftdWE=;
 	h=Date:To:From:Subject:From;
-	b=gJXW33otKUTWFbgjy98MuUrFm3XO0qKHPuQTz1MDdZvtAvBC5TOQl+DKJ0l0hBzHf
-	 +T7TLmULUTH+b6kNtxhtvUtdZiV4hgj6gPJiu9DD3tqS6oIvw/MoFiNw9S3rGcrhKb
-	 Y1PqR5+ZDuu3HSXxzMxP/Uy6tJrM46Bdi1kmmWrg=
-Date: Sat, 28 Mar 2026 17:41:51 -0700
-To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,ying.huang@linux.alibaba.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,vbabka@suse.cz,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shivankg@amd.com,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,rientjes@google.com,richard.weiyang@gmail.com,rdunlap@infradead.org,raquini@redhat.com,rakie.kim@sk.com,pfalcato@suse.de,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,matthew.brost@intel.com,mathieu.desnoyers@efficios.com,lorenzo.stoakes@oracle.com,ljs@kernel.org,liam.howlett@oracle.com,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,jack@suse.cz,jackmanb@google.com,hughd@google.com,hannes@cmpxchg.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,corbet@lwn.net,catalin.marinas@arm.com,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
+	b=yBbw9R3RzY76VeCaO+pRALke1Or49Cm/TWRraB09ID83OgJiXWPtqLDjzZJqI1NT+
+	 b9nQ/2P5+z3ZckmnbT+bKjNqATly3Tj17T+7Iw8ffi/DJfowLzp/lAtrtiDBLS2ttk
+	 +fOXuWRGxnmZ/WJ741sTo1dqPCoez7U3WR8SqFB0=
+Date: Sat, 28 Mar 2026 17:41:52 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,gaoxu2@honor.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-unify-khugepaged-and-madv_collapse-with-collapse_single_pmd.patch removed from -mm tree
-Message-Id: <20260329004151.817FCC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] zram-optimize-lz4-dictionary-compression-performance-v2.patch removed from -mm tree
+Message-Id: <20260329004153.28066C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,328 +35,143 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: unify khugepaged and madv_collapse with collapse_single_pmd()
+     Subject: zram: optimize LZ4 dictionary compression performance
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-unify-khugepaged-and-madv_collapse-with-collapse_single_pmd.patch
+     zram-optimize-lz4-dictionary-compression-performance-v2.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: mm/khugepaged: unify khugepaged and madv_collapse with collapse_single_pmd()
-Date: Wed, 25 Mar 2026 05:40:22 -0600
+From: gao xu <gaoxu2@honor.com>
+Subject: zram: optimize LZ4 dictionary compression performance
+Date: Fri, 13 Mar 2026 02:41:14 +0000
 
-The khugepaged daemon and madvise_collapse have two different
-implementations that do almost the same thing.  Create collapse_single_pmd
-to increase code reuse and create an entry point to these two users.
+Calling `LZ4_loadDict()` repeatedly in Zram causes significant overhead
+due to its internal dictionary pre-processing.  This commit introduces a
+template stream mechanism to pre-process the dictionary only once when the
+dictionary is initially set or modified.  It then efficiently copies this
+state for subsequent compressions.
 
-Refactor madvise_collapse and collapse_scan_mm_slot to use the new
-collapse_single_pmd function.  To help reduce confusion around the
-mmap_locked variable, we rename mmap_locked to lock_dropped in the
-collapse_scan_mm_slot() function, and remove the redundant mmap_locked in
-madvise_collapse(); this further unifies the code readiblity.  the
-SCAN_PTE_MAPPED_HUGEPAGE enum is no longer reachable in the
-madvise_collapse() function, so we drop it from the list of "continuing"
-enums.
+Verification Test Items:
+Test Platform: android16-6.12
+1. Collect Anonymous Page Dataset
+1) Apply the following patch:
+static bool zram_meta_alloc(struct zram *zram, u64 disksize)
+	if (!huge_class_size)
+-		huge_class_size = zs_huge_class_size(zram->mem_pool);
++		huge_class_size = 0;
 
-This introduces a minor behavioral change that is most likely an
-undiscovered bug.  The current implementation of khugepaged tests
-collapse_test_exit_or_disable() before calling collapse_pte_mapped_thp,
-but we weren't doing it in the madvise_collapse case.  By unifying these
-two callers madvise_collapse now also performs this check.  We also modify
-the return value to be SCAN_ANY_PROCESS which properly indicates that this
-process is no longer valid to operate on.
+2）Install multiple apps and monkey testing until SwapFree is close to 0.
 
-By moving the madvise_collapse writeback-retry logic into the helper
-function we can also avoid having to revalidate the VMA.
+3）Execute the following command to export data:
+dd if=/dev/block/zram0 of=/data/samples/zram_dump.img bs=4K
 
-We guard the khugepaged_pages_collapsed variable to ensure its only
-incremented for khugepaged.
+2. Train Dictionary
+Since LZ4 does not have a dedicated dictionary training tool, the zstd
+tool can be used for training[1]. The command is as follows:
+zstd --train /data/samples/* --split=4096 --maxdict=64KB -o /vendor/etc/dict_data
 
-As requested we also convert a VM_BUG_ON to a VM_WARN_ON.
+3. Test Code
+adb shell "dd if=/data/samples/zram_dump.img of=/dev/test_pattern bs=4096 count=131072 conv=fsync"
+adb shell "swapoff /dev/block/zram0"
+adb shell "echo 1 > /sys/block/zram0/reset"
+adb shell "echo lz4 > /sys/block/zram0/comp_algorithm"
+adb shell "echo dict=/vendor/etc/dict_data   >  /sys/block/zram0/algorithm_params"
+adb shell "echo 6G > /sys/block/zram0/disksize"
+echo "Start Compression"
+adb shell "taskset 80 dd if=/dev/test_pattern of=/dev/block/zram0 bs=4096 count=131072 conv=fsync"
+echo.
+echo "Start Decompression"
+adb shell "taskset 80 dd if=/dev/block/zram0 of=/dev/output_result bs=4096 count=131072 conv=fsync"
+echo "mm_stat:"
+adb shell "cat /sys/block/zram0/mm_stat"
+echo.
+Note: To ensure stable test results, it is best to lock the CPU frequency
+before executing the test.
 
-Link: https://lkml.kernel.org/r/20260325114022.444081-6-npache@redhat.com
-Signed-off-by: Nico Pache <npache@redhat.com>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Rafael Aquini <raquini@redhat.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shivank Garg <shivankg@amd.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+LZ4 supports dictionaries up to 64KB. Below are the test results for
+compression rates at various dictionary sizes:
+dict_size          base        patch
+  4 KB          156M/s      219M/s
+  8 KB          136M/s      217M/s
+ 16KB           98M/s       214M/s
+ 32KB           66M/s       225M/s
+ 64KB           38M/s       224M/s
+
+When an LZ4 compression dictionary is enabled, compression speed is
+negatively impacted by the dictionary's size; larger dictionaries result
+in slower compression.  This patch eliminates the influence of dictionary
+size on compression speed, ensuring consistent performance regardless of
+dictionary scale.
+
+Link: https://lkml.kernel.org/r/698181478c9c4b10aa21b4a847bdc706@honor.com
+Link: https://github.com/lz4/lz4?tab=readme-ov-file [1]
+Signed-off-by: gao xu <gaoxu2@honor.com>
+Acked-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Takashi Iwai (SUSE) <tiwai@suse.de>
-Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
-Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yang Shi <yang@os.amperecomputing.com>
-Cc: Zach O'Keefe <zokeefe@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |  144 +++++++++++++++++++++++-----------------------
- 1 file changed, 73 insertions(+), 71 deletions(-)
+ drivers/block/zram/backend_lz4.c |   29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-unify-khugepaged-and-madv_collapse-with-collapse_single_pmd
-+++ a/mm/khugepaged.c
-@@ -1250,7 +1250,7 @@ out_nolock:
+--- a/drivers/block/zram/backend_lz4.c~zram-optimize-lz4-dictionary-compression-performance-v2
++++ a/drivers/block/zram/backend_lz4.c
+@@ -14,13 +14,38 @@ struct lz4_ctx {
  
- static enum scan_result collapse_scan_pmd(struct mm_struct *mm,
- 		struct vm_area_struct *vma, unsigned long start_addr,
--		bool *mmap_locked, struct collapse_control *cc)
-+		bool *lock_dropped, struct collapse_control *cc)
+ static void lz4_release_params(struct zcomp_params *params)
  {
- 	pmd_t *pmd;
- 	pte_t *pte, *_pte;
-@@ -1425,7 +1425,7 @@ out_unmap:
- 		result = collapse_huge_page(mm, start_addr, referenced,
- 					    unmapped, cc);
- 		/* collapse_huge_page will return with the mmap_lock released */
--		*mmap_locked = false;
-+		*lock_dropped = true;
- 	}
- out:
- 	trace_mm_khugepaged_scan_pmd(mm, folio, referenced,
-@@ -2417,6 +2417,67 @@ static enum scan_result collapse_scan_fi
- 	return result;
++	LZ4_stream_t *dict_stream = params->drv_data;
++
++	params->drv_data = NULL;
++	if (!dict_stream)
++		return;
++
++	kfree(dict_stream);
  }
  
-+/*
-+ * Try to collapse a single PMD starting at a PMD aligned addr, and return
-+ * the results.
-+ */
-+static enum scan_result collapse_single_pmd(unsigned long addr,
-+		struct vm_area_struct *vma, bool *lock_dropped,
-+		struct collapse_control *cc)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	bool triggered_wb = false;
-+	enum scan_result result;
-+	struct file *file;
-+	pgoff_t pgoff;
+ static int lz4_setup_params(struct zcomp_params *params)
+ {
++	LZ4_stream_t *dict_stream;
++	int ret;
 +
-+	mmap_assert_locked(mm);
+ 	if (params->level == ZCOMP_PARAM_NOT_SET)
+ 		params->level = LZ4_ACCELERATION_DEFAULT;
+ 
++	if (!params->dict || !params->dict_sz)
++		return 0;
 +
-+	if (vma_is_anonymous(vma)) {
-+		result = collapse_scan_pmd(mm, vma, addr, lock_dropped, cc);
-+		goto end;
++	dict_stream = kzalloc_obj(*dict_stream, GFP_KERNEL);
++	if (!dict_stream)
++		return -ENOMEM;
++
++	ret = LZ4_loadDict(dict_stream,
++			   params->dict, params->dict_sz);
++	if (ret != params->dict_sz) {
++		kfree(dict_stream);
++		return -EINVAL;
 +	}
++	params->drv_data = dict_stream;
 +
-+	file = get_file(vma->vm_file);
-+	pgoff = linear_page_index(vma, addr);
-+
-+	mmap_read_unlock(mm);
-+	*lock_dropped = true;
-+retry:
-+	result = collapse_scan_file(mm, addr, file, pgoff, cc);
-+
-+	/*
-+	 * For MADV_COLLAPSE, when encountering dirty pages, try to writeback,
-+	 * then retry the collapse one time.
-+	 */
-+	if (!cc->is_khugepaged && result == SCAN_PAGE_DIRTY_OR_WRITEBACK &&
-+	    !triggered_wb && mapping_can_writeback(file->f_mapping)) {
-+		const loff_t lstart = (loff_t)pgoff << PAGE_SHIFT;
-+		const loff_t lend = lstart + HPAGE_PMD_SIZE - 1;
-+
-+		filemap_write_and_wait_range(file->f_mapping, lstart, lend);
-+		triggered_wb = true;
-+		goto retry;
-+	}
-+	fput(file);
-+
-+	if (result == SCAN_PTE_MAPPED_HUGEPAGE) {
-+		mmap_read_lock(mm);
-+		if (collapse_test_exit_or_disable(mm))
-+			result = SCAN_ANY_PROCESS;
-+		else
-+			result = try_collapse_pte_mapped_thp(mm, addr,
-+							     !cc->is_khugepaged);
-+		if (result == SCAN_PMD_MAPPED)
-+			result = SCAN_SUCCEED;
-+		mmap_read_unlock(mm);
-+	}
-+end:
-+	if (cc->is_khugepaged && result == SCAN_SUCCEED)
-+		++khugepaged_pages_collapsed;
-+	return result;
-+}
-+
- static void collapse_scan_mm_slot(unsigned int progress_max,
- 		enum scan_result *result, struct collapse_control *cc)
- 	__releases(&khugepaged_mm_lock)
-@@ -2478,46 +2539,21 @@ static void collapse_scan_mm_slot(unsign
- 		VM_BUG_ON(khugepaged_scan.address & ~HPAGE_PMD_MASK);
+ 	return 0;
+ }
  
- 		while (khugepaged_scan.address < hend) {
--			bool mmap_locked = true;
-+			bool lock_dropped = false;
- 
- 			cond_resched();
- 			if (unlikely(collapse_test_exit_or_disable(mm)))
- 				goto breakouterloop;
- 
--			VM_BUG_ON(khugepaged_scan.address < hstart ||
-+			VM_WARN_ON_ONCE(khugepaged_scan.address < hstart ||
- 				  khugepaged_scan.address + HPAGE_PMD_SIZE >
- 				  hend);
--			if (!vma_is_anonymous(vma)) {
--				struct file *file = get_file(vma->vm_file);
--				pgoff_t pgoff = linear_page_index(vma,
--						khugepaged_scan.address);
--
--				mmap_read_unlock(mm);
--				mmap_locked = false;
--				*result = collapse_scan_file(mm,
--					khugepaged_scan.address, file, pgoff, cc);
--				fput(file);
--				if (*result == SCAN_PTE_MAPPED_HUGEPAGE) {
--					mmap_read_lock(mm);
--					if (collapse_test_exit_or_disable(mm))
--						goto breakouterloop;
--					*result = try_collapse_pte_mapped_thp(mm,
--						khugepaged_scan.address, false);
--					if (*result == SCAN_PMD_MAPPED)
--						*result = SCAN_SUCCEED;
--					mmap_read_unlock(mm);
--				}
--			} else {
--				*result = collapse_scan_pmd(mm, vma,
--					khugepaged_scan.address, &mmap_locked, cc);
--			}
--
--			if (*result == SCAN_SUCCEED)
--				++khugepaged_pages_collapsed;
- 
-+			*result = collapse_single_pmd(khugepaged_scan.address,
-+						      vma, &lock_dropped, cc);
- 			/* move to next address */
- 			khugepaged_scan.address += HPAGE_PMD_SIZE;
--			if (!mmap_locked)
-+			if (lock_dropped)
- 				/*
- 				 * We released mmap_lock so break loop.  Note
- 				 * that we drop mmap_lock before all hugepage
-@@ -2792,7 +2828,6 @@ int madvise_collapse(struct vm_area_stru
- 	unsigned long hstart, hend, addr;
- 	enum scan_result last_fail = SCAN_FAIL;
- 	int thps = 0;
--	bool mmap_locked = true;
- 
- 	BUG_ON(vma->vm_start > start);
- 	BUG_ON(vma->vm_end < end);
-@@ -2814,13 +2849,11 @@ int madvise_collapse(struct vm_area_stru
- 
- 	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
- 		enum scan_result result = SCAN_FAIL;
--		bool triggered_wb = false;
- 
--retry:
--		if (!mmap_locked) {
-+		if (*lock_dropped) {
- 			cond_resched();
- 			mmap_read_lock(mm);
--			mmap_locked = true;
-+			*lock_dropped = false;
- 			result = hugepage_vma_revalidate(mm, addr, false, &vma,
- 							 cc);
- 			if (result  != SCAN_SUCCEED) {
-@@ -2830,45 +2863,14 @@ retry:
- 
- 			hend = min(hend, vma->vm_end & HPAGE_PMD_MASK);
- 		}
--		mmap_assert_locked(mm);
--		if (!vma_is_anonymous(vma)) {
--			struct file *file = get_file(vma->vm_file);
--			pgoff_t pgoff = linear_page_index(vma, addr);
--
--			mmap_read_unlock(mm);
--			mmap_locked = false;
--			*lock_dropped = true;
--			result = collapse_scan_file(mm, addr, file, pgoff, cc);
--
--			if (result == SCAN_PAGE_DIRTY_OR_WRITEBACK && !triggered_wb &&
--			    mapping_can_writeback(file->f_mapping)) {
--				loff_t lstart = (loff_t)pgoff << PAGE_SHIFT;
--				loff_t lend = lstart + HPAGE_PMD_SIZE - 1;
--
--				filemap_write_and_wait_range(file->f_mapping, lstart, lend);
--				triggered_wb = true;
--				fput(file);
--				goto retry;
--			}
--			fput(file);
--		} else {
--			result = collapse_scan_pmd(mm, vma, addr, &mmap_locked, cc);
--		}
--		if (!mmap_locked)
--			*lock_dropped = true;
- 
--handle_result:
-+		result = collapse_single_pmd(addr, vma, lock_dropped, cc);
-+
- 		switch (result) {
- 		case SCAN_SUCCEED:
- 		case SCAN_PMD_MAPPED:
- 			++thps;
- 			break;
--		case SCAN_PTE_MAPPED_HUGEPAGE:
--			BUG_ON(mmap_locked);
--			mmap_read_lock(mm);
--			result = try_collapse_pte_mapped_thp(mm, addr, true);
--			mmap_read_unlock(mm);
--			goto handle_result;
- 		/* Whitelisted set of results where continuing OK */
- 		case SCAN_NO_PTE_TABLE:
- 		case SCAN_PTE_NON_PRESENT:
-@@ -2891,7 +2893,7 @@ handle_result:
- 
- out_maybelock:
- 	/* Caller expects us to hold mmap_lock on return */
--	if (!mmap_locked)
-+	if (*lock_dropped)
- 		mmap_read_lock(mm);
- out_nolock:
- 	mmap_assert_locked(mm);
+@@ -79,9 +104,7 @@ static int lz4_compress(struct zcomp_par
+ 					zctx->mem);
+ 	} else {
+ 		/* Cstrm needs to be reset */
+-		ret = LZ4_loadDict(zctx->cstrm, params->dict, params->dict_sz);
+-		if (ret != params->dict_sz)
+-			return -EINVAL;
++		memcpy(zctx->cstrm, params->drv_data, sizeof(*zctx->cstrm));
+ 		ret = LZ4_compress_fast_continue(zctx->cstrm, req->src,
+ 						 req->dst, req->src_len,
+ 						 req->dst_len, params->level);
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from gaoxu2@honor.com are
 
 
