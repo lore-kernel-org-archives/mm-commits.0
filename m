@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDB1710F2
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78DE5246774
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744828; cv=none; b=W0PWXzxhsYl2GhASw5d7DlGKeLbFzd2Cb/KfodLszfHCDsXZ0/2shrLK5X5qbkYCos0xPqYiUDTKE43Qp9mFuXmgEhsZe7aXxw/O4scESA7Ai45hWvyNLcyai8tvdJNe3fL1lipUs4BPQxTlG/GWhl6MUdnDUreLvwWWdYI9km4=
+	t=1774744829; cv=none; b=hWBv+06uXfT1RI/qKpTNY3Uo3KhsBOQKAbwl9prv9pFmRVGGpa5u6AYl4sl9rgDVkT0MEC+D2fYDI/lxbhJbCfNinQ+ETtivFPNSHfBYQGb7EHRzTGr+nS6BQBz9ecIuI7Ow7QIMdi2LsVSFMKrJA0RJNYyf3FBtcK0HcELeZUE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744828; c=relaxed/simple;
-	bh=o/T03DYhEEs8FHXiP1geb56wwa65ZjdOHnHetjRUnOA=;
-	h=Date:To:From:Subject:Message-Id; b=RULCs8YVvZsZQTBff9Jlfk1Us3+fdv7hP/BybN+DRK/z8wMzUM2eIHIfz4hzgiSB+eQn9+uUUBtNKg4fl/0vosSBOBSiwwsMXM7ameR7TOA/L8v9VEGgDNYBg9gZ0LYlfdg+gPOmUH1wfYIAXURGF2FacmdSlF+Bt9i2akCgpEg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KyRDFQ0v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744829; c=relaxed/simple;
+	bh=rmxfWuCpHJFKkVQVfc1VBGs7URO3QDGln2X20cntixc=;
+	h=Date:To:From:Subject:Message-Id; b=JCvGZxnXUxXTXnOzCSr74/HmkAIQlfKwbUkkZ1IoXrrR249v8BntRbCncLroPVSVQHRYQ2KsPKMd1FT7AR5fLBhZgytH8bDgkVMjLIL2Bhznc6x1hwtsC/9wPR0ORfgZLg+yV/ISamCm5U9Sel6FaIn0e7mZ3EpdB+6XjnJZrAc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KDVO7vYX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KyRDFQ0v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C667DC4CEF7;
-	Sun, 29 Mar 2026 00:40:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KDVO7vYX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16361C4CEF7;
+	Sun, 29 Mar 2026 00:40:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744827;
-	bh=o/T03DYhEEs8FHXiP1geb56wwa65ZjdOHnHetjRUnOA=;
+	s=korg; t=1774744829;
+	bh=rmxfWuCpHJFKkVQVfc1VBGs7URO3QDGln2X20cntixc=;
 	h=Date:To:From:Subject:From;
-	b=KyRDFQ0vljemZ5UZx1s9YlMO8/1hvEsroJKqs3LZdOajN4yaPxNqd0YZQ38S0esNL
-	 0cIYf+Ez1ubzDVaXS1osgYWw/zDZ/5jKfYSPEVM8q2BsB3Z49w9iF0b7wlWCYtaj+V
-	 dS+xOH+fZHy9k57548GKeHXmPhAmlOA8DGZfzeDQ=
-Date: Sat, 28 Mar 2026 17:40:27 -0700
-To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=KDVO7vYX4WlwC80m3EZDFMcxbp1Zdgr19b5+8HUpGJbISJDqX7zFXsHbFE1JOzp/o
+	 JzP+rWWdNlRJ0x0k0eFo8HsIPHOiE8JaKkBA+PJrX6Q3mBUMmvgk2G5GOmN3wHR6Jq
+	 t5joz7aM60Ip4F8Nk9e+zSRQuP+2uPeWP2xKlSeU=
+Date: Sat, 28 Mar 2026 17:40:28 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-damon-config-enable-damon_debug_sanity.patch removed from -mm tree
-Message-Id: <20260329004027.C667DC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch removed from -mm tree
+Message-Id: <20260329004029.16361C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,39 +35,89 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/damon/config: enable DAMON_DEBUG_SANITY
+     Subject: mm/damon/tests/core-kunit: add a test for damon_commit_ctx()
 has been removed from the -mm tree.  Its filename was
-     selftests-damon-config-enable-damon_debug_sanity.patch
+     mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/config: enable DAMON_DEBUG_SANITY
-Date: Fri, 6 Mar 2026 07:29:13 -0800
+Subject: mm/damon/tests/core-kunit: add a test for damon_commit_ctx()
+Date: Sat, 7 Mar 2026 11:42:20 -0800
 
-CONFIG_DAMON_DEBUG_SANITY is recommended for DAMON development and test
-setups.  Enable it on the build config for DAMON selftests.
+Patch series "mm/damon: test and document power-of-2 min_region_sz
+requirement".
 
-Link: https://lkml.kernel.org/r/20260306152914.86303-11-sj@kernel.org
+Since commit c80f46ac228b ("mm/damon/core: disallow non-power of two
+min_region_sz"), min_region_sz is always restricted to be a power of two. 
+Add a kunit test to confirm the functionality.  Also, the change adds a
+restriction to addr_unit parameter.  Clarify it on the document.
+
+
+This patch (of 2):
+
+Add a kunit test for confirming the change that is made on commit
+c80f46ac228b ("mm/damon/core: disallow non-power of two min_region_sz")
+functions as expected.
+
+Link: https://lkml.kernel.org/r/20260307194222.202075-2-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/config |    1 +
- 1 file changed, 1 insertion(+)
+ mm/damon/tests/core-kunit.h |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/tools/testing/selftests/damon/config~selftests-damon-config-enable-damon_debug_sanity
-+++ a/tools/testing/selftests/damon/config
-@@ -4,3 +4,4 @@ CONFIG_DAMON_PADDR=y
- CONFIG_DAMON_VADDR=y
- CONFIG_DAMON_RECLAIM=y
- CONFIG_DAMON_LRU_SORT=y
-+CONFIG_DAMON_DEBUG_SANITY=y
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-a-test-for-damon_commit_ctx
++++ a/mm/damon/tests/core-kunit.h
+@@ -1057,6 +1057,27 @@ static void damon_test_commit_target_reg
+ 			(unsigned long[][2]) {{3, 8}, {8, 10}}, 2);
+ }
+ 
++static void damon_test_commit_ctx(struct kunit *test)
++{
++	struct damon_ctx *src, *dst;
++
++	src = damon_new_ctx();
++	if (!src)
++		kunit_skip(test, "src alloc fail");
++	dst = damon_new_ctx();
++	if (!dst) {
++		damon_destroy_ctx(src);
++		kunit_skip(test, "dst alloc fail");
++	}
++	/* Only power of two min_region_sz is allowed. */
++	src->min_region_sz = 4096;
++	KUNIT_EXPECT_EQ(test, damon_commit_ctx(dst, src), 0);
++	src->min_region_sz = 4095;
++	KUNIT_EXPECT_EQ(test, damon_commit_ctx(dst, src), -EINVAL);
++	damon_destroy_ctx(src);
++	damon_destroy_ctx(dst);
++}
++
+ static void damos_test_filter_out(struct kunit *test)
+ {
+ 	struct damon_target *t;
+@@ -1313,6 +1334,7 @@ static struct kunit_case damon_test_case
+ 	KUNIT_CASE(damos_test_commit_pageout),
+ 	KUNIT_CASE(damos_test_commit_migrate_hot),
+ 	KUNIT_CASE(damon_test_commit_target_regions),
++	KUNIT_CASE(damon_test_commit_ctx),
+ 	KUNIT_CASE(damos_test_filter_out),
+ 	KUNIT_CASE(damon_test_feed_loop_next_input),
+ 	KUNIT_CASE(damon_test_set_filters_default_reject),
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
