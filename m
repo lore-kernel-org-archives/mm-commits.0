@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B97A1C5F1B
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:39:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DEE6221FBB
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:39:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744780; cv=none; b=hVlpotItXLTf5u0mdxcewQ5Be89j7zuAV2kZup5PCJH9M5xvXJPHDTnlai5CRFYy+9evE3LbaQlraK17LzSQDVcKhOaAX7px4nwZ7yTOkZeK9KBc4QTfbzvLOd4YMAWKuD8FTBPW1jkhEv4szw99fHWrMRFETKieKkQKnxEzCJg=
+	t=1774744781; cv=none; b=hFCq3HefPJ4xCv9mkJRTKg7wJ+320pRW/sbn3VGdG3exQpOExrU/ST5UERDGi6plt3PCYaDbW5LJymRVeqNLRtkvN2gKwWhUuP6MztHihg0/z+KuGsiTJ7ghXrlfED+C+yzcuAcwh8NZfSeFJ6+cH3kUBx5pc3PCTThDqWaurv0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744780; c=relaxed/simple;
-	bh=oxhcgwYK4WueI/BdybLHQhehPE8e6JWl4m2KelKWyB8=;
-	h=Date:To:From:Subject:Message-Id; b=AMnykCZV44qlVknY0OhVaQf6R2JTEtMDxprP3A2O01XaXp9GwtaKP2mEnhkh2Bbx5xQnl+ClocqNKWc9Ga3z4dAEzF5GEppHFAfADsginpJmeK6UBMFo3/39FhM/RTLEwzPl5KFky4UQOoeK7MezlmPLCdDBxKzkAjDMRaWuYnw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CCodEuwd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744781; c=relaxed/simple;
+	bh=0g3CTD3BKRikJ0F8GtR2Ry8kqa9QgE6KZhjtUnelFw4=;
+	h=Date:To:From:Subject:Message-Id; b=tc4ZszTVtCKrSFAwMr0sWyGhffebRYAQA8Lgv0od6+hQMB5qrx2gE0azy/5iFzI9SRXhWcj55n42g3rRTR5nJHUX65QXMYygMq6HixApioDhb65bwp/tyrxzqlw6yrgkjiJwFlUUp1F7dmx3h95KUNwj+Tc4Skjj9f28Yp974e8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bGz0h+KS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CCodEuwd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E78F9C4CEF7;
-	Sun, 29 Mar 2026 00:39:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bGz0h+KS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24105C4CEF7;
+	Sun, 29 Mar 2026 00:39:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744780;
-	bh=oxhcgwYK4WueI/BdybLHQhehPE8e6JWl4m2KelKWyB8=;
+	s=korg; t=1774744781;
+	bh=0g3CTD3BKRikJ0F8GtR2Ry8kqa9QgE6KZhjtUnelFw4=;
 	h=Date:To:From:Subject:From;
-	b=CCodEuwdukCg0whwH2147EkWtjtoM4GpqqGYiJF9VdYsuCqMskaqeBwpqsF6/yQ4l
-	 hiYnCWi0J/3swPPILBnmVi5NigA/nLUl5Dw64oHllV6G3PyS5ZzGBESYav6L1VveI6
-	 B7ylcpPx/pljuGmZEOn/C8AKcAEfGNeNhC3WIvlE=
-Date: Sat, 28 Mar 2026 17:39:39 -0700
+	b=bGz0h+KSEm2leuSqsDb50T0KGXsj0PsIY457otBCUGlFQGRoeEAfBhkrzSiwzUToM
+	 g5y1/j6fbXCPkE4CVf9jBNQQg1phd09fuHeDZCMjJljfBT7ph5+AC1WZuHuU+Yvgeb
+	 UanExRWcBdhALGEA954sz3tLLcj+cidVygf1PbX0=
+Date: Sat, 28 Mar 2026 17:39:40 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hao.li@linux.dev,hannes@cmpxchg.org,jweiner@meta.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-factor-out-trylock_stock-and-unlock_stock.patch removed from -mm tree
-Message-Id: <20260329003939.E78F9C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-simplify-objcg-charge-size-and-stock-remainder-math.patch removed from -mm tree
+Message-Id: <20260329003941.24105C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,119 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: factor out trylock_stock() and unlock_stock()
+     Subject: mm: memcg: simplify objcg charge size and stock remainder math
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-factor-out-trylock_stock-and-unlock_stock.patch
+     mm-memcg-simplify-objcg-charge-size-and-stock-remainder-math.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Johannes Weiner <jweiner@meta.com>
-Subject: mm: memcg: factor out trylock_stock() and unlock_stock()
-Date: Mon, 2 Mar 2026 14:50:14 -0500
+Subject: mm: memcg: simplify objcg charge size and stock remainder math
+Date: Mon, 2 Mar 2026 14:50:15 -0500
 
-Patch series "memcg: obj stock and slab stat caching cleanups".
+Use PAGE_ALIGN() and a more natural cache remainder calculation.
 
-This is a follow-up to `[PATCH] memcg: fix slab accounting in
-refill_obj_stock() trylock path`.  The way the slab stat cache and the
-objcg charge cache interact appears a bit too fragile.  This series
-factors those paths apart as much as practical.
-
-
-This patch (of 5):
-
-Consolidate the local lock acquisition and the local stock lookup.  This
-allows subsequent patches to use !!stock as an easy way to disambiguate
-the locked vs.  contended cases through the callstack.
-
-Link: https://lkml.kernel.org/r/20260302195305.620713-1-hannes@cmpxchg.org
-Link: https://lkml.kernel.org/r/20260302195305.620713-2-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20260302195305.620713-3-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Reviewed-by: Hao Li <hao.li@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-factor-out-trylock_stock-and-unlock_stock
+--- a/mm/memcontrol.c~mm-memcg-simplify-objcg-charge-size-and-stock-remainder-math
 +++ a/mm/memcontrol.c
-@@ -2950,6 +2950,19 @@ void __memcg_kmem_uncharge_page(struct p
- 	obj_cgroup_put(objcg);
- }
+@@ -3159,7 +3159,7 @@ out:
+ static int obj_cgroup_charge_account(struct obj_cgroup *objcg, gfp_t gfp, size_t size,
+ 				     struct pglist_data *pgdat, enum node_stat_item idx)
+ {
+-	unsigned int nr_pages, nr_bytes;
++	size_t charge_size, remainder;
+ 	int ret;
  
-+static struct obj_stock_pcp *trylock_stock(void)
-+{
-+	if (local_trylock(&obj_stock.lock))
-+		return this_cpu_ptr(&obj_stock);
-+
-+	return NULL;
-+}
-+
-+static void unlock_stock(struct obj_stock_pcp *stock)
-+{
-+	local_unlock(&obj_stock.lock);
-+}
-+
- static void __account_obj_stock(struct obj_cgroup *objcg,
- 				struct obj_stock_pcp *stock, int nr,
- 				struct pglist_data *pgdat, enum node_stat_item idx)
-@@ -3005,10 +3018,10 @@ static bool consume_obj_stock(struct obj
- 	struct obj_stock_pcp *stock;
- 	bool ret = false;
+ 	if (likely(consume_obj_stock(objcg, size, pgdat, idx)))
+@@ -3188,16 +3188,12 @@ static int obj_cgroup_charge_account(str
+ 	 * bytes is (sizeof(object) + PAGE_SIZE - 2) if there is no data
+ 	 * race.
+ 	 */
+-	nr_pages = size >> PAGE_SHIFT;
+-	nr_bytes = size & (PAGE_SIZE - 1);
++	charge_size = PAGE_ALIGN(size);
++	remainder = charge_size - size;
  
--	if (!local_trylock(&obj_stock.lock))
-+	stock = trylock_stock();
-+	if (!stock)
- 		return ret;
- 
--	stock = this_cpu_ptr(&obj_stock);
- 	if (objcg == READ_ONCE(stock->cached_objcg) && stock->nr_bytes >= nr_bytes) {
- 		stock->nr_bytes -= nr_bytes;
- 		ret = true;
-@@ -3017,7 +3030,7 @@ static bool consume_obj_stock(struct obj
- 			__account_obj_stock(objcg, stock, nr_bytes, pgdat, idx);
- 	}
- 
--	local_unlock(&obj_stock.lock);
-+	unlock_stock(stock);
+-	if (nr_bytes)
+-		nr_pages += 1;
+-
+-	ret = obj_cgroup_charge_pages(objcg, gfp, nr_pages);
+-	if (!ret && (nr_bytes || pgdat))
+-		refill_obj_stock(objcg, nr_bytes ? PAGE_SIZE - nr_bytes : 0,
+-					 false, size, pgdat, idx);
++	ret = obj_cgroup_charge_pages(objcg, gfp, charge_size >> PAGE_SHIFT);
++	if (!ret && (remainder || pgdat))
++		refill_obj_stock(objcg, remainder, false, size, pgdat, idx);
  
  	return ret;
  }
-@@ -3108,7 +3121,8 @@ static void refill_obj_stock(struct obj_
- 	struct obj_stock_pcp *stock;
- 	unsigned int nr_pages = 0;
- 
--	if (!local_trylock(&obj_stock.lock)) {
-+	stock = trylock_stock();
-+	if (!stock) {
- 		if (pgdat)
- 			mod_objcg_mlstate(objcg, pgdat, idx, nr_acct);
- 		nr_pages = nr_bytes >> PAGE_SHIFT;
-@@ -3117,7 +3131,6 @@ static void refill_obj_stock(struct obj_
- 		goto out;
- 	}
- 
--	stock = this_cpu_ptr(&obj_stock);
- 	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
- 		drain_obj_stock(stock);
- 		obj_cgroup_get(objcg);
-@@ -3137,7 +3150,7 @@ static void refill_obj_stock(struct obj_
- 		stock->nr_bytes &= (PAGE_SIZE - 1);
- 	}
- 
--	local_unlock(&obj_stock.lock);
-+	unlock_stock(stock);
- out:
- 	if (nr_pages)
- 		obj_cgroup_uncharge_pages(objcg, nr_pages);
 _
 
 Patches currently in -mm which might be from jweiner@meta.com are
