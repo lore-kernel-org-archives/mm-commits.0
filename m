@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C35CD2580E1
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ABE0255E43
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744878; cv=none; b=k5wBgCLMcyhN0FH9svwhLQ1NBTt87xwjYiJuK1fo1lToXxNHIwsdBeCMDRf1bHkb5XzpFCveBasHGr4ufXmq6z42OEB0ww3yFj090k6asN2R6MLZ4mOXXqJMhec97o9x16jvvoq1rZFXD7ixp1y4YI0fMXYkV3eHIW9sivveKD0=
+	t=1774744880; cv=none; b=WdDjiybd9d+xAPO1Q2kz1WBe7toVeuvKG/F7dXT4lduLZtWJQ/eHX36VIdGZV3QTnl0rygTDU7OcCuZ+B2Y8nU5UjOJgsVFWjoDI7DK9iL3wjYJvqpHtZV0JifNJ9U4LgG2D4Ahmv5EmXR9YJgock7e5e1oLNwFtuCODqJf0N2Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744878; c=relaxed/simple;
-	bh=oXWAjaYh2qQoSAR/CLw7RA4SN/Ce4ij48E3yYmZJwKY=;
-	h=Date:To:From:Subject:Message-Id; b=j3YwWa+nELLL4ekrgguLaHBrTnSx2jq7NA2jo0tqcAefeULKloWM5XMJtYC7V60vmRLeJraoFlDcZDjgbdqkLCjVZbd6ylAOB0hTZxDdeUdDL2u7D2629SbYsS7ts83Ll7i9u6gimn3lOeE8/KIyYzRqK2U+/75g3pvJlrfjwAE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wXVW0XyU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744880; c=relaxed/simple;
+	bh=wcXZVhlCf+DqNZVzrQmW26B653qbGulb5TMnhuwjhy8=;
+	h=Date:To:From:Subject:Message-Id; b=GDhunUWFR6ZuyCN+ufZmD0HqXaJk2aiHHo1SqSBIfwdpZTC2LGPTq1q7izGyd4XJcjCEfP2/kmUlLs6oKcDddl+UOZNHEuZ/KvmB5XqiD+UAJQHgw98tRZsujmhOAcG8N/4OqYqMoLrPj3Fb1/pTmAdj23xhm2/GpG9qhi4YbWQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oTvO6DEZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wXVW0XyU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D15FC4CEF7;
-	Sun, 29 Mar 2026 00:41:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oTvO6DEZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5422FC4CEF7;
+	Sun, 29 Mar 2026 00:41:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744878;
-	bh=oXWAjaYh2qQoSAR/CLw7RA4SN/Ce4ij48E3yYmZJwKY=;
+	s=korg; t=1774744880;
+	bh=wcXZVhlCf+DqNZVzrQmW26B653qbGulb5TMnhuwjhy8=;
 	h=Date:To:From:Subject:From;
-	b=wXVW0XyUFkJ1FXsChSDsIzBIeE0u/X9tko++Pfc70f40voNxfLMeaDwnSuZroxQsM
-	 nyEkFNU3o8E4/k7KWcWIWn66QgQII/dVBBkp1Al3sSRRr6enqELoQC7AFwbl5FhDNH
-	 uPTSG7RWT4GYHVkiLYWcYklRhTGXClms6Iv+AzyM=
-Date: Sat, 28 Mar 2026 17:41:18 -0700
+	b=oTvO6DEZwn/VfnID/w5JFj5zB2VFfP2fnN1QgUxJB/BdXwL9BdAVJ2R4ATPxcqFDK
+	 ACo42d8a2EcYFAyzK9SLFO/d20m2bnojJw+7/Lb4KYKSP07a/UueLcPFxGDWDnOEYT
+	 3X3TJgT+M2rAtPsOi76hagj7USc1JQPllTk2t4QQ=
+Date: Sat, 28 Mar 2026 17:41:19 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,richard.weiyang@gmail.com,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,lance.yang@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-khugepaged-export-set_recommended_min_free_kbytes.patch removed from -mm tree
-Message-Id: <20260329004118.9D15FC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-refactor-anon_enabled_store-with-set_anon_enabled_mode.patch removed from -mm tree
+Message-Id: <20260329004120.5422FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,39 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: khugepaged: export set_recommended_min_free_kbytes()
+     Subject: mm: huge_memory: refactor anon_enabled_store() with set_anon_enabled_mode()
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-export-set_recommended_min_free_kbytes.patch
+     mm-huge_memory-refactor-anon_enabled_store-with-set_anon_enabled_mode.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Breno Leitao <leitao@debian.org>
-Subject: mm: khugepaged: export set_recommended_min_free_kbytes()
-Date: Tue, 17 Mar 2026 08:33:56 -0700
+Subject: mm: huge_memory: refactor anon_enabled_store() with set_anon_enabled_mode()
+Date: Tue, 17 Mar 2026 08:33:57 -0700
 
-Patch series "mm: thp: reduce unnecessary start_stop_khugepaged()", v7.
+Consolidate the repeated spin_lock/set_bit/clear_bit pattern in
+anon_enabled_store() into a new set_anon_enabled_mode() helper that loops
+over an orders[] array, setting the bit for the selected mode and clearing
+the others.
 
-Writing to /sys/kernel/mm/transparent_hugepage/enabled causes
-start_stop_khugepaged() called independent of any change. 
-start_stop_khugepaged() SPAMs the printk ring buffer overflow with the
-exact same message, even when nothing changes.
+Introduce enum anon_enabled_mode and anon_enabled_mode_strings[] for the
+per-order anon THP setting.
 
-For instance, if you have a custom vm.min_free_kbytes, just touching
-/sys/kernel/mm/transparent_hugepage/enabled causes a printk message.
-Example:
+Use sysfs_match_string() with the anon_enabled_mode_strings[] table to
+replace the if/else chain of sysfs_streq() calls.
 
-      # sysctl -w vm.min_free_kbytes=112382
-      # for i in $(seq 100); do echo never > /sys/kernel/mm/transparent_hugepage/enabled ; done
+The helper uses __test_and_set_bit()/__test_and_clear_bit() to track
+whether the state actually changed, so start_stop_khugepaged() is only
+called when needed.  When the mode is unchanged,
+set_recommended_min_free_kbytes() is called directly to preserve the
+watermark recalculation behavior of the original code.
 
-and you have 100 WARN messages like the following, which is pretty dull:
-
-      khugepaged: min_free_kbytes is not updated to 112381 because user defined value 112382 is preferred
-
-A similar message shows up when setting thp to "always":
-
-      # for i in $(seq 100); do
-      #       echo 1024 > /proc/sys/vm/min_free_kbytes
-      #       echo always > /sys/kernel/mm/transparent_hugepage/enabled
-      # done
-
-And then, we have 100 messages like:
-
-      khugepaged: raising min_free_kbytes from 1024 to 67584 to help transparent hugepage allocations
-
-This is more common when you have a configuration management system that
-writes the THP configuration without an extra read, assuming that nothing
-will happen if there is no change in the configuration, but it prints
-these annoying messages.
-
-For instance, at Meta's fleet, ~10K servers were producing 3.5M of these
-messages per day.
-
-Fix this by making the sysfs _store helpers easier to digest and
-ratelimiting the message.
-
-
-This patch (of 4):
-
-Make set_recommended_min_free_kbytes() callable from outside khugepaged.c
-by removing the static qualifier and adding a declaration in
-mm/internal.h.
-
-This allows callers that change THP settings to recalculate watermarks
-without going through start_stop_khugepaged().
-
-Link: https://lkml.kernel.org/r/20260317-thp_logs-v7-0-31eb98fa5a8b@debian.org
-Link: https://lkml.kernel.org/r/20260317-thp_logs-v7-1-31eb98fa5a8b@debian.org
+Link: https://lkml.kernel.org/r/20260317-thp_logs-v7-2-31eb98fa5a8b@debian.org
 Signed-off-by: Breno Leitao <leitao@debian.org>
-Suggested-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Brendan Jackman <jackmanb@google.com>
@@ -111,7 +75,6 @@ Cc: Dev Jain <dev.jain@arm.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nico Pache <npache@redhat.com>
@@ -120,38 +83,123 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    5 +++++
- mm/khugepaged.c |    2 +-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |   84 +++++++++++++++++++++++++++------------------
+ 1 file changed, 52 insertions(+), 32 deletions(-)
 
---- a/mm/internal.h~mm-khugepaged-export-set_recommended_min_free_kbytes
-+++ a/mm/internal.h
-@@ -641,6 +641,11 @@ int user_proactive_reclaim(char *buf,
- pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address);
- 
- /*
-+ * in mm/khugepaged.c
-+ */
-+void set_recommended_min_free_kbytes(void);
-+
-+/*
-  * in mm/page_alloc.c
-  */
- #define K(x) ((x) << (PAGE_SHIFT-10))
---- a/mm/khugepaged.c~mm-khugepaged-export-set_recommended_min_free_kbytes
-+++ a/mm/khugepaged.c
-@@ -2660,7 +2660,7 @@ static int khugepaged(void *none)
- 	return 0;
+--- a/mm/huge_memory.c~mm-huge_memory-refactor-anon_enabled_store-with-set_anon_enabled_mode
++++ a/mm/huge_memory.c
+@@ -316,6 +316,20 @@ static ssize_t enabled_show(struct kobje
+ 	return sysfs_emit(buf, "%s\n", output);
  }
  
--static void set_recommended_min_free_kbytes(void)
-+void set_recommended_min_free_kbytes(void)
++enum anon_enabled_mode {
++	ANON_ENABLED_ALWAYS	= 0,
++	ANON_ENABLED_INHERIT	= 1,
++	ANON_ENABLED_MADVISE	= 2,
++	ANON_ENABLED_NEVER	= 3,
++};
++
++static const char * const anon_enabled_mode_strings[] = {
++	[ANON_ENABLED_ALWAYS]	= "always",
++	[ANON_ENABLED_INHERIT]	= "inherit",
++	[ANON_ENABLED_MADVISE]	= "madvise",
++	[ANON_ENABLED_NEVER]	= "never",
++};
++
+ static ssize_t enabled_store(struct kobject *kobj,
+ 			     struct kobj_attribute *attr,
+ 			     const char *buf, size_t count)
+@@ -515,48 +529,54 @@ static ssize_t anon_enabled_show(struct
+ 	return sysfs_emit(buf, "%s\n", output);
+ }
+ 
++static bool set_anon_enabled_mode(int order, enum anon_enabled_mode mode)
++{
++	static unsigned long *enabled_orders[] = {
++		&huge_anon_orders_always,
++		&huge_anon_orders_inherit,
++		&huge_anon_orders_madvise,
++	};
++	enum anon_enabled_mode m;
++	bool changed = false;
++
++	spin_lock(&huge_anon_orders_lock);
++	for (m = 0; m < ARRAY_SIZE(enabled_orders); m++) {
++		if (m == mode)
++			changed |= !__test_and_set_bit(order, enabled_orders[m]);
++		else
++			changed |= __test_and_clear_bit(order, enabled_orders[m]);
++	}
++	spin_unlock(&huge_anon_orders_lock);
++
++	return changed;
++}
++
+ static ssize_t anon_enabled_store(struct kobject *kobj,
+ 				  struct kobj_attribute *attr,
+ 				  const char *buf, size_t count)
  {
- 	struct zone *zone;
- 	int nr_zones = 0;
+ 	int order = to_thpsize(kobj)->order;
+-	ssize_t ret = count;
++	int mode;
+ 
+-	if (sysfs_streq(buf, "always")) {
+-		spin_lock(&huge_anon_orders_lock);
+-		clear_bit(order, &huge_anon_orders_inherit);
+-		clear_bit(order, &huge_anon_orders_madvise);
+-		set_bit(order, &huge_anon_orders_always);
+-		spin_unlock(&huge_anon_orders_lock);
+-	} else if (sysfs_streq(buf, "inherit")) {
+-		spin_lock(&huge_anon_orders_lock);
+-		clear_bit(order, &huge_anon_orders_always);
+-		clear_bit(order, &huge_anon_orders_madvise);
+-		set_bit(order, &huge_anon_orders_inherit);
+-		spin_unlock(&huge_anon_orders_lock);
+-	} else if (sysfs_streq(buf, "madvise")) {
+-		spin_lock(&huge_anon_orders_lock);
+-		clear_bit(order, &huge_anon_orders_always);
+-		clear_bit(order, &huge_anon_orders_inherit);
+-		set_bit(order, &huge_anon_orders_madvise);
+-		spin_unlock(&huge_anon_orders_lock);
+-	} else if (sysfs_streq(buf, "never")) {
+-		spin_lock(&huge_anon_orders_lock);
+-		clear_bit(order, &huge_anon_orders_always);
+-		clear_bit(order, &huge_anon_orders_inherit);
+-		clear_bit(order, &huge_anon_orders_madvise);
+-		spin_unlock(&huge_anon_orders_lock);
+-	} else
+-		ret = -EINVAL;
++	mode = sysfs_match_string(anon_enabled_mode_strings, buf);
++	if (mode < 0)
++		return -EINVAL;
+ 
+-	if (ret > 0) {
+-		int err;
++	if (set_anon_enabled_mode(order, mode)) {
++		int err = start_stop_khugepaged();
+ 
+-		err = start_stop_khugepaged();
+ 		if (err)
+-			ret = err;
++			return err;
++	} else {
++		/*
++		 * Recalculate watermarks even when the mode didn't
++		 * change, as the previous code always called
++		 * start_stop_khugepaged() which does this internally.
++		 */
++		set_recommended_min_free_kbytes();
+ 	}
+-	return ret;
++
++	return count;
+ }
+ 
+ static struct kobj_attribute anon_enabled_attr =
 _
 
 Patches currently in -mm which might be from leitao@debian.org are
