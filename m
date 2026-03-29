@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 038D6277CB8;
-	Sun, 29 Mar 2026 00:42:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34A06277CB8
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:42:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744954; cv=none; b=RIqpQcseQXsSxXK8i0NBjJYSUdmWIS6lsg80rRj/0Ix0Gnj1AXIUknqNeZw1Rd3783n30SxOUTggFt/pIl25eTfCTZ7Bu33KNxPCfmohscsXwZnMAgNz0otGI8IEWYAC1abmeIpIpdIuzDCmkS6k9COQBiOmAYGf6897DMk8SSE=
+	t=1774744955; cv=none; b=H/Hzf99jaAtW279oElZPBj16QuXqyWpAHZiok8t2RzKhx5MuQxmwxB6Cl5sSpRhMdJEZQZDP+XmzPfCSIuW79xbjOqT8rekuWe3sHW/K/en3oOfD8GCOrHPBfi9qWevXIJ/VJwn4R+sDMIEmrRprwfzkVh5HF2W+O/NRePv/SRg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744954; c=relaxed/simple;
-	bh=swXzs6RR6yCU+4E4xLd7ZOvaH5J7aZj39QQpncnAyEs=;
-	h=Date:To:From:Subject:Message-Id; b=iRfwM0bBuJ5k0xKPc42Wv9rvVu7W5RV7GHcKrR1ultczP1YkhNaS4CAUv2ZdYp5We/ST4ujhPkcPd62n4dTMfy1PeGzbRioH5jOymleXQbEFyD7DIrI6CEft4+tSuW6xfiaLTYoVwuPQkn0HJgiPOsHEOj23B4WyXvW2xtZ/Ryc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SaPYcTHn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744955; c=relaxed/simple;
+	bh=+4rmANo9j47jJpR4ua1dzscKtRnCi/bpUHLYFhZg1A4=;
+	h=Date:To:From:Subject:Message-Id; b=DyPGP5ITF12sX6myw/cjNhm4PX1m22et5doK+utaxFgRiuJoaW4mGJamKRZdgQqC+QpQFpxo+Gi8g8mw4EMj+D6x/7awHwIT3tUz++luQzlWP+T+t7jSe5txXbJ5TDqtdNB7onu6BPXspYme1zCtat2206ysgWCaaJsD7/dB1Qo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x1XQXcxS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SaPYcTHn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF588C4CEF7;
-	Sun, 29 Mar 2026 00:42:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x1XQXcxS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C3B4C4CEF7;
+	Sun, 29 Mar 2026 00:42:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744953;
-	bh=swXzs6RR6yCU+4E4xLd7ZOvaH5J7aZj39QQpncnAyEs=;
+	s=korg; t=1774744955;
+	bh=+4rmANo9j47jJpR4ua1dzscKtRnCi/bpUHLYFhZg1A4=;
 	h=Date:To:From:Subject:From;
-	b=SaPYcTHn8vbdCWn4Hf017hM/wmog95P3wB85XhBm/3m7bC90Kmu/MkdmP+rRMIAOQ
-	 aPNeWz2f9JmX8TysPF6Lygw6a3Xef050Ku/jwVlPdJXCUDPFZSzt+MPWehBVm0hNII
-	 R61ZCPbUuWtOciwhBW81FgrWHtQHeUcRcvTSFv6g=
-Date: Sat, 28 Mar 2026 17:42:33 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,mark-pk.tsai@mediatek.com,syoshida@redhat.com,akpm@linux-foundation.org
+	b=x1XQXcxS6BWiYi6X9Sa1YDVpFakZOG/NE7SdmQGwJM70ijaoShxYW3gBujbBYSPvZ
+	 WgyWq6NDUETdG26utgMQjfzajVRfkFaXTF+3MFPaH7K/RCNxrnIqNcDC8Uy+jaWFAh
+	 dKnBlk1jC5ffhrCQs+NHzRmuOL6OSRUDEF2lf7WA=
+Date: Sat, 28 Mar 2026 17:42:34 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,akpm@linux-foundation.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-zsmalloc-copy-kmsan-metadata-in-zs_page_migrate.patch removed from -mm tree
-Message-Id: <20260329004233.CF588C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mark-early-init-static-variables-with-__meminitdata.patch removed from -mm tree
+Message-Id: <20260329004235.0C3B4C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/zsmalloc: copy KMSAN metadata in zs_page_migrate()
+     Subject: mm: mark early-init static variables with __meminitdata
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-copy-kmsan-metadata-in-zs_page_migrate.patch
+     mm-mark-early-init-static-variables-with-__meminitdata.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shigeru Yoshida <syoshida@redhat.com>
-Subject: mm/zsmalloc: copy KMSAN metadata in zs_page_migrate()
-Date: Sat, 21 Mar 2026 22:29:11 +0900
+From: Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: mm: mark early-init static variables with __meminitdata
+Date: Sat, 21 Mar 2026 20:08:47 +0800
 
-zs_page_migrate() uses copy_page() to copy the contents of a zspage page
-during migration.  However, copy_page() is not instrumented by KMSAN, so
-the shadow and origin metadata of the destination page are not updated.
+Static variables defined inside __meminit functions should also be marked
+with __meminitdata, so that their storage is placed in the .init.data
+section and reclaimed with free_initmem(), thereby reducing permanent .bss
+memory usage when CONFIG_MEMORY_HOTPLUG is disabled.
 
-As a result, subsequent accesses to the migrated page are reported as
-use-after-free by KMSAN, despite the data being correctly copied.
-
-Add a kmsan_copy_page_meta() call after copy_page() to propagate the KMSAN
-metadata to the new page, matching what copy_highpage() does internally.
-
-Link: https://lkml.kernel.org/r/20260321132912.93434-1-syoshida@redhat.com
-Fixes: afb2d666d025 ("zsmalloc: use copy_page for full page copy")
-Signed-off-by: Shigeru Yoshida <syoshida@redhat.com>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Mark-PK Tsai <mark-pk.tsai@mediatek.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260321120847.8159-1-pilgrimtao@gmail.com
+Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mm_init.c        |    2 +-
+ mm/sparse-vmemmap.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/zsmalloc.c~mm-zsmalloc-copy-kmsan-metadata-in-zs_page_migrate
-+++ a/mm/zsmalloc.c
-@@ -1753,6 +1753,7 @@ static int zs_page_migrate(struct page *
- 	 */
- 	d_addr = kmap_local_zpdesc(newzpdesc);
- 	copy_page(d_addr, s_addr);
-+	kmsan_copy_page_meta(zpdesc_page(newzpdesc), zpdesc_page(zpdesc));
- 	kunmap_local(d_addr);
+--- a/mm/mm_init.c~mm-mark-early-init-static-variables-with-__meminitdata
++++ a/mm/mm_init.c
+@@ -812,7 +812,7 @@ void __meminit reserve_bootmem_region(ph
+ static bool __meminit
+ overlap_memmap_init(unsigned long zone, unsigned long *pfn)
+ {
+-	static struct memblock_region *r;
++	static struct memblock_region *r __meminitdata;
  
- 	for (addr = s_addr + offset; addr < s_addr + PAGE_SIZE;
+ 	if (mirrored_kernelcore && zone == ZONE_MOVABLE) {
+ 		if (!r || *pfn >= memblock_region_memory_end_pfn(r)) {
+--- a/mm/sparse-vmemmap.c~mm-mark-early-init-static-variables-with-__meminitdata
++++ a/mm/sparse-vmemmap.c
+@@ -62,7 +62,7 @@ void * __meminit vmemmap_alloc_block(uns
+ 	if (slab_is_available()) {
+ 		gfp_t gfp_mask = GFP_KERNEL|__GFP_RETRY_MAYFAIL|__GFP_NOWARN;
+ 		int order = get_order(size);
+-		static bool warned;
++		static bool warned __meminitdata;
+ 		struct page *page;
+ 
+ 		page = alloc_pages_node(node, gfp_mask, order);
 _
 
-Patches currently in -mm which might be from syoshida@redhat.com are
+Patches currently in -mm which might be from chengkaitao@kylinos.cn are
 
 
