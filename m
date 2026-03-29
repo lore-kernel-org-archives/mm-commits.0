@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E25CB24E4A1
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14D4125393E
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744843; cv=none; b=YqjmLIwdXFXy0fEEsVjrKb4jbt0NcEH3P6iegUclkMY6WM+R+yKBto3Pb96EjH6nGH23zYr8dBY0FAF45DWm3C7vkJwwe+SNwI414PsCNbZvHmaCfpEzx+A6JH2q4nmkfb/9cQn3WR5uq0IYQrCEWktMqB9dAHdZ+RXNrpUPWYQ=
+	t=1774744844; cv=none; b=NpdcgHXNo7nzvW7kzjmCWCMYVeddUcdclHNjQqwMikDRwu7GNDzFhU8W7kL39Zvgo7S2hssJah77wh84rLxMazfFcEvPUzuXTsYDqnuEtWoZOFKCOP4SkyzUU6f8aHsiwhYnsNx5GbfhpopZr4JZ62Xv8gQ0K7ZXS+xOWI+PXxI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744843; c=relaxed/simple;
-	bh=K5DmkAR0eRkeKFUG7Rwo57SGE1sbQFA/rGpMfThe/9E=;
-	h=Date:To:From:Subject:Message-Id; b=s2D9Y6innd4wsGGbRkNwdAfp99Ysp9ow2fQiFD5fu6aOHBS6lsuuM9vzBeTy1xXxqW/oLqd9EXbfuDKmf1o4mWuP3Lz4+bHyP+Tyl+ZTV3GeWvEeLf8SQlQ8+vYfY9Nvhcm4hvc8yu2ifO3k/8Yt92gnGK9x9nv5X98Lt9mh2p0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pn8cBP9j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744844; c=relaxed/simple;
+	bh=Y9HOyYDzotctPkpWpM02zxyrm6UgtK8A4mU+KQD4fIk=;
+	h=Date:To:From:Subject:Message-Id; b=MKWzXt+IYuYW2/DazR9nLZ2vooFRjI85UcTOSfwkPz+1f6Yhh+nhuv6JEv6/SJQMrD3ABvqOKSiEwb0pBJfilAztq/+ylyXzzsmSyOvWhY03ZUEt3uV9XhahJJaIO7JsIJvIlpnZi9i4yiEoroqngdUa616mXG/I9D/kI7zzqB4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=N+kON7FY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pn8cBP9j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC0E8C4CEF7;
-	Sun, 29 Mar 2026 00:40:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="N+kON7FY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF314C4CEF7;
+	Sun, 29 Mar 2026 00:40:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744842;
-	bh=K5DmkAR0eRkeKFUG7Rwo57SGE1sbQFA/rGpMfThe/9E=;
+	s=korg; t=1774744844;
+	bh=Y9HOyYDzotctPkpWpM02zxyrm6UgtK8A4mU+KQD4fIk=;
 	h=Date:To:From:Subject:From;
-	b=Pn8cBP9jhDAgiKMz4+dPdvBKLO1uLJgykHyGodtWhwK9DChhvht8XvJFPe8mXo8z9
-	 N0drRK7/L0dzFg1twGJECJrzwbMZDrPXXS7JSnxU5ira4hNpCD1w03J2FWtCUBvPKD
-	 Gcp1OXGLGvEEV27HaMGTZ28L6xqyioWnpwZ4x7x8=
-Date: Sat, 28 Mar 2026 17:40:42 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,lianux.mm@gmail.com,liam.howlett@oracle.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
+	b=N+kON7FYeyJQHtO1mgukW4Md7ZpGtOpWhRWnr0Uw0bHQLRv8CY4e0ote+1ZUD+nsf
+	 Hak0dDA2UZ0TLb5PusEWIVLYRjP5QDTu2xdTRrCot4RGRQ5dZS8V/tkgOYhRZEP7KX
+	 AlR/QeYkjlf2o9ZtgfhOuSRt0F9da98a+mR82zC4=
+Date: Sat, 28 Mar 2026 17:40:43 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org,akinobu.mita@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-mm-damon-index-fix-typo-autoamted-automated.patch removed from -mm tree
-Message-Id: <20260329004042.BC0E8C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] docs-mm-fix-typo-in-numa_memory_policyrst.patch removed from -mm tree
+Message-Id: <20260329004043.DF314C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,55 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/mm/damon/index: fix typo: autoamted -> automated
+     Subject: docs: mm: fix typo in numa_memory_policy.rst
 has been removed from the -mm tree.  Its filename was
-     docs-mm-damon-index-fix-typo-autoamted-automated.patch
+     docs-mm-fix-typo-in-numa_memory_policyrst.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/index: fix typo: autoamted -> automated
-Date: Sat, 7 Mar 2026 11:53:55 -0800
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: docs: mm: fix typo in numa_memory_policy.rst
+Date: Wed, 11 Mar 2026 00:18:37 +0900
 
-There is an obvious typo.  Fix it (s/autoamted/automated/).
+Fix a typo: MPOL_INTERLEAVED -> MPOL_INTERLEAVE.
 
-Link: https://lkml.kernel.org/r/20260307195356.203753-8-sj@kernel.org
-Fixes: 32d11b320897 ("Docs/mm/damon/index: simplify the intro")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Acked-by: wang lian <lianux.mm@gmail.com>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Gow <davidgow@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lkml.kernel.org/r/20260310151837.5888-1-akinobu.mita@gmail.com
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/index.rst |    2 +-
+ Documentation/admin-guide/mm/numa_memory_policy.rst |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/damon/index.rst~docs-mm-damon-index-fix-typo-autoamted-automated
-+++ a/Documentation/mm/damon/index.rst
-@@ -12,7 +12,7 @@ DAMON is a Linux kernel subsystem for ef
-  - *light-weight* (for production online usages),
-  - *scalable* (in terms of memory size),
-  - *tunable* (for flexible usages), and
-- - *autoamted* (for production operation without manual tunings).
-+ - *automated* (for production operation without manual tunings).
+--- a/Documentation/admin-guide/mm/numa_memory_policy.rst~docs-mm-fix-typo-in-numa_memory_policyrst
++++ a/Documentation/admin-guide/mm/numa_memory_policy.rst
+@@ -217,7 +217,7 @@ MPOL_PREFERRED
+ 	the MPOL_F_STATIC_NODES or MPOL_F_RELATIVE_NODES flags
+ 	described below.
  
- .. toctree::
-    :maxdepth: 2
+-MPOL_INTERLEAVED
++MPOL_INTERLEAVE
+ 	This mode specifies that page allocations be interleaved, on a
+ 	page granularity, across the nodes specified in the policy.
+ 	This mode also behaves slightly differently, based on the
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
-mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch
 
