@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 912EB247280
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C497624EAB1
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744850; cv=none; b=UEbdLWaluarzSCCQjZ6wIkvDFgk1hiJJWsiUR+mi/VFcg2ueA6dygRcr5KEHzDBcDpMJoJZd5MORL+HTJdSqPfLGI5mkSw+3+96UN/O9M/G1BDkvnJ4dLb3meQnEdboH9J79Giz0hq58nJNmABQgstk+isXutKFYPh68XKVjWJo=
+	t=1774744851; cv=none; b=u8cmClKkU3FJ+phiBdbQ6sZV0q0dg7F/HH2V1v8bqWeQiqrje10Y+dcaJUAPJ92VPODGwxG0gXeRe5mTAalUkM7ECFoezECtl3DRYoBGCjei6ff6Qt2BhRvtilTiOP5gL2TJ5PctUoEiwNqxUtMb4kvJKCxpllzxEjZA40p0A2g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744850; c=relaxed/simple;
-	bh=XOyupWlinNhjW0F16tLI24XLrKizZeQUcz3ImjRk2NY=;
-	h=Date:To:From:Subject:Message-Id; b=LwLnkOmcFqEXm2+wlwsDBDZko/WsF8aKR66Ueh7XDkaTmgQZbayrLgXNu9kMqZzIAsOH2O0zBbkwISNc03H10MFAeD6/NTZdpthbBcQunOPCz+C5RbKEMSG6b+m9O8gRQaTo5XERk39Qu9m+2O2eBvdjn1B5SkecxWPJ4kd/IT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o3YrgQFO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744851; c=relaxed/simple;
+	bh=yTYrdhPR4As8vlrmsZsvBn36xFgwzTvbV7amALMG5lU=;
+	h=Date:To:From:Subject:Message-Id; b=hJSBI1LwSCqgeCgNhvhGGlo8AaNIHqts5WiJ5BaIKJk7mp6Gts/m3AhJ2inOCOhk/ZHG9Jw2ChtD/7kTJHRfb2WmTtY7DGtjHsaoxZ/sNC0YJdkMhodnDxEVO9rKv9kmh7MW1k+iemf8k3l90AdIToK0qHZUb7N2ygLhQyFiZJc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U6ZjIbeq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o3YrgQFO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6BD80C4CEF7;
-	Sun, 29 Mar 2026 00:40:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U6ZjIbeq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DEB6C4CEF7;
+	Sun, 29 Mar 2026 00:40:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744850;
-	bh=XOyupWlinNhjW0F16tLI24XLrKizZeQUcz3ImjRk2NY=;
+	s=korg; t=1774744851;
+	bh=yTYrdhPR4As8vlrmsZsvBn36xFgwzTvbV7amALMG5lU=;
 	h=Date:To:From:Subject:From;
-	b=o3YrgQFOqHr+qLoGc6vk8Q+yOnOC8+kWdNKH1fKAZAx6y9KLuQyvmzT4a6QmV0Lvj
-	 PtofYCLjY/CV7wq8d0iTmiKtgnNyviMGX4uaKuy/Q8VGxP65RZff0EJy9urhok7l5T
-	 HwXHd/AoT7G68VtO6WJVOxgJABhyGm2es9AnDXSU=
-Date: Sat, 28 Mar 2026 17:40:49 -0700
+	b=U6ZjIbeqppN5JxgdKtPb34FMGBfyua1F71HUyEX30g/VaGWuvYCZONJ2ccjbN6JA+
+	 bzLDykEEQ8AHi184ur/D3vWMVup/G3hGAJAf0mieCtHU03LYTjNz2UdctGcPVrZYbL
+	 eDcYo1JI6P6zsMufhsg5uAad1iojANnj7GGybttk=
+Date: Sat, 28 Mar 2026 17:40:51 -0700
 To: mm-commits@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,pasha.tatashin@soleen.com,graf@amazon.com,pratyush@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] kho-make-sure-preservations-do-not-span-multiple-numa-nodes.patch removed from -mm tree
-Message-Id: <20260329004050.6BD80C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] kho-drop-restriction-on-maximum-page-order.patch removed from -mm tree
+Message-Id: <20260329004051.9DEB6C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,63 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kho: make sure preservations do not span multiple NUMA nodes
+     Subject: kho: drop restriction on maximum page order
 has been removed from the -mm tree.  Its filename was
-     kho-make-sure-preservations-do-not-span-multiple-numa-nodes.patch
+     kho-drop-restriction-on-maximum-page-order.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Pratyush Yadav (Google)" <pratyush@kernel.org>
-Subject: kho: make sure preservations do not span multiple NUMA nodes
-Date: Mon, 9 Mar 2026 12:34:06 +0000
+From: Pratyush Yadav <pratyush@kernel.org>
+Subject: kho: drop restriction on maximum page order
+Date: Mon, 9 Mar 2026 12:34:07 +0000
 
-The KHO restoration machinery is not capable of dealing with preservations
-that span multiple NUMA nodes.  kho_preserve_folio() guarantees the
-preservation will only span one NUMA node since folios can't span multiple
-nodes.
+KHO currently restricts the maximum order of a restored page to the
+maximum order supported by the buddy allocator.  While this works fine for
+much of the data passed across kexec, it is possible to have pages larger
+than MAX_PAGE_ORDER.
 
-This leaves kho_preserve_pages().  While semantically kho_preserve_pages()
-only deals with 0-order pages, so all preservations should be single page
-only, in practice it combines preservations to higher orders for
-efficiency.  This can result in a preservation spanning multiple nodes. 
-Break up the preservations into a smaller order if that happens.
+For one, it is possible to get a larger order when using
+kho_preserve_pages() if the number of pages is large enough, since it
+tries to combine multiple aligned 0-order preservations into one higher
+order preservation.
 
-Link: https://lkml.kernel.org/r/20260309123410.382308-1-pratyush@kernel.org
+For another, upcoming support for hugepages can have gigantic hugepages
+being preserved over KHO.
+
+There is no real reason for this limit.  The KHO preservation machinery
+can handle any page order.  Remove this artificial restriction on max page
+order.
+
+Link: https://lkml.kernel.org/r/20260309123410.382308-2-pratyush@kernel.org
+Signed-off-by: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Pratyush Yadav (Google) <pratyush@kernel.org>
-Suggested-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Reviewed-by: Samiullah Khawaja <skhawaja@google.com>
 Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Alexander Graf <graf@amazon.com>
 Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Samiullah Khawaja <skhawaja@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/liveupdate/kexec_handover.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ kernel/liveupdate/kexec_handover.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/liveupdate/kexec_handover.c~kho-make-sure-preservations-do-not-span-multiple-numa-nodes
+--- a/kernel/liveupdate/kexec_handover.c~kho-drop-restriction-on-maximum-page-order
 +++ a/kernel/liveupdate/kexec_handover.c
-@@ -870,9 +870,17 @@ int kho_preserve_pages(struct page *page
- 	}
+@@ -411,7 +411,7 @@ static struct page *kho_restore_page(phy
+ 	 * check also implicitly makes sure phys is order-aligned since for
+ 	 * non-order-aligned phys addresses, magic will never be set.
+ 	 */
+-	if (WARN_ON_ONCE(info.magic != KHO_PAGE_MAGIC || info.order > MAX_PAGE_ORDER))
++	if (WARN_ON_ONCE(info.magic != KHO_PAGE_MAGIC))
+ 		return NULL;
+ 	nr_pages = (1 << info.order);
  
- 	while (pfn < end_pfn) {
--		const unsigned int order =
-+		unsigned int order =
- 			min(count_trailing_zeros(pfn), ilog2(end_pfn - pfn));
- 
-+		/*
-+		 * Make sure all the pages in a single preservation are in the
-+		 * same NUMA node. The restore machinery can not cope with a
-+		 * preservation spanning multiple NUMA nodes.
-+		 */
-+		while (pfn_to_nid(pfn) != pfn_to_nid(pfn + (1UL << order) - 1))
-+			order--;
-+
- 		err = kho_radix_add_page(tree, pfn, order);
- 		if (err) {
- 			failed_pfn = pfn;
 _
 
 Patches currently in -mm which might be from pratyush@kernel.org are
