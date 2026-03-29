@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 906CD1C5F1B
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:39:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B97A1C5F1B
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:39:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744778; cv=none; b=l0BsLBoTDABLeXRR97+SkZtG8Spm5nXKybVFTXHu+PMhdX3IJZ7/we2FqOWmsz1V3PAHFMtSZEHsuBn8njxTosw5XsJEC8owT0PYLe7wd3fXL4JdusL4burN7IH3gyPqB2MadDn/sSZpr32g5tpQkDMzO5g/qc0W/pKK4E35aQU=
+	t=1774744780; cv=none; b=hVlpotItXLTf5u0mdxcewQ5Be89j7zuAV2kZup5PCJH9M5xvXJPHDTnlai5CRFYy+9evE3LbaQlraK17LzSQDVcKhOaAX7px4nwZ7yTOkZeK9KBc4QTfbzvLOd4YMAWKuD8FTBPW1jkhEv4szw99fHWrMRFETKieKkQKnxEzCJg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744778; c=relaxed/simple;
-	bh=uXjSlEPAG3hYpWxmc68O+lEm5cy+1AFFKdEGWWR2wPg=;
-	h=Date:To:From:Subject:Message-Id; b=GUx++jFOF0dnGSg3QFxP5AFoA88yH1lZEuR/KfSBptYJH5TUy+Q5mCcwim3lNer5AJooZuBjzu6DX+ELsqHK+uAZwuk0Q5Y05L2cYy+aO0mwo4aFuTpNsGfcvXvIxD9S34aEjAREQSBg5xeDIZ46Y4ecPk5qMH5j7POVcgo3aRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OzJhe/XI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744780; c=relaxed/simple;
+	bh=oxhcgwYK4WueI/BdybLHQhehPE8e6JWl4m2KelKWyB8=;
+	h=Date:To:From:Subject:Message-Id; b=AMnykCZV44qlVknY0OhVaQf6R2JTEtMDxprP3A2O01XaXp9GwtaKP2mEnhkh2Bbx5xQnl+ClocqNKWc9Ga3z4dAEzF5GEppHFAfADsginpJmeK6UBMFo3/39FhM/RTLEwzPl5KFky4UQOoeK7MezlmPLCdDBxKzkAjDMRaWuYnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CCodEuwd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OzJhe/XI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D779C4CEF7;
-	Sun, 29 Mar 2026 00:39:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CCodEuwd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E78F9C4CEF7;
+	Sun, 29 Mar 2026 00:39:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744778;
-	bh=uXjSlEPAG3hYpWxmc68O+lEm5cy+1AFFKdEGWWR2wPg=;
+	s=korg; t=1774744780;
+	bh=oxhcgwYK4WueI/BdybLHQhehPE8e6JWl4m2KelKWyB8=;
 	h=Date:To:From:Subject:From;
-	b=OzJhe/XIOFIoEw62SHJIt5L3ZqhsiL4XzGV0wzFIj0MmG1jZatrgr1XYxeYE4nnWB
-	 rwdUwVALeZKOfswsqSgvt+AJhX01O6qCqBAu6LzDSuGn7oK6MW2Z9GzjuLB+zVA8r6
-	 rdvAXS3ke/8EjqbaboYvoZuJLknuAQFqnXolp6hM=
-Date: Sat, 28 Mar 2026 17:39:37 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,willy@infradead.org,will@kernel.org,weixugc@google.com,vbabka@suse.cz,surenb@google.com,shakeel.butt@linux.dev,ryan.roberts@arm.com,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,jannh@google.com,hannes@cmpxchg.org,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,baohua@kernel.org,axelrasmussen@google.com,apopple@nvidia.com,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=CCodEuwdukCg0whwH2147EkWtjtoM4GpqqGYiJF9VdYsuCqMskaqeBwpqsF6/yQ4l
+	 hiYnCWi0J/3swPPILBnmVi5NigA/nLUl5Dw64oHllV6G3PyS5ZzGBESYav6L1VveI6
+	 B7ylcpPx/pljuGmZEOn/C8AKcAEfGNeNhC3WIvlE=
+Date: Sat, 28 Mar 2026 17:39:39 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hao.li@linux.dev,hannes@cmpxchg.org,jweiner@meta.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes.patch removed from -mm tree
-Message-Id: <20260329003938.5D779C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcg-factor-out-trylock_stock-and-unlock_stock.patch removed from -mm tree
+Message-Id: <20260329003939.E78F9C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,109 +35,121 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm64: mm: implement the architecture-specific test_and_clear_young_ptes()
+     Subject: mm: memcg: factor out trylock_stock() and unlock_stock()
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes.patch
+     mm-memcg-factor-out-trylock_stock-and-unlock_stock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: arm64: mm: implement the architecture-specific test_and_clear_young_ptes()
-Date: Fri, 6 Mar 2026 14:43:42 +0800
+From: Johannes Weiner <jweiner@meta.com>
+Subject: mm: memcg: factor out trylock_stock() and unlock_stock()
+Date: Mon, 2 Mar 2026 14:50:14 -0500
 
-Implement the Arm64 architecture-specific test_and_clear_young_ptes() to
-enable batched checking of young flags, improving performance during large
-folio reclamation when MGLRU is enabled.
+Patch series "memcg: obj stock and slab stat caching cleanups".
 
-While we're at it, simplify ptep_test_and_clear_young() by calling
-test_and_clear_young_ptes().  Since callers guarantee that PTEs are
-present before calling these functions, we can use pte_cont() to check the
-CONT_PTE flag instead of pte_valid_cont().
+This is a follow-up to `[PATCH] memcg: fix slab accounting in
+refill_obj_stock() trylock path`.  The way the slab stat cache and the
+objcg charge cache interact appears a bit too fragile.  This series
+factors those paths apart as much as practical.
 
-Performance testing:
 
-Enable MGLRU, then allocate 10G clean file-backed folios by mmap() in a
-memory cgroup, and try to reclaim 8G file-backed folios via the
-memory.reclaim interface.  I can observe 60%+ performance improvement on
-my Arm64 32-core server (and about 15% improvement on my X86 machine).
+This patch (of 5):
 
-W/o patchset:
-real	0m0.470s
-user	0m0.000s
-sys	0m0.470s
+Consolidate the local lock acquisition and the local stock lookup.  This
+allows subsequent patches to use !!stock as an easy way to disambiguate
+the locked vs.  contended cases through the callstack.
 
-W/ patchset:
-real	0m0.180s
-user	0m0.001s
-sys	0m0.179s
-
-Link: https://lkml.kernel.org/r/7f891d42a720cc2e57862f3b79e4f774404f313c.1772778858.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Rik van Riel <riel@surriel.com>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lkml.kernel.org/r/20260302195305.620713-1-hannes@cmpxchg.org
+Link: https://lkml.kernel.org/r/20260302195305.620713-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Hao Li <hao.li@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |   25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
---- a/arch/arm64/include/asm/pgtable.h~arm64-mm-implement-the-architecture-specific-test_and_clear_young_ptes
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -1812,16 +1812,22 @@ static inline pte_t ptep_get_and_clear(s
- 	return __ptep_get_and_clear(mm, addr, ptep);
+--- a/mm/memcontrol.c~mm-memcg-factor-out-trylock_stock-and-unlock_stock
++++ a/mm/memcontrol.c
+@@ -2950,6 +2950,19 @@ void __memcg_kmem_uncharge_page(struct p
+ 	obj_cgroup_put(objcg);
  }
  
-+#define test_and_clear_young_ptes test_and_clear_young_ptes
-+static inline int test_and_clear_young_ptes(struct vm_area_struct *vma,
-+					    unsigned long addr, pte_t *ptep,
-+					    unsigned int nr)
++static struct obj_stock_pcp *trylock_stock(void)
 +{
-+	if (likely(nr == 1 && !pte_cont(__ptep_get(ptep))))
-+		return __ptep_test_and_clear_young(vma, addr, ptep);
++	if (local_trylock(&obj_stock.lock))
++		return this_cpu_ptr(&obj_stock);
 +
-+	return contpte_test_and_clear_young_ptes(vma, addr, ptep, nr);
++	return NULL;
 +}
 +
- #define __HAVE_ARCH_PTEP_TEST_AND_CLEAR_YOUNG
- static inline int ptep_test_and_clear_young(struct vm_area_struct *vma,
- 				unsigned long addr, pte_t *ptep)
- {
--	pte_t orig_pte = __ptep_get(ptep);
--
--	if (likely(!pte_valid_cont(orig_pte)))
--		return __ptep_test_and_clear_young(vma, addr, ptep);
--
--	return contpte_test_and_clear_young_ptes(vma, addr, ptep, 1);
-+	return test_and_clear_young_ptes(vma, addr, ptep, 1);
- }
++static void unlock_stock(struct obj_stock_pcp *stock)
++{
++	local_unlock(&obj_stock.lock);
++}
++
+ static void __account_obj_stock(struct obj_cgroup *objcg,
+ 				struct obj_stock_pcp *stock, int nr,
+ 				struct pglist_data *pgdat, enum node_stat_item idx)
+@@ -3005,10 +3018,10 @@ static bool consume_obj_stock(struct obj
+ 	struct obj_stock_pcp *stock;
+ 	bool ret = false;
  
- #define __HAVE_ARCH_PTEP_CLEAR_YOUNG_FLUSH
+-	if (!local_trylock(&obj_stock.lock))
++	stock = trylock_stock();
++	if (!stock)
+ 		return ret;
+ 
+-	stock = this_cpu_ptr(&obj_stock);
+ 	if (objcg == READ_ONCE(stock->cached_objcg) && stock->nr_bytes >= nr_bytes) {
+ 		stock->nr_bytes -= nr_bytes;
+ 		ret = true;
+@@ -3017,7 +3030,7 @@ static bool consume_obj_stock(struct obj
+ 			__account_obj_stock(objcg, stock, nr_bytes, pgdat, idx);
+ 	}
+ 
+-	local_unlock(&obj_stock.lock);
++	unlock_stock(stock);
+ 
+ 	return ret;
+ }
+@@ -3108,7 +3121,8 @@ static void refill_obj_stock(struct obj_
+ 	struct obj_stock_pcp *stock;
+ 	unsigned int nr_pages = 0;
+ 
+-	if (!local_trylock(&obj_stock.lock)) {
++	stock = trylock_stock();
++	if (!stock) {
+ 		if (pgdat)
+ 			mod_objcg_mlstate(objcg, pgdat, idx, nr_acct);
+ 		nr_pages = nr_bytes >> PAGE_SHIFT;
+@@ -3117,7 +3131,6 @@ static void refill_obj_stock(struct obj_
+ 		goto out;
+ 	}
+ 
+-	stock = this_cpu_ptr(&obj_stock);
+ 	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
+ 		drain_obj_stock(stock);
+ 		obj_cgroup_get(objcg);
+@@ -3137,7 +3150,7 @@ static void refill_obj_stock(struct obj_
+ 		stock->nr_bytes &= (PAGE_SIZE - 1);
+ 	}
+ 
+-	local_unlock(&obj_stock.lock);
++	unlock_stock(stock);
+ out:
+ 	if (nr_pages)
+ 		obj_cgroup_uncharge_pages(objcg, nr_pages);
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from jweiner@meta.com are
 
-mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch
-mm-vmscan-fix-dirty-folios-throttling-on-cgroup-v1-for-mglru.patch
 
