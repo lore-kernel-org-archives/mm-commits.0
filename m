@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A095255E43
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3081A255E43
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744894; cv=none; b=F+hXZTj1k4nDdSCBQ9FcVDV8lLNRuzSOomFUH/b1LEPiuM4SNnuLsfyOwCzfd+GNA0oHiVMRUyT3p/oMq2A0qiPZ5MzWTKsxAr54YVj5diB6Bj+VcikeHfzrlGOHIcrOfcq5xyzsPK9XcV6s4zBwscXkdy+8O4gQN5vk+V5QWrc=
+	t=1774744895; cv=none; b=fzcKPW3oFnY84NpvKkc0sLKq38F9B0lJy1BNmiolmiGWEs44It7YunR85L/firVqEsuPh3whJG5t/n8xLDpf4MbZCor4Lb2702jdyT2eon30G/e4dFXpGsafHyeB1z2q7uvGl9CuzJzAgjU1+ssC96HxYBRaatwsVCtcDPgSNTM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744894; c=relaxed/simple;
-	bh=AuEZlGzahyNRw7oJQBFJNDDAWA7uGO+5AFVFlbofDX4=;
-	h=Date:To:From:Subject:Message-Id; b=dQNFpptEHZvcTMEnxwdfbM39Zjsuzl3+WvbJBCgoz5WoKDKn2Hf4epGiWf1ABVkEkSCVSFLlE59OQ4BW8G/Y6UgkedxuaPC1WOgjTSFRIBpE2jDX2NUixFLAwBVyIu4QVcCggKuMryxKMxfKIR4ErW0v2NJcYifCgXt4ePwuHys=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SYu4uaBH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744895; c=relaxed/simple;
+	bh=JJq1o0W3RKDUldjBC5SURh5nYHzxD3N8RatE0HgpPls=;
+	h=Date:To:From:Subject:Message-Id; b=sezcPZqX1CgCChOQl4eRxrvWqxZaCBf9b5p2UDSFxfRYqf5jpf4b20nDDZdm1x4G2ggBhbVsgMN6MkyXQCPZNJC49KaeEldG6hIUOAxDNwn6HBP3hQYma2Y4dn80paiKSw92EzXmjPCCZbk23fknXnIbk6ZkWSS/1j95mK+i8R8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qs3fYl73; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SYu4uaBH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D601CC4CEF7;
-	Sun, 29 Mar 2026 00:41:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qs3fYl73"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 084C4C4CEF7;
+	Sun, 29 Mar 2026 00:41:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744893;
-	bh=AuEZlGzahyNRw7oJQBFJNDDAWA7uGO+5AFVFlbofDX4=;
+	s=korg; t=1774744895;
+	bh=JJq1o0W3RKDUldjBC5SURh5nYHzxD3N8RatE0HgpPls=;
 	h=Date:To:From:Subject:From;
-	b=SYu4uaBHDKZWv529HAItLcdhRTLJzNno95AFhbQxRq+QK+64111orYwFWsHIwazLm
-	 +e1HppNMOLaK6HgNE1wnRF6vzHlzrx8XxrZoNGFnWrPmZ+FEZVy4ZvLpvh5SKISOoS
-	 YMrRF+Ng7yye3a6r9jEPPqaoGZqs/Sk07P07sucg=
-Date: Sat, 28 Mar 2026 17:41:33 -0700
+	b=qs3fYl73ClEtB5k68BjR6jI3Wn/9j8dj5SLxuS5yItezp+BUO1DgPWzkrDRBZdNIt
+	 I/n0baF0Vvwyz5kNRGd361iJ75mssF/bCyWTa3Z4bhiEaobwYUjzTkZQPj7tWWLL6J
+	 Db+FV4MaSIG6/4LRejvuk9Xd/b4yxS3k5SJdK3m8=
+Date: Sat, 28 Mar 2026 17:41:34 -0700
 To: mm-commits@vger.kernel.org,yangyingliang@huawei.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch removed from -mm tree
-Message-Id: <20260329004133.D601CC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch removed from -mm tree
+Message-Id: <20260329004135.084C4C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,80 +35,109 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/core: fix wrong end address assignment on walk_system_ram()
+     Subject: mm/damon/core: support addr_unit on damon_find_biggest_system_ram()
 has been removed from the -mm tree.  Its filename was
-     mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram.patch
+     mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: fix wrong end address assignment on walk_system_ram()
-Date: Tue, 10 Mar 2026 22:29:22 -0700
+Subject: mm/damon/core: support addr_unit on damon_find_biggest_system_ram()
+Date: Tue, 10 Mar 2026 22:29:23 -0700
 
-Patch series "mm/damon: support addr_unit on default monitoring targets
-for modules".
+damon_find_biggest_system_ram() sets an 'unsigned long' variable with
+'resource_size_t' value.  This is fundamentally wrong.  On environments
+such as ARM 32 bit machines having LPAE (Large Physical Address
+Extensions), which DAMON supports, the size of 'unsigned long' may be
+smaller than that of 'resource_size_t'.  It is safe, though, since we
+restrict the walk to be done only up to ULONG_MAX.
 
-DAMON_RECLAIM and DAMON_LRU_SORT support 'addr_unit' parameters only when
-the monitoring target address range is explicitly set.  This was
-intentional for making the initial 'addr_unit' support change small.  Now
-'addr_unit' support is being quite stabilized.  Having the corner case of
-the support is only making the code inconsistent with implicit rules.  The
-inconsistency makes it easy to confuse [1] readers.  After all, there is
-no real reason to keep 'addr_unit' support incomplete.  Add the support
-for the case to improve the readability and more completely support
-'addr_unit'.
+DAMON supports the address size gap using 'addr_unit'.  We didn't add the
+support to the function, just to make the initial support change small. 
+Now the support is reasonably settled.  This kind of gap is only making
+the code inconsistent and easy to be confused.  Add the support of
+'addr_unit' to the function, by letting callers pass the 'addr_unit' and
+handling it in the function.  All callers are passing 'addr_unit' 1,
+though, to keep the old behavior.
 
-This series is constructed with five patches.  The first one (patch 1)
-fixes a small bug that mistakenly assigns inclusive end address to open
-end address, which was found from this work.  The second and third ones
-(patches 2 and 3) extend the default monitoring target setting functions
-in the core layer one by one, to support the 'addr_unit' while making no
-visible changes.  The final two patches (patches 4 and 5) update
-DAMON_RECLAIM and DAMON_LRU_SORT to support 'addr_unit' for the default
-monitoring target address ranges, by passing the user input to the core
-functions.
-
-
-This patch (of 5):
-
-'struct damon_addr_range' and 'struct resource' represent different types
-of address ranges.  'damon_addr_range' is for end-open ranges ([start,
-end)).  'resource' is for fully-closed ranges ([start, end]).  But
-walk_system_ram() is assigning resource->end to damon_addr_range->end
-without the inclusiveness adjustment.  As a result, the function returns
-an address range that is missing the last one byte.
-
-The function is being used to find and set the biggest system ram as the
-default monitoring target for DAMON_RECLAIM and DAMON_LRU_SORT.  Missing
-the last byte of the big range shouldn't be a real problem for the real
-use cases.  That said, the loss is definitely an unintended behavior.  Do
-the correct adjustment.
-
-Link: https://lkml.kernel.org/r/20260311052927.93921-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20260311052927.93921-2-sj@kernel.org
-Link: https://lore.kernel.org/20260131015643.79158-1-sj@kernel.org [1]
-Fixes: 43b0536cb471 ("mm/damon: introduce DAMON-based Reclamation (DAMON_RECLAIM)")
+[sj@kernel.org: verify found biggest system ram]
+  Link: https://lkml.kernel.org/r/20260317144725.88524-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260311052927.93921-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Yang yingliang <yangyingliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/core.c |   34 +++++++++++++++++++++++-----------
+ 1 file changed, 23 insertions(+), 11 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-fix-wrong-end-address-assignment-on-walk_system_ram
+--- a/mm/damon/core.c~mm-damon-core-support-addr_unit-on-damon_find_biggest_system_ram
 +++ a/mm/damon/core.c
-@@ -3068,7 +3068,7 @@ static int walk_system_ram(struct resour
+@@ -3064,31 +3064,43 @@ done:
  
- 	if (a->end - a->start < resource_size(res)) {
+ static int walk_system_ram(struct resource *res, void *arg)
+ {
+-	struct damon_addr_range *a = arg;
++	struct resource *a = arg;
+ 
+-	if (a->end - a->start < resource_size(res)) {
++	if (resource_size(a) < resource_size(res)) {
  		a->start = res->start;
--		a->end = res->end;
-+		a->end = res->end + 1;
+-		a->end = res->end + 1;
++		a->end = res->end;
  	}
  	return 0;
  }
+ 
++static unsigned long damon_res_to_core_addr(resource_size_t ra,
++		unsigned long addr_unit)
++{
++	/*
++	 * Use div_u64() for avoiding linking errors related with __udivdi3,
++	 * __aeabi_uldivmod, or similar problems.  This should also improve the
++	 * performance optimization (read div_u64() comment for the detail).
++	 */
++	if (sizeof(ra) == 8 && sizeof(addr_unit) == 4)
++		return div_u64(ra, addr_unit);
++	return ra / addr_unit;
++}
++
+ /*
+  * Find biggest 'System RAM' resource and store its start and end address in
+  * @start and @end, respectively.  If no System RAM is found, returns false.
+  */
+ static bool damon_find_biggest_system_ram(unsigned long *start,
+-						unsigned long *end)
++		unsigned long *end, unsigned long addr_unit)
+ 
+ {
+-	struct damon_addr_range arg = {};
++	struct resource res = {};
+ 
+-	walk_system_ram_res(0, ULONG_MAX, &arg, walk_system_ram);
+-	if (arg.end <= arg.start)
++	walk_system_ram_res(0, -1, &res, walk_system_ram);
++	*start = damon_res_to_core_addr(res.start, addr_unit);
++	*end = damon_res_to_core_addr(res.end + 1, addr_unit);
++	if (*end <= *start)
+ 		return false;
+-
+-	*start = arg.start;
+-	*end = arg.end;
+ 	return true;
+ }
+ 
+@@ -3118,7 +3130,7 @@ int damon_set_region_biggest_system_ram_
+ 		return -EINVAL;
+ 
+ 	if (!*start && !*end &&
+-		!damon_find_biggest_system_ram(start, end))
++		!damon_find_biggest_system_ram(start, end, 1))
+ 		return -EINVAL;
+ 
+ 	addr_range.start = *start;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
