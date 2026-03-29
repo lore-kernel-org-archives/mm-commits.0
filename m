@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BA9721B905
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:39:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7015521256C
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:39:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744785; cv=none; b=MpvHet9RGiByfAUkfAWeVcdHzP4IZu6IGty14zIdvEegUBT0UQ4iw0+98/+z4Q5ssfv06rjIWherna9qSFBTVLN7e+xWoeq3r/edspo6dWcAafAjlrKvHMdKO0HSNJOCAjMReuuYdnsPIK4OEItDwfE5EUzwGOXezHaNuQ7POGU=
+	t=1774744786; cv=none; b=idiJj8SJZLMD1qwHXir7Y9gEPKT0UOUusXujXw3V7+1jrgeQHvYzZMclUbnDw90c3KFz2IsjV6gP8p4QX+SWPfXQ/1vj7ehQI5mNl3MzPwAwMoR5W0FKX0Uhu2Vh1tCN1xpekJV4R+Al1uaGj7JZIzOPBGVTw0CllkMmUsT1bgQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744785; c=relaxed/simple;
-	bh=Inudnqm4Ard7iIJ9v75DZGWb93JL/jhwKVymI+jnqAE=;
-	h=Date:To:From:Subject:Message-Id; b=fsDxW/J6bK+XwI6VuJlZLSbNs2GboxzhSbmn86TFk142TSuMvxpznE//DtMT8/meAViDvTPiSuu/Dfd8UNswB0ID6+r9FeNNxay2xD/H6mrSO0IGqIEyJ6qCWz2zRs14UPST/pK+m4kTPFpj2Wwb9IfF6X7GvxOEwNcKxX382Ns=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FBmj4Bph; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744786; c=relaxed/simple;
+	bh=b6AStHvA3PctJyg4hJ09dKmFAaZ8Y52J/rjijCoUWHk=;
+	h=Date:To:From:Subject:Message-Id; b=MrsUsTrFcb1LIOf0L5EcSCpNjqKSF51e9KHdPYsxj6R0BaWEggP/8me4FjasEkk36d7de2Kl0EJqt0yp92xb4b5aUVvJnAIuvqx7xLS9xdDxaKgVe9zg/yu6FfeTHnROTWf4r9hp4LXgOCGYCW8lMEId5uARl/OzRuVX8Psz6G8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fYuQG2ds; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FBmj4Bph"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEFCDC4CEF7;
-	Sun, 29 Mar 2026 00:39:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fYuQG2ds"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46FE2C4CEF7;
+	Sun, 29 Mar 2026 00:39:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744784;
-	bh=Inudnqm4Ard7iIJ9v75DZGWb93JL/jhwKVymI+jnqAE=;
+	s=korg; t=1774744786;
+	bh=b6AStHvA3PctJyg4hJ09dKmFAaZ8Y52J/rjijCoUWHk=;
 	h=Date:To:From:Subject:From;
-	b=FBmj4BphoYZlb28IDGPobryX3V6jwewoqAPH3fm1yF9TZgvmUiV9O8LrHZSRvlDpT
-	 HgFdK3+p4JKT50I0loAZ1wVBj4jcmypUpDRaqkWMr+VhsnEjdTrEqi4qUniOKABzpZ
-	 IO3mQjgAxseIJly1l8uibRlQbamVDAsX6oClbzLw=
-Date: Sat, 28 Mar 2026 17:39:44 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,jweiner@meta.com,hao.li@linux.dev,hannes@cmpxchg.org,akpm@linux-foundation.org
+	b=fYuQG2dsLqubzAdGIZBAYaHTAQUjIeIynDtVwl1Ss1VVXkbPJFkSuTdfvrJwypB8k
+	 cBcVFXMBlBUCsdK9X3krFL0dE4SMFkYLFUCjE6uvHnA6Ws07TKm4dHOQvoVpgoiavm
+	 OPITwFrfEijG4wTqlh47mM4wWMyxN5ukt+zAefx4=
+Date: Sat, 28 Mar 2026 17:39:45 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xuanzhuo@linux.alibaba.com,wei.liu@kernel.org,vbabka@suse.cz,surenb@google.com,rppt@kernel.org,mst@redhat.com,mhocko@suse.com,mhklinux@outlook.com,longli@microsoft.com,ljs@kernel.org,liam.howlett@oracle.com,kys@microsoft.com,jasowang@redhat.com,jackmanb@google.com,hannes@cmpxchg.org,haiyangz@microsoft.com,eperezma@redhat.com,decui@microsoft.com,david@kernel.org,yuvraj.sakshith@oss.qualcomm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcg-separate-slab-stat-accounting-from-objcg-charge-cache.patch removed from -mm tree
-Message-Id: <20260329003944.CEFCDC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_reporting-add-page_reporting_order_unspecified.patch removed from -mm tree
+Message-Id: <20260329003946.46FE2C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,289 +35,105 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcg: separate slab stat accounting from objcg charge cache
+     Subject: mm/page_reporting: add PAGE_REPORTING_ORDER_UNSPECIFIED
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-separate-slab-stat-accounting-from-objcg-charge-cache.patch
+     mm-page_reporting-add-page_reporting_order_unspecified.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: separate slab stat accounting from objcg charge cache
-Date: Mon, 2 Mar 2026 14:50:18 -0500
+From: Yuvraj Sakshith <yuvraj.sakshith@oss.qualcomm.com>
+Subject: mm/page_reporting: add PAGE_REPORTING_ORDER_UNSPECIFIED
+Date: Tue, 3 Mar 2026 03:30:28 -0800
 
-Cgroup slab metrics are cached per-cpu the same way as the sub-page charge
-cache.  However, the intertwined code to manage those dependent caches
-right now is quite difficult to follow.
+Patch series "Allow order zero pages in page reporting", v4.
 
-Specifically, cached slab stat updates occur in consume() if there was
-enough charge cache to satisfy the new object.  If that fails, whole pages
-are reserved, and slab stats are updated when the remainder of those
-pages, after subtracting the size of the new slab object, are put into the
-charge cache.  This already juggles a delicate mix of the object size, the
-page charge size, and the remainder to put into the byte cache.  Doing
-slab accounting in this path as well is fragile, and has recently caused a
-bug where the input parameters between the two caches were mixed up.
+Today, page reporting sets page_reporting_order in two ways:
 
-Refactor the consume() and refill() paths into unlocked and locked
-variants that only do charge caching.  Then let the slab path manage its
-own lock section and open-code charging and accounting.
+(1) page_reporting.page_reporting_order cmdline parameter
+(2) Driver can pass order while registering itself.
 
-This makes the slab stat cache subordinate to the charge cache:
-__refill_obj_stock() is called first to prepare it; __account_obj_stock()
-follows to hitch a ride.
+In both cases, order zero is ignored by free page reporting because it is
+used to set page_reporting_order to a default value, like MAX_PAGE_ORDER.
 
-This results in a minor behavioral change: previously, a mismatching
-percpu stock would always be drained for the purpose of setting up slab
-account caching, even if there was no byte remainder to put into the
-charge cache.  Now, the stock is left alone, and slab accounting takes the
-uncached path if there is a mismatch.  This is exceedingly rare, and it
-was probably never worth draining the whole stock just to cache the slab
-stat update.
+In some cases we might want page_reporting_order to be zero.
 
-Link: https://lkml.kernel.org/r/20260302195305.620713-6-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Reviewed-by: Hao Li <hao.li@linux.dev>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Johannes Weiner <jweiner@meta.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+For instance, when virtio-balloon runs inside a guest with tiny memory
+(say, 16MB), it might not be able to find a order 1 page (or in the worst
+case order MAX_PAGE_ORDER page) after some uptime.  Page reporting should
+be able to return order zero pages back for optimal memory relinquishment.
+
+This patch changes the default fallback value from '0' to '-1' in all
+possible clients of free page reporting (hv_balloon and virtio-balloon)
+together with allowing '0' as a valid order in page_reporting_register().
+
+
+This patch (of 5):
+
+Drivers can pass order of pages to be reported while registering itself. 
+Today, this is a magic number, 0.
+
+Label this with PAGE_REPORTING_ORDER_UNSPECIFIED and check for it when the
+driver is being registered.
+
+This macro will be used in relevant drivers next.
+
+[akpm@linux-foundation.org: tweak whitespace, per David]
+Link: https://lkml.kernel.org/r/20260303113032.3008371-1-yuvraj.sakshith@oss.qualcomm.com
+Link: https://lkml.kernel.org/r/20260303113032.3008371-2-yuvraj.sakshith@oss.qualcomm.com
+Signed-off-by: Yuvraj Sakshith <yuvraj.sakshith@oss.qualcomm.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Michael Kelley <mhklinux@outlook.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Dexuan Cui <decui@microsoft.com>
+Cc: Eugenio Pérez <eperezma@redhat.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: K. Y. Srinivasan <kys@microsoft.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Long Li <longli@microsoft.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Liu <wei.liu@kernel.org>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  100 ++++++++++++++++++++++++++++------------------
- 1 file changed, 61 insertions(+), 39 deletions(-)
+ include/linux/page_reporting.h |    1 +
+ mm/page_reporting.c            |    3 ++-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-separate-slab-stat-accounting-from-objcg-charge-cache
-+++ a/mm/memcontrol.c
-@@ -2960,16 +2960,18 @@ static struct obj_stock_pcp *trylock_sto
+--- a/include/linux/page_reporting.h~mm-page_reporting-add-page_reporting_order_unspecified
++++ a/include/linux/page_reporting.h
+@@ -7,6 +7,7 @@
  
- static void unlock_stock(struct obj_stock_pcp *stock)
- {
--	local_unlock(&obj_stock.lock);
-+	if (stock)
-+		local_unlock(&obj_stock.lock);
- }
+ /* This value should always be a power of 2, see page_reporting_cycle() */
+ #define PAGE_REPORTING_CAPACITY		32
++#define PAGE_REPORTING_ORDER_UNSPECIFIED	0
  
-+/* Call after __refill_obj_stock() to ensure stock->cached_objg == objcg */
- static void __account_obj_stock(struct obj_cgroup *objcg,
- 				struct obj_stock_pcp *stock, int nr,
- 				struct pglist_data *pgdat, enum node_stat_item idx)
- {
- 	int *bytes;
- 
--	if (!stock)
-+	if (!stock || READ_ONCE(stock->cached_objcg) != objcg)
- 		goto direct;
- 
- 	/*
-@@ -3016,8 +3018,20 @@ direct:
- 		mod_objcg_mlstate(objcg, pgdat, idx, nr);
- }
- 
--static bool consume_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes,
--			      struct pglist_data *pgdat, enum node_stat_item idx)
-+static bool __consume_obj_stock(struct obj_cgroup *objcg,
-+				struct obj_stock_pcp *stock,
-+				unsigned int nr_bytes)
-+{
-+	if (objcg == READ_ONCE(stock->cached_objcg) &&
-+	    stock->nr_bytes >= nr_bytes) {
-+		stock->nr_bytes -= nr_bytes;
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+static bool consume_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes)
- {
- 	struct obj_stock_pcp *stock;
- 	bool ret = false;
-@@ -3026,14 +3040,7 @@ static bool consume_obj_stock(struct obj
- 	if (!stock)
- 		return ret;
- 
--	if (objcg == READ_ONCE(stock->cached_objcg) && stock->nr_bytes >= nr_bytes) {
--		stock->nr_bytes -= nr_bytes;
--		ret = true;
--
--		if (pgdat)
--			__account_obj_stock(objcg, stock, nr_bytes, pgdat, idx);
--	}
--
-+	ret = __consume_obj_stock(objcg, stock, nr_bytes);
- 	unlock_stock(stock);
- 
- 	return ret;
-@@ -3118,17 +3125,14 @@ static bool obj_stock_flush_required(str
- 	return flush;
- }
- 
--static void refill_obj_stock(struct obj_cgroup *objcg, unsigned int nr_bytes,
--		bool allow_uncharge, int nr_acct, struct pglist_data *pgdat,
--		enum node_stat_item idx)
-+static void __refill_obj_stock(struct obj_cgroup *objcg,
-+			       struct obj_stock_pcp *stock,
-+			       unsigned int nr_bytes,
-+			       bool allow_uncharge)
- {
--	struct obj_stock_pcp *stock;
- 	unsigned int nr_pages = 0;
- 
--	stock = trylock_stock();
- 	if (!stock) {
--		if (pgdat)
--			__account_obj_stock(objcg, NULL, nr_acct, pgdat, idx);
- 		nr_pages = nr_bytes >> PAGE_SHIFT;
- 		nr_bytes = nr_bytes & (PAGE_SIZE - 1);
- 		atomic_add(nr_bytes, &objcg->nr_charged_bytes);
-@@ -3146,20 +3150,25 @@ static void refill_obj_stock(struct obj_
- 	}
- 	stock->nr_bytes += nr_bytes;
- 
--	if (pgdat)
--		__account_obj_stock(objcg, stock, nr_acct, pgdat, idx);
--
- 	if (allow_uncharge && (stock->nr_bytes > PAGE_SIZE)) {
- 		nr_pages = stock->nr_bytes >> PAGE_SHIFT;
- 		stock->nr_bytes &= (PAGE_SIZE - 1);
- 	}
- 
--	unlock_stock(stock);
- out:
- 	if (nr_pages)
- 		obj_cgroup_uncharge_pages(objcg, nr_pages);
- }
- 
-+static void refill_obj_stock(struct obj_cgroup *objcg,
-+			     unsigned int nr_bytes,
-+			     bool allow_uncharge)
-+{
-+	struct obj_stock_pcp *stock = trylock_stock();
-+	__refill_obj_stock(objcg, stock, nr_bytes, allow_uncharge);
-+	unlock_stock(stock);
-+}
-+
- static int __obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp,
- 			       size_t size, size_t *remainder)
- {
-@@ -3174,13 +3183,12 @@ static int __obj_cgroup_charge(struct ob
- 	return ret;
- }
- 
--static int obj_cgroup_charge_account(struct obj_cgroup *objcg, gfp_t gfp, size_t size,
--				     struct pglist_data *pgdat, enum node_stat_item idx)
-+int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size)
- {
- 	size_t remainder;
- 	int ret;
- 
--	if (likely(consume_obj_stock(objcg, size, pgdat, idx)))
-+	if (likely(consume_obj_stock(objcg, size)))
- 		return 0;
- 
- 	/*
-@@ -3207,20 +3215,15 @@ static int obj_cgroup_charge_account(str
- 	 * race.
+ struct page_reporting_dev_info {
+ 	/* function that alters pages to make them "reported" */
+--- a/mm/page_reporting.c~mm-page_reporting-add-page_reporting_order_unspecified
++++ a/mm/page_reporting.c
+@@ -370,7 +370,8 @@ int page_reporting_register(struct page_
  	 */
- 	ret = __obj_cgroup_charge(objcg, gfp, size, &remainder);
--	if (!ret && (remainder || pgdat))
--		refill_obj_stock(objcg, remainder, false, size, pgdat, idx);
-+	if (!ret && remainder)
-+		refill_obj_stock(objcg, remainder, false);
  
- 	return ret;
- }
- 
--int obj_cgroup_charge(struct obj_cgroup *objcg, gfp_t gfp, size_t size)
--{
--	return obj_cgroup_charge_account(objcg, gfp, size, NULL, 0);
--}
--
- void obj_cgroup_uncharge(struct obj_cgroup *objcg, size_t size)
- {
--	refill_obj_stock(objcg, size, true, 0, NULL, 0);
-+	refill_obj_stock(objcg, size, true);
- }
- 
- static inline size_t obj_full_size(struct kmem_cache *s)
-@@ -3235,6 +3238,7 @@ static inline size_t obj_full_size(struc
- bool __memcg_slab_post_alloc_hook(struct kmem_cache *s, struct list_lru *lru,
- 				  gfp_t flags, size_t size, void **p)
- {
-+	size_t obj_size = obj_full_size(s);
- 	struct obj_cgroup *objcg;
- 	struct slab *slab;
- 	unsigned long off;
-@@ -3275,6 +3279,7 @@ bool __memcg_slab_post_alloc_hook(struct
- 	for (i = 0; i < size; i++) {
- 		unsigned long obj_exts;
- 		struct slabobj_ext *obj_ext;
-+		struct obj_stock_pcp *stock;
- 
- 		slab = virt_to_slab(p[i]);
- 
-@@ -3294,9 +3299,20 @@ bool __memcg_slab_post_alloc_hook(struct
- 		 * TODO: we could batch this until slab_pgdat(slab) changes
- 		 * between iterations, with a more complicated undo
- 		 */
--		if (obj_cgroup_charge_account(objcg, flags, obj_full_size(s),
--					slab_pgdat(slab), cache_vmstat_idx(s)))
--			return false;
-+		stock = trylock_stock();
-+		if (!stock || !__consume_obj_stock(objcg, stock, obj_size)) {
-+			size_t remainder;
-+
-+			unlock_stock(stock);
-+			if (__obj_cgroup_charge(objcg, flags, obj_size, &remainder))
-+				return false;
-+			stock = trylock_stock();
-+			if (remainder)
-+				__refill_obj_stock(objcg, stock, remainder, false);
-+		}
-+		__account_obj_stock(objcg, stock, obj_size,
-+				    slab_pgdat(slab), cache_vmstat_idx(s));
-+		unlock_stock(stock);
- 
- 		obj_exts = slab_obj_exts(slab);
- 		get_slab_obj_exts(obj_exts);
-@@ -3318,6 +3334,7 @@ void __memcg_slab_free_hook(struct kmem_
- 	for (int i = 0; i < objects; i++) {
- 		struct obj_cgroup *objcg;
- 		struct slabobj_ext *obj_ext;
-+		struct obj_stock_pcp *stock;
- 		unsigned int off;
- 
- 		off = obj_to_index(s, slab, p[i]);
-@@ -3327,8 +3344,13 @@ void __memcg_slab_free_hook(struct kmem_
- 			continue;
- 
- 		obj_ext->objcg = NULL;
--		refill_obj_stock(objcg, obj_size, true, -obj_size,
--				 slab_pgdat(slab), cache_vmstat_idx(s));
-+
-+		stock = trylock_stock();
-+		__refill_obj_stock(objcg, stock, obj_size, true);
-+		__account_obj_stock(objcg, stock, -obj_size,
-+				    slab_pgdat(slab), cache_vmstat_idx(s));
-+		unlock_stock(stock);
-+
- 		obj_cgroup_put(objcg);
- 	}
- }
+ 	if (page_reporting_order == -1) {
+-		if (prdev->order > 0 && prdev->order <= MAX_PAGE_ORDER)
++		if (prdev->order != PAGE_REPORTING_ORDER_UNSPECIFIED &&
++		    prdev->order <= MAX_PAGE_ORDER)
+ 			page_reporting_order = prdev->order;
+ 		else
+ 			page_reporting_order = pageblock_order;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from yuvraj.sakshith@oss.qualcomm.com are
 
-mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty.patch
-mm-list_lru-deduplicate-unlock_list_lru.patch
-mm-list_lru-move-list-dead-check-to-lock_list_lru_of_memcg.patch
-mm-list_lru-deduplicate-lock_list_lru.patch
-mm-list_lru-introduce-caller-locking-for-additions-and-deletions.patch
-mm-list_lru-introduce-folio_memcg_list_lru_alloc.patch
-mm-switch-deferred-split-shrinker-to-list_lru.patch
 
