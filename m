@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50219255E43
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6891B255E43
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744913; cv=none; b=iLUBxWqBGfBR9OVVDFhyCBG5X3TGeK4nN0/41FUzmniR2x1aVuaUfCZiAgKnbqDOsW3xurdAlRv64BjxfWutmH4n0iTuFBd/zYBNPGpFISnhqBwhFg4zJLTdxki6Fwn8VMCAof5rsS5vY8a3Q4852InMhglCpwmAsYuqpA+3Low=
+	t=1774744914; cv=none; b=iJw3DCuDrvwknqgjOFZQ/dAA+v/F54a6TGfYVLL2EacG7NRWljDF8MlUKGSds64IUpP9zyURKRA+UTGyNdEoOH4/u7dQhOE4cZkpmXmvQVHG2W0+O5lQrNC8koHpCkGDScZH/2F0Fr6P2AWlSfomhgr1mofXQQUSs2uF2H1NMW4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744913; c=relaxed/simple;
-	bh=Evsp4SPZhb6a2fi+NZYTBuULNOMHUZm473AKqEftdWE=;
-	h=Date:To:From:Subject:Message-Id; b=pXm7SKv9Gc8F0ukS9V9xS2lkSZSxb/uSjfehep8ZIa1Q5321OV1S9zaiISU3+r2/m96r9k+cnL+Et0p6naK56HAWdkQBZXUg8zBKwgyb5Mevw2azysbeLcDuHgNcTpPClgd2iSkr8h0SKN8fdZcud9+5nSjt8fCQeuP7WBXc9ms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yBbw9R3R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744914; c=relaxed/simple;
+	bh=RjEEYvAqqWjZ3T76dJBZzeEQBrhH1uvWPqFqs8WzvqQ=;
+	h=Date:To:From:Subject:Message-Id; b=f07ZG2g0LwBKZAqoaXLBrsSy52Ys5WSKMZwkQl6K8EDYK7FuhrRc/lywt2dPhdbsYZuBdcTCmU//sDFiTzEpH+K03UNyGkkfG8S6p5k1FzlMSyN/nb3rfbgUyHlfYRRZYjDaOO0fKoUd3mjnuwzkfBgMYHc5v6Du2o+jX70zmlM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bmP4IoL/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yBbw9R3R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28066C4CEF7;
-	Sun, 29 Mar 2026 00:41:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bmP4IoL/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41D6AC4CEF7;
+	Sun, 29 Mar 2026 00:41:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744913;
-	bh=Evsp4SPZhb6a2fi+NZYTBuULNOMHUZm473AKqEftdWE=;
+	s=korg; t=1774744914;
+	bh=RjEEYvAqqWjZ3T76dJBZzeEQBrhH1uvWPqFqs8WzvqQ=;
 	h=Date:To:From:Subject:From;
-	b=yBbw9R3RzY76VeCaO+pRALke1Or49Cm/TWRraB09ID83OgJiXWPtqLDjzZJqI1NT+
-	 b9nQ/2P5+z3ZckmnbT+bKjNqATly3Tj17T+7Iw8ffi/DJfowLzp/lAtrtiDBLS2ttk
-	 +fOXuWRGxnmZ/WJ741sTo1dqPCoez7U3WR8SqFB0=
-Date: Sat, 28 Mar 2026 17:41:52 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,senozhatsky@chromium.org,minchan@kernel.org,axboe@kernel.dk,gaoxu2@honor.com,akpm@linux-foundation.org
+	b=bmP4IoL/c9aqJyNaShE8mig8iphkG47LsWUD5OOaxdwfLzSGCmUYAXRjqul4UMdMk
+	 l5s2JizLfW9rsdfoJyrRtV9xgPbAafVBAcmq1OwLrDi2/60If5QvS4lJRptemqQuVX
+	 fy6NPwlS1bF594OtW2vOTXBVluYPkb1V0bu5ntA0=
+Date: Sat, 28 Mar 2026 17:41:53 -0700
+To: mm-commits@vger.kernel.org,richardycc@google.com,minchan@kernel.org,bgeffon@google.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] zram-optimize-lz4-dictionary-compression-performance-v2.patch removed from -mm tree
-Message-Id: <20260329004153.28066C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] zram-propagate-read_from_bdev_async-errors.patch removed from -mm tree
+Message-Id: <20260329004154.41D6AC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,143 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: zram: optimize LZ4 dictionary compression performance
+     Subject: zram: propagate read_from_bdev_async() errors
 has been removed from the -mm tree.  Its filename was
-     zram-optimize-lz4-dictionary-compression-performance-v2.patch
+     zram-propagate-read_from_bdev_async-errors.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: gao xu <gaoxu2@honor.com>
-Subject: zram: optimize LZ4 dictionary compression performance
-Date: Fri, 13 Mar 2026 02:41:14 +0000
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: propagate read_from_bdev_async() errors
+Date: Mon, 16 Mar 2026 10:53:32 +0900
 
-Calling `LZ4_loadDict()` repeatedly in Zram causes significant overhead
-due to its internal dictionary pre-processing.  This commit introduces a
-template stream mechanism to pre-process the dictionary only once when the
-dictionary is initially set or modified.  It then efficiently copies this
-state for subsequent compressions.
+When read_from_bdev_async() fails to chain bio, for instance fails to
+allocate request or bio, we need to propagate the error condition so that
+upper layer is aware of it.  zram already does that by setting
+BLK_STS_IOERR ->bi_status, but only for sync reads.  Change async read
+path to return its error status so that async errors are also handled.
 
-Verification Test Items:
-Test Platform: android16-6.12
-1. Collect Anonymous Page Dataset
-1) Apply the following patch:
-static bool zram_meta_alloc(struct zram *zram, u64 disksize)
-	if (!huge_class_size)
--		huge_class_size = zs_huge_class_size(zram->mem_pool);
-+		huge_class_size = 0;
-
-2）Install multiple apps and monkey testing until SwapFree is close to 0.
-
-3）Execute the following command to export data:
-dd if=/dev/block/zram0 of=/data/samples/zram_dump.img bs=4K
-
-2. Train Dictionary
-Since LZ4 does not have a dedicated dictionary training tool, the zstd
-tool can be used for training[1]. The command is as follows:
-zstd --train /data/samples/* --split=4096 --maxdict=64KB -o /vendor/etc/dict_data
-
-3. Test Code
-adb shell "dd if=/data/samples/zram_dump.img of=/dev/test_pattern bs=4096 count=131072 conv=fsync"
-adb shell "swapoff /dev/block/zram0"
-adb shell "echo 1 > /sys/block/zram0/reset"
-adb shell "echo lz4 > /sys/block/zram0/comp_algorithm"
-adb shell "echo dict=/vendor/etc/dict_data   >  /sys/block/zram0/algorithm_params"
-adb shell "echo 6G > /sys/block/zram0/disksize"
-echo "Start Compression"
-adb shell "taskset 80 dd if=/dev/test_pattern of=/dev/block/zram0 bs=4096 count=131072 conv=fsync"
-echo.
-echo "Start Decompression"
-adb shell "taskset 80 dd if=/dev/block/zram0 of=/dev/output_result bs=4096 count=131072 conv=fsync"
-echo "mm_stat:"
-adb shell "cat /sys/block/zram0/mm_stat"
-echo.
-Note: To ensure stable test results, it is best to lock the CPU frequency
-before executing the test.
-
-LZ4 supports dictionaries up to 64KB. Below are the test results for
-compression rates at various dictionary sizes:
-dict_size          base        patch
-  4 KB          156M/s      219M/s
-  8 KB          136M/s      217M/s
- 16KB           98M/s       214M/s
- 32KB           66M/s       225M/s
- 64KB           38M/s       224M/s
-
-When an LZ4 compression dictionary is enabled, compression speed is
-negatively impacted by the dictionary's size; larger dictionaries result
-in slower compression.  This patch eliminates the influence of dictionary
-size on compression speed, ensuring consistent performance regardless of
-dictionary scale.
-
-Link: https://lkml.kernel.org/r/698181478c9c4b10aa21b4a847bdc706@honor.com
-Link: https://github.com/lz4/lz4?tab=readme-ov-file [1]
-Signed-off-by: gao xu <gaoxu2@honor.com>
-Acked-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Link: https://lkml.kernel.org/r/20260316015354.114465-1-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Suggested-by: Brian Geffon <bgeffon@google.com>
+Acked-by: Brian Geffon <bgeffon@google.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Richard Chang <richardycc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/backend_lz4.c |   29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+ drivers/block/zram/zram_drv.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
---- a/drivers/block/zram/backend_lz4.c~zram-optimize-lz4-dictionary-compression-performance-v2
-+++ a/drivers/block/zram/backend_lz4.c
-@@ -14,13 +14,38 @@ struct lz4_ctx {
- 
- static void lz4_release_params(struct zcomp_params *params)
- {
-+	LZ4_stream_t *dict_stream = params->drv_data;
-+
-+	params->drv_data = NULL;
-+	if (!dict_stream)
-+		return;
-+
-+	kfree(dict_stream);
+--- a/drivers/block/zram/zram_drv.c~zram-propagate-read_from_bdev_async-errors
++++ a/drivers/block/zram/zram_drv.c
+@@ -1429,21 +1429,21 @@ static void zram_async_read_endio(struct
+ 	queue_work(system_highpri_wq, &req->work);
  }
  
- static int lz4_setup_params(struct zcomp_params *params)
+-static void read_from_bdev_async(struct zram *zram, struct page *page,
+-				 u32 index, unsigned long blk_idx,
+-				 struct bio *parent)
++static int read_from_bdev_async(struct zram *zram, struct page *page,
++				u32 index, unsigned long blk_idx,
++				struct bio *parent)
  {
-+	LZ4_stream_t *dict_stream;
-+	int ret;
-+
- 	if (params->level == ZCOMP_PARAM_NOT_SET)
- 		params->level = LZ4_ACCELERATION_DEFAULT;
+ 	struct zram_rb_req *req;
+ 	struct bio *bio;
  
-+	if (!params->dict || !params->dict_sz)
-+		return 0;
-+
-+	dict_stream = kzalloc_obj(*dict_stream, GFP_KERNEL);
-+	if (!dict_stream)
+ 	req = kmalloc_obj(*req, GFP_NOIO);
+ 	if (!req)
+-		return;
 +		return -ENOMEM;
+ 
+ 	bio = bio_alloc(zram->bdev, 1, parent->bi_opf, GFP_NOIO);
+ 	if (!bio) {
+ 		kfree(req);
+-		return;
++		return -ENOMEM;
+ 	}
+ 
+ 	req->zram = zram;
+@@ -1459,6 +1459,8 @@ static void read_from_bdev_async(struct
+ 	__bio_add_page(bio, page, PAGE_SIZE, 0);
+ 	bio_inc_remaining(parent);
+ 	submit_bio(bio);
 +
-+	ret = LZ4_loadDict(dict_stream,
-+			   params->dict, params->dict_sz);
-+	if (ret != params->dict_sz) {
-+		kfree(dict_stream);
-+		return -EINVAL;
-+	}
-+	params->drv_data = dict_stream;
-+
- 	return 0;
++	return 0;
  }
  
-@@ -79,9 +104,7 @@ static int lz4_compress(struct zcomp_par
- 					zctx->mem);
- 	} else {
- 		/* Cstrm needs to be reset */
--		ret = LZ4_loadDict(zctx->cstrm, params->dict, params->dict_sz);
--		if (ret != params->dict_sz)
--			return -EINVAL;
-+		memcpy(zctx->cstrm, params->drv_data, sizeof(*zctx->cstrm));
- 		ret = LZ4_compress_fast_continue(zctx->cstrm, req->src,
- 						 req->dst, req->src_len,
- 						 req->dst_len, params->level);
+ static void zram_sync_read(struct work_struct *w)
+@@ -1507,8 +1509,7 @@ static int read_from_bdev(struct zram *z
+ 			return -EIO;
+ 		return read_from_bdev_sync(zram, page, index, blk_idx);
+ 	}
+-	read_from_bdev_async(zram, page, index, blk_idx, parent);
+-	return 0;
++	return read_from_bdev_async(zram, page, index, blk_idx, parent);
+ }
+ #else
+ static inline void reset_bdev(struct zram *zram) {};
 _
 
-Patches currently in -mm which might be from gaoxu2@honor.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
 
