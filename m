@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB8B310F2
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDB1710F2
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:40:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744826; cv=none; b=e8YpOnHyX6kdIT4saKVo4iJFcK7uei6dsBDBn0HrE9Pa68j9Af7BAo7ZLT0GAXeBGMSKSgQOGRf5DyGbcisf+HyRE0WMmfW0QRocDQC2bRXVwb2DFD4xUWdlSkNZCdj38KTUncqNU6otJqbVFSPV0paskeya4kRAkPeV3CUf93M=
+	t=1774744828; cv=none; b=W0PWXzxhsYl2GhASw5d7DlGKeLbFzd2Cb/KfodLszfHCDsXZ0/2shrLK5X5qbkYCos0xPqYiUDTKE43Qp9mFuXmgEhsZe7aXxw/O4scESA7Ai45hWvyNLcyai8tvdJNe3fL1lipUs4BPQxTlG/GWhl6MUdnDUreLvwWWdYI9km4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744826; c=relaxed/simple;
-	bh=7Dym14LRrbxRcWTC5qiCeRrosXssRF8Ma03fsx2fdMo=;
-	h=Date:To:From:Subject:Message-Id; b=eJNY17Elr+0fPHojlLZamabm0J9wPsXpDZfYCLyu2XGNQPm3XHSc+X+U7pKifp3LFz2vhlMBcCY3F1Qq4LdKtCmHEARXsfSTiQMN2o2SOQ8AwfS7RxcTlmag9txBCShqzq+o2KcG5KqnuBVbK3Qnhu1dKQMOLMHSsQnIYUUdtOk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gG/tqA9q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744828; c=relaxed/simple;
+	bh=o/T03DYhEEs8FHXiP1geb56wwa65ZjdOHnHetjRUnOA=;
+	h=Date:To:From:Subject:Message-Id; b=RULCs8YVvZsZQTBff9Jlfk1Us3+fdv7hP/BybN+DRK/z8wMzUM2eIHIfz4hzgiSB+eQn9+uUUBtNKg4fl/0vosSBOBSiwwsMXM7ameR7TOA/L8v9VEGgDNYBg9gZ0LYlfdg+gPOmUH1wfYIAXURGF2FacmdSlF+Bt9i2akCgpEg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KyRDFQ0v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gG/tqA9q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5B0DC4CEF7;
-	Sun, 29 Mar 2026 00:40:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KyRDFQ0v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C667DC4CEF7;
+	Sun, 29 Mar 2026 00:40:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744826;
-	bh=7Dym14LRrbxRcWTC5qiCeRrosXssRF8Ma03fsx2fdMo=;
+	s=korg; t=1774744827;
+	bh=o/T03DYhEEs8FHXiP1geb56wwa65ZjdOHnHetjRUnOA=;
 	h=Date:To:From:Subject:From;
-	b=gG/tqA9qpUGcYlw0mEXD4OGxVRWv8PFgSwUa2Lq1OINMUmbobgCgndHvPLYuJUM9R
-	 I2dmxD7JYOSLRYA5k5VYhM3TAbfJu7Af1UdxCyNRoQ3/3oxjy6eOjQMdRtXY0QuGDR
-	 RY5O2ZkPeJttDxwn54crjY3xTceGJ6e/8xPXqR+Y=
-Date: Sat, 28 Mar 2026 17:40:26 -0700
+	b=KyRDFQ0vljemZ5UZx1s9YlMO8/1hvEsroJKqs3LZdOajN4yaPxNqd0YZQ38S0esNL
+	 0cIYf+Ez1ubzDVaXS1osgYWw/zDZ/5jKfYSPEVM8q2BsB3Z49w9iF0b7wlWCYtaj+V
+	 dS+xOH+fZHy9k57548GKeHXmPhAmlOA8DGZfzeDQ=
+Date: Sat, 28 Mar 2026 17:40:27 -0700
 To: mm-commits@vger.kernel.org,shuah@kernel.org,davidgow@google.com,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch removed from -mm tree
-Message-Id: <20260329004026.A5B0DC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-config-enable-damon_debug_sanity.patch removed from -mm tree
+Message-Id: <20260329004027.C667DC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/tests/.kunitconifg: enable DAMON_DEBUG_SANITY
+     Subject: selftests/damon/config: enable DAMON_DEBUG_SANITY
 has been removed from the -mm tree.  Its filename was
-     mm-damon-tests-kunitconifg-enable-damon_debug_sanity.patch
+     selftests-damon-config-enable-damon_debug_sanity.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/.kunitconifg: enable DAMON_DEBUG_SANITY
-Date: Fri, 6 Mar 2026 07:29:12 -0800
+Subject: selftests/damon/config: enable DAMON_DEBUG_SANITY
+Date: Fri, 6 Mar 2026 07:29:13 -0800
 
 CONFIG_DAMON_DEBUG_SANITY is recommended for DAMON development and test
-setups.  Enable it on the default configurations for DAMON kunit test run.
+setups.  Enable it on the build config for DAMON selftests.
 
-Link: https://lkml.kernel.org/r/20260306152914.86303-10-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260306152914.86303-11-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Gow <davidgow@google.com>
@@ -58,17 +58,15 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/.kunitconfig |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/damon/config |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/damon/tests/.kunitconfig~mm-damon-tests-kunitconifg-enable-damon_debug_sanity
-+++ a/mm/damon/tests/.kunitconfig
-@@ -13,3 +13,6 @@ CONFIG_DAMON_VADDR_KUNIT_TEST=y
- CONFIG_SYSFS=y
- CONFIG_DAMON_SYSFS=y
- CONFIG_DAMON_SYSFS_KUNIT_TEST=y
-+
-+# enable DAMON_DEBUG_SANITY to catch any bug
+--- a/tools/testing/selftests/damon/config~selftests-damon-config-enable-damon_debug_sanity
++++ a/tools/testing/selftests/damon/config
+@@ -4,3 +4,4 @@ CONFIG_DAMON_PADDR=y
+ CONFIG_DAMON_VADDR=y
+ CONFIG_DAMON_RECLAIM=y
+ CONFIG_DAMON_LRU_SORT=y
 +CONFIG_DAMON_DEBUG_SANITY=y
 _
 
