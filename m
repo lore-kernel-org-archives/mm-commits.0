@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C26E919D093
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22C2719D093
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:41:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744864; cv=none; b=d7QcyZqOMd5TmWQWL8bTfWtCcUoW71dvPECsZ4EHF/wTIFvnh8spCD061oOJVf0d/uJu4/omXN5LVr3/s6R0OsCWkUgudbJTmoZj06dvpTiEosy0sddjXoiVNOW4YmRfkZlvwuHawkRgMG+tGRZiTbWSvUnIsUxbwk7m9yVM69U=
+	t=1774744866; cv=none; b=V/7epkjnrIOohwhfMv1AEEZyDsJaNC2cqO42zw7KXmq/aOztlBQmTfrdVbSamr8qzE0rG2+wTq/UGS8NYqzvJyCd+Ycfs4EMlhxG0pnLXXgZ8km78n6qlIlokBtZB9WnFhLpHN9rd1RrJ84p7cAWXcIHt/OyFgJfprWhxGDQxc4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744864; c=relaxed/simple;
-	bh=NLj0WqKF7P2Koul68p1+QIYm1e0C1CPVOqdTnl0aAFk=;
-	h=Date:To:From:Subject:Message-Id; b=Q9CK2Ap9Y6mFNp7tbx3NLt0dLMc66PUIUXmjUwbF1/oK4nGER0Cw9Q5V5ieSBml0CcOgts1OoliZyglNWWc2r1/q6fcftI3KAIWG8KaafWcvT5j7qiTA7ECBoyS/JV8FK0dHE4m/7LkWjqSLyp2P7pKHiQnvj5hsv1mY3eo7GUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C1ccIix9; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744866; c=relaxed/simple;
+	bh=ZrcBOSJxXDTWie88IhWJ9PDbSFkKsu/6KEtvi6yszYY=;
+	h=Date:To:From:Subject:Message-Id; b=gJkYAtuRpiWr77wJ48gIYQgLVTmAfz0lH6e2uokYUnljPwGXUJfCkHJxalXktNOb8t/aVTBLqse6UbNoVr/UOQ+29zWBQf/UlyyA+6NXpHLHFcOPWVeDYDg0lLGC2CmbZO9yPwRNIbj7y4nAs2RzxnE/rLtZq44ZL/5IsaIsQnk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NVbbsVtO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C1ccIix9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B50DC4CEF7;
-	Sun, 29 Mar 2026 00:41:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NVbbsVtO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0A62C4CEF7;
+	Sun, 29 Mar 2026 00:41:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744864;
-	bh=NLj0WqKF7P2Koul68p1+QIYm1e0C1CPVOqdTnl0aAFk=;
+	s=korg; t=1774744866;
+	bh=ZrcBOSJxXDTWie88IhWJ9PDbSFkKsu/6KEtvi6yszYY=;
 	h=Date:To:From:Subject:From;
-	b=C1ccIix9cpKXGF9lcBQAmWlg0hLVtKleC3vTDmjN6OtImZCpAew1wKIHWK66G9crq
-	 8AeDS9/CR/Seryr0FyaWVL5NrBAWDbizOO8lRFDzpUqbQ+RCkyY8d6ye0ImBxoo8Ee
-	 2rHkDrK94ocrPsajU+9ZKtfME7la6qZGyZgCkaAw=
-Date: Sat, 28 Mar 2026 17:41:04 -0700
-To: mm-commits@vger.kernel.org,youngjun.park@lge.com,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,zhuhui@kylinos.cn,akpm@linux-foundation.org
+	b=NVbbsVtOODG+eKWYWjkkuCZCIM5pxRIn4v99qyGpEIuCn2LManw+fEh3vPTFQwJHW
+	 qjvbWAK6hhUWSVzi26eMw3FCumGzKMp9ThvT7lf2C09gDWwr0b++r1O1hZ0Ed3VyUl
+	 fwP0fYu3vltteyc+d3aQxc84CAxKeKjIaVR0DGiI=
+Date: Sat, 28 Mar 2026 17:41:05 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,davidgow@google.com,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation.patch removed from -mm tree
-Message-Id: <20260329004104.9B50DC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-introduce-damos_quota_goal_tuner.patch removed from -mm tree
+Message-Id: <20260329004105.F0A62C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,106 +35,166 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/swap: strengthen locking assertions and invariants in cluster allocation
+     Subject: mm/damon/core: introduce damos_quota_goal_tuner
 has been removed from the -mm tree.  Its filename was
-     mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation.patch
+     mm-damon-core-introduce-damos_quota_goal_tuner.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hui Zhu <zhuhui@kylinos.cn>
-Subject: mm/swap: strengthen locking assertions and invariants in cluster allocation
-Date: Tue, 10 Mar 2026 09:56:57 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: introduce damos_quota_goal_tuner
+Date: Mon, 9 Mar 2026 18:05:17 -0700
 
-swap_cluster_alloc_table() requires several locks to be held by its
-callers: ci->lock, the per-CPU swap_cluster lock, and, for non-solid-state
-devices (non-SWP_SOLIDSTATE), the si->global_cluster_lock.
+Patch series "mm/damon: support multiple goal-based quota tuning
+algorithms".
 
-While most call paths (e.g., via cluster_alloc_swap_entry() or
-alloc_swap_scan_list()) correctly acquire these locks before invocation,
-the path through swap_reclaim_work() -> swap_reclaim_full_clusters() ->
-isolate_lock_cluster() is distinct.  This path operates exclusively on
-si->full_clusters, where the swap allocation tables are guaranteed to be
-already allocated.  Consequently, isolate_lock_cluster() should never
-trigger a call to swap_cluster_alloc_table() for these clusters.
+Aim-oriented DAMOS quota auto-tuning uses a single tuning algorithm.  The
+algorithm is designed to find a quota value that should be consistently
+kept for achieving the aimed goal for long term.  It is useful and
+reliable at automatically operating systems that have dynamic environments
+in the long term.
 
-Strengthen the locking and state assertions to formalize these invariants:
+As always, however, no single algorithm fits all.  When the environment
+has static characteristics or there are control towers in not only the
+kernel space but also the user space, the algorithm shows some
+limitations.  In such environments, users want kernel work in a more short
+term deterministic way.  Actually there were at least two reports [1,2] of
+such cases.
 
-1. Add a lockdep_assert_held() for si->global_cluster_lock in
-   swap_cluster_alloc_table() for non-SWP_SOLIDSTATE devices.
-2. Reorder existing lockdep assertions in swap_cluster_alloc_table() to
-   match the actual lock acquisition order (per-CPU lock, then global lock,
-   then cluster lock).
-3. Add a VM_WARN_ON_ONCE() in isolate_lock_cluster() to ensure that table
-   allocations are only attempted for clusters being isolated from the
-   free list. Attempting to allocate a table for a cluster from other
-   lists (like the full list during reclaim) indicates a violation of
-   subsystem invariants.
+Extend DAMOS quotas goal to support multiple quota tuning algorithms that
+users can select.  Keep the current algorithm as the default one, to not
+break the old users.  Also give it a name, "consist", as it is designed to
+"consistently" apply the DAMOS action.  And introduce a new tuning
+algorithm, namely "temporal".  It is designed to apply the DAMOS action
+only temporally, in a deterministic way.  In more detail, as long as the
+goal is under-achieved, it uses the maximum quota available.  Once the
+goal is over-achieved, it sets the quota zero.
 
-These changes ensure locking consistency and help catch potential
-synchronization or logic issues during development.
+Tests
+=====
 
-[zhuhui@kylinos.cn: remove redundant comment, per Barry]
-  Link: https://lkml.kernel.org/r/20260311022241.177801-1-hui.zhu@linux.dev
-[zhuhui@kylinos.cn: initialize `flags', per Chris]
-  Link: https://lkml.kernel.org/r/20260312023024.903143-1-hui.zhu@linux.dev
-Link: https://lkml.kernel.org/r/20260310015657.42395-1-hui.zhu@linux.dev
-Signed-off-by: Hui Zhu <zhuhui@kylinos.cn>
-Reviewed-by: Youngjun Park <youngjun.park@lge.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: Chris Li <chrisl@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
+I confirmed the feature is working as expected using the latest version of
+DAMON user-space tool, like below.
+
+    $ # start DAMOS for reclaiming memory aiming 30% free memory
+    $ sudo ./damo/damo start --damos_action pageout \
+            --damos_quota_goal_tuner temporal \
+            --damos_quota_goal node_mem_free_bp 30% 0 \
+            --damos_quota_interval 1s \
+            --damos_quota_space 100M
+
+Note that >=3.1.8 version of DAMON user-space tool supports this feature
+(--damos_quota_goal_tuner).  As expected, DAMOS stops reclaiming memory as
+soon as the goal amount of free memory is made.  When 'consist' tuner is
+used, the reclamation was continued even after the goal amount of free
+memory is made, resulting in more than goal amount of free memory, as
+expected.
+
+Patch Sequence
+==============
+
+First four patches implement the features.  Patch 1 extends core API to
+allow multiple tuners and make the current tuner as the default and only
+available tuner, namely 'consist'.  Patch 2 allows future tuners setting
+zero effective quota.  Patch 3 introduces the second tuner, namely
+'temporal'.  Patch 4 further extends DAMON sysfs API to let users use
+that.
+
+Three following patches (patches 5-7) update design, usage, and ABI
+documents, respectively.
+
+Final four patches (patches 8-11) are for adding tests.  The eighth patch
+(patch 8) extends the kunit test for online parameters commit for
+validating the goal_tuner.  The ninth and the tenth patches (patches 9-10)
+extend the testing-purpose DAMON sysfs control helper and DAMON status
+dumping tool to support the newly added feature.  The final eleventh one
+(patch 11) extends the existing online commit selftest to cover the new
+feature.
+
+This patch (of 11):
+
+DAMOS quota goal feature utilizes a single feedback loop based algorithm
+for automatic tuning of the effective quota.  It is useful in dynamic
+environments that operate systems with only kernels in the long term. 
+But, no one fits all.  It is not very easy to control in environments
+having more controlled characteristics and user-space control towers.  We
+actually got multiple reports [1,2] of use cases that the algorithm is not
+optimal.
+
+Introduce a new field of 'struct damos_quotas', namely 'goal_tuner'.  It
+specifies what tuning algorithm the given scheme should use, and allows
+DAMON API callers to set it as they want.  Nonetheless, this commit
+introduces no new tuning algorithm but only the interface.  This commit
+hence makes no behavioral change.  A new algorithm will be added by the
+following commit.
+
+Link: https://lkml.kernel.org/r/20260310010529.91162-2-sj@kernel.org
+Link: https://lore.kernel.org/CALa+Y17__d=ZsM1yX+MXx0ozVdsXnFqF4p0g+kATEitrWyZFfg@mail.gmail.com [1]
+Link: https://lore.kernel.org/20260204022537.814-1-yunjeong.mun@sk.com [2]
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <davidgow@google.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/damon.h |   10 ++++++++++
+ mm/damon/core.c       |    1 +
+ 2 files changed, 11 insertions(+)
 
---- a/mm/swapfile.c~mm-swap-strengthen-locking-assertions-and-invariants-in-cluster-allocation
-+++ a/mm/swapfile.c
-@@ -498,8 +498,10 @@ swap_cluster_alloc_table(struct swap_inf
- 	 * Only cluster isolation from the allocator does table allocation.
- 	 * Swap allocator uses percpu clusters and holds the local lock.
- 	 */
--	lockdep_assert_held(&ci->lock);
- 	lockdep_assert_held(&this_cpu_ptr(&percpu_swap_cluster)->lock);
-+	if (!(si->flags & SWP_SOLIDSTATE))
-+		lockdep_assert_held(&si->global_cluster_lock);
-+	lockdep_assert_held(&ci->lock);
+--- a/include/linux/damon.h~mm-damon-core-introduce-damos_quota_goal_tuner
++++ a/include/linux/damon.h
+@@ -216,11 +216,20 @@ struct damos_quota_goal {
+ };
  
- 	/* The cluster must be free and was just isolated from the free list. */
- 	VM_WARN_ON_ONCE(ci->flags || !cluster_is_empty(ci));
-@@ -600,6 +602,7 @@ static struct swap_cluster_info *isolate
- 		struct swap_info_struct *si, struct list_head *list)
- {
- 	struct swap_cluster_info *ci, *found = NULL;
-+	u8 flags = CLUSTER_FLAG_NONE;
+ /**
++ * enum damos_quota_goal_tuner - Goal-based quota tuning logic.
++ * @DAMOS_QUOTA_GOAL_TUNER_CONSIST:	Aim long term consistent quota.
++ */
++enum damos_quota_goal_tuner {
++	DAMOS_QUOTA_GOAL_TUNER_CONSIST,
++};
++
++/**
+  * struct damos_quota - Controls the aggressiveness of the given scheme.
+  * @reset_interval:	Charge reset interval in milliseconds.
+  * @ms:			Maximum milliseconds that the scheme can use.
+  * @sz:			Maximum bytes of memory that the action can be applied.
+  * @goals:		Head of quota tuning goals (&damos_quota_goal) list.
++ * @goal_tuner:		Goal-based @esz tuning algorithm to use.
+  * @esz:		Effective size quota in bytes.
+  *
+  * @weight_sz:		Weight of the region's size for prioritization.
+@@ -262,6 +271,7 @@ struct damos_quota {
+ 	unsigned long ms;
+ 	unsigned long sz;
+ 	struct list_head goals;
++	enum damos_quota_goal_tuner goal_tuner;
+ 	unsigned long esz;
  
- 	spin_lock(&si->lock);
- 	list_for_each_entry(ci, list, list) {
-@@ -612,6 +615,7 @@ static struct swap_cluster_info *isolate
- 			  ci->flags != CLUSTER_FLAG_FULL);
- 
- 		list_del(&ci->list);
-+		flags = ci->flags;
- 		ci->flags = CLUSTER_FLAG_NONE;
- 		found = ci;
- 		break;
-@@ -620,6 +624,7 @@ static struct swap_cluster_info *isolate
- 
- 	if (found && !cluster_table_is_alloced(found)) {
- 		/* Only an empty free cluster's swap table can be freed. */
-+		VM_WARN_ON_ONCE(flags != CLUSTER_FLAG_FREE);
- 		VM_WARN_ON_ONCE(list != &si->free_clusters);
- 		VM_WARN_ON_ONCE(!cluster_is_empty(found));
- 		return swap_cluster_alloc_table(si, found);
+ 	unsigned int weight_sz;
+--- a/mm/damon/core.c~mm-damon-core-introduce-damos_quota_goal_tuner
++++ a/mm/damon/core.c
+@@ -912,6 +912,7 @@ static int damos_commit_quota(struct dam
+ 	err = damos_commit_quota_goals(dst, src);
+ 	if (err)
+ 		return err;
++	dst->goal_tuner = src->goal_tuner;
+ 	dst->weight_sz = src->weight_sz;
+ 	dst->weight_nr_accesses = src->weight_nr_accesses;
+ 	dst->weight_age = src->weight_age;
 _
 
-Patches currently in -mm which might be from zhuhui@kylinos.cn are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-memcontrol-batch-memcg-charging-in-__memcg_slab_post_alloc_hook.patch
+mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch
 
