@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75B3C277CB8
-	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:42:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC7B0277CB8
+	for <mm-commits@vger.kernel.org>; Sun, 29 Mar 2026 00:42:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774744956; cv=none; b=m/QGR5Nzr3VlF7SxNhUVkELrDFPzgl6BEG4wSfY1G/cAn/ngzw8JQpbm62vtDk/sp+GBhP8QbwI13HS5Fz/5G4/PexLCouF17cYyvYVksTGLOXO3RNdVuC8T7SgFViomMJrt5QF5nU74lSoGLfCvnvQgS3bW7pUAN5aaZ8YjfcE=
+	t=1774744957; cv=none; b=EVojxFphk0dhNRP4JoatBowbuRRF/BdSM+NtiQYHfxn1hV4BmgMC+Iv2Sxg/v3DbMTzbVg0vR07pFk5SQq3ht9T9Uxb9PB0Tjj5d3gL/EGVlInzqPoF02MhcGGwG0MJhpPr9TpmzMlaaMOU1cWMFgF0+SaS5WHMuRg4fvfra1GM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774744956; c=relaxed/simple;
-	bh=jEQe5LkYnqav0S+qFYRAyVrzYrHt536oFlttJs7EuyU=;
-	h=Date:To:From:Subject:Message-Id; b=mYQy3BCuOH26U8WzYwy83BhR9lCW4CiknnkkwNdT1k9cjJ5fsPAdCT1d5sRh4skDZpN+ipQ2MgCvn7eN/qNlY1w1COsEFH3ptEELgTI1tAf7rNW+QfQcj1Ao9/ucYjZqXi3GQ9MWA4UlahHM/phvcryoMDDI/PuKC9LRRsEiJ8E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U+sLoSCY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774744957; c=relaxed/simple;
+	bh=VmQAHjFt/nLXl7fjgrEohRmyNaQ6zvwMe12Dysoyia8=;
+	h=Date:To:From:Subject:Message-Id; b=eq6FGNfww2seqg8yESOx5KMsUSEa5EdGDZ/LVFk+nSw4LkSt6f1StXlBnmazaCX9YJmtNhn3E6bbMhsPiJO32bkyTjcYHln1uRTmf6HnnO/daffqqC7EvtbKQFDN8wV8P3ifLyoHgIEgyH8d34w5eY86NcgJl/RLIUHlkwqmWKU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uXSmzX9M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U+sLoSCY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D381C4CEF7;
-	Sun, 29 Mar 2026 00:42:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uXSmzX9M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4BD1C4CEF7;
+	Sun, 29 Mar 2026 00:42:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774744956;
-	bh=jEQe5LkYnqav0S+qFYRAyVrzYrHt536oFlttJs7EuyU=;
+	s=korg; t=1774744957;
+	bh=VmQAHjFt/nLXl7fjgrEohRmyNaQ6zvwMe12Dysoyia8=;
 	h=Date:To:From:Subject:From;
-	b=U+sLoSCYcW4+i1dxubGPD9yPoB4/sLTR8mOyKv+GwWSsVDSwXgegrkW3abeXYOLD6
-	 clO8QmOrNR4GtU/WBP9lJKkbUb+nd05HMnj/Oi0Ale+i0dxeG9gUYOjTHcAi9N8Ux4
-	 Rt8gqCQGykGTXxnHGdRMYv/MZjdO4CzVj10bZxSY=
-Date: Sat, 28 Mar 2026 17:42:35 -0700
-To: mm-commits@vger.kernel.org,urezki@gmail.com,tony.luck@intel.com,kees@kernel.org,julia.lawall@inria.fr,gpiccoli@igalia.com,akpm@linux-foundation.org,kexinsun@smail.nju.edu.cn,akpm@linux-foundation.org
+	b=uXSmzX9M0ebgromZ8jFU4qXjX5K7bMlSeF8A1Mel3pTWpSq5fjLPsM1+YHLscMWrZ
+	 wBiYUvHbociuRqgX9esjn7GBv6sVupASu+8uJBT4m2YVzs9PagiHIyLAYogj54gfbQ
+	 /BaeuAnhz6S5oA/LzinKUy3sJIXxlzN4oxQXjwwQ=
+Date: Sat, 28 Mar 2026 17:42:37 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,nphamcs@gmail.com,mhocko@kernel.org,ljs@kernel.org,kasong@tencent.com,julia.lawall@inria.fr,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,axelrasmussen@google.com,kexinsun@smail.nju.edu.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmalloc-update-outdated-comment-for-renamed-vread.patch removed from -mm tree
-Message-Id: <20260329004236.4D381C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-update-outdated-comments-for-removed-scan_swap_map_slots.patch removed from -mm tree
+Message-Id: <20260329004237.A4BD1C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,84 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: vmalloc: update outdated comment for renamed vread()
+     Subject: mm: update outdated comments for removed scan_swap_map_slots()
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-update-outdated-comment-for-renamed-vread.patch
+     mm-update-outdated-comments-for-removed-scan_swap_map_slots.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Kexin Sun <kexinsun@smail.nju.edu.cn>
-Subject: mm: vmalloc: update outdated comment for renamed vread()
-Date: Sat, 21 Mar 2026 18:58:20 +0800
+Subject: mm: update outdated comments for removed scan_swap_map_slots()
+Date: Sat, 21 Mar 2026 18:58:14 +0800
 
-The function vread() was renamed to vread_iter() in commit 4c91c07c93bb
-("mm: vmalloc: convert vread() to vread_iter()"), converting from a
-buffer-based to an iterator-based interface.
+The function scan_swap_map_slots() was removed in commit 0ff67f990bd4
+("mm, swap: remove swap slot cache").
 
-Update the kdoc of vread_iter() to reflect the new interface: replace
-references to @buf with @iter, drop the stale "kernel's buffer"
-requirement, and update the self-reference from vread() to vread_iter().
-
-Also update the stale vread() reference in pstore's ram_core.c.
+The three comments referencing it simply noted that ->flags can be updated
+non-atomically by scan_swap_map_slots() to justify a data_race()
+annotation.  Since the function no longer exists, drop the parenthetical
+reference while keeping the data_race() justification intact: ->flags can
+still be updated non-atomically by other paths (e.g., swapoff clearing
+SWP_WRITEOK).
 
 Assisted-by: unnamed:deepseek-v3.2 coccinelle
-Link: https://lkml.kernel.org/r/20260321105820.7134-1-kexinsun@smail.nju.edu.cn
+Link: https://lkml.kernel.org/r/20260321105814.7053-1-kexinsun@smail.nju.edu.cn
 Signed-off-by: Kexin Sun <kexinsun@smail.nju.edu.cn>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Julia Lawall <julia.lawall@inria.fr>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pstore/ram_core.c |    2 +-
- mm/vmalloc.c         |   10 +++++-----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ mm/page_io.c |    4 ++--
+ mm/vmscan.c  |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/fs/pstore/ram_core.c~mm-vmalloc-update-outdated-comment-for-renamed-vread
-+++ a/fs/pstore/ram_core.c
-@@ -450,7 +450,7 @@ static void *persistent_ram_vmap(phys_ad
- 		pages[i] = pfn_to_page(addr >> PAGE_SHIFT);
- 	}
+--- a/mm/page_io.c~mm-update-outdated-comments-for-removed-scan_swap_map_slots
++++ a/mm/page_io.c
+@@ -450,14 +450,14 @@ void __swap_writepage(struct folio *foli
+ 
+ 	VM_BUG_ON_FOLIO(!folio_test_swapcache(folio), folio);
  	/*
--	 * VM_IOREMAP used here to bypass this region during vread()
-+	 * VM_IOREMAP used here to bypass this region during vread_iter()
- 	 * and kmap_atomic() (i.e. kcore) to avoid __va() failures.
+-	 * ->flags can be updated non-atomically (scan_swap_map_slots),
++	 * ->flags can be updated non-atomically,
+ 	 * but that will never affect SWP_FS_OPS, so the data_race
+ 	 * is safe.
  	 */
- 	vaddr = vmap(pages, page_count, VM_MAP | VM_IOREMAP, prot);
---- a/mm/vmalloc.c~mm-vmalloc-update-outdated-comment-for-renamed-vread
-+++ a/mm/vmalloc.c
-@@ -4575,20 +4575,20 @@ finished:
-  * @count:        number of bytes to be read.
-  *
-  * This function checks that addr is a valid vmalloc'ed area, and
-- * copy data from that area to a given buffer. If the given memory range
-+ * copies data from that area to a given iterator. If the given memory range
-  * of [addr...addr+count) includes some valid address, data is copied to
-- * proper area of @buf. If there are memory holes, they'll be zero-filled.
-+ * proper area of @iter. If there are memory holes, they'll be zero-filled.
-  * IOREMAP area is treated as memory hole and no copy is done.
-  *
-  * If [addr...addr+count) doesn't includes any intersects with alive
-- * vm_struct area, returns 0. @buf should be kernel's buffer.
-+ * vm_struct area, returns 0.
-  *
-- * Note: In usual ops, vread() is never necessary because the caller
-+ * Note: In usual ops, vread_iter() is never necessary because the caller
-  * should know vmalloc() area is valid and can use memcpy().
-  * This is for routines which have to access vmalloc area without
-  * any information, as /proc/kcore.
-  *
-- * Return: number of bytes for which addr and buf should be increased
-+ * Return: number of bytes for which addr and iter should be advanced
-  * (same number as @count) or %0 if [addr...addr+count) doesn't
-  * include any intersection with valid vmalloc area
-  */
+ 	if (data_race(sis->flags & SWP_FS_OPS))
+ 		swap_writepage_fs(folio, swap_plug);
+ 	/*
+-	 * ->flags can be updated non-atomically (scan_swap_map_slots),
++	 * ->flags can be updated non-atomically,
+ 	 * but that will never affect SWP_SYNCHRONOUS_IO, so the data_race
+ 	 * is safe.
+ 	 */
+--- a/mm/vmscan.c~mm-update-outdated-comments-for-removed-scan_swap_map_slots
++++ a/mm/vmscan.c
+@@ -1065,7 +1065,7 @@ static bool may_enter_fs(struct folio *f
+ 	/*
+ 	 * We can "enter_fs" for swap-cache with only __GFP_IO
+ 	 * providing this isn't SWP_FS_OPS.
+-	 * ->flags can be updated non-atomically (scan_swap_map_slots),
++	 * ->flags can be updated non-atomically,
+ 	 * but that will never affect SWP_FS_OPS, so the data_race
+ 	 * is safe.
+ 	 */
 _
 
 Patches currently in -mm which might be from kexinsun@smail.nju.edu.cn are
