@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54A33397E7D
-	for <mm-commits@vger.kernel.org>; Mon, 30 Mar 2026 19:26:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B42E0397E8B
+	for <mm-commits@vger.kernel.org>; Mon, 30 Mar 2026 19:26:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774898765; cv=none; b=pnFcRJPuU2UqSLDrXk/MU4ign6kz36fux5mgCEAmJCmfkIK3OeaCMtxd2HPc14rkyz43qzwgy0etZPhSC/ct8BGFWVKxk2JTQaMbS2ruC9Rstdhx7imzyfPnpjHJketpAU8ISaXlTM8/pfw8dUYdvC+eP5AuWjC75xOgYzGQwjE=
+	t=1774898768; cv=none; b=kFf+nPqgTDgWSOL6pWT0hIQpqQ9GqvcPWklJJoR0kGiXrQj9Y+p+DentrtKU0UweIKasDUAzwu86iIwFAOTqIDba0JylkyGMgQ1ShZ9idvucpO56DTydDZd2GNk6NrIduCPYDHQRh0u7MCMVovbWHNjFRj0SEZvhPmqJhxzA+n8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774898765; c=relaxed/simple;
-	bh=YM4STOFlmTEAsrC5GxRWB5tvcXXDfsK5oIDmSHImmzk=;
-	h=Date:To:From:Subject:Message-Id; b=atxzf7HbxQY0Ypm/nP9JDEX/yiwbDpCMMZ521qXkKzJdAbn02IGSyg8uA0jMRkhjmHs/Sb171U4Rk0vc/5B0mz5nBG5g254pMb2/AvExMkLPbc3HclRZE3ZHIq7g83PHK4s3tqCZc/wKOOfFT4pz5kx6J83i8pxIAzWfjMuhIXI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v+tpD87f; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774898768; c=relaxed/simple;
+	bh=r5W0XDoAWSBc8OXaL+KZ177JFqLMsK7Sr59GVsX3bxE=;
+	h=Date:To:From:Subject:Message-Id; b=kjpD7VKtCbfYRZMbp6THNFh7dBsSiYlVM5U86n8kyP03Q1YXYfUd7ReXdJ3l9Smxx235qrulOdt5PmhYJtBZkD5HUL2BMMQRTqK1dKUvm2fDVacR8XLy8brHdoKRkEhvW9cNhsBMDZttovXfkPgrfP4A3uqmPCOrYrr7RnEmq1s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z604F4v0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v+tpD87f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BFCBEC4CEF7;
-	Mon, 30 Mar 2026 19:26:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z604F4v0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B740C4CEF7;
+	Mon, 30 Mar 2026 19:26:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774898764;
-	bh=YM4STOFlmTEAsrC5GxRWB5tvcXXDfsK5oIDmSHImmzk=;
+	s=korg; t=1774898768;
+	bh=r5W0XDoAWSBc8OXaL+KZ177JFqLMsK7Sr59GVsX3bxE=;
 	h=Date:To:From:Subject:From;
-	b=v+tpD87fb80iFArRIvMCcwmunrTOOaoc4IdH4RXZON54aFz0K11k2/+DU9VJxh+Ez
-	 3etdBVs0AeaHc4plPJSKpByaSqGzCs3fTQF1YCX+FezQPYzq6iApVy2GRa8YleSkYe
-	 hLmUUd/O0zpqN8Hlbvg2ryzP1CoerIM90k+wt10M=
-Date: Mon, 30 Mar 2026 12:26:04 -0700
+	b=Z604F4v0U9xDHKi3ZemERjxk40Qwyyh35hGWNe54OVr2epJqEqv/cVpfYARauJYuE
+	 H6M7g/tX9UqRKW29bm3C2CMiFUd3wbFYWbshJ9eB6nSq1dvaXgdVmbf1xY1uwzCpyM
+	 hyoUDgb97B6EsMgMl20voWgWuWG0ltJZvx+0eF0U=
+Date: Mon, 30 Mar 2026 12:26:08 -0700
 To: mm-commits@vger.kernel.org,chuhu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-move-write_file-helper-to-vm_util.patch added to mm-unstable branch
-Message-Id: <20260330192604.BFCBEC4CEF7@smtp.kernel.org>
+Subject: + selftests-ksft_exit_fail_perror-support-printf-style-arguments.patch added to mm-unstable branch
+Message-Id: <20260330192608.8B740C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: move write_file helper to vm_util
+     Subject: selftests: ksft_exit_fail_perror: support printf style arguments
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-move-write_file-helper-to-vm_util.patch
+     selftests-ksft_exit_fail_perror-support-printf-style-arguments.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-move-write_file-helper-to-vm_util.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-ksft_exit_fail_perror-support-printf-style-arguments.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,180 +59,68 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Chunyu Hu <chuhu@redhat.com>
-Subject: selftests/mm: move write_file helper to vm_util
-Date: Mon, 30 Mar 2026 23:14:59 +0800
+Subject: selftests: ksft_exit_fail_perror: support printf style arguments
+Date: Mon, 30 Mar 2026 23:15:00 +0800
 
-thp_settings provides write_file() helper for safely writing to a file and
-exit when write failure happens. It's a very low level helper and many sub
-tests need such a helper, not only thp tests.
+The ksft_exit_fail_perror function previously only accepted a single string
+argument, which limited its flexibility for providing specific context to
+failure messages.
 
-split_huge_page_test also defines a write_file locally. The two have minior
-differences in return type and used exit api. And there would be conflicts
-if split_huge_page_test wanted to include thp_settings.h because of
-different prototype, making it less convenient.
+This change updates ksft_exit_fail_perror to support variable arguments,
+similar to ksft_exit_fail_msg.  Adding the __printf(1, 2) attribute enables
+compile-time checking for format string correctness.
 
-It's possisble to merge the two, although some tests don't use the
-kselftest infrastrucutre for testing. It would also work when using the
-ksft_exit_msg() to exit in my test, as the counters are all zero. Output
-will be like:
-
-  TAP version 13
-  1..62
-  Bail out! /proc/sys/vm/drop_caches1 open failed: No such file or directory
-  # Totals: pass:0 fail:0 xfail:0 xpass:0 skip:0 error:0
-
-So here we just keep the version in split_huge_page_test, and move it into
-the vm_util. This makes it easy to maitain and user could just include one
-vm_util.h when they don't need thp setting helpers. Keep the prototype of
-void return as the function will exit on any error, return value is not
-necessary, and will simply the callers like write_num() and write_string().
-
-Link: https://lkml.kernel.org/r/20260330151503.670415-4-chuhu@redhat.com
+Link: https://lkml.kernel.org/r/20260330151503.670415-5-chuhu@redhat.com
 Signed-off-by: Chunyu Hu <chuhu@redhat.com>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Suggested-by: Mike Rapoport <rppt@kernel.org>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Li Wang <liwang@redhat.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |   15 -----
- tools/testing/selftests/mm/thp_settings.c         |   35 +-----------
- tools/testing/selftests/mm/thp_settings.h         |    1 
- tools/testing/selftests/mm/vm_util.c              |   15 +++++
- tools/testing/selftests/mm/vm_util.h              |    2 
- 5 files changed, 20 insertions(+), 48 deletions(-)
+ tools/testing/selftests/kselftest.h |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-move-write_file-helper-to-vm_util
-+++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -255,21 +255,6 @@ static int check_after_split_folio_order
- 	return status;
+--- a/tools/testing/selftests/kselftest.h~selftests-ksft_exit_fail_perror-support-printf-style-arguments
++++ a/tools/testing/selftests/kselftest.h
+@@ -43,7 +43,7 @@
+  * the program is aborting before finishing all tests):
+  *
+  *    ksft_exit_fail_msg(fmt, ...);
+- *    ksft_exit_fail_perror(msg);
++ *    ksft_exit_fail_perror(fmt, ...);
+  *
+  */
+ #ifndef __KSELFTEST_H
+@@ -417,9 +417,24 @@ static inline __noreturn __printf(1, 2)
+ 	exit(KSFT_FAIL);
  }
  
--static void write_file(const char *path, const char *buf, size_t buflen)
--{
--	int fd;
--	ssize_t numwritten;
--
--	fd = open(path, O_WRONLY);
--	if (fd == -1)
--		ksft_exit_fail_msg("%s open failed: %s\n", path, strerror(errno));
--
--	numwritten = write(fd, buf, buflen - 1);
--	close(fd);
--	if (numwritten < 1)
--		ksft_exit_fail_msg("Write failed\n");
--}
--
- static void write_debugfs(const char *fmt, ...)
+-static inline __noreturn void ksft_exit_fail_perror(const char *msg)
++static inline __noreturn __printf(1, 2) void ksft_exit_fail_perror(const char *msg, ...)
  {
- 	char input[INPUT_MAX];
---- a/tools/testing/selftests/mm/thp_settings.c~selftests-mm-move-write_file-helper-to-vm_util
-+++ a/tools/testing/selftests/mm/thp_settings.c
-@@ -6,6 +6,7 @@
- #include <string.h>
- #include <unistd.h>
- 
-+#include "vm_util.h"
- #include "thp_settings.h"
- 
- #define THP_SYSFS "/sys/kernel/mm/transparent_hugepage/"
-@@ -64,29 +65,6 @@ int read_file(const char *path, char *bu
- 	return (unsigned int) numread;
+-	ksft_exit_fail_msg("%s: %s (%d)\n", msg, strerror(errno), errno);
++	va_list args;
++	char *buf = NULL;
++	int saved_errno = errno;
++
++	va_start(args, msg);
++	if (vasprintf(&buf, msg, args) == -1) {
++		va_end(args);
++		ksft_exit_fail_msg("vasprintf failed: %s (%d)\n", strerror(saved_errno),
++				saved_errno);
++	}
++	va_end(args);
++
++	errno = saved_errno;
++	ksft_exit_fail_msg("%s: %s (%d)\n", buf, strerror(errno), errno);
++
++	free(buf);
  }
  
--int write_file(const char *path, const char *buf, size_t buflen)
--{
--	int fd;
--	ssize_t numwritten;
--
--	fd = open(path, O_WRONLY);
--	if (fd == -1) {
--		printf("open(%s)\n", path);
--		exit(EXIT_FAILURE);
--		return 0;
--	}
--
--	numwritten = write(fd, buf, buflen - 1);
--	close(fd);
--	if (numwritten < 1) {
--		printf("write(%s)\n", buf);
--		exit(EXIT_FAILURE);
--		return 0;
--	}
--
--	return (unsigned int) numwritten;
--}
--
- unsigned long read_num(const char *path)
- {
- 	char buf[21];
-@@ -104,10 +82,7 @@ void write_num(const char *path, unsigne
- 	char buf[21];
- 
- 	sprintf(buf, "%ld", num);
--	if (!write_file(path, buf, strlen(buf) + 1)) {
--		perror(path);
--		exit(EXIT_FAILURE);
--	}
-+	write_file(path, buf, strlen(buf) + 1);
- }
- 
- int thp_read_string(const char *name, const char * const strings[])
-@@ -165,11 +140,7 @@ void thp_write_string(const char *name,
- 		printf("%s: Pathname is too long\n", __func__);
- 		exit(EXIT_FAILURE);
- 	}
--
--	if (!write_file(path, val, strlen(val) + 1)) {
--		perror(path);
--		exit(EXIT_FAILURE);
--	}
-+	write_file(path, val, strlen(val) + 1);
- }
- 
- unsigned long thp_read_num(const char *name)
---- a/tools/testing/selftests/mm/thp_settings.h~selftests-mm-move-write_file-helper-to-vm_util
-+++ a/tools/testing/selftests/mm/thp_settings.h
-@@ -63,7 +63,6 @@ struct thp_settings {
- };
- 
- int read_file(const char *path, char *buf, size_t buflen);
--int write_file(const char *path, const char *buf, size_t buflen);
- unsigned long read_num(const char *path);
- void write_num(const char *path, unsigned long num);
- 
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-move-write_file-helper-to-vm_util
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -776,3 +776,18 @@ int unpoison_memory(unsigned long pfn)
- 
- 	return ret > 0 ? 0 : -errno;
- }
-+
-+void write_file(const char *path, const char *buf, size_t buflen)
-+{
-+	int fd;
-+	ssize_t numwritten;
-+
-+	fd = open(path, O_WRONLY);
-+	if (fd == -1)
-+		ksft_exit_fail_msg("%s open failed: %s\n", path, strerror(errno));
-+
-+	numwritten = write(fd, buf, buflen - 1);
-+	close(fd);
-+	if (numwritten < 1)
-+		ksft_exit_fail_msg("Write failed\n");
-+}
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-move-write_file-helper-to-vm_util
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -167,3 +167,5 @@ int unpoison_memory(unsigned long pfn);
- 
- #define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
- #define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
-+
-+void write_file(const char *path, const char *buf, size_t buflen);
+ static inline __noreturn void ksft_exit_xfail(void)
 _
 
 Patches currently in -mm which might be from chuhu@redhat.com are
