@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02FA539B95F
-	for <mm-commits@vger.kernel.org>; Mon, 30 Mar 2026 19:44:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83F553A6EED;
+	Mon, 30 Mar 2026 21:46:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774899860; cv=none; b=He7mDgsWVsDIKPz1rsMTMJqXrSlgBwUKbqYuJkP+x/iQ1vhFf6WllNEPBzxkQreFugjQJUpMOMArg6dkGzIdwMG427r+PzBat82QoQWAZNPXV+UMRGveJXECddlQD1UZdpVPlnhIetSIEgHW+ogYIWRqjB29rhVBUN/jqa8egCg=
+	t=1774907211; cv=none; b=CJlKygR7+AOYY1mv3S12qrKqTqUl02BnEWsQAdRMmRQ6KHwV4tgrS0b/ySMItY6v3hGV6fqxzvX6w0Eze7IyMHy4DZVNy9XLd3UP2kGOsFR/L6CLjSDvdmvtSPc07GMNO1ZEBvdYkMSEe1rahhNZfhY3u2FcQOfjSwSZodbVjJE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774899860; c=relaxed/simple;
-	bh=EfgNHCsBZl6m8k4LSercTpiLJzno60inODZ/1uVqGcg=;
-	h=Date:To:From:Subject:Message-Id; b=hhyIEQFGytSod3S22tULW13LVG815fyrLvjxg40YhQirheXj1+FrqCqjcbMePWbJeHX+EN5XWACZ+ZyaZBbbDKu0LypZSSY+3EOzpH/W+LRYapo3rBwGuGwziCnljpbZf65Qu+zHPkHK+P73lQgtnRnOACDehGx9IM3irPNptwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wcu41r/a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774907211; c=relaxed/simple;
+	bh=xlErDBSkRR5S4gQ9GdS5wH+VFFJ88ho2cfOxWVfDsD0=;
+	h=Date:To:From:Subject:Message-Id; b=ouzsF9/bFMV/j8do5rjuwkolA5mfWxL4PljYUm5HqjwsPGMXSIv92p0B1PZMWVk/bEvJZzIpUyqAmtVYbXBaQNXNCk2hD6sdPb5oKnWUR8tq7u/E1Hm+tJGGLgxR1lgXSDON53vO8v4HgZ5C+ebFmticKWWEysJSB3olXkphDYQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CbTVCu51; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wcu41r/a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE46DC4CEF7;
-	Mon, 30 Mar 2026 19:44:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CbTVCu51"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B3FEC2BCB1;
+	Mon, 30 Mar 2026 21:46:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774899859;
-	bh=EfgNHCsBZl6m8k4LSercTpiLJzno60inODZ/1uVqGcg=;
+	s=korg; t=1774907211;
+	bh=xlErDBSkRR5S4gQ9GdS5wH+VFFJ88ho2cfOxWVfDsD0=;
 	h=Date:To:From:Subject:From;
-	b=Wcu41r/aBoin7kggnoQUbvt9FifMQ6BB8ICuwqlO58qNuf0H0D0dLrE5tk4N3YSxM
-	 k3Zg0QuV0SESaO7QPwSMdPrUh/oH41p+WvPpPBhDJCrsFnQK9WLp+Op5btBMq7hFjr
-	 bbU1+5jyN//T+o97/1wkTas4tjj7vaEDSp6ZxGls=
-Date: Mon, 30 Mar 2026 12:44:19 -0700
-To: mm-commits@vger.kernel.org,kalyazin@amazon.com,akpm@linux-foundation.org
+	b=CbTVCu51ui8mT/h2MZGMe3Vn+Unb9Af8kPcYcovlV0HwfxNx2NTFe+so61Zt2Q2I5
+	 gpLRLBR/scGUUQ7ZdhWzTf5BkiF6S4yHuosDeTbLzjmQgN/Uxb5glpeBJORnzz4hvq
+	 LBgrWywuz35zKMo+uKqj0WonuCS/M7BsP41GYNSw=
+Date: Mon, 30 Mar 2026 14:46:50 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,vbabka@kernel.org,stable@vger.kernel.org,osalvador@suse.de,joshua.hahnjy@gmail.com,harry@kernel.org,david@kernel.org,hao.li@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch added to mm-unstable branch
-Message-Id: <20260330194419.CE46DC4CEF7@smtp.kernel.org>
+Subject: + mm-memory_hotplug-maintain-n_normal_memory-during-hotplug.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260330214651.4B3FEC2BCB1@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: KVM: selftests: test userfaultfd missing for guest_memfd
-has been added to the -mm mm-unstable branch.  Its filename is
-     kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch
+     Subject: mm/memory_hotplug: maintain N_NORMAL_MEMORY during hotplug
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memory_hotplug-maintain-n_normal_memory-during-hotplug.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-maintain-n_normal_memory-during-hotplug.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,144 +58,90 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Nikita Kalyazin <kalyazin@amazon.com>
-Subject: KVM: selftests: test userfaultfd missing for guest_memfd
-Date: Mon, 30 Mar 2026 13:11:16 +0300
+From: Hao Li <hao.li@linux.dev>
+Subject: mm/memory_hotplug: maintain N_NORMAL_MEMORY during hotplug
+Date: Mon, 30 Mar 2026 11:57:49 +0800
 
-The test demonstrates that a missing userfaultfd event in guest_memfd can
-be resolved via a UFFDIO_COPY ioctl.
+N_NORMAL_MEMORY is initialized from zone population at boot, but memory
+hotplug currently only updates N_MEMORY.  As a result, a node that gains
+normal memory via hotplug can remain invisible to users iterating over
+N_NORMAL_MEMORY, while a node that loses its last normal memory can stay
+incorrectly marked as such.
 
-Link: https://lkml.kernel.org/r/20260330101116.1117699-16-rppt@kernel.org
-Signed-off-by: Nikita Kalyazin <kalyazin@amazon.com>
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
+Restore N_NORMAL_MEMORY maintenance directly in online_pages() and
+offline_pages().  Set the bit when a node that currently lacks normal
+memory onlines pages into a zone <= ZONE_NORMAL, and clear it when
+offlining removes the last present pages from zones <= ZONE_NORMAL.
+
+This restores the intended semantics without bringing back the old
+status_change_nid_normal notifier plumbing which was removed in
+8d2882a8edb8.
+
+Current users that benefit include list_lru, zswap, nfsd filecache,
+hugetlb_cgroup, and has_normal_memory sysfs reporting.
+
+Link: https://lkml.kernel.org/r/20260330035941.518186-1-hao.li@linux.dev
+Fixes: 8d2882a8edb8 ("mm,memory_hotplug: remove status_change_nid_normal and update documentation")
+Signed-off-by: Hao Li <hao.li@linux.dev>
+Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kvm/guest_memfd_test.c |   80 ++++++++++++++-
- 1 file changed, 79 insertions(+), 1 deletion(-)
+ mm/memory_hotplug.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/tools/testing/selftests/kvm/guest_memfd_test.c~kvm-selftests-test-userfaultfd-missing-for-guest_memfd
-+++ a/tools/testing/selftests/kvm/guest_memfd_test.c
-@@ -439,6 +439,82 @@ static void test_uffd_minor(int fd, size
- 	close(uffd);
- }
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-maintain-n_normal_memory-during-hotplug
++++ a/mm/memory_hotplug.c
+@@ -1209,6 +1209,13 @@ int online_pages(unsigned long pfn, unsi
  
-+static void test_uffd_missing(int fd, size_t total_size)
-+{
-+	struct uffdio_register uffd_reg;
-+	struct uffdio_copy uffd_copy;
-+	struct uffd_msg msg;
-+	struct fault_args args;
-+	pthread_t fault_thread;
-+	void *mem, *buf = NULL;
-+	int uffd, ret;
-+	off_t offset = page_size;
-+	void *fault_addr;
-+	const char test_val = 0xab;
-+
-+	ret = posix_memalign(&buf, page_size, total_size);
-+	TEST_ASSERT_EQ(ret, 0);
-+	memset(buf, test_val, total_size);
-+
-+	uffd = syscall(__NR_userfaultfd, O_CLOEXEC);
-+	TEST_ASSERT(uffd != -1, "userfaultfd creation should succeed");
-+
-+	struct uffdio_api uffdio_api = {
-+		.api = UFFD_API,
-+		.features = 0,
-+	};
-+	ret = ioctl(uffd, UFFDIO_API, &uffdio_api);
-+	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_API) should succeed");
-+
-+	mem = mmap(NULL, total_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-+	TEST_ASSERT(mem != MAP_FAILED, "mmap should succeed");
-+
-+	uffd_reg.range.start = (unsigned long)mem;
-+	uffd_reg.range.len = total_size;
-+	uffd_reg.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	ret = ioctl(uffd, UFFDIO_REGISTER, &uffd_reg);
-+	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_REGISTER) should succeed");
-+
-+	fault_addr = mem + offset;
-+	args.addr = fault_addr;
-+
-+	ret = pthread_create(&fault_thread, NULL, fault_thread_fn, &args);
-+	TEST_ASSERT(ret == 0, "pthread_create should succeed");
-+
-+	ret = read(uffd, &msg, sizeof(msg));
-+	TEST_ASSERT(ret != -1, "read from userfaultfd should succeed");
-+	TEST_ASSERT(msg.event == UFFD_EVENT_PAGEFAULT, "event type should be pagefault");
-+	TEST_ASSERT((void *)(msg.arg.pagefault.address & ~(page_size - 1)) == fault_addr,
-+		    "pagefault should occur at expected address");
-+	TEST_ASSERT(!(msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WP),
-+		    "pagefault should not be write-protect");
-+
-+	uffd_copy.dst = (unsigned long)fault_addr;
-+	uffd_copy.src = (unsigned long)(buf + offset);
-+	uffd_copy.len = page_size;
-+	uffd_copy.mode = 0;
-+	ret = ioctl(uffd, UFFDIO_COPY, &uffd_copy);
-+	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_COPY) should succeed");
-+
-+	/* Wait for the faulting thread to complete - this provides the memory barrier */
-+	ret = pthread_join(fault_thread, NULL);
-+	TEST_ASSERT(ret == 0, "pthread_join should succeed");
-+
+ 	if (node_arg.nid >= 0)
+ 		node_set_state(nid, N_MEMORY);
 +	/*
-+	 * Now it's safe to check args.value - the thread has completed
-+	 * and memory is synchronized
++	 * Check whether we are adding normal memory to the node for the first
++	 * time.
 +	 */
-+	TEST_ASSERT(args.value == test_val,
-+		    "memory should contain the value that was copied");
-+	TEST_ASSERT(*(char *)(mem + offset) == test_val,
-+		    "no further fault is expected");
++	if (!node_state(nid, N_NORMAL_MEMORY) && zone_idx(zone) <= ZONE_NORMAL)
++		node_set_state(nid, N_NORMAL_MEMORY);
 +
-+	ret = munmap(mem, total_size);
-+	TEST_ASSERT(!ret, "munmap should succeed");
-+	free(buf);
-+	close(uffd);
-+}
-+
- static void test_guest_memfd_flags(struct kvm_vm *vm)
- {
- 	uint64_t valid_flags = vm_check_cap(vm, KVM_CAP_GUEST_MEMFD_FLAGS);
-@@ -494,8 +570,10 @@ static void __test_guest_memfd(struct kv
- 	gmem_test(fallocate, vm, flags);
- 	gmem_test(invalid_punch_hole, vm, flags);
+ 	if (need_zonelists_rebuild)
+ 		build_all_zonelists(NULL);
  
--	if (flags & GUEST_MEMFD_FLAG_INIT_SHARED)
-+	if (flags & GUEST_MEMFD_FLAG_INIT_SHARED) {
- 		gmem_test(uffd_minor, vm, flags);
-+		gmem_test(uffd_missing, vm, flags);
+@@ -1908,6 +1915,8 @@ int offline_pages(unsigned long start_pf
+ 	unsigned long flags;
+ 	char *reason;
+ 	int ret;
++	unsigned long normal_pages = 0;
++	enum zone_type zt;
+ 
+ 	/*
+ 	 * {on,off}lining is constrained to full memory sections (or more
+@@ -2056,6 +2065,17 @@ int offline_pages(unsigned long start_pf
+ 	init_per_zone_wmark_min();
+ 
+ 	/*
++	 * Check whether this operation removes the last normal memory from
++	 * the node. We do this before clearing N_MEMORY to avoid the possible
++	 * transient "!N_MEMORY && N_NORMAL_MEMORY" state.
++	 */
++	if (zone_idx(zone) <= ZONE_NORMAL) {
++		for (zt = 0; zt <= ZONE_NORMAL; zt++)
++			normal_pages += pgdat->node_zones[zt].present_pages;
++		if (!normal_pages)
++			node_clear_state(node, N_NORMAL_MEMORY);
 +	}
- }
- 
- static void test_guest_memfd(unsigned long vm_type)
++	/*
+ 	 * Make sure to mark the node as memory-less before rebuilding the zone
+ 	 * list. Otherwise this node would still appear in the fallback lists.
+ 	 */
 _
 
-Patches currently in -mm which might be from kalyazin@amazon.com are
+Patches currently in -mm which might be from hao.li@linux.dev are
 
-kvm-guest_memfd-implement-userfaultfd-operations.patch
-kvm-selftests-test-userfaultfd-minor-for-guest_memfd.patch
-kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch
+mm-memory_hotplug-maintain-n_normal_memory-during-hotplug.patch
 
