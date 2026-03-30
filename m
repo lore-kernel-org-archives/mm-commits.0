@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70D0E373BF7
-	for <mm-commits@vger.kernel.org>; Mon, 30 Mar 2026 19:13:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E18F26E165
+	for <mm-commits@vger.kernel.org>; Mon, 30 Mar 2026 19:14:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774898040; cv=none; b=DfXS46L0YiH76VmlTBILS6aGFkyDZ+VpMDt3KJT5S3KxalB7Ke7UKBRo/IDMtErDB4pM3FV63ppt5z3/nM4rJ3s2qVB8pZCYw4cK9ngIKdAJy1tL1QZChjA1IHazSWYjVZfMCt4JO7MtDEnff8rAvG8tNRVXpWcoIJRjqLtizCw=
+	t=1774898084; cv=none; b=ciVn4E8HFjmibKZUQpPZNEZPWHW/xex0b/28ZC3Oz9QmdF6ILkwO1eStHAsTyEvVoUGdi0nIQK4Za6aaxMA3T2Tptmx6elsPIMvWisHJp0Ba73eOl4FrsSQsjQdt4nX5gjPU00XE11Of5nYGlaH1ctTwk2SeH/lCCe2A3/NtULU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774898040; c=relaxed/simple;
-	bh=J/TIdmUtFJdK5/8BsU0cu92BYLbRa8DXMvkEFCTE7jI=;
-	h=Date:To:From:Subject:Message-Id; b=MfnkXmy+Fv/KJmWoCtL81yEsSo+XHuEtwT96W5eE+RfEXannT4XZZTqURCOFoONwy87NRTV+putvBvg5xF7RXhi8MgVAU9g04NDnC/yBXFIh1zAs6fwvse/RIk6N6DTn7SBGmdGmDCv0o01VQWkhfcveLq8C2o3zQEiYoapjqOQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BPy/WOea; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774898084; c=relaxed/simple;
+	bh=jhpFMSf5bdqd8KuOYkwkKF3tZOW1CLWAqbue5DrFlpE=;
+	h=Date:To:From:Subject:Message-Id; b=NWh9K9xG9MuxHRdx+zCIrG+QLB0vcRydpKaV2c2ErXIhAutbX8WrJndb6agj3WYqB2Vwf07RDiUJw8Z9wut3JchLKSuNDN+8Gu9Au5HSf/hcxXId3qM8Y6My9ZluCJN0CgL7FX0L7FQACp+T3ybwkXfrdP9PIjvYFXSq4giR8lk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B2mXXA7c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BPy/WOea"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49678C4CEF7;
-	Mon, 30 Mar 2026 19:13:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B2mXXA7c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DE570C4CEF7;
+	Mon, 30 Mar 2026 19:14:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774898039;
-	bh=J/TIdmUtFJdK5/8BsU0cu92BYLbRa8DXMvkEFCTE7jI=;
+	s=korg; t=1774898084;
+	bh=jhpFMSf5bdqd8KuOYkwkKF3tZOW1CLWAqbue5DrFlpE=;
 	h=Date:To:From:Subject:From;
-	b=BPy/WOea/vL1KngP+38GNdoiMdyHc3OeCVDiGEeKG+LOwzxjV29tp9YVoGBEpyidy
-	 AgTIFxm5nEvUMrZFJjdwaRoXoEJjh4WtAGRQZMnUmBVuW6lrmrLECMWurlfgXMzp8V
-	 GIaZVH7d8HOdMQO3h5cv09L+lfPxc5CRDgax7uXA=
-Date: Mon, 30 Mar 2026 12:13:58 -0700
+	b=B2mXXA7cxHmkYL2Ga77PYCl4Xlct7VcZTy6bruqP/t56SH18Zq08oprZLlGnLZH2y
+	 WNznPFjQOsE/9MCr3Xg4El3SSrTdm+TIhuIWDA23+lR1DgYy/sYgANqSJ2OAJAu3Dd
+	 QckewL3LdGjnn03CRZeYQ02M4Gs9rNUbqqXg842E=
+Date: Mon, 30 Mar 2026 12:14:43 -0700
 To: mm-commits@vger.kernel.org,lirongqing@baidu.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmalloc-use-dedicated-unbound-workqueue-for-vmap-purge-drain.patch removed from -mm tree
-Message-Id: <20260330191359.49678C4CEF7@smtp.kernel.org>
+Subject: + mm-vmalloc-use-dedicated-unbound-workqueue-for-vmap-purge-drain.patch added to mm-new branch
+Message-Id: <20260330191443.DE570C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,12 +34,39 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm/vmalloc: use dedicated unbound workqueue for vmap purge/drain
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-new branch.  Its filename is
      mm-vmalloc-use-dedicated-unbound-workqueue-for-vmap-purge-drain.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-dedicated-unbound-workqueue-for-vmap-purge-drain.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
@@ -221,4 +248,5 @@ _
 
 Patches currently in -mm which might be from urezki@gmail.com are
 
+mm-vmalloc-use-dedicated-unbound-workqueue-for-vmap-purge-drain.patch
 
