@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F93E39769F
-	for <mm-commits@vger.kernel.org>; Mon, 30 Mar 2026 19:34:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E73F239769F
+	for <mm-commits@vger.kernel.org>; Mon, 30 Mar 2026 19:34:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774899254; cv=none; b=M51sVJXVTNXXZqvYKP8s8KH/q1ruOTHuJDsJ6EYtyAB6GeMpYBrECbl2ywJCm8D8ucLiWKyIb77SYCFr5oj8d/BL3trnSw/eoY9mRkhR53bjPx9JWsPAP4j1h6avnDIcbQmAtsIZdPpGW7M3hY3FHHdn1Ys3Ksvr/Pm+fosaGJc=
+	t=1774899256; cv=none; b=ImG8A7y12MENUYVFqOvm1XwLc2OudcrzA/zlZXRGlSEXEH8RB5I0gaxMMyrMV3BIJraC/fcafwod4QwDHAehsnK15nYLP3Gn9rGgpkerjDo+XX0Bra3dygYWlkYY0M3Ikx/ubr9a54eJ+4ziBk08MfKsBQs9MpGgov9JN73gve4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774899254; c=relaxed/simple;
-	bh=rLaUZAyjuu2tLi7fhQoVzuHM++Pm5G761jpyd3dcIqE=;
-	h=Date:To:From:Subject:Message-Id; b=V6wgYsUgkiwdUj0EMYUENEUVkbt4cDvWr2lQ02/YlFSmSLeJ6HhiUCzDWs4lSI66KlLnPylCL2OtNKcZ27/aL5ZjXHyf8tvRB6dEnAKS9KB29Kopdn/meMS292IFDsStzSCtzoGmMB1SKEXepA5hjRvP4HGV2hrx3cZHNL096TI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jpqYOEd6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774899256; c=relaxed/simple;
+	bh=30y8VeajH5oxqO0OW/6WjXCjpQpbPEFx2WcHqYv4GJI=;
+	h=Date:To:From:Subject:Message-Id; b=ltShoh7e8i5qv4OgM6iEXGBrjf4KUmFOjHiLJHrhCd5lHuZwQP8q7ZOCyOQEEGQvkhh48p58tUZ6QxxCdD6zIaajzyvP4fywe8DduGX/UyY4WQLjssNJ5wUAcu5KhxzqnzOmW8AuYO90bjHhlLU0hJhvtQ0JOag6SmyRCdE28ag=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pIylqTF4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jpqYOEd6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 380C2C4CEF7;
-	Mon, 30 Mar 2026 19:34:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pIylqTF4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 969C8C4CEF7;
+	Mon, 30 Mar 2026 19:34:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774899254;
-	bh=rLaUZAyjuu2tLi7fhQoVzuHM++Pm5G761jpyd3dcIqE=;
+	s=korg; t=1774899255;
+	bh=30y8VeajH5oxqO0OW/6WjXCjpQpbPEFx2WcHqYv4GJI=;
 	h=Date:To:From:Subject:From;
-	b=jpqYOEd67VvC5B0w4w5R+ZrjG0DgTFOnnu3NTK34YEsFZ4dtJS0WLEptyvCDOscm1
-	 1kTyBCXuKDetIkUUuAvDWX3Lbi4hk5fQKXU7F4ZPZPTZ8iGQXvVxc3pza7rNvGmEK+
-	 Gk1yJU5A3UmwhoYiURHLzm5+bccwSJPEElLsNhMI=
-Date: Mon, 30 Mar 2026 12:34:13 -0700
+	b=pIylqTF4gMwLc2l9jaa2hq4KfA8M81lPOVu5KPKmU5b4skISbBSpfmV8ktAPHxgkw
+	 O+nb2+Bn5LKx4NXJLf+zqgO/Tn45+Fb0WYUWHU7VeJ9U9dlL7RwjNtSwon6HP0twTp
+	 DIPnqVtIg9gVA5G8vLfw7UWW1TeIWPiPpvNpavrs=
+Date: Mon, 30 Mar 2026 12:34:15 -0700
 To: mm-commits@vger.kernel.org,kalyazin@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kvm-selftests-test-userfaultfd-minor-for-guest_memfd.patch removed from -mm tree
-Message-Id: <20260330193414.380C2C4CEF7@smtp.kernel.org>
+Subject: [to-be-updated] kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch removed from -mm tree
+Message-Id: <20260330193415.969C8C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: KVM: selftests: test userfaultfd minor for guest_memfd
+     Subject: KVM: selftests: test userfaultfd missing for guest_memfd
 has been removed from the -mm tree.  Its filename was
-     kvm-selftests-test-userfaultfd-minor-for-guest_memfd.patch
+     kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Nikita Kalyazin <kalyazin@amazon.com>
-Subject: KVM: selftests: test userfaultfd minor for guest_memfd
-Date: Fri, 6 Mar 2026 19:18:14 +0200
+Subject: KVM: selftests: test userfaultfd missing for guest_memfd
+Date: Fri, 6 Mar 2026 19:18:15 +0200
 
-The test demonstrates that a minor userfaultfd event in guest_memfd can be
-resolved via a memcpy followed by a UFFDIO_CONTINUE ioctl.
+The test demonstrates that a missing userfaultfd event in guest_memfd can
+be resolved via a UFFDIO_COPY ioctl.
 
-Link: https://lkml.kernel.org/r/20260306171815.3160826-15-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20260306171815.3160826-16-rppt@kernel.org
 Signed-off-by: Nikita Kalyazin <kalyazin@amazon.com>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -73,59 +73,27 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kvm/guest_memfd_test.c |  113 +++++++++++++++
- 1 file changed, 113 insertions(+)
+ tools/testing/selftests/kvm/guest_memfd_test.c |   80 ++++++++++++++-
+ 1 file changed, 79 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/kvm/guest_memfd_test.c~kvm-selftests-test-userfaultfd-minor-for-guest_memfd
+--- a/tools/testing/selftests/kvm/guest_memfd_test.c~kvm-selftests-test-userfaultfd-missing-for-guest_memfd
 +++ a/tools/testing/selftests/kvm/guest_memfd_test.c
-@@ -10,13 +10,17 @@
- #include <errno.h>
- #include <stdio.h>
- #include <fcntl.h>
-+#include <pthread.h>
- 
- #include <linux/bitmap.h>
- #include <linux/falloc.h>
- #include <linux/sizes.h>
-+#include <linux/userfaultfd.h>
- #include <sys/mman.h>
- #include <sys/types.h>
- #include <sys/stat.h>
-+#include <sys/syscall.h>
-+#include <sys/ioctl.h>
- 
- #include "kvm_util.h"
- #include "numaif.h"
-@@ -329,6 +333,112 @@ static void test_create_guest_memfd_mult
- 	close(fd1);
+@@ -439,6 +439,82 @@ static void test_uffd_minor(int fd, size
+ 	close(uffd);
  }
  
-+struct fault_args {
-+	char *addr;
-+	char value;
-+};
-+
-+static void *fault_thread_fn(void *arg)
-+{
-+	struct fault_args *args = arg;
-+
-+	/* Trigger page fault */
-+	args->value = *args->addr;
-+	return NULL;
-+}
-+
-+static void test_uffd_minor(int fd, size_t total_size)
++static void test_uffd_missing(int fd, size_t total_size)
 +{
 +	struct uffdio_register uffd_reg;
-+	struct uffdio_continue uffd_cont;
++	struct uffdio_copy uffd_copy;
 +	struct uffd_msg msg;
 +	struct fault_args args;
 +	pthread_t fault_thread;
-+	void *mem, *mem_nofault, *buf = NULL;
++	void *mem, *buf = NULL;
 +	int uffd, ret;
 +	off_t offset = page_size;
 +	void *fault_addr;
-+	const char test_val = 0xcd;
++	const char test_val = 0xab;
 +
 +	ret = posix_memalign(&buf, page_size, total_size);
 +	TEST_ASSERT_EQ(ret, 0);
@@ -141,31 +109,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	ret = ioctl(uffd, UFFDIO_API, &uffdio_api);
 +	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_API) should succeed");
 +
-+	/* Map the guest_memfd twice: once with UFFD registered, once without */
 +	mem = mmap(NULL, total_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 +	TEST_ASSERT(mem != MAP_FAILED, "mmap should succeed");
 +
-+	mem_nofault = mmap(NULL, total_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-+	TEST_ASSERT(mem_nofault != MAP_FAILED, "mmap should succeed");
-+
-+	/* Register UFFD_MINOR on the first mapping */
 +	uffd_reg.range.start = (unsigned long)mem;
 +	uffd_reg.range.len = total_size;
-+	uffd_reg.mode = UFFDIO_REGISTER_MODE_MINOR;
++	uffd_reg.mode = UFFDIO_REGISTER_MODE_MISSING;
 +	ret = ioctl(uffd, UFFDIO_REGISTER, &uffd_reg);
 +	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_REGISTER) should succeed");
 +
-+	/*
-+	 * Populate the page in the page cache first via mem_nofault.
-+	 * This is required for UFFD_MINOR - the page must exist in the cache.
-+	 * Write test data to the page.
-+	 */
-+	memcpy(mem_nofault + offset, buf + offset, page_size);
-+
-+	/*
-+	 * Now access the same page via mem (which has UFFD_MINOR registered).
-+	 * Since the page exists in the cache, this should trigger UFFD_MINOR.
-+	 */
 +	fault_addr = mem + offset;
 +	args.addr = fault_addr;
 +
@@ -177,28 +129,28 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	TEST_ASSERT(msg.event == UFFD_EVENT_PAGEFAULT, "event type should be pagefault");
 +	TEST_ASSERT((void *)(msg.arg.pagefault.address & ~(page_size - 1)) == fault_addr,
 +		    "pagefault should occur at expected address");
-+	TEST_ASSERT(msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_MINOR,
-+		    "pagefault should be minor fault");
++	TEST_ASSERT(!(msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WP),
++		    "pagefault should not be write-protect");
 +
-+	/* Resolve the minor fault with UFFDIO_CONTINUE */
-+	uffd_cont.range.start = (unsigned long)fault_addr;
-+	uffd_cont.range.len = page_size;
-+	uffd_cont.mode = 0;
-+	ret = ioctl(uffd, UFFDIO_CONTINUE, &uffd_cont);
-+	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_CONTINUE) should succeed");
++	uffd_copy.dst = (unsigned long)fault_addr;
++	uffd_copy.src = (unsigned long)(buf + offset);
++	uffd_copy.len = page_size;
++	uffd_copy.mode = 0;
++	ret = ioctl(uffd, UFFDIO_COPY, &uffd_copy);
++	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_COPY) should succeed");
 +
-+	/* Wait for the faulting thread to complete */
++	/* Wait for the faulting thread to complete - this provides the memory barrier */
 +	ret = pthread_join(fault_thread, NULL);
 +	TEST_ASSERT(ret == 0, "pthread_join should succeed");
 +
-+	/* Verify the thread read the correct value */
++	/*
++	 * Now it's safe to check args.value - the thread has completed
++	 * and memory is synchronized
++	 */
 +	TEST_ASSERT(args.value == test_val,
-+		    "memory should contain the value that was written");
++		    "memory should contain the value that was copied");
 +	TEST_ASSERT(*(char *)(mem + offset) == test_val,
 +		    "no further fault is expected");
-+
-+	ret = munmap(mem_nofault, total_size);
-+	TEST_ASSERT(!ret, "munmap should succeed");
 +
 +	ret = munmap(mem, total_size);
 +	TEST_ASSERT(!ret, "munmap should succeed");
@@ -209,13 +161,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  static void test_guest_memfd_flags(struct kvm_vm *vm)
  {
  	uint64_t valid_flags = vm_check_cap(vm, KVM_CAP_GUEST_MEMFD_FLAGS);
-@@ -383,6 +493,9 @@ static void __test_guest_memfd(struct kv
- 	gmem_test(file_size, vm, flags);
+@@ -494,8 +570,10 @@ static void __test_guest_memfd(struct kv
  	gmem_test(fallocate, vm, flags);
  	gmem_test(invalid_punch_hole, vm, flags);
-+
-+	if (flags & GUEST_MEMFD_FLAG_INIT_SHARED)
-+		gmem_test(uffd_minor, vm, flags);
+ 
+-	if (flags & GUEST_MEMFD_FLAG_INIT_SHARED)
++	if (flags & GUEST_MEMFD_FLAG_INIT_SHARED) {
+ 		gmem_test(uffd_minor, vm, flags);
++		gmem_test(uffd_missing, vm, flags);
++	}
  }
  
  static void test_guest_memfd(unsigned long vm_type)
@@ -223,5 +177,4 @@ _
 
 Patches currently in -mm which might be from kalyazin@amazon.com are
 
-kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch
 
