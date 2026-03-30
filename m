@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B42E0397E8B
-	for <mm-commits@vger.kernel.org>; Mon, 30 Mar 2026 19:26:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 036A5397E7D
+	for <mm-commits@vger.kernel.org>; Mon, 30 Mar 2026 19:26:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774898768; cv=none; b=kFf+nPqgTDgWSOL6pWT0hIQpqQ9GqvcPWklJJoR0kGiXrQj9Y+p+DentrtKU0UweIKasDUAzwu86iIwFAOTqIDba0JylkyGMgQ1ShZ9idvucpO56DTydDZd2GNk6NrIduCPYDHQRh0u7MCMVovbWHNjFRj0SEZvhPmqJhxzA+n8=
+	t=1774898771; cv=none; b=tyavskcd34hgRM/ZVMywFp+CIAlgZAmJ6IUyudJr+PMj4wbvGUinvATkNZFav9HTcXWsbwvOy6yftENXedwalFwvByEKh1CsMX/tmu4gaF52hrh6fj+L1syi0P2yElnzHRhch7x/6XgIUd6TALDR7XqdYWoO3oO1wz1Mr0y8gcc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774898768; c=relaxed/simple;
-	bh=r5W0XDoAWSBc8OXaL+KZ177JFqLMsK7Sr59GVsX3bxE=;
-	h=Date:To:From:Subject:Message-Id; b=kjpD7VKtCbfYRZMbp6THNFh7dBsSiYlVM5U86n8kyP03Q1YXYfUd7ReXdJ3l9Smxx235qrulOdt5PmhYJtBZkD5HUL2BMMQRTqK1dKUvm2fDVacR8XLy8brHdoKRkEhvW9cNhsBMDZttovXfkPgrfP4A3uqmPCOrYrr7RnEmq1s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z604F4v0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774898771; c=relaxed/simple;
+	bh=5QyjXsACVjVqLfYZ2sp5blVK7i0rvEz5q2CsLhFWWmM=;
+	h=Date:To:From:Subject:Message-Id; b=Ge6HggkbN6fWV8Kc34V1I5ZGh61wCdTH3mjvISMlrbGeLLXYpc9WrDjRfahE/01qj3Ds+9HXtgOKVXVyHO6H5wBzbM1z8RQLKLU4geFIBog3Qw8zvsEFa09offwjWnQk4XHsZZNscOSEZMBGiRyVZZ12/UK7XVbtqrPJMrueP+g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rZ2LvHQ9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z604F4v0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B740C4CEF7;
-	Mon, 30 Mar 2026 19:26:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rZ2LvHQ9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C25EC2BC9E;
+	Mon, 30 Mar 2026 19:26:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774898768;
-	bh=r5W0XDoAWSBc8OXaL+KZ177JFqLMsK7Sr59GVsX3bxE=;
+	s=korg; t=1774898770;
+	bh=5QyjXsACVjVqLfYZ2sp5blVK7i0rvEz5q2CsLhFWWmM=;
 	h=Date:To:From:Subject:From;
-	b=Z604F4v0U9xDHKi3ZemERjxk40Qwyyh35hGWNe54OVr2epJqEqv/cVpfYARauJYuE
-	 H6M7g/tX9UqRKW29bm3C2CMiFUd3wbFYWbshJ9eB6nSq1dvaXgdVmbf1xY1uwzCpyM
-	 hyoUDgb97B6EsMgMl20voWgWuWG0ltJZvx+0eF0U=
-Date: Mon, 30 Mar 2026 12:26:08 -0700
+	b=rZ2LvHQ9MBqs5LNU8KAKB/Q9sC+jqZ27K4rp9XSkptQ7SORncyeqy7wI20ZCye+c5
+	 P7Ydl9v6T57DmMGMh2dGR2KN1S2RWxVFN3bmlihV/nBUTolkqP0rI9Rya3X9orVtmE
+	 GizyRbB5WAn+NJS1eojfOuCisWgL4oEqt6hXANak=
+Date: Mon, 30 Mar 2026 12:26:10 -0700
 To: mm-commits@vger.kernel.org,chuhu@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-ksft_exit_fail_perror-support-printf-style-arguments.patch added to mm-unstable branch
-Message-Id: <20260330192608.8B740C4CEF7@smtp.kernel.org>
+Subject: + selftests-mm-vm_util-robust-write_file.patch added to mm-unstable branch
+Message-Id: <20260330192610.9C25EC2BC9E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: ksft_exit_fail_perror: support printf style arguments
+     Subject: selftests/mm/vm_util: robust write_file()
 has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-ksft_exit_fail_perror-support-printf-style-arguments.patch
+     selftests-mm-vm_util-robust-write_file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-ksft_exit_fail_perror-support-printf-style-arguments.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-vm_util-robust-write_file.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,18 +59,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Chunyu Hu <chuhu@redhat.com>
-Subject: selftests: ksft_exit_fail_perror: support printf style arguments
-Date: Mon, 30 Mar 2026 23:15:00 +0800
+Subject: selftests/mm/vm_util: robust write_file()
+Date: Mon, 30 Mar 2026 23:15:01 +0800
 
-The ksft_exit_fail_perror function previously only accepted a single string
-argument, which limited its flexibility for providing specific context to
-failure messages.
+Add three more checks for buflen and numwritten. The buflen should be at
+least two, that means at least one char and the null-end. The error case
+check is added by checking numwriten < 0 instead of numwritten < 1. And the
+truncate case is checked. The test will exit if any of these conditions
+aren't met.
 
-This change updates ksft_exit_fail_perror to support variable arguments,
-similar to ksft_exit_fail_msg.  Adding the __printf(1, 2) attribute enables
-compile-time checking for format string correctness.
+Additionally, add more print information when a write failure occurs or
+a truncated write happens, providing clearer diagnostics.
 
-Link: https://lkml.kernel.org/r/20260330151503.670415-5-chuhu@redhat.com
+Link: https://lkml.kernel.org/r/20260330151503.670415-6-chuhu@redhat.com
 Signed-off-by: Chunyu Hu <chuhu@redhat.com>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Li Wang <liwang@redhat.com>
@@ -80,47 +81,40 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kselftest.h |   21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/vm_util.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/kselftest.h~selftests-ksft_exit_fail_perror-support-printf-style-arguments
-+++ a/tools/testing/selftests/kselftest.h
-@@ -43,7 +43,7 @@
-  * the program is aborting before finishing all tests):
-  *
-  *    ksft_exit_fail_msg(fmt, ...);
-- *    ksft_exit_fail_perror(msg);
-+ *    ksft_exit_fail_perror(fmt, ...);
-  *
-  */
- #ifndef __KSELFTEST_H
-@@ -417,9 +417,24 @@ static inline __noreturn __printf(1, 2)
- 	exit(KSFT_FAIL);
- }
+--- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-vm_util-robust-write_file
++++ a/tools/testing/selftests/mm/vm_util.c
+@@ -779,15 +779,24 @@ int unpoison_memory(unsigned long pfn)
  
--static inline __noreturn void ksft_exit_fail_perror(const char *msg)
-+static inline __noreturn __printf(1, 2) void ksft_exit_fail_perror(const char *msg, ...)
+ void write_file(const char *path, const char *buf, size_t buflen)
  {
--	ksft_exit_fail_msg("%s: %s (%d)\n", msg, strerror(errno), errno);
-+	va_list args;
-+	char *buf = NULL;
-+	int saved_errno = errno;
-+
-+	va_start(args, msg);
-+	if (vasprintf(&buf, msg, args) == -1) {
-+		va_end(args);
-+		ksft_exit_fail_msg("vasprintf failed: %s (%d)\n", strerror(saved_errno),
-+				saved_errno);
-+	}
-+	va_end(args);
-+
-+	errno = saved_errno;
-+	ksft_exit_fail_msg("%s: %s (%d)\n", buf, strerror(errno), errno);
-+
-+	free(buf);
- }
+-	int fd;
++	int fd, saved_errno;
+ 	ssize_t numwritten;
  
- static inline __noreturn void ksft_exit_xfail(void)
++	if (buflen < 2)
++		ksft_exit_fail_msg("Incorrect buffer len: %zu\n", buflen);
++
+ 	fd = open(path, O_WRONLY);
+ 	if (fd == -1)
+-		ksft_exit_fail_msg("%s open failed: %s\n", path, strerror(errno));
++		ksft_exit_fail_perror("%s open failed", path);
+ 
+ 	numwritten = write(fd, buf, buflen - 1);
++	saved_errno = errno;
+ 	close(fd);
+-	if (numwritten < 1)
+-		ksft_exit_fail_msg("Write failed\n");
++	errno = saved_errno;
++	if (numwritten < 0)
++		ksft_exit_fail_perror("%s write(%.*s) failed", path, (int)(buflen - 1),
++				buf);
++	if (numwritten != buflen - 1)
++		ksft_exit_fail_msg("%s write(%.*s) is truncated, expected %zu bytes, got %zd bytes\n",
++				path, (int)(buflen - 1), buf, buflen - 1, numwritten);
+ }
 _
 
 Patches currently in -mm which might be from chuhu@redhat.com are
