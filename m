@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E320829B8CF
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21367282F06
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774917750; cv=none; b=YzWgGJOwLKtgG5wVD2/FoUN/bfW/VxtS/bB/xGtCu9AH2KBg5R1iSo7xeTNgLNnaTJMHltJAQNWHqcQeb+nHumYt83zyxQ0ud+pFg08h9eOkjHQXEADAR59MnH4CFLiTWAHLqv8Um2OD8VZeTVI6iXT7AcRlfX0HOfcdNEGhVX0=
+	t=1774917752; cv=none; b=c+dfpoQButGLodFEg/mt0y0LmIf70ZfFzmVTdBPImKDZ0Nmu+iU00dg8qWiNMv4hZbUonDTLwgybPU4XvLO3ra5Qf7C1fWmlfhKgbkilHqBqZ6+ty+OKMRXa/dULPWKf9Ik3ALcIUnlQqiUkY/HOnP3B/rE+jgXWWlx5qHV9alU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774917750; c=relaxed/simple;
-	bh=YxSvMwPPf4zipI3nfPxbLUOVdRHdbCXcG39cYAewNDE=;
-	h=Date:To:From:Subject:Message-Id; b=jKbBBvEuIWRZAbjlR4fH+yLIo0J5CtSU9NtlG0hvTj0vWDN3MXYY4Dm4jygrt1yPIp6hWw50G8k9d4gr+3pIRqyDYHbPp5xXvldoYA+sAFfuAbkryOllKs0kF3ze2TZYLs7kuP5FL9WaSkRD7S1OFotMxZnjsR83lB0MF4fclD0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CZW6eNTs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774917752; c=relaxed/simple;
+	bh=1kbvT4wAGe6oe/Jd9S0PrxShfX4hsVZB2HW9WvXLOSU=;
+	h=Date:To:From:Subject:Message-Id; b=IJgzQjBl0E4Ah7/N9aKzUdiotgybTsarxDngwHd3086ApgWiXAC4iDZVUKeG0kLBoGL5I7h3FLhEIvQAfUcSZ6HlUjheook2PbVu9w5EZpNb2EITTl18csEZVylPrOQ5rdRRx1uOlNPlFF/7+LbX7XnLqBO9bhyUQ3eRerI7N4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WAt0eYly; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CZW6eNTs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC795C4CEF7;
-	Tue, 31 Mar 2026 00:42:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WAt0eYly"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE664C4CEF7;
+	Tue, 31 Mar 2026 00:42:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774917749;
-	bh=YxSvMwPPf4zipI3nfPxbLUOVdRHdbCXcG39cYAewNDE=;
+	s=korg; t=1774917751;
+	bh=1kbvT4wAGe6oe/Jd9S0PrxShfX4hsVZB2HW9WvXLOSU=;
 	h=Date:To:From:Subject:From;
-	b=CZW6eNTsiTV2oupy+kjIy3gzD/hmVRrNKWNFj6jEC8xw6NdxZDwLtrFIQfnT9Vvmw
-	 uh8+2SvlMhmQ5CP7Risa4CCT+1/PGceOzM/d3BHDOHmXyiTpSq7uWwJk1XUS0JrWFO
-	 fwQ7dDU7hdMx20hw7Nova6VAy1pM+35TY5LPa8xE=
-Date: Mon, 30 Mar 2026 17:42:29 -0700
+	b=WAt0eYlyfw0jOXYMvohYFfBavopHX+EI+anB1xBuUD8FU/4SsEbuiP+NvRgq8SJA+
+	 q2y5rPAkVaXWqT+mDq/kMIgLteMkI16SgWIYsrY/yl6uUj6mtaBTHkqO1+wtFq1iId
+	 t1moXCqF7mYaK8NIiP1SSavpTtUYru2ZS29fQ13o=
+Date: Mon, 30 Mar 2026 17:42:31 -0700
 To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,will@kernel.org,viro@zeniv.linux.org.uk,vgupta@kernel.org,vbabka@kernel.org,tsbogend@alpha.franken.de,svens@linux.ibm.com,surenb@google.com,stephen.smalley.work@gmail.com,rppt@kernel.org,richard@nod.at,pfalcato@suse.de,paul@paul-moore.com,palmer@dabbelt.com,omosnace@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,linux@armlinux.org.uk,liam.howlett@oracle.com,kernel@xen0n.name,kees@kernel.org,johannes@sipsolutions.net,jannh@google.com,jack@suse.cz,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,dinguyen@kernel.org,david@kernel.org,chenhuacai@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,anton.ivanov@cambridgegreys.com,alex@ghiti.fr,agordeev@linux.ibm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-introduce-_to_-helpers.patch removed from -mm tree
-Message-Id: <20260331004229.AC795C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] tools-testing-vma-test-that-legacy-flag-helpers-work-correctly.patch removed from -mm tree
+Message-Id: <20260331004231.BE664C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: introduce [vma_flags,legacy]_to_[legacy,vma_flags]() helpers
+     Subject: tools/testing/vma: test that legacy flag helpers work correctly
 has been removed from the -mm tree.  Its filename was
-     mm-vma-introduce-_to_-helpers.patch
+     tools-testing-vma-test-that-legacy-flag-helpers-work-correctly.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm/vma: introduce [vma_flags,legacy]_to_[legacy,vma_flags]() helpers
-Date: Fri, 20 Mar 2026 19:38:28 +0000
+Subject: tools/testing/vma: test that legacy flag helpers work correctly
+Date: Fri, 20 Mar 2026 19:38:29 +0000
 
-While we are still converting VMA flags from vma_flags_t to vm_flags_t,
-introduce helpers to convert between the two to allow for iterative
-development without having to 'change the world' in a single commit'.
+Update the existing compare_legacy_flags() predicate function to assert
+that legacy_to_vma_flags() and vma_flags_to_legacy() behave as expected.
 
-Also update VMA flags tests to reflect the change.
-
-Finally, refresh vma_flags_overwrite_word(),
-vma_flag_overwrite_word_once(), vma_flags_set_word() and
-vma_flags_clear_word() in the VMA tests to reflect current kernel
-implementations - this should make no functional difference, but keeps the
-logic consistent between the two.
-
-Link: https://lkml.kernel.org/r/d3569470dbb3ae79134ca7c3eb3fc4df7086e874.1774034900.git.ljs@kernel.org
+Link: https://lkml.kernel.org/r/3374e50053adb65818fde948ae3488e1e29ae8b1.1774034900.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -100,131 +90,38 @@ Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vineet Gupta <vgupta@kernel.org>
+Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Cc: Will Deacon <will@kernel.org>
 Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h        |   26 +++++++++++++++++++++
- tools/testing/vma/include/dup.h |   36 ++++++++++++++++++++++++++----
- 2 files changed, 58 insertions(+), 4 deletions(-)
+ tools/testing/vma/tests/vma.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/mm_types.h~mm-vma-introduce-_to_-helpers
-+++ a/include/linux/mm_types.h
-@@ -1070,6 +1070,18 @@ static __always_inline void vma_flags_cl
+--- a/tools/testing/vma/tests/vma.c~tools-testing-vma-test-that-legacy-flag-helpers-work-correctly
++++ a/tools/testing/vma/tests/vma.c
+@@ -5,6 +5,7 @@ static bool compare_legacy_flags(vm_flag
+ 	const unsigned long legacy_val = legacy_flags;
+ 	/* The lower word should contain the precise same value. */
+ 	const unsigned long flags_lower = flags.__vma_flags[0];
++	vma_flags_t converted_flags;
+ #if NUM_VMA_FLAG_BITS > BITS_PER_LONG
+ 	int i;
+ 
+@@ -17,6 +18,11 @@ static bool compare_legacy_flags(vm_flag
+ 
+ 	static_assert(sizeof(legacy_flags) == sizeof(unsigned long));
+ 
++	/* Assert that legacy flag helpers work correctly. */
++	converted_flags = legacy_to_vma_flags(legacy_flags);
++	ASSERT_FLAGS_SAME_MASK(&converted_flags, flags);
++	ASSERT_EQ(vma_flags_to_legacy(flags), legacy_flags);
++
+ 	return legacy_val == flags_lower;
  }
  
- /*
-+ * Helper function which converts a vma_flags_t value to a legacy vm_flags_t
-+ * value. This is only valid if the input flags value can be expressed in a
-+ * system word.
-+ *
-+ * Will be removed once the conversion to VMA flags is complete.
-+ */
-+static __always_inline vm_flags_t vma_flags_to_legacy(vma_flags_t flags)
-+{
-+	return (vm_flags_t)flags.__vma_flags[0];
-+}
-+
-+/*
-  * Copy value to the first system word of VMA flags, non-atomically.
-  *
-  * IMPORTANT: This does not overwrite bytes past the first system word. The
-@@ -1083,6 +1095,20 @@ static inline void vma_flags_overwrite_w
- }
- 
- /*
-+ * Helper function which converts a legacy vm_flags_t value to a vma_flags_t
-+ * value.
-+ *
-+ * Will be removed once the conversion to VMA flags is complete.
-+ */
-+static __always_inline vma_flags_t legacy_to_vma_flags(vm_flags_t flags)
-+{
-+	vma_flags_t ret = EMPTY_VMA_FLAGS;
-+
-+	vma_flags_overwrite_word(&ret, flags);
-+	return ret;
-+}
-+
-+/*
-  * Copy value to the first system word of VMA flags ONCE, non-atomically.
-  *
-  * IMPORTANT: This does not overwrite bytes past the first system word. The
---- a/tools/testing/vma/include/dup.h~mm-vma-introduce-_to_-helpers
-+++ a/tools/testing/vma/include/dup.h
-@@ -766,7 +766,9 @@ static inline bool mm_flags_test(int fla
-  */
- static inline void vma_flags_overwrite_word(vma_flags_t *flags, unsigned long value)
- {
--	*ACCESS_PRIVATE(flags, __vma_flags) = value;
-+	unsigned long *bitmap = flags->__vma_flags;
-+
-+	bitmap[0] = value;
- }
- 
- /*
-@@ -777,7 +779,7 @@ static inline void vma_flags_overwrite_w
-  */
- static inline void vma_flags_overwrite_word_once(vma_flags_t *flags, unsigned long value)
- {
--	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+	unsigned long *bitmap = flags->__vma_flags;
- 
- 	WRITE_ONCE(*bitmap, value);
- }
-@@ -785,7 +787,7 @@ static inline void vma_flags_overwrite_w
- /* Update the first system word of VMA flags setting bits, non-atomically. */
- static inline void vma_flags_set_word(vma_flags_t *flags, unsigned long value)
- {
--	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+	unsigned long *bitmap = flags->__vma_flags;
- 
- 	*bitmap |= value;
- }
-@@ -793,7 +795,7 @@ static inline void vma_flags_set_word(vm
- /* Update the first system word of VMA flags clearing bits, non-atomically. */
- static inline void vma_flags_clear_word(vma_flags_t *flags, unsigned long value)
- {
--	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
-+	unsigned long *bitmap = flags->__vma_flags;
- 
- 	*bitmap &= ~value;
- }
-@@ -803,6 +805,32 @@ static __always_inline void vma_flags_cl
- 	bitmap_zero(ACCESS_PRIVATE(flags, __vma_flags), NUM_VMA_FLAG_BITS);
- }
- 
-+/*
-+ * Helper function which converts a vma_flags_t value to a legacy vm_flags_t
-+ * value. This is only valid if the input flags value can be expressed in a
-+ * system word.
-+ *
-+ * Will be removed once the conversion to VMA flags is complete.
-+ */
-+static __always_inline vm_flags_t vma_flags_to_legacy(vma_flags_t flags)
-+{
-+	return (vm_flags_t)flags.__vma_flags[0];
-+}
-+
-+/*
-+ * Helper function which converts a legacy vm_flags_t value to a vma_flags_t
-+ * value.
-+ *
-+ * Will be removed once the conversion to VMA flags is complete.
-+ */
-+static __always_inline vma_flags_t legacy_to_vma_flags(vm_flags_t flags)
-+{
-+	vma_flags_t ret = EMPTY_VMA_FLAGS;
-+
-+	vma_flags_overwrite_word(&ret, flags);
-+	return ret;
-+}
-+
- static __always_inline void vma_flags_set_flag(vma_flags_t *flags,
- 		vma_flag_t bit)
- {
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
