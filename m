@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B701540DFD9
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2C222C0F81
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774917764; cv=none; b=JcR5PO3513EG+pT7kqkBJTb/LLWDHp6mpcYFG7zo4v4rtLEM3e/JIxLOnmZXprAr6/gpkmCXE9sqEO//4UfGkFNGNOOJxRU7n+nE507tYI83RNniuCIf7+hQorfq1BEPtq2Cf3KKfPweXn3ooJoAY0MQVwFpJCBfm094TSuF8G4=
+	t=1774917767; cv=none; b=HH0GZMhYUZLTxrXUCb9SGW2IExRcCRqieIWS53S0P8SQjULtW9FI8eUTogtkDyXMurs+fRRWfBmRAhc2lBK1My7O4kbjsxzgDqoIgYyfMtmQKErfbC5Cw2tBitJEr/tiP43Gb6/Hyez8MGhcSzb0E6PKa8eY9aariarDVhRvIIY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774917764; c=relaxed/simple;
-	bh=CFEiM+vqgYQu/H/5bhMaEXviR32UnxVCZCt3TmeNpHQ=;
-	h=Date:To:From:Subject:Message-Id; b=iHTrPIMM+hCpmwMstfVdjj65BdXnA5gFdhHW816IO3jQdUX9HQ/OV/1ADyiRczDWVohxxeJvpGxojfSLTZx31EHAVQcIiEUQjv9VXoeFQvwS/3w5ZWHfzrEL1TZ/uMEiOFOPqFQJkN3Du5Ep7BXLoUEhQFJUsWByt13NLKjVMWU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=usJ1v7d/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774917767; c=relaxed/simple;
+	bh=rsxX/wF/ZlkfybxDpG7knGdV+1NmP6DJ5zdM++PR0+w=;
+	h=Date:To:From:Subject:Message-Id; b=fIR6YNjNkp12AmNT+2n4j93VofcZKhTtv1tEvSS2XZP+MPO6HPR86MXppXQHgtvyZ7824YpulwMvY/nwCXjToZ4LSAB+c53Q+GTRdiXdi2MGBbCllM0NH+9I6Wku5BAA72UBsxPuXmMRa0FH2ngiCuPz29g0JvP95Ato1LmQGIM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Cpbpte4T; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="usJ1v7d/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B635C4CEF7;
-	Tue, 31 Mar 2026 00:42:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Cpbpte4T"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6F2F6C4CEF7;
+	Tue, 31 Mar 2026 00:42:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774917764;
-	bh=CFEiM+vqgYQu/H/5bhMaEXviR32UnxVCZCt3TmeNpHQ=;
+	s=korg; t=1774917766;
+	bh=rsxX/wF/ZlkfybxDpG7knGdV+1NmP6DJ5zdM++PR0+w=;
 	h=Date:To:From:Subject:From;
-	b=usJ1v7d/bo8fNiRYEIFCuTiScP2pavhh8NGRxgL/Ii8hqXqqo7A5Jx+0ht3wNdA6T
-	 yfXk1q/eqV1GP//4iotkS45OZtbr+HaN8PAcfB355v56O7xyD8tMgxmuJczg9t0QJh
-	 B9tYAbnuw5sJsEUC8qO7dqTkjNktC0yMG1rHVSPI=
-Date: Mon, 30 Mar 2026 17:42:43 -0700
+	b=Cpbpte4T02M5hvwcIwPrQMA/nxTk/xLL6PvbkNaStyXs9cR5IvTlh+nRSUhhW0HLb
+	 eIMEp8dmGi74B0j48gcD4wQm7yQ/S9CvactYz56mMBzZCKUqFaRj1kXZ6kAz92+4lq
+	 lKwOI7LEPFnxDwp2h8swDZZ2Q3axdvaQP2bNf2R4=
+Date: Mon, 30 Mar 2026 17:42:45 -0700
 To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,will@kernel.org,viro@zeniv.linux.org.uk,vgupta@kernel.org,vbabka@kernel.org,tsbogend@alpha.franken.de,svens@linux.ibm.com,surenb@google.com,stephen.smalley.work@gmail.com,rppt@kernel.org,richard@nod.at,pfalcato@suse.de,paul@paul-moore.com,palmer@dabbelt.com,omosnace@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,linux@armlinux.org.uk,liam.howlett@oracle.com,kernel@xen0n.name,kees@kernel.org,johannes@sipsolutions.net,jannh@google.com,jack@suse.cz,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,dinguyen@kernel.org,david@kernel.org,chenhuacai@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,anton.ivanov@cambridgegreys.com,alex@ghiti.fr,agordeev@linux.ibm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-update-vma_supports_mlock-to-use-new-vma-flags.patch removed from -mm tree
-Message-Id: <20260331004244.5B635C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-introduce-vma_clear_flags.patch removed from -mm tree
+Message-Id: <20260331004246.6F2F6C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: update vma_supports_mlock() to use new VMA flags
+     Subject: mm/vma: introduce vma_clear_flags[_mask]()
 has been removed from the -mm tree.  Its filename was
-     mm-update-vma_supports_mlock-to-use-new-vma-flags.patch
+     mm-vma-introduce-vma_clear_flags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm: update vma_supports_mlock() to use new VMA flags
-Date: Fri, 20 Mar 2026 19:38:35 +0000
+Subject: mm/vma: introduce vma_clear_flags[_mask]()
+Date: Fri, 20 Mar 2026 19:38:36 +0000
 
-We now have the ability to test all of this using the new vma_flags_t
-approach, so let's do so.
+Introduce a helper function and helper macro to easily clear a VMA's flags
+using the new vma_flags_t vma->flags field:
 
-Link: https://lkml.kernel.org/r/49cc166dbafe0a81abc4581a9f5c84630b02fcb8.1774034900.git.ljs@kernel.org
+* vma_clear_flags_mask() - Clears all of the flags in a specified mask in
+			   the VMA's flags field.
+* vma_clear_flags() - Clears all of the specified individual VMA flag bits
+		      in a VMA's flags field.
+
+Also update the VMA tests to reflect the change.
+
+Link: https://lkml.kernel.org/r/9bd15da35c2c90e7441265adf01b5c2d3b5c6d41.1774034900.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -97,22 +104,53 @@ Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/mm.h              |   16 ++++++++++++++++
+ tools/testing/vma/include/dup.h |    9 +++++++++
+ 2 files changed, 25 insertions(+)
 
---- a/mm/internal.h~mm-update-vma_supports_mlock-to-use-new-vma-flags
-+++ a/mm/internal.h
-@@ -1298,7 +1298,9 @@ static inline struct file *maybe_unlock_
+--- a/include/linux/mm.h~mm-vma-introduce-vma_clear_flags
++++ a/include/linux/mm.h
+@@ -1363,6 +1363,22 @@ static __always_inline void vma_set_flag
+ #define vma_set_flags(vma, ...) \
+ 	vma_set_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
  
- static inline bool vma_supports_mlock(const struct vm_area_struct *vma)
++/* Helper to clear all VMA flags in a VMA. */
++static __always_inline void vma_clear_flags_mask(struct vm_area_struct *vma,
++		vma_flags_t flags)
++{
++	vma_flags_clear_mask(&vma->flags, flags);
++}
++
++/*
++ * Helper macro for clearing VMA flags, e.g.:
++ *
++ * vma_clear_flags(vma, VMA_IO_BIT, VMA_PFNMAP_BIT, VMA_DONTEXPAND_BIT,
++ * 		VMA_DONTDUMP_BIT);
++ */
++#define vma_clear_flags(vma, ...) \
++	vma_clear_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
++
+ /*
+  * Test whether a specific VMA flag is set in a VMA descriptor, e.g.:
+  *
+--- a/tools/testing/vma/include/dup.h~mm-vma-introduce-vma_clear_flags
++++ a/tools/testing/vma/include/dup.h
+@@ -1065,6 +1065,15 @@ static __always_inline void vma_set_flag
+ #define vma_set_flags(vma, ...) \
+ 	vma_set_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
+ 
++static __always_inline void vma_clear_flags_mask(struct vm_area_struct *vma,
++		vma_flags_t flags)
++{
++	vma_flags_clear_mask(&vma->flags, flags);
++}
++
++#define vma_clear_flags(vma, ...) \
++	vma_clear_flags_mask(vma, mk_vma_flags(__VA_ARGS__))
++
+ static __always_inline bool vma_desc_test(const struct vm_area_desc *desc,
+ 		vma_flag_t bit)
  {
--	if (vma->vm_flags & (VM_SPECIAL | VM_DROPPABLE))
-+	if (vma_test_any_mask(vma, VMA_SPECIAL_FLAGS))
-+		return false;
-+	if (vma_test_single_mask(vma, VMA_DROPPABLE))
- 		return false;
- 	if (vma_is_dax(vma) || is_vm_hugetlb_page(vma))
- 		return false;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
