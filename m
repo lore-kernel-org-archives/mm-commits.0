@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF46D3D2FF0
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 20:07:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 637F33E5EF9
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 21:35:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774987651; cv=none; b=EV2SitLz2UFbkRy6O6Rx1qRDxQNYn85s/MN1B9w5phAHSFa0qFJY8dTlurMY+XWd6rsVbqd0J8ISTdGQL7inaA+Zdt0wU5/eZI5YfCv07FCkdTBolPP+fapCTj3Spz4EvJZRgLW8+ZClhxVkMyWBkR/YK/ls+RBz0KqxcW4rwDA=
+	t=1774992949; cv=none; b=WD8wKbeKn4p2qiozd2NenG4GEEGu9tptvjwom32OzfT+kuZ85H+k57JCqfe8eVobSbb+FrcGCU03d0WXmM7aEUpnRJnB4qA1f7jPYBZJ+14L4difKkSIP0R6YZmNVXRvsyEBDyZOGykhrxWI/XSp15lgdgX6WdckKtUzAgvAfH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774987651; c=relaxed/simple;
-	bh=S58X8EFbMPscr5JIGke1yLKDqpEEHfLbWM41+7U73SE=;
-	h=Date:To:From:Subject:Message-Id; b=cC7pnJr4ZDbFbMxyKTsCQlzXmj+oN6+XNJ4RxSLZ/5LLyDNIX39i13qVZVY2rvgIUaAZrzAG9x/mnAWkPlDPLRE1gAeHixg6KPbE59qxxV6vFprxRxanpxOjGPjQ9NNIV3h91eeOayOLzbL3hNlStlXxKURMT+mdPYeH5UQ5ZBs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JdE/PeSu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774992949; c=relaxed/simple;
+	bh=t72Bcdc0X/uHHjG/WOTIMeotjmrzr7Z0/gfsZUg/lnU=;
+	h=Date:To:From:Subject:Message-Id; b=Pm77uRkwFLFYcGAwHEqZU9+scczM7zpeUmbXuoYLYVLdGpr77gOcb63h0pNMwR9rl7AOY1wHtiRg+1XPLNkMBCn1l1aGNMcDetcchfM5GsCFN85PMTg1FI8xEXOjURfOXoNcOOd3WePWLxWX0XFE454yV2yp+5xRxNHq4ugpNt0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gr4c4nKR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JdE/PeSu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 522B7C19423;
-	Tue, 31 Mar 2026 20:07:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gr4c4nKR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9F10C19423;
+	Tue, 31 Mar 2026 21:35:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774987650;
-	bh=S58X8EFbMPscr5JIGke1yLKDqpEEHfLbWM41+7U73SE=;
+	s=korg; t=1774992949;
+	bh=t72Bcdc0X/uHHjG/WOTIMeotjmrzr7Z0/gfsZUg/lnU=;
 	h=Date:To:From:Subject:From;
-	b=JdE/PeSuFTIsdSfZKd9WowsO4a+1uJROHPpd/B9Hxau/A9ngHtMjIb7QjE3aThik/
-	 sHgIWcIDerSK874flfGaxYQGTKsuedb0ewfCX11PvZCGffJr4YQ13mtP7dWwdxdueZ
-	 r52J0nCLm3paUSXuIjZ2xxk3CrR4MeBYYxhUmatM=
-Date: Tue, 31 Mar 2026 13:07:29 -0700
-To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=gr4c4nKRCI0BnaAqaxEBTYZQHPVP03wMtPsJghC6jbZrTfmcAgjynqA5lPC8R0IhD
+	 0RCDS2utLhxQgcV/QuqNLmaMXgI6lVCyaORKk3Qi7H2B5oTWq+DRAryM/feS4y1XBB
+	 kgfomkyu7JDyNJGvJMOodCAANVo5R7Pfy3yBv5ek=
+Date: Tue, 31 Mar 2026 14:35:48 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,ying.huang@linux.alibaba.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,vbabka@suse.cz,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shivankg@amd.com,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,rientjes@google.com,richard.weiyang@gmail.com,rdunlap@infradead.org,raquini@redhat.com,rakie.kim@sk.com,pfalcato@suse.de,peterx@redhat.com,npache@redhat.com,mhocko@suse.com,mhiramat@kernel.org,matthew.brost@intel.com,mathieu.desnoyers@efficios.com,liam.howlett@oracle.com,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,jack@suse.cz,jackmanb@google.com,hughd@google.com,hannes@cmpxchg.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,corbet@lwn.net,catalin.marinas@arm.com,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,anshuman.khandual@arm.com,aarcange@redhat.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch added to mm-unstable branch
-Message-Id: <20260331200730.522B7C19423@smtp.kernel.org>
+Subject: + mm-khugepaged-fix-issue-with-tracking-lock.patch added to mm-unstable branch
+Message-Id: <20260331213548.D9F10C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse: fix BUILD_BUG_ON check for section map alignment
+     Subject: mm/khugepaged: fix issue with tracking lock
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch
+     mm-khugepaged-fix-issue-with-tracking-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-issue-with-tracking-lock.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,112 +58,123 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse: fix BUILD_BUG_ON check for section map alignment
-Date: Tue, 31 Mar 2026 19:30:23 +0800
+From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
+Subject: mm/khugepaged: fix issue with tracking lock
+Date: Tue, 31 Mar 2026 13:11:18 +0100
 
-The comment in mmzone.h states that the alignment requirement
-is the minimum of PAGE_SHIFT and PFN_SECTION_SHIFT. However, the
-pointer arithmetic (mem_map - section_nr_to_pfn()) results in
-a byte offset scaled by sizeof(struct page). Thus, the actual
-alignment provided by the second term is PFN_SECTION_SHIFT +
-__ffs(sizeof(struct page)).
+We are incorrectly treating lock_dropped to track both whether the lock is
+currently held and whether or not the lock was ever dropped.
 
-Update the compile-time check and the mmzone.h comment to
-accurately reflect this mathematically guaranteed alignment by
-taking the minimum of PAGE_SHIFT and PFN_SECTION_SHIFT +
-__ffs(sizeof(struct page)). This avoids the issue of the check
-being overly restrictive on architectures like powerpc where
-PFN_SECTION_SHIFT alone is very small (e.g., 6).
+Update this change to account for this.
 
-Also, remove the exhaustive per-architecture bit-width list from the
-comment; such details risk falling out of date over time and may
-inadvertently be left un-updated, while the existing BUILD_BUG_ON
-provides sufficient compile-time verification of the constraint.
-
-No runtime impact so far: SECTION_MAP_LAST_BIT happens to fit within
-the smaller limit on all existing architectures.
-
-Link: https://lkml.kernel.org/r/20260331113023.2068075-1-songmuchun@bytedance.com
-Fixes: def9b71ee651 ("include/linux/mmzone.h: fix explanation of lower bits in the SPARSEMEM mem_map pointer")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/7760c811-e100-4d40-9217-0813c28314be@lucifer.local
+Fixes: 330f3758a3bc ("mm/khugepaged: unify khugepaged and madv_collapse with collapse_single_pmd()")
+Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Nico Pache <npache@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shivank Garg <shivankg@amd.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Takashi Iwai (SUSE) <tiwai@suse.de>
+Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <yang@os.amperecomputing.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   24 +++++++++---------------
- mm/internal.h          |    3 ++-
- 2 files changed, 11 insertions(+), 16 deletions(-)
+ mm/khugepaged.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparse-fix-build_bug_on-check-for-section-map-alignment
-+++ a/include/linux/mmzone.h
-@@ -2068,21 +2068,15 @@ static inline struct mem_section *__nr_t
- extern size_t mem_section_usage_size(void);
+--- a/mm/khugepaged.c~mm-khugepaged-fix-issue-with-tracking-lock
++++ a/mm/khugepaged.c
+@@ -2828,6 +2828,7 @@ int madvise_collapse(struct vm_area_stru
+ 	unsigned long hstart, hend, addr;
+ 	enum scan_result last_fail = SCAN_FAIL;
+ 	int thps = 0;
++	bool mmap_unlocked = false;
  
- /*
-- * We use the lower bits of the mem_map pointer to store
-- * a little bit of information.  The pointer is calculated
-- * as mem_map - section_nr_to_pfn(pnum).  The result is
-- * aligned to the minimum alignment of the two values:
-- *   1. All mem_map arrays are page-aligned.
-- *   2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT
-- *      lowest bits.  PFN_SECTION_SHIFT is arch-specific
-- *      (equal SECTION_SIZE_BITS - PAGE_SHIFT), and the
-- *      worst combination is powerpc with 256k pages,
-- *      which results in PFN_SECTION_SHIFT equal 6.
-- * To sum it up, at least 6 bits are available on all architectures.
-- * However, we can exceed 6 bits on some other architectures except
-- * powerpc (e.g. 15 bits are available on x86_64, 13 bits are available
-- * with the worst case of 64K pages on arm64) if we make sure the
-- * exceeded bit is not applicable to powerpc.
-+ * We use the lower bits of the mem_map pointer to store a little bit of
-+ * information. The pointer is calculated as mem_map - section_nr_to_pfn().
-+ * The result is aligned to the minimum alignment of the two values:
-+ *
-+ * 1. All mem_map arrays are page-aligned.
-+ * 2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT lowest bits. Because
-+ *    it is subtracted from a struct page pointer, the offset is scaled by
-+ *    sizeof(struct page). This provides an alignment of PFN_SECTION_SHIFT +
-+ *    __ffs(sizeof(struct page)).
-  */
- enum {
- 	SECTION_MARKED_PRESENT_BIT,
---- a/mm/internal.h~mm-sparse-fix-build_bug_on-check-for-section-map-alignment
-+++ a/mm/internal.h
-@@ -972,7 +972,8 @@ static inline void sparse_init_one_secti
- {
- 	unsigned long coded_mem_map;
+ 	BUG_ON(vma->vm_start > start);
+ 	BUG_ON(vma->vm_end < end);
+@@ -2850,10 +2851,11 @@ int madvise_collapse(struct vm_area_stru
+ 	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
+ 		enum scan_result result = SCAN_FAIL;
  
--	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > PFN_SECTION_SHIFT);
-+	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > min(PFN_SECTION_SHIFT + __ffs(sizeof(struct page)),
-+						PAGE_SHIFT));
+-		if (*lock_dropped) {
++		if (mmap_unlocked) {
+ 			cond_resched();
+ 			mmap_read_lock(mm);
+-			*lock_dropped = false;
++			mmap_unlocked = false;
++			*lock_dropped = true;
+ 			result = hugepage_vma_revalidate(mm, addr, false, &vma,
+ 							 cc);
+ 			if (result  != SCAN_SUCCEED) {
+@@ -2864,7 +2866,7 @@ int madvise_collapse(struct vm_area_stru
+ 			hend = min(hend, vma->vm_end & HPAGE_PMD_MASK);
+ 		}
  
- 	/*
- 	 * We encode the start PFN of the section into the mem_map such that
+-		result = collapse_single_pmd(addr, vma, lock_dropped, cc);
++		result = collapse_single_pmd(addr, vma, &mmap_unlocked, cc);
+ 
+ 		switch (result) {
+ 		case SCAN_SUCCEED:
+@@ -2893,8 +2895,10 @@ int madvise_collapse(struct vm_area_stru
+ 
+ out_maybelock:
+ 	/* Caller expects us to hold mmap_lock on return */
+-	if (*lock_dropped)
++	if (mmap_unlocked) {
++		*lock_dropped = true;
+ 		mmap_read_lock(mm);
++	}
+ out_nolock:
+ 	mmap_assert_locked(mm);
+ 	mmdrop(mm);
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup.patch
-mm-workingset-use-folio_lruvec-in-workingset_refault.patch
-mm-rename-unlock_page_lruvec_irq-and-its-variants.patch
-mm-vmscan-refactor-move_folios_to_lru.patch
-mm-memcontrol-allocate-object-cgroup-for-non-kmem-case.patch
-mm-memcontrol-return-root-object-cgroup-for-root-memory-cgroup.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-get_mem_cgroup_from_folio.patch
-buffer-prevent-memory-cgroup-release-in-folio_alloc_buffers.patch
-writeback-prevent-memory-cgroup-release-in-writeback-module.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-count_memcg_folio_events.patch
-mm-page_io-prevent-memory-cgroup-release-in-page_io-module.patch
-mm-migrate-prevent-memory-cgroup-release-in-folio_migrate_mapping.patch
-mm-mglru-prevent-memory-cgroup-release-in-mglru.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-mem_cgroup_swap_full.patch
-mm-workingset-prevent-memory-cgroup-release-in-lru_gen_eviction.patch
-mm-workingset-prevent-lruvec-release-in-workingset_refault.patch
-mm-zswap-prevent-lruvec-release-in-zswap_folio_swapin.patch
-mm-swap-prevent-lruvec-release-in-lru_gen_clear_refs.patch
-mm-workingset-prevent-lruvec-release-in-workingset_activation.patch
-mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock.patch
-mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios.patch
-mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-helpers.patch
-mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch
+mm-khugepaged-fix-issue-with-tracking-lock.patch
+maintainers-update-mglru-entry-to-reflect-current-status.patch
+selftests-mm-add-merge-test-for-partial-msealed-range.patch
 
