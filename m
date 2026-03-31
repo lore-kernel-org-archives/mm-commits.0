@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC2C0282F06
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3174282F06
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774917743; cv=none; b=kqD+KIheHQG1rD231nuxZlgwN67+inl/9T3BBKNIvbvObkr2SWeXxLGdIUWHxpzIVlzXKcPseIr/ZPY2YHwUfzwxOTWuHQP41I5c+bSNbf1zn0oteV2MuW/RPqdFzkYcvMr/gd94pCdhFROVVoOjPJNf2bHnHkOhoOJpjW+3Pi4=
+	t=1774917746; cv=none; b=qrrlp0UMTZA5GvGAn08LyDY7gs3nyjBJCII5ue6Th3hNgD3w74+2rLMpIfhLp4La3IWmw1Afa3um1SqEe7JpBu290WYqE8M21jk6thFebyHX7Rmfo/wVFn3wpbIkwdzYzhE1u2Y7d9/ge88C8KeOjLQ3JIfgu8sLzJ01/GmjQFE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774917743; c=relaxed/simple;
-	bh=w/wrhYxKpj2eB18HsTPdJwDc2YInUDycsTFE9m29FiY=;
-	h=Date:To:From:Subject:Message-Id; b=AJdG9UsZ1AL5naafbrNrNH7eqWoSKxQc8EzieIHxzFll2y/fbdfirr0VG4oqlUnijtLSGEbsWcQ0aI4Y9oIaB0OZJOnDTmAYh84DWgNon/OD7OB6GTq8HZvjUefXa5/MRHM2TgmbkFh4q96Vc/Hyc//TaVwKefIO6luu8uSVkWE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dDr9yOcV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774917746; c=relaxed/simple;
+	bh=wy7vAKV1I0U2sBIyzkuuvkdguwb1pC+jU2BHqk8qV8E=;
+	h=Date:To:From:Subject:Message-Id; b=H/Y71Q17p40EDPhzo7fflu3ZHnFxrzGyk/VzljHT+tlEfoe8b8np+zsp1B6kwq7JgV58xKMGFNw68cOkU7271cF/xv5GHZIMSmtMtPZi2q04ebvKDPLHqm66aIuuY6Cf94E39sv3NpHcTwaVHwlh4OBwVifMEUypV7cwL3Oy/xM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bHmkpEO8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dDr9yOcV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EE37C4CEF7;
-	Tue, 31 Mar 2026 00:42:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bHmkpEO8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 811E6C4CEF7;
+	Tue, 31 Mar 2026 00:42:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774917743;
-	bh=w/wrhYxKpj2eB18HsTPdJwDc2YInUDycsTFE9m29FiY=;
+	s=korg; t=1774917745;
+	bh=wy7vAKV1I0U2sBIyzkuuvkdguwb1pC+jU2BHqk8qV8E=;
 	h=Date:To:From:Subject:From;
-	b=dDr9yOcVGej/iL1SyK0cckx2ipl9Pdb7miGmSY2EF3MpJW8phIJz0K4sM7RJNy/R9
-	 PEbfvEh4Xawwn64FRZJ9c4VorbS46BflfZzprbaLFy55PiLyyg9KjI1FW4M/L0ra0L
-	 VZC2pxTT0pjczMK8U5z5sUmwa4ipfDXpl1eRgRJI=
-Date: Mon, 30 Mar 2026 17:42:22 -0700
+	b=bHmkpEO8h349b/+nppg0Uel6dtNekR6BcTtgfU/HNg1Ix4np1JPyYbfZQSUlOX6tJ
+	 8rZDKV4pdopnEjqL+z4OCpxXVDFhCSF++cYSZwOuwqTMY3Glh802UXEe/PuGlglv1e
+	 U21vWbbtTihjFL2q5uun+tOGL8EeKe0GmxTskG88=
+Date: Mon, 30 Mar 2026 17:42:24 -0700
 To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,will@kernel.org,viro@zeniv.linux.org.uk,vgupta@kernel.org,vbabka@kernel.org,tsbogend@alpha.franken.de,svens@linux.ibm.com,surenb@google.com,stephen.smalley.work@gmail.com,rppt@kernel.org,richard@nod.at,pfalcato@suse.de,paul@paul-moore.com,palmer@dabbelt.com,omosnace@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,linux@armlinux.org.uk,liam.howlett@oracle.com,kernel@xen0n.name,kees@kernel.org,johannes@sipsolutions.net,jannh@google.com,jack@suse.cz,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,dinguyen@kernel.org,david@kernel.org,chenhuacai@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,anton.ivanov@cambridgegreys.com,alex@ghiti.fr,agordeev@linux.ibm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-vma-add-simple-test-for-append_vma_flags.patch removed from -mm tree
-Message-Id: <20260331004223.5EE37C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-unexport-vm_brk_flags-and-eliminate-vm_flags-parameter.patch removed from -mm tree
+Message-Id: <20260331004225.811E6C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/vma: add simple test for append_vma_flags()
+     Subject: mm: unexport vm_brk_flags() and eliminate vm_flags parameter
 has been removed from the -mm tree.  Its filename was
-     tools-testing-vma-add-simple-test-for-append_vma_flags.patch
+     mm-unexport-vm_brk_flags-and-eliminate-vm_flags-parameter.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: tools/testing/vma: add simple test for append_vma_flags()
-Date: Fri, 20 Mar 2026 19:38:25 +0000
+Subject: mm: unexport vm_brk_flags() and eliminate vm_flags parameter
+Date: Fri, 20 Mar 2026 19:38:26 +0000
 
-Add a simple test for append_vma_flags() to assert that it behaves as
-expected.
+This function is only used by elf_load(), and that is a static function
+that doesn't need an exported symbol to invoke an internal function, so
+un-EXPORT_SYMBOLS() it.
 
-Additionally, include the VMA_REMAP_FLAGS definition in the VMA tests to
-allow us to use this value in the testing.
+Also, the vm_flags parameter is unnecessary, as we only ever set VM_EXEC,
+so simply make this parameter a boolean.
 
-Link: https://lkml.kernel.org/r/eebd946c5325ad7fae93027245a562eb1aeb68a2.1774034900.git.ljs@kernel.org
+While we're here, clean up the mm.h definitions for the various vm_xxx()
+helpers so we actually specify parameter names and elide the redundant
+extern's.
+
+Link: https://lkml.kernel.org/r/7bada48ddf3f9dbd3e6c4fc50ec2f4de97706f52.1774034900.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -93,68 +99,88 @@ Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vineet Gupta <vgupta@kernel.org>
-Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Cc: Will Deacon <will@kernel.org>
 Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/vma/include/dup.h |    3 +++
- tools/testing/vma/tests/vma.c   |   25 +++++++++++++++++++++++++
- 2 files changed, 28 insertions(+)
+ fs/binfmt_elf.c    |    3 +--
+ include/linux/mm.h |   12 ++++++------
+ mm/mmap.c          |    8 ++------
+ 3 files changed, 9 insertions(+), 14 deletions(-)
 
---- a/tools/testing/vma/include/dup.h~tools-testing-vma-add-simple-test-for-append_vma_flags
-+++ a/tools/testing/vma/include/dup.h
-@@ -345,6 +345,9 @@ enum {
-  */
- #define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
+--- a/fs/binfmt_elf.c~mm-unexport-vm_brk_flags-and-eliminate-vm_flags-parameter
++++ a/fs/binfmt_elf.c
+@@ -453,14 +453,13 @@ static unsigned long elf_load(struct fil
+ 		zero_end = ELF_PAGEALIGN(zero_end);
  
-+#define VMA_REMAP_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_PFNMAP_BIT,	\
-+				     VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)
-+
- #define DEFAULT_MAP_WINDOW	((1UL << 47) - PAGE_SIZE)
- #define TASK_SIZE_LOW		DEFAULT_MAP_WINDOW
- #define TASK_SIZE_MAX		DEFAULT_MAP_WINDOW
---- a/tools/testing/vma/tests/vma.c~tools-testing-vma-add-simple-test-for-append_vma_flags
-+++ a/tools/testing/vma/tests/vma.c
-@@ -555,6 +555,30 @@ static bool test_vma_flags_and(void)
- 	return true;
+ 		error = vm_brk_flags(zero_start, zero_end - zero_start,
+-				     prot & PROT_EXEC ? VM_EXEC : 0);
++				     prot & PROT_EXEC);
+ 		if (error)
+ 			map_addr = error;
+ 	}
+ 	return map_addr;
  }
  
-+/* Ensure append_vma_flags() acts as expected. */
-+static bool test_append_vma_flags(void)
-+{
-+	vma_flags_t flags = append_vma_flags(VMA_REMAP_FLAGS, VMA_READ_BIT,
-+					     VMA_WRITE_BIT
-+#if NUM_VMA_FLAG_BITS > 64
-+					     , 64, 65
-+#endif
-+		);
-+
-+	ASSERT_FLAGS_SAME(&flags, VMA_IO_BIT, VMA_PFNMAP_BIT,
-+			  VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT, VMA_READ_BIT,
-+			  VMA_WRITE_BIT
-+#if NUM_VMA_FLAG_BITS > 64
-+					     , 64, 65
-+#endif
-+		);
-+
-+	flags = append_vma_flags(EMPTY_VMA_FLAGS, VMA_READ_BIT, VMA_WRITE_BIT);
-+	ASSERT_FLAGS_SAME(&flags, VMA_READ_BIT, VMA_WRITE_BIT);
-+
-+	return true;
-+}
-+
- static void run_vma_tests(int *num_tests, int *num_fail)
+-
+ static unsigned long total_mapping_size(const struct elf_phdr *phdr, int nr)
  {
- 	TEST(copy_vma);
-@@ -569,4 +593,5 @@ static void run_vma_tests(int *num_tests
- 	TEST(vma_flags_empty);
- 	TEST(vma_flags_diff);
- 	TEST(vma_flags_and);
-+	TEST(append_vma_flags);
+ 	elf_addr_t min_addr = -1;
+--- a/include/linux/mm.h~mm-unexport-vm_brk_flags-and-eliminate-vm_flags-parameter
++++ a/include/linux/mm.h
+@@ -3991,12 +3991,12 @@ static inline void mm_populate(unsigned
+ #endif
+ 
+ /* This takes the mm semaphore itself */
+-extern int __must_check vm_brk_flags(unsigned long, unsigned long, unsigned long);
+-extern int vm_munmap(unsigned long, size_t);
+-extern unsigned long __must_check vm_mmap(struct file *, unsigned long,
+-        unsigned long, unsigned long,
+-        unsigned long, unsigned long);
+-extern unsigned long __must_check vm_mmap_shadow_stack(unsigned long addr,
++int __must_check vm_brk_flags(unsigned long addr, unsigned long request, bool is_exec);
++int vm_munmap(unsigned long start, size_t len);
++unsigned long __must_check vm_mmap(struct file *file, unsigned long addr,
++		unsigned long len, unsigned long prot,
++		unsigned long flag, unsigned long offset);
++unsigned long __must_check vm_mmap_shadow_stack(unsigned long addr,
+ 		unsigned long len, unsigned long flags);
+ 
+ struct vm_unmapped_area_info {
+--- a/mm/mmap.c~mm-unexport-vm_brk_flags-and-eliminate-vm_flags-parameter
++++ a/mm/mmap.c
+@@ -1201,8 +1201,9 @@ out:
+ 	return ret;
  }
+ 
+-int vm_brk_flags(unsigned long addr, unsigned long request, vm_flags_t vm_flags)
++int vm_brk_flags(unsigned long addr, unsigned long request, bool is_exec)
+ {
++	const vm_flags_t vm_flags = is_exec ? VM_EXEC : 0;
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma = NULL;
+ 	unsigned long len;
+@@ -1217,10 +1218,6 @@ int vm_brk_flags(unsigned long addr, uns
+ 	if (!len)
+ 		return 0;
+ 
+-	/* Until we need other flags, refuse anything except VM_EXEC. */
+-	if ((vm_flags & (~VM_EXEC)) != 0)
+-		return -EINVAL;
+-
+ 	if (mmap_write_lock_killable(mm))
+ 		return -EINTR;
+ 
+@@ -1246,7 +1243,6 @@ limits_failed:
+ 	mmap_write_unlock(mm);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(vm_brk_flags);
+ 
+ static
+ unsigned long tear_down_vmas(struct mm_struct *mm, struct vma_iterator *vmi,
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
