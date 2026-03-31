@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E693C25782A
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:43:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E333E25782A;
+	Tue, 31 Mar 2026 00:43:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774917793; cv=none; b=IlPK0LrLg3X/qGK3j2H3NDLbdQ0GTxxfMHZK9ex8ut5iUV8nmA+dXzorEvBgS6zLluwJepJDJSgRzRhUSaKoH1erwaDl0tOAANq5MEcotMIO8InK6HVQ6nDoqhLNxYgwdptum62PtD4dME06hkxZYB+MlmfchUuzDDiLjdPdQbw=
+	t=1774917795; cv=none; b=UKfXn7uNn7oH9M6KIr74tGOtAuQR3hWrT3YIdhAfk8PrDXlbqaoYrPMlR8nEn0t7Pw9uiAWT8SbAvEBhPSFRewM69t2fXVTF3RQXGgW+Sw7Tn/s5RLtSnqO5JP4NeUVS9euqH/zV02lV2sPsyPc80DWmhuESt2gsqAqpXdbqM6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774917793; c=relaxed/simple;
-	bh=473KadJzCO0VrALpMpmNs6YoZ/2nNgFX+LdWUgPv2kA=;
-	h=Date:To:From:Subject:Message-Id; b=Dc2u5SRaLBi06w1Cy7t4jYNKo86uam5dEZLowMZiNnJeAud7tsehUQJBnR1PE+0shdEtlCfKHlXWcuBlk5VB3hmfUbBYRcXbc+XxV7SCIcF+Cv0QF4C7qcnyROYPyiNXegtFUHFetFQONQbbjybFgQdXUN+FdLIong+lldjbP5c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rKrHb4XA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774917795; c=relaxed/simple;
+	bh=2OQu86adnHs7+CTlKHyWbq1cGGMulu4wjfOYgcgONyg=;
+	h=Date:To:From:Subject:Message-Id; b=SK6XELo7xhlMsTm+CgjiOiiR8Fno4WHbRKDUBjUXBSpNkNmq8wKOE04LsMvozVWYf5rKGYi4lKvoNT9+HTNP7PsOoXbU2SNlYiTzi25pb/PoP1HaW0+VKAgwCQnlFzI45YPvBW55D6h5xsLkSN4AnnCNUGkFAph+NF/4bpYi29s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QLKKsBjw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rKrHb4XA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5CAEC4CEF7;
-	Tue, 31 Mar 2026 00:43:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QLKKsBjw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2B8AC4CEF7;
+	Tue, 31 Mar 2026 00:43:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774917792;
-	bh=473KadJzCO0VrALpMpmNs6YoZ/2nNgFX+LdWUgPv2kA=;
+	s=korg; t=1774917794;
+	bh=2OQu86adnHs7+CTlKHyWbq1cGGMulu4wjfOYgcgONyg=;
 	h=Date:To:From:Subject:From;
-	b=rKrHb4XAI5vgx6dTFN8EDOhNsLJDCJpkMfnYGLSoPfvzTJ6O8m1vYKVX0f3n0NzCl
-	 ugFM7PjhwJy7rRB0QrmxYfqKpGume9+XRaPmp56EeF8FIpc5CnKkr/fuJdmHxLqyH7
-	 73TArUcyO4aDJMfaEBuHtYx6lNNlhCtBCQvGKx0o=
-Date: Mon, 30 Mar 2026 17:43:12 -0700
-To: mm-commits@vger.kernel.org,wei.liu@kernel.org,viro@zeniv.linux.org.uk,vigneshr@ti.com,vbabka@kernel.org,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,richard@nod.at,pfalcato@suse.de,miquel.raynal@bootlin.com,mhocko@suse.com,mcoquelin.stm32@gmail.com,martin.petersen@oracle.com,marc.dionne@auristor.com,longli@microsoft.com,liam.howlett@oracle.com,kys@microsoft.com,jannh@google.com,jack@suse.cz,haiyangz@microsoft.com,gregkh@linuxfoundation.org,dhowells@redhat.com,decui@microsoft.com,david@kernel.org,corbet@lwn.net,clemens@ladisch.de,brauner@kernel.org,bostroesser@gmail.com,arnd@arndb.de,alexandre.torgue@foss.st.com,alexander.shishkin@linux.intel.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=QLKKsBjwH/ewdaRhgOlkMZL0XoyYW8WhMWaD3r/Z73RVnK8Z57kbGleZt4CcoWfDA
+	 BEX9uvapG33TUUbVcZ2YYWMYcRW7d0dTT6rruqLSUYr4tBnpu6T/Pz+lCTa4TN0C6/
+	 Z7zrGvUrLSF7zoLLfX56bF/xLIxb1USZFOSKxhBM=
+Date: Mon, 30 Mar 2026 17:43:14 -0700
+To: mm-commits@vger.kernel.org,wei.liu@kernel.org,viro@zeniv.linux.org.uk,vigneshr@ti.com,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,ryan.roberts@arm.com,rppt@kernel.org,richard@nod.at,pfalcato@suse.de,miquel.raynal@bootlin.com,mhocko@suse.com,mcoquelin.stm32@gmail.com,martin.petersen@oracle.com,marc.dionne@auristor.com,longli@microsoft.com,liam.howlett@oracle.com,kys@microsoft.com,jannh@google.com,jack@suse.cz,haiyangz@microsoft.com,gregkh@linuxfoundation.org,dhowells@redhat.com,decui@microsoft.com,david@kernel.org,corbet@lwn.net,clemens@ladisch.de,brauner@kernel.org,bostroesser@gmail.com,arnd@arndb.de,alexandre.torgue@foss.st.com,alexander.shishkin@linux.intel.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-vm_ops-mapped-hook.patch removed from -mm tree
-Message-Id: <20260331004312.B5CAEC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] fs-afs-revert-mmap_prepare-change.patch removed from -mm tree
+Message-Id: <20260331004314.B2B8AC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add vm_ops->mapped hook
+     Subject: fs: afs: revert mmap_prepare() change
 has been removed from the -mm tree.  Its filename was
-     mm-add-vm_ops-mapped-hook.patch
+     fs-afs-revert-mmap_prepare-change.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm: add vm_ops->mapped hook
-Date: Fri, 20 Mar 2026 22:39:34 +0000
+Subject: fs: afs: revert mmap_prepare() change
+Date: Fri, 20 Mar 2026 22:39:35 +0000
 
-Previously, when a driver needed to do something like establish a
-reference count, it could do so in the mmap hook in the knowledge that the
-mapping would succeed.
+Partially reverts commit 9d5403b1036c ("fs: convert most other
+generic_file_*mmap() users to .mmap_prepare()").
 
-With the introduction of f_op->mmap_prepare this is no longer the case, as
-it is invoked prior to actually establishing the mapping.
+This is because the .mmap invocation establishes a refcount, but
+.mmap_prepare is called at a point where a merge or an allocation failure
+might happen after the call, which would leak the refcount increment.
 
-mmap_prepare is not appropriate for this kind of thing as it is called
-before any merge might take place, and after which an error might occur
-meaning resources could be leaked.
+Functionality is being added to permit the use of .mmap_prepare in this
+case, but in the interim, we need to fix this.
 
-To take this into account, introduce a new vm_ops->mapped callback which
-is invoked when the VMA is first mapped (though notably - not when it is
-merged - which is correct and mirrors existing mmap/open/close behaviour).
-
-We do better that vm_ops->open() here, as this callback can return an
-error, at which point the VMA will be unmapped.
-
-Note that vm_ops->mapped() is invoked after any mmap action is complete
-(such as I/O remapping).
-
-We intentionally do not expose the VMA at this point, exposing only the
-fields that could be used, and an output parameter in case the operation
-needs to update the vma->vm_private_data field.
-
-In order to deal with stacked filesystems which invoke inner filesystem's
-mmap() invocations, add __compat_vma_mapped() and invoke it on vfs_mmap()
-(via compat_vma_mmap()) to ensure that the mapped callback is handled when
-an mmap() caller invokes a nested filesystem's mmap_prepare() callback.
-
-Update the mmap_prepare documentation to describe the mapped hook and make
-it clear what its intended use is.
-
-The vm_ops->mapped() call is handled by the mmap complete logic to ensure
-the same code paths are handled by both the compatibility and VMA layers.
-
-Additionally, update VMA userland test headers to reflect the change.
-
-Link: https://lkml.kernel.org/r/4c5e98297eb0aae9565c564e1c296a112702f144.1774045440.git.ljs@kernel.org
+Link: https://lkml.kernel.org/r/08804c94e39d9102a3a8fbd12385e8aa079ba1d3.1774045440.git.ljs@kernel.org
+Fixes: 9d5403b1036c ("fs: convert most other generic_file_*mmap() users to .mmap_prepare()")
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
@@ -117,248 +90,56 @@ Cc: Richard Weinberger <richard@nod.at>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vignesh Raghavendra <vigneshr@ti.com>
+Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Wei Liu <wei.liu@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/mmap_prepare.rst |   15 +++
- include/linux/fs.h                         |    9 +
- include/linux/mm.h                         |   17 +++
- mm/util.c                                  |   90 +++++++++++++------
- mm/vma.c                                   |    1 
- tools/testing/vma/include/dup.h            |   17 +++
- 6 files changed, 120 insertions(+), 29 deletions(-)
+ fs/afs/file.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/Documentation/filesystems/mmap_prepare.rst~mm-add-vm_ops-mapped-hook
-+++ a/Documentation/filesystems/mmap_prepare.rst
-@@ -25,6 +25,21 @@ That is - no resources should be allocat
- mapping has been established, as the mapping may either be merged, or fail to be
- mapped after the callback is complete.
+--- a/fs/afs/file.c~fs-afs-revert-mmap_prepare-change
++++ a/fs/afs/file.c
+@@ -19,7 +19,7 @@
+ #include <trace/events/netfs.h>
+ #include "internal.h"
  
-+Mapped callback
-+---------------
-+
-+If resources need to be allocated per-mapping, or state such as a reference
-+count needs to be manipulated, this should be done using the ``vm_ops->mapped``
-+hook, which itself should be set by the >mmap_prepare hook.
-+
-+This callback is only invoked if a new mapping has been established and was not
-+merged with any other, and is invoked at a point where no error may occur before
-+the mapping is established.
-+
-+You may return an error to the callback itself, which will cause the mapping to
-+become unmapped and an error returned to the mmap() caller. This is useful if
-+resources need to be allocated, and that allocation might fail.
-+
- How To Use
- ==========
+-static int afs_file_mmap_prepare(struct vm_area_desc *desc);
++static int afs_file_mmap(struct file *file, struct vm_area_struct *vma);
  
---- a/include/linux/fs.h~mm-add-vm_ops-mapped-hook
-+++ a/include/linux/fs.h
-@@ -2059,13 +2059,20 @@ static inline bool can_mmap_file(struct
- }
- 
- int compat_vma_mmap(struct file *file, struct vm_area_struct *vma);
-+int __vma_check_mmap_hook(struct vm_area_struct *vma);
- 
- static inline int vfs_mmap(struct file *file, struct vm_area_struct *vma)
+ static ssize_t afs_file_read_iter(struct kiocb *iocb, struct iov_iter *iter);
+ static ssize_t afs_file_splice_read(struct file *in, loff_t *ppos,
+@@ -35,7 +35,7 @@ const struct file_operations afs_file_op
+ 	.llseek		= generic_file_llseek,
+ 	.read_iter	= afs_file_read_iter,
+ 	.write_iter	= netfs_file_write_iter,
+-	.mmap_prepare	= afs_file_mmap_prepare,
++	.mmap		= afs_file_mmap,
+ 	.splice_read	= afs_file_splice_read,
+ 	.splice_write	= iter_file_splice_write,
+ 	.fsync		= afs_fsync,
+@@ -492,16 +492,16 @@ static void afs_drop_open_mmap(struct af
+ /*
+  * Handle setting up a memory mapping on an AFS file.
+  */
+-static int afs_file_mmap_prepare(struct vm_area_desc *desc)
++static int afs_file_mmap(struct file *file, struct vm_area_struct *vma)
  {
-+	int err;
-+
- 	if (file->f_op->mmap_prepare)
- 		return compat_vma_mmap(file, vma);
+-	struct afs_vnode *vnode = AFS_FS_I(file_inode(desc->file));
++	struct afs_vnode *vnode = AFS_FS_I(file_inode(file));
+ 	int ret;
  
--	return file->f_op->mmap(file, vma);
-+	err = file->f_op->mmap(file, vma);
-+	if (err)
-+		return err;
-+
-+	return __vma_check_mmap_hook(vma);
- }
+ 	afs_add_open_mmap(vnode);
  
- static inline int vfs_mmap_prepare(struct file *file, struct vm_area_desc *desc)
---- a/include/linux/mm.h~mm-add-vm_ops-mapped-hook
-+++ a/include/linux/mm.h
-@@ -775,6 +775,23 @@ struct vm_operations_struct {
- 	 * Context: User context.  May sleep.  Caller holds mmap_lock.
- 	 */
- 	void (*close)(struct vm_area_struct *vma);
-+	/**
-+	 * @mapped: Called when the VMA is first mapped in the MM. Not called if
-+	 * the new VMA is merged with an adjacent VMA.
-+	 *
-+	 * The @vm_private_data field is an output field allowing the user to
-+	 * modify vma->vm_private_data as necessary.
-+	 *
-+	 * ONLY valid if set from f_op->mmap_prepare. Will result in an error if
-+	 * set from f_op->mmap.
-+	 *
-+	 * Returns %0 on success, or an error otherwise. On error, the VMA will
-+	 * be unmapped.
-+	 *
-+	 * Context: User context.  May sleep.  Caller holds mmap_lock.
-+	 */
-+	int (*mapped)(unsigned long start, unsigned long end, pgoff_t pgoff,
-+		      const struct file *file, void **vm_private_data);
- 	/* Called any time before splitting to check if it's allowed */
- 	int (*may_split)(struct vm_area_struct *vma, unsigned long addr);
- 	int (*mremap)(struct vm_area_struct *vma);
---- a/mm/util.c~mm-add-vm_ops-mapped-hook
-+++ a/mm/util.c
-@@ -1163,33 +1163,7 @@ void flush_dcache_folio(struct folio *fo
- EXPORT_SYMBOL(flush_dcache_folio);
- #endif
- 
--/**
-- * compat_vma_mmap() - Apply the file's .mmap_prepare() hook to an
-- * existing VMA and execute any requested actions.
-- * @file: The file which possesss an f_op->mmap_prepare() hook.
-- * @vma: The VMA to apply the .mmap_prepare() hook to.
-- *
-- * Ordinarily, .mmap_prepare() is invoked directly upon mmap(). However, certain
-- * stacked filesystems invoke a nested mmap hook of an underlying file.
-- *
-- * Until all filesystems are converted to use .mmap_prepare(), we must be
-- * conservative and continue to invoke these stacked filesystems using the
-- * deprecated .mmap() hook.
-- *
-- * However we have a problem if the underlying file system possesses an
-- * .mmap_prepare() hook, as we are in a different context when we invoke the
-- * .mmap() hook, already having a VMA to deal with.
-- *
-- * compat_vma_mmap() is a compatibility function that takes VMA state,
-- * establishes a struct vm_area_desc descriptor, passes to the underlying
-- * .mmap_prepare() hook and applies any changes performed by it.
-- *
-- * Once the conversion of filesystems is complete this function will no longer
-- * be required and will be removed.
-- *
-- * Returns: 0 on success or error.
-- */
--int compat_vma_mmap(struct file *file, struct vm_area_struct *vma)
-+static int __compat_vma_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct vm_area_desc desc = {
- 		.mm = vma->vm_mm,
-@@ -1221,8 +1195,49 @@ int compat_vma_mmap(struct file *file, s
- 	set_vma_from_desc(vma, &desc);
- 	return mmap_action_complete(vma, action);
- }
-+
-+/**
-+ * compat_vma_mmap() - Apply the file's .mmap_prepare() hook to an
-+ * existing VMA and execute any requested actions.
-+ * @file: The file which possesss an f_op->mmap_prepare() hook.
-+ * @vma: The VMA to apply the .mmap_prepare() hook to.
-+ *
-+ * Ordinarily, .mmap_prepare() is invoked directly upon mmap(). However, certain
-+ * stacked filesystems invoke a nested mmap hook of an underlying file.
-+ *
-+ * Until all filesystems are converted to use .mmap_prepare(), we must be
-+ * conservative and continue to invoke these stacked filesystems using the
-+ * deprecated .mmap() hook.
-+ *
-+ * However we have a problem if the underlying file system possesses an
-+ * .mmap_prepare() hook, as we are in a different context when we invoke the
-+ * .mmap() hook, already having a VMA to deal with.
-+ *
-+ * compat_vma_mmap() is a compatibility function that takes VMA state,
-+ * establishes a struct vm_area_desc descriptor, passes to the underlying
-+ * .mmap_prepare() hook and applies any changes performed by it.
-+ *
-+ * Once the conversion of filesystems is complete this function will no longer
-+ * be required and will be removed.
-+ *
-+ * Returns: 0 on success or error.
-+ */
-+int compat_vma_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	return __compat_vma_mmap(file, vma);
-+}
- EXPORT_SYMBOL(compat_vma_mmap);
- 
-+int __vma_check_mmap_hook(struct vm_area_struct *vma)
-+{
-+	/* vm_ops->mapped is not valid if mmap() is specified. */
-+	if (vma->vm_ops && WARN_ON_ONCE(vma->vm_ops->mapped))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(__vma_check_mmap_hook);
-+
- static void set_ps_flags(struct page_snapshot *ps, const struct folio *folio,
- 			 const struct page *page)
- {
-@@ -1311,11 +1326,32 @@ again:
- 	}
- }
- 
-+static int call_vma_mapped(struct vm_area_struct *vma)
-+{
-+	const struct vm_operations_struct *vm_ops = vma->vm_ops;
-+	void *vm_private_data = vma->vm_private_data;
-+	int err;
-+
-+	if (!vm_ops || !vm_ops->mapped)
-+		return 0;
-+
-+	err = vm_ops->mapped(vma->vm_start, vma->vm_end, vma->vm_pgoff,
-+			     vma->vm_file, &vm_private_data);
-+	if (err)
-+		return err;
-+
-+	if (vm_private_data != vma->vm_private_data)
-+		vma->vm_private_data = vm_private_data;
-+	return 0;
-+}
-+
- static int mmap_action_finish(struct vm_area_struct *vma,
- 			      struct mmap_action *action, int err)
- {
- 	size_t len;
- 
-+	if (!err)
-+		err = call_vma_mapped(vma);
- 	if (!err && action->success_hook)
- 		err = action->success_hook(vma);
- 
---- a/mm/vma.c~mm-add-vm_ops-mapped-hook
-+++ a/mm/vma.c
-@@ -2781,7 +2781,6 @@ static unsigned long __mmap_region(struc
- 
- 	if (have_mmap_prepare && allocated_new) {
- 		error = mmap_action_complete(vma, &desc.action);
--
- 		if (error)
- 			return error;
- 	}
---- a/tools/testing/vma/include/dup.h~mm-add-vm_ops-mapped-hook
-+++ a/tools/testing/vma/include/dup.h
-@@ -643,6 +643,23 @@ struct vm_operations_struct {
- 	 * Context: User context.  May sleep.  Caller holds mmap_lock.
- 	 */
- 	void (*close)(struct vm_area_struct *vma);
-+	/**
-+	 * @mapped: Called when the VMA is first mapped in the MM. Not called if
-+	 * the new VMA is merged with an adjacent VMA.
-+	 *
-+	 * The @vm_private_data field is an output field allowing the user to
-+	 * modify vma->vm_private_data as necessary.
-+	 *
-+	 * ONLY valid if set from f_op->mmap_prepare. Will result in an error if
-+	 * set from f_op->mmap.
-+	 *
-+	 * Returns %0 on success, or an error otherwise. On error, the VMA will
-+	 * be unmapped.
-+	 *
-+	 * Context: User context.  May sleep.  Caller holds mmap_lock.
-+	 */
-+	int (*mapped)(unsigned long start, unsigned long end, pgoff_t pgoff,
-+		      const struct file *file, void **vm_private_data);
- 	/* Called any time before splitting to check if it's allowed */
- 	int (*may_split)(struct vm_area_struct *vma, unsigned long addr);
- 	int (*mremap)(struct vm_area_struct *vma);
+-	ret = generic_file_mmap_prepare(desc);
++	ret = generic_file_mmap(file, vma);
+ 	if (ret == 0)
+-		desc->vm_ops = &afs_vm_ops;
++		vma->vm_ops = &afs_vm_ops;
+ 	else
+ 		afs_drop_open_mmap(vnode);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
