@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06A8328313D
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 04:19:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1188237CD3C
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 18:29:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774930751; cv=none; b=UQujRtHrdxrOWmJlsWl7WtqbXwLCj84ubSUbmf2HWt+pvLAON7pg2gu+39md+Yinr73U7yu6bny8rTnhsWH+xJL2BolGCBtUghW+H+Y/AgWLkmxymfNYn9Wf9TVgKilJbDurbmt2qcURoPbeO+OzrzHQZl1uDiOXnQTJrmZM1Io=
+	t=1774981783; cv=none; b=KQkkPvU7/IyKJvdntqwT3gK2g92y1/70y+W3Kpb2mbmUo0Vj8PDuhw39L905Smvkj265rVMOXjL0cnBWM1mGQCLA39XeMXdO5B28YdQ+KeSZ2JlibDRqulN/WWQKX42WI8z1FWPP9CWUVFJa8OG5SlA+za3ieiHgCHndMQ1mSzY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774930751; c=relaxed/simple;
-	bh=ai5gcWiIMCjIWjho/GTxE1vlpRhM3Jafu9zX7ZQeVGc=;
-	h=Date:To:From:Subject:Message-Id; b=DOyFA9f0ULK368toyNqeEuPakBrIy5OpDuiZBkJWkba36GT0HcEU43w8lgq3YViCe8b2c8Y1KokmFYDgrfPbJRx9FqjgmyduiUkfU00OwI+4vcMuydh8unyzvSln9mo+ilNjgE3PemMPat2Qc+v5Pq8O+uiKkO1lmIK/dF5PO8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jmHWtCmg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774981783; c=relaxed/simple;
+	bh=3iafkpUZF64Nj9YRDhR3jw7Ouzvih9HbgnYobjX5WSo=;
+	h=Date:To:From:Subject:Message-Id; b=YoNdb3LJv8a13qO5VLT9wHeJxvPICkOZVp+XM3cTnNnXYWdbNe9O8Xd0Ehza3ff6fCkd8R608Y1wX9SaczBa6Oj2pwfBejtbWelyAsuZI3fVNA+1s0tJH2ZtJ8cYncDGqxQhapLX9c9Wfv6dHBx6ZsHfF2Cy+1VowewJXeJe/Ho=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rjHurkRu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jmHWtCmg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83675C19423;
-	Tue, 31 Mar 2026 04:19:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rjHurkRu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DF89C19423;
+	Tue, 31 Mar 2026 18:29:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774930750;
-	bh=ai5gcWiIMCjIWjho/GTxE1vlpRhM3Jafu9zX7ZQeVGc=;
+	s=korg; t=1774981782;
+	bh=3iafkpUZF64Nj9YRDhR3jw7Ouzvih9HbgnYobjX5WSo=;
 	h=Date:To:From:Subject:From;
-	b=jmHWtCmgOe+fDaHnkgXOpGNNNQrOWQ33sthzMI8CYg3LgUifamQwYeK5MpxmJsuU/
-	 GzHmwpautpx4ajVETqk5x6dLujjmxciZdLS4/n0XufcXP/RQiqI1PSlkuCB0/VJx1f
-	 Bq4mBO+NLnLgug3saPagkwk2d8dV0QG24qmwcYzU=
-Date: Mon, 30 Mar 2026 21:19:10 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,tujinjiang@huawei.com,akpm@linux-foundation.org
+	b=rjHurkRuPTcVNOceP5XEz2tNQ77/goCG3PrBvxhPIlIVgQltiQl3/q1IJ/qChegWv
+	 M04oIzxatLoi2fdwvQuubsrvgouBIBaBOCEAsrTw7C9fUWTJBO3sxteLKilq/Cg7v2
+	 GiH+wVWWrjCMmeR7/p8/Q3dgq1BadJLqS/MA9vfs=
+Date: Tue, 31 Mar 2026 11:29:41 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-hugetlb-fix-memory-offline-failure-due-to-hwpoisoned-file-hugetlb.patch removed from -mm tree
-Message-Id: <20260331041910.83675C19423@smtp.kernel.org>
+Subject: [to-be-updated] mm-vma-cleanup-error-handling-path-in-vma_expand.patch removed from -mm tree
+Message-Id: <20260331182942.7DF89C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,76 +35,139 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: fix memory offline failure due to hwpoisoned file hugetlb
+     Subject: mm/vma: cleanup error handling path in vma_expand()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-memory-offline-failure-due-to-hwpoisoned-file-hugetlb.patch
+     mm-vma-cleanup-error-handling-path-in-vma_expand.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Jinjiang Tu <tujinjiang@huawei.com>
-Subject: mm/hugetlb: fix memory offline failure due to hwpoisoned file hugetlb
-Date: Wed, 18 Mar 2026 10:07:11 +0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm/vma: cleanup error handling path in vma_expand()
+Date: Fri, 27 Mar 2026 13:54:52 -0700
 
-When a file hugetlb folio triggers UCE, me_huge_page() will keep the
-hugetlb folio in pagcahe with refcount increased and PG_hwpoison set. 
-Even after the hugetlb file is deleted, the hugetlb folio is still leaked.
+Patch series "Use killable vma write locking in most places", v6.
 
-If we want to offline the memory block that the hwpoisoned hugetlb folio
-belongs to, it fails in dissolve_free_hugetlb_folios() due to the
-hwpoisoned hugetlb folio isn't free.
+Now that we have vma_start_write_killable() we can replace most of the
+vma_start_write() calls with it, improving reaction time to the kill
+signal.
 
-I can reproduce this issue with the following steps in qemu:
- 1) echo offline >/sys/devices/system/memory/auto_online_blocks
- 2) in qemu monitor:
-       object_add memory-backend-ram,id=mem10,size=1G
-       device_add pc-dimm,id=dimm1,memdev=mem10,node=2
- 3) echo online_movable > /sys/devices/system/node/node2/memory136/state
- 4) echo 5 > /sys/devices/system/node/node2/hugepages/hugepages-2048kB/nr_hugepages
- 5) run ./hugetlb_file. This process will receive SIGBUS.
- 6) remove the hugetlbfs file.
- 7) echo offline > /sys/devices/system/node/node2/memory136/state
+There are several places which are left untouched by this patchset:
 
-hugetlb_file.c:
-  fd = open("/dev/hugepages/my_hugepage_file", O_CREAT | O_RDWR, 0755);
-  fallocate(fd, 0, 0, HUGEPAGE_SIZE * 2);
-  addr = mmap(NULL, HUGEPAGE_SIZE * 2, PROT_READ | PROT_WRITE,
-		MAP_SHARED | MAP_HUGETLB, fd, 0);
-  memset(addr, 0xaa, HUGEPAGE_SIZE * 2);
-  madvise(addr, HUGEPAGE_SIZE, MADV_HWPOISON);
+1. free_pgtables() because function should free page tables even if a
+   fatal signal is pending.
 
-To fix it, when deleting hugetlb folio from pagecache, mark the hugetlb
-folio temporary, and put the refcount increased by memory-failure.  After
-the hugetlb folio is deleted from pagecache, the refcount is decreased to
-zero and the hugetlb folio is dissolved.
+2. userfaultd code, where some paths calling vma_start_write() can
+   handle EINTR and some can't without a deeper code refactoring.
 
-Link: https://lkml.kernel.org/r/20260318020711.3596947-1-tujinjiang@huawei.com
-Signed-off-by: Jinjiang Tu <tujinjiang@huawei.com>
+3. mpol_rebind_mm() which is used by cpusset controller for migrations
+   and operates on a remote mm.  Incomplete operations here would result
+   in an inconsistent cgroup state.
+
+4. vm_flags_{set|mod|clear} require refactoring that involves moving
+   vma_start_write() out of these functions and replacing it with
+   vma_assert_write_locked(), then callers of these functions should lock
+   the vma themselves using vma_start_write_killable() whenever possible.
+
+
+This patch (of 6):
+
+vma_expand() error handling is a bit confusing with "if (ret) return ret;"
+mixed with "if (!ret && ...) ret = ...;".  Simplify the code to check for
+errors and return immediately after an operation that might fail.  This
+also makes later changes to this function more readable.  Change variable
+name for storing the error code from "ret" to "err".
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/20260327205457.604224-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20260327205457.604224-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Suggested-by: Jann Horn <jannh@google.com>
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Janosch Frank <frankja@linux.ibm.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kees Cook <kees@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/vma.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-fix-memory-offline-failure-due-to-hwpoisoned-file-hugetlb
-+++ a/fs/hugetlbfs/inode.c
-@@ -597,6 +597,11 @@ static void remove_inode_hugepages(struc
- 						  index, truncate_op);
- 			freed++;
+--- a/mm/vma.c~mm-vma-cleanup-error-handling-path-in-vma_expand
++++ a/mm/vma.c
+@@ -1170,7 +1170,7 @@ int vma_expand(struct vma_merge_struct *
+ 	vma_flags_t sticky_flags =
+ 		vma_flags_and_mask(&vmg->vma_flags, VMA_STICKY_FLAGS);
+ 	vma_flags_t target_sticky;
+-	int ret = 0;
++	int err = 0;
  
-+			if (unlikely(folio_test_hwpoison(folio))) {
-+				folio_set_hugetlb_temporary(folio);
-+				folio_put(folio);
-+			}
-+
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 		}
- 		folio_batch_release(&fbatch);
+ 	mmap_assert_write_locked(vmg->mm);
+ 	vma_start_write(target);
+@@ -1200,12 +1200,16 @@ int vma_expand(struct vma_merge_struct *
+ 	 * Note that, by convention, callers ignore OOM for this case, so
+ 	 * we don't need to account for vmg->give_up_on_mm here.
+ 	 */
+-	if (remove_next)
+-		ret = dup_anon_vma(target, next, &anon_dup);
+-	if (!ret && vmg->copied_from)
+-		ret = dup_anon_vma(target, vmg->copied_from, &anon_dup);
+-	if (ret)
+-		return ret;
++	if (remove_next) {
++		err = dup_anon_vma(target, next, &anon_dup);
++		if (err)
++			return err;
++	}
++	if (vmg->copied_from) {
++		err = dup_anon_vma(target, vmg->copied_from, &anon_dup);
++		if (err)
++			return err;
++	}
+ 
+ 	if (remove_next) {
+ 		vma_flags_t next_sticky;
 _
 
-Patches currently in -mm which might be from tujinjiang@huawei.com are
+Patches currently in -mm which might be from surenb@google.com are
 
+mm-use-vma_start_write_killable-in-mm-syscalls.patch
+mm-khugepaged-use-vma_start_write_killable-in-collapse_huge_page.patch
+mm-vma-use-vma_start_write_killable-in-vma-operations.patch
+mm-use-vma_start_write_killable-in-process_vma_walk_lock.patch
+kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
+mm-vmscan-prevent-mglru-reclaim-from-pinning-address-space.patch
 
