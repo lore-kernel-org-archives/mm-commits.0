@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1188237CD3C
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 18:29:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DE2B38944D
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 18:29:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774981783; cv=none; b=KQkkPvU7/IyKJvdntqwT3gK2g92y1/70y+W3Kpb2mbmUo0Vj8PDuhw39L905Smvkj265rVMOXjL0cnBWM1mGQCLA39XeMXdO5B28YdQ+KeSZ2JlibDRqulN/WWQKX42WI8z1FWPP9CWUVFJa8OG5SlA+za3ieiHgCHndMQ1mSzY=
+	t=1774981785; cv=none; b=mIFnRrR/BXCep1O/IJQ/RAxxnofhUYEBC/JL6fJWWIy8L+LToHLROLKMaMLWvKvUdEXhPYUWIHvNVSeV7bkbXIhv+vwc0G6hgHCIpqv2EzDdmS8+PF14SuDwNYX5fA4TWJANzXwrznRiadYWSLtXklWz0vVrCEnyLsiIv9qlxSw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774981783; c=relaxed/simple;
-	bh=3iafkpUZF64Nj9YRDhR3jw7Ouzvih9HbgnYobjX5WSo=;
-	h=Date:To:From:Subject:Message-Id; b=YoNdb3LJv8a13qO5VLT9wHeJxvPICkOZVp+XM3cTnNnXYWdbNe9O8Xd0Ehza3ff6fCkd8R608Y1wX9SaczBa6Oj2pwfBejtbWelyAsuZI3fVNA+1s0tJH2ZtJ8cYncDGqxQhapLX9c9Wfv6dHBx6ZsHfF2Cy+1VowewJXeJe/Ho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rjHurkRu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774981785; c=relaxed/simple;
+	bh=h9VeXZwASORajvppFvbxsRTFN/5CBBjP84AxFc6Xgt4=;
+	h=Date:To:From:Subject:Message-Id; b=hAZspj5coBO0r3IuOuVv6WThzawNhDblQnWL2t7b60axEmIBeB5emFe3P9JZ+DbJ/W9k86hPYUt5g0n4PIMwoWlMpvwvjFCEAQ1USDDxfk3nRzLh3VJyBoPO/VD+6ShtbubcDHgsy1IEyfF8FIg2Ana5EskDkloW2xu/N9qCfuc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RmwvyX98; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rjHurkRu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7DF89C19423;
-	Tue, 31 Mar 2026 18:29:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RmwvyX98"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59FFAC19423;
+	Tue, 31 Mar 2026 18:29:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774981782;
-	bh=3iafkpUZF64Nj9YRDhR3jw7Ouzvih9HbgnYobjX5WSo=;
+	s=korg; t=1774981784;
+	bh=h9VeXZwASORajvppFvbxsRTFN/5CBBjP84AxFc6Xgt4=;
 	h=Date:To:From:Subject:From;
-	b=rjHurkRuPTcVNOceP5XEz2tNQ77/goCG3PrBvxhPIlIVgQltiQl3/q1IJ/qChegWv
-	 M04oIzxatLoi2fdwvQuubsrvgouBIBaBOCEAsrTw7C9fUWTJBO3sxteLKilq/Cg7v2
-	 GiH+wVWWrjCMmeR7/p8/Q3dgq1BadJLqS/MA9vfs=
-Date: Tue, 31 Mar 2026 11:29:41 -0700
+	b=RmwvyX98TunuRVXVPzdNADX18g8eScuSmAt+hKAixe7ayCljweOxWzEEJjqg0yfU3
+	 bdho4j0jh225LyRnRvfIJByAdiLvUgexQY4LRvMCPRCTfuv42kNKhdTWCuTt7UNjBT
+	 o3kpfytOui907dRqhGH1W4LbI0axStWSCVC3EOWg=
+Date: Tue, 31 Mar 2026 11:29:43 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vma-cleanup-error-handling-path-in-vma_expand.patch removed from -mm tree
-Message-Id: <20260331182942.7DF89C19423@smtp.kernel.org>
+Subject: [to-be-updated] mm-use-vma_start_write_killable-in-mm-syscalls.patch removed from -mm tree
+Message-Id: <20260331182944.59FFAC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,61 +35,33 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: cleanup error handling path in vma_expand()
+     Subject: mm: use vma_start_write_killable() in mm syscalls
 has been removed from the -mm tree.  Its filename was
-     mm-vma-cleanup-error-handling-path-in-vma_expand.patch
+     mm-use-vma_start_write_killable-in-mm-syscalls.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/vma: cleanup error handling path in vma_expand()
-Date: Fri, 27 Mar 2026 13:54:52 -0700
+Subject: mm: use vma_start_write_killable() in mm syscalls
+Date: Fri, 27 Mar 2026 13:54:53 -0700
 
-Patch series "Use killable vma write locking in most places", v6.
+Replace vma_start_write() with vma_start_write_killable() in syscalls,
+improving reaction time to the kill signal.
 
-Now that we have vma_start_write_killable() we can replace most of the
-vma_start_write() calls with it, improving reaction time to the kill
-signal.
+In a number of places we now lock VMA earlier than before to avoid doing
+work and undoing it later if a fatal signal is pending.  This is safe
+because the moves are happening within sections where we already hold the
+mmap_write_lock, so the moves do not change the locking order relative to
+other kernel locks.
 
-There are several places which are left untouched by this patchset:
-
-1. free_pgtables() because function should free page tables even if a
-   fatal signal is pending.
-
-2. userfaultd code, where some paths calling vma_start_write() can
-   handle EINTR and some can't without a deeper code refactoring.
-
-3. mpol_rebind_mm() which is used by cpusset controller for migrations
-   and operates on a remote mm.  Incomplete operations here would result
-   in an inconsistent cgroup state.
-
-4. vm_flags_{set|mod|clear} require refactoring that involves moving
-   vma_start_write() out of these functions and replacing it with
-   vma_assert_write_locked(), then callers of these functions should lock
-   the vma themselves using vma_start_write_killable() whenever possible.
-
-
-This patch (of 6):
-
-vma_expand() error handling is a bit confusing with "if (ret) return ret;"
-mixed with "if (!ret && ...) ret = ...;".  Simplify the code to check for
-errors and return immediately after an operation that might fail.  This
-also makes later changes to this function more readable.  Change variable
-name for storing the error code from "ret" to "err".
-
-No functional change intended.
-
-Link: https://lkml.kernel.org/r/20260327205457.604224-1-surenb@google.com
-Link: https://lkml.kernel.org/r/20260327205457.604224-2-surenb@google.com
+Link: https://lkml.kernel.org/r/20260327205457.604224-3-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Suggested-by: Jann Horn <jannh@google.com>
-Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Reviewed-by: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Byungchul Park <byungchul@sk.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
@@ -99,13 +71,16 @@ Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
 Cc: Gregory Price <gourry@gourry.net>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Jann Horn <jannh@google.com>
 Cc: Janosch Frank <frankja@linux.ibm.com>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Kees Cook <kees@kernel.org>
 Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
@@ -113,58 +88,273 @@ Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ mm/madvise.c   |   13 ++++++++++---
+ mm/memory.c    |    2 ++
+ mm/mempolicy.c |   11 +++++++++--
+ mm/mlock.c     |   30 ++++++++++++++++++++++++------
+ mm/mprotect.c  |   25 +++++++++++++++++--------
+ mm/mremap.c    |    8 +++++---
+ mm/mseal.c     |   24 +++++++++++++++++++-----
+ 7 files changed, 86 insertions(+), 27 deletions(-)
 
---- a/mm/vma.c~mm-vma-cleanup-error-handling-path-in-vma_expand
-+++ a/mm/vma.c
-@@ -1170,7 +1170,7 @@ int vma_expand(struct vma_merge_struct *
- 	vma_flags_t sticky_flags =
- 		vma_flags_and_mask(&vmg->vma_flags, VMA_STICKY_FLAGS);
- 	vma_flags_t target_sticky;
--	int ret = 0;
-+	int err = 0;
+--- a/mm/madvise.c~mm-use-vma_start_write_killable-in-mm-syscalls
++++ a/mm/madvise.c
+@@ -172,10 +172,17 @@ static int madvise_update_vma(vm_flags_t
+ 	if (IS_ERR(vma))
+ 		return PTR_ERR(vma);
  
- 	mmap_assert_write_locked(vmg->mm);
- 	vma_start_write(target);
-@@ -1200,12 +1200,16 @@ int vma_expand(struct vma_merge_struct *
- 	 * Note that, by convention, callers ignore OOM for this case, so
- 	 * we don't need to account for vmg->give_up_on_mm here.
+-	madv_behavior->vma = vma;
++	/*
++	 * If a new vma was created during vma_modify_XXX, the resulting
++	 * vma is already locked. Skip re-locking new vma in this case.
++	 */
++	if (vma == madv_behavior->vma) {
++		if (vma_start_write_killable(vma))
++			return -EINTR;
++	} else {
++		madv_behavior->vma = vma;
++	}
+ 
+-	/* vm_flags is protected by the mmap_lock held in write mode. */
+-	vma_start_write(vma);
+ 	vma->flags = new_vma_flags;
+ 	if (set_new_anon_name)
+ 		return replace_anon_vma_name(vma, anon_name);
+--- a/mm/memory.c~mm-use-vma_start_write_killable-in-mm-syscalls
++++ a/mm/memory.c
+@@ -366,6 +366,8 @@ void free_pgd_range(struct mmu_gather *t
+  * page tables that should be removed.  This can differ from the vma mappings on
+  * some archs that may have mappings that need to be removed outside the vmas.
+  * Note that the prev->vm_end and next->vm_start are often used.
++ * We don't use vma_start_write_killable() because page tables should be freed
++ * even if the task is being killed.
+  *
+  * The vma_end differs from the pg_end when a dup_mmap() failed and the tree has
+  * unrelated data to the mm_struct being torn down.
+--- a/mm/mempolicy.c~mm-use-vma_start_write_killable-in-mm-syscalls
++++ a/mm/mempolicy.c
+@@ -1784,7 +1784,8 @@ SYSCALL_DEFINE4(set_mempolicy_home_node,
+ 		return -EINVAL;
+ 	if (end == start)
+ 		return 0;
+-	mmap_write_lock(mm);
++	if (mmap_write_lock_killable(mm))
++		return -EINTR;
+ 	prev = vma_prev(&vmi);
+ 	for_each_vma_range(vmi, vma, end) {
+ 		/*
+@@ -1801,13 +1802,19 @@ SYSCALL_DEFINE4(set_mempolicy_home_node,
+ 			err = -EOPNOTSUPP;
+ 			break;
+ 		}
++		/*
++		 * Lock the VMA early to avoid extra work if fatal signal
++		 * is pending.
++		 */
++		err = vma_start_write_killable(vma);
++		if (err)
++			break;
+ 		new = mpol_dup(old);
+ 		if (IS_ERR(new)) {
+ 			err = PTR_ERR(new);
+ 			break;
+ 		}
+ 
+-		vma_start_write(vma);
+ 		new->home_node = home_node;
+ 		err = mbind_range(&vmi, vma, &prev, start, end, new);
+ 		mpol_put(new);
+--- a/mm/mlock.c~mm-use-vma_start_write_killable-in-mm-syscalls
++++ a/mm/mlock.c
+@@ -419,8 +419,10 @@ out:
+  *
+  * Called for mlock(), mlock2() and mlockall(), to set @vma VM_LOCKED;
+  * called for munlock() and munlockall(), to clear VM_LOCKED from @vma.
++ *
++ * Return: 0 on success, -EINTR if fatal signal is pending.
+  */
+-static void mlock_vma_pages_range(struct vm_area_struct *vma,
++static int mlock_vma_pages_range(struct vm_area_struct *vma,
+ 	unsigned long start, unsigned long end,
+ 	vma_flags_t *new_vma_flags)
+ {
+@@ -442,7 +444,9 @@ static void mlock_vma_pages_range(struct
  	 */
--	if (remove_next)
--		ret = dup_anon_vma(target, next, &anon_dup);
--	if (!ret && vmg->copied_from)
--		ret = dup_anon_vma(target, vmg->copied_from, &anon_dup);
--	if (ret)
--		return ret;
-+	if (remove_next) {
-+		err = dup_anon_vma(target, next, &anon_dup);
-+		if (err)
-+			return err;
-+	}
-+	if (vmg->copied_from) {
-+		err = dup_anon_vma(target, vmg->copied_from, &anon_dup);
-+		if (err)
-+			return err;
-+	}
+ 	if (vma_flags_test(new_vma_flags, VMA_LOCKED_BIT))
+ 		vma_flags_set(new_vma_flags, VMA_IO_BIT);
+-	vma_start_write(vma);
++	if (vma_start_write_killable(vma))
++		return -EINTR;
++
+ 	vma_flags_reset_once(vma, new_vma_flags);
  
- 	if (remove_next) {
- 		vma_flags_t next_sticky;
+ 	lru_add_drain();
+@@ -453,6 +457,7 @@ static void mlock_vma_pages_range(struct
+ 		vma_flags_clear(new_vma_flags, VMA_IO_BIT);
+ 		vma_flags_reset_once(vma, new_vma_flags);
+ 	}
++	return 0;
+ }
+ 
+ /*
+@@ -506,11 +511,15 @@ static int mlock_fixup(struct vma_iterat
+ 	 */
+ 	if (vma_flags_test(&new_vma_flags, VMA_LOCKED_BIT) &&
+ 	    vma_flags_test(&old_vma_flags, VMA_LOCKED_BIT)) {
++		ret = vma_start_write_killable(vma);
++		if (ret)
++			goto out; /* mm->locked_vm is fine as nr_pages == 0 */
+ 		/* No work to do, and mlocking twice would be wrong */
+-		vma_start_write(vma);
+ 		vma->flags = new_vma_flags;
+ 	} else {
+-		mlock_vma_pages_range(vma, start, end, &new_vma_flags);
++		ret = mlock_vma_pages_range(vma, start, end, &new_vma_flags);
++		if (ret)
++			mm->locked_vm -= nr_pages;
+ 	}
+ out:
+ 	*prev = vma;
+@@ -739,9 +748,18 @@ static int apply_mlockall_flags(int flag
+ 
+ 		error = mlock_fixup(&vmi, vma, &prev, vma->vm_start, vma->vm_end,
+ 				    newflags);
+-		/* Ignore errors, but prev needs fixing up. */
+-		if (error)
++		if (error) {
++			/*
++			 * If we failed due to a pending fatal signal, return
++			 * now. If we locked the vma before signal arrived, it
++			 * will be unlocked when we drop mmap_write_lock.
++			 */
++			if (fatal_signal_pending(current))
++				return -EINTR;
++
++			/* Ignore errors, but prev needs fixing up. */
+ 			prev = vma;
++		}
+ 		cond_resched();
+ 	}
+ out:
+--- a/mm/mprotect.c~mm-use-vma_start_write_killable-in-mm-syscalls
++++ a/mm/mprotect.c
+@@ -716,6 +716,7 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 	const vma_flags_t old_vma_flags = READ_ONCE(vma->flags);
+ 	vma_flags_t new_vma_flags = legacy_to_vma_flags(newflags);
+ 	long nrpages = (end - start) >> PAGE_SHIFT;
++	struct vm_area_struct *new_vma;
+ 	unsigned int mm_cp_flags = 0;
+ 	unsigned long charged = 0;
+ 	int error;
+@@ -772,19 +773,27 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 		vma_flags_clear(&new_vma_flags, VMA_ACCOUNT_BIT);
+ 	}
+ 
+-	vma = vma_modify_flags(vmi, *pprev, vma, start, end, &new_vma_flags);
+-	if (IS_ERR(vma)) {
+-		error = PTR_ERR(vma);
++	new_vma = vma_modify_flags(vmi, *pprev, vma, start, end,
++				   &new_vma_flags);
++	if (IS_ERR(new_vma)) {
++		error = PTR_ERR(new_vma);
+ 		goto fail;
+ 	}
+ 
+-	*pprev = vma;
+-
+ 	/*
+-	 * vm_flags and vm_page_prot are protected by the mmap_lock
+-	 * held in write mode.
++	 * If a new vma was created during vma_modify_flags, the resulting
++	 * vma is already locked. Skip re-locking new vma in this case.
+ 	 */
+-	vma_start_write(vma);
++	if (new_vma == vma) {
++		error = vma_start_write_killable(vma);
++		if (error)
++			goto fail;
++	} else {
++		vma = new_vma;
++	}
++
++	*pprev = vma;
++
+ 	vma_flags_reset_once(vma, &new_vma_flags);
+ 	if (vma_wants_manual_pte_write_upgrade(vma))
+ 		mm_cp_flags |= MM_CP_TRY_CHANGE_WRITABLE;
+--- a/mm/mremap.c~mm-use-vma_start_write_killable-in-mm-syscalls
++++ a/mm/mremap.c
+@@ -1348,6 +1348,11 @@ static unsigned long move_vma(struct vma
+ 	if (err)
+ 		return err;
+ 
++	/* We don't want racing faults. */
++	err = vma_start_write_killable(vrm->vma);
++	if (err)
++		return err;
++
+ 	/*
+ 	 * If accounted, determine the number of bytes the operation will
+ 	 * charge.
+@@ -1355,9 +1360,6 @@ static unsigned long move_vma(struct vma
+ 	if (!vrm_calc_charge(vrm))
+ 		return -ENOMEM;
+ 
+-	/* We don't want racing faults. */
+-	vma_start_write(vrm->vma);
+-
+ 	/* Perform copy step. */
+ 	err = copy_vma_and_data(vrm, &new_vma);
+ 	/*
+--- a/mm/mseal.c~mm-use-vma_start_write_killable-in-mm-syscalls
++++ a/mm/mseal.c
+@@ -70,14 +70,28 @@ static int mseal_apply(struct mm_struct
+ 
+ 		if (!vma_test(vma, VMA_SEALED_BIT)) {
+ 			vma_flags_t vma_flags = vma->flags;
++			struct vm_area_struct *new_vma;
+ 
+ 			vma_flags_set(&vma_flags, VMA_SEALED_BIT);
+ 
+-			vma = vma_modify_flags(&vmi, prev, vma, curr_start,
+-					       curr_end, &vma_flags);
+-			if (IS_ERR(vma))
+-				return PTR_ERR(vma);
+-			vma_start_write(vma);
++			new_vma = vma_modify_flags(&vmi, prev, vma, curr_start,
++						   curr_end, &vma_flags);
++			if (IS_ERR(new_vma))
++				return PTR_ERR(new_vma);
++
++			/*
++			 * If a new vma was created during vma_modify_flags,
++			 * the resulting vma is already locked.
++			 * Skip re-locking new vma in this case.
++			 */
++			if (new_vma == vma) {
++				int err = vma_start_write_killable(vma);
++				if (err)
++					return err;
++			} else {
++				vma = new_vma;
++			}
++
+ 			vma_set_flags(vma, VMA_SEALED_BIT);
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from surenb@google.com are
 
-mm-use-vma_start_write_killable-in-mm-syscalls.patch
 mm-khugepaged-use-vma_start_write_killable-in-collapse_huge_page.patch
 mm-vma-use-vma_start_write_killable-in-vma-operations.patch
 mm-use-vma_start_write_killable-in-process_vma_walk_lock.patch
