@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02AA127456;
-	Tue, 31 Mar 2026 23:46:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21FA7379ECF
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 23:51:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775000812; cv=none; b=A2MZg1IGeUTKBVxQ+t+bNj9e9CyTEjsiNVYTfEf2Qs2mjalmMMCluNSpOzfMybPwyCux9d3kDUS+nncq9QfuCAH4amsaHxjk2vJmBf3QXhVHRJ+cVYOfdRzOpK+wKayUUKm7u4nYZccVgl32CJNNISuXRJJwhdnLfXrCBBqNZfo=
+	t=1775001072; cv=none; b=oCpdL7Lahka9IQexiBjaAn3eGH+FrgLTwtjn9Pl+2s55YJziK49CzbmHDQImGMPdt2/SDzziQfsydzo79t0ADSWgzqm7In2FHtoE2oFHwQMtN/ogX9pJxv7tW8CbQ0W0Y0ebPZEN6hzllliv0DZBC++L+Xoa9ALpuR/m+hyBVKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775000812; c=relaxed/simple;
-	bh=uTfxMIdCjUI48+fOQyhVdaZFMou0ASKHiiF1qNeZ/gs=;
-	h=Date:To:From:Subject:Message-Id; b=ic8fS5L9aH3QmT+ao1oeqACiiXLx7l5Kc7OZWNtWAooVS3T+KLEDnOBHLTj2kHatdgAvAddXFsd5GtQ4Gv/aOFX5xFEoJPMK7xlvKIjE4UwUV8OKAeFTCl8Do1V+0nmUzjpNv3VNdNNQWeyfM7/yRvOcPMnAUmrauBY3sLggnvY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eE5Mo80u; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775001072; c=relaxed/simple;
+	bh=/OcJNCbTwM9XZH52PJOkuHnP5rBkuZVG2KCAEwj0uX0=;
+	h=Date:To:From:Subject:Message-Id; b=vGvLHRnQDpXbbbuoDDsGZDfQnhD29U0dmeGIlG1089wAPzqXVkOfn8LWFAgI6y4y/Bg0PZne6j4Z7081cfdJ1wmTYhM2roh+xuNn2aFnjMeSBD5qMHqFSSCt+ZFQLDokZJxBmLSe08WtJubkW5Z+nc5CqlIc6pDlTPSZa3qjCsY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DkX1XfCz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eE5Mo80u"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BA4DC19423;
-	Tue, 31 Mar 2026 23:46:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DkX1XfCz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FD2EC19423;
+	Tue, 31 Mar 2026 23:51:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775000811;
-	bh=uTfxMIdCjUI48+fOQyhVdaZFMou0ASKHiiF1qNeZ/gs=;
+	s=korg; t=1775001071;
+	bh=/OcJNCbTwM9XZH52PJOkuHnP5rBkuZVG2KCAEwj0uX0=;
 	h=Date:To:From:Subject:From;
-	b=eE5Mo80uWufPIoi47i/mmk39xzXxfPKNS9mxUoQTxaHDwzUhuakqCa4x0bMDwnNPw
-	 G9g1pfIRIDy/2VbTJi1Hm4BOMgJFP6jY9my60OJB1NzCQyhoGzeeaaDIqVfUAptD1b
-	 y+4CjckIvj3DKIJUeXxwwNb0Kyqn0PK/9LlVegvg=
-Date: Tue, 31 Mar 2026 16:46:51 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,lirongqing@baidu.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=DkX1XfCzgC82qGIw6mih42gADbW+lVO2rOtv99R+PMmAunSUEFd+P5zJPfFtFpKmS
+	 hJXNlXMyZayajUM19yK5XuNnaKAfp30riuaRX5b0C847cuKypnvAiJpWKFIMgeQmLl
+	 VKEkSlZHv+bjAvUrH5uFilp2iIhAtnjU4uYftpC4=
+Date: Tue, 31 Mar 2026 16:51:10 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,david@kernel.org,liwang@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch removed from -mm tree
-Message-Id: <20260331234651.8BA4DC19423@smtp.kernel.org>
+Subject: + selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible.patch added to mm-new branch
+Message-Id: <20260331235111.9FD2EC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,201 +34,251 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/vmalloc: use dedicated unbound workqueues for vmap drain
-has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
+The patch titled
+     Subject: selftests/mm: skip hugetlb_dio tests when DIO alignment is incompatible
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: use dedicated unbound workqueues for vmap drain
-Date: Tue, 31 Mar 2026 22:23:52 +0200
+From: Li Wang <liwang@redhat.com>
+Subject: selftests/mm: skip hugetlb_dio tests when DIO alignment is incompatible
+Date: Mon, 30 Mar 2026 20:53:07 +0800
 
-drain_vmap_area_work() function can take >10ms to complete when there are
-many accumulated vmap areas in a system with high CPU count, causing
-workqueue watchdog warnings when run via schedule_work():
+hugetlb_dio test uses sub-page offsets (pagesize / 2) to verify that
+hugepages used as DIO user buffers are correctly unpinned at completion.
 
-  workqueue: drain_vmap_area_work hogged CPU for >10000us
+However, on filesystems with a logical block size larger than half the
+page size (e.g., 4K-sector block devices), these unaligned DIO writes are
+rejected with -EINVAL, causing the test to fail unexpectedly.
 
-Move the top-level drain work to a dedicated WQ_UNBOUND workqueue so the
-scheduler can run this background work on any available CPU, improving
-responsiveness.  Use the WQ_MEM_RECLAIM to ensure forward progress under
-memory pressure.
+Add get_dio_alignment() to query the filesystem's required DIO alignment
+via statx(STATX_DIOALIGN) and skip individual test cases whose file offset
+or write size is not a multiple of that alignment.  Aligned cases continue
+to run so the core coverage is preserved.
 
-Move purge helpers to separate WQ_UNBOUND | WQ_MEM_RECLAIM workqueue. 
-This allows drain_vmap_work to wait for helpers completion without
-creating dependency on the same rescuer thread and avoid a potential
-parent/child deadlock.
+While here, open the temporary file once in main() and share the fd across
+all test cases instead of reopening it in each invocation.
 
-Simplify purge helper scheduling by removing cpumask-based iteration to
-iterating directly over vmap nodes checking work_queued state.
+=== Reproduce Steps ===
 
-Link: https://lkml.kernel.org/r/20260331202352.879718-1-urezki@gmail.com
-Fixes: 72210662c5a2 ("mm: vmalloc: offload free_vmap_area_lock lock")
-Link: https://lore.kernel.org/all/20260319074307.2325-1-lirongqing@baidu.com/
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Li RongQing <lirongqing@baidu.com>
-Cc: <stable@vger.kernel.org>
+  # dd if=/dev/zero of=/tmp/test.img bs=1M count=512
+  # losetup --sector-size 4096 /dev/loop0 /tmp/test.img
+  # mkfs.xfs /dev/loop0
+  # mkdir -p /mnt/dio_test
+  # mount /dev/loop0 /mnt/dio_test
+
+  // Modify test to open /mnt/dio_test and rebuild it:
+  -       fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
+  +       fd = open("/mnt/dio_test", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
+
+  # getconf PAGESIZE
+  4096
+
+  # echo 100 >/proc/sys/vm/nr_hugepages
+
+  # ./hugetlb_dio
+  TAP version 13
+  1..4
+  # No. Free pages before allocation : 100
+  # No. Free pages after munmap : 100
+  ok 1 free huge pages from 0-12288
+  Bail out! Error writing to file
+  : Invalid argument (22)
+  # Planned tests != run tests (4 != 1)
+  # Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+
+Link: https://lkml.kernel.org/r/20260330125307.98581-1-liwang@redhat.com
+Signed-off-by: Li Wang <liwang@redhat.com>
+Suggested-by: Mike Rapoport <rppt@kernel.org>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   79 ++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 52 insertions(+), 27 deletions(-)
+ tools/testing/selftests/mm/hugetlb_dio.c |   97 ++++++++++++++++-----
+ 1 file changed, 75 insertions(+), 22 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain
-+++ a/mm/vmalloc.c
-@@ -949,6 +949,7 @@ static struct vmap_node {
- 	struct list_head purge_list;
- 	struct work_struct purge_work;
- 	unsigned long nr_purged;
-+	bool work_queued;
- } single;
+--- a/tools/testing/selftests/mm/hugetlb_dio.c~selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible
++++ a/tools/testing/selftests/mm/hugetlb_dio.c
+@@ -17,12 +17,57 @@
+ #include <unistd.h>
+ #include <string.h>
+ #include <sys/mman.h>
++#include <sys/syscall.h>
+ #include "vm_util.h"
+ #include "kselftest.h"
  
- /*
-@@ -1067,6 +1068,8 @@ static void reclaim_and_purge_vmap_areas
- static BLOCKING_NOTIFIER_HEAD(vmap_notify_list);
- static void drain_vmap_area_work(struct work_struct *work);
- static DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
-+static struct workqueue_struct *drain_vmap_helpers_wq;
-+static struct workqueue_struct *drain_vmap_wq;
- 
- static __cacheline_aligned_in_smp atomic_long_t vmap_lazy_nr;
- 
-@@ -2329,6 +2332,16 @@ static void purge_vmap_node(struct work_
- 	reclaim_list_global(&local_list);
- }
- 
-+static bool
-+schedule_drain_vmap_work(struct workqueue_struct *wq,
-+		struct work_struct *work)
-+{
-+	if (wq)
-+		return queue_work(wq, work);
+-void run_dio_using_hugetlb(unsigned int start_off, unsigned int end_off)
++#ifndef STATX_DIOALIGN
++#define STATX_DIOALIGN		0x00002000U
++#endif
 +
-+	return false;
++static int get_dio_alignment(int fd)
++{
++	struct statx stx;
++	int ret;
++
++	ret = syscall(__NR_statx, fd, "", AT_EMPTY_PATH, STATX_DIOALIGN, &stx);
++	if (ret < 0)
++		return -1;
++
++	/*
++	 * If STATX_DIOALIGN is unsupported, assume no alignment
++	 * constraint and let the test proceed.
++	 */
++	if (!(stx.stx_mask & STATX_DIOALIGN) || !stx.stx_dio_offset_align)
++		return 1;
++
++	return stx.stx_dio_offset_align;
 +}
 +
- /*
-  * Purges all lazily-freed vmap areas.
-  */
-@@ -2336,19 +2349,12 @@ static bool __purge_vmap_area_lazy(unsig
- 		bool full_pool_decay)
++static bool check_dio_alignment(unsigned int start_off,
++			        unsigned int end_off, unsigned int align)
++{
++	unsigned int writesize = end_off - start_off;
++
++	/*
++	 * The kernel's DIO path checks that file offset, length, and
++	 * buffer address are all multiples of dio_offset_align.  When
++	 * this test case's parameters don't satisfy that, the write
++	 * would fail with -EINVAL before exercising the hugetlb unpin
++	 * path, so skip.
++	 */
++	if (start_off % align != 0 || writesize % align != 0) {
++		ksft_test_result_skip("DIO align=%u incompatible with offset %u writesize %u\n",
++				align, start_off, writesize);
++		return false;
++	}
++
++	return true;
++}
++
++static void run_dio_using_hugetlb(int fd, unsigned int start_off,
++				  unsigned int end_off)
  {
- 	unsigned long nr_purged_areas = 0;
-+	unsigned int nr_purge_nodes = 0;
- 	unsigned int nr_purge_helpers;
--	static cpumask_t purge_nodes;
--	unsigned int nr_purge_nodes;
- 	struct vmap_node *vn;
--	int i;
+-	int fd;
+ 	char *buffer =  NULL;
+ 	char *orig_buffer = NULL;
+ 	size_t h_pagesize = 0;
+@@ -39,10 +84,9 @@ void run_dio_using_hugetlb(unsigned int
+ 	if (!h_pagesize)
+ 		ksft_exit_fail_msg("Unable to determine huge page size\n");
  
- 	lockdep_assert_held(&vmap_purge_lock);
+-	/* Open the file to DIO */
+-	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
+-	if (fd < 0)
+-		ksft_exit_fail_perror("Error opening file\n");
++	/* Reset file position since fd is shared across tests */
++	if (lseek(fd, 0, SEEK_SET) < 0)
++		ksft_exit_fail_perror("lseek failed\n");
  
--	/*
--	 * Use cpumask to mark which node has to be processed.
--	 */
--	purge_nodes = CPU_MASK_NONE;
--
- 	for_each_vmap_node(vn) {
- 		INIT_LIST_HEAD(&vn->purge_list);
- 		vn->skip_populate = full_pool_decay;
-@@ -2368,10 +2374,9 @@ static bool __purge_vmap_area_lazy(unsig
- 		end = max(end, list_last_entry(&vn->purge_list,
- 			struct vmap_area, list)->va_end);
+ 	/* Get the free huge pages before allocation */
+ 	free_hpage_b = get_free_hugepages();
+@@ -71,7 +115,6 @@ void run_dio_using_hugetlb(unsigned int
  
--		cpumask_set_cpu(node_to_id(vn), &purge_nodes);
-+		nr_purge_nodes++;
- 	}
+ 	/* unmap the huge page */
+ 	munmap(orig_buffer, h_pagesize);
+-	close(fd);
  
--	nr_purge_nodes = cpumask_weight(&purge_nodes);
- 	if (nr_purge_nodes > 0) {
- 		flush_tlb_kernel_range(start, end);
- 
-@@ -2379,29 +2384,31 @@ static bool __purge_vmap_area_lazy(unsig
- 		nr_purge_helpers = atomic_long_read(&vmap_lazy_nr) / lazy_max_pages();
- 		nr_purge_helpers = clamp(nr_purge_helpers, 1U, nr_purge_nodes) - 1;
- 
--		for_each_cpu(i, &purge_nodes) {
--			vn = &vmap_nodes[i];
-+		for_each_vmap_node(vn) {
-+			vn->work_queued = false;
-+
-+			if (list_empty(&vn->purge_list))
-+				continue;
- 
- 			if (nr_purge_helpers > 0) {
- 				INIT_WORK(&vn->purge_work, purge_vmap_node);
-+				vn->work_queued = schedule_drain_vmap_work(
-+					READ_ONCE(drain_vmap_helpers_wq), &vn->purge_work);
- 
--				if (cpumask_test_cpu(i, cpu_online_mask))
--					schedule_work_on(i, &vn->purge_work);
--				else
--					schedule_work(&vn->purge_work);
--
--				nr_purge_helpers--;
--			} else {
--				vn->purge_work.func = NULL;
--				purge_vmap_node(&vn->purge_work);
--				nr_purged_areas += vn->nr_purged;
-+				if (vn->work_queued) {
-+					nr_purge_helpers--;
-+					continue;
-+				}
- 			}
--		}
- 
--		for_each_cpu(i, &purge_nodes) {
--			vn = &vmap_nodes[i];
-+			/* Sync path. Process locally. */
-+			purge_vmap_node(&vn->purge_work);
-+			nr_purged_areas += vn->nr_purged;
-+		}
- 
--			if (vn->purge_work.func) {
-+		/* Wait for completion if queued any. */
-+		for_each_vmap_node(vn) {
-+			if (vn->work_queued) {
- 				flush_work(&vn->purge_work);
- 				nr_purged_areas += vn->nr_purged;
- 			}
-@@ -2465,7 +2472,8 @@ static void free_vmap_area_noflush(struc
- 
- 	/* After this point, we may free va at any time */
- 	if (unlikely(nr_lazy > nr_lazy_max))
--		schedule_work(&drain_vmap_work);
-+		schedule_drain_vmap_work(READ_ONCE(drain_vmap_wq),
-+			&drain_vmap_work);
+ 	/* Get the free huge pages after unmap*/
+ 	free_hpage_a = get_free_hugepages();
+@@ -87,39 +130,49 @@ void run_dio_using_hugetlb(unsigned int
+ 			 "free huge pages from %u-%u\n", start_off, end_off);
  }
  
- /*
-@@ -5483,3 +5491,20 @@ void __init vmalloc_init(void)
- 	vmap_node_shrinker->scan_objects = vmap_node_shrink_scan;
- 	shrinker_register(vmap_node_shrinker);
- }
-+
-+static int __init vmalloc_init_workqueue(void)
++static void run_test(int fd, unsigned int start_off,
++		     unsigned int end_off, unsigned int align)
 +{
-+	struct workqueue_struct *drain_wq, *helpers_wq;
-+	unsigned int flags = WQ_UNBOUND | WQ_MEM_RECLAIM;
++	if (!check_dio_alignment(start_off, end_off, align))
++		return;
 +
-+	drain_wq = alloc_workqueue("vmap_drain", flags, 0);
-+	WARN_ON_ONCE(drain_wq == NULL);
-+	WRITE_ONCE(drain_vmap_wq, drain_wq);
-+
-+	helpers_wq = alloc_workqueue("vmap_drain_helpers", flags, 0);
-+	WARN_ON_ONCE(helpers_wq == NULL);
-+	WRITE_ONCE(drain_vmap_helpers_wq, helpers_wq);
-+
-+	return 0;
++	run_dio_using_hugetlb(fd, start_off, end_off);
 +}
-+early_initcall(vmalloc_init_workqueue);
++
+ int main(void)
+ {
+-	size_t pagesize = 0;
+-	int fd;
++	int fd, align;
++	const size_t pagesize = psize();
+ 
+ 	ksft_print_header();
+ 
+-	/* Open the file to DIO */
+-	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
+-	if (fd < 0)
+-		ksft_exit_skip("Unable to allocate file: %s\n", strerror(errno));
+-	close(fd);
+-
+ 	/* Check if huge pages are free */
+ 	if (!get_free_hugepages())
+ 		ksft_exit_skip("No free hugepage, exiting\n");
+ 
+-	ksft_set_plan(4);
++	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
++	if (fd < 0)
++		ksft_exit_skip("Unable to allocate file: %s\n", strerror(errno));
+ 
+-	/* Get base page size */
+-	pagesize  = psize();
++	align = get_dio_alignment(fd);
++	if (align < 0)
++		ksft_exit_skip("Unable to obtain DIO alignment: %s\n",
++				strerror(errno));
++	ksft_set_plan(4);
+ 
+ 	/* start and end is aligned to pagesize */
+-	run_dio_using_hugetlb(0, (pagesize * 3));
++	run_test(fd, 0, (pagesize * 3), align);
+ 
+ 	/* start is aligned but end is not aligned */
+-	run_dio_using_hugetlb(0, (pagesize * 3) - (pagesize / 2));
++	run_test(fd, 0, (pagesize * 3) - (pagesize / 2), align);
+ 
+ 	/* start is unaligned and end is aligned */
+-	run_dio_using_hugetlb(pagesize / 2, (pagesize * 3));
++	run_test(fd, pagesize / 2, (pagesize * 3), align);
+ 
+ 	/* both start and end are unaligned */
+-	run_dio_using_hugetlb(pagesize / 2, (pagesize * 3) + (pagesize / 2));
++	run_test(fd, pagesize / 2, (pagesize * 3) + (pagesize / 2), align);
++
++	close(fd);
+ 
+ 	ksft_finished();
+ }
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from liwang@redhat.com are
 
-mm-vmalloc-use-dedicated-unbound-workqueue-for-vmap-purge-drain.patch
+selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible.patch
 
