@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8F4B2F9C37
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 22:20:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D434F3EC2CB;
+	Tue, 31 Mar 2026 22:40:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774995640; cv=none; b=SLdT+CzinBpTAxx8ysYV0Wt5ol77fm3uCpAJpQYJ/CtokpGNsGgS0MiRBnxpzlJWFIm7GnmBI0JQaUhZFBN0bx8HIdYEgLNr1CUUO5CqDOEpi8Jdu4eHBWOQ3oGmSnXGUnLmCdbVFOLBckp1zG1w8jk4TBcdjsFOaYZIxgJ++jM=
+	t=1774996815; cv=none; b=jfv7pfzCzuoecJjxP7ctuI6Qu5O7Hs2Af9IO87s8bMlsNnrk4gcs1TH9Khm7MOpvERMlOYrCH8JMKKgaX0xyA1odKz3HuVrLLbcV/tkjzL2iX4y8EMQYWY2tWZlv+a6BiSCRvWZVCFePsJtiBKsdEHPma/IbbJyGalLDtvdnYzE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774995640; c=relaxed/simple;
-	bh=peoC3jpnMVKx2LyuoaSfd/7qgslZNlFGuBICAe2CzIE=;
-	h=Date:To:From:Subject:Message-Id; b=p7By2qudf3QzD6SwphVA2UMUx8E5mi4YdZPSZK/mqKus+uNz1kKZ86g8GaU/eITs4FHC01kic86V937UWMiiDCrmf19+1Uxae+fCQK0xPzYLRRrvVN/hDL+frMDi/c3BUq7JBmLA8d6B/o/7X464c24rqTdnNfu/9Rju9T15eHw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L181s4f6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774996815; c=relaxed/simple;
+	bh=jB4tWs9RKbmWfxy1lEMujQC5KfUDS5qhAk/bfkV4PAA=;
+	h=Date:To:From:Subject:Message-Id; b=eFMSIhl64MOBvJ4KRrMK7TS4NHqauuXzKz46xn6ENH4cHcSfyTjD0g9KMtRiq/kSTpsqmnnAZNR53TcQ+Yt8lTnBTGMhqv7q6pRc9Y9y7iGhoL5i6jRrh01VUH/xeKQyCUvr0cNd//AV+6ROad70A+Q4qCv3oZoB0M8zRbWZa+A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hoEM9H/c; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L181s4f6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A97EC19423;
-	Tue, 31 Mar 2026 22:20:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hoEM9H/c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 771EBC19423;
+	Tue, 31 Mar 2026 22:40:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774995640;
-	bh=peoC3jpnMVKx2LyuoaSfd/7qgslZNlFGuBICAe2CzIE=;
+	s=korg; t=1774996815;
+	bh=jB4tWs9RKbmWfxy1lEMujQC5KfUDS5qhAk/bfkV4PAA=;
 	h=Date:To:From:Subject:From;
-	b=L181s4f6zmBmE7mr7N+btrXLi7AAcF2tEC5vJpM+VQgyZSOyWnZDj0ZcGustyoIov
-	 /cQJhFM6SKZe5tGHcWxGqnE4oUDdwnDB3w+HNDq+6Q01daSf2wPJ0tu5rpRnbGGz31
-	 GuF8Pevcv3KLzrasuTuwF7oNzbRht74NxygD9vYs=
-Date: Tue, 31 Mar 2026 15:20:39 -0700
-To: mm-commits@vger.kernel.org,yosry@kernel.org,senozhatsky@chromium.org,nphamcs@gmail.com,kanchana.p.sridhar@intel.com,herbert@gondor.apana.org.au,hannes@cmpxchg.org,chengming.zhou@linux.dev,kanchanapsridhar2026@gmail.com,akpm@linux-foundation.org
+	b=hoEM9H/cQRc/l4/wePc5OMX20xwLnpq4s8CwMZSiQDwRKLPNWvf1JzUHwS4GHPvja
+	 PulBK1hQ2Mr030pypfdDbGjoM3Qv5S2Vq81dYiVEHaT9VRZws7pYMEZQ1YOcNO1r6D
+	 QvGShruRRxp6JPsL4RuccVOfNSLJ0H5GgX+NxWZY=
+Date: Tue, 31 Mar 2026 15:40:14 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,lirongqing@baidu.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zswap-tie-per-cpu-acomp_ctx-lifetime-to-the-pool.patch added to mm-unstable branch
-Message-Id: <20260331222040.7A97EC19423@smtp.kernel.org>
+Subject: + mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch added to mm-unstable branch
+Message-Id: <20260331224015.771EBC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: zswap: tie per-CPU acomp_ctx lifetime to the pool
+     Subject: mm/vmalloc: use dedicated unbound workqueues for vmap drain
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-zswap-tie-per-cpu-acomp_ctx-lifetime-to-the-pool.patch
+     mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-tie-per-cpu-acomp_ctx-lifetime-to-the-pool.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,432 +58,194 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Kanchana P. Sridhar" <kanchanapsridhar2026@gmail.com>
-Subject: mm: zswap: tie per-CPU acomp_ctx lifetime to the pool
-Date: Tue, 31 Mar 2026 11:33:51 -0700
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm/vmalloc: use dedicated unbound workqueues for vmap drain
+Date: Tue, 31 Mar 2026 22:23:52 +0200
 
-Currently, per-CPU acomp_ctx are allocated on pool creation and/or CPU
-hotplug, and destroyed on pool destruction or CPU hotunplug.  This
-complicates the lifetime management to save memory while a CPU is
-offlined, which is not very common.
+drain_vmap_area_work() function can take >10ms to complete when there are
+many accumulated vmap areas in a system with high CPU count, causing
+workqueue watchdog warnings when run via schedule_work():
 
-Simplify lifetime management by allocating per-CPU acomp_ctx once on pool
-creation (or CPU hotplug for CPUs onlined later), and keeping them
-allocated until the pool is destroyed.
+  workqueue: drain_vmap_area_work hogged CPU for >10000us
 
-Refactor cleanup code from zswap_cpu_comp_dead() into acomp_ctx_free() to
-be used elsewhere.
+Move the top-level drain work to a dedicated WQ_UNBOUND workqueue so the
+scheduler can run this background work on any available CPU, improving
+responsiveness.  Use the WQ_MEM_RECLAIM to ensure forward progress under
+memory pressure.
 
-The main benefit of using the CPU hotplug multi state instance startup
-callback to allocate the acomp_ctx resources is that it prevents the cores
-from being offlined until the multi state instance addition call returns.
+Move purge helpers to separate WQ_UNBOUND | WQ_MEM_RECLAIM workqueue. 
+This allows drain_vmap_work to wait for helpers completion without
+creating dependency on the same rescuer thread and avoid a potential
+parent/child deadlock.
 
-  From Documentation/core-api/cpu_hotplug.rst:
+Simplify purge helper scheduling by removing cpumask-based iteration to
+iterating directly over vmap nodes checking work_queued state.
 
-    "The node list add/remove operations and the callback invocations are
-     serialized against CPU hotplug operations."
-
-Furthermore, zswap_[de]compress() cannot contend with
-zswap_cpu_comp_prepare() because:
-
-  - During pool creation/deletion, the pool is not in the zswap_pools
-    list.
-
-  - During CPU hot[un]plug, the CPU is not yet online, as Yosry pointed
-    out. zswap_cpu_comp_prepare() will be run on a control CPU,
-    since CPUHP_MM_ZSWP_POOL_PREPARE is in the PREPARE section of "enum
-    cpuhp_state".
-
-  In both these cases, any recursions into zswap reclaim from
-  zswap_cpu_comp_prepare() will be handled by the old pool.
-
-The above two observations enable the following simplifications:
-
- 1) zswap_cpu_comp_prepare():
-
-    a) acomp_ctx mutex locking:
-
-       If the process gets migrated while zswap_cpu_comp_prepare() is
-       running, it will complete on the new CPU. In case of failures, we
-       pass the acomp_ctx pointer obtained at the start of
-       zswap_cpu_comp_prepare() to acomp_ctx_free(), which again, can
-       only undergo migration. There appear to be no contention
-       scenarios that might cause inconsistent values of acomp_ctx's
-       members. Hence, it seems there is no need for
-       mutex_lock(&acomp_ctx->mutex) in zswap_cpu_comp_prepare().
-
-    b) acomp_ctx mutex initialization:
-
-       Since the pool is not yet on zswap_pools list, we don't need to
-       initialize the per-CPU acomp_ctx mutex in
-       zswap_pool_create(). This has been restored to occur in
-       zswap_cpu_comp_prepare().
-
-    c) Subsequent CPU offline-online transitions:
-
-       zswap_cpu_comp_prepare() checks upfront if acomp_ctx->acomp is
-       valid. If so, it returns success. This should handle any CPU
-       hotplug online-offline transitions after pool creation is done.
-
- 2) CPU offline vis-a-vis zswap ops:
-
-    Let's suppose the process is migrated to another CPU before the
-    current CPU is dysfunctional. If zswap_[de]compress() holds the
-    acomp_ctx->mutex lock of the offlined CPU, that mutex will be
-    released once it completes on the new CPU. Since there is no
-    teardown callback, there is no possibility of UAF.
-
- 3) Pool creation/deletion and process migration to another CPU:
-
-    During pool creation/deletion, the pool is not in the zswap_pools
-    list. Hence it cannot contend with zswap ops on that CPU. However,
-    the process can get migrated.
-
-    a) Pool creation --> zswap_cpu_comp_prepare()
-                                --> process migrated:
-                                    * Old CPU offline: no-op.
-                                    * zswap_cpu_comp_prepare() continues
-                                      to run on the new CPU to finish
-                                      allocating acomp_ctx resources for
-                                      the offlined CPU.
-
-    b) Pool deletion --> acomp_ctx_free()
-                                --> process migrated:
-                                    * Old CPU offline: no-op.
-                                    * acomp_ctx_free() continues
-                                      to run on the new CPU to finish
-                                      de-allocating acomp_ctx resources
-                                      for the offlined CPU.
-
- 4) Pool deletion vis-a-vis CPU onlining:
-
-    The call to cpuhp_state_remove_instance() cannot race with
-    zswap_cpu_comp_prepare() because of hotplug synchronization.
-
-The current acomp_ctx_get_cpu_lock()/acomp_ctx_put_unlock() are deleted. 
-Instead, zswap_[de]compress() directly call
-mutex_[un]lock(&acomp_ctx->mutex).
-
-The per-CPU memory cost of not deleting the acomp_ctx resources upon CPU
-offlining, and only deleting them when the pool is destroyed, is 8.28 KB
-on x86_64.  This cost is only paid when a CPU is offlined, until it is
-onlined again.
-
-Link: https://lkml.kernel.org/r/20260331183351.29844-3-kanchanapsridhar2026@gmail.com
-Co-developed-by: Kanchana P. Sridhar <kanchanapsridhar2026@gmail.com>
-Signed-off-by: Kanchana P. Sridhar <kanchanapsridhar2026@gmail.com>
-Signed-off-by: Kanchana P Sridhar <kanchana.p.sridhar@intel.com>
-Acked-by: Yosry Ahmed <yosry@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lkml.kernel.org/r/20260331202352.879718-1-urezki@gmail.com
+Fixes: 72210662c5a2 ("mm: vmalloc: offload free_vmap_area_lock lock")
+Link: https://lore.kernel.org/all/20260319074307.2325-1-lirongqing@baidu.com/
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Li RongQing <lirongqing@baidu.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |  180 ++++++++++++++++++++++-----------------------------
- 1 file changed, 80 insertions(+), 100 deletions(-)
+ mm/vmalloc.c |   79 ++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 52 insertions(+), 27 deletions(-)
 
---- a/mm/zswap.c~mm-zswap-tie-per-cpu-acomp_ctx-lifetime-to-the-pool
-+++ a/mm/zswap.c
-@@ -242,6 +242,34 @@ static inline struct xarray *swap_zswap_
- **********************************/
- static void __zswap_pool_empty(struct percpu_ref *ref);
+--- a/mm/vmalloc.c~mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain
++++ a/mm/vmalloc.c
+@@ -949,6 +949,7 @@ static struct vmap_node {
+ 	struct list_head purge_list;
+ 	struct work_struct purge_work;
+ 	unsigned long nr_purged;
++	bool work_queued;
+ } single;
  
-+static void acomp_ctx_free(struct crypto_acomp_ctx *acomp_ctx)
+ /*
+@@ -1067,6 +1068,8 @@ static void reclaim_and_purge_vmap_areas
+ static BLOCKING_NOTIFIER_HEAD(vmap_notify_list);
+ static void drain_vmap_area_work(struct work_struct *work);
+ static DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
++static struct workqueue_struct *drain_vmap_helpers_wq;
++static struct workqueue_struct *drain_vmap_wq;
+ 
+ static __cacheline_aligned_in_smp atomic_long_t vmap_lazy_nr;
+ 
+@@ -2329,6 +2332,16 @@ static void purge_vmap_node(struct work_
+ 	reclaim_list_global(&local_list);
+ }
+ 
++static bool
++schedule_drain_vmap_work(struct workqueue_struct *wq,
++		struct work_struct *work)
 +{
-+	if (!acomp_ctx)
-+		return;
++	if (wq)
++		return queue_work(wq, work);
 +
-+	/*
-+	 * If there was an error in allocating @acomp_ctx->req, it
-+	 * would be set to NULL.
-+	 */
-+	if (acomp_ctx->req)
-+		acomp_request_free(acomp_ctx->req);
-+
-+	acomp_ctx->req = NULL;
-+
-+	/*
-+	 * We have to handle both cases here: an error pointer return from
-+	 * crypto_alloc_acomp_node(); and a) NULL initialization by zswap, or
-+	 * b) NULL assignment done in a previous call to acomp_ctx_free().
-+	 */
-+	if (!IS_ERR_OR_NULL(acomp_ctx->acomp))
-+		crypto_free_acomp(acomp_ctx->acomp);
-+
-+	acomp_ctx->acomp = NULL;
-+
-+	kfree(acomp_ctx->buffer);
-+	acomp_ctx->buffer = NULL;
++	return false;
 +}
 +
- static struct zswap_pool *zswap_pool_create(char *compressor)
+ /*
+  * Purges all lazily-freed vmap areas.
+  */
+@@ -2336,19 +2349,12 @@ static bool __purge_vmap_area_lazy(unsig
+ 		bool full_pool_decay)
  {
- 	struct zswap_pool *pool;
-@@ -263,19 +291,27 @@ static struct zswap_pool *zswap_pool_cre
+ 	unsigned long nr_purged_areas = 0;
++	unsigned int nr_purge_nodes = 0;
+ 	unsigned int nr_purge_helpers;
+-	static cpumask_t purge_nodes;
+-	unsigned int nr_purge_nodes;
+ 	struct vmap_node *vn;
+-	int i;
  
- 	strscpy(pool->tfm_name, compressor, sizeof(pool->tfm_name));
- 
--	pool->acomp_ctx = alloc_percpu(*pool->acomp_ctx);
-+	/* Many things rely on the zero-initialization. */
-+	pool->acomp_ctx = alloc_percpu_gfp(*pool->acomp_ctx,
-+					   GFP_KERNEL | __GFP_ZERO);
- 	if (!pool->acomp_ctx) {
- 		pr_err("percpu alloc failed\n");
- 		goto error;
- 	}
- 
--	for_each_possible_cpu(cpu)
--		mutex_init(&per_cpu_ptr(pool->acomp_ctx, cpu)->mutex);
--
-+	/*
-+	 * This is serialized against CPU hotplug operations. Hence, cores
-+	 * cannot be offlined until this finishes.
-+	 */
- 	ret = cpuhp_state_add_instance(CPUHP_MM_ZSWP_POOL_PREPARE,
- 				       &pool->node);
-+
-+	/*
-+	 * cpuhp_state_add_instance() will not cleanup on failure since
-+	 * we don't register a hotunplug callback.
-+	 */
- 	if (ret)
--		goto error;
-+		goto cpuhp_add_fail;
- 
- 	/* being the current pool takes 1 ref; this func expects the
- 	 * caller to always add the new pool as the current pool
-@@ -292,6 +328,10 @@ static struct zswap_pool *zswap_pool_cre
- 
- ref_fail:
- 	cpuhp_state_remove_instance(CPUHP_MM_ZSWP_POOL_PREPARE, &pool->node);
-+
-+cpuhp_add_fail:
-+	for_each_possible_cpu(cpu)
-+		acomp_ctx_free(per_cpu_ptr(pool->acomp_ctx, cpu));
- error:
- 	if (pool->acomp_ctx)
- 		free_percpu(pool->acomp_ctx);
-@@ -322,9 +362,15 @@ static struct zswap_pool *__zswap_pool_c
- 
- static void zswap_pool_destroy(struct zswap_pool *pool)
- {
-+	int cpu;
-+
- 	zswap_pool_debug("destroying", pool);
- 
- 	cpuhp_state_remove_instance(CPUHP_MM_ZSWP_POOL_PREPARE, &pool->node);
-+
-+	for_each_possible_cpu(cpu)
-+		acomp_ctx_free(per_cpu_ptr(pool->acomp_ctx, cpu));
-+
- 	free_percpu(pool->acomp_ctx);
- 
- 	zs_destroy_pool(pool->zs_pool);
-@@ -738,44 +784,41 @@ static int zswap_cpu_comp_prepare(unsign
- {
- 	struct zswap_pool *pool = hlist_entry(node, struct zswap_pool, node);
- 	struct crypto_acomp_ctx *acomp_ctx = per_cpu_ptr(pool->acomp_ctx, cpu);
--	struct crypto_acomp *acomp = NULL;
--	struct acomp_req *req = NULL;
--	u8 *buffer = NULL;
--	int ret;
-+	int ret = -ENOMEM;
- 
--	buffer = kmalloc_node(PAGE_SIZE, GFP_KERNEL, cpu_to_node(cpu));
--	if (!buffer) {
--		ret = -ENOMEM;
--		goto fail;
-+	/*
-+	 * To handle cases where the CPU goes through online-offline-online
-+	 * transitions, we return if the acomp_ctx has already been initialized.
-+	 */
-+	if (acomp_ctx->acomp) {
-+		WARN_ON_ONCE(IS_ERR(acomp_ctx->acomp));
-+		return 0;
- 	}
- 
-+	acomp_ctx->buffer = kmalloc_node(PAGE_SIZE, GFP_KERNEL, cpu_to_node(cpu));
-+	if (!acomp_ctx->buffer)
-+		return ret;
-+
- 	/*
- 	 * In case of an error, crypto_alloc_acomp_node() returns an
- 	 * error pointer, never NULL.
- 	 */
--	acomp = crypto_alloc_acomp_node(pool->tfm_name, 0, 0, cpu_to_node(cpu));
--	if (IS_ERR(acomp)) {
-+	acomp_ctx->acomp = crypto_alloc_acomp_node(pool->tfm_name, 0, 0, cpu_to_node(cpu));
-+	if (IS_ERR(acomp_ctx->acomp)) {
- 		pr_err("could not alloc crypto acomp %s : %pe\n",
--				pool->tfm_name, acomp);
--		ret = PTR_ERR(acomp);
-+				pool->tfm_name, acomp_ctx->acomp);
-+		ret = PTR_ERR(acomp_ctx->acomp);
- 		goto fail;
- 	}
- 
- 	/* acomp_request_alloc() returns NULL in case of an error. */
--	req = acomp_request_alloc(acomp);
--	if (!req) {
-+	acomp_ctx->req = acomp_request_alloc(acomp_ctx->acomp);
-+	if (!acomp_ctx->req) {
- 		pr_err("could not alloc crypto acomp_request %s\n",
- 		       pool->tfm_name);
--		ret = -ENOMEM;
- 		goto fail;
- 	}
+ 	lockdep_assert_held(&vmap_purge_lock);
  
 -	/*
--	 * Only hold the mutex after completing allocations, otherwise we may
--	 * recurse into zswap through reclaim and attempt to hold the mutex
--	 * again resulting in a deadlock.
+-	 * Use cpumask to mark which node has to be processed.
 -	 */
--	mutex_lock(&acomp_ctx->mutex);
- 	crypto_init_wait(&acomp_ctx->wait);
- 
- 	/*
-@@ -783,83 +826,17 @@ static int zswap_cpu_comp_prepare(unsign
- 	 * crypto_wait_req(); if the backend of acomp is scomp, the callback
- 	 * won't be called, crypto_wait_req() will return without blocking.
- 	 */
--	acomp_request_set_callback(req, CRYPTO_TFM_REQ_MAY_BACKLOG,
-+	acomp_request_set_callback(acomp_ctx->req, CRYPTO_TFM_REQ_MAY_BACKLOG,
- 				   crypto_req_done, &acomp_ctx->wait);
- 
--	acomp_ctx->buffer = buffer;
--	acomp_ctx->acomp = acomp;
--	acomp_ctx->req = req;
--	mutex_unlock(&acomp_ctx->mutex);
-+	mutex_init(&acomp_ctx->mutex);
- 	return 0;
- 
- fail:
--	if (!IS_ERR_OR_NULL(acomp))
--		crypto_free_acomp(acomp);
--	kfree(buffer);
-+	acomp_ctx_free(acomp_ctx);
- 	return ret;
- }
- 
--static int zswap_cpu_comp_dead(unsigned int cpu, struct hlist_node *node)
--{
--	struct zswap_pool *pool = hlist_entry(node, struct zswap_pool, node);
--	struct crypto_acomp_ctx *acomp_ctx = per_cpu_ptr(pool->acomp_ctx, cpu);
--	struct acomp_req *req;
--	struct crypto_acomp *acomp;
--	u8 *buffer;
+-	purge_nodes = CPU_MASK_NONE;
 -
--	if (!acomp_ctx)
--		return 0;
--
--	mutex_lock(&acomp_ctx->mutex);
--	req = acomp_ctx->req;
--	acomp = acomp_ctx->acomp;
--	buffer = acomp_ctx->buffer;
--	acomp_ctx->req = NULL;
--	acomp_ctx->acomp = NULL;
--	acomp_ctx->buffer = NULL;
--	mutex_unlock(&acomp_ctx->mutex);
--
--	/*
--	 * Do the actual freeing after releasing the mutex to avoid subtle
--	 * locking dependencies causing deadlocks.
--	 *
--	 * If there was an error in allocating @acomp_ctx->req, it
--	 * would be set to NULL.
--	 */
--	if (req)
--		acomp_request_free(req);
--	if (!IS_ERR_OR_NULL(acomp))
--		crypto_free_acomp(acomp);
--	kfree(buffer);
--
--	return 0;
--}
--
--static struct crypto_acomp_ctx *acomp_ctx_get_cpu_lock(struct zswap_pool *pool)
--{
--	struct crypto_acomp_ctx *acomp_ctx;
--
--	for (;;) {
--		acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
--		mutex_lock(&acomp_ctx->mutex);
--		if (likely(acomp_ctx->req))
--			return acomp_ctx;
--		/*
--		 * It is possible that we were migrated to a different CPU after
--		 * getting the per-CPU ctx but before the mutex was acquired. If
--		 * the old CPU got offlined, zswap_cpu_comp_dead() could have
--		 * already freed ctx->req (among other things) and set it to
--		 * NULL. Just try again on the new CPU that we ended up on.
--		 */
--		mutex_unlock(&acomp_ctx->mutex);
--	}
--}
--
--static void acomp_ctx_put_unlock(struct crypto_acomp_ctx *acomp_ctx)
--{
--	mutex_unlock(&acomp_ctx->mutex);
--}
--
- static bool zswap_compress(struct page *page, struct zswap_entry *entry,
- 			   struct zswap_pool *pool)
- {
-@@ -872,7 +849,9 @@ static bool zswap_compress(struct page *
- 	u8 *dst;
- 	bool mapped = false;
+ 	for_each_vmap_node(vn) {
+ 		INIT_LIST_HEAD(&vn->purge_list);
+ 		vn->skip_populate = full_pool_decay;
+@@ -2368,10 +2374,9 @@ static bool __purge_vmap_area_lazy(unsig
+ 		end = max(end, list_last_entry(&vn->purge_list,
+ 			struct vmap_area, list)->va_end);
  
--	acomp_ctx = acomp_ctx_get_cpu_lock(pool);
-+	acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
-+	mutex_lock(&acomp_ctx->mutex);
-+
- 	dst = acomp_ctx->buffer;
- 	sg_init_table(&input, 1);
- 	sg_set_page(&input, page, PAGE_SIZE, 0);
-@@ -938,7 +917,7 @@ unlock:
- 	else if (alloc_ret)
- 		zswap_reject_alloc_fail++;
- 
--	acomp_ctx_put_unlock(acomp_ctx);
-+	mutex_unlock(&acomp_ctx->mutex);
- 	return comp_ret == 0 && alloc_ret == 0;
- }
- 
-@@ -950,7 +929,8 @@ static bool zswap_decompress(struct zswa
- 	struct crypto_acomp_ctx *acomp_ctx;
- 	int ret = 0, dlen;
- 
--	acomp_ctx = acomp_ctx_get_cpu_lock(pool);
-+	acomp_ctx = raw_cpu_ptr(pool->acomp_ctx);
-+	mutex_lock(&acomp_ctx->mutex);
- 	zs_obj_read_sg_begin(pool->zs_pool, entry->handle, input, entry->length);
- 
- 	/* zswap entries of length PAGE_SIZE are not compressed. */
-@@ -975,7 +955,7 @@ static bool zswap_decompress(struct zswa
+-		cpumask_set_cpu(node_to_id(vn), &purge_nodes);
++		nr_purge_nodes++;
  	}
  
- 	zs_obj_read_sg_end(pool->zs_pool, entry->handle);
--	acomp_ctx_put_unlock(acomp_ctx);
-+	mutex_unlock(&acomp_ctx->mutex);
+-	nr_purge_nodes = cpumask_weight(&purge_nodes);
+ 	if (nr_purge_nodes > 0) {
+ 		flush_tlb_kernel_range(start, end);
  
- 	if (!ret && dlen == PAGE_SIZE)
- 		return true;
-@@ -1795,7 +1775,7 @@ static int zswap_setup(void)
- 	ret = cpuhp_setup_state_multi(CPUHP_MM_ZSWP_POOL_PREPARE,
- 				      "mm/zswap_pool:prepare",
- 				      zswap_cpu_comp_prepare,
--				      zswap_cpu_comp_dead);
-+				      NULL);
- 	if (ret)
- 		goto hp_fail;
+@@ -2379,29 +2384,31 @@ static bool __purge_vmap_area_lazy(unsig
+ 		nr_purge_helpers = atomic_long_read(&vmap_lazy_nr) / lazy_max_pages();
+ 		nr_purge_helpers = clamp(nr_purge_helpers, 1U, nr_purge_nodes) - 1;
  
+-		for_each_cpu(i, &purge_nodes) {
+-			vn = &vmap_nodes[i];
++		for_each_vmap_node(vn) {
++			vn->work_queued = false;
++
++			if (list_empty(&vn->purge_list))
++				continue;
+ 
+ 			if (nr_purge_helpers > 0) {
+ 				INIT_WORK(&vn->purge_work, purge_vmap_node);
++				vn->work_queued = schedule_drain_vmap_work(
++					READ_ONCE(drain_vmap_helpers_wq), &vn->purge_work);
+ 
+-				if (cpumask_test_cpu(i, cpu_online_mask))
+-					schedule_work_on(i, &vn->purge_work);
+-				else
+-					schedule_work(&vn->purge_work);
+-
+-				nr_purge_helpers--;
+-			} else {
+-				vn->purge_work.func = NULL;
+-				purge_vmap_node(&vn->purge_work);
+-				nr_purged_areas += vn->nr_purged;
++				if (vn->work_queued) {
++					nr_purge_helpers--;
++					continue;
++				}
+ 			}
+-		}
+ 
+-		for_each_cpu(i, &purge_nodes) {
+-			vn = &vmap_nodes[i];
++			/* Sync path. Process locally. */
++			purge_vmap_node(&vn->purge_work);
++			nr_purged_areas += vn->nr_purged;
++		}
+ 
+-			if (vn->purge_work.func) {
++		/* Wait for completion if queued any. */
++		for_each_vmap_node(vn) {
++			if (vn->work_queued) {
+ 				flush_work(&vn->purge_work);
+ 				nr_purged_areas += vn->nr_purged;
+ 			}
+@@ -2465,7 +2472,8 @@ static void free_vmap_area_noflush(struc
+ 
+ 	/* After this point, we may free va at any time */
+ 	if (unlikely(nr_lazy > nr_lazy_max))
+-		schedule_work(&drain_vmap_work);
++		schedule_drain_vmap_work(READ_ONCE(drain_vmap_wq),
++			&drain_vmap_work);
+ }
+ 
+ /*
+@@ -5483,3 +5491,20 @@ void __init vmalloc_init(void)
+ 	vmap_node_shrinker->scan_objects = vmap_node_shrink_scan;
+ 	shrinker_register(vmap_node_shrinker);
+ }
++
++static int __init vmalloc_init_workqueue(void)
++{
++	struct workqueue_struct *drain_wq, *helpers_wq;
++	unsigned int flags = WQ_UNBOUND | WQ_MEM_RECLAIM;
++
++	drain_wq = alloc_workqueue("vmap_drain", flags, 0);
++	WARN_ON_ONCE(drain_wq == NULL);
++	WRITE_ONCE(drain_vmap_wq, drain_wq);
++
++	helpers_wq = alloc_workqueue("vmap_drain_helpers", flags, 0);
++	WARN_ON_ONCE(helpers_wq == NULL);
++	WRITE_ONCE(drain_vmap_helpers_wq, helpers_wq);
++
++	return 0;
++}
++early_initcall(vmalloc_init_workqueue);
 _
 
-Patches currently in -mm which might be from kanchanapsridhar2026@gmail.com are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-mm-zswap-remove-redundant-checks-in-zswap_cpu_comp_dead.patch
-mm-zswap-tie-per-cpu-acomp_ctx-lifetime-to-the-pool.patch
+mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
+mm-vmalloc-use-dedicated-unbound-workqueue-for-vmap-purge-drain.patch
 
