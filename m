@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E09E5282F06
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E320829B8CF
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774917748; cv=none; b=EvT92f3bdB/yd3G8THbuJ8XN3aU/LfAu61p/BrGRtumr4faOx7+G0HxP2uGm6GoL9xJrcBY8rVR7cgAuQFtRQVabAvmWP8WYRxy0/pZIQrqwEne45HlypS/L8cIuKGi+sghuQX0D80Zibh/I5kc4cK4J38gJXtNRsHWCZahzMSQ=
+	t=1774917750; cv=none; b=YzWgGJOwLKtgG5wVD2/FoUN/bfW/VxtS/bB/xGtCu9AH2KBg5R1iSo7xeTNgLNnaTJMHltJAQNWHqcQeb+nHumYt83zyxQ0ud+pFg08h9eOkjHQXEADAR59MnH4CFLiTWAHLqv8Um2OD8VZeTVI6iXT7AcRlfX0HOfcdNEGhVX0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774917748; c=relaxed/simple;
-	bh=wPYxp4h3LVjkVJV8kAHta/xspTdrg/EcRX01U8rUk+8=;
-	h=Date:To:From:Subject:Message-Id; b=vEg3B/P9Ee+sbjdYNZ2AfZmpZ0+KYN6kfNzzxo8u27c1R1F/atfn2i+0WcZ3aWmfupfQCjOEincY+6PICnNdX5uQvQDbtdUnsNb+OnE2lA/ME3U7/+rfVs57QwdVOytqmeCfMgNX6Fmty6AZ+rkLp1ypfZ1HjgPpcEQsNFrCYlk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JRgj/hcI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774917750; c=relaxed/simple;
+	bh=YxSvMwPPf4zipI3nfPxbLUOVdRHdbCXcG39cYAewNDE=;
+	h=Date:To:From:Subject:Message-Id; b=jKbBBvEuIWRZAbjlR4fH+yLIo0J5CtSU9NtlG0hvTj0vWDN3MXYY4Dm4jygrt1yPIp6hWw50G8k9d4gr+3pIRqyDYHbPp5xXvldoYA+sAFfuAbkryOllKs0kF3ze2TZYLs7kuP5FL9WaSkRD7S1OFotMxZnjsR83lB0MF4fclD0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CZW6eNTs; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JRgj/hcI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98727C4CEF7;
-	Tue, 31 Mar 2026 00:42:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CZW6eNTs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC795C4CEF7;
+	Tue, 31 Mar 2026 00:42:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774917747;
-	bh=wPYxp4h3LVjkVJV8kAHta/xspTdrg/EcRX01U8rUk+8=;
+	s=korg; t=1774917749;
+	bh=YxSvMwPPf4zipI3nfPxbLUOVdRHdbCXcG39cYAewNDE=;
 	h=Date:To:From:Subject:From;
-	b=JRgj/hcIw7G1BCq+ut4JcQopbH85r9TNibFBMXiQhoDODP24ukS2UEHQqjfmMXM9x
-	 qhuJBjkk391GaWLCdGNWE5cMMh4TI8JXpv+kb0xgQEx1GBmg6h7+ekV25iassG8Rv3
-	 AH1k5Lt2rk81rABXyVOdjdikMYsHJMOHsnBFtLhw=
-Date: Mon, 30 Mar 2026 17:42:27 -0700
+	b=CZW6eNTsiTV2oupy+kjIy3gzD/hmVRrNKWNFj6jEC8xw6NdxZDwLtrFIQfnT9Vvmw
+	 uh8+2SvlMhmQ5CP7Risa4CCT+1/PGceOzM/d3BHDOHmXyiTpSq7uWwJk1XUS0JrWFO
+	 fwQ7dDU7hdMx20hw7Nova6VAy1pM+35TY5LPa8xE=
+Date: Mon, 30 Mar 2026 17:42:29 -0700
 To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,will@kernel.org,viro@zeniv.linux.org.uk,vgupta@kernel.org,vbabka@kernel.org,tsbogend@alpha.franken.de,svens@linux.ibm.com,surenb@google.com,stephen.smalley.work@gmail.com,rppt@kernel.org,richard@nod.at,pfalcato@suse.de,paul@paul-moore.com,palmer@dabbelt.com,omosnace@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,linux@armlinux.org.uk,liam.howlett@oracle.com,kernel@xen0n.name,kees@kernel.org,johannes@sipsolutions.net,jannh@google.com,jack@suse.cz,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,dinguyen@kernel.org,david@kernel.org,chenhuacai@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,anton.ivanov@cambridgegreys.com,alex@ghiti.fr,agordeev@linux.ibm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-introduce-vma_flags_same.patch removed from -mm tree
-Message-Id: <20260331004227.98727C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-introduce-_to_-helpers.patch removed from -mm tree
+Message-Id: <20260331004229.AC795C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: introduce vma_flags_same[_mask/_pair]()
+     Subject: mm/vma: introduce [vma_flags,legacy]_to_[legacy,vma_flags]() helpers
 has been removed from the -mm tree.  Its filename was
-     mm-vma-introduce-vma_flags_same.patch
+     mm-vma-introduce-_to_-helpers.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm/vma: introduce vma_flags_same[_mask/_pair]()
-Date: Fri, 20 Mar 2026 19:38:27 +0000
+Subject: mm/vma: introduce [vma_flags,legacy]_to_[legacy,vma_flags]() helpers
+Date: Fri, 20 Mar 2026 19:38:28 +0000
 
-Add helpers to determine if two sets of VMA flags are precisely the same,
-that is - that every flag set one is set in another, and neither contain
-any flags not set in the other.
+While we are still converting VMA flags from vma_flags_t to vm_flags_t,
+introduce helpers to convert between the two to allow for iterative
+development without having to 'change the world' in a single commit'.
 
-We also introduce vma_flags_same_pair() for cases where we want to compare
-two sets of VMA flags which are both non-const values.
+Also update VMA flags tests to reflect the change.
 
-Also update the VMA tests to reflect the change, we already implicitly
-test that this functions correctly having used it for testing purposes
-previously.
+Finally, refresh vma_flags_overwrite_word(),
+vma_flag_overwrite_word_once(), vma_flags_set_word() and
+vma_flags_clear_word() in the VMA tests to reflect current kernel
+implementations - this should make no functional difference, but keeps the
+logic consistent between the two.
 
-Link: https://lkml.kernel.org/r/4f764bf619e77205837c7c819b62139ef6337ca3.1774034900.git.ljs@kernel.org
+Link: https://lkml.kernel.org/r/d3569470dbb3ae79134ca7c3eb3fc4df7086e874.1774034900.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -105,96 +106,124 @@ Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h                 |   28 +++++++++++++++++++++++++++
- tools/testing/vma/include/custom.h |   11 ----------
- tools/testing/vma/include/dup.h    |   21 ++++++++++++++++++++
- 3 files changed, 49 insertions(+), 11 deletions(-)
+ include/linux/mm_types.h        |   26 +++++++++++++++++++++
+ tools/testing/vma/include/dup.h |   36 ++++++++++++++++++++++++++----
+ 2 files changed, 58 insertions(+), 4 deletions(-)
 
---- a/include/linux/mm.h~mm-vma-introduce-vma_flags_same
-+++ a/include/linux/mm.h
-@@ -1202,6 +1202,34 @@ static __always_inline vma_flags_t vma_f
- 	return dst;
+--- a/include/linux/mm_types.h~mm-vma-introduce-_to_-helpers
++++ a/include/linux/mm_types.h
+@@ -1070,6 +1070,18 @@ static __always_inline void vma_flags_cl
  }
  
-+/* Determine if flags and flags_other have precisely the same flags set. */
-+static __always_inline bool vma_flags_same_pair(const vma_flags_t *flags,
-+						const vma_flags_t *flags_other)
+ /*
++ * Helper function which converts a vma_flags_t value to a legacy vm_flags_t
++ * value. This is only valid if the input flags value can be expressed in a
++ * system word.
++ *
++ * Will be removed once the conversion to VMA flags is complete.
++ */
++static __always_inline vm_flags_t vma_flags_to_legacy(vma_flags_t flags)
 +{
-+	const unsigned long *bitmap = flags->__vma_flags;
-+	const unsigned long *bitmap_other = flags_other->__vma_flags;
-+
-+	return bitmap_equal(bitmap, bitmap_other, NUM_VMA_FLAG_BITS);
-+}
-+
-+/* Determine if flags and flags_other have precisely the same flags set.  */
-+static __always_inline bool vma_flags_same_mask(const vma_flags_t *flags,
-+						vma_flags_t flags_other)
-+{
-+	const unsigned long *bitmap = flags->__vma_flags;
-+	const unsigned long *bitmap_other = flags_other.__vma_flags;
-+
-+	return bitmap_equal(bitmap, bitmap_other, NUM_VMA_FLAG_BITS);
++	return (vm_flags_t)flags.__vma_flags[0];
 +}
 +
 +/*
-+ * Helper macro to determine if only the specific flags are set, e.g.:
-+ *
-+ * if (vma_flags_same(&flags, VMA_WRITE_BIT) { ... }
-+ */
-+#define vma_flags_same(flags, ...) \
-+	vma_flags_same_mask(flags, mk_vma_flags(__VA_ARGS__))
-+
- /*
-  * Helper to test that ALL specified flags are set in a VMA.
+  * Copy value to the first system word of VMA flags, non-atomically.
   *
---- a/tools/testing/vma/include/custom.h~mm-vma-introduce-vma_flags_same
-+++ a/tools/testing/vma/include/custom.h
-@@ -102,16 +102,5 @@ static inline unsigned long vma_kernel_p
- 	return PAGE_SIZE;
+  * IMPORTANT: This does not overwrite bytes past the first system word. The
+@@ -1083,6 +1095,20 @@ static inline void vma_flags_overwrite_w
  }
  
--/* Place here until needed in the kernel code. */
--static __always_inline bool vma_flags_same_mask(vma_flags_t *flags,
--						vma_flags_t flags_other)
--{
--	const unsigned long *bitmap = flags->__vma_flags;
--	const unsigned long *bitmap_other = flags_other.__vma_flags;
--
--	return bitmap_equal(bitmap, bitmap_other, NUM_VMA_FLAG_BITS);
--}
--#define vma_flags_same(flags, ...) \
--	vma_flags_same_mask(flags, mk_vma_flags(__VA_ARGS__))
- #define VMA_SPECIAL_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_DONTEXPAND_BIT, \
- 				       VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT)
---- a/tools/testing/vma/include/dup.h~mm-vma-introduce-vma_flags_same
+ /*
++ * Helper function which converts a legacy vm_flags_t value to a vma_flags_t
++ * value.
++ *
++ * Will be removed once the conversion to VMA flags is complete.
++ */
++static __always_inline vma_flags_t legacy_to_vma_flags(vm_flags_t flags)
++{
++	vma_flags_t ret = EMPTY_VMA_FLAGS;
++
++	vma_flags_overwrite_word(&ret, flags);
++	return ret;
++}
++
++/*
+  * Copy value to the first system word of VMA flags ONCE, non-atomically.
+  *
+  * IMPORTANT: This does not overwrite bytes past the first system word. The
+--- a/tools/testing/vma/include/dup.h~mm-vma-introduce-_to_-helpers
 +++ a/tools/testing/vma/include/dup.h
-@@ -954,6 +954,27 @@ static __always_inline vma_flags_t vma_f
- 	return dst;
+@@ -766,7 +766,9 @@ static inline bool mm_flags_test(int fla
+  */
+ static inline void vma_flags_overwrite_word(vma_flags_t *flags, unsigned long value)
+ {
+-	*ACCESS_PRIVATE(flags, __vma_flags) = value;
++	unsigned long *bitmap = flags->__vma_flags;
++
++	bitmap[0] = value;
  }
  
-+static __always_inline bool vma_flags_same_pair(const vma_flags_t *flags,
-+						const vma_flags_t *flags_other)
+ /*
+@@ -777,7 +779,7 @@ static inline void vma_flags_overwrite_w
+  */
+ static inline void vma_flags_overwrite_word_once(vma_flags_t *flags, unsigned long value)
+ {
+-	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
++	unsigned long *bitmap = flags->__vma_flags;
+ 
+ 	WRITE_ONCE(*bitmap, value);
+ }
+@@ -785,7 +787,7 @@ static inline void vma_flags_overwrite_w
+ /* Update the first system word of VMA flags setting bits, non-atomically. */
+ static inline void vma_flags_set_word(vma_flags_t *flags, unsigned long value)
+ {
+-	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
++	unsigned long *bitmap = flags->__vma_flags;
+ 
+ 	*bitmap |= value;
+ }
+@@ -793,7 +795,7 @@ static inline void vma_flags_set_word(vm
+ /* Update the first system word of VMA flags clearing bits, non-atomically. */
+ static inline void vma_flags_clear_word(vma_flags_t *flags, unsigned long value)
+ {
+-	unsigned long *bitmap = ACCESS_PRIVATE(flags, __vma_flags);
++	unsigned long *bitmap = flags->__vma_flags;
+ 
+ 	*bitmap &= ~value;
+ }
+@@ -803,6 +805,32 @@ static __always_inline void vma_flags_cl
+ 	bitmap_zero(ACCESS_PRIVATE(flags, __vma_flags), NUM_VMA_FLAG_BITS);
+ }
+ 
++/*
++ * Helper function which converts a vma_flags_t value to a legacy vm_flags_t
++ * value. This is only valid if the input flags value can be expressed in a
++ * system word.
++ *
++ * Will be removed once the conversion to VMA flags is complete.
++ */
++static __always_inline vm_flags_t vma_flags_to_legacy(vma_flags_t flags)
 +{
-+	const unsigned long *bitmap = flags->__vma_flags;
-+	const unsigned long *bitmap_other = flags_other->__vma_flags;
-+
-+	return bitmap_equal(bitmap, bitmap_other, NUM_VMA_FLAG_BITS);
++	return (vm_flags_t)flags.__vma_flags[0];
 +}
 +
-+static __always_inline bool vma_flags_same_mask(const vma_flags_t *flags,
-+						vma_flags_t flags_other)
++/*
++ * Helper function which converts a legacy vm_flags_t value to a vma_flags_t
++ * value.
++ *
++ * Will be removed once the conversion to VMA flags is complete.
++ */
++static __always_inline vma_flags_t legacy_to_vma_flags(vm_flags_t flags)
 +{
-+	const unsigned long *bitmap = flags->__vma_flags;
-+	const unsigned long *bitmap_other = flags_other.__vma_flags;
++	vma_flags_t ret = EMPTY_VMA_FLAGS;
 +
-+	return bitmap_equal(bitmap, bitmap_other, NUM_VMA_FLAG_BITS);
++	vma_flags_overwrite_word(&ret, flags);
++	return ret;
 +}
 +
-+#define vma_flags_same(flags, ...) \
-+	vma_flags_same_mask(flags, mk_vma_flags(__VA_ARGS__))
-+
- static inline bool vma_test_all_mask(const struct vm_area_struct *vma,
- 				     vma_flags_t flags)
+ static __always_inline void vma_flags_set_flag(vma_flags_t *flags,
+ 		vma_flag_t bit)
  {
 _
 
