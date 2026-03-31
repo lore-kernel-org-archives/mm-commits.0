@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5EF93E95B4;
-	Tue, 31 Mar 2026 22:07:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 046E6466B77
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 22:20:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774994837; cv=none; b=WejDuip6P/WpEjGTs751ELmnULmwLHvvbuHy540sYmzjgsWA6oZoDBlsGDfdTSGwAJEbtnCSGBLEHgu1JAMLWPJawh5vwqCIcWjzWjJDpQmJtD+wTVO1riv8vRRSryexYKlPqTOdVCNvc557zoTt+ra+Pjdco7x9P2bBGUqvNQo=
+	t=1774995638; cv=none; b=ulwXTsSqRlVVv6Bhei6bpsts/CaCMV5jmMaBuvZxP7GPTbR2Ag1aKkTvhN3f86Gjrt+pxROc1QkT8vCcc7046TQXanfDrbJwqDs6YTwx/w2vEC0be0VymWYjtrxGAGjMCq4IRMbeRhndMoIZ3B09kYMCpS2z6QG3xCeZDKWUhxU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774994837; c=relaxed/simple;
-	bh=qyC9ZyMjs20Ve/U3RcH0RJfR/gYwTY1hzp0vIiSU0+g=;
-	h=Date:To:From:Subject:Message-Id; b=t4jkh1f8SW6zJMPeU1oQKm2zLmcFvVy3TJu1G1SSs+BYDh1iN8ouly+LwWE0h4oh5Jj/IJ5c8un9pvgthqq1qV9LIzW4tXdSGdZ+1pxbudyl0gw21OIKabeMcuGQ4Jp/9n1dCnGmotDxWWnx5bb6TFQjFOer2MUORgc7m7c98KM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MDzsc3M3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774995638; c=relaxed/simple;
+	bh=PBYG0pWHxZFX6ogNfSINx2OG3C0A5CXzU94xd8DQVok=;
+	h=Date:To:From:Subject:Message-Id; b=uxC8/MhQjihyt4hJ7NjglSLgDGvxpEa96cOUP2Dna4L88AaU5Wl0n+VBEaGqusTuD/4PWOOMlSTKe0lDCiRPKxuwviGOaZ/PH7Oni5tdnymnD4QCIa5ylXI1O9MUosdZ2Xu/tCnd+rnFPLJH4MGlZRSNSOe9E2ogijZzU05JjWc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GA3rOCJ9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MDzsc3M3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D82EC19423;
-	Tue, 31 Mar 2026 22:07:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GA3rOCJ9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AA9EC19423;
+	Tue, 31 Mar 2026 22:20:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774994837;
-	bh=qyC9ZyMjs20Ve/U3RcH0RJfR/gYwTY1hzp0vIiSU0+g=;
+	s=korg; t=1774995637;
+	bh=PBYG0pWHxZFX6ogNfSINx2OG3C0A5CXzU94xd8DQVok=;
 	h=Date:To:From:Subject:From;
-	b=MDzsc3M3R12I7+IaCDB+H68pidSgn37YfZyGUQC4sz29jxe69n5gVlf4XFQvVBOGC
-	 1+E2e6xIz26RwahQ2ix30Wv4iViKKzzTp/1N0gk0eKFri2uPl94BbiWOu1N6uk5qHr
-	 6NMUU4bPHMVU9r+PI9tPtJSyoxF/tgL4sb1mhGEw=
-Date: Tue, 31 Mar 2026 15:07:16 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,ljs@kernel.org,liam.howlett@oracle.com,jannh@google.com,rhkrqnwk98@gmail.com,akpm@linux-foundation.org
+	b=GA3rOCJ9i5ti7Jh7tNok35UmDT4nuLW3cvkd/a1qbCLDzNk0hNrQdWSa5hFeAkb1V
+	 Rqn+D1i5nGoGIQ++MOdMa5E0VaO+NUkG2+2NEcBX+NGV5KH5uUnykiwzgj3I4ZXrQy
+	 xCbt5OvpQSzZ+3tcEI697l+SZn7TVDNyuH1MiXe0=
+Date: Tue, 31 Mar 2026 15:20:37 -0700
+To: mm-commits@vger.kernel.org,yosry@kernel.org,kanchanapsridhar2026@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-fix-memory-leak-in-__mmap_region.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260331220717.2D82EC19423@smtp.kernel.org>
+Subject: + mm-zswap-remove-redundant-checks-in-zswap_cpu_comp_dead.patch added to mm-unstable branch
+Message-Id: <20260331222037.8AA9EC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: fix memory leak in __mmap_region()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vma-fix-memory-leak-in-__mmap_region.patch
+     Subject: mm: zswap: remove redundant checks in zswap_cpu_comp_dead()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-zswap-remove-redundant-checks-in-zswap_cpu_comp_dead.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-fix-memory-leak-in-__mmap_region.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zswap-remove-redundant-checks-in-zswap_cpu_comp_dead.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,105 +58,98 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sechang Lim <rhkrqnwk98@gmail.com>
-Subject: mm/vma: fix memory leak in __mmap_region()
-Date: Tue, 31 Mar 2026 18:08:11 +0000
+From: "Kanchana P. Sridhar" <kanchanapsridhar2026@gmail.com>
+Subject: mm: zswap: remove redundant checks in zswap_cpu_comp_dead()
+Date: Tue, 31 Mar 2026 11:33:50 -0700
 
-commit 605f6586ecf7 ("mm/vma: do not leak memory when .mmap_prepare
-swaps the file") handled the success path by skipping get_file() via
-file_doesnt_need_get, but missed the error path.
+Patch series "zswap pool per-CPU acomp_ctx simplifications", v3.
 
-When /dev/zero is mmap'd with MAP_SHARED, mmap_zero_prepare() calls
-shmem_zero_setup_desc() which allocates a new shmem file to back the
-mapping. If __mmap_new_vma() subsequently fails, this replacement
-file is never fput()'d - the original is released by
-ksys_mmap_pgoff(), but nobody releases the new one.
+This patchset first removes redundant checks on the acomp_ctx and its
+"req" member in zswap_cpu_comp_dead().
 
-Add fput() for the swapped file in the error path.
+Next, it persists the zswap pool's per-CPU acomp_ctx resources to last
+until the pool is destroyed.  It then simplifies the per-CPU acomp_ctx
+mutex locking in zswap_compress()/zswap_decompress().
 
-Reproducible with fault injection.
+Code comments added after allocation and before checking to deallocate the
+per-CPU acomp_ctx's members, based on expected crypto API return values
+and zswap changes this patchset makes.
 
-FAULT_INJECTION: forcing a failure.
-name failslab, interval 1, probability 0, space 0, times 1
-CPU: 2 UID: 0 PID: 366 Comm: syz.7.14 Not tainted 7.0.0-rc6 #2 PREEMPT(full)
-Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-Call Trace:
- <TASK>
- dump_stack_lvl+0x164/0x1f0
- should_fail_ex+0x525/0x650
- should_failslab+0xdf/0x140
- kmem_cache_alloc_noprof+0x78/0x630
- vm_area_alloc+0x24/0x160
- __mmap_region+0xf6b/0x2660
- mmap_region+0x2eb/0x3a0
- do_mmap+0xc79/0x1240
- vm_mmap_pgoff+0x252/0x4c0
- ksys_mmap_pgoff+0xf8/0x120
- __x64_sys_mmap+0x12a/0x190
- do_syscall_64+0xa9/0x580
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
- </TASK>
+Patch 2 is an independent submission of patch 23 from [1], to
+facilitate merging.
 
-kmemleak: 1 new suspected memory leaks (see /sys/kernel/debug/kmemleak)
-BUG: memory leak
-unreferenced object 0xffff8881118aca80 (size 360):
-  comm "syz.7.14", pid 366, jiffies 4294913255
-  hex dump (first 32 bytes):
-    00 00 00 00 ad 4e ad de ff ff ff ff 00 00 00 00  .....N..........
-    ff ff ff ff ff ff ff ff c0 28 4d ae ff ff ff ff  .........(M.....
-  backtrace (crc db0f53bc):
-    kmem_cache_alloc_noprof+0x3ab/0x630
-    alloc_empty_file+0x5a/0x1e0
-    alloc_file_pseudo+0x135/0x220
-    __shmem_file_setup+0x274/0x420
-    shmem_zero_setup_desc+0x9c/0x170
-    mmap_zero_prepare+0x123/0x140
-    __mmap_region+0xdda/0x2660
-    mmap_region+0x2eb/0x3a0
-    do_mmap+0xc79/0x1240
-    vm_mmap_pgoff+0x252/0x4c0
-    ksys_mmap_pgoff+0xf8/0x120
-    __x64_sys_mmap+0x12a/0x190
-    do_syscall_64+0xa9/0x580
-    entry_SYSCALL_64_after_hwframe+0x76/0x7e
 
-Found by syzkaller.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20260331180811.1333348-1-rhkrqnwk98@gmail.com
-Fixes: 605f6586ecf7 ("mm/vma: do not leak memory when .mmap_prepare swaps the file")
-Signed-off-by: Sechang Lim <rhkrqnwk98@gmail.com>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+There are presently redundant checks on the per-CPU acomp_ctx and it's
+"req" member in zswap_cpu_comp_dead(): redundant because they are
+inconsistent with zswap_pool_create() handling of failure in allocating
+the acomp_ctx, and with the expected NULL return value from the
+acomp_request_alloc() API when it fails to allocate an acomp_req.
+
+Fix these by converting to them to be NULL checks.
+
+Add comments in zswap_cpu_comp_prepare() clarifying the expected return
+values of the crypto_alloc_acomp_node() and acomp_request_alloc() API.
+
+Link: https://lkml.kernel.org/r/20260331183351.29844-2-kanchanapsridhar2026@gmail.com
+Link: https://patchwork.kernel.org/project/linux-mm/list/?series=1046677
+Signed-off-by: Kanchana P. Sridhar <kanchanapsridhar2026@gmail.com>
+Suggested-by: Yosry Ahmed <yosry@kernel.org>
+Acked-by: Yosry Ahmed <yosry@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/zswap.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
---- a/mm/vma.c~mm-vma-fix-memory-leak-in-__mmap_region
-+++ a/mm/vma.c
-@@ -2781,6 +2781,13 @@ unacct_error:
- 	if (map.charged)
- 		vm_unacct_memory(map.charged);
- abort_munmap:
+--- a/mm/zswap.c~mm-zswap-remove-redundant-checks-in-zswap_cpu_comp_dead
++++ a/mm/zswap.c
+@@ -749,6 +749,10 @@ static int zswap_cpu_comp_prepare(unsign
+ 		goto fail;
+ 	}
+ 
 +	/*
-+	 * This indicates that .mmap_prepare has set a new file, differing from
-+	 * desc->vm_file. But since we're aborting the operation, only the
-+	 * original file will be cleaned up. Ensure we clean up both.
++	 * In case of an error, crypto_alloc_acomp_node() returns an
++	 * error pointer, never NULL.
 +	 */
-+	if (map.file_doesnt_need_get)
-+		fput(map.file);
- 	vms_abort_munmap_vmas(&map.vms, &map.mas_detach);
- 	return error;
- }
+ 	acomp = crypto_alloc_acomp_node(pool->tfm_name, 0, 0, cpu_to_node(cpu));
+ 	if (IS_ERR(acomp)) {
+ 		pr_err("could not alloc crypto acomp %s : %pe\n",
+@@ -757,6 +761,7 @@ static int zswap_cpu_comp_prepare(unsign
+ 		goto fail;
+ 	}
+ 
++	/* acomp_request_alloc() returns NULL in case of an error. */
+ 	req = acomp_request_alloc(acomp);
+ 	if (!req) {
+ 		pr_err("could not alloc crypto acomp_request %s\n",
+@@ -802,7 +807,7 @@ static int zswap_cpu_comp_dead(unsigned
+ 	struct crypto_acomp *acomp;
+ 	u8 *buffer;
+ 
+-	if (IS_ERR_OR_NULL(acomp_ctx))
++	if (!acomp_ctx)
+ 		return 0;
+ 
+ 	mutex_lock(&acomp_ctx->mutex);
+@@ -817,8 +822,11 @@ static int zswap_cpu_comp_dead(unsigned
+ 	/*
+ 	 * Do the actual freeing after releasing the mutex to avoid subtle
+ 	 * locking dependencies causing deadlocks.
++	 *
++	 * If there was an error in allocating @acomp_ctx->req, it
++	 * would be set to NULL.
+ 	 */
+-	if (!IS_ERR_OR_NULL(req))
++	if (req)
+ 		acomp_request_free(req);
+ 	if (!IS_ERR_OR_NULL(acomp))
+ 		crypto_free_acomp(acomp);
 _
 
-Patches currently in -mm which might be from rhkrqnwk98@gmail.com are
+Patches currently in -mm which might be from kanchanapsridhar2026@gmail.com are
 
-mm-vma-fix-memory-leak-in-__mmap_region.patch
+mm-zswap-remove-redundant-checks-in-zswap_cpu_comp_dead.patch
+mm-zswap-tie-per-cpu-acomp_ctx-lifetime-to-the-pool.patch
 
