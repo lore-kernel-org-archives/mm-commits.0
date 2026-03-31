@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDCCF37CD2D
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 18:29:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14B8D37883C;
+	Tue, 31 Mar 2026 19:03:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774981792; cv=none; b=cCpzj8RjjaO6iXzzuXUrSNGBjasEqIzXnMqZ1NtKLTRKOQjAPaYbG9ln0txj159tHNibeFe2hatalQj3/p53+4sxMWOucGOfBdCZAeaRtKk5QcElUFyy9WaMRdsNSFLFzTQQr2RbWzl5NtyMj8NSJ5umzchNTzdwRqZpAURuNtA=
+	t=1774983793; cv=none; b=QrJcOAOShy3FdpwyGT5QP7GdztnRJcdRl7lr52su376iTzjllpURziGa5iC/dCS81wYK6khPN6JakcAh/xcuiCrWBqnp2wsMKNg6RCellGZP03tWeDr5sEpWfCSsr9hw67dlIy47s2J6npS1uSq/waHq6Q84/D3pjtJxR9xBI+c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774981792; c=relaxed/simple;
-	bh=PIsvMsSekJ9c8Iy2ZdiBhnaXZWiKd/CIKYGc2HwR7I8=;
-	h=Date:To:From:Subject:Message-Id; b=Rg0BgK227kyyHUqFZZiCb8lG2XO10ugOkCCHho8nNdp0BpSRmkRHhqX+rIugGdA+aURtVstc3Nkj5NU3Sfh3x1b4twiZI/WAy5mY0UGsPcntlbRPsjgP/jmJfsNfM5yLwg0KvP46ilr/UtB8OjrGjMu6JfI6WL4tsdvj4qr3lJg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hqKYPECS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774983793; c=relaxed/simple;
+	bh=lHpNuvAMhCX6p3T7a7BazybaLrtSomcuIRgu8XwxmiA=;
+	h=Date:To:From:Subject:Message-Id; b=J8V4VIzAgBEsDCJQV5LWhhnjDtuYJyUrhfXk1FMn+IeoxqAJAcX8lie+Fl3JRh5YzAUNCCbMJ/YWERLr8XvP2ctmJqDMMuhFt47k5fwpIN1kdW5O8shGzRHHnp6bkJxvsXWqatJnqe4qvjASP43Z05ZkVnHO6bf3ehQ/i71F0k0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q12YdEwn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hqKYPECS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31542C19423;
-	Tue, 31 Mar 2026 18:29:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q12YdEwn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 923C7C19423;
+	Tue, 31 Mar 2026 19:03:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774981792;
-	bh=PIsvMsSekJ9c8Iy2ZdiBhnaXZWiKd/CIKYGc2HwR7I8=;
+	s=korg; t=1774983792;
+	bh=lHpNuvAMhCX6p3T7a7BazybaLrtSomcuIRgu8XwxmiA=;
 	h=Date:To:From:Subject:From;
-	b=hqKYPECSorRkhks2aJN1a8z86fKPZGB/Ari6MJTsis23EfRjtvngzaN6IgcXrTxha
-	 4bl554LrP1mVLZkLXHE99ZlqpBiq7m2HnU06exg980lFDeq2cclcS2CBI52fRAPgdD
-	 Jn3eczx9CdF6RbPR/h8e9DNSlKN39Zw7yUsSqTu0=
-Date: Tue, 31 Mar 2026 11:29:51 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,akpm@linux-foundation.org
+	b=q12YdEwnG9xZnkFna1+NhJFv+gLlZ0cjoa0+ObbOAJ32OvkJ2TrJigxMTEZJrfcrs
+	 nlQvvg/5eIlXGb8Hdicg0jqg1neri7jZJQ1nwt8Gw1MFNlez+UPeraJwpVDCfE4rVu
+	 ltKtWk42lZpkn7fLyq57D+xW1iNRXIq7+L7i/kO8=
+Date: Tue, 31 Mar 2026 12:03:12 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,liuyun01@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch removed from -mm tree
-Message-Id: <20260331182952.31542C19423@smtp.kernel.org>
+Subject: + mm-mempolicy-fix-memory-leak-in-weighted_interleave_auto_store.patch added to mm-unstable branch
+Message-Id: <20260331190312.923C7C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,84 +34,70 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: KVM: PPC: use vma_start_write_killable() in kvmppc_memslot_page_merge()
-has been removed from the -mm tree.  Its filename was
-     kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge.patch
+The patch titled
+     Subject: mm/mempolicy: fix memory leak in weighted_interleave_auto_store()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mempolicy-fix-memory-leak-in-weighted_interleave_auto_store.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-memory-leak-in-weighted_interleave_auto_store.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: KVM: PPC: use vma_start_write_killable() in kvmppc_memslot_page_merge()
-Date: Fri, 27 Mar 2026 13:54:57 -0700
+From: Jackie Liu <liuyun01@kylinos.cn>
+Subject: mm/mempolicy: fix memory leak in weighted_interleave_auto_store()
+Date: Tue, 31 Mar 2026 18:07:40 +0800
 
-Replace vma_start_write() with vma_start_write_killable(), improving
-reaction time to the kill signal.  Replace vma_start_write() in
-kvmppc_memslot_page_merge().
+Add the missing kfree(new_wi_state) when the auto mode is already set to
+the requested value.  When a user writes "false" to the auto sysfs
+interface and the current mode is already manual (mode_auto == false), the
+function returns early without freeing new_wi_state allocated at the
+beginning of the function.  This can be triggered repeatedly from
+userspace, leaking memory on each write.
 
-Link: https://lkml.kernel.org/r/20260327205457.604224-7-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Ritesh Harjani (IBM) <ritesh.list@gmail.com>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20260331100740.84906-1-liu.yun@linux.dev
+Fixes: e341f9c3c841 ("mm/mempolicy: Weighted Interleave Auto-tuning")
+Signed-off-by: Jackie Liu <liuyun01@kylinos.cn>
+Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
+Reviewed by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Gregory Price <gourry@gourry.net>
 Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
 Cc: Byungchul Park <byungchul@sk.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Janosch Frank <frankja@linux.ibm.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/book3s_hv_uvmem.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/powerpc/kvm/book3s_hv_uvmem.c~kvm-ppc-use-vma_start_write_killable-in-kvmppc_memslot_page_merge
-+++ a/arch/powerpc/kvm/book3s_hv_uvmem.c
-@@ -410,7 +410,10 @@ static int kvmppc_memslot_page_merge(str
- 			ret = H_STATE;
- 			break;
+--- a/mm/mempolicy.c~mm-mempolicy-fix-memory-leak-in-weighted_interleave_auto_store
++++ a/mm/mempolicy.c
+@@ -3707,6 +3707,7 @@ static ssize_t weighted_interleave_auto_
+ 			goto update_wi_state;
+ 		if (input == old_wi_state->mode_auto) {
+ 			mutex_unlock(&wi_state_lock);
++			kfree(new_wi_state);
+ 			return count;
  		}
--		vma_start_write(vma);
-+		if (vma_start_write_killable(vma)) {
-+			ret = H_STATE;
-+			break;
-+		}
- 		/* Copy vm_flags to avoid partial modifications in ksm_madvise */
- 		vm_flags = vma->vm_flags;
- 		ret = ksm_madvise(vma, vma->vm_start, vma->vm_end,
+ 
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from liuyun01@kylinos.cn are
 
-mm-vmscan-prevent-mglru-reclaim-from-pinning-address-space.patch
+mm-mempolicy-fix-memory-leak-in-weighted_interleave_auto_store.patch
 
