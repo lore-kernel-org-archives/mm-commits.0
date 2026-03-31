@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD9BE40855
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:43:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E8EA40855
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:43:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774917835; cv=none; b=n0Iv6MSGzElD5hnArPcOhhFe8MW2b9sIFcVzAXMi3NpT9ypEXYhEKgZHo3DRuP+zDMYbIopJhPZAnznyQWN239bBdBjoLXMhJKAosNUYCOm8m+qg9kclSBm1SSPYxxSyJp62YLjdqtXi9mxgWz3EKUSsLpKO5H715LDuGRaDCd0=
+	t=1774917837; cv=none; b=Z5aAAKTDAq8mt2sqXCSUdmsnbEhwPSRsLeqx9KCG+qRk0jrGqcZCWU6Lq+/ae1CpfB3N3a8FKaMkANnOHwA3kfjB/dOWgq2rVOIziM3qCG1DEzYKPsEMIiYNz4YY+KLxftTZEQgeT796hXsKGcaTuX5xWC5+mBl+5v0MbtnPl9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774917835; c=relaxed/simple;
-	bh=+2hPejmzBTyGr23v73UorZDAqVBCHEaanWz7yp2PTtc=;
-	h=Date:To:From:Subject:Message-Id; b=EDE3qpgMyWT4rKWhd9vBpTlG2DuCgSlczjILyMZhIjWp3FssXJ1Kkmy/OPuqlfi/1QZ2Z36Kx3RAM8NZNBx+1FdqkVJd0aZQkMNwfnno0ry+DpgvVNuNXLF1Lik6u2Hypr3yjTyhcyon66Sp3MT/qTB26yn9Rc8yF7NnRPC9U8c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=F2h5OLHE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774917837; c=relaxed/simple;
+	bh=o5K5KkVZOAKo+heW9ZE9EdJWrsVSh1hWW8BzJLLX7O8=;
+	h=Date:To:From:Subject:Message-Id; b=EYNqGYpk00wkOJXVG2xTNeqQ0huAx7ZXbXMokSfFSy2IQ4CCcgTuabvyVm1m7E8YdsjiNWU9DbkH5TgfvDc9ze5Sxj+yqM/1vXE3Km6XPvtLyzD0xld2vCxXPlPvxTGa5aBaTvAZYZ7bcGCXzxyUeuQH1JM3suUixOpU1dCL9iI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qtFVS4H/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="F2h5OLHE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81524C4CEF7;
-	Tue, 31 Mar 2026 00:43:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qtFVS4H/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 074CDC4CEF7;
+	Tue, 31 Mar 2026 00:43:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774917835;
-	bh=+2hPejmzBTyGr23v73UorZDAqVBCHEaanWz7yp2PTtc=;
+	s=korg; t=1774917837;
+	bh=o5K5KkVZOAKo+heW9ZE9EdJWrsVSh1hWW8BzJLLX7O8=;
 	h=Date:To:From:Subject:From;
-	b=F2h5OLHEkQv5GaU31S0aXe4Amc+U+j3QtHa1n3V/kwJd/RJZEuqIanqbOMf5KJ/il
-	 qSiljfTxLZs4z33Ag/L9OT0NE0E+/TyF9KAGaTvVqG1QXkb1EvHGzymOV48ZkYy5pB
-	 FZ3liIFGtIaxvgbuZl8nGKO+kaMiCqSApYoub0HY=
-Date: Mon, 30 Mar 2026 17:43:55 -0700
+	b=qtFVS4H/hWazRN7vfevCaHeJIBbjd0WnBlM0WSpcqZM09f1/uMvw4MhzFp9NE21F1
+	 R27hxEBDeaGAnd/Ln2DikTSnKdgiwloYnVvLZ+kjfz7iTDYB3Jbb0VcXpu8coWrKCP
+	 hDNffjEWth5MKqmeidVrkVLBTr128qjbK5v4J/u8=
+Date: Mon, 30 Mar 2026 17:43:56 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-add-softleaf_is_valid_pmd_entry-pmd_to_softleaf_folio.patch removed from -mm tree
-Message-Id: <20260331004355.81524C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd.patch removed from -mm tree
+Message-Id: <20260331004357.074CDC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: add softleaf_is_valid_pmd_entry(), pmd_to_softleaf_folio()
+     Subject: mm/huge_memory: add and use normal_or_softleaf_folio_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-add-softleaf_is_valid_pmd_entry-pmd_to_softleaf_folio.patch
+     mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm: add softleaf_is_valid_pmd_entry(), pmd_to_softleaf_folio()
-Date: Fri, 20 Mar 2026 18:07:28 +0000
+Subject: mm/huge_memory: add and use normal_or_softleaf_folio_pmd()
+Date: Fri, 20 Mar 2026 18:07:29 +0000
 
-Separate pmd_is_valid_softleaf() into separate components, then use the
-pmd_is_valid_softleaf() predicate to implement pmd_to_softleaf_folio().
+Now we have pmd_to_softleaf_folio() available to us which also raises a
+CONFIG_DEBUG_VM warning if unexpectedly an invalid softleaf entry, we can
+now abstract folio handling altogether.
 
-This returns the folio associated with a softleaf entry at PMD level. It
-expects this to be valid for a PMD entry.
+vm_normal_folio() deals with the huge zero page (which is present), as well
+as PFN map/mixed map mappings in both cases returning NULL.
 
-If CONFIG_DEBUG_VM is set, then assert on this being an invalid entry, and
-either way return NULL in this case.
+Otherwise, we try to obtain the softleaf folio.
 
-This lays the ground for further refactorings.
+This makes the logic far easier to comprehend and has it use the standard
+vm_normal_folio_pmd() path for decoding of present entries.
 
-Link: https://lkml.kernel.org/r/b677592596274fa3fd701890497948e4b0e07cec.1774029655.git.ljs@kernel.org
+Finally, we have to update the flushing logic to only do so if a folio is
+established.
+
+This patch also makes the 'is_present' value more accurate - because PFN
+map, mixed map and zero huge pages are present, just not present and
+'normal'.
+
+[ljs@kernel.org: avoid bisection hazard]
+  Link: https://lkml.kernel.org/r/d0cc6161-77a4-42ba-a411-96c23c78df1b@lucifer.local
+Link: https://lkml.kernel.org/r/c2be872d64ef9573b80727d9ab5446cf002f17b5.1774029655.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -76,64 +86,85 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/leafops.h |   39 ++++++++++++++++++++++++++++++++++----
- 1 file changed, 35 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   47 ++++++++++++++++++---------------------------
+ 1 file changed, 19 insertions(+), 28 deletions(-)
 
---- a/include/linux/leafops.h~mm-add-softleaf_is_valid_pmd_entry-pmd_to_softleaf_folio
-+++ a/include/linux/leafops.h
-@@ -607,7 +607,20 @@ static inline bool pmd_is_migration_entr
+--- a/mm/huge_memory.c~mm-huge_memory-add-and-use-normal_or_softleaf_folio_pmd
++++ a/mm/huge_memory.c
+@@ -2419,10 +2419,6 @@ static void zap_huge_pmd_folio(struct mm
+ 		add_mm_counter(mm, mm_counter_file(folio),
+ 			       -HPAGE_PMD_NR);
+ 
+-		/*
+-		 * Use flush_needed to indicate whether the PMD entry
+-		 * is present, instead of checking pmd_present() again.
+-		 */
+ 		if (is_present && pmd_young(pmdval) &&
+ 		    likely(vma_has_recency(vma)))
+ 			folio_mark_accessed(folio);
+@@ -2433,6 +2429,17 @@ static void zap_huge_pmd_folio(struct mm
+ 		folio_put(folio);
  }
  
++static struct folio *normal_or_softleaf_folio_pmd(struct vm_area_struct *vma,
++		unsigned long addr, pmd_t pmdval, bool is_present)
++{
++	if (is_present)
++		return vm_normal_folio_pmd(vma, addr, pmdval);
++
++	if (!thp_migration_supported())
++		WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
++	return pmd_to_softleaf_folio(pmdval);
++}
++
  /**
-- * pmd_is_valid_softleaf() - Is this PMD entry a valid leaf entry?
-+ * softleaf_is_valid_pmd_entry() - Is the specified softleaf entry obtained from
-+ * a PMD one that we support at PMD level?
-+ * @entry: Entry to check.
-+ * Returns: true if the softleaf entry is valid at PMD, otherwise false.
-+ */
-+static inline bool softleaf_is_valid_pmd_entry(softleaf_t entry)
-+{
-+	/* Only device private, migration entries valid for PMD. */
-+	return softleaf_is_device_private(entry) ||
-+		softleaf_is_migration(entry);
-+}
-+
-+/**
-+ * pmd_is_valid_softleaf() - Is this PMD entry a valid softleaf entry?
-  * @pmd: PMD entry.
-  *
-  * PMD leaf entries are valid only if they are device private or migration
-@@ -620,9 +633,27 @@ static inline bool pmd_is_valid_softleaf
- {
- 	const softleaf_t entry = softleaf_from_pmd(pmd);
+  * zap_huge_pmd - Zap a huge THP which is of PMD size.
+  * @tlb: The MMU gather TLB state associated with the operation.
+@@ -2467,36 +2474,20 @@ bool zap_huge_pmd(struct mmu_gather *tlb
+ 						tlb->fullmm);
+ 	arch_check_zapped_pmd(vma, orig_pmd);
+ 	tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
+-	if (vma_is_special_huge(vma))
+-		goto out;
+-	if (is_huge_zero_pmd(orig_pmd)) {
+-		if (!vma_is_dax(vma))
+-			has_deposit = true;
+-		goto out;
+-	}
+-
+-	if (pmd_present(orig_pmd)) {
+-		folio = pmd_folio(orig_pmd);
+-		is_present = true;
+-	} else if (pmd_is_valid_softleaf(orig_pmd)) {
+-		const softleaf_t entry = softleaf_from_pmd(orig_pmd);
+-
+-		folio = softleaf_to_folio(entry);
+-		if (!thp_migration_supported())
+-			WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
+-	} else {
+-		WARN_ON_ONCE(true);
+-		goto out;
+-	}
  
--	/* Only device private, migration entries valid for PMD. */
--	return softleaf_is_device_private(entry) ||
--		softleaf_is_migration(entry);
-+	return softleaf_is_valid_pmd_entry(entry);
-+}
-+
-+/**
-+ * pmd_to_softleaf_folio() - Convert the PMD entry to a folio.
-+ * @pmd: PMD entry.
-+ *
-+ * The PMD entry is expected to be a valid PMD softleaf entry.
-+ *
-+ * Returns: the folio the softleaf entry references if this is a valid softleaf
-+ * entry, otherwise NULL.
-+ */
-+static inline struct folio *pmd_to_softleaf_folio(pmd_t pmd)
-+{
-+	const softleaf_t entry = softleaf_from_pmd(pmd);
-+
-+	if (!softleaf_is_valid_pmd_entry(entry)) {
-+		VM_WARN_ON_ONCE(true);
-+		return NULL;
-+	}
-+	return softleaf_to_folio(entry);
+-	zap_huge_pmd_folio(mm, vma, orig_pmd, folio, is_present, &has_deposit);
++	is_present = pmd_present(orig_pmd);
++	folio = normal_or_softleaf_folio_pmd(vma, addr, orig_pmd, is_present);
++	if (folio)
++		zap_huge_pmd_folio(mm, vma, orig_pmd, folio, is_present,
++				   &has_deposit);
++	else if (is_huge_zero_pmd(orig_pmd))
++		has_deposit = has_deposit || !vma_is_dax(vma);
+ 
+-out:
+ 	if (has_deposit)
+ 		zap_deposited_table(mm, pmd);
+ 
+ 	spin_unlock(ptl);
+-	if (is_present)
++	if (is_present && folio)
+ 		tlb_remove_page_size(tlb, &folio->page, HPAGE_PMD_SIZE);
+ 	return true;
  }
- 
- #endif  /* CONFIG_MMU */
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
