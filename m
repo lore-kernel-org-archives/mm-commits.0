@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF67F2BE034
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C72EB248F7C
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774917776; cv=none; b=QPGp26ts+jGKw1IqOIoTQUKWELhrZprWcBZCXhlM3P6QpaaRacRIvAj4evN6tnA/HwX/SSolOWMYT/FncMFW3PG0Ed8pTxpjj4+WuQ6D1uqM5271VVJU4eDVtRkkWV47qkbzFWtkxZM2QJbHCCZhYrD2ud/tkgGsIRHzTWSiizQ=
+	t=1774917778; cv=none; b=KO1H1tnZihVZWGGZXGrMe1JSuVbozuZ6ebcR3BtS4/JRWZpQCm7Ee/zE+IVw8gtKWZG6ZB/XjTy5dPEHu7A6Ew4kwVzlSB7WkQ1Hp/rjnw17O97aTKhD/+Q4wcqbPBQiwohwzXbrB9juLxNP7Fnvda/bD9NW8a4IU+9w0lcKDkY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774917776; c=relaxed/simple;
-	bh=19TfcnZHmGpBokBNfUY36AapZD9ebJeatIJZPn1bUxY=;
-	h=Date:To:From:Subject:Message-Id; b=JG+kY+gZ2ee61TrhyeX67pjlf5LLmfh8WaJBGihIngXXsU+uljSduJdJchM9VhWg5sHNKhzAiA8XxPeXMlb0wTBaa1vKYw9eKbC4S0qDR3TxZSoOzUrCmmqKBZ9CPjK/F8QHBt4Y5pRnHuhgZ5R47CImNbrbT0Eq7HFbiRwKgdY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QW/bwdnB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774917778; c=relaxed/simple;
+	bh=JD9BApNgPXjb+UGzXB7fQhxd+PWUhdX1feOJ3b0YUzQ=;
+	h=Date:To:From:Subject:Message-Id; b=gcKmqcjpnI8OuItWRzXnCDE8c7E0sqA4ZiBSCw/LLZ5aknr/kkbIMvvikOKSU7GVRUWllnCwJPqWUWlc1VPPdxvgJ1d3c0dTbaz8twS926It4hVMjZNjGMaNIR6DyjJE99ImPpdNgC34BKyajhc+5K0feGAoUVIZS9JvbYyn4b0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r7wfmudw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QW/bwdnB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75FB1C4CEF7;
-	Tue, 31 Mar 2026 00:42:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r7wfmudw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97FC5C4CEF7;
+	Tue, 31 Mar 2026 00:42:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774917776;
-	bh=19TfcnZHmGpBokBNfUY36AapZD9ebJeatIJZPn1bUxY=;
+	s=korg; t=1774917778;
+	bh=JD9BApNgPXjb+UGzXB7fQhxd+PWUhdX1feOJ3b0YUzQ=;
 	h=Date:To:From:Subject:From;
-	b=QW/bwdnB6uFFjBhRopI5w2oSpSWuXIz9ECP+fFCoZbNGbxABE29Em3bO4mlr/8dFT
-	 yBmG99UCGC7nW1boD7QeJXVFeVvYnGV4jt/FFivqLzipJERBoMDybzQtGn/DLh4fKu
-	 orEU+6a64ZWm8trjju3r/qtb/NJBk+hdMkXgIEZE=
-Date: Mon, 30 Mar 2026 17:42:56 -0700
+	b=r7wfmudwYaO+1JpR/44zwWtM4efhnm1ZTv+fwe8eyo9LSLLtU9953XhVHxCn8p3yY
+	 SvwOfySO1B4U117uBtwpUXKS+DaW9qXd+qgPG8EJPGwB1RuxPjjYCL4ERmE28UyjgG
+	 rFIF5cqAtG7bYSkZa44uqX4pTcwMZDrx/WR5GmCI=
+Date: Mon, 30 Mar 2026 17:42:58 -0700
 To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,will@kernel.org,viro@zeniv.linux.org.uk,vgupta@kernel.org,vbabka@kernel.org,tsbogend@alpha.franken.de,svens@linux.ibm.com,surenb@google.com,stephen.smalley.work@gmail.com,rppt@kernel.org,richard@nod.at,pfalcato@suse.de,paul@paul-moore.com,palmer@dabbelt.com,omosnace@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,linux@armlinux.org.uk,liam.howlett@oracle.com,kernel@xen0n.name,kees@kernel.org,johannes@sipsolutions.net,jannh@google.com,jack@suse.cz,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,dinguyen@kernel.org,david@kernel.org,chenhuacai@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,anton.ivanov@cambridgegreys.com,alex@ghiti.fr,agordeev@linux.ibm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-convert-__mmap_region-to-use-vma_flags_t.patch removed from -mm tree
-Message-Id: <20260331004256.75FB1C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-simplify-vma-flag-tests-of-excluded-flags.patch removed from -mm tree
+Message-Id: <20260331004258.97FC5C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,38 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: convert __mmap_region() to use vma_flags_t
+     Subject: mm: simplify VMA flag tests of excluded flags
 has been removed from the -mm tree.  Its filename was
-     mm-vma-convert-__mmap_region-to-use-vma_flags_t.patch
+     mm-simplify-vma-flag-tests-of-excluded-flags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm/vma: convert __mmap_region() to use vma_flags_t
-Date: Fri, 20 Mar 2026 19:38:41 +0000
+Subject: mm: simplify VMA flag tests of excluded flags
+Date: Fri, 20 Mar 2026 19:38:42 +0000
 
-Update the mmap() implementation logic implemented in __mmap_region() and
-functions invoked by it.  The mmap_region() function converts its input
-vm_flags_t parameter to a vma_flags_t value which it then passes to
-__mmap_region() which uses the vma_flags_t value consistently from then
-on.
+We have implemented flag mask comparisons of the form:
 
-As part of the change, we convert map_deny_write_exec() to using
-vma_flags_t (it was incorrectly using unsigned long before), and place it
-in vma.h, as it is only used internal to mm.
+if ((vm_flags & (VM_FOO|VM_BAR|VM_BAZ) == VM_FOO) { ... }
 
-With this change, we eliminate the legacy is_shared_maywrite_vm_flags()
-helper function which is now no longer required.
+Like-for-like in the code using a bitwise-and mask via vma_flags_and() and
+using vma_flags_same() to ensure the final result equals only the required
+flag value.
 
-We are also able to update the MMAP_STATE() and VMG_MMAP_STATE() macros to
-use the vma_flags_t value.
+This is fine but confusing, make things clearer by instead explicitly
+excluding undesired flags and including the desired one via tests of the
+form:
 
-Finally, we update the VMA tests to reflect the change.
+	if (vma_flags_test(&flags, VMA_FOO_BIT) &&
+	    !vma_flags_test_any(&flags, VMA_BAR_BIT, VMA_BAZ_BIT)) { ... }
 
-Link: https://lkml.kernel.org/r/1fc33a404c962f02da778da100387cc19bd62153.1774034900.git.ljs@kernel.org
+Which makes it easier to understand what is going on.
+
+No functional change intended.
+
+Link: https://lkml.kernel.org/r/d395c5dd837a9864f5efcec42175910afbe3ce73.1774034900.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Suggested-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
@@ -112,382 +114,70 @@ Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h              |   18 +++++++---
- include/linux/mman.h            |   49 ----------------------------
- mm/mprotect.c                   |    4 +-
- mm/vma.c                        |   25 +++++++-------
- mm/vma.h                        |   51 ++++++++++++++++++++++++++++++
- tools/testing/vma/include/dup.h |   34 ++++----------------
- tools/testing/vma/tests/mmap.c  |   18 +++-------
- 7 files changed, 92 insertions(+), 107 deletions(-)
+ mm/mprotect.c |   12 ++++--------
+ mm/vma.c      |    7 +++----
+ mm/vma.h      |    6 ++----
+ 3 files changed, 9 insertions(+), 16 deletions(-)
 
---- a/include/linux/mman.h~mm-vma-convert-__mmap_region-to-use-vma_flags_t
-+++ a/include/linux/mman.h
-@@ -170,53 +170,4 @@ static inline bool arch_memory_deny_writ
- }
- #define arch_memory_deny_write_exec_supported arch_memory_deny_write_exec_supported
- #endif
--
--/*
-- * Denies creating a writable executable mapping or gaining executable permissions.
-- *
-- * This denies the following:
-- *
-- * 	a)	mmap(PROT_WRITE | PROT_EXEC)
-- *
-- *	b)	mmap(PROT_WRITE)
-- *		mprotect(PROT_EXEC)
-- *
-- *	c)	mmap(PROT_WRITE)
-- *		mprotect(PROT_READ)
-- *		mprotect(PROT_EXEC)
-- *
-- * But allows the following:
-- *
-- *	d)	mmap(PROT_READ | PROT_EXEC)
-- *		mmap(PROT_READ | PROT_EXEC | PROT_BTI)
-- *
-- * This is only applicable if the user has set the Memory-Deny-Write-Execute
-- * (MDWE) protection mask for the current process.
-- *
-- * @old specifies the VMA flags the VMA originally possessed, and @new the ones
-- * we propose to set.
-- *
-- * Return: false if proposed change is OK, true if not ok and should be denied.
-- */
--static inline bool map_deny_write_exec(unsigned long old, unsigned long new)
--{
--	/* If MDWE is disabled, we have nothing to deny. */
--	if (!mm_flags_test(MMF_HAS_MDWE, current->mm))
--		return false;
--
--	/* If the new VMA is not executable, we have nothing to deny. */
--	if (!(new & VM_EXEC))
--		return false;
--
--	/* Under MDWE we do not accept newly writably executable VMAs... */
--	if (new & VM_WRITE)
--		return true;
--
--	/* ...nor previously non-executable VMAs becoming executable. */
--	if (!(old & VM_EXEC))
--		return true;
--
--	return false;
--}
--
- #endif /* _LINUX_MMAN_H */
---- a/include/linux/mm.h~mm-vma-convert-__mmap_region-to-use-vma_flags_t
-+++ a/include/linux/mm.h
-@@ -1522,12 +1522,6 @@ static inline bool vma_is_accessible(con
- 	return vma->vm_flags & VM_ACCESS_FLAGS;
- }
- 
--static inline bool is_shared_maywrite_vm_flags(vm_flags_t vm_flags)
--{
--	return (vm_flags & (VM_SHARED | VM_MAYWRITE)) ==
--		(VM_SHARED | VM_MAYWRITE);
--}
--
- static inline bool is_shared_maywrite(const vma_flags_t *flags)
- {
- 	return vma_flags_test_all(flags, VMA_SHARED_BIT, VMA_MAYWRITE_BIT);
-@@ -4335,12 +4329,24 @@ static inline bool range_in_vma(const st
- 
- #ifdef CONFIG_MMU
- pgprot_t vm_get_page_prot(vm_flags_t vm_flags);
-+
-+static inline pgprot_t vma_get_page_prot(vma_flags_t vma_flags)
-+{
-+	const vm_flags_t vm_flags = vma_flags_to_legacy(vma_flags);
-+
-+	return vm_get_page_prot(vm_flags);
-+}
-+
- void vma_set_page_prot(struct vm_area_struct *vma);
- #else
- static inline pgprot_t vm_get_page_prot(vm_flags_t vm_flags)
- {
- 	return __pgprot(0);
- }
-+static inline pgprot_t vma_get_page_prot(vma_flags_t vma_flags)
-+{
-+	return __pgprot(0);
-+}
- static inline void vma_set_page_prot(struct vm_area_struct *vma)
- {
- 	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
---- a/mm/mprotect.c~mm-vma-convert-__mmap_region-to-use-vma_flags_t
+--- a/mm/mprotect.c~mm-simplify-vma-flag-tests-of-excluded-flags
 +++ a/mm/mprotect.c
-@@ -882,6 +882,7 @@ static int do_mprotect_pkey(unsigned lon
- 	tmp = vma->vm_start;
- 	for_each_vma_range(vmi, vma, end) {
- 		vm_flags_t mask_off_old_flags;
-+		vma_flags_t new_vma_flags;
- 		vm_flags_t newflags;
- 		int new_vma_pkey;
+@@ -784,14 +784,10 @@ mprotect_fixup(struct vma_iterator *vmi,
+ 	 * Private VM_LOCKED VMA becoming writable: trigger COW to avoid major
+ 	 * fault on access.
+ 	 */
+-	if (vma_flags_test(&new_vma_flags, VMA_WRITE_BIT)) {
+-		const vma_flags_t mask =
+-			vma_flags_and(&old_vma_flags, VMA_WRITE_BIT,
+-				      VMA_SHARED_BIT, VMA_LOCKED_BIT);
+-
+-		if (vma_flags_same(&mask, VMA_LOCKED_BIT))
+-			populate_vma_page_range(vma, start, end, NULL);
+-	}
++	if (vma_flags_test(&new_vma_flags, VMA_WRITE_BIT) &&
++	    vma_flags_test(&old_vma_flags, VMA_LOCKED_BIT) &&
++	    !vma_flags_test_any(&old_vma_flags, VMA_WRITE_BIT, VMA_SHARED_BIT))
++		populate_vma_page_range(vma, start, end, NULL);
  
-@@ -904,6 +905,7 @@ static int do_mprotect_pkey(unsigned lon
- 		new_vma_pkey = arch_override_mprotect_pkey(vma, prot, pkey);
- 		newflags = calc_vm_prot_bits(prot, new_vma_pkey);
- 		newflags |= (vma->vm_flags & ~mask_off_old_flags);
-+		new_vma_flags = legacy_to_vma_flags(newflags);
- 
- 		/* newflags >> 4 shift VM_MAY% in place of VM_% */
- 		if ((newflags & ~(newflags >> 4)) & VM_ACCESS_FLAGS) {
-@@ -911,7 +913,7 @@ static int do_mprotect_pkey(unsigned lon
- 			break;
- 		}
- 
--		if (map_deny_write_exec(vma->vm_flags, newflags)) {
-+		if (map_deny_write_exec(&vma->flags, &new_vma_flags)) {
- 			error = -EACCES;
- 			break;
- 		}
---- a/mm/vma.c~mm-vma-convert-__mmap_region-to-use-vma_flags_t
+ 	vm_stat_account(mm, vma_flags_to_legacy(old_vma_flags), -nrpages);
+ 	newflags = vma_flags_to_legacy(new_vma_flags);
+--- a/mm/vma.c~mm-simplify-vma-flag-tests-of-excluded-flags
 +++ a/mm/vma.c
-@@ -44,7 +44,7 @@ struct mmap_state {
- 	bool file_doesnt_need_get :1;
- };
+@@ -2343,7 +2343,6 @@ void mm_drop_all_locks(struct mm_struct
+ static bool accountable_mapping(struct mmap_state *map)
+ {
+ 	const struct file *file = map->file;
+-	vma_flags_t mask;
  
--#define MMAP_STATE(name, mm_, vmi_, addr_, len_, pgoff_, vm_flags_, file_) \
-+#define MMAP_STATE(name, mm_, vmi_, addr_, len_, pgoff_, vma_flags_, file_) \
- 	struct mmap_state name = {					\
- 		.mm = mm_,						\
- 		.vmi = vmi_,						\
-@@ -52,9 +52,9 @@ struct mmap_state {
- 		.end = (addr_) + (len_),				\
- 		.pgoff = pgoff_,					\
- 		.pglen = PHYS_PFN(len_),				\
--		.vm_flags = vm_flags_,					\
-+		.vma_flags = vma_flags_,				\
- 		.file = file_,						\
--		.page_prot = vm_get_page_prot(vm_flags_),		\
-+		.page_prot = vma_get_page_prot(vma_flags_),		\
- 	}
+ 	/*
+ 	 * hugetlb has its own accounting separate from the core VM
+@@ -2352,9 +2351,9 @@ static bool accountable_mapping(struct m
+ 	if (file && is_file_hugepages(file))
+ 		return false;
  
- #define VMG_MMAP_STATE(name, map_, vma_)				\
-@@ -63,7 +63,7 @@ struct mmap_state {
- 		.vmi = (map_)->vmi,					\
- 		.start = (map_)->addr,					\
- 		.end = (map_)->end,					\
--		.vm_flags = (map_)->vm_flags,				\
-+		.vma_flags = (map_)->vma_flags,				\
- 		.pgoff = (map_)->pgoff,					\
- 		.file = (map_)->file,					\
- 		.prev = (map_)->prev,					\
-@@ -2746,14 +2746,14 @@ static int call_action_complete(struct m
+-	mask = vma_flags_and(&map->vma_flags, VMA_NORESERVE_BIT, VMA_SHARED_BIT,
+-			     VMA_WRITE_BIT);
+-	return vma_flags_same(&mask, VMA_WRITE_BIT);
++	return vma_flags_test(&map->vma_flags, VMA_WRITE_BIT) &&
++		!vma_flags_test_any(&map->vma_flags, VMA_NORESERVE_BIT,
++				    VMA_SHARED_BIT);
  }
  
- static unsigned long __mmap_region(struct file *file, unsigned long addr,
--		unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--		struct list_head *uf)
-+		unsigned long len, vma_flags_t vma_flags,
-+		unsigned long pgoff, struct list_head *uf)
- {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma = NULL;
- 	bool have_mmap_prepare = file && file->f_op->mmap_prepare;
- 	VMA_ITERATOR(vmi, mm, addr);
--	MMAP_STATE(map, mm, &vmi, addr, len, pgoff, vm_flags, file);
-+	MMAP_STATE(map, mm, &vmi, addr, len, pgoff, vma_flags, file);
- 	struct vm_area_desc desc = {
- 		.mm = mm,
- 		.file = file,
-@@ -2837,16 +2837,17 @@ abort_munmap:
-  * been performed.
-  */
- unsigned long mmap_region(struct file *file, unsigned long addr,
--			  unsigned long len, vm_flags_t vm_flags, unsigned long pgoff,
--			  struct list_head *uf)
-+			  unsigned long len, vm_flags_t vm_flags,
-+			  unsigned long pgoff, struct list_head *uf)
- {
- 	unsigned long ret;
- 	bool writable_file_mapping = false;
-+	const vma_flags_t vma_flags = legacy_to_vma_flags(vm_flags);
- 
- 	mmap_assert_write_locked(current->mm);
- 
- 	/* Check to see if MDWE is applicable. */
--	if (map_deny_write_exec(vm_flags, vm_flags))
-+	if (map_deny_write_exec(&vma_flags, &vma_flags))
- 		return -EACCES;
- 
- 	/* Allow architectures to sanity-check the vm_flags. */
-@@ -2854,7 +2855,7 @@ unsigned long mmap_region(struct file *f
- 		return -EINVAL;
- 
- 	/* Map writable and ensure this isn't a sealed memfd. */
--	if (file && is_shared_maywrite_vm_flags(vm_flags)) {
-+	if (file && is_shared_maywrite(&vma_flags)) {
- 		int error = mapping_map_writable(file->f_mapping);
- 
- 		if (error)
-@@ -2862,7 +2863,7 @@ unsigned long mmap_region(struct file *f
- 		writable_file_mapping = true;
- 	}
- 
--	ret = __mmap_region(file, addr, len, vm_flags, pgoff, uf);
-+	ret = __mmap_region(file, addr, len, vma_flags, pgoff, uf);
- 
- 	/* Clear our write mapping regardless of error. */
- 	if (writable_file_mapping)
---- a/mm/vma.h~mm-vma-convert-__mmap_region-to-use-vma_flags_t
+ /*
+--- a/mm/vma.h~mm-simplify-vma-flag-tests-of-excluded-flags
 +++ a/mm/vma.h
-@@ -704,4 +704,55 @@ int create_init_stack_vma(struct mm_stru
- int relocate_vma_down(struct vm_area_struct *vma, unsigned long shift);
- #endif
+@@ -529,10 +529,8 @@ static inline bool is_data_mapping(vm_fl
  
-+#ifdef CONFIG_MMU
-+/*
-+ * Denies creating a writable executable mapping or gaining executable permissions.
-+ *
-+ * This denies the following:
-+ *
-+ *	a)	mmap(PROT_WRITE | PROT_EXEC)
-+ *
-+ *	b)	mmap(PROT_WRITE)
-+ *		mprotect(PROT_EXEC)
-+ *
-+ *	c)	mmap(PROT_WRITE)
-+ *		mprotect(PROT_READ)
-+ *		mprotect(PROT_EXEC)
-+ *
-+ * But allows the following:
-+ *
-+ *	d)	mmap(PROT_READ | PROT_EXEC)
-+ *		mmap(PROT_READ | PROT_EXEC | PROT_BTI)
-+ *
-+ * This is only applicable if the user has set the Memory-Deny-Write-Execute
-+ * (MDWE) protection mask for the current process.
-+ *
-+ * @old specifies the VMA flags the VMA originally possessed, and @new the ones
-+ * we propose to set.
-+ *
-+ * Return: false if proposed change is OK, true if not ok and should be denied.
-+ */
-+static inline bool map_deny_write_exec(const vma_flags_t *old,
-+				       const vma_flags_t *new)
-+{
-+	/* If MDWE is disabled, we have nothing to deny. */
-+	if (!mm_flags_test(MMF_HAS_MDWE, current->mm))
-+		return false;
-+
-+	/* If the new VMA is not executable, we have nothing to deny. */
-+	if (!vma_flags_test(new, VMA_EXEC_BIT))
-+		return false;
-+
-+	/* Under MDWE we do not accept newly writably executable VMAs... */
-+	if (vma_flags_test(new, VMA_WRITE_BIT))
-+		return true;
-+
-+	/* ...nor previously non-executable VMAs becoming executable. */
-+	if (!vma_flags_test(old, VMA_EXEC_BIT))
-+		return true;
-+
-+	return false;
-+}
-+#endif
-+
- #endif	/* __MM_VMA_H */
---- a/tools/testing/vma/include/dup.h~mm-vma-convert-__mmap_region-to-use-vma_flags_t
-+++ a/tools/testing/vma/include/dup.h
-@@ -1124,12 +1124,6 @@ static __always_inline void vma_desc_cle
- #define vma_desc_clear_flags(desc, ...) \
- 	vma_desc_clear_flags_mask(desc, mk_vma_flags(__VA_ARGS__))
- 
--static inline bool is_shared_maywrite_vm_flags(vm_flags_t vm_flags)
--{
--	return (vm_flags & (VM_SHARED | VM_MAYWRITE)) ==
--		(VM_SHARED | VM_MAYWRITE);
--}
--
- static inline bool is_shared_maywrite(const vma_flags_t *flags)
+ static inline bool is_data_mapping_vma_flags(const vma_flags_t *vma_flags)
  {
- 	return vma_flags_test_all(flags, VMA_SHARED_BIT, VMA_MAYWRITE_BIT);
-@@ -1446,27 +1440,6 @@ static inline bool mlock_future_ok(const
- 	return locked_pages <= limit_pages;
+-	const vma_flags_t mask = vma_flags_and(vma_flags,
+-			VMA_WRITE_BIT, VMA_SHARED_BIT, VMA_STACK_BIT);
+-
+-	return vma_flags_same(&mask, VMA_WRITE_BIT);
++	return vma_flags_test(vma_flags, VMA_WRITE_BIT) &&
++		!vma_flags_test_any(vma_flags, VMA_SHARED_BIT, VMA_STACK_BIT);
  }
  
--static inline bool map_deny_write_exec(unsigned long old, unsigned long new)
--{
--	/* If MDWE is disabled, we have nothing to deny. */
--	if (mm_flags_test(MMF_HAS_MDWE, current->mm))
--		return false;
--
--	/* If the new VMA is not executable, we have nothing to deny. */
--	if (!(new & VM_EXEC))
--		return false;
--
--	/* Under MDWE we do not accept newly writably executable VMAs... */
--	if (new & VM_WRITE)
--		return true;
--
--	/* ...nor previously non-executable VMAs becoming executable. */
--	if (!(old & VM_EXEC))
--		return true;
--
--	return false;
--}
--
- static inline int mapping_map_writable(struct address_space *mapping)
- {
- 	return atomic_inc_unless_negative(&mapping->i_mmap_writable) ?
-@@ -1518,3 +1491,10 @@ static inline int get_sysctl_max_map_cou
- #ifndef pgtable_supports_soft_dirty
- #define pgtable_supports_soft_dirty()	IS_ENABLED(CONFIG_MEM_SOFT_DIRTY)
- #endif
-+
-+static inline pgprot_t vma_get_page_prot(vma_flags_t vma_flags)
-+{
-+	const vm_flags_t vm_flags = vma_flags_to_legacy(vma_flags);
-+
-+	return vm_get_page_prot(vm_flags);
-+}
---- a/tools/testing/vma/tests/mmap.c~mm-vma-convert-__mmap_region-to-use-vma_flags_t
-+++ a/tools/testing/vma/tests/mmap.c
-@@ -2,6 +2,8 @@
- 
- static bool test_mmap_region_basic(void)
- {
-+	const vma_flags_t vma_flags = mk_vma_flags(VMA_READ_BIT, VMA_WRITE_BIT,
-+			VMA_MAYREAD_BIT, VMA_MAYWRITE_BIT);
- 	struct mm_struct mm = {};
- 	unsigned long addr;
- 	struct vm_area_struct *vma;
-@@ -10,27 +12,19 @@ static bool test_mmap_region_basic(void)
- 	current->mm = &mm;
- 
- 	/* Map at 0x300000, length 0x3000. */
--	addr = __mmap_region(NULL, 0x300000, 0x3000,
--			     VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE,
--			     0x300, NULL);
-+	addr = __mmap_region(NULL, 0x300000, 0x3000, vma_flags, 0x300, NULL);
- 	ASSERT_EQ(addr, 0x300000);
- 
- 	/* Map at 0x250000, length 0x3000. */
--	addr = __mmap_region(NULL, 0x250000, 0x3000,
--			     VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE,
--			     0x250, NULL);
-+	addr = __mmap_region(NULL, 0x250000, 0x3000, vma_flags, 0x250, NULL);
- 	ASSERT_EQ(addr, 0x250000);
- 
- 	/* Map at 0x303000, merging to 0x300000 of length 0x6000. */
--	addr = __mmap_region(NULL, 0x303000, 0x3000,
--			     VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE,
--			     0x303, NULL);
-+	addr = __mmap_region(NULL, 0x303000, 0x3000, vma_flags, 0x303, NULL);
- 	ASSERT_EQ(addr, 0x303000);
- 
- 	/* Map at 0x24d000, merging to 0x250000 of length 0x6000. */
--	addr = __mmap_region(NULL, 0x24d000, 0x3000,
--			     VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE,
--			     0x24d, NULL);
-+	addr = __mmap_region(NULL, 0x24d000, 0x3000, vma_flags, 0x24d, NULL);
- 	ASSERT_EQ(addr, 0x24d000);
- 
- 	ASSERT_EQ(mm.map_count, 2);
+ static inline void vma_iter_config(struct vma_iterator *vmi,
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
