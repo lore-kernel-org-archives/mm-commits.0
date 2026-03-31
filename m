@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8711540855
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:43:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6F6740855
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:43:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774917831; cv=none; b=Y1HI3TmaygkAc2dtKAIZzAiH0zAxtciSXzy08lW9253di19+ev9W8fxZhckhHU9PRlzu+eXRHLA60UEFUsCOXV8hLriA0oF2jQWHGcSHjjcr/izU5z63GMEZNmTz9GqQ/nFDPWDUswJPED+pTLHz1lP6cwBIXDnBWc/2uz/U5cM=
+	t=1774917833; cv=none; b=NamfuSeV4pBJOE1H8f2Pa/MTINiRyB/7SBJnkev7kuMbbQtFjrtSi7Fpl71giC5O7WHt+PqnPEBiVqwWtemNJwLvHosj+zLV3PNPO1ZLiFW6ldqwHg1JSwo2/9wi9jjpTMMr71npwPJpKDCb2VJK1vjatbCCs5mn8sVG/KeHhwU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774917831; c=relaxed/simple;
-	bh=y1XAkYB77X3ZMHVVTHoWhHrte226FDQoKhvHXHNbaFo=;
-	h=Date:To:From:Subject:Message-Id; b=juUUKzPcUScMQXeYiJSQroQc5vGMahGmERMOO5bTn9zlMX2MpYykhKxo5rq/tG9HSDXkfnm6y4ktLNCNb4esOhstUmEfMqnr5Hp2BvXL2Xyv22F44O+8IUktJZj3pm5asrYpfx3WEwgRZGHWoLyec0qsi7OzGDkus820k8267k0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vklYkTzl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774917833; c=relaxed/simple;
+	bh=rZjeIHO4/swEQPetZRbeFOPHD82Vruf0OccyNlsqYCU=;
+	h=Date:To:From:Subject:Message-Id; b=T6OnDuO/0ZFHFTI3/Xtz410ZS9Ju5jassdXVm/SyqyfbD73B8Imagi3ukEykoVS8Dz+ahU2qih3v6sai0UzGJPtfxN2dVhXDmP19gq1Tm4OAoR593QLNIPT92NML5/YUFNTa5I1bloieMxM9KBU6Gx7jaiiE6cQJthXWxYbf/SM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BlsqKsck; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vklYkTzl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EF59C4CEF7;
-	Tue, 31 Mar 2026 00:43:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BlsqKsck"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD10DC4CEF7;
+	Tue, 31 Mar 2026 00:43:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774917831;
-	bh=y1XAkYB77X3ZMHVVTHoWhHrte226FDQoKhvHXHNbaFo=;
+	s=korg; t=1774917832;
+	bh=rZjeIHO4/swEQPetZRbeFOPHD82Vruf0OccyNlsqYCU=;
 	h=Date:To:From:Subject:From;
-	b=vklYkTzlZI5mK+Ocslp5ehmKlNW3kth6ZsFLizUGj2iy/Va4gziF+SmLY33tlNwnh
-	 LhEd29WO8nlm90Vlj9a79yQcsOoFCmhtOMkuVCOvuuexua/RNElQdJmAI54o/TYidn
-	 ib44Zg7hYsLOIuhBB4BrvwjgXX8oUUwD2vhsoiBA=
-Date: Mon, 30 Mar 2026 17:43:50 -0700
+	b=BlsqKsckxooTYA4TJmRZMFu+vqPByD2NeA8JJU6Y6lJDCyMPydqIFQOPsoEINCK8N
+	 EQi+CAdL248Sjr8xqdUcBJ3udXG21UrUlTUAVQiV88hClZR/KH0jLYIN0aIP10jQlp
+	 KZipJaZH/vIVxoo3cy1urrJTSHEuOnxl132zIqQI=
+Date: Mon, 30 Mar 2026 17:43:52 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-remove-unnecessary-sanity-checks.patch removed from -mm tree
-Message-Id: <20260331004351.5EF59C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge_memory-use-mm-instead-of-tlb-mm.patch removed from -mm tree
+Message-Id: <20260331004352.BD10DC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,25 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: remove unnecessary sanity checks
+     Subject: mm/huge_memory: use mm instead of tlb->mm
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-remove-unnecessary-sanity-checks.patch
+     mm-huge_memory-use-mm-instead-of-tlb-mm.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm/huge_memory: remove unnecessary sanity checks
-Date: Fri, 20 Mar 2026 18:07:25 +0000
+Subject: mm/huge_memory: use mm instead of tlb->mm
+Date: Fri, 20 Mar 2026 18:07:26 +0000
 
-These checks have been in place since 2014, I think we can safely assume
-that we are in a place where we don't need these as runtime checks.
+Reduce the repetition, and lay the ground for further refactorings by
+keeping this variable separate.
 
-In addition there are 4 other invocations of folio_remove_rmap_pmd(), none
-of which make this assertion.
-
-If we need to add this assertion, it should be in folio_remove_rmap_pmd(),
-and as a VM_WARN_ON_ONCE(), however these seem superfluous so just remove
-them.
-
-Link: https://lkml.kernel.org/r/0c4c5ab247c90f80cf44718e8124b217d6a22544.1774029655.git.ljs@kernel.org
+Link: https://lkml.kernel.org/r/98104cde87e4b2aabeb16f236b8731591594457f.1774029655.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -75,27 +68,40 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/huge_memory.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-remove-unnecessary-sanity-checks
+--- a/mm/huge_memory.c~mm-huge_memory-use-mm-instead-of-tlb-mm
 +++ a/mm/huge_memory.c
-@@ -2448,7 +2448,6 @@ bool zap_huge_pmd(struct mmu_gather *tlb
+@@ -2415,6 +2415,7 @@ bool zap_huge_pmd(struct mmu_gather *tlb
+ 		 pmd_t *pmd, unsigned long addr)
+ {
+ 	bool has_deposit = arch_needs_pgtable_deposit();
++	struct mm_struct *mm = tlb->mm;
+ 	struct folio *folio = NULL;
+ 	bool flush_needed = false;
+ 	spinlock_t *ptl;
+@@ -2462,9 +2463,9 @@ bool zap_huge_pmd(struct mmu_gather *tlb
  
- 		flush_needed = true;
- 		folio_remove_rmap_pmd(folio, &folio->page, vma);
--		WARN_ON_ONCE(folio_mapcount(folio) < 0);
- 	} else if (pmd_is_valid_softleaf(orig_pmd)) {
- 		const softleaf_t entry = softleaf_from_pmd(orig_pmd);
+ 	if (folio_test_anon(folio)) {
+ 		has_deposit = true;
+-		add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
++		add_mm_counter(mm, MM_ANONPAGES, -HPAGE_PMD_NR);
+ 	} else {
+-		add_mm_counter(tlb->mm, mm_counter_file(folio),
++		add_mm_counter(mm, mm_counter_file(folio),
+ 			       -HPAGE_PMD_NR);
  
-@@ -2479,7 +2478,6 @@ bool zap_huge_pmd(struct mmu_gather *tlb
+ 		/*
+@@ -2483,7 +2484,7 @@ bool zap_huge_pmd(struct mmu_gather *tlb
  
- 	if (folio_is_device_private(folio)) {
- 		folio_remove_rmap_pmd(folio, &folio->page, vma);
--		WARN_ON_ONCE(folio_mapcount(folio) < 0);
- 		folio_put(folio);
- 	}
+ out:
+ 	if (has_deposit)
+-		zap_deposited_table(tlb->mm, pmd);
++		zap_deposited_table(mm, pmd);
  
+ 	spin_unlock(ptl);
+ 	if (flush_needed)
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
