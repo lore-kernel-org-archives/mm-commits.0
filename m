@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6080C40DFD9
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75AC02BE034
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774917756; cv=none; b=f2fEABIXV26OvtGdFGiv9hoQYym8OxGVXg1CWJFfw1o64+Z/RLGS4tGpSXScfwq/1R7T7tmmAmrBWpaNVXV1HHPicWlpVdqOii/QqgtXZr5krGbqQVqTglqSPEIK5VPEiaeNTPFWluTjrhf2S0nd6kyWptybQt+JGPcB64i62U4=
+	t=1774917758; cv=none; b=nWcn1QsIhzlLO+wZ2wzYjwgCm49IBkTMEmelynVLOM6HZPMNeK+EZvPWU6/4TiqFiUIrlAEn15aeqOxI1Ip1irZWJBsYD0rUNXNVECXzBtgyNsL0UTeyV2ptnsdWGfrlndSOsicN+aedOa0BTAgguirJr0Mx3zHenXSfnGC4cn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774917756; c=relaxed/simple;
-	bh=ssE7WufBBe2bEXgYX8Nds/IP/+N9SoYMVX5z8rfyzKs=;
-	h=Date:To:From:Subject:Message-Id; b=H9eB+qcxnFYaJpXN5TmmoLGFYDj3femurvMsAfrbQqKrwC34t/RRUK57/q6TbiXku7YvkO+JAI/ONCG5tjRPo7z1kZ3DMwGhvlb5WQVLXD5AafjG535zksWkSkFEjXJdVTdzE6OysRJPJ9hojXPXOdOlxn6gdTTBudFjeVSutDk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wEjqrQrv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774917758; c=relaxed/simple;
+	bh=xpbMIFLXF7S8e4o231l6P0q9GVQmajCzw4oEh9fJ7nI=;
+	h=Date:To:From:Subject:Message-Id; b=KsLujlcCrX3YA1w0FSTP7WAYESZXrcA3eIsUguSpiDv7bQHrtvaP8o6hO9+JZK5ypwyoyJoMd+LUHr5JyeTk2UOV1wvPPZrN3oy6I8pzCUvOiRNgffrsMBTtZ7zP8GaBuwvi3NoDfZ1S3AOX3IrQKtSPPNc0NZZtwWfvoAqKZtA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gz6RcY1b; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wEjqrQrv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3EAAC4CEF7;
-	Tue, 31 Mar 2026 00:42:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gz6RcY1b"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E293C4CEF7;
+	Tue, 31 Mar 2026 00:42:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774917756;
-	bh=ssE7WufBBe2bEXgYX8Nds/IP/+N9SoYMVX5z8rfyzKs=;
+	s=korg; t=1774917758;
+	bh=xpbMIFLXF7S8e4o231l6P0q9GVQmajCzw4oEh9fJ7nI=;
 	h=Date:To:From:Subject:From;
-	b=wEjqrQrv+c+uKkV1GEMH7Dhke6h+SxAKlicRK9qb3GX5mtiVW+1gr7pocaDnk9/BE
-	 STvjAWIZbhG43RxUIBg3WSrFxMQqvPuL04q2Z2N3eoY1NU0HArzIMR92K7sVBXwEME
-	 fsWvemS9Nx7OKOMx5Szrw26iGpnpMnyVZjq98QC4=
-Date: Mon, 30 Mar 2026 17:42:35 -0700
+	b=gz6RcY1bgBbB/z+3VFD2lfLkxu3EN9TUzf2Fnl1kDA8fOEpXTrQ9RNLuzOFqEjjYt
+	 5uls5un9sWcoBk+BNRWeSQoAZtzH7o90siC8qcl5aDro0xFgs3K2XDvj3DKmE1oNdb
+	 +s7DQ5Zuyn1Y6S55WuETMkNnStIZAjvEV8ozFmrU=
+Date: Mon, 30 Mar 2026 17:42:37 -0700
 To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,will@kernel.org,viro@zeniv.linux.org.uk,vgupta@kernel.org,vbabka@kernel.org,tsbogend@alpha.franken.de,svens@linux.ibm.com,surenb@google.com,stephen.smalley.work@gmail.com,rppt@kernel.org,richard@nod.at,pfalcato@suse.de,paul@paul-moore.com,palmer@dabbelt.com,omosnace@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,linux@armlinux.org.uk,liam.howlett@oracle.com,kernel@xen0n.name,kees@kernel.org,johannes@sipsolutions.net,jannh@google.com,jack@suse.cz,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,dinguyen@kernel.org,david@kernel.org,chenhuacai@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,anton.ivanov@cambridgegreys.com,alex@ghiti.fr,agordeev@linux.ibm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-vma-update-vma-flag-tests-to-test-vma_test.patch removed from -mm tree
-Message-Id: <20260331004235.E3EAAC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-introduce-vma_flags_count-and-vma_test_single_mask.patch removed from -mm tree
+Message-Id: <20260331004238.0E293C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/vma: update VMA flag tests to test vma_test[_any_mask]()
+     Subject: mm: introduce vma_flags_count() and vma[_flags]_test_single_mask()
 has been removed from the -mm tree.  Its filename was
-     tools-testing-vma-update-vma-flag-tests-to-test-vma_test.patch
+     mm-introduce-vma_flags_count-and-vma_test_single_mask.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: tools/testing/vma: update VMA flag tests to test vma_test[_any_mask]()
-Date: Fri, 20 Mar 2026 19:38:31 +0000
+Subject: mm: introduce vma_flags_count() and vma[_flags]_test_single_mask()
+Date: Fri, 20 Mar 2026 19:38:32 +0000
 
-Update the existing test logic to assert that vma_test(), vma_test_any()
-and vma_test_any_mask() (implicitly tested via vma_test_any()) are
-functioning correctly.
+vma_flags_count() determines how many bits are set in VMA flags, using
+bitmap_weight().
 
-We already have tests for other variants like this, so it's simply a
-matter of expanding those tests to also include tests for the VMA-specific
-helpers.
+vma_flags_test_single_mask() determines if a vma_flags_t set of flags
+contains a single flag specified as another vma_flags_t value, or if the
+sought flag mask is empty, it is defined to return false.
 
-Link: https://lkml.kernel.org/r/dea3e97c6c3dd86f1a3f1a0703241b03f6e3a33f.1774034900.git.ljs@kernel.org
+This is useful when we want to declare a VMA flag as optionally a single
+flag in a mask or empty depending on kernel configuration.
+
+This allows us to have VM_NONE-like semantics when checking whether the
+flag is set.
+
+In a subsequent patch, we introduce the use of VMA_DROPPABLE of type
+vma_flags_t using precisely these semantics.
+
+It would be actively confusing to use vma_flags_test_any_single_mask() for
+this (and vma_flags_test_all_mask() is not correct to use here, as it
+trivially returns true when tested against an empty vma flags mask).
+
+We introduce vma_flags_count() to be able to assert that the compared flag
+mask is singular or empty, checked when CONFIG_DEBUG_VM is enabled.
+
+Also update the VMA tests as part of this change.
+
+Link: https://lkml.kernel.org/r/cd778dd02b9f2a01eb54d25a49dea8ec2ddf7753.1774034900.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -95,61 +113,161 @@ Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vineet Gupta <vgupta@kernel.org>
-Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Cc: Will Deacon <will@kernel.org>
 Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/vma/tests/vma.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ include/linux/mm.h                 |   46 +++++++++++++++++++++++++++
+ tools/testing/vma/include/custom.h |    6 ---
+ tools/testing/vma/include/dup.h    |   21 ++++++++++++
+ tools/testing/vma/vma_internal.h   |    6 +++
+ 4 files changed, 73 insertions(+), 6 deletions(-)
 
---- a/tools/testing/vma/tests/vma.c~tools-testing-vma-update-vma-flag-tests-to-test-vma_test
-+++ a/tools/testing/vma/tests/vma.c
-@@ -183,13 +183,18 @@ static bool test_vma_flags_test(void)
- 	struct vm_area_desc desc = {
- 		.vma_flags = flags,
- 	};
-+	struct vm_area_struct vma = {
-+		.flags = flags,
-+	};
+--- a/include/linux/mm.h~mm-introduce-vma_flags_count-and-vma_test_single_mask
++++ a/include/linux/mm.h
+@@ -1078,6 +1078,14 @@ static __always_inline vma_flags_t __mk_
+ #define append_vma_flags(flags, ...) __mk_vma_flags(flags,			\
+ 		COUNT_ARGS(__VA_ARGS__), (const vma_flag_t []){__VA_ARGS__})
  
- #define do_test(_flag)					\
- 	ASSERT_TRUE(vma_flags_test(&flags, _flag));	\
-+	ASSERT_TRUE(vma_test(&vma, _flag));		\
- 	ASSERT_TRUE(vma_desc_test(&desc, _flag))
++/* Calculates the number of set bits in the specified VMA flags. */
++static __always_inline int vma_flags_count(const vma_flags_t *flags)
++{
++	const unsigned long *bitmap = flags->__vma_flags;
++
++	return bitmap_weight(bitmap, NUM_VMA_FLAG_BITS);
++}
++
+ /*
+  * Test whether a specific VMA flag is set, e.g.:
+  *
+@@ -1153,6 +1161,26 @@ static __always_inline bool vma_flags_te
+ #define vma_flags_test_all(flags, ...) \
+ 	vma_flags_test_all_mask(flags, mk_vma_flags(__VA_ARGS__))
  
- #define do_test_false(_flag)				\
- 	ASSERT_FALSE(vma_flags_test(&flags, _flag));	\
-+	ASSERT_FALSE(vma_test(&vma, _flag));		\
- 	ASSERT_FALSE(vma_desc_test(&desc, _flag))
++/*
++ * Helper to test that a flag mask of type vma_flags_t has a SINGLE flag set
++ * (returning false if flagmask has no flags set).
++ *
++ * This is defined to make the semantics clearer when testing an optionally
++ * defined VMA flags mask, e.g.:
++ *
++ * if (vma_flags_test_single_mask(&flags, VMA_DROPPABLE)) { ... }
++ *
++ * When VMA_DROPPABLE is defined if available, or set to EMPTY_VMA_FLAGS
++ * otherwise.
++ */
++static __always_inline bool vma_flags_test_single_mask(const vma_flags_t *flags,
++		vma_flags_t flagmask)
++{
++	VM_WARN_ON_ONCE(vma_flags_count(&flagmask) > 1);
++
++	return vma_flags_test_any_mask(flags, flagmask);
++}
++
+ /* Set each of the to_set flags in flags, non-atomically. */
+ static __always_inline void vma_flags_set_mask(vma_flags_t *flags,
+ 		vma_flags_t to_set)
+@@ -1282,6 +1310,24 @@ static __always_inline bool vma_test_all
+ 	vma_test_all_mask(vma, mk_vma_flags(__VA_ARGS__))
  
- 	do_test(VMA_READ_BIT);
-@@ -219,15 +224,17 @@ static bool test_vma_flags_test_any(void
- 					       , 64, 65
+ /*
++ * Helper to test that a flag mask of type vma_flags_t has a SINGLE flag set
++ * (returning false if flagmask has no flags set).
++ *
++ * This is useful when a flag needs to be either defined or not depending upon
++ * kernel configuration, e.g.:
++ *
++ * if (vma_test_single_mask(vma, VMA_DROPPABLE)) { ... }
++ *
++ * When VMA_DROPPABLE is defined if available, or set to EMPTY_VMA_FLAGS
++ * otherwise.
++ */
++static __always_inline bool
++vma_test_single_mask(const struct vm_area_struct *vma, vma_flags_t flagmask)
++{
++	return vma_flags_test_single_mask(&vma->flags, flagmask);
++}
++
++/*
+  * Helper to set all VMA flags in a VMA.
+  *
+  * Note: appropriate locks must be held, this function does not acquire them for
+--- a/tools/testing/vma/include/custom.h~mm-introduce-vma_flags_count-and-vma_test_single_mask
++++ a/tools/testing/vma/include/custom.h
+@@ -15,12 +15,6 @@ extern unsigned long dac_mmap_min_addr;
+ #define dac_mmap_min_addr	0UL
  #endif
- 		);
--	struct vm_area_struct vma;
--	struct vm_area_desc desc;
+ 
+-#define VM_WARN_ON(_expr) (WARN_ON(_expr))
+-#define VM_WARN_ON_ONCE(_expr) (WARN_ON_ONCE(_expr))
+-#define VM_WARN_ON_VMG(_expr, _vmg) (WARN_ON(_expr))
+-#define VM_BUG_ON(_expr) (BUG_ON(_expr))
+-#define VM_BUG_ON_VMA(_expr, _vma) (BUG_ON(_expr))
 -
--	vma.flags = flags;
--	desc.vma_flags = flags;
-+	struct vm_area_struct vma = {
-+		.flags = flags,
-+	};
-+	struct vm_area_desc desc = {
-+		.vma_flags = flags,
-+	};
+ #define TASK_SIZE ((1ul << 47)-PAGE_SIZE)
  
- #define do_test(...)						\
- 	ASSERT_TRUE(vma_flags_test_any(&flags, __VA_ARGS__));	\
--	ASSERT_TRUE(vma_desc_test_any(&desc, __VA_ARGS__))
-+	ASSERT_TRUE(vma_desc_test_any(&desc, __VA_ARGS__));	\
-+	ASSERT_TRUE(vma_test_any(&vma, __VA_ARGS__));
+ /*
+--- a/tools/testing/vma/include/dup.h~mm-introduce-vma_flags_count-and-vma_test_single_mask
++++ a/tools/testing/vma/include/dup.h
+@@ -905,6 +905,13 @@ static __always_inline vma_flags_t __mk_
+ #define append_vma_flags(flags, ...) __mk_vma_flags(flags,			\
+ 		COUNT_ARGS(__VA_ARGS__), (const vma_flag_t []){__VA_ARGS__})
  
- #define do_test_all_true(...)					\
- 	ASSERT_TRUE(vma_flags_test_all(&flags, __VA_ARGS__));	\
++static __always_inline int vma_flags_count(const vma_flags_t *flags)
++{
++	const unsigned long *bitmap = flags->__vma_flags;
++
++	return bitmap_weight(bitmap, NUM_VMA_FLAG_BITS);
++}
++
+ static __always_inline bool vma_flags_test(const vma_flags_t *flags,
+ 		vma_flag_t bit)
+ {
+@@ -952,6 +959,14 @@ static __always_inline bool vma_flags_te
+ #define vma_flags_test_all(flags, ...) \
+ 	vma_flags_test_all_mask(flags, mk_vma_flags(__VA_ARGS__))
+ 
++static __always_inline bool vma_flags_test_single_mask(const vma_flags_t *flags,
++						vma_flags_t flagmask)
++{
++	VM_WARN_ON_ONCE(vma_flags_count(&flagmask) > 1);
++
++	return vma_flags_test_any_mask(flags, flagmask);
++}
++
+ static __always_inline void vma_flags_set_mask(vma_flags_t *flags, vma_flags_t to_set)
+ {
+ 	unsigned long *bitmap = flags->__vma_flags;
+@@ -1031,6 +1046,12 @@ static __always_inline bool vma_test_all
+ #define vma_test_all(vma, ...) \
+ 	vma_test_all_mask(vma, mk_vma_flags(__VA_ARGS__))
+ 
++static __always_inline bool
++vma_test_single_mask(const struct vm_area_struct *vma, vma_flags_t flagmask)
++{
++	return vma_flags_test_single_mask(&vma->flags, flagmask);
++}
++
+ static __always_inline void vma_set_flags_mask(struct vm_area_struct *vma,
+ 		vma_flags_t flags)
+ {
+--- a/tools/testing/vma/vma_internal.h~mm-introduce-vma_flags_count-and-vma_test_single_mask
++++ a/tools/testing/vma/vma_internal.h
+@@ -51,6 +51,12 @@ typedef unsigned long	pgprotval_t;
+ typedef struct pgprot { pgprotval_t pgprot; } pgprot_t;
+ typedef __bitwise unsigned int vm_fault_t;
+ 
++#define VM_WARN_ON(_expr) (WARN_ON(_expr))
++#define VM_WARN_ON_ONCE(_expr) (WARN_ON_ONCE(_expr))
++#define VM_WARN_ON_VMG(_expr, _vmg) (WARN_ON(_expr))
++#define VM_BUG_ON(_expr) (BUG_ON(_expr))
++#define VM_BUG_ON_VMA(_expr, _vma) (BUG_ON(_expr))
++
+ #include "include/stubs.h"
+ #include "include/dup.h"
+ #include "include/custom.h"
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
