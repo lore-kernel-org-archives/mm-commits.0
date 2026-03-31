@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14B8D37883C;
-	Tue, 31 Mar 2026 19:03:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF46D3D2FF0
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 20:07:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774983793; cv=none; b=QrJcOAOShy3FdpwyGT5QP7GdztnRJcdRl7lr52su376iTzjllpURziGa5iC/dCS81wYK6khPN6JakcAh/xcuiCrWBqnp2wsMKNg6RCellGZP03tWeDr5sEpWfCSsr9hw67dlIy47s2J6npS1uSq/waHq6Q84/D3pjtJxR9xBI+c=
+	t=1774987651; cv=none; b=EV2SitLz2UFbkRy6O6Rx1qRDxQNYn85s/MN1B9w5phAHSFa0qFJY8dTlurMY+XWd6rsVbqd0J8ISTdGQL7inaA+Zdt0wU5/eZI5YfCv07FCkdTBolPP+fapCTj3Spz4EvJZRgLW8+ZClhxVkMyWBkR/YK/ls+RBz0KqxcW4rwDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774983793; c=relaxed/simple;
-	bh=lHpNuvAMhCX6p3T7a7BazybaLrtSomcuIRgu8XwxmiA=;
-	h=Date:To:From:Subject:Message-Id; b=J8V4VIzAgBEsDCJQV5LWhhnjDtuYJyUrhfXk1FMn+IeoxqAJAcX8lie+Fl3JRh5YzAUNCCbMJ/YWERLr8XvP2ctmJqDMMuhFt47k5fwpIN1kdW5O8shGzRHHnp6bkJxvsXWqatJnqe4qvjASP43Z05ZkVnHO6bf3ehQ/i71F0k0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q12YdEwn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774987651; c=relaxed/simple;
+	bh=S58X8EFbMPscr5JIGke1yLKDqpEEHfLbWM41+7U73SE=;
+	h=Date:To:From:Subject:Message-Id; b=cC7pnJr4ZDbFbMxyKTsCQlzXmj+oN6+XNJ4RxSLZ/5LLyDNIX39i13qVZVY2rvgIUaAZrzAG9x/mnAWkPlDPLRE1gAeHixg6KPbE59qxxV6vFprxRxanpxOjGPjQ9NNIV3h91eeOayOLzbL3hNlStlXxKURMT+mdPYeH5UQ5ZBs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JdE/PeSu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q12YdEwn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 923C7C19423;
-	Tue, 31 Mar 2026 19:03:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JdE/PeSu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 522B7C19423;
+	Tue, 31 Mar 2026 20:07:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774983792;
-	bh=lHpNuvAMhCX6p3T7a7BazybaLrtSomcuIRgu8XwxmiA=;
+	s=korg; t=1774987650;
+	bh=S58X8EFbMPscr5JIGke1yLKDqpEEHfLbWM41+7U73SE=;
 	h=Date:To:From:Subject:From;
-	b=q12YdEwnG9xZnkFna1+NhJFv+gLlZ0cjoa0+ObbOAJ32OvkJ2TrJigxMTEZJrfcrs
-	 nlQvvg/5eIlXGb8Hdicg0jqg1neri7jZJQ1nwt8Gw1MFNlez+UPeraJwpVDCfE4rVu
-	 ltKtWk42lZpkn7fLyq57D+xW1iNRXIq7+L7i/kO8=
-Date: Tue, 31 Mar 2026 12:03:12 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,liuyun01@kylinos.cn,akpm@linux-foundation.org
+	b=JdE/PeSuFTIsdSfZKd9WowsO4a+1uJROHPpd/B9Hxau/A9ngHtMjIb7QjE3aThik/
+	 sHgIWcIDerSK874flfGaxYQGTKsuedb0ewfCX11PvZCGffJr4YQ13mtP7dWwdxdueZ
+	 r52J0nCLm3paUSXuIjZ2xxk3CrR4MeBYYxhUmatM=
+Date: Tue, 31 Mar 2026 13:07:29 -0700
+To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-fix-memory-leak-in-weighted_interleave_auto_store.patch added to mm-unstable branch
-Message-Id: <20260331190312.923C7C19423@smtp.kernel.org>
+Subject: + mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch added to mm-unstable branch
+Message-Id: <20260331200730.522B7C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: fix memory leak in weighted_interleave_auto_store()
+     Subject: mm/sparse: fix BUILD_BUG_ON check for section map alignment
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-fix-memory-leak-in-weighted_interleave_auto_store.patch
+     mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-memory-leak-in-weighted_interleave_auto_store.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,46 +58,112 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jackie Liu <liuyun01@kylinos.cn>
-Subject: mm/mempolicy: fix memory leak in weighted_interleave_auto_store()
-Date: Tue, 31 Mar 2026 18:07:40 +0800
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/sparse: fix BUILD_BUG_ON check for section map alignment
+Date: Tue, 31 Mar 2026 19:30:23 +0800
 
-Add the missing kfree(new_wi_state) when the auto mode is already set to
-the requested value.  When a user writes "false" to the auto sysfs
-interface and the current mode is already manual (mode_auto == false), the
-function returns early without freeing new_wi_state allocated at the
-beginning of the function.  This can be triggered repeatedly from
-userspace, leaking memory on each write.
+The comment in mmzone.h states that the alignment requirement
+is the minimum of PAGE_SHIFT and PFN_SECTION_SHIFT. However, the
+pointer arithmetic (mem_map - section_nr_to_pfn()) results in
+a byte offset scaled by sizeof(struct page). Thus, the actual
+alignment provided by the second term is PFN_SECTION_SHIFT +
+__ffs(sizeof(struct page)).
 
-Link: https://lkml.kernel.org/r/20260331100740.84906-1-liu.yun@linux.dev
-Fixes: e341f9c3c841 ("mm/mempolicy: Weighted Interleave Auto-tuning")
-Signed-off-by: Jackie Liu <liuyun01@kylinos.cn>
-Reviewed-by: Joshua Hahn <joshua.hahnjy@gmail.com>
-Reviewed by: Donet Tom <donettom@linux.ibm.com>
-Reviewed-by: Gregory Price <gourry@gourry.net>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: <stable@vger.kernel.org>
+Update the compile-time check and the mmzone.h comment to
+accurately reflect this mathematically guaranteed alignment by
+taking the minimum of PAGE_SHIFT and PFN_SECTION_SHIFT +
+__ffs(sizeof(struct page)). This avoids the issue of the check
+being overly restrictive on architectures like powerpc where
+PFN_SECTION_SHIFT alone is very small (e.g., 6).
+
+Also, remove the exhaustive per-architecture bit-width list from the
+comment; such details risk falling out of date over time and may
+inadvertently be left un-updated, while the existing BUILD_BUG_ON
+provides sufficient compile-time verification of the constraint.
+
+No runtime impact so far: SECTION_MAP_LAST_BIT happens to fit within
+the smaller limit on all existing architectures.
+
+Link: https://lkml.kernel.org/r/20260331113023.2068075-1-songmuchun@bytedance.com
+Fixes: def9b71ee651 ("include/linux/mmzone.h: fix explanation of lower bits in the SPARSEMEM mem_map pointer")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mmzone.h |   24 +++++++++---------------
+ mm/internal.h          |    3 ++-
+ 2 files changed, 11 insertions(+), 16 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-fix-memory-leak-in-weighted_interleave_auto_store
-+++ a/mm/mempolicy.c
-@@ -3707,6 +3707,7 @@ static ssize_t weighted_interleave_auto_
- 			goto update_wi_state;
- 		if (input == old_wi_state->mode_auto) {
- 			mutex_unlock(&wi_state_lock);
-+			kfree(new_wi_state);
- 			return count;
- 		}
+--- a/include/linux/mmzone.h~mm-sparse-fix-build_bug_on-check-for-section-map-alignment
++++ a/include/linux/mmzone.h
+@@ -2068,21 +2068,15 @@ static inline struct mem_section *__nr_t
+ extern size_t mem_section_usage_size(void);
  
+ /*
+- * We use the lower bits of the mem_map pointer to store
+- * a little bit of information.  The pointer is calculated
+- * as mem_map - section_nr_to_pfn(pnum).  The result is
+- * aligned to the minimum alignment of the two values:
+- *   1. All mem_map arrays are page-aligned.
+- *   2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT
+- *      lowest bits.  PFN_SECTION_SHIFT is arch-specific
+- *      (equal SECTION_SIZE_BITS - PAGE_SHIFT), and the
+- *      worst combination is powerpc with 256k pages,
+- *      which results in PFN_SECTION_SHIFT equal 6.
+- * To sum it up, at least 6 bits are available on all architectures.
+- * However, we can exceed 6 bits on some other architectures except
+- * powerpc (e.g. 15 bits are available on x86_64, 13 bits are available
+- * with the worst case of 64K pages on arm64) if we make sure the
+- * exceeded bit is not applicable to powerpc.
++ * We use the lower bits of the mem_map pointer to store a little bit of
++ * information. The pointer is calculated as mem_map - section_nr_to_pfn().
++ * The result is aligned to the minimum alignment of the two values:
++ *
++ * 1. All mem_map arrays are page-aligned.
++ * 2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT lowest bits. Because
++ *    it is subtracted from a struct page pointer, the offset is scaled by
++ *    sizeof(struct page). This provides an alignment of PFN_SECTION_SHIFT +
++ *    __ffs(sizeof(struct page)).
+  */
+ enum {
+ 	SECTION_MARKED_PRESENT_BIT,
+--- a/mm/internal.h~mm-sparse-fix-build_bug_on-check-for-section-map-alignment
++++ a/mm/internal.h
+@@ -972,7 +972,8 @@ static inline void sparse_init_one_secti
+ {
+ 	unsigned long coded_mem_map;
+ 
+-	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > PFN_SECTION_SHIFT);
++	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > min(PFN_SECTION_SHIFT + __ffs(sizeof(struct page)),
++						PAGE_SHIFT));
+ 
+ 	/*
+ 	 * We encode the start PFN of the section into the mem_map such that
 _
 
-Patches currently in -mm which might be from liuyun01@kylinos.cn are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-mempolicy-fix-memory-leak-in-weighted_interleave_auto_store.patch
+mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup.patch
+mm-workingset-use-folio_lruvec-in-workingset_refault.patch
+mm-rename-unlock_page_lruvec_irq-and-its-variants.patch
+mm-vmscan-refactor-move_folios_to_lru.patch
+mm-memcontrol-allocate-object-cgroup-for-non-kmem-case.patch
+mm-memcontrol-return-root-object-cgroup-for-root-memory-cgroup.patch
+mm-memcontrol-prevent-memory-cgroup-release-in-get_mem_cgroup_from_folio.patch
+buffer-prevent-memory-cgroup-release-in-folio_alloc_buffers.patch
+writeback-prevent-memory-cgroup-release-in-writeback-module.patch
+mm-memcontrol-prevent-memory-cgroup-release-in-count_memcg_folio_events.patch
+mm-page_io-prevent-memory-cgroup-release-in-page_io-module.patch
+mm-migrate-prevent-memory-cgroup-release-in-folio_migrate_mapping.patch
+mm-mglru-prevent-memory-cgroup-release-in-mglru.patch
+mm-memcontrol-prevent-memory-cgroup-release-in-mem_cgroup_swap_full.patch
+mm-workingset-prevent-memory-cgroup-release-in-lru_gen_eviction.patch
+mm-workingset-prevent-lruvec-release-in-workingset_refault.patch
+mm-zswap-prevent-lruvec-release-in-zswap_folio_swapin.patch
+mm-swap-prevent-lruvec-release-in-lru_gen_clear_refs.patch
+mm-workingset-prevent-lruvec-release-in-workingset_activation.patch
+mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock.patch
+mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios.patch
+mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-helpers.patch
+mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch
 
