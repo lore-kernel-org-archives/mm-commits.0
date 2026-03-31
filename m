@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D434F3EC2CB;
-	Tue, 31 Mar 2026 22:40:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 154AF2DC32E;
+	Tue, 31 Mar 2026 23:26:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774996815; cv=none; b=jfv7pfzCzuoecJjxP7ctuI6Qu5O7Hs2Af9IO87s8bMlsNnrk4gcs1TH9Khm7MOpvERMlOYrCH8JMKKgaX0xyA1odKz3HuVrLLbcV/tkjzL2iX4y8EMQYWY2tWZlv+a6BiSCRvWZVCFePsJtiBKsdEHPma/IbbJyGalLDtvdnYzE=
+	t=1774999611; cv=none; b=Zu5/MzWAAme6eleQmEJHg16iH2fiIsjpYHEIHB+pPeRYyCibf3fr+/sZhQx9RDQ6oF+Oq/a8HkfV2L1YVM+cIQ7T+YuyY1NQRLO6hwL/mZiD6pDNHFoZQDbk9mkmHWRPLE4whGXcFsiazPRtojSUQ9EOZPZ7DekRUZAhH9AhM24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774996815; c=relaxed/simple;
-	bh=jB4tWs9RKbmWfxy1lEMujQC5KfUDS5qhAk/bfkV4PAA=;
-	h=Date:To:From:Subject:Message-Id; b=eFMSIhl64MOBvJ4KRrMK7TS4NHqauuXzKz46xn6ENH4cHcSfyTjD0g9KMtRiq/kSTpsqmnnAZNR53TcQ+Yt8lTnBTGMhqv7q6pRc9Y9y7iGhoL5i6jRrh01VUH/xeKQyCUvr0cNd//AV+6ROad70A+Q4qCv3oZoB0M8zRbWZa+A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hoEM9H/c; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774999611; c=relaxed/simple;
+	bh=qKSTGBvcGt1AKdvYAuMJ7w8mY9p6t/8penwt2t9bnq4=;
+	h=Date:To:From:Subject:Message-Id; b=RUKEhByFdNifjSy3sER8iA6mPaKhlr9POaY6hd5gptJPeo6zRFgqzLUgjXE5VHB/fHLQXhpi46J9HcvF2xhWz2o2q60DITYjw3llpFRNwZmmGiZtELQ5h4ijbreRRxWL46epcCriNIkmNJufCqBGKVcSly8PGridXpyvPWp4za8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ci4OdQBR; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hoEM9H/c"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 771EBC19423;
-	Tue, 31 Mar 2026 22:40:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ci4OdQBR"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EF32C19423;
+	Tue, 31 Mar 2026 23:26:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774996815;
-	bh=jB4tWs9RKbmWfxy1lEMujQC5KfUDS5qhAk/bfkV4PAA=;
+	s=korg; t=1774999610;
+	bh=qKSTGBvcGt1AKdvYAuMJ7w8mY9p6t/8penwt2t9bnq4=;
 	h=Date:To:From:Subject:From;
-	b=hoEM9H/cQRc/l4/wePc5OMX20xwLnpq4s8CwMZSiQDwRKLPNWvf1JzUHwS4GHPvja
-	 PulBK1hQ2Mr030pypfdDbGjoM3Qv5S2Vq81dYiVEHaT9VRZws7pYMEZQ1YOcNO1r6D
-	 QvGShruRRxp6JPsL4RuccVOfNSLJ0H5GgX+NxWZY=
-Date: Tue, 31 Mar 2026 15:40:14 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,lirongqing@baidu.com,bhe@redhat.com,urezki@gmail.com,akpm@linux-foundation.org
+	b=Ci4OdQBRzHVNpBiMkMPmB+XAD2nc7oNPJVLPWABtqgxE1evVBaTEF7p8orvPrHI5p
+	 BK5nEuy0GhVekTFLP0XeKaT2NPXxMNB5mKb+/5Ida85dgXtQmy1Vu8En7KmEn+waYZ
+	 zYyXFP+GHImbULzRoo4i3QIu9DAASfQ5qe5ogNU4=
+Date: Tue, 31 Mar 2026 16:26:49 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch added to mm-unstable branch
-Message-Id: <20260331224015.771EBC19423@smtp.kernel.org>
+Subject: + mm-damon-core-fix-damon_call-vs-kdamond_fn-exit-race.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260331232650.8EF32C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: use dedicated unbound workqueues for vmap drain
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
+     Subject: mm/damon/core: fix damon_call() vs kdamond_fn() exit race
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-fix-damon_call-vs-kdamond_fn-exit-race.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-fix-damon_call-vs-kdamond_fn-exit-race.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,194 +58,172 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: use dedicated unbound workqueues for vmap drain
-Date: Tue, 31 Mar 2026 22:23:52 +0200
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: fix damon_call() vs kdamond_fn() exit race
+Date: Fri, 27 Mar 2026 16:33:14 -0700
 
-drain_vmap_area_work() function can take >10ms to complete when there are
-many accumulated vmap areas in a system with high CPU count, causing
-workqueue watchdog warnings when run via schedule_work():
+Patch series "mm/damon/core: fix damon_call()/damos_walk() vs kdmond exit
+race".
 
-  workqueue: drain_vmap_area_work hogged CPU for >10000us
+damon_call() and damos_walk() can leak memory and/or deadlock when they
+race with kdamond terminations.  Fix those.
 
-Move the top-level drain work to a dedicated WQ_UNBOUND workqueue so the
-scheduler can run this background work on any available CPU, improving
-responsiveness.  Use the WQ_MEM_RECLAIM to ensure forward progress under
-memory pressure.
 
-Move purge helpers to separate WQ_UNBOUND | WQ_MEM_RECLAIM workqueue. 
-This allows drain_vmap_work to wait for helpers completion without
-creating dependency on the same rescuer thread and avoid a potential
-parent/child deadlock.
+This patch (of 2);
 
-Simplify purge helper scheduling by removing cpumask-based iteration to
-iterating directly over vmap nodes checking work_queued state.
+When kdamond_fn() main loop is finished, the function cancels all
+remaining damon_call() requests and unset the damon_ctx->kdamond so that
+API callers and API functions themselves can know the context is
+terminated.  damon_call() adds the caller's request to the queue first. 
+After that, it shows if the kdamond of the damon_ctx is still running
+(damon_ctx->kdamond is set).  Only if the kdamond is running, damon_call()
+starts waiting for the kdamond's handling of the newly added request.
 
-Link: https://lkml.kernel.org/r/20260331202352.879718-1-urezki@gmail.com
-Fixes: 72210662c5a2 ("mm: vmalloc: offload free_vmap_area_lock lock")
-Link: https://lore.kernel.org/all/20260319074307.2325-1-lirongqing@baidu.com/
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Li RongQing <lirongqing@baidu.com>
-Cc: <stable@vger.kernel.org>
+The damon_call() requests registration and damon_ctx->kdamond unset are
+protected by different mutexes, though.  Hence, damon_call() could race
+with damon_ctx->kdamond unset, and result in deadlocks.
+
+For example, let's suppose kdamond successfully finished the damon_call()
+requests cancelling.  Right after that, damon_call() is called for the
+context.  It registers the new request, and shows the context is still
+running, because damon_ctx->kdamond unset is not yet done.  Hence the
+damon_call() caller starts waiting for the handling of the request. 
+However, the kdamond is already on the termination steps, so it never
+handles the new request.  As a result, the damon_call() caller threads
+infinitely waits.
+
+Fix this by introducing another damon_ctx field, namely
+call_controls_obsolete.  It is protected by the
+damon_ctx->call_controls_lock, which protects damon_call() requests
+registration.  Initialize (unset) it in kdamond_fn() before letting
+damon_start() returns and set it just before the cancelling of remaining
+damon_call() requests is executed.  damon_call() reads the obsolete field
+under the lock and avoids adding a new request.
+
+After this change, only requests that are guaranteed to be handled or
+cancelled are registered.  Hence the after-registration DAMON context
+termination check is no longer needed.  Remove it together.
+
+Note that the deadlock will not happen when damon_call() is called for
+repeat mode request.  In tis case, damon_call() returns instead of waiting
+for the handling when the request registration succeeds and it shows the
+kdamond is running.  However, if the request also has dealloc_on_cancel,
+the request memory would be leaked.
+
+The issue is found by sashiko [1].
+
+Link: https://lkml.kernel.org/r/20260327233319.3528-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20260327233319.3528-2-sj@kernel.org
+Link: https://lore.kernel.org/20260325141956.87144-1-sj@kernel.org [1]
+Fixes: 42b7491af14c ("mm/damon/core: introduce damon_call()")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.14.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   79 ++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 52 insertions(+), 27 deletions(-)
+ include/linux/damon.h |    1 
+ mm/damon/core.c       |   45 ++++++++++++----------------------------
+ 2 files changed, 15 insertions(+), 31 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain
-+++ a/mm/vmalloc.c
-@@ -949,6 +949,7 @@ static struct vmap_node {
- 	struct list_head purge_list;
- 	struct work_struct purge_work;
- 	unsigned long nr_purged;
-+	bool work_queued;
- } single;
+--- a/include/linux/damon.h~mm-damon-core-fix-damon_call-vs-kdamond_fn-exit-race
++++ a/include/linux/damon.h
+@@ -805,6 +805,7 @@ struct damon_ctx {
  
- /*
-@@ -1067,6 +1068,8 @@ static void reclaim_and_purge_vmap_areas
- static BLOCKING_NOTIFIER_HEAD(vmap_notify_list);
- static void drain_vmap_area_work(struct work_struct *work);
- static DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
-+static struct workqueue_struct *drain_vmap_helpers_wq;
-+static struct workqueue_struct *drain_vmap_wq;
+ 	/* lists of &struct damon_call_control */
+ 	struct list_head call_controls;
++	bool call_controls_obsolete;
+ 	struct mutex call_controls_lock;
  
- static __cacheline_aligned_in_smp atomic_long_t vmap_lazy_nr;
- 
-@@ -2329,6 +2332,16 @@ static void purge_vmap_node(struct work_
- 	reclaim_list_global(&local_list);
+ 	struct damos_walk_control *walk_control;
+--- a/mm/damon/core.c~mm-damon-core-fix-damon_call-vs-kdamond_fn-exit-race
++++ a/mm/damon/core.c
+@@ -1464,35 +1464,6 @@ int damon_kdamond_pid(struct damon_ctx *
+ 	return pid;
  }
  
-+static bool
-+schedule_drain_vmap_work(struct workqueue_struct *wq,
-+		struct work_struct *work)
-+{
-+	if (wq)
-+		return queue_work(wq, work);
-+
-+	return false;
-+}
-+
- /*
-  * Purges all lazily-freed vmap areas.
-  */
-@@ -2336,19 +2349,12 @@ static bool __purge_vmap_area_lazy(unsig
- 		bool full_pool_decay)
- {
- 	unsigned long nr_purged_areas = 0;
-+	unsigned int nr_purge_nodes = 0;
- 	unsigned int nr_purge_helpers;
--	static cpumask_t purge_nodes;
--	unsigned int nr_purge_nodes;
- 	struct vmap_node *vn;
--	int i;
- 
- 	lockdep_assert_held(&vmap_purge_lock);
- 
--	/*
--	 * Use cpumask to mark which node has to be processed.
--	 */
--	purge_nodes = CPU_MASK_NONE;
+-/*
+- * damon_call_handle_inactive_ctx() - handle DAMON call request that added to
+- *				      an inactive context.
+- * @ctx:	The inactive DAMON context.
+- * @control:	Control variable of the call request.
+- *
+- * This function is called in a case that @control is added to @ctx but @ctx is
+- * not running (inactive).  See if @ctx handled @control or not, and cleanup
+- * @control if it was not handled.
+- *
+- * Returns 0 if @control was handled by @ctx, negative error code otherwise.
+- */
+-static int damon_call_handle_inactive_ctx(
+-		struct damon_ctx *ctx, struct damon_call_control *control)
+-{
+-	struct damon_call_control *c;
 -
- 	for_each_vmap_node(vn) {
- 		INIT_LIST_HEAD(&vn->purge_list);
- 		vn->skip_populate = full_pool_decay;
-@@ -2368,10 +2374,9 @@ static bool __purge_vmap_area_lazy(unsig
- 		end = max(end, list_last_entry(&vn->purge_list,
- 			struct vmap_area, list)->va_end);
- 
--		cpumask_set_cpu(node_to_id(vn), &purge_nodes);
-+		nr_purge_nodes++;
- 	}
- 
--	nr_purge_nodes = cpumask_weight(&purge_nodes);
- 	if (nr_purge_nodes > 0) {
- 		flush_tlb_kernel_range(start, end);
- 
-@@ -2379,29 +2384,31 @@ static bool __purge_vmap_area_lazy(unsig
- 		nr_purge_helpers = atomic_long_read(&vmap_lazy_nr) / lazy_max_pages();
- 		nr_purge_helpers = clamp(nr_purge_helpers, 1U, nr_purge_nodes) - 1;
- 
--		for_each_cpu(i, &purge_nodes) {
--			vn = &vmap_nodes[i];
-+		for_each_vmap_node(vn) {
-+			vn->work_queued = false;
-+
-+			if (list_empty(&vn->purge_list))
-+				continue;
- 
- 			if (nr_purge_helpers > 0) {
- 				INIT_WORK(&vn->purge_work, purge_vmap_node);
-+				vn->work_queued = schedule_drain_vmap_work(
-+					READ_ONCE(drain_vmap_helpers_wq), &vn->purge_work);
- 
--				if (cpumask_test_cpu(i, cpu_online_mask))
--					schedule_work_on(i, &vn->purge_work);
--				else
--					schedule_work(&vn->purge_work);
--
--				nr_purge_helpers--;
--			} else {
--				vn->purge_work.func = NULL;
--				purge_vmap_node(&vn->purge_work);
--				nr_purged_areas += vn->nr_purged;
-+				if (vn->work_queued) {
-+					nr_purge_helpers--;
-+					continue;
-+				}
- 			}
+-	mutex_lock(&ctx->call_controls_lock);
+-	list_for_each_entry(c, &ctx->call_controls, list) {
+-		if (c == control) {
+-			list_del(&control->list);
+-			mutex_unlock(&ctx->call_controls_lock);
+-			return -EINVAL;
 -		}
+-	}
+-	mutex_unlock(&ctx->call_controls_lock);
+-	return 0;
+-}
+-
+ /**
+  * damon_call() - Invoke a given function on DAMON worker thread (kdamond).
+  * @ctx:	DAMON context to call the function for.
+@@ -1510,6 +1481,10 @@ static int damon_call_handle_inactive_ct
+  * synchronization.  The return value of the function will be saved in
+  * &damon_call_control->return_code.
+  *
++ * Note that this function should be called only after damon_start() with the
++ * @ctx has succeeded.  Otherwise, this function could fall into an indefinite
++ * wait.
++ *
+  * Return: 0 on success, negative error code otherwise.
+  */
+ int damon_call(struct damon_ctx *ctx, struct damon_call_control *control)
+@@ -1520,10 +1495,12 @@ int damon_call(struct damon_ctx *ctx, st
+ 	INIT_LIST_HEAD(&control->list);
  
--		for_each_cpu(i, &purge_nodes) {
--			vn = &vmap_nodes[i];
-+			/* Sync path. Process locally. */
-+			purge_vmap_node(&vn->purge_work);
-+			nr_purged_areas += vn->nr_purged;
-+		}
+ 	mutex_lock(&ctx->call_controls_lock);
++	if (ctx->call_controls_obsolete) {
++		mutex_unlock(&ctx->call_controls_lock);
++		return -ECANCELED;
++	}
+ 	list_add_tail(&control->list, &ctx->call_controls);
+ 	mutex_unlock(&ctx->call_controls_lock);
+-	if (!damon_is_running(ctx))
+-		return damon_call_handle_inactive_ctx(ctx, control);
+ 	if (control->repeat)
+ 		return 0;
+ 	wait_for_completion(&control->completion);
+@@ -2751,6 +2728,9 @@ static int kdamond_fn(void *data)
  
--			if (vn->purge_work.func) {
-+		/* Wait for completion if queued any. */
-+		for_each_vmap_node(vn) {
-+			if (vn->work_queued) {
- 				flush_work(&vn->purge_work);
- 				nr_purged_areas += vn->nr_purged;
- 			}
-@@ -2465,7 +2472,8 @@ static void free_vmap_area_noflush(struc
+ 	pr_debug("kdamond (%d) starts\n", current->pid);
  
- 	/* After this point, we may free va at any time */
- 	if (unlikely(nr_lazy > nr_lazy_max))
--		schedule_work(&drain_vmap_work);
-+		schedule_drain_vmap_work(READ_ONCE(drain_vmap_wq),
-+			&drain_vmap_work);
- }
++	mutex_lock(&ctx->call_controls_lock);
++	ctx->call_controls_obsolete = false;
++	mutex_unlock(&ctx->call_controls_lock);
+ 	complete(&ctx->kdamond_started);
+ 	kdamond_init_ctx(ctx);
  
- /*
-@@ -5483,3 +5491,20 @@ void __init vmalloc_init(void)
- 	vmap_node_shrinker->scan_objects = vmap_node_shrink_scan;
- 	shrinker_register(vmap_node_shrinker);
- }
-+
-+static int __init vmalloc_init_workqueue(void)
-+{
-+	struct workqueue_struct *drain_wq, *helpers_wq;
-+	unsigned int flags = WQ_UNBOUND | WQ_MEM_RECLAIM;
-+
-+	drain_wq = alloc_workqueue("vmap_drain", flags, 0);
-+	WARN_ON_ONCE(drain_wq == NULL);
-+	WRITE_ONCE(drain_vmap_wq, drain_wq);
-+
-+	helpers_wq = alloc_workqueue("vmap_drain_helpers", flags, 0);
-+	WARN_ON_ONCE(helpers_wq == NULL);
-+	WRITE_ONCE(drain_vmap_helpers_wq, helpers_wq);
-+
-+	return 0;
-+}
-+early_initcall(vmalloc_init_workqueue);
+@@ -2855,6 +2835,9 @@ done:
+ 	damon_destroy_targets(ctx);
+ 
+ 	kfree(ctx->regions_score_histogram);
++	mutex_lock(&ctx->call_controls_lock);
++	ctx->call_controls_obsolete = true;
++	mutex_unlock(&ctx->call_controls_lock);
+ 	kdamond_call(ctx, true);
+ 	damos_walk_cancel(ctx);
+ 
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-vmalloc-use-dedicated-unbound-workqueues-for-vmap-drain.patch
-mm-vmalloc-use-dedicated-unbound-workqueue-for-vmap-purge-drain.patch
+mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch
+mm-damon-core-fix-damon_call-vs-kdamond_fn-exit-race.patch
+mm-damon-core-fix-damos_walk-vs-kdamond_fn-exit-race.patch
 
