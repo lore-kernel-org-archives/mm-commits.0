@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C96DD40DFD9
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC2C0282F06
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:42:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774917741; cv=none; b=FtaEhccN41nn0HAIZ9E3usX2fzba7q45jBsVEESbacBUoweI8n4aDxqjsO1GlpvrTAUwfItlz0uaOLyzaMQ4Ap5KaEu2W+m6JbuzqhHo02uWaRYMrtbzg7YSAVxv68MaBujWnywsepmELTLwDU20uA/LUMX78Gu1j91rKWx+ckI=
+	t=1774917743; cv=none; b=kqD+KIheHQG1rD231nuxZlgwN67+inl/9T3BBKNIvbvObkr2SWeXxLGdIUWHxpzIVlzXKcPseIr/ZPY2YHwUfzwxOTWuHQP41I5c+bSNbf1zn0oteV2MuW/RPqdFzkYcvMr/gd94pCdhFROVVoOjPJNf2bHnHkOhoOJpjW+3Pi4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774917741; c=relaxed/simple;
-	bh=37lfw9Yfswy/ioINW0NwT20wt80seSiMfkb+pBefmww=;
-	h=Date:To:From:Subject:Message-Id; b=pIjsEG2Tb+kcwFBqCqw8gp293yjm7FTh/LPs6sHhvSbKOIDLuEcNuzBo6U4C9nTFaQLlD2h5tBKlR99Jp4pl8/revj+rTEzT4Sv5brNIwMPv/EJ1wCq9otFFXN+wEbEAoIS0ib0owjyiUXP6h/s3J16VMyVx/T340pOvZFk/8ZQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o/HDFBhI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774917743; c=relaxed/simple;
+	bh=w/wrhYxKpj2eB18HsTPdJwDc2YInUDycsTFE9m29FiY=;
+	h=Date:To:From:Subject:Message-Id; b=AJdG9UsZ1AL5naafbrNrNH7eqWoSKxQc8EzieIHxzFll2y/fbdfirr0VG4oqlUnijtLSGEbsWcQ0aI4Y9oIaB0OZJOnDTmAYh84DWgNon/OD7OB6GTq8HZvjUefXa5/MRHM2TgmbkFh4q96Vc/Hyc//TaVwKefIO6luu8uSVkWE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dDr9yOcV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o/HDFBhI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53F0FC4CEF7;
-	Tue, 31 Mar 2026 00:42:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dDr9yOcV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5EE37C4CEF7;
+	Tue, 31 Mar 2026 00:42:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774917741;
-	bh=37lfw9Yfswy/ioINW0NwT20wt80seSiMfkb+pBefmww=;
+	s=korg; t=1774917743;
+	bh=w/wrhYxKpj2eB18HsTPdJwDc2YInUDycsTFE9m29FiY=;
 	h=Date:To:From:Subject:From;
-	b=o/HDFBhIgyxeoONvptFa+d6DENnupCViwaP6C1PIsnOjRU5/GQudAozZMEZib17/S
-	 vNM8sekEuRlhKozhUR23K8bSegRXtR3hkJoTe1JL0+vYYOBC7aELuDlURUsv12PUAx
-	 OS0qN1810kK1LwSRgcvWshcsXSAnD8K+4Yptxd7c=
-Date: Mon, 30 Mar 2026 17:42:20 -0700
+	b=dDr9yOcVGej/iL1SyK0cckx2ipl9Pdb7miGmSY2EF3MpJW8phIJz0K4sM7RJNy/R9
+	 PEbfvEh4Xawwn64FRZJ9c4VorbS46BflfZzprbaLFy55PiLyyg9KjI1FW4M/L0ra0L
+	 VZC2pxTT0pjczMK8U5z5sUmwa4ipfDXpl1eRgRJI=
+Date: Mon, 30 Mar 2026 17:42:22 -0700
 To: mm-commits@vger.kernel.org,xu.xin16@zte.com.cn,will@kernel.org,viro@zeniv.linux.org.uk,vgupta@kernel.org,vbabka@kernel.org,tsbogend@alpha.franken.de,svens@linux.ibm.com,surenb@google.com,stephen.smalley.work@gmail.com,rppt@kernel.org,richard@nod.at,pfalcato@suse.de,paul@paul-moore.com,palmer@dabbelt.com,omosnace@redhat.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mhocko@suse.com,maddy@linux.ibm.com,linux@armlinux.org.uk,liam.howlett@oracle.com,kernel@xen0n.name,kees@kernel.org,johannes@sipsolutions.net,jannh@google.com,jack@suse.cz,hpa@zytor.com,hca@linux.ibm.com,gor@linux.ibm.com,dinguyen@kernel.org,david@kernel.org,chenhuacai@kernel.org,chengming.zhou@linux.dev,catalin.marinas@arm.com,brauner@kernel.org,bp@alien8.de,borntraeger@linux.ibm.com,aou@eecs.berkeley.edu,anton.ivanov@cambridgegreys.com,alex@ghiti.fr,agordeev@linux.ibm.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-add-append_vma_flags-helper.patch removed from -mm tree
-Message-Id: <20260331004221.53F0FC4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] tools-testing-vma-add-simple-test-for-append_vma_flags.patch removed from -mm tree
+Message-Id: <20260331004223.5EE37C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: add append_vma_flags() helper
+     Subject: tools/testing/vma: add simple test for append_vma_flags()
 has been removed from the -mm tree.  Its filename was
-     mm-vma-add-append_vma_flags-helper.patch
+     tools-testing-vma-add-simple-test-for-append_vma_flags.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm/vma: add append_vma_flags() helper
-Date: Fri, 20 Mar 2026 19:38:24 +0000
+Subject: tools/testing/vma: add simple test for append_vma_flags()
+Date: Fri, 20 Mar 2026 19:38:25 +0000
 
-In order to be able to efficiently combine VMA flag masks with additional
-VMA flag bits we need to extend the concept introduced in mk_vma_flags()
-and __mk_vma_flags() by allowing the specification of a VMA flag mask to
-append VMA flag bits to.
+Add a simple test for append_vma_flags() to assert that it behaves as
+expected.
 
-Update __mk_vma_flags() to allow for this and update mk_vma_flags()
-accordingly, and also provide append_vma_flags() to allow for the caller
-to specify which VMA flags mask to append to.
+Additionally, include the VMA_REMAP_FLAGS definition in the VMA tests to
+allow us to use this value in the testing.
 
-Finally, update the VMA flags tests to reflect the change.
-
-Link: https://lkml.kernel.org/r/9f928cd4688270002f2c0c3777fcc9b49cc7a8ea.1774034900.git.ljs@kernel.org
+Link: https://lkml.kernel.org/r/eebd946c5325ad7fae93027245a562eb1aeb68a2.1774034900.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -99,86 +93,68 @@ Cc: Sven Schnelle <svens@linux.ibm.com>
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
 Cc: Vineet Gupta <vgupta@kernel.org>
+Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: WANG Xuerui <kernel@xen0n.name>
 Cc: Will Deacon <will@kernel.org>
 Cc: xu xin <xu.xin16@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h              |   20 ++++++++++++++------
- tools/testing/vma/include/dup.h |   14 +++++++-------
- 2 files changed, 21 insertions(+), 13 deletions(-)
+ tools/testing/vma/include/dup.h |    3 +++
+ tools/testing/vma/tests/vma.c   |   25 +++++++++++++++++++++++++
+ 2 files changed, 28 insertions(+)
 
---- a/include/linux/mm.h~mm-vma-add-append_vma_flags-helper
-+++ a/include/linux/mm.h
-@@ -1042,13 +1042,11 @@ static __always_inline void vma_flags_se
- 	__set_bit((__force int)bit, bitmap);
- }
- 
--static __always_inline vma_flags_t __mk_vma_flags(size_t count,
--		const vma_flag_t *bits)
-+static __always_inline vma_flags_t __mk_vma_flags(vma_flags_t flags,
-+		size_t count, const vma_flag_t *bits)
- {
--	vma_flags_t flags;
- 	int i;
- 
--	vma_flags_clear_all(&flags);
- 	for (i = 0; i < count; i++)
- 		vma_flags_set_flag(&flags, bits[i]);
- 	return flags;
-@@ -1064,8 +1062,18 @@ static __always_inline vma_flags_t __mk_
-  * The compiler cleverly optimises away all of the work and this ends up being
-  * equivalent to aggregating the values manually.
-  */
--#define mk_vma_flags(...) __mk_vma_flags(COUNT_ARGS(__VA_ARGS__), \
--					 (const vma_flag_t []){__VA_ARGS__})
-+#define mk_vma_flags(...) __mk_vma_flags(EMPTY_VMA_FLAGS,			\
-+		COUNT_ARGS(__VA_ARGS__), (const vma_flag_t []){__VA_ARGS__})
-+
-+/*
-+ * Helper macro which acts like mk_vma_flags, only appending to a copy of the
-+ * specified flags rather than establishing new flags. E.g.:
-+ *
-+ * vma_flags_t flags = append_vma_flags(VMA_STACK_DEFAULT_FLAGS, VMA_STACK_BIT,
-+ *              VMA_ACCOUNT_BIT);
-+ */
-+#define append_vma_flags(flags, ...) __mk_vma_flags(flags,			\
-+		COUNT_ARGS(__VA_ARGS__), (const vma_flag_t []){__VA_ARGS__})
- 
- /*
-  * Test whether a specific VMA flag is set, e.g.:
---- a/tools/testing/vma/include/dup.h~mm-vma-add-append_vma_flags-helper
+--- a/tools/testing/vma/include/dup.h~tools-testing-vma-add-simple-test-for-append_vma_flags
 +++ a/tools/testing/vma/include/dup.h
-@@ -854,21 +854,21 @@ static inline void vm_flags_clear(struct
- 	vma_flags_clear_word(&vma->flags, flags);
- }
+@@ -345,6 +345,9 @@ enum {
+  */
+ #define VM_SPECIAL (VM_IO | VM_DONTEXPAND | VM_PFNMAP | VM_MIXEDMAP)
  
--static __always_inline vma_flags_t __mk_vma_flags(size_t count,
--		const vma_flag_t *bits)
-+static __always_inline vma_flags_t __mk_vma_flags(vma_flags_t flags,
-+		size_t count, const vma_flag_t *bits)
- {
--	vma_flags_t flags;
- 	int i;
- 
--	vma_flags_clear_all(&flags);
- 	for (i = 0; i < count; i++)
- 		vma_flags_set_flag(&flags, bits[i]);
--
- 	return flags;
- }
- 
--#define mk_vma_flags(...) __mk_vma_flags(COUNT_ARGS(__VA_ARGS__),	\
--		(const vma_flag_t []){__VA_ARGS__})
-+#define mk_vma_flags(...) __mk_vma_flags(EMPTY_VMA_FLAGS,			\
-+		COUNT_ARGS(__VA_ARGS__), (const vma_flag_t []){__VA_ARGS__})
++#define VMA_REMAP_FLAGS mk_vma_flags(VMA_IO_BIT, VMA_PFNMAP_BIT,	\
++				     VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT)
 +
-+#define append_vma_flags(flags, ...) __mk_vma_flags(flags,			\
-+		COUNT_ARGS(__VA_ARGS__), (const vma_flag_t []){__VA_ARGS__})
+ #define DEFAULT_MAP_WINDOW	((1UL << 47) - PAGE_SIZE)
+ #define TASK_SIZE_LOW		DEFAULT_MAP_WINDOW
+ #define TASK_SIZE_MAX		DEFAULT_MAP_WINDOW
+--- a/tools/testing/vma/tests/vma.c~tools-testing-vma-add-simple-test-for-append_vma_flags
++++ a/tools/testing/vma/tests/vma.c
+@@ -555,6 +555,30 @@ static bool test_vma_flags_and(void)
+ 	return true;
+ }
  
- static __always_inline bool vma_flags_test(const vma_flags_t *flags,
- 		vma_flag_t bit)
++/* Ensure append_vma_flags() acts as expected. */
++static bool test_append_vma_flags(void)
++{
++	vma_flags_t flags = append_vma_flags(VMA_REMAP_FLAGS, VMA_READ_BIT,
++					     VMA_WRITE_BIT
++#if NUM_VMA_FLAG_BITS > 64
++					     , 64, 65
++#endif
++		);
++
++	ASSERT_FLAGS_SAME(&flags, VMA_IO_BIT, VMA_PFNMAP_BIT,
++			  VMA_DONTEXPAND_BIT, VMA_DONTDUMP_BIT, VMA_READ_BIT,
++			  VMA_WRITE_BIT
++#if NUM_VMA_FLAG_BITS > 64
++					     , 64, 65
++#endif
++		);
++
++	flags = append_vma_flags(EMPTY_VMA_FLAGS, VMA_READ_BIT, VMA_WRITE_BIT);
++	ASSERT_FLAGS_SAME(&flags, VMA_READ_BIT, VMA_WRITE_BIT);
++
++	return true;
++}
++
+ static void run_vma_tests(int *num_tests, int *num_fail)
+ {
+ 	TEST(copy_vma);
+@@ -569,4 +593,5 @@ static void run_vma_tests(int *num_tests
+ 	TEST(vma_flags_empty);
+ 	TEST(vma_flags_diff);
+ 	TEST(vma_flags_and);
++	TEST(append_vma_flags);
+ }
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
