@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93DC22BE05F
-	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:43:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50FCB40855
+	for <mm-commits@vger.kernel.org>; Tue, 31 Mar 2026 00:43:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1774917819; cv=none; b=fZtS5UhpeXo4P8NfjiT2vs3H3Je2YYTwjg2RxgM+h30AvkLSwKtkGUeriyAxtvIHpp2dBR71/Wzy2ezJGcscThtN1vyvd/RIhrHlhkzEAstiykxrCl3DuDW2Ce5hZmHGOXvvVKwY9sp/yWXsAeoNvueiZ4WBbfvwJYHuw+7K5h0=
+	t=1774917821; cv=none; b=olt3PYDqh6BPXX/ywAeVuX55ksW+OPraNc7uW8RKdZfkd9yj8QGeLEvLagitJFvvp0tDCjpe0RPrVvsgXdeY9rHPDMKtiXrrSZdnMKIzWxk33CjbpWQEdjKjfq+YhqPxSDcKOKaMweyRWTQXgqCWgScP0aHAyV753AOIpsxycEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1774917819; c=relaxed/simple;
-	bh=oJjCtrslzKP5jXA/iPuAgnCF9UO9PPoPWfFlTUcMyEU=;
-	h=Date:To:From:Subject:Message-Id; b=Ml31kapmoY2HwxssCIRw84CpISHWxYJlKnFiIVpHctuLp8rj7hzPrgvHeQfHB7eHJtE1JDaaOnw/2RVSopISw9BT4NldTcWLE5xeL/odnqDVUBS56qp112lE8KYOJSLBbnVDdUqo10xS9UvtOqYzKqn67TuuNF8gziQ0e4s4LzM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0BNKNDkI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1774917821; c=relaxed/simple;
+	bh=tUnoB5SeQdOf7xyydOYKTeBOS5maK53wVr9jVQXtkrw=;
+	h=Date:To:From:Subject:Message-Id; b=DDiXLBAAzCbxEgGIn70ppg3TI2kKny932cZRj+0XxqTzRPP2cXo6K9eE8yC0AtxuIqD2Z9dwZW2QunMXfgkqhwKOi/LryUonBBvlcX0oQMx/9I5SgDwaPu2bnokpxGouDZla28+Aus3WpmOfnFLkJr7M/4HMV2rqyablCfJOi6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=it+4IENZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0BNKNDkI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6AE85C4CEF7;
-	Tue, 31 Mar 2026 00:43:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="it+4IENZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 272DAC4CEF7;
+	Tue, 31 Mar 2026 00:43:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1774917819;
-	bh=oJjCtrslzKP5jXA/iPuAgnCF9UO9PPoPWfFlTUcMyEU=;
+	s=korg; t=1774917821;
+	bh=tUnoB5SeQdOf7xyydOYKTeBOS5maK53wVr9jVQXtkrw=;
 	h=Date:To:From:Subject:From;
-	b=0BNKNDkIHnba8NU+Jc5hCSMizZ3PhwcPP22FsxKvejyR1ciBz9CKRTZqU94FY1fCz
-	 64VPb2QCLMAROTqPIXi22x/wM9uhpPqQQlGQyqr51e24MgHaY8+KRnP1f47a+PbX31
-	 Qk+juD8X4+ujgDEa+SMRJRYkxxtQdbj3bdyV2ZGI=
-Date: Mon, 30 Mar 2026 17:43:38 -0700
+	b=it+4IENZo+Y5+y9X5bjsIf2kBZ+KWsSTQ+xJpfntJogH/anmRJL2Qh86vRtvwi+d9
+	 uTo9GHxI0JoYxX/UBBc98zpTZqlSsFK4HsIDWlgd9duDu+rpzPjVpL5s6YFq20Pudp
+	 HlkQHd4HN/IyIE4Ubkb72joWQL3hZKugUnQ4HFk4=
+Date: Mon, 30 Mar 2026 17:43:40 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-huge_memory-simplify-vma_is_specal_huge.patch removed from -mm tree
-Message-Id: <20260331004339.6AE85C4CEF7@smtp.kernel.org>
+Subject: [merged mm-stable] mm-huge-avoid-big-else-branch-in-zap_huge_pmd.patch removed from -mm tree
+Message-Id: <20260331004341.272DAC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: simplify vma_is_specal_huge()
+     Subject: mm/huge: avoid big else branch in zap_huge_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-simplify-vma_is_specal_huge.patch
+     mm-huge-avoid-big-else-branch-in-zap_huge_pmd.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: mm/huge_memory: simplify vma_is_specal_huge()
-Date: Fri, 20 Mar 2026 18:07:18 +0000
+Subject: mm/huge: avoid big else branch in zap_huge_pmd()
+Date: Fri, 20 Mar 2026 18:07:19 +0000
 
-Patch series "mm/huge_memory: refactor zap_huge_pmd()", v3.
-
-zap_huge_pmd() is overly complicated, clean it up and also add an assert
-in the case that we encounter a buggy PMD entry that doesn't match
-expectations.
-
-This is motivated by a bug discovered [0] where the PMD entry was none of:
-
-* A non-DAX, PFN or mixed map.
-* The huge zero folio
-* A present PMD entry
-* A softleaf entry
-
-In zap_huge_pmd(), but due to the bug we manged to reach this code.
-
-It is useful to explicitly call this out rather than have an arbitrary
-NULL pointer dereference happen, which also improves understanding of
-what's going on.
-
-The series goes further to make use of vm_normal_folio_pmd() rather than
-implementing custom logic for retrieving the folio, and extends softleaf
-functionality to provide and use an equivalent softleaf function.
-
-
-This patch (of 13):
-
-This function is confused - it overloads the term 'special' yet again,
-checks for DAX but in many cases the code explicitly excludes DAX before
-invoking the predicate.
-
-It also unnecessarily checks for vma->vm_file - this has to be present for
-a driver to have set VMA_MIXEDMAP_BIT or VMA_PFNMAP_BIT.
-
-In fact, a far simpler form of this is to reverse the DAX predicate and
-return false if DAX is set.
-
-This makes sense from the point of view of 'special' as in
-vm_normal_page(), as DAX actually does potentially have retrievable
-folios.
-
-Also there's no need to have this in mm.h so move it to huge_memory.c.
+We don't need to have an extra level of indentation, we can simply exit
+early in the first two branches.
 
 No functional change intended.
 
-Link: https://lkml.kernel.org/r/cover.1774029655.git.ljs@kernel.org
-Link: https://lkml.kernel.org/r/d2b65883dc4895f197c4b4a69fbf27a063463412.1774029655.git.ljs@kernel.org
-Link: https://lore.kernel.org/all/6b3d7ad7-49e1-407a-903d-3103704160d8@lucifer.local/ [0]
+Link: https://lkml.kernel.org/r/6b4d5efdbf5554b8fe788f677d0b50f355eec999.1774029655.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -107,134 +67,131 @@ Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Zi Yan <ziy@nvidia.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    4 ++--
- include/linux/mm.h      |   16 ----------------
- mm/huge_memory.c        |   30 +++++++++++++++++++++++-------
- 3 files changed, 25 insertions(+), 25 deletions(-)
+ mm/huge_memory.c |   93 +++++++++++++++++++++++----------------------
+ 1 file changed, 48 insertions(+), 45 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-huge_memory-simplify-vma_is_specal_huge
-+++ a/include/linux/huge_mm.h
-@@ -83,7 +83,7 @@ extern struct kobj_attribute thpsize_shm
-  * file is never split and the MAX_PAGECACHE_ORDER limit does not apply to
-  * it.  Same to PFNMAPs where there's neither page* nor pagecache.
-  */
--#define THP_ORDERS_ALL_SPECIAL		\
-+#define THP_ORDERS_ALL_SPECIAL_DAX	\
- 	(BIT(PMD_ORDER) | BIT(PUD_ORDER))
- #define THP_ORDERS_ALL_FILE_DEFAULT	\
- 	((BIT(MAX_PAGECACHE_ORDER + 1) - 1) & ~BIT(0))
-@@ -92,7 +92,7 @@ extern struct kobj_attribute thpsize_shm
-  * Mask of all large folio orders supported for THP.
-  */
- #define THP_ORDERS_ALL	\
--	(THP_ORDERS_ALL_ANON | THP_ORDERS_ALL_SPECIAL | THP_ORDERS_ALL_FILE_DEFAULT)
-+	(THP_ORDERS_ALL_ANON | THP_ORDERS_ALL_SPECIAL_DAX | THP_ORDERS_ALL_FILE_DEFAULT)
- 
- enum tva_type {
- 	TVA_SMAPS,		/* Exposing "THPeligible:" in smaps. */
---- a/include/linux/mm.h~mm-huge_memory-simplify-vma_is_specal_huge
-+++ a/include/linux/mm.h
-@@ -5068,22 +5068,6 @@ long copy_folio_from_user(struct folio *
- 			   const void __user *usr_src,
- 			   bool allow_pagefault);
- 
--/**
-- * vma_is_special_huge - Are transhuge page-table entries considered special?
-- * @vma: Pointer to the struct vm_area_struct to consider
-- *
-- * Whether transhuge page-table entries are considered "special" following
-- * the definition in vm_normal_page().
-- *
-- * Return: true if transhuge page-table entries should be considered special,
-- * false otherwise.
-- */
--static inline bool vma_is_special_huge(const struct vm_area_struct *vma)
--{
--	return vma_is_dax(vma) || (vma->vm_file &&
--				   (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP)));
--}
--
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
- 
- #if MAX_NUMNODES > 1
---- a/mm/huge_memory.c~mm-huge_memory-simplify-vma_is_specal_huge
+--- a/mm/huge_memory.c~mm-huge-avoid-big-else-branch-in-zap_huge_pmd
 +++ a/mm/huge_memory.c
-@@ -100,6 +100,14 @@ static inline bool file_thp_enabled(stru
- 	return !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
- }
+@@ -2405,8 +2405,10 @@ static inline void zap_deposited_table(s
+ int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+ 		 pmd_t *pmd, unsigned long addr)
+ {
+-	pmd_t orig_pmd;
++	struct folio *folio = NULL;
++	int flush_needed = 1;
+ 	spinlock_t *ptl;
++	pmd_t orig_pmd;
  
-+/* If returns true, we are unable to access the VMA's folios. */
-+static bool vma_is_special_huge(const struct vm_area_struct *vma)
-+{
-+	if (vma_is_dax(vma))
-+		return false;
-+	return vma_test_any(vma, VMA_PFNMAP_BIT, VMA_MIXEDMAP_BIT);
-+}
-+
- unsigned long __thp_vma_allowable_orders(struct vm_area_struct *vma,
- 					 vm_flags_t vm_flags,
- 					 enum tva_type type,
-@@ -113,8 +121,8 @@ unsigned long __thp_vma_allowable_orders
- 	/* Check the intersection of requested and supported orders. */
- 	if (vma_is_anonymous(vma))
- 		supported_orders = THP_ORDERS_ALL_ANON;
--	else if (vma_is_special_huge(vma))
--		supported_orders = THP_ORDERS_ALL_SPECIAL;
-+	else if (vma_is_dax(vma) || vma_is_special_huge(vma))
-+		supported_orders = THP_ORDERS_ALL_SPECIAL_DAX;
- 	else
- 		supported_orders = THP_ORDERS_ALL_FILE_DEFAULT;
+ 	tlb_change_page_size(tlb, HPAGE_PMD_SIZE);
  
-@@ -2415,7 +2423,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 						tlb->fullmm);
- 	arch_check_zapped_pmd(vma, orig_pmd);
- 	tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
--	if (!vma_is_dax(vma) && vma_is_special_huge(vma)) {
-+	if (vma_is_special_huge(vma)) {
+@@ -2427,59 +2429,60 @@ int zap_huge_pmd(struct mmu_gather *tlb,
  		if (arch_needs_pgtable_deposit())
  			zap_deposited_table(tlb->mm, pmd);
  		spin_unlock(ptl);
-@@ -2917,7 +2925,7 @@ int zap_huge_pud(struct mmu_gather *tlb,
- 	orig_pud = pudp_huge_get_and_clear_full(vma, addr, pud, tlb->fullmm);
- 	arch_check_zapped_pud(vma, orig_pud);
- 	tlb_remove_pud_tlb_entry(tlb, pud, addr);
--	if (!vma_is_dax(vma) && vma_is_special_huge(vma)) {
-+	if (vma_is_special_huge(vma)) {
+-	} else if (is_huge_zero_pmd(orig_pmd)) {
++		return 1;
++	}
++	if (is_huge_zero_pmd(orig_pmd)) {
+ 		if (!vma_is_dax(vma) || arch_needs_pgtable_deposit())
+ 			zap_deposited_table(tlb->mm, pmd);
  		spin_unlock(ptl);
- 		/* No zero page support yet */
- 	} else {
-@@ -3068,7 +3076,7 @@ static void __split_huge_pmd_locked(stru
- 		 */
- 		if (arch_needs_pgtable_deposit())
- 			zap_deposited_table(mm, pmd);
--		if (!vma_is_dax(vma) && vma_is_special_huge(vma))
-+		if (vma_is_special_huge(vma))
- 			return;
- 		if (unlikely(pmd_is_migration_entry(old_pmd))) {
- 			const softleaf_t old_entry = softleaf_from_pmd(old_pmd);
-@@ -4629,8 +4637,16 @@ next:
- 
- static inline bool vma_not_suitable_for_thp_split(struct vm_area_struct *vma)
- {
--	return vma_is_special_huge(vma) || (vma->vm_flags & VM_IO) ||
--		    is_vm_hugetlb_page(vma);
-+	if (vma_is_dax(vma))
-+		return true;
-+	if (vma_is_special_huge(vma))
-+		return true;
-+	if (vma_test(vma, VMA_IO_BIT))
-+		return true;
-+	if (is_vm_hugetlb_page(vma))
-+		return true;
+-	} else {
+-		struct folio *folio = NULL;
+-		int flush_needed = 1;
++		return 1;
++	}
 +
-+	return false;
++	if (pmd_present(orig_pmd)) {
++		struct page *page = pmd_page(orig_pmd);
+ 
+-		if (pmd_present(orig_pmd)) {
+-			struct page *page = pmd_page(orig_pmd);
++		folio = page_folio(page);
++		folio_remove_rmap_pmd(folio, page, vma);
++		WARN_ON_ONCE(folio_mapcount(folio) < 0);
++		VM_BUG_ON_PAGE(!PageHead(page), page);
++	} else if (pmd_is_valid_softleaf(orig_pmd)) {
++		const softleaf_t entry = softleaf_from_pmd(orig_pmd);
+ 
+-			folio = page_folio(page);
+-			folio_remove_rmap_pmd(folio, page, vma);
+-			WARN_ON_ONCE(folio_mapcount(folio) < 0);
+-			VM_BUG_ON_PAGE(!PageHead(page), page);
+-		} else if (pmd_is_valid_softleaf(orig_pmd)) {
+-			const softleaf_t entry = softleaf_from_pmd(orig_pmd);
+-
+-			folio = softleaf_to_folio(entry);
+-			flush_needed = 0;
+-
+-			if (!thp_migration_supported())
+-				WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
+-		}
++		folio = softleaf_to_folio(entry);
++		flush_needed = 0;
++
++		if (!thp_migration_supported())
++			WARN_ONCE(1, "Non present huge pmd without pmd migration enabled!");
++	}
+ 
+-		if (folio_test_anon(folio)) {
++	if (folio_test_anon(folio)) {
++		zap_deposited_table(tlb->mm, pmd);
++		add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
++	} else {
++		if (arch_needs_pgtable_deposit())
+ 			zap_deposited_table(tlb->mm, pmd);
+-			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
+-		} else {
+-			if (arch_needs_pgtable_deposit())
+-				zap_deposited_table(tlb->mm, pmd);
+-			add_mm_counter(tlb->mm, mm_counter_file(folio),
+-				       -HPAGE_PMD_NR);
+-
+-			/*
+-			 * Use flush_needed to indicate whether the PMD entry
+-			 * is present, instead of checking pmd_present() again.
+-			 */
+-			if (flush_needed && pmd_young(orig_pmd) &&
+-			    likely(vma_has_recency(vma)))
+-				folio_mark_accessed(folio);
+-		}
+-
+-		if (folio_is_device_private(folio)) {
+-			folio_remove_rmap_pmd(folio, &folio->page, vma);
+-			WARN_ON_ONCE(folio_mapcount(folio) < 0);
+-			folio_put(folio);
+-		}
++		add_mm_counter(tlb->mm, mm_counter_file(folio),
++			       -HPAGE_PMD_NR);
+ 
+-		spin_unlock(ptl);
+-		if (flush_needed)
+-			tlb_remove_page_size(tlb, &folio->page, HPAGE_PMD_SIZE);
++		/*
++		 * Use flush_needed to indicate whether the PMD entry
++		 * is present, instead of checking pmd_present() again.
++		 */
++		if (flush_needed && pmd_young(orig_pmd) &&
++		    likely(vma_has_recency(vma)))
++			folio_mark_accessed(folio);
+ 	}
++
++	if (folio_is_device_private(folio)) {
++		folio_remove_rmap_pmd(folio, &folio->page, vma);
++		WARN_ON_ONCE(folio_mapcount(folio) < 0);
++		folio_put(folio);
++	}
++
++	spin_unlock(ptl);
++	if (flush_needed)
++		tlb_remove_page_size(tlb, &folio->page, HPAGE_PMD_SIZE);
++
+ 	return 1;
  }
  
- static int split_huge_pages_pid(int pid, unsigned long vaddr_start,
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
