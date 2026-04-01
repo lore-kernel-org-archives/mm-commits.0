@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5885918859B;
-	Wed,  1 Apr 2026 03:44:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA822375F99
+	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 03:49:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775015041; cv=none; b=e6qe6ZP99W4ibreTkWyFQZx6mkqUNxdNs53pJZBJm7oQoTcgDAYQ6E5waJwSX2YiI5SqjZtnxO7b7agykNly9KKqlQsIaycS+/zp7p/8PMW7XE9CjzazExjrGg3++c3+xT1/pcc+r0xHY4LYvuIxPS6KKksIzHVRnWiB34HYgso=
+	t=1775015349; cv=none; b=cNT/2/DK+/IcUnu08SPlLAoIIhz8S3EIUwplxL83H+0qtFFVUkHxBC4GJ/22E20Jl6VtkUJ1kDoBk8PUH7zcDXmtiSdQiLUIxF9qe5go2scSiQ6/MtfX62VUN8D11xKHsPsb2FqX+Pd7fK/oYNzjaQIPN2xIzX19wCHAx7G42AI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775015041; c=relaxed/simple;
-	bh=HH/vs+xzBvjntZvKsFO+7SOrFoTpA4mWzSXF3XHhhuw=;
-	h=Date:To:From:Subject:Message-Id; b=Hj3romof2fiX5PXhtLYLDqaKdZXPR22W7vvwJp1UH2j9hycxRZXJu5YDwVEOWDW2Fy96ERfMSpHDZmsH6UvJtTUpeTf2t91xXy0Mp9TSRcKNV0F+CZyVDuti1sv+j4j6SeooucO9+PIL6idiKDjGoTUHGtDTh1rfXFz/oQo4D2w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UcbuBH9b; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775015349; c=relaxed/simple;
+	bh=/nHOpsAURJzhtSbmSOKGrTd4oeMuwm3/3LSNpRNa4g8=;
+	h=Date:To:From:Subject:Message-Id; b=cHpYQNbaa9EhqeOMmTExIr1GCi0EBK5YPytxxmqgJOMevi3ttplFqUnyrXm9131z/oCeZ3agoXvL6q52uZN4Wn4G5ypSeGvyPslpzBDYp6qe64zMyVG8l5TE/v9a7whIBgaAGyGev2ALwrNK1flAHOBEpp4Zv5pXKq3lwSQ65+c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sD0qCh43; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UcbuBH9b"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C43C6C4CEF7;
-	Wed,  1 Apr 2026 03:44:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sD0qCh43"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2937CC116C6;
+	Wed,  1 Apr 2026 03:49:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775015040;
-	bh=HH/vs+xzBvjntZvKsFO+7SOrFoTpA4mWzSXF3XHhhuw=;
+	s=korg; t=1775015349;
+	bh=/nHOpsAURJzhtSbmSOKGrTd4oeMuwm3/3LSNpRNa4g8=;
 	h=Date:To:From:Subject:From;
-	b=UcbuBH9bzRFIzh2zfZrUajhNm8oL5kaZxQ+M22MkaGryW1u5HXBTmVRiajtFMWtmK
-	 HceTnUIlufiWexdy5zV6bA5GxDGvqXlK9nOV/PrxRzROwDzRkiKwnPQ+SjNxQ99VDv
-	 rmdRyhGTfiQ+YO+0ptMbIfOXV2LmqaVUIGDGb364=
-Date: Tue, 31 Mar 2026 20:44:00 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,joshua.hahnjy@gmail.com,gourry@gourry.net,donettom@linux.ibm.com,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,liuyun01@kylinos.cn,akpm@linux-foundation.org
+	b=sD0qCh43XjBTIQbkyOZBkxwSFsQfrkMzw9VvOD/i2nwroGl0gNJwXmhVjc6vzc+rX
+	 /PnNxBbEznYWTDmOA2ziFua7nPOUTbQVcf9EBJGAh89M9oe/9EgwkDvpaWVhfqCXhQ
+	 +6i8sIify8uIChIfVYebCxOBZO0BlDxkZOoQUpwM=
+Date: Tue, 31 Mar 2026 20:49:08 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mempolicy-fix-memory-leaks-in-weighted_interleave_auto_store.patch added to mm-unstable branch
-Message-Id: <20260401034400.C43C6C4CEF7@smtp.kernel.org>
+Subject: + ocfs2-validate-bg_list-extent-bounds-in-discontig-groups.patch added to mm-nonmm-unstable branch
+Message-Id: <20260401034909.2937CC116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mempolicy: fix memory leaks in weighted_interleave_auto_store()
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mempolicy-fix-memory-leaks-in-weighted_interleave_auto_store.patch
+     Subject: ocfs2: validate bg_list extent bounds in discontig groups
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-validate-bg_list-extent-bounds-in-discontig-groups.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mempolicy-fix-memory-leaks-in-weighted_interleave_auto_store.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-bg_list-extent-bounds-in-discontig-groups.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,81 +58,111 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jackie Liu <liuyun01@kylinos.cn>
-Subject: mm/mempolicy: fix memory leaks in weighted_interleave_auto_store()
-Date: Wed, 1 Apr 2026 08:57:02 +0800
+From: ZhengYuan Huang <gality369@gmail.com>
+Subject: ocfs2: validate bg_list extent bounds in discontig groups
+Date: Wed, 1 Apr 2026 10:16:22 +0800
 
-weighted_interleave_auto_store() fetches old_wi_state inside the if
-(!input) block only.  This causes two memory leaks:
+[BUG]
+Running ocfs2 on a corrupted image with a discontiguous block
+group whose bg_list.l_next_free_rec is set to an excessively
+large value triggers a KASAN use-after-free crash:
 
-1. When a user writes "false" and the current mode is already manual,
-   the function returns early without freeing the freshly allocated
-   new_wi_state.
+BUG: KASAN: use-after-free in ocfs2_bg_discontig_fix_by_rec fs/ocfs2/suballoc.c:1678 [inline]
+BUG: KASAN: use-after-free in ocfs2_bg_discontig_fix_result+0x4a4/0x560 fs/ocfs2/suballoc.c:1715
+Read of size 4 at addr ffff88801a85f000 by task syz.0.115/552
 
-2. When a user writes "true", old_wi_state stays NULL because the
-   fetch is skipped entirely. The old state is then overwritten by
-   rcu_assign_pointer() but never freed, since the cleanup path is
-   gated on old_wi_state being non-NULL. A user can trigger this
-   repeatedly by writing "1" in a loop.
+Call Trace:
+ ...
+ __asan_report_load4_noabort+0x14/0x30 mm/kasan/report_generic.c:380
+ ocfs2_bg_discontig_fix_by_rec fs/ocfs2/suballoc.c:1678 [inline]
+ ocfs2_bg_discontig_fix_result+0x4a4/0x560 fs/ocfs2/suballoc.c:1715
+ ocfs2_search_one_group fs/ocfs2/suballoc.c:1752 [inline]
+ ocfs2_claim_suballoc_bits+0x13c3/0x1cd0 fs/ocfs2/suballoc.c:1984
+ ocfs2_claim_new_inode+0x2e7/0x8a0 fs/ocfs2/suballoc.c:2292
+ ocfs2_mknod_locked.constprop.0+0x121/0x2a0 fs/ocfs2/namei.c:637
+ ocfs2_mknod+0xc71/0x2400 fs/ocfs2/namei.c:384
+ ocfs2_create+0x158/0x390 fs/ocfs2/namei.c:676
+ lookup_open.isra.0+0x10a1/0x1460 fs/namei.c:3796
+ open_last_lookups fs/namei.c:3895 [inline]
+ path_openat+0x11fe/0x2ce0 fs/namei.c:4131
+ do_filp_open+0x1f6/0x430 fs/namei.c:4161
+ do_sys_openat2+0x117/0x1c0 fs/open.c:1437
+ do_sys_open fs/open.c:1452 [inline]
+ __do_sys_openat fs/open.c:1468 [inline]
+ ...
 
-Fix both leaks by moving the old_wi_state fetch before the input check,
-making it unconditional.  This also allows a unified early return for both
-"true" and "false" when the requested mode matches the current mode.
+[CAUSE]
+ocfs2_bg_discontig_fix_result() iterates over bg->bg_list.l_recs[]
+using l_next_free_rec as the upper bound without any sanity check:
 
-Link: https://lkml.kernel.org/r/20260401005702.7096-1-liu.yun@linux.dev
-Link: https://sashiko.dev/#/patchset/20260331100740.84906-1-liu.yun@linux.dev
-Fixes: e341f9c3c841 ("mm/mempolicy: Weighted Interleave Auto-tuning")
-Signed-off-by: Jackie Liu <liuyun01@kylinos.cn>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: <stable@vger.kernel.org> # v6.16+
+  for (i = 0; i < le16_to_cpu(bg->bg_list.l_next_free_rec); i++) {
+          rec = &bg->bg_list.l_recs[i];
+
+l_next_free_rec is read directly from the on-disk group descriptor and
+is trusted blindly. On a 4 KiB block device, bg_list.l_recs[] can hold
+at most 235 entries (ocfs2_extent_recs_per_gd(sb)). A corrupted or
+crafted filesystem image can set l_next_free_rec to an arbitrarily
+large value, causing the loop to index past the end of the group
+descriptor buffer_head data page and into an adjacent freed page.
+
+[FIX]
+Validate discontiguous bg_list.l_count against
+ocfs2_extent_recs_per_gd(sb), then reject l_next_free_rec values that
+exceed l_count. This keeps the on-disk extent list self-consistent and
+matches how the rest of ocfs2 uses l_count as the extent-list bound.
+
+Link: https://lkml.kernel.org/r/20260401021622.3560952-1-gality369@gmail.com
+Signed-off-by: ZhengYuan Huang <gality369@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ fs/ocfs2/suballoc.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
---- a/mm/mempolicy.c~mm-mempolicy-fix-memory-leaks-in-weighted_interleave_auto_store
-+++ a/mm/mempolicy.c
-@@ -3700,18 +3700,19 @@ static ssize_t weighted_interleave_auto_
- 		new_wi_state->iw_table[i] = 1;
- 
- 	mutex_lock(&wi_state_lock);
--	if (!input) {
--		old_wi_state = rcu_dereference_protected(wi_state,
--					lockdep_is_held(&wi_state_lock));
--		if (!old_wi_state)
--			goto update_wi_state;
--		if (input == old_wi_state->mode_auto) {
--			mutex_unlock(&wi_state_lock);
--			return count;
--		}
-+	old_wi_state = rcu_dereference_protected(wi_state,
-+				lockdep_is_held(&wi_state_lock));
-+
-+	if (old_wi_state && input == old_wi_state->mode_auto) {
-+		mutex_unlock(&wi_state_lock);
-+		kfree(new_wi_state);
-+		return count;
-+	}
- 
--		memcpy(new_wi_state->iw_table, old_wi_state->iw_table,
--					       nr_node_ids * sizeof(u8));
-+	if (!input) {
-+		if (old_wi_state)
-+			memcpy(new_wi_state->iw_table, old_wi_state->iw_table,
-+						       nr_node_ids * sizeof(u8));
- 		goto update_wi_state;
+--- a/fs/ocfs2/suballoc.c~ocfs2-validate-bg_list-extent-bounds-in-discontig-groups
++++ a/fs/ocfs2/suballoc.c
+@@ -197,6 +197,31 @@ static int ocfs2_validate_gd_self(struct
+ 			 8 * le16_to_cpu(gd->bg_size));
  	}
+ 
++	/*
++	 * For discontiguous block groups, validate the on-disk extent list
++	 * against the maximum number of extent records that can physically
++	 * fit in a single block.
++	 */
++	if (ocfs2_gd_is_discontig(gd)) {
++		u16 max_recs = ocfs2_extent_recs_per_gd(sb);
++		u16 l_count = le16_to_cpu(gd->bg_list.l_count);
++		u16 l_next_free_rec = le16_to_cpu(gd->bg_list.l_next_free_rec);
++
++		if (l_count != max_recs) {
++			do_error("Group descriptor #%llu bad discontig l_count %u expected %u\n",
++				 (unsigned long long)bh->b_blocknr,
++				 l_count,
++				 max_recs);
++		}
++
++		if (l_next_free_rec > l_count) {
++			do_error("Group descriptor #%llu bad discontig l_next_free_rec %u max %u\n",
++				 (unsigned long long)bh->b_blocknr,
++				 l_next_free_rec,
++				 l_count);
++		}
++	}
++
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from liuyun01@kylinos.cn are
+Patches currently in -mm which might be from gality369@gmail.com are
 
-mm-damon-stat-fix-memory-leak-on-damon_start-failure-in-damon_stat_start.patch
-mm-mempolicy-fix-memory-leaks-in-weighted_interleave_auto_store.patch
+ocfs2-validate-bg_list-extent-bounds-in-discontig-groups.patch
 
