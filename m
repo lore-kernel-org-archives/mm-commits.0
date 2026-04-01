@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 573F12D2495
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 02:50:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 720292C3251;
+	Wed,  1 Apr 2026 03:07:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775011820; cv=none; b=jxBS+QXAssq4X5InmN8iPj5u3GBvRBOo1PlsNRGSUDYHcdji4+68T41I42g2DZbfBO7hr1k0gw6bgaZg3K+OAcMxsdswG7uIAgIdgSv/mj+Kc4uleJRjhDDgW7OH15IIHj9L67iJSVUHFUIyrt+8ET26nHB7Dl8yNO9EfdVnHx4=
+	t=1775012839; cv=none; b=gt3rtaJD3/BiHWutRJIsJabR5rxitlHQJmV68CU1wq5je83tGp6RzjhnB1l2GNDfBCtqNuF+8o/RPj5sfHWIVKQgvI2Tty5EAfVCLc1pVu9q69iPF7XiCxnrsPO/yRTSSLwKZpZ8ivLT6fsSoOVkokFgoXA6Id1uMLfCmZTJNWA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775011820; c=relaxed/simple;
-	bh=TtZNxwghYUnCOhdGXYDnfWGJ951HbxAbVtZMcHu0mk8=;
-	h=Date:To:From:Subject:Message-Id; b=PCvmW3N2R/FtnDfiUd3IU8CYPwh30wp50VmO5kVE2mOAPAqD0ZaKbSUJmxH/UmQI87bADbEzZPnhMYJP1VEkXuHGMOguLqs/CuoiLspm9/c0ygVw+Q+PVBYQgwnbHFzGdVLaL7DQ8YOjrFUaFQ/y26HVewtcQ9ZnODki+4aETPE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QJFAztfp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775012839; c=relaxed/simple;
+	bh=fvsDEoev0ERQdimzNoVbv3lG8LUpb12dHwgPZomcxiI=;
+	h=Date:To:From:Subject:Message-Id; b=sJzfUT0NTVkYOxcQIOIlgMPjdeZXEN9TFPfBZdVapLer8yCh4vujBoSCO0D1CjSzMNWHpROiV+m9V7lLN1FnbzZvHTY98nrxeKtcvQxxlDCca5F156YYy848rfCUsuk2x0p0heYlaIvfxV16BcEshV6ONsUVBRmJma5o3LLNV+o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TwnpqbYx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QJFAztfp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB202C19423;
-	Wed,  1 Apr 2026 02:50:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TwnpqbYx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0B32C19423;
+	Wed,  1 Apr 2026 03:07:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775011819;
-	bh=TtZNxwghYUnCOhdGXYDnfWGJ951HbxAbVtZMcHu0mk8=;
+	s=korg; t=1775012839;
+	bh=fvsDEoev0ERQdimzNoVbv3lG8LUpb12dHwgPZomcxiI=;
 	h=Date:To:From:Subject:From;
-	b=QJFAztfpyQgiWlGRTgOJx+dzHeO151B4BIGkuzoahGgZzN07Eg8SZpcwCBQRy4MxU
-	 BU4msqKeuG3vnHnV+dHR/DO+ImYxveh9OVvT8yw8FL8/M4mcc8t3EI8kGHjMCMyFpE
-	 7KR8yrybedENgHs9YbrMzO4b2D6M1z274ojbfI4s=
-Date: Tue, 31 Mar 2026 19:50:19 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,fvdl@google.com,donettom@linux.ibm.com,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=TwnpqbYxrS1d7Vzp9IFvkTwkTJ8b90IGUuJHsOWKAfKkQDpUacnYGciHPEJIQqidY
+	 GlDEum79zpf/YW71OKkMdR2LCjCA3nGatJiaehoXt8oIDO42/Q6gWjrcuj64okMCo1
+	 LwCDzwG5ukpG4gt9MITsz93yLxrRgPUSiWOK9EMc=
+Date: Tue, 31 Mar 2026 20:07:18 -0700
+To: mm-commits@vger.kernel.org,wang.yaxin@zte.com.cn,thomas.orgis@uni-hamburg.de,stable@vger.kernel.org,fan.yu9@zte.com.cn,bsingharora@gmail.com,cyyzero16@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path.patch added to mm-new branch
-Message-Id: <20260401025019.AB202C19423@smtp.kernel.org>
+Subject: + taskstats-set-version-in-tgid-exit-notifications.patch added to mm-nonmm-unstable branch
+Message-Id: <20260401030718.F0B32C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse: fix preinited section_mem_map clobbering on failure path
-has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path.patch
+     Subject: taskstats: set version in TGID exit notifications
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     taskstats-set-version-in-tgid-exit-notifications.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-set-version-in-tgid-exit-notifications.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,83 +58,79 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse: fix preinited section_mem_map clobbering on failure path
-Date: Tue, 31 Mar 2026 19:37:24 +0800
+From: Yiyang Chen <cyyzero16@gmail.com>
+Subject: taskstats: set version in TGID exit notifications
+Date: Mon, 30 Mar 2026 03:00:40 +0800
 
-sparse_init_nid() is careful to leave alone every section whose vmemmap
-has already been set up by sparse_vmemmap_init_nid_early(); it only clears
-section_mem_map for the rest:
+delay accounting started populating taskstats records with a valid version
+field via fill_pid() and fill_tgid().
 
-        if (!preinited_vmemmap_section(ms))
-                ms->section_mem_map = 0;
+Later, commit ad4ecbcba728 ("[PATCH] delay accounting taskstats interface
+send tgid once") changed the TGID exit path to send the cached
+signal->stats aggregate directly instead of building the outgoing record
+through fill_tgid().  Unlike fill_tgid(), fill_tgid_exit() only
+accumulates accounting data and never initializes stats->version.
 
-A leftover line after that conditional block
+As a result, TGID exit notifications can reach userspace with version == 0
+even though PID exit notifications and TASKSTATS_CMD_GET replies carry a
+valid taskstats version.
 
-        ms->section_mem_map = 0;
+This is easy to reproduce with `tools/accounting/getdelays.c`.
 
-was supposed to be deleted but was missed in the failure path, causing the
-field to be overwritten for all sections when memory allocation fails,
-effectively destroying the pre-initialization check.
+I have a small follow-up patch for that tool which:
 
-Drop the stray assignment so that preinited sections retain their
-already valid state.
+1. increases the receive buffer/message size so the pid+tgid
+   combined exit notification is not dropped/truncated
 
-Link: https://lkml.kernel.org/r/20260331113724.2080833-1-songmuchun@bytedance.com
-Fixes: d65917c42373 ("mm/sparse: allow for alternate vmemmap section init at boot")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Donet Tom <donettom@linux.ibm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+2. prints `stats->version`.
+
+With that patch, the reproducer is:
+
+  Terminal 1:
+    ./getdelays -d -v -l -m 0
+
+  Terminal 2:
+    taskset -c 0 python3 -c 'import threading,time; t=threading.Thread(target=time.sleep,args=(0.1,)); t.start(); t.join()'
+
+That produces both PID and TGID exit notifications for the same
+process.  The PID exit record reports a valid taskstats version, while
+the TGID exit record reports `version 0`.
+
+
+This patch (of 2):
+
+Set stats->version = TASKSTATS_VERSION after copying the cached TGID
+aggregate into the outgoing netlink payload so all taskstats records are
+self-describing again.
+
+Link: https://lkml.kernel.org/r/ba83d934e59edd431b693607de573eb9ca059309.1774810498.git.cyyzero16@gmail.com
+Fixes: ad4ecbcba728 ("[PATCH] delay accounting taskstats interface send tgid once")
+Signed-off-by: Yiyang Chen <cyyzero16@gmail.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Dr. Thomas Orgis <thomas.orgis@uni-hamburg.de>
+Cc: Fan Yu <fan.yu9@zte.com.cn>
+Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/taskstats.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/sparse.c~mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path
-+++ a/mm/sparse.c
-@@ -403,7 +403,6 @@ failed:
- 		ms = __nr_to_section(pnum);
- 		if (!preinited_vmemmap_section(ms))
- 			ms->section_mem_map = 0;
--		ms->section_mem_map = 0;
- 	}
- }
+--- a/kernel/taskstats.c~taskstats-set-version-in-tgid-exit-notifications
++++ a/kernel/taskstats.c
+@@ -649,6 +649,7 @@ void taskstats_exit(struct task_struct *
+ 		goto err;
  
+ 	memcpy(stats, tsk->signal->stats, sizeof(*stats));
++	stats->version = TASKSTATS_VERSION;
+ 
+ send:
+ 	send_cpu_listeners(rep_skb, listeners);
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from cyyzero16@gmail.com are
 
-mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup.patch
-mm-workingset-use-folio_lruvec-in-workingset_refault.patch
-mm-rename-unlock_page_lruvec_irq-and-its-variants.patch
-mm-vmscan-refactor-move_folios_to_lru.patch
-mm-memcontrol-allocate-object-cgroup-for-non-kmem-case.patch
-mm-memcontrol-return-root-object-cgroup-for-root-memory-cgroup.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-get_mem_cgroup_from_folio.patch
-buffer-prevent-memory-cgroup-release-in-folio_alloc_buffers.patch
-writeback-prevent-memory-cgroup-release-in-writeback-module.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-count_memcg_folio_events.patch
-mm-page_io-prevent-memory-cgroup-release-in-page_io-module.patch
-mm-migrate-prevent-memory-cgroup-release-in-folio_migrate_mapping.patch
-mm-mglru-prevent-memory-cgroup-release-in-mglru.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-mem_cgroup_swap_full.patch
-mm-workingset-prevent-memory-cgroup-release-in-lru_gen_eviction.patch
-mm-workingset-prevent-lruvec-release-in-workingset_refault.patch
-mm-zswap-prevent-lruvec-release-in-zswap_folio_swapin.patch
-mm-swap-prevent-lruvec-release-in-lru_gen_clear_refs.patch
-mm-workingset-prevent-lruvec-release-in-workingset_activation.patch
-mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock.patch
-mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios.patch
-mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-helpers.patch
-mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch
-mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path.patch
+taskstats-set-version-in-tgid-exit-notifications.patch
+tools-accounting-handle-truncated-taskstats-netlink-messages.patch
 
