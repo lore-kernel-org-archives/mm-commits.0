@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E268E78F2B
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 00:33:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EB62194AD7;
+	Wed,  1 Apr 2026 00:33:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775003617; cv=none; b=hLHXb5Ohfucosjmd/U8S3EYU2JsvXp415H0tkPqUv1TExjw3KraRxmauCSe5T5d0XxT0lP/TLwasUMBbYEPeNawsSGh6koregeuKXpIgRKF0tir6w9w2bsJKAB8Y2btwa+mCO3CddVPMR0U+zRrro2Tzo9Dw+i7gI/lssJL4+rY=
+	t=1775003619; cv=none; b=ZEqoTuVolMeffIme3WqaTsVHVYNUF9Dz06mHEfAyvm7sq6InK5MmDI6r3lRTlpy7bcqi3YqUksRGP9cEA/Q7xsxxH5WtUShwKMZcsblhwNQdnYeYtkVj0CRLmndPs94EuHNzrN8s/INkpkdvLINDXWYco9qTnb86so1MH86EIxs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775003617; c=relaxed/simple;
-	bh=fIJl+E+1xTgpOz/zq9GcYP4roCIgKbCU37VI7n8gmjI=;
-	h=Date:To:From:Subject:Message-Id; b=pYNNwQig5rl7tS/JtI0VfN/u0TiPGnIMiqX6kQywFr52ZkDoa7qS4t9xS5GjfbDluH7lMPA3lPTXSqaaP08s1hoTBThHdjtFdW9fuXOAyLNUS17KQk068mc2ArWPa8yUYsKyFrh17Q/sTnYxWwu5sH4iAUtLqwvTKk2RTqY+tbE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nieCt//t; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775003619; c=relaxed/simple;
+	bh=kQFaJ82ipHMgJZbZoJPv4I+XWcOiazcVhsfSFPkxBsM=;
+	h=Date:To:From:Subject:Message-Id; b=C+bjHs3WfAY6YzHW12lqZ9b/jVlugkOH40/e0XWQb0Wb3Ad6PFywukCgbtwE4Gisrn98+ejxdbnkgsvAqzfQL3KyKz3wVBXX0QtSit74/QD5ToysdaTih9FnNa02eyjdR7grFZOekNQkJtIYfD12hKKSNZGLM9N9GpkjIqhkCy8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1/JwXPYo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nieCt//t"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72053C19423;
-	Wed,  1 Apr 2026 00:33:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1/JwXPYo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C84D4C19423;
+	Wed,  1 Apr 2026 00:33:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775003616;
-	bh=fIJl+E+1xTgpOz/zq9GcYP4roCIgKbCU37VI7n8gmjI=;
+	s=korg; t=1775003618;
+	bh=kQFaJ82ipHMgJZbZoJPv4I+XWcOiazcVhsfSFPkxBsM=;
 	h=Date:To:From:Subject:From;
-	b=nieCt//telzI5KUGFrS+E9HWy4dWE9lY/3XlPoISJwYuB+Ya3QX5pmEenIBqLVJ+a
-	 ki9Slxqm1mrTtNpABPuGeWcG2bPYbmIFF9V8rj55dc8FV3/KZFxq4U4IigHm/hcY4J
-	 IMxYqF7HJemsozN5hNySoLF4nMNtQ52V6kaTwhUg=
-Date: Tue, 31 Mar 2026 17:33:35 -0700
-To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,leon@kernel.org,jgg@ziepe.ca,david@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=1/JwXPYoQhUI8ZtUKngLcy3cvdmeMn6FrJiQMh7wWjq6vfFI7ZpEBVBb23hQ8Vgr8
+	 xnnmzOJwKz/JOPEHIb9ZOtTyxIS5qZSK+ENz6VcXa2cZ4CbP6vypp8k12x2cNsXrvU
+	 JqUYR23nUgy8JmNjuKzLeX7BTsnzLGGI/4z+gaxg=
+Date: Tue, 31 Mar 2026 17:33:38 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,surenb@google.com,kernel.org,stable@vger,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,leon@kernel.org,jgg@ziepe.ca,david@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-hmm-tests-dont-hardcode-thp-size-to-2mb.patch added to mm-new branch
-Message-Id: <20260401003336.72053C19423@smtp.kernel.org>
+Subject: + lib-test_hmm-implement-a-device-release-method.patch added to mm-new branch
+Message-Id: <20260401003338.C84D4C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: hmm-tests: don't hardcode THP size to 2MB
+     Subject: lib: test_hmm: implement a device release method
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-hmm-tests-dont-hardcode-thp-size-to-2mb.patch
+     lib-test_hmm-implement-a-device-release-method.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hmm-tests-dont-hardcode-thp-size-to-2mb.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-implement-a-device-release-method.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,25 +70,66 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: selftests/mm: hmm-tests: don't hardcode THP size to 2MB
-Date: Tue, 31 Mar 2026 17:34:44 +1100
+Subject: lib: test_hmm: implement a device release method
+Date: Tue, 31 Mar 2026 17:34:45 +1100
 
-Several HMM tests hardcode TWOMEG as the THP size. This is wrong on
-architectures where the PMD size is not 2MB such as arm64 with 64K base
-pages where THP is 512MB. Fix this by using read_pmd_pagesize() from
-vm_util instead.
+Unloading the HMM test module produces the following warning:
 
-While here also replace the custom file_read_ulong() helper used to
-parse the default hugetlbfs page size from /proc/meminfo with the
-existing default_huge_page_size() from vm_util.
+[ 3782.224783] ------------[ cut here ]------------
+[ 3782.226323] Device 'hmm_dmirror0' does not have a release() function, it is broken and must be fixed. See Documentation/core-api/kobject.rst.
+[ 3782.230570] WARNING: drivers/base/core.c:2567 at device_release+0x185/0x210, CPU#20: rmmod/1924
+[ 3782.233949] Modules linked in: test_hmm(-) nvidia_uvm(O) nvidia(O)
+[ 3782.236321] CPU: 20 UID: 0 PID: 1924 Comm: rmmod Tainted: G           O        7.0.0-rc1+ #374 PREEMPT(full)
+[ 3782.240226] Tainted: [O]=OOT_MODULE
+[ 3782.241639] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org 04/01/2014
+[ 3782.246193] RIP: 0010:device_release+0x185/0x210
+[ 3782.247860] Code: 00 00 fc ff df 48 8d 7b 50 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 86 00 00 00 48 8b 73 50 48 85 f6 74 11 48 8d 3d db 25 29 03 <67> 48 0f b9 3a e9 0d ff ff ff 48 b8 00 00 00 00 00 fc ff df 48 89
+[ 3782.254211] RSP: 0018:ffff888126577d98 EFLAGS: 00010246
+[ 3782.256054] RAX: dffffc0000000000 RBX: ffffffffc2b70310 RCX: ffffffff8fe61ba1
+[ 3782.258512] RDX: 1ffffffff856e062 RSI: ffff88811341eea0 RDI: ffffffff91bbacb0
+[ 3782.261041] RBP: ffff888111475000 R08: 0000000000000001 R09: fffffbfff856e069
+[ 3782.263471] R10: ffffffffc2b7034b R11: 00000000ffffffff R12: 0000000000000000
+[ 3782.265983] R13: dffffc0000000000 R14: ffff88811341eea0 R15: 0000000000000000
+[ 3782.268443] FS:  00007fd5a3689040(0000) GS:ffff88842c8d0000(0000) knlGS:0000000000000000
+[ 3782.271236] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 3782.273251] CR2: 00007fd5a36d2c10 CR3: 00000001242b8000 CR4: 00000000000006f0
+[ 3782.275362] Call Trace:
+[ 3782.276071]  <TASK>
+[ 3782.276678]  kobject_put+0x146/0x270
+[ 3782.277731]  hmm_dmirror_exit+0x7a/0x130 [test_hmm]
+[ 3782.279135]  __do_sys_delete_module+0x341/0x510
+[ 3782.280438]  ? module_flags+0x300/0x300
+[ 3782.281547]  do_syscall_64+0x111/0x670
+[ 3782.282620]  entry_SYSCALL_64_after_hwframe+0x4b/0x53
+[ 3782.284091] RIP: 0033:0x7fd5a3793b37
+[ 3782.285303] Code: 73 01 c3 48 8b 0d c9 82 0c 00 f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 b8 b0 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 99 82 0c 00 f7 d8 64 89 01 48
+[ 3782.290708] RSP: 002b:00007ffd68b7dc68 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
+[ 3782.292817] RAX: ffffffffffffffda RBX: 000055e3c0d1c770 RCX: 00007fd5a3793b37
+[ 3782.294735] RDX: 0000000000000000 RSI: 0000000000000800 RDI: 000055e3c0d1c7d8
+[ 3782.296661] RBP: 0000000000000000 R08: 1999999999999999 R09: 0000000000000000
+[ 3782.298622] R10: 00007fd5a3806ac0 R11: 0000000000000206 R12: 00007ffd68b7deb0
+[ 3782.300576] R13: 00007ffd68b7e781 R14: 000055e3c0d1b2a0 R15: 00007ffd68b7deb8
+[ 3782.301963]  </TASK>
+[ 3782.302371] irq event stamp: 5019
+[ 3782.302987] hardirqs last  enabled at (5027): [<ffffffff8cf1f062>] __up_console_sem+0x52/0x60
+[ 3782.304507] hardirqs last disabled at (5036): [<ffffffff8cf1f047>] __up_console_sem+0x37/0x60
+[ 3782.306086] softirqs last  enabled at (4940): [<ffffffff8cd9a4b0>] __irq_exit_rcu+0xc0/0xf0
+[ 3782.307567] softirqs last disabled at (4929): [<ffffffff8cd9a4b0>] __irq_exit_rcu+0xc0/0xf0
+[ 3782.309105] ---[ end trace 0000000000000000 ]---
 
-Link: https://lkml.kernel.org/r/20260331063445.3551404-3-apopple@nvidia.com
-Link: https://lore.kernel.org/linux-mm/8bd0396a-8997-4d2e-a13f-5aac033083d7@linux.dev/
-Fixes: fee9f6d1b8df ("mm/hmm/test: add selftests for HMM")
-Fixes: 519071529d2a ("selftests/mm/hmm-tests: new tests for zone device THP migration")
+This is because the test module doesn't have a device.release method.  In
+this case one probably isn't needed for correctness - the device structs
+are in a static array so don't need freeing when the final reference goes
+away.
+
+However some device state is freed on exit, so to ensure this happens at
+the right time and to silence the warning move the deinitialisation to a
+release method and assign that as the device release callback.  Whilst
+here also fix a minor error handling bug where cdev_device_del() wasn't
+being called if allocation failed.
+
+Link: https://lkml.kernel.org/r/20260331063445.3551404-4-apopple@nvidia.com
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reported-by: Zenghui Yu <zenghui.yu@linux.dev>
-Closes: https://lore.kernel.org/linux-mm/8bd0396a-8997-4d2e-a13f-5aac033083d7@linux.dev/
 Reviewed-by: Balbir Singh <balbirs@nvidia.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
@@ -98,215 +139,66 @@ Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zenghui Yu <zenghui.yu@linux.dev>
+Cc: <stable@vger,kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hmm-tests.c |   83 ++++-------------------
- 1 file changed, 16 insertions(+), 67 deletions(-)
+ lib/test_hmm.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-hmm-tests-dont-hardcode-thp-size-to-2mb
-+++ a/tools/testing/selftests/mm/hmm-tests.c
-@@ -34,6 +34,7 @@
-  */
- #include <lib/test_hmm_uapi.h>
- #include <mm/gup_test.h>
-+#include <mm/vm_util.h>
+--- a/lib/test_hmm.c~lib-test_hmm-implement-a-device-release-method
++++ a/lib/test_hmm.c
+@@ -1738,6 +1738,13 @@ static const struct dev_pagemap_ops dmir
+ 	.folio_split	= dmirror_devmem_folio_split,
+ };
  
- struct hmm_buffer {
- 	void		*ptr;
-@@ -548,7 +549,7 @@ TEST_F(hmm, anon_write_child)
++static void dmirror_device_release(struct device *dev)
++{
++	struct dmirror_device *mdevice = container_of(dev, struct dmirror_device, device);
++
++	dmirror_device_remove_chunks(mdevice);
++}
++
+ static int dmirror_device_init(struct dmirror_device *mdevice, int id)
+ {
+ 	dev_t dev;
+@@ -1749,6 +1756,8 @@ static int dmirror_device_init(struct dm
  
- 	for (migrate = 0; migrate < 2; ++migrate) {
- 		for (use_thp = 0; use_thp < 2; ++use_thp) {
--			npages = ALIGN(use_thp ? TWOMEG : HMM_BUFFER_SIZE,
-+			npages = ALIGN(use_thp ? read_pmd_pagesize() : HMM_BUFFER_SIZE,
- 				       self->page_size) >> self->page_shift;
- 			ASSERT_NE(npages, 0);
- 			size = npages << self->page_shift;
-@@ -728,7 +729,7 @@ TEST_F(hmm, anon_write_huge)
- 	int *ptr;
- 	int ret;
+ 	cdev_init(&mdevice->cdevice, &dmirror_fops);
+ 	mdevice->cdevice.owner = THIS_MODULE;
++	mdevice->device.release = dmirror_device_release;
++
+ 	device_initialize(&mdevice->device);
+ 	mdevice->device.devt = dev;
  
--	size = 2 * TWOMEG;
-+	size = 2 * read_pmd_pagesize();
+@@ -1756,12 +1765,16 @@ static int dmirror_device_init(struct dm
+ 	if (ret)
+ 		goto put_device;
  
- 	buffer = malloc(sizeof(*buffer));
- 	ASSERT_NE(buffer, NULL);
-@@ -744,7 +745,7 @@ TEST_F(hmm, anon_write_huge)
- 			   buffer->fd, 0);
- 	ASSERT_NE(buffer->ptr, MAP_FAILED);
++	/* Build a list of free ZONE_DEVICE struct pages */
++	ret = dmirror_allocate_chunk(mdevice, NULL, false);
++	if (ret)
++		goto put_device;
++
+ 	ret = cdev_device_add(&mdevice->cdevice, &mdevice->device);
+ 	if (ret)
+ 		goto put_device;
  
--	size = TWOMEG;
-+	size /= 2;
- 	npages = size >> self->page_shift;
- 	map = (void *)ALIGN((uintptr_t)buffer->ptr, size);
- 	ret = madvise(map, size, MADV_HUGEPAGE);
-@@ -771,54 +772,6 @@ TEST_F(hmm, anon_write_huge)
+-	/* Build a list of free ZONE_DEVICE struct pages */
+-	return dmirror_allocate_chunk(mdevice, NULL, false);
++	return 0;
+ 
+ put_device:
+ 	put_device(&mdevice->device);
+@@ -1770,7 +1783,6 @@ put_device:
+ 
+ static void dmirror_device_remove(struct dmirror_device *mdevice)
+ {
+-	dmirror_device_remove_chunks(mdevice);
+ 	cdev_device_del(&mdevice->cdevice, &mdevice->device);
+ 	put_device(&mdevice->device);
  }
- 
- /*
-- * Read numeric data from raw and tagged kernel status files.  Used to read
-- * /proc and /sys data (without a tag) and from /proc/meminfo (with a tag).
-- */
--static long file_read_ulong(char *file, const char *tag)
--{
--	int fd;
--	char buf[2048];
--	int len;
--	char *p, *q;
--	long val;
--
--	fd = open(file, O_RDONLY);
--	if (fd < 0) {
--		/* Error opening the file */
--		return -1;
--	}
--
--	len = read(fd, buf, sizeof(buf));
--	close(fd);
--	if (len < 0) {
--		/* Error in reading the file */
--		return -1;
--	}
--	if (len == sizeof(buf)) {
--		/* Error file is too large */
--		return -1;
--	}
--	buf[len] = '\0';
--
--	/* Search for a tag if provided */
--	if (tag) {
--		p = strstr(buf, tag);
--		if (!p)
--			return -1; /* looks like the line we want isn't there */
--		p += strlen(tag);
--	} else
--		p = buf;
--
--	val = strtol(p, &q, 0);
--	if (*q != ' ') {
--		/* Error parsing the file */
--		return -1;
--	}
--
--	return val;
--}
--
--/*
-  * Write huge TLBFS page.
-  */
- TEST_F(hmm, anon_write_hugetlbfs)
-@@ -826,15 +779,13 @@ TEST_F(hmm, anon_write_hugetlbfs)
- 	struct hmm_buffer *buffer;
- 	unsigned long npages;
- 	unsigned long size;
--	unsigned long default_hsize;
-+	unsigned long default_hsize = default_huge_page_size();
- 	unsigned long i;
- 	int *ptr;
- 	int ret;
- 
--	default_hsize = file_read_ulong("/proc/meminfo", "Hugepagesize:");
--	if (default_hsize < 0 || default_hsize*1024 < default_hsize)
-+	if (!default_hsize)
- 		SKIP(return, "Huge page size could not be determined");
--	default_hsize = default_hsize*1024; /* KB to B */
- 
- 	size = ALIGN(TWOMEG, default_hsize);
- 	npages = size >> self->page_shift;
-@@ -1606,7 +1557,7 @@ TEST_F(hmm, compound)
- 	struct hmm_buffer *buffer;
- 	unsigned long npages;
- 	unsigned long size;
--	unsigned long default_hsize;
-+	unsigned long default_hsize = default_huge_page_size();
- 	int *ptr;
- 	unsigned char *m;
- 	int ret;
-@@ -1614,10 +1565,8 @@ TEST_F(hmm, compound)
- 
- 	/* Skip test if we can't allocate a hugetlbfs page. */
- 
--	default_hsize = file_read_ulong("/proc/meminfo", "Hugepagesize:");
--	if (default_hsize < 0 || default_hsize*1024 < default_hsize)
-+	if (!default_hsize)
- 		SKIP(return, "Huge page size could not be determined");
--	default_hsize = default_hsize*1024; /* KB to B */
- 
- 	size = ALIGN(TWOMEG, default_hsize);
- 	npages = size >> self->page_shift;
-@@ -2106,7 +2055,7 @@ TEST_F(hmm, migrate_anon_huge_empty)
- 	int *ptr;
- 	int ret;
- 
--	size = TWOMEG;
-+	size = read_pmd_pagesize();
- 
- 	buffer = malloc(sizeof(*buffer));
- 	ASSERT_NE(buffer, NULL);
-@@ -2158,7 +2107,7 @@ TEST_F(hmm, migrate_anon_huge_zero)
- 	int ret;
- 	int val;
- 
--	size = TWOMEG;
-+	size = read_pmd_pagesize();
- 
- 	buffer = malloc(sizeof(*buffer));
- 	ASSERT_NE(buffer, NULL);
-@@ -2221,7 +2170,7 @@ TEST_F(hmm, migrate_anon_huge_free)
- 	int *ptr;
- 	int ret;
- 
--	size = TWOMEG;
-+	size = read_pmd_pagesize();
- 
- 	buffer = malloc(sizeof(*buffer));
- 	ASSERT_NE(buffer, NULL);
-@@ -2280,7 +2229,7 @@ TEST_F(hmm, migrate_anon_huge_fault)
- 	int *ptr;
- 	int ret;
- 
--	size = TWOMEG;
-+	size = read_pmd_pagesize();
- 
- 	buffer = malloc(sizeof(*buffer));
- 	ASSERT_NE(buffer, NULL);
-@@ -2332,7 +2281,7 @@ TEST_F(hmm, migrate_partial_unmap_fault)
- {
- 	struct hmm_buffer *buffer;
- 	unsigned long npages;
--	unsigned long size = TWOMEG;
-+	unsigned long size = read_pmd_pagesize();
- 	unsigned long i;
- 	void *old_ptr;
- 	void *map;
-@@ -2398,7 +2347,7 @@ TEST_F(hmm, migrate_remap_fault)
- {
- 	struct hmm_buffer *buffer;
- 	unsigned long npages;
--	unsigned long size = TWOMEG;
-+	unsigned long size = read_pmd_pagesize();
- 	unsigned long i;
- 	void *old_ptr, *new_ptr = NULL;
- 	void *map;
-@@ -2498,7 +2447,7 @@ TEST_F(hmm, migrate_anon_huge_err)
- 	int *ptr;
- 	int ret;
- 
--	size = TWOMEG;
-+	size = read_pmd_pagesize();
- 
- 	buffer = malloc(sizeof(*buffer));
- 	ASSERT_NE(buffer, NULL);
-@@ -2593,7 +2542,7 @@ TEST_F(hmm, migrate_anon_huge_zero_err)
- 	int *ptr;
- 	int ret;
- 
--	size = TWOMEG;
-+	size = read_pmd_pagesize();
- 
- 	buffer = malloc(sizeof(*buffer));
- 	ASSERT_NE(buffer, NULL);
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
