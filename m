@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FDC82F6900
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 23:18:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBA5233F383
+	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 23:58:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775085489; cv=none; b=i8Yq4zhH/9wAOCCRMJBwN3nYzYJFZQvckMO/zfhti1OdQ6qcb1CjVFaALh78qWENV/uiEtCADodVDfGT7LxEYAlPl7txAxQRfTyqBl5jU5MHm00tXK/3nGO/8qAm3k4W4I7Yg9PG4ImLAxkMrahilfglKpWjaqbqZThPGk+rfsA=
+	t=1775087911; cv=none; b=hlBnHKOi/WL/G6Bqgurbcn42lbxUf8QlteGKAcITOuMTyTtsILrzwGIy5OJu8e6kyR2mc2lrCWrMsHRu6YU6YVJ97sYMXG1bTPS4cDDe/EveKin1GLw//c5urBJcGw5M2tlIbaa/hzZux5y+UIGEn/8IufU2Vx7id14hGirAJ4I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775085489; c=relaxed/simple;
-	bh=LtOrUSUzrPUGxrUF0OKhf2s9/lfDx+cFfS5nwjb1H0Q=;
-	h=Date:To:From:Subject:Message-Id; b=UvmnGXKhSTHbQ99qKnnbPqmp+1q3r/FRT1b1lfI0R2VwsagyoI1icYCsJN7Bsk81oP6Fq/5NktdcSAXU8z3Sz65wD7IoZVJeGHvtWLDbYdVpwWK3muOPG/BV8h+AAT99OdgzDmZOdW+105lJ+W6l6PtZUmOozr4djRrENigfM/w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tipvIQuq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775087911; c=relaxed/simple;
+	bh=K0VcogqtQed+3y9PROAc0BelFFxV7bzYlfE40JC18E4=;
+	h=Date:To:From:Subject:Message-Id; b=d9dPLyZiYcDntNCjJPJ/IMmcTERSh7qW/jnnCmv18tju90KrAvbqjiF4yA1KsyMQR/8JVJb7KsF68CCgsqLl25Vvkh2Buoi79pqHk2lj/q0zzGx/us5s/M28VsHvMI2HjR1sdVkzQTb1d6zhnry+PlbWrwBsR4TWAECg9I7OeFU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VAI9N7KG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tipvIQuq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF3A0C4CEF7;
-	Wed,  1 Apr 2026 23:18:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VAI9N7KG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A5F7C116C6;
+	Wed,  1 Apr 2026 23:58:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775085489;
-	bh=LtOrUSUzrPUGxrUF0OKhf2s9/lfDx+cFfS5nwjb1H0Q=;
+	s=korg; t=1775087910;
+	bh=K0VcogqtQed+3y9PROAc0BelFFxV7bzYlfE40JC18E4=;
 	h=Date:To:From:Subject:From;
-	b=tipvIQuqkFEio3ocaL7T8dQb45MhNivfOP8wZTSBxt9T8uRnMeGI4uXjLaV0emP6U
-	 J2unS0143XXtiYR/RwMmNjGmxrp6HwA64Yej8EScpWDq4qtAaJtklnncCDiTHY/GMA
-	 EEJRyof3yqvVgmyjqjHJPFz7VaDx3BzQ/TopxyYc=
-Date: Wed, 01 Apr 2026 16:18:08 -0700
-To: mm-commits@vger.kernel.org,lance.yang@linux.dev,david@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
+	b=VAI9N7KG+kKhRGUwcn99X1r5M+3E4fBWTKl76xfo/iLWqfdukVc63hmo3QKldbAUo
+	 d7Syaf5kdre4P239mlFKAIQ+12iuLMMFQckyqQNGIgDpnSrSBfgnQczkvSPqHE6LYH
+	 iLsD3zLinj1t6iWl3rxZ57+PQXr8bPAOGyPiXIkY=
+Date: Wed, 01 Apr 2026 16:58:29 -0700
+To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,cl@gentwo.org,zenghongling@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] mm-fix-deferred-split-queue-races-during-migration-fix.patch removed from -mm tree
-Message-Id: <20260401231808.DF3A0C4CEF7@smtp.kernel.org>
+Subject: [to-be-updated] mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory.patch removed from -mm tree
+Message-Id: <20260401235830.6A5F7C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,58 +35,125 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-fix-deferred-split-queue-races-during-migration-fix
+     Subject: mm/percpu-internal.h: optimise pcpu_chunk_struct to save memory
 has been removed from the -mm tree.  Its filename was
-     mm-fix-deferred-split-queue-races-during-migration-fix.patch
+     mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory.patch
 
-This patch was dropped because it was folded into mm-fix-deferred-split-queue-races-during-migration.patch
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: mm-fix-deferred-split-queue-races-during-migration-fix
-Date: Wed, 1 Apr 2026 18:52:43 -0400
+From: zenghongling <zenghongling@kylinos.cn>
+Subject: mm/percpu-internal.h: optimise pcpu_chunk_struct to save memory
+Date: Thu, 5 Mar 2026 15:30:43 +0800
 
-move the comment
+The pcpu_chunk_struct has a hole of 4 bytes and pushes the struct to three
+cachelines.  Relocating the three booleans upwards allows for the struct
+to only use two cachelines.
 
-Link: https://lkml.kernel.org/r/FB71A764-0F10-4E5A-B4A0-BA4C7F138408@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
+Before:
+struct pcpu_chunk {
+        struct list_head           list;                 /*     0    16 */
+        int                        free_bytes;           /*    16     4 */
+        struct pcpu_block_md       chunk_md;             /*    20    32 */
+
+        /* XXX 4 bytes hole, try to pack */
+
+        long unsigned int *        bound_map;            /*    56     8 */
+        /* --- cacheline 1 boundary (64 bytes) --- */
+        void *                     base_addr __attribute__((__aligned__(64))); /*    64     8 */
+        long unsigned int *        alloc_map;            /*    72     8 */
+        struct pcpu_block_md *     md_blocks;            /*    80     8 */
+        void *                     data;                 /*    88     8 */
+        bool                       immutable;            /*    96     1 */
+        bool                       isolated;             /*    97     1 */
+
+        /* XXX 2 bytes hole, try to pack */
+
+        int                        start_offset;         /*   100     4 */
+        int                        end_offset;           /*   104     4 */
+
+        /* XXX 4 bytes hole, try to pack */
+
+        struct obj_cgroup * *      obj_cgroups;          /*   112     8 */
+        int                        nr_pages;             /*   120     4 */
+        int                        nr_populated;         /*   124     4 */
+        /* --- cacheline 2 boundary (128 bytes) --- */
+        int                        nr_empty_pop_pages;   /*   128     4 */
+
+        /* XXX 4 bytes hole, try to pack */
+
+        long unsigned int          populated[];          /*   136     0 */
+
+        /* size: 192, cachelines: 3, members: 17 */
+        /* sum members: 122, holes: 4, sum holes: 14 */
+        /* padding: 56 */
+        /* forced alignments: 1 */
+} __attribute__((__aligned__(64)));
+
+After:
+struct pcpu_chunk {
+        struct list_head           list;                 /*     0    16 */
+        int                        free_bytes;           /*    16     4 */
+        struct pcpu_block_md       chunk_md;             /*    20    32 */
+
+        /* XXX 4 bytes hole, try to pack */
+
+        long unsigned int *        bound_map;            /*    56     8 */
+        /* --- cacheline 1 boundary (64 bytes) --- */
+        void *                     base_addr __attribute__((__aligned__(64))); /*    64     8 */
+        long unsigned int *        alloc_map;            /*    72     8 */
+        struct pcpu_block_md *     md_blocks;            /*    80     8 */
+        void *                     data;                 /*    88     8 */
+        bool                       immutable;            /*    96     1 */
+        bool                       isolated;             /*    97     1 */
+
+        /* XXX 2 bytes hole, try to pack */
+
+        int                        start_offset;         /*   100     4 */
+        int                        end_offset;           /*   104     4 */
+        int                        nr_empty_pop_pages;   /*   108     4 */
+        struct obj_cgroup * *      obj_cgroups;          /*   112     8 */
+        int                        nr_pages;             /*   120     4 */
+        int                        nr_populated;         /*   124     4 */
+        /* --- cacheline 2 boundary (128 bytes) --- */
+        long unsigned int          populated[];          /*   128     0 */
+
+        /* size: 128, cachelines: 2, members: 17 */
+        /* sum members: 122, holes: 2, sum holes: 6 */
+        /* forced alignments: 1 */
+} __attribute__((__aligned__(64)));
+
+Link: https://lkml.kernel.org/r/20260305073043.571691-1-zenghongling@kylinos.cn
+Signed-off-by: zenghongling <zenghongling@kylinos.cn>
+Cc: Christoph Lameter <cl@gentwo.org>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Hongling Zeng <zenghongling@kylinos.cn>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/percpu-internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-fix-deferred-split-queue-races-during-migration-fix
-+++ a/mm/huge_memory.c
-@@ -4551,15 +4551,18 @@ retry:
- 		}
- 		folio_unlock(folio);
- next:
-+		/*
-+		 * If thp_underused() returns false, or if split_folio()
-+		 * succeeds, or if split_folio() fails in the case it was
-+		 * underused, then consider it used and don't add it back to
-+		 * split_queue.
-+		 */
- 		if (did_split || !folio_test_partially_mapped(folio))
- 			continue;
- requeue:
- 		/*
--		 * Add back partially mapped folios, or underused folios
--		 * that we could not lock this round.  If thp_underused()
--		 * returns false, or if split_folio() succeeds, or if
--		 * split_folio() fails in the case it was underused, then
--		 * consider it used and don't add it back to split_queue.
-+		 * Add back partially mapped folios, or underused folios that
-+		 * we could not lock this round.
- 		 */
- 		fqueue = folio_split_queue_lock_irqsave(folio, &flags);
- 		if (list_empty(&folio->_deferred_list)) {
+--- a/mm/percpu-internal.h~mm-percpu-internalh-optimise-pcpu_chunk_struct-to-save-memory
++++ a/mm/percpu-internal.h
+@@ -77,13 +77,13 @@ struct pcpu_chunk {
+ 	int			end_offset;	/* additional area required to
+ 						   have the region end page
+ 						   aligned */
++	int                     nr_empty_pop_pages; /* # of empty populated pages */
+ #ifdef NEED_PCPUOBJ_EXT
+ 	struct pcpuobj_ext	*obj_exts;	/* vector of object cgroups */
+ #endif
+ 
+ 	int			nr_pages;	/* # of pages served by this chunk */
+ 	int			nr_populated;	/* # of populated pages */
+-	int                     nr_empty_pop_pages; /* # of empty populated pages */
+ 	unsigned long		populated[];	/* populated bitmap */
+ };
+ 
 _
 
-Patches currently in -mm which might be from ziy@nvidia.com are
+Patches currently in -mm which might be from zenghongling@kylinos.cn are
 
-mm-fix-deferred-split-queue-races-during-migration.patch
 
