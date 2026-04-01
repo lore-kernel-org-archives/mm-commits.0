@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 720292C3251;
-	Wed,  1 Apr 2026 03:07:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B253B3242AB;
+	Wed,  1 Apr 2026 03:07:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775012839; cv=none; b=gt3rtaJD3/BiHWutRJIsJabR5rxitlHQJmV68CU1wq5je83tGp6RzjhnB1l2GNDfBCtqNuF+8o/RPj5sfHWIVKQgvI2Tty5EAfVCLc1pVu9q69iPF7XiCxnrsPO/yRTSSLwKZpZ8ivLT6fsSoOVkokFgoXA6Id1uMLfCmZTJNWA=
+	t=1775012841; cv=none; b=P+767GDMdr3s1Fqe/e/fu7eRscd7quFNjmkbY6YGt8FgI3icj8NriZm2fUY6H0odq9HGvUGtfJET77twxUHeYdskgnws/7yuYH2QCyWwTgyLYyOs+/WugshyQxlKB990adgl3pzqsUs/EBKpUrL95XgwuN9EHXrmDe7fkDzMOVY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775012839; c=relaxed/simple;
-	bh=fvsDEoev0ERQdimzNoVbv3lG8LUpb12dHwgPZomcxiI=;
-	h=Date:To:From:Subject:Message-Id; b=sJzfUT0NTVkYOxcQIOIlgMPjdeZXEN9TFPfBZdVapLer8yCh4vujBoSCO0D1CjSzMNWHpROiV+m9V7lLN1FnbzZvHTY98nrxeKtcvQxxlDCca5F156YYy848rfCUsuk2x0p0heYlaIvfxV16BcEshV6ONsUVBRmJma5o3LLNV+o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TwnpqbYx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775012841; c=relaxed/simple;
+	bh=Ms4HYCvfXIWD00rm1B7vS4V3YzQH5ZXl7/tfxZpDXQc=;
+	h=Date:To:From:Subject:Message-Id; b=u4G6HlHcDx91N4+3MGjD0fB358IgrYijFed3tYqxG3N+tvzCGqBWxXld891eJ59XGwJ/znMHeK8w+l/CG36+xapi5g8ZAEKQBidytXGsp0JqCg3IKyUQqM/ixlArw5mVMte/5zPewWe+PZ+78VporxivWKPbbb8QIzZjIV79pcU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zNBhwqk0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TwnpqbYx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0B32C19423;
-	Wed,  1 Apr 2026 03:07:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zNBhwqk0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2690DC19423;
+	Wed,  1 Apr 2026 03:07:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775012839;
-	bh=fvsDEoev0ERQdimzNoVbv3lG8LUpb12dHwgPZomcxiI=;
+	s=korg; t=1775012841;
+	bh=Ms4HYCvfXIWD00rm1B7vS4V3YzQH5ZXl7/tfxZpDXQc=;
 	h=Date:To:From:Subject:From;
-	b=TwnpqbYxrS1d7Vzp9IFvkTwkTJ8b90IGUuJHsOWKAfKkQDpUacnYGciHPEJIQqidY
-	 GlDEum79zpf/YW71OKkMdR2LCjCA3nGatJiaehoXt8oIDO42/Q6gWjrcuj64okMCo1
-	 LwCDzwG5ukpG4gt9MITsz93yLxrRgPUSiWOK9EMc=
-Date: Tue, 31 Mar 2026 20:07:18 -0700
+	b=zNBhwqk01F1n+Bk9hInuY8gAkdwHsj2WF27+d0sK6L5IGcxCVTnYnaY84l6BVL414
+	 0Zokp59Pbak1rpNs+SIuQ0oFUWkKE5qWuS95eJQVPUuarCP7TUWIBbJ+LyvGIfGpSu
+	 6v69Vp8yz/kLguijTodErwfs7smvfxhTETPrRxPE=
+Date: Tue, 31 Mar 2026 20:07:20 -0700
 To: mm-commits@vger.kernel.org,wang.yaxin@zte.com.cn,thomas.orgis@uni-hamburg.de,stable@vger.kernel.org,fan.yu9@zte.com.cn,bsingharora@gmail.com,cyyzero16@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + taskstats-set-version-in-tgid-exit-notifications.patch added to mm-nonmm-unstable branch
-Message-Id: <20260401030718.F0B32C19423@smtp.kernel.org>
+Subject: + tools-accounting-handle-truncated-taskstats-netlink-messages.patch added to mm-nonmm-unstable branch
+Message-Id: <20260401030721.2690DC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: taskstats: set version in TGID exit notifications
+     Subject: tools/accounting: handle truncated taskstats netlink messages
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     taskstats-set-version-in-tgid-exit-notifications.patch
+     tools-accounting-handle-truncated-taskstats-netlink-messages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/taskstats-set-version-in-tgid-exit-notifications.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-accounting-handle-truncated-taskstats-netlink-messages.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,52 +59,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Yiyang Chen <cyyzero16@gmail.com>
-Subject: taskstats: set version in TGID exit notifications
-Date: Mon, 30 Mar 2026 03:00:40 +0800
+Subject: tools/accounting: handle truncated taskstats netlink messages
+Date: Mon, 30 Mar 2026 03:00:41 +0800
 
-delay accounting started populating taskstats records with a valid version
-field via fill_pid() and fill_tgid().
+procacct and getdelays use a fixed receive buffer for taskstats generic
+netlink messages.  A multi-threaded process exit can emit a single
+PID+TGID notification large enough to exceed that buffer on newer kernels.
 
-Later, commit ad4ecbcba728 ("[PATCH] delay accounting taskstats interface
-send tgid once") changed the TGID exit path to send the cached
-signal->stats aggregate directly instead of building the outgoing record
-through fill_tgid().  Unlike fill_tgid(), fill_tgid_exit() only
-accumulates accounting data and never initializes stats->version.
+Switch to recvmsg() so MSG_TRUNC is detected explicitly, increase the
+message buffer size, and report truncated datagrams clearly instead of
+misparsing them as fatal netlink errors.
 
-As a result, TGID exit notifications can reach userspace with version == 0
-even though PID exit notifications and TASKSTATS_CMD_GET replies carry a
-valid taskstats version.
+Also print the taskstats version in debug output to make version
+mismatches easier to diagnose while inspecting taskstats traffic.
 
-This is easy to reproduce with `tools/accounting/getdelays.c`.
-
-I have a small follow-up patch for that tool which:
-
-1. increases the receive buffer/message size so the pid+tgid
-   combined exit notification is not dropped/truncated
-
-2. prints `stats->version`.
-
-With that patch, the reproducer is:
-
-  Terminal 1:
-    ./getdelays -d -v -l -m 0
-
-  Terminal 2:
-    taskset -c 0 python3 -c 'import threading,time; t=threading.Thread(target=time.sleep,args=(0.1,)); t.start(); t.join()'
-
-That produces both PID and TGID exit notifications for the same
-process.  The PID exit record reports a valid taskstats version, while
-the TGID exit record reports `version 0`.
-
-
-This patch (of 2):
-
-Set stats->version = TASKSTATS_VERSION after copying the cached TGID
-aggregate into the outgoing netlink payload so all taskstats records are
-self-describing again.
-
-Link: https://lkml.kernel.org/r/ba83d934e59edd431b693607de573eb9ca059309.1774810498.git.cyyzero16@gmail.com
-Fixes: ad4ecbcba728 ("[PATCH] delay accounting taskstats interface send tgid once")
+Link: https://lkml.kernel.org/r/520308bb4cbbaf8dc2c7296b5f60f11e12fb30a5.1774810498.git.cyyzero16@gmail.com
 Signed-off-by: Yiyang Chen <cyyzero16@gmail.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Dr. Thomas Orgis <thomas.orgis@uni-hamburg.de>
@@ -114,19 +83,157 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/accounting/getdelays.c |   41 +++++++++++++++++++++++++++++----
+ tools/accounting/procacct.c  |   40 ++++++++++++++++++++++++++++----
+ 2 files changed, 73 insertions(+), 8 deletions(-)
 
---- a/kernel/taskstats.c~taskstats-set-version-in-tgid-exit-notifications
-+++ a/kernel/taskstats.c
-@@ -649,6 +649,7 @@ void taskstats_exit(struct task_struct *
- 		goto err;
+--- a/tools/accounting/getdelays.c~tools-accounting-handle-truncated-taskstats-netlink-messages
++++ a/tools/accounting/getdelays.c
+@@ -60,7 +60,7 @@ int print_task_context_switch_counts;
+ 	}
  
- 	memcpy(stats, tsk->signal->stats, sizeof(*stats));
-+	stats->version = TASKSTATS_VERSION;
+ /* Maximum size of response requested or message sent */
+-#define MAX_MSG_SIZE	1024
++#define MAX_MSG_SIZE	2048
+ /* Maximum number of cpus expected to be specified in a cpumask */
+ #define MAX_CPUS	32
  
- send:
- 	send_cpu_listeners(rep_skb, listeners);
+@@ -115,6 +115,32 @@ error:
+ 	return -1;
+ }
+ 
++static int recv_taskstats_msg(int sd, struct msgtemplate *msg)
++{
++	struct sockaddr_nl nladdr;
++	struct iovec iov = {
++		.iov_base = msg,
++		.iov_len = sizeof(*msg),
++	};
++	struct msghdr hdr = {
++		.msg_name = &nladdr,
++		.msg_namelen = sizeof(nladdr),
++		.msg_iov = &iov,
++		.msg_iovlen = 1,
++	};
++	int ret;
++
++	ret = recvmsg(sd, &hdr, 0);
++	if (ret < 0)
++		return -1;
++	if (hdr.msg_flags & MSG_TRUNC) {
++		errno = EMSGSIZE;
++		return -1;
++	}
++
++	return ret;
++}
++
+ 
+ static int send_cmd(int sd, __u16 nlmsg_type, __u32 nlmsg_pid,
+ 	     __u8 genl_cmd, __u16 nla_type,
+@@ -633,12 +659,16 @@ int main(int argc, char *argv[])
+ 	}
+ 
+ 	do {
+-		rep_len = recv(nl_sd, &msg, sizeof(msg), 0);
++		rep_len = recv_taskstats_msg(nl_sd, &msg);
+ 		PRINTF("received %d bytes\n", rep_len);
+ 
+ 		if (rep_len < 0) {
+-			fprintf(stderr, "nonfatal reply error: errno %d\n",
+-				errno);
++			if (errno == EMSGSIZE)
++				fprintf(stderr,
++					"dropped truncated taskstats netlink message, please increase MAX_MSG_SIZE\n");
++			else
++				fprintf(stderr, "nonfatal reply error: errno %d\n",
++					errno);
+ 			continue;
+ 		}
+ 		if (msg.n.nlmsg_type == NLMSG_ERROR ||
+@@ -680,6 +710,9 @@ int main(int argc, char *argv[])
+ 							printf("TGID\t%d\n", rtid);
+ 						break;
+ 					case TASKSTATS_TYPE_STATS:
++						PRINTF("version %u\n",
++						       ((struct taskstats *)
++							NLA_DATA(na))->version);
+ 						if (print_delays)
+ 							print_delayacct((struct taskstats *) NLA_DATA(na));
+ 						if (print_io_accounting)
+--- a/tools/accounting/procacct.c~tools-accounting-handle-truncated-taskstats-netlink-messages
++++ a/tools/accounting/procacct.c
+@@ -71,7 +71,7 @@ int print_task_context_switch_counts;
+ 	}
+ 
+ /* Maximum size of response requested or message sent */
+-#define MAX_MSG_SIZE	1024
++#define MAX_MSG_SIZE	2048
+ /* Maximum number of cpus expected to be specified in a cpumask */
+ #define MAX_CPUS	32
+ 
+@@ -121,6 +121,32 @@ error:
+ 	return -1;
+ }
+ 
++static int recv_taskstats_msg(int sd, struct msgtemplate *msg)
++{
++	struct sockaddr_nl nladdr;
++	struct iovec iov = {
++		.iov_base = msg,
++		.iov_len = sizeof(*msg),
++	};
++	struct msghdr hdr = {
++		.msg_name = &nladdr,
++		.msg_namelen = sizeof(nladdr),
++		.msg_iov = &iov,
++		.msg_iovlen = 1,
++	};
++	int ret;
++
++	ret = recvmsg(sd, &hdr, 0);
++	if (ret < 0)
++		return -1;
++	if (hdr.msg_flags & MSG_TRUNC) {
++		errno = EMSGSIZE;
++		return -1;
++	}
++
++	return ret;
++}
++
+ 
+ static int send_cmd(int sd, __u16 nlmsg_type, __u32 nlmsg_pid,
+ 	     __u8 genl_cmd, __u16 nla_type,
+@@ -239,6 +265,8 @@ void handle_aggr(int mother, struct nlat
+ 			PRINTF("TGID\t%d\n", rtid);
+ 			break;
+ 		case TASKSTATS_TYPE_STATS:
++			PRINTF("version %u\n",
++			       ((struct taskstats *)NLA_DATA(na))->version);
+ 			if (mother == TASKSTATS_TYPE_AGGR_PID)
+ 				print_procacct((struct taskstats *) NLA_DATA(na));
+ 			if (fd) {
+@@ -347,12 +375,16 @@ int main(int argc, char *argv[])
+ 	}
+ 
+ 	do {
+-		rep_len = recv(nl_sd, &msg, sizeof(msg), 0);
++		rep_len = recv_taskstats_msg(nl_sd, &msg);
+ 		PRINTF("received %d bytes\n", rep_len);
+ 
+ 		if (rep_len < 0) {
+-			fprintf(stderr, "nonfatal reply error: errno %d\n",
+-				errno);
++			if (errno == EMSGSIZE)
++				fprintf(stderr,
++					"dropped truncated taskstats netlink message, please increase MAX_MSG_SIZE\n");
++			else
++				fprintf(stderr, "nonfatal reply error: errno %d\n",
++					errno);
+ 			continue;
+ 		}
+ 		if (msg.n.nlmsg_type == NLMSG_ERROR ||
 _
 
 Patches currently in -mm which might be from cyyzero16@gmail.com are
