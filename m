@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA30442048
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 23:17:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FDC82F6900
+	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 23:18:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775085438; cv=none; b=n23NI0jMqdNBj7584DBNlHgj+YyZBXf9lJ3GPyTLPZrN4pn7pXf1jTBKQkoBwEVKywxWADOMSHNzNGlnMdlRX2a3rklq3NKUNt/lsJrtTz6LQuo25XoVAz2SV5fU1ik6zrOBtXs8kn5tSDsaTDcR+bgH3lDIFN1qFSB/6NsP7eI=
+	t=1775085489; cv=none; b=i8Yq4zhH/9wAOCCRMJBwN3nYzYJFZQvckMO/zfhti1OdQ6qcb1CjVFaALh78qWENV/uiEtCADodVDfGT7LxEYAlPl7txAxQRfTyqBl5jU5MHm00tXK/3nGO/8qAm3k4W4I7Yg9PG4ImLAxkMrahilfglKpWjaqbqZThPGk+rfsA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775085438; c=relaxed/simple;
-	bh=pD0ffHets/5WKMPJ0GLYJpgJIiTRJfp6BS9xWThQ/o4=;
-	h=Date:To:From:Subject:Message-Id; b=In0h89lwrQkatHiUkDpFdRgTuhbdieMLRt93AtjiF7ljlJxBYMW7qAAN3/uFPVgpivnEs8qzkF50D03p2i6Dok2cicaha95QYxYyAhHytoMStBlI+ZyTRS8Ckx/RnzNCzW9YwgjlIduD13zy69gcRFbQ08CF2dsJuV5o3xou7TE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SjUUh7y0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775085489; c=relaxed/simple;
+	bh=LtOrUSUzrPUGxrUF0OKhf2s9/lfDx+cFfS5nwjb1H0Q=;
+	h=Date:To:From:Subject:Message-Id; b=UvmnGXKhSTHbQ99qKnnbPqmp+1q3r/FRT1b1lfI0R2VwsagyoI1icYCsJN7Bsk81oP6Fq/5NktdcSAXU8z3Sz65wD7IoZVJeGHvtWLDbYdVpwWK3muOPG/BV8h+AAT99OdgzDmZOdW+105lJ+W6l6PtZUmOozr4djRrENigfM/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tipvIQuq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SjUUh7y0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79B19C4CEF7;
-	Wed,  1 Apr 2026 23:17:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tipvIQuq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF3A0C4CEF7;
+	Wed,  1 Apr 2026 23:18:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775085437;
-	bh=pD0ffHets/5WKMPJ0GLYJpgJIiTRJfp6BS9xWThQ/o4=;
+	s=korg; t=1775085489;
+	bh=LtOrUSUzrPUGxrUF0OKhf2s9/lfDx+cFfS5nwjb1H0Q=;
 	h=Date:To:From:Subject:From;
-	b=SjUUh7y0FRgclJVJ8SYO8zHBGt88qZeMrFDXs2YIDgfTL6udHbaSHYcUgI75CCG1H
-	 qHk0QWTUCiZd6FN3v0poQfEq9fmAvVti2z0P8ckQigaHf9le9IkhtODAYIKeSXZDKP
-	 BwbnhciMvliYArsaOaKBKQLI+xdnqO7ja4s2SXj4=
-Date: Wed, 01 Apr 2026 16:17:16 -0700
+	b=tipvIQuqkFEio3ocaL7T8dQb45MhNivfOP8wZTSBxt9T8uRnMeGI4uXjLaV0emP6U
+	 J2unS0143XXtiYR/RwMmNjGmxrp6HwA64Yej8EScpWDq4qtAaJtklnncCDiTHY/GMA
+	 EEJRyof3yqvVgmyjqjHJPFz7VaDx3BzQ/TopxyYc=
+Date: Wed, 01 Apr 2026 16:18:08 -0700
 To: mm-commits@vger.kernel.org,lance.yang@linux.dev,david@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-deferred-split-queue-races-during-migration-fix.patch added to mm-unstable branch
-Message-Id: <20260401231717.79B19C4CEF7@smtp.kernel.org>
+Subject: [folded-merged] mm-fix-deferred-split-queue-races-during-migration-fix.patch removed from -mm tree
+Message-Id: <20260401231808.DF3A0C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,28 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: mm-fix-deferred-split-queue-races-during-migration-fix
-has been added to the -mm mm-unstable branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-fix-deferred-split-queue-races-during-migration-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-deferred-split-queue-races-during-migration-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was folded into mm-fix-deferred-split-queue-races-during-migration.patch
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
@@ -104,5 +88,5 @@ _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-fix-deferred-split-queue-races-during-migration-fix.patch
+mm-fix-deferred-split-queue-races-during-migration.patch
 
