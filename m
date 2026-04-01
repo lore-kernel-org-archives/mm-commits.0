@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE613231C9F
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 00:57:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 225BF1E5018
+	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 00:57:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775005034; cv=none; b=N0sCskHh8nX3mZ0an+NTJdpjWqMsGz8jBhp5Lz3+rOIRzU5lXJtjmYg15TOTkVMBjBSN3j2KWezC98QJ6qC6WtPlZDNSrRqYjQ0HGQnU2/4fc/qoFNlDFYEl9v1BTpRzg/hpFSGGqnmBJUxMPTuL5IOJBejuksJENPQgbIneI5o=
+	t=1775005060; cv=none; b=oc9510tweZlWf5EIINb2hIaRQ0h02sccTi8ImRFoy5cxGa5+4hNCqLHpSEOz0Quo+S6oCycSEeMEmoQyHgcMG1DNtUun+C8S/alBorfLzGUIn1AiXYTZ3D+vTczZaHgWpfc0byWSTnNQRaDPTI88cpQYpuxIOrKOBO8JfB6IXQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775005034; c=relaxed/simple;
-	bh=e2Yq9SqEpY2vQp/5Z/r4Hk5FyTvOyypTdLhPX/xpOf8=;
-	h=Date:To:From:Subject:Message-Id; b=Lhr1o/rg566Qqj0bQ6FOOr6KItyhqohfIr8QLXVmUmLWCWt6P/J+dxoDCD1ylLnQ5r/ByqZTZvPm4qyDKhFPj+6yng1gLPVaTNQIehItf+pBkxVGLa/j+jLlutYBiCWhMdOTe7sV755oCLIGtLqZiNtg4CKjYxRP8aLdykrwxx4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EWC85Omk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775005060; c=relaxed/simple;
+	bh=UgjDlo5FOff33DyXRk2o7PLxsdADH2Xybeb2VbhIwIc=;
+	h=Date:To:From:Subject:Message-Id; b=EKQdsw20mnC+ocnqpjONLpTEZN7JsDl2k5/tg5da2U5HVqHcE73iZIvmBeLDfQMDzoVzmxRGOamoVs2RZ5ojO/BnyYW/UxvE9RbbpPQjXcdG55wMixevHiIRs3Q/z4q67SJsHilZk6RtATqNy5B2TiRK0UojHwxl1WNLznT5lgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lNl9IgMD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EWC85Omk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3267FC19423;
-	Wed,  1 Apr 2026 00:57:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lNl9IgMD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7AF1C19423;
+	Wed,  1 Apr 2026 00:57:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775005034;
-	bh=e2Yq9SqEpY2vQp/5Z/r4Hk5FyTvOyypTdLhPX/xpOf8=;
+	s=korg; t=1775005060;
+	bh=UgjDlo5FOff33DyXRk2o7PLxsdADH2Xybeb2VbhIwIc=;
 	h=Date:To:From:Subject:From;
-	b=EWC85Omk+eBkal30pZ53FeqQT1Y6fvdNe/Qk3MrweVapqI+/P/KZnZO06AogitfY+
-	 aybam3MXndQI0/jvQHHV2qPDtpGYPGomBF5OvwyjnW3yciKUo7GacCFJFa2/HJnB3C
-	 M+wlJUIgdB5HYZ7frB3JE/Da185tDnod0KjdnZbg=
-Date: Tue, 31 Mar 2026 17:57:13 -0700
+	b=lNl9IgMDMpXGUvpvczyncATJERlx0Dmf6e+YLfb/jbGVPyGjq4SoIK0o7hZVzXp0a
+	 wQoPB8AzcSvYW5IzTXzX4wvSK+HG9FWEoUDAvBe+cYMbW7Y2PUZXnYjUsQuzpYE3pd
+	 gTjgTmH9phAHv4dHQHjOitiSAhsGNjmZ1XGar6kk=
+Date: Tue, 31 Mar 2026 17:57:39 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch added to mm-new branch
-Message-Id: <20260401005714.3267FC19423@smtp.kernel.org>
+Subject: [folded-merged] tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch removed from -mm tree
+Message-Id: <20260401005739.E7AF1C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,39 +34,12 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
+The quilt patch titled
      Subject: tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix
-has been added to the -mm mm-new branch.  Its filename is
+has been removed from the -mm tree.  Its filename was
      tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was folded into tools-testing-selftests-add-merge-test-for-partial-msealed-range.patch
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
@@ -159,5 +132,4 @@ Patches currently in -mm which might be from ljs@kernel.org are
 mm-khugepaged-fix-issue-with-tracking-lock.patch
 maintainers-update-mglru-entry-to-reflect-current-status.patch
 tools-testing-selftests-add-merge-test-for-partial-msealed-range.patch
-tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch
 
