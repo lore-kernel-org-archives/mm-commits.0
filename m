@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 058E3173
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 00:04:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E1844502A;
+	Wed,  1 Apr 2026 00:33:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775001871; cv=none; b=oylNI5Az5hjZCuIMeKVQ2jh+qS0DKN92529EPMk/CY3MDF8CWHDFJHEJaynQQvae4YrW2jMRoRNyqE7KjjPAEdFHPBPXrtbxjbU6LS+1JsXdxreH+bElN54MpqwSsuHpCOGyLaOh76QNWR/TKsKWptGMv6hD3uWvBOxio8WX4ac=
+	t=1775003614; cv=none; b=Tw+qRzWyjWUVVuuZprHulEShQHCmbfM02t/DKv7SZTv0Jdy2Yo2A+jOFWzsPvkwVWXZsjaIpd2/vdnZNXRAfHgGtRfbgH21+D9OuUOw7tA7vPbRt4anXWmINJbOC+9yfqB+BpRoCCHZ4eo0atBt08U3uVlyGXO5tPsDPbPIVRBs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775001871; c=relaxed/simple;
-	bh=09YXr9wdlzc5bYRYUg5OIVB7Joypoh0ASsVZ6y3f8eY=;
-	h=Date:To:From:Subject:Message-Id; b=sr+2R5i82o9Woon5dJ+5yxy9WrM+QhafHCP5AkREF+vO5jBrYsJyattwYFPV4XUS2n2va6VIOVicfQvN5ZckHP6IvAU1lO7dgUwV9qp/lfIXitLb269VXH1ko9ASuLuU6hPkEOWqYJP2XfLyYrS93LKkqtziDHkirBbwbo3pt/Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OKlvVGCw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775003614; c=relaxed/simple;
+	bh=K8dquG2PUKKuN7O/6xf/xKWp4UuJ6R6RcFQ76uhDSyQ=;
+	h=Date:To:From:Subject:Message-Id; b=t+c2hdlodEC7AkYx2xPcI5oYQIhWVWXQ+Wh4XHpzXnsV0Z5O65uEtXcgGF5+Td4RogtbaNgFxfwVVn5Sswlw38SRj2jyPYHQN0gBxVfBo8KUrLWCVEdapEgAwQOG0hlz2+3JenNJTPj1flSB6K5+AsVcHsNSIKMpfx7BVatD/fk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bUDFWiZx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OKlvVGCw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BA8EC19423;
-	Wed,  1 Apr 2026 00:04:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bUDFWiZx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A85EC19423;
+	Wed,  1 Apr 2026 00:33:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775001870;
-	bh=09YXr9wdlzc5bYRYUg5OIVB7Joypoh0ASsVZ6y3f8eY=;
+	s=korg; t=1775003614;
+	bh=K8dquG2PUKKuN7O/6xf/xKWp4UuJ6R6RcFQ76uhDSyQ=;
 	h=Date:To:From:Subject:From;
-	b=OKlvVGCwofcB782+0QaHX97KyHSjOuTlWwiwn3RRfXjtcZn7PWvGx0gNmxE5bsrhd
-	 HFF5WOgafjyoc5MpFw+zkyxCD/1NkhM4xJ8n+hgDziVineICM1tTe0zTebg2KuzjpK
-	 sn49xpeIS/Iw7AM0qwd/R0tmQzj5qMxtRt5+t3Wg=
-Date: Tue, 31 Mar 2026 17:04:29 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,ericterminal@gmail.com,akpm@linux-foundation.org
+	b=bUDFWiZxzYP7Hbhfg4A7noMORjh5C8DYB86LhYfpGcKMMTsUkfpuzviRvE15h/7zV
+	 ax6cCFHZXza/bOzhG5IU8m37eiXU5NEfKO/eHfcKpHwPNsKr0lKh+W1YZm4Jvwelu2
+	 Lf6gbq4nrIjbMNrCyHDCwXP9oWxbf9yEzp+oOiKs=
+Date: Tue, 31 Mar 2026 17:33:33 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,surenb@google.com,kernel.org,stable@vger,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,leon@kernel.org,jgg@ziepe.ca,david@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-heartbeat-fix-slot-mapping-rollback-leaks-on-error-paths.patch added to mm-nonmm-unstable branch
-Message-Id: <20260401000430.7BA8EC19423@smtp.kernel.org>
+Subject: + lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free.patch added to mm-new branch
+Message-Id: <20260401003334.2A85EC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2/heartbeat: fix slot mapping rollback leaks on error paths
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-heartbeat-fix-slot-mapping-rollback-leaks-on-error-paths.patch
+     Subject: lib: test_hmm: evict device pages on file close to avoid use-after-free
+has been added to the -mm mm-new branch.  Its filename is
+     lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-heartbeat-fix-slot-mapping-rollback-leaks-on-error-paths.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,233 +69,196 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yufan Chen <ericterminal@gmail.com>
-Subject: ocfs2/heartbeat: fix slot mapping rollback leaks on error paths
-Date: Mon, 30 Mar 2026 23:34:28 +0800
+From: Alistair Popple <apopple@nvidia.com>
+Subject: lib: test_hmm: evict device pages on file close to avoid use-after-free
+Date: Tue, 31 Mar 2026 17:34:43 +1100
 
-o2hb_map_slot_data() allocates hr_tmp_block, hr_slots, hr_slot_data, and
-pages in stages.  If a later allocation fails, the current code returns
-without unwinding the earlier allocations.
+Patch series "Minor hmm_test fixes and cleanups".
 
-o2hb_region_dev_store() also leaves slot mapping resources behind when
-setup aborts, and it keeps hr_aborted_start/hr_node_deleted set across
-retries.  That leaves stale state behind after a failed start.
+Two bugfixes a cleanup for the HMM kernel selftests.  These were mostly
+reported by Zenghui Yu with special thanks to Lorenzo for analysing and
+pointing out the problems.
 
-Factor the slot cleanup into o2hb_unmap_slot_data(), use it from both
-o2hb_map_slot_data() and o2hb_region_release(), and call it from the
-dev_store() rollback after stopping a started heartbeat thread.  While
-freeing pages, clear each hr_slot_data entry as it is released, and reset
-the start state before each new setup attempt.
 
-This closes the slot mapping leak on allocation/setup failure paths and
-keeps failed setup attempts retryable.
+This patch (of 3):
 
-Link: https://lkml.kernel.org/r/20260330153428.19586-1-yufan.chen@linux.dev
-Signed-off-by: Yufan Chen <ericterminal@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+When dmirror_fops_release() is called it frees the dmirror struct but
+doesn't migrate device private pages back to system memory first.  This
+leaves those pages with a dangling zone_device_data pointer to the freed
+dmirror.
+
+If a subsequent fault occurs on those pages (eg.  during coredump) the
+dmirror_devmem_fault() callback dereferences the stale pointer causing a
+kernel panic.  This was reported [1] when running mm/ksft_hmm.sh on arm64,
+where a test failure triggered SIGABRT and the resulting coredump walked
+the VMAs faulting in the stale device private pages.
+
+Fix this by calling dmirror_device_evict_chunk() for each devmem chunk in
+dmirror_fops_release() to migrate all device private pages back to system
+memory before freeing the dmirror struct.  The function is moved earlier
+in the file to avoid a forward declaration.
+
+Link: https://lkml.kernel.org/r/20260331063445.3551404-1-apopple@nvidia.com
+Link: https://lkml.kernel.org/r/20260331063445.3551404-2-apopple@nvidia.com
+Fixes: b2ef9f5a5cb3 ("mm/hmm/test: add selftest driver for HMM")
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reported-by: Zenghui Yu <zenghui.yu@linux.dev>
+Closes: https://lore.kernel.org/linux-mm/8bd0396a-8997-4d2e-a13f-5aac033083d7@linux.dev/
+Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zenghui Yu <zenghui.yu@linux.dev>
+Cc: <stable@vger,kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |   83 ++++++++++++++++++++++-----------
- 1 file changed, 56 insertions(+), 27 deletions(-)
+ lib/test_hmm.c |  112 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 62 insertions(+), 50 deletions(-)
 
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-heartbeat-fix-slot-mapping-rollback-leaks-on-error-paths
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -1488,33 +1488,45 @@ static struct o2hb_region *to_o2hb_regio
- 	return item ? container_of(item, struct o2hb_region, hr_item) : NULL;
+--- a/lib/test_hmm.c~lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free
++++ a/lib/test_hmm.c
+@@ -185,11 +185,73 @@ static int dmirror_fops_open(struct inod
+ 	return 0;
  }
  
--/* drop_item only drops its ref after killing the thread, nothing should
-- * be using the region anymore.  this has to clean up any state that
-- * attributes might have built up. */
--static void o2hb_region_release(struct config_item *item)
-+static void o2hb_unmap_slot_data(struct o2hb_region *reg)
- {
- 	int i;
- 	struct page *page;
--	struct o2hb_region *reg = to_o2hb_region(item);
--
--	mlog(ML_HEARTBEAT, "hb region release (%pg)\n", reg_bdev(reg));
--
--	kfree(reg->hr_tmp_block);
- 
- 	if (reg->hr_slot_data) {
- 		for (i = 0; i < reg->hr_num_pages; i++) {
- 			page = reg->hr_slot_data[i];
--			if (page)
-+			if (page) {
- 				__free_page(page);
-+				reg->hr_slot_data[i] = NULL;
-+			}
- 		}
- 		kfree(reg->hr_slot_data);
-+		reg->hr_slot_data = NULL;
- 	}
- 
-+	kfree(reg->hr_slots);
-+	reg->hr_slots = NULL;
++static void dmirror_device_evict_chunk(struct dmirror_chunk *chunk)
++{
++	unsigned long start_pfn = chunk->pagemap.range.start >> PAGE_SHIFT;
++	unsigned long end_pfn = chunk->pagemap.range.end >> PAGE_SHIFT;
++	unsigned long npages = end_pfn - start_pfn + 1;
++	unsigned long i;
++	unsigned long *src_pfns;
++	unsigned long *dst_pfns;
++	unsigned int order = 0;
 +
-+	kfree(reg->hr_tmp_block);
-+	reg->hr_tmp_block = NULL;
++	src_pfns = kvcalloc(npages, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
++	dst_pfns = kvcalloc(npages, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
++
++	migrate_device_range(src_pfns, start_pfn, npages);
++	for (i = 0; i < npages; i++) {
++		struct page *dpage, *spage;
++
++		spage = migrate_pfn_to_page(src_pfns[i]);
++		if (!spage || !(src_pfns[i] & MIGRATE_PFN_MIGRATE))
++			continue;
++
++		if (WARN_ON(!is_device_private_page(spage) &&
++			    !is_device_coherent_page(spage)))
++			continue;
++
++		order = folio_order(page_folio(spage));
++		spage = BACKING_PAGE(spage);
++		if (src_pfns[i] & MIGRATE_PFN_COMPOUND) {
++			dpage = folio_page(folio_alloc(GFP_HIGHUSER_MOVABLE,
++					      order), 0);
++		} else {
++			dpage = alloc_page(GFP_HIGHUSER_MOVABLE | __GFP_NOFAIL);
++			order = 0;
++		}
++
++		/* TODO Support splitting here */
++		lock_page(dpage);
++		dst_pfns[i] = migrate_pfn(page_to_pfn(dpage));
++		if (src_pfns[i] & MIGRATE_PFN_WRITE)
++			dst_pfns[i] |= MIGRATE_PFN_WRITE;
++		if (order)
++			dst_pfns[i] |= MIGRATE_PFN_COMPOUND;
++		folio_copy(page_folio(dpage), page_folio(spage));
++	}
++	migrate_device_pages(src_pfns, dst_pfns, npages);
++	migrate_device_finalize(src_pfns, dst_pfns, npages);
++	kvfree(src_pfns);
++	kvfree(dst_pfns);
 +}
 +
-+/* drop_item only drops its ref after killing the thread, nothing should
-+ * be using the region anymore.  this has to clean up any state that
-+ * attributes might have built up.
-+ */
-+static void o2hb_region_release(struct config_item *item)
-+{
-+	struct o2hb_region *reg = to_o2hb_region(item);
-+
-+	mlog(ML_HEARTBEAT, "hb region release (%pg)\n", reg_bdev(reg));
-+
-+	o2hb_unmap_slot_data(reg);
-+
- 	if (reg->hr_bdev_file)
- 		fput(reg->hr_bdev_file);
- 
--	kfree(reg->hr_slots);
--
- 	debugfs_remove_recursive(reg->hr_debug_dir);
- 	kfree(reg->hr_db_livenodes);
- 	kfree(reg->hr_db_regnum);
-@@ -1667,6 +1679,7 @@ static void o2hb_init_region_params(stru
- static int o2hb_map_slot_data(struct o2hb_region *reg)
+ static int dmirror_fops_release(struct inode *inode, struct file *filp)
  {
- 	int i, j;
-+	int ret = -ENOMEM;
- 	unsigned int last_slot;
- 	unsigned int spp = reg->hr_slots_per_page;
- 	struct page *page;
-@@ -1674,14 +1687,14 @@ static int o2hb_map_slot_data(struct o2h
- 	struct o2hb_disk_slot *slot;
+ 	struct dmirror *dmirror = filp->private_data;
++	struct dmirror_device *mdevice = dmirror->mdevice;
++	int i;
  
- 	reg->hr_tmp_block = kmalloc(reg->hr_block_bytes, GFP_KERNEL);
--	if (reg->hr_tmp_block == NULL)
--		return -ENOMEM;
-+	if (!reg->hr_tmp_block)
-+		goto out;
- 
- 	reg->hr_slots = kzalloc_objs(struct o2hb_disk_slot, reg->hr_blocks);
--	if (reg->hr_slots == NULL)
--		return -ENOMEM;
-+	if (!reg->hr_slots)
-+		goto out;
- 
--	for(i = 0; i < reg->hr_blocks; i++) {
-+	for (i = 0; i < reg->hr_blocks; i++) {
- 		slot = &reg->hr_slots[i];
- 		slot->ds_node_num = i;
- 		INIT_LIST_HEAD(&slot->ds_live_item);
-@@ -1695,12 +1708,12 @@ static int o2hb_map_slot_data(struct o2h
- 
- 	reg->hr_slot_data = kzalloc_objs(struct page *, reg->hr_num_pages);
- 	if (!reg->hr_slot_data)
--		return -ENOMEM;
-+		goto out;
- 
--	for(i = 0; i < reg->hr_num_pages; i++) {
-+	for (i = 0; i < reg->hr_num_pages; i++) {
- 		page = alloc_page(GFP_KERNEL);
- 		if (!page)
--			return -ENOMEM;
-+			goto out;
- 
- 		reg->hr_slot_data[i] = page;
- 
-@@ -1720,6 +1733,10 @@ static int o2hb_map_slot_data(struct o2h
- 	}
- 
- 	return 0;
+ 	mmu_interval_notifier_remove(&dmirror->notifier);
 +
-+out:
-+	o2hb_unmap_slot_data(reg);
-+	return ret;
++	if (mdevice->devmem_chunks) {
++		for (i = 0; i < mdevice->devmem_count; i++) {
++			struct dmirror_chunk *devmem =
++				mdevice->devmem_chunks[i];
++
++			dmirror_device_evict_chunk(devmem);
++		}
++	}
++
+ 	xa_destroy(&dmirror->pt);
+ 	kfree(dmirror);
+ 	return 0;
+@@ -1377,56 +1439,6 @@ static int dmirror_snapshot(struct dmirr
+ 	return ret;
  }
  
- /* Read in all the slots available and populate the tracking
-@@ -1809,9 +1826,11 @@ static ssize_t o2hb_region_dev_store(str
- 		     "blocksize %u incorrect for device, expected %d",
- 		     reg->hr_block_bytes, sectsize);
- 		ret = -EINVAL;
--		goto out3;
-+		goto out;
- 	}
- 
-+	reg->hr_aborted_start = 0;
-+	reg->hr_node_deleted = 0;
- 	o2hb_init_region_params(reg);
- 
- 	/* Generation of zero is invalid */
-@@ -1823,13 +1842,13 @@ static ssize_t o2hb_region_dev_store(str
- 	ret = o2hb_map_slot_data(reg);
- 	if (ret) {
- 		mlog_errno(ret);
--		goto out3;
-+		goto out;
- 	}
- 
- 	ret = o2hb_populate_slot_data(reg);
- 	if (ret) {
- 		mlog_errno(ret);
--		goto out3;
-+		goto out;
- 	}
- 
- 	INIT_DELAYED_WORK(&reg->hr_write_timeout_work, o2hb_write_timeout);
-@@ -1860,7 +1879,7 @@ static ssize_t o2hb_region_dev_store(str
- 	if (IS_ERR(hb_task)) {
- 		ret = PTR_ERR(hb_task);
- 		mlog_errno(ret);
--		goto out3;
-+		goto out;
- 	}
- 
- 	spin_lock(&o2hb_live_lock);
-@@ -1877,12 +1896,12 @@ static ssize_t o2hb_region_dev_store(str
- 
- 	if (reg->hr_aborted_start) {
- 		ret = -EIO;
--		goto out3;
-+		goto out;
- 	}
- 
- 	if (reg->hr_node_deleted) {
- 		ret = -EINVAL;
--		goto out3;
-+		goto out;
- 	}
- 
- 	/* Ok, we were woken.  Make sure it wasn't by drop_item() */
-@@ -1901,8 +1920,18 @@ static ssize_t o2hb_region_dev_store(str
- 		printk(KERN_NOTICE "o2hb: Heartbeat started on region %s (%pg)\n",
- 		       config_item_name(&reg->hr_item), reg_bdev(reg));
- 
--out3:
-+out:
- 	if (ret < 0) {
-+		spin_lock(&o2hb_live_lock);
-+		hb_task = reg->hr_task;
-+		reg->hr_task = NULL;
-+		spin_unlock(&o2hb_live_lock);
-+
-+		if (hb_task)
-+			kthread_stop(hb_task);
-+
-+		o2hb_unmap_slot_data(reg);
-+
- 		fput(reg->hr_bdev_file);
- 		reg->hr_bdev_file = NULL;
- 	}
+-static void dmirror_device_evict_chunk(struct dmirror_chunk *chunk)
+-{
+-	unsigned long start_pfn = chunk->pagemap.range.start >> PAGE_SHIFT;
+-	unsigned long end_pfn = chunk->pagemap.range.end >> PAGE_SHIFT;
+-	unsigned long npages = end_pfn - start_pfn + 1;
+-	unsigned long i;
+-	unsigned long *src_pfns;
+-	unsigned long *dst_pfns;
+-	unsigned int order = 0;
+-
+-	src_pfns = kvcalloc(npages, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
+-	dst_pfns = kvcalloc(npages, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
+-
+-	migrate_device_range(src_pfns, start_pfn, npages);
+-	for (i = 0; i < npages; i++) {
+-		struct page *dpage, *spage;
+-
+-		spage = migrate_pfn_to_page(src_pfns[i]);
+-		if (!spage || !(src_pfns[i] & MIGRATE_PFN_MIGRATE))
+-			continue;
+-
+-		if (WARN_ON(!is_device_private_page(spage) &&
+-			    !is_device_coherent_page(spage)))
+-			continue;
+-
+-		order = folio_order(page_folio(spage));
+-		spage = BACKING_PAGE(spage);
+-		if (src_pfns[i] & MIGRATE_PFN_COMPOUND) {
+-			dpage = folio_page(folio_alloc(GFP_HIGHUSER_MOVABLE,
+-					      order), 0);
+-		} else {
+-			dpage = alloc_page(GFP_HIGHUSER_MOVABLE | __GFP_NOFAIL);
+-			order = 0;
+-		}
+-
+-		/* TODO Support splitting here */
+-		lock_page(dpage);
+-		dst_pfns[i] = migrate_pfn(page_to_pfn(dpage));
+-		if (src_pfns[i] & MIGRATE_PFN_WRITE)
+-			dst_pfns[i] |= MIGRATE_PFN_WRITE;
+-		if (order)
+-			dst_pfns[i] |= MIGRATE_PFN_COMPOUND;
+-		folio_copy(page_folio(dpage), page_folio(spage));
+-	}
+-	migrate_device_pages(src_pfns, dst_pfns, npages);
+-	migrate_device_finalize(src_pfns, dst_pfns, npages);
+-	kvfree(src_pfns);
+-	kvfree(dst_pfns);
+-}
+-
+ /* Removes free pages from the free list so they can't be re-allocated */
+ static void dmirror_remove_free_pages(struct dmirror_chunk *devmem)
+ {
 _
 
-Patches currently in -mm which might be from ericterminal@gmail.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-ocfs2-heartbeat-fix-slot-mapping-rollback-leaks-on-error-paths.patch
+lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free.patch
+selftests-mm-hmm-tests-dont-hardcode-thp-size-to-2mb.patch
+lib-test_hmm-implement-a-device-release-method.patch
 
