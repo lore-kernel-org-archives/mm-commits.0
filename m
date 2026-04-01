@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A512F26E711;
-	Wed,  1 Apr 2026 03:36:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DF5337E317;
+	Wed,  1 Apr 2026 03:36:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775014582; cv=none; b=mJ9d+xsY3DsZ2896FpWch/xCEWdlzoJRyVXpGWaE9IT+g0R1E+QJeEibVAXPwyi7GZrrYBgGdmZRKH/xmGBM9srAWwKFW9vIk3I7Ct0ZbTojaCZhLpOwrAh8mdsTVrEuqrKXc40BAwhMxAUb9lWrPo1OcWIrXK3WJBNXmuwZwgk=
+	t=1775014585; cv=none; b=h5KHAi4p8YCn76Guzx5Ibhg2lXgeCYD7H8Zb7ELNMQGUEFm+l+YgwaDqZiik+CKvzQY7ADbsYxtkit5XLyQaf0Y7VG4QFbQL/NcU+ZfUfQ47VV5sFFjs8LDWlxHhrPVoARc49qYLwGju0tvAx3LkLYkVSfLictlvDBaVfkyn8sc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775014582; c=relaxed/simple;
-	bh=oM8MoDisKpDaXjO3RLPXLi7naizlxim+j7rzUdhBd8A=;
-	h=Date:To:From:Subject:Message-Id; b=sfd9os7NYPTJriyeLfndh963vXykQk8PhpPkWua27gErpCUQeLHxw01BsuXGwYN0eYNAY9UOYYfyqAsTrnYm+4BBdK+8+Z3J4J9av893Tov1WjAnlltOFIgdlsSfm53gGZucnxEC5A5rRJr9UednPEbWoX8kzxyb+NO5opYzu3k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T4V8k+rf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775014585; c=relaxed/simple;
+	bh=xqcgULTzfzyjxVvlL2LFRENO/FlO1kKGjbHJgUP8/2w=;
+	h=Date:To:From:Subject:Message-Id; b=ifq69sq0HZkAbRTTWkdLriijO4cdimtJlhEoet4iBCL3bunP/eu6Sw4DXPpG7PaZ3UQeMO2za/dqBWwvoUOXbLlYdPHc+sKyF4YDrdAMtRISavlsuOVBbQsCnnnIFILVL8eilkBYLzAeCRDoVzQ3dQgt3oBiufnJwp6cCqPvHA4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r/yfbhYL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T4V8k+rf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6700BC4CEF7;
-	Wed,  1 Apr 2026 03:36:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r/yfbhYL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78374C4CEF7;
+	Wed,  1 Apr 2026 03:36:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775014582;
-	bh=oM8MoDisKpDaXjO3RLPXLi7naizlxim+j7rzUdhBd8A=;
+	s=korg; t=1775014584;
+	bh=xqcgULTzfzyjxVvlL2LFRENO/FlO1kKGjbHJgUP8/2w=;
 	h=Date:To:From:Subject:From;
-	b=T4V8k+rfOHVrE77sTng58yre4ghwaAdfCdbOUvfxqcMToKQGQxXQNNwwnIbQpHy1K
-	 MH7wFpaPNKMBWZbt4Ysfrj9QEdu59Yaq3/aUubCViQrI6VxtsPuIcAz/YIHHEw4n+M
-	 Iz36EbrhxlC2sekIcw4IYww1IRL/uiFM0ipV6Yag=
-Date: Tue, 31 Mar 2026 20:36:21 -0700
+	b=r/yfbhYLJCoGsg3GPbNq+1DlPCz9mYGLv726kf9WjCITmwLnbS18COJaYUDl+Ih+H
+	 VKXPLFDJ5M1szjy1ADfKBToXqncxJGgubMTwZLs5iQn7huysdUTRboHJyGUnq9kXI1
+	 6mswOeiTXGpVtEyZKNEprQVvZE9HqGP2F9UIVVZg=
+Date: Tue, 31 Mar 2026 20:36:23 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260401033622.6700BC4CEF7@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-lru_sort-warn-commit_inputs-vs-param-updates-race.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260401033624.78374C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/reclaim: warn commit_inputs vs param updates race
+     Subject: Docs/admin-guide/mm/damon/lru_sort: warn commit_inputs vs param updates race
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race.patch
+     docs-admin-guide-mm-damon-lru_sort-warn-commit_inputs-vs-param-updates-race.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-lru_sort-warn-commit_inputs-vs-param-updates-race.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,10 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/reclaim: warn commit_inputs vs param updates race
-Date: Sun, 29 Mar 2026 08:30:49 -0700
+Subject: Docs/admin-guide/mm/damon/lru_sort: warn commit_inputs vs param updates race
+Date: Sun, 29 Mar 2026 08:30:50 -0700
 
-Patch series "Docs/admin-guide/mm/damon: warn commit_inputs vs other
-params race".
-
-Writing 'Y' to the commit_inputs parameter of DAMON_RECLAIM and
-DAMON_LRU_SORT, and writing other parameters before the commit_inputs
-request is completely processed can cause race conditions.  While the
-consequence can be bad, the documentation is not clearly describing that. 
-Add clear warnings.
-
-The issue was discovered [1,2] by sashiko.
-
-
-This patch (of 2):
-
-DAMON_RECLAIM handles commit_inputs request inside kdamond thread,
+DAMON_LRU_SORT handles commit_inputs request inside kdamond thread,
 reading the module parameters.  If the user updates the module
 parameters while the kdamond thread is reading those, races can happen.
 To avoid this, the commit_inputs parameter shows whether it is still in
@@ -86,30 +72,29 @@ behavior.
 
 The issue was discovered in [1] by sashiko.
 
-Link: https://lkml.kernel.org/r/20260329153052.46657-2-sj@kernel.org
-Link: https://lore.kernel.org/20260319161620.189392-3-objecting@objecting.org [1]
-Link: https://lore.kernel.org/20260319161620.189392-2-objecting@objecting.org [3]
-Fixes: 81a84182c343 ("Docs/admin-guide/mm/damon/reclaim: document 'commit_inputs' parameter")
+Link: https://lkml.kernel.org/r/20260329153052.46657-3-sj@kernel.org
+Link: https://lore.kernel.org/20260319161620.189392-2-objecting@objecting.org [1]
+Fixes: 6acfcd0d7524 ("Docs/admin-guide/damon: add a document for DAMON_LRU_SORT")
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 5.19.x
+Cc: <stable@vger.kernel.org> # 6.0.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/reclaim.rst |    4 ++++
+ Documentation/admin-guide/mm/damon/lru_sort.rst |    4 ++++
  1 file changed, 4 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race
-+++ a/Documentation/admin-guide/mm/damon/reclaim.rst
-@@ -71,6 +71,10 @@ of parametrs except ``enabled`` again.
+--- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-lru_sort-warn-commit_inputs-vs-param-updates-race
++++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
+@@ -79,6 +79,10 @@ of parametrs except ``enabled`` again.
  parameter is set as ``N``.  If invalid parameters are found while the
- re-reading, DAMON_RECLAIM will be disabled.
+ re-reading, DAMON_LRU_SORT will be disabled.
  
 +Once ``Y`` is written to this parameter, the user must not write to any
 +parameters until reading ``commit_inputs`` again returns ``N``.  If users
 +violate this rule, the kernel may exhibit undefined behavior.
 +
- min_age
- -------
+ active_mem_bp
+ -------------
  
 _
 
