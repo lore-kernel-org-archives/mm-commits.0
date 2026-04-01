@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF96233CE88;
-	Wed,  1 Apr 2026 22:57:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA30442048
+	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 23:17:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775084271; cv=none; b=SOvVyR/SPcrpEaLoGa+xMPVaRNWZhJkZ9ENz83sAkDIc6m0+jP9Gz60bDC80HEwD6zMuSTbejQ7VIeftvWZgurIPohDuuOoebEaF74w1RwHzw3McVihX6JrFM26QuMYKOer4A6oA8B+Fx68Lgl2NVbKYBrAAblEd3CISZEnZSpA=
+	t=1775085438; cv=none; b=n23NI0jMqdNBj7584DBNlHgj+YyZBXf9lJ3GPyTLPZrN4pn7pXf1jTBKQkoBwEVKywxWADOMSHNzNGlnMdlRX2a3rklq3NKUNt/lsJrtTz6LQuo25XoVAz2SV5fU1ik6zrOBtXs8kn5tSDsaTDcR+bgH3lDIFN1qFSB/6NsP7eI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775084271; c=relaxed/simple;
-	bh=2c0avaSSCydsBRPbzT4smQQFFCfBOyDjF+K3e1zO+Ek=;
-	h=Date:To:From:Subject:Message-Id; b=i3I3EaZjvOZU+f8xH0npxEl0hTLEarfokFDht8HUQybm+r2wW0jG+up/+w/kpVHrIE6B3ecO+sjQ/sSBk4BEc+qIWl6NgmSsx8ieMQ71gSx1Ne/orpEiLCKW/6Iw+pW3QZcnA1oQ1bldIyeAvGD6tkqbOnQhLtGRkQ7J9JX18TI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sn3HU47x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775085438; c=relaxed/simple;
+	bh=pD0ffHets/5WKMPJ0GLYJpgJIiTRJfp6BS9xWThQ/o4=;
+	h=Date:To:From:Subject:Message-Id; b=In0h89lwrQkatHiUkDpFdRgTuhbdieMLRt93AtjiF7ljlJxBYMW7qAAN3/uFPVgpivnEs8qzkF50D03p2i6Dok2cicaha95QYxYyAhHytoMStBlI+ZyTRS8Ckx/RnzNCzW9YwgjlIduD13zy69gcRFbQ08CF2dsJuV5o3xou7TE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SjUUh7y0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sn3HU47x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B2C6C4CEF7;
-	Wed,  1 Apr 2026 22:57:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SjUUh7y0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79B19C4CEF7;
+	Wed,  1 Apr 2026 23:17:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775084271;
-	bh=2c0avaSSCydsBRPbzT4smQQFFCfBOyDjF+K3e1zO+Ek=;
+	s=korg; t=1775085437;
+	bh=pD0ffHets/5WKMPJ0GLYJpgJIiTRJfp6BS9xWThQ/o4=;
 	h=Date:To:From:Subject:From;
-	b=sn3HU47x5nWKNPwtEUXxmWxqffoqi77Kdoobe4sMZvSANq2Cqa+1v5IQFQ0p2bbBc
-	 vuDPPG3N2Z9o3TBioiqZGqEm03oTMsgLKURw/YufdudnB4jOPJswBgza1uoAXrmehr
-	 GhLHkjrvKdB4DrkPqLUZiK1UdyfL685AMjnEEREA=
-Date: Wed, 01 Apr 2026 15:57:50 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,kasong@tencent.com,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,devnexen@gmail.com,akpm@linux-foundation.org
+	b=SjUUh7y0FRgclJVJ8SYO8zHBGt88qZeMrFDXs2YIDgfTL6udHbaSHYcUgI75CCG1H
+	 qHk0QWTUCiZd6FN3v0poQfEq9fmAvVti2z0P8ckQigaHf9le9IkhtODAYIKeSXZDKP
+	 BwbnhciMvliYArsaOaKBKQLI+xdnqO7ja4s2SXj4=
+Date: Wed, 01 Apr 2026 16:17:16 -0700
+To: mm-commits@vger.kernel.org,lance.yang@linux.dev,david@kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-page_io-fix-pswpin-undercount-for-large-folios-in-sio_read_complete.patch removed from -mm tree
-Message-Id: <20260401225751.3B2C6C4CEF7@smtp.kernel.org>
+Subject: + mm-fix-deferred-split-queue-races-during-migration-fix.patch added to mm-unstable branch
+Message-Id: <20260401231717.79B19C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,58 +34,75 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/page_io: fix PSWPIN undercount for large folios in sio_read_complete()
-has been removed from the -mm tree.  Its filename was
-     mm-page_io-fix-pswpin-undercount-for-large-folios-in-sio_read_complete.patch
+The patch titled
+     Subject: mm-fix-deferred-split-queue-races-during-migration-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-fix-deferred-split-queue-races-during-migration-fix.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-deferred-split-queue-races-during-migration-fix.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: David Carlier <devnexen@gmail.com>
-Subject: mm/page_io: fix PSWPIN undercount for large folios in sio_read_complete()
-Date: Mon, 23 Mar 2026 23:13:15 +0000
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm-fix-deferred-split-queue-races-during-migration-fix
+Date: Wed, 1 Apr 2026 18:52:43 -0400
 
-sio_read_complete() uses sio->pages to account global PSWPIN vm events,
-but sio->pages tracks the number of bvec entries (folios), not base pages.
-For large folios this undercounts compared to the per-memcg path which
-correctly uses folio_nr_pages(), and compared to the bdev read paths which
-also use folio_nr_pages().
+move the comment
 
-Use sio->len >> PAGE_SHIFT instead, which gives the correct base page
-count since sio->len is accumulated via folio_size(folio).
-
-Link: https://lkml.kernel.org/r/20260323231315.240137-1-devnexen@gmail.com
-Fixes: a1a0dfd56f97 ("mm: handle THP in swap_*page_fs()")
-Signed-off-by: David Carlier <devnexen@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/FB71A764-0F10-4E5A-B4A0-BA4C7F138408@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
---- a/mm/page_io.c~mm-page_io-fix-pswpin-undercount-for-large-folios-in-sio_read_complete
-+++ a/mm/page_io.c
-@@ -497,7 +497,7 @@ static void sio_read_complete(struct kio
- 			folio_mark_uptodate(folio);
- 			folio_unlock(folio);
+--- a/mm/huge_memory.c~mm-fix-deferred-split-queue-races-during-migration-fix
++++ a/mm/huge_memory.c
+@@ -4551,15 +4551,18 @@ retry:
  		}
--		count_vm_events(PSWPIN, sio->pages);
-+		count_vm_events(PSWPIN, sio->len >> PAGE_SHIFT);
- 	} else {
- 		for (p = 0; p < sio->pages; p++) {
- 			struct folio *folio = page_folio(sio->bvec[p].bv_page);
+ 		folio_unlock(folio);
+ next:
++		/*
++		 * If thp_underused() returns false, or if split_folio()
++		 * succeeds, or if split_folio() fails in the case it was
++		 * underused, then consider it used and don't add it back to
++		 * split_queue.
++		 */
+ 		if (did_split || !folio_test_partially_mapped(folio))
+ 			continue;
+ requeue:
+ 		/*
+-		 * Add back partially mapped folios, or underused folios
+-		 * that we could not lock this round.  If thp_underused()
+-		 * returns false, or if split_folio() succeeds, or if
+-		 * split_folio() fails in the case it was underused, then
+-		 * consider it used and don't add it back to split_queue.
++		 * Add back partially mapped folios, or underused folios that
++		 * we could not lock this round.
+ 		 */
+ 		fqueue = folio_split_queue_lock_irqsave(folio, &flags);
+ 		if (list_empty(&folio->_deferred_list)) {
 _
 
-Patches currently in -mm which might be from devnexen@gmail.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
+mm-fix-deferred-split-queue-races-during-migration-fix.patch
 
