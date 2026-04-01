@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA822375F99
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 03:49:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1401F2C21E6
+	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 03:50:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775015349; cv=none; b=cNT/2/DK+/IcUnu08SPlLAoIIhz8S3EIUwplxL83H+0qtFFVUkHxBC4GJ/22E20Jl6VtkUJ1kDoBk8PUH7zcDXmtiSdQiLUIxF9qe5go2scSiQ6/MtfX62VUN8D11xKHsPsb2FqX+Pd7fK/oYNzjaQIPN2xIzX19wCHAx7G42AI=
+	t=1775015430; cv=none; b=r/+JbGShGteu4atpeGkqjlgZVToWgz2sncnYUKfZEEtIrjQoXVTfenu260FXH+DmZtQ7YrpJUemmD/isfcZmEg+u4SCrSke8DdQWC/xETzSxHrz/iys6t1BKFRZ2uu0CqteusL+R/BIlzXtTkH9IQjJFB0AZK5GoxaUD3RbizPw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775015349; c=relaxed/simple;
-	bh=/nHOpsAURJzhtSbmSOKGrTd4oeMuwm3/3LSNpRNa4g8=;
-	h=Date:To:From:Subject:Message-Id; b=cHpYQNbaa9EhqeOMmTExIr1GCi0EBK5YPytxxmqgJOMevi3ttplFqUnyrXm9131z/oCeZ3agoXvL6q52uZN4Wn4G5ypSeGvyPslpzBDYp6qe64zMyVG8l5TE/v9a7whIBgaAGyGev2ALwrNK1flAHOBEpp4Zv5pXKq3lwSQ65+c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sD0qCh43; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775015430; c=relaxed/simple;
+	bh=rL/WNzG3SI/lQRXXBTIVVafNygEwq5qg03g6m1iDsk8=;
+	h=Date:To:From:Subject:Message-Id; b=aHPggJrpGg0GDrJxqLVCjdfw3x/Fcufzsz2vXAGl+tsp7c8KIdbtvuqRp+6w19XC8Hv+tZAaIjlSHvCx5cRJ7XuWTaJG63dfEZ9qXEehjbSjLQ8lzkya7MuXWvSJBh5gjAds+6M70oVCO8SrF7qdzsIfWFxKwY4XaVV5tisMacs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tKFy3J2G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sD0qCh43"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2937CC116C6;
-	Wed,  1 Apr 2026 03:49:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tKFy3J2G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DD06C4CEF7;
+	Wed,  1 Apr 2026 03:50:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775015349;
-	bh=/nHOpsAURJzhtSbmSOKGrTd4oeMuwm3/3LSNpRNa4g8=;
+	s=korg; t=1775015429;
+	bh=rL/WNzG3SI/lQRXXBTIVVafNygEwq5qg03g6m1iDsk8=;
 	h=Date:To:From:Subject:From;
-	b=sD0qCh43XjBTIQbkyOZBkxwSFsQfrkMzw9VvOD/i2nwroGl0gNJwXmhVjc6vzc+rX
-	 /PnNxBbEznYWTDmOA2ziFua7nPOUTbQVcf9EBJGAh89M9oe/9EgwkDvpaWVhfqCXhQ
-	 +6i8sIify8uIChIfVYebCxOBZO0BlDxkZOoQUpwM=
-Date: Tue, 31 Mar 2026 20:49:08 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,akpm@linux-foundation.org
+	b=tKFy3J2GUZkCAPNWcYv2WFScuQWY76OIQRsBNH11nKlbJERlsoiu3qdhdSt+0fieF
+	 9cNsECv0Q920Jlh3SxKFpIOEZcsN15tFLZCdSMbo1giozGcoILX8PTUA6USlLNVZeV
+	 Ip32CfD5TQNi2sd54Zoi2pEWAlhyWOJ5FeASEyNI=
+Date: Tue, 31 Mar 2026 20:50:29 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,devnexen@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-validate-bg_list-extent-bounds-in-discontig-groups.patch added to mm-nonmm-unstable branch
-Message-Id: <20260401034909.2937CC116C6@smtp.kernel.org>
+Subject: + shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops-fix.patch added to mm-unstable branch
+Message-Id: <20260401035029.9DD06C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: validate bg_list extent bounds in discontig groups
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-validate-bg_list-extent-bounds-in-discontig-groups.patch
+     Subject: mm/userfaultfd: detect VMA replacement after copy retry in mfill_copy_folio_retry()
+has been added to the -mm mm-unstable branch.  Its filename is
+     shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-bg_list-extent-bounds-in-discontig-groups.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops-fix.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,111 +58,134 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: ZhengYuan Huang <gality369@gmail.com>
-Subject: ocfs2: validate bg_list extent bounds in discontig groups
-Date: Wed, 1 Apr 2026 10:16:22 +0800
+From: David Carlier <devnexen@gmail.com>
+Subject: mm/userfaultfd: detect VMA replacement after copy retry in mfill_copy_folio_retry()
+Date: Tue, 31 Mar 2026 14:41:58 +0100
 
-[BUG]
-Running ocfs2 on a corrupted image with a discontiguous block
-group whose bg_list.l_next_free_rec is set to an excessively
-large value triggers a KASAN use-after-free crash:
+In mfill_copy_folio_retry(), all locks are dropped to retry
+copy_from_user() with page faults enabled.  During this window, the VMA
+can be replaced entirely (e.g.  munmap + mmap + UFFDIO_REGISTER by another
+thread), but the caller proceeds with a folio allocated from the original
+VMA's backing store.
 
-BUG: KASAN: use-after-free in ocfs2_bg_discontig_fix_by_rec fs/ocfs2/suballoc.c:1678 [inline]
-BUG: KASAN: use-after-free in ocfs2_bg_discontig_fix_result+0x4a4/0x560 fs/ocfs2/suballoc.c:1715
-Read of size 4 at addr ffff88801a85f000 by task syz.0.115/552
+Checking ops alone is insufficient: the replacement VMA could be the same
+type (e.g.  shmem -> shmem) with identical flags but a different backing
+inode.  Take a snapshot of the VMA's file and flags before dropping locks,
+and compare after re-acquiring them.  If anything changed, bail out with
+-EINVAL.
 
-Call Trace:
- ...
- __asan_report_load4_noabort+0x14/0x30 mm/kasan/report_generic.c:380
- ocfs2_bg_discontig_fix_by_rec fs/ocfs2/suballoc.c:1678 [inline]
- ocfs2_bg_discontig_fix_result+0x4a4/0x560 fs/ocfs2/suballoc.c:1715
- ocfs2_search_one_group fs/ocfs2/suballoc.c:1752 [inline]
- ocfs2_claim_suballoc_bits+0x13c3/0x1cd0 fs/ocfs2/suballoc.c:1984
- ocfs2_claim_new_inode+0x2e7/0x8a0 fs/ocfs2/suballoc.c:2292
- ocfs2_mknod_locked.constprop.0+0x121/0x2a0 fs/ocfs2/namei.c:637
- ocfs2_mknod+0xc71/0x2400 fs/ocfs2/namei.c:384
- ocfs2_create+0x158/0x390 fs/ocfs2/namei.c:676
- lookup_open.isra.0+0x10a1/0x1460 fs/namei.c:3796
- open_last_lookups fs/namei.c:3895 [inline]
- path_openat+0x11fe/0x2ce0 fs/namei.c:4131
- do_filp_open+0x1f6/0x430 fs/namei.c:4161
- do_sys_openat2+0x117/0x1c0 fs/open.c:1437
- do_sys_open fs/open.c:1452 [inline]
- __do_sys_openat fs/open.c:1468 [inline]
- ...
+Use get_file()/fput() rather than ihold()/iput() to hold the file
+reference across the lock-dropped window, avoiding potential deadlocks
+from filesystem eviction under mmap_lock.
 
-[CAUSE]
-ocfs2_bg_discontig_fix_result() iterates over bg->bg_list.l_recs[]
-using l_next_free_rec as the upper bound without any sanity check:
-
-  for (i = 0; i < le16_to_cpu(bg->bg_list.l_next_free_rec); i++) {
-          rec = &bg->bg_list.l_recs[i];
-
-l_next_free_rec is read directly from the on-disk group descriptor and
-is trusted blindly. On a 4 KiB block device, bg_list.l_recs[] can hold
-at most 235 entries (ocfs2_extent_recs_per_gd(sb)). A corrupted or
-crafted filesystem image can set l_next_free_rec to an arbitrarily
-large value, causing the loop to index past the end of the group
-descriptor buffer_head data page and into an adjacent freed page.
-
-[FIX]
-Validate discontiguous bg_list.l_count against
-ocfs2_extent_recs_per_gd(sb), then reject l_next_free_rec values that
-exceed l_count. This keeps the on-disk extent list self-consistent and
-matches how the rest of ocfs2 uses l_count as the extent-list bound.
-
-Link: https://lkml.kernel.org/r/20260401021622.3560952-1-gality369@gmail.com
-Signed-off-by: ZhengYuan Huang <gality369@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+Link: https://lkml.kernel.org/r/20260331134158.622084-1-devnexen@gmail.com
+Signed-off-by: David Carlier <devnexen@gmail.com>
+Suggested-by: Peter Xu <peterx@redhat.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ mm/userfaultfd.c |   63 ++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 56 insertions(+), 7 deletions(-)
 
---- a/fs/ocfs2/suballoc.c~ocfs2-validate-bg_list-extent-bounds-in-discontig-groups
-+++ a/fs/ocfs2/suballoc.c
-@@ -197,6 +197,31 @@ static int ocfs2_validate_gd_self(struct
- 			 8 * le16_to_cpu(gd->bg_size));
- 	}
- 
-+	/*
-+	 * For discontiguous block groups, validate the on-disk extent list
-+	 * against the maximum number of extent records that can physically
-+	 * fit in a single block.
-+	 */
-+	if (ocfs2_gd_is_discontig(gd)) {
-+		u16 max_recs = ocfs2_extent_recs_per_gd(sb);
-+		u16 l_count = le16_to_cpu(gd->bg_list.l_count);
-+		u16 l_next_free_rec = le16_to_cpu(gd->bg_list.l_next_free_rec);
-+
-+		if (l_count != max_recs) {
-+			do_error("Group descriptor #%llu bad discontig l_count %u expected %u\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 l_count,
-+				 max_recs);
-+		}
-+
-+		if (l_next_free_rec > l_count) {
-+			do_error("Group descriptor #%llu bad discontig l_next_free_rec %u max %u\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 l_next_free_rec,
-+				 l_count);
-+		}
-+	}
-+
- 	return 0;
+--- a/mm/userfaultfd.c~shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops-fix
++++ a/mm/userfaultfd.c
+@@ -444,33 +444,82 @@ static int mfill_copy_folio_locked(struc
+ 	return ret;
  }
  
++struct vma_snapshot {
++	struct file *file;
++	vma_flags_t flags;
++};
++
++static void vma_snapshot_take(struct vm_area_struct *vma,
++			      struct vma_snapshot *s)
++{
++	memcpy(&s->flags, &vma->flags, sizeof(s->flags));
++	if (vma->vm_file)
++		s->file = get_file(vma->vm_file);
++	else
++		s->file = NULL;
++}
++
++static bool vma_snapshot_changed(struct vm_area_struct *vma,
++				 struct vma_snapshot *s)
++{
++	if (memcmp(&s->flags, &vma->flags, sizeof(s->flags)))
++		return true;
++
++	if (s->file && (!vma->vm_file ||
++	    vma->vm_file->f_inode != s->file->f_inode))
++		return true;
++
++	if (!s->file && !vma_is_anonymous(vma))
++		return true;
++
++	return false;
++}
++
++static void vma_snapshot_release(struct vma_snapshot *s)
++{
++	if (s->file) {
++		fput(s->file);
++		s->file = NULL;
++	}
++}
++
+ static int mfill_copy_folio_retry(struct mfill_state *state, struct folio *folio)
+ {
+ 	unsigned long src_addr = state->src_addr;
++	struct vma_snapshot s;
+ 	void *kaddr;
+ 	int err;
+ 
++	/* Take a quick snapshot of the current vma */
++	vma_snapshot_take(state->vma, &s);
++
+ 	/* retry copying with mm_lock dropped */
+ 	mfill_put_vma(state);
+ 
+ 	kaddr = kmap_local_folio(folio, 0);
+ 	err = copy_from_user(kaddr, (const void __user *) src_addr, PAGE_SIZE);
+ 	kunmap_local(kaddr);
+-	if (unlikely(err))
+-		return -EFAULT;
++	if (unlikely(err)) {
++		err = -EFAULT;
++		goto out;
++	}
+ 
+ 	flush_dcache_folio(folio);
+ 
+ 	/* reget VMA and PMD, they could change underneath us */
+ 	err = mfill_get_vma(state);
+ 	if (err)
+-		return err;
++		goto out;
+ 
+-	err = mfill_establish_pmd(state);
+-	if (err)
+-		return err;
++	if (vma_snapshot_changed(state->vma, &s)) {
++		err = -EINVAL;
++		goto out;
++	}
+ 
+-	return 0;
++	err = mfill_establish_pmd(state);
++out:
++	vma_snapshot_release(&s);
++	return err;
+ }
+ 
+ static int __mfill_atomic_pte(struct mfill_state *state,
 _
 
-Patches currently in -mm which might be from gality369@gmail.com are
+Patches currently in -mm which might be from devnexen@gmail.com are
 
-ocfs2-validate-bg_list-extent-bounds-in-discontig-groups.patch
+mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
+mm-page_io-fix-pswpin-undercount-for-large-folios-in-sio_read_complete.patch
+shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops-fix.patch
 
