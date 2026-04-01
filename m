@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A35039934A
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 17:37:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D259315D53
+	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 17:39:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775065049; cv=none; b=GlA/k3dZuqjLzoy+iGXO8hak/XbH0WJPfzx7/xJ12b2A0K9CUqpbnxs7aTgftHjvplOiilCd75Y1HGmZtLlp5sDOJQ0K3R+q4MvK9WUDyGtq3lvU0n/OLX106t6RhYTEdUQlVkfCB7ORrr+PHDCkXzW+vPj7Br9ArJ8dGLgrptA=
+	t=1775065144; cv=none; b=MMKfCKzIRvK7eAj/CInqBwF94oUtQbA9aSWIXMwjzdGKc/N7OV3WmlC8npE+PkdKL3qEfUNqx9Z4yziiLci+EKjtj+F43p1HTuPHf6/8gicYyQX/bMu9szo2t2Rq3zhdNuXOAjU2Nu68aU+yU/R8FUUum2Z8GkbSK14Zqj1QHQI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775065049; c=relaxed/simple;
-	bh=iLCqNqIkKBTZ2jGmKB9vQrXz69TW184meNdmcTU/pLY=;
-	h=Date:To:From:Subject:Message-Id; b=SDrXDtO92AxndyEJvzmQcNIhY3crnV+w/GnDkm1RCpxwiLN8jauBTREMuJJGGlie1QFxgDjOiNNl8/xElSKtHRdCeV23aieM0/1cNGF7Op9pwDye4jAYx06GdhRWkRqSDh34ERdzsNM1Eu8i4fSYFH8p0piFOHXkpIhgGFNNcOo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ADFzkGxB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775065144; c=relaxed/simple;
+	bh=XihsbPK80m12BJSSLTSiLFMs1AVMXFoLELe/8NKS10I=;
+	h=Date:To:From:Subject:Message-Id; b=G0Lp+sdoSjdHGAClUrLX/TBLE9iO4Z56uUKEKFoTZ4LBpEfoz3j0kClxjlsMLUCFzmLX73PyEZQqprroIlhR+WcQjQVOiEyE3UpeuLXf5K8xm6Toc2ArM/3RsFmLINDaK1Olwy3ZjAADycUUOAR65bqllpCJKHm02euDi3sI4GU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gA7Tm05i; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ADFzkGxB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2A6FC4CEF7;
-	Wed,  1 Apr 2026 17:37:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gA7Tm05i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 32271C4CEF7;
+	Wed,  1 Apr 2026 17:39:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775065048;
-	bh=iLCqNqIkKBTZ2jGmKB9vQrXz69TW184meNdmcTU/pLY=;
+	s=korg; t=1775065144;
+	bh=XihsbPK80m12BJSSLTSiLFMs1AVMXFoLELe/8NKS10I=;
 	h=Date:To:From:Subject:From;
-	b=ADFzkGxBIa9DP+yZV2r+B3c5OPF+0QmMw0b1IJHL9xRrq1+j6sg3h54qYKLlez/73
-	 Hy5RRAQ95iZRG1qML8c4ZMusadqPz3daZj8UBSQsYBfabYgxWChadGPOwcC8uUiP+n
-	 dqavmLNVNlFd0xfJVHXFoT3s/gt1/V9Bxox8CpFQ=
-Date: Wed, 01 Apr 2026 10:37:28 -0700
-To: mm-commits@vger.kernel.org,harry@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=gA7Tm05ioRIJx9y7z3T4eYZtnvzBxnhPTORip2P5tBohTcNU91owWjPKF8SDe4FFl
+	 U3qRJbIhTne4i91YFexOFj+UHnH5LzKdC0lBVLHcLi4iwaUaWqdSogOpTgG2IghD14
+	 EbnDK5+wdtqfxCw1i+339ThZDFRwFexKa90AKV+I=
+Date: Wed, 01 Apr 2026 10:39:03 -0700
+To: mm-commits@vger.kernel.org,safinaskar@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-introduce-struct-mfill_state-fix.patch added to mm-unstable branch
-Message-Id: <20260401173728.A2A6FC4CEF7@smtp.kernel.org>
+Subject: + get_maintainerignore-add-myself.patch added to mm-nonmm-unstable branch
+Message-Id: <20260401173904.32271C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd-introduce-struct-mfill_state-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     userfaultfd-introduce-struct-mfill_state-fix.patch
+     Subject: .get_maintainer.ignore: add myself
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     get_maintainerignore-add-myself.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-introduce-struct-mfill_state-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainerignore-add-myself.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,54 +58,33 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@kernel.org>
-Subject: userfaultfd-introduce-struct-mfill_state-fix
-Date: Wed, 1 Apr 2026 10:36:03 +0300
+From: Askar Safin <safinaskar@gmail.com>
+Subject: .get_maintainer.ignore: add myself
+Date: Wed, 1 Apr 2026 07:46:19 +0000
 
-fix bisection hole, per Harry
+I don't want get_maintainer.pl to automatically print my email.
 
-Link: https://lkml.kernel.org/r/aczK4-vrULRiTvyh@kernel.org
-Signed-off-by: Mike Rapoport <rppt@kernel.org>
-Cc: "Harry Yoo (Oracle)" <harry@kernel.org>
+Link: https://lkml.kernel.org/r/20260401074619.988459-1-safinaskar@gmail.com
+Signed-off-by: Askar Safin <safinaskar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ .get_maintainer.ignore |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/userfaultfd.c~userfaultfd-introduce-struct-mfill_state-fix
-+++ a/mm/userfaultfd.c
-@@ -764,6 +764,7 @@ retry:
- 		err = PTR_ERR(dst_vma);
- 		goto out;
- 	}
-+	state.vma = dst_vma;
- 
- 	/*
- 	 * If memory mappings are changing because of non-cooperative
-@@ -804,8 +805,6 @@ retry:
- 	    uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE))
- 		goto out_unlock;
- 
--	state.vma = dst_vma;
--
- 	while (state.src_addr < src_start + len) {
- 		VM_WARN_ON_ONCE(state.dst_addr >= dst_start + len);
- 
+--- a/.get_maintainer.ignore~get_maintainerignore-add-myself
++++ a/.get_maintainer.ignore
+@@ -1,6 +1,7 @@
+ Alan Cox <alan@lxorguk.ukuu.org.uk>
+ Alan Cox <root@hraefn.swansea.linux.org.uk>
+ Alyssa Rosenzweig <alyssa@rosenzweig.io>
++Askar Safin <safinaskar@gmail.com>
+ Christoph Hellwig <hch@lst.de>
+ Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+ Marc Gonzalez <marc.w.gonzalez@free.fr>
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from safinaskar@gmail.com are
 
-userfaultfd-introduce-mfill_copy_folio_locked-helper.patch
-userfaultfd-introduce-struct-mfill_state.patch
-userfaultfd-introduce-struct-mfill_state-fix.patch
-userfaultfd-introduce-mfill_establish_pmd-helper.patch
-userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
-userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
-userfaultfd-move-vma_can_userfault-out-of-line.patch
-userfaultfd-introduce-vm_uffd_ops.patch
-shmem-userfaultfd-use-a-vma-callback-to-handle-uffdio_continue.patch
-userfaultfd-introduce-vm_uffd_ops-alloc_folio.patch
-shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops.patch
-userfaultfd-mfill_atomic-remove-retry-logic.patch
+get_maintainerignore-add-myself.patch
 
