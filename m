@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2981212B143
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 16:33:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7CB147D921
+	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 17:22:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775061201; cv=none; b=U4qNmzgcAkaSd5kLV0sHwcJEfQgpoddBaANBujY6zhrfzx8d9fZzjZevTV/JqJAEmKqGwdEbJKe6tSFz0iHpRDDLQzq8ukBSCCQi4dvz48DIXWMhhkHKBs6Ggy3KALhncaqff56omRDWaRBYh+HOv9Im2hvY+pjc6w1ebN//Jic=
+	t=1775064129; cv=none; b=nBYcFg9VVFlSMyyb1INWDq0Lp2pQy4IGlbbIkrpgxfbGbRc01ncr+l2nHgXkm8obUFftOIzMQP6JGwwWo7jvtwI3UGE+NoGHK9pAhKqcUuZI82TvHqp8bx9pE/ymNjMQZJ+2bVYP+BfwHVcEZZnapQ4rtRgez795VqtIllnBzoc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775061201; c=relaxed/simple;
-	bh=1zhv2H3/XljX8YCgGVK/2pBPV5pYbDupGNKLCG0Drj0=;
-	h=Date:To:From:Subject:Message-Id; b=ktHeEewBPfk6F7cEF0Oz8fz/2xb7s8XDHQiAyIlMhEw4JrkBnlGGD0wMDyrGmgoImzmnqz3JpSe/c317GtTzFpV1V6/0s6k9XmxO6pGAXeUgFODGbMbEu9m4W07jTx6sn42e7zdclbmC6wUNYcKA3NrR2VzwfWbidnWu3yjc31w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z24YtwBP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775064129; c=relaxed/simple;
+	bh=dNXzl2/LfC/Ku34tkk4Li0e1ru02NNdVihEYrhRNQQE=;
+	h=Date:To:From:Subject:Message-Id; b=UuolAXoPvSX+XYXNN1L60yZO5DhpjgqDNE+b34b7RkXn7GYcV7jJr3ZwWUHbwp+RIKarsJcyLQ82KcxDHsM3dx9EArjVTrv4xoyPjX4hok47BcjaLcZWICgFwTgj2hmS5GX+vZZwVfkcQfEZ6uZbO6EeDwf+UUc3VtriTH9cZ6E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dX26Zzjf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z24YtwBP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CFA0C4CEF7;
-	Wed,  1 Apr 2026 16:33:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dX26Zzjf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E90FC4CEF7;
+	Wed,  1 Apr 2026 17:22:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775061200;
-	bh=1zhv2H3/XljX8YCgGVK/2pBPV5pYbDupGNKLCG0Drj0=;
+	s=korg; t=1775064129;
+	bh=dNXzl2/LfC/Ku34tkk4Li0e1ru02NNdVihEYrhRNQQE=;
 	h=Date:To:From:Subject:From;
-	b=z24YtwBPUzKxG/RMSsYOzgNNffVK6F/iElk7zIGgekBt9axkV/S/F/oorxD6A0vAo
-	 l4u8kpH8ltbvcb6rCrt3th48UCJREVOF+HaATbP/1vCaSa3i/faa0RKvAtAX8dEMZi
-	 QxqQdWoDU/kfvnKLebU9pAzD+5HzhepW+rM3HKO0=
-Date: Wed, 01 Apr 2026 09:33:20 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,ptesarik@suse.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=dX26ZzjfmFfurgUIyuJ0AZ8+ebNeRkq1D8Lj1MV3MmWwWczGEw5QnWoFI1VZTGnjQ
+	 sFj0w4fsHsNgzGg6vrSQE10pu8slFt/+DOTbD/9xPviq4HmkbYQ3vudlg3mZaAk9vm
+	 i3SUeRxYYBLu0I5xJyoEtjVS74u8Ci/dxez6IcJA=
+Date: Wed, 01 Apr 2026 10:22:08 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,kas@kernel.org,hannes@cmpxchg.org,david@kernel.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [obsolete] mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch removed from -mm tree
-Message-Id: <20260401163320.9CFA0C4CEF7@smtp.kernel.org>
+Subject: + mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch added to mm-new branch
+Message-Id: <20260401172209.4E90FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,126 +34,161 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/sparse: fix BUILD_BUG_ON check for section map alignment
-has been removed from the -mm tree.  Its filename was
-     mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch
+The patch titled
+     Subject: mm/vmstat: spread vmstat_update requeue across the stat interval
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
 
-This patch was dropped because it is obsolete
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse: fix BUILD_BUG_ON check for section map alignment
-Date: Tue, 31 Mar 2026 19:30:23 +0800
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/vmstat: spread vmstat_update requeue across the stat interval
+Date: Wed, 01 Apr 2026 06:57:50 -0700
 
-The comment in mmzone.h states that the alignment requirement
-is the minimum of PAGE_SHIFT and PFN_SECTION_SHIFT. However, the
-pointer arithmetic (mem_map - section_nr_to_pfn()) results in
-a byte offset scaled by sizeof(struct page). Thus, the actual
-alignment provided by the second term is PFN_SECTION_SHIFT +
-__ffs(sizeof(struct page)).
+vmstat_update uses round_jiffies_relative() when re-queuing itself, which
+aligns all CPUs' timers to the same second boundary.  When many CPUs have
+pending PCP pages to drain, they all call decay_pcp_high() ->
+free_pcppages_bulk() simultaneously, serializing on zone->lock and hitting
+contention.
 
-Update the compile-time check and the mmzone.h comment to
-accurately reflect this mathematically guaranteed alignment by
-taking the minimum of PAGE_SHIFT and PFN_SECTION_SHIFT +
-__ffs(sizeof(struct page)). This avoids the issue of the check
-being overly restrictive on architectures like powerpc where
-PFN_SECTION_SHIFT alone is very small (e.g., 6).
+Introduce vmstat_spread_delay() which distributes each CPU's vmstat_update
+evenly across the stat interval instead of aligning them.
 
-Also, remove the exhaustive per-architecture bit-width list from the
-comment; such details risk falling out of date over time and may
-inadvertently be left un-updated, while the existing BUILD_BUG_ON
-provides sufficient compile-time verification of the constraint.
+This does not increase the number of timer interrupts — each CPU still
+fires once per interval.  The timers are simply staggered rather than
+aligned.  Additionally, vmstat_work is DEFERRABLE_WORK, so it does not
+wake idle CPUs regardless of scheduling; the spread only affects CPUs that
+are already active
 
-No runtime impact so far: SECTION_MAP_LAST_BIT happens to fit within
-the smaller limit on all existing architectures.
+`perf lock contention` shows 7.5x reduction in zone->lock contention (872
+-> 117 contentions, 199ms -> 81ms total wait) on a 72-CPU aarch64 system
+under memory pressure.
 
-Link: https://lkml.kernel.org/r/20260331113023.2068075-1-songmuchun@bytedance.com
-Fixes: def9b71ee651 ("include/linux/mmzone.h: fix explanation of lower bits in the SPARSEMEM mem_map pointer")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Tested on a 72-CPU aarch64 system using stress-ng --vm to generate memory
+allocation bursts.  Lock contention was measured with:
+
+  perf lock contention -a -b -S free_pcppages_bulk
+
+Results with KASAN enabled:
+
+ free_pcppages_bulk contention (KASAN):
+  +--------------+----------+----------+
+  | Metric       | No fix   | With fix |
+  +--------------+----------+----------+
+  | Contentions  |      872 |      117 |
+  | Total wait   | 199.43ms | 80.76ms  |
+  | Max wait     |  35.76ms | 4.19ms   |
+  +--------------+----------+----------+
+
+Results without KASAN:
+
+  free_pcppages_bulk contention (no KASAN):
+  +--------------+----------+----------+
+  | Metric       | No fix   | With fix |
+  +--------------+----------+----------+
+  | Contentions  |      240 |      133 |
+  | Total wait   |  34.01ms | 24.61ms  |
+  | Max wait     |   1.35ms |   965us  |
+  +--------------+----------+----------+
+
+Link: https://lkml.kernel.org/r/20260401-vmstat-v1-1-b68ce4a35055@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Petr Tesarik <ptesarik@suse.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   24 +++++++++---------------
- mm/internal.h          |    3 ++-
- 2 files changed, 11 insertions(+), 16 deletions(-)
+ mm/vmstat.c |   25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-sparse-fix-build_bug_on-check-for-section-map-alignment
-+++ a/include/linux/mmzone.h
-@@ -2068,21 +2068,15 @@ static inline struct mem_section *__nr_t
- extern size_t mem_section_usage_size(void);
+--- a/mm/vmstat.c~mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval
++++ a/mm/vmstat.c
+@@ -2032,6 +2032,29 @@ static int vmstat_refresh(const struct c
+ }
+ #endif /* CONFIG_PROC_FS */
  
- /*
-- * We use the lower bits of the mem_map pointer to store
-- * a little bit of information.  The pointer is calculated
-- * as mem_map - section_nr_to_pfn(pnum).  The result is
-- * aligned to the minimum alignment of the two values:
-- *   1. All mem_map arrays are page-aligned.
-- *   2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT
-- *      lowest bits.  PFN_SECTION_SHIFT is arch-specific
-- *      (equal SECTION_SIZE_BITS - PAGE_SHIFT), and the
-- *      worst combination is powerpc with 256k pages,
-- *      which results in PFN_SECTION_SHIFT equal 6.
-- * To sum it up, at least 6 bits are available on all architectures.
-- * However, we can exceed 6 bits on some other architectures except
-- * powerpc (e.g. 15 bits are available on x86_64, 13 bits are available
-- * with the worst case of 64K pages on arm64) if we make sure the
-- * exceeded bit is not applicable to powerpc.
-+ * We use the lower bits of the mem_map pointer to store a little bit of
-+ * information. The pointer is calculated as mem_map - section_nr_to_pfn().
-+ * The result is aligned to the minimum alignment of the two values:
-+ *
-+ * 1. All mem_map arrays are page-aligned.
-+ * 2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT lowest bits. Because
-+ *    it is subtracted from a struct page pointer, the offset is scaled by
-+ *    sizeof(struct page). This provides an alignment of PFN_SECTION_SHIFT +
-+ *    __ffs(sizeof(struct page)).
-  */
- enum {
- 	SECTION_MARKED_PRESENT_BIT,
---- a/mm/internal.h~mm-sparse-fix-build_bug_on-check-for-section-map-alignment
-+++ a/mm/internal.h
-@@ -972,7 +972,8 @@ static inline void sparse_init_one_secti
++/*
++ * Return a per-cpu delay that spreads vmstat_update work across the stat
++ * interval.  Without this, round_jiffies_relative() aligns every CPU's
++ * timer to the same second boundary, causing a thundering-herd on
++ * zone->lock when multiple CPUs drain PCP pages simultaneously via
++ * decay_pcp_high() -> free_pcppages_bulk().
++ */
++static unsigned long vmstat_spread_delay(void)
++{
++	unsigned long interval = sysctl_stat_interval;
++	unsigned int nr_cpus = num_online_cpus();
++
++	if (nr_cpus <= 1)
++		return round_jiffies_relative(interval);
++
++	/*
++	 * Spread per-cpu vmstat work evenly across the interval.  Don't
++	 * use round_jiffies_relative() here -- it would snap every CPU
++	 * back to the same second boundary, defeating the spread.
++	 */
++	return interval + (interval * (smp_processor_id() % nr_cpus)) / nr_cpus;
++}
++
+ static void vmstat_update(struct work_struct *w)
  {
- 	unsigned long coded_mem_map;
+ 	if (refresh_cpu_vm_stats(true)) {
+@@ -2042,7 +2065,7 @@ static void vmstat_update(struct work_st
+ 		 */
+ 		queue_delayed_work_on(smp_processor_id(), mm_percpu_wq,
+ 				this_cpu_ptr(&vmstat_work),
+-				round_jiffies_relative(sysctl_stat_interval));
++				vmstat_spread_delay());
+ 	}
+ }
  
--	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > PFN_SECTION_SHIFT);
-+	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > min(PFN_SECTION_SHIFT + __ffs(sizeof(struct page)),
-+						PAGE_SHIFT));
- 
- 	/*
- 	 * We encode the start PFN of the section into the mem_map such that
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup.patch
-mm-workingset-use-folio_lruvec-in-workingset_refault.patch
-mm-rename-unlock_page_lruvec_irq-and-its-variants.patch
-mm-vmscan-refactor-move_folios_to_lru.patch
-mm-memcontrol-allocate-object-cgroup-for-non-kmem-case.patch
-mm-memcontrol-return-root-object-cgroup-for-root-memory-cgroup.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-get_mem_cgroup_from_folio.patch
-buffer-prevent-memory-cgroup-release-in-folio_alloc_buffers.patch
-writeback-prevent-memory-cgroup-release-in-writeback-module.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-count_memcg_folio_events.patch
-mm-page_io-prevent-memory-cgroup-release-in-page_io-module.patch
-mm-migrate-prevent-memory-cgroup-release-in-folio_migrate_mapping.patch
-mm-mglru-prevent-memory-cgroup-release-in-mglru.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-mem_cgroup_swap_full.patch
-mm-workingset-prevent-memory-cgroup-release-in-lru_gen_eviction.patch
-mm-workingset-prevent-lruvec-release-in-workingset_refault.patch
-mm-zswap-prevent-lruvec-release-in-zswap_folio_swapin.patch
-mm-swap-prevent-lruvec-release-in-lru_gen_clear_refs.patch
-mm-workingset-prevent-lruvec-release-in-workingset_activation.patch
-mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock.patch
-mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios.patch
-mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-helpers.patch
-mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path.patch
+mm-kmemleak-add-config_debug_kmemleak_verbose-build-option.patch
+kho-add-size-parameter-to-kho_add_subtree.patch
+kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree.patch
+kho-persist-blob-size-in-kho-fdt.patch
+kho-fix-kho_in_debugfs_init-to-handle-non-fdt-blobs.patch
+kho-kexec-metadata-track-previous-kernel-chain.patch
+kho-document-kexec-metadata-tracking-feature.patch
+mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
 
