@@ -1,125 +1,159 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF6503BC693
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 09:10:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=170.10.129.124
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775034659; cv=pass; b=noRc2vRIYl08o+yZuGzKvVd6bWMyBlrV5eURiMRAOs0PygrASBMTtwVKFLKX6H4pZSTZj3rVSmnenIYE0/7i2Oa9t7soaCfGgyUrxTobQJcpIHpk0goyAFM7g03C7XDdwNiAaXhKG/R57/rBZRGDcr4+npriCD9auaCyTKOzKKk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775034659; c=relaxed/simple;
-	bh=BpWbwXX4sckBEai18gASMAS6RM+OZyNNnIe1AiKcxUE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=BKLUTQrXvw1cqPr0j7HQhKR0WjddJq6+cjIGQkNG2hSW41tNZQg+6KpETtNopbwsIIGV9h7HKPTBHvNk7S2TYJ2gHI+x+9uIypcGyMd9/vMLcW70rLMSbBB1JAMipUrHeRVk/vPGwhe/JDuKLxjDo8DqqlJe9pSxx/SJNOMyLtY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Po487pFQ; dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b=QFhkF0yg; arc=pass smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2981212B143
+	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 16:33:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1775061201; cv=none; b=U4qNmzgcAkaSd5kLV0sHwcJEfQgpoddBaANBujY6zhrfzx8d9fZzjZevTV/JqJAEmKqGwdEbJKe6tSFz0iHpRDDLQzq8ukBSCCQi4dvz48DIXWMhhkHKBs6Ggy3KALhncaqff56omRDWaRBYh+HOv9Im2hvY+pjc6w1ebN//Jic=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1775061201; c=relaxed/simple;
+	bh=1zhv2H3/XljX8YCgGVK/2pBPV5pYbDupGNKLCG0Drj0=;
+	h=Date:To:From:Subject:Message-Id; b=ktHeEewBPfk6F7cEF0Oz8fz/2xb7s8XDHQiAyIlMhEw4JrkBnlGGD0wMDyrGmgoImzmnqz3JpSe/c317GtTzFpV1V6/0s6k9XmxO6pGAXeUgFODGbMbEu9m4W07jTx6sn42e7zdclbmC6wUNYcKA3NrR2VzwfWbidnWu3yjc31w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z24YtwBP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Po487pFQ";
-	dkim=pass (2048-bit key) header.d=redhat.com header.i=@redhat.com header.b="QFhkF0yg"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1775034657;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=1yqyHHXEf8r7v1NukvriEHfPGJM3/0wqwmihHxXtbWc=;
-	b=Po487pFQsJYLOdEF8aoaH6ENsN0I/eNWueBk3DUH9VSssCLAn72CPjKMeBsOtOCpPPmW26
-	4nkBbfgHvT5/UdkKNY0//tTWkjcWhRxI0Ca2f8J3vdLelWx9COVEcxTQof90s38dgddKXf
-	gfCPqZudbdsm0kXLtkuGlnLJsvgVLt0=
-Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
- [209.85.218.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-449-vtvVunpBPbGDVI-_krNXzw-1; Wed, 01 Apr 2026 05:10:55 -0400
-X-MC-Unique: vtvVunpBPbGDVI-_krNXzw-1
-X-Mimecast-MFC-AGG-ID: vtvVunpBPbGDVI-_krNXzw_1775034655
-Received: by mail-ej1-f72.google.com with SMTP id a640c23a62f3a-b983ca42edfso60409066b.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Apr 2026 02:10:55 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1775034654; cv=none;
-        d=google.com; s=arc-20240605;
-        b=Bm9ag8ZYbCtsXKzHflBEbzct/Iseo7yI+wX4PgUwH18VXIXzrzNiYRO8DS2TGmsfSk
-         tBZQJ2QcVi3Zty6VmgT8HqO8r3a4GOtic+7M2XOTQBKGPtCI0dh22YgrHJxO7NBNMPFb
-         HybgHjYukARhCCJPLk3VCdcKCMXtaupL/qOs0Y/Bsb52MSPSsCXzw87dUirw8Sabi6U1
-         HTeBp6+9ZoOqzWKSUQ8Hl99pT+g3BPD8ab3x//X+GrYYvZ8JSpMW/+THYESDeGW9tn59
-         Mzkq2sNePUKzamXLivrInUi0JiyXkP94g5CLWAG8Mrji0EV+fspET7KuJWWjY4QS2iPy
-         0W5A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:dkim-signature;
-        bh=1yqyHHXEf8r7v1NukvriEHfPGJM3/0wqwmihHxXtbWc=;
-        fh=GmRyhpI34t+5rvg0NZed2mQGfYUXt2yBTBHkslE3mX4=;
-        b=LG5c32Bgo32nuaXr/eNJ7rCZjvCkWZ0WD8TEt18w3vxLaiF7LaD71YHeCzRviNZ1Jb
-         NPfLTeVJMGVV8CogwAFrjlm/A/qlC4xu2NmJIdujGqQq42ZYvGGu+vLXGs24oZpALhTu
-         5tiMAA1lUFuvbLVu1hCsB5hENuNob8R7yccExeIz7NJ8XyC5nUDcIr+kV2piSlyCKhVU
-         RG29Y4vJ/IQhRGIzYhkWR8227bKROvq//ZOLJ7ejhgu0DUM+TF9xBdvHHL+EjsuiTMEv
-         1ZJSfu2qwUprTW7GL61xKPM17tOv3oVfVDOSvBgtkV9ekgQoqExl/YxRSCDwt/4EpRrR
-         ulcw==;
-        darn=vger.kernel.org
-ARC-Authentication-Results: i=1; mx.google.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=redhat.com; s=google; t=1775034654; x=1775639454; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=1yqyHHXEf8r7v1NukvriEHfPGJM3/0wqwmihHxXtbWc=;
-        b=QFhkF0ygtLNC+IsM9ULTozZDWU3w3gkc3CsCsexU9nOF1pAFAodBmk2HEubZazFN89
-         ZfRy3GRcBO7gnx31mHtGmtovsD3u9HzJAGR68xc4SIHUWN9431alzlqHNYdncMTQDklq
-         q66Puk4xqDLRli/cr9lt9GGHY2fUhdZPm+Xin5o6Gbw8ax9Aw8M1+53AlzJT2FnjWF/3
-         /WgoM1OlIPc9xXx8/GYeDDtexzPgcZPntij7OYyoVOLSFWtxOyUwr2WOsb6RzuvY+WX2
-         qSCIB/1w/ovhl77vrtCxhDZuYababDzs0I2BX2QJTEEFSQhm8hvsGmQDM1vPvByNzAc3
-         qTKw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20251104; t=1775034654; x=1775639454;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=1yqyHHXEf8r7v1NukvriEHfPGJM3/0wqwmihHxXtbWc=;
-        b=cd5iPfFqqPiITGy0h3fXvIpfYyc+vzSvO4uTzxN0wps2VzbXXN1LjdUcyn2Vq2CLAY
-         OdPFmy/FIjnNjU8kilibT37VXXHAhGx/tm0qvsr9vljhlICPVZpJ+WowOOnHG2O+l5cv
-         dHnmX678G5YtwmF1o/qWuTQSaHMNFy0WzEq7RM1BTSYGxhoOu4tOvTA2xZdeYl9PKHJG
-         wgpTzcdwbaSiEOXlqfoSX7vu0u8bFxt4Mu6kgWKrXSjYRIjERsxF3Me4k9DuD/Nov+ZJ
-         Zdc/YOLQw9sHkO84m76XLbtWbCf/miNdgXaqQxeZ254wxhhbaApUAopCJMFO3upKmtud
-         O82A==
-X-Gm-Message-State: AOJu0YzwYHxL0aA+GCmI+1waec6d6AXkinO4RdBsNJOrhUgD8UnzFMiB
-	61amAcr+WyZae2Yqo0SjqkjHw8CtqlxeFX1VjuX3W/1dJ9voAl78hhTOkT2lexxbF05P8Y1CkX/
-	tIlGOIEF9MfMV30dmVlWvHqz43xJFJzpfPr2AdUKYTgRnVreQTBl7W1EIh2mMH1+9R8Xzuslbqh
-	R9f6jpKULK6ri/u7gpH21wGqTAKkJ6qBCOHsGewg==
-X-Gm-Gg: ATEYQzyDCN2VthYa75NbBS3Z07ALtwjLfxaydRHob4My9xYIiXFR0Itk3Vi4DBKqIyx
-	8AIv2VkPFz4tWzESkxSwzYOJaHkC5NAugp+ngyyWO089RKWE4rmFsKqqd6CXKaWHxICMpIrucmL
-	FzA9gWZ+BgsZoSUbKO6CMOzzkSIPEM2JcmsLu74syIR0/SXbmnhfSr6+wM57wbTLbP0HemL/e1X
-	xR1fS0=
-X-Received: by 2002:a17:907:9625:b0:b9b:5fee:4d51 with SMTP id a640c23a62f3a-b9c157159f5mr151976166b.10.1775034654280;
-        Wed, 01 Apr 2026 02:10:54 -0700 (PDT)
-X-Received: by 2002:a17:907:9625:b0:b9b:5fee:4d51 with SMTP id
- a640c23a62f3a-b9c157159f5mr151974566b.10.1775034653700; Wed, 01 Apr 2026
- 02:10:53 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z24YtwBP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CFA0C4CEF7;
+	Wed,  1 Apr 2026 16:33:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1775061200;
+	bh=1zhv2H3/XljX8YCgGVK/2pBPV5pYbDupGNKLCG0Drj0=;
+	h=Date:To:From:Subject:From;
+	b=z24YtwBPUzKxG/RMSsYOzgNNffVK6F/iElk7zIGgekBt9axkV/S/F/oorxD6A0vAo
+	 l4u8kpH8ltbvcb6rCrt3th48UCJREVOF+HaATbP/1vCaSa3i/faa0RKvAtAX8dEMZi
+	 QxqQdWoDU/kfvnKLebU9pAzD+5HzhepW+rM3HKO0=
+Date: Wed, 01 Apr 2026 09:33:20 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,ptesarik@suse.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,songmuchun@bytedance.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [obsolete] mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch removed from -mm tree
+Message-Id: <20260401163320.9CFA0C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20260331235111.9FD2EC19423@smtp.kernel.org>
-In-Reply-To: <20260331235111.9FD2EC19423@smtp.kernel.org>
-From: Li Wang <liwang@redhat.com>
-Date: Wed, 1 Apr 2026 17:10:39 +0800
-X-Gm-Features: AQROBzC68xg9YjXgX5VPKG6bMdUF4_tDuTaI8-15733PK55F1xntex7UvqdHG1k
-Message-ID: <CAEemH2dhQajneEuXMYom=1Jt7CV2OJ49Uuf-O86btGQrsi=AaQ@mail.gmail.com>
-Subject: Re: + selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible.patch
- added to mm-new branch
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org, rppt@kernel.org, david@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-
-Hi Andrew,
-
-Just want you to know I sent a new version of this patch:
-  https://lore.kernel.org/all/20260401090520.24018-1-liwang@redhat.com/
-
-I noticed you already added v4 into -mm mm-new branch, and the v5
-is requested by David to drop run_test() wrapper function, and code indent
-adjustment.
 
 
---
-Regards,
-Li Wang
+The quilt patch titled
+     Subject: mm/sparse: fix BUILD_BUG_ON check for section map alignment
+has been removed from the -mm tree.  Its filename was
+     mm-sparse-fix-build_bug_on-check-for-section-map-alignment.patch
+
+This patch was dropped because it is obsolete
+
+------------------------------------------------------
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/sparse: fix BUILD_BUG_ON check for section map alignment
+Date: Tue, 31 Mar 2026 19:30:23 +0800
+
+The comment in mmzone.h states that the alignment requirement
+is the minimum of PAGE_SHIFT and PFN_SECTION_SHIFT. However, the
+pointer arithmetic (mem_map - section_nr_to_pfn()) results in
+a byte offset scaled by sizeof(struct page). Thus, the actual
+alignment provided by the second term is PFN_SECTION_SHIFT +
+__ffs(sizeof(struct page)).
+
+Update the compile-time check and the mmzone.h comment to
+accurately reflect this mathematically guaranteed alignment by
+taking the minimum of PAGE_SHIFT and PFN_SECTION_SHIFT +
+__ffs(sizeof(struct page)). This avoids the issue of the check
+being overly restrictive on architectures like powerpc where
+PFN_SECTION_SHIFT alone is very small (e.g., 6).
+
+Also, remove the exhaustive per-architecture bit-width list from the
+comment; such details risk falling out of date over time and may
+inadvertently be left un-updated, while the existing BUILD_BUG_ON
+provides sufficient compile-time verification of the constraint.
+
+No runtime impact so far: SECTION_MAP_LAST_BIT happens to fit within
+the smaller limit on all existing architectures.
+
+Link: https://lkml.kernel.org/r/20260331113023.2068075-1-songmuchun@bytedance.com
+Fixes: def9b71ee651 ("include/linux/mmzone.h: fix explanation of lower bits in the SPARSEMEM mem_map pointer")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Petr Tesarik <ptesarik@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/mmzone.h |   24 +++++++++---------------
+ mm/internal.h          |    3 ++-
+ 2 files changed, 11 insertions(+), 16 deletions(-)
+
+--- a/include/linux/mmzone.h~mm-sparse-fix-build_bug_on-check-for-section-map-alignment
++++ a/include/linux/mmzone.h
+@@ -2068,21 +2068,15 @@ static inline struct mem_section *__nr_t
+ extern size_t mem_section_usage_size(void);
+ 
+ /*
+- * We use the lower bits of the mem_map pointer to store
+- * a little bit of information.  The pointer is calculated
+- * as mem_map - section_nr_to_pfn(pnum).  The result is
+- * aligned to the minimum alignment of the two values:
+- *   1. All mem_map arrays are page-aligned.
+- *   2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT
+- *      lowest bits.  PFN_SECTION_SHIFT is arch-specific
+- *      (equal SECTION_SIZE_BITS - PAGE_SHIFT), and the
+- *      worst combination is powerpc with 256k pages,
+- *      which results in PFN_SECTION_SHIFT equal 6.
+- * To sum it up, at least 6 bits are available on all architectures.
+- * However, we can exceed 6 bits on some other architectures except
+- * powerpc (e.g. 15 bits are available on x86_64, 13 bits are available
+- * with the worst case of 64K pages on arm64) if we make sure the
+- * exceeded bit is not applicable to powerpc.
++ * We use the lower bits of the mem_map pointer to store a little bit of
++ * information. The pointer is calculated as mem_map - section_nr_to_pfn().
++ * The result is aligned to the minimum alignment of the two values:
++ *
++ * 1. All mem_map arrays are page-aligned.
++ * 2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT lowest bits. Because
++ *    it is subtracted from a struct page pointer, the offset is scaled by
++ *    sizeof(struct page). This provides an alignment of PFN_SECTION_SHIFT +
++ *    __ffs(sizeof(struct page)).
+  */
+ enum {
+ 	SECTION_MARKED_PRESENT_BIT,
+--- a/mm/internal.h~mm-sparse-fix-build_bug_on-check-for-section-map-alignment
++++ a/mm/internal.h
+@@ -972,7 +972,8 @@ static inline void sparse_init_one_secti
+ {
+ 	unsigned long coded_mem_map;
+ 
+-	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > PFN_SECTION_SHIFT);
++	BUILD_BUG_ON(SECTION_MAP_LAST_BIT > min(PFN_SECTION_SHIFT + __ffs(sizeof(struct page)),
++						PAGE_SHIFT));
+ 
+ 	/*
+ 	 * We encode the start PFN of the section into the mem_map such that
+_
+
+Patches currently in -mm which might be from songmuchun@bytedance.com are
+
+mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup.patch
+mm-workingset-use-folio_lruvec-in-workingset_refault.patch
+mm-rename-unlock_page_lruvec_irq-and-its-variants.patch
+mm-vmscan-refactor-move_folios_to_lru.patch
+mm-memcontrol-allocate-object-cgroup-for-non-kmem-case.patch
+mm-memcontrol-return-root-object-cgroup-for-root-memory-cgroup.patch
+mm-memcontrol-prevent-memory-cgroup-release-in-get_mem_cgroup_from_folio.patch
+buffer-prevent-memory-cgroup-release-in-folio_alloc_buffers.patch
+writeback-prevent-memory-cgroup-release-in-writeback-module.patch
+mm-memcontrol-prevent-memory-cgroup-release-in-count_memcg_folio_events.patch
+mm-page_io-prevent-memory-cgroup-release-in-page_io-module.patch
+mm-migrate-prevent-memory-cgroup-release-in-folio_migrate_mapping.patch
+mm-mglru-prevent-memory-cgroup-release-in-mglru.patch
+mm-memcontrol-prevent-memory-cgroup-release-in-mem_cgroup_swap_full.patch
+mm-workingset-prevent-memory-cgroup-release-in-lru_gen_eviction.patch
+mm-workingset-prevent-lruvec-release-in-workingset_refault.patch
+mm-zswap-prevent-lruvec-release-in-zswap_folio_swapin.patch
+mm-swap-prevent-lruvec-release-in-lru_gen_clear_refs.patch
+mm-workingset-prevent-lruvec-release-in-workingset_activation.patch
+mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock.patch
+mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios.patch
+mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-helpers.patch
+mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path.patch
 
