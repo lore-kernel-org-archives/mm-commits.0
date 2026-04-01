@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2EC3636164B
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 02:39:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA15D366548;
+	Wed,  1 Apr 2026 02:43:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775011155; cv=none; b=InsbWFPBQrWvUaaEnyp/mocz6lk/ZMaFQF2dDaEuPIXrr1kpt/mFcYzZcoTRkIZ2tt1I7P3YhZcecnLOwfDAvuYOSpXcH2iuQ8a32JUc/0OyCyav4xOD1YhOwtwuGmQw+9nFAEIu1SFkJ8dGcIvu98FXxOtM5mza0xAsrCjgZyQ=
+	t=1775011404; cv=none; b=EABjrZWrzeEQyCCNIf8tH4Mcv9cG35mKHuaNSOXczSNL0nC9Fop94g+Q0RBYDnOutPaC6bRPwPFjJ8ZHVx89Rf3ScqV5/U0fX2XIBQn1vNfJo+WjU9Z6pSwFV7idXYqTps8hJlTwzzcTPeBkj2A/Hdzz7EiRwrG6tDc9UkssbTI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775011155; c=relaxed/simple;
-	bh=3xGiCfQHypgGiUvzcSsnD2Ndqeq5fUL+9CFmKQ19Gxw=;
-	h=Date:To:From:Subject:Message-Id; b=afEDFQiA0MDmOEgWXHC+a4xcVuG0mew0EDbl4/7Fspq3v/BU56QA7VbnM0vMph8H80KTrzBOS4Ax17ZlEQMg4yTk8xe4MuhwE1KTOeoYTEtCGpXHla7mzOnp10Js62fh90ovE1a0MrL9N2oVVIf7CEbnb+F0q9vRnMGTV03kJ70=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pBQxRT5J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775011404; c=relaxed/simple;
+	bh=ZsrxAY69fyePntbeKe/7w9sdUNvgZp3/+ixFCguShzE=;
+	h=Date:To:From:Subject:Message-Id; b=FnpmVhKTpQ56soQ62ZSrUfRG9vZIdERs75Gk+3xvEc3hcGFSv8kLKdL1VUNX960/LZiixmGnmC+r7Ev+pcazw7OaProfTOm5ev5LTQotTVb+s/694BazhihGMDFEPbEE4kIGOuL5omx/ebQQ7kjhNhk8ItRWhgISewfzUlOS8Kw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UCiTb6GP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pBQxRT5J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 857F4C19423;
-	Wed,  1 Apr 2026 02:39:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UCiTb6GP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E73F8C2BCB2;
+	Wed,  1 Apr 2026 02:43:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775011154;
-	bh=3xGiCfQHypgGiUvzcSsnD2Ndqeq5fUL+9CFmKQ19Gxw=;
+	s=korg; t=1775011404;
+	bh=ZsrxAY69fyePntbeKe/7w9sdUNvgZp3/+ixFCguShzE=;
 	h=Date:To:From:Subject:From;
-	b=pBQxRT5JZdny8SlfAeFumZOLHchWxLGeELE+MbHo2aI/SsqQbDWXpvdOHKe1Rlf3J
-	 waDYVPKzhqcF07PXPtpDSPAT8rX8L4hvRykDGwcKqQrGvybmtwimR9kzSPPZg/O2hq
-	 wpf42inlna7E7ZTlpYCQIFnuce0nsmtEnJ+yJTg4=
-Date: Tue, 31 Mar 2026 19:39:13 -0700
-To: mm-commits@vger.kernel.org,hao.ge@linux.dev,akpm@linux-foundation.org
+	b=UCiTb6GP/nfMmWbPULT1QIR0YXo0CWTAGqn0TaFbzeL23rZYpG1lSBaXK0FHOBYSE
+	 bbN72dEp3AqmJs74je5Wh3V3Qe61ELF8inzEMmAP/bVUG1vYg0B0E0zHEtIH9oHCHQ
+	 f1YtGGxcpGE+RwSi59EEvvEAv4XPQ+ahqULpbGE8=
+Date: Tue, 31 Mar 2026 19:43:23 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,kent.overstreet@linux.dev,hao.ge@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch removed from -mm tree
-Message-Id: <20260401023914.857F4C19423@smtp.kernel.org>
+Subject: + mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch added to mm-unstable branch
+Message-Id: <20260401024323.E73F8C2BCB2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm/alloc_tag: clear codetag for pages allocated before page_ext initialization
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-unstable branch.  Its filename is
      mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Hao Ge <hao.ge@linux.dev>
 Subject: mm/alloc_tag: clear codetag for pages allocated before page_ext initialization
-Date: Fri, 27 Mar 2026 16:06:23 +0800
+Date: Tue, 31 Mar 2026 16:13:12 +0800
 
 Due to initialization ordering, page_ext is allocated and initialized
 relatively late during boot.  Some pages have already been allocated and
@@ -65,8 +81,8 @@ warning if this limit is exceeded.  When page_ext initialization
 completes, set their codetag to empty to avoid warnings when they are
 freed later.
 
-This warning is only observed with CONFIG_MEM_ALLOC_PROFILING_DEBUG=Y
-and mem_profiling_compressed disabled:
+This warning is only observed with CONFIG_MEM_ALLOC_PROFILING_DEBUG=Y and
+mem_profiling_compressed disabled:
 
 [    9.582133] ------------[ cut here ]------------
 [    9.582137] alloc_tag was not set
@@ -128,11 +144,12 @@ and mem_profiling_compressed disabled:
 [    9.582292]  </TASK>
 [    9.582293] ---[ end trace 0000000000000000 ]---
 
-Link: https://lkml.kernel.org/r/20260327080623.123212-1-hao.ge@linux.dev
+Link: https://lkml.kernel.org/r/20260331081312.123719-1-hao.ge@linux.dev
 Fixes: dcfe378c81f72 ("lib: introduce support for page allocation tagging")
 Signed-off-by: Hao Ge <hao.ge@linux.dev>
 Suggested-by: Suren Baghdasaryan <surenb@google.com>
 Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -224,13 +241,13 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	early_pfns[old_idx] = pfn;
 +}
 +
-+typedef void (*alloc_tag_add_func)(unsigned long pfn);
-+static alloc_tag_add_func __rcu alloc_tag_add_early_pfn_ptr __refdata =
-+		__alloc_tag_add_early_pfn;
++typedef void alloc_tag_add_func(unsigned long pfn);
++static alloc_tag_add_func __rcu *alloc_tag_add_early_pfn_ptr __refdata =
++	RCU_INITIALIZER(__alloc_tag_add_early_pfn);
 +
 +void alloc_tag_add_early_pfn(unsigned long pfn)
 +{
-+	alloc_tag_add_func alloc_tag_add;
++	alloc_tag_add_func *alloc_tag_add;
 +
 +	if (static_key_enabled(&mem_profiling_compressed))
 +		return;
@@ -322,4 +339,5 @@ _
 
 Patches currently in -mm which might be from hao.ge@linux.dev are
 
+mm-alloc_tag-clear-codetag-for-pages-allocated-before-page_ext-initialization.patch
 
