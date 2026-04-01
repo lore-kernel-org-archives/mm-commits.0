@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EB62194AD7;
-	Wed,  1 Apr 2026 00:33:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCF872AD03;
+	Wed,  1 Apr 2026 00:49:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775003619; cv=none; b=ZEqoTuVolMeffIme3WqaTsVHVYNUF9Dz06mHEfAyvm7sq6InK5MmDI6r3lRTlpy7bcqi3YqUksRGP9cEA/Q7xsxxH5WtUShwKMZcsblhwNQdnYeYtkVj0CRLmndPs94EuHNzrN8s/INkpkdvLINDXWYco9qTnb86so1MH86EIxs=
+	t=1775004572; cv=none; b=SidHdXAumL1hJeNXOGhfNCChO+aOC75JnOjN8o8OdWATcTzaPV2ProsdPEmCCOW8rWEPNu/3q515h2FdZPfJdA+Q7fiHTHchSaQ7tc9OkW58Vzx4B+IoQhgfCtaweWPVGnH2llltW4hINF4zEAW37jhxpEl9YASxPOVH4N/V/gE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775003619; c=relaxed/simple;
-	bh=kQFaJ82ipHMgJZbZoJPv4I+XWcOiazcVhsfSFPkxBsM=;
-	h=Date:To:From:Subject:Message-Id; b=C+bjHs3WfAY6YzHW12lqZ9b/jVlugkOH40/e0XWQb0Wb3Ad6PFywukCgbtwE4Gisrn98+ejxdbnkgsvAqzfQL3KyKz3wVBXX0QtSit74/QD5ToysdaTih9FnNa02eyjdR7grFZOekNQkJtIYfD12hKKSNZGLM9N9GpkjIqhkCy8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1/JwXPYo; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775004572; c=relaxed/simple;
+	bh=vUrluuoZRhSYpBLjGbEn4sx2TK3GqyhqGROHhUsZQic=;
+	h=Date:To:From:Subject:Message-Id; b=mAiC238ZHHVP7AU43WmaYijd+uNdLnYy3IF262YQvkXwf9ZtA+KWTVynzxtw5k96ufDMtFMMDbnreBtNe+UVv80VcM/+zhf194XmFxcA7ulidbKDFYsHXCkQp6iK7FYRFPYq4mi29pWWSnMDAF1hwM/ihn1E/BvsObxqTncaVb4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0JzeP5oi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1/JwXPYo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C84D4C19423;
-	Wed,  1 Apr 2026 00:33:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0JzeP5oi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6FA59C19423;
+	Wed,  1 Apr 2026 00:49:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775003618;
-	bh=kQFaJ82ipHMgJZbZoJPv4I+XWcOiazcVhsfSFPkxBsM=;
+	s=korg; t=1775004571;
+	bh=vUrluuoZRhSYpBLjGbEn4sx2TK3GqyhqGROHhUsZQic=;
 	h=Date:To:From:Subject:From;
-	b=1/JwXPYoQhUI8ZtUKngLcy3cvdmeMn6FrJiQMh7wWjq6vfFI7ZpEBVBb23hQ8Vgr8
-	 xnnmzOJwKz/JOPEHIb9ZOtTyxIS5qZSK+ENz6VcXa2cZ4CbP6vypp8k12x2cNsXrvU
-	 JqUYR23nUgy8JmNjuKzLeX7BTsnzLGGI/4z+gaxg=
-Date: Tue, 31 Mar 2026 17:33:38 -0700
-To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,surenb@google.com,kernel.org,stable@vger,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,leon@kernel.org,jgg@ziepe.ca,david@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=0JzeP5oiwIfVGmknRxND8wNoZa3e3xS660g2BB/AqSM82lYKFVpx7XsCELed2EYh/
+	 zRgj0Ah7ctaBbo2n5GY3HEl52m/BpSg+MJRhaCTIExpBW8QqFBrpr5IaMg4BrJ85m2
+	 5bMzg/z/09vsS076RqZf8XZAYiUJ8sPn6/Bx2w1g=
+Date: Tue, 31 Mar 2026 17:49:30 -0700
+To: mm-commits@vger.kernel.org,wqu@suse.com,stable@vger.kernel.org,minchan@kernel.org,hch@lst.de,bgeffon@google.com,axboe@kernel.dk,avinesh.kumar@suse.com,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_hmm-implement-a-device-release-method.patch added to mm-new branch
-Message-Id: <20260401003338.C84D4C19423@smtp.kernel.org>
+Subject: + zram-do-not-forget-to-endio-for-partial-discard-requests.patch added to mm-new branch
+Message-Id: <20260401004931.6FA59C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: test_hmm: implement a device release method
+     Subject: zram: do not forget to endio for partial discard requests
 has been added to the -mm mm-new branch.  Its filename is
-     lib-test_hmm-implement-a-device-release-method.patch
+     zram-do-not-forget-to-endio-for-partial-discard-requests.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-implement-a-device-release-method.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-forget-to-endio-for-partial-discard-requests.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,141 +69,63 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: lib: test_hmm: implement a device release method
-Date: Tue, 31 Mar 2026 17:34:45 +1100
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: do not forget to endio for partial discard requests
+Date: Tue, 31 Mar 2026 16:42:44 +0900
 
-Unloading the HMM test module produces the following warning:
+As reported by Qu Wenruo and Avinesh Kumar, the following
 
-[ 3782.224783] ------------[ cut here ]------------
-[ 3782.226323] Device 'hmm_dmirror0' does not have a release() function, it is broken and must be fixed. See Documentation/core-api/kobject.rst.
-[ 3782.230570] WARNING: drivers/base/core.c:2567 at device_release+0x185/0x210, CPU#20: rmmod/1924
-[ 3782.233949] Modules linked in: test_hmm(-) nvidia_uvm(O) nvidia(O)
-[ 3782.236321] CPU: 20 UID: 0 PID: 1924 Comm: rmmod Tainted: G           O        7.0.0-rc1+ #374 PREEMPT(full)
-[ 3782.240226] Tainted: [O]=OOT_MODULE
-[ 3782.241639] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org 04/01/2014
-[ 3782.246193] RIP: 0010:device_release+0x185/0x210
-[ 3782.247860] Code: 00 00 fc ff df 48 8d 7b 50 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 86 00 00 00 48 8b 73 50 48 85 f6 74 11 48 8d 3d db 25 29 03 <67> 48 0f b9 3a e9 0d ff ff ff 48 b8 00 00 00 00 00 fc ff df 48 89
-[ 3782.254211] RSP: 0018:ffff888126577d98 EFLAGS: 00010246
-[ 3782.256054] RAX: dffffc0000000000 RBX: ffffffffc2b70310 RCX: ffffffff8fe61ba1
-[ 3782.258512] RDX: 1ffffffff856e062 RSI: ffff88811341eea0 RDI: ffffffff91bbacb0
-[ 3782.261041] RBP: ffff888111475000 R08: 0000000000000001 R09: fffffbfff856e069
-[ 3782.263471] R10: ffffffffc2b7034b R11: 00000000ffffffff R12: 0000000000000000
-[ 3782.265983] R13: dffffc0000000000 R14: ffff88811341eea0 R15: 0000000000000000
-[ 3782.268443] FS:  00007fd5a3689040(0000) GS:ffff88842c8d0000(0000) knlGS:0000000000000000
-[ 3782.271236] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 3782.273251] CR2: 00007fd5a36d2c10 CR3: 00000001242b8000 CR4: 00000000000006f0
-[ 3782.275362] Call Trace:
-[ 3782.276071]  <TASK>
-[ 3782.276678]  kobject_put+0x146/0x270
-[ 3782.277731]  hmm_dmirror_exit+0x7a/0x130 [test_hmm]
-[ 3782.279135]  __do_sys_delete_module+0x341/0x510
-[ 3782.280438]  ? module_flags+0x300/0x300
-[ 3782.281547]  do_syscall_64+0x111/0x670
-[ 3782.282620]  entry_SYSCALL_64_after_hwframe+0x4b/0x53
-[ 3782.284091] RIP: 0033:0x7fd5a3793b37
-[ 3782.285303] Code: 73 01 c3 48 8b 0d c9 82 0c 00 f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 b8 b0 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 99 82 0c 00 f7 d8 64 89 01 48
-[ 3782.290708] RSP: 002b:00007ffd68b7dc68 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
-[ 3782.292817] RAX: ffffffffffffffda RBX: 000055e3c0d1c770 RCX: 00007fd5a3793b37
-[ 3782.294735] RDX: 0000000000000000 RSI: 0000000000000800 RDI: 000055e3c0d1c7d8
-[ 3782.296661] RBP: 0000000000000000 R08: 1999999999999999 R09: 0000000000000000
-[ 3782.298622] R10: 00007fd5a3806ac0 R11: 0000000000000206 R12: 00007ffd68b7deb0
-[ 3782.300576] R13: 00007ffd68b7e781 R14: 000055e3c0d1b2a0 R15: 00007ffd68b7deb8
-[ 3782.301963]  </TASK>
-[ 3782.302371] irq event stamp: 5019
-[ 3782.302987] hardirqs last  enabled at (5027): [<ffffffff8cf1f062>] __up_console_sem+0x52/0x60
-[ 3782.304507] hardirqs last disabled at (5036): [<ffffffff8cf1f047>] __up_console_sem+0x37/0x60
-[ 3782.306086] softirqs last  enabled at (4940): [<ffffffff8cd9a4b0>] __irq_exit_rcu+0xc0/0xf0
-[ 3782.307567] softirqs last disabled at (4929): [<ffffffff8cd9a4b0>] __irq_exit_rcu+0xc0/0xf0
-[ 3782.309105] ---[ end trace 0000000000000000 ]---
+ getconf PAGESIZE
+ 65536
+ blkdiscard -p 4k /dev/zram0
 
-This is because the test module doesn't have a device.release method.  In
-this case one probably isn't needed for correctness - the device structs
-are in a static array so don't need freeing when the final reference goes
-away.
+takes literally forever to complete.  zram doesn't support partial
+discards and just returns immediately w/o doing any discard work in such
+cases.  The problem is that we forget to endio on our way out, so
+blkdiscard sleeps forever in submit_bio_wait().  Fix this by jumping to
+end_bio label, which does bio_endio().
 
-However some device state is freed on exit, so to ensure this happens at
-the right time and to silence the warning move the deinitialisation to a
-release method and assign that as the device release callback.  Whilst
-here also fix a minor error handling bug where cdev_device_del() wasn't
-being called if allocation failed.
-
-Link: https://lkml.kernel.org/r/20260331063445.3551404-4-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Balbir Singh <balbirs@nvidia.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zenghui Yu <zenghui.yu@linux.dev>
-Cc: <stable@vger,kernel.org>
+Link: https://lkml.kernel.org/r/20260331074255.777019-1-senozhatsky@chromium.org
+Fixes: 0120dd6e4e202 ("zram: make zram_bio_discard more self-contained")
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Reported-by: Qu Wenruo <wqu@suse.com>
+Closes: https://lore.kernel.org/linux-block/92361cd3-fb8b-482e-bc89-15ff1acb9a59@suse.com
+Tested-by: Qu Wenruo <wqu@suse.com>
+Reported-by: Avinesh Kumar <avinesh.kumar@suse.com>
+Closes: https://bugzilla.suse.com/show_bug.cgi?id=1256530
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Brian Geffon <bgeffon@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ drivers/block/zram/zram_drv.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/lib/test_hmm.c~lib-test_hmm-implement-a-device-release-method
-+++ a/lib/test_hmm.c
-@@ -1738,6 +1738,13 @@ static const struct dev_pagemap_ops dmir
- 	.folio_split	= dmirror_devmem_folio_split,
- };
+--- a/drivers/block/zram/zram_drv.c~zram-do-not-forget-to-endio-for-partial-discard-requests
++++ a/drivers/block/zram/zram_drv.c
+@@ -2678,7 +2678,7 @@ static void zram_bio_discard(struct zram
+ 	 */
+ 	if (offset) {
+ 		if (n <= (PAGE_SIZE - offset))
+-			return;
++			goto end_bio;
  
-+static void dmirror_device_release(struct device *dev)
-+{
-+	struct dmirror_device *mdevice = container_of(dev, struct dmirror_device, device);
-+
-+	dmirror_device_remove_chunks(mdevice);
-+}
-+
- static int dmirror_device_init(struct dmirror_device *mdevice, int id)
- {
- 	dev_t dev;
-@@ -1749,6 +1756,8 @@ static int dmirror_device_init(struct dm
+ 		n -= (PAGE_SIZE - offset);
+ 		index++;
+@@ -2693,6 +2693,7 @@ static void zram_bio_discard(struct zram
+ 		n -= PAGE_SIZE;
+ 	}
  
- 	cdev_init(&mdevice->cdevice, &dmirror_fops);
- 	mdevice->cdevice.owner = THIS_MODULE;
-+	mdevice->device.release = dmirror_device_release;
-+
- 	device_initialize(&mdevice->device);
- 	mdevice->device.devt = dev;
- 
-@@ -1756,12 +1765,16 @@ static int dmirror_device_init(struct dm
- 	if (ret)
- 		goto put_device;
- 
-+	/* Build a list of free ZONE_DEVICE struct pages */
-+	ret = dmirror_allocate_chunk(mdevice, NULL, false);
-+	if (ret)
-+		goto put_device;
-+
- 	ret = cdev_device_add(&mdevice->cdevice, &mdevice->device);
- 	if (ret)
- 		goto put_device;
- 
--	/* Build a list of free ZONE_DEVICE struct pages */
--	return dmirror_allocate_chunk(mdevice, NULL, false);
-+	return 0;
- 
- put_device:
- 	put_device(&mdevice->device);
-@@ -1770,7 +1783,6 @@ put_device:
- 
- static void dmirror_device_remove(struct dmirror_device *mdevice)
- {
--	dmirror_device_remove_chunks(mdevice);
- 	cdev_device_del(&mdevice->cdevice, &mdevice->device);
- 	put_device(&mdevice->device);
++end_bio:
+ 	bio_endio(bio);
  }
+ 
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free.patch
-selftests-mm-hmm-tests-dont-hardcode-thp-size-to-2mb.patch
-lib-test_hmm-implement-a-device-release-method.patch
+zram-do-not-forget-to-endio-for-partial-discard-requests.patch
 
