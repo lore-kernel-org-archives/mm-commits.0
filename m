@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B48D31F99B;
-	Wed,  1 Apr 2026 03:33:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A512F26E711;
+	Wed,  1 Apr 2026 03:36:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775014382; cv=none; b=Op9a7kR6t/CdGt8+jtygK5iVkwknxBRoaMLtM3StthL3MdHt3WBZdBvJFK9/sK8tz/Lj3MidXY+AN/Azhwa5+Y8dbsTyp2lqY2Hdb2lbqyA8GYXBi2kNVxlRFNd9CkGtK6ujaMGmR0S6zQ75gm5vcQ5Sv0BtRB9AzauON9K3ykk=
+	t=1775014582; cv=none; b=mJ9d+xsY3DsZ2896FpWch/xCEWdlzoJRyVXpGWaE9IT+g0R1E+QJeEibVAXPwyi7GZrrYBgGdmZRKH/xmGBM9srAWwKFW9vIk3I7Ct0ZbTojaCZhLpOwrAh8mdsTVrEuqrKXc40BAwhMxAUb9lWrPo1OcWIrXK3WJBNXmuwZwgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775014382; c=relaxed/simple;
-	bh=+A+K/m57VIQooOldDDdUbG8PeD/W/DGcAH2o9p2SN48=;
-	h=Date:To:From:Subject:Message-Id; b=F/8kIRvZi4E42o+NKZs/XXfIScqPPEyjsU5+5Qyth2jAyg4s2bN0GzjX/+OYr1gaCKvJkYEWWZxvIxBtM/So0ZkDMg9CS2bGBBwh8fXRvH5eN68whd7/M/QZqguDdthwqBU79pWgm9bFl4t1B5S6CbKguuEFzjSxD1XjswN9J9I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=agEHNVaV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775014582; c=relaxed/simple;
+	bh=oM8MoDisKpDaXjO3RLPXLi7naizlxim+j7rzUdhBd8A=;
+	h=Date:To:From:Subject:Message-Id; b=sfd9os7NYPTJriyeLfndh963vXykQk8PhpPkWua27gErpCUQeLHxw01BsuXGwYN0eYNAY9UOYYfyqAsTrnYm+4BBdK+8+Z3J4J9av893Tov1WjAnlltOFIgdlsSfm53gGZucnxEC5A5rRJr9UednPEbWoX8kzxyb+NO5opYzu3k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=T4V8k+rf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="agEHNVaV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13CC4C4CEF7;
-	Wed,  1 Apr 2026 03:33:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="T4V8k+rf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6700BC4CEF7;
+	Wed,  1 Apr 2026 03:36:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775014382;
-	bh=+A+K/m57VIQooOldDDdUbG8PeD/W/DGcAH2o9p2SN48=;
+	s=korg; t=1775014582;
+	bh=oM8MoDisKpDaXjO3RLPXLi7naizlxim+j7rzUdhBd8A=;
 	h=Date:To:From:Subject:From;
-	b=agEHNVaVzTkdUeyHjc+0sTVSH5GpBcOiAtmth+Kae2BS5+hr1Ya+nh2GvzZ9SUbMa
-	 obRwG0vD/K6Ar4HG5XregwqBV3uTQ8x0i0Z3sJXXMPhCOy87JcQyj4Jb0QQj6tJPoQ
-	 UfKTl7wHBqXI5KQCrZRi5AqfjX2r5Mz9Pyt4nVa4=
-Date: Tue, 31 Mar 2026 20:33:01 -0700
+	b=T4V8k+rfOHVrE77sTng58yre4ghwaAdfCdbOUvfxqcMToKQGQxXQNNwwnIbQpHy1K
+	 MH7wFpaPNKMBWZbt4Ysfrj9QEdu59Yaq3/aUubCViQrI6VxtsPuIcAz/YIHHEw4n+M
+	 Iz36EbrhxlC2sekIcw4IYww1IRL/uiFM0ipV6Yag=
+Date: Tue, 31 Mar 2026 20:36:21 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-use-time_in_range_open-for-damos-quota-window-start.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260401033302.13CC4C4CEF7@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260401033622.6700BC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: use time_in_range_open() for damos quota window start
+     Subject: Docs/admin-guide/mm/damon/reclaim: warn commit_inputs vs param updates race
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-core-use-time_in_range_open-for-damos-quota-window-start.patch
+     docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-use-time_in_range_open-for-damos-quota-window-start.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,56 +59,58 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: use time_in_range_open() for damos quota window start
-Date: Sun, 29 Mar 2026 08:23:05 -0700
+Subject: Docs/admin-guide/mm/damon/reclaim: warn commit_inputs vs param updates race
+Date: Sun, 29 Mar 2026 08:30:49 -0700
 
-damos_adjust_quota() uses time_after_eq() to show if it is time to start a
-new quota charge window, comparing the current jiffies and the scheduled
-next charge window start time.  If it is, the next charge window start
-time is updated and the new charge window starts.
+Patch series "Docs/admin-guide/mm/damon: warn commit_inputs vs other
+params race".
 
-The time check and next window start time update is skipped while the
-scheme is deactivated by the watermarks.  Let's suppose the deactivation
-is kept more than LONG_MAX jiffies (assuming CONFIG_HZ of 250, more than
-99 days in 32 bit systems and more than one billion years in 64 bit
-systems), resulting in having the jiffies larger than the next charge
-window start time + LONG_MAX.  Then, the time_after_eq() call can return
-false until another LONG_MAX jiffies are passed.
+Writing 'Y' to the commit_inputs parameter of DAMON_RECLAIM and
+DAMON_LRU_SORT, and writing other parameters before the commit_inputs
+request is completely processed can cause race conditions.  While the
+consequence can be bad, the documentation is not clearly describing that. 
+Add clear warnings.
 
-This means the scheme can continue working after being reactivated by the
-watermarks.  But, soon, the quota will be exceeded and the scheme will
-again effectively stop working until the next charge window starts. 
-Because the current charge window is extended to up to LONG_MAX jiffies,
-however, it will look like it stopped unexpectedly and indefinitely, from
-the user's perspective.
+The issue was discovered [1,2] by sashiko.
 
-Fix this by using !time_in_range_open() instead.
 
-The issue was discovered [1] by sashiko.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20260329152306.45796-1-sj@kernel.org
-Link: https://lore.kernel.org/20260324040722.57944-1-sj@kernel.org [1]
-Fixes: ee801b7dd782 ("mm/damon/schemes: activate schemes based on a watermarks mechanism")
+DAMON_RECLAIM handles commit_inputs request inside kdamond thread,
+reading the module parameters.  If the user updates the module
+parameters while the kdamond thread is reading those, races can happen.
+To avoid this, the commit_inputs parameter shows whether it is still in
+the progress, assuming users wouldn't update parameters in the middle of
+the work.  Some users might ignore that.  Add a warning about the
+behavior.
+
+The issue was discovered in [1] by sashiko.
+
+Link: https://lkml.kernel.org/r/20260329153052.46657-2-sj@kernel.org
+Link: https://lore.kernel.org/20260319161620.189392-3-objecting@objecting.org [1]
+Link: https://lore.kernel.org/20260319161620.189392-2-objecting@objecting.org [3]
+Fixes: 81a84182c343 ("Docs/admin-guide/mm/damon/reclaim: document 'commit_inputs' parameter")
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 5.16.x
+Cc: <stable@vger.kernel.org> # 5.19.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/mm/damon/reclaim.rst |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-use-time_in_range_open-for-damos-quota-window-start
-+++ a/mm/damon/core.c
-@@ -2291,7 +2291,8 @@ static void damos_adjust_quota(struct da
- 	}
+--- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race
++++ a/Documentation/admin-guide/mm/damon/reclaim.rst
+@@ -71,6 +71,10 @@ of parametrs except ``enabled`` again.
+ parameter is set as ``N``.  If invalid parameters are found while the
+ re-reading, DAMON_RECLAIM will be disabled.
  
- 	/* New charge window starts */
--	if (time_after_eq(jiffies, quota->charged_from +
-+	if (!time_in_range_open(jiffies, quota->charged_from,
-+				quota->charged_from +
- 				msecs_to_jiffies(quota->reset_interval))) {
- 		if (quota->esz && quota->charged_sz >= quota->esz)
- 			s->stat.qt_exceeds++;
++Once ``Y`` is written to this parameter, the user must not write to any
++parameters until reading ``commit_inputs`` again returns ``N``.  If users
++violate this rule, the kernel may exhibit undefined behavior.
++
+ min_age
+ -------
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
@@ -119,4 +121,6 @@ mm-damon-core-fix-damos_walk-vs-kdamond_fn-exit-race.patch
 mm-damon-core-validate-damos_quota_goal-nid-for-node_mem_usedfree_bp.patch
 mm-damon-core-validate-damos_quota_goal-nid-for-node_memcg_usedfree_bp.patch
 mm-damon-core-use-time_in_range_open-for-damos-quota-window-start.patch
+docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race.patch
+docs-admin-guide-mm-damon-lru_sort-warn-commit_inputs-vs-param-updates-race.patch
 
