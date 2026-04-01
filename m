@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 390681DF748
-	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 00:53:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5668B1EB19B
+	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 00:57:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775004827; cv=none; b=RX4BSc3fpxMfclwUKH32CD76m+YjH0RnLeF/OED8nDzXBeTbtyiUzcW9HW689ENUo8/qiiVc87ro40FifH9PVyoVy/pqqW2MpJ4VR9Uyvl4Zm+4XosekmhK8WR1kzFae2zSpnert4S5G8vLLnHRZprufgDpHbyHdkx374hXbejE=
+	t=1775005031; cv=none; b=KW7AjsJyU0lxXb3kK6IUksZYjnQht5SzoHQxVfUPcOBLItYWwIvjMoc2lhBnw30DB3gL2QKYjECcdjc0WOEu0UaAm1ifXs+jSFVEzBSR71LRFyNRObpasoZif8Z9LJxtW1RPA9/gl1t6p+AGHlKK3nE60PEjtIPT9oMFuAF8Nk0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775004827; c=relaxed/simple;
-	bh=2tGIryAe6stZEuVkwjAJjh+GWDTu6nDtWCBQSvQRA/0=;
-	h=Date:To:From:Subject:Message-Id; b=GmIhHdCGfO97kB2/inYLnBBpGzAZMFDzEznqJBjXk/n84t/RvT8RZ0s4hd0Y9rle2TF+tX39LJ5Y4d1ZyTheZauTUQ8fcn53lH30so/rPQzFRCyFFn7hi1pk714Fgmnpf+Y1J45640dlvF28xZO4svN6nscId7huSEAERlQTcwc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UA06DASl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775005031; c=relaxed/simple;
+	bh=LMcBEAGySyJAjPb6IlDqTRUGgQgqcza9WA9SE1wkwFs=;
+	h=Date:To:From:Subject:Message-Id; b=LMPGj/1V6wGVNKKbS09G7tADSC5eGCk0NybEn97Yal6tBNvMn3/XTGzIOMwhzjJ5fRUC5Br6nogYJV1tnl/8BZvWLi5klndHTF9+9gKmYnI4Oo1JMl9+pwAvijBpZoB3kX0UzS2wFCDjPDxyvIpzZPgPSx3QSQvrNlphGJnZftI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gGYDPJuM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UA06DASl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A843BC19423;
-	Wed,  1 Apr 2026 00:53:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gGYDPJuM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22848C19423;
+	Wed,  1 Apr 2026 00:57:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775004826;
-	bh=2tGIryAe6stZEuVkwjAJjh+GWDTu6nDtWCBQSvQRA/0=;
+	s=korg; t=1775005031;
+	bh=LMcBEAGySyJAjPb6IlDqTRUGgQgqcza9WA9SE1wkwFs=;
 	h=Date:To:From:Subject:From;
-	b=UA06DASlFJm2BnjrhQtD1cJyQHFnQk+dNz00CvchVVTHIIRgiNZXV7tW2NNacxyLO
-	 iY/QFUcLlzmJR1yrCPCOHy3Y4E9y4aiIOrpMjmDg6tZXe/5N6J8hs7ab77Qpwcw0a2
-	 hyY52y7o2YAa47rB3+PsrU1yV+841Z/nrV/aAzmg=
-Date: Tue, 31 Mar 2026 17:53:46 -0700
+	b=gGYDPJuM2XFeJpGNQgROHOxrgEkPXnQs1cMP2nOai/D7riWhPA8UWO3Hq4NQdO3Up
+	 RRxJkLZvjKgTQJId1Iv/Etgi1vCHlzCliPjuzjvCLmSDuePZ6FkOoKdl5IGvFVQ7t6
+	 07Sy9CjA7sgYU+Eengj7Nwr18VSRcoesEqCUMa2s=
+Date: Tue, 31 Mar 2026 17:57:10 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-add-merge-test-for-partial-msealed-range.patch removed from -mm tree
-Message-Id: <20260401005346.A843BC19423@smtp.kernel.org>
+Subject: + tools-testing-selftests-add-merge-test-for-partial-msealed-range.patch added to mm-new branch
+Message-Id: <20260401005711.22848C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,44 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: selftests/mm: add merge test for partial msealed range
-has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-merge-test-for-partial-msealed-range.patch
+The patch titled
+     Subject: tools/testing/selftests: add merge test for partial msealed range
+has been added to the -mm mm-new branch.  Its filename is
+     tools-testing-selftests-add-merge-test-for-partial-msealed-range.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-add-merge-test-for-partial-msealed-range.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: selftests/mm: add merge test for partial msealed range
-Date: Mon, 30 Mar 2026 14:50:11 +0100
+Subject: tools/testing/selftests: add merge test for partial msealed range
+Date: Tue, 31 Mar 2026 08:36:27 +0100
 
 Commit 2697dd8ae721 ("mm/mseal: update VMA end correctly on merge") fixed
 an issue in the loop which iterates through VMAs applying mseal, which was
@@ -55,13 +82,13 @@ Add a regression test to assert that this behaviour is correct.  We place
 it in the merge selftests as this is strictly an issue with merging (via a
 vma_modify() invocation).
 
-It also assert that mseal()'d ranges are correctly merged as you'd expect.
+It also asserts that mseal()'d ranges are correctly merged as you'd
+expect.
 
 The test is implemented such that it is skipped if mseal() is not
 available on the system.
 
-[akpm@linux-foundation.org: fix build]
-Link: https://lkml.kernel.org/r/20260330135011.107036-1-ljs@kernel.org
+Link: https://lkml.kernel.org/r/20260331073627.50010-1-ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jann Horn <jannh@google.com>
@@ -76,20 +103,40 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/merge.c |   76 +++++++++++++++++++++++++++
- 1 file changed, 76 insertions(+)
+ tools/testing/selftests/mm/merge.c |   89 +++++++++++++++++++++++++++
+ 1 file changed, 89 insertions(+)
 
---- a/tools/testing/selftests/mm/merge.c~selftests-mm-add-merge-test-for-partial-msealed-range
+--- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-add-merge-test-for-partial-msealed-range
 +++ a/tools/testing/selftests/mm/merge.c
-@@ -6,6 +6,7 @@
+@@ -2,6 +2,7 @@
+ 
+ #define _GNU_SOURCE
+ #include "kselftest_harness.h"
++#include <asm-generic/unistd.h>
+ #include <linux/prctl.h>
  #include <fcntl.h>
  #include <stdio.h>
- #include <stdlib.h>
-+#include <asm-generic/unistd.h>
- #include <unistd.h>
- #include <sys/mman.h>
- #include <sys/prctl.h>
-@@ -1217,6 +1218,81 @@ TEST_F(merge, mremap_correct_placed_faul
+@@ -48,6 +49,19 @@ static pid_t do_fork(struct procmap_fd *
+ 	return 0;
+ }
+ 
++#ifdef __NR_mseal
++static int sys_mseal(void *ptr, size_t len, unsigned long flags)
++{
++	return syscall(__NR_mseal, (unsigned long)ptr, len, flags);
++}
++#else
++static int sys_mseal(void *ptr, size_t len, unsigned long flags)
++{
++	errno = ENOSYS;
++	return -1;
++}
++#endif
++
+ FIXTURE_SETUP(merge)
+ {
+ 	self->page_size = psize();
+@@ -1217,6 +1231,81 @@ TEST_F(merge, mremap_correct_placed_faul
  	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
  }
  
@@ -102,7 +149,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	char *carveout;
 +
 +	/* Invalid mseal() call to see if implemented. */
-+	ASSERT_EQ(syscall(__NR_mseal, 0, 0, ~0UL), -1);
++	ASSERT_EQ(sys_mseal(NULL, 0, ~0UL), -1);
 +	if (errno == ENOSYS)
 +		SKIP(return, "mseal not supported, skipping.");
 +
@@ -138,7 +185,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	 * |-----------|-----------|-----------|
 +	 *      ptr         ptr2        ptr3
 +	 */
-+	ASSERT_EQ(syscall(__NR_mseal, (unsigned long)ptr2, 5 * page_size, 0), 0);
++	ASSERT_EQ(sys_mseal(ptr2, 5 * page_size, 0), 0);
 +
 +	/* Make first VMA mergeable upon mseal. */
 +	ASSERT_EQ(mprotect(ptr, 5 * page_size,
@@ -153,7 +200,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	 *
 +	 * Now mseal all of the VMAs.
 +	 */
-+	ASSERT_EQ(syscall(__NR_mseal, (unsigned long)ptr, 15 * page_size, 0), 0);
++	ASSERT_EQ(sys_mseal(ptr, 15 * page_size, 0), 0);
 +
 +	/*
 +	 * We should end up with:
@@ -178,4 +225,5 @@ Patches currently in -mm which might be from ljs@kernel.org are
 mm-khugepaged-fix-issue-with-tracking-lock.patch
 maintainers-update-mglru-entry-to-reflect-current-status.patch
 tools-testing-selftests-add-merge-test-for-partial-msealed-range.patch
+tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch
 
