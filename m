@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E1844502A;
-	Wed,  1 Apr 2026 00:33:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E268E78F2B
+	for <mm-commits@vger.kernel.org>; Wed,  1 Apr 2026 00:33:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775003614; cv=none; b=Tw+qRzWyjWUVVuuZprHulEShQHCmbfM02t/DKv7SZTv0Jdy2Yo2A+jOFWzsPvkwVWXZsjaIpd2/vdnZNXRAfHgGtRfbgH21+D9OuUOw7tA7vPbRt4anXWmINJbOC+9yfqB+BpRoCCHZ4eo0atBt08U3uVlyGXO5tPsDPbPIVRBs=
+	t=1775003617; cv=none; b=hLHXb5Ohfucosjmd/U8S3EYU2JsvXp415H0tkPqUv1TExjw3KraRxmauCSe5T5d0XxT0lP/TLwasUMBbYEPeNawsSGh6koregeuKXpIgRKF0tir6w9w2bsJKAB8Y2btwa+mCO3CddVPMR0U+zRrro2Tzo9Dw+i7gI/lssJL4+rY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775003614; c=relaxed/simple;
-	bh=K8dquG2PUKKuN7O/6xf/xKWp4UuJ6R6RcFQ76uhDSyQ=;
-	h=Date:To:From:Subject:Message-Id; b=t+c2hdlodEC7AkYx2xPcI5oYQIhWVWXQ+Wh4XHpzXnsV0Z5O65uEtXcgGF5+Td4RogtbaNgFxfwVVn5Sswlw38SRj2jyPYHQN0gBxVfBo8KUrLWCVEdapEgAwQOG0hlz2+3JenNJTPj1flSB6K5+AsVcHsNSIKMpfx7BVatD/fk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bUDFWiZx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775003617; c=relaxed/simple;
+	bh=fIJl+E+1xTgpOz/zq9GcYP4roCIgKbCU37VI7n8gmjI=;
+	h=Date:To:From:Subject:Message-Id; b=pYNNwQig5rl7tS/JtI0VfN/u0TiPGnIMiqX6kQywFr52ZkDoa7qS4t9xS5GjfbDluH7lMPA3lPTXSqaaP08s1hoTBThHdjtFdW9fuXOAyLNUS17KQk068mc2ArWPa8yUYsKyFrh17Q/sTnYxWwu5sH4iAUtLqwvTKk2RTqY+tbE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nieCt//t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bUDFWiZx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A85EC19423;
-	Wed,  1 Apr 2026 00:33:34 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nieCt//t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72053C19423;
+	Wed,  1 Apr 2026 00:33:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775003614;
-	bh=K8dquG2PUKKuN7O/6xf/xKWp4UuJ6R6RcFQ76uhDSyQ=;
+	s=korg; t=1775003616;
+	bh=fIJl+E+1xTgpOz/zq9GcYP4roCIgKbCU37VI7n8gmjI=;
 	h=Date:To:From:Subject:From;
-	b=bUDFWiZxzYP7Hbhfg4A7noMORjh5C8DYB86LhYfpGcKMMTsUkfpuzviRvE15h/7zV
-	 ax6cCFHZXza/bOzhG5IU8m37eiXU5NEfKO/eHfcKpHwPNsKr0lKh+W1YZm4Jvwelu2
-	 Lf6gbq4nrIjbMNrCyHDCwXP9oWxbf9yEzp+oOiKs=
-Date: Tue, 31 Mar 2026 17:33:33 -0700
-To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,surenb@google.com,kernel.org,stable@vger,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,leon@kernel.org,jgg@ziepe.ca,david@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
+	b=nieCt//telzI5KUGFrS+E9HWy4dWE9lY/3XlPoISJwYuB+Ya3QX5pmEenIBqLVJ+a
+	 ki9Slxqm1mrTtNpABPuGeWcG2bPYbmIFF9V8rj55dc8FV3/KZFxq4U4IigHm/hcY4J
+	 IMxYqF7HJemsozN5hNySoLF4nMNtQ52V6kaTwhUg=
+Date: Tue, 31 Mar 2026 17:33:35 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,leon@kernel.org,jgg@ziepe.ca,david@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free.patch added to mm-new branch
-Message-Id: <20260401003334.2A85EC19423@smtp.kernel.org>
+Subject: + selftests-mm-hmm-tests-dont-hardcode-thp-size-to-2mb.patch added to mm-new branch
+Message-Id: <20260401003336.72053C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: test_hmm: evict device pages on file close to avoid use-after-free
+     Subject: selftests/mm: hmm-tests: don't hardcode THP size to 2MB
 has been added to the -mm mm-new branch.  Its filename is
-     lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free.patch
+     selftests-mm-hmm-tests-dont-hardcode-thp-size-to-2mb.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hmm-tests-dont-hardcode-thp-size-to-2mb.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,37 +70,22 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Alistair Popple <apopple@nvidia.com>
-Subject: lib: test_hmm: evict device pages on file close to avoid use-after-free
-Date: Tue, 31 Mar 2026 17:34:43 +1100
+Subject: selftests/mm: hmm-tests: don't hardcode THP size to 2MB
+Date: Tue, 31 Mar 2026 17:34:44 +1100
 
-Patch series "Minor hmm_test fixes and cleanups".
+Several HMM tests hardcode TWOMEG as the THP size. This is wrong on
+architectures where the PMD size is not 2MB such as arm64 with 64K base
+pages where THP is 512MB. Fix this by using read_pmd_pagesize() from
+vm_util instead.
 
-Two bugfixes a cleanup for the HMM kernel selftests.  These were mostly
-reported by Zenghui Yu with special thanks to Lorenzo for analysing and
-pointing out the problems.
+While here also replace the custom file_read_ulong() helper used to
+parse the default hugetlbfs page size from /proc/meminfo with the
+existing default_huge_page_size() from vm_util.
 
-
-This patch (of 3):
-
-When dmirror_fops_release() is called it frees the dmirror struct but
-doesn't migrate device private pages back to system memory first.  This
-leaves those pages with a dangling zone_device_data pointer to the freed
-dmirror.
-
-If a subsequent fault occurs on those pages (eg.  during coredump) the
-dmirror_devmem_fault() callback dereferences the stale pointer causing a
-kernel panic.  This was reported [1] when running mm/ksft_hmm.sh on arm64,
-where a test failure triggered SIGABRT and the resulting coredump walked
-the VMAs faulting in the stale device private pages.
-
-Fix this by calling dmirror_device_evict_chunk() for each devmem chunk in
-dmirror_fops_release() to migrate all device private pages back to system
-memory before freeing the dmirror struct.  The function is moved earlier
-in the file to avoid a forward declaration.
-
-Link: https://lkml.kernel.org/r/20260331063445.3551404-1-apopple@nvidia.com
-Link: https://lkml.kernel.org/r/20260331063445.3551404-2-apopple@nvidia.com
-Fixes: b2ef9f5a5cb3 ("mm/hmm/test: add selftest driver for HMM")
+Link: https://lkml.kernel.org/r/20260331063445.3551404-3-apopple@nvidia.com
+Link: https://lore.kernel.org/linux-mm/8bd0396a-8997-4d2e-a13f-5aac033083d7@linux.dev/
+Fixes: fee9f6d1b8df ("mm/hmm/test: add selftests for HMM")
+Fixes: 519071529d2a ("selftests/mm/hmm-tests: new tests for zone device THP migration")
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
 Reported-by: Zenghui Yu <zenghui.yu@linux.dev>
 Closes: https://lore.kernel.org/linux-mm/8bd0396a-8997-4d2e-a13f-5aac033083d7@linux.dev/
@@ -113,147 +98,215 @@ Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zenghui Yu <zenghui.yu@linux.dev>
-Cc: <stable@vger,kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |  112 ++++++++++++++++++++++++++---------------------
- 1 file changed, 62 insertions(+), 50 deletions(-)
+ tools/testing/selftests/mm/hmm-tests.c |   83 ++++-------------------
+ 1 file changed, 16 insertions(+), 67 deletions(-)
 
---- a/lib/test_hmm.c~lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free
-+++ a/lib/test_hmm.c
-@@ -185,11 +185,73 @@ static int dmirror_fops_open(struct inod
- 	return 0;
+--- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-hmm-tests-dont-hardcode-thp-size-to-2mb
++++ a/tools/testing/selftests/mm/hmm-tests.c
+@@ -34,6 +34,7 @@
+  */
+ #include <lib/test_hmm_uapi.h>
+ #include <mm/gup_test.h>
++#include <mm/vm_util.h>
+ 
+ struct hmm_buffer {
+ 	void		*ptr;
+@@ -548,7 +549,7 @@ TEST_F(hmm, anon_write_child)
+ 
+ 	for (migrate = 0; migrate < 2; ++migrate) {
+ 		for (use_thp = 0; use_thp < 2; ++use_thp) {
+-			npages = ALIGN(use_thp ? TWOMEG : HMM_BUFFER_SIZE,
++			npages = ALIGN(use_thp ? read_pmd_pagesize() : HMM_BUFFER_SIZE,
+ 				       self->page_size) >> self->page_shift;
+ 			ASSERT_NE(npages, 0);
+ 			size = npages << self->page_shift;
+@@ -728,7 +729,7 @@ TEST_F(hmm, anon_write_huge)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = 2 * TWOMEG;
++	size = 2 * read_pmd_pagesize();
+ 
+ 	buffer = malloc(sizeof(*buffer));
+ 	ASSERT_NE(buffer, NULL);
+@@ -744,7 +745,7 @@ TEST_F(hmm, anon_write_huge)
+ 			   buffer->fd, 0);
+ 	ASSERT_NE(buffer->ptr, MAP_FAILED);
+ 
+-	size = TWOMEG;
++	size /= 2;
+ 	npages = size >> self->page_shift;
+ 	map = (void *)ALIGN((uintptr_t)buffer->ptr, size);
+ 	ret = madvise(map, size, MADV_HUGEPAGE);
+@@ -771,54 +772,6 @@ TEST_F(hmm, anon_write_huge)
  }
  
-+static void dmirror_device_evict_chunk(struct dmirror_chunk *chunk)
-+{
-+	unsigned long start_pfn = chunk->pagemap.range.start >> PAGE_SHIFT;
-+	unsigned long end_pfn = chunk->pagemap.range.end >> PAGE_SHIFT;
-+	unsigned long npages = end_pfn - start_pfn + 1;
-+	unsigned long i;
-+	unsigned long *src_pfns;
-+	unsigned long *dst_pfns;
-+	unsigned int order = 0;
-+
-+	src_pfns = kvcalloc(npages, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
-+	dst_pfns = kvcalloc(npages, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
-+
-+	migrate_device_range(src_pfns, start_pfn, npages);
-+	for (i = 0; i < npages; i++) {
-+		struct page *dpage, *spage;
-+
-+		spage = migrate_pfn_to_page(src_pfns[i]);
-+		if (!spage || !(src_pfns[i] & MIGRATE_PFN_MIGRATE))
-+			continue;
-+
-+		if (WARN_ON(!is_device_private_page(spage) &&
-+			    !is_device_coherent_page(spage)))
-+			continue;
-+
-+		order = folio_order(page_folio(spage));
-+		spage = BACKING_PAGE(spage);
-+		if (src_pfns[i] & MIGRATE_PFN_COMPOUND) {
-+			dpage = folio_page(folio_alloc(GFP_HIGHUSER_MOVABLE,
-+					      order), 0);
-+		} else {
-+			dpage = alloc_page(GFP_HIGHUSER_MOVABLE | __GFP_NOFAIL);
-+			order = 0;
-+		}
-+
-+		/* TODO Support splitting here */
-+		lock_page(dpage);
-+		dst_pfns[i] = migrate_pfn(page_to_pfn(dpage));
-+		if (src_pfns[i] & MIGRATE_PFN_WRITE)
-+			dst_pfns[i] |= MIGRATE_PFN_WRITE;
-+		if (order)
-+			dst_pfns[i] |= MIGRATE_PFN_COMPOUND;
-+		folio_copy(page_folio(dpage), page_folio(spage));
-+	}
-+	migrate_device_pages(src_pfns, dst_pfns, npages);
-+	migrate_device_finalize(src_pfns, dst_pfns, npages);
-+	kvfree(src_pfns);
-+	kvfree(dst_pfns);
-+}
-+
- static int dmirror_fops_release(struct inode *inode, struct file *filp)
- {
- 	struct dmirror *dmirror = filp->private_data;
-+	struct dmirror_device *mdevice = dmirror->mdevice;
-+	int i;
- 
- 	mmu_interval_notifier_remove(&dmirror->notifier);
-+
-+	if (mdevice->devmem_chunks) {
-+		for (i = 0; i < mdevice->devmem_count; i++) {
-+			struct dmirror_chunk *devmem =
-+				mdevice->devmem_chunks[i];
-+
-+			dmirror_device_evict_chunk(devmem);
-+		}
-+	}
-+
- 	xa_destroy(&dmirror->pt);
- 	kfree(dmirror);
- 	return 0;
-@@ -1377,56 +1439,6 @@ static int dmirror_snapshot(struct dmirr
- 	return ret;
- }
- 
--static void dmirror_device_evict_chunk(struct dmirror_chunk *chunk)
+ /*
+- * Read numeric data from raw and tagged kernel status files.  Used to read
+- * /proc and /sys data (without a tag) and from /proc/meminfo (with a tag).
+- */
+-static long file_read_ulong(char *file, const char *tag)
 -{
--	unsigned long start_pfn = chunk->pagemap.range.start >> PAGE_SHIFT;
--	unsigned long end_pfn = chunk->pagemap.range.end >> PAGE_SHIFT;
--	unsigned long npages = end_pfn - start_pfn + 1;
--	unsigned long i;
--	unsigned long *src_pfns;
--	unsigned long *dst_pfns;
--	unsigned int order = 0;
+-	int fd;
+-	char buf[2048];
+-	int len;
+-	char *p, *q;
+-	long val;
 -
--	src_pfns = kvcalloc(npages, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
--	dst_pfns = kvcalloc(npages, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
--
--	migrate_device_range(src_pfns, start_pfn, npages);
--	for (i = 0; i < npages; i++) {
--		struct page *dpage, *spage;
--
--		spage = migrate_pfn_to_page(src_pfns[i]);
--		if (!spage || !(src_pfns[i] & MIGRATE_PFN_MIGRATE))
--			continue;
--
--		if (WARN_ON(!is_device_private_page(spage) &&
--			    !is_device_coherent_page(spage)))
--			continue;
--
--		order = folio_order(page_folio(spage));
--		spage = BACKING_PAGE(spage);
--		if (src_pfns[i] & MIGRATE_PFN_COMPOUND) {
--			dpage = folio_page(folio_alloc(GFP_HIGHUSER_MOVABLE,
--					      order), 0);
--		} else {
--			dpage = alloc_page(GFP_HIGHUSER_MOVABLE | __GFP_NOFAIL);
--			order = 0;
--		}
--
--		/* TODO Support splitting here */
--		lock_page(dpage);
--		dst_pfns[i] = migrate_pfn(page_to_pfn(dpage));
--		if (src_pfns[i] & MIGRATE_PFN_WRITE)
--			dst_pfns[i] |= MIGRATE_PFN_WRITE;
--		if (order)
--			dst_pfns[i] |= MIGRATE_PFN_COMPOUND;
--		folio_copy(page_folio(dpage), page_folio(spage));
+-	fd = open(file, O_RDONLY);
+-	if (fd < 0) {
+-		/* Error opening the file */
+-		return -1;
 -	}
--	migrate_device_pages(src_pfns, dst_pfns, npages);
--	migrate_device_finalize(src_pfns, dst_pfns, npages);
--	kvfree(src_pfns);
--	kvfree(dst_pfns);
+-
+-	len = read(fd, buf, sizeof(buf));
+-	close(fd);
+-	if (len < 0) {
+-		/* Error in reading the file */
+-		return -1;
+-	}
+-	if (len == sizeof(buf)) {
+-		/* Error file is too large */
+-		return -1;
+-	}
+-	buf[len] = '\0';
+-
+-	/* Search for a tag if provided */
+-	if (tag) {
+-		p = strstr(buf, tag);
+-		if (!p)
+-			return -1; /* looks like the line we want isn't there */
+-		p += strlen(tag);
+-	} else
+-		p = buf;
+-
+-	val = strtol(p, &q, 0);
+-	if (*q != ' ') {
+-		/* Error parsing the file */
+-		return -1;
+-	}
+-
+-	return val;
 -}
 -
- /* Removes free pages from the free list so they can't be re-allocated */
- static void dmirror_remove_free_pages(struct dmirror_chunk *devmem)
+-/*
+  * Write huge TLBFS page.
+  */
+ TEST_F(hmm, anon_write_hugetlbfs)
+@@ -826,15 +779,13 @@ TEST_F(hmm, anon_write_hugetlbfs)
+ 	struct hmm_buffer *buffer;
+ 	unsigned long npages;
+ 	unsigned long size;
+-	unsigned long default_hsize;
++	unsigned long default_hsize = default_huge_page_size();
+ 	unsigned long i;
+ 	int *ptr;
+ 	int ret;
+ 
+-	default_hsize = file_read_ulong("/proc/meminfo", "Hugepagesize:");
+-	if (default_hsize < 0 || default_hsize*1024 < default_hsize)
++	if (!default_hsize)
+ 		SKIP(return, "Huge page size could not be determined");
+-	default_hsize = default_hsize*1024; /* KB to B */
+ 
+ 	size = ALIGN(TWOMEG, default_hsize);
+ 	npages = size >> self->page_shift;
+@@ -1606,7 +1557,7 @@ TEST_F(hmm, compound)
+ 	struct hmm_buffer *buffer;
+ 	unsigned long npages;
+ 	unsigned long size;
+-	unsigned long default_hsize;
++	unsigned long default_hsize = default_huge_page_size();
+ 	int *ptr;
+ 	unsigned char *m;
+ 	int ret;
+@@ -1614,10 +1565,8 @@ TEST_F(hmm, compound)
+ 
+ 	/* Skip test if we can't allocate a hugetlbfs page. */
+ 
+-	default_hsize = file_read_ulong("/proc/meminfo", "Hugepagesize:");
+-	if (default_hsize < 0 || default_hsize*1024 < default_hsize)
++	if (!default_hsize)
+ 		SKIP(return, "Huge page size could not be determined");
+-	default_hsize = default_hsize*1024; /* KB to B */
+ 
+ 	size = ALIGN(TWOMEG, default_hsize);
+ 	npages = size >> self->page_shift;
+@@ -2106,7 +2055,7 @@ TEST_F(hmm, migrate_anon_huge_empty)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = TWOMEG;
++	size = read_pmd_pagesize();
+ 
+ 	buffer = malloc(sizeof(*buffer));
+ 	ASSERT_NE(buffer, NULL);
+@@ -2158,7 +2107,7 @@ TEST_F(hmm, migrate_anon_huge_zero)
+ 	int ret;
+ 	int val;
+ 
+-	size = TWOMEG;
++	size = read_pmd_pagesize();
+ 
+ 	buffer = malloc(sizeof(*buffer));
+ 	ASSERT_NE(buffer, NULL);
+@@ -2221,7 +2170,7 @@ TEST_F(hmm, migrate_anon_huge_free)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = TWOMEG;
++	size = read_pmd_pagesize();
+ 
+ 	buffer = malloc(sizeof(*buffer));
+ 	ASSERT_NE(buffer, NULL);
+@@ -2280,7 +2229,7 @@ TEST_F(hmm, migrate_anon_huge_fault)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = TWOMEG;
++	size = read_pmd_pagesize();
+ 
+ 	buffer = malloc(sizeof(*buffer));
+ 	ASSERT_NE(buffer, NULL);
+@@ -2332,7 +2281,7 @@ TEST_F(hmm, migrate_partial_unmap_fault)
  {
+ 	struct hmm_buffer *buffer;
+ 	unsigned long npages;
+-	unsigned long size = TWOMEG;
++	unsigned long size = read_pmd_pagesize();
+ 	unsigned long i;
+ 	void *old_ptr;
+ 	void *map;
+@@ -2398,7 +2347,7 @@ TEST_F(hmm, migrate_remap_fault)
+ {
+ 	struct hmm_buffer *buffer;
+ 	unsigned long npages;
+-	unsigned long size = TWOMEG;
++	unsigned long size = read_pmd_pagesize();
+ 	unsigned long i;
+ 	void *old_ptr, *new_ptr = NULL;
+ 	void *map;
+@@ -2498,7 +2447,7 @@ TEST_F(hmm, migrate_anon_huge_err)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = TWOMEG;
++	size = read_pmd_pagesize();
+ 
+ 	buffer = malloc(sizeof(*buffer));
+ 	ASSERT_NE(buffer, NULL);
+@@ -2593,7 +2542,7 @@ TEST_F(hmm, migrate_anon_huge_zero_err)
+ 	int *ptr;
+ 	int ret;
+ 
+-	size = TWOMEG;
++	size = read_pmd_pagesize();
+ 
+ 	buffer = malloc(sizeof(*buffer));
+ 	ASSERT_NE(buffer, NULL);
 _
 
 Patches currently in -mm which might be from apopple@nvidia.com are
