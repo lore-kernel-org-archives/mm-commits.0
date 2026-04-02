@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AD55365A08
-	for <mm-commits@vger.kernel.org>; Thu,  2 Apr 2026 18:20:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A0AB36C0CB
+	for <mm-commits@vger.kernel.org>; Thu,  2 Apr 2026 18:21:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775154058; cv=none; b=SjYw3bShzW0qmnSNkUKbIfZZia9fO9W2UGIJqE+uTRGrRgZ/BIMTwjrTY918wA+OgUu5tXOagjc1a+SoiIv0/MM53njY9mkdCN4cI4ijxqU29N5thmzwlKwlaY+M2vVxv03liM0rZuNLVkWAgLdK+5PaO/sJN1zJDNLZKCTQ71c=
+	t=1775154082; cv=none; b=ECFEhP7bN5FdtuzZiumn6oC4Ik4/b0c7Fxti9dwdnuPdfwQ51uGFYDtj8oU+7XyMK+8i/oSOzP032gwQ1RtA8sOZ3RfWxoKO1VIJ9uKZ863GimKLjTyOcN6/g9eGPl6wsVHTRwV6zanmVoaG/cHMe/b+0nPKwG//1Ke6jwDbWvc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775154058; c=relaxed/simple;
-	bh=w6wWriOhPpIpX/7w8SdNbVPIhlPN/jf8e61N1Q2oHbU=;
-	h=Date:To:From:Subject:Message-Id; b=jjOuxY5qskI2giPSDqzU1v4Gwc2gzyTkBx1qh9eGHjkqWgd8GHJK4fhTquOmHcJZeRTAT7o1CgxodSC2GoeKBnVROgHPHyZxfUx4Bd1bVDrfgmAYXV8Xs9JN8oXPs2jA0lsPh5lY4rBoswwRQOq2zmhM2GNB3/wI9SHyfkazSSY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kbJbT/IF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775154082; c=relaxed/simple;
+	bh=uG2Sgg2uTCc7sEW1FoAWw1kvuyvC2EJgqY8yv4v5TP8=;
+	h=Date:To:From:Subject:Message-Id; b=FnhenXl8OcVwV58Dlt1t5/Yf2Flsyq2oB3kCJQiCg2euOYaH4s727phpBXFbOqSqtuc8yQ7QHOiZBFeyQIRxigXIKl4wCUlcSG30Rzkl3Z/qTuoe/xs7/WN8W5S5dOB3pXNkMIoWLi9j9Vwx3l8ox/s/D2DWeAkA6iJ//vMOSuY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K0bvw18x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kbJbT/IF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8D36C116C6;
-	Thu,  2 Apr 2026 18:20:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K0bvw18x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EAE2C116C6;
+	Thu,  2 Apr 2026 18:21:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775154057;
-	bh=w6wWriOhPpIpX/7w8SdNbVPIhlPN/jf8e61N1Q2oHbU=;
+	s=korg; t=1775154082;
+	bh=uG2Sgg2uTCc7sEW1FoAWw1kvuyvC2EJgqY8yv4v5TP8=;
 	h=Date:To:From:Subject:From;
-	b=kbJbT/IFFEDu/LsZNq+LGNDjtuul7adxLzYlNoGFTzPqKpkgHU8pv1Lw+s5sqm0ZW
-	 xCIoaDK6Y/E0w1TrdAlcnL9XDQX/z3PACca/kNqVx1g/OZIYnS2DujBeYHa+XCtVPu
-	 J4O+RrbUOBQtuduFH+dC879HnEPegAjshBpwJ7SI=
-Date: Thu, 02 Apr 2026 11:20:57 -0700
+	b=K0bvw18xA+Uq72oFhfomNwrCJNJaGIOSAf99KIpaeIYLk+F09mLRoQSlQyx4O51EQ
+	 HqsSDpzjNnvlzBhMQvxuD0l+ypl/OSXZJ44/j7BIGZAF0GVIEOdQUUiAoMS60PbxpP
+	 5k97T+c3Gi5Pt290sMBshkbfbHwcbDFBA4TiDlW0=
+Date: Thu, 02 Apr 2026 11:21:21 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,seanjc@google.com,peterx@redhat.com,pbonzini@redhat.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,kalyazin@amazon.com,jthoughton@google.com,hughd@google.com,harry.yoo@oracle.com,harry@kernel.org,david@kernel.org,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,avagin@google.com,aarcange@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + userfaultfd-mfill_atomic-remove-retry-logic-fix.patch added to mm-unstable branch
-Message-Id: <20260402182057.C8D36C116C6@smtp.kernel.org>
+Message-Id: <20260402182122.0EAE2C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -58,7 +58,7 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: : Mike Rapoport (Microsoft) <rppt@kernel.org>
+From: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Subject: userfaultfd: remove safety measure of not returning ENOENT from _copy
 Date: Thu Apr 2 16:38:39 2026 +0300
 
