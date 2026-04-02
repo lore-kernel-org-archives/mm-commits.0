@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F02B435AC1B;
-	Thu,  2 Apr 2026 18:17:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AD55365A08
+	for <mm-commits@vger.kernel.org>; Thu,  2 Apr 2026 18:20:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775153854; cv=none; b=IVgaftVJDkoU9JUB77BKqk/Kc3NqkjDWWmLHHh1swHRiYBPtrC9kaeCtzo0LllhOKR/sYJOMzPs0bHASW/EqMjz5FuKez+AXsNyNP5smufa1Q6V0+GuEPYaorDqK9sReV+D6SyaHhpQpm7StXo6L1yB39kyeApEYXbEzZ5k15Jo=
+	t=1775154058; cv=none; b=SjYw3bShzW0qmnSNkUKbIfZZia9fO9W2UGIJqE+uTRGrRgZ/BIMTwjrTY918wA+OgUu5tXOagjc1a+SoiIv0/MM53njY9mkdCN4cI4ijxqU29N5thmzwlKwlaY+M2vVxv03liM0rZuNLVkWAgLdK+5PaO/sJN1zJDNLZKCTQ71c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775153854; c=relaxed/simple;
-	bh=k1j5trEatp42J/GAwpkXQBO8emp69M+cIR1Do9O1ZUE=;
-	h=Date:To:From:Subject:Message-Id; b=saHFVmxzGOUddi75fhUKEgZZlskJKgIms9GOQMlOGzW15FK4jfCWK3iDA3HmUNlCbkQAv7Ab5DBR9DZ4c2z3JQrIl7AiLKY6JOcpgE3uol/ISpXOZSX/HhCKERU3MFzWVurPvFc5k4JtK9Q7z9WsQEYnicKmIjkpgAgiFnQkBuA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0F6WEl41; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775154058; c=relaxed/simple;
+	bh=w6wWriOhPpIpX/7w8SdNbVPIhlPN/jf8e61N1Q2oHbU=;
+	h=Date:To:From:Subject:Message-Id; b=jjOuxY5qskI2giPSDqzU1v4Gwc2gzyTkBx1qh9eGHjkqWgd8GHJK4fhTquOmHcJZeRTAT7o1CgxodSC2GoeKBnVROgHPHyZxfUx4Bd1bVDrfgmAYXV8Xs9JN8oXPs2jA0lsPh5lY4rBoswwRQOq2zmhM2GNB3/wI9SHyfkazSSY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kbJbT/IF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0F6WEl41"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91380C116C6;
-	Thu,  2 Apr 2026 18:17:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kbJbT/IF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8D36C116C6;
+	Thu,  2 Apr 2026 18:20:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775153853;
-	bh=k1j5trEatp42J/GAwpkXQBO8emp69M+cIR1Do9O1ZUE=;
+	s=korg; t=1775154057;
+	bh=w6wWriOhPpIpX/7w8SdNbVPIhlPN/jf8e61N1Q2oHbU=;
 	h=Date:To:From:Subject:From;
-	b=0F6WEl41kitUOHdN3Dk0jEKvIBlaEfuPcDTF2JW45ICBWmaM2BmT+1xfkS6jVVClM
-	 nR9Ys7UFkeBJrE0OK8+Jw9Kmbm1XK+w+VSkZYg4CnQ7qGp3D+roTWJAbw2vEHchsAz
-	 fK+t2hF5eljb8s52HGMuVUhRpPeNFHPOT9RJl2b4=
-Date: Thu, 02 Apr 2026 11:17:32 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=kbJbT/IFFEDu/LsZNq+LGNDjtuul7adxLzYlNoGFTzPqKpkgHU8pv1Lw+s5sqm0ZW
+	 xCIoaDK6Y/E0w1TrdAlcnL9XDQX/z3PACca/kNqVx1g/OZIYnS2DujBeYHa+XCtVPu
+	 J4O+RrbUOBQtuduFH+dC879HnEPegAjshBpwJ7SI=
+Date: Thu, 02 Apr 2026 11:20:57 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,seanjc@google.com,peterx@redhat.com,pbonzini@redhat.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,kalyazin@amazon.com,jthoughton@google.com,hughd@google.com,harry.yoo@oracle.com,harry@kernel.org,david@kernel.org,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,avagin@google.com,aarcange@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-stat-deallocate-damon_call-failure-leaking-damon_ctx.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260402181733.91380C116C6@smtp.kernel.org>
+Subject: + userfaultfd-mfill_atomic-remove-retry-logic-fix.patch added to mm-unstable branch
+Message-Id: <20260402182057.C8D36C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/stat: deallocate damon_call() failure leaking damon_ctx
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-stat-deallocate-damon_call-failure-leaking-damon_ctx.patch
+     Subject: userfaultfd: remove safety measure of not returning ENOENT from _copy
+has been added to the -mm mm-unstable branch.  Its filename is
+     userfaultfd-mfill_atomic-remove-retry-logic-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-stat-deallocate-damon_call-failure-leaking-damon_ctx.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-mfill_atomic-remove-retry-logic-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,76 +58,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/stat: deallocate damon_call() failure leaking damon_ctx
-Date: Thu, 2 Apr 2026 06:44:17 -0700
+From: : Mike Rapoport (Microsoft) <rppt@kernel.org>
+Subject: userfaultfd: remove safety measure of not returning ENOENT from _copy
+Date: Thu Apr 2 16:38:39 2026 +0300
 
-damon_stat_start() always allocates the module's damon_ctx object
-(damon_stat_context).  Meanwhile, if damon_call() in the function fails,
-the damon_ctx object is not deallocated.  Hence, if the damon_call() is
-failed, and the user writes Y to “enabled” again, the previously
-allocated damon_ctx object is leaked.
-
-This cannot simply be fixed by deallocating the damon_ctx object when
-damon_call() fails.  That's because damon_call() failure doesn't guarantee
-the kdamond main function, which accesses the damon_ctx object, is
-completely finished.  In other words, if damon_stat_start() deallocates
-the damon_ctx object after damon_call() failure, the not-yet-terminated
-kdamond could access the freed memory (use-after-free).
-
-Fix the leak while avoiding the use-after-free by keeping returning
-damon_stat_start() without deallocating the damon_ctx object after
-damon_call() failure, but deallocating it when the function is invoked
-again and the kdamond is completely terminated.  If the kdamond is not yet
-terminated, simply return -EAGAIN, as the kdamond will soon be terminated.
-
-The issue was discovered [1] by sashiko.
-
-Link: https://lkml.kernel.org/r/20260402134418.74121-1-sj@kernel.org
-Link: https://lore.kernel.org/20260401012428.86694-1-sj@kernel.org [1]
-Fixes: 405f61996d9d ("mm/damon/stat: use damon_call() repeat mode instead of damon_callback")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 6.17.x
+Link: https://lkml.kernel.org/r/ac5zcDUY8CFHr6Lw@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Harry Yoo <harry.yoo@oracle.com>
+Cc: Harry Yoo (Oracle) <harry@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nikita Kalyazin <kalyazin@amazon.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/stat.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/userfaultfd.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/damon/stat.c~mm-damon-stat-deallocate-damon_call-failure-leaking-damon_ctx
-+++ a/mm/damon/stat.c
-@@ -245,6 +245,12 @@ static int damon_stat_start(void)
- {
- 	int err;
- 
-+	if (damon_stat_context) {
-+		if (damon_is_running(damon_stat_context))
-+			return -EAGAIN;
-+		damon_destroy_ctx(damon_stat_context);
-+	}
-+
- 	damon_stat_context = damon_stat_build_ctx();
- 	if (!damon_stat_context)
- 		return -ENOMEM;
-@@ -261,6 +267,7 @@ static void damon_stat_stop(void)
- {
- 	damon_stop(&damon_stat_context, 1);
- 	damon_destroy_ctx(damon_stat_context);
-+	damon_stat_context = NULL;
+--- a/mm/userfaultfd.c~userfaultfd-mfill_atomic-remove-retry-logic-fix
++++ a/mm/userfaultfd.c
+@@ -530,9 +530,6 @@ err_filemap_remove:
+ 		ops->filemap_remove(folio, state->vma);
+ err_folio_put:
+ 	folio_put(folio);
+-	/* Don't return -ENOENT so that our caller won't retry */
+-	if (ret == -ENOENT)
+-		ret = -EFAULT;
+ 	return ret;
  }
  
- static int damon_stat_enabled_store(
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch
-mm-damon-stat-deallocate-damon_call-failure-leaking-damon_ctx.patch
-mm-damon-core-fix-damon_call-vs-kdamond_fn-exit-race.patch
-mm-damon-core-fix-damos_walk-vs-kdamond_fn-exit-race.patch
-mm-damon-core-validate-damos_quota_goal-nid-for-node_mem_usedfree_bp.patch
-mm-damon-core-validate-damos_quota_goal-nid-for-node_memcg_usedfree_bp.patch
-mm-damon-core-use-time_in_range_open-for-damos-quota-window-start.patch
-docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race.patch
-docs-admin-guide-mm-damon-lru_sort-warn-commit_inputs-vs-param-updates-race.patch
+userfaultfd-introduce-mfill_copy_folio_locked-helper.patch
+userfaultfd-introduce-struct-mfill_state.patch
+userfaultfd-introduce-mfill_establish_pmd-helper.patch
+userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
+userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
+userfaultfd-move-vma_can_userfault-out-of-line.patch
+userfaultfd-introduce-vm_uffd_ops.patch
+shmem-userfaultfd-use-a-vma-callback-to-handle-uffdio_continue.patch
+userfaultfd-introduce-vm_uffd_ops-alloc_folio.patch
+shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops.patch
+userfaultfd-mfill_atomic-remove-retry-logic.patch
+userfaultfd-mfill_atomic-remove-retry-logic-fix.patch
 
