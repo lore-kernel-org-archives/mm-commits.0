@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 960C32EC0A2;
-	Thu,  2 Apr 2026 04:17:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85F2F35AC20;
+	Thu,  2 Apr 2026 04:19:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775103424; cv=none; b=HlIQ7Ck0xRw5E80AdCit2hlrWtc2umdsk6ShmITeT5Ydc3Q6l1RvnAFa6fuofP5BL5wN7RagchlIcJ+eo0KS0Ypp/FeJSRXjRBt+z7CmdFTv2jwfFPhvwEVeHxezEWCJIeguPgUOX5V8ks8q92dPxGnPF9oIeHvNQecvkCJxmLM=
+	t=1775103561; cv=none; b=drvYx0tPBBzKazSBzsIXr7IigSIgTrId8cApAXrGRk13vkcbKW5hZiPR2Uv6OC55EfmxnquXQjUGimNKWTIzXH72HtQkyh3lam9xUKPWgDROp07V5dQUR5grwiVCr82JDVtnSLTRP0Wabolb1/Hfo3DODq57aM7Roj5PBSaZhdg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775103424; c=relaxed/simple;
-	bh=awFoLWkQ8BuHAli93Y5A7C0YLpFtjzyD8P6Wm93Jy7w=;
-	h=Date:To:From:Subject:Message-Id; b=tChJvzikkUccfZHyDJWgnNtUD5peEyKwvZ50piE/FKmN3W9ybIlBUv6qUkSMEqshRtCqBLFn2K5liwqZu86hz2mEbu5Mclunr34myhrfihEU4v7rgAqCWz/LBd6SKlaY2FsknFklwt6J4ad+DcAzGFflRbn08QLjE64LALxrGSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CPl95Xi2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775103561; c=relaxed/simple;
+	bh=pbttv0jIUfUSpVVJLpViiZ1oN89HGmE0PqXa2mJNB7s=;
+	h=Date:To:From:Subject:Message-Id; b=MIw/3SixjVSS+KIURxy0FabpMJISmynEIH1nZXoSRortik9Sov3wRqNTsIh976rJw6I2ynXuBxeSPz4iwO0lNVsguzUnPr+3GKJ7fcTEkLEcQV170HAY1NGqRfb8TDSJ2XozMy/WwvCwgRYl3FiVfUDJyWvn6UjmTiyIylzFG/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AJIFOSh8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CPl95Xi2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F02EC19423;
-	Thu,  2 Apr 2026 04:17:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AJIFOSh8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49BB4C19423;
+	Thu,  2 Apr 2026 04:19:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775103424;
-	bh=awFoLWkQ8BuHAli93Y5A7C0YLpFtjzyD8P6Wm93Jy7w=;
+	s=korg; t=1775103561;
+	bh=pbttv0jIUfUSpVVJLpViiZ1oN89HGmE0PqXa2mJNB7s=;
 	h=Date:To:From:Subject:From;
-	b=CPl95Xi23FU4LCrrnEARnuE/dGbA8Aobm+fT2uYPOFIKacBGaLBmT7OGZ9J4I50VH
-	 weHAWQw0jXOIuGR0CCegfcLtj1gJ0ndDI919koL0iBdjleLvnWs+i+6abimAWEKQLP
-	 8r1usoFYepldFgeED5uykh1kzHRLZBcTY8rg7EVw=
-Date: Wed, 01 Apr 2026 21:17:03 -0700
-To: mm-commits@vger.kernel.org,tejas.bharambe@outlook.com,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,thbharam@gmail.com,akpm@linux-foundation.org
+	b=AJIFOSh8RD7WoDCXXg1aVWzR5UWV+9s6SNfY7cl0DXfH/s2NiqDbf5O/jE1YMyGcX
+	 XgMMVPp8QE1Q+F7afkzLO2eiSaChX8TF8IQN+bXULN0DSB0Md3YmfkvWe1h0Czv+pA
+	 0XsWh7oThTWDi5LkJs6FFBrmosPlXk3xU8OTmy2I=
+Date: Wed, 01 Apr 2026 21:19:20 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,tejas.bharambe@outlook.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: + ocfs2-fix-use-after-free-in-ocfs2_fault-when-vm_fault_retry.patch added to mm-nonmm-unstable branch
-Message-Id: <20260402041704.0F02EC19423@smtp.kernel.org>
+Message-Id: <20260402041921.49BB4C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -58,7 +58,7 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tejas Bharambe <thbharam@gmail.com>
+From: Tejas Bharambe <tejas.bharambe@outlook.com>
 Subject: ocfs2: fix use-after-free in ocfs2_fault() when VM_FAULT_RETRY
 Date: Wed, 1 Apr 2026 21:02:34 -0700
 
@@ -151,7 +151,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  /* End of trace events for fs/ocfs2/mmap.c. */
 _
 
-Patches currently in -mm which might be from thbharam@gmail.com are
+Patches currently in -mm which might be from tejas.bharambe@outlook.com are
 
 ocfs2-fix-use-after-free-in-ocfs2_fault-when-vm_fault_retry.patch
 
