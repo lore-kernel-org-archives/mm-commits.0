@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85F2F35AC20;
-	Thu,  2 Apr 2026 04:19:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18A062EC0A2
+	for <mm-commits@vger.kernel.org>; Thu,  2 Apr 2026 04:23:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775103561; cv=none; b=drvYx0tPBBzKazSBzsIXr7IigSIgTrId8cApAXrGRk13vkcbKW5hZiPR2Uv6OC55EfmxnquXQjUGimNKWTIzXH72HtQkyh3lam9xUKPWgDROp07V5dQUR5grwiVCr82JDVtnSLTRP0Wabolb1/Hfo3DODq57aM7Roj5PBSaZhdg=
+	t=1775103807; cv=none; b=noJFiFcyQCyuAqG3Uq/drv9LwjtWa7POXj/EWwkAsNpvlb7VjbM0duXYxAVFhEmMlnVBtyrYaiwIXx30lBsEy+FV7pTfEAMA41y+L6qkp9M07A2rlJ27Av92crVmL1I9L1Evn9rdTUlJSXfsl+75PuWUpS91K6sp57/RCuXuLCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775103561; c=relaxed/simple;
-	bh=pbttv0jIUfUSpVVJLpViiZ1oN89HGmE0PqXa2mJNB7s=;
-	h=Date:To:From:Subject:Message-Id; b=MIw/3SixjVSS+KIURxy0FabpMJISmynEIH1nZXoSRortik9Sov3wRqNTsIh976rJw6I2ynXuBxeSPz4iwO0lNVsguzUnPr+3GKJ7fcTEkLEcQV170HAY1NGqRfb8TDSJ2XozMy/WwvCwgRYl3FiVfUDJyWvn6UjmTiyIylzFG/0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AJIFOSh8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775103807; c=relaxed/simple;
+	bh=YGUTdn6Y7YBV2CRiihhtKL3gQ9jqeU3vk0NgvIMZ2wc=;
+	h=Date:To:From:Subject:Message-Id; b=UM2laKHE/HoSSKykBzEvk2HwF/kx9HWdOicTW1RHVD4Rf7XmJ1juTfeIGhncuCGO0ohySdNWQum+snru1vVxDoLr7rluv6TSsC7ZgTvAfan3U7fJs74n0+kWxgHKI1yfCmTXNbYngVGxFgFFs5cXGta9OHIVECkKbpyKpg3mOn0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GbDKZ/gK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AJIFOSh8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49BB4C19423;
-	Thu,  2 Apr 2026 04:19:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GbDKZ/gK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 999D7C19423;
+	Thu,  2 Apr 2026 04:23:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775103561;
-	bh=pbttv0jIUfUSpVVJLpViiZ1oN89HGmE0PqXa2mJNB7s=;
+	s=korg; t=1775103806;
+	bh=YGUTdn6Y7YBV2CRiihhtKL3gQ9jqeU3vk0NgvIMZ2wc=;
 	h=Date:To:From:Subject:From;
-	b=AJIFOSh8RD7WoDCXXg1aVWzR5UWV+9s6SNfY7cl0DXfH/s2NiqDbf5O/jE1YMyGcX
-	 XgMMVPp8QE1Q+F7afkzLO2eiSaChX8TF8IQN+bXULN0DSB0Md3YmfkvWe1h0Czv+pA
-	 0XsWh7oThTWDi5LkJs6FFBrmosPlXk3xU8OTmy2I=
-Date: Wed, 01 Apr 2026 21:19:20 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,tejas.bharambe@outlook.com,akpm@linux-foundation.org
+	b=GbDKZ/gKNgd75rNYa76mWgXIJIU6pCg8buhkY+tAzJHQj81aAwayGSK5nb3N749mw
+	 KMO8PCafFocNCpi/XS/IMwueMm6HNwbdD9AMEEX6TDYDBXFixFgnwtd0jUeGmO+uAG
+	 X+NmtnphFgY78cg8zvOTilUxvEimW3DzmRZKzcWE=
+Date: Wed, 01 Apr 2026 21:23:26 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-use-after-free-in-ocfs2_fault-when-vm_fault_retry.patch added to mm-nonmm-unstable branch
-Message-Id: <20260402041921.49BB4C19423@smtp.kernel.org>
+Subject: [to-be-updated] userfaultfd-introduce-mfill_copy_folio_locked-helper.patch removed from -mm tree
+Message-Id: <20260402042326.999D7C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,124 +34,193 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: ocfs2: fix use-after-free in ocfs2_fault() when VM_FAULT_RETRY
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-fix-use-after-free-in-ocfs2_fault-when-vm_fault_retry.patch
+The quilt patch titled
+     Subject: userfaultfd: introduce mfill_copy_folio_locked() helper
+has been removed from the -mm tree.  Its filename was
+     userfaultfd-introduce-mfill_copy_folio_locked-helper.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-use-after-free-in-ocfs2_fault-when-vm_fault_retry.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Tejas Bharambe <tejas.bharambe@outlook.com>
-Subject: ocfs2: fix use-after-free in ocfs2_fault() when VM_FAULT_RETRY
-Date: Wed, 1 Apr 2026 21:02:34 -0700
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: userfaultfd: introduce mfill_copy_folio_locked() helper
+Date: Mon, 30 Mar 2026 13:11:02 +0300
 
-filemap_fault() may drop the mmap_lock before returning VM_FAULT_RETRY,
-as documented in mm/filemap.c:
+Patch series "mm, kvm: allow uffd support in guest_memfd", v3.
 
-  "If our return value has VM_FAULT_RETRY set, it's because the mmap_lock
-  may be dropped before doing I/O or by lock_folio_maybe_drop_mmap()."
+These patches enable support for userfaultfd in guest_memfd.
 
-When this happens, a concurrent munmap() can call remove_vma() and free
-the vm_area_struct via RCU. The saved 'vma' pointer in ocfs2_fault() then
-becomes a dangling pointer, and the subsequent trace_ocfs2_fault() call
-dereferences it -- a use-after-free.
+As the ground work I refactored userfaultfd handling of PTE-based memory
+types (anonymous and shmem) and converted them to use vm_uffd_ops for
+allocating a folio or getting an existing folio from the page cache. 
+shmem also implements callbacks that add a folio to the page cache after
+the data passed in UFFDIO_COPY was copied and remove the folio from the
+page cache if page table update fails.
 
-Fix this by saving the inode reference before calling filemap_fault(),
-and removing vma from the trace event. The inode remains valid across
-the lock drop since the file is still open, so the trace can fire in
-all cases without dereferencing the potentially freed vma.
+In order for guest_memfd to notify userspace about page faults, there are
+new VM_FAULT_UFFD_MINOR and VM_FAULT_UFFD_MISSING that a ->fault() handler
+can return to inform the page fault handler that it needs to call
+handle_userfault() to complete the fault.
 
-Link: https://lkml.kernel.org/r/20260402040234.92432-1-tejas.bharambe@outlook.com
-Signed-off-by: Tejas Bharambe <tejas.bharambe@outlook.com>
-Reported-by: syzbot+a49010a0e8fcdeea075f@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=a49010a0e8fcdeea075f
-Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
+Nikita helped to plumb these new goodies into guest_memfd and provided
+basic tests to verify that guest_memfd works with userfaultfd.  The
+handling of UFFDIO_MISSING in guest_memfd requires ability to remove a
+folio from page cache, the best way I could find was exporting
+filemap_remove_folio() to KVM.
+
+I deliberately left hugetlb out, at least for the most part.  hugetlb
+handles acquisition of VMA and more importantly establishing of parent
+page table entry differently than PTE-based memory types.  This is a
+different abstraction level than what vm_uffd_ops provides and people
+objected to exposing such low level APIs as a part of VMA operations.
+
+Also, to enable uffd in guest_memfd refactoring of hugetlb is not needed
+and I prefer to delay it until the dust settles after the changes in this
+set.
+
+
+This patch (of 15):
+
+Split copying of data when locks held from mfill_atomic_pte_copy() into a
+helper function mfill_copy_folio_locked().
+
+This makes improves code readability and makes complex
+mfill_atomic_pte_copy() function easier to comprehend.
+
+No functional change.
+
+Link: https://lkml.kernel.org/r/20260330101116.1117699-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20260330101116.1117699-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrei Vagin <avagin@google.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: James Houghton <jthoughton@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Nikita Kalyazin <kalyazin@amazon.com>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/mmap.c        |    6 +++---
- fs/ocfs2/ocfs2_trace.h |   10 ++++------
- 2 files changed, 7 insertions(+), 9 deletions(-)
+ mm/userfaultfd.c |   59 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 35 insertions(+), 24 deletions(-)
 
---- a/fs/ocfs2/mmap.c~ocfs2-fix-use-after-free-in-ocfs2_fault-when-vm_fault_retry
-+++ a/fs/ocfs2/mmap.c
-@@ -30,7 +30,7 @@
- 
- static vm_fault_t ocfs2_fault(struct vm_fault *vmf)
- {
--	struct vm_area_struct *vma = vmf->vma;
-+	struct inode *inode = file_inode(vmf->vma->vm_file);
- 	sigset_t oldset;
- 	vm_fault_t ret;
- 
-@@ -38,8 +38,8 @@ static vm_fault_t ocfs2_fault(struct vm_
- 	ret = filemap_fault(vmf);
- 	ocfs2_unblock_signals(&oldset);
- 
--	trace_ocfs2_fault(OCFS2_I(vma->vm_file->f_mapping->host)->ip_blkno,
--			  vma, vmf->page, vmf->pgoff);
-+	trace_ocfs2_fault(OCFS2_I(inode)->ip_blkno,
-+			  vmf->page, vmf->pgoff);
+--- a/mm/userfaultfd.c~userfaultfd-introduce-mfill_copy_folio_locked-helper
++++ a/mm/userfaultfd.c
+@@ -238,6 +238,40 @@ out:
  	return ret;
  }
  
---- a/fs/ocfs2/ocfs2_trace.h~ocfs2-fix-use-after-free-in-ocfs2_fault-when-vm_fault_retry
-+++ a/fs/ocfs2/ocfs2_trace.h
-@@ -1246,22 +1246,20 @@ TRACE_EVENT(ocfs2_write_end_inline,
++static int mfill_copy_folio_locked(struct folio *folio, unsigned long src_addr)
++{
++	void *kaddr;
++	int ret;
++
++	kaddr = kmap_local_folio(folio, 0);
++	/*
++	 * The read mmap_lock is held here.  Despite the
++	 * mmap_lock being read recursive a deadlock is still
++	 * possible if a writer has taken a lock.  For example:
++	 *
++	 * process A thread 1 takes read lock on own mmap_lock
++	 * process A thread 2 calls mmap, blocks taking write lock
++	 * process B thread 1 takes page fault, read lock on own mmap lock
++	 * process B thread 2 calls mmap, blocks taking write lock
++	 * process A thread 1 blocks taking read lock on process B
++	 * process B thread 1 blocks taking read lock on process A
++	 *
++	 * Disable page faults to prevent potential deadlock
++	 * and retry the copy outside the mmap_lock.
++	 */
++	pagefault_disable();
++	ret = copy_from_user(kaddr, (const void __user *) src_addr,
++			     PAGE_SIZE);
++	pagefault_enable();
++	kunmap_local(kaddr);
++
++	if (ret)
++		return -EFAULT;
++
++	flush_dcache_folio(folio);
++	return ret;
++}
++
+ static int mfill_atomic_pte_copy(pmd_t *dst_pmd,
+ 				 struct vm_area_struct *dst_vma,
+ 				 unsigned long dst_addr,
+@@ -245,7 +279,6 @@ static int mfill_atomic_pte_copy(pmd_t *
+ 				 uffd_flags_t flags,
+ 				 struct folio **foliop)
+ {
+-	void *kaddr;
+ 	int ret;
+ 	struct folio *folio;
  
- TRACE_EVENT(ocfs2_fault,
- 	TP_PROTO(unsigned long long ino,
--		 void *area, void *page, unsigned long pgoff),
--	TP_ARGS(ino, area, page, pgoff),
-+		 void *page, unsigned long pgoff),
-+	TP_ARGS(ino, page, pgoff),
- 	TP_STRUCT__entry(
- 		__field(unsigned long long, ino)
--		__field(void *, area)
- 		__field(void *, page)
- 		__field(unsigned long, pgoff)
- 	),
- 	TP_fast_assign(
- 		__entry->ino = ino;
--		__entry->area = area;
- 		__entry->page = page;
- 		__entry->pgoff = pgoff;
- 	),
--	TP_printk("%llu %p %p %lu",
--		  __entry->ino, __entry->area, __entry->page, __entry->pgoff)
-+	TP_printk("%llu %p %lu",
-+		  __entry->ino, __entry->page, __entry->pgoff)
- );
+@@ -256,27 +289,7 @@ static int mfill_atomic_pte_copy(pmd_t *
+ 		if (!folio)
+ 			goto out;
  
- /* End of trace events for fs/ocfs2/mmap.c. */
+-		kaddr = kmap_local_folio(folio, 0);
+-		/*
+-		 * The read mmap_lock is held here.  Despite the
+-		 * mmap_lock being read recursive a deadlock is still
+-		 * possible if a writer has taken a lock.  For example:
+-		 *
+-		 * process A thread 1 takes read lock on own mmap_lock
+-		 * process A thread 2 calls mmap, blocks taking write lock
+-		 * process B thread 1 takes page fault, read lock on own mmap lock
+-		 * process B thread 2 calls mmap, blocks taking write lock
+-		 * process A thread 1 blocks taking read lock on process B
+-		 * process B thread 1 blocks taking read lock on process A
+-		 *
+-		 * Disable page faults to prevent potential deadlock
+-		 * and retry the copy outside the mmap_lock.
+-		 */
+-		pagefault_disable();
+-		ret = copy_from_user(kaddr, (const void __user *) src_addr,
+-				     PAGE_SIZE);
+-		pagefault_enable();
+-		kunmap_local(kaddr);
++		ret = mfill_copy_folio_locked(folio, src_addr);
+ 
+ 		/* fallback to copy_from_user outside mmap_lock */
+ 		if (unlikely(ret)) {
+@@ -285,8 +298,6 @@ static int mfill_atomic_pte_copy(pmd_t *
+ 			/* don't free the page */
+ 			goto out;
+ 		}
+-
+-		flush_dcache_folio(folio);
+ 	} else {
+ 		folio = *foliop;
+ 		*foliop = NULL;
 _
 
-Patches currently in -mm which might be from tejas.bharambe@outlook.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-ocfs2-fix-use-after-free-in-ocfs2_fault-when-vm_fault_retry.patch
+userfaultfd-introduce-struct-mfill_state.patch
+userfaultfd-introduce-mfill_establish_pmd-helper.patch
+userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
+userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
+userfaultfd-move-vma_can_userfault-out-of-line.patch
+userfaultfd-introduce-vm_uffd_ops.patch
+shmem-userfaultfd-use-a-vma-callback-to-handle-uffdio_continue.patch
+userfaultfd-introduce-vm_uffd_ops-alloc_folio.patch
+shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops.patch
+userfaultfd-mfill_atomic-remove-retry-logic.patch
 
