@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AF39362138
-	for <mm-commits@vger.kernel.org>; Thu,  2 Apr 2026 04:37:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 647B53F7AA0
+	for <mm-commits@vger.kernel.org>; Thu,  2 Apr 2026 17:38:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775104636; cv=none; b=nV7nVxQd7+sn1EXEVgDI1aFw/ZQDQx73ZWjWagwxEiSajHb04iYrKXho3TCMoYj3GP6KbQDkKdXJjKuIlZuTRZWTZ8JHkADcu4OB6ysGZvZz6qKkxL2z8iVwIUBy9hUlUGPuaj16kEQ3CL+6aYU+pDpCGHOTpCvFRkkFf0bVL3g=
+	t=1775151511; cv=none; b=f1Q1I53+5a+YnjoMMSXkHngfB7/O1l4vyNo2O0+pK/52fqfTARDMC7eC7Ra0W/gsCh17QpJS3tYt3nr0OdKlrINVUtxQWs+tKZjcplJL/QYjnDiUZmH1jYtllYqxVRyNUh4nlLacc75vBxQWK1Y6NWilK1a/tdUsZClhUraysro=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775104636; c=relaxed/simple;
-	bh=L3v3TTJEDCfPz1EWXaTKAMH8WJ5ZBFAk2n50QptVm0I=;
-	h=Date:To:From:Subject:Message-Id; b=mqQfPhSXk19+L1BwpV4j5BEhzqXHNjgiKQgZiYFZvbWhUoVRUy/SL/I7X/KiCALkKC99vk5Jn3ngK/cDydPtX1FaMf9NeJh40rns/FOPwcExsrt42DHnnGqYFFxLABPklFxldHS9cS9mJImuRQiaxOeztoqdDL5h+k1F/LmRRc0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tuGz0xBk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775151511; c=relaxed/simple;
+	bh=ub/U543CZPFDw5ntjLmADpipwSmsGHVG6+9vTewizUY=;
+	h=Date:To:From:Subject:Message-Id; b=fhrMUALKntlYRpKog9jJncXqpFA5SlFW4WPNNDBso1ZGo9KZHjc4d0Ptnd1j/bkuBdetvhsogSzNk/XBgDz2sqLh412A3adY8eUuZKfaa6BTZ30Wi5a8MaXcremZ/9mrUsrdUGTn/ZcjnMUrSiSFeOwjEvaMPnmqJ2Nk8jrb7Pw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Py796C5z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tuGz0xBk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4530C19423;
-	Thu,  2 Apr 2026 04:37:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Py796C5z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9045C2BCB2;
+	Thu,  2 Apr 2026 17:38:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775104635;
-	bh=L3v3TTJEDCfPz1EWXaTKAMH8WJ5ZBFAk2n50QptVm0I=;
+	s=korg; t=1775151510;
+	bh=ub/U543CZPFDw5ntjLmADpipwSmsGHVG6+9vTewizUY=;
 	h=Date:To:From:Subject:From;
-	b=tuGz0xBklogYb1cIDZw8ndTtkGerIgR93cdbxeKfX7ahe4s6t7UhjIeDymUKyFyca
-	 sbyFSUatVMXROqrdJYo9PctC50UIYNezqVOwafh2W9qWStnsv+Fl3bJv1zDKwIO8cp
-	 u9Dod7c3EihS3p7FJ5vtzoXtumlKb/86WgzfvkVw=
-Date: Wed, 01 Apr 2026 21:37:15 -0700
-To: mm-commits@vger.kernel.org,kalyazin@amazon.com,akpm@linux-foundation.org
+	b=Py796C5zrGNmaXH451Z0gHw+NxrP7xkT50gd9hBbP+P3T4cYIDxhCb0wlS1oorMvg
+	 +QdTYUuYCzqwacNMPtSVrOtLMCwFnWaYnwS2GESp1+P5oaKvgjJ3pNcUcHYwVy1kbQ
+	 Wb7oRdc2JAqtOgO+m8QNj51dmcpOdwhja11srQDo=
+Date: Thu, 02 Apr 2026 10:38:30 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,ptesarik@suse.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch added to mm-unstable branch
-Message-Id: <20260402043715.D4530C19423@smtp.kernel.org>
+Subject: + mm-sparse-fix-comment-for-section-map-alignment.patch added to mm-new branch
+Message-Id: <20260402173830.C9045C2BCB2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: KVM: selftests: test userfaultfd missing for guest_memfd
-has been added to the -mm mm-unstable branch.  Its filename is
-     kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch
+     Subject: mm/sparse: fix comment for section map alignment
+has been added to the -mm mm-new branch.  Its filename is
+     mm-sparse-fix-comment-for-section-map-alignment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-fix-comment-for-section-map-alignment.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,145 +69,97 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Nikita Kalyazin <kalyazin@amazon.com>
-Subject: KVM: selftests: test userfaultfd missing for guest_memfd
-Date: Thu, 2 Apr 2026 07:11:56 +0300
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/sparse: fix comment for section map alignment
+Date: Thu, 2 Apr 2026 18:23:20 +0800
 
-The test demonstrates that a missing userfaultfd event in guest_memfd can
-be resolved via a UFFDIO_COPY ioctl.
+The comment in mmzone.h currently details exhaustive per-architecture
+bit-width lists and explains alignment using min(PAGE_SHIFT,
+PFN_SECTION_SHIFT).  Such details risk falling out of date over time and
+may inadvertently be left un-updated.
 
-Link: https://lkml.kernel.org/r/20260402041156.1377214-16-rppt@kernel.org
-Signed-off-by: Nikita Kalyazin <kalyazin@amazon.com>
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Harry Yoo (Oracle) <harry@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: James Houghton <jthoughton@google.com>
+We always expect a single section to cover full pages.  Therefore, we can
+safely assume that PFN_SECTION_SHIFT is large enough to accommodate
+SECTION_MAP_LAST_BIT.  We use BUILD_BUG_ON() to ensure this.
+
+Update the comment to accurately reflect this consensus, making it clear
+that we rely on a single section covering full pages.
+
+Link: https://lkml.kernel.org/r/20260402102320.3617578-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Petr Tesarik <ptesarik@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kvm/guest_memfd_test.c |   80 ++++++++++++++-
- 1 file changed, 79 insertions(+), 1 deletion(-)
+ include/linux/mmzone.h |   25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
---- a/tools/testing/selftests/kvm/guest_memfd_test.c~kvm-selftests-test-userfaultfd-missing-for-guest_memfd
-+++ a/tools/testing/selftests/kvm/guest_memfd_test.c
-@@ -439,6 +439,82 @@ static void test_uffd_minor(int fd, size
- 	close(uffd);
- }
+--- a/include/linux/mmzone.h~mm-sparse-fix-comment-for-section-map-alignment
++++ a/include/linux/mmzone.h
+@@ -2068,21 +2068,16 @@ static inline struct mem_section *__nr_t
+ extern size_t mem_section_usage_size(void);
  
-+static void test_uffd_missing(int fd, size_t total_size)
-+{
-+	struct uffdio_register uffd_reg;
-+	struct uffdio_copy uffd_copy;
-+	struct uffd_msg msg;
-+	struct fault_args args;
-+	pthread_t fault_thread;
-+	void *mem, *buf = NULL;
-+	int uffd, ret;
-+	off_t offset = page_size;
-+	void *fault_addr;
-+	const char test_val = 0xab;
-+
-+	ret = posix_memalign(&buf, page_size, total_size);
-+	TEST_ASSERT_EQ(ret, 0);
-+	memset(buf, test_val, total_size);
-+
-+	uffd = syscall(__NR_userfaultfd, O_CLOEXEC);
-+	TEST_ASSERT(uffd != -1, "userfaultfd creation should succeed");
-+
-+	struct uffdio_api uffdio_api = {
-+		.api = UFFD_API,
-+		.features = 0,
-+	};
-+	ret = ioctl(uffd, UFFDIO_API, &uffdio_api);
-+	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_API) should succeed");
-+
-+	mem = mmap(NULL, total_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-+	TEST_ASSERT(mem != MAP_FAILED, "mmap should succeed");
-+
-+	uffd_reg.range.start = (unsigned long)mem;
-+	uffd_reg.range.len = total_size;
-+	uffd_reg.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	ret = ioctl(uffd, UFFDIO_REGISTER, &uffd_reg);
-+	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_REGISTER) should succeed");
-+
-+	fault_addr = mem + offset;
-+	args.addr = fault_addr;
-+
-+	ret = pthread_create(&fault_thread, NULL, fault_thread_fn, &args);
-+	TEST_ASSERT(ret == 0, "pthread_create should succeed");
-+
-+	ret = read(uffd, &msg, sizeof(msg));
-+	TEST_ASSERT(ret != -1, "read from userfaultfd should succeed");
-+	TEST_ASSERT(msg.event == UFFD_EVENT_PAGEFAULT, "event type should be pagefault");
-+	TEST_ASSERT((void *)(msg.arg.pagefault.address & ~(page_size - 1)) == fault_addr,
-+		    "pagefault should occur at expected address");
-+	TEST_ASSERT(!(msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WP),
-+		    "pagefault should not be write-protect");
-+
-+	uffd_copy.dst = (unsigned long)fault_addr;
-+	uffd_copy.src = (unsigned long)(buf + offset);
-+	uffd_copy.len = page_size;
-+	uffd_copy.mode = 0;
-+	ret = ioctl(uffd, UFFDIO_COPY, &uffd_copy);
-+	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_COPY) should succeed");
-+
-+	/* Wait for the faulting thread to complete - this provides the memory barrier */
-+	ret = pthread_join(fault_thread, NULL);
-+	TEST_ASSERT(ret == 0, "pthread_join should succeed");
-+
-+	/*
-+	 * Now it's safe to check args.value - the thread has completed
-+	 * and memory is synchronized
-+	 */
-+	TEST_ASSERT(args.value == test_val,
-+		    "memory should contain the value that was copied");
-+	TEST_ASSERT(*(char *)(mem + offset) == test_val,
-+		    "no further fault is expected");
-+
-+	ret = munmap(mem, total_size);
-+	TEST_ASSERT(!ret, "munmap should succeed");
-+	free(buf);
-+	close(uffd);
-+}
-+
- static void test_guest_memfd_flags(struct kvm_vm *vm)
- {
- 	uint64_t valid_flags = vm_check_cap(vm, KVM_CAP_GUEST_MEMFD_FLAGS);
-@@ -494,8 +570,10 @@ static void __test_guest_memfd(struct kv
- 	gmem_test(fallocate, vm, flags);
- 	gmem_test(invalid_punch_hole, vm, flags);
- 
--	if (flags & GUEST_MEMFD_FLAG_INIT_SHARED)
-+	if (flags & GUEST_MEMFD_FLAG_INIT_SHARED) {
- 		gmem_test(uffd_minor, vm, flags);
-+		gmem_test(uffd_missing, vm, flags);
-+	}
- }
- 
- static void test_guest_memfd(unsigned long vm_type)
+ /*
+- * We use the lower bits of the mem_map pointer to store
+- * a little bit of information.  The pointer is calculated
+- * as mem_map - section_nr_to_pfn(pnum).  The result is
+- * aligned to the minimum alignment of the two values:
+- *   1. All mem_map arrays are page-aligned.
+- *   2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT
+- *      lowest bits.  PFN_SECTION_SHIFT is arch-specific
+- *      (equal SECTION_SIZE_BITS - PAGE_SHIFT), and the
+- *      worst combination is powerpc with 256k pages,
+- *      which results in PFN_SECTION_SHIFT equal 6.
+- * To sum it up, at least 6 bits are available on all architectures.
+- * However, we can exceed 6 bits on some other architectures except
+- * powerpc (e.g. 15 bits are available on x86_64, 13 bits are available
+- * with the worst case of 64K pages on arm64) if we make sure the
+- * exceeded bit is not applicable to powerpc.
++ * We use the lower bits of the mem_map pointer to store a little bit of
++ * information. The pointer is calculated as mem_map - section_nr_to_pfn().
++ * The result is aligned to the minimum alignment of the two values:
++ *
++ * 1. All mem_map arrays are page-aligned.
++ * 2. section_nr_to_pfn() always clears PFN_SECTION_SHIFT lowest bits.
++ *
++ * We always expect a single section to cover full pages. Therefore,
++ * we can safely assume that PFN_SECTION_SHIFT is large enough to
++ * accommodate SECTION_MAP_LAST_BIT. We use BUILD_BUG_ON() to ensure this.
+  */
+ enum {
+ 	SECTION_MARKED_PRESENT_BIT,
 _
 
-Patches currently in -mm which might be from kalyazin@amazon.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-kvm-guest_memfd-implement-userfaultfd-operations.patch
-kvm-selftests-test-userfaultfd-minor-for-guest_memfd.patch
-kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch
+mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup.patch
+mm-workingset-use-folio_lruvec-in-workingset_refault.patch
+mm-rename-unlock_page_lruvec_irq-and-its-variants.patch
+mm-vmscan-refactor-move_folios_to_lru.patch
+mm-memcontrol-allocate-object-cgroup-for-non-kmem-case.patch
+mm-memcontrol-return-root-object-cgroup-for-root-memory-cgroup.patch
+mm-memcontrol-prevent-memory-cgroup-release-in-get_mem_cgroup_from_folio.patch
+buffer-prevent-memory-cgroup-release-in-folio_alloc_buffers.patch
+writeback-prevent-memory-cgroup-release-in-writeback-module.patch
+mm-memcontrol-prevent-memory-cgroup-release-in-count_memcg_folio_events.patch
+mm-page_io-prevent-memory-cgroup-release-in-page_io-module.patch
+mm-migrate-prevent-memory-cgroup-release-in-folio_migrate_mapping.patch
+mm-mglru-prevent-memory-cgroup-release-in-mglru.patch
+mm-memcontrol-prevent-memory-cgroup-release-in-mem_cgroup_swap_full.patch
+mm-workingset-prevent-memory-cgroup-release-in-lru_gen_eviction.patch
+mm-workingset-prevent-lruvec-release-in-workingset_refault.patch
+mm-zswap-prevent-lruvec-release-in-zswap_folio_swapin.patch
+mm-swap-prevent-lruvec-release-in-lru_gen_clear_refs.patch
+mm-workingset-prevent-lruvec-release-in-workingset_activation.patch
+mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock.patch
+mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios.patch
+mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-helpers.patch
+mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path.patch
+mm-sparse-fix-comment-for-section-map-alignment.patch
 
