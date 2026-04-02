@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDCC5362138
-	for <mm-commits@vger.kernel.org>; Thu,  2 Apr 2026 04:37:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA16A3624AB
+	for <mm-commits@vger.kernel.org>; Thu,  2 Apr 2026 04:37:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775104630; cv=none; b=WwhotjZLY0iFBDZ2veZEzEiWfdtnWshMsF74Rojy92d9PVcjrIMeEY3n9wYLf+IJyp8Xo6kOYlW88WYxniqMh58lH6TQ9nbgUIAsndtunFTsMctMEF2oT3gMY0c6fuuU4/XwR+lTh4o30cOTSds/rxTw1VY4J3+xt/JqKXqWcl0=
+	t=1775104633; cv=none; b=GbK3rX4gITUw9Lz6UnHWGMY2VaBztjRxkTIbgVouhKCX+3DRmO42Kv0bYrJekExBb/WYRPGJKFTE007ay9wGV2oT3qDq8r3wWo4/ZquRGtudpwKE88GV/ZXDVUakUVQBzyzH8TI+CbYAgPaHE4GyJY1Opb9MgeACc8RAfohM72Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775104630; c=relaxed/simple;
-	bh=SuQDYggiz+akn5wIECaqO1PGq19ZD5vLNc7C4QCFqDo=;
-	h=Date:To:From:Subject:Message-Id; b=tCliFcrxz+5jpZvUMd2nxDjxC8SutAahbidxdoFC/2KZHdt0N99hv19k9QbPJBGvRR0dB5K165wzAzo3PHSJeqkR3hNwx8RS84y74dw2UvpJ/hpWVc00AZdEYptyEK0hUQNBv/njKGZmzyDjt1swJoUFCLmxDu7+buaUCrlN80A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z++oVa5K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775104633; c=relaxed/simple;
+	bh=CRTFS8uxfvwr8DxwWIcZxcy+N8WT1u0Gllz7ntn6R50=;
+	h=Date:To:From:Subject:Message-Id; b=Wx1KOYvuinSB3gBa5m4+EoiIGBXOJVkkfYMrnDcwOHWzG4/H46FStyJMwSH1MB/IjWMz4Q42Xl5py/N4iyb7FoKW0q09ju4hNdOxD404kmkF25aM2850JSivYyc4E6Wp0Jw8UAHKAh8YtPIrhDCLNuCl8R2Fo3oACIkHITILTzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b+alAFDe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z++oVa5K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BFBFC19423;
-	Thu,  2 Apr 2026 04:37:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b+alAFDe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 671B7C19423;
+	Thu,  2 Apr 2026 04:37:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775104630;
-	bh=SuQDYggiz+akn5wIECaqO1PGq19ZD5vLNc7C4QCFqDo=;
+	s=korg; t=1775104633;
+	bh=CRTFS8uxfvwr8DxwWIcZxcy+N8WT1u0Gllz7ntn6R50=;
 	h=Date:To:From:Subject:From;
-	b=z++oVa5KTJLikMUONx6G/RkwLsA0QHYgsanCT/YekTyuEyjtYt5t4l1k6qtSVsA3F
-	 OVskAFScs9GGVgN/927StQ/OkKazpXv3vaTJGylbvGggXKVCSTa4+zQReJ6YshIv6e
-	 ypdb9eg8cO39283k/pvClQ2FJV59G3o9fZSIBRvM=
-Date: Wed, 01 Apr 2026 21:37:10 -0700
+	b=b+alAFDeuhMX6gPM4gNMKjIfTNHvT4sYC8Dx/NeWxG9J4bMf5uQ3CAy+/btnvLMXI
+	 Gs1nb343P6ini4jAzhTt/yrwlebUJ2hB4JTxabHIbQy3JZ1/6oqn6RZ3lx0Poe5Xza
+	 TBFC9VZfKjLGzJa6DbsdPcjAbSBw2rMTjI0yyndQ=
+Date: Wed, 01 Apr 2026 21:37:12 -0700
 To: mm-commits@vger.kernel.org,kalyazin@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kvm-guest_memfd-implement-userfaultfd-operations.patch added to mm-unstable branch
-Message-Id: <20260402043710.8BFBFC19423@smtp.kernel.org>
+Subject: + kvm-selftests-test-userfaultfd-minor-for-guest_memfd.patch added to mm-unstable branch
+Message-Id: <20260402043713.671B7C19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: KVM: guest_memfd: implement userfaultfd operations
+     Subject: KVM: selftests: test userfaultfd minor for guest_memfd
 has been added to the -mm mm-unstable branch.  Its filename is
-     kvm-guest_memfd-implement-userfaultfd-operations.patch
+     kvm-selftests-test-userfaultfd-minor-for-guest_memfd.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-guest_memfd-implement-userfaultfd-operations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kvm-selftests-test-userfaultfd-minor-for-guest_memfd.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,25 +59,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Nikita Kalyazin <kalyazin@amazon.com>
-Subject: KVM: guest_memfd: implement userfaultfd operations
-Date: Thu, 2 Apr 2026 07:11:54 +0300
+Subject: KVM: selftests: test userfaultfd minor for guest_memfd
+Date: Thu, 2 Apr 2026 07:11:55 +0300
 
-userfaultfd notifications about page faults used for live migration and
-snapshotting of VMs.
+The test demonstrates that a minor userfaultfd event in guest_memfd can be
+resolved via a memcpy followed by a UFFDIO_CONTINUE ioctl.
 
-MISSING mode allows post-copy live migration and MINOR mode allows
-optimization for post-copy live migration for VMs backed with shared
-hugetlbfs or tmpfs mappings as described in detail in commit 7677f7fd8be7
-("userfaultfd: add minor fault registration mode").
-
-To use the same mechanisms for VMs that use guest_memfd to map their
-memory, guest_memfd should support userfaultfd operations.
-
-Add implementation of vm_uffd_ops to guest_memfd.
-
-Link: https://lkml.kernel.org/r/20260402041156.1377214-14-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20260402041156.1377214-15-rppt@kernel.org
 Signed-off-by: Nikita Kalyazin <kalyazin@amazon.com>
-Co-developed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrei Vagin <avagin@google.com>
@@ -103,140 +92,152 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c           |    1 
- virt/kvm/guest_memfd.c |   84 ++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 83 insertions(+), 2 deletions(-)
+ tools/testing/selftests/kvm/guest_memfd_test.c |  113 +++++++++++++++
+ 1 file changed, 113 insertions(+)
 
---- a/mm/filemap.c~kvm-guest_memfd-implement-userfaultfd-operations
-+++ a/mm/filemap.c
-@@ -262,6 +262,7 @@ void filemap_remove_folio(struct folio *
+--- a/tools/testing/selftests/kvm/guest_memfd_test.c~kvm-selftests-test-userfaultfd-minor-for-guest_memfd
++++ a/tools/testing/selftests/kvm/guest_memfd_test.c
+@@ -10,13 +10,17 @@
+ #include <errno.h>
+ #include <stdio.h>
+ #include <fcntl.h>
++#include <pthread.h>
  
- 	filemap_free_folio(mapping, folio);
+ #include <linux/bitmap.h>
+ #include <linux/falloc.h>
+ #include <linux/sizes.h>
++#include <linux/userfaultfd.h>
+ #include <sys/mman.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#include <sys/syscall.h>
++#include <sys/ioctl.h>
+ 
+ #include "kvm_util.h"
+ #include "numaif.h"
+@@ -329,6 +333,112 @@ static void test_create_guest_memfd_mult
+ 	close(fd1);
  }
-+EXPORT_SYMBOL_FOR_MODULES(filemap_remove_folio, "kvm");
  
- /*
-  * page_cache_delete_batch - delete several folios from page cache
---- a/virt/kvm/guest_memfd.c~kvm-guest_memfd-implement-userfaultfd-operations
-+++ a/virt/kvm/guest_memfd.c
-@@ -7,6 +7,7 @@
- #include <linux/mempolicy.h>
- #include <linux/pseudo_fs.h>
- #include <linux/pagemap.h>
-+#include <linux/userfaultfd_k.h>
- 
- #include "kvm_mm.h"
- 
-@@ -107,6 +108,12 @@ static int kvm_gmem_prepare_folio(struct
- 	return __kvm_gmem_prepare_folio(kvm, slot, index, folio);
- }
- 
-+static struct folio *kvm_gmem_get_folio_noalloc(struct inode *inode, pgoff_t pgoff)
++struct fault_args {
++	char *addr;
++	char value;
++};
++
++static void *fault_thread_fn(void *arg)
 +{
-+	return __filemap_get_folio(inode->i_mapping, pgoff,
-+				   FGP_LOCK | FGP_ACCESSED, 0);
++	struct fault_args *args = arg;
++
++	/* Trigger page fault */
++	args->value = *args->addr;
++	return NULL;
 +}
 +
- /*
-  * Returns a locked folio on success.  The caller is responsible for
-  * setting the up-to-date flag before the memory is mapped into the guest.
-@@ -126,8 +133,7 @@ static struct folio *kvm_gmem_get_folio(
- 	 * Fast-path: See if folio is already present in mapping to avoid
- 	 * policy_lookup.
- 	 */
--	folio = __filemap_get_folio(inode->i_mapping, index,
--				    FGP_LOCK | FGP_ACCESSED, 0);
-+	folio = kvm_gmem_get_folio_noalloc(inode, index);
- 	if (!IS_ERR(folio))
- 		return folio;
- 
-@@ -457,12 +463,86 @@ static struct mempolicy *kvm_gmem_get_po
- }
- #endif /* CONFIG_NUMA */
- 
-+#ifdef CONFIG_USERFAULTFD
-+static bool kvm_gmem_can_userfault(struct vm_area_struct *vma, vm_flags_t vm_flags)
++static void test_uffd_minor(int fd, size_t total_size)
 +{
-+	struct inode *inode = file_inode(vma->vm_file);
++	struct uffdio_register uffd_reg;
++	struct uffdio_continue uffd_cont;
++	struct uffd_msg msg;
++	struct fault_args args;
++	pthread_t fault_thread;
++	void *mem, *mem_nofault, *buf = NULL;
++	int uffd, ret;
++	off_t offset = page_size;
++	void *fault_addr;
++	const char test_val = 0xcd;
++
++	ret = posix_memalign(&buf, page_size, total_size);
++	TEST_ASSERT_EQ(ret, 0);
++	memset(buf, test_val, total_size);
++
++	uffd = syscall(__NR_userfaultfd, O_CLOEXEC);
++	TEST_ASSERT(uffd != -1, "userfaultfd creation should succeed");
++
++	struct uffdio_api uffdio_api = {
++		.api = UFFD_API,
++		.features = 0,
++	};
++	ret = ioctl(uffd, UFFDIO_API, &uffdio_api);
++	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_API) should succeed");
++
++	/* Map the guest_memfd twice: once with UFFD registered, once without */
++	mem = mmap(NULL, total_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
++	TEST_ASSERT(mem != MAP_FAILED, "mmap should succeed");
++
++	mem_nofault = mmap(NULL, total_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
++	TEST_ASSERT(mem_nofault != MAP_FAILED, "mmap should succeed");
++
++	/* Register UFFD_MINOR on the first mapping */
++	uffd_reg.range.start = (unsigned long)mem;
++	uffd_reg.range.len = total_size;
++	uffd_reg.mode = UFFDIO_REGISTER_MODE_MINOR;
++	ret = ioctl(uffd, UFFDIO_REGISTER, &uffd_reg);
++	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_REGISTER) should succeed");
 +
 +	/*
-+	 * Only support userfaultfd for guest_memfd with INIT_SHARED flag.
-+	 * This ensures the memory can be mapped to userspace.
++	 * Populate the page in the page cache first via mem_nofault.
++	 * This is required for UFFD_MINOR - the page must exist in the cache.
++	 * Write test data to the page.
 +	 */
-+	if (!(GMEM_I(inode)->flags & GUEST_MEMFD_FLAG_INIT_SHARED))
-+		return false;
++	memcpy(mem_nofault + offset, buf + offset, page_size);
 +
-+	return true;
++	/*
++	 * Now access the same page via mem (which has UFFD_MINOR registered).
++	 * Since the page exists in the cache, this should trigger UFFD_MINOR.
++	 */
++	fault_addr = mem + offset;
++	args.addr = fault_addr;
++
++	ret = pthread_create(&fault_thread, NULL, fault_thread_fn, &args);
++	TEST_ASSERT(ret == 0, "pthread_create should succeed");
++
++	ret = read(uffd, &msg, sizeof(msg));
++	TEST_ASSERT(ret != -1, "read from userfaultfd should succeed");
++	TEST_ASSERT(msg.event == UFFD_EVENT_PAGEFAULT, "event type should be pagefault");
++	TEST_ASSERT((void *)(msg.arg.pagefault.address & ~(page_size - 1)) == fault_addr,
++		    "pagefault should occur at expected address");
++	TEST_ASSERT(msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_MINOR,
++		    "pagefault should be minor fault");
++
++	/* Resolve the minor fault with UFFDIO_CONTINUE */
++	uffd_cont.range.start = (unsigned long)fault_addr;
++	uffd_cont.range.len = page_size;
++	uffd_cont.mode = 0;
++	ret = ioctl(uffd, UFFDIO_CONTINUE, &uffd_cont);
++	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_CONTINUE) should succeed");
++
++	/* Wait for the faulting thread to complete */
++	ret = pthread_join(fault_thread, NULL);
++	TEST_ASSERT(ret == 0, "pthread_join should succeed");
++
++	/* Verify the thread read the correct value */
++	TEST_ASSERT(args.value == test_val,
++		    "memory should contain the value that was written");
++	TEST_ASSERT(*(char *)(mem + offset) == test_val,
++		    "no further fault is expected");
++
++	ret = munmap(mem_nofault, total_size);
++	TEST_ASSERT(!ret, "munmap should succeed");
++
++	ret = munmap(mem, total_size);
++	TEST_ASSERT(!ret, "munmap should succeed");
++	free(buf);
++	close(uffd);
 +}
 +
-+static struct folio *kvm_gmem_folio_alloc(struct vm_area_struct *vma,
-+					  unsigned long addr)
-+{
-+	struct inode *inode = file_inode(vma->vm_file);
-+	pgoff_t pgoff = linear_page_index(vma, addr);
-+	struct mempolicy *mpol;
-+	struct folio *folio;
-+	gfp_t gfp;
+ static void test_guest_memfd_flags(struct kvm_vm *vm)
+ {
+ 	uint64_t valid_flags = vm_check_cap(vm, KVM_CAP_GUEST_MEMFD_FLAGS);
+@@ -383,6 +493,9 @@ static void __test_guest_memfd(struct kv
+ 	gmem_test(file_size, vm, flags);
+ 	gmem_test(fallocate, vm, flags);
+ 	gmem_test(invalid_punch_hole, vm, flags);
 +
-+	if (unlikely(pgoff >= (i_size_read(inode) >> PAGE_SHIFT)))
-+		return NULL;
-+
-+	gfp = mapping_gfp_mask(inode->i_mapping);
-+	mpol = mpol_shared_policy_lookup(&GMEM_I(inode)->policy, pgoff);
-+	mpol = mpol ?: get_task_policy(current);
-+	folio = filemap_alloc_folio(gfp, 0, mpol);
-+	mpol_cond_put(mpol);
-+
-+	return folio;
-+}
-+
-+static int kvm_gmem_filemap_add(struct folio *folio,
-+				struct vm_area_struct *vma,
-+				unsigned long addr)
-+{
-+	struct inode *inode = file_inode(vma->vm_file);
-+	struct address_space *mapping = inode->i_mapping;
-+	pgoff_t pgoff = linear_page_index(vma, addr);
-+	int err;
-+
-+	__folio_set_locked(folio);
-+	err = filemap_add_folio(mapping, folio, pgoff, GFP_KERNEL);
-+	if (err) {
-+		folio_unlock(folio);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static void kvm_gmem_filemap_remove(struct folio *folio,
-+				    struct vm_area_struct *vma)
-+{
-+	filemap_remove_folio(folio);
-+	folio_unlock(folio);
-+}
-+
-+static const struct vm_uffd_ops kvm_gmem_uffd_ops = {
-+	.can_userfault     = kvm_gmem_can_userfault,
-+	.get_folio_noalloc = kvm_gmem_get_folio_noalloc,
-+	.alloc_folio       = kvm_gmem_folio_alloc,
-+	.filemap_add       = kvm_gmem_filemap_add,
-+	.filemap_remove    = kvm_gmem_filemap_remove,
-+};
-+#endif /* CONFIG_USERFAULTFD */
-+
- static const struct vm_operations_struct kvm_gmem_vm_ops = {
- 	.fault		= kvm_gmem_fault_user_mapping,
- #ifdef CONFIG_NUMA
- 	.get_policy	= kvm_gmem_get_policy,
- 	.set_policy	= kvm_gmem_set_policy,
- #endif
-+#ifdef CONFIG_USERFAULTFD
-+	.uffd_ops	= &kvm_gmem_uffd_ops,
-+#endif
- };
++	if (flags & GUEST_MEMFD_FLAG_INIT_SHARED)
++		gmem_test(uffd_minor, vm, flags);
+ }
  
- static int kvm_gmem_mmap(struct file *file, struct vm_area_struct *vma)
+ static void test_guest_memfd(unsigned long vm_type)
 _
 
 Patches currently in -mm which might be from kalyazin@amazon.com are
