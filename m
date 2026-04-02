@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1FB535B62A
-	for <mm-commits@vger.kernel.org>; Thu,  2 Apr 2026 17:59:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE2AC40DFAD;
+	Thu,  2 Apr 2026 18:16:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775152758; cv=none; b=Lb/CXc1RxcCQss5x4gM5L3FYPRi8D0xAQAZfyzxw7VHzIyl7foEf6kRG+xKx2qxc97YIii5yaPio/qgU9a7iCGWhg+I5yi/sJxsjLFvNYP2KgO65l8/+Pcd5pWk8MVDzZ1zwBwOZ0DnepuKtkswmkuyU/7+V8MMKePw8bULGJn0=
+	t=1775153814; cv=none; b=eFEJNcv2ppZNgUMXL10Ka9pP0j2nBfSfkXZwVItUhZSi0Ggm3n25/he2+vB8NyRCSJpZe1XvdARt2rGxIt7Xnyq9j4/uO+j/0XwI+Vz3a4BhuEsXK5fc9z5cXasX6/8GPm3oMpRDWQXNRr3WR1eDzZy1ANBjK76Q/vTvVGnl/qw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775152758; c=relaxed/simple;
-	bh=3aRkeQVvGd011KM64nNC2nXr2La5mSy9n7GrowXVPZ4=;
-	h=Date:To:From:Subject:Message-Id; b=QlG1p/p0cLFe97LHSmEnFjO61b8Dy0+hGqXt+gpoLp2Vvg40uAZvDyFfy0jsHdSUFHEVNzmRxwtxhVxoLWuBCvDVBttaIScXd96c848kFm7ofQ73LqxMeQ/lii11bdGvsssuJcZw5UGZwsTEVfGOh1WdWL/JB57BMshIOeLWZtk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RAXpTjeP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775153814; c=relaxed/simple;
+	bh=1HUIFxw7IEVSVQfSYHCrsFERzjTsfVDyFOwcnC9cNSA=;
+	h=Date:To:From:Subject:Message-Id; b=COGtiKdZ8HyKt6wSLk9zBmtfAd2DBpem7k+NuroGzuNOhcgB5hJGzJcmMS5qinqvARWGNidVXBmwlQ7OwQudBbz8Em/s24NydNFwxr5qwMY9sLDmt5yLBVV+orhv88N6JpdDPJIFqonaYcIFKjIIo3Ta1J+olmu1JY1LZG/sTFo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wJzBnGdH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RAXpTjeP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFF9AC19423;
-	Thu,  2 Apr 2026 17:59:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wJzBnGdH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2C913C116C6;
+	Thu,  2 Apr 2026 18:16:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775152757;
-	bh=3aRkeQVvGd011KM64nNC2nXr2La5mSy9n7GrowXVPZ4=;
+	s=korg; t=1775153814;
+	bh=1HUIFxw7IEVSVQfSYHCrsFERzjTsfVDyFOwcnC9cNSA=;
 	h=Date:To:From:Subject:From;
-	b=RAXpTjePo9gZXxPc7c/ubqj9rGZai8Ny64BzGNZI4ACJ9OzFv833jvKBJEKW1HK4+
-	 L1Z3cpoVqVGdt5GAMA4cMR5LUt3iCt/+g9oUITDZQsoMkXjieW/uODeLfj/h6NAngM
-	 7RgCOUOmdsZFpEeyYr9TwkwYSctv2qR8A/PdoJFo=
-Date: Thu, 02 Apr 2026 10:59:17 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jianghaoran@kylinos.cn,duanchenghao@kylinos.cn,akpm@linux-foundation.org
+	b=wJzBnGdHrj69LwG5yPIjfMwCRzPtcvpX82Rz2rC38zg/I4PWQHlQSl9Dma1sdQgdo
+	 jQSDvSF3jBsUQXzS2asNwY3bkEhKQ+JcJKc3d7aSbeQOz8M7u6uShoQ/91BRToqZ5L
+	 xyDiyeJpBx2bltnsts1uiQZLf5hUt+YqJD6cNvwk=
+Date: Thu, 02 Apr 2026 11:16:53 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios.patch removed from -mm tree
-Message-Id: <20260402175917.AFF9AC19423@smtp.kernel.org>
+Subject: [to-be-updated] mm-damon-stat-deallocate-damon_call-failure-leaking-damon_ctx.patch removed from -mm tree
+Message-Id: <20260402181654.2C913C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,68 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memfd_luo: fix integer overflow in memfd_luo_preserve_folios
+     Subject: mm/damon/stat: deallocate damon_call() failure leaking damon_ctx
 has been removed from the -mm tree.  Its filename was
-     mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios.patch
+     mm-damon-stat-deallocate-damon_call-failure-leaking-damon_ctx.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Chenghao Duan <duanchenghao@kylinos.cn>
-Subject: mm/memfd_luo: fix integer overflow in memfd_luo_preserve_folios
-Date: Thu, 26 Mar 2026 16:47:27 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/stat: deallocate damon_call() failure leaking damon_ctx
+Date: Wed, 1 Apr 2026 18:04:55 -0700
 
-In memfd_luo_preserve_folios(), two variables had types that could cause
-silent data loss with large files:
+DAMON_STAT does not deallocate its dynamically allocated damon_ctx object
+when damon_call() is failed.  As a result, the memory is leaked.  Check
+the failure and deallocate the damon_ctx object.
 
-1. 'size' was declared as 'long', truncating the 64-bit result of
-   i_size_read(). On 32-bit systems a 4GB file would be truncated to 0,
-   causing the function to return early and discard all data.
+The issue was discovered [1] by sashiko.
 
-2. 'max_folios' was declared as 'unsigned int', causing overflow for
-   sparse files larger than 4TB. For example, a 16TB+4KB file would
-   calculate 0x100000001 folios but truncate to 1 when assigned to
-   max_folios, causing memfd_pin_folios() to pin only the first folio.
 
-Fix by changing both variables to 'u64' to match the types returned
-by i_size_read() and the folio count calculations.
-
-This issue was identified by the AI review.
-https://sashiko.dev/#/patchset/20260323110747.193569-1-duanchenghao@kylinos.cn
-
-Link: https://lkml.kernel.org/r/20260326084727.118437-8-duanchenghao@kylinos.cn
-Signed-off-by: Chenghao Duan <duanchenghao@kylinos.cn>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Haoran Jiang <jianghaoran@kylinos.cn>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Pratyush Yadav <pratyush@kernel.org>
+Link: https://lkml.kernel.org/r/20260402010457.66860-1-sj@kernel.org
+Link: https://lore.kernel.org/20260401012428.86694-1-sj@kernel.org [1]
+Fixes: 405f61996d9d ("mm/damon/stat: use damon_call() repeat mode instead of damon_callback")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.17.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memfd_luo.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/damon/stat.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/memfd_luo.c~mm-memfd_luo-fix-integer-overflow-in-memfd_luo_preserve_folios
-+++ a/mm/memfd_luo.c
-@@ -90,8 +90,8 @@ static int memfd_luo_preserve_folios(str
- {
- 	struct inode *inode = file_inode(file);
- 	struct memfd_luo_folio_ser *folios_ser;
--	unsigned int max_folios;
--	long i, size, nr_pinned;
-+	u64 size, max_folios;
-+	long i, nr_pinned;
- 	struct folio **folios;
- 	int err = -EINVAL;
- 	pgoff_t offset;
+--- a/mm/damon/stat.c~mm-damon-stat-deallocate-damon_call-failure-leaking-damon_ctx
++++ a/mm/damon/stat.c
+@@ -254,7 +254,12 @@ static int damon_stat_start(void)
+ 
+ 	damon_stat_last_refresh_jiffies = jiffies;
+ 	call_control.data = damon_stat_context;
+-	return damon_call(damon_stat_context, &call_control);
++	err = damon_call(damon_stat_context, &call_control);
++	if (err) {
++		damon_destroy_ctx(damon_stat_context);
++		damon_stat_context = NULL;
++	}
++	return err;
+ }
+ 
+ static void damon_stat_stop(void)
 _
 
-Patches currently in -mm which might be from duanchenghao@kylinos.cn are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch
-mm-memfd_luo-optimize-shmem_recalc_inode-calls-in-retrieve-path.patch
-mm-memfd_luo-remove-unnecessary-memset-in-zero-size-memfd-path.patch
-mm-memfd_luo-use-i_size_write-to-set-inode-size-during-retrieve.patch
-mm-memfd_luo-fix-physical-address-conversion-in-put_folios-cleanup.patch
-mm-memfd_luo-remove-folio-from-page-cache-when-accounting-fails.patch
+mm-damon-sysfs-dealloc-repeat_call_control-if-damon_call-fails.patch
+mm-damon-core-fix-damon_call-vs-kdamond_fn-exit-race.patch
+mm-damon-core-fix-damos_walk-vs-kdamond_fn-exit-race.patch
+mm-damon-core-validate-damos_quota_goal-nid-for-node_mem_usedfree_bp.patch
+mm-damon-core-validate-damos_quota_goal-nid-for-node_memcg_usedfree_bp.patch
+mm-damon-core-use-time_in_range_open-for-damos-quota-window-start.patch
+docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race.patch
+docs-admin-guide-mm-damon-lru_sort-warn-commit_inputs-vs-param-updates-race.patch
 
