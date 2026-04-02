@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8961531079B
-	for <mm-commits@vger.kernel.org>; Thu,  2 Apr 2026 04:23:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB56C31079B
+	for <mm-commits@vger.kernel.org>; Thu,  2 Apr 2026 04:23:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775103810; cv=none; b=g8tk5+zdRfHye25iHLqe3LOY1VbcHFKqGC4JFUeL5Lv4HCaVkoGDX6ZKkoMyJO6J+58+um4YrhDgZewbJUnFKnro6DXOYs6cD+MmCxr8CGHAEKBvmx9jIkZEViR0yGct0ET4i1FBaVVQiAUECEO44Ye5LaZSMW2pvBM9OTqN9iA=
+	t=1775103812; cv=none; b=njEGPcugXgPYWSFphJ8Kf11Ecub8ntQBlyJZxdoNs6jYXPrMA3urT3XYlAD/ypO0V3FbagPQUCwGSJ+0IqL/bBJVBgFGtJssaNuaO14LNVRlNYhq1IHVVomZMi0L9gxIzg61HAmpWdtSe2cb61CEecYGFCFg55pjptztP5R6r4U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775103810; c=relaxed/simple;
-	bh=FAwXg0Z/Js+Q1EDzl9Nu5mdr5OazvQaNgoMp89UtE2M=;
-	h=Date:To:From:Subject:Message-Id; b=R63/R/R9mWTEfhF4Vkrq31LwMxgcs+WhS+UeD48qQbHJofHVGIWhTNcAjDJIaAu/FYN+s5kBZNVPLxkEHHgypzgAmV8TzntLcTtAqiAVWrwx/UCNTOxERux2gBMH4wl6kc7V1qZKK7XjcGENLByXhS+mTQLqh5B3p1uIoWt9LPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EREX+YEA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775103812; c=relaxed/simple;
+	bh=KEATzNHQYcsmv8/q8TeSBhgrS+OVKYcgfqgdA13T1q8=;
+	h=Date:To:From:Subject:Message-Id; b=Gb4iS8JV9AGfSSjJKw2PaNMPtWvS20gqIfw5e1XaovgSLQ58USofXMGQw2b5aF2U3uEvxyoodOHkwY+JpWbdTzBBgkQgSqQUSbszHUPvL/a7h7jpaOvs7ASRESnGYneD0pUSdlEYcPZE+0nlXp2sWYeCOtcUDAbn3/Cs+pL8py8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Tih/c4n3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EREX+YEA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31035C19423;
-	Thu,  2 Apr 2026 04:23:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Tih/c4n3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7A0CC19423;
+	Thu,  2 Apr 2026 04:23:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775103810;
-	bh=FAwXg0Z/Js+Q1EDzl9Nu5mdr5OazvQaNgoMp89UtE2M=;
+	s=korg; t=1775103811;
+	bh=KEATzNHQYcsmv8/q8TeSBhgrS+OVKYcgfqgdA13T1q8=;
 	h=Date:To:From:Subject:From;
-	b=EREX+YEAzja/gHlZwdoMk/+hNnwgb5gKoFIpdHVzeLrLxRCWbbFj/h5PusmfjN+WC
-	 mszqBQl/GddFIVjqfKWxpsSCEI87DnwvLfzATVnXPvXCpUTd5QXB/AGMRgJc0WhZRo
-	 jtqv5StVH4zqmNmnpcuHLVgHNNDHvmBwoFAIAtfE=
-Date: Wed, 01 Apr 2026 21:23:29 -0700
+	b=Tih/c4n3tCUP2VTGWW/Ml5YijAjqLZzabfvN6XlJDWmj0ijGQZm+/lhKf2eTUBRUB
+	 S+KQt+PuXn8Jp3+hKYeTwGT82HvpjZzERrJ8+kY/QkuduvaGlb7ThxZmRCki89EAEV
+	 4E8qbo+jGGEy8tb8Mxd12O8tkm80EIaJoZRBugwg=
+Date: Wed, 01 Apr 2026 21:23:31 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] userfaultfd-introduce-mfill_establish_pmd-helper.patch removed from -mm tree
-Message-Id: <20260402042330.31035C19423@smtp.kernel.org>
+Subject: [to-be-updated] userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch removed from -mm tree
+Message-Id: <20260402042331.B7A0CC19423@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,36 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd: introduce mfill_establish_pmd() helper
+     Subject: userfaultfd: introduce mfill_get_vma() and mfill_put_vma()
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-introduce-mfill_establish_pmd-helper.patch
+     userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: userfaultfd: introduce mfill_establish_pmd() helper
-Date: Mon, 30 Mar 2026 13:11:04 +0300
+Subject: userfaultfd: introduce mfill_get_vma() and mfill_put_vma()
+Date: Mon, 30 Mar 2026 13:11:05 +0300
 
-There is a lengthy code chunk in mfill_atomic() that establishes the PMD
-for UFFDIO operations.  This code may be called twice: first time when the
-copy is performed with VMA/mm locks held and the other time after the copy
-is retried with locks dropped.
+Split the code that finds, locks and verifies VMA from mfill_atomic() into
+a helper function.
 
-Move the code that establishes a PMD into a helper function so it can be
-reused later during refactoring of mfill_atomic_pte_copy().
+This function will be used later during refactoring of
+mfill_atomic_pte_copy().
 
-Link: https://lkml.kernel.org/r/20260330101116.1117699-4-rppt@kernel.org
+Add a counterpart mfill_put_vma() helper that unlocks the VMA and releases
+map_changing_lock.
+
+[avagin@google.com: fix lock leak in mfill_get_vma()]
+Link: https://lkml.kernel.org/r/20260316173829.1126728-1-avagin@google.com
+Link: https://lkml.kernel.org/r/20260330101116.1117699-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Harry Yoo (Oracle) <harry@kernel.org>
+Signed-off-by: Andrei Vagin <avagin@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrei Vagin <avagin@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: James Houghton <jthoughton@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
@@ -80,153 +83,183 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |  102 ++++++++++++++++++++++-----------------------
- 1 file changed, 52 insertions(+), 50 deletions(-)
+ mm/userfaultfd.c |  126 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 75 insertions(+), 51 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-introduce-mfill_establish_pmd-helper
+--- a/mm/userfaultfd.c~userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma
 +++ a/mm/userfaultfd.c
-@@ -157,6 +157,56 @@ static void uffd_mfill_unlock(struct vm_
+@@ -157,6 +157,75 @@ static void uffd_mfill_unlock(struct vm_
  }
  #endif
  
-+static pmd_t *mm_alloc_pmd(struct mm_struct *mm, unsigned long address)
++static void mfill_put_vma(struct mfill_state *state)
 +{
-+	pgd_t *pgd;
-+	p4d_t *p4d;
-+	pud_t *pud;
++	if (!state->vma)
++		return;
 +
-+	pgd = pgd_offset(mm, address);
-+	p4d = p4d_alloc(mm, pgd, address);
-+	if (!p4d)
-+		return NULL;
-+	pud = pud_alloc(mm, p4d, address);
-+	if (!pud)
-+		return NULL;
-+	/*
-+	 * Note that we didn't run this because the pmd was
-+	 * missing, the *pmd may be already established and in
-+	 * turn it may also be a trans_huge_pmd.
-+	 */
-+	return pmd_alloc(mm, pud, address);
++	up_read(&state->ctx->map_changing_lock);
++	uffd_mfill_unlock(state->vma);
++	state->vma = NULL;
 +}
 +
-+static int mfill_establish_pmd(struct mfill_state *state)
++static int mfill_get_vma(struct mfill_state *state)
 +{
-+	struct mm_struct *dst_mm = state->ctx->mm;
-+	pmd_t *dst_pmd, dst_pmdval;
++	struct userfaultfd_ctx *ctx = state->ctx;
++	uffd_flags_t flags = state->flags;
++	struct vm_area_struct *dst_vma;
++	int err;
 +
-+	dst_pmd = mm_alloc_pmd(dst_mm, state->dst_addr);
-+	if (unlikely(!dst_pmd))
-+		return -ENOMEM;
-+
-+	dst_pmdval = pmdp_get_lockless(dst_pmd);
-+	if (unlikely(pmd_none(dst_pmdval)) &&
-+	    unlikely(__pte_alloc(dst_mm, dst_pmd)))
-+		return -ENOMEM;
-+
-+	dst_pmdval = pmdp_get_lockless(dst_pmd);
 +	/*
-+	 * If the dst_pmd is THP don't override it and just be strict.
-+	 * (This includes the case where the PMD used to be THP and
-+	 * changed back to none after __pte_alloc().)
++	 * Make sure the vma is not shared, that the dst range is
++	 * both valid and fully within a single existing vma.
 +	 */
-+	if (unlikely(!pmd_present(dst_pmdval) || pmd_leaf(dst_pmdval)))
-+		return -EEXIST;
-+	if (unlikely(pmd_bad(dst_pmdval)))
-+		return -EFAULT;
++	dst_vma = uffd_mfill_lock(ctx->mm, state->dst_start, state->len);
++	if (IS_ERR(dst_vma))
++		return PTR_ERR(dst_vma);
 +
-+	state->pmd = dst_pmd;
++	/*
++	 * If memory mappings are changing because of non-cooperative
++	 * operation (e.g. mremap) running in parallel, bail out and
++	 * request the user to retry later
++	 */
++	down_read(&ctx->map_changing_lock);
++	state->vma = dst_vma;
++	err = -EAGAIN;
++	if (atomic_read(&ctx->mmap_changing))
++		goto out_unlock;
++
++	err = -EINVAL;
++
++	/*
++	 * shmem_zero_setup is invoked in mmap for MAP_ANONYMOUS|MAP_SHARED but
++	 * it will overwrite vm_ops, so vma_is_anonymous must return false.
++	 */
++	if (WARN_ON_ONCE(vma_is_anonymous(dst_vma) &&
++	    dst_vma->vm_flags & VM_SHARED))
++		goto out_unlock;
++
++	/*
++	 * validate 'mode' now that we know the dst_vma: don't allow
++	 * a wrprotect copy if the userfaultfd didn't register as WP.
++	 */
++	if ((flags & MFILL_ATOMIC_WP) && !(dst_vma->vm_flags & VM_UFFD_WP))
++		goto out_unlock;
++
++	if (is_vm_hugetlb_page(dst_vma))
++		return 0;
++
++	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
++		goto out_unlock;
++	if (!vma_is_shmem(dst_vma) &&
++	    uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE))
++		goto out_unlock;
++
 +	return 0;
++
++out_unlock:
++	mfill_put_vma(state);
++	return err;
 +}
 +
- /* Check if dst_addr is outside of file's size. Must be called with ptl held. */
- static bool mfill_file_over_size(struct vm_area_struct *dst_vma,
- 				 unsigned long dst_addr)
-@@ -489,27 +539,6 @@ out:
- 	return ret;
- }
- 
--static pmd_t *mm_alloc_pmd(struct mm_struct *mm, unsigned long address)
--{
--	pgd_t *pgd;
--	p4d_t *p4d;
--	pud_t *pud;
--
--	pgd = pgd_offset(mm, address);
--	p4d = p4d_alloc(mm, pgd, address);
--	if (!p4d)
--		return NULL;
--	pud = pud_alloc(mm, p4d, address);
--	if (!pud)
--		return NULL;
--	/*
--	 * Note that we didn't run this because the pmd was
--	 * missing, the *pmd may be already established and in
--	 * turn it may also be a trans_huge_pmd.
--	 */
--	return pmd_alloc(mm, pud, address);
--}
--
- #ifdef CONFIG_HUGETLB_PAGE
- /*
-  * mfill_atomic processing for HUGETLB vmas.  Note that this routine is
-@@ -742,7 +771,6 @@ static __always_inline ssize_t mfill_ato
- 	struct vm_area_struct *dst_vma;
+ static pmd_t *mm_alloc_pmd(struct mm_struct *mm, unsigned long address)
+ {
+ 	pgd_t *pgd;
+@@ -767,8 +836,6 @@ static __always_inline ssize_t mfill_ato
+ 		.src_addr = src_start,
+ 		.dst_addr = dst_start,
+ 	};
+-	struct mm_struct *dst_mm = ctx->mm;
+-	struct vm_area_struct *dst_vma;
  	long copied = 0;
  	ssize_t err;
--	pmd_t *dst_pmd;
+ 
+@@ -783,57 +850,17 @@ static __always_inline ssize_t mfill_ato
+ 	VM_WARN_ON_ONCE(dst_start + len <= dst_start);
+ 
+ retry:
+-	/*
+-	 * Make sure the vma is not shared, that the dst range is
+-	 * both valid and fully within a single existing vma.
+-	 */
+-	dst_vma = uffd_mfill_lock(dst_mm, dst_start, len);
+-	if (IS_ERR(dst_vma)) {
+-		err = PTR_ERR(dst_vma);
++	err = mfill_get_vma(&state);
++	if (err)
+ 		goto out;
+-	}
+-
+-	/*
+-	 * If memory mappings are changing because of non-cooperative
+-	 * operation (e.g. mremap) running in parallel, bail out and
+-	 * request the user to retry later
+-	 */
+-	down_read(&ctx->map_changing_lock);
+-	err = -EAGAIN;
+-	if (atomic_read(&ctx->mmap_changing))
+-		goto out_unlock;
+-
+-	err = -EINVAL;
+-	/*
+-	 * shmem_zero_setup is invoked in mmap for MAP_ANONYMOUS|MAP_SHARED but
+-	 * it will overwrite vm_ops, so vma_is_anonymous must return false.
+-	 */
+-	if (WARN_ON_ONCE(vma_is_anonymous(dst_vma) &&
+-	    dst_vma->vm_flags & VM_SHARED))
+-		goto out_unlock;
+-
+-	/*
+-	 * validate 'mode' now that we know the dst_vma: don't allow
+-	 * a wrprotect copy if the userfaultfd didn't register as WP.
+-	 */
+-	if ((flags & MFILL_ATOMIC_WP) && !(dst_vma->vm_flags & VM_UFFD_WP))
+-		goto out_unlock;
  
  	/*
- 	 * Sanitize the command parameters:
-@@ -809,41 +837,15 @@ retry:
+ 	 * If this is a HUGETLB vma, pass off to appropriate routine
+ 	 */
+-	if (is_vm_hugetlb_page(dst_vma))
+-		return  mfill_atomic_hugetlb(ctx, dst_vma, dst_start,
++	if (is_vm_hugetlb_page(state.vma))
++		return  mfill_atomic_hugetlb(ctx, state.vma, dst_start,
+ 					     src_start, len, flags);
+ 
+-	if (!vma_is_anonymous(dst_vma) && !vma_is_shmem(dst_vma))
+-		goto out_unlock;
+-	if (!vma_is_shmem(dst_vma) &&
+-	    uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE))
+-		goto out_unlock;
+-
+-	state.vma = dst_vma;
+-
  	while (state.src_addr < src_start + len) {
  		VM_WARN_ON_ONCE(state.dst_addr >= dst_start + len);
  
--		pmd_t dst_pmdval;
--
--		dst_pmd = mm_alloc_pmd(dst_mm, state.dst_addr);
--		if (unlikely(!dst_pmd)) {
--			err = -ENOMEM;
-+		err = mfill_establish_pmd(&state);
-+		if (err)
+@@ -852,8 +879,7 @@ retry:
+ 		if (unlikely(err == -ENOENT)) {
+ 			void *kaddr;
+ 
+-			up_read(&ctx->map_changing_lock);
+-			uffd_mfill_unlock(state.vma);
++			mfill_put_vma(&state);
+ 			VM_WARN_ON_ONCE(!state.folio);
+ 
+ 			kaddr = kmap_local_folio(state.folio, 0);
+@@ -882,9 +908,7 @@ retry:
  			break;
--		}
+ 	}
  
--		dst_pmdval = pmdp_get_lockless(dst_pmd);
--		if (unlikely(pmd_none(dst_pmdval)) &&
--		    unlikely(__pte_alloc(dst_mm, dst_pmd))) {
--			err = -ENOMEM;
--			break;
--		}
--		dst_pmdval = pmdp_get_lockless(dst_pmd);
--		/*
--		 * If the dst_pmd is THP don't override it and just be strict.
--		 * (This includes the case where the PMD used to be THP and
--		 * changed back to none after __pte_alloc().)
--		 */
--		if (unlikely(!pmd_present(dst_pmdval) ||
--				pmd_trans_huge(dst_pmdval))) {
--			err = -EEXIST;
--			break;
--		}
--		if (unlikely(pmd_bad(dst_pmdval))) {
--			err = -EFAULT;
--			break;
--		}
- 		/*
- 		 * For shmem mappings, khugepaged is allowed to remove page
- 		 * tables under us; pte_offset_map_lock() will deal with that.
- 		 */
- 
--		state.pmd = dst_pmd;
- 		err = mfill_atomic_pte(&state);
- 		cond_resched();
- 
+-out_unlock:
+-	up_read(&ctx->map_changing_lock);
+-	uffd_mfill_unlock(state.vma);
++	mfill_put_vma(&state);
+ out:
+ 	if (state.folio)
+ 		folio_put(state.folio);
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
 
-userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
 userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
 userfaultfd-move-vma_can_userfault-out-of-line.patch
 userfaultfd-introduce-vm_uffd_ops.patch
