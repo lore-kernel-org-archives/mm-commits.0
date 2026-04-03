@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AD012DEA9B
-	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 17:14:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 027B53D0917
+	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 17:14:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775236469; cv=none; b=NoONKpESaDwt4ATBhUoakatmR4DSayPcbzJdJDmWT/tbIOEU38oodbcH75HSZOexexkuX7qGHgtW3pBkuj1OZ9FPoblFrnnO+hxE+F9VaYdpMNQn62Ll36fIlXTKL+GkoXozRUWGl/m+2ZVCOC0GQI4wmMFSl0DIqlgNC7eYUIk=
+	t=1775236471; cv=none; b=G91sUDJRglCzb5CLqeBvQKzRIRbFFlqrBAZhNAeaQ0cfxuGPupoEPQIv9AG+ESikSmJOTjDYIlQHp3bLH0tVSem+Of3x1PobCkbBP9TQfpqNDFnDSHmothSWeBGEm04QxQCV0roaJt+w4Fu9nttRa61itN/J0zT6Ik79TW05EP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775236469; c=relaxed/simple;
-	bh=UZjDuiV1zVp98Dco19ZccgN8dB5mlKj2us0sUUTKYts=;
-	h=Date:To:From:Subject:Message-Id; b=D5aj6noaTqJJgmerfIcpaprfJLPynk8R3/F4C//3dsfLK1klr1Wr0vLFMS/vwEKRTPKVGNDwGS3V2rJo2dEMUuSXiEM2C3RsdpdCtj/KB7i/Nf1VLMLt/V3rAjnGCf1/v10XAqRbg1mcc/Wq6vkWiczO3Dm2x1wtvHlQyQj4KMc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nEHvfOlT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775236471; c=relaxed/simple;
+	bh=fNaJbPaZkhVMcd1GSrJVsevNOVzPM71LQDggduuIrWY=;
+	h=Date:To:From:Subject:Message-Id; b=KbeVUN3BPvYLvZQzKzFdoYbud1PTeaSlXhKIXjL3TFAG7/tQcqS5INK78RJowHphwhjS162j5/inHNLhbefgdndFtUDuw8xvBB2By/UC9rWtAREnlRLnHhW8kkSL3IGDs45fT1Ty1xWHEN4SDj3tYnmeNdnUnr/fpzs9jZSn/ic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UGQJXSvS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nEHvfOlT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86E03C4CEF7;
-	Fri,  3 Apr 2026 17:14:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UGQJXSvS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91682C4CEF7;
+	Fri,  3 Apr 2026 17:14:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775236468;
-	bh=UZjDuiV1zVp98Dco19ZccgN8dB5mlKj2us0sUUTKYts=;
+	s=korg; t=1775236470;
+	bh=fNaJbPaZkhVMcd1GSrJVsevNOVzPM71LQDggduuIrWY=;
 	h=Date:To:From:Subject:From;
-	b=nEHvfOlTJJRBvW48ovvy7i/893RNZikHAeOketSZr+3sqhsxxVaPIkL2j1UinXsXl
-	 YWaH1EzvMQehdJ2Xggdos1bf5fgU264vTfNS5/cb3G1MoJjakYBO8Lh31U4CWB20A7
-	 axufSkgybUb0RTCdFhbae2fNL4jZhzCz9eeWvAwU=
-Date: Fri, 03 Apr 2026 10:14:28 -0700
+	b=UGQJXSvSYb92E8eHuVXaop5Y0iaANLqre31XuaCW4PjgYmCcRI/iB8a6lnEaJkXXC
+	 jWr4Bz5nhKPsKeHrDLXkxZCkW7irtFWu2PRbtc3Aw+xgdC7MISXV4nj39Emx/lOk8/
+	 U8v/QGkzenOwOusO8M4Lhp09oegGzG90Uje4IWJs=
+Date: Fri, 03 Apr 2026 10:14:30 -0700
 To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-validate-extent-block-list-fields-during-block-read.patch added to mm-nonmm-unstable branch
-Message-Id: <20260403171428.86E03C4CEF7@smtp.kernel.org>
+Subject: + ocfs2-remove-redundant-l_next_free_rec-check-in-__ocfs2_find_path.patch added to mm-nonmm-unstable branch
+Message-Id: <20260403171430.91682C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: validate extent block list fields during block read
+     Subject: ocfs2: remove redundant l_next_free_rec check in __ocfs2_find_path()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-validate-extent-block-list-fields-during-block-read.patch
+     ocfs2-remove-redundant-l_next_free_rec-check-in-__ocfs2_find_path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-extent-block-list-fields-during-block-read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-remove-redundant-l_next_free_rec-check-in-__ocfs2_find_path.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,23 +59,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: validate extent block list fields during block read
-Date: Fri, 3 Apr 2026 17:08:02 +0800
+Subject: ocfs2: remove redundant l_next_free_rec check in __ocfs2_find_path()
+Date: Fri, 3 Apr 2026 17:08:03 +0800
 
-Add extent list validation to ocfs2_validate_extent_block() so that
-corrupted on-disk fields are caught early at block read time rather than
-during extent tree traversal.
+The l_next_free_rec > l_count check after ocfs2_read_extent_block() in
+__ocfs2_find_path() is now redundant, as ocfs2_validate_extent_block()
+already performs this validation at block read time.
 
-Two checks are added:
+Remove the duplicate check to avoid maintaining the same validation in two
+places.
 
-  - l_count must equal the expected value from
-    ocfs2_extent_recs_per_eb(), catching blocks with a corrupted record
-    count before any array iteration.
-
-  - l_next_free_rec must not exceed l_count, preventing out-of-bounds
-    access when iterating over extent records.
-
-Link: https://lkml.kernel.org/r/20260403090803.3860971-4-joseph.qi@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20260403090803.3860971-5-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Changwei Ge <gechangwei@live.cn>
 Cc: Heming Zhao <heming.zhao@suse.com>
@@ -86,45 +80,30 @@ Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ fs/ocfs2/alloc.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-validate-extent-block-list-fields-during-block-read
+--- a/fs/ocfs2/alloc.c~ocfs2-remove-redundant-l_next_free_rec-check-in-__ocfs2_find_path
 +++ a/fs/ocfs2/alloc.c
-@@ -917,11 +917,32 @@ static int ocfs2_validate_extent_block(s
- 		goto bail;
- 	}
+@@ -1878,18 +1878,6 @@ static int __ocfs2_find_path(struct ocfs
+ 		eb = (struct ocfs2_extent_block *) bh->b_data;
+ 		el = &eb->h_list;
  
--	if (le32_to_cpu(eb->h_fs_generation) != OCFS2_SB(sb)->fs_generation)
-+	if (le32_to_cpu(eb->h_fs_generation) != OCFS2_SB(sb)->fs_generation) {
- 		rc = ocfs2_error(sb,
- 				 "Extent block #%llu has an invalid h_fs_generation of #%u\n",
- 				 (unsigned long long)bh->b_blocknr,
- 				 le32_to_cpu(eb->h_fs_generation));
-+		goto bail;
-+	}
-+
-+	if (le16_to_cpu(eb->h_list.l_count) != ocfs2_extent_recs_per_eb(sb)) {
-+		rc = ocfs2_error(sb,
-+				 "Extent block #%llu has invalid l_count %u (expected %u)\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 le16_to_cpu(eb->h_list.l_count),
-+				 ocfs2_extent_recs_per_eb(sb));
-+		goto bail;
-+	}
-+
-+	if (le16_to_cpu(eb->h_list.l_next_free_rec) > le16_to_cpu(eb->h_list.l_count)) {
-+		rc = ocfs2_error(sb,
-+				 "Extent block #%llu has invalid l_next_free_rec %u (l_count %u)\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 le16_to_cpu(eb->h_list.l_next_free_rec),
-+				 le16_to_cpu(eb->h_list.l_count));
-+		goto bail;
-+	}
-+
- bail:
- 	return rc;
- }
+-		if (le16_to_cpu(el->l_next_free_rec) >
+-		    le16_to_cpu(el->l_count)) {
+-			ocfs2_error(ocfs2_metadata_cache_get_super(ci),
+-				    "Owner %llu has bad count in extent list at block %llu (next free=%u, count=%u)\n",
+-				    (unsigned long long)ocfs2_metadata_cache_owner(ci),
+-				    (unsigned long long)bh->b_blocknr,
+-				    le16_to_cpu(el->l_next_free_rec),
+-				    le16_to_cpu(el->l_count));
+-			ret = -EROFS;
+-			goto out;
+-		}
+-
+ 		if (func)
+ 			func(data, bh);
+ 	}
 _
 
 Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
