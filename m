@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27300280A51
-	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 16:41:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB5E82248B9
+	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 17:02:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775234517; cv=none; b=UaoXtxMkT4IFdtJZXXYbRuncDL30O2dRaK4yTOXjnLi4nJkq4aBUdpLgN9jtqT5xk+rkYM3HH6h23jgWTD6u3xmWifiPM67VTF2qA19wr36/ul03zvOPls90XBXY+gxZj2QDua27+lX7OkHxSeew4yA6OPsyEhNZBKqxjbMPfQo=
+	t=1775235762; cv=none; b=Z2Os+8Z+LuT8VpP7CQJmS872pCXae0r+sSwzXLfX8RGraa4nG7E0HACBXgP99gOALVQ9ACyxEzb4Q85CH//MQMadFwz964ikngNFQrOo6Slr1txo7ktU4X61yePU2dhZNWvZ7EQ5m4BiJRaOkB2uMrLAB3riE6eFaZ7dqsfvaII=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775234517; c=relaxed/simple;
-	bh=cASG6FAphOWlbW70grouxh4OFTCCQVPUWE1ZYbrKVf0=;
-	h=Date:To:From:Subject:Message-Id; b=YCuM4VlEBKR4vg3Odn3gcDbN23DV9FY+Sw1CbeN3l/GEaxukWOeaid8TwXsw/nO/QHD3gQZlAru1+ffn1Tx48NPaO4rmv3+n/04FzvoxaM8+WGUpF+AJ0Hkg1ZTsAz1HiMCiIAoLhIxf8pgjCgNu5fNHvTMFe9w7xPNe27q4XlI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gSb4Zvzk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775235762; c=relaxed/simple;
+	bh=pQHegEZ7/Vi7JxLp+c93Bx3XK8fA5Dbzo+gjXzOBLIE=;
+	h=Date:To:From:Subject:Message-Id; b=jZe//m9DoL18ujJ6p6KVnl/p/vhmKDZs3X7g5pMO1x9dR4Tiy8DL+J2xt8fVVNDBIc+1R9bVt8OM1eWIp7nD/1pxrdHaFjCbAR6yQA5k50UwYrXrUpzw38/lWXw3b6VoBvpye62Dz1NfKNETZNJ8HS9WcUL46wHdYD2T2Q825sI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pMkiZsTL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gSb4Zvzk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A65C9C4CEF7;
-	Fri,  3 Apr 2026 16:41:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pMkiZsTL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61641C4CEF7;
+	Fri,  3 Apr 2026 17:02:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775234516;
-	bh=cASG6FAphOWlbW70grouxh4OFTCCQVPUWE1ZYbrKVf0=;
+	s=korg; t=1775235762;
+	bh=pQHegEZ7/Vi7JxLp+c93Bx3XK8fA5Dbzo+gjXzOBLIE=;
 	h=Date:To:From:Subject:From;
-	b=gSb4Zvzks7yxmPP03+DGyxizK+Vl+i3gQVmSgCtnGAzJu3BPrczNAzoDpSlxZMpRn
-	 9fDNlnPg88bVtLlQcLAyB8I3CuaO5xfTQGAEdIWrIowy2vIzLGAnXpFw8mFzlq6Qof
-	 0QQtP7TpECGLWyRBCPwtQmXWXJkdKkaiNL3h78E4=
-Date: Fri, 03 Apr 2026 09:41:55 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=pMkiZsTLur4+x7YI+AfU5ZD8rh643zMcDwS6rfaqwKmw9DKeFiTVoBuC68uZ4spfC
+	 EbrdGbpy8O9qXtkXOR9+i2wTdGPj3USRybiklwBafz25p4TRhPk/Se481EnrR1dRhi
+	 QSKrk9tfrG6SRRq5XqxUgA8KzewEHLbiIprQNaGc=
+Date: Fri, 03 Apr 2026 10:02:41 -0700
+To: mm-commits@vger.kernel.org,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch added to mm-unstable branch
-Message-Id: <20260403164156.A65C9C4CEF7@smtp.kernel.org>
+Subject: [to-be-updated] lib-fix-_parse_integer_limit-to-handle-overflow.patch removed from -mm tree
+Message-Id: <20260403170242.61641C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,69 +34,118 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch
+The quilt patch titled
+     Subject: lib: fix _parse_integer_limit() to handle overflow
+has been removed from the -mm tree.  Its filename was
+     lib-fix-_parse_integer_limit-to-handle-overflow.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@kernel.org>
-Subject: tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix
-Date: Fri, 3 Apr 2026 19:08:40 +0300
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: lib: fix _parse_integer_limit() to handle overflow
+Date: Thu, 12 Feb 2026 19:44:09 +0300
 
-fix inclusions, to fix handle_uprobe_upon_merged_vma()
+Patch series "lib and lib/cmdline enhancements", v8.
 
-Link: https://lkml.kernel.org/r/ac_mCIUQWRAbuH8F@kernel.org
-Signed-off-by: Mike Rapoport <rppt@kernel.org>
-Cc: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
+Adjust '_parse_integer_limit()' and 'memparse()' to not ignore overflows,
+extend string to 64-bit integer conversion tests, add KUnit-based test for
+'memparse()' and fix kernel-doc glitches found in lib/cmdline.c.
+
+
+This patch (of 5):
+
+In '_parse_integer_limit()', adjust native integer arithmetic with
+near-to-overflow branch where 'check_mul_overflow()' and
+'check_add_overflow()' are used to check whether an intermediate result
+goes out of range, and denote such a case with ULLONG_MAX, thus making the
+function more similar to standard C library's 'strtoull()'.  Adjust
+comment to kernel-doc style as well.
+
+Link: https://lkml.kernel.org/r/20260212164413.889625-1-dmantipov@yandex.ru
+Link: https://lkml.kernel.org/r/20260212164413.889625-2-dmantipov@yandex.ru
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/merge.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/kstrtox.c |   37 ++++++++++++++++++++++---------------
+ 1 file changed, 22 insertions(+), 15 deletions(-)
 
---- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -2,7 +2,6 @@
+--- a/lib/kstrtox.c~lib-fix-_parse_integer_limit-to-handle-overflow
++++ a/lib/kstrtox.c
+@@ -39,25 +39,30 @@ const char *_parse_integer_fixup_radix(c
+ 	return s;
+ }
  
- #define _GNU_SOURCE
- #include "kselftest_harness.h"
--#include <asm-generic/unistd.h>
- #include <linux/prctl.h>
- #include <fcntl.h>
- #include <stdio.h>
+-/*
+- * Convert non-negative integer string representation in explicitly given radix
+- * to an integer. A maximum of max_chars characters will be converted.
++/**
++ * _parse_integer_limit - Convert integer string representation to an integer
++ * @s: Integer string representation
++ * @base: Radix
++ * @p: Where to store result
++ * @max_chars: Maximum amount of characters to convert
+  *
+- * Return number of characters consumed maybe or-ed with overflow bit.
+- * If overflow occurs, result integer (incorrect) is still returned.
++ * Convert non-negative integer string representation in explicitly given
++ * radix to an integer. If overflow occurs, value at @p is set to ULLONG_MAX.
+  *
+- * Don't you dare use this function.
++ * This function is the workhorse of other string conversion functions and it
++ * is discouraged to use it explicitly. Consider kstrto*() family instead.
++ *
++ * Return: Number of characters consumed, maybe ORed with overflow bit
+  */
+ noinline
+ unsigned int _parse_integer_limit(const char *s, unsigned int base, unsigned long long *p,
+ 				  size_t max_chars)
+ {
++	unsigned int rv, overflow = 0;
+ 	unsigned long long res;
+-	unsigned int rv;
+ 
+ 	res = 0;
+-	rv = 0;
+-	while (max_chars--) {
++	for (rv = 0; rv < max_chars; rv++, s++) {
+ 		unsigned int c = *s;
+ 		unsigned int lc = _tolower(c);
+ 		unsigned int val;
+@@ -76,15 +81,17 @@ unsigned int _parse_integer_limit(const
+ 		 * it in the max base we support (16)
+ 		 */
+ 		if (unlikely(res & (~0ull << 60))) {
+-			if (res > div_u64(ULLONG_MAX - val, base))
+-				rv |= KSTRTOX_OVERFLOW;
++			if (check_mul_overflow(res, base, &res) ||
++			    check_add_overflow(res, val, &res)) {
++				res = ULLONG_MAX;
++				overflow = KSTRTOX_OVERFLOW;
++			}
++		} else {
++			res = res * base + val;
+ 		}
+-		res = res * base + val;
+-		rv++;
+-		s++;
+ 	}
+ 	*p = res;
+-	return rv;
++	return rv | overflow;
+ }
+ 
+ noinline
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
-tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch
-userfaultfd-introduce-mfill_copy_folio_locked-helper.patch
-userfaultfd-introduce-struct-mfill_state.patch
-userfaultfd-introduce-mfill_establish_pmd-helper.patch
-userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
-userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
-userfaultfd-move-vma_can_userfault-out-of-line.patch
-userfaultfd-introduce-vm_uffd_ops.patch
-shmem-userfaultfd-use-a-vma-callback-to-handle-uffdio_continue.patch
-userfaultfd-introduce-vm_uffd_ops-alloc_folio.patch
-shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops.patch
-userfaultfd-mfill_atomic-remove-retry-logic.patch
+lib-fix-memparse-to-handle-overflow.patch
+lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch
+lib-cmdline_kunit-add-test-case-for-memparse.patch
+lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
 
