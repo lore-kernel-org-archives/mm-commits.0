@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6493C326D73
-	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:41:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6195A282F33
+	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:41:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775198490; cv=none; b=e/1ccA5mwNfzz+Otba4r/gYdsrtoxItUr/tNnoFGYdlUBkLdoYwpUtTV0tvFX/LJzjZt3MAVFTJiWMRwKhhLE3D4pYD5OiASll9xKByP4WLsKqm/pN5RJ0WR/f31DHT5MBlGuJWQAcXcvQGMsYEWjIlsPfDSw/k/PHzfAws0fkg=
+	t=1775198492; cv=none; b=hRCfQnMt9I5wi1SBxKk4IYaVxeLbgfS/QTjbyZtNGlZG33ng+tWGHWE4diuJld0CqWGLwwdOWiaIgvsSxx1X4yxsz+YULZ7a1ekVsIk4xT34wAU5qt8Am/9JubsjrsdqP2Cqq+ErUD/Ig6/abcyMrLsjX61tXNXkRZ5xTqZsHOw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775198490; c=relaxed/simple;
-	bh=r1T44YSCO2E2rpfETHGeYqsMoJgdkxDOWYT4haGprjA=;
-	h=Date:To:From:Subject:Message-Id; b=HxEpxtb2arNL9IzNtSmAq5Cvguarr329Nvmo+i5MMSTULb2k7Zbod7j9+wJxY2v2xoQjz9hA8CPkPr0jnIhjAE4pqIb0OQCvroTiyUTwern/O0MOPbHoiz+4HdfFMmAmQP0qKzyTRI0jht0fdkFy1VETbrI+wCPdpjkv7hN1+cs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PywzaLCf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775198492; c=relaxed/simple;
+	bh=rYaLR0G1UiI+Z0bi16z7ZZ2RUsUORzz5FF54goAxOH8=;
+	h=Date:To:From:Subject:Message-Id; b=nUW+D5ZQO+rz1aB5v5N/anqynKAScbTznkQnnmQusdw9/1gsm2NYWz4RepGZ1vhMSn8tJXgchbKpOXSppck5VsfeKws988inJD0kDTotjCdkG7RbNfaYZXFH1S10GloKbM02VXLumFwQ0hvkHsaBBTeNH+Apx1jlvE304Mowk58=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CTwpr3zg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PywzaLCf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36BBDC4CEF7;
-	Fri,  3 Apr 2026 06:41:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CTwpr3zg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB0B4C4CEF7;
+	Fri,  3 Apr 2026 06:41:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775198490;
-	bh=r1T44YSCO2E2rpfETHGeYqsMoJgdkxDOWYT4haGprjA=;
+	s=korg; t=1775198492;
+	bh=rYaLR0G1UiI+Z0bi16z7ZZ2RUsUORzz5FF54goAxOH8=;
 	h=Date:To:From:Subject:From;
-	b=PywzaLCfkJcaNdq6Tepgy1xMQD7+cuqcBGHLIOJy8hLwmcShe1CzOAF1sM9+A8sLg
-	 6JJdg0o5r013E95ezldZ5MnqRwru535VAuAf+lqsvD7LtQzUYkzDG5NNZln4pkHVUC
-	 RSs7BYhiHD/3n4PNc+cOtsnOPYFdC+907teKrHpk=
-Date: Thu, 02 Apr 2026 23:41:29 -0700
+	b=CTwpr3zg1VEodDEb9Jsviq3pM+GyqtR/qynva4O0WcTx7IEnXGdsHgvz+MzQ4Pnlh
+	 MIOkydw9b4dtR5owfNodtS1+A3adJojKAKCOBN8E5MQBb87Oxt4sBgmWGrA+rVQH1S
+	 lg6RUJ2nEoZM5OVOa2uvrPpcc3RQ4R7trAkLpBso=
+Date: Thu, 02 Apr 2026 23:41:31 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,tytso@mit.edu,svens@linux.ibm.com,song@kernel.org,richard@nod.at,richard.henderson@linaro.org,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mattst88@gmail.com,maddy@linux.ibm.com,linux@armlinux.org.uk,linmag7@gmail.com,linan122@huawei.com,kernel@xen0n.name,johannes@sipsolutions.net,jason@zx2c4.com,hpa@zytor.com,herbert@gondor.apana.org.au,hca@linux.ibm.com,gor@linux.ibm.com,ebiggers@kernel.org,dsterba@suse.com,davem@davemloft.net,dan.j.williams@intel.com,clm@fb.com,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,arnd@arndb.de,ardb@kernel.org,aou@eecs.berkeley.edu,anton.ivanov@cambridgegreys.com,andreas@gaisler.com,alex@ghiti.fr,agordeev@linux.ibm.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] arm64-xor-fix-conflicting-attributes-for-xor_block_template.patch removed from -mm tree
-Message-Id: <20260403064130.36BBDC4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] um-xor-cleanup-xorh.patch removed from -mm tree
+Message-Id: <20260403064131.EB0B4C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,30 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm64/xor: fix conflicting attributes for xor_block_template
+     Subject: um/xor: cleanup xor.h
 has been removed from the -mm tree.  Its filename was
-     arm64-xor-fix-conflicting-attributes-for-xor_block_template.patch
+     um-xor-cleanup-xorh.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: arm64/xor: fix conflicting attributes for xor_block_template
-Date: Fri, 27 Mar 2026 07:16:35 +0100
+Subject: um/xor: cleanup xor.h
+Date: Fri, 27 Mar 2026 07:16:36 +0100
 
-Commit 2c54b423cf85 ("arm64/xor: use EOR3 instructions when available")
-changes the definition to __ro_after_init instead of const, but failed to
-update the external declaration in xor.h.  This was not found because
-xor-neon.c doesn't include <asm/xor.h>, and can't easily do that due to
-current architecture of the XOR code.
+Since commit c055e3eae0f1 ("crypto: xor - use ktime for template
+benchmarking") the benchmarking works just fine even for TT_MODE_INFCPU,
+so drop the workarounds.  Note that for CPUs supporting AVX2, which
+includes almost everything built in the last 10 years, the AVX2
+implementation is forced anyway.
 
-Link: https://lkml.kernel.org/r/20260327061704.3707577-4-hch@lst.de
-Fixes: 2c54b423cf85 ("arm64/xor: use EOR3 instructions when available")
+CONFIG_X86_32 is always correctly set for UM in arch/x86/um/Kconfig, so
+don't override it either.
+
+Link: https://lkml.kernel.org/r/20260327061704.3707577-5-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Richard Weinberger <richard@nod.at>
 Reviewed-by: Eric Biggers <ebiggers@kernel.org>
 Tested-by: Eric Biggers <ebiggers@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -87,7 +90,6 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Richard Henderson <richard.henderson@linaro.org>
-Cc: Richard Weinberger <richard@nod.at>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: Song Liu <song@kernel.org>
 Cc: Sven Schnelle <svens@linux.ibm.com>
@@ -98,20 +100,35 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/xor.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/um/include/asm/xor.h |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
---- a/arch/arm64/include/asm/xor.h~arm64-xor-fix-conflicting-attributes-for-xor_block_template
-+++ a/arch/arm64/include/asm/xor.h
-@@ -13,7 +13,7 @@
+--- a/arch/um/include/asm/xor.h~um-xor-cleanup-xorh
++++ a/arch/um/include/asm/xor.h
+@@ -2,23 +2,7 @@
+ #ifndef _ASM_UM_XOR_H
+ #define _ASM_UM_XOR_H
  
- #ifdef CONFIG_KERNEL_MODE_NEON
+-#ifdef CONFIG_64BIT
+-#undef CONFIG_X86_32
+-#define TT_CPU_INF_XOR_DEFAULT (AVX_SELECT(&xor_block_sse_pf64))
+-#else
+-#define CONFIG_X86_32 1
+-#define TT_CPU_INF_XOR_DEFAULT (AVX_SELECT(&xor_block_8regs))
+-#endif
+-
+ #include <asm/cpufeature.h>
+ #include <../../x86/include/asm/xor.h>
+-#include <linux/time-internal.h>
+-
+-#ifdef CONFIG_UML_TIME_TRAVEL_SUPPORT
+-#undef XOR_SELECT_TEMPLATE
+-/* pick an arbitrary one - measuring isn't possible with inf-cpu */
+-#define XOR_SELECT_TEMPLATE(x)	\
+-	(time_travel_mode == TT_MODE_INFCPU ? TT_CPU_INF_XOR_DEFAULT : x)
+-#endif
  
--extern struct xor_block_template const xor_block_inner_neon;
-+extern struct xor_block_template xor_block_inner_neon __ro_after_init;
- 
- static void
- xor_neon_2(unsigned long bytes, unsigned long * __restrict p1,
+ #endif
 _
 
 Patches currently in -mm which might be from hch@lst.de are
