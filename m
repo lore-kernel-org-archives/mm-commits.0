@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39C6C2D3A69;
-	Fri,  3 Apr 2026 06:48:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27300280A51
+	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 16:41:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775198902; cv=none; b=bU40uqWhzT3rc/OAXkFFMvmxl+WYnkcTXS0XkmdBlXCjMSwC41wE+f3ywZHKqAT/sqFYR8KCrjtyCMRuCSUCt5OhKV/QxDQlq/dtUEmmJs4eHrBbk4ZGGBO5HfxAyvfGQcidpyUt+5hkGKTL17CuanxtCqoTqrgGO7x1p0es0co=
+	t=1775234517; cv=none; b=UaoXtxMkT4IFdtJZXXYbRuncDL30O2dRaK4yTOXjnLi4nJkq4aBUdpLgN9jtqT5xk+rkYM3HH6h23jgWTD6u3xmWifiPM67VTF2qA19wr36/ul03zvOPls90XBXY+gxZj2QDua27+lX7OkHxSeew4yA6OPsyEhNZBKqxjbMPfQo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775198902; c=relaxed/simple;
-	bh=9exuHLBU3gjAiJ+0lwPg7LKdmGXsL9au6qm+jR2lUMk=;
-	h=Date:To:From:Subject:Message-Id; b=Pc1QdySwtPvgusxT/sK/JfSt4ntjNrrzHROfl5BPvfY+bt35LmODOAMFrshYxVbTeFRr4PGNJEAIxZqaUmXZvjP+iby5eGHLgD7cPORHyqxCguJWW61H5UOvfxKKHcoCu7h7Lg7nHm5UQ9e8iBsqwayEf4dP1uISFUQ0nHxspZw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zihTdRcP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775234517; c=relaxed/simple;
+	bh=cASG6FAphOWlbW70grouxh4OFTCCQVPUWE1ZYbrKVf0=;
+	h=Date:To:From:Subject:Message-Id; b=YCuM4VlEBKR4vg3Odn3gcDbN23DV9FY+Sw1CbeN3l/GEaxukWOeaid8TwXsw/nO/QHD3gQZlAru1+ffn1Tx48NPaO4rmv3+n/04FzvoxaM8+WGUpF+AJ0Hkg1ZTsAz1HiMCiIAoLhIxf8pgjCgNu5fNHvTMFe9w7xPNe27q4XlI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gSb4Zvzk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zihTdRcP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D36DFC4CEF7;
-	Fri,  3 Apr 2026 06:48:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gSb4Zvzk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A65C9C4CEF7;
+	Fri,  3 Apr 2026 16:41:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775198901;
-	bh=9exuHLBU3gjAiJ+0lwPg7LKdmGXsL9au6qm+jR2lUMk=;
+	s=korg; t=1775234516;
+	bh=cASG6FAphOWlbW70grouxh4OFTCCQVPUWE1ZYbrKVf0=;
 	h=Date:To:From:Subject:From;
-	b=zihTdRcPfd7bq0iVCW32PjzzYwsxBtAqplVOh7uuNdZwb4bfHFgoGhicDIw383ZQ4
-	 aRKh10NwV4/NGm42WsEfCw6kUlNEoHN7tvaYe07Ucdjo0vsEaYnZqYhR+7r40Zn1dc
-	 gNjwhr98kk5rZi4jkAbtGh/G0Pxt+dApxNc3ZEZU=
-Date: Thu, 02 Apr 2026 23:48:21 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=gSb4Zvzks7yxmPP03+DGyxizK+Vl+i3gQVmSgCtnGAzJu3BPrczNAzoDpSlxZMpRn
+	 9fDNlnPg88bVtLlQcLAyB8I3CuaO5xfTQGAEdIWrIowy2vIzLGAnXpFw8mFzlq6Qof
+	 0QQtP7TpECGLWyRBCPwtQmXWXJkdKkaiNL3h78E4=
+Date: Fri, 03 Apr 2026 09:41:55 -0700
+To: mm-commits@vger.kernel.org,ljs@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-fix-out-of-bounds-write-in-ocfs2_write_end_inline.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260403064821.D36DFC4CEF7@smtp.kernel.org>
+Subject: + tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch added to mm-unstable branch
+Message-Id: <20260403164156.A65C9C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: fix out-of-bounds write in ocfs2_write_end_inline
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     ocfs2-fix-out-of-bounds-write-in-ocfs2_write_end_inline.patch
+     Subject: tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix
+has been added to the -mm mm-unstable branch.  Its filename is
+     tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-out-of-bounds-write-in-ocfs2_write_end_inline.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,77 +58,45 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: fix out-of-bounds write in ocfs2_write_end_inline
-Date: Fri, 3 Apr 2026 14:38:30 +0800
+From: Mike Rapoport <rppt@kernel.org>
+Subject: tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix
+Date: Fri, 3 Apr 2026 19:08:40 +0300
 
-KASAN reports a use-after-free write of 4086 bytes in
-ocfs2_write_end_inline, called from ocfs2_write_end_nolock during a
-copy_file_range splice fallback on a corrupted ocfs2 filesystem mounted on
-a loop device.  The actual bug is an out-of-bounds write past the inode
-block buffer, not a true use-after-free.  The write overflows into an
-adjacent freed page, which KASAN reports as UAF.
+fix inclusions, to fix handle_uprobe_upon_merged_vma()
 
-The root cause is that ocfs2_try_to_write_inline_data trusts the on-disk
-id_count field to determine whether a write fits in inline data.  On a
-corrupted filesystem, id_count can exceed the physical maximum inline data
-capacity, causing writes to overflow the inode block buffer.
-
-Call trace (crash path):
-
-   vfs_copy_file_range (fs/read_write.c:1634)
-     do_splice_direct
-       splice_direct_to_actor
-         iter_file_splice_write
-           ocfs2_file_write_iter
-             generic_perform_write
-               ocfs2_write_end
-                 ocfs2_write_end_nolock (fs/ocfs2/aops.c:1949)
-                   ocfs2_write_end_inline (fs/ocfs2/aops.c:1915)
-                     memcpy_from_folio     <-- KASAN: write OOB
-
-So add id_count upper bound check in ocfs2_validate_inode_block() to
-alongside the existing i_size check to fix it.
-
-Link: https://lkml.kernel.org/r/20260403063830.3662739-1-joseph.qi@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reported-by: syzbot+62c1793956716ea8b28a@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=62c1793956716ea8b28a
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/ac_mCIUQWRAbuH8F@kernel.org
+Signed-off-by: Mike Rapoport <rppt@kernel.org>
+Cc: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ tools/testing/selftests/mm/merge.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-fix-out-of-bounds-write-in-ocfs2_write_end_inline
-+++ a/fs/ocfs2/inode.c
-@@ -1505,6 +1505,16 @@ int ocfs2_validate_inode_block(struct su
- 			goto bail;
- 		}
+--- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix
++++ a/tools/testing/selftests/mm/merge.c
+@@ -2,7 +2,6 @@
  
-+		if (le16_to_cpu(data->id_count) >
-+		    ocfs2_max_inline_data_with_xattr(sb, di)) {
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode #%llu: inline data id_count %u exceeds max %d\n",
-+					 (unsigned long long)bh->b_blocknr,
-+					 le16_to_cpu(data->id_count),
-+					 ocfs2_max_inline_data_with_xattr(sb, di));
-+			goto bail;
-+		}
-+
- 		if (le64_to_cpu(di->i_size) > le16_to_cpu(data->id_count)) {
- 			rc = ocfs2_error(sb,
- 					 "Invalid dinode #%llu: inline data i_size %llu exceeds id_count %u\n",
+ #define _GNU_SOURCE
+ #include "kselftest_harness.h"
+-#include <asm-generic/unistd.h>
+ #include <linux/prctl.h>
+ #include <fcntl.h>
+ #include <stdio.h>
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-ocfs2-fix-out-of-bounds-write-in-ocfs2_write_end_inline.patch
+tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch
+userfaultfd-introduce-mfill_copy_folio_locked-helper.patch
+userfaultfd-introduce-struct-mfill_state.patch
+userfaultfd-introduce-mfill_establish_pmd-helper.patch
+userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
+userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
+userfaultfd-move-vma_can_userfault-out-of-line.patch
+userfaultfd-introduce-vm_uffd_ops.patch
+shmem-userfaultfd-use-a-vma-callback-to-handle-uffdio_continue.patch
+userfaultfd-introduce-vm_uffd_ops-alloc_folio.patch
+shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops.patch
+userfaultfd-mfill_atomic-remove-retry-logic.patch
 
