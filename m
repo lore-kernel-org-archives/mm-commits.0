@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9045369208
-	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:42:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AEBB369217
+	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:42:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775198551; cv=none; b=GvfTO0xpWGL6Sw7o9yEr4UVcTwfdG92y3rybLosMZTqtKp5BZ/stNfJvqvqEG6I/aVTKnaLg7Ss673w7y3/xfDFGiS/ylLLMwq3DZVSzJofAcUXn0+Uj/sTmHjoy6mDksq26qzYyerMfT+96M/EiAvrHnkk/O2uSI+q6FIxVQGU=
+	t=1775198553; cv=none; b=gVqi2iSTTVn7LkYqfnIDQggD6ydUmJfc+uUveDcARP9sJVZFTyGwSa4vrvV7z9SouivRsG1eoZwHK6wZDZ6A5KJzrarmL6Kt24i30RiXWU9XnbegJDC5JGsa1wKY/h49rt1P6HqkFh7b6ZS2RXY/oMUAleqsxehk5CUZy8Nvmkc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775198551; c=relaxed/simple;
-	bh=Dgk24iBHXGzdZ737iaM9BBQHl/ZQZsVnpxPgamC2WE0=;
-	h=Date:To:From:Subject:Message-Id; b=cvWnVuJoVBsQv4lFjp9nZg8R1qcULBOhV41Steg5HyGrmuZ8l++AmEeNRUiUGRyfZDIhJZs4qaCOOspP9VgUDXX91wRWanl0DLMXbHXanVZBDyzvUliHY50EqvTmWDvOhTOX4FRJp5A/HW6Bd4yBvUQPnzEurto3+MJLN0Ddw4A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M8CQAgCz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775198553; c=relaxed/simple;
+	bh=FaPFqnaT6Q4QKlha6KxCduJQ9rvlcy61ORT6cr9acXU=;
+	h=Date:To:From:Subject:Message-Id; b=Ns9eqDoR1B4Slo6tqdIzvXcXUM0+oDfihUu/L7jswDjSFvm/4LgI50ZcgScY37nKZ7DvOBxNeK+fYDbFoV/itaPvsYnTZv2YLI4nsPmgRPA2Skqodxh1xPj1cmG5nrTlO53BL2gqsUrRu1Sxa5UU67SxZuM4DeuWCfG4QAxg4Dg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=swHM96w8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M8CQAgCz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A143BC4CEF7;
-	Fri,  3 Apr 2026 06:42:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="swHM96w8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A6A3C4CEF7;
+	Fri,  3 Apr 2026 06:42:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775198551;
-	bh=Dgk24iBHXGzdZ737iaM9BBQHl/ZQZsVnpxPgamC2WE0=;
+	s=korg; t=1775198553;
+	bh=FaPFqnaT6Q4QKlha6KxCduJQ9rvlcy61ORT6cr9acXU=;
 	h=Date:To:From:Subject:From;
-	b=M8CQAgCz4XpLdHlsyfNBz41geXwj5OKUFM8HlO5xlnTlcScBqhX6X0SLiyZ9XY1Z4
-	 g+9Tmgarn5Lm5zD/I7XkgjvaZr/tcTsDL11gY1qJF5YKQ0E1BUIJrEtKX5eccrTAJ9
-	 fRau6tLEVMTdZTCiMdMAS9/cliAkBwY13Av3uN8o=
-Date: Thu, 02 Apr 2026 23:42:31 -0700
+	b=swHM96w8U6cNqq1uedzi4ap7KKjuZxCca6wVvk4QQAc1FL8CbRMrw+b8Lz3Qbmf0Y
+	 Y4uQMw6BzhakhDSPS+M2jnoCs2hd9XlJOs5yGLKrJLFVBguXNJ7F+EZh7Xa5KSW2Ac
+	 pjsLyxRWY7N1kCr4HjtaaP7ocb9q6bcmS/cTi5OM=
+Date: Thu, 02 Apr 2026 23:42:32 -0700
 To: mm-commits@vger.kernel.org,pmladek@suse.com,kees@kernel.org,dhowells@redhat.com,davidgow@google.com,lk@c--e.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-kunit_iov_iter-improve-error-detection.patch removed from -mm tree
-Message-Id: <20260403064231.A143BC4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg.patch removed from -mm tree
+Message-Id: <20260403064233.2A6A3C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib: kunit_iov_iter: improve error detection
+     Subject: lib: kunit_iov_iter: add tests for extract_iter_to_sg
 has been removed from the -mm tree.  Its filename was
-     lib-kunit_iov_iter-improve-error-detection.patch
+     lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Christian A. Ehrhardt" <lk@c--e.de>
-Subject: lib: kunit_iov_iter: improve error detection
-Date: Thu, 26 Mar 2026 22:49:04 +0100
+Subject: lib: kunit_iov_iter: add tests for extract_iter_to_sg
+Date: Thu, 26 Mar 2026 22:49:05 +0100
 
-In the kunit_iov_iter test prevent the kernel buffer from being a single
-physically contiguous region.
+Add test cases that test extract_iter_to_sg.
 
-Additionally, make sure that the test pattern written to a page in the
-buffer depends on the offset of the page within the buffer.
+For each iterator type an iterator is loaded with a suitable buffer.  The
+iterator is then extracted to a scatterlist with multiple calls to
+extract_iter_to_sg.  The final scatterlist is copied into a scratch
+buffer.
 
-Link: https://lkml.kernel.org/r/20260326214905.818170-5-lk@c--e.de
+The test passes if the scratch buffer contains the same data as the
+original buffer.
+
+The new tests demonstrate bugs in extract_iter_to_sg for kvec and user
+iterators that are fixed by the previous commits.
+
+Link: https://lkml.kernel.org/r/20260326214905.818170-6-lk@c--e.de
 Signed-off-by: Christian A. Ehrhardt <lk@c--e.de>
 Cc: David Howells <dhowells@redhat.com>
 Cc: David Gow <davidgow@google.com>
@@ -62,46 +69,236 @@ Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/tests/kunit_iov_iter.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ lib/tests/kunit_iov_iter.c |  203 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 203 insertions(+)
 
---- a/lib/tests/kunit_iov_iter.c~lib-kunit_iov_iter-improve-error-detection
+--- a/lib/tests/kunit_iov_iter.c~lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg
 +++ a/lib/tests/kunit_iov_iter.c
-@@ -13,6 +13,7 @@
+@@ -13,7 +13,9 @@
  #include <linux/uio.h>
  #include <linux/bvec.h>
  #include <linux/folio_queue.h>
-+#include <linux/minmax.h>
++#include <linux/scatterlist.h>
+ #include <linux/minmax.h>
++#include <linux/mman.h>
  #include <kunit/test.h>
  
  MODULE_DESCRIPTION("iov_iter testing");
-@@ -37,7 +38,7 @@ static const struct kvec_test_range kvec
- 
- static inline u8 pattern(unsigned long x)
- {
--	return x & 0xff;
-+	return (u8)x + (u8)(x >> 8) + (u8)(x >> 16);
+@@ -1016,6 +1018,202 @@ stop:
+ 	KUNIT_SUCCEED(test);
  }
  
- static void iov_kunit_unmap(void *data)
-@@ -52,6 +53,7 @@ static void *__init iov_kunit_create_buf
- 	struct page **pages;
- 	unsigned long got;
- 	void *buffer;
-+	unsigned int i;
++struct iov_kunit_iter_to_sg_data {
++	struct sg_table *sgt;
++	u8 *buffer, *scratch;
++	u8 __user *ubuf;
++	struct page **pages;
++	size_t npages;
++};
++
++static void __init
++iov_kunit_iter_unpin_sgt(void *data)
++{
++	struct sg_table *sgt = data;
++
++	for (unsigned int i = 0; i < sgt->nents; ++i)
++		unpin_user_page(sg_page(&sgt->sgl[i]));
++}
++
++static void __init
++iov_kunit_iter_to_sg_init(struct kunit *test, size_t bufsize, bool user,
++			  struct iov_kunit_iter_to_sg_data *data)
++{
++	struct page **spages;
++	struct scatterlist *sg;
++	unsigned long uaddr;
++	size_t i;
++
++	data->npages = bufsize / PAGE_SIZE;
++	sg = kunit_kmalloc_array(test, data->npages, sizeof(*sg), GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, sg);
++	sg_init_table(sg, data->npages);
++	data->sgt = kunit_kzalloc(test, sizeof(*data->sgt), GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, data->sgt);
++	data->sgt->orig_nents = 0;
++	data->sgt->sgl = sg;
++
++	data->buffer = NULL;
++	data->ubuf = NULL;
++	if (user) {
++		uaddr = kunit_vm_mmap(test, NULL, 0, bufsize,
++				      PROT_READ | PROT_WRITE,
++				      MAP_ANONYMOUS | MAP_PRIVATE, 0);
++		KUNIT_ASSERT_NE(test, uaddr, 0);
++		data->ubuf = (u8 __user *)uaddr;
++		for (i = 0; i < bufsize; ++i)
++			put_user(pattern(i), data->ubuf + i);
++	} else {
++		data->buffer = iov_kunit_create_buffer(test, &data->pages,
++						       data->npages);
++		for (i = 0; i < bufsize; ++i)
++			data->buffer[i] = pattern(i);
++	}
++	data->scratch = iov_kunit_create_buffer(test, &spages, data->npages);
++	memset(data->scratch, 0, bufsize);
++}
++
++static void __init
++iov_kunit_iter_to_sg_check(struct kunit *test, struct iov_iter *iter,
++			   size_t bufsize,
++			   struct iov_kunit_iter_to_sg_data *data)
++{
++	static const size_t tail = 16 * PAGE_SIZE;
++	size_t i;
++
++	KUNIT_ASSERT_LT(test, tail, bufsize);
++
++	if (iov_iter_extract_will_pin(iter))
++		kunit_add_action_or_reset(test, iov_kunit_iter_unpin_sgt,
++					  data->sgt);
++
++	i = extract_iter_to_sg(iter, bufsize, data->sgt, 0, 0);
++	KUNIT_ASSERT_EQ(test, i, 0);
++	KUNIT_ASSERT_EQ(test, data->sgt->nents, 0);
++
++	i = extract_iter_to_sg(iter, bufsize - tail, data->sgt, 1, 0);
++	KUNIT_ASSERT_LE(test, i, bufsize - tail);
++	KUNIT_ASSERT_EQ(test, data->sgt->nents, 1);
++
++	i += extract_iter_to_sg(iter, bufsize - tail - i, data->sgt,
++				data->npages - data->sgt->nents, 0);
++	KUNIT_ASSERT_EQ(test, i, bufsize - tail);
++	KUNIT_ASSERT_LE(test, data->sgt->nents, data->npages);
++
++	i += extract_iter_to_sg(iter, tail, data->sgt,
++				data->npages - data->sgt->nents, 0);
++	KUNIT_ASSERT_EQ(test, i, bufsize);
++	KUNIT_ASSERT_LE(test, data->sgt->nents, data->npages);
++
++	sg_mark_end(&data->sgt->sgl[data->sgt->nents - 1]);
++
++	i = sg_copy_to_buffer(data->sgt->sgl, data->sgt->nents,
++			      data->scratch, bufsize);
++	KUNIT_ASSERT_EQ(test, i, bufsize);
++
++	for (i = 0; i < bufsize; ++i) {
++		KUNIT_EXPECT_EQ_MSG(test, data->scratch[i], pattern(i),
++				    "at i=%zx", i);
++		if (data->scratch[i] != pattern(i))
++			break;
++	}
++
++	KUNIT_EXPECT_EQ(test, i, bufsize);
++}
++
++static void __init iov_kunit_iter_to_sg_kvec(struct kunit *test)
++{
++	struct iov_kunit_iter_to_sg_data data;
++	struct iov_iter iter;
++	struct kvec kvec;
++	size_t bufsize;
++
++	bufsize = 0x100000;
++	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
++
++	kvec.iov_base = data.buffer;
++	kvec.iov_len = bufsize;
++	iov_iter_kvec(&iter, READ, &kvec, 1, bufsize);
++
++	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
++}
++
++static void __init iov_kunit_iter_to_sg_bvec(struct kunit *test)
++{
++	struct iov_kunit_iter_to_sg_data data;
++	struct page *p, *can_merge = NULL;
++	size_t i, k, bufsize;
++	struct bio_vec *bvec;
++	struct iov_iter iter;
++
++	bufsize = 0x100000;
++	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
++
++	bvec = kunit_kmalloc_array(test, data.npages, sizeof(*bvec),
++				   GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, bvec);
++	k = 0;
++	for (i = 0; i < data.npages; ++i) {
++		p = data.pages[i];
++		if (p == can_merge)
++			bvec[k-1].bv_len += PAGE_SIZE;
++		else
++			bvec_set_page(&bvec[k++], p, PAGE_SIZE, 0);
++		can_merge = p + 1;
++	}
++	iov_iter_bvec(&iter, READ, bvec, k, bufsize);
++
++	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
++}
++
++static void __init iov_kunit_iter_to_sg_folioq(struct kunit *test)
++{
++	struct iov_kunit_iter_to_sg_data data;
++	struct folio_queue *folioq;
++	struct iov_iter iter;
++	size_t bufsize;
++
++	bufsize = 0x100000;
++	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
++
++	folioq = iov_kunit_create_folioq(test);
++	iov_kunit_load_folioq(test, &iter, READ, folioq, data.pages,
++			      data.npages);
++
++	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
++}
++
++static void __init iov_kunit_iter_to_sg_xarray(struct kunit *test)
++{
++	struct iov_kunit_iter_to_sg_data data;
++	struct xarray *xarray;
++	struct iov_iter iter;
++	size_t bufsize;
++
++	bufsize = 0x100000;
++	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
++
++	xarray = iov_kunit_create_xarray(test);
++	iov_kunit_load_xarray(test, &iter, READ, xarray, data.pages,
++			      data.npages);
++
++	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
++}
++
++static void __init iov_kunit_iter_to_sg_ubuf(struct kunit *test)
++{
++	struct iov_kunit_iter_to_sg_data data;
++	struct iov_iter iter;
++	size_t bufsize;
++
++	bufsize = 0x100000;
++	iov_kunit_iter_to_sg_init(test, bufsize, true, &data);
++
++	iov_iter_ubuf(&iter, READ, data.ubuf, bufsize);
++
++	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
++}
++
+ static struct kunit_case __refdata iov_kunit_cases[] = {
+ 	KUNIT_CASE(iov_kunit_copy_to_kvec),
+ 	KUNIT_CASE(iov_kunit_copy_from_kvec),
+@@ -1029,6 +1227,11 @@ static struct kunit_case __refdata iov_k
+ 	KUNIT_CASE(iov_kunit_extract_pages_bvec),
+ 	KUNIT_CASE(iov_kunit_extract_pages_folioq),
+ 	KUNIT_CASE(iov_kunit_extract_pages_xarray),
++	KUNIT_CASE(iov_kunit_iter_to_sg_kvec),
++	KUNIT_CASE(iov_kunit_iter_to_sg_bvec),
++	KUNIT_CASE(iov_kunit_iter_to_sg_folioq),
++	KUNIT_CASE(iov_kunit_iter_to_sg_xarray),
++	KUNIT_CASE(iov_kunit_iter_to_sg_ubuf),
+ 	{}
+ };
  
- 	pages = kzalloc_objs(struct page *, npages, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, pages);
-@@ -63,6 +65,9 @@ static void *__init iov_kunit_create_buf
- 		kvfree(pages);
- 		KUNIT_ASSERT_EQ(test, got, npages);
- 	}
-+	/* Make sure that we don't get a physically contiguous buffer. */
-+	for (i = 0; i < npages / 4; ++i)
-+		swap(pages[i], pages[i + npages / 2]);
- 
- 	buffer = vmap(pages, npages, VM_MAP | VM_MAP_PUT_PAGES, PAGE_KERNEL);
- 	if (buffer == NULL) {
 _
 
 Patches currently in -mm which might be from lk@c--e.de are
