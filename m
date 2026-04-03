@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AEA42DEA9B
-	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 17:14:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A587A3D330B
+	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 17:14:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775236465; cv=none; b=LifMQo4i3b/qNGFbYF5Eub+el9NJZ2WgbE5X4jIWPNP3z7kuc/7OoeT0cc4meGqnaizZugaGgTExCIPVyMxpLQYruXJ7Vwuq/6KhvZmlBqQY9ra4dSBIW4JQfoBzc1n9S9vQ1WntUB97x0giQhdAGb6GFs//bPPC/xtLsBmMlOs=
+	t=1775236466; cv=none; b=JrjxxCgKvn8WiRphomdqwFS0uTEr0OSVU0sgeO1zu7CYZW/CuQlwTon3CZnpimuzfY6+zI1RyhJAsyNSh9V1RslTIl1sPjvpBZoOi70iAtLVpgwtztL0JycTh0rxPat+3lujSkjPr3UfDYPJCmPxCzap1Lcsgpxh5VhiLZY56v0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775236465; c=relaxed/simple;
-	bh=L56/5bYz47TCE4qBRh62pF7FZy2y3Onzayg4bthssII=;
-	h=Date:To:From:Subject:Message-Id; b=bueUDgeqVdvoiJV/Y4NqJwRdfvarFlPLDVXp8tD5HEU8a2K+wMF68SMwLIc4DiHwj+bKTiJxcuY6qSDLO9MoafgF97S525Ab8Zghl83AiYSbJllOIUu9UfzBiHqABVcdzcmjFvaatB3UZsm2vNzsN3wTR/EfTvHz7W5MU8eSMOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wGhNT/vj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775236466; c=relaxed/simple;
+	bh=uWzuh81FANED/0+84U9Qby/uZ2INXDjtvpqIIdjyaYc=;
+	h=Date:To:From:Subject:Message-Id; b=A+OKT83GQ/ozmhgei9v+NW0pNQxYnkrjnUdUCoR8/wJC2Qtuwi0C/vQHYt214bQ35lFtvtiQ0zrTtBmWo10k7nwDjmqFawFHy8aFBnEKD8/khzTWFnNiTX4QbR9EHJ/H3jze0Q+b1h7Y2vocpc2PjtcEUSPrjws+EYWz83Qbih4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UeOyXgpM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wGhNT/vj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6CF47C4CEF7;
-	Fri,  3 Apr 2026 17:14:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UeOyXgpM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E741C4CEF7;
+	Fri,  3 Apr 2026 17:14:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775236464;
-	bh=L56/5bYz47TCE4qBRh62pF7FZy2y3Onzayg4bthssII=;
+	s=korg; t=1775236466;
+	bh=uWzuh81FANED/0+84U9Qby/uZ2INXDjtvpqIIdjyaYc=;
 	h=Date:To:From:Subject:From;
-	b=wGhNT/vjXRn6AMxhsFV3BH08X9xML7Xes9BXyiXZmohaL1diATEl/BNGh29FD5wtr
-	 iKJsAkVsxegxmeggBmzMKS5XN/ZK1L7UfeyUCuqyMjL206/WfpUgAt9EfCgDfTVk6j
-	 YHM/0eRjktAIMIhzlSeglMO4vYcFjxIzMP6BEo3o=
-Date: Fri, 03 Apr 2026 10:14:23 -0700
+	b=UeOyXgpM1FA1jIWN8kLA5zsIVvEE6/9v87OibLG2hLbbbtSHUtAEISywG7VWQ3UPI
+	 IdUxoWcPHmQjdTUcv3TSSVaYCHbWQUDq2n1aOWCixTgvDdm0mbc28WHNfjAX43pwJL
+	 WtcCH7SaAV7aDLbwHJVbgmDFP+EF1hQKJOEZOtsM=
+Date: Fri, 03 Apr 2026 10:14:25 -0700
 To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-validate-dx_root-extent-list-fields-during-block-read.patch added to mm-nonmm-unstable branch
-Message-Id: <20260403171424.6CF47C4CEF7@smtp.kernel.org>
+Subject: + ocfs2-remove-empty-extent-list-check-in-ocfs2_dx_dir_lookup_rec.patch added to mm-nonmm-unstable branch
+Message-Id: <20260403171426.7E741C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: validate dx_root extent list fields during block read
+     Subject: ocfs2: remove empty extent list check in ocfs2_dx_dir_lookup_rec()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-validate-dx_root-extent-list-fields-during-block-read.patch
+     ocfs2-remove-empty-extent-list-check-in-ocfs2_dx_dir_lookup_rec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-dx_root-extent-list-fields-during-block-read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-remove-empty-extent-list-check-in-ocfs2_dx_dir_lookup_rec.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,108 +59,62 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: validate dx_root extent list fields during block read
-Date: Fri, 3 Apr 2026 17:08:00 +0800
+Subject: ocfs2: remove empty extent list check in ocfs2_dx_dir_lookup_rec()
+Date: Fri, 3 Apr 2026 17:08:01 +0800
 
-Patch series "ocfs2: consolidate extent list validation into block read
-callbacks".
+The full extent list check is introduced by commit 44acc46d182f, which is
+to avoid NULL pointer dereference if a dirent is not found.
 
-ocfs2 validates extent list fields (l_count, l_next_free_rec) at various
-points during extent tree traversal.  This is fragile because each caller
-must remember to check for corrupted on-disk data before using it.
+Reworking the error message to not reference rec.  Instead, report
+major_hash being looked up and l_next_free_rec, which naturally covers
+both failure cases (empty extent list and no matching record) without
+needing a separate l_next_free_rec == 0 guard.
 
-This series moves those checks into the block read validation callbacks
-(ocfs2_validate_dx_root and ocfs2_validate_extent_block), so corrupted
-fields are caught early at block read time.  Redundant post-read checks
-are then removed.
-
-
-This patch (of 4):
-
-Move the extent list l_count validation from ocfs2_dx_dir_lookup_rec()
-into ocfs2_validate_dx_root(), so that corrupted on-disk fields are caught
-early at block read time rather than during directory lookups.
-
-Additionally, add a l_next_free_rec <= l_count check to prevent
-out-of-bounds access when iterating over extent records.
-
-Both checks are skipped for inline dx roots (OCFS2_DX_FLAG_INLINE), which
-use dr_entries instead of dr_list.
-
-Link: https://lkml.kernel.org/r/20260403090803.3860971-1-joseph.qi@linux.alibaba.com
-Link: https://lkml.kernel.org/r/20260403090803.3860971-2-joseph.qi@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20260403090803.3860971-3-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
 Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dir.c |   34 +++++++++++++++++++++++++---------
- 1 file changed, 25 insertions(+), 9 deletions(-)
+ fs/ocfs2/dir.c |   15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
 
---- a/fs/ocfs2/dir.c~ocfs2-validate-dx_root-extent-list-fields-during-block-read
+--- a/fs/ocfs2/dir.c~ocfs2-remove-empty-extent-list-check-in-ocfs2_dx_dir_lookup_rec
 +++ a/fs/ocfs2/dir.c
-@@ -593,7 +593,7 @@ static int ocfs2_validate_dx_root(struct
- 		mlog(ML_ERROR,
- 		     "Checksum failed for dir index root block %llu\n",
- 		     (unsigned long long)bh->b_blocknr);
--		return ret;
-+		goto bail;
+@@ -835,14 +835,6 @@ static int ocfs2_dx_dir_lookup_rec(struc
+ 		}
  	}
  
- 	if (!OCFS2_IS_VALID_DX_ROOT(dx_root)) {
-@@ -601,8 +601,32 @@ static int ocfs2_validate_dx_root(struct
- 				  "Dir Index Root # %llu has bad signature %.*s\n",
- 				  (unsigned long long)le64_to_cpu(dx_root->dr_blkno),
- 				  7, dx_root->dr_signature);
-+		goto bail;
- 	}
- 
-+	if (!(dx_root->dr_flags & OCFS2_DX_FLAG_INLINE)) {
-+		struct ocfs2_extent_list *el = &dx_root->dr_list;
-+
-+		if (le16_to_cpu(el->l_count) != ocfs2_extent_recs_per_dx_root(sb)) {
-+			ret = ocfs2_error(sb,
-+					  "Dir Index Root # %llu has invalid l_count %u (expected %u)\n",
-+					  (unsigned long long)le64_to_cpu(dx_root->dr_blkno),
-+					  le16_to_cpu(el->l_count),
-+					  ocfs2_extent_recs_per_dx_root(sb));
-+			goto bail;
-+		}
-+
-+		if (le16_to_cpu(el->l_next_free_rec) > le16_to_cpu(el->l_count)) {
-+			ret = ocfs2_error(sb,
-+					  "Dir Index Root # %llu has invalid l_next_free_rec %u (l_count %u)\n",
-+					  (unsigned long long)le64_to_cpu(dx_root->dr_blkno),
-+					  le16_to_cpu(el->l_next_free_rec),
-+					  le16_to_cpu(el->l_count));
-+			goto bail;
-+		}
-+	}
-+
-+bail:
- 	return ret;
- }
- 
-@@ -791,14 +815,6 @@ static int ocfs2_dx_dir_lookup_rec(struc
- 	struct ocfs2_extent_block *eb;
- 	struct ocfs2_extent_rec *rec = NULL;
- 
--	if (le16_to_cpu(el->l_count) !=
--	    ocfs2_extent_recs_per_dx_root(inode->i_sb)) {
+-	if (le16_to_cpu(el->l_next_free_rec) == 0) {
 -		ret = ocfs2_error(inode->i_sb,
--				  "Inode %lu has invalid extent list length %u\n",
--				  inode->i_ino, le16_to_cpu(el->l_count));
+-				  "Inode %lu has empty extent list at depth %u\n",
+-				  inode->i_ino,
+-				  le16_to_cpu(el->l_tree_depth));
 -		goto out;
 -	}
 -
- 	if (el->l_tree_depth) {
- 		ret = ocfs2_find_leaf(INODE_CACHE(inode), el, major_hash,
- 				      &eb_bh);
+ 	found = 0;
+ 	for (i = le16_to_cpu(el->l_next_free_rec) - 1; i >= 0; i--) {
+ 		rec = &el->l_recs[i];
+@@ -855,10 +847,9 @@ static int ocfs2_dx_dir_lookup_rec(struc
+ 
+ 	if (!found) {
+ 		ret = ocfs2_error(inode->i_sb,
+-				  "Inode %lu has bad extent record (%u, %u, 0) in btree\n",
+-				  inode->i_ino,
+-				  le32_to_cpu(rec->e_cpos),
+-				  ocfs2_rec_clusters(el, rec));
++				  "Inode %lu has no extent record for hash %u in btree (next_free_rec %u)\n",
++				  inode->i_ino, major_hash,
++				  le16_to_cpu(el->l_next_free_rec));
+ 		goto out;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
