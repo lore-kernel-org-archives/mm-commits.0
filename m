@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AEBB369217
-	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:42:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C71FB34D91F
+	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:42:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775198553; cv=none; b=gVqi2iSTTVn7LkYqfnIDQggD6ydUmJfc+uUveDcARP9sJVZFTyGwSa4vrvV7z9SouivRsG1eoZwHK6wZDZ6A5KJzrarmL6Kt24i30RiXWU9XnbegJDC5JGsa1wKY/h49rt1P6HqkFh7b6ZS2RXY/oMUAleqsxehk5CUZy8Nvmkc=
+	t=1775198554; cv=none; b=guxUMu0NqRBgCpvLDt0OI2Jvne4tDddOi2fMWoLfatMGSLKRpbpiMm2mb2JlmqRQg/mQ4Gg3wwN64SnXAYV6eONeGHYg86qyVyYum8Bi5YveUoSYnpHFvpdUaEJeNmitF+MqoCw+NXqPzv+5IJRr8cLYPXPUQI2LBb7wWyLdO9o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775198553; c=relaxed/simple;
-	bh=FaPFqnaT6Q4QKlha6KxCduJQ9rvlcy61ORT6cr9acXU=;
-	h=Date:To:From:Subject:Message-Id; b=Ns9eqDoR1B4Slo6tqdIzvXcXUM0+oDfihUu/L7jswDjSFvm/4LgI50ZcgScY37nKZ7DvOBxNeK+fYDbFoV/itaPvsYnTZv2YLI4nsPmgRPA2Skqodxh1xPj1cmG5nrTlO53BL2gqsUrRu1Sxa5UU67SxZuM4DeuWCfG4QAxg4Dg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=swHM96w8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775198554; c=relaxed/simple;
+	bh=cP0hSOUvKZak8mQRDqLkcr7YVhZxxrB4YpGxLMBvo3U=;
+	h=Date:To:From:Subject:Message-Id; b=Mx66wwjg9E7mGU1KGXciKsNxJR140V7AKbZNCXcs6ywVe8wUBd9yGeIT3nTHRBgWwUgdakKaHtt9lfihijGak5w1eHlyiGH0lRejJnaYEDDlEYsuol+aORLx4Vzwz7gOMxZHOPrLOF5n+iPdYjKwB+xvX3+7iBFSmUrpaoC3P2Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VLNiBVzX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="swHM96w8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A6A3C4CEF7;
-	Fri,  3 Apr 2026 06:42:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VLNiBVzX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F6EFC4CEF7;
+	Fri,  3 Apr 2026 06:42:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775198553;
-	bh=FaPFqnaT6Q4QKlha6KxCduJQ9rvlcy61ORT6cr9acXU=;
+	s=korg; t=1775198554;
+	bh=cP0hSOUvKZak8mQRDqLkcr7YVhZxxrB4YpGxLMBvo3U=;
 	h=Date:To:From:Subject:From;
-	b=swHM96w8U6cNqq1uedzi4ap7KKjuZxCca6wVvk4QQAc1FL8CbRMrw+b8Lz3Qbmf0Y
-	 Y4uQMw6BzhakhDSPS+M2jnoCs2hd9XlJOs5yGLKrJLFVBguXNJ7F+EZh7Xa5KSW2Ac
-	 pjsLyxRWY7N1kCr4HjtaaP7ocb9q6bcmS/cTi5OM=
-Date: Thu, 02 Apr 2026 23:42:32 -0700
-To: mm-commits@vger.kernel.org,pmladek@suse.com,kees@kernel.org,dhowells@redhat.com,davidgow@google.com,lk@c--e.de,akpm@linux-foundation.org
+	b=VLNiBVzXfQPj8s2uO2hMWkiZkb10LYX1BzufsCvhGp1S2jULeEb4TwPrQWNlQvq6G
+	 ata61pn0JyBWA45o9szQlrM82sSFoROe4P88jnnRsEajO3JsoB8ZLKFVTXlzg7AFK6
+	 Gz3bbcb2rem3Otr1AFFSBWL9KkeYFU1uvtEE0DoQ=
+Date: Thu, 02 Apr 2026 23:42:34 -0700
+To: mm-commits@vger.kernel.org,objecting@objecting.org,joe@perches.com,jbaron@akamai.com,changbin.du@gmail.com,inseob@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg.patch removed from -mm tree
-Message-Id: <20260403064233.2A6A3C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-parser-fix-match_wildcard-to-correctly-handle-trailing-stars.patch removed from -mm tree
+Message-Id: <20260403064234.9F6EFC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,272 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib: kunit_iov_iter: add tests for extract_iter_to_sg
+     Subject: lib: parser: fix match_wildcard to correctly handle trailing stars
 has been removed from the -mm tree.  Its filename was
-     lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg.patch
+     lib-parser-fix-match_wildcard-to-correctly-handle-trailing-stars.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Christian A. Ehrhardt" <lk@c--e.de>
-Subject: lib: kunit_iov_iter: add tests for extract_iter_to_sg
-Date: Thu, 26 Mar 2026 22:49:05 +0100
+From: Inseob Kim <inseob@google.com>
+Subject: lib: parser: fix match_wildcard to correctly handle trailing stars
+Date: Thu, 26 Mar 2026 11:06:04 +0900
 
-Add test cases that test extract_iter_to_sg.
+This fixes a bug in match_wildcard that incorrectly handles trailing
+asterisks.  For example, `match_wildcard("abc**", "abc")` must return
+true, but it returns false.
 
-For each iterator type an iterator is loaded with a suitable buffer.  The
-iterator is then extracted to a scatterlist with multiple calls to
-extract_iter_to_sg.  The final scatterlist is copied into a scratch
-buffer.
-
-The test passes if the scratch buffer contains the same data as the
-original buffer.
-
-The new tests demonstrate bugs in extract_iter_to_sg for kvec and user
-iterators that are fixed by the previous commits.
-
-Link: https://lkml.kernel.org/r/20260326214905.818170-6-lk@c--e.de
-Signed-off-by: Christian A. Ehrhardt <lk@c--e.de>
-Cc: David Howells <dhowells@redhat.com>
-Cc: David Gow <davidgow@google.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
+Link: https://lkml.kernel.org/r/20260326020630.4139520-1-inseob@google.com
+Signed-off-by: Inseob Kim <inseob@google.com>
+Cc: Changbin Du <changbin.du@gmail.com>
+Cc: Jason Baron <jbaron@akamai.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Josh Law <objecting@objecting.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/tests/kunit_iov_iter.c |  203 +++++++++++++++++++++++++++++++++++
- 1 file changed, 203 insertions(+)
+ lib/parser.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/tests/kunit_iov_iter.c~lib-kunit_iov_iter-add-tests-for-extract_iter_to_sg
-+++ a/lib/tests/kunit_iov_iter.c
-@@ -13,7 +13,9 @@
- #include <linux/uio.h>
- #include <linux/bvec.h>
- #include <linux/folio_queue.h>
-+#include <linux/scatterlist.h>
- #include <linux/minmax.h>
-+#include <linux/mman.h>
- #include <kunit/test.h>
+--- a/lib/parser.c~lib-parser-fix-match_wildcard-to-correctly-handle-trailing-stars
++++ a/lib/parser.c
+@@ -315,7 +315,7 @@ bool match_wildcard(const char *pattern,
+ 		}
+ 	}
  
- MODULE_DESCRIPTION("iov_iter testing");
-@@ -1016,6 +1018,202 @@ stop:
- 	KUNIT_SUCCEED(test);
+-	if (*p == '*')
++	while (*p == '*')
+ 		++p;
+ 	return !*p;
  }
- 
-+struct iov_kunit_iter_to_sg_data {
-+	struct sg_table *sgt;
-+	u8 *buffer, *scratch;
-+	u8 __user *ubuf;
-+	struct page **pages;
-+	size_t npages;
-+};
-+
-+static void __init
-+iov_kunit_iter_unpin_sgt(void *data)
-+{
-+	struct sg_table *sgt = data;
-+
-+	for (unsigned int i = 0; i < sgt->nents; ++i)
-+		unpin_user_page(sg_page(&sgt->sgl[i]));
-+}
-+
-+static void __init
-+iov_kunit_iter_to_sg_init(struct kunit *test, size_t bufsize, bool user,
-+			  struct iov_kunit_iter_to_sg_data *data)
-+{
-+	struct page **spages;
-+	struct scatterlist *sg;
-+	unsigned long uaddr;
-+	size_t i;
-+
-+	data->npages = bufsize / PAGE_SIZE;
-+	sg = kunit_kmalloc_array(test, data->npages, sizeof(*sg), GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, sg);
-+	sg_init_table(sg, data->npages);
-+	data->sgt = kunit_kzalloc(test, sizeof(*data->sgt), GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, data->sgt);
-+	data->sgt->orig_nents = 0;
-+	data->sgt->sgl = sg;
-+
-+	data->buffer = NULL;
-+	data->ubuf = NULL;
-+	if (user) {
-+		uaddr = kunit_vm_mmap(test, NULL, 0, bufsize,
-+				      PROT_READ | PROT_WRITE,
-+				      MAP_ANONYMOUS | MAP_PRIVATE, 0);
-+		KUNIT_ASSERT_NE(test, uaddr, 0);
-+		data->ubuf = (u8 __user *)uaddr;
-+		for (i = 0; i < bufsize; ++i)
-+			put_user(pattern(i), data->ubuf + i);
-+	} else {
-+		data->buffer = iov_kunit_create_buffer(test, &data->pages,
-+						       data->npages);
-+		for (i = 0; i < bufsize; ++i)
-+			data->buffer[i] = pattern(i);
-+	}
-+	data->scratch = iov_kunit_create_buffer(test, &spages, data->npages);
-+	memset(data->scratch, 0, bufsize);
-+}
-+
-+static void __init
-+iov_kunit_iter_to_sg_check(struct kunit *test, struct iov_iter *iter,
-+			   size_t bufsize,
-+			   struct iov_kunit_iter_to_sg_data *data)
-+{
-+	static const size_t tail = 16 * PAGE_SIZE;
-+	size_t i;
-+
-+	KUNIT_ASSERT_LT(test, tail, bufsize);
-+
-+	if (iov_iter_extract_will_pin(iter))
-+		kunit_add_action_or_reset(test, iov_kunit_iter_unpin_sgt,
-+					  data->sgt);
-+
-+	i = extract_iter_to_sg(iter, bufsize, data->sgt, 0, 0);
-+	KUNIT_ASSERT_EQ(test, i, 0);
-+	KUNIT_ASSERT_EQ(test, data->sgt->nents, 0);
-+
-+	i = extract_iter_to_sg(iter, bufsize - tail, data->sgt, 1, 0);
-+	KUNIT_ASSERT_LE(test, i, bufsize - tail);
-+	KUNIT_ASSERT_EQ(test, data->sgt->nents, 1);
-+
-+	i += extract_iter_to_sg(iter, bufsize - tail - i, data->sgt,
-+				data->npages - data->sgt->nents, 0);
-+	KUNIT_ASSERT_EQ(test, i, bufsize - tail);
-+	KUNIT_ASSERT_LE(test, data->sgt->nents, data->npages);
-+
-+	i += extract_iter_to_sg(iter, tail, data->sgt,
-+				data->npages - data->sgt->nents, 0);
-+	KUNIT_ASSERT_EQ(test, i, bufsize);
-+	KUNIT_ASSERT_LE(test, data->sgt->nents, data->npages);
-+
-+	sg_mark_end(&data->sgt->sgl[data->sgt->nents - 1]);
-+
-+	i = sg_copy_to_buffer(data->sgt->sgl, data->sgt->nents,
-+			      data->scratch, bufsize);
-+	KUNIT_ASSERT_EQ(test, i, bufsize);
-+
-+	for (i = 0; i < bufsize; ++i) {
-+		KUNIT_EXPECT_EQ_MSG(test, data->scratch[i], pattern(i),
-+				    "at i=%zx", i);
-+		if (data->scratch[i] != pattern(i))
-+			break;
-+	}
-+
-+	KUNIT_EXPECT_EQ(test, i, bufsize);
-+}
-+
-+static void __init iov_kunit_iter_to_sg_kvec(struct kunit *test)
-+{
-+	struct iov_kunit_iter_to_sg_data data;
-+	struct iov_iter iter;
-+	struct kvec kvec;
-+	size_t bufsize;
-+
-+	bufsize = 0x100000;
-+	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
-+
-+	kvec.iov_base = data.buffer;
-+	kvec.iov_len = bufsize;
-+	iov_iter_kvec(&iter, READ, &kvec, 1, bufsize);
-+
-+	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
-+}
-+
-+static void __init iov_kunit_iter_to_sg_bvec(struct kunit *test)
-+{
-+	struct iov_kunit_iter_to_sg_data data;
-+	struct page *p, *can_merge = NULL;
-+	size_t i, k, bufsize;
-+	struct bio_vec *bvec;
-+	struct iov_iter iter;
-+
-+	bufsize = 0x100000;
-+	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
-+
-+	bvec = kunit_kmalloc_array(test, data.npages, sizeof(*bvec),
-+				   GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, bvec);
-+	k = 0;
-+	for (i = 0; i < data.npages; ++i) {
-+		p = data.pages[i];
-+		if (p == can_merge)
-+			bvec[k-1].bv_len += PAGE_SIZE;
-+		else
-+			bvec_set_page(&bvec[k++], p, PAGE_SIZE, 0);
-+		can_merge = p + 1;
-+	}
-+	iov_iter_bvec(&iter, READ, bvec, k, bufsize);
-+
-+	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
-+}
-+
-+static void __init iov_kunit_iter_to_sg_folioq(struct kunit *test)
-+{
-+	struct iov_kunit_iter_to_sg_data data;
-+	struct folio_queue *folioq;
-+	struct iov_iter iter;
-+	size_t bufsize;
-+
-+	bufsize = 0x100000;
-+	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
-+
-+	folioq = iov_kunit_create_folioq(test);
-+	iov_kunit_load_folioq(test, &iter, READ, folioq, data.pages,
-+			      data.npages);
-+
-+	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
-+}
-+
-+static void __init iov_kunit_iter_to_sg_xarray(struct kunit *test)
-+{
-+	struct iov_kunit_iter_to_sg_data data;
-+	struct xarray *xarray;
-+	struct iov_iter iter;
-+	size_t bufsize;
-+
-+	bufsize = 0x100000;
-+	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
-+
-+	xarray = iov_kunit_create_xarray(test);
-+	iov_kunit_load_xarray(test, &iter, READ, xarray, data.pages,
-+			      data.npages);
-+
-+	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
-+}
-+
-+static void __init iov_kunit_iter_to_sg_ubuf(struct kunit *test)
-+{
-+	struct iov_kunit_iter_to_sg_data data;
-+	struct iov_iter iter;
-+	size_t bufsize;
-+
-+	bufsize = 0x100000;
-+	iov_kunit_iter_to_sg_init(test, bufsize, true, &data);
-+
-+	iov_iter_ubuf(&iter, READ, data.ubuf, bufsize);
-+
-+	iov_kunit_iter_to_sg_check(test, &iter, bufsize, &data);
-+}
-+
- static struct kunit_case __refdata iov_kunit_cases[] = {
- 	KUNIT_CASE(iov_kunit_copy_to_kvec),
- 	KUNIT_CASE(iov_kunit_copy_from_kvec),
-@@ -1029,6 +1227,11 @@ static struct kunit_case __refdata iov_k
- 	KUNIT_CASE(iov_kunit_extract_pages_bvec),
- 	KUNIT_CASE(iov_kunit_extract_pages_folioq),
- 	KUNIT_CASE(iov_kunit_extract_pages_xarray),
-+	KUNIT_CASE(iov_kunit_iter_to_sg_kvec),
-+	KUNIT_CASE(iov_kunit_iter_to_sg_bvec),
-+	KUNIT_CASE(iov_kunit_iter_to_sg_folioq),
-+	KUNIT_CASE(iov_kunit_iter_to_sg_xarray),
-+	KUNIT_CASE(iov_kunit_iter_to_sg_ubuf),
- 	{}
- };
- 
 _
 
-Patches currently in -mm which might be from lk@c--e.de are
+Patches currently in -mm which might be from inseob@google.com are
 
 
