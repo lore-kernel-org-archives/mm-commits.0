@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E9E42248A5;
-	Fri,  3 Apr 2026 17:37:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C96483D412B
+	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 17:37:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775237858; cv=none; b=qqYeQYBd2/XbsWFEESePVKbIA0/SEN5Sl+zeUbgHdu7gAwQKaLA28LzqTa3pCSy4QYWPmfAsAhnF24522mEmCqIw7V50EHxZo+7UP4WQMi3Ocomzc4TIDSW0rQ/W7PZyT0ALyBkEf1RC3t2KCZiYWxE4Pe0YYWJRbifOPbTJ4Gk=
+	t=1775237860; cv=none; b=Aw8vKrE9rQzNrjT+aUACbNwpsNYtQ891GqUU6bBaG1YEFbn7oKmm+q5CAbdc5R+reF1wCzmEPExLUAJnfNf/8Palm8voTkGS0MsT1bjlL6wc8lcf+AFF38xscILjXDgmcvbzpBU1CgdRLS/p/QNsdYD6UyWjafmRWRXYuqDvdSw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775237858; c=relaxed/simple;
-	bh=Juyu0y0I7u0FUKOOGT6Lg8UpSGHgVDhvKFGuqHaUDng=;
-	h=Date:To:From:Subject:Message-Id; b=RCjtHIKDZmDNJk/22KUjMPkNr8WT0lYSET7qrcOQ6s0cbURgET692tOgzEQ+qJb4iTcyDZknMlsVZk48nE3m7wqjXdCkhuuVr+0y/YUOGqA758xO7rFHMXgQ4A2J5wBrho/y54vNSLElXlHjIM52ziPX/wK+ol4pBlM/khyhYaY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eQrK2ogI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775237860; c=relaxed/simple;
+	bh=AEhDn2fQBL9NS0xKfaQBAo9P2BYwdQz+6hjShWwT/fw=;
+	h=Date:To:From:Subject:Message-Id; b=kaj6C9KPZF1nYNhZ2lIxBwTD3KQshzBNCcE2mWHACIFk17/KxuciypdxsP41TYEF9cOg6xwCzfRl9k8gtIQ9Q9LoI5dkCsasiyjb8YxSKqy6SWUdxOwMG2iM6B1X/VHKybUMVf9loNL2raH4q3efT29TTwbcsfaCxT2ARh0CQVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bBZvt+aV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eQrK2ogI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24EE8C4CEF7;
-	Fri,  3 Apr 2026 17:37:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bBZvt+aV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5426CC19421;
+	Fri,  3 Apr 2026 17:37:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775237858;
-	bh=Juyu0y0I7u0FUKOOGT6Lg8UpSGHgVDhvKFGuqHaUDng=;
+	s=korg; t=1775237860;
+	bh=AEhDn2fQBL9NS0xKfaQBAo9P2BYwdQz+6hjShWwT/fw=;
 	h=Date:To:From:Subject:From;
-	b=eQrK2ogI22G0H19mJuL11Eo7FMW2f9vSUiYNB9yVq3JOMOfKrNSIfyZbmHalLI3si
-	 u6hz/iHoFihIe/hFcr3t6jyA1gl6gVZQ9lM9YESVTc2KVRXU/2O+1P/4VLvZwNqhJD
-	 7iaI4LKyMT6nlloCesQvFg6IHNXRjjGUsewhp2yM=
-Date: Fri, 03 Apr 2026 10:37:37 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,jason@zx2c4.com,jannh@google.com,david@kernel.org,broonie@kernel.org,anthony.yznaga@oracle.com,akpm@linux-foundation.org
+	b=bBZvt+aVTtOs1T1DiX/2S6HqelhltpvZt96aKZHvhfDymc0j6bcCEZQccf/AhklEk
+	 XEXqWi4XmPpfNZHRN03vQxxFRZIK6TGG4OHrX7JXi7/Ny4M54koEakGGB26G5fgKRR
+	 vTHNG4FvU35OyOgIlBsSTxQoY13QWA6werpAxib0=
+Date: Fri, 03 Apr 2026 10:37:39 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,jason@zx2c4.com,jannh@google.com,david@kernel.org,broonie@kernel.org,anthony.yznaga@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-mmap-errno-value-when-map_droppable-is-not-supported.patch added to mm-unstable branch
-Message-Id: <20260403173738.24EE8C4CEF7@smtp.kernel.org>
+Subject: + selftests-mm-verify-droppable-mappings-cannot-be-locked.patch added to mm-unstable branch
+Message-Id: <20260403173740.5426CC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix mmap errno value when MAP_DROPPABLE is not supported
+     Subject: selftests/mm: verify droppable mappings cannot be locked
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-fix-mmap-errno-value-when-map_droppable-is-not-supported.patch
+     selftests-mm-verify-droppable-mappings-cannot-be-locked.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-mmap-errno-value-when-map_droppable-is-not-supported.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-verify-droppable-mappings-cannot-be-locked.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,70 +59,174 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Anthony Yznaga <anthony.yznaga@oracle.com>
-Subject: mm: fix mmap errno value when MAP_DROPPABLE is not supported
-Date: Thu, 2 Apr 2026 16:59:32 -0700
+Subject: selftests/mm: verify droppable mappings cannot be locked
+Date: Thu, 2 Apr 2026 16:59:33 -0700
 
-Patch series "fix MAP_DROPPABLE not supported errno".
+For configs that support MAP_DROPPABLE verify that a mapping created
+with MAP_DROPPABLE cannot be locked via mlock(), and that it will not
+be locked if it's created after mlockall(MCL_FUTURE).
 
-Mark Brown reported seeing a regression in -next on 32 bit arm with the
-mlock selftests.  Before exiting and marking the tests failed, the
-following message was logged after an attempt to create a MAP_DROPPABLE
-mapping:
-
-Bail out! mmap error: Unknown error 524
-
-It turns out error 524 is ENOTSUPP which is an error that userspace is not
-supposed to see, but it indicates in this instance that MAP_DROPPABLE is
-not supported.
-
-The first patch changes the errno returned to EOPNOTSUPP.  The second
-patch is a second version of a prior patch to introduce selftests to
-verify locking behavior with droppable mappings with the additonal change
-to skip the tests when MAP_DROPPABLE is not supported.
-
-
-This patch (of 2):
-
-On configs where MAP_DROPPABLE is not supported (currently any 32-bit
-config except for PPC32), mmap fails with errno set to ENOTSUPP.  However,
-ENOTSUPP is not a standard error value that userspace knows about.  The
-acceptable userspace-visible errno to use is EOPNOTSUPP.  checkpatch.pl
-has a warning to this effect.
-
-Link: https://lkml.kernel.org/r/20260402235933.10588-1-anthony.yznaga@oracle.com
-Link: https://lkml.kernel.org/r/20260402235933.10588-2-anthony.yznaga@oracle.com
-Fixes: 9651fcedf7b9 ("mm: add MAP_DROPPABLE for designating always lazily freeable mappings")
+Link: https://lkml.kernel.org/r/20260402235933.10588-3-anthony.yznaga@oracle.com
 Signed-off-by: Anthony Yznaga <anthony.yznaga@oracle.com>
-Acked-by: David Hildenbrand <david@kernel.org>
-Reported-by: Mark Brown <broonie@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jason A. Donenfeld <jason@zx2c4.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Mark Brown <broonie@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/mlock2-tests.c |   87 +++++++++++++++++---
+ 1 file changed, 78 insertions(+), 9 deletions(-)
 
---- a/mm/mmap.c~mm-fix-mmap-errno-value-when-map_droppable-is-not-supported
-+++ a/mm/mmap.c
-@@ -504,7 +504,7 @@ unsigned long do_mmap(struct file *file,
- 			break;
- 		case MAP_DROPPABLE:
- 			if (VM_DROPPABLE == VM_NONE)
--				return -ENOTSUPP;
-+				return -EOPNOTSUPP;
- 			/*
- 			 * A locked or stack area makes no sense to be droppable.
- 			 *
+--- a/tools/testing/selftests/mm/mlock2-tests.c~selftests-mm-verify-droppable-mappings-cannot-be-locked
++++ a/tools/testing/selftests/mm/mlock2-tests.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #define _GNU_SOURCE
+ #include <sys/mman.h>
++#include <linux/mman.h>
+ #include <stdint.h>
+ #include <unistd.h>
+ #include <string.h>
+@@ -163,14 +164,17 @@ static int lock_check(unsigned long addr
+ 	return (vma_rss == vma_size);
+ }
+ 
+-static int unlock_lock_check(char *map)
++static int unlock_lock_check(char *map, bool mlock_supported)
+ {
+-	if (is_vmflag_set((unsigned long)map, LOCKED)) {
++	if (!is_vmflag_set((unsigned long)map, LOCKED))
++		return 0;
++
++	if (mlock_supported)
+ 		ksft_print_msg("VMA flag %s is present on page 1 after unlock\n", LOCKED);
+-		return 1;
+-	}
++	else
++		ksft_print_msg("VMA flag %s is present on an unsupported VMA\n", LOCKED);
+ 
+-	return 0;
++	return 1;
+ }
+ 
+ static void test_mlock_lock(void)
+@@ -196,7 +200,7 @@ static void test_mlock_lock(void)
+ 		ksft_exit_fail_msg("munlock(): %s\n", strerror(errno));
+ 	}
+ 
+-	ksft_test_result(!unlock_lock_check(map), "%s: Unlocked\n", __func__);
++	ksft_test_result(!unlock_lock_check(map, true), "%s: Unlocked\n", __func__);
+ 	munmap(map, 2 * page_size);
+ }
+ 
+@@ -296,7 +300,7 @@ static void test_munlockall0(void)
+ 		ksft_exit_fail_msg("munlockall(): %s\n", strerror(errno));
+ 	}
+ 
+-	ksft_test_result(!unlock_lock_check(map), "%s: No locked memory\n", __func__);
++	ksft_test_result(!unlock_lock_check(map, true), "%s: No locked memory\n", __func__);
+ 	munmap(map, 2 * page_size);
+ }
+ 
+@@ -336,7 +340,70 @@ static void test_munlockall1(void)
+ 		ksft_exit_fail_msg("munlockall() %s\n", strerror(errno));
+ 	}
+ 
+-	ksft_test_result(!unlock_lock_check(map), "%s: No locked memory\n", __func__);
++	ksft_test_result(!unlock_lock_check(map, true), "%s: No locked memory\n", __func__);
++	munmap(map, 2 * page_size);
++}
++
++/*
++ * Droppable memory should not be lockable.
++ */
++static void test_mlock_droppable(void)
++{
++	char *map;
++	unsigned long page_size = getpagesize();
++
++	/*
++	 * Ensure MCL_FUTURE is not set.
++	 */
++	if (munlockall()) {
++		ksft_test_result_fail("munlockall() %s\n", strerror(errno));
++		return;
++	}
++
++	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANONYMOUS | MAP_DROPPABLE, -1, 0);
++	if (map == MAP_FAILED) {
++		if (errno == EOPNOTSUPP)
++			ksft_test_result_skip("%s: MAP_DROPPABLE not supported\n", __func__);
++		else
++			ksft_test_result_fail("mmap error: %s\n", strerror(errno));
++		return;
++	}
++
++	if (mlock2_(map, 2 * page_size, 0))
++		ksft_test_result_fail("mlock2(0): %s\n", strerror(errno));
++	else
++		ksft_test_result(!unlock_lock_check(map, false),
++				"%s: droppable memory not locked\n", __func__);
++
++	munmap(map, 2 * page_size);
++}
++
++static void test_mlockall_future_droppable(void)
++{
++	char *map;
++	unsigned long page_size = getpagesize();
++
++	if (mlockall(MCL_CURRENT | MCL_FUTURE)) {
++		ksft_test_result_fail("mlockall(MCL_CURRENT | MCL_FUTURE): %s\n", strerror(errno));
++		return;
++	}
++
++	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
++		   MAP_ANONYMOUS | MAP_DROPPABLE, -1, 0);
++
++	if (map == MAP_FAILED) {
++		if (errno == EOPNOTSUPP)
++			ksft_test_result_skip("%s: MAP_DROPPABLE not supported\n", __func__);
++		else
++			ksft_test_result_fail("mmap error: %s\n", strerror(errno));
++		return;
++	}
++
++	ksft_test_result(!unlock_lock_check(map, false), "%s: droppable memory not locked\n",
++			__func__);
++
++	munlockall();
+ 	munmap(map, 2 * page_size);
+ }
+ 
+@@ -442,7 +509,7 @@ int main(int argc, char **argv)
+ 
+ 	munmap(map, size);
+ 
+-	ksft_set_plan(13);
++	ksft_set_plan(15);
+ 
+ 	test_mlock_lock();
+ 	test_mlock_onfault();
+@@ -451,6 +518,8 @@ int main(int argc, char **argv)
+ 	test_lock_onfault_of_present();
+ 	test_vma_management(true);
+ 	test_mlockall();
++	test_mlock_droppable();
++	test_mlockall_future_droppable();
+ 
+ 	ksft_finished();
+ }
 _
 
 Patches currently in -mm which might be from anthony.yznaga@oracle.com are
