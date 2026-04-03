@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8258A22257E
-	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:41:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEEBE22257E
+	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:41:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775198504; cv=none; b=jEeKfqMrqiNW/9m8DwMMqyANO6HMrfkVPAMYLNmMiGYWMN7kL72D0JsY9qBSidCxnaLJHMwF15jJ2wXM9oJcSbrRI1tQm+KqXpcskLqZ+r9kXq6tL5DyD5e0KV7ZKwplRbYgMYkdcGF4pbuHcHzW15REAGpBsqSnB1osq5smFrw=
+	t=1775198506; cv=none; b=MaABuRvkYybsQqJ+R9/WvoN8wj6uKYmPfrq9cG15cEheiRB4spvetOXHMU+4mgCpK/rRyDdMspdW4bcxYyV9TQQyctbWI+w8rzEr6dBYxQePXkbfA1tTId7I1Zp7DtiH3ekbcmPsWMpB0aiDMWfP8hxYdmjrwaxFLxpRpH3qQKg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775198504; c=relaxed/simple;
-	bh=USumv/qs+vUT2ZG0w/YCU5xihLJtDtspDJ2MhLcPWco=;
-	h=Date:To:From:Subject:Message-Id; b=Sdu+CSLYJ1ON3Jci+DgGtM8HVlaozjW3GQgd+dJTWaZNwRdQWIQwtAU19Gb1s7q7ZU1Wr75yTs7Xq5qZyf1PiHku8lbxSg5xxF68fzypifOQaIE+1jyxBG3fMrsNP+a34UoljV4GUnQOFrohak0oWvC5fYXc2jvuGmlmxRWoMOY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pgzkUiXX; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775198506; c=relaxed/simple;
+	bh=/b2ux68DhaC9n8pX+8kTRrFDxGZiS8/rp1It9Us5yb4=;
+	h=Date:To:From:Subject:Message-Id; b=YYrF6/NcTztWNHZvDnOtD961RS+UFrJkbD9g2Mkb9HLfbO9Dhmtw8F2OUsxvZAUZgYo0J3IE6kHHk5zG0vCvTPp62ku26T3/1J0yJhyslMnU+VFB+PEKkxZCJ7FdsAT9L8SDpo4MMO2JAgtVUTv4ba+ZLXqwXKBa7Rqh+8fVgME=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sD1hClGT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pgzkUiXX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48F4EC4CEF7;
-	Fri,  3 Apr 2026 06:41:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sD1hClGT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D540C4CEF7;
+	Fri,  3 Apr 2026 06:41:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775198504;
-	bh=USumv/qs+vUT2ZG0w/YCU5xihLJtDtspDJ2MhLcPWco=;
+	s=korg; t=1775198506;
+	bh=/b2ux68DhaC9n8pX+8kTRrFDxGZiS8/rp1It9Us5yb4=;
 	h=Date:To:From:Subject:From;
-	b=pgzkUiXXdf5667TPvFp5oKyYztYYnoTjQDhdMV5anqSndabwrswUu+rg9bMjh5kvR
-	 KYPOjE6t0bucNONVQW7K8jMuhbmJBMj4j8LKEXfy7oJChtu4AaaNsloifg/iOi/cfy
-	 HyYzCnfLLwPUjQZo69zlqjaOGzUMCAKTBupp4TQY=
-Date: Thu, 02 Apr 2026 23:41:43 -0700
+	b=sD1hClGTFjv7jJZQwIruJ1Px+5LBCRrTEEp07CzGtu5hDQuf05eqa+P6vyYvgEqmm
+	 hQSD/QOL2trLh1ifoJeFVnDkQgg/j5e4aK2435yM+zk/urttTNLvVyJObNOKQoMJwU
+	 tjzB6boVY8R7K/jXK6dg2A9LApAkf0oAw6Pne8q4=
+Date: Thu, 02 Apr 2026 23:41:45 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,tytso@mit.edu,svens@linux.ibm.com,song@kernel.org,richard@nod.at,richard.henderson@linaro.org,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mattst88@gmail.com,maddy@linux.ibm.com,linux@armlinux.org.uk,linmag7@gmail.com,linan122@huawei.com,kernel@xen0n.name,johannes@sipsolutions.net,jason@zx2c4.com,hpa@zytor.com,herbert@gondor.apana.org.au,hca@linux.ibm.com,gor@linux.ibm.com,ebiggers@kernel.org,dsterba@suse.com,davem@davemloft.net,dan.j.williams@intel.com,clm@fb.com,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,arnd@arndb.de,ardb@kernel.org,aou@eecs.berkeley.edu,anton.ivanov@cambridgegreys.com,andreas@gaisler.com,alex@ghiti.fr,agordeev@linux.ibm.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] xor-move-generic-implementations-out-of-asm-generic-xorh.patch removed from -mm tree
-Message-Id: <20260403064144.48F4EC4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] alpha-move-the-xor-code-to-lib-raid.patch removed from -mm tree
+Message-Id: <20260403064146.5D540C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,30 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xor: move generic implementations out of asm-generic/xor.h
+     Subject: alpha: move the XOR code to lib/raid/
 has been removed from the -mm tree.  Its filename was
-     xor-move-generic-implementations-out-of-asm-generic-xorh.patch
+     alpha-move-the-xor-code-to-lib-raid.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: xor: move generic implementations out of asm-generic/xor.h
-Date: Fri, 27 Mar 2026 07:16:42 +0100
+Subject: alpha: move the XOR code to lib/raid/
+Date: Fri, 27 Mar 2026 07:16:43 +0100
 
-Move the generic implementations from asm-generic/xor.h to
-per-implementaion .c files in lib/raid.  This will build them
-unconditionally even when an architecture forces a specific
-implementation, but as we'll need at least one generic version for the
-static_call optimization later on we'll pay that price.
+Move the optimized XOR code out of line into lib/raid.
 
-Note that this would cause the second xor_block_8regs instance created by
-arch/arm/lib/xor-neon.c to be generated instead of discarded as dead code,
-so add a NO_TEMPLATE symbol to disable it for this case.
+Note that the giant inline assembly block might be better off as a
+separate assembly source file now, but I'll leave that to the alpha
+maintainers.
 
-Link: https://lkml.kernel.org/r/20260327061704.3707577-11-hch@lst.de
+Link: https://lkml.kernel.org/r/20260327061704.3707577-12-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Magnus Lindholm <linmag7@gmail.com>
+Tested-by: Magnus Lindholm <linmag7@gmail.com>
 Reviewed-by: Eric Biggers <ebiggers@kernel.org>
 Tested-by: Eric Biggers <ebiggers@kernel.org>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
@@ -84,7 +82,6 @@ Cc: Jason A. Donenfeld <jason@zx2c4.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: Li Nan <linan122@huawei.com>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Magnus Lindholm <linmag7@gmail.com>
 Cc: Matt Turner <mattst88@gmail.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
@@ -101,1529 +98,1736 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/lib/xor-neon.c            |    4 
- include/asm-generic/xor.h          |  727 ---------------------------
- lib/raid/xor/Makefile              |    4 
- lib/raid/xor/xor-32regs-prefetch.c |  268 +++++++++
- lib/raid/xor/xor-32regs.c          |  219 ++++++++
- lib/raid/xor/xor-8regs-prefetch.c  |  146 +++++
- lib/raid/xor/xor-8regs.c           |  105 +++
- 7 files changed, 748 insertions(+), 725 deletions(-)
+ arch/alpha/include/asm/xor.h |  853 ---------------------------------
+ lib/raid/xor/Makefile        |    2 
+ lib/raid/xor/alpha/xor.c     |  849 ++++++++++++++++++++++++++++++++
+ 3 files changed, 855 insertions(+), 849 deletions(-)
 
---- a/arch/arm/lib/xor-neon.c~xor-move-generic-implementations-out-of-asm-generic-xorh
-+++ a/arch/arm/lib/xor-neon.c
-@@ -26,8 +26,8 @@ MODULE_LICENSE("GPL");
- #pragma GCC optimize "tree-vectorize"
- #endif
- 
--#pragma GCC diagnostic ignored "-Wunused-variable"
--#include <asm-generic/xor.h>
-+#define NO_TEMPLATE
-+#include "../../../lib/raid/xor/xor-8regs.c"
- 
- struct xor_block_template const xor_block_neon_inner = {
- 	.name	= "__inner_neon__",
---- a/include/asm-generic/xor.h~xor-move-generic-implementations-out-of-asm-generic-xorh
-+++ a/include/asm-generic/xor.h
-@@ -5,726 +5,7 @@
-  * Generic optimized RAID-5 checksumming functions.
-  */
- 
--#include <linux/prefetch.h>
+--- a/arch/alpha/include/asm/xor.h~alpha-move-the-xor-code-to-lib-raid
++++ a/arch/alpha/include/asm/xor.h
+@@ -1,856 +1,11 @@
+ /* SPDX-License-Identifier: GPL-2.0-or-later */
+-/*
+- * include/asm-alpha/xor.h
+- *
+- * Optimized RAID-5 checksumming functions for alpha EV5 and EV6
+- */
 -
--static void
--xor_8regs_2(unsigned long bytes, unsigned long * __restrict p1,
--	    const unsigned long * __restrict p2)
--{
--	long lines = bytes / (sizeof (long)) / 8;
--
--	do {
--		p1[0] ^= p2[0];
--		p1[1] ^= p2[1];
--		p1[2] ^= p2[2];
--		p1[3] ^= p2[3];
--		p1[4] ^= p2[4];
--		p1[5] ^= p2[5];
--		p1[6] ^= p2[6];
--		p1[7] ^= p2[7];
--		p1 += 8;
--		p2 += 8;
--	} while (--lines > 0);
--}
--
--static void
--xor_8regs_3(unsigned long bytes, unsigned long * __restrict p1,
+-extern void
+-xor_alpha_2(unsigned long bytes, unsigned long * __restrict p1,
+-	    const unsigned long * __restrict p2);
+-extern void
+-xor_alpha_3(unsigned long bytes, unsigned long * __restrict p1,
 -	    const unsigned long * __restrict p2,
--	    const unsigned long * __restrict p3)
--{
--	long lines = bytes / (sizeof (long)) / 8;
--
--	do {
--		p1[0] ^= p2[0] ^ p3[0];
--		p1[1] ^= p2[1] ^ p3[1];
--		p1[2] ^= p2[2] ^ p3[2];
--		p1[3] ^= p2[3] ^ p3[3];
--		p1[4] ^= p2[4] ^ p3[4];
--		p1[5] ^= p2[5] ^ p3[5];
--		p1[6] ^= p2[6] ^ p3[6];
--		p1[7] ^= p2[7] ^ p3[7];
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--	} while (--lines > 0);
--}
--
--static void
--xor_8regs_4(unsigned long bytes, unsigned long * __restrict p1,
+-	    const unsigned long * __restrict p3);
+-extern void
+-xor_alpha_4(unsigned long bytes, unsigned long * __restrict p1,
 -	    const unsigned long * __restrict p2,
 -	    const unsigned long * __restrict p3,
--	    const unsigned long * __restrict p4)
--{
--	long lines = bytes / (sizeof (long)) / 8;
--
--	do {
--		p1[0] ^= p2[0] ^ p3[0] ^ p4[0];
--		p1[1] ^= p2[1] ^ p3[1] ^ p4[1];
--		p1[2] ^= p2[2] ^ p3[2] ^ p4[2];
--		p1[3] ^= p2[3] ^ p3[3] ^ p4[3];
--		p1[4] ^= p2[4] ^ p3[4] ^ p4[4];
--		p1[5] ^= p2[5] ^ p3[5] ^ p4[5];
--		p1[6] ^= p2[6] ^ p3[6] ^ p4[6];
--		p1[7] ^= p2[7] ^ p3[7] ^ p4[7];
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--		p4 += 8;
--	} while (--lines > 0);
--}
--
--static void
--xor_8regs_5(unsigned long bytes, unsigned long * __restrict p1,
+-	    const unsigned long * __restrict p4);
+-extern void
+-xor_alpha_5(unsigned long bytes, unsigned long * __restrict p1,
 -	    const unsigned long * __restrict p2,
 -	    const unsigned long * __restrict p3,
 -	    const unsigned long * __restrict p4,
--	    const unsigned long * __restrict p5)
--{
--	long lines = bytes / (sizeof (long)) / 8;
+-	    const unsigned long * __restrict p5);
 -
--	do {
--		p1[0] ^= p2[0] ^ p3[0] ^ p4[0] ^ p5[0];
--		p1[1] ^= p2[1] ^ p3[1] ^ p4[1] ^ p5[1];
--		p1[2] ^= p2[2] ^ p3[2] ^ p4[2] ^ p5[2];
--		p1[3] ^= p2[3] ^ p3[3] ^ p4[3] ^ p5[3];
--		p1[4] ^= p2[4] ^ p3[4] ^ p4[4] ^ p5[4];
--		p1[5] ^= p2[5] ^ p3[5] ^ p4[5] ^ p5[5];
--		p1[6] ^= p2[6] ^ p3[6] ^ p4[6] ^ p5[6];
--		p1[7] ^= p2[7] ^ p3[7] ^ p4[7] ^ p5[7];
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--		p4 += 8;
--		p5 += 8;
--	} while (--lines > 0);
--}
+-extern void
+-xor_alpha_prefetch_2(unsigned long bytes, unsigned long * __restrict p1,
+-		     const unsigned long * __restrict p2);
+-extern void
+-xor_alpha_prefetch_3(unsigned long bytes, unsigned long * __restrict p1,
+-		     const unsigned long * __restrict p2,
+-		     const unsigned long * __restrict p3);
+-extern void
+-xor_alpha_prefetch_4(unsigned long bytes, unsigned long * __restrict p1,
+-		     const unsigned long * __restrict p2,
+-		     const unsigned long * __restrict p3,
+-		     const unsigned long * __restrict p4);
+-extern void
+-xor_alpha_prefetch_5(unsigned long bytes, unsigned long * __restrict p1,
+-		     const unsigned long * __restrict p2,
+-		     const unsigned long * __restrict p3,
+-		     const unsigned long * __restrict p4,
+-		     const unsigned long * __restrict p5);
 -
--static void
--xor_32regs_2(unsigned long bytes, unsigned long * __restrict p1,
--	     const unsigned long * __restrict p2)
--{
--	long lines = bytes / (sizeof (long)) / 8;
--
--	do {
--		register long d0, d1, d2, d3, d4, d5, d6, d7;
--		d0 = p1[0];	/* Pull the stuff into registers	*/
--		d1 = p1[1];	/*  ... in bursts, if possible.		*/
--		d2 = p1[2];
--		d3 = p1[3];
--		d4 = p1[4];
--		d5 = p1[5];
--		d6 = p1[6];
--		d7 = p1[7];
--		d0 ^= p2[0];
--		d1 ^= p2[1];
--		d2 ^= p2[2];
--		d3 ^= p2[3];
--		d4 ^= p2[4];
--		d5 ^= p2[5];
--		d6 ^= p2[6];
--		d7 ^= p2[7];
--		p1[0] = d0;	/* Store the result (in bursts)		*/
--		p1[1] = d1;
--		p1[2] = d2;
--		p1[3] = d3;
--		p1[4] = d4;
--		p1[5] = d5;
--		p1[6] = d6;
--		p1[7] = d7;
--		p1 += 8;
--		p2 += 8;
--	} while (--lines > 0);
--}
--
--static void
--xor_32regs_3(unsigned long bytes, unsigned long * __restrict p1,
--	     const unsigned long * __restrict p2,
--	     const unsigned long * __restrict p3)
--{
--	long lines = bytes / (sizeof (long)) / 8;
--
--	do {
--		register long d0, d1, d2, d3, d4, d5, d6, d7;
--		d0 = p1[0];	/* Pull the stuff into registers	*/
--		d1 = p1[1];	/*  ... in bursts, if possible.		*/
--		d2 = p1[2];
--		d3 = p1[3];
--		d4 = p1[4];
--		d5 = p1[5];
--		d6 = p1[6];
--		d7 = p1[7];
--		d0 ^= p2[0];
--		d1 ^= p2[1];
--		d2 ^= p2[2];
--		d3 ^= p2[3];
--		d4 ^= p2[4];
--		d5 ^= p2[5];
--		d6 ^= p2[6];
--		d7 ^= p2[7];
--		d0 ^= p3[0];
--		d1 ^= p3[1];
--		d2 ^= p3[2];
--		d3 ^= p3[3];
--		d4 ^= p3[4];
--		d5 ^= p3[5];
--		d6 ^= p3[6];
--		d7 ^= p3[7];
--		p1[0] = d0;	/* Store the result (in bursts)		*/
--		p1[1] = d1;
--		p1[2] = d2;
--		p1[3] = d3;
--		p1[4] = d4;
--		p1[5] = d5;
--		p1[6] = d6;
--		p1[7] = d7;
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--	} while (--lines > 0);
--}
--
--static void
--xor_32regs_4(unsigned long bytes, unsigned long * __restrict p1,
--	     const unsigned long * __restrict p2,
--	     const unsigned long * __restrict p3,
--	     const unsigned long * __restrict p4)
--{
--	long lines = bytes / (sizeof (long)) / 8;
--
--	do {
--		register long d0, d1, d2, d3, d4, d5, d6, d7;
--		d0 = p1[0];	/* Pull the stuff into registers	*/
--		d1 = p1[1];	/*  ... in bursts, if possible.		*/
--		d2 = p1[2];
--		d3 = p1[3];
--		d4 = p1[4];
--		d5 = p1[5];
--		d6 = p1[6];
--		d7 = p1[7];
--		d0 ^= p2[0];
--		d1 ^= p2[1];
--		d2 ^= p2[2];
--		d3 ^= p2[3];
--		d4 ^= p2[4];
--		d5 ^= p2[5];
--		d6 ^= p2[6];
--		d7 ^= p2[7];
--		d0 ^= p3[0];
--		d1 ^= p3[1];
--		d2 ^= p3[2];
--		d3 ^= p3[3];
--		d4 ^= p3[4];
--		d5 ^= p3[5];
--		d6 ^= p3[6];
--		d7 ^= p3[7];
--		d0 ^= p4[0];
--		d1 ^= p4[1];
--		d2 ^= p4[2];
--		d3 ^= p4[3];
--		d4 ^= p4[4];
--		d5 ^= p4[5];
--		d6 ^= p4[6];
--		d7 ^= p4[7];
--		p1[0] = d0;	/* Store the result (in bursts)		*/
--		p1[1] = d1;
--		p1[2] = d2;
--		p1[3] = d3;
--		p1[4] = d4;
--		p1[5] = d5;
--		p1[6] = d6;
--		p1[7] = d7;
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--		p4 += 8;
--	} while (--lines > 0);
--}
--
--static void
--xor_32regs_5(unsigned long bytes, unsigned long * __restrict p1,
--	     const unsigned long * __restrict p2,
--	     const unsigned long * __restrict p3,
--	     const unsigned long * __restrict p4,
--	     const unsigned long * __restrict p5)
--{
--	long lines = bytes / (sizeof (long)) / 8;
--
--	do {
--		register long d0, d1, d2, d3, d4, d5, d6, d7;
--		d0 = p1[0];	/* Pull the stuff into registers	*/
--		d1 = p1[1];	/*  ... in bursts, if possible.		*/
--		d2 = p1[2];
--		d3 = p1[3];
--		d4 = p1[4];
--		d5 = p1[5];
--		d6 = p1[6];
--		d7 = p1[7];
--		d0 ^= p2[0];
--		d1 ^= p2[1];
--		d2 ^= p2[2];
--		d3 ^= p2[3];
--		d4 ^= p2[4];
--		d5 ^= p2[5];
--		d6 ^= p2[6];
--		d7 ^= p2[7];
--		d0 ^= p3[0];
--		d1 ^= p3[1];
--		d2 ^= p3[2];
--		d3 ^= p3[3];
--		d4 ^= p3[4];
--		d5 ^= p3[5];
--		d6 ^= p3[6];
--		d7 ^= p3[7];
--		d0 ^= p4[0];
--		d1 ^= p4[1];
--		d2 ^= p4[2];
--		d3 ^= p4[3];
--		d4 ^= p4[4];
--		d5 ^= p4[5];
--		d6 ^= p4[6];
--		d7 ^= p4[7];
--		d0 ^= p5[0];
--		d1 ^= p5[1];
--		d2 ^= p5[2];
--		d3 ^= p5[3];
--		d4 ^= p5[4];
--		d5 ^= p5[5];
--		d6 ^= p5[6];
--		d7 ^= p5[7];
--		p1[0] = d0;	/* Store the result (in bursts)		*/
--		p1[1] = d1;
--		p1[2] = d2;
--		p1[3] = d3;
--		p1[4] = d4;
--		p1[5] = d5;
--		p1[6] = d6;
--		p1[7] = d7;
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--		p4 += 8;
--		p5 += 8;
--	} while (--lines > 0);
--}
--
--static void
--xor_8regs_p_2(unsigned long bytes, unsigned long * __restrict p1,
--	      const unsigned long * __restrict p2)
--{
--	long lines = bytes / (sizeof (long)) / 8 - 1;
--	prefetchw(p1);
--	prefetch(p2);
--
--	do {
--		prefetchw(p1+8);
--		prefetch(p2+8);
-- once_more:
--		p1[0] ^= p2[0];
--		p1[1] ^= p2[1];
--		p1[2] ^= p2[2];
--		p1[3] ^= p2[3];
--		p1[4] ^= p2[4];
--		p1[5] ^= p2[5];
--		p1[6] ^= p2[6];
--		p1[7] ^= p2[7];
--		p1 += 8;
--		p2 += 8;
--	} while (--lines > 0);
--	if (lines == 0)
--		goto once_more;
--}
--
--static void
--xor_8regs_p_3(unsigned long bytes, unsigned long * __restrict p1,
--	      const unsigned long * __restrict p2,
--	      const unsigned long * __restrict p3)
--{
--	long lines = bytes / (sizeof (long)) / 8 - 1;
--	prefetchw(p1);
--	prefetch(p2);
--	prefetch(p3);
--
--	do {
--		prefetchw(p1+8);
--		prefetch(p2+8);
--		prefetch(p3+8);
-- once_more:
--		p1[0] ^= p2[0] ^ p3[0];
--		p1[1] ^= p2[1] ^ p3[1];
--		p1[2] ^= p2[2] ^ p3[2];
--		p1[3] ^= p2[3] ^ p3[3];
--		p1[4] ^= p2[4] ^ p3[4];
--		p1[5] ^= p2[5] ^ p3[5];
--		p1[6] ^= p2[6] ^ p3[6];
--		p1[7] ^= p2[7] ^ p3[7];
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--	} while (--lines > 0);
--	if (lines == 0)
--		goto once_more;
--}
--
--static void
--xor_8regs_p_4(unsigned long bytes, unsigned long * __restrict p1,
--	      const unsigned long * __restrict p2,
--	      const unsigned long * __restrict p3,
--	      const unsigned long * __restrict p4)
--{
--	long lines = bytes / (sizeof (long)) / 8 - 1;
--
--	prefetchw(p1);
--	prefetch(p2);
--	prefetch(p3);
--	prefetch(p4);
--
--	do {
--		prefetchw(p1+8);
--		prefetch(p2+8);
--		prefetch(p3+8);
--		prefetch(p4+8);
-- once_more:
--		p1[0] ^= p2[0] ^ p3[0] ^ p4[0];
--		p1[1] ^= p2[1] ^ p3[1] ^ p4[1];
--		p1[2] ^= p2[2] ^ p3[2] ^ p4[2];
--		p1[3] ^= p2[3] ^ p3[3] ^ p4[3];
--		p1[4] ^= p2[4] ^ p3[4] ^ p4[4];
--		p1[5] ^= p2[5] ^ p3[5] ^ p4[5];
--		p1[6] ^= p2[6] ^ p3[6] ^ p4[6];
--		p1[7] ^= p2[7] ^ p3[7] ^ p4[7];
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--		p4 += 8;
--	} while (--lines > 0);
--	if (lines == 0)
--		goto once_more;
--}
--
--static void
--xor_8regs_p_5(unsigned long bytes, unsigned long * __restrict p1,
--	      const unsigned long * __restrict p2,
--	      const unsigned long * __restrict p3,
--	      const unsigned long * __restrict p4,
--	      const unsigned long * __restrict p5)
--{
--	long lines = bytes / (sizeof (long)) / 8 - 1;
--
--	prefetchw(p1);
--	prefetch(p2);
--	prefetch(p3);
--	prefetch(p4);
--	prefetch(p5);
--
--	do {
--		prefetchw(p1+8);
--		prefetch(p2+8);
--		prefetch(p3+8);
--		prefetch(p4+8);
--		prefetch(p5+8);
-- once_more:
--		p1[0] ^= p2[0] ^ p3[0] ^ p4[0] ^ p5[0];
--		p1[1] ^= p2[1] ^ p3[1] ^ p4[1] ^ p5[1];
--		p1[2] ^= p2[2] ^ p3[2] ^ p4[2] ^ p5[2];
--		p1[3] ^= p2[3] ^ p3[3] ^ p4[3] ^ p5[3];
--		p1[4] ^= p2[4] ^ p3[4] ^ p4[4] ^ p5[4];
--		p1[5] ^= p2[5] ^ p3[5] ^ p4[5] ^ p5[5];
--		p1[6] ^= p2[6] ^ p3[6] ^ p4[6] ^ p5[6];
--		p1[7] ^= p2[7] ^ p3[7] ^ p4[7] ^ p5[7];
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--		p4 += 8;
--		p5 += 8;
--	} while (--lines > 0);
--	if (lines == 0)
--		goto once_more;
--}
--
--static void
--xor_32regs_p_2(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2)
--{
--	long lines = bytes / (sizeof (long)) / 8 - 1;
--
--	prefetchw(p1);
--	prefetch(p2);
--
--	do {
--		register long d0, d1, d2, d3, d4, d5, d6, d7;
--
--		prefetchw(p1+8);
--		prefetch(p2+8);
-- once_more:
--		d0 = p1[0];	/* Pull the stuff into registers	*/
--		d1 = p1[1];	/*  ... in bursts, if possible.		*/
--		d2 = p1[2];
--		d3 = p1[3];
--		d4 = p1[4];
--		d5 = p1[5];
--		d6 = p1[6];
--		d7 = p1[7];
--		d0 ^= p2[0];
--		d1 ^= p2[1];
--		d2 ^= p2[2];
--		d3 ^= p2[3];
--		d4 ^= p2[4];
--		d5 ^= p2[5];
--		d6 ^= p2[6];
--		d7 ^= p2[7];
--		p1[0] = d0;	/* Store the result (in bursts)		*/
--		p1[1] = d1;
--		p1[2] = d2;
--		p1[3] = d3;
--		p1[4] = d4;
--		p1[5] = d5;
--		p1[6] = d6;
--		p1[7] = d7;
--		p1 += 8;
--		p2 += 8;
--	} while (--lines > 0);
--	if (lines == 0)
--		goto once_more;
--}
--
--static void
--xor_32regs_p_3(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2,
--	       const unsigned long * __restrict p3)
--{
--	long lines = bytes / (sizeof (long)) / 8 - 1;
--
--	prefetchw(p1);
--	prefetch(p2);
--	prefetch(p3);
--
--	do {
--		register long d0, d1, d2, d3, d4, d5, d6, d7;
--
--		prefetchw(p1+8);
--		prefetch(p2+8);
--		prefetch(p3+8);
-- once_more:
--		d0 = p1[0];	/* Pull the stuff into registers	*/
--		d1 = p1[1];	/*  ... in bursts, if possible.		*/
--		d2 = p1[2];
--		d3 = p1[3];
--		d4 = p1[4];
--		d5 = p1[5];
--		d6 = p1[6];
--		d7 = p1[7];
--		d0 ^= p2[0];
--		d1 ^= p2[1];
--		d2 ^= p2[2];
--		d3 ^= p2[3];
--		d4 ^= p2[4];
--		d5 ^= p2[5];
--		d6 ^= p2[6];
--		d7 ^= p2[7];
--		d0 ^= p3[0];
--		d1 ^= p3[1];
--		d2 ^= p3[2];
--		d3 ^= p3[3];
--		d4 ^= p3[4];
--		d5 ^= p3[5];
--		d6 ^= p3[6];
--		d7 ^= p3[7];
--		p1[0] = d0;	/* Store the result (in bursts)		*/
--		p1[1] = d1;
--		p1[2] = d2;
--		p1[3] = d3;
--		p1[4] = d4;
--		p1[5] = d5;
--		p1[6] = d6;
--		p1[7] = d7;
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--	} while (--lines > 0);
--	if (lines == 0)
--		goto once_more;
--}
--
--static void
--xor_32regs_p_4(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2,
--	       const unsigned long * __restrict p3,
--	       const unsigned long * __restrict p4)
--{
--	long lines = bytes / (sizeof (long)) / 8 - 1;
--
--	prefetchw(p1);
--	prefetch(p2);
--	prefetch(p3);
--	prefetch(p4);
--
--	do {
--		register long d0, d1, d2, d3, d4, d5, d6, d7;
--
--		prefetchw(p1+8);
--		prefetch(p2+8);
--		prefetch(p3+8);
--		prefetch(p4+8);
-- once_more:
--		d0 = p1[0];	/* Pull the stuff into registers	*/
--		d1 = p1[1];	/*  ... in bursts, if possible.		*/
--		d2 = p1[2];
--		d3 = p1[3];
--		d4 = p1[4];
--		d5 = p1[5];
--		d6 = p1[6];
--		d7 = p1[7];
--		d0 ^= p2[0];
--		d1 ^= p2[1];
--		d2 ^= p2[2];
--		d3 ^= p2[3];
--		d4 ^= p2[4];
--		d5 ^= p2[5];
--		d6 ^= p2[6];
--		d7 ^= p2[7];
--		d0 ^= p3[0];
--		d1 ^= p3[1];
--		d2 ^= p3[2];
--		d3 ^= p3[3];
--		d4 ^= p3[4];
--		d5 ^= p3[5];
--		d6 ^= p3[6];
--		d7 ^= p3[7];
--		d0 ^= p4[0];
--		d1 ^= p4[1];
--		d2 ^= p4[2];
--		d3 ^= p4[3];
--		d4 ^= p4[4];
--		d5 ^= p4[5];
--		d6 ^= p4[6];
--		d7 ^= p4[7];
--		p1[0] = d0;	/* Store the result (in bursts)		*/
--		p1[1] = d1;
--		p1[2] = d2;
--		p1[3] = d3;
--		p1[4] = d4;
--		p1[5] = d5;
--		p1[6] = d6;
--		p1[7] = d7;
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--		p4 += 8;
--	} while (--lines > 0);
--	if (lines == 0)
--		goto once_more;
--}
--
--static void
--xor_32regs_p_5(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2,
--	       const unsigned long * __restrict p3,
--	       const unsigned long * __restrict p4,
--	       const unsigned long * __restrict p5)
--{
--	long lines = bytes / (sizeof (long)) / 8 - 1;
--
--	prefetchw(p1);
--	prefetch(p2);
--	prefetch(p3);
--	prefetch(p4);
--	prefetch(p5);
--
--	do {
--		register long d0, d1, d2, d3, d4, d5, d6, d7;
--
--		prefetchw(p1+8);
--		prefetch(p2+8);
--		prefetch(p3+8);
--		prefetch(p4+8);
--		prefetch(p5+8);
-- once_more:
--		d0 = p1[0];	/* Pull the stuff into registers	*/
--		d1 = p1[1];	/*  ... in bursts, if possible.		*/
--		d2 = p1[2];
--		d3 = p1[3];
--		d4 = p1[4];
--		d5 = p1[5];
--		d6 = p1[6];
--		d7 = p1[7];
--		d0 ^= p2[0];
--		d1 ^= p2[1];
--		d2 ^= p2[2];
--		d3 ^= p2[3];
--		d4 ^= p2[4];
--		d5 ^= p2[5];
--		d6 ^= p2[6];
--		d7 ^= p2[7];
--		d0 ^= p3[0];
--		d1 ^= p3[1];
--		d2 ^= p3[2];
--		d3 ^= p3[3];
--		d4 ^= p3[4];
--		d5 ^= p3[5];
--		d6 ^= p3[6];
--		d7 ^= p3[7];
--		d0 ^= p4[0];
--		d1 ^= p4[1];
--		d2 ^= p4[2];
--		d3 ^= p4[3];
--		d4 ^= p4[4];
--		d5 ^= p4[5];
--		d6 ^= p4[6];
--		d7 ^= p4[7];
--		d0 ^= p5[0];
--		d1 ^= p5[1];
--		d2 ^= p5[2];
--		d3 ^= p5[3];
--		d4 ^= p5[4];
--		d5 ^= p5[5];
--		d6 ^= p5[6];
--		d7 ^= p5[7];
--		p1[0] = d0;	/* Store the result (in bursts)		*/
--		p1[1] = d1;
--		p1[2] = d2;
--		p1[3] = d3;
--		p1[4] = d4;
--		p1[5] = d5;
--		p1[6] = d6;
--		p1[7] = d7;
--		p1 += 8;
--		p2 += 8;
--		p3 += 8;
--		p4 += 8;
--		p5 += 8;
--	} while (--lines > 0);
--	if (lines == 0)
--		goto once_more;
--}
--
--static struct xor_block_template xor_block_8regs = {
--	.name = "8regs",
--	.do_2 = xor_8regs_2,
--	.do_3 = xor_8regs_3,
--	.do_4 = xor_8regs_4,
--	.do_5 = xor_8regs_5,
--};
--
--static struct xor_block_template xor_block_32regs = {
--	.name = "32regs",
--	.do_2 = xor_32regs_2,
--	.do_3 = xor_32regs_3,
--	.do_4 = xor_32regs_4,
--	.do_5 = xor_32regs_5,
--};
--
--static struct xor_block_template xor_block_8regs_p __maybe_unused = {
--	.name = "8regs_prefetch",
--	.do_2 = xor_8regs_p_2,
--	.do_3 = xor_8regs_p_3,
--	.do_4 = xor_8regs_p_4,
--	.do_5 = xor_8regs_p_5,
--};
--
--static struct xor_block_template xor_block_32regs_p __maybe_unused = {
--	.name = "32regs_prefetch",
--	.do_2 = xor_32regs_p_2,
--	.do_3 = xor_32regs_p_3,
--	.do_4 = xor_32regs_p_4,
--	.do_5 = xor_32regs_p_5,
--};
-+extern struct xor_block_template xor_block_8regs;
-+extern struct xor_block_template xor_block_32regs;
-+extern struct xor_block_template xor_block_8regs_p;
-+extern struct xor_block_template xor_block_32regs_p;
---- a/lib/raid/xor/Makefile~xor-move-generic-implementations-out-of-asm-generic-xorh
-+++ a/lib/raid/xor/Makefile
-@@ -3,3 +3,7 @@
- obj-$(CONFIG_XOR_BLOCKS)	+= xor.o
+-asm("								\n\
+-	.text							\n\
+-	.align 3						\n\
+-	.ent xor_alpha_2					\n\
+-xor_alpha_2:							\n\
+-	.prologue 0						\n\
+-	srl $16, 6, $16						\n\
+-	.align 4						\n\
+-2:								\n\
+-	ldq $0,0($17)						\n\
+-	ldq $1,0($18)						\n\
+-	ldq $2,8($17)						\n\
+-	ldq $3,8($18)						\n\
+-								\n\
+-	ldq $4,16($17)						\n\
+-	ldq $5,16($18)						\n\
+-	ldq $6,24($17)						\n\
+-	ldq $7,24($18)						\n\
+-								\n\
+-	ldq $19,32($17)						\n\
+-	ldq $20,32($18)						\n\
+-	ldq $21,40($17)						\n\
+-	ldq $22,40($18)						\n\
+-								\n\
+-	ldq $23,48($17)						\n\
+-	ldq $24,48($18)						\n\
+-	ldq $25,56($17)						\n\
+-	xor $0,$1,$0		# 7 cycles from $1 load		\n\
+-								\n\
+-	ldq $27,56($18)						\n\
+-	xor $2,$3,$2						\n\
+-	stq $0,0($17)						\n\
+-	xor $4,$5,$4						\n\
+-								\n\
+-	stq $2,8($17)						\n\
+-	xor $6,$7,$6						\n\
+-	stq $4,16($17)						\n\
+-	xor $19,$20,$19						\n\
+-								\n\
+-	stq $6,24($17)						\n\
+-	xor $21,$22,$21						\n\
+-	stq $19,32($17)						\n\
+-	xor $23,$24,$23						\n\
+-								\n\
+-	stq $21,40($17)						\n\
+-	xor $25,$27,$25						\n\
+-	stq $23,48($17)						\n\
+-	subq $16,1,$16						\n\
+-								\n\
+-	stq $25,56($17)						\n\
+-	addq $17,64,$17						\n\
+-	addq $18,64,$18						\n\
+-	bgt $16,2b						\n\
+-								\n\
+-	ret							\n\
+-	.end xor_alpha_2					\n\
+-								\n\
+-	.align 3						\n\
+-	.ent xor_alpha_3					\n\
+-xor_alpha_3:							\n\
+-	.prologue 0						\n\
+-	srl $16, 6, $16						\n\
+-	.align 4						\n\
+-3:								\n\
+-	ldq $0,0($17)						\n\
+-	ldq $1,0($18)						\n\
+-	ldq $2,0($19)						\n\
+-	ldq $3,8($17)						\n\
+-								\n\
+-	ldq $4,8($18)						\n\
+-	ldq $6,16($17)						\n\
+-	ldq $7,16($18)						\n\
+-	ldq $21,24($17)						\n\
+-								\n\
+-	ldq $22,24($18)						\n\
+-	ldq $24,32($17)						\n\
+-	ldq $25,32($18)						\n\
+-	ldq $5,8($19)						\n\
+-								\n\
+-	ldq $20,16($19)						\n\
+-	ldq $23,24($19)						\n\
+-	ldq $27,32($19)						\n\
+-	nop							\n\
+-								\n\
+-	xor $0,$1,$1		# 8 cycles from $0 load		\n\
+-	xor $3,$4,$4		# 6 cycles from $4 load		\n\
+-	xor $6,$7,$7		# 6 cycles from $7 load		\n\
+-	xor $21,$22,$22		# 5 cycles from $22 load	\n\
+-								\n\
+-	xor $1,$2,$2		# 9 cycles from $2 load		\n\
+-	xor $24,$25,$25		# 5 cycles from $25 load	\n\
+-	stq $2,0($17)						\n\
+-	xor $4,$5,$5		# 6 cycles from $5 load		\n\
+-								\n\
+-	stq $5,8($17)						\n\
+-	xor $7,$20,$20		# 7 cycles from $20 load	\n\
+-	stq $20,16($17)						\n\
+-	xor $22,$23,$23		# 7 cycles from $23 load	\n\
+-								\n\
+-	stq $23,24($17)						\n\
+-	xor $25,$27,$27		# 7 cycles from $27 load	\n\
+-	stq $27,32($17)						\n\
+-	nop							\n\
+-								\n\
+-	ldq $0,40($17)						\n\
+-	ldq $1,40($18)						\n\
+-	ldq $3,48($17)						\n\
+-	ldq $4,48($18)						\n\
+-								\n\
+-	ldq $6,56($17)						\n\
+-	ldq $7,56($18)						\n\
+-	ldq $2,40($19)						\n\
+-	ldq $5,48($19)						\n\
+-								\n\
+-	ldq $20,56($19)						\n\
+-	xor $0,$1,$1		# 4 cycles from $1 load		\n\
+-	xor $3,$4,$4		# 5 cycles from $4 load		\n\
+-	xor $6,$7,$7		# 5 cycles from $7 load		\n\
+-								\n\
+-	xor $1,$2,$2		# 4 cycles from $2 load		\n\
+-	xor $4,$5,$5		# 5 cycles from $5 load		\n\
+-	stq $2,40($17)						\n\
+-	xor $7,$20,$20		# 4 cycles from $20 load	\n\
+-								\n\
+-	stq $5,48($17)						\n\
+-	subq $16,1,$16						\n\
+-	stq $20,56($17)						\n\
+-	addq $19,64,$19						\n\
+-								\n\
+-	addq $18,64,$18						\n\
+-	addq $17,64,$17						\n\
+-	bgt $16,3b						\n\
+-	ret							\n\
+-	.end xor_alpha_3					\n\
+-								\n\
+-	.align 3						\n\
+-	.ent xor_alpha_4					\n\
+-xor_alpha_4:							\n\
+-	.prologue 0						\n\
+-	srl $16, 6, $16						\n\
+-	.align 4						\n\
+-4:								\n\
+-	ldq $0,0($17)						\n\
+-	ldq $1,0($18)						\n\
+-	ldq $2,0($19)						\n\
+-	ldq $3,0($20)						\n\
+-								\n\
+-	ldq $4,8($17)						\n\
+-	ldq $5,8($18)						\n\
+-	ldq $6,8($19)						\n\
+-	ldq $7,8($20)						\n\
+-								\n\
+-	ldq $21,16($17)						\n\
+-	ldq $22,16($18)						\n\
+-	ldq $23,16($19)						\n\
+-	ldq $24,16($20)						\n\
+-								\n\
+-	ldq $25,24($17)						\n\
+-	xor $0,$1,$1		# 6 cycles from $1 load		\n\
+-	ldq $27,24($18)						\n\
+-	xor $2,$3,$3		# 6 cycles from $3 load		\n\
+-								\n\
+-	ldq $0,24($19)						\n\
+-	xor $1,$3,$3						\n\
+-	ldq $1,24($20)						\n\
+-	xor $4,$5,$5		# 7 cycles from $5 load		\n\
+-								\n\
+-	stq $3,0($17)						\n\
+-	xor $6,$7,$7						\n\
+-	xor $21,$22,$22		# 7 cycles from $22 load	\n\
+-	xor $5,$7,$7						\n\
+-								\n\
+-	stq $7,8($17)						\n\
+-	xor $23,$24,$24		# 7 cycles from $24 load	\n\
+-	ldq $2,32($17)						\n\
+-	xor $22,$24,$24						\n\
+-								\n\
+-	ldq $3,32($18)						\n\
+-	ldq $4,32($19)						\n\
+-	ldq $5,32($20)						\n\
+-	xor $25,$27,$27		# 8 cycles from $27 load	\n\
+-								\n\
+-	ldq $6,40($17)						\n\
+-	ldq $7,40($18)						\n\
+-	ldq $21,40($19)						\n\
+-	ldq $22,40($20)						\n\
+-								\n\
+-	stq $24,16($17)						\n\
+-	xor $0,$1,$1		# 9 cycles from $1 load		\n\
+-	xor $2,$3,$3		# 5 cycles from $3 load		\n\
+-	xor $27,$1,$1						\n\
+-								\n\
+-	stq $1,24($17)						\n\
+-	xor $4,$5,$5		# 5 cycles from $5 load		\n\
+-	ldq $23,48($17)						\n\
+-	ldq $24,48($18)						\n\
+-								\n\
+-	ldq $25,48($19)						\n\
+-	xor $3,$5,$5						\n\
+-	ldq $27,48($20)						\n\
+-	ldq $0,56($17)						\n\
+-								\n\
+-	ldq $1,56($18)						\n\
+-	ldq $2,56($19)						\n\
+-	xor $6,$7,$7		# 8 cycles from $6 load		\n\
+-	ldq $3,56($20)						\n\
+-								\n\
+-	stq $5,32($17)						\n\
+-	xor $21,$22,$22		# 8 cycles from $22 load	\n\
+-	xor $7,$22,$22						\n\
+-	xor $23,$24,$24		# 5 cycles from $24 load	\n\
+-								\n\
+-	stq $22,40($17)						\n\
+-	xor $25,$27,$27		# 5 cycles from $27 load	\n\
+-	xor $24,$27,$27						\n\
+-	xor $0,$1,$1		# 5 cycles from $1 load		\n\
+-								\n\
+-	stq $27,48($17)						\n\
+-	xor $2,$3,$3		# 4 cycles from $3 load		\n\
+-	xor $1,$3,$3						\n\
+-	subq $16,1,$16						\n\
+-								\n\
+-	stq $3,56($17)						\n\
+-	addq $20,64,$20						\n\
+-	addq $19,64,$19						\n\
+-	addq $18,64,$18						\n\
+-								\n\
+-	addq $17,64,$17						\n\
+-	bgt $16,4b						\n\
+-	ret							\n\
+-	.end xor_alpha_4					\n\
+-								\n\
+-	.align 3						\n\
+-	.ent xor_alpha_5					\n\
+-xor_alpha_5:							\n\
+-	.prologue 0						\n\
+-	srl $16, 6, $16						\n\
+-	.align 4						\n\
+-5:								\n\
+-	ldq $0,0($17)						\n\
+-	ldq $1,0($18)						\n\
+-	ldq $2,0($19)						\n\
+-	ldq $3,0($20)						\n\
+-								\n\
+-	ldq $4,0($21)						\n\
+-	ldq $5,8($17)						\n\
+-	ldq $6,8($18)						\n\
+-	ldq $7,8($19)						\n\
+-								\n\
+-	ldq $22,8($20)						\n\
+-	ldq $23,8($21)						\n\
+-	ldq $24,16($17)						\n\
+-	ldq $25,16($18)						\n\
+-								\n\
+-	ldq $27,16($19)						\n\
+-	xor $0,$1,$1		# 6 cycles from $1 load		\n\
+-	ldq $28,16($20)						\n\
+-	xor $2,$3,$3		# 6 cycles from $3 load		\n\
+-								\n\
+-	ldq $0,16($21)						\n\
+-	xor $1,$3,$3						\n\
+-	ldq $1,24($17)						\n\
+-	xor $3,$4,$4		# 7 cycles from $4 load		\n\
+-								\n\
+-	stq $4,0($17)						\n\
+-	xor $5,$6,$6		# 7 cycles from $6 load		\n\
+-	xor $7,$22,$22		# 7 cycles from $22 load	\n\
+-	xor $6,$23,$23		# 7 cycles from $23 load	\n\
+-								\n\
+-	ldq $2,24($18)						\n\
+-	xor $22,$23,$23						\n\
+-	ldq $3,24($19)						\n\
+-	xor $24,$25,$25		# 8 cycles from $25 load	\n\
+-								\n\
+-	stq $23,8($17)						\n\
+-	xor $25,$27,$27		# 8 cycles from $27 load	\n\
+-	ldq $4,24($20)						\n\
+-	xor $28,$0,$0		# 7 cycles from $0 load		\n\
+-								\n\
+-	ldq $5,24($21)						\n\
+-	xor $27,$0,$0						\n\
+-	ldq $6,32($17)						\n\
+-	ldq $7,32($18)						\n\
+-								\n\
+-	stq $0,16($17)						\n\
+-	xor $1,$2,$2		# 6 cycles from $2 load		\n\
+-	ldq $22,32($19)						\n\
+-	xor $3,$4,$4		# 4 cycles from $4 load		\n\
+-								\n\
+-	ldq $23,32($20)						\n\
+-	xor $2,$4,$4						\n\
+-	ldq $24,32($21)						\n\
+-	ldq $25,40($17)						\n\
+-								\n\
+-	ldq $27,40($18)						\n\
+-	ldq $28,40($19)						\n\
+-	ldq $0,40($20)						\n\
+-	xor $4,$5,$5		# 7 cycles from $5 load		\n\
+-								\n\
+-	stq $5,24($17)						\n\
+-	xor $6,$7,$7		# 7 cycles from $7 load		\n\
+-	ldq $1,40($21)						\n\
+-	ldq $2,48($17)						\n\
+-								\n\
+-	ldq $3,48($18)						\n\
+-	xor $7,$22,$22		# 7 cycles from $22 load	\n\
+-	ldq $4,48($19)						\n\
+-	xor $23,$24,$24		# 6 cycles from $24 load	\n\
+-								\n\
+-	ldq $5,48($20)						\n\
+-	xor $22,$24,$24						\n\
+-	ldq $6,48($21)						\n\
+-	xor $25,$27,$27		# 7 cycles from $27 load	\n\
+-								\n\
+-	stq $24,32($17)						\n\
+-	xor $27,$28,$28		# 8 cycles from $28 load	\n\
+-	ldq $7,56($17)						\n\
+-	xor $0,$1,$1		# 6 cycles from $1 load		\n\
+-								\n\
+-	ldq $22,56($18)						\n\
+-	ldq $23,56($19)						\n\
+-	ldq $24,56($20)						\n\
+-	ldq $25,56($21)						\n\
+-								\n\
+-	xor $28,$1,$1						\n\
+-	xor $2,$3,$3		# 9 cycles from $3 load		\n\
+-	xor $3,$4,$4		# 9 cycles from $4 load		\n\
+-	xor $5,$6,$6		# 8 cycles from $6 load		\n\
+-								\n\
+-	stq $1,40($17)						\n\
+-	xor $4,$6,$6						\n\
+-	xor $7,$22,$22		# 7 cycles from $22 load	\n\
+-	xor $23,$24,$24		# 6 cycles from $24 load	\n\
+-								\n\
+-	stq $6,48($17)						\n\
+-	xor $22,$24,$24						\n\
+-	subq $16,1,$16						\n\
+-	xor $24,$25,$25		# 8 cycles from $25 load	\n\
+-								\n\
+-	stq $25,56($17)						\n\
+-	addq $21,64,$21						\n\
+-	addq $20,64,$20						\n\
+-	addq $19,64,$19						\n\
+-								\n\
+-	addq $18,64,$18						\n\
+-	addq $17,64,$17						\n\
+-	bgt $16,5b						\n\
+-	ret							\n\
+-	.end xor_alpha_5					\n\
+-								\n\
+-	.align 3						\n\
+-	.ent xor_alpha_prefetch_2				\n\
+-xor_alpha_prefetch_2:						\n\
+-	.prologue 0						\n\
+-	srl $16, 6, $16						\n\
+-								\n\
+-	ldq $31, 0($17)						\n\
+-	ldq $31, 0($18)						\n\
+-								\n\
+-	ldq $31, 64($17)					\n\
+-	ldq $31, 64($18)					\n\
+-								\n\
+-	ldq $31, 128($17)					\n\
+-	ldq $31, 128($18)					\n\
+-								\n\
+-	ldq $31, 192($17)					\n\
+-	ldq $31, 192($18)					\n\
+-	.align 4						\n\
+-2:								\n\
+-	ldq $0,0($17)						\n\
+-	ldq $1,0($18)						\n\
+-	ldq $2,8($17)						\n\
+-	ldq $3,8($18)						\n\
+-								\n\
+-	ldq $4,16($17)						\n\
+-	ldq $5,16($18)						\n\
+-	ldq $6,24($17)						\n\
+-	ldq $7,24($18)						\n\
+-								\n\
+-	ldq $19,32($17)						\n\
+-	ldq $20,32($18)						\n\
+-	ldq $21,40($17)						\n\
+-	ldq $22,40($18)						\n\
+-								\n\
+-	ldq $23,48($17)						\n\
+-	ldq $24,48($18)						\n\
+-	ldq $25,56($17)						\n\
+-	ldq $27,56($18)						\n\
+-								\n\
+-	ldq $31,256($17)					\n\
+-	xor $0,$1,$0		# 8 cycles from $1 load		\n\
+-	ldq $31,256($18)					\n\
+-	xor $2,$3,$2						\n\
+-								\n\
+-	stq $0,0($17)						\n\
+-	xor $4,$5,$4						\n\
+-	stq $2,8($17)						\n\
+-	xor $6,$7,$6						\n\
+-								\n\
+-	stq $4,16($17)						\n\
+-	xor $19,$20,$19						\n\
+-	stq $6,24($17)						\n\
+-	xor $21,$22,$21						\n\
+-								\n\
+-	stq $19,32($17)						\n\
+-	xor $23,$24,$23						\n\
+-	stq $21,40($17)						\n\
+-	xor $25,$27,$25						\n\
+-								\n\
+-	stq $23,48($17)						\n\
+-	subq $16,1,$16						\n\
+-	stq $25,56($17)						\n\
+-	addq $17,64,$17						\n\
+-								\n\
+-	addq $18,64,$18						\n\
+-	bgt $16,2b						\n\
+-	ret							\n\
+-	.end xor_alpha_prefetch_2				\n\
+-								\n\
+-	.align 3						\n\
+-	.ent xor_alpha_prefetch_3				\n\
+-xor_alpha_prefetch_3:						\n\
+-	.prologue 0						\n\
+-	srl $16, 6, $16						\n\
+-								\n\
+-	ldq $31, 0($17)						\n\
+-	ldq $31, 0($18)						\n\
+-	ldq $31, 0($19)						\n\
+-								\n\
+-	ldq $31, 64($17)					\n\
+-	ldq $31, 64($18)					\n\
+-	ldq $31, 64($19)					\n\
+-								\n\
+-	ldq $31, 128($17)					\n\
+-	ldq $31, 128($18)					\n\
+-	ldq $31, 128($19)					\n\
+-								\n\
+-	ldq $31, 192($17)					\n\
+-	ldq $31, 192($18)					\n\
+-	ldq $31, 192($19)					\n\
+-	.align 4						\n\
+-3:								\n\
+-	ldq $0,0($17)						\n\
+-	ldq $1,0($18)						\n\
+-	ldq $2,0($19)						\n\
+-	ldq $3,8($17)						\n\
+-								\n\
+-	ldq $4,8($18)						\n\
+-	ldq $6,16($17)						\n\
+-	ldq $7,16($18)						\n\
+-	ldq $21,24($17)						\n\
+-								\n\
+-	ldq $22,24($18)						\n\
+-	ldq $24,32($17)						\n\
+-	ldq $25,32($18)						\n\
+-	ldq $5,8($19)						\n\
+-								\n\
+-	ldq $20,16($19)						\n\
+-	ldq $23,24($19)						\n\
+-	ldq $27,32($19)						\n\
+-	nop							\n\
+-								\n\
+-	xor $0,$1,$1		# 8 cycles from $0 load		\n\
+-	xor $3,$4,$4		# 7 cycles from $4 load		\n\
+-	xor $6,$7,$7		# 6 cycles from $7 load		\n\
+-	xor $21,$22,$22		# 5 cycles from $22 load	\n\
+-								\n\
+-	xor $1,$2,$2		# 9 cycles from $2 load		\n\
+-	xor $24,$25,$25		# 5 cycles from $25 load	\n\
+-	stq $2,0($17)						\n\
+-	xor $4,$5,$5		# 6 cycles from $5 load		\n\
+-								\n\
+-	stq $5,8($17)						\n\
+-	xor $7,$20,$20		# 7 cycles from $20 load	\n\
+-	stq $20,16($17)						\n\
+-	xor $22,$23,$23		# 7 cycles from $23 load	\n\
+-								\n\
+-	stq $23,24($17)						\n\
+-	xor $25,$27,$27		# 7 cycles from $27 load	\n\
+-	stq $27,32($17)						\n\
+-	nop							\n\
+-								\n\
+-	ldq $0,40($17)						\n\
+-	ldq $1,40($18)						\n\
+-	ldq $3,48($17)						\n\
+-	ldq $4,48($18)						\n\
+-								\n\
+-	ldq $6,56($17)						\n\
+-	ldq $7,56($18)						\n\
+-	ldq $2,40($19)						\n\
+-	ldq $5,48($19)						\n\
+-								\n\
+-	ldq $20,56($19)						\n\
+-	ldq $31,256($17)					\n\
+-	ldq $31,256($18)					\n\
+-	ldq $31,256($19)					\n\
+-								\n\
+-	xor $0,$1,$1		# 6 cycles from $1 load		\n\
+-	xor $3,$4,$4		# 5 cycles from $4 load		\n\
+-	xor $6,$7,$7		# 5 cycles from $7 load		\n\
+-	xor $1,$2,$2		# 4 cycles from $2 load		\n\
+-								\n\
+-	xor $4,$5,$5		# 5 cycles from $5 load		\n\
+-	xor $7,$20,$20		# 4 cycles from $20 load	\n\
+-	stq $2,40($17)						\n\
+-	subq $16,1,$16						\n\
+-								\n\
+-	stq $5,48($17)						\n\
+-	addq $19,64,$19						\n\
+-	stq $20,56($17)						\n\
+-	addq $18,64,$18						\n\
+-								\n\
+-	addq $17,64,$17						\n\
+-	bgt $16,3b						\n\
+-	ret							\n\
+-	.end xor_alpha_prefetch_3				\n\
+-								\n\
+-	.align 3						\n\
+-	.ent xor_alpha_prefetch_4				\n\
+-xor_alpha_prefetch_4:						\n\
+-	.prologue 0						\n\
+-	srl $16, 6, $16						\n\
+-								\n\
+-	ldq $31, 0($17)						\n\
+-	ldq $31, 0($18)						\n\
+-	ldq $31, 0($19)						\n\
+-	ldq $31, 0($20)						\n\
+-								\n\
+-	ldq $31, 64($17)					\n\
+-	ldq $31, 64($18)					\n\
+-	ldq $31, 64($19)					\n\
+-	ldq $31, 64($20)					\n\
+-								\n\
+-	ldq $31, 128($17)					\n\
+-	ldq $31, 128($18)					\n\
+-	ldq $31, 128($19)					\n\
+-	ldq $31, 128($20)					\n\
+-								\n\
+-	ldq $31, 192($17)					\n\
+-	ldq $31, 192($18)					\n\
+-	ldq $31, 192($19)					\n\
+-	ldq $31, 192($20)					\n\
+-	.align 4						\n\
+-4:								\n\
+-	ldq $0,0($17)						\n\
+-	ldq $1,0($18)						\n\
+-	ldq $2,0($19)						\n\
+-	ldq $3,0($20)						\n\
+-								\n\
+-	ldq $4,8($17)						\n\
+-	ldq $5,8($18)						\n\
+-	ldq $6,8($19)						\n\
+-	ldq $7,8($20)						\n\
+-								\n\
+-	ldq $21,16($17)						\n\
+-	ldq $22,16($18)						\n\
+-	ldq $23,16($19)						\n\
+-	ldq $24,16($20)						\n\
+-								\n\
+-	ldq $25,24($17)						\n\
+-	xor $0,$1,$1		# 6 cycles from $1 load		\n\
+-	ldq $27,24($18)						\n\
+-	xor $2,$3,$3		# 6 cycles from $3 load		\n\
+-								\n\
+-	ldq $0,24($19)						\n\
+-	xor $1,$3,$3						\n\
+-	ldq $1,24($20)						\n\
+-	xor $4,$5,$5		# 7 cycles from $5 load		\n\
+-								\n\
+-	stq $3,0($17)						\n\
+-	xor $6,$7,$7						\n\
+-	xor $21,$22,$22		# 7 cycles from $22 load	\n\
+-	xor $5,$7,$7						\n\
+-								\n\
+-	stq $7,8($17)						\n\
+-	xor $23,$24,$24		# 7 cycles from $24 load	\n\
+-	ldq $2,32($17)						\n\
+-	xor $22,$24,$24						\n\
+-								\n\
+-	ldq $3,32($18)						\n\
+-	ldq $4,32($19)						\n\
+-	ldq $5,32($20)						\n\
+-	xor $25,$27,$27		# 8 cycles from $27 load	\n\
+-								\n\
+-	ldq $6,40($17)						\n\
+-	ldq $7,40($18)						\n\
+-	ldq $21,40($19)						\n\
+-	ldq $22,40($20)						\n\
+-								\n\
+-	stq $24,16($17)						\n\
+-	xor $0,$1,$1		# 9 cycles from $1 load		\n\
+-	xor $2,$3,$3		# 5 cycles from $3 load		\n\
+-	xor $27,$1,$1						\n\
+-								\n\
+-	stq $1,24($17)						\n\
+-	xor $4,$5,$5		# 5 cycles from $5 load		\n\
+-	ldq $23,48($17)						\n\
+-	xor $3,$5,$5						\n\
+-								\n\
+-	ldq $24,48($18)						\n\
+-	ldq $25,48($19)						\n\
+-	ldq $27,48($20)						\n\
+-	ldq $0,56($17)						\n\
+-								\n\
+-	ldq $1,56($18)						\n\
+-	ldq $2,56($19)						\n\
+-	ldq $3,56($20)						\n\
+-	xor $6,$7,$7		# 8 cycles from $6 load		\n\
+-								\n\
+-	ldq $31,256($17)					\n\
+-	xor $21,$22,$22		# 8 cycles from $22 load	\n\
+-	ldq $31,256($18)					\n\
+-	xor $7,$22,$22						\n\
+-								\n\
+-	ldq $31,256($19)					\n\
+-	xor $23,$24,$24		# 6 cycles from $24 load	\n\
+-	ldq $31,256($20)					\n\
+-	xor $25,$27,$27		# 6 cycles from $27 load	\n\
+-								\n\
+-	stq $5,32($17)						\n\
+-	xor $24,$27,$27						\n\
+-	xor $0,$1,$1		# 7 cycles from $1 load		\n\
+-	xor $2,$3,$3		# 6 cycles from $3 load		\n\
+-								\n\
+-	stq $22,40($17)						\n\
+-	xor $1,$3,$3						\n\
+-	stq $27,48($17)						\n\
+-	subq $16,1,$16						\n\
+-								\n\
+-	stq $3,56($17)						\n\
+-	addq $20,64,$20						\n\
+-	addq $19,64,$19						\n\
+-	addq $18,64,$18						\n\
+-								\n\
+-	addq $17,64,$17						\n\
+-	bgt $16,4b						\n\
+-	ret							\n\
+-	.end xor_alpha_prefetch_4				\n\
+-								\n\
+-	.align 3						\n\
+-	.ent xor_alpha_prefetch_5				\n\
+-xor_alpha_prefetch_5:						\n\
+-	.prologue 0						\n\
+-	srl $16, 6, $16						\n\
+-								\n\
+-	ldq $31, 0($17)						\n\
+-	ldq $31, 0($18)						\n\
+-	ldq $31, 0($19)						\n\
+-	ldq $31, 0($20)						\n\
+-	ldq $31, 0($21)						\n\
+-								\n\
+-	ldq $31, 64($17)					\n\
+-	ldq $31, 64($18)					\n\
+-	ldq $31, 64($19)					\n\
+-	ldq $31, 64($20)					\n\
+-	ldq $31, 64($21)					\n\
+-								\n\
+-	ldq $31, 128($17)					\n\
+-	ldq $31, 128($18)					\n\
+-	ldq $31, 128($19)					\n\
+-	ldq $31, 128($20)					\n\
+-	ldq $31, 128($21)					\n\
+-								\n\
+-	ldq $31, 192($17)					\n\
+-	ldq $31, 192($18)					\n\
+-	ldq $31, 192($19)					\n\
+-	ldq $31, 192($20)					\n\
+-	ldq $31, 192($21)					\n\
+-	.align 4						\n\
+-5:								\n\
+-	ldq $0,0($17)						\n\
+-	ldq $1,0($18)						\n\
+-	ldq $2,0($19)						\n\
+-	ldq $3,0($20)						\n\
+-								\n\
+-	ldq $4,0($21)						\n\
+-	ldq $5,8($17)						\n\
+-	ldq $6,8($18)						\n\
+-	ldq $7,8($19)						\n\
+-								\n\
+-	ldq $22,8($20)						\n\
+-	ldq $23,8($21)						\n\
+-	ldq $24,16($17)						\n\
+-	ldq $25,16($18)						\n\
+-								\n\
+-	ldq $27,16($19)						\n\
+-	xor $0,$1,$1		# 6 cycles from $1 load		\n\
+-	ldq $28,16($20)						\n\
+-	xor $2,$3,$3		# 6 cycles from $3 load		\n\
+-								\n\
+-	ldq $0,16($21)						\n\
+-	xor $1,$3,$3						\n\
+-	ldq $1,24($17)						\n\
+-	xor $3,$4,$4		# 7 cycles from $4 load		\n\
+-								\n\
+-	stq $4,0($17)						\n\
+-	xor $5,$6,$6		# 7 cycles from $6 load		\n\
+-	xor $7,$22,$22		# 7 cycles from $22 load	\n\
+-	xor $6,$23,$23		# 7 cycles from $23 load	\n\
+-								\n\
+-	ldq $2,24($18)						\n\
+-	xor $22,$23,$23						\n\
+-	ldq $3,24($19)						\n\
+-	xor $24,$25,$25		# 8 cycles from $25 load	\n\
+-								\n\
+-	stq $23,8($17)						\n\
+-	xor $25,$27,$27		# 8 cycles from $27 load	\n\
+-	ldq $4,24($20)						\n\
+-	xor $28,$0,$0		# 7 cycles from $0 load		\n\
+-								\n\
+-	ldq $5,24($21)						\n\
+-	xor $27,$0,$0						\n\
+-	ldq $6,32($17)						\n\
+-	ldq $7,32($18)						\n\
+-								\n\
+-	stq $0,16($17)						\n\
+-	xor $1,$2,$2		# 6 cycles from $2 load		\n\
+-	ldq $22,32($19)						\n\
+-	xor $3,$4,$4		# 4 cycles from $4 load		\n\
+-								\n\
+-	ldq $23,32($20)						\n\
+-	xor $2,$4,$4						\n\
+-	ldq $24,32($21)						\n\
+-	ldq $25,40($17)						\n\
+-								\n\
+-	ldq $27,40($18)						\n\
+-	ldq $28,40($19)						\n\
+-	ldq $0,40($20)						\n\
+-	xor $4,$5,$5		# 7 cycles from $5 load		\n\
+-								\n\
+-	stq $5,24($17)						\n\
+-	xor $6,$7,$7		# 7 cycles from $7 load		\n\
+-	ldq $1,40($21)						\n\
+-	ldq $2,48($17)						\n\
+-								\n\
+-	ldq $3,48($18)						\n\
+-	xor $7,$22,$22		# 7 cycles from $22 load	\n\
+-	ldq $4,48($19)						\n\
+-	xor $23,$24,$24		# 6 cycles from $24 load	\n\
+-								\n\
+-	ldq $5,48($20)						\n\
+-	xor $22,$24,$24						\n\
+-	ldq $6,48($21)						\n\
+-	xor $25,$27,$27		# 7 cycles from $27 load	\n\
+-								\n\
+-	stq $24,32($17)						\n\
+-	xor $27,$28,$28		# 8 cycles from $28 load	\n\
+-	ldq $7,56($17)						\n\
+-	xor $0,$1,$1		# 6 cycles from $1 load		\n\
+-								\n\
+-	ldq $22,56($18)						\n\
+-	ldq $23,56($19)						\n\
+-	ldq $24,56($20)						\n\
+-	ldq $25,56($21)						\n\
+-								\n\
+-	ldq $31,256($17)					\n\
+-	xor $28,$1,$1						\n\
+-	ldq $31,256($18)					\n\
+-	xor $2,$3,$3		# 9 cycles from $3 load		\n\
+-								\n\
+-	ldq $31,256($19)					\n\
+-	xor $3,$4,$4		# 9 cycles from $4 load		\n\
+-	ldq $31,256($20)					\n\
+-	xor $5,$6,$6		# 8 cycles from $6 load		\n\
+-								\n\
+-	stq $1,40($17)						\n\
+-	xor $4,$6,$6						\n\
+-	xor $7,$22,$22		# 7 cycles from $22 load	\n\
+-	xor $23,$24,$24		# 6 cycles from $24 load	\n\
+-								\n\
+-	stq $6,48($17)						\n\
+-	xor $22,$24,$24						\n\
+-	ldq $31,256($21)					\n\
+-	xor $24,$25,$25		# 8 cycles from $25 load	\n\
+-								\n\
+-	stq $25,56($17)						\n\
+-	subq $16,1,$16						\n\
+-	addq $21,64,$21						\n\
+-	addq $20,64,$20						\n\
+-								\n\
+-	addq $19,64,$19						\n\
+-	addq $18,64,$18						\n\
+-	addq $17,64,$17						\n\
+-	bgt $16,5b						\n\
+-								\n\
+-	ret							\n\
+-	.end xor_alpha_prefetch_5				\n\
+-");
  
- xor-y				+= xor-core.o
-+xor-y				+= xor-8regs.o
-+xor-y				+= xor-32regs.o
-+xor-y				+= xor-8regs-prefetch.o
-+xor-y				+= xor-32regs-prefetch.o
-diff --git a/lib/raid/xor/xor-32regs.c a/lib/raid/xor/xor-32regs.c
+-static struct xor_block_template xor_block_alpha = {
+-	.name	= "alpha",
+-	.do_2	= xor_alpha_2,
+-	.do_3	= xor_alpha_3,
+-	.do_4	= xor_alpha_4,
+-	.do_5	= xor_alpha_5,
+-};
+-
+-static struct xor_block_template xor_block_alpha_prefetch = {
+-	.name	= "alpha prefetch",
+-	.do_2	= xor_alpha_prefetch_2,
+-	.do_3	= xor_alpha_prefetch_3,
+-	.do_4	= xor_alpha_prefetch_4,
+-	.do_5	= xor_alpha_prefetch_5,
+-};
+-
+-/* For grins, also test the generic routines.  */
++#include <asm/special_insns.h>
+ #include <asm-generic/xor.h>
+ 
++extern struct xor_block_template xor_block_alpha;
++extern struct xor_block_template xor_block_alpha_prefetch;
++
+ /*
+  * Force the use of alpha_prefetch if EV6, as it is significantly faster in the
+  * cold cache case.
+diff --git a/lib/raid/xor/alpha/xor.c a/lib/raid/xor/alpha/xor.c
 new file mode 100644
 --- /dev/null
-+++ a/lib/raid/xor/xor-32regs.c
-@@ -0,0 +1,219 @@
++++ a/lib/raid/xor/alpha/xor.c
+@@ -0,0 +1,849 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * Optimized XOR parity functions for alpha EV5 and EV6
++ */
 +#include <linux/raid/xor_impl.h>
-+#include <asm-generic/xor.h>
++#include <asm/xor.h>
 +
-+static void
-+xor_32regs_2(unsigned long bytes, unsigned long * __restrict p1,
-+	     const unsigned long * __restrict p2)
-+{
-+	long lines = bytes / (sizeof (long)) / 8;
-+
-+	do {
-+		register long d0, d1, d2, d3, d4, d5, d6, d7;
-+		d0 = p1[0];	/* Pull the stuff into registers	*/
-+		d1 = p1[1];	/*  ... in bursts, if possible.		*/
-+		d2 = p1[2];
-+		d3 = p1[3];
-+		d4 = p1[4];
-+		d5 = p1[5];
-+		d6 = p1[6];
-+		d7 = p1[7];
-+		d0 ^= p2[0];
-+		d1 ^= p2[1];
-+		d2 ^= p2[2];
-+		d3 ^= p2[3];
-+		d4 ^= p2[4];
-+		d5 ^= p2[5];
-+		d6 ^= p2[6];
-+		d7 ^= p2[7];
-+		p1[0] = d0;	/* Store the result (in bursts)		*/
-+		p1[1] = d1;
-+		p1[2] = d2;
-+		p1[3] = d3;
-+		p1[4] = d4;
-+		p1[5] = d5;
-+		p1[6] = d6;
-+		p1[7] = d7;
-+		p1 += 8;
-+		p2 += 8;
-+	} while (--lines > 0);
-+}
-+
-+static void
-+xor_32regs_3(unsigned long bytes, unsigned long * __restrict p1,
-+	     const unsigned long * __restrict p2,
-+	     const unsigned long * __restrict p3)
-+{
-+	long lines = bytes / (sizeof (long)) / 8;
-+
-+	do {
-+		register long d0, d1, d2, d3, d4, d5, d6, d7;
-+		d0 = p1[0];	/* Pull the stuff into registers	*/
-+		d1 = p1[1];	/*  ... in bursts, if possible.		*/
-+		d2 = p1[2];
-+		d3 = p1[3];
-+		d4 = p1[4];
-+		d5 = p1[5];
-+		d6 = p1[6];
-+		d7 = p1[7];
-+		d0 ^= p2[0];
-+		d1 ^= p2[1];
-+		d2 ^= p2[2];
-+		d3 ^= p2[3];
-+		d4 ^= p2[4];
-+		d5 ^= p2[5];
-+		d6 ^= p2[6];
-+		d7 ^= p2[7];
-+		d0 ^= p3[0];
-+		d1 ^= p3[1];
-+		d2 ^= p3[2];
-+		d3 ^= p3[3];
-+		d4 ^= p3[4];
-+		d5 ^= p3[5];
-+		d6 ^= p3[6];
-+		d7 ^= p3[7];
-+		p1[0] = d0;	/* Store the result (in bursts)		*/
-+		p1[1] = d1;
-+		p1[2] = d2;
-+		p1[3] = d3;
-+		p1[4] = d4;
-+		p1[5] = d5;
-+		p1[6] = d6;
-+		p1[7] = d7;
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+	} while (--lines > 0);
-+}
-+
-+static void
-+xor_32regs_4(unsigned long bytes, unsigned long * __restrict p1,
-+	     const unsigned long * __restrict p2,
-+	     const unsigned long * __restrict p3,
-+	     const unsigned long * __restrict p4)
-+{
-+	long lines = bytes / (sizeof (long)) / 8;
-+
-+	do {
-+		register long d0, d1, d2, d3, d4, d5, d6, d7;
-+		d0 = p1[0];	/* Pull the stuff into registers	*/
-+		d1 = p1[1];	/*  ... in bursts, if possible.		*/
-+		d2 = p1[2];
-+		d3 = p1[3];
-+		d4 = p1[4];
-+		d5 = p1[5];
-+		d6 = p1[6];
-+		d7 = p1[7];
-+		d0 ^= p2[0];
-+		d1 ^= p2[1];
-+		d2 ^= p2[2];
-+		d3 ^= p2[3];
-+		d4 ^= p2[4];
-+		d5 ^= p2[5];
-+		d6 ^= p2[6];
-+		d7 ^= p2[7];
-+		d0 ^= p3[0];
-+		d1 ^= p3[1];
-+		d2 ^= p3[2];
-+		d3 ^= p3[3];
-+		d4 ^= p3[4];
-+		d5 ^= p3[5];
-+		d6 ^= p3[6];
-+		d7 ^= p3[7];
-+		d0 ^= p4[0];
-+		d1 ^= p4[1];
-+		d2 ^= p4[2];
-+		d3 ^= p4[3];
-+		d4 ^= p4[4];
-+		d5 ^= p4[5];
-+		d6 ^= p4[6];
-+		d7 ^= p4[7];
-+		p1[0] = d0;	/* Store the result (in bursts)		*/
-+		p1[1] = d1;
-+		p1[2] = d2;
-+		p1[3] = d3;
-+		p1[4] = d4;
-+		p1[5] = d5;
-+		p1[6] = d6;
-+		p1[7] = d7;
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+		p4 += 8;
-+	} while (--lines > 0);
-+}
-+
-+static void
-+xor_32regs_5(unsigned long bytes, unsigned long * __restrict p1,
-+	     const unsigned long * __restrict p2,
-+	     const unsigned long * __restrict p3,
-+	     const unsigned long * __restrict p4,
-+	     const unsigned long * __restrict p5)
-+{
-+	long lines = bytes / (sizeof (long)) / 8;
-+
-+	do {
-+		register long d0, d1, d2, d3, d4, d5, d6, d7;
-+		d0 = p1[0];	/* Pull the stuff into registers	*/
-+		d1 = p1[1];	/*  ... in bursts, if possible.		*/
-+		d2 = p1[2];
-+		d3 = p1[3];
-+		d4 = p1[4];
-+		d5 = p1[5];
-+		d6 = p1[6];
-+		d7 = p1[7];
-+		d0 ^= p2[0];
-+		d1 ^= p2[1];
-+		d2 ^= p2[2];
-+		d3 ^= p2[3];
-+		d4 ^= p2[4];
-+		d5 ^= p2[5];
-+		d6 ^= p2[6];
-+		d7 ^= p2[7];
-+		d0 ^= p3[0];
-+		d1 ^= p3[1];
-+		d2 ^= p3[2];
-+		d3 ^= p3[3];
-+		d4 ^= p3[4];
-+		d5 ^= p3[5];
-+		d6 ^= p3[6];
-+		d7 ^= p3[7];
-+		d0 ^= p4[0];
-+		d1 ^= p4[1];
-+		d2 ^= p4[2];
-+		d3 ^= p4[3];
-+		d4 ^= p4[4];
-+		d5 ^= p4[5];
-+		d6 ^= p4[6];
-+		d7 ^= p4[7];
-+		d0 ^= p5[0];
-+		d1 ^= p5[1];
-+		d2 ^= p5[2];
-+		d3 ^= p5[3];
-+		d4 ^= p5[4];
-+		d5 ^= p5[5];
-+		d6 ^= p5[6];
-+		d7 ^= p5[7];
-+		p1[0] = d0;	/* Store the result (in bursts)		*/
-+		p1[1] = d1;
-+		p1[2] = d2;
-+		p1[3] = d3;
-+		p1[4] = d4;
-+		p1[5] = d5;
-+		p1[6] = d6;
-+		p1[7] = d7;
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+		p4 += 8;
-+		p5 += 8;
-+	} while (--lines > 0);
-+}
-+
-+struct xor_block_template xor_block_32regs = {
-+	.name = "32regs",
-+	.do_2 = xor_32regs_2,
-+	.do_3 = xor_32regs_3,
-+	.do_4 = xor_32regs_4,
-+	.do_5 = xor_32regs_5,
-+};
-diff --git a/lib/raid/xor/xor-32regs-prefetch.c a/lib/raid/xor/xor-32regs-prefetch.c
-new file mode 100644
---- /dev/null
-+++ a/lib/raid/xor/xor-32regs-prefetch.c
-@@ -0,0 +1,268 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+#include <linux/prefetch.h>
-+#include <linux/raid/xor_impl.h>
-+#include <asm-generic/xor.h>
-+
-+static void
-+xor_32regs_p_2(unsigned long bytes, unsigned long * __restrict p1,
-+	       const unsigned long * __restrict p2)
-+{
-+	long lines = bytes / (sizeof (long)) / 8 - 1;
-+
-+	prefetchw(p1);
-+	prefetch(p2);
-+
-+	do {
-+		register long d0, d1, d2, d3, d4, d5, d6, d7;
-+
-+		prefetchw(p1+8);
-+		prefetch(p2+8);
-+ once_more:
-+		d0 = p1[0];	/* Pull the stuff into registers	*/
-+		d1 = p1[1];	/*  ... in bursts, if possible.		*/
-+		d2 = p1[2];
-+		d3 = p1[3];
-+		d4 = p1[4];
-+		d5 = p1[5];
-+		d6 = p1[6];
-+		d7 = p1[7];
-+		d0 ^= p2[0];
-+		d1 ^= p2[1];
-+		d2 ^= p2[2];
-+		d3 ^= p2[3];
-+		d4 ^= p2[4];
-+		d5 ^= p2[5];
-+		d6 ^= p2[6];
-+		d7 ^= p2[7];
-+		p1[0] = d0;	/* Store the result (in bursts)		*/
-+		p1[1] = d1;
-+		p1[2] = d2;
-+		p1[3] = d3;
-+		p1[4] = d4;
-+		p1[5] = d5;
-+		p1[6] = d6;
-+		p1[7] = d7;
-+		p1 += 8;
-+		p2 += 8;
-+	} while (--lines > 0);
-+	if (lines == 0)
-+		goto once_more;
-+}
-+
-+static void
-+xor_32regs_p_3(unsigned long bytes, unsigned long * __restrict p1,
-+	       const unsigned long * __restrict p2,
-+	       const unsigned long * __restrict p3)
-+{
-+	long lines = bytes / (sizeof (long)) / 8 - 1;
-+
-+	prefetchw(p1);
-+	prefetch(p2);
-+	prefetch(p3);
-+
-+	do {
-+		register long d0, d1, d2, d3, d4, d5, d6, d7;
-+
-+		prefetchw(p1+8);
-+		prefetch(p2+8);
-+		prefetch(p3+8);
-+ once_more:
-+		d0 = p1[0];	/* Pull the stuff into registers	*/
-+		d1 = p1[1];	/*  ... in bursts, if possible.		*/
-+		d2 = p1[2];
-+		d3 = p1[3];
-+		d4 = p1[4];
-+		d5 = p1[5];
-+		d6 = p1[6];
-+		d7 = p1[7];
-+		d0 ^= p2[0];
-+		d1 ^= p2[1];
-+		d2 ^= p2[2];
-+		d3 ^= p2[3];
-+		d4 ^= p2[4];
-+		d5 ^= p2[5];
-+		d6 ^= p2[6];
-+		d7 ^= p2[7];
-+		d0 ^= p3[0];
-+		d1 ^= p3[1];
-+		d2 ^= p3[2];
-+		d3 ^= p3[3];
-+		d4 ^= p3[4];
-+		d5 ^= p3[5];
-+		d6 ^= p3[6];
-+		d7 ^= p3[7];
-+		p1[0] = d0;	/* Store the result (in bursts)		*/
-+		p1[1] = d1;
-+		p1[2] = d2;
-+		p1[3] = d3;
-+		p1[4] = d4;
-+		p1[5] = d5;
-+		p1[6] = d6;
-+		p1[7] = d7;
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+	} while (--lines > 0);
-+	if (lines == 0)
-+		goto once_more;
-+}
-+
-+static void
-+xor_32regs_p_4(unsigned long bytes, unsigned long * __restrict p1,
-+	       const unsigned long * __restrict p2,
-+	       const unsigned long * __restrict p3,
-+	       const unsigned long * __restrict p4)
-+{
-+	long lines = bytes / (sizeof (long)) / 8 - 1;
-+
-+	prefetchw(p1);
-+	prefetch(p2);
-+	prefetch(p3);
-+	prefetch(p4);
-+
-+	do {
-+		register long d0, d1, d2, d3, d4, d5, d6, d7;
-+
-+		prefetchw(p1+8);
-+		prefetch(p2+8);
-+		prefetch(p3+8);
-+		prefetch(p4+8);
-+ once_more:
-+		d0 = p1[0];	/* Pull the stuff into registers	*/
-+		d1 = p1[1];	/*  ... in bursts, if possible.		*/
-+		d2 = p1[2];
-+		d3 = p1[3];
-+		d4 = p1[4];
-+		d5 = p1[5];
-+		d6 = p1[6];
-+		d7 = p1[7];
-+		d0 ^= p2[0];
-+		d1 ^= p2[1];
-+		d2 ^= p2[2];
-+		d3 ^= p2[3];
-+		d4 ^= p2[4];
-+		d5 ^= p2[5];
-+		d6 ^= p2[6];
-+		d7 ^= p2[7];
-+		d0 ^= p3[0];
-+		d1 ^= p3[1];
-+		d2 ^= p3[2];
-+		d3 ^= p3[3];
-+		d4 ^= p3[4];
-+		d5 ^= p3[5];
-+		d6 ^= p3[6];
-+		d7 ^= p3[7];
-+		d0 ^= p4[0];
-+		d1 ^= p4[1];
-+		d2 ^= p4[2];
-+		d3 ^= p4[3];
-+		d4 ^= p4[4];
-+		d5 ^= p4[5];
-+		d6 ^= p4[6];
-+		d7 ^= p4[7];
-+		p1[0] = d0;	/* Store the result (in bursts)		*/
-+		p1[1] = d1;
-+		p1[2] = d2;
-+		p1[3] = d3;
-+		p1[4] = d4;
-+		p1[5] = d5;
-+		p1[6] = d6;
-+		p1[7] = d7;
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+		p4 += 8;
-+	} while (--lines > 0);
-+	if (lines == 0)
-+		goto once_more;
-+}
-+
-+static void
-+xor_32regs_p_5(unsigned long bytes, unsigned long * __restrict p1,
-+	       const unsigned long * __restrict p2,
-+	       const unsigned long * __restrict p3,
-+	       const unsigned long * __restrict p4,
-+	       const unsigned long * __restrict p5)
-+{
-+	long lines = bytes / (sizeof (long)) / 8 - 1;
-+
-+	prefetchw(p1);
-+	prefetch(p2);
-+	prefetch(p3);
-+	prefetch(p4);
-+	prefetch(p5);
-+
-+	do {
-+		register long d0, d1, d2, d3, d4, d5, d6, d7;
-+
-+		prefetchw(p1+8);
-+		prefetch(p2+8);
-+		prefetch(p3+8);
-+		prefetch(p4+8);
-+		prefetch(p5+8);
-+ once_more:
-+		d0 = p1[0];	/* Pull the stuff into registers	*/
-+		d1 = p1[1];	/*  ... in bursts, if possible.		*/
-+		d2 = p1[2];
-+		d3 = p1[3];
-+		d4 = p1[4];
-+		d5 = p1[5];
-+		d6 = p1[6];
-+		d7 = p1[7];
-+		d0 ^= p2[0];
-+		d1 ^= p2[1];
-+		d2 ^= p2[2];
-+		d3 ^= p2[3];
-+		d4 ^= p2[4];
-+		d5 ^= p2[5];
-+		d6 ^= p2[6];
-+		d7 ^= p2[7];
-+		d0 ^= p3[0];
-+		d1 ^= p3[1];
-+		d2 ^= p3[2];
-+		d3 ^= p3[3];
-+		d4 ^= p3[4];
-+		d5 ^= p3[5];
-+		d6 ^= p3[6];
-+		d7 ^= p3[7];
-+		d0 ^= p4[0];
-+		d1 ^= p4[1];
-+		d2 ^= p4[2];
-+		d3 ^= p4[3];
-+		d4 ^= p4[4];
-+		d5 ^= p4[5];
-+		d6 ^= p4[6];
-+		d7 ^= p4[7];
-+		d0 ^= p5[0];
-+		d1 ^= p5[1];
-+		d2 ^= p5[2];
-+		d3 ^= p5[3];
-+		d4 ^= p5[4];
-+		d5 ^= p5[5];
-+		d6 ^= p5[6];
-+		d7 ^= p5[7];
-+		p1[0] = d0;	/* Store the result (in bursts)		*/
-+		p1[1] = d1;
-+		p1[2] = d2;
-+		p1[3] = d3;
-+		p1[4] = d4;
-+		p1[5] = d5;
-+		p1[6] = d6;
-+		p1[7] = d7;
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+		p4 += 8;
-+		p5 += 8;
-+	} while (--lines > 0);
-+	if (lines == 0)
-+		goto once_more;
-+}
-+
-+struct xor_block_template xor_block_32regs_p = {
-+	.name = "32regs_prefetch",
-+	.do_2 = xor_32regs_p_2,
-+	.do_3 = xor_32regs_p_3,
-+	.do_4 = xor_32regs_p_4,
-+	.do_5 = xor_32regs_p_5,
-+};
-diff --git a/lib/raid/xor/xor-8regs.c a/lib/raid/xor/xor-8regs.c
-new file mode 100644
---- /dev/null
-+++ a/lib/raid/xor/xor-8regs.c
-@@ -0,0 +1,105 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+#include <linux/raid/xor_impl.h>
-+#include <asm-generic/xor.h>
-+
-+static void
-+xor_8regs_2(unsigned long bytes, unsigned long * __restrict p1,
-+	    const unsigned long * __restrict p2)
-+{
-+	long lines = bytes / (sizeof (long)) / 8;
-+
-+	do {
-+		p1[0] ^= p2[0];
-+		p1[1] ^= p2[1];
-+		p1[2] ^= p2[2];
-+		p1[3] ^= p2[3];
-+		p1[4] ^= p2[4];
-+		p1[5] ^= p2[5];
-+		p1[6] ^= p2[6];
-+		p1[7] ^= p2[7];
-+		p1 += 8;
-+		p2 += 8;
-+	} while (--lines > 0);
-+}
-+
-+static void
-+xor_8regs_3(unsigned long bytes, unsigned long * __restrict p1,
++extern void
++xor_alpha_2(unsigned long bytes, unsigned long * __restrict p1,
++	    const unsigned long * __restrict p2);
++extern void
++xor_alpha_3(unsigned long bytes, unsigned long * __restrict p1,
 +	    const unsigned long * __restrict p2,
-+	    const unsigned long * __restrict p3)
-+{
-+	long lines = bytes / (sizeof (long)) / 8;
-+
-+	do {
-+		p1[0] ^= p2[0] ^ p3[0];
-+		p1[1] ^= p2[1] ^ p3[1];
-+		p1[2] ^= p2[2] ^ p3[2];
-+		p1[3] ^= p2[3] ^ p3[3];
-+		p1[4] ^= p2[4] ^ p3[4];
-+		p1[5] ^= p2[5] ^ p3[5];
-+		p1[6] ^= p2[6] ^ p3[6];
-+		p1[7] ^= p2[7] ^ p3[7];
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+	} while (--lines > 0);
-+}
-+
-+static void
-+xor_8regs_4(unsigned long bytes, unsigned long * __restrict p1,
++	    const unsigned long * __restrict p3);
++extern void
++xor_alpha_4(unsigned long bytes, unsigned long * __restrict p1,
 +	    const unsigned long * __restrict p2,
 +	    const unsigned long * __restrict p3,
-+	    const unsigned long * __restrict p4)
-+{
-+	long lines = bytes / (sizeof (long)) / 8;
-+
-+	do {
-+		p1[0] ^= p2[0] ^ p3[0] ^ p4[0];
-+		p1[1] ^= p2[1] ^ p3[1] ^ p4[1];
-+		p1[2] ^= p2[2] ^ p3[2] ^ p4[2];
-+		p1[3] ^= p2[3] ^ p3[3] ^ p4[3];
-+		p1[4] ^= p2[4] ^ p3[4] ^ p4[4];
-+		p1[5] ^= p2[5] ^ p3[5] ^ p4[5];
-+		p1[6] ^= p2[6] ^ p3[6] ^ p4[6];
-+		p1[7] ^= p2[7] ^ p3[7] ^ p4[7];
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+		p4 += 8;
-+	} while (--lines > 0);
-+}
-+
-+static void
-+xor_8regs_5(unsigned long bytes, unsigned long * __restrict p1,
++	    const unsigned long * __restrict p4);
++extern void
++xor_alpha_5(unsigned long bytes, unsigned long * __restrict p1,
 +	    const unsigned long * __restrict p2,
 +	    const unsigned long * __restrict p3,
 +	    const unsigned long * __restrict p4,
-+	    const unsigned long * __restrict p5)
-+{
-+	long lines = bytes / (sizeof (long)) / 8;
++	    const unsigned long * __restrict p5);
 +
-+	do {
-+		p1[0] ^= p2[0] ^ p3[0] ^ p4[0] ^ p5[0];
-+		p1[1] ^= p2[1] ^ p3[1] ^ p4[1] ^ p5[1];
-+		p1[2] ^= p2[2] ^ p3[2] ^ p4[2] ^ p5[2];
-+		p1[3] ^= p2[3] ^ p3[3] ^ p4[3] ^ p5[3];
-+		p1[4] ^= p2[4] ^ p3[4] ^ p4[4] ^ p5[4];
-+		p1[5] ^= p2[5] ^ p3[5] ^ p4[5] ^ p5[5];
-+		p1[6] ^= p2[6] ^ p3[6] ^ p4[6] ^ p5[6];
-+		p1[7] ^= p2[7] ^ p3[7] ^ p4[7] ^ p5[7];
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+		p4 += 8;
-+		p5 += 8;
-+	} while (--lines > 0);
-+}
++extern void
++xor_alpha_prefetch_2(unsigned long bytes, unsigned long * __restrict p1,
++		     const unsigned long * __restrict p2);
++extern void
++xor_alpha_prefetch_3(unsigned long bytes, unsigned long * __restrict p1,
++		     const unsigned long * __restrict p2,
++		     const unsigned long * __restrict p3);
++extern void
++xor_alpha_prefetch_4(unsigned long bytes, unsigned long * __restrict p1,
++		     const unsigned long * __restrict p2,
++		     const unsigned long * __restrict p3,
++		     const unsigned long * __restrict p4);
++extern void
++xor_alpha_prefetch_5(unsigned long bytes, unsigned long * __restrict p1,
++		     const unsigned long * __restrict p2,
++		     const unsigned long * __restrict p3,
++		     const unsigned long * __restrict p4,
++		     const unsigned long * __restrict p5);
 +
-+#ifndef NO_TEMPLATE
-+struct xor_block_template xor_block_8regs = {
-+	.name = "8regs",
-+	.do_2 = xor_8regs_2,
-+	.do_3 = xor_8regs_3,
-+	.do_4 = xor_8regs_4,
-+	.do_5 = xor_8regs_5,
++asm("								\n\
++	.text							\n\
++	.align 3						\n\
++	.ent xor_alpha_2					\n\
++xor_alpha_2:							\n\
++	.prologue 0						\n\
++	srl $16, 6, $16						\n\
++	.align 4						\n\
++2:								\n\
++	ldq $0,0($17)						\n\
++	ldq $1,0($18)						\n\
++	ldq $2,8($17)						\n\
++	ldq $3,8($18)						\n\
++								\n\
++	ldq $4,16($17)						\n\
++	ldq $5,16($18)						\n\
++	ldq $6,24($17)						\n\
++	ldq $7,24($18)						\n\
++								\n\
++	ldq $19,32($17)						\n\
++	ldq $20,32($18)						\n\
++	ldq $21,40($17)						\n\
++	ldq $22,40($18)						\n\
++								\n\
++	ldq $23,48($17)						\n\
++	ldq $24,48($18)						\n\
++	ldq $25,56($17)						\n\
++	xor $0,$1,$0		# 7 cycles from $1 load		\n\
++								\n\
++	ldq $27,56($18)						\n\
++	xor $2,$3,$2						\n\
++	stq $0,0($17)						\n\
++	xor $4,$5,$4						\n\
++								\n\
++	stq $2,8($17)						\n\
++	xor $6,$7,$6						\n\
++	stq $4,16($17)						\n\
++	xor $19,$20,$19						\n\
++								\n\
++	stq $6,24($17)						\n\
++	xor $21,$22,$21						\n\
++	stq $19,32($17)						\n\
++	xor $23,$24,$23						\n\
++								\n\
++	stq $21,40($17)						\n\
++	xor $25,$27,$25						\n\
++	stq $23,48($17)						\n\
++	subq $16,1,$16						\n\
++								\n\
++	stq $25,56($17)						\n\
++	addq $17,64,$17						\n\
++	addq $18,64,$18						\n\
++	bgt $16,2b						\n\
++								\n\
++	ret							\n\
++	.end xor_alpha_2					\n\
++								\n\
++	.align 3						\n\
++	.ent xor_alpha_3					\n\
++xor_alpha_3:							\n\
++	.prologue 0						\n\
++	srl $16, 6, $16						\n\
++	.align 4						\n\
++3:								\n\
++	ldq $0,0($17)						\n\
++	ldq $1,0($18)						\n\
++	ldq $2,0($19)						\n\
++	ldq $3,8($17)						\n\
++								\n\
++	ldq $4,8($18)						\n\
++	ldq $6,16($17)						\n\
++	ldq $7,16($18)						\n\
++	ldq $21,24($17)						\n\
++								\n\
++	ldq $22,24($18)						\n\
++	ldq $24,32($17)						\n\
++	ldq $25,32($18)						\n\
++	ldq $5,8($19)						\n\
++								\n\
++	ldq $20,16($19)						\n\
++	ldq $23,24($19)						\n\
++	ldq $27,32($19)						\n\
++	nop							\n\
++								\n\
++	xor $0,$1,$1		# 8 cycles from $0 load		\n\
++	xor $3,$4,$4		# 6 cycles from $4 load		\n\
++	xor $6,$7,$7		# 6 cycles from $7 load		\n\
++	xor $21,$22,$22		# 5 cycles from $22 load	\n\
++								\n\
++	xor $1,$2,$2		# 9 cycles from $2 load		\n\
++	xor $24,$25,$25		# 5 cycles from $25 load	\n\
++	stq $2,0($17)						\n\
++	xor $4,$5,$5		# 6 cycles from $5 load		\n\
++								\n\
++	stq $5,8($17)						\n\
++	xor $7,$20,$20		# 7 cycles from $20 load	\n\
++	stq $20,16($17)						\n\
++	xor $22,$23,$23		# 7 cycles from $23 load	\n\
++								\n\
++	stq $23,24($17)						\n\
++	xor $25,$27,$27		# 7 cycles from $27 load	\n\
++	stq $27,32($17)						\n\
++	nop							\n\
++								\n\
++	ldq $0,40($17)						\n\
++	ldq $1,40($18)						\n\
++	ldq $3,48($17)						\n\
++	ldq $4,48($18)						\n\
++								\n\
++	ldq $6,56($17)						\n\
++	ldq $7,56($18)						\n\
++	ldq $2,40($19)						\n\
++	ldq $5,48($19)						\n\
++								\n\
++	ldq $20,56($19)						\n\
++	xor $0,$1,$1		# 4 cycles from $1 load		\n\
++	xor $3,$4,$4		# 5 cycles from $4 load		\n\
++	xor $6,$7,$7		# 5 cycles from $7 load		\n\
++								\n\
++	xor $1,$2,$2		# 4 cycles from $2 load		\n\
++	xor $4,$5,$5		# 5 cycles from $5 load		\n\
++	stq $2,40($17)						\n\
++	xor $7,$20,$20		# 4 cycles from $20 load	\n\
++								\n\
++	stq $5,48($17)						\n\
++	subq $16,1,$16						\n\
++	stq $20,56($17)						\n\
++	addq $19,64,$19						\n\
++								\n\
++	addq $18,64,$18						\n\
++	addq $17,64,$17						\n\
++	bgt $16,3b						\n\
++	ret							\n\
++	.end xor_alpha_3					\n\
++								\n\
++	.align 3						\n\
++	.ent xor_alpha_4					\n\
++xor_alpha_4:							\n\
++	.prologue 0						\n\
++	srl $16, 6, $16						\n\
++	.align 4						\n\
++4:								\n\
++	ldq $0,0($17)						\n\
++	ldq $1,0($18)						\n\
++	ldq $2,0($19)						\n\
++	ldq $3,0($20)						\n\
++								\n\
++	ldq $4,8($17)						\n\
++	ldq $5,8($18)						\n\
++	ldq $6,8($19)						\n\
++	ldq $7,8($20)						\n\
++								\n\
++	ldq $21,16($17)						\n\
++	ldq $22,16($18)						\n\
++	ldq $23,16($19)						\n\
++	ldq $24,16($20)						\n\
++								\n\
++	ldq $25,24($17)						\n\
++	xor $0,$1,$1		# 6 cycles from $1 load		\n\
++	ldq $27,24($18)						\n\
++	xor $2,$3,$3		# 6 cycles from $3 load		\n\
++								\n\
++	ldq $0,24($19)						\n\
++	xor $1,$3,$3						\n\
++	ldq $1,24($20)						\n\
++	xor $4,$5,$5		# 7 cycles from $5 load		\n\
++								\n\
++	stq $3,0($17)						\n\
++	xor $6,$7,$7						\n\
++	xor $21,$22,$22		# 7 cycles from $22 load	\n\
++	xor $5,$7,$7						\n\
++								\n\
++	stq $7,8($17)						\n\
++	xor $23,$24,$24		# 7 cycles from $24 load	\n\
++	ldq $2,32($17)						\n\
++	xor $22,$24,$24						\n\
++								\n\
++	ldq $3,32($18)						\n\
++	ldq $4,32($19)						\n\
++	ldq $5,32($20)						\n\
++	xor $25,$27,$27		# 8 cycles from $27 load	\n\
++								\n\
++	ldq $6,40($17)						\n\
++	ldq $7,40($18)						\n\
++	ldq $21,40($19)						\n\
++	ldq $22,40($20)						\n\
++								\n\
++	stq $24,16($17)						\n\
++	xor $0,$1,$1		# 9 cycles from $1 load		\n\
++	xor $2,$3,$3		# 5 cycles from $3 load		\n\
++	xor $27,$1,$1						\n\
++								\n\
++	stq $1,24($17)						\n\
++	xor $4,$5,$5		# 5 cycles from $5 load		\n\
++	ldq $23,48($17)						\n\
++	ldq $24,48($18)						\n\
++								\n\
++	ldq $25,48($19)						\n\
++	xor $3,$5,$5						\n\
++	ldq $27,48($20)						\n\
++	ldq $0,56($17)						\n\
++								\n\
++	ldq $1,56($18)						\n\
++	ldq $2,56($19)						\n\
++	xor $6,$7,$7		# 8 cycles from $6 load		\n\
++	ldq $3,56($20)						\n\
++								\n\
++	stq $5,32($17)						\n\
++	xor $21,$22,$22		# 8 cycles from $22 load	\n\
++	xor $7,$22,$22						\n\
++	xor $23,$24,$24		# 5 cycles from $24 load	\n\
++								\n\
++	stq $22,40($17)						\n\
++	xor $25,$27,$27		# 5 cycles from $27 load	\n\
++	xor $24,$27,$27						\n\
++	xor $0,$1,$1		# 5 cycles from $1 load		\n\
++								\n\
++	stq $27,48($17)						\n\
++	xor $2,$3,$3		# 4 cycles from $3 load		\n\
++	xor $1,$3,$3						\n\
++	subq $16,1,$16						\n\
++								\n\
++	stq $3,56($17)						\n\
++	addq $20,64,$20						\n\
++	addq $19,64,$19						\n\
++	addq $18,64,$18						\n\
++								\n\
++	addq $17,64,$17						\n\
++	bgt $16,4b						\n\
++	ret							\n\
++	.end xor_alpha_4					\n\
++								\n\
++	.align 3						\n\
++	.ent xor_alpha_5					\n\
++xor_alpha_5:							\n\
++	.prologue 0						\n\
++	srl $16, 6, $16						\n\
++	.align 4						\n\
++5:								\n\
++	ldq $0,0($17)						\n\
++	ldq $1,0($18)						\n\
++	ldq $2,0($19)						\n\
++	ldq $3,0($20)						\n\
++								\n\
++	ldq $4,0($21)						\n\
++	ldq $5,8($17)						\n\
++	ldq $6,8($18)						\n\
++	ldq $7,8($19)						\n\
++								\n\
++	ldq $22,8($20)						\n\
++	ldq $23,8($21)						\n\
++	ldq $24,16($17)						\n\
++	ldq $25,16($18)						\n\
++								\n\
++	ldq $27,16($19)						\n\
++	xor $0,$1,$1		# 6 cycles from $1 load		\n\
++	ldq $28,16($20)						\n\
++	xor $2,$3,$3		# 6 cycles from $3 load		\n\
++								\n\
++	ldq $0,16($21)						\n\
++	xor $1,$3,$3						\n\
++	ldq $1,24($17)						\n\
++	xor $3,$4,$4		# 7 cycles from $4 load		\n\
++								\n\
++	stq $4,0($17)						\n\
++	xor $5,$6,$6		# 7 cycles from $6 load		\n\
++	xor $7,$22,$22		# 7 cycles from $22 load	\n\
++	xor $6,$23,$23		# 7 cycles from $23 load	\n\
++								\n\
++	ldq $2,24($18)						\n\
++	xor $22,$23,$23						\n\
++	ldq $3,24($19)						\n\
++	xor $24,$25,$25		# 8 cycles from $25 load	\n\
++								\n\
++	stq $23,8($17)						\n\
++	xor $25,$27,$27		# 8 cycles from $27 load	\n\
++	ldq $4,24($20)						\n\
++	xor $28,$0,$0		# 7 cycles from $0 load		\n\
++								\n\
++	ldq $5,24($21)						\n\
++	xor $27,$0,$0						\n\
++	ldq $6,32($17)						\n\
++	ldq $7,32($18)						\n\
++								\n\
++	stq $0,16($17)						\n\
++	xor $1,$2,$2		# 6 cycles from $2 load		\n\
++	ldq $22,32($19)						\n\
++	xor $3,$4,$4		# 4 cycles from $4 load		\n\
++								\n\
++	ldq $23,32($20)						\n\
++	xor $2,$4,$4						\n\
++	ldq $24,32($21)						\n\
++	ldq $25,40($17)						\n\
++								\n\
++	ldq $27,40($18)						\n\
++	ldq $28,40($19)						\n\
++	ldq $0,40($20)						\n\
++	xor $4,$5,$5		# 7 cycles from $5 load		\n\
++								\n\
++	stq $5,24($17)						\n\
++	xor $6,$7,$7		# 7 cycles from $7 load		\n\
++	ldq $1,40($21)						\n\
++	ldq $2,48($17)						\n\
++								\n\
++	ldq $3,48($18)						\n\
++	xor $7,$22,$22		# 7 cycles from $22 load	\n\
++	ldq $4,48($19)						\n\
++	xor $23,$24,$24		# 6 cycles from $24 load	\n\
++								\n\
++	ldq $5,48($20)						\n\
++	xor $22,$24,$24						\n\
++	ldq $6,48($21)						\n\
++	xor $25,$27,$27		# 7 cycles from $27 load	\n\
++								\n\
++	stq $24,32($17)						\n\
++	xor $27,$28,$28		# 8 cycles from $28 load	\n\
++	ldq $7,56($17)						\n\
++	xor $0,$1,$1		# 6 cycles from $1 load		\n\
++								\n\
++	ldq $22,56($18)						\n\
++	ldq $23,56($19)						\n\
++	ldq $24,56($20)						\n\
++	ldq $25,56($21)						\n\
++								\n\
++	xor $28,$1,$1						\n\
++	xor $2,$3,$3		# 9 cycles from $3 load		\n\
++	xor $3,$4,$4		# 9 cycles from $4 load		\n\
++	xor $5,$6,$6		# 8 cycles from $6 load		\n\
++								\n\
++	stq $1,40($17)						\n\
++	xor $4,$6,$6						\n\
++	xor $7,$22,$22		# 7 cycles from $22 load	\n\
++	xor $23,$24,$24		# 6 cycles from $24 load	\n\
++								\n\
++	stq $6,48($17)						\n\
++	xor $22,$24,$24						\n\
++	subq $16,1,$16						\n\
++	xor $24,$25,$25		# 8 cycles from $25 load	\n\
++								\n\
++	stq $25,56($17)						\n\
++	addq $21,64,$21						\n\
++	addq $20,64,$20						\n\
++	addq $19,64,$19						\n\
++								\n\
++	addq $18,64,$18						\n\
++	addq $17,64,$17						\n\
++	bgt $16,5b						\n\
++	ret							\n\
++	.end xor_alpha_5					\n\
++								\n\
++	.align 3						\n\
++	.ent xor_alpha_prefetch_2				\n\
++xor_alpha_prefetch_2:						\n\
++	.prologue 0						\n\
++	srl $16, 6, $16						\n\
++								\n\
++	ldq $31, 0($17)						\n\
++	ldq $31, 0($18)						\n\
++								\n\
++	ldq $31, 64($17)					\n\
++	ldq $31, 64($18)					\n\
++								\n\
++	ldq $31, 128($17)					\n\
++	ldq $31, 128($18)					\n\
++								\n\
++	ldq $31, 192($17)					\n\
++	ldq $31, 192($18)					\n\
++	.align 4						\n\
++2:								\n\
++	ldq $0,0($17)						\n\
++	ldq $1,0($18)						\n\
++	ldq $2,8($17)						\n\
++	ldq $3,8($18)						\n\
++								\n\
++	ldq $4,16($17)						\n\
++	ldq $5,16($18)						\n\
++	ldq $6,24($17)						\n\
++	ldq $7,24($18)						\n\
++								\n\
++	ldq $19,32($17)						\n\
++	ldq $20,32($18)						\n\
++	ldq $21,40($17)						\n\
++	ldq $22,40($18)						\n\
++								\n\
++	ldq $23,48($17)						\n\
++	ldq $24,48($18)						\n\
++	ldq $25,56($17)						\n\
++	ldq $27,56($18)						\n\
++								\n\
++	ldq $31,256($17)					\n\
++	xor $0,$1,$0		# 8 cycles from $1 load		\n\
++	ldq $31,256($18)					\n\
++	xor $2,$3,$2						\n\
++								\n\
++	stq $0,0($17)						\n\
++	xor $4,$5,$4						\n\
++	stq $2,8($17)						\n\
++	xor $6,$7,$6						\n\
++								\n\
++	stq $4,16($17)						\n\
++	xor $19,$20,$19						\n\
++	stq $6,24($17)						\n\
++	xor $21,$22,$21						\n\
++								\n\
++	stq $19,32($17)						\n\
++	xor $23,$24,$23						\n\
++	stq $21,40($17)						\n\
++	xor $25,$27,$25						\n\
++								\n\
++	stq $23,48($17)						\n\
++	subq $16,1,$16						\n\
++	stq $25,56($17)						\n\
++	addq $17,64,$17						\n\
++								\n\
++	addq $18,64,$18						\n\
++	bgt $16,2b						\n\
++	ret							\n\
++	.end xor_alpha_prefetch_2				\n\
++								\n\
++	.align 3						\n\
++	.ent xor_alpha_prefetch_3				\n\
++xor_alpha_prefetch_3:						\n\
++	.prologue 0						\n\
++	srl $16, 6, $16						\n\
++								\n\
++	ldq $31, 0($17)						\n\
++	ldq $31, 0($18)						\n\
++	ldq $31, 0($19)						\n\
++								\n\
++	ldq $31, 64($17)					\n\
++	ldq $31, 64($18)					\n\
++	ldq $31, 64($19)					\n\
++								\n\
++	ldq $31, 128($17)					\n\
++	ldq $31, 128($18)					\n\
++	ldq $31, 128($19)					\n\
++								\n\
++	ldq $31, 192($17)					\n\
++	ldq $31, 192($18)					\n\
++	ldq $31, 192($19)					\n\
++	.align 4						\n\
++3:								\n\
++	ldq $0,0($17)						\n\
++	ldq $1,0($18)						\n\
++	ldq $2,0($19)						\n\
++	ldq $3,8($17)						\n\
++								\n\
++	ldq $4,8($18)						\n\
++	ldq $6,16($17)						\n\
++	ldq $7,16($18)						\n\
++	ldq $21,24($17)						\n\
++								\n\
++	ldq $22,24($18)						\n\
++	ldq $24,32($17)						\n\
++	ldq $25,32($18)						\n\
++	ldq $5,8($19)						\n\
++								\n\
++	ldq $20,16($19)						\n\
++	ldq $23,24($19)						\n\
++	ldq $27,32($19)						\n\
++	nop							\n\
++								\n\
++	xor $0,$1,$1		# 8 cycles from $0 load		\n\
++	xor $3,$4,$4		# 7 cycles from $4 load		\n\
++	xor $6,$7,$7		# 6 cycles from $7 load		\n\
++	xor $21,$22,$22		# 5 cycles from $22 load	\n\
++								\n\
++	xor $1,$2,$2		# 9 cycles from $2 load		\n\
++	xor $24,$25,$25		# 5 cycles from $25 load	\n\
++	stq $2,0($17)						\n\
++	xor $4,$5,$5		# 6 cycles from $5 load		\n\
++								\n\
++	stq $5,8($17)						\n\
++	xor $7,$20,$20		# 7 cycles from $20 load	\n\
++	stq $20,16($17)						\n\
++	xor $22,$23,$23		# 7 cycles from $23 load	\n\
++								\n\
++	stq $23,24($17)						\n\
++	xor $25,$27,$27		# 7 cycles from $27 load	\n\
++	stq $27,32($17)						\n\
++	nop							\n\
++								\n\
++	ldq $0,40($17)						\n\
++	ldq $1,40($18)						\n\
++	ldq $3,48($17)						\n\
++	ldq $4,48($18)						\n\
++								\n\
++	ldq $6,56($17)						\n\
++	ldq $7,56($18)						\n\
++	ldq $2,40($19)						\n\
++	ldq $5,48($19)						\n\
++								\n\
++	ldq $20,56($19)						\n\
++	ldq $31,256($17)					\n\
++	ldq $31,256($18)					\n\
++	ldq $31,256($19)					\n\
++								\n\
++	xor $0,$1,$1		# 6 cycles from $1 load		\n\
++	xor $3,$4,$4		# 5 cycles from $4 load		\n\
++	xor $6,$7,$7		# 5 cycles from $7 load		\n\
++	xor $1,$2,$2		# 4 cycles from $2 load		\n\
++								\n\
++	xor $4,$5,$5		# 5 cycles from $5 load		\n\
++	xor $7,$20,$20		# 4 cycles from $20 load	\n\
++	stq $2,40($17)						\n\
++	subq $16,1,$16						\n\
++								\n\
++	stq $5,48($17)						\n\
++	addq $19,64,$19						\n\
++	stq $20,56($17)						\n\
++	addq $18,64,$18						\n\
++								\n\
++	addq $17,64,$17						\n\
++	bgt $16,3b						\n\
++	ret							\n\
++	.end xor_alpha_prefetch_3				\n\
++								\n\
++	.align 3						\n\
++	.ent xor_alpha_prefetch_4				\n\
++xor_alpha_prefetch_4:						\n\
++	.prologue 0						\n\
++	srl $16, 6, $16						\n\
++								\n\
++	ldq $31, 0($17)						\n\
++	ldq $31, 0($18)						\n\
++	ldq $31, 0($19)						\n\
++	ldq $31, 0($20)						\n\
++								\n\
++	ldq $31, 64($17)					\n\
++	ldq $31, 64($18)					\n\
++	ldq $31, 64($19)					\n\
++	ldq $31, 64($20)					\n\
++								\n\
++	ldq $31, 128($17)					\n\
++	ldq $31, 128($18)					\n\
++	ldq $31, 128($19)					\n\
++	ldq $31, 128($20)					\n\
++								\n\
++	ldq $31, 192($17)					\n\
++	ldq $31, 192($18)					\n\
++	ldq $31, 192($19)					\n\
++	ldq $31, 192($20)					\n\
++	.align 4						\n\
++4:								\n\
++	ldq $0,0($17)						\n\
++	ldq $1,0($18)						\n\
++	ldq $2,0($19)						\n\
++	ldq $3,0($20)						\n\
++								\n\
++	ldq $4,8($17)						\n\
++	ldq $5,8($18)						\n\
++	ldq $6,8($19)						\n\
++	ldq $7,8($20)						\n\
++								\n\
++	ldq $21,16($17)						\n\
++	ldq $22,16($18)						\n\
++	ldq $23,16($19)						\n\
++	ldq $24,16($20)						\n\
++								\n\
++	ldq $25,24($17)						\n\
++	xor $0,$1,$1		# 6 cycles from $1 load		\n\
++	ldq $27,24($18)						\n\
++	xor $2,$3,$3		# 6 cycles from $3 load		\n\
++								\n\
++	ldq $0,24($19)						\n\
++	xor $1,$3,$3						\n\
++	ldq $1,24($20)						\n\
++	xor $4,$5,$5		# 7 cycles from $5 load		\n\
++								\n\
++	stq $3,0($17)						\n\
++	xor $6,$7,$7						\n\
++	xor $21,$22,$22		# 7 cycles from $22 load	\n\
++	xor $5,$7,$7						\n\
++								\n\
++	stq $7,8($17)						\n\
++	xor $23,$24,$24		# 7 cycles from $24 load	\n\
++	ldq $2,32($17)						\n\
++	xor $22,$24,$24						\n\
++								\n\
++	ldq $3,32($18)						\n\
++	ldq $4,32($19)						\n\
++	ldq $5,32($20)						\n\
++	xor $25,$27,$27		# 8 cycles from $27 load	\n\
++								\n\
++	ldq $6,40($17)						\n\
++	ldq $7,40($18)						\n\
++	ldq $21,40($19)						\n\
++	ldq $22,40($20)						\n\
++								\n\
++	stq $24,16($17)						\n\
++	xor $0,$1,$1		# 9 cycles from $1 load		\n\
++	xor $2,$3,$3		# 5 cycles from $3 load		\n\
++	xor $27,$1,$1						\n\
++								\n\
++	stq $1,24($17)						\n\
++	xor $4,$5,$5		# 5 cycles from $5 load		\n\
++	ldq $23,48($17)						\n\
++	xor $3,$5,$5						\n\
++								\n\
++	ldq $24,48($18)						\n\
++	ldq $25,48($19)						\n\
++	ldq $27,48($20)						\n\
++	ldq $0,56($17)						\n\
++								\n\
++	ldq $1,56($18)						\n\
++	ldq $2,56($19)						\n\
++	ldq $3,56($20)						\n\
++	xor $6,$7,$7		# 8 cycles from $6 load		\n\
++								\n\
++	ldq $31,256($17)					\n\
++	xor $21,$22,$22		# 8 cycles from $22 load	\n\
++	ldq $31,256($18)					\n\
++	xor $7,$22,$22						\n\
++								\n\
++	ldq $31,256($19)					\n\
++	xor $23,$24,$24		# 6 cycles from $24 load	\n\
++	ldq $31,256($20)					\n\
++	xor $25,$27,$27		# 6 cycles from $27 load	\n\
++								\n\
++	stq $5,32($17)						\n\
++	xor $24,$27,$27						\n\
++	xor $0,$1,$1		# 7 cycles from $1 load		\n\
++	xor $2,$3,$3		# 6 cycles from $3 load		\n\
++								\n\
++	stq $22,40($17)						\n\
++	xor $1,$3,$3						\n\
++	stq $27,48($17)						\n\
++	subq $16,1,$16						\n\
++								\n\
++	stq $3,56($17)						\n\
++	addq $20,64,$20						\n\
++	addq $19,64,$19						\n\
++	addq $18,64,$18						\n\
++								\n\
++	addq $17,64,$17						\n\
++	bgt $16,4b						\n\
++	ret							\n\
++	.end xor_alpha_prefetch_4				\n\
++								\n\
++	.align 3						\n\
++	.ent xor_alpha_prefetch_5				\n\
++xor_alpha_prefetch_5:						\n\
++	.prologue 0						\n\
++	srl $16, 6, $16						\n\
++								\n\
++	ldq $31, 0($17)						\n\
++	ldq $31, 0($18)						\n\
++	ldq $31, 0($19)						\n\
++	ldq $31, 0($20)						\n\
++	ldq $31, 0($21)						\n\
++								\n\
++	ldq $31, 64($17)					\n\
++	ldq $31, 64($18)					\n\
++	ldq $31, 64($19)					\n\
++	ldq $31, 64($20)					\n\
++	ldq $31, 64($21)					\n\
++								\n\
++	ldq $31, 128($17)					\n\
++	ldq $31, 128($18)					\n\
++	ldq $31, 128($19)					\n\
++	ldq $31, 128($20)					\n\
++	ldq $31, 128($21)					\n\
++								\n\
++	ldq $31, 192($17)					\n\
++	ldq $31, 192($18)					\n\
++	ldq $31, 192($19)					\n\
++	ldq $31, 192($20)					\n\
++	ldq $31, 192($21)					\n\
++	.align 4						\n\
++5:								\n\
++	ldq $0,0($17)						\n\
++	ldq $1,0($18)						\n\
++	ldq $2,0($19)						\n\
++	ldq $3,0($20)						\n\
++								\n\
++	ldq $4,0($21)						\n\
++	ldq $5,8($17)						\n\
++	ldq $6,8($18)						\n\
++	ldq $7,8($19)						\n\
++								\n\
++	ldq $22,8($20)						\n\
++	ldq $23,8($21)						\n\
++	ldq $24,16($17)						\n\
++	ldq $25,16($18)						\n\
++								\n\
++	ldq $27,16($19)						\n\
++	xor $0,$1,$1		# 6 cycles from $1 load		\n\
++	ldq $28,16($20)						\n\
++	xor $2,$3,$3		# 6 cycles from $3 load		\n\
++								\n\
++	ldq $0,16($21)						\n\
++	xor $1,$3,$3						\n\
++	ldq $1,24($17)						\n\
++	xor $3,$4,$4		# 7 cycles from $4 load		\n\
++								\n\
++	stq $4,0($17)						\n\
++	xor $5,$6,$6		# 7 cycles from $6 load		\n\
++	xor $7,$22,$22		# 7 cycles from $22 load	\n\
++	xor $6,$23,$23		# 7 cycles from $23 load	\n\
++								\n\
++	ldq $2,24($18)						\n\
++	xor $22,$23,$23						\n\
++	ldq $3,24($19)						\n\
++	xor $24,$25,$25		# 8 cycles from $25 load	\n\
++								\n\
++	stq $23,8($17)						\n\
++	xor $25,$27,$27		# 8 cycles from $27 load	\n\
++	ldq $4,24($20)						\n\
++	xor $28,$0,$0		# 7 cycles from $0 load		\n\
++								\n\
++	ldq $5,24($21)						\n\
++	xor $27,$0,$0						\n\
++	ldq $6,32($17)						\n\
++	ldq $7,32($18)						\n\
++								\n\
++	stq $0,16($17)						\n\
++	xor $1,$2,$2		# 6 cycles from $2 load		\n\
++	ldq $22,32($19)						\n\
++	xor $3,$4,$4		# 4 cycles from $4 load		\n\
++								\n\
++	ldq $23,32($20)						\n\
++	xor $2,$4,$4						\n\
++	ldq $24,32($21)						\n\
++	ldq $25,40($17)						\n\
++								\n\
++	ldq $27,40($18)						\n\
++	ldq $28,40($19)						\n\
++	ldq $0,40($20)						\n\
++	xor $4,$5,$5		# 7 cycles from $5 load		\n\
++								\n\
++	stq $5,24($17)						\n\
++	xor $6,$7,$7		# 7 cycles from $7 load		\n\
++	ldq $1,40($21)						\n\
++	ldq $2,48($17)						\n\
++								\n\
++	ldq $3,48($18)						\n\
++	xor $7,$22,$22		# 7 cycles from $22 load	\n\
++	ldq $4,48($19)						\n\
++	xor $23,$24,$24		# 6 cycles from $24 load	\n\
++								\n\
++	ldq $5,48($20)						\n\
++	xor $22,$24,$24						\n\
++	ldq $6,48($21)						\n\
++	xor $25,$27,$27		# 7 cycles from $27 load	\n\
++								\n\
++	stq $24,32($17)						\n\
++	xor $27,$28,$28		# 8 cycles from $28 load	\n\
++	ldq $7,56($17)						\n\
++	xor $0,$1,$1		# 6 cycles from $1 load		\n\
++								\n\
++	ldq $22,56($18)						\n\
++	ldq $23,56($19)						\n\
++	ldq $24,56($20)						\n\
++	ldq $25,56($21)						\n\
++								\n\
++	ldq $31,256($17)					\n\
++	xor $28,$1,$1						\n\
++	ldq $31,256($18)					\n\
++	xor $2,$3,$3		# 9 cycles from $3 load		\n\
++								\n\
++	ldq $31,256($19)					\n\
++	xor $3,$4,$4		# 9 cycles from $4 load		\n\
++	ldq $31,256($20)					\n\
++	xor $5,$6,$6		# 8 cycles from $6 load		\n\
++								\n\
++	stq $1,40($17)						\n\
++	xor $4,$6,$6						\n\
++	xor $7,$22,$22		# 7 cycles from $22 load	\n\
++	xor $23,$24,$24		# 6 cycles from $24 load	\n\
++								\n\
++	stq $6,48($17)						\n\
++	xor $22,$24,$24						\n\
++	ldq $31,256($21)					\n\
++	xor $24,$25,$25		# 8 cycles from $25 load	\n\
++								\n\
++	stq $25,56($17)						\n\
++	subq $16,1,$16						\n\
++	addq $21,64,$21						\n\
++	addq $20,64,$20						\n\
++								\n\
++	addq $19,64,$19						\n\
++	addq $18,64,$18						\n\
++	addq $17,64,$17						\n\
++	bgt $16,5b						\n\
++								\n\
++	ret							\n\
++	.end xor_alpha_prefetch_5				\n\
++");
++
++struct xor_block_template xor_block_alpha = {
++	.name	= "alpha",
++	.do_2	= xor_alpha_2,
++	.do_3	= xor_alpha_3,
++	.do_4	= xor_alpha_4,
++	.do_5	= xor_alpha_5,
 +};
-+#endif /* NO_TEMPLATE */
-diff --git a/lib/raid/xor/xor-8regs-prefetch.c a/lib/raid/xor/xor-8regs-prefetch.c
-new file mode 100644
---- /dev/null
-+++ a/lib/raid/xor/xor-8regs-prefetch.c
-@@ -0,0 +1,146 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+#include <linux/prefetch.h>
-+#include <linux/raid/xor_impl.h>
-+#include <asm-generic/xor.h>
 +
-+static void
-+xor_8regs_p_2(unsigned long bytes, unsigned long * __restrict p1,
-+	      const unsigned long * __restrict p2)
-+{
-+	long lines = bytes / (sizeof (long)) / 8 - 1;
-+	prefetchw(p1);
-+	prefetch(p2);
-+
-+	do {
-+		prefetchw(p1+8);
-+		prefetch(p2+8);
-+ once_more:
-+		p1[0] ^= p2[0];
-+		p1[1] ^= p2[1];
-+		p1[2] ^= p2[2];
-+		p1[3] ^= p2[3];
-+		p1[4] ^= p2[4];
-+		p1[5] ^= p2[5];
-+		p1[6] ^= p2[6];
-+		p1[7] ^= p2[7];
-+		p1 += 8;
-+		p2 += 8;
-+	} while (--lines > 0);
-+	if (lines == 0)
-+		goto once_more;
-+}
-+
-+static void
-+xor_8regs_p_3(unsigned long bytes, unsigned long * __restrict p1,
-+	      const unsigned long * __restrict p2,
-+	      const unsigned long * __restrict p3)
-+{
-+	long lines = bytes / (sizeof (long)) / 8 - 1;
-+	prefetchw(p1);
-+	prefetch(p2);
-+	prefetch(p3);
-+
-+	do {
-+		prefetchw(p1+8);
-+		prefetch(p2+8);
-+		prefetch(p3+8);
-+ once_more:
-+		p1[0] ^= p2[0] ^ p3[0];
-+		p1[1] ^= p2[1] ^ p3[1];
-+		p1[2] ^= p2[2] ^ p3[2];
-+		p1[3] ^= p2[3] ^ p3[3];
-+		p1[4] ^= p2[4] ^ p3[4];
-+		p1[5] ^= p2[5] ^ p3[5];
-+		p1[6] ^= p2[6] ^ p3[6];
-+		p1[7] ^= p2[7] ^ p3[7];
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+	} while (--lines > 0);
-+	if (lines == 0)
-+		goto once_more;
-+}
-+
-+static void
-+xor_8regs_p_4(unsigned long bytes, unsigned long * __restrict p1,
-+	      const unsigned long * __restrict p2,
-+	      const unsigned long * __restrict p3,
-+	      const unsigned long * __restrict p4)
-+{
-+	long lines = bytes / (sizeof (long)) / 8 - 1;
-+
-+	prefetchw(p1);
-+	prefetch(p2);
-+	prefetch(p3);
-+	prefetch(p4);
-+
-+	do {
-+		prefetchw(p1+8);
-+		prefetch(p2+8);
-+		prefetch(p3+8);
-+		prefetch(p4+8);
-+ once_more:
-+		p1[0] ^= p2[0] ^ p3[0] ^ p4[0];
-+		p1[1] ^= p2[1] ^ p3[1] ^ p4[1];
-+		p1[2] ^= p2[2] ^ p3[2] ^ p4[2];
-+		p1[3] ^= p2[3] ^ p3[3] ^ p4[3];
-+		p1[4] ^= p2[4] ^ p3[4] ^ p4[4];
-+		p1[5] ^= p2[5] ^ p3[5] ^ p4[5];
-+		p1[6] ^= p2[6] ^ p3[6] ^ p4[6];
-+		p1[7] ^= p2[7] ^ p3[7] ^ p4[7];
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+		p4 += 8;
-+	} while (--lines > 0);
-+	if (lines == 0)
-+		goto once_more;
-+}
-+
-+static void
-+xor_8regs_p_5(unsigned long bytes, unsigned long * __restrict p1,
-+	      const unsigned long * __restrict p2,
-+	      const unsigned long * __restrict p3,
-+	      const unsigned long * __restrict p4,
-+	      const unsigned long * __restrict p5)
-+{
-+	long lines = bytes / (sizeof (long)) / 8 - 1;
-+
-+	prefetchw(p1);
-+	prefetch(p2);
-+	prefetch(p3);
-+	prefetch(p4);
-+	prefetch(p5);
-+
-+	do {
-+		prefetchw(p1+8);
-+		prefetch(p2+8);
-+		prefetch(p3+8);
-+		prefetch(p4+8);
-+		prefetch(p5+8);
-+ once_more:
-+		p1[0] ^= p2[0] ^ p3[0] ^ p4[0] ^ p5[0];
-+		p1[1] ^= p2[1] ^ p3[1] ^ p4[1] ^ p5[1];
-+		p1[2] ^= p2[2] ^ p3[2] ^ p4[2] ^ p5[2];
-+		p1[3] ^= p2[3] ^ p3[3] ^ p4[3] ^ p5[3];
-+		p1[4] ^= p2[4] ^ p3[4] ^ p4[4] ^ p5[4];
-+		p1[5] ^= p2[5] ^ p3[5] ^ p4[5] ^ p5[5];
-+		p1[6] ^= p2[6] ^ p3[6] ^ p4[6] ^ p5[6];
-+		p1[7] ^= p2[7] ^ p3[7] ^ p4[7] ^ p5[7];
-+		p1 += 8;
-+		p2 += 8;
-+		p3 += 8;
-+		p4 += 8;
-+		p5 += 8;
-+	} while (--lines > 0);
-+	if (lines == 0)
-+		goto once_more;
-+}
-+
-+struct xor_block_template xor_block_8regs_p = {
-+	.name = "8regs_prefetch",
-+	.do_2 = xor_8regs_p_2,
-+	.do_3 = xor_8regs_p_3,
-+	.do_4 = xor_8regs_p_4,
-+	.do_5 = xor_8regs_p_5,
++struct xor_block_template xor_block_alpha_prefetch = {
++	.name	= "alpha prefetch",
++	.do_2	= xor_alpha_prefetch_2,
++	.do_3	= xor_alpha_prefetch_3,
++	.do_4	= xor_alpha_prefetch_4,
++	.do_5	= xor_alpha_prefetch_5,
 +};
+--- a/lib/raid/xor/Makefile~alpha-move-the-xor-code-to-lib-raid
++++ a/lib/raid/xor/Makefile
+@@ -7,3 +7,5 @@ xor-y				+= xor-8regs.o
+ xor-y				+= xor-32regs.o
+ xor-y				+= xor-8regs-prefetch.o
+ xor-y				+= xor-32regs-prefetch.o
++
++xor-$(CONFIG_ALPHA)		+= alpha/xor.o
 _
 
 Patches currently in -mm which might be from hch@lst.de are
