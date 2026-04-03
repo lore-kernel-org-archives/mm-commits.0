@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF38636309F
-	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:41:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08F8235A3BF
+	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:41:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775198512; cv=none; b=b3NnGZXD40l558ioJJtjSnIXNOzEwV7k0RkexJIzqJ602aZtvGWGkMB9fsJlsm410KUsfFS/ZpjSfO/uSfhmk3y+NJNXUMeEulcG1w0QUNde7iqPquENL3701an2zA8TIPyxgIb1ed3r/x6aQcInxccttuxxMcpFfb5at8GVEys=
+	t=1775198515; cv=none; b=B/wu0xYvSokYw2qsHGqGnK0SdJe5zL9qj0ScoJRdhVy1m2RNWAR7LTVX5Ayod9E16HrpmoNm2NohEb035vrbY51MWRWmAdk4nrW8V34WxWL6sPVi0WQvvh+3BYFfeMd1CKlj/eJOhrPm7osb7KwDxNxveAePDC+ZsAYmLgHDTw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775198512; c=relaxed/simple;
-	bh=HckQjRMUslaJyq6omoe/IYIMBvaAxjgvbTJs3IhNZKc=;
-	h=Date:To:From:Subject:Message-Id; b=Gmc4Y5cPXXaCLACeIX9Efu4BgVzyQXNqrK8UIo9uti4f14q1OrZD0+HmpQ8osoZN+UAHioxsIa/VJFzyiVM93ti2BYRg50ONqnZM3BZBMOgFat2JQwcGd1GvswFZcKY7/Py69RDhL2kHzKB/8Dl6e//y8ndCvEhVksgvp0rSIww=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D7RAM3QI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775198515; c=relaxed/simple;
+	bh=NjeF8HXHYHrcMmzxuCk5348m1/108AfhiB3VqZQ73ds=;
+	h=Date:To:From:Subject:Message-Id; b=YB0oTAWb5TxwgSv9kkSbUkRb9C3qH+TyR8jzIt2sdYrzI7texlTOa1cpGh4wZ0SxYEXpOlisX6LtbnSiz29okR3N75lQ6wS9jZ7Dt5ivNnrB725iFv9172TJ8v828AAS1v3YP2VpJCK1bBY6WK23fwDmOxXHiiGn+hovbW61LaU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eFMRwSQr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D7RAM3QI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87C68C4CEF7;
-	Fri,  3 Apr 2026 06:41:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eFMRwSQr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9443FC4CEF7;
+	Fri,  3 Apr 2026 06:41:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775198512;
-	bh=HckQjRMUslaJyq6omoe/IYIMBvaAxjgvbTJs3IhNZKc=;
+	s=korg; t=1775198514;
+	bh=NjeF8HXHYHrcMmzxuCk5348m1/108AfhiB3VqZQ73ds=;
 	h=Date:To:From:Subject:From;
-	b=D7RAM3QIiRwcUHjmcZXf8reSXuT8Na1OfwCs2uYsJKlx4zAkWgL9LyrFGYXH257W1
-	 M06y4EZIjzT2bcGX7Gk44eFz3RE/ZoxJg7W1eFgVhhVjxwKGoWr/9IBPOQRrYSsUrd
-	 dSdG3wrGVnGCy+pMEDJmhZXOzzHcnekrLt3KtEBE=
-Date: Thu, 02 Apr 2026 23:41:52 -0700
+	b=eFMRwSQrVoDLz/Z68+erXEQgcUq5QcmmuQHqxObHe91Y9C42e7lnqkEzvjAN1K3Jf
+	 gSNRtc4qBBKa+vj7H1jd4mWpq41dcXv7xGP10BUw9nrrQHythfjawJdtWVvhvMDMON
+	 ZwiX0y/XuyCEM/wQ4DmSp8iSpHmOY2LynLuhVi/4=
+Date: Thu, 02 Apr 2026 23:41:54 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,tytso@mit.edu,svens@linux.ibm.com,song@kernel.org,richard@nod.at,richard.henderson@linaro.org,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mattst88@gmail.com,maddy@linux.ibm.com,linux@armlinux.org.uk,linmag7@gmail.com,linan122@huawei.com,kernel@xen0n.name,johannes@sipsolutions.net,jason@zx2c4.com,hpa@zytor.com,herbert@gondor.apana.org.au,hca@linux.ibm.com,gor@linux.ibm.com,ebiggers@kernel.org,dsterba@suse.com,davem@davemloft.net,dan.j.williams@intel.com,clm@fb.com,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,arnd@arndb.de,ardb@kernel.org,aou@eecs.berkeley.edu,anton.ivanov@cambridgegreys.com,andreas@gaisler.com,alex@ghiti.fr,agordeev@linux.ibm.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] loongarch-move-the-xor-code-to-lib-raid.patch removed from -mm tree
-Message-Id: <20260403064152.87C68C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] powerpc-move-the-xor-code-to-lib-raid.patch removed from -mm tree
+Message-Id: <20260403064154.9443FC4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: loongarch: move the XOR code to lib/raid/
+     Subject: powerpc: move the XOR code to lib/raid/
 has been removed from the -mm tree.  Its filename was
-     loongarch-move-the-xor-code-to-lib-raid.patch
+     powerpc-move-the-xor-code-to-lib-raid.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: loongarch: move the XOR code to lib/raid/
-Date: Fri, 27 Mar 2026 07:16:46 +0100
+Subject: powerpc: move the XOR code to lib/raid/
+Date: Fri, 27 Mar 2026 07:16:47 +0100
 
 Move the optimized XOR into lib/raid and include it it in xor.ko instead
 of always building it into the main kernel image.
 
-Link: https://lkml.kernel.org/r/20260327061704.3707577-15-hch@lst.de
+Link: https://lkml.kernel.org/r/20260327061704.3707577-16-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Eric Biggers <ebiggers@kernel.org>
 Tested-by: Eric Biggers <ebiggers@kernel.org>
@@ -94,790 +94,620 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/loongarch/include/asm/xor.h       |   24 -----
- arch/loongarch/include/asm/xor_simd.h  |   34 -------
- arch/loongarch/lib/Makefile            |    2 
- arch/loongarch/lib/xor_simd.c          |   93 -------------------
- arch/loongarch/lib/xor_simd.h          |   38 -------
- arch/loongarch/lib/xor_simd_glue.c     |   72 ---------------
- arch/loongarch/lib/xor_template.c      |  110 -----------------------
- lib/raid/xor/Makefile                  |    2 
- lib/raid/xor/loongarch/xor_simd.c      |   93 +++++++++++++++++++
- lib/raid/xor/loongarch/xor_simd.h      |   38 +++++++
- lib/raid/xor/loongarch/xor_simd_glue.c |   77 ++++++++++++++++
- lib/raid/xor/loongarch/xor_template.c  |  110 +++++++++++++++++++++++
- 12 files changed, 323 insertions(+), 370 deletions(-)
+ arch/powerpc/include/asm/xor.h         |   17 --
+ arch/powerpc/include/asm/xor_altivec.h |   22 ---
+ arch/powerpc/lib/Makefile              |    5 
+ arch/powerpc/lib/xor_vmx.c             |  156 -----------------------
+ arch/powerpc/lib/xor_vmx.h             |   22 ---
+ arch/powerpc/lib/xor_vmx_glue.c        |   63 ---------
+ lib/raid/xor/Makefile                  |    5 
+ lib/raid/xor/powerpc/xor_vmx.c         |  156 +++++++++++++++++++++++
+ lib/raid/xor/powerpc/xor_vmx.h         |   22 +++
+ lib/raid/xor/powerpc/xor_vmx_glue.c    |   67 +++++++++
+ 10 files changed, 252 insertions(+), 283 deletions(-)
 
---- a/arch/loongarch/include/asm/xor.h~loongarch-move-the-xor-code-to-lib-raid
-+++ a/arch/loongarch/include/asm/xor.h
-@@ -6,27 +6,6 @@
- #define _ASM_LOONGARCH_XOR_H
- 
- #include <asm/cpu-features.h>
--#include <asm/xor_simd.h>
+diff --git a/arch/powerpc/include/asm/xor_altivec.h a/arch/powerpc/include/asm/xor_altivec.h
+deleted file mode 100644
+--- a/arch/powerpc/include/asm/xor_altivec.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef _ASM_POWERPC_XOR_ALTIVEC_H
+-#define _ASM_POWERPC_XOR_ALTIVEC_H
 -
--#ifdef CONFIG_CPU_HAS_LSX
--static struct xor_block_template xor_block_lsx = {
--	.name = "lsx",
--	.do_2 = xor_lsx_2,
--	.do_3 = xor_lsx_3,
--	.do_4 = xor_lsx_4,
--	.do_5 = xor_lsx_5,
--};
--#endif /* CONFIG_CPU_HAS_LSX */
+-#ifdef CONFIG_ALTIVEC
+-void xor_altivec_2(unsigned long bytes, unsigned long * __restrict p1,
+-		   const unsigned long * __restrict p2);
+-void xor_altivec_3(unsigned long bytes, unsigned long * __restrict p1,
+-		   const unsigned long * __restrict p2,
+-		   const unsigned long * __restrict p3);
+-void xor_altivec_4(unsigned long bytes, unsigned long * __restrict p1,
+-		   const unsigned long * __restrict p2,
+-		   const unsigned long * __restrict p3,
+-		   const unsigned long * __restrict p4);
+-void xor_altivec_5(unsigned long bytes, unsigned long * __restrict p1,
+-		   const unsigned long * __restrict p2,
+-		   const unsigned long * __restrict p3,
+-		   const unsigned long * __restrict p4,
+-		   const unsigned long * __restrict p5);
 -
--#ifdef CONFIG_CPU_HAS_LASX
--static struct xor_block_template xor_block_lasx = {
--	.name = "lasx",
--	.do_2 = xor_lasx_2,
--	.do_3 = xor_lasx_3,
--	.do_4 = xor_lasx_4,
--	.do_5 = xor_lasx_5,
--};
--#endif /* CONFIG_CPU_HAS_LASX */
+-#endif
+-#endif /* _ASM_POWERPC_XOR_ALTIVEC_H */
+--- a/arch/powerpc/include/asm/xor.h~powerpc-move-the-xor-code-to-lib-raid
++++ a/arch/powerpc/include/asm/xor.h
+@@ -8,24 +8,11 @@
+ #ifndef _ASM_POWERPC_XOR_H
+ #define _ASM_POWERPC_XOR_H
  
- /*
-  * For grins, also test the generic routines.
-@@ -38,6 +17,9 @@ static struct xor_block_template xor_blo
-  */
+-#ifdef CONFIG_ALTIVEC
+-
+-#include <asm/cputable.h>
+ #include <asm/cpu_has_feature.h>
+-#include <asm/xor_altivec.h>
+-
+-static struct xor_block_template xor_block_altivec = {
+-	.name = "altivec",
+-	.do_2 = xor_altivec_2,
+-	.do_3 = xor_altivec_3,
+-	.do_4 = xor_altivec_4,
+-	.do_5 = xor_altivec_5,
+-};
+-#endif /* CONFIG_ALTIVEC */
+-
+-/* Also try the generic routines. */
  #include <asm-generic/xor.h>
  
-+extern struct xor_block_template xor_block_lsx;
-+extern struct xor_block_template xor_block_lasx;
++extern struct xor_block_template xor_block_altivec;
 +
  #define arch_xor_init arch_xor_init
  static __always_inline void __init arch_xor_init(void)
  {
-diff --git a/arch/loongarch/include/asm/xor_simd.h a/arch/loongarch/include/asm/xor_simd.h
-deleted file mode 100644
---- a/arch/loongarch/include/asm/xor_simd.h
-+++ /dev/null
-@@ -1,34 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-or-later */
--/*
-- * Copyright (C) 2023 WANG Xuerui <git@xen0n.name>
-- */
--#ifndef _ASM_LOONGARCH_XOR_SIMD_H
--#define _ASM_LOONGARCH_XOR_SIMD_H
--
--#ifdef CONFIG_CPU_HAS_LSX
--void xor_lsx_2(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2);
--void xor_lsx_3(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2, const unsigned long * __restrict p3);
--void xor_lsx_4(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2, const unsigned long * __restrict p3,
--	       const unsigned long * __restrict p4);
--void xor_lsx_5(unsigned long bytes, unsigned long * __restrict p1,
--	       const unsigned long * __restrict p2, const unsigned long * __restrict p3,
--	       const unsigned long * __restrict p4, const unsigned long * __restrict p5);
--#endif /* CONFIG_CPU_HAS_LSX */
--
--#ifdef CONFIG_CPU_HAS_LASX
--void xor_lasx_2(unsigned long bytes, unsigned long * __restrict p1,
--	        const unsigned long * __restrict p2);
--void xor_lasx_3(unsigned long bytes, unsigned long * __restrict p1,
--	        const unsigned long * __restrict p2, const unsigned long * __restrict p3);
--void xor_lasx_4(unsigned long bytes, unsigned long * __restrict p1,
--	        const unsigned long * __restrict p2, const unsigned long * __restrict p3,
--	        const unsigned long * __restrict p4);
--void xor_lasx_5(unsigned long bytes, unsigned long * __restrict p1,
--	        const unsigned long * __restrict p2, const unsigned long * __restrict p3,
--	        const unsigned long * __restrict p4, const unsigned long * __restrict p5);
--#endif /* CONFIG_CPU_HAS_LASX */
--
--#endif /* _ASM_LOONGARCH_XOR_SIMD_H */
---- a/arch/loongarch/lib/Makefile~loongarch-move-the-xor-code-to-lib-raid
-+++ a/arch/loongarch/lib/Makefile
-@@ -8,6 +8,4 @@ lib-y	+= delay.o memset.o memcpy.o memmo
+--- a/arch/powerpc/lib/Makefile~powerpc-move-the-xor-code-to-lib-raid
++++ a/arch/powerpc/lib/Makefile
+@@ -73,9 +73,4 @@ obj-$(CONFIG_PPC_LIB_RHEAP) += rheap.o
  
- obj-$(CONFIG_ARCH_SUPPORTS_INT128) += tishift.o
+ obj-$(CONFIG_FTR_FIXUP_SELFTEST) += feature-fixups-test.o
  
--obj-$(CONFIG_CPU_HAS_LSX) += xor_simd.o xor_simd_glue.o
+-obj-$(CONFIG_ALTIVEC)	+= xor_vmx.o xor_vmx_glue.o
+-CFLAGS_xor_vmx.o += -mhard-float -maltivec $(call cc-option,-mabi=altivec)
+-# Enable <altivec.h>
+-CFLAGS_xor_vmx.o += -isystem $(shell $(CC) -print-file-name=include)
 -
- obj-$(CONFIG_FUNCTION_ERROR_INJECTION) += error-inject.o
-diff --git a/arch/loongarch/lib/xor_simd.c a/arch/loongarch/lib/xor_simd.c
+ obj-$(CONFIG_PPC64) += $(obj64-y)
+diff --git a/arch/powerpc/lib/xor_vmx.c a/arch/powerpc/lib/xor_vmx.c
 deleted file mode 100644
---- a/arch/loongarch/lib/xor_simd.c
+--- a/arch/powerpc/lib/xor_vmx.c
 +++ /dev/null
-@@ -1,93 +0,0 @@
+@@ -1,156 +0,0 @@
 -// SPDX-License-Identifier: GPL-2.0-or-later
 -/*
-- * LoongArch SIMD XOR operations
 - *
-- * Copyright (C) 2023 WANG Xuerui <git@xen0n.name>
+- * Copyright (C) IBM Corporation, 2012
+- *
+- * Author: Anton Blanchard <anton@au.ibm.com>
 - */
--
--#include "xor_simd.h"
 -
 -/*
-- * Process one cache line (64 bytes) per loop. This is assuming all future
-- * popular LoongArch cores are similar performance-characteristics-wise to the
-- * current models.
+- * Sparse (as at v0.5.0) gets very, very confused by this file.
+- * Make it a bit simpler for it.
 - */
--#define LINE_WIDTH 64
+-#if !defined(__CHECKER__)
+-#include <altivec.h>
+-#else
+-#define vec_xor(a, b) a ^ b
+-#define vector __attribute__((vector_size(16)))
+-#endif
 -
--#ifdef CONFIG_CPU_HAS_LSX
+-#include "xor_vmx.h"
 -
--#define LD(reg, base, offset)	\
--	"vld $vr" #reg ", %[" #base "], " #offset "\n\t"
--#define ST(reg, base, offset)	\
--	"vst $vr" #reg ", %[" #base "], " #offset "\n\t"
--#define XOR(dj, k)	"vxor.v $vr" #dj ", $vr" #dj ", $vr" #k "\n\t"
+-typedef vector signed char unative_t;
 -
--#define LD_INOUT_LINE(base)	\
--	LD(0, base, 0)		\
--	LD(1, base, 16)		\
--	LD(2, base, 32)		\
--	LD(3, base, 48)
+-#define DEFINE(V)				\
+-	unative_t *V = (unative_t *)V##_in;	\
+-	unative_t V##_0, V##_1, V##_2, V##_3
 -
--#define LD_AND_XOR_LINE(base)	\
--	LD(4, base, 0)		\
--	LD(5, base, 16)		\
--	LD(6, base, 32)		\
--	LD(7, base, 48)		\
--	XOR(0, 4)		\
--	XOR(1, 5)		\
--	XOR(2, 6)		\
--	XOR(3, 7)
+-#define LOAD(V)			\
+-	do {			\
+-		V##_0 = V[0];	\
+-		V##_1 = V[1];	\
+-		V##_2 = V[2];	\
+-		V##_3 = V[3];	\
+-	} while (0)
 -
--#define ST_LINE(base)		\
--	ST(0, base, 0)		\
--	ST(1, base, 16)		\
--	ST(2, base, 32)		\
--	ST(3, base, 48)
+-#define STORE(V)		\
+-	do {			\
+-		V[0] = V##_0;	\
+-		V[1] = V##_1;	\
+-		V[2] = V##_2;	\
+-		V[3] = V##_3;	\
+-	} while (0)
 -
--#define XOR_FUNC_NAME(nr) __xor_lsx_##nr
--#include "xor_template.c"
+-#define XOR(V1, V2)					\
+-	do {						\
+-		V1##_0 = vec_xor(V1##_0, V2##_0);	\
+-		V1##_1 = vec_xor(V1##_1, V2##_1);	\
+-		V1##_2 = vec_xor(V1##_2, V2##_2);	\
+-		V1##_3 = vec_xor(V1##_3, V2##_3);	\
+-	} while (0)
 -
--#undef LD
--#undef ST
--#undef XOR
--#undef LD_INOUT_LINE
--#undef LD_AND_XOR_LINE
--#undef ST_LINE
--#undef XOR_FUNC_NAME
+-void __xor_altivec_2(unsigned long bytes,
+-		     unsigned long * __restrict v1_in,
+-		     const unsigned long * __restrict v2_in)
+-{
+-	DEFINE(v1);
+-	DEFINE(v2);
+-	unsigned long lines = bytes / (sizeof(unative_t)) / 4;
 -
--#endif /* CONFIG_CPU_HAS_LSX */
+-	do {
+-		LOAD(v1);
+-		LOAD(v2);
+-		XOR(v1, v2);
+-		STORE(v1);
 -
--#ifdef CONFIG_CPU_HAS_LASX
+-		v1 += 4;
+-		v2 += 4;
+-	} while (--lines > 0);
+-}
 -
--#define LD(reg, base, offset)	\
--	"xvld $xr" #reg ", %[" #base "], " #offset "\n\t"
--#define ST(reg, base, offset)	\
--	"xvst $xr" #reg ", %[" #base "], " #offset "\n\t"
--#define XOR(dj, k)	"xvxor.v $xr" #dj ", $xr" #dj ", $xr" #k "\n\t"
+-void __xor_altivec_3(unsigned long bytes,
+-		     unsigned long * __restrict v1_in,
+-		     const unsigned long * __restrict v2_in,
+-		     const unsigned long * __restrict v3_in)
+-{
+-	DEFINE(v1);
+-	DEFINE(v2);
+-	DEFINE(v3);
+-	unsigned long lines = bytes / (sizeof(unative_t)) / 4;
 -
--#define LD_INOUT_LINE(base)	\
--	LD(0, base, 0)		\
--	LD(1, base, 32)
+-	do {
+-		LOAD(v1);
+-		LOAD(v2);
+-		LOAD(v3);
+-		XOR(v1, v2);
+-		XOR(v1, v3);
+-		STORE(v1);
 -
--#define LD_AND_XOR_LINE(base)	\
--	LD(2, base, 0)		\
--	LD(3, base, 32)		\
--	XOR(0, 2)		\
--	XOR(1, 3)
+-		v1 += 4;
+-		v2 += 4;
+-		v3 += 4;
+-	} while (--lines > 0);
+-}
 -
--#define ST_LINE(base)		\
--	ST(0, base, 0)		\
--	ST(1, base, 32)
+-void __xor_altivec_4(unsigned long bytes,
+-		     unsigned long * __restrict v1_in,
+-		     const unsigned long * __restrict v2_in,
+-		     const unsigned long * __restrict v3_in,
+-		     const unsigned long * __restrict v4_in)
+-{
+-	DEFINE(v1);
+-	DEFINE(v2);
+-	DEFINE(v3);
+-	DEFINE(v4);
+-	unsigned long lines = bytes / (sizeof(unative_t)) / 4;
 -
--#define XOR_FUNC_NAME(nr) __xor_lasx_##nr
--#include "xor_template.c"
+-	do {
+-		LOAD(v1);
+-		LOAD(v2);
+-		LOAD(v3);
+-		LOAD(v4);
+-		XOR(v1, v2);
+-		XOR(v3, v4);
+-		XOR(v1, v3);
+-		STORE(v1);
 -
--#undef LD
--#undef ST
--#undef XOR
--#undef LD_INOUT_LINE
--#undef LD_AND_XOR_LINE
--#undef ST_LINE
--#undef XOR_FUNC_NAME
+-		v1 += 4;
+-		v2 += 4;
+-		v3 += 4;
+-		v4 += 4;
+-	} while (--lines > 0);
+-}
 -
--#endif /* CONFIG_CPU_HAS_LASX */
-diff --git a/arch/loongarch/lib/xor_simd_glue.c a/arch/loongarch/lib/xor_simd_glue.c
+-void __xor_altivec_5(unsigned long bytes,
+-		     unsigned long * __restrict v1_in,
+-		     const unsigned long * __restrict v2_in,
+-		     const unsigned long * __restrict v3_in,
+-		     const unsigned long * __restrict v4_in,
+-		     const unsigned long * __restrict v5_in)
+-{
+-	DEFINE(v1);
+-	DEFINE(v2);
+-	DEFINE(v3);
+-	DEFINE(v4);
+-	DEFINE(v5);
+-	unsigned long lines = bytes / (sizeof(unative_t)) / 4;
+-
+-	do {
+-		LOAD(v1);
+-		LOAD(v2);
+-		LOAD(v3);
+-		LOAD(v4);
+-		LOAD(v5);
+-		XOR(v1, v2);
+-		XOR(v3, v4);
+-		XOR(v1, v5);
+-		XOR(v1, v3);
+-		STORE(v1);
+-
+-		v1 += 4;
+-		v2 += 4;
+-		v3 += 4;
+-		v4 += 4;
+-		v5 += 4;
+-	} while (--lines > 0);
+-}
+diff --git a/arch/powerpc/lib/xor_vmx_glue.c a/arch/powerpc/lib/xor_vmx_glue.c
 deleted file mode 100644
---- a/arch/loongarch/lib/xor_simd_glue.c
+--- a/arch/powerpc/lib/xor_vmx_glue.c
 +++ /dev/null
-@@ -1,72 +0,0 @@
+@@ -1,63 +0,0 @@
 -// SPDX-License-Identifier: GPL-2.0-or-later
 -/*
-- * LoongArch SIMD XOR operations
+- * Altivec XOR operations
 - *
-- * Copyright (C) 2023 WANG Xuerui <git@xen0n.name>
+- * Copyright 2017 IBM Corp.
 - */
 -
+-#include <linux/preempt.h>
 -#include <linux/export.h>
 -#include <linux/sched.h>
--#include <asm/fpu.h>
--#include <asm/xor_simd.h>
--#include "xor_simd.h"
+-#include <asm/switch_to.h>
+-#include <asm/xor_altivec.h>
+-#include "xor_vmx.h"
 -
--#define MAKE_XOR_GLUE_2(flavor)							\
--void xor_##flavor##_2(unsigned long bytes, unsigned long * __restrict p1,	\
--		      const unsigned long * __restrict p2)			\
--{										\
--	kernel_fpu_begin();							\
--	__xor_##flavor##_2(bytes, p1, p2);					\
--	kernel_fpu_end();							\
--}										\
--EXPORT_SYMBOL_GPL(xor_##flavor##_2)
+-void xor_altivec_2(unsigned long bytes, unsigned long * __restrict p1,
+-		   const unsigned long * __restrict p2)
+-{
+-	preempt_disable();
+-	enable_kernel_altivec();
+-	__xor_altivec_2(bytes, p1, p2);
+-	disable_kernel_altivec();
+-	preempt_enable();
+-}
+-EXPORT_SYMBOL(xor_altivec_2);
 -
--#define MAKE_XOR_GLUE_3(flavor)							\
--void xor_##flavor##_3(unsigned long bytes, unsigned long * __restrict p1,	\
--		      const unsigned long * __restrict p2,			\
--		      const unsigned long * __restrict p3)			\
--{										\
--	kernel_fpu_begin();							\
--	__xor_##flavor##_3(bytes, p1, p2, p3);					\
--	kernel_fpu_end();							\
--}										\
--EXPORT_SYMBOL_GPL(xor_##flavor##_3)
+-void xor_altivec_3(unsigned long bytes, unsigned long * __restrict p1,
+-		   const unsigned long * __restrict p2,
+-		   const unsigned long * __restrict p3)
+-{
+-	preempt_disable();
+-	enable_kernel_altivec();
+-	__xor_altivec_3(bytes, p1, p2, p3);
+-	disable_kernel_altivec();
+-	preempt_enable();
+-}
+-EXPORT_SYMBOL(xor_altivec_3);
 -
--#define MAKE_XOR_GLUE_4(flavor)							\
--void xor_##flavor##_4(unsigned long bytes, unsigned long * __restrict p1,	\
--		      const unsigned long * __restrict p2,			\
--		      const unsigned long * __restrict p3,			\
--		      const unsigned long * __restrict p4)			\
--{										\
--	kernel_fpu_begin();							\
--	__xor_##flavor##_4(bytes, p1, p2, p3, p4);				\
--	kernel_fpu_end();							\
--}										\
--EXPORT_SYMBOL_GPL(xor_##flavor##_4)
+-void xor_altivec_4(unsigned long bytes, unsigned long * __restrict p1,
+-		   const unsigned long * __restrict p2,
+-		   const unsigned long * __restrict p3,
+-		   const unsigned long * __restrict p4)
+-{
+-	preempt_disable();
+-	enable_kernel_altivec();
+-	__xor_altivec_4(bytes, p1, p2, p3, p4);
+-	disable_kernel_altivec();
+-	preempt_enable();
+-}
+-EXPORT_SYMBOL(xor_altivec_4);
 -
--#define MAKE_XOR_GLUE_5(flavor)							\
--void xor_##flavor##_5(unsigned long bytes, unsigned long * __restrict p1,	\
--		      const unsigned long * __restrict p2,			\
--		      const unsigned long * __restrict p3,			\
--		      const unsigned long * __restrict p4,			\
--		      const unsigned long * __restrict p5)			\
--{										\
--	kernel_fpu_begin();							\
--	__xor_##flavor##_5(bytes, p1, p2, p3, p4, p5);				\
--	kernel_fpu_end();							\
--}										\
--EXPORT_SYMBOL_GPL(xor_##flavor##_5)
--
--#define MAKE_XOR_GLUES(flavor)		\
--	MAKE_XOR_GLUE_2(flavor);	\
--	MAKE_XOR_GLUE_3(flavor);	\
--	MAKE_XOR_GLUE_4(flavor);	\
--	MAKE_XOR_GLUE_5(flavor)
--
--#ifdef CONFIG_CPU_HAS_LSX
--MAKE_XOR_GLUES(lsx);
--#endif
--
--#ifdef CONFIG_CPU_HAS_LASX
--MAKE_XOR_GLUES(lasx);
--#endif
-diff --git a/arch/loongarch/lib/xor_simd.h a/arch/loongarch/lib/xor_simd.h
+-void xor_altivec_5(unsigned long bytes, unsigned long * __restrict p1,
+-		   const unsigned long * __restrict p2,
+-		   const unsigned long * __restrict p3,
+-		   const unsigned long * __restrict p4,
+-		   const unsigned long * __restrict p5)
+-{
+-	preempt_disable();
+-	enable_kernel_altivec();
+-	__xor_altivec_5(bytes, p1, p2, p3, p4, p5);
+-	disable_kernel_altivec();
+-	preempt_enable();
+-}
+-EXPORT_SYMBOL(xor_altivec_5);
+diff --git a/arch/powerpc/lib/xor_vmx.h a/arch/powerpc/lib/xor_vmx.h
 deleted file mode 100644
---- a/arch/loongarch/lib/xor_simd.h
+--- a/arch/powerpc/lib/xor_vmx.h
 +++ /dev/null
-@@ -1,38 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0-or-later */
+@@ -1,22 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
 -/*
-- * Simple interface to link xor_simd.c and xor_simd_glue.c
+- * Simple interface to link xor_vmx.c and xor_vmx_glue.c
 - *
-- * Separating these files ensures that no SIMD instructions are run outside of
-- * the kfpu critical section.
+- * Separating these file ensures that no altivec instructions are run
+- * outside of the enable/disable altivec block.
 - */
 -
--#ifndef __LOONGARCH_LIB_XOR_SIMD_H
--#define __LOONGARCH_LIB_XOR_SIMD_H
--
--#ifdef CONFIG_CPU_HAS_LSX
--void __xor_lsx_2(unsigned long bytes, unsigned long * __restrict p1,
--		 const unsigned long * __restrict p2);
--void __xor_lsx_3(unsigned long bytes, unsigned long * __restrict p1,
--		 const unsigned long * __restrict p2, const unsigned long * __restrict p3);
--void __xor_lsx_4(unsigned long bytes, unsigned long * __restrict p1,
--		 const unsigned long * __restrict p2, const unsigned long * __restrict p3,
--		 const unsigned long * __restrict p4);
--void __xor_lsx_5(unsigned long bytes, unsigned long * __restrict p1,
--		 const unsigned long * __restrict p2, const unsigned long * __restrict p3,
--		 const unsigned long * __restrict p4, const unsigned long * __restrict p5);
--#endif /* CONFIG_CPU_HAS_LSX */
--
--#ifdef CONFIG_CPU_HAS_LASX
--void __xor_lasx_2(unsigned long bytes, unsigned long * __restrict p1,
--		  const unsigned long * __restrict p2);
--void __xor_lasx_3(unsigned long bytes, unsigned long * __restrict p1,
--		  const unsigned long * __restrict p2, const unsigned long * __restrict p3);
--void __xor_lasx_4(unsigned long bytes, unsigned long * __restrict p1,
--		  const unsigned long * __restrict p2, const unsigned long * __restrict p3,
--		  const unsigned long * __restrict p4);
--void __xor_lasx_5(unsigned long bytes, unsigned long * __restrict p1,
--		  const unsigned long * __restrict p2, const unsigned long * __restrict p3,
--		  const unsigned long * __restrict p4, const unsigned long * __restrict p5);
--#endif /* CONFIG_CPU_HAS_LASX */
--
--#endif /* __LOONGARCH_LIB_XOR_SIMD_H */
-diff --git a/arch/loongarch/lib/xor_template.c a/arch/loongarch/lib/xor_template.c
-deleted file mode 100644
---- a/arch/loongarch/lib/xor_template.c
-+++ /dev/null
-@@ -1,110 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-or-later
--/*
-- * Copyright (C) 2023 WANG Xuerui <git@xen0n.name>
-- *
-- * Template for XOR operations, instantiated in xor_simd.c.
-- *
-- * Expected preprocessor definitions:
-- *
-- * - LINE_WIDTH
-- * - XOR_FUNC_NAME(nr)
-- * - LD_INOUT_LINE(buf)
-- * - LD_AND_XOR_LINE(buf)
-- * - ST_LINE(buf)
-- */
--
--void XOR_FUNC_NAME(2)(unsigned long bytes,
--		      unsigned long * __restrict v1,
--		      const unsigned long * __restrict v2)
--{
--	unsigned long lines = bytes / LINE_WIDTH;
--
--	do {
--		__asm__ __volatile__ (
--			LD_INOUT_LINE(v1)
--			LD_AND_XOR_LINE(v2)
--			ST_LINE(v1)
--		: : [v1] "r"(v1), [v2] "r"(v2) : "memory"
--		);
--
--		v1 += LINE_WIDTH / sizeof(unsigned long);
--		v2 += LINE_WIDTH / sizeof(unsigned long);
--	} while (--lines > 0);
--}
--
--void XOR_FUNC_NAME(3)(unsigned long bytes,
--		      unsigned long * __restrict v1,
--		      const unsigned long * __restrict v2,
--		      const unsigned long * __restrict v3)
--{
--	unsigned long lines = bytes / LINE_WIDTH;
--
--	do {
--		__asm__ __volatile__ (
--			LD_INOUT_LINE(v1)
--			LD_AND_XOR_LINE(v2)
--			LD_AND_XOR_LINE(v3)
--			ST_LINE(v1)
--		: : [v1] "r"(v1), [v2] "r"(v2), [v3] "r"(v3) : "memory"
--		);
--
--		v1 += LINE_WIDTH / sizeof(unsigned long);
--		v2 += LINE_WIDTH / sizeof(unsigned long);
--		v3 += LINE_WIDTH / sizeof(unsigned long);
--	} while (--lines > 0);
--}
--
--void XOR_FUNC_NAME(4)(unsigned long bytes,
--		      unsigned long * __restrict v1,
--		      const unsigned long * __restrict v2,
--		      const unsigned long * __restrict v3,
--		      const unsigned long * __restrict v4)
--{
--	unsigned long lines = bytes / LINE_WIDTH;
--
--	do {
--		__asm__ __volatile__ (
--			LD_INOUT_LINE(v1)
--			LD_AND_XOR_LINE(v2)
--			LD_AND_XOR_LINE(v3)
--			LD_AND_XOR_LINE(v4)
--			ST_LINE(v1)
--		: : [v1] "r"(v1), [v2] "r"(v2), [v3] "r"(v3), [v4] "r"(v4)
--		: "memory"
--		);
--
--		v1 += LINE_WIDTH / sizeof(unsigned long);
--		v2 += LINE_WIDTH / sizeof(unsigned long);
--		v3 += LINE_WIDTH / sizeof(unsigned long);
--		v4 += LINE_WIDTH / sizeof(unsigned long);
--	} while (--lines > 0);
--}
--
--void XOR_FUNC_NAME(5)(unsigned long bytes,
--		      unsigned long * __restrict v1,
--		      const unsigned long * __restrict v2,
--		      const unsigned long * __restrict v3,
--		      const unsigned long * __restrict v4,
--		      const unsigned long * __restrict v5)
--{
--	unsigned long lines = bytes / LINE_WIDTH;
--
--	do {
--		__asm__ __volatile__ (
--			LD_INOUT_LINE(v1)
--			LD_AND_XOR_LINE(v2)
--			LD_AND_XOR_LINE(v3)
--			LD_AND_XOR_LINE(v4)
--			LD_AND_XOR_LINE(v5)
--			ST_LINE(v1)
--		: : [v1] "r"(v1), [v2] "r"(v2), [v3] "r"(v3), [v4] "r"(v4),
--		    [v5] "r"(v5) : "memory"
--		);
--
--		v1 += LINE_WIDTH / sizeof(unsigned long);
--		v2 += LINE_WIDTH / sizeof(unsigned long);
--		v3 += LINE_WIDTH / sizeof(unsigned long);
--		v4 += LINE_WIDTH / sizeof(unsigned long);
--		v5 += LINE_WIDTH / sizeof(unsigned long);
--	} while (--lines > 0);
--}
-diff --git a/lib/raid/xor/loongarch/xor_simd.c a/lib/raid/xor/loongarch/xor_simd.c
-new file mode 100664
---- /dev/null
-+++ a/lib/raid/xor/loongarch/xor_simd.c
-@@ -0,0 +1,93 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/*
-+ * LoongArch SIMD XOR operations
-+ *
-+ * Copyright (C) 2023 WANG Xuerui <git@xen0n.name>
-+ */
-+
-+#include "xor_simd.h"
-+
-+/*
-+ * Process one cache line (64 bytes) per loop. This is assuming all future
-+ * popular LoongArch cores are similar performance-characteristics-wise to the
-+ * current models.
-+ */
-+#define LINE_WIDTH 64
-+
-+#ifdef CONFIG_CPU_HAS_LSX
-+
-+#define LD(reg, base, offset)	\
-+	"vld $vr" #reg ", %[" #base "], " #offset "\n\t"
-+#define ST(reg, base, offset)	\
-+	"vst $vr" #reg ", %[" #base "], " #offset "\n\t"
-+#define XOR(dj, k)	"vxor.v $vr" #dj ", $vr" #dj ", $vr" #k "\n\t"
-+
-+#define LD_INOUT_LINE(base)	\
-+	LD(0, base, 0)		\
-+	LD(1, base, 16)		\
-+	LD(2, base, 32)		\
-+	LD(3, base, 48)
-+
-+#define LD_AND_XOR_LINE(base)	\
-+	LD(4, base, 0)		\
-+	LD(5, base, 16)		\
-+	LD(6, base, 32)		\
-+	LD(7, base, 48)		\
-+	XOR(0, 4)		\
-+	XOR(1, 5)		\
-+	XOR(2, 6)		\
-+	XOR(3, 7)
-+
-+#define ST_LINE(base)		\
-+	ST(0, base, 0)		\
-+	ST(1, base, 16)		\
-+	ST(2, base, 32)		\
-+	ST(3, base, 48)
-+
-+#define XOR_FUNC_NAME(nr) __xor_lsx_##nr
-+#include "xor_template.c"
-+
-+#undef LD
-+#undef ST
-+#undef XOR
-+#undef LD_INOUT_LINE
-+#undef LD_AND_XOR_LINE
-+#undef ST_LINE
-+#undef XOR_FUNC_NAME
-+
-+#endif /* CONFIG_CPU_HAS_LSX */
-+
-+#ifdef CONFIG_CPU_HAS_LASX
-+
-+#define LD(reg, base, offset)	\
-+	"xvld $xr" #reg ", %[" #base "], " #offset "\n\t"
-+#define ST(reg, base, offset)	\
-+	"xvst $xr" #reg ", %[" #base "], " #offset "\n\t"
-+#define XOR(dj, k)	"xvxor.v $xr" #dj ", $xr" #dj ", $xr" #k "\n\t"
-+
-+#define LD_INOUT_LINE(base)	\
-+	LD(0, base, 0)		\
-+	LD(1, base, 32)
-+
-+#define LD_AND_XOR_LINE(base)	\
-+	LD(2, base, 0)		\
-+	LD(3, base, 32)		\
-+	XOR(0, 2)		\
-+	XOR(1, 3)
-+
-+#define ST_LINE(base)		\
-+	ST(0, base, 0)		\
-+	ST(1, base, 32)
-+
-+#define XOR_FUNC_NAME(nr) __xor_lasx_##nr
-+#include "xor_template.c"
-+
-+#undef LD
-+#undef ST
-+#undef XOR
-+#undef LD_INOUT_LINE
-+#undef LD_AND_XOR_LINE
-+#undef ST_LINE
-+#undef XOR_FUNC_NAME
-+
-+#endif /* CONFIG_CPU_HAS_LASX */
-diff --git a/lib/raid/xor/loongarch/xor_simd_glue.c a/lib/raid/xor/loongarch/xor_simd_glue.c
-new file mode 100664
---- /dev/null
-+++ a/lib/raid/xor/loongarch/xor_simd_glue.c
-@@ -0,0 +1,77 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/*
-+ * LoongArch SIMD XOR operations
-+ *
-+ * Copyright (C) 2023 WANG Xuerui <git@xen0n.name>
-+ */
-+
-+#include <linux/sched.h>
-+#include <linux/raid/xor_impl.h>
-+#include <asm/fpu.h>
-+#include <asm/xor.h>
-+#include "xor_simd.h"
-+
-+#define MAKE_XOR_GLUE_2(flavor)							\
-+static void xor_##flavor##_2(unsigned long bytes, unsigned long * __restrict p1,\
-+		      const unsigned long * __restrict p2)			\
-+{										\
-+	kernel_fpu_begin();							\
-+	__xor_##flavor##_2(bytes, p1, p2);					\
-+	kernel_fpu_end();							\
-+}										\
-+
-+#define MAKE_XOR_GLUE_3(flavor)							\
-+static void xor_##flavor##_3(unsigned long bytes, unsigned long * __restrict p1,\
-+		      const unsigned long * __restrict p2,			\
-+		      const unsigned long * __restrict p3)			\
-+{										\
-+	kernel_fpu_begin();							\
-+	__xor_##flavor##_3(bytes, p1, p2, p3);					\
-+	kernel_fpu_end();							\
-+}										\
-+
-+#define MAKE_XOR_GLUE_4(flavor)							\
-+static void xor_##flavor##_4(unsigned long bytes, unsigned long * __restrict p1,\
-+		      const unsigned long * __restrict p2,			\
-+		      const unsigned long * __restrict p3,			\
-+		      const unsigned long * __restrict p4)			\
-+{										\
-+	kernel_fpu_begin();							\
-+	__xor_##flavor##_4(bytes, p1, p2, p3, p4);				\
-+	kernel_fpu_end();							\
-+}										\
-+
-+#define MAKE_XOR_GLUE_5(flavor)							\
-+static void xor_##flavor##_5(unsigned long bytes, unsigned long * __restrict p1,\
-+		      const unsigned long * __restrict p2,			\
-+		      const unsigned long * __restrict p3,			\
-+		      const unsigned long * __restrict p4,			\
-+		      const unsigned long * __restrict p5)			\
-+{										\
-+	kernel_fpu_begin();							\
-+	__xor_##flavor##_5(bytes, p1, p2, p3, p4, p5);				\
-+	kernel_fpu_end();							\
-+}										\
-+
-+#define MAKE_XOR_GLUES(flavor)				\
-+	MAKE_XOR_GLUE_2(flavor);			\
-+	MAKE_XOR_GLUE_3(flavor);			\
-+	MAKE_XOR_GLUE_4(flavor);			\
-+	MAKE_XOR_GLUE_5(flavor);			\
-+							\
-+struct xor_block_template xor_block_##flavor = {	\
-+	.name = __stringify(flavor),			\
-+	.do_2 = xor_##flavor##_2,			\
-+	.do_3 = xor_##flavor##_3,			\
-+	.do_4 = xor_##flavor##_4,			\
-+	.do_5 = xor_##flavor##_5,			\
-+}
-+
-+
-+#ifdef CONFIG_CPU_HAS_LSX
-+MAKE_XOR_GLUES(lsx);
-+#endif /* CONFIG_CPU_HAS_LSX */
-+
-+#ifdef CONFIG_CPU_HAS_LASX
-+MAKE_XOR_GLUES(lasx);
-+#endif /* CONFIG_CPU_HAS_LASX */
-diff --git a/lib/raid/xor/loongarch/xor_simd.h a/lib/raid/xor/loongarch/xor_simd.h
-new file mode 100664
---- /dev/null
-+++ a/lib/raid/xor/loongarch/xor_simd.h
-@@ -0,0 +1,38 @@
-+/* SPDX-License-Identifier: GPL-2.0-or-later */
-+/*
-+ * Simple interface to link xor_simd.c and xor_simd_glue.c
-+ *
-+ * Separating these files ensures that no SIMD instructions are run outside of
-+ * the kfpu critical section.
-+ */
-+
-+#ifndef __LOONGARCH_LIB_XOR_SIMD_H
-+#define __LOONGARCH_LIB_XOR_SIMD_H
-+
-+#ifdef CONFIG_CPU_HAS_LSX
-+void __xor_lsx_2(unsigned long bytes, unsigned long * __restrict p1,
-+		 const unsigned long * __restrict p2);
-+void __xor_lsx_3(unsigned long bytes, unsigned long * __restrict p1,
-+		 const unsigned long * __restrict p2, const unsigned long * __restrict p3);
-+void __xor_lsx_4(unsigned long bytes, unsigned long * __restrict p1,
-+		 const unsigned long * __restrict p2, const unsigned long * __restrict p3,
-+		 const unsigned long * __restrict p4);
-+void __xor_lsx_5(unsigned long bytes, unsigned long * __restrict p1,
-+		 const unsigned long * __restrict p2, const unsigned long * __restrict p3,
-+		 const unsigned long * __restrict p4, const unsigned long * __restrict p5);
-+#endif /* CONFIG_CPU_HAS_LSX */
-+
-+#ifdef CONFIG_CPU_HAS_LASX
-+void __xor_lasx_2(unsigned long bytes, unsigned long * __restrict p1,
-+		  const unsigned long * __restrict p2);
-+void __xor_lasx_3(unsigned long bytes, unsigned long * __restrict p1,
-+		  const unsigned long * __restrict p2, const unsigned long * __restrict p3);
-+void __xor_lasx_4(unsigned long bytes, unsigned long * __restrict p1,
-+		  const unsigned long * __restrict p2, const unsigned long * __restrict p3,
-+		  const unsigned long * __restrict p4);
-+void __xor_lasx_5(unsigned long bytes, unsigned long * __restrict p1,
-+		  const unsigned long * __restrict p2, const unsigned long * __restrict p3,
-+		  const unsigned long * __restrict p4, const unsigned long * __restrict p5);
-+#endif /* CONFIG_CPU_HAS_LASX */
-+
-+#endif /* __LOONGARCH_LIB_XOR_SIMD_H */
-diff --git a/lib/raid/xor/loongarch/xor_template.c a/lib/raid/xor/loongarch/xor_template.c
-new file mode 100664
---- /dev/null
-+++ a/lib/raid/xor/loongarch/xor_template.c
-@@ -0,0 +1,110 @@
-+// SPDX-License-Identifier: GPL-2.0-or-later
-+/*
-+ * Copyright (C) 2023 WANG Xuerui <git@xen0n.name>
-+ *
-+ * Template for XOR operations, instantiated in xor_simd.c.
-+ *
-+ * Expected preprocessor definitions:
-+ *
-+ * - LINE_WIDTH
-+ * - XOR_FUNC_NAME(nr)
-+ * - LD_INOUT_LINE(buf)
-+ * - LD_AND_XOR_LINE(buf)
-+ * - ST_LINE(buf)
-+ */
-+
-+void XOR_FUNC_NAME(2)(unsigned long bytes,
-+		      unsigned long * __restrict v1,
-+		      const unsigned long * __restrict v2)
-+{
-+	unsigned long lines = bytes / LINE_WIDTH;
-+
-+	do {
-+		__asm__ __volatile__ (
-+			LD_INOUT_LINE(v1)
-+			LD_AND_XOR_LINE(v2)
-+			ST_LINE(v1)
-+		: : [v1] "r"(v1), [v2] "r"(v2) : "memory"
-+		);
-+
-+		v1 += LINE_WIDTH / sizeof(unsigned long);
-+		v2 += LINE_WIDTH / sizeof(unsigned long);
-+	} while (--lines > 0);
-+}
-+
-+void XOR_FUNC_NAME(3)(unsigned long bytes,
-+		      unsigned long * __restrict v1,
-+		      const unsigned long * __restrict v2,
-+		      const unsigned long * __restrict v3)
-+{
-+	unsigned long lines = bytes / LINE_WIDTH;
-+
-+	do {
-+		__asm__ __volatile__ (
-+			LD_INOUT_LINE(v1)
-+			LD_AND_XOR_LINE(v2)
-+			LD_AND_XOR_LINE(v3)
-+			ST_LINE(v1)
-+		: : [v1] "r"(v1), [v2] "r"(v2), [v3] "r"(v3) : "memory"
-+		);
-+
-+		v1 += LINE_WIDTH / sizeof(unsigned long);
-+		v2 += LINE_WIDTH / sizeof(unsigned long);
-+		v3 += LINE_WIDTH / sizeof(unsigned long);
-+	} while (--lines > 0);
-+}
-+
-+void XOR_FUNC_NAME(4)(unsigned long bytes,
-+		      unsigned long * __restrict v1,
-+		      const unsigned long * __restrict v2,
-+		      const unsigned long * __restrict v3,
-+		      const unsigned long * __restrict v4)
-+{
-+	unsigned long lines = bytes / LINE_WIDTH;
-+
-+	do {
-+		__asm__ __volatile__ (
-+			LD_INOUT_LINE(v1)
-+			LD_AND_XOR_LINE(v2)
-+			LD_AND_XOR_LINE(v3)
-+			LD_AND_XOR_LINE(v4)
-+			ST_LINE(v1)
-+		: : [v1] "r"(v1), [v2] "r"(v2), [v3] "r"(v3), [v4] "r"(v4)
-+		: "memory"
-+		);
-+
-+		v1 += LINE_WIDTH / sizeof(unsigned long);
-+		v2 += LINE_WIDTH / sizeof(unsigned long);
-+		v3 += LINE_WIDTH / sizeof(unsigned long);
-+		v4 += LINE_WIDTH / sizeof(unsigned long);
-+	} while (--lines > 0);
-+}
-+
-+void XOR_FUNC_NAME(5)(unsigned long bytes,
-+		      unsigned long * __restrict v1,
-+		      const unsigned long * __restrict v2,
-+		      const unsigned long * __restrict v3,
-+		      const unsigned long * __restrict v4,
-+		      const unsigned long * __restrict v5)
-+{
-+	unsigned long lines = bytes / LINE_WIDTH;
-+
-+	do {
-+		__asm__ __volatile__ (
-+			LD_INOUT_LINE(v1)
-+			LD_AND_XOR_LINE(v2)
-+			LD_AND_XOR_LINE(v3)
-+			LD_AND_XOR_LINE(v4)
-+			LD_AND_XOR_LINE(v5)
-+			ST_LINE(v1)
-+		: : [v1] "r"(v1), [v2] "r"(v2), [v3] "r"(v3), [v4] "r"(v4),
-+		    [v5] "r"(v5) : "memory"
-+		);
-+
-+		v1 += LINE_WIDTH / sizeof(unsigned long);
-+		v2 += LINE_WIDTH / sizeof(unsigned long);
-+		v3 += LINE_WIDTH / sizeof(unsigned long);
-+		v4 += LINE_WIDTH / sizeof(unsigned long);
-+		v5 += LINE_WIDTH / sizeof(unsigned long);
-+	} while (--lines > 0);
-+}
---- a/lib/raid/xor/Makefile~loongarch-move-the-xor-code-to-lib-raid
+-void __xor_altivec_2(unsigned long bytes, unsigned long * __restrict p1,
+-		     const unsigned long * __restrict p2);
+-void __xor_altivec_3(unsigned long bytes, unsigned long * __restrict p1,
+-		     const unsigned long * __restrict p2,
+-		     const unsigned long * __restrict p3);
+-void __xor_altivec_4(unsigned long bytes, unsigned long * __restrict p1,
+-		     const unsigned long * __restrict p2,
+-		     const unsigned long * __restrict p3,
+-		     const unsigned long * __restrict p4);
+-void __xor_altivec_5(unsigned long bytes, unsigned long * __restrict p1,
+-		     const unsigned long * __restrict p2,
+-		     const unsigned long * __restrict p3,
+-		     const unsigned long * __restrict p4,
+-		     const unsigned long * __restrict p5);
+--- a/lib/raid/xor/Makefile~powerpc-move-the-xor-code-to-lib-raid
 +++ a/lib/raid/xor/Makefile
-@@ -14,6 +14,8 @@ ifeq ($(CONFIG_ARM),y)
- xor-$(CONFIG_KERNEL_MODE_NEON)	+= arm/xor-neon.o arm/xor-neon-glue.o
- endif
+@@ -16,6 +16,7 @@ endif
  xor-$(CONFIG_ARM64)		+= arm64/xor-neon.o arm64/xor-neon-glue.o
-+xor-$(CONFIG_CPU_HAS_LSX)	+= loongarch/xor_simd.o
-+xor-$(CONFIG_CPU_HAS_LSX)	+= loongarch/xor_simd_glue.o
+ xor-$(CONFIG_CPU_HAS_LSX)	+= loongarch/xor_simd.o
+ xor-$(CONFIG_CPU_HAS_LSX)	+= loongarch/xor_simd_glue.o
++xor-$(CONFIG_ALTIVEC)		+= powerpc/xor_vmx.o powerpc/xor_vmx_glue.o
  
  
  CFLAGS_arm/xor-neon.o		+= $(CC_FLAGS_FPU)
+@@ -23,3 +24,7 @@ CFLAGS_REMOVE_arm/xor-neon.o	+= $(CC_FLA
+ 
+ CFLAGS_arm64/xor-neon.o		+= $(CC_FLAGS_FPU)
+ CFLAGS_REMOVE_arm64/xor-neon.o	+= $(CC_FLAGS_NO_FPU)
++
++CFLAGS_powerpc/xor_vmx.o	+= -mhard-float -maltivec \
++				   $(call cc-option,-mabi=altivec) \
++				   -isystem $(shell $(CC) -print-file-name=include)
+diff --git a/lib/raid/xor/powerpc/xor_vmx.c a/lib/raid/xor/powerpc/xor_vmx.c
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/powerpc/xor_vmx.c
+@@ -0,0 +1,156 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ *
++ * Copyright (C) IBM Corporation, 2012
++ *
++ * Author: Anton Blanchard <anton@au.ibm.com>
++ */
++
++/*
++ * Sparse (as at v0.5.0) gets very, very confused by this file.
++ * Make it a bit simpler for it.
++ */
++#if !defined(__CHECKER__)
++#include <altivec.h>
++#else
++#define vec_xor(a, b) a ^ b
++#define vector __attribute__((vector_size(16)))
++#endif
++
++#include "xor_vmx.h"
++
++typedef vector signed char unative_t;
++
++#define DEFINE(V)				\
++	unative_t *V = (unative_t *)V##_in;	\
++	unative_t V##_0, V##_1, V##_2, V##_3
++
++#define LOAD(V)			\
++	do {			\
++		V##_0 = V[0];	\
++		V##_1 = V[1];	\
++		V##_2 = V[2];	\
++		V##_3 = V[3];	\
++	} while (0)
++
++#define STORE(V)		\
++	do {			\
++		V[0] = V##_0;	\
++		V[1] = V##_1;	\
++		V[2] = V##_2;	\
++		V[3] = V##_3;	\
++	} while (0)
++
++#define XOR(V1, V2)					\
++	do {						\
++		V1##_0 = vec_xor(V1##_0, V2##_0);	\
++		V1##_1 = vec_xor(V1##_1, V2##_1);	\
++		V1##_2 = vec_xor(V1##_2, V2##_2);	\
++		V1##_3 = vec_xor(V1##_3, V2##_3);	\
++	} while (0)
++
++void __xor_altivec_2(unsigned long bytes,
++		     unsigned long * __restrict v1_in,
++		     const unsigned long * __restrict v2_in)
++{
++	DEFINE(v1);
++	DEFINE(v2);
++	unsigned long lines = bytes / (sizeof(unative_t)) / 4;
++
++	do {
++		LOAD(v1);
++		LOAD(v2);
++		XOR(v1, v2);
++		STORE(v1);
++
++		v1 += 4;
++		v2 += 4;
++	} while (--lines > 0);
++}
++
++void __xor_altivec_3(unsigned long bytes,
++		     unsigned long * __restrict v1_in,
++		     const unsigned long * __restrict v2_in,
++		     const unsigned long * __restrict v3_in)
++{
++	DEFINE(v1);
++	DEFINE(v2);
++	DEFINE(v3);
++	unsigned long lines = bytes / (sizeof(unative_t)) / 4;
++
++	do {
++		LOAD(v1);
++		LOAD(v2);
++		LOAD(v3);
++		XOR(v1, v2);
++		XOR(v1, v3);
++		STORE(v1);
++
++		v1 += 4;
++		v2 += 4;
++		v3 += 4;
++	} while (--lines > 0);
++}
++
++void __xor_altivec_4(unsigned long bytes,
++		     unsigned long * __restrict v1_in,
++		     const unsigned long * __restrict v2_in,
++		     const unsigned long * __restrict v3_in,
++		     const unsigned long * __restrict v4_in)
++{
++	DEFINE(v1);
++	DEFINE(v2);
++	DEFINE(v3);
++	DEFINE(v4);
++	unsigned long lines = bytes / (sizeof(unative_t)) / 4;
++
++	do {
++		LOAD(v1);
++		LOAD(v2);
++		LOAD(v3);
++		LOAD(v4);
++		XOR(v1, v2);
++		XOR(v3, v4);
++		XOR(v1, v3);
++		STORE(v1);
++
++		v1 += 4;
++		v2 += 4;
++		v3 += 4;
++		v4 += 4;
++	} while (--lines > 0);
++}
++
++void __xor_altivec_5(unsigned long bytes,
++		     unsigned long * __restrict v1_in,
++		     const unsigned long * __restrict v2_in,
++		     const unsigned long * __restrict v3_in,
++		     const unsigned long * __restrict v4_in,
++		     const unsigned long * __restrict v5_in)
++{
++	DEFINE(v1);
++	DEFINE(v2);
++	DEFINE(v3);
++	DEFINE(v4);
++	DEFINE(v5);
++	unsigned long lines = bytes / (sizeof(unative_t)) / 4;
++
++	do {
++		LOAD(v1);
++		LOAD(v2);
++		LOAD(v3);
++		LOAD(v4);
++		LOAD(v5);
++		XOR(v1, v2);
++		XOR(v3, v4);
++		XOR(v1, v5);
++		XOR(v1, v3);
++		STORE(v1);
++
++		v1 += 4;
++		v2 += 4;
++		v3 += 4;
++		v4 += 4;
++		v5 += 4;
++	} while (--lines > 0);
++}
+diff --git a/lib/raid/xor/powerpc/xor_vmx_glue.c a/lib/raid/xor/powerpc/xor_vmx_glue.c
+new file mode 100644
+--- /dev/null
++++ a/lib/raid/xor/powerpc/xor_vmx_glue.c
+@@ -0,0 +1,67 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * Altivec XOR operations
++ *
++ * Copyright 2017 IBM Corp.
++ */
++
++#include <linux/preempt.h>
++#include <linux/sched.h>
++#include <linux/raid/xor_impl.h>
++#include <asm/switch_to.h>
++#include <asm/xor.h>
++#include "xor_vmx.h"
++
++static void xor_altivec_2(unsigned long bytes, unsigned long * __restrict p1,
++		const unsigned long * __restrict p2)
++{
++	preempt_disable();
++	enable_kernel_altivec();
++	__xor_altivec_2(bytes, p1, p2);
++	disable_kernel_altivec();
++	preempt_enable();
++}
++
++static void xor_altivec_3(unsigned long bytes, unsigned long * __restrict p1,
++		const unsigned long * __restrict p2,
++		const unsigned long * __restrict p3)
++{
++	preempt_disable();
++	enable_kernel_altivec();
++	__xor_altivec_3(bytes, p1, p2, p3);
++	disable_kernel_altivec();
++	preempt_enable();
++}
++
++static void xor_altivec_4(unsigned long bytes, unsigned long * __restrict p1,
++		const unsigned long * __restrict p2,
++		const unsigned long * __restrict p3,
++		const unsigned long * __restrict p4)
++{
++	preempt_disable();
++	enable_kernel_altivec();
++	__xor_altivec_4(bytes, p1, p2, p3, p4);
++	disable_kernel_altivec();
++	preempt_enable();
++}
++
++static void xor_altivec_5(unsigned long bytes, unsigned long * __restrict p1,
++		const unsigned long * __restrict p2,
++		const unsigned long * __restrict p3,
++		const unsigned long * __restrict p4,
++		const unsigned long * __restrict p5)
++{
++	preempt_disable();
++	enable_kernel_altivec();
++	__xor_altivec_5(bytes, p1, p2, p3, p4, p5);
++	disable_kernel_altivec();
++	preempt_enable();
++}
++
++struct xor_block_template xor_block_altivec = {
++	.name = "altivec",
++	.do_2 = xor_altivec_2,
++	.do_3 = xor_altivec_3,
++	.do_4 = xor_altivec_4,
++	.do_5 = xor_altivec_5,
++};
+diff --git a/lib/raid/xor/powerpc/xor_vmx.h a/lib/raid/xor/powerpc/xor_vmx.h
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/powerpc/xor_vmx.h
+@@ -0,0 +1,22 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Simple interface to link xor_vmx.c and xor_vmx_glue.c
++ *
++ * Separating these file ensures that no altivec instructions are run
++ * outside of the enable/disable altivec block.
++ */
++
++void __xor_altivec_2(unsigned long bytes, unsigned long * __restrict p1,
++		     const unsigned long * __restrict p2);
++void __xor_altivec_3(unsigned long bytes, unsigned long * __restrict p1,
++		     const unsigned long * __restrict p2,
++		     const unsigned long * __restrict p3);
++void __xor_altivec_4(unsigned long bytes, unsigned long * __restrict p1,
++		     const unsigned long * __restrict p2,
++		     const unsigned long * __restrict p3,
++		     const unsigned long * __restrict p4);
++void __xor_altivec_5(unsigned long bytes, unsigned long * __restrict p1,
++		     const unsigned long * __restrict p2,
++		     const unsigned long * __restrict p3,
++		     const unsigned long * __restrict p4,
++		     const unsigned long * __restrict p5);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
