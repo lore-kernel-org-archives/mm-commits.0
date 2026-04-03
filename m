@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C21E36607C
-	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:42:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 239393659F1
+	for <mm-commits@vger.kernel.org>; Fri,  3 Apr 2026 06:42:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775198525; cv=none; b=g8h5fMfhXRBGe0IEnRhYPTnvkvoZEDpN+SLOI2IavWW/rCab102y2dEbxqmHjo4eYyc/rLdVjTiFfgQjCQBQOKWro0MLRImbMJzdXIhpJ8aEBa+5oJrFRKB7k0GZn2zyvo6r6jXAkYkg18FahhQK1bJDNzKi5FiQxBfJls7yeEY=
+	t=1775198527; cv=none; b=cynPir2vWg7/7/WzIGRLBJhAkLke1PC+SUhnD5Rs4snfDVYiyG9M1F2HFkM2YQBTdTG/ErDF6fA9QC+ln3JVHQfNtZKD0eiO/RvJnZDKTxAMZvCZmqWEBwSXs8WDCWvpRr1fRImNl1rKYfCWZObJONsxnZ8W7+FDqdNii/Lr59w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775198525; c=relaxed/simple;
-	bh=GXQ/Ll4g7M0BQ+KkBwbkRqt5XtHaQzxAg/5XL7rd+3o=;
-	h=Date:To:From:Subject:Message-Id; b=HnoUSUkxvIvNGgXk5mM9DQWS9dFSn4C0nKlTi2Qi8ndACJXi6NnhPIQ3ydJVBcZ/oH/RMM8D5WsDWP1TmH1PLp3TYWK+6a8T4XgKgrwG5R3GUufPYwRQ78yT2t3EYww488DkVJy3mWxKtXJ9DLWB/63JVG9eL7dr1Iz+LnEQfLo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OYIW9SFp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775198527; c=relaxed/simple;
+	bh=ychdzXtzQ6kvCeBgn0MdcEAi9WcxvptmT43XH03snyc=;
+	h=Date:To:From:Subject:Message-Id; b=rC+VdcO+PoOr+WNcJzDw9FgGXcJ5hjiPqayEYVRrwqZ9xyVWX935k1Sj5aLSlpHYR/KKzqlrCtQild/1Is3ib+Tct9OpdR6RxKr4DMvsiLPcDsxYp9wPVFy9Pk0FQu223S/OZvFN1bKBQt6alMtEnMRyQOzvP11jqKjVF7j9aGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0JC4Uzv9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OYIW9SFp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9ED5C4CEF7;
-	Fri,  3 Apr 2026 06:42:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0JC4Uzv9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBA69C4CEF7;
+	Fri,  3 Apr 2026 06:42:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775198525;
-	bh=GXQ/Ll4g7M0BQ+KkBwbkRqt5XtHaQzxAg/5XL7rd+3o=;
+	s=korg; t=1775198527;
+	bh=ychdzXtzQ6kvCeBgn0MdcEAi9WcxvptmT43XH03snyc=;
 	h=Date:To:From:Subject:From;
-	b=OYIW9SFpxrZ38j9uhrtCPiO39I9emEWITPDZOtmS/3Xvztdkjpulo/r24Ooyrmmfh
-	 Amuh/NWDJsTdZd8aZ4DsOVNis9FHN6PB2Iuw9Z902KsDiRESn0tbWGGn3YbH4TA5NJ
-	 ehOGke+5TDINdFjPhFYBOBleT2Jf1u3+uFxe0Kns=
-Date: Thu, 02 Apr 2026 23:42:04 -0700
+	b=0JC4Uzv9GP/v12lCHJRdLzyTEqCw9ShOcuY06wDCVhSOdbowKwEovWyiR0QNSUVeh
+	 9hp3MlMezk2HUuafJp5l4Sve6DBxcq9+2eRsG+bhvhvrC6PHq+q2R2ma/Gh1LyiEsO
+	 oj1DMSnn/OTfF4Gdx2QTeQog1fwC38ZuUHgDpejg=
+Date: Thu, 02 Apr 2026 23:42:06 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,tytso@mit.edu,svens@linux.ibm.com,song@kernel.org,richard@nod.at,richard.henderson@linaro.org,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,mattst88@gmail.com,maddy@linux.ibm.com,linux@armlinux.org.uk,linmag7@gmail.com,linan122@huawei.com,kernel@xen0n.name,johannes@sipsolutions.net,jason@zx2c4.com,hpa@zytor.com,herbert@gondor.apana.org.au,hca@linux.ibm.com,gor@linux.ibm.com,ebiggers@kernel.org,dsterba@suse.com,davem@davemloft.net,dan.j.williams@intel.com,clm@fb.com,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,arnd@arndb.de,ardb@kernel.org,aou@eecs.berkeley.edu,anton.ivanov@cambridgegreys.com,andreas@gaisler.com,alex@ghiti.fr,agordeev@linux.ibm.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] xor-avoid-indirect-calls-for-arm64-optimized-ops.patch removed from -mm tree
-Message-Id: <20260403064204.D9ED5C4CEF7@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] xor-make-xorko-self-contained-in-lib-raid.patch removed from -mm tree
+Message-Id: <20260403064206.DBA69C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,27 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: xor: avoid indirect calls for arm64-optimized ops
+     Subject: xor: make xor.ko self-contained in lib/raid/
 has been removed from the -mm tree.  Its filename was
-     xor-avoid-indirect-calls-for-arm64-optimized-ops.patch
+     xor-make-xorko-self-contained-in-lib-raid.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: xor: avoid indirect calls for arm64-optimized ops
-Date: Fri, 27 Mar 2026 07:16:52 +0100
+Subject: xor: make xor.ko self-contained in lib/raid/
+Date: Fri, 27 Mar 2026 07:16:53 +0100
 
-Remove the inner xor_block_templates, and instead have two separate actual
-template that call into the neon-enabled compilation unit.
+Move the asm/xor.h headers to lib/raid/xor/$(SRCARCH)/xor_arch.h and
+include/linux/raid/xor_impl.h to lib/raid/xor/xor_impl.h so that the
+xor.ko module implementation is self-contained in lib/raid/.
 
-Link: https://lkml.kernel.org/r/20260327061704.3707577-21-hch@lst.de
+As this remove the asm-generic mechanism a new kconfig symbol is added to
+indicate that a architecture-specific implementations exists, and
+xor_arch.h should be included.
+
+Link: https://lkml.kernel.org/r/20260327061704.3707577-22-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Eric Biggers <ebiggers@kernel.org>
 Tested-by: Eric Biggers <ebiggers@kernel.org>
@@ -94,312 +99,1073 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/xor.h       |   13 ++-
- lib/raid/xor/arm64/xor-neon-glue.c |   95 +++++++++++++--------------
- lib/raid/xor/arm64/xor-neon.c      |   73 +++++++-------------
- lib/raid/xor/arm64/xor-neon.h      |   30 ++++++++
- 4 files changed, 114 insertions(+), 97 deletions(-)
+ arch/alpha/include/asm/xor.h           |   24 ------------
+ arch/arm/include/asm/xor.h             |   21 ----------
+ arch/arm64/include/asm/xor.h           |   24 ------------
+ arch/loongarch/include/asm/xor.h       |   40 --------------------
+ arch/powerpc/include/asm/xor.h         |   29 ---------------
+ arch/riscv/include/asm/xor.h           |   19 ---------
+ arch/s390/include/asm/xor.h            |   19 ---------
+ arch/sparc/include/asm/xor.h           |   44 -----------------------
+ arch/um/include/asm/xor.h              |    8 ----
+ arch/x86/include/asm/xor.h             |   43 ----------------------
+ include/asm-generic/Kbuild             |    1 
+ include/asm-generic/xor.h              |   11 -----
+ include/linux/raid/xor_impl.h          |   30 ---------------
+ lib/raid/Kconfig                       |   15 +++++++
+ lib/raid/xor/Makefile                  |    6 +++
+ lib/raid/xor/alpha/xor.c               |    4 +-
+ lib/raid/xor/alpha/xor_arch.h          |   22 +++++++++++
+ lib/raid/xor/arm/xor-neon-glue.c       |    4 +-
+ lib/raid/xor/arm/xor-neon.c            |    2 -
+ lib/raid/xor/arm/xor.c                 |    4 +-
+ lib/raid/xor/arm/xor_arch.h            |   19 +++++++++
+ lib/raid/xor/arm64/xor-neon-glue.c     |    4 +-
+ lib/raid/xor/arm64/xor-neon.c          |    4 +-
+ lib/raid/xor/arm64/xor_arch.h          |   21 ++++++++++
+ lib/raid/xor/loongarch/xor_arch.h      |   33 +++++++++++++++++
+ lib/raid/xor/loongarch/xor_simd_glue.c |    4 +-
+ lib/raid/xor/powerpc/xor_arch.h        |   22 +++++++++++
+ lib/raid/xor/powerpc/xor_vmx_glue.c    |    4 +-
+ lib/raid/xor/riscv/xor-glue.c          |    4 +-
+ lib/raid/xor/riscv/xor_arch.h          |   17 ++++++++
+ lib/raid/xor/s390/xor.c                |    4 +-
+ lib/raid/xor/s390/xor_arch.h           |   13 ++++++
+ lib/raid/xor/sparc/xor-sparc32.c       |    4 +-
+ lib/raid/xor/sparc/xor-sparc64-glue.c  |    4 +-
+ lib/raid/xor/sparc/xor_arch.h          |   35 ++++++++++++++++++
+ lib/raid/xor/um/xor_arch.h             |    2 +
+ lib/raid/xor/x86/xor-avx.c             |    4 +-
+ lib/raid/xor/x86/xor-mmx.c             |    4 +-
+ lib/raid/xor/x86/xor-sse.c             |    4 +-
+ lib/raid/xor/x86/xor_arch.h            |   36 ++++++++++++++++++
+ lib/raid/xor/xor-32regs-prefetch.c     |    3 -
+ lib/raid/xor/xor-32regs.c              |    3 -
+ lib/raid/xor/xor-8regs-prefetch.c      |    3 -
+ lib/raid/xor/xor-8regs.c               |    3 -
+ lib/raid/xor/xor-core.c                |   18 +++++----
+ lib/raid/xor/xor_impl.h                |   36 ++++++++++++++++++
+ 46 files changed, 321 insertions(+), 357 deletions(-)
 
---- a/arch/arm64/include/asm/xor.h~xor-avoid-indirect-calls-for-arm64-optimized-ops
-+++ a/arch/arm64/include/asm/xor.h
-@@ -7,15 +7,18 @@
- #include <asm-generic/xor.h>
- #include <asm/simd.h>
+diff --git a/arch/alpha/include/asm/xor.h a/arch/alpha/include/asm/xor.h
+deleted file mode 100644
+--- a/arch/alpha/include/asm/xor.h
++++ /dev/null
+@@ -1,24 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-or-later */
+-
+-#include <asm/special_insns.h>
+-#include <asm-generic/xor.h>
+-
+-extern struct xor_block_template xor_block_alpha;
+-extern struct xor_block_template xor_block_alpha_prefetch;
+-
+-/*
+- * Force the use of alpha_prefetch if EV6, as it is significantly faster in the
+- * cold cache case.
+- */
+-#define arch_xor_init arch_xor_init
+-static __always_inline void __init arch_xor_init(void)
+-{
+-	if (implver() == IMPLVER_EV6) {
+-		xor_force(&xor_block_alpha_prefetch);
+-	} else {
+-		xor_register(&xor_block_8regs);
+-		xor_register(&xor_block_32regs);
+-		xor_register(&xor_block_alpha);
+-		xor_register(&xor_block_alpha_prefetch);
+-	}
+-}
+diff --git a/arch/arm64/include/asm/xor.h a/arch/arm64/include/asm/xor.h
+deleted file mode 100644
+--- a/arch/arm64/include/asm/xor.h
++++ /dev/null
+@@ -1,24 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * Authors: Jackie Liu <liuyun01@kylinos.cn>
+- * Copyright (C) 2018,Tianjin KYLIN Information Technology Co., Ltd.
+- */
+-
+-#include <asm-generic/xor.h>
+-#include <asm/simd.h>
+-
+-extern struct xor_block_template xor_block_neon;
+-extern struct xor_block_template xor_block_eor3;
+-
+-#define arch_xor_init arch_xor_init
+-static __always_inline void __init arch_xor_init(void)
+-{
+-	xor_register(&xor_block_8regs);
+-	xor_register(&xor_block_32regs);
+-	if (cpu_has_neon()) {
+-		if (cpu_have_named_feature(SHA3))
+-			xor_register(&xor_block_eor3);
+-		else
+-			xor_register(&xor_block_neon);
+-	}
+-}
+diff --git a/arch/arm/include/asm/xor.h a/arch/arm/include/asm/xor.h
+deleted file mode 100644
+--- a/arch/arm/include/asm/xor.h
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- *  Copyright (C) 2001 Russell King
+- */
+-#include <asm-generic/xor.h>
+-#include <asm/neon.h>
+-
+-extern struct xor_block_template xor_block_arm4regs;
+-extern struct xor_block_template xor_block_neon;
+-
+-#define arch_xor_init arch_xor_init
+-static __always_inline void __init arch_xor_init(void)
+-{
+-	xor_register(&xor_block_arm4regs);
+-	xor_register(&xor_block_8regs);
+-	xor_register(&xor_block_32regs);
+-#ifdef CONFIG_KERNEL_MODE_NEON
+-	if (cpu_has_neon())
+-		xor_register(&xor_block_neon);
+-#endif
+-}
+diff --git a/arch/loongarch/include/asm/xor.h a/arch/loongarch/include/asm/xor.h
+deleted file mode 100644
+--- a/arch/loongarch/include/asm/xor.h
++++ /dev/null
+@@ -1,40 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-or-later */
+-/*
+- * Copyright (C) 2023 WANG Xuerui <git@xen0n.name>
+- */
+-#ifndef _ASM_LOONGARCH_XOR_H
+-#define _ASM_LOONGARCH_XOR_H
+-
+-#include <asm/cpu-features.h>
+-
+-/*
+- * For grins, also test the generic routines.
+- *
+- * More importantly: it cannot be ruled out at this point of time, that some
+- * future (maybe reduced) models could run the vector algorithms slower than
+- * the scalar ones, maybe for errata or micro-op reasons. It may be
+- * appropriate to revisit this after one or two more uarch generations.
+- */
+-#include <asm-generic/xor.h>
+-
+-extern struct xor_block_template xor_block_lsx;
+-extern struct xor_block_template xor_block_lasx;
+-
+-#define arch_xor_init arch_xor_init
+-static __always_inline void __init arch_xor_init(void)
+-{
+-	xor_register(&xor_block_8regs);
+-	xor_register(&xor_block_8regs_p);
+-	xor_register(&xor_block_32regs);
+-	xor_register(&xor_block_32regs_p);
+-#ifdef CONFIG_CPU_HAS_LSX
+-	if (cpu_has_lsx)
+-		xor_register(&xor_block_lsx);
+-#endif
+-#ifdef CONFIG_CPU_HAS_LASX
+-	if (cpu_has_lasx)
+-		xor_register(&xor_block_lasx);
+-#endif
+-}
+-
+-#endif /* _ASM_LOONGARCH_XOR_H */
+diff --git a/arch/powerpc/include/asm/xor.h a/arch/powerpc/include/asm/xor.h
+deleted file mode 100644
+--- a/arch/powerpc/include/asm/xor.h
++++ /dev/null
+@@ -1,29 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-or-later */
+-/*
+- *
+- * Copyright (C) IBM Corporation, 2012
+- *
+- * Author: Anton Blanchard <anton@au.ibm.com>
+- */
+-#ifndef _ASM_POWERPC_XOR_H
+-#define _ASM_POWERPC_XOR_H
+-
+-#include <asm/cpu_has_feature.h>
+-#include <asm-generic/xor.h>
+-
+-extern struct xor_block_template xor_block_altivec;
+-
+-#define arch_xor_init arch_xor_init
+-static __always_inline void __init arch_xor_init(void)
+-{
+-	xor_register(&xor_block_8regs);
+-	xor_register(&xor_block_8regs_p);
+-	xor_register(&xor_block_32regs);
+-	xor_register(&xor_block_32regs_p);
+-#ifdef CONFIG_ALTIVEC
+-	if (cpu_has_feature(CPU_FTR_ALTIVEC))
+-		xor_register(&xor_block_altivec);
+-#endif
+-}
+-
+-#endif /* _ASM_POWERPC_XOR_H */
+diff --git a/arch/riscv/include/asm/xor.h a/arch/riscv/include/asm/xor.h
+deleted file mode 100644
+--- a/arch/riscv/include/asm/xor.h
++++ /dev/null
+@@ -1,19 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-or-later */
+-/*
+- * Copyright (C) 2021 SiFive
+- */
+-#include <asm/vector.h>
+-#include <asm-generic/xor.h>
+-
+-extern struct xor_block_template xor_block_rvv;
+-
+-#define arch_xor_init arch_xor_init
+-static __always_inline void __init arch_xor_init(void)
+-{
+-	xor_register(&xor_block_8regs);
+-	xor_register(&xor_block_32regs);
+-#ifdef CONFIG_RISCV_ISA_V
+-	if (has_vector())
+-		xor_register(&xor_block_rvv);
+-#endif
+-}
+diff --git a/arch/s390/include/asm/xor.h a/arch/s390/include/asm/xor.h
+deleted file mode 100644
+--- a/arch/s390/include/asm/xor.h
++++ /dev/null
+@@ -1,19 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-/*
+- * Optimited xor routines
+- *
+- * Copyright IBM Corp. 2016
+- * Author(s): Martin Schwidefsky <schwidefsky@de.ibm.com>
+- */
+-#ifndef _ASM_S390_XOR_H
+-#define _ASM_S390_XOR_H
+-
+-extern struct xor_block_template xor_block_xc;
+-
+-#define arch_xor_init arch_xor_init
+-static __always_inline void __init arch_xor_init(void)
+-{
+-	xor_force(&xor_block_xc);
+-}
+-
+-#endif /* _ASM_S390_XOR_H */
+diff --git a/arch/sparc/include/asm/xor.h a/arch/sparc/include/asm/xor.h
+deleted file mode 100644
+--- a/arch/sparc/include/asm/xor.h
++++ /dev/null
+@@ -1,44 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-/*
+- * Copyright (C) 1997, 1999 Jakub Jelinek (jj@ultra.linux.cz)
+- * Copyright (C) 2006 David S. Miller <davem@davemloft.net>
+- */
+-#ifndef ___ASM_SPARC_XOR_H
+-#define ___ASM_SPARC_XOR_H
+-
+-#if defined(__sparc__) && defined(__arch64__)
+-#include <asm/spitfire.h>
+-
+-extern struct xor_block_template xor_block_VIS;
+-extern struct xor_block_template xor_block_niagara;
+-
+-#define arch_xor_init arch_xor_init
+-static __always_inline void __init arch_xor_init(void)
+-{
+-	/* Force VIS for everything except Niagara.  */
+-	if (tlb_type == hypervisor &&
+-	    (sun4v_chip_type == SUN4V_CHIP_NIAGARA1 ||
+-	     sun4v_chip_type == SUN4V_CHIP_NIAGARA2 ||
+-	     sun4v_chip_type == SUN4V_CHIP_NIAGARA3 ||
+-	     sun4v_chip_type == SUN4V_CHIP_NIAGARA4 ||
+-	     sun4v_chip_type == SUN4V_CHIP_NIAGARA5))
+-		xor_force(&xor_block_niagara);
+-	else
+-		xor_force(&xor_block_VIS);
+-}
+-#else /* sparc64 */
+-
+-/* For grins, also test the generic routines.  */
+-#include <asm-generic/xor.h>
+-
+-extern struct xor_block_template xor_block_SPARC;
+-
+-#define arch_xor_init arch_xor_init
+-static __always_inline void __init arch_xor_init(void)
+-{
+-	xor_register(&xor_block_8regs);
+-	xor_register(&xor_block_32regs);
+-	xor_register(&xor_block_SPARC);
+-}
+-#endif /* !sparc64 */
+-#endif /* ___ASM_SPARC_XOR_H */
+diff --git a/arch/um/include/asm/xor.h a/arch/um/include/asm/xor.h
+deleted file mode 100644
+--- a/arch/um/include/asm/xor.h
++++ /dev/null
+@@ -1,8 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef _ASM_UM_XOR_H
+-#define _ASM_UM_XOR_H
+-
+-#include <asm/cpufeature.h>
+-#include <../../x86/include/asm/xor.h>
+-
+-#endif
+diff --git a/arch/x86/include/asm/xor.h a/arch/x86/include/asm/xor.h
+deleted file mode 100644
+--- a/arch/x86/include/asm/xor.h
++++ /dev/null
+@@ -1,43 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-or-later */
+-#ifndef _ASM_X86_XOR_H
+-#define _ASM_X86_XOR_H
+-
+-#include <asm/cpufeature.h>
+-#include <asm-generic/xor.h>
+-
+-extern struct xor_block_template xor_block_pII_mmx;
+-extern struct xor_block_template xor_block_p5_mmx;
+-extern struct xor_block_template xor_block_sse;
+-extern struct xor_block_template xor_block_sse_pf64;
+-extern struct xor_block_template xor_block_avx;
+-
+-/*
+- * When SSE is available, use it as it can write around L2.  We may also be able
+- * to load into the L1 only depending on how the cpu deals with a load to a line
+- * that is being prefetched.
+- *
+- * When AVX2 is available, force using it as it is better by all measures.
+- *
+- * 32-bit without MMX can fall back to the generic routines.
+- */
+-#define arch_xor_init arch_xor_init
+-static __always_inline void __init arch_xor_init(void)
+-{
+-	if (boot_cpu_has(X86_FEATURE_AVX) &&
+-	    boot_cpu_has(X86_FEATURE_OSXSAVE)) {
+-		xor_force(&xor_block_avx);
+-	} else if (IS_ENABLED(CONFIG_X86_64) || boot_cpu_has(X86_FEATURE_XMM)) {
+-		xor_register(&xor_block_sse);
+-		xor_register(&xor_block_sse_pf64);
+-	} else if (boot_cpu_has(X86_FEATURE_MMX)) {
+-		xor_register(&xor_block_pII_mmx);
+-		xor_register(&xor_block_p5_mmx);
+-	} else {
+-		xor_register(&xor_block_8regs);
+-		xor_register(&xor_block_8regs_p);
+-		xor_register(&xor_block_32regs);
+-		xor_register(&xor_block_32regs_p);
+-	}
+-}
+-
+-#endif /* _ASM_X86_XOR_H */
+--- a/include/asm-generic/Kbuild~xor-make-xorko-self-contained-in-lib-raid
++++ a/include/asm-generic/Kbuild
+@@ -65,4 +65,3 @@ mandatory-y += vermagic.h
+ mandatory-y += vga.h
+ mandatory-y += video.h
+ mandatory-y += word-at-a-time.h
+-mandatory-y += xor.h
+diff --git a/include/asm-generic/xor.h a/include/asm-generic/xor.h
+deleted file mode 100644
+--- a/include/asm-generic/xor.h
++++ /dev/null
+@@ -1,11 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-or-later */
+-/*
+- * include/asm-generic/xor.h
+- *
+- * Generic optimized RAID-5 checksumming functions.
+- */
+-
+-extern struct xor_block_template xor_block_8regs;
+-extern struct xor_block_template xor_block_32regs;
+-extern struct xor_block_template xor_block_8regs_p;
+-extern struct xor_block_template xor_block_32regs_p;
+diff --git a/include/linux/raid/xor_impl.h a/include/linux/raid/xor_impl.h
+deleted file mode 100644
+--- a/include/linux/raid/xor_impl.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef _XOR_IMPL_H
+-#define _XOR_IMPL_H
+-
+-#include <linux/init.h>
+-
+-struct xor_block_template {
+-	struct xor_block_template *next;
+-	const char *name;
+-	int speed;
+-	void (*do_2)(unsigned long, unsigned long * __restrict,
+-		     const unsigned long * __restrict);
+-	void (*do_3)(unsigned long, unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict);
+-	void (*do_4)(unsigned long, unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict);
+-	void (*do_5)(unsigned long, unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict,
+-		     const unsigned long * __restrict);
+-};
+-
+-void __init xor_register(struct xor_block_template *tmpl);
+-void __init xor_force(struct xor_block_template *tmpl);
+-
+-#endif /* _XOR_IMPL_H */
+--- a/lib/raid/Kconfig~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/Kconfig
+@@ -2,3 +2,18 @@
  
--extern struct xor_block_template xor_block_arm64;
--void __init xor_neon_init(void);
+ config XOR_BLOCKS
+ 	tristate
++
++# selected by architectures that provide an optimized XOR implementation
++config XOR_BLOCKS_ARCH
++	depends on XOR_BLOCKS
++	default y if ALPHA
++	default y if ARM
++	default y if ARM64
++	default y if CPU_HAS_LSX		# loongarch
++	default y if ALTIVEC			# powerpc
++	default y if RISCV_ISA_V
++	default y if SPARC
++	default y if S390
++	default y if X86_32
++	default y if X86_64
++	bool
+diff --git a/lib/raid/xor/alpha/xor_arch.h a/lib/raid/xor/alpha/xor_arch.h
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/alpha/xor_arch.h
+@@ -0,0 +1,22 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++
++#include <asm/special_insns.h>
++
++extern struct xor_block_template xor_block_alpha;
++extern struct xor_block_template xor_block_alpha_prefetch;
++
++/*
++ * Force the use of alpha_prefetch if EV6, as it is significantly faster in the
++ * cold cache case.
++ */
++static __always_inline void __init arch_xor_init(void)
++{
++	if (implver() == IMPLVER_EV6) {
++		xor_force(&xor_block_alpha_prefetch);
++	} else {
++		xor_register(&xor_block_8regs);
++		xor_register(&xor_block_32regs);
++		xor_register(&xor_block_alpha);
++		xor_register(&xor_block_alpha_prefetch);
++	}
++}
+--- a/lib/raid/xor/alpha/xor.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/alpha/xor.c
+@@ -2,8 +2,8 @@
+ /*
+  * Optimized XOR parity functions for alpha EV5 and EV6
+  */
+-#include <linux/raid/xor_impl.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ 
+ extern void
+ xor_alpha_2(unsigned long bytes, unsigned long * __restrict p1,
+diff --git a/lib/raid/xor/arm64/xor_arch.h a/lib/raid/xor/arm64/xor_arch.h
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/arm64/xor_arch.h
+@@ -0,0 +1,21 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * Authors: Jackie Liu <liuyun01@kylinos.cn>
++ * Copyright (C) 2018,Tianjin KYLIN Information Technology Co., Ltd.
++ */
++#include <asm/simd.h>
++
 +extern struct xor_block_template xor_block_neon;
 +extern struct xor_block_template xor_block_eor3;
- 
- #define arch_xor_init arch_xor_init
- static __always_inline void __init arch_xor_init(void)
- {
--	xor_neon_init();
- 	xor_register(&xor_block_8regs);
- 	xor_register(&xor_block_32regs);
--	if (cpu_has_neon())
--		xor_register(&xor_block_arm64);
++
++static __always_inline void __init arch_xor_init(void)
++{
++	xor_register(&xor_block_8regs);
++	xor_register(&xor_block_32regs);
 +	if (cpu_has_neon()) {
 +		if (cpu_have_named_feature(SHA3))
 +			xor_register(&xor_block_eor3);
 +		else
 +			xor_register(&xor_block_neon);
 +	}
- }
---- a/lib/raid/xor/arm64/xor-neon.c~xor-avoid-indirect-calls-for-arm64-optimized-ops
++}
+--- a/lib/raid/xor/arm64/xor-neon.c~xor-make-xorko-self-contained-in-lib-raid
 +++ a/lib/raid/xor/arm64/xor-neon.c
-@@ -8,9 +8,10 @@
+@@ -4,10 +4,10 @@
+  * Copyright (C) 2018,Tianjin KYLIN Information Technology Co., Ltd.
+  */
+ 
+-#include <linux/raid/xor_impl.h>
  #include <linux/cache.h>
  #include <asm/neon-intrinsics.h>
- #include <asm/xor.h>
-+#include "xor-neon.h"
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ #include "xor-neon.h"
  
--static void xor_arm64_neon_2(unsigned long bytes, unsigned long * __restrict p1,
--	const unsigned long * __restrict p2)
-+void __xor_neon_2(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2)
- {
- 	uint64_t *dp1 = (uint64_t *)p1;
- 	uint64_t *dp2 = (uint64_t *)p2;
-@@ -36,9 +37,9 @@ static void xor_arm64_neon_2(unsigned lo
- 	} while (--lines > 0);
- }
- 
--static void xor_arm64_neon_3(unsigned long bytes, unsigned long * __restrict p1,
--	const unsigned long * __restrict p2,
--	const unsigned long * __restrict p3)
-+void __xor_neon_3(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3)
- {
- 	uint64_t *dp1 = (uint64_t *)p1;
- 	uint64_t *dp2 = (uint64_t *)p2;
-@@ -72,10 +73,10 @@ static void xor_arm64_neon_3(unsigned lo
- 	} while (--lines > 0);
- }
- 
--static void xor_arm64_neon_4(unsigned long bytes, unsigned long * __restrict p1,
--	const unsigned long * __restrict p2,
--	const unsigned long * __restrict p3,
--	const unsigned long * __restrict p4)
-+void __xor_neon_4(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3,
-+		const unsigned long * __restrict p4)
- {
- 	uint64_t *dp1 = (uint64_t *)p1;
- 	uint64_t *dp2 = (uint64_t *)p2;
-@@ -117,11 +118,11 @@ static void xor_arm64_neon_4(unsigned lo
- 	} while (--lines > 0);
- }
- 
--static void xor_arm64_neon_5(unsigned long bytes, unsigned long * __restrict p1,
--	const unsigned long * __restrict p2,
--	const unsigned long * __restrict p3,
--	const unsigned long * __restrict p4,
--	const unsigned long * __restrict p5)
-+void __xor_neon_5(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3,
-+		const unsigned long * __restrict p4,
-+		const unsigned long * __restrict p5)
- {
- 	uint64_t *dp1 = (uint64_t *)p1;
- 	uint64_t *dp2 = (uint64_t *)p2;
-@@ -171,14 +172,6 @@ static void xor_arm64_neon_5(unsigned lo
- 	} while (--lines > 0);
- }
- 
--struct xor_block_template xor_block_inner_neon __ro_after_init = {
--	.name	= "__inner_neon__",
--	.do_2	= xor_arm64_neon_2,
--	.do_3	= xor_arm64_neon_3,
--	.do_4	= xor_arm64_neon_4,
--	.do_5	= xor_arm64_neon_5,
--};
--
- static inline uint64x2_t eor3(uint64x2_t p, uint64x2_t q, uint64x2_t r)
- {
- 	uint64x2_t res;
-@@ -189,10 +182,9 @@ static inline uint64x2_t eor3(uint64x2_t
- 	return res;
- }
- 
--static void xor_arm64_eor3_3(unsigned long bytes,
--	unsigned long * __restrict p1,
--	const unsigned long * __restrict p2,
--	const unsigned long * __restrict p3)
-+void __xor_eor3_3(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3)
- {
- 	uint64_t *dp1 = (uint64_t *)p1;
- 	uint64_t *dp2 = (uint64_t *)p2;
-@@ -224,11 +216,10 @@ static void xor_arm64_eor3_3(unsigned lo
- 	} while (--lines > 0);
- }
- 
--static void xor_arm64_eor3_4(unsigned long bytes,
--	unsigned long * __restrict p1,
--	const unsigned long * __restrict p2,
--	const unsigned long * __restrict p3,
--	const unsigned long * __restrict p4)
-+void __xor_eor3_4(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3,
-+		const unsigned long * __restrict p4)
- {
- 	uint64_t *dp1 = (uint64_t *)p1;
- 	uint64_t *dp2 = (uint64_t *)p2;
-@@ -268,12 +259,11 @@ static void xor_arm64_eor3_4(unsigned lo
- 	} while (--lines > 0);
- }
- 
--static void xor_arm64_eor3_5(unsigned long bytes,
--	unsigned long * __restrict p1,
--	const unsigned long * __restrict p2,
--	const unsigned long * __restrict p3,
--	const unsigned long * __restrict p4,
--	const unsigned long * __restrict p5)
-+void __xor_eor3_5(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3,
-+		const unsigned long * __restrict p4,
-+		const unsigned long * __restrict p5)
- {
- 	uint64_t *dp1 = (uint64_t *)p1;
- 	uint64_t *dp2 = (uint64_t *)p2;
-@@ -314,12 +304,3 @@ static void xor_arm64_eor3_5(unsigned lo
- 		dp5 += 8;
- 	} while (--lines > 0);
- }
--
--void __init xor_neon_init(void)
--{
--	if (cpu_have_named_feature(SHA3)) {
--		xor_block_inner_neon.do_3 = xor_arm64_eor3_3;
--		xor_block_inner_neon.do_4 = xor_arm64_eor3_4;
--		xor_block_inner_neon.do_5 = xor_arm64_eor3_5;
--	}
--}
---- a/lib/raid/xor/arm64/xor-neon-glue.c~xor-avoid-indirect-calls-for-arm64-optimized-ops
+ void __xor_neon_2(unsigned long bytes, unsigned long * __restrict p1,
+--- a/lib/raid/xor/arm64/xor-neon-glue.c~xor-make-xorko-self-contained-in-lib-raid
 +++ a/lib/raid/xor/arm64/xor-neon-glue.c
-@@ -7,51 +7,54 @@
- #include <linux/raid/xor_impl.h>
- #include <asm/simd.h>
- #include <asm/xor.h>
-+#include "xor-neon.h"
+@@ -4,9 +4,9 @@
+  * Copyright (C) 2018,Tianjin KYLIN Information Technology Co., Ltd.
+  */
  
--extern struct xor_block_template const xor_block_inner_neon;
--
--static void
--xor_neon_2(unsigned long bytes, unsigned long * __restrict p1,
--	   const unsigned long * __restrict p2)
--{
--	scoped_ksimd()
--		xor_block_inner_neon.do_2(bytes, p1, p2);
--}
--
--static void
--xor_neon_3(unsigned long bytes, unsigned long * __restrict p1,
--	   const unsigned long * __restrict p2,
--	   const unsigned long * __restrict p3)
--{
--	scoped_ksimd()
--		xor_block_inner_neon.do_3(bytes, p1, p2, p3);
--}
--
--static void
--xor_neon_4(unsigned long bytes, unsigned long * __restrict p1,
--	   const unsigned long * __restrict p2,
--	   const unsigned long * __restrict p3,
--	   const unsigned long * __restrict p4)
--{
--	scoped_ksimd()
--		xor_block_inner_neon.do_4(bytes, p1, p2, p3, p4);
--}
--
--static void
--xor_neon_5(unsigned long bytes, unsigned long * __restrict p1,
--	   const unsigned long * __restrict p2,
--	   const unsigned long * __restrict p3,
--	   const unsigned long * __restrict p4,
--	   const unsigned long * __restrict p5)
--{
--	scoped_ksimd()
--		xor_block_inner_neon.do_5(bytes, p1, p2, p3, p4, p5);
--}
--
--struct xor_block_template xor_block_arm64 = {
--	.name   = "arm64_neon",
--	.do_2   = xor_neon_2,
--	.do_3   = xor_neon_3,
--	.do_4   = xor_neon_4,
--	.do_5	= xor_neon_5
-+#define XOR_TEMPLATE(_name)						\
-+static void								\
-+xor_##_name##_2(unsigned long bytes, unsigned long * __restrict p1,	\
-+	   const unsigned long * __restrict p2)				\
-+{									\
-+	scoped_ksimd()							\
-+		__xor_##_name##_2(bytes, p1, p2);			\
-+}									\
-+									\
-+static void								\
-+xor_##_name##_3(unsigned long bytes, unsigned long * __restrict p1,	\
-+	   const unsigned long * __restrict p2,				\
-+	   const unsigned long * __restrict p3)				\
-+{									\
-+	scoped_ksimd()							\
-+		__xor_##_name##_3(bytes, p1, p2, p3);			\
-+}									\
-+									\
-+static void								\
-+xor_##_name##_4(unsigned long bytes, unsigned long * __restrict p1,	\
-+	   const unsigned long * __restrict p2,				\
-+	   const unsigned long * __restrict p3,				\
-+	   const unsigned long * __restrict p4)				\
-+{									\
-+	scoped_ksimd()							\
-+		__xor_##_name##_4(bytes, p1, p2, p3, p4);		\
-+}									\
-+									\
-+static void								\
-+xor_##_name##_5(unsigned long bytes, unsigned long * __restrict p1,	\
-+	   const unsigned long * __restrict p2,				\
-+	   const unsigned long * __restrict p3,				\
-+	   const unsigned long * __restrict p4,				\
-+	   const unsigned long * __restrict p5)				\
-+{									\
-+	scoped_ksimd()							\
-+		__xor_##_name##_5(bytes, p1, p2, p3, p4, p5);		\
-+}									\
-+									\
-+struct xor_block_template xor_block_##_name = {				\
-+	.name   = __stringify(_name),					\
-+	.do_2   = xor_##_name##_2,					\
-+	.do_3   = xor_##_name##_3,					\
-+	.do_4   = xor_##_name##_4,					\
-+	.do_5	= xor_##_name##_5					\
- };
+-#include <linux/raid/xor_impl.h>
+ #include <asm/simd.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ #include "xor-neon.h"
+ 
+ #define XOR_TEMPLATE(_name)						\
+diff --git a/lib/raid/xor/arm/xor_arch.h a/lib/raid/xor/arm/xor_arch.h
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/arm/xor_arch.h
+@@ -0,0 +1,19 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ *  Copyright (C) 2001 Russell King
++ */
++#include <asm/neon.h>
 +
-+XOR_TEMPLATE(neon);
-+XOR_TEMPLATE(eor3);
-diff --git a/lib/raid/xor/arm64/xor-neon.h a/lib/raid/xor/arm64/xor-neon.h
++extern struct xor_block_template xor_block_arm4regs;
++extern struct xor_block_template xor_block_neon;
++
++static __always_inline void __init arch_xor_init(void)
++{
++	xor_register(&xor_block_arm4regs);
++	xor_register(&xor_block_8regs);
++	xor_register(&xor_block_32regs);
++#ifdef CONFIG_KERNEL_MODE_NEON
++	if (cpu_has_neon())
++		xor_register(&xor_block_neon);
++#endif
++}
+--- a/lib/raid/xor/arm/xor.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/arm/xor.c
+@@ -2,8 +2,8 @@
+ /*
+  *  Copyright (C) 2001 Russell King
+  */
+-#include <linux/raid/xor_impl.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ 
+ #define __XOR(a1, a2) a1 ^= a2
+ 
+--- a/lib/raid/xor/arm/xor-neon.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/arm/xor-neon.c
+@@ -3,7 +3,7 @@
+  * Copyright (C) 2013 Linaro Ltd <ard.biesheuvel@linaro.org>
+  */
+ 
+-#include <linux/raid/xor_impl.h>
++#include "xor_impl.h"
+ 
+ #ifndef __ARM_NEON__
+ #error You should compile this file with '-march=armv7-a -mfloat-abi=softfp -mfpu=neon'
+--- a/lib/raid/xor/arm/xor-neon-glue.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/arm/xor-neon-glue.c
+@@ -2,8 +2,8 @@
+ /*
+  *  Copyright (C) 2001 Russell King
+  */
+-#include <linux/raid/xor_impl.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ 
+ extern struct xor_block_template const xor_block_neon_inner;
+ 
+diff --git a/lib/raid/xor/loongarch/xor_arch.h a/lib/raid/xor/loongarch/xor_arch.h
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/loongarch/xor_arch.h
+@@ -0,0 +1,33 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ * Copyright (C) 2023 WANG Xuerui <git@xen0n.name>
++ */
++#include <asm/cpu-features.h>
++
++/*
++ * For grins, also test the generic routines.
++ *
++ * More importantly: it cannot be ruled out at this point of time, that some
++ * future (maybe reduced) models could run the vector algorithms slower than
++ * the scalar ones, maybe for errata or micro-op reasons. It may be
++ * appropriate to revisit this after one or two more uarch generations.
++ */
++
++extern struct xor_block_template xor_block_lsx;
++extern struct xor_block_template xor_block_lasx;
++
++static __always_inline void __init arch_xor_init(void)
++{
++	xor_register(&xor_block_8regs);
++	xor_register(&xor_block_8regs_p);
++	xor_register(&xor_block_32regs);
++	xor_register(&xor_block_32regs_p);
++#ifdef CONFIG_CPU_HAS_LSX
++	if (cpu_has_lsx)
++		xor_register(&xor_block_lsx);
++#endif
++#ifdef CONFIG_CPU_HAS_LASX
++	if (cpu_has_lasx)
++		xor_register(&xor_block_lasx);
++#endif
++}
+--- a/lib/raid/xor/loongarch/xor_simd_glue.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/loongarch/xor_simd_glue.c
+@@ -6,9 +6,9 @@
+  */
+ 
+ #include <linux/sched.h>
+-#include <linux/raid/xor_impl.h>
+ #include <asm/fpu.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ #include "xor_simd.h"
+ 
+ #define MAKE_XOR_GLUE_2(flavor)							\
+--- a/lib/raid/xor/Makefile~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/Makefile
+@@ -1,5 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
++ccflags-y			+= -I $(src)
++
+ obj-$(CONFIG_XOR_BLOCKS)	+= xor.o
+ 
+ xor-y				+= xor-core.o
+@@ -8,6 +10,10 @@ xor-y				+= xor-32regs.o
+ xor-y				+= xor-8regs-prefetch.o
+ xor-y				+= xor-32regs-prefetch.o
+ 
++ifeq ($(CONFIG_XOR_BLOCKS_ARCH),y)
++CFLAGS_xor-core.o		+= -I$(src)/$(SRCARCH)
++endif
++
+ xor-$(CONFIG_ALPHA)		+= alpha/xor.o
+ xor-$(CONFIG_ARM)		+= arm/xor.o
+ ifeq ($(CONFIG_ARM),y)
+diff --git a/lib/raid/xor/powerpc/xor_arch.h a/lib/raid/xor/powerpc/xor_arch.h
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/powerpc/xor_arch.h
+@@ -0,0 +1,22 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ *
++ * Copyright (C) IBM Corporation, 2012
++ *
++ * Author: Anton Blanchard <anton@au.ibm.com>
++ */
++#include <asm/cpu_has_feature.h>
++
++extern struct xor_block_template xor_block_altivec;
++
++static __always_inline void __init arch_xor_init(void)
++{
++	xor_register(&xor_block_8regs);
++	xor_register(&xor_block_8regs_p);
++	xor_register(&xor_block_32regs);
++	xor_register(&xor_block_32regs_p);
++#ifdef CONFIG_ALTIVEC
++	if (cpu_has_feature(CPU_FTR_ALTIVEC))
++		xor_register(&xor_block_altivec);
++#endif
++}
+--- a/lib/raid/xor/powerpc/xor_vmx_glue.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/powerpc/xor_vmx_glue.c
+@@ -7,9 +7,9 @@
+ 
+ #include <linux/preempt.h>
+ #include <linux/sched.h>
+-#include <linux/raid/xor_impl.h>
+ #include <asm/switch_to.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ #include "xor_vmx.h"
+ 
+ static void xor_altivec_2(unsigned long bytes, unsigned long * __restrict p1,
+diff --git a/lib/raid/xor/riscv/xor_arch.h a/lib/raid/xor/riscv/xor_arch.h
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/riscv/xor_arch.h
+@@ -0,0 +1,17 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++/*
++ * Copyright (C) 2021 SiFive
++ */
++#include <asm/vector.h>
++
++extern struct xor_block_template xor_block_rvv;
++
++static __always_inline void __init arch_xor_init(void)
++{
++	xor_register(&xor_block_8regs);
++	xor_register(&xor_block_32regs);
++#ifdef CONFIG_RISCV_ISA_V
++	if (has_vector())
++		xor_register(&xor_block_rvv);
++#endif
++}
+--- a/lib/raid/xor/riscv/xor-glue.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/riscv/xor-glue.c
+@@ -3,11 +3,11 @@
+  * Copyright (C) 2021 SiFive
+  */
+ 
+-#include <linux/raid/xor_impl.h>
+ #include <asm/vector.h>
+ #include <asm/switch_to.h>
+ #include <asm/asm-prototypes.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ 
+ static void xor_vector_2(unsigned long bytes, unsigned long *__restrict p1,
+ 			 const unsigned long *__restrict p2)
+diff --git a/lib/raid/xor/s390/xor_arch.h a/lib/raid/xor/s390/xor_arch.h
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/s390/xor_arch.h
+@@ -0,0 +1,13 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Optimited xor routines
++ *
++ * Copyright IBM Corp. 2016
++ * Author(s): Martin Schwidefsky <schwidefsky@de.ibm.com>
++ */
++extern struct xor_block_template xor_block_xc;
++
++static __always_inline void __init arch_xor_init(void)
++{
++	xor_force(&xor_block_xc);
++}
+--- a/lib/raid/xor/s390/xor.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/s390/xor.c
+@@ -7,8 +7,8 @@
+  */
+ 
+ #include <linux/types.h>
+-#include <linux/raid/xor_impl.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ 
+ static void xor_xc_2(unsigned long bytes, unsigned long * __restrict p1,
+ 		     const unsigned long * __restrict p2)
+diff --git a/lib/raid/xor/sparc/xor_arch.h a/lib/raid/xor/sparc/xor_arch.h
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/sparc/xor_arch.h
+@@ -0,0 +1,35 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Copyright (C) 1997, 1999 Jakub Jelinek (jj@ultra.linux.cz)
++ * Copyright (C) 2006 David S. Miller <davem@davemloft.net>
++ */
++#if defined(__sparc__) && defined(__arch64__)
++#include <asm/spitfire.h>
++
++extern struct xor_block_template xor_block_VIS;
++extern struct xor_block_template xor_block_niagara;
++
++static __always_inline void __init arch_xor_init(void)
++{
++	/* Force VIS for everything except Niagara.  */
++	if (tlb_type == hypervisor &&
++	    (sun4v_chip_type == SUN4V_CHIP_NIAGARA1 ||
++	     sun4v_chip_type == SUN4V_CHIP_NIAGARA2 ||
++	     sun4v_chip_type == SUN4V_CHIP_NIAGARA3 ||
++	     sun4v_chip_type == SUN4V_CHIP_NIAGARA4 ||
++	     sun4v_chip_type == SUN4V_CHIP_NIAGARA5))
++		xor_force(&xor_block_niagara);
++	else
++		xor_force(&xor_block_VIS);
++}
++#else /* sparc64 */
++
++extern struct xor_block_template xor_block_SPARC;
++
++static __always_inline void __init arch_xor_init(void)
++{
++	xor_register(&xor_block_8regs);
++	xor_register(&xor_block_32regs);
++	xor_register(&xor_block_SPARC);
++}
++#endif /* !sparc64 */
+--- a/lib/raid/xor/sparc/xor-sparc32.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/sparc/xor-sparc32.c
+@@ -5,8 +5,8 @@
+  *
+  * Copyright (C) 1999 Jakub Jelinek (jj@ultra.linux.cz)
+  */
+-#include <linux/raid/xor_impl.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ 
+ static void
+ sparc_2(unsigned long bytes, unsigned long * __restrict p1,
+--- a/lib/raid/xor/sparc/xor-sparc64-glue.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/sparc/xor-sparc64-glue.c
+@@ -8,8 +8,8 @@
+  * Copyright (C) 2006 David S. Miller <davem@davemloft.net>
+  */
+ 
+-#include <linux/raid/xor_impl.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ 
+ void xor_vis_2(unsigned long bytes, unsigned long * __restrict p1,
+ 	       const unsigned long * __restrict p2);
+diff --git a/lib/raid/xor/um/xor_arch.h a/lib/raid/xor/um/xor_arch.h
 new file mode 100644
 --- /dev/null
-+++ a/lib/raid/xor/arm64/xor-neon.h
-@@ -0,0 +1,30 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
++++ a/lib/raid/xor/um/xor_arch.h
+@@ -0,0 +1,2 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#include <../x86/xor_arch.h>
+diff --git a/lib/raid/xor/x86/xor_arch.h a/lib/raid/xor/x86/xor_arch.h
+new file mode 100664
+--- /dev/null
++++ a/lib/raid/xor/x86/xor_arch.h
+@@ -0,0 +1,36 @@
++/* SPDX-License-Identifier: GPL-2.0-or-later */
++#include <asm/cpufeature.h>
 +
-+void __xor_neon_2(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2);
-+void __xor_neon_3(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3);
-+void __xor_neon_4(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3,
-+		const unsigned long * __restrict p4);
-+void __xor_neon_5(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3,
-+		const unsigned long * __restrict p4,
-+		const unsigned long * __restrict p5);
++extern struct xor_block_template xor_block_pII_mmx;
++extern struct xor_block_template xor_block_p5_mmx;
++extern struct xor_block_template xor_block_sse;
++extern struct xor_block_template xor_block_sse_pf64;
++extern struct xor_block_template xor_block_avx;
 +
-+#define __xor_eor3_2	__xor_neon_2
-+void __xor_eor3_3(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3);
-+void __xor_eor3_4(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3,
-+		const unsigned long * __restrict p4);
-+void __xor_eor3_5(unsigned long bytes, unsigned long * __restrict p1,
-+		const unsigned long * __restrict p2,
-+		const unsigned long * __restrict p3,
-+		const unsigned long * __restrict p4,
-+		const unsigned long * __restrict p5);
++/*
++ * When SSE is available, use it as it can write around L2.  We may also be able
++ * to load into the L1 only depending on how the cpu deals with a load to a line
++ * that is being prefetched.
++ *
++ * When AVX2 is available, force using it as it is better by all measures.
++ *
++ * 32-bit without MMX can fall back to the generic routines.
++ */
++static __always_inline void __init arch_xor_init(void)
++{
++	if (boot_cpu_has(X86_FEATURE_AVX) &&
++	    boot_cpu_has(X86_FEATURE_OSXSAVE)) {
++		xor_force(&xor_block_avx);
++	} else if (IS_ENABLED(CONFIG_X86_64) || boot_cpu_has(X86_FEATURE_XMM)) {
++		xor_register(&xor_block_sse);
++		xor_register(&xor_block_sse_pf64);
++	} else if (boot_cpu_has(X86_FEATURE_MMX)) {
++		xor_register(&xor_block_pII_mmx);
++		xor_register(&xor_block_p5_mmx);
++	} else {
++		xor_register(&xor_block_8regs);
++		xor_register(&xor_block_8regs_p);
++		xor_register(&xor_block_32regs);
++		xor_register(&xor_block_32regs_p);
++	}
++}
+--- a/lib/raid/xor/x86/xor-avx.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/x86/xor-avx.c
+@@ -8,9 +8,9 @@
+  * Based on Ingo Molnar and Zach Brown's respective MMX and SSE routines
+  */
+ #include <linux/compiler.h>
+-#include <linux/raid/xor_impl.h>
+ #include <asm/fpu/api.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ 
+ #define BLOCK4(i) \
+ 		BLOCK(32 * i, 0) \
+--- a/lib/raid/xor/x86/xor-mmx.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/x86/xor-mmx.c
+@@ -4,9 +4,9 @@
+  *
+  * Copyright (C) 1998 Ingo Molnar.
+  */
+-#include <linux/raid/xor_impl.h>
+ #include <asm/fpu/api.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ 
+ #define LD(x, y)	"       movq   8*("#x")(%1), %%mm"#y"   ;\n"
+ #define ST(x, y)	"       movq %%mm"#y",   8*("#x")(%1)   ;\n"
+--- a/lib/raid/xor/x86/xor-sse.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/x86/xor-sse.c
+@@ -12,9 +12,9 @@
+  * x86-64 changes / gcc fixes from Andi Kleen.
+  * Copyright 2002 Andi Kleen, SuSE Labs.
+  */
+-#include <linux/raid/xor_impl.h>
+ #include <asm/fpu/api.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
++#include "xor_arch.h"
+ 
+ #ifdef CONFIG_X86_32
+ /* reduce register pressure */
+--- a/lib/raid/xor/xor-32regs.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/xor-32regs.c
+@@ -1,6 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-#include <linux/raid/xor_impl.h>
+-#include <asm-generic/xor.h>
++#include "xor_impl.h"
+ 
+ static void
+ xor_32regs_2(unsigned long bytes, unsigned long * __restrict p1,
+--- a/lib/raid/xor/xor-32regs-prefetch.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/xor-32regs-prefetch.c
+@@ -1,7 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ #include <linux/prefetch.h>
+-#include <linux/raid/xor_impl.h>
+-#include <asm-generic/xor.h>
++#include "xor_impl.h"
+ 
+ static void
+ xor_32regs_p_2(unsigned long bytes, unsigned long * __restrict p1,
+--- a/lib/raid/xor/xor-8regs.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/xor-8regs.c
+@@ -1,6 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-#include <linux/raid/xor_impl.h>
+-#include <asm-generic/xor.h>
++#include "xor_impl.h"
+ 
+ static void
+ xor_8regs_2(unsigned long bytes, unsigned long * __restrict p1,
+--- a/lib/raid/xor/xor-8regs-prefetch.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/xor-8regs-prefetch.c
+@@ -1,7 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ #include <linux/prefetch.h>
+-#include <linux/raid/xor_impl.h>
+-#include <asm-generic/xor.h>
++#include "xor_impl.h"
+ 
+ static void
+ xor_8regs_p_2(unsigned long bytes, unsigned long * __restrict p1,
+--- a/lib/raid/xor/xor-core.c~xor-make-xorko-self-contained-in-lib-raid
++++ a/lib/raid/xor/xor-core.c
+@@ -9,10 +9,9 @@
+ #include <linux/module.h>
+ #include <linux/gfp.h>
+ #include <linux/raid/xor.h>
+-#include <linux/raid/xor_impl.h>
+ #include <linux/jiffies.h>
+ #include <linux/preempt.h>
+-#include <asm/xor.h>
++#include "xor_impl.h"
+ 
+ /* The xor routines to use.  */
+ static struct xor_block_template *active_template;
+@@ -141,16 +140,21 @@ static int __init calibrate_xor_blocks(v
+ 	return 0;
+ }
+ 
+-static int __init xor_init(void)
+-{
+-#ifdef arch_xor_init
+-	arch_xor_init();
++#ifdef CONFIG_XOR_BLOCKS_ARCH
++#include "xor_arch.h" /* $SRCARCH/xor_arch.h */
+ #else
++static void __init arch_xor_init(void)
++{
+ 	xor_register(&xor_block_8regs);
+ 	xor_register(&xor_block_8regs_p);
+ 	xor_register(&xor_block_32regs);
+ 	xor_register(&xor_block_32regs_p);
+-#endif
++}
++#endif /* CONFIG_XOR_BLOCKS_ARCH */
++
++static int __init xor_init(void)
++{
++	arch_xor_init();
+ 
+ 	/*
+ 	 * If this arch/cpu has a short-circuited selection, don't loop through
+diff --git a/lib/raid/xor/xor_impl.h a/lib/raid/xor/xor_impl.h
+new file mode 100644
+--- /dev/null
++++ a/lib/raid/xor/xor_impl.h
+@@ -0,0 +1,36 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _XOR_IMPL_H
++#define _XOR_IMPL_H
++
++#include <linux/init.h>
++
++struct xor_block_template {
++	struct xor_block_template *next;
++	const char *name;
++	int speed;
++	void (*do_2)(unsigned long, unsigned long * __restrict,
++		     const unsigned long * __restrict);
++	void (*do_3)(unsigned long, unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict);
++	void (*do_4)(unsigned long, unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict);
++	void (*do_5)(unsigned long, unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict,
++		     const unsigned long * __restrict);
++};
++
++/* generic implementations */
++extern struct xor_block_template xor_block_8regs;
++extern struct xor_block_template xor_block_32regs;
++extern struct xor_block_template xor_block_8regs_p;
++extern struct xor_block_template xor_block_32regs_p;
++
++void __init xor_register(struct xor_block_template *tmpl);
++void __init xor_force(struct xor_block_template *tmpl);
++
++#endif /* _XOR_IMPL_H */
 _
 
 Patches currently in -mm which might be from hch@lst.de are
