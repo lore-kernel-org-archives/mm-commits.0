@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73C977260D;
-	Sat,  4 Apr 2026 00:46:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B346283FCE
+	for <mm-commits@vger.kernel.org>; Sun,  5 Apr 2026 21:01:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775263588; cv=none; b=AxQGCMXGv63SGD9r/n5oNRcXOI6j0/VJpZh1vNVaHPe87RaCOcShBFlHz99kP57WkdC6CkjA50eyBBeCQwx8ysFlukkBDQGKrJwOLwP8RYFMFIr1WsW/cB5cPlr4nqw40+P6ibH0UECthhemUp51KHrvsJydmxIiLzm8Mo6ke18=
+	t=1775422901; cv=none; b=RcnFpfmzxbig2y9qg0FHVVzo85ajqEKHVa4s0XAxoPtQl0ZVoP5olYIuqdqAcCuz2mtuzRGvzif0uAZCaIpze/O+rI6TzRofKmYWRU/tUJ6za+yzzsA3CYLjpTKslPAM+y+JGEeBUPTu0wAKKuvweqJV76oJc1hZURwbHUx9uRQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775263588; c=relaxed/simple;
-	bh=0lr4Uc0ZB3+GM0nP2kJSz4JktA5qM9temyX0uKIZjTk=;
-	h=Date:To:From:Subject:Message-Id; b=Onq/DUIaKjHGsp8G0+kvSnpkbSHpEPIwjSSKsJSc6i0JCi4kfb+hbRjIllXoAPoZaqjMtBr2WmZB3t/+AIKbJBFG1JaCEwTAJ2BVPC+KDPbMixQofmZOTDETeDc2uxnSmhuvuR2ml5GIiAd4o32t3lv+iKkZonCiv/WNZQyBKGo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WWoDSJj6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775422901; c=relaxed/simple;
+	bh=7mJtCaO8oMbrrubJ599CIT+TWg5jKZ8LteEjFYAqAfs=;
+	h=Date:To:From:Subject:Message-Id; b=GvKxvMhbAhWddm0pCaXRVLeO5Ptl5gdq1cBTIQPgQzwCRWk17NWBZi4o7F17wyhgp+Z4l2eGxxNbCAZRtqA8M2vXhLypv8hO6+k4R6x5Snwstto9xm2OP9Muab3UTDrKgY3YwoKOEA069NDrt8+3inqcb6nO9Fp4LWP+qAOCbb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SUuoMa67; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WWoDSJj6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03D6AC4CEF7;
-	Sat,  4 Apr 2026 00:46:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SUuoMa67"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BAA9C116C6;
+	Sun,  5 Apr 2026 21:01:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775263588;
-	bh=0lr4Uc0ZB3+GM0nP2kJSz4JktA5qM9temyX0uKIZjTk=;
+	s=korg; t=1775422901;
+	bh=7mJtCaO8oMbrrubJ599CIT+TWg5jKZ8LteEjFYAqAfs=;
 	h=Date:To:From:Subject:From;
-	b=WWoDSJj62juNkhPKJbKUiEz24JUzd6ylrGhhQZgoH8s8BRHq6veNNAe9lzHCCVQN5
-	 ZkesjW90HqvG4GHhP14NIeG3cOwcLLMBltLkaOsrd+EeZc1pRMO6zY9J3HJ4dk/5yF
-	 IfR/PZL224dA/a3NdTZ1N+Xr/CMZSe+yrvogiUng=
-Date: Fri, 03 Apr 2026 17:46:27 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,usama.arif@linux.dev,stable@vger.kernel.org,ryan.roberts@arm.com,richard.weiyang@gmail.com,rakie.kim@sk.com,npache@redhat.com,matthew.brost@intel.com,ljs@kernel.org,liam.howlett@oracle.com,kartikey406@gmail.com,joshua.hahnjy@gmail.com,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=SUuoMa67Xp3pG/0hcz5KIU6aM/QLBwrJKxyJLrV5sAZLQtInFvNjylYpGUh9AoN1q
+	 9WDB6Lru1j1ZJ78w80KRbul40cr/ibj6cMZHohPWBZzDxeHnjeKR6OnoR4GxzLY+1g
+	 zfTd7HOY+AoTj5zLCxhlyZMNslevgIDwHc44pnJk=
+Date: Sun, 05 Apr 2026 14:01:40 -0700
+To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,wang.yaxin@zte.com.cn,michel@lespinasse.org,ljs@kernel.org,hughd@google.com,david@kernel.org,chengming.zhou@linux.dev,xu.xin16@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-fix-deferred-split-queue-races-during-migration.patch removed from -mm tree
-Message-Id: <20260404004628.03D6AC4CEF7@smtp.kernel.org>
+Subject: + ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range.patch added to mm-unstable branch
+Message-Id: <20260405210141.3BAA9C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,142 +34,139 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: fix deferred split queue races during migration
-has been removed from the -mm tree.  Its filename was
-     mm-fix-deferred-split-queue-races-during-migration.patch
+The patch titled
+     Subject: ksm: optimize rmap_walk_ksm by passing a suitable address range
+has been added to the -mm mm-unstable branch.  Its filename is
+     ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range.patch
 
-This patch was dropped because it was merged into the mm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: mm: fix deferred split queue races during migration
-Date: Wed, 1 Apr 2026 21:10:32 +0800
+From: xu xin <xu.xin16@zte.com.cn>
+Subject: ksm: optimize rmap_walk_ksm by passing a suitable address range
+Date: Thu, 12 Feb 2026 19:30:45 +0800 (CST)
 
-migrate_folio_move() records the deferred split queue state from src and
-replays it on dst.  Replaying it after remove_migration_ptes(src, dst, 0)
-makes dst visible before it is requeued, so a concurrent rmap-removal path
-can mark dst partially mapped and trip the WARN in deferred_split_folio().
+Problem
+=======
+When available memory is extremely tight, causing KSM pages to be swapped
+out, or when there is significant memory fragmentation and THP triggers
+memory compaction, the system will invoke the rmap_walk_ksm function to
+perform reverse mapping.  However, we observed that this function becomes
+particularly time-consuming when a large number of VMAs (e.g., 20,000)
+share the same anon_vma.  Through debug trace analysis, we found that most
+of the latency occurs within anon_vma_interval_tree_foreach, leading to an
+excessively long hold time on the anon_vma lock (even reaching 500ms or
+more), which in turn causes upper-layer applications (waiting for the
+anon_vma lock) to be blocked for extended periods.
 
-Move the requeue before remove_migration_ptes() so dst is back on the
-deferred split queue before it becomes visible again.
+Root Cause
+==========
+Further investigation revealed that 99.9% of iterations inside the
+anon_vma_interval_tree_foreach loop are skipped due to the first check "if
+(addr < vma->vm_start || addr >= vma->vm_end)), indicating that a large
+number of loop iterations are ineffective.  This inefficiency arises
+because the pgoff_start and pgoff_end parameters passed to
+anon_vma_interval_tree_foreach span the entire address space from 0 to
+ULONG_MAX, resulting in very poor loop efficiency.
 
-Because migration still holds dst locked at that point, teach
-deferred_split_scan() to requeue a folio when folio_trylock() fails. 
-Otherwise a fully mapped underused folio can be dequeued by the shrinker
-and silently lost from split_queue.
+Solution
+========
+In fact, we can significantly improve performance by passing a more precise
+range based on the given addr. Since the original pages merged by KSM
+correspond to anonymous VMAs, the page offset can be calculated as
+pgoff = address >> PAGE_SHIFT. Therefore, we can optimize the call by
+defining:
 
-[ziy@nvidia.com: move the comment]
-  Link: https://lkml.kernel.org/r/FB71A764-0F10-4E5A-B4A0-BA4C7F138408@nvidia.com
-Link: https://syzkaller.appspot.com/bug?extid=a7067a757858ac8eb085
-Link: https://lkml.kernel.org/r/20260401131032.13011-1-lance.yang@linux.dev
-Fixes: 8a8ca142a488 ("mm: migrate: requeue destination folio on deferred split queue")
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reported-by: syzbot+a7067a757858ac8eb085@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/linux-mm/69ccb65b.050a0220.183828.003a.GAE@google.com/
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+	pgoff = rmap_item->address >> PAGE_SHIFT;
+
+Performance
+===========
+In our real embedded Linux environment, the measured metrcis were as
+follows:
+
+1) Time_ms: Max time for holding anon_vma lock in a single
+   rmap_walk_ksm.
+
+2) Nr_iteration_total: The max times of iterations in a loop of
+   anon_vma_interval_tree_foreach
+
+3) Skip_addr_out_of_range: The max times of skipping due to the first
+   check (vma->vm_start and vma->vm_end) in a loop of
+   anon_vma_interval_tree_foreach.
+
+4) Skip_mm_mismatch: The max times of skipping due to the second check
+   (rmap_item->mm == vma->vm_mm) in a loop of
+   anon_vma_interval_tree_foreach.
+
+The result is as follows:
+
+         Time_ms      Nr_iteration_total    Skip_addr_out_of_range   Skip_mm_mismatch
+Before:  228.65       22169                 22168                    0
+After :   0.396        3                     0                       2
+
+The referenced reproducer of rmap_walk_ksm can be found at:
+https://lore.kernel.org/all/20260206151424734QIyWL_pA-1QeJPbJlUxsO@zte.com.cn/
+
+Link: https://lkml.kernel.org/r/20260212193045556CbzCX8p9gDu73tQ2nvHEI@zte.com.cn
+Co-developed-by: Wang Yaxin <wang.yaxin@zte.com.cn>
+Signed-off-by: Wang Yaxin <wang.yaxin@zte.com.cn>
+Signed-off-by: xu xin <xu.xin16@zte.com.cn>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Deepanshu Kartikey <kartikey406@gmail.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Ying Huang <ying.huang@linux.alibaba.com>
-Cc: Usama Arif <usama.arif@linux.dev>
-Cc: <stable@vger.kernel.org>
+Cc: Michel Lespinasse <michel@lespinasse.org>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   15 ++++++++++-----
- mm/migrate.c     |   18 +++++++++---------
- 2 files changed, 19 insertions(+), 14 deletions(-)
+ mm/ksm.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-fix-deferred-split-queue-races-during-migration
-+++ a/mm/huge_memory.c
-@@ -4542,7 +4542,7 @@ retry:
- 				goto next;
+--- a/mm/ksm.c~ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range
++++ a/mm/ksm.c
+@@ -3173,6 +3173,7 @@ again:
+ 	hlist_for_each_entry(rmap_item, &stable_node->hlist, hlist) {
+ 		/* Ignore the stable/unstable/sqnr flags */
+ 		const unsigned long addr = rmap_item->address & PAGE_MASK;
++		const pgoff_t pgoff = rmap_item->address >> PAGE_SHIFT;
+ 		struct anon_vma *anon_vma = rmap_item->anon_vma;
+ 		struct anon_vma_chain *vmac;
+ 		struct vm_area_struct *vma;
+@@ -3186,8 +3187,12 @@ again:
+ 			anon_vma_lock_read(anon_vma);
  		}
- 		if (!folio_trylock(folio))
--			goto next;
-+			goto requeue;
- 		if (!split_folio(folio)) {
- 			did_split = true;
- 			if (underused)
-@@ -4551,13 +4551,18 @@ retry:
- 		}
- 		folio_unlock(folio);
- next:
+ 
 +		/*
-+		 * If thp_underused() returns false, or if split_folio()
-+		 * succeeds, or if split_folio() fails in the case it was
-+		 * underused, then consider it used and don't add it back to
-+		 * split_queue.
++		 * Currently KSM folios are order-0 normal pages, so pgoff_end
++		 * should be the same as pgoff_start.
 +		 */
- 		if (did_split || !folio_test_partially_mapped(folio))
- 			continue;
-+requeue:
- 		/*
--		 * Only add back to the queue if folio is partially mapped.
--		 * If thp_underused returns false, or if split_folio fails
--		 * in the case it was underused, then consider it used and
--		 * don't add it back to split_queue.
-+		 * Add back partially mapped folios, or underused folios that
-+		 * we could not lock this round.
- 		 */
- 		fqueue = folio_split_queue_lock_irqsave(folio, &flags);
- 		if (list_empty(&folio->_deferred_list)) {
---- a/mm/migrate.c~mm-fix-deferred-split-queue-races-during-migration
-+++ a/mm/migrate.c
-@@ -1384,6 +1384,15 @@ static int migrate_folio_move(free_folio
- 		goto out;
+ 		anon_vma_interval_tree_foreach(vmac, &anon_vma->rb_root,
+-					       0, ULONG_MAX) {
++					       pgoff, pgoff) {
  
- 	/*
-+	 * Requeue the destination folio on the deferred split queue if
-+	 * the source was on the queue.  The source is unqueued in
-+	 * __folio_migrate_mapping(), so we recorded the state from
-+	 * before move_to_new_folio().
-+	 */
-+	if (src_deferred_split)
-+		deferred_split_folio(dst, src_partially_mapped);
-+
-+	/*
- 	 * When successful, push dst to LRU immediately: so that if it
- 	 * turns out to be an mlocked page, remove_migration_ptes() will
- 	 * automatically build up the correct dst->mlock_count for it.
-@@ -1399,15 +1408,6 @@ static int migrate_folio_move(free_folio
- 	if (old_page_state & PAGE_WAS_MAPPED)
- 		remove_migration_ptes(src, dst, 0);
- 
--	/*
--	 * Requeue the destination folio on the deferred split queue if
--	 * the source was on the queue.  The source is unqueued in
--	 * __folio_migrate_mapping(), so we recorded the state from
--	 * before move_to_new_folio().
--	 */
--	if (src_deferred_split)
--		deferred_split_folio(dst, src_partially_mapped);
--
- out_unlock_both:
- 	folio_unlock(dst);
- 	folio_set_owner_migrate_reason(dst, reason);
+ 			cond_resched();
+ 			vma = vmac->vma;
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from xu.xin16@zte.com.cn are
 
+ksm-optimize-rmap_walk_ksm-by-passing-a-suitable-address-range.patch
 
