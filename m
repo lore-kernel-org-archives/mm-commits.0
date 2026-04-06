@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F419238F62C;
-	Mon,  6 Apr 2026 18:14:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43B4938F225;
+	Mon,  6 Apr 2026 18:14:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775499265; cv=none; b=VLswLHdVw5iUz+vXAB597ITVvQgYk0Rjr+iILrtQ0SaICsFqX4iotCjYge5ZDc+RT6XWl5BXWpIymsYA9ZCO2kL2aQiT5khuu6yBvXFVJurVT+mh+371tLRReY3Ma4NoXwjrxIKavE3/KQ3WA0mQwNiwiDBS4K1MICHs+YYgEoI=
+	t=1775499266; cv=none; b=sNoOQAhCTb+nFdF6mMuFRShVAIhzbVsgaXll/g6btgLqk97YJ81a9RN7BFcn9eBvl2axova6KDaPlgKWW8Jt9TeetJv3px02SP8wf5tDOylz4GBmMOO3yFZfTJjJV/QJ+UuUSfEEZwSSEq714zleDcnNSla9kMWBR4ZfdJ0uBr8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775499265; c=relaxed/simple;
-	bh=XZNmXaUixxrbiNWrfYiz/90xHCHdco3RvjEAP+2ibDc=;
-	h=Date:To:From:Subject:Message-Id; b=r9vNW96jGWY3cI+5hGmqmhyqsWJHhcCMnpd57eMc8MiglMVNz8qclu8xj2ymB53T+czxlFRZ+8KSL1Z9BD6jHWAmjtwg86uAG7qdMS9cCtKZfhaGBPXM2Rq45rus4gLqADf4RokfTzUAw2CA2dXK9wC7Ot9bYSxE4SFqU3n/1WI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=k8U9vD1C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775499266; c=relaxed/simple;
+	bh=ELqwEKtKuo2HvRhGypY4lanBnc/s6u6+NMS9yriKHqg=;
+	h=Date:To:From:Subject:Message-Id; b=htXXzyP4nwTLYE6iI03Yrl6L8fc2qrzDF73Cvp1PQp31NKErg9bPGhI7nnd2NaLS48F6bsRtnIQzeuy9MzQkEstehf/zRHdOztliU8fSB8IXMxRzCuOyU88Eoq90TOgG7rZk4TsyXgGMl8l7mYa2XDhsbraDYXFoA/grobu4jac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XqZnYQpd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="k8U9vD1C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA9F6C4CEF7;
-	Mon,  6 Apr 2026 18:14:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XqZnYQpd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A9D7C4CEF7;
+	Mon,  6 Apr 2026 18:14:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775499264;
-	bh=XZNmXaUixxrbiNWrfYiz/90xHCHdco3RvjEAP+2ibDc=;
+	s=korg; t=1775499266;
+	bh=ELqwEKtKuo2HvRhGypY4lanBnc/s6u6+NMS9yriKHqg=;
 	h=Date:To:From:Subject:From;
-	b=k8U9vD1CurBZYL0bOEkG1OkeyG3Ad52Ji++vifQMJTGOGoIqy3qHtEqGlsldzEcK7
-	 K0+6nPdYhXalRGqRp1X2SYU30vBUESSrUdPR5AHgQckduOqztUz5DVO+HELoirVlpB
-	 7QgPCQ/8Y/nkLVPmxnRwpk9ks8uYrok2ontVwoy0=
-Date: Mon, 06 Apr 2026 11:14:24 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,pfalcato@suse.de,ljs@kernel.org,liam.howlett@oracle.com,jannh@google.com,rhkrqnwk98@gmail.com,akpm@linux-foundation.org
+	b=XqZnYQpddXCalyBpReyYGbXZi+UrJwRIPLL7GRFVyWvayg7dC9lnv5KicdJn5sLmj
+	 LnebHPVpxSBFunT2/KjC6i11wqp605pTbo4DWQqbmir+0mrWVzbVTlq5SXE986HuZw
+	 6NJblU/+JR5w5lYUiavzDqefOr9+ccT2Pj8y9vto=
+Date: Mon, 06 Apr 2026 11:14:25 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vma-fix-memory-leak-in-__mmap_region.patch removed from -mm tree
-Message-Id: <20260406181424.CA9F6C4CEF7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-stat-deallocate-damon_call-failure-leaking-damon_ctx.patch removed from -mm tree
+Message-Id: <20260406181426.1A9D7C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,112 +35,82 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: fix memory leak in __mmap_region()
+     Subject: mm/damon/stat: deallocate damon_call() failure leaking damon_ctx
 has been removed from the -mm tree.  Its filename was
-     mm-vma-fix-memory-leak-in-__mmap_region.patch
+     mm-damon-stat-deallocate-damon_call-failure-leaking-damon_ctx.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sechang Lim <rhkrqnwk98@gmail.com>
-Subject: mm/vma: fix memory leak in __mmap_region()
-Date: Tue, 31 Mar 2026 18:08:11 +0000
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/stat: deallocate damon_call() failure leaking damon_ctx
+Date: Thu, 2 Apr 2026 06:44:17 -0700
 
-commit 605f6586ecf7 ("mm/vma: do not leak memory when .mmap_prepare
-swaps the file") handled the success path by skipping get_file() via
-file_doesnt_need_get, but missed the error path.
+damon_stat_start() always allocates the module's damon_ctx object
+(damon_stat_context).  Meanwhile, if damon_call() in the function fails,
+the damon_ctx object is not deallocated.  Hence, if the damon_call() is
+failed, and the user writes Y to “enabled” again, the previously
+allocated damon_ctx object is leaked.
 
-When /dev/zero is mmap'd with MAP_SHARED, mmap_zero_prepare() calls
-shmem_zero_setup_desc() which allocates a new shmem file to back the
-mapping. If __mmap_new_vma() subsequently fails, this replacement
-file is never fput()'d - the original is released by
-ksys_mmap_pgoff(), but nobody releases the new one.
+This cannot simply be fixed by deallocating the damon_ctx object when
+damon_call() fails.  That's because damon_call() failure doesn't guarantee
+the kdamond main function, which accesses the damon_ctx object, is
+completely finished.  In other words, if damon_stat_start() deallocates
+the damon_ctx object after damon_call() failure, the not-yet-terminated
+kdamond could access the freed memory (use-after-free).
 
-Add fput() for the swapped file in the error path.
+Fix the leak while avoiding the use-after-free by keeping returning
+damon_stat_start() without deallocating the damon_ctx object after
+damon_call() failure, but deallocating it when the function is invoked
+again and the kdamond is completely terminated.  If the kdamond is not yet
+terminated, simply return -EAGAIN, as the kdamond will soon be terminated.
 
-Reproducible with fault injection.
+The issue was discovered [1] by sashiko.
 
-FAULT_INJECTION: forcing a failure.
-name failslab, interval 1, probability 0, space 0, times 1
-CPU: 2 UID: 0 PID: 366 Comm: syz.7.14 Not tainted 7.0.0-rc6 #2 PREEMPT(full)
-Hardware name: QEMU Ubuntu 24.04 PC v2 (i440FX + PIIX, arch_caps fix, 1996), BIOS 1.16.3-debian-1.16.3-2 04/01/2014
-Call Trace:
- <TASK>
- dump_stack_lvl+0x164/0x1f0
- should_fail_ex+0x525/0x650
- should_failslab+0xdf/0x140
- kmem_cache_alloc_noprof+0x78/0x630
- vm_area_alloc+0x24/0x160
- __mmap_region+0xf6b/0x2660
- mmap_region+0x2eb/0x3a0
- do_mmap+0xc79/0x1240
- vm_mmap_pgoff+0x252/0x4c0
- ksys_mmap_pgoff+0xf8/0x120
- __x64_sys_mmap+0x12a/0x190
- do_syscall_64+0xa9/0x580
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
- </TASK>
-
-kmemleak: 1 new suspected memory leaks (see /sys/kernel/debug/kmemleak)
-BUG: memory leak
-unreferenced object 0xffff8881118aca80 (size 360):
-  comm "syz.7.14", pid 366, jiffies 4294913255
-  hex dump (first 32 bytes):
-    00 00 00 00 ad 4e ad de ff ff ff ff 00 00 00 00  .....N..........
-    ff ff ff ff ff ff ff ff c0 28 4d ae ff ff ff ff  .........(M.....
-  backtrace (crc db0f53bc):
-    kmem_cache_alloc_noprof+0x3ab/0x630
-    alloc_empty_file+0x5a/0x1e0
-    alloc_file_pseudo+0x135/0x220
-    __shmem_file_setup+0x274/0x420
-    shmem_zero_setup_desc+0x9c/0x170
-    mmap_zero_prepare+0x123/0x140
-    __mmap_region+0xdda/0x2660
-    mmap_region+0x2eb/0x3a0
-    do_mmap+0xc79/0x1240
-    vm_mmap_pgoff+0x252/0x4c0
-    ksys_mmap_pgoff+0xf8/0x120
-    __x64_sys_mmap+0x12a/0x190
-    do_syscall_64+0xa9/0x580
-    entry_SYSCALL_64_after_hwframe+0x76/0x7e
-
-Found by syzkaller.
-
-Link: https://lkml.kernel.org/r/20260331180811.1333348-1-rhkrqnwk98@gmail.com
-Fixes: 605f6586ecf7 ("mm/vma: do not leak memory when .mmap_prepare swaps the file")
-Signed-off-by: Sechang Lim <rhkrqnwk98@gmail.com>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20260402134418.74121-1-sj@kernel.org
+Link: https://lore.kernel.org/20260401012428.86694-1-sj@kernel.org [1]
+Fixes: 405f61996d9d ("mm/damon/stat: use damon_call() repeat mode instead of damon_callback")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.17.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vma.c |    7 +++++++
+ mm/damon/stat.c |    7 +++++++
  1 file changed, 7 insertions(+)
 
---- a/mm/vma.c~mm-vma-fix-memory-leak-in-__mmap_region
-+++ a/mm/vma.c
-@@ -2781,6 +2781,13 @@ unacct_error:
- 	if (map.charged)
- 		vm_unacct_memory(map.charged);
- abort_munmap:
-+	/*
-+	 * This indicates that .mmap_prepare has set a new file, differing from
-+	 * desc->vm_file. But since we're aborting the operation, only the
-+	 * original file will be cleaned up. Ensure we clean up both.
-+	 */
-+	if (map.file_doesnt_need_get)
-+		fput(map.file);
- 	vms_abort_munmap_vmas(&map.vms, &map.mas_detach);
- 	return error;
+--- a/mm/damon/stat.c~mm-damon-stat-deallocate-damon_call-failure-leaking-damon_ctx
++++ a/mm/damon/stat.c
+@@ -245,6 +245,12 @@ static int damon_stat_start(void)
+ {
+ 	int err;
+ 
++	if (damon_stat_context) {
++		if (damon_is_running(damon_stat_context))
++			return -EAGAIN;
++		damon_destroy_ctx(damon_stat_context);
++	}
++
+ 	damon_stat_context = damon_stat_build_ctx();
+ 	if (!damon_stat_context)
+ 		return -ENOMEM;
+@@ -261,6 +267,7 @@ static void damon_stat_stop(void)
+ {
+ 	damon_stop(&damon_stat_context, 1);
+ 	damon_destroy_ctx(damon_stat_context);
++	damon_stat_context = NULL;
  }
+ 
+ static int damon_stat_enabled_store(
 _
 
-Patches currently in -mm which might be from rhkrqnwk98@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-core-fix-damon_call-vs-kdamond_fn-exit-race.patch
+mm-damon-core-fix-damos_walk-vs-kdamond_fn-exit-race.patch
+mm-damon-core-validate-damos_quota_goal-nid-for-node_mem_usedfree_bp.patch
+mm-damon-core-validate-damos_quota_goal-nid-for-node_memcg_usedfree_bp.patch
+mm-damon-core-use-time_in_range_open-for-damos-quota-window-start.patch
+docs-admin-guide-mm-damon-reclaim-warn-commit_inputs-vs-param-updates-race.patch
+docs-admin-guide-mm-damon-lru_sort-warn-commit_inputs-vs-param-updates-race.patch
 
