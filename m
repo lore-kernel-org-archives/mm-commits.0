@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DE123914E1
-	for <mm-commits@vger.kernel.org>; Mon,  6 Apr 2026 17:50:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75E68390C83;
+	Mon,  6 Apr 2026 18:14:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775497846; cv=none; b=XsUJCRDQYX9/lzr4tX/zTVAaclBgv7uCG6FQSpvqHauAKs8XHqkh824eLdnh7niUR+BiWBw32n+2+/ZP58kmJkGmuib6DozvuQNikIEoa2jaRlQoI3UmTEU51hchNibo3EvB52cGIiFkA1xPa2E7Ny0KNDnSW/uteY9PLgbadkY=
+	t=1775499258; cv=none; b=ZvRlxC2jPgVg52nXC2wfZf3oDt5O/jHIcoY7LEpor0rIuCf5/eFGddQLh/Xo9mxwo9/dBLBLZMlFXfcc9sNOeXr3lYhmK6gDnXzwVkj1AtmIkg62nZbVepIuJEZyP6bVvkfOHnJ1wAyYfEksCrwXFvw/t2MaB3XCoQbBzNvO8G4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775497846; c=relaxed/simple;
-	bh=TXQyxwkVH+dQ3wxVBrPJHs2Cmrv4LaCHu1SY+Yiqe58=;
-	h=Date:To:From:Subject:Message-Id; b=deV6+mqinTcpGY+XRRIDKKVDRnm+X4Ht0cdjeeH6AtO+ERBeYl63QkFHdQQoIIvWio9G3trib5rwBmkl1BobSYHaW/HJ3Ap10Lab2wOOjl4LnxVfW/qo2UHg1HJTKki8GvlitAyNh6lHe6PWyR7UnddLSU6lE0luaJUothMifaw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FApEDMwK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775499258; c=relaxed/simple;
+	bh=qSim8p9WVozEm8UKC7FtrRpEKbHjYVZjffTe38A4Hpo=;
+	h=Date:To:From:Subject:Message-Id; b=AbxP8c7tz3SC9oqh/0LSr5ds81NOefzNTbKDt/jkA7eenk/6fsKnrJPhVFcitHXSc19/AG0jRYNIY+60bS0KHqXwugxAcZ/TS/nGNxaBvCj9x7g3mD2mFshxv84AHx8ViGfefPO9ARiN224e0fcBmV1Lw6G0I5LCtUhqLitBkB0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IEY9HKTN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FApEDMwK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37D9DC4CEF7;
-	Mon,  6 Apr 2026 17:50:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IEY9HKTN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 140E4C4CEF7;
+	Mon,  6 Apr 2026 18:14:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775497846;
-	bh=TXQyxwkVH+dQ3wxVBrPJHs2Cmrv4LaCHu1SY+Yiqe58=;
+	s=korg; t=1775499258;
+	bh=qSim8p9WVozEm8UKC7FtrRpEKbHjYVZjffTe38A4Hpo=;
 	h=Date:To:From:Subject:From;
-	b=FApEDMwK9qfbpz31veMlVV/oM3wZ5KbUpJoxT3Qix0nrQzdop0visMA1SxDDIINQq
-	 0PcVlezlboxc94rmvu4Wm0NL3CQUVReVLnDpsc0kOwAN//0VqAKArRi5Z1ZzFT/A63
-	 J/mnNICcRsmrakc6OZBanlfNxsOvlMi0S6hi2uzc=
-Date: Mon, 06 Apr 2026 10:50:45 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,seanjc@google.com,rppt@kernel.org,peterx@redhat.com,pbonzini@redhat.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,jthoughton@google.com,hughd@google.com,harry.yoo@oracle.com,harry@kernel.org,david@kernel.org,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,avagin@google.com,aarcange@redhat.com,kalyazin@amazon.com,akpm@linux-foundation.org
+	b=IEY9HKTNNudo4Jv7kYFbfhVuWdDn0S/xUs414+2YpxXPim69D4jNnwZbMafILYWIR
+	 9yLhUmwSlyuO3Kt/x7PDyxp7vn/wrWLLymfexfmtcdX6LBJpaVXOUZn65a7VG2/3hG
+	 V6zbBvqe+c8ptQGKnkmuUjV843sQXaFc4uiEAx6Y=
+Date: Mon, 06 Apr 2026 11:14:17 -0700
+To: mm-commits@vger.kernel.org,xiangzao@linux.alibaba.com,willy@infradead.org,stable@vger.kernel.org,p.raghav@samsung.com,mcgrof@kernel.org,ljs@kernel.org,kas@kernel.org,hare@suse.de,djwong@kernel.org,dhowells@redhat.com,dchinner@redhat.com,david@kernel.org,da.gomez@samsung.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch removed from -mm tree
-Message-Id: <20260406175046.37D9DC4CEF7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch removed from -mm tree
+Message-Id: <20260406181418.140E4C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,149 +35,151 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: KVM: selftests: test userfaultfd missing for guest_memfd
+     Subject: mm: filemap: fix nr_pages calculation overflow in filemap_map_pages()
 has been removed from the -mm tree.  Its filename was
-     kvm-selftests-test-userfaultfd-missing-for-guest_memfd.patch
+     mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was merged into the mm-hotfixes-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Nikita Kalyazin <kalyazin@amazon.com>
-Subject: KVM: selftests: test userfaultfd missing for guest_memfd
-Date: Thu, 2 Apr 2026 07:11:56 +0300
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: filemap: fix nr_pages calculation overflow in filemap_map_pages()
+Date: Tue, 17 Mar 2026 17:29:55 +0800
 
-The test demonstrates that a missing userfaultfd event in guest_memfd can
-be resolved via a UFFDIO_COPY ioctl.
+When running stress-ng on my Arm64 machine with v7.0-rc3 kernel, I
+encountered some very strange crash issues showing up as "Bad page state":
 
-Link: https://lkml.kernel.org/r/20260402041156.1377214-16-rppt@kernel.org
-Signed-off-by: Nikita Kalyazin <kalyazin@amazon.com>
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Harry Yoo (Oracle) <harry@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+"
+[  734.496287] BUG: Bad page state in process stress-ng-env  pfn:415735fb
+[  734.496427] page: refcount:0 mapcount:1 mapping:0000000000000000 index:0x4cf316 pfn:0x415735fb
+[  734.496434] flags: 0x57fffe000000800(owner_2|node=1|zone=2|lastcpupid=0x3ffff)
+[  734.496439] raw: 057fffe000000800 0000000000000000 dead000000000122 0000000000000000
+[  734.496440] raw: 00000000004cf316 0000000000000000 0000000000000000 0000000000000000
+[  734.496442] page dumped because: nonzero mapcount
+"
+
+After analyzing this page’s state, it is hard to understand why the
+mapcount is not 0 while the refcount is 0, since this page is not where
+the issue first occurred.  By enabling the CONFIG_DEBUG_VM config, I can
+reproduce the crash as well and captured the first warning where the issue
+appears:
+
+"
+[  734.469226] page: refcount:33 mapcount:0 mapping:00000000bef2d187 index:0x81a0 pfn:0x415735c0
+[  734.469304] head: order:5 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+[  734.469315] memcg:ffff000807a8ec00
+[  734.469320] aops:ext4_da_aops ino:100b6f dentry name(?):"stress-ng-mmaptorture-9397-0-2736200540"
+[  734.469335] flags: 0x57fffe400000069(locked|uptodate|lru|head|node=1|zone=2|lastcpupid=0x3ffff)
+......
+[  734.469364] page dumped because: VM_WARN_ON_FOLIO((_Generic((page + nr_pages - 1),
+const struct page *: (const struct folio *)_compound_head(page + nr_pages - 1), struct page *:
+(struct folio *)_compound_head(page + nr_pages - 1))) != folio)
+[  734.469390] ------------[ cut here ]------------
+[  734.469393] WARNING: ./include/linux/rmap.h:351 at folio_add_file_rmap_ptes+0x3b8/0x468,
+CPU#90: stress-ng-mlock/9430
+[  734.469551]  folio_add_file_rmap_ptes+0x3b8/0x468 (P)
+[  734.469555]  set_pte_range+0xd8/0x2f8
+[  734.469566]  filemap_map_folio_range+0x190/0x400
+[  734.469579]  filemap_map_pages+0x348/0x638
+[  734.469583]  do_fault_around+0x140/0x198
+......
+[  734.469640]  el0t_64_sync+0x184/0x188
+"
+
+The code that triggers the warning is: "VM_WARN_ON_FOLIO(page_folio(page +
+nr_pages - 1) != folio, folio)", which indicates that set_pte_range()
+tried to map beyond the large folio’s size.
+
+By adding more debug information, I found that 'nr_pages' had overflowed
+in filemap_map_pages(), causing set_pte_range() to establish mappings for
+a range exceeding the folio size, potentially corrupting fields of pages
+that do not belong to this folio (e.g., page->_mapcount).
+
+After above analysis, I think the possible race is as follows:
+
+CPU 0                                                  CPU 1
+filemap_map_pages()                                   ext4_setattr()
+   //get and lock folio with old inode->i_size
+   next_uptodate_folio()
+
+                                                          .......
+                                                          //shrink the inode->i_size
+                                                          i_size_write(inode, attr->ia_size);
+
+   //calculate the end_pgoff with the new inode->i_size
+   file_end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE) - 1;
+   end_pgoff = min(end_pgoff, file_end);
+
+   ......
+   //nr_pages can be overflowed, cause xas.xa_index > end_pgoff
+   end = folio_next_index(folio) - 1;
+   nr_pages = min(end, end_pgoff) - xas.xa_index + 1;
+
+   ......
+   //map large folio
+   filemap_map_folio_range()
+                                                          ......
+                                                          //truncate folios
+                                                          truncate_pagecache(inode, inode->i_size);
+
+To fix this issue, move the 'end_pgoff' calculation before
+next_uptodate_folio(), so the retrieved folio stays consistent with the
+file end to avoid 'nr_pages' calculation overflow.  After this patch, the
+crash issue is gone.
+
+Link: https://lkml.kernel.org/r/1cf1ac59018fc647a87b0dad605d4056a71c14e4.1773739704.git.baolin.wang@linux.alibaba.com
+Fixes: 743a2753a02e ("filemap: cap PTE range to be created to allowed zero fill in folio_map_range()")
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reported-by: Yuanhe Shu <xiangzao@linux.alibaba.com>
+Tested-by: Yuanhe Shu <xiangzao@linux.alibaba.com>
+Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Daniel Gomez <da.gomez@samsung.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hannes Reinecke <hare@suse.de>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Luis Chamberalin <mcgrof@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Pankaj Raghav <p.raghav@samsung.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kvm/guest_memfd_test.c |   80 ++++++++++++++-
- 1 file changed, 79 insertions(+), 1 deletion(-)
+ mm/filemap.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/tools/testing/selftests/kvm/guest_memfd_test.c~kvm-selftests-test-userfaultfd-missing-for-guest_memfd
-+++ a/tools/testing/selftests/kvm/guest_memfd_test.c
-@@ -439,6 +439,82 @@ static void test_uffd_minor(int fd, size
- 	close(uffd);
- }
+--- a/mm/filemap.c~mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages
++++ a/mm/filemap.c
+@@ -3883,14 +3883,19 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 	unsigned int nr_pages = 0, folio_type;
+ 	unsigned short mmap_miss = 0, mmap_miss_saved;
  
-+static void test_uffd_missing(int fd, size_t total_size)
-+{
-+	struct uffdio_register uffd_reg;
-+	struct uffdio_copy uffd_copy;
-+	struct uffd_msg msg;
-+	struct fault_args args;
-+	pthread_t fault_thread;
-+	void *mem, *buf = NULL;
-+	int uffd, ret;
-+	off_t offset = page_size;
-+	void *fault_addr;
-+	const char test_val = 0xab;
-+
-+	ret = posix_memalign(&buf, page_size, total_size);
-+	TEST_ASSERT_EQ(ret, 0);
-+	memset(buf, test_val, total_size);
-+
-+	uffd = syscall(__NR_userfaultfd, O_CLOEXEC);
-+	TEST_ASSERT(uffd != -1, "userfaultfd creation should succeed");
-+
-+	struct uffdio_api uffdio_api = {
-+		.api = UFFD_API,
-+		.features = 0,
-+	};
-+	ret = ioctl(uffd, UFFDIO_API, &uffdio_api);
-+	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_API) should succeed");
-+
-+	mem = mmap(NULL, total_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-+	TEST_ASSERT(mem != MAP_FAILED, "mmap should succeed");
-+
-+	uffd_reg.range.start = (unsigned long)mem;
-+	uffd_reg.range.len = total_size;
-+	uffd_reg.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	ret = ioctl(uffd, UFFDIO_REGISTER, &uffd_reg);
-+	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_REGISTER) should succeed");
-+
-+	fault_addr = mem + offset;
-+	args.addr = fault_addr;
-+
-+	ret = pthread_create(&fault_thread, NULL, fault_thread_fn, &args);
-+	TEST_ASSERT(ret == 0, "pthread_create should succeed");
-+
-+	ret = read(uffd, &msg, sizeof(msg));
-+	TEST_ASSERT(ret != -1, "read from userfaultfd should succeed");
-+	TEST_ASSERT(msg.event == UFFD_EVENT_PAGEFAULT, "event type should be pagefault");
-+	TEST_ASSERT((void *)(msg.arg.pagefault.address & ~(page_size - 1)) == fault_addr,
-+		    "pagefault should occur at expected address");
-+	TEST_ASSERT(!(msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WP),
-+		    "pagefault should not be write-protect");
-+
-+	uffd_copy.dst = (unsigned long)fault_addr;
-+	uffd_copy.src = (unsigned long)(buf + offset);
-+	uffd_copy.len = page_size;
-+	uffd_copy.mode = 0;
-+	ret = ioctl(uffd, UFFDIO_COPY, &uffd_copy);
-+	TEST_ASSERT(ret != -1, "ioctl(UFFDIO_COPY) should succeed");
-+
-+	/* Wait for the faulting thread to complete - this provides the memory barrier */
-+	ret = pthread_join(fault_thread, NULL);
-+	TEST_ASSERT(ret == 0, "pthread_join should succeed");
-+
 +	/*
-+	 * Now it's safe to check args.value - the thread has completed
-+	 * and memory is synchronized
++	 * Recalculate end_pgoff based on file_end before calling
++	 * next_uptodate_folio() to avoid races with concurrent
++	 * truncation.
 +	 */
-+	TEST_ASSERT(args.value == test_val,
-+		    "memory should contain the value that was copied");
-+	TEST_ASSERT(*(char *)(mem + offset) == test_val,
-+		    "no further fault is expected");
++	file_end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE) - 1;
++	end_pgoff = min(end_pgoff, file_end);
 +
-+	ret = munmap(mem, total_size);
-+	TEST_ASSERT(!ret, "munmap should succeed");
-+	free(buf);
-+	close(uffd);
-+}
-+
- static void test_guest_memfd_flags(struct kvm_vm *vm)
- {
- 	uint64_t valid_flags = vm_check_cap(vm, KVM_CAP_GUEST_MEMFD_FLAGS);
-@@ -494,8 +570,10 @@ static void __test_guest_memfd(struct kv
- 	gmem_test(fallocate, vm, flags);
- 	gmem_test(invalid_punch_hole, vm, flags);
+ 	rcu_read_lock();
+ 	folio = next_uptodate_folio(&xas, mapping, end_pgoff);
+ 	if (!folio)
+ 		goto out;
  
--	if (flags & GUEST_MEMFD_FLAG_INIT_SHARED)
-+	if (flags & GUEST_MEMFD_FLAG_INIT_SHARED) {
- 		gmem_test(uffd_minor, vm, flags);
-+		gmem_test(uffd_missing, vm, flags);
-+	}
- }
- 
- static void test_guest_memfd(unsigned long vm_type)
+-	file_end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE) - 1;
+-	end_pgoff = min(end_pgoff, file_end);
+-
+ 	/*
+ 	 * Do not allow to map with PMD across i_size to preserve
+ 	 * SIGBUS semantics.
 _
 
-Patches currently in -mm which might be from kalyazin@amazon.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-vmscan-fix-dirty-folios-throttling-on-cgroup-v1-for-mglru.patch
 
