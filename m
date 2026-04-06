@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75E68390C83;
-	Mon,  6 Apr 2026 18:14:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FF5E38F923;
+	Mon,  6 Apr 2026 18:14:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775499258; cv=none; b=ZvRlxC2jPgVg52nXC2wfZf3oDt5O/jHIcoY7LEpor0rIuCf5/eFGddQLh/Xo9mxwo9/dBLBLZMlFXfcc9sNOeXr3lYhmK6gDnXzwVkj1AtmIkg62nZbVepIuJEZyP6bVvkfOHnJ1wAyYfEksCrwXFvw/t2MaB3XCoQbBzNvO8G4=
+	t=1775499259; cv=none; b=VgOhKNT6RRrsbi9AWlrtxkrNi8AHDr9Wb5PNugkUUBd6xIjlSiinFCcuvjXsJkhhwEH6PynacYr/s7OBc095YDNNzNB0kO7pPTcMy6RrWusjICsqOD/09iMO9ABWWofP8mADmcsT5uIMtM5ANpHVQ48BPxWbYd/Clj3ZgRMWKkE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775499258; c=relaxed/simple;
-	bh=qSim8p9WVozEm8UKC7FtrRpEKbHjYVZjffTe38A4Hpo=;
-	h=Date:To:From:Subject:Message-Id; b=AbxP8c7tz3SC9oqh/0LSr5ds81NOefzNTbKDt/jkA7eenk/6fsKnrJPhVFcitHXSc19/AG0jRYNIY+60bS0KHqXwugxAcZ/TS/nGNxaBvCj9x7g3mD2mFshxv84AHx8ViGfefPO9ARiN224e0fcBmV1Lw6G0I5LCtUhqLitBkB0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IEY9HKTN; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775499259; c=relaxed/simple;
+	bh=eOtEj6rTNQrDBznFdsCxoHQPceOUYn2ZkiE3UeTeemo=;
+	h=Date:To:From:Subject:Message-Id; b=SSX6O0vJ++fIUJlHiVki+hcaFAjAd1S1iip+gE3g1empDh3PhItUJ3oin9vzE//PfA7Akd3Pd9s4fh5Uk98HrdfS5aBHUv05k/jREZPgzxI7sIYFDc7898HiEPweP6OCiVVhlV3yR5ds2UMHuuvegwlt4uA2kbEYhFzpQeMUXUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uVVciVuX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IEY9HKTN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 140E4C4CEF7;
-	Mon,  6 Apr 2026 18:14:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uVVciVuX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48763C4CEF7;
+	Mon,  6 Apr 2026 18:14:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775499258;
-	bh=qSim8p9WVozEm8UKC7FtrRpEKbHjYVZjffTe38A4Hpo=;
+	s=korg; t=1775499259;
+	bh=eOtEj6rTNQrDBznFdsCxoHQPceOUYn2ZkiE3UeTeemo=;
 	h=Date:To:From:Subject:From;
-	b=IEY9HKTNNudo4Jv7kYFbfhVuWdDn0S/xUs414+2YpxXPim69D4jNnwZbMafILYWIR
-	 9yLhUmwSlyuO3Kt/x7PDyxp7vn/wrWLLymfexfmtcdX6LBJpaVXOUZn65a7VG2/3hG
-	 V6zbBvqe+c8ptQGKnkmuUjV843sQXaFc4uiEAx6Y=
-Date: Mon, 06 Apr 2026 11:14:17 -0700
-To: mm-commits@vger.kernel.org,xiangzao@linux.alibaba.com,willy@infradead.org,stable@vger.kernel.org,p.raghav@samsung.com,mcgrof@kernel.org,ljs@kernel.org,kas@kernel.org,hare@suse.de,djwong@kernel.org,dhowells@redhat.com,dchinner@redhat.com,david@kernel.org,da.gomez@samsung.com,brauner@kernel.org,baolin.wang@linux.alibaba.com,akpm@linux-foundation.org
+	b=uVVciVuXAjAT7TYcEzrC2dLtIyHcgX6Nw0iFFRdqHAIuUycnsBG/NtyaAKy/wHgje
+	 Gi/chZfAIGJb3XdY2DZ5JnDcfLYOcnuHaz0FdpsNfI1ltCn82DnXxOdmSqnzv/18gQ
+	 ScMoNuT9MsT7QM6DLP+GiQaXyCexLMomAabTKNYg=
+Date: Mon, 06 Apr 2026 11:14:18 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,leotimmins1974@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch removed from -mm tree
-Message-Id: <20260406181418.140E4C4CEF7@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] liveupdate-propagate-file-deserialization-failures.patch removed from -mm tree
+Message-Id: <20260406181419.48763C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,151 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: filemap: fix nr_pages calculation overflow in filemap_map_pages()
+     Subject: liveupdate: propagate file deserialization failures
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages.patch
+     liveupdate-propagate-file-deserialization-failures.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: filemap: fix nr_pages calculation overflow in filemap_map_pages()
-Date: Tue, 17 Mar 2026 17:29:55 +0800
+From: Leo Timmins <leotimmins1974@gmail.com>
+Subject: liveupdate: propagate file deserialization failures
+Date: Wed, 25 Mar 2026 12:46:07 +0800
 
-When running stress-ng on my Arm64 machine with v7.0-rc3 kernel, I
-encountered some very strange crash issues showing up as "Bad page state":
+luo_session_deserialize() ignored the return value from
+luo_file_deserialize().  As a result, a session could be left partially
+restored even though the /dev/liveupdate open path treats deserialization
+failures as fatal.
 
-"
-[  734.496287] BUG: Bad page state in process stress-ng-env  pfn:415735fb
-[  734.496427] page: refcount:0 mapcount:1 mapping:0000000000000000 index:0x4cf316 pfn:0x415735fb
-[  734.496434] flags: 0x57fffe000000800(owner_2|node=1|zone=2|lastcpupid=0x3ffff)
-[  734.496439] raw: 057fffe000000800 0000000000000000 dead000000000122 0000000000000000
-[  734.496440] raw: 00000000004cf316 0000000000000000 0000000000000000 0000000000000000
-[  734.496442] page dumped because: nonzero mapcount
-"
+Propagate the error so a failed file deserialization aborts session
+deserialization instead of silently continuing.
 
-After analyzing this page’s state, it is hard to understand why the
-mapcount is not 0 while the refcount is 0, since this page is not where
-the issue first occurred.  By enabling the CONFIG_DEBUG_VM config, I can
-reproduce the crash as well and captured the first warning where the issue
-appears:
-
-"
-[  734.469226] page: refcount:33 mapcount:0 mapping:00000000bef2d187 index:0x81a0 pfn:0x415735c0
-[  734.469304] head: order:5 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
-[  734.469315] memcg:ffff000807a8ec00
-[  734.469320] aops:ext4_da_aops ino:100b6f dentry name(?):"stress-ng-mmaptorture-9397-0-2736200540"
-[  734.469335] flags: 0x57fffe400000069(locked|uptodate|lru|head|node=1|zone=2|lastcpupid=0x3ffff)
-......
-[  734.469364] page dumped because: VM_WARN_ON_FOLIO((_Generic((page + nr_pages - 1),
-const struct page *: (const struct folio *)_compound_head(page + nr_pages - 1), struct page *:
-(struct folio *)_compound_head(page + nr_pages - 1))) != folio)
-[  734.469390] ------------[ cut here ]------------
-[  734.469393] WARNING: ./include/linux/rmap.h:351 at folio_add_file_rmap_ptes+0x3b8/0x468,
-CPU#90: stress-ng-mlock/9430
-[  734.469551]  folio_add_file_rmap_ptes+0x3b8/0x468 (P)
-[  734.469555]  set_pte_range+0xd8/0x2f8
-[  734.469566]  filemap_map_folio_range+0x190/0x400
-[  734.469579]  filemap_map_pages+0x348/0x638
-[  734.469583]  do_fault_around+0x140/0x198
-......
-[  734.469640]  el0t_64_sync+0x184/0x188
-"
-
-The code that triggers the warning is: "VM_WARN_ON_FOLIO(page_folio(page +
-nr_pages - 1) != folio, folio)", which indicates that set_pte_range()
-tried to map beyond the large folio’s size.
-
-By adding more debug information, I found that 'nr_pages' had overflowed
-in filemap_map_pages(), causing set_pte_range() to establish mappings for
-a range exceeding the folio size, potentially corrupting fields of pages
-that do not belong to this folio (e.g., page->_mapcount).
-
-After above analysis, I think the possible race is as follows:
-
-CPU 0                                                  CPU 1
-filemap_map_pages()                                   ext4_setattr()
-   //get and lock folio with old inode->i_size
-   next_uptodate_folio()
-
-                                                          .......
-                                                          //shrink the inode->i_size
-                                                          i_size_write(inode, attr->ia_size);
-
-   //calculate the end_pgoff with the new inode->i_size
-   file_end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE) - 1;
-   end_pgoff = min(end_pgoff, file_end);
-
-   ......
-   //nr_pages can be overflowed, cause xas.xa_index > end_pgoff
-   end = folio_next_index(folio) - 1;
-   nr_pages = min(end, end_pgoff) - xas.xa_index + 1;
-
-   ......
-   //map large folio
-   filemap_map_folio_range()
-                                                          ......
-                                                          //truncate folios
-                                                          truncate_pagecache(inode, inode->i_size);
-
-To fix this issue, move the 'end_pgoff' calculation before
-next_uptodate_folio(), so the retrieved folio stays consistent with the
-file end to avoid 'nr_pages' calculation overflow.  After this patch, the
-crash issue is gone.
-
-Link: https://lkml.kernel.org/r/1cf1ac59018fc647a87b0dad605d4056a71c14e4.1773739704.git.baolin.wang@linux.alibaba.com
-Fixes: 743a2753a02e ("filemap: cap PTE range to be created to allowed zero fill in folio_map_range()")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reported-by: Yuanhe Shu <xiangzao@linux.alibaba.com>
-Tested-by: Yuanhe Shu <xiangzao@linux.alibaba.com>
-Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Daniel Gomez <da.gomez@samsung.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Luis Chamberalin <mcgrof@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Pankaj Raghav <p.raghav@samsung.com>
+Link: https://lkml.kernel.org/r/20260325044608.8407-1-leotimmins1974@gmail.com
+Link: https://lkml.kernel.org/r/20260325044608.8407-2-leotimmins1974@gmail.com
+Fixes: 16cec0d26521 ("liveupdate: luo_session: add ioctls for file preservation")
+Signed-off-by: Leo Timmins <leotimmins1974@gmail.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ kernel/liveupdate/luo_session.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-fix-nr_pages-calculation-overflow-in-filemap_map_pages
-+++ a/mm/filemap.c
-@@ -3883,14 +3883,19 @@ vm_fault_t filemap_map_pages(struct vm_f
- 	unsigned int nr_pages = 0, folio_type;
- 	unsigned short mmap_miss = 0, mmap_miss_saved;
+--- a/kernel/liveupdate/luo_session.c~liveupdate-propagate-file-deserialization-failures
++++ a/kernel/liveupdate/luo_session.c
+@@ -558,8 +558,13 @@ int luo_session_deserialize(void)
+ 		}
  
-+	/*
-+	 * Recalculate end_pgoff based on file_end before calling
-+	 * next_uptodate_folio() to avoid races with concurrent
-+	 * truncation.
-+	 */
-+	file_end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE) - 1;
-+	end_pgoff = min(end_pgoff, file_end);
-+
- 	rcu_read_lock();
- 	folio = next_uptodate_folio(&xas, mapping, end_pgoff);
- 	if (!folio)
- 		goto out;
+ 		scoped_guard(mutex, &session->mutex) {
+-			luo_file_deserialize(&session->file_set,
+-					     &sh->ser[i].file_set_ser);
++			err = luo_file_deserialize(&session->file_set,
++						   &sh->ser[i].file_set_ser);
++		}
++		if (err) {
++			pr_warn("Failed to deserialize files for session [%s] %pe\n",
++				session->name, ERR_PTR(err));
++			return err;
+ 		}
+ 	}
  
--	file_end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE) - 1;
--	end_pgoff = min(end_pgoff, file_end);
--
- 	/*
- 	 * Do not allow to map with PMD across i_size to preserve
- 	 * SIGBUS semantics.
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from leotimmins1974@gmail.com are
 
-mm-vmscan-fix-dirty-folios-throttling-on-cgroup-v1-for-mglru.patch
 
