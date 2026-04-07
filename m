@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92F89353EE0
-	for <mm-commits@vger.kernel.org>; Tue,  7 Apr 2026 21:25:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A6C837C0E3
+	for <mm-commits@vger.kernel.org>; Tue,  7 Apr 2026 22:28:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775597119; cv=none; b=CHMvymPGUE9uwlQjGQ+XKiHZhYVV+IVpHoPsQV9J7lbtF9dZBRBTpVkDs++3Zk+EYrKLwHL5nEpVsRJ1hGjWPvz+3ugUiGYDO7F77e8xECp3TzhrFM1S2cJE1HZ87sfyZauDalVKmaRfzH10aF/UL/jBhHuy1oUot2YzSpa892o=
+	t=1775600898; cv=none; b=sp034ta7PzSZUr9SMnjaXNCAcWEx8mQz7XsZnNSD1ptZBwLX88VkzGmQch3Boq3pmMngS6efOUl8DtZ3LrPlSmuhZM2+jCZeqLtuqT1VDRqqDPuADwWf/9Ur/Fv18xYJ9st6aY3zNAIEq4X9/PHhmk7Ri3XMu/F/WbQoj+3JT9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775597119; c=relaxed/simple;
-	bh=+ZxjS7ucZ6NAhglYl5Gu/sxgLTZT3FxylalBTCJHvmg=;
-	h=Date:To:From:Subject:Message-Id; b=CW4E43+Lcol1mUM5Ud5oAk7BXsh9h73G+3lA/h4KEx83/4o6XzvpbPAbT5ypSF2ziJhZstwpdAs0fqibRalI/iwpBOYdcmcRLFisuLyoK8t/Qrhk5KE6hFXCoFcGXfUcHATa/ewWi2CCGchTG+CtxLgMNSKPVvKwJBAxm7iLMlk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nxm4an4R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775600898; c=relaxed/simple;
+	bh=Idg1rAqjCDTIk2ZXbloQ/l2VeqBtCL3Hf9qXD152ymk=;
+	h=Date:To:From:Subject:Message-Id; b=u/ZwIDf0xUfgXah16HjQLWNGayCi1F5WgFkwjABLey5Z7elDwErPH+YM8m+4fXi6S+PSWBNASO8VLuBD+lncBXDZMChzG0rZrEr67QrbKMsQGnj374jUirsySaqqC49el1Bc4LU9SVsFS1nMSst9Hpx8M994pZR26YTFCZLJdy0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=myu1F/vX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nxm4an4R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 269A5C116C6;
-	Tue,  7 Apr 2026 21:25:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="myu1F/vX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0706C116C6;
+	Tue,  7 Apr 2026 22:28:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775597119;
-	bh=+ZxjS7ucZ6NAhglYl5Gu/sxgLTZT3FxylalBTCJHvmg=;
+	s=korg; t=1775600897;
+	bh=Idg1rAqjCDTIk2ZXbloQ/l2VeqBtCL3Hf9qXD152ymk=;
 	h=Date:To:From:Subject:From;
-	b=nxm4an4RN1ZhYvtHSCuaBUgDd2ZH2MHqLQph1ib0VdUl4hzWFB4xwbvxzXP56AU4q
-	 h7zQ7eVcLRvA9RaeQW7lt5TId14xDkTldb2drw1reBcjOmmImh4T0TOf2Kb26AvWvm
-	 mUKqjzVQmC0xxjd3scKUGUOb2tDhKBZoSBsCMOzI=
-Date: Tue, 07 Apr 2026 14:25:18 -0700
-To: mm-commits@vger.kernel.org,swboyd@chromium.org,senozhatsky@chromium.org,rostedt@goodmis.org,pmladek@suse.com,john.ogness@linutronix.de,geert+renesas@glider.be,akpm@linux-foundation.org
+	b=myu1F/vXkk2g7W3Yi2u4c3RuYZLVx6UgVh8cXqxP25nN1GFK+hJyI3f4dfOipwpoa
+	 ULpO0aKWOJIPE4A0GqXsQzzn6Yg9ZDIE8gtZ7+AaoGNpIzWPp4KIBiV+8ffoPvflIO
+	 BkbE9H3JVIUKUDy4pPf3XNbiY/UFwE6QxpewC5s4=
+Date: Tue, 07 Apr 2026 15:28:17 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,devnexen@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged] lib-hexdump-print_hex_dump_bytes-calls-print_hex_dump_debug.patch removed from -mm tree
-Message-Id: <20260407212519.269A5C116C6@smtp.kernel.org>
+Subject: + ocfs2-use-get_random_u32-where-appropriate.patch added to mm-nonmm-unstable branch
+Message-Id: <20260407222817.B0706C116C6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,61 +34,69 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: lib/hexdump: print_hex_dump_bytes() calls print_hex_dump_debug()
-has been removed from the -mm tree.  Its filename was
-     lib-hexdump-print_hex_dump_bytes-calls-print_hex_dump_debug.patch
+The patch titled
+     Subject: ocfs2: use get_random_u32() where appropriate
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-use-get_random_u32-where-appropriate.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-use-get_random_u32-where-appropriate.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: lib/hexdump: print_hex_dump_bytes() calls print_hex_dump_debug()
-Date: Tue, 31 Mar 2026 17:21:43 +0200
+From: David Carlier <devnexen@gmail.com>
+Subject: ocfs2: use get_random_u32() where appropriate
+Date: Sun, 5 Apr 2026 16:47:20 +0100
 
-print_hex_dump_bytes() claims to be a simple wrapper around
-print_hex_dump(), but it actally calls print_hex_dump_debug(), which means
-no output is printed if (dynamic) DEBUG is disabled.
+Use the typed random integer helpers instead of get_random_bytes() when
+filling a single integer variable.  The helpers return the value directly,
+require no pointer or size argument, and better express intent.
 
-Update the documentation to match the implementation.
-
-Link: https://lkml.kernel.org/r/3d5c3069fd9102ecaf81d044b750cd613eb72a08.1774970392.git.geert+renesas@glider.be
-Fixes: 091cb0994edd ("lib/hexdump: make print_hex_dump_bytes() a nop on !DEBUG builds")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Stephen Boyd <swboyd@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20260405154720.4732-1-devnexen@gmail.com
+Signed-off-by: David Carlier <devnexen@gmail.com
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/printk.h~lib-hexdump-print_hex_dump_bytes-calls-print_hex_dump_debug
-+++ a/include/linux/printk.h
-@@ -802,7 +802,8 @@ static inline void print_hex_dump_debug(
- #endif
+--- a/fs/ocfs2/super.c~ocfs2-use-get_random_u32-where-appropriate
++++ a/fs/ocfs2/super.c
+@@ -2124,7 +2124,7 @@ static int ocfs2_initialize_super(struct
+ 		osb->osb_cluster_stack[0] = '\0';
+ 	}
  
- /**
-- * print_hex_dump_bytes - shorthand form of print_hex_dump() with default params
-+ * print_hex_dump_bytes - shorthand form of print_hex_dump_debug() with default
-+ *                        params
-  * @prefix_str: string to prefix each line with;
-  *  caller supplies trailing spaces for alignment if desired
-  * @prefix_type: controls whether prefix of an offset, address, or none
-@@ -810,7 +811,7 @@ static inline void print_hex_dump_debug(
-  * @buf: data blob to dump
-  * @len: number of bytes in the @buf
-  *
-- * Calls print_hex_dump(), with log level of KERN_DEBUG,
-+ * Calls print_hex_dump_debug(), with log level of KERN_DEBUG,
-  * rowsize of 16, groupsize of 1, and ASCII output included.
-  */
- #define print_hex_dump_bytes(prefix_str, prefix_type, buf, len)	\
+-	get_random_bytes(&osb->s_next_generation, sizeof(u32));
++	osb->s_next_generation = get_random_u32();
+ 
+ 	/*
+ 	 * FIXME
 _
 
-Patches currently in -mm which might be from geert+renesas@glider.be are
+Patches currently in -mm which might be from devnexen@gmail.com are
 
+mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
+mm-page_io-use-sio-len-for-pswpin-accounting-in-sio_read_complete.patch
+ocfs2-use-get_random_u32-where-appropriate.patch
 
