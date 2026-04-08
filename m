@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0721D379EC8
-	for <mm-commits@vger.kernel.org>; Wed,  8 Apr 2026 15:07:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DF5333122A
+	for <mm-commits@vger.kernel.org>; Wed,  8 Apr 2026 16:14:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775660844; cv=none; b=bq/Fpl6RNwgfJcGrVxGb6Go3y48aZLjKQfDIgTqn+HRV5+xfGd4md1HPtLdznPDgkGhmmFI6lVquFYF0ZS121rTPsWuHhxUP+Q8MOPT6ne5+S+Q+xXxO5z7x5YMp7JiNmCIPD8Q09M5qag1RgimTwm8681Izl5vdV+63AfYkdOo=
+	t=1775664872; cv=none; b=DtlUjeBnBk8x2MdRHZCavjAOm8Xp3fDMpz18SjX9nw90r47SBHB1zymHEsTMIiRnJIcUXhBhaXKvA87B2PMcGmEepucgUdn8OUoiYvmHiyuzZBGa7VPETnmwT5BIyn2Uu2E2bk8ZHt+IWHR9cMyXrAf25khYdSSwESm82tfC+kk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775660844; c=relaxed/simple;
-	bh=kYM9qcqhGK8CZ6o96BFlbuNKQ8bDSSVlh1mMTtdcAHY=;
-	h=Date:To:From:Subject:Message-Id; b=WYTAuBj6mq0hoQ5guSHsad6iptkxYeVKgPbb/uQlVsLFEXqEElECjEenrjfNtw71+EkC9Z8tEGB+8arTCgDtx27AUFh1UH228HgAMAfYVVFXkpfTI/nPX+GtELobTCMROEolaQQaRKRNS0Mw23ntLo7oDtq9SCOKoSRvsOmOZOA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uG8IKFsq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775664872; c=relaxed/simple;
+	bh=b+271bunSF0kVoOxlt198SSPNZhfUrv1YxbJ46Mrpco=;
+	h=Date:To:From:Subject:Message-Id; b=a61PwMltDNC/eUW7a1lUrXOruYtZbJgIFreIqiRPCRXUqsLghtMt4/fqwNOUV74/m3MdMma91hWuFcGxB2VrZ6Dw6x29kBYWo85Na27hs9S4VoVRhwOpqeznw69bnhOMdEwwNmXrpXd7rWl2wa9FTM1/pE149T1SMnQT4o6vD+c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Je6bCz9w; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uG8IKFsq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 937E9C19421;
-	Wed,  8 Apr 2026 15:07:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Je6bCz9w"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2B02C19425;
+	Wed,  8 Apr 2026 16:14:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775660843;
-	bh=kYM9qcqhGK8CZ6o96BFlbuNKQ8bDSSVlh1mMTtdcAHY=;
+	s=korg; t=1775664871;
+	bh=b+271bunSF0kVoOxlt198SSPNZhfUrv1YxbJ46Mrpco=;
 	h=Date:To:From:Subject:From;
-	b=uG8IKFsq0rFXPvXyrPKYXLOjNu4nym+y8qiXZNvNNrEq09QBTU5ESrD4+64awCzOT
-	 3rdsJobP5OOIMDt4E3pHpk60Ke5nFJupsZV+xMHFIEv1FzXHpDBAuHYyJyLzsKxImj
-	 lQTQY8MaQQ6qkhU9XNjfZqwlGUy8v5RgyuJ9RDvQ=
-Date: Wed, 08 Apr 2026 08:07:22 -0700
-To: mm-commits@vger.kernel.org,yury.khrustalev@arm.com,vbabka@kernel.org,skhan@linuxfoundation.org,rdunlap@infradead.org,mark.rutland@arm.com,ljs@kernel.org,kevin.brodsky@arm.com,david@kernel.org,dave.hansen@linux.intel.com,corbet@lwn.net,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=Je6bCz9w6wWmibw7nOp2thQYNdmHRKxkRm92o19M+EJCmm1dYuXprJR/Sr4yHtuSo
+	 R6IEZAhzzbHchVk5wV7Z0WAncFhiSzM7p7/m8ED2QC5Azl4YOcWan1aU0fukgJF2Eg
+	 kLfC2WK/UjMFRX9m+m68jwCWVcPy0JE78gxxIKwo=
+Date: Wed, 08 Apr 2026 09:14:31 -0700
+To: mm-commits@vger.kernel.org,tglx@kernel.org,sean.anderson@seco.com,robh@kernel.org,krzysztof.kozlowski@oss.qualcomm.com,daniel.lezcano@kernel.org,conor+dt@kernel.org,sean.anderson@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-proc-document-protectionkey-in-smaps-fix-fix.patch added to mm-unstable branch
-Message-Id: <20260408150723.937E9C19421@smtp.kernel.org>
+Subject: + update-my-email-address.patch added to mm-nonmm-unstable branch
+Message-Id: <20260408161431.C2B02C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs-proc-document-protectionkey-in-smaps-fix-fix
-has been added to the -mm mm-unstable branch.  Its filename is
-     docs-proc-document-protectionkey-in-smaps-fix-fix.patch
+     Subject: Update Sean's email address
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     update-my-email-address.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-proc-document-protectionkey-in-smaps-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/update-my-email-address.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,73 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: docs-proc-document-protectionkey-in-smaps-fix-fix
-Date: Wed Apr  8 08:06:49 AM PDT 2026
+From: Sean Anderson <sean.anderson@linux.dev>
+Subject: Update Sean's email address
+Date: Tue, 7 Apr 2026 12:47:21 -0400
 
-s/hardware/CPU/
+Soon I will no longer be working at SECO.  Update the mailmap to redirect
+to my linux.dev address which I still have access to.
 
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kevin Brodsky <kevin.brodsky@arm.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Marc Rutland <mark.rutland@arm.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Yury Khrustalev <yury.khrustalev@arm.com>
+Link: https://lkml.kernel.org/r/20260407164722.211610-1-sean.anderson@linux.dev
+Signed-off-by: Sean Anderson <sean.anderson@linux.dev>
+Acked-by: Krzysztof Kozlowski <krzysztof.kozlowski@oss.qualcomm.com>
+Cc: Sean Anderson <sean.anderson@seco.com>
+Cc: Conor Dooley <conor+dt@kernel.org>
+Cc: Daniel Lezcano <daniel.lezcano@kernel.org>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Thomas Gleixner <tglx@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap                                                    |    1 +
+ Documentation/devicetree/bindings/timer/xlnx,xps-timer.yaml |    2 +-
+ MAINTAINERS                                                 |    4 ++--
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
---- a/Documentation/filesystems/proc.rst~docs-proc-document-protectionkey-in-smaps-fix-fix
-+++ a/Documentation/filesystems/proc.rst
-@@ -549,7 +549,7 @@ does not take into account swapped out p
- naturally aligned THP pages of any currently enabled size. 1 if true, 0
- otherwise.
+--- a/Documentation/devicetree/bindings/timer/xlnx,xps-timer.yaml~update-my-email-address
++++ a/Documentation/devicetree/bindings/timer/xlnx,xps-timer.yaml
+@@ -7,7 +7,7 @@ $schema: http://devicetree.org/meta-sche
+ title: Xilinx LogiCORE IP AXI Timer
  
--If both the kernel and the hardware support protection keys (pkeys),
-+If both the kernel and the CPU support protection keys (pkeys),
- "ProtectionKey" indicates the memory protection key associated with the
- virtual memory area.
+ maintainers:
+-  - Sean Anderson <sean.anderson@seco.com>
++  - Sean Anderson <sean.anderson@linux.dev>
  
+ properties:
+   compatible:
+--- a/.mailmap~update-my-email-address
++++ a/.mailmap
+@@ -741,6 +741,7 @@ Sathishkumar Muruganandam <quic_murugana
+ Satya Priya <quic_skakitap@quicinc.com> <quic_c_skakit@quicinc.com> <skakit@codeaurora.org>
+ S.Çağlar Onur <caglar@pardus.org.tr>
+ Sayali Lokhande <quic_sayalil@quicinc.com> <sayalil@codeaurora.org>
++Sean Anderson <sean.anderson@linux.dev> <sean.anderson@seco.com>
+ Sean Christopherson <seanjc@google.com> <sean.j.christopherson@intel.com>
+ Sean Nyekjaer <sean@geanix.com> <sean.nyekjaer@prevas.dk>
+ Sean Tranchetti <quic_stranche@quicinc.com> <stranche@codeaurora.org>
+--- a/MAINTAINERS~update-my-email-address
++++ a/MAINTAINERS
+@@ -10238,7 +10238,7 @@ F:	drivers/net/ethernet/freescale/dpaa
+ 
+ FREESCALE QORIQ DPAA FMAN DRIVER
+ M:	Madalin Bucur <madalin.bucur@nxp.com>
+-R:	Sean Anderson <sean.anderson@seco.com>
++R:	Sean Anderson <sean.anderson@linux.dev>
+ L:	netdev@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/devicetree/bindings/net/fsl,fman*.yaml
+@@ -28917,7 +28917,7 @@ S:	Orphan
+ F:	drivers/net/ethernet/xilinx/ll_temac*
+ 
+ XILINX PWM DRIVER
+-M:	Sean Anderson <sean.anderson@seco.com>
++M:	Sean Anderson <sean.anderson@linux.dev>
+ S:	Maintained
+ F:	drivers/pwm/pwm-xilinx.c
+ F:	include/clocksource/timer-xilinx.h
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sean.anderson@linux.dev are
 
-docs-proc-document-protectionkey-in-smaps-fix.patch
-docs-proc-document-protectionkey-in-smaps-fix-fix.patch
+update-my-email-address.patch
 
