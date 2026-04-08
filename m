@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 269603358CA
-	for <mm-commits@vger.kernel.org>; Wed,  8 Apr 2026 21:44:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A55A221CC5A
+	for <mm-commits@vger.kernel.org>; Wed,  8 Apr 2026 21:46:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775684688; cv=none; b=PsgLnvJ5WvJgRRyd81qIOdTaHdrbyaM+LK0+8oO58llSwfSukiCb8JvXfLSig1hrDwfcx8HXEu1+DBGtQa0lUDqBai1uyJcoqWpV8sCTalV/5fvgXO8Kj5kYJ3JZ3cAnuzKcEuI5KUo6QW0yQ/zDVN4jH/VxmbO5H8C/k91DHo4=
+	t=1775684779; cv=none; b=JcK2tfTDLdUkiUaLl0pGkcvfJ2JcntJH/5gWmHq3kUsWbON2DvlWckhdDoqCZnaFuvWIiXnCXhFB6mtfP3sioanS6fZuMCLHHKzl6Up9B1cCOOgATobZEPMt3caY0/LGGZJ2ipyyHwdP/ThHG72VmpN53hb/0prpWapOOjtLNII=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775684688; c=relaxed/simple;
-	bh=wJp1vnO5uSx53yquxGPjNNcG4IHJN1AQ9dJ/mK8BCxs=;
-	h=Date:To:From:Subject:Message-Id; b=I3cE6Gm7LvoZPrwx849lyc2lgQDCG0Gy8eFvC9LHvcqmFrdIwJXWrKKzsnB5RRo560qJJ1Saq34jV/XoVbhtRZgBkOkzhsHsKuo3lG1iODymJQzJ3FQKXJkq4KZvoPMuX2NQhHLqwwRY8Id/qTnP2jKXLJ5jXBa1kXvetY6MI9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nWZ0S58D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775684779; c=relaxed/simple;
+	bh=GuWUlssW3UQOtzp0+/LcyEN9vI/krDYCyyb4LP1Q3Xo=;
+	h=Date:To:From:Subject:Message-Id; b=vBOF6G7Vmhn8ucYR2sOkr8tnpuzBYBY7oPsqXiXgbGl0/K6PwDWXc46tvBvrAwtFlMA83sk7HLSMZzXemHT1Yi3rTfTDxx2yc2ZD94i08yQq40cjZaN0MJwg77tbBPu4kM4yFUmKLP+b4xqphVYGmUzQIEbIJiq7P2WY+8UJLyc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MgMtfiAJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nWZ0S58D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A04BCC19421;
-	Wed,  8 Apr 2026 21:44:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MgMtfiAJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3500BC19421;
+	Wed,  8 Apr 2026 21:46:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775684687;
-	bh=wJp1vnO5uSx53yquxGPjNNcG4IHJN1AQ9dJ/mK8BCxs=;
+	s=korg; t=1775684779;
+	bh=GuWUlssW3UQOtzp0+/LcyEN9vI/krDYCyyb4LP1Q3Xo=;
 	h=Date:To:From:Subject:From;
-	b=nWZ0S58DRZ3zysBqRiDlbnCVcb2LqNbC+olX5/wZa0lJcpAyn+hVk2mKw6K6vRExA
-	 eLWnQCqb/73YiZLYPAW1t8WW6WgZLeHqANfL2ovMmzTekb5Tc87uzoJCNJWTm13idw
-	 JlRP4jEuT+dntlqwgTu3uK7ZYpsARzwjtVd94ZD8=
-Date: Wed, 08 Apr 2026 14:44:47 -0700
-To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,corbet@lwn.net,rdunlap@infradead.org,akpm@linux-foundation.org
+	b=MgMtfiAJxQuZX2zUBYaECH4oENFEbs42mMhN6nfudJ2pb7aTKCemhuvrqD9WPWqIl
+	 KrRaciizqDkDUQliwUQzWpd0B2qRymz6QjUIW9Nxd/RzQEJmz1qSVepLwb4nAcuZKS
+	 uzTPJ3GAWnbjvBdCSfw0zm4sX3zZA5rcFtBhtYTo=
+Date: Wed, 08 Apr 2026 14:46:18 -0700
+To: mm-commits@vger.kernel.org,skhan@linuxfoundation.org,corbet@lwn.net,Bjorn@xn--rombobjrn-67a.se,rdunlap@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] doc-watchdog-fix-typos-etc.patch removed from -mm tree
-Message-Id: <20260408214447.A04BCC19421@smtp.kernel.org>
+Subject: + doc-watchdog-fix-typos-etc.patch added to mm-nonmm-unstable branch
+Message-Id: <20260408214619.3500BC19421@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,42 +34,49 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: doc: watchdog: fix typos etc
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
      doc-watchdog-fix-typos-etc.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/doc-watchdog-fix-typos-etc.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
 Subject: doc: watchdog: fix typos etc
-Date: Tue, 7 Apr 2026 20:12:12 -0700
+Date: Wed, 8 Apr 2026 14:35:21 -0700
 
-Correct grammar, plurality, and typos in lockup-watchdogs.rst.
+Correct typos in lockup-watchdogs.rst.
 
-Link: https://lkml.kernel.org/r/20260408031212.2510235-1-rdunlap@infradead.org
+Link: https://lkml.kernel.org/r/20260408213523.2707947-1-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Björn Persson <Bjorn@xn--rombobjrn-67a.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/lockup-watchdogs.rst |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/lockup-watchdogs.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 --- a/Documentation/admin-guide/lockup-watchdogs.rst~doc-watchdog-fix-typos-etc
 +++ a/Documentation/admin-guide/lockup-watchdogs.rst
-@@ -18,7 +18,7 @@ provided for this.
- A 'hardlockup' is defined as a bug that causes the CPU to loop in
- kernel mode for several seconds (see "Implementation" below for
- details), without letting other interrupts have a chance to run.
--Similarly to the softlockup case, the current stack trace is displayed
-+Similar to the softlockup case, the current stack trace is displayed
- upon detection and the system will stay locked up unless the default
- behavior is changed, which can be done through a sysctl,
- 'hardlockup_panic', a compile time knob, "BOOTPARAM_HARDLOCKUP_PANIC",
 @@ -41,7 +41,7 @@ is a trade-off between fast response to
  Implementation
  ==============
@@ -84,7 +91,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  ------------------------
  
 -The core of the detectors in a hrtimer. It servers multiple purpose:
-+The core of the detectors is an hrtimer. It servers multiple purposes:
++The core of the detectors is an hrtimer. It serves multiple purposes:
  
  - schedules watchdog job for the softlockup detector
  - bumps the interrupt counter for hardlockup detectors (heartbeat)
@@ -92,4 +99,5 @@ _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
 
+doc-watchdog-fix-typos-etc.patch
 
