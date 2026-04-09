@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC9912E1F02
-	for <mm-commits@vger.kernel.org>; Thu,  9 Apr 2026 15:40:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 419683DF014
+	for <mm-commits@vger.kernel.org>; Thu,  9 Apr 2026 15:45:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1775749219; cv=none; b=HKhlACmtflCnD6s2GeUCr5v24YF1KaMQatRyN68fcvQ+wj0jMbNrHouxt8njikUpKRVcr93vWRWkjsYwdChMeb/NvKFA3dgtXChJru3nUQW1lCrC8JNGFrTND5YtUcjNzK9WgujRZiYYxVDb9QRood3Dwx5TunKVwC6aqKMpiKI=
+	t=1775749545; cv=none; b=eL03lt3rLWtAzKotws4WB4hBec+5EMS4Gm3Og9816oNEfycdAtUYht7VwbWiXo670u+2qWftkBFFTAjcvvH1s9Q5WMUOALSkD55Nf+6+nf4alrbU2Xwj0Vtubkdl5bg0q8/4xC7S/LWymYxtgew9WHYY6cMhHP8s3R4JVawTM08=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1775749219; c=relaxed/simple;
-	bh=zFZJE+gvH10P77a65rj9Uh5tBPzDCxcU5LAMpMl9K7g=;
-	h=Date:To:From:Subject:Message-Id; b=E5uWUcYxYno3NtE10NTubeuRgikf70SvKeX5hHSwQfSCEjMtOnGLyVHP3LNU4B/aA793647tNubqD8jP/2qjWfSjGlITwFr7wBh6b2VfwzjHXequwG/h6HYdwZKxkVVQcCwwD34n5jOoBEOJ5tg724oesnIWMacu6e8pD+OH8Vc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uaP99Olv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1775749545; c=relaxed/simple;
+	bh=VnpFXxjKN74iNJUEULCPWEWnMhPVMiAkEZA4MYCfZWg=;
+	h=Date:To:From:Subject:Message-Id; b=lG/S2xZnxPVhtDg2/6U7RPP7HC12n2Gbfkd8EB0XUfyRNpDjwV1jnlkhH2XMplhnAY4Pir63epWG6Vtu37JUFNd1x3i3Aq/sZ4bXSWNiS5aBFm/4Uwdt6Nrzc//S+Lw6E9W7YRvruBQlQNPgkIHo4jDC7VcPbsGBr9tjqRgx5dU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LUW27CTT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uaP99Olv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CF48C4CEF7;
-	Thu,  9 Apr 2026 15:40:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LUW27CTT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 020F2C4CEF7;
+	Thu,  9 Apr 2026 15:45:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1775749219;
-	bh=zFZJE+gvH10P77a65rj9Uh5tBPzDCxcU5LAMpMl9K7g=;
+	s=korg; t=1775749545;
+	bh=VnpFXxjKN74iNJUEULCPWEWnMhPVMiAkEZA4MYCfZWg=;
 	h=Date:To:From:Subject:From;
-	b=uaP99OlvyrOKTRBZAIu6yFkEk2UJIJPLmby+pVqTWsBw63wxQqwHIwlRiCDyd1yn3
-	 r2DB/gvZfao/SDUjSrFzq1NPinHIq13d8kzOyMr3tFcLZlzJzL6MfKjKorQUXPMiry
-	 bUJhrDQubs0KYiIlQeD/w2w/+/n1oGsa3MmV17Y8=
-Date: Thu, 09 Apr 2026 08:40:18 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,seanjc@google.com,rppt@kernel.org,peterx@redhat.com,pbonzini@redhat.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,kalyazin@amazon.com,jthoughton@google.com,hughd@google.com,harry.yoo@oracle.com,harry@kernel.org,david@kernel.org,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,avagin@google.com,aarcange@redhat.com,devnexen@gmail.com,akpm@linux-foundation.org
+	b=LUW27CTTjja2Ls7KoAiGtF4HjPvPgJC5E6OabEYmuB6+EfCxSHov5kE9HRpMi9/id
+	 6sqMKg6unBH+moPEBSU734f3SSva90pA+IMTpQYjRDUPU6NyrRwlrXI8u0KBAoSPFp
+	 HWahpVZhqi13O0Fo/tShbDiavF5Pc1NPGikGqORo=
+Date: Thu, 09 Apr 2026 08:45:44 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,cl@linux.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-mfill_atomic-remove-retry-logic-fix.patch added to mm-unstable branch
-Message-Id: <20260409154019.3CF48C4CEF7@smtp.kernel.org>
+Subject: + mm-vmstat-fix-vmstat_shepherd-double-scheduling-vmstat_update.patch added to mm-unstable branch
+Message-Id: <20260409154545.020F2C4CEF7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/userfaultfd: detect VMA type change after copy retry in mfill_copy_folio_retry()
+     Subject: mm/vmstat: fix vmstat_shepherd double-scheduling vmstat_update
 has been added to the -mm mm-unstable branch.  Its filename is
-     userfaultfd-mfill_atomic-remove-retry-logic-fix.patch
+     mm-vmstat-fix-vmstat_shepherd-double-scheduling-vmstat_update.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-mfill_atomic-remove-retry-logic-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmstat-fix-vmstat_shepherd-double-scheduling-vmstat_update.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,94 +58,97 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: David Carlier <devnexen@gmail.com>
-Subject: mm/userfaultfd: detect VMA type change after copy retry in mfill_copy_folio_retry()
-Date: Thu, 9 Apr 2026 13:06:53 +0100
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/vmstat: fix vmstat_shepherd double-scheduling vmstat_update
+Date: Thu, 09 Apr 2026 05:26:36 -0700
 
-mfill_copy_folio_retry() drops mmap_lock for the copy_from_user() call. 
-During this window, the VMA can be replaced with a different type (e.g. 
-hugetlb), making the caller's ops pointer stale.  Subsequent use of the
-stale ops can lead to incorrect folio handling or a kernel crash.
+vmstat_shepherd uses delayed_work_pending() to check whether vmstat_update
+is already scheduled for a given CPU before queuing it.  However,
+delayed_work_pending() only tests WORK_STRUCT_PENDING_BIT, which is
+cleared the moment a worker thread picks up the work to execute it.
 
-Pass the caller's ops into mfill_copy_folio_retry() and compare against
-the current vma_uffd_ops() after re-acquiring the lock.  Return -EAGAIN if
-they differ so the operation can be retried.
+This means that while vmstat_update is actively running on a CPU,
+delayed_work_pending() returns false.  If need_update() also returns true
+at that point (per-cpu counters not yet zeroed mid-flush), the shepherd
+queues a second invocation with delay=0, causing vmstat_update to run
+again immediately after finishing.
 
-Link: https://lkml.kernel.org/r/20260409120653.290386-1-devnexen@gmail.com
-Fixes: 59da5c32ffa3 ("userfaultfd: mfill_atomic(): remove retry logic")
-Signed-off-by: David Carlier <devnexen@gmail.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Harry Yoo (Oracle) <harry@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: James Houghton <jthoughton@google.com>
+On a 72-CPU system this race is readily observable: before the fix, many
+CPUs show invocation gaps well below 500 jiffies (the minimum
+round_jiffies_relative() can produce), with the most extreme cases
+reaching 0 jiffies—vmstat_update called twice within the same jiffy.
+
+Fix this by replacing delayed_work_pending() with work_busy(), which
+returns non-zero for both WORK_BUSY_PENDING (timer armed or work queued)
+and WORK_BUSY_RUNNING (work currently executing).  The shepherd now
+correctly skips a CPU in all busy states.
+
+After the fix, all sub-jiffy and most sub-100-jiffie gaps disappear.  The
+remaining early invocations have gaps in the 700–999 jiffie range,
+attributable to round_jiffies_relative() aligning to a nearer
+jiffie-second boundary rather than to this race.
+
+Each spurious vmstat_update invocation has a measurable side effect:
+refresh_cpu_vm_stats() calls decay_pcp_high() for every zone, which drains
+idle per-CPU pages back to the buddy allocator via free_pcppages_bulk(),
+taking the zone spinlock each time.  Eliminating the double-scheduling
+therefore reduces zone lock contention directly.  On a 72-CPU stress-ng
+workload measured with perf lock contention:
+
+  free_pcppages_bulk contention count:  ~55% reduction
+  free_pcppages_bulk total wait time:   ~57% reduction
+  free_pcppages_bulk max wait time:     ~47% reduction
+
+Note: work_busy() is inherently racy—between the check and the
+subsequent queue_delayed_work_on() call, vmstat_update can finish
+execution, leaving the work neither pending nor running.  In that narrow
+window the shepherd can still queue a second invocation.  After the fix,
+this residual race is rare and produces only occasional small gaps, a
+significant improvement over the systematic double-scheduling seen with
+delayed_work_pending().
+
+Link: https://lkml.kernel.org/r/20260409-vmstat-v2-1-e9d9a6db08ad@debian.org
+Fixes: 7b8da4c7f07774 ("vmstat: get rid of the ugly cpu_stat_off variable")
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nikita Kalyazin <kalyazin@amazon.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/vmstat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/userfaultfd.c~userfaultfd-mfill_atomic-remove-retry-logic-fix
-+++ a/mm/userfaultfd.c
-@@ -443,7 +443,9 @@ static int mfill_copy_folio_locked(struc
- 	return ret;
- }
+--- a/mm/vmstat.c~mm-vmstat-fix-vmstat_shepherd-double-scheduling-vmstat_update
++++ a/mm/vmstat.c
+@@ -2139,7 +2139,7 @@ static void vmstat_shepherd(struct work_
+ 			if (cpu_is_isolated(cpu))
+ 				continue;
  
--static int mfill_copy_folio_retry(struct mfill_state *state, struct folio *folio)
-+static int mfill_copy_folio_retry(struct mfill_state *state,
-+				  const struct vm_uffd_ops *ops,
-+				  struct folio *folio)
- {
- 	unsigned long src_addr = state->src_addr;
- 	void *kaddr;
-@@ -465,6 +467,14 @@ static int mfill_copy_folio_retry(struct
- 	if (err)
- 		return err;
- 
-+	/*
-+	 * The VMA type may have changed while the lock was dropped
-+	 * (e.g. replaced with a hugetlb mapping), making the caller's
-+	 * ops pointer stale.
-+	 */
-+	if (vma_uffd_ops(state->vma) != ops)
-+		return -EAGAIN;
-+
- 	err = mfill_establish_pmd(state);
- 	if (err)
- 		return err;
-@@ -495,7 +505,7 @@ static int __mfill_atomic_pte(struct mfi
- 		 * will take care of unlocking if needed.
- 		 */
- 		if (unlikely(ret)) {
--			ret = mfill_copy_folio_retry(state, folio);
-+			ret = mfill_copy_folio_retry(state, ops, folio);
- 			if (ret)
- 				goto err_folio_put;
+-			if (!delayed_work_pending(dw) && need_update(cpu))
++			if (!work_busy(&dw->work) && need_update(cpu))
+ 				queue_delayed_work_on(cpu, mm_percpu_wq, dw, 0);
  		}
+ 
 _
 
-Patches currently in -mm which might be from devnexen@gmail.com are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
-userfaultfd-mfill_atomic-remove-retry-logic-fix.patch
-mm-page_io-use-sio-len-for-pswpin-accounting-in-sio_read_complete.patch
-ocfs2-use-get_random_u32-where-appropriate.patch
+mm-kmemleak-add-config_debug_kmemleak_verbose-build-option.patch
+kho-add-size-parameter-to-kho_add_subtree.patch
+kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree.patch
+kho-persist-blob-size-in-kho-fdt.patch
+kho-fix-kho_in_debugfs_init-to-handle-non-fdt-blobs.patch
+kho-kexec-metadata-track-previous-kernel-chain.patch
+kho-kexec-metadata-track-previous-kernel-chain-fix.patch
+kho-document-kexec-metadata-tracking-feature.patch
+mm-vmstat-fix-vmstat_shepherd-double-scheduling-vmstat_update.patch
+mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
 
