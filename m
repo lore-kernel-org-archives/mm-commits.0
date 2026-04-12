@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8E9A3630B9
-	for <mm-commits@vger.kernel.org>; Sun, 12 Apr 2026 18:14:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F13C24887E;
+	Sun, 12 Apr 2026 18:20:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776017666; cv=none; b=Ixz07892Tnos6KXzE4oE112E4h/OVvj6WwOr/g1IjjZ5H60bJU+gB+9YXOGJOAy9WK3LbhwXjgo+Q5fnelat+b5KufKWG8mcSOlyEUWRij2z9eD43iD14P5aNNF8163QrEY0s2scuPzlf3XtlQx5VGrvsqnYvtvAXvm/sGX/HKA=
+	t=1776018032; cv=none; b=JRXWjsyKZPhbnaQbMeFAqwHtwFBx7pVKkDCC7z1gXIq6QWiXkB27OViZmeZrVAu1Lh/PKKpnpAyO2iisJ7GC0UvtuZELlZwFTF/gDxnXmbvay0gWhTnOwrsM3qgOZ73N+KCVvP6HQa+fykg3jyVI/oGCF6w+mYDpQSEhDYdB69M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776017666; c=relaxed/simple;
-	bh=/FtZmJlu4fHhi5jdnzPm37NCrP94GAgWeWgmTv2p6Ks=;
-	h=Date:To:From:Subject:Message-Id; b=J/03LWssQBwJmpyENIdJoatBUD3eXOeOmitML/Fn5AQ8NEiV+lpLj2xzSmOj3ad7FRGJPWRfdy0Jsq0DWJsXeWs6N4ftOHu4DvJhGs/rgRvxX98QLbt9oUSmk6lm0XkUpfplebdUTy0V8g8k59ikI5wZtmMDPqasUPqCo+fFSWk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DpfEeYH3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776018032; c=relaxed/simple;
+	bh=9Czmqd3eb98+d1QSSEbn5IBIcurm2VOS10riL38HgNY=;
+	h=Date:To:From:Subject:Message-Id; b=YmCneShGOTnHBPKjETuXuyW7DH2DcJzUkgeu9bMA/2HL+oUgE5jTUNebQrebtA8PPy7zQleuZVFqugGU9gChzHzke+44kqiqdOYZBC7jLqoOcUZok4wzMxkom+tPSjQ6SU/NOpXJ43EPZwCo13moiRviDBQgfKsxny0xEiFGdGo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ogUseO3R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DpfEeYH3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD29BC19424;
-	Sun, 12 Apr 2026 18:14:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ogUseO3R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7C6CC19424;
+	Sun, 12 Apr 2026 18:20:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776017666;
-	bh=/FtZmJlu4fHhi5jdnzPm37NCrP94GAgWeWgmTv2p6Ks=;
+	s=korg; t=1776018031;
+	bh=9Czmqd3eb98+d1QSSEbn5IBIcurm2VOS10riL38HgNY=;
 	h=Date:To:From:Subject:From;
-	b=DpfEeYH3DMzCx6pNdAoZQXozRfxseprbeuP1jcaGhlxZdoC74kPJUbCLGva1xjoQe
-	 y3sTlHrrMQNTlvKeH4XVVgQ6D/sNPBdXgsLYDXywT6KnxTQbgzTgTDMFpFBPPlwthv
-	 rYNmJ3acvq67DFJwdnRGOUA6zyA5o+ftkQa8vksw=
-Date: Sun, 12 Apr 2026 11:14:21 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,akpm@linux-foundation.org
+	b=ogUseO3ReFOsEzOqFjsGl0fjBkVzFj/5nr335XlSZwHVchy5amNADmwRcVbzZoHSC
+	 ibpVnjbpvYfMDx5eMkd2d0FJC3wfsvJ+1QJPI5TC7d9S0Do+pk19+ISxh0EADkAuOj
+	 FennaRG+9BcCeimskOCaeEikCAG+jP1jthJ5XUOg=
+Date: Sun, 12 Apr 2026 11:20:25 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,aarcange@redhat.com,gourry@gourry.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-validate-group-add-input-before-caching.patch added to mm-nonmm-unstable branch
-Message-Id: <20260412181425.AD29BC19424@smtp.kernel.org>
+Subject: + userfaultfd-preserve-write-protection-across-uffdio_move.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260412182030.B7C6CC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: validate group add input before caching
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-validate-group-add-input-before-caching.patch
+     Subject: userfaultfd: preserve write protection across UFFDIO_MOVE
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     userfaultfd-preserve-write-protection-across-uffdio_move.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-group-add-input-before-caching.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-preserve-write-protection-across-uffdio_move.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,113 +58,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: ZhengYuan Huang <gality369@gmail.com>
-Subject: ocfs2: validate group add input before caching
-Date: Fri, 10 Apr 2026 10:02:08 +0800
+From: Gregory Price <gourry@gourry.net>
+Subject: userfaultfd: preserve write protection across UFFDIO_MOVE
+Date: Thu, 9 Apr 2026 11:28:22 -0400
 
-[BUG]
-OCFS2_IOC_GROUP_ADD can trigger a BUG_ON in
-ocfs2_set_new_buffer_uptodate():
+move_present_ptes() unconditionally makes the destination PTE writable,
+dropping uffd-wp write-protection from the source PTE.
 
-kernel BUG at fs/ocfs2/uptodate.c:509!
-Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
-RIP: 0010:ocfs2_set_new_buffer_uptodate+0x194/0x1e0 fs/ocfs2/uptodate.c:509
-Code: ffffe88f 42b9fe4c 89e64889 dfe8b4df
-Call Trace:
- ocfs2_group_add+0x3f1/0x1510 fs/ocfs2/resize.c:507
- ocfs2_ioctl+0x309/0x6e0 fs/ocfs2/ioctl.c:887
- vfs_ioctl fs/ioctl.c:51 [inline]
- __do_sys_ioctl fs/ioctl.c:597 [inline]
- __se_sys_ioctl fs/ioctl.c:583 [inline]
- __x64_sys_ioctl+0x197/0x1e0 fs/ioctl.c:583
- x64_sys_call+0x1144/0x26a0 arch/x86/include/generated/asm/syscalls_64.h:17
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0x93/0xf80 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
-RIP: 0033:0x7bbfb55a966d
+The original intent was to follow mremap() behavior, but mremap()'s
+move_ptes() preserves the source write state unconditionally.
 
-[CAUSE]
-ocfs2_group_add() calls ocfs2_set_new_buffer_uptodate() on a
-user-controlled group block before ocfs2_verify_group_and_input()
-validates that block number. That helper is only valid for newly
-allocated metadata and asserts that the block is not already present in
-the chosen metadata cache. The code also uses INODE_CACHE(inode) even
-though the group descriptor belongs to main_bm_inode and later journal
-accesses use that cache context instead.
+Modify uffd to preserve the source write state and check the uffd-wp
+condition of the source before setting writable on the destination.
 
-[FIX]
-Validate the on-disk group descriptor before caching it, then add it to
-the metadata cache tracked by INODE_CACHE(main_bm_inode). Keep the
-validation failure path separate from the later cleanup path so we only
-remove the buffer from that cache after it has actually been inserted.
-This keeps the group buffer lifetime consistent across validation,
-journaling, and cleanup.
-
-Link: https://lkml.kernel.org/r/20260410020209.3786348-1-gality369@gmail.com
-Fixes: 7909f2bf8353 ("[PATCH 2/2] ocfs2: Implement group add for online resize")
-Signed-off-by: ZhengYuan Huang <gality369@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+Link: https://lkml.kernel.org/r/20260409152822.1073083-1-gourry@gourry.net
+Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
+Signed-off-by: Gregory Price <gourry@gourry.net>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/resize.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/userfaultfd.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/resize.c~ocfs2-validate-group-add-input-before-caching
-+++ a/fs/ocfs2/resize.c
-@@ -508,14 +508,14 @@ int ocfs2_group_add(struct inode *inode,
- 		goto out_unlock;
- 	}
+--- a/mm/userfaultfd.c~userfaultfd-preserve-write-protection-across-uffdio_move
++++ a/mm/userfaultfd.c
+@@ -1123,7 +1123,10 @@ static long move_present_ptes(struct mm_
+ 			orig_dst_pte = pte_mksoft_dirty(orig_dst_pte);
+ 		if (pte_dirty(orig_src_pte))
+ 			orig_dst_pte = pte_mkdirty(orig_dst_pte);
+-		orig_dst_pte = pte_mkwrite(orig_dst_pte, dst_vma);
++		if (pte_write(orig_src_pte))
++			orig_dst_pte = pte_mkwrite(orig_dst_pte, dst_vma);
++		if (pte_uffd_wp(orig_src_pte))
++			orig_dst_pte = pte_mkuffd_wp(orig_dst_pte);
+ 		set_pte_at(mm, dst_addr, dst_pte, orig_dst_pte);
  
--	ocfs2_set_new_buffer_uptodate(INODE_CACHE(inode), group_bh);
--
- 	ret = ocfs2_verify_group_and_input(main_bm_inode, fe, input, group_bh);
- 	if (ret) {
- 		mlog_errno(ret);
- 		goto out_free_group_bh;
- 	}
- 
-+	ocfs2_set_new_buffer_uptodate(INODE_CACHE(main_bm_inode), group_bh);
-+
- 	trace_ocfs2_group_add((unsigned long long)input->group,
- 			       input->chain, input->clusters, input->frees);
- 
-@@ -523,7 +523,7 @@ int ocfs2_group_add(struct inode *inode,
- 	if (IS_ERR(handle)) {
- 		mlog_errno(PTR_ERR(handle));
- 		ret = -EINVAL;
--		goto out_free_group_bh;
-+		goto out_remove_cache;
- 	}
- 
- 	cl_bpc = le16_to_cpu(fe->id2.i_chain.cl_bpc);
-@@ -577,9 +577,11 @@ int ocfs2_group_add(struct inode *inode,
- out_commit:
- 	ocfs2_commit_trans(osb, handle);
- 
--out_free_group_bh:
-+out_remove_cache:
- 	if (ret < 0)
--		ocfs2_remove_from_cache(INODE_CACHE(inode), group_bh);
-+		ocfs2_remove_from_cache(INODE_CACHE(main_bm_inode), group_bh);
-+
-+out_free_group_bh:
- 	brelse(group_bh);
- 
- out_unlock:
+ 		src_addr += PAGE_SIZE;
 _
 
-Patches currently in -mm which might be from gality369@gmail.com are
+Patches currently in -mm which might be from gourry@gourry.net are
 
-ocfs2-validate-bg_list-extent-bounds-in-discontig-groups.patch
-ocfs2-handle-invalid-dinode-in-ocfs2_group_extend.patch
-ocfs2-fix-listxattr-handling-when-the-buffer-is-full.patch
-ocfs2-validate-bg_bits-during-freefrag-scan.patch
-ocfs2-validate-group-add-input-before-caching.patch
+userfaultfd-preserve-write-protection-across-uffdio_move.patch
 
