@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C64DB226D18
-	for <mm-commits@vger.kernel.org>; Sun, 12 Apr 2026 18:13:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8E9A3630B9
+	for <mm-commits@vger.kernel.org>; Sun, 12 Apr 2026 18:14:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776017602; cv=none; b=FC29Gej0mVOfWg3DKBnsf+USPv02RjZpwR40CY5Rz3Y+oqkGFeJfaSMgXJAeuxH4axDNAydl5i/Mdpj9fx+KrhpfS7wQZqoJWZ/0Anc3rW53Gxk5EDPTFbmapw2xlIwUn18gSwQ4LDxTPIzYQgkHlqIfIdkCevLmp88NGK3yGQA=
+	t=1776017666; cv=none; b=Ixz07892Tnos6KXzE4oE112E4h/OVvj6WwOr/g1IjjZ5H60bJU+gB+9YXOGJOAy9WK3LbhwXjgo+Q5fnelat+b5KufKWG8mcSOlyEUWRij2z9eD43iD14P5aNNF8163QrEY0s2scuPzlf3XtlQx5VGrvsqnYvtvAXvm/sGX/HKA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776017602; c=relaxed/simple;
-	bh=77M8euYqynleT/eoJlkgl+OGDEwbLbIS9rbZv1NgmQ0=;
-	h=Date:To:From:Subject:Message-Id; b=dwQJQA9bG1fcufJ3PFZiDSm8tb8+01j9X2/Zu+daVJT2kWW72AtnzYuwX52DVWZWhNKRC2afpziMiAdDRt/wgezeNgZS/TDnVXU57QSa8E4VY7Rj7CjlQAVPeiIvpFjodqB/zIgd7i3Z1+49Np7lsH7PRG231EixWPX7DLMpG+Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Okhs+hAf; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776017666; c=relaxed/simple;
+	bh=/FtZmJlu4fHhi5jdnzPm37NCrP94GAgWeWgmTv2p6Ks=;
+	h=Date:To:From:Subject:Message-Id; b=J/03LWssQBwJmpyENIdJoatBUD3eXOeOmitML/Fn5AQ8NEiV+lpLj2xzSmOj3ad7FRGJPWRfdy0Jsq0DWJsXeWs6N4ftOHu4DvJhGs/rgRvxX98QLbt9oUSmk6lm0XkUpfplebdUTy0V8g8k59ikI5wZtmMDPqasUPqCo+fFSWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DpfEeYH3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Okhs+hAf"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E974C19424;
-	Sun, 12 Apr 2026 18:13:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DpfEeYH3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD29BC19424;
+	Sun, 12 Apr 2026 18:14:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776017602;
-	bh=77M8euYqynleT/eoJlkgl+OGDEwbLbIS9rbZv1NgmQ0=;
+	s=korg; t=1776017666;
+	bh=/FtZmJlu4fHhi5jdnzPm37NCrP94GAgWeWgmTv2p6Ks=;
 	h=Date:To:From:Subject:From;
-	b=Okhs+hAfRgMHUwTkiQkc9bD4XZAEV6+mavquVmKtrDxVUbvpXIDD0NgLeQ66JviG2
-	 lKFdDWFT6EXnftrFOg3IQ0l1rESw3lO0FstS87c7iX97gPGxzr3HBMG4YthsjVAjHD
-	 nu3emZouitD77a83E1+Fbt1B5IgeAljt4ijh2j+8=
-Date: Sun, 12 Apr 2026 11:13:18 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,david@kernel.org,create0818@163.com,akpm@linux-foundation.org
+	b=DpfEeYH3DMzCx6pNdAoZQXozRfxseprbeuP1jcaGhlxZdoC74kPJUbCLGva1xjoQe
+	 y3sTlHrrMQNTlvKeH4XVVgQ6D/sNPBdXgsLYDXywT6KnxTQbgzTgTDMFpFBPPlwthv
+	 rYNmJ3acvq67DFJwdnRGOUA6zyA5o+ftkQa8vksw=
+Date: Sun, 12 Apr 2026 11:14:21 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-skip-charge_reserved_hugetlb-without-killall.patch added to mm-unstable branch
-Message-Id: <20260412181321.8E974C19424@smtp.kernel.org>
+Subject: + ocfs2-validate-group-add-input-before-caching.patch added to mm-nonmm-unstable branch
+Message-Id: <20260412181425.AD29BC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests: mm: skip charge_reserved_hugetlb without killall
-has been added to the -mm mm-unstable branch.  Its filename is
-     selftests-mm-skip-charge_reserved_hugetlb-without-killall.patch
+     Subject: ocfs2: validate group add input before caching
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-validate-group-add-input-before-caching.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-skip-charge_reserved_hugetlb-without-killall.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-group-add-input-before-caching.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,52 +58,113 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Cao Ruichuang <create0818@163.com>
-Subject: selftests: mm: skip charge_reserved_hugetlb without killall
-Date: Fri, 10 Apr 2026 12:41:39 +0800
+From: ZhengYuan Huang <gality369@gmail.com>
+Subject: ocfs2: validate group add input before caching
+Date: Fri, 10 Apr 2026 10:02:08 +0800
 
-charge_reserved_hugetlb.sh tears down background writers with killall from
-psmisc.  Minimal Ubuntu images do not always provide that tool, so the
-selftest fails in cleanup for an environment reason rather than for the
-hugetlb behavior it is trying to cover.
+[BUG]
+OCFS2_IOC_GROUP_ADD can trigger a BUG_ON in
+ocfs2_set_new_buffer_uptodate():
 
-Skip the test when killall is unavailable, similar to the existing root
-check, so these environments report the dependency clearly instead of
-failing the test.
+kernel BUG at fs/ocfs2/uptodate.c:509!
+Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
+RIP: 0010:ocfs2_set_new_buffer_uptodate+0x194/0x1e0 fs/ocfs2/uptodate.c:509
+Code: ffffe88f 42b9fe4c 89e64889 dfe8b4df
+Call Trace:
+ ocfs2_group_add+0x3f1/0x1510 fs/ocfs2/resize.c:507
+ ocfs2_ioctl+0x309/0x6e0 fs/ocfs2/ioctl.c:887
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:597 [inline]
+ __se_sys_ioctl fs/ioctl.c:583 [inline]
+ __x64_sys_ioctl+0x197/0x1e0 fs/ioctl.c:583
+ x64_sys_call+0x1144/0x26a0 arch/x86/include/generated/asm/syscalls_64.h:17
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x93/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x76/0x7e
+RIP: 0033:0x7bbfb55a966d
 
-Link: https://lkml.kernel.org/r/20260410044139.67480-1-create0818@163.com
-Signed-off-by: Cao Ruichuang <create0818@163.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+[CAUSE]
+ocfs2_group_add() calls ocfs2_set_new_buffer_uptodate() on a
+user-controlled group block before ocfs2_verify_group_and_input()
+validates that block number. That helper is only valid for newly
+allocated metadata and asserts that the block is not already present in
+the chosen metadata cache. The code also uses INODE_CACHE(inode) even
+though the group descriptor belongs to main_bm_inode and later journal
+accesses use that cache context instead.
+
+[FIX]
+Validate the on-disk group descriptor before caching it, then add it to
+the metadata cache tracked by INODE_CACHE(main_bm_inode). Keep the
+validation failure path separate from the later cleanup path so we only
+remove the buffer from that cache after it has actually been inserted.
+This keeps the group buffer lifetime consistent across validation,
+journaling, and cleanup.
+
+Link: https://lkml.kernel.org/r/20260410020209.3786348-1-gality369@gmail.com
+Fixes: 7909f2bf8353 ("[PATCH 2/2] ocfs2: Implement group add for online resize")
+Signed-off-by: ZhengYuan Huang <gality369@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/charge_reserved_hugetlb.sh |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/ocfs2/resize.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh~selftests-mm-skip-charge_reserved_hugetlb-without-killall
-+++ a/tools/testing/selftests/mm/charge_reserved_hugetlb.sh
-@@ -11,6 +11,11 @@ if [[ $(id -u) -ne 0 ]]; then
-   exit $ksft_skip
- fi
+--- a/fs/ocfs2/resize.c~ocfs2-validate-group-add-input-before-caching
++++ a/fs/ocfs2/resize.c
+@@ -508,14 +508,14 @@ int ocfs2_group_add(struct inode *inode,
+ 		goto out_unlock;
+ 	}
  
-+if ! command -v killall >/dev/null 2>&1; then
-+  echo "killall not available. Skipping..."
-+  exit $ksft_skip
-+fi
+-	ocfs2_set_new_buffer_uptodate(INODE_CACHE(inode), group_bh);
+-
+ 	ret = ocfs2_verify_group_and_input(main_bm_inode, fe, input, group_bh);
+ 	if (ret) {
+ 		mlog_errno(ret);
+ 		goto out_free_group_bh;
+ 	}
+ 
++	ocfs2_set_new_buffer_uptodate(INODE_CACHE(main_bm_inode), group_bh);
 +
- nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
+ 	trace_ocfs2_group_add((unsigned long long)input->group,
+ 			       input->chain, input->clusters, input->frees);
  
- fault_limit_file=limit_in_bytes
+@@ -523,7 +523,7 @@ int ocfs2_group_add(struct inode *inode,
+ 	if (IS_ERR(handle)) {
+ 		mlog_errno(PTR_ERR(handle));
+ 		ret = -EINVAL;
+-		goto out_free_group_bh;
++		goto out_remove_cache;
+ 	}
+ 
+ 	cl_bpc = le16_to_cpu(fe->id2.i_chain.cl_bpc);
+@@ -577,9 +577,11 @@ int ocfs2_group_add(struct inode *inode,
+ out_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ 
+-out_free_group_bh:
++out_remove_cache:
+ 	if (ret < 0)
+-		ocfs2_remove_from_cache(INODE_CACHE(inode), group_bh);
++		ocfs2_remove_from_cache(INODE_CACHE(main_bm_inode), group_bh);
++
++out_free_group_bh:
+ 	brelse(group_bh);
+ 
+ out_unlock:
 _
 
-Patches currently in -mm which might be from create0818@163.com are
+Patches currently in -mm which might be from gality369@gmail.com are
 
-selftests-mm-skip-charge_reserved_hugetlb-without-killall.patch
+ocfs2-validate-bg_list-extent-bounds-in-discontig-groups.patch
+ocfs2-handle-invalid-dinode-in-ocfs2_group_extend.patch
+ocfs2-fix-listxattr-handling-when-the-buffer-is-full.patch
+ocfs2-validate-bg_bits-during-freefrag-scan.patch
+ocfs2-validate-group-add-input-before-caching.patch
 
