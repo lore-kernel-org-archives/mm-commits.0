@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C33CB3126DD;
-	Sun, 12 Apr 2026 18:04:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E557265CBE
+	for <mm-commits@vger.kernel.org>; Sun, 12 Apr 2026 18:08:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776017065; cv=none; b=Un4FASCDQlDhutg/VbdEZUsJX9t1S8Kvq+mvJFGqstTkf/+3LvJt21o+Jf5k+28RWe3nRMTrYWiGWbvGGoVXss7BWC+tnhfkzZxJoGtAWvpIbXWsre3FBsn2Mqp/VIjTddiMk/JvNyivJVQwolkGqIpNtBYn5nUVgoz35SVz+HE=
+	t=1776017306; cv=none; b=KqZXya6CGN8gtkV/zsk83WV4+C7ovW8tuNqIVheFzV7nasompCMJbQauIjpDIo30IHcKBnrLrGiALlS2j3Xg029WoNJMIoY1u2ab5/vXGAUbJNUsJ90HPR+ymDrDPOGlUgC1nGLpKmlX6KZ+kBQPGtum2uZVFy1vYVeUU2JiKeA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776017065; c=relaxed/simple;
-	bh=aLdgOQAfkrBrSvxflLil3kfDz3PtawHxAG0TMS4EbWU=;
-	h=Date:To:From:Subject:Message-Id; b=ESCrzXoBY9tbkrdrS+9ojqzEUC3slrOYPnm+DlNYjQdMOyHOpffzdWwtbN/gBj7u/W0sCMgctILGpQ/HGquiYVM8T+bl0v9cVY6s4ZAY9JmeKWEK9rRBr2H/XQrecFDaYbnL+LKOgoAy9KJ990VbISQv/ihfKK0dYudaFRJ435c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lCNWNRZH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776017306; c=relaxed/simple;
+	bh=TLNgK/B8L9Mg1EHtiv8Su5UZsbMtMc8LD+Eca36InLk=;
+	h=Date:To:From:Subject:Message-Id; b=JbRXW7dQzv5I7Tf5k/QbI/72nPgmfQ0A4bwn36KUS50ZLX/utV/swFSG1Ookt3bntBPYZMWwtBt7gaDiNwxn/jirpisbC1sdz6ZqYXQG9UtTSEHffTKo282dyIgX6dNLkW/HMTVrWrDPEog4/Bg2zo+JQ0bFPdSYMjGWKPKAf1k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JYHsMVeH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lCNWNRZH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C21E7C19424;
-	Sun, 12 Apr 2026 18:04:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JYHsMVeH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8AA1C19424;
+	Sun, 12 Apr 2026 18:08:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776017065;
-	bh=aLdgOQAfkrBrSvxflLil3kfDz3PtawHxAG0TMS4EbWU=;
+	s=korg; t=1776017306;
+	bh=TLNgK/B8L9Mg1EHtiv8Su5UZsbMtMc8LD+Eca36InLk=;
 	h=Date:To:From:Subject:From;
-	b=lCNWNRZHRY4qlcts/ScB95Wx3u9YCjD9Af8i6adCQkpXEtN7vocy/2I1Ht9Vs3Ur1
-	 bvxicrbkYGgIfshG1bmkAR/rEU2me49CCUIpEQ2p0VrDyr7hNAwKAAQQAUksx2lqnE
-	 2puphGwd+vow3w3vqEMGw0itwQQIsLoxpuj6PT1Y=
-Date: Sun, 12 Apr 2026 11:04:21 -0700
-To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,stable@vger.kernel.org,osalvador@suse.de,david@kernel.org,balbirs@nvidia.com,matthew.brost@intel.com,akpm@linux-foundation.org
+	b=JYHsMVeHnpEU2ZNd5xOHkgal9VBGOQZG/9d144OmQUpOizY1r9YrBaDjkciKu+gtf
+	 WC1r+D94JALOF/TQsOEGcaCofV8UQMFIqQm/Q1Utzgv+BABfiRXmSms4UlufpGHgFS
+	 9pYfSDuA9ClWRa6p5ps5rIN6CHdBfSf6yt0rr8JQ=
+Date: Sun, 12 Apr 2026 11:08:20 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-zone_device-do-not-touch-device-folio-after-calling-folio_free.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260412180424.C21E7C19424@smtp.kernel.org>
+Subject: + ocfs2-fix-listxattr-handling-when-the-buffer-is-full.patch added to mm-nonmm-unstable branch
+Message-Id: <20260412180825.B8AA1C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/zone_device: do not touch device folio after calling ->folio_free()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-zone_device-do-not-touch-device-folio-after-calling-folio_free.patch
+     Subject: ocfs2: fix listxattr handling when the buffer is full
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     ocfs2-fix-listxattr-handling-when-the-buffer-is-full.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zone_device-do-not-touch-device-folio-after-calling-folio_free.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-fix-listxattr-handling-when-the-buffer-is-full.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,43 +58,90 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Matthew Brost <matthew.brost@intel.com>
-Subject: mm/zone_device: do not touch device folio after calling ->folio_free()
-Date: Fri, 10 Apr 2026 16:03:46 -0700
+From: ZhengYuan Huang <gality369@gmail.com>
+Subject: ocfs2: fix listxattr handling when the buffer is full
+Date: Fri, 10 Apr 2026 12:03:39 +0800
 
-The contents of a device folio can immediately change after calling
-->folio_free(), as the folio may be reallocated by a driver with a
-different order.  Instead of touching the folio again to extract the
-pgmap, use the local stack variable when calling percpu_ref_put_many().
+[BUG]
+If an OCFS2 inode has both inline and block-based xattrs, listxattr()
+can return a size larger than the caller's buffer when the inline names
+consume that buffer exactly.
 
-Link: https://lkml.kernel.org/r/20260410230346.4009855-1-matthew.brost@intel.com
-Fixes: d245f9b4ab80 ("mm/zone_device: support large zone device private folios")
-Signed-off-by: Matthew Brost <matthew.brost@intel.com>
-Reviewed-by: Balbir Singh <balbirs@nvidia.com>
-Reviewed-by: Vishal Moola <vishal.moola@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+kernel BUG at mm/usercopy.c:102!
+Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
+RIP: 0010:usercopy_abort+0xb7/0xd0 mm/usercopy.c:102
+Call Trace:
+ __check_heap_object+0xe3/0x120 mm/slub.c:8243
+ check_heap_object mm/usercopy.c:196 [inline]
+ __check_object_size mm/usercopy.c:250 [inline]
+ __check_object_size+0x5c5/0x780 mm/usercopy.c:215
+ check_object_size include/linux/ucopysize.h:22 [inline]
+ check_copy_size include/linux/ucopysize.h:59 [inline]
+ copy_to_user include/linux/uaccess.h:219 [inline]
+ listxattr+0xb0/0x170 fs/xattr.c:926
+ filename_listxattr fs/xattr.c:958 [inline]
+ path_listxattrat+0x137/0x320 fs/xattr.c:988
+ __do_sys_listxattr fs/xattr.c:1001 [inline]
+ __se_sys_listxattr fs/xattr.c:998 [inline]
+ __x64_sys_listxattr+0x7f/0xd0 fs/xattr.c:998
+ ...
+
+[CAUSE]
+Commit 936b8834366e ("ocfs2: Refactor xattr list and remove
+ocfs2_xattr_handler().") replaced the old per-handler list accounting
+with ocfs2_xattr_list_entry(), but it kept using size == 0 to detect
+probe mode.
+
+That assumption stops being true once ocfs2_listxattr() finishes the
+inline-xattr pass. If the inline names fill the caller buffer exactly,
+the block-xattr pass runs with a non-NULL buffer and a remaining size of
+zero. ocfs2_xattr_list_entry() then skips the bounds check, keeps
+counting block names, and returns a positive size larger than the
+supplied buffer.
+
+[FIX]
+Detect probe mode by testing whether the destination buffer pointer is
+NULL instead of whether the remaining size is zero.
+
+That restores the pre-refactor behavior and matches the OCFS2 getxattr
+helpers. Once the remaining buffer reaches zero while more names are
+left, the block-xattr pass now returns -ERANGE instead of reporting a
+size larger than the allocated list buffer.
+
+Link: https://lkml.kernel.org/r/20260410040339.3837162-1-gality369@gmail.com
+Fixes: 936b8834366e ("ocfs2: Refactor xattr list and remove ocfs2_xattr_handler().")
+Signed-off-by: ZhengYuan Huang <gality369@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/xattr.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memremap.c~mm-zone_device-do-not-touch-device-folio-after-calling-folio_free
-+++ a/mm/memremap.c
-@@ -454,7 +454,7 @@ void free_zone_device_folio(struct folio
- 		if (WARN_ON_ONCE(!pgmap->ops || !pgmap->ops->folio_free))
- 			break;
- 		pgmap->ops->folio_free(folio);
--		percpu_ref_put_many(&folio->pgmap->ref, nr);
-+		percpu_ref_put_many(&pgmap->ref, nr);
- 		break;
+--- a/fs/ocfs2/xattr.c~ocfs2-fix-listxattr-handling-when-the-buffer-is-full
++++ a/fs/ocfs2/xattr.c
+@@ -911,8 +911,8 @@ static int ocfs2_xattr_list_entry(struct
+ 	total_len = prefix_len + name_len + 1;
+ 	*result += total_len;
  
- 	case MEMORY_DEVICE_GENERIC:
+-	/* we are just looking for how big our buffer needs to be */
+-	if (!size)
++	/* No buffer means we are only looking for the required size. */
++	if (!buffer)
+ 		return 0;
+ 
+ 	if (*result > size)
 _
 
-Patches currently in -mm which might be from matthew.brost@intel.com are
+Patches currently in -mm which might be from gality369@gmail.com are
 
-mm-zone_device-do-not-touch-device-folio-after-calling-folio_free.patch
+ocfs2-validate-bg_list-extent-bounds-in-discontig-groups.patch
+ocfs2-handle-invalid-dinode-in-ocfs2_group_extend.patch
+ocfs2-fix-listxattr-handling-when-the-buffer-is-full.patch
 
