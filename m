@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE0D9306D3F;
-	Sun, 12 Apr 2026 17:59:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C33CB3126DD;
+	Sun, 12 Apr 2026 18:04:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776016780; cv=none; b=ISxOU6eIWisPuFtRLzPIUqB+5XvhTIAdoZXVZjN+sxk+pDpXSCLsl0WBZOPXmTRHr0rDIHeRtaryKJ7p/E6/+Xr60/lbdY65DjFTMjR/NrQ2Aj6gj3PbFget9Osk+mTWCr6NPEeylUoYnKpQInmneQ6Va/hnDkBqD/sA1gMPDJA=
+	t=1776017065; cv=none; b=Un4FASCDQlDhutg/VbdEZUsJX9t1S8Kvq+mvJFGqstTkf/+3LvJt21o+Jf5k+28RWe3nRMTrYWiGWbvGGoVXss7BWC+tnhfkzZxJoGtAWvpIbXWsre3FBsn2Mqp/VIjTddiMk/JvNyivJVQwolkGqIpNtBYn5nUVgoz35SVz+HE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776016780; c=relaxed/simple;
-	bh=H38C9lXFFH7JppXQBFcINmMslqcwk543HUUxAUI4mdI=;
-	h=Date:To:From:Subject:Message-Id; b=GsYZfBhDZsefL2Fsq67zT3UNgAmSc/jqHfMaSWQ/x7X4QUOvx4/M8P3V1v/RWR7uLNcnysnrKhldckcT8VSXC9DRhIkIIJAlKZ3mUjKpqpstJ+rgnv35WRrIWw81zXCeP6T2fWw/9w2KUBcLKJ+HcKy2A5//jul31Yog8XxHGbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NqKysavk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776017065; c=relaxed/simple;
+	bh=aLdgOQAfkrBrSvxflLil3kfDz3PtawHxAG0TMS4EbWU=;
+	h=Date:To:From:Subject:Message-Id; b=ESCrzXoBY9tbkrdrS+9ojqzEUC3slrOYPnm+DlNYjQdMOyHOpffzdWwtbN/gBj7u/W0sCMgctILGpQ/HGquiYVM8T+bl0v9cVY6s4ZAY9JmeKWEK9rRBr2H/XQrecFDaYbnL+LKOgoAy9KJ990VbISQv/ihfKK0dYudaFRJ435c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lCNWNRZH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NqKysavk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC1A7C19425;
-	Sun, 12 Apr 2026 17:59:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lCNWNRZH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C21E7C19424;
+	Sun, 12 Apr 2026 18:04:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776016780;
-	bh=H38C9lXFFH7JppXQBFcINmMslqcwk543HUUxAUI4mdI=;
+	s=korg; t=1776017065;
+	bh=aLdgOQAfkrBrSvxflLil3kfDz3PtawHxAG0TMS4EbWU=;
 	h=Date:To:From:Subject:From;
-	b=NqKysavkjzVZXJ/GHiM1TRwItz5rqzh65W1tA7HHeCx1FEW7v4hq5dnFWe32lTlaV
-	 yREgCJpbgEYlGnlS7UQkp7RRbysYDzRdC6I+nJELEQ/1KfjEchHHeKyITH5PxSJHot
-	 Xh2+x7Yhl2ehM8edCFeIpNrIUfFg8d6gXtMkeWfc=
-Date: Sun, 12 Apr 2026 10:59:36 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,lorenzo.stoakes@oracle.com,liam.howlett@oracle.com,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baohua@kernel.org,lgs201920130244@gmail.com,akpm@linux-foundation.org
+	b=lCNWNRZHRY4qlcts/ScB95Wx3u9YCjD9Af8i6adCQkpXEtN7vocy/2I1Ht9Vs3Ur1
+	 bvxicrbkYGgIfshG1bmkAR/rEU2me49CCUIpEQ2p0VrDyr7hNAwKAAQQAUksx2lqnE
+	 2puphGwd+vow3w3vqEMGw0itwQQIsLoxpuj6PT1Y=
+Date: Sun, 12 Apr 2026 11:04:21 -0700
+To: mm-commits@vger.kernel.org,vishal.moola@gmail.com,stable@vger.kernel.org,osalvador@suse.de,david@kernel.org,balbirs@nvidia.com,matthew.brost@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-fix-refcount-leak-in-thpsize_create-error-path.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260412175939.EC1A7C19425@smtp.kernel.org>
+Subject: + mm-zone_device-do-not-touch-device-folio-after-calling-folio_free.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260412180424.C21E7C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: thp: Fix refcount leak in thpsize_create() error path
+     Subject: mm/zone_device: do not touch device folio after calling ->folio_free()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-thp-fix-refcount-leak-in-thpsize_create-error-path.patch
+     mm-zone_device-do-not-touch-device-folio-after-calling-folio_free.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-thp-fix-refcount-leak-in-thpsize_create-error-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-zone_device-do-not-touch-device-folio-after-calling-folio_free.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,62 +58,43 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Guangshuo Li <lgs201920130244@gmail.com>
-Subject: mm: thp: Fix refcount leak in thpsize_create() error path
-Date: Sat, 11 Apr 2026 14:21:52 +0800
+From: Matthew Brost <matthew.brost@intel.com>
+Subject: mm/zone_device: do not touch device folio after calling ->folio_free()
+Date: Fri, 10 Apr 2026 16:03:46 -0700
 
-After kobject_init_and_add(), the lifetime of the embedded struct
-kobject is expected to be managed through the kobject core reference
-counting.
+The contents of a device folio can immediately change after calling
+->folio_free(), as the folio may be reallocated by a driver with a
+different order.  Instead of touching the folio again to extract the
+pgmap, use the local stack variable when calling percpu_ref_put_many().
 
-In thpsize_create(), if kobject_init_and_add() fails, thpsize is freed
-directly with kfree() rather than releasing the kobject reference with
-kobject_put(). This may leave the reference count of the embedded struct
-kobject unbalanced, resulting in a refcount leak and potentially leading
-to a use-after-free.
-
-Fix this by using kobject_put(&thpsize->kobj) in the failure path and
-letting thpsize_release() handle the final cleanup.
-
-Link: https://lkml.kernel.org/r/20260411062152.2092967-1-lgs201920130244@gmail.com
-Fixes: 3485b88390b0 ("mm: thp: introduce multi-size THP sysfs interface")
-Signed-off-by: Guangshuo Li <lgs201920130244@gmail.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/20260410230346.4009855-1-matthew.brost@intel.com
+Fixes: d245f9b4ab80 ("mm/zone_device: support large zone device private folios")
+Signed-off-by: Matthew Brost <matthew.brost@intel.com>
+Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+Reviewed-by: Vishal Moola <vishal.moola@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <lorenzo.stoakes@oracle.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/memremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-thp-fix-refcount-leak-in-thpsize_create-error-path
-+++ a/mm/huge_memory.c
-@@ -729,11 +729,8 @@ static struct thpsize *thpsize_create(in
+--- a/mm/memremap.c~mm-zone_device-do-not-touch-device-folio-after-calling-folio_free
++++ a/mm/memremap.c
+@@ -454,7 +454,7 @@ void free_zone_device_folio(struct folio
+ 		if (WARN_ON_ONCE(!pgmap->ops || !pgmap->ops->folio_free))
+ 			break;
+ 		pgmap->ops->folio_free(folio);
+-		percpu_ref_put_many(&folio->pgmap->ref, nr);
++		percpu_ref_put_many(&pgmap->ref, nr);
+ 		break;
  
- 	ret = kobject_init_and_add(&thpsize->kobj, &thpsize_ktype, parent,
- 				   "hugepages-%lukB", size);
--	if (ret) {
--		kfree(thpsize);
--		goto err;
--	}
--
-+	if (ret)
-+		goto err_put;
- 
- 	ret = sysfs_add_group(&thpsize->kobj, &any_ctrl_attr_grp);
- 	if (ret)
+ 	case MEMORY_DEVICE_GENERIC:
 _
 
-Patches currently in -mm which might be from lgs201920130244@gmail.com are
+Patches currently in -mm which might be from matthew.brost@intel.com are
 
-device-dax-fix-refcount-leak-in-__devm_create_dev_dax-error-path.patch
-mm-thp-fix-refcount-leak-in-thpsize_create-error-path.patch
+mm-zone_device-do-not-touch-device-folio-after-calling-folio_free.patch
 
