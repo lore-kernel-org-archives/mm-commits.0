@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40C1B13B5B3;
-	Tue, 14 Apr 2026 05:12:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E73C3282F3D
+	for <mm-commits@vger.kernel.org>; Tue, 14 Apr 2026 05:15:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776143523; cv=none; b=jNriGLDA4iiBGLs+9R+/vLbuQQZ8FSSwK6yE3iAj+uA/wXqo19/UMojrX4ZTHbrXTD4YfALEPAZCVgOnegYAkExUYlYj6yLHARBTn3sSc5QZwL22TfZO0btNSiRK0Dq0BFDvZfMdrB99zs5fKMcsvqzO30TWAklPCKpcRgHr1R8=
+	t=1776143715; cv=none; b=N3OnBw/WU3E4GoqCYARWMXONiDoj9vM5JivxvdrqWimNqO++XLsKsbVTI6bXJb6V1rznWk7EBvO0bHrKzsBSzXmgpz8CFI4tqWOWVjfPcsFPL9nDRoI01xSzqUzIbkXMSKmmKrTnM6S9gDUNE7PJMv3IX4l17FBR+Yml3/3Y21w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776143523; c=relaxed/simple;
-	bh=1ymNdmqnY1or9+axOYo3oczwWdJzb3tphQwKkeLCLUQ=;
-	h=Date:To:From:Subject:Message-Id; b=aeEKBBAUNE1/F6DJcdE0P+grqOurKshap7M+vVF+32Sv4I2bGaPrHKn3k1AYm5fRBh3ueYw+tCBZfcmFuMhuerV+2OpWCF8QRBS/w5PPvcE0mi9k/809/FltiI+fkvR7Dap8B9Qe2hGILHKGRkZ310bVULpimpbrzhrsA0073Eo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tqghoyVF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776143715; c=relaxed/simple;
+	bh=73Kx7iutSC+PxVhCPTQvEtd8i6QnMMeB6AM4Ccr/9Xc=;
+	h=Date:To:From:Subject:Message-Id; b=hSVjDAPS/60BBpP6gVEPUxCHJw3g1wbpoU6J2HreuqfEnSOlBIa5Z2ORDE5qs85DZsgupKfuqTLmfLt3dY+kmEgFl/1GV9vZhdezlBFozHSLKa3VNi5TlhRw0YN9im9mOA+4WWs9MFJluOWKOUgZU7yVuYEe2sqzd6VSNLC2brg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RRAvBj++; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tqghoyVF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBAEBC19425;
-	Tue, 14 Apr 2026 05:12:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RRAvBj++"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4D66C2BCB3;
+	Tue, 14 Apr 2026 05:15:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776143522;
-	bh=1ymNdmqnY1or9+axOYo3oczwWdJzb3tphQwKkeLCLUQ=;
+	s=korg; t=1776143714;
+	bh=73Kx7iutSC+PxVhCPTQvEtd8i6QnMMeB6AM4Ccr/9Xc=;
 	h=Date:To:From:Subject:From;
-	b=tqghoyVFEQgM8UL4H2nOFGJkRMK+ARutPTnorHOtWgQF+MseRBJ54uhwvEC1KfaSJ
-	 f8aJD5Lpk5et11pgJExHped9EU7xcKTdDkazna36rt4IZeDG0k8nsCLDynIx++sKSR
-	 YDkrfQ6IlsWaI4r5/InkKhzM1H2pze43D2bhnntA=
-Date: Mon, 13 Apr 2026 22:11:58 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,martin.lau@linux.dev,ljs@kernel.org,liam.howlett@oracle.com,josef@toxicpanda.com,inwardvessel@gmail.com,hannes@cmpxchg.org,dennisszhou@gmail.com,david@kernel.org,axboe@kernel.dk,leitao@debian.org,akpm@linux-foundation.org
+	b=RRAvBj++R9KUJpE1T8sfGuhkic4VqUjlvAvNVswOoMyfcY/cYQgFhJAW/yT9HwW3N
+	 Autmv7nx2l8wN6gh/kJKuZa//8KzvtaOD/1gJWxxU8mgR/vgaR9D/0+mtCKI0H3wz/
+	 Bzk9ILJVV5UQrtn0rK8mXxXJJ6Nm+NU5b/RYpVJM=
+Date: Mon, 13 Apr 2026 22:15:10 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@kernel.org,surenb@google.com,shinichiro.kawasaki@wdc.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jack@suse.cz,david@kernel.org,brauner@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-blk-cgroup-fix-use-after-free-in-cgwb_release_workfn.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260414051201.DBAEBC19425@smtp.kernel.org>
+Subject: + mm-vma-remove-__vma_check_mmap_hook.patch added to mm-unstable branch
+Message-Id: <20260414051513.C4D66C2BCB3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: blk-cgroup: fix use-after-free in cgwb_release_workfn()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-blk-cgroup-fix-use-after-free-in-cgwb_release_workfn.patch
+     Subject: mm/vma: remove __vma_check_mmap_hook()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vma-remove-__vma_check_mmap_hook.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-blk-cgroup-fix-use-after-free-in-cgwb_release_workfn.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-remove-__vma_check_mmap_hook.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,102 +58,98 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm: blk-cgroup: fix use-after-free in cgwb_release_workfn()
-Date: Mon, 13 Apr 2026 03:09:19 -0700
+From: Lorenzo Stoakes <ljs@kernel.org>
+Subject: mm/vma: remove __vma_check_mmap_hook()
+Date: Mon, 13 Apr 2026 11:57:13 +0100
 
-cgwb_release_workfn() calls css_put(wb->blkcg_css) and then later accesses
-wb->blkcg_css again via blkcg_unpin_online().  If css_put() drops the last
-reference, the blkcg can be freed asynchronously (css_free_rwork_fn ->
-blkcg_css_free -> kfree) before blkcg_unpin_online() dereferences the
-pointer to access blkcg->online_pin, resulting in a use-after-free:
+Commit c50ca15dd496 ("mm: add vm_ops->mapped hook") introduced
+__vma_check_mmap_hook() in order to assert that a driver doesn't
+incorrectly implement both an f_op->mmap() and a vm_ops->mapped hook, the
+latter of which would not ultimately get invoked.
 
-  BUG: KASAN: slab-use-after-free in blkcg_unpin_online (./include/linux/instrumented.h:112 ./include/linux/atomic/atomic-instrumented.h:400 ./include/linux/refcount.h:389 ./include/linux/refcount.h:432 ./include/linux/refcount.h:450 block/blk-cgroup.c:1367)
-  Write of size 4 at addr ff11000117aa6160 by task kworker/71:1/531
-   Workqueue: cgwb_release cgwb_release_workfn
-   Call Trace:
-    <TASK>
-     blkcg_unpin_online (./include/linux/instrumented.h:112 ./include/linux/atomic/atomic-instrumented.h:400 ./include/linux/refcount.h:389 ./include/linux/refcount.h:432 ./include/linux/refcount.h:450 block/blk-cgroup.c:1367)
-     cgwb_release_workfn (mm/backing-dev.c:629)
-     process_scheduled_works (kernel/workqueue.c:3278 kernel/workqueue.c:3385)
+However, this did not correctly account for stacked drivers (or drivers
+that otherwise use the compatibility layer) which might recursively call
+an mmap_prepare hook via the compatibility layer.
 
-   Freed by task 1016:
-    kfree (./include/linux/kasan.h:235 mm/slub.c:2689 mm/slub.c:6246 mm/slub.c:6561)
-    css_free_rwork_fn (kernel/cgroup/cgroup.c:5542)
-    process_scheduled_works (kernel/workqueue.c:3302 kernel/workqueue.c:3385)
+Thus the nested mmap_prepare() invocation might result in a VMA which has
+vm_ops->mapped set with an overlaying mmap() hook, causing the
+__vma_check_mmap_hook() to fail in vfs_mmap(), wrongly failing the
+operation.
 
-** Stack based on commit 66672af7a095 ("Add linux-next specific files
-for 20260410")
+This patch resolves this by simply removing the check, as we can't be
+certain that an mmap() hook doesn't at some point invoke the compatibility
+layer, and it's not worth trying to track it.
 
-I am seeing this crash sporadically in Meta fleet across multiple kernel
-versions.  A full reproducer is available at:
-https://github.com/leitao/debug/blob/main/reproducers/repro_blkcg_uaf.sh
-
-(The race window is narrow.  To make it easily reproducible, inject a
-msleep(100) between css_put() and blkcg_unpin_online() in
-cgwb_release_workfn().  With that delay and a KASAN-enabled kernel, the
-reproducer triggers the splat reliably in less than a second.)
-
-Fix this by moving blkcg_unpin_online() before css_put(), so the
-cgwb's CSS reference keeps the blkcg alive while blkcg_unpin_online()
-accesses it.
-
-Link: https://lkml.kernel.org/r/20260413-blkcg-v1-1-35b72622d16c@debian.org
-Fixes: 59b57717fff8 ("blkcg: delay blkg destruction until after writeback has finished")
-Signed-off-by: Breno Leitao <leitao@debian.org>
+Link: https://lkml.kernel.org/r/20260413105713.92625-1-ljs@kernel.org
+Fixes: c50ca15dd496 ("mm: add vm_ops->mapped hook")
+Reported-by: Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>
+Closes: https://lore.kernel.org/all/adx2ws5z0NMIe5Yj@shinmob/
+Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Tested-by: Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Dennis Zhou <dennisszhou@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: JP Kobryn <inwardvessel@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/fs.h |    9 +--------
+ mm/util.c          |   10 ----------
+ 2 files changed, 1 insertion(+), 18 deletions(-)
 
---- a/mm/backing-dev.c~mm-blk-cgroup-fix-use-after-free-in-cgwb_release_workfn
-+++ a/mm/backing-dev.c
-@@ -618,12 +618,13 @@ static void cgwb_release_workfn(struct w
- 	wb_shutdown(wb);
+--- a/include/linux/fs.h~mm-vma-remove-__vma_check_mmap_hook
++++ a/include/linux/fs.h
+@@ -2062,20 +2062,13 @@ void compat_set_desc_from_vma(struct vm_
+ 			      const struct vm_area_struct *vma);
+ int __compat_vma_mmap(struct vm_area_desc *desc, struct vm_area_struct *vma);
+ int compat_vma_mmap(struct file *file, struct vm_area_struct *vma);
+-int __vma_check_mmap_hook(struct vm_area_struct *vma);
  
- 	css_put(wb->memcg_css);
--	css_put(wb->blkcg_css);
--	mutex_unlock(&wb->bdi->cgwb_release_mutex);
+ static inline int vfs_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	int err;
+-
+ 	if (file->f_op->mmap_prepare)
+ 		return compat_vma_mmap(file, vma);
  
- 	/* triggers blkg destruction if no online users left */
- 	blkcg_unpin_online(wb->blkcg_css);
+-	err = file->f_op->mmap(file, vma);
+-	if (err)
+-		return err;
+-
+-	return __vma_check_mmap_hook(vma);
++	return file->f_op->mmap(file, vma);
+ }
  
-+	css_put(wb->blkcg_css);
-+	mutex_unlock(&wb->bdi->cgwb_release_mutex);
-+
- 	fprop_local_destroy_percpu(&wb->memcg_completions);
+ static inline int vfs_mmap_prepare(struct file *file, struct vm_area_desc *desc)
+--- a/mm/util.c~mm-vma-remove-__vma_check_mmap_hook
++++ a/mm/util.c
+@@ -1281,16 +1281,6 @@ int compat_vma_mmap(struct file *file, s
+ }
+ EXPORT_SYMBOL(compat_vma_mmap);
  
- 	spin_lock_irq(&cgwb_lock);
+-int __vma_check_mmap_hook(struct vm_area_struct *vma)
+-{
+-	/* vm_ops->mapped is not valid if mmap() is specified. */
+-	if (vma->vm_ops && WARN_ON_ONCE(vma->vm_ops->mapped))
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(__vma_check_mmap_hook);
+-
+ static void set_ps_flags(struct page_snapshot *ps, const struct folio *folio,
+ 			 const struct page *page)
+ {
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-blk-cgroup-fix-use-after-free-in-cgwb_release_workfn.patch
-mm-kmemleak-add-config_debug_kmemleak_verbose-build-option.patch
-kho-add-size-parameter-to-kho_add_subtree.patch
-kho-rename-fdt-parameter-to-blob-in-kho_add-remove_subtree.patch
-kho-persist-blob-size-in-kho-fdt.patch
-kho-fix-kho_in_debugfs_init-to-handle-non-fdt-blobs.patch
-kho-kexec-metadata-track-previous-kernel-chain.patch
-kho-kexec-metadata-track-previous-kernel-chain-fix.patch
-kho-document-kexec-metadata-tracking-feature.patch
-mm-vmstat-fix-vmstat_shepherd-double-scheduling-vmstat_update.patch
-kho-fix-error-handling-in-kho_add_subtree.patch
-mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
+mm-vma-remove-__vma_check_mmap_hook.patch
+maintainers-update-mglru-entry-to-reflect-current-status.patch
+tools-testing-selftests-add-merge-test-for-partial-msealed-range.patch
 
