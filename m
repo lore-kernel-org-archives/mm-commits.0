@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 065BF282F33
-	for <mm-commits@vger.kernel.org>; Tue, 14 Apr 2026 05:20:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC2542609EE;
+	Tue, 14 Apr 2026 05:29:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776144059; cv=none; b=TCRi1CmI2OdxFN3sQWzpAcFpy6ut5QfUQKsXeKvuILiE2NoTFdM1lrNsvCvXexKkH/v0H58ya9f/+REHbvSINF+cTZXp2w5Mk5cgSt8T78TIX3LThMRVt+F7wnZJtPDFrMet7fto7lCeN2o4xf/RPXhgpsHXPysFqvKXVzB+dUc=
+	t=1776144548; cv=none; b=mKor2VM61D+DiFbbf273Dn6Sr4xu1EdWi9oddxXsgxLbuyjxbEqhbaMR5ULFT5ILdKR8qZFoxJed3CDUheby8809B5sJ61pVd5V4P78LBDCkuO2hcpSQvU6ygBEd3EvGjJ2vb9q1y8G9Sy1ve+QMaqlXFJvuJvEXp/66zcwvQ0k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776144059; c=relaxed/simple;
-	bh=rvNMYLXNg6rv/lh3litkzslybcdpsARN0v4U45k62uk=;
-	h=Date:To:From:Subject:Message-Id; b=ciKT5rNCAqlE26+DcMgZZtcL31p/Y5aQb1R6wDkn6R1ny3UmakgvENbLo55Nq8Ej9+X00ac8mItSxrrnKMvTgZDdoXf8jP7BvSJYoUNceQRhwPZpDikJFi5ZK/mhCh0oAelTzpJQhZi604UXL0HDQx6tY1sASdoPdmN5slA+Htk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bNCFZMhi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776144548; c=relaxed/simple;
+	bh=xlEdkVdMa4iOBWlrkbL+RlGQs9sd8YfrjdIg+Jw/NIQ=;
+	h=Date:To:From:Subject:Message-Id; b=Da/ZPyNYRkLdRep7ueqo6WqxPEcWLxRFsftgV2dpZ5Stqvz26xQzzC0tcwY8BfMA7goAlVZwyDGV8Jdsv5T7Y8QyPPqAIM851MPCOeXPuHBLKteXqSTpL1t7R4hgbDEJqKOV9jddkMD+Q7ccjgxBNQxiJ/WjKnFdxfWeq3h0wa4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eTWUDFFS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bNCFZMhi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8659C19425;
-	Tue, 14 Apr 2026 05:20:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eTWUDFFS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6364FC2BCB5;
+	Tue, 14 Apr 2026 05:29:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776144058;
-	bh=rvNMYLXNg6rv/lh3litkzslybcdpsARN0v4U45k62uk=;
+	s=korg; t=1776144548;
+	bh=xlEdkVdMa4iOBWlrkbL+RlGQs9sd8YfrjdIg+Jw/NIQ=;
 	h=Date:To:From:Subject:From;
-	b=bNCFZMhiEtoZqFqIdRikPs7gZWjrZsEyK4v03v9qVftYbCJ04Ev2OOfGM/4Gmq4Yc
-	 X6a4kP2teefPjmDXYijW9cEFwpDIG6vw88cBdcaFXI1A2Bm4CEpEz6lG29HXu0maBm
-	 E6wv1NIbZpKJeelOd+aMU7HaKIi7mSsYOgdHjbPk=
-Date: Mon, 13 Apr 2026 22:20:53 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,masahiroy@kernel.org,martink@posteo.de,magnus.karlsson@intel.com,kuba@kernel.org,diego.viola@gmail.com,broonie@kernel.org,pasha.tatashin@soleen.com,akpm@linux-foundation.org
+	b=eTWUDFFSyipnDCu+lgWdpE9/lxPq8Sse+fWF2JUABYz1bF/yaP1fBGjJX3aB3NbhB
+	 TfMNsbmKeiaVHBtRzg22xQ+WTn7EgQcVc5ilBMM22bMux8BA7zkA/0F+77SQ/ju1pl
+	 eQ5+avQL0Qu2cPNo0KRcFS1/cqeJPWGuDsmabn10=
+Date: Mon, 13 Apr 2026 22:29:01 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jack@suse.cz,big-sleep-vuln-reports+bigsleep-501448199@google.com,axboe@kernel.dk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-update-kexec-kdump-maintainers-entries.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260414052057.B8659C19425@smtp.kernel.org>
+Subject: + mm-call-free_folio-directly-in-folio_unmap_invalidate.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260414052907.6364FC2BCB5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: MAINTAINERS: update kexec/kdump maintainers entries
+     Subject: mm: call ->free_folio() directly in folio_unmap_invalidate()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-update-kexec-kdump-maintainers-entries.patch
+     mm-call-free_folio-directly-in-folio_unmap_invalidate.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-kexec-kdump-maintainers-entries.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-call-free_folio-directly-in-folio_unmap_invalidate.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,84 +58,84 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: MAINTAINERS: update kexec/kdump maintainers entries
-Date: Mon, 13 Apr 2026 12:11:46 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: call ->free_folio() directly in folio_unmap_invalidate()
+Date: Mon, 13 Apr 2026 19:43:11 +0100
 
-Update KEXEC and KDUMP maintainer entries by adding the live update group
-maintainers.  Remove Vivek Goyal due to inactivity to keep the MAINTAINERS
-file up-to-date, and add Vivek to the CREDITS file to recognize their
-contributions.
+We can only call filemap_free_folio() if we have a reference to (or hold a
+lock on) the mapping.  Otherwise, we've already removed the folio from the
+mapping so it no longer pins the mapping and the mapping can be removed,
+causing a use-after-free when accessing mapping->a_ops.
 
-Link: https://lkml.kernel.org/r/20260413121146.49215-1-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Acked-by: Pratyush Yadav <pratyush@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Diego Viola <diego.viola@gmail.com>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Magnus Karlsson <magnus.karlsson@intel.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Martin Kepplinger <martink@posteo.de>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
+Follow the same pattern as __remove_mapping() and load the free_folio
+function pointer before dropping the lock on the mapping.  That lets us
+make filemap_free_folio() static as this was the only caller outside
+filemap.c.
+
+Link: https://lkml.kernel.org/r/20260413184314.3419945-1-willy@infradead.org
+Fixes: 4a9e23159fd3 (mm/truncate: add folio_unmap_invalidate() helper)
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Google Big Sleep <big-sleep-vuln-reports+bigsleep-501448199@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jan Kara <jack@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS     |    4 ++++
- MAINTAINERS |    7 ++++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ mm/filemap.c  |    3 ++-
+ mm/internal.h |    1 -
+ mm/truncate.c |    6 +++++-
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
---- a/CREDITS~maintainers-update-kexec-kdump-maintainers-entries
-+++ a/CREDITS
-@@ -1456,6 +1456,10 @@ N: Andy Gospodarek
- E: andy@greyhouse.net
- D: Maintenance and contributions to the network interface bonding driver.
+--- a/mm/filemap.c~mm-call-free_folio-directly-in-folio_unmap_invalidate
++++ a/mm/filemap.c
+@@ -228,7 +228,8 @@ void __filemap_remove_folio(struct folio
+ 	page_cache_delete(mapping, folio, shadow);
+ }
  
-+N: Vivek Goyal
-+E: vgoyal@redhat.com
-+D: KDUMP, KEXEC, and VIRTIO FILE SYSTEM
-+
- N: Wolfgang Grandegger
- E: wg@grandegger.com
- D: Controller Area Network (device drivers)
---- a/MAINTAINERS~maintainers-update-kexec-kdump-maintainers-entries
-+++ a/MAINTAINERS
-@@ -13786,7 +13786,9 @@ F:	scripts/Makefile.kcsan
- KDUMP
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Baoquan He <bhe@redhat.com>
--R:	Vivek Goyal <vgoyal@redhat.com>
-+M:	Mike Rapoport <rppt@kernel.org>
-+M:	Pasha Tatashin <pasha.tatashin@soleen.com>
-+M:	Pratyush Yadav <pratyush@kernel.org>
- R:	Dave Young <dyoung@redhat.com>
- L:	kexec@lists.infradead.org
- S:	Maintained
-@@ -14102,6 +14104,9 @@ F:	include/linux/kernfs.h
- KEXEC
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Baoquan He <bhe@redhat.com>
-+M:	Mike Rapoport <rppt@kernel.org>
-+M:	Pasha Tatashin <pasha.tatashin@soleen.com>
-+M:	Pratyush Yadav <pratyush@kernel.org>
- L:	kexec@lists.infradead.org
- W:	http://kernel.org/pub/linux/utils/kernel/kexec/
- F:	include/linux/kexec.h
+-void filemap_free_folio(struct address_space *mapping, struct folio *folio)
++static void filemap_free_folio(const struct address_space *mapping,
++		struct folio *folio)
+ {
+ 	void (*free_folio)(struct folio *);
+ 
+--- a/mm/internal.h~mm-call-free_folio-directly-in-folio_unmap_invalidate
++++ a/mm/internal.h
+@@ -540,7 +540,6 @@ unsigned find_lock_entries(struct addres
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
+ unsigned find_get_entries(struct address_space *mapping, pgoff_t *start,
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
+-void filemap_free_folio(struct address_space *mapping, struct folio *folio);
+ int truncate_inode_folio(struct address_space *mapping, struct folio *folio);
+ bool truncate_inode_partial_folio(struct folio *folio, loff_t start,
+ 		loff_t end);
+--- a/mm/truncate.c~mm-call-free_folio-directly-in-folio_unmap_invalidate
++++ a/mm/truncate.c
+@@ -622,6 +622,7 @@ static int folio_launder(struct address_
+ int folio_unmap_invalidate(struct address_space *mapping, struct folio *folio,
+ 			   gfp_t gfp)
+ {
++	void (*free_folio)(struct folio *);
+ 	int ret;
+ 
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+@@ -648,9 +649,12 @@ int folio_unmap_invalidate(struct addres
+ 	xa_unlock_irq(&mapping->i_pages);
+ 	if (mapping_shrinkable(mapping))
+ 		inode_lru_list_add(mapping->host);
++	free_folio = mapping->a_ops->free_folio;
+ 	spin_unlock(&mapping->host->i_lock);
+ 
+-	filemap_free_folio(mapping, folio);
++	if (free_folio)
++		free_folio(folio);
++	folio_put_refs(folio, folio_nr_pages(folio));
+ 	return 1;
+ failed:
+ 	xa_unlock_irq(&mapping->i_pages);
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-maintainers-update-kexec-kdump-maintainers-entries.patch
-liveupdate-prevent-double-management-of-files.patch
-memfd-implement-get_id-for-memfd_luo.patch
-selftests-liveupdate-add-test-for-double-preservation.patch
-liveupdate-safely-print-untrusted-strings.patch
-liveupdate-synchronize-lazy-initialization-of-flb-private-state.patch
-liveupdate-protect-file-handler-list-with-rwsem.patch
-liveupdate-protect-flb-lists-with-luo_register_rwlock.patch
-liveupdate-defer-flb-module-refcounting-to-active-sessions.patch
-liveupdate-remove-luo_session_quiesce.patch
-liveupdate-auto-unregister-flbs-on-file-handler-unregistration.patch
-liveupdate-remove-liveupdate_test_unregister.patch
-liveupdate-make-unregister-functions-return-void.patch
-liveupdate-defer-file-handler-module-refcounting-to-active-sessions.patch
+mm-call-free_folio-directly-in-folio_unmap_invalidate.patch
 
