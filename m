@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 971D53264D4
-	for <mm-commits@vger.kernel.org>; Wed, 15 Apr 2026 09:16:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 687D43290A0
+	for <mm-commits@vger.kernel.org>; Wed, 15 Apr 2026 09:16:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776244592; cv=none; b=RSDfSyRuPmpSwk8qS8cT7wKLdjdFkGYIMFgNjAu3aqRvqChrfGRO1fI+znpmFdMGfKqDAqUTQvv+wswCszdD6ZAV/gPVYmhy2RWQXBn99x7Svi0dV+EijGj/sj2Vja5QjtrowhYACrSa2EvuqgXju0SHEtGSdQA5RDhR+WGhQpo=
+	t=1776244597; cv=none; b=QWJr2XdubygO9E7mkI7eAMqLmhuYDioEn4M4/hTWsU+uforETfleUc1iFd0kfaqzcEgW79XvryedDOVrT3ckrKtgYslJ0OTbwod8Vbnau7Ab8a1PMHs7/JZchT/3UM6LD2wSRiGGlgUgqvAmqxxFTbvgI1vQnqc28GLdpEX2ZEc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776244592; c=relaxed/simple;
-	bh=lRYbd2uuCJL9Cz6wPOxp8FKH6YtzZBxqB0/LTJMQXkw=;
-	h=Date:To:From:Subject:Message-Id; b=dEiUE2vz+W6a4cLdHO0UF5BCN7O7TLZxXqeEbP3WBItd+Q3YpuIp5Kz0UD8R0fcG5P5kBMoW83T23brMCjUgOghXJRF1TAj9HrzpYT1tj8vymo/J1umXBhVkGCM7cl6yPsj/orzdNGsvKCzN0VK1RL34y7pV3CgUhQwp/7iS0Uw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JGI+Yit5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776244597; c=relaxed/simple;
+	bh=jF05EGV7oYHmSaaZjEmyzBE7q/TyEQeZXWhJNkNPhVk=;
+	h=Date:To:From:Subject:Message-Id; b=VXfmRVsGnsbUop+IyvrmCsYM9ScUzRL6ddttgL3oCw/m9m25WwFAmlObCzpLI2AE2fOvT18Rw7yZVCWVhlJXbUkw8fs7FjVyeH5+Adr44rpNP1/+Vtu4nkdAvVHdA9Zv5uIQGNdvEP2UmVPNTPhW5AR1Q7QAM5aPVvGWihAyRJA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1pqSfRuH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JGI+Yit5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFAB6C2BCB5;
-	Wed, 15 Apr 2026 09:16:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1pqSfRuH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B08EC19424;
+	Wed, 15 Apr 2026 09:16:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776244592;
-	bh=lRYbd2uuCJL9Cz6wPOxp8FKH6YtzZBxqB0/LTJMQXkw=;
+	s=korg; t=1776244597;
+	bh=jF05EGV7oYHmSaaZjEmyzBE7q/TyEQeZXWhJNkNPhVk=;
 	h=Date:To:From:Subject:From;
-	b=JGI+Yit55+DcX87LOn66Q1tzQG6Q3DkrgQazPfmVoxZjfPWofEb8AqwZTeaqBIK16
-	 Syi7FKHEa4jYuKgv0aFsT0sOBZwF7t+mAMclQ/6YEAJiULsRmp3baMuBahnglfrcay
-	 Fqzcb01Q2Ji3Rvkw6zfqK+mBtRtCK/Pcwtf0qEbE=
-Date: Wed, 15 Apr 2026 02:16:28 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
+	b=1pqSfRuHfmMIu3n36fN0EGuqbaslX1GVP5RXXo6h7odcRr3XjaishphrXyOn3+whu
+	 T12z1lBEP8RRMmjZRkGj3p0ij4IHh7gisF/j/T4sag/QojTJVPXL1xjndhK4KNh56Y
+	 JwTSdvty5yfuQhFZPG/r4owDBHPOn3GU8UkFI0q4=
+Date: Wed, 15 Apr 2026 02:16:33 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,jack@suse.cz,gechangwei@live.cn,heming.zhao@suse.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-remove-redundant-l_next_free_rec-check-in-__ocfs2_find_path.patch removed from -mm tree
-Message-Id: <20260415091631.AFAB6C2BCB5@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-split-transactions-in-dio-completion-to-avoid-credit-exhaustion.patch removed from -mm tree
+Message-Id: <20260415091636.8B08EC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,62 +35,191 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: remove redundant l_next_free_rec check in __ocfs2_find_path()
+     Subject: ocfs2: split transactions in dio completion to avoid credit exhaustion
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-redundant-l_next_free_rec-check-in-__ocfs2_find_path.patch
+     ocfs2-split-transactions-in-dio-completion-to-avoid-credit-exhaustion.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: remove redundant l_next_free_rec check in __ocfs2_find_path()
-Date: Fri, 3 Apr 2026 17:08:03 +0800
+From: Heming Zhao <heming.zhao@suse.com>
+Subject: ocfs2: split transactions in dio completion to avoid credit exhaustion
+Date: Thu, 2 Apr 2026 21:43:27 +0800
 
-The l_next_free_rec > l_count check after ocfs2_read_extent_block() in
-__ocfs2_find_path() is now redundant, as ocfs2_validate_extent_block()
-already performs this validation at block read time.
+During ocfs2 dio operations, JBD2 may report warnings via following
+call trace:
+ocfs2_dio_end_io_write
+ ocfs2_mark_extent_written
+  ocfs2_change_extent_flag
+   ocfs2_split_extent
+    ocfs2_try_to_merge_extent
+     ocfs2_extend_rotate_transaction
+      ocfs2_extend_trans
+       jbd2__journal_restart
+        start_this_handle
+         output: JBD2: kworker/6:2 wants too many credits credits:5450 rsv_credits:0 max:5449
 
-Remove the duplicate check to avoid maintaining the same validation in two
-places.
+To prevent exceeding the credits limit, modify ocfs2_dio_end_io_write() to
+handle extents in a batch of transaction.
 
-Link: https://lkml.kernel.org/r/20260403090803.3860971-5-joseph.qi@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Additionally, relocate ocfs2_del_inode_from_orphan().  The orphan inode
+should only be removed from the orphan list after the extent tree update
+is complete.  This ensures that if a crash occurs in the middle of extent
+tree updates, we won't leave stale blocks beyond EOF.
+
+This patch also changes the logic for updating the inode size and removing
+orphan, making it similar to ext4_dio_write_end_io().  Both operations are
+performed only when everything looks good.
+
+Finally, thanks to Jans and Joseph for providing the bug fix prototype and
+suggestions.
+
+Link: https://lkml.kernel.org/r/20260402134328.27334-2-heming.zhao@suse.com
+Signed-off-by: Heming Zhao <heming.zhao@suse.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ fs/ocfs2/aops.c |   74 +++++++++++++++++++++++++++-------------------
+ 1 file changed, 45 insertions(+), 29 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-remove-redundant-l_next_free_rec-check-in-__ocfs2_find_path
-+++ a/fs/ocfs2/alloc.c
-@@ -1878,18 +1878,6 @@ static int __ocfs2_find_path(struct ocfs
- 		eb = (struct ocfs2_extent_block *) bh->b_data;
- 		el = &eb->h_list;
+--- a/fs/ocfs2/aops.c~ocfs2-split-transactions-in-dio-completion-to-avoid-credit-exhaustion
++++ a/fs/ocfs2/aops.c
+@@ -37,6 +37,8 @@
+ #include "namei.h"
+ #include "sysfile.h"
  
--		if (le16_to_cpu(el->l_next_free_rec) >
--		    le16_to_cpu(el->l_count)) {
--			ocfs2_error(ocfs2_metadata_cache_get_super(ci),
--				    "Owner %llu has bad count in extent list at block %llu (next free=%u, count=%u)\n",
--				    (unsigned long long)ocfs2_metadata_cache_owner(ci),
--				    (unsigned long long)bh->b_blocknr,
--				    le16_to_cpu(el->l_next_free_rec),
--				    le16_to_cpu(el->l_count));
--			ret = -EROFS;
--			goto out;
--		}
--
- 		if (func)
- 			func(data, bh);
++#define OCFS2_DIO_MARK_EXTENT_BATCH 200
++
+ static int ocfs2_symlink_get_block(struct inode *inode, sector_t iblock,
+ 				   struct buffer_head *bh_result, int create)
+ {
+@@ -2277,7 +2279,7 @@ static int ocfs2_dio_end_io_write(struct
+ 	struct ocfs2_alloc_context *meta_ac = NULL;
+ 	handle_t *handle = NULL;
+ 	loff_t end = offset + bytes;
+-	int ret = 0, credits = 0;
++	int ret = 0, credits = 0, batch = 0;
+ 
+ 	ocfs2_init_dealloc_ctxt(&dealloc);
+ 
+@@ -2294,18 +2296,6 @@ static int ocfs2_dio_end_io_write(struct
+ 		goto out;
  	}
+ 
+-	/* Delete orphan before acquire i_rwsem. */
+-	if (dwc->dw_orphaned) {
+-		BUG_ON(dwc->dw_writer_pid != task_pid_nr(current));
+-
+-		end = end > i_size_read(inode) ? end : 0;
+-
+-		ret = ocfs2_del_inode_from_orphan(osb, inode, di_bh,
+-				!!end, end);
+-		if (ret < 0)
+-			mlog_errno(ret);
+-	}
+-
+ 	down_write(&oi->ip_alloc_sem);
+ 	di = (struct ocfs2_dinode *)di_bh->b_data;
+ 
+@@ -2326,24 +2316,25 @@ static int ocfs2_dio_end_io_write(struct
+ 
+ 	credits = ocfs2_calc_extend_credits(inode->i_sb, &di->id2.i_list);
+ 
+-	handle = ocfs2_start_trans(osb, credits);
+-	if (IS_ERR(handle)) {
+-		ret = PTR_ERR(handle);
+-		mlog_errno(ret);
+-		goto unlock;
+-	}
+-	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), di_bh,
+-				      OCFS2_JOURNAL_ACCESS_WRITE);
+-	if (ret) {
+-		mlog_errno(ret);
+-		goto commit;
+-	}
+-
+ 	list_for_each_entry(ue, &dwc->dw_zero_list, ue_node) {
++		if (!handle) {
++			handle = ocfs2_start_trans(osb, credits);
++			if (IS_ERR(handle)) {
++				ret = PTR_ERR(handle);
++				mlog_errno(ret);
++				goto unlock;
++			}
++			ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), di_bh,
++					OCFS2_JOURNAL_ACCESS_WRITE);
++			if (ret) {
++				mlog_errno(ret);
++				goto commit;
++			}
++		}
+ 		ret = ocfs2_assure_trans_credits(handle, credits);
+ 		if (ret < 0) {
+ 			mlog_errno(ret);
+-			break;
++			goto commit;
+ 		}
+ 		ret = ocfs2_mark_extent_written(inode, &et, handle,
+ 						ue->ue_cpos, 1,
+@@ -2351,19 +2342,44 @@ static int ocfs2_dio_end_io_write(struct
+ 						meta_ac, &dealloc);
+ 		if (ret < 0) {
+ 			mlog_errno(ret);
+-			break;
++			goto commit;
++		}
++
++		if (++batch == OCFS2_DIO_MARK_EXTENT_BATCH) {
++			ocfs2_commit_trans(osb, handle);
++			handle = NULL;
++			batch = 0;
+ 		}
+ 	}
+ 
+ 	if (end > i_size_read(inode)) {
++		if (!handle) {
++			handle = ocfs2_start_trans(osb, credits);
++			if (IS_ERR(handle)) {
++				ret = PTR_ERR(handle);
++				mlog_errno(ret);
++				goto unlock;
++			}
++		}
+ 		ret = ocfs2_set_inode_size(handle, inode, di_bh, end);
+ 		if (ret < 0)
+ 			mlog_errno(ret);
+ 	}
++
+ commit:
+-	ocfs2_commit_trans(osb, handle);
++	if (handle)
++		ocfs2_commit_trans(osb, handle);
+ unlock:
+ 	up_write(&oi->ip_alloc_sem);
++
++	/* everything looks good, let's start the cleanup */
++	if (!ret && dwc->dw_orphaned) {
++		BUG_ON(dwc->dw_writer_pid != task_pid_nr(current));
++
++		ret = ocfs2_del_inode_from_orphan(osb, inode, di_bh, 0, 0);
++		if (ret < 0)
++			mlog_errno(ret);
++	}
+ 	ocfs2_inode_unlock(inode, 1);
+ 	brelse(di_bh);
+ out:
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from heming.zhao@suse.com are
 
 
