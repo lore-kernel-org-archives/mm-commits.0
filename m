@@ -1,90 +1,100 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A9226ED41;
-	Wed, 15 Apr 2026 10:17:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2CFE3161AB
+	for <mm-commits@vger.kernel.org>; Wed, 15 Apr 2026 20:20:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776248222; cv=none; b=Ewo7ZCBduowK3wLx1dTNqqAA7jx0CeLOTLtogyC9vp+lN81E4doh2fjtCRu8NLBeojxz0YNaX1hIgp8aGwqliGHc/gksq6HbsXhnAE7GSyx0LaXr/TZvXY1gdkCKZkt6Z47lmzhg8mYydgZTSTdXXjDIKWt636OoF9GBfGttfX4=
+	t=1776284445; cv=none; b=BWLWjL+Uveq5oxo2b5RpzBHT/xby6oeB2jMyGr4HcmiIW5/GoShhq63LhxgxE1WsyKc5V8pHvWTOI4ZqWBGljomzfVdWNMoGftT5Z7Z1LfpHNuPouHchdokzY1BflDB1G/inAuytzn9+cBq8UZ/a5zegnKdZNmDQjrJVVVYRESM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776248222; c=relaxed/simple;
-	bh=PuEO4ZoVkmXf0em8c7zUPljUqT2SuX0LSSreZblwqK4=;
-	h=Date:To:From:Subject:Message-Id; b=qdZ6axYjn6XzX+qyGfa/H70KEwBMcTIng0QQnP5N//nAnbm+Pl++xVTBGyGZT4Wakeu5FXYm9XrzNU1iaKefRw2221HVMbP1o311QouRwWQW/SPFeEmzzl9lFPgj4kYw1MU8rz5KLI12KOQGXAqXYr3PWYUiyx4W90nSmium4+g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z7BxtvyT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776284445; c=relaxed/simple;
+	bh=hCIf+weQww+YirHC1PZlVswZ1UJyibBA03y8a0U5pVk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=gEv9Ph/KuoeTdkP/L1k1Gw1WAEfYLNcjHjwq3Zy+NantMO0bfRCUOlncxdYN1o6Wn/9Cvn4fRBj41ZGgL2F/c7mCp9YcNsjOFj9KEfzZOfSl/jw2loCzvoyCneXMK+vdKqttqcmSxksRFqmuvVow+2fbdYgIGXuFzuCE96p77ZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=boQeic1a; arc=none smtp.client-ip=209.85.218.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z7BxtvyT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D1FBC19424;
-	Wed, 15 Apr 2026 10:17:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776248222;
-	bh=PuEO4ZoVkmXf0em8c7zUPljUqT2SuX0LSSreZblwqK4=;
-	h=Date:To:From:Subject:From;
-	b=z7BxtvyToTNfiVFHn7wj6xLgR3rLx47Ed/Kkfgeu8h8Vha9hjA9sv5S9y9rw6ehhf
-	 RVwG0yZE6krZLeWT57pJOkKfvKCewqIUTcu9kPPHF/XH6V023fudYxkjoCdrVmRS3F
-	 eSdJLh1fCdZCij9DvL8WcQb1oMXr8uAH4RRRNJFU=
-Date: Wed, 15 Apr 2026 03:16:56 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,peterx@redhat.com,aarcange@redhat.com,gourry@gourry.net,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] userfaultfd-preserve-write-protection-across-uffdio_move.patch removed from -mm tree
-Message-Id: <20260415101701.2D1FBC19424@smtp.kernel.org>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="boQeic1a"
+Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-b9910707d82so916590066b.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Apr 2026 13:20:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1776284442; x=1776889242; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=RD0WZ4vxceOe2Q9LtAJJvUrGVmgktyPaNbz/Rw5H6EM=;
+        b=boQeic1aYY5fJ2FOatMXFyRc3sIl5XJXMUOEkBdfA4dt8ai2yDpm0CXkwREOh0/3GL
+         yK13zXE1/LmIStshckSwuvkdabL91yDyX7j/gzmjHPp+kOHedXQYXqxt6rJaeZb7xWtO
+         Ck0tcuBpXpFmGG4ZMuzKd0JCF6AH3NeZM+KmQ=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1776284442; x=1776889242;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-gg:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=RD0WZ4vxceOe2Q9LtAJJvUrGVmgktyPaNbz/Rw5H6EM=;
+        b=PDvWwHngHCPgz9IgBEaH8GH284+92Wq9WA+h0uV8UGMFeJ0L7U5UQu5P0YkASrM6wW
+         KRffA8jVyKQ4W5ZUMCrzz/vhUao3v0FzZWKLsXc/70ITkAfDWt1OudHrAzRQjI6DDfFp
+         uw4AVfS8Q+4S4UGdwvYUIACayc9YrV298HI0+z0UzGQaMufWETrALqa9DvtEO6kCb2NH
+         fj1ephpT2A1WFg65zL0rNlX0uOW8SL5IhRPuM2jKXLBB0li/VZXb1sq/mw+CH5UkGctc
+         SwQ9HL4HRInIzddpSyF6V7B6MkNc3+cLBc/lDkSw+0J+2Z/4obEAYxbVVl1w1q4gLDEt
+         YoVQ==
+X-Forwarded-Encrypted: i=1; AFNElJ9RkqXCHbl1r8DhdkoJwg5rwjXGBraj/KsIZu2jV0IOrUldwruGEJcAzTJ95wux0aYgvwz2Qx6adV1R@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywz+sbW0g4T55MrFRPPtdJhgIBXma/ffr7nWZg/zboFjs6Y2gsV
+	LxFwZZuEq3n1G0DODPj5fYwfuTAH02aMES3/m4Q736OFOvpFRN7mHVALgjY3UKyNy+11Oj9cbg/
+	QtZqcOXqg+w==
+X-Gm-Gg: AeBDietE+mdVo0kejk9fLWynxuLK2dHHJLG5VmZRB3nqA/qPRJbYVA9CI7t8PRLWpBN
+	kxvEPXjaSJRA1HmwZxuVEIA5V6XoEF0cZjPD6k2M6QPdTgVg3ebdWklDjR/70PvwlfScPHVYonz
+	gzIz7ZOnULwkcw3nzABnC5U0eYYKzmmdOYWm62rCcsEeJsdkhegY4p4Y153Xt4TF8DL0jYOyYfy
+	0Lx9dTYQgk++OHkSSM3t121vk3xp+y8DbjkcXca55LU0jk7kVk9TghB0YvXY4oke9lBkL7NQxkp
+	4es2lRJWvRQrVTiJha3EWoCKoryOdM+cqdQg1B91W69fDorgrw1y0jME/3mo+UQPV96CBE37KQP
+	LhPSVta7Dg46dh6p99ozUNzQ3clJ8fHeB1XrUaZ8Ml+LMVM6xVssKaTWnNh2IBADqU3Cwvt0FgV
+	iWkeDwv2Vclo5QNNrTFQHvAwFoYrcMSY5yT+ZNikQJ5zLQj4UtHw/Mi0hC2GrDLLjLbJjr2WoN
+X-Received: by 2002:a17:906:fd84:b0:b9e:3bd:6ed3 with SMTP id a640c23a62f3a-b9e03bd788amr656998066b.47.1776284441850;
+        Wed, 15 Apr 2026 13:20:41 -0700 (PDT)
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com. [209.85.208.43])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ba177dd36a5sm91284866b.54.2026.04.15.13.20.41
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 15 Apr 2026 13:20:41 -0700 (PDT)
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-66f727d6849so10521405a12.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Apr 2026 13:20:41 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AFNElJ97aH0rWdN1pFpw96dUDms8UDqe4Vr4VO13vxwCrpQYivQMrQKBHTbFlJeLZcYQQusiRM/ex9lXq9GL@vger.kernel.org
+X-Received: by 2002:a05:6402:3596:b0:672:7298:31a2 with SMTP id
+ 4fb4d7f45d1cf-672729837ebmr124115a12.7.1776284440889; Wed, 15 Apr 2026
+ 13:20:40 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+References: <20260413214952.62836ac9df0eb348ee4aeb2b@linux-foundation.org>
+In-Reply-To: <20260413214952.62836ac9df0eb348ee4aeb2b@linux-foundation.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Wed, 15 Apr 2026 13:20:23 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wjMroU7PofBOC52f5u5bTjTO2tm5ehycf9evmjeq-hq3Q@mail.gmail.com>
+X-Gm-Features: AQROBzCKylPsnYLo4V0oRH2sXSLCdE6OFA3N89cLViHqNyOTdUIjQqN5FrzJ8QI
+Message-ID: <CAHk-=wjMroU7PofBOC52f5u5bTjTO2tm5ehycf9evmjeq-hq3Q@mail.gmail.com>
+Subject: Re: [GIT PULL] MM updates for 7.1-rc1
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
+On Mon, 13 Apr 2026 at 21:50, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> include/net/netmem.h, vs net tree:
+>         https://lkml.kernel.org/r/aaGiDINfnUexT9Px@sirena.org.uk
 
-The quilt patch titled
-     Subject: userfaultfd: preserve write protection across UFFDIO_MOVE
-has been removed from the -mm tree.  Its filename was
-     userfaultfd-preserve-write-protection-across-uffdio_move.patch
+None of your links work for me, all resulting in "403 Forbidden"
 
-This patch was dropped because an updated version will be issued
+The proper format would seem to be
 
-------------------------------------------------------
-From: Gregory Price <gourry@gourry.net>
-Subject: userfaultfd: preserve write protection across UFFDIO_MOVE
-Date: Thu, 9 Apr 2026 11:28:22 -0400
+    https://lore.kernel.org/all/aaGiDINfnUexT9Px@sirena.org.uk/
 
-move_present_ptes() unconditionally makes the destination PTE writable,
-dropping uffd-wp write-protection from the source PTE.
+(or "lkml" instead of "all" if you want to be more specific).
 
-The original intent was to follow mremap() behavior, but mremap()'s
-move_ptes() preserves the source write state unconditionally.
+Maybe something changed recently, or maybe your scripting for this is
+just broken?
 
-Modify uffd to preserve the source write state and check the uffd-wp
-condition of the source before setting writable on the destination.
-
-Link: https://lkml.kernel.org/r/20260409152822.1073083-1-gourry@gourry.net
-Fixes: adef440691ba ("userfaultfd: UFFDIO_MOVE uABI")
-Signed-off-by: Gregory Price <gourry@gourry.net>
-Reviewed-by: Suren Baghdasaryan <surenb@google.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/userfaultfd.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
---- a/mm/userfaultfd.c~userfaultfd-preserve-write-protection-across-uffdio_move
-+++ a/mm/userfaultfd.c
-@@ -1123,7 +1123,10 @@ static long move_present_ptes(struct mm_
- 			orig_dst_pte = pte_mksoft_dirty(orig_dst_pte);
- 		if (pte_dirty(orig_src_pte))
- 			orig_dst_pte = pte_mkdirty(orig_dst_pte);
--		orig_dst_pte = pte_mkwrite(orig_dst_pte, dst_vma);
-+		if (pte_write(orig_src_pte))
-+			orig_dst_pte = pte_mkwrite(orig_dst_pte, dst_vma);
-+		if (pte_uffd_wp(orig_src_pte))
-+			orig_dst_pte = pte_mkuffd_wp(orig_dst_pte);
- 		set_pte_at(mm, dst_addr, dst_pte, orig_dst_pte);
- 
- 		src_addr += PAGE_SIZE;
-_
-
-Patches currently in -mm which might be from gourry@gourry.net are
-
-
+               Linus
