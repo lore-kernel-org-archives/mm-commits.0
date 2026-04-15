@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6271C3314B9
-	for <mm-commits@vger.kernel.org>; Wed, 15 Apr 2026 09:16:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 971D53264D4
+	for <mm-commits@vger.kernel.org>; Wed, 15 Apr 2026 09:16:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776244588; cv=none; b=QuIcnPX6yqui5g4ZEBn7XSKnzDNpUKzRwTdCW0ixVBKD5X4WEQ6Lf1IE+fpbCDuvcTH7W430V+LYqEsMXtPGZWuL0yBS9sjHVB55CEEgGhcTXfECq1sql/vohxFVuZUE6GQ63rglcZl7MMLMr98Cg9U8juHWiELBTPXI8AyHlho=
+	t=1776244592; cv=none; b=RSDfSyRuPmpSwk8qS8cT7wKLdjdFkGYIMFgNjAu3aqRvqChrfGRO1fI+znpmFdMGfKqDAqUTQvv+wswCszdD6ZAV/gPVYmhy2RWQXBn99x7Svi0dV+EijGj/sj2Vja5QjtrowhYACrSa2EvuqgXju0SHEtGSdQA5RDhR+WGhQpo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776244588; c=relaxed/simple;
-	bh=94NNTrT0AMaZX94jRHAAR+7CYIZ//Ia4El+5Xj1VMmQ=;
-	h=Date:To:From:Subject:Message-Id; b=aEpN5sAunY1TXU8Q2itiA+Q0nvRLIjmbTq7wCmk8/lB1vU/tPl4cSI+NSqEn5xsTN0fTIkxv28cZQ94mLiSVmRMmlm0waj2zVygo2iKF8fusEHwH6ythuz5dCp/rXRdUEtClgBszBTz19C+XtRwWpCmsxoM/2l8jGOSoRhxZigU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eNgxbA0x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776244592; c=relaxed/simple;
+	bh=lRYbd2uuCJL9Cz6wPOxp8FKH6YtzZBxqB0/LTJMQXkw=;
+	h=Date:To:From:Subject:Message-Id; b=dEiUE2vz+W6a4cLdHO0UF5BCN7O7TLZxXqeEbP3WBItd+Q3YpuIp5Kz0UD8R0fcG5P5kBMoW83T23brMCjUgOghXJRF1TAj9HrzpYT1tj8vymo/J1umXBhVkGCM7cl6yPsj/orzdNGsvKCzN0VK1RL34y7pV3CgUhQwp/7iS0Uw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JGI+Yit5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eNgxbA0x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97DEEC2BCB5;
-	Wed, 15 Apr 2026 09:16:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JGI+Yit5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFAB6C2BCB5;
+	Wed, 15 Apr 2026 09:16:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776244588;
-	bh=94NNTrT0AMaZX94jRHAAR+7CYIZ//Ia4El+5Xj1VMmQ=;
+	s=korg; t=1776244592;
+	bh=lRYbd2uuCJL9Cz6wPOxp8FKH6YtzZBxqB0/LTJMQXkw=;
 	h=Date:To:From:Subject:From;
-	b=eNgxbA0xq6mqAI7JucIhGon1V2OUOR71/hnlo5RitHUnBSaCKThbKm7ufJ8XeNFbt
-	 YZSeZk6D7gR9iSWAUdyxf+zKfRFR0A/ScevkMbgZgTAz5B1cV+iTaX7THTjctp/nIJ
-	 I1JiVzTPpa0scHRzprDobOZHLYRauJokAll3y+iY=
-Date: Wed, 15 Apr 2026 02:16:25 -0700
+	b=JGI+Yit55+DcX87LOn66Q1tzQG6Q3DkrgQazPfmVoxZjfPWofEb8AqwZTeaqBIK16
+	 Syi7FKHEa4jYuKgv0aFsT0sOBZwF7t+mAMclQ/6YEAJiULsRmp3baMuBahnglfrcay
+	 Fqzcb01Q2Ji3Rvkw6zfqK+mBtRtCK/Pcwtf0qEbE=
+Date: Wed, 15 Apr 2026 02:16:28 -0700
 To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,joseph.qi@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-validate-extent-block-list-fields-during-block-read.patch removed from -mm tree
-Message-Id: <20260415091627.97DEEC2BCB5@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-remove-redundant-l_next_free_rec-check-in-__ocfs2_find_path.patch removed from -mm tree
+Message-Id: <20260415091631.AFAB6C2BCB5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: validate extent block list fields during block read
+     Subject: ocfs2: remove redundant l_next_free_rec check in __ocfs2_find_path()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-validate-extent-block-list-fields-during-block-read.patch
+     ocfs2-remove-redundant-l_next_free_rec-check-in-__ocfs2_find_path.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: validate extent block list fields during block read
-Date: Fri, 3 Apr 2026 17:08:02 +0800
+Subject: ocfs2: remove redundant l_next_free_rec check in __ocfs2_find_path()
+Date: Fri, 3 Apr 2026 17:08:03 +0800
 
-Add extent list validation to ocfs2_validate_extent_block() so that
-corrupted on-disk fields are caught early at block read time rather than
-during extent tree traversal.
+The l_next_free_rec > l_count check after ocfs2_read_extent_block() in
+__ocfs2_find_path() is now redundant, as ocfs2_validate_extent_block()
+already performs this validation at block read time.
 
-Two checks are added:
+Remove the duplicate check to avoid maintaining the same validation in two
+places.
 
-  - l_count must equal the expected value from
-    ocfs2_extent_recs_per_eb(), catching blocks with a corrupted record
-    count before any array iteration.
-
-  - l_next_free_rec must not exceed l_count, preventing out-of-bounds
-    access when iterating over extent records.
-
-Link: https://lkml.kernel.org/r/20260403090803.3860971-4-joseph.qi@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20260403090803.3860971-5-joseph.qi@linux.alibaba.com
 Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Reviewed-by: Heming Zhao <heming.zhao@suse.com>
 Cc: Changwei Ge <gechangwei@live.cn>
@@ -71,45 +65,30 @@ Cc: Mark Fasheh <mark@fasheh.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ fs/ocfs2/alloc.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-validate-extent-block-list-fields-during-block-read
+--- a/fs/ocfs2/alloc.c~ocfs2-remove-redundant-l_next_free_rec-check-in-__ocfs2_find_path
 +++ a/fs/ocfs2/alloc.c
-@@ -917,11 +917,32 @@ static int ocfs2_validate_extent_block(s
- 		goto bail;
- 	}
+@@ -1878,18 +1878,6 @@ static int __ocfs2_find_path(struct ocfs
+ 		eb = (struct ocfs2_extent_block *) bh->b_data;
+ 		el = &eb->h_list;
  
--	if (le32_to_cpu(eb->h_fs_generation) != OCFS2_SB(sb)->fs_generation)
-+	if (le32_to_cpu(eb->h_fs_generation) != OCFS2_SB(sb)->fs_generation) {
- 		rc = ocfs2_error(sb,
- 				 "Extent block #%llu has an invalid h_fs_generation of #%u\n",
- 				 (unsigned long long)bh->b_blocknr,
- 				 le32_to_cpu(eb->h_fs_generation));
-+		goto bail;
-+	}
-+
-+	if (le16_to_cpu(eb->h_list.l_count) != ocfs2_extent_recs_per_eb(sb)) {
-+		rc = ocfs2_error(sb,
-+				 "Extent block #%llu has invalid l_count %u (expected %u)\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 le16_to_cpu(eb->h_list.l_count),
-+				 ocfs2_extent_recs_per_eb(sb));
-+		goto bail;
-+	}
-+
-+	if (le16_to_cpu(eb->h_list.l_next_free_rec) > le16_to_cpu(eb->h_list.l_count)) {
-+		rc = ocfs2_error(sb,
-+				 "Extent block #%llu has invalid l_next_free_rec %u (l_count %u)\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 le16_to_cpu(eb->h_list.l_next_free_rec),
-+				 le16_to_cpu(eb->h_list.l_count));
-+		goto bail;
-+	}
-+
- bail:
- 	return rc;
- }
+-		if (le16_to_cpu(el->l_next_free_rec) >
+-		    le16_to_cpu(el->l_count)) {
+-			ocfs2_error(ocfs2_metadata_cache_get_super(ci),
+-				    "Owner %llu has bad count in extent list at block %llu (next free=%u, count=%u)\n",
+-				    (unsigned long long)ocfs2_metadata_cache_owner(ci),
+-				    (unsigned long long)bh->b_blocknr,
+-				    le16_to_cpu(el->l_next_free_rec),
+-				    le16_to_cpu(el->l_count));
+-			ret = -EROFS;
+-			goto out;
+-		}
+-
+ 		if (func)
+ 			func(data, bh);
+ 	}
 _
 
 Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
