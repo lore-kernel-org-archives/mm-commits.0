@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADDDC3264D4
-	for <mm-commits@vger.kernel.org>; Wed, 15 Apr 2026 09:17:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A98F2239085
+	for <mm-commits@vger.kernel.org>; Wed, 15 Apr 2026 10:13:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776244624; cv=none; b=azVcPy7O6sQ9bf3QkoD03gC8lAbwhBmDPSfEyArhNo4IatsPgk0M0+kfXEmh0pn0TyUhR5LQU5Yj6aErY2iiOseKdcNqp7rbOYOLdYogRFmXAkoUCPDVv6dgDyeGhFeNNPrvdhStso0IE6edbkzaoHaB1AzH4Ixyi2NdiirIzzQ=
+	t=1776247985; cv=none; b=Q2sBT8T+wuSt6fNaJynkBvTlaLwesBytqRustr2jqjE/Yl9T8FMJPro7mDxULmFPamwwNmrHNNi5OI0vh8he7c9zjsh2W5bGy3Gh8c25GPRARGXxWwZLxVKq1d7lAg15yZR/gAJf2Qkhx3srN9ogoMYhCl9OR/lkaH7Knix56dw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776244624; c=relaxed/simple;
-	bh=qwwLWbSSJptDZob8U1fQtk1gfbqJWhhG8uo/0Bmv97I=;
-	h=Date:To:From:Subject:Message-Id; b=XI3Vgxgo4NeDa5jdCz0KrhCjmPXgEqSRr+82D0Oeye7D/TfaASiW+tjbKc8nje7KVW8MxQXV/x4tsxup9l90dOfF2p6/X9hVlGrgO7e6pU19ek27jfwcZhbaoomMhHV/rSoqhWW5DbW9LI8fEJL/w+Fs2dq2hfL/BJmNgCDr1hU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FW4ZlRS6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776247985; c=relaxed/simple;
+	bh=KNssawiX0kEv/te+opMI5edcVpaHXUsB6i5rcl6531Y=;
+	h=Date:To:From:Subject:Message-Id; b=k3KTqUz7upQhrjXl2S6uy8OGKvBr+K+pKyEhr1SDWgV8UPnPKoJCRR8/w8WVfdUu8wJ2HEPcG8SYVQe6bHgE8zmTrpSEY8ivIKk4fKavoWf/PYUIIodRk5CQRwqGPmyUl1xVZ8nSJ2wevn45U+N6pW+cEJmEo2ptnBRJzgS/xBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=l540s1/f; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FW4ZlRS6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 288F5C19424;
-	Wed, 15 Apr 2026 09:17:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="l540s1/f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D03EEC19424;
+	Wed, 15 Apr 2026 10:13:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776244624;
-	bh=qwwLWbSSJptDZob8U1fQtk1gfbqJWhhG8uo/0Bmv97I=;
+	s=korg; t=1776247985;
+	bh=KNssawiX0kEv/te+opMI5edcVpaHXUsB6i5rcl6531Y=;
 	h=Date:To:From:Subject:From;
-	b=FW4ZlRS6wKdrX6WzjQUiItoA7a6mD27sycirgUo2cbeYisTHf1dywBhrPCZT8R8ZJ
-	 HGQGiBvgMy4FBGwpgCmVHqIuds74JfIU+yumcKUWfNhwnV4ZvrbRBZwvwybh6oGWeN
-	 2a3i+R4Vc//ADL/Z3+dZ4TyqnkvC8bDdz0f+30TM=
-Date: Wed, 15 Apr 2026 02:17:01 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,akpm@linux-foundation.org
+	b=l540s1/fXn5jVBL5V2GfzEt3hRkvAnvSN2DbzC6LRDN1rwiYQu16XL6yHIaLxuBtF
+	 qYyRuirQMqVjNGWjkJWOcmO8E2PF7s4bjFJS5qt2nLr6DVXMbbsZRAxTi4DBcRLXQj
+	 BF0PKKm8+R60B0qLCpS4bjwDDCOjhQmvmvi51NPg=
+Date: Wed, 15 Apr 2026 03:13:00 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,koichiro.den@canonical.com,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,dave@stgolabs.net,baolin.wang@linux.alibaba.com,baohua@kernel.org,axelrasmussen@google.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-validate-group-add-input-before-caching.patch removed from -mm tree
-Message-Id: <20260415091704.288F5C19424@smtp.kernel.org>
+Subject: + mm-vmscan-avoid-false-positive-wuninitialized-warning.patch added to mm-unstable branch
+Message-Id: <20260415101304.D03EEC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,117 +34,99 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: ocfs2: validate group add input before caching
-has been removed from the -mm tree.  Its filename was
-     ocfs2-validate-group-add-input-before-caching.patch
+The patch titled
+     Subject: mm/vmscan: avoid false-positive -Wuninitialized warning
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-vmscan-avoid-false-positive-wuninitialized-warning.patch
 
-This patch was dropped because it was merged into the mm-nonmm-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-avoid-false-positive-wuninitialized-warning.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: ZhengYuan Huang <gality369@gmail.com>
-Subject: ocfs2: validate group add input before caching
-Date: Fri, 10 Apr 2026 10:02:08 +0800
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm/vmscan: avoid false-positive -Wuninitialized warning
+Date: Tue, 14 Apr 2026 08:51:58 +0200
 
-[BUG]
-OCFS2_IOC_GROUP_ADD can trigger a BUG_ON in
-ocfs2_set_new_buffer_uptodate():
+When the -fsanitize=bounds sanitizer is enabled, gcc-16 sometimes runs
+into a corner case in the read_ctrl_pos() pos function, where it sees
+possible undefined behavior from the 'tier' index overflowing, presumably
+in the case that this was called with a negative tier:
 
-kernel BUG at fs/ocfs2/uptodate.c:509!
-Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
-RIP: 0010:ocfs2_set_new_buffer_uptodate+0x194/0x1e0 fs/ocfs2/uptodate.c:509
-Code: ffffe88f 42b9fe4c 89e64889 dfe8b4df
-Call Trace:
- ocfs2_group_add+0x3f1/0x1510 fs/ocfs2/resize.c:507
- ocfs2_ioctl+0x309/0x6e0 fs/ocfs2/ioctl.c:887
- vfs_ioctl fs/ioctl.c:51 [inline]
- __do_sys_ioctl fs/ioctl.c:597 [inline]
- __se_sys_ioctl fs/ioctl.c:583 [inline]
- __x64_sys_ioctl+0x197/0x1e0 fs/ioctl.c:583
- x64_sys_call+0x1144/0x26a0 arch/x86/include/generated/asm/syscalls_64.h:17
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0x93/0xf80 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x76/0x7e
-RIP: 0033:0x7bbfb55a966d
+In function 'get_tier_idx',
+    inlined from 'isolate_folios' at mm/vmscan.c:4671:14:
+mm/vmscan.c: In function 'isolate_folios':
+mm/vmscan.c:4645:29: error: 'pv.refaulted' is used uninitialized [-Werror=uninitialized]
 
-[CAUSE]
-ocfs2_group_add() calls ocfs2_set_new_buffer_uptodate() on a
-user-controlled group block before ocfs2_verify_group_and_input()
-validates that block number. That helper is only valid for newly
-allocated metadata and asserts that the block is not already present in
-the chosen metadata cache. The code also uses INODE_CACHE(inode) even
-though the group descriptor belongs to main_bm_inode and later journal
-accesses use that cache context instead.
+Part of the problem seems to be that read_ctrl_pos() has unusual calling
+conventions since commit 37a260870f2c ("mm/mglru: rework type selection")
+where passing MAX_NR_TIERS makes it accumulate all tiers but passing a
+smaller positive number makes it read a single tier instead.
 
-[FIX]
-Validate the on-disk group descriptor before caching it, then add it to
-the metadata cache tracked by INODE_CACHE(main_bm_inode). Keep the
-validation failure path separate from the later cleanup path so we only
-remove the buffer from that cache after it has actually been inserted.
-This keeps the group buffer lifetime consistent across validation,
-journaling, and cleanup.
+Shut up the warning by adding a fake initialization to the two instances
+of this variable that can run into that corner case.
 
-Link: https://lkml.kernel.org/r/20260410020209.3786348-1-gality369@gmail.com
-Fixes: 7909f2bf8353 ("[PATCH 2/2] ocfs2: Implement group add for online resize")
-Signed-off-by: ZhengYuan Huang <gality369@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+Link: https://lore.kernel.org/all/CAJHvVcjtFW86o5FoQC8MMEXCHAC0FviggaQsd5EmiCHP+1fBpg@mail.gmail.com/
+Link: https://lkml.kernel.org/r/20260414065206.3236176-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Koichiro Den <koichiro.den@canonical.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/resize.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/vmscan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/resize.c~ocfs2-validate-group-add-input-before-caching
-+++ a/fs/ocfs2/resize.c
-@@ -508,14 +508,14 @@ int ocfs2_group_add(struct inode *inode,
- 		goto out_unlock;
- 	}
+--- a/mm/vmscan.c~mm-vmscan-avoid-false-positive-wuninitialized-warning
++++ a/mm/vmscan.c
+@@ -4760,7 +4760,7 @@ static int scan_folios(unsigned long nr_
+ static int get_tier_idx(struct lruvec *lruvec, int type)
+ {
+ 	int tier;
+-	struct ctrl_pos sp, pv;
++	struct ctrl_pos sp, pv = {};
  
--	ocfs2_set_new_buffer_uptodate(INODE_CACHE(inode), group_bh);
--
- 	ret = ocfs2_verify_group_and_input(main_bm_inode, fe, input, group_bh);
- 	if (ret) {
- 		mlog_errno(ret);
- 		goto out_free_group_bh;
- 	}
+ 	/*
+ 	 * To leave a margin for fluctuations, use a larger gain factor (2:3).
+@@ -4779,7 +4779,7 @@ static int get_tier_idx(struct lruvec *l
  
-+	ocfs2_set_new_buffer_uptodate(INODE_CACHE(main_bm_inode), group_bh);
-+
- 	trace_ocfs2_group_add((unsigned long long)input->group,
- 			       input->chain, input->clusters, input->frees);
+ static int get_type_to_scan(struct lruvec *lruvec, int swappiness)
+ {
+-	struct ctrl_pos sp, pv;
++	struct ctrl_pos sp, pv = {};
  
-@@ -523,7 +523,7 @@ int ocfs2_group_add(struct inode *inode,
- 	if (IS_ERR(handle)) {
- 		mlog_errno(PTR_ERR(handle));
- 		ret = -EINVAL;
--		goto out_free_group_bh;
-+		goto out_remove_cache;
- 	}
- 
- 	cl_bpc = le16_to_cpu(fe->id2.i_chain.cl_bpc);
-@@ -577,9 +577,11 @@ int ocfs2_group_add(struct inode *inode,
- out_commit:
- 	ocfs2_commit_trans(osb, handle);
- 
--out_free_group_bh:
-+out_remove_cache:
- 	if (ret < 0)
--		ocfs2_remove_from_cache(INODE_CACHE(inode), group_bh);
-+		ocfs2_remove_from_cache(INODE_CACHE(main_bm_inode), group_bh);
-+
-+out_free_group_bh:
- 	brelse(group_bh);
- 
- out_unlock:
+ 	if (swappiness <= MIN_SWAPPINESS + 1)
+ 		return LRU_GEN_FILE;
 _
 
-Patches currently in -mm which might be from gality369@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+mm-vmscan-avoid-false-positive-wuninitialized-warning.patch
 
