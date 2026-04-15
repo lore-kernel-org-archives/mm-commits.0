@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 069A7F507
-	for <mm-commits@vger.kernel.org>; Wed, 15 Apr 2026 09:17:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADDDC3264D4
+	for <mm-commits@vger.kernel.org>; Wed, 15 Apr 2026 09:17:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776244621; cv=none; b=qMBpYO1isNPdXaDMQnfyNukiN/wAhi4grQeQc/rx/MfsamD50jopN1OVX89d9rNSPEBuWxQRBdZwlJDDx62h1T0A+GuldUK4XSK86rS8BHDcd7Xib/7aWf7h2fkY4HWqukMyUhE06skP6A3rfWyIftMlY5B5/xAfIg4KKDHi45I=
+	t=1776244624; cv=none; b=azVcPy7O6sQ9bf3QkoD03gC8lAbwhBmDPSfEyArhNo4IatsPgk0M0+kfXEmh0pn0TyUhR5LQU5Yj6aErY2iiOseKdcNqp7rbOYOLdYogRFmXAkoUCPDVv6dgDyeGhFeNNPrvdhStso0IE6edbkzaoHaB1AzH4Ixyi2NdiirIzzQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776244621; c=relaxed/simple;
-	bh=B5HTCn5tqaOeBpv8a2vWVN8AqY4OBk1KjwS3NgnI6jM=;
-	h=Date:To:From:Subject:Message-Id; b=euIzshTjS3Vt5xGHJKkeyMDcbe8rORjo4TnCbHt67mACX7mebNsjZpymNO/naJStK93AgWflFTKtBuVVJ6PIaPWWaCt+wQalG8GU8iSDpXkeUY8pTxYI7gpKvc7B8icsi71oGd2kBfNW8V3N9hpAQx/+zoWoY/4hfh4xhwdcN4w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Dz1qqdTq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776244624; c=relaxed/simple;
+	bh=qwwLWbSSJptDZob8U1fQtk1gfbqJWhhG8uo/0Bmv97I=;
+	h=Date:To:From:Subject:Message-Id; b=XI3Vgxgo4NeDa5jdCz0KrhCjmPXgEqSRr+82D0Oeye7D/TfaASiW+tjbKc8nje7KVW8MxQXV/x4tsxup9l90dOfF2p6/X9hVlGrgO7e6pU19ek27jfwcZhbaoomMhHV/rSoqhWW5DbW9LI8fEJL/w+Fs2dq2hfL/BJmNgCDr1hU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FW4ZlRS6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Dz1qqdTq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 471D3C19424;
-	Wed, 15 Apr 2026 09:16:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FW4ZlRS6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 288F5C19424;
+	Wed, 15 Apr 2026 09:17:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776244620;
-	bh=B5HTCn5tqaOeBpv8a2vWVN8AqY4OBk1KjwS3NgnI6jM=;
+	s=korg; t=1776244624;
+	bh=qwwLWbSSJptDZob8U1fQtk1gfbqJWhhG8uo/0Bmv97I=;
 	h=Date:To:From:Subject:From;
-	b=Dz1qqdTqfMjjJfXoxvo6MBc0G/XhKSAQ6MAc9BmrwnMv5ZFebUTW18QqfbwxnXcVa
-	 P8vhw2gR9P7FPw8wcvMy11fRWLRvOhGo5+jpTijl7dN5Jyt1dC+u1LAF10o9XW77tm
-	 9hOjNIOhToDkpWqDqm7gw21XpZ0uxweTb/WWYZ2c=
-Date: Wed, 15 Apr 2026 02:16:56 -0700
+	b=FW4ZlRS6wKdrX6WzjQUiItoA7a6mD27sycirgUo2cbeYisTHf1dywBhrPCZT8R8ZJ
+	 HGQGiBvgMy4FBGwpgCmVHqIuds74JfIU+yumcKUWfNhwnV4ZvrbRBZwvwybh6oGWeN
+	 2a3i+R4Vc//ADL/Z3+dZ4TyqnkvC8bDdz0f+30TM=
+Date: Wed, 15 Apr 2026 02:17:01 -0700
 To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-validate-bg_bits-during-freefrag-scan.patch removed from -mm tree
-Message-Id: <20260415091700.471D3C19424@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] ocfs2-validate-group-add-input-before-caching.patch removed from -mm tree
+Message-Id: <20260415091704.288F5C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,72 +35,59 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: validate bg_bits during freefrag scan
+     Subject: ocfs2: validate group add input before caching
 has been removed from the -mm tree.  Its filename was
-     ocfs2-validate-bg_bits-during-freefrag-scan.patch
+     ocfs2-validate-group-add-input-before-caching.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: ZhengYuan Huang <gality369@gmail.com>
-Subject: ocfs2: validate bg_bits during freefrag scan
-Date: Fri, 10 Apr 2026 11:42:20 +0800
+Subject: ocfs2: validate group add input before caching
+Date: Fri, 10 Apr 2026 10:02:08 +0800
 
 [BUG]
-A crafted filesystem can trigger an out-of-bounds bitmap walk when
-OCFS2_IOC_INFO is issued with OCFS2_INFO_FL_NON_COHERENT.
+OCFS2_IOC_GROUP_ADD can trigger a BUG_ON in
+ocfs2_set_new_buffer_uptodate():
 
-BUG: KASAN: use-after-free in instrument_atomic_read include/linux/instrumented.h:68 [inline]
-BUG: KASAN: use-after-free in _test_bit include/asm-generic/bitops/instrumented-non-atomic.h:141 [inline]
-BUG: KASAN: use-after-free in test_bit_le include/asm-generic/bitops/le.h:21 [inline]
-BUG: KASAN: use-after-free in ocfs2_info_freefrag_scan_chain fs/ocfs2/ioctl.c:495 [inline]
-BUG: KASAN: use-after-free in ocfs2_info_freefrag_scan_bitmap fs/ocfs2/ioctl.c:588 [inline]
-BUG: KASAN: use-after-free in ocfs2_info_handle_freefrag fs/ocfs2/ioctl.c:662 [inline]
-BUG: KASAN: use-after-free in ocfs2_info_handle_request+0x1c66/0x3370 fs/ocfs2/ioctl.c:754
-Read of size 8 at addr ffff888031bce000 by task syz.0.636/1435
+kernel BUG at fs/ocfs2/uptodate.c:509!
+Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
+RIP: 0010:ocfs2_set_new_buffer_uptodate+0x194/0x1e0 fs/ocfs2/uptodate.c:509
+Code: ffffe88f 42b9fe4c 89e64889 dfe8b4df
 Call Trace:
- __dump_stack lib/dump_stack.c:94 [inline]
- dump_stack_lvl+0xbe/0x130 lib/dump_stack.c:120
- print_address_description mm/kasan/report.c:378 [inline]
- print_report+0xd1/0x650 mm/kasan/report.c:482
- kasan_report+0xfb/0x140 mm/kasan/report.c:595
- check_region_inline mm/kasan/generic.c:186 [inline]
- kasan_check_range+0x11c/0x200 mm/kasan/generic.c:200
- __kasan_check_read+0x11/0x20 mm/kasan/shadow.c:31
- instrument_atomic_read include/linux/instrumented.h:68 [inline]
- _test_bit include/asm-generic/bitops/instrumented-non-atomic.h:141 [inline]
- test_bit_le include/asm-generic/bitops/le.h:21 [inline]
- ocfs2_info_freefrag_scan_chain fs/ocfs2/ioctl.c:495 [inline]
- ocfs2_info_freefrag_scan_bitmap fs/ocfs2/ioctl.c:588 [inline]
- ocfs2_info_handle_freefrag fs/ocfs2/ioctl.c:662 [inline]
- ocfs2_info_handle_request+0x1c66/0x3370 fs/ocfs2/ioctl.c:754
- ocfs2_info_handle+0x18d/0x2a0 fs/ocfs2/ioctl.c:828
- ocfs2_ioctl+0x632/0x6e0 fs/ocfs2/ioctl.c:913
+ ocfs2_group_add+0x3f1/0x1510 fs/ocfs2/resize.c:507
+ ocfs2_ioctl+0x309/0x6e0 fs/ocfs2/ioctl.c:887
  vfs_ioctl fs/ioctl.c:51 [inline]
  __do_sys_ioctl fs/ioctl.c:597 [inline]
  __se_sys_ioctl fs/ioctl.c:583 [inline]
  __x64_sys_ioctl+0x197/0x1e0 fs/ioctl.c:583
- ...
+ x64_sys_call+0x1144/0x26a0 arch/x86/include/generated/asm/syscalls_64.h:17
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0x93/0xf80 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x76/0x7e
+RIP: 0033:0x7bbfb55a966d
 
 [CAUSE]
-ocfs2_info_freefrag_scan_chain() uses on-disk bg_bits directly as the
-bitmap scan limit. The coherent path reads group descriptors through
-ocfs2_read_group_descriptor(), which validates the descriptor before
-use. The non-coherent path uses ocfs2_read_blocks_sync() instead and
-skips that validation, so an impossible bg_bits value can drive the
-bitmap walk past the end of the block.
+ocfs2_group_add() calls ocfs2_set_new_buffer_uptodate() on a
+user-controlled group block before ocfs2_verify_group_and_input()
+validates that block number. That helper is only valid for newly
+allocated metadata and asserts that the block is not already present in
+the chosen metadata cache. The code also uses INODE_CACHE(inode) even
+though the group descriptor belongs to main_bm_inode and later journal
+accesses use that cache context instead.
 
 [FIX]
-Compute the bitmap capacity from the filesystem format with
-ocfs2_group_bitmap_size(), report descriptors whose bg_bits exceeds
-that limit, and clamp the scan to the computed capacity. This keeps the
-freefrag report going while avoiding reads beyond the buffer.
+Validate the on-disk group descriptor before caching it, then add it to
+the metadata cache tracked by INODE_CACHE(main_bm_inode). Keep the
+validation failure path separate from the later cleanup path so we only
+remove the buffer from that cache after it has actually been inserted.
+This keeps the group buffer lifetime consistent across validation,
+journaling, and cleanup.
 
-Link: https://lkml.kernel.org/r/20260410034220.3825769-1-gality369@gmail.com
-Fixes: d24a10b9f8ed ("Ocfs2: Add a new code 'OCFS2_INFO_FREEFRAG' for o2info ioctl.")
+Link: https://lkml.kernel.org/r/20260410020209.3786348-1-gality369@gmail.com
+Fixes: 7909f2bf8353 ("[PATCH 2/2] ocfs2: Implement group add for online resize")
 Signed-off-by: ZhengYuan Huang <gality369@gmail.com>
-Reviewed-by: Heming Zhao <heming.zhao@suse.com>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -111,49 +98,51 @@ Cc: Heming Zhao <heming.zhao@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ioctl.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ fs/ocfs2/resize.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/fs/ocfs2/ioctl.c~ocfs2-validate-bg_bits-during-freefrag-scan
-+++ a/fs/ocfs2/ioctl.c
-@@ -441,13 +441,16 @@ static int ocfs2_info_freefrag_scan_chai
- 	struct buffer_head *bh = NULL;
- 	struct ocfs2_group_desc *bg = NULL;
+--- a/fs/ocfs2/resize.c~ocfs2-validate-group-add-input-before-caching
++++ a/fs/ocfs2/resize.c
+@@ -508,14 +508,14 @@ int ocfs2_group_add(struct inode *inode,
+ 		goto out_unlock;
+ 	}
  
--	unsigned int max_bits, num_clusters;
-+	unsigned int max_bits, max_bitmap_bits, num_clusters;
- 	unsigned int offset = 0, cluster, chunk;
- 	unsigned int chunk_free, last_chunksize = 0;
+-	ocfs2_set_new_buffer_uptodate(INODE_CACHE(inode), group_bh);
+-
+ 	ret = ocfs2_verify_group_and_input(main_bm_inode, fe, input, group_bh);
+ 	if (ret) {
+ 		mlog_errno(ret);
+ 		goto out_free_group_bh;
+ 	}
  
- 	if (!le32_to_cpu(rec->c_free))
- 		goto bail;
- 
-+	max_bitmap_bits = 8 * ocfs2_group_bitmap_size(osb->sb, 0,
-+					      osb->s_feature_incompat);
++	ocfs2_set_new_buffer_uptodate(INODE_CACHE(main_bm_inode), group_bh);
 +
- 	do {
- 		if (!bg)
- 			blkno = le64_to_cpu(rec->c_blkno);
-@@ -479,6 +482,19 @@ static int ocfs2_info_freefrag_scan_chai
- 			continue;
+ 	trace_ocfs2_group_add((unsigned long long)input->group,
+ 			       input->chain, input->clusters, input->frees);
  
- 		max_bits = le16_to_cpu(bg->bg_bits);
-+
-+		/*
-+		 * Non-coherent scans read raw blocks and do not get the
-+		 * bg_bits validation from
-+		 * ocfs2_read_group_descriptor().
-+		 */
-+		if (max_bits > max_bitmap_bits) {
-+			mlog(ML_ERROR,
-+			     "Group desc #%llu has %u bits, max bitmap bits %u\n",
-+			     (unsigned long long)blkno, max_bits, max_bitmap_bits);
-+			max_bits = max_bitmap_bits;
-+		}
-+
- 		offset = 0;
+@@ -523,7 +523,7 @@ int ocfs2_group_add(struct inode *inode,
+ 	if (IS_ERR(handle)) {
+ 		mlog_errno(PTR_ERR(handle));
+ 		ret = -EINVAL;
+-		goto out_free_group_bh;
++		goto out_remove_cache;
+ 	}
  
- 		for (chunk = 0; chunk < chunks_in_group; chunk++) {
+ 	cl_bpc = le16_to_cpu(fe->id2.i_chain.cl_bpc);
+@@ -577,9 +577,11 @@ int ocfs2_group_add(struct inode *inode,
+ out_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ 
+-out_free_group_bh:
++out_remove_cache:
+ 	if (ret < 0)
+-		ocfs2_remove_from_cache(INODE_CACHE(inode), group_bh);
++		ocfs2_remove_from_cache(INODE_CACHE(main_bm_inode), group_bh);
++
++out_free_group_bh:
+ 	brelse(group_bh);
+ 
+ out_unlock:
 _
 
 Patches currently in -mm which might be from gality369@gmail.com are
