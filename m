@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDB0B27CB35
-	for <mm-commits@vger.kernel.org>; Thu, 16 Apr 2026 05:49:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 116223793C5
+	for <mm-commits@vger.kernel.org>; Thu, 16 Apr 2026 05:53:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776318585; cv=none; b=XGcnomDbz3HxHLkb62X+j1N4hgY0cjOmnpM4QCtxYIHkx9DPbkwzgs5WIKwjYpm8wHQ7VGUsy2g6nNxAk+B6R0J+XCYPfEAaoRBSU9wiDHCLzQWaEwwx+a2x2hmV9NSKb8FFGKDQJUEYeq6UChUH29dAb1eoFIs0QJZGFviBIT4=
+	t=1776318837; cv=none; b=jjb8TqBBYzMz/TBRwCgjTTAHVHlMYevlplKUdNp24OM9rdsl1S86etb3gj8bgNBzKHA2jNEtpZKAyHqV/q+hmXuxcAiVSskwq5cnL8obs6ofy2EiMN0VwL1LC/ZF1Yappnx3W90v27HSKLW0wp/GrsvFuiIGHosMy2GM/7PMVOs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776318585; c=relaxed/simple;
-	bh=s71ZjFiPz3d/xNbkqcQoiCp0jWFWecy9rRTVSPdhhII=;
-	h=Date:To:From:Subject:Message-Id; b=eiOeueZnZT7g0zNLUW0OBFHaQbr+tLrC+EP9tqofR1bmg0TO0OizwWYmqy5C6gbkPuaLLE6kLgb9Z0H0cHrS592LzGvsIB2zoJeG4gel5Vv9RwyYYebPeEPWbsiUNrlzfVBIAzjzxZ7cjl97lRy3xVuUGy+NWrJp74e7GuHaqVU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hHXeHKd7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776318837; c=relaxed/simple;
+	bh=AChuDbF0S6xFWvZ7d9zfBzz0YWultwTNjwYtmu2n6Og=;
+	h=Date:To:From:Subject:Message-Id; b=bHz6l3ZeoRi2kALc5N7iZpzELstmEn14vseah/DL5ah7BQBMpdlN1vb6Xuu5HxhHWPd5eKN4YZjjLkjN0rcA3duRkxgpDWN4PWXbOX2A36ydrjjUCbe691ooMP6TJupvjxAWK2syhCpMZytkp6V7Rn4/kN8pkoSQ6fiX6OPZHDM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=weiisaz8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hHXeHKd7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFBB7C2BCAF;
-	Thu, 16 Apr 2026 05:49:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="weiisaz8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF3E4C2BCB5;
+	Thu, 16 Apr 2026 05:53:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776318584;
-	bh=s71ZjFiPz3d/xNbkqcQoiCp0jWFWecy9rRTVSPdhhII=;
+	s=korg; t=1776318836;
+	bh=AChuDbF0S6xFWvZ7d9zfBzz0YWultwTNjwYtmu2n6Og=;
 	h=Date:To:From:Subject:From;
-	b=hHXeHKd71PtSBwcmsX69hxjyy4f2ukXkT9w49Ws/qwgsZkzI443KklNFYaNXI5cj2
-	 svXu5p6h7D+ovPx34sf5izBOEcueRIuZJGeyKsdTBsq0BaYIKd148ZrbXF6I73kHJN
-	 IxtSprw0pDaKutB3gxBnblEHUUEZ0qA9RuSiuHAA=
-Date: Wed, 15 Apr 2026 22:49:39 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,jack@suse.cz,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=weiisaz86dsTjvAWlfGdJH5WGRFfkubRUYrQLo/KAffdQTTSVQQgtmO/RBMpqtWgd
+	 /JWxbyaRP7eQxI62ANoKekiFKnyiFwtK8+JZN3SbZtfOtrCbuZgGL3XVSMUNoFjyjk
+	 kOjadf33xX1r6hQOhgIqA+rJd69d6XJJ20U+tA2Y=
+Date: Wed, 15 Apr 2026 22:53:52 -0700
+To: mm-commits@vger.kernel.org,skhawaja@google.com,rppt@kernel.org,pratyush@kernel.org,dmatlack@google.com,pasha.tatashin@soleen.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-add-page-cache-reviewer-fix.patch added to mm-unstable branch
-Message-Id: <20260416054943.EFBB7C2BCAF@smtp.kernel.org>
+Subject: + liveupdate-fix-return-value-on-session-allocation-failure.patch added to mm-unstable branch
+Message-Id: <20260416055355.EF3E4C2BCB5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: maintainers-add-page-cache-reviewer-fix
+     Subject: liveupdate: fix return value on session allocation failure
 has been added to the -mm mm-unstable branch.  Its filename is
-     maintainers-add-page-cache-reviewer-fix.patch
+     liveupdate-fix-return-value-on-session-allocation-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-page-cache-reviewer-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/liveupdate-fix-return-value-on-session-allocation-failure.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,35 +58,102 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: maintainers-add-page-cache-reviewer-fix
-Date: Wed Apr 15 10:47:13 PM PDT 2026
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: liveupdate: fix return value on session allocation failure
+Date: Wed, 15 Apr 2026 19:37:38 +0000
 
-add linux-mm@kvack.org
+When session allocation fails during deserialization, the global 'err'
+variable was not updated before returning.  This caused subsequent calls
+to luo_session_deserialize() to incorrectly report success.
 
-Cc: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Ensure 'err' is set to the error code from PTR_ERR(session).  This ensures
+that an error is correctly returned to userspace when it attempts to open
+/dev/liveupdate in the new kernel if deserialization failed.
+
+Link: https://lkml.kernel.org/r/20260415193738.515491-1-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Pratyush Yadav (Google) <pratyush@kernel.org>
+Cc: David Matlack <dmatlack@google.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Samiullah Khawaja <skhawaja@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/liveupdate/luo_session.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
---- a/MAINTAINERS~maintainers-add-page-cache-reviewer-fix
-+++ a/MAINTAINERS
-@@ -19966,6 +19966,7 @@ PAGE CACHE
- M:	Matthew Wilcox (Oracle) <willy@infradead.org>
- R:	Jan Kara <jack@suse.cz>
- L:	linux-fsdevel@vger.kernel.org
-+L:	linux-mm@kvack.org
- S:	Supported
- T:	git git://git.infradead.org/users/willy/pagecache.git
- F:	Documentation/filesystems/locking.rst
+--- a/kernel/liveupdate/luo_session.c~liveupdate-fix-return-value-on-session-allocation-failure
++++ a/kernel/liveupdate/luo_session.c
+@@ -514,11 +514,12 @@ int luo_session_deserialize(void)
+ {
+ 	struct luo_session_header *sh = &luo_session_global.incoming;
+ 	static bool is_deserialized;
+-	static int err;
++	static int saved_err;
++	int err;
+ 
+ 	/* If has been deserialized, always return the same error code */
+ 	if (is_deserialized)
+-		return err;
++		return saved_err;
+ 
+ 	is_deserialized = true;
+ 	if (!sh->active)
+@@ -547,7 +548,8 @@ int luo_session_deserialize(void)
+ 			pr_warn("Failed to allocate session [%.*s] during deserialization %pe\n",
+ 				(int)sizeof(sh->ser[i].name),
+ 				sh->ser[i].name, session);
+-			return PTR_ERR(session);
++			err = PTR_ERR(session);
++			goto save_err;
+ 		}
+ 
+ 		err = luo_session_insert(sh, session);
+@@ -555,7 +557,7 @@ int luo_session_deserialize(void)
+ 			pr_warn("Failed to insert session [%s] %pe\n",
+ 				session->name, ERR_PTR(err));
+ 			luo_session_free(session);
+-			return err;
++			goto save_err;
+ 		}
+ 
+ 		scoped_guard(mutex, &session->mutex) {
+@@ -565,7 +567,7 @@ int luo_session_deserialize(void)
+ 		if (err) {
+ 			pr_warn("Failed to deserialize files for session [%s] %pe\n",
+ 				session->name, ERR_PTR(err));
+-			return err;
++			goto save_err;
+ 		}
+ 	}
+ 
+@@ -574,6 +576,9 @@ int luo_session_deserialize(void)
+ 	sh->ser = NULL;
+ 
+ 	return 0;
++save_err:
++	saved_err = err;
++	return err;
+ }
+ 
+ int luo_session_serialize(void)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-docs-proc-document-protectionkey-in-smaps-fix.patch
-docs-proc-document-protectionkey-in-smaps-fix-fix.patch
-maintainers-add-page-cache-reviewer-fix.patch
+liveupdate-prevent-double-management-of-files.patch
+memfd-implement-get_id-for-memfd_luo.patch
+selftests-liveupdate-add-test-for-double-preservation.patch
+liveupdate-safely-print-untrusted-strings.patch
+liveupdate-synchronize-lazy-initialization-of-flb-private-state.patch
+liveupdate-protect-file-handler-list-with-rwsem.patch
+liveupdate-protect-flb-lists-with-luo_register_rwlock.patch
+liveupdate-defer-flb-module-refcounting-to-active-sessions.patch
+liveupdate-remove-luo_session_quiesce.patch
+liveupdate-auto-unregister-flbs-on-file-handler-unregistration.patch
+liveupdate-remove-liveupdate_test_unregister.patch
+liveupdate-make-unregister-functions-return-void.patch
+liveupdate-defer-file-handler-module-refcounting-to-active-sessions.patch
+maintainers-update-kexec-kdump-maintainers-entries.patch
+liveupdate-fix-return-value-on-session-allocation-failure.patch
 
