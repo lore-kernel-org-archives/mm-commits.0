@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B8F0351C28
-	for <mm-commits@vger.kernel.org>; Fri, 17 Apr 2026 05:59:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D95C32BEC2B
+	for <mm-commits@vger.kernel.org>; Fri, 17 Apr 2026 06:00:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776405588; cv=none; b=t3YaHVFojXmjgNgRHPdjXz7Ij01rgh3L6VQO4IkP6ftN52cuj12br+7Ir2TWtvrBqi5UHiHWf1V1urf0CdIO3hqNzAuHEvbb4hSD/6E0ZJMrt++8Cc+yBFbGiaWH2txGHXsHqnl4dyr+NcpP/rPSbTHj5I6LxYnlq0Y1GTA6tm0=
+	t=1776405652; cv=none; b=CK+ptSA1zANzY8rueVw+/UgOEKtHJNRpYHXtZxD6VxKJiguDhapEnY0/Hcc4TU9Pi7Sk9XfYzfHxLMzbOTiaWSaJ8oY1SUwr9qvRF223w0QQxvMTRBcXSu24yWxVPTGGV6CJDoi06G0h7Bv/W3ab0ZvwAI9K+9Xwp1OFS+5UHns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776405588; c=relaxed/simple;
-	bh=NpEp1PWBNkmkfjnS/Qc2vQEimvpMEW42HlLR3OUInh0=;
-	h=Date:To:From:Subject:Message-Id; b=ETtLoNGgZFaIiTOwUhkQt7wUNwCxV+nynQv5qeXf2Gpm1sr5GOCyqXP2Az+eZsuTLsj+jEJKBIZNRAupaQDRnh4zuuFhkLWCjcyDZniTuR1Rm2rvshYN6v5l6ZKcUAYiGOL69nQfKuGsiFCukXGsfh3H/FHniFuQIk/WwQyhROI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MhGzgNTt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776405652; c=relaxed/simple;
+	bh=vJMLecZK1QMTEygEInu9JKRkDW190XL+bW0PjTozBXo=;
+	h=Date:To:From:Subject:Message-Id; b=Ssnx+LyV35z3WbpdsLEcQ73rlkHJ7yt6BfG0tUJIRGFr2dxD+DdA9mS37iVFS2cIMnHKmroA70WUMG8R+recWsXz1v5cMIJzxIdYMX03chcDf6lh2NDDu0OQjegKJCGdfagnJhhTQuaF0FU09nEd2IgCGsy+2L6dxMsle4SYvlo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CESUAHj/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MhGzgNTt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25B58C2BCB4;
-	Fri, 17 Apr 2026 05:59:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CESUAHj/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDD40C19425;
+	Fri, 17 Apr 2026 06:00:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776405587;
-	bh=NpEp1PWBNkmkfjnS/Qc2vQEimvpMEW42HlLR3OUInh0=;
+	s=korg; t=1776405652;
+	bh=vJMLecZK1QMTEygEInu9JKRkDW190XL+bW0PjTozBXo=;
 	h=Date:To:From:Subject:From;
-	b=MhGzgNTtbqOz2KqqZMoWsFEPGm30XQkeAr4SjAkOwsd/O04YFBJX1QGRvEirO3Zf/
-	 cQctcQ2oMneVKiCDt4L7yF5B2ckRjjsg2KNwK5Sedw+H5TzIX1EDAuLhOyLmJeeywf
-	 /92zxIvkftF2O6Ze97yZO1pPLl9/q1ulZLlT6t0M=
-Date: Thu, 16 Apr 2026 22:59:44 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,tz2294@columbia.edu,surenb@google.com,shuah@kernel.org,seanjc@google.com,peterx@redhat.com,pbonzini@redhat.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,kalyazin@amazon.com,jthoughton@google.com,hughd@google.com,harry.yoo@oracle.com,harry@kernel.org,devnexen@gmail.com,david@kernel.org,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,avagin@google.com,aarcange@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=CESUAHj/SBi30nHSWCMKvTzUhN+qiG+L0P/IM8K9AlL72xi2cGi0GWTzVbYUPh9Sl
+	 ngs0owKzJdkHl2e36H8/CIkfduh1I4CILVQeLT6XIjdYL/RPu/WSXUd+1TOLPfiAke
+	 mv0480VJd9BnU3+BlK9Inf4pqyRK4pJEcqreSnq0=
+Date: Thu, 16 Apr 2026 23:00:48 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,jack@suse.cz,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] userfaultfd-introduce-vm_uffd_ops-fix.patch removed from -mm tree
-Message-Id: <20260417055947.25B58C2BCB4@smtp.kernel.org>
+Subject: [folded-merged] maintainers-add-page-cache-reviewer-fix.patch removed from -mm tree
+Message-Id: <20260417060051.BDD40C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,86 +35,40 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd-introduce-vm_uffd_ops-fix
+     Subject: maintainers-add-page-cache-reviewer-fix
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-introduce-vm_uffd_ops-fix.patch
+     maintainers-add-page-cache-reviewer-fix.patch
 
-This patch was dropped because it was folded into userfaultfd-introduce-vm_uffd_ops.patch
+This patch was dropped because it was folded into maintainers-add-page-cache-reviewer.patch
 
 ------------------------------------------------------
-From: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Subject: userfaultfd-introduce-vm_uffd_ops-fix
-Date: Thu, 9 Apr 2026 20:18:57 +0300
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: maintainers-add-page-cache-reviewer-fix
+Date: Wed Apr 15 10:47:13 PM PDT 2026
 
-relocate VM_DROPPABLE test, per Tal
+add linux-mm@kvack.org
 
-Link: https://lore.kernel.org/adffgfM5ANxtPIEF@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Tal Zussman <tz2294@columbia.edu>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrei Vagin <avagin@google.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: David Carlier <devnexen@gmail.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Harry Yoo (Oracle) <harry@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: James Houghton <jthoughton@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nikita Kalyazin <kalyazin@amazon.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/userfaultfd.c~userfaultfd-introduce-vm_uffd_ops-fix
-+++ a/mm/userfaultfd.c
-@@ -2042,6 +2042,9 @@ bool vma_can_userfault(struct vm_area_st
- {
- 	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
- 
-+	if (vma->vm_flags & VM_DROPPABLE)
-+		return false;
-+
- 	vm_flags &= __VM_UFFD_FLAGS;
- 
- 	/*
-@@ -2055,9 +2058,6 @@ bool vma_can_userfault(struct vm_area_st
- 	if (!ops)
- 		return false;
- 
--	if (vma->vm_flags & VM_DROPPABLE)
--		return false;
--
- 	/*
- 	 * If user requested uffd-wp but not enabled pte markers for
- 	 * uffd-wp, then only anonymous memory is supported
+--- a/MAINTAINERS~maintainers-add-page-cache-reviewer-fix
++++ a/MAINTAINERS
+@@ -19966,6 +19966,7 @@ PAGE CACHE
+ M:	Matthew Wilcox (Oracle) <willy@infradead.org>
+ R:	Jan Kara <jack@suse.cz>
+ L:	linux-fsdevel@vger.kernel.org
++L:	linux-mm@kvack.org
+ S:	Supported
+ T:	git git://git.infradead.org/users/willy/pagecache.git
+ F:	Documentation/filesystems/locking.rst
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-userfaultfd-introduce-mfill_copy_folio_locked-helper.patch
-userfaultfd-introduce-struct-mfill_state.patch
-userfaultfd-introduce-mfill_establish_pmd-helper.patch
-userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
-userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
-userfaultfd-move-vma_can_userfault-out-of-line.patch
-userfaultfd-introduce-vm_uffd_ops.patch
-shmem-userfaultfd-use-a-vma-callback-to-handle-uffdio_continue.patch
-userfaultfd-introduce-vm_uffd_ops-alloc_folio.patch
-shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops.patch
-userfaultfd-mfill_atomic-remove-retry-logic.patch
+maintainers-add-page-cache-reviewer.patch
 
