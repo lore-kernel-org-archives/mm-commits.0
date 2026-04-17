@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 289691CFBA
-	for <mm-commits@vger.kernel.org>; Fri, 17 Apr 2026 05:51:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BED51FBEA6
+	for <mm-commits@vger.kernel.org>; Fri, 17 Apr 2026 05:52:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776405099; cv=none; b=fIq271ByF/tqdEEA3cSzQBunYu3LcmSFe5RFAHs5P729cN+yHjTkOsRYOi2I9ixlKsq8Tl4HdSG24P6gwMkqz73tynPOIkbvZlVYw90nMzmMmwpG8OcB2wvouABGwo4L+xxuP6Z3QmzJoVc3560UK4AiWXCpFpjONUBVHTdJcEY=
+	t=1776405166; cv=none; b=XcsuGSfdRwPg3Ol943yKoIBEMqPQ0h3Iq9d4Fqa4Wlu1ECFFHcoaCyVlJAbELpqaqDMTD3DaY/E3awfULiJtMKr2t1tWCzMNhb5HZHJs1LxgS9lcCMy8WA4aesLUlfC6rCjO9WRnG7cGBnZNWOqY9iusQKBe1YZvwlyal/Li2Ig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776405099; c=relaxed/simple;
-	bh=dS1PCka0kbuqGxjC/g6hqz1pU7kBoCBOdevOz3ov9B0=;
-	h=Date:To:From:Subject:Message-Id; b=Se41LZAEP9VgAhJMfqpBUT2ouiNhJaJ+Ooac1PCl7C4ejDyJWjCyflbbOow/TZgBWpGrUmDdwfq1GHttU0PtnOmZuIchtPw7QzujRAGjMPuTbC+oggs2m46kqTtAcUmwDY9uJg0oQY1LmKcPdMOZXCW4yqa6sV6AvuGjITy2wzo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aWAip+50; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776405166; c=relaxed/simple;
+	bh=cuFdPs1DxJfLRu+BL36E2zlBHcm+RPb4ugnKyQZ/YUs=;
+	h=Date:To:From:Subject:Message-Id; b=XRWRtGebL663Pptx++g6CHr9nkdDU5Uvyctfo78wd83egvov96J296qoLrr2sC2vETxAF7Czat0eLG350jxESkpXW6g5LfKdGnbMlscCymdTV10X1iFBNdozGjFyi6vmttvQqM8yH7Gsz2REa9Z+wLwp6QAXz1rDdwn/B+IaGFw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jxP3183v; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aWAip+50"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA84BC19425;
-	Fri, 17 Apr 2026 05:51:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jxP3183v"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2E76AC19425;
+	Fri, 17 Apr 2026 05:52:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776405098;
-	bh=dS1PCka0kbuqGxjC/g6hqz1pU7kBoCBOdevOz3ov9B0=;
+	s=korg; t=1776405165;
+	bh=cuFdPs1DxJfLRu+BL36E2zlBHcm+RPb4ugnKyQZ/YUs=;
 	h=Date:To:From:Subject:From;
-	b=aWAip+50S82p7I6zfPIbRcREfe81XArEY4z7i/5DBOxjWUoZwQV78zL9A6BCiWK5J
-	 q9bmBatvbyQcC5TgQ/mx9A86GaOC49XmIXfxW1yUggQzZasLfgURU18Q252WIpgBn0
-	 Gh+ccRgUU9Qo84wEDeTAZaneoCSF2/9bqPeCOK6I=
-Date: Thu, 16 Apr 2026 22:51:34 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=jxP3183v8n4cwJ5uZqE5s325JdBt/wI3XhVbJBqNx990ziRPBHJ1IaD4PY0DwV8si
+	 6v4XoRQKWdNndqoJxX5n/cMOFclAN5GdFrBl4ame9OhaDreHeAiAp4SoSmeYHQQInz
+	 tAA7J0eLhaH1vloCkjuUkmsP72+i2JpgbnQL8A94=
+Date: Thu, 16 Apr 2026 22:52:42 -0700
+To: mm-commits@vger.kernel.org,yury.khrustalev@arm.com,vbabka@kernel.org,skhan@linuxfoundation.org,rdunlap@infradead.org,mark.rutland@arm.com,ljs@kernel.org,kevin.brodsky@arm.com,david@kernel.org,dave.hansen@linux.intel.com,corbet@lwn.net,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [folded-merged] tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch removed from -mm tree
-Message-Id: <20260417055137.DA84BC19425@smtp.kernel.org>
+Subject: [folded-merged] docs-proc-document-protectionkey-in-smaps-fix.patch removed from -mm tree
+Message-Id: <20260417055245.2E76AC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,51 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix
+     Subject: docs-proc-document-protectionkey-in-smaps-fix
 has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix.patch
+     docs-proc-document-protectionkey-in-smaps-fix.patch
 
-This patch was dropped because it was folded into tools-testing-selftests-add-merge-test-for-partial-msealed-range.patch
+This patch was dropped because it was folded into docs-proc-document-protectionkey-in-smaps.patch
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@kernel.org>
-Subject: tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix
-Date: Fri, 3 Apr 2026 19:08:40 +0300
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: docs-proc-document-protectionkey-in-smaps-fix
+Date: Tue Apr  7 01:55:57 PM PDT 2026
 
-fix inclusions, to fix handle_uprobe_upon_merged_vma()
+s/system/hardware/, per review discussion
 
-Link: https://lore.kernel.org/ac_mCIUQWRAbuH8F@kernel.org
-Signed-off-by: Mike Rapoport <rppt@kernel.org>
-Cc: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Yury Khrustalev <yury.khrustalev@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/merge.c |    1 -
- 1 file changed, 1 deletion(-)
+ Documentation/filesystems/proc.rst |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-add-merge-test-for-partial-msealed-range-fix
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -2,7 +2,6 @@
+--- a/Documentation/filesystems/proc.rst~docs-proc-document-protectionkey-in-smaps-fix
++++ a/Documentation/filesystems/proc.rst
+@@ -549,7 +549,7 @@ does not take into account swapped out p
+ naturally aligned THP pages of any currently enabled size. 1 if true, 0
+ otherwise.
  
- #define _GNU_SOURCE
- #include "kselftest_harness.h"
--#include <asm-generic/unistd.h>
- #include <linux/prctl.h>
- #include <fcntl.h>
- #include <stdio.h>
+-If both the kernel and the system support protection keys (pkeys),
++If both the kernel and the hardware support protection keys (pkeys),
+ "ProtectionKey" indicates the memory protection key associated with the
+ virtual memory area.
+ 
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-tools-testing-selftests-add-merge-test-for-partial-msealed-range.patch
-userfaultfd-introduce-mfill_copy_folio_locked-helper.patch
-userfaultfd-introduce-struct-mfill_state.patch
-userfaultfd-introduce-mfill_establish_pmd-helper.patch
-userfaultfd-introduce-mfill_get_vma-and-mfill_put_vma.patch
-userfaultfd-retry-copying-with-locks-dropped-in-mfill_atomic_pte_copy.patch
-userfaultfd-move-vma_can_userfault-out-of-line.patch
-userfaultfd-introduce-vm_uffd_ops.patch
-userfaultfd-introduce-vm_uffd_ops-fix.patch
-shmem-userfaultfd-use-a-vma-callback-to-handle-uffdio_continue.patch
-userfaultfd-introduce-vm_uffd_ops-alloc_folio.patch
-shmem-userfaultfd-implement-shmem-uffd-operations-using-vm_uffd_ops.patch
-userfaultfd-mfill_atomic-remove-retry-logic.patch
+docs-proc-document-protectionkey-in-smaps.patch
+docs-proc-document-protectionkey-in-smaps-fix-fix.patch
+maintainers-add-page-cache-reviewer-fix.patch
 
