@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F41811D5CD1
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:50:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F6C71D5CD1
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:50:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498625; cv=none; b=iDkZ0tR7NuurHylVvf4Zf8hlwmwKOi2VH+nS7EOXtEiirPK67JyXxUByJV4UpOKr9i2NIJAVX/e7/AUGe8fDNcyHxO6u6jQP5EDIh5So56MycJrI2gPMVrpnnPgpDorZQSvhoP+4IzS9qjOJJL/2ppVLlUAjvMzJJtAUFGLW5Os=
+	t=1776498632; cv=none; b=fIDCuLc403kd/JfMNBRkpQSgS0QyjUGqsuF1VR+zHwn4Eg/kMG3XLhK9KWYTDP7SDMmQpFDyCeC4Vad+8d8+gx7gAKWo6FVapY5uHacjp2Dmr6+m7oLfg1wmNeW3EviCpCoVGnY9JQj0LaWnjz5FrlB0dRDtsNWUdR233zvpqog=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498625; c=relaxed/simple;
-	bh=ysVkMkMGvohpJtIls8GSrU61P43geXMsaWLgWcSW9cs=;
-	h=Date:To:From:Subject:Message-Id; b=ZAt/m+bBy9OYQIIJ1Y+oIYt6rD7qgCfdQcWmNtjWVLs2rOWEcR2ceJ4/hkCa5w+NM2OGb55HmnTzzXIwWSmwO6T5MjeoB2UPquX6WCCwu1haWYjGSf5m5X+uSJNk04AInlsU89SGUnb22Bd0daz/eTbY86cvhAlhTGZTABbxXho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=csf8gc6p; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498632; c=relaxed/simple;
+	bh=wZw3qPdO7dvsgZM43TBuz5EuxhDfl5SNCbQOww1twjU=;
+	h=Date:To:From:Subject:Message-Id; b=ok2XrVoIAPTURqYcqFJkO5vrMbIAvAOWe4WJ8EVi/Af+DZQ6RmzrzfL3oMVTW/oHFTrMN6EB7Yx0YVURnXL3G4031kAKm7F+Rd6hI3Z2fhCSAonipNVAXlLKFsy78SR6c+2ydst+CAgPYVO/P/BUI3RojNMohgwK3rjoArgbKHg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DQ8nKji+; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="csf8gc6p"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC851C19424;
-	Sat, 18 Apr 2026 07:50:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DQ8nKji+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EDF0C19424;
+	Sat, 18 Apr 2026 07:50:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498624;
-	bh=ysVkMkMGvohpJtIls8GSrU61P43geXMsaWLgWcSW9cs=;
+	s=korg; t=1776498631;
+	bh=wZw3qPdO7dvsgZM43TBuz5EuxhDfl5SNCbQOww1twjU=;
 	h=Date:To:From:Subject:From;
-	b=csf8gc6pw2hmhpj0LJLOiCoox1Ur0kHDj/2AoHWoThn33h/2xgJ4IlBx1iiWtnUW9
-	 D/VuFqrRuetDQ/cX6PxKEioTjdORiYugP0+xAmcbw78Df86yvthZEDsidJcaXz4ws1
-	 HyZHaZT7bv2f4RBooLznXDEH1/2gWpfO+lTIThB8=
-Date: Sat, 18 Apr 2026 00:50:19 -0700
+	b=DQ8nKji+HzykxbbjoZwXjza16nejuBtvsAawoR6Egq5fYKiQzvoBMI5TexQqH/fv9
+	 nHKd2wb5J9qoNyEWQ55RPX0yIPTfzv8agONVbn2h/6RWUe/ElCIn5FWYwI+YfzD/na
+	 OKu47umid8or1UptccKoHeu8q9X3I5TcoH9iWe8c=
+Date: Sat, 18 Apr 2026 00:50:26 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,songmuchun@bytedance.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-refactor-memcg_reparent_objcgs.patch removed from -mm tree
-Message-Id: <20260418075023.BC851C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-workingset-use-lruvec_lru_size-to-get-the-number-of-lru-pages.patch removed from -mm tree
+Message-Id: <20260418075030.4EDF0C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,27 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: refactor memcg_reparent_objcgs()
+     Subject: mm: workingset: use lruvec_lru_size() to get the number of lru pages
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-refactor-memcg_reparent_objcgs.patch
+     mm-workingset-use-lruvec_lru_size-to-get-the-number-of-lru-pages.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: memcontrol: refactor memcg_reparent_objcgs()
-Date: Thu, 5 Mar 2026 19:52:45 +0800
+Subject: mm: workingset: use lruvec_lru_size() to get the number of lru pages
+Date: Thu, 5 Mar 2026 19:52:46 +0800
 
-Refactor the memcg_reparent_objcgs() to facilitate subsequent reparenting
-LRU folios here.
+For cgroup v2, count_shadow_nodes() is the only place to read
+non-hierarchical stats (lruvec_stats->state_local).  To avoid the need to
+consider cgroup v2 during subsequent non-hierarchical stats reparenting,
+use lruvec_lru_size() instead of lruvec_page_state_local() to get the
+number of lru pages.
 
-Link: https://lore.kernel.org/2e5696db1993e593a51004c1dacedbc261689629.1772711148.git.zhengqi.arch@bytedance.com
+For NR_SLAB_RECLAIMABLE_B and NR_SLAB_UNRECLAIMABLE_B cases, it appears
+that the statistics here have already been problematic for a while since
+slab pages have been reparented.  So just ignore it for now.
+
+Link: https://lore.kernel.org/b1d448c667a8fb377c3390d9aba43bdb7e4d5739.1772711148.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Cc: Allen Pais <apais@linux.microsoft.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -63,8 +68,10 @@ Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Chen Ridong <chenridong@huawei.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Imran Khan <imran.f.khan@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <Liam.Howlett@oracle.com>
@@ -85,59 +92,48 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ include/linux/swap.h |    1 +
+ mm/vmscan.c          |    3 +--
+ mm/workingset.c      |    5 +++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-refactor-memcg_reparent_objcgs
-+++ a/mm/memcontrol.c
-@@ -208,15 +208,12 @@ static struct obj_cgroup *obj_cgroup_all
- 	return objcg;
- }
+--- a/include/linux/swap.h~mm-workingset-use-lruvec_lru_size-to-get-the-number-of-lru-pages
++++ a/include/linux/swap.h
+@@ -352,6 +352,7 @@ extern void swap_setup(void);
+ extern unsigned long zone_reclaimable_pages(struct zone *zone);
+ extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
+ 					gfp_t gfp_mask, nodemask_t *mask);
++unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx);
  
--static void memcg_reparent_objcgs(struct mem_cgroup *memcg)
-+static inline struct obj_cgroup *__memcg_reparent_objcgs(struct mem_cgroup *memcg,
-+							 struct mem_cgroup *parent)
+ #define MEMCG_RECLAIM_MAY_SWAP (1 << 1)
+ #define MEMCG_RECLAIM_PROACTIVE (1 << 2)
+--- a/mm/vmscan.c~mm-workingset-use-lruvec_lru_size-to-get-the-number-of-lru-pages
++++ a/mm/vmscan.c
+@@ -390,8 +390,7 @@ unsigned long zone_reclaimable_pages(str
+  * @lru: lru to use
+  * @zone_idx: zones to consider (use MAX_NR_ZONES - 1 for the whole LRU list)
+  */
+-static unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru,
+-				     int zone_idx)
++unsigned long lruvec_lru_size(struct lruvec *lruvec, enum lru_list lru, int zone_idx)
  {
- 	struct obj_cgroup *objcg, *iter;
--	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
+ 	unsigned long size = 0;
+ 	int zid;
+--- a/mm/workingset.c~mm-workingset-use-lruvec_lru_size-to-get-the-number-of-lru-pages
++++ a/mm/workingset.c
+@@ -691,9 +691,10 @@ static unsigned long count_shadow_nodes(
  
- 	objcg = rcu_replace_pointer(memcg->objcg, NULL, true);
--
--	spin_lock_irq(&objcg_lock);
--
- 	/* 1) Ready to reparent active objcg. */
- 	list_add(&objcg->list, &memcg->objcg_list);
- 	/* 2) Reparent active objcg and already reparented objcgs to parent. */
-@@ -225,7 +222,29 @@ static void memcg_reparent_objcgs(struct
- 	/* 3) Move already reparented objcgs to the parent's list */
- 	list_splice(&memcg->objcg_list, &parent->objcg_list);
- 
-+	return objcg;
-+}
+ 		mem_cgroup_flush_stats_ratelimited(sc->memcg);
+ 		lruvec = mem_cgroup_lruvec(sc->memcg, NODE_DATA(sc->nid));
 +
-+static inline void reparent_locks(struct mem_cgroup *memcg, struct mem_cgroup *parent)
-+{
-+	spin_lock_irq(&objcg_lock);
-+}
+ 		for (pages = 0, i = 0; i < NR_LRU_LISTS; i++)
+-			pages += lruvec_page_state_local(lruvec,
+-							 NR_LRU_BASE + i);
++			pages += lruvec_lru_size(lruvec, i, MAX_NR_ZONES - 1);
 +
-+static inline void reparent_unlocks(struct mem_cgroup *memcg, struct mem_cgroup *parent)
-+{
- 	spin_unlock_irq(&objcg_lock);
-+}
-+
-+static void memcg_reparent_objcgs(struct mem_cgroup *memcg)
-+{
-+	struct obj_cgroup *objcg;
-+	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
-+
-+	reparent_locks(memcg, parent);
-+
-+	objcg = __memcg_reparent_objcgs(memcg, parent);
-+
-+	reparent_unlocks(memcg, parent);
- 
- 	percpu_ref_kill(&objcg->refcnt);
- }
+ 		pages += lruvec_page_state_local(
+ 			lruvec, NR_SLAB_RECLAIMABLE_B) >> PAGE_SHIFT;
+ 		pages += lruvec_page_state_local(
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
