@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C56741C695
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:47:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 248331C695
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:47:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498452; cv=none; b=GIcnO5xiCWbi6001DrlAOangp9OpAtF22gtiiGOyHzkhvCUfeVcf1EIq3GsHpnAYEmIBAHyxZNwOL8cNh+4pargQL1NIl6d8gXos9GmGW7HbW2vT/5YzDT12b+rKzlaxtEciAn+qIlKjnlcj1oUe7g9gmCmXsnb5R1y7H3VI9NY=
+	t=1776498458; cv=none; b=H9loD6kmgNBTihaY8jnZ//rQZ9AlsH1HC3GnTViOo3U1Fz7oRsRn6c+Tmk2z4vwmtvO+sEtaiRIjCxvbILeoRWgyEkiZVUv2uZc1RPt1FeaXV5M6U0aBX9g4Am6Q7X97OenzBg/CpI/lgjdcA+8oBMLyQArl5joteCgecg9vF8M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498452; c=relaxed/simple;
-	bh=+WqKsb3tU/xAPJ6v6ZerXg9u05tC6gcyWnt+NVOR/q0=;
-	h=Date:To:From:Subject:Message-Id; b=HE8FYnHAZvgYtyHoA+6evmqKZjckGN6y8u3xCn6oqffLXNN5nAcBwVE+NP9XP1RR+0RxwONooDAFSQ26AVUVl2UKqvE6fY/wDap8kwPwU4uIU7IYwZukQHv8k+5zkHfWUMO/TA3QPAQts1CXjpBOOf4VeheYibOMBrZ753qlmf0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mkA60M3R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498458; c=relaxed/simple;
+	bh=SL5ahEaqYe3pvf/j9TEL21JxRIhvVFN3YNiIYcwB9GI=;
+	h=Date:To:From:Subject:Message-Id; b=Hg6lPbJMiGdvWDX1txuyCKLLrfkDhhmZ/kT1L4KvO/NHHfF7drGLyG4v1StAMGc4O1NokWTJXdjjeqltsda4mM9QXGAH5iMII6OTqs+j5GGIKrF5iH3feWGBOqH+mfZmVDPwB6T1N8A71ZYDhlN71aU3FwsRylSXVqawWYXFKdE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f91vOkgH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mkA60M3R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18D92C19424;
-	Sat, 18 Apr 2026 07:47:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f91vOkgH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B8D5C19424;
+	Sat, 18 Apr 2026 07:47:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498452;
-	bh=+WqKsb3tU/xAPJ6v6ZerXg9u05tC6gcyWnt+NVOR/q0=;
+	s=korg; t=1776498458;
+	bh=SL5ahEaqYe3pvf/j9TEL21JxRIhvVFN3YNiIYcwB9GI=;
 	h=Date:To:From:Subject:From;
-	b=mkA60M3R5aQK8VHstvdBLq+80VChwNsx2X+nN+0cBXxe4Gd70p/ESws7dbfN9cYw0
-	 85qVHYNonETlv2GJv3TdKYdZx2VEdj+UoEIp8eaBR3wMy5jTH3eilVkBK3JwgxRs6P
-	 hFz0bV9A5LLY2aVvgZtErAcYOgYcefvCftFMVM/8=
-Date: Sat, 18 Apr 2026 00:47:25 -0700
-To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@kernel.org,surenb@google.com,shinichiro.kawasaki@wdc.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jack@suse.cz,david@kernel.org,brauner@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=f91vOkgHsiz7GkuMJoI7eoSOfA+MzvNdsELoOBZ1sOon7la80gY0ZwyQ6qJlrB1hO
+	 9X9ME/YEKGFy+9wJoOyP/7nE5emN6SPdC9kWtlMECxRccAso09e3OKCvBoCnhRagWW
+	 sXFXWFkJ8w0/ZT/6IhJDz1S81/jKxB4ApBZBWa0w=
+Date: Sat, 18 Apr 2026 00:47:33 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vma-remove-__vma_check_mmap_hook.patch removed from -mm tree
-Message-Id: <20260418074731.18D92C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup.patch removed from -mm tree
+Message-Id: <20260418074736.9B8D5C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,103 +35,240 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: remove __vma_check_mmap_hook()
+     Subject: mm: memcontrol: remove dead code of checking parent memory cgroup
 has been removed from the -mm tree.  Its filename was
-     mm-vma-remove-__vma_check_mmap_hook.patch
+     mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: remove __vma_check_mmap_hook()
-Date: Mon, 13 Apr 2026 11:57:13 +0100
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: remove dead code of checking parent memory cgroup
+Date: Thu, 5 Mar 2026 19:52:19 +0800
 
-Commit c50ca15dd496 ("mm: add vm_ops->mapped hook") introduced
-__vma_check_mmap_hook() in order to assert that a driver doesn't
-incorrectly implement both an f_op->mmap() and a vm_ops->mapped hook, the
-latter of which would not ultimately get invoked.
+Patch series "Eliminate Dying Memory Cgroup", v6.
 
-However, this did not correctly account for stacked drivers (or drivers
-that otherwise use the compatibility layer) which might recursively call
-an mmap_prepare hook via the compatibility layer.
+Introduction
+============
 
-Thus the nested mmap_prepare() invocation might result in a VMA which has
-vm_ops->mapped set with an overlaying mmap() hook, causing the
-__vma_check_mmap_hook() to fail in vfs_mmap(), wrongly failing the
-operation.
+This patchset is intended to transfer the LRU pages to the object cgroup
+without holding a reference to the original memory cgroup in order to
+address the issue of the dying memory cgroup.  A consensus has already
+been reached regarding this approach recently [1].
 
-This patch resolves this by simply removing the check, as we can't be
-certain that an mmap() hook doesn't at some point invoke the compatibility
-layer, and it's not worth trying to track it.
+Background
+==========
 
-Link: https://lore.kernel.org/20260413105713.92625-1-ljs@kernel.org
-Fixes: c50ca15dd496 ("mm: add vm_ops->mapped hook")
-Reported-by: Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>
-Closes: https://lore.kernel.org/all/adx2ws5z0NMIe5Yj@shinmob/
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Tested-by: Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
+The issue of a dying memory cgroup refers to a situation where a memory
+cgroup is no longer being used by users, but memory (the metadata
+associated with memory cgroups) remains allocated to it.  This situation
+may potentially result in memory leaks or inefficiencies in memory
+reclamation and has persisted as an issue for several years.  Any memory
+allocation that endures longer than the lifespan (from the users'
+perspective) of a memory cgroup can lead to the issue of dying memory
+cgroup.  We have exerted greater efforts to tackle this problem by
+introducing the infrastructure of object cgroup [2].
+
+Presently, numerous types of objects (slab objects, non-slab kernel
+allocations, per-CPU objects) are charged to the object cgroup without
+holding a reference to the original memory cgroup.  The final allocations
+for LRU pages (anonymous pages and file pages) are charged at allocation
+time and continues to hold a reference to the original memory cgroup until
+reclaimed.
+
+File pages are more complex than anonymous pages as they can be shared
+among different memory cgroups and may persist beyond the lifespan of the
+memory cgroup.  The long-term pinning of file pages to memory cgroups is a
+widespread issue that causes recurring problems in practical scenarios
+[3].  File pages remain unreclaimed for extended periods.  Additionally,
+they are accessed by successive instances (second, third, fourth, etc.) of
+the same job, which is restarted into a new cgroup each time.  As a
+result, unreclaimable dying memory cgroups accumulate, leading to memory
+wastage and significantly reducing the efficiency of page reclamation.
+
+Fundamentals
+============
+
+A folio will no longer pin its corresponding memory cgroup.  It is
+necessary to ensure that the memory cgroup or the lruvec associated with
+the memory cgroup is not released when a user obtains a pointer to the
+memory cgroup or lruvec returned by folio_memcg() or folio_lruvec(). 
+Users are required to hold the RCU read lock or acquire a reference to the
+memory cgroup associated with the folio to prevent its release if they are
+not concerned about the binding stability between the folio and its
+corresponding memory cgroup.  However, some users of folio_lruvec() (i.e.,
+the lruvec lock) desire a stable binding between the folio and its
+corresponding memory cgroup.  An approach is needed to ensure the
+stability of the binding while the lruvec lock is held, and to detect the
+situation of holding the incorrect lruvec lock when there is a race
+condition during memory cgroup reparenting.  The following four steps are
+taken to achieve these goals.
+
+1. The first step  to be taken is to identify all users of both functions
+   (folio_memcg() and folio_lruvec()) who are not concerned about binding
+   stability and implement appropriate measures (such as holding a RCU read
+   lock or temporarily obtaining a reference to the memory cgroup for a
+   brief period) to prevent the release of the memory cgroup.
+
+2. Secondly, the following refactoring of folio_lruvec_lock() demonstrates
+   how to ensure the binding stability from the user's perspective of
+   folio_lruvec().
+
+   struct lruvec *folio_lruvec_lock(struct folio *folio)
+   {
+           struct lruvec *lruvec;
+
+           rcu_read_lock();
+   retry:
+           lruvec = folio_lruvec(folio);
+           spin_lock(&lruvec->lru_lock);
+           if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
+                   spin_unlock(&lruvec->lru_lock);
+                   goto retry;
+           }
+
+           return lruvec;
+   }
+
+   From the perspective of memory cgroup removal, the entire reparenting
+   process (altering the binding relationship between folio and its memory
+   cgroup and moving the LRU lists to its parental memory cgroup) should be
+   carried out under both the lruvec lock of the memory cgroup being removed
+   and the lruvec lock of its parent.
+
+3. Finally, transfer the LRU pages to the object cgroup without holding a
+   reference to the original memory cgroup.
+
+Effect
+======
+
+Finally, it can be observed that the quantity of dying memory cgroups will
+not experience a significant increase if the following test script is
+executed to reproduce the issue.
+
+#!/bin/bash
+
+# Create a temporary file 'temp' filled with zero bytes
+dd if=/dev/zero of=temp bs=4096 count=1
+
+# Display memory-cgroup info from /proc/cgroups
+cat /proc/cgroups | grep memory
+
+for i in {0..2000}
+do
+    mkdir /sys/fs/cgroup/memory/test$i
+    echo $$ > /sys/fs/cgroup/memory/test$i/cgroup.procs
+
+    # Append 'temp' file content to 'log'
+    cat temp >> log
+
+    echo $$ > /sys/fs/cgroup/memory/cgroup.procs
+
+    # Potentially create a dying memory cgroup
+    rmdir /sys/fs/cgroup/memory/test$i
+done
+
+# Display memory-cgroup info after test
+cat /proc/cgroups | grep memory
+
+rm -f temp log
+
+
+This patch (of 33):
+
+Since the no-hierarchy mode has been deprecated after the commit:
+
+  commit bef8620cd8e0 ("mm: memcg: deprecate the non-hierarchical mode").
+
+As a result, parent_mem_cgroup() will not return NULL except when passing
+the root memcg, and the root memcg cannot be offline.  Hence, it's safe to
+remove the check on the returned value of parent_mem_cgroup().  Remove the
+corresponding dead code.
+
+Link: https://lore.kernel.org/f4481291bf8c6561dd8949045b5a1ed4008a6b63.1772711148.git.zhengqi.arch@bytedance.com
+Link: https://lore.kernel.org/linux-mm/Z6OkXXYDorPrBvEQ@hm-sls2/ [1]
+Link: https://lwn.net/Articles/895431/ [2]
+Link: https://github.com/systemd/systemd/pull/36827 [3]
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Reviewed-by: Chen Ridong <chenridong@huawei.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Allen Pais <apais@linux.microsoft.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Imran Khan <imran.f.khan@oracle.com>
+Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <Liam.Howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yosry Ahmed <yosry@kernel.org>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    9 +--------
- mm/util.c          |   10 ----------
- 2 files changed, 1 insertion(+), 18 deletions(-)
+ mm/memcontrol.c |    5 -----
+ mm/shrinker.c   |    6 +-----
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
---- a/include/linux/fs.h~mm-vma-remove-__vma_check_mmap_hook
-+++ a/include/linux/fs.h
-@@ -2062,20 +2062,13 @@ void compat_set_desc_from_vma(struct vm_
- 			      const struct vm_area_struct *vma);
- int __compat_vma_mmap(struct vm_area_desc *desc, struct vm_area_struct *vma);
- int compat_vma_mmap(struct file *file, struct vm_area_struct *vma);
--int __vma_check_mmap_hook(struct vm_area_struct *vma);
+--- a/mm/memcontrol.c~mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup
++++ a/mm/memcontrol.c
+@@ -3423,9 +3423,6 @@ static void memcg_offline_kmem(struct me
+ 		return;
  
- static inline int vfs_mmap(struct file *file, struct vm_area_struct *vma)
- {
--	int err;
+ 	parent = parent_mem_cgroup(memcg);
+-	if (!parent)
+-		parent = root_mem_cgroup;
 -
- 	if (file->f_op->mmap_prepare)
- 		return compat_vma_mmap(file, vma);
+ 	memcg_reparent_list_lrus(memcg, parent);
  
--	err = file->f_op->mmap(file, vma);
--	if (err)
--		return err;
--
--	return __vma_check_mmap_hook(vma);
-+	return file->f_op->mmap(file, vma);
+ 	/*
+@@ -3705,8 +3702,6 @@ struct mem_cgroup *mem_cgroup_private_id
+ 			break;
+ 		}
+ 		memcg = parent_mem_cgroup(memcg);
+-		if (!memcg)
+-			memcg = root_mem_cgroup;
+ 	}
+ 	return memcg;
  }
- 
- static inline int vfs_mmap_prepare(struct file *file, struct vm_area_desc *desc)
---- a/mm/util.c~mm-vma-remove-__vma_check_mmap_hook
-+++ a/mm/util.c
-@@ -1281,16 +1281,6 @@ int compat_vma_mmap(struct file *file, s
- }
- EXPORT_SYMBOL(compat_vma_mmap);
- 
--int __vma_check_mmap_hook(struct vm_area_struct *vma)
--{
--	/* vm_ops->mapped is not valid if mmap() is specified. */
--	if (vma->vm_ops && WARN_ON_ONCE(vma->vm_ops->mapped))
--		return -EINVAL;
--
--	return 0;
--}
--EXPORT_SYMBOL(__vma_check_mmap_hook);
--
- static void set_ps_flags(struct page_snapshot *ps, const struct folio *folio,
- 			 const struct page *page)
+--- a/mm/shrinker.c~mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup
++++ a/mm/shrinker.c
+@@ -288,14 +288,10 @@ void reparent_shrinker_deferred(struct m
  {
+ 	int nid, index, offset;
+ 	long nr;
+-	struct mem_cgroup *parent;
++	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
+ 	struct shrinker_info *child_info, *parent_info;
+ 	struct shrinker_info_unit *child_unit, *parent_unit;
+ 
+-	parent = parent_mem_cgroup(memcg);
+-	if (!parent)
+-		parent = root_mem_cgroup;
+-
+ 	/* Prevent from concurrent shrinker_info expand */
+ 	mutex_lock(&shrinker_mutex);
+ 	for_each_node(nid) {
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
