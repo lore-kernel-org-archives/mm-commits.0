@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1537331A46
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:51:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1DC9331A46
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:51:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498666; cv=none; b=ngMPuu2DtX4xaXrSIs4ncjyBw/0Ib6xn77RJK6QzTlPaDW22aVbSi8RKKNah7l+sw43UfOsPvNP6YA47AKx6/PVKm1lcsiMCLtEU0kmWH51WN3xSy6a3OBnbcYoIR6hzTDXoFOa/MZUv3qAG2AmvLOGM/C8EFWiFrOEfJe3lsAc=
+	t=1776498671; cv=none; b=aC2GjYkUtV3vzmywySY3e8c5SbGQOKTUPXuJn+2brkSzlLrRcMDM6jX9kVz9OhkWCR9iOOjaWcl/hY7ia6CnOjpTH9dVYrGG9O8d7mkQJIcmxavE4Y8Ucz3/iUV3hMMMvpoMD3lgzOAIxnG7OaiXG5ZYk8FLSDWzQme8m6W6Zsw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498666; c=relaxed/simple;
-	bh=CYqHY1U0L/3F9fOlwGoQXdg+SVpTPV9OGWxtde/XfvM=;
-	h=Date:To:From:Subject:Message-Id; b=mFY730IQ1vI7ze03ulqL1sGeXxRBIddTamqhvfSX7roTtieJNxQOrS9jrnx4oqiBzb4BKi8wg6v/7K2jsF4dCHxxfqyRwMQQw0F2T5KTRPq0tGgNUCFP03EgnPSl5cfe64WKRSHZCTcXmSxHZwdIgwYptSEAomDIJxgjRcUjfrY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JpY8MQnW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498671; c=relaxed/simple;
+	bh=D3XvbtP85R2K/gx2DUSmEEyRTkOAS81bo/Y6L1rCr+8=;
+	h=Date:To:From:Subject:Message-Id; b=FLAV6qtpdpo9hHUYg+Ww1x6BUCmRZiWRNN16yIxr+b+/j7IoVfcv/YFVbNyVGCcdFK2nPN5PtVhUDmFwkgzotzqSyZkrRCAFrDw+jz0D36N7coN9qwIMkt82oGSUHLvvkYAY3b08SKw44ymHFMtR37YilW7WWZyW7XXeA2eknqY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=12rqZO0Q; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JpY8MQnW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 207D8C19424;
-	Sat, 18 Apr 2026 07:51:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="12rqZO0Q"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5863C19424;
+	Sat, 18 Apr 2026 07:51:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498666;
-	bh=CYqHY1U0L/3F9fOlwGoQXdg+SVpTPV9OGWxtde/XfvM=;
+	s=korg; t=1776498671;
+	bh=D3XvbtP85R2K/gx2DUSmEEyRTkOAS81bo/Y6L1rCr+8=;
 	h=Date:To:From:Subject:From;
-	b=JpY8MQnWSpXxBRIpCIlz0FSoX/Hg2w6S5YE6tFLlPDIdN7f0P4ofWesKgsdrLChFW
-	 bekL1efMOSHZvTlXGbH5dh7EMSmc8xIpwWDWathezg7irLyzPWmZxNGPOt+ab8iGVy
-	 uvRyaMpnPV2lbB9IKBRBI/4MlGZDQrA9NLHrn26g=
-Date: Sat, 18 Apr 2026 00:51:00 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=12rqZO0Q/9jynQ2pVvkFxQ0pGo0D6l8Cq34x2T8vhKGP9p6s0VWtwqsHqw1EySD2x
+	 TuhZkD1BcwTPP8SBmzlHk6oYrqKmXFRWyDc5CWAMhWi6MBpF4ub9UNm/MjTzZf4Fxr
+	 oe0otMwha+Db8fFVPWEkixMXmIZ7TdfmIZPa2nTM=
+Date: Sat, 18 Apr 2026 00:51:07 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,weixugc@google.com,usamaarif642@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,ljs@kernel.org,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry@kernel.org,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-helpers.patch removed from -mm tree
-Message-Id: <20260418075105.207D8C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-correct-the-type-of-stats_updates-to-unsigned-long.patch removed from -mm tree
+Message-Id: <20260418075110.C5863C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,103 +35,149 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: lru: add VM_WARN_ON_ONCE_FOLIO to lru maintenance helpers
+     Subject: mm: memcontrol: correct the type of stats_updates to unsigned long
 has been removed from the -mm tree.  Its filename was
-     mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-helpers.patch
+     mm-memcontrol-correct-the-type-of-stats_updates-to-unsigned-long.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: lru: add VM_WARN_ON_ONCE_FOLIO to lru maintenance helpers
-Date: Thu, 5 Mar 2026 19:52:51 +0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: memcontrol: correct the type of stats_updates to unsigned long
+Date: Fri, 27 Mar 2026 18:16:28 +0800
 
-We must ensure the folio is deleted from or added to the correct lruvec
-list.  So, add VM_WARN_ON_ONCE_FOLIO() to catch invalid users.  The
-VM_BUG_ON_PAGE() in move_pages_to_lru() can be removed as
-add_page_to_lru_list() will perform the necessary check.
+Patch series "fix unexpected type conversions and potential overflows",
+v3.
 
-Link: https://lore.kernel.org/2c90fc006d9d730331a3caeef96f7e5dabe2036d.1772711148.git.zhengqi.arch@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+As Harry Yoo pointed out [1], in scenarios where massive state updates
+occur (e.g., during the reparenting of LRU folios), the values passed to
+memcg stat update functions can accumulate and exceed the upper limit of a
+32-bit integer.
+
+If the parameter types are not large enough (like 'int') or are handled
+incorrectly, it can lead to severe truncation, potential overflow issues,
+and unexpected type conversion bugs.
+
+This series aims to address these issues by correcting the parameter types
+in the relevant functions, and by fixing an implicit conversion bug in
+memcg_state_val_in_pages().
+
+
+This patch (of 3):
+
+The memcg_rstat_updated() tracks updates for vmstats_percpu->state and
+lruvec_stats_percpu->state.  Since these state values are of type long,
+change the val parameter passed to memcg_rstat_updated() to long as well.
+
+Correspondingly, change the type of stats_updates in struct
+memcg_vmstats_percpu and struct memcg_vmstats from unsigned int and
+atomic_t to unsigned long and atomic_long_t respectively to prevent
+potential overflow when handling large state updates during the
+reparenting of LRU folios.
+
+Link: https://lore.kernel.org/cover.1774604356.git.zhengqi.arch@bytedance.com
+Link: https://lore.kernel.org/a5b0b468e7b4fe5f26c50e36d5d016f16d92f98f.1774604356.git.zhengqi.arch@bytedance.com
+Link: https://lore.kernel.org/all/acDxaEgnqPI-Z4be@hyeyoo/ [1]
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
 Cc: Allen Pais <apais@linux.microsoft.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baoquan He <bhe@redhat.com>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chen Ridong <chenridong@huawei.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Imran Khan <imran.f.khan@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
 Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <Liam.Howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Usama Arif <usamaarif642@gmail.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Wei Xu <weixugc@google.com>
-Cc: Yosry Ahmed <yosry@kernel.org>
 Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    6 ++++++
- mm/vmscan.c               |    1 -
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-helpers
-+++ a/include/linux/mm_inline.h
-@@ -348,6 +348,8 @@ void lruvec_add_folio(struct lruvec *lru
+--- a/mm/memcontrol.c~mm-memcontrol-correct-the-type-of-stats_updates-to-unsigned-long
++++ a/mm/memcontrol.c
+@@ -608,7 +608,7 @@ static inline int memcg_events_index(enu
+ 
+ struct memcg_vmstats_percpu {
+ 	/* Stats updates since the last flush */
+-	unsigned int			stats_updates;
++	unsigned long			stats_updates;
+ 
+ 	/* Cached pointers for fast iteration in memcg_rstat_updated() */
+ 	struct memcg_vmstats_percpu __percpu	*parent_pcpu;
+@@ -639,7 +639,7 @@ struct memcg_vmstats {
+ 	unsigned long		events_pending[NR_MEMCG_EVENTS];
+ 
+ 	/* Stats updates since the last flush */
+-	atomic_t		stats_updates;
++	atomic_long_t		stats_updates;
+ };
+ 
+ /*
+@@ -665,16 +665,16 @@ static u64 flush_last_time;
+ 
+ static bool memcg_vmstats_needs_flush(struct memcg_vmstats *vmstats)
  {
- 	enum lru_list lru = folio_lru_list(folio);
+-	return atomic_read(&vmstats->stats_updates) >
++	return atomic_long_read(&vmstats->stats_updates) >
+ 		MEMCG_CHARGE_BATCH * num_online_cpus();
+ }
  
-+	VM_WARN_ON_ONCE_FOLIO(!folio_matches_lruvec(folio, lruvec), folio);
-+
- 	if (lru_gen_add_folio(lruvec, folio, false))
- 		return;
- 
-@@ -362,6 +364,8 @@ void lruvec_add_folio_tail(struct lruvec
+-static inline void memcg_rstat_updated(struct mem_cgroup *memcg, int val,
++static inline void memcg_rstat_updated(struct mem_cgroup *memcg, long val,
+ 				       int cpu)
  {
- 	enum lru_list lru = folio_lru_list(folio);
+ 	struct memcg_vmstats_percpu __percpu *statc_pcpu;
+ 	struct memcg_vmstats_percpu *statc;
+-	unsigned int stats_updates;
++	unsigned long stats_updates;
  
-+	VM_WARN_ON_ONCE_FOLIO(!folio_matches_lruvec(folio, lruvec), folio);
-+
- 	if (lru_gen_add_folio(lruvec, folio, true))
+ 	if (!val)
  		return;
- 
-@@ -376,6 +380,8 @@ void lruvec_del_folio(struct lruvec *lru
- {
- 	enum lru_list lru = folio_lru_list(folio);
- 
-+	VM_WARN_ON_ONCE_FOLIO(!folio_matches_lruvec(folio, lruvec), folio);
-+
- 	if (lru_gen_del_folio(lruvec, folio, false))
- 		return;
- 
---- a/mm/vmscan.c~mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-helpers
-+++ a/mm/vmscan.c
-@@ -1916,7 +1916,6 @@ static unsigned int move_folios_to_lru(s
+@@ -697,7 +697,7 @@ static inline void memcg_rstat_updated(s
  			continue;
- 		}
  
--		VM_BUG_ON_FOLIO(!folio_matches_lruvec(folio, lruvec), folio);
- 		lruvec_add_folio(lruvec, folio);
- 		nr_pages = folio_nr_pages(folio);
- 		nr_moved += nr_pages;
+ 		stats_updates = this_cpu_xchg(statc_pcpu->stats_updates, 0);
+-		atomic_add(stats_updates, &statc->vmstats->stats_updates);
++		atomic_long_add(stats_updates, &statc->vmstats->stats_updates);
+ 	}
+ }
+ 
+@@ -705,7 +705,7 @@ static void __mem_cgroup_flush_stats(str
+ {
+ 	bool needs_flush = memcg_vmstats_needs_flush(memcg->vmstats);
+ 
+-	trace_memcg_flush_stats(memcg, atomic_read(&memcg->vmstats->stats_updates),
++	trace_memcg_flush_stats(memcg, atomic_long_read(&memcg->vmstats->stats_updates),
+ 		force, needs_flush);
+ 
+ 	if (!force && !needs_flush)
+@@ -4413,8 +4413,8 @@ static void mem_cgroup_css_rstat_flush(s
+ 	}
+ 	WRITE_ONCE(statc->stats_updates, 0);
+ 	/* We are in a per-cpu loop here, only do the atomic write once */
+-	if (atomic_read(&memcg->vmstats->stats_updates))
+-		atomic_set(&memcg->vmstats->stats_updates, 0);
++	if (atomic_long_read(&memcg->vmstats->stats_updates))
++		atomic_long_set(&memcg->vmstats->stats_updates, 0);
+ }
+ 
+ static void mem_cgroup_fork(struct task_struct *task)
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
 
