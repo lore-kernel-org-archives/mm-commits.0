@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABD8EEADC
-	for <mm-commits@vger.kernel.org>; Fri, 17 Apr 2026 13:23:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C56741C695
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:47:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776432189; cv=none; b=Nr7krZg8QaQi2wXTZ7Lvbi5mhHS6fwtED+k3OyeIeVZ8vvX9qaMwoo4/Ln7iBibkzug1/gvC9GbODrmt7ZlXiwbfVV2nukkul2RQ4W2qzcusRlNRNN1qzgq5epm4If2bUSX7NjbadeOPKRN62C3d46xbjxLATAcYQyaxG00yBwU=
+	t=1776498452; cv=none; b=GIcnO5xiCWbi6001DrlAOangp9OpAtF22gtiiGOyHzkhvCUfeVcf1EIq3GsHpnAYEmIBAHyxZNwOL8cNh+4pargQL1NIl6d8gXos9GmGW7HbW2vT/5YzDT12b+rKzlaxtEciAn+qIlKjnlcj1oUe7g9gmCmXsnb5R1y7H3VI9NY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776432189; c=relaxed/simple;
-	bh=5hoNwzjU/BI5sL/Xmy9GK2VCsNRjy2/X0zCVbB1xpjs=;
-	h=Date:To:From:Subject:Message-Id; b=MXBsCkc5Irz7Mr4DyZWJ5KshDqDRnLmiJvm4IAh7iDiMOBA8xHMw3XK3oJ+PJuy31U22YYAw9Ymm5PElYr14NX9BrJs4fsS9m+FGCkikceuX9caP0RxoCWaj0pINqAMyQy/+PrTNN2uAjNjypRujnAbp0BeGj5fos8BDHngoCh8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QEeRR4Ma; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498452; c=relaxed/simple;
+	bh=+WqKsb3tU/xAPJ6v6ZerXg9u05tC6gcyWnt+NVOR/q0=;
+	h=Date:To:From:Subject:Message-Id; b=HE8FYnHAZvgYtyHoA+6evmqKZjckGN6y8u3xCn6oqffLXNN5nAcBwVE+NP9XP1RR+0RxwONooDAFSQ26AVUVl2UKqvE6fY/wDap8kwPwU4uIU7IYwZukQHv8k+5zkHfWUMO/TA3QPAQts1CXjpBOOf4VeheYibOMBrZ753qlmf0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mkA60M3R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QEeRR4Ma"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C6802C19425;
-	Fri, 17 Apr 2026 13:23:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mkA60M3R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18D92C19424;
+	Sat, 18 Apr 2026 07:47:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776432189;
-	bh=5hoNwzjU/BI5sL/Xmy9GK2VCsNRjy2/X0zCVbB1xpjs=;
+	s=korg; t=1776498452;
+	bh=+WqKsb3tU/xAPJ6v6ZerXg9u05tC6gcyWnt+NVOR/q0=;
 	h=Date:To:From:Subject:From;
-	b=QEeRR4Mam60vkXuGRs2Y7JYa4u7V5KBrWVcVyc7QtFezsu+rTtOcGc3O8GFsLYRuu
-	 qJj5mYJiERqPmoF3JcGqdQuSOgYYuM7VafM6yvtgg17xl309xfi2u7MflV0y1iUdDW
-	 PXk51hCNoi76f6tiMPI/wCzsTwMrO737zjX/Nxe8=
-Date: Fri, 17 Apr 2026 06:23:05 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,quic_charante@quicinc.com,osalvador@suse.de,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,kasong@tencent.com,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=mkA60M3R5aQK8VHstvdBLq+80VChwNsx2X+nN+0cBXxe4Gd70p/ESws7dbfN9cYw0
+	 85qVHYNonETlv2GJv3TdKYdZx2VEdj+UoEIp8eaBR3wMy5jTH3eilVkBK3JwgxRs6P
+	 hFz0bV9A5LLY2aVvgZtErAcYOgYcefvCftFMVM/8=
+Date: Sat, 18 Apr 2026 00:47:25 -0700
+To: mm-commits@vger.kernel.org,viro@zeniv.linux.org.uk,vbabka@kernel.org,surenb@google.com,shinichiro.kawasaki@wdc.com,rppt@kernel.org,mhocko@suse.com,liam.howlett@oracle.com,jack@suse.cz,david@kernel.org,brauner@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-sparse-fix-race-on-mem_section-usage-in-pfn-walkers.patch removed from -mm tree
-Message-Id: <20260417132308.C6802C19425@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vma-remove-__vma_check_mmap_hook.patch removed from -mm tree
+Message-Id: <20260418074731.18D92C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,175 +35,103 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse: fix race on mem_section->usage in pfn walkers
+     Subject: mm/vma: remove __vma_check_mmap_hook()
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-fix-race-on-mem_section-usage-in-pfn-walkers.patch
+     mm-vma-remove-__vma_check_mmap_hook.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was merged into the mm-stable branch
+of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse: fix race on mem_section->usage in pfn walkers
-Date: Wed, 15 Apr 2026 10:23:26 +0800
+From: Lorenzo Stoakes <ljs@kernel.org>
+Subject: mm/vma: remove __vma_check_mmap_hook()
+Date: Mon, 13 Apr 2026 11:57:13 +0100
 
-When memory is hot-removed, section_deactivate() can tear down
-mem_section->usage while concurrent pfn walkers still inspect the
-subsection map via pfn_section_valid() or pfn_section_first_valid().
+Commit c50ca15dd496 ("mm: add vm_ops->mapped hook") introduced
+__vma_check_mmap_hook() in order to assert that a driver doesn't
+incorrectly implement both an f_op->mmap() and a vm_ops->mapped hook, the
+latter of which would not ultimately get invoked.
 
-After commit 5ec8e8ea8b77 ("mm/sparsemem: fix race in accessing
-memory_section->usage") converted the teardown to an RCU-based scheme, the
-code still relies on SECTION_HAS_MEM_MAP becoming visible to readers
-before ms->usage is cleared and queued for freeing.
+However, this did not correctly account for stacked drivers (or drivers
+that otherwise use the compatibility layer) which might recursively call
+an mmap_prepare hook via the compatibility layer.
 
-That ordering is not guaranteed.  section_deactivate() can clear ms->usage
-and queue kfree_rcu() before another CPU observes the SECTION_HAS_MEM_MAP
-clear.  A concurrent pfn walker can therefore see valid_section() return
-true, enter its sched-RCU read-side critical section after kfree_rcu() has
-already been queued, and then dereference a stale ms->usage pointer.
+Thus the nested mmap_prepare() invocation might result in a VMA which has
+vm_ops->mapped set with an overlaying mmap() hook, causing the
+__vma_check_mmap_hook() to fail in vfs_mmap(), wrongly failing the
+operation.
 
-And pfn_to_online_page() can call pfn_section_valid() without its own
-sched-RCU read-side critical section, which has similar problem.
+This patch resolves this by simply removing the check, as we can't be
+certain that an mmap() hook doesn't at some point invoke the compatibility
+layer, and it's not worth trying to track it.
 
-The race looks like this:
-
-  compact_zone()                    memunmap_pages
-  ==============                    ==============
-                                    __remove_pages()->
-                                      sparse_remove_section()->
-                                        section_deactivate():
-                                          a) [ Clear SECTION_HAS_MEM_MAP
-                                               is reordered to b) ]
-                                          kfree_rcu(ms->usage)
-      __pageblock_pfn_to_page
-         ......
-          pfn_valid():
-            rcu_read_lock_sched()
-            valid_section() // return true
-            pfn_section_valid()
-              [Access ms->usage which is UAF]
-                                          WRITE_ONCE(ms->usage, NULL)
-            rcu_read_unlock_sched()       b) Clear SECTION_HAS_MEM_MAP
-
-Fix this by using rcu_replace_pointer() when clearing ms->usage in
-section_deactivate(), then it does not rely on the order of clearing of
-SECTION_HAS_MEM_MAP.
-
-Link: https://lore.kernel.org/20260415022326.53218-1-songmuchun@bytedance.com
-Fixes: 5ec8e8ea8b77 ("mm/sparsemem: fix race in accessing memory_section->usage")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Charan Teja Kalla <quic_charante@quicinc.com>
+Link: https://lore.kernel.org/20260413105713.92625-1-ljs@kernel.org
+Fixes: c50ca15dd496 ("mm: add vm_ops->mapped hook")
+Reported-by: Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>
+Closes: https://lore.kernel.org/all/adx2ws5z0NMIe5Yj@shinmob/
+Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Tested-by: Shinichiro Kawasaki <shinichiro.kawasaki@wdc.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 +++---
- mm/memory_hotplug.c    |    6 +++++-
- mm/sparse-vmemmap.c    |    6 ++++--
- 3 files changed, 12 insertions(+), 6 deletions(-)
+ include/linux/fs.h |    9 +--------
+ mm/util.c          |   10 ----------
+ 2 files changed, 1 insertion(+), 18 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparse-fix-race-on-mem_section-usage-in-pfn-walkers
-+++ a/include/linux/mmzone.h
-@@ -2016,7 +2016,7 @@ struct mem_section {
- 	 */
- 	unsigned long section_mem_map;
+--- a/include/linux/fs.h~mm-vma-remove-__vma_check_mmap_hook
++++ a/include/linux/fs.h
+@@ -2062,20 +2062,13 @@ void compat_set_desc_from_vma(struct vm_
+ 			      const struct vm_area_struct *vma);
+ int __compat_vma_mmap(struct vm_area_desc *desc, struct vm_area_struct *vma);
+ int compat_vma_mmap(struct file *file, struct vm_area_struct *vma);
+-int __vma_check_mmap_hook(struct vm_area_struct *vma);
  
--	struct mem_section_usage *usage;
-+	struct mem_section_usage __rcu *usage;
- #ifdef CONFIG_PAGE_EXTENSION
- 	/*
- 	 * If SPARSEMEM, pgdat doesn't have page_ext pointer. We use
-@@ -2207,14 +2207,14 @@ static inline int subsection_map_index(u
- static inline int pfn_section_valid(struct mem_section *ms, unsigned long pfn)
+ static inline int vfs_mmap(struct file *file, struct vm_area_struct *vma)
  {
- 	int idx = subsection_map_index(pfn);
--	struct mem_section_usage *usage = READ_ONCE(ms->usage);
-+	struct mem_section_usage *usage = rcu_dereference_sched(ms->usage);
+-	int err;
+-
+ 	if (file->f_op->mmap_prepare)
+ 		return compat_vma_mmap(file, vma);
  
- 	return usage ? test_bit(idx, usage->subsection_map) : 0;
+-	err = file->f_op->mmap(file, vma);
+-	if (err)
+-		return err;
+-
+-	return __vma_check_mmap_hook(vma);
++	return file->f_op->mmap(file, vma);
  }
  
- static inline bool pfn_section_first_valid(struct mem_section *ms, unsigned long *pfn)
+ static inline int vfs_mmap_prepare(struct file *file, struct vm_area_desc *desc)
+--- a/mm/util.c~mm-vma-remove-__vma_check_mmap_hook
++++ a/mm/util.c
+@@ -1281,16 +1281,6 @@ int compat_vma_mmap(struct file *file, s
+ }
+ EXPORT_SYMBOL(compat_vma_mmap);
+ 
+-int __vma_check_mmap_hook(struct vm_area_struct *vma)
+-{
+-	/* vm_ops->mapped is not valid if mmap() is specified. */
+-	if (vma->vm_ops && WARN_ON_ONCE(vma->vm_ops->mapped))
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(__vma_check_mmap_hook);
+-
+ static void set_ps_flags(struct page_snapshot *ps, const struct folio *folio,
+ 			 const struct page *page)
  {
--	struct mem_section_usage *usage = READ_ONCE(ms->usage);
-+	struct mem_section_usage *usage = rcu_dereference_sched(ms->usage);
- 	int idx = subsection_map_index(*pfn);
- 	unsigned long bit;
- 
---- a/mm/memory_hotplug.c~mm-sparse-fix-race-on-mem_section-usage-in-pfn-walkers
-+++ a/mm/memory_hotplug.c
-@@ -340,6 +340,7 @@ struct page *pfn_to_online_page(unsigned
- 	unsigned long nr = pfn_to_section_nr(pfn);
- 	struct dev_pagemap *pgmap;
- 	struct mem_section *ms;
-+	bool valid;
- 
- 	if (nr >= NR_MEM_SECTIONS)
- 		return NULL;
-@@ -355,7 +356,10 @@ struct page *pfn_to_online_page(unsigned
- 	if (IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID) && !pfn_valid(pfn))
- 		return NULL;
- 
--	if (!pfn_section_valid(ms, pfn))
-+	rcu_read_lock_sched();
-+	valid = pfn_section_valid(ms, pfn);
-+	rcu_read_unlock_sched();
-+	if (!valid)
- 		return NULL;
- 
- 	if (!online_device_section(ms))
---- a/mm/sparse-vmemmap.c~mm-sparse-fix-race-on-mem_section-usage-in-pfn-walkers
-+++ a/mm/sparse-vmemmap.c
-@@ -764,8 +764,10 @@ static void section_deactivate(unsigned
- 		 * was allocated during boot.
- 		 */
- 		if (!PageReserved(virt_to_page(ms->usage))) {
--			kfree_rcu(ms->usage, rcu);
--			WRITE_ONCE(ms->usage, NULL);
-+			struct mem_section_usage *usage;
-+
-+			usage = rcu_replace_pointer(ms->usage, NULL, true);
-+			kfree_rcu(usage, rcu);
- 		}
- 		memmap = pfn_to_page(SECTION_ALIGN_DOWN(pfn));
- 	}
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup.patch
-mm-workingset-use-folio_lruvec-in-workingset_refault.patch
-mm-rename-unlock_page_lruvec_irq-and-its-variants.patch
-mm-vmscan-refactor-move_folios_to_lru.patch
-mm-memcontrol-allocate-object-cgroup-for-non-kmem-case.patch
-mm-memcontrol-return-root-object-cgroup-for-root-memory-cgroup.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-get_mem_cgroup_from_folio.patch
-buffer-prevent-memory-cgroup-release-in-folio_alloc_buffers.patch
-writeback-prevent-memory-cgroup-release-in-writeback-module.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-count_memcg_folio_events.patch
-mm-page_io-prevent-memory-cgroup-release-in-page_io-module.patch
-mm-migrate-prevent-memory-cgroup-release-in-folio_migrate_mapping.patch
-mm-mglru-prevent-memory-cgroup-release-in-mglru.patch
-mm-memcontrol-prevent-memory-cgroup-release-in-mem_cgroup_swap_full.patch
-mm-workingset-prevent-memory-cgroup-release-in-lru_gen_eviction.patch
-mm-workingset-prevent-lruvec-release-in-workingset_refault.patch
-mm-zswap-prevent-lruvec-release-in-zswap_folio_swapin.patch
-mm-swap-prevent-lruvec-release-in-lru_gen_clear_refs.patch
-mm-workingset-prevent-lruvec-release-in-workingset_activation.patch
-mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock.patch
-mm-memcontrol-eliminate-the-problem-of-dying-memory-cgroup-for-lru-folios.patch
-mm-lru-add-vm_warn_on_once_folio-to-lru-maintenance-helpers.patch
-mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path.patch
-mm-sparse-fix-comment-for-section-map-alignment.patch
 
