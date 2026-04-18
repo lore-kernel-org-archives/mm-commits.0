@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 578A01D5CD1
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:50:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0CE11D5CD1
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:50:51 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498645; cv=none; b=LIgGYoGueIAtdCYyov0Di07Td2B6OYnKTiqZQKU8QaTSUhUs0FCvMtWXP30T9Ii5HTqsAwZ7p+o0muK7ZLQBIxC/GHt45ECj7QAIAJENp8OKO9br4yTsTCeim94z14Lm0W4Eb1FpGDoYkavLSxf5giSpUAkJyemdOtbG3f2YMz0=
+	t=1776498651; cv=none; b=pA8PrloyRCmRB38BT1jfHf6jgZI+zE6ASmY+fzTouipDcbp+QlsRkXbpBLdMdlIMPPpICmfQii59XgticnBnyPVVjTE/s9fpTZmNVWtnEByqzUAg5zgJ0LtQIfDE1Ucpxi4xLHXYqfREPNZBrEdOlqz3Y2zq+OqFSvCNDrV/QLM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498645; c=relaxed/simple;
-	bh=kyZ5c1HLrqwgjCRkc2AOl08P3WT+Nl+NvI2uUd0GcSI=;
-	h=Date:To:From:Subject:Message-Id; b=FujSaoeC0fvbs1NI162a5OH1uhCZvrHY7b5GiUCA0IqRJSKRY5XJA7wrRqkgmR4HKRmlr28wg/Q7oD9QrxMXvibLO2rTFXsChexBWCxNOik3yTbcWiOSdS+q/qRPgQLHMVfjYLSIw5aokKXyq5eVa2VlzGb0FrsuGMYwe4BljGA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pJZzNj2a; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498651; c=relaxed/simple;
+	bh=zRvmdQZKdNmYXGSPo4RoosATYmbHeNpDu2Cp7TzXx3U=;
+	h=Date:To:From:Subject:Message-Id; b=FIIgW2ws4tWUqwVd3cerNcnfgjzgWKlsnxE1qplUScXsjeOwUz5zq1wiEGjUMpzvEbJdQz10ahKfv0mtOrKCigFYIyWt7H8Gs+KHftGlTCQugR13LH5epusV9Ar+zAvBaqII7aNl3hrrvwRgQV9h7a6dUiy7H+p1Lu3AypG46GI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BRKVYgaC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pJZzNj2a"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A34F9C19424;
-	Sat, 18 Apr 2026 07:50:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BRKVYgaC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 985ACC19424;
+	Sat, 18 Apr 2026 07:50:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498645;
-	bh=kyZ5c1HLrqwgjCRkc2AOl08P3WT+Nl+NvI2uUd0GcSI=;
+	s=korg; t=1776498651;
+	bh=zRvmdQZKdNmYXGSPo4RoosATYmbHeNpDu2Cp7TzXx3U=;
 	h=Date:To:From:Subject:From;
-	b=pJZzNj2ar9BU+reF8aHpI3daCa8OJTrFOsALcZ9lYe4LXmAjNGxQj4kl3SjhzmSBH
-	 LrjYjKFRZMmSL0q9XGkyvHZGH81pnFu1WwPOttds50+Xu4z+5zSMwXkT6fdxzoeOao
-	 cboiYQY6u4SbVF5p7TdsS0EN6bywebL0yshsx5Rg=
-Date: Sat, 18 Apr 2026 00:50:39 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,songmuchun@bytedance.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=BRKVYgaCtcymoPCXOpnBf+1BfzUg2dVLUOdYVyn0DSARnYJKGzSmQso3KtZw8C422
+	 OvqcRV0okp4NJc2AUbxQHSzc5Gto4NNbRndqOW/fZUzWC6IXCJ73ctxuM5sz9aCwp5
+	 txMR3rp+iOZbW/kjhfGJrVBLgHPCyVd0QnGpaofI=
+Date: Sat, 18 Apr 2026 00:50:46 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usama.arif@linux.dev,usamaarif642@gmail.com,surenb@google.com,songmuchun@bytedance.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,devnexen@gmail.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats.patch removed from -mm tree
-Message-Id: <20260418075043.A34F9C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch removed from -mm tree
+Message-Id: <20260418075050.985ACC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,51 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: prepare for reparenting non-hierarchical stats
+     Subject: mm: memcontrol: convert objcg to be per-memcg per-node type
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats.patch
+     mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: memcontrol: prepare for reparenting non-hierarchical stats
-Date: Thu, 5 Mar 2026 19:52:48 +0800
+Subject: mm: memcontrol: convert objcg to be per-memcg per-node type
+Date: Thu, 5 Mar 2026 19:52:49 +0800
 
-To resolve the dying memcg issue, we need to reparent LRU folios of child
-memcg to its parent memcg.  This could cause problems for non-hierarchical
-stats.
+Convert objcg to be per-memcg per-node type, so that when reparent LRU
+folios later, we can hold the lru lock at the node level, thus avoiding
+holding too many lru locks at once.
 
-As Yosry Ahmed pointed out:
-
-In short, if memory is charged to a dying cgroup at the time of
-reparenting, when the memory gets uncharged the stats updates will occur
-at the parent. This will update both hierarchical and non-hierarchical
-stats of the parent, which would corrupt the parent's non-hierarchical
-stats (because those counters were never incremented when the memory was
-charged).
-
-Now we have the following two types of non-hierarchical stats, and they
-are only used in CONFIG_MEMCG_V1:
-
-a. memcg->vmstats->state_local[i]
-b. pn->lruvec_stats->state_local[i]
-
-To ensure that these non-hierarchical stats work properly, we need to
-reparent these non-hierarchical stats after reparenting LRU folios. To
-this end, this commit makes the following preparations:
-
-1. implement reparent_state_local() to reparent non-hierarchical stats
-2. make css_killed_work_fn() to be called in rcu work, and implement
-   get_non_dying_memcg_start() and get_non_dying_memcg_end() to avoid race
-   between mod_memcg_state()/mod_memcg_lruvec_state()
-   and reparent_state_local()
-
-Link: https://lore.kernel.org/e862995c45a7101a541284b6ebee5e5c32c89066.1772711148.git.zhengqi.arch@bytedance.com
-Co-developed-by: Yosry Ahmed <yosry@kernel.org>
-Signed-off-by: Yosry Ahmed <yosry@kernel.org>
+[zhengqi.arch@bytedance.com: reset pn->orig_objcg to NULL]
+  Link: https://lore.kernel.org/20260309112939.31937-1-qi.zheng@linux.dev
+[akpm@linux-foundation.org: fix comment typo, per Usama.  Reflow comment to 80 cols]
+[devnexen@gmail.com: fix obj_cgroup leak in mem_cgroup_css_online() error path]
+  Link: https://lore.kernel.org/20260322193631.45457-1-devnexen@gmail.com
+[devnexen@gmail.com: add newline, per Qi Zheng]
+  Link: https://lore.kernel.org/20260323063007.7783-1-devnexen@gmail.com
+Link: https://lore.kernel.org/56c04b1c5d54f75ccdc12896df6c1ca35403ecc3.1772711148.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Signed-off-by: David Carlier <devnexen@gmail.com>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Allen Pais <apais@linux.microsoft.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -107,210 +88,299 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: Wei Xu <weixugc@google.com>
+Cc: Yosry Ahmed <yosry@kernel.org>
 Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Usama Arif <usama.arif@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup/cgroup.c |    9 ++-
- mm/memcontrol-v1.c     |   16 ++++++
- mm/memcontrol-v1.h     |    7 ++
- mm/memcontrol.c        |   97 +++++++++++++++++++++++++++++++++++++++
- 4 files changed, 125 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |   23 ++++----
+ include/linux/sched.h      |    2 
+ mm/memcontrol.c            |   92 +++++++++++++++++++++++------------
+ 3 files changed, 75 insertions(+), 42 deletions(-)
 
---- a/kernel/cgroup/cgroup.c~mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats
-+++ a/kernel/cgroup/cgroup.c
-@@ -6050,8 +6050,9 @@ out_unlock:
-  */
- static void css_killed_work_fn(struct work_struct *work)
- {
--	struct cgroup_subsys_state *css =
--		container_of(work, struct cgroup_subsys_state, destroy_work);
-+	struct cgroup_subsys_state *css;
-+
-+	css = container_of(to_rcu_work(work), struct cgroup_subsys_state, destroy_rwork);
+--- a/include/linux/memcontrol.h~mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type
++++ a/include/linux/memcontrol.h
+@@ -115,6 +115,16 @@ struct mem_cgroup_per_node {
+ 	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
+ 	struct mem_cgroup_reclaim_iter	iter;
  
- 	cgroup_lock();
- 
-@@ -6072,8 +6073,8 @@ static void css_killed_ref_fn(struct per
- 		container_of(ref, struct cgroup_subsys_state, refcnt);
- 
- 	if (atomic_dec_and_test(&css->online_cnt)) {
--		INIT_WORK(&css->destroy_work, css_killed_work_fn);
--		queue_work(cgroup_offline_wq, &css->destroy_work);
-+		INIT_RCU_WORK(&css->destroy_rwork, css_killed_work_fn);
-+		queue_rcu_work(cgroup_offline_wq, &css->destroy_rwork);
- 	}
- }
- 
---- a/mm/memcontrol.c~mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats
-+++ a/mm/memcontrol.c
-@@ -225,6 +225,34 @@ static inline struct obj_cgroup *__memcg
- 	return objcg;
- }
- 
-+#ifdef CONFIG_MEMCG_V1
-+static void __mem_cgroup_flush_stats(struct mem_cgroup *memcg, bool force);
-+
-+static inline void reparent_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent)
-+{
-+	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		return;
-+
 +	/*
-+	 * Reparent stats exposed non-hierarchically. Flush @memcg's stats first
-+	 * to read its stats accurately , and conservatively flush @parent's
-+	 * stats after reparenting to avoid hiding a potentially large stat
-+	 * update (e.g. from callers of mem_cgroup_flush_stats_ratelimited()).
++	 * objcg is wiped out as a part of the objcg repaprenting process.
++	 * orig_objcg preserves a pointer (and a reference) to the original
++	 * objcg until the end of live of memcg.
 +	 */
-+	__mem_cgroup_flush_stats(memcg, true);
++	struct obj_cgroup __rcu	*objcg;
++	struct obj_cgroup	*orig_objcg;
++	/* list of inherited objcgs, protected by objcg_lock */
++	struct list_head objcg_list;
 +
-+	/* The following counts are all non-hierarchical and need to be reparented. */
-+	reparent_memcg1_state_local(memcg, parent);
-+	reparent_memcg1_lruvec_state_local(memcg, parent);
-+
-+	__mem_cgroup_flush_stats(parent, true);
-+}
-+#else
-+static inline void reparent_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent)
-+{
-+}
-+#endif
-+
- static inline void reparent_locks(struct mem_cgroup *memcg, struct mem_cgroup *parent)
- {
- 	spin_lock_irq(&objcg_lock);
-@@ -472,6 +500,30 @@ unsigned long lruvec_page_state_local(st
- 	return x;
- }
- 
-+#ifdef CONFIG_MEMCG_V1
-+static void __mod_memcg_lruvec_state(struct mem_cgroup_per_node *pn,
-+				     enum node_stat_item idx, int val);
-+
-+void reparent_memcg_lruvec_state_local(struct mem_cgroup *memcg,
-+				       struct mem_cgroup *parent, int idx)
-+{
-+	int nid;
-+
-+	for_each_node(nid) {
-+		struct lruvec *child_lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
-+		struct lruvec *parent_lruvec = mem_cgroup_lruvec(parent, NODE_DATA(nid));
-+		unsigned long value = lruvec_page_state_local(child_lruvec, idx);
-+		struct mem_cgroup_per_node *child_pn, *parent_pn;
-+
-+		child_pn = container_of(child_lruvec, struct mem_cgroup_per_node, lruvec);
-+		parent_pn = container_of(parent_lruvec, struct mem_cgroup_per_node, lruvec);
-+
-+		__mod_memcg_lruvec_state(child_pn, idx, -value);
-+		__mod_memcg_lruvec_state(parent_pn, idx, value);
-+	}
-+}
-+#endif
-+
- /* Subset of vm_event_item to report for memcg event stats */
- static const unsigned int memcg_vm_event_stat[] = {
- #ifdef CONFIG_MEMCG_V1
-@@ -717,6 +769,42 @@ static int memcg_state_val_in_pages(int
- 		return max(val * unit / PAGE_SIZE, 1UL);
- }
- 
-+#ifdef CONFIG_MEMCG_V1
-+/*
-+ * Used in mod_memcg_state() and mod_memcg_lruvec_state() to avoid race with
-+ * reparenting of non-hierarchical state_locals.
-+ */
-+static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg)
-+{
-+	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		return memcg;
-+
-+	rcu_read_lock();
-+
-+	while (memcg_is_dying(memcg))
-+		memcg = parent_mem_cgroup(memcg);
-+
-+	return memcg;
-+}
-+
-+static inline void get_non_dying_memcg_end(void)
-+{
-+	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		return;
-+
-+	rcu_read_unlock();
-+}
-+#else
-+static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg)
-+{
-+	return memcg;
-+}
-+
-+static inline void get_non_dying_memcg_end(void)
-+{
-+}
-+#endif
-+
- static void __mod_memcg_state(struct mem_cgroup *memcg,
- 			      enum memcg_stat_item idx, int val)
- {
-@@ -768,6 +856,15 @@ unsigned long memcg_page_state_local(str
- #endif
- 	return x;
- }
-+
-+void reparent_memcg_state_local(struct mem_cgroup *memcg,
-+				struct mem_cgroup *parent, int idx)
-+{
-+	unsigned long value = memcg_page_state_local(memcg, idx);
-+
-+	__mod_memcg_state(memcg, idx, -value);
-+	__mod_memcg_state(parent, idx, value);
-+}
- #endif
- 
- static void __mod_memcg_lruvec_state(struct mem_cgroup_per_node *pn,
---- a/mm/memcontrol-v1.c~mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats
-+++ a/mm/memcontrol-v1.c
-@@ -1884,6 +1884,22 @@ static const unsigned int memcg1_events[
- 	PGMAJFAULT,
+ #ifdef CONFIG_MEMCG_NMI_SAFETY_REQUIRES_ATOMIC
+ 	/* slab stats for nmi context */
+ 	atomic_t		slab_reclaimable;
+@@ -179,6 +189,7 @@ struct obj_cgroup {
+ 		struct list_head list; /* protected by objcg_lock */
+ 		struct rcu_head rcu;
+ 	};
++	bool is_root;
  };
  
-+void reparent_memcg1_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(memcg1_stats); i++)
-+		reparent_memcg_state_local(memcg, parent, memcg1_stats[i]);
-+}
-+
-+void reparent_memcg1_lruvec_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent)
-+{
-+	int i;
-+
-+	for (i = 0; i < NR_LRU_LISTS; i++)
-+		reparent_memcg_lruvec_state_local(memcg, parent, i);
-+}
-+
- void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s)
+ /*
+@@ -257,15 +268,6 @@ struct mem_cgroup {
+ 	seqlock_t		socket_pressure_seqlock;
+ #endif
+ 	int kmemcg_id;
+-	/*
+-	 * memcg->objcg is wiped out as a part of the objcg repaprenting
+-	 * process. memcg->orig_objcg preserves a pointer (and a reference)
+-	 * to the original objcg until the end of live of memcg.
+-	 */
+-	struct obj_cgroup __rcu	*objcg;
+-	struct obj_cgroup	*orig_objcg;
+-	/* list of inherited objcgs, protected by objcg_lock */
+-	struct list_head objcg_list;
+ 
+ 	struct memcg_vmstats_percpu __percpu *vmstats_percpu;
+ 
+@@ -332,7 +334,6 @@ struct mem_cgroup {
+ #define MEMCG_CHARGE_BATCH 64U
+ 
+ extern struct mem_cgroup *root_mem_cgroup;
+-extern struct obj_cgroup *root_obj_cgroup;
+ 
+ enum page_memcg_data_flags {
+ 	/* page->memcg_data is a pointer to an slabobj_ext vector */
+@@ -551,7 +552,7 @@ static inline bool mem_cgroup_is_root(st
+ 
+ static inline bool obj_cgroup_is_root(const struct obj_cgroup *objcg)
  {
- 	unsigned long memory, memsw;
---- a/mm/memcontrol-v1.h~mm-memcontrol-prepare-for-reparenting-non-hierarchical-stats
-+++ a/mm/memcontrol-v1.h
-@@ -73,6 +73,13 @@ void memcg1_uncharge_batch(struct mem_cg
- 			   unsigned long nr_memory, int nid);
+-	return objcg == root_obj_cgroup;
++	return objcg->is_root;
+ }
  
- void memcg1_stat_format(struct mem_cgroup *memcg, struct seq_buf *s);
-+void reparent_memcg1_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent);
-+void reparent_memcg1_lruvec_state_local(struct mem_cgroup *memcg, struct mem_cgroup *parent);
+ static inline bool mem_cgroup_disabled(void)
+--- a/include/linux/sched.h~mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type
++++ a/include/linux/sched.h
+@@ -1533,7 +1533,7 @@ struct task_struct {
+ 	/* Used by memcontrol for targeted memcg charge: */
+ 	struct mem_cgroup		*active_memcg;
+ 
+-	/* Cache for current->cgroups->memcg->objcg lookups: */
++	/* Cache for current->cgroups->memcg->nodeinfo[nid]->objcg lookups: */
+ 	struct obj_cgroup		*objcg;
+ #endif
+ 
+--- a/mm/memcontrol.c~mm-memcontrol-convert-objcg-to-be-per-memcg-per-node-type
++++ a/mm/memcontrol.c
+@@ -83,8 +83,6 @@ EXPORT_SYMBOL(memory_cgrp_subsys);
+ struct mem_cgroup *root_mem_cgroup __read_mostly;
+ EXPORT_SYMBOL(root_mem_cgroup);
+ 
+-struct obj_cgroup *root_obj_cgroup __read_mostly;
+-
+ /* Active memory cgroup to use from an interrupt context */
+ DEFINE_PER_CPU(struct mem_cgroup *, int_active_memcg);
+ EXPORT_PER_CPU_SYMBOL_GPL(int_active_memcg);
+@@ -209,18 +207,21 @@ static struct obj_cgroup *obj_cgroup_all
+ }
+ 
+ static inline struct obj_cgroup *__memcg_reparent_objcgs(struct mem_cgroup *memcg,
+-							 struct mem_cgroup *parent)
++							 struct mem_cgroup *parent,
++							 int nid)
+ {
+ 	struct obj_cgroup *objcg, *iter;
++	struct mem_cgroup_per_node *pn = memcg->nodeinfo[nid];
++	struct mem_cgroup_per_node *parent_pn = parent->nodeinfo[nid];
+ 
+-	objcg = rcu_replace_pointer(memcg->objcg, NULL, true);
++	objcg = rcu_replace_pointer(pn->objcg, NULL, true);
+ 	/* 1) Ready to reparent active objcg. */
+-	list_add(&objcg->list, &memcg->objcg_list);
++	list_add(&objcg->list, &pn->objcg_list);
+ 	/* 2) Reparent active objcg and already reparented objcgs to parent. */
+-	list_for_each_entry(iter, &memcg->objcg_list, list)
++	list_for_each_entry(iter, &pn->objcg_list, list)
+ 		WRITE_ONCE(iter->memcg, parent);
+ 	/* 3) Move already reparented objcgs to the parent's list */
+-	list_splice(&memcg->objcg_list, &parent->objcg_list);
++	list_splice(&pn->objcg_list, &parent_pn->objcg_list);
+ 
+ 	return objcg;
+ }
+@@ -267,14 +268,17 @@ static void memcg_reparent_objcgs(struct
+ {
+ 	struct obj_cgroup *objcg;
+ 	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
++	int nid;
+ 
+-	reparent_locks(memcg, parent);
++	for_each_node(nid) {
++		reparent_locks(memcg, parent);
+ 
+-	objcg = __memcg_reparent_objcgs(memcg, parent);
++		objcg = __memcg_reparent_objcgs(memcg, parent, nid);
+ 
+-	reparent_unlocks(memcg, parent);
++		reparent_unlocks(memcg, parent);
+ 
+-	percpu_ref_kill(&objcg->refcnt);
++		percpu_ref_kill(&objcg->refcnt);
++	}
+ }
+ 
+ /*
+@@ -2830,8 +2834,10 @@ struct mem_cgroup *mem_cgroup_from_virt(
+ 
+ static struct obj_cgroup *__get_obj_cgroup_from_memcg(struct mem_cgroup *memcg)
+ {
++	int nid = numa_node_id();
 +
-+void reparent_memcg_state_local(struct mem_cgroup *memcg,
-+				struct mem_cgroup *parent, int idx);
-+void reparent_memcg_lruvec_state_local(struct mem_cgroup *memcg,
-+				       struct mem_cgroup *parent, int idx);
+ 	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
+-		struct obj_cgroup *objcg = rcu_dereference(memcg->objcg);
++		struct obj_cgroup *objcg = rcu_dereference(memcg->nodeinfo[nid]->objcg);
  
- void memcg1_account_kmem(struct mem_cgroup *memcg, int nr_pages);
- static inline bool memcg1_tcpmem_active(struct mem_cgroup *memcg)
+ 		if (likely(objcg && obj_cgroup_tryget(objcg)))
+ 			return objcg;
+@@ -2895,6 +2901,7 @@ __always_inline struct obj_cgroup *curre
+ {
+ 	struct mem_cgroup *memcg;
+ 	struct obj_cgroup *objcg;
++	int nid = numa_node_id();
+ 
+ 	if (IS_ENABLED(CONFIG_MEMCG_NMI_UNSAFE) && in_nmi())
+ 		return NULL;
+@@ -2911,14 +2918,14 @@ __always_inline struct obj_cgroup *curre
+ 		 * Objcg reference is kept by the task, so it's safe
+ 		 * to use the objcg by the current task.
+ 		 */
+-		return objcg ? : root_obj_cgroup;
++		return objcg ? : rcu_dereference_check(root_mem_cgroup->nodeinfo[nid]->objcg, 1);
+ 	}
+ 
+ 	memcg = this_cpu_read(int_active_memcg);
+ 	if (unlikely(memcg))
+ 		goto from_memcg;
+ 
+-	return root_obj_cgroup;
++	return rcu_dereference_check(root_mem_cgroup->nodeinfo[nid]->objcg, 1);
+ 
+ from_memcg:
+ 	for (; memcg; memcg = parent_mem_cgroup(memcg)) {
+@@ -2928,12 +2935,12 @@ from_memcg:
+ 		 * away and can be used within the scope without any additional
+ 		 * protection.
+ 		 */
+-		objcg = rcu_dereference_check(memcg->objcg, 1);
++		objcg = rcu_dereference_check(memcg->nodeinfo[nid]->objcg, 1);
+ 		if (likely(objcg))
+ 			return objcg;
+ 	}
+ 
+-	return root_obj_cgroup;
++	return rcu_dereference_check(root_mem_cgroup->nodeinfo[nid]->objcg, 1);
+ }
+ 
+ struct obj_cgroup *get_obj_cgroup_from_folio(struct folio *folio)
+@@ -3876,6 +3883,8 @@ static bool alloc_mem_cgroup_per_node_in
+ 	if (!pn->lruvec_stats_percpu)
+ 		goto fail;
+ 
++	INIT_LIST_HEAD(&pn->objcg_list);
++
+ 	lruvec_init(&pn->lruvec);
+ 	pn->memcg = memcg;
+ 
+@@ -3890,10 +3899,14 @@ static void __mem_cgroup_free(struct mem
+ {
+ 	int node;
+ 
+-	obj_cgroup_put(memcg->orig_objcg);
++	for_each_node(node) {
++		struct mem_cgroup_per_node *pn = memcg->nodeinfo[node];
++		if (!pn)
++			continue;
+ 
+-	for_each_node(node)
+-		free_mem_cgroup_per_node_info(memcg->nodeinfo[node]);
++		obj_cgroup_put(pn->orig_objcg);
++		free_mem_cgroup_per_node_info(pn);
++	}
+ 	memcg1_free_events(memcg);
+ 	kfree(memcg->vmstats);
+ 	free_percpu(memcg->vmstats_percpu);
+@@ -3964,7 +3977,6 @@ static struct mem_cgroup *mem_cgroup_all
+ #endif
+ 	memcg1_memcg_init(memcg);
+ 	memcg->kmemcg_id = -1;
+-	INIT_LIST_HEAD(&memcg->objcg_list);
+ #ifdef CONFIG_CGROUP_WRITEBACK
+ 	INIT_LIST_HEAD(&memcg->cgwb_list);
+ 	for (i = 0; i < MEMCG_CGWB_FRN_CNT; i++)
+@@ -4041,6 +4053,7 @@ static int mem_cgroup_css_online(struct
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 	struct obj_cgroup *objcg;
++	int nid;
+ 
+ 	memcg_online_kmem(memcg);
+ 
+@@ -4052,17 +4065,19 @@ static int mem_cgroup_css_online(struct
+ 	if (alloc_shrinker_info(memcg))
+ 		goto offline_kmem;
+ 
+-	objcg = obj_cgroup_alloc();
+-	if (!objcg)
+-		goto free_shrinker;
++	for_each_node(nid) {
++		objcg = obj_cgroup_alloc();
++		if (!objcg)
++			goto free_objcg;
+ 
+-	if (unlikely(mem_cgroup_is_root(memcg)))
+-		root_obj_cgroup = objcg;
++		if (unlikely(mem_cgroup_is_root(memcg)))
++			objcg->is_root = true;
+ 
+-	objcg->memcg = memcg;
+-	rcu_assign_pointer(memcg->objcg, objcg);
+-	obj_cgroup_get(objcg);
+-	memcg->orig_objcg = objcg;
++		objcg->memcg = memcg;
++		rcu_assign_pointer(memcg->nodeinfo[nid]->objcg, objcg);
++		obj_cgroup_get(objcg);
++		memcg->nodeinfo[nid]->orig_objcg = objcg;
++	}
+ 
+ 	if (unlikely(mem_cgroup_is_root(memcg)) && !mem_cgroup_disabled())
+ 		queue_delayed_work(system_dfl_wq, &stats_flush_dwork,
+@@ -4086,7 +4101,24 @@ static int mem_cgroup_css_online(struct
+ 	xa_store(&mem_cgroup_private_ids, memcg->id.id, memcg, GFP_KERNEL);
+ 
+ 	return 0;
+-free_shrinker:
++free_objcg:
++	for_each_node(nid) {
++		struct mem_cgroup_per_node *pn = memcg->nodeinfo[nid];
++
++		objcg = rcu_replace_pointer(pn->objcg, NULL, true);
++		if (objcg)
++			percpu_ref_kill(&objcg->refcnt);
++
++		if (pn->orig_objcg) {
++			obj_cgroup_put(pn->orig_objcg);
++			/*
++			 * Reset pn->orig_objcg to NULL to prevent
++			 * obj_cgroup_put() from being called again in
++			 * __mem_cgroup_free().
++			 */
++			pn->orig_objcg = NULL;
++		}
++	}
+ 	free_shrinker_info(memcg);
+ offline_kmem:
+ 	memcg_offline_kmem(memcg);
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
