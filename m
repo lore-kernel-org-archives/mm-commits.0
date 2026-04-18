@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B1731C695
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:47:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81C2F1C695
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:47:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498463; cv=none; b=pwkF/5hEp3DnjWafg5CrczbdSL0ZIkX/dXaCZPPDf1d9jd7Djk7q1HGnM1JADJIE9nC8nNZMwwGzuRzu89I2mb7pK4Y7Iwt0/a8tkBYYXwffUfrfaRhHqGhmdE2zJglv7sAQU3foPJ0nB3Cr2Wt8yNYy6EbNEF7KufvfaULMr5Y=
+	t=1776498468; cv=none; b=JzxIfojtFsWtJPcoRXHW3wmk6KnGRY44BvBPBT36Tv8pEJ9HgStmfhDaMShAgyWeUEk6Wgld/QJMGTaH+++H/Zdvu3eFowJH7+6J582MU4KZUjkSJ1mutQ53DrdXRY+t4BNiP6dwTr5fi04ZfOdoOJUepbPxdKZe0fMK3eQJW98=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498463; c=relaxed/simple;
-	bh=JQhZec5bsqPfKOL2YClguj03LTBnZ+FVd6UZshiEu/I=;
-	h=Date:To:From:Subject:Message-Id; b=MHXg82xaaeqgYB4vPeGyedRjRKKZzQOtW7SeZ7OeXDa8IBc18c0aPzSHTtnjhaA6BMDTWoiCUFs6IBqw7sORhGl9R394U9hANOoXyClufFfU6iuX1KC93q/rdsjXoGQPEnB1RicIClwA99Wowm7Q1kM4CMVbsCCjLZt+bBmrZac=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TsCnuR2x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498468; c=relaxed/simple;
+	bh=JTrHEycRLvZKdj1WcLkqzmNs5qEWZ2HDYUP5NzN9JQw=;
+	h=Date:To:From:Subject:Message-Id; b=ZRbDAnbPPZL88KUSXCD+XQlMWbS7KKAI5zMlOj2/6gnD2ZGLt8st0+lMk46jxWmJk9ZOrdKMNlqWrf02hg93zwLCZrgI7EnDj91Js7K/pdKnJ70/uAEbcyBR5Lfgnmximl3gSIq83YOpYwVTOsi6uXMzVeEsiM/BdBaIyCk9Ofg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VOmhpbQ4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TsCnuR2x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6254FC19424;
-	Sat, 18 Apr 2026 07:47:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VOmhpbQ4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62DEBC19424;
+	Sat, 18 Apr 2026 07:47:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498463;
-	bh=JQhZec5bsqPfKOL2YClguj03LTBnZ+FVd6UZshiEu/I=;
+	s=korg; t=1776498468;
+	bh=JTrHEycRLvZKdj1WcLkqzmNs5qEWZ2HDYUP5NzN9JQw=;
 	h=Date:To:From:Subject:From;
-	b=TsCnuR2xOvz+EoTVrtQdgEkaS8mAGjiacIfdatLNpEW6TViK+k98VFfE6sS5DlUmK
-	 Rezagxe3Xw/8qkx2x/iMf3C1/5nNcr8ryBZ15EHERehuC/Qq3oJHL9ugG9d0ip4Zgm
-	 OtKYhnLoESbVoK7jMeaQXWvApQYvgilQMTweEj1E=
-Date: Sat, 18 Apr 2026 00:47:39 -0700
+	b=VOmhpbQ4Mzywkn3Lp8JXU4NZgc6aE63UDR+gdKTOqNLxRDZ/gqUV/MxZvHzYaPvfD
+	 odvPb50X6EP7FN5w9zsjHWVFNMzkw81nADwzM1oA42OCGt0dHDuzWumVznrmmsyl+0
+	 TeXmIxTNRr1/GxgLMQ+B9Tet+gra2OWq4Wsze1B8=
+Date: Sat, 18 Apr 2026 00:47:44 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-workingset-use-folio_lruvec-in-workingset_refault.patch removed from -mm tree
-Message-Id: <20260418074742.6254FC19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-rename-unlock_page_lruvec_irq-and-its-variants.patch removed from -mm tree
+Message-Id: <20260418074747.62DEBC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,32 +35,37 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: workingset: use folio_lruvec() in workingset_refault()
+     Subject: mm: rename unlock_page_lruvec_irq and its variants
 has been removed from the -mm tree.  Its filename was
-     mm-workingset-use-folio_lruvec-in-workingset_refault.patch
+     mm-rename-unlock_page_lruvec_irq-and-its-variants.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: workingset: use folio_lruvec() in workingset_refault()
-Date: Thu, 5 Mar 2026 19:52:20 +0800
+Subject: mm: rename unlock_page_lruvec_irq and its variants
+Date: Thu, 5 Mar 2026 19:52:21 +0800
 
-Use folio_lruvec() to simplify the code.
+It is inappropriate to use folio_lruvec_lock() variants in conjunction
+with unlock_page_lruvec() variants, as this involves the inconsistent
+operation of locking a folio while unlocking a page.  To rectify this, the
+functions unlock_page_lruvec{_irq, _irqrestore} are renamed to
+lruvec_unlock{_irq,_irqrestore}.
 
-Link: https://lore.kernel.org/11bd2fbbf082f4f7972a1113ca42a61fbe2876a9.1772711148.git.zhengqi.arch@bytedance.com
+Link: https://lore.kernel.org/4e5e05271a250df4d1812e1832be65636a78c957.1772711148.git.zhengqi.arch@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
+Reviewed-by: Chen Ridong <chenridong@huawei.com>
+Acked-by: David Hildenbrand (Red Hat) <david@kernel.org>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Allen Pais <apais@linux.microsoft.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chen Ridong <chenridong@huawei.com>
-Cc: David Hildenbrand <david@kernel.org>
 Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Imran Khan <imran.f.khan@oracle.com>
@@ -73,7 +78,6 @@ Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -84,32 +88,218 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ include/linux/memcontrol.h |   10 +++++-----
+ mm/compaction.c            |   14 +++++++-------
+ mm/huge_memory.c           |    2 +-
+ mm/mlock.c                 |    2 +-
+ mm/swap.c                  |   12 ++++++------
+ mm/vmscan.c                |    4 ++--
+ 6 files changed, 22 insertions(+), 22 deletions(-)
 
---- a/mm/workingset.c~mm-workingset-use-folio_lruvec-in-workingset_refault
-+++ a/mm/workingset.c
-@@ -541,8 +541,6 @@ bool workingset_test_recent(void *shadow
- void workingset_refault(struct folio *folio, void *shadow)
- {
- 	bool file = folio_is_file_lru(folio);
--	struct pglist_data *pgdat;
--	struct mem_cgroup *memcg;
- 	struct lruvec *lruvec;
- 	bool workingset;
- 	long nr;
-@@ -564,10 +562,7 @@ void workingset_refault(struct folio *fo
- 	 * locked to guarantee folio_memcg() stability throughout.
- 	 */
- 	nr = folio_nr_pages(folio);
--	memcg = folio_memcg(folio);
--	pgdat = folio_pgdat(folio);
--	lruvec = mem_cgroup_lruvec(memcg, pgdat);
--
-+	lruvec = folio_lruvec(folio);
- 	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
+--- a/include/linux/memcontrol.h~mm-rename-unlock_page_lruvec_irq-and-its-variants
++++ a/include/linux/memcontrol.h
+@@ -1479,17 +1479,17 @@ static inline struct lruvec *parent_lruv
+ 	return mem_cgroup_lruvec(memcg, lruvec_pgdat(lruvec));
+ }
  
- 	if (!workingset_test_recent(shadow, file, &workingset, true))
+-static inline void unlock_page_lruvec(struct lruvec *lruvec)
++static inline void lruvec_unlock(struct lruvec *lruvec)
+ {
+ 	spin_unlock(&lruvec->lru_lock);
+ }
+ 
+-static inline void unlock_page_lruvec_irq(struct lruvec *lruvec)
++static inline void lruvec_unlock_irq(struct lruvec *lruvec)
+ {
+ 	spin_unlock_irq(&lruvec->lru_lock);
+ }
+ 
+-static inline void unlock_page_lruvec_irqrestore(struct lruvec *lruvec,
++static inline void lruvec_unlock_irqrestore(struct lruvec *lruvec,
+ 		unsigned long flags)
+ {
+ 	spin_unlock_irqrestore(&lruvec->lru_lock, flags);
+@@ -1511,7 +1511,7 @@ static inline struct lruvec *folio_lruve
+ 		if (folio_matches_lruvec(folio, locked_lruvec))
+ 			return locked_lruvec;
+ 
+-		unlock_page_lruvec_irq(locked_lruvec);
++		lruvec_unlock_irq(locked_lruvec);
+ 	}
+ 
+ 	return folio_lruvec_lock_irq(folio);
+@@ -1525,7 +1525,7 @@ static inline void folio_lruvec_relock_i
+ 		if (folio_matches_lruvec(folio, *lruvecp))
+ 			return;
+ 
+-		unlock_page_lruvec_irqrestore(*lruvecp, *flags);
++		lruvec_unlock_irqrestore(*lruvecp, *flags);
+ 	}
+ 
+ 	*lruvecp = folio_lruvec_lock_irqsave(folio, flags);
+--- a/mm/compaction.c~mm-rename-unlock_page_lruvec_irq-and-its-variants
++++ a/mm/compaction.c
+@@ -913,7 +913,7 @@ isolate_migratepages_block(struct compac
+ 		 */
+ 		if (!(low_pfn % COMPACT_CLUSTER_MAX)) {
+ 			if (locked) {
+-				unlock_page_lruvec_irqrestore(locked, flags);
++				lruvec_unlock_irqrestore(locked, flags);
+ 				locked = NULL;
+ 			}
+ 
+@@ -964,7 +964,7 @@ isolate_migratepages_block(struct compac
+ 			}
+ 			/* for alloc_contig case */
+ 			if (locked) {
+-				unlock_page_lruvec_irqrestore(locked, flags);
++				lruvec_unlock_irqrestore(locked, flags);
+ 				locked = NULL;
+ 			}
+ 
+@@ -1053,7 +1053,7 @@ isolate_migratepages_block(struct compac
+ 			if (unlikely(page_has_movable_ops(page)) &&
+ 			    !PageMovableOpsIsolated(page)) {
+ 				if (locked) {
+-					unlock_page_lruvec_irqrestore(locked, flags);
++					lruvec_unlock_irqrestore(locked, flags);
+ 					locked = NULL;
+ 				}
+ 
+@@ -1158,7 +1158,7 @@ isolate_migratepages_block(struct compac
+ 		/* If we already hold the lock, we can skip some rechecking */
+ 		if (lruvec != locked) {
+ 			if (locked)
+-				unlock_page_lruvec_irqrestore(locked, flags);
++				lruvec_unlock_irqrestore(locked, flags);
+ 
+ 			compact_lock_irqsave(&lruvec->lru_lock, &flags, cc);
+ 			locked = lruvec;
+@@ -1226,7 +1226,7 @@ isolate_success_no_list:
+ isolate_fail_put:
+ 		/* Avoid potential deadlock in freeing page under lru_lock */
+ 		if (locked) {
+-			unlock_page_lruvec_irqrestore(locked, flags);
++			lruvec_unlock_irqrestore(locked, flags);
+ 			locked = NULL;
+ 		}
+ 		folio_put(folio);
+@@ -1242,7 +1242,7 @@ isolate_fail:
+ 		 */
+ 		if (nr_isolated) {
+ 			if (locked) {
+-				unlock_page_lruvec_irqrestore(locked, flags);
++				lruvec_unlock_irqrestore(locked, flags);
+ 				locked = NULL;
+ 			}
+ 			putback_movable_pages(&cc->migratepages);
+@@ -1274,7 +1274,7 @@ isolate_fail:
+ 
+ isolate_abort:
+ 	if (locked)
+-		unlock_page_lruvec_irqrestore(locked, flags);
++		lruvec_unlock_irqrestore(locked, flags);
+ 	if (folio) {
+ 		folio_set_lru(folio);
+ 		folio_put(folio);
+--- a/mm/huge_memory.c~mm-rename-unlock_page_lruvec_irq-and-its-variants
++++ a/mm/huge_memory.c
+@@ -3994,7 +3994,7 @@ static int __folio_freeze_and_split_unma
+ 		folio_ref_unfreeze(folio, folio_cache_ref_count(folio) + 1);
+ 
+ 		if (do_lru)
+-			unlock_page_lruvec(lruvec);
++			lruvec_unlock(lruvec);
+ 
+ 		if (ci)
+ 			swap_cluster_unlock(ci);
+--- a/mm/mlock.c~mm-rename-unlock_page_lruvec_irq-and-its-variants
++++ a/mm/mlock.c
+@@ -205,7 +205,7 @@ static void mlock_folio_batch(struct fol
+ 	}
+ 
+ 	if (lruvec)
+-		unlock_page_lruvec_irq(lruvec);
++		lruvec_unlock_irq(lruvec);
+ 	folios_put(fbatch);
+ }
+ 
+--- a/mm/swap.c~mm-rename-unlock_page_lruvec_irq-and-its-variants
++++ a/mm/swap.c
+@@ -91,7 +91,7 @@ static void page_cache_release(struct fo
+ 
+ 	__page_cache_release(folio, &lruvec, &flags);
+ 	if (lruvec)
+-		unlock_page_lruvec_irqrestore(lruvec, flags);
++		lruvec_unlock_irqrestore(lruvec, flags);
+ }
+ 
+ void __folio_put(struct folio *folio)
+@@ -175,7 +175,7 @@ static void folio_batch_move_lru(struct
+ 	}
+ 
+ 	if (lruvec)
+-		unlock_page_lruvec_irqrestore(lruvec, flags);
++		lruvec_unlock_irqrestore(lruvec, flags);
+ 	folios_put(fbatch);
+ }
+ 
+@@ -349,7 +349,7 @@ void folio_activate(struct folio *folio)
+ 
+ 	lruvec = folio_lruvec_lock_irq(folio);
+ 	lru_activate(lruvec, folio);
+-	unlock_page_lruvec_irq(lruvec);
++	lruvec_unlock_irq(lruvec);
+ 	folio_set_lru(folio);
+ }
+ #endif
+@@ -963,7 +963,7 @@ void folios_put_refs(struct folio_batch
+ 
+ 		if (folio_is_zone_device(folio)) {
+ 			if (lruvec) {
+-				unlock_page_lruvec_irqrestore(lruvec, flags);
++				lruvec_unlock_irqrestore(lruvec, flags);
+ 				lruvec = NULL;
+ 			}
+ 			if (folio_ref_sub_and_test(folio, nr_refs))
+@@ -977,7 +977,7 @@ void folios_put_refs(struct folio_batch
+ 		/* hugetlb has its own memcg */
+ 		if (folio_test_hugetlb(folio)) {
+ 			if (lruvec) {
+-				unlock_page_lruvec_irqrestore(lruvec, flags);
++				lruvec_unlock_irqrestore(lruvec, flags);
+ 				lruvec = NULL;
+ 			}
+ 			free_huge_folio(folio);
+@@ -991,7 +991,7 @@ void folios_put_refs(struct folio_batch
+ 		j++;
+ 	}
+ 	if (lruvec)
+-		unlock_page_lruvec_irqrestore(lruvec, flags);
++		lruvec_unlock_irqrestore(lruvec, flags);
+ 	if (!j) {
+ 		folio_batch_reinit(folios);
+ 		return;
+--- a/mm/vmscan.c~mm-rename-unlock_page_lruvec_irq-and-its-variants
++++ a/mm/vmscan.c
+@@ -1831,7 +1831,7 @@ bool folio_isolate_lru(struct folio *fol
+ 		folio_get(folio);
+ 		lruvec = folio_lruvec_lock_irq(folio);
+ 		lruvec_del_folio(lruvec, folio);
+-		unlock_page_lruvec_irq(lruvec);
++		lruvec_unlock_irq(lruvec);
+ 		ret = true;
+ 	}
+ 
+@@ -7898,7 +7898,7 @@ void check_move_unevictable_folios(struc
+ 	if (lruvec) {
+ 		__count_vm_events(UNEVICTABLE_PGRESCUED, pgrescued);
+ 		__count_vm_events(UNEVICTABLE_PGSCANNED, pgscanned);
+-		unlock_page_lruvec_irq(lruvec);
++		lruvec_unlock_irq(lruvec);
+ 	} else if (pgscanned) {
+ 		count_vm_events(UNEVICTABLE_PGSCANNED, pgscanned);
+ 	}
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
