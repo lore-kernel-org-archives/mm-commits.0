@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45186371CE2
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:58:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC844371049
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:58:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776499121; cv=none; b=Sw4lbBXn9iWPSKaTpwIgz9qHMWzXF09LKk+AvnscWetK7SqdBVxv8cvhcT/ffMxsYoSWbbm1P8Aw96hF3Zoi4Mn7u+AeByGYQj2ZscbyGQNby3I2QUQdZUs3FwDVus7IrhrDlOpNCFv05mhjG6kauFzIkT83xnNqFAEyAmNP0SA=
+	t=1776499127; cv=none; b=CezZE4g2Z7N8IyUx5cWkF8kroO9LiJvi/uj3uecc8vR/dS59VfZM4Afa7hO+ZnpOrj+OBDeF8OX+x/lcgfLffNvAtv3NRsZvEOSuv6wpyx2duy4TBgFbRTRj+ZFIlLWbX9hzXFEhlx/fp0LteS5lk8XSLVvhLwf8KVWrc7xORZQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776499121; c=relaxed/simple;
-	bh=2pMQAzZVq9/ClDS/3FWEYJa+7ZrcjxYup9NOwDTMGFo=;
-	h=Date:To:From:Subject:Message-Id; b=V7BOiI0m7YrYp8ZvOy4VUyqfr94jHPAHE4rKQzvJyzS5ScOvY16I+rFDuXxAeTLXC0/tLHrfTiA9YMcFp3BUhwfubCZolUVY0QV+uln0J8qTG+mXPADYBY0mHIiKxSASAq0/oCiKwBictyYAmWJDMrif1lcHfIwZsVWArq5SNTg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vu4ndMKy; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776499127; c=relaxed/simple;
+	bh=lmTkrswO+DgsGjef+pHWdI2AnXk33RRIASLD6Os9HPc=;
+	h=Date:To:From:Subject:Message-Id; b=IiAMZgH1ST4mALbkU2pkVEdXkrKsWyOgypu67Lj6P6+M/f9G4j10HG9m1Ju+9pzePRo/xw9HFAcxhMXwlv1sMYnXqZlIjcvcN7IpVdMJBFiG00d9V0t25MhHPdxrvYqDt5PuDG2FDfuqpTf/9LksqDA32//RDjNPcpwxa1fOPsM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oNcAad7D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vu4ndMKy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58F2FC19424;
-	Sat, 18 Apr 2026 07:58:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oNcAad7D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB92FC19424;
+	Sat, 18 Apr 2026 07:58:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776499121;
-	bh=2pMQAzZVq9/ClDS/3FWEYJa+7ZrcjxYup9NOwDTMGFo=;
+	s=korg; t=1776499127;
+	bh=lmTkrswO+DgsGjef+pHWdI2AnXk33RRIASLD6Os9HPc=;
 	h=Date:To:From:Subject:From;
-	b=vu4ndMKy+gjbIq/i7Yo42tvirITqvccO5W8T7RhDY+deAr7PJXZE24yFaCsfx1tWG
-	 T7PW+7brnJhGkXjWgZraIY+Ez/WyFTRzwhyp3gRVkAEzqntlmfNGPGDH1p4c2jVHZa
-	 qXnQndTHrdUVKDlZSKTQBhi+FyktzLJX4gbj2NF8=
-Date: Sat, 18 Apr 2026 00:58:35 -0700
+	b=oNcAad7DHlTrelDuFhp8fsO5ixrjgDLVn6aa01C97kfLLROZMYd18SKpZBF/+iqv+
+	 LnjcGPGPBHudn2QtFgdLZFzieYiA8NxpTQVMq++tySDVYw98tC2MSGnBVhT2esB6lA
+	 KRsDdD3MIpCsy2/Z33JRG/klBdYfmfAA9GSqfDoc=
+Date: Sat, 18 Apr 2026 00:58:42 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,luyang@redhat.com,ljs@kernel.org,liam.howlett@oracle.com,jhladky@redhat.com,jannh@google.com,dev.jain@arm.com,david@kernel.org,dave@stgolabs.net,pfalcato@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mprotect-move-softleaf-code-out-of-the-main-function.patch removed from -mm tree
-Message-Id: <20260418075840.58F2FC19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-mprotect-special-case-small-folios-when-applying-write-permissions.patch removed from -mm tree
+Message-Id: <20260418075846.EB92FC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,79 +35,29 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mprotect: move softleaf code out of the main function
+     Subject: mm/mprotect: special-case small folios when applying permissions
 has been removed from the -mm tree.  Its filename was
-     mm-mprotect-move-softleaf-code-out-of-the-main-function.patch
+     mm-mprotect-special-case-small-folios-when-applying-write-permissions.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Pedro Falcato <pfalcato@suse.de>
-Subject: mm/mprotect: move softleaf code out of the main function
-Date: Thu, 2 Apr 2026 15:16:27 +0100
+Subject: mm/mprotect: special-case small folios when applying permissions
+Date: Thu, 2 Apr 2026 15:16:28 +0100
 
-Patch series "mm/mprotect: micro-optimization work", v3.
+The common order-0 case is important enough to want its own branch, and
+avoids the hairy, large loop logic that the CPU does not seem to handle
+particularly well.
 
-Micro-optimize the change_protection functionality and the
-change_pte_range() routine.  This set of functions works in an incredibly
-tight loop, and even small inefficiencies are incredibly evident when spun
-hundreds, thousands or hundreds of thousands of times.
+While at it, encourage the compiler to inline batch PTE logic and resolve
+constant branches by adding __always_inline strategically.
 
-There was an attempt to keep the batching functionality as much as
-possible, which introduced some part of the slowness, but not all of it. 
-Removing it for !arm64 architectures would speed mprotect() up even
-further, but could easily pessimize cases where large folios are mapped
-(which is not as rare as it seems, particularly when it comes to the page
-cache these days).
-
-The micro-benchmark used for the tests was [0] (usable using
-google/benchmark and g++ -O2 -lbenchmark repro.cpp)
-
-This resulted in the following (first entry is baseline):
-
----------------------------------------------------------
-Benchmark               Time             CPU   Iterations
----------------------------------------------------------
-mprotect_bench      85967 ns        85967 ns         6935
-mprotect_bench      70684 ns        70684 ns         9887
-
-
-After the patchset we can observe an ~18% speedup in mprotect.  Wonderful
-for the elusive mprotect-based workloads!
-
-Testing & more ideas welcome.  I suspect there is plenty of improvement
-possible but it would require more time than what I have on my hands right
-now.  The entire inlined function (which inlines into change_protection())
-is gigantic - I'm not surprised this is so finnicky.
-
-Note: per my profiling, the next _big_ bottleneck here is
-modify_prot_start_ptes, exactly on the xchg() done by x86. 
-ptep_get_and_clear() is _expensive_.  I don't think there's a properly
-safe way to go about it since we do depend on the D bit quite a lot.  This
-might not be such an issue on other architectures.
-
-Luke Yang reported [1]:
-
-: On average, we see improvements ranging from a minimum of 5% to a
-: maximum of 55%, with most improvements showing around a 25% speed up in
-: the libmicro/mprot_tw4m micro benchmark.
-
-
-This patch (of 2):
-
-Move softleaf change_pte_range code into a separate function.  This makes
-the change_pte_range() function a good bit smaller, and lessens cognitive
-load when reading through the function.
-
-Link: https://lore.kernel.org/20260402141628.3367596-1-pfalcato@suse.de
-Link: https://lore.kernel.org/20260402141628.3367596-2-pfalcato@suse.de
-Link: https://lore.kernel.org/all/aY8-XuFZ7zCvXulB@luyang-thinkpadp1gen7.toromso.csb/
-Link: https://gist.github.com/heatd/1450d273005aba91fa5744f44dfcd933 [0]
-Link: https://lore.kernel.org/CAL2CeBxT4jtJ+LxYb6=BNxNMGinpgD_HYH5gGxOP-45Q2OncqQ@mail.gmail.com [1]
+Link: https://lore.kernel.org/20260402141628.3367596-3-pfalcato@suse.de
 Signed-off-by: Pedro Falcato <pfalcato@suse.de>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Tested-by: Luke Yang <luyang@redhat.com>
 Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
@@ -118,152 +68,160 @@ Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |  127 +++++++++++++++++++++++++-----------------------
- 1 file changed, 67 insertions(+), 60 deletions(-)
+ mm/mprotect.c |   91 ++++++++++++++++++++++++++++++------------------
+ 1 file changed, 57 insertions(+), 34 deletions(-)
 
---- a/mm/mprotect.c~mm-mprotect-move-softleaf-code-out-of-the-main-function
+--- a/mm/mprotect.c~mm-mprotect-special-case-small-folios-when-applying-write-permissions
 +++ a/mm/mprotect.c
-@@ -211,6 +211,72 @@ static void set_write_prot_commit_flush_
- 	commit_anon_folio_batch(vma, folio, page, addr, ptep, oldpte, ptent, nr_ptes, tlb);
+@@ -117,9 +117,9 @@ static int mprotect_folio_pte_batch(stru
  }
  
-+static long change_softleaf_pte(struct vm_area_struct *vma,
-+	unsigned long addr, pte_t *pte, pte_t oldpte, unsigned long cp_flags)
+ /* Set nr_ptes number of ptes, starting from idx */
+-static void prot_commit_flush_ptes(struct vm_area_struct *vma, unsigned long addr,
+-		pte_t *ptep, pte_t oldpte, pte_t ptent, int nr_ptes,
+-		int idx, bool set_write, struct mmu_gather *tlb)
++static __always_inline void prot_commit_flush_ptes(struct vm_area_struct *vma,
++		unsigned long addr, pte_t *ptep, pte_t oldpte, pte_t ptent,
++		int nr_ptes, int idx, bool set_write, struct mmu_gather *tlb)
+ {
+ 	/*
+ 	 * Advance the position in the batch by idx; note that if idx > 0,
+@@ -143,7 +143,7 @@ static void prot_commit_flush_ptes(struc
+  * !PageAnonExclusive() pages, starting from start_idx. Caller must enforce
+  * that the ptes point to consecutive pages of the same anon large folio.
+  */
+-static int page_anon_exclusive_sub_batch(int start_idx, int max_len,
++static __always_inline int page_anon_exclusive_sub_batch(int start_idx, int max_len,
+ 		struct page *first_page, bool expected_anon_exclusive)
+ {
+ 	int idx;
+@@ -169,7 +169,7 @@ static int page_anon_exclusive_sub_batch
+  * pte of the batch. Therefore, we must individually check all pages and
+  * retrieve sub-batches.
+  */
+-static void commit_anon_folio_batch(struct vm_area_struct *vma,
++static __always_inline void commit_anon_folio_batch(struct vm_area_struct *vma,
+ 		struct folio *folio, struct page *first_page, unsigned long addr, pte_t *ptep,
+ 		pte_t oldpte, pte_t ptent, int nr_ptes, struct mmu_gather *tlb)
+ {
+@@ -188,7 +188,7 @@ static void commit_anon_folio_batch(stru
+ 	}
+ }
+ 
+-static void set_write_prot_commit_flush_ptes(struct vm_area_struct *vma,
++static __always_inline void set_write_prot_commit_flush_ptes(struct vm_area_struct *vma,
+ 		struct folio *folio, struct page *page, unsigned long addr, pte_t *ptep,
+ 		pte_t oldpte, pte_t ptent, int nr_ptes, struct mmu_gather *tlb)
+ {
+@@ -277,6 +277,45 @@ static long change_softleaf_pte(struct v
+ 	return 0;
+ }
+ 
++static __always_inline void change_present_ptes(struct mmu_gather *tlb,
++		struct vm_area_struct *vma, unsigned long addr, pte_t *ptep,
++		int nr_ptes, unsigned long end, pgprot_t newprot,
++		struct folio *folio, struct page *page, unsigned long cp_flags)
 +{
-+	const bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
 +	const bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
-+	softleaf_t entry = softleaf_from_pte(oldpte);
-+	pte_t newpte;
++	const bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
++	pte_t ptent, oldpte;
 +
-+	if (softleaf_is_migration_write(entry)) {
-+		const struct folio *folio = softleaf_to_folio(entry);
-+
-+		/*
-+		 * A protection check is difficult so
-+		 * just be safe and disable write
-+		 */
-+		if (folio_test_anon(folio))
-+			entry = make_readable_exclusive_migration_entry(swp_offset(entry));
-+		else
-+			entry = make_readable_migration_entry(swp_offset(entry));
-+		newpte = swp_entry_to_pte(entry);
-+		if (pte_swp_soft_dirty(oldpte))
-+			newpte = pte_swp_mksoft_dirty(newpte);
-+	} else if (softleaf_is_device_private_write(entry)) {
-+		/*
-+		 * We do not preserve soft-dirtiness. See
-+		 * copy_nonpresent_pte() for explanation.
-+		 */
-+		entry = make_readable_device_private_entry(swp_offset(entry));
-+		newpte = swp_entry_to_pte(entry);
-+		if (pte_swp_uffd_wp(oldpte))
-+			newpte = pte_swp_mkuffd_wp(newpte);
-+	} else if (softleaf_is_marker(entry)) {
-+		/*
-+		 * Ignore error swap entries unconditionally,
-+		 * because any access should sigbus/sigsegv
-+		 * anyway.
-+		 */
-+		if (softleaf_is_poison_marker(entry) ||
-+		    softleaf_is_guard_marker(entry))
-+			return 0;
-+		/*
-+		 * If this is uffd-wp pte marker and we'd like
-+		 * to unprotect it, drop it; the next page
-+		 * fault will trigger without uffd trapping.
-+		 */
-+		if (uffd_wp_resolve) {
-+			pte_clear(vma->vm_mm, addr, pte);
-+			return 1;
-+		}
-+		return 0;
-+	} else {
-+		newpte = oldpte;
-+	}
++	oldpte = modify_prot_start_ptes(vma, addr, ptep, nr_ptes);
++	ptent = pte_modify(oldpte, newprot);
 +
 +	if (uffd_wp)
-+		newpte = pte_swp_mkuffd_wp(newpte);
++		ptent = pte_mkuffd_wp(ptent);
 +	else if (uffd_wp_resolve)
-+		newpte = pte_swp_clear_uffd_wp(newpte);
++		ptent = pte_clear_uffd_wp(ptent);
 +
-+	if (!pte_same(oldpte, newpte)) {
-+		set_pte_at(vma->vm_mm, addr, pte, newpte);
-+		return 1;
-+	}
-+	return 0;
++	/*
++	 * In some writable, shared mappings, we might want
++	 * to catch actual write access -- see
++	 * vma_wants_writenotify().
++	 *
++	 * In all writable, private mappings, we have to
++	 * properly handle COW.
++	 *
++	 * In both cases, we can sometimes still change PTEs
++	 * writable and avoid the write-fault handler, for
++	 * example, if a PTE is already dirty and no other
++	 * COW or special handling is required.
++	 */
++	if ((cp_flags & MM_CP_TRY_CHANGE_WRITABLE) &&
++	     !pte_write(ptent))
++		set_write_prot_commit_flush_ptes(vma, folio, page,
++			addr, ptep, oldpte, ptent, nr_ptes, tlb);
++	else
++		prot_commit_flush_ptes(vma, addr, ptep, oldpte, ptent,
++			nr_ptes, /* idx = */ 0, /* set_write = */ false, tlb);
 +}
 +
  static long change_pte_range(struct mmu_gather *tlb,
  		struct vm_area_struct *vma, pmd_t *pmd, unsigned long addr,
  		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
-@@ -317,66 +383,7 @@ static long change_pte_range(struct mmu_
- 				pages++;
- 			}
- 		} else  {
--			softleaf_t entry = softleaf_from_pte(oldpte);
--			pte_t newpte;
--
--			if (softleaf_is_migration_write(entry)) {
--				const struct folio *folio = softleaf_to_folio(entry);
--
--				/*
--				 * A protection check is difficult so
--				 * just be safe and disable write
--				 */
--				if (folio_test_anon(folio))
--					entry = make_readable_exclusive_migration_entry(
--							     swp_offset(entry));
--				else
--					entry = make_readable_migration_entry(swp_offset(entry));
--				newpte = swp_entry_to_pte(entry);
--				if (pte_swp_soft_dirty(oldpte))
--					newpte = pte_swp_mksoft_dirty(newpte);
--			} else if (softleaf_is_device_private_write(entry)) {
--				/*
--				 * We do not preserve soft-dirtiness. See
--				 * copy_nonpresent_pte() for explanation.
--				 */
--				entry = make_readable_device_private_entry(
--							swp_offset(entry));
--				newpte = swp_entry_to_pte(entry);
--				if (pte_swp_uffd_wp(oldpte))
--					newpte = pte_swp_mkuffd_wp(newpte);
--			} else if (softleaf_is_marker(entry)) {
--				/*
--				 * Ignore error swap entries unconditionally,
--				 * because any access should sigbus/sigsegv
--				 * anyway.
--				 */
--				if (softleaf_is_poison_marker(entry) ||
--				    softleaf_is_guard_marker(entry))
--					continue;
--				/*
--				 * If this is uffd-wp pte marker and we'd like
--				 * to unprotect it, drop it; the next page
--				 * fault will trigger without uffd trapping.
--				 */
--				if (uffd_wp_resolve) {
--					pte_clear(vma->vm_mm, addr, pte);
--					pages++;
--				}
--				continue;
--			} else {
--				newpte = oldpte;
--			}
+@@ -287,7 +326,6 @@ static long change_pte_range(struct mmu_
+ 	bool is_private_single_threaded;
+ 	bool prot_numa = cp_flags & MM_CP_PROT_NUMA;
+ 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
+-	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
+ 	int nr_ptes;
+ 
+ 	tlb_change_page_size(tlb, PAGE_SIZE);
+@@ -308,7 +346,6 @@ static long change_pte_range(struct mmu_
+ 			int max_nr_ptes = (end - addr) >> PAGE_SHIFT;
+ 			struct folio *folio = NULL;
+ 			struct page *page;
+-			pte_t ptent;
+ 
+ 			/* Already in the desired state. */
+ 			if (prot_numa && pte_protnone(oldpte))
+@@ -334,34 +371,20 @@ static long change_pte_range(struct mmu_
+ 
+ 			nr_ptes = mprotect_folio_pte_batch(folio, pte, oldpte, max_nr_ptes, flags);
+ 
+-			oldpte = modify_prot_start_ptes(vma, addr, pte, nr_ptes);
+-			ptent = pte_modify(oldpte, newprot);
 -
 -			if (uffd_wp)
--				newpte = pte_swp_mkuffd_wp(newpte);
+-				ptent = pte_mkuffd_wp(ptent);
 -			else if (uffd_wp_resolve)
--				newpte = pte_swp_clear_uffd_wp(newpte);
+-				ptent = pte_clear_uffd_wp(ptent);
 -
--			if (!pte_same(oldpte, newpte)) {
--				set_pte_at(vma->vm_mm, addr, pte, newpte);
--				pages++;
--			}
-+			pages += change_softleaf_pte(vma, addr, pte, oldpte, cp_flags);
- 		}
- 	} while (pte += nr_ptes, addr += nr_ptes * PAGE_SIZE, addr != end);
- 	lazy_mmu_mode_disable();
+ 			/*
+-			 * In some writable, shared mappings, we might want
+-			 * to catch actual write access -- see
+-			 * vma_wants_writenotify().
+-			 *
+-			 * In all writable, private mappings, we have to
+-			 * properly handle COW.
+-			 *
+-			 * In both cases, we can sometimes still change PTEs
+-			 * writable and avoid the write-fault handler, for
+-			 * example, if a PTE is already dirty and no other
+-			 * COW or special handling is required.
++			 * Optimize for the small-folio common case by
++			 * special-casing it here. Compiler constant propagation
++			 * plus copious amounts of __always_inline does wonders.
+ 			 */
+-			if ((cp_flags & MM_CP_TRY_CHANGE_WRITABLE) &&
+-			     !pte_write(ptent))
+-				set_write_prot_commit_flush_ptes(vma, folio, page,
+-				addr, pte, oldpte, ptent, nr_ptes, tlb);
+-			else
+-				prot_commit_flush_ptes(vma, addr, pte, oldpte, ptent,
+-					nr_ptes, /* idx = */ 0, /* set_write = */ false, tlb);
++			if (likely(nr_ptes == 1)) {
++				change_present_ptes(tlb, vma, addr, pte, 1,
++					end, newprot, folio, page, cp_flags);
++			} else {
++				change_present_ptes(tlb, vma, addr, pte,
++					nr_ptes, end, newprot, folio, page,
++					cp_flags);
++			}
++
+ 			pages += nr_ptes;
+ 		} else if (pte_none(oldpte)) {
+ 			/*
 _
 
 Patches currently in -mm which might be from pfalcato@suse.de are
