@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78702370D54
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:55:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F7C5370D54;
+	Sat, 18 Apr 2026 07:55:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498926; cv=none; b=F6QYiQau7FnbvY3cDlrnrgSGllDT/u17AISeE20S+a8iAOSO3wpuVnYHPpSLYOKR+sxpQcTW2PRBPEzGxdleEkdxLVOUemjSNAR+pfKgQ9Nn9HtWlPP3qBdzc0iBJY2HptvF8BZk2mh6zx982j19jopjlgxZs/XpL+KQXQpfm9Y=
+	t=1776498932; cv=none; b=S47wfkbcZ64ri+492SH2cKnzxYe3w8gujuIMjWBqMD2eceEKGuXY257tAT/9WFNdYZmdQT0iUN3nE0SDRvS253a+F+CDbAstMlx4gTk8GA00XK3zIULrCCfxODNT3ezxV5IzfvkCiOEY4Pc3PCwoAswxAog78rMO8YFBCtwiB9g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498926; c=relaxed/simple;
-	bh=IFOfuhBKQtLCcoa5mTtsSC/d9knx3GwM/rqNhRHFYCU=;
-	h=Date:To:From:Subject:Message-Id; b=BB0DMar83ssFKzpKK7O22d7zkZXZ+GBlUEBytl8bpMYfBKtINtIaNWjijYDnkwTyPx9QwW/PlGtU9gxySRrI+yuDlao9+l23aeqx6hEmlx2Dzz2IwlgG10ny06QHfTYu2ixEeEptphYMaJeBx9NBZHPQEtlo+w4iLnvZAeUTK68=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S9MJlsCU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498932; c=relaxed/simple;
+	bh=Lo5zoY1KS7MmFAIz57LmHATamMoxS5JaSlpVGMb0ZEM=;
+	h=Date:To:From:Subject:Message-Id; b=ZOiZGNxgWomy4S0GUfinaF6R5dOzuK3kESbPxTfFgdXGTEhy80QCySrd1xCuoOVJwSezOVoXS3ga1eSLogqSYTaomMPHueNbyZWKdpgygCo968j30EKp44uA8ip2Fss4CzxJcdc9EEJcmIqJFXC2TPi9zraIVu8DUjUTWCdcTyI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nxUfbXdG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S9MJlsCU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CFD1C19424;
-	Sat, 18 Apr 2026 07:55:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nxUfbXdG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CA08C19424;
+	Sat, 18 Apr 2026 07:55:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498926;
-	bh=IFOfuhBKQtLCcoa5mTtsSC/d9knx3GwM/rqNhRHFYCU=;
+	s=korg; t=1776498932;
+	bh=Lo5zoY1KS7MmFAIz57LmHATamMoxS5JaSlpVGMb0ZEM=;
 	h=Date:To:From:Subject:From;
-	b=S9MJlsCUcIKzm5R3kzIT0h+DKH4lLagxsYm5Wv1DyqdbD593b71+CmnMD1Fvps75g
-	 85+LmpqWcqyGBgCivVNoEh2VTGBRqLmwuvj+NXEtnN7gYFfNl2FS/ul6GVSNqpdKzX
-	 LepyVEEjNqKzsP+VB/Hy52EAikd7/Ks9PPr5MHYo=
-Date: Sat, 18 Apr 2026 00:55:20 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,liwang@redhat.com,akpm@linux-foundation.org
+	b=nxUfbXdGpKVujgxS3Ei+5rJCVEesyQR0uL2OSrXQqjqCwwZgX3yOCma85G6aBF1Kh
+	 DxGRTSeb8gpUicwCgQGIe18+i0YNgRd+1vSP2tc697C0awu4D2Z9U+9FG4MXxbj2W0
+	 mXISNupvRHMKNO6MIyb+/2y3CmjToCrTJzZS42aM=
+Date: Sat, 18 Apr 2026 00:55:26 -0700
+To: mm-commits@vger.kernel.org,zenghui.yu@linux.dev,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,matthew.brost@intel.com,ljs@kernel.org,liam.howlett@oracle.com,leon@kernel.org,jgg@ziepe.ca,david@kernel.org,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible.patch removed from -mm tree
-Message-Id: <20260418075525.1CFD1C19424@smtp.kernel.org>
+Subject: [merged mm-stable] lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free.patch removed from -mm tree
+Message-Id: <20260418075531.7CA08C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,229 +35,203 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: skip hugetlb_dio tests when DIO alignment is incompatible
+     Subject: lib: test_hmm: evict device pages on file close to avoid use-after-free
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible.patch
+     lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li Wang <liwang@redhat.com>
-Subject: selftests/mm: skip hugetlb_dio tests when DIO alignment is incompatible
-Date: Wed, 1 Apr 2026 17:05:20 +0800
+From: Alistair Popple <apopple@nvidia.com>
+Subject: lib: test_hmm: evict device pages on file close to avoid use-after-free
+Date: Tue, 31 Mar 2026 17:34:43 +1100
 
-hugetlb_dio test uses sub-page offsets (pagesize / 2) to verify that
-hugepages used as DIO user buffers are correctly unpinned at completion.
+Patch series "Minor hmm_test fixes and cleanups".
 
-However, on filesystems with a logical block size larger than half the
-page size (e.g., 4K-sector block devices), these unaligned DIO writes are
-rejected with -EINVAL, causing the test to fail unexpectedly.
+Two bugfixes a cleanup for the HMM kernel selftests.  These were mostly
+reported by Zenghui Yu with special thanks to Lorenzo for analysing and
+pointing out the problems.
 
-Add get_dio_alignment() to query the filesystem's required DIO alignment
-via statx(STATX_DIOALIGN) and skip individual test cases whose file offset
-or write size is not a multiple of that alignment.  Aligned cases continue
-to run so the core coverage is preserved.
 
-While here, open the temporary file once in main() and share the fd across
-all test cases instead of reopening it in each invocation.
+This patch (of 3):
 
-=== Reproduce Steps ===
+When dmirror_fops_release() is called it frees the dmirror struct but
+doesn't migrate device private pages back to system memory first.  This
+leaves those pages with a dangling zone_device_data pointer to the freed
+dmirror.
 
-  # dd if=/dev/zero of=/tmp/test.img bs=1M count=512
-  # losetup --sector-size 4096 /dev/loop0 /tmp/test.img
-  # mkfs.xfs /dev/loop0
-  # mkdir -p /mnt/dio_test
-  # mount /dev/loop0 /mnt/dio_test
+If a subsequent fault occurs on those pages (eg.  during coredump) the
+dmirror_devmem_fault() callback dereferences the stale pointer causing a
+kernel panic.  This was reported [1] when running mm/ksft_hmm.sh on arm64,
+where a test failure triggered SIGABRT and the resulting coredump walked
+the VMAs faulting in the stale device private pages.
 
-  // Modify test to open /mnt/dio_test and rebuild it:
-  -       fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
-  +       fd = open("/mnt/dio_test", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
+Fix this by calling dmirror_device_evict_chunk() for each devmem chunk in
+dmirror_fops_release() to migrate all device private pages back to system
+memory before freeing the dmirror struct.  The function is moved earlier
+in the file to avoid a forward declaration.
 
-  # getconf PAGESIZE
-  4096
-
-  # echo 100 >/proc/sys/vm/nr_hugepages
-
-  # ./hugetlb_dio
-  TAP version 13
-  1..4
-  # No. Free pages before allocation : 100
-  # No. Free pages after munmap : 100
-  ok 1 free huge pages from 0-12288
-  Bail out! Error writing to file
-  : Invalid argument (22)
-  # Planned tests != run tests (4 != 1)
-  # Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
-
-Link: https://lore.kernel.org/20260401090520.24018-1-liwang@redhat.com
-Signed-off-by: Li Wang <liwang@redhat.com>
-Suggested-by: Mike Rapoport <rppt@kernel.org>
-Suggested-by: David Hildenbrand <david@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Link: https://lore.kernel.org/20260331063445.3551404-1-apopple@nvidia.com
+Link: https://lore.kernel.org/20260331063445.3551404-2-apopple@nvidia.com
+Fixes: b2ef9f5a5cb3 ("mm/hmm/test: add selftest driver for HMM")
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reported-by: Zenghui Yu <zenghui.yu@linux.dev>
+Closes: https://lore.kernel.org/linux-mm/8bd0396a-8997-4d2e-a13f-5aac033083d7@linux.dev/
+Reviewed-by: Balbir Singh <balbirs@nvidia.com>
+Tested-by: Zenghui Yu <zenghui.yu@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zenghui Yu <zenghui.yu@linux.dev>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb_dio.c |   91 +++++++++++++++------
- 1 file changed, 69 insertions(+), 22 deletions(-)
+ lib/test_hmm.c |  112 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 62 insertions(+), 50 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb_dio.c~selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible
-+++ a/tools/testing/selftests/mm/hugetlb_dio.c
-@@ -17,12 +17,57 @@
- #include <unistd.h>
- #include <string.h>
- #include <sys/mman.h>
-+#include <sys/syscall.h>
- #include "vm_util.h"
- #include "kselftest.h"
+--- a/lib/test_hmm.c~lib-test_hmm-evict-device-pages-on-file-close-to-avoid-use-after-free
++++ a/lib/test_hmm.c
+@@ -185,11 +185,73 @@ static int dmirror_fops_open(struct inod
+ 	return 0;
+ }
  
--void run_dio_using_hugetlb(unsigned int start_off, unsigned int end_off)
-+#ifndef STATX_DIOALIGN
-+#define STATX_DIOALIGN		0x00002000U
-+#endif
-+
-+static int get_dio_alignment(int fd)
++static void dmirror_device_evict_chunk(struct dmirror_chunk *chunk)
 +{
-+	struct statx stx;
-+	int ret;
++	unsigned long start_pfn = chunk->pagemap.range.start >> PAGE_SHIFT;
++	unsigned long end_pfn = chunk->pagemap.range.end >> PAGE_SHIFT;
++	unsigned long npages = end_pfn - start_pfn + 1;
++	unsigned long i;
++	unsigned long *src_pfns;
++	unsigned long *dst_pfns;
++	unsigned int order = 0;
 +
-+	ret = syscall(__NR_statx, fd, "", AT_EMPTY_PATH, STATX_DIOALIGN, &stx);
-+	if (ret < 0)
-+		return -1;
++	src_pfns = kvcalloc(npages, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
++	dst_pfns = kvcalloc(npages, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
 +
-+	/*
-+	 * If STATX_DIOALIGN is unsupported, assume no alignment
-+	 * constraint and let the test proceed.
-+	 */
-+	if (!(stx.stx_mask & STATX_DIOALIGN) || !stx.stx_dio_offset_align)
-+		return 1;
++	migrate_device_range(src_pfns, start_pfn, npages);
++	for (i = 0; i < npages; i++) {
++		struct page *dpage, *spage;
 +
-+	return stx.stx_dio_offset_align;
++		spage = migrate_pfn_to_page(src_pfns[i]);
++		if (!spage || !(src_pfns[i] & MIGRATE_PFN_MIGRATE))
++			continue;
++
++		if (WARN_ON(!is_device_private_page(spage) &&
++			    !is_device_coherent_page(spage)))
++			continue;
++
++		order = folio_order(page_folio(spage));
++		spage = BACKING_PAGE(spage);
++		if (src_pfns[i] & MIGRATE_PFN_COMPOUND) {
++			dpage = folio_page(folio_alloc(GFP_HIGHUSER_MOVABLE,
++					      order), 0);
++		} else {
++			dpage = alloc_page(GFP_HIGHUSER_MOVABLE | __GFP_NOFAIL);
++			order = 0;
++		}
++
++		/* TODO Support splitting here */
++		lock_page(dpage);
++		dst_pfns[i] = migrate_pfn(page_to_pfn(dpage));
++		if (src_pfns[i] & MIGRATE_PFN_WRITE)
++			dst_pfns[i] |= MIGRATE_PFN_WRITE;
++		if (order)
++			dst_pfns[i] |= MIGRATE_PFN_COMPOUND;
++		folio_copy(page_folio(dpage), page_folio(spage));
++	}
++	migrate_device_pages(src_pfns, dst_pfns, npages);
++	migrate_device_finalize(src_pfns, dst_pfns, npages);
++	kvfree(src_pfns);
++	kvfree(dst_pfns);
 +}
 +
-+static bool check_dio_alignment(unsigned int start_off,
-+				unsigned int end_off, unsigned int align)
-+{
-+	unsigned int writesize = end_off - start_off;
+ static int dmirror_fops_release(struct inode *inode, struct file *filp)
+ {
+ 	struct dmirror *dmirror = filp->private_data;
++	struct dmirror_device *mdevice = dmirror->mdevice;
++	int i;
+ 
+ 	mmu_interval_notifier_remove(&dmirror->notifier);
 +
-+	/*
-+	 * The kernel's DIO path checks that file offset, length, and
-+	 * buffer address are all multiples of dio_offset_align.  When
-+	 * this test case's parameters don't satisfy that, the write
-+	 * would fail with -EINVAL before exercising the hugetlb unpin
-+	 * path, so skip.
-+	 */
-+	if (start_off % align != 0 || writesize % align != 0) {
-+		ksft_test_result_skip("DIO align=%u incompatible with offset %u writesize %u\n",
-+				align, start_off, writesize);
-+		return false;
++	if (mdevice->devmem_chunks) {
++		for (i = 0; i < mdevice->devmem_count; i++) {
++			struct dmirror_chunk *devmem =
++				mdevice->devmem_chunks[i];
++
++			dmirror_device_evict_chunk(devmem);
++		}
 +	}
 +
-+	return true;
-+}
-+
-+static void run_dio_using_hugetlb(int fd, unsigned int start_off,
-+				unsigned int end_off, unsigned int align)
- {
--	int fd;
- 	char *buffer =  NULL;
- 	char *orig_buffer = NULL;
- 	size_t h_pagesize = 0;
-@@ -32,6 +77,9 @@ void run_dio_using_hugetlb(unsigned int
- 	const int mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB;
- 	const int mmap_prot  = PROT_READ | PROT_WRITE;
- 
-+	if (!check_dio_alignment(start_off, end_off, align))
-+		return;
-+
- 	writesize = end_off - start_off;
- 
- 	/* Get the default huge page size */
-@@ -39,10 +87,9 @@ void run_dio_using_hugetlb(unsigned int
- 	if (!h_pagesize)
- 		ksft_exit_fail_msg("Unable to determine huge page size\n");
- 
--	/* Open the file to DIO */
--	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
--	if (fd < 0)
--		ksft_exit_fail_perror("Error opening file\n");
-+	/* Reset file position since fd is shared across tests */
-+	if (lseek(fd, 0, SEEK_SET) < 0)
-+		ksft_exit_fail_perror("lseek failed\n");
- 
- 	/* Get the free huge pages before allocation */
- 	free_hpage_b = get_free_hugepages();
-@@ -71,7 +118,6 @@ void run_dio_using_hugetlb(unsigned int
- 
- 	/* unmap the huge page */
- 	munmap(orig_buffer, h_pagesize);
--	close(fd);
- 
- 	/* Get the free huge pages after unmap*/
- 	free_hpage_a = get_free_hugepages();
-@@ -89,37 +135,38 @@ void run_dio_using_hugetlb(unsigned int
- 
- int main(void)
- {
--	size_t pagesize = 0;
--	int fd;
-+	int fd, align;
-+	const size_t pagesize = psize();
- 
- 	ksft_print_header();
- 
--	/* Open the file to DIO */
--	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
--	if (fd < 0)
--		ksft_exit_skip("Unable to allocate file: %s\n", strerror(errno));
--	close(fd);
--
- 	/* Check if huge pages are free */
- 	if (!get_free_hugepages())
- 		ksft_exit_skip("No free hugepage, exiting\n");
- 
--	ksft_set_plan(4);
-+	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
-+	if (fd < 0)
-+		ksft_exit_skip("Unable to allocate file: %s\n", strerror(errno));
- 
--	/* Get base page size */
--	pagesize  = psize();
-+	align = get_dio_alignment(fd);
-+	if (align < 0)
-+		ksft_exit_skip("Unable to obtain DIO alignment: %s\n",
-+				strerror(errno));
-+	ksft_set_plan(4);
- 
- 	/* start and end is aligned to pagesize */
--	run_dio_using_hugetlb(0, (pagesize * 3));
-+	run_dio_using_hugetlb(fd, 0, (pagesize * 3), align);
- 
- 	/* start is aligned but end is not aligned */
--	run_dio_using_hugetlb(0, (pagesize * 3) - (pagesize / 2));
-+	run_dio_using_hugetlb(fd, 0, (pagesize * 3) - (pagesize / 2), align);
- 
- 	/* start is unaligned and end is aligned */
--	run_dio_using_hugetlb(pagesize / 2, (pagesize * 3));
-+	run_dio_using_hugetlb(fd, pagesize / 2, (pagesize * 3), align);
- 
- 	/* both start and end are unaligned */
--	run_dio_using_hugetlb(pagesize / 2, (pagesize * 3) + (pagesize / 2));
-+	run_dio_using_hugetlb(fd, pagesize / 2, (pagesize * 3) + (pagesize / 2), align);
-+
-+	close(fd);
- 
- 	ksft_finished();
+ 	xa_destroy(&dmirror->pt);
+ 	kfree(dmirror);
+ 	return 0;
+@@ -1377,56 +1439,6 @@ static int dmirror_snapshot(struct dmirr
+ 	return ret;
  }
+ 
+-static void dmirror_device_evict_chunk(struct dmirror_chunk *chunk)
+-{
+-	unsigned long start_pfn = chunk->pagemap.range.start >> PAGE_SHIFT;
+-	unsigned long end_pfn = chunk->pagemap.range.end >> PAGE_SHIFT;
+-	unsigned long npages = end_pfn - start_pfn + 1;
+-	unsigned long i;
+-	unsigned long *src_pfns;
+-	unsigned long *dst_pfns;
+-	unsigned int order = 0;
+-
+-	src_pfns = kvcalloc(npages, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
+-	dst_pfns = kvcalloc(npages, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
+-
+-	migrate_device_range(src_pfns, start_pfn, npages);
+-	for (i = 0; i < npages; i++) {
+-		struct page *dpage, *spage;
+-
+-		spage = migrate_pfn_to_page(src_pfns[i]);
+-		if (!spage || !(src_pfns[i] & MIGRATE_PFN_MIGRATE))
+-			continue;
+-
+-		if (WARN_ON(!is_device_private_page(spage) &&
+-			    !is_device_coherent_page(spage)))
+-			continue;
+-
+-		order = folio_order(page_folio(spage));
+-		spage = BACKING_PAGE(spage);
+-		if (src_pfns[i] & MIGRATE_PFN_COMPOUND) {
+-			dpage = folio_page(folio_alloc(GFP_HIGHUSER_MOVABLE,
+-					      order), 0);
+-		} else {
+-			dpage = alloc_page(GFP_HIGHUSER_MOVABLE | __GFP_NOFAIL);
+-			order = 0;
+-		}
+-
+-		/* TODO Support splitting here */
+-		lock_page(dpage);
+-		dst_pfns[i] = migrate_pfn(page_to_pfn(dpage));
+-		if (src_pfns[i] & MIGRATE_PFN_WRITE)
+-			dst_pfns[i] |= MIGRATE_PFN_WRITE;
+-		if (order)
+-			dst_pfns[i] |= MIGRATE_PFN_COMPOUND;
+-		folio_copy(page_folio(dpage), page_folio(spage));
+-	}
+-	migrate_device_pages(src_pfns, dst_pfns, npages);
+-	migrate_device_finalize(src_pfns, dst_pfns, npages);
+-	kvfree(src_pfns);
+-	kvfree(dst_pfns);
+-}
+-
+ /* Removes free pages from the free list so they can't be re-allocated */
+ static void dmirror_remove_free_pages(struct dmirror_chunk *devmem)
+ {
 _
 
-Patches currently in -mm which might be from liwang@redhat.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
 
