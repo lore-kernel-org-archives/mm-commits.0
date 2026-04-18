@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A67325CC74
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:51:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DD7E25CC74
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:51:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498678; cv=none; b=AR5+yHedbbE+WqFUDWOBDsdJoNsukc7GHaFQj3tYx3r5ZeatoVpF6SYFZp3ydt8Ee3HSz7lS8WLFk76Qc7gjhbfiD5XbQr45KyMUU2YyRvZ5CZmrmSRldndruFfED6jwKSiKPkaVygwdPxEGP+WTMkRP6xxBPSFNZiJYvO/6SyA=
+	t=1776498684; cv=none; b=LOcIoHbWSPNfpXOSSKE+k6pyH5WEektFXMH1w2H6xSLirfTj2bGPR9Jkkxbn2vUwydZ3SJ9AfQkSOgHeg344AWtBNynE/soeZGPThZuZ+QNIRRbFOmHXZBllutyaaktJjpdWJhaGijK1lSNxWbtlcC3YSWU3BWgnOe1f8N8JzYc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498678; c=relaxed/simple;
-	bh=s5hURI+TUa7a0ioYVE2KokGM4ikQNAxlPNPyDwjiY8Y=;
-	h=Date:To:From:Subject:Message-Id; b=Ox38ZGA1IFTtn8jcLmsL554c4wayBoiS1rhcOAPsY/rds83xJqeL8MBRB8az5xWVD49QeyUOD+XJtwj+PK69ZvgjGZJfVtNK3vBPiuVTe7cNK8UZICJ8HV5BuBEBcrOpghR45dnc3RDa58gyFOCJcicQ+UZQB3Gc18Yuf1OA6/s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D/pDDe+Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498684; c=relaxed/simple;
+	bh=4JEC8UEzF5Jj++XH0yEXRJDK5DL18/JQRXA7S6HN23M=;
+	h=Date:To:From:Subject:Message-Id; b=DMtMxdPoPLkPMk7z/BUapJv0E/VRmFyT52THtL0DavtI5WKEgQM+9cVgreOq4T2Ms5Yp8LfJ36G3oi36UFTbWUj0rHjzSUZQg/y9jcrEt2F7QZnGbWqTHJLPSEuYRQ9UrINtxpjPbM6HOYzfO5WPVlv1z0+2JPrYkbuZ+xMHGTU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pg40smHg; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D/pDDe+Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C190DC19424;
-	Sat, 18 Apr 2026 07:51:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pg40smHg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1749C19424;
+	Sat, 18 Apr 2026 07:51:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498678;
-	bh=s5hURI+TUa7a0ioYVE2KokGM4ikQNAxlPNPyDwjiY8Y=;
+	s=korg; t=1776498684;
+	bh=4JEC8UEzF5Jj++XH0yEXRJDK5DL18/JQRXA7S6HN23M=;
 	h=Date:To:From:Subject:From;
-	b=D/pDDe+Yc2eoFz+KECU5Qe5SVpdztuIEHpEuQ9aHc61CtGn7CejkWHHm45BPgrZnb
-	 tJexGCy2lbfxusACFYo4fQKgUZrG1Nyf4dnsIbMa+AginR58gB3AbhMLG0SXRFoJ0O
-	 uG1ZW8LomGInkyZbK06f6iTyPCqG6D1zuzfDx4A4=
-Date: Sat, 18 Apr 2026 00:51:12 -0700
+	b=Pg40smHgsrLfsLRfpFsx5VJdSkioof9tA9OZrQMXcdGHB02PXl8EG6jQf/RCfEPN0
+	 D0+Yj8OrBxBjaQ/lCozd5Yjth5HiFQ+hj0MfoZqD4jbUnuhOtYmccMDJSzM8Myr8E5
+	 cNt8cDMIUwCuOYpp1v/2nz9SeYWp+sfIkLzEIU9M=
+Date: Sat, 18 Apr 2026 00:51:19 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,weixugc@google.com,usamaarif642@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,ljs@kernel.org,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry@kernel.org,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-change-val-type-to-long-in-__mod_memcg_lruvec_state.patch removed from -mm tree
-Message-Id: <20260418075116.C190DC19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memcontrol-correct-the-nr_pages-parameter-type-of-mem_cgroup_update_lru_size.patch removed from -mm tree
+Message-Id: <20260418075123.A1749C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,40 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: change val type to long in __mod_memcg_{lruvec_}state()
+     Subject: mm: memcontrol: correct the nr_pages parameter type of mem_cgroup_update_lru_size()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-change-val-type-to-long-in-__mod_memcg_lruvec_state.patch
+     mm-memcontrol-correct-the-nr_pages-parameter-type-of-mem_cgroup_update_lru_size.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: memcontrol: change val type to long in __mod_memcg_{lruvec_}state()
-Date: Fri, 27 Mar 2026 18:16:29 +0800
+Subject: mm: memcontrol: correct the nr_pages parameter type of mem_cgroup_update_lru_size()
+Date: Fri, 27 Mar 2026 18:16:30 +0800
 
-The __mod_memcg_state() and __mod_memcg_lruvec_state() functions are also
-used to reparent non-hierarchical stats.  In this scenario, the values
-passed to them are accumulated statistics that might be extremely large
-and exceed the upper limit of a 32-bit integer.
+The nr_pages parameter of mem_cgroup_update_lru_size() represents a page
+count.  During the reparenting of LRU folios, the value passed to it can
+potentially exceed the maximum value of a 32-bit integer.  It should be
+declared as long instead of int to match the types used in lruvec size
+accounting and to prevent possible overflow.
 
-Change the val parameter type from int to long in these functions and
-their corresponding tracepoints (memcg_rstat_stats) to prevent potential
-overflow issues.
+Update the parameter type to long to ensure correctness.
 
-After that, in memcg_state_val_in_pages(), if the passed val is negative,
-the expression val * unit / PAGE_SIZE could be implicitly converted to a
-massive positive number when compared with 1UL in the max() macro.  This
-leads to returning an incorrect massive positive value.
-
-Fix this by using abs(val) to calculate the magnitude first, and then
-restoring the sign of the value before returning the result. 
-Additionally, use mult_frac() to prevent potential overflow during the
-multiplication of val and unit.
-
-Link: https://lore.kernel.org/70a9440e49c464b4dca88bcabc6b491bd335c9f0.1774604356.git.zhengqi.arch@bytedance.com
+Link: https://lore.kernel.org/fd4140de44fa0a3978e4e2426731187fe8625f0b.1774604356.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reported-by: Harry Yoo (Oracle) <harry@kernel.org>
 Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
 Cc: Allen Pais <apais@linux.microsoft.com>
@@ -93,106 +81,41 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/memcg.h |   10 +++++-----
- mm/memcontrol.c              |   18 ++++++++++++------
- 2 files changed, 17 insertions(+), 11 deletions(-)
+ include/linux/memcontrol.h |    2 +-
+ mm/memcontrol.c            |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/trace/events/memcg.h~mm-memcontrol-change-val-type-to-long-in-__mod_memcg_lruvec_state
-+++ a/include/trace/events/memcg.h
-@@ -11,14 +11,14 @@
- 
- DECLARE_EVENT_CLASS(memcg_rstat_stats,
- 
--	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
-+	TP_PROTO(struct mem_cgroup *memcg, int item, long val),
- 
- 	TP_ARGS(memcg, item, val),
- 
- 	TP_STRUCT__entry(
- 		__field(u64, id)
- 		__field(int, item)
--		__field(int, val)
-+		__field(long, val)
- 	),
- 
- 	TP_fast_assign(
-@@ -27,20 +27,20 @@ DECLARE_EVENT_CLASS(memcg_rstat_stats,
- 		__entry->val = val;
- 	),
- 
--	TP_printk("memcg_id=%llu item=%d val=%d",
-+	TP_printk("memcg_id=%llu item=%d val=%ld",
- 		  __entry->id, __entry->item, __entry->val)
- );
- 
- DEFINE_EVENT(memcg_rstat_stats, mod_memcg_state,
- 
--	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
-+	TP_PROTO(struct mem_cgroup *memcg, int item, long val),
- 
- 	TP_ARGS(memcg, item, val)
- );
- 
- DEFINE_EVENT(memcg_rstat_stats, mod_memcg_lruvec_state,
- 
--	TP_PROTO(struct mem_cgroup *memcg, int item, int val),
-+	TP_PROTO(struct mem_cgroup *memcg, int item, long val),
- 
- 	TP_ARGS(memcg, item, val)
- );
---- a/mm/memcontrol.c~mm-memcontrol-change-val-type-to-long-in-__mod_memcg_lruvec_state
-+++ a/mm/memcontrol.c
-@@ -527,7 +527,7 @@ unsigned long lruvec_page_state_local(st
- 
- #ifdef CONFIG_MEMCG_V1
- static void __mod_memcg_lruvec_state(struct mem_cgroup_per_node *pn,
--				     enum node_stat_item idx, int val);
-+				     enum node_stat_item idx, long val);
- 
- void reparent_memcg_lruvec_state_local(struct mem_cgroup *memcg,
- 				       struct mem_cgroup *parent, int idx)
-@@ -784,14 +784,20 @@ static int memcg_page_state_unit(int ite
-  * Normalize the value passed into memcg_rstat_updated() to be in pages. Round
-  * up non-zero sub-page updates to 1 page as zero page updates are ignored.
-  */
--static int memcg_state_val_in_pages(int idx, int val)
-+static long memcg_state_val_in_pages(int idx, long val)
- {
- 	int unit = memcg_page_state_unit(idx);
-+	long res;
- 
- 	if (!val || unit == PAGE_SIZE)
- 		return val;
--	else
--		return max(val * unit / PAGE_SIZE, 1UL);
-+
-+	/* Get the absolute value of (val * unit / PAGE_SIZE). */
-+	res = mult_frac(abs(val), unit, PAGE_SIZE);
-+	/* Round up zero values. */
-+	res = res ? : 1;
-+
-+	return val < 0 ? -res : res;
+--- a/include/linux/memcontrol.h~mm-memcontrol-correct-the-nr_pages-parameter-type-of-mem_cgroup_update_lru_size
++++ a/include/linux/memcontrol.h
+@@ -878,7 +878,7 @@ static inline bool mem_cgroup_online(str
  }
  
- #ifdef CONFIG_MEMCG_V1
-@@ -831,7 +837,7 @@ static inline void get_non_dying_memcg_e
- #endif
+ void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
+-		int zid, int nr_pages);
++		int zid, long nr_pages);
  
- static void __mod_memcg_state(struct mem_cgroup *memcg,
--			      enum memcg_stat_item idx, int val)
-+			      enum memcg_stat_item idx, long val)
+ static inline
+ unsigned long mem_cgroup_get_zone_lru_size(struct lruvec *lruvec,
+--- a/mm/memcontrol.c~mm-memcontrol-correct-the-nr_pages-parameter-type-of-mem_cgroup_update_lru_size
++++ a/mm/memcontrol.c
+@@ -1472,7 +1472,7 @@ retry:
+  * to or just after a page is removed from an lru list.
+  */
+ void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
+-				int zid, int nr_pages)
++				int zid, long nr_pages)
  {
- 	int i = memcg_stats_index(idx);
- 	int cpu;
-@@ -896,7 +902,7 @@ void reparent_memcg_state_local(struct m
- #endif
+ 	struct mem_cgroup_per_node *mz;
+ 	unsigned long *lru_size;
+@@ -1489,7 +1489,7 @@ void mem_cgroup_update_lru_size(struct l
  
- static void __mod_memcg_lruvec_state(struct mem_cgroup_per_node *pn,
--				     enum node_stat_item idx, int val)
-+				     enum node_stat_item idx, long val)
- {
- 	struct mem_cgroup *memcg = pn->memcg;
- 	int i = memcg_stats_index(idx);
+ 	size = *lru_size;
+ 	if (WARN_ONCE(size < 0,
+-		"%s(%p, %d, %d): lru_size %ld\n",
++		"%s(%p, %d, %ld): lru_size %ld\n",
+ 		__func__, lruvec, lru, nr_pages, size)) {
+ 		VM_BUG_ON(1);
+ 		*lru_size = 0;
 _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
