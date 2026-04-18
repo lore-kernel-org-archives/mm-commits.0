@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 248331C695
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:47:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B1731C695
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:47:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498458; cv=none; b=H9loD6kmgNBTihaY8jnZ//rQZ9AlsH1HC3GnTViOo3U1Fz7oRsRn6c+Tmk2z4vwmtvO+sEtaiRIjCxvbILeoRWgyEkiZVUv2uZc1RPt1FeaXV5M6U0aBX9g4Am6Q7X97OenzBg/CpI/lgjdcA+8oBMLyQArl5joteCgecg9vF8M=
+	t=1776498463; cv=none; b=pwkF/5hEp3DnjWafg5CrczbdSL0ZIkX/dXaCZPPDf1d9jd7Djk7q1HGnM1JADJIE9nC8nNZMwwGzuRzu89I2mb7pK4Y7Iwt0/a8tkBYYXwffUfrfaRhHqGhmdE2zJglv7sAQU3foPJ0nB3Cr2Wt8yNYy6EbNEF7KufvfaULMr5Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498458; c=relaxed/simple;
-	bh=SL5ahEaqYe3pvf/j9TEL21JxRIhvVFN3YNiIYcwB9GI=;
-	h=Date:To:From:Subject:Message-Id; b=Hg6lPbJMiGdvWDX1txuyCKLLrfkDhhmZ/kT1L4KvO/NHHfF7drGLyG4v1StAMGc4O1NokWTJXdjjeqltsda4mM9QXGAH5iMII6OTqs+j5GGIKrF5iH3feWGBOqH+mfZmVDPwB6T1N8A71ZYDhlN71aU3FwsRylSXVqawWYXFKdE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f91vOkgH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498463; c=relaxed/simple;
+	bh=JQhZec5bsqPfKOL2YClguj03LTBnZ+FVd6UZshiEu/I=;
+	h=Date:To:From:Subject:Message-Id; b=MHXg82xaaeqgYB4vPeGyedRjRKKZzQOtW7SeZ7OeXDa8IBc18c0aPzSHTtnjhaA6BMDTWoiCUFs6IBqw7sORhGl9R394U9hANOoXyClufFfU6iuX1KC93q/rdsjXoGQPEnB1RicIClwA99Wowm7Q1kM4CMVbsCCjLZt+bBmrZac=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TsCnuR2x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f91vOkgH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B8D5C19424;
-	Sat, 18 Apr 2026 07:47:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TsCnuR2x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6254FC19424;
+	Sat, 18 Apr 2026 07:47:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498458;
-	bh=SL5ahEaqYe3pvf/j9TEL21JxRIhvVFN3YNiIYcwB9GI=;
+	s=korg; t=1776498463;
+	bh=JQhZec5bsqPfKOL2YClguj03LTBnZ+FVd6UZshiEu/I=;
 	h=Date:To:From:Subject:From;
-	b=f91vOkgHsiz7GkuMJoI7eoSOfA+MzvNdsELoOBZ1sOon7la80gY0ZwyQ6qJlrB1hO
-	 9X9ME/YEKGFy+9wJoOyP/7nE5emN6SPdC9kWtlMECxRccAso09e3OKCvBoCnhRagWW
-	 sXFXWFkJ8w0/ZT/6IhJDz1S81/jKxB4ApBZBWa0w=
-Date: Sat, 18 Apr 2026 00:47:33 -0700
+	b=TsCnuR2xOvz+EoTVrtQdgEkaS8mAGjiacIfdatLNpEW6TViK+k98VFfE6sS5DlUmK
+	 Rezagxe3Xw/8qkx2x/iMf3C1/5nNcr8ryBZ15EHERehuC/Qq3oJHL9ugG9d0ip4Zgm
+	 OtKYhnLoESbVoK7jMeaQXWvApQYvgilQMTweEj1E=
+Date: Sat, 18 Apr 2026 00:47:39 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup.patch removed from -mm tree
-Message-Id: <20260418074736.9B8D5C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-workingset-use-folio_lruvec-in-workingset_refault.patch removed from -mm tree
+Message-Id: <20260418074742.6254FC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,172 +35,31 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: remove dead code of checking parent memory cgroup
+     Subject: mm: workingset: use folio_lruvec() in workingset_refault()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup.patch
+     mm-workingset-use-folio_lruvec-in-workingset_refault.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: remove dead code of checking parent memory cgroup
-Date: Thu, 5 Mar 2026 19:52:19 +0800
+Subject: mm: workingset: use folio_lruvec() in workingset_refault()
+Date: Thu, 5 Mar 2026 19:52:20 +0800
 
-Patch series "Eliminate Dying Memory Cgroup", v6.
+Use folio_lruvec() to simplify the code.
 
-Introduction
-============
-
-This patchset is intended to transfer the LRU pages to the object cgroup
-without holding a reference to the original memory cgroup in order to
-address the issue of the dying memory cgroup.  A consensus has already
-been reached regarding this approach recently [1].
-
-Background
-==========
-
-The issue of a dying memory cgroup refers to a situation where a memory
-cgroup is no longer being used by users, but memory (the metadata
-associated with memory cgroups) remains allocated to it.  This situation
-may potentially result in memory leaks or inefficiencies in memory
-reclamation and has persisted as an issue for several years.  Any memory
-allocation that endures longer than the lifespan (from the users'
-perspective) of a memory cgroup can lead to the issue of dying memory
-cgroup.  We have exerted greater efforts to tackle this problem by
-introducing the infrastructure of object cgroup [2].
-
-Presently, numerous types of objects (slab objects, non-slab kernel
-allocations, per-CPU objects) are charged to the object cgroup without
-holding a reference to the original memory cgroup.  The final allocations
-for LRU pages (anonymous pages and file pages) are charged at allocation
-time and continues to hold a reference to the original memory cgroup until
-reclaimed.
-
-File pages are more complex than anonymous pages as they can be shared
-among different memory cgroups and may persist beyond the lifespan of the
-memory cgroup.  The long-term pinning of file pages to memory cgroups is a
-widespread issue that causes recurring problems in practical scenarios
-[3].  File pages remain unreclaimed for extended periods.  Additionally,
-they are accessed by successive instances (second, third, fourth, etc.) of
-the same job, which is restarted into a new cgroup each time.  As a
-result, unreclaimable dying memory cgroups accumulate, leading to memory
-wastage and significantly reducing the efficiency of page reclamation.
-
-Fundamentals
-============
-
-A folio will no longer pin its corresponding memory cgroup.  It is
-necessary to ensure that the memory cgroup or the lruvec associated with
-the memory cgroup is not released when a user obtains a pointer to the
-memory cgroup or lruvec returned by folio_memcg() or folio_lruvec(). 
-Users are required to hold the RCU read lock or acquire a reference to the
-memory cgroup associated with the folio to prevent its release if they are
-not concerned about the binding stability between the folio and its
-corresponding memory cgroup.  However, some users of folio_lruvec() (i.e.,
-the lruvec lock) desire a stable binding between the folio and its
-corresponding memory cgroup.  An approach is needed to ensure the
-stability of the binding while the lruvec lock is held, and to detect the
-situation of holding the incorrect lruvec lock when there is a race
-condition during memory cgroup reparenting.  The following four steps are
-taken to achieve these goals.
-
-1. The first step  to be taken is to identify all users of both functions
-   (folio_memcg() and folio_lruvec()) who are not concerned about binding
-   stability and implement appropriate measures (such as holding a RCU read
-   lock or temporarily obtaining a reference to the memory cgroup for a
-   brief period) to prevent the release of the memory cgroup.
-
-2. Secondly, the following refactoring of folio_lruvec_lock() demonstrates
-   how to ensure the binding stability from the user's perspective of
-   folio_lruvec().
-
-   struct lruvec *folio_lruvec_lock(struct folio *folio)
-   {
-           struct lruvec *lruvec;
-
-           rcu_read_lock();
-   retry:
-           lruvec = folio_lruvec(folio);
-           spin_lock(&lruvec->lru_lock);
-           if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
-                   spin_unlock(&lruvec->lru_lock);
-                   goto retry;
-           }
-
-           return lruvec;
-   }
-
-   From the perspective of memory cgroup removal, the entire reparenting
-   process (altering the binding relationship between folio and its memory
-   cgroup and moving the LRU lists to its parental memory cgroup) should be
-   carried out under both the lruvec lock of the memory cgroup being removed
-   and the lruvec lock of its parent.
-
-3. Finally, transfer the LRU pages to the object cgroup without holding a
-   reference to the original memory cgroup.
-
-Effect
-======
-
-Finally, it can be observed that the quantity of dying memory cgroups will
-not experience a significant increase if the following test script is
-executed to reproduce the issue.
-
-#!/bin/bash
-
-# Create a temporary file 'temp' filled with zero bytes
-dd if=/dev/zero of=temp bs=4096 count=1
-
-# Display memory-cgroup info from /proc/cgroups
-cat /proc/cgroups | grep memory
-
-for i in {0..2000}
-do
-    mkdir /sys/fs/cgroup/memory/test$i
-    echo $$ > /sys/fs/cgroup/memory/test$i/cgroup.procs
-
-    # Append 'temp' file content to 'log'
-    cat temp >> log
-
-    echo $$ > /sys/fs/cgroup/memory/cgroup.procs
-
-    # Potentially create a dying memory cgroup
-    rmdir /sys/fs/cgroup/memory/test$i
-done
-
-# Display memory-cgroup info after test
-cat /proc/cgroups | grep memory
-
-rm -f temp log
-
-
-This patch (of 33):
-
-Since the no-hierarchy mode has been deprecated after the commit:
-
-  commit bef8620cd8e0 ("mm: memcg: deprecate the non-hierarchical mode").
-
-As a result, parent_mem_cgroup() will not return NULL except when passing
-the root memcg, and the root memcg cannot be offline.  Hence, it's safe to
-remove the check on the returned value of parent_mem_cgroup().  Remove the
-corresponding dead code.
-
-Link: https://lore.kernel.org/f4481291bf8c6561dd8949045b5a1ed4008a6b63.1772711148.git.zhengqi.arch@bytedance.com
-Link: https://lore.kernel.org/linux-mm/Z6OkXXYDorPrBvEQ@hm-sls2/ [1]
-Link: https://lwn.net/Articles/895431/ [2]
-Link: https://github.com/systemd/systemd/pull/36827 [3]
+Link: https://lore.kernel.org/11bd2fbbf082f4f7972a1113ca42a61fbe2876a9.1772711148.git.zhengqi.arch@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Reviewed-by: Chen Ridong <chenridong@huawei.com>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Allen Pais <apais@linux.microsoft.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Chen Ridong <chenridong@huawei.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -214,6 +73,7 @@ Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Usama Arif <usamaarif642@gmail.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -224,49 +84,32 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 -----
- mm/shrinker.c   |    6 +-----
- 2 files changed, 1 insertion(+), 10 deletions(-)
+ mm/workingset.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup
-+++ a/mm/memcontrol.c
-@@ -3423,9 +3423,6 @@ static void memcg_offline_kmem(struct me
- 		return;
- 
- 	parent = parent_mem_cgroup(memcg);
--	if (!parent)
--		parent = root_mem_cgroup;
--
- 	memcg_reparent_list_lrus(memcg, parent);
- 
- 	/*
-@@ -3705,8 +3702,6 @@ struct mem_cgroup *mem_cgroup_private_id
- 			break;
- 		}
- 		memcg = parent_mem_cgroup(memcg);
--		if (!memcg)
--			memcg = root_mem_cgroup;
- 	}
- 	return memcg;
- }
---- a/mm/shrinker.c~mm-memcontrol-remove-dead-code-of-checking-parent-memory-cgroup
-+++ a/mm/shrinker.c
-@@ -288,14 +288,10 @@ void reparent_shrinker_deferred(struct m
+--- a/mm/workingset.c~mm-workingset-use-folio_lruvec-in-workingset_refault
++++ a/mm/workingset.c
+@@ -541,8 +541,6 @@ bool workingset_test_recent(void *shadow
+ void workingset_refault(struct folio *folio, void *shadow)
  {
- 	int nid, index, offset;
+ 	bool file = folio_is_file_lru(folio);
+-	struct pglist_data *pgdat;
+-	struct mem_cgroup *memcg;
+ 	struct lruvec *lruvec;
+ 	bool workingset;
  	long nr;
--	struct mem_cgroup *parent;
-+	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
- 	struct shrinker_info *child_info, *parent_info;
- 	struct shrinker_info_unit *child_unit, *parent_unit;
- 
--	parent = parent_mem_cgroup(memcg);
--	if (!parent)
--		parent = root_mem_cgroup;
+@@ -564,10 +562,7 @@ void workingset_refault(struct folio *fo
+ 	 * locked to guarantee folio_memcg() stability throughout.
+ 	 */
+ 	nr = folio_nr_pages(folio);
+-	memcg = folio_memcg(folio);
+-	pgdat = folio_pgdat(folio);
+-	lruvec = mem_cgroup_lruvec(memcg, pgdat);
 -
- 	/* Prevent from concurrent shrinker_info expand */
- 	mutex_lock(&shrinker_mutex);
- 	for_each_node(nid) {
++	lruvec = folio_lruvec(folio);
+ 	mod_lruvec_state(lruvec, WORKINGSET_REFAULT_BASE + file, nr);
+ 
+ 	if (!workingset_test_recent(shadow, file, &workingset, true))
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
