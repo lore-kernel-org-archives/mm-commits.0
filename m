@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E78EF2475E3
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:56:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAF3B2475E3
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:56:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498998; cv=none; b=RNwglkuBZKuB7imem6mQYMZYRBPwpkM4JOv3HZVqogy1k3kWQ5ZbTf/hkqPFXq0B2EwNduHaJWKLKoJdi7q29oBPzxvEpuaWy5cpWyLPg58O7tIpS6Z25JuGJ71GNMAROzLe9UuswWGo4r8Ng10wx52HXLFRDAmaXi4V96Gs318=
+	t=1776499004; cv=none; b=l487EC8LsXPrTTs3u+98Q+/CmYxm8IHCMbBayuSnnVWolegJSoShINSxyPbsXHMXAcd1pjBvz5d4+rG0tU0K8URf283aIktaGXvKEozJX90TQ8YgX05lC0el6OdWY6bBVGMudju+sMx4RkpE7n4dU0gIMzklUwktITqdhghjGOY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498998; c=relaxed/simple;
-	bh=pTQgOi27OvrIzSes4TQKd9NWLhSmiPP60E5E96q88D8=;
-	h=Date:To:From:Subject:Message-Id; b=HpF9qQJk1IRD7GF7nmkYAPepjwv9ReF1z5yG8LdTW8vQGNrKJjJUNqERRMyaes56F0FK9p6r/1073/myvgnVfmHSX2uzpld3cmDaJE0e0XN2o+ZWZLDGAKu7L0MJgzYzwg/7Zx4RHTaWOu1v4ULiywIeVGpN//V7t0jV+ojbR2A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OWA+hM5Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776499004; c=relaxed/simple;
+	bh=WsuA/I8nMrYhH6t7KW7z8WBt2vhjA7RbFon44durQ/k=;
+	h=Date:To:From:Subject:Message-Id; b=q+8QMjV+VS00axCqA0uMF+PlP5MAuhO8ZZLqwxm6h9+4mWhLCHgW/cPF+OdlvJCS9WNkTaWoY+ivZTRagHuf537iYRB2+6urSIBL9scI72eoVa/RNA+aOG6mUolb56iFCCivVCnrh+CuGMet9nzXReyDS6Ffl8ifeJlvfob/ohc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=doxkJ5cd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OWA+hM5Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 998D9C19424;
-	Sat, 18 Apr 2026 07:56:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="doxkJ5cd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19DDEC19424;
+	Sat, 18 Apr 2026 07:56:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498997;
-	bh=pTQgOi27OvrIzSes4TQKd9NWLhSmiPP60E5E96q88D8=;
+	s=korg; t=1776499004;
+	bh=WsuA/I8nMrYhH6t7KW7z8WBt2vhjA7RbFon44durQ/k=;
 	h=Date:To:From:Subject:From;
-	b=OWA+hM5Z4HV9xaovzKPmx4+IGwmfFXLlvAOmV20QPF65zIHpkP9QuGkkBgYsL4URq
-	 tv4Skc6fNMPbGinvROuhkTi4hFxp3MTwAh1+J+Tp/2z8OPCJ6UkuLg/ONZcUAGtFf4
-	 XgmRKOzUuI0Gthz31OjZz6xbC06uDuYuxpFtS0kg=
-Date: Sat, 18 Apr 2026 00:56:32 -0700
+	b=doxkJ5cdrJEDTAt3YVS14hgGnv3PdOf0/pcXlMuifaypWXcJjOFrTDtd6qYiGf54i
+	 uwZIR3yhm4Xq4ZPxOH6JVttRC+twMN0XP/5p+/8k1SKk6iDkVTyivsYayNjT27hxAW
+	 aGTwPROCxmJrGBygr5aEo2Trgvpc6U3Ku+q4WoE8=
+Date: Sat, 18 Apr 2026 00:56:39 -0700
 To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@suse.cz,surenb@google.com,shuah@kernel.org,seanjc@google.com,peterx@redhat.com,pbonzini@redhat.com,osalvador@suse.de,muchun.song@linux.dev,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,kalyazin@amazon.com,jthoughton@google.com,hughd@google.com,harry.yoo@oracle.com,harry@kernel.org,devnexen@gmail.com,david@kernel.org,baolin.wang@linux.alibaba.com,axelrasmussen@google.com,avagin@google.com,aarcange@redhat.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] userfaultfd-introduce-mfill_copy_folio_locked-helper.patch removed from -mm tree
-Message-Id: <20260418075636.998D9C19424@smtp.kernel.org>
+Subject: [merged mm-stable] userfaultfd-introduce-struct-mfill_state.patch removed from -mm tree
+Message-Id: <20260418075643.19DDEC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,183 +35,356 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: userfaultfd: introduce mfill_copy_folio_locked() helper
+     Subject: userfaultfd: introduce struct mfill_state
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-introduce-mfill_copy_folio_locked-helper.patch
+     userfaultfd-introduce-struct-mfill_state.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: userfaultfd: introduce mfill_copy_folio_locked() helper
-Date: Thu, 2 Apr 2026 07:11:42 +0300
+Subject: userfaultfd: introduce struct mfill_state
+Date: Thu, 2 Apr 2026 07:11:43 +0300
 
-Patch series "mm, kvm: allow uffd support in guest_memfd", v4.
+mfill_atomic() passes a lot of parameters down to its callees.
 
-These patches enable support for userfaultfd in guest_memfd.
+Aggregate them all into mfill_state structure and pass this structure to
+functions that implement various UFFDIO_ commands.
 
-As the groundwork I refactored userfaultfd handling of PTE-based memory
-types (anonymous and shmem) and converted them to use vm_uffd_ops for
-allocating a folio or getting an existing folio from the page cache. 
-shmem also implements callbacks that add a folio to the page cache after
-the data passed in UFFDIO_COPY was copied and remove the folio from the
-page cache if page table update fails.
+Tracking the state in a structure will allow moving the code that retries
+copying of data for UFFDIO_COPY into mfill_atomic_pte_copy() and make the
+loop in mfill_atomic() identical for all UFFDIO operations on PTE-mapped
+memory.
 
-In order for guest_memfd to notify userspace about page faults, there are
-new VM_FAULT_UFFD_MINOR and VM_FAULT_UFFD_MISSING that a ->fault() handler
-can return to inform the page fault handler that it needs to call
-handle_userfault() to complete the fault.
+The mfill_state definition is deliberately local to mm/userfaultfd.c,
+hence shmem_mfill_atomic_pte() is not updated.
 
-Nikita helped to plumb these new goodies into guest_memfd and provided
-basic tests to verify that guest_memfd works with userfaultfd.  The
-handling of UFFDIO_MISSING in guest_memfd requires ability to remove a
-folio from page cache, the best way I could find was exporting
-filemap_remove_folio() to KVM.
-
-I deliberately left hugetlb out, at least for the most part.  hugetlb
-handles acquisition of VMA and more importantly establishing of parent
-page table entry differently than PTE-based memory types.  This is a
-different abstraction level than what vm_uffd_ops provides and people
-objected to exposing such low level APIs as a part of VMA operations.
-
-Also, to enable uffd in guest_memfd refactoring of hugetlb is not needed
-and I prefer to delay it until the dust settles after the changes in this
-set.
-
-
-This patch (of 4):
-
-Split copying of data when locks held from mfill_atomic_pte_copy() into a
-helper function mfill_copy_folio_locked().
-
-This makes improves code readability and makes complex
-mfill_atomic_pte_copy() function easier to comprehend.
-
-No functional change.
-
-Link: https://lore.kernel.org/20260402041156.1377214-1-rppt@kernel.org
-Link: https://lore.kernel.org/20260402041156.1377214-2-rppt@kernel.org
+[harry.yoo@oracle.com: properly initialize mfill_state.len to fix
+                       folio_add_new_anon_rmap() WARN]
+Link: https://lore.kernel.org/abehBY7QakYF9bK4@hyeyoo
+Link: https://lore.kernel.org/20260402041156.1377214-3-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Signed-off-by: Harry Yoo <harry.yoo@oracle.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andrei Vagin <avagin@google.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Harry Yoo (Oracle) <harry@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: James Houghton <jthoughton@google.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Nikita Kalyazin <kalyazin@amazon.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
 Cc: Sean Christopherson <seanjc@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Harry Yoo <harry.yoo@oracle.com>
-Cc: Nikita Kalyazin <kalyazin@amazon.com>
 Cc: David Carlier <devnexen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   59 ++++++++++++++++++++++++++-------------------
- 1 file changed, 35 insertions(+), 24 deletions(-)
+ mm/userfaultfd.c |  147 ++++++++++++++++++++++++---------------------
+ 1 file changed, 81 insertions(+), 66 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-introduce-mfill_copy_folio_locked-helper
+--- a/mm/userfaultfd.c~userfaultfd-introduce-struct-mfill_state
 +++ a/mm/userfaultfd.c
-@@ -238,6 +238,40 @@ out:
+@@ -20,6 +20,20 @@
+ #include "internal.h"
+ #include "swap.h"
+ 
++struct mfill_state {
++	struct userfaultfd_ctx *ctx;
++	unsigned long src_start;
++	unsigned long dst_start;
++	unsigned long len;
++	uffd_flags_t flags;
++
++	struct vm_area_struct *vma;
++	unsigned long src_addr;
++	unsigned long dst_addr;
++	struct folio *folio;
++	pmd_t *pmd;
++};
++
+ static __always_inline
+ bool validate_dst_vma(struct vm_area_struct *dst_vma, unsigned long dst_end)
+ {
+@@ -272,17 +286,17 @@ static int mfill_copy_folio_locked(struc
  	return ret;
  }
  
-+static int mfill_copy_folio_locked(struct folio *folio, unsigned long src_addr)
-+{
-+	void *kaddr;
-+	int ret;
-+
-+	kaddr = kmap_local_folio(folio, 0);
-+	/*
-+	 * The read mmap_lock is held here.  Despite the
-+	 * mmap_lock being read recursive a deadlock is still
-+	 * possible if a writer has taken a lock.  For example:
-+	 *
-+	 * process A thread 1 takes read lock on own mmap_lock
-+	 * process A thread 2 calls mmap, blocks taking write lock
-+	 * process B thread 1 takes page fault, read lock on own mmap lock
-+	 * process B thread 2 calls mmap, blocks taking write lock
-+	 * process A thread 1 blocks taking read lock on process B
-+	 * process B thread 1 blocks taking read lock on process A
-+	 *
-+	 * Disable page faults to prevent potential deadlock
-+	 * and retry the copy outside the mmap_lock.
-+	 */
-+	pagefault_disable();
-+	ret = copy_from_user(kaddr, (const void __user *) src_addr,
-+			     PAGE_SIZE);
-+	pagefault_enable();
-+	kunmap_local(kaddr);
-+
-+	if (ret)
-+		return -EFAULT;
-+
-+	flush_dcache_folio(folio);
-+	return ret;
-+}
-+
- static int mfill_atomic_pte_copy(pmd_t *dst_pmd,
- 				 struct vm_area_struct *dst_vma,
- 				 unsigned long dst_addr,
-@@ -245,7 +279,6 @@ static int mfill_atomic_pte_copy(pmd_t *
- 				 uffd_flags_t flags,
- 				 struct folio **foliop)
+-static int mfill_atomic_pte_copy(pmd_t *dst_pmd,
+-				 struct vm_area_struct *dst_vma,
+-				 unsigned long dst_addr,
+-				 unsigned long src_addr,
+-				 uffd_flags_t flags,
+-				 struct folio **foliop)
++static int mfill_atomic_pte_copy(struct mfill_state *state)
  {
--	void *kaddr;
- 	int ret;
+-	int ret;
++	struct vm_area_struct *dst_vma = state->vma;
++	unsigned long dst_addr = state->dst_addr;
++	unsigned long src_addr = state->src_addr;
++	uffd_flags_t flags = state->flags;
++	pmd_t *dst_pmd = state->pmd;
  	struct folio *folio;
++	int ret;
  
-@@ -256,27 +289,7 @@ static int mfill_atomic_pte_copy(pmd_t *
- 		if (!folio)
- 			goto out;
- 
--		kaddr = kmap_local_folio(folio, 0);
--		/*
--		 * The read mmap_lock is held here.  Despite the
--		 * mmap_lock being read recursive a deadlock is still
--		 * possible if a writer has taken a lock.  For example:
--		 *
--		 * process A thread 1 takes read lock on own mmap_lock
--		 * process A thread 2 calls mmap, blocks taking write lock
--		 * process B thread 1 takes page fault, read lock on own mmap lock
--		 * process B thread 2 calls mmap, blocks taking write lock
--		 * process A thread 1 blocks taking read lock on process B
--		 * process B thread 1 blocks taking read lock on process A
--		 *
--		 * Disable page faults to prevent potential deadlock
--		 * and retry the copy outside the mmap_lock.
--		 */
--		pagefault_disable();
--		ret = copy_from_user(kaddr, (const void __user *) src_addr,
--				     PAGE_SIZE);
--		pagefault_enable();
--		kunmap_local(kaddr);
-+		ret = mfill_copy_folio_locked(folio, src_addr);
- 
+-	if (!*foliop) {
++	if (!state->folio) {
+ 		ret = -ENOMEM;
+ 		folio = vma_alloc_folio(GFP_HIGHUSER_MOVABLE, 0, dst_vma,
+ 					dst_addr);
+@@ -294,13 +308,13 @@ static int mfill_atomic_pte_copy(pmd_t *
  		/* fallback to copy_from_user outside mmap_lock */
  		if (unlikely(ret)) {
-@@ -285,8 +298,6 @@ static int mfill_atomic_pte_copy(pmd_t *
+ 			ret = -ENOENT;
+-			*foliop = folio;
++			state->folio = folio;
  			/* don't free the page */
  			goto out;
  		}
--
--		flush_dcache_folio(folio);
  	} else {
- 		folio = *foliop;
- 		*foliop = NULL;
+-		folio = *foliop;
+-		*foliop = NULL;
++		folio = state->folio;
++		state->folio = NULL;
+ 	}
+ 
+ 	/*
+@@ -357,10 +371,11 @@ out_put:
+ 	return ret;
+ }
+ 
+-static int mfill_atomic_pte_zeropage(pmd_t *dst_pmd,
+-				     struct vm_area_struct *dst_vma,
+-				     unsigned long dst_addr)
++static int mfill_atomic_pte_zeropage(struct mfill_state *state)
+ {
++	struct vm_area_struct *dst_vma = state->vma;
++	unsigned long dst_addr = state->dst_addr;
++	pmd_t *dst_pmd = state->pmd;
+ 	pte_t _dst_pte, *dst_pte;
+ 	spinlock_t *ptl;
+ 	int ret;
+@@ -392,13 +407,14 @@ out:
+ }
+ 
+ /* Handles UFFDIO_CONTINUE for all shmem VMAs (shared or private). */
+-static int mfill_atomic_pte_continue(pmd_t *dst_pmd,
+-				     struct vm_area_struct *dst_vma,
+-				     unsigned long dst_addr,
+-				     uffd_flags_t flags)
++static int mfill_atomic_pte_continue(struct mfill_state *state)
+ {
+-	struct inode *inode = file_inode(dst_vma->vm_file);
++	struct vm_area_struct *dst_vma = state->vma;
++	unsigned long dst_addr = state->dst_addr;
+ 	pgoff_t pgoff = linear_page_index(dst_vma, dst_addr);
++	struct inode *inode = file_inode(dst_vma->vm_file);
++	uffd_flags_t flags = state->flags;
++	pmd_t *dst_pmd = state->pmd;
+ 	struct folio *folio;
+ 	struct page *page;
+ 	int ret;
+@@ -436,15 +452,15 @@ out_release:
+ }
+ 
+ /* Handles UFFDIO_POISON for all non-hugetlb VMAs. */
+-static int mfill_atomic_pte_poison(pmd_t *dst_pmd,
+-				   struct vm_area_struct *dst_vma,
+-				   unsigned long dst_addr,
+-				   uffd_flags_t flags)
++static int mfill_atomic_pte_poison(struct mfill_state *state)
+ {
+-	int ret;
++	struct vm_area_struct *dst_vma = state->vma;
+ 	struct mm_struct *dst_mm = dst_vma->vm_mm;
++	unsigned long dst_addr = state->dst_addr;
++	pmd_t *dst_pmd = state->pmd;
+ 	pte_t _dst_pte, *dst_pte;
+ 	spinlock_t *ptl;
++	int ret;
+ 
+ 	_dst_pte = make_pte_marker(PTE_MARKER_POISONED);
+ 	ret = -EAGAIN;
+@@ -668,22 +684,20 @@ extern ssize_t mfill_atomic_hugetlb(stru
+ 				    uffd_flags_t flags);
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
+-static __always_inline ssize_t mfill_atomic_pte(pmd_t *dst_pmd,
+-						struct vm_area_struct *dst_vma,
+-						unsigned long dst_addr,
+-						unsigned long src_addr,
+-						uffd_flags_t flags,
+-						struct folio **foliop)
++static __always_inline ssize_t mfill_atomic_pte(struct mfill_state *state)
+ {
++	struct vm_area_struct *dst_vma = state->vma;
++	unsigned long src_addr = state->src_addr;
++	unsigned long dst_addr = state->dst_addr;
++	struct folio **foliop = &state->folio;
++	uffd_flags_t flags = state->flags;
++	pmd_t *dst_pmd = state->pmd;
+ 	ssize_t err;
+ 
+-	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE)) {
+-		return mfill_atomic_pte_continue(dst_pmd, dst_vma,
+-						 dst_addr, flags);
+-	} else if (uffd_flags_mode_is(flags, MFILL_ATOMIC_POISON)) {
+-		return mfill_atomic_pte_poison(dst_pmd, dst_vma,
+-					       dst_addr, flags);
+-	}
++	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE))
++		return mfill_atomic_pte_continue(state);
++	if (uffd_flags_mode_is(flags, MFILL_ATOMIC_POISON))
++		return mfill_atomic_pte_poison(state);
+ 
+ 	/*
+ 	 * The normal page fault path for a shmem will invoke the
+@@ -697,12 +711,9 @@ static __always_inline ssize_t mfill_ato
+ 	 */
+ 	if (!(dst_vma->vm_flags & VM_SHARED)) {
+ 		if (uffd_flags_mode_is(flags, MFILL_ATOMIC_COPY))
+-			err = mfill_atomic_pte_copy(dst_pmd, dst_vma,
+-						    dst_addr, src_addr,
+-						    flags, foliop);
++			err = mfill_atomic_pte_copy(state);
+ 		else
+-			err = mfill_atomic_pte_zeropage(dst_pmd,
+-						 dst_vma, dst_addr);
++			err = mfill_atomic_pte_zeropage(state);
+ 	} else {
+ 		err = shmem_mfill_atomic_pte(dst_pmd, dst_vma,
+ 					     dst_addr, src_addr,
+@@ -718,13 +729,20 @@ static __always_inline ssize_t mfill_ato
+ 					    unsigned long len,
+ 					    uffd_flags_t flags)
+ {
++	struct mfill_state state = (struct mfill_state){
++		.ctx = ctx,
++		.dst_start = dst_start,
++		.src_start = src_start,
++		.flags = flags,
++		.len = len,
++		.src_addr = src_start,
++		.dst_addr = dst_start,
++	};
+ 	struct mm_struct *dst_mm = ctx->mm;
+ 	struct vm_area_struct *dst_vma;
++	long copied = 0;
+ 	ssize_t err;
+ 	pmd_t *dst_pmd;
+-	unsigned long src_addr, dst_addr;
+-	long copied;
+-	struct folio *folio;
+ 
+ 	/*
+ 	 * Sanitize the command parameters:
+@@ -736,10 +754,6 @@ static __always_inline ssize_t mfill_ato
+ 	VM_WARN_ON_ONCE(src_start + len <= src_start);
+ 	VM_WARN_ON_ONCE(dst_start + len <= dst_start);
+ 
+-	src_addr = src_start;
+-	dst_addr = dst_start;
+-	copied = 0;
+-	folio = NULL;
+ retry:
+ 	/*
+ 	 * Make sure the vma is not shared, that the dst range is
+@@ -750,6 +764,7 @@ retry:
+ 		err = PTR_ERR(dst_vma);
+ 		goto out;
+ 	}
++	state.vma = dst_vma;
+ 
+ 	/*
+ 	 * If memory mappings are changing because of non-cooperative
+@@ -790,12 +805,12 @@ retry:
+ 	    uffd_flags_mode_is(flags, MFILL_ATOMIC_CONTINUE))
+ 		goto out_unlock;
+ 
+-	while (src_addr < src_start + len) {
+-		pmd_t dst_pmdval;
++	while (state.src_addr < src_start + len) {
++		VM_WARN_ON_ONCE(state.dst_addr >= dst_start + len);
+ 
+-		VM_WARN_ON_ONCE(dst_addr >= dst_start + len);
++		pmd_t dst_pmdval;
+ 
+-		dst_pmd = mm_alloc_pmd(dst_mm, dst_addr);
++		dst_pmd = mm_alloc_pmd(dst_mm, state.dst_addr);
+ 		if (unlikely(!dst_pmd)) {
+ 			err = -ENOMEM;
+ 			break;
+@@ -827,34 +842,34 @@ retry:
+ 		 * tables under us; pte_offset_map_lock() will deal with that.
+ 		 */
+ 
+-		err = mfill_atomic_pte(dst_pmd, dst_vma, dst_addr,
+-				       src_addr, flags, &folio);
++		state.pmd = dst_pmd;
++		err = mfill_atomic_pte(&state);
+ 		cond_resched();
+ 
+ 		if (unlikely(err == -ENOENT)) {
+ 			void *kaddr;
+ 
+ 			up_read(&ctx->map_changing_lock);
+-			uffd_mfill_unlock(dst_vma);
+-			VM_WARN_ON_ONCE(!folio);
++			uffd_mfill_unlock(state.vma);
++			VM_WARN_ON_ONCE(!state.folio);
+ 
+-			kaddr = kmap_local_folio(folio, 0);
++			kaddr = kmap_local_folio(state.folio, 0);
+ 			err = copy_from_user(kaddr,
+-					     (const void __user *) src_addr,
++					     (const void __user *)state.src_addr,
+ 					     PAGE_SIZE);
+ 			kunmap_local(kaddr);
+ 			if (unlikely(err)) {
+ 				err = -EFAULT;
+ 				goto out;
+ 			}
+-			flush_dcache_folio(folio);
++			flush_dcache_folio(state.folio);
+ 			goto retry;
+ 		} else
+-			VM_WARN_ON_ONCE(folio);
++			VM_WARN_ON_ONCE(state.folio);
+ 
+ 		if (!err) {
+-			dst_addr += PAGE_SIZE;
+-			src_addr += PAGE_SIZE;
++			state.dst_addr += PAGE_SIZE;
++			state.src_addr += PAGE_SIZE;
+ 			copied += PAGE_SIZE;
+ 
+ 			if (fatal_signal_pending(current))
+@@ -866,10 +881,10 @@ retry:
+ 
+ out_unlock:
+ 	up_read(&ctx->map_changing_lock);
+-	uffd_mfill_unlock(dst_vma);
++	uffd_mfill_unlock(state.vma);
+ out:
+-	if (folio)
+-		folio_put(folio);
++	if (state.folio)
++		folio_put(state.folio);
+ 	VM_WARN_ON_ONCE(copied < 0);
+ 	VM_WARN_ON_ONCE(err > 0);
+ 	VM_WARN_ON_ONCE(!copied && !err);
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
