@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA2842475E3
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:55:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23E872475E3
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:56:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498956; cv=none; b=hKza9tsmaDg31IfE0A8IdJmJ3M2nVrGucktOkcQDSxBn6yEn3WwpqKKMo9Qnec3zoISFCTEEXGmcCw3xz9456f+St7RSQ8jJSS5w4rcDGPq/TVse8MqB6CGMqwzFYpMWX6gie6bGfbXwoX4FNLcu8BexumffCBxVT02D2w319es=
+	t=1776498962; cv=none; b=i1sTaJlwVmDf04Fsubxg5DaNgTj8rYt0dOpeHJmjhRYzHWlwC7aQqoznLAioHrZVF14IDDVqT0IoOOVMHQqoqVzVh10tgiSNO7iCpJib10YRPexNtiwYzdRsZwdJ4LlbD32AgQ7jdb95zKsXL8pMsqBj9sfyzyduKdpZsT/e664=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498956; c=relaxed/simple;
-	bh=c9dtGgcxkLSYI/Mj62HdVa3VmifB5Drtikb0q8LpDOc=;
-	h=Date:To:From:Subject:Message-Id; b=Awkp3TTI6q+pd2kDmg3fPrsnxglCw237IiaY8ASart/xUVfpb5KN7hCniZ039SHKZVDrjWWaSHo8v6IA9GQP8AbEw4kXu+twnCBdIscNYLFT9+Gl0lgmBlct6TEqYNAVs++FOeGcF6ltFgmgWEpvd8cLl/S1pCj7W6qPFDY0e4U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t/c45KRv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498962; c=relaxed/simple;
+	bh=NLFKuSn9+FPlxGwRfCtMk2HAqfRKNnqDXODb+aO6P00=;
+	h=Date:To:From:Subject:Message-Id; b=ousnpuzARYw8gITIYb6a2+l1UiOEwMRoYGA8OzD3LkHnzSEOwd2rn8UQFQbv3K8yK05oG5pXyAbwFZWS64ddDWSaLWmwjiS0BGfF2J2lwEmk9uuUNfvS0pk4G20tt7fzV1sfhAUNXsp7IzSnzjLYp/x0heiuMFOMPu4UP1/wl6I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vtQmMUOz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t/c45KRv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BFCEC19424;
-	Sat, 18 Apr 2026 07:55:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vtQmMUOz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D09BC19424;
+	Sat, 18 Apr 2026 07:56:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498956;
-	bh=c9dtGgcxkLSYI/Mj62HdVa3VmifB5Drtikb0q8LpDOc=;
+	s=korg; t=1776498962;
+	bh=NLFKuSn9+FPlxGwRfCtMk2HAqfRKNnqDXODb+aO6P00=;
 	h=Date:To:From:Subject:From;
-	b=t/c45KRvNFeeAOUc8PhxFpHheYl+FNwnIMF/OoniZ8LMWbWTm86Loay38vOK1JFi7
-	 D4DTMs5BVbKhJF/YZILvlwFF2O/82rVOR98PQLpAofSW/g8ay0nxyQDEMh0DyDkxVR
-	 dKJ/+HiX78eeKaBqqYohMgIwDW/RfZ0EiEUfv9R0=
-Date: Sat, 18 Apr 2026 00:55:52 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,fvdl@google.com,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=vtQmMUOzP1EpJUdY0fvYJ2yClKpWZh45IcMHQN5GkMAQ2Mh4wEf31L/zBC5zs0Gto
+	 sdstBQTsW0LGoCJJ8ng1jY5oAkKfk53Y0oxH/075Qz7nbxwdxFgmJbstJ2PhEPjBVo
+	 EiwDXQsXnYLLuaWZGIDjfg/Y4GuSqtt83h8fWF4M=
+Date: Sat, 18 Apr 2026 00:55:57 -0700
+To: mm-commits@vger.kernel.org,rppt@kernel.org,pratyush@kernel.org,pasha.tatashin@soleen.com,jianghaoran@kylinos.cn,duanchenghao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path.patch removed from -mm tree
-Message-Id: <20260418075555.9BFCEC19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch removed from -mm tree
+Message-Id: <20260418075601.4D09BC19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,81 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse: fix preinited section_mem_map clobbering on failure path
+     Subject: mm/memfd: use folio_nr_pages() for shmem inode accounting
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path.patch
+     mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse: fix preinited section_mem_map clobbering on failure path
-Date: Tue, 31 Mar 2026 19:37:24 +0800
+From: Chenghao Duan <duanchenghao@kylinos.cn>
+Subject: mm/memfd: use folio_nr_pages() for shmem inode accounting
+Date: Thu, 26 Mar 2026 16:47:21 +0800
 
-sparse_init_nid() is careful to leave alone every section whose vmemmap
-has already been set up by sparse_vmemmap_init_nid_early(); it only clears
-section_mem_map for the rest:
+I found several modifiable points while reading the code.
 
-        if (!preinited_vmemmap_section(ms))
-                ms->section_mem_map = 0;
 
-A leftover line after that conditional block
+This patch (of 6):
 
-        ms->section_mem_map = 0;
+Patch series "Modify memfd_luo code", v3.
 
-was supposed to be deleted but was missed in the failure path, causing the
-field to be overwritten for all sections when memory allocation fails,
-effectively destroying the pre-initialization check.
+memfd_luo_retrieve_folios() called shmem_inode_acct_blocks() and
+shmem_recalc_inode() with hardcoded 1 instead of the actual folio page
+count.  memfd may use large folios (THP/hugepages), causing quota/limit
+under-accounting and incorrect stat output.
 
-Drop the stray assignment so that preinited sections retain their
-already valid state.
+Fix by using folio_nr_pages(folio) for both functions.
 
-Those pre-inited sections (HugeTLB pages) are not activated.  However,
-such failures are extremely rare, so I don't see any major userspace
-issues.
+Issue found by AI review and suggested by Pratyush Yadav <pratyush@kernel.org>.
+https://sashiko.dev/#/patchset/20260319012845.29570-1-duanchenghao%40kylinos.cn
 
-Link: https://lore.kernel.org/20260331113724.2080833-1-songmuchun@bytedance.com
-Fixes: d65917c42373 ("mm/sparse: allow for alternate vmemmap section init at boot")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed by: Donet Tom <donettom@linux.ibm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lore.kernel.org/20260326084727.118437-1-duanchenghao@kylinos.cn
+Link: https://lore.kernel.org/20260326084727.118437-2-duanchenghao@kylinos.cn
+Signed-off-by: Chenghao Duan <duanchenghao@kylinos.cn>
+Suggested-by: Pratyush Yadav <pratyush@kernel.org>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Pratyush Yadav <pratyush@kernel.org>
+Cc: Haoran Jiang <jianghaoran@kylinos.cn>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memfd_luo.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/sparse.c~mm-sparse-fix-preinited-section_mem_map-clobbering-on-failure-path
-+++ a/mm/sparse.c
-@@ -403,7 +403,6 @@ failed:
- 		ms = __nr_to_section(pnum);
- 		if (!preinited_vmemmap_section(ms))
- 			ms->section_mem_map = 0;
--		ms->section_mem_map = 0;
- 	}
- }
+--- a/mm/memfd_luo.c~mm-memfd-use-folio_nr_pages-for-shmem-inode-accounting
++++ a/mm/memfd_luo.c
+@@ -410,6 +410,7 @@ static int memfd_luo_retrieve_folios(str
+ 	struct inode *inode = file_inode(file);
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct folio *folio;
++	long npages;
+ 	int err = -EIO;
+ 	long i;
  
+@@ -456,14 +457,15 @@ static int memfd_luo_retrieve_folios(str
+ 		if (flags & MEMFD_LUO_FOLIO_DIRTY)
+ 			folio_mark_dirty(folio);
+ 
+-		err = shmem_inode_acct_blocks(inode, 1);
++		npages = folio_nr_pages(folio);
++		err = shmem_inode_acct_blocks(inode, npages);
+ 		if (err) {
+-			pr_err("shmem: failed to account folio index %ld: %d\n",
+-			       i, err);
++			pr_err("shmem: failed to account folio index %ld(%ld pages): %d\n",
++			       i, npages, err);
+ 			goto unlock_folio;
+ 		}
+ 
+-		shmem_recalc_inode(inode, 1, 0);
++		shmem_recalc_inode(inode, npages, 0);
+ 		folio_add_lru(folio);
+ 		folio_unlock(folio);
+ 		folio_put(folio);
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from duanchenghao@kylinos.cn are
 
 
