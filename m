@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4204435DA41
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:50:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF649337699
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:50:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498606; cv=none; b=rl0WK5VlJ45sRfCqWgcWZ/0W+P9tq8F0rxZpS6Fze41YO2U22yqoJtZ3f/XbDvsw+aADhVspUAY/wgb2QNqHTtSZUrqCTs/syxxofSX95ca9tGC/Wp1YRJAkDNQ5A99nSPDClqPeet+CPhmzUXjwRX83/LBWl/EA6RDSf36nN3E=
+	t=1776498611; cv=none; b=FhlKYdcE1dc9LoZB2gBGIYjW5ydWIwBFiXHJWR0GCFyyhi5u4R0873uk/HBxfjl09+Uu6YBHgE++mMd5Xr54ULvNjZzUDhZgt8yCRvmr97lU0w4vhaYlGJNsiSUYCpagZKWIg8SP2/ykag50w94hdheCDKJIq6EYi1HFAKHNaLQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498606; c=relaxed/simple;
-	bh=xl6GnuMYubs2r4F4jvA7z4BMDRqUsBLK0SV09Nneouc=;
-	h=Date:To:From:Subject:Message-Id; b=BmdBWAKkNfEzBCcLy3/wEiGkVTWe8UWRI+2FYwqFwZXxaL/HJ9YaqaN06YAoowV9xrEPvByOdjjNmGMLqhP9Xzk9gB0KsjUpVGyWaPMs4tkZZxWAnZiaxxonjFmtezqwIiJxUqwKVFRnnK1gadeeQcUIL0lqlfl9vJX7WTS/9Jk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=phCEBgl1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498611; c=relaxed/simple;
+	bh=EYPfDQsrmh3FxVv/hRvk1Vuo9F08t+vjFWuyR5pyKd4=;
+	h=Date:To:From:Subject:Message-Id; b=FZqmq5zfXP5Qr1ZokweRlqetDsJwupw7zbWU64cdzL3CWuQlMP6fdXwiSGRQ05ipAQWGB2zLPjeaktp9FZEMXwsZep+jqsItHk0COS0yjtoEEw77OI3dhuXhqj9jfdCH6MmNg2vzEksiKjyQLqC9ud176mqbBkvnSDkpuC6wVD0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AWM9pWp6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="phCEBgl1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 718EAC19424;
-	Sat, 18 Apr 2026 07:50:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AWM9pWp6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF154C19424;
+	Sat, 18 Apr 2026 07:50:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498606;
-	bh=xl6GnuMYubs2r4F4jvA7z4BMDRqUsBLK0SV09Nneouc=;
+	s=korg; t=1776498611;
+	bh=EYPfDQsrmh3FxVv/hRvk1Vuo9F08t+vjFWuyR5pyKd4=;
 	h=Date:To:From:Subject:From;
-	b=phCEBgl1kT0Dx5BFR1yJVVPqLhls3W2ozYPbV8Bz7WQutjQ65BUW4VECxsEeZcUQu
-	 +vn1Axg8Dra5OyFo2G6FBTPW+9AW/LDI3gsgQE0WrJn/atp9dbh1PTRqeTBfLrHqut
-	 YPk76lbT6rOPVrNvPIGOguUHDhKV9Oa6C8G1zAXM=
-Date: Sat, 18 Apr 2026 00:49:59 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=AWM9pWp6/9PyXsCrm6/n+YG87Qk3ERvdnnCvotW7ChC7qSSbbJriaBlLeiguXDS+G
+	 CCTJK8YMJfDSnBMqsvMznu23pvyjurMEfj1jgejTW+JO4VoUSh0vgIF+4btDQr+/Br
+	 nHJgHAoxL6E/TLP2YGrG26i/RLfTCriHqyVo5MgI=
+Date: Sat, 18 Apr 2026 00:50:07 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,songmuchun@bytedance.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock.patch removed from -mm tree
-Message-Id: <20260418075002.718EAC19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-prepare-for-reparenting-traditional-lru-folios.patch removed from -mm tree
+Message-Id: <20260418075010.AF154C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,66 +35,32 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: prepare for reparenting LRU pages for lruvec lock
+     Subject: mm: vmscan: prepare for reparenting traditional LRU folios
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock.patch
+     mm-vmscan-prepare-for-reparenting-traditional-lru-folios.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: prepare for reparenting LRU pages for lruvec lock
-Date: Thu, 5 Mar 2026 19:52:42 +0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: vmscan: prepare for reparenting traditional LRU folios
+Date: Thu, 5 Mar 2026 19:52:43 +0800
 
-The following diagram illustrates how to ensure the safety of the folio
-lruvec lock when LRU folios undergo reparenting.
+To resolve the dying memcg issue, we need to reparent LRU folios of child
+memcg to its parent memcg.  For traditional LRU list, each lruvec of every
+memcg comprises four LRU lists.  Due to the symmetry of the LRU lists, it
+is feasible to transfer the LRU lists from a memcg to its parent memcg
+during the reparenting process.
 
-In the folio_lruvec_lock(folio) function:
+This commit implements the specific function, which will be used during
+the reparenting process.
 
-    rcu_read_lock();
-retry:
-    lruvec = folio_lruvec(folio);
-    /* There is a possibility of folio reparenting at this point. */
-    spin_lock(&lruvec->lru_lock);
-    if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
-        /*
-         * The wrong lruvec lock was acquired, and a retry is required.
-         * This is because the folio resides on the parent memcg lruvec
-         * list.
-         */
-        spin_unlock(&lruvec->lru_lock);
-        goto retry;
-    }
-
-    /* Reaching here indicates that folio_memcg() is stable. */
-
-
-In the memcg_reparent_objcgs(memcg) function:
-
-    spin_lock(&lruvec->lru_lock);
-    spin_lock(&lruvec_parent->lru_lock);
-    /* Transfer folios from the lruvec list to the parent's. */
-    spin_unlock(&lruvec_parent->lru_lock);
-    spin_unlock(&lruvec->lru_lock);
-
-After acquiring the lruvec lock, it is necessary to verify whether the
-folio has been reparented.  If reparenting has occurred, the new lruvec
-lock must be reacquired.  During the LRU folio reparenting process, the
-lruvec lock will also be acquired (this will be implemented in a
-subsequent patch).  Therefore, folio_memcg() remains unchanged while the
-lruvec lock is held.
-
-Given that lruvec_memcg(lruvec) is always equal to folio_memcg(folio)
-after the lruvec lock is acquired, the lruvec_memcg_debug() check is
-redundant.  Hence, it is removed.
-
-This patch serves as a preparation for the reparenting of LRU folios.
-
-Link: https://lore.kernel.org/23f22cbb1419f277a3483018b32158ae2b86c666.1772711148.git.zhengqi.arch@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Link: https://lore.kernel.org/a92d217a9fc82bd0c401210204a095caaf615b1c.1772711148.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Allen Pais <apais@linux.microsoft.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
@@ -103,7 +69,6 @@ Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Chen Ridong <chenridong@huawei.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Cc: Harry Yoo <harry.yoo@oracle.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Imran Khan <imran.f.khan@oracle.com>
 Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
@@ -113,7 +78,7 @@ Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -126,315 +91,119 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   34 +++++++++++-----------
- include/linux/swap.h       |    3 -
- mm/compaction.c            |   29 +++++++++++++++----
- mm/memcontrol.c            |   53 +++++++++++++++++------------------
- mm/swap.c                  |    6 +++
- 5 files changed, 73 insertions(+), 52 deletions(-)
+ include/linux/swap.h |   21 +++++++++++++++++++++
+ mm/swap.c            |   33 +++++++++++++++++++++++++++++++++
+ mm/vmscan.c          |   19 -------------------
+ 3 files changed, 54 insertions(+), 19 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock
-+++ a/include/linux/memcontrol.h
-@@ -741,7 +741,15 @@ out:
-  * folio_lruvec - return lruvec for isolating/putting an LRU folio
-  * @folio: Pointer to the folio.
-  *
-- * This function relies on folio->mem_cgroup being stable.
-+ * Call with rcu_read_lock() held to ensure the lifetime of the returned lruvec.
-+ * Note that this alone will NOT guarantee the stability of the folio->lruvec
-+ * association; the folio can be reparented to an ancestor if this races with
-+ * cgroup deletion.
-+ *
-+ * Use folio_lruvec_lock() to ensure both lifetime and stability of the binding.
-+ * Once a lruvec is locked, folio_lruvec() can be called on other folios, and
-+ * their binding is stable if the returned lruvec matches the one the caller has
-+ * locked. Useful for lock batching.
-  */
- static inline struct lruvec *folio_lruvec(struct folio *folio)
- {
-@@ -764,15 +772,6 @@ struct lruvec *folio_lruvec_lock_irq(str
- struct lruvec *folio_lruvec_lock_irqsave(struct folio *folio,
- 						unsigned long *flags);
- 
--#ifdef CONFIG_DEBUG_VM
--void lruvec_memcg_debug(struct lruvec *lruvec, struct folio *folio);
--#else
--static inline
--void lruvec_memcg_debug(struct lruvec *lruvec, struct folio *folio)
--{
--}
--#endif
--
- static inline
- struct mem_cgroup *mem_cgroup_from_css(struct cgroup_subsys_state *css){
- 	return css ? container_of(css, struct mem_cgroup, css) : NULL;
-@@ -1198,11 +1197,6 @@ static inline struct lruvec *folio_lruve
- 	return &pgdat->__lruvec;
- }
- 
--static inline
--void lruvec_memcg_debug(struct lruvec *lruvec, struct folio *folio)
--{
--}
--
- static inline struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg)
- {
- 	return NULL;
-@@ -1261,6 +1255,7 @@ static inline struct lruvec *folio_lruve
- {
- 	struct pglist_data *pgdat = folio_pgdat(folio);
- 
-+	rcu_read_lock();
- 	spin_lock(&pgdat->__lruvec.lru_lock);
- 	return &pgdat->__lruvec;
- }
-@@ -1269,6 +1264,7 @@ static inline struct lruvec *folio_lruve
- {
- 	struct pglist_data *pgdat = folio_pgdat(folio);
- 
-+	rcu_read_lock();
- 	spin_lock_irq(&pgdat->__lruvec.lru_lock);
- 	return &pgdat->__lruvec;
- }
-@@ -1278,6 +1274,7 @@ static inline struct lruvec *folio_lruve
- {
- 	struct pglist_data *pgdat = folio_pgdat(folio);
- 
-+	rcu_read_lock();
- 	spin_lock_irqsave(&pgdat->__lruvec.lru_lock, *flagsp);
- 	return &pgdat->__lruvec;
- }
-@@ -1500,23 +1497,26 @@ static inline struct lruvec *parent_lruv
- 
- static inline void lruvec_lock_irq(struct lruvec *lruvec)
- {
-+	rcu_read_lock();
- 	spin_lock_irq(&lruvec->lru_lock);
- }
- 
- static inline void lruvec_unlock(struct lruvec *lruvec)
- {
- 	spin_unlock(&lruvec->lru_lock);
-+	rcu_read_unlock();
- }
- 
- static inline void lruvec_unlock_irq(struct lruvec *lruvec)
- {
- 	spin_unlock_irq(&lruvec->lru_lock);
-+	rcu_read_unlock();
- }
- 
--static inline void lruvec_unlock_irqrestore(struct lruvec *lruvec,
--		unsigned long flags)
-+static inline void lruvec_unlock_irqrestore(struct lruvec *lruvec, unsigned long flags)
- {
- 	spin_unlock_irqrestore(&lruvec->lru_lock, flags);
-+	rcu_read_unlock();
- }
- 
- /* Test requires a stable folio->memcg binding, see folio_memcg() */
---- a/include/linux/swap.h~mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock
+--- a/include/linux/swap.h~mm-vmscan-prepare-for-reparenting-traditional-lru-folios
 +++ a/include/linux/swap.h
-@@ -310,8 +310,7 @@ extern unsigned long totalreserve_pages;
+@@ -546,6 +546,8 @@ static inline int mem_cgroup_swappiness(
  
- /* linux/mm/swap.c */
- void lru_note_cost_unlock_irq(struct lruvec *lruvec, bool file,
--		unsigned int nr_io, unsigned int nr_rotated)
--		__releases(lruvec->lru_lock);
-+		unsigned int nr_io, unsigned int nr_rotated);
- void lru_note_cost_refault(struct folio *);
- void folio_add_lru(struct folio *);
- void folio_add_lru_vma(struct folio *, struct vm_area_struct *);
---- a/mm/compaction.c~mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock
-+++ a/mm/compaction.c
-@@ -518,6 +518,24 @@ static bool compact_lock_irqsave(spinloc
- 	return true;
+ 	return READ_ONCE(memcg->swappiness);
+ }
++
++void lru_reparent_memcg(struct mem_cgroup *memcg, struct mem_cgroup *parent, int nid);
+ #else
+ static inline int mem_cgroup_swappiness(struct mem_cgroup *mem)
+ {
+@@ -610,5 +612,24 @@ static inline bool mem_cgroup_swap_full(
+ }
+ #endif
+ 
++/* for_each_managed_zone_pgdat - helper macro to iterate over all managed zones in a pgdat up to
++ * and including the specified highidx
++ * @zone: The current zone in the iterator
++ * @pgdat: The pgdat which node_zones are being iterated
++ * @idx: The index variable
++ * @highidx: The index of the highest zone to return
++ *
++ * This macro iterates through all managed zones up to and including the specified highidx.
++ * The zone iterator enters an invalid state after macro call and must be reinitialized
++ * before it can be used again.
++ */
++#define for_each_managed_zone_pgdat(zone, pgdat, idx, highidx)	\
++	for ((idx) = 0, (zone) = (pgdat)->node_zones;		\
++	    (idx) <= (highidx);					\
++	    (idx)++, (zone)++)					\
++		if (!managed_zone(zone))			\
++			continue;				\
++		else
++
+ #endif /* __KERNEL__*/
+ #endif /* _LINUX_SWAP_H */
+--- a/mm/swap.c~mm-vmscan-prepare-for-reparenting-traditional-lru-folios
++++ a/mm/swap.c
+@@ -1090,6 +1090,39 @@ void folio_batch_remove_exceptionals(str
+ 	fbatch->nr = j;
  }
  
-+static struct lruvec *
-+compact_folio_lruvec_lock_irqsave(struct folio *folio, unsigned long *flags,
-+				  struct compact_control *cc)
++#ifdef CONFIG_MEMCG
++static void lruvec_reparent_lru(struct lruvec *child_lruvec,
++				struct lruvec *parent_lruvec,
++				enum lru_list lru, int nid)
 +{
-+	struct lruvec *lruvec;
++	int zid;
++	struct zone *zone;
 +
-+	rcu_read_lock();
-+retry:
-+	lruvec = folio_lruvec(folio);
-+	compact_lock_irqsave(&lruvec->lru_lock, flags, cc);
-+	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
-+		spin_unlock_irqrestore(&lruvec->lru_lock, *flags);
-+		goto retry;
++	if (lru != LRU_UNEVICTABLE)
++		list_splice_tail_init(&child_lruvec->lists[lru], &parent_lruvec->lists[lru]);
++
++	for_each_managed_zone_pgdat(zone, NODE_DATA(nid), zid, MAX_NR_ZONES - 1) {
++		unsigned long size = mem_cgroup_get_zone_lru_size(child_lruvec, lru, zid);
++
++		mem_cgroup_update_lru_size(parent_lruvec, lru, zid, size);
 +	}
-+
-+	return lruvec;
 +}
 +
- /*
-  * Compaction requires the taking of some coarse locks that are potentially
-  * very heavily contended. The lock should be periodically unlocked to avoid
-@@ -839,7 +857,7 @@ isolate_migratepages_block(struct compac
- {
- 	pg_data_t *pgdat = cc->zone->zone_pgdat;
- 	unsigned long nr_scanned = 0, nr_isolated = 0;
--	struct lruvec *lruvec;
-+	struct lruvec *lruvec = NULL;
- 	unsigned long flags = 0;
- 	struct lruvec *locked = NULL;
- 	struct folio *folio = NULL;
-@@ -1153,18 +1171,17 @@ isolate_migratepages_block(struct compac
- 		if (!folio_test_clear_lru(folio))
- 			goto isolate_fail_put;
- 
--		lruvec = folio_lruvec(folio);
-+		if (locked)
-+			lruvec = folio_lruvec(folio);
- 
- 		/* If we already hold the lock, we can skip some rechecking */
--		if (lruvec != locked) {
-+		if (lruvec != locked || !locked) {
- 			if (locked)
- 				lruvec_unlock_irqrestore(locked, flags);
- 
--			compact_lock_irqsave(&lruvec->lru_lock, &flags, cc);
-+			lruvec = compact_folio_lruvec_lock_irqsave(folio, &flags, cc);
- 			locked = lruvec;
- 
--			lruvec_memcg_debug(lruvec, folio);
--
- 			/*
- 			 * Try get exclusive access under lock. If marked for
- 			 * skip, the scan is aborted unless the current context
---- a/mm/memcontrol.c~mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock
-+++ a/mm/memcontrol.c
-@@ -1206,23 +1206,6 @@ void mem_cgroup_scan_tasks(struct mem_cg
- 	}
++void lru_reparent_memcg(struct mem_cgroup *memcg, struct mem_cgroup *parent, int nid)
++{
++	enum lru_list lru;
++	struct lruvec *child_lruvec, *parent_lruvec;
++
++	child_lruvec = mem_cgroup_lruvec(memcg, NODE_DATA(nid));
++	parent_lruvec = mem_cgroup_lruvec(parent, NODE_DATA(nid));
++	parent_lruvec->anon_cost += child_lruvec->anon_cost;
++	parent_lruvec->file_cost += child_lruvec->file_cost;
++
++	for_each_lru(lru)
++		lruvec_reparent_lru(child_lruvec, parent_lruvec, lru, nid);
++}
++#endif
++
+ static const struct ctl_table swap_sysctl_table[] = {
+ 	{
+ 		.procname	= "page-cluster",
+--- a/mm/vmscan.c~mm-vmscan-prepare-for-reparenting-traditional-lru-folios
++++ a/mm/vmscan.c
+@@ -269,25 +269,6 @@ static int sc_swappiness(struct scan_con
  }
+ #endif
  
--#ifdef CONFIG_DEBUG_VM
--void lruvec_memcg_debug(struct lruvec *lruvec, struct folio *folio)
--{
--	struct mem_cgroup *memcg;
+-/* for_each_managed_zone_pgdat - helper macro to iterate over all managed zones in a pgdat up to
+- * and including the specified highidx
+- * @zone: The current zone in the iterator
+- * @pgdat: The pgdat which node_zones are being iterated
+- * @idx: The index variable
+- * @highidx: The index of the highest zone to return
+- *
+- * This macro iterates through all managed zones up to and including the specified highidx.
+- * The zone iterator enters an invalid state after macro call and must be reinitialized
+- * before it can be used again.
+- */
+-#define for_each_managed_zone_pgdat(zone, pgdat, idx, highidx)	\
+-	for ((idx) = 0, (zone) = (pgdat)->node_zones;		\
+-	    (idx) <= (highidx);					\
+-	    (idx)++, (zone)++)					\
+-		if (!managed_zone(zone))			\
+-			continue;				\
+-		else
 -
--	if (mem_cgroup_disabled())
--		return;
--
--	memcg = folio_memcg(folio);
--
--	if (!memcg)
--		VM_BUG_ON_FOLIO(!mem_cgroup_is_root(lruvec_memcg(lruvec)), folio);
--	else
--		VM_BUG_ON_FOLIO(lruvec_memcg(lruvec) != memcg, folio);
--}
--#endif
--
- /**
-  * folio_lruvec_lock - Lock the lruvec for a folio.
-  * @folio: Pointer to the folio.
-@@ -1232,14 +1215,20 @@ void lruvec_memcg_debug(struct lruvec *l
-  * - folio_test_lru false
-  * - folio frozen (refcount of 0)
-  *
-- * Return: The lruvec this folio is on with its lock held.
-+ * Return: The lruvec this folio is on with its lock held and rcu read lock held.
-  */
- struct lruvec *folio_lruvec_lock(struct folio *folio)
+ static void set_task_reclaim_state(struct task_struct *task,
+ 				   struct reclaim_state *rs)
  {
--	struct lruvec *lruvec = folio_lruvec(folio);
-+	struct lruvec *lruvec;
- 
-+	rcu_read_lock();
-+retry:
-+	lruvec = folio_lruvec(folio);
- 	spin_lock(&lruvec->lru_lock);
--	lruvec_memcg_debug(lruvec, folio);
-+	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
-+		spin_unlock(&lruvec->lru_lock);
-+		goto retry;
-+	}
- 
- 	return lruvec;
- }
-@@ -1254,14 +1243,20 @@ struct lruvec *folio_lruvec_lock(struct
-  * - folio frozen (refcount of 0)
-  *
-  * Return: The lruvec this folio is on with its lock held and interrupts
-- * disabled.
-+ * disabled and rcu read lock held.
-  */
- struct lruvec *folio_lruvec_lock_irq(struct folio *folio)
- {
--	struct lruvec *lruvec = folio_lruvec(folio);
-+	struct lruvec *lruvec;
- 
-+	rcu_read_lock();
-+retry:
-+	lruvec = folio_lruvec(folio);
- 	spin_lock_irq(&lruvec->lru_lock);
--	lruvec_memcg_debug(lruvec, folio);
-+	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
-+		spin_unlock_irq(&lruvec->lru_lock);
-+		goto retry;
-+	}
- 
- 	return lruvec;
- }
-@@ -1277,15 +1272,21 @@ struct lruvec *folio_lruvec_lock_irq(str
-  * - folio frozen (refcount of 0)
-  *
-  * Return: The lruvec this folio is on with its lock held and interrupts
-- * disabled.
-+ * disabled and rcu read lock held.
-  */
- struct lruvec *folio_lruvec_lock_irqsave(struct folio *folio,
- 		unsigned long *flags)
- {
--	struct lruvec *lruvec = folio_lruvec(folio);
-+	struct lruvec *lruvec;
- 
-+	rcu_read_lock();
-+retry:
-+	lruvec = folio_lruvec(folio);
- 	spin_lock_irqsave(&lruvec->lru_lock, *flags);
--	lruvec_memcg_debug(lruvec, folio);
-+	if (unlikely(lruvec_memcg(lruvec) != folio_memcg(folio))) {
-+		spin_unlock_irqrestore(&lruvec->lru_lock, *flags);
-+		goto retry;
-+	}
- 
- 	return lruvec;
- }
---- a/mm/swap.c~mm-memcontrol-prepare-for-reparenting-lru-pages-for-lruvec-lock
-+++ a/mm/swap.c
-@@ -240,6 +240,7 @@ void folio_rotate_reclaimable(struct fol
- void lru_note_cost_unlock_irq(struct lruvec *lruvec, bool file,
- 		unsigned int nr_io, unsigned int nr_rotated)
- 		__releases(lruvec->lru_lock)
-+		__releases(rcu)
- {
- 	unsigned long cost;
- 
-@@ -253,6 +254,7 @@ void lru_note_cost_unlock_irq(struct lru
- 	cost = nr_io * SWAP_CLUSTER_MAX + nr_rotated;
- 	if (!cost) {
- 		spin_unlock_irq(&lruvec->lru_lock);
-+		rcu_read_unlock();
- 		return;
- 	}
- 
-@@ -285,8 +287,10 @@ void lru_note_cost_unlock_irq(struct lru
- 
- 		spin_unlock_irq(&lruvec->lru_lock);
- 		lruvec = parent_lruvec(lruvec);
--		if (!lruvec)
-+		if (!lruvec) {
-+			rcu_read_unlock();
- 			break;
-+		}
- 		spin_lock_irq(&lruvec->lru_lock);
- 	}
- }
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
 
