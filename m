@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3B5C34AB17
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:51:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03B721B78F3
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:51:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498690; cv=none; b=dBlQdHeoZrXTVBvYmeF2BDMA8OY2fphUkgRmqehVxW3ykCbZdxqSh+s5uYqnbJKVi76wpPWfMPlOE3aenOEAdJD0usIIImjOgSs3eaWcxU/f4n4N9JiCVM4VRk38ZgqBh6Me0GL6ptQVLIMIPc6ZddQ6hTE+1A8/VkYqaTQ7eCo=
+	t=1776498697; cv=none; b=NaxHIXsnUytCSFUU+20poiA+PTFktZkgHCasElH0wmHgPxbsxi72tnGhTqmHNh3dfOrT3XAfgVmzaXpsQuQ9xVlzikoXwl1QgHQaFwtAW6+ioYL6YcHs1R/spWwAhe4punri5nJvHC3m/vsanmCFupEW040a6KRAJmwecetTN6I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498690; c=relaxed/simple;
-	bh=r+QC1ub9wCHjcVTmIR2X0yL4dvxHKU2Ix6KYX4fxisk=;
-	h=Date:To:From:Subject:Message-Id; b=EyXVCkszfmX3+asi13XUqyBaxng3eYUN/sUnmxEbf7v2Wpt0QcJNagbivzRvurT4hMxwrx+1H0LuWSPaRkY7QQAIMtl25ApxJflYushbqQ3BtrKy9mzwFWEuCR0DyVfvY6WbxhUHYOqcNXL+EBsG79qOIWMzgH+e+Ayq0VeeUSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xfK1t2+g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498697; c=relaxed/simple;
+	bh=w779K3KemaxDOxf4y7oPyG4fig9y6+2SJAFAUhVOLgY=;
+	h=Date:To:From:Subject:Message-Id; b=UHRp35I9qwIouc+rPBzw+w517EZCUwxQqkxWM3Q+/YIW/uOli+D1Ztr8z9hDW/twwAozfxFPVl6SnAbWWcHA5D7hCW0xAj1ZZ1UpHja187OdOm92+AATrbkQjG7dRMVFBFYbdqp2K6y77Lwf1MjzW9tUSJvnOud0e1rt/0dSSnc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RSb6RG8p; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xfK1t2+g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F4C7C19424;
-	Sat, 18 Apr 2026 07:51:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RSb6RG8p"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5165C19424;
+	Sat, 18 Apr 2026 07:51:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498690;
-	bh=r+QC1ub9wCHjcVTmIR2X0yL4dvxHKU2Ix6KYX4fxisk=;
+	s=korg; t=1776498696;
+	bh=w779K3KemaxDOxf4y7oPyG4fig9y6+2SJAFAUhVOLgY=;
 	h=Date:To:From:Subject:From;
-	b=xfK1t2+gdKGXboQWxF07ABgS1+4XfX1Jr+t83I7XmWOvprDzS3meXBzGTg6nA6g0o
-	 9DCnfgslmyx4xbU/PDYzIb4TQW5oH1K7w+v77gX/oTTGaeA9dmvfgJuq9+HSP3dPt3
-	 gLmc022pHctX7kCgULbtnJl6RAS8P+1mLkFghV7k=
-Date: Sat, 18 Apr 2026 00:51:25 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,qi.zheng@linux.dev,kasong@tencent.com,kaleshsingh@google.com,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,ljs@kernel.org,akpm@linux-foundation.org
+	b=RSb6RG8pkVUq+F1MDg6QuLEWNTnVJvzrYcOge39jH8hjem5FLC3wgGmreZdGQceLr
+	 Q43LSShHbHyhYHZg5UBUCpAS/kAxUQHY7GGIujlRJGuzwJEJnbt8zLdj1q0bFuiOyu
+	 Eh3ezs1AJ5vEP0srFbqPizfSM6fBzLisEA2wuVT0=
+Date: Sat, 18 Apr 2026 00:51:31 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] maintainers-update-mglru-entry-to-reflect-current-status.patch removed from -mm tree
-Message-Id: <20260418075129.5F4C7C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-kmemleak-add-config_debug_kmemleak_verbose-build-option.patch removed from -mm tree
+Message-Id: <20260418075135.D5165C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,81 +35,93 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: update MGLRU entry to reflect current status
+     Subject: mm: kmemleak: add CONFIG_DEBUG_KMEMLEAK_VERBOSE build option
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-mglru-entry-to-reflect-current-status.patch
+     mm-kmemleak-add-config_debug_kmemleak_verbose-build-option.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: MAINTAINERS: update MGLRU entry to reflect current status
-Date: Thu, 26 Mar 2026 18:56:29 +0000
+From: Breno Leitao <leitao@debian.org>
+Subject: mm: kmemleak: add CONFIG_DEBUG_KMEMLEAK_VERBOSE build option
+Date: Mon, 23 Mar 2026 04:12:13 -0700
 
-We are moving to a far more proactive model of maintainership within mm
-and thus put a great deal of emphasis on sub-maintainers being active
-within the community both in terms of code contributions and review.
+Add a Kconfig option to default kmemleak verbose mode on at build time. 
+This option depends on DEBUG_KMEMLEAK_AUTO_SCAN since verbose reporting is
+only meaningful when the automatic scanning thread is running.
 
-The MGLRU has not had much activity since being added to the kernel and
-the current maintainers who kindly stepped up have unfortunately not been
-able to contribute a great deal to it for over a year, nor engage all that
-heavily in review.
+When enabled, kmemleak prints full details (backtrace, hex dump, address)
+of unreferenced objects to dmesg as they are detected during scanning,
+removing the need to manually read /sys/kernel/debug/kmemleak.
 
-As a result, and within no negative connotations implied whatsoever, it
-seems appropriate to downgrade the current maintainers to reviewers.
+Making this a compile-time option rather than a boot parameter allows
+debug kernel flavors to enable verbose kmemleak reporting by default
+without requiring changes to boot arguments.  A machine can simply swap to
+a debug kernel and benefit from kmemleak reporting automatically.
 
-At this time nobody is quite exercising the maintainer role in this area
-of the kernel, but there is encouraging activity from a number of people
-who are trusted elsewhere in the kernel, and who have contributed relevant
-work or review.
+By surfacing leak reports directly in dmesg, they are automatically
+forwarded through any kernel logging infrastructure and can be easily
+captured by log aggregation tooling, making it practical to monitor memory
+leaks across large fleets.
 
-Therefore add further reviewers, and at this stage - to reflect the
-reality on the ground - we will not have any sub-maintainers listed at
-all.
+The verbose setting can still be toggled at runtime via
+/sys/module/kmemleak/parameters/verbose.
 
-Each of the files listed are shared with other sections in MAINTAINERS, so
-this doesn't reduce sub-maintainer coverage.
-
-Link: https://lore.kernel.org/20260326185629.355476-1-ljs@kernel.org
-Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Acked-by: Axel Rasmussen <axelrasmussen@google.com>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Barry Song <baohua@kernel.org>
+Link: https://lore.kernel.org/20260323-kmemleak_report-v1-1-ba2cdd9c11b9@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
 Acked-by: SeongJae Park <sj@kernel.org>
-Acked-by: Kairui Song <kasong@tencent.com>
-Acked-by: Qi Zheng <qi.zheng@linux.dev>
-Acked-by: Yuanchu Xie <yuanchu@google.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Kalesh Singh <kaleshsingh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/Kconfig.debug |   11 +++++++++++
+ mm/kmemleak.c    |    2 +-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-update-mglru-entry-to-reflect-current-status
-+++ a/MAINTAINERS
-@@ -16757,8 +16757,12 @@ F:	mm/migrate_device.c
+--- a/mm/Kconfig.debug~mm-kmemleak-add-config_debug_kmemleak_verbose-build-option
++++ a/mm/Kconfig.debug
+@@ -297,6 +297,17 @@ config DEBUG_KMEMLEAK_AUTO_SCAN
  
- MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU)
- M:	Andrew Morton <akpm@linux-foundation.org>
--M:	Axel Rasmussen <axelrasmussen@google.com>
--M:	Yuanchu Xie <yuanchu@google.com>
-+R:	Kairui Song <kasong@tencent.com>
-+R:	Qi Zheng <qi.zheng@linux.dev>
-+R:	Shakeel Butt <shakeel.butt@linux.dev>
-+R:	Barry Song <baohua@kernel.org>
-+R:	Axel Rasmussen <axelrasmussen@google.com>
-+R:	Yuanchu Xie <yuanchu@google.com>
- R:	Wei Xu <weixugc@google.com>
- L:	linux-mm@kvack.org
- S:	Maintained
+ 	  If unsure, say Y.
+ 
++config DEBUG_KMEMLEAK_VERBOSE
++	bool "Default kmemleak to verbose mode"
++	depends on DEBUG_KMEMLEAK_AUTO_SCAN
++	help
++	  Say Y here to have kmemleak print unreferenced object details
++	  (backtrace, hex dump, address) to dmesg when new memory leaks are
++	  detected during automatic scanning. This can also be toggled at
++	  runtime via /sys/module/kmemleak/parameters/verbose.
++
++	  If unsure, say N.
++
+ config PER_VMA_LOCK_STATS
+ 	bool "Statistics for per-vma locks"
+ 	depends on PER_VMA_LOCK
+--- a/mm/kmemleak.c~mm-kmemleak-add-config_debug_kmemleak_verbose-build-option
++++ a/mm/kmemleak.c
+@@ -241,7 +241,7 @@ static int kmemleak_skip_disable;
+ /* If there are leaks that can be reported */
+ static bool kmemleak_found_leaks;
+ 
+-static bool kmemleak_verbose;
++static bool kmemleak_verbose = IS_ENABLED(CONFIG_DEBUG_KMEMLEAK_VERBOSE);
+ module_param_named(verbose, kmemleak_verbose, bool, 0600);
+ 
+ static void kmemleak_disable(void);
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
+mm-blk-cgroup-fix-use-after-free-in-cgwb_release_workfn.patch
+kho-fix-error-handling-in-kho_add_subtree.patch
+mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
 
