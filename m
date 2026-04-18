@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC844371049
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:58:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA407371CE1
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:58:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776499127; cv=none; b=CezZE4g2Z7N8IyUx5cWkF8kroO9LiJvi/uj3uecc8vR/dS59VfZM4Afa7hO+ZnpOrj+OBDeF8OX+x/lcgfLffNvAtv3NRsZvEOSuv6wpyx2duy4TBgFbRTRj+ZFIlLWbX9hzXFEhlx/fp0LteS5lk8XSLVvhLwf8KVWrc7xORZQ=
+	t=1776499133; cv=none; b=SFfOZZVelRFfYNBxOzc1YY3sYZy4CEc9FgiqSPMlIklDWyY4SeW94G08O0RKAA+JfjIpZJVmHgKd69Xz26/mgSHk1050V6DG1leZZX+TflPocXXvh3jI8BiGFmnlJjJ1sJ9LlH8I4+mUUwQy6K8yyOgkqm0/U4I/j/rmjsd+kU4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776499127; c=relaxed/simple;
-	bh=lmTkrswO+DgsGjef+pHWdI2AnXk33RRIASLD6Os9HPc=;
-	h=Date:To:From:Subject:Message-Id; b=IiAMZgH1ST4mALbkU2pkVEdXkrKsWyOgypu67Lj6P6+M/f9G4j10HG9m1Ju+9pzePRo/xw9HFAcxhMXwlv1sMYnXqZlIjcvcN7IpVdMJBFiG00d9V0t25MhHPdxrvYqDt5PuDG2FDfuqpTf/9LksqDA32//RDjNPcpwxa1fOPsM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oNcAad7D; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776499133; c=relaxed/simple;
+	bh=YzV4MqaN94iyz+Czz4b+ZR5dqjnDM4PXuzDRUlkwe9s=;
+	h=Date:To:From:Subject:Message-Id; b=bwZ0BvtCP643ma5DG0t61yHE8xSqbRNTrbUiHfY425wKvaZDjnaDrRSBHmZT5m0IR+0q9Vw2LsSyfdgCY/hlJ/hkSXqr39XhyeoSQu7bzYUa1KpbrgInRHt1GXSIyuyV2Gls/tdrKGeWH3JPh/fTWjIIt+/SAq2cODCay+VePc8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1n5dbycK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oNcAad7D"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB92FC19424;
-	Sat, 18 Apr 2026 07:58:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1n5dbycK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6BF4C19424;
+	Sat, 18 Apr 2026 07:58:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776499127;
-	bh=lmTkrswO+DgsGjef+pHWdI2AnXk33RRIASLD6Os9HPc=;
+	s=korg; t=1776499133;
+	bh=YzV4MqaN94iyz+Czz4b+ZR5dqjnDM4PXuzDRUlkwe9s=;
 	h=Date:To:From:Subject:From;
-	b=oNcAad7DHlTrelDuFhp8fsO5ixrjgDLVn6aa01C97kfLLROZMYd18SKpZBF/+iqv+
-	 LnjcGPGPBHudn2QtFgdLZFzieYiA8NxpTQVMq++tySDVYw98tC2MSGnBVhT2esB6lA
-	 KRsDdD3MIpCsy2/Z33JRG/klBdYfmfAA9GSqfDoc=
-Date: Sat, 18 Apr 2026 00:58:42 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,luyang@redhat.com,ljs@kernel.org,liam.howlett@oracle.com,jhladky@redhat.com,jannh@google.com,dev.jain@arm.com,david@kernel.org,dave@stgolabs.net,pfalcato@suse.de,akpm@linux-foundation.org
+	b=1n5dbycKMmwHPiE54SFVg4kB8pYM5RaUZ4HDc20wIdmZZb3mTE/lsUyIn6F+lBR2n
+	 CVhXMbuytGx8uRxIBrjtY8X4IPGlna/VcUokQGdZmwzRth4EmqpGFxPi0WBg1LSZXv
+	 WIA13E3l/wCUQJbwZcdWQCHTsv+U1iAaAkjI5xP8=
+Date: Sat, 18 Apr 2026 00:58:48 -0700
+To: mm-commits@vger.kernel.org,yury.khrustalev@arm.com,vbabka@kernel.org,skhan@linuxfoundation.org,rdunlap@infradead.org,mark.rutland@arm.com,ljs@kernel.org,david@kernel.org,dave.hansen@linux.intel.com,corbet@lwn.net,kevin.brodsky@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-mprotect-special-case-small-folios-when-applying-write-permissions.patch removed from -mm tree
-Message-Id: <20260418075846.EB92FC19424@smtp.kernel.org>
+Subject: [merged mm-stable] docs-proc-document-protectionkey-in-smaps.patch removed from -mm tree
+Message-Id: <20260418075852.A6BF4C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,195 +35,60 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mprotect: special-case small folios when applying permissions
+     Subject: docs: proc: document ProtectionKey in smaps
 has been removed from the -mm tree.  Its filename was
-     mm-mprotect-special-case-small-folios-when-applying-write-permissions.patch
+     docs-proc-document-protectionkey-in-smaps.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pedro Falcato <pfalcato@suse.de>
-Subject: mm/mprotect: special-case small folios when applying permissions
-Date: Thu, 2 Apr 2026 15:16:28 +0100
+From: Kevin Brodsky <kevin.brodsky@arm.com>
+Subject: docs: proc: document ProtectionKey in smaps
+Date: Tue, 7 Apr 2026 13:51:33 +0100
 
-The common order-0 case is important enough to want its own branch, and
-avoids the hairy, large loop logic that the CPU does not seem to handle
-particularly well.
+The ProtectionKey entry was added in v4.9; back then it was x86-specific,
+but it now lives in generic code and applies to all architectures
+supporting pkeys (currently x86, power, arm64).
 
-While at it, encourage the compiler to inline batch PTE logic and resolve
-constant branches by adding __always_inline strategically.
+Time to document it: add a paragraph to proc.rst about the ProtectionKey
+entry.
 
-Link: https://lore.kernel.org/20260402141628.3367596-3-pfalcato@suse.de
-Signed-off-by: Pedro Falcato <pfalcato@suse.de>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Tested-by: Luke Yang <luyang@redhat.com>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jiri Hladky <jhladky@redhat.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+[akpm@linux-foundation.org: s/system/hardware/, per review discussion]
+[akpm@linux-foundation.org: s/hardware/CPU/]
+Link: https://lore.kernel.org/20260407125133.564182-1-kevin.brodsky@arm.com
+Signed-off-by: Kevin Brodsky <kevin.brodsky@arm.com>
+Reported-by: Yury Khrustalev <yury.khrustalev@arm.com>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Marc Rutland <mark.rutland@arm.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   91 ++++++++++++++++++++++++++++++------------------
- 1 file changed, 57 insertions(+), 34 deletions(-)
+ Documentation/filesystems/proc.rst |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/mprotect.c~mm-mprotect-special-case-small-folios-when-applying-write-permissions
-+++ a/mm/mprotect.c
-@@ -117,9 +117,9 @@ static int mprotect_folio_pte_batch(stru
- }
+--- a/Documentation/filesystems/proc.rst~docs-proc-document-protectionkey-in-smaps
++++ a/Documentation/filesystems/proc.rst
+@@ -549,6 +549,10 @@ does not take into account swapped out p
+ naturally aligned THP pages of any currently enabled size. 1 if true, 0
+ otherwise.
  
- /* Set nr_ptes number of ptes, starting from idx */
--static void prot_commit_flush_ptes(struct vm_area_struct *vma, unsigned long addr,
--		pte_t *ptep, pte_t oldpte, pte_t ptent, int nr_ptes,
--		int idx, bool set_write, struct mmu_gather *tlb)
-+static __always_inline void prot_commit_flush_ptes(struct vm_area_struct *vma,
-+		unsigned long addr, pte_t *ptep, pte_t oldpte, pte_t ptent,
-+		int nr_ptes, int idx, bool set_write, struct mmu_gather *tlb)
- {
- 	/*
- 	 * Advance the position in the batch by idx; note that if idx > 0,
-@@ -143,7 +143,7 @@ static void prot_commit_flush_ptes(struc
-  * !PageAnonExclusive() pages, starting from start_idx. Caller must enforce
-  * that the ptes point to consecutive pages of the same anon large folio.
-  */
--static int page_anon_exclusive_sub_batch(int start_idx, int max_len,
-+static __always_inline int page_anon_exclusive_sub_batch(int start_idx, int max_len,
- 		struct page *first_page, bool expected_anon_exclusive)
- {
- 	int idx;
-@@ -169,7 +169,7 @@ static int page_anon_exclusive_sub_batch
-  * pte of the batch. Therefore, we must individually check all pages and
-  * retrieve sub-batches.
-  */
--static void commit_anon_folio_batch(struct vm_area_struct *vma,
-+static __always_inline void commit_anon_folio_batch(struct vm_area_struct *vma,
- 		struct folio *folio, struct page *first_page, unsigned long addr, pte_t *ptep,
- 		pte_t oldpte, pte_t ptent, int nr_ptes, struct mmu_gather *tlb)
- {
-@@ -188,7 +188,7 @@ static void commit_anon_folio_batch(stru
- 	}
- }
- 
--static void set_write_prot_commit_flush_ptes(struct vm_area_struct *vma,
-+static __always_inline void set_write_prot_commit_flush_ptes(struct vm_area_struct *vma,
- 		struct folio *folio, struct page *page, unsigned long addr, pte_t *ptep,
- 		pte_t oldpte, pte_t ptent, int nr_ptes, struct mmu_gather *tlb)
- {
-@@ -277,6 +277,45 @@ static long change_softleaf_pte(struct v
- 	return 0;
- }
- 
-+static __always_inline void change_present_ptes(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, unsigned long addr, pte_t *ptep,
-+		int nr_ptes, unsigned long end, pgprot_t newprot,
-+		struct folio *folio, struct page *page, unsigned long cp_flags)
-+{
-+	const bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
-+	const bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
-+	pte_t ptent, oldpte;
++If both the kernel and the CPU support protection keys (pkeys),
++"ProtectionKey" indicates the memory protection key associated with the
++virtual memory area.
 +
-+	oldpte = modify_prot_start_ptes(vma, addr, ptep, nr_ptes);
-+	ptent = pte_modify(oldpte, newprot);
-+
-+	if (uffd_wp)
-+		ptent = pte_mkuffd_wp(ptent);
-+	else if (uffd_wp_resolve)
-+		ptent = pte_clear_uffd_wp(ptent);
-+
-+	/*
-+	 * In some writable, shared mappings, we might want
-+	 * to catch actual write access -- see
-+	 * vma_wants_writenotify().
-+	 *
-+	 * In all writable, private mappings, we have to
-+	 * properly handle COW.
-+	 *
-+	 * In both cases, we can sometimes still change PTEs
-+	 * writable and avoid the write-fault handler, for
-+	 * example, if a PTE is already dirty and no other
-+	 * COW or special handling is required.
-+	 */
-+	if ((cp_flags & MM_CP_TRY_CHANGE_WRITABLE) &&
-+	     !pte_write(ptent))
-+		set_write_prot_commit_flush_ptes(vma, folio, page,
-+			addr, ptep, oldpte, ptent, nr_ptes, tlb);
-+	else
-+		prot_commit_flush_ptes(vma, addr, ptep, oldpte, ptent,
-+			nr_ptes, /* idx = */ 0, /* set_write = */ false, tlb);
-+}
-+
- static long change_pte_range(struct mmu_gather *tlb,
- 		struct vm_area_struct *vma, pmd_t *pmd, unsigned long addr,
- 		unsigned long end, pgprot_t newprot, unsigned long cp_flags)
-@@ -287,7 +326,6 @@ static long change_pte_range(struct mmu_
- 	bool is_private_single_threaded;
- 	bool prot_numa = cp_flags & MM_CP_PROT_NUMA;
- 	bool uffd_wp = cp_flags & MM_CP_UFFD_WP;
--	bool uffd_wp_resolve = cp_flags & MM_CP_UFFD_WP_RESOLVE;
- 	int nr_ptes;
- 
- 	tlb_change_page_size(tlb, PAGE_SIZE);
-@@ -308,7 +346,6 @@ static long change_pte_range(struct mmu_
- 			int max_nr_ptes = (end - addr) >> PAGE_SHIFT;
- 			struct folio *folio = NULL;
- 			struct page *page;
--			pte_t ptent;
- 
- 			/* Already in the desired state. */
- 			if (prot_numa && pte_protnone(oldpte))
-@@ -334,34 +371,20 @@ static long change_pte_range(struct mmu_
- 
- 			nr_ptes = mprotect_folio_pte_batch(folio, pte, oldpte, max_nr_ptes, flags);
- 
--			oldpte = modify_prot_start_ptes(vma, addr, pte, nr_ptes);
--			ptent = pte_modify(oldpte, newprot);
--
--			if (uffd_wp)
--				ptent = pte_mkuffd_wp(ptent);
--			else if (uffd_wp_resolve)
--				ptent = pte_clear_uffd_wp(ptent);
--
- 			/*
--			 * In some writable, shared mappings, we might want
--			 * to catch actual write access -- see
--			 * vma_wants_writenotify().
--			 *
--			 * In all writable, private mappings, we have to
--			 * properly handle COW.
--			 *
--			 * In both cases, we can sometimes still change PTEs
--			 * writable and avoid the write-fault handler, for
--			 * example, if a PTE is already dirty and no other
--			 * COW or special handling is required.
-+			 * Optimize for the small-folio common case by
-+			 * special-casing it here. Compiler constant propagation
-+			 * plus copious amounts of __always_inline does wonders.
- 			 */
--			if ((cp_flags & MM_CP_TRY_CHANGE_WRITABLE) &&
--			     !pte_write(ptent))
--				set_write_prot_commit_flush_ptes(vma, folio, page,
--				addr, pte, oldpte, ptent, nr_ptes, tlb);
--			else
--				prot_commit_flush_ptes(vma, addr, pte, oldpte, ptent,
--					nr_ptes, /* idx = */ 0, /* set_write = */ false, tlb);
-+			if (likely(nr_ptes == 1)) {
-+				change_present_ptes(tlb, vma, addr, pte, 1,
-+					end, newprot, folio, page, cp_flags);
-+			} else {
-+				change_present_ptes(tlb, vma, addr, pte,
-+					nr_ptes, end, newprot, folio, page,
-+					cp_flags);
-+			}
-+
- 			pages += nr_ptes;
- 		} else if (pte_none(oldpte)) {
- 			/*
+ "VmFlags" field deserves a separate description. This member represents the
+ kernel flags associated with the particular virtual memory area in two letter
+ encoded manner. The codes are the following:
 _
 
-Patches currently in -mm which might be from pfalcato@suse.de are
+Patches currently in -mm which might be from kevin.brodsky@arm.com are
 
 
