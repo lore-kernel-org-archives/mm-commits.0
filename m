@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F75135AC3E
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:49:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEF98337699
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:49:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498591; cv=none; b=HlKtNhIMj8FwLePg0BnxlCSsiJysrf3zxiqm/1irAfvUCRxP7o8IfMlxEo69jICZSrFf/reTcqkE9s8RPll9yV4rquQTwVT7rCI4tAOuoo4IP1Dg12JgwLSHLvVQs0HqrTe6tGA1XPu5f6QNJa3tnWhFhJJQ1ISDIg8gFLDzbHY=
+	t=1776498597; cv=none; b=D0bpbSWY37G2JD4Vk+H7oXHyO59C8CVFgFXgNOl3gJbarW8+xMFYvBFSjcv6dYd3uAyXrpUuA1A/BW0DvYs6d9p3BLPqjFtu/QO4fhRIOSWKNbpbdtUoO9OoO++jA9uHrU5eGzzKkL9OilOeePpyfdCId1Qk08wc0/wkYPmG4OI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498591; c=relaxed/simple;
-	bh=kQspx2z7CEAJDZDTg8IeALdAA/gcKVcC4wRMe5KFD6E=;
-	h=Date:To:From:Subject:Message-Id; b=IHvW9/3FZ85Z2YRcHPvKIvP/buag+83ABNb5R5vZ/E045M65ObOFqFNOZ8iWV1d3STobCnyIaM7EFsV1Um+BKTbwnAurGqkbCxFDqVbE5HHaj9L70Arfr/Rzrh5LR7wy5OmhjJ6RtCJ9sxQb0/h6/jZ2PfQ/LidZn7RD0jk6zhs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Esn1n0r1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498597; c=relaxed/simple;
+	bh=PbRDtEe0bIODFKeZOP3dIMflH5hrbExiTrK60O01PRc=;
+	h=Date:To:From:Subject:Message-Id; b=LuaKqiIcaSBHFx83YZkXI70VfYUmZ7WOSRJhs+J3qJgbuqlMXI8fJKH+ryqc0FTJl1YBbnUAnelZKWXk30/vkrvMom62x/mSjxpkQutNcGPBrujQ9PKo52mjBWQnZdymsHFl+qg34bE8SwPc4uQpTZ4EIq54NdW5rqqxb8WSFgs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0FE3zJUG; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Esn1n0r1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3152C19424;
-	Sat, 18 Apr 2026 07:49:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0FE3zJUG"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44F75C19424;
+	Sat, 18 Apr 2026 07:49:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498591;
-	bh=kQspx2z7CEAJDZDTg8IeALdAA/gcKVcC4wRMe5KFD6E=;
+	s=korg; t=1776498597;
+	bh=PbRDtEe0bIODFKeZOP3dIMflH5hrbExiTrK60O01PRc=;
 	h=Date:To:From:Subject:From;
-	b=Esn1n0r1i4jNfxFHrOvqs8wCJwq/JnhGHlNsL7yZapqCqM2go+I/FPuwhRhpj7nD6
-	 kfpep2diSNowGLl5wDVMn+uwL49AW4nANXFCYCtfnaPuHErWAiO6g6j7sdRcItwCdW
-	 XDUe2KATtXznDvMfTXDB3wk/XSXDSdHREqmATXNI=
-Date: Sat, 18 Apr 2026 00:49:46 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhengqi.arch@bytedance.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=0FE3zJUGs+YuoSF9to4zZtSUsueQd7zhy+DsoH/O600hUJmz7/fZ7pYDpsS9sEtdl
+	 b3yI41Bvy3Vz/hMPL0rjJUtXGfTU2Sv4O6Lbuf0TyEWse8rGABuKzmYuxqJeGi8Tk6
+	 aU2ywExbmHP/hh0kKecEUDsgNOnVh/bC1RmuKIeQ=
+Date: Sat, 18 Apr 2026 00:49:52 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,yosry@kernel.org,weixugc@google.com,vbabka@kernel.org,usamaarif642@gmail.com,surenb@google.com,songmuchun@bytedance.com,shakeel.butt@linux.dev,rppt@kernel.org,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,mkoutny@suse.com,mhocko@suse.com,ljs@kernel.org,Liam.Howlett@oracle.com,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry.yoo@oracle.com,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,chenridong@huawei.com,chengming.zhou@linux.dev,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-workingset-prevent-lruvec-release-in-workingset_activation.patch removed from -mm tree
-Message-Id: <20260418074949.C3152C19424@smtp.kernel.org>
+Subject: [merged mm-stable] mm-do-not-open-code-lruvec-lock.patch removed from -mm tree
+Message-Id: <20260418074956.44F75C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,33 +35,33 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: workingset: prevent lruvec release in workingset_activation()
+     Subject: mm: do not open-code lruvec lock
 has been removed from the -mm tree.  Its filename was
-     mm-workingset-prevent-lruvec-release-in-workingset_activation.patch
+     mm-do-not-open-code-lruvec-lock.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: workingset: prevent lruvec release in workingset_activation()
-Date: Thu, 5 Mar 2026 19:52:40 +0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: do not open-code lruvec lock
+Date: Thu, 5 Mar 2026 19:52:41 +0800
 
-In the near future, a folio will no longer pin its corresponding memory
-cgroup.  So an lruvec returned by folio_lruvec() could be released without
-the rcu read lock or a reference to its memory cgroup.
+Now we have lruvec_unlock(), lruvec_unlock_irq() and
+lruvec_unlock_irqrestore(), but no the paired lruvec_lock(),
+lruvec_lock_irq() and lruvec_lock_irqsave().
 
-In the current patch, the rcu read lock is employed to safeguard against
-the release of the lruvec in workingset_activation().
+There is currently no use case for lruvec_lock_irqsave(), so only
+introduce lruvec_lock_irq(), and change all open-code places to use this
+helper function.  This looks cleaner and prepares for reparenting LRU
+pages, preventing user from missing RCU lock calls due to open-code lruvec
+lock.
 
-This serves as a preparatory measure for the reparenting of the LRU pages.
-
-Link: https://lore.kernel.org/c6130476affbba0a7d309a887c3df11e0167990b.1772711148.git.zhengqi.arch@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Link: https://lore.kernel.org/2d0bafe7564e17ece46dfd58197af22ce57017dc.1772711148.git.zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Harry Yoo <harry.yoo@oracle.com>
 Cc: Allen Pais <apais@linux.microsoft.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Baoquan He <bhe@redhat.com>
@@ -71,6 +71,7 @@ Cc: David Hildenbrand <david@kernel.org>
 Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Imran Khan <imran.f.khan@oracle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <Liam.Howlett@oracle.com>
@@ -78,7 +79,7 @@ Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Michal Koutný <mkoutny@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Nhat Pham <nphamcs@gmail.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -91,26 +92,176 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    5 ++++
+ mm/vmscan.c                |   38 +++++++++++++++++------------------
+ 2 files changed, 24 insertions(+), 19 deletions(-)
 
---- a/mm/workingset.c~mm-workingset-prevent-lruvec-release-in-workingset_activation
-+++ a/mm/workingset.c
-@@ -603,8 +603,11 @@ void workingset_activation(struct folio
- 	 * Filter non-memcg pages here, e.g. unmap can call
- 	 * mark_page_accessed() on VDSO pages.
- 	 */
--	if (mem_cgroup_disabled() || folio_memcg_charged(folio))
-+	if (mem_cgroup_disabled() || folio_memcg_charged(folio)) {
-+		rcu_read_lock();
- 		workingset_age_nonresident(folio_lruvec(folio), folio_nr_pages(folio));
-+		rcu_read_unlock();
-+	}
+--- a/include/linux/memcontrol.h~mm-do-not-open-code-lruvec-lock
++++ a/include/linux/memcontrol.h
+@@ -1498,6 +1498,11 @@ static inline struct lruvec *parent_lruv
+ 	return mem_cgroup_lruvec(memcg, lruvec_pgdat(lruvec));
  }
  
- /*
++static inline void lruvec_lock_irq(struct lruvec *lruvec)
++{
++	spin_lock_irq(&lruvec->lru_lock);
++}
++
+ static inline void lruvec_unlock(struct lruvec *lruvec)
+ {
+ 	spin_unlock(&lruvec->lru_lock);
+--- a/mm/vmscan.c~mm-do-not-open-code-lruvec-lock
++++ a/mm/vmscan.c
+@@ -1998,7 +1998,7 @@ static unsigned long shrink_inactive_lis
+ 
+ 	lru_add_drain();
+ 
+-	spin_lock_irq(&lruvec->lru_lock);
++	lruvec_lock_irq(lruvec);
+ 
+ 	nr_taken = isolate_lru_folios(nr_to_scan, lruvec, &folio_list,
+ 				     &nr_scanned, sc, lru);
+@@ -2008,7 +2008,7 @@ static unsigned long shrink_inactive_lis
+ 	mod_lruvec_state(lruvec, item, nr_scanned);
+ 	mod_lruvec_state(lruvec, PGSCAN_ANON + file, nr_scanned);
+ 
+-	spin_unlock_irq(&lruvec->lru_lock);
++	lruvec_unlock_irq(lruvec);
+ 
+ 	if (nr_taken == 0)
+ 		return 0;
+@@ -2025,7 +2025,7 @@ static unsigned long shrink_inactive_lis
+ 	mod_lruvec_state(lruvec, item, nr_reclaimed);
+ 	mod_lruvec_state(lruvec, PGSTEAL_ANON + file, nr_reclaimed);
+ 
+-	spin_lock_irq(&lruvec->lru_lock);
++	lruvec_lock_irq(lruvec);
+ 	lru_note_cost_unlock_irq(lruvec, file, stat.nr_pageout,
+ 					nr_scanned - nr_reclaimed);
+ 
+@@ -2104,7 +2104,7 @@ static void shrink_active_list(unsigned
+ 
+ 	lru_add_drain();
+ 
+-	spin_lock_irq(&lruvec->lru_lock);
++	lruvec_lock_irq(lruvec);
+ 
+ 	nr_taken = isolate_lru_folios(nr_to_scan, lruvec, &l_hold,
+ 				     &nr_scanned, sc, lru);
+@@ -2113,7 +2113,7 @@ static void shrink_active_list(unsigned
+ 
+ 	mod_lruvec_state(lruvec, PGREFILL, nr_scanned);
+ 
+-	spin_unlock_irq(&lruvec->lru_lock);
++	lruvec_unlock_irq(lruvec);
+ 
+ 	while (!list_empty(&l_hold)) {
+ 		struct folio *folio;
+@@ -2169,7 +2169,7 @@ static void shrink_active_list(unsigned
+ 	count_memcg_events(lruvec_memcg(lruvec), PGDEACTIVATE, nr_deactivate);
+ 	mod_node_page_state(pgdat, NR_ISOLATED_ANON + file, -nr_taken);
+ 
+-	spin_lock_irq(&lruvec->lru_lock);
++	lruvec_lock_irq(lruvec);
+ 	lru_note_cost_unlock_irq(lruvec, file, 0, nr_rotated);
+ 	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
+ 			nr_deactivate, nr_rotated, sc->priority, file);
+@@ -3803,9 +3803,9 @@ static void walk_mm(struct mm_struct *mm
+ 		}
+ 
+ 		if (walk->batched) {
+-			spin_lock_irq(&lruvec->lru_lock);
++			lruvec_lock_irq(lruvec);
+ 			reset_batch_size(walk);
+-			spin_unlock_irq(&lruvec->lru_lock);
++			lruvec_unlock_irq(lruvec);
+ 		}
+ 
+ 		cond_resched();
+@@ -3965,7 +3965,7 @@ restart:
+ 	if (seq < READ_ONCE(lrugen->max_seq))
+ 		return false;
+ 
+-	spin_lock_irq(&lruvec->lru_lock);
++	lruvec_lock_irq(lruvec);
+ 
+ 	VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
+ 
+@@ -3980,7 +3980,7 @@ restart:
+ 		if (inc_min_seq(lruvec, type, swappiness))
+ 			continue;
+ 
+-		spin_unlock_irq(&lruvec->lru_lock);
++		lruvec_unlock_irq(lruvec);
+ 		cond_resched();
+ 		goto restart;
+ 	}
+@@ -4015,7 +4015,7 @@ restart:
+ 	/* make sure preceding modifications appear */
+ 	smp_store_release(&lrugen->max_seq, lrugen->max_seq + 1);
+ unlock:
+-	spin_unlock_irq(&lruvec->lru_lock);
++	lruvec_unlock_irq(lruvec);
+ 
+ 	return success;
+ }
+@@ -4715,7 +4715,7 @@ static int evict_folios(unsigned long nr
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 
+-	spin_lock_irq(&lruvec->lru_lock);
++	lruvec_lock_irq(lruvec);
+ 
+ 	scanned = isolate_folios(nr_to_scan, lruvec, sc, swappiness, &type, &list);
+ 
+@@ -4724,7 +4724,7 @@ static int evict_folios(unsigned long nr
+ 	if (evictable_min_seq(lrugen->min_seq, swappiness) + MIN_NR_GENS > lrugen->max_seq)
+ 		scanned = 0;
+ 
+-	spin_unlock_irq(&lruvec->lru_lock);
++	lruvec_unlock_irq(lruvec);
+ 
+ 	if (list_empty(&list))
+ 		return scanned;
+@@ -4762,9 +4762,9 @@ retry:
+ 	walk = current->reclaim_state->mm_walk;
+ 	if (walk && walk->batched) {
+ 		walk->lruvec = lruvec;
+-		spin_lock_irq(&lruvec->lru_lock);
++		lruvec_lock_irq(lruvec);
+ 		reset_batch_size(walk);
+-		spin_unlock_irq(&lruvec->lru_lock);
++		lruvec_unlock_irq(lruvec);
+ 	}
+ 
+ 	mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(sc),
+@@ -5202,7 +5202,7 @@ static void lru_gen_change_state(bool en
+ 		for_each_node(nid) {
+ 			struct lruvec *lruvec = get_lruvec(memcg, nid);
+ 
+-			spin_lock_irq(&lruvec->lru_lock);
++			lruvec_lock_irq(lruvec);
+ 
+ 			VM_WARN_ON_ONCE(!seq_is_valid(lruvec));
+ 			VM_WARN_ON_ONCE(!state_is_valid(lruvec));
+@@ -5210,12 +5210,12 @@ static void lru_gen_change_state(bool en
+ 			lruvec->lrugen.enabled = enabled;
+ 
+ 			while (!(enabled ? fill_evictable(lruvec) : drain_evictable(lruvec))) {
+-				spin_unlock_irq(&lruvec->lru_lock);
++				lruvec_unlock_irq(lruvec);
+ 				cond_resched();
+-				spin_lock_irq(&lruvec->lru_lock);
++				lruvec_lock_irq(lruvec);
+ 			}
+ 
+-			spin_unlock_irq(&lruvec->lru_lock);
++			lruvec_unlock_irq(lruvec);
+ 		}
+ 
+ 		cond_resched();
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
 
