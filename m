@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DD7E25CC74
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:51:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3B5C34AB17
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:51:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498684; cv=none; b=LOcIoHbWSPNfpXOSSKE+k6pyH5WEektFXMH1w2H6xSLirfTj2bGPR9Jkkxbn2vUwydZ3SJ9AfQkSOgHeg344AWtBNynE/soeZGPThZuZ+QNIRRbFOmHXZBllutyaaktJjpdWJhaGijK1lSNxWbtlcC3YSWU3BWgnOe1f8N8JzYc=
+	t=1776498690; cv=none; b=dBlQdHeoZrXTVBvYmeF2BDMA8OY2fphUkgRmqehVxW3ykCbZdxqSh+s5uYqnbJKVi76wpPWfMPlOE3aenOEAdJD0usIIImjOgSs3eaWcxU/f4n4N9JiCVM4VRk38ZgqBh6Me0GL6ptQVLIMIPc6ZddQ6hTE+1A8/VkYqaTQ7eCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498684; c=relaxed/simple;
-	bh=4JEC8UEzF5Jj++XH0yEXRJDK5DL18/JQRXA7S6HN23M=;
-	h=Date:To:From:Subject:Message-Id; b=DMtMxdPoPLkPMk7z/BUapJv0E/VRmFyT52THtL0DavtI5WKEgQM+9cVgreOq4T2Ms5Yp8LfJ36G3oi36UFTbWUj0rHjzSUZQg/y9jcrEt2F7QZnGbWqTHJLPSEuYRQ9UrINtxpjPbM6HOYzfO5WPVlv1z0+2JPrYkbuZ+xMHGTU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pg40smHg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498690; c=relaxed/simple;
+	bh=r+QC1ub9wCHjcVTmIR2X0yL4dvxHKU2Ix6KYX4fxisk=;
+	h=Date:To:From:Subject:Message-Id; b=EyXVCkszfmX3+asi13XUqyBaxng3eYUN/sUnmxEbf7v2Wpt0QcJNagbivzRvurT4hMxwrx+1H0LuWSPaRkY7QQAIMtl25ApxJflYushbqQ3BtrKy9mzwFWEuCR0DyVfvY6WbxhUHYOqcNXL+EBsG79qOIWMzgH+e+Ayq0VeeUSs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xfK1t2+g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pg40smHg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1749C19424;
-	Sat, 18 Apr 2026 07:51:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xfK1t2+g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5F4C7C19424;
+	Sat, 18 Apr 2026 07:51:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498684;
-	bh=4JEC8UEzF5Jj++XH0yEXRJDK5DL18/JQRXA7S6HN23M=;
+	s=korg; t=1776498690;
+	bh=r+QC1ub9wCHjcVTmIR2X0yL4dvxHKU2Ix6KYX4fxisk=;
 	h=Date:To:From:Subject:From;
-	b=Pg40smHgsrLfsLRfpFsx5VJdSkioof9tA9OZrQMXcdGHB02PXl8EG6jQf/RCfEPN0
-	 D0+Yj8OrBxBjaQ/lCozd5Yjth5HiFQ+hj0MfoZqD4jbUnuhOtYmccMDJSzM8Myr8E5
-	 cNt8cDMIUwCuOYpp1v/2nz9SeYWp+sfIkLzEIU9M=
-Date: Sat, 18 Apr 2026 00:51:19 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,weixugc@google.com,usamaarif642@gmail.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mkoutny@suse.com,mhocko@kernel.org,ljs@kernel.org,lance.yang@linux.dev,kamalesh.babulal@oracle.com,imran.f.khan@oracle.com,hughd@google.com,harry@kernel.org,hannes@cmpxchg.org,hamzamahfooz@linux.microsoft.com,david@kernel.org,bhe@redhat.com,axelrasmussen@google.com,apais@linux.microsoft.com,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=xfK1t2+gdKGXboQWxF07ABgS1+4XfX1Jr+t83I7XmWOvprDzS3meXBzGTg6nA6g0o
+	 9DCnfgslmyx4xbU/PDYzIb4TQW5oH1K7w+v77gX/oTTGaeA9dmvfgJuq9+HSP3dPt3
+	 gLmc022pHctX7kCgULbtnJl6RAS8P+1mLkFghV7k=
+Date: Sat, 18 Apr 2026 00:51:25 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shakeel.butt@linux.dev,qi.zheng@linux.dev,kasong@tencent.com,kaleshsingh@google.com,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memcontrol-correct-the-nr_pages-parameter-type-of-mem_cgroup_update_lru_size.patch removed from -mm tree
-Message-Id: <20260418075123.A1749C19424@smtp.kernel.org>
+Subject: [merged mm-stable] maintainers-update-mglru-entry-to-reflect-current-status.patch removed from -mm tree
+Message-Id: <20260418075129.5F4C7C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,89 +35,81 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: memcontrol: correct the nr_pages parameter type of mem_cgroup_update_lru_size()
+     Subject: MAINTAINERS: update MGLRU entry to reflect current status
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-correct-the-nr_pages-parameter-type-of-mem_cgroup_update_lru_size.patch
+     maintainers-update-mglru-entry-to-reflect-current-status.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: memcontrol: correct the nr_pages parameter type of mem_cgroup_update_lru_size()
-Date: Fri, 27 Mar 2026 18:16:30 +0800
+From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
+Subject: MAINTAINERS: update MGLRU entry to reflect current status
+Date: Thu, 26 Mar 2026 18:56:29 +0000
 
-The nr_pages parameter of mem_cgroup_update_lru_size() represents a page
-count.  During the reparenting of LRU folios, the value passed to it can
-potentially exceed the maximum value of a 32-bit integer.  It should be
-declared as long instead of int to match the types used in lruvec size
-accounting and to prevent possible overflow.
+We are moving to a far more proactive model of maintainership within mm
+and thus put a great deal of emphasis on sub-maintainers being active
+within the community both in terms of code contributions and review.
 
-Update the parameter type to long to ensure correctness.
+The MGLRU has not had much activity since being added to the kernel and
+the current maintainers who kindly stepped up have unfortunately not been
+able to contribute a great deal to it for over a year, nor engage all that
+heavily in review.
 
-Link: https://lore.kernel.org/fd4140de44fa0a3978e4e2426731187fe8625f0b.1774604356.git.zhengqi.arch@bytedance.com
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
-Cc: Allen Pais <apais@linux.microsoft.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hamza Mahfooz <hamzamahfooz@linux.microsoft.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Imran Khan <imran.f.khan@oracle.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kamalesh Babulal <kamalesh.babulal@oracle.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutný <mkoutny@suse.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Usama Arif <usamaarif642@gmail.com>
+As a result, and within no negative connotations implied whatsoever, it
+seems appropriate to downgrade the current maintainers to reviewers.
+
+At this time nobody is quite exercising the maintainer role in this area
+of the kernel, but there is encouraging activity from a number of people
+who are trusted elsewhere in the kernel, and who have contributed relevant
+work or review.
+
+Therefore add further reviewers, and at this stage - to reflect the
+reality on the ground - we will not have any sub-maintainers listed at
+all.
+
+Each of the files listed are shared with other sections in MAINTAINERS, so
+this doesn't reduce sub-maintainer coverage.
+
+Link: https://lore.kernel.org/20260326185629.355476-1-ljs@kernel.org
+Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Acked-by: Axel Rasmussen <axelrasmussen@google.com>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Barry Song <baohua@kernel.org>
+Acked-by: SeongJae Park <sj@kernel.org>
+Acked-by: Kairui Song <kasong@tencent.com>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: Yuanchu Xie <yuanchu@google.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- mm/memcontrol.c            |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ MAINTAINERS |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-correct-the-nr_pages-parameter-type-of-mem_cgroup_update_lru_size
-+++ a/include/linux/memcontrol.h
-@@ -878,7 +878,7 @@ static inline bool mem_cgroup_online(str
- }
+--- a/MAINTAINERS~maintainers-update-mglru-entry-to-reflect-current-status
++++ a/MAINTAINERS
+@@ -16757,8 +16757,12 @@ F:	mm/migrate_device.c
  
- void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
--		int zid, int nr_pages);
-+		int zid, long nr_pages);
- 
- static inline
- unsigned long mem_cgroup_get_zone_lru_size(struct lruvec *lruvec,
---- a/mm/memcontrol.c~mm-memcontrol-correct-the-nr_pages-parameter-type-of-mem_cgroup_update_lru_size
-+++ a/mm/memcontrol.c
-@@ -1472,7 +1472,7 @@ retry:
-  * to or just after a page is removed from an lru list.
-  */
- void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
--				int zid, int nr_pages)
-+				int zid, long nr_pages)
- {
- 	struct mem_cgroup_per_node *mz;
- 	unsigned long *lru_size;
-@@ -1489,7 +1489,7 @@ void mem_cgroup_update_lru_size(struct l
- 
- 	size = *lru_size;
- 	if (WARN_ONCE(size < 0,
--		"%s(%p, %d, %d): lru_size %ld\n",
-+		"%s(%p, %d, %ld): lru_size %ld\n",
- 		__func__, lruvec, lru, nr_pages, size)) {
- 		VM_BUG_ON(1);
- 		*lru_size = 0;
+ MEMORY MANAGEMENT - MGLRU (MULTI-GEN LRU)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	Axel Rasmussen <axelrasmussen@google.com>
+-M:	Yuanchu Xie <yuanchu@google.com>
++R:	Kairui Song <kasong@tencent.com>
++R:	Qi Zheng <qi.zheng@linux.dev>
++R:	Shakeel Butt <shakeel.butt@linux.dev>
++R:	Barry Song <baohua@kernel.org>
++R:	Axel Rasmussen <axelrasmussen@google.com>
++R:	Yuanchu Xie <yuanchu@google.com>
+ R:	Wei Xu <weixugc@google.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
 
