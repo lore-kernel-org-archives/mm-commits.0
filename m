@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AAE5370D5B
-	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:55:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78702370D54
+	for <mm-commits@vger.kernel.org>; Sat, 18 Apr 2026 07:55:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776498920; cv=none; b=Umd/bqRlQB9vpHJPpzR3jkjr1BKejxOcZ9xDuCG0FIlz44I5/uv/s+wXiEgHuzN6e8zM9oMUc7ll1lqv5hlxdI/1wp04M7ya7rQuUVMEcyPEgW99K9UMLJZA9l88oWJeW5108dJNS3yKSb91TCgV536TUrP3AEYcekSpS/O7UK0=
+	t=1776498926; cv=none; b=F6QYiQau7FnbvY3cDlrnrgSGllDT/u17AISeE20S+a8iAOSO3wpuVnYHPpSLYOKR+sxpQcTW2PRBPEzGxdleEkdxLVOUemjSNAR+pfKgQ9Nn9HtWlPP3qBdzc0iBJY2HptvF8BZk2mh6zx982j19jopjlgxZs/XpL+KQXQpfm9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776498920; c=relaxed/simple;
-	bh=85BKBR9FrDEhty+qG2qXLVWX9XetWPRfTwMfCGNBunw=;
-	h=Date:To:From:Subject:Message-Id; b=g1pRkN2kdu65nuojpiSz5Rb19oH2LP05MDRx14B4d8nsJBizlNV4qWsdVFPcpoFgmEVu+mITzuRcc4wInAFAntDnMMm7nRuqFyXMBDqTI1a2vDJ2UXpVX/g9BJ7qBfCx3eHPe4tyVdZiCaQNIw27xqVB6al0T+yS617hRpq3Ciw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U7cpjqH4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776498926; c=relaxed/simple;
+	bh=IFOfuhBKQtLCcoa5mTtsSC/d9knx3GwM/rqNhRHFYCU=;
+	h=Date:To:From:Subject:Message-Id; b=BB0DMar83ssFKzpKK7O22d7zkZXZ+GBlUEBytl8bpMYfBKtINtIaNWjijYDnkwTyPx9QwW/PlGtU9gxySRrI+yuDlao9+l23aeqx6hEmlx2Dzz2IwlgG10ny06QHfTYu2ixEeEptphYMaJeBx9NBZHPQEtlo+w4iLnvZAeUTK68=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S9MJlsCU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U7cpjqH4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A476C19424;
-	Sat, 18 Apr 2026 07:55:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S9MJlsCU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CFD1C19424;
+	Sat, 18 Apr 2026 07:55:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776498920;
-	bh=85BKBR9FrDEhty+qG2qXLVWX9XetWPRfTwMfCGNBunw=;
+	s=korg; t=1776498926;
+	bh=IFOfuhBKQtLCcoa5mTtsSC/d9knx3GwM/rqNhRHFYCU=;
 	h=Date:To:From:Subject:From;
-	b=U7cpjqH4F/Bd2v1W9IBmOOFd8YPObAT8dufz/lM45cAP8Sd0JeID3fb+ceBpZBKmW
-	 fbvyz6RhcQt3q8HiHaISUJ1o/GvFw2MnF2IWGkWrhgIYjGPQXOnWJD/p4/G0ASzpom
-	 1aCgPE5qMNG9GTx34MAB9FM1pYGsiny3NoRkDD4o=
-Date: Sat, 18 Apr 2026 00:55:15 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=S9MJlsCUcIKzm5R3kzIT0h+DKH4lLagxsYm5Wv1DyqdbD593b71+CmnMD1Fvps75g
+	 85+LmpqWcqyGBgCivVNoEh2VTGBRqLmwuvj+NXEtnN7gYFfNl2FS/ul6GVSNqpdKzX
+	 LepyVEEjNqKzsP+VB/Hy52EAikd7/Ks9PPr5MHYo=
+Date: Sat, 18 Apr 2026 00:55:20 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,liwang@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] tools-testing-selftests-add-merge-test-for-partial-msealed-range.patch removed from -mm tree
-Message-Id: <20260418075519.7A476C19424@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible.patch removed from -mm tree
+Message-Id: <20260418075525.1CFD1C19424@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,161 +35,229 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: tools/testing/selftests: add merge test for partial msealed range
+     Subject: selftests/mm: skip hugetlb_dio tests when DIO alignment is incompatible
 has been removed from the -mm tree.  Its filename was
-     tools-testing-selftests-add-merge-test-for-partial-msealed-range.patch
+     selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: tools/testing/selftests: add merge test for partial msealed range
-Date: Tue, 31 Mar 2026 08:36:27 +0100
+From: Li Wang <liwang@redhat.com>
+Subject: selftests/mm: skip hugetlb_dio tests when DIO alignment is incompatible
+Date: Wed, 1 Apr 2026 17:05:20 +0800
 
-Commit 2697dd8ae721 ("mm/mseal: update VMA end correctly on merge") fixed
-an issue in the loop which iterates through VMAs applying mseal, which was
-triggered by mseal()'ing a range of VMAs where the second was mseal()'d
-and the first mergeable with it, once mseal()'d.
+hugetlb_dio test uses sub-page offsets (pagesize / 2) to verify that
+hugepages used as DIO user buffers are correctly unpinned at completion.
 
-Add a regression test to assert that this behaviour is correct.  We place
-it in the merge selftests as this is strictly an issue with merging (via a
-vma_modify() invocation).
+However, on filesystems with a logical block size larger than half the
+page size (e.g., 4K-sector block devices), these unaligned DIO writes are
+rejected with -EINVAL, causing the test to fail unexpectedly.
 
-It also asserts that mseal()'d ranges are correctly merged as you'd
-expect.
+Add get_dio_alignment() to query the filesystem's required DIO alignment
+via statx(STATX_DIOALIGN) and skip individual test cases whose file offset
+or write size is not a multiple of that alignment.  Aligned cases continue
+to run so the core coverage is preserved.
 
-The test is implemented such that it is skipped if mseal() is not
-available on the system.
+While here, open the temporary file once in main() and share the fd across
+all test cases instead of reopening it in each invocation.
 
-[rppt@kernel.org: fix inclusions, to fix handle_uprobe_upon_merged_vma()]
-  Link: https://lore.kernel.org/ac_mCIUQWRAbuH8F@kernel.org
-[ljs@kernel.org: simplifications per Pedro]
-  Link: https://lore.kernel.org/1c9c922d-5cb5-4cff-9273-b737cdb57ca1@lucifer.local
-Link: https://lore.kernel.org/20260331073627.50010-1-ljs@kernel.org
-Signed-off-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Signed-off-by: Mike Rapoport <rppt@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
+=== Reproduce Steps ===
+
+  # dd if=/dev/zero of=/tmp/test.img bs=1M count=512
+  # losetup --sector-size 4096 /dev/loop0 /tmp/test.img
+  # mkfs.xfs /dev/loop0
+  # mkdir -p /mnt/dio_test
+  # mount /dev/loop0 /mnt/dio_test
+
+  // Modify test to open /mnt/dio_test and rebuild it:
+  -       fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
+  +       fd = open("/mnt/dio_test", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
+
+  # getconf PAGESIZE
+  4096
+
+  # echo 100 >/proc/sys/vm/nr_hugepages
+
+  # ./hugetlb_dio
+  TAP version 13
+  1..4
+  # No. Free pages before allocation : 100
+  # No. Free pages after munmap : 100
+  ok 1 free huge pages from 0-12288
+  Bail out! Error writing to file
+  : Invalid argument (22)
+  # Planned tests != run tests (4 != 1)
+  # Totals: pass:1 fail:0 xfail:0 xpass:0 skip:0 error:0
+
+Link: https://lore.kernel.org/20260401090520.24018-1-liwang@redhat.com
+Signed-off-by: Li Wang <liwang@redhat.com>
+Suggested-by: Mike Rapoport <rppt@kernel.org>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/merge.c |   88 +++++++++++++++++++++++++++
- 1 file changed, 88 insertions(+)
+ tools/testing/selftests/mm/hugetlb_dio.c |   91 +++++++++++++++------
+ 1 file changed, 69 insertions(+), 22 deletions(-)
 
---- a/tools/testing/selftests/mm/merge.c~tools-testing-selftests-add-merge-test-for-partial-msealed-range
-+++ a/tools/testing/selftests/mm/merge.c
-@@ -48,6 +48,19 @@ static pid_t do_fork(struct procmap_fd *
- 	return 0;
- }
+--- a/tools/testing/selftests/mm/hugetlb_dio.c~selftests-mm-skip-hugetlb_dio-tests-when-dio-alignment-is-incompatible
++++ a/tools/testing/selftests/mm/hugetlb_dio.c
+@@ -17,12 +17,57 @@
+ #include <unistd.h>
+ #include <string.h>
+ #include <sys/mman.h>
++#include <sys/syscall.h>
+ #include "vm_util.h"
+ #include "kselftest.h"
  
-+#ifdef __NR_mseal
-+static int sys_mseal(void *ptr, size_t len, unsigned long flags)
-+{
-+	return syscall(__NR_mseal, (unsigned long)ptr, len, flags);
-+}
-+#else
-+static int sys_mseal(void *ptr, size_t len, unsigned long flags)
-+{
-+	errno = ENOSYS;
-+	return -1;
-+}
+-void run_dio_using_hugetlb(unsigned int start_off, unsigned int end_off)
++#ifndef STATX_DIOALIGN
++#define STATX_DIOALIGN		0x00002000U
 +#endif
 +
- FIXTURE_SETUP(merge)
- {
- 	self->page_size = psize();
-@@ -1217,6 +1230,81 @@ TEST_F(merge, mremap_correct_placed_faul
- 	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 15 * page_size);
- }
- 
-+TEST_F(merge, merge_vmas_with_mseal)
++static int get_dio_alignment(int fd)
 +{
-+	unsigned int page_size = self->page_size;
-+	struct procmap_fd *procmap = &self->procmap;
-+	char *ptr, *ptr2, *ptr3;
-+	/* We need our own as cannot munmap() once sealed. */
-+	char *carveout;
++	struct statx stx;
++	int ret;
 +
-+	/* Invalid mseal() call to see if implemented. */
-+	ASSERT_EQ(sys_mseal(NULL, 0, ~0UL), -1);
-+	if (errno == ENOSYS)
-+		SKIP(return, "mseal not supported, skipping.");
-+
-+	/* Map carveout. */
-+	carveout = mmap(NULL, 5 * page_size, PROT_NONE,
-+			MAP_PRIVATE | MAP_ANON, -1, 0);
-+	ASSERT_NE(carveout, MAP_FAILED);
++	ret = syscall(__NR_statx, fd, "", AT_EMPTY_PATH, STATX_DIOALIGN, &stx);
++	if (ret < 0)
++		return -1;
 +
 +	/*
-+	 * Map 3 separate VMAs:
-+	 *
-+	 * |-----------|-----------|-----------|
-+	 * |    RW     |    RWE    |    RO     |
-+	 * |-----------|-----------|-----------|
-+	 *      ptr         ptr2        ptr3
++	 * If STATX_DIOALIGN is unsupported, assume no alignment
++	 * constraint and let the test proceed.
 +	 */
-+	ptr = mmap(&carveout[page_size], page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr, MAP_FAILED);
-+	ptr2 = mmap(&carveout[2 * page_size], page_size,
-+		    PROT_READ | PROT_WRITE | PROT_EXEC,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr2, MAP_FAILED);
-+	ptr3 = mmap(&carveout[3 * page_size], page_size, PROT_READ,
-+		   MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
-+	ASSERT_NE(ptr3, MAP_FAILED);
++	if (!(stx.stx_mask & STATX_DIOALIGN) || !stx.stx_dio_offset_align)
++		return 1;
 +
-+	/*
-+	 * mseal the second VMA:
-+	 *
-+	 * |-----------|-----------|-----------|
-+	 * |    RW     |    RWES   |    RO     |
-+	 * |-----------|-----------|-----------|
-+	 *      ptr         ptr2        ptr3
-+	 */
-+	ASSERT_EQ(sys_mseal(ptr2, page_size, 0), 0);
-+
-+	/* Make first VMA mergeable upon mseal. */
-+	ASSERT_EQ(mprotect(ptr, page_size,
-+			   PROT_READ | PROT_WRITE | PROT_EXEC), 0);
-+	/*
-+	 * At this point we have:
-+	 *
-+	 * |-----------|-----------|-----------|
-+	 * |    RWE    |    RWES   |    RO     |
-+	 * |-----------|-----------|-----------|
-+	 *      ptr         ptr2        ptr3
-+	 *
-+	 * Now mseal all of the VMAs.
-+	 */
-+	ASSERT_EQ(sys_mseal(ptr, 3 * page_size, 0), 0);
-+
-+	/*
-+	 * We should end up with:
-+	 *
-+	 * |-----------------------|-----------|
-+	 * |          RWES         |    ROS    |
-+	 * |-----------------------|-----------|
-+	 *            ptr               ptr3
-+	 */
-+	ASSERT_TRUE(find_vma_procmap(procmap, ptr));
-+	ASSERT_EQ(procmap->query.vma_start, (unsigned long)ptr);
-+	ASSERT_EQ(procmap->query.vma_end, (unsigned long)ptr + 2 * page_size);
++	return stx.stx_dio_offset_align;
 +}
 +
- TEST_F(merge_with_fork, mremap_faulted_to_unfaulted_prev)
++static bool check_dio_alignment(unsigned int start_off,
++				unsigned int end_off, unsigned int align)
++{
++	unsigned int writesize = end_off - start_off;
++
++	/*
++	 * The kernel's DIO path checks that file offset, length, and
++	 * buffer address are all multiples of dio_offset_align.  When
++	 * this test case's parameters don't satisfy that, the write
++	 * would fail with -EINVAL before exercising the hugetlb unpin
++	 * path, so skip.
++	 */
++	if (start_off % align != 0 || writesize % align != 0) {
++		ksft_test_result_skip("DIO align=%u incompatible with offset %u writesize %u\n",
++				align, start_off, writesize);
++		return false;
++	}
++
++	return true;
++}
++
++static void run_dio_using_hugetlb(int fd, unsigned int start_off,
++				unsigned int end_off, unsigned int align)
  {
- 	struct procmap_fd *procmap = &self->procmap;
+-	int fd;
+ 	char *buffer =  NULL;
+ 	char *orig_buffer = NULL;
+ 	size_t h_pagesize = 0;
+@@ -32,6 +77,9 @@ void run_dio_using_hugetlb(unsigned int
+ 	const int mmap_flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB;
+ 	const int mmap_prot  = PROT_READ | PROT_WRITE;
+ 
++	if (!check_dio_alignment(start_off, end_off, align))
++		return;
++
+ 	writesize = end_off - start_off;
+ 
+ 	/* Get the default huge page size */
+@@ -39,10 +87,9 @@ void run_dio_using_hugetlb(unsigned int
+ 	if (!h_pagesize)
+ 		ksft_exit_fail_msg("Unable to determine huge page size\n");
+ 
+-	/* Open the file to DIO */
+-	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
+-	if (fd < 0)
+-		ksft_exit_fail_perror("Error opening file\n");
++	/* Reset file position since fd is shared across tests */
++	if (lseek(fd, 0, SEEK_SET) < 0)
++		ksft_exit_fail_perror("lseek failed\n");
+ 
+ 	/* Get the free huge pages before allocation */
+ 	free_hpage_b = get_free_hugepages();
+@@ -71,7 +118,6 @@ void run_dio_using_hugetlb(unsigned int
+ 
+ 	/* unmap the huge page */
+ 	munmap(orig_buffer, h_pagesize);
+-	close(fd);
+ 
+ 	/* Get the free huge pages after unmap*/
+ 	free_hpage_a = get_free_hugepages();
+@@ -89,37 +135,38 @@ void run_dio_using_hugetlb(unsigned int
+ 
+ int main(void)
+ {
+-	size_t pagesize = 0;
+-	int fd;
++	int fd, align;
++	const size_t pagesize = psize();
+ 
+ 	ksft_print_header();
+ 
+-	/* Open the file to DIO */
+-	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
+-	if (fd < 0)
+-		ksft_exit_skip("Unable to allocate file: %s\n", strerror(errno));
+-	close(fd);
+-
+ 	/* Check if huge pages are free */
+ 	if (!get_free_hugepages())
+ 		ksft_exit_skip("No free hugepage, exiting\n");
+ 
+-	ksft_set_plan(4);
++	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
++	if (fd < 0)
++		ksft_exit_skip("Unable to allocate file: %s\n", strerror(errno));
+ 
+-	/* Get base page size */
+-	pagesize  = psize();
++	align = get_dio_alignment(fd);
++	if (align < 0)
++		ksft_exit_skip("Unable to obtain DIO alignment: %s\n",
++				strerror(errno));
++	ksft_set_plan(4);
+ 
+ 	/* start and end is aligned to pagesize */
+-	run_dio_using_hugetlb(0, (pagesize * 3));
++	run_dio_using_hugetlb(fd, 0, (pagesize * 3), align);
+ 
+ 	/* start is aligned but end is not aligned */
+-	run_dio_using_hugetlb(0, (pagesize * 3) - (pagesize / 2));
++	run_dio_using_hugetlb(fd, 0, (pagesize * 3) - (pagesize / 2), align);
+ 
+ 	/* start is unaligned and end is aligned */
+-	run_dio_using_hugetlb(pagesize / 2, (pagesize * 3));
++	run_dio_using_hugetlb(fd, pagesize / 2, (pagesize * 3), align);
+ 
+ 	/* both start and end are unaligned */
+-	run_dio_using_hugetlb(pagesize / 2, (pagesize * 3) + (pagesize / 2));
++	run_dio_using_hugetlb(fd, pagesize / 2, (pagesize * 3) + (pagesize / 2), align);
++
++	close(fd);
+ 
+ 	ksft_finished();
+ }
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from liwang@redhat.com are
 
 
