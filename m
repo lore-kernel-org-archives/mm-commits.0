@@ -1,88 +1,63 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E007309EEB;
-	Sun, 19 Apr 2026 06:25:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FA1F15B0EC;
+	Sun, 19 Apr 2026 15:42:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776579949; cv=none; b=pg0tNnlQZOOk4jDQ7o9XY77axZAuchCBoVcvFi7cq2yYxAsZbjayl30NIQhlUfa+Aa+0eUBZW/FAzQ8QIp9zZC8Kqx0DbQQGyJeXjoIAaRwXWPlYkh148+AOT0qg+JHG65HDMMZ7PgFTH7OwVcPxF7/EcfSs2VdDgcJjYONCSDU=
+	t=1776613364; cv=none; b=u+ijdT3DRwfy3cMUJIrtvDHLBBtKRVGGNbGTPr9o3Ooc1FvFI2wTp7xKpxk1wM2lXMmsKUDjJ0j3glDncxGmb6K/vDXNFVTH7u3lkgADxjU5JSBF6bd2Zfzzbisn5vGCSaNgKP40gFUDikE+YkzAW/HKlsFij2HSZu7J2cAUL6M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776579949; c=relaxed/simple;
-	bh=WyWP+iZMeXxYC6vQkXO3ZkU7TGgZD/42Ny6itpdy6rk=;
-	h=Date:To:From:Subject:Message-Id; b=d/w2XwFEg72vmhiacDM+re0vI61eLYbRxnW+VvxHKVvUSemYBUfAIw2pkiK/Orv1MWoSJ8H7zwUgdyUGNuJeVyq0N3FYMiWsfTP8NEZAYnuXYIkN2DRkJlArVRiwEbpjGGtOGVeJ4mZ98lpxnbbgHTRNtAe1Zkwv4J+06mWjAJE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YAfb/MEJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776613364; c=relaxed/simple;
+	bh=xvRKjYBnCdzdh4bvLjdYo241YniLSW/CTCHzePGo0Y0=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=Kfftya3pi4xUPv7/10sfOqthDSFMG1PEq/uqexFUHpzEG066xdhrD1HkuELvj53zXqLS+yo1hmthRwZ02llmA9HW9KN4ggdOoxSIVnY0Tsp4R3tHjCGM2UfxnKS8t5pldMZpIv8RfpfZRE3OozCuwXzV52+hTWMNpWSzLmGlEl8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qUkZf8h4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YAfb/MEJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C68AFC2BCAF;
-	Sun, 19 Apr 2026 06:25:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776579948;
-	bh=WyWP+iZMeXxYC6vQkXO3ZkU7TGgZD/42Ny6itpdy6rk=;
-	h=Date:To:From:Subject:From;
-	b=YAfb/MEJcqlpuSFAFvc2/cwRsnWceTjhx4n/3tAy0CNOh0G1bkFRdAsbye9Hyosrz
-	 lJ0+DXfAsmSY9GwNA/e8Pte80TqfscOUr2Sb2GnK4/HRRsPI+AfmC11oZHMFR0U3GJ
-	 BsdjHfnp8C6MIYs305cyWLkkQtjpCl0tiJP7zuGk=
-Date: Sat, 18 Apr 2026 23:25:38 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-damon-core-disallow-non-power-of-two-min_region_sz-on-damon_start.patch removed from -mm tree
-Message-Id: <20260419062547.C68AFC2BCAF@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qUkZf8h4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 244DDC2BCAF;
+	Sun, 19 Apr 2026 15:42:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1776613364;
+	bh=xvRKjYBnCdzdh4bvLjdYo241YniLSW/CTCHzePGo0Y0=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=qUkZf8h4LJ3DLxhk1q+D4zi2lfcNGRyBbujxLHAm3ggNKXV/lAK9hfYHDnc4eC9Ek
+	 18E9yE7XwpBISHSuLadheCUJp/MVz2l2a3sVtdXFDwIvMEP3AFWWI6aWs81Vrs2GC2
+	 d5LB3U3VOszgSJh8LRz3VtO1mX4XrWsxuOYS82QLT94Lnyu65Vr0e/KWk1vcG4F2m9
+	 LXhnY/KELmxCsXaEWZXLXAf/wmKPSblYPGYQaWAHhL3yCdourGDxg81dsWK65UeJW7
+	 hxesVjrmh/N6bi0y3keNpLC0UVQJS+rx0zvXS/sqJf175s/WguRNSqdi6/PWMVFU9T
+	 ifxZm4WkfKcxA==
+Received: from [10.30.226.235] (localhost [IPv6:::1])
+	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id 02EB5380CEF9;
+	Sun, 19 Apr 2026 15:42:11 +0000 (UTC)
+Subject: Re: [GIT PULL] Additional MM updates for 7.1-rc1
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <20260418223823.b45ef6a83267fa886d182ed7@linux-foundation.org>
+References: <20260418223823.b45ef6a83267fa886d182ed7@linux-foundation.org>
+X-PR-Tracked-List-Id: <linux-mm.kvack.org>
+X-PR-Tracked-Message-Id: <20260418223823.b45ef6a83267fa886d182ed7@linux-foundation.org>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2026-04-18-02-14
+X-PR-Tracked-Commit-Id: 0b5e8d7999076ac3c490fc18376a404e2626abff
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 40735a683bf844a453d7a0f91e5e3daa0abc659b
+Message-Id: <177661332946.800150.16573212022538901755.pr-tracker-bot@kernel.org>
+Date: Sun, 19 Apr 2026 15:42:09 +0000
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linuxfoundation.org>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, mm-commits@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+The pull request you sent on Sat, 18 Apr 2026 22:38:23 -0700:
 
-The quilt patch titled
-     Subject: mm/damon/core: disallow non-power of two min_region_sz on damon_start()
-has been removed from the -mm tree.  Its filename was
-     mm-damon-core-disallow-non-power-of-two-min_region_sz-on-damon_start.patch
+> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-stable-2026-04-18-02-14
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/40735a683bf844a453d7a0f91e5e3daa0abc659b
 
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: disallow non-power of two min_region_sz on damon_start()
-Date: Sat, 11 Apr 2026 14:36:36 -0700
+Thank you!
 
-Commit d8f867fa0825 ("mm/damon: add damon_ctx->min_sz_region") introduced
-a bug that allows unaligned DAMON region address ranges.  Commit
-c80f46ac228b ("mm/damon/core: disallow non-power of two min_region_sz")
-fixed it, but only for damon_commit_ctx() use case.  Still, DAMON sysfs
-interface can emit non-power of two min_region_sz via damon_start().  Fix
-the path by adding the is_power_of_2() check on damon_start().
-
-The issue was discovered by sashiko [1].
-
-Link: https://lore.kernel.org/20260411213638.77768-1-sj@kernel.org
-Link: https://lore.kernel.org/20260403155530.64647-1-sj@kernel.org [1]
-Fixes: d8f867fa0825 ("mm/damon: add damon_ctx->min_sz_region")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org> # 6.18.x
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/damon/core.c |    5 +++++
- 1 file changed, 5 insertions(+)
-
---- a/mm/damon/core.c~mm-damon-core-disallow-non-power-of-two-min_region_sz-on-damon_start
-+++ a/mm/damon/core.c
-@@ -1368,6 +1368,11 @@ int damon_start(struct damon_ctx **ctxs,
- 	int i;
- 	int err = 0;
- 
-+	for (i = 0; i < nr_ctxs; i++) {
-+		if (!is_power_of_2(ctxs[i]->min_region_sz))
-+			return -EINVAL;
-+	}
-+
- 	mutex_lock(&damon_lock);
- 	if ((exclusive && nr_running_ctxs) ||
- 			(!exclusive && running_exclusive_ctxs)) {
-_
-
-Patches currently in -mm which might be from sj@kernel.org are
-
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
