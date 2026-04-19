@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAA8E309EEB;
-	Sun, 19 Apr 2026 06:25:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E007309EEB;
+	Sun, 19 Apr 2026 06:25:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776579943; cv=none; b=i4Yrn7tfaKTZKFc/aBJolAp3gLEK0Efr1/cjw20eTBe9G+pfOpjLTOUnEq3At9cqtbO5Jx5yjPvSkGbOUI/uvbReYqfpqTjPJawR+NhdXAQ8deZLhtVoNKIBBO3DzT2gTtf6SH7OTjbScRc83qzXk0ST4CqmpBiwZT2JLvmLYkQ=
+	t=1776579949; cv=none; b=pg0tNnlQZOOk4jDQ7o9XY77axZAuchCBoVcvFi7cq2yYxAsZbjayl30NIQhlUfa+Aa+0eUBZW/FAzQ8QIp9zZC8Kqx0DbQQGyJeXjoIAaRwXWPlYkh148+AOT0qg+JHG65HDMMZ7PgFTH7OwVcPxF7/EcfSs2VdDgcJjYONCSDU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776579943; c=relaxed/simple;
-	bh=GI9z+HVw7et4Hicvudtlmggkyiwu7fx6ClNVf2imS9c=;
-	h=Date:To:From:Subject:Message-Id; b=h99B25U2tQhuKJp+UAf1W01AJ5IljXEUcaBCngqsZRVlcu4q+FhnKKTyET2aGTrDdP3rdyV64ZAhVQtLy12tv9lErAamXoYEyUBvQMBg40Vgaiftuo9bcWSKQguJ2Kc7D2Iucb2xsoUYi/K0NX8nMvSotrktrjBBy8DcOsjp1kA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JVm9uv9L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776579949; c=relaxed/simple;
+	bh=WyWP+iZMeXxYC6vQkXO3ZkU7TGgZD/42Ny6itpdy6rk=;
+	h=Date:To:From:Subject:Message-Id; b=d/w2XwFEg72vmhiacDM+re0vI61eLYbRxnW+VvxHKVvUSemYBUfAIw2pkiK/Orv1MWoSJ8H7zwUgdyUGNuJeVyq0N3FYMiWsfTP8NEZAYnuXYIkN2DRkJlArVRiwEbpjGGtOGVeJ4mZ98lpxnbbgHTRNtAe1Zkwv4J+06mWjAJE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YAfb/MEJ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JVm9uv9L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3DF8C2BCAF;
-	Sun, 19 Apr 2026 06:25:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YAfb/MEJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C68AFC2BCAF;
+	Sun, 19 Apr 2026 06:25:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776579943;
-	bh=GI9z+HVw7et4Hicvudtlmggkyiwu7fx6ClNVf2imS9c=;
+	s=korg; t=1776579948;
+	bh=WyWP+iZMeXxYC6vQkXO3ZkU7TGgZD/42Ny6itpdy6rk=;
 	h=Date:To:From:Subject:From;
-	b=JVm9uv9LWnm6E/IMjvkqV+oEUaUspiuLWRJI4y19/Umg9FOEPad7EiVM8nLnUfj4j
-	 zwWPZA8IaKeKDC1Q4A1WiqZgVAQn/zDBg9VJf3MLkPsrCiIOiTAKS3Yr7WGVIE6NAa
-	 HxOaRp7Aq4x2J6pDkoiN/G7Un/4385u95MlADZqk=
-Date: Sat, 18 Apr 2026 23:25:34 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,chenyichong@uniontech.com,baoquan.he@linux.dev,urezki@gmail.com,akpm@linux-foundation.org
+	b=YAfb/MEJcqlpuSFAFvc2/cwRsnWceTjhx4n/3tAy0CNOh0G1bkFRdAsbye9Hyosrz
+	 lJ0+DXfAsmSY9GwNA/e8Pte80TqfscOUr2Sb2GnK4/HRRsPI+AfmC11oZHMFR0U3GJ
+	 BsdjHfnp8C6MIYs305cyWLkkQtjpCl0tiJP7zuGk=
+Date: Sat, 18 Apr 2026 23:25:38 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vmalloc-take-vmap_purge_lock-in-shrinker.patch removed from -mm tree
-Message-Id: <20260419062542.F3DF8C2BCAF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-core-disallow-non-power-of-two-min_region_sz-on-damon_start.patch removed from -mm tree
+Message-Id: <20260419062547.C68AFC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,53 +35,54 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmalloc: take vmap_purge_lock in shrinker
+     Subject: mm/damon/core: disallow non-power of two min_region_sz on damon_start()
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-take-vmap_purge_lock-in-shrinker.patch
+     mm-damon-core-disallow-non-power-of-two-min_region_sz-on-damon_start.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: take vmap_purge_lock in shrinker
-Date: Mon, 13 Apr 2026 21:26:46 +0200
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: disallow non-power of two min_region_sz on damon_start()
+Date: Sat, 11 Apr 2026 14:36:36 -0700
 
-decay_va_pool_node() can be invoked concurrently from two paths:
-__purge_vmap_area_lazy() when pools are being purged, and the shrinker via
-vmap_node_shrink_scan().
+Commit d8f867fa0825 ("mm/damon: add damon_ctx->min_sz_region") introduced
+a bug that allows unaligned DAMON region address ranges.  Commit
+c80f46ac228b ("mm/damon/core: disallow non-power of two min_region_sz")
+fixed it, but only for damon_commit_ctx() use case.  Still, DAMON sysfs
+interface can emit non-power of two min_region_sz via damon_start().  Fix
+the path by adding the is_power_of_2() check on damon_start().
 
-However, decay_va_pool_node() is not safe to run concurrently, and the
-shrinker path currently lacks serialization, leading to races and possible
-leaks.
+The issue was discovered by sashiko [1].
 
-Protect decay_va_pool_node() by taking vmap_purge_lock in the shrinker
-path to ensure serialization with purge users.
-
-Link: https://lore.kernel.org/20260413192646.14683-1-urezki@gmail.com
-Fixes: 7679ba6b36db ("mm: vmalloc: add a shrinker to drain vmap pools")
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Reviewed-by: Baoquan He <baoquan.he@linux.dev>
-Cc: chenyichong <chenyichong@uniontech.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260411213638.77768-1-sj@kernel.org
+Link: https://lore.kernel.org/20260403155530.64647-1-sj@kernel.org [1]
+Fixes: d8f867fa0825 ("mm/damon: add damon_ctx->min_sz_region")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.18.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/damon/core.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-take-vmap_purge_lock-in-shrinker
-+++ a/mm/vmalloc.c
-@@ -5416,6 +5416,7 @@ vmap_node_shrink_scan(struct shrinker *s
- {
- 	struct vmap_node *vn;
+--- a/mm/damon/core.c~mm-damon-core-disallow-non-power-of-two-min_region_sz-on-damon_start
++++ a/mm/damon/core.c
+@@ -1368,6 +1368,11 @@ int damon_start(struct damon_ctx **ctxs,
+ 	int i;
+ 	int err = 0;
  
-+	guard(mutex)(&vmap_purge_lock);
- 	for_each_vmap_node(vn)
- 		decay_va_pool_node(vn, true);
- 
++	for (i = 0; i < nr_ctxs; i++) {
++		if (!is_power_of_2(ctxs[i]->min_region_sz))
++			return -EINVAL;
++	}
++
+ 	mutex_lock(&damon_lock);
+ 	if ((exclusive && nr_running_ctxs) ||
+ 			(!exclusive && running_exclusive_ctxs)) {
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
 
