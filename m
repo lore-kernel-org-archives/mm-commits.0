@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A0F116FF37;
-	Sun, 19 Apr 2026 06:25:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 706F016FF37;
+	Sun, 19 Apr 2026 06:25:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776579934; cv=none; b=Tow3j/hmgHSULke+5NzGsee6jBCAUwS+52pg3+m3agnaBiLW1/10BWCZbqgsIGolKmtaQWFzFahtyaHwhzbLzyu3HZrowkODcsdhU6yAIexXHHY1p/RpzYZW5rW7lju02pNthBYpteGcDAIrRi6inuCC6mZVnnU0SdsVAjB7UXI=
+	t=1776579939; cv=none; b=q9909ep6S0OqKgIRY+wjDw/e0+Rbs0X08FsUdy0ykAD6Y/eZ0t7vn0dEOnyCvADWOa1Y3wpLIa0W0FEAEFzNgpUpSRNoE5ULx+znWZ7unvwawmKQTzCVl4rl9bBPXPtddWQ3PdvBVOAiB3pZ2PJvfb1js7By1BmaPMMEYF6wjCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776579934; c=relaxed/simple;
-	bh=ltqSkCpvXKgRiaVGgIcRlpZruGbbg8rbVYHBtGYT4z4=;
-	h=Date:To:From:Subject:Message-Id; b=nrbspbJQPvWa4fo6pE0uWzco/19lYjZzziG3hy/o7UDIZPeMc+ypUnu2tV5M6swfzg9KJ4j+fcY5r90Ow40ByY0i3fcnMDcUQK5w0fGiGAbuv7w7EhYk/DxPC77oE0caTr9AE9ugBh0uOSVBy7LfXZVPRNW2qxtyGrncUR512dU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PLv3RfEb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776579939; c=relaxed/simple;
+	bh=r5V8Qn2QN0vaeXwrmKAoosPRsUNMqUMy9zeo//SAbn8=;
+	h=Date:To:From:Subject:Message-Id; b=d7T5WVzdfpDNp3PN34APed8ZHfHF1GVucuwfgVUJyc3B2ue+74SAST0BV0DI1/BV1Mo4pDycJZmheD+mFdyuZIR1rKT8+gRdqHDOoLQgJ2+zKvOb898jwuajSIAyxquOCkc0EXhtZSxnVsOwzFrRDJOzem7Ret9akD0kGFZXuEM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b2kwTlCU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PLv3RfEb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74F7DC2BCAF;
-	Sun, 19 Apr 2026 06:25:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b2kwTlCU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0721C2BCAF;
+	Sun, 19 Apr 2026 06:25:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776579934;
-	bh=ltqSkCpvXKgRiaVGgIcRlpZruGbbg8rbVYHBtGYT4z4=;
+	s=korg; t=1776579939;
+	bh=r5V8Qn2QN0vaeXwrmKAoosPRsUNMqUMy9zeo//SAbn8=;
 	h=Date:To:From:Subject:From;
-	b=PLv3RfEbFz6hq8VYQ+Q0TwiYURM1C0pKEt5Diil7onLlOhPMKW7TVtB4+3M70baFE
-	 btNVvi8/y5pbp5ZuI+fQX0qseYYChKJJXZPfsYnFnweOecPRjZ11D8rpaiFo8JGDv/
-	 b2+YpaugpHSnc9z41ft6nKoZSTMblWn+aFDDU1mI=
-Date: Sat, 18 Apr 2026 23:25:24 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,surenb@google.com,stable@vger.kernel.org,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,martin.lau@linux.dev,ljs@kernel.org,liam.howlett@oracle.com,josef@toxicpanda.com,inwardvessel@gmail.com,hannes@cmpxchg.org,dennis@kernel.org,david@kernel.org,axboe@kernel.dk,leitao@debian.org,akpm@linux-foundation.org
+	b=b2kwTlCUPq7Q0k664iv31E0IuiYithOLJxxxo0lY3+A9ajPfH/hEKFGvpx+ip1T3i
+	 vvaBKZu9jiNNeBvAs+ogmLkO5AvpyUJmGFh0rFbGbIRFnUGwyo1vznW+SvOLDzfgEo
+	 G6WaQIUzF3E9ycre6DMnUl8vTq05GdJuvhzhIcJk=
+Date: Sat, 18 Apr 2026 23:25:29 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,jack@suse.cz,big-sleep-vuln-reports+bigsleep-501448199@google.com,axboe@kernel.dk,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-blk-cgroup-fix-use-after-free-in-cgwb_release_workfn.patch removed from -mm tree
-Message-Id: <20260419062533.74F7DC2BCAF@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-call-free_folio-directly-in-folio_unmap_invalidate.patch removed from -mm tree
+Message-Id: <20260419062537.F0721C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,100 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: blk-cgroup: fix use-after-free in cgwb_release_workfn()
+     Subject: mm: call ->free_folio() directly in folio_unmap_invalidate()
 has been removed from the -mm tree.  Its filename was
-     mm-blk-cgroup-fix-use-after-free-in-cgwb_release_workfn.patch
+     mm-call-free_folio-directly-in-folio_unmap_invalidate.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm: blk-cgroup: fix use-after-free in cgwb_release_workfn()
-Date: Mon, 13 Apr 2026 03:09:19 -0700
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: call ->free_folio() directly in folio_unmap_invalidate()
+Date: Mon, 13 Apr 2026 19:43:11 +0100
 
-cgwb_release_workfn() calls css_put(wb->blkcg_css) and then later accesses
-wb->blkcg_css again via blkcg_unpin_online().  If css_put() drops the last
-reference, the blkcg can be freed asynchronously (css_free_rwork_fn ->
-blkcg_css_free -> kfree) before blkcg_unpin_online() dereferences the
-pointer to access blkcg->online_pin, resulting in a use-after-free:
+We can only call filemap_free_folio() if we have a reference to (or hold a
+lock on) the mapping.  Otherwise, we've already removed the folio from the
+mapping so it no longer pins the mapping and the mapping can be removed,
+causing a use-after-free when accessing mapping->a_ops.
 
-  BUG: KASAN: slab-use-after-free in blkcg_unpin_online (./include/linux/instrumented.h:112 ./include/linux/atomic/atomic-instrumented.h:400 ./include/linux/refcount.h:389 ./include/linux/refcount.h:432 ./include/linux/refcount.h:450 block/blk-cgroup.c:1367)
-  Write of size 4 at addr ff11000117aa6160 by task kworker/71:1/531
-   Workqueue: cgwb_release cgwb_release_workfn
-   Call Trace:
-    <TASK>
-     blkcg_unpin_online (./include/linux/instrumented.h:112 ./include/linux/atomic/atomic-instrumented.h:400 ./include/linux/refcount.h:389 ./include/linux/refcount.h:432 ./include/linux/refcount.h:450 block/blk-cgroup.c:1367)
-     cgwb_release_workfn (mm/backing-dev.c:629)
-     process_scheduled_works (kernel/workqueue.c:3278 kernel/workqueue.c:3385)
+Follow the same pattern as __remove_mapping() and load the free_folio
+function pointer before dropping the lock on the mapping.  That lets us
+make filemap_free_folio() static as this was the only caller outside
+filemap.c.
 
-   Freed by task 1016:
-    kfree (./include/linux/kasan.h:235 mm/slub.c:2689 mm/slub.c:6246 mm/slub.c:6561)
-    css_free_rwork_fn (kernel/cgroup/cgroup.c:5542)
-    process_scheduled_works (kernel/workqueue.c:3302 kernel/workqueue.c:3385)
-
-** Stack based on commit 66672af7a095 ("Add linux-next specific files
-for 20260410")
-
-I am seeing this crash sporadically in Meta fleet across multiple kernel
-versions.  A full reproducer is available at:
-https://github.com/leitao/debug/blob/main/reproducers/repro_blkcg_uaf.sh
-
-(The race window is narrow.  To make it easily reproducible, inject a
-msleep(100) between css_put() and blkcg_unpin_online() in
-cgwb_release_workfn().  With that delay and a KASAN-enabled kernel, the
-reproducer triggers the splat reliably in less than a second.)
-
-Fix this by moving blkcg_unpin_online() before css_put(), so the
-cgwb's CSS reference keeps the blkcg alive while blkcg_unpin_online()
-accesses it.
-
-Link: https://lore.kernel.org/20260413-blkcg-v1-1-35b72622d16c@debian.org
-Fixes: 59b57717fff8 ("blkcg: delay blkg destruction until after writeback has finished")
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Dennis Zhou <dennis@kernel.org>
-Reviewed-by: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
+Link: https://lore.kernel.org/20260413184314.3419945-1-willy@infradead.org
+Fixes: fb7d3bc41493 ("mm/filemap: drop streaming/uncached pages when writeback completes")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Google Big Sleep <big-sleep-vuln-reports+bigsleep-501448199@google.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Josef Bacik <josef@toxicpanda.com>
-Cc: JP Kobryn <inwardvessel@gmail.com>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/filemap.c  |    3 ++-
+ mm/internal.h |    1 -
+ mm/truncate.c |    6 +++++-
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/backing-dev.c~mm-blk-cgroup-fix-use-after-free-in-cgwb_release_workfn
-+++ a/mm/backing-dev.c
-@@ -618,12 +618,13 @@ static void cgwb_release_workfn(struct w
- 	wb_shutdown(wb);
+--- a/mm/filemap.c~mm-call-free_folio-directly-in-folio_unmap_invalidate
++++ a/mm/filemap.c
+@@ -228,7 +228,8 @@ void __filemap_remove_folio(struct folio
+ 	page_cache_delete(mapping, folio, shadow);
+ }
  
- 	css_put(wb->memcg_css);
--	css_put(wb->blkcg_css);
--	mutex_unlock(&wb->bdi->cgwb_release_mutex);
+-void filemap_free_folio(struct address_space *mapping, struct folio *folio)
++static void filemap_free_folio(const struct address_space *mapping,
++		struct folio *folio)
+ {
+ 	void (*free_folio)(struct folio *);
  
- 	/* triggers blkg destruction if no online users left */
- 	blkcg_unpin_online(wb->blkcg_css);
+--- a/mm/internal.h~mm-call-free_folio-directly-in-folio_unmap_invalidate
++++ a/mm/internal.h
+@@ -540,7 +540,6 @@ unsigned find_lock_entries(struct addres
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
+ unsigned find_get_entries(struct address_space *mapping, pgoff_t *start,
+ 		pgoff_t end, struct folio_batch *fbatch, pgoff_t *indices);
+-void filemap_free_folio(struct address_space *mapping, struct folio *folio);
+ int truncate_inode_folio(struct address_space *mapping, struct folio *folio);
+ bool truncate_inode_partial_folio(struct folio *folio, loff_t start,
+ 		loff_t end);
+--- a/mm/truncate.c~mm-call-free_folio-directly-in-folio_unmap_invalidate
++++ a/mm/truncate.c
+@@ -622,6 +622,7 @@ static int folio_launder(struct address_
+ int folio_unmap_invalidate(struct address_space *mapping, struct folio *folio,
+ 			   gfp_t gfp)
+ {
++	void (*free_folio)(struct folio *);
+ 	int ret;
  
-+	css_put(wb->blkcg_css);
-+	mutex_unlock(&wb->bdi->cgwb_release_mutex);
-+
- 	fprop_local_destroy_percpu(&wb->memcg_completions);
+ 	VM_BUG_ON_FOLIO(!folio_test_locked(folio), folio);
+@@ -648,9 +649,12 @@ int folio_unmap_invalidate(struct addres
+ 	xa_unlock_irq(&mapping->i_pages);
+ 	if (mapping_shrinkable(mapping))
+ 		inode_lru_list_add(mapping->host);
++	free_folio = mapping->a_ops->free_folio;
+ 	spin_unlock(&mapping->host->i_lock);
  
- 	spin_lock_irq(&cgwb_lock);
+-	filemap_free_folio(mapping, folio);
++	if (free_folio)
++		free_folio(folio);
++	folio_put_refs(folio, folio_nr_pages(folio));
+ 	return 1;
+ failed:
+ 	xa_unlock_irq(&mapping->i_pages);
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-kho-fix-error-handling-in-kho_add_subtree.patch
-mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
 
