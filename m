@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90A683F9FB;
-	Tue, 21 Apr 2026 10:36:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C7633D7D9C;
+	Tue, 21 Apr 2026 14:17:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776767770; cv=none; b=lGXZdhsdr/Bb1msrQbsY8uOsfu06k5XC5ttt/EeN6x0OM3qz6wmZVQEHHExzsb6JHbTuYJ0qyXhMJS60RbmxiDPU0tQTvdPsypki7R+rwz9GLdvFGP0ToWEjwn25U8YaMWVQEuh1ux2pKGBSBpcA/l4dlhkf52pPOuYt+z5hw+A=
+	t=1776781048; cv=none; b=nZoqnDI6P23Vcx3oQOZd92SLSUYehBWgxU4/bf5MULlFfUQ532GHNS+MFp2rbX+BIO5NQa26pxurtdKPd1aim4jmheEIjqWogQ9+ClA25eZO+ynGj70ojz6V8rsRZ/MN1gW+X5cKh9Oc1NjZakvNffZXXZ7eN5EW8upfxGffBHw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776767770; c=relaxed/simple;
-	bh=Thkm8FEgdmMQkcZIsHXL5Zt1EA1XVjNddKgCseGUmLM=;
-	h=Date:To:From:Subject:Message-Id; b=F8bEwJ4HRUAtmF9ekyHFpaWe5qrf7DZktCTEGw3kYyfSJRP97zavaDARRLdzap0c7nA+9ZAz0vkC8lZUQ+veWbJL1ieOCrJ4z7RsfYbuFS2pNDkXblW/QHxBTRngDka1Us7OUMzxnnkZNK3Tnryo7UOcFCgcId5NWMgL9HeDHA8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AtoDX2iu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776781048; c=relaxed/simple;
+	bh=Vf1of4GLySLD7oK8b9wZ1HKZdDzqGPC7zKIQYqW3yiU=;
+	h=Date:To:From:Subject:Message-Id; b=UIAcUWitKA8cX4pL5HbuGn3VgA4vU6Nz+C7kWofwn0gTY1sMoU7O1qBZJnM65cVTCYEPRf/6CdAPTs3kFeMDmRqvwu5qoYbt8V7ntzMIvzVzBlxRg6ADN96rvweq66Sxy3i0IqECNc5ViL59NeULQQX2CzKtQLP7C2xB9ctl/84=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Px83A7oa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AtoDX2iu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A850EC2BCB0;
-	Tue, 21 Apr 2026 10:36:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Px83A7oa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 97262C2BCB0;
+	Tue, 21 Apr 2026 14:17:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776767770;
-	bh=Thkm8FEgdmMQkcZIsHXL5Zt1EA1XVjNddKgCseGUmLM=;
+	s=korg; t=1776781048;
+	bh=Vf1of4GLySLD7oK8b9wZ1HKZdDzqGPC7zKIQYqW3yiU=;
 	h=Date:To:From:Subject:From;
-	b=AtoDX2iuCvqINrTckoF1CBW+Ns8IaCUW8OiLVdZDW0wMbs4wYCPArrf+hMDWekskq
-	 otA8O17j8XPMuMuSPX8wgAsJdQ6xxpOk+zBFQ9dZwd0S1J+BlV7e2Mi7yc4DGNUsSc
-	 EuS1VVNoNjN2z6+GFc/9cfhFe13AfddAy7zy2+tM=
-Date: Tue, 21 Apr 2026 03:36:06 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=Px83A7oa4COkMxHyjJ6jXJCxfm2Pt0qkwIAbY5optTFZvbPLW2SV894NylXF4FZyB
+	 xb16JXJI9CL6om9y5wqhCiRzhb3BWLrML7Khqp08k9p9WNNsAc9Fl3+/wtjpyCC0Le
+	 Ic/Eukm1uG4k2d5JBEW9tF8HcA+HwTUaz0RqElek=
+Date: Tue, 21 Apr 2026 07:17:24 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,will@kernel.org,surenb@google.com,stable@vger.kernel.org,ryan.roberts@arm.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,lance.yang@linux.dev,jackmanb@google.com,hannes@cmpxchg.org,catalin.marinas@arm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260421103609.A850EC2BCB0@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free.patch removed from -mm tree
+Message-Id: <20260421141727.97262C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,216 +34,203 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/vma: do not try to unmap a VMA if mmap_prepare() invoked from mmap()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch
+The quilt patch titled
+     Subject: mm/page_alloc: fix initialization of tags of the huge zero folio with init_on_free
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: do not try to unmap a VMA if mmap_prepare() invoked from mmap()
-Date: Tue, 21 Apr 2026 11:21:50 +0100
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm/page_alloc: fix initialization of tags of the huge zero folio with init_on_free
+Date: Mon, 20 Apr 2026 23:16:46 +0200
 
-The mmap_prepare hook functionality includes the ability to invoke
-mmap_prepare() from the mmap() hook of existing 'stacked' drivers, that is
-ones which are capable of calling the mmap hooks of other drivers/file
-systems (e.g.  overlayfs, shm).
+__GFP_ZEROTAGS semantics are currently a bit weird, but effectively this
+flag is only ever set alongside __GFP_ZERO and __GFP_SKIP_KASAN.
 
-As part of the mmap_prepare action functionality, we deal with errors by
-unmapping the VMA should one arise.  This works in the usual mmap_prepare
-case, as we invoke this action at the last moment, when the VMA is
-established in the maple tree.
+If we run with init_on_free, we will zero out pages during
+__free_pages_prepare(), to skip zeroing on the allocation path.
 
-However, the mmap() hook passes a not-fully-established VMA pointer to the
-caller (which is the motivation behind the mmap_prepare() work), which is
-detached.
+However, when allocating with __GFP_ZEROTAG set, post_alloc_hook() will
+consequently not only skip clearing page content, but also skip clearing
+tag memory.
 
-So attempting to unmap a VMA in this state will be problematic, with the
-most obvious symptom being a warning in vma_mark_detached(), because the
-VMA is already detached.
+Not clearing tags through __GFP_ZEROTAGS is irrelevant for most pages that
+will get mapped to user space through set_pte_at() later: set_pte_at() and
+friends will detect that the tags have not been initialized yet
+(PG_mte_tagged not set), and initialize them.
 
-It's also unncessary - the mmap() handler will clean up the VMA on error.
+However, for the huge zero folio, which will be mapped through a PMD
+marked as special, this initialization will not be performed, ending up
+exposing whatever tags were still set for the pages.
 
-So to fix this issue, this patch propagates whether or not an mmap action
-is being completed via the compatibility layer or directly.
+The docs (Documentation/arch/arm64/memory-tagging-extension.rst) state
+that allocation tags are set to 0 when a page is first mapped to user
+space.  That no longer holds with the huge zero folio when init_on_free is
+enabled.
 
-If the former, then we do not attempt VMA cleanup, if the latter, then we
-do.
+Fix it by decoupling __GFP_ZEROTAGS from __GFP_ZERO, passing to
+tag_clear_highpages() whether we want to also clear page content.
 
-This patch also updates the userland VMA tests to reflect the change.
+As we are touching the interface either way, just clean it up by only
+calling it when HW tags are enabled, dropping the return value, and
+dropping the common code stub.
 
-Link: https://lore.kernel.org/20260421102150.189982-1-ljs@kernel.org
-Fixes: ac0a3fc9c07d ("mm: add ability to take further action in vm_area_desc")
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reported-by: syzbot+db390288d141a1dccf96@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/69e69734.050a0220.24bfd3.0027.GAE@google.com/
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
+Reproduced with the huge zero folio by modifying the check_buffer_fill
+arm64/mte selftest to use a 2 MiB area, after making sure that pages have
+a non-0 tag set when freeing (note that, during boot, we will not actually
+initialize tags, but only set KASAN_TAG_KERNEL in the page flags).
+
+	$ ./check_buffer_fill
+	1..20
+	...
+	not ok 17 Check initial tags with private mapping, sync error mode and mmap memory
+	not ok 18 Check initial tags with private mapping, sync error mode and mmap/mprotect memory
+	...
+
+This code needs more cleanups; we'll tackle that next, like decoupling
+__GFP_ZEROTAGS from __GFP_SKIP_KASAN, moving all the KASAN magic into a
+separate helper, and consolidating HW-tag handling.
+
+Link: https://lore.kernel.org/20260420-zerotags-v1-1-3edc93e95bb4@kernel.org
+Fixes: adfb6609c680 ("mm/huge_memory: initialise the tags of the huge zero folio")
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h                |    2 +-
- mm/util.c                         |   26 +++++++++++++++++---------
- mm/vma.c                          |    3 ++-
- tools/testing/vma/include/dup.h   |    2 +-
- tools/testing/vma/include/stubs.h |    3 ++-
- 5 files changed, 23 insertions(+), 13 deletions(-)
+ arch/arm64/include/asm/page.h |    3 ---
+ arch/arm64/mm/fault.c         |   16 +++++-----------
+ include/linux/gfp_types.h     |   10 +++++-----
+ include/linux/highmem.h       |   10 +---------
+ mm/page_alloc.c               |   12 +++++++-----
+ 5 files changed, 18 insertions(+), 33 deletions(-)
 
---- a/include/linux/mm.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
-+++ a/include/linux/mm.h
-@@ -4391,7 +4391,7 @@ static inline void mmap_action_map_kerne
+--- a/arch/arm64/include/asm/page.h~mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free
++++ a/arch/arm64/include/asm/page.h
+@@ -33,9 +33,6 @@ struct folio *vma_alloc_zeroed_movable_f
+ 						unsigned long vaddr);
+ #define vma_alloc_zeroed_movable_folio vma_alloc_zeroed_movable_folio
  
- int mmap_action_prepare(struct vm_area_desc *desc);
- int mmap_action_complete(struct vm_area_struct *vma,
--			 struct mmap_action *action);
-+			 struct mmap_action *action, bool is_compat);
+-bool tag_clear_highpages(struct page *to, int numpages);
+-#define __HAVE_ARCH_TAG_CLEAR_HIGHPAGES
+-
+ #define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
  
- /* Look up the first VMA which exactly match the interval vm_start ... vm_end */
- static inline struct vm_area_struct *find_exact_vma(struct mm_struct *mm,
---- a/mm/util.c~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
-+++ a/mm/util.c
-@@ -1232,7 +1232,7 @@ int __compat_vma_mmap(struct vm_area_des
- 	/* Update the VMA from the descriptor. */
- 	compat_set_vma_from_desc(vma, desc);
- 	/* Complete any specified mmap actions. */
--	return mmap_action_complete(vma, &desc->action);
-+	return mmap_action_complete(vma, &desc->action, /*is_compat=*/true);
- }
- EXPORT_SYMBOL(__compat_vma_mmap);
- 
-@@ -1389,7 +1389,8 @@ static int call_vma_mapped(struct vm_are
+ typedef struct page *pgtable_t;
+--- a/arch/arm64/mm/fault.c~mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free
++++ a/arch/arm64/mm/fault.c
+@@ -1018,21 +1018,15 @@ struct folio *vma_alloc_zeroed_movable_f
+ 	return vma_alloc_folio(flags, 0, vma, vaddr);
  }
  
- static int mmap_action_finish(struct vm_area_struct *vma,
--			      struct mmap_action *action, int err)
-+			      struct mmap_action *action, int err,
-+			      bool is_compat)
+-bool tag_clear_highpages(struct page *page, int numpages)
++void tag_clear_highpages(struct page *page, int numpages, bool clear_pages)
  {
- 	size_t len;
+-	/*
+-	 * Check if MTE is supported and fall back to clear_highpage().
+-	 * get_huge_zero_folio() unconditionally passes __GFP_ZEROTAGS and
+-	 * post_alloc_hook() will invoke tag_clear_highpages().
+-	 */
+-	if (!system_supports_mte())
+-		return false;
+-
+ 	/* Newly allocated pages, shouldn't have been tagged yet */
+ 	for (int i = 0; i < numpages; i++, page++) {
+ 		WARN_ON_ONCE(!try_page_mte_tagging(page));
+-		mte_zero_clear_page_tags(page_address(page));
++		if (clear_pages)
++			mte_zero_clear_page_tags(page_address(page));
++		else
++			mte_clear_page_tags(page_address(page));
+ 		set_page_mte_tagged(page);
+ 	}
+-	return true;
+ }
+--- a/include/linux/gfp_types.h~mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free
++++ a/include/linux/gfp_types.h
+@@ -273,11 +273,11 @@ enum {
+  *
+  * %__GFP_ZERO returns a zeroed page on success.
+  *
+- * %__GFP_ZEROTAGS zeroes memory tags at allocation time if the memory itself
+- * is being zeroed (either via __GFP_ZERO or via init_on_alloc, provided that
+- * __GFP_SKIP_ZERO is not set). This flag is intended for optimization: setting
+- * memory tags at the same time as zeroing memory has minimal additional
+- * performance impact.
++ * %__GFP_ZEROTAGS zeroes memory tags at allocation time. This flag is intended
++ * for optimization: setting memory tags at the same time as zeroing memory
++ * (e.g., with __GPF_ZERO) has minimal additional performance impact. However,
++ * __GFP_ZEROTAGS also zeroes the tags even if memory is not getting zeroed at
++ * allocation time (e.g., with init_on_free).
+  *
+  * %__GFP_SKIP_KASAN makes KASAN skip unpoisoning on page allocation.
+  * Used for userspace and vmalloc pages; the latter are unpoisoned by
+--- a/include/linux/highmem.h~mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free
++++ a/include/linux/highmem.h
+@@ -345,15 +345,7 @@ static inline void clear_highpage_kasan_
+ 	kunmap_local(kaddr);
+ }
  
-@@ -1400,8 +1401,12 @@ static int mmap_action_finish(struct vm_
+-#ifndef __HAVE_ARCH_TAG_CLEAR_HIGHPAGES
+-
+-/* Return false to let people know we did not initialize the pages */
+-static inline bool tag_clear_highpages(struct page *page, int numpages)
+-{
+-	return false;
+-}
+-
+-#endif
++void tag_clear_highpages(struct page *to, int numpages, bool clear_pages);
  
- 	/* do_munmap() might take rmap lock, so release if held. */
- 	maybe_rmap_unlock_action(vma, action);
--	if (!err)
--		return 0;
-+	/*
-+	 * If this is invoked from the compatibility layer, post-mmap() hook
-+	 * logic will handle cleanup for us.
-+	 */
-+	if (!err || is_compat)
-+		return err;
+ /*
+  * If we pass in a base or tail page, we can zero up to PAGE_SIZE.
+--- a/mm/page_alloc.c~mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free
++++ a/mm/page_alloc.c
+@@ -1808,9 +1808,9 @@ static inline bool should_skip_init(gfp_
+ inline void post_alloc_hook(struct page *page, unsigned int order,
+ 				gfp_t gfp_flags)
+ {
++	const bool zero_tags = kasan_hw_tags_enabled() && (gfp_flags & __GFP_ZEROTAGS);
+ 	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags) &&
+ 			!should_skip_init(gfp_flags);
+-	bool zero_tags = init && (gfp_flags & __GFP_ZEROTAGS);
+ 	int i;
+ 
+ 	set_page_private(page, 0);
+@@ -1832,11 +1832,13 @@ inline void post_alloc_hook(struct page
+ 	 */
  
  	/*
- 	 * If an error occurs, unmap the VMA altogether and return an error. We
-@@ -1451,13 +1456,15 @@ EXPORT_SYMBOL(mmap_action_prepare);
-  * mmap_action_complete - Execute VMA descriptor action.
-  * @vma: The VMA to perform the action upon.
-  * @action: The action to perform.
-+ * @is_compat: Is this being invoked from the compatibility layer?
-  *
-  * Similar to mmap_action_prepare().
-  *
-- * Return: 0 on success, or error, at which point the VMA will be unmapped.
-+ * Return: 0 on success, or error, at which point the VMA will be unmapped if
-+ * !@is_compat.
-  */
- int mmap_action_complete(struct vm_area_struct *vma,
--			 struct mmap_action *action)
-+			 struct mmap_action *action, bool is_compat)
- {
- 	int err = 0;
+-	 * If memory tags should be zeroed
+-	 * (which happens only when memory should be initialized as well).
++	 * Clearing tags can efficiently clear the memory for us as well, if
++	 * required.
+ 	 */
+-	if (zero_tags)
+-		init = !tag_clear_highpages(page, 1 << order);
++	if (zero_tags) {
++		tag_clear_highpages(page, 1 << order, /* clear_pages= */init);
++		init = false;
++	}
  
-@@ -1478,7 +1485,7 @@ int mmap_action_complete(struct vm_area_
- 		break;
- 	}
- 
--	return mmap_action_finish(vma, action, err);
-+	return mmap_action_finish(vma, action, err, is_compat);
- }
- EXPORT_SYMBOL(mmap_action_complete);
- #else
-@@ -1500,7 +1507,8 @@ int mmap_action_prepare(struct vm_area_d
- EXPORT_SYMBOL(mmap_action_prepare);
- 
- int mmap_action_complete(struct vm_area_struct *vma,
--			 struct mmap_action *action)
-+			 struct mmap_action *action,
-+			 bool is_compat)
- {
- 	int err = 0;
- 
-@@ -1517,7 +1525,7 @@ int mmap_action_complete(struct vm_area_
- 		break;
- 	}
- 
--	return mmap_action_finish(vma, action, err);
-+	return mmap_action_finish(vma, action, err, is_compat);
- }
- EXPORT_SYMBOL(mmap_action_complete);
- #endif
---- a/mm/vma.c~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
-+++ a/mm/vma.c
-@@ -2780,7 +2780,8 @@ static unsigned long __mmap_region(struc
- 	__mmap_complete(&map, vma);
- 
- 	if (have_mmap_prepare && allocated_new) {
--		error = mmap_action_complete(vma, &desc.action);
-+		error = mmap_action_complete(vma, &desc.action,
-+					     /*is_compat=*/false);
- 		if (error)
- 			return error;
- 	}
---- a/tools/testing/vma/include/dup.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
-+++ a/tools/testing/vma/include/dup.h
-@@ -1330,7 +1330,7 @@ static inline int __compat_vma_mmap(stru
- 	/* Update the VMA from the descriptor. */
- 	compat_set_vma_from_desc(vma, desc);
- 	/* Complete any specified mmap actions. */
--	return mmap_action_complete(vma, &desc->action);
-+	return mmap_action_complete(vma, &desc->action, /*is_compat=*/true);
- }
- 
- static inline int compat_vma_mmap(struct file *file, struct vm_area_struct *vma)
---- a/tools/testing/vma/include/stubs.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
-+++ a/tools/testing/vma/include/stubs.h
-@@ -87,7 +87,8 @@ static inline int mmap_action_prepare(st
- }
- 
- static inline int mmap_action_complete(struct vm_area_struct *vma,
--				       struct mmap_action *action)
-+				       struct mmap_action *action,
-+				       bool is_compat)
- {
- 	return 0;
- }
+ 	if (!should_skip_kasan_unpoison(gfp_flags) &&
+ 	    kasan_unpoison_pages(page, order, init)) {
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from david@kernel.org are
 
-mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch
 
