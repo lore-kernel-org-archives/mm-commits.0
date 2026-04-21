@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF1F0391512
-	for <mm-commits@vger.kernel.org>; Tue, 21 Apr 2026 07:19:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90A683F9FB;
+	Tue, 21 Apr 2026 10:36:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776755992; cv=none; b=SLLDZ8+bIvmPUGvtGeAMAo5nHt+p0Yq/xk2rzYmYbNl1uu24Gk+Mx5O8qTUe7PDyWfHGa9+WLCbDG76/uEAHkktzHyaKvzJUIVIhg5oljjC9DNmPsKMQbtkUgRLgbO/4LhEXmTk+aT8h9EBQ4DDz4nmISvqRnMmPhWID8M6+X/A=
+	t=1776767770; cv=none; b=lGXZdhsdr/Bb1msrQbsY8uOsfu06k5XC5ttt/EeN6x0OM3qz6wmZVQEHHExzsb6JHbTuYJ0qyXhMJS60RbmxiDPU0tQTvdPsypki7R+rwz9GLdvFGP0ToWEjwn25U8YaMWVQEuh1ux2pKGBSBpcA/l4dlhkf52pPOuYt+z5hw+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776755992; c=relaxed/simple;
-	bh=YSJjlUmCynCge3sBSYOA6fP2Yd/ACxkd7iL2FrCep+k=;
-	h=Date:To:From:Subject:Message-Id; b=RcPhwm+n9nbS6nVCstcQUv7vlM3zR+5YiUFFq+HdCu+uIx63DUdKWb2Fc6nhy9ShlXSdzGOLFF8w5cEhFiTIr96IIYkRdQSE7vaOta3xHLmNLwjtqjzxTCnuYlIuoDRG80Jfuq9Y7p+7CvBa1sw2m+y0LML+kYtrEiq6RBo8xpc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZiF76hb+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776767770; c=relaxed/simple;
+	bh=Thkm8FEgdmMQkcZIsHXL5Zt1EA1XVjNddKgCseGUmLM=;
+	h=Date:To:From:Subject:Message-Id; b=F8bEwJ4HRUAtmF9ekyHFpaWe5qrf7DZktCTEGw3kYyfSJRP97zavaDARRLdzap0c7nA+9ZAz0vkC8lZUQ+veWbJL1ieOCrJ4z7RsfYbuFS2pNDkXblW/QHxBTRngDka1Us7OUMzxnnkZNK3Tnryo7UOcFCgcId5NWMgL9HeDHA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AtoDX2iu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZiF76hb+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 111ADC2BCB6;
-	Tue, 21 Apr 2026 07:19:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AtoDX2iu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A850EC2BCB0;
+	Tue, 21 Apr 2026 10:36:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776755992;
-	bh=YSJjlUmCynCge3sBSYOA6fP2Yd/ACxkd7iL2FrCep+k=;
+	s=korg; t=1776767770;
+	bh=Thkm8FEgdmMQkcZIsHXL5Zt1EA1XVjNddKgCseGUmLM=;
 	h=Date:To:From:Subject:From;
-	b=ZiF76hb+f2uyM/AJEyylIAQw7U+lpXiAOR7X2tGHStO2/g+57wxgTKHx3egfpBFV3
-	 f5ppSahu0hIxWqJxI6K4wZ7F6ixbD1IYqBeHnm4gBBQjMzBM9G7ubQxUdkexeVzR5z
-	 2qM36ZgfmND8rRez3KK/3klGSwezCXwHaXYGqQqw=
-Date: Tue, 21 Apr 2026 00:19:49 -0700
-To: mm-commits@vger.kernel.org,davidgow@google.com,lk@c--e.de,akpm@linux-foundation.org
+	b=AtoDX2iuCvqINrTckoF1CBW+Ns8IaCUW8OiLVdZDW0wMbs4wYCPArrf+hMDWekskq
+	 otA8O17j8XPMuMuSPX8wgAsJdQ6xxpOk+zBFQ9dZwd0S1J+BlV7e2Mi7yc4DGNUsSc
+	 EuS1VVNoNjN2z6+GFc/9cfhFe13AfddAy7zy2+tM=
+Date: Tue, 21 Apr 2026 03:36:06 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-kunit_iov_iter-fix-test-fail-on-powerpc.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260421071952.111ADC2BCB6@smtp.kernel.org>
+Subject: + mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260421103609.A850EC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: kunit_iov_iter: fix test fail on powerpc
+     Subject: mm/vma: do not try to unmap a VMA if mmap_prepare() invoked from mmap()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     lib-kunit_iov_iter-fix-test-fail-on-powerpc.patch
+     mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-kunit_iov_iter-fix-test-fail-on-powerpc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,75 +58,192 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Christian A. Ehrhardt" <lk@c--e.de>
-Subject: lib: kunit_iov_iter: fix test fail on powerpc
-Date: Tue, 21 Apr 2026 09:07:07 +0200
+From: Lorenzo Stoakes <ljs@kernel.org>
+Subject: mm/vma: do not try to unmap a VMA if mmap_prepare() invoked from mmap()
+Date: Tue, 21 Apr 2026 11:21:50 +0100
 
-Increase buffer size to accomodate machines with
-64K PAGE_SIZE.
+The mmap_prepare hook functionality includes the ability to invoke
+mmap_prepare() from the mmap() hook of existing 'stacked' drivers, that is
+ones which are capable of calling the mmap hooks of other drivers/file
+systems (e.g.  overlayfs, shm).
 
-Link: https://lore.kernel.org/20260421070707.992873-1-lk@c--e.de
-Fixes: 0913b7554726 ("lib: kunit_iov_iter: add tests for extract_iter_to_sg")
-Signed-off-by: Christian A. Ehrhardt <lk@c--e.de>
-Reported-by: David Gow <davidgow@google.com>
-Closes: https://lore.kernel.org/34a81ec2-af84-465d-9b5e-7bb5bf01680f@davidgow.net
-Tested-by: David Gow <davidgow@google.com>
+As part of the mmap_prepare action functionality, we deal with errors by
+unmapping the VMA should one arise.  This works in the usual mmap_prepare
+case, as we invoke this action at the last moment, when the VMA is
+established in the maple tree.
+
+However, the mmap() hook passes a not-fully-established VMA pointer to the
+caller (which is the motivation behind the mmap_prepare() work), which is
+detached.
+
+So attempting to unmap a VMA in this state will be problematic, with the
+most obvious symptom being a warning in vma_mark_detached(), because the
+VMA is already detached.
+
+It's also unncessary - the mmap() handler will clean up the VMA on error.
+
+So to fix this issue, this patch propagates whether or not an mmap action
+is being completed via the compatibility layer or directly.
+
+If the former, then we do not attempt VMA cleanup, if the latter, then we
+do.
+
+This patch also updates the userland VMA tests to reflect the change.
+
+Link: https://lore.kernel.org/20260421102150.189982-1-ljs@kernel.org
+Fixes: ac0a3fc9c07d ("mm: add ability to take further action in vm_area_desc")
+Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Reported-by: syzbot+db390288d141a1dccf96@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/69e69734.050a0220.24bfd3.0027.GAE@google.com/
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/tests/kunit_iov_iter.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/mm.h                |    2 +-
+ mm/util.c                         |   26 +++++++++++++++++---------
+ mm/vma.c                          |    3 ++-
+ tools/testing/vma/include/dup.h   |    2 +-
+ tools/testing/vma/include/stubs.h |    3 ++-
+ 5 files changed, 23 insertions(+), 13 deletions(-)
 
---- a/lib/tests/kunit_iov_iter.c~lib-kunit_iov_iter-fix-test-fail-on-powerpc
-+++ a/lib/tests/kunit_iov_iter.c
-@@ -1128,7 +1128,7 @@ static void __init iov_kunit_iter_to_sg_
- 	struct kvec kvec;
- 	size_t bufsize;
+--- a/include/linux/mm.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
++++ a/include/linux/mm.h
+@@ -4391,7 +4391,7 @@ static inline void mmap_action_map_kerne
  
--	bufsize = 0x100000;
-+	bufsize = 0x200000;
- 	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
+ int mmap_action_prepare(struct vm_area_desc *desc);
+ int mmap_action_complete(struct vm_area_struct *vma,
+-			 struct mmap_action *action);
++			 struct mmap_action *action, bool is_compat);
  
- 	kvec.iov_base = data.buffer;
-@@ -1146,7 +1146,7 @@ static void __init iov_kunit_iter_to_sg_
- 	struct bio_vec *bvec;
- 	struct iov_iter iter;
+ /* Look up the first VMA which exactly match the interval vm_start ... vm_end */
+ static inline struct vm_area_struct *find_exact_vma(struct mm_struct *mm,
+--- a/mm/util.c~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
++++ a/mm/util.c
+@@ -1232,7 +1232,7 @@ int __compat_vma_mmap(struct vm_area_des
+ 	/* Update the VMA from the descriptor. */
+ 	compat_set_vma_from_desc(vma, desc);
+ 	/* Complete any specified mmap actions. */
+-	return mmap_action_complete(vma, &desc->action);
++	return mmap_action_complete(vma, &desc->action, /*is_compat=*/true);
+ }
+ EXPORT_SYMBOL(__compat_vma_mmap);
  
--	bufsize = 0x100000;
-+	bufsize = 0x200000;
- 	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
+@@ -1389,7 +1389,8 @@ static int call_vma_mapped(struct vm_are
+ }
  
- 	bvec = kunit_kmalloc_array(test, data.npages, sizeof(*bvec),
-@@ -1173,7 +1173,7 @@ static void __init iov_kunit_iter_to_sg_
- 	struct iov_iter iter;
- 	size_t bufsize;
+ static int mmap_action_finish(struct vm_area_struct *vma,
+-			      struct mmap_action *action, int err)
++			      struct mmap_action *action, int err,
++			      bool is_compat)
+ {
+ 	size_t len;
  
--	bufsize = 0x100000;
-+	bufsize = 0x200000;
- 	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
+@@ -1400,8 +1401,12 @@ static int mmap_action_finish(struct vm_
  
- 	folioq = iov_kunit_create_folioq(test);
-@@ -1190,7 +1190,7 @@ static void __init iov_kunit_iter_to_sg_
- 	struct iov_iter iter;
- 	size_t bufsize;
+ 	/* do_munmap() might take rmap lock, so release if held. */
+ 	maybe_rmap_unlock_action(vma, action);
+-	if (!err)
+-		return 0;
++	/*
++	 * If this is invoked from the compatibility layer, post-mmap() hook
++	 * logic will handle cleanup for us.
++	 */
++	if (!err || is_compat)
++		return err;
  
--	bufsize = 0x100000;
-+	bufsize = 0x200000;
- 	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
+ 	/*
+ 	 * If an error occurs, unmap the VMA altogether and return an error. We
+@@ -1451,13 +1456,15 @@ EXPORT_SYMBOL(mmap_action_prepare);
+  * mmap_action_complete - Execute VMA descriptor action.
+  * @vma: The VMA to perform the action upon.
+  * @action: The action to perform.
++ * @is_compat: Is this being invoked from the compatibility layer?
+  *
+  * Similar to mmap_action_prepare().
+  *
+- * Return: 0 on success, or error, at which point the VMA will be unmapped.
++ * Return: 0 on success, or error, at which point the VMA will be unmapped if
++ * !@is_compat.
+  */
+ int mmap_action_complete(struct vm_area_struct *vma,
+-			 struct mmap_action *action)
++			 struct mmap_action *action, bool is_compat)
+ {
+ 	int err = 0;
  
- 	xarray = iov_kunit_create_xarray(test);
-@@ -1206,7 +1206,7 @@ static void __init iov_kunit_iter_to_sg_
- 	struct iov_iter iter;
- 	size_t bufsize;
+@@ -1478,7 +1485,7 @@ int mmap_action_complete(struct vm_area_
+ 		break;
+ 	}
  
--	bufsize = 0x100000;
-+	bufsize = 0x200000;
- 	iov_kunit_iter_to_sg_init(test, bufsize, true, &data);
+-	return mmap_action_finish(vma, action, err);
++	return mmap_action_finish(vma, action, err, is_compat);
+ }
+ EXPORT_SYMBOL(mmap_action_complete);
+ #else
+@@ -1500,7 +1507,8 @@ int mmap_action_prepare(struct vm_area_d
+ EXPORT_SYMBOL(mmap_action_prepare);
  
- 	iov_iter_ubuf(&iter, READ, data.ubuf, bufsize);
+ int mmap_action_complete(struct vm_area_struct *vma,
+-			 struct mmap_action *action)
++			 struct mmap_action *action,
++			 bool is_compat)
+ {
+ 	int err = 0;
+ 
+@@ -1517,7 +1525,7 @@ int mmap_action_complete(struct vm_area_
+ 		break;
+ 	}
+ 
+-	return mmap_action_finish(vma, action, err);
++	return mmap_action_finish(vma, action, err, is_compat);
+ }
+ EXPORT_SYMBOL(mmap_action_complete);
+ #endif
+--- a/mm/vma.c~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
++++ a/mm/vma.c
+@@ -2780,7 +2780,8 @@ static unsigned long __mmap_region(struc
+ 	__mmap_complete(&map, vma);
+ 
+ 	if (have_mmap_prepare && allocated_new) {
+-		error = mmap_action_complete(vma, &desc.action);
++		error = mmap_action_complete(vma, &desc.action,
++					     /*is_compat=*/false);
+ 		if (error)
+ 			return error;
+ 	}
+--- a/tools/testing/vma/include/dup.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
++++ a/tools/testing/vma/include/dup.h
+@@ -1330,7 +1330,7 @@ static inline int __compat_vma_mmap(stru
+ 	/* Update the VMA from the descriptor. */
+ 	compat_set_vma_from_desc(vma, desc);
+ 	/* Complete any specified mmap actions. */
+-	return mmap_action_complete(vma, &desc->action);
++	return mmap_action_complete(vma, &desc->action, /*is_compat=*/true);
+ }
+ 
+ static inline int compat_vma_mmap(struct file *file, struct vm_area_struct *vma)
+--- a/tools/testing/vma/include/stubs.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
++++ a/tools/testing/vma/include/stubs.h
+@@ -87,7 +87,8 @@ static inline int mmap_action_prepare(st
+ }
+ 
+ static inline int mmap_action_complete(struct vm_area_struct *vma,
+-				       struct mmap_action *action)
++				       struct mmap_action *action,
++				       bool is_compat)
+ {
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from lk@c--e.de are
+Patches currently in -mm which might be from ljs@kernel.org are
 
-lib-kunit_iov_iter-fix-test-fail-on-powerpc.patch
+mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch
 
