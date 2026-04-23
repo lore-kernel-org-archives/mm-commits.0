@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 909FA386C0D
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 18:51:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 616CE2DECA3
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 20:30:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776970315; cv=none; b=UzpkjS1UgQzdUstK1QkmGp6XzyNEHogjNNGzLCXZrkeutwbJxYJz6mWiYYFvnAd78sw88BpxGErR1lznVyUtc6W5iWuxKxjoJfW5V4TCIrryP5/gwXIWUse5L0S3BHReymdQ3MYImd5rqECxEuuAc0hMOrgWB5XcPP2A5jpH3o4=
+	t=1776976245; cv=none; b=FGmUk8bq5Bif9jlSEIuzuk9cKtyAYhh+vAFDwaoEXJtV2gALgqD6e5UgfNFeg3mKpXsn/uZNJLcWS/4HkgkkWwVnEcml9DQdOehmRRSjVlahaqK19qgcv+4KzwvrAqgnPjAjYS7o6S4ljIlxD0cFSDkUU/HWxFV7s3yQnnAOJOY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776970315; c=relaxed/simple;
-	bh=4ccwX8hqDRMW1HEuyW/UJaesNW+8MPPdtfG19QmbkPg=;
-	h=Date:To:From:Subject:Message-Id; b=bsmF/TMRuiiaR4veTwwSGVYAr5vPlyIdLc8z7beGojRQg1Fn+trostEqqKSRzGMAh+sB/uxpFCzqHJ70aUuaM+CrnTFDhhccYi9bgP739YUw4fQoiuK8xMNtQGNPE6l4BM4xVhZ0ej3E31xogRt18Uhavbf08UmIRpsA4UOZt9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sl42LyvG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776976245; c=relaxed/simple;
+	bh=vhadWvy4VlFNmmU9nkUEgfIn1v/TnFgPg1cvvRMrBzA=;
+	h=Date:To:From:Subject:Message-Id; b=dzSTPbegbs0EBKf9oaae2yu8bUqB7ZtjNPMmEPYGwMkNh57x7dZxhIW33qvnAiE+dxp+v6Z3ZM5Q6CJGaDdByTqITabvgrNMKX72Xh4fHG7YNjbpJnTymWEmahMuNBqxtJrhrg1tVcbD6PktSunuC3c1v1V/Va+6PKQ5L4clO0c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qhUKa3ml; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sl42LyvG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55248C2BCB2;
-	Thu, 23 Apr 2026 18:51:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qhUKa3ml"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0071BC2BCAF;
+	Thu, 23 Apr 2026 20:30:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776970315;
-	bh=4ccwX8hqDRMW1HEuyW/UJaesNW+8MPPdtfG19QmbkPg=;
+	s=korg; t=1776976245;
+	bh=vhadWvy4VlFNmmU9nkUEgfIn1v/TnFgPg1cvvRMrBzA=;
 	h=Date:To:From:Subject:From;
-	b=Sl42LyvGUdU6c+e4qmxvxC0WTztmWy7rArV6z45c+qGRkpPpryWjjQrcQUjLY6tjY
-	 G8DoK/9s2MWM++f1a8SdWvLtIq4Nmw3nfNeJgAFIdjYLKh7Bi3qTVg5E2p08Zh9ze1
-	 xoSHHDx0UUBZPBZLQSTSvQmUFEX+E2I6Nkw/IOew=
-Date: Thu, 23 Apr 2026 11:51:54 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ypodemsk@redhat.com,will@kernel.org,tglx@linutronix.de,shy828301@gmail.com,seanjc@google.com,ryan.roberts@arm.com,riel@surriel.com,peterz@infradead.org,pbonzini@redhat.com,npiggin@gmail.com,npache@redhat.com,mingo@redhat.com,ljs@kernel.org,liam@infradead.org,jgross@suse.com,jannh@google.com,hughd@google.com,hpa@zytor.com,dev.jain@arm.com,david@kernel.org,dave.hansen@intel.com,bp@alien8.de,boris.ostrovsky@oracle.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,arnd@arndb.de,aneesh.kumar@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=qhUKa3mldeXY16P2vWZeXN5eO4vbbvTMrmILSvRqPA1UDhW1xdbLHAXeSU79fxAcJ
+	 8Ys8GqpAxHhTdp6unY0zP2RhxtEAs/lirWh3tQd14dxUZ7J9oPOsdduPUV6H6clGQT
+	 c8/wjFDybGqmXBcgeAV8Noh/026ADbyK4TquDrw4=
+Date: Thu, 23 Apr 2026 13:30:44 -0700
+To: mm-commits@vger.kernel.org,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch added to mm-new branch
-Message-Id: <20260423185155.55248C2BCB2@smtp.kernel.org>
+Subject: + mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch added to mm-new branch
+Message-Id: <20260423203045.0071BC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/tlb: skip redundant sync IPIs for native TLB flush
+     Subject: mm/khugepaged: generalize hugepage_vma_revalidate for mTHP support
 has been added to the -mm mm-new branch.  Its filename is
-     x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch
+     mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,179 +69,194 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: x86/tlb: skip redundant sync IPIs for native TLB flush
-Date: Mon, 20 Apr 2026 11:08:51 +0800
+From: Nico Pache <npache@redhat.com>
+Subject: mm/khugepaged: generalize hugepage_vma_revalidate for mTHP support
+Date: Sun, 19 Apr 2026 12:57:38 -0600
 
-Some page table operations need to synchronize with software/lockless
-walkers after a TLB flush by calling tlb_remove_table_sync_{one,rcu}(). 
-On x86, that extra synchronization is redundant when the preceding TLB
-flush already broadcast IPIs to all relevant CPUs.
+Patch series "khugepaged: mTHP support", v16.
 
-native_pv_tlb_init() checks whether native_flush_tlb_multi() is in use. 
-On CONFIG_PARAVIRT systems, it checks pv_ops; on non-PARAVIRT, native
-flush is always in use.
+This series provides khugepaged with the capability to collapse anonymous
+memory regions to mTHPs.
 
-It decides once at boot whether to enable the optimization: if using
-native TLB flush and INVLPGB is not supported, we know IPIs were sent and
-can skip the redundant sync.  The decision is fixed via a static key as
-Peter suggested[1].
+To achieve this we generalize the khugepaged functions to no longer depend
+on PMD_ORDER.  Then during the PMD scan, we use a bitmap to track
+individual pages that are occupied (!none/zero).  After the PMD scan is
+done, we use the bitmap to find the optimal mTHP sizes for the PMD range. 
+The restriction on max_ptes_none is removed during the scan, to make sure
+we account for the whole PMD range in the bitmap.  When no mTHP size is
+enabled, the legacy behavior of khugepaged is maintained.
 
-PV backends (KVM, Xen, Hyper-V) typically have their own implementations
-and don't call native_flush_tlb_multi() directly, so they cannot be
-trusted to provide the IPI guarantees we need.
+We currently only support max_ptes_none values of 0 or HPAGE_PMD_NR - 1
+(ie 511).  If any other value is specified, the kernel will emit a warning
+and no mTHP collapse will be attempted.  If a mTHP collapse is attempted,
+but contains swapped out, or shared pages, we don't perform the collapse. 
+It is now also possible to collapse to mTHPs without requiring the PMD THP
+size to be enabled.  These limitations are to prevent collapse "creep"
+behavior.  This prevents constantly promoting mTHPs to the next available
+size, which would occur because a collapse introduces more non-zero pages
+that would satisfy the promotion condition on subsequent scans.
 
-Also treat unshared_tables like freed_tables when issuing the TLB flush,
-so lazy-TLB CPUs receive IPIs during unsharing of page tables as well. 
-This allows us to safely implement
-tlb_table_flush_implies_ipi_broadcast().
+Patch 1-2:   Generalize hugepage_vma_revalidate and alloc_charge_folio
+	     for arbitrary orders.
+Patch 3:     Rework max_ptes_* handling into helper functions
+Patch 4-5:   Generalize __collapse_huge_page_* and collapse_huge_page
+Patch 6:     Skip collapsing mTHP to smaller orders
+Patch 7-8:   Add per-order mTHP statistics and tracepoints
+Patch 9:     Introduce collapse_allowable_orders helper function
+Patch 10-12: Introduce bitmap and mTHP collapse support, fully enabled
+Patch 13:    Documentation
 
-Two-step plan as David suggested[2]:
 
-Step 1 (this patch): Skip redundant sync when we're 100% certain the TLB
-flush sent IPIs. INVLPGB is excluded because when supported, we cannot
-guarantee IPIs were sent, keeping it clean and simple.
+This patch (of 13):
 
-Step 2 (future work): Send targeted IPIs only to CPUs actually doing
-software/lockless page table walks, benefiting all architectures.
+For khugepaged to support different mTHP orders, we must generalize this
+to check if the PMD is not shared by another VMA and that the order is
+enabled.
 
-Regarding Step 2, it obviously only applies to setups where Step 1 does
-not apply: like x86 with INVLPGB or arm64.
+No functional change in this patch.  Also correct a comment about the
+functionality of the revalidation and fix a double space issues.
 
-Link: https://lore.kernel.org/20260420030851.6735-3-lance.yang@linux.dev
-Link: https://lore.kernel.org/linux-mm/20260302145652.GH1395266@noisy.programming.kicks-ass.net/ [1]
-Link: https://lore.kernel.org/linux-mm/bbfdf226-4660-4949-b17b-0d209ee4ef8c@kernel.org/ [2]
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Link: https://lore.kernel.org/20260419185750.260784-1-npache@redhat.com
+Link: https://lore.kernel.org/20260419185750.260784-2-npache@redhat.com
+Co-developed-by: Dev Jain <dev.jain@arm.com>
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Signed-off-by: Nico Pache <npache@redhat.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Jann Horn <jannh@google.com>
-Cc: Juegren Gross <jgross@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Shivank Garg <shivankg@amd.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Takashi Iwai (SUSE) <tiwai@suse.de>
+Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Will Deacon <will@kernel.org>
-Cc: Yair Podemsky <ypodemsk@redhat.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Yang Shi <yang@os.amperecomputing.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/tlb.h      |   18 +++++++++++++++++-
- arch/x86/include/asm/tlbflush.h |    2 ++
- arch/x86/kernel/smpboot.c       |    1 +
- arch/x86/mm/tlb.c               |   15 +++++++++++++++
- 4 files changed, 35 insertions(+), 1 deletion(-)
+ mm/khugepaged.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
---- a/arch/x86/include/asm/tlbflush.h~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/include/asm/tlbflush.h
-@@ -18,6 +18,8 @@
+--- a/mm/khugepaged.c~mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support
++++ a/mm/khugepaged.c
+@@ -902,12 +902,13 @@ static int collapse_find_target_node(str
  
- DECLARE_PER_CPU(u64, tlbstate_untag_mask);
+ /*
+  * If mmap_lock temporarily dropped, revalidate vma
+- * before taking mmap_lock.
++ * after taking the mmap_lock again.
+  * Returns enum scan_result value.
+  */
  
-+void __init native_pv_tlb_init(void);
-+
- void __flush_tlb_all(void);
- 
- #define TLB_FLUSH_ALL	-1UL
---- a/arch/x86/include/asm/tlb.h~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/include/asm/tlb.h
-@@ -5,11 +5,21 @@
- #define tlb_flush tlb_flush
- static inline void tlb_flush(struct mmu_gather *tlb);
- 
-+#define tlb_table_flush_implies_ipi_broadcast tlb_table_flush_implies_ipi_broadcast
-+static inline bool tlb_table_flush_implies_ipi_broadcast(void);
-+
- #include <asm-generic/tlb.h>
- #include <linux/kernel.h>
- #include <vdso/bits.h>
- #include <vdso/page.h>
- 
-+DECLARE_STATIC_KEY_FALSE(tlb_ipi_broadcast_key);
-+
-+static inline bool tlb_table_flush_implies_ipi_broadcast(void)
-+{
-+	return static_branch_likely(&tlb_ipi_broadcast_key);
-+}
-+
- static inline void tlb_flush(struct mmu_gather *tlb)
+ static enum scan_result hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address,
+-		bool expect_anon, struct vm_area_struct **vmap, struct collapse_control *cc)
++		bool expect_anon, struct vm_area_struct **vmap,
++		struct collapse_control *cc, unsigned int order)
  {
- 	unsigned long start = 0UL, end = TLB_FLUSH_ALL;
-@@ -20,7 +30,13 @@ static inline void tlb_flush(struct mmu_
- 		end = tlb->end;
- 	}
+ 	struct vm_area_struct *vma;
+ 	enum tva_type type = cc->is_khugepaged ? TVA_KHUGEPAGED :
+@@ -920,15 +921,16 @@ static enum scan_result hugepage_vma_rev
+ 	if (!vma)
+ 		return SCAN_VMA_NULL;
  
--	flush_tlb_mm_range(tlb->mm, start, end, stride_shift, tlb->freed_tables);
-+	/*
-+	 * Treat unshared_tables just like freed_tables, such that lazy-TLB
-+	 * CPUs also receive IPIs during unsharing of page tables, allowing
-+	 * us to safely implement tlb_table_flush_implies_ipi_broadcast().
-+	 */
-+	flush_tlb_mm_range(tlb->mm, start, end, stride_shift,
-+			   tlb->freed_tables || tlb->unshared_tables);
- }
++	/* Always check the PMD order to ensure its not shared by another VMA */
+ 	if (!thp_vma_suitable_order(vma, address, PMD_ORDER))
+ 		return SCAN_ADDRESS_RANGE;
+-	if (!thp_vma_allowable_order(vma, vma->vm_flags, type, PMD_ORDER))
++	if (!thp_vma_allowable_orders(vma, vma->vm_flags, type, BIT(order)))
+ 		return SCAN_VMA_CHECK;
+ 	/*
+ 	 * Anon VMA expected, the address may be unmapped then
+ 	 * remapped to file after khugepaged reaquired the mmap_lock.
+ 	 *
+-	 * thp_vma_allowable_order may return true for qualified file
++	 * thp_vma_allowable_orders may return true for qualified file
+ 	 * vmas.
+ 	 */
+ 	if (expect_anon && (!(*vmap)->anon_vma || !vma_is_anonymous(*vmap)))
+@@ -1121,7 +1123,8 @@ static enum scan_result collapse_huge_pa
+ 		goto out_nolock;
  
- static inline void invlpg(unsigned long addr)
---- a/arch/x86/kernel/smpboot.c~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/kernel/smpboot.c
-@@ -1256,6 +1256,7 @@ void __init native_smp_prepare_boot_cpu(
- 		switch_gdt_and_percpu_base(me);
- 
- 	native_pv_lock_init();
-+	native_pv_tlb_init();
- }
- 
- void __init native_smp_cpus_done(unsigned int max_cpus)
---- a/arch/x86/mm/tlb.c~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/mm/tlb.c
-@@ -26,6 +26,8 @@
- 
- #include "mm_internal.h"
- 
-+DEFINE_STATIC_KEY_FALSE(tlb_ipi_broadcast_key);
-+
- #ifdef CONFIG_PARAVIRT
- # define STATIC_NOPV
- #else
-@@ -1813,3 +1815,16 @@ static int __init create_tlb_single_page
- 	return 0;
- }
- late_initcall(create_tlb_single_page_flush_ceiling);
-+
-+void __init native_pv_tlb_init(void)
-+{
-+#ifdef CONFIG_PARAVIRT
-+	if (pv_ops.mmu.flush_tlb_multi != native_flush_tlb_multi)
-+		return;
-+#endif
-+
-+	if (cpu_feature_enabled(X86_FEATURE_INVLPGB))
-+		return;
-+
-+	static_branch_enable(&tlb_ipi_broadcast_key);
-+}
+ 	mmap_read_lock(mm);
+-	result = hugepage_vma_revalidate(mm, address, true, &vma, cc);
++	result = hugepage_vma_revalidate(mm, address, true, &vma, cc,
++					 HPAGE_PMD_ORDER);
+ 	if (result != SCAN_SUCCEED) {
+ 		mmap_read_unlock(mm);
+ 		goto out_nolock;
+@@ -1155,7 +1158,8 @@ static enum scan_result collapse_huge_pa
+ 	 * mmap_lock.
+ 	 */
+ 	mmap_write_lock(mm);
+-	result = hugepage_vma_revalidate(mm, address, true, &vma, cc);
++	result = hugepage_vma_revalidate(mm, address, true, &vma, cc,
++					 HPAGE_PMD_ORDER);
+ 	if (result != SCAN_SUCCEED)
+ 		goto out_up_write;
+ 	/* check if the pmd is still valid */
+@@ -2857,8 +2861,8 @@ int madvise_collapse(struct vm_area_stru
+ 			mmap_unlocked = false;
+ 			*lock_dropped = true;
+ 			result = hugepage_vma_revalidate(mm, addr, false, &vma,
+-							 cc);
+-			if (result  != SCAN_SUCCEED) {
++							 cc, HPAGE_PMD_ORDER);
++			if (result != SCAN_SUCCEED) {
+ 				last_fail = result;
+ 				goto out_nolock;
+ 			}
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from npache@redhat.com are
 
-mm-mmu_gather-prepare-to-skip-redundant-sync-ipis.patch
-x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch
+mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
+mm-khugepaged-rework-max_ptes_-handling-with-helper-functions.patch
+mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
+mm-khugepaged-generalize-collapse_huge_page-for-mthp-collapse.patch
+mm-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
+mm-khugepaged-add-per-order-mthp-collapse-failure-statistics.patch
+mm-khugepaged-improve-tracepoints-for-mthp-orders.patch
+mm-khugepaged-introduce-collapse_allowable_orders-helper-function.patch
+mm-khugepaged-introduce-mthp-collapse-support.patch
+mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
+documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
 
