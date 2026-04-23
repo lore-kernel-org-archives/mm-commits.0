@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8017D25A354
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 17:17:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE5FB3806D1
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 17:17:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776964635; cv=none; b=IDrHRvR7JSzx8nIC61GdaVFH+Iic4N+VnVk5bSmrpQVOR0J9BBqjwp/Zw9QCR3u37Vwz0h9TDrsuIo/XFGMFEgS+9DQaezLeWg1MDcCtd0u+TyibHol9njZktbt6RXlzwnX6b2qVTAmjNSjoFW9iKwObtOLtB+pVfyWmXZIkVFU=
+	t=1776964637; cv=none; b=d0iJu2xGXO/czbKvTmphYOzWvHHkXvtlP/K2DNrmQhg/awttxE2sIVWP/qVoAX1o1ijG46bXtJQoiaPfHhGO2F8IlSz+D6A7ipkbmP98OkmYydbw/rWv2K2Xn5tRZwvpe6sXaC81WMssN9Q26qUdAvfErrqeh920j1BN9WSLb54=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776964635; c=relaxed/simple;
-	bh=oygcZ7iKTsV3LPMoUU6/s1hY8m4XEpE/BG7d/2OOsiI=;
-	h=Date:To:From:Subject:Message-Id; b=icwU5T3W1aCEbjKr2idvqOOpzxsPkkUV9rCW5RjYFLYNuZSY506GIJB5ko6xwjVSMZpr4f9z3i3YRj8icIZXjxXe2WFKOUxfu9NVLhqVY81qawwqPkqQRjRTVsIE1y/DXGwN0rH0/LgdagHk1wI5gli6zQDcVj4Wws8aYVj/eRY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QHK8C3l6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776964637; c=relaxed/simple;
+	bh=vp40wLLF8Y41j2tC1dEldpu7TQK7tRXE0XpvQBw8/kI=;
+	h=Date:To:From:Subject:Message-Id; b=uuJJYODM8a2xIESQ5Y+02JEF6F8LM/bLm4caaNi+CzveP4Ba/InXabeIU5Kfomcf1xoDhPY4eNmoaEL435gIxUkIomEYFxXZBjIkIRAWRTfNZDQa0/GoxIDqJkjtrrnEBDoVF/5NQpVugBPd0pYiDAFQNduLR/hjrRUE2q+f+1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1E1vwEdn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QHK8C3l6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06907C2BCAF;
-	Thu, 23 Apr 2026 17:17:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1E1vwEdn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A912C2BCAF;
+	Thu, 23 Apr 2026 17:17:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776964635;
-	bh=oygcZ7iKTsV3LPMoUU6/s1hY8m4XEpE/BG7d/2OOsiI=;
+	s=korg; t=1776964637;
+	bh=vp40wLLF8Y41j2tC1dEldpu7TQK7tRXE0XpvQBw8/kI=;
 	h=Date:To:From:Subject:From;
-	b=QHK8C3l6pmm05eHe6VDjsjFCdFZkxuZibiLJg3kaRVU8WYTPqbgPtPsQG5XQVxAPs
-	 b3N/wUEovHS+tLz3/5kHqbbUG40NX3kv0e70pVSi2tR6N3oQcRzZdVoQlsE0LRzvjR
-	 udoYFOEm723LTpJQ3eSOJUVrBK1+oQ/Kici1KffM=
-Date: Thu, 23 Apr 2026 10:17:14 -0700
+	b=1E1vwEdnUoOJou3WYqPMI4jG2ODUBORzz4n0WElM+Uee0+XI9MrwZRUKLf5nNGEVP
+	 1Ukd3MPVx1WfcMMKhH58FIEwRLI0f2ocxX5zdelpKJDrXpe+Fh5rKdCXZuOQBVvN3W
+	 g2ESFxdKNPnFoepXKb1jRoQzAxM4ggSzvaVC+Ayo=
+Date: Thu, 23 Apr 2026 10:17:16 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,rafael@kernel.org,peterz@infradead.org,mingo@kernel.org,memxor@gmail.com,mark.rutland@arm.com,konradybcio@kernel.org,harisokn@amazon.com,gary@garyguo.net,davidgow@google.com,daniel.lezcano@linaro.org,cl@linux.com,catalin.marinas@arm.com,boqun@kernel.org,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,andersson@kernel.org,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + asm-generic-barrier-add-smp_cond_load_relaxed_timeout.patch added to mm-new branch
-Message-Id: <20260423171715.06907C2BCAF@smtp.kernel.org>
+Subject: + arm64-barrier-support-smp_cond_load_relaxed_timeout.patch added to mm-new branch
+Message-Id: <20260423171717.6A912C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: asm-generic: barrier: add smp_cond_load_relaxed_timeout()
+     Subject: arm64: barrier: support smp_cond_load_relaxed_timeout()
 has been added to the -mm mm-new branch.  Its filename is
-     asm-generic-barrier-add-smp_cond_load_relaxed_timeout.patch
+     arm64-barrier-support-smp_cond_load_relaxed_timeout.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/asm-generic-barrier-add-smp_cond_load_relaxed_timeout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/arm64-barrier-support-smp_cond_load_relaxed_timeout.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,154 +70,31 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: asm-generic: barrier: add smp_cond_load_relaxed_timeout()
-Date: Wed, 8 Apr 2026 17:55:25 +0530
+Subject: arm64: barrier: support smp_cond_load_relaxed_timeout()
+Date: Wed, 8 Apr 2026 17:55:26 +0530
 
-Patch series "barrier: Add smp_cond_load_{relaxed,acquire}_timeout()",
-v11.
+Support waiting in smp_cond_load_relaxed_timeout() via
+__cmpwait_relaxed().  To ensure that we wake from waiting in WFE
+periodically and don't block forever if there are no stores to ptr, this
+path is only used when the event-stream is enabled.
 
-The core kernel often uses smp_cond_load_{relaxed,acquire}() to spin on
-condition variables with architectural primitives used to avoid hammering
-the relevant cachelines.
+Note that when using __cmpwait_relaxed() we ignore the timeout value,
+allowing an overshoot by up to the event-stream period.  And, in the
+unlikely event that the event-stream is unavailable, fallback to
+spin-waiting.
 
-(This primitive can vary greatly across architectures: on x86 it's a
-cpu_relax() to slow down the pipeline.  On arm64, this is a __cmpwait()
-which waits for a cacheline to change state in a time limited fashion.)
+Also set SMP_TIMEOUT_POLL_COUNT to 1 so we do the time-check in each
+iteration of smp_cond_load_relaxed_timeout().
 
-Regardless of architectural details, typical smp_cond_load*() usage does
-not allow for termination until the condition change occurs.
+And finally define ARCH_HAS_CPU_RELAX to indicate that we have an
+optimized implementation of cpu_poll_relax().
 
-Beyond the core kernel, there are cases where it is useful to additionally
-terminate on a timeout.  Two cases:
-
-  - cpuidle poll_idle(): wait for need-resched until the cpuidle polling
-    duration expires.
-
-  - rqspinlock: nested qspinlock acquisition that terminates on timeout
-    or deadlock.
-
-Accordingly add two interfaces (with their generic and arm64 specific
-implementations):
-
-   smp_cond_load_relaxed_timeout(ptr, cond_expr, time_expr, timeout)
-   smp_cond_load_acquire_timeout(ptr, cond_expr, time_expr, timeout)
-
-Also add tif_need_resched_relaxed_wait() which wraps the polling pattern
-and its scheduler specific details in poll_idle().  In addition add
-atomic_cond_read_*_timeout(), atomic64_cond_read_*_timeout(), and
-atomic_long wrappers.
-
-Structurally, both the smp_cond_load_*_timeout() interfaces are similar to
-smp_cond_load*(), with the addition of a rate-limited time-check.
-
-Usage
-=====
-
-These interfaces drop straight-forwardly into the rqspinlock logic since
-qspinlock already uses smp_cond_load*(), and the time-check extension can
-now be used for timeout and deadlock handling.
-
-Using tif_need_resched_relaxed_wait() in poll_idle() removes any
-architectural details allowing arm64 to straight-forwardly support that
-path.
-
-(However, for efficiency reasons cpuidle/poll_state.c continues to depend
-on ARCH_HAS_CPU_RELAX since that is defined on architectures with an
-optimized architectural primitive.)
-
-
-Performance
-===========
-
-Apart from simplifications due to this change, supporting polling in
-cpuidle on arm64 helps improve wakeup latency (needs a few cpuidle/acpi
-patches):
-
-
-  # perf stat -r 5 --cpu 4,5 -e task-clock,cycles,instructions,sched:sched_wake_idle_without_ipi \
-  perf bench sched pipe -l 1000000 -c 4
-
-  # No haltpoll (and, no TIF_POLLING_NRFLAG):
-
-  Performance counter stats for 'CPU(s) 4,5' (5 runs):
-
-         25,229.57 msec task-clock                       #    2.000 CPUs utilized               ( +-  7.75% )
-    45,821,250,284      cycles                           #    1.816 GHz                         ( +- 10.07% )
-    26,557,496,665      instructions                     #    0.58  insn per cycle              ( +-  0.21% )
-                 0      sched:sched_wake_idle_without_ipi #    0.000 /sec
-
-       12.615 +- 0.977 seconds time elapsed  ( +-  7.75% )
-
-
-  # Haltpoll:
-
-  Performance counter stats for 'CPU(s) 4,5' (5 runs):
-
-         15,131.58 msec task-clock                       #    2.000 CPUs utilized               ( +- 10.00% )
-    34,158,188,839      cycles                           #    2.257 GHz                         ( +-  6.91% )
-    20,824,950,916      instructions                     #    0.61  insn per cycle              ( +-  0.09% )
-         1,983,822      sched:sched_wake_idle_without_ipi #  131.105 K/sec                       ( +-  0.78% )
-
-        7.566 +- 0.756 seconds time elapsed  ( +- 10.00% )
-
-  We get improved latency because we don't switch in and out of a
-  deeper sleep state or from the hypervisor. This also causes us to
-  execute ~20% fewer instructions.
-
-Haris Okanovic also saw improvement in real workloads due to the cpuidle
-changes: "observed 4-6% improvements in memcahed, cassandra, mysql, and
-postgresql under certain loads.  Other applications likely benefit too."
-[1]
-
-
-This patch (of 14):
-
-Add smp_cond_load_relaxed_timeout(), which extends smp_cond_load_relaxed()
-to allow waiting for a duration.
-
-We loop around waiting for the condition variable to change while
-peridically doing a time-check.  The loop uses cpu_poll_relax() to slow
-down the busy-wait, which, unless overridden by the architecture code,
-amounts to a cpu_relax().
-
-Note that there are two ways for the time-check to fail: the timeout case
-or, @time_expr_ns returning an invalid value (negative or zero).  The
-second failure mode allows for clocks attached to the clock-domain of
-@cond_expr -- which might cease to operate meaningfully once some state
-internal to @cond_expr has changed -- to fail.
-
-Evaluation of @time_expr_ns: in the fastpath we want to keep the
-performance close to smp_cond_load_relaxed().  So defer evaluation of the
-potentially costly @time_expr_ns to the slowpath.
-
-This also means that there will always be some hardware dependent duration
-that has passed in cpu_poll_relax() iterations at the time of first
-evaluation.  Additionally cpu_poll_relax() is not guaranteed to return at
-timeout boundary.  In sum, expect timeout overshoot when we exit due to
-expiration of the timeout.
-
-The number of spin iterations before time-check, SMP_TIMEOUT_POLL_COUNT is
-chosen to be 200 by default.  With a cpu_poll_relax() iteration taking
-~20-30 cycles (measured on a variety of x86 platforms), we expect a
-time-check every ~4000-6000 cycles.
-
-The outer limit of the overshoot is double that when working with the
-parameters above.  This might be higher or lower depending on the
-implementation of cpu_poll_relax() across architectures.
-
-Lastly, config option ARCH_HAS_CPU_RELAX indicates availability of a
-cpu_poll_relax() that is cheaper than polling.  This might be relevant for
-cases with a long timeout.
-
-Link: https://lore.kernel.org/20260408122538.3610871-1-ankur.a.arora@oracle.com
-Link: https://lore.kernel.org/20260408122538.3610871-2-ankur.a.arora@oracle.com
-Link: https://lore.kernel.org/lkml/c6f3c8d3f1f2e89a9dc7ae22482973b5a51b08cb.camel@amazon.com/ [1]
+Link: https://lore.kernel.org/20260408122538.3610871-3-ankur.a.arora@oracle.com
 Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
+Suggested-by: Will Deacon <will@kernel.org>
+Acked-by: Will Deacon <will@kernel.org>
 Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Bjorn Andersson <andersson@kernel.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
@@ -231,91 +108,64 @@ Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Konrad Dybcio <konradybcio@kernel.org>
 Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/barrier.h |   69 ++++++++++++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
+ arch/arm64/Kconfig               |    3 +++
+ arch/arm64/include/asm/barrier.h |   21 +++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
 
---- a/include/asm-generic/barrier.h~asm-generic-barrier-add-smp_cond_load_relaxed_timeout
-+++ a/include/asm-generic/barrier.h
-@@ -274,6 +274,75 @@ do {									\
- #endif
+--- a/arch/arm64/include/asm/barrier.h~arm64-barrier-support-smp_cond_load_relaxed_timeout
++++ a/arch/arm64/include/asm/barrier.h
+@@ -12,6 +12,7 @@
+ #include <linux/kasan-checks.h>
  
- /*
-+ * Number of times we iterate in the loop before doing the time check.
-+ * Note that the iteration count assumes that the loop condition is
-+ * relatively cheap.
-+ */
-+#ifndef SMP_TIMEOUT_POLL_COUNT
-+#define SMP_TIMEOUT_POLL_COUNT		200
-+#endif
+ #include <asm/alternative-macros.h>
++#include <asm/vdso/processor.h>
+ 
+ #define __nops(n)	".rept	" #n "\nnop\n.endr\n"
+ #define nops(n)		asm volatile(__nops(n))
+@@ -219,6 +220,26 @@ do {									\
+ 	(typeof(*ptr))VAL;						\
+ })
+ 
++/* Re-declared here to avoid include dependency. */
++extern bool arch_timer_evtstrm_available(void);
 +
 +/*
-+ * Platforms with ARCH_HAS_CPU_RELAX have a cpu_poll_relax() implementation
-+ * that is expected to be cheaper (lower power) than pure polling.
++ * In the common case, cpu_poll_relax() sits waiting in __cmpwait_relaxed()
++ * for the ptr value to change.
++ *
++ * Since this period is reasonably long, choose SMP_TIMEOUT_POLL_COUNT
++ * to be 1, so smp_cond_load_{relaxed,acquire}_timeout() does a
++ * time-check in each iteration.
 + */
-+#ifndef cpu_poll_relax
-+#define cpu_poll_relax(ptr, val, timeout_ns)	cpu_relax()
-+#endif
++#define SMP_TIMEOUT_POLL_COUNT	1
 +
-+/**
-+ * smp_cond_load_relaxed_timeout() - (Spin) wait for cond with no ordering
-+ * guarantees until a timeout expires.
-+ * @ptr: pointer to the variable to wait on.
-+ * @cond_expr: boolean expression to wait for.
-+ * @time_expr_ns: expression that evaluates to monotonic time (in ns) or,
-+ *  on failure, returns a negative value.
-+ * @timeout_ns: timeout value in ns
-+ * Both of the above are assumed to be compatible with s64; the signed
-+ * value is used to handle the failure case in @time_expr_ns.
-+ *
-+ * Equivalent to using READ_ONCE() on the condition variable.
-+ *
-+ * Callers that expect to wait for prolonged durations might want
-+ * to take into account the availability of ARCH_HAS_CPU_RELAX.
-+ *
-+ * Note that @ptr is expected to point to a memory address. Using this
-+ * interface with MMIO will be slower (since SMP_TIMEOUT_POLL_COUNT is
-+ * tuned for memory) and might also break in interesting architecture
-+ * dependent ways.
-+ */
-+#ifndef smp_cond_load_relaxed_timeout
-+#define smp_cond_load_relaxed_timeout(ptr, cond_expr,			\
-+				      time_expr_ns, timeout_ns)		\
-+({									\
-+	typeof(ptr) __PTR = (ptr);					\
-+	__unqual_scalar_typeof(*ptr) VAL;				\
-+	u32 __n = 0, __spin = SMP_TIMEOUT_POLL_COUNT;			\
-+	s64 __timeout = (s64)timeout_ns;				\
-+	s64 __time_now, __time_end = 0;					\
-+									\
-+	for (;;) {							\
-+		VAL = READ_ONCE(*__PTR);				\
-+		if (cond_expr)						\
-+			break;						\
-+		cpu_poll_relax(__PTR, VAL, (u64)__timeout);		\
-+		if (++__n < __spin)					\
-+			continue;					\
-+		__time_now = (s64)(time_expr_ns);			\
-+		if (unlikely(__time_end == 0))				\
-+			__time_end = __time_now + __timeout;		\
-+		__timeout = __time_end - __time_now;			\
-+		if (__time_now <= 0 || __timeout <= 0) {		\
-+			VAL = READ_ONCE(*__PTR);			\
-+			break;						\
-+		}							\
-+		__n = 0;						\
-+	}								\
-+	(typeof(*ptr))VAL;						\
-+})
-+#endif
++#define cpu_poll_relax(ptr, val, timeout_ns) do {			\
++	if (arch_timer_evtstrm_available())				\
++		__cmpwait_relaxed(ptr, val);				\
++	else								\
++		cpu_relax();						\
++} while (0)
 +
-+/*
-  * pmem_wmb() ensures that all stores for which the modification
-  * are written to persistent storage by preceding instructions have
-  * updated persistent storage before any data  access or data transfer
+ #include <asm-generic/barrier.h>
+ 
+ #endif	/* __ASSEMBLER__ */
+--- a/arch/arm64/Kconfig~arm64-barrier-support-smp_cond_load_relaxed_timeout
++++ a/arch/arm64/Kconfig
+@@ -1594,6 +1594,9 @@ config ARCH_SUPPORTS_CRASH_DUMP
+ config ARCH_DEFAULT_CRASH_DUMP
+ 	def_bool y
+ 
++config ARCH_HAS_CPU_RELAX
++	def_bool y
++
+ config ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
+ 	def_bool CRASH_RESERVE
+ 
 _
 
 Patches currently in -mm which might be from ankur.a.arora@oracle.com are
