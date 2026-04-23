@@ -1,241 +1,75 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CA5F3E8684
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 12:04:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C2F63537D2;
+	Thu, 23 Apr 2026 12:12:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776945870; cv=none; b=ZsIIUP4p9KjINu4xsYPgYT+XTzi9eFZZyh9dlF5zxZKKSBI3Yrd0ou7ig5omWJSLH+L3xFtcm7CmF8bRdchs8Y5OPXIlicxVxctNApYH0kjx4QcXTTTR387o9Hd9C7KQmvNXCxOfIbogM3yRFfXWc6h2+LAlDdwQ1t9ImfOeivI=
+	t=1776946367; cv=none; b=EenbW1PBtgz1LHC6DiFcrrPvD+iyBGW+HQc6jIQj4i8c7TcgbBcOnIhCFHH9AcfJ+hIvdSyamwiVFxV1kcMIbAbbvz4d02PgkHnwuQa8yKrNuXrmUQGGkp4DFiWxjNMdw0nKU4Yvho6n9C9YvA7BK8UV4BpHd4PfHHOIQzk5UUM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776945870; c=relaxed/simple;
-	bh=nraHOn26Ke9dJg+8iCsHAXR6vf6sf6pPx5hsm0pZyr0=;
-	h=Date:To:From:Subject:Message-Id; b=iRJv5o7vZVrCcNlfo4ywc1yaV6Ez/iadGuwETgFEuVIH+PA3L06ULW6h94CBkEo1j3YPYKqXHuEyXNvxlTi1UZ+LwRSmbZmmeb4RDytNzxfwPCYdE3hQjJp4JtAOGRMb2bJTNe8WxBRQV9L+Bm/Y/bUcykgzG31GJfJeTPvgwYM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tkPZoz0Y; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776946367; c=relaxed/simple;
+	bh=r2asbMybGDVKY94ODHXpQXCuLqqLQpPqFVYp/o4uWKs=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=PrUbNuyD4Sj622Y3hHDedW5yu6msk7L90moapiS4uzWuRmXl04y8bsCOC+2GFnunEnoXMcZfUumYlmemHI2nQUSC2JGqL5crQuAUbbzYPNeP0l6Nnn64O+hGVvs5nTbXp1HmRXx9DtUfUsCrHY+sRpAtc5ei0/X1rvhoM0jlDOk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a1bIpr/O; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tkPZoz0Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24422C2BCAF;
-	Thu, 23 Apr 2026 12:04:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a1bIpr/O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6364C2BCAF;
+	Thu, 23 Apr 2026 12:12:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776945870;
-	bh=nraHOn26Ke9dJg+8iCsHAXR6vf6sf6pPx5hsm0pZyr0=;
-	h=Date:To:From:Subject:From;
-	b=tkPZoz0YFLSPjHCRK6MkcXQRpmsM/7HG70ep8Iz4xBMfRntRXttIPjOHDKCocjf/u
-	 sQYndonnnkArV6/Nwi4bZIr30nG0rhA6Iymd43FjGrg3x/ty7UmUjPrUvHXX475SlE
-	 9gf+YbPl2fDd4bTY2TKOlsEUTkRuAWg7j/KuKcgY=
-Date: Thu, 23 Apr 2026 05:04:29 -0700
-To: mm-commits@vger.kernel.org,liam@infradead.org,akpm@linux-foundation.org
+	s=korg; t=1776946366;
+	bh=r2asbMybGDVKY94ODHXpQXCuLqqLQpPqFVYp/o4uWKs=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=a1bIpr/Oen6eV+OGCwfZkaptIFNISLzMXthuMTOgLvUAF4LUfRj/k91KiWOGGT/LS
+	 j0UXoF1AMnV6JTTk7RXRxn9wtL9v3a/poQo0LWs2/2jna897LweCTnFsm4s4WDGq+O
+	 iT0rfOuBQlfeMRYbtH1DMAKp8+mYadD0IJcQ68d4=
+Date: Thu, 23 Apr 2026 05:12:46 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + maintainers-update-email-address.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260423120430.24422C2BCAF@smtp.kernel.org>
+To: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+ mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PULL] MM updates for 7.1-rc1
+Message-Id: <20260423051246.5de8968ca017eeb8f053fbff@linux-foundation.org>
+In-Reply-To: <20260422-aquatic-chital-of-wealth-8b7fa3@meerkat>
+References: <20260413214952.62836ac9df0eb348ee4aeb2b@linux-foundation.org>
+	<CAHk-=wjMroU7PofBOC52f5u5bTjTO2tm5ehycf9evmjeq-hq3Q@mail.gmail.com>
+	<20260416011820.18f5a11bbed7fff54be761e2@linux-foundation.org>
+	<20260422-aquatic-chital-of-wealth-8b7fa3@meerkat>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Wed, 22 Apr 2026 16:38:52 -0400 Konstantin Ryabitsev <konstantin@linuxfoundation.org> wrote:
 
-The patch titled
-     Subject: MAINTAINERS: update Liam's email address
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     maintainers-update-email-address.patch
+> On Thu, Apr 16, 2026 at 01:18:20AM -0700, Andrew Morton wrote:
+> > > The proper format would seem to be
+> > > 
+> > >     https://lore.kernel.org/all/aaGiDINfnUexT9Px@sirena.org.uk/
+> > > 
+> > > (or "lkml" instead of "all" if you want to be more specific).
+> > > 
+> > > Maybe something changed recently, or maybe your scripting for this is
+> > > just broken?
+> > > 
+> > 
+> > Something changed recently.  Maybe Konstantin knows.
+> 
+> It's a temporary blocking measure against aggressive crawlers. We'll restore
+> this functionality shortly.
+> 
+> > I've always used https://lkml.kernel.org/r/MSGID.  So at present there
+> > are many thousands of broken links in the kernel tree.
+> 
+> Well, the upside of this scheme is that they are only broken for clicking, but
+> they can all still be found using the MSGID. However, as I said, this will
+> soon be restored once we migrate the system serving lkml.kernel.org hits.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-update-email-address.patch
+OK, thanks.
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: "Liam R. Howlett" <liam@infradead.org>
-Subject: MAINTAINERS: update Liam's email address
-Date: Wed, 22 Apr 2026 14:43:10 -0400
-
-Switching to private email address.  Update all contact information
-
-Add an entry to mailmap at the same time.
-
-Link: https://lore.kernel.org/20260422184310.2682901-1-liam@infradead.org
-Signed-off-by: Liam R. Howlett <liam@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- .mailmap                         |    1 +
- MAINTAINERS                      |   20 ++++++++++----------
- include/linux/maple_tree.h       |    2 +-
- lib/maple_tree.c                 |    2 +-
- lib/test_maple_tree.c            |    4 ++--
- tools/testing/radix-tree/maple.c |    2 +-
- 6 files changed, 16 insertions(+), 15 deletions(-)
-
---- a/include/linux/maple_tree.h~maintainers-update-email-address
-+++ a/include/linux/maple_tree.h
-@@ -4,7 +4,7 @@
- /*
-  * Maple Tree - An RCU-safe adaptive tree for storing ranges
-  * Copyright (c) 2018-2022 Oracle
-- * Authors:     Liam R. Howlett <Liam.Howlett@Oracle.com>
-+ * Authors:     Liam R. Howlett <liam@infradead.org>
-  *              Matthew Wilcox <willy@infradead.org>
-  */
- 
---- a/lib/maple_tree.c~maintainers-update-email-address
-+++ a/lib/maple_tree.c
-@@ -2,7 +2,7 @@
- /*
-  * Maple Tree implementation
-  * Copyright (c) 2018-2022 Oracle Corporation
-- * Authors: Liam R. Howlett <Liam.Howlett@oracle.com>
-+ * Authors: Liam R. Howlett <liam@infradead.org>
-  *	    Matthew Wilcox <willy@infradead.org>
-  * Copyright (c) 2023 ByteDance
-  * Author: Peng Zhang <zhangpeng.00@bytedance.com>
---- a/lib/test_maple_tree.c~maintainers-update-email-address
-+++ a/lib/test_maple_tree.c
-@@ -2,7 +2,7 @@
- /*
-  * test_maple_tree.c: Test the maple tree API
-  * Copyright (c) 2018-2022 Oracle Corporation
-- * Author: Liam R. Howlett <Liam.Howlett@Oracle.com>
-+ * Author: Liam R. Howlett <liam@infradead.org>
-  *
-  * Any tests that only require the interface of the tree.
-  */
-@@ -4021,6 +4021,6 @@ static void __exit maple_tree_harvest(vo
- 
- module_init(maple_tree_seed);
- module_exit(maple_tree_harvest);
--MODULE_AUTHOR("Liam R. Howlett <Liam.Howlett@Oracle.com>");
-+MODULE_AUTHOR("Liam R. Howlett <liam@infradead.org>");
- MODULE_DESCRIPTION("maple tree API test module");
- MODULE_LICENSE("GPL");
---- a/.mailmap~maintainers-update-email-address
-+++ a/.mailmap
-@@ -495,6 +495,7 @@ Leon Romanovsky <leon@kernel.org> <leon@
- Leon Romanovsky <leon@kernel.org> <leonro@mellanox.com>
- Leon Romanovsky <leon@kernel.org> <leonro@nvidia.com>
- Leo Yan <leo.yan@linux.dev> <leo.yan@linaro.org>
-+Liam R. Howlett <liam@infradead.org> <Liam.Howlett@oracle.com>
- Liam Mark <quic_lmark@quicinc.com> <lmark@codeaurora.org>
- Linas Vepstas <linas@austin.ibm.com>
- Linus Lüssing <linus.luessing@c0d3.blue> <linus.luessing@ascom.ch>
---- a/MAINTAINERS~maintainers-update-email-address
-+++ a/MAINTAINERS
-@@ -15397,7 +15397,7 @@ F:	include/net/netns/mctp.h
- F:	net/mctp/
- 
- MAPLE TREE
--M:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+M:	Liam R. Howlett <liam@infradead.org>
- R:	Alice Ryhl <aliceryhl@google.com>
- R:	Andrew Ballance <andrewjballance@gmail.com>
- L:	maple-tree@lists.infradead.org
-@@ -16757,7 +16757,7 @@ MEMORY MANAGEMENT - CORE
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	David Hildenbrand <david@kernel.org>
- R:	Lorenzo Stoakes <ljs@kernel.org>
--R:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+R:	Liam R. Howlett <liam@infradead.org>
- R:	Vlastimil Babka <vbabka@kernel.org>
- R:	Mike Rapoport <rppt@kernel.org>
- R:	Suren Baghdasaryan <surenb@google.com>
-@@ -16893,7 +16893,7 @@ MEMORY MANAGEMENT - MISC
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	David Hildenbrand <david@kernel.org>
- R:	Lorenzo Stoakes <ljs@kernel.org>
--R:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+R:	Liam R. Howlett <liam@infradead.org>
- R:	Vlastimil Babka <vbabka@kernel.org>
- R:	Mike Rapoport <rppt@kernel.org>
- R:	Suren Baghdasaryan <surenb@google.com>
-@@ -16995,7 +16995,7 @@ M:	Andrew Morton <akpm@linux-foundation.
- M:	David Hildenbrand <david@kernel.org>
- M:	Lorenzo Stoakes <ljs@kernel.org>
- R:	Rik van Riel <riel@surriel.com>
--R:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+R:	Liam R. Howlett <liam@infradead.org>
- R:	Vlastimil Babka <vbabka@kernel.org>
- R:	Harry Yoo <harry@kernel.org>
- R:	Jann Horn <jannh@google.com>
-@@ -17042,7 +17042,7 @@ M:	David Hildenbrand <david@kernel.org>
- M:	Lorenzo Stoakes <ljs@kernel.org>
- R:	Zi Yan <ziy@nvidia.com>
- R:	Baolin Wang <baolin.wang@linux.alibaba.com>
--R:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+R:	Liam R. Howlett <liam@infradead.org>
- R:	Nico Pache <npache@redhat.com>
- R:	Ryan Roberts <ryan.roberts@arm.com>
- R:	Dev Jain <dev.jain@arm.com>
-@@ -17080,7 +17080,7 @@ F:	tools/testing/selftests/mm/uffd-*.[ch
- MEMORY MANAGEMENT - RUST
- M:	Alice Ryhl <aliceryhl@google.com>
- R:	Lorenzo Stoakes <ljs@kernel.org>
--R:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+R:	Liam R. Howlett <liam@infradead.org>
- L:	linux-mm@kvack.org
- L:	rust-for-linux@vger.kernel.org
- S:	Maintained
-@@ -17094,7 +17094,7 @@ F:	rust/kernel/page.rs
- 
- MEMORY MAPPING
- M:	Andrew Morton <akpm@linux-foundation.org>
--M:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+M:	Liam R. Howlett <liam@infradead.org>
- M:	Lorenzo Stoakes <ljs@kernel.org>
- R:	Vlastimil Babka <vbabka@kernel.org>
- R:	Jann Horn <jannh@google.com>
-@@ -17126,7 +17126,7 @@ F:	tools/testing/vma/
- MEMORY MAPPING - LOCKING
- M:	Andrew Morton <akpm@linux-foundation.org>
- M:	Suren Baghdasaryan <surenb@google.com>
--M:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+M:	Liam R. Howlett <liam@infradead.org>
- M:	Lorenzo Stoakes <ljs@kernel.org>
- R:	Vlastimil Babka <vbabka@kernel.org>
- R:	Shakeel Butt <shakeel.butt@linux.dev>
-@@ -17141,7 +17141,7 @@ F:	mm/mmap_lock.c
- 
- MEMORY MAPPING - MADVISE (MEMORY ADVICE)
- M:	Andrew Morton <akpm@linux-foundation.org>
--M:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+M:	Liam R. Howlett <liam@infradead.org>
- M:	Lorenzo Stoakes <ljs@kernel.org>
- M:	David Hildenbrand <david@kernel.org>
- R:	Vlastimil Babka <vbabka@kernel.org>
-@@ -23386,7 +23386,7 @@ RUST [ALLOC]
- M:	Danilo Krummrich <dakr@kernel.org>
- R:	Lorenzo Stoakes <ljs@kernel.org>
- R:	Vlastimil Babka <vbabka@kernel.org>
--R:	Liam R. Howlett <Liam.Howlett@oracle.com>
-+R:	Liam R. Howlett <liam@infradead.org>
- R:	Uladzislau Rezki <urezki@gmail.com>
- L:	rust-for-linux@vger.kernel.org
- S:	Maintained
---- a/tools/testing/radix-tree/maple.c~maintainers-update-email-address
-+++ a/tools/testing/radix-tree/maple.c
-@@ -2,7 +2,7 @@
- /*
-  * maple_tree.c: Userspace testing for maple tree test-suite
-  * Copyright (c) 2018-2022 Oracle Corporation
-- * Author: Liam R. Howlett <Liam.Howlett@Oracle.com>
-+ * Author: Liam R. Howlett <liam@infradead.org>
-  *
-  * Any tests that require internal knowledge of the tree or threads and other
-  * difficult to handle in kernel tests.
-_
-
-Patches currently in -mm which might be from liam@infradead.org are
-
-maintainers-update-email-address.patch
-
+But what is the preferred, official URL?   Any preferences?
