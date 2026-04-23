@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A0343A6F04
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 17:17:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63297387373
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 18:14:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776964668; cv=none; b=pKesWlluIrVLc6dkvDdMrRKofhA9Sv86qn4fH8GUy2NUJ9Ji2qKz8B9Z+ce/imPouZewR345v5xxcjooPkWaz1u+wRfMjW+KNo/A4wD7XdCJZnItH6lB9FC3GpGB4ehTlGHQ0ZcBfjOF+zQekgiHG8v3QXrTcdq4CKpIDOswbcY=
+	t=1776968060; cv=none; b=Zx7gSOEwBKudJzMR53iUNxHw321DV5rh55a/FhlgRVyiQXl4PNRHbwldRa/RLELgLGKW2poeT+8qn0+UKH8JvtK5V4XPoYefk/+YAADn1Wo/zO+f/kHq+86Dro6ETPZTcZbRO6Y2ckKqEaUt3QAG+E1SotA26PghoGXGbGftnvQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776964668; c=relaxed/simple;
-	bh=tLZTQzLLVZaWwDTMo4PWfb7ZMr0NNoKG2OYic0am9kI=;
-	h=Date:To:From:Subject:Message-Id; b=XkRTcXk1RAp9lEave6396fl5b2Haq00IfEO4Vnqo7XgzEqp060PfMZzLDn/ODyLCCsjrfbzK3WIlJM1HfM6ilgW3IbPUJ6H8XhVoOdnIkt88mQnY3MWfbeJr/oUbksDJL2W9fXJrt9XkEGAFIZeThyrVpzyCSOcBbU+AYlMMuBE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JtIkIDs+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776968060; c=relaxed/simple;
+	bh=fX8GfwM6/me8X+naUscGS6D4aT+dIQxFeQoyLxx8wPg=;
+	h=Date:To:From:Subject:Message-Id; b=udfZRs8s9G2dchyYLJOh70VDWRim/GcB096hImgqCm3SC6e5O6ehWxKR2syQfM5BMIHpHDTme0SbAFnBYeOU8XjcqaUnrkNdX+YkhCo4e2FrhltbUyVk0mYGG8PE0oRGe2QXNp2hojg11WDUFYsdyMDxLaZ7Pta6A8+SaRAC7dM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z6asJ/Nc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JtIkIDs+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9965C2BCAF;
-	Thu, 23 Apr 2026 17:17:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z6asJ/Nc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06E61C2BCB4;
+	Thu, 23 Apr 2026 18:14:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776964667;
-	bh=tLZTQzLLVZaWwDTMo4PWfb7ZMr0NNoKG2OYic0am9kI=;
+	s=korg; t=1776968060;
+	bh=fX8GfwM6/me8X+naUscGS6D4aT+dIQxFeQoyLxx8wPg=;
 	h=Date:To:From:Subject:From;
-	b=JtIkIDs+zOwUqMTAIIprPgmqT9v+gQmCga08D6g0k+otEEDWu6ZlT/H0jkhvGvuiv
-	 C+eZ76aH63Y9eN40T2WJWkaS20Q+6voMwvdNb8QdooggjTG5bLpuXhl7+tbihGvLoh
-	 1b5dhGu5zdoQlWaFmNWHFJyYRMXIWOaoUhm7Ne0Y=
-Date: Thu, 23 Apr 2026 10:17:47 -0700
-To: mm-commits@vger.kernel.org,will@kernel.org,rafael@kernel.org,peterz@infradead.org,mingo@kernel.org,memxor@gmail.com,mark.rutland@arm.com,konradybcio@kernel.org,harisokn@amazon.com,gary@garyguo.net,davidgow@google.com,daniel.lezcano@linaro.org,cl@linux.com,catalin.marinas@arm.com,boqun@kernel.org,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,andersson@kernel.org,ankur.a.arora@oracle.com,akpm@linux-foundation.org
+	b=z6asJ/Nca2E9SHbz3RwV0sjX15n+QxpQSL3xXqCuhsMrErXLPhWnpqLnbcbsNF9Ip
+	 w2AI/+L/xvf0aRjcnWksMya5lr3WwfCwliOLM2O1Db5E/ylV5YAxmUghOhwrKv+6qj
+	 DLWS6i9VYnsJzt2PgUW3F7uWj1i4Vn+RR+cpy8WQ=
+Date: Thu, 23 Apr 2026 11:14:19 -0700
+To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kunit-add-tests-for-smp_cond_load_relaxed_timeout.patch added to mm-new branch
-Message-Id: <20260423171747.D9965C2BCAF@smtp.kernel.org>
+Subject: + mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch added to mm-new branch
+Message-Id: <20260423181420.06E61C2BCB4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kunit: add tests for smp_cond_load_relaxed_timeout()
+     Subject: mm/mglru: consolidate common code for retrieving evictable size
 has been added to the -mm mm-new branch.  Its filename is
-     kunit-add-tests-for-smp_cond_load_relaxed_timeout.patch
+     mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kunit-add-tests-for-smp_cond_load_relaxed_timeout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,218 +69,328 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: kunit: add tests for smp_cond_load_relaxed_timeout()
-Date: Wed, 8 Apr 2026 17:55:38 +0530
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/mglru: consolidate common code for retrieving evictable size
+Date: Fri, 24 Apr 2026 01:43:12 +0800
 
-Add a success and failure case for smp_cond_load_relaxed_timeout().
+Patch series "mm/mglru: improve reclaim loop and dirty folio", v6.
 
-Both test cases wait on some state in smp_cond_load_relaxed_timeout().  In
-the success case we spawn a kthread that pokes the bit.
+This series cleans up and slightly improves MGLRU's reclaim loop and dirty
+writeback handling.  As a result, we can see an up to ~30% increase in
+some workloads like MongoDB with YCSB and a huge decrease in file refault,
+no swap involved.  Other common benchmarks have no regression, and LOC is
+reduced, with less unexpected OOM, too.
 
-Link: https://lore.kernel.org/20260408122538.3610871-15-ankur.a.arora@oracle.com
-Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Bjorn Andersson <andersson@kernel.org>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Boqun Feng <boqun@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: David Gow <davidgow@google.com>
-Cc: Gary Guo <gary@garyguo.net>
-Cc: Haris Okanovic <harisokn@amazon.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Konrad Dybcio <konradybcio@kernel.org>
-Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rafael J. Wysocki (Intel) <rafael@kernel.org>
-Cc: Will Deacon <will@kernel.org>
+Some of the problems were found in our production environment, and others
+were mostly exposed while stress testing during the development of the
+LSM/MM/BPF topic on improving MGLRU [1].  This series cleans up the code
+base and fixes several performance issues, preparing for further work.
+
+MGLRU's reclaim loop is a bit complex, and hence these problems are
+somehow related to each other.  The aging, scan number calculation, and
+reclaim loop are coupled together, and the dirty folio handling logic is
+quite different, making the reclaim loop hard to follow and the dirty
+flush ineffective.
+
+This series slightly cleans up and improves these issues using a scan
+budget by calculating the number of folios to scan at the beginning of the
+loop, and decouples aging from the reclaim calculation helpers.  Then,
+move the dirty flush logic inside the reclaim loop so it can kick in more
+effectively.  These issues are somehow related, and this series handles
+them and improves MGLRU reclaim in many ways.
+
+Test results: All tests are done on a 48c96t NUMA machine with 2 nodes and
+a 128G memory machine using NVME as storage.
+
+MongoDB
+=======
+Running YCSB workloadb [2] (recordcount:20000000 operationcount:6000000,
+threads:32), which does 95% read and 5% update to generate mixed read and
+dirty writeback.  MongoDB is set up in a 10G cgroup using Docker, and the
+WiredTiger cache size is set to 4.5G, using NVME as storage.
+
+Not using SWAP.
+
+Before:
+Throughput(ops/sec): 62485.02962831822
+AverageLatency(us): 500.9746963330107
+pgpgin 159347462
+pgpgout 5413332
+workingset_refault_anon 0
+workingset_refault_file 34522071
+
+After:
+Throughput(ops/sec): 79760.71784646061 (+27.6%, higher is better)
+AverageLatency(us): 391.25169970043726 (-21.9%, lower is better)
+pgpgin 111093923                       (-30.3%, lower is better)
+pgpgout 5437456
+workingset_refault_anon 0
+workingset_refault_file 19566366       (-43.3%, lower is better)
+
+We can see a significant performance improvement after this series.  The
+test is done on NVME and the performance gap would be even larger for slow
+devices, such as HDD or network storage.  We observed over 100% gain for
+some workloads with slow IO.
+
+Chrome & Node.js [3]
+====================
+Using Yu Zhao's test script [3], testing on a x86_64 NUMA machine with 2
+nodes and 128G memory, using 256G ZRAM as swap and spawn 32 memcg 64
+workers:
+
+Before:
+Total requests:            79915
+Per-worker 95% CI (mean):  [1233.9, 1263.5]
+Per-worker stdev:          59.2
+Jain's fairness:           0.997795 (1.0 = perfectly fair)
+Latency:
+Bucket     Count      Pct    Cumul
+[0,1)s     26859   33.61%   33.61%
+[1,2)s      7818    9.78%   43.39%
+[2,4)s      5532    6.92%   50.31%
+[4,8)s     39706   49.69%  100.00%
+
+After:
+Total requests:            81382
+Per-worker 95% CI (mean):  [1241.9, 1301.3]
+Per-worker stdev:          118.8
+Jain's fairness:           0.991480 (1.0 = perfectly fair)
+Latency:
+Bucket     Count      Pct    Cumul
+[0,1)s     26696   32.80%   32.80%
+[1,2)s      8745   10.75%   43.55%
+[2,4)s      6865    8.44%   51.98%
+[4,8)s     39076   48.02%  100.00%
+
+Reclaim is still fair and effective, total requests number seems slightly
+better.
+
+OOM issue with aging and throttling
+===================================
+For the throttling OOM issue, it can be easily reproduced using dd and
+cgroup limit as demonstrated in patch 14, and fixed by this series.
+
+The aging OOM is a bit tricky, a specific reproducer can be used to
+simulate what we encountered in production environment [4]: Spawns
+multiple workers that keep reading the given file using mmap, and pauses
+for 120ms after one file read batch.  It also spawns another set of
+workers that keep allocating and freeing a given size of anonymous memory.
+The total memory size exceeds the memory limit (eg.  14G anon + 8G file,
+which is 22G vs a 16G memcg limit).
+
+- MGLRU disabled:
+  Finished 128 iterations.
+
+- MGLRU enabled:
+  OOM with following info after about ~10-20 iterations:
+    [   62.624130] file_anon_mix_p invoked oom-killer: gfp_mask=0xcc0(GFP_KERNEL), order=0, oom_score_adj=0
+    [   62.624999] memory: usage 16777216kB, limit 16777216kB, failcnt 24460
+    [   62.640200] swap: usage 0kB, limit 9007199254740988kB, failcnt 0
+    [   62.640823] Memory cgroup stats for /demo:
+    [   62.641017] anon 10604879872
+    [   62.641941] file 6574858240
+
+  OOM occurs despite there being still evictable file folios.
+
+- MGLRU enabled after this series:
+  Finished 128 iterations.
+
+Worth noting there is another OOM related issue reported in V1 of
+this series, which is tested and looking OK now [5].
+
+MySQL:
+======
+
+Testing with innodb_buffer_pool_size=26106127360, in a 2G memcg, using
+ZRAM as swap and test command:
+
+sysbench /usr/share/sysbench/oltp_read_only.lua --mysql-db=sb \
+  --tables=48 --table-size=2000000 --threads=48 --time=600 run
+
+Before:            17260.781429 tps
+After this series: 17266.842857 tps
+
+MySQL is anon folios heavy, involves writeback and file and still
+looking good. Seems only noise level changes, no regression.
+
+FIO:
+====
+Testing with the following command, where /mnt/ramdisk is a
+64G EXT4 ramdisk, each test file is 3G, in a 10G memcg,
+6 test run each:
+
+fio --directory=/mnt/ramdisk --filename_format='test.$jobnum.img' \
+  --name=cached --numjobs=16 --size=3072M --buffered=1 --ioengine=mmap \
+  --rw=randread --norandommap --time_based \
+  --ramp_time=1m --runtime=5m --group_reporting
+
+Before:            9196.481429 MB/s
+After this series: 9256.105000 MB/s
+
+Also seem only noise level changes and no regression or slightly better.
+
+Build kernel:
+=============
+Build kernel test using ZRAM as swap, on top of tmpfs, in a 3G memcg
+using make -j96 and defconfig, measuring system time, 12 test run each.
+
+Before:            2589.63s
+After this series: 2543.58s
+
+Also seem only noise level changes, no regression or very slightly better.
+
+Android:
+========
+Xinyu reported a performance gain on Android, too, with this series.  The
+test consisted of cold-starting multiple applications sequentially under
+moderate system load.  [6]
+
+Before:
+Launch Time Summary (all apps, all runs)
+  Mean 868.0ms
+  P50 888.0ms
+  P90 1274.2ms
+  P95 1399.0ms
+
+After:
+Launch Time Summary (all apps, all runs)
+  Mean 850.5ms (-2.07%)
+  P50 861.5ms  (-3.04%)
+  P90 1179.0ms (-8.05%)
+  P95 1228.0ms (-12.2%)
+
+
+This patch (of 14):
+
+Merge commonly used code for counting evictable folios in a lruvec.
+
+No behavior change.
+
+Link: https://lore.kernel.org/20260424-mglru-reclaim-v6-0-a57622d770c3@tencent.com
+Link: https://lore.kernel.org/20260424-mglru-reclaim-v6-1-a57622d770c3@tencent.com
+Link: https://lore.kernel.org/linux-mm/CAMgjq7BoekNjg-Ra3C8M7=8=75su38w=HD782T5E_cxyeCeH_g@mail.gmail.com/ [1]
+Link: https://github.com/brianfrankcooper/YCSB/blob/master/workloads/workloadb [2]
+Link: https://lore.kernel.org/all/20221220214923.1229538-1-yuzhao@google.com/ [3]
+Link: https://github.com/ryncsn/emm-test-project/tree/master/file-anon-mix-pressure [4]
+Link: https://lore.kernel.org/linux-mm/acgNCzRDVmSbXrOE@KASONG-MC4/ [5]
+Link: https://lore.kernel.org/linux-mm/20260417025123.2971253-1-wxy2009nrrr@163.com/ [6]
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Acked-by: Yuanchu Xie <yuanchu@google.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Chen Ridong <chenridong@huaweicloud.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Stevens <stevensd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vernon Yang <vernon2gm@gmail.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yafang <laoar.shao@gmail.com>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Leno Hou <lenohou@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug                |   10 ++
- lib/tests/Makefile               |    1 
- lib/tests/barrier-timeout-test.c |  125 +++++++++++++++++++++++++++++
- 3 files changed, 136 insertions(+)
+ mm/vmscan.c |   36 ++++++++++++++----------------------
+ 1 file changed, 14 insertions(+), 22 deletions(-)
 
---- a/lib/Kconfig.debug~kunit-add-tests-for-smp_cond_load_relaxed_timeout
-+++ a/lib/Kconfig.debug
-@@ -2406,6 +2406,16 @@ config FPROBE_SANITY_TEST
+--- a/mm/vmscan.c~mm-mglru-consolidate-common-code-for-retrieving-evictable-size
++++ a/mm/vmscan.c
+@@ -4084,27 +4084,33 @@ static void set_initial_priority(struct
+ 	sc->priority = clamp(priority, DEF_PRIORITY / 2, DEF_PRIORITY);
+ }
  
- 	  Say N if you are unsure.
+-static bool lruvec_is_sizable(struct lruvec *lruvec, struct scan_control *sc)
++static unsigned long lruvec_evictable_size(struct lruvec *lruvec, int swappiness)
+ {
+ 	int gen, type, zone;
+-	unsigned long total = 0;
+-	int swappiness = get_swappiness(lruvec, sc);
++	unsigned long seq, total = 0;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+-	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	DEFINE_MAX_SEQ(lruvec);
+ 	DEFINE_MIN_SEQ(lruvec);
  
-+config BARRIER_TIMEOUT_TEST
-+	tristate "KUnit tests for smp_cond_load_relaxed_timeout()"
-+	depends on KUNIT
-+	default KUNIT_ALL_TESTS
-+	help
-+	  Builds KUnit tests that validate wake-up and timeout handling paths
-+	  in smp_cond_load_relaxed_timeout().
-+
-+	  Say N if you are unsure.
-+
- config BACKTRACE_SELF_TEST
- 	tristate "Self test for the backtrace code"
- 	depends on DEBUG_KERNEL
-diff --git a/lib/tests/barrier-timeout-test.c a/lib/tests/barrier-timeout-test.c
-new file mode 100644
---- /dev/null
-+++ a/lib/tests/barrier-timeout-test.c
-@@ -0,0 +1,125 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * KUnit tests exercising smp_cond_load_relaxed_timeout().
-+ *
-+ * Copyright (c) 2026, Oracle Corp.
-+ * Author: Ankur Arora <ankur.a.arora@oracle.com>
-+ */
-+
-+#include <linux/bitops.h>
-+#include <linux/types.h>
-+#include <linux/sched/clock.h>
-+#include <linux/delay.h>
-+#include <linux/kthread.h>
-+#include <asm/barrier.h>
-+#include <kunit/test.h>
-+#include <kunit/visibility.h>
-+
-+MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
-+
-+struct clock_state {
-+	s64 start_time;
-+	s64 end_time;
-+};
-+
-+#define TIMEOUT_MSEC	2
-+#define TEST_FLAG_VAL	BIT(2)
-+static unsigned int flag;
-+
-+static s64 basic_clock(struct clock_state *clk)
-+{
-+	clk->end_time = local_clock();
-+	return clk->end_time;
+ 	for_each_evictable_type(type, swappiness) {
+-		unsigned long seq;
+-
+ 		for (seq = min_seq[type]; seq <= max_seq; seq++) {
+ 			gen = lru_gen_from_seq(seq);
+-
+ 			for (zone = 0; zone < MAX_NR_ZONES; zone++)
+ 				total += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
+ 		}
+ 	}
+ 
++	return total;
 +}
 +
-+static void update_flags(void)
++static bool lruvec_is_sizable(struct lruvec *lruvec, struct scan_control *sc)
 +{
-+	WRITE_ONCE(flag, TEST_FLAG_VAL);
-+}
++	unsigned long total;
++	int swappiness = get_swappiness(lruvec, sc);
++	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
 +
-+static s64 mock_clock(struct clock_state *clk)
-+{
-+	s64 clk_mid = clk->start_time + (TIMEOUT_MSEC * NSEC_PER_MSEC)/2;
++	total = lruvec_evictable_size(lruvec, swappiness);
 +
-+	clk->end_time = local_clock();
-+	if (clk->end_time >= clk_mid)
-+		update_flags();
-+	return clk->end_time;
-+}
-+
-+typedef s64 (*clkfn_t)(struct clock_state *);
-+
-+static void test_smp_cond_relaxed_timeout(struct kunit *test,
-+					  clkfn_t clock, bool succeeds)
-+{
-+	struct clock_state clk = {
-+		.start_time = local_clock(),
-+		.end_time = local_clock(),
-+	};
-+	s64 runtime, timeout_ns = TIMEOUT_MSEC * NSEC_PER_MSEC;
-+	unsigned int result;
-+
-+	result = smp_cond_load_relaxed_timeout(&flag,
-+					       (VAL & TEST_FLAG_VAL),
-+					       clock(&clk),
-+					       timeout_ns);
-+
-+	runtime = clk.end_time - clk.start_time;
-+	KUNIT_EXPECT_EQ(test, (bool)(result & TEST_FLAG_VAL), succeeds);
-+	KUNIT_EXPECT_EQ(test, runtime <= timeout_ns, succeeds);
-+}
-+
-+static int smp_cond_threadfn(void *data)
-+{
-+	udelay(TIMEOUT_MSEC * USEC_PER_MSEC / 4);
-+
-+	/*
-+	 * Update flags after a delay to give smp_cond_relaxed_timeout()
-+	 * time to get started.
-+	 */
-+	update_flags();
-+	return 0;
-+}
-+
-+static void smp_cond_relaxed_timeout_succeeds(struct kunit *test)
-+{
-+	struct task_struct *task;
-+
-+	flag = 0;
-+
-+	task = kthread_run(smp_cond_threadfn, &flag, "smp_cond_thread");
-+
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, task);
-+	test_smp_cond_relaxed_timeout(test, &basic_clock, true);
-+
-+	kthread_stop(task);
-+}
-+
-+static void smp_cond_relaxed_timeout_mocked(struct kunit *test)
-+{
-+	flag = 0;
-+	test_smp_cond_relaxed_timeout(test, &mock_clock, true);
-+}
-+
-+static void smp_cond_relaxed_timeout_expires(struct kunit *test)
-+{
-+	flag = 0;
-+	test_smp_cond_relaxed_timeout(test, &basic_clock, false);
-+}
-+
-+static struct kunit_case barrier_timeout_test_cases[] = {
-+	KUNIT_CASE(smp_cond_relaxed_timeout_mocked),
-+	KUNIT_CASE(smp_cond_relaxed_timeout_succeeds),
-+	KUNIT_CASE(smp_cond_relaxed_timeout_expires),
-+	{}
-+};
-+
-+static struct kunit_suite barrier_timeout_test_suite = {
-+	.name = "smp-cond-load-relaxed-timeout",
-+	.test_cases = barrier_timeout_test_cases,
-+};
-+
-+kunit_test_suite(barrier_timeout_test_suite);
-+
-+MODULE_DESCRIPTION("KUnit tests for smp_cond_load_relaxed_timeout()");
-+MODULE_LICENSE("GPL");
---- a/lib/tests/Makefile~kunit-add-tests-for-smp_cond_load_relaxed_timeout
-+++ a/lib/tests/Makefile
-@@ -20,6 +20,7 @@ CFLAGS_fortify_kunit.o += $(DISABLE_STRU
- obj-$(CONFIG_FORTIFY_KUNIT_TEST) += fortify_kunit.o
- CFLAGS_test_fprobe.o += $(CC_FLAGS_FTRACE)
- obj-$(CONFIG_FPROBE_SANITY_TEST) += test_fprobe.o
-+obj-$(CONFIG_BARRIER_TIMEOUT_TEST) += barrier-timeout-test.o
- obj-$(CONFIG_GLOB_KUNIT_TEST) += glob_kunit.o
- obj-$(CONFIG_HASHTABLE_KUNIT_TEST) += hashtable_test.o
- obj-$(CONFIG_HASH_KUNIT_TEST) += test_hash.o
+ 	/* whether the size is big enough to be helpful */
+ 	return mem_cgroup_online(memcg) ? (total >> sc->priority) : total;
+ }
+@@ -4909,9 +4915,6 @@ retry:
+ static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
+ 			     int swappiness, unsigned long *nr_to_scan)
+ {
+-	int gen, type, zone;
+-	unsigned long size = 0;
+-	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	DEFINE_MIN_SEQ(lruvec);
+ 
+ 	*nr_to_scan = 0;
+@@ -4919,18 +4922,7 @@ static bool should_run_aging(struct lruv
+ 	if (evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS > max_seq)
+ 		return true;
+ 
+-	for_each_evictable_type(type, swappiness) {
+-		unsigned long seq;
+-
+-		for (seq = min_seq[type]; seq <= max_seq; seq++) {
+-			gen = lru_gen_from_seq(seq);
+-
+-			for (zone = 0; zone < MAX_NR_ZONES; zone++)
+-				size += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
+-		}
+-	}
+-
+-	*nr_to_scan = size;
++	*nr_to_scan = lruvec_evictable_size(lruvec, swappiness);
+ 	/* better to run aging even though eviction is still possible */
+ 	return evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS == max_seq;
+ }
 _
 
-Patches currently in -mm which might be from ankur.a.arora@oracle.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-asm-generic-barrier-add-smp_cond_load_relaxed_timeout.patch
-arm64-barrier-support-smp_cond_load_relaxed_timeout.patch
-arm64-delay-move-some-constants-out-to-a-separate-header.patch
-arm64-support-wfet-in-smp_cond_load_relaxed_timeout.patch
-arm64-rqspinlock-remove-private-copy-of-smp_cond_load_acquire_timewait.patch
-asm-generic-barrier-add-smp_cond_load_acquire_timeout.patch
-atomic-add-atomic_cond_read__timeout.patch
-locking-atomic-scripts-build-atomic_long_cond_read__timeout.patch
-bpf-rqspinlock-switch-check_timeout-to-a-clock-interface.patch
-bpf-rqspinlock-use-smp_cond_load_acquire_timeout.patch
-sched-add-need-resched-timed-wait-interface.patch
-cpuidle-poll_state-wait-for-need-resched-via-tif_need_resched_relaxed_wait.patch
-kunit-enable-testing-smp_cond_load_relaxed_timeout.patch
-kunit-add-tests-for-smp_cond_load_relaxed_timeout.patch
+mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
+mm-mglru-rename-variables-related-to-aging-and-rotation.patch
+mm-mglru-relocate-the-lru-scan-batch-limit-to-callers.patch
+mm-mglru-restructure-the-reclaim-loop.patch
+mm-mglru-scan-and-count-the-exact-number-of-folios.patch
+mm-mglru-use-a-smaller-batch-for-reclaim.patch
+mm-mglru-dont-abort-scan-immediately-right-after-aging.patch
+mm-mglru-remove-redundant-swap-constrained-check-upon-isolation.patch
+mm-mglru-use-the-common-routine-for-dirty-writeback-reactivation.patch
+mm-mglru-simplify-and-improve-dirty-writeback-handling.patch
+mm-mglru-remove-no-longer-used-reclaim-argument-for-folio-protection.patch
+mm-vmscan-remove-sc-file_taken.patch
+mm-vmscan-remove-sc-unqueued_dirty.patch
+mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch
 
