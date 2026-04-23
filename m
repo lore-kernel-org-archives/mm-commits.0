@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB91E1E7C12
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 17:17:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1DED3A7599
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 17:17:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776964650; cv=none; b=bvwxJ7vx5/HcjCaBjv1e3IfEG6D+zprZvKcNGLVim1Kvkn/M3gUQTJbMPV/CwrgRsosLcDRw0tbKDAXUwmD4Tiyg8INgj+yHfswCSS7hVwRYT879MYu0NUR/qQ6wkNY7v1P9cj3IwzanClXcbAkEnUKyx8T9rKW/Gbd8GFzGZoY=
+	t=1776964653; cv=none; b=jFMv0X6+aVRKfKd5mTkCyOhCP+EbT7v4C6Vas4WYjx6bKyi+1elxxRPdjpT1JfLqpA8Qdeom4297z+VWKKTvUjiL66xCh2nZotvVCEMo5NSl1iraCtni25CA9uWG5x/nR+mySX+vZfE0vtfAY69rRdWSUNAZHZ1klCLHw779/5E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776964650; c=relaxed/simple;
-	bh=ysRfLpqXZ85txR/AGL2XYJPoQJF5uCo69pWqOsEr/Jc=;
-	h=Date:To:From:Subject:Message-Id; b=H0hCqRoTsDsa2YMhMPcCpA9sgm1Z+rTYPjWobBZwYDCh3bc+PEG3+ALFHLz5FUCLOOJ/GO6Za/OjrDhqvrZl57W6/HS9UXY0ScK7CSrUpm/N0tH6hrNQ8NQMqCSoktAx2m1IAEzLnxhLvEX+WS0qagLtKh09llKOoq+yFVIBIWM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n7RjcwSv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776964653; c=relaxed/simple;
+	bh=t8pkyoBVUZRb+KgIDnhCdtAlUT77sww5E6rQBUWhMVw=;
+	h=Date:To:From:Subject:Message-Id; b=SbAJ15laqijkhiIRhTKuXEuDUi62nesYWWJIxPoSZdvQ79aOYFIRPVBLlAvse4KojYSUCoYyqaItIAriN2nhjrrjWusL+8KlQigVcvMY9Sso7BZhUNTb2sFs58k8wF6kWHGIvCRM0vMRIZ0Ai3W1mG91CN0LpbBTcNmWKBIenZc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y5W1p3hz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n7RjcwSv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B46E4C2BCAF;
-	Thu, 23 Apr 2026 17:17:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y5W1p3hz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 622D3C2BCAF;
+	Thu, 23 Apr 2026 17:17:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776964650;
-	bh=ysRfLpqXZ85txR/AGL2XYJPoQJF5uCo69pWqOsEr/Jc=;
+	s=korg; t=1776964653;
+	bh=t8pkyoBVUZRb+KgIDnhCdtAlUT77sww5E6rQBUWhMVw=;
 	h=Date:To:From:Subject:From;
-	b=n7RjcwSv5vfCh9pJa8/tl2oCkbUJmtIw+ZJQp33MkawtDHUn0lweuScDx2uJ9ycIE
-	 g9C2gdBxjjaFIbr9VcxfxMHdKqz3bH5Z3zSS2Dx0FhxK2QhjZXeuUNkhz6Np0t1fmf
-	 7T0eKCGXs8/HPqbboeFdzTQyPTMerzNim5Gyk6Bo=
-Date: Thu, 23 Apr 2026 10:17:30 -0700
+	b=Y5W1p3hzcq8TXrrPI8QppVD5tAIRRKS7ppeoPbWSlFFsBOoV2V8eagoP0KfKKwjnJ
+	 YCRcG2HLg0ZNEqWifjfMsDtVgE2KeBGxI3jl2ga/Ck+0krFyFwplO3Gf6KHuPP96q9
+	 fRHa2B4IFxWWZMd6LiCir723vlXTKZOQB3wASHW0=
+Date: Thu, 23 Apr 2026 10:17:32 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,rafael@kernel.org,peterz@infradead.org,mingo@kernel.org,memxor@gmail.com,mark.rutland@arm.com,konradybcio@kernel.org,harisokn@amazon.com,gary@garyguo.net,davidgow@google.com,daniel.lezcano@linaro.org,cl@linux.com,catalin.marinas@arm.com,boqun@kernel.org,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,andersson@kernel.org,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + atomic-add-atomic_cond_read__timeout.patch added to mm-new branch
-Message-Id: <20260423171730.B46E4C2BCAF@smtp.kernel.org>
+Subject: + locking-atomic-scripts-build-atomic_long_cond_read__timeout.patch added to mm-new branch
+Message-Id: <20260423171733.622D3C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: atomic: add atomic_cond_read_*_timeout()
+     Subject: locking/atomic: scripts: build atomic_long_cond_read_*_timeout()
 has been added to the -mm mm-new branch.  Its filename is
-     atomic-add-atomic_cond_read__timeout.patch
+     locking-atomic-scripts-build-atomic_long_cond_read__timeout.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/atomic-add-atomic_cond_read__timeout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/locking-atomic-scripts-build-atomic_long_cond_read__timeout.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: atomic: add atomic_cond_read_*_timeout()
-Date: Wed, 8 Apr 2026 17:55:31 +0530
+Subject: locking/atomic: scripts: build atomic_long_cond_read_*_timeout()
+Date: Wed, 8 Apr 2026 17:55:32 +0530
 
-Add atomic load wrappers, atomic_cond_read_*_timeout() and
-atomic64_cond_read_*_timeout() for the cond-load timeout interfaces.
+Add the atomic long wrappers for the cond-load timeout interfaces.
 
-Also add a short description for the atomic_cond_read_{relaxed,acquire}(),
-and the atomic_cond_read_{relaxed,acquire}_timeout() interfaces.
-
-Link: https://lore.kernel.org/20260408122538.3610871-8-ankur.a.arora@oracle.com
+Link: https://lore.kernel.org/20260408122538.3610871-9-ankur.a.arora@oracle.com
 Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will@kernel.org>
@@ -102,59 +98,70 @@ Cc: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/atomic_t.txt |   14 +++++++++-----
- include/linux/atomic.h     |   10 ++++++++++
- 2 files changed, 19 insertions(+), 5 deletions(-)
+ include/linux/atomic/atomic-long.h |   18 +++++++++++-------
+ scripts/atomic/gen-atomic-long.sh  |   16 ++++++++++------
+ 2 files changed, 21 insertions(+), 13 deletions(-)
 
---- a/Documentation/atomic_t.txt~atomic-add-atomic_cond_read__timeout
-+++ a/Documentation/atomic_t.txt
-@@ -16,6 +16,10 @@ Non-RMW ops:
-   atomic_read(), atomic_set()
-   atomic_read_acquire(), atomic_set_release()
+--- a/include/linux/atomic/atomic-long.h~locking-atomic-scripts-build-atomic_long_cond_read__timeout
++++ a/include/linux/atomic/atomic-long.h
+@@ -11,14 +11,18 @@
  
-+Non-RMW, non-atomic_t ops:
-+
-+  atomic_cond_read_{relaxed,acquire}()
-+  atomic_cond_read_{relaxed,acquire}_timeout()
+ #ifdef CONFIG_64BIT
+ typedef atomic64_t atomic_long_t;
+-#define ATOMIC_LONG_INIT(i)		ATOMIC64_INIT(i)
+-#define atomic_long_cond_read_acquire	atomic64_cond_read_acquire
+-#define atomic_long_cond_read_relaxed	atomic64_cond_read_relaxed
++#define ATOMIC_LONG_INIT(i)			ATOMIC64_INIT(i)
++#define atomic_long_cond_read_acquire		atomic64_cond_read_acquire
++#define atomic_long_cond_read_relaxed		atomic64_cond_read_relaxed
++#define atomic_long_cond_read_acquire_timeout	atomic64_cond_read_acquire_timeout
++#define atomic_long_cond_read_relaxed_timeout	atomic64_cond_read_relaxed_timeout
+ #else
+ typedef atomic_t atomic_long_t;
+-#define ATOMIC_LONG_INIT(i)		ATOMIC_INIT(i)
+-#define atomic_long_cond_read_acquire	atomic_cond_read_acquire
+-#define atomic_long_cond_read_relaxed	atomic_cond_read_relaxed
++#define ATOMIC_LONG_INIT(i)			ATOMIC_INIT(i)
++#define atomic_long_cond_read_acquire		atomic_cond_read_acquire
++#define atomic_long_cond_read_relaxed		atomic_cond_read_relaxed
++#define atomic_long_cond_read_acquire_timeout	atomic_cond_read_acquire_timeout
++#define atomic_long_cond_read_relaxed_timeout	atomic_cond_read_relaxed_timeout
+ #endif
  
- RMW atomic operations:
+ /**
+@@ -1809,4 +1813,4 @@ raw_atomic_long_dec_if_positive(atomic_l
+ }
  
-@@ -79,11 +83,11 @@ SEMANTICS
+ #endif /* _LINUX_ATOMIC_LONG_H */
+-// 4b882bf19018602c10816c52f8b4ae280adc887b
++// 79c1f4acb5774376ceed559843d5d9ed1348df99
+--- a/scripts/atomic/gen-atomic-long.sh~locking-atomic-scripts-build-atomic_long_cond_read__timeout
++++ a/scripts/atomic/gen-atomic-long.sh
+@@ -79,14 +79,18 @@ cat << EOF
  
- Non-RMW ops:
+ #ifdef CONFIG_64BIT
+ typedef atomic64_t atomic_long_t;
+-#define ATOMIC_LONG_INIT(i)		ATOMIC64_INIT(i)
+-#define atomic_long_cond_read_acquire	atomic64_cond_read_acquire
+-#define atomic_long_cond_read_relaxed	atomic64_cond_read_relaxed
++#define ATOMIC_LONG_INIT(i)			ATOMIC64_INIT(i)
++#define atomic_long_cond_read_acquire		atomic64_cond_read_acquire
++#define atomic_long_cond_read_relaxed		atomic64_cond_read_relaxed
++#define atomic_long_cond_read_acquire_timeout	atomic64_cond_read_acquire_timeout
++#define atomic_long_cond_read_relaxed_timeout	atomic64_cond_read_relaxed_timeout
+ #else
+ typedef atomic_t atomic_long_t;
+-#define ATOMIC_LONG_INIT(i)		ATOMIC_INIT(i)
+-#define atomic_long_cond_read_acquire	atomic_cond_read_acquire
+-#define atomic_long_cond_read_relaxed	atomic_cond_read_relaxed
++#define ATOMIC_LONG_INIT(i)			ATOMIC_INIT(i)
++#define atomic_long_cond_read_acquire		atomic_cond_read_acquire
++#define atomic_long_cond_read_relaxed		atomic_cond_read_relaxed
++#define atomic_long_cond_read_acquire_timeout	atomic_cond_read_acquire_timeout
++#define atomic_long_cond_read_relaxed_timeout	atomic_cond_read_relaxed_timeout
+ #endif
  
--The non-RMW ops are (typically) regular LOADs and STOREs and are canonically
--implemented using READ_ONCE(), WRITE_ONCE(), smp_load_acquire() and
--smp_store_release() respectively. Therefore, if you find yourself only using
--the Non-RMW operations of atomic_t, you do not in fact need atomic_t at all
--and are doing it wrong.
-+The non-RMW ops are (typically) regular, or conditional LOADs and STOREs and
-+are canonically implemented using READ_ONCE(), WRITE_ONCE(),
-+smp_load_acquire() and smp_store_release() respectively. Therefore, if you
-+find yourself only using the Non-RMW operations of atomic_t, you do not in
-+fact need atomic_t at all and are doing it wrong.
- 
- A note for the implementation of atomic_set{}() is that it must not break the
- atomicity of the RMW ops. That is:
---- a/include/linux/atomic.h~atomic-add-atomic_cond_read__timeout
-+++ a/include/linux/atomic.h
-@@ -31,6 +31,16 @@
- #define atomic64_cond_read_acquire(v, c) smp_cond_load_acquire(&(v)->counter, (c))
- #define atomic64_cond_read_relaxed(v, c) smp_cond_load_relaxed(&(v)->counter, (c))
- 
-+#define atomic_cond_read_acquire_timeout(v, c, e, t) \
-+	smp_cond_load_acquire_timeout(&(v)->counter, (c), (e), (t))
-+#define atomic_cond_read_relaxed_timeout(v, c, e, t) \
-+	smp_cond_load_relaxed_timeout(&(v)->counter, (c), (e), (t))
-+
-+#define atomic64_cond_read_acquire_timeout(v, c, e, t) \
-+	smp_cond_load_acquire_timeout(&(v)->counter, (c), (e), (t))
-+#define atomic64_cond_read_relaxed_timeout(v, c, e, t) \
-+	smp_cond_load_relaxed_timeout(&(v)->counter, (c), (e), (t))
-+
- /*
-  * The idea here is to build acquire/release variants by adding explicit
-  * barriers on top of the relaxed variant. In the case where the relaxed
+ EOF
 _
 
 Patches currently in -mm which might be from ankur.a.arora@oracle.com are
