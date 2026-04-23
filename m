@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B4E13081D6
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 12:37:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C31663ED5BE
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 12:39:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776947841; cv=none; b=t9CIaw91Bq9cj6JxZ+FgpzCmc1yOxZQYhKyDcDELSnT5N0TADw+wvJZhCbk3r06DB5WiIVlxAYKvn0FeuFo/rpuj7KqiDujg3nCPzRpfmIC83TmQk0+vujo26pIjniqDHQA21Om74J4qHKznGthR+f0ZOQ159Gi7dgTha3ItDg4=
+	t=1776947941; cv=none; b=O1O8ra7gp38OYfU4ZwZI4j224c6LvAq39P4fSzyEE8LoXKuKTxIc1gongf2X/Crho71c8oCgKhfdArjx1P5EiCQwR4e/jZf8jMNbsal47lYoA1lO551xdZ5nVWm76/R8ND4PeuomrCYpZCivdfecPzNkvYO+m+Q43skBqjgEQrE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776947841; c=relaxed/simple;
-	bh=It9jT42UTMyZ1NkbavfKeu1LfqgdZRwjbUVsA6XWBYQ=;
-	h=Date:To:From:Subject:Message-Id; b=ZU4jx5U5fFLi2xydCMyouuoPHvqwqD8EGh0m0TXpZ44J1czprzKqRCRiL0g/M9QtxB43sGWGLGebHkdotUWPthSv/vJ91euFHnySSI/mg8oOa9kKC6b3uEMVtb2qsdOXVwH6bQIavUl4ZcjxzRtUZacuhSn03GElGE7y9++/S5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jL5M+atx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776947941; c=relaxed/simple;
+	bh=fqhYmjHY1sexuvnUMaEYX3ZYN4s8if2H/3MDfGzzy0c=;
+	h=Date:To:From:Subject:Message-Id; b=XdDGrk4xGQs1OVra6+LZG+yFaLuFVLtjsUb12sSF/QXTlkhWFZ34LDum0R2iRroka86ZsQjtnOF7KrAGk0+NRmftX/Ou4XGwukguqqyXRkgttTqv5St5BL4gm2FGHCOQmRjzcKK7fB6TzKd+P2UyuyA9a3lAuMXgE1f/mAKntQk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rWjbWHNT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jL5M+atx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4C6BC2BCAF;
-	Thu, 23 Apr 2026 12:37:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rWjbWHNT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52EFCC2BCAF;
+	Thu, 23 Apr 2026 12:39:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776947841;
-	bh=It9jT42UTMyZ1NkbavfKeu1LfqgdZRwjbUVsA6XWBYQ=;
+	s=korg; t=1776947941;
+	bh=fqhYmjHY1sexuvnUMaEYX3ZYN4s8if2H/3MDfGzzy0c=;
 	h=Date:To:From:Subject:From;
-	b=jL5M+atx9q9GMUl05nvZ0rPQ1naqFssR7mHF+a2khKD1LYWtiDcoeSXU9GmW/v5gJ
-	 AGq5lmy3job0ff+dJKXmKmsSzRrj+XKlA9uQrFwctGemmeh+pnQfhKlw4qoXLwspaY
-	 lysAfwPCH1pMYxJQkh45D888EyKTCt4I8jfcwD5I=
-Date: Thu, 23 Apr 2026 05:37:20 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
+	b=rWjbWHNTok45CeNkRuJq8EqxL3AxZgsdJgDsW7vyp08Xnp3KDAL7y3xyx8A0R/qki
+	 0mWiu+BnEfB5I/7PMul5uAaEPIJGMzqqv/oOqIjkhKXsF43J4khxxg+wI5pAI+8ced
+	 rxZppbFMLzHa50nW1MiM/mPPjeTlGa1i3Vrr8keM=
+Date: Thu, 23 Apr 2026 05:39:00 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,rostedt@goodmis.org,mhocko@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,b.suvonov@sjtu.edu.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-convert-vmemmap_pd_populate-to-static-functions.patch added to mm-new branch
-Message-Id: <20260423123720.E4C6BC2BCAF@smtp.kernel.org>
+Subject: + mm-vmscan-add-balance_pgdat-begin-end-tracepoints.patch added to mm-new branch
+Message-Id: <20260423123901.52EFCC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: convert vmemmap_p?d_populate() to static functions
+     Subject: mm/vmscan: add balance_pgdat begin/end tracepoints
 has been added to the -mm mm-new branch.  Its filename is
-     mm-convert-vmemmap_pd_populate-to-static-functions.patch
+     mm-vmscan-add-balance_pgdat-begin-end-tracepoints.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-convert-vmemmap_pd_populate-to-static-functions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-add-balance_pgdat-begin-end-tracepoints.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,96 +69,139 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Chengkaitao <chengkaitao@kylinos.cn>
-Subject: mm: convert vmemmap_p?d_populate() to static functions
-Date: Thu, 23 Apr 2026 18:14:41 +0800
+From: Bunyod Suvonov <b.suvonov@sjtu.edu.cn>
+Subject: mm/vmscan: add balance_pgdat begin/end tracepoints
+Date: Thu, 23 Apr 2026 18:37:53 +0800
 
-Since the vmemmap_p?d_populate functions are unused outside the mm
-subsystem, we can remove their external declarations and convert them to
-static functions.
+Vmscan has six main reclaim entry points: try_to_free_pages() for direct
+reclaim, try_to_free_mem_cgroup_pages() for memcg reclaim,
+mem_cgroup_shrink_node() for memcg soft limit reclaim, node_reclaim() for
+node reclaim, shrink_all_memory() for hibernation reclaim, and
+balance_pgdat() for kswapd reclaim.
 
-Link: https://lore.kernel.org/20260423101441.7089-1-kaitao.cheng@linux.dev
-Signed-off-by: Chengkaitao <chengkaitao@kylinos.cn>
-Acked-by: David Hildenbrand (arm) <david@kernel.org>
+All of them, except for shrink_all_memory() and balance_pgdat(), already
+have begin/end tracepoints.  This makes it harder to trace which reclaim
+path is responsible for memory reclaim activity, because kswapd reclaim
+cannot be identified as cleanly as other reclaim entry points, even though
+it is the main background reclaim path under memory pressure.  There may
+be no need to trace shrink_all_memory() as it is primarily used during
+hibernation.  So this patch adds the missing tracepoint pair for
+balance_pgdat().
+
+The begin tracepoint records the node id, requested reclaim order, and
+highest_zoneidx.  The end tracepoint records the node id, reclaim order
+that balance_pgdat() finished with, highest_zoneidx, and nr_reclaimed. 
+Together, they show the requested reclaim order and zone bound, whether
+reclaim fell back to a lower order, and how much reclaim work was done.
+
+Link: https://lore.kernel.org/20260423103753.546582-1-b.suvonov@sjtu.edu.cn
+Signed-off-by: Bunyod Suvonov <b.suvonov@sjtu.edu.cn>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |    7 -------
- mm/sparse-vmemmap.c |   10 +++++-----
- 2 files changed, 5 insertions(+), 12 deletions(-)
+ include/trace/events/vmscan.h |   52 ++++++++++++++++++++++++++++++++
+ mm/vmscan.c                   |    5 +++
+ 2 files changed, 57 insertions(+)
 
---- a/include/linux/mm.h~mm-convert-vmemmap_pd_populate-to-static-functions
-+++ a/include/linux/mm.h
-@@ -4860,13 +4860,6 @@ unsigned long section_map_size(void);
- struct page * __populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap);
--pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
--p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
--pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
--pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
--pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
--			    struct vmem_altmap *altmap, unsigned long ptpfn,
--			    unsigned long flags);
- void *vmemmap_alloc_block(unsigned long size, int node);
- struct vmem_altmap;
- void *vmemmap_alloc_block_buf(unsigned long size, int node,
---- a/mm/sparse-vmemmap.c~mm-convert-vmemmap_pd_populate-to-static-functions
-+++ a/mm/sparse-vmemmap.c
-@@ -151,7 +151,7 @@ void __meminit vmemmap_verify(pte_t *pte
- 			start, end - 1);
- }
+--- a/include/trace/events/vmscan.h~mm-vmscan-add-balance_pgdat-begin-end-tracepoints
++++ a/include/trace/events/vmscan.h
+@@ -96,6 +96,58 @@ TRACE_EVENT(mm_vmscan_kswapd_wake,
+ 		__entry->order)
+ );
  
--pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
-+static pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
- 				       struct vmem_altmap *altmap,
- 				       unsigned long ptpfn, unsigned long flags)
- {
-@@ -195,7 +195,7 @@ static void * __meminit vmemmap_alloc_bl
- 	return p;
- }
++TRACE_EVENT(mm_vmscan_balance_pgdat_begin,
++
++	TP_PROTO(int nid, int order, int highest_zoneidx),
++
++	TP_ARGS(nid, order, highest_zoneidx),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(int, order)
++		__field(int, highest_zoneidx)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->order = order;
++		__entry->highest_zoneidx = highest_zoneidx;
++	),
++
++	TP_printk("nid=%d order=%d highest_zoneidx=%-8s",
++		__entry->nid,
++		__entry->order,
++		__print_symbolic(__entry->highest_zoneidx, ZONE_TYPE))
++);
++
++TRACE_EVENT(mm_vmscan_balance_pgdat_end,
++
++	TP_PROTO(int nid, int order, int highest_zoneidx,
++		 unsigned long nr_reclaimed),
++
++	TP_ARGS(nid, order, highest_zoneidx, nr_reclaimed),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(int, order)
++		__field(int, highest_zoneidx)
++		__field(unsigned long, nr_reclaimed)
++	),
++
++	TP_fast_assign(
++		__entry->nid = nid;
++		__entry->order = order;
++		__entry->highest_zoneidx = highest_zoneidx;
++		__entry->nr_reclaimed = nr_reclaimed;
++	),
++
++	TP_printk("nid=%d order=%d highest_zoneidx=%-8s nr_reclaimed=%lu",
++		__entry->nid,
++		__entry->order,
++		__print_symbolic(__entry->highest_zoneidx, ZONE_TYPE),
++		__entry->nr_reclaimed)
++);
++
+ TRACE_EVENT(mm_vmscan_wakeup_kswapd,
  
--pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
-+static pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
- {
- 	pmd_t *pmd = pmd_offset(pud, addr);
- 	if (pmd_none(*pmd)) {
-@@ -208,7 +208,7 @@ pmd_t * __meminit vmemmap_pmd_populate(p
- 	return pmd;
- }
+ 	TP_PROTO(int nid, int zid, int order, gfp_t gfp_flags),
+--- a/mm/vmscan.c~mm-vmscan-add-balance_pgdat-begin-end-tracepoints
++++ a/mm/vmscan.c
+@@ -7121,6 +7121,8 @@ static int balance_pgdat(pg_data_t *pgda
+ 		.may_unmap = 1,
+ 	};
  
--pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
-+static pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
- {
- 	pud_t *pud = pud_offset(p4d, addr);
- 	if (pud_none(*pud)) {
-@@ -221,7 +221,7 @@ pud_t * __meminit vmemmap_pud_populate(p
- 	return pud;
- }
++	trace_mm_vmscan_balance_pgdat_begin(pgdat->node_id, order,
++					    highest_zoneidx);
+ 	set_task_reclaim_state(current, &sc.reclaim_state);
+ 	psi_memstall_enter(&pflags);
+ 	__fs_reclaim_acquire(_THIS_IP_);
+@@ -7314,6 +7316,9 @@ out:
+ 	psi_memstall_leave(&pflags);
+ 	set_task_reclaim_state(current, NULL);
  
--p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
-+static p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
- {
- 	p4d_t *p4d = p4d_offset(pgd, addr);
- 	if (p4d_none(*p4d)) {
-@@ -234,7 +234,7 @@ p4d_t * __meminit vmemmap_p4d_populate(p
- 	return p4d;
- }
- 
--pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
-+static pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
- {
- 	pgd_t *pgd = pgd_offset_k(addr);
- 	if (pgd_none(*pgd)) {
++	trace_mm_vmscan_balance_pgdat_end(pgdat->node_id, sc.order,
++					  highest_zoneidx, sc.nr_reclaimed);
++
+ 	/*
+ 	 * Return the order kswapd stopped reclaiming at as
+ 	 * prepare_kswapd_sleep() takes it into account. If another caller
 _
 
-Patches currently in -mm which might be from chengkaitao@kylinos.cn are
+Patches currently in -mm which might be from b.suvonov@sjtu.edu.cn are
 
-mm-convert-vmemmap_pd_populate-to-static-functions.patch
+mm-vmscan-add-balance_pgdat-begin-end-tracepoints.patch
 
