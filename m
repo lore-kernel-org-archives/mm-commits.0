@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE6B53DFC63
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 12:22:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3255B36A035
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 12:27:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776946947; cv=none; b=gjw9hp9Tfg2R5qu5yBSRqDa7EfPDIeoZMHHYMycChLxHuv0e1lx2e4nwGFB/ciYiL1iXYFeb4kxGjItUinK7mfr66eyJmKzAz6CXAongzXJ6DULiP6qvCh45RcFZ9WRioDC3JehiMgTOzhvFnndF3FRYjh+nsuPAB1MCZb1TVcw=
+	t=1776947259; cv=none; b=YzGFyMzqOsv2xXXFvnT80Y8h73Kwmjm3KdFSY0gAVV72E/I3o/ArNV/Bl3QtCfPiMGZnrz2OrF10npVl1j+C+VmMjUYyZYNhaB7gRPc5pW0TbZcIrt/pGWdXvEzgWN+pIPlz4jUjuMe2fVTpJlbACmUc65Bk6AMZkObQ6q5IXz0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776946947; c=relaxed/simple;
-	bh=ZO4ftbrq0XThIZxCKAo8/++QXiE4KIKwR4ZYVQIR5jI=;
-	h=Date:To:From:Subject:Message-Id; b=iJEszhjY0G1eO4rJqBQ7Zd0t/Zd4uCEoAskQmz1ST8zlLW53CyUO64w/o5hD09qgcGSpTwcVb7JUP6DedO+uILxJJjs+XAz+bWfr3iEHGBt6qOLlZ9Oy6YD7+FLSi+Fc/CiXO4WZA5HF8raEfvG3BjvBnLqqLp+l9yD+rW0U1ys=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ztZs8LlW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776947259; c=relaxed/simple;
+	bh=wq8ks5fIJkheQB8Y8YQGmphALYMFYfUFJrYSqtye42U=;
+	h=Date:To:From:Subject:Message-Id; b=fHM/M2rS8XNPAkjiTnfa6/fWMM+T3SvbAWKy6fycpyZCeTz2diawY6nKRkWY2VYyv10fVhU+hq/a4SMePgWfjqQbsBf3RGtz4oV80c4zVYzSef+bwbxyR5ZVAcZA7TjwdhfXEzAb9BdT4MBi8p6l9PlFPflguLOllF6Nv4Fp5/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CsYur2KZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ztZs8LlW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86930C2BCAF;
-	Thu, 23 Apr 2026 12:22:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CsYur2KZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B785FC2BCAF;
+	Thu, 23 Apr 2026 12:27:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776946947;
-	bh=ZO4ftbrq0XThIZxCKAo8/++QXiE4KIKwR4ZYVQIR5jI=;
+	s=korg; t=1776947258;
+	bh=wq8ks5fIJkheQB8Y8YQGmphALYMFYfUFJrYSqtye42U=;
 	h=Date:To:From:Subject:From;
-	b=ztZs8LlWWWsJ8ZSBITumtXTNkZCpEZAY054iPvP9Fmx2cFh+SmyXiL8Db82Eb8dI0
-	 kOUvekHYB4bbOA6A6NlryhMxMvY3d9hb++mZTem1KGfkNhrVMLWY6zoophPXmhxhwB
-	 oEjdYGuIKMmyIIM3fcfRlwwg70jiVrU/8zBToKW4=
-Date: Thu, 23 Apr 2026 05:22:26 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,shikemeng@huaweicloud.com,ryan.roberts@arm.com,nphamcs@gmail.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,kasong@tencent.com,dev.jain@arm.com,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,akpm@linux-foundation.org
+	b=CsYur2KZwknwZY6VOFgYe+MuiY+mY46BJK6KDR3vdS2/ffQQn0R5ItWtfFMcgREhW
+	 NUhxZpR7K1ZN1hQNBKdHXAXNTqoo4/16mDwbgaanP/3NhJHBgma9AW8U65pNBRb7Co
+	 YeUPpzbvoNzK6gfz6yG1Gik62pkU6CxHut/JDRI8=
+Date: Thu, 23 Apr 2026 05:27:38 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split.patch added to mm-new branch
-Message-Id: <20260423122227.86930C2BCAF@smtp.kernel.org>
+Subject: + maintainers-mailmap-update-email-address-for-qi-zheng.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260423122738.B785FC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: Fix outdated comment about freeing subpages in __folio_split
-has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split.patch
+     Subject: MAINTAINERS, mailmap: update email address for Qi Zheng
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-mailmap-update-email-address-for-qi-zheng.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-mailmap-update-email-address-for-qi-zheng.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,61 +58,54 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/huge_memory: Fix outdated comment about freeing subpages in __folio_split
-Date: Thu, 23 Apr 2026 11:49:17 +0800
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: MAINTAINERS, mailmap: update email address for Qi Zheng
+Date: Thu, 23 Apr 2026 15:16:28 +0800
 
-The comment appears to be outdated.  First, add_to_swap() no longer exists
-after Kairui's commit b487a2da3575 ("mm, swap: simplify folio swap
-allocation").  Second, partially zapped folios are now always split before
-folio_alloc_swap() to avoid extra I/O, following Ryan's commit
-5ed890ce5147 ("mm: vmscan: avoid split during shrink_folio_list()").  Fix
-this by making the description more generic.
+Update my email address to qi.zheng@linux.dev.
 
-Link: https://lore.kernel.org/20260423034917.8234-1-baohua@kernel.org
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Youngjun Park <youngjun.park@lge.com>
+Link: https://lore.kernel.org/20260423071628.44044-1-qi.zheng@linux.dev
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ .mailmap    |    1 +
+ MAINTAINERS |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split
-+++ a/mm/huge_memory.c
-@@ -4190,11 +4190,10 @@ fail:
- 
- 		folio_unlock(new_folio);
- 		/*
--		 * Subpages may be freed if there wasn't any mapping
--		 * like if add_to_swap() is running on a lru page that
--		 * had its mapping zapped. And freeing these pages
--		 * requires taking the lru_lock so we do the put_page
--		 * of the tail pages after the split is complete.
-+		 * Subpages whose mapping has been zapped may be freed
-+		 * earlier, but freeing them requires taking the
-+		 * lru_lock, so we defer put_page() on tail pages until
-+		 * after the split completes.
- 		 */
- 		free_folio_and_swap_cache(new_folio);
- 	}
+--- a/.mailmap~maintainers-mailmap-update-email-address-for-qi-zheng
++++ a/.mailmap
+@@ -687,6 +687,7 @@ Punit Agrawal <punitagrawal@gmail.com> <
+ Puranjay Mohan <puranjay@kernel.org> <puranjay12@gmail.com>
+ Qais Yousef <qyousef@layalina.io> <qais.yousef@imgtec.com>
+ Qais Yousef <qyousef@layalina.io> <qais.yousef@arm.com>
++Qi Zheng <qi.zheng@linux.dev> <zhengqi.arch@bytedance.com>
+ Quentin Monnet <qmo@kernel.org> <quentin.monnet@netronome.com>
+ Quentin Monnet <qmo@kernel.org> <quentin@isovalent.com>
+ Quentin Perret <qperret@qperret.net> <quentin.perret@arm.com>
+--- a/MAINTAINERS~maintainers-mailmap-update-email-address-for-qi-zheng
++++ a/MAINTAINERS
+@@ -16982,7 +16982,7 @@ M:	Andrew Morton <akpm@linux-foundation.
+ M:	Johannes Weiner <hannes@cmpxchg.org>
+ R:	David Hildenbrand <david@kernel.org>
+ R:	Michal Hocko <mhocko@kernel.org>
+-R:	Qi Zheng <zhengqi.arch@bytedance.com>
++R:	Qi Zheng <qi.zheng@linux.dev>
+ R:	Shakeel Butt <shakeel.butt@linux.dev>
+ R:	Lorenzo Stoakes <ljs@kernel.org>
+ L:	linux-mm@kvack.org
+@@ -24331,7 +24331,7 @@ F:	include/media/i2c/rj54n1cb0c.h
+ SHRINKER
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	Dave Chinner <david@fromorbit.com>
+-R:	Qi Zheng <zhengqi.arch@bytedance.com>
++R:	Qi Zheng <qi.zheng@linux.dev>
+ R:	Roman Gushchin <roman.gushchin@linux.dev>
+ R:	Muchun Song <muchun.song@linux.dev>
+ L:	linux-mm@kvack.org
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split.patch
+maintainers-mailmap-update-email-address-for-qi-zheng.patch
 
