@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 396453A6F01
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 17:17:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 750F73A75B2
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 17:17:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776964661; cv=none; b=WkyWA9g4xUqhgx/rXkIhuyXkEw9EXx1Pf0wdTlXIg7maWP/1J78Xep9c/TZZEI5dJxla6nQS6A6qCZqHDA9WRwfsAxACZ3g8YftexcEG8sfjmbCEJRAMhKhg67oNQbxUgF3w9TK0/rjUbPp7GwVkmS5ZYMd9JsAeB110ekG54TM=
+	t=1776964663; cv=none; b=ptIJDH4jtQvJvW7WS3rvkIghL1Pcs8F+0MXv7wT8tq1hY0EXU3Un/ix9azqcTMRzMyo9qbrkmlJwdqDdvmlK4nSi+HFguOzrn3yfqOr9duODOtDOPZiwhqXnaNohcj8PkwpNSa9foAsWQE3rblWIAuFSTQhNON2/DQeArDtGt7M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776964661; c=relaxed/simple;
-	bh=EVQQxZRMrS2+XWd/l/UO7Vl4z6wemEIn3u7pAov9Is4=;
-	h=Date:To:From:Subject:Message-Id; b=BDZQHEHWriA01Hb+MpSlMPX/UPn0+yeSmHAfQW9pVzPBz2q14y+I0nylmt1/Q+a2dkHd7JKP57K8wVm9yLPTkcIokEI9X/xBpU5mXsD+g8mbjDV80I+eVSQOXdRiFaUXuXLPWSQC2obsIBlOd9J0ipI0Df5zvNBlPb5qSooOW24=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rWNK/iHC; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776964663; c=relaxed/simple;
+	bh=g2N2WHb5Auj6cSlsM/kt5paB2HVzWy/dq46rmqLS0Ao=;
+	h=Date:To:From:Subject:Message-Id; b=D23cJCwyCO4NklKBSyPL+eE5a7jphUt3AYp0A8zB2sUYKezqKTroDjk8nOBcYCu96XqTpLRho2+Fv3+yIL4lrfkPE2uOIEl856FzUbjxEMI3jLpUaz49CFpELPQN3iDAecNQKKz4WIRglAlT7wtgxWjTZDgTsMMIQg9Qicyn6zs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ff07n/Ao; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rWNK/iHC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC534C2BCAF;
-	Thu, 23 Apr 2026 17:17:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ff07n/Ao"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17B5AC2BCAF;
+	Thu, 23 Apr 2026 17:17:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776964660;
-	bh=EVQQxZRMrS2+XWd/l/UO7Vl4z6wemEIn3u7pAov9Is4=;
+	s=korg; t=1776964663;
+	bh=g2N2WHb5Auj6cSlsM/kt5paB2HVzWy/dq46rmqLS0Ao=;
 	h=Date:To:From:Subject:From;
-	b=rWNK/iHCu0NFvDmQktvHaVltdJneBztNxhTdoAVU8gYzMEymM8qDgtiZrzEAjPEwB
-	 yUPoG/LvQRSyg1RhQ3kM+KEwRWpasLtObjUtgN3jYJCxbwYemyCBLzYafMjqp3IDk5
-	 OiPZevVu9BdcVTKXk+AbRcnoALYXaDwzJ6BPi/P4=
-Date: Thu, 23 Apr 2026 10:17:40 -0700
+	b=ff07n/AoCX0cUEpBNtlkJrP3c1JdjQ+Ar9G0E05sU7S8+/qO5oX8o6xKUsDGPSM2n
+	 XX+h67tB+Z7dev+g24zqjJ6bV3pSZ2i3532LjVYg5scQbW2XRavmLNRW3xJT1AcezZ
+	 eIRIsLUvudxJ/ne9I/ju5JIm7GEy+D3L05PpwnWo=
+Date: Thu, 23 Apr 2026 10:17:42 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,rafael@kernel.org,peterz@infradead.org,mingo@kernel.org,memxor@gmail.com,mark.rutland@arm.com,konradybcio@kernel.org,harisokn@amazon.com,gary@garyguo.net,davidgow@google.com,daniel.lezcano@linaro.org,cl@linux.com,catalin.marinas@arm.com,boqun@kernel.org,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,andersson@kernel.org,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sched-add-need-resched-timed-wait-interface.patch added to mm-new branch
-Message-Id: <20260423171740.CC534C2BCAF@smtp.kernel.org>
+Subject: + cpuidle-poll_state-wait-for-need-resched-via-tif_need_resched_relaxed_wait.patch added to mm-new branch
+Message-Id: <20260423171743.17B5AC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sched: add need-resched timed wait interface
+     Subject: cpuidle/poll_state: wait for need-resched via tif_need_resched_relaxed_wait()
 has been added to the -mm mm-new branch.  Its filename is
-     sched-add-need-resched-timed-wait-interface.patch
+     cpuidle-poll_state-wait-for-need-resched-via-tif_need_resched_relaxed_wait.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sched-add-need-resched-timed-wait-interface.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/cpuidle-poll_state-wait-for-need-resched-via-tif_need_resched_relaxed_wait.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,95 +70,100 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: sched: add need-resched timed wait interface
-Date: Wed, 8 Apr 2026 17:55:35 +0530
+Subject: cpuidle/poll_state: wait for need-resched via tif_need_resched_relaxed_wait()
+Date: Wed, 8 Apr 2026 17:55:36 +0530
 
-Add tif_bitset_relaxed_wait() (and tif_need_resched_relaxed_wait() which
-wraps it) which takes the thread_info bit and timeout duration as
-parameters and waits until the bit is set or for the expiration of the
-timeout.
+The inner loop in poll_idle() polls over the thread_info flags, waiting to
+see if the thread has TIF_NEED_RESCHED set.  The loop exits once the
+condition is met, or if the poll time limit has been exceeded.
 
-The wait is implemented via smp_cond_load_relaxed_timeout().
+To minimize the number of instructions executed in each iteration, the
+time check is rate-limited.  In addition, each loop iteration executes
+cpu_relax() which on certain platforms provides a hint to the pipeline
+that the loop busy-waits, allowing the processor to reduce power
+consumption.
 
-smp_cond_load_relaxed_timeout() essentially provides the pattern used in
-poll_idle() where we spin in a loop waiting for the flag to change until a
-timeout occurs.
+Switch over to tif_need_resched_relaxed_wait() instead, since that
+provides exactly that.
 
-tif_need_resched_relaxed_wait() allows us to abstract out the internals
-of waiting, scheduler specific details etc.
+However, since we want to minimize power consumption in idle, building of
+cpuidle/poll_state.c continues to depend on CONFIG_ARCH_HAS_CPU_RELAX as
+that serves as an indicator that the platform supports an optimized
+version of tif_need_resched_relaxed_wait() (via
+smp_cond_load_acquire_timeout()).
 
-Placed in linux/sched/idle.h instead of linux/thread_info.h to work
-around recursive include hell.
-
-Link: https://lore.kernel.org/20260408122538.3610871-12-ankur.a.arora@oracle.com
+Link: https://lore.kernel.org/20260408122538.3610871-13-ankur.a.arora@oracle.com
 Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rafael J. Wysocki <rafael@kernel.org>
+Suggested-by: Rafael J. Wysocki <rafael@kernel.org>
 Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Acked-by: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+Tested-by: Haris Okanovic <harisokn@amazon.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Boqun Feng <boqun@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Gary Guo <gary@garyguo.net>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bjorn Andersson <andersson@kernel.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Boqun Feng <boqun@kernel.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Gow <davidgow@google.com>
-Cc: Gary Guo <gary@garyguo.net>
-Cc: Haris Okanovic <harisokn@amazon.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Konrad Dybcio <konradybcio@kernel.org>
 Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/idle.h |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ drivers/cpuidle/poll_state.c |   21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
 
---- a/include/linux/sched/idle.h~sched-add-need-resched-timed-wait-interface
-+++ a/include/linux/sched/idle.h
-@@ -3,6 +3,7 @@
- #define _LINUX_SCHED_IDLE_H
+--- a/drivers/cpuidle/poll_state.c~cpuidle-poll_state-wait-for-need-resched-via-tif_need_resched_relaxed_wait
++++ a/drivers/cpuidle/poll_state.c
+@@ -6,41 +6,22 @@
+ #include <linux/cpuidle.h>
+ #include <linux/export.h>
+ #include <linux/irqflags.h>
+-#include <linux/sched.h>
+-#include <linux/sched/clock.h>
+ #include <linux/sched/idle.h>
+ #include <linux/sprintf.h>
+ #include <linux/types.h>
  
- #include <linux/sched.h>
-+#include <linux/sched/clock.h>
+-#define POLL_IDLE_RELAX_COUNT	200
+-
+ static int __cpuidle poll_idle(struct cpuidle_device *dev,
+ 			       struct cpuidle_driver *drv, int index)
+ {
+-	u64 time_start;
+-
+-	time_start = local_clock_noinstr();
+-
+ 	dev->poll_time_limit = false;
  
- enum cpu_idle_type {
- 	__CPU_NOT_IDLE = 0,
-@@ -113,4 +114,32 @@ static __always_inline void current_clr_
- }
- #endif
+ 	raw_local_irq_enable();
+ 	if (!current_set_polling_and_test()) {
+-		unsigned int loop_count = 0;
+ 		u64 limit;
  
-+/*
-+ * Caller needs to make sure that the thread context cannot be preempted
-+ * or migrated, so current_thread_info() cannot change from under us.
-+ *
-+ * This also allows us to safely stay in the local_clock domain.
-+ */
-+static __always_inline bool tif_bitset_relaxed_wait(int tif, u64 timeout_ns)
-+{
-+	unsigned long flags;
-+
-+	flags = smp_cond_load_relaxed_timeout(&current_thread_info()->flags,
-+					      (VAL & BIT(tif)),
-+					      local_clock_noinstr(),
-+					      timeout_ns);
-+	return flags & BIT(tif);
-+}
-+
-+/**
-+ * tif_need_resched_relaxed_wait() - Wait for need-resched being set
-+ * with no ordering guarantees until a timeout expires.
-+ *
-+ * @timeout_ns: timeout value.
-+ */
-+static __always_inline bool tif_need_resched_relaxed_wait(u64 timeout_ns)
-+{
-+	return tif_bitset_relaxed_wait(TIF_NEED_RESCHED, timeout_ns);
-+}
-+
- #endif /* _LINUX_SCHED_IDLE_H */
+ 		limit = cpuidle_poll_time(drv, dev);
+ 
+-		while (!need_resched()) {
+-			cpu_relax();
+-			if (loop_count++ < POLL_IDLE_RELAX_COUNT)
+-				continue;
+-
+-			loop_count = 0;
+-			if (local_clock_noinstr() - time_start > limit) {
+-				dev->poll_time_limit = true;
+-				break;
+-			}
+-		}
++		dev->poll_time_limit = !tif_need_resched_relaxed_wait(limit);
+ 	}
+ 	raw_local_irq_disable();
+ 
 _
 
 Patches currently in -mm which might be from ankur.a.arora@oracle.com are
