@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0E1637DE80
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 17:17:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB91E1E7C12
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 17:17:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776964649; cv=none; b=QkjOboih5x6b/LUQ6l4NxtNj92BLR7jPR9/dk1IXv+6GN65RZUeqFkw2LXc6TmNnBwf1YQgWczFvoKSnn17l8AbqwSahrwRm/NdyoszF0MDlfzgiGPOCQESN88IKtzgX8rfx5dfxk9SS6oJSjp7mZW7YCBH/l80YNmtxqGiuBNI=
+	t=1776964650; cv=none; b=bvwxJ7vx5/HcjCaBjv1e3IfEG6D+zprZvKcNGLVim1Kvkn/M3gUQTJbMPV/CwrgRsosLcDRw0tbKDAXUwmD4Tiyg8INgj+yHfswCSS7hVwRYT879MYu0NUR/qQ6wkNY7v1P9cj3IwzanClXcbAkEnUKyx8T9rKW/Gbd8GFzGZoY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776964649; c=relaxed/simple;
-	bh=VvYAHypeqr1gf38cIVKDv4DKKd13x3Mxf/L4ATiOB9E=;
-	h=Date:To:From:Subject:Message-Id; b=J+WHNROxmINmPdyHr5HYEFXH7vlL6Vhoe62xpFpi78AWfQrbUu4eQ9RfjJAFQPshvCPOEn5nNd7JD2Wobxw74v2sAFxKG+T8/8m7HKYbXS9xDC1LHwPxTyjY3PAJrscOdfAjWqnkAA1MGZJZavytB1yrSatrlpOZCAEnDWD/LmM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=OqkfWcNF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776964650; c=relaxed/simple;
+	bh=ysRfLpqXZ85txR/AGL2XYJPoQJF5uCo69pWqOsEr/Jc=;
+	h=Date:To:From:Subject:Message-Id; b=H0hCqRoTsDsa2YMhMPcCpA9sgm1Z+rTYPjWobBZwYDCh3bc+PEG3+ALFHLz5FUCLOOJ/GO6Za/OjrDhqvrZl57W6/HS9UXY0ScK7CSrUpm/N0tH6hrNQ8NQMqCSoktAx2m1IAEzLnxhLvEX+WS0qagLtKh09llKOoq+yFVIBIWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n7RjcwSv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="OqkfWcNF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B5D2C2BCAF;
-	Thu, 23 Apr 2026 17:17:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n7RjcwSv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B46E4C2BCAF;
+	Thu, 23 Apr 2026 17:17:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776964648;
-	bh=VvYAHypeqr1gf38cIVKDv4DKKd13x3Mxf/L4ATiOB9E=;
+	s=korg; t=1776964650;
+	bh=ysRfLpqXZ85txR/AGL2XYJPoQJF5uCo69pWqOsEr/Jc=;
 	h=Date:To:From:Subject:From;
-	b=OqkfWcNFz+ZYuvkrZAIt3UuJcwLfqUU8QYhKrXcbp7NlLrDokNg+owy2OaMFvYzOt
-	 Rq/WtJj75vB1QJI7SHnxO6g9wQdviHHSMncwk1ha6MAX14pkco5057XbuCySfJr9hJ
-	 JSmI/2FH2GQZ7J+LT5C0ya3uf3ni4K3eXtGwtOkE=
-Date: Thu, 23 Apr 2026 10:17:27 -0700
+	b=n7RjcwSv5vfCh9pJa8/tl2oCkbUJmtIw+ZJQp33MkawtDHUn0lweuScDx2uJ9ycIE
+	 g9C2gdBxjjaFIbr9VcxfxMHdKqz3bH5Z3zSS2Dx0FhxK2QhjZXeuUNkhz6Np0t1fmf
+	 7T0eKCGXs8/HPqbboeFdzTQyPTMerzNim5Gyk6Bo=
+Date: Thu, 23 Apr 2026 10:17:30 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,rafael@kernel.org,peterz@infradead.org,mingo@kernel.org,memxor@gmail.com,mark.rutland@arm.com,konradybcio@kernel.org,harisokn@amazon.com,gary@garyguo.net,davidgow@google.com,daniel.lezcano@linaro.org,cl@linux.com,catalin.marinas@arm.com,boqun@kernel.org,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,andersson@kernel.org,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + asm-generic-barrier-add-smp_cond_load_acquire_timeout.patch added to mm-new branch
-Message-Id: <20260423171728.7B5D2C2BCAF@smtp.kernel.org>
+Subject: + atomic-add-atomic_cond_read__timeout.patch added to mm-new branch
+Message-Id: <20260423171730.B46E4C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: asm-generic: barrier: add smp_cond_load_acquire_timeout()
+     Subject: atomic: add atomic_cond_read_*_timeout()
 has been added to the -mm mm-new branch.  Its filename is
-     asm-generic-barrier-add-smp_cond_load_acquire_timeout.patch
+     atomic-add-atomic_cond_read__timeout.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/asm-generic-barrier-add-smp_cond_load_acquire_timeout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/atomic-add-atomic_cond_read__timeout.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,28 +70,30 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: asm-generic: barrier: add smp_cond_load_acquire_timeout()
-Date: Wed, 8 Apr 2026 17:55:30 +0530
+Subject: atomic: add atomic_cond_read_*_timeout()
+Date: Wed, 8 Apr 2026 17:55:31 +0530
 
-Add the acquire variant of smp_cond_load_relaxed_timeout().  This reuses
-the relaxed variant, with additional LOAD->LOAD ordering.
+Add atomic load wrappers, atomic_cond_read_*_timeout() and
+atomic64_cond_read_*_timeout() for the cond-load timeout interfaces.
 
-Link: https://lore.kernel.org/20260408122538.3610871-7-ankur.a.arora@oracle.com
+Also add a short description for the atomic_cond_read_{relaxed,acquire}(),
+and the atomic_cond_read_{relaxed,acquire}_timeout() interfaces.
+
+Link: https://lore.kernel.org/20260408122538.3610871-8-ankur.a.arora@oracle.com
 Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Haris Okanovic <harisokn@amazon.com>
-Tested-by: Haris Okanovic <harisokn@amazon.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Bjorn Andersson <andersson@kernel.org>
 Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bjorn Andersson <andersson@kernel.org>
 Cc: Boqun Feng <boqun@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: David Gow <davidgow@google.com>
 Cc: Gary Guo <gary@garyguo.net>
+Cc: Haris Okanovic <harisokn@amazon.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Konrad Dybcio <konradybcio@kernel.org>
 Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
@@ -100,44 +102,59 @@ Cc: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/barrier.h |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ Documentation/atomic_t.txt |   14 +++++++++-----
+ include/linux/atomic.h     |   10 ++++++++++
+ 2 files changed, 19 insertions(+), 5 deletions(-)
 
---- a/include/asm-generic/barrier.h~asm-generic-barrier-add-smp_cond_load_acquire_timeout
-+++ a/include/asm-generic/barrier.h
-@@ -342,6 +342,32 @@ do {									\
- })
- #endif
+--- a/Documentation/atomic_t.txt~atomic-add-atomic_cond_read__timeout
++++ a/Documentation/atomic_t.txt
+@@ -16,6 +16,10 @@ Non-RMW ops:
+   atomic_read(), atomic_set()
+   atomic_read_acquire(), atomic_set_release()
  
-+/**
-+ * smp_cond_load_acquire_timeout() - (Spin) wait for cond with ACQUIRE ordering
-+ * until a timeout expires.
-+ * @ptr: pointer to the variable to wait on.
-+ * @cond_expr: boolean expression to wait for.
-+ * @time_expr_ns: monotonic expression that evaluates to time in ns or,
-+ *  on failure, returns a negative value.
-+ * @timeout_ns: timeout value in ns
-+ * (Both of the above are assumed to be compatible with s64.)
-+ *
-+ * Equivalent to using smp_cond_load_acquire() on the condition variable with
-+ * a timeout.
-+ */
-+#ifndef smp_cond_load_acquire_timeout
-+#define smp_cond_load_acquire_timeout(ptr, cond_expr,			\
-+				      time_expr_ns, timeout_ns)		\
-+({									\
-+	__unqual_scalar_typeof(*ptr) _val;				\
-+	_val = smp_cond_load_relaxed_timeout(ptr, cond_expr,		\
-+					     time_expr_ns,		\
-+					     timeout_ns);		\
-+	smp_acquire__after_ctrl_dep();					\
-+	(typeof(*ptr))_val;						\
-+})
-+#endif
++Non-RMW, non-atomic_t ops:
++
++  atomic_cond_read_{relaxed,acquire}()
++  atomic_cond_read_{relaxed,acquire}_timeout()
+ 
+ RMW atomic operations:
+ 
+@@ -79,11 +83,11 @@ SEMANTICS
+ 
+ Non-RMW ops:
+ 
+-The non-RMW ops are (typically) regular LOADs and STOREs and are canonically
+-implemented using READ_ONCE(), WRITE_ONCE(), smp_load_acquire() and
+-smp_store_release() respectively. Therefore, if you find yourself only using
+-the Non-RMW operations of atomic_t, you do not in fact need atomic_t at all
+-and are doing it wrong.
++The non-RMW ops are (typically) regular, or conditional LOADs and STOREs and
++are canonically implemented using READ_ONCE(), WRITE_ONCE(),
++smp_load_acquire() and smp_store_release() respectively. Therefore, if you
++find yourself only using the Non-RMW operations of atomic_t, you do not in
++fact need atomic_t at all and are doing it wrong.
+ 
+ A note for the implementation of atomic_set{}() is that it must not break the
+ atomicity of the RMW ops. That is:
+--- a/include/linux/atomic.h~atomic-add-atomic_cond_read__timeout
++++ a/include/linux/atomic.h
+@@ -31,6 +31,16 @@
+ #define atomic64_cond_read_acquire(v, c) smp_cond_load_acquire(&(v)->counter, (c))
+ #define atomic64_cond_read_relaxed(v, c) smp_cond_load_relaxed(&(v)->counter, (c))
+ 
++#define atomic_cond_read_acquire_timeout(v, c, e, t) \
++	smp_cond_load_acquire_timeout(&(v)->counter, (c), (e), (t))
++#define atomic_cond_read_relaxed_timeout(v, c, e, t) \
++	smp_cond_load_relaxed_timeout(&(v)->counter, (c), (e), (t))
++
++#define atomic64_cond_read_acquire_timeout(v, c, e, t) \
++	smp_cond_load_acquire_timeout(&(v)->counter, (c), (e), (t))
++#define atomic64_cond_read_relaxed_timeout(v, c, e, t) \
++	smp_cond_load_relaxed_timeout(&(v)->counter, (c), (e), (t))
 +
  /*
-  * pmem_wmb() ensures that all stores for which the modification
-  * are written to persistent storage by preceding instructions have
+  * The idea here is to build acquire/release variants by adding explicit
+  * barriers on top of the relaxed variant. In the case where the relaxed
 _
 
 Patches currently in -mm which might be from ankur.a.arora@oracle.com are
