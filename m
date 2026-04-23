@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD2113AA4E9
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 18:14:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2293350285
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 18:30:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776968089; cv=none; b=FEiFfYybwfoie4GgF28P5riCuvbcCVPUnayUgwLKH5voypIsgjeo4zTc9c4lrz4w3a4p5UUEYPMb0R2kArhVqKK7g1GKlwabTasMqQrfQOKNqZMziYemUDTwaePa23SRNzINJXPtBMYMUHujPol11JsIwCB6XKGoyik/bC5WpVk=
+	t=1776969018; cv=none; b=DRn/TrQW5TMEweh1WgZBtLU72etzzfqK8iQpVymi0n2qmDp6N9S0bME4qMHapr8cRN5ibr9aaMULizsvDKXnPnRs9nExPLjlVsW9R5ombJgUk7tdtrRBTVKcM9eWMBqGAKv9X/+hKwUuwcBj2qFYecJG7T6eB1BApaE+WUMWAg0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776968089; c=relaxed/simple;
-	bh=n9r8XUv4n1jdpUg2ssXipS6+Abh/EOzeKu1IqmcigZs=;
-	h=Date:To:From:Subject:Message-Id; b=KeES9Sn9bI5QApqdYOpISYfJNDtF/ul/x2CJ0LqfuDRL25UurGEWLkDfK2DGdtvS078d9CoHifIF5P6RKsy0J88OgPXwMW5inUvfct6Zuj2m+MX1GPbLfgbhtbUwdQg1e2XqwEzdExcljFQqoln60ZriMAacxspjklpi4Nv/BJg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SzVUM0/r; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776969018; c=relaxed/simple;
+	bh=qSczxBUUV7yJ9Byi1xtuW0E8uKObYQ86oFRLZNbeJug=;
+	h=Date:To:From:Subject:Message-Id; b=gm771p8ijQaskNV6T/+TGL01ZLf5tE1YZ4q0QekanqK8mkft6MoOXcEBAKBCWeTHc/npG+dUuRWhmerrsoVwC0PHkOjOaYPwKt7bQ8cEfgJVMRPh5PJYkSj10PvdjQ46H9ZNu6lNiGi/+83/myzxuCW2+H2WsbyyJMgYwlBFpe4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HTHcDahn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SzVUM0/r"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DD07C2BCB4;
-	Thu, 23 Apr 2026 18:14:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HTHcDahn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EF0DC2BCAF;
+	Thu, 23 Apr 2026 18:30:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776968089;
-	bh=n9r8XUv4n1jdpUg2ssXipS6+Abh/EOzeKu1IqmcigZs=;
+	s=korg; t=1776969017;
+	bh=qSczxBUUV7yJ9Byi1xtuW0E8uKObYQ86oFRLZNbeJug=;
 	h=Date:To:From:Subject:From;
-	b=SzVUM0/rhOS3wPEcqP6EDIpX1Bt/+tjJzRkWkNxWkuycq0QCpj5qtxaJH4lCDu9x6
-	 6AcVck8AMDcqYxQMJgLKlCJX23o9hvZwM4pRgd14WvX32La7hOKVpgVNe2viSL99ky
-	 Bq3iyoUxHZespnrcpjJa0rvL/TPpyYv49tL0BgEY=
-Date: Thu, 23 Apr 2026 11:14:48 -0700
-To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=HTHcDahnlgc8MSyat+lz+cryWWf7Z1TXBgOrriUHigcj042PMThYmtB35qZEemJzS
+	 4MPyq8x3LlYHKvRLbFpL260lSVUZ6zcd1CJpVk39fYWINlXoVdW9WXsAAib9D2d0yY
+	 d4P0S8HLjfZbco5t6E5G6Oq0r1muAUDlM4HSqBuc=
+Date: Thu, 23 Apr 2026 11:30:16 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,youngjun.park@lge.com,willy@infradead.org,weixugc@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,riel@surriel.com,qi.zheng@linux.dev,nphamcs@gmail.com,mhocko@suse.com,kasong@tencent.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,axelrasmussen@google.com,jp.kobryn@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch added to mm-new branch
-Message-Id: <20260423181449.6DD07C2BCB4@smtp.kernel.org>
+Subject: + mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch added to mm-new branch
+Message-Id: <20260423183017.6EF0DC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: unify writeback reclaim statistic and throttling
+     Subject: mm/lruvec: preemptively free dead folios during lru_add drain
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch
+     mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,218 +69,138 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm/vmscan: unify writeback reclaim statistic and throttling
-Date: Fri, 24 Apr 2026 01:43:25 +0800
+From: "JP Kobryn (Meta)" <jp.kobryn@linux.dev>
+Subject: mm/lruvec: preemptively free dead folios during lru_add drain
+Date: Thu, 23 Apr 2026 09:43:07 -0700
 
-Currently MGLRU and non-MGLRU handle the reclaim statistic and writeback
-handling very differently, especially throttling.  Basically MGLRU just
-ignored the throttling part.
+Of all observable lruvec lock contention in our fleet, we find that ~24%
+occurs when dead folios are present in lru_add batches at drain time. 
+This is wasteful in the sense that the folio is added to the LRU just to
+be immediately removed via folios_put_refs(), incurring two unnecessary
+lock acquisitions.
 
-Let's just unify this part, use a helper to deduplicate the code so both
-setups will share the same behavior.
+Eliminate this overhead by preemptively cleaning up dead folios before
+they make it into the LRU.  Use folio_ref_freeze() to filter folios whose
+only remaining refcount is the batch ref.  When dead folios are found,
+move them off the add batch and onto a temporary batch to be freed.
 
-Test using following reproducer using bash:
+During A/B testing on one of our prod instagram workloads (high-frequency
+short-lived requests), the patch intercepted almost all dead folios before
+they entered the LRU.  Data collected using the mm_lru_insertion
+tracepoint shows the effectiveness of the patch:
 
-  echo "Setup a slow device using dm delay"
-  dd if=/dev/zero of=/var/tmp/backing bs=1M count=2048
-  LOOP=$(losetup --show -f /var/tmp/backing)
-  mkfs.ext4 -q $LOOP
-  echo "0 $(blockdev --getsz $LOOP) delay $LOOP 0 0 $LOOP 0 1000" | \
-      dmsetup create slow_dev
-  mkdir -p /mnt/slow && mount /dev/mapper/slow_dev /mnt/slow
+Per-host LRU add averages at 95% CPU load
+(60 hosts each side, 3 x 60s intervals)
 
-  echo "Start writeback pressure"
-  sync && echo 3 > /proc/sys/vm/drop_caches
-  mkdir /sys/fs/cgroup/test_wb
-  echo 128M > /sys/fs/cgroup/test_wb/memory.max
-  (echo $BASHPID > /sys/fs/cgroup/test_wb/cgroup.procs && \
-      dd if=/dev/zero of=/mnt/slow/testfile bs=1M count=192)
+            dead folios/min  total folios/min   dead %
+unpatched:        1,297,785        19,341,986  6.7097%
+patched:                 14        19,039,996  0.0001%
 
-  echo "Clean up"
-  echo "0 $(blockdev --getsz $LOOP) error" | dmsetup load slow_dev
-  dmsetup resume slow_dev
-  umount -l /mnt/slow && sync
-  dmsetup remove slow_dev
+Within this workload, we save ~2.6M lock acquisitions per minute per host
+as a result.
 
-Before this commit, `dd` will get OOM killed immediately if MGLRU is
-enabled.  Classic LRU is fine.
+System-wide memory stats improved on the patched side also at 95% CPU load:
+ - direct reclaim scanning reduced 7%
+ - allocation stalls reduced 5.2%
+ - compaction stalls reduced 12.3%
+ - page frees reduced 4.9%
 
-After this commit, throttling is now effective and no more spin on LRU or
-premature OOM.  Stress test on other workloads also looking good.
+No regressions were observed in requests served per second or request tail
+latency (p99).  Both metrics showed directional improvement at higher CPU
+utilization (comparing 85% to 95%).
 
-Global throttling is not here yet, we will fix that separately later.
-
-Link: https://lore.kernel.org/20260424-mglru-reclaim-v6-14-a57622d770c3@tencent.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Suggested-by: Chen Ridong <chenridong@huaweicloud.com>
-Tested-by: Leno Hou <lenohou@gmail.com>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lore.kernel.org/20260423164307.29805-1-jp.kobryn@linux.dev
+Signed-off-by: JP Kobryn (Meta) <jp.kobryn@linux.dev>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: David Stevens <stevensd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Rik van Riel <riel@surriel.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Xu <weixugc@google.com>
-Cc: Yafang <laoar.shao@gmail.com>
+Cc: Youngjun Park <youngjun.park@lge.com>
 Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   92 +++++++++++++++++++++++---------------------------
- 1 file changed, 43 insertions(+), 49 deletions(-)
+ mm/swap.c |   36 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-unify-writeback-reclaim-statistic-and-throttling
-+++ a/mm/vmscan.c
-@@ -1942,6 +1942,44 @@ static int current_may_throttle(void)
- 	return !(current->flags & PF_LOCAL_THROTTLE);
- }
- 
-+static void handle_reclaim_writeback(unsigned long nr_taken,
-+				     struct pglist_data *pgdat,
-+				     struct scan_control *sc,
-+				     struct reclaim_stat *stat)
-+{
+--- a/mm/swap.c~mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain
++++ a/mm/swap.c
+@@ -160,13 +160,36 @@ static void folio_batch_move_lru(struct
+ 	int i;
+ 	struct lruvec *lruvec = NULL;
+ 	unsigned long flags = 0;
++	struct folio_batch free_fbatch;
++	bool is_lru_add = (move_fn == lru_add);
++
 +	/*
-+	 * If dirty folios are scanned that are not queued for IO, it
-+	 * implies that flushers are not doing their job. This can
-+	 * happen when memory pressure pushes dirty folios to the end of
-+	 * the LRU before the dirty limits are breached and the dirty
-+	 * data has expired. It can also happen when the proportion of
-+	 * dirty folios grows not through writes but through memory
-+	 * pressure reclaiming all the clean cache. And in some cases,
-+	 * the flushers simply cannot keep up with the allocation
-+	 * rate. Nudge the flusher threads in case they are asleep.
++	 * If we're adding to the LRU, preemptively filter dead folios. Use
++	 * this dedicated folio batch for temp storage and deferred cleanup.
 +	 */
-+	if (stat->nr_unqueued_dirty == nr_taken) {
-+		wakeup_flusher_threads(WB_REASON_VMSCAN);
++	if (is_lru_add)
++		folio_batch_init(&free_fbatch);
+ 
+ 	for (i = 0; i < folio_batch_count(fbatch); i++) {
+ 		struct folio *folio = fbatch->folios[i];
+ 
+ 		/* block memcg migration while the folio moves between lru */
+-		if (move_fn != lru_add && !folio_test_clear_lru(folio))
++		if (!is_lru_add && !folio_test_clear_lru(folio))
++			continue;
++
 +		/*
-+		 * For cgroupv1 dirty throttling is achieved by waking up
-+		 * the kernel flusher here and later waiting on folios
-+		 * which are in writeback to finish (see shrink_folio_list()).
++		 * Filter dead folios by moving them from the add batch to the temp
++		 * batch for freeing after this loop.
 +		 *
-+		 * Flusher may not be able to issue writeback quickly
-+		 * enough for cgroupv1 writeback throttling to work
-+		 * on a large system.
++		 * Since the folio may be part of a huge page, unqueue from
++		 * deferred split list to avoid a dangling list entry.
 +		 */
-+		if (!writeback_throttling_sane(sc))
-+			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
++		if (is_lru_add && folio_ref_freeze(folio, 1)) {
++			folio_unqueue_deferred_split(folio);
++			fbatch->folios[i] = NULL;
++			folio_batch_add(&free_fbatch, folio);
+ 			continue;
++		}
+ 
+ 		folio_lruvec_relock_irqsave(folio, &lruvec, &flags);
+ 		move_fn(lruvec, folio);
+@@ -176,6 +199,13 @@ static void folio_batch_move_lru(struct
+ 
+ 	if (lruvec)
+ 		lruvec_unlock_irqrestore(lruvec, flags);
++
++	/* Cleanup filtered dead folios. */
++	if (is_lru_add) {
++		mem_cgroup_uncharge_folios(&free_fbatch);
++		free_unref_folios(&free_fbatch);
 +	}
 +
-+	sc->nr.dirty += stat->nr_dirty;
-+	sc->nr.congested += stat->nr_congested;
-+	sc->nr.writeback += stat->nr_writeback;
-+	sc->nr.immediate += stat->nr_immediate;
-+	sc->nr.taken += nr_taken;
-+}
+ 	folios_put(fbatch);
+ }
+ 
+@@ -964,6 +994,10 @@ void folios_put_refs(struct folio_batch
+ 		struct folio *folio = folios->folios[i];
+ 		unsigned int nr_refs = refs ? refs[i] : 1;
+ 
++		/* Folio batch entry may have been preemptively removed during drain. */
++		if (!folio)
++			continue;
 +
- /*
-  * shrink_inactive_list() is a helper for shrink_node().  It returns the number
-  * of reclaimed pages
-@@ -2005,39 +2043,7 @@ static unsigned long shrink_inactive_lis
- 	lruvec_lock_irq(lruvec);
- 	lru_note_cost_unlock_irq(lruvec, file, stat.nr_pageout,
- 					nr_scanned - nr_reclaimed);
--
--	/*
--	 * If dirty folios are scanned that are not queued for IO, it
--	 * implies that flushers are not doing their job. This can
--	 * happen when memory pressure pushes dirty folios to the end of
--	 * the LRU before the dirty limits are breached and the dirty
--	 * data has expired. It can also happen when the proportion of
--	 * dirty folios grows not through writes but through memory
--	 * pressure reclaiming all the clean cache. And in some cases,
--	 * the flushers simply cannot keep up with the allocation
--	 * rate. Nudge the flusher threads in case they are asleep.
--	 */
--	if (stat.nr_unqueued_dirty == nr_taken) {
--		wakeup_flusher_threads(WB_REASON_VMSCAN);
--		/*
--		 * For cgroupv1 dirty throttling is achieved by waking up
--		 * the kernel flusher here and later waiting on folios
--		 * which are in writeback to finish (see shrink_folio_list()).
--		 *
--		 * Flusher may not be able to issue writeback quickly
--		 * enough for cgroupv1 writeback throttling to work
--		 * on a large system.
--		 */
--		if (!writeback_throttling_sane(sc))
--			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
--	}
--
--	sc->nr.dirty += stat.nr_dirty;
--	sc->nr.congested += stat.nr_congested;
--	sc->nr.writeback += stat.nr_writeback;
--	sc->nr.immediate += stat.nr_immediate;
--	sc->nr.taken += nr_taken;
--
-+	handle_reclaim_writeback(nr_taken, pgdat, sc, &stat);
- 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
- 			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
- 	return nr_reclaimed;
-@@ -4824,26 +4830,13 @@ static int evict_folios(unsigned long nr
- retry:
- 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false, memcg);
- 	sc->nr_reclaimed += reclaimed;
-+	/* Retry pass is only meant for clean folios without new isolation */
-+	if (isolated)
-+		handle_reclaim_writeback(isolated, pgdat, sc, &stat);
- 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
- 			type_scanned, reclaimed, &stat, sc->priority,
- 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
- 
--	/*
--	 * If too many file cache in the coldest generation can't be evicted
--	 * due to being dirty, wake up the flusher.
--	 */
--	if (stat.nr_unqueued_dirty == isolated) {
--		wakeup_flusher_threads(WB_REASON_VMSCAN);
--
--		/*
--		 * For cgroupv1 dirty throttling is achieved by waking up
--		 * the kernel flusher here and later waiting on folios
--		 * which are in writeback to finish (see shrink_folio_list()).
--		 */
--		if (!writeback_throttling_sane(sc))
--			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
--	}
--
- 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
- 		DEFINE_MIN_SEQ(lruvec);
- 
-@@ -4886,6 +4879,7 @@ retry:
- 
- 	if (!list_empty(&list)) {
- 		skip_retry = true;
-+		isolated = 0;
- 		goto retry;
- 	}
+ 		if (is_huge_zero_folio(folio))
+ 			continue;
  
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from jp.kobryn@linux.dev are
 
-mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
-mm-mglru-rename-variables-related-to-aging-and-rotation.patch
-mm-mglru-relocate-the-lru-scan-batch-limit-to-callers.patch
-mm-mglru-restructure-the-reclaim-loop.patch
-mm-mglru-scan-and-count-the-exact-number-of-folios.patch
-mm-mglru-use-a-smaller-batch-for-reclaim.patch
-mm-mglru-dont-abort-scan-immediately-right-after-aging.patch
-mm-mglru-remove-redundant-swap-constrained-check-upon-isolation.patch
-mm-mglru-use-the-common-routine-for-dirty-writeback-reactivation.patch
-mm-mglru-simplify-and-improve-dirty-writeback-handling.patch
-mm-mglru-remove-no-longer-used-reclaim-argument-for-folio-protection.patch
-mm-vmscan-remove-sc-file_taken.patch
-mm-vmscan-remove-sc-unqueued_dirty.patch
-mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch
+mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch
 
