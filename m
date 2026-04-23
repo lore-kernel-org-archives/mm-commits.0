@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C31663ED5BE
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 12:39:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD20F2DC79F
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 13:54:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776947941; cv=none; b=O1O8ra7gp38OYfU4ZwZI4j224c6LvAq39P4fSzyEE8LoXKuKTxIc1gongf2X/Crho71c8oCgKhfdArjx1P5EiCQwR4e/jZf8jMNbsal47lYoA1lO551xdZ5nVWm76/R8ND4PeuomrCYpZCivdfecPzNkvYO+m+Q43skBqjgEQrE=
+	t=1776952463; cv=none; b=YR4zw59j5kIaTJaQ+ZUQx0mTxYEwH4nNfEYkBlCGNM1THttyAnlFYzSq+WaoofBH1DjwuQ86i5rIf8SEyDAnQVoX2H826js4jtql+SfnD0wrABpdpFlXAdk2fytTCIU9LuFZRCu79JnuI3hT10eGFzMz908+HPrhlTb3SrYyJek=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776947941; c=relaxed/simple;
-	bh=fqhYmjHY1sexuvnUMaEYX3ZYN4s8if2H/3MDfGzzy0c=;
-	h=Date:To:From:Subject:Message-Id; b=XdDGrk4xGQs1OVra6+LZG+yFaLuFVLtjsUb12sSF/QXTlkhWFZ34LDum0R2iRroka86ZsQjtnOF7KrAGk0+NRmftX/Ou4XGwukguqqyXRkgttTqv5St5BL4gm2FGHCOQmRjzcKK7fB6TzKd+P2UyuyA9a3lAuMXgE1f/mAKntQk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rWjbWHNT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776952463; c=relaxed/simple;
+	bh=RBji3asVvcM9exGTZF0MTVl2LKI0uHRvthk5Ox8G9dM=;
+	h=Date:To:From:Subject:Message-Id; b=JBkjnh4NBzXQvfiGf6/Rn6NcM6UPYn3Yr6du4LigelFic0IOLAsJXu65D/FOZGP15sbjX8IKRB4U29wQerD98rQmR0JYKQIVEo/Vn/Y5jTniZSAgjfkm/sqHinYCRRKrqQUuZ7OiisCSaYMDt6abTXeqq+nb/zURzy9hDOTasLs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xTWF+GXI; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rWjbWHNT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52EFCC2BCAF;
-	Thu, 23 Apr 2026 12:39:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xTWF+GXI"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55B77C2BCB3;
+	Thu, 23 Apr 2026 13:54:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776947941;
-	bh=fqhYmjHY1sexuvnUMaEYX3ZYN4s8if2H/3MDfGzzy0c=;
+	s=korg; t=1776952463;
+	bh=RBji3asVvcM9exGTZF0MTVl2LKI0uHRvthk5Ox8G9dM=;
 	h=Date:To:From:Subject:From;
-	b=rWjbWHNTok45CeNkRuJq8EqxL3AxZgsdJgDsW7vyp08Xnp3KDAL7y3xyx8A0R/qki
-	 0mWiu+BnEfB5I/7PMul5uAaEPIJGMzqqv/oOqIjkhKXsF43J4khxxg+wI5pAI+8ced
-	 rxZppbFMLzHa50nW1MiM/mPPjeTlGa1i3Vrr8keM=
-Date: Thu, 23 Apr 2026 05:39:00 -0700
-To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,weixugc@google.com,shakeel.butt@linux.dev,rostedt@goodmis.org,mhocko@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,b.suvonov@sjtu.edu.cn,akpm@linux-foundation.org
+	b=xTWF+GXIw8td4cb0bFP3UQL27AMasP25Tdc+Tw02vxszTVccSe1U92hsz8S0yttrZ
+	 w0qw0qJMijptu2e3pSwKXAVfBUe1QVtmJUl/Smgxb/canK0rBINroYqard1AM1F8uW
+	 m0NtR034HbX8TJ/oepO+rZFKsZOL2tJcojqciRVU=
+Date: Thu, 23 Apr 2026 06:54:22 -0700
+To: mm-commits@vger.kernel.org,adobriyan@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-add-balance_pgdat-begin-end-tracepoints.patch added to mm-new branch
-Message-Id: <20260423123901.52EFCC2BCAF@smtp.kernel.org>
+Subject: + proc-add-tgid_iterpid_ns-member.patch added to mm-nonmm-unstable branch
+Message-Id: <20260423135423.55B77C2BCB3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: add balance_pgdat begin/end tracepoints
-has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-add-balance_pgdat-begin-end-tracepoints.patch
+     Subject: proc: add tgid_iter.pid_ns member
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     proc-add-tgid_iterpid_ns-member.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-add-balance_pgdat-begin-end-tracepoints.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-add-tgid_iterpid_ns-member.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,139 +58,75 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Bunyod Suvonov <b.suvonov@sjtu.edu.cn>
-Subject: mm/vmscan: add balance_pgdat begin/end tracepoints
-Date: Thu, 23 Apr 2026 18:37:53 +0800
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: add tgid_iter.pid_ns member
+Date: Wed, 22 Apr 2026 22:17:44 +0300
 
-Vmscan has six main reclaim entry points: try_to_free_pages() for direct
-reclaim, try_to_free_mem_cgroup_pages() for memcg reclaim,
-mem_cgroup_shrink_node() for memcg soft limit reclaim, node_reclaim() for
-node reclaim, shrink_all_memory() for hibernation reclaim, and
-balance_pgdat() for kswapd reclaim.
+next_tgid() accepts pid namespace as an argument, but it never changes
+during readdir (which would be unthinkable thing to do anyway).
 
-All of them, except for shrink_all_memory() and balance_pgdat(), already
-have begin/end tracepoints.  This makes it harder to trace which reclaim
-path is responsible for memory reclaim activity, because kswapd reclaim
-cannot be identified as cleanly as other reclaim entry points, even though
-it is the main background reclaim path under memory pressure.  There may
-be no need to trace shrink_all_memory() as it is primarily used during
-hibernation.  So this patch adds the missing tracepoint pair for
-balance_pgdat().
+Move it inside iterator type and hide from direct usage.
 
-The begin tracepoint records the node id, requested reclaim order, and
-highest_zoneidx.  The end tracepoint records the node id, reclaim order
-that balance_pgdat() finished with, highest_zoneidx, and nr_reclaimed. 
-Together, they show the requested reclaim order and zone bound, whether
-reclaim fell back to a lower order, and how much reclaim work was done.
-
-Link: https://lore.kernel.org/20260423103753.546582-1-b.suvonov@sjtu.edu.cn
-Signed-off-by: Bunyod Suvonov <b.suvonov@sjtu.edu.cn>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Link: https://lore.kernel.org/20260422191745.435556-1-adobriyan@gmail.com
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   52 ++++++++++++++++++++++++++++++++
- mm/vmscan.c                   |    5 +++
- 2 files changed, 57 insertions(+)
+ fs/proc/base.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/include/trace/events/vmscan.h~mm-vmscan-add-balance_pgdat-begin-end-tracepoints
-+++ a/include/trace/events/vmscan.h
-@@ -96,6 +96,58 @@ TRACE_EVENT(mm_vmscan_kswapd_wake,
- 		__entry->order)
- );
+--- a/fs/proc/base.c~proc-add-tgid_iterpid_ns-member
++++ a/fs/proc/base.c
+@@ -3543,8 +3543,10 @@ out:
+ struct tgid_iter {
+ 	unsigned int tgid;
+ 	struct task_struct *task;
++	struct pid_namespace *pid_ns;
+ };
+-static struct tgid_iter next_tgid(struct pid_namespace *ns, struct tgid_iter iter)
++
++static struct tgid_iter next_tgid(struct tgid_iter iter)
+ {
+ 	struct pid *pid;
  
-+TRACE_EVENT(mm_vmscan_balance_pgdat_begin,
-+
-+	TP_PROTO(int nid, int order, int highest_zoneidx),
-+
-+	TP_ARGS(nid, order, highest_zoneidx),
-+
-+	TP_STRUCT__entry(
-+		__field(int, nid)
-+		__field(int, order)
-+		__field(int, highest_zoneidx)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nid = nid;
-+		__entry->order = order;
-+		__entry->highest_zoneidx = highest_zoneidx;
-+	),
-+
-+	TP_printk("nid=%d order=%d highest_zoneidx=%-8s",
-+		__entry->nid,
-+		__entry->order,
-+		__print_symbolic(__entry->highest_zoneidx, ZONE_TYPE))
-+);
-+
-+TRACE_EVENT(mm_vmscan_balance_pgdat_end,
-+
-+	TP_PROTO(int nid, int order, int highest_zoneidx,
-+		 unsigned long nr_reclaimed),
-+
-+	TP_ARGS(nid, order, highest_zoneidx, nr_reclaimed),
-+
-+	TP_STRUCT__entry(
-+		__field(int, nid)
-+		__field(int, order)
-+		__field(int, highest_zoneidx)
-+		__field(unsigned long, nr_reclaimed)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nid = nid;
-+		__entry->order = order;
-+		__entry->highest_zoneidx = highest_zoneidx;
-+		__entry->nr_reclaimed = nr_reclaimed;
-+	),
-+
-+	TP_printk("nid=%d order=%d highest_zoneidx=%-8s nr_reclaimed=%lu",
-+		__entry->nid,
-+		__entry->order,
-+		__print_symbolic(__entry->highest_zoneidx, ZONE_TYPE),
-+		__entry->nr_reclaimed)
-+);
-+
- TRACE_EVENT(mm_vmscan_wakeup_kswapd,
+@@ -3553,9 +3555,9 @@ static struct tgid_iter next_tgid(struct
+ 	rcu_read_lock();
+ retry:
+ 	iter.task = NULL;
+-	pid = find_ge_pid(iter.tgid, ns);
++	pid = find_ge_pid(iter.tgid, iter.pid_ns);
+ 	if (pid) {
+-		iter.tgid = pid_nr_ns(pid, ns);
++		iter.tgid = pid_nr_ns(pid, iter.pid_ns);
+ 		iter.task = pid_task(pid, PIDTYPE_TGID);
+ 		if (!iter.task) {
+ 			iter.tgid += 1;
+@@ -3574,7 +3576,7 @@ int proc_pid_readdir(struct file *file,
+ {
+ 	struct tgid_iter iter;
+ 	struct proc_fs_info *fs_info = proc_sb_info(file_inode(file)->i_sb);
+-	struct pid_namespace *ns = proc_pid_ns(file_inode(file)->i_sb);
++	struct pid_namespace *pid_ns = proc_pid_ns(file_inode(file)->i_sb);
+ 	loff_t pos = ctx->pos;
  
- 	TP_PROTO(int nid, int zid, int order, gfp_t gfp_flags),
---- a/mm/vmscan.c~mm-vmscan-add-balance_pgdat-begin-end-tracepoints
-+++ a/mm/vmscan.c
-@@ -7121,6 +7121,8 @@ static int balance_pgdat(pg_data_t *pgda
- 		.may_unmap = 1,
- 	};
+ 	if (pos >= PID_MAX_LIMIT + TGID_OFFSET)
+@@ -3592,9 +3594,10 @@ int proc_pid_readdir(struct file *file,
+ 	}
+ 	iter.tgid = pos - TGID_OFFSET;
+ 	iter.task = NULL;
+-	for (iter = next_tgid(ns, iter);
++	iter.pid_ns = pid_ns;
++	for (iter = next_tgid(iter);
+ 	     iter.task;
+-	     iter.tgid += 1, iter = next_tgid(ns, iter)) {
++	     iter.tgid += 1, iter = next_tgid(iter)) {
+ 		char name[10 + 1];
+ 		unsigned int len;
  
-+	trace_mm_vmscan_balance_pgdat_begin(pgdat->node_id, order,
-+					    highest_zoneidx);
- 	set_task_reclaim_state(current, &sc.reclaim_state);
- 	psi_memstall_enter(&pflags);
- 	__fs_reclaim_acquire(_THIS_IP_);
-@@ -7314,6 +7316,9 @@ out:
- 	psi_memstall_leave(&pflags);
- 	set_task_reclaim_state(current, NULL);
- 
-+	trace_mm_vmscan_balance_pgdat_end(pgdat->node_id, sc.order,
-+					  highest_zoneidx, sc.nr_reclaimed);
-+
- 	/*
- 	 * Return the order kswapd stopped reclaiming at as
- 	 * prepare_kswapd_sleep() takes it into account. If another caller
 _
 
-Patches currently in -mm which might be from b.suvonov@sjtu.edu.cn are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-vmscan-add-balance_pgdat-begin-end-tracepoints.patch
+proc-add-tgid_iterpid_ns-member.patch
+proc-rewrite-next_tgid.patch
 
