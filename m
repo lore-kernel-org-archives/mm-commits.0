@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB9742080C1;
-	Thu, 23 Apr 2026 16:03:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16A97175A70
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 16:04:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776960225; cv=none; b=s3xkaaDtA3NgrFe4R4EQlB4CQzRrljvVqA2/gsjilpHgZdlv7A2otuW+x3w8/ZyIWs2l7Br5zSIbc58qoIheqE0rsivwpJ9wNtz3caBFV6m1q78F2ogFUUmp82U5TZLgd47APTDr2IqMVakyRVaeQ5zgv6YwbkNnyLFGaEU3Nqs=
+	t=1776960258; cv=none; b=AVJmsNkS9anROfPhI9OHUHHqZ/fEBA8jWY6cl11V7qQAfXAAhpILLFu93fV9gW7kZBP2ByeF9rFzJBxZXW/1i0Ka6sBZCHar5dqgc5sqIUD1ExAXrlyUinRBcVPB9hxt7jLhpM6b/lLbFOIu4pXFSYqCFXo73V+EP0L4Sv3YOjs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776960225; c=relaxed/simple;
-	bh=0MqkS3pEJJEHMAinvcJOMq9F+y5UEPVL0I4bxXe0zUk=;
-	h=Date:To:From:Subject:Message-Id; b=iLfziyfLpy5WHOGLN1Vu8AVULfdhcQnK1ZXYN9aho/7QWIs0iH7gGxzFSb1jEk5GzMAHO4xWUUnZFJzegV3e0saF9aOxai1rXlu68uevDWaiJssvUkiliE7pjNn9oQ8dXZp6xHMhDPu67CCA3lnEMfovknYkjpfRcYdW6OnWZsk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RDGM0I9e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776960258; c=relaxed/simple;
+	bh=5gQLFfsOd14sDFX7ViWeOER4La7dWzYKD0dY49DBDMw=;
+	h=Date:To:From:Subject:Message-Id; b=sYpDOSx10qpcUwX+MElYqbdKVBV1ADnVa3VlAHpExra4UJzVaqjt6OAIPCiBC53w5Cp804ju4wWJomBc8X5lyb3xN6UTUky7tj3TX5ZvidkugerEdf7eHPc1gibgLHDfE5Gjn8ndqGcgGTOuofk3CPe3ZFbHkHauvV374U+2ym4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xPmNEjcj; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RDGM0I9e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34122C2BCAF;
-	Thu, 23 Apr 2026 16:03:45 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xPmNEjcj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98AF3C2BCAF;
+	Thu, 23 Apr 2026 16:04:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776960225;
-	bh=0MqkS3pEJJEHMAinvcJOMq9F+y5UEPVL0I4bxXe0zUk=;
+	s=korg; t=1776960257;
+	bh=5gQLFfsOd14sDFX7ViWeOER4La7dWzYKD0dY49DBDMw=;
 	h=Date:To:From:Subject:From;
-	b=RDGM0I9evGor9UQ2BuKJgfpXw4aT/w+Fi03c1TQDhOCL95GPVjGpQwZfSIPdiARSq
-	 L9g+latU/HkPofqo7ykLdSpT7iiU21M31dBC8HiUbb9r2sFLM3wJmBPJOrQzTUpN1r
-	 OHfR1ERkOeP15O/uLfCt4kt/ZoK3u8LQ9itk2oFk=
-Date: Thu, 23 Apr 2026 09:03:44 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterx@redhat.com,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,gregkh@linuxfoundation.org,akpm@linux-foundation.org
+	b=xPmNEjcj40a/3hEkh50yI9S8raIInTJWlpdJ7ldm2V1Tz8SHYr8uBM1B/v+eYNHSo
+	 iCheT5oMsG1Re4eFWzJnPKmRZhXzzufUfarecRvU2QAS6b3iphVKJ/SEs2Uc6N0ocQ
+	 IqFr3ZJ/A6ajbcAZ8EqTgiHcrLe2lEsQ6himZAns=
+Date: Thu, 23 Apr 2026 09:04:17 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-honour-foll_pin-in-nommu-__get_user_pages_locked.patch added to mm-new branch
-Message-Id: <20260423160345.34122C2BCAF@smtp.kernel.org>
+Subject: [to-be-updated] mm-kmemleak-dedupe-verbose-scan-output-by-allocation-backtrace.patch removed from -mm tree
+Message-Id: <20260423160417.98AF3C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,126 +34,263 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/gup: honour FOLL_PIN in NOMMU __get_user_pages_locked()
-has been added to the -mm mm-new branch.  Its filename is
-     mm-gup-honour-foll_pin-in-nommu-__get_user_pages_locked.patch
+The quilt patch titled
+     Subject: mm/kmemleak: dedupe verbose scan output by allocation backtrace
+has been removed from the -mm tree.  Its filename was
+     mm-kmemleak-dedupe-verbose-scan-output-by-allocation-backtrace.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-honour-foll_pin-in-nommu-__get_user_pages_locked.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: mm/gup: honour FOLL_PIN in NOMMU __get_user_pages_locked()
-Date: Thu, 23 Apr 2026 16:28:04 +0200
+From: Breno Leitao <leitao@debian.org>
+Subject: mm/kmemleak: dedupe verbose scan output by allocation backtrace
+Date: Tue, 21 Apr 2026 06:45:04 -0700
 
-The !CONFIG_MMU implementation of __get_user_pages_locked() takes a bare
-get_page() reference for each page regardless of foll_flags:
+Patch series "mm/kmemleak: dedupe verbose scan output".
 
-	if (pages[i])
-		get_page(pages[i]);
+I am starting to run with kmemleak in verbose enabled in some "probe
+points" across the my employers fleet so that suspected leaks land in
+dmesg without needing a separate read of /sys/kernel/debug/kmemleak.
 
-This is reached from pin_user_pages*() with FOLL_PIN set. 
-unpin_user_page() is shared between MMU and NOMMU configurations and
-unconditionally calls gup_put_folio(..., FOLL_PIN), which subtracts
-GUP_PIN_COUNTING_BIAS (1024) from the folio refcount.
+The downside is that workloads which leak many objects from a single
+allocation site flood the console with byte-for-byte identical backtraces.
+Hundreds of duplicates per scan are common, drowning out distinct leaks
+and unrelated kernel messages, while adding no signal beyond the first
+occurrence.
 
-This means that pin adds 1, and then unpin will subtract 1024.
+This series collapses those duplicates inside kmemleak itself.  Each
+unique stackdepot trace_handle prints once per scan, followed by a short
+summary line when more than one object shares it:
 
-If a user maps a page (refcount 1), registers it 1023 times as an io_uring
-fixed buffer (1023 pin_user_pages calls -> refcount 1024), then
-unregisters: the first unpin_user_page subtracts 1024, refcount hits 0,
-the page is freed and returned to the buddy allocator.  The remaining 1022
-unpins write into whatever was reallocated, and the user's VMA still maps
-the freed page (NOMMU has no MMU to invalidate it).  Reallocating the page
-for an io_uring pbuf_ring then lets userspace corrupt the new owner's data
-through the stale mapping.
+  kmemleak: unreferenced object 0xff110001083beb00 (size 192):
+  kmemleak:   comm "modprobe", pid 974, jiffies 4294754196
+  kmemleak:   ...
+  kmemleak:   backtrace (crc 6f361828):
+  kmemleak:     __kmalloc_cache_noprof+0x1af/0x650
+  kmemleak:     ...
+  kmemleak:   ... and 71 more object(s) with the same backtrace
 
-Use try_grab_folio() which adds GUP_PIN_COUNTING_BIAS for FOLL_PIN and 1
-for FOLL_GET, mirroring the CONFIG_MMU path so pin and unpin are
-symmetric.
+The "N new suspected memory leaks" tally and the contents of
+/sys/kernel/debug/kmemleak are unchanged - the per-object detail is still
+available on demand, only the verbose (dmesg) output is collapsed.
 
-Link: https://lore.kernel.org/2026042303-vendor-outright-b9d2@gregkh
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Patch 1 is the kmemleak change.
+
+Patch 2 adds a selftest that loads samples/kmemleak's CONFIG_SAMPLE
+kmemleak-test module to generate ten leaks sharing one call site and
+checks that the printed count is strictly less than the reported leak
+total.  Not sure if Patch 2 is useful or not, if not, it is easier to
+discard.
+
+
+This patch (of 2):
+
+In kmemleak's verbose mode, every unreferenced object found during a scan
+is logged with its full header, hex dump and 16-frame backtrace. 
+Workloads that leak many objects from a single allocation site flood dmesg
+with byte-for-byte identical backtraces, drowning out distinct leaks and
+other kernel messages.
+
+Dedupe within each scan using stackdepot's trace_handle as the key: for
+every leaked object, look up an entry in a per-scan xarray keyed by
+trace_handle.  The first sighting stores a representative object; later
+sightings just bump a counter.  After the scan, walk the xarray once and
+emit each unique backtrace, followed by a single summary line when more
+than one object shares it.
+
+Important to say that the contents of /sys/kernel/debug/kmemleak are
+unchanged - only the verbose console output is collapsed.
+
+Note 1: The xarray operations and kmalloc(GFP_ATOMIC) for the dedup entry
+must happen outside object->lock: object->lock is a raw spinlock, while
+the slab path takes higher wait-context locks (n->list_lock), which
+lockdep flags as an invalid wait context.  trace_handle is read under
+object->lock, which serialises with kmemleak_update_trace()'s writer, so
+it is safe to capture and use after dropping the lock.
+
+Note 2: Stashed object pointers carry a get_object() reference across
+rcu_read_unlock() that dedup_flush() drops after printing, preventing
+use-after-free if the underlying allocation is freed concurrently.
+
+Link: https://lore.kernel.org/20260421-kmemleak_dedup-v1-0-65e31c6cdf0c@debian.org
+Link: https://lore.kernel.org/20260421-kmemleak_dedup-v1-1-65e31c6cdf0c@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Peter Xu <peterx@redhat.com>
-Reported-by: Anthropic
-Assisted-by: gkh_clanker_t1000
-Cc: <stable@vger.kernel.org>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ mm/kmemleak.c |  113 +++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 111 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gup-honour-foll_pin-in-nommu-__get_user_pages_locked
-+++ a/mm/gup.c
-@@ -1983,6 +1983,7 @@ static long __get_user_pages_locked(stru
- 	struct vm_area_struct *vma;
- 	bool must_unlock = false;
- 	vm_flags_t vm_flags;
-+	int ret, err = -EFAULT;
- 	long i;
+--- a/mm/kmemleak.c~mm-kmemleak-dedupe-verbose-scan-output-by-allocation-backtrace
++++ a/mm/kmemleak.c
+@@ -92,6 +92,7 @@
+ #include <linux/nodemask.h>
+ #include <linux/mm.h>
+ #include <linux/workqueue.h>
++#include <linux/xarray.h>
+ #include <linux/crc32.h>
  
- 	if (!nr_pages)
-@@ -2019,8 +2020,14 @@ static long __get_user_pages_locked(stru
- 
- 		if (pages) {
- 			pages[i] = virt_to_page((void *)start);
--			if (pages[i])
--				get_page(pages[i]);
-+			if (!pages[i])
-+				break;
-+			ret = try_grab_folio(page_folio(pages[i]), 1, foll_flags);
-+			if (unlikely(ret)) {
-+				pages[i] = NULL;
-+				err = ret;
-+				break;
-+			}
- 		}
- 
- 		start = (start + PAGE_SIZE) & PAGE_MASK;
-@@ -2031,7 +2038,7 @@ static long __get_user_pages_locked(stru
- 		*locked = 0;
- 	}
- 
--	return i ? : -EFAULT;
-+	return i ? : err;
+ #include <asm/sections.h>
+@@ -1685,6 +1686,82 @@ unlock_put:
  }
- #endif /* !CONFIG_MMU */
  
+ /*
++ * Per-scan dedup table for verbose leak printing. Each entry collapses all
++ * leaks that share one allocation backtrace (keyed by stackdepot
++ * trace_handle) into a single representative object plus a count.
++ */
++struct kmemleak_dedup_entry {
++	struct kmemleak_object *object;
++	unsigned long count;
++};
++
++/*
++ * Record a leaked object in the dedup table. The representative object's
++ * use_count is incremented so it can be safely dereferenced by dedup_flush()
++ * outside the RCU read section; dedup_flush() drops the reference. On
++ * allocation failure (or a concurrent insert) the object is printed
++ * immediately, preserving today's "always log every leak" guarantee.
++ * Caller must not hold object->lock and must hold rcu_read_lock().
++ */
++static void dedup_record(struct xarray *dedup, struct kmemleak_object *object,
++			 depot_stack_handle_t trace_handle)
++{
++	struct kmemleak_dedup_entry *entry;
++
++	entry = xa_load(dedup, trace_handle);
++	if (entry) {
++		/* This is a known beast, just increase the counter */
++		entry->count++;
++		return;
++	}
++
++	/*
++	 * A brand new report. Object will have object->use_count increased
++	 * in here, and released put_object() at dedup_flush
++	 */
++	entry = kmalloc(sizeof(*entry), GFP_ATOMIC);
++	if (entry && get_object(object)) {
++		if (xa_insert(dedup, trace_handle, entry, GFP_ATOMIC) == 0) {
++			entry->object = object;
++			entry->count = 1;
++			return;
++		}
++		put_object(object);
++	}
++	kfree(entry);
++
++	/*
++	 * Fallback for kmalloc/get_object(): Just print it straight away
++	 */
++	raw_spin_lock_irq(&object->lock);
++	print_unreferenced(NULL, object);
++	raw_spin_unlock_irq(&object->lock);
++}
++
++/*
++ * Drain the dedup table: print one full record per unique backtrace,
++ * followed by a summary line whenever more than one object shared it.
++ * Releases the reference dedup_record() took on each representative object.
++ */
++static void dedup_flush(struct xarray *dedup)
++{
++	struct kmemleak_dedup_entry *entry;
++	unsigned long idx;
++
++	xa_for_each(dedup, idx, entry) {
++		raw_spin_lock_irq(&entry->object->lock);
++		print_unreferenced(NULL, entry->object);
++		raw_spin_unlock_irq(&entry->object->lock);
++		if (entry->count > 1)
++			pr_warn("  ... and %lu more object(s) with the same backtrace\n",
++				entry->count - 1);
++		put_object(entry->object);
++		kfree(entry);
++		xa_erase(dedup, idx);
++	}
++}
++
++/*
+  * Scan data sections and all the referenced memory blocks allocated via the
+  * kernel's standard allocators. This function must be called with the
+  * scan_mutex held.
+@@ -1834,10 +1911,19 @@ static void kmemleak_scan(void)
+ 		return;
+ 
+ 	/*
+-	 * Scanning result reporting.
++	 * Scanning result reporting. When verbose printing is enabled, dedupe
++	 * by stackdepot trace_handle so each unique backtrace is logged once
++	 * per scan, annotated with the number of objects that share it. The
++	 * per-leak count below still reflects every object, and
++	 * /sys/kernel/debug/kmemleak still lists them individually.
+ 	 */
++	struct xarray dedup;
++
++	xa_init(&dedup);
+ 	rcu_read_lock();
+ 	list_for_each_entry_rcu(object, &object_list, object_list) {
++		depot_stack_handle_t trace_handle;
++
+ 		if (need_resched())
+ 			kmemleak_cond_resched(object);
+ 
+@@ -1849,18 +1935,41 @@ static void kmemleak_scan(void)
+ 		if (!color_white(object))
+ 			continue;
+ 		raw_spin_lock_irq(&object->lock);
++		trace_handle = 0;
+ 		if (unreferenced_object(object) &&
+ 		    !(object->flags & OBJECT_REPORTED)) {
+ 			object->flags |= OBJECT_REPORTED;
+ 
+ 			if (kmemleak_verbose)
+-				print_unreferenced(NULL, object);
++				trace_handle = object->trace_handle;
+ 
+ 			new_leaks++;
+ 		}
+ 		raw_spin_unlock_irq(&object->lock);
++
++		/*
++		 * Dedup bookkeeping must happen outside object->lock.
++		 * dedup_record() may call kmalloc(GFP_ATOMIC), and the slab
++		 * path takes locks (n->list_lock, etc.) at a higher
++		 * wait-context level than the raw_spinlock_t object->lock;
++		 *
++		 * Passing object without object->lock here is safe:
++		 *  - the surrounding rcu_read_lock() keeps the memory alive
++		 *    even if a concurrent kmemleak_free() drops use_count to
++		 *    zero and queues free_object_rcu();
++		 *  - dedup_record() only manipulates use_count via the atomic
++		 *    get_object()/put_object() helpers and stores the bare
++		 *    pointer into the xarray;
++		 *  - on the fallback print path it re-acquires object->lock
++		 *    before calling print_unreferenced().
++		 */
++		if (trace_handle)
++			dedup_record(&dedup, object, trace_handle);
+ 	}
+ 	rcu_read_unlock();
++	/* Flush'em all */
++	dedup_flush(&dedup);
++	xa_destroy(&dedup);
+ 
+ 	if (new_leaks) {
+ 		kmemleak_found_leaks = true;
 _
 
-Patches currently in -mm which might be from gregkh@linuxfoundation.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
-mm-gup-honour-foll_pin-in-nommu-__get_user_pages_locked.patch
+kho-fix-error-handling-in-kho_add_subtree.patch
+selftests-mm-add-kmemleak-verbose-dedup-test.patch
+mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
 
