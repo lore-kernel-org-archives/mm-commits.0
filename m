@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1DED3A7599
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 17:17:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 604E43A6B9E
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 17:17:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776964653; cv=none; b=jFMv0X6+aVRKfKd5mTkCyOhCP+EbT7v4C6Vas4WYjx6bKyi+1elxxRPdjpT1JfLqpA8Qdeom4297z+VWKKTvUjiL66xCh2nZotvVCEMo5NSl1iraCtni25CA9uWG5x/nR+mySX+vZfE0vtfAY69rRdWSUNAZHZ1klCLHw779/5E=
+	t=1776964656; cv=none; b=LqeVG8eDbZczJj8o9iBczc7dK0BGklftyc/wl2X94gUEnkNAp5qWN87QESsOmlXudEd9QzY+TqmOfs2esVZLSi/ycGBOMxBQyZr0/FqcWgTJU72fCWKfWjPDHAent7aWHt6AEXXb3fCUlECfqRDNnCpZDoDtXHY9nVBSXorOMDs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776964653; c=relaxed/simple;
-	bh=t8pkyoBVUZRb+KgIDnhCdtAlUT77sww5E6rQBUWhMVw=;
-	h=Date:To:From:Subject:Message-Id; b=SbAJ15laqijkhiIRhTKuXEuDUi62nesYWWJIxPoSZdvQ79aOYFIRPVBLlAvse4KojYSUCoYyqaItIAriN2nhjrrjWusL+8KlQigVcvMY9Sso7BZhUNTb2sFs58k8wF6kWHGIvCRM0vMRIZ0Ai3W1mG91CN0LpbBTcNmWKBIenZc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Y5W1p3hz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776964656; c=relaxed/simple;
+	bh=Nv53s639FaSbhr1vvTuCiVU2D40Kf7iqlTAQbHqpdRI=;
+	h=Date:To:From:Subject:Message-Id; b=SE+2BsnXPq9zoN8t9E4Vy5HRGbBPmWE7QY/Oj2dLZ9y8E/4ELV6fEMoVO5W4d9PJyLMDLadQMJZGWjOyKSGG+QIOeEighbaC3BLrRUI8aZt6NQ6CmY6eYfPHUBqslSbRqiXOe4kTEN5alL7XnmePHBj4eFmn7xuKFtubmXyP880=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eKeZmIsd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Y5W1p3hz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 622D3C2BCAF;
-	Thu, 23 Apr 2026 17:17:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eKeZmIsd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 232D9C2BCB3;
+	Thu, 23 Apr 2026 17:17:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776964653;
-	bh=t8pkyoBVUZRb+KgIDnhCdtAlUT77sww5E6rQBUWhMVw=;
+	s=korg; t=1776964656;
+	bh=Nv53s639FaSbhr1vvTuCiVU2D40Kf7iqlTAQbHqpdRI=;
 	h=Date:To:From:Subject:From;
-	b=Y5W1p3hzcq8TXrrPI8QppVD5tAIRRKS7ppeoPbWSlFFsBOoV2V8eagoP0KfKKwjnJ
-	 YCRcG2HLg0ZNEqWifjfMsDtVgE2KeBGxI3jl2ga/Ck+0krFyFwplO3Gf6KHuPP96q9
-	 fRHa2B4IFxWWZMd6LiCir723vlXTKZOQB3wASHW0=
-Date: Thu, 23 Apr 2026 10:17:32 -0700
+	b=eKeZmIsdTkLyZCWBwQO5hj0oLpF8yzDIr3943n7LNMmUeOUgCfldz8cbdRQ1w5dch
+	 ZH0yOpdhty5lXuyqxiWb4PEAZgMtvY2vlxr/nKEfbcDhXD6o1EQ1JmZV9kCJiBb7uT
+	 wmd+ZmfaXOr6Qb4h6LTGjmVtFV8sXDqMvFFMkUbo=
+Date: Thu, 23 Apr 2026 10:17:35 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,rafael@kernel.org,peterz@infradead.org,mingo@kernel.org,memxor@gmail.com,mark.rutland@arm.com,konradybcio@kernel.org,harisokn@amazon.com,gary@garyguo.net,davidgow@google.com,daniel.lezcano@linaro.org,cl@linux.com,catalin.marinas@arm.com,boqun@kernel.org,boqun.feng@gmail.com,ast@kernel.org,arnd@arndb.de,andersson@kernel.org,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + locking-atomic-scripts-build-atomic_long_cond_read__timeout.patch added to mm-new branch
-Message-Id: <20260423171733.622D3C2BCAF@smtp.kernel.org>
+Subject: + bpf-rqspinlock-switch-check_timeout-to-a-clock-interface.patch added to mm-new branch
+Message-Id: <20260423171736.232D9C2BCB3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: locking/atomic: scripts: build atomic_long_cond_read_*_timeout()
+     Subject: bpf/rqspinlock: switch check_timeout() to a clock interface
 has been added to the -mm mm-new branch.  Its filename is
-     locking-atomic-scripts-build-atomic_long_cond_read__timeout.patch
+     bpf-rqspinlock-switch-check_timeout-to-a-clock-interface.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/locking-atomic-scripts-build-atomic_long_cond_read__timeout.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/bpf-rqspinlock-switch-check_timeout-to-a-clock-interface.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,21 +70,31 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: locking/atomic: scripts: build atomic_long_cond_read_*_timeout()
-Date: Wed, 8 Apr 2026 17:55:32 +0530
+Subject: bpf/rqspinlock: switch check_timeout() to a clock interface
+Date: Wed, 8 Apr 2026 17:55:33 +0530
 
-Add the atomic long wrappers for the cond-load timeout interfaces.
+check_timeout() gets the current time value and depending on how much time
+has passed, checks for deadlock or times out, returning 0 or -errno on
+deadlock or timeout.
 
-Link: https://lore.kernel.org/20260408122538.3610871-9-ankur.a.arora@oracle.com
+Switch this out to a clock style interface, where it functions as a clock
+in the "lock-domain", returning the current time until a deadlock or
+timeout occurs.  Once a deadlock or timeout has occurred, it stops
+functioning as a clock and returns error.
+
+Also adjust the RES_CHECK_TIMEOUT macro to discard the clock value when
+updating the explicit return status.
+
+Link: https://lore.kernel.org/20260408122538.3610871-10-ankur.a.arora@oracle.com
 Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Boqun Feng <boqun.feng@gmail.com>
+Acked-by: Kumar Kartikeya Dwivedi <memxor@gmail.com>
+Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Bjorn Andersson <andersson@kernel.org>
+Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Boqun Feng <boqun@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: David Gow <davidgow@google.com>
@@ -92,76 +102,117 @@ Cc: Gary Guo <gary@garyguo.net>
 Cc: Haris Okanovic <harisokn@amazon.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Konrad Dybcio <konradybcio@kernel.org>
-Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rafael J. Wysocki (Intel) <rafael@kernel.org>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/atomic/atomic-long.h |   18 +++++++++++-------
- scripts/atomic/gen-atomic-long.sh  |   16 ++++++++++------
- 2 files changed, 21 insertions(+), 13 deletions(-)
+ kernel/bpf/rqspinlock.c |   45 +++++++++++++++++++++++++-------------
+ 1 file changed, 30 insertions(+), 15 deletions(-)
 
---- a/include/linux/atomic/atomic-long.h~locking-atomic-scripts-build-atomic_long_cond_read__timeout
-+++ a/include/linux/atomic/atomic-long.h
-@@ -11,14 +11,18 @@
- 
- #ifdef CONFIG_64BIT
- typedef atomic64_t atomic_long_t;
--#define ATOMIC_LONG_INIT(i)		ATOMIC64_INIT(i)
--#define atomic_long_cond_read_acquire	atomic64_cond_read_acquire
--#define atomic_long_cond_read_relaxed	atomic64_cond_read_relaxed
-+#define ATOMIC_LONG_INIT(i)			ATOMIC64_INIT(i)
-+#define atomic_long_cond_read_acquire		atomic64_cond_read_acquire
-+#define atomic_long_cond_read_relaxed		atomic64_cond_read_relaxed
-+#define atomic_long_cond_read_acquire_timeout	atomic64_cond_read_acquire_timeout
-+#define atomic_long_cond_read_relaxed_timeout	atomic64_cond_read_relaxed_timeout
- #else
- typedef atomic_t atomic_long_t;
--#define ATOMIC_LONG_INIT(i)		ATOMIC_INIT(i)
--#define atomic_long_cond_read_acquire	atomic_cond_read_acquire
--#define atomic_long_cond_read_relaxed	atomic_cond_read_relaxed
-+#define ATOMIC_LONG_INIT(i)			ATOMIC_INIT(i)
-+#define atomic_long_cond_read_acquire		atomic_cond_read_acquire
-+#define atomic_long_cond_read_relaxed		atomic_cond_read_relaxed
-+#define atomic_long_cond_read_acquire_timeout	atomic_cond_read_acquire_timeout
-+#define atomic_long_cond_read_relaxed_timeout	atomic_cond_read_relaxed_timeout
- #endif
- 
- /**
-@@ -1809,4 +1813,4 @@ raw_atomic_long_dec_if_positive(atomic_l
+--- a/kernel/bpf/rqspinlock.c~bpf-rqspinlock-switch-check_timeout-to-a-clock-interface
++++ a/kernel/bpf/rqspinlock.c
+@@ -196,8 +196,12 @@ static noinline int check_deadlock_ABBA(
+ 	return 0;
  }
  
- #endif /* _LINUX_ATOMIC_LONG_H */
--// 4b882bf19018602c10816c52f8b4ae280adc887b
-+// 79c1f4acb5774376ceed559843d5d9ed1348df99
---- a/scripts/atomic/gen-atomic-long.sh~locking-atomic-scripts-build-atomic_long_cond_read__timeout
-+++ a/scripts/atomic/gen-atomic-long.sh
-@@ -79,14 +79,18 @@ cat << EOF
+-static noinline int check_timeout(rqspinlock_t *lock, u32 mask,
+-				  struct rqspinlock_timeout *ts)
++/*
++ * Returns current monotonic time in ns on success or, negative errno
++ * value on failure due to timeout expiration or detection of deadlock.
++ */
++static noinline s64 clock_deadlock(rqspinlock_t *lock, u32 mask,
++				   struct rqspinlock_timeout *ts)
+ {
+ 	u64 prev = ts->cur;
+ 	u64 time;
+@@ -207,7 +211,7 @@ static noinline int check_timeout(rqspin
+ 			return -EDEADLK;
+ 		ts->cur = ktime_get_mono_fast_ns();
+ 		ts->timeout_end = ts->cur + ts->duration;
+-		return 0;
++		return (s64)ts->cur;
+ 	}
  
- #ifdef CONFIG_64BIT
- typedef atomic64_t atomic_long_t;
--#define ATOMIC_LONG_INIT(i)		ATOMIC64_INIT(i)
--#define atomic_long_cond_read_acquire	atomic64_cond_read_acquire
--#define atomic_long_cond_read_relaxed	atomic64_cond_read_relaxed
-+#define ATOMIC_LONG_INIT(i)			ATOMIC64_INIT(i)
-+#define atomic_long_cond_read_acquire		atomic64_cond_read_acquire
-+#define atomic_long_cond_read_relaxed		atomic64_cond_read_relaxed
-+#define atomic_long_cond_read_acquire_timeout	atomic64_cond_read_acquire_timeout
-+#define atomic_long_cond_read_relaxed_timeout	atomic64_cond_read_relaxed_timeout
+ 	time = ktime_get_mono_fast_ns();
+@@ -219,11 +223,15 @@ static noinline int check_timeout(rqspin
+ 	 * checks.
+ 	 */
+ 	if (prev + NSEC_PER_MSEC < time) {
++		int ret;
+ 		ts->cur = time;
+-		return check_deadlock_ABBA(lock, mask);
++		ret = check_deadlock_ABBA(lock, mask);
++		if (ret)
++			return ret;
++
+ 	}
+ 
+-	return 0;
++	return (s64)time;
+ }
+ 
+ /*
+@@ -231,15 +239,22 @@ static noinline int check_timeout(rqspin
+  * as the macro does internal amortization for us.
+  */
+ #ifndef res_smp_cond_load_acquire
+-#define RES_CHECK_TIMEOUT(ts, ret, mask)                              \
+-	({                                                            \
+-		if (!(ts).spin++)                                     \
+-			(ret) = check_timeout((lock), (mask), &(ts)); \
+-		(ret);                                                \
++#define RES_CHECK_TIMEOUT(ts, ret, mask)					\
++	({									\
++		s64 __timeval_err = 0;						\
++		if (!(ts).spin++)						\
++			__timeval_err = clock_deadlock((lock), (mask), &(ts));	\
++		(ret) = __timeval_err < 0 ? __timeval_err : 0;			\
++		__timeval_err;							\
+ 	})
  #else
- typedef atomic_t atomic_long_t;
--#define ATOMIC_LONG_INIT(i)		ATOMIC_INIT(i)
--#define atomic_long_cond_read_acquire	atomic_cond_read_acquire
--#define atomic_long_cond_read_relaxed	atomic_cond_read_relaxed
-+#define ATOMIC_LONG_INIT(i)			ATOMIC_INIT(i)
-+#define atomic_long_cond_read_acquire		atomic_cond_read_acquire
-+#define atomic_long_cond_read_relaxed		atomic_cond_read_relaxed
-+#define atomic_long_cond_read_acquire_timeout	atomic_cond_read_acquire_timeout
-+#define atomic_long_cond_read_relaxed_timeout	atomic_cond_read_relaxed_timeout
+-#define RES_CHECK_TIMEOUT(ts, ret, mask)			      \
+-	({ (ret) = check_timeout((lock), (mask), &(ts)); })
++#define RES_CHECK_TIMEOUT(ts, ret, mask)					\
++	({									\
++		s64 __timeval_err;						\
++		__timeval_err = clock_deadlock((lock), (mask), &(ts));		\
++		(ret) = __timeval_err < 0 ? __timeval_err : 0;			\
++		__timeval_err;							\
++	})
  #endif
  
- EOF
+ /*
+@@ -281,7 +296,7 @@ retry:
+ 	val = atomic_read(&lock->val);
+ 
+ 	if (val || !atomic_try_cmpxchg(&lock->val, &val, 1)) {
+-		if (RES_CHECK_TIMEOUT(ts, ret, ~0u))
++		if (RES_CHECK_TIMEOUT(ts, ret, ~0u) < 0)
+ 			goto out;
+ 		cpu_relax();
+ 		goto retry;
+@@ -406,7 +421,7 @@ int __lockfunc resilient_queued_spin_loc
+ 	 */
+ 	if (val & _Q_LOCKED_MASK) {
+ 		RES_RESET_TIMEOUT(ts, RES_DEF_TIMEOUT);
+-		res_smp_cond_load_acquire(&lock->locked, !VAL || RES_CHECK_TIMEOUT(ts, ret, _Q_LOCKED_MASK));
++		res_smp_cond_load_acquire(&lock->locked, !VAL || RES_CHECK_TIMEOUT(ts, ret, _Q_LOCKED_MASK) < 0);
+ 	}
+ 
+ 	if (ret) {
+@@ -568,7 +583,7 @@ queue:
+ 	 */
+ 	RES_RESET_TIMEOUT(ts, RES_DEF_TIMEOUT * 2);
+ 	val = res_atomic_cond_read_acquire(&lock->val, !(VAL & _Q_LOCKED_PENDING_MASK) ||
+-					   RES_CHECK_TIMEOUT(ts, ret, _Q_LOCKED_PENDING_MASK));
++					   RES_CHECK_TIMEOUT(ts, ret, _Q_LOCKED_PENDING_MASK) < 0);
+ 
+ 	/* Disable queue destruction when we detect deadlocks. */
+ 	if (ret == -EDEADLK) {
 _
 
 Patches currently in -mm which might be from ankur.a.arora@oracle.com are
