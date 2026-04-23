@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7A98312807
-	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 15:09:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50C6B36E46C
+	for <mm-commits@vger.kernel.org>; Thu, 23 Apr 2026 15:58:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1776956942; cv=none; b=dUR+pcEWy4Uf07f4NJ3aNewYVPOXZu+awVAHG0uPsI/MC1ZvPzpnXFfpHIWmvNHLVaKzub4GPtrIMJIQJTgB128wkI1NXOKGZqktftsc1cLnZXnnTSVG8+jKfsxBzbTuxwaELu8EezHp2Sc5MaSkeHkBClpqZ75BM83wirX0MWI=
+	t=1776959908; cv=none; b=d7KKjjMgWHk6wNcyaL6e1ts1GllPAXwPOhd2n4DcQ3LpHDHGKIVWeWF0w7MowccOAK+ltB2I2x5s145WmknsnLDX+DBc3hhFoFsKXbcym3EkQ5rbaG9wDFNaUScmFfIk2G3pgORXwig9jvFonvTDtObVndlsZlUYAPYcf5RuGrU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1776956942; c=relaxed/simple;
-	bh=Ora24AEeLB8W5dR218PHUVVLeP2ymywH+v+ZN5VMoi4=;
-	h=Date:To:From:Subject:Message-Id; b=j5Hu6cBJm8U50MP1GNZr+gneW2VTsjbB6LlvEe84hxoi93BOQVBuev5TEVlzDZz7aqZvtyfZwr2TD6G8BA8uDCpGTbAvYjv012zvUiObSCu0VomNx1hupyLsaiP6rjZtxeEkDrIpnODQ+0MPIkYaTVqUCH1/QJyRublHrceQG04=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tTT+PuI6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1776959908; c=relaxed/simple;
+	bh=v99z74wNhSvv/8tI4DFq3GRSaxlzkOsGzMBJMBNQrwk=;
+	h=Date:To:From:Subject:Message-Id; b=W2rAETv6TSasW3UiJOVtPzzX/1GiG7oxxFl0UQV+Tn3j+V6g/aKH2p+VfI2QGUWJHCZlDhKTuPAJKMregY4o8yFn5LO43kIT+M75zY+dPmxA3xFO2NkuacnBH45v5GELIe+y/LSo2ahmrJpkua/reGngfaTP+ZbjQlfVUnq4mnw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fLbCiq7d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tTT+PuI6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74B74C2BCAF;
-	Thu, 23 Apr 2026 15:09:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fLbCiq7d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9B8EC2BCAF;
+	Thu, 23 Apr 2026 15:58:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1776956941;
-	bh=Ora24AEeLB8W5dR218PHUVVLeP2ymywH+v+ZN5VMoi4=;
+	s=korg; t=1776959907;
+	bh=v99z74wNhSvv/8tI4DFq3GRSaxlzkOsGzMBJMBNQrwk=;
 	h=Date:To:From:Subject:From;
-	b=tTT+PuI6hMECTUuTAitwbhLNgMO7ZYUdi8CvEpkzbxU0eDHRnPyv7o43KWbQ0v/jg
-	 Quz6Y44J38KalTdCzcLPxJfJWoflc6vfj14WTvk5qScD4i0PpIjveq3wQEryNOL2h1
-	 hzy0U2FdlFNm98rDU6j0Q8qHL4p08OFa9RO598Ws=
-Date: Thu, 23 Apr 2026 08:09:00 -0700
-To: mm-commits@vger.kernel.org,wangzijie1@honor.com,viro@zeniv.linux.org.uk,jack@suse.cz,brauner@kernel.org,adobriyan@gmail.com,thorsten.blum@linux.dev,akpm@linux-foundation.org
+	b=fLbCiq7dLXjdty3Ad+/2i84FwTHzK8sqL6lvIcfAEFRNF4qLNDR/HHPmFw4oSmhS7
+	 3m7P20liiePGXRhdCOm8Tpjsz26020crwazdRODKbR36rbhud/og4uivpEVV4dBghU
+	 rAyNDigPpcnFxq+ytlUigUDUVYhTY3g8pjhMWyIY=
+Date: Thu, 23 Apr 2026 08:58:27 -0700
+To: mm-commits@vger.kernel.org,ryan.roberts@arm.com,peterx@redhat.com,kevin.brodsky@arm.com,jhubbard@nvidia.com,jgg@ziepe.ca,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,david@kernel.org,agordeev@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-use-strnlen-for-name-validation-in-__proc_create.patch added to mm-nonmm-unstable branch
-Message-Id: <20260423150901.74B74C2BCAF@smtp.kernel.org>
+Subject: + mm-gup-cleanup-pgtable-entry-accessors.patch added to mm-new branch
+Message-Id: <20260423155827.D9B8EC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc: use strnlen() for name validation in __proc_create
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     proc-use-strnlen-for-name-validation-in-__proc_create.patch
+     Subject: mm/gup: cleanup pgtable entry accessors
+has been added to the -mm mm-new branch.  Its filename is
+     mm-gup-cleanup-pgtable-entry-accessors.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-use-strnlen-for-name-validation-in-__proc_create.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-gup-cleanup-pgtable-entry-accessors.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,53 +69,73 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Thorsten Blum <thorsten.blum@linux.dev>
-Subject: proc: use strnlen() for name validation in __proc_create
-Date: Tue, 21 Apr 2026 14:26:47 +0200
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: mm/gup: cleanup pgtable entry accessors
+Date: Tue, 21 Apr 2026 07:17:54 +0200
 
-Replace strlen(fn) with strnlen(fn, NAME_MAX + 1) when validating the
-final path component in __proc_create().
+PMD and PUD entries revalidation has the same semantics as PTE entry
+revalidation.  Convert the remaining direct entry dereferences to the
+corresponding accessors.
 
-This preserves the existing name limit while bounding the length scan to
-one byte past the maximum name length.  Handle empty names separately, and
-treat names longer than NAME_MAX as too long.
+The PTE validation in gup_fast_pte_range() is inconsistent with the prior
+value acquisition in the sense that it drops the lockless access
+semantics.
 
-Link: https://lore.kernel.org/20260421122648.56723-2-thorsten.blum@linux.dev
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Thorsten Blum <thorsten.blum@linux.dev>
-Cc: wangzijie <wangzijie1@honor.com>
+Use the lockless accessor not only for the PTE, but also for the PMD
+validation, which is likewise inconsistent with the prior value
+acquisition in gup_fast_pmd_range().
+
+Link: https://lore.kernel.org/20260421051754.1691221-1-agordeev@linux.ibm.com
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kevin Brodsky <kevin.brodsky@arm.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ mm/gup.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/fs/proc/generic.c~proc-use-strnlen-for-name-validation-in-__proc_create
-+++ a/fs/proc/generic.c
-@@ -427,9 +427,13 @@ static struct proc_dir_entry *__proc_cre
- 	if (xlate_proc_name(name, parent, &fn) != 0)
- 		goto out;
- 	qstr.name = fn;
--	qstr.len = strlen(fn);
--	if (qstr.len == 0 || qstr.len >= 256) {
--		WARN(1, "name len %u\n", qstr.len);
-+	qstr.len = strnlen(fn, NAME_MAX + 1);
-+	if (qstr.len == 0) {
-+		WARN(1, "empty name\n");
-+		return NULL;
-+	}
-+	if (qstr.len > NAME_MAX) {
-+		WARN(1, "name too long\n");
- 		return NULL;
+--- a/mm/gup.c~mm-gup-cleanup-pgtable-entry-accessors
++++ a/mm/gup.c
+@@ -2865,8 +2865,8 @@ static int gup_fast_pte_range(pmd_t pmd,
+ 		if (!folio)
+ 			goto pte_unmap;
+ 
+-		if (unlikely(pmd_val(pmd) != pmd_val(*pmdp)) ||
+-		    unlikely(pte_val(pte) != pte_val(ptep_get(ptep)))) {
++		if (unlikely(pmd_val(pmd) != pmd_val(pmdp_get_lockless(pmdp))) ||
++		    unlikely(pte_val(pte) != pte_val(ptep_get_lockless(ptep)))) {
+ 			gup_put_folio(folio, 1, flags);
+ 			goto pte_unmap;
+ 		}
+@@ -2942,7 +2942,7 @@ static int gup_fast_pmd_leaf(pmd_t orig,
+ 	if (!folio)
+ 		return 0;
+ 
+-	if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
++	if (unlikely(pmd_val(orig) != pmd_val(pmdp_get_lockless(pmdp)))) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
  	}
- 	if (qstr.len == 1 && fn[0] == '.') {
+@@ -2985,7 +2985,7 @@ static int gup_fast_pud_leaf(pud_t orig,
+ 	if (!folio)
+ 		return 0;
+ 
+-	if (unlikely(pud_val(orig) != pud_val(*pudp))) {
++	if (unlikely(pud_val(orig) != pud_val(pudp_get(pudp)))) {
+ 		gup_put_folio(folio, refs, flags);
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from thorsten.blum@linux.dev are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
-proc-use-strnlen-for-name-validation-in-__proc_create.patch
+mm-gup-cleanup-pgtable-entry-accessors.patch
 
