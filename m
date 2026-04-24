@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 336831E5724
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:53:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C053C38A72C
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:56:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777028006; cv=none; b=O28BJsHrVMdfCPN0wPzzT4nyaHv+2E2lu2J/TeofQ4n1ExgczliYVAV/PQWpQvVPiRXuBSnrhI6g+Sp85Y0jHo38TgLQi84ONj00juISPqpKvDaGc6qh//FpabnksjlFdAE5pVe6MzmIEHgOtnXkUfHmBDqQxTmkX13o5KBpW7o=
+	t=1777028187; cv=none; b=m/frT5hQOMs3wCTOjV5YOkaiLnEBL4Ydw0PD8ihJRyBuFPwf1Fx5VcH6JwO7M/s1Whawd5L9WThZbBHT5R+G8SwccZex+MH1P9Q+cfa8iSDGS9gkLkXnhSey9TL/yysTj9D7xN+x/pr6mfs4vIsZipk4OlIsYqIM2N+MZ1Jcq1M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777028006; c=relaxed/simple;
-	bh=b5SQ+hWAOogwUFtfhNJapBphbAF75C6df9VbyE4cBIw=;
-	h=Date:To:From:Subject:Message-Id; b=Fe6RgujWzJj4e3NsWHLW3E5n/r3O+ppZOQ5Cz46DQNs/UmMIJSepIE03Mw5qPnylLqfYYhEdSbyzEGDRHLez8kfuhP24a573q/p49ninV0kuuXT9Jo1fI0LYowfNZ10YgasNKCxYQ4/WnD6l0t+2S4n1ERPC81tqjI4IodGcS7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X1VyijKs; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777028187; c=relaxed/simple;
+	bh=9v9w7ryLWFD3QeTSwK9OOdVR8XA3HHFLHi8hui0fWX4=;
+	h=Date:To:From:Subject:Message-Id; b=evm7fMdNM/VOF/DRtrt7gEk0whN9P0au3gXsIbAS8EDUzUSziUSP6DP3tnYYj2jJf4x1Q3Y/PfSGOmIpAVFsSYXrd/ldkXsQDauM/IizBwOWPh/yoj8izybWHJoWMpYAKsY+tP4bQFyTNb9IWVIDGX9dRerl59AJftCsrKVK17s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yQJmXy7l; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X1VyijKs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0E0BC19425;
-	Fri, 24 Apr 2026 10:53:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yQJmXy7l"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48356C19425;
+	Fri, 24 Apr 2026 10:56:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777028005;
-	bh=b5SQ+hWAOogwUFtfhNJapBphbAF75C6df9VbyE4cBIw=;
+	s=korg; t=1777028187;
+	bh=9v9w7ryLWFD3QeTSwK9OOdVR8XA3HHFLHi8hui0fWX4=;
 	h=Date:To:From:Subject:From;
-	b=X1VyijKsCmbgStr+RhGHU3l2Zsqf5aSfnmW6opzmfsaUbthpZY94EhlsmxQt8Ri8x
-	 wks8Y4XES0ybNmPoC7C8yhOQwO6LP2NmN3aEmx+NnwXRa+tbnfNjmQ5nVUUN/ESK/c
-	 zCtHuFb56bnlEPXuF+h6+V25nt0dNDLv81HO8q9Q=
-Date: Fri, 24 Apr 2026 03:53:25 -0700
-To: mm-commits@vger.kernel.org,jstultz@google.com,adobriyan@gmail.com,me@cherr.cc,akpm@linux-foundation.org
+	b=yQJmXy7lXedW/K9o6JkBD7xiCuoKLx+6YOQbXrtfbsiZs/AU0yaTmnUA9mn/wlDRf
+	 rtU46s5wAo2iRfpcHtMbubPIIi2GHV+nhbLjoyQ4JIhzt2l6tgoSE5SQkhJ2LaBg/m
+	 eXE4HD9BvFnG9ZnBG3YBwzxTuODRXD4uLKcfGYO8=
+Date: Fri, 24 Apr 2026 03:56:26 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,apopple@nvidia.com,nueralspacetech@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-fix-comm_write-return-value-when-truncated-or-error.patch added to mm-nonmm-unstable branch
-Message-Id: <20260424105325.B0E0BC19425@smtp.kernel.org>
+Subject: + mm-migrate_device-cleanup-up-pmd-checks-and-warnings.patch added to mm-new branch
+Message-Id: <20260424105627.48356C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc: fix comm_write return value when truncated or error
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     proc-fix-comm_write-return-value-when-truncated-or-error.patch
+     Subject: mm/migrate_device: cleanup up PMD Checks and warnings
+has been added to the -mm mm-new branch.  Its filename is
+     mm-migrate_device-cleanup-up-pmd-checks-and-warnings.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/proc-fix-comm_write-return-value-when-truncated-or-error.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-cleanup-up-pmd-checks-and-warnings.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,67 +69,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Shengzhuo Wei" <me@cherr.cc>
-Subject: proc: fix comm_write return value when truncated or error
-Date: Fri, 24 Apr 2026 04:06:21 +0800
+From: Sunny Patel <nueralspacetech@gmail.com>
+Subject: mm/migrate_device: cleanup up PMD Checks and warnings
+Date: Sun, 19 Apr 2026 23:17:43 +0530
 
-When count exceeds TASK_COMM_LEN-1, comm_write() copies at most
-TASK_COMM_LEN-1 bytes but returns the original count.  This violates
-write(2) semantics, which require returning the number of bytes actually
-written.
+Remove the odd VM_WARN_ON_FOLIO(!folio, folio) usage and replace it with a
+simpler VM_WARN_ON_ONCE(!folio) check.
 
-The count parameter is size_t and should not be repurposed to carry a
-negative error code on the same_thread_group() failure path.
+Drop the redundant VM_WARN_ON_ONCE(!pmd_none(*pmdp) &&
+!is_huge_zero_pmd(*pmdp)).
 
-Introduce a local len for the truncated length and a separate ssize_t ret
-for the return value.
+Refactor the PMD checks, making the control flow clearer and avoiding
+duplicate condition checks.
 
-Link: https://lore.kernel.org/20260424-fix_proc_write_return-v1-1-7a793c2aad32@cherr.cc
-Fixes: 4614a696bd1c ("procfs: allow threads to rename siblings via /proc/pid/tasks/tid/comm")
-Signed-off-by: Shengzhuo Wei <me@cherr.cc>
-Cc: John Stultz <jstultz@google.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Link: https://lore.kernel.org/20260419174747.10701-1-nueralspacetech@gmail.com
+Signed-off-by: Sunny Patel <nueralspacetech@gmail.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Huang Ying <ying.huang@linux.alibaba.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/migrate_device.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/fs/proc/base.c~proc-fix-comm_write-return-value-when-truncated-or-error
-+++ a/fs/proc/base.c
-@@ -1727,8 +1727,10 @@ static ssize_t comm_write(struct file *f
- 	struct task_struct *p;
- 	char buffer[TASK_COMM_LEN] = {};
- 	const size_t maxlen = sizeof(buffer) - 1;
-+	size_t len = count > maxlen ? maxlen : count;
-+	ssize_t ret;
+--- a/mm/migrate_device.c~mm-migrate_device-cleanup-up-pmd-checks-and-warnings
++++ a/mm/migrate_device.c
+@@ -801,8 +801,7 @@ static int migrate_vma_insert_huge_pmd_p
+ 	bool flush = false;
+ 	unsigned long i;
  
--	if (copy_from_user(buffer, buf, count > maxlen ? maxlen : count))
-+	if (copy_from_user(buffer, buf, len))
- 		return -EFAULT;
+-	VM_WARN_ON_FOLIO(!folio, folio);
+-	VM_WARN_ON_ONCE(!pmd_none(*pmdp) && !is_huge_zero_pmd(*pmdp));
++	VM_WARN_ON_ONCE(!folio);
  
- 	p = get_proc_task(inode);
-@@ -1738,13 +1740,14 @@ static ssize_t comm_write(struct file *f
- 	if (same_thread_group(current, p)) {
- 		set_task_comm(p, buffer);
- 		proc_comm_connector(p);
-+		ret = len;
-+	} else {
-+		ret = -EINVAL;
- 	}
--	else
--		count = -EINVAL;
+ 	if (!thp_vma_suitable_order(vma, addr, HPAGE_PMD_ORDER))
+ 		return -EINVAL;
+@@ -859,11 +858,9 @@ static int migrate_vma_insert_huge_pmd_p
+ 	if (userfaultfd_missing(vma))
+ 		goto unlock_abort;
  
- 	put_task_struct(p);
+-	if (!pmd_none(*pmdp)) {
+-		if (!is_huge_zero_pmd(*pmdp))
+-			goto unlock_abort;
++	if (is_huge_zero_pmd(*pmdp))
+ 		flush = true;
+-	} else if (!pmd_none(*pmdp))
++	else if (!pmd_none(*pmdp))
+ 		goto unlock_abort;
  
--	return count;
-+	return ret;
- }
- 
- static int comm_show(struct seq_file *m, void *v)
+ 	add_mm_counter(vma->vm_mm, MM_ANONPAGES, HPAGE_PMD_NR);
 _
 
-Patches currently in -mm which might be from me@cherr.cc are
+Patches currently in -mm which might be from nueralspacetech@gmail.com are
 
-proc-fix-comm_write-return-value-when-truncated-or-error.patch
+mm-migrate_device-cleanup-up-pmd-checks-and-warnings.patch
 
