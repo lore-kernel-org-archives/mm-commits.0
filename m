@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C07EA36655F
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:30:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 197E430BF52
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:30:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777026657; cv=none; b=Kk2YInApFKlUh/PjiTvaSHRBmPPzKcVmGUDtOy07EBPdL70/7AKL031Ct5SHMcMK9t6c3AbwGkBChmqTXA9omxPgbR2H13aMiQnC68BCtQFaudydNgQb9h+AjsW0DhkdNAHpQmMqQjRDlNdD8GQ0uJ7rC3rEgU2ZQhLq1l+5WOQ=
+	t=1777026660; cv=none; b=VHgq85u0upq9TdMtrvUvQJxQoAqF3YvrWrZqYMXJnqqM35wFyxy5E77H1FP2tARq8s544X51QYAj1gMAuIzjZJUuLU+pM/ZRHtjQR3RHFDsxecYZEUDBDdD/uRZO44SsSsDVir4hYyt4OYYDsWKk3G/2nhjND4lTig7b2lWmj9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777026657; c=relaxed/simple;
-	bh=G3DuaDtet8RCRs1k2E8d9n5sMt9gTAJC4v3n1gnV+lQ=;
-	h=Date:To:From:Subject:Message-Id; b=sXeIiXXDdSPczKA9p+49I5Yu8TSEyEgUq5VG8+LxTDYjpY897IpKEmM4B4nhe9MUp4X9NZdC6TSCMG75vm4O2RNKTUhTkCuMiNRlVHQ6mygWV49+xdZUD4a9AWv33gvVzxpuggczKHpL2Ab4m7FXavg1h93VZKDJqANL0omRR6A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VR367/ml; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777026660; c=relaxed/simple;
+	bh=ruM4HNngtvJNn3lsUzF3FjP97XKsP8+2nnfjdNdLbK0=;
+	h=Date:To:From:Subject:Message-Id; b=TCu7E3nX4fSTvHSkNfNxjrvonfWi0Go75pgBanMlYD+v+ctgZ44nR+o4o5zfMJ4uiUkT2OlPjkRjEzhLGspuFNGeOGEdEVJLOk2vWG+KtaqpM6fWfOD85YtkayVvok8ucbfJeliB2XoMyfZQqEiG3LBzTVXBIDtn4FEibP14mZ0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lK848yTp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VR367/ml"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68213C2BCB5;
-	Fri, 24 Apr 2026 10:30:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lK848yTp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A509BC19425;
+	Fri, 24 Apr 2026 10:30:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777026657;
-	bh=G3DuaDtet8RCRs1k2E8d9n5sMt9gTAJC4v3n1gnV+lQ=;
+	s=korg; t=1777026659;
+	bh=ruM4HNngtvJNn3lsUzF3FjP97XKsP8+2nnfjdNdLbK0=;
 	h=Date:To:From:Subject:From;
-	b=VR367/mlUq5INJQAT+JWGkxVTS3JJiLgxc6wL5gz1H+aY5yon5CgxbttUIRsFs8Oh
-	 nwJ9YSLPqySXmm6/DlUCDuqDj4utTDSUqwyyg402qkuKzKg+ROvqkUq9L3ZsK4JxzK
-	 d8wxJ3CxPsPq5uqLIPnFDXDksYiJJPyscJUG8IC8=
-Date: Fri, 24 Apr 2026 03:30:56 -0700
+	b=lK848yTpDEVG2PIJhw5ZRZx3UMwXUGqkGLkxdCYQtBXcSIYM0sWotSTfVnUE71nK7
+	 fWqREsr10MoeLGy4FKO7lhh1qGtT7eCoVNl8v/T7sFhNaqFLzwuw27ubGAh8uaWetX
+	 7Q31RihtlH1+FsN32eBdQp7kcWvoaOMh+pFgEkDU=
+Date: Fri, 24 Apr 2026 03:30:59 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-add-folio-dirty-check-after-try_to_unmap.patch added to mm-new branch
-Message-Id: <20260424103057.68213C2BCB5@smtp.kernel.org>
+Subject: + mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled.patch added to mm-new branch
+Message-Id: <20260424103059.A509BC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: add folio dirty check after try_to_unmap()
+     Subject: mm/huge_memory: remove READ_ONLY_THP_FOR_FS from file_thp_enabled()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-add-folio-dirty-check-after-try_to_unmap.patch
+     mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-add-folio-dirty-check-after-try_to_unmap.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,27 +70,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/khugepaged: add folio dirty check after try_to_unmap()
-Date: Thu, 23 Apr 2026 22:49:05 -0400
+Subject: mm/huge_memory: remove READ_ONLY_THP_FOR_FS from file_thp_enabled()
+Date: Thu, 23 Apr 2026 22:49:06 -0400
 
-This check ensures the correctness of collapse read-only THPs for FSes
-after READ_ONLY_THP_FOR_FS is enabled by default for all FSes supporting
-PMD THP pagecache.
+Replace it with a check on the max folio order of the file's address space
+mapping, making sure PMD THP is supported.  Also remove the read-only fd
+check, since collapse_file() now makes sure all to-be-collapsed folios are
+clean and the created PMD file THP can be handled by FSes properly.
 
-READ_ONLY_THP_FOR_FS only supports read-only fd and uses mapping->nr_thps
-and inode->i_writecount to prevent any write to read-only to-be-collapsed
-folios.  In upcoming commits, READ_ONLY_THP_FOR_FS will be removed and the
-aforementioned mechanism will go away too.  To ensure khugepaged functions
-as expected after the changes, skip if any folio is dirty after
-try_to_unmap(), since a dirty folio means this read-only folio got some
-writes via mmap can happen between try_to_unmap() and try_to_unmap_flush()
-via cached TLB entries and khugepaged does not support writable pagecache
-folio collapse yet.
-
-Link: https://lore.kernel.org/20260424024915.28758-3-ziy@nvidia.com
+Link: https://lore.kernel.org/20260424024915.28758-4-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -112,60 +103,33 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-add-folio-dirty-check-after-try_to_unmap
-+++ a/mm/khugepaged.c
-@@ -2327,8 +2327,7 @@ static enum scan_result collapse_file(st
- 				}
- 			} else if (folio_test_dirty(folio)) {
- 				/*
--				 * khugepaged only works on read-only fd,
--				 * so this page is dirty because it hasn't
-+				 * This page is dirty because it hasn't
- 				 * been flushed since first write. There
- 				 * won't be new dirty pages.
- 				 *
-@@ -2386,8 +2385,8 @@ static enum scan_result collapse_file(st
- 		if (!is_shmem && (folio_test_dirty(folio) ||
- 				  folio_test_writeback(folio))) {
- 			/*
--			 * khugepaged only works on read-only fd, so this
--			 * folio is dirty because it hasn't been flushed
-+			 * khugepaged only works on clean file-backed folios,
-+			 * so this folio is dirty because it hasn't been flushed
- 			 * since first write.
- 			 */
- 			result = SCAN_PAGE_DIRTY_OR_WRITEBACK;
-@@ -2429,6 +2428,27 @@ static enum scan_result collapse_file(st
- 			xas_unlock_irq(&xas);
- 			folio_putback_lru(folio);
- 			goto out_unlock;
-+		}
-+
-+		/*
-+		 * At this point, the folio is locked and unmapped. If the PTE
-+		 * was dirty, try_to_unmap() has transferred the dirty bit to
-+		 * the folio and we must not collapse it into a clean
-+		 * file-backed folio.
-+		 *
-+		 * If the folio is clean here, no one can write it until we
-+		 * drop the folio lock. A write through a stale TLB entry came
-+		 * from a clean PTE and must fault because the PTE has been
-+		 * cleared; the fault path has to take the folio lock before
-+		 * installing a writable mapping. Buffered write paths also
-+		 * have to take the folio lock before modifying file contents
-+		 * without a mapping, typically via write_begin_get_folio().
-+		 */
-+		if (!is_shmem && folio_test_dirty(folio)) {
-+			result = SCAN_PAGE_DIRTY_OR_WRITEBACK;
-+			xas_unlock_irq(&xas);
-+			folio_putback_lru(folio);
-+			goto out_unlock;
- 		}
+--- a/mm/huge_memory.c~mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled
++++ a/mm/huge_memory.c
+@@ -86,9 +86,6 @@ static inline bool file_thp_enabled(stru
+ {
+ 	struct inode *inode;
  
- 		/*
+-	if (!IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS))
+-		return false;
+-
+ 	if (!vma->vm_file)
+ 		return false;
+ 
+@@ -97,7 +94,10 @@ static inline bool file_thp_enabled(stru
+ 	if (IS_ANON_FILE(inode))
+ 		return false;
+ 
+-	return !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
++	if (!mapping_pmd_thp_support(inode->i_mapping))
++		return false;
++
++	return S_ISREG(inode->i_mode);
+ }
+ 
+ /* If returns true, we are unable to access the VMA's folios. */
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
