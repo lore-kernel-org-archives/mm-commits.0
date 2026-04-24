@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16B8A2BB1D
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 19:22:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1CCC2BE026
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 19:32:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777058528; cv=none; b=RK0vS4lrsNOD0RR9d875zQ8J7iBsBJFijPEd+sTwP872bTgHnn+EW/Z5L4AvtRDVMLVVYbku8FOy9jpu+vhZQUP78gN59aa3K9FwFYZx+e0PFYwx3XKyss0x1vwxT4l96pnpJVz55f1tczbhMGngZKx12CDD3bBLZjJwmCRIRZA=
+	t=1777059127; cv=none; b=ZYZiIv8cY/VvrXUccQkLFCh49i5afFrjKJNvXYG7QbTZz1FmbCrtrqiOFtywFLH4Mu7DKovMTE06bHY4GJZ+iMjmpVyIWIF+S/C7CqjwbfqaO8G/ykXRNS7XXV5NMjzZZsvv1x4I9MalwgrE1/B1njWrIl1cYuH9tDbVaEP7yTg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777058528; c=relaxed/simple;
-	bh=PzLOGZuDmSIJRizMIylMi57bFfwUksUh3Ojy8CYrGYo=;
-	h=Date:To:From:Subject:Message-Id; b=WqT8dTn+B9tGvy+weo7XQk3U4WuFSQhzVdQ+1yRJLjZ9iyweTWBRPod/Y7J4u1HFkk69DuF7uYu6zoBSRhVQCABFJYgOyMpsdq/ME/whlXrJFqtVP/2Oz20msWigAv4AIas134yxNDtWdD2QuQYC3SZ19oa2VaYdmImBE1PtzWA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=x/t1SGJR; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777059127; c=relaxed/simple;
+	bh=gQhbb7zqC4DTWua9YJ4GvwdNHssEO5T6P5+d6Hlqy2o=;
+	h=Date:To:From:Subject:Message-Id; b=nH4OG5v4AZ1BVyTrtnBp4lS8vOLC5fHs0DusMdYXIOMAQ+8qgxNanJrxQSqvunwYYZB0eAZKv+cOAmjtYcCyRK8lEI41wpmOysGVdLoreOMu+LGn/t5m8YQdtRTTuk+qXy6q5897fHAYS/GZ1yWgwS9rWhnp4ljQJfZ7WH14IAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JURfKNx8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="x/t1SGJR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96E56C19425;
-	Fri, 24 Apr 2026 19:22:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JURfKNx8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 29178C19425;
+	Fri, 24 Apr 2026 19:32:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777058527;
-	bh=PzLOGZuDmSIJRizMIylMi57bFfwUksUh3Ojy8CYrGYo=;
+	s=korg; t=1777059127;
+	bh=gQhbb7zqC4DTWua9YJ4GvwdNHssEO5T6P5+d6Hlqy2o=;
 	h=Date:To:From:Subject:From;
-	b=x/t1SGJRVTuvYRlAtgMcH2sDcgfaGFY3F6mzya0jFAH80LiiWVlGGEn2l4sBdo9dC
-	 nK7rWoKJh7REqMU/r7kEsMmKGUAHWTfIoltu7ZoxpGh2tb39qJsrWJQW0GfqJ4tqH7
-	 /UD7UsUx5Vz2+txRbRFWShRuv1vl/XHLodH+0580=
-Date: Fri, 24 Apr 2026 12:22:07 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,nao.horiguchi@gmail.com,linmiaohe@huawei.com,wangxuewen@kylinos.cn,akpm@linux-foundation.org
+	b=JURfKNx8hrljGkZokt+f47hplCqaUNsDnDDcYRkZl6/hr8z5xz5ScSaaqDdy3HbsQ
+	 VE0sOIjnejWE7YHvS4Ju8jcl6retPDzXOSJtPd7yOtFcfDxVqVpH8WDZeYhsgWq7qL
+	 NZC+RJu+D60BLFQ7NCv+qhT4TCuZHfxUACv6JNTs=
+Date: Fri, 24 Apr 2026 12:32:06 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vishal.moola@gmail.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,anshuman.khandual@arm.com,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-replace-magic-number-3-with-get_page_max_retry_num.patch added to mm-new branch
-Message-Id: <20260424192207.96E56C19425@smtp.kernel.org>
+Subject: + mm-page_alloc-cleanup-flag-vars-in-alloc_pages_bulk_noprof.patch added to mm-new branch
+Message-Id: <20260424193207.29178C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: replace magic number 3 with GET_PAGE_MAX_RETRY_NUM
+     Subject: mm/page_alloc: cleanup flag vars in alloc_pages_bulk_noprof()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memory-failure-replace-magic-number-3-with-get_page_max_retry_num.patch
+     mm-page_alloc-cleanup-flag-vars-in-alloc_pages_bulk_noprof.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-replace-magic-number-3-with-get_page_max_retry_num.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-cleanup-flag-vars-in-alloc_pages_bulk_noprof.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,41 +69,54 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: wangxuewen <wangxuewen@kylinos.cn>
-Subject: mm/memory-failure: replace magic number 3 with GET_PAGE_MAX_RETRY_NUM
-Date: Thu, 2 Apr 2026 14:49:46 +0800
+From: Brendan Jackman <jackmanb@google.com>
+Subject: mm/page_alloc: cleanup flag vars in alloc_pages_bulk_noprof()
+Date: Tue, 31 Mar 2026 10:52:13 +0000
 
-Replace the hardcoded magic number 3 in get_any_page() with the existing
-GET_PAGE_MAX_RETRY_NUM macro for code consistency and maintainability.
+These two variables are redundant, squash them to align
+alloc_pages_bulk_noprof() with the style used in
+alloc_frozen_pages_nolock_noprof().
 
-This change has no functional impact, only improves code readability and
-unifies the retry limit configuration.
-
-Link: https://lore.kernel.org/20260402064946.1124250-1-18810879172@163.com
-Signed-off-by: wangxuewen <wangxuewen@kylinos.cn>
-Acked-by: SeongJae Park <sj@kernel.org>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Link: https://lore.kernel.org/20260331-b4-prepare_alloc_pages-flags-v1-1-ea2416def698@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Vishal Moola <vishal.moola@gmail.com>
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-replace-magic-number-3-with-get_page_max_retry_num
-+++ a/mm/memory-failure.c
-@@ -1501,7 +1501,7 @@ try_again:
- 			 * We raced with (possibly temporary) unhandlable
- 			 * page, retry.
- 			 */
--			if (pass++ < 3) {
-+			if (pass++ < GET_PAGE_MAX_RETRY_NUM) {
- 				shake_page(p);
- 				goto try_again;
- 			}
+--- a/mm/page_alloc.c~mm-page_alloc-cleanup-flag-vars-in-alloc_pages_bulk_noprof
++++ a/mm/page_alloc.c
+@@ -5044,7 +5044,6 @@ unsigned long alloc_pages_bulk_noprof(gf
+ 	struct per_cpu_pages *pcp;
+ 	struct list_head *pcp_list;
+ 	struct alloc_context ac;
+-	gfp_t alloc_gfp;
+ 	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+ 	int nr_populated = 0, nr_account = 0;
+ 
+@@ -5085,10 +5084,8 @@ unsigned long alloc_pages_bulk_noprof(gf
+ 
+ 	/* May set ALLOC_NOFRAGMENT, fragmentation will return 1 page. */
+ 	gfp &= gfp_allowed_mask;
+-	alloc_gfp = gfp;
+-	if (!prepare_alloc_pages(gfp, 0, preferred_nid, nodemask, &ac, &alloc_gfp, &alloc_flags))
++	if (!prepare_alloc_pages(gfp, 0, preferred_nid, nodemask, &ac, &gfp, &alloc_flags))
+ 		goto out;
+-	gfp = alloc_gfp;
+ 
+ 	/* Find an allowed local zone that meets the low watermark. */
+ 	z = ac.preferred_zoneref;
 _
 
-Patches currently in -mm which might be from wangxuewen@kylinos.cn are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-mm-memory-failure-replace-magic-number-3-with-get_page_max_retry_num.patch
+mm-page_alloc-cleanup-flag-vars-in-alloc_pages_bulk_noprof.patch
 
