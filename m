@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B808136215B
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:06:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9AC4362133
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:06:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777025185; cv=none; b=BbACLmmGZg1ev2T+YMi0aqpHMZoNRpLBA/mbv2nePYsJ6NZU/vep1do1am8v+D5nZdYQLvDw3h5IU6ClgMyK++sGjrwbC6bIj+/bLOJJTXLhmoJX6N1I7pY//xAfOpN71+XbQMZpDs3uBoEVZCBvGHfhZDUkle5wyTLrbbi63IM=
+	t=1777025189; cv=none; b=B5EBAdQ7IiPP7EYuQSv0tXSDnn88RYDyHygvFN7nRmgg6lRFbGy1kiACJeuGzM0r7BYzTLBj9UCzGYZ7mPDfmo3SNJ0jUtVDTyiuXhv9dPaolzH2XCMkNo84RMZH5hXRmdzyYmaZ5e2UIUDzTSik09u2/vpWTAOcDdjsvdjwX8o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777025185; c=relaxed/simple;
-	bh=A4RHLxq5Lz/7IIDqLgCHhzSvcV6oA7LvLbGWoWulZjE=;
-	h=Date:To:From:Subject:Message-Id; b=n2TV+NarCJzFNEEIu0bpzg45uNkg5Vq87fFnYJkSQLD7aLc0T0eSGoAXBJhr4WxerLv3OfPSAPtOcYhd9O5fHUd0llPLMr+0m6JXFNZGUj9Bd1ZvyNAK0OFftQM3FxJhePqBUIfBUwRr3V9J9/Bm9aX+nEY0XTm4KV0C3zeS9n8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SqOaBc+o; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777025189; c=relaxed/simple;
+	bh=r0o6LUz0xG0ZnrNVXGukgy1hCB9fHgtfWhCWve45sVA=;
+	h=Date:To:From:Subject:Message-Id; b=ob0q9Rdt+ehFMek62eA577ZPE0IP4xXE2uPsMx21lXjH175OflnlljesWw/5v96nIH7ExVFr9tZOHV23vlDbCHl9XT9C8jYucj6Ad5mT2e3bvkFW5vQdpuiNfs7p7nuDCr6CSKF2IqJ3pRTt6cbcPHvdA85zsJv3tM3RWYSQL2I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cUJ2k4Co; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SqOaBc+o"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43CF5C19425;
-	Fri, 24 Apr 2026 10:06:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cUJ2k4Co"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58FEFC19425;
+	Fri, 24 Apr 2026 10:06:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777025185;
-	bh=A4RHLxq5Lz/7IIDqLgCHhzSvcV6oA7LvLbGWoWulZjE=;
+	s=korg; t=1777025189;
+	bh=r0o6LUz0xG0ZnrNVXGukgy1hCB9fHgtfWhCWve45sVA=;
 	h=Date:To:From:Subject:From;
-	b=SqOaBc+oSdtGQ2GPDebPLenCXQNM+4JfDoZF77RRwvOPnq4OyQiV4RWeIsTC2Bl7D
-	 EF8rXt7ppaJkl4czWl8Q/2LCIEnKgT+lrdRGxIxMFoQgyoN0cc7SUyh5bN2FRqDhBQ
-	 ymw4o570YZY8Bt0jZZWjUvtsQ6X19H75OG/M1l6E=
-Date: Fri, 24 Apr 2026 03:06:24 -0700
+	b=cUJ2k4CoTIPDkIJw2/02F/dgalBhFAoWetbfO5WocmC5hEMPRr/Uz3gvAkRMo5fXq
+	 UXAAxDsTqQvhhM2JnnfL+8mGgXEBqUIUT4qvZhJ7nyraj/I1yfJE6amVPfnzpnQpYy
+	 eWhI12wmFeFG8RjloB0/PRw7VWYFM3eufWETMY0Q=
+Date: Fri, 24 Apr 2026 03:06:28 -0700
 To: mm-commits@vger.kernel.org,li.wang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-cgroup-rename-page_size-to-buf_size-in-cgroup_util.patch added to mm-new branch
-Message-Id: <20260424100625.43CF5C19425@smtp.kernel.org>
+Subject: + selftests-cgroup-replace-hardcoded-page-size-values-in-test_zswap.patch added to mm-new branch
+Message-Id: <20260424100629.58FEFC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/cgroup: rename PAGE_SIZE to BUF_SIZE in cgroup_util
+     Subject: selftests/cgroup: replace hardcoded page size values in test_zswap
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-cgroup-rename-page_size-to-buf_size-in-cgroup_util.patch
+     selftests-cgroup-replace-hardcoded-page-size-values-in-test_zswap.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-rename-page_size-to-buf_size-in-cgroup_util.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-replace-hardcoded-page-size-values-in-test_zswap.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,32 +70,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Li Wang <li.wang@linux.dev>
-Subject: selftests/cgroup: rename PAGE_SIZE to BUF_SIZE in cgroup_util
-Date: Fri, 24 Apr 2026 12:00:55 +0800
+Subject: selftests/cgroup: replace hardcoded page size values in test_zswap
+Date: Fri, 24 Apr 2026 12:00:56 +0800
 
-The cgroup utility code defines a local PAGE_SIZE macro hardcoded to 4096,
-which is used primarily as a generic buffer size for reading cgroup and
-proc files.  This naming is misleading because the value has nothing to do
-with the actual page size of the system.  On architectures with larger
-pages (e.g., 64K on arm64 or ppc64), the name suggests a relationship that
-does not exist.  Additionally, the name can shadow or conflict with
-PAGE_SIZE definitions from system headers, leading to confusion or subtle
-bugs.
+test_zswap uses hardcoded values of 4095 and 4096 throughout as page
+stride and page size, which are only correct on systems with a 4K page
+size.  On architectures with larger pages (e.g., 64K on arm64 or ppc64),
+these constants cause memory to be touched at sub-page granularity,
+leading to inefficient access patterns and incorrect page count
+calculations, which can cause test failures.
 
-To resolve this, rename the macro to BUF_SIZE to accurately reflect its
-purpose as a general I/O buffer size.
+Replace all hardcoded 4095 and 4096 values with a global pagesize variable
+initialized from sysconf(_SC_PAGESIZE) at startup, and remove the
+redundant local sysconf() calls scattered across individual functions.  No
+functional change on 4K page size systems.
 
-Furthermore, test_memcontrol currently relies on this hardcoded 4K value
-to stride through memory and trigger page faults.  Update this logic to
-use the actual system page size dynamically.  This micro-optimizes the
-memory faulting process by ensuring it iterates correctly and efficiently
-based on the underlying architecture's true page size.  (This part from
-Waiman)
-
-Link: https://lore.kernel.org/20260424040059.12940-5-li.wang@linux.dev
+Link: https://lore.kernel.org/20260424040059.12940-6-li.wang@linux.dev
 Signed-off-by: Li Wang <li.wang@linux.dev>
-Signed-off-by: Waiman Long <longman@redhat.com>
-Acked-by: Nhat Pham <nphamcs@gmail.com>
+Acked-by: Yosry Ahmed <yosry@kernel.org>
+Reviewed-by: Jiayuan Chen <jiayuan.chen@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Koutný <mkoutny@suse.com>
@@ -103,214 +96,165 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Yosry Ahmed <yosryahmed@google.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Jiayuan Chen <jiayuan.chen@linux.dev>
-Cc: Yosry Ahmed <yosry@kernel.org>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/lib/cgroup_util.c         |   18 ++++-----
- tools/testing/selftests/cgroup/lib/include/cgroup_util.h |    4 +-
- tools/testing/selftests/cgroup/test_core.c               |    2 -
- tools/testing/selftests/cgroup/test_freezer.c            |    2 -
- tools/testing/selftests/cgroup/test_memcontrol.c         |   19 ++++++----
- 5 files changed, 25 insertions(+), 20 deletions(-)
+ tools/testing/selftests/cgroup/test_zswap.c |   45 ++++++++++--------
+ 1 file changed, 25 insertions(+), 20 deletions(-)
 
---- a/tools/testing/selftests/cgroup/lib/cgroup_util.c~selftests-cgroup-rename-page_size-to-buf_size-in-cgroup_util
-+++ a/tools/testing/selftests/cgroup/lib/cgroup_util.c
-@@ -140,7 +140,7 @@ int cg_read_strcmp_wait(const char *cgro
+--- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-replace-hardcoded-page-size-values-in-test_zswap
++++ a/tools/testing/selftests/cgroup/test_zswap.c
+@@ -15,6 +15,8 @@
+ #include "kselftest.h"
+ #include "cgroup_util.h"
  
- int cg_read_strstr(const char *cgroup, const char *control, const char *needle)
- {
--	char buf[PAGE_SIZE];
-+	char buf[BUF_SIZE];
- 
- 	if (cg_read(cgroup, control, buf, sizeof(buf)))
- 		return -1;
-@@ -170,7 +170,7 @@ long cg_read_long_fd(int fd)
- 
- long cg_read_key_long(const char *cgroup, const char *control, const char *key)
- {
--	char buf[PAGE_SIZE];
-+	char buf[BUF_SIZE];
- 	char *ptr;
- 
- 	if (cg_read(cgroup, control, buf, sizeof(buf)))
-@@ -206,7 +206,7 @@ long cg_read_key_long_poll(const char *c
- 
- long cg_read_lc(const char *cgroup, const char *control)
- {
--	char buf[PAGE_SIZE];
-+	char buf[BUF_SIZE];
- 	const char delim[] = "\n";
- 	char *line;
- 	long cnt = 0;
-@@ -258,7 +258,7 @@ int cg_write_numeric(const char *cgroup,
- static int cg_find_root(char *root, size_t len, const char *controller,
- 			bool *nsdelegate)
- {
--	char buf[10 * PAGE_SIZE];
-+	char buf[10 * BUF_SIZE];
- 	char *fs, *mount, *type, *options;
- 	const char delim[] = "\n\t ";
- 
-@@ -313,7 +313,7 @@ int cg_create(const char *cgroup)
- 
- int cg_wait_for_proc_count(const char *cgroup, int count)
- {
--	char buf[10 * PAGE_SIZE] = {0};
-+	char buf[10 * BUF_SIZE] = {0};
- 	int attempts;
- 	char *ptr;
- 
-@@ -338,7 +338,7 @@ int cg_wait_for_proc_count(const char *c
- 
- int cg_killall(const char *cgroup)
- {
--	char buf[PAGE_SIZE];
-+	char buf[BUF_SIZE];
- 	char *ptr = buf;
- 
- 	/* If cgroup.kill exists use it. */
-@@ -548,7 +548,7 @@ int cg_run_nowait(const char *cgroup,
- 
- int proc_mount_contains(const char *option)
- {
--	char buf[4 * PAGE_SIZE];
-+	char buf[4 * BUF_SIZE];
- 	ssize_t read;
- 
- 	read = read_text("/proc/mounts", buf, sizeof(buf));
-@@ -560,7 +560,7 @@ int proc_mount_contains(const char *opti
- 
- int cgroup_feature(const char *feature)
- {
--	char buf[PAGE_SIZE];
-+	char buf[BUF_SIZE];
- 	ssize_t read;
- 
- 	read = read_text("/sys/kernel/cgroup/features", buf, sizeof(buf));
-@@ -587,7 +587,7 @@ ssize_t proc_read_text(int pid, bool thr
- 
- int proc_read_strstr(int pid, bool thread, const char *item, const char *needle)
- {
--	char buf[PAGE_SIZE];
-+	char buf[BUF_SIZE];
- 
- 	if (proc_read_text(pid, thread, item, buf, sizeof(buf)) < 0)
- 		return -1;
---- a/tools/testing/selftests/cgroup/lib/include/cgroup_util.h~selftests-cgroup-rename-page_size-to-buf_size-in-cgroup_util
-+++ a/tools/testing/selftests/cgroup/lib/include/cgroup_util.h
-@@ -2,8 +2,8 @@
- #include <stdbool.h>
- #include <stdlib.h>
- 
--#ifndef PAGE_SIZE
--#define PAGE_SIZE 4096
-+#ifndef BUF_SIZE
-+#define BUF_SIZE 4096
- #endif
- 
- #define MB(x) (x << 20)
---- a/tools/testing/selftests/cgroup/test_core.c~selftests-cgroup-rename-page_size-to-buf_size-in-cgroup_util
-+++ a/tools/testing/selftests/cgroup/test_core.c
-@@ -87,7 +87,7 @@ static int test_cgcore_destroy(const cha
- 	int ret = KSFT_FAIL;
- 	char *cg_test = NULL;
- 	int child_pid;
--	char buf[PAGE_SIZE];
-+	char buf[BUF_SIZE];
- 
- 	cg_test = cg_name(root, "cg_test");
- 
---- a/tools/testing/selftests/cgroup/test_freezer.c~selftests-cgroup-rename-page_size-to-buf_size-in-cgroup_util
-+++ a/tools/testing/selftests/cgroup/test_freezer.c
-@@ -642,7 +642,7 @@ cleanup:
-  */
- static int proc_check_stopped(int pid)
- {
--	char buf[PAGE_SIZE];
-+	char buf[BUF_SIZE];
- 	int len;
- 
- 	len = proc_read_text(pid, 0, "stat", buf, sizeof(buf));
---- a/tools/testing/selftests/cgroup/test_memcontrol.c~selftests-cgroup-rename-page_size-to-buf_size-in-cgroup_util
-+++ a/tools/testing/selftests/cgroup/test_memcontrol.c
-@@ -26,6 +26,7 @@
- 
- static bool has_localevents;
- static bool has_recursiveprot;
 +static int page_size;
++
+ #define PATH_ZSWAP "/sys/module/zswap"
+ #define PATH_ZSWAP_ENABLED "/sys/module/zswap/parameters/enabled"
  
- int get_temp_fd(void)
- {
-@@ -34,7 +35,7 @@ int get_temp_fd(void)
+@@ -73,11 +75,11 @@ static int allocate_and_read_bytes(const
  
- int alloc_pagecache(int fd, size_t size)
- {
--	char buf[PAGE_SIZE];
-+	char buf[BUF_SIZE];
- 	struct stat st;
- 	int i;
+ 	if (!mem)
+ 		return -1;
+-	for (int i = 0; i < size; i += 4095)
++	for (int i = 0; i < size; i += page_size)
+ 		mem[i] = 'a';
  
-@@ -61,7 +62,7 @@ int alloc_anon(const char *cgroup, void
- 	char *buf, *ptr;
+ 	/* Go through the allocated memory to (z)swap in and out pages */
+-	for (int i = 0; i < size; i += 4095) {
++	for (int i = 0; i < size; i += page_size) {
+ 		if (mem[i] != 'a')
+ 			ret = -1;
+ 	}
+@@ -93,7 +95,7 @@ static int allocate_bytes(const char *cg
  
- 	buf = malloc(size);
--	for (ptr = buf; ptr < buf + size; ptr += PAGE_SIZE)
-+	for (ptr = buf; ptr < buf + size; ptr += page_size)
- 		*ptr = 0;
- 
- 	free(buf);
-@@ -70,7 +71,7 @@ int alloc_anon(const char *cgroup, void
- 
- int is_swap_enabled(void)
- {
--	char buf[PAGE_SIZE];
-+	char buf[BUF_SIZE];
- 	const char delim[] = "\n";
- 	int cnt = 0;
- 	char *line;
-@@ -113,7 +114,7 @@ static int test_memcg_subtree_control(co
- {
- 	char *parent, *child, *parent2 = NULL, *child2 = NULL;
+ 	if (!mem)
+ 		return -1;
+-	for (int i = 0; i < size; i += 4095)
++	for (int i = 0; i < size; i += page_size)
+ 		mem[i] = 'a';
+ 	free(mem);
+ 	return 0;
+@@ -167,7 +169,7 @@ static int test_swapin_nozswap(const cha
  	int ret = KSFT_FAIL;
--	char buf[PAGE_SIZE];
-+	char buf[BUF_SIZE];
+ 	char *test_group, mem_max_buf[32];
+ 	long swap_peak, zswpout, min_swap;
+-	size_t allocation_size = sysconf(_SC_PAGESIZE) * 512;
++	size_t allocation_size = page_size * 512;
  
- 	/* Create two nested cgroups with the memory controller enabled */
- 	parent = cg_name(root, "memcg_test_0");
-@@ -184,7 +185,7 @@ static int alloc_anon_50M_check(const ch
- 		return -1;
+ 	min_swap = allocation_size / 4;
+ 	snprintf(mem_max_buf, sizeof(mem_max_buf), "%zu", allocation_size * 3/4);
+@@ -245,7 +247,7 @@ static int test_zswapin(const char *root
+ 		goto out;
  	}
  
--	for (ptr = buf; ptr < buf + size; ptr += PAGE_SIZE)
-+	for (ptr = buf; ptr < buf + size; ptr += page_size)
- 		*ptr = 0;
+-	if (zswpin < MB(24) / sysconf(_SC_PAGESIZE)) {
++	if (zswpin < MB(24) / page_size) {
+ 		ksft_print_msg("at least 24MB should be brought back from zswap\n");
+ 		goto out;
+ 	}
+@@ -272,9 +274,8 @@ out:
+  */
+ static int attempt_writeback(const char *cgroup, void *arg)
+ {
+-	long pagesize = sysconf(_SC_PAGESIZE);
+ 	size_t memsize = MB(4);
+-	char buf[pagesize];
++	char buf[page_size];
+ 	long zswap_usage;
+ 	bool wb_enabled = *(bool *) arg;
+ 	int ret = -1;
+@@ -289,11 +290,11 @@ static int attempt_writeback(const char
+ 	 * half empty, this will result in data that is still compressible
+ 	 * and ends up in zswap, with material zswap usage.
+ 	 */
+-	for (int i = 0; i < pagesize; i++)
+-		buf[i] = i < pagesize/2 ? (char) i : 0;
++	for (int i = 0; i < page_size; i++)
++		buf[i] = i < page_size/2 ? (char) i : 0;
  
- 	current = cg_read_long(cgroup, "memory.current");
-@@ -414,7 +415,7 @@ static int alloc_anon_noexit(const char
+-	for (int i = 0; i < memsize; i += pagesize)
+-		memcpy(&mem[i], buf, pagesize);
++	for (int i = 0; i < memsize; i += page_size)
++		memcpy(&mem[i], buf, page_size);
+ 
+ 	/* Try and reclaim allocated memory */
+ 	if (cg_write_numeric(cgroup, "memory.reclaim", memsize)) {
+@@ -304,8 +305,8 @@ static int attempt_writeback(const char
+ 	zswap_usage = cg_read_long(cgroup, "memory.zswap.current");
+ 
+ 	/* zswpin */
+-	for (int i = 0; i < memsize; i += pagesize) {
+-		if (memcmp(&mem[i], buf, pagesize)) {
++	for (int i = 0; i < memsize; i += page_size) {
++		if (memcmp(&mem[i], buf, page_size)) {
+ 			ksft_print_msg("invalid memory\n");
+ 			goto out;
+ 		}
+@@ -441,7 +442,7 @@ static int test_no_invasive_cgroup_shrin
+ 	if (cg_enter_current(control_group))
+ 		goto out;
+ 	control_allocation = malloc(control_allocation_size);
+-	for (int i = 0; i < control_allocation_size; i += 4095)
++	for (int i = 0; i < control_allocation_size; i += page_size)
+ 		control_allocation[i] = 'a';
+ 	if (cg_read_key_long(control_group, "memory.stat", "zswapped") < 1)
+ 		goto out;
+@@ -481,7 +482,7 @@ static int no_kmem_bypass_child(const ch
+ 		values->child_allocated = true;
  		return -1;
  	}
+-	for (long i = 0; i < values->target_alloc_bytes; i += 4095)
++	for (long i = 0; i < values->target_alloc_bytes; i += page_size)
+ 		((char *)allocation)[i] = 'a';
+ 	values->child_allocated = true;
+ 	pause();
+@@ -529,7 +530,7 @@ static int test_no_kmem_bypass(const cha
+ 	min_free_kb_low = sys_info.totalram / 500000;
+ 	values->target_alloc_bytes = (sys_info.totalram - min_free_kb_high * 1000) +
+ 		sys_info.totalram * 5 / 100;
+-	stored_pages_threshold = sys_info.totalram / 5 / 4096;
++	stored_pages_threshold = sys_info.totalram / 5 / page_size;
+ 	trigger_allocation_size = sys_info.totalram / 20;
  
--	for (ptr = buf; ptr < buf + size; ptr += PAGE_SIZE)
-+	for (ptr = buf; ptr < buf + size; ptr += page_size)
- 		*ptr = 0;
+ 	/* Set up test memcg */
+@@ -556,7 +557,7 @@ static int test_no_kmem_bypass(const cha
  
- 	while (getppid() == ppid)
-@@ -1000,7 +1001,7 @@ static int alloc_anon_50M_check_swap(con
- 		return -1;
- 	}
+ 		if (!trigger_allocation)
+ 			break;
+-		for (int i = 0; i < trigger_allocation_size; i += 4095)
++		for (int i = 0; i < trigger_allocation_size; i += page_size)
+ 			trigger_allocation[i] = 'b';
+ 		usleep(100000);
+ 		free(trigger_allocation);
+@@ -567,8 +568,8 @@ static int test_no_kmem_bypass(const cha
+ 		/* If memory was pushed to zswap, verify it belongs to memcg */
+ 		if (stored_pages > stored_pages_threshold) {
+ 			int zswapped = cg_read_key_long(test_group, "memory.stat", "zswapped ");
+-			int delta = stored_pages * 4096 - zswapped;
+-			int result_ok = delta < stored_pages * 4096 / 4;
++			int delta = stored_pages * page_size - zswapped;
++			int result_ok = delta < stored_pages * page_size / 4;
  
--	for (ptr = buf; ptr < buf + size; ptr += PAGE_SIZE)
-+	for (ptr = buf; ptr < buf + size; ptr += page_size)
- 		*ptr = 0;
+ 			ret = result_ok ? KSFT_PASS : KSFT_FAIL;
+ 			break;
+@@ -622,7 +623,7 @@ static int allocate_random_and_wait(cons
+ 	close(fd);
  
- 	mem_current = cg_read_long(cgroup, "memory.current");
-@@ -1791,6 +1792,10 @@ int main(int argc, char **argv)
+ 	/* Touch all pages to ensure they're faulted in */
+-	for (size_t i = 0; i < size; i += PAGE_SIZE)
++	for (size_t i = 0; i < size; i += page_size)
+ 		mem[i] = mem[i];
+ 
+ 	/* Use MADV_PAGEOUT to push pages into zswap */
+@@ -752,6 +753,10 @@ int main(int argc, char **argv)
  	char root[PATH_MAX];
- 	int i, proc_status;
+ 	int i;
  
 +	page_size = sysconf(_SC_PAGE_SIZE);
 +	if (page_size <= 0)
