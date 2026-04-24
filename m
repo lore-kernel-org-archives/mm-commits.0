@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 306B0223DCE
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 09:35:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A050A223DCE
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 09:38:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777023304; cv=none; b=AZyfuvgotwc1UtSi6qgfUFMVmB05VWUqpGQ3SFhlvuFEmLcAHE9z6ydjLWp4YHbYAL9RBtiWR8Jra1LFOc+ov+cAO9VgZ4G/Ciuwbni+TwO2FVrpTOfYptIVmIq/CuhKnxlY6Mlo/BqvjYEb5dGMXbotMxL3HN7C47cFlqYc+qs=
+	t=1777023510; cv=none; b=auDl95yS+bBp6bj19VRobBLka5fwZPH44JbC7iY+Gq25GIKTS/3OgG1sHkly8ncPk4Ubp/KUF2JL5q7G9bXSKhtkK9v92gkOc10tM5swUtKz4kICXe4qOsU8iHn8djVB5I3ExHOWesh2zNSSsEE7inmVmZVDqk9AV8YCgWdf3/E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777023304; c=relaxed/simple;
-	bh=DdfaTCpybZWdJIbTggJvjaAXw55dGgNrPbtO5iE2fGU=;
-	h=Date:To:From:Subject:Message-Id; b=bO9NmNgL5wckbvzV5sqAmOdGjHHnDNmyL0POtnN0ZXAzkcRttDmjFCIEH0FHAiQsymCNqjB7LvzTUSHDv3+Sb6iZQORE1Ztqotx5V+RGB/AziTMqYHtnqaww98Lk6KuwHARnhZjXkKd0sxTj+K0EaKgHKGu4opUyiFMqPwoG4O8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qN2yoOLQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777023510; c=relaxed/simple;
+	bh=qk5Z4II17iKoSjZKW0kwGy6j7wgcliSjFpdHezK/tbo=;
+	h=Date:To:From:Subject:Message-Id; b=ZF/yI5mSrX4SCoAGlzyfVSw30MUg8dqq3Zag9mh4RKUrsgmUpYjpPuadDtv9/mGK6kbAg/rXiy+lQFxe9FsjapydiQEpdDQ26Wc+yt7cTcQB+4kKFJMnMbvssMvwLBOAWEdwK0cXdLZC7P+a9uWy5td24ky7DIArFWIbo4pEv8U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FWwVpwhb; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qN2yoOLQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9628C19425;
-	Fri, 24 Apr 2026 09:35:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FWwVpwhb"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 423D7C19425;
+	Fri, 24 Apr 2026 09:38:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777023303;
-	bh=DdfaTCpybZWdJIbTggJvjaAXw55dGgNrPbtO5iE2fGU=;
+	s=korg; t=1777023510;
+	bh=qk5Z4II17iKoSjZKW0kwGy6j7wgcliSjFpdHezK/tbo=;
 	h=Date:To:From:Subject:From;
-	b=qN2yoOLQDLWE5t0KKa5UBC/iyX0HMgBJwi13/F8DhA+clG9FfOAmjcQVz7fGVC2lA
-	 uDWP4pKypi1Md9cX0YlOqDblKiuoSFkLyePaxmXb/4Y24JgcZzL6AKF5qUqqU4MoCo
-	 fb27fnQtRMcHXxlEb5TKGtmbl6niN15ifNr9jtBE=
-Date: Fri, 24 Apr 2026 02:35:03 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,youngjun.park@lge.com,willy@infradead.org,weixugc@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,riel@surriel.com,qi.zheng@linux.dev,nphamcs@gmail.com,mhocko@suse.com,kasong@tencent.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,axelrasmussen@google.com,jp.kobryn@linux.dev,akpm@linux-foundation.org
+	b=FWwVpwhboGHrQeJPX0+huOzOvDhA4+W0wGd61xDJweAnLngVQ308zOw7LFkBxj2uD
+	 Duw8G+CkUmrqEDdMNCXwYIKdaAIK/mZ7VU4aF7dS4IVL3JZBbTULGZXdPE8ucoLBN/
+	 EMyN1Z0uLIxElQ49Q1zlnkdP1miVT55KKP6xhxjk=
+Date: Fri, 24 Apr 2026 02:38:29 -0700
+To: mm-commits@vger.kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [failures] mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch removed from -mm tree
-Message-Id: <20260424093503.B9628C19425@smtp.kernel.org>
+Subject: [to-be-updated] mm-mmu_gather-prepare-to-skip-redundant-sync-ipis.patch removed from -mm tree
+Message-Id: <20260424093830.423D7C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,144 +35,196 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/lruvec: preemptively free dead folios during lru_add drain
+     Subject: mm/mmu_gather: prepare to skip redundant sync IPIs
 has been removed from the -mm tree.  Its filename was
-     mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch
+     mm-mmu_gather-prepare-to-skip-redundant-sync-ipis.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: "JP Kobryn (Meta)" <jp.kobryn@linux.dev>
-Subject: mm/lruvec: preemptively free dead folios during lru_add drain
-Date: Thu, 23 Apr 2026 09:43:07 -0700
+From: Lance Yang <lance.yang@linux.dev>
+Subject: mm/mmu_gather: prepare to skip redundant sync IPIs
+Date: Mon, 20 Apr 2026 11:08:50 +0800
 
-Of all observable lruvec lock contention in our fleet, we find that ~24%
-occurs when dead folios are present in lru_add batches at drain time. 
-This is wasteful in the sense that the folio is added to the LRU just to
-be immediately removed via folios_put_refs(), incurring two unnecessary
-lock acquisitions.
+Patch series "skip redundant sync IPIs when TLB flush sent them", v9.
 
-Eliminate this overhead by preemptively cleaning up dead folios before
-they make it into the LRU.  Use folio_ref_freeze() to filter folios whose
-only remaining refcount is the batch ref.  When dead folios are found,
-move them off the add batch and onto a temporary batch to be freed.
+When page table operations require synchronization with software/lockless
+walkers, they call tlb_remove_table_sync_{one,rcu}() after flushing the
+TLB (tlb->freed_tables or tlb->unshared_tables).
 
-During A/B testing on one of our prod instagram workloads (high-frequency
-short-lived requests), the patch intercepted almost all dead folios before
-they entered the LRU.  Data collected using the mm_lru_insertion
-tracepoint shows the effectiveness of the patch:
+On architectures where the TLB flush already sends IPIs to all target
+CPUs, the subsequent sync IPI broadcast is redundant.  This is not only
+costly on large systems where it disrupts all CPUs even for single-process
+page table operations, but has also been reported to hurt RT workloads[1].
 
-Per-host LRU add averages at 95% CPU load
-(60 hosts each side, 3 x 60s intervals)
+This series introduces tlb_table_flush_implies_ipi_broadcast() to check if
+the prior TLB flush already provided the necessary synchronization.  When
+true, the sync calls can early-return.
 
-            dead folios/min  total folios/min   dead %
-unpatched:        1,297,785        19,341,986  6.7097%
-patched:                 14        19,039,996  0.0001%
+A few cases rely on this synchronization:
 
-Within this workload, we save ~2.6M lock acquisitions per minute per host
-as a result.
+1) hugetlb PMD unshare[2]: The problem is not the freeing but the reuse
+   of the PMD table for other purposes in the last remaining user after
+   unsharing.
 
-System-wide memory stats improved on the patched side also at 95% CPU load:
- - direct reclaim scanning reduced 7%
- - allocation stalls reduced 5.2%
- - compaction stalls reduced 12.3%
- - page frees reduced 4.9%
+2) khugepaged collapse[3]: Ensure no concurrent GUP-fast before collapsing
+   and (possibly) freeing the page table / re-depositing it.
 
-No regressions were observed in requests served per second or request tail
-latency (p99).  Both metrics showed directional improvement at higher CPU
-utilization (comparing 85% to 95%).
+Two-step plan as David suggested[4]:
 
-Link: https://lore.kernel.org/20260423164307.29805-1-jp.kobryn@linux.dev
-Signed-off-by: JP Kobryn (Meta) <jp.kobryn@linux.dev>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baoquan He <bhe@redhat.com>
+Step 1 (this series): Skip redundant sync when we're 100% certain the TLB
+flush sent IPIs. INVLPGB is excluded because when supported, we cannot
+guarantee IPIs were sent, keeping it clean and simple.
+
+Step 2 (future work): Send targeted IPIs only to CPUs actually doing
+software/lockless page table walks, benefiting all architectures.
+
+Regarding Step 2, it obviously only applies to setups where Step 1 does not
+apply: like x86 with INVLPGB or arm64. Step 2 work is ongoing; early
+attempts showed ~3% GUP-fast overhead. Reducing the overhead requires more
+work and tuning; it will be submitted separately once ready.
+
+On a 64-core Intel x86 server, the CAL interrupt count in
+/proc/interrupts dropped from 646,316 to 785 when collapsing a 20 GiB
+range with this series applied.
+
+David Hildenbrand did the initial implementation. I built on his work and
+relied on off-list discussions to push it further - thanks a lot David!
+
+
+This patch (of 2):
+
+When page table operations require synchronization with software/lockless
+walkers, they call tlb_remove_table_sync_{one,rcu}() after flushing the
+TLB (tlb->freed_tables or tlb->unshared_tables).
+
+On architectures where the TLB flush already sends IPIs to all target
+CPUs, the subsequent sync IPI broadcast is redundant.  This is not only
+costly on large systems where it disrupts all CPUs even for single-process
+page table operations, but has also been reported to hurt RT workloads[5].
+
+Introduce tlb_table_flush_implies_ipi_broadcast() to check if the prior
+TLB flush already provided the necessary synchronization.  When true, the
+sync calls can early-return.
+
+A few cases rely on this synchronization:
+
+1) hugetlb PMD unshare[6]: The problem is not the freeing but the reuse
+   of the PMD table for other purposes in the last remaining user after
+   unsharing.
+
+2) khugepaged collapse[7]: Ensure no concurrent GUP-fast before collapsing
+   and (possibly) freeing the page table / re-depositing it.
+
+Currently always returns false (no behavior change). The follow-up patch
+will enable the optimization for x86.
+
+Link: https://lore.kernel.org/20260420030851.6735-1-lance.yang@linux.dev
+Link: https://lore.kernel.org/20260420030851.6735-2-lance.yang@linux.dev
+Link: https://lore.kernel.org/linux-mm/1b27a3fa-359a-43d0-bdeb-c31341749367@kernel.org/ [1]
+Link: https://lore.kernel.org/linux-mm/6a364356-5fea-4a6c-b959-ba3b22ce9c88@kernel.org/ [2]
+Link: https://lore.kernel.org/linux-mm/2cb4503d-3a3f-4f6c-8038-7b3d1c74b3c2@kernel.org/ [3]
+Link: https://lore.kernel.org/linux-mm/bbfdf226-4660-4949-b17b-0d209ee4ef8c@kernel.org/ [4]
+Link: https://lore.kernel.org/linux-mm/1b27a3fa-359a-43d0-bdeb-c31341749367@kernel.org/ [5]
+Link: https://lore.kernel.org/linux-mm/6a364356-5fea-4a6c-b959-ba3b22ce9c88@kernel.org/ [6]
+Link: https://lore.kernel.org/linux-mm/2cb4503d-3a3f-4f6c-8038-7b3d1c74b3c2@kernel.org/ [7]
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Juegren Gross <jgross@suse.com>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Youngjun Park <youngjun.park@lge.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yair Podemsky <ypodemsk@redhat.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   36 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 35 insertions(+), 1 deletion(-)
+ include/asm-generic/tlb.h |   17 +++++++++++++++++
+ mm/mmu_gather.c           |   15 +++++++++++++++
+ 2 files changed, 32 insertions(+)
 
---- a/mm/swap.c~mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain
-+++ a/mm/swap.c
-@@ -160,13 +160,36 @@ static void folio_batch_move_lru(struct
- 	int i;
- 	struct lruvec *lruvec = NULL;
- 	unsigned long flags = 0;
-+	struct folio_batch free_fbatch;
-+	bool is_lru_add = (move_fn == lru_add);
+--- a/include/asm-generic/tlb.h~mm-mmu_gather-prepare-to-skip-redundant-sync-ipis
++++ a/include/asm-generic/tlb.h
+@@ -240,6 +240,23 @@ static inline void tlb_remove_table(stru
+ }
+ #endif /* CONFIG_MMU_GATHER_TABLE_FREE */
+ 
++/**
++ * tlb_table_flush_implies_ipi_broadcast - does TLB flush imply IPI sync
++ *
++ * When page table operations require synchronization with software/lockless
++ * walkers, they flush the TLB (tlb->freed_tables or tlb->unshared_tables)
++ * then call tlb_remove_table_sync_{one,rcu}(). If the flush already sent
++ * IPIs to all CPUs, the sync call is redundant.
++ *
++ * Returns false by default. Architectures can override by defining this.
++ */
++#ifndef tlb_table_flush_implies_ipi_broadcast
++static inline bool tlb_table_flush_implies_ipi_broadcast(void)
++{
++	return false;
++}
++#endif
++
+ #ifdef CONFIG_MMU_GATHER_RCU_TABLE_FREE
+ /*
+  * This allows an architecture that does not use the linux page-tables for
+--- a/mm/mmu_gather.c~mm-mmu_gather-prepare-to-skip-redundant-sync-ipis
++++ a/mm/mmu_gather.c
+@@ -283,6 +283,14 @@ void tlb_remove_table_sync_one(void)
+ 	 * It is however sufficient for software page-table walkers that rely on
+ 	 * IRQ disabling.
+ 	 */
 +
 +	/*
-+	 * If we're adding to the LRU, preemptively filter dead folios. Use
-+	 * this dedicated folio batch for temp storage and deferred cleanup.
++	 * Skip IPI if the preceding TLB flush already synchronized with
++	 * all CPUs that could be doing software/lockless page table walks.
 +	 */
-+	if (is_lru_add)
-+		folio_batch_init(&free_fbatch);
- 
- 	for (i = 0; i < folio_batch_count(fbatch); i++) {
- 		struct folio *folio = fbatch->folios[i];
- 
- 		/* block memcg migration while the folio moves between lru */
--		if (move_fn != lru_add && !folio_test_clear_lru(folio))
-+		if (!is_lru_add && !folio_test_clear_lru(folio))
-+			continue;
++	if (tlb_table_flush_implies_ipi_broadcast())
++		return;
 +
-+		/*
-+		 * Filter dead folios by moving them from the add batch to the temp
-+		 * batch for freeing after this loop.
-+		 *
-+		 * Since the folio may be part of a huge page, unqueue from
-+		 * deferred split list to avoid a dangling list entry.
-+		 */
-+		if (is_lru_add && folio_ref_freeze(folio, 1)) {
-+			folio_unqueue_deferred_split(folio);
-+			fbatch->folios[i] = NULL;
-+			folio_batch_add(&free_fbatch, folio);
- 			continue;
-+		}
- 
- 		folio_lruvec_relock_irqsave(folio, &lruvec, &flags);
- 		move_fn(lruvec, folio);
-@@ -176,6 +199,13 @@ static void folio_batch_move_lru(struct
- 
- 	if (lruvec)
- 		lruvec_unlock_irqrestore(lruvec, flags);
-+
-+	/* Cleanup filtered dead folios. */
-+	if (is_lru_add) {
-+		mem_cgroup_uncharge_folios(&free_fbatch);
-+		free_unref_folios(&free_fbatch);
-+	}
-+
- 	folios_put(fbatch);
+ 	smp_call_function(tlb_remove_table_smp_sync, NULL, 1);
  }
  
-@@ -964,6 +994,10 @@ void folios_put_refs(struct folio_batch
- 		struct folio *folio = folios->folios[i];
- 		unsigned int nr_refs = refs ? refs[i] : 1;
- 
-+		/* Folio batch entry may have been preemptively removed during drain. */
-+		if (!folio)
-+			continue;
+@@ -312,6 +320,13 @@ static void tlb_remove_table_free(struct
+  */
+ void tlb_remove_table_sync_rcu(void)
+ {
++	/*
++	 * Skip RCU wait if the preceding TLB flush already synchronized
++	 * with all CPUs that could be doing software/lockless page table walks.
++	 */
++	if (tlb_table_flush_implies_ipi_broadcast())
++		return;
 +
- 		if (is_huge_zero_folio(folio))
- 			continue;
+ 	synchronize_rcu();
+ }
  
 _
 
-Patches currently in -mm which might be from jp.kobryn@linux.dev are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
+x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch
 
