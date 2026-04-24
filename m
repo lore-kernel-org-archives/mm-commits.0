@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AACF63E1207
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 16:14:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D3B34F5E0
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 16:38:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777047295; cv=none; b=VacyAigeXIr3ITh6giuzqPpInBc+5GrCfLvi3Kwc8Zsgtix8Hoi3afMiPMmlppUHhMdjjDx9rfioujmJZe9GWimV3yhPfxis4Ws4C4kkoSOkXkCBOfeRN4tGG3s1gB51g4X/htdEQjju+x5VzwmVPZBqtYD5VkmU3YgwbsY1h5s=
+	t=1777048712; cv=none; b=qlZUI187VIydvlA/X+k0NGLKvWzFq0aKSXQJ4bGGP9LiKixyTuxCGhbHJBDAoPyw7gbC6mzqGv3sGiheSFDnyNqyNRoUOWwJQ0CaV3MNkyzyQV9dmYAv1NIup8MmhVKLb0qUSEYTNqg/wHiaT/gzIis2XeeCJrhTp5IuG8DQK60=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777047295; c=relaxed/simple;
-	bh=XXY2NLj8TNfoxti9w4Z3fZ5j7/gMKTVjh7NQtevXr+Q=;
-	h=Date:To:From:Subject:Message-Id; b=oSosYn8XT6qgpNj5NOMHYczS2sOeEJE8nypbvYDCkBwWGPv32nLPrD8V98q/WVFwTi6P1wsbWaoUiOw+lnGFGKC7tKQUX+xW/bsOQHhXvph575Ao04Itk+QALnHe5QcDZNNnyl12nZiKr4nz5iZWE26r9ktNqjNgEWbfZTL6oVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wfd7pe8/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777048712; c=relaxed/simple;
+	bh=OR6dU4aNkdcccTZIdOOhA8bGzMQBeCA8dHNwxdOzmjQ=;
+	h=Date:To:From:Subject:Message-Id; b=N05LLUp0hIk3CefyGemNu3rEZWu+gBrxTVGUhF5onW4cGkQsBjyZ2UzkUDWseeXCSNiDrC+zabUrR9UG63MfG9HNShgJjpD/aPzpc1CGe6l2Kgkzt5P9uJ/3NvfJUwPazfGVR8F7vc0ms/VFDpxWu1ALr2NcIWOoxK6Y3YEHj/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Lba9QTF7; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wfd7pe8/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1916C19425;
-	Fri, 24 Apr 2026 16:14:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Lba9QTF7"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC7F6C19425;
+	Fri, 24 Apr 2026 16:38:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777047294;
-	bh=XXY2NLj8TNfoxti9w4Z3fZ5j7/gMKTVjh7NQtevXr+Q=;
+	s=korg; t=1777048711;
+	bh=OR6dU4aNkdcccTZIdOOhA8bGzMQBeCA8dHNwxdOzmjQ=;
 	h=Date:To:From:Subject:From;
-	b=Wfd7pe8/tHGeJiokesVfZyTgIVqwg/PH/yo4wXLSf2aEcdyVM5wzKSAh8UliDUFnJ
-	 MjlToTmg8mS+uUzmztbBPmBWbazcCFF8+CBCva0quv7UOduBeSYzNvC8xBd/QqI1y0
-	 kQ48nfHFQBPRrSJkAufYxDR5IgSN76R+GVXAJHEE=
-Date: Fri, 24 Apr 2026 09:14:54 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
+	b=Lba9QTF7s2rjSeluLRIyAJdNiYCQ/zcAKY1vdvStn+tzBOFwS5L1fXJu14LKr+jfR
+	 vSWOLNfgB0eFEvzG1gsAHZ08JKli8YB54PmJFRwvO8rOEvkuXfrlKHG59NteLOOq5b
+	 /8AUV6iV5vi30E1V/VOI8x8EWZtZueXfID7MuooU=
+Date: Fri, 24 Apr 2026 09:38:31 -0700
+To: mm-commits@vger.kernel.org,peterz@infradead.org,mingo@kernel.org,bvanassche@acm.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-fix-%pgp-format-specifier-argument-type.patch added to mm-new branch
-Message-Id: <20260424161454.D1916C19425@smtp.kernel.org>
+Subject: + clang-format-fix-formatting-of-guard-and-scoped_guard-statements.patch added to mm-nonmm-unstable branch
+Message-Id: <20260424163831.DC7F6C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: fix %pGp format specifier argument type
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_owner-fix-%pgp-format-specifier-argument-type.patch
+     Subject: clang-format: fix formatting of guard() and scoped_guard() statements
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     clang-format-fix-formatting-of-guard-and-scoped_guard-statements.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-fix-%pgp-format-specifier-argument-type.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/clang-format-fix-formatting-of-guard-and-scoped_guard-statements.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,49 +58,56 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zhen Ni <zhen.ni@easystack.cn>
-Subject: mm/page_owner: fix %pGp format specifier argument type
-Date: Tue, 14 Apr 2026 15:58:13 +0800
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: clang-format: fix formatting of guard() and scoped_guard() statements
+Date: Mon, 13 Apr 2026 11:23:48 -0700
 
-The %pGp format specifier expects an argument of type 'unsigned long *',
-but page->flags is now of type 'memdesc_flags_t' (a struct containing an
-unsigned long member 'f') after the introduction of memdesc_flags_t.
+Without this patch clang-format formats guard() and scoped_guard()
+statements as follows:
 
-Fix the type mismatch by passing &page->flags.f instead of &page->flags,
-which matches the expected type.
+	guard(...)(...)
+	{
+		...
+	}
 
-Link: https://lore.kernel.org/20260414075813.3425968-1-zhen.ni@easystack.cn
-Fixes: 53fbef56e07d ("mm: introduce memdesc_flags_t")
-Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+With this patch clang-format formats guard() and scoped_guard()
+statements as follows:
+
+	guard(...)(...) {
+		...
+	}
+
+Link: https://lore.kernel.org/20260413182348.1865138-1-bvanassche@acm.org
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .clang-format |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/page_owner.c~mm-page_owner-fix-%pgp-format-specifier-argument-type
-+++ a/mm/page_owner.c
-@@ -588,7 +588,7 @@ print_page_owner(char __user *buf, size_
- 			migratetype_names[page_mt],
- 			pfn >> pageblock_order,
- 			migratetype_names[pageblock_mt],
--			&page->flags);
-+			&page->flags.f);
- 
- 	/* Print mode: full stack or stack handle */
- 	if (READ_ONCE(owner_filter.print_mode) == PAGE_OWNER_PRINT_STACK_HANDLE) {
+--- a/.clang-format~clang-format-fix-formatting-of-guard-and-scoped_guard-statements
++++ a/.clang-format
+@@ -481,6 +481,7 @@ ForEachMacros:
+   - 'genradix_for_each'
+   - 'genradix_for_each_from'
+   - 'genradix_for_each_reverse'
++  - 'guard'
+   - 'hash_for_each'
+   - 'hash_for_each_possible'
+   - 'hash_for_each_possible_rcu'
+@@ -674,6 +675,7 @@ ForEachMacros:
+   - 'rq_list_for_each'
+   - 'rq_list_for_each_safe'
+   - 'sample_read_group__for_each'
++  - 'scoped_guard'
+   - 'scsi_for_each_prot_sg'
+   - 'scsi_for_each_sg'
+   - 'sctp_for_each_hentry'
 _
 
-Patches currently in -mm which might be from zhen.ni@easystack.cn are
+Patches currently in -mm which might be from bvanassche@acm.org are
 
-mm-page_owner-add-filter-infrastructure.patch
-mm-page_owner-add-print_mode-filter.patch
-mm-page_owner-add-numa-node-filter-with-nodelist-support.patch
-mm-page_owner-fix-%pgp-format-specifier-argument-type.patch
+clang-format-fix-formatting-of-guard-and-scoped_guard-statements.patch
 
