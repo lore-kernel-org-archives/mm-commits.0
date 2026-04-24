@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48614145B11
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 18:19:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 893423E8C67
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 18:53:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777054755; cv=none; b=YTgSaHcclg6gtxZ4eNRgsdcJ4zvqZeajXZYMh5aewCbriXox+uE39VCvVg0wXU4S4z6kz71N4bQSRmUaU4Rmi1nsm3PEU9fYN0VeTiICM7swkB4fHZ11hZD78iYNTYkadwDZot9CFZVKAOu+9gSopTA5iV9gPBDH3smcreTcSQk=
+	t=1777056790; cv=none; b=VjksC57ARR4ZIw3ypAo93/cQRVipp0yDVdgopzC6f3onIO+LUgFBjCzhombPyCaOnyxsoouwgYJsOr+wfNq2WRKraq4K8wJnltgBpJvq+dz6QAGJWbPMykd7Ep+wQcuQnRkmsiBP3FAHgb96sUguMTPGUP52pj7PdoH+08xwKVU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777054755; c=relaxed/simple;
-	bh=7D2dFh1+XrD6M5Q8Z9C6vKYG0TSUM82bqK9jxBJLvSQ=;
-	h=Date:To:From:Subject:Message-Id; b=KsyCTQz4CR9AMou8/HOxVYbMi4oh87t2MH/LsgI2M+ualRt62A/yVwfQy/HDtSr9vfirKEIS2nv7PNk6usRfwlV98nf/TqNHjEgSH6FxPTmtOTDsKKs9jMBMYa64u/4jqMtRZ3cHG9yfi99e9geymaL0+TrWMvSZDl3LygnaTsE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HM7hRMa2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777056790; c=relaxed/simple;
+	bh=lbhEPrPSnaFf+7twnwfYJ/fCBO+4xLS6NIQgkhiU4tI=;
+	h=Date:To:From:Subject:Message-Id; b=qjgrvsIA81KgxdHldCFii1dlUQdpAc1F75qnZDFvaZKN4GoJbGD85/x5cMJ1kEMxQ8PgK0uli9htOdTvIXE0dmvs21qZLyyFaa9v1pJdfEi/P/0YKraFvTBvpshj/EiAre+5SQt/zNCJVCVJ00Xo0vStD6xwhLz4h5tSgpzZHlg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FvHs1M8E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HM7hRMa2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 081B7C19425;
-	Fri, 24 Apr 2026 18:19:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FvHs1M8E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 220DCC19425;
+	Fri, 24 Apr 2026 18:53:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777054755;
-	bh=7D2dFh1+XrD6M5Q8Z9C6vKYG0TSUM82bqK9jxBJLvSQ=;
+	s=korg; t=1777056790;
+	bh=lbhEPrPSnaFf+7twnwfYJ/fCBO+4xLS6NIQgkhiU4tI=;
 	h=Date:To:From:Subject:From;
-	b=HM7hRMa2SpEVAlAy2ae3zB2Ep2XRmNOy6GpVUpzQb/4twvB5ajSBu5qbt11CUPIdv
-	 ZRX2PcUzF6qNMLsPaH/TTPiuvk6fFelA7MNao0mlWhKp+UdlyTsOSli4FVt5A9JjIO
-	 8OaAK3eFd78hUPHD0RGdzF1cqSo527eku+F/21PQ=
-Date: Fri, 24 Apr 2026 11:19:14 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,leitao@debian.org,akpm@linux-foundation.org
+	b=FvHs1M8EsZkuVEYNug45sJzn00oebZ/NMRkXBZnfTjtUFvCtUPTKis7F+qXJXVI/a
+	 BN/e/4eQJLdj6BFPxKaEVnL69/IthccjhcmiEdwpPtzM8VDb0C0a116FAuIfrt+bjA
+	 QgQMD9m1xLlaC4l4MjWv87/EsZ28+73IygQPhJDM=
+Date: Fri, 24 Apr 2026 11:53:09 -0700
+To: mm-commits@vger.kernel.org,ljs@kernel.org,Liam.Howlett@oracle.com,jack@suse.cz,brauner@kernel.org,linux.amoon@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-refactor-defrag_show-to-use-defrag_flags.patch added to mm-new branch
-Message-Id: <20260424181915.081B7C19425@smtp.kernel.org>
+Subject: + treewide-fix-indentation-and-whitespace-in-kconfig-files.patch added to mm-nonmm-unstable branch
+Message-Id: <20260424185310.220DCC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: huge_memory: refactor defrag_show() to use defrag_flags[]
-has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-refactor-defrag_show-to-use-defrag_flags.patch
+     Subject: treewide: fix indentation and whitespace in Kconfig files
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     treewide-fix-indentation-and-whitespace-in-kconfig-files.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-refactor-defrag_show-to-use-defrag_flags.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/treewide-fix-indentation-and-whitespace-in-kconfig-files.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,96 +58,163 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm: huge_memory: refactor defrag_show() to use defrag_flags[]
-Date: Wed, 08 Apr 2026 08:47:01 -0700
+From: Anand Moon <linux.amoon@gmail.com>
+Subject: treewide: fix indentation and whitespace in Kconfig files
+Date: Tue, 7 Apr 2026 11:09:34 +0530
 
-Replace the hardcoded if/else chain of test_bit() calls and string
-literals in defrag_show() with a loop over defrag_flags[] and
-defrag_mode_strings[] arrays introduced in the previous commit.
+Clean up inconsistent indentation (mixing tabs and spaces) and remove
+extraneous whitespace in several Kconfig files across the tree.  This is a
+purely cosmetic change to improve readability.
 
-This makes defrag_show() consistent with defrag_store() and eliminates the
-duplicated mode name strings.
+Adjust indentation from spaces to tab (+optional two spaces) as in
+coding style with command like:
 
-Link: https://lore.kernel.org/20260408-thp_defrag-v2-2-bc544c1bde4e@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Tested-by: Zi Yan <ziy@nvidia.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
+$ sed -e 's/^        /\t/' -i */Kconfig
+
+Link: https://lore.kernel.org/20260407053945.14116-1-linux.amoon@gmail.com
+Signed-off-by: Anand Moon <linux.amoon@gmail.com>
+Reviewed-by: Jan Kara <jack@suse.cz>			[fs]
+Reviewed-by: Liam R. Howlett <Liam.Howlett@oracle.com>	[mm]
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>		[mm]
+Reviewed-by: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   38 ++++++++++++++++++++++----------------
- 1 file changed, 22 insertions(+), 16 deletions(-)
+ certs/Kconfig |   14 +++++++-------
+ fs/Kconfig    |    6 +++---
+ init/Kconfig  |   24 ++++++++++++------------
+ lib/Kconfig   |    2 +-
+ mm/Kconfig    |    4 ++--
+ 5 files changed, 25 insertions(+), 25 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-refactor-defrag_show-to-use-defrag_flags
-+++ a/mm/huge_memory.c
-@@ -455,24 +455,30 @@ static const enum transparent_hugepage_f
- static ssize_t defrag_show(struct kobject *kobj,
- 			   struct kobj_attribute *attr, char *buf)
- {
--	const char *output;
-+	int active = DEFRAG_NEVER;
-+	int len = 0;
-+	int i;
+--- a/certs/Kconfig~treewide-fix-indentation-and-whitespace-in-kconfig-files
++++ a/certs/Kconfig
+@@ -6,14 +6,14 @@ config MODULE_SIG_KEY
+ 	default "certs/signing_key.pem"
+ 	depends on MODULE_SIG || (IMA_APPRAISE_MODSIG && MODULES)
+ 	help
+-         Provide the file name of a private key/certificate in PEM format,
+-         or a PKCS#11 URI according to RFC7512. The file should contain, or
+-         the URI should identify, both the certificate and its corresponding
+-         private key.
++	 Provide the file name of a private key/certificate in PEM format,
++	 or a PKCS#11 URI according to RFC7512. The file should contain, or
++	 the URI should identify, both the certificate and its corresponding
++	 private key.
  
--	if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
--		     &transparent_hugepage_flags))
--		output = "[always] defer defer+madvise madvise never";
--	else if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG,
--			  &transparent_hugepage_flags))
--		output = "always [defer] defer+madvise madvise never";
--	else if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG,
--			  &transparent_hugepage_flags))
--		output = "always defer [defer+madvise] madvise never";
--	else if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG,
--			  &transparent_hugepage_flags))
--		output = "always defer defer+madvise [madvise] never";
--	else
--		output = "always defer defer+madvise madvise [never]";
-+	for (i = 0; i < ARRAY_SIZE(defrag_flags); i++) {
-+		if (test_bit(defrag_flags[i], &transparent_hugepage_flags)) {
-+			active = i;
-+			break;
-+		}
-+	}
+-         If this option is unchanged from its default "certs/signing_key.pem",
+-         then the kernel will automatically generate the private key and
+-         certificate as described in Documentation/admin-guide/module-signing.rst
++	 If this option is unchanged from its default "certs/signing_key.pem",
++	 then the kernel will automatically generate the private key and
++	 certificate as described in Documentation/admin-guide/module-signing.rst
  
--	return sysfs_emit(buf, "%s\n", output);
-+	for (i = 0; i < ARRAY_SIZE(defrag_mode_strings); i++) {
-+		if (i == active)
-+			len += sysfs_emit_at(buf, len, "[%s] ",
-+					     defrag_mode_strings[i]);
-+		else
-+			len += sysfs_emit_at(buf, len, "%s ",
-+					     defrag_mode_strings[i]);
-+	}
-+
-+	/* Replace trailing space with newline */
-+	buf[len - 1] = '\n';
-+
-+	return len;
- }
+ choice
+ 	prompt "Type of module signing key to be generated"
+--- a/fs/Kconfig~treewide-fix-indentation-and-whitespace-in-kconfig-files
++++ a/fs/Kconfig
+@@ -78,7 +78,7 @@ config FS_DAX
+ 	  --map=mem:
+ 	  https://docs.pmem.io/ndctl-user-guide/ndctl-man-pages/ndctl-create-namespace
  
- static ssize_t defrag_store(struct kobject *kobj,
+-          For ndctl to work CONFIG_DEV_DAX needs to be enabled as well. For most
++	  For ndctl to work CONFIG_DEV_DAX needs to be enabled as well. For most
+ 	  file systems DAX support needs to be manually enabled globally or
+ 	  per-inode using a mount option as well.  See the file documentation in
+ 	  Documentation/filesystems/dax.rst for details.
+@@ -116,8 +116,8 @@ config FILE_LOCKING
+ 	default y
+ 	help
+ 	  This option enables standard file locking support, required
+-          for filesystems like NFS and for the flock() system
+-          call. Disabling this option saves about 11k.
++	  for filesystems like NFS and for the flock() system
++	  call. Disabling this option saves about 11k.
+ 
+ source "fs/crypto/Kconfig"
+ 
+--- a/init/Kconfig~treewide-fix-indentation-and-whitespace-in-kconfig-files
++++ a/init/Kconfig
+@@ -1050,14 +1050,14 @@ config PAGE_COUNTER
+ 	bool
+ 
+ config CGROUP_FAVOR_DYNMODS
+-        bool "Favor dynamic modification latency reduction by default"
+-        help
+-          This option enables the "favordynmods" mount option by default
+-          which reduces the latencies of dynamic cgroup modifications such
+-          as task migrations and controller on/offs at the cost of making
+-          hot path operations such as forks and exits more expensive.
++	bool "Favor dynamic modification latency reduction by default"
++	help
++	  This option enables the "favordynmods" mount option by default
++	  which reduces the latencies of dynamic cgroup modifications such
++	  as task migrations and controller on/offs at the cost of making
++	  hot path operations such as forks and exits more expensive.
+ 
+-          Say N if unsure.
++	  Say N if unsure.
+ 
+ config MEMCG
+ 	bool "Memory controller"
+@@ -1139,7 +1139,7 @@ config GROUP_SCHED_WEIGHT
+ 	def_bool n
+ 
+ config GROUP_SCHED_BANDWIDTH
+-        def_bool n
++	def_bool n
+ 
+ config FAIR_GROUP_SCHED
+ 	bool "Group scheduling for SCHED_OTHER"
+@@ -1645,10 +1645,10 @@ config LD_ORPHAN_WARN
+ 	depends on $(ld-option,--orphan-handling=error)
+ 
+ config LD_ORPHAN_WARN_LEVEL
+-        string
+-        depends on LD_ORPHAN_WARN
+-        default "error" if WERROR
+-        default "warn"
++	string
++	depends on LD_ORPHAN_WARN
++	default "error" if WERROR
++	default "warn"
+ 
+ config SYSCTL
+ 	bool
+--- a/lib/Kconfig~treewide-fix-indentation-and-whitespace-in-kconfig-files
++++ a/lib/Kconfig
+@@ -590,7 +590,7 @@ config OBJAGG
+ config LWQ_TEST
+ 	bool "Boot-time test for lwq queuing"
+ 	help
+-          Run boot-time test of light-weight queuing.
++	  Run boot-time test of light-weight queuing.
+ 
+ endmenu
+ 
+--- a/mm/Kconfig~treewide-fix-indentation-and-whitespace-in-kconfig-files
++++ a/mm/Kconfig
+@@ -1291,7 +1291,7 @@ config ARCH_HAS_PTE_SPECIAL
+ 	bool
+ 
+ config MAPPING_DIRTY_HELPERS
+-        bool
++	bool
+ 
+ config KMAP_LOCAL
+ 	bool
+@@ -1422,7 +1422,7 @@ config ARCH_HAS_USER_SHADOW_STACK
+ 	bool
+ 	help
+ 	  The architecture has hardware support for userspace shadow call
+-          stacks (eg, x86 CET, arm64 GCS or RISC-V Zicfiss).
++	  stacks (eg, x86 CET, arm64 GCS or RISC-V Zicfiss).
+ 
+ config HAVE_ARCH_TLB_REMOVE_TABLE
+ 	def_bool n
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from linux.amoon@gmail.com are
 
-kho-fix-error-handling-in-kho_add_subtree.patch
-mm-memory-failure-report-mf_msg_kernel-for-reserved-pages.patch
-mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
-documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
-selftests-mm-regression-test-for-panic_on_unrecoverable_memory_failure.patch
-mm-huge_memory-use-sysfs_match_string-in-defrag_store.patch
-mm-huge_memory-refactor-defrag_show-to-use-defrag_flags.patch
-mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
+treewide-fix-indentation-and-whitespace-in-kconfig-files.patch
 
