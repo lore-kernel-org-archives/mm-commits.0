@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4E05203710
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 09:33:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 306B0223DCE
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 09:35:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777023202; cv=none; b=cZwmbKM3588Fw3tIC8XukUvk6iMPeKyaLsO2/+L+kQs25PJo2xg3fKyrAEiJOuRyPtdJ9PEIM0+Kyi5My4kJignblh21EUAR50iEG7yss3hy2EDgu2TXQaKFNjsakBbAfZn1SRBIMNWItVuOejN+KXL4BrgDe80CkNyBHzeuxLM=
+	t=1777023304; cv=none; b=AZyfuvgotwc1UtSi6qgfUFMVmB05VWUqpGQ3SFhlvuFEmLcAHE9z6ydjLWp4YHbYAL9RBtiWR8Jra1LFOc+ov+cAO9VgZ4G/Ciuwbni+TwO2FVrpTOfYptIVmIq/CuhKnxlY6Mlo/BqvjYEb5dGMXbotMxL3HN7C47cFlqYc+qs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777023202; c=relaxed/simple;
-	bh=7jeb2lOEmMRogDLIl3xVFgZuAIv4+p1hliYq01oEHnk=;
-	h=Date:To:From:Subject:Message-Id; b=hqa5DqvV9+U6klUi6GpQ10uDr9vXxQQC6zBETjS5ygMUKMm8Cqk9wFTs1x3bY1eWeFtfczgesTQb2WB904DyknY+VWVK8+IcerOQ1EKbitC3vzxXS8EudpbnBNFqClyWks1cq6ExwoS2aGr0iv7sCqmdHe+++iAzdID7bFlXNKk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aisYsyoU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777023304; c=relaxed/simple;
+	bh=DdfaTCpybZWdJIbTggJvjaAXw55dGgNrPbtO5iE2fGU=;
+	h=Date:To:From:Subject:Message-Id; b=bO9NmNgL5wckbvzV5sqAmOdGjHHnDNmyL0POtnN0ZXAzkcRttDmjFCIEH0FHAiQsymCNqjB7LvzTUSHDv3+Sb6iZQORE1Ztqotx5V+RGB/AziTMqYHtnqaww98Lk6KuwHARnhZjXkKd0sxTj+K0EaKgHKGu4opUyiFMqPwoG4O8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qN2yoOLQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aisYsyoU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBA7BC19425;
-	Fri, 24 Apr 2026 09:33:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qN2yoOLQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9628C19425;
+	Fri, 24 Apr 2026 09:35:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777023202;
-	bh=7jeb2lOEmMRogDLIl3xVFgZuAIv4+p1hliYq01oEHnk=;
+	s=korg; t=1777023303;
+	bh=DdfaTCpybZWdJIbTggJvjaAXw55dGgNrPbtO5iE2fGU=;
 	h=Date:To:From:Subject:From;
-	b=aisYsyoUic+Dq6F/aWR80BRCjEGNv/Vw7GiYt1n7sI6PcafEE1eWGNf48ArKj962Y
-	 K6wYF9Zq5BYPpgh+7l5bDXAHuwQ3XKnYbwrr1EZJaqDLPFWNAkIwOpbyxRim23DJPS
-	 k25TYYxnAv/1D2FqcJJ3FizEQ6fmpJWSGFqLRvBQ=
-Date: Fri, 24 Apr 2026 02:33:21 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,adi.sharma@zohomail.in,akpm@linux-foundation.org
+	b=qN2yoOLQDLWE5t0KKa5UBC/iyX0HMgBJwi13/F8DhA+clG9FfOAmjcQVz7fGVC2lA
+	 uDWP4pKypi1Md9cX0YlOqDblKiuoSFkLyePaxmXb/4Y24JgcZzL6AKF5qUqqU4MoCo
+	 fb27fnQtRMcHXxlEb5TKGtmbl6niN15ifNr9jtBE=
+Date: Fri, 24 Apr 2026 02:35:03 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,youngjun.park@lge.com,willy@infradead.org,weixugc@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,riel@surriel.com,qi.zheng@linux.dev,nphamcs@gmail.com,mhocko@suse.com,kasong@tencent.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,axelrasmussen@google.com,jp.kobryn@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-update-stale-locking-comments-for-fault-handlers.patch added to mm-new branch
-Message-Id: <20260424093321.EBA7BC19425@smtp.kernel.org>
+Subject: [failures] mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch removed from -mm tree
+Message-Id: <20260424093503.B9628C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,202 +34,145 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/memory: update stale locking comments for fault handlers
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memory-update-stale-locking-comments-for-fault-handlers.patch
+The quilt patch titled
+     Subject: mm/lruvec: preemptively free dead folios during lru_add drain
+has been removed from the -mm tree.  Its filename was
+     mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-update-stale-locking-comments-for-fault-handlers.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Aditya Sharma <adi.sharma@zohomail.in>
-Subject: mm/memory: update stale locking comments for fault handlers
-Date: Fri, 24 Apr 2026 14:52:17 +0530
+From: "JP Kobryn (Meta)" <jp.kobryn@linux.dev>
+Subject: mm/lruvec: preemptively free dead folios during lru_add drain
+Date: Thu, 23 Apr 2026 09:43:07 -0700
 
-Update the comments for wp_page_copy(), do_wp_page(), do_swap_page(),
-do_anonymous_page(), __do_fault(), do_fault(), handle_pte_fault(),
-__handle_mm_fault(), and handle_mm_fault() to concisely clarify that they
-can be entered holding either the mmap_lock or the VMA lock, and that the
-lock may be released upon returning VM_FAULT_RETRY.
+Of all observable lruvec lock contention in our fleet, we find that ~24%
+occurs when dead folios are present in lru_add batches at drain time. 
+This is wasteful in the sense that the folio is added to the LRU just to
+be immediately removed via folios_put_refs(), incurring two unnecessary
+lock acquisitions.
 
-Additionally, make the following corrections:
-- In do_anonymous_page(), correct the outdated claim that the function
-  is entered with the PTE "mapped but not yet locked". Since
-  handle_pte_fault() unmaps the empty PTE before routing to
-  do_pte_missing(), the comment now correctly states it is entered
-  with the PTE unmapped and unlocked.
-- In __do_fault(), update the stale reference from __lock_page_retry()
-  to __folio_lock_or_retry().
+Eliminate this overhead by preemptively cleaning up dead folios before
+they make it into the LRU.  Use folio_ref_freeze() to filter folios whose
+only remaining refcount is the batch ref.  When dead folios are found,
+move them off the add batch and onto a temporary batch to be freed.
 
-Link: https://lore.kernel.org/20260424092217.263648-1-adi.sharma@zohomail.in
-Signed-off-by: Aditya Sharma <adi.sharma@zohomail.in>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+During A/B testing on one of our prod instagram workloads (high-frequency
+short-lived requests), the patch intercepted almost all dead folios before
+they entered the LRU.  Data collected using the mm_lru_insertion
+tracepoint shows the effectiveness of the patch:
+
+Per-host LRU add averages at 95% CPU load
+(60 hosts each side, 3 x 60s intervals)
+
+            dead folios/min  total folios/min   dead %
+unpatched:        1,297,785        19,341,986  6.7097%
+patched:                 14        19,039,996  0.0001%
+
+Within this workload, we save ~2.6M lock acquisitions per minute per host
+as a result.
+
+System-wide memory stats improved on the patched side also at 95% CPU load:
+ - direct reclaim scanning reduced 7%
+ - allocation stalls reduced 5.2%
+ - compaction stalls reduced 12.3%
+ - page frees reduced 4.9%
+
+No regressions were observed in requests served per second or request tail
+latency (p99).  Both metrics showed directional improvement at higher CPU
+utilization (comparing 85% to 95%).
+
+Link: https://lore.kernel.org/20260423164307.29805-1-jp.kobryn@linux.dev
+Signed-off-by: JP Kobryn (Meta) <jp.kobryn@linux.dev>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Youngjun Park <youngjun.park@lge.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   55 ++++++++++++++++++++++++++------------------------
- 1 file changed, 29 insertions(+), 26 deletions(-)
+ mm/swap.c |   36 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-memory-update-stale-locking-comments-for-fault-handlers
-+++ a/mm/memory.c
-@@ -3821,8 +3821,8 @@ vm_fault_t __vmf_anon_prepare(struct vm_
-  * Handle the case of a page which we actually need to copy to a new page,
-  * either due to COW or unsharing.
-  *
-- * Called with mmap_lock locked and the old page referenced, but
-- * without the ptl held.
-+ * Called with either the VMA lock or the mmap_lock held (see FAULT_FLAG_VMA_LOCK)
-+ * and the old page referenced, but without the ptl held.
-  *
-  * High level logic flow:
-  *
-@@ -4221,9 +4221,9 @@ static bool wp_can_reuse_anon_folio(stru
-  * though the page will change only once the write actually happens. This
-  * avoids a few races, and potentially makes it more efficient.
-  *
-- * We enter with non-exclusive mmap_lock (to exclude vma changes,
-- * but allow concurrent faults), with pte both mapped and locked.
-- * We return with mmap_lock still held, but pte unmapped and unlocked.
-+ * We enter with either the VMA lock or the mmap_lock held (see
-+ * FAULT_FLAG_VMA_LOCK) and pte both mapped and locked. We return with
-+ * the same lock still held, but pte unmapped and unlocked.
-  */
- static vm_fault_t do_wp_page(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
-@@ -4769,12 +4769,12 @@ static void check_swap_exclusive(struct
+--- a/mm/swap.c~mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain
++++ a/mm/swap.c
+@@ -160,13 +160,36 @@ static void folio_batch_move_lru(struct
+ 	int i;
+ 	struct lruvec *lruvec = NULL;
+ 	unsigned long flags = 0;
++	struct folio_batch free_fbatch;
++	bool is_lru_add = (move_fn == lru_add);
++
++	/*
++	 * If we're adding to the LRU, preemptively filter dead folios. Use
++	 * this dedicated folio batch for temp storage and deferred cleanup.
++	 */
++	if (is_lru_add)
++		folio_batch_init(&free_fbatch);
+ 
+ 	for (i = 0; i < folio_batch_count(fbatch); i++) {
+ 		struct folio *folio = fbatch->folios[i];
+ 
+ 		/* block memcg migration while the folio moves between lru */
+-		if (move_fn != lru_add && !folio_test_clear_lru(folio))
++		if (!is_lru_add && !folio_test_clear_lru(folio))
++			continue;
++
++		/*
++		 * Filter dead folios by moving them from the add batch to the temp
++		 * batch for freeing after this loop.
++		 *
++		 * Since the folio may be part of a huge page, unqueue from
++		 * deferred split list to avoid a dangling list entry.
++		 */
++		if (is_lru_add && folio_ref_freeze(folio, 1)) {
++			folio_unqueue_deferred_split(folio);
++			fbatch->folios[i] = NULL;
++			folio_batch_add(&free_fbatch, folio);
+ 			continue;
++		}
+ 
+ 		folio_lruvec_relock_irqsave(folio, &lruvec, &flags);
+ 		move_fn(lruvec, folio);
+@@ -176,6 +199,13 @@ static void folio_batch_move_lru(struct
+ 
+ 	if (lruvec)
+ 		lruvec_unlock_irqrestore(lruvec, flags);
++
++	/* Cleanup filtered dead folios. */
++	if (is_lru_add) {
++		mem_cgroup_uncharge_folios(&free_fbatch);
++		free_unref_folios(&free_fbatch);
++	}
++
+ 	folios_put(fbatch);
  }
  
- /*
-- * We enter with non-exclusive mmap_lock (to exclude vma changes,
-- * but allow concurrent faults), and pte mapped but not yet locked.
-+ * We enter with either the VMA lock or the mmap_lock held (see
-+ * FAULT_FLAG_VMA_LOCK), and pte mapped but not yet locked.
-  * We return with pte unmapped and unlocked.
-  *
-- * We return with the mmap_lock locked or unlocked in the same cases
-- * as does filemap_fault().
-+ * When returning, the lock may have been released in the same cases
-+ * as done by filemap_fault().
-  */
- vm_fault_t do_swap_page(struct vm_fault *vmf)
- {
-@@ -5314,9 +5314,10 @@ static void map_anon_folio_pte_pf(struct
- }
+@@ -964,6 +994,10 @@ void folios_put_refs(struct folio_batch
+ 		struct folio *folio = folios->folios[i];
+ 		unsigned int nr_refs = refs ? refs[i] : 1;
  
- /*
-- * We enter with non-exclusive mmap_lock (to exclude vma changes,
-- * but allow concurrent faults), and pte mapped but not yet locked.
-- * We return with mmap_lock still held, but pte unmapped and unlocked.
-+ * We enter with either the VMA lock or the mmap_lock held (see
-+ * FAULT_FLAG_VMA_LOCK), and pte unmapped and unlocked.
-+ * We return with the lock still held, but pte unmapped and unlocked.
-+ * If VM_FAULT_RETRY is returned, the lock may have been released.
-  */
- static vm_fault_t do_anonymous_page(struct vm_fault *vmf)
- {
-@@ -5424,9 +5425,10 @@ oom:
- }
++		/* Folio batch entry may have been preemptively removed during drain. */
++		if (!folio)
++			continue;
++
+ 		if (is_huge_zero_folio(folio))
+ 			continue;
  
- /*
-- * The mmap_lock must have been held on entry, and may have been
-- * released depending on flags and vma->vm_ops->fault() return value.
-- * See filemap_fault() and __lock_page_retry().
-+ * Either the VMA lock or the mmap_lock must have been held on entry
-+ * (see FAULT_FLAG_VMA_LOCK) and may have been released depending on
-+ * flags and vma->vm_ops->fault() return value.
-+ * See filemap_fault() and __folio_lock_or_retry().
-  */
- static vm_fault_t __do_fault(struct vm_fault *vmf)
- {
-@@ -5987,11 +5989,11 @@ static vm_fault_t do_shared_fault(struct
- }
- 
- /*
-- * We enter with non-exclusive mmap_lock (to exclude vma changes,
-- * but allow concurrent faults).
-- * The mmap_lock may have been released depending on flags and our
-+ * We enter with either the VMA lock or the mmap_lock held (see
-+ * FAULT_FLAG_VMA_LOCK).
-+ * The lock may have been released depending on flags and our
-  * return value.  See filemap_fault() and __folio_lock_or_retry().
-- * If mmap_lock is released, vma may become invalid (for example
-+ * If the lock is released, vma may become invalid (for example
-  * by other thread calling munmap()).
-  */
- static vm_fault_t do_fault(struct vm_fault *vmf)
-@@ -6358,10 +6360,11 @@ static void fix_spurious_fault(struct vm
-  * with external mmu caches can use to update those (ie the Sparc or
-  * PowerPC hashed page tables that act as extended TLBs).
-  *
-- * We enter with non-exclusive mmap_lock (to exclude vma changes, but allow
-- * concurrent faults).
-+ * On entry, we hold either the VMA lock or the mmap_lock
-+ * (see FAULT_FLAG_VMA_LOCK).
-  *
-- * The mmap_lock may have been released depending on flags and our return value.
-+ * The mmap_lock or VMA lock may have been released depending on flags
-+ * and our return value.
-  * See filemap_fault() and __folio_lock_or_retry().
-  */
- static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
-@@ -6442,8 +6445,8 @@ unlock:
- 
- /*
-  * On entry, we hold either the VMA lock or the mmap_lock
-- * (FAULT_FLAG_VMA_LOCK tells you which).  If VM_FAULT_RETRY is set in
-- * the result, the mmap_lock is not held on exit.  See filemap_fault()
-+ * (see FAULT_FLAG_VMA_LOCK).  If VM_FAULT_RETRY is set in
-+ * the result, the lock is not held on exit.  See filemap_fault()
-  * and __folio_lock_or_retry().
-  */
- static vm_fault_t __handle_mm_fault(struct vm_area_struct *vma,
-@@ -6675,9 +6678,9 @@ static vm_fault_t sanitize_fault_flags(s
- 
- /*
-  * By the time we get here, we already hold either the VMA lock or the
-- * mmap_lock (FAULT_FLAG_VMA_LOCK tells you which).
-+ * mmap_lock (see FAULT_FLAG_VMA_LOCK).
-  *
-- * The mmap_lock may have been released depending on flags and our
-+ * The lock may have been released depending on flags and our
-  * return value.  See filemap_fault() and __folio_lock_or_retry().
-  */
- vm_fault_t handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
 _
 
-Patches currently in -mm which might be from adi.sharma@zohomail.in are
+Patches currently in -mm which might be from jp.kobryn@linux.dev are
 
-mm-memory-update-stale-locking-comments-for-fault-handlers.patch
 
