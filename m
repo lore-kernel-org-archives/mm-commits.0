@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0990630BF52
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:31:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 002FF30BF52
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:31:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777026665; cv=none; b=EXBv5iBxqhDPhFgSnuoqzZICAeujHy8sgzWdYNEvwwztEeGuKwhp7S1kyWuDGKAYthfL3CuiGo1oahHHMUZCEex0Aed+NROUi7kenkBb/iZ1x15S/FUI97eP8LJB1SBuZ3qZKAPYe/NQcvHIpaJzx4ol6USE/95Ts32LK6AsKY0=
+	t=1777026667; cv=none; b=BtN37ZlSQ7sRjtNaI/fKmkhppNYZJdPiy3zAjK4IInZ/C+5c4LjNZXXb3DCM6PusqzkU+/hGyK3dQTvBx9cOAqKVfOxrPjdLTyRl9A3Vq7USrFWQ/qbRKjCuDkqELGVriL4RtkRl84V8KjrMMgQAAHMC9/5tuDcYBdy2mU6/UY4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777026665; c=relaxed/simple;
-	bh=xXmLQW6t3aIOIG/L/7SU+g8qLHM/tyoykIL1rXWSUSw=;
-	h=Date:To:From:Subject:Message-Id; b=Ve9DnoFi2q/r2pQGEuLSAUPOf1gLmO/DK0zM2hL5yyIepUHzL6OeXtSrBXbq8zESvYZYKdpo7E0Ja8TpO9DIAvgN6KVCYZdbMcj2BU37o4oezVV0jLlKBs9btPO2izrADXtPMdK1QGWqKf+oyV3OqEtZjcnYntaIn4RjVMizmHw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XpVOgvX2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777026667; c=relaxed/simple;
+	bh=wI68TvvJnWvqPdJRE6K1qaHYggQwdB16TGh3ZY+WIdo=;
+	h=Date:To:From:Subject:Message-Id; b=HMfCWhTfPSo4cNHTeu9NQLwJTD3nIqNbxMYe5ZmfccpguMYhJZGOjT6MB76BzW1bk2nXr4ev8hIHXCcfRFRcbgrhv9CtIsI5JtQVguLHlXYLrI7vzVGZn3rEhckl119holiGQViKE1QOJdncIgh1RYf6gpmry162u6fA4e3O7Rg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xf/HDlzO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XpVOgvX2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88CD9C19425;
-	Fri, 24 Apr 2026 10:31:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xf/HDlzO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAA2CC19425;
+	Fri, 24 Apr 2026 10:31:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777026664;
-	bh=xXmLQW6t3aIOIG/L/7SU+g8qLHM/tyoykIL1rXWSUSw=;
+	s=korg; t=1777026666;
+	bh=wI68TvvJnWvqPdJRE6K1qaHYggQwdB16TGh3ZY+WIdo=;
 	h=Date:To:From:Subject:From;
-	b=XpVOgvX2gJ8lEQXjIRBtkuEB/6yTjJJzzRoRYQc/xQmjCAiPX2s5+cZU3wbGfm7zf
-	 XFl1gG4o9IM9X/Fi0C20tyyefl1om5s4NVL1jwL4ysmQ4Hx4B2pP1Ez7MMJoyIfKvz
-	 f9mw75ji4SADy/1JAaozjTHuHcGrTjGGDujzBqRE=
-Date: Fri, 24 Apr 2026 03:31:04 -0700
+	b=xf/HDlzOR5RjxbZ3jyTdMqzicRG5FQLLn8iBe8Izi+EyxpB/CNULFEWbVrdwHKYsy
+	 iToFfJhouveKTrEQ15rTD5Bu5fj4fxot1va59sBQFd4jMTtRpUE88BdhzLQ7siNqTO
+	 /APHdLS1Kfo663L4XPYL36u7l12gilXiq6K/XtOc=
+Date: Fri, 24 Apr 2026 03:31:06 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-read_only_thp_for_fs-kconfig-option.patch added to mm-new branch
-Message-Id: <20260424103104.88CD9C19425@smtp.kernel.org>
+Subject: + mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch added to mm-new branch
+Message-Id: <20260424103106.BAA2CC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: remove READ_ONLY_THP_FOR_FS Kconfig option
+     Subject: mm: fs: remove filemap_nr_thps*() functions and their users
 has been added to the -mm mm-new branch.  Its filename is
-     mm-remove-read_only_thp_for_fs-kconfig-option.patch
+     mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-read_only_thp_for_fs-kconfig-option.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,18 +70,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm: remove READ_ONLY_THP_FOR_FS Kconfig option
-Date: Thu, 23 Apr 2026 22:49:08 -0400
+Subject: mm: fs: remove filemap_nr_thps*() functions and their users
+Date: Thu, 23 Apr 2026 22:49:09 -0400
 
-After removing READ_ONLY_THP_FOR_FS check in file_thp_enabled(),
-khugepaged and MADV_COLLAPSE can run on FSes with PMD THP pagecache
-support even without READ_ONLY_THP_FOR_FS enabled.  Remove the Kconfig
-first so that no one can use READ_ONLY_THP_FOR_FS as upcoming commits
-remove mapping->nr_thps, which its safe guard mechanism relies on.
+They are used by READ_ONLY_THP_FOR_FS to handle writes to FSes without
+large folio support, so that read-only THPs created in these FSes are not
+seen by the FSes when the underlying fd becomes writable.  Now read-only
+PMD THPs only appear in a FS with large folio support and the supported
+orders include PMD_ORDRE.
 
-Link: https://lore.kernel.org/20260424024915.28758-6-ziy@nvidia.com
+READ_ONLY_THP_FOR_FS was using mapping->nr_thps, inode->i_writecount, and
+smp_mb() to prevent writes to a read-only THP and collapsing writable
+folios into a THP.  In collapse_file(), mapping->nr_thps is increased,
+then smp_mb(), and if inode->i_writecount > 0, collapse is stopped, while
+do_dentry_open() first increases inode->i_writecount, then a full memory
+fence, and if mapping->nr_thps > 0, all read-only THPs are truncated.
+
+Now this mechanism can be removed along with READ_ONLY_THP_FOR_FS code,
+since a dirty folio check has been added after try_to_unmap() in
+collapse_file() to make sure no writable folio can be collapsed.
+
+Link: https://lore.kernel.org/20260424024915.28758-7-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -93,7 +104,7 @@ Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nico Pache <npache@redhat.com>
@@ -104,29 +115,151 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   11 -----------
- 1 file changed, 11 deletions(-)
+ fs/open.c               |   27 ---------------------------
+ include/linux/pagemap.h |   29 -----------------------------
+ mm/filemap.c            |    1 -
+ mm/huge_memory.c        |    1 -
+ mm/khugepaged.c         |   28 ----------------------------
+ 5 files changed, 86 deletions(-)
 
---- a/mm/Kconfig~mm-remove-read_only_thp_for_fs-kconfig-option
-+++ a/mm/Kconfig
-@@ -938,17 +938,6 @@ config THP_SWAP
+--- a/fs/open.c~mm-fs-remove-filemap_nr_thps-functions-and-their-users
++++ a/fs/open.c
+@@ -968,33 +968,6 @@ static int do_dentry_open(struct file *f
+ 	if ((f->f_flags & O_DIRECT) && !(f->f_mode & FMODE_CAN_ODIRECT))
+ 		return -EINVAL;
  
- 	  For selection by architectures with reasonable THP sizes.
+-	/*
+-	 * XXX: Huge page cache doesn't support writing yet. Drop all page
+-	 * cache for this file before processing writes.
+-	 */
+-	if (f->f_mode & FMODE_WRITE) {
+-		/*
+-		 * Depends on full fence from get_write_access() to synchronize
+-		 * against collapse_file() regarding i_writecount and nr_thps
+-		 * updates. Ensures subsequent insertion of THPs into the page
+-		 * cache will fail.
+-		 */
+-		if (filemap_nr_thps(inode->i_mapping)) {
+-			struct address_space *mapping = inode->i_mapping;
+-
+-			filemap_invalidate_lock(inode->i_mapping);
+-			/*
+-			 * unmap_mapping_range just need to be called once
+-			 * here, because the private pages is not need to be
+-			 * unmapped mapping (e.g. data segment of dynamic
+-			 * shared libraries here).
+-			 */
+-			unmap_mapping_range(mapping, 0, 0, 0);
+-			truncate_inode_pages(mapping, 0);
+-			filemap_invalidate_unlock(inode->i_mapping);
+-		}
+-	}
+-
+ 	return 0;
  
--config READ_ONLY_THP_FOR_FS
--	bool "Read-only THP for filesystems (EXPERIMENTAL)"
--	depends on TRANSPARENT_HUGEPAGE
+ cleanup_all:
+--- a/include/linux/pagemap.h~mm-fs-remove-filemap_nr_thps-functions-and-their-users
++++ a/include/linux/pagemap.h
+@@ -528,35 +528,6 @@ static inline size_t mapping_max_folio_s
+ 	return PAGE_SIZE << mapping_max_folio_order(mapping);
+ }
+ 
+-static inline int filemap_nr_thps(const struct address_space *mapping)
+-{
+-#ifdef CONFIG_READ_ONLY_THP_FOR_FS
+-	return atomic_read(&mapping->nr_thps);
+-#else
+-	return 0;
+-#endif
+-}
 -
--	help
--	  Allow khugepaged to put read-only file-backed pages in THP.
+-static inline void filemap_nr_thps_inc(struct address_space *mapping)
+-{
+-#ifdef CONFIG_READ_ONLY_THP_FOR_FS
+-	if (!mapping_large_folio_support(mapping))
+-		atomic_inc(&mapping->nr_thps);
+-#else
+-	WARN_ON_ONCE(mapping_large_folio_support(mapping) == 0);
+-#endif
+-}
 -
--	  This is marked experimental because it is a new feature. Write
--	  support of file THPs will be developed in the next few release
--	  cycles.
+-static inline void filemap_nr_thps_dec(struct address_space *mapping)
+-{
+-#ifdef CONFIG_READ_ONLY_THP_FOR_FS
+-	if (!mapping_large_folio_support(mapping))
+-		atomic_dec(&mapping->nr_thps);
+-#else
+-	WARN_ON_ONCE(mapping_large_folio_support(mapping) == 0);
+-#endif
+-}
 -
- config NO_PAGE_MAPCOUNT
- 	bool "No per-page mapcount (EXPERIMENTAL)"
- 	help
+ struct address_space *folio_mapping(const struct folio *folio);
+ 
+ /**
+--- a/mm/filemap.c~mm-fs-remove-filemap_nr_thps-functions-and-their-users
++++ a/mm/filemap.c
+@@ -189,7 +189,6 @@ static void filemap_unaccount_folio(stru
+ 			lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, -nr);
+ 	} else if (folio_test_pmd_mappable(folio)) {
+ 		lruvec_stat_mod_folio(folio, NR_FILE_THPS, -nr);
+-		filemap_nr_thps_dec(mapping);
+ 	}
+ 	if (test_bit(AS_KERNEL_FILE, &folio->mapping->flags))
+ 		mod_node_page_state(folio_pgdat(folio),
+--- a/mm/huge_memory.c~mm-fs-remove-filemap_nr_thps-functions-and-their-users
++++ a/mm/huge_memory.c
+@@ -3937,7 +3937,6 @@ static int __folio_freeze_and_split_unma
+ 				} else {
+ 					lruvec_stat_mod_folio(folio,
+ 							NR_FILE_THPS, -nr);
+-					filemap_nr_thps_dec(mapping);
+ 				}
+ 			}
+ 		}
+--- a/mm/khugepaged.c~mm-fs-remove-filemap_nr_thps-functions-and-their-users
++++ a/mm/khugepaged.c
+@@ -2469,21 +2469,6 @@ out_unlock:
+ 		goto xa_unlocked;
+ 	}
+ 
+-	if (!is_shmem) {
+-		filemap_nr_thps_inc(mapping);
+-		/*
+-		 * Paired with the fence in do_dentry_open() -> get_write_access()
+-		 * to ensure i_writecount is up to date and the update to nr_thps
+-		 * is visible. Ensures the page cache will be truncated if the
+-		 * file is opened writable.
+-		 */
+-		smp_mb();
+-		if (inode_is_open_for_write(mapping->host)) {
+-			result = SCAN_FAIL;
+-			filemap_nr_thps_dec(mapping);
+-		}
+-	}
+-
+ xa_locked:
+ 	xas_unlock_irq(&xas);
+ xa_unlocked:
+@@ -2661,19 +2646,6 @@ rollback:
+ 		folio_putback_lru(folio);
+ 		folio_put(folio);
+ 	}
+-	/*
+-	 * Undo the updates of filemap_nr_thps_inc for non-SHMEM
+-	 * file only. This undo is not needed unless failure is
+-	 * due to SCAN_COPY_MC.
+-	 */
+-	if (!is_shmem && result == SCAN_COPY_MC) {
+-		filemap_nr_thps_dec(mapping);
+-		/*
+-		 * Paired with the fence in do_dentry_open() -> get_write_access()
+-		 * to ensure the update to nr_thps is visible.
+-		 */
+-		smp_mb();
+-	}
+ 
+ 	new_folio->mapping = NULL;
+ 
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
