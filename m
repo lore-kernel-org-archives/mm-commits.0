@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1D1D277C81;
-	Fri, 24 Apr 2026 17:59:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EA70314D05
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 18:09:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777053556; cv=none; b=HVQGJj75ZxgFSkklPNnGMuqxcHmvTOjdeNBRYFpg8rD9FzqYjH2CYCdYfEA9L+Pia1rqgRVOLe/UqyPeKwwAor9FML4YdhYHG1KXL3GUFYHs5mwfE4r/XSGt1tQeGoifbxlghv+103Suho9CI9cn9fWVAU22khF3YAGqwywMc8M=
+	t=1777054175; cv=none; b=ofghGNxXbMaasu6szunpSbk+ohHn9dLS5d2xycrMCHXJ6QJTRxRdqMqEW5gHV2FHN8ABPBfaAZCW8/DkRmG5mApW2Ibpy6BbkfuFopo4/LqBS7PiC1NXiL9uKRK2JBP06LGZl9z3BHrnrxsRVbbr969fjKbuBROn3g8cY3Kj8oI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777053556; c=relaxed/simple;
-	bh=2epIewfIp/afu2F0T6RVYciGpJ4fO92UuDRyczGNmKs=;
-	h=Date:To:From:Subject:Message-Id; b=UZeKG2BtkgVjlX7eWQsJSMUFwHQLsb6kg8fv6rsYer6W1PqJ6G+OqCkMUif1hiIkIzWjuGmRufT+fK4UyMCcCIJz1la5iGZ0Ze0xjZEMBOyoRENVxbpI3G/BD8xv02yGR/PjwoFL1ZFlST5ag7DrDA6tuxC5likqrNV5lnbR4Lw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y/bzgXhD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777054175; c=relaxed/simple;
+	bh=NrbBOCnJVqqLILqRpKlDsIlACyWtcjB2wS5fTwXHCu4=;
+	h=Date:To:From:Subject:Message-Id; b=J6T7wx0l8f2F57v6t8LbD1nQ4tV6gq8kfKXneWURKgRbNGNk9Xf3L3ihIq6oB9fA9mPphgLKJUuBo1av+b5bR4F23bcUmL1Wf/OyY3bNjN47cpHpPEj+U0a4TSa+z7AL835XCRw0eaeWPVVExZXIIaP4iz1OgjeEUnwILYSuSpE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vKrJlDsC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y/bzgXhD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43F73C19425;
-	Fri, 24 Apr 2026 17:59:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vKrJlDsC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8286C19425;
+	Fri, 24 Apr 2026 18:09:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777053556;
-	bh=2epIewfIp/afu2F0T6RVYciGpJ4fO92UuDRyczGNmKs=;
+	s=korg; t=1777054175;
+	bh=NrbBOCnJVqqLILqRpKlDsIlACyWtcjB2wS5fTwXHCu4=;
 	h=Date:To:From:Subject:From;
-	b=y/bzgXhDJRVkbsHBgadH4NGyLDiQaaHAx4s0WHzV8+6nxLwZpmqcIju7Gl5lchuLz
-	 yAkjWIG2a/IrX/OOrwA846aotQDjC954WadMWghRfGMzPkb9YDHdelxvnnLtnpH/pk
-	 JWryIjjuxeGYxR4Oz+XBkuQZRSGfR0lpLFWYAyy4=
-Date: Fri, 24 Apr 2026 10:59:15 -0700
-To: mm-commits@vger.kernel.org,zaslonko@linux.ibm.com,stable@vger.kernel.org,ptikhomirov@virtuozzo.com,ojeda@kernel.org,oberpar@linux.ibm.com,nathan@kernel.org,masahiroy@kernel.org,linux@weissschuh.net,arnd@arndb.de,khorenko@virtuozzo.com,akpm@linux-foundation.org
+	b=vKrJlDsCS+T9m7GOt07Ppim9rulLUsLirCqSNi/+b8czFI3awmn6w/7nmgTaIuDE0
+	 JS/ctQbIf2Wrm4wnPjFqFus2uj/7ux/B8PvTWL6VuXXoVU++Aubfm4u9243dSXlMP9
+	 rLAHuMgMnJXQVQS6JVNfZLs8vsq3E1kh33R6Ay8w=
+Date: Fri, 24 Apr 2026 11:09:34 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,sj@kernel.org,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes.patch added to mm-nonmm-unstable branch
-Message-Id: <20260424175916.43F73C19425@smtp.kernel.org>
+Subject: + mm-khugepaged-use-align-helpers-for-pmd-alignment.patch added to mm-new branch
+Message-Id: <20260424180934.E8286C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: gcov: use atomic counter updates to fix concurrent access crashes
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes.patch
+     Subject: mm/khugepaged: use ALIGN helpers for PMD alignment
+has been added to the -mm mm-new branch.  Its filename is
+     mm-khugepaged-use-align-helpers-for-pmd-alignment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-use-align-helpers-for-pmd-alignment.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,85 +69,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Konstantin Khorenko <khorenko@virtuozzo.com>
-Subject: gcov: use atomic counter updates to fix concurrent access crashes
-Date: Wed, 22 Apr 2026 15:51:12 +0300
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm/khugepaged: use ALIGN helpers for PMD alignment
+Date: Thu, 9 Apr 2026 09:43:22 +0800
 
-GCC's GCOV instrumentation can merge global branch counters with loop
-induction variables as an optimization.  In inflate_fast(), the inner copy
-loops get transformed so that the GCOV counter value is loaded multiple
-times to compute the loop base address, start index, and end bound.  Since
-GCOV counters are global (not per-CPU), concurrent execution on different
-CPUs causes the counter to change between loads, producing inconsistent
-values and out-of-bounds memory writes.
+PMD alignment in khugepaged is currently implemented using a mix of
+rounding helpers and open-coded bitmask operations.
 
-The crash manifests during IPComp (IP Payload Compression) processing when
-inflate_fast() runs concurrently on multiple CPUs:
+Use ALIGN() and ALIGN_DOWN() consistently for PMD-sized address range
+alignment, matching the preferred style for address and size handling.
 
-  BUG: unable to handle page fault for address: ffffd0a3c0902ffa
-  RIP: inflate_fast+1431
-  Call Trace:
-   zlib_inflate
-   __deflate_decompress
-   crypto_comp_decompress
-   ipcomp_decompress [xfrm_ipcomp]
-   ipcomp_input [xfrm_ipcomp]
-   xfrm_input
+No functional change intended.
 
-At the crash point, the compiler generated three loads from the same
-global GCOV counter (__gcov0.inflate_fast+216) to compute base, start, and
-end for an indexed loop.  Another CPU modified the counter between loads,
-making the values inconsistent - the write went 3.4 MB past a 65 KB
-buffer.
-
-Add -fprofile-update=prefer-atomic to CFLAGS_GCOV at the global level in
-the top-level Makefile.  On architectures where the target supports atomic
-profile updates (x86_64, arm64, ...) GCC emits atomic instructions (e.g. 
-lock addq) for GCOV counter updates instead of plain load/store, which
-prevents the compiler from merging counters with loop induction variables
-and fixes the observed concurrent-access crash.
-
-On architectures that do not support atomic profile updates (m68k and
-other small/UP targets) GCC silently falls back to the non-atomic 'single'
-mode, so behaviour there is no worse than before this patch.
-
-Applying this globally rather than per-subsystem not only addresses the
-observed crash in zlib but makes GCOV coverage data more consistent
-overall, preventing similar issues in any kernel code path that may
-execute concurrently.
-
-Link: https://lore.kernel.org/20260422125112.3583649-2-khorenko@virtuozzo.com
-Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
-Tested-by: Peter Oberparleiter <oberpar@linux.ibm.com>
-Reviewed-by: Peter Oberparleiter <oberpar@linux.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260409014323.2385982-1-ye.liu@linux.dev
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Liu Ye <liuye@kylinos.cn>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/Makefile~gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes
-+++ a/Makefile
-@@ -824,7 +824,7 @@ all: vmlinux
+--- a/mm/khugepaged.c~mm-khugepaged-use-align-helpers-for-pmd-alignment
++++ a/mm/khugepaged.c
+@@ -2875,8 +2875,8 @@ static void collapse_scan_mm_slot(unsign
+ 			cc->progress++;
+ 			continue;
+ 		}
+-		hstart = round_up(vma->vm_start, HPAGE_PMD_SIZE);
+-		hend = round_down(vma->vm_end, HPAGE_PMD_SIZE);
++		hstart = ALIGN(vma->vm_start, HPAGE_PMD_SIZE);
++		hend = ALIGN_DOWN(vma->vm_end, HPAGE_PMD_SIZE);
+ 		if (khugepaged_scan.address > hend) {
+ 			cc->progress++;
+ 			continue;
+@@ -3192,8 +3192,8 @@ int madvise_collapse(struct vm_area_stru
+ 	mmgrab(mm);
+ 	lru_add_drain_all();
  
- CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage
- ifdef CONFIG_CC_IS_GCC
--CFLAGS_GCOV	+= -fno-tree-loop-im
-+CFLAGS_GCOV	+= -fno-tree-loop-im -fprofile-update=prefer-atomic
- endif
- export CFLAGS_GCOV
+-	hstart = (start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK;
+-	hend = end & HPAGE_PMD_MASK;
++	hstart = ALIGN(start, HPAGE_PMD_SIZE);
++	hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);
  
+ 	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
+ 		enum scan_result result = SCAN_FAIL;
 _
 
-Patches currently in -mm which might be from khorenko@virtuozzo.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes.patch
+mm-memory-failure-use-bool-for-forcekill-state.patch
+mm-khugepaged-use-align-helpers-for-pmd-alignment.patch
 
