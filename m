@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F44E335575
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 18:14:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AF023EF671
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 18:19:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777054471; cv=none; b=TbsVzzCMaZ8ohsobA4eIJMmrA6oQhYizLS1gSuCk6rEzr3R7YUKQLbH6OE8GpKY8x2uRy5eARDAz6ig7Up3YqWgU9+42X18nWPZpMdEa8M4SrNTVhwPjaembRar4MiFtOTyYFJUXI5VGe/CW+5PBoyZwL1aP9KyxmITRQZWUmtw=
+	t=1777054753; cv=none; b=WEas1dPVgm2tIvxNmH8Y1Jaf1wroZTrQv5XiLq7GOwORuph3TsgN5n8bQIWFsFsj+2TfEGYWXfPfMwGdqPhbjRCvIAM+aOdFZkpLwBc19fwpSISulfUKTt4ThSRxY5T5TssZA7EQ9Yu2SJfwy+tES/lC+B39lineQkJdJ37HQGg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777054471; c=relaxed/simple;
-	bh=H2f6rdIZNF4Arr4BzdQjqMiHFxqY1G+5Za0uoKoIOZw=;
-	h=Date:To:From:Subject:Message-Id; b=bR5BSscV75btPAub01P7s5gVYeumRj9hYamO8Oz6OdRuO7P4vVJZQUlUkgETJl8mKhU+aMoChXi0qWuAnTebY2hNw6CCpP+z2UpfjhGLLuhikZ6xr3RuJlC18+m9K4YuyUOPwdM4CZVdDHFut7cRtZFYlPY1Z7VfBvKMxwgOEsQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rgsjjB2Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777054753; c=relaxed/simple;
+	bh=XHjVbNtt7RHA1zQ2UKaHtAOjIkKTTLzva/YyHzAjWlM=;
+	h=Date:To:From:Subject:Message-Id; b=otvF+tszq4PR3iSpyuu6kaF9qOAb8cQPJTO9AK1Pu7Txq8+qWO40eF8wXFPxpHumpZLx+PT8mGMo0awUI0CbL/gby1g46w6vD1eYoLigBBr9n8ebvLjyDyDXdYakwFhV85Gjfboza/0hQoXRnjC/7Jcc+xSnEhx3k5JJ+mjmu0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z+Oo45eo; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rgsjjB2Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5FC3C2BCB0;
-	Fri, 24 Apr 2026 18:14:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z+Oo45eo"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D11CEC2BCB0;
+	Fri, 24 Apr 2026 18:19:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777054471;
-	bh=H2f6rdIZNF4Arr4BzdQjqMiHFxqY1G+5Za0uoKoIOZw=;
+	s=korg; t=1777054752;
+	bh=XHjVbNtt7RHA1zQ2UKaHtAOjIkKTTLzva/YyHzAjWlM=;
 	h=Date:To:From:Subject:From;
-	b=rgsjjB2ZBMiy8ZbSyi5+slt5wE08eKOpNpHBcyLU15eytHUlOXw3mQ+pRcF1Yl5Ct
-	 ODAS3nDbY5DmdGURuFT7wdFPCS3nz1nEHZVyr8W0FqPf3qDySjlGc1cM8WaTALo9JP
-	 SFeDAlNltTpw4LCOacPURV/fE/xafPLKHZyR6gvA=
-Date: Fri, 24 Apr 2026 11:14:30 -0700
-To: mm-commits@vger.kernel.org,joe@perches.com,sashal@kernel.org,akpm@linux-foundation.org
+	b=z+Oo45eoIYL5XNGt8gV8YvwuNLh80MUgZuFS/yzn5ieJDq9Yc5zPSIT8EQ13lDRV0
+	 /HcLf+iIHb/lwly+Bzj4M4F0fepJ5P/YopRxa9VSsj4EXOvq0PIbe32JHimvM1dvrC
+	 8QI1S9xA6V8wbJ6CHRWu9BtTbbJ/tITgYhqvF7UI=
+Date: Fri, 24 Apr 2026 11:19:12 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + get_maintainer-add-json-output-mode.patch added to mm-nonmm-unstable branch
-Message-Id: <20260424181430.E5FC3C2BCB0@smtp.kernel.org>
+Subject: + mm-huge_memory-use-sysfs_match_string-in-defrag_store.patch added to mm-new branch
+Message-Id: <20260424181912.D11CEC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: get_maintainer: add --json output mode
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     get_maintainer-add-json-output-mode.patch
+     Subject: mm: huge_memory: use sysfs_match_string() in defrag_store()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-huge_memory-use-sysfs_match_string-in-defrag_store.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainer-add-json-output-mode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-use-sysfs_match_string-in-defrag_store.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,152 +69,156 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sasha Levin <sashal@kernel.org>
-Subject: get_maintainer: add --json output mode
-Date: Wed, 8 Apr 2026 15:45:42 -0400
+From: Breno Leitao <leitao@debian.org>
+Subject: mm: huge_memory: use sysfs_match_string() in defrag_store()
+Date: Wed, 08 Apr 2026 08:47:00 -0700
 
-Add a --json flag to get_maintainer.pl that emits structured JSON output,
-making results machine-parseable for CI systems, IDE integrations, and
-AI-assisted development tools.
+Patch series "mm: huge_memory: clean up defrag sysfs with shared", v2.
 
-The JSON output includes a maintainers array with structured name, email,
-and role fields, plus optional arrays for scm, status, subsystem, web, and
-bug information when those flags are enabled.
+Refactor defrag_store() and defrag_show() to use shared data tables
+instead of duplicated if/else chains.
 
-Normal text output behavior is completely unchanged when --json is not
-specified.
+Patch 1 introduces an enum defrag_mode, a defrag_mode_strings[] table, and
+a defrag_flags[] mapping array, then rewrites defrag_store() to use
+sysfs_match_string() with a loop over defrag_flags[].
 
-Assisted-by: Claude:claude-opus-4-6
-Link: https://lore.kernel.org/20260408194542.1354549-1-sashal@kernel.org
-Signed-off-by: Sasha Levin <sashal@kernel.org>
-Acked-by: Joe Perches <joe@perches.com>
+Patch 2 refactors defrag_show() to use the same arrays, replacing its
+hardcoded if/else chain of test_bit() calls and string literals.
+
+This follows the same pattern applied to anon_enabled_store() in commit
+522dfb4ba71f ("mm: huge_memory: refactor anon_enabled_store() with
+change_anon_orders()").
+
+
+This patch (of 2):
+
+Replace the if/else chain of sysfs_streq() calls in defrag_store() with
+sysfs_match_string() and a defrag_mode_strings[] table.
+
+Introduce enum defrag_mode and defrag_flags[] array mapping each mode to
+its corresponding transparent_hugepage_flag.  The store function now loops
+over defrag_flags[], setting the bit for the selected mode and clearing
+the others.  When mode is DEFRAG_NEVER (index 4), no index in the
+4-element defrag_flags[] matches, so all flags are cleared.
+
+Note that the enum ordering (always, defer, defer+madvise, madvise, never)
+differs from the original if/else chain order in defrag_store() (always,
+defer+madvise, defer, madvise, never).  This is intentional to match the
+display order used by defrag_show().
+
+This is a follow-up cleanup to commit 522dfb4ba71f ("mm: huge_memory:
+refactor anon_enabled_store() with change_anon_orders()") which applied
+the same sysfs_match_string() pattern to anon_enabled_store().
+
+Link: https://lore.kernel.org/20260408-thp_defrag-v2-0-bc544c1bde4e@debian.org
+Link: https://lore.kernel.org/20260408-thp_defrag-v2-1-bc544c1bde4e@debian.org
+Signed-off-by: Breno Leitao <leitao@debian.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Tested-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Tested-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   75 +++++++++++++++++++++---------------
- 1 file changed, 44 insertions(+), 31 deletions(-)
+ mm/huge_memory.c |   60 +++++++++++++++++++++++++--------------------
+ 1 file changed, 34 insertions(+), 26 deletions(-)
 
---- a/scripts/get_maintainer.pl~get_maintainer-add-json-output-mode
-+++ a/scripts/get_maintainer.pl
-@@ -21,6 +21,7 @@ use Cwd;
- use File::Find;
- use File::Spec::Functions;
- use open qw(:std :encoding(UTF-8));
-+use JSON::PP;
- 
- my $cur_path = fastgetcwd() . '/';
- my $lk_path = "./";
-@@ -68,6 +69,7 @@ my $pattern_depth = 0;
- my $self_test = undef;
- my $version = 0;
- my $help = 0;
-+my $json = 0;
- my $find_maintainer_files = 0;
- my $maintainer_path;
- my $vcs_used = 0;
-@@ -285,6 +287,7 @@ if (!GetOptions(
- 		'find-maintainer-files' => \$find_maintainer_files,
- 		'mpath|maintainer-path=s' => \$maintainer_path,
- 		'self-test:s' => \$self_test,
-+		'json!' => \$json,
- 		'v|version' => \$version,
- 		'h|help|usage' => \$help,
- 		)) {
-@@ -650,39 +653,48 @@ my %deduplicate_name_hash = ();
- my %deduplicate_address_hash = ();
- 
- my @maintainers = get_maintainers();
--if (@maintainers) {
--    @maintainers = merge_email(@maintainers);
--    output(@maintainers);
--}
--
--if ($scm) {
--    @scm = uniq(@scm);
--    output(@scm);
--}
--
--if ($output_substatus) {
--    @substatus = uniq(@substatus);
--    output(@substatus);
--}
--
--if ($status) {
--    @status = uniq(@status);
--    output(@status);
--}
- 
--if ($subsystem) {
--    @subsystem = uniq(@subsystem);
--    output(@subsystem);
--}
--
--if ($web) {
--    @web = uniq(@web);
--    output(@web);
--}
-+@maintainers = merge_email(@maintainers) if (@maintainers);
-+@scm = uniq(@scm) if ($scm);
-+@substatus = uniq(@substatus) if ($output_substatus);
-+@status = uniq(@status) if ($status);
-+@subsystem = uniq(@subsystem) if ($subsystem);
-+@web = uniq(@web) if ($web);
-+@bug = uniq(@bug) if ($bug);
-+
-+if ($json) {
-+    my @json_maintainers;
-+    for my $m (@maintainers) {
-+	my ($addr, $role);
-+	if ($output_roles && $m =~ /^(.*?)\s+\((.+)\)\s*$/) {
-+	    $addr = $1;
-+	    $role = $2;
-+	} else {
-+	    $addr = $m;
-+	}
-+	my ($name, $email_addr) = parse_email($addr);
-+	my %entry = (name => $name, email => $email_addr);
-+	$entry{role} = $role if (defined $role && $role ne '');
-+	push(@json_maintainers, \%entry);
-+    }
-+
-+    my %result = (maintainers => \@json_maintainers);
-+    $result{scm} = \@scm if ($scm);
-+    $result{status} = \@status if ($status);
-+    $result{subsystem} = \@subsystem if ($subsystem);
-+    $result{web} = \@web if ($web);
-+    $result{bug} = \@bug if ($bug);
- 
--if ($bug) {
--    @bug = uniq(@bug);
--    output(@bug);
-+    my $json_encoder = JSON::PP->new->canonical->utf8;
-+    print($json_encoder->encode(\%result) . "\n");
-+} else {
-+    output(@maintainers) if (@maintainers);
-+    output(@scm) if ($scm);
-+    output(@substatus) if ($output_substatus);
-+    output(@status) if ($status);
-+    output(@subsystem) if ($subsystem);
-+    output(@web) if ($web);
-+    output(@bug) if ($bug);
+--- a/mm/huge_memory.c~mm-huge_memory-use-sysfs_match_string-in-defrag_store
++++ a/mm/huge_memory.c
+@@ -429,6 +429,29 @@ ssize_t single_hugepage_flag_store(struc
+ 	return count;
  }
  
- exit($exit);
-@@ -1104,6 +1116,7 @@ Output type options:
-   --separator [, ] => separator for multiple entries on 1 line
-     using --separator also sets --nomultiline if --separator is not [, ]
-   --multiline => print 1 entry per line
-+  --json => output results as JSON
++enum defrag_mode {
++	DEFRAG_ALWAYS = 0,
++	DEFRAG_DEFER,
++	DEFRAG_DEFER_MADVISE,
++	DEFRAG_MADVISE,
++	DEFRAG_NEVER,
++};
++
++static const char * const defrag_mode_strings[] = {
++	[DEFRAG_ALWAYS]		= "always",
++	[DEFRAG_DEFER]		= "defer",
++	[DEFRAG_DEFER_MADVISE]	= "defer+madvise",
++	[DEFRAG_MADVISE]	= "madvise",
++	[DEFRAG_NEVER]		= "never",
++};
++
++static const enum transparent_hugepage_flag defrag_flags[] = {
++	[DEFRAG_ALWAYS]		= TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
++	[DEFRAG_DEFER]		= TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG,
++	[DEFRAG_DEFER_MADVISE]	= TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG,
++	[DEFRAG_MADVISE]	= TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG,
++};
++
+ static ssize_t defrag_show(struct kobject *kobj,
+ 			   struct kobj_attribute *attr, char *buf)
+ {
+@@ -456,34 +479,19 @@ static ssize_t defrag_store(struct kobje
+ 			    struct kobj_attribute *attr,
+ 			    const char *buf, size_t count)
+ {
+-	if (sysfs_streq(buf, "always")) {
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-	} else if (sysfs_streq(buf, "defer+madvise")) {
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-	} else if (sysfs_streq(buf, "defer")) {
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+-	} else if (sysfs_streq(buf, "madvise")) {
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-		set_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-	} else if (sysfs_streq(buf, "never")) {
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG, &transparent_hugepage_flags);
+-		clear_bit(TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG, &transparent_hugepage_flags);
+-	} else
++	int mode, m;
++
++	mode = sysfs_match_string(defrag_mode_strings, buf);
++	if (mode < 0)
+ 		return -EINVAL;
  
- Other options:
-   --pattern-depth => Number of pattern directory traversals (default: 0 (all))
++	for (m = 0; m < ARRAY_SIZE(defrag_flags); m++) {
++		if (m == mode)
++			set_bit(defrag_flags[m], &transparent_hugepage_flags);
++		else
++			clear_bit(defrag_flags[m], &transparent_hugepage_flags);
++	}
++
+ 	return count;
+ }
+ static struct kobj_attribute defrag_attr = __ATTR_RW(defrag);
 _
 
-Patches currently in -mm which might be from sashal@kernel.org are
+Patches currently in -mm which might be from leitao@debian.org are
 
-get_maintainer-add-json-output-mode.patch
-kallsyms-embed-source-file-line-info-in-kernel-stack-traces.patch
-kallsyms-extend-lineinfo-to-loadable-modules.patch
-kallsyms-delta-compress-lineinfo-tables-for-27x-size-reduction.patch
-kallsyms-add-kunit-tests-for-lineinfo-feature.patch
+kho-fix-error-handling-in-kho_add_subtree.patch
+mm-memory-failure-report-mf_msg_kernel-for-reserved-pages.patch
+mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
+documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
+selftests-mm-regression-test-for-panic_on_unrecoverable_memory_failure.patch
+mm-huge_memory-use-sysfs_match_string-in-defrag_store.patch
+mm-huge_memory-refactor-defrag_show-to-use-defrag_flags.patch
+mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
 
