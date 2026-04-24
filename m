@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8D003115BC
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 15:29:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AACF63E1207
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 16:14:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777044552; cv=none; b=At89p00KgJxjVPwI6zpgtPujqjSmCj4zauZY3SWPenYQ+RPFab3xacOlj0HmHXbgvaw+cxt60YTBA559DV6hEvmG9l557J90D9NcxCPug9UwiaVAMLK8Y3rnYo9AAPw9oIrNBfNa85bm6W/9x1dY/AcRTUNLGv4eo4icJxMTBGg=
+	t=1777047295; cv=none; b=VacyAigeXIr3ITh6giuzqPpInBc+5GrCfLvi3Kwc8Zsgtix8Hoi3afMiPMmlppUHhMdjjDx9rfioujmJZe9GWimV3yhPfxis4Ws4C4kkoSOkXkCBOfeRN4tGG3s1gB51g4X/htdEQjju+x5VzwmVPZBqtYD5VkmU3YgwbsY1h5s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777044552; c=relaxed/simple;
-	bh=cyP9rCmhyR8W9Ua1o14MMqAGjXa6zQi4Rdso9lkJLA4=;
-	h=Date:To:From:Subject:Message-Id; b=fL9BF/DP4v9WESBHgklRYYCFAPZkuOmEL+gFCWWMmJMpNewG/fRHOBn6g+rHgJTMVjRK6715TLlWkLrbf6DK27NBZOJ/psXZuC4d1E0gyxbqnx6Cu2PrqY47vNx46NXmTMFNKUAA0tpjuCPFNFFRGNKmGDsjnQXAmwhUAI9fMnQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GvLINQP2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777047295; c=relaxed/simple;
+	bh=XXY2NLj8TNfoxti9w4Z3fZ5j7/gMKTVjh7NQtevXr+Q=;
+	h=Date:To:From:Subject:Message-Id; b=oSosYn8XT6qgpNj5NOMHYczS2sOeEJE8nypbvYDCkBwWGPv32nLPrD8V98q/WVFwTi6P1wsbWaoUiOw+lnGFGKC7tKQUX+xW/bsOQHhXvph575Ao04Itk+QALnHe5QcDZNNnyl12nZiKr4nz5iZWE26r9ktNqjNgEWbfZTL6oVA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Wfd7pe8/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GvLINQP2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A98EC19425;
-	Fri, 24 Apr 2026 15:29:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Wfd7pe8/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1916C19425;
+	Fri, 24 Apr 2026 16:14:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777044551;
-	bh=cyP9rCmhyR8W9Ua1o14MMqAGjXa6zQi4Rdso9lkJLA4=;
+	s=korg; t=1777047294;
+	bh=XXY2NLj8TNfoxti9w4Z3fZ5j7/gMKTVjh7NQtevXr+Q=;
 	h=Date:To:From:Subject:From;
-	b=GvLINQP2rchd4XKLI+PIs/fkSQeoVfYNLPv4UdYU1REuU9HsqpR2WAhmFsMcVVF+z
-	 Cga38huUrixe8wHT0K52oh+nnl/bVYUknqWnvOBoU8R+fvP4lhsK1Vtz4yV16SiBWr
-	 CCjWcL8WyGezfCx7sST7TZMdclP86FeZZQKTrRms=
-Date: Fri, 24 Apr 2026 08:29:11 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jason@zx2c4.com,jannh@google.com,david@kernel.org,broonie@kernel.org,anthony.yznaga@oracle.com,akpm@linux-foundation.org
+	b=Wfd7pe8/tHGeJiokesVfZyTgIVqwg/PH/yo4wXLSf2aEcdyVM5wzKSAh8UliDUFnJ
+	 MjlToTmg8mS+uUzmztbBPmBWbazcCFF8+CBCva0quv7UOduBeSYzNvC8xBd/QqI1y0
+	 kQ48nfHFQBPRrSJkAufYxDR5IgSN76R+GVXAJHEE=
+Date: Fri, 24 Apr 2026 09:14:54 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-run-the-map_droppable-selftest.patch added to mm-new branch
-Message-Id: <20260424152911.8A98EC19425@smtp.kernel.org>
+Subject: + mm-page_owner-fix-%pgp-format-specifier-argument-type.patch added to mm-new branch
+Message-Id: <20260424161454.D1916C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: run the MAP_DROPPABLE selftest
+     Subject: mm/page_owner: fix %pGp format specifier argument type
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-run-the-map_droppable-selftest.patch
+     mm-page_owner-fix-%pgp-format-specifier-argument-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-run-the-map_droppable-selftest.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-fix-%pgp-format-specifier-argument-type.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,70 +69,49 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Anthony Yznaga <anthony.yznaga@oracle.com>
-Subject: selftests/mm: run the MAP_DROPPABLE selftest
-Date: Wed, 15 Apr 2026 20:39:39 -0700
+From: Zhen Ni <zhen.ni@easystack.cn>
+Subject: mm/page_owner: fix %pGp format specifier argument type
+Date: Tue, 14 Apr 2026 15:58:13 +0800
 
-The test was not being run by the selftest framework so it was never
-noticed that it would fail with an assertion failure on configs without
-support for MAP_DROPPABLE.  Update the test so that it is skipped instead
-when MAP_DROPPABLE is not supported, and add it to the mmap category so
-that the test is run by the framework.
+The %pGp format specifier expects an argument of type 'unsigned long *',
+but page->flags is now of type 'memdesc_flags_t' (a struct containing an
+unsigned long member 'f') after the introduction of memdesc_flags_t.
 
-Link: https://lore.kernel.org/20260416033939.49981-4-anthony.yznaga@oracle.com
-Signed-off-by: Anthony Yznaga <anthony.yznaga@oracle.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason A. Donenfeld <jason@zx2c4.com>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Fix the type mismatch by passing &page->flags.f instead of &page->flags,
+which matches the expected type.
+
+Link: https://lore.kernel.org/20260414075813.3425968-1-zhen.ni@easystack.cn
+Fixes: 53fbef56e07d ("mm: introduce memdesc_flags_t")
+Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/droppable.c    |    9 ++++++++-
- tools/testing/selftests/mm/run_vmtests.sh |    1 +
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ mm/page_owner.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/droppable.c~selftests-mm-run-the-map_droppable-selftest
-+++ a/tools/testing/selftests/mm/droppable.c
-@@ -26,7 +26,14 @@ int main(int argc, char *argv[])
- 	ksft_set_plan(1);
+--- a/mm/page_owner.c~mm-page_owner-fix-%pgp-format-specifier-argument-type
++++ a/mm/page_owner.c
+@@ -588,7 +588,7 @@ print_page_owner(char __user *buf, size_
+ 			migratetype_names[page_mt],
+ 			pfn >> pageblock_order,
+ 			migratetype_names[pageblock_mt],
+-			&page->flags);
++			&page->flags.f);
  
- 	alloc = mmap(0, alloc_size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_DROPPABLE, -1, 0);
--	assert(alloc != MAP_FAILED);
-+	if (alloc == MAP_FAILED) {
-+		if ((errno == EOPNOTSUPP) || (errno == EINVAL)) {
-+			ksft_test_result_skip("MAP_DROPPABLE not supported\n");
-+			exit(KSFT_SKIP);
-+		}
-+		ksft_test_result_fail("mmap error: %s\n", strerror(errno));
-+		exit(KSFT_FAIL);
-+	}
- 	memset(alloc, 'A', alloc_size);
- 	for (size_t i = 0; i < alloc_size; i += page_size)
- 		assert(*(uint8_t *)(alloc + i));
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run-the-map_droppable-selftest
-+++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -382,6 +382,7 @@ else
- fi
- 
- CATEGORY="mmap" run_test ./map_populate
-+CATEGORY="mmap" run_test ./droppable
- 
- CATEGORY="mlock" run_test ./mlock-random-test
- 
+ 	/* Print mode: full stack or stack handle */
+ 	if (READ_ONCE(owner_filter.print_mode) == PAGE_OWNER_PRINT_STACK_HANDLE) {
 _
 
-Patches currently in -mm which might be from anthony.yznaga@oracle.com are
+Patches currently in -mm which might be from zhen.ni@easystack.cn are
 
-mm-fix-mmap-errno-value-when-map_droppable-is-not-supported.patch
-selftests-mm-verify-droppable-mappings-cannot-be-locked.patch
-selftests-mm-run-the-map_droppable-selftest.patch
+mm-page_owner-add-filter-infrastructure.patch
+mm-page_owner-add-print_mode-filter.patch
+mm-page_owner-add-numa-node-filter-with-nodelist-support.patch
+mm-page_owner-fix-%pgp-format-specifier-argument-type.patch
 
