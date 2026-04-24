@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62D1C30BF52
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:31:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CC7A30BF52
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:31:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777026678; cv=none; b=g1Z/gNX2aTsRKHrzMA5WANyGaIU3A76cxBc4uspXo6M1BrWRTnUtOdmzMe2bNqLoFSaY6pFrdAM5qr7moC6CXffClKiNzecxFNH8fs77mAp/hNzoYI+Zvs0F5ramq7HFSWCCBfyDfOeiXQ0jrHLDrrg/GweNRUo1WsYT8OIzhiY=
+	t=1777026680; cv=none; b=gNeNCShpqXvu4fTU1Fnxqs2yR6DNc0531XVtsUAoul3NF6/c5I0xKhEJ76zkPIfMpm6Ge03mQjpQqcpWGqpSdd4gDEpROmTMhwYfQjNeFh9Q+dgVbnLjlIENZGZPLXhznLbtqUEMSBhTWIe5tST6oTgY43rW8XpqvMN2YERKUyg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777026678; c=relaxed/simple;
-	bh=2+Qyr4gYNp27pqvgADOfewlA2CxaKx01/hRoxg6RmUI=;
-	h=Date:To:From:Subject:Message-Id; b=k4JXvoxEaWQKCDH1Syx9HddZ82WWhM+FXAot23TW3yaeh5z5nlLrJSdTeEVyGfSpX+L9AdY2vYzzNKqrpbmRXKgXgkIm2rF0bi7fKs6WADzb4lgWQKAXxoZ1MDIUNLRf6+/CVLkf+jVUlA8dMdM3fffUxEWIwE0YfNxvdhZh6KY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0xoEpzow; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777026680; c=relaxed/simple;
+	bh=Iw5ZPLLBMY3CNkBa9dELXClWyTrtB/0MdVBSph6BLoA=;
+	h=Date:To:From:Subject:Message-Id; b=mPtN5QKoqzid+8abxxOm2xxGNGI7W+EV/dUd9FKJhtP1zNzlrlFH1p6DQc8XN9RTsiA9OGrLuiUXea8C4GXIDArhv6PnpFHasSXvyi2oaOgqksOk0wZi7QeDlNG0mr9LmfVjXlw5PTY3so10jgQ8WmDeZ1sHbo2UG1Yq/Ia59wQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bg5+mQSV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0xoEpzow"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14F58C19425;
-	Fri, 24 Apr 2026 10:31:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bg5+mQSV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3424CC19425;
+	Fri, 24 Apr 2026 10:31:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777026678;
-	bh=2+Qyr4gYNp27pqvgADOfewlA2CxaKx01/hRoxg6RmUI=;
+	s=korg; t=1777026680;
+	bh=Iw5ZPLLBMY3CNkBa9dELXClWyTrtB/0MdVBSph6BLoA=;
 	h=Date:To:From:Subject:From;
-	b=0xoEpzow2ZAlPS9CRZXtSYPVyA0uDSlRdXBcgM8hLJwiTCeDTZBmsmXj4LWJpJFeV
-	 vhDFRrO3yMOP8kIYHgXdcGATSp9bm7u/E/LcK2ClGtCvxYq7iVCHkxoJIs688g0HEF
-	 ehEvm1G0TyqJT+kqak3f7VZ1GMW2PEggPyLVRBA4=
-Date: Fri, 24 Apr 2026 03:31:17 -0700
+	b=Bg5+mQSVqK9fNKARJGj2AIWAvwuiFfyrs8DAPISUyZKwsb1CUexytRSMAgkisSb+g
+	 a2G57DTLZLxD1hLhOlQY2EVjoGyOCelbDDtLrjtYlkJBOs0LNZw8cXrDYnCmIMy/sz
+	 UVgOTOPL29IPQKzJRHr1kcewwNKYsWxE7G0dZXv0=
+Date: Fri, 24 Apr 2026 03:31:19 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-btrfs-remove-a-comment-referring-to-read_only_thp_for_fs.patch added to mm-new branch
-Message-Id: <20260424103118.14F58C19425@smtp.kernel.org>
+Subject: + selftests-mm-remove-read_only_thp_for_fs-in-khugepaged.patch added to mm-new branch
+Message-Id: <20260424103120.3424CC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs/btrfs: remove a comment referring to READ_ONLY_THP_FOR_FS
+     Subject: selftests/mm: remove READ_ONLY_THP_FOR_FS in khugepaged
 has been added to the -mm mm-new branch.  Its filename is
-     fs-btrfs-remove-a-comment-referring-to-read_only_thp_for_fs.patch
+     selftests-mm-remove-read_only_thp_for_fs-in-khugepaged.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-btrfs-remove-a-comment-referring-to-read_only_thp_for_fs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-read_only_thp_for_fs-in-khugepaged.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,20 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: fs/btrfs: remove a comment referring to READ_ONLY_THP_FOR_FS
-Date: Thu, 23 Apr 2026 22:49:13 -0400
+Subject: selftests/mm: remove READ_ONLY_THP_FOR_FS in khugepaged
+Date: Thu, 23 Apr 2026 22:49:14 -0400
 
-READ_ONLY_THP_FOR_FS is no longer present, remove related comment.
+Change the requirement to a file system with large folio support and the
+supported order needs to include PMD_ORDER.
 
-Link: https://lore.kernel.org/20260424024915.28758-11-ziy@nvidia.com
+Also add tests of opening a file with read write permission and populating
+folios with writes.  Reuse the XFS image from split_huge_page_test.
+
+Link: https://lore.kernel.org/20260424024915.28758-12-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: David Sterba <dsterba@suse.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: David Sterba <dsterba@suse.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Lance Yang <lance.yang@linux.dev>
@@ -100,21 +104,290 @@ Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/defrag.c |    3 ---
- 1 file changed, 3 deletions(-)
+ tools/testing/selftests/mm/khugepaged.c   |  110 ++++++++++++++------
+ tools/testing/selftests/mm/run_vmtests.sh |   12 +-
+ 2 files changed, 90 insertions(+), 32 deletions(-)
 
---- a/fs/btrfs/defrag.c~fs-btrfs-remove-a-comment-referring-to-read_only_thp_for_fs
-+++ a/fs/btrfs/defrag.c
-@@ -860,9 +860,6 @@ again:
- 		return folio;
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-remove-read_only_thp_for_fs-in-khugepaged
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -49,7 +49,8 @@ struct mem_ops {
+ 	const char *name;
+ };
  
- 	/*
--	 * Since we can defragment files opened read-only, we can encounter
--	 * transparent huge pages here (see CONFIG_READ_ONLY_THP_FOR_FS).
--	 *
- 	 * The IO for such large folios is not fully tested, thus return
- 	 * an error to reject such folios unless it's an experimental build.
- 	 *
+-static struct mem_ops *file_ops;
++static struct mem_ops *read_only_file_ops;
++static struct mem_ops *read_write_file_ops;
+ static struct mem_ops *anon_ops;
+ static struct mem_ops *shmem_ops;
+ 
+@@ -112,7 +113,8 @@ static void restore_settings(int sig)
+ static void save_settings(void)
+ {
+ 	printf("Save THP and khugepaged settings...");
+-	if (file_ops && finfo.type == VMA_FILE)
++	if ((read_only_file_ops || read_write_file_ops) &&
++	    finfo.type == VMA_FILE)
+ 		thp_set_read_ahead_path(finfo.dev_queue_read_ahead_path);
+ 	thp_save_settings();
+ 
+@@ -364,11 +366,14 @@ static bool anon_check_huge(void *addr,
+ 	return check_huge_anon(addr, nr_hpages, hpage_pmd_size);
+ }
+ 
+-static void *file_setup_area(int nr_hpages)
++static void *file_setup_area_common(int nr_hpages, bool read_only)
+ {
+ 	int fd;
+ 	void *p;
+ 	unsigned long size;
++	int open_opt = read_only ? O_RDONLY : O_RDWR;
++	int mmap_prot = read_only ? PROT_READ : (PROT_READ | PROT_WRITE);
++	int mmap_opt = read_only ? MAP_PRIVATE : MAP_SHARED;
+ 
+ 	unlink(finfo.path);  /* Cleanup from previous failed tests */
+ 	printf("Creating %s for collapse%s...", finfo.path,
+@@ -388,14 +393,15 @@ static void *file_setup_area(int nr_hpag
+ 	munmap(p, size);
+ 	success("OK");
+ 
+-	printf("Opening %s read only for collapse...", finfo.path);
+-	finfo.fd = open(finfo.path, O_RDONLY, 777);
++	printf("Opening %s %s for collapse...", finfo.path,
++	       read_only ? "read only" : "read-write");
++	finfo.fd = open(finfo.path, open_opt, 777);
+ 	if (finfo.fd < 0) {
+ 		perror("open()");
+ 		exit(EXIT_FAILURE);
+ 	}
+-	p = mmap(BASE_ADDR, size, PROT_READ,
+-		 MAP_PRIVATE, finfo.fd, 0);
++	p = mmap(BASE_ADDR, size, mmap_prot,
++		 mmap_opt, finfo.fd, 0);
+ 	if (p == MAP_FAILED || p != BASE_ADDR) {
+ 		perror("mmap()");
+ 		exit(EXIT_FAILURE);
+@@ -407,6 +413,15 @@ static void *file_setup_area(int nr_hpag
+ 	return p;
+ }
+ 
++static void *file_setup_read_only_area(int nr_hpages)
++{
++	return file_setup_area_common(nr_hpages, /* read_only= */ true);
++}
++
++static void *file_setup_read_write_area(int nr_hpages)
++{
++	return file_setup_area_common(nr_hpages, /* read_only= */ false);
++}
+ static void file_cleanup_area(void *p, unsigned long size)
+ {
+ 	munmap(p, size);
+@@ -414,14 +429,25 @@ static void file_cleanup_area(void *p, u
+ 	unlink(finfo.path);
+ }
+ 
+-static void file_fault(void *p, unsigned long start, unsigned long end)
++static void file_fault_common(void *p, unsigned long start, unsigned long end,
++		int madv_ops)
+ {
+-	if (madvise(((char *)p) + start, end - start, MADV_POPULATE_READ)) {
++	if (madvise(((char *)p) + start, end - start, madv_ops)) {
+ 		perror("madvise(MADV_POPULATE_READ");
+ 		exit(EXIT_FAILURE);
+ 	}
+ }
+ 
++static void file_fault_read(void *p, unsigned long start, unsigned long end)
++{
++	file_fault_common(p, start, end, MADV_POPULATE_READ);
++}
++
++static void file_fault_write(void *p, unsigned long start, unsigned long end)
++{
++	file_fault_common(p, start, end, MADV_POPULATE_WRITE);
++}
++
+ static bool file_check_huge(void *addr, int nr_hpages)
+ {
+ 	switch (finfo.type) {
+@@ -477,10 +503,18 @@ static struct mem_ops __anon_ops = {
+ 	.name = "anon",
+ };
+ 
+-static struct mem_ops __file_ops = {
+-	.setup_area = &file_setup_area,
++static struct mem_ops __read_only_file_ops = {
++	.setup_area = &file_setup_read_only_area,
++	.cleanup_area = &file_cleanup_area,
++	.fault = &file_fault_read,
++	.check_huge = &file_check_huge,
++	.name = "file",
++};
++
++static struct mem_ops __read_write_file_ops = {
++	.setup_area = &file_setup_read_write_area,
+ 	.cleanup_area = &file_cleanup_area,
+-	.fault = &file_fault,
++	.fault = &file_fault_write,
+ 	.check_huge = &file_check_huge,
+ 	.name = "file",
+ };
+@@ -603,7 +637,9 @@ static struct collapse_context __madvise
+ 
+ static bool is_tmpfs(struct mem_ops *ops)
+ {
+-	return ops == &__file_ops && finfo.type == VMA_SHMEM;
++	return (ops == &__read_only_file_ops ||
++		ops == &__read_write_file_ops) &&
++	       finfo.type == VMA_SHMEM;
+ }
+ 
+ static bool is_anon(struct mem_ops *ops)
+@@ -1086,8 +1122,8 @@ static void usage(void)
+ 	fprintf(stderr, "\t<context>\t: [all|khugepaged|madvise]\n");
+ 	fprintf(stderr, "\t<mem_type>\t: [all|anon|file|shmem]\n");
+ 	fprintf(stderr, "\n\t\"file,all\" mem_type requires [dir] argument\n");
+-	fprintf(stderr, "\n\t\"file,all\" mem_type requires kernel built with\n");
+-	fprintf(stderr,	"\tCONFIG_READ_ONLY_THP_FOR_FS=y\n");
++	fprintf(stderr, "\n\t\"file,all\" mem_type requires a file system\n");
++	fprintf(stderr,	"\twith large folio support (order >= PMD order)\n");
+ 	fprintf(stderr, "\n\tif [dir] is a (sub)directory of a tmpfs mount, tmpfs must be\n");
+ 	fprintf(stderr,	"\tmounted with huge=advise option for khugepaged tests to work\n");
+ 	fprintf(stderr,	"\n\tSupported Options:\n");
+@@ -1143,20 +1179,22 @@ static void parse_test_type(int argc, ch
+ 		usage();
+ 
+ 	if (!strcmp(buf, "all")) {
+-		file_ops =  &__file_ops;
++		read_only_file_ops =  &__read_only_file_ops;
++		read_write_file_ops =  &__read_write_file_ops;
+ 		anon_ops = &__anon_ops;
+ 		shmem_ops = &__shmem_ops;
+ 	} else if (!strcmp(buf, "anon")) {
+ 		anon_ops = &__anon_ops;
+ 	} else if (!strcmp(buf, "file")) {
+-		file_ops =  &__file_ops;
++		read_only_file_ops =  &__read_only_file_ops;
++		read_write_file_ops =  &__read_write_file_ops;
+ 	} else if (!strcmp(buf, "shmem")) {
+ 		shmem_ops = &__shmem_ops;
+ 	} else {
+ 		usage();
+ 	}
+ 
+-	if (!file_ops)
++	if (!read_only_file_ops && !read_write_file_ops)
+ 		return;
+ 
+ 	if (argc != 2)
+@@ -1228,37 +1266,47 @@ int main(int argc, char **argv)
+ 	} while (0)
+ 
+ 	TEST(collapse_full, khugepaged_context, anon_ops);
+-	TEST(collapse_full, khugepaged_context, file_ops);
++	TEST(collapse_full, khugepaged_context, read_only_file_ops);
++	TEST(collapse_full, khugepaged_context, read_write_file_ops);
+ 	TEST(collapse_full, khugepaged_context, shmem_ops);
+ 	TEST(collapse_full, madvise_context, anon_ops);
+-	TEST(collapse_full, madvise_context, file_ops);
++	TEST(collapse_full, madvise_context, read_only_file_ops);
++	TEST(collapse_full, madvise_context, read_write_file_ops);
+ 	TEST(collapse_full, madvise_context, shmem_ops);
+ 
+ 	TEST(collapse_empty, khugepaged_context, anon_ops);
+ 	TEST(collapse_empty, madvise_context, anon_ops);
+ 
+ 	TEST(collapse_single_pte_entry, khugepaged_context, anon_ops);
+-	TEST(collapse_single_pte_entry, khugepaged_context, file_ops);
++	TEST(collapse_single_pte_entry, khugepaged_context, read_only_file_ops);
++	TEST(collapse_single_pte_entry, khugepaged_context, read_write_file_ops);
+ 	TEST(collapse_single_pte_entry, khugepaged_context, shmem_ops);
+ 	TEST(collapse_single_pte_entry, madvise_context, anon_ops);
+-	TEST(collapse_single_pte_entry, madvise_context, file_ops);
++	TEST(collapse_single_pte_entry, madvise_context, read_only_file_ops);
++	TEST(collapse_single_pte_entry, madvise_context, read_write_file_ops);
+ 	TEST(collapse_single_pte_entry, madvise_context, shmem_ops);
+ 
+ 	TEST(collapse_max_ptes_none, khugepaged_context, anon_ops);
+-	TEST(collapse_max_ptes_none, khugepaged_context, file_ops);
++	TEST(collapse_max_ptes_none, khugepaged_context, read_only_file_ops);
++	TEST(collapse_max_ptes_none, khugepaged_context, read_write_file_ops);
+ 	TEST(collapse_max_ptes_none, madvise_context, anon_ops);
+-	TEST(collapse_max_ptes_none, madvise_context, file_ops);
++	TEST(collapse_max_ptes_none, madvise_context, read_only_file_ops);
++	TEST(collapse_max_ptes_none, madvise_context, read_write_file_ops);
+ 
+ 	TEST(collapse_single_pte_entry_compound, khugepaged_context, anon_ops);
+-	TEST(collapse_single_pte_entry_compound, khugepaged_context, file_ops);
++	TEST(collapse_single_pte_entry_compound, khugepaged_context, read_only_file_ops);
++	TEST(collapse_single_pte_entry_compound, khugepaged_context, read_write_file_ops);
+ 	TEST(collapse_single_pte_entry_compound, madvise_context, anon_ops);
+-	TEST(collapse_single_pte_entry_compound, madvise_context, file_ops);
++	TEST(collapse_single_pte_entry_compound, madvise_context, read_only_file_ops);
++	TEST(collapse_single_pte_entry_compound, madvise_context, read_write_file_ops);
+ 
+ 	TEST(collapse_full_of_compound, khugepaged_context, anon_ops);
+-	TEST(collapse_full_of_compound, khugepaged_context, file_ops);
++	TEST(collapse_full_of_compound, khugepaged_context, read_only_file_ops);
++	TEST(collapse_full_of_compound, khugepaged_context, read_write_file_ops);
+ 	TEST(collapse_full_of_compound, khugepaged_context, shmem_ops);
+ 	TEST(collapse_full_of_compound, madvise_context, anon_ops);
+-	TEST(collapse_full_of_compound, madvise_context, file_ops);
++	TEST(collapse_full_of_compound, madvise_context, read_only_file_ops);
++	TEST(collapse_full_of_compound, madvise_context, read_write_file_ops);
+ 	TEST(collapse_full_of_compound, madvise_context, shmem_ops);
+ 
+ 	TEST(collapse_compound_extreme, khugepaged_context, anon_ops);
+@@ -1280,10 +1328,12 @@ int main(int argc, char **argv)
+ 	TEST(collapse_max_ptes_shared, madvise_context, anon_ops);
+ 
+ 	TEST(madvise_collapse_existing_thps, madvise_context, anon_ops);
+-	TEST(madvise_collapse_existing_thps, madvise_context, file_ops);
++	TEST(madvise_collapse_existing_thps, madvise_context, read_only_file_ops);
++	TEST(madvise_collapse_existing_thps, madvise_context, read_write_file_ops);
+ 	TEST(madvise_collapse_existing_thps, madvise_context, shmem_ops);
+ 
+-	TEST(madvise_retracted_page_tables, madvise_context, file_ops);
++	TEST(madvise_retracted_page_tables, madvise_context, read_only_file_ops);
++	TEST(madvise_retracted_page_tables, madvise_context, read_write_file_ops);
+ 	TEST(madvise_retracted_page_tables, madvise_context, shmem_ops);
+ 
+ 	restore_settings(0);
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-remove-read_only_thp_for_fs-in-khugepaged
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -489,8 +489,6 @@ CATEGORY="thp" run_test ./khugepaged all
+ 
+ CATEGORY="thp" run_test ./khugepaged -s 4 all:shmem
+ 
+-CATEGORY="thp" run_test ./transhuge-stress -d 20
+-
+ # Try to create XFS if not provided
+ if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
+     if [ "${HAVE_HUGEPAGES}" = "1" ]; then
+@@ -507,6 +505,14 @@ if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH
+     fi
+ fi
+ 
++if [ -n "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
++CATEGORY="thp" run_test ./khugepaged all:file ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
++else
++	count_total=$(( count_total + 1 ))
++	count_skip=$(( count_skip + 1 ))
++	echo "[SKIP] ./khugepaged all:file" | tap_prefix
++fi
++
+ CATEGORY="thp" run_test ./split_huge_page_test ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
+ 
+ if [ -n "${MOUNTED_XFS}" ]; then
+@@ -515,6 +521,8 @@ if [ -n "${MOUNTED_XFS}" ]; then
+     rm -f ${XFS_IMG}
+ fi
+ 
++CATEGORY="thp" run_test ./transhuge-stress -d 20
++
+ CATEGORY="thp" run_test ./folio_split_race_test
+ 
+ CATEGORY="migration" run_test ./migration
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
