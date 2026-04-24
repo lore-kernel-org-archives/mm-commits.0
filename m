@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE63F3624B8
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:06:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C35336215B
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:06:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777025191; cv=none; b=AgY6S8PM45l8jsdF7LxwF7PJ/+zGhr1gCX876BzPlU5NCm8qGMdw922gA9HvzpXsLiUXaawbm8QrwKTvSHPnQ+WSilKYvUEVGC/fTUMZeeP+jsj4NfE4gcoyrTB1gOKipqed43qLNZ7MfYYf1goUzYk7a6N8dTnF4pWL8tycvA0=
+	t=1777025194; cv=none; b=AnVAWRPWLkQ1LZcgf09d6/Tw85RbaO7flfJJOMVNQJEmvYeH5L+0JTNwOsukhKnwr2sN/v5+cAd2juK4RToYFNZrknHeZ5c4z52n1dmYT/gcXZ4CZBWgQxjmSb80jGgIHSmjV7vDbu6TgdjYfD6W2QNzBWR/NuUuPQ68Zh0y1K4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777025191; c=relaxed/simple;
-	bh=GJ69FJBtCNXIt93qGmZSVM+7hoktZPy+/UsQrVdDZuw=;
-	h=Date:To:From:Subject:Message-Id; b=qJUpKTiZCaFfW1ChfX5z1t9J4cs1Pt2a/cG21GxRMiJ6+5gXWXvNTzDbc6erccVodLjyjuF166sccUWLcOcM/eEGNnMSI4hJPz6E6+s4RJZ1VFXtlsi6kgLw8stEMuGgDmwlp0GWACXBQglhV7D/09b6ipP374g54n1IeWVg5Rk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QoYhaEqP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777025194; c=relaxed/simple;
+	bh=5MMDBgOXMKggtQMAMBHVOOfPi5F5ZrZ5dj5IXXr6YIU=;
+	h=Date:To:From:Subject:Message-Id; b=WjfrzIlsNVwNTtyXBzp0+FrFaOP+r7gbxkWGe9bVDiEX0BuC0PN8PSWW5f54r2kQSoKY6R073/U7JxcayjfDNuuoPFZbhHaPqs5VFfKi+w+UShfHzHfJLm/DykhSjxpX+cghcigtQZksKxlLbVQcSiovKJf6x9xUhyMx5NmPS9s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DfmGjejm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QoYhaEqP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 98925C19425;
-	Fri, 24 Apr 2026 10:06:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DfmGjejm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D15A4C19425;
+	Fri, 24 Apr 2026 10:06:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777025191;
-	bh=GJ69FJBtCNXIt93qGmZSVM+7hoktZPy+/UsQrVdDZuw=;
+	s=korg; t=1777025193;
+	bh=5MMDBgOXMKggtQMAMBHVOOfPi5F5ZrZ5dj5IXXr6YIU=;
 	h=Date:To:From:Subject:From;
-	b=QoYhaEqPZCn8dLq/2xWhyef07/D2olJdTm40alQ2aYV+F/Akxe3Nr2GfoAeLpX9yn
-	 MlIV0G2BRB6vWzEbHZPOjgKnSvch5MnD1wYH9ZPRnS3f4qgz1xY6x0CnJ3UdepHU0K
-	 CyYz/4wyYwSD2CFquESyXy5QakgHABjbdh+2IQ+k=
-Date: Fri, 24 Apr 2026 03:06:31 -0700
+	b=DfmGjejmUe885F2VbxC3O2ZwsWVU7bSy7+CQf31+5sZt73WtL9xKJdDJyOeeW7TLl
+	 cWUGoK27OaAo1h+RZp9wMTfoEWR29ZG0C4wTqO7f29vArgLmbPNyDx4G0BOTebPYWN
+	 YLmXvOxKzgywGkNa3SdsDbffNYzfABep0xuR6bHU=
+Date: Fri, 24 Apr 2026 03:06:33 -0700
 To: mm-commits@vger.kernel.org,li.wang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftest-cgroup-fix-zswap-test_no_invasive_cgroup_shrink-on-large-pagesize-system.patch added to mm-new branch
-Message-Id: <20260424100631.98925C19425@smtp.kernel.org>
+Subject: + selftest-cgroup-fix-zswap-attempt_writeback-on-64k-pagesize-system.patch added to mm-new branch
+Message-Id: <20260424100633.D15A4C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftest/cgroup: fix zswap test_no_invasive_cgroup_shrink on large pagesize system
+     Subject: selftest/cgroup: fix zswap attempt_writeback() on 64K pagesize system
 has been added to the -mm mm-new branch.  Its filename is
-     selftest-cgroup-fix-zswap-test_no_invasive_cgroup_shrink-on-large-pagesize-system.patch
+     selftest-cgroup-fix-zswap-attempt_writeback-on-64k-pagesize-system.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-cgroup-fix-zswap-test_no_invasive_cgroup_shrink-on-large-pagesize-system.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftest-cgroup-fix-zswap-attempt_writeback-on-64k-pagesize-system.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,51 +70,50 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Li Wang <li.wang@linux.dev>
-Subject: selftest/cgroup: fix zswap test_no_invasive_cgroup_shrink on large pagesize system
-Date: Fri, 24 Apr 2026 12:00:57 +0800
+Subject: selftest/cgroup: fix zswap attempt_writeback() on 64K pagesize system
+Date: Fri, 24 Apr 2026 12:00:58 +0800
 
-test_no_invasive_cgroup_shrink sets up two cgroups: wb_group, which is
-expected to trigger zswap writeback, and a control group (renamed to
-zw_group), which should only have pages sitting in zswap without any
-writeback.
+In attempt_writeback(), a memsize of 4M only covers 64 pages on 64K page
+size systems.  When memory.reclaim is called, the kernel prefers
+reclaiming clean file pages (binary, libc, linker, etc.) over swapping
+anonymous pages.  With only 64 pages of anonymous memory, the reclaim
+target can be largely or entirely satisfied by dropping file pages,
+resulting in very few or zero anonymous pages being pushed into zswap.
 
-There are two problems with the current test:
+This causes zswap_usage to be extremely small or zero, making
+zswap_usage/4 insufficient to create meaningful writeback pressure.  The
+test then fails because no writeback is triggered.
 
-1) The data patterns are reversed. wb_group uses allocate_bytes(), which
-   writes only a single byte per page — trivially compressible,
-   especially by zstd — so compressed pages fit within zswap.max and
-   writeback is never triggered. Meanwhile, the control group uses
-   getrandom() to produce hard-to-compress data, but it is the group
-   that does *not* need writeback.
+On 4K page size systems this is not an issue because 4M covers 1024
+pages, and file pages are a small fraction of the reclaim target.
 
-2) The test uses fixed sizes (10K zswap.max, 10MB allocation) that are
-   too small on systems with large PAGE_SIZE (e.g. 64K), failing to
-   build enough memory pressure to trigger writeback reliably.
-
-Fix both issues by:
-  - Swapping the data patterns: fill wb_group pages with partially
-    random data (getrandom for page_size/4 bytes) to resist compression
-    and trigger writeback, and fill zw_group pages with simple repeated
-    data to stay compressed in zswap.
-  - Making all size parameters PAGE_SIZE-aware: set allocation size to
-    PAGE_SIZE * 1024, memory.zswap.max to PAGE_SIZE, and memory.max to
-    allocation_size / 2 for both cgroups.
-  - Allocating memory inline instead of via cg_run() so the pages
-    remain resident throughout the test.
+Fix this by:
+- Always allocating 1024 pages regardless of page size. This ensures
+  enough anonymous pages to reliably populate zswap and trigger
+  writeback, while keeping the original 4M allocation on 4K systems.
+- Setting zswap.max to zswap_usage/4 instead of zswap_usage/2 to
+  create stronger writeback pressure, ensuring reclaim reliably
+  triggers writeback even on large page size systems.
 
 === Error Log ===
- # getconf PAGESIZE
- 65536
+  # uname -rm
+  6.12.0-211.el10.ppc64le ppc64le
 
- # ./test_zswap
- TAP version 13
- ...
- ok 5 test_zswap_writeback_disabled
- ok 6 # SKIP test_no_kmem_bypass
- not ok 7 test_no_invasive_cgroup_shrink
+  # getconf PAGESIZE
+  65536
 
-Link: https://lore.kernel.org/20260424040059.12940-7-li.wang@linux.dev
+  # ./test_zswap
+  TAP version 13
+  1..7
+  ok 1 test_zswap_usage
+  ok 2 test_swapin_nozswap
+  ok 3 test_zswapin
+  not ok 4 test_zswap_writeback_enabled
+  ...
+
+Link: https://lore.kernel.org/20260424040059.12940-8-li.wang@linux.dev
 Signed-off-by: Li Wang <li.wang@linux.dev>
+Acked-by: Yosry Ahmed <yosry@kernel.org>
 Acked-by: Nhat Pham <nphamcs@gmail.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -123,121 +122,50 @@ Cc: Muchun Song <muchun.song@linux.dev>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Yosry Ahmed <yosryahmed@google.com>
 Cc: Chengming Zhou <chengming.zhou@linux.dev>
 Cc: Jiayuan Chen <jiayuan.chen@linux.dev>
 Cc: Waiman Long <longman@redhat.com>
-Cc: Yosry Ahmed <yosry@kernel.org>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_zswap.c |   72 ++++++++++++------
- 1 file changed, 50 insertions(+), 22 deletions(-)
+ tools/testing/selftests/cgroup/test_zswap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/cgroup/test_zswap.c~selftest-cgroup-fix-zswap-test_no_invasive_cgroup_shrink-on-large-pagesize-system
+--- a/tools/testing/selftests/cgroup/test_zswap.c~selftest-cgroup-fix-zswap-attempt_writeback-on-64k-pagesize-system
 +++ a/tools/testing/selftests/cgroup/test_zswap.c
-@@ -11,6 +11,7 @@
- #include <string.h>
- #include <sys/wait.h>
- #include <sys/mman.h>
-+#include <sys/random.h>
- 
- #include "kselftest.h"
- #include "cgroup_util.h"
-@@ -426,44 +427,71 @@ static int test_zswap_writeback_disabled
- static int test_no_invasive_cgroup_shrink(const char *root)
+@@ -268,14 +268,14 @@ out:
+       This will move it into zswap.
+  * 3. Save current zswap usage.
+  * 4. Move the memory allocated in step 1 back in from zswap.
+- * 5. Set zswap.max to half the amount that was recorded in step 3.
++ * 5. Set zswap.max to 1/4 of the amount that was recorded in step 3.
+  * 6. Attempt to reclaim memory equal to the amount that was allocated,
+       this will either trigger writeback if it's enabled, or reclamation
+       will fail if writeback is disabled as there isn't enough zswap space.
+  */
+ static int attempt_writeback(const char *cgroup, void *arg)
  {
- 	int ret = KSFT_FAIL;
--	size_t control_allocation_size = MB(10);
--	char *control_allocation = NULL, *wb_group = NULL, *control_group = NULL;
-+	unsigned int off;
-+	size_t allocation_size = page_size * 1024;
-+	unsigned int nr_pages = allocation_size / page_size;
-+	char zswap_max_buf[32], mem_max_buf[32];
-+	char *zw_allocation = NULL, *wb_allocation = NULL;
-+	char *zw_group = NULL, *wb_group = NULL;
-+
-+	snprintf(zswap_max_buf, sizeof(zswap_max_buf), "%d", page_size);
-+	snprintf(mem_max_buf, sizeof(mem_max_buf), "%zu", allocation_size / 2);
+-	size_t memsize = MB(4);
++	size_t memsize = page_size * 1024;
+ 	char buf[page_size];
+ 	long zswap_usage;
+ 	bool wb_enabled = *(bool *) arg;
+@@ -313,12 +313,12 @@ static int attempt_writeback(const char
+ 		}
+ 	}
  
- 	wb_group = setup_test_group_1M(root, "per_memcg_wb_test1");
- 	if (!wb_group)
- 		return KSFT_FAIL;
--	if (cg_write(wb_group, "memory.zswap.max", "10K"))
-+	if (cg_write(wb_group, "memory.zswap.max", zswap_max_buf))
- 		goto out;
--	control_group = setup_test_group_1M(root, "per_memcg_wb_test2");
--	if (!control_group)
-+	if (cg_write(wb_group, "memory.max", mem_max_buf))
+-	if (cg_write_numeric(cgroup, "memory.zswap.max", zswap_usage/2))
++	if (cg_write_numeric(cgroup, "memory.zswap.max", zswap_usage/4))
  		goto out;
  
--	/* Push some test_group2 memory into zswap */
--	if (cg_enter_current(control_group))
-+	zw_group = setup_test_group_1M(root, "per_memcg_wb_test2");
-+	if (!zw_group)
- 		goto out;
--	control_allocation = malloc(control_allocation_size);
--	for (int i = 0; i < control_allocation_size; i += page_size)
--		control_allocation[i] = 'a';
--	if (cg_read_key_long(control_group, "memory.stat", "zswapped") < 1)
-+	if (cg_write(zw_group, "memory.max", mem_max_buf))
- 		goto out;
- 
--	/* Allocate 10x memory.max to push wb_group memory into zswap and trigger wb */
--	if (cg_run(wb_group, allocate_bytes, (void *)MB(10)))
-+	/* Push some zw_group memory into zswap (simple data, easy to compress) */
-+	if (cg_enter_current(zw_group))
-+		goto out;
-+	zw_allocation = malloc(allocation_size);
-+	for (int i = 0; i < nr_pages; i++) {
-+		off = (unsigned long)i * page_size;
-+		memset(&zw_allocation[off], 0, page_size);
-+		memset(&zw_allocation[off], 'a', page_size/4);
-+	}
-+	if (cg_read_key_long(zw_group, "memory.stat", "zswapped") < 1)
- 		goto out;
- 
-+	/* Push wb_group memory into zswap with hard-to-compress data to trigger wb */
-+	if (cg_enter_current(wb_group))
-+		goto out;
-+	wb_allocation = malloc(allocation_size);
-+	if (!wb_allocation)
-+		goto out;
-+	for (int i = 0; i < nr_pages; i++) {
-+		off = (unsigned long)i * page_size;
-+		memset(&wb_allocation[off], 0, page_size);
-+		getrandom(&wb_allocation[off], page_size/4, 0);
-+	}
-+
- 	/* Verify that only zswapped memory from gwb_group has been written back */
--	if (get_cg_wb_count(wb_group) > 0 && get_cg_wb_count(control_group) == 0)
-+	if (get_cg_wb_count(wb_group) > 0 && get_cg_wb_count(zw_group) == 0)
- 		ret = KSFT_PASS;
- out:
- 	cg_enter_current(root);
--	if (control_group) {
--		cg_destroy(control_group);
--		free(control_group);
--	}
--	cg_destroy(wb_group);
--	free(wb_group);
--	if (control_allocation)
--		free(control_allocation);
-+	if (zw_group) {
-+		cg_destroy(zw_group);
-+		free(zw_group);
-+	}
-+	if (wb_group) {
-+		cg_destroy(wb_group);
-+		free(wb_group);
-+	}
-+	if (zw_allocation)
-+		free(zw_allocation);
-+	if (wb_allocation)
-+		free(wb_allocation);
- 	return ret;
- }
- 
+ 	/*
+ 	 * If writeback is enabled, trying to reclaim memory now will trigger a
+-	 * writeback as zswap.max is half of what was needed when reclaim ran the first time.
++	 * writeback as zswap.max is 1/4 of what was needed when reclaim ran the first time.
+ 	 * If writeback is disabled, memory reclaim will fail as zswap is limited and
+ 	 * it can't writeback to swap.
+ 	 */
 _
 
 Patches currently in -mm which might be from li.wang@linux.dev are
