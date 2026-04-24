@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1BA23E1D19
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 16:43:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E87E33D6F9
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 17:10:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777048989; cv=none; b=ZcTcnl+cIF6OMU0WOHVUluJfyDSsCe2psQIbEwpWbcrSeu6Mh+EMoXBF6kmoZZbGkI2mgGYrIRjKMajihNa/2VChmtk2QFPF2TvYdagty9omA8qiDhiUxI4GLCsZJguwp2KEBMwEpQcfvBftI8N9TvY3Vf1wGLXujRzimxqvzgc=
+	t=1777050606; cv=none; b=AwNZqyu4OVQQ6/B94EvfbjqFwVO78eYtljo38trDxWFjMpubrpbprXCeSKl5cCCferwsd6jTQ6KPR9jWf/r17c4/sevhje9LpGz7wViPIj3zWrkfwJw4RIlVOTFG+fFe/DRNQd/xnasxmrtQFCubudCcv77PZIuBh58Oy3F7ACU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777048989; c=relaxed/simple;
-	bh=wLaJffuqaPwzRy7TWKtfpbfCYAvWMYcaTdq5ehz6lOk=;
-	h=Date:To:From:Subject:Message-Id; b=bDJbJDSCT1ICvrVcClVagz0ACnCbkTrLcMXtuiRbIJFkVCMw+2SYDdkbw7ldXZ2Ve2GaHTptj2E37OMVKuHA9Cj7zQN3x/5s5pxnaxNEJ8cnCImX7+nrszjRn/eeE2OL7AHcdb6T8FzXuGxP5Inq98ZWIQFsECCG3WwwquHuepk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2nlunKrb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777050606; c=relaxed/simple;
+	bh=WUJ/UfeKU4t4PotHi1skhEfQAOJ478w/8w4mDRN8+zY=;
+	h=Date:To:From:Subject:Message-Id; b=rMLk5l65sRU70RMVDKit0HdJ57HtYfXYIZT8/LMGLev3nK0kvlMoLjtDrAy4dS5rhfGmMu/sblQai76bau7dJx2EY8GDj5297fXmHVB/Ci9UkrOokH9+DRoFjA+X5nO30OvLf6sUEqT6J0t69w0y3SEwpqufDYkeZyThkQrvfVM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QMbCn9sw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2nlunKrb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78D57C19425;
-	Fri, 24 Apr 2026 16:43:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QMbCn9sw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96147C2BCB2;
+	Fri, 24 Apr 2026 17:10:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777048989;
-	bh=wLaJffuqaPwzRy7TWKtfpbfCYAvWMYcaTdq5ehz6lOk=;
+	s=korg; t=1777050605;
+	bh=WUJ/UfeKU4t4PotHi1skhEfQAOJ478w/8w4mDRN8+zY=;
 	h=Date:To:From:Subject:From;
-	b=2nlunKrbSFoydGhoztb/r5IqTC5ONcNq+tMOSuG9I3n0lo2cMFk3QXgcVdlKgGWzo
-	 S5QOAcSA7EihJHJMy/pqgPKEyIsC1OIu921fkz76vbUKnP0gHP+8mlVf1MVQ+4E15k
-	 v9uR6/s+Nbk8dgs7A/60ZmRHaLj3qrpTUlIQxYFI=
-Date: Fri, 24 Apr 2026 09:43:08 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,wang.yaxin@zte.com.cn,thomas.orgis@uni-hamburg.de,oleg@redhat.com,balbirs@nvidia.com,cyyzero16@gmail.com,akpm@linux-foundation.org
+	b=QMbCn9sw4U5ezjIIy12SAvovZaBKNZTef9MOccw4uhDQdG28gJwZdO+axeAIw8sVq
+	 x3JjAIHfHX19PL9iyG7NfOBm+r/QcZAsbX2y5rywnFjeN9rBcIJYBNtMZb5sZnszvL
+	 2jTd4kJ8Pm87uYARKXmHwa0yPu5LjmGCNldaNchk=
+Date: Fri, 24 Apr 2026 10:10:04 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,rdunlap@infradead.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-acct-add-taskstats-tgid-retention-test.patch added to mm-nonmm-unstable branch
-Message-Id: <20260424164309.78D57C19425@smtp.kernel.org>
+Subject: + docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch added to mm-new branch
+Message-Id: <20260424171005.96147C2BCB2@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/acct: add taskstats TGID retention test
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     selftests-acct-add-taskstats-tgid-retention-test.patch
+     Subject: Docs/mm/damon/maintainer-profile: add AI review usage guideline
+has been added to the -mm mm-new branch.  Its filename is
+     docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-acct-add-taskstats-tgid-retention-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,442 +69,66 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Yiyang Chen <cyyzero16@gmail.com>
-Subject: selftests/acct: add taskstats TGID retention test
-Date: Mon, 13 Apr 2026 23:45:45 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/mm/damon/maintainer-profile: add AI review usage guideline
+Date: Sun, 12 Apr 2026 14:19:31 -0700
 
-Add a kselftest for the taskstats TGID aggregation fix.
+DAMON is opted-in for DAMON patches scanning [1] and email delivery [2]. 
+Clarify how that could be used on DAMON maintainer profile.
 
-The test creates a worker thread, snapshots TGID taskstats while the
-worker is still alive, lets the worker exit, and then verifies that the
-TGID CPU total does not regress after the thread has been reaped.
-
-The pass/fail check intentionally keys off ac_utime + ac_stime only, which
-is the primary user-visible regression fixed by the taskstats change and
-is less sensitive to scheduling noise than context-switch counters.
-
-Link: https://lore.kernel.org/0d55354911c54cd1b9f10a09f6fd378af85c8d43.1776094300.git.cyyzero16@gmail.com
-Signed-off-by: Yiyang Chen <cyyzero16@gmail.com>
-Acked-by: Balbir Singh <balbirs@nvidia.com>
-Cc: Dr. Thomas Orgis <thomas.orgis@uni-hamburg.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Link: https://lore.kernel.org/20260412211932.89038-1-sj@kernel.org
+Link: https://github.com/sashiko-dev/sashiko/commit/ad9f4a98f958 [1]
+Link: https://github.com/sashiko-dev/sashiko/commit/b554c7b6e733 [2]
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/acct/.gitignore                  |    3 
- tools/testing/selftests/acct/Makefile                    |    5 
- tools/testing/selftests/acct/taskstats_fill_stats_tgid.c |  375 ++++++++++
- 3 files changed, 381 insertions(+), 2 deletions(-)
+ Documentation/mm/damon/maintainer-profile.rst |   21 ++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
---- a/tools/testing/selftests/acct/.gitignore~selftests-acct-add-taskstats-tgid-retention-test
-+++ a/tools/testing/selftests/acct/.gitignore
-@@ -1,3 +1,4 @@
- acct_syscall
-+taskstats_fill_stats_tgid
- config
--process_log
-\ No newline at end of file
-+process_log
---- a/tools/testing/selftests/acct/Makefile~selftests-acct-add-taskstats-tgid-retention-test
-+++ a/tools/testing/selftests/acct/Makefile
-@@ -1,5 +1,8 @@
- # SPDX-License-Identifier: GPL-2.0
- TEST_GEN_PROGS := acct_syscall
-+TEST_GEN_PROGS += taskstats_fill_stats_tgid
-+
- CFLAGS += -Wall
-+LDLIBS += -lpthread
- 
--include ../lib.mk
-\ No newline at end of file
-+include ../lib.mk
-diff --git a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c
-@@ -0,0 +1,375 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#define _GNU_SOURCE
-+
-+#include <errno.h>
-+#include <linux/genetlink.h>
-+#include <linux/netlink.h>
-+#include <linux/taskstats.h>
-+#include <pthread.h>
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/socket.h>
-+#include <sys/types.h>
-+#include <time.h>
-+#include <unistd.h>
-+
-+#include "kselftest.h"
-+
-+#ifndef NLA_ALIGN
-+#define NLA_ALIGNTO 4
-+#define NLA_ALIGN(len) (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
-+#define NLA_HDRLEN ((int)NLA_ALIGN(sizeof(struct nlattr)))
-+#endif
-+
-+#define BUSY_NS (200ULL * 1000 * 1000)
-+
-+struct worker_ctx {
-+	pthread_mutex_t lock;
-+	pthread_cond_t cond;
-+	bool ready;
-+	bool release;
-+};
-+
-+static unsigned long busy_sink;
-+
-+static void *taskstats_nla_data(const struct nlattr *na)
-+{
-+	return (void *)((char *)na + NLA_HDRLEN);
-+}
-+
-+static bool taskstats_nla_ok(const struct nlattr *na, int remaining)
-+{
-+	return remaining >= (int)sizeof(*na) &&
-+	       na->nla_len >= sizeof(*na) &&
-+	       na->nla_len <= remaining;
-+}
-+
-+static struct nlattr *taskstats_nla_next(const struct nlattr *na, int *remaining)
-+{
-+	int aligned_len = NLA_ALIGN(na->nla_len);
-+
-+	*remaining -= aligned_len;
-+	return (struct nlattr *)((char *)na + aligned_len);
-+}
-+
-+static uint64_t timespec_diff_ns(const struct timespec *start,
-+				 const struct timespec *end)
-+{
-+	return (uint64_t)(end->tv_sec - start->tv_sec) * 1000000000ULL +
-+	       (uint64_t)(end->tv_nsec - start->tv_nsec);
-+}
-+
-+static void burn_cpu_for_ns(uint64_t runtime_ns)
-+{
-+	struct timespec start, now;
-+	unsigned long acc = 0;
-+
-+	if (clock_gettime(CLOCK_MONOTONIC, &start)) {
-+		perror("clock_gettime");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	do {
-+		for (int i = 0; i < 100000; i++)
-+			acc += i;
-+		if (clock_gettime(CLOCK_MONOTONIC, &now)) {
-+			perror("clock_gettime");
-+			exit(EXIT_FAILURE);
-+		}
-+	} while (timespec_diff_ns(&start, &now) < runtime_ns);
-+
-+	busy_sink = acc;
-+}
-+
-+static int netlink_open(void)
-+{
-+	struct sockaddr_nl addr = {
-+		.nl_family = AF_NETLINK,
-+		.nl_pid = getpid(),
-+	};
-+	int fd;
-+
-+	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
-+	if (fd < 0)
-+		return -errno;
-+
-+	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-+		int err = -errno;
-+
-+		close(fd);
-+		return err;
-+	}
-+
-+	return fd;
-+}
-+
-+static int send_request(int fd, void *buf, size_t len)
-+{
-+	struct sockaddr_nl addr = {
-+		.nl_family = AF_NETLINK,
-+	};
-+
-+	if (sendto(fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-+		return -errno;
-+
-+	return 0;
-+}
-+
-+static int get_family_id(int fd, const char *name)
-+{
-+	struct {
-+		struct nlmsghdr nlh;
-+		struct genlmsghdr genl;
-+		char buf[256];
-+	} req = { 0 };
-+	char resp[8192];
-+	struct nlmsghdr *nlh;
-+	struct genlmsghdr *genl;
-+	struct nlattr *na;
-+	int len;
-+	int rem;
-+	int ret;
-+
-+	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
-+	req.nlh.nlmsg_type = GENL_ID_CTRL;
-+	req.nlh.nlmsg_flags = NLM_F_REQUEST;
-+	req.nlh.nlmsg_seq = 1;
-+	req.nlh.nlmsg_pid = getpid();
-+
-+	req.genl.cmd = CTRL_CMD_GETFAMILY;
-+	req.genl.version = 1;
-+
-+	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
-+	na->nla_type = CTRL_ATTR_FAMILY_NAME;
-+	na->nla_len = NLA_HDRLEN + strlen(name) + 1;
-+	memcpy(taskstats_nla_data(na), name, strlen(name) + 1);
-+	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
-+
-+	ret = send_request(fd, &req, req.nlh.nlmsg_len);
-+	if (ret)
-+		return ret;
-+
-+	len = recv(fd, resp, sizeof(resp), 0);
-+	if (len < 0)
-+		return -errno;
-+
-+	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
-+	     nlh = NLMSG_NEXT(nlh, len)) {
-+		if (nlh->nlmsg_type == NLMSG_ERROR) {
-+			struct nlmsgerr *err = NLMSG_DATA(nlh);
-+
-+			return err->error ? err->error : -ENOENT;
-+		}
-+
-+		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
-+		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
-+		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
-+		while (taskstats_nla_ok(na, rem)) {
-+			if (na->nla_type == CTRL_ATTR_FAMILY_ID)
-+				return *(uint16_t *)taskstats_nla_data(na);
-+			na = taskstats_nla_next(na, &rem);
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static int get_taskstats(int fd, int family_id, uint16_t attr_type, uint32_t id,
-+			 struct taskstats *stats)
-+{
-+	struct {
-+		struct nlmsghdr nlh;
-+		struct genlmsghdr genl;
-+		char buf[256];
-+	} req = { 0 };
-+	char resp[16384];
-+	struct nlmsghdr *nlh;
-+	struct genlmsghdr *genl;
-+	struct nlattr *na;
-+	struct nlattr *nested;
-+	int len;
-+	int rem;
-+	int nrem;
-+	int ret;
-+
-+	memset(stats, 0, sizeof(*stats));
-+
-+	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
-+	req.nlh.nlmsg_type = family_id;
-+	req.nlh.nlmsg_flags = NLM_F_REQUEST;
-+	req.nlh.nlmsg_seq = 2;
-+	req.nlh.nlmsg_pid = getpid();
-+
-+	req.genl.cmd = TASKSTATS_CMD_GET;
-+	req.genl.version = 1;
-+
-+	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
-+	na->nla_type = attr_type;
-+	na->nla_len = NLA_HDRLEN + sizeof(id);
-+	memcpy(taskstats_nla_data(na), &id, sizeof(id));
-+	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
-+
-+	ret = send_request(fd, &req, req.nlh.nlmsg_len);
-+	if (ret)
-+		return ret;
-+
-+	len = recv(fd, resp, sizeof(resp), 0);
-+	if (len < 0)
-+		return -errno;
-+
-+	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
-+	     nlh = NLMSG_NEXT(nlh, len)) {
-+		if (nlh->nlmsg_type == NLMSG_ERROR) {
-+			struct nlmsgerr *err = NLMSG_DATA(nlh);
-+
-+			return err->error ? err->error : -ENOENT;
-+		}
-+
-+		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
-+		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
-+		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
-+		while (taskstats_nla_ok(na, rem)) {
-+			if (na->nla_type == TASKSTATS_TYPE_AGGR_PID ||
-+			    na->nla_type == TASKSTATS_TYPE_AGGR_TGID) {
-+				nested = (struct nlattr *)taskstats_nla_data(na);
-+				nrem = na->nla_len - NLA_HDRLEN;
-+				while (taskstats_nla_ok(nested, nrem)) {
-+					if (nested->nla_type == TASKSTATS_TYPE_STATS) {
-+						memcpy(stats, taskstats_nla_data(nested),
-+						       sizeof(*stats));
-+						return 0;
-+					}
-+					nested = taskstats_nla_next(nested, &nrem);
-+				}
-+			}
-+			na = taskstats_nla_next(na, &rem);
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static uint64_t cpu_total(const struct taskstats *stats)
-+{
-+	return (uint64_t)stats->ac_utime + (uint64_t)stats->ac_stime;
-+}
-+
-+static void print_stats(const char *label, const struct taskstats *stats)
-+{
-+	ksft_print_msg("%s: cpu_total=%llu nvcsw=%llu nivcsw=%llu\n",
-+		       label, (unsigned long long)cpu_total(stats),
-+		       (unsigned long long)stats->nvcsw,
-+		       (unsigned long long)stats->nivcsw);
-+}
-+
-+static void *worker_thread(void *arg)
-+{
-+	struct worker_ctx *ctx = arg;
-+
-+	burn_cpu_for_ns(BUSY_NS);
-+
-+	pthread_mutex_lock(&ctx->lock);
-+	ctx->ready = true;
-+	pthread_cond_broadcast(&ctx->cond);
-+	while (!ctx->release)
-+		pthread_cond_wait(&ctx->cond, &ctx->lock);
-+	pthread_mutex_unlock(&ctx->lock);
-+
-+	return NULL;
-+}
-+
-+int main(void)
-+{
-+	struct worker_ctx ctx = {
-+		.lock = PTHREAD_MUTEX_INITIALIZER,
-+		.cond = PTHREAD_COND_INITIALIZER,
-+	};
-+	struct taskstats before, after;
-+	pthread_t thread;
-+	pid_t tgid = getpid();
-+	int family_id;
-+	int fd;
-+	int ret;
-+
-+	ksft_print_header();
-+	ksft_set_plan(1);
-+
-+	if (geteuid())
-+		ksft_exit_skip("taskstats_fill_stats_tgid needs root\n");
-+
-+	fd = netlink_open();
-+	if (fd < 0)
-+		ksft_exit_skip("failed to open generic netlink socket: %s\n",
-+			       strerror(-fd));
-+
-+	family_id = get_family_id(fd, TASKSTATS_GENL_NAME);
-+	if (family_id < 0)
-+		ksft_exit_skip("taskstats generic netlink family unavailable: %s\n",
-+			       strerror(-family_id));
-+
-+	/* Create worker thread that burns 200ms of CPU */
-+	if (pthread_create(&thread, NULL, worker_thread, &ctx) != 0)
-+		ksft_exit_fail_msg("pthread_create failed: %s\n", strerror(errno));
-+
-+	/* Wait for worker to finish generating activity */
-+	pthread_mutex_lock(&ctx.lock);
-+	while (!ctx.ready)
-+		pthread_cond_wait(&ctx.cond, &ctx.lock);
-+	pthread_mutex_unlock(&ctx.lock);
-+
-+	/*
-+	 * Snapshot A: TGID stats while worker is alive and sleeping.
-+	 * Contains main thread + worker contributions.
-+	 */
-+	ret = get_taskstats(fd, family_id, TASKSTATS_CMD_ATTR_TGID, tgid, &before);
-+	if (ret)
-+		ksft_exit_fail_msg("TGID query before exit failed: %s\n",
-+				   strerror(-ret));
-+
-+	/* Release worker so it can exit, then join (deterministic wait).
-+	 *
-+	 * Kernel exit path ordering guarantees:
-+	 *   do_exit()
-+	 *     taskstats_exit() -> fill_tgid_exit()  (accumulates worker into signal->stats)
-+	 *     exit_notify()                         (releases the thread)
-+	 *     do_task_dead() -> __schedule()        (wakes joiner)
-+	 *
-+	 * So pthread_join() returns only after fill_tgid_exit() has completed.
-+	 */
-+	pthread_mutex_lock(&ctx.lock);
-+	ctx.release = true;
-+	pthread_cond_broadcast(&ctx.cond);
-+	pthread_mutex_unlock(&ctx.lock);
-+
-+	pthread_join(thread, NULL);
-+
-+	/*
-+	 * Snapshot B: TGID stats after worker has exited.
-+	 * fill_stats_for_tgid() does:
-+	 *   memcpy(signal->stats)   <- includes fill_tgid_exit accumulation
-+	 *   + scan live threads      <- only main thread now
-+	 */
-+	ret = get_taskstats(fd, family_id, TASKSTATS_CMD_ATTR_TGID, tgid, &after);
-+	if (ret)
-+		ksft_exit_fail_msg("TGID query after exit failed: %s\n",
-+				   strerror(-ret));
-+
-+	print_stats("TGID before worker exit", &before);
-+	print_stats("TGID after  worker exit", &after);
-+
-+	/*
-+	 * The worker burned 200ms of CPU before the first snapshot.
-+	 * If the kernel correctly retained its contribution via
-+	 * fill_tgid_exit(), then the TGID CPU total after exit must be at
-+	 * least as large as the TGID CPU total before exit.
-+	 */
-+	ksft_test_result(cpu_total(&after) >= cpu_total(&before),
-+			 "TGID CPU stats should not regress after thread exit\n");
-+
-+	close(fd);
-+	ksft_finished();
-+	return ksft_get_fail_cnt() ? KSFT_FAIL : KSFT_PASS;
-+}
+--- a/Documentation/mm/damon/maintainer-profile.rst~docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline
++++ a/Documentation/mm/damon/maintainer-profile.rst
+@@ -100,3 +100,24 @@ There is also a public Google `calendar
+ <https://calendar.google.com/calendar/u/0?cid=ZDIwOTA4YTMxNjc2MDQ3NTIyMmUzYTM5ZmQyM2U4NDA0ZGIwZjBiYmJlZGQxNDM0MmY4ZTRjOTE0NjdhZDRiY0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t>`_
+ that has the events.  Anyone can subscribe to it.  DAMON maintainer will also
+ provide periodic reminders to the mailing list (damon@lists.linux.dev).
++
++AI Review
++---------
++
++For patches that are publicly posted to DAMON mailing list
++(damon@lists.linux.dev), AI reviews of the patches will be available at
++sashiko.dev.  The reviews could also be sent as mails to the author of the
++patch.
++
++Patch authors are encouraged to check the AI reviews and share their opinions.
++The sharing could be done as a reply to the mail thread.  Consider reducing the
++recipients list for such sharing, since some people are not really interested
++in AI reviews.  As a rule of thumb, drop stable@vger.kernel.org and individuals
++except DAMON maintainer.
++
++`hkml` also provides a `feature
++<https://github.com/sjp38/hackermail/blob/master/USAGE.md#forwarding-sashikodev-statuscomments-to-mailing-list>`_
++for such sharing.  Please feel free to use the feature.
++
++It is only an optional recommendation.  DAMON maintainer could also ask any
++question about the AI reviews, though.
 _
 
-Patches currently in -mm which might be from cyyzero16@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-tools-accounting-getdelays-fix-wformat-truncation-warning-in-format_timespec.patch
-taskstats-retain-dead-thread-stats-in-tgid-queries.patch
-selftests-acct-add-taskstats-tgid-retention-test.patch
+mm-damon-sysfs-schemes-protect-memcg_path-kfree-with-damon_sysfs_lock.patch
+mm-damon-sysfs-schemes-protect-path-kfree-with-damon_sysfs_lock.patch
+mm-damon-reclaim-detect-and-use-fresh-enabled-and-kdamond_pid-values.patch
+mm-damon-lru_sort-detect-and-use-fresh-enabled-and-kdamond_pid-values.patch
+mm-damon-stat-detect-and-use-fresh-enabled-value.patch
+docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
 
