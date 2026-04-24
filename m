@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF8083EE1D7
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 18:13:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F44E335575
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 18:14:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777054408; cv=none; b=WkJjCJ6Rjiqo1NyXJYN7gDFHvBT02XFOP+09ymCrWtjSpo+VxuicVcDIgEH6vTtOzsxk2EvuV0/Tqeksp2J7xnZKau1p9e/PXerS+i2ivzV8TAkQgp7OkwRIif+w3ZWfasuPrjKJxxua8cbAm2zKA2KD+KK3PEZX3aTYzd6dNJA=
+	t=1777054471; cv=none; b=TbsVzzCMaZ8ohsobA4eIJMmrA6oQhYizLS1gSuCk6rEzr3R7YUKQLbH6OE8GpKY8x2uRy5eARDAz6ig7Up3YqWgU9+42X18nWPZpMdEa8M4SrNTVhwPjaembRar4MiFtOTyYFJUXI5VGe/CW+5PBoyZwL1aP9KyxmITRQZWUmtw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777054408; c=relaxed/simple;
-	bh=EKiZuUDSSNLMD61RA4yzIcl+7qblhPv7XW6Sn0311UE=;
-	h=Date:To:From:Subject:Message-Id; b=l9q6qswiFzYW12UlDR+0k2roSuxDbJ4d/qbky1WBy4ca6VVoLgW0OY7PHuwgKTzQFTChEN4R+AQn3zBV3NxA+8A6S4bKn+CdjP+EMq5zz2O48h8bciYCsmd3NRi1KvFnNL6+ieMz24Mg5icW7rgu82zFsQdKwbz1jUqvX/tHGSw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vvH8xPWc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777054471; c=relaxed/simple;
+	bh=H2f6rdIZNF4Arr4BzdQjqMiHFxqY1G+5Za0uoKoIOZw=;
+	h=Date:To:From:Subject:Message-Id; b=bR5BSscV75btPAub01P7s5gVYeumRj9hYamO8Oz6OdRuO7P4vVJZQUlUkgETJl8mKhU+aMoChXi0qWuAnTebY2hNw6CCpP+z2UpfjhGLLuhikZ6xr3RuJlC18+m9K4YuyUOPwdM4CZVdDHFut7cRtZFYlPY1Z7VfBvKMxwgOEsQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rgsjjB2Z; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vvH8xPWc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8757FC19425;
-	Fri, 24 Apr 2026 18:13:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rgsjjB2Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5FC3C2BCB0;
+	Fri, 24 Apr 2026 18:14:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777054408;
-	bh=EKiZuUDSSNLMD61RA4yzIcl+7qblhPv7XW6Sn0311UE=;
+	s=korg; t=1777054471;
+	bh=H2f6rdIZNF4Arr4BzdQjqMiHFxqY1G+5Za0uoKoIOZw=;
 	h=Date:To:From:Subject:From;
-	b=vvH8xPWcs5sJ5FqXvJQwxmbzWW5c1NvG0dz/i/sBXKftle5nVsfqvqfKBfotrwvZz
-	 TO6erC5RmKCZosfbyFNQymtxOioANoN1i4JkWA6BRi5CpbCo1waHWyxxMl2qX/4ZeR
-	 hNqqQ2n5/wva9nf5M+z2m82ZXep+rCNoekVLD3y8=
-Date: Fri, 24 Apr 2026 11:13:27 -0700
-To: mm-commits@vger.kernel.org,rostedt@goodmis.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,david@davidgow.net,shuvampandey1@gmail.com,akpm@linux-foundation.org
+	b=rgsjjB2ZBMiy8ZbSyi5+slt5wE08eKOpNpHBcyLU15eytHUlOXw3mQ+pRcF1Yl5Ct
+	 ODAS3nDbY5DmdGURuFT7wdFPCS3nz1nEHZVyr8W0FqPf3qDySjlGc1cM8WaTALo9JP
+	 SFeDAlNltTpw4LCOacPURV/fE/xafPLKHZyR6gvA=
+Date: Fri, 24 Apr 2026 11:14:30 -0700
+To: mm-commits@vger.kernel.org,joe@perches.com,sashal@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + seq_buf-export-seq_buf_putmem_hex-and-add-kunit-tests.patch added to mm-nonmm-unstable branch
-Message-Id: <20260424181328.8757FC19425@smtp.kernel.org>
+Subject: + get_maintainer-add-json-output-mode.patch added to mm-nonmm-unstable branch
+Message-Id: <20260424181430.E5FC3C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: seq_buf: export seq_buf_putmem_hex() and add KUnit tests
+     Subject: get_maintainer: add --json output mode
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     seq_buf-export-seq_buf_putmem_hex-and-add-kunit-tests.patch
+     get_maintainer-add-json-output-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/seq_buf-export-seq_buf_putmem_hex-and-add-kunit-tests.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/get_maintainer-add-json-output-mode.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,96 +58,152 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shuvam Pandey <shuvampandey1@gmail.com>
-Subject: seq_buf: export seq_buf_putmem_hex() and add KUnit tests
-Date: Thu, 9 Apr 2026 02:08:51 +0545
+From: Sasha Levin <sashal@kernel.org>
+Subject: get_maintainer: add --json output mode
+Date: Wed, 8 Apr 2026 15:45:42 -0400
 
-The seq_buf KUnit suite does not exercise seq_buf_putmem_hex().
+Add a --json flag to get_maintainer.pl that emits structured JSON output,
+making results machine-parseable for CI systems, IDE integrations, and
+AI-assisted development tools.
 
-Add one test for the len > 8 chunking path and one overflow test where a
-later chunk no longer fits in the buffer.
+The JSON output includes a maintainers array with structured name, email,
+and role fields, plus optional arrays for scm, status, subsystem, web, and
+bug information when those flags are enabled.
 
-Export seq_buf_putmem_hex() as well so SEQ_BUF_KUNIT_TEST=m links cleanly.
-Without the export, modpost reports seq_buf_putmem_hex as undefined when
-seq_buf_kunit is built as a module.
+Normal text output behavior is completely unchanged when --json is not
+specified.
 
-Link: https://lore.kernel.org/20260408202351.21829-1-shuvampandey1@gmail.com
-Signed-off-by: Shuvam Pandey <shuvampandey1@gmail.com>
-Acked-by: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: David Gow <david@davidgow.net>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Assisted-by: Claude:claude-opus-4-6
+Link: https://lore.kernel.org/20260408194542.1354549-1-sashal@kernel.org
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/seq_buf.c             |    1 +
- lib/tests/seq_buf_kunit.c |   34 ++++++++++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+)
+ scripts/get_maintainer.pl |   75 +++++++++++++++++++++---------------
+ 1 file changed, 44 insertions(+), 31 deletions(-)
 
---- a/lib/seq_buf.c~seq_buf-export-seq_buf_putmem_hex-and-add-kunit-tests
-+++ a/lib/seq_buf.c
-@@ -298,6 +298,7 @@ int seq_buf_putmem_hex(struct seq_buf *s
- 	}
- 	return 0;
+--- a/scripts/get_maintainer.pl~get_maintainer-add-json-output-mode
++++ a/scripts/get_maintainer.pl
+@@ -21,6 +21,7 @@ use Cwd;
+ use File::Find;
+ use File::Spec::Functions;
+ use open qw(:std :encoding(UTF-8));
++use JSON::PP;
+ 
+ my $cur_path = fastgetcwd() . '/';
+ my $lk_path = "./";
+@@ -68,6 +69,7 @@ my $pattern_depth = 0;
+ my $self_test = undef;
+ my $version = 0;
+ my $help = 0;
++my $json = 0;
+ my $find_maintainer_files = 0;
+ my $maintainer_path;
+ my $vcs_used = 0;
+@@ -285,6 +287,7 @@ if (!GetOptions(
+ 		'find-maintainer-files' => \$find_maintainer_files,
+ 		'mpath|maintainer-path=s' => \$maintainer_path,
+ 		'self-test:s' => \$self_test,
++		'json!' => \$json,
+ 		'v|version' => \$version,
+ 		'h|help|usage' => \$help,
+ 		)) {
+@@ -650,39 +653,48 @@ my %deduplicate_name_hash = ();
+ my %deduplicate_address_hash = ();
+ 
+ my @maintainers = get_maintainers();
+-if (@maintainers) {
+-    @maintainers = merge_email(@maintainers);
+-    output(@maintainers);
+-}
+-
+-if ($scm) {
+-    @scm = uniq(@scm);
+-    output(@scm);
+-}
+-
+-if ($output_substatus) {
+-    @substatus = uniq(@substatus);
+-    output(@substatus);
+-}
+-
+-if ($status) {
+-    @status = uniq(@status);
+-    output(@status);
+-}
+ 
+-if ($subsystem) {
+-    @subsystem = uniq(@subsystem);
+-    output(@subsystem);
+-}
+-
+-if ($web) {
+-    @web = uniq(@web);
+-    output(@web);
+-}
++@maintainers = merge_email(@maintainers) if (@maintainers);
++@scm = uniq(@scm) if ($scm);
++@substatus = uniq(@substatus) if ($output_substatus);
++@status = uniq(@status) if ($status);
++@subsystem = uniq(@subsystem) if ($subsystem);
++@web = uniq(@web) if ($web);
++@bug = uniq(@bug) if ($bug);
++
++if ($json) {
++    my @json_maintainers;
++    for my $m (@maintainers) {
++	my ($addr, $role);
++	if ($output_roles && $m =~ /^(.*?)\s+\((.+)\)\s*$/) {
++	    $addr = $1;
++	    $role = $2;
++	} else {
++	    $addr = $m;
++	}
++	my ($name, $email_addr) = parse_email($addr);
++	my %entry = (name => $name, email => $email_addr);
++	$entry{role} = $role if (defined $role && $role ne '');
++	push(@json_maintainers, \%entry);
++    }
++
++    my %result = (maintainers => \@json_maintainers);
++    $result{scm} = \@scm if ($scm);
++    $result{status} = \@status if ($status);
++    $result{subsystem} = \@subsystem if ($subsystem);
++    $result{web} = \@web if ($web);
++    $result{bug} = \@bug if ($bug);
+ 
+-if ($bug) {
+-    @bug = uniq(@bug);
+-    output(@bug);
++    my $json_encoder = JSON::PP->new->canonical->utf8;
++    print($json_encoder->encode(\%result) . "\n");
++} else {
++    output(@maintainers) if (@maintainers);
++    output(@scm) if ($scm);
++    output(@substatus) if ($output_substatus);
++    output(@status) if ($status);
++    output(@subsystem) if ($subsystem);
++    output(@web) if ($web);
++    output(@bug) if ($bug);
  }
-+EXPORT_SYMBOL_GPL(seq_buf_putmem_hex);
  
- /**
-  * seq_buf_path - copy a path into the sequence buffer
---- a/lib/tests/seq_buf_kunit.c~seq_buf-export-seq_buf_putmem_hex-and-add-kunit-tests
-+++ a/lib/tests/seq_buf_kunit.c
-@@ -184,6 +184,38 @@ static void seq_buf_get_buf_commit_test(
- 	KUNIT_EXPECT_TRUE(test, seq_buf_has_overflowed(&s));
- }
+ exit($exit);
+@@ -1104,6 +1116,7 @@ Output type options:
+   --separator [, ] => separator for multiple entries on 1 line
+     using --separator also sets --nomultiline if --separator is not [, ]
+   --multiline => print 1 entry per line
++  --json => output results as JSON
  
-+static void seq_buf_putmem_hex_test(struct kunit *test)
-+{
-+	DECLARE_SEQ_BUF(s, 24);
-+	const u8 data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-+#ifdef __BIG_ENDIAN
-+	const char *expected = "0001020304050607 0809 ";
-+#else
-+	const char *expected = "0706050403020100 0908 ";
-+#endif
-+
-+	KUNIT_EXPECT_EQ(test, seq_buf_putmem_hex(&s, data, sizeof(data)), 0);
-+	KUNIT_EXPECT_FALSE(test, seq_buf_has_overflowed(&s));
-+	KUNIT_EXPECT_EQ(test, seq_buf_used(&s), strlen(expected));
-+	KUNIT_EXPECT_STREQ(test, seq_buf_str(&s), expected);
-+}
-+
-+static void seq_buf_putmem_hex_overflow_test(struct kunit *test)
-+{
-+	DECLARE_SEQ_BUF(s, 20);
-+	const u8 data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-+#ifdef __BIG_ENDIAN
-+	const char *expected = "0001020304050607 ";
-+#else
-+	const char *expected = "0706050403020100 ";
-+#endif
-+
-+	KUNIT_EXPECT_EQ(test, seq_buf_putmem_hex(&s, data, sizeof(data)), -1);
-+	KUNIT_EXPECT_TRUE(test, seq_buf_has_overflowed(&s));
-+	KUNIT_EXPECT_EQ(test, seq_buf_used(&s), 20);
-+	KUNIT_EXPECT_STREQ(test, seq_buf_str(&s), expected);
-+}
-+
- static struct kunit_case seq_buf_test_cases[] = {
- 	KUNIT_CASE(seq_buf_init_test),
- 	KUNIT_CASE(seq_buf_declare_test),
-@@ -194,6 +226,8 @@ static struct kunit_case seq_buf_test_ca
- 	KUNIT_CASE(seq_buf_printf_test),
- 	KUNIT_CASE(seq_buf_printf_overflow_test),
- 	KUNIT_CASE(seq_buf_get_buf_commit_test),
-+	KUNIT_CASE(seq_buf_putmem_hex_test),
-+	KUNIT_CASE(seq_buf_putmem_hex_overflow_test),
- 	{}
- };
- 
+ Other options:
+   --pattern-depth => Number of pattern directory traversals (default: 0 (all))
 _
 
-Patches currently in -mm which might be from shuvampandey1@gmail.com are
+Patches currently in -mm which might be from sashal@kernel.org are
 
-seq_buf-export-seq_buf_putmem_hex-and-add-kunit-tests.patch
-lib-tests-extend-cmdline-kunit-with-next_arg-tests.patch
+get_maintainer-add-json-output-mode.patch
+kallsyms-embed-source-file-line-info-in-kernel-stack-traces.patch
+kallsyms-extend-lineinfo-to-loadable-modules.patch
+kallsyms-delta-compress-lineinfo-tables-for-27x-size-reduction.patch
+kallsyms-add-kunit-tests-for-lineinfo-feature.patch
 
