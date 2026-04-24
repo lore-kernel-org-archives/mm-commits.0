@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 862BB394493;
-	Fri, 24 Apr 2026 11:05:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E62A33123F
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 11:35:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777028758; cv=none; b=ElWqFTsY7ARgZMQWmUGcESthYcfNURxqSj2x7Inzn8p+C9NsgYdu2tK2ABNiyhCwusbWrcdY78yyOHs+4hEVP5iEKJquHS63j8Bl5Ej0+zw59FqlrGMjtJJecetAftzfp01/HwSAHeGKW8aUcTNiz2KBt9vMM0c0U5FqmmJTJHo=
+	t=1777030548; cv=none; b=EjRIF8WhbFGcBCemQsfOz3mB9q8zh2Npbfgq6WPAXyIpMhpZUuZciaYlPpFpqiRwx/Gi83zbQe+/d/O2674jBBVJ0ahr6cArS2lpAm5PY+Da1w3BiioycO8qnnnfakA0UfWYwwjxWdjAWGF0E+AGSVu7MRz+s1hzoEWFJmvfZB4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777028758; c=relaxed/simple;
-	bh=tkKPwvWKneALXnLdqge9aDnZgxf4mj9AtcVGsebu/7M=;
-	h=Date:To:From:Subject:Message-Id; b=Om+7XvmP6vbHM0aWY2xCN5V4POzhfiqA1Ga/y6jJx/xJ9y66NkTcJcxj548d01HkStdyUonl65+0PV8wvpM/AEZ6fNque85Z+563R1V25VFXNoK9UpxcpQOtnZ9eqVFxG9F6NCY8nUGMvMmouZSne+/i9pW+fDRwIZpSWBWqLnE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=M3JaRYSK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777030548; c=relaxed/simple;
+	bh=Trimryl01xd08I2cZVaDBDhmcVSgf7yULtXeS0dXP/A=;
+	h=Date:To:From:Subject:Message-Id; b=WI+LDMF/rQCNnNzEJukUZXZNRfTpl7YKpIUQRdQl9f2ORX7KpleegG3XBXNYBxgceejNwkAa9Oz1+4sIjjrW+yEhol/H208jNjazTyfEqv5m+8AD3DvqrM6B2UMetWOL6WYEjz6XQt727l+37O71Ccxo0z0TT+2MrP+6UDcQcI0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YnVdL/KH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="M3JaRYSK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 228BCC19425;
-	Fri, 24 Apr 2026 11:05:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YnVdL/KH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25044C19425;
+	Fri, 24 Apr 2026 11:35:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777028758;
-	bh=tkKPwvWKneALXnLdqge9aDnZgxf4mj9AtcVGsebu/7M=;
+	s=korg; t=1777030548;
+	bh=Trimryl01xd08I2cZVaDBDhmcVSgf7yULtXeS0dXP/A=;
 	h=Date:To:From:Subject:From;
-	b=M3JaRYSKhwvQI2NrnNcZTLeQIf0afPa3H71AhucfA4sUSlXSrp3JCPpHNjI81zgnx
-	 Z89gckiqPChEKUrCT91TEiw5hItpAfjI+RYxC3+4ZJBmd6OY3us+fod2dUZ8NisV0b
-	 SnTXxE3hPMU+B40EinCs0YhBKB5zKlY1AHxYVbrY=
-Date: Fri, 24 Apr 2026 04:05:57 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,aethernet65535@gmail.com,sj@kernel.org,akpm@linux-foundation.org
+	b=YnVdL/KHx7LhdtTyMWNHJIJZS+LyITegqNmgz4Rxqo2iRnizCoAlHZqmC+zBWXA1S
+	 NyBmFDX4fRVXCsdyEzFqR49fgxPogAssE8hQ/5BsadtaJBnEeor+U1W1qqjxwCqJ8b
+	 qJhAmWrTTRnOw7/e1BTj/Ah5on5ZEimFJ1BAEHk8=
+Date: Fri, 24 Apr 2026 04:35:47 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-stat-detect-and-use-fresh-enabled-value.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260424110558.228BCC19425@smtp.kernel.org>
+Subject: + mm-page_owner-add-filter-infrastructure.patch added to mm-new branch
+Message-Id: <20260424113548.25044C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/stat: detect and use fresh enabled value
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-stat-detect-and-use-fresh-enabled-value.patch
+     Subject: mm/page_owner: add filter infrastructure
+has been added to the -mm mm-new branch.  Its filename is
+     mm-page_owner-add-filter-infrastructure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-stat-detect-and-use-fresh-enabled-value.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-filter-infrastructure.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,123 +69,213 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/stat: detect and use fresh enabled value
-Date: Sun, 19 Apr 2026 09:10:02 -0700
+From: Zhen Ni <zhen.ni@easystack.cn>
+Subject: mm/page_owner: add filter infrastructure
+Date: Sun, 19 Apr 2026 23:55:38 +0800
 
-DAMON_STAT updates 'enabled' parameter value, which represents the running
-status of its kdamond, when the user explicitly requests start/stop of the
-kdamond.  The kdamond can, however, be stopped even if the user explicitly
-requested the stop, if ctx->regions_score_histogram allocation failure at
-beginning of the execution of the kdamond.  Hence, if the kdamond is
-stopped by the allocation failure, the value of the parameter can be
-stale.
+Patch series "mm/page_owner: add filter infrastructure for print_mode and
+NUMA filtering", v2.
 
-Users could show the stale value and be confused.  The problem will only
-rarely happen in real and common setups because the allocation is arguably
-too small to fail.  Also, unlike the similar bugs that are now fixed in
-DAMON_RECLAIM and DAMON_LRU_SORT, kdamond can be restarted in this case,
-because DAMON_STAT force-updates the enabled parameter value for user
-inputs.  The bug is a bug, though.
+This patch series introduces filtering capabilities to the page_owner
+feature to address storage and performance challenges in production
+environments.
 
-The issue stems from the fact that there are multiple events that can
-change the status, and following all the events is challenging. 
-Dynamically detect and use the fresh status for the parameters when those
-are requested.
+Changes from v1:
+- Renamed 'compact' to 'print_mode' with enum type for better clarity
+  * PAGE_OWNER_PRINT_FULL_STACK (0): print full stack traces
+  * PAGE_OWNER_PRINT_STACK_HANDLE (1): print only stack handles
+- Changed NUMA filter from single node to nodelist with bitmask support
+  * Uses nodelist_parse() to support "0", "0,2", "0-3", "0,2-4,7" formats
+  * Uses nodemask_t internally for efficient multi-node filtering
+  * Output uses %*pbl format (e.g., "0-2", "0,2-4,7")
+- Improved memory handling in nid_filter_write using dynamic allocation
+  * Limit: (100 + 6 * MAX_NUMNODES) to handle worst-case input
 
-The issue was dicovered [1] by Sashiko.
+These changes address feedback from v1 review:
+- "compact" was too vague → use descriptive enum (PAGE_OWNER_PRINT_*)
+- Single node filter was limiting → use nodelist_parse() for multi-node support
 
-Link: https://lore.kernel.org/20260419161003.79176-4-sj@kernel.org
-Link: https://lore.kernel.org/20260416040602.88665-1-sj@kernel.org [1]
-Fixes: 369c415e6073 ("mm/damon: introduce DAMON_STAT module")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Liew Rui Yan <aethernet65535@gmail.com>
-Cc: <stable@vger.kernel.org> # 6.17.x
+Problem Statement
+=================
+
+In production environments with large memory configurations (e.g.,
+250GB+), collecting page_owner information often results in files ranging
+from several gigabytes to over 10GB.  This creates significant challenges:
+
+1. Storage pressure on production systems
+2. Difficulty transferring large files from production environments
+3. Post-processing overhead with tools/mm/page_owner_sort.c
+
+The primary contributor to file size is redundant stack trace information.
+While the kernel already deduplicates stacks via stackdepot, page_owner
+retrieves and stores full stack traces for each page, only to deduplicate
+them again during post-processing.
+
+Additionally, in NUMA-aware environments (e.g., DPDK-based cloud
+deployments where QEMU processes are bound to specific NUMA nodes), OOM
+events are often node-specific rather than system-wide.  Currently,
+page_owner cannot filter by NUMA node, forcing users to collect and
+analyze data for all nodes.
+
+Solution
+========
+
+This patch series introduces a flexible filter infrastructure with
+two initial filters:
+
+1. **Print Mode Filter**: Outputs only stack handles instead of
+   full stack traces. The handle-to-stack mapping can be retrieved
+   from the existing show_stacks_handles interface. This dramatically
+   reduces output size while preserving all allocation metadata.
+
+2. **NUMA Node Filter**: Allows filtering pages by specific NUMA node(s)
+   using flexible nodelist format, enabling targeted analysis of memory
+   issues in NUMA-aware deployments.
+
+Implementation
+==============
+
+The series is structured as follows:
+
+- Patch 1: Add filter infrastructure (data structures and
+  debugfs directory)
+- Patch 2: Implement print_mode filter
+- Patch 3: Implement NUMA node filter with nodelist support
+
+Usage Example
+=============
+
+Enable print_mode and filter for NUMA nodes 0,2-3:
+
+    # cd /sys/kernel/debug/page_owner_filter/
+    # echo 1 > print_mode
+    # echo "0,2-3" > nid
+    # cat /sys/kernel/debug/page_owner > page_owner.txt
+
+Sample print_mode output (showing handles only):
+
+    Page allocated via order 0, mask 0x0(), pid 0, tgid 0 (swapper),
+    ts 0 ns PFN 0x40000 type Unmovable Block 512 type Unmovable
+    Flags 0x3fffe0000000000(node=0|zone=0|lastcpupid=0x1ffff)
+    handle: 1048577
+
+    Page allocated via order 0, mask 0x252000(__GFP_NOWARN|
+    __GFP_NORETRY|__GFP_COMP|__GFP_THISNODE), pid 0, tgid 0 (swapper),
+    ts 0 ns PFN 0x40002 type Unmovable Block 512 type Unmovable
+    Flags 0x23fffe0000000200(workingset|node=0|zone=0|lastcpupid=0x1ffff)
+    handle: 1048577
+
+Testing
+=======
+
+Tested on a system with multiple NUMA nodes. Verified that:
+- Filters work independently and in combination
+- Print_mode output correlates correctly with show_stacks_handles
+- Default behavior (filters disabled) remains unchanged
+- NUMA filter works with single node, multiple nodes, and ranges
+
+Example test session:
+    # cat print_mode
+    0
+    # echo "0,1-2" > nid
+    # cat nid
+    0-2
+    # echo "0,2-3" > nid
+    # cat nid
+    0,2-3
+    # echo 1 > print_mode
+    # head -n 100 /sys/kernel/debug/page_owner
+    [Shows compact mode output with handles only]
+
+Future Enhancements
+==================
+
+The filter infrastructure is designed to be extensible. Potential
+future filters could include:
+- PID/TGID filtering
+- Time range filtering (allocation timestamp windows)
+- GFP flag filtering
+- Migration type filtering
+
+
+This patch (of 3):
+
+Add data structure for page_owner filtering functionality and create
+debugfs directory for filter controls.
+
+This adds:
+- enum page_owner_print_mode with values for full_stack and stack_handle
+- struct page_owner_filter with print_mode and nid_mask fields
+- Static owner_filter instance initialized with default values
+- page_owner_filter debugfs directory
+
+The filter infrastructure will be used to add print_mode and NUMA node
+filtering capabilities in subsequent commits.
+
+Link: https://lore.kernel.org/20260419155540.376847-1-zhen.ni@easystack.cn
+Link: https://lore.kernel.org/linux-mm/20260417154638.22370-2-zhen.ni@easystack.cn/
+Link: https://lore.kernel.org/20260419155540.376847-2-zhen.ni@easystack.cn
+Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
+Suggested-by: Zi Yan <ziy@nvidia.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/stat.c |   30 ++++++++++++++++++++----------
- 1 file changed, 20 insertions(+), 10 deletions(-)
+ mm/page_owner.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
---- a/mm/damon/stat.c~mm-damon-stat-detect-and-use-fresh-enabled-value
-+++ a/mm/damon/stat.c
-@@ -19,14 +19,17 @@
- static int damon_stat_enabled_store(
- 		const char *val, const struct kernel_param *kp);
- 
-+static int damon_stat_enabled_load(char *buffer,
-+		const struct kernel_param *kp);
-+
- static const struct kernel_param_ops enabled_param_ops = {
- 	.set = damon_stat_enabled_store,
--	.get = param_get_bool,
-+	.get = damon_stat_enabled_load,
+--- a/mm/page_owner.c~mm-page_owner-add-filter-infrastructure
++++ a/mm/page_owner.c
+@@ -54,6 +54,21 @@ struct stack_print_ctx {
+ 	u8 flags;
  };
  
- static bool enabled __read_mostly = IS_ENABLED(
- 	CONFIG_DAMON_STAT_ENABLED_DEFAULT);
--module_param_cb(enabled, &enabled_param_ops, &enabled, 0600);
-+module_param_cb(enabled, &enabled_param_ops, NULL, 0600);
- MODULE_PARM_DESC(enabled, "Enable of disable DAMON_STAT");
- 
- static unsigned long estimated_memory_bandwidth __read_mostly;
-@@ -273,17 +276,23 @@ static void damon_stat_stop(void)
- 	damon_stat_context = NULL;
- }
- 
-+static bool damon_stat_enabled(void)
-+{
-+	if (!damon_stat_context)
-+		return false;
-+	return damon_is_running(damon_stat_context);
-+}
++enum page_owner_print_mode {
++	PAGE_OWNER_PRINT_FULL_STACK,
++	PAGE_OWNER_PRINT_STACK_HANDLE,
++};
 +
- static int damon_stat_enabled_store(
- 		const char *val, const struct kernel_param *kp)
- {
--	bool is_enabled = enabled;
- 	int err;
- 
- 	err = kstrtobool(val, &enabled);
- 	if (err)
- 		return err;
- 
--	if (is_enabled == enabled)
-+	if (damon_stat_enabled() == enabled)
- 		return 0;
- 
- 	if (!damon_initialized())
-@@ -293,16 +302,17 @@ static int damon_stat_enabled_store(
- 		 */
- 		return 0;
- 
--	if (enabled) {
--		err = damon_stat_start();
--		if (err)
--			enabled = false;
--		return err;
--	}
-+	if (enabled)
-+		return damon_stat_start();
- 	damon_stat_stop();
- 	return 0;
- }
- 
-+static int damon_stat_enabled_load(char *buffer, const struct kernel_param *kp)
-+{
-+	return sprintf(buffer, "%c\n", damon_stat_enabled() ? 'Y' : 'N');
-+}
++struct page_owner_filter {
++	enum page_owner_print_mode print_mode;
++	nodemask_t nid_mask;
++};
 +
- static int __init damon_stat_init(void)
++static struct page_owner_filter owner_filter = {
++	.print_mode = PAGE_OWNER_PRINT_FULL_STACK,
++	.nid_mask = NODE_MASK_NONE,
++};
++
+ static bool page_owner_enabled __initdata;
+ DEFINE_STATIC_KEY_FALSE(page_owner_inited);
+ 
+@@ -973,7 +988,7 @@ DEFINE_SIMPLE_ATTRIBUTE(page_owner_thres
+ 
+ static int __init pageowner_init(void)
  {
- 	int err = 0;
+-	struct dentry *dir;
++	struct dentry *dir, *filter_dir;
+ 
+ 	if (!static_branch_unlikely(&page_owner_inited)) {
+ 		pr_info("page_owner is disabled\n");
+@@ -981,6 +996,9 @@ static int __init pageowner_init(void)
+ 	}
+ 
+ 	debugfs_create_file("page_owner", 0400, NULL, NULL, &page_owner_fops);
++
++	filter_dir = debugfs_create_dir("page_owner_filter", NULL);
++
+ 	dir = debugfs_create_dir("page_owner_stacks", NULL);
+ 	debugfs_create_file("show_stacks", 0400, dir,
+ 			    (void *)(STACK_PRINT_FLAG_STACK |
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from zhen.ni@easystack.cn are
 
-mm-damon-sysfs-schemes-protect-memcg_path-kfree-with-damon_sysfs_lock.patch
-mm-damon-sysfs-schemes-protect-path-kfree-with-damon_sysfs_lock.patch
-mm-damon-reclaim-detect-and-use-fresh-enabled-and-kdamond_pid-values.patch
-mm-damon-lru_sort-detect-and-use-fresh-enabled-and-kdamond_pid-values.patch
-mm-damon-stat-detect-and-use-fresh-enabled-value.patch
+mm-page_owner-add-filter-infrastructure.patch
+mm-page_owner-add-print_mode-filter.patch
+mm-page_owner-add-numa-node-filter-with-nodelist-support.patch
 
