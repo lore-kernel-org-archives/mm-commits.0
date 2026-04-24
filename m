@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 542BF38B7A5
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 09:43:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 025CE362153
+	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 10:06:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777023808; cv=none; b=gYPc0WjdO4qUvsK/OSBDdYI2Ci0yvBNHHYUtc5tMrZ/dG/moqQGy7omq5cUJTJowAJexNYP6RtpAt9L5wk8JgM//sd6PV10mgzdAXp43IkP36Kp3XKn9Wb4OsPtxcd405eE83bI7ltU7h5Jkw3uJ++cbscwJYQcxnLTgv/2ukqk=
+	t=1777025179; cv=none; b=lOvaGm30GbL0m12MhIXsJKo208EexdmmRQImUIxBkeRgIr7SYzDLUiQl3DW6PGtmR1mKoxPKrETEUDjsBl3tgI6YSKAl9RZ5RDkLDf3Sb1Mpqod9Z3m8ji70f1HBT0tpuCjVSOXsrDtfqU/FuFKvCfsq62WdqVvqBa3aVMgG4nU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777023808; c=relaxed/simple;
-	bh=bpvby+OSaCgQLoGPQPWpVBx+iBiywmINp8EhYN5iaA8=;
-	h=Date:To:From:Subject:Message-Id; b=OYxbDqlg4zqe+IJZr0Qj/oWkQcQE0H17xSTMCyO0gmW8NkvnaqLO1LFmQLM2g3eATJ2UGcr3SBJiKThO6PgI8j9K078kqIQsTRdCIHfWwEJ+LzdZCPle2df5zVtJyECjKLAP8Lp71qYmK65sfG5UyfGiCZs5L3z3PXTpi9V/Bfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KGmxOCyj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777025179; c=relaxed/simple;
+	bh=izQHrsjIZLCTCuFYOflMBGHQjN20JpJC0QgslljK/SQ=;
+	h=Date:To:From:Subject:Message-Id; b=RovO6Ls1Vx/Cov3raCLVrwERhh/jva/+Rx2STHmETHjZyiFKPbEFFEMQSF1m8P6Kjz02eh8jv21CVKSG4lbxzf5xILr8DsS1l/pvznrI4cY4kYOouNtsYgOAFKmsvOU4mGrpUnxcIyqITa6t8FftBG0yvViwJEkDsH/Gh9v/eUY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cqjHh5NO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KGmxOCyj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3839C19425;
-	Fri, 24 Apr 2026 09:43:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cqjHh5NO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A20BC19425;
+	Fri, 24 Apr 2026 10:06:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777023808;
-	bh=bpvby+OSaCgQLoGPQPWpVBx+iBiywmINp8EhYN5iaA8=;
+	s=korg; t=1777025178;
+	bh=izQHrsjIZLCTCuFYOflMBGHQjN20JpJC0QgslljK/SQ=;
 	h=Date:To:From:Subject:From;
-	b=KGmxOCyjefFdyPExgp3J/+W1sOTtz4LSbj+tdlSReV0gTx8U2tkplLZleasGesfey
-	 bxhrRHKXo9FgpJPW/5wx8CU/s8tmV9u2IdgwN61fcEOjznBx0VZbcPn9Hom5EUv9cB
-	 N1CJYv2n0ZKM2pwETkzJEEb/BtWYwTbogx5N5We4=
-Date: Fri, 24 Apr 2026 02:43:27 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ypodemsk@redhat.com,will@kernel.org,tglx@linutronix.de,shy828301@gmail.com,seanjc@google.com,ryan.roberts@arm.com,riel@surriel.com,peterz@infradead.org,pbonzini@redhat.com,npiggin@gmail.com,npache@redhat.com,mingo@redhat.com,ljs@kernel.org,liam@infradead.org,jgross@suse.com,jannh@google.com,hughd@google.com,hpa@zytor.com,dev.jain@arm.com,david@kernel.org,dave.hansen@intel.com,bp@alien8.de,boris.ostrovsky@oracle.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,arnd@arndb.de,aneesh.kumar@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=cqjHh5NO8N4HqWrl16QVErZ1slR6tpJyuVsLtOfY194q4cjITBKC0CU5DGcLiQl9q
+	 SEUcVPv03Mo0wemUQ7FiVzo47LFQQ9sgCll0OVYfSQd1O5yINSKJ2mFsZb6JYq1bhr
+	 BLu2PjQiLwOYNZPwmigzBFEsZQoHOsXbDfsIumCI=
+Date: Fri, 24 Apr 2026 03:06:17 -0700
+To: mm-commits@vger.kernel.org,li.wang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch added to mm-new branch
-Message-Id: <20260424094327.F3839C19425@smtp.kernel.org>
+Subject: + selftests-cgroup-skip-test_zswap-if-zswap-is-globally-disabled.patch added to mm-new branch
+Message-Id: <20260424100618.8A20BC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: x86/tlb: skip redundant sync IPIs for native TLB flush
+     Subject: selftests/cgroup: skip test_zswap if zswap is globally disabled
 has been added to the -mm mm-new branch.  Its filename is
-     x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch
+     selftests-cgroup-skip-test_zswap-if-zswap-is-globally-disabled.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-skip-test_zswap-if-zswap-is-globally-disabled.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,286 +69,122 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: x86/tlb: skip redundant sync IPIs for native TLB flush
-Date: Fri, 24 Apr 2026 14:25:28 +0800
+From: Li Wang <li.wang@linux.dev>
+Subject: selftests/cgroup: skip test_zswap if zswap is globally disabled
+Date: Fri, 24 Apr 2026 12:00:52 +0800
 
-Some page table operations need to synchronize with software/lockless
-walkers after a TLB flush by calling tlb_remove_table_sync_{one,rcu}(). 
-On x86, that extra synchronization is redundant when the preceding TLB
-flush already broadcast IPIs to all relevant CPUs.
+Patch series "selftests/cgroup: improve zswap tests robustness and support
+large page sizes", v7.
 
-native_pv_tlb_init() checks whether native_flush_tlb_multi() is in use. 
-On CONFIG_PARAVIRT systems, it checks pv_ops; on non-PARAVIRT, native
-flush is always in use.
+This patchset aims to fix various spurious failures and improve the
+overall robustness of the cgroup zswap selftests.
 
-It decides once at boot whether to enable the optimization: if using
-native TLB flush and INVLPGB is not supported, we know IPIs were sent and
-can skip the redundant sync.  The decision is fixed via a static key as
-Peter suggested[1].
+The primary motivation is to make the tests compatible with architectures
+that use non-4K page sizes (such as 64K on ppc64le and arm64).  Currently,
+the tests rely heavily on hardcoded 4K page sizes and fixed memory limits.
+On 64K page size systems, these hardcoded values lead to sub-page
+granularity accesses, incorrect page count calculations, and insufficient
+memory pressure to trigger zswap writeback, ultimately causing the tests
+to fail.
 
-PV backends (KVM, Xen, Hyper-V) typically have their own implementations
-and don't call native_flush_tlb_multi() directly, so they cannot be
-trusted to provide the IPI guarantees we need.
+Additionally, this series addresses OOM kills occurring in
+test_swapin_nozswap by dynamically scaling memory limits, and prevents
+spurious test failures when zswap is built into the kernel but globally
+disabled.
 
-Also rename the x86 flush_tlb_info bit from freed_tables to
-wake_lazy_cpus, as Dave suggested[2], to match the behavior it controls:
-whether the remote flush may skip CPUs in lazy TLB mode.  Both
-freed_tables and unshared_tables set it, because lazy-TLB CPUs must
-receive IPIs before page tables can be freed or reused.  With that
-guarantee in place, tlb_table_flush_implies_ipi_broadcast() can safely
-skip the later sync IPI.
 
-Two-step plan as David suggested[3]:
+This patch (of 8):
 
-Step 1 (this patch): Skip redundant sync when we're 100% certain the TLB
-flush sent IPIs. INVLPGB is excluded because when supported, we cannot
-guarantee IPIs were sent, keeping it clean and simple.
+test_zswap currently only checks whether zswap is present by testing
+/sys/module/zswap.  This misses the runtime global state exposed in
+/sys/module/zswap/parameters/enabled.
 
-Step 2 (future work): Send targeted IPIs only to CPUs actually doing
-software/lockless page table walks, benefiting all architectures.
+When zswap is built/loaded but globally disabled, the zswap cgroup
+selftests run in an invalid environment and may fail spuriously.
 
-Regarding Step 2, it obviously only applies to setups where Step 1 does
-not apply: like x86 with INVLPGB or arm64.
+Check the runtime enabled state before running the tests:
+  - skip if zswap is not configured,
+  - fail if the enabled knob cannot be read,
+  - skip if zswap is globally disabled.
 
-Link: https://lore.kernel.org/20260424062528.71951-3-lance.yang@linux.dev
-Link: https://lore.kernel.org/linux-mm/20260302145652.GH1395266@noisy.programming.kicks-ass.net/ [1]
-Link: https://lore.kernel.org/linux-mm/f856051b-10c7-4d65-9dbe-6b1677af74bd@intel.com/ [2]
-Link: https://lore.kernel.org/linux-mm/bbfdf226-4660-4949-b17b-0d209ee4ef8c@kernel.org/ [3]
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Suggested-by: Dave Hansen <dave.hansen@intel.com>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Juegren Gross <jgross@suse.com>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yair Podemsky <ypodemsk@redhat.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Also print a hint in the skip message on how to enable zswap.
+
+Link: https://lore.kernel.org/20260424040059.12940-1-li.wang@linux.dev
+Link: https://lore.kernel.org/20260424040059.12940-2-li.wang@linux.dev
+Signed-off-by: Li Wang <li.wang@linux.dev>
+Acked-by: Yosry Ahmed <yosry@kernel.org>
+Acked-by: Nhat Pham <nphamcs@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Koutný <mkoutny@suse.com>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Chengming Zhou <chengming.zhou@linux.dev>
+Cc: Jiayuan Chen <jiayuan.chen@linux.dev>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Yosry Ahmed <yosryahmed@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/hyperv/mmu.c           |    4 +--
- arch/x86/include/asm/tlb.h      |   19 +++++++++++++-
- arch/x86/include/asm/tlbflush.h |    6 +++-
- arch/x86/kernel/smpboot.c       |    1 
- arch/x86/mm/tlb.c               |   39 ++++++++++++++++++++----------
- 5 files changed, 52 insertions(+), 17 deletions(-)
+ tools/testing/selftests/cgroup/test_zswap.c |   19 ++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
---- a/arch/x86/hyperv/mmu.c~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/hyperv/mmu.c
-@@ -63,7 +63,7 @@ static void hyperv_flush_tlb_multi(const
- 	struct hv_tlb_flush *flush;
- 	u64 status;
- 	unsigned long flags;
--	bool do_lazy = !info->freed_tables;
-+	bool do_lazy = !info->wake_lazy_cpus;
+--- a/tools/testing/selftests/cgroup/test_zswap.c~selftests-cgroup-skip-test_zswap-if-zswap-is-globally-disabled
++++ a/tools/testing/selftests/cgroup/test_zswap.c
+@@ -15,6 +15,9 @@
+ #include "kselftest.h"
+ #include "cgroup_util.h"
  
- 	trace_hyperv_mmu_flush_tlb_multi(cpus, info);
- 
-@@ -198,7 +198,7 @@ static u64 hyperv_flush_tlb_others_ex(co
- 
- 	flush->hv_vp_set.format = HV_GENERIC_SET_SPARSE_4K;
- 	nr_bank = cpumask_to_vpset_skip(&flush->hv_vp_set, cpus,
--			info->freed_tables ? NULL : cpu_is_lazy);
-+			info->wake_lazy_cpus ? NULL : cpu_is_lazy);
- 	if (nr_bank < 0)
- 		return HV_STATUS_INVALID_PARAMETER;
- 
---- a/arch/x86/include/asm/tlbflush.h~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/include/asm/tlbflush.h
-@@ -18,6 +18,8 @@
- 
- DECLARE_PER_CPU(u64, tlbstate_untag_mask);
- 
-+void __init native_pv_tlb_init(void);
++#define PATH_ZSWAP "/sys/module/zswap"
++#define PATH_ZSWAP_ENABLED "/sys/module/zswap/parameters/enabled"
 +
- void __flush_tlb_all(void);
- 
- #define TLB_FLUSH_ALL	-1UL
-@@ -247,7 +249,7 @@ struct flush_tlb_info {
- 	u64			new_tlb_gen;
- 	unsigned int		initiating_cpu;
- 	u8			stride_shift;
--	u8			freed_tables;
-+	u8			wake_lazy_cpus;
- 	u8			trim_cpumask;
+ static int read_int(const char *path, size_t *value)
+ {
+ 	FILE *file;
+@@ -725,9 +728,18 @@ struct zswap_test {
  };
+ #undef T
  
-@@ -337,7 +339,7 @@ static inline bool mm_in_asid_transition
- extern void flush_tlb_all(void);
- extern void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
- 				unsigned long end, unsigned int stride_shift,
--				bool freed_tables);
-+				bool wake_lazy_cpus);
- extern void flush_tlb_kernel_range(unsigned long start, unsigned long end);
- 
- static inline void flush_tlb_page(struct vm_area_struct *vma, unsigned long a)
---- a/arch/x86/include/asm/tlb.h~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/include/asm/tlb.h
-@@ -5,22 +5,39 @@
- #define tlb_flush tlb_flush
- static inline void tlb_flush(struct mmu_gather *tlb);
- 
-+#define tlb_table_flush_implies_ipi_broadcast tlb_table_flush_implies_ipi_broadcast
-+static inline bool tlb_table_flush_implies_ipi_broadcast(void);
-+
- #include <asm-generic/tlb.h>
- #include <linux/kernel.h>
- #include <vdso/bits.h>
- #include <vdso/page.h>
- 
-+DECLARE_STATIC_KEY_FALSE(tlb_ipi_broadcast_key);
-+
-+static inline bool tlb_table_flush_implies_ipi_broadcast(void)
-+{
-+	return static_branch_likely(&tlb_ipi_broadcast_key);
-+}
-+
- static inline void tlb_flush(struct mmu_gather *tlb)
+-static bool zswap_configured(void)
++static void check_zswap_enabled(void)
  {
- 	unsigned long start = 0UL, end = TLB_FLUSH_ALL;
- 	unsigned int stride_shift = tlb_get_unmap_shift(tlb);
- 
-+	/*
-+	 * Both freed_tables and unshared_tables must wake lazy-TLB CPUs, so
-+	 * they receive IPIs before reusing or freeing page tables, allowing
-+	 * us to safely implement tlb_table_flush_implies_ipi_broadcast().
-+	 */
-+	bool wake_lazy_cpus = tlb->freed_tables || tlb->unshared_tables;
+-	return access("/sys/module/zswap", F_OK) == 0;
++	char value[2];
 +
- 	if (!tlb->fullmm && !tlb->need_flush_all) {
- 		start = tlb->start;
- 		end = tlb->end;
- 	}
- 
--	flush_tlb_mm_range(tlb->mm, start, end, stride_shift, tlb->freed_tables);
-+	flush_tlb_mm_range(tlb->mm, start, end, stride_shift, wake_lazy_cpus);
++	if (access(PATH_ZSWAP, F_OK))
++		ksft_exit_skip("zswap isn't configured\n");
++
++	if (read_text(PATH_ZSWAP_ENABLED, value, sizeof(value)) <= 0)
++		ksft_exit_fail_msg("Failed to read " PATH_ZSWAP_ENABLED "\n");
++
++	if (value[0] == 'N')
++		ksft_exit_skip("zswap is disabled (hint: echo 1 > " PATH_ZSWAP_ENABLED ")\n");
  }
  
- static inline void invlpg(unsigned long addr)
---- a/arch/x86/kernel/smpboot.c~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/kernel/smpboot.c
-@@ -1256,6 +1256,7 @@ void __init native_smp_prepare_boot_cpu(
- 		switch_gdt_and_percpu_base(me);
+ int main(int argc, char **argv)
+@@ -740,8 +752,7 @@ int main(int argc, char **argv)
+ 	if (cg_find_unified_root(root, sizeof(root), NULL))
+ 		ksft_exit_skip("cgroup v2 isn't mounted\n");
  
- 	native_pv_lock_init();
-+	native_pv_tlb_init();
- }
- 
- void __init native_smp_cpus_done(unsigned int max_cpus)
---- a/arch/x86/mm/tlb.c~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/mm/tlb.c
-@@ -26,6 +26,8 @@
- 
- #include "mm_internal.h"
- 
-+DEFINE_STATIC_KEY_FALSE(tlb_ipi_broadcast_key);
-+
- #ifdef CONFIG_PARAVIRT
- # define STATIC_NOPV
- #else
-@@ -1339,16 +1341,16 @@ STATIC_NOPV void native_flush_tlb_multi(
- 				(info->end - info->start) >> PAGE_SHIFT);
+-	if (!zswap_configured())
+-		ksft_exit_skip("zswap isn't configured\n");
++	check_zswap_enabled();
  
  	/*
--	 * If no page tables were freed, we can skip sending IPIs to
--	 * CPUs in lazy TLB mode. They will flush the CPU themselves
--	 * at the next context switch.
-+	 * If lazy-TLB CPUs do not need to be woken, we can skip sending
-+	 * IPIs to them. They will flush themselves at the next context
-+	 * switch.
- 	 *
--	 * However, if page tables are getting freed, we need to send the
--	 * IPI everywhere, to prevent CPUs in lazy TLB mode from tripping
--	 * up on the new contents of what used to be page tables, while
--	 * doing a speculative memory access.
-+	 * However, if page tables are getting freed or unshared, we need
-+	 * to send the IPI everywhere, to prevent CPUs in lazy TLB mode
-+	 * from tripping up on the new contents of what used to be page
-+	 * tables, while doing a speculative memory access.
- 	 */
--	if (info->freed_tables || mm_in_asid_transition(info->mm))
-+	if (info->wake_lazy_cpus || mm_in_asid_transition(info->mm))
- 		on_each_cpu_mask(cpumask, flush_tlb_func, (void *)info, true);
- 	else
- 		on_each_cpu_cond_mask(should_flush_tlb, flush_tlb_func,
-@@ -1381,7 +1383,7 @@ static DEFINE_PER_CPU(unsigned int, flus
- 
- static struct flush_tlb_info *get_flush_tlb_info(struct mm_struct *mm,
- 			unsigned long start, unsigned long end,
--			unsigned int stride_shift, bool freed_tables,
-+			unsigned int stride_shift, bool wake_lazy_cpus,
- 			u64 new_tlb_gen)
- {
- 	struct flush_tlb_info *info = this_cpu_ptr(&flush_tlb_info);
-@@ -1408,7 +1410,7 @@ static struct flush_tlb_info *get_flush_
- 	info->end		= end;
- 	info->mm		= mm;
- 	info->stride_shift	= stride_shift;
--	info->freed_tables	= freed_tables;
-+	info->wake_lazy_cpus	= wake_lazy_cpus;
- 	info->new_tlb_gen	= new_tlb_gen;
- 	info->initiating_cpu	= smp_processor_id();
- 	info->trim_cpumask	= 0;
-@@ -1427,7 +1429,7 @@ static void put_flush_tlb_info(void)
- 
- void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
- 				unsigned long end, unsigned int stride_shift,
--				bool freed_tables)
-+				bool wake_lazy_cpus)
- {
- 	struct flush_tlb_info *info;
- 	int cpu = get_cpu();
-@@ -1436,7 +1438,7 @@ void flush_tlb_mm_range(struct mm_struct
- 	/* This is also a barrier that synchronizes with switch_mm(). */
- 	new_tlb_gen = inc_mm_tlb_gen(mm);
- 
--	info = get_flush_tlb_info(mm, start, end, stride_shift, freed_tables,
-+	info = get_flush_tlb_info(mm, start, end, stride_shift, wake_lazy_cpus,
- 				  new_tlb_gen);
- 
- 	/*
-@@ -1813,3 +1815,16 @@ static int __init create_tlb_single_page
- 	return 0;
- }
- late_initcall(create_tlb_single_page_flush_ceiling);
-+
-+void __init native_pv_tlb_init(void)
-+{
-+#ifdef CONFIG_PARAVIRT
-+	if (pv_ops.mmu.flush_tlb_multi != native_flush_tlb_multi)
-+		return;
-+#endif
-+
-+	if (cpu_feature_enabled(X86_FEATURE_INVLPGB))
-+		return;
-+
-+	static_branch_enable(&tlb_ipi_broadcast_key);
-+}
+ 	 * Check that memory controller is available:
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from li.wang@linux.dev are
 
-mm-mmu_gather-prepare-to-skip-redundant-sync-ipis.patch
-x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch
+maintainers-update-li-wangs-email-address.patch
+selftests-cgroup-skip-test_zswap-if-zswap-is-globally-disabled.patch
+selftests-cgroup-avoid-oom-in-test_swapin_nozswap.patch
+selftests-cgroup-use-runtime-page-size-for-zswpin-check.patch
+selftests-cgroup-rename-page_size-to-buf_size-in-cgroup_util.patch
+selftests-cgroup-replace-hardcoded-page-size-values-in-test_zswap.patch
+selftest-cgroup-fix-zswap-test_no_invasive_cgroup_shrink-on-large-pagesize-system.patch
+selftest-cgroup-fix-zswap-attempt_writeback-on-64k-pagesize-system.patch
+selftests-cgroup-test_zswap-wait-for-asynchronous-writeback.patch
 
