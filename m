@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71D3422538F
-	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 15:26:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53AD822538F
+	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 15:27:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777130819; cv=none; b=HEMjiea/s4SlY+B9YX9opuf2E8Ncvf7vUZGuPSvo+ijq+VgdCVta3ciy6b8afsOTab2lzA0hiYPHBHizSf49WRzkRIKZXvNEAcmoVDFNUCtVLoxSZbj/ExRXjYCx/XHB46VpcHtv8oAesF20OJw+XtcrsWZ6lscmvY8/FrgBbK4=
+	t=1777130821; cv=none; b=sFQxYFLkreS3ExE1fq0UeWw1QGmOyQBwJtvFsdYC0AlI767TqMj9Wr9rLFwzcfpk+RkZpmRb1j2os1LnP57ixjJNgdnZ8Z2Gv2bYqeF8ek2JzFBANByG7+XtU53MtLs1OKi6kLcw7qN29W/EXGVT1Fw85LwbtidCDL27PSvMz2s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777130819; c=relaxed/simple;
-	bh=dMVW8pzu4/HSoEQrwe8sAKz2coCab5ZEJJz+x/1enHU=;
-	h=Date:To:From:Subject:Message-Id; b=tRpxXEfRiVF0+nDHNcc/WmgXsCZ794ZCFnlBh3JJEmyDS0vgF2BJkj6L0LoCriUqCswEKVw9Ra8tia/nuyW+vmoLBNBt7nYd8emMLAMTywgiw737uTnA3km8Pq1Ew6utLzpau62LU249amJ9h/MCSzQNamj5QxJ4Xx1O+NA36jQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lz8KClv2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777130821; c=relaxed/simple;
+	bh=lFY9yt3fGJ7X+Ot0JXpdZJZgb+8pvAgBaxjczfgN/VI=;
+	h=Date:To:From:Subject:Message-Id; b=EOR/mfmkAKbBUWyC7wo3ABw48A3adTt8S0jDWkSu2vPp4ZFi+TAAR6bQ/fHIc3H3uNGk3N+If+OIAaNzl4L+q5Gz00OwI7FzpKXiYGG+TLC2SjOMdQghBwM5+Sx4U3cPQJL7OVL3AO5C0/GU7mErMfu6NFeZPYRq0AdNAudxg7c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=swdEeX/K; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lz8KClv2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1E62C2BCB0;
-	Sat, 25 Apr 2026 15:26:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="swdEeX/K"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8DE7C2BCB0;
+	Sat, 25 Apr 2026 15:27:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777130819;
-	bh=dMVW8pzu4/HSoEQrwe8sAKz2coCab5ZEJJz+x/1enHU=;
+	s=korg; t=1777130820;
+	bh=lFY9yt3fGJ7X+Ot0JXpdZJZgb+8pvAgBaxjczfgN/VI=;
 	h=Date:To:From:Subject:From;
-	b=lz8KClv2gUUgr250Nk9CbqAcz2+HmpOPETDnOTceVR2qCQw4Nk9gCzUm8y7tKfDGL
-	 XSpqHEOOIdsKPuwY0ngTbSt6Dvw5ark3VhqcvI73iLMBvyAqDUG16hNAX2MBBY3pXM
-	 bYp6yt3WHGDo+9YvvddsPBlXO8ESi1F3J5yAEb1o=
-Date: Sat, 25 Apr 2026 08:26:58 -0700
+	b=swdEeX/KdmcXcJcqiwbR77xi7dkmy7+hUKinurQU8oQDrSVpl8qpGw0najlbe+gvg
+	 zYsEE9nMtpBWyYlFMGN5TvM3OHPsPE32w7i6whqNPfcJvQVp9c9pX7IpuDUOxBl/dy
+	 etddUhpBJGa79nQInU7UnNkweNvrlMmV6ACKq7so=
+Date: Sat, 25 Apr 2026 08:27:00 -0700
 To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,objecting@objecting.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-base64-validate-before-writing-in-decode-tail-path.patch added to mm-nonmm-unstable branch
-Message-Id: <20260425152658.E1E62C2BCB0@smtp.kernel.org>
+Subject: + lib-base64-fix-copy-pasted-padding-doc-in-base64_decode.patch added to mm-nonmm-unstable branch
+Message-Id: <20260425152700.D8DE7C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/base64: validate before writing in decode tail path
+     Subject: lib/base64: fix copy-pasted @padding doc in base64_decode()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-base64-validate-before-writing-in-decode-tail-path.patch
+     lib-base64-fix-copy-pasted-padding-doc-in-base64_decode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-base64-validate-before-writing-in-decode-tail-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-base64-fix-copy-pasted-padding-doc-in-base64_decode.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,62 +59,34 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Josh Law <objecting@objecting.org>
-Subject: lib/base64: validate before writing in decode tail path
-Date: Tue, 24 Mar 2026 22:32:09 +0000
+Subject: lib/base64: fix copy-pasted @padding doc in base64_decode()
+Date: Tue, 24 Mar 2026 22:32:10 +0000
 
-Patch series "lib/base64: decode fixes", v2.
+The @padding kernel-doc for base64_decode() says "whether to append '='
+padding characters", which was copy-pasted from base64_encode().  In the
+decode context, it controls whether the input is expected to include
+padding, not whether to append it.
 
-Two small fixes for lib/base64.c:
-
-1. base64_decode() writes a decoded byte to the output buffer before
-   validating the input in the trailing-bytes path. Move the validity
-   checks before any writes so dst is untouched on invalid input.
-
-2. The @padding kernel-doc for base64_decode() was copy-pasted from
-   base64_encode() and describes the wrong direction.
-
-
-This patch (of 2):
-
-The trailing-bytes path in base64_decode() writes a decoded byte to the
-output buffer before checking whether the input characters are valid.  If
-the input is malformed, garbage is written to dst before the function
-returns -1.
-
-Move the validity checks before any writes so the output buffer is left
-untouched on invalid input.
-
-Link: https://lore.kernel.org/20260324223210.47676-1-objecting@objecting.org
-Link: https://lore.kernel.org/20260324223210.47676-2-objecting@objecting.org
-Fixes: 9c7d3cf94d33 ("lib/base64: rework encode/decode for speed and stricter validation")
+Link: https://lore.kernel.org/20260324223210.47676-3-objecting@objecting.org
 Signed-off-by: Josh Law <objecting@objecting.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/base64.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/base64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/base64.c~lib-base64-validate-before-writing-in-decode-tail-path
+--- a/lib/base64.c~lib-base64-fix-copy-pasted-padding-doc-in-base64_decode
 +++ a/lib/base64.c
-@@ -168,15 +168,16 @@ int base64_decode(const char *src, int s
- 		return -1;
- 
- 	val = (base64_rev_tables[s[0]] << 12) | (base64_rev_tables[s[1]] << 6);
--	*bp++ = val >> 10;
- 
- 	if (srclen == 2) {
- 		if (val & 0x800003ff)
- 			return -1;
-+		*bp++ = val >> 10;
- 	} else {
- 		val |= base64_rev_tables[s[2]];
- 		if (val & 0x80000003)
- 			return -1;
-+		*bp++ = val >> 10;
- 		*bp++ = val >> 2;
- 	}
- 	return bp - dst;
+@@ -122,7 +122,7 @@ EXPORT_SYMBOL_GPL(base64_encode);
+  * @src: the string to decode.  Doesn't need to be NUL-terminated.
+  * @srclen: the length of @src in bytes
+  * @dst: (output) the decoded binary data
+- * @padding: whether to append '=' padding characters
++ * @padding: whether the input is expected to include '=' padding characters
+  * @variant: which base64 variant to use
+  *
+  * Decodes a string using the selected Base64 variant.
 _
 
 Patches currently in -mm which might be from objecting@objecting.org are
