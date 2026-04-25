@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53AD822538F
-	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 15:27:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67F0530AD0B
+	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 15:28:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777130821; cv=none; b=sFQxYFLkreS3ExE1fq0UeWw1QGmOyQBwJtvFsdYC0AlI767TqMj9Wr9rLFwzcfpk+RkZpmRb1j2os1LnP57ixjJNgdnZ8Z2Gv2bYqeF8ek2JzFBANByG7+XtU53MtLs1OKi6kLcw7qN29W/EXGVT1Fw85LwbtidCDL27PSvMz2s=
+	t=1777130901; cv=none; b=q125cY6ENvct2yvG+oolgic2yWP8CHx/FwZ2eub9nkAQ98SQGPxR9bLqBe97/STqQ+UvQGN8O516THZjUqo9DVI50808K2fhky+x5XLXWcBdyUj4FAWHTKPiYFuqc7gLZaD60gbuCypzysBgN20Hf+6vOWzxjoX/d1SixrezwAI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777130821; c=relaxed/simple;
-	bh=lFY9yt3fGJ7X+Ot0JXpdZJZgb+8pvAgBaxjczfgN/VI=;
-	h=Date:To:From:Subject:Message-Id; b=EOR/mfmkAKbBUWyC7wo3ABw48A3adTt8S0jDWkSu2vPp4ZFi+TAAR6bQ/fHIc3H3uNGk3N+If+OIAaNzl4L+q5Gz00OwI7FzpKXiYGG+TLC2SjOMdQghBwM5+Sx4U3cPQJL7OVL3AO5C0/GU7mErMfu6NFeZPYRq0AdNAudxg7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=swdEeX/K; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777130901; c=relaxed/simple;
+	bh=aY/5OHGRcuxd81qHVmyI6hSEOlArssuPxgPbyRdymA8=;
+	h=Date:To:From:Subject:Message-Id; b=UccPYdfWOR3+8IeJyk3oUa7aUcUt81ZGySRgHfRy18QE1m26YQZbXHSTDMcqB/4fC9xjxnJaF97CwvOOPubg4xajbgIrx5A3YAI6WQdb/XYrbHbCYhcBSLrypjnpqbpAtY3AaoZPhFZU17M1R5aFC7mYQuQhRVdqjmGA2rnenjY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zoWmu01d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="swdEeX/K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8DE7C2BCB0;
-	Sat, 25 Apr 2026 15:27:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zoWmu01d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B58EC2BCB0;
+	Sat, 25 Apr 2026 15:28:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777130820;
-	bh=lFY9yt3fGJ7X+Ot0JXpdZJZgb+8pvAgBaxjczfgN/VI=;
+	s=korg; t=1777130901;
+	bh=aY/5OHGRcuxd81qHVmyI6hSEOlArssuPxgPbyRdymA8=;
 	h=Date:To:From:Subject:From;
-	b=swdEeX/KdmcXcJcqiwbR77xi7dkmy7+hUKinurQU8oQDrSVpl8qpGw0najlbe+gvg
-	 zYsEE9nMtpBWyYlFMGN5TvM3OHPsPE32w7i6whqNPfcJvQVp9c9pX7IpuDUOxBl/dy
-	 etddUhpBJGa79nQInU7UnNkweNvrlMmV6ACKq7so=
-Date: Sat, 25 Apr 2026 08:27:00 -0700
-To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,objecting@objecting.org,akpm@linux-foundation.org
+	b=zoWmu01d/BgRAiTGHBxWaepKz988Qi0SFE+Y6NVkg0WRj0GDxDa5Y5z6Dz56Ga46T
+	 lmmR1AB2aNmtrh+UtDgaQ2sEhPl9nGeM7InkM6vj+iHvWorHNhTnXyKCvKL3hVjb5H
+	 XPZO603umEl3pUcGweFux+l2WUpCfT2njVsuRGXc=
+Date: Sat, 25 Apr 2026 08:28:20 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,nathan@kernel.org,kent.overstreet@linux.dev,bvanassche@acm.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-base64-fix-copy-pasted-padding-doc-in-base64_decode.patch added to mm-nonmm-unstable branch
-Message-Id: <20260425152700.D8DE7C2BCB0@smtp.kernel.org>
+Subject: + lib-split-codetag_lock_module_list.patch added to mm-nonmm-unstable branch
+Message-Id: <20260425152821.0B58EC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/base64: fix copy-pasted @padding doc in base64_decode()
+     Subject: lib: split codetag_lock_module_list()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-base64-fix-copy-pasted-padding-doc-in-base64_decode.patch
+     lib-split-codetag_lock_module_list.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-base64-fix-copy-pasted-padding-doc-in-base64_decode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-split-codetag_lock_module_list.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,40 +58,114 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Josh Law <objecting@objecting.org>
-Subject: lib/base64: fix copy-pasted @padding doc in base64_decode()
-Date: Tue, 24 Mar 2026 22:32:10 +0000
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: lib: split codetag_lock_module_list()
+Date: Tue, 24 Mar 2026 14:42:25 -0700
 
-The @padding kernel-doc for base64_decode() says "whether to append '='
-padding characters", which was copy-pasted from base64_encode().  In the
-decode context, it controls whether the input is expected to include
-padding, not whether to append it.
+Letting a function argument indicate whether a lock or unlock operation
+should be performed is incompatible with compile-time analysis of locking
+operations by sparse and Clang.  Hence, split codetag_lock_module_list()
+into two functions: a function that locks cttype->mod_lock and another
+function that unlocks cttype->mod_lock.  No functionality has been
+changed.  See also commit 916cc5167cc6 ("lib: code tagging framework").
 
-Link: https://lore.kernel.org/20260324223210.47676-3-objecting@objecting.org
-Signed-off-by: Josh Law <objecting@objecting.org>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: https://lore.kernel.org/20260324214226.3684605-1-bvanassche@acm.org
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Acked-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/base64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/codetag.h |    3 ++-
+ lib/alloc_tag.c         |    8 ++++----
+ lib/codetag.c           |   12 +++++++-----
+ 3 files changed, 13 insertions(+), 10 deletions(-)
 
---- a/lib/base64.c~lib-base64-fix-copy-pasted-padding-doc-in-base64_decode
-+++ a/lib/base64.c
-@@ -122,7 +122,7 @@ EXPORT_SYMBOL_GPL(base64_encode);
-  * @src: the string to decode.  Doesn't need to be NUL-terminated.
-  * @srclen: the length of @src in bytes
-  * @dst: (output) the decoded binary data
-- * @padding: whether to append '=' padding characters
-+ * @padding: whether the input is expected to include '=' padding characters
-  * @variant: which base64 variant to use
-  *
-  * Decodes a string using the selected Base64 variant.
+--- a/include/linux/codetag.h~lib-split-codetag_lock_module_list
++++ a/include/linux/codetag.h
+@@ -74,8 +74,9 @@ struct codetag_iterator {
+ 	.flags		= 0,				\
+ }
+ 
+-void codetag_lock_module_list(struct codetag_type *cttype, bool lock);
++void codetag_lock_module_list(struct codetag_type *cttype);
+ bool codetag_trylock_module_list(struct codetag_type *cttype);
++void codetag_unlock_module_list(struct codetag_type *cttype);
+ struct codetag_iterator codetag_get_ct_iter(struct codetag_type *cttype);
+ struct codetag *codetag_next_ct(struct codetag_iterator *iter);
+ 
+--- a/lib/alloc_tag.c~lib-split-codetag_lock_module_list
++++ a/lib/alloc_tag.c
+@@ -54,7 +54,7 @@ static void *allocinfo_start(struct seq_
+ 	loff_t node = *pos;
+ 
+ 	priv = (struct allocinfo_private *)m->private;
+-	codetag_lock_module_list(alloc_tag_cttype, true);
++	codetag_lock_module_list(alloc_tag_cttype);
+ 	if (node == 0) {
+ 		priv->print_header = true;
+ 		priv->iter = codetag_get_ct_iter(alloc_tag_cttype);
+@@ -77,7 +77,7 @@ static void *allocinfo_next(struct seq_f
+ 
+ static void allocinfo_stop(struct seq_file *m, void *arg)
+ {
+-	codetag_lock_module_list(alloc_tag_cttype, false);
++	codetag_unlock_module_list(alloc_tag_cttype);
+ }
+ 
+ static void print_allocinfo_header(struct seq_buf *buf)
+@@ -136,7 +136,7 @@ size_t alloc_tag_top_users(struct codeta
+ 		return 0;
+ 
+ 	if (can_sleep)
+-		codetag_lock_module_list(alloc_tag_cttype, true);
++		codetag_lock_module_list(alloc_tag_cttype);
+ 	else if (!codetag_trylock_module_list(alloc_tag_cttype))
+ 		return 0;
+ 
+@@ -161,7 +161,7 @@ size_t alloc_tag_top_users(struct codeta
+ 		}
+ 	}
+ 
+-	codetag_lock_module_list(alloc_tag_cttype, false);
++	codetag_unlock_module_list(alloc_tag_cttype);
+ 
+ 	return nr;
+ }
+--- a/lib/codetag.c~lib-split-codetag_lock_module_list
++++ a/lib/codetag.c
+@@ -35,12 +35,9 @@ struct codetag_module {
+ static DEFINE_MUTEX(codetag_lock);
+ static LIST_HEAD(codetag_types);
+ 
+-void codetag_lock_module_list(struct codetag_type *cttype, bool lock)
++void codetag_lock_module_list(struct codetag_type *cttype)
+ {
+-	if (lock)
+-		down_read(&cttype->mod_lock);
+-	else
+-		up_read(&cttype->mod_lock);
++	down_read(&cttype->mod_lock);
+ }
+ 
+ bool codetag_trylock_module_list(struct codetag_type *cttype)
+@@ -48,6 +45,11 @@ bool codetag_trylock_module_list(struct
+ 	return down_read_trylock(&cttype->mod_lock) != 0;
+ }
+ 
++void codetag_unlock_module_list(struct codetag_type *cttype)
++{
++	up_read(&cttype->mod_lock);
++}
++
+ struct codetag_iterator codetag_get_ct_iter(struct codetag_type *cttype)
+ {
+ 	struct codetag_iterator iter = {
 _
 
-Patches currently in -mm which might be from objecting@objecting.org are
+Patches currently in -mm which might be from bvanassche@acm.org are
 
-lib-base64-validate-before-writing-in-decode-tail-path.patch
-lib-base64-fix-copy-pasted-padding-doc-in-base64_decode.patch
-lib-idr-fix-ida_find_first_range-missing-ids-across-chunk-boundaries.patch
+clang-format-fix-formatting-of-guard-and-scoped_guard-statements.patch
+lib-split-codetag_lock_module_list.patch
 
