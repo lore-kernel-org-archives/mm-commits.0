@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB8B737AA98;
-	Sat, 25 Apr 2026 14:57:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF2C11FBEB0
+	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 15:04:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777129076; cv=none; b=mGKxrZqGnQ68k1tXDLoRifNclrzHdEr0NoJlg4JOBjfNfttEcaM0DYDrykFT/yRRzJF8dwMcfIc3d7UQUHAk0oF5uSw+TBhQK96/PaEGbHXmPUpmN8x6EVr4FlH7Xrzi502oZDmobF5kMedIrCZoMiKRP4vTMI0MkrqN6I5U2c4=
+	t=1777129453; cv=none; b=CFHS4N/AavNJwC6R54doOcd+AmdOXqKK92q7sfTAHrhyldPgpxf3IW8qqv6A9Se9uDIzXY+LDymET+xjayHn24EGfshzHt57F/Z+5GlwIkkPHQpDwE47VUDPy09Qeq/nKygeqKUkhiwphWjxS46YOznM/pi4xBDTPm32Fef3D9U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777129076; c=relaxed/simple;
-	bh=67hmXrViKvKry/8B7QltivmfAtZgEBeYOC93U5ulNcs=;
-	h=Date:To:From:Subject:Message-Id; b=tZ6tFGaHgkrsD1N7nD0hRGGzwc+GW/+SsXFrVMl7BxWj1N3FM/H7pDe7W1tOPxyhAV9MbFjlc4AmtRiDj576U0GKre/38fLQyzTLoS8EjaEuHh7KCZYHte3ZUyZ05MdJHDSahkFsp7O2fSrpZBYrvIZhelXmuxS1iMP/n5txXW0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FPgMLjUe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777129453; c=relaxed/simple;
+	bh=AeuDg9RCY91mzTrzfxlouNutfHpbd+ySQ6rpq8wPJ7g=;
+	h=Date:To:From:Subject:Message-Id; b=RbiZT9Ex9vEf4+YwerzLfS4WRvUMCkTxgYgamcTRu5/nBasggQq3g1hRNRjyqw9FW8V4btOB2kV4gCSjK3TQk78osJLK7Iekh1Coe61xE65bqtegNaCNSYkwfBbId8m3EOhYEs6pXOtxHA/jnVdfTezU0fc4r6WWX/stwZwHByM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UBfOOjJv; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FPgMLjUe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63ED5C2BCB5;
-	Sat, 25 Apr 2026 14:57:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UBfOOjJv"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57D03C2BCB0;
+	Sat, 25 Apr 2026 15:04:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777129076;
-	bh=67hmXrViKvKry/8B7QltivmfAtZgEBeYOC93U5ulNcs=;
+	s=korg; t=1777129453;
+	bh=AeuDg9RCY91mzTrzfxlouNutfHpbd+ySQ6rpq8wPJ7g=;
 	h=Date:To:From:Subject:From;
-	b=FPgMLjUedZ8+HjE2hQ8YOjnK3j0+PspqWCpjrCi1y2mIoQdcfE5QxCgu9N9lruAoI
-	 z5MtSVAu3pEKM4r2yitUobfEftdxoK5AD7IIl+mldhfF6BO/FaCAAGcNcxJAbeeveL
-	 3El9bm7Kz0xo8Sw65L1O3K/DbIB/B7Yf/ryUWerE=
-Date: Sat, 25 Apr 2026 07:57:55 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,almasrymina@google.com,kartikey406@gmail.com,akpm@linux-foundation.org
+	b=UBfOOjJvK6mDcFoJZlqqd9qEzT0lIN1QyKiHuv922DsNN1OXa+XWkGFExxhdhQnej
+	 qmaW4oJ0XuNdFnHhjtDHF+W3RSCPSd6X5BUXwE+08eAqz/pqdKgni3S3vJ7bztRONc
+	 zANg5zZxXZT6XNpxuK1qTGwwundBbdFiymQPz/HA=
+Date: Sat, 25 Apr 2026 08:04:12 -0700
+To: mm-commits@vger.kernel.org,tzimmermann@suse.de,stf_xl@wp.pl,pabeni@redhat.com,mripard@kernel.org,maarten.lankhorst@linux.intel.com,kuba@kernel.org,horms@kernel.org,glider@google.com,elver@google.com,edumazet@google.com,dvyukov@google.com,davem@davemloft.net,allison.henderson@oracle.com,airlied@gmail.com,achender@kernel.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-hugetlb-cgroup-rsvd-charge-uncharge-mismatch.patch added to mm-new branch
-Message-Id: <20260425145756.63ED5C2BCB5@smtp.kernel.org>
+Subject: + drm-managed-use-special-gfp_t-format-specifier.patch added to mm-new branch
+Message-Id: <20260425150413.57D03C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: fix hugetlb cgroup rsvd charge/uncharge mismatch
+     Subject: drm/managed: use special gfp_t format specifier
 has been added to the -mm mm-new branch.  Its filename is
-     mm-hugetlb-fix-hugetlb-cgroup-rsvd-charge-uncharge-mismatch.patch
+     drm-managed-use-special-gfp_t-format-specifier.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-hugetlb-cgroup-rsvd-charge-uncharge-mismatch.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drm-managed-use-special-gfp_t-format-specifier.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,89 +69,63 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Deepanshu Kartikey <kartikey406@gmail.com>
-Subject: mm/hugetlb: fix hugetlb cgroup rsvd charge/uncharge mismatch
-Date: Sat, 28 Mar 2026 12:25:34 +0530
+From: Brendan Jackman <jackmanb@google.com>
+Subject: drm/managed: use special gfp_t format specifier
+Date: Thu, 26 Mar 2026 12:31:57 +0000
 
-In alloc_hugetlb_folio(), a single h_cg pointer is used for both the rsvd
-and non-rsvd hugetlb cgroup charges.  When map_chg is set,
-hugetlb_cgroup_charge_cgroup_rsvd() stores the charged cgroup in h_cg, but
-the immediately following hugetlb_cgroup_charge_cgroup() overwrites h_cg
-with the non-rsvd cgroup pointer.
+Patch series "treewide: fixup gfp_t printks", v2.
 
-As a result, hugetlb_cgroup_commit_charge_rsvd() stores the wrong
-(non-rsvd) cgroup pointer into the folio's rsvd slot.
+Use vprintf()'s special gfp_t conversion in a few places.
 
-When the folio is later freed, free_huge_folio() unconditionally calls
-both hugetlb_cgroup_uncharge_folio() and
-hugetlb_cgroup_uncharge_folio_rsvd().  The rsvd uncharge reads back the
-wrong cgroup from the folio and decrements a counter that was never
-charged for that cgroup, causing a page_counter underflow:
 
-  page_counter underflow: -512 nr_pages=512
-  WARNING: mm/page_counter.c:61 at page_counter_cancel
+This patch (of 3):
 
-Fix this by introducing a separate h_cg_rsvd pointer exclusively for the
-rsvd charge path, keeping the rsvd and non-rsvd charges fully independent
-through their charge, commit, and error uncharge paths.
+%pGg produces nice readable output and decouples the format string from
+the size of gfp_t.
 
-Link: https://lore.kernel.org/20260328065534.346053-1-kartikey406@gmail.com
-Fixes: 08cf9faf7558 ("hugetlb_cgroup: support noreserve mappings")
-Reported-by: syzbot+226c1f947186f8fef796@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=226c1f947186f8fef796
-Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260326-gfp64-v2-0-d916021cecdf@google.com
+Link: https://lore.kernel.org/20260326-gfp64-v2-1-d916021cecdf@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Allison Collins <allison.henderson@oracle.com>
+Cc: Allison Henderson <achender@kernel.org>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Jakub Kacinski <kuba@kernel.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Simon Horman <horms@kernel.org>
+Cc: Stanislaw Gruszka <stf_xl@wp.pl>
+Cc: Thomas Zimemrmann <tzimmermann@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/drm_managed.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-hugetlb-cgroup-rsvd-charge-uncharge-mismatch
-+++ a/mm/hugetlb.c
-@@ -2879,6 +2879,7 @@ struct folio *alloc_hugetlb_folio(struct
- 	map_chg_state map_chg;
- 	int ret, idx;
- 	struct hugetlb_cgroup *h_cg = NULL;
-+	struct hugetlb_cgroup *h_cg_rsvd = NULL;
- 	gfp_t gfp = htlb_alloc_mask(h) | __GFP_RETRY_MAYFAIL;
+--- a/drivers/gpu/drm/drm_managed.c~drm-managed-use-special-gfp_t-format-specifier
++++ a/drivers/gpu/drm/drm_managed.c
+@@ -232,8 +232,8 @@ void *drmm_kmalloc(struct drm_device *de
  
- 	idx = hstate_index(h);
-@@ -2929,7 +2930,7 @@ struct folio *alloc_hugetlb_folio(struct
- 	 */
- 	if (map_chg) {
- 		ret = hugetlb_cgroup_charge_cgroup_rsvd(
--			idx, pages_per_huge_page(h), &h_cg);
-+			idx, pages_per_huge_page(h), &h_cg_rsvd);
- 		if (ret)
- 			goto out_subpool_put;
+ 	dr = alloc_dr(NULL, size, gfp, dev_to_node(dev->dev));
+ 	if (!dr) {
+-		drm_dbg_drmres(dev, "failed to allocate %zu bytes, %u flags\n",
+-			       size, gfp);
++		drm_dbg_drmres(dev, "failed to allocate %zu bytes, %pGg\n",
++			       size, &gfp);
+ 		return NULL;
  	}
-@@ -2971,7 +2972,7 @@ struct folio *alloc_hugetlb_folio(struct
- 	 */
- 	if (map_chg) {
- 		hugetlb_cgroup_commit_charge_rsvd(idx, pages_per_huge_page(h),
--						  h_cg, folio);
-+						  h_cg_rsvd, folio);
- 	}
- 
- 	spin_unlock_irq(&hugetlb_lock);
-@@ -3023,7 +3024,7 @@ out_uncharge_cgroup:
- out_uncharge_cgroup_reservation:
- 	if (map_chg)
- 		hugetlb_cgroup_uncharge_cgroup_rsvd(idx, pages_per_huge_page(h),
--						    h_cg);
-+						    h_cg_rsvd);
- out_subpool_put:
- 	/*
- 	 * put page to subpool iff the quota of subpool's rsv_hpages is used
+ 	dr->node.name = kstrdup_const("kmalloc", gfp);
 _
 
-Patches currently in -mm which might be from kartikey406@gmail.com are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-mm-hugetlb-fix-hugetlb-cgroup-rsvd-charge-uncharge-mismatch.patch
-kernel-fork-validate-exit_signal-in-kernel_clone.patch
+mm-page_alloc-cleanup-flag-vars-in-alloc_pages_bulk_noprof.patch
+drm-managed-use-special-gfp_t-format-specifier.patch
+mm-kfence-use-special-gfp_t-format-specifier.patch
+net-rds-use-special-gfp_t-format-specifier.patch
 
