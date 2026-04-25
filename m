@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC6CC37F8BD
-	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 22:01:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6757B37EFE4
+	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 22:06:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777154498; cv=none; b=oe+OhoVV7cVcoH7H51plLNGqy3W3JSVZnbd9g9fxSTzI4TGBEhdhkJCH1nsSxEjXJ9YdoPs63HfiBw79SaOac2Jkg8bxRGdviiSH5jweJm3ND5ncIunMa6VMEGj7/JSbO4PEvWuX7cR6MvmE+vOSmBQcQ2FWae7YZnCwmx5OalY=
+	t=1777154813; cv=none; b=QEBqZ7G+SqOlrAi/0kBbXubDqwwVUSMCbamJAitfX9c58yt7t9agNMzvEKGCfwnngmR80nuKMY7hwwVZ899N4rjo9HH+ak8QIHrPRFN869Evy4ps1hfVspca4gMqNKCLucWJGhLwoqegQQnRxAN6M/Kbff3NgdAMsR+zlxlVawA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777154498; c=relaxed/simple;
-	bh=dh5HLITTFQ1XaOs8A8UGFaCOb1b53PyWRmQiAt+VY64=;
-	h=Date:To:From:Subject:Message-Id; b=nWPyB9cBmc08wfOv/KQxkrOWlu1oTOK/FtA5WlEWBx0r2AD30AWK24pCK5VNno+o/pi4ANUrV/xifDOJ86/SYcKdwnSCM4rp4HJ9jUYewZ39FTpp/+WDIB2CJ+BbvMprMaRm5y9BvKG0x+tjd4cIUuGgysgYWX/o6VS74WJyy4o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ywxJl8Sm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777154813; c=relaxed/simple;
+	bh=T8va6n/yWr970b6nxuWLMyFVOsw1PG//dgOfgTmFvno=;
+	h=Date:To:From:Subject:Message-Id; b=gzjnjzcTQIFoiO0R9/DMGTOhsM95kJVJAhIKZqhzd1/MpS+2rYgmlCP6aroFZkGvwF15HrSL+2CcBumDLg4dOXeDhICDqjaUS7m5lB1Hvk7OsVom2ijAHuR8N1gdTs9wxd3VkP/+rQZcQu7xWxazqe+TfjvR2pvkHhXTfWGs8W0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K24hUnWO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ywxJl8Sm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C127C2BCB5;
-	Sat, 25 Apr 2026 22:01:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K24hUnWO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E69C4C2BCB0;
+	Sat, 25 Apr 2026 22:06:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777154498;
-	bh=dh5HLITTFQ1XaOs8A8UGFaCOb1b53PyWRmQiAt+VY64=;
+	s=korg; t=1777154813;
+	bh=T8va6n/yWr970b6nxuWLMyFVOsw1PG//dgOfgTmFvno=;
 	h=Date:To:From:Subject:From;
-	b=ywxJl8SmOvv4ci+92CePBa2ABKVgUhke7HVvBfaBIyrwVZ+Vaim55JIqmYJ3X1L5a
-	 Qhfr7LnkaDvKtM2tdbIzlVORyP7BDKpHQLvt85VwKwIoVOMbnwo9sUBqF34BT/OxTE
-	 VSkf6QQ0STq+hOXOdKXrwyJNFpPbtSxRj+0/cLhU=
-Date: Sat, 25 Apr 2026 15:01:37 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=K24hUnWOfijVdpFWNIHkaZUwSPXZX+NkjYNFU6w+CtVcnUztFiXTna/vyIx2KzUbY
+	 rFgAYgpSsRiCS9RH8XwbtHvbABJ0PNzAwthpPCeI1h9LHN887Cq3jXlRFjyeT5IqTd
+	 ZaNzYzHSbIsz7Sf9zOPEBYS6tUtfMBJifX65cmQI=
+Date: Sat, 25 Apr 2026 15:06:52 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-remove-read_only_thp_for_fs-check-fix.patch added to mm-new branch
-Message-Id: <20260425220138.7C127C2BCB5@smtp.kernel.org>
+Subject: [to-be-updated] mm-khugepaged-remove-read_only_thp_for_fs-check.patch removed from -mm tree
+Message-Id: <20260425220652.E69C4C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,100 +34,141 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm-khugepaged-remove-read_only_thp_for_fs-check-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-remove-read_only_thp_for_fs-check-fix.patch
+The quilt patch titled
+     Subject: mm/khugepaged: remove READ_ONLY_THP_FOR_FS check
+has been removed from the -mm tree.  Its filename was
+     mm-khugepaged-remove-read_only_thp_for_fs-check.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-read_only_thp_for_fs-check-fix.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-khugepaged-remove-read_only_thp_for_fs-check-fix
-Date: Sat Apr 25 02:54:04 PM PDT 2026
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/khugepaged: remove READ_ONLY_THP_FOR_FS check
+Date: Thu, 23 Apr 2026 22:49:04 -0400
 
-fix arm64 allnoconfig by uninlining mapping_pmd_thp_support()
+Patch series "Remove read-only THP support for FSes without large folio
+support", v4.
 
-In file included from ./include/linux/mm.h:31,
-                 from fs/inode.c:9:
-./include/linux/pagemap.h: In function 'mapping_pmd_thp_support':
-./include/linux/pgtable.h:8:26: error: 'PMD_SHIFT' undeclared (first use in this function); did you mean 'PUD_SHIFT'?
-    8 | #define PMD_ORDER       (PMD_SHIFT - PAGE_SHIFT)
-      |                          ^~~~~~~~~
-./include/linux/pagemap.h:521:52: note: in expansion of macro 'PMD_ORDER'
-  521 |         return mapping_max_folio_order(mapping) >= PMD_ORDER;
-      |                                                    ^~~~~~~~~
-./include/linux/pgtable.h:8:26: note: each undeclared identifier is reported only once for each function it appears in
-    8 | #define PMD_ORDER       (PMD_SHIFT - PAGE_SHIFT)
-      |                          ^~~~~~~~~
-./include/linux/pagemap.h:521:52: note: in expansion of macro 'PMD_ORDER'
-  521 |         return mapping_max_folio_order(mapping) >= PMD_ORDER;
-      |                                                    ^~~~~~~~~
-make[3]: *** [scripts/Makefile.build:289: fs/inode.o] Error 1
-make[2]: *** [scripts/Makefile.build:548: fs] Error 2
-make[1]: *** [/usr/src/25/Makefile:2139: .] Error 2
-make: *** [Makefile:248: __sub-make] Error 2
+This patchset removes READ_ONLY_THP_FOR_FS Kconfig and enables creating
+read-only THPs for FSes with large folio support (the supported orders
+need to include PMD_ORDER) by default.  It is on top of mm-new.
 
-Cc: Zi Yan <ziy@nvidia.com>
+Before the patchset, the status of creating read-only THPs is below:
+
+                            |    PF     | MADV_COLLAPSE | khugepaged |
+                            |-----------|---------------|------------|
+ large folio FSes only      |     ✓     |       x       |      x     |
+ READ_ONLY_THP_FOR_FS only  |     x     |       ✓       |      ✓     |
+ both                       |     ✓     |       ✓       |      ✓     |
+
+where READ_ONLY_THP_FOR_FS implies no large folio FSes.
+
+
+Now without READ_ONLY_THP_FOR_FS:
+
+                           |    PF     | MADV_COLLAPSE | khugepaged |
+                           |-----------|---------------|------------|
+ large folio FSes          |     ✓     |       ✓       |      ✓     |
+ no large folio FSes       |     x     |       x       |      x     |
+
+This means no large folio FSes need to add large folio support (the
+supported orders need to include PMD_ORDER), so that they can leverage
+read-only THP creation function.
+
+To prevent breaking read-only THP support for large folio FSes,
+1. first 4 patches enables the support, so that without READ_ONLY_THP_FOR_FS,
+   read-only THP still works for large folio FSes,
+2. Patch 5 removes READ_ONLY_THP_FOR_FS Kconfig,
+3. the rest of patches remove code related to READ_ONLY_THP_FOR_FS.
+
+NOTE: collapsing writable MAP_PRIVATE pagecache folios is not supported,
+since:
+1. PMD THP CoW only faults in at PTE level to avoid long CoW latency,
+2. the first check, due to 1, in file_backed_vma_is_retractable() prevents it.
+
+
+The overview of the changes is:
+
+1. collapse_file() checks for to-be-collapsed folio dirtiness after they
+   are locked, unmapped to make sure no new write happens. Before,
+   mapping->nr_thps and inode->i_writecount are used to cause read-only
+   THP truncation before a fd becomes writable.
+
+2. hugepage_enabled() is true for anon, shmem, and file-backed cases
+   if the global khugepaged control is on, otherwise, khugepaged for
+   file-backed case is turned off and anon and shmem depend on per-size
+   control knobs.
+
+3. collapse_file() from mm/khugepaged.c, instead of checking
+   CONFIG_READ_ONLY_THP_FOR_FS, makes sure the mapping_max_folio_order()
+   of struct address_space of the file is at least PMD_ORDER.
+
+4. file_thp_enabled() also checks mapping_max_folio_order() instead and
+   no longer checks if the input file is opened as read-only (Change 1
+   handles read-write files).
+
+5. truncate_inode_partial_folio() calls folio_split() directly instead
+   of the removed try_folio_split_to_order(), since large folios can
+   only show up on a FS with large folio support.
+
+6. nr_thps is removed from struct address_space, since it is no longer
+   needed to drop all read-only THPs from a FS without large folio
+   support when the fd becomes writable. Its related filemap_nr_thps*()
+   are removed too.
+
+7. folio_check_splittable() no longer checks READ_ONLY_THP_FOR_FS.
+
+8. Updated comments in various places.
+
+
+This patch (of 12):
+
+collapse_file() requires FSes supporting large folio with at least
+PMD_ORDER, so replace the READ_ONLY_THP_FOR_FS check with that. 
+MADV_COLLAPSE ignores shmem huge config, so exclude the check for shmem.
+
+While at it, replace VM_BUG_ON with VM_WARN_ON_ONCE.
+
+Add a helper function mapping_pmd_thp_support() for FSes supporting large
+folio with at least PMD_ORDER.
+
+Link: https://lore.kernel.org/20260424024915.28758-1-ziy@nvidia.com
+Link: https://lore.kernel.org/20260424024915.28758-2-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Mason <clm@fb.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    9 +--------
- mm/filemap.c            |    8 ++++++++
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ include/linux/pagemap.h |    9 +++++++++
+ mm/khugepaged.c         |   10 ++++++++--
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
---- a/include/linux/pagemap.h~mm-khugepaged-remove-read_only_thp_for_fs-check-fix
+--- a/include/linux/pagemap.h~mm-khugepaged-remove-read_only_thp_for_fs-check
 +++ a/include/linux/pagemap.h
-@@ -513,14 +513,7 @@ static inline bool mapping_large_folio_s
+@@ -513,6 +513,15 @@ static inline bool mapping_large_folio_s
  	return mapping_max_folio_order(mapping) > 0;
  }
  
--static inline bool mapping_pmd_thp_support(const struct address_space *mapping)
--{
--	/* AS_FOLIO_ORDER is only reasonable for pagecache folios */
--	VM_WARN_ON_ONCE((unsigned long)mapping & FOLIO_MAPPING_ANON);
--
--	return mapping_max_folio_order(mapping) >= PMD_ORDER;
--}
--
-+bool mapping_pmd_thp_support(const struct address_space *mapping);
- 
- /* Return the maximum folio size for this pagecache mapping, in bytes. */
- static inline size_t mapping_max_folio_size(const struct address_space *mapping)
---- a/mm/filemap.c~mm-khugepaged-remove-read_only_thp_for_fs-check-fix
-+++ a/mm/filemap.c
-@@ -126,6 +126,14 @@
-  *    ->private_lock		(zap_pte_range->block_dirty_folio)
-  */
- 
-+bool mapping_pmd_thp_support(const struct address_space *mapping)
++static inline bool mapping_pmd_thp_support(const struct address_space *mapping)
 +{
 +	/* AS_FOLIO_ORDER is only reasonable for pagecache folios */
 +	VM_WARN_ON_ONCE((unsigned long)mapping & FOLIO_MAPPING_ANON);
@@ -135,16 +176,42 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	return mapping_max_folio_order(mapping) >= PMD_ORDER;
 +}
 +
- static void page_cache_delete(struct address_space *mapping,
- 				   struct folio *folio, void *shadow)
++
+ /* Return the maximum folio size for this pagecache mapping, in bytes. */
+ static inline size_t mapping_max_folio_size(const struct address_space *mapping)
  {
+--- a/mm/khugepaged.c~mm-khugepaged-remove-read_only_thp_for_fs-check
++++ a/mm/khugepaged.c
+@@ -2235,8 +2235,14 @@ static enum scan_result collapse_file(st
+ 	int nr_none = 0;
+ 	bool is_shmem = shmem_file(file);
+ 
+-	VM_BUG_ON(!IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && !is_shmem);
+-	VM_BUG_ON(start & (HPAGE_PMD_NR - 1));
++	/*
++	 * MADV_COLLAPSE ignores shmem huge config, so do not check shmem
++	 *
++	 * TODO: once shmem always calls mapping_set_large_folios() on its
++	 * mapping, the shmem check can be removed.
++	 */
++	VM_WARN_ON_ONCE(!is_shmem && !mapping_pmd_thp_support(mapping));
++	VM_WARN_ON_ONCE(start & (HPAGE_PMD_NR - 1));
+ 
+ 	result = alloc_charge_folio(&new_folio, mm, cc, HPAGE_PMD_ORDER);
+ 	if (result != SCAN_SUCCEED)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free-fix.patch
-mm-khugepaged-remove-read_only_thp_for_fs-check-fix.patch
-mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch
-include-asm-generic-fixmaph-reimplement-nasty-macros-in-c.patch
-proc-rewrite-next_tgid-fix.patch
+mm-khugepaged-add-folio-dirty-check-after-try_to_unmap.patch
+mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled.patch
+mm-khugepaged-remove-read_only_thp_for_fs-check-in-hugepage_enabled.patch
+mm-remove-read_only_thp_for_fs-kconfig-option.patch
+mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch
+fs-remove-nr_thps-from-struct-address_space.patch
+mm-huge_memory-remove-folio-split-check-for-read_only_thp_for_fs.patch
+mm-truncate-use-folio_split-in-truncate_inode_partial_folio.patch
+fs-btrfs-remove-a-comment-referring-to-read_only_thp_for_fs.patch
+selftests-mm-remove-read_only_thp_for_fs-in-khugepaged.patch
+selftests-mm-remove-read_only_thp_for_fs-code-from-guard-regions.patch
 
