@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC1553FE652
-	for <mm-commits@vger.kernel.org>; Fri, 24 Apr 2026 20:13:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 660B13624C1;
+	Sat, 25 Apr 2026 13:54:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777061639; cv=none; b=rdArtACqLzBjfTqY7uNleOq1bAWa8zqaiSb3r68MR1VfoeSYlAL95gWDNxAGrOM1RFSUCTA3lCkV3M4ZoTZt9NVzMUMbs/MdvUosl20k+fNhpFmTMbDz1AnY+m3N/ljP8R9jdvXUM+Ou4uMHZGLnTCyGrVJxmEfFHOIuIoN16sE=
+	t=1777125264; cv=none; b=J1TvZuIHIxjSgHfMV+ZGU+06Eh/FK8baymsp7R0T9fIpN84sJVUZdJFDD6zMM91rlN2TmRWk+J6TkeAkyrQd/OZVZScy/7kG15aMiD4908e8dRtWTDFPTGB+tebefS9jJxbn0eUBMswGkccbqPK0rzv4OMW2oqc/mVlGVv4YoOI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777061639; c=relaxed/simple;
-	bh=KTvNpvft2Xn5BrD5j/aPXhZBN1i4KvqPk+Ms94xxZko=;
-	h=Date:To:From:Subject:Message-Id; b=aIRIXL7Fsfmuu8tM7tGMZCPbGw+sqlX3+RxsajR7GCjj7/YYx/7AXOLfb50vO/jIdqxhUdPMSDn8D7/yd22yMN9baCU2JpGkx8+K/0fmAtyW8OMkE+Jdr1b7/4KKFHB49hz9y3gCR+dvRJjN2EjPpphknpAUMmqJM9FyEl0B6Hw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PO7LeBwt; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777125264; c=relaxed/simple;
+	bh=gLVEs2P0QM29t0wMQ8PGBMDaRv4VyOiBEf2TF8B8CJQ=;
+	h=Date:To:From:Subject:Message-Id; b=HTvAgQskkrZTnZMitiYzhs+hQtoSuCfR8+6NEamBygCztOuMTuW/UzGYxn+pZdFbLfOCnIwfgKI6a3PoXrjQygFH8gjUg1qN8ch2qwqIY9/P3dqK3gx2s5w75fgMwrYnZq5Kom/T+LYAbc5rMJnYc0ykhf5jjfn9T/m/iGae2/w=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zczuaMOd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PO7LeBwt"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51CF1C19425;
-	Fri, 24 Apr 2026 20:13:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zczuaMOd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8463C2BCB0;
+	Sat, 25 Apr 2026 13:54:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777061638;
-	bh=KTvNpvft2Xn5BrD5j/aPXhZBN1i4KvqPk+Ms94xxZko=;
+	s=korg; t=1777125263;
+	bh=gLVEs2P0QM29t0wMQ8PGBMDaRv4VyOiBEf2TF8B8CJQ=;
 	h=Date:To:From:Subject:From;
-	b=PO7LeBwtZL2X76b9ognEP99enASkowAPy2RXqWYxi61eD/edXhhXq3s/GE/2VEP0W
-	 LakHklpVD8NgA5Ny7k01f/7ZuoGL64nYWLJQTjePxzqAGASt4OIiihS8vhNHxgS50H
-	 bW7aZfBWPNvRkaJ1ZhaaULyjo3CYoMiFWSnANTlM=
-Date: Fri, 24 Apr 2026 13:13:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,zhen.ni@easystack.cn,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=zczuaMOdVh/lE66fpangfag8HxHW7dFUYong2rSOiCyojozqLQmwXrpgMX7EUF0A9
+	 DgnGeN3DXhaRha+Nn8WITXxD9EpcmLvV4EPkr0/tJRKGeHzj7AkawWM9vvLyapobrL
+	 vb3nG6n6SDKeNFAavXAXTST4fZx+3PyiJzGLxkFo=
+Date: Sat, 25 Apr 2026 06:54:23 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,balbirs@nvidia.com,apopple@nvidia.com,akpm@linux-foundation.org,nueralspacetech@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch added to mm-new branch
-Message-Id: <20260424201358.51CF1C19425@smtp.kernel.org>
+Subject: + mm-migrate_device-fix-spinlock-leak-in-migrate_vma_insert_huge_pmd_page.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260425135423.D8463C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-page_owner-add-numa-node-filter-with-nodelist-support-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch
+     Subject: mm/migrate_device: fix spinlock leak in migrate_vma_insert_huge_pmd_page
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-migrate_device-fix-spinlock-leak-in-migrate_vma_insert_huge_pmd_page.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate_device-fix-spinlock-leak-in-migrate_vma_insert_huge_pmd_page.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,61 +58,54 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_owner-add-numa-node-filter-with-nodelist-support-fix
-Date: Fri Apr 24 01:08:46 PM PDT 2026
+From: Sunny Patel <nueralspacetech@gmail.com>
+Subject: mm/migrate_device: fix spinlock leak in migrate_vma_insert_huge_pmd_page
+Date: Sat, 25 Apr 2026 19:05:27 +0530
 
-remove READ_ONCE/WRITE_ONCE of nodemask_t
+When check_stable_address_space() fails after the PMD spinlock has
+been acquired via pmd_lock(), the code jumps directly to the abort
+label, bypassing the spin_unlock() call in unlock_abort. This causes
+the PMD spinlock to be permanently held, leading to a deadlock.
 
-It triggers compile-time assertions.
+Change the goto target from abort to unlock_abort to ensure the
+spinlock is always released on this error path.
 
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zhen Ni <zhen.ni@easystack.cn>
+Link: https://lore.kernel.org/20260425133537.17463-1-nueralspacetech@gmail.com
+Fixes: a30b48bf1b24 ("mm/migrate_device: implement THP migration of zone device pages")
+Signed-off-by: Sunny Patel <nueralspacetech@gmail.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
 Cc: Zi Yan <ziy@nvidia.com>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/migrate_device.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mm-page_owner-add-numa-node-filter-with-nodelist-support-fix
-+++ a/mm/page_owner.c
-@@ -732,7 +732,7 @@ read_page_owner(struct file *file, char
- 			continue;
+--- a/mm/migrate_device.c~mm-migrate_device-fix-spinlock-leak-in-migrate_vma_insert_huge_pmd_page
++++ a/mm/migrate_device.c
+@@ -850,7 +850,7 @@ static int migrate_vma_insert_huge_pmd_p
+ 	ptl = pmd_lock(vma->vm_mm, pmdp);
+ 	csa_ret = check_stable_address_space(vma->vm_mm);
+ 	if (csa_ret)
+-		goto abort;
++		goto unlock_abort;
  
- 		/* NUMA node filter using bitmask */
--		mask = READ_ONCE(owner_filter.nid_mask);
-+		mask = owner_filter.nid_mask;
- 		if (!nodes_empty(mask)) {
- 			int nid = page_to_nid(page);
- 
-@@ -1049,7 +1049,7 @@ static ssize_t nid_filter_write(struct f
- 		goto out_free;
- 	}
- 
--	WRITE_ONCE(owner_filter.nid_mask, mask);
-+	owner_filter.nid_mask = mask;
- 	ret = count;
- 
- out_free:
-@@ -1059,7 +1059,7 @@ out_free:
- 
- static int nid_filter_show(struct seq_file *m, void *v)
- {
--	nodemask_t mask = READ_ONCE(owner_filter.nid_mask);
-+	nodemask_t mask = owner_filter.nid_mask;
- 
- 	if (nodes_empty(mask))
- 		seq_puts(m, "-1\n");
+ 	/*
+ 	 * Check for userfaultfd but do not deliver the fault. Instead,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nueralspacetech@gmail.com are
 
-mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free-fix.patch
-mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch
-proc-rewrite-next_tgid-fix.patch
+mm-migrate_device-fix-spinlock-leak-in-migrate_vma_insert_huge_pmd_page.patch
+mm-migrate_device-cleanup-up-pmd-checks-and-warnings.patch
 
