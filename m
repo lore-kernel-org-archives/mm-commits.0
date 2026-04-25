@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B054D312803
-	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 20:58:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC6CC37F8BD
+	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 22:01:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777150691; cv=none; b=SrM3KnAD3+PjZnWdfIh9B7O4C2jrU+5ekOLwLfL7zPeaTQazzCdO/BB8W/Xo8CpIXUoIviub9q0j4qIlqmnNbznEo4VBgEwUntAU/v6e7g/yZUa3Z7liwxLaJsaNN+AijMzH4+OTV6bJ8DpT122vjGmRENbpCKPjkp5ZLL0vyPw=
+	t=1777154498; cv=none; b=oe+OhoVV7cVcoH7H51plLNGqy3W3JSVZnbd9g9fxSTzI4TGBEhdhkJCH1nsSxEjXJ9YdoPs63HfiBw79SaOac2Jkg8bxRGdviiSH5jweJm3ND5ncIunMa6VMEGj7/JSbO4PEvWuX7cR6MvmE+vOSmBQcQ2FWae7YZnCwmx5OalY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777150691; c=relaxed/simple;
-	bh=iSU0FjK1UxdzM8KapK1bkQdaA4sjtOVFjueVDl4wyVc=;
-	h=Date:To:From:Subject:Message-Id; b=NQlkW5OTH/lA27SFEwCtxoLSy525C5ZgIBCzbGJ/ZTJiwKIyW6HFffVWDZ/Gs1WxI8hEJSmt/YzEYDvCITlTXY3cyYP9NX9yfh2NGInV5z02VlzvSetbQyEOHQZJzdJciukoKICq/crB6peXYfO1J2tSVivWNeK+DExGAegfiBw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SnQWgStl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777154498; c=relaxed/simple;
+	bh=dh5HLITTFQ1XaOs8A8UGFaCOb1b53PyWRmQiAt+VY64=;
+	h=Date:To:From:Subject:Message-Id; b=nWPyB9cBmc08wfOv/KQxkrOWlu1oTOK/FtA5WlEWBx0r2AD30AWK24pCK5VNno+o/pi4ANUrV/xifDOJ86/SYcKdwnSCM4rp4HJ9jUYewZ39FTpp/+WDIB2CJ+BbvMprMaRm5y9BvKG0x+tjd4cIUuGgysgYWX/o6VS74WJyy4o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ywxJl8Sm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SnQWgStl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 438CFC2BCB3;
-	Sat, 25 Apr 2026 20:58:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ywxJl8Sm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C127C2BCB5;
+	Sat, 25 Apr 2026 22:01:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777150691;
-	bh=iSU0FjK1UxdzM8KapK1bkQdaA4sjtOVFjueVDl4wyVc=;
+	s=korg; t=1777154498;
+	bh=dh5HLITTFQ1XaOs8A8UGFaCOb1b53PyWRmQiAt+VY64=;
 	h=Date:To:From:Subject:From;
-	b=SnQWgStlVEMvcN7NTDXTtEKrA3EB7T529k2FqCVMMlq2i0q+xkC7YxYVg9h4oCldL
-	 KROlXgSWv+v7RTSqYleve5TWde94ng0PQMq6mE6ng2Rct4tN+lizIjFZA7/L/r9xq0
-	 xehvQD3Jy/+7kM4mjD+5gIwGVAw5nKMYcC49nOiE=
-Date: Sat, 25 Apr 2026 13:58:10 -0700
-To: mm-commits@vger.kernel.org,msalter@redhat.com,david.laight.linux@gmail.com,chmh0624@gmail.com,arnd@arndb.de,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ywxJl8SmOvv4ci+92CePBa2ABKVgUhke7HVvBfaBIyrwVZ+Vaim55JIqmYJ3X1L5a
+	 Qhfr7LnkaDvKtM2tdbIzlVORyP7BDKpHQLvt85VwKwIoVOMbnwo9sUBqF34BT/OxTE
+	 VSkf6QQ0STq+hOXOdKXrwyJNFpPbtSxRj+0/cLhU=
+Date: Sat, 25 Apr 2026 15:01:37 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + include-asm-generic-fixmaph-reimplement-nasty-macros-in-c.patch added to mm-new branch
-Message-Id: <20260425205811.438CFC2BCB3@smtp.kernel.org>
+Subject: + mm-khugepaged-remove-read_only_thp_for_fs-check-fix.patch added to mm-new branch
+Message-Id: <20260425220138.7C127C2BCB5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: include/asm-generic/fixmap.h: reimplement nasty macros in C
+     Subject: mm-khugepaged-remove-read_only_thp_for_fs-check-fix
 has been added to the -mm mm-new branch.  Its filename is
-     include-asm-generic-fixmaph-reimplement-nasty-macros-in-c.patch
+     mm-khugepaged-remove-read_only_thp_for_fs-check-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-asm-generic-fixmaph-reimplement-nasty-macros-in-c.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-remove-read_only_thp_for_fs-check-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,81 +70,80 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/asm-generic/fixmap.h: reimplement nasty macros in C
-Date: Sat Apr 25 01:42:28 PM PDT 2026
+Subject: mm-khugepaged-remove-read_only_thp_for_fs-check-fix
+Date: Sat Apr 25 02:54:04 PM PDT 2026
 
-Min-Hsun Chang reports[1] "the macro __set_fixmap_offset() uses a
-hardcoded identifier ________addr, which can lead to variable name
-shadowing if a caller happens to use the same name in its scope."
+fix arm64 allnoconfig by uninlining mapping_pmd_thp_support()
 
-As is usual with macro messes, the answer is to reimplement everything in
-C.
+In file included from ./include/linux/mm.h:31,
+                 from fs/inode.c:9:
+./include/linux/pagemap.h: In function 'mapping_pmd_thp_support':
+./include/linux/pgtable.h:8:26: error: 'PMD_SHIFT' undeclared (first use in this function); did you mean 'PUD_SHIFT'?
+    8 | #define PMD_ORDER       (PMD_SHIFT - PAGE_SHIFT)
+      |                          ^~~~~~~~~
+./include/linux/pagemap.h:521:52: note: in expansion of macro 'PMD_ORDER'
+  521 |         return mapping_max_folio_order(mapping) >= PMD_ORDER;
+      |                                                    ^~~~~~~~~
+./include/linux/pgtable.h:8:26: note: each undeclared identifier is reported only once for each function it appears in
+    8 | #define PMD_ORDER       (PMD_SHIFT - PAGE_SHIFT)
+      |                          ^~~~~~~~~
+./include/linux/pagemap.h:521:52: note: in expansion of macro 'PMD_ORDER'
+  521 |         return mapping_max_folio_order(mapping) >= PMD_ORDER;
+      |                                                    ^~~~~~~~~
+make[3]: *** [scripts/Makefile.build:289: fs/inode.o] Error 1
+make[2]: *** [scripts/Makefile.build:548: fs] Error 2
+make[1]: *** [/usr/src/25/Makefile:2139: .] Error 2
+make: *** [Makefile:248: __sub-make] Error 2
 
-Reported-by: Min-Hsun Chang <chmh0624@gmail.com>
-Closes: https://lore.kernel.org/20260307092119.20733-1-chmh0624@gmail.com [1]
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: David Laight <david.laight.linux@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/fixmap.h |   34 ++++++++++++++++++++-------------
- 1 file changed, 21 insertions(+), 13 deletions(-)
+ include/linux/pagemap.h |    9 +--------
+ mm/filemap.c            |    8 ++++++++
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
---- a/include/asm-generic/fixmap.h~include-asm-generic-fixmaph-reimplement-nasty-macros-in-c
-+++ a/include/asm-generic/fixmap.h
-@@ -71,25 +71,33 @@ static inline unsigned long virt_to_fix(
- #endif
+--- a/include/linux/pagemap.h~mm-khugepaged-remove-read_only_thp_for_fs-check-fix
++++ a/include/linux/pagemap.h
+@@ -513,14 +513,7 @@ static inline bool mapping_large_folio_s
+ 	return mapping_max_folio_order(mapping) > 0;
+ }
  
- /* Return a pointer with offset calculated */
--#define __set_fixmap_offset(idx, phys, flags)				\
--({									\
--	unsigned long ________addr;					\
--	__set_fixmap(idx, phys, flags);					\
--	________addr = fix_to_virt(idx) + ((phys) & (PAGE_SIZE - 1));	\
--	________addr;							\
--})
-+static inline unsigned long
-+__set_fixmap_offset(enum fixed_addresses idx, phys_addr_t phys, pgprot_t flags)
-+{
-+	__set_fixmap(idx, phys, flags);
-+	return fix_to_virt(idx) + (phys & (PAGE_SIZE - 1));
-+}
+-static inline bool mapping_pmd_thp_support(const struct address_space *mapping)
+-{
+-	/* AS_FOLIO_ORDER is only reasonable for pagecache folios */
+-	VM_WARN_ON_ONCE((unsigned long)mapping & FOLIO_MAPPING_ANON);
+-
+-	return mapping_max_folio_order(mapping) >= PMD_ORDER;
+-}
+-
++bool mapping_pmd_thp_support(const struct address_space *mapping);
  
--#define set_fixmap_offset(idx, phys) \
--	__set_fixmap_offset(idx, phys, FIXMAP_PAGE_NORMAL)
-+static inline unsigned long
-+set_fixmap_offset(enum fixed_addresses idx, phys_addr_t phys)
-+{
-+	return __set_fixmap_offset(idx, phys, FIXMAP_PAGE_NORMAL);
-+}
- 
- /*
-  * Some hardware wants to get fixmapped without caching.
+ /* Return the maximum folio size for this pagecache mapping, in bytes. */
+ static inline size_t mapping_max_folio_size(const struct address_space *mapping)
+--- a/mm/filemap.c~mm-khugepaged-remove-read_only_thp_for_fs-check-fix
++++ a/mm/filemap.c
+@@ -126,6 +126,14 @@
+  *    ->private_lock		(zap_pte_range->block_dirty_folio)
   */
--#define set_fixmap_nocache(idx, phys) \
--	__set_fixmap(idx, phys, FIXMAP_PAGE_NOCACHE)
-+static inline void
-+set_fixmap_nocache(enum fixed_addresses idx, phys_addr_t phys)
-+{
-+	__set_fixmap(idx, phys, FIXMAP_PAGE_NOCACHE);
-+}
  
--#define set_fixmap_offset_nocache(idx, phys) \
--	__set_fixmap_offset(idx, phys, FIXMAP_PAGE_NOCACHE)
-+static inline void
-+set_fixmap_offset_nocache(enum fixed_addresses idx, phys_addr_t phys)
++bool mapping_pmd_thp_support(const struct address_space *mapping)
 +{
-+	__set_fixmap_offset(idx, phys, FIXMAP_PAGE_NOCACHE);
++	/* AS_FOLIO_ORDER is only reasonable for pagecache folios */
++	VM_WARN_ON_ONCE((unsigned long)mapping & FOLIO_MAPPING_ANON);
++
++	return mapping_max_folio_order(mapping) >= PMD_ORDER;
 +}
- 
- /*
-  * Some fixmaps are for IO
++
+ static void page_cache_delete(struct address_space *mapping,
+ 				   struct folio *folio, void *shadow)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free-fix.patch
+mm-khugepaged-remove-read_only_thp_for_fs-check-fix.patch
 mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch
 include-asm-generic-fixmaph-reimplement-nasty-macros-in-c.patch
 proc-rewrite-next_tgid-fix.patch
