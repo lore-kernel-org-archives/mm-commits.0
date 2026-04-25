@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7920B37EFE4
-	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 22:06:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE45137FF40
+	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 22:06:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777154814; cv=none; b=oHJB4i7pItY4NYFBrBcAjex/A1AS0azmj2teW596N5sN0If8DpTElIs9Up1P0TF7zkROuXGGAjHeXA+nY9Akf1ir9rTrflTXkUxxeRNLEYDNmXtYdTMH55IU6UtztnvuElL01rIknZD39TIKjY5oRLYsQQ1oLzSCmQJaTZWrjxE=
+	t=1777154815; cv=none; b=Vb5hfpbaX2eu5FYVicCgk6EEJrvA36MBa+B8rNMP7UWZEN6Gp5wdnP63o57W34xaCIutF4tL5xOKI7x/q6piN3RxrlO/iRduAfrC19Oa+cjpXoOxht0afl5DHBpKwS9uA4NHr8sXV24t3UbC5bzejGtv2knG6/mxzy0VlOsQqIo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777154814; c=relaxed/simple;
-	bh=Zu83nkmZiuLkT/Rc59I/pyk1BtPc8SnYh5QvwNyUozQ=;
-	h=Date:To:From:Subject:Message-Id; b=cbVJunk8Z4FOsnnVJc0kszfFVZCw3Wt8o/S+fMoLWfW3AuR9RnOZz2aY3IGqkftddU/A0Sztx2VTEntr3kUglRMsWdDmHHp48Z/LJPLzlm+aIpi0FNRtYsloR0wzG0urGXVvuSWe/rI8bgmHRjKN78rKYtwskzi0uMGzbtS7xwc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tcuFOcvB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777154815; c=relaxed/simple;
+	bh=O0J0Yux93vZfIMATiW9qxuWNrFElknS6gOUaGRDKiH8=;
+	h=Date:To:From:Subject:Message-Id; b=BXvyiVoUKROwevZqbhke3FgXMK+seTG6/y8VfkpNAXgvNh9WD/gVqLKPIv+Z/PYEmYlIqRT7GKtkHP8GnsHRzYnhkLMCfLmw+C6IpUo2640Ox4Y9CpZAUH0JT0xL3zkxIFJueb2VZC9BqffmiC4suWmaTLq3vPfAxwd09735z8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TnXRr+jw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tcuFOcvB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A7C2C2BCB0;
-	Sat, 25 Apr 2026 22:06:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TnXRr+jw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79B99C2BCB0;
+	Sat, 25 Apr 2026 22:06:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777154814;
-	bh=Zu83nkmZiuLkT/Rc59I/pyk1BtPc8SnYh5QvwNyUozQ=;
+	s=korg; t=1777154815;
+	bh=O0J0Yux93vZfIMATiW9qxuWNrFElknS6gOUaGRDKiH8=;
 	h=Date:To:From:Subject:From;
-	b=tcuFOcvBzNrYBufg27BC0HxLDbEvT7qL0DBNt+1Jc/nfD2Ec6iFy3MwtkxVxbBKKw
-	 kEhLKLGNXLf2zRod3FSuOtfuc1SUGYDD90JKoriLXHXfBuSYeP4FXlLzXHlgvjomuK
-	 6CMy8B5WHciIcIp0eF6rjaxJog2tJemEWdd5BBIg=
-Date: Sat, 25 Apr 2026 15:06:53 -0700
-To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=TnXRr+jwjAuqeGqgWvul8uSS8CcScCu6cVDHrKOB3SCUwmI5rlAaqGyWz7Q6wJgEa
+	 NaCXmy64aA4zeMW5dH10hnHTGEyB1ntceIRjKGuPW8tKYFo39Y2txob38v7gU3Z7h4
+	 ycdpVXqK+y0psUxyxsNwWLXrXHztMDuPo/Txs1lQ=
+Date: Sat, 25 Apr 2026 15:06:54 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-khugepaged-remove-read_only_thp_for_fs-check-fix.patch removed from -mm tree
-Message-Id: <20260425220654.1A7C2C2BCB0@smtp.kernel.org>
+Subject: [to-be-updated] mm-khugepaged-add-folio-dirty-check-after-try_to_unmap.patch removed from -mm tree
+Message-Id: <20260425220655.79B99C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,88 +35,122 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm-khugepaged-remove-read_only_thp_for_fs-check-fix
+     Subject: mm/khugepaged: add folio dirty check after try_to_unmap()
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-remove-read_only_thp_for_fs-check-fix.patch
+     mm-khugepaged-add-folio-dirty-check-after-try_to_unmap.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-khugepaged-remove-read_only_thp_for_fs-check-fix
-Date: Sat Apr 25 02:54:04 PM PDT 2026
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/khugepaged: add folio dirty check after try_to_unmap()
+Date: Thu, 23 Apr 2026 22:49:05 -0400
 
-fix arm64 allnoconfig by uninlining mapping_pmd_thp_support()
+This check ensures the correctness of collapse read-only THPs for FSes
+after READ_ONLY_THP_FOR_FS is enabled by default for all FSes supporting
+PMD THP pagecache.
 
-In file included from ./include/linux/mm.h:31,
-                 from fs/inode.c:9:
-./include/linux/pagemap.h: In function 'mapping_pmd_thp_support':
-./include/linux/pgtable.h:8:26: error: 'PMD_SHIFT' undeclared (first use in this function); did you mean 'PUD_SHIFT'?
-    8 | #define PMD_ORDER       (PMD_SHIFT - PAGE_SHIFT)
-      |                          ^~~~~~~~~
-./include/linux/pagemap.h:521:52: note: in expansion of macro 'PMD_ORDER'
-  521 |         return mapping_max_folio_order(mapping) >= PMD_ORDER;
-      |                                                    ^~~~~~~~~
-./include/linux/pgtable.h:8:26: note: each undeclared identifier is reported only once for each function it appears in
-    8 | #define PMD_ORDER       (PMD_SHIFT - PAGE_SHIFT)
-      |                          ^~~~~~~~~
-./include/linux/pagemap.h:521:52: note: in expansion of macro 'PMD_ORDER'
-  521 |         return mapping_max_folio_order(mapping) >= PMD_ORDER;
-      |                                                    ^~~~~~~~~
-make[3]: *** [scripts/Makefile.build:289: fs/inode.o] Error 1
-make[2]: *** [scripts/Makefile.build:548: fs] Error 2
-make[1]: *** [/usr/src/25/Makefile:2139: .] Error 2
-make: *** [Makefile:248: __sub-make] Error 2
+READ_ONLY_THP_FOR_FS only supports read-only fd and uses mapping->nr_thps
+and inode->i_writecount to prevent any write to read-only to-be-collapsed
+folios.  In upcoming commits, READ_ONLY_THP_FOR_FS will be removed and the
+aforementioned mechanism will go away too.  To ensure khugepaged functions
+as expected after the changes, skip if any folio is dirty after
+try_to_unmap(), since a dirty folio means this read-only folio got some
+writes via mmap can happen between try_to_unmap() and try_to_unmap_flush()
+via cached TLB entries and khugepaged does not support writable pagecache
+folio collapse yet.
 
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260424024915.28758-3-ziy@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Mason <clm@fb.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    9 +--------
- mm/filemap.c            |    8 ++++++++
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ mm/khugepaged.c |   28 ++++++++++++++++++++++++----
+ 1 file changed, 24 insertions(+), 4 deletions(-)
 
---- a/include/linux/pagemap.h~mm-khugepaged-remove-read_only_thp_for_fs-check-fix
-+++ a/include/linux/pagemap.h
-@@ -513,14 +513,7 @@ static inline bool mapping_large_folio_s
- 	return mapping_max_folio_order(mapping) > 0;
- }
- 
--static inline bool mapping_pmd_thp_support(const struct address_space *mapping)
--{
--	/* AS_FOLIO_ORDER is only reasonable for pagecache folios */
--	VM_WARN_ON_ONCE((unsigned long)mapping & FOLIO_MAPPING_ANON);
--
--	return mapping_max_folio_order(mapping) >= PMD_ORDER;
--}
--
-+bool mapping_pmd_thp_support(const struct address_space *mapping);
- 
- /* Return the maximum folio size for this pagecache mapping, in bytes. */
- static inline size_t mapping_max_folio_size(const struct address_space *mapping)
---- a/mm/filemap.c~mm-khugepaged-remove-read_only_thp_for_fs-check-fix
-+++ a/mm/filemap.c
-@@ -126,6 +126,14 @@
-  *    ->private_lock		(zap_pte_range->block_dirty_folio)
-  */
- 
-+bool mapping_pmd_thp_support(const struct address_space *mapping)
-+{
-+	/* AS_FOLIO_ORDER is only reasonable for pagecache folios */
-+	VM_WARN_ON_ONCE((unsigned long)mapping & FOLIO_MAPPING_ANON);
+--- a/mm/khugepaged.c~mm-khugepaged-add-folio-dirty-check-after-try_to_unmap
++++ a/mm/khugepaged.c
+@@ -2327,8 +2327,7 @@ static enum scan_result collapse_file(st
+ 				}
+ 			} else if (folio_test_dirty(folio)) {
+ 				/*
+-				 * khugepaged only works on read-only fd,
+-				 * so this page is dirty because it hasn't
++				 * This page is dirty because it hasn't
+ 				 * been flushed since first write. There
+ 				 * won't be new dirty pages.
+ 				 *
+@@ -2386,8 +2385,8 @@ static enum scan_result collapse_file(st
+ 		if (!is_shmem && (folio_test_dirty(folio) ||
+ 				  folio_test_writeback(folio))) {
+ 			/*
+-			 * khugepaged only works on read-only fd, so this
+-			 * folio is dirty because it hasn't been flushed
++			 * khugepaged only works on clean file-backed folios,
++			 * so this folio is dirty because it hasn't been flushed
+ 			 * since first write.
+ 			 */
+ 			result = SCAN_PAGE_DIRTY_OR_WRITEBACK;
+@@ -2429,6 +2428,27 @@ static enum scan_result collapse_file(st
+ 			xas_unlock_irq(&xas);
+ 			folio_putback_lru(folio);
+ 			goto out_unlock;
++		}
 +
-+	return mapping_max_folio_order(mapping) >= PMD_ORDER;
-+}
-+
- static void page_cache_delete(struct address_space *mapping,
- 				   struct folio *folio, void *shadow)
- {
++		/*
++		 * At this point, the folio is locked and unmapped. If the PTE
++		 * was dirty, try_to_unmap() has transferred the dirty bit to
++		 * the folio and we must not collapse it into a clean
++		 * file-backed folio.
++		 *
++		 * If the folio is clean here, no one can write it until we
++		 * drop the folio lock. A write through a stale TLB entry came
++		 * from a clean PTE and must fault because the PTE has been
++		 * cleared; the fault path has to take the folio lock before
++		 * installing a writable mapping. Buffered write paths also
++		 * have to take the folio lock before modifying file contents
++		 * without a mapping, typically via write_begin_get_folio().
++		 */
++		if (!is_shmem && folio_test_dirty(folio)) {
++			result = SCAN_PAGE_DIRTY_OR_WRITEBACK;
++			xas_unlock_irq(&xas);
++			folio_putback_lru(folio);
++			goto out_unlock;
+ 		}
+ 
+ 		/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free-fix.patch
-mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch
-include-asm-generic-fixmaph-reimplement-nasty-macros-in-c.patch
-proc-rewrite-next_tgid-fix.patch
+mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled.patch
+mm-khugepaged-remove-read_only_thp_for_fs-check-in-hugepage_enabled.patch
+mm-remove-read_only_thp_for_fs-kconfig-option.patch
+mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch
+fs-remove-nr_thps-from-struct-address_space.patch
+mm-huge_memory-remove-folio-split-check-for-read_only_thp_for_fs.patch
+mm-truncate-use-folio_split-in-truncate_inode_partial_folio.patch
+fs-btrfs-remove-a-comment-referring-to-read_only_thp_for_fs.patch
+selftests-mm-remove-read_only_thp_for_fs-in-khugepaged.patch
+selftests-mm-remove-read_only_thp_for_fs-code-from-guard-regions.patch
 
