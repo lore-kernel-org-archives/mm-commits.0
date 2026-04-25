@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56BCB1C5F39
-	for <mm-commits@vger.kernel.org>; Sat, 25 Apr 2026 14:39:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB8B737AA98;
+	Sat, 25 Apr 2026 14:57:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777127995; cv=none; b=B87lCl24VajjbRqCR1nGwjLqz1cjbexHl7dVu9er+YlSAZUtEcUy3LdWIpeeAUlwiUIsNxcwhFJf8BEGlywnDiftB/PNCaP+sa7z1YuWBoMeUMr2/mEf16T9kIKNCu53nTErF2aZP9suKP/rEyZrJkKQu1vJuAQSpdh2n7tNyqw=
+	t=1777129076; cv=none; b=mGKxrZqGnQ68k1tXDLoRifNclrzHdEr0NoJlg4JOBjfNfttEcaM0DYDrykFT/yRRzJF8dwMcfIc3d7UQUHAk0oF5uSw+TBhQK96/PaEGbHXmPUpmN8x6EVr4FlH7Xrzi502oZDmobF5kMedIrCZoMiKRP4vTMI0MkrqN6I5U2c4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777127995; c=relaxed/simple;
-	bh=kOHU1ubCHR9vA2AyhAv6m/M1JuLcIULQRxSQQSy7qfY=;
-	h=Date:To:From:Subject:Message-Id; b=c1pytkHLOz/bW/fd8KT7jaZp1vk+kqqVXUFm8v5Y24oKAODRHfaK8f2lon0pcy49ydT5OxZccIINdfjsX0CcCZfRRmGfZVFeUydX2K2/z3lJAvv98iLuKPastRYFaC0IF3V+8dU9SmqcfYUHs/GzdikEUVzbziIvymfHlTjcVZ0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jZByQz9/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777129076; c=relaxed/simple;
+	bh=67hmXrViKvKry/8B7QltivmfAtZgEBeYOC93U5ulNcs=;
+	h=Date:To:From:Subject:Message-Id; b=tZ6tFGaHgkrsD1N7nD0hRGGzwc+GW/+SsXFrVMl7BxWj1N3FM/H7pDe7W1tOPxyhAV9MbFjlc4AmtRiDj576U0GKre/38fLQyzTLoS8EjaEuHh7KCZYHte3ZUyZ05MdJHDSahkFsp7O2fSrpZBYrvIZhelXmuxS1iMP/n5txXW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FPgMLjUe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jZByQz9/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0334C2BCB0;
-	Sat, 25 Apr 2026 14:39:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FPgMLjUe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 63ED5C2BCB5;
+	Sat, 25 Apr 2026 14:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777127995;
-	bh=kOHU1ubCHR9vA2AyhAv6m/M1JuLcIULQRxSQQSy7qfY=;
+	s=korg; t=1777129076;
+	bh=67hmXrViKvKry/8B7QltivmfAtZgEBeYOC93U5ulNcs=;
 	h=Date:To:From:Subject:From;
-	b=jZByQz9/l7hhKWrg3esVDEnsC/y8NWr+lYJjKjsMVgry/MczmkzN0cQrfdqfP0bu1
-	 w+RY7jQclgMCdNswTxb+lGbhRhBffF6+vHKDyjT//rx1M3BSmsmNXHZ3CpqJsCUxXl
-	 3eEWV9eu3uDdcXSoUAik6VrvcqEZJQRcQ42Ew0FE=
-Date: Sat, 25 Apr 2026 07:39:54 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,willy@infradead.org,weixugc@google.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,riel@surriel.com,nphamcs@gmail.com,mhocko@suse.com,kasong@tencent.com,hannes@cmpxchg.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,axelrasmussen@google.com,jp.kobryn@linux.dev,akpm@linux-foundation.org
+	b=FPgMLjUedZ8+HjE2hQ8YOjnK3j0+PspqWCpjrCi1y2mIoQdcfE5QxCgu9N9lruAoI
+	 z5MtSVAu3pEKM4r2yitUobfEftdxoK5AD7IIl+mldhfF6BO/FaCAAGcNcxJAbeeveL
+	 3El9bm7Kz0xo8Sw65L1O3K/DbIB/B7Yf/ryUWerE=
+Date: Sat, 25 Apr 2026 07:57:55 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,almasrymina@google.com,kartikey406@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch added to mm-new branch
-Message-Id: <20260425143954.E0334C2BCB0@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-hugetlb-cgroup-rsvd-charge-uncharge-mismatch.patch added to mm-new branch
+Message-Id: <20260425145756.63ED5C2BCB5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/lruvec: preemptively free dead folios during lru_add drain
+     Subject: mm/hugetlb: fix hugetlb cgroup rsvd charge/uncharge mismatch
 has been added to the -mm mm-new branch.  Its filename is
-     mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch
+     mm-hugetlb-fix-hugetlb-cgroup-rsvd-charge-uncharge-mismatch.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-fix-hugetlb-cgroup-rsvd-charge-uncharge-mismatch.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,149 +69,89 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "JP Kobryn (Meta)" <jp.kobryn@linux.dev>
-Subject: mm/lruvec: preemptively free dead folios during lru_add drain
-Date: Fri, 24 Apr 2026 22:34:17 -0700
+From: Deepanshu Kartikey <kartikey406@gmail.com>
+Subject: mm/hugetlb: fix hugetlb cgroup rsvd charge/uncharge mismatch
+Date: Sat, 28 Mar 2026 12:25:34 +0530
 
-Of all observable lruvec lock contention in our fleet, we find that ~24%
-occurs when dead folios are present in lru_add batches at drain time. 
-This is wasteful in the sense that the folio is added to the LRU just to
-be immediately removed via folios_put_refs(), incurring two unnecessary
-lock acquisitions.
+In alloc_hugetlb_folio(), a single h_cg pointer is used for both the rsvd
+and non-rsvd hugetlb cgroup charges.  When map_chg is set,
+hugetlb_cgroup_charge_cgroup_rsvd() stores the charged cgroup in h_cg, but
+the immediately following hugetlb_cgroup_charge_cgroup() overwrites h_cg
+with the non-rsvd cgroup pointer.
 
-Eliminate this overhead by preemptively cleaning up dead folios before
-they make it into the LRU.  Use folio_ref_freeze() to filter folios whose
-only remaining refcount is the batch ref.  When dead folios are found,
-move them off the add batch and onto a temporary batch to be freed.
+As a result, hugetlb_cgroup_commit_charge_rsvd() stores the wrong
+(non-rsvd) cgroup pointer into the folio's rsvd slot.
 
-PG_active may be set on a batched folio as well as PG_unevictable (via
-migration path).  Since filtered folios bypass the normal lru_add()
-cleanup, both flags must be cleared before freeing.
+When the folio is later freed, free_huge_folio() unconditionally calls
+both hugetlb_cgroup_uncharge_folio() and
+hugetlb_cgroup_uncharge_folio_rsvd().  The rsvd uncharge reads back the
+wrong cgroup from the folio and decrements a counter that was never
+charged for that cgroup, causing a page_counter underflow:
 
-During A/B testing on one of our prod instagram workloads (high-frequency
-short-lived requests), the patch intercepted almost all dead folios before
-they entered the LRU.  Data collected using the mm_lru_insertion
-tracepoint shows the effectiveness of the patch:
+  page_counter underflow: -512 nr_pages=512
+  WARNING: mm/page_counter.c:61 at page_counter_cancel
 
-Per-host LRU add averages at 95% CPU load
-(60 hosts each side, 3 x 60s intervals)
+Fix this by introducing a separate h_cg_rsvd pointer exclusively for the
+rsvd charge path, keeping the rsvd and non-rsvd charges fully independent
+through their charge, commit, and error uncharge paths.
 
-            dead folios/min  total folios/min   dead %
-unpatched:        1,297,785        19,341,986  6.7097%
-patched:                 14        19,039,996  0.0001%
-
-Within this workload, we save ~2.6M lock acquisitions per minute per host
-as a result.
-
-System-wide memory stats improved on the patched side also at 95% CPU load:
- - direct reclaim scanning reduced 7%
- - allocation stalls reduced 5.2%
- - compaction stalls reduced 12.3%
- - page frees reduced 4.9%
-
-No regressions were observed in requests served per second or request tail
-latency (p99).  Both metrics showed directional improvement at higher CPU
-utilization (comparing 85% to 95%).
-
-Note that tests were performed using classic LRU.
-
-Link: https://lore.kernel.org/20260425053417.351146-1-jp.kobryn@linux.dev
-Signed-off-by: JP Kobryn (Meta) <jp.kobryn@linux.dev>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Li <chrisl@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Link: https://lore.kernel.org/20260328065534.346053-1-kartikey406@gmail.com
+Fixes: 08cf9faf7558 ("hugetlb_cgroup: support noreserve mappings")
+Reported-by: syzbot+226c1f947186f8fef796@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=226c1f947186f8fef796
+Signed-off-by: Deepanshu Kartikey <kartikey406@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   41 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 40 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/swap.c~mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain
-+++ a/mm/swap.c
-@@ -160,14 +160,42 @@ static void folio_batch_move_lru(struct
- 	int i;
- 	struct lruvec *lruvec = NULL;
- 	unsigned long flags = 0;
-+	struct folio_batch free_fbatch;
-+	bool is_lru_add = (move_fn == lru_add);
-+
-+	/*
-+	 * If we're adding to the LRU, preemptively filter dead folios. Use
-+	 * this dedicated folio batch for temp storage and deferred cleanup.
-+	 */
-+	if (is_lru_add)
-+		folio_batch_init(&free_fbatch);
+--- a/mm/hugetlb.c~mm-hugetlb-fix-hugetlb-cgroup-rsvd-charge-uncharge-mismatch
++++ a/mm/hugetlb.c
+@@ -2879,6 +2879,7 @@ struct folio *alloc_hugetlb_folio(struct
+ 	map_chg_state map_chg;
+ 	int ret, idx;
+ 	struct hugetlb_cgroup *h_cg = NULL;
++	struct hugetlb_cgroup *h_cg_rsvd = NULL;
+ 	gfp_t gfp = htlb_alloc_mask(h) | __GFP_RETRY_MAYFAIL;
  
- 	for (i = 0; i < folio_batch_count(fbatch); i++) {
- 		struct folio *folio = fbatch->folios[i];
+ 	idx = hstate_index(h);
+@@ -2929,7 +2930,7 @@ struct folio *alloc_hugetlb_folio(struct
+ 	 */
+ 	if (map_chg) {
+ 		ret = hugetlb_cgroup_charge_cgroup_rsvd(
+-			idx, pages_per_huge_page(h), &h_cg);
++			idx, pages_per_huge_page(h), &h_cg_rsvd);
+ 		if (ret)
+ 			goto out_subpool_put;
+ 	}
+@@ -2971,7 +2972,7 @@ struct folio *alloc_hugetlb_folio(struct
+ 	 */
+ 	if (map_chg) {
+ 		hugetlb_cgroup_commit_charge_rsvd(idx, pages_per_huge_page(h),
+-						  h_cg, folio);
++						  h_cg_rsvd, folio);
+ 	}
  
- 		/* block memcg migration while the folio moves between lru */
--		if (move_fn != lru_add && !folio_test_clear_lru(folio))
-+		if (!is_lru_add && !folio_test_clear_lru(folio))
- 			continue;
- 
-+		/*
-+		 * Filter dead folios by moving them from the add batch to the temp
-+		 * batch for freeing after this loop.
-+		 *
-+		 * We're bypassing normal cleanup. Clear flags that are not
-+		 * applicable to dead folios.
-+		 *
-+		 * Since the folio may be part of a huge page, unqueue from
-+		 * deferred split list to avoid a dangling list entry.
-+		 */
-+		if (is_lru_add && folio_ref_freeze(folio, 1)) {
-+			__folio_clear_active(folio);
-+			__folio_clear_unevictable(folio);
-+			folio_unqueue_deferred_split(folio);
-+			fbatch->folios[i] = NULL;
-+			folio_batch_add(&free_fbatch, folio);
-+			continue;
-+		}
-+
- 		folio_lruvec_relock_irqsave(folio, &lruvec, &flags);
- 		move_fn(lruvec, folio);
- 
-@@ -176,6 +204,13 @@ static void folio_batch_move_lru(struct
- 
- 	if (lruvec)
- 		lruvec_unlock_irqrestore(lruvec, flags);
-+
-+	/* Cleanup filtered dead folios. */
-+	if (is_lru_add) {
-+		mem_cgroup_uncharge_folios(&free_fbatch);
-+		free_unref_folios(&free_fbatch);
-+	}
-+
- 	folios_put(fbatch);
- }
- 
-@@ -964,6 +999,10 @@ void folios_put_refs(struct folio_batch
- 		struct folio *folio = folios->folios[i];
- 		unsigned int nr_refs = refs ? refs[i] : 1;
- 
-+		/* Folio batch entry may have been preemptively removed during drain. */
-+		if (!folio)
-+			continue;
-+
- 		if (is_huge_zero_folio(folio))
- 			continue;
- 
+ 	spin_unlock_irq(&hugetlb_lock);
+@@ -3023,7 +3024,7 @@ out_uncharge_cgroup:
+ out_uncharge_cgroup_reservation:
+ 	if (map_chg)
+ 		hugetlb_cgroup_uncharge_cgroup_rsvd(idx, pages_per_huge_page(h),
+-						    h_cg);
++						    h_cg_rsvd);
+ out_subpool_put:
+ 	/*
+ 	 * put page to subpool iff the quota of subpool's rsv_hpages is used
 _
 
-Patches currently in -mm which might be from jp.kobryn@linux.dev are
+Patches currently in -mm which might be from kartikey406@gmail.com are
 
-mm-vmpressure-skip-socket-pressure-for-costly-order-reclaim.patch
-mm-lruvec-preemptively-free-dead-folios-during-lru_add-drain.patch
+mm-hugetlb-fix-hugetlb-cgroup-rsvd-charge-uncharge-mismatch.patch
+kernel-fork-validate-exit_signal-in-kernel_clone.patch
 
