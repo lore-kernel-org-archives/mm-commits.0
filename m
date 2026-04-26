@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08E3A38AC8C;
-	Sun, 26 Apr 2026 19:54:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14C0F37BE7D;
+	Sun, 26 Apr 2026 19:54:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777233285; cv=none; b=DhsQQgtI+vyTjfQ2NzApfoRNLVOFwYmV2OaRka0ufiFT/M5+VGhiSx4VPGlL82HoCjo7ESHpQO9RJMx+X97vLJl0NUdCfDEGnTfDn/mIfEjtAPb20bFt46Ionqm9cZDXV4fxqV5pv/Ft2OJibjdWlVF3FuSUjKN5tKXgbi0DLjM=
+	t=1777233287; cv=none; b=T6I9XOvL5Q5n1Q8MeWmZnlBYvtH4uKTBpg8dA0CaLGkD1k5F5lbH8rruxFnJq+j2JeVVq6E2XC5p8+264rxfNRYzr51WGJnhBkZUBGWhGLWMMRzf/Efngd7x/JCtPVp06JNcPx45kp2H/MlcCtW7ZwgrNFkq6VNJbL3dyivNdys=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777233285; c=relaxed/simple;
-	bh=mZJ80nR5YJ+oimsPdYu8B1+9oskhJylQOSHAs1nb5Kw=;
-	h=Date:To:From:Subject:Message-Id; b=owFwWie/xafAMSMqKzT0SvsAlFqgMo0jh62+om7zOHRdfCWzPbItDEMwwWVhx1mC5zmeZ7ycD3yb4LYij15CQcDeS5kxYm2UlHnHDjepv23WeCSXpUJuyOBJZARKGPkrRUW/JaQDXAgaBopIkv5znWs7CaIjrbelH7nmqvj5RJY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UfUOmG0m; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777233287; c=relaxed/simple;
+	bh=3/bt0Nrq1HoyOJ+6zLl4F3BQRUYkONWlF2cbteo/YIU=;
+	h=Date:To:From:Subject:Message-Id; b=lZXGl6xtnEDONAxsC4Z3dsvUJOqt2OzAFYPT+ZfdVZg/pPxOu1B0fExL7ZjbPrXHZKMJG+LGu5KhxdIQ84yfOgrTz6zsj7OOqqmnV3QRgmr6tNtls1bLiT/CRUJ1JKOVG3caL0nibD6IEOd3VXuYNDOmb+WpmHSe1DSI5ILLBjs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=U5zreVdc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UfUOmG0m"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F7B5C2BCAF;
-	Sun, 26 Apr 2026 19:54:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="U5zreVdc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D613DC2BCAF;
+	Sun, 26 Apr 2026 19:54:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777233284;
-	bh=mZJ80nR5YJ+oimsPdYu8B1+9oskhJylQOSHAs1nb5Kw=;
+	s=korg; t=1777233286;
+	bh=3/bt0Nrq1HoyOJ+6zLl4F3BQRUYkONWlF2cbteo/YIU=;
 	h=Date:To:From:Subject:From;
-	b=UfUOmG0m6ToWD9YtLgkyxb6twhoqqS365jLELi4WtDM6MXBHDIx4mYsRl4Symzmlo
-	 xZGgmezlkywCn4CxsHlyiI2mhr1jfb7G4ZBe6Cc0ECIwOmIUSZGA3ia6iM3Y8PzklR
-	 dqTxTFxmETJQGT5qQBBETdgzS+AWyzGmp4YayhkQ=
-Date: Sun, 26 Apr 2026 12:54:44 -0700
+	b=U5zreVdcjSlrvgOBwUDnXJf/MhRQQ2/pbrOFCFLyfgIJwHBOzV58FkNteTa7wJGGu
+	 cjP6ZNE2XMzk3FBe/AwL8yzqLoqj4TkQFQgd3VC1tUU7XH2ba1OoaMw4ndCYl6YKrT
+	 oQe8W2aD40qNIC58UpoZXyuurGf0ngb5Lq1xGc6M=
+Date: Sun, 26 Apr 2026 12:54:46 -0700
 To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,joao.m.martins@oracle.com,david@kernel.org,aneesh.kumar@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch added to mm-new branch
-Message-Id: <20260426195444.8F7B5C2BCAF@smtp.kernel.org>
+Subject: + mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch added to mm-new branch
+Message-Id: <20260426195446.D613DC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/sparse-vmemmap: fix vmemmap accounting underflow
+     Subject: mm/memory_hotplug: fix incorrect altmap passing in error path
 has been added to the -mm mm-new branch.  Its filename is
-     mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
+     mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,60 +70,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/sparse-vmemmap: fix vmemmap accounting underflow
-Date: Sun, 26 Apr 2026 17:26:35 +0800
+Subject: mm/memory_hotplug: fix incorrect altmap passing in error path
+Date: Sun, 26 Apr 2026 17:26:36 +0800
 
-Patch series "mm: Fix vmemmap optimization accounting and initialization",
-v7.
+In create_altmaps_and_memory_blocks(), when arch_add_memory() succeeds
+with memmap_on_memory enabled, the vmemmap pages are allocated from
+params.altmap.  If create_memory_block_devices() subsequently fails, the
+error path calls arch_remove_memory() with a NULL altmap instead of
+params.altmap.
 
-The series fixes several bugs in vmemmap optimization, mainly around
-incorrect page accounting and memmap initialization in DAX and memory
-hotplug paths.  It also fixes pageblock migratetype initialization and
-struct page initialization for ZONE_DEVICE compound pages.
+This is a bug that could lead to memory corruption.  Since altmap is NULL,
+vmemmap_free() falls back to freeing the vmemmap pages into the system
+buddy allocator via free_pages() instead of the altmap. 
+arch_remove_memory() then immediately destroys the physical linear mapping
+for this memory.  This injects unowned pages into the buddy allocator,
+causing machine checks or memory corruption if the system later attempts
+to allocate and use those freed pages.
 
-The first four patches fix vmemmap accounting issues.  The first patch
-fixes an accounting underflow in the section activation failure path.  The
-second patch fixes incorrect altmap passing in the error path.  The third
-patch passes pgmap through memory deactivation paths so the teardown side
-can determine whether vmemmap optimization was in effect.  The fourth
-patch uses that information to account the optimized DAX vmemmap size
-correctly.
+Fix this by passing params.altmap to arch_remove_memory() in the error
+path.
 
-The last two patches fix initialization issues in mm/mm_init.  One makes
-sure all pageblocks in ZONE_DEVICE compound pages get their migratetype
-initialized.  The other fixes a case where DAX memory hotplug reuses an
-unoptimized early-section memmap while compound_nr_pages() still assumes
-vmemmap optimization, leaving tail struct pages uninitialized.
-
-
-This patch (of 6):
-
-In section_activate(), if populate_section_memmap() fails, the error
-handling path calls section_deactivate() to roll back the state.  This
-causes a vmemmap accounting imbalance.
-
-Since commit c3576889d87b ("mm: fix accounting of memmap pages"), memmap
-pages are accounted for only after populate_section_memmap() succeeds. 
-However, the failure path unconditionally calls section_deactivate(),
-which decreases the vmemmap count.  Consequently, a failure in
-populate_section_memmap() leads to an accounting underflow, incorrectly
-reducing the system's tracked vmemmap usage.
-
-Fix this more thoroughly by moving all accounting calls into the lower
-level functions that actually perform the vmemmap allocation and freeing:
-
-  - populate_section_memmap() accounts for newly allocated vmemmap pages
-  - depopulate_section_memmap() unaccounts when vmemmap is freed
-
-This ensures proper accounting in all code paths, including error handling
-and early section cases.
-
-Link: https://lore.kernel.org/20260426092640.375967-1-songmuchun@bytedance.com
-Link: https://lore.kernel.org/20260426092640.375967-2-songmuchun@bytedance.com
-Fixes: c3576889d87b ("mm: fix accounting of memmap pages")
+Link: https://lore.kernel.org/20260426092640.375967-3-songmuchun@bytedance.com
+Fixes: 6b8f0798b85a ("mm/memory_hotplug: split memmap_on_memory requests across memblocks")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: Oscar Salvador <osalvador@suse.de>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
@@ -132,74 +101,28 @@ Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse-vmemmap.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-fix-vmemmap-accounting-underflow
-+++ a/mm/sparse-vmemmap.c
-@@ -651,7 +651,12 @@ static struct page * __meminit populate_
- 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
- 		struct dev_pagemap *pgmap)
- {
--	return __populate_section_memmap(pfn, nr_pages, nid, altmap, pgmap);
-+	struct page *page = __populate_section_memmap(pfn, nr_pages, nid, altmap,
-+						      pgmap);
-+
-+	memmap_pages_add(DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE));
-+
-+	return page;
- }
- 
- static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages,
-@@ -660,13 +665,17 @@ static void depopulate_section_memmap(un
- 	unsigned long start = (unsigned long) pfn_to_page(pfn);
- 	unsigned long end = start + nr_pages * sizeof(struct page);
- 
-+	memmap_pages_add(-1L * (DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE)));
- 	vmemmap_free(start, end, altmap);
- }
-+
- static void free_map_bootmem(struct page *memmap)
- {
- 	unsigned long start = (unsigned long)memmap;
- 	unsigned long end = (unsigned long)(memmap + PAGES_PER_SECTION);
- 
-+	memmap_boot_pages_add(-1L * (DIV_ROUND_UP(PAGES_PER_SECTION * sizeof(struct page),
-+						  PAGE_SIZE)));
- 	vmemmap_free(start, end, NULL);
- }
- 
-@@ -769,14 +778,10 @@ static void section_deactivate(unsigned
- 	 * The memmap of early sections is always fully populated. See
- 	 * section_activate() and pfn_valid() .
- 	 */
--	if (!section_is_early) {
--		memmap_pages_add(-1L * (DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE)));
-+	if (!section_is_early)
- 		depopulate_section_memmap(pfn, nr_pages, altmap);
--	} else if (memmap) {
--		memmap_boot_pages_add(-1L * (DIV_ROUND_UP(nr_pages * sizeof(struct page),
--							  PAGE_SIZE)));
-+	else if (memmap)
- 		free_map_bootmem(memmap);
--	}
- 
- 	if (empty)
- 		ms->section_mem_map = (unsigned long)NULL;
-@@ -821,7 +826,6 @@ static struct page * __meminit section_a
- 		section_deactivate(pfn, nr_pages, altmap);
- 		return ERR_PTR(-ENOMEM);
- 	}
--	memmap_pages_add(DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE));
- 
- 	return memmap;
- }
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path
++++ a/mm/memory_hotplug.c
+@@ -1469,7 +1469,7 @@ static int create_altmaps_and_memory_blo
+ 		ret = create_memory_block_devices(cur_start, memblock_size, nid,
+ 						  params.altmap, group);
+ 		if (ret) {
+-			arch_remove_memory(cur_start, memblock_size, NULL);
++			arch_remove_memory(cur_start, memblock_size, params.altmap);
+ 			kfree(params.altmap);
+ 			goto out;
+ 		}
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
