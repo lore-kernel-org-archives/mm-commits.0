@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5FA638F932;
-	Sun, 26 Apr 2026 19:54:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2AC85B21A
+	for <mm-commits@vger.kernel.org>; Sun, 26 Apr 2026 20:00:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777233299; cv=none; b=gnCqB61vDSV+PTwT+wu57T0l+Wg45eFdojm1mPNH2g8TSzU2ep7NKU/ctkgqIqNlZBrF1iXEz8smWEEBDmkpAVPnN95jZ7ZMZSyOLoUDtlnvHtEj3eHAUFISPIsEDSNVxmJcfpMRbXvDLYqLUc/vEZ3VsA0Hln1BdTl55mTlbqw=
+	t=1777233634; cv=none; b=NP+FrmXLeyeybttL7QojzRou+L9LZDxig4RBiYBPwys8h8HFmnP6Pm2MrhWj2VQbq8OYIvvRg74ykuTPwgyWeiY9Izk3iqZy8MThO8D3EWP8fG4j5M467dlxQYFTsiMDeNOn8VszYYSug4S9hhD7vVwP6r8eH0kMlGYB6oxVL7w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777233299; c=relaxed/simple;
-	bh=JrDlBpO4JPFn7ZhI5PtZjk+0zDivG63bnan5+hRoHX8=;
-	h=Date:To:From:Subject:Message-Id; b=P15J0qsfwtYlR8NQKgdVnYrKtkEBPUfTaBYoskgWIFm6knREJ0wjpMYHbbcTzltOsjKTe1K7R8T6q9YCe5hF/86lRpiBEDRu5aLBWogbcbrovmY/A3mbNR1xf0XHc6KndJbQ2U2x5dSjjFqX1pfyVxT+eMX3I1YS5nZ4xxCKhDo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HMT+Om/R; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777233634; c=relaxed/simple;
+	bh=NV7a9LSCb5GCgWJPFa/fKtSbYg6GEDJyhzX9HhlgC2o=;
+	h=Date:To:From:Subject:Message-Id; b=MQ8IBAOTz5tMwEsNnp/fN+rxYg1VBWQu7C/3uLC+3fqzsBDCpLFHK66viDhZcf8DBZU27oUs1li35bN62K45MLA+Y5lL/pWkGbMcIIbTm4u05BEd42cvMyAWpKyDIaxSkTnDx6+P7LniatilY0YXSlbTrkNADeoxjvjKxb36e3k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nJGXXpGU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HMT+Om/R"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F416C2BCAF;
-	Sun, 26 Apr 2026 19:54:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nJGXXpGU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C98FC2BCAF;
+	Sun, 26 Apr 2026 20:00:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777233299;
-	bh=JrDlBpO4JPFn7ZhI5PtZjk+0zDivG63bnan5+hRoHX8=;
+	s=korg; t=1777233634;
+	bh=NV7a9LSCb5GCgWJPFa/fKtSbYg6GEDJyhzX9HhlgC2o=;
 	h=Date:To:From:Subject:From;
-	b=HMT+Om/ROfAp/KS8tWzHM+XxWBtoT1+wCqEEzAsBeop2qb+r0ovh9EUvcSNvo1RrS
-	 Wc7q8nxmUcm4a2io32SnGRvCrhyFHSsiLnHkh9kUZEZKywCYPqvrF7DlpqPmEkQ/A+
-	 pXdJuTRzD3fYhNQsmJASGDj5he/cJFEa7gKfPrSY=
-Date: Sun, 26 Apr 2026 12:54:59 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,joao.m.martins@oracle.com,david@kernel.org,aneesh.kumar@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=nJGXXpGUuYpCwAwyoLsvLVVF/Q1t7aovwYcpT0DU/P6mAoB6SscfwAnSt7cQJQH//
+	 d146s+bny3ZvYTRRhfKbGiBSWPYYmlVpnAXYlkUXsWXtkFu0BfdA4XnAb0rsVvPuue
+	 0evqs+HCmzeGXWCSgcb0XkMOGccYqIo8zjcUafQQ=
+Date: Sun, 26 Apr 2026 13:00:33 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shuah@kernel.org,richard.weiyang@gmail.com,pfalcato@suse.de,paulmck@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,surenb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch added to mm-new branch
-Message-Id: <20260426195459.7F416C2BCAF@smtp.kernel.org>
+Subject: + fs-proc-task_mmu-read-proc-pid-smapsnuma_maps-under-per-vma-lock.patch added to mm-new branch
+Message-Id: <20260426200034.4C98FC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init: fix uninitialized struct pages for ZONE_DEVICE
+     Subject: fs/proc/task_mmu: read proc/pid/{smaps|numa_maps} under per-vma lock
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
+     fs-proc-task_mmu-read-proc-pid-smapsnuma_maps-under-per-vma-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-proc-task_mmu-read-proc-pid-smapsnuma_maps-under-per-vma-lock.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,84 +69,403 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/mm_init: fix uninitialized struct pages for ZONE_DEVICE
-Date: Sun, 26 Apr 2026 17:26:40 +0800
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: fs/proc/task_mmu: read proc/pid/{smaps|numa_maps} under per-vma lock
+Date: Sat, 25 Apr 2026 23:27:16 -0700
 
-If DAX memory is hotplugged into an unoccupied subsection of an early
-section, section_activate() reuses the unoptimized boot memmap.
-However, compound_nr_pages() still assumes that vmemmap optimization is
-in effect and initializes only the reduced number of struct pages. As a
-result, the remaining tail struct pages are left uninitialized, which
-can later lead to unexpected behavior or crashes.
+Patch series "use vma locks for proc/pid/{smaps|numa_maps} reads", v2.
 
-Fix this by treating early sections as unoptimized when calculating how
-many struct pages to initialize.
+Use per-vma locks when reading /proc/pid/smaps and /proc/pid/numa_maps
+similar to /proc/pid/maps to reduce contention on central mmap_lock.  One
+major difference between maps and smaps/numa_maps reading is that the
+latter executes page table walk which can't be done under RCU due to a
+possibility of sleeping.  Therefore we drop RCU read lock before this walk
+while keeping the VMA locked.  After the walk we retake RCU read lock,
+reset VMA iterator and proceed with the next VMA.
 
-Link: https://lore.kernel.org/20260426092640.375967-7-songmuchun@bytedance.com
-Fixes: 6fd3620b3428 ("mm/page_alloc: reuse tail struct pages for compound devmaps")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Liam Howlett <liam@infradead.org>
+The last two patches extend /proc/pid/maps test to cover /proc/pid/smaps
+reading during concurrent address space modification.
+
+
+This patch (of 3):
+
+proc/pid/{smaps|numa_maps} can be read using the combination of RCU and
+VMA read locks, similar to proc/pid/maps.  RCU is required to safely
+traverse the VMA tree and VMA lock stabilizes the VMA being processed and
+the pagetable walk.
+
+Link: https://lore.kernel.org/20260426062718.1238437-1-surenb@google.com
+Link: https://lore.kernel.org/20260426062718.1238437-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Liam R. Howlett <liam@infradead.org>
+Cc: Jann Horn <jannh@google.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: <stable@vger.kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ fs/proc/task_mmu.c |  195 ++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 156 insertions(+), 39 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_init-fix-uninitialized-struct-pages-for-zone_device
-+++ a/mm/mm_init.c
-@@ -1055,10 +1055,17 @@ static void __ref __init_zone_device_pag
-  * of how the sparse_vmemmap internals handle compound pages in the lack
-  * of an altmap. See vmemmap_populate_compound_pages().
-  */
--static inline unsigned long compound_nr_pages(struct vmem_altmap *altmap,
-+static inline unsigned long compound_nr_pages(unsigned long pfn,
-+					      struct vmem_altmap *altmap,
- 					      struct dev_pagemap *pgmap)
+--- a/fs/proc/task_mmu.c~fs-proc-task_mmu-read-proc-pid-smapsnuma_maps-under-per-vma-lock
++++ a/fs/proc/task_mmu.c
+@@ -132,6 +132,22 @@ static void release_task_mempolicy(struc
+ 
+ #ifdef CONFIG_PER_VMA_LOCK
+ 
++static inline int lock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
++{
++	int ret = mmap_read_lock_killable(lock_ctx->mm);
++
++	if (!ret)
++		lock_ctx->mmap_locked = true;
++
++	return ret;
++}
++
++static inline void unlock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
++{
++	mmap_read_unlock(lock_ctx->mm);
++	lock_ctx->mmap_locked = false;
++}
++
+ static void reset_lock_ctx(struct proc_maps_locking_ctx *lock_ctx)
  {
--	if (!vmemmap_can_optimize(altmap, pgmap))
-+	/*
-+	 * If DAX memory is hot-plugged into an unoccupied subsection
-+	 * of an early section, the unoptimized boot memmap is reused.
-+	 * See section_activate().
-+	 */
-+	if (early_section(__pfn_to_section(pfn)) ||
-+	    !vmemmap_can_optimize(altmap, pgmap))
- 		return pgmap_vmemmap_nr(pgmap);
+ 	lock_ctx->locked_vma = NULL;
+@@ -146,25 +162,11 @@ static void unlock_ctx_vma(struct proc_m
+ 	}
+ }
  
- 	return VMEMMAP_RESERVE_NR * (PAGE_SIZE / sizeof(struct page));
-@@ -1128,7 +1135,7 @@ void __ref memmap_init_zone_device(struc
- 			continue;
+-static const struct seq_operations proc_pid_maps_op;
+-
+ static inline bool lock_vma_range(struct seq_file *m,
+ 				  struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	/*
+-	 * smaps and numa_maps perform page table walk, therefore require
+-	 * mmap_lock but maps can be read with locking just the vma and
+-	 * walking the vma tree under rcu read protection.
+-	 */
+-	if (m->op != &proc_pid_maps_op) {
+-		if (mmap_read_lock_killable(lock_ctx->mm))
+-			return false;
+-
+-		lock_ctx->mmap_locked = true;
+-	} else {
+-		rcu_read_lock();
+-		reset_lock_ctx(lock_ctx);
+-	}
++	rcu_read_lock();
++	reset_lock_ctx(lock_ctx);
  
- 		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
--				     compound_nr_pages(altmap, pgmap));
-+				     compound_nr_pages(pfn, altmap, pgmap));
+ 	return true;
+ }
+@@ -172,7 +174,7 @@ static inline bool lock_vma_range(struct
+ static inline void unlock_vma_range(struct proc_maps_locking_ctx *lock_ctx)
+ {
+ 	if (lock_ctx->mmap_locked) {
+-		mmap_read_unlock(lock_ctx->mm);
++		unlock_ctx_mm(lock_ctx);
+ 	} else {
+ 		unlock_ctx_vma(lock_ctx);
+ 		rcu_read_unlock();
+@@ -213,17 +215,45 @@ static inline bool fallback_to_mmap_lock
+ 	return true;
+ }
+ 
++static inline void drop_rcu(struct proc_maps_private *priv)
++{
++	if (priv->lock_ctx.mmap_locked)
++		return;
++
++	rcu_read_unlock();
++}
++
++static inline void reacquire_rcu(struct proc_maps_private *priv)
++{
++	if (priv->lock_ctx.mmap_locked)
++		return;
++
++	rcu_read_lock();
++	/* Reinitialize the iterator. */
++	vma_iter_set(&priv->iter, priv->lock_ctx.locked_vma->vm_end);
++}
++
+ #else /* CONFIG_PER_VMA_LOCK */
+ 
++static inline int lock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
++{
++	return mmap_read_lock_killable(lock_ctx->mm);
++}
++
++static inline void unlock_ctx_mm(struct proc_maps_locking_ctx *lock_ctx)
++{
++	mmap_read_unlock(lock_ctx->mm);
++}
++
+ static inline bool lock_vma_range(struct seq_file *m,
+ 				  struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	return mmap_read_lock_killable(lock_ctx->mm) == 0;
++	return lock_ctx_mm(lock_ctx) == 0;
+ }
+ 
+ static inline void unlock_vma_range(struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	mmap_read_unlock(lock_ctx->mm);
++	unlock_ctx_mm(lock_ctx);
+ }
+ 
+ static struct vm_area_struct *get_next_vma(struct proc_maps_private *priv,
+@@ -238,6 +268,9 @@ static inline bool fallback_to_mmap_lock
+ 	return false;
+ }
+ 
++static inline void drop_rcu(struct proc_maps_private *priv) {}
++static inline void reacquire_rcu(struct proc_maps_private *priv) {}
++
+ #endif /* CONFIG_PER_VMA_LOCK */
+ 
+ static struct vm_area_struct *proc_get_vma(struct seq_file *m, loff_t *ppos)
+@@ -538,12 +571,10 @@ static int query_vma_setup(struct proc_m
+ 
+ static void query_vma_teardown(struct proc_maps_locking_ctx *lock_ctx)
+ {
+-	if (lock_ctx->mmap_locked) {
+-		mmap_read_unlock(lock_ctx->mm);
+-		lock_ctx->mmap_locked = false;
+-	} else {
++	if (lock_ctx->mmap_locked)
++		unlock_ctx_mm(lock_ctx);
++	else
+ 		unlock_ctx_vma(lock_ctx);
+-	}
+ }
+ 
+ static struct vm_area_struct *query_vma_find_by_addr(struct proc_maps_locking_ctx *lock_ctx,
+@@ -1280,21 +1311,75 @@ static const struct mm_walk_ops smaps_sh
+ 	.walk_lock		= PGWALK_RDLOCK,
+ };
+ 
++#ifdef CONFIG_PER_VMA_LOCK
++
++static const struct mm_walk_ops smaps_walk_vma_lock_ops = {
++	.pmd_entry		= smaps_pte_range,
++	.hugetlb_entry		= smaps_hugetlb_range,
++	.walk_lock		= PGWALK_VMA_RDLOCK_VERIFY,
++};
++
++static const struct mm_walk_ops smaps_shmem_walk_vma_lock_ops = {
++	.pmd_entry		= smaps_pte_range,
++	.hugetlb_entry		= smaps_hugetlb_range,
++	.pte_hole		= smaps_pte_hole,
++	.walk_lock		= PGWALK_VMA_RDLOCK_VERIFY,
++};
++
++static inline const struct mm_walk_ops *
++get_smaps_walk_ops(struct proc_maps_private *priv)
++{
++	if (priv->lock_ctx.mmap_locked)
++		return &smaps_walk_ops;
++	return &smaps_walk_vma_lock_ops;
++}
++
++static inline const struct mm_walk_ops *
++get_smaps_shmem_walk_ops(struct proc_maps_private *priv)
++{
++	if (priv->lock_ctx.mmap_locked)
++		return  &smaps_shmem_walk_ops;
++	return &smaps_shmem_walk_vma_lock_ops;
++}
++
++#else /* CONFIG_PER_VMA_LOCK */
++
++static inline const struct mm_walk_ops *
++get_smaps_walk_ops(struct proc_maps_private *priv)
++{
++	return &smaps_walk_ops;
++}
++
++static inline const struct mm_walk_ops *
++get_smaps_shmem_walk_ops(struct proc_maps_private *priv)
++{
++	return &smaps_shmem_walk_ops;
++}
++
++#endif /* CONFIG_PER_VMA_LOCK */
++
+ /*
+  * Gather mem stats from @vma with the indicated beginning
+  * address @start, and keep them in @mss.
+  *
+  * Use vm_start of @vma as the beginning address if @start is 0.
+  */
+-static void smap_gather_stats(struct vm_area_struct *vma,
+-		struct mem_size_stats *mss, unsigned long start)
++static void smap_gather_stats(struct proc_maps_private *priv,
++			      struct vm_area_struct *vma,
++			      struct mem_size_stats *mss, unsigned long start)
+ {
+-	const struct mm_walk_ops *ops = &smaps_walk_ops;
++	const struct mm_walk_ops *ops = get_smaps_walk_ops(priv);
+ 
+ 	/* Invalid start */
+ 	if (start >= vma->vm_end)
+ 		return;
+ 
++	if (vma == get_gate_vma(priv->lock_ctx.mm))
++		return;
++
++	/* Might sleep. Drop RCU read lock but keep the VMA locked. */
++	drop_rcu(priv);
++
+ 	if (vma->vm_file && shmem_mapping(vma->vm_file->f_mapping)) {
+ 		/*
+ 		 * For shared or readonly shmem mappings we know that all
+@@ -1312,15 +1397,16 @@ static void smap_gather_stats(struct vm_
+ 					!(vma->vm_flags & VM_WRITE))) {
+ 			mss->swap += shmem_swapped;
+ 		} else {
+-			ops = &smaps_shmem_walk_ops;
++			ops = get_smaps_shmem_walk_ops(priv);
+ 		}
  	}
  
- 	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE);
+-	/* mmap_lock is held in m_start */
+ 	if (!start)
+ 		walk_page_vma(vma, ops, mss);
+ 	else
+ 		walk_page_range(vma->vm_mm, start, vma->vm_end, ops, mss);
++
++	reacquire_rcu(priv);
+ }
+ 
+ #define SEQ_PUT_DEC(str, val) \
+@@ -1369,10 +1455,11 @@ static void __show_smap(struct seq_file
+ 
+ static int show_smap(struct seq_file *m, void *v)
+ {
++	struct proc_maps_private *priv = m->private;
+ 	struct vm_area_struct *vma = v;
+ 	struct mem_size_stats mss = {};
+ 
+-	smap_gather_stats(vma, &mss, 0);
++	smap_gather_stats(priv, vma, &mss, 0);
+ 
+ 	show_map_vma(m, vma);
+ 
+@@ -1413,7 +1500,7 @@ static int show_smaps_rollup(struct seq_
+ 		goto out_put_task;
+ 	}
+ 
+-	ret = mmap_read_lock_killable(mm);
++	ret = lock_ctx_mm(&priv->lock_ctx);
+ 	if (ret)
+ 		goto out_put_mm;
+ 
+@@ -1425,7 +1512,7 @@ static int show_smaps_rollup(struct seq_
+ 
+ 	vma_start = vma->vm_start;
+ 	do {
+-		smap_gather_stats(vma, &mss, 0);
++		smap_gather_stats(priv, vma, &mss, 0);
+ 		last_vma_end = vma->vm_end;
+ 
+ 		/*
+@@ -1434,8 +1521,8 @@ static int show_smaps_rollup(struct seq_
+ 		 */
+ 		if (mmap_lock_is_contended(mm)) {
+ 			vma_iter_invalidate(&vmi);
+-			mmap_read_unlock(mm);
+-			ret = mmap_read_lock_killable(mm);
++			unlock_ctx_mm(&priv->lock_ctx);
++			ret = lock_ctx_mm(&priv->lock_ctx);
+ 			if (ret) {
+ 				release_task_mempolicy(priv);
+ 				goto out_put_mm;
+@@ -1484,14 +1571,14 @@ static int show_smaps_rollup(struct seq_
+ 
+ 			/* Case 1 and 2 above */
+ 			if (vma->vm_start >= last_vma_end) {
+-				smap_gather_stats(vma, &mss, 0);
++				smap_gather_stats(priv, vma, &mss, 0);
+ 				last_vma_end = vma->vm_end;
+ 				continue;
+ 			}
+ 
+ 			/* Case 4 above */
+ 			if (vma->vm_end > last_vma_end) {
+-				smap_gather_stats(vma, &mss, last_vma_end);
++				smap_gather_stats(priv, vma, &mss, last_vma_end);
+ 				last_vma_end = vma->vm_end;
+ 			}
+ 		}
+@@ -1505,7 +1592,7 @@ empty_set:
+ 	__show_smap(m, &mss, true);
+ 
+ 	release_task_mempolicy(priv);
+-	mmap_read_unlock(mm);
++	unlock_ctx_mm(&priv->lock_ctx);
+ 
+ out_put_mm:
+ 	mmput(mm);
+@@ -3291,6 +3378,31 @@ static const struct mm_walk_ops show_num
+ 	.walk_lock = PGWALK_RDLOCK,
+ };
+ 
++#ifdef CONFIG_PER_VMA_LOCK
++static const struct mm_walk_ops show_numa_vma_lock_ops = {
++	.hugetlb_entry = gather_hugetlb_stats,
++	.pmd_entry = gather_pte_stats,
++	.walk_lock = PGWALK_VMA_RDLOCK_VERIFY,
++};
++
++static inline const struct mm_walk_ops *
++get_show_numa_ops(struct proc_maps_private *priv)
++{
++	if (priv->lock_ctx.mmap_locked)
++		return &show_numa_ops;
++	return &show_numa_vma_lock_ops;
++}
++
++#else /* CONFIG_PER_VMA_LOCK */
++
++static inline const struct mm_walk_ops *
++get_show_numa_ops(struct proc_maps_private *priv)
++{
++	return &show_numa_ops;
++}
++
++#endif /* CONFIG_PER_VMA_LOCK */
++
+ /*
+  * Display pages allocated per node and memory policy via /proc.
+  */
+@@ -3335,8 +3447,13 @@ static int show_numa_map(struct seq_file
+ 	if (is_vm_hugetlb_page(vma))
+ 		seq_puts(m, " huge");
+ 
+-	/* mmap_lock is held by m_start */
+-	walk_page_vma(vma, &show_numa_ops, md);
++	/* Skip walking pages if gate VMA */
++	if (vma != get_gate_vma(proc_priv->lock_ctx.mm)) {
++		/* Might sleep. Drop RCU read lock but keep the VMA locked. */
++		drop_rcu(proc_priv);
++		walk_page_vma(vma, get_show_numa_ops(proc_priv), md);
++		reacquire_rcu(proc_priv);
++	}
+ 
+ 	if (!md->pages)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-memory_hotplug-fix-memory-block-reference-leak-on-remove.patch
-drivers-base-memory-fix-memory-block-reference-leak-in-poison-accounting.patch
-mm-sparse-remove-sparse-buffer-pre-allocation-mechanism.patch
-mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
-mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
-mm-sparse-vmemmap-pass-pgmap-argument-to-memory-deactivation-paths.patch
-mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization.patch
-mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch
-mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
+fs-proc-task_mmu-read-proc-pid-smapsnuma_maps-under-per-vma-lock.patch
+selftests-proc-ensure-the-test-is-performed-at-the-right-page-boundary.patch
+selftests-proc-add-proc-pid-smaps-tearing-tests.patch
 
