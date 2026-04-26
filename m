@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA68B355F36
-	for <mm-commits@vger.kernel.org>; Sun, 26 Apr 2026 11:09:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2A792BB1D;
+	Sun, 26 Apr 2026 15:17:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777201775; cv=none; b=FWmLkU9Z1lJvf/BmMDsM6FwHbfePf1wlcOViqXym03Bfyl1EwWbfrR1rOl80l0VAaYReHiH+urv8SYOf13RQrghxio1gVO73nR5fvoxLQXm9lOBeLqr/FJkgZzg150NlUgAieKqd8ryVpWA39zxUjZlcBe8mtN5/GT22bjPNiYk=
+	t=1777216640; cv=none; b=qGTTOr+wtVBdZff50PDlCmuYFWyLp0VG2DdqLU+Sl4mAZxsMUfWqdhTPN+3Rpv/sGZuxujk55GCPhiVZa0cVnTrwQDxAisTG3hIgbF9JKeAxyJFHiLpSvSVnqlY6x4+biHWbyBNd4wT3UuEXKLJsQv8mAXgtji/DgyNd/jxZ6fg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777201775; c=relaxed/simple;
-	bh=YgfXa9z7N44537WR+lnP3SeRcTl5t6LlI2VTd5t4wu8=;
-	h=Date:To:From:Subject:Message-Id; b=UbK5JpCiYS7O+wbubiZMzveyr/9hL56hkCTDSb1BTRGREwcdjAUaocRDpkGXSjwr57UyKpJ4TnrCa+UyNwlnQKa09ly8bmJXUEM48uUdUedcbrlY5YMlInsyb+y6x/95c9oSTv1+ukRoHXuLtabuGhFLoU9/IK+rh5nSigb/1dI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uKM8U0Cm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777216640; c=relaxed/simple;
+	bh=Hyx1AOMdihp+Z0kWFQXE3e1vVswR/Lkb7DNRI/bRAWs=;
+	h=Date:To:From:Subject:Message-Id; b=iq4R3YRlYG2UdMbn96UNrM331nNeDdRFviT1A9Un468qyK4S3jXnQDeXDgM0Owoh/5TNNX31VqLm98v3ZHvIU3Uz7zU/fAgH62Tp0YPTLKBfk2aHTYkC2pKKBpbFwOim8gwrCS7xWUcf74KevPcRjllkkbtRv65chGQIof86VZg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ifibh9L3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uKM8U0Cm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B7BCC2BCAF;
-	Sun, 26 Apr 2026 11:09:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ifibh9L3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7757CC2BCAF;
+	Sun, 26 Apr 2026 15:17:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777201775;
-	bh=YgfXa9z7N44537WR+lnP3SeRcTl5t6LlI2VTd5t4wu8=;
+	s=korg; t=1777216639;
+	bh=Hyx1AOMdihp+Z0kWFQXE3e1vVswR/Lkb7DNRI/bRAWs=;
 	h=Date:To:From:Subject:From;
-	b=uKM8U0Cm0gIYefi+De9+odQPSmG/+q/GkbSRN8WMsxc98zrawK1LSG9LcnkArPkAs
-	 L2tI3g6l32S2yVkCkz6SsUB/gHmCdR78UCC87ZquOc2xUafwO223q/Pcx1D1SJO8Ji
-	 nkSa9EHK8RJT5SH0o34ZVQrxivRsd+es/xB6BO60=
-Date: Sun, 26 Apr 2026 04:09:34 -0700
-To: mm-commits@vger.kernel.org,msalter@redhat.com,david.laight.linux@gmail.com,chmh0624@gmail.com,arnd@arndb.de,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=ifibh9L3gXb1pLC4sOkrIHMrbbPxiXRLprGVo5ZG+zcqFuqjp9kfsR6eRLAZopMPq
+	 L4WT4tVj162APGpDRQY/ZxEiB/7KPk+ynL1VPw358C0bQM5Vc+ygBPmsP6LB0CjeXV
+	 RElNAPltzTgUBNA100kA4F0ftstZboeugQLy92sU=
+Date: Sun, 26 Apr 2026 08:17:18 -0700
+To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,stable@vger.kernel.org,rafael@kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,huang.ying.caritas@gmail.com,gregkh@linuxfoundation.org,david@kernel.org,dakr@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix.patch added to mm-new branch
-Message-Id: <20260426110935.6B7BCC2BCAF@smtp.kernel.org>
+Subject: + mm-memory_hotplug-fix-memory-block-reference-leak-on-remove.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260426151719.7757CC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix
-has been added to the -mm mm-new branch.  Its filename is
-     include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix.patch
+     Subject: mm/memory_hotplug: fix memory block reference leak on remove
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memory_hotplug-fix-memory-block-reference-leak-on-remove.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-fix-memory-block-reference-leak-on-remove.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,44 +58,53 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix
-Date: Sun Apr 26 04:00:43 AM PDT 2026
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/memory_hotplug: fix memory block reference leak on remove
+Date: Sun, 26 Apr 2026 22:44:46 +0800
 
-convert set_fixmap_io() also
+remove_memory_blocks_and_altmaps() looks up each memory block with
+find_memory_block(), which acquires a reference to the memory block
+device.
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Min-Hsun Chang <chmh0624@gmail.com>
+That reference is never dropped on this path, resulting in a leaked device
+reference when removing memory blocks and their altmaps.  Drop the
+reference after retrieving mem->altmap and clearing mem->altmap, before
+removing the memory block device.
+
+Link: https://lore.kernel.org/20260426144447.817722-1-songmuchun@bytedance.com
+Fixes: 6b8f0798b85a ("mm/memory_hotplug: split memmap_on_memory requests across memblocks")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Huang, Ying" <huang.ying.caritas@gmail.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: "Rafael J . Wysocki" <rafael@kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/fixmap.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/asm-generic/fixmap.h~include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix
-+++ a/include/asm-generic/fixmap.h
-@@ -102,8 +102,10 @@ set_fixmap_offset_nocache(enum fixed_add
- /*
-  * Some fixmaps are for IO
-  */
--#define set_fixmap_io(idx, phys) \
--	__set_fixmap(idx, phys, FIXMAP_PAGE_IO)
-+static inline void set_fixmap_io(enum fixed_addresses idx, phys_addr_t phys)
-+{
-+	__set_fixmap(idx, phys, FIXMAP_PAGE_IO);
-+}
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-memory-block-reference-leak-on-remove
++++ a/mm/memory_hotplug.c
+@@ -1422,6 +1422,7 @@ static void remove_memory_blocks_and_alt
  
- #endif /* __ASSEMBLY__ */
- #endif /* __ASM_GENERIC_FIXMAP_H */
+ 		altmap = mem->altmap;
+ 		mem->altmap = NULL;
++		put_device(&mem->dev);
+ 
+ 		remove_memory_block_devices(cur_start, memblock_size);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free-fix.patch
-mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch
-include-asm-generic-fixmaph-reimplement-nasty-macros-in-c.patch
-include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix.patch
-proc-rewrite-next_tgid-fix.patch
+mm-memory_hotplug-fix-memory-block-reference-leak-on-remove.patch
+drivers-base-memory-fix-memory-block-reference-leak-in-poison-accounting.patch
+mm-sparse-remove-sparse-buffer-pre-allocation-mechanism.patch
 
