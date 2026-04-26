@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BEA219E819
-	for <mm-commits@vger.kernel.org>; Sun, 26 Apr 2026 19:41:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F11A629D26C
+	for <mm-commits@vger.kernel.org>; Sun, 26 Apr 2026 19:46:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777232510; cv=none; b=W3/R8p1DeDnoiGry827A5gyGw5ishOuM+M7ok4nzx5n+PXP+agoAVv64NhwaQqE9hjaK/AE8rSdAf/6G0JRnsf6LmGZB5sIkRGvldGOtzSZPpQcq3JJhCLwtz2aacCSZ7z6vUyWq0pXXuvKRsZ+/kUzLUE/F4430kfgTvE2/pEs=
+	t=1777232787; cv=none; b=a3Yw6vH0w9mGxcoim9x2/8Tvx51Jj+cMuMa4BgFdz6BItTz0MOd0oTNgrTE7gT0bc8p78BiC0jUrPThE/Ii5GzYaLJA4pfYecxrGR6h6ty8MBXUAfBZux1+Xt8mkNPLGUdZNF1BH+URcFVQPET74VKXUyCRVLqtcPSzLw1CZ0MY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777232510; c=relaxed/simple;
-	bh=Zte1cDizmZbMgzPYjs1QZO36HzzO0rMGjm879LiqpwM=;
-	h=Date:To:From:Subject:Message-Id; b=uSNIrXqvaNRumyaitZX9HwbCvOvl8cQizPuIDtbrzKOgHS8RQ6Iiydt9jo1/LEFJlyBqTwDhyxD9Cy+nZXfuaUuOsTFzlBuzegRv+buqCG4icVkR5I3981W/Vjbd/gzY15iqHpXfWIrViEG13T2L6Q3S43+zInIMV9EOiPcsm3A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Qz5xabW8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777232787; c=relaxed/simple;
+	bh=XtRd7if2srXiFyjrGdVX8+quKclKnAeG/IkfMLL8Vbs=;
+	h=Date:To:From:Subject:Message-Id; b=eqDaDBXhCuhOt/WLcB0G5hQCEDsybVVWk2gOACLpr7ci0dJ3LVSawRrRBtSRcTHZct6dqXqJQzs9Cy4UJQdmSybfczZnygkZHeXkc05QaTnQjUCHW5LqEXREYwvBEwHCcLFWJ+Ae8i43NMImiF2uoL+uP98ZLT98ealLGAIlePY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IPPFod62; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Qz5xabW8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1855C2BCAF;
-	Sun, 26 Apr 2026 19:41:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IPPFod62"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6BD8C2BCB4;
+	Sun, 26 Apr 2026 19:46:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777232510;
-	bh=Zte1cDizmZbMgzPYjs1QZO36HzzO0rMGjm879LiqpwM=;
+	s=korg; t=1777232786;
+	bh=XtRd7if2srXiFyjrGdVX8+quKclKnAeG/IkfMLL8Vbs=;
 	h=Date:To:From:Subject:From;
-	b=Qz5xabW8mQSgPDXRAuMTeOskU/8i0dXZ83y8EvZV1NNNbntrmhmw+Vzm5scUG/Yr6
-	 PUg8+2EMKSernZgbA9/FHg9SnLWBvqf2f87E2mcWy8el5lpzP0VulHBP54VE+Ii8Bx
-	 031x7yIHhgI6bYBIFV3Gx/4rhL8NSgU69wYUViV8=
-Date: Sun, 26 Apr 2026 12:41:49 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,brauner@kernel.org,fujunjie1@qq.com,akpm@linux-foundation.org
+	b=IPPFod62O3ILIqaz3lEIgVJ5/5W20bs1ix3Apq3nGBErnU52Z+QZomS04GFkX6uPe
+	 R9I1T3ADQ7y5FfLuBUwVtZEJ+yFGpEZHXy1v/y0GtGTLor3RkYtjEAdVo4OmgJCr6/
+	 5RBMPobxZESRgs8fjyLfArHUZEqou7/PmFSEHiss=
+Date: Sun, 26 Apr 2026 12:46:26 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,ryan.roberts@arm.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david.laight.linux@gmail.com,david@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors.patch added to mm-new branch
-Message-Id: <20260426194149.E1855C2BCAF@smtp.kernel.org>
+Subject: + selftests-mm-simplify-byte-pattern-checking-in-mremap_test.patch added to mm-new branch
+Message-Id: <20260426194626.B6BD8C2BCB4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/madvise: reject invalid process_madvise() advice for zero-length vectors
+     Subject: selftests/mm: simplify byte pattern checking in mremap_test
 has been added to the -mm mm-new branch.  Its filename is
-     mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors.patch
+     selftests-mm-simplify-byte-pattern-checking-in-mremap_test.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-simplify-byte-pattern-checking-in-mremap_test.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,101 +69,192 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: fujunjie <fujunjie1@qq.com>
-Subject: mm/madvise: reject invalid process_madvise() advice for zero-length vectors
-Date: Sun, 26 Apr 2026 11:08:22 +0000
+From: Dev Jain <dev.jain@arm.com>
+Subject: selftests/mm: simplify byte pattern checking in mremap_test
+Date: Wed, 15 Apr 2026 10:15:09 +0530
 
-process_madvise() validates the advice while walking the imported iovec. 
-If the iovec has zero total length, vector_madvise() never enters the loop
-and returns 0 without checking whether the advice value is valid.
+The original version of mremap_test (7df666253f26: "kselftests: vm: add
+mremap tests") validated remapped contents byte-by-byte and printed a
+mismatch index in case the bytes streams didn't match.  That was rather
+inefficient, especially also if the test passed.
 
-For a local mm, such as process_madvise(PIDFD_SELF, ...), the remote-only
-process_madvise_remote_valid() check is skipped.  As a result, an invalid
-advice can be reported as success when the vector has zero total length. 
-This differs from madvise(), which rejects an invalid advice before
-returning success for a zero-length range.
+Later, commit 7033c6cc9620 ("selftests/mm: mremap_test: optimize execution
+time from minutes to seconds using chunkwise memcmp") used memcmp() on
+bigger chunks, to fallback to byte-wise scanning to detect the problematic
+index only if it discovered a problem.
 
-Reject invalid advice before walking the vector.  Valid zero-length
-requests remain no-ops and continue to return 0.
+However, the implementation is overly complicated (e.g., get_sqrt() is
+currently not optimal) and we don't really have to report the exact index:
+whoever debugs the failing test can figure that out.
 
-Add a selftest that covers invalid advice with a zero-length iovec and an
-empty vector, while also checking that a valid zero-length request still
-succeeds.
+Let's simplify by just comparing both byte streams with memcmp() and not
+detecting the exact failed index.
 
-Link: https://lore.kernel.org/tencent_98F3571EF9236437E5165F5C08CF258A9E08@qq.com
-Fixes: 021781b01275 ("mm/madvise: unrestrict process_madvise() for current process")
-Signed-off-by: fujunjie <fujunjie1@qq.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lore.kernel.org/20260415044509.579428-1-dev.jain@arm.com
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Reported-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Liam Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: SeongJae Park <sj@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: David Laight <david.laight.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c                              |    3 ++
- tools/testing/selftests/mm/process_madv.c |   29 ++++++++++++++++++++
- 2 files changed, 32 insertions(+)
+ tools/testing/selftests/mm/mremap_test.c |  109 +--------------------
+ 1 file changed, 10 insertions(+), 99 deletions(-)
 
---- a/mm/madvise.c~mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors
-+++ a/mm/madvise.c
-@@ -2046,6 +2046,9 @@ static ssize_t vector_madvise(struct mm_
- 
- 	total_len = iov_iter_count(iter);
- 
-+	if (!madvise_behavior_valid(behavior))
-+		return -EINVAL;
-+
- 	ret = madvise_lock(&madv_behavior);
- 	if (ret)
- 		return ret;
---- a/tools/testing/selftests/mm/process_madv.c~mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors
-+++ a/tools/testing/selftests/mm/process_madv.c
-@@ -310,6 +310,35 @@ TEST_F(process_madvise, invalid_vlen)
+--- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-simplify-byte-pattern-checking-in-mremap_test
++++ a/tools/testing/selftests/mm/mremap_test.c
+@@ -76,27 +76,6 @@ enum {
+ 	.expect_failure = should_fail				\
  }
  
+-/* compute square root using binary search */
+-static unsigned long get_sqrt(unsigned long val)
+-{
+-	unsigned long low = 1;
+-
+-	/* assuming rand_size is less than 1TB */
+-	unsigned long high = (1UL << 20);
+-
+-	while (low <= high) {
+-		unsigned long mid = low + (high - low) / 2;
+-		unsigned long temp = mid * mid;
+-
+-		if (temp == val)
+-			return mid;
+-		if (temp < val)
+-			low = mid + 1;
+-		high = mid - 1;
+-	}
+-	return low;
+-}
+-
  /*
-+ * Test that invalid advice is rejected even when the iovec has zero total
-+ * length. A zero-length advice is a no-op for valid advice, but invalid
-+ * advice should still fail with EINVAL.
-+ */
-+TEST_F(process_madvise, invalid_advice_zero_length)
-+{
-+	struct iovec vec = {
-+		.iov_base = NULL,
-+		.iov_len = 0,
-+	};
-+	int pidfd = self->pidfd;
-+	ssize_t ret;
-+
-+	errno = 0;
-+	ret = sys_process_madvise(pidfd, &vec, 1, -1, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EINVAL);
-+
-+	errno = 0;
-+	ret = sys_process_madvise(pidfd, &vec, 1, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, 0);
-+
-+	errno = 0;
-+	ret = sys_process_madvise(pidfd, NULL, 0, -1, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EINVAL);
-+}
-+
-+/*
-  * Test process_madvise() with an invalid flag value. Currently, only a flag
-  * value of 0 is supported. This test is reserved for the future, e.g., if
-  * synchronous flags are added.
+  * Returns false if the requested remap region overlaps with an
+  * existing mapping (e.g text, stack) else returns true.
+@@ -995,11 +974,9 @@ static long long remap_region(struct con
+ 			      char *rand_addr)
+ {
+ 	void *addr, *tmp_addr, *src_addr, *dest_addr, *dest_preamble_addr = NULL;
+-	unsigned long long t, d;
+ 	struct timespec t_start = {0, 0}, t_end = {0, 0};
+ 	long long  start_ns, end_ns, align_mask, ret, offset;
+ 	unsigned long long threshold;
+-	unsigned long num_chunks;
+ 
+ 	if (threshold_mb == VALIDATION_NO_THRESHOLD)
+ 		threshold = c.region_size;
+@@ -1068,87 +1045,21 @@ static long long remap_region(struct con
+ 		goto clean_up_dest_preamble;
+ 	}
+ 
+-	/*
+-	 * Verify byte pattern after remapping. Employ an algorithm with a
+-	 * square root time complexity in threshold: divide the range into
+-	 * chunks, if memcmp() returns non-zero, only then perform an
+-	 * iteration in that chunk to find the mismatch index.
+-	 */
+-	num_chunks = get_sqrt(threshold);
+-	for (unsigned long i = 0; i < num_chunks; ++i) {
+-		size_t chunk_size = threshold / num_chunks;
+-		unsigned long shift = i * chunk_size;
+-
+-		if (!memcmp(dest_addr + shift, rand_addr + shift, chunk_size))
+-			continue;
+-
+-		/* brute force iteration only over mismatch segment */
+-		for (t = shift; t < shift + chunk_size; ++t) {
+-			if (((char *) dest_addr)[t] != rand_addr[t]) {
+-				ksft_print_msg("Data after remap doesn't match at offset %llu\n",
+-						t);
+-				ksft_print_msg("Expected: %#x\t Got: %#x\n", rand_addr[t] & 0xff,
+-						((char *) dest_addr)[t] & 0xff);
+-				ret = -1;
+-				goto clean_up_dest;
+-			}
+-		}
+-	}
+-
+-	/*
+-	 * if threshold is not divisible by num_chunks, then check the
+-	 * last chunk
+-	 */
+-	for (t = num_chunks * (threshold / num_chunks); t < threshold; ++t) {
+-		if (((char *) dest_addr)[t] != rand_addr[t]) {
+-			ksft_print_msg("Data after remap doesn't match at offset %llu\n",
+-					t);
+-			ksft_print_msg("Expected: %#x\t Got: %#x\n", rand_addr[t] & 0xff,
+-					((char *) dest_addr)[t] & 0xff);
+-			ret = -1;
+-			goto clean_up_dest;
+-		}
++	/* Verify byte pattern after remapping */
++	if (memcmp(dest_addr, rand_addr, threshold)) {
++		ksft_print_msg("Data after remap doesn't match\n");
++		ret = -1;
++		goto clean_up_dest;
+ 	}
+ 
+ 	/* Verify the dest preamble byte pattern after remapping */
+-	if (!c.dest_preamble_size)
+-		goto no_preamble;
+-
+-	num_chunks = get_sqrt(c.dest_preamble_size);
+-
+-	for (unsigned long i = 0; i < num_chunks; ++i) {
+-		size_t chunk_size = c.dest_preamble_size / num_chunks;
+-		unsigned long shift = i * chunk_size;
+-
+-		if (!memcmp(dest_preamble_addr + shift, rand_addr + shift,
+-			    chunk_size))
+-			continue;
+-
+-		/* brute force iteration only over mismatched segment */
+-		for (d = shift; d < shift + chunk_size; ++d) {
+-			if (((char *) dest_preamble_addr)[d] != rand_addr[d]) {
+-				ksft_print_msg("Preamble data after remap doesn't match at offset %llu\n",
+-						d);
+-				ksft_print_msg("Expected: %#x\t Got: %#x\n", rand_addr[d] & 0xff,
+-						((char *) dest_preamble_addr)[d] & 0xff);
+-				ret = -1;
+-				goto clean_up_dest;
+-			}
+-		}
+-	}
+-
+-	for (d = num_chunks * (c.dest_preamble_size / num_chunks); d < c.dest_preamble_size; ++d) {
+-		if (((char *) dest_preamble_addr)[d] != rand_addr[d]) {
+-			ksft_print_msg("Preamble data after remap doesn't match at offset %llu\n",
+-					d);
+-			ksft_print_msg("Expected: %#x\t Got: %#x\n", rand_addr[d] & 0xff,
+-					((char *) dest_preamble_addr)[d] & 0xff);
+-			ret = -1;
+-			goto clean_up_dest;
+-		}
++	if (c.dest_preamble_size &&
++	    memcmp(dest_preamble_addr, rand_addr, c.dest_preamble_size)) {
++		ksft_print_msg("Preamble data after remap doesn't match\n");
++		ret = -1;
++		goto clean_up_dest;
+ 	}
+ 
+-no_preamble:
+ 	start_ns = t_start.tv_sec * NS_PER_SEC + t_start.tv_nsec;
+ 	end_ns = t_end.tv_sec * NS_PER_SEC + t_end.tv_nsec;
+ 	ret = end_ns - start_ns;
 _
 
-Patches currently in -mm which might be from fujunjie1@qq.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors.patch
+mm-khugepaged-generalize-alloc_charge_folio.patch
+selftests-mm-simplify-byte-pattern-checking-in-mremap_test.patch
 
