@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B5D62D46B3
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 11:46:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B64F30AD15
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 11:46:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777290399; cv=none; b=rj420P0ySkhwVU5KNK2wX8LKOL/Zc270Z9cYe1XjUP4lSHSBgEOYzjfVhz+Bo1GdvfXHx8hFLpJV4JhfxM5GLaSF7O9phBvFzFLXtkbVCZ5cNuIoCQWHnwIVGj3jyvKUjdZ63ZoaV+NXIbJXxmKFpjW5ipHAyW2qY6LqHkIc3rM=
+	t=1777290399; cv=none; b=nLXWf69csvJF/SqvqlcF+52CkqEHco96l+84ffrA5LA0sO7kXtDQbz0VwR7AoLhEObHsVpanxWGjIDDd39MszizJfg09cLHJq56OKBdazyuvM3I3VL/sNvJUHz97CEU9KWlLh/uLZrGLYe9GUpORsDr4QQnUOGPsllHCSp7Vj6Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1777290399; c=relaxed/simple;
-	bh=0ZCCx7T34YqUOMBXY1rB6n6tIYQbQw5g+6DTsIKgNjw=;
-	h=Date:To:From:Subject:Message-Id; b=mCwlJ1agLqKuBDnNgs5asQtMJlaEIj67U0onaDBRJiXsgJKUp9neRv0YEyZWoRsmfU7Gb6psdlQc4pdwxYNaVHGk2AEfcHsT7i7kSHDHFtehB49I5XsAOYP17hFEDIrf9JJq5fnd/nvnNaODV4340qbXp922I7nTQ6dTTRPjq6U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yyVlgTXo; arc=none smtp.client-ip=10.30.226.201
+	bh=aQ2xpxcS6EahjcjOXVHArnYwh5g7MxJAqhTw4WiHOWw=;
+	h=Date:To:From:Subject:Message-Id; b=JPd3mc9vvgnwDJZ6fGCxqZHJSLqfu8qa+j6yMqdLNTD7PpdQhY8dYoTj+S1G4oGRLHiIBgZPvYsKvkTbeaTaHiE48c3ojreMl0QS5FbOdt0KuEKJ0hlhV3yL0WYmJDhCh7qxyCAFEAZuTH4V+znxNdMfa8UHTTwuzpONDkVrdLw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GP5/738s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yyVlgTXo"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E359DC2BCC4;
-	Mon, 27 Apr 2026 11:46:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GP5/738s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6FEBC19425;
+	Mon, 27 Apr 2026 11:46:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777290397;
-	bh=0ZCCx7T34YqUOMBXY1rB6n6tIYQbQw5g+6DTsIKgNjw=;
+	s=korg; t=1777290394;
+	bh=aQ2xpxcS6EahjcjOXVHArnYwh5g7MxJAqhTw4WiHOWw=;
 	h=Date:To:From:Subject:From;
-	b=yyVlgTXoQZY4msDgutgP6ZFid+sMlX8VZ2vuixiS0koA9yvOwhEN9/ZN75d5SX8sw
-	 ErAOGJTIJk/e2lvBcXf/ydX3mu5l1WliHumG3e3NQ/tnlDv7FIuAS2scbUA7LbiDn/
-	 5gIezlnE9qvLzQrnV4XcDVKQUWHXT/kKpCobcr2U=
-Date: Mon, 27 Apr 2026 04:46:36 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,gutierrez.asier@huawei-partners.com,david@kernel.org,corbet@lwn.net,aethernet65535@gmail.com,hank20010209@gmail.com,akpm@linux-foundation.org
+	b=GP5/738sWZgQ5Yyo/4yM4FgaggGNtmJws+u+fT1Z+l8T5tRVcoHJ+XPeB53Pzu8lp
+	 YVfrAGMRJbSoCTPHSUBS25wj0/hlluXY6DyTOCZ9soIQXvBaC41QMC8owVMKIZbFP3
+	 ABqiDeCMUaAvSbPV6NQ7eKutTNkP0QYmiDmX81g8=
+Date: Mon, 27 Apr 2026 04:46:34 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,skhan@linuxfoundation.org,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,hank20010209@gmail.com,gutierrez.asier@huawei-partners.com,david@kernel.org,corbet@lwn.net,aethernet65535@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-fix-parametrs-typo.patch added to mm-new branch
-Message-Id: <20260427114636.E359DC2BCC4@smtp.kernel.org>
+Subject: + mm-damon-ops-common-optimize-damon_hot_score-using-ilog2.patch added to mm-new branch
+Message-Id: <20260427114634.B6FEBC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon: fix 'parametrs' typo
+     Subject: mm/damon/ops-common: optimize damon_hot_score() using ilog2()
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-fix-parametrs-typo.patch
+     mm-damon-ops-common-optimize-damon_hot_score-using-ilog2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-fix-parametrs-typo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-ops-common-optimize-damon_hot_score-using-ilog2.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,59 +69,123 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Cheng-Han Wu <hank20010209@gmail.com>
-Subject: Docs/admin-guide/mm/damon: fix 'parametrs' typo
-Date: Sun, 26 Apr 2026 16:16:15 -0700
+From: Liew Rui Yan <aethernet65535@gmail.com>
+Subject: mm/damon/ops-common: optimize damon_hot_score() using ilog2()
+Date: Sun, 26 Apr 2026 16:16:14 -0700
 
-Fix the misspelling of "parametrs" as "parameters" in reclaim.rst and
-lru_sort.rst.
+Patch series "mm/damon: repost non-hotfix reviewed patches in damon/next
+tree", v2.
 
-Link: https://lore.kernel.org/20260426231619.107231-3-sj@kernel.org
-Signed-off-by: Cheng-Han Wu <hank20010209@gmail.com>
+The first patch from Liew Rui Yan add a minor performance optimization
+using ilog2() instead of inefficient manual implementation of the
+functionality.
+
+The second patch from Cheng-Han Wu fixes a minor typo:
+s/parametrs/parameters/.
+
+The third patch from Liew Rui Yan make commit_inputs operation of
+DAMON_RECLAIM and DAMON_LRU_SORT synchronous to improve the user
+experience.
+
+The fourth patch from Asier Gutierrez adds a new DAMOS action,
+DAMOS_COLLAPSE for deterministic DAMOS-based access-aware THP system.
+
+
+This patch (of 4):
+
+The current implementation of damon_hot_score() uses a manual for-loop to
+calculate the value of 'age_in_log'.  This can be efficiently replaced by
+ilog2(), which is semantically more appropriate for calculating the
+logarithmic value of age.
+
+In a simulated-kernel-module performance test with 10,000,000 iterations,
+this optimization showed a significant reduction in latency (average
+latency reduced from ~12ns to ~1ns).
+
+Test results from the simulated-kernel-module:
+- ilog2:
+    DAMON Perf Test: Starting 10000000 iterations
+    =============================================
+     Total Iterations : 10000000
+     Average Latency  : 1 ns
+     P95 Latency      : 41 ns
+     P99 Latency      : 41 ns
+    ---------------------------------------------
+     Range (ns)      | Count        | Percent
+    ---------------------------------------------
+     0-19            | 0            |      0%
+     20-39           | 2625000      |     26%
+     40-59           | 7374000      |     73%
+     60-79           | 0            |      0%
+     80-99           | 0            |      0%
+     100+            | 1000         |      0%
+    =============================================
+
+- for-loop:
+    DAMON Perf Test: Starting 10000000 iterations
+    =============================================
+     Total Iterations : 10000000
+     Average Latency  : 12 ns
+     P95 Latency      : 51 ns
+     P99 Latency      : 60 ns
+    ---------------------------------------------
+     Range (ns)      | Count        | Percent
+    ---------------------------------------------
+     0-19            | 0            |      0%
+     20-39           | 0            |      0%
+     40-59           | 9862000      |     98%
+     60-79           | 135000       |      1%
+     80-99           | 1000         |      0%
+     100+            | 2000         |      0%
+    =============================================
+
+Full raw benchmark results can be found at [1].
+
+Link: https://lore.kernel.org/20260426231619.107231-1-sj@kernel.org
+Link: https://lore.kernel.org/20260426231619.107231-2-sj@kernel.org
+Link: https://github.com/aethernet65535/damon-hot-score-fls-optimize/tree/master/result-raw [1]
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
+Signed-off-by: Liew Rui Yan <aethernet65535@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Liew Rui Yan <aethernet65535@gmail.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Asier Gutierrez <gutierrez.asier@huawei-partners.com>
+Cc: Cheng-Han Wu <hank20010209@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/lru_sort.rst |    2 +-
- Documentation/admin-guide/mm/damon/reclaim.rst  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/damon/ops-common.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-fix-parametrs-typo
-+++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
-@@ -75,7 +75,7 @@ Make DAMON_LRU_SORT reads the input para
+--- a/mm/damon/ops-common.c~mm-damon-ops-common-optimize-damon_hot_score-using-ilog2
++++ a/mm/damon/ops-common.c
+@@ -117,9 +117,12 @@ int damon_hot_score(struct damon_ctx *c,
+ 		damon_max_nr_accesses(&c->attrs);
  
- Input parameters that updated while DAMON_LRU_SORT is running are not applied
- by default.  Once this parameter is set as ``Y``, DAMON_LRU_SORT reads values
--of parametrs except ``enabled`` again.  Once the re-reading is done, this
-+of parameters except ``enabled`` again.  Once the re-reading is done, this
- parameter is set as ``N``.  If invalid parameters are found while the
- re-reading, DAMON_LRU_SORT will be disabled.
+ 	age_in_sec = (unsigned long)r->age * c->attrs.aggr_interval / 1000000;
+-	for (age_in_log = 0; age_in_log < DAMON_MAX_AGE_IN_LOG && age_in_sec;
+-			age_in_log++, age_in_sec >>= 1)
+-		;
++	if (age_in_sec)
++		age_in_log = min_t(int, ilog2(age_in_sec) + 1,
++				DAMON_MAX_AGE_IN_LOG);
++	else
++		age_in_log = 0;
++
  
---- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-fix-parametrs-typo
-+++ a/Documentation/admin-guide/mm/damon/reclaim.rst
-@@ -67,7 +67,7 @@ Make DAMON_RECLAIM reads the input param
- 
- Input parameters that updated while DAMON_RECLAIM is running are not applied
- by default.  Once this parameter is set as ``Y``, DAMON_RECLAIM reads values
--of parametrs except ``enabled`` again.  Once the re-reading is done, this
-+of parameters except ``enabled`` again.  Once the re-reading is done, this
- parameter is set as ``N``.  If invalid parameters are found while the
- re-reading, DAMON_RECLAIM will be disabled.
- 
+ 	/* If frequency is 0, higher age means it's colder */
+ 	if (freq_subscore == 0)
 _
 
-Patches currently in -mm which might be from hank20010209@gmail.com are
+Patches currently in -mm which might be from aethernet65535@gmail.com are
 
-docs-admin-guide-mm-damon-fix-parametrs-typo.patch
+mm-damon-ops-common-optimize-damon_hot_score-using-ilog2.patch
+mm-damon-add-synchronous-commit-for-commit_inputs.patch
 
