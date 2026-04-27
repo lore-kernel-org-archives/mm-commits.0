@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03D213E8C61
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:11:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 789933E8C4B
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:11:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777313498; cv=none; b=sD3rON87BuWpwociVQDqyf3d9Sghq8WYDFTMF0IAZ3rZDzon8249ydFTH0+VHPe200gcrFdh6AzplLIO+GJuc1BV8v6D9N6upHZEeqYTPhZA/raJ4jY39Yf4cgudWN3yykQPHlvUO9KApsgsZwthWFUShkrzSqs2PazJ0jpa8jM=
+	t=1777313499; cv=none; b=IoNw6xHuwFPkITGxvflEzDhcnEYC0CCEV0tfPkDSmjYVjxoQBhNIR90w6k5+VNQyHQOkbFORCmBQs5Kcljvn5zgraUb8D/55SXzIjZWQhkLuWh9o1J7LGqgRAGUfDV0pro4ZvpAZN8MCZUlaFTEPyL4fFXYQJ+eJGIy2JQ78u6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777313498; c=relaxed/simple;
-	bh=nO6DNOI8CXh05pCZFUDIMDx5+a9TYD2o5z536AiBz1Q=;
-	h=Date:To:From:Subject:Message-Id; b=PF0RT5jYtUAqTgGygmhHEaKV6CDY9Lp2j6HF7h46Bie54eNpqORUZoz3IV0Yj5j9A2BhObzs3NKv6t7lGclu29unTdCdmGHM+hRQb4feSppyp82C3TDRdroTzzj1glKCq5WNJTgbbg/eEmtaOzYLuFB9okfiY5BvXhAK+BFNEdk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g5PJL2/Z; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777313499; c=relaxed/simple;
+	bh=O7ib1xJ9DKRql6sjq86GJbs2yqVRGbcZ6d2AL7I0tBo=;
+	h=Date:To:From:Subject:Message-Id; b=d0SZWBM2ehYB5egJaLAkC1hWA/vadxYDd2xA0qXb7cpowKd6LIo42oHv7vpQGOCytvs7FbnwI4TZ1VKpVdpuNROi+ThIVJFora4+ipiOvnH7uNwmbFspBU0DzRPNEOp3vi1h+e2CKbmQSjnvswlOacOGhoVXZtJaitCNOjwQY10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ODqLAGYE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g5PJL2/Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE3BAC2BCB4;
-	Mon, 27 Apr 2026 18:11:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ODqLAGYE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B663C19425;
+	Mon, 27 Apr 2026 18:11:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777313497;
-	bh=nO6DNOI8CXh05pCZFUDIMDx5+a9TYD2o5z536AiBz1Q=;
+	s=korg; t=1777313499;
+	bh=O7ib1xJ9DKRql6sjq86GJbs2yqVRGbcZ6d2AL7I0tBo=;
 	h=Date:To:From:Subject:From;
-	b=g5PJL2/ZAlF/+PbXZkStJ2X1PS5MVDCSff8YINvmQlCuCM1qGpwUyRxn7MCnK4vF0
-	 ViuEBOQfvYvVB5yzWiXDrznlb93/0AQdgGkWTNkLqBSgLztYUxPjWKLO1A3XRhwURZ
-	 +nGxERKls5ZW/B0qb2WqO8cnArv2nPOXybrkP5Gk=
-Date: Mon, 27 Apr 2026 11:11:37 -0700
+	b=ODqLAGYE6xUQlmOHPI2y0DB0sB1Q5iDIvW/L5z6pB4LEGJqKk5hpvhsEUp5IyjuBK
+	 ItP7QMmw/RF5NXTm7x6Ym3oF1syuJu/T07hbCAYTysIiYhFMVtXZRtP65uhc8QJVSE
+	 HPtTR3SzNIA36bn/al0x0x1X64tctN7tTJ50rh0k=
+Date: Mon, 27 Apr 2026 11:11:38 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mglru-use-the-common-routine-for-dirty-writeback-reactivation.patch removed from -mm tree
-Message-Id: <20260427181137.BE3BAC2BCB4@smtp.kernel.org>
+Subject: [to-be-updated] mm-mglru-simplify-and-improve-dirty-writeback-handling.patch removed from -mm tree
+Message-Id: <20260427181139.4B663C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,52 +35,61 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: use the common routine for dirty/writeback reactivation
+     Subject: mm/mglru: simplify and improve dirty writeback handling
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-use-the-common-routine-for-dirty-writeback-reactivation.patch
+     mm-mglru-simplify-and-improve-dirty-writeback-handling.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru: use the common routine for dirty/writeback reactivation
-Date: Fri, 24 Apr 2026 01:43:20 +0800
+Subject: mm/mglru: simplify and improve dirty writeback handling
+Date: Fri, 24 Apr 2026 01:43:21 +0800
 
-Currently MGLRU will move the dirty writeback folios to the second oldest
-gen instead of reactivate them like the classical LRU.  This might help to
-reduce the LRU contention as it skipped the isolation.  But as a result we
-will see these folios at the LRU tail more frequently leading to
-inefficient reclaim.
+Right now the flusher wakeup mechanism for MGLRU is less responsive and
+unlikely to trigger compared to classical LRU.  The classical LRU wakes
+the flusher if one batch of folios passed to shrink_folio_list is
+unevictable due to under writeback.  MGLRU instead check and handle this
+after the whole reclaim loop is done.
 
-Besides, the dirty / writeback check after isolation in shrink_folio_list
-is more accurate and covers more cases.  So instead, just drop the special
-handling for dirty writeback, use the common routine and re-activate it
-like the classical LRU.
+We previously even saw OOM problems due to passive flusher, which were
+fixed but still not perfect [1].
 
-This should in theory improve the scan efficiency.  These folios will be
-rotated back to LRU tail once writeback is done so there is no risk of
-hotness inversion.  And now each reclaim loop will have a higher success
-rate.  This also prepares for unifying the writeback and throttling
-mechanism with classical LRU, we keep these folios far from tail so
-detecting the tail batch will have a similar pattern with classical LRU.
+We have just unified the dirty folio counting and activation routine, now
+just move the dirty flush into the loop right after shrink_folio_list. 
+This improves the performance a lot for workloads involving heavy
+writeback and prepares for throttling too.
 
-The micro optimization that avoids LRU contention by skipping the
-isolation is gone, which should be fine.  Compared to IO and writeback
-cost, the isolation overhead is trivial.
+Test with YCSB workloadb showed a major performance improvement:
 
-And using the common routine also keeps the folio's referenced bits (tier
-bits), which could improve metrics in the long term.  Also no more need to
-clean reclaim bit as the common routine will make use of it.
+Before this series:
+Throughput(ops/sec): 62485.02962831822
+AverageLatency(us): 500.9746963330107
+pgpgin 159347462
+workingset_refault_file 34522071
 
-Note the common routine updates a few throttling and writeback counters,
-which are not used, and never have been for the MGLRU case.  We will start
-making use of these in later commits.
+After this commit:
+Throughput(ops/sec): 80857.08510208207
+AverageLatency(us): 386.653262968934
+pgpgin 112233121
+workingset_refault_file 19516246
 
-Link: https://lore.kernel.org/20260424-mglru-reclaim-v6-9-a57622d770c3@tencent.com
+The performance is a lot better with significantly lower refault.  We also
+observed similar or higher performance gain for other real-world
+workloads.
+
+We were concerned that the dirty flush could cause more wear for SSD: that
+should not be the problem here, since the wakeup condition is when the
+dirty folios have been pushed to the tail of LRU, which indicates that
+memory pressure is so high that writeback is blocking the workload
+already.
+
+Link: https://lore.kernel.org/20260424-mglru-reclaim-v6-10-a57622d770c3@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Barry Song <baohua@kernel.org>
+Link: https://lore.kernel.org/linux-mm/20241026115714.1437435-1-jingxiangzeng.cas@gmail.com/ [1]
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: Chen Ridong <chenridong@huaweicloud.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -101,56 +110,82 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   19 -------------------
- 1 file changed, 19 deletions(-)
+ mm/vmscan.c |   41 ++++++++++++++++-------------------------
+ 1 file changed, 16 insertions(+), 25 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-use-the-common-routine-for-dirty-writeback-reactivation
+--- a/mm/vmscan.c~mm-mglru-simplify-and-improve-dirty-writeback-handling
 +++ a/mm/vmscan.c
-@@ -4578,7 +4578,6 @@ static bool sort_folio(struct lruvec *lr
- 		       int tier_idx)
- {
- 	bool success;
--	bool dirty, writeback;
- 	int gen = folio_lru_gen(folio);
- 	int type = folio_is_file_lru(folio);
- 	int zone = folio_zonenum(folio);
-@@ -4628,21 +4627,6 @@ static bool sort_folio(struct lruvec *lr
- 		return true;
+@@ -4724,8 +4724,6 @@ static int scan_folios(unsigned long nr_
+ 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan,
+ 				scanned, skipped, isolated,
+ 				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+-	if (type == LRU_GEN_FILE)
+-		sc->nr.file_taken += isolated;
+ 
+ 	*isolatedp = isolated;
+ 	return scanned;
+@@ -4833,12 +4831,27 @@ static int evict_folios(unsigned long nr
+ 		return scanned;
+ retry:
+ 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false, memcg);
+-	sc->nr.unqueued_dirty += stat.nr_unqueued_dirty;
+ 	sc->nr_reclaimed += reclaimed;
+ 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
+ 			type_scanned, reclaimed, &stat, sc->priority,
+ 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+ 
++	/*
++	 * If too many file cache in the coldest generation can't be evicted
++	 * due to being dirty, wake up the flusher.
++	 */
++	if (stat.nr_unqueued_dirty == isolated) {
++		wakeup_flusher_threads(WB_REASON_VMSCAN);
++
++		/*
++		 * For cgroupv1 dirty throttling is achieved by waking up
++		 * the kernel flusher here and later waiting on folios
++		 * which are in writeback to finish (see shrink_folio_list()).
++		 */
++		if (!writeback_throttling_sane(sc))
++			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
++	}
++
+ 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
+ 		DEFINE_MIN_SEQ(lruvec);
+ 
+@@ -4999,28 +5012,6 @@ static bool try_to_shrink_lruvec(struct
+ 		cond_resched();
  	}
  
--	dirty = folio_test_dirty(folio);
--	writeback = folio_test_writeback(folio);
--	if (type == LRU_GEN_FILE && dirty) {
--		sc->nr.file_taken += delta;
--		if (!writeback)
--			sc->nr.unqueued_dirty += delta;
+-	/*
+-	 * If too many file cache in the coldest generation can't be evicted
+-	 * due to being dirty, wake up the flusher.
+-	 */
+-	if (sc->nr.unqueued_dirty && sc->nr.unqueued_dirty == sc->nr.file_taken) {
+-		struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+-
+-		wakeup_flusher_threads(WB_REASON_VMSCAN);
+-
+-		/*
+-		 * For cgroupv1 dirty throttling is achieved by waking up
+-		 * the kernel flusher here and later waiting on folios
+-		 * which are in writeback to finish (see shrink_folio_list()).
+-		 *
+-		 * Flusher may not be able to issue writeback quickly
+-		 * enough for cgroupv1 writeback throttling to work
+-		 * on a large system.
+-		 */
+-		if (!writeback_throttling_sane(sc))
+-			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
 -	}
 -
--	/* waiting for writeback */
--	if (writeback || (type == LRU_GEN_FILE && dirty)) {
--		gen = folio_inc_gen(lruvec, folio, true);
--		list_move(&folio->lru, &lrugen->folios[gen][type][zone]);
--		return true;
--	}
--
- 	return false;
+ 	return need_rotate;
  }
- 
-@@ -4664,9 +4648,6 @@ static bool isolate_folio(struct lruvec
- 	if (!folio_test_referenced(folio))
- 		set_mask_bits(&folio->flags.f, LRU_REFS_MASK, 0);
- 
--	/* for shrink_folio_list() */
--	folio_clear_reclaim(folio);
--
- 	success = lru_gen_del_folio(lruvec, folio, true);
- 	VM_WARN_ON_ONCE_FOLIO(!success, folio);
  
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-mglru-simplify-and-improve-dirty-writeback-handling.patch
 mm-mglru-remove-no-longer-used-reclaim-argument-for-folio-protection.patch
 mm-vmscan-remove-sc-file_taken.patch
 mm-vmscan-remove-sc-unqueued_dirty.patch
