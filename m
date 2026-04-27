@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 52CEC3B95F6
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 12:55:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 220123BA239;
+	Mon, 27 Apr 2026 12:55:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777294504; cv=none; b=X23HrGFZdZSgus3lMwZLIsb/VVlM1sNZyixwsN/VUcc9R+3cTE0O6EMaRQ7E+pRTwlpgfgVEHt3RUKLZsgsLJtpE74FksqBD6cA/wOu3fOyJQLzNjh2AGKscX7k1iuLfOiyOoEKuj5zLtkRkIB40w78+XVnmdvtfQymuJ0AFD1Q=
+	t=1777294506; cv=none; b=m1llPS/QL6PGLKCI7tGC9SZa3TPC7c1bX/LjSSKbOwz/pf5kU8f8DeZRm++kEuhxLz7EEiomNK9baZrNe2ppz5uhwqU6frHtOrVUYCEbAMe/aU7xKXWAT00mMxzKBApUiLWoOY/lfvCM20fov7zJCvQWjLXq66ZwZmzwKiZNrfU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777294504; c=relaxed/simple;
-	bh=IOmFKK5npK81qigf3fBLsFHcr3KdujmjMujqDS3l/dM=;
-	h=Date:To:From:Subject:Message-Id; b=c8YB75CMjP7YdyCy0At+04OOg8pDIhg13jeUZAfeU4VpsgOloPf40g90rXct4+RnfhBFvGV+X9M0XqQj8ECc5BrsnIRWyH16lvaVodqUhc7ajiJ0crhLKVASjNu8CwQftYKl2VvGvM9l16r6MowrVO38VY+fXxTRysm9pOySZaA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oecWbNMH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777294506; c=relaxed/simple;
+	bh=8uk4qge/tfo0DRVSrJQS4w+3wLmSgo1yO6LB7cCEq94=;
+	h=Date:To:From:Subject:Message-Id; b=Hjn2WtGN9St0I8F9rItfeIybKT7Qkp1j3/Dj3hcor+OaJ0ERu9MC1xRA+KbIE+3y9Rbq0SFaHn4m1vpa6BeYytYGfFu95Le7lz7IRELFcWWlwAiXACKvpw1Gm8JGquQSz5atoT2lfWS+y3ywkIqtGC4DXgBsTAUdJdJnmZGUUHE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zk2RSDW6; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oecWbNMH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8834C19425;
-	Mon, 27 Apr 2026 12:55:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zk2RSDW6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA8A9C19425;
+	Mon, 27 Apr 2026 12:55:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777294504;
-	bh=IOmFKK5npK81qigf3fBLsFHcr3KdujmjMujqDS3l/dM=;
+	s=korg; t=1777294505;
+	bh=8uk4qge/tfo0DRVSrJQS4w+3wLmSgo1yO6LB7cCEq94=;
 	h=Date:To:From:Subject:From;
-	b=oecWbNMHrwhcD/18J7j6GEO8OFidVM6GOhESf3Vz3OtWcBKzcIsU2GgD9pnkeALuN
-	 /ns7rUX8oKomFs4quEUlpNEj0UxQHOFUBeuAJME1OgLptPT1MoUQtk3MvU4gYB9MfO
-	 piLCMLwQVVi8j20ccfWanhmnIJcKvUV4byhwqzck=
-Date: Mon, 27 Apr 2026 05:55:03 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,miklos@szeredi.hu,jack@suse.cz,hch@infradead.org,hannes@cmpxchg.org,joannelkoong@gmail.com,akpm@linux-foundation.org
+	b=Zk2RSDW6/WxO3a9FL6nJ/Bu5QAFxF4oxiDL72mG3x5b8OzJ6AunbZ1mk1Wh1BBzLX
+	 ohKwl0W7gyif7rC8Xsl57mSlt/kdfqFPEAkiUCvfjBqG7HLL6929wRWUSCAxWdiGxo
+	 6r0COpyIXowWKRt+P/W88SzWBbRPCEeOQ0NmcH+I=
+Date: Mon, 27 Apr 2026 05:55:05 -0700
+To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch removed from -mm tree
-Message-Id: <20260427125503.E8834C19425@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch removed from -mm tree
+Message-Id: <20260427125505.BA8A9C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,84 +35,199 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: start background writeback based on per-wb threshold for strictlimit BDIs
+     Subject: mm/vma: do not try to unmap a VMA if mmap_prepare() invoked from mmap()
 has been removed from the -mm tree.  Its filename was
-     mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis.patch
+     mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Joanne Koong <joannelkoong@gmail.com>
-Subject: mm: start background writeback based on per-wb threshold for strictlimit BDIs
-Date: Thu, 26 Mar 2026 16:46:29 -0700
+From: Lorenzo Stoakes <ljs@kernel.org>
+Subject: mm/vma: do not try to unmap a VMA if mmap_prepare() invoked from mmap()
+Date: Tue, 21 Apr 2026 11:21:50 +0100
 
-The proactive nr_dirty > gdtc->bg_thresh check in balance_dirty_pages()
-only checks the global dirty threshold to start background writeback while
-the writer is still free-running, but for strictlimit BDIs (eg fuse), the
-per-wb dirty count can exceed the per-wb background threshold while the
-global threshold is not yet exceeded, so background writeback for this
-case never gets proactively started.
+The mmap_prepare hook functionality includes the ability to invoke
+mmap_prepare() from the mmap() hook of existing 'stacked' drivers, that is
+ones which are capable of calling the mmap hooks of other drivers/file
+systems (e.g.  overlayfs, shm).
 
-Add a per-wb threshold check for strictlimit BDIs so that background
-writeback is started when wb_dirty exceeds wb_bg_thresh, which drains
-dirty pages before the writer hits the throttle wall, matching the
-proactive behavior that the global check provides for non-strictlimit
-BDIs.
+As part of the mmap_prepare action functionality, we deal with errors by
+unmapping the VMA should one arise.  This works in the usual mmap_prepare
+case, as we invoke this action at the last moment, when the VMA is
+established in the maple tree.
 
-fio runs on fuse show about a 3-4% improvement in perf for buffered
-writes:
-fio --name=writeback_test --ioengine=psync --rw=write --bs=128k \
-    --size=2G --numjobs=4 --ramp_time=10 --runtime=20 \
-    --time_based --group_reporting=1 --direct=0
+However, the mmap() hook passes a not-fully-established VMA pointer to the
+caller (which is the motivation behind the mmap_prepare() work), which is
+detached.
 
-Link: https://lore.kernel.org/20260326234629.840938-2-joannelkoong@gmail.com
-Signed-off-by: Joanne Koong <joannelkoong@gmail.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+So attempting to unmap a VMA in this state will be problematic, with the
+most obvious symptom being a warning in vma_mark_detached(), because the
+VMA is already detached.
+
+It's also unncessary - the mmap() handler will clean up the VMA on error.
+
+So to fix this issue, this patch propagates whether or not an mmap action
+is being completed via the compatibility layer or directly.
+
+If the former, then we do not attempt VMA cleanup, if the latter, then we
+do.
+
+This patch also updates the userland VMA tests to reflect the change.
+
+Link: https://lore.kernel.org/20260421102150.189982-1-ljs@kernel.org
+Fixes: ac0a3fc9c07d ("mm: add ability to take further action in vm_area_desc")
+Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
+Reported-by: syzbot+db390288d141a1dccf96@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/all/69e69734.050a0220.24bfd3.0027.GAE@google.com/
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ include/linux/mm.h                |    2 +-
+ mm/util.c                         |   26 +++++++++++++++++---------
+ mm/vma.c                          |    3 ++-
+ tools/testing/vma/include/dup.h   |    2 +-
+ tools/testing/vma/include/stubs.h |    3 ++-
+ 5 files changed, 23 insertions(+), 13 deletions(-)
 
---- a/mm/page-writeback.c~mm-start-background-writeback-based-on-per-wb-threshold-for-strictlimit-bdis
-+++ a/mm/page-writeback.c
-@@ -1835,7 +1835,9 @@ static int balance_dirty_pages(struct bd
- 			balance_domain_limits(mdtc, strictlimit);
- 		}
+--- a/include/linux/mm.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
++++ a/include/linux/mm.h
+@@ -4391,7 +4391,7 @@ static inline void mmap_action_map_kerne
  
--		if (nr_dirty > gdtc->bg_thresh && !writeback_in_progress(wb))
-+		if (!writeback_in_progress(wb) &&
-+		    (nr_dirty > gdtc->bg_thresh ||
-+		     (strictlimit && gdtc->wb_dirty > gdtc->wb_bg_thresh)))
- 			wb_start_background_writeback(wb);
+ int mmap_action_prepare(struct vm_area_desc *desc);
+ int mmap_action_complete(struct vm_area_struct *vma,
+-			 struct mmap_action *action);
++			 struct mmap_action *action, bool is_compat);
  
- 		/*
-@@ -1862,15 +1864,9 @@ free_running:
- 		 * Unconditionally start background writeback if it's not
- 		 * already in progress. We need to do this because the global
- 		 * dirty threshold check above (nr_dirty > gdtc->bg_thresh)
--		 * doesn't account for these cases:
--		 *
--		 * a) strictlimit BDIs: throttling is calculated using per-wb
--		 * thresholds. The per-wb threshold can be exceeded even when
--		 * nr_dirty < gdtc->bg_thresh
--		 *
--		 * b) memcg-based throttling: memcg uses its own dirty count and
--		 * thresholds and can trigger throttling even when global
--		 * nr_dirty < gdtc->bg_thresh
-+		 * doesn't account for the memcg-based throttling case. memcg
-+		 * uses its own dirty count and thresholds and can trigger
-+		 * throttling even when global nr_dirty < gdtc->bg_thresh
- 		 *
- 		 * Writeback needs to be started else the writer stalls in the
- 		 * throttle loop waiting for dirty pages to be written back
+ /* Look up the first VMA which exactly match the interval vm_start ... vm_end */
+ static inline struct vm_area_struct *find_exact_vma(struct mm_struct *mm,
+--- a/mm/util.c~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
++++ a/mm/util.c
+@@ -1232,7 +1232,7 @@ int __compat_vma_mmap(struct vm_area_des
+ 	/* Update the VMA from the descriptor. */
+ 	compat_set_vma_from_desc(vma, desc);
+ 	/* Complete any specified mmap actions. */
+-	return mmap_action_complete(vma, &desc->action);
++	return mmap_action_complete(vma, &desc->action, /*is_compat=*/true);
+ }
+ EXPORT_SYMBOL(__compat_vma_mmap);
+ 
+@@ -1389,7 +1389,8 @@ static int call_vma_mapped(struct vm_are
+ }
+ 
+ static int mmap_action_finish(struct vm_area_struct *vma,
+-			      struct mmap_action *action, int err)
++			      struct mmap_action *action, int err,
++			      bool is_compat)
+ {
+ 	size_t len;
+ 
+@@ -1400,8 +1401,12 @@ static int mmap_action_finish(struct vm_
+ 
+ 	/* do_munmap() might take rmap lock, so release if held. */
+ 	maybe_rmap_unlock_action(vma, action);
+-	if (!err)
+-		return 0;
++	/*
++	 * If this is invoked from the compatibility layer, post-mmap() hook
++	 * logic will handle cleanup for us.
++	 */
++	if (!err || is_compat)
++		return err;
+ 
+ 	/*
+ 	 * If an error occurs, unmap the VMA altogether and return an error. We
+@@ -1451,13 +1456,15 @@ EXPORT_SYMBOL(mmap_action_prepare);
+  * mmap_action_complete - Execute VMA descriptor action.
+  * @vma: The VMA to perform the action upon.
+  * @action: The action to perform.
++ * @is_compat: Is this being invoked from the compatibility layer?
+  *
+  * Similar to mmap_action_prepare().
+  *
+- * Return: 0 on success, or error, at which point the VMA will be unmapped.
++ * Return: 0 on success, or error, at which point the VMA will be unmapped if
++ * !@is_compat.
+  */
+ int mmap_action_complete(struct vm_area_struct *vma,
+-			 struct mmap_action *action)
++			 struct mmap_action *action, bool is_compat)
+ {
+ 	int err = 0;
+ 
+@@ -1478,7 +1485,7 @@ int mmap_action_complete(struct vm_area_
+ 		break;
+ 	}
+ 
+-	return mmap_action_finish(vma, action, err);
++	return mmap_action_finish(vma, action, err, is_compat);
+ }
+ EXPORT_SYMBOL(mmap_action_complete);
+ #else
+@@ -1500,7 +1507,8 @@ int mmap_action_prepare(struct vm_area_d
+ EXPORT_SYMBOL(mmap_action_prepare);
+ 
+ int mmap_action_complete(struct vm_area_struct *vma,
+-			 struct mmap_action *action)
++			 struct mmap_action *action,
++			 bool is_compat)
+ {
+ 	int err = 0;
+ 
+@@ -1517,7 +1525,7 @@ int mmap_action_complete(struct vm_area_
+ 		break;
+ 	}
+ 
+-	return mmap_action_finish(vma, action, err);
++	return mmap_action_finish(vma, action, err, is_compat);
+ }
+ EXPORT_SYMBOL(mmap_action_complete);
+ #endif
+--- a/mm/vma.c~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
++++ a/mm/vma.c
+@@ -2780,7 +2780,8 @@ static unsigned long __mmap_region(struc
+ 	__mmap_complete(&map, vma);
+ 
+ 	if (have_mmap_prepare && allocated_new) {
+-		error = mmap_action_complete(vma, &desc.action);
++		error = mmap_action_complete(vma, &desc.action,
++					     /*is_compat=*/false);
+ 		if (error)
+ 			return error;
+ 	}
+--- a/tools/testing/vma/include/dup.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
++++ a/tools/testing/vma/include/dup.h
+@@ -1330,7 +1330,7 @@ static inline int __compat_vma_mmap(stru
+ 	/* Update the VMA from the descriptor. */
+ 	compat_set_vma_from_desc(vma, desc);
+ 	/* Complete any specified mmap actions. */
+-	return mmap_action_complete(vma, &desc->action);
++	return mmap_action_complete(vma, &desc->action, /*is_compat=*/true);
+ }
+ 
+ static inline int compat_vma_mmap(struct file *file, struct vm_area_struct *vma)
+--- a/tools/testing/vma/include/stubs.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
++++ a/tools/testing/vma/include/stubs.h
+@@ -87,7 +87,8 @@ static inline int mmap_action_prepare(st
+ }
+ 
+ static inline int mmap_action_complete(struct vm_area_struct *vma,
+-				       struct mmap_action *action)
++				       struct mmap_action *action,
++				       bool is_compat)
+ {
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from joannelkoong@gmail.com are
+Patches currently in -mm which might be from ljs@kernel.org are
 
 
