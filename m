@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 286A6344DAB
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 15:58:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC10F34572F
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 15:58:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777305512; cv=none; b=jygeVW6pTyEA90ralWdjjsr4ml0ZkdxIEBbQJNiuhua1cVWoE5jOwexohaDmxvTcszJpaSsxv7BsN6/6zdSP52Rpw2FqoIPznBdu+/AQVMlKJV6yVAdDnzlBlmtirVDTJIBtrZ/ciTEY0geN0JQ5UhE6aI4rZynM5ToJ1g/nO7U=
+	t=1777305514; cv=none; b=k1tqSu/NYPqKzCHST1AwrecKDUpQ+I1f12EhkjogmBAEtY0YPxZHC+sBiNfNfCrJ5K8U9A8//HuRXuw55gsy4t9uUAfXUgp+7iiMkf9EzgevdDNMpD7uIIk7TiIbUho3R8sfRintmYRPW4adYxJLzQhhrey6Ji/4S6qYQ4t/UYE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777305512; c=relaxed/simple;
-	bh=a4TkSCCRyeYNh4lSITF5YzJcJS0p7F2aAs4MDl9pnJ8=;
-	h=Date:To:From:Subject:Message-Id; b=SHRSiOL0mhS4cXDoMvwsJ45rR0t8r8ddbhtAg57gzbOSZr2SDuyOBrW9gf0IIq9HicOdgG6jTbcmdNDEDQi1a4JrQyKjYOntd2c6uUI01hwGBUfwempt3hpQSqh4LYJrEfh1hxPLinPDptw3vcGtE9T9BbjUtS7mFO8c0VwkekU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fr/cECxW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777305514; c=relaxed/simple;
+	bh=iCCpGTxwzdwYgsyl7p/g8X140ytzGRd8zpumufwH16g=;
+	h=Date:To:From:Subject:Message-Id; b=I7SmvnFiAToI2v1pzixsnlp9LpuH/ZqmDAqYsGdoxH1YDlGzOiFJHn8ALD2scL5RVRu21lChpHQyakbiFRcX4fHFOE+OKGOc87TzrDW1NW5v3KYJySZ6h0YK0Zcpqp0KdnuIYs++MX93dXri7YtnbDpSLzES3wgmaLLZ+HXKlVs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HvUfEwEO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fr/cECxW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBC59C2BCB4;
-	Mon, 27 Apr 2026 15:58:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HvUfEwEO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E21CC2BCB4;
+	Mon, 27 Apr 2026 15:58:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777305512;
-	bh=a4TkSCCRyeYNh4lSITF5YzJcJS0p7F2aAs4MDl9pnJ8=;
+	s=korg; t=1777305514;
+	bh=iCCpGTxwzdwYgsyl7p/g8X140ytzGRd8zpumufwH16g=;
 	h=Date:To:From:Subject:From;
-	b=fr/cECxW6LAqMDhuj/3FSpMGsNfLuYXIFUHG/htLJng2GI6RNf83jlzKoihGrQnJj
-	 45wne+JEXDOLCfiEzHdh3mDDCnmVxMW+mvaENZB8WPi0HqyMmQpn94p3KRC01Q++wB
-	 KXV6nsBMwvqNorYw2WSJNttc5Mdhl+E27qzCz81E=
-Date: Mon, 27 Apr 2026 08:58:31 -0700
+	b=HvUfEwEOnqHFnWjD4z11tGH7D7Tr2Xn78zY1IZYFxnwfRG8Sxl1Tn/D0MY9bkaNxG
+	 8LS+LcP3yJt9/uLrZY2RzEstIjf41rXgGcr6GBX4l2g2jIkDhPz0x+qytBtQngzCvw
+	 JkJR4JQtUHcqAgwc6QZ+S5BPleXlbJz1oxDF17X0=
+Date: Mon, 27 Apr 2026 08:58:33 -0700
 To: mm-commits@vger.kernel.org,vmalik@redhat.com,rdunlap@infradead.org,peterz@infradead.org,mathieu.desnoyers@efficios.com,chleroy@kernel.org,arnd@arndb.de,aliceryhl@google.com,ynorov@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + rust-uaccess-use-inline_copy_to_user-to-guard-copy_to_user.patch added to mm-nonmm-unstable branch
-Message-Id: <20260427155831.DBC59C2BCB4@smtp.kernel.org>
+Subject: + uaccess-unify-inline-vs-outline-copy_fromto_user-selection.patch added to mm-nonmm-unstable branch
+Message-Id: <20260427155834.4E21CC2BCB4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: rust: uaccess: use INLINE_COPY_TO_USER to guard copy_to_user()
+     Subject: uaccess: unify inline vs outline copy_{from,to}_user() selection
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     rust-uaccess-use-inline_copy_to_user-to-guard-copy_to_user.patch
+     uaccess-unify-inline-vs-outline-copy_fromto_user-selection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rust-uaccess-use-inline_copy_to_user-to-guard-copy_to_user.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/uaccess-unify-inline-vs-outline-copy_fromto_user-selection.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,11 +59,8 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Yury Norov <ynorov@nvidia.com>
-Subject: rust: uaccess: use INLINE_COPY_TO_USER to guard copy_to_user()
-Date: Fri, 24 Apr 2026 22:08:55 -0400
-
-Patch series "uaccess: unify inline vs outline copy_{from,to}_user()
-selection", v2.
+Subject: uaccess: unify inline vs outline copy_{from,to}_user() selection
+Date: Fri, 24 Apr 2026 22:08:56 -0400
 
 The kernel allows arches to select between inline and outline
 implementations of the copy_{from,to}_user() by defining individual
@@ -73,47 +70,349 @@ all arches enable or disable them always together.
 Without the real use-case for one helper being inlined while the other
 outlined, having independent controls is excessive and error prone.
 
-The first patch of the series fixes rust/uaccess coppy_to_user() wrapper
-guarded with INLINE_COPY_FROM_USER.  The 2nd patch switches codebase to
-the unified INLINE_COPY_USER.  And the last patch cleans up ifdefery in
-the include/linux/uaccess.h
+Switch the codebase to the single unified INLINE_COPY_USER control.
 
-
-This patch (of 3):
-
-The copy_to_user() rust helper is only needed when the main kernel inlines
-the function.  It is controlled by INLINE_COPY_TO_USER, but the rust
-helper is protected with INLINE_COPY_FROM_USER.
-
-Fix that.
-
-Link: https://lore.kernel.org/20260425020857.356850-1-ynorov@nvidia.com
-Link: https://lore.kernel.org/20260425020857.356850-2-ynorov@nvidia.com
-Fixes: d99dc586ca7c7 ("uaccess: decouple INLINE_COPY_FROM_USER and CONFIG_RUST")
+Link: https://lore.kernel.org/20260425020857.356850-3-ynorov@nvidia.com
 Signed-off-by: Yury Norov <ynorov@nvidia.com>
-Reported-by: Christophe Leroy (CS GROUP) <chleroy@kernel.org>
-Closes: https://lore.kernel.org/all/746c9c50-20c4-4dc9-a539-bf1310ff9414@kernel.org/
-Cc: Alice Ryhl <aliceryhl@google.com>
+Tested-by: Alice Ryhl <aliceryhl@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christophe Leroy (CS GROUP) <chleroy@kernel.org>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Viktor Malik <vmalik@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- rust/helpers/uaccess.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/arc/include/asm/uaccess.h        |    3 +--
+ arch/arm/include/asm/uaccess.h        |    3 +--
+ arch/arm64/include/asm/uaccess.h      |    3 +--
+ arch/hexagon/include/asm/uaccess.h    |    3 +--
+ arch/loongarch/include/asm/uaccess.h  |    3 +--
+ arch/m68k/include/asm/uaccess.h       |    3 +--
+ arch/microblaze/include/asm/uaccess.h |    3 +--
+ arch/mips/include/asm/uaccess.h       |    3 +--
+ arch/nios2/include/asm/uaccess.h      |    3 +--
+ arch/openrisc/include/asm/uaccess.h   |    3 +--
+ arch/parisc/include/asm/uaccess.h     |    3 +--
+ arch/s390/include/asm/uaccess.h       |    3 +--
+ arch/sh/include/asm/uaccess.h         |    3 +--
+ arch/sparc/include/asm/uaccess_32.h   |    3 +--
+ arch/sparc/include/asm/uaccess_64.h   |    3 +--
+ arch/um/include/asm/uaccess.h         |    3 +--
+ arch/xtensa/include/asm/uaccess.h     |    3 +--
+ include/asm-generic/uaccess.h         |    3 +--
+ include/linux/uaccess.h               |   12 ++++++------
+ lib/usercopy.c                        |    4 +---
+ rust/helpers/uaccess.c                |    4 +---
+ 21 files changed, 26 insertions(+), 48 deletions(-)
 
---- a/rust/helpers/uaccess.c~rust-uaccess-use-inline_copy_to_user-to-guard-copy_to_user
-+++ a/rust/helpers/uaccess.c
-@@ -20,7 +20,9 @@ unsigned long rust_helper__copy_from_use
+--- a/arch/arc/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/arc/include/asm/uaccess.h
+@@ -628,8 +628,7 @@ static inline unsigned long __clear_user
+ 	return res;
+ }
+ 
+-#define INLINE_COPY_TO_USER
+-#define INLINE_COPY_FROM_USER
++#define INLINE_COPY_USER
+ 
+ #define __clear_user			__clear_user
+ 
+--- a/arch/arm64/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/arm64/include/asm/uaccess.h
+@@ -456,8 +456,7 @@ do {									\
+ 	unsafe_copy_loop(__ucu_dst, __ucu_src, __ucu_len, u8, label);	\
+ } while (0)
+ 
+-#define INLINE_COPY_TO_USER
+-#define INLINE_COPY_FROM_USER
++#define INLINE_COPY_USER
+ 
+ extern unsigned long __must_check __arch_clear_user(void __user *to, unsigned long n);
+ static inline unsigned long __must_check __clear_user(void __user *to, unsigned long n)
+--- a/arch/arm/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/arm/include/asm/uaccess.h
+@@ -616,8 +616,7 @@ raw_copy_to_user(void __user *to, const
+ }
+ #define __clear_user(addr, n)		(memset((void __force *)addr, 0, n), 0)
+ #endif
+-#define INLINE_COPY_TO_USER
+-#define INLINE_COPY_FROM_USER
++#define INLINE_COPY_USER
+ 
+ static inline unsigned long __must_check clear_user(void __user *to, unsigned long n)
+ {
+--- a/arch/hexagon/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/hexagon/include/asm/uaccess.h
+@@ -26,8 +26,7 @@ unsigned long raw_copy_from_user(void *t
+ 				     unsigned long n);
+ unsigned long raw_copy_to_user(void __user *to, const void *from,
+ 				   unsigned long n);
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ __kernel_size_t __clear_user_hexagon(void __user *dest, unsigned long count);
+ #define __clear_user(a, s) __clear_user_hexagon((a), (s))
+--- a/arch/loongarch/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/loongarch/include/asm/uaccess.h
+@@ -292,8 +292,7 @@ raw_copy_to_user(void __user *to, const
+ 	return __copy_user((__force void *)to, from, n);
+ }
+ 
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ /*
+  * __clear_user: - Zero a block of memory in user space, with less checking.
+--- a/arch/m68k/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/m68k/include/asm/uaccess.h
+@@ -377,8 +377,7 @@ raw_copy_to_user(void __user *to, const
+ 		return __constant_copy_to_user(to, from, n);
+ 	return __generic_copy_to_user(to, from, n);
+ }
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ #define __get_kernel_nofault(dst, src, type, err_label)			\
+ do {									\
+--- a/arch/microblaze/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/microblaze/include/asm/uaccess.h
+@@ -250,8 +250,7 @@ raw_copy_to_user(void __user *to, const
+ {
+ 	return __copy_tofrom_user(to, (__force const void __user *)from, n);
+ }
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ /*
+  * Copy a null terminated string from userspace.
+--- a/arch/mips/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/mips/include/asm/uaccess.h
+@@ -433,8 +433,7 @@ raw_copy_to_user(void __user *to, const
+ 	return __cu_len_r;
+ }
+ 
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ extern __kernel_size_t __bzero(void __user *addr, __kernel_size_t size);
+ 
+--- a/arch/nios2/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/nios2/include/asm/uaccess.h
+@@ -57,8 +57,7 @@ extern unsigned long
+ raw_copy_from_user(void *to, const void __user *from, unsigned long n);
+ extern unsigned long
+ raw_copy_to_user(void __user *to, const void *from, unsigned long n);
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ extern long strncpy_from_user(char *__to, const char __user *__from,
+ 			      long __len);
+--- a/arch/openrisc/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/openrisc/include/asm/uaccess.h
+@@ -218,8 +218,7 @@ raw_copy_to_user(void __user *to, const
+ {
+ 	return __copy_tofrom_user((__force void *)to, from, size);
+ }
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ extern unsigned long __clear_user(void __user *addr, unsigned long size);
+ 
+--- a/arch/parisc/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/parisc/include/asm/uaccess.h
+@@ -197,7 +197,6 @@ unsigned long __must_check raw_copy_to_u
+ 					    unsigned long len);
+ unsigned long __must_check raw_copy_from_user(void *dst, const void __user *src,
+ 					    unsigned long len);
+-#define INLINE_COPY_TO_USER
+-#define INLINE_COPY_FROM_USER
++#define INLINE_COPY_USER
+ 
+ #endif /* __PARISC_UACCESS_H */
+--- a/arch/s390/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/s390/include/asm/uaccess.h
+@@ -30,8 +30,7 @@ void debug_user_asce(int exit);
+ #define uaccess_kmsan_or_inline __always_inline
+ #endif
+ 
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ static uaccess_kmsan_or_inline __must_check unsigned long
+ raw_copy_from_user(void *to, const void __user *from, unsigned long size)
+--- a/arch/sh/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/sh/include/asm/uaccess.h
+@@ -95,8 +95,7 @@ raw_copy_to_user(void __user *to, const
+ {
+ 	return __copy_user((__force void *)to, from, n);
+ }
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ /*
+  * Clear the area and return remaining number of bytes
+--- a/arch/sparc/include/asm/uaccess_32.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/sparc/include/asm/uaccess_32.h
+@@ -190,8 +190,7 @@ static inline unsigned long raw_copy_fro
+ 	return __copy_user((__force void __user *) to, from, n);
+ }
+ 
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ static inline unsigned long __clear_user(void __user *addr, unsigned long size)
+ {
+--- a/arch/sparc/include/asm/uaccess_64.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/sparc/include/asm/uaccess_64.h
+@@ -231,8 +231,7 @@ unsigned long __must_check raw_copy_from
+ unsigned long __must_check raw_copy_to_user(void __user *to,
+ 					   const void *from,
+ 					   unsigned long size);
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ unsigned long __must_check raw_copy_in_user(void __user *to,
+ 					   const void __user *from,
+--- a/arch/um/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/um/include/asm/uaccess.h
+@@ -27,8 +27,7 @@ static inline int __access_ok(const void
+ #define __access_ok __access_ok
+ #define __clear_user __clear_user
+ 
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ #include <asm-generic/uaccess.h>
+ 
+--- a/arch/xtensa/include/asm/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/arch/xtensa/include/asm/uaccess.h
+@@ -237,8 +237,7 @@ raw_copy_to_user(void __user *to, const
+ 	prefetch(from);
+ 	return __xtensa_copy_user((__force void *)to, from, n);
+ }
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ 
+ /*
+  * We need to return the number of bytes not cleared.  Our memset()
+--- a/include/asm-generic/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/include/asm-generic/uaccess.h
+@@ -91,8 +91,7 @@ raw_copy_to_user(void __user *to, const
+ 	memcpy((void __force *)to, from, n);
+ 	return 0;
+ }
+-#define INLINE_COPY_FROM_USER
+-#define INLINE_COPY_TO_USER
++#define INLINE_COPY_USER
+ #endif /* CONFIG_UACCESS_MEMCPY */
+ 
+ /*
+--- a/include/linux/uaccess.h~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/include/linux/uaccess.h
+@@ -84,7 +84,7 @@
+  * the 6 functions (copy_{to,from}_user(), __copy_{to,from}_user_inatomic())
+  * that are used instead.  Out of those, __... ones are inlined.  Plain
+  * copy_{to,from}_user() might or might not be inlined.  If you want them
+- * inlined, have asm/uaccess.h define INLINE_COPY_{TO,FROM}_USER.
++ * inlined, have asm/uaccess.h define INLINE_COPY_USER.
+  *
+  * NOTE: only copy_from_user() zero-pads the destination in case of short copy.
+  * Neither __copy_from_user() nor __copy_from_user_inatomic() zero anything
+@@ -157,7 +157,7 @@ __copy_to_user(void __user *to, const vo
+ }
+ 
+ /*
+- * Architectures that #define INLINE_COPY_TO_USER use this function
++ * Architectures that #define INLINE_COPY_USER use this function
+  * directly in the normal copy_to/from_user(), the other ones go
+  * through an extern _copy_to/from_user(), which expands the same code
+  * here.
+@@ -190,7 +190,7 @@ fail:
+ 	memset(to + (n - res), 0, res);
+ 	return res;
+ }
+-#ifndef INLINE_COPY_FROM_USER
++#ifndef INLINE_COPY_USER
+ extern __must_check unsigned long
+ _copy_from_user(void *, const void __user *, unsigned long);
+ #endif
+@@ -207,7 +207,7 @@ _inline_copy_to_user(void __user *to, co
+ 	}
+ 	return n;
+ }
+-#ifndef INLINE_COPY_TO_USER
++#ifndef INLINE_COPY_USER
+ extern __must_check unsigned long
+ _copy_to_user(void __user *, const void *, unsigned long);
+ #endif
+@@ -217,7 +217,7 @@ copy_from_user(void *to, const void __us
+ {
+ 	if (!check_copy_size(to, n, false))
+ 		return n;
+-#ifdef INLINE_COPY_FROM_USER
++#ifdef INLINE_COPY_USER
+ 	return _inline_copy_from_user(to, from, n);
+ #else
+ 	return _copy_from_user(to, from, n);
+@@ -230,7 +230,7 @@ copy_to_user(void __user *to, const void
+ 	if (!check_copy_size(from, n, true))
+ 		return n;
+ 
+-#ifdef INLINE_COPY_TO_USER
++#ifdef INLINE_COPY_USER
+ 	return _inline_copy_to_user(to, from, n);
+ #else
+ 	return _copy_to_user(to, from, n);
+--- a/lib/usercopy.c~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/lib/usercopy.c
+@@ -12,15 +12,13 @@
+ 
+ /* out-of-line parts */
+ 
+-#if !defined(INLINE_COPY_FROM_USER)
++#if !defined(INLINE_COPY_USER)
+ unsigned long _copy_from_user(void *to, const void __user *from, unsigned long n)
  {
  	return _inline_copy_from_user(to, from, n);
  }
-+#endif
+ EXPORT_SYMBOL(_copy_from_user);
+-#endif
  
-+#ifdef INLINE_COPY_TO_USER
+-#if !defined(INLINE_COPY_TO_USER)
+ unsigned long _copy_to_user(void __user *to, const void *from, unsigned long n)
+ {
+ 	return _inline_copy_to_user(to, from, n);
+--- a/rust/helpers/uaccess.c~uaccess-unify-inline-vs-outline-copy_fromto_user-selection
++++ a/rust/helpers/uaccess.c
+@@ -14,15 +14,13 @@ rust_helper_copy_to_user(void __user *to
+ 	return copy_to_user(to, from, n);
+ }
+ 
+-#ifdef INLINE_COPY_FROM_USER
++#ifdef INLINE_COPY_USER
+ __rust_helper
+ unsigned long rust_helper__copy_from_user(void *to, const void __user *from, unsigned long n)
+ {
+ 	return _inline_copy_from_user(to, from, n);
+ }
+-#endif
+ 
+-#ifdef INLINE_COPY_TO_USER
  __rust_helper
  unsigned long rust_helper__copy_to_user(void __user *to, const void *from, unsigned long n)
  {
