@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D00933E122D
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:23:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BF083D9048
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:23:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777314195; cv=none; b=I3y9vmRpK/nO0//Hnd0VNLSKjpe91UNABAQsCB4it7yscL87erG7x2AjwuZs/GWvhYC36MxE5lIjzCqj8Yj1SnMYf+3g4wyfWlXCyTHdFVJL5xq4n8qwRKnaviUjVKSkzLjcUm4nWrDyoQvCZ3U14UhiwV/JHSm6WSXpmx/0Nf4=
+	t=1777314198; cv=none; b=HcVIl5yTib1aC51Nt0NstYw2kG3hPenwlad/D6pbuO9PjQgsFodjvPJu/5TF8ievko1OsBHtFJ59Geup8pOimn7DuzuPLe00TeqnBOG/RSqUMqq8YomA3MlPG/8fsmugWMeYKdffyu8AkAPpune0B2IKdyOOdysCW5+kk3myGao=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777314195; c=relaxed/simple;
-	bh=AFuLvd75/g9D0EvaqA7z5DTaZtiylDXjvG8lEZkf0rA=;
-	h=Date:To:From:Subject:Message-Id; b=Ly1LZoisJja5VvctANocCodXiLkxA0eeDnXaGkareDfn0SGBKeBQLLABWCNVyNtEyboJilPKt+DbUAEttk46dn1w7JEtk3ppqT7fDiLdrc94z9BbLPcgWyGAK9StiCUo8i7GMNxiwAWXt57vrcSJht6oGhfWWuqSC4f1Cb4/ikI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KpNONqbV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777314198; c=relaxed/simple;
+	bh=7yK4hQfbzvtrX0kUNi8fjoGffbgmey6hPLydVKd1fE0=;
+	h=Date:To:From:Subject:Message-Id; b=IPb7V9BXyq2bjAhV286ZiH1AkAwE2hzaGUTr+0gac4AZ3X1xdZLqAopVokZcc79y5gnnUPGFkv0P5yDdbTiEV4MIKpEYSuNrCHlVMN663Y00slTjxN/xJbiS2ggvFSOxhC00wjEHd+i5POn7WoEyXPJgxRPo21eeGENegpBiAvk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YueUXT5C; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KpNONqbV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87043C19425;
-	Mon, 27 Apr 2026 18:23:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YueUXT5C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCC3DC19425;
+	Mon, 27 Apr 2026 18:23:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777314195;
-	bh=AFuLvd75/g9D0EvaqA7z5DTaZtiylDXjvG8lEZkf0rA=;
+	s=korg; t=1777314197;
+	bh=7yK4hQfbzvtrX0kUNi8fjoGffbgmey6hPLydVKd1fE0=;
 	h=Date:To:From:Subject:From;
-	b=KpNONqbVlog2o/PtKv+ov9HdCA7oDAe0BkRwdzsxb0ONarcgsfb7RzZMfKaGGOiCX
-	 z3A3pUQ3vxZZumc24MmSyJP09b+P4G1s2OpV/yTvzHZhv2UY0xsuTfSaN0KEmkzVTX
-	 PA9QMvwkf0BVUEbZ3crpDxQhs4PaOS4zZbPmd2/U=
-Date: Mon, 27 Apr 2026 11:23:15 -0700
+	b=YueUXT5CmDBJaTx7DgJyCS1HcMphwgxG0HQmQ8nlOmSt0hKg9HHMWTBXXoGshfXrz
+	 Qi4qlKO19bFXn3kEHId0yMyvufwSQ8oskQLEE9anSqvPpJpF0X2XGHGfeixXjX2MQs
+	 xipin7vABIXFrqlBnef37AJAR5Pzx+F9Rjk7HHoo=
+Date: Mon, 27 Apr 2026 11:23:17 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-restructure-the-reclaim-loop.patch added to mm-new branch
-Message-Id: <20260427182315.87043C19425@smtp.kernel.org>
+Subject: + mm-mglru-scan-and-count-the-exact-number-of-folios.patch added to mm-new branch
+Message-Id: <20260427182317.DCC3DC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: restructure the reclaim loop
+     Subject: mm/mglru: scan and count the exact number of folios
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-restructure-the-reclaim-loop.patch
+     mm-mglru-scan-and-count-the-exact-number-of-folios.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-restructure-the-reclaim-loop.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-scan-and-count-the-exact-number-of-folios.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,51 +70,49 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru: restructure the reclaim loop
-Date: Tue, 28 Apr 2026 02:06:55 +0800
+Subject: mm/mglru: scan and count the exact number of folios
+Date: Tue, 28 Apr 2026 02:06:56 +0800
 
-The current loop will calculate the scan number on each iteration.  The
-number of folios to scan is based on the LRU length, with some unclear
-behaviors, e.g, the scan number is only shifted by reclaim priority when
-aging is not needed or when at the default priority, and it couples the
-number calculation with aging and rotation.
+Make the scan helpers return the exact number of folios being scanned or
+isolated.  Since the reclaim loop now has a natural scan budget that
+controls the scan progress, returning the scan number and consuming the
+budget makes the scan more accurate and easier to follow.
 
-Adjust, simplify it, and decouple aging and rotation.  Just calculate the
-scan number for once at the beginning of the reclaim, always respect the
-reclaim priority, and make the aging and rotation more explicit.
+The number of scanned folios for each iteration is always larger than 0,
+unless the reclaim must stop for a forced aging, so there is no more need
+for any special handling when there is no progress made:
 
-This slightly changes how aging and offline memcg reclaim works:
-Previously, aging was skipped at DEF_PRIORITY even when eviction was no
-longer possible, so the reclaimer wasted an iteration until the priority
-escalated.  Now aging runs immediately whenever it is needed to make
-progress; the DEF_PRIORITY skip only applies when eviction is still
-viable.  This may avoid wasted iterations that over-reclaim slab and break
-reclaim balance in multi-cgroup setups.
+- `return isolated || !remaining ?  scanned : 0` in scan_folios: both
+  the function and the call now just return the exact scan count, combined
+  with the scan budget introduced in the previous commit to avoid livelock
+  or under scan.
 
-Similar for offline memcg.  Previously, offline memcg wouldn't be aged
-unless it didn't have any evictable folios.  Now, we might age it if it
-has only 3 generations, which should be fine.  On one hand, offline memcg
-might still hold long-term folios, and in fact, a long-existing offline
-memcg must be pinned by some long-term folios like shmem.  These folios
-might be used by other memcg, so aging them as ordinary memcg seems
-correct.  Besides, aging enables further reclaim of an offlined memcg,
-which will certainly happen if we keep shrinking it.  And offline memcg
-might soon be no longer an issue with reparenting.
+- `scanned += try_to_inc_min_seq` in evict_folios: adding a bool as a
+  scan count was kind of confusing and no longer needed, as scan number
+  should never be zero as long as there are still evictable gens.  We may
+  encounter a empty old gen that returns 0 scan count, to avoid that, do a
+  try_to_inc_min_seq before toisolation which have slight to none overhead
+  in most cases.
 
-Overall, the memcg LRU rotation, as described in mmzone.h, remains the
-same.
+- `evictable_min_seq + MIN_NR_GENS > max_seq` guard in evict_folios: the
+  per-type get_nr_gens == MIN_NR_GENS check in scan_folios naturally
+  returns 0 when only two gens remain and breaks the loop.
 
-Note that because the scan budget is now pinned at loop entry, tiny lruvec
-might skip this reclaim pass, also skipping aging, which could be
-beneficial as aging is not helpful since it will still be un-reclaimable
-after aging.  Reclaim will go on as usual once priority escalates.
+Also change try_to_inc_min_seq to return void, as its return value is no
+longer used by any caller.  Call it before isolate_folios to flush any
+empty gens left by external folio freeing, and again after isolate_folios
+when scanning moved or protected folios may have emptied the oldest gen.
 
-Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-4-02fabb92dc43@tencent.com
+The scan still stops if only two gens are left, as the scan number will be
+zero.  This matches the previous behavior.  This forced gen protection may
+be removed or softened later to improve reclaim further.
+
+Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-5-02fabb92dc43@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Chen Ridong <chenridong@huaweicloud.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Chen Ridong <chenridong@huaweicloud.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Stevens <stevensd@google.com>
@@ -133,138 +131,156 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   72 +++++++++++++++++++++++++-------------------------
- 1 file changed, 36 insertions(+), 36 deletions(-)
+ mm/vmscan.c |   58 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 29 insertions(+), 29 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-restructure-the-reclaim-loop
+--- a/mm/vmscan.c~mm-mglru-scan-and-count-the-exact-number-of-folios
 +++ a/mm/vmscan.c
-@@ -4913,49 +4913,37 @@ retry:
- }
- 
- static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
--			     int swappiness, unsigned long *nr_to_scan)
-+			     struct scan_control *sc, int swappiness)
- {
- 	DEFINE_MIN_SEQ(lruvec);
- 
--	*nr_to_scan = 0;
- 	/* have to run aging, since eviction is not possible anymore */
- 	if (evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS > max_seq)
- 		return true;
- 
--	*nr_to_scan = lruvec_evictable_size(lruvec, swappiness);
-+	/* try to avoid aging, do gentle reclaim at the default priority */
-+	if (sc->priority == DEF_PRIORITY)
-+		return false;
-+
- 	/* better to run aging even though eviction is still possible */
- 	return evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS == max_seq;
- }
- 
--/*
-- * For future optimizations:
-- * 1. Defer try_to_inc_max_seq() to workqueues to reduce latency for memcg
-- *    reclaim.
-- */
--static long get_nr_to_scan(struct lruvec *lruvec, struct scan_control *sc, int swappiness)
-+static long get_nr_to_scan(struct lruvec *lruvec, struct scan_control *sc,
-+			   struct mem_cgroup *memcg, int swappiness)
- {
--	bool need_aging;
--	unsigned long nr_to_scan;
--	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
--	DEFINE_MAX_SEQ(lruvec);
-+	unsigned long nr_to_scan, evictable;
- 
--	if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg))
--		return -1;
--
--	need_aging = should_run_aging(lruvec, max_seq, swappiness, &nr_to_scan);
-+	evictable = lruvec_evictable_size(lruvec, swappiness);
- 
- 	/* try to scrape all its memory if this memcg was deleted */
--	if (nr_to_scan && !mem_cgroup_online(memcg))
--		return nr_to_scan;
--
--	nr_to_scan = apply_proportional_protection(memcg, sc, nr_to_scan);
-+	if (!mem_cgroup_online(memcg))
-+		return evictable;
- 
--	/* try to get away with not aging at the default priority */
--	if (!need_aging || sc->priority == DEF_PRIORITY)
--		return nr_to_scan >> sc->priority;
-+	nr_to_scan = apply_proportional_protection(memcg, sc, evictable);
-+	nr_to_scan >>= sc->priority;
- 
--	/* stop scanning this lruvec as it's low on cold folios */
--	return try_to_inc_max_seq(lruvec, max_seq, swappiness, false) ? -1 : 0;
-+	return nr_to_scan;
- }
- 
- static bool should_abort_scan(struct lruvec *lruvec, struct scan_control *sc)
-@@ -4985,31 +4973,44 @@ static bool should_abort_scan(struct lru
+@@ -3878,10 +3878,9 @@ done:
  	return true;
  }
  
-+/*
-+ * For future optimizations:
-+ * 1. Defer try_to_inc_max_seq() to workqueues to reduce latency for memcg
-+ *    reclaim.
-+ */
- static bool try_to_shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
+-static bool try_to_inc_min_seq(struct lruvec *lruvec, int swappiness)
++static void try_to_inc_min_seq(struct lruvec *lruvec, int swappiness)
  {
-+	bool need_rotate = false;
- 	long nr_batch, nr_to_scan;
--	unsigned long scanned = 0;
- 	int swappiness = get_swappiness(lruvec, sc);
-+	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	int gen, type, zone;
+-	bool success = false;
+ 	bool seq_inc_flag = false;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	DEFINE_MIN_SEQ(lruvec);
+@@ -3907,11 +3906,10 @@ next:
  
--	while (true) {
-+	nr_to_scan = get_nr_to_scan(lruvec, sc, memcg, swappiness);
-+	while (nr_to_scan > 0) {
- 		int delta;
-+		DEFINE_MAX_SEQ(lruvec);
+ 	/*
+ 	 * If min_seq[type] of both anonymous and file is not increased,
+-	 * we can directly return false to avoid unnecessary checking
+-	 * overhead later.
++	 * return here to avoid unnecessary checking overhead later.
+ 	 */
+ 	if (!seq_inc_flag)
+-		return success;
++		return;
+ 
+ 	/* see the comment on lru_gen_folio */
+ 	if (swappiness && swappiness <= MAX_SWAPPINESS) {
+@@ -3929,10 +3927,7 @@ next:
+ 
+ 		reset_ctrl_pos(lruvec, type, true);
+ 		WRITE_ONCE(lrugen->min_seq[type], min_seq[type]);
+-		success = true;
+ 	}
+-
+-	return success;
+ }
+ 
+ static bool inc_max_seq(struct lruvec *lruvec, unsigned long seq, int swappiness)
+@@ -4686,7 +4681,7 @@ static bool isolate_folio(struct lruvec
+ 
+ static int scan_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
+ 		       struct scan_control *sc, int type, int tier,
+-		       struct list_head *list)
++		       struct list_head *list, int *isolatedp)
+ {
+ 	int i;
+ 	int gen;
+@@ -4756,11 +4751,9 @@ static int scan_folios(unsigned long nr_
+ 				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+ 	if (type == LRU_GEN_FILE)
+ 		sc->nr.file_taken += isolated;
+-	/*
+-	 * There might not be eligible folios due to reclaim_idx. Check the
+-	 * remaining to prevent livelock if it's not making progress.
+-	 */
+-	return isolated || !remaining ? scanned : 0;
 +
-+		if (mem_cgroup_below_min(sc->target_mem_cgroup, memcg)) {
-+			need_rotate = true;
++	*isolatedp = isolated;
++	return scanned;
+ }
+ 
+ static int get_tier_idx(struct lruvec *lruvec, int type)
+@@ -4804,33 +4797,36 @@ static int get_type_to_scan(struct lruve
+ 
+ static int isolate_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
+ 			  struct scan_control *sc, int swappiness,
+-			  int *type_scanned, struct list_head *list)
++			  struct list_head *list, int *isolated,
++			  int *isolate_type, int *isolate_scanned)
+ {
+ 	int i;
++	int total_scanned = 0;
+ 	int type = get_type_to_scan(lruvec, swappiness);
+ 
+ 	for_each_evictable_type(i, swappiness) {
+ 		int scanned;
+ 		int tier = get_tier_idx(lruvec, type);
+ 
+-		*type_scanned = type;
++		scanned = scan_folios(nr_to_scan, lruvec, sc,
++				      type, tier, list, isolated);
+ 
+-		scanned = scan_folios(nr_to_scan, lruvec, sc, type, tier, list);
+-		if (scanned)
+-			return scanned;
++		total_scanned += scanned;
++		if (*isolated) {
++			*isolate_type = type;
++			*isolate_scanned = scanned;
 +			break;
 +		}
  
--		nr_to_scan = get_nr_to_scan(lruvec, sc, swappiness);
--		if (nr_to_scan <= 0)
-+		if (should_run_aging(lruvec, max_seq, sc, swappiness)) {
-+			if (try_to_inc_max_seq(lruvec, max_seq, swappiness, false))
-+				need_rotate = true;
-+			/* stop scanning as it's low on cold folios */
- 			break;
-+		}
- 
- 		nr_batch = min(nr_to_scan, MAX_LRU_BATCH);
- 		delta = evict_folios(nr_batch, lruvec, sc, swappiness);
- 		if (!delta)
- 			break;
- 
--		scanned += delta;
--		if (scanned >= nr_to_scan)
--			break;
--
- 		if (should_abort_scan(lruvec, sc))
- 			break;
- 
-+		nr_to_scan -= delta;
- 		cond_resched();
+ 		type = !type;
  	}
  
-@@ -5035,8 +5036,7 @@ static bool try_to_shrink_lruvec(struct
- 			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
- 	}
- 
--	/* whether this lruvec should be rotated */
--	return nr_to_scan < 0;
-+	return need_rotate;
+-	return 0;
++	return total_scanned;
  }
  
- static int shrink_one(struct lruvec *lruvec, struct scan_control *sc)
+ static int evict_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
+ 			struct scan_control *sc, int swappiness)
+ {
+-	int type;
+-	int scanned;
+-	int reclaimed;
+ 	LIST_HEAD(list);
+ 	LIST_HEAD(clean);
+ 	struct folio *folio;
+@@ -4838,19 +4834,23 @@ static int evict_folios(unsigned long nr
+ 	enum node_stat_item item;
+ 	struct reclaim_stat stat;
+ 	struct lru_gen_mm_walk *walk;
++	int scanned, reclaimed;
++	int isolated = 0, type, type_scanned;
+ 	bool skip_retry = false;
+-	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 
+ 	lruvec_lock_irq(lruvec);
+ 
+-	scanned = isolate_folios(nr_to_scan, lruvec, sc, swappiness, &type, &list);
++	/* In case folio deletion left empty old gens, flush them */
++	try_to_inc_min_seq(lruvec, swappiness);
+ 
+-	scanned += try_to_inc_min_seq(lruvec, swappiness);
++	scanned = isolate_folios(nr_to_scan, lruvec, sc, swappiness,
++				 &list, &isolated, &type, &type_scanned);
+ 
+-	if (evictable_min_seq(lrugen->min_seq, swappiness) + MIN_NR_GENS > lrugen->max_seq)
+-		scanned = 0;
++	/* Scanning may have emptied the oldest gen, flush it */
++	if (scanned)
++		try_to_inc_min_seq(lruvec, swappiness);
+ 
+ 	lruvec_unlock_irq(lruvec);
+ 
+@@ -4861,7 +4861,7 @@ retry:
+ 	sc->nr.unqueued_dirty += stat.nr_unqueued_dirty;
+ 	sc->nr_reclaimed += reclaimed;
+ 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
+-			scanned, reclaimed, &stat, sc->priority,
++			type_scanned, reclaimed, &stat, sc->priority,
+ 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+ 
+ 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
