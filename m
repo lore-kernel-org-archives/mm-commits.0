@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4435833123F
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:23:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25DEF3D3314
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:23:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777314216; cv=none; b=NndItuzSSezc7EIuiMICbOKaI7loYhb5bwuyMcZ8aU9oVnjK3wWchq7RoNljrZwqUKFOofGqNsaixycf+lLKJGZk1HE4Z9CC06EUJT6snCxJgAxRAvcjHWzvWVY7qoj9x4cfTfOX26YscLDzQRnSPm0SA1AxsgePMaqdhXmvxMk=
+	t=1777314218; cv=none; b=biVev/nsyRTvzRifmo2P/tQft9m8jg+Puyp6FQlVz1sAAL02aVXSn5UREAqL2JsjkX+EkjH00HrNarIa3F/2qtHmO7lz9YEwL6+nzS22idmdkrm2zmWaOnD5BjE5dHSYCXLwl0jWlb1ybqKfyqBEy5t0dy3wHxHXyWtaOoUNFi8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777314216; c=relaxed/simple;
-	bh=uCujyWmbwNSLTpMH8+fbrQoVcGJ11PIGaSK4jnYcnZ0=;
-	h=Date:To:From:Subject:Message-Id; b=OD+crbmFsxaZ8BuIgHFUBtyqYnKepTqUHHftCu6RMekyn8Md/BpmVUfyFuO78tUYU/upyFg2sfsWstmXv8mZjhaf2qDD2QOOcPsrboSCUtpoxSFNk+Myx0W8Wx6SZRJjymxDvaXEf99zTgRRPe8xUtq/lfEltFIQDHY3NS2SZ84=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1R6ioojc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777314218; c=relaxed/simple;
+	bh=NP+oG4cfu0+3n4CIlcVcHRmxxNw+cs1FJcs+GZaIjeA=;
+	h=Date:To:From:Subject:Message-Id; b=DyqpDFGxLix/t9I7IQkIJeoO/giQ8c3qL8C+vN/iT2OShGaIBQtvTCWx47K13Y/Oth25btiAwTGzYLZDy+ripJO8IwepmiLh5csfwtwqKpAjwHQlEesMN74awSfYPaCVKdNMeTi7dw76QgPmNrB3QIaBLQGDtRYGHuLHVa/jVQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KL9BxPO9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1R6ioojc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE7A5C19425;
-	Mon, 27 Apr 2026 18:23:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KL9BxPO9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F206DC19425;
+	Mon, 27 Apr 2026 18:23:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777314215;
-	bh=uCujyWmbwNSLTpMH8+fbrQoVcGJ11PIGaSK4jnYcnZ0=;
+	s=korg; t=1777314218;
+	bh=NP+oG4cfu0+3n4CIlcVcHRmxxNw+cs1FJcs+GZaIjeA=;
 	h=Date:To:From:Subject:From;
-	b=1R6ioojcNBa+ctgyidawAAjG5NCDSV5zzLGwK+Q5XUnpLblsTjPSKF95bvWSSWiom
-	 0cfhJD6+nthZbgWhT3IUZbA+9sEq02IojeoHGApqcsHoEcVf4rvTdMbGn0lUipWK75
-	 GE04V7x/vrk5o/JIJNfLdfRMcbevNzz7HrSpxw3w=
-Date: Mon, 27 Apr 2026 11:23:35 -0700
+	b=KL9BxPO993FSRXRIu3CqFRGmQ9HKRkdUju3w621d86DmQ5OuY7qmiZsPqzZfHL2bc
+	 b0K1PsZrveAE2/VFtxMoZbpNCE25ODpy62sHewhXYQyeBX0+kAIUdQprqPaUcX7Y8X
+	 gMaqddmPZGGWFAKqUmWK5OkLIUlYcxl4lH91/0h4=
+Date: Mon, 27 Apr 2026 11:23:37 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmscan-remove-sc-file_taken.patch added to mm-new branch
-Message-Id: <20260427182335.CE7A5C19425@smtp.kernel.org>
+Subject: + mm-vmscan-remove-sc-unqueued_dirty.patch added to mm-new branch
+Message-Id: <20260427182337.F206DC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmscan: remove sc->file_taken
+     Subject: mm/vmscan: remove sc->unqueued_dirty
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmscan-remove-sc-file_taken.patch
+     mm-vmscan-remove-sc-unqueued_dirty.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-remove-sc-file_taken.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-remove-sc-unqueued_dirty.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,17 +70,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/vmscan: remove sc->file_taken
-Date: Tue, 28 Apr 2026 02:07:04 +0800
+Subject: mm/vmscan: remove sc->unqueued_dirty
+Date: Tue, 28 Apr 2026 02:07:05 +0800
 
 No one is using it now, just remove it.
 
-Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-13-02fabb92dc43@tencent.com
+Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-14-02fabb92dc43@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Suggested-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
 Reviewed-by: Chen Ridong <chenridong@huaweicloud.com>
-Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Stevens <stevensd@google.com>
@@ -99,28 +100,27 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/vmscan.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-remove-sc-file_taken
+--- a/mm/vmscan.c~mm-vmscan-remove-sc-unqueued_dirty
 +++ a/mm/vmscan.c
-@@ -173,7 +173,6 @@ struct scan_control {
+@@ -169,7 +169,6 @@ struct scan_control {
+ 
+ 	struct {
+ 		unsigned int dirty;
+-		unsigned int unqueued_dirty;
  		unsigned int congested;
  		unsigned int writeback;
  		unsigned int immediate;
--		unsigned int file_taken;
- 		unsigned int taken;
- 	} nr;
+@@ -2035,7 +2034,6 @@ static unsigned long shrink_inactive_lis
  
-@@ -2040,8 +2039,6 @@ static unsigned long shrink_inactive_lis
+ 	sc->nr.dirty += stat.nr_dirty;
+ 	sc->nr.congested += stat.nr_congested;
+-	sc->nr.unqueued_dirty += stat.nr_unqueued_dirty;
  	sc->nr.writeback += stat.nr_writeback;
  	sc->nr.immediate += stat.nr_immediate;
  	sc->nr.taken += nr_taken;
--	if (file)
--		sc->nr.file_taken += nr_taken;
- 
- 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
- 			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
