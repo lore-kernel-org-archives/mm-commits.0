@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 902F4339714
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 16:00:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85E381F192E
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 16:00:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777305607; cv=none; b=qPhGmKJ19xJ0ScEhIl6DZbAaCfJaIIBe2xqiYwyqVjeN1fRqrD4rgqzoQfzjmycYyFEJRF4bqTM8qT91cFtbrxeAscBPIFvCST0JgK01dPRW28qg92bfYF4N7q/krsaZjG8DrcIIrUWJfohegsIx5NHxWUT7FcI9pj9sYWU7pCs=
+	t=1777305608; cv=none; b=eUOH0haPszvvnBmiPVtafmBKh30PJ2Yn6dW0U34YomWEkfIgV73RNH0NtKB0HgkmJ047xW5x8yrUUrNZlO12UHZlW56hPK5i5Rv/XQoZO7vmOnLx6WoyA5Zo4NJJJzDN3NQkNukGI56aGRCQAbMzMBdr6g8xBXNqDnQix+CoiKs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777305607; c=relaxed/simple;
-	bh=BpkcqkRM7nvgxXpP3ffTxjNBE3aSLsVZS9FagIGAnas=;
-	h=Date:To:From:Subject:Message-Id; b=WejoZ8i6//ucQHkdbGPxH/bgPklSQIHIuK5l8JZyiWAcfCxD1hPBnLgZ4JRXlc8WfyuptDyOdjP/JQGUj0vd0se3/KFCOz2hPXOx7rbhpt5fccbmOB1zUlS7x3VrplslLswN2Cxqb/thO5qYPZxa+ea6RvKpNxIYHpaBm8LZqu4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iWuZuEda; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777305608; c=relaxed/simple;
+	bh=cPxpBAfs1vo1IkFjrVKMGNc2EVqozJgmLTlk5WfL23Y=;
+	h=Date:To:From:Subject:Message-Id; b=MvGVX5MFw2uCPrXfWH72YFtGL7UAAJnCcBhjhMIfE2UWAJLnoY/CvE7KabixvT8Zr+HBNUd/zhxxmeO8Sis6vkDDsD7tn1CP+FNvBkCjc9XMuSAPB7/i3Ihz8wjQQvB09MRVlJcaAyfTbbBbO3hrWRXrdzpn22O4AscOWnzTqxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KwxsAltq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iWuZuEda"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 276C3C19425;
-	Mon, 27 Apr 2026 16:00:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KwxsAltq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 536DAC19425;
+	Mon, 27 Apr 2026 16:00:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777305607;
-	bh=BpkcqkRM7nvgxXpP3ffTxjNBE3aSLsVZS9FagIGAnas=;
+	s=korg; t=1777305608;
+	bh=cPxpBAfs1vo1IkFjrVKMGNc2EVqozJgmLTlk5WfL23Y=;
 	h=Date:To:From:Subject:From;
-	b=iWuZuEda0VIuuUm8SZP/mlIZEi3JPRztXToQMYOXI7i1AO1KsgYWwBztKceQCbSm3
-	 mwknOtaI3a31CcYQd26u7MMPLGxMkLuJPA92cCWAOAsuFM3lYkjveXMM2xZdK0l4sP
-	 3wOvyqGKMeoiz1TTCFBvpMDPCIC685qSoIM4zOJU=
-Date: Mon, 27 Apr 2026 09:00:06 -0700
-To: mm-commits@vger.kernel.org,leitao@debian.org,akpm@linux-foundation.org
+	b=KwxsAltqZX/F3AL5ySR2WsFVTZQ9ADqrXrIybOL3kXnkOENO55NcCLybCeEwrEOcY
+	 mJT1yYEu7Ckdq73fq6xAFdSkcpXg4WIahSGZtYejZfmxxoqPps7xZgpYRfKSh4hpXn
+	 hrfhLBD/HI0W6WD7azjxitRusMCwGXY3ASu7A5FQ=
+Date: Mon, 27 Apr 2026 09:00:07 -0700
+To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch removed from -mm tree
-Message-Id: <20260427160007.276C3C19425@smtp.kernel.org>
+Subject: [to-be-updated] mm-memory-failure-add-panic-option-for-unrecoverable-pages-fix.patch removed from -mm tree
+Message-Id: <20260427160008.536DAC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,212 +35,46 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory-failure: add panic option for unrecoverable pages
+     Subject: mm-memory-failure-add-panic-option-for-unrecoverable-pages-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-add-panic-option-for-unrecoverable-pages.patch
+     mm-memory-failure-add-panic-option-for-unrecoverable-pages-fix.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: mm/memory-failure: add panic option for unrecoverable pages
-Date: Fri, 24 Apr 2026 05:24:00 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memory-failure-add-panic-option-for-unrecoverable-pages-fix
+Date: Mon Apr 27 06:18:51 AM PDT 2026
 
-Add a sysctl panic_on_unrecoverable_memory_failure that triggers a kernel
-panic when memory_failure() encounters pages that cannot be recovered. 
-This provides a clean crash with useful debug information rather than
-allowing silent data corruption or a delayed crash at an unrelated code
-path.
+s/page_mapped/folio_mapped/, as page_mapped is going away
 
-The panic is triggered for three categories of unrecoverable failures,
-all requiring result == MF_IGNORED:
-
-- MF_MSG_KERNEL: reserved pages identified via PageReserved.
-
-- MF_MSG_KERNEL_HIGH_ORDER: pages that get_hwpoison_page() observed
-  with refcount 0 but that are not in the buddy allocator (e.g. tail
-  pages of a high-order kernel allocation). A buddy page being
-  concurrently allocated to userspace can briefly land on this branch
-  too — its refcount is 0 inside the allocator and it is no longer on
-  the buddy free list — and panicking on such a page would defeat the
-  standard SIGBUS recovery path. The page allocator cannot reject
-  hwpoisoned buddy pages reliably either: check_new_pages() is gated by
-  is_check_pages_enabled() and is a no-op when CONFIG_DEBUG_VM=n.
-
-  Rule out the race inside panic_on_unrecoverable_mf(): yield with
-  cpu_relax() so a concurrent allocator on another CPU can finish
-  prep_new_page() and have its writes become visible, then re-check.
-  A genuine high-order kernel tail page stays unowned (refcount 0,
-  no LRU, no mapping, not in buddy); an in-flight allocation will
-  have bumped the refcount, attached a mapping, or placed the page
-  on an LRU by then. Only panic if the recheck still observes a
-  fully unowned page. The window is narrowed, not eliminated, but
-  is far below any allocator path's cost.
-
-- MF_MSG_UNKNOWN: pages that do not match any known recoverable state
-  in error_states[]. A theoretical false positive from concurrent LRU
-  isolation is mitigated by identify_page_state()'s two-pass design
-  which rechecks using saved page_flags.
-
-MF_MSG_GET_HWPOISON is intentionally excluded: it covers both non-reserved
-kernel memory (SLAB/SLUB, vmalloc, kernel stacks, page tables) and
-transient refcount races, so panicking would risk false positives.
-
-Link: https://lore.kernel.org/20260424-ecc_panic-v5-2-a35f4b50425c@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
+Cc: Breno Leitao <leitao@debian.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   91 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 91 insertions(+)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-add-panic-option-for-unrecoverable-pages
+--- a/mm/memory-failure.c~mm-memory-failure-add-panic-option-for-unrecoverable-pages-fix
 +++ a/mm/memory-failure.c
-@@ -74,6 +74,8 @@ static int sysctl_memory_failure_recover
- 
- static int sysctl_enable_soft_offline __read_mostly = 1;
- 
-+static int sysctl_panic_on_unrecoverable_mf __read_mostly;
-+
- atomic_long_t num_poisoned_pages __read_mostly = ATOMIC_LONG_INIT(0);
- 
- static bool hw_memory_failure __read_mostly = false;
-@@ -155,6 +157,15 @@ static const struct ctl_table memory_fai
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= SYSCTL_ONE,
-+	},
-+	{
-+		.procname	= "panic_on_unrecoverable_memory_failure",
-+		.data		= &sysctl_panic_on_unrecoverable_mf,
-+		.maxlen		= sizeof(sysctl_panic_on_unrecoverable_mf),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
- 	}
- };
- 
-@@ -1282,6 +1293,75 @@ static void update_per_node_mf_stats(uns
- }
- 
- /*
-+ * Determine whether to panic on an unrecoverable memory failure.
-+ *
-+ * Panics on three categories of failures (all requiring result == MF_IGNORED):
-+ *
-+ * - MF_MSG_KERNEL: Reserved pages (PageReserved) that belong to the kernel.
-+ *
-+ * - MF_MSG_KERNEL_HIGH_ORDER: Pages that get_hwpoison_page() observed with
-+ *   refcount 0 but that are not in the buddy allocator (e.g. tail pages of
-+ *   a high-order kernel allocation). A buddy page being concurrently
-+ *   allocated could also reach this branch — its refcount is briefly 0
-+ *   inside the allocator and it is no longer on the buddy free list — and
-+ *   such a page may be destined for userspace, where the standard hwpoison
-+ *   path would recover it via SIGBUS. The page allocator cannot reject
-+ *   hwpoisoned buddy pages reliably either: check_new_pages() is gated by
-+ *   is_check_pages_enabled() and is a no-op when CONFIG_DEBUG_VM=n. The
-+ *   recheck below rules out this race before panicking.
-+ *
-+ * - MF_MSG_UNKNOWN: Pages that reached identify_page_state() but matched no
-+ *   recoverable state in error_states[]. A theoretical false positive from
-+ *   concurrent LRU isolation is mitigated by identify_page_state()'s
-+ *   two-pass design which rechecks using saved page_flags.
-+ *
-+ * MF_MSG_GET_HWPOISON is intentionally excluded: it covers dynamically
-+ * allocated kernel memory (SLAB/SLUB, vmalloc, kernel stacks, page tables)
-+ * which shares the return path with transient refcount races, so panicking
-+ * would risk false positives.
-+ */
-+static bool panic_on_unrecoverable_mf(unsigned long pfn,
-+				      enum mf_action_page_type type,
-+				      enum mf_result result)
-+{
-+	struct page *p;
-+
-+	if (!sysctl_panic_on_unrecoverable_mf || result != MF_IGNORED)
-+		return false;
-+
-+	switch (type) {
-+	case MF_MSG_KERNEL:
-+	case MF_MSG_UNKNOWN:
-+		return true;
-+	case MF_MSG_KERNEL_HIGH_ORDER:
-+		/*
-+		 * Rule out a concurrent buddy allocation: give the
-+		 * allocator a moment to finish prep_new_page() and
-+		 * re-check. A genuine high-order kernel tail page stays
-+		 * unowned; an in-flight allocation will have bumped the
-+		 * refcount, attached a mapping, or placed the page on
-+		 * an LRU by now.
-+		 */
-+		p = pfn_to_online_page(pfn);
-+		if (!p)
-+			return true;
-+		/*
-+		 * Yield so a concurrent allocator on another CPU can
-+		 * finish prep_new_page() and have its writes become
-+		 * visible before we resample the page state.
-+		 */
-+		cpu_relax();
-+		return page_count(p) == 0 &&
-+		       !PageLRU(p) &&
-+		       !page_mapped(p) &&
-+		       !page_folio(p)->mapping &&
-+		       !is_free_buddy_page(p);
-+	default:
-+		return false;
-+	}
-+}
-+
-+/*
-  * "Dirty/Clean" indication is not 100% accurate due to the possibility of
-  * setting PG_dirty outside page lock. See also comment above set_page_dirty().
-  */
-@@ -1298,6 +1378,9 @@ static int action_result(unsigned long p
- 	pr_err("%#lx: recovery action for %s: %s\n",
- 		pfn, action_page_types[type], action_name[result]);
- 
-+	if (panic_on_unrecoverable_mf(pfn, type, result))
-+		panic("Memory failure: %#lx: unrecoverable page", pfn);
-+
- 	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
- }
- 
-@@ -2428,6 +2511,14 @@ try_again:
- 			}
- 			res = action_result(pfn, MF_MSG_BUDDY, res);
- 		} else {
-+			/*
-+			 * The page has refcount 0 but is not in the buddy
-+			 * allocator — typically a tail page of a high-order
-+			 * kernel allocation. A buddy page being concurrently
-+			 * allocated to userspace can also briefly land here;
-+			 * panic_on_unrecoverable_mf() rechecks to rule that
-+			 * out before triggering a panic.
-+			 */
- 			res = action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
- 		}
- 		goto unlock_mutex;
+@@ -1353,7 +1353,7 @@ static bool panic_on_unrecoverable_mf(un
+ 		cpu_relax();
+ 		return page_count(p) == 0 &&
+ 		       !PageLRU(p) &&
+-		       !page_mapped(p) &&
++		       !folio_mapped(page_folio(p)) &&
+ 		       !page_folio(p)->mapping &&
+ 		       !is_free_buddy_page(p);
+ 	default:
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-documentation-document-panic_on_unrecoverable_memory_failure-sysctl.patch
-selftests-mm-regression-test-for-panic_on_unrecoverable_memory_failure.patch
-mm-huge_memory-use-sysfs_match_string-in-defrag_store.patch
-mm-huge_memory-refactor-defrag_show-to-use-defrag_flags.patch
-mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
+mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free-fix.patch
+mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch
+include-asm-generic-fixmaph-reimplement-nasty-macros-in-c.patch
+include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix.patch
+include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix-fix.patch
+proc-rewrite-next_tgid-fix.patch
 
