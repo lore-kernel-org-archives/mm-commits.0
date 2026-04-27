@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4779C3E8C55
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:11:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AF0226FDAC
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:23:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777313505; cv=none; b=r8/giVnpf3ZdfLEFdRBvZnEwvNJVzCGw22lJvNhFLXlSfKEOcgkQ7vrNHkgGZbS94LyO41v0QhiboOGI3JJ1z0UtodVSchR/nc7BY5yuYAaYvtP/OmrQmODkT9/2Q8HmOaAmBDGDJXwc3MpKs5Naipv0lTJaGUcOnlk4y3Tc334=
+	t=1777314189; cv=none; b=CoMsuPADNEgJvlndjovhUTwKZ0irP0e9crHhmkqKCMcdVzMylb5lrgX78Km63R9+92uaj8B9QRLby5/3HwQT6thXlm+7ZD9K8KeEHAhXjJodp9a/LepUi2BrhozygDcmHWFpUlUtkIh+eFPLhIF4EXsUA5vXj+n2rJZJyY0bEew=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777313505; c=relaxed/simple;
-	bh=h2q+5a1buvsJSH/YCEZ+WAV6Nw9D1W7b1w/EDTRj+bU=;
-	h=Date:To:From:Subject:Message-Id; b=SQKBAEksAWjp+Q5LVe0M6CZMmphoWDbPrBiGPtkA+biAOrHZ0lZEiiN/yd68DwDCbtkk9oMctp04R5HO1feRrvrI/gB7jpu5hlztp3TgzClUmPHDxk9u+aMSOJT4iL1PlNbWIuVUsinNCDgYtv6VK8bjA5BdBUm+aV5F8cNV620=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S7qS9Ztx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777314189; c=relaxed/simple;
+	bh=pvZXAD0bp2j/5/Mv1SvpGIcks0sbN4N8r8KAwjK1TMw=;
+	h=Date:To:From:Subject:Message-Id; b=DNxYlMLIb4QVuVwUEtrjM5MjNuMXe3TfYiUknkjBm+CtiSCXrrXKcb8+wP84j65KvloKHvWq920xLjCzq6BOXAvFUALaUdaG6klAhqXjA/HnDQKhhxt/GJHAuHDWRYLVWf3R1XfkNXomhNr/udCq1IZrDkgREQHRDQbdEtEMbfE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0JlZcYZN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S7qS9Ztx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB46BC19425;
-	Mon, 27 Apr 2026 18:11:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0JlZcYZN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B49F4C19425;
+	Mon, 27 Apr 2026 18:23:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777313504;
-	bh=h2q+5a1buvsJSH/YCEZ+WAV6Nw9D1W7b1w/EDTRj+bU=;
+	s=korg; t=1777314188;
+	bh=pvZXAD0bp2j/5/Mv1SvpGIcks0sbN4N8r8KAwjK1TMw=;
 	h=Date:To:From:Subject:From;
-	b=S7qS9ZtxHYcA61Cx/3Cm7MWteYF3/TBq3fZeTfgedslTcMN8Hs8XMChKqfPb2tRzy
-	 LkfVYQSk/+Vny8944HJv/OtXqzY1MU818k91g7T4fbz6S0UkI32G/YXAFQaaca9Lmn
-	 HRKNGXVfBhSBvndsGrqjtSvU/S1ydvkjlYFOU0R4=
-Date: Mon, 27 Apr 2026 11:11:44 -0700
+	b=0JlZcYZNbjI02bwld3FFpsqzZxlA18ALk3YZVCknsfYj9LarmufTgVQTH0UCTb7pz
+	 HxAIIOPsZ6WdToZZWVqJhKog4ACtXabS6+Vj8Ibtj6q29G3KJ6ZVNPY59+YoGLFc3X
+	 /NP8RTpGamxb33wxpy8sHVwrAKAhiQFsrKTfbJQk=
+Date: Mon, 27 Apr 2026 11:23:08 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch removed from -mm tree
-Message-Id: <20260427181144.DB46BC19425@smtp.kernel.org>
+Subject: + mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch added to mm-new branch
+Message-Id: <20260427182308.B49F4C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,63 +34,250 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/vmscan: unify writeback reclaim statistic and throttling
-has been removed from the -mm tree.  Its filename was
-     mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch
+The patch titled
+     Subject: mm/mglru: consolidate common code for retrieving evictable size
+has been added to the -mm mm-new branch.  Its filename is
+     mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/vmscan: unify writeback reclaim statistic and throttling
-Date: Fri, 24 Apr 2026 01:43:25 +0800
+Subject: mm/mglru: consolidate common code for retrieving evictable size
+Date: Tue, 28 Apr 2026 02:06:52 +0800
 
-Currently MGLRU and non-MGLRU handle the reclaim statistic and writeback
-handling very differently, especially throttling.  Basically MGLRU just
-ignored the throttling part.
+Patch series "mm/mglru: improve reclaim loop and dirty folio", v7.
 
-Let's just unify this part, use a helper to deduplicate the code so both
-setups will share the same behavior.
+This series cleans up and slightly improves MGLRU's reclaim loop and dirty
+writeback handling.  As a result, we can see an up to ~30% increase in
+some workloads like MongoDB with YCSB and a huge decrease in file refault,
+no swap involved.  Other common benchmarks have no regression, and LOC is
+reduced, with less unexpected OOM, too.
 
-Test using following reproducer using bash:
+Some of the problems were found in our production environment, and others
+were mostly exposed while stress testing during the development of the
+LSM/MM/BPF topic on improving MGLRU [1].  This series cleans up the code
+base and fixes several performance issues, preparing for further work.
 
-  echo "Setup a slow device using dm delay"
-  dd if=/dev/zero of=/var/tmp/backing bs=1M count=2048
-  LOOP=$(losetup --show -f /var/tmp/backing)
-  mkfs.ext4 -q $LOOP
-  echo "0 $(blockdev --getsz $LOOP) delay $LOOP 0 0 $LOOP 0 1000" | \
-      dmsetup create slow_dev
-  mkdir -p /mnt/slow && mount /dev/mapper/slow_dev /mnt/slow
+MGLRU's reclaim loop is a bit complex, and hence these problems are
+somehow related to each other.  The aging, scan number calculation, and
+reclaim loop are coupled together, and the dirty folio handling logic is
+quite different, making the reclaim loop hard to follow and the dirty
+flush ineffective.
 
-  echo "Start writeback pressure"
-  sync && echo 3 > /proc/sys/vm/drop_caches
-  mkdir /sys/fs/cgroup/test_wb
-  echo 128M > /sys/fs/cgroup/test_wb/memory.max
-  (echo $BASHPID > /sys/fs/cgroup/test_wb/cgroup.procs && \
-      dd if=/dev/zero of=/mnt/slow/testfile bs=1M count=192)
+This series slightly cleans up and improves these issues using a scan
+budget by calculating the number of folios to scan at the beginning of the
+loop, and decouples aging from the reclaim calculation helpers.  Then,
+move the dirty flush logic inside the reclaim loop so it can kick in more
+effectively.  These issues are somehow related, and this series handles
+them and improves MGLRU reclaim in many ways.
 
-  echo "Clean up"
-  echo "0 $(blockdev --getsz $LOOP) error" | dmsetup load slow_dev
-  dmsetup resume slow_dev
-  umount -l /mnt/slow && sync
-  dmsetup remove slow_dev
+Test results: All tests are done on a 48c96t NUMA machine with 2 nodes and
+a 128G memory machine using NVME as storage.
 
-Before this commit, `dd` will get OOM killed immediately if MGLRU is
-enabled.  Classic LRU is fine.
+MongoDB
+=======
+Running YCSB workloadb [2] (recordcount:20000000 operationcount:6000000,
+threads:32), which does 95% read and 5% update to generate mixed read and
+dirty writeback.  MongoDB is set up in a 10G cgroup using Docker, and the
+WiredTiger cache size is set to 4.5G, using NVME as storage.
 
-After this commit, throttling is now effective and no more spin on LRU or
-premature OOM.  Stress test on other workloads also looking good.
+Not using SWAP.
 
-Global throttling is not here yet, we will fix that separately later.
+Before:
+Throughput(ops/sec): 62485.02962831822
+AverageLatency(us): 500.9746963330107
+pgpgin 159347462
+pgpgout 5413332
+workingset_refault_anon 0
+workingset_refault_file 34522071
 
-Link: https://lore.kernel.org/20260424-mglru-reclaim-v6-14-a57622d770c3@tencent.com
+After:
+Throughput(ops/sec): 79760.71784646061 (+27.6%, higher is better)
+AverageLatency(us): 391.25169970043726 (-21.9%, lower is better)
+pgpgin 111093923                       (-30.3%, lower is better)
+pgpgout 5437456
+workingset_refault_anon 0
+workingset_refault_file 19566366       (-43.3%, lower is better)
+
+We can see a significant performance improvement after this series.  The
+test is done on NVME and the performance gap would be even larger for slow
+devices, such as HDD or network storage.  We observed over 100% gain for
+some workloads with slow IO.
+
+Chrome & Node.js [3]
+====================
+Using Yu Zhao's test script [3], testing on a x86_64 NUMA machine with 2
+nodes and 128G memory, using 256G ZRAM as swap and spawn 32 memcg 64
+workers:
+
+Before:
+Total requests:            79915
+Per-worker 95% CI (mean):  [1233.9, 1263.5]
+Per-worker stdev:          59.2
+Jain's fairness:           0.997795 (1.0 = perfectly fair)
+Latency:
+Bucket     Count      Pct    Cumul
+[0,1)s     26859   33.61%   33.61%
+[1,2)s      7818    9.78%   43.39%
+[2,4)s      5532    6.92%   50.31%
+[4,8)s     39706   49.69%  100.00%
+
+After:
+Total requests:            81382
+Per-worker 95% CI (mean):  [1241.9, 1301.3]
+Per-worker stdev:          118.8
+Jain's fairness:           0.991480 (1.0 = perfectly fair)
+Latency:
+Bucket     Count      Pct    Cumul
+[0,1)s     26696   32.80%   32.80%
+[1,2)s      8745   10.75%   43.55%
+[2,4)s      6865    8.44%   51.98%
+[4,8)s     39076   48.02%  100.00%
+
+Reclaim is still fair and effective, total requests number seems
+slightly better.
+
+OOM issue with aging and throttling
+===================================
+For the throttling OOM issue, it can be easily reproduced using dd and
+cgroup limit as demonstrated and fixed by a later patch in this series.
+
+The aging OOM is a bit tricky, a specific reproducer can be used to
+simulate what we encountered in production environment [4]: Spawns
+multiple workers that keep reading the given file using mmap, and pauses
+for 120ms after one file read batch.  It also spawns another set of
+workers that keep allocating and freeing a given size of anonymous memory.
+The total memory size exceeds the memory limit (eg.  14G anon + 8G file,
+which is 22G vs a 16G memcg limit).
+
+- MGLRU disabled:
+  Finished 128 iterations.
+
+- MGLRU enabled:
+  OOM with following info after about ~10-20 iterations:
+    [   62.624130] file_anon_mix_p invoked oom-killer: gfp_mask=0xcc0(GFP_KERNEL), order=0, oom_score_adj=0
+    [   62.624999] memory: usage 16777216kB, limit 16777216kB, failcnt 24460
+    [   62.640200] swap: usage 0kB, limit 9007199254740988kB, failcnt 0
+    [   62.640823] Memory cgroup stats for /demo:
+    [   62.641017] anon 10604879872
+    [   62.641941] file 6574858240
+
+  OOM occurs despite there being still evictable file folios.
+
+- MGLRU enabled after this series:
+  Finished 128 iterations.
+
+Worth noting there is another OOM related issue reported in V1 of this
+series, which is tested and looking OK now [5].
+
+MySQL:
+======
+
+Testing with innodb_buffer_pool_size=26106127360, in a 2G memcg, using
+ZRAM as swap and test command:
+
+sysbench /usr/share/sysbench/oltp_read_only.lua --mysql-db=sb \
+  --tables=48 --table-size=2000000 --threads=48 --time=600 run
+
+Before:            17303.41 tps
+After this series: 17291.50 tps
+
+Seems only noise level changes, no regression.
+
+FIO:
+====
+Testing with the following command, where /mnt/ramdisk is a 64G EXT4
+ramdisk, each test file is 3G, in a 10G memcg, 6 test run each:
+
+fio --directory=/mnt/ramdisk --filename_format='test.$jobnum.img' \
+  --name=cached --numjobs=16 --size=3072M --buffered=1 --ioengine=mmap \
+  --rw=randread --norandommap --time_based \
+  --ramp_time=1m --runtime=5m --group_reporting
+
+Before:            8968.76 MB/s
+After this series: 8995.63 MB/s
+
+Also seem only noise level changes and no regression or slightly better.
+
+Build kernel:
+=============
+Build kernel test using ZRAM as swap, on top of tmpfs, in a 3G memcg using
+make -j96 and defconfig, measuring system time, 12 test run each.
+
+Before:            2873.52s
+After this series: 2811.88s
+
+Also seem only noise level changes, no regression or very slightly better.
+
+Android:
+========
+Xinyu reported a performance gain on Android, too, with this series.  The
+test consisted of cold-starting multiple applications sequentially under
+moderate system load.  [6]
+
+Before:
+Launch Time Summary (all apps, all runs)
+  Mean 868.0ms
+  P50 888.0ms
+  P90 1274.2ms
+  P95 1399.0ms
+
+After:
+Launch Time Summary (all apps, all runs)
+  Mean 850.5ms (-2.07%)
+  P50 861.5ms  (-3.04%)
+  P90 1179.0ms (-8.05%)
+  P95 1228.0ms (-12.2%)
+
+
+This patch (of 15):
+
+Merge commonly used code for counting evictable folios in a lruvec.
+
+No behavior change.
+
+Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-0-02fabb92dc43@tencent.com
+Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-1-02fabb92dc43@tencent.com
+Link: https://lore.kernel.org/linux-mm/CAMgjq7BoekNjg-Ra3C8M7=8=75su38w=HD782T5E_cxyeCeH_g@mail.gmail.com/ [1]
+Link: https://github.com/brianfrankcooper/YCSB/blob/master/workloads/workloadb [2]
+Link: https://lore.kernel.org/all/20221220214923.1229538-1-yuzhao@google.com/ [3]
+Link: https://github.com/ryncsn/emm-test-project/tree/master/file-anon-mix-pressure [4]
+Link: https://lore.kernel.org/linux-mm/acgNCzRDVmSbXrOE@KASONG-MC4/ [5]
+Link: https://lore.kernel.org/linux-mm/20260417025123.2971253-1-wxy2009nrrr@163.com/ [6]
 Signed-off-by: Kairui Song <kasong@tencent.com>
-Suggested-by: Chen Ridong <chenridong@huaweicloud.com>
-Tested-by: Leno Hou <lenohou@gmail.com>
+Acked-by: Yuanchu Xie <yuanchu@google.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Chen Ridong <chenridong@huaweicloud.com>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Stevens <stevensd@google.com>
@@ -98,148 +285,108 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vernon Yang <vernon2gm@gmail.com>
 Cc: Wei Xu <weixugc@google.com>
 Cc: Yafang <laoar.shao@gmail.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
 Cc: Yu Zhao <yuzhao@google.com>
+Cc: Leno Hou <lenohou@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   92 +++++++++++++++++++++++---------------------------
- 1 file changed, 43 insertions(+), 49 deletions(-)
+ mm/vmscan.c |   36 ++++++++++++++----------------------
+ 1 file changed, 14 insertions(+), 22 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-unify-writeback-reclaim-statistic-and-throttling
+--- a/mm/vmscan.c~mm-mglru-consolidate-common-code-for-retrieving-evictable-size
 +++ a/mm/vmscan.c
-@@ -1942,6 +1942,44 @@ static int current_may_throttle(void)
- 	return !(current->flags & PF_LOCAL_THROTTLE);
+@@ -4084,27 +4084,33 @@ static void set_initial_priority(struct
+ 	sc->priority = clamp(priority, DEF_PRIORITY / 2, DEF_PRIORITY);
  }
  
-+static void handle_reclaim_writeback(unsigned long nr_taken,
-+				     struct pglist_data *pgdat,
-+				     struct scan_control *sc,
-+				     struct reclaim_stat *stat)
-+{
-+	/*
-+	 * If dirty folios are scanned that are not queued for IO, it
-+	 * implies that flushers are not doing their job. This can
-+	 * happen when memory pressure pushes dirty folios to the end of
-+	 * the LRU before the dirty limits are breached and the dirty
-+	 * data has expired. It can also happen when the proportion of
-+	 * dirty folios grows not through writes but through memory
-+	 * pressure reclaiming all the clean cache. And in some cases,
-+	 * the flushers simply cannot keep up with the allocation
-+	 * rate. Nudge the flusher threads in case they are asleep.
-+	 */
-+	if (stat->nr_unqueued_dirty == nr_taken) {
-+		wakeup_flusher_threads(WB_REASON_VMSCAN);
-+		/*
-+		 * For cgroupv1 dirty throttling is achieved by waking up
-+		 * the kernel flusher here and later waiting on folios
-+		 * which are in writeback to finish (see shrink_folio_list()).
-+		 *
-+		 * Flusher may not be able to issue writeback quickly
-+		 * enough for cgroupv1 writeback throttling to work
-+		 * on a large system.
-+		 */
-+		if (!writeback_throttling_sane(sc))
-+			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
-+	}
-+
-+	sc->nr.dirty += stat->nr_dirty;
-+	sc->nr.congested += stat->nr_congested;
-+	sc->nr.writeback += stat->nr_writeback;
-+	sc->nr.immediate += stat->nr_immediate;
-+	sc->nr.taken += nr_taken;
-+}
-+
- /*
-  * shrink_inactive_list() is a helper for shrink_node().  It returns the number
-  * of reclaimed pages
-@@ -2005,39 +2043,7 @@ static unsigned long shrink_inactive_lis
- 	lruvec_lock_irq(lruvec);
- 	lru_note_cost_unlock_irq(lruvec, file, stat.nr_pageout,
- 					nr_scanned - nr_reclaimed);
--
--	/*
--	 * If dirty folios are scanned that are not queued for IO, it
--	 * implies that flushers are not doing their job. This can
--	 * happen when memory pressure pushes dirty folios to the end of
--	 * the LRU before the dirty limits are breached and the dirty
--	 * data has expired. It can also happen when the proportion of
--	 * dirty folios grows not through writes but through memory
--	 * pressure reclaiming all the clean cache. And in some cases,
--	 * the flushers simply cannot keep up with the allocation
--	 * rate. Nudge the flusher threads in case they are asleep.
--	 */
--	if (stat.nr_unqueued_dirty == nr_taken) {
--		wakeup_flusher_threads(WB_REASON_VMSCAN);
--		/*
--		 * For cgroupv1 dirty throttling is achieved by waking up
--		 * the kernel flusher here and later waiting on folios
--		 * which are in writeback to finish (see shrink_folio_list()).
--		 *
--		 * Flusher may not be able to issue writeback quickly
--		 * enough for cgroupv1 writeback throttling to work
--		 * on a large system.
--		 */
--		if (!writeback_throttling_sane(sc))
--			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
--	}
--
--	sc->nr.dirty += stat.nr_dirty;
--	sc->nr.congested += stat.nr_congested;
--	sc->nr.writeback += stat.nr_writeback;
--	sc->nr.immediate += stat.nr_immediate;
--	sc->nr.taken += nr_taken;
--
-+	handle_reclaim_writeback(nr_taken, pgdat, sc, &stat);
- 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
- 			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
- 	return nr_reclaimed;
-@@ -4824,26 +4830,13 @@ static int evict_folios(unsigned long nr
- retry:
- 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false, memcg);
- 	sc->nr_reclaimed += reclaimed;
-+	/* Retry pass is only meant for clean folios without new isolation */
-+	if (isolated)
-+		handle_reclaim_writeback(isolated, pgdat, sc, &stat);
- 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
- 			type_scanned, reclaimed, &stat, sc->priority,
- 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
+-static bool lruvec_is_sizable(struct lruvec *lruvec, struct scan_control *sc)
++static unsigned long lruvec_evictable_size(struct lruvec *lruvec, int swappiness)
+ {
+ 	int gen, type, zone;
+-	unsigned long total = 0;
+-	int swappiness = get_swappiness(lruvec, sc);
++	unsigned long seq, total = 0;
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+-	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	DEFINE_MAX_SEQ(lruvec);
+ 	DEFINE_MIN_SEQ(lruvec);
  
--	/*
--	 * If too many file cache in the coldest generation can't be evicted
--	 * due to being dirty, wake up the flusher.
--	 */
--	if (stat.nr_unqueued_dirty == isolated) {
--		wakeup_flusher_threads(WB_REASON_VMSCAN);
+ 	for_each_evictable_type(type, swappiness) {
+-		unsigned long seq;
 -
--		/*
--		 * For cgroupv1 dirty throttling is achieved by waking up
--		 * the kernel flusher here and later waiting on folios
--		 * which are in writeback to finish (see shrink_folio_list()).
--		 */
--		if (!writeback_throttling_sane(sc))
--			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
--	}
+ 		for (seq = min_seq[type]; seq <= max_seq; seq++) {
+ 			gen = lru_gen_from_seq(seq);
 -
- 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
- 		DEFINE_MIN_SEQ(lruvec);
- 
-@@ -4886,6 +4879,7 @@ retry:
- 
- 	if (!list_empty(&list)) {
- 		skip_retry = true;
-+		isolated = 0;
- 		goto retry;
+ 			for (zone = 0; zone < MAX_NR_ZONES; zone++)
+ 				total += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
+ 		}
  	}
  
++	return total;
++}
++
++static bool lruvec_is_sizable(struct lruvec *lruvec, struct scan_control *sc)
++{
++	unsigned long total;
++	int swappiness = get_swappiness(lruvec, sc);
++	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
++
++	total = lruvec_evictable_size(lruvec, swappiness);
++
+ 	/* whether the size is big enough to be helpful */
+ 	return mem_cgroup_online(memcg) ? (total >> sc->priority) : total;
+ }
+@@ -4909,9 +4915,6 @@ retry:
+ static bool should_run_aging(struct lruvec *lruvec, unsigned long max_seq,
+ 			     int swappiness, unsigned long *nr_to_scan)
+ {
+-	int gen, type, zone;
+-	unsigned long size = 0;
+-	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+ 	DEFINE_MIN_SEQ(lruvec);
+ 
+ 	*nr_to_scan = 0;
+@@ -4919,18 +4922,7 @@ static bool should_run_aging(struct lruv
+ 	if (evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS > max_seq)
+ 		return true;
+ 
+-	for_each_evictable_type(type, swappiness) {
+-		unsigned long seq;
+-
+-		for (seq = min_seq[type]; seq <= max_seq; seq++) {
+-			gen = lru_gen_from_seq(seq);
+-
+-			for (zone = 0; zone < MAX_NR_ZONES; zone++)
+-				size += max(READ_ONCE(lrugen->nr_pages[gen][type][zone]), 0L);
+-		}
+-	}
+-
+-	*nr_to_scan = size;
++	*nr_to_scan = lruvec_evictable_size(lruvec, swappiness);
+ 	/* better to run aging even though eviction is still possible */
+ 	return evictable_min_seq(min_seq, swappiness) + MIN_NR_GENS == max_seq;
+ }
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
 
+mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
+mm-mglru-rename-variables-related-to-aging-and-rotation.patch
+mm-mglru-relocate-the-lru-scan-batch-limit-to-callers.patch
+mm-mglru-restructure-the-reclaim-loop.patch
+mm-mglru-scan-and-count-the-exact-number-of-folios.patch
+mm-mglru-use-a-smaller-batch-for-reclaim.patch
+mm-mglru-dont-abort-scan-immediately-right-after-aging.patch
+mm-mglru-remove-redundant-swap-constrained-check-upon-isolation.patch
+mm-mglru-use-the-common-routine-for-dirty-writeback-reactivation.patch
+mm-mglru-simplify-and-improve-dirty-writeback-handling.patch
+mm-mglru-remove-no-longer-used-reclaim-argument-for-folio-protection.patch
+mm-vmscan-remove-sc-file_taken.patch
+mm-vmscan-remove-sc-unqueued_dirty.patch
+mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch
 
