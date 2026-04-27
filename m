@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 220123BA239;
-	Mon, 27 Apr 2026 12:55:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 585213B9DAD
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 12:55:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777294506; cv=none; b=m1llPS/QL6PGLKCI7tGC9SZa3TPC7c1bX/LjSSKbOwz/pf5kU8f8DeZRm++kEuhxLz7EEiomNK9baZrNe2ppz5uhwqU6frHtOrVUYCEbAMe/aU7xKXWAT00mMxzKBApUiLWoOY/lfvCM20fov7zJCvQWjLXq66ZwZmzwKiZNrfU=
+	t=1777294507; cv=none; b=J6t1wYxE4FKIBSJpwI0lXVjAp9SvVHFThOffv3nVQtoD4XOvypwfku84bmbW4UUO1Nn4r2JVXLrbrCFXCLpgDR7mHnaj/x79b9f5ZXwmBLwGCHT6uYYmCgrgF2m+i1KBUJaM1RxgOjX8wcC6BofiO3I4ickTG7aoFSJJ5+TVqNI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777294506; c=relaxed/simple;
-	bh=8uk4qge/tfo0DRVSrJQS4w+3wLmSgo1yO6LB7cCEq94=;
-	h=Date:To:From:Subject:Message-Id; b=Hjn2WtGN9St0I8F9rItfeIybKT7Qkp1j3/Dj3hcor+OaJ0ERu9MC1xRA+KbIE+3y9Rbq0SFaHn4m1vpa6BeYytYGfFu95Le7lz7IRELFcWWlwAiXACKvpw1Gm8JGquQSz5atoT2lfWS+y3ywkIqtGC4DXgBsTAUdJdJnmZGUUHE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zk2RSDW6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777294507; c=relaxed/simple;
+	bh=v+QlGJDaIzwuqi5zhlRFs8ZWiMhRVzsgSjVNC1Vp810=;
+	h=Date:To:From:Subject:Message-Id; b=CTseVy78z4zmdm8056q1sizPfCiR2s/x3aY0+X7TGwY3rwFJZogu6QhTxbJb75Hmuuoq3H33tUUb1+q3Wy8g4sLqWboGValdVOZjhEPZ/UV27qzvihcthbeeHHiCjDUNjzcvdbVr/DOflagO6ZpxU33kL8G8FZYXMXb/60Jf0Lg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E2SjcsOH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zk2RSDW6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA8A9C19425;
-	Mon, 27 Apr 2026 12:55:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E2SjcsOH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AEFBC19425;
+	Mon, 27 Apr 2026 12:55:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777294505;
-	bh=8uk4qge/tfo0DRVSrJQS4w+3wLmSgo1yO6LB7cCEq94=;
+	s=korg; t=1777294507;
+	bh=v+QlGJDaIzwuqi5zhlRFs8ZWiMhRVzsgSjVNC1Vp810=;
 	h=Date:To:From:Subject:From;
-	b=Zk2RSDW6/WxO3a9FL6nJ/Bu5QAFxF4oxiDL72mG3x5b8OzJ6AunbZ1mk1Wh1BBzLX
-	 ohKwl0W7gyif7rC8Xsl57mSlt/kdfqFPEAkiUCvfjBqG7HLL6929wRWUSCAxWdiGxo
-	 6r0COpyIXowWKRt+P/W88SzWBbRPCEeOQ0NmcH+I=
-Date: Mon, 27 Apr 2026 05:55:05 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam.howlett@oracle.com,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=E2SjcsOH+cJAKL7ZTeZb4+tKRFoO43Vd4T9de8+8RgrZf6DwvLORqNX8V4QbFy1MW
+	 PFDAPnPs0jRqKlnSZJnze3QHRaIxOCOpyNIJyxHK24p5QSupmucTGG5HU6rz29rOlh
+	 Ae7gWF3sFtyBDVD5JVGFVs/8XZ0CRCZYhXoVqcZU=
+Date: Mon, 27 Apr 2026 05:55:06 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,pfalcato@suse.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch removed from -mm tree
-Message-Id: <20260427125505.BA8A9C19425@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-fix-regex-pattern-in-core-mm-category.patch removed from -mm tree
+Message-Id: <20260427125507.1AEFBC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,199 +35,67 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vma: do not try to unmap a VMA if mmap_prepare() invoked from mmap()
+     Subject: MAINTAINERS: fix regex pattern in CORE MM category
 has been removed from the -mm tree.  Its filename was
-     mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap.patch
+     maintainers-fix-regex-pattern-in-core-mm-category.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: do not try to unmap a VMA if mmap_prepare() invoked from mmap()
-Date: Tue, 21 Apr 2026 11:21:50 +0100
+From: Pedro Falcato <pfalcato@suse.de>
+Subject: MAINTAINERS: fix regex pattern in CORE MM category
+Date: Wed, 22 Apr 2026 13:37:26 +0100
 
-The mmap_prepare hook functionality includes the ability to invoke
-mmap_prepare() from the mmap() hook of existing 'stacked' drivers, that is
-ones which are capable of calling the mmap hooks of other drivers/file
-systems (e.g.  overlayfs, shm).
+The pattern "include/linux/page[-_]*" matches every file that starts with
+"page", because it's a regex and not a glob (so it has the meaning of
+include/linux/page + match [-_] 0+ times).
 
-As part of the mmap_prepare action functionality, we deal with errors by
-unmapping the VMA should one arise.  This works in the usual mmap_prepare
-case, as we invoke this action at the last moment, when the VMA is
-established in the maple tree.
+Fix it up into a more regex-correct expression.  Doing so reduces CC's
+drastically in patches that touch pagemap.h (which is maintained as part
+of PAGE CACHE).
 
-However, the mmap() hook passes a not-fully-established VMA pointer to the
-caller (which is the motivation behind the mmap_prepare() work), which is
-detached.
+As a side-effect, move linux/pageblock-flags.h explicitly under PAGE
+ALLOCATOR.
 
-So attempting to unmap a VMA in this state will be problematic, with the
-most obvious symptom being a warning in vma_mark_detached(), because the
-VMA is already detached.
-
-It's also unncessary - the mmap() handler will clean up the VMA on error.
-
-So to fix this issue, this patch propagates whether or not an mmap action
-is being completed via the compatibility layer or directly.
-
-If the former, then we do not attempt VMA cleanup, if the latter, then we
-do.
-
-This patch also updates the userland VMA tests to reflect the change.
-
-Link: https://lore.kernel.org/20260421102150.189982-1-ljs@kernel.org
-Fixes: ac0a3fc9c07d ("mm: add ability to take further action in vm_area_desc")
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Reported-by: syzbot+db390288d141a1dccf96@syzkaller.appspotmail.com
-Closes: https://lore.kernel.org/all/69e69734.050a0220.24bfd3.0027.GAE@google.com/
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lore.kernel.org/linux-mm/20260422005608.342028-1-fmayle@google.com/
+Link: https://lore.kernel.org/20260422123726.517220-1-pfalcato@suse.de
+Signed-off-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h                |    2 +-
- mm/util.c                         |   26 +++++++++++++++++---------
- mm/vma.c                          |    3 ++-
- tools/testing/vma/include/dup.h   |    2 +-
- tools/testing/vma/include/stubs.h |    3 ++-
- 5 files changed, 23 insertions(+), 13 deletions(-)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/mm.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
-+++ a/include/linux/mm.h
-@@ -4391,7 +4391,7 @@ static inline void mmap_action_map_kerne
+--- a/MAINTAINERS~maintainers-fix-regex-pattern-in-core-mm-category
++++ a/MAINTAINERS
+@@ -16805,7 +16805,7 @@ F:	mm/sparse.c
+ F:	mm/util.c
+ F:	mm/vmpressure.c
+ F:	mm/vmstat.c
+-N:	include/linux/page[-_]*
++N:	include\/linux\/page[-_][a-zA-Z]*
  
- int mmap_action_prepare(struct vm_area_desc *desc);
- int mmap_action_complete(struct vm_area_struct *vma,
--			 struct mmap_action *action);
-+			 struct mmap_action *action, bool is_compat);
- 
- /* Look up the first VMA which exactly match the interval vm_start ... vm_end */
- static inline struct vm_area_struct *find_exact_vma(struct mm_struct *mm,
---- a/mm/util.c~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
-+++ a/mm/util.c
-@@ -1232,7 +1232,7 @@ int __compat_vma_mmap(struct vm_area_des
- 	/* Update the VMA from the descriptor. */
- 	compat_set_vma_from_desc(vma, desc);
- 	/* Complete any specified mmap actions. */
--	return mmap_action_complete(vma, &desc->action);
-+	return mmap_action_complete(vma, &desc->action, /*is_compat=*/true);
- }
- EXPORT_SYMBOL(__compat_vma_mmap);
- 
-@@ -1389,7 +1389,8 @@ static int call_vma_mapped(struct vm_are
- }
- 
- static int mmap_action_finish(struct vm_area_struct *vma,
--			      struct mmap_action *action, int err)
-+			      struct mmap_action *action, int err,
-+			      bool is_compat)
- {
- 	size_t len;
- 
-@@ -1400,8 +1401,12 @@ static int mmap_action_finish(struct vm_
- 
- 	/* do_munmap() might take rmap lock, so release if held. */
- 	maybe_rmap_unlock_action(vma, action);
--	if (!err)
--		return 0;
-+	/*
-+	 * If this is invoked from the compatibility layer, post-mmap() hook
-+	 * logic will handle cleanup for us.
-+	 */
-+	if (!err || is_compat)
-+		return err;
- 
- 	/*
- 	 * If an error occurs, unmap the VMA altogether and return an error. We
-@@ -1451,13 +1456,15 @@ EXPORT_SYMBOL(mmap_action_prepare);
-  * mmap_action_complete - Execute VMA descriptor action.
-  * @vma: The VMA to perform the action upon.
-  * @action: The action to perform.
-+ * @is_compat: Is this being invoked from the compatibility layer?
-  *
-  * Similar to mmap_action_prepare().
-  *
-- * Return: 0 on success, or error, at which point the VMA will be unmapped.
-+ * Return: 0 on success, or error, at which point the VMA will be unmapped if
-+ * !@is_compat.
-  */
- int mmap_action_complete(struct vm_area_struct *vma,
--			 struct mmap_action *action)
-+			 struct mmap_action *action, bool is_compat)
- {
- 	int err = 0;
- 
-@@ -1478,7 +1485,7 @@ int mmap_action_complete(struct vm_area_
- 		break;
- 	}
- 
--	return mmap_action_finish(vma, action, err);
-+	return mmap_action_finish(vma, action, err, is_compat);
- }
- EXPORT_SYMBOL(mmap_action_complete);
- #else
-@@ -1500,7 +1507,8 @@ int mmap_action_prepare(struct vm_area_d
- EXPORT_SYMBOL(mmap_action_prepare);
- 
- int mmap_action_complete(struct vm_area_struct *vma,
--			 struct mmap_action *action)
-+			 struct mmap_action *action,
-+			 bool is_compat)
- {
- 	int err = 0;
- 
-@@ -1517,7 +1525,7 @@ int mmap_action_complete(struct vm_area_
- 		break;
- 	}
- 
--	return mmap_action_finish(vma, action, err);
-+	return mmap_action_finish(vma, action, err, is_compat);
- }
- EXPORT_SYMBOL(mmap_action_complete);
- #endif
---- a/mm/vma.c~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
-+++ a/mm/vma.c
-@@ -2780,7 +2780,8 @@ static unsigned long __mmap_region(struc
- 	__mmap_complete(&map, vma);
- 
- 	if (have_mmap_prepare && allocated_new) {
--		error = mmap_action_complete(vma, &desc.action);
-+		error = mmap_action_complete(vma, &desc.action,
-+					     /*is_compat=*/false);
- 		if (error)
- 			return error;
- 	}
---- a/tools/testing/vma/include/dup.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
-+++ a/tools/testing/vma/include/dup.h
-@@ -1330,7 +1330,7 @@ static inline int __compat_vma_mmap(stru
- 	/* Update the VMA from the descriptor. */
- 	compat_set_vma_from_desc(vma, desc);
- 	/* Complete any specified mmap actions. */
--	return mmap_action_complete(vma, &desc->action);
-+	return mmap_action_complete(vma, &desc->action, /*is_compat=*/true);
- }
- 
- static inline int compat_vma_mmap(struct file *file, struct vm_area_struct *vma)
---- a/tools/testing/vma/include/stubs.h~mm-vma-do-not-try-to-unmap-a-vma-if-mmap_prepare-invoked-from-mmap
-+++ a/tools/testing/vma/include/stubs.h
-@@ -87,7 +87,8 @@ static inline int mmap_action_prepare(st
- }
- 
- static inline int mmap_action_complete(struct vm_area_struct *vma,
--				       struct mmap_action *action)
-+				       struct mmap_action *action,
-+				       bool is_compat)
- {
- 	return 0;
- }
+ MEMORY MANAGEMENT - EXECMEM
+ M:	Andrew Morton <akpm@linux-foundation.org>
+@@ -16962,6 +16962,7 @@ S:	Maintained
+ F:	include/linux/compaction.h
+ F:	include/linux/gfp.h
+ F:	include/linux/page-isolation.h
++F:	include/linux/pageblock-flags.h
+ F:	mm/compaction.c
+ F:	mm/debug_page_alloc.c
+ F:	mm/debug_page_ref.c
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from pfalcato@suse.de are
 
 
