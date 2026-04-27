@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BD3B3E868F
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:11:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A26553D75AD
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:11:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777313492; cv=none; b=TOdI8jUBctizfYlLxiMtCWM1IyG6iZRex8caU7JSm3mPkEzAs0+Vp5SvSLAOQaxq+EuJe3IyRRBZDQS3J/gAFBOnk4UqoLsl94ymaIieIrFkbPw60q18p4TO9lO6pOzHd4iCJRTAdtDJWm1ifPSKlsLiRdcxaHST88+ewkLwxnU=
+	t=1777313493; cv=none; b=hKYOBCIwoqsTXQd/BDh2SffrjRbykM2DAHlk8Iqyni0opb+o53WjYzxcvVYBv887CnapxJHcdTh/E5usdUjTVqfpL/GHusYlu/J3VbT/ptCnosxvsNLMUnayTXvoiQFkrmrTLAx6v9c3coDtJw/FBRvBdLjO1XvcnnwBzsGU2hk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777313492; c=relaxed/simple;
-	bh=1NQRXO9RGTuiEnDyvLdx7kuhn6wwt+HY3m0PIzjgxvk=;
-	h=Date:To:From:Subject:Message-Id; b=h3aSATgOx19qyvml6mn4a/OBOSyTnwWzN0p91A5XSY9hz92Ji7kPjAnWkzg3AuM2+dj1DF3mrL9SjBemimkC4VZwbKWG56xfZyU9lWWT83iBZPdIVgzqNiH0wciB1reEq0xAk4rYdhE25HPNrQKTleLc1jOsjr89PFvZGDxLqYg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gszmvTWd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777313493; c=relaxed/simple;
+	bh=P0JrebCXeGid3xSnP+DGrmHgl1hwO9JhYG5SQoMrG4E=;
+	h=Date:To:From:Subject:Message-Id; b=F5GCYhrazf5gzGYarSXQkmLsia9X/XO0JfeyZURtD9DqrOUzEgZxX4Y0wibLzs52Jm1HNShTh++5lzw3N5XATnejcLn7FaX7IA/EbnFBcxxfdJ+fB+Y7qdiUMAoBsvUkxl/+n5MlBA/1/MC6fVUN1pxbw/Ri6vtdBs96bGFsI9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ifb5us1D; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gszmvTWd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8D06C2BCB4;
-	Mon, 27 Apr 2026 18:11:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ifb5us1D"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59407C19425;
+	Mon, 27 Apr 2026 18:11:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777313491;
-	bh=1NQRXO9RGTuiEnDyvLdx7kuhn6wwt+HY3m0PIzjgxvk=;
+	s=korg; t=1777313493;
+	bh=P0JrebCXeGid3xSnP+DGrmHgl1hwO9JhYG5SQoMrG4E=;
 	h=Date:To:From:Subject:From;
-	b=gszmvTWdFno6vQ6fZm7R67j+6qwBD1UkuzRrbratjWEP9XbxwcU5w8R1I0e/6LgfY
-	 qcD0mZkhWHjJa4pQ8cOvzdm/4DdE+XO/iSgzYvYWMixTwspMSFDHZ5ovr2NGuYKhUA
-	 6gED4qzZUBn5O0luGfzbL9hDYkXTI8i++hh+tXtU=
-Date: Mon, 27 Apr 2026 11:11:31 -0700
+	b=Ifb5us1DxPumw4VnJaqcy1c21t6OPG6rU1i+qAwOkWPyB+MdFMa7U3Je7U00dgmL3
+	 pK8ZbC5KCICrN+rUA1pGmas9uUmYf182M+phMq+qoKGrXQaG5pKgRu/7vX3tD+U7rT
+	 E2RX5KQrXw7a3R8bZ2NA55AwWYTci2ZLrMuvwZaw=
+Date: Mon, 27 Apr 2026 11:11:32 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mglru-scan-and-count-the-exact-number-of-folios.patch removed from -mm tree
-Message-Id: <20260427181131.D8D06C2BCB4@smtp.kernel.org>
+Subject: [to-be-updated] mm-mglru-use-a-smaller-batch-for-reclaim.patch removed from -mm tree
+Message-Id: <20260427181133.59407C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,57 +35,28 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/mglru: scan and count the exact number of folios
+     Subject: mm/mglru: use a smaller batch for reclaim
 has been removed from the -mm tree.  Its filename was
-     mm-mglru-scan-and-count-the-exact-number-of-folios.patch
+     mm-mglru-use-a-smaller-batch-for-reclaim.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru: scan and count the exact number of folios
-Date: Fri, 24 Apr 2026 01:43:16 +0800
+Subject: mm/mglru: use a smaller batch for reclaim
+Date: Fri, 24 Apr 2026 01:43:17 +0800
 
-Make the scan helpers return the exact number of folios being scanned or
-isolated.  Since the reclaim loop now has a natural scan budget that
-controls the scan progress, returning the scan number and consuming the
-budget makes the scan more accurate and easier to follow.
+With a fixed number to reclaim calculated at the beginning, making each
+following step smaller should reduce the lock contention and avoid
+over-aggressive reclaim of folios, as it will abort earlier when the
+number of folios to be reclaimed is reached.
 
-The number of scanned folios for each iteration is always larger than 0,
-unless the reclaim must stop for a forced aging, so there is no more need
-for any special handling when there is no progress made:
-
-- `return isolated || !remaining ? scanned : 0` in scan_folios: both
-  the function and the call now just return the exact scan count,
-  combined with the scan budget introduced in the previous commit to
-  avoid livelock or under scan.
-
-- `scanned += try_to_inc_min_seq` in evict_folios: adding a bool as a
-  scan count was kind of confusing and no longer needed to, as scan
-  number should never be zero as long as there are still evictable
-  gens. We may encounter a empty old gen that return 0 scan count,
-  to avoid that, do a try_to_inc_min_seq before isolation which
-  have slight to none overhead in most cases.
-
-- `evictable_min_seq + MIN_NR_GENS > max_seq` guard in evict_folios:
-  the per-type get_nr_gens == MIN_NR_GENS check in scan_folios
-  naturally returns 0 when only two gens remain and breaks the loop.
-
-Also change try_to_inc_min_seq to return void, as its return value is no
-longer used by any caller.  Call it before isolate_folios to flush any
-empty gens left by external folio freeing, and again after isolate_folios
-when scanning moved or protected folios may have emptied the oldest gen.
-
-The scan still stops if only two gens are left, as the scan number will be
-zero.  This matches the previous behavior.  This forced gen protection may
-be removed or softened later to improve reclaim further.
-
-Link: https://lore.kernel.org/20260424-mglru-reclaim-v6-5-a57622d770c3@tencent.com
+Link: https://lore.kernel.org/20260424-mglru-reclaim-v6-6-a57622d770c3@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: Chen Ridong <chenridong@huaweicloud.com>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
+Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Stevens <stevensd@google.com>
@@ -105,161 +76,24 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   58 +++++++++++++++++++++++++-------------------------
- 1 file changed, 29 insertions(+), 29 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-mglru-scan-and-count-the-exact-number-of-folios
+--- a/mm/vmscan.c~mm-mglru-use-a-smaller-batch-for-reclaim
 +++ a/mm/vmscan.c
-@@ -3878,10 +3878,9 @@ done:
- 	return true;
- }
+@@ -5006,7 +5006,7 @@ static bool try_to_shrink_lruvec(struct
+ 			break;
+ 		}
  
--static bool try_to_inc_min_seq(struct lruvec *lruvec, int swappiness)
-+static void try_to_inc_min_seq(struct lruvec *lruvec, int swappiness)
- {
- 	int gen, type, zone;
--	bool success = false;
- 	bool seq_inc_flag = false;
- 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	DEFINE_MIN_SEQ(lruvec);
-@@ -3907,11 +3906,10 @@ next:
- 
- 	/*
- 	 * If min_seq[type] of both anonymous and file is not increased,
--	 * we can directly return false to avoid unnecessary checking
--	 * overhead later.
-+	 * return here to avoid unnecessary checking overhead later.
- 	 */
- 	if (!seq_inc_flag)
--		return success;
-+		return;
- 
- 	/* see the comment on lru_gen_folio */
- 	if (swappiness && swappiness <= MAX_SWAPPINESS) {
-@@ -3929,10 +3927,7 @@ next:
- 
- 		reset_ctrl_pos(lruvec, type, true);
- 		WRITE_ONCE(lrugen->min_seq[type], min_seq[type]);
--		success = true;
- 	}
--
--	return success;
- }
- 
- static bool inc_max_seq(struct lruvec *lruvec, unsigned long seq, int swappiness)
-@@ -4686,7 +4681,7 @@ static bool isolate_folio(struct lruvec
- 
- static int scan_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
- 		       struct scan_control *sc, int type, int tier,
--		       struct list_head *list)
-+		       struct list_head *list, int *isolatedp)
- {
- 	int i;
- 	int gen;
-@@ -4756,11 +4751,9 @@ static int scan_folios(unsigned long nr_
- 				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
- 	if (type == LRU_GEN_FILE)
- 		sc->nr.file_taken += isolated;
--	/*
--	 * There might not be eligible folios due to reclaim_idx. Check the
--	 * remaining to prevent livelock if it's not making progress.
--	 */
--	return isolated || !remaining ? scanned : 0;
-+
-+	*isolatedp = isolated;
-+	return scanned;
- }
- 
- static int get_tier_idx(struct lruvec *lruvec, int type)
-@@ -4804,33 +4797,36 @@ static int get_type_to_scan(struct lruve
- 
- static int isolate_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
- 			  struct scan_control *sc, int swappiness,
--			  int *type_scanned, struct list_head *list)
-+			  struct list_head *list, int *isolated,
-+			  int *isolate_type, int *isolate_scanned)
- {
- 	int i;
-+	int total_scanned = 0;
- 	int type = get_type_to_scan(lruvec, swappiness);
- 
- 	for_each_evictable_type(i, swappiness) {
- 		int scanned;
- 		int tier = get_tier_idx(lruvec, type);
- 
--		*type_scanned = type;
-+		scanned = scan_folios(nr_to_scan, lruvec, sc,
-+				      type, tier, list, isolated);
- 
--		scanned = scan_folios(nr_to_scan, lruvec, sc, type, tier, list);
--		if (scanned)
--			return scanned;
-+		total_scanned += scanned;
-+		if (*isolated) {
-+			*isolate_type = type;
-+			*isolate_scanned = scanned;
-+			break;
-+		}
- 
- 		type = !type;
- 	}
- 
--	return 0;
-+	return total_scanned;
- }
- 
- static int evict_folios(unsigned long nr_to_scan, struct lruvec *lruvec,
- 			struct scan_control *sc, int swappiness)
- {
--	int type;
--	int scanned;
--	int reclaimed;
- 	LIST_HEAD(list);
- 	LIST_HEAD(clean);
- 	struct folio *folio;
-@@ -4838,19 +4834,23 @@ static int evict_folios(unsigned long nr
- 	enum node_stat_item item;
- 	struct reclaim_stat stat;
- 	struct lru_gen_mm_walk *walk;
-+	int scanned, reclaimed;
-+	int isolated = 0, type, type_scanned;
- 	bool skip_retry = false;
--	struct lru_gen_folio *lrugen = &lruvec->lrugen;
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 
- 	lruvec_lock_irq(lruvec);
- 
--	scanned = isolate_folios(nr_to_scan, lruvec, sc, swappiness, &type, &list);
-+	/* In case folio deletion left empty old gens, flush them */
-+	try_to_inc_min_seq(lruvec, swappiness);
- 
--	scanned += try_to_inc_min_seq(lruvec, swappiness);
-+	scanned = isolate_folios(nr_to_scan, lruvec, sc, swappiness,
-+				 &list, &isolated, &type, &type_scanned);
- 
--	if (evictable_min_seq(lrugen->min_seq, swappiness) + MIN_NR_GENS > lrugen->max_seq)
--		scanned = 0;
-+	/* Scanning may have emptied the oldest gen, flush it */
-+	if (scanned)
-+		try_to_inc_min_seq(lruvec, swappiness);
- 
- 	lruvec_unlock_irq(lruvec);
- 
-@@ -4861,7 +4861,7 @@ retry:
- 	sc->nr.unqueued_dirty += stat.nr_unqueued_dirty;
- 	sc->nr_reclaimed += reclaimed;
- 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
--			scanned, reclaimed, &stat, sc->priority,
-+			type_scanned, reclaimed, &stat, sc->priority,
- 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
- 
- 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
+-		nr_batch = min(nr_to_scan, MAX_LRU_BATCH);
++		nr_batch = min(nr_to_scan, MIN_LRU_BATCH);
+ 		delta = evict_folios(nr_batch, lruvec, sc, swappiness);
+ 		if (!delta)
+ 			break;
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-mglru-use-a-smaller-batch-for-reclaim.patch
 mm-mglru-dont-abort-scan-immediately-right-after-aging.patch
 mm-mglru-remove-redundant-swap-constrained-check-upon-isolation.patch
 mm-mglru-use-the-common-routine-for-dirty-writeback-reactivation.patch
