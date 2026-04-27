@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F07F4224234
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 16:29:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDD9D3D6692
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 16:31:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777307371; cv=none; b=Yu1gRPodNAlrDFhceLPBBk5U4e5/6F57YnpHGEM6pfYjg673WfcCg2kkholgOG79qmNvpuK+sAgG60QcLJWZfr6evmtE4nk2LeUvFvjIfW1JCOQiseiH4pebKIgi1RKbgnWjSKZzPOZ6GcU8MItKHGqlhEBC6Ilw6la8kQUlN34=
+	t=1777307504; cv=none; b=hm8wLpHtslwVDq5qs9OT3K9PmhhCbEnzwubp4Ir0Zzv/rKqhPO5okQ/hrv8/RGefnjWfTIVFwmYskLtbjEHFqIvNPLwATQFzdqKZ0TMjTis2r0ci95VmwW3ib+JiWty243vWO+cWCZ98wEpcRl5GglcqGLRkSZH0hSVMUldpu8Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777307371; c=relaxed/simple;
-	bh=Yp1fwU7igm7E1epJupoM0T6E5T4nScxpYgZroSBEDOc=;
-	h=Date:To:From:Subject:Message-Id; b=cXcJNZ6tDsmeypWCKDt0fZD+8MPobBQ56sWFnVhjYk1qCSov8IFZTbBQSkkTMguU+RQPIgdkVI0Se2E4fZgDZmvY0QVVH9mcB3XXBbGkZCS61FP9f3yLaN2JqYw0dA0MJXiZM5pMH2CYW5XKyn9XTMYJTmvu/tIcp0Asmti2ysY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fryTlxaE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777307504; c=relaxed/simple;
+	bh=wA5bHeAw/2+PHTHokAwNgAx7YBNs2WDnKJY8dEfDmo0=;
+	h=Date:To:From:Subject:Message-Id; b=GYKTWVris8QyiMelolFi3Wp8kMLHlB+CVlnv26bpHhf9qdJpzttHUWMI5KIlyV8qizyzwVBys4DrtSA7R4Ma727LA7NFom4ezVVmgY/oEyLAzuTz+JHc9kqg/MGV69TzZCbjYkB2EZCnRTvy5HIwJE8uo43VyeHdpk0SkMeyR9E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wprZYh9R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fryTlxaE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C6FCC19425;
-	Mon, 27 Apr 2026 16:29:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wprZYh9R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D8B0C2BCB4;
+	Mon, 27 Apr 2026 16:31:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777307370;
-	bh=Yp1fwU7igm7E1epJupoM0T6E5T4nScxpYgZroSBEDOc=;
+	s=korg; t=1777307503;
+	bh=wA5bHeAw/2+PHTHokAwNgAx7YBNs2WDnKJY8dEfDmo0=;
 	h=Date:To:From:Subject:From;
-	b=fryTlxaEYR3oXYb5c3N2UU/9OPtiDJ0BiRcvYwheUOOXKMwuEzVYNwcW/tQdwJ3mw
-	 64zsYYtwsv8WX9yPZ1NFvLBImI0eC588us0B4FZXv1Us7ghe/nuE2Zeon4chPHjCrz
-	 mupxGOHjo3rEHS3qM6YX37fja4UItia+8ZmFvnFQ=
-Date: Mon, 27 Apr 2026 09:29:30 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,chris@chrisdown.name,akpm@linux-foundation.org
+	b=wprZYh9RDdpRdcchc6JZ/TuULlWAq7rcwN4F6UUKHxfZT/D/qSKbUwQf0XubD7blN
+	 KOGq20yHGVpSmCQJMGwuyyqATe6XfitgFKAwPRpVJAzbjD85v9OPZpKIqrUNNHHsRp
+	 bCZtUsuiGk5OW6zeyWu9VJX0bOdCea8+d750gyMw=
+Date: Mon, 27 Apr 2026 09:31:42 -0700
+To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,mhocko@suse.com,hannes@cmpxchg.org,zhuhui@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch removed from -mm tree
-Message-Id: <20260427162930.8C6FCC19425@smtp.kernel.org>
+Subject: [to-be-updated] mm-memcontrol-batch-memcg-charging-in-__memcg_slab_post_alloc_hook.patch removed from -mm tree
+Message-Id: <20260427163143.7D8B0C2BCB4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,193 +35,170 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: add UFFDIO_MOVE huge zeropage PMD regression test
+     Subject: mm/memcontrol: batch memcg charging in __memcg_slab_post_alloc_hook
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test.patch
+     mm-memcontrol-batch-memcg-charging-in-__memcg_slab_post_alloc_hook.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Chris Down <chris@chrisdown.name>
-Subject: selftests/mm: add UFFDIO_MOVE huge zeropage PMD regression test
-Date: Wed, 18 Mar 2026 12:18:11 +0800
+From: teawater <zhuhui@kylinos.cn>
+Subject: mm/memcontrol: batch memcg charging in __memcg_slab_post_alloc_hook
+Date: Fri, 20 Mar 2026 10:07:45 +0800
 
-The existing uffd-unit-tests move-pmd coverage exercises PMD-sized
-UFFDIO_MOVE on anonymous THPs, but it does not force the huge zeropage PMD
-path in move_pages_huge_pmd().
+When kmem_cache_alloc_bulk() allocates multiple objects, the post-alloc
+hook __memcg_slab_post_alloc_hook() previously charged memcg one object at
+a time, even though consecutive objects may reside on slabs backed by the
+same pgdat node.
 
-Add a dedicated anonymous UFFDIO_MOVE PMD test that exercises this
-relatively comprehensively.
+Batch the memcg charging by scanning ahead from the current position to
+find a contiguous run of objects whose slabs share the same pgdat, then
+issue a single __obj_cgroup_charge() / __consume_obj_stock() call for the
+entire run.  The per-object obj_ext assignment loop is preserved as-is
+since it cannot be further collapsed.
 
-Link: https://lkml.kernel.org/r/abongwF3X0G8xY1I@chrisdown.name
-Signed-off-by: Chris Down <chris@chrisdown.name>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+This implements the TODO comment left in commit bc730030f956 ("memcg:
+combine slab obj stock charging and accounting").
+
+The existing error-recovery contract is unchanged: if size == 1 then
+memcg_alloc_abort_single() will free the sole object, and for larger bulk
+allocations kmem_cache_free_bulk() will uncharge any objects that were
+already charged before the failure.
+
+Benchmark using kmem_cache_alloc_bulk() with SLAB_ACCOUNT (iters=100000):
+
+  bulk=32  before: 215 ns/object   after: 174 ns/object  (-19%)
+  bulk=1   before: 344 ns/object   after: 335 ns/object  (  ~)
+
+No measurable regression for bulk=1, as expected.
+
+Link: https://lkml.kernel.org/r/20260320020745.833792-1-hui.zhu@linux.dev
+Signed-off-by: teawater <zhuhui@kylinos.cn>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-unit-tests.c |  100 +++++++++++++++++
- tools/testing/selftests/mm/vm_util.c         |   12 ++
- tools/testing/selftests/mm/vm_util.h         |    1 
- 3 files changed, 113 insertions(+)
+ mm/memcontrol.c |   77 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 58 insertions(+), 19 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test
-+++ a/tools/testing/selftests/mm/uffd-unit-tests.c
-@@ -1227,6 +1227,99 @@ static void uffd_move_pmd_test(uffd_glob
- 			      uffd_move_pmd_handle_fault);
- }
+--- a/mm/memcontrol.c~mm-memcontrol-batch-memcg-charging-in-__memcg_slab_post_alloc_hook
++++ a/mm/memcontrol.c
+@@ -3455,51 +3455,90 @@ bool __memcg_slab_post_alloc_hook(struct
+ 			return false;
+ 	}
  
-+static void uffd_move_pmd_huge_zeropage_test(uffd_global_test_opts_t *gopts,
-+					     uffd_test_args_t *targs)
-+{
-+	unsigned long pmd_size = read_pmd_pagesize();
-+	unsigned long pmd_pages;
-+	unsigned long bytes = gopts->nr_pages * gopts->page_size;
-+	char *orig_area_src = gopts->area_src, *orig_area_dst = gopts->area_dst;
-+	char *aligned_src, *aligned_dst;
-+	unsigned long src_offs, dst_offs, max_offs;
-+	pthread_t uffd_mon;
-+	struct uffd_args args = { 0 };
-+	char c = '\0';
-+	int pagemap_fd;
-+
-+	if (pmd_size <= gopts->page_size) {
-+		uffd_test_skip("huge page size is 0, feature missing?");
-+		return;
-+	}
-+	if (!detect_huge_zeropage()) {
-+		uffd_test_skip("transparent huge zeropage disabled");
-+		return;
-+	}
-+
-+	pmd_pages = pmd_size / gopts->page_size;
-+	if (bytes < pmd_size) {
-+		uffd_test_skip("not enough pages for one PMD-sized move");
-+		return;
-+	}
-+
-+	aligned_src = ALIGN_UP(orig_area_src, pmd_size);
-+	aligned_dst = ALIGN_UP(orig_area_dst, pmd_size);
-+	src_offs = (aligned_src - orig_area_src) / gopts->page_size;
-+	dst_offs = (aligned_dst - orig_area_dst) / gopts->page_size;
-+	max_offs = src_offs > dst_offs ? src_offs : dst_offs;
-+	if (max_offs + pmd_pages > gopts->nr_pages) {
-+		uffd_test_skip("could not find aligned PMD-sized src/dst window");
-+		return;
-+	}
-+
-+	if (madvise(orig_area_dst, bytes, MADV_HUGEPAGE))
-+		err("madvise(MADV_HUGEPAGE) failure");
-+	if (madvise(orig_area_src, bytes, MADV_DONTFORK))
-+		err("madvise(MADV_DONTFORK) failure");
-+	if (madvise(aligned_src, pmd_size, MADV_DONTNEED))
-+		err("madvise(MADV_DONTNEED) failure");
-+
-+	/* Fault in a PMD-sized huge zeropage mapping in the source. */
-+	force_read_pages(aligned_src, pmd_pages, gopts->page_size);
-+
-+	pagemap_fd = pagemap_open();
-+	if (!pagemap_is_huge_zero(pagemap_fd, aligned_src)) {
-+		close(pagemap_fd);
-+		uffd_test_skip("could not fault in the huge zeropage");
-+		return;
-+	}
-+	gopts->area_src = aligned_src;
-+	gopts->area_dst = aligned_dst;
-+
-+	if (uffd_register(gopts->uffd, gopts->area_dst, pmd_size, true, false, false))
-+		err("register failure");
-+
-+	args.gopts = gopts;
-+	args.handle_fault = uffd_move_pmd_handle_fault;
-+	if (pthread_create(&uffd_mon, NULL, uffd_poll_thread, &args))
-+		err("uffd_poll_thread create");
-+
-+	/*
-+	 * One fault on dst should trigger a single PMD-sized UFFDIO_MOVE from
-+	 * the huge zeropage PMD we populated in the source.
-+	 */
-+	force_read_pages(gopts->area_dst, pmd_pages, gopts->page_size);
-+
-+	if (write(gopts->pipefd[1], &c, sizeof(c)) != sizeof(c))
-+		err("pipe write");
-+	if (pthread_join(uffd_mon, NULL))
-+		err("join() failed");
-+
-+	if (args.missing_faults != 1 || args.minor_faults != 0) {
-+		uffd_test_fail("stats check error");
-+	} else if (!pagemap_is_huge_zero(pagemap_fd, gopts->area_dst)) {
-+		uffd_test_fail("moved destination is not a huge zeropage PMD");
-+	} else if (!check_huge_anon(gopts->area_dst, 0, pmd_size)) {
-+		/* vm_normal_page_pmd() must continue to treat the moved PMD as special. */
-+		uffd_test_fail("moved huge zeropage PMD counted as AnonHugePages");
-+	} else {
-+		uffd_test_pass();
-+	}
-+
-+	gopts->area_src = orig_area_src;
-+	gopts->area_dst = orig_area_dst;
-+	close(pagemap_fd);
-+}
-+
- static void uffd_move_pmd_split_test(uffd_global_test_opts_t *gopts, uffd_test_args_t *targs)
- {
- 	if (madvise(gopts->area_dst, gopts->nr_pages * gopts->page_size, MADV_NOHUGEPAGE))
-@@ -1549,6 +1642,13 @@ uffd_test_case_t uffd_tests[] = {
- 		.mem_targets = MEM_ANON,
- 		.uffd_feature_required = UFFD_FEATURE_MOVE,
- 		.test_case_ops = &uffd_move_test_pmd_case_ops,
-+	},
-+	{
-+		.name = "move-pmd-huge-zeropage",
-+		.uffd_fn = uffd_move_pmd_huge_zeropage_test,
-+		.mem_targets = MEM_ANON,
-+		.uffd_feature_required = UFFD_FEATURE_MOVE,
-+		.test_case_ops = &uffd_move_test_pmd_case_ops,
- 	},
- 	{
- 		.name = "move-pmd-split",
---- a/tools/testing/selftests/mm/vm_util.c~selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test
-+++ a/tools/testing/selftests/mm/vm_util.c
-@@ -120,6 +120,18 @@ bool pagemap_is_populated(int fd, char *
- 				PAGE_IS_PRESENT | PAGE_IS_SWAPPED);
- }
+-	for (i = 0; i < size; i++) {
++	for (i = 0; i < size; ) {
+ 		unsigned long obj_exts;
+ 		struct slabobj_ext *obj_ext;
+ 		struct obj_stock_pcp *stock;
++		struct pglist_data *pgdat;
++		int batch_bytes;
++		size_t run_len = 0;
++		size_t j;
++		size_t max_size;
++		bool skip_next = false;
  
-+bool pagemap_is_huge_zero(int fd, char *start)
-+{
-+	uint64_t categories;
+ 		slab = virt_to_slab(p[i]);
+ 
+ 		if (!slab_obj_exts(slab) &&
+ 		    alloc_slab_obj_exts(slab, s, flags, false)) {
++			i++;
+ 			continue;
+ 		}
+ 
++		pgdat = slab_pgdat(slab);
++		run_len = 1;
 +
-+	if (!pagemap_scan_supported(fd, start))
-+		return false;
++		/*
++		 * The value of batch_bytes must not exceed
++		 * (INT_MAX - PAGE_SIZE) to prevent integer overflow in
++		 * the final accumulation performed by __account_obj_stock().
++		 */
++		max_size = min((size_t)((INT_MAX - PAGE_SIZE) / obj_size),
++			       size);
 +
-+	categories = pagemap_scan_get_categories(fd, start);
-+	return (categories & (PAGE_IS_PRESENT | PAGE_IS_PFNZERO | PAGE_IS_HUGE)) ==
-+		(PAGE_IS_PRESENT | PAGE_IS_PFNZERO | PAGE_IS_HUGE);
-+}
++		for (j = i + 1; j < max_size; j++) {
++			struct slab *slab_j = virt_to_slab(p[j]);
 +
- unsigned long pagemap_get_pfn(int fd, char *start)
- {
- 	uint64_t entry = pagemap_get_entry(fd, start);
---- a/tools/testing/selftests/mm/vm_util.h~selftests-mm-add-uffdio_move-huge-zeropage-pmd-regression-test
-+++ a/tools/testing/selftests/mm/vm_util.h
-@@ -85,6 +85,7 @@ uint64_t pagemap_get_entry(int fd, char
- bool pagemap_is_softdirty(int fd, char *start);
- bool pagemap_is_swapped(int fd, char *start);
- bool pagemap_is_populated(int fd, char *start);
-+bool pagemap_is_huge_zero(int fd, char *start);
- unsigned long pagemap_get_pfn(int fd, char *start);
- void clear_softdirty(void);
- bool check_for_pattern(FILE *fp, const char *pattern, char *buf, size_t len);
++			if (slab_pgdat(slab_j) != pgdat)
++				break;
++
++			if (!slab_obj_exts(slab_j) &&
++			    alloc_slab_obj_exts(slab_j, s, flags, false)) {
++				skip_next = true;
++				break;
++			}
++
++			run_len++;
++		}
++
+ 		/*
+-		 * if we fail and size is 1, memcg_alloc_abort_single() will
++		 * If we fail and size is 1, memcg_alloc_abort_single() will
+ 		 * just free the object, which is ok as we have not assigned
+-		 * objcg to its obj_ext yet
++		 * objcg to its obj_ext yet.
+ 		 *
+-		 * for larger sizes, kmem_cache_free_bulk() will uncharge
+-		 * any objects that were already charged and obj_ext assigned
+-		 *
+-		 * TODO: we could batch this until slab_pgdat(slab) changes
+-		 * between iterations, with a more complicated undo
++		 * For larger sizes, kmem_cache_free_bulk() will uncharge
++		 * any objects that were already charged and obj_ext assigned.
+ 		 */
++		batch_bytes = obj_size * run_len;
+ 		stock = trylock_stock();
+-		if (!stock || !__consume_obj_stock(objcg, stock, obj_size)) {
++		if (!stock || !__consume_obj_stock(objcg, stock, batch_bytes)) {
+ 			size_t remainder;
+ 
+ 			unlock_stock(stock);
+-			if (__obj_cgroup_charge(objcg, flags, obj_size, &remainder))
++			if (__obj_cgroup_charge(objcg, flags, batch_bytes, &remainder))
+ 				return false;
+ 			stock = trylock_stock();
+ 			if (remainder)
+ 				__refill_obj_stock(objcg, stock, remainder, false);
+ 		}
+-		__account_obj_stock(objcg, stock, obj_size,
+-				    slab_pgdat(slab), cache_vmstat_idx(s));
++		__account_obj_stock(objcg, stock, batch_bytes,
++				    pgdat, cache_vmstat_idx(s));
+ 		unlock_stock(stock);
+ 
+-		obj_exts = slab_obj_exts(slab);
+-		get_slab_obj_exts(obj_exts);
+-		off = obj_to_index(s, slab, p[i]);
+-		obj_ext = slab_obj_ext(slab, obj_exts, off);
+-		obj_cgroup_get(objcg);
+-		obj_ext->objcg = objcg;
+-		put_slab_obj_exts(obj_exts);
++		for (j = 0; j < run_len; j++) {
++			slab = virt_to_slab(p[i + j]);
++			obj_exts = slab_obj_exts(slab);
++			get_slab_obj_exts(obj_exts);
++			off = obj_to_index(s, slab, p[i + j]);
++			obj_ext = slab_obj_ext(slab, obj_exts, off);
++			obj_cgroup_get(objcg);
++			obj_ext->objcg = objcg;
++			put_slab_obj_exts(obj_exts);
++		}
++
++		if (skip_next)
++			i = i + run_len + 1;
++		else
++			i += run_len;
+ 	}
+ 
+ 	return true;
 _
 
-Patches currently in -mm which might be from chris@chrisdown.name are
+Patches currently in -mm which might be from zhuhui@kylinos.cn are
 
 
