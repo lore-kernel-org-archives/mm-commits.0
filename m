@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBF163E1200
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:23:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAD9C3E9F8C
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:23:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777314200; cv=none; b=Y9TQcObtCeLXHBy2LbPJM1rPKZP3GDGzKn9WJXCu40/pVsHDTjlJhHgN3Hcdd/KcCK1PF52i6bafopnhj8c9FCE78Uxjpj0AOfiCJ6wzmOfePoJvtDL7nTrGmVwy7s1oKrR5DQ4utjzNEhKFDlVSZJlQCqajHNAapnIBQC+gTpQ=
+	t=1777314202; cv=none; b=usBBErlMMG+n6TKvusBpkr9ta4zuatIrTJOJHqmaoqCj6adXh4xJ8nIADCrajFzs/YVYEwLxTcwVPe8CVdy9T1CNH8hKhwCFyysmNMGdNwQWOR7+H0mrYBSAkpd5xrFryRKESjP+5M6NyeA8+WlAw8NL6OaRVOmNKRv5V0w8Ji0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777314200; c=relaxed/simple;
-	bh=0AGu1nd9/zRX4vIePLiAqpzzbCLQxxsxQKTaIZ4gIh4=;
-	h=Date:To:From:Subject:Message-Id; b=IW7J7W6c6aN/Fulo1jvH0thSpJSRePeVs16td8MUY0C1Rg7zCipuBcoC8GNivV0muqcYcM311GLtlVVjUD4SzFeNOkZD2nh2A3eURzSVWMJNTdvAAGcc3BZhR3s321UPYIYgSRXO7IPXrCyipEyMbrcMfMrUYQDtGS7qAXXC0TQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AQVUhin7; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777314202; c=relaxed/simple;
+	bh=hekgrKYFI3I7wo96elAhjmlCxjuca+1xJbxo/n9M+lY=;
+	h=Date:To:From:Subject:Message-Id; b=hpA9RN9AapjnjKYgKMQCjmt/Xwo4LN/2NXTXgI2lddakDdpdaUcJdpF5D2IjQFqQ6/lIfyKhkBr/mEr5jE+zFOGLhovYzU/jxEslEgqQJdNpzeI3piiX7Bth2H+yJa5074Arfp7KDVAxeDr2vuZ9o3pLtpO3q/YnC349f7hGXXA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SuUa787j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AQVUhin7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5840AC2BCB5;
-	Mon, 27 Apr 2026 18:23:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SuUa787j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86830C19425;
+	Mon, 27 Apr 2026 18:23:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777314200;
-	bh=0AGu1nd9/zRX4vIePLiAqpzzbCLQxxsxQKTaIZ4gIh4=;
+	s=korg; t=1777314202;
+	bh=hekgrKYFI3I7wo96elAhjmlCxjuca+1xJbxo/n9M+lY=;
 	h=Date:To:From:Subject:From;
-	b=AQVUhin7nF3GDpm1VAhQx7YymJSR+8EtapfvC30QHDBFRH6ahN6M8L9w3vSWs3WK2
-	 b7pC1h3ZE3E6Bd6L/NVYQ69K++pK81T+WJkgW5tWWi9SgwNk8PMm+qQ8TswZGRwQhH
-	 K0X4qbuW21d1SnpGprbq6zAggUtg1WQeLdLsUUQo=
-Date: Mon, 27 Apr 2026 11:23:19 -0700
-To: mm-commits@vger.kernel.org,baohua@kernel.org,akpm@linux-foundation.org
+	b=SuUa787j4wEt8uU+UDMh26bV8oQ9pSeh74ba1n8Zvbqo4PqMzy6vKuM4pd7hU0+dd
+	 n6z7Gp3ZnuKNU9Ak51XYSY2Q9B7D/Enp6ka+4XGj/o4OobVhSyTpVUVh/GyIA8BGa6
+	 1bj8z2FTVyde2+nFDy05qa4WXXWyWSgpncJqAXGs=
+Date: Mon, 27 Apr 2026 11:23:22 -0700
+To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-avoid-reclaim-type-fall-back-when-isolation-makes-no-progress.patch added to mm-new branch
-Message-Id: <20260427182320.5840AC2BCB5@smtp.kernel.org>
+Subject: + mm-mglru-use-a-smaller-batch-for-reclaim.patch added to mm-new branch
+Message-Id: <20260427182322.86830C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: avoid reclaim type fall back when isolation makes no progress
+     Subject: mm/mglru: use a smaller batch for reclaim
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-avoid-reclaim-type-fall-back-when-isolation-makes-no-progress.patch
+     mm-mglru-use-a-smaller-batch-for-reclaim.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-avoid-reclaim-type-fall-back-when-isolation-makes-no-progress.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-use-a-smaller-batch-for-reclaim.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,30 +69,21 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: avoid reclaim type fall back when isolation makes no progress
-Date: Tue, 28 Apr 2026 02:06:57 +0800
+From: Kairui Song <kasong@tencent.com>
+Subject: mm/mglru: use a smaller batch for reclaim
+Date: Tue, 28 Apr 2026 02:06:58 +0800
 
-While isolation makes no progress in scan_folios(), we quickly fall back
-to the other type in isolate_folios().  This is incorrect, as the current
-type may still have sufficient folios.  Falling back can undermine the
-positive_ctrl_err() result from get_type_to_scan(), which is derived from
-swappiness.
+With a fixed number to reclaim calculated at the beginning, making each
+following step smaller should reduce the lock contention and avoid
+over-aggressive reclaim of folios, as it will abort earlier when the
+number of folios to be reclaimed is reached.
 
-So just continue scanning this type for another round.
-
-Worth noting if the cold generations are all reclaimed, scan will no
-longer make any progress either, which may undermine the swappiness again.
-This is not a new issue and hence better be fixed later [1].
-
-Link: https://lore.kernel.org/linux-mm/CAGsJ_4zjdOYEtuO6gNjABm7NDxW0skzBFNRNee-k2D6VwsYEQA@mail.gmail.com/ [1]
-Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-6-02fabb92dc43@tencent.com
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-7-02fabb92dc43@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
-Reviewed-by: Kairui Song <kasong@tencent.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Chen Ridong <chenridong@huaweicloud.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Chen Ridong <chenridong@huaweicloud.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Stevens <stevensd@google.com>
@@ -111,32 +102,36 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-mglru-avoid-reclaim-type-fall-back-when-isolation-makes-no-progress
+--- a/mm/vmscan.c~mm-mglru-use-a-smaller-batch-for-reclaim
 +++ a/mm/vmscan.c
-@@ -4817,8 +4817,13 @@ static int isolate_folios(unsigned long
- 			*isolate_scanned = scanned;
+@@ -5007,7 +5007,7 @@ static bool try_to_shrink_lruvec(struct
  			break;
  		}
--
--		type = !type;
-+		/*
-+		 * If scanned > 0 and isolated == 0, avoid falling back to the
-+		 * other type, as this type remains sufficient. Falling back
-+		 * too readily can disrupt the positive_ctrl_err() bias.
-+		 */
-+		if (!scanned)
-+			type = !type;
- 	}
  
- 	return total_scanned;
+-		nr_batch = min(nr_to_scan, MAX_LRU_BATCH);
++		nr_batch = min(nr_to_scan, MIN_LRU_BATCH);
+ 		delta = evict_folios(nr_batch, lruvec, sc, swappiness);
+ 		if (!delta)
+ 			break;
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split.patch
-mm-mglru-avoid-reclaim-type-fall-back-when-isolation-makes-no-progress.patch
-mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active-in-pf.patch
+mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
+mm-mglru-rename-variables-related-to-aging-and-rotation.patch
+mm-mglru-relocate-the-lru-scan-batch-limit-to-callers.patch
+mm-mglru-restructure-the-reclaim-loop.patch
+mm-mglru-scan-and-count-the-exact-number-of-folios.patch
+mm-mglru-use-a-smaller-batch-for-reclaim.patch
+mm-mglru-dont-abort-scan-immediately-right-after-aging.patch
+mm-mglru-remove-redundant-swap-constrained-check-upon-isolation.patch
+mm-mglru-use-the-common-routine-for-dirty-writeback-reactivation.patch
+mm-mglru-simplify-and-improve-dirty-writeback-handling.patch
+mm-mglru-remove-no-longer-used-reclaim-argument-for-folio-protection.patch
+mm-vmscan-remove-sc-file_taken.patch
+mm-vmscan-remove-sc-unqueued_dirty.patch
+mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch
 
