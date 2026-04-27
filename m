@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D002346782
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 16:00:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E35EA3845CF
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 16:26:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777305611; cv=none; b=O6aYh6CdwLCHMNBfch+aHt2I9qtCVOjx2rui8tl7e1cJ0uIA5K4l0voaheFvDCeWNDvZe6GXsqa8dWUvbbZrvatvdbrzThrwLJRUgJEmdJp7Xv3TfmYqqaYZOp7DQSH8n5DdV72I+cgNiNxDXfgPnJ5LZKCvHs5wLRGLkcAG7tM=
+	t=1777307173; cv=none; b=cyy55eucV/X7K+ugiEsouTKSYHLX5Mn2Po+au+yLrlho9XcoYGA6W7Q9YDQHf78H+e101MBKCqyPK5T7Len4g0WsyZ62EJZuKTAKdP6CG6RJDOjmOphSPxC6diILQP9aU7jugRuAVcuW+SnYnOUfZGMV9keWOTPs2hR0wuT9mqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777305611; c=relaxed/simple;
-	bh=n9DUMpgwbD1S3YtsJrZBwOeYPRCLTXIaY13Jz3XIHkU=;
-	h=Date:To:From:Subject:Message-Id; b=gorDDb8z9LQoLty3O9V31nxZqhtU40eHMbVoLzUKOsuKVc3JaqSR4WHGw7BrK7LUEqGrv9JJ8kujgr/7w3R87Y5UnHw48vH7Suqye4uPEklkl7F4eDACpXY5QPkYy5E5YhY9b1NyvBHsuBbXzl83/8/wl+pkrdBpMZk/j1ZMx/w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eNyhg1Zh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777307173; c=relaxed/simple;
+	bh=EKWpNQ85HZ8WSynIRdjvLjRuiDDR4ZSExR/2J4YMf3M=;
+	h=Date:To:From:Subject:Message-Id; b=oZmcfx4bxEFoZBNhjpIbdQ9SR//RlQy1M95394Os5vpAdsQEdaDRxXh9N4DGLKTXIm1E+38VsCw6QcvKWQ7vOuNfS/muRctVbgHsNFjhBivlA77YISgZQS2LllmSLkfr1gPaRGZ0CZa+I/yQZDpQSQwF7CwmP7NL6oQ/keVN3As=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I0bSEnpE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eNyhg1Zh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12BDFC19425;
-	Mon, 27 Apr 2026 16:00:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I0bSEnpE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3D51C19425;
+	Mon, 27 Apr 2026 16:26:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777305611;
-	bh=n9DUMpgwbD1S3YtsJrZBwOeYPRCLTXIaY13Jz3XIHkU=;
+	s=korg; t=1777307171;
+	bh=EKWpNQ85HZ8WSynIRdjvLjRuiDDR4ZSExR/2J4YMf3M=;
 	h=Date:To:From:Subject:From;
-	b=eNyhg1Zhgo77+fsBB3r1crtQYAwIGyUNFInqjGP6Jx9yHWKsM7kpL+Rg5EgeTG9gE
-	 T6ES+99GVY2YiZHwcA6moBTX03XdGi76gZeVMbJy0S9u18Bl7p2QbvI1tfE7u9PELj
-	 yORFS5BDAWpmrhRl1vAdz5ydkng8JdSH4HBmLl2E=
-Date: Mon, 27 Apr 2026 09:00:10 -0700
-To: mm-commits@vger.kernel.org,leitao@debian.org,akpm@linux-foundation.org
+	b=I0bSEnpEvEpN3CgwCsLry24alf8kP0gjrFjdCkfR5XR7krq6VjkE003rCelRYtGDE
+	 n6DozCdUGmjtqthcr0J3YcL6VmX9U5aJPNdpVv0kQZ7kTu/xGdda5Pu1r+p0928uHb
+	 B7obIWbSwdCRCi+2XIsV72uK+WOCYU9w9bvFGQKs=
+Date: Mon, 27 Apr 2026 09:26:11 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,usama.arif@linux.dev,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,kas@kernel.org,hannes@cmpxchg.org,d@ilvokhin.com,david@kernel.org,leitao@debian.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-regression-test-for-panic_on_unrecoverable_memory_failure.patch removed from -mm tree
-Message-Id: <20260427160011.12BDFC19425@smtp.kernel.org>
+Subject: [to-be-updated] mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch removed from -mm tree
+Message-Id: <20260427162611.C3D51C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,161 +35,128 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: regression test for panic_on_unrecoverable_memory_failure
+     Subject: mm/vmstat: spread vmstat_update requeue across the stat interval
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-regression-test-for-panic_on_unrecoverable_memory_failure.patch
+     mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Breno Leitao <leitao@debian.org>
-Subject: selftests/mm: regression test for panic_on_unrecoverable_memory_failure
-Date: Fri, 24 Apr 2026 05:24:02 -0700
+Subject: mm/vmstat: spread vmstat_update requeue across the stat interval
+Date: Wed, 01 Apr 2026 06:57:50 -0700
 
-Add a test that enables vm.panic_on_unrecoverable_memory_failure and
-injects MADV_HWPOISON on a userspace anonymous page.  The page must still
-be recovered via SIGBUS — it must not trigger a kernel panic.
+vmstat_update uses round_jiffies_relative() when re-queuing itself, which
+aligns all CPUs' timers to the same second boundary.  When many CPUs have
+pending PCP pages to drain, they all call decay_pcp_high() ->
+free_pcppages_bulk() simultaneously, serializing on zone->lock and hitting
+contention.
 
-This is the regression test for the panic_on_unrecoverable_mf() recheck: a
-buddy page being concurrently allocated to userspace can briefly land on
-the MF_MSG_KERNEL_HIGH_ORDER branch (refcount 0, not in buddy), and
-without the recheck the kernel would panic on what is actually a
-recoverable userspace page.
+Introduce vmstat_spread_delay() which distributes each CPU's vmstat_update
+evenly across the stat interval instead of aligning them.
 
-Run in a forked child so the SIGBUS path is fully exercised; if the kernel
-ever regresses and panics, the host VM dies and the harness reports the
-binary as never returning, which is itself a clear failure signal.
+This does not increase the number of timer interrupts — each CPU still
+fires once per interval.  The timers are simply staggered rather than
+aligned.  Additionally, vmstat_work is DEFERRABLE_WORK, so it does not
+wake idle CPUs regardless of scheduling; the spread only affects CPUs that
+are already active
 
-Skips when the sysctl is not present (feature not built in) or when the
-test cannot write to it (insufficient privilege).  Saves and restores the
-original sysctl value.
+`perf lock contention` shows 7.5x reduction in zone->lock contention (872
+-> 117 contentions, 199ms -> 81ms total wait) on a 72-CPU aarch64 system
+under memory pressure.
 
-Link: https://lore.kernel.org/20260424-ecc_panic-v5-4-a35f4b50425c@debian.org
+Tested on a 72-CPU aarch64 system using stress-ng --vm to generate memory
+allocation bursts.  Lock contention was measured with:
+
+  perf lock contention -a -b -S free_pcppages_bulk
+
+Results with KASAN enabled:
+
+ free_pcppages_bulk contention (KASAN):
+  +--------------+----------+----------+
+  | Metric       | No fix   | With fix |
+  +--------------+----------+----------+
+  | Contentions  |      872 |      117 |
+  | Total wait   | 199.43ms | 80.76ms  |
+  | Max wait     |  35.76ms | 4.19ms   |
+  +--------------+----------+----------+
+
+Results without KASAN:
+
+  free_pcppages_bulk contention (no KASAN):
+  +--------------+----------+----------+
+  | Metric       | No fix   | With fix |
+  +--------------+----------+----------+
+  | Contentions  |      240 |      133 |
+  | Total wait   |  34.01ms | 24.61ms  |
+  | Max wait     |   1.35ms |   965us  |
+  +--------------+----------+----------+
+
+Link: https://lore.kernel.org/20260401-vmstat-v1-1-b68ce4a35055@debian.org
 Signed-off-by: Breno Leitao <leitao@debian.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Kiryl Shutsemau (Meta) <kas@kernel.org>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Dmitry Ilvokhin <d@ilvokhin.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/memory-failure.c |   84 ++++++++++++++++++
- 1 file changed, 84 insertions(+)
+ mm/vmstat.c |   25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/memory-failure.c~selftests-mm-regression-test-for-panic_on_unrecoverable_memory_failure
-+++ a/tools/testing/selftests/mm/memory-failure.c
-@@ -17,9 +17,13 @@
- #include <sys/vfs.h>
- #include <linux/magic.h>
- #include <errno.h>
-+#include <sys/wait.h>
-+#include <stdlib.h>
+--- a/mm/vmstat.c~mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval
++++ a/mm/vmstat.c
+@@ -2034,6 +2034,29 @@ static int vmstat_refresh(const struct c
+ }
+ #endif /* CONFIG_PROC_FS */
  
- #include "vm_util.h"
- 
-+#define PANIC_SYSCTL "/proc/sys/vm/panic_on_unrecoverable_memory_failure"
++/*
++ * Return a per-cpu delay that spreads vmstat_update work across the stat
++ * interval.  Without this, round_jiffies_relative() aligns every CPU's
++ * timer to the same second boundary, causing a thundering-herd on
++ * zone->lock when multiple CPUs drain PCP pages simultaneously via
++ * decay_pcp_high() -> free_pcppages_bulk().
++ */
++static unsigned long vmstat_spread_delay(void)
++{
++	unsigned long interval = sysctl_stat_interval;
++	unsigned int nr_cpus = num_online_cpus();
 +
- enum inject_type {
- 	MADV_HARD,
- 	MADV_SOFT,
-@@ -355,4 +359,84 @@ TEST_F(memory_failure, dirty_pagecache)
- 	ASSERT_EQ(close(fd), 0);
++	if (nr_cpus <= 1)
++		return round_jiffies_relative(interval);
++
++	/*
++	 * Spread per-cpu vmstat work evenly across the interval.  Don't
++	 * use round_jiffies_relative() here -- it would snap every CPU
++	 * back to the same second boundary, defeating the spread.
++	 */
++	return interval + (interval * (smp_processor_id() % nr_cpus)) / nr_cpus;
++}
++
+ static void vmstat_update(struct work_struct *w)
+ {
+ 	if (refresh_cpu_vm_stats(true)) {
+@@ -2044,7 +2067,7 @@ static void vmstat_update(struct work_st
+ 		 */
+ 		queue_delayed_work_on(smp_processor_id(), mm_percpu_wq,
+ 				this_cpu_ptr(&vmstat_work),
+-				round_jiffies_relative(sysctl_stat_interval));
++				vmstat_spread_delay());
+ 	}
  }
  
-+static int read_sysctl_int(const char *path, int *out)
-+{
-+	char buf[16];
-+	int fd, n;
-+
-+	fd = open(path, O_RDONLY);
-+	if (fd < 0)
-+		return -1;
-+	n = read(fd, buf, sizeof(buf) - 1);
-+	close(fd);
-+	if (n <= 0)
-+		return -1;
-+	buf[n] = '\0';
-+	*out = atoi(buf);
-+	return 0;
-+}
-+
-+static int write_sysctl_int(const char *path, int val)
-+{
-+	char buf[16];
-+	int fd, len, ret = 0;
-+
-+	fd = open(path, O_WRONLY);
-+	if (fd < 0)
-+		return -1;
-+	len = snprintf(buf, sizeof(buf), "%d\n", val);
-+	if (write(fd, buf, len) != len)
-+		ret = -1;
-+	close(fd);
-+	return ret;
-+}
-+
-+/*
-+ * Regression test for vm.panic_on_unrecoverable_memory_failure.
-+ *
-+ * With the sysctl on, hwpoison injection on a userspace anonymous page
-+ * must still be recovered via SIGBUS — it must not trigger a kernel
-+ * panic. This guards the panic_on_unrecoverable_mf() recheck that rules
-+ * out concurrent buddy allocations being misclassified as unrecoverable
-+ * kernel pages (MF_MSG_KERNEL_HIGH_ORDER).
-+ *
-+ * If the kernel regresses and panics, the host VM dies and the test
-+ * harness will report the binary as never having returned — which is
-+ * itself a clear failure signal.
-+ */
-+TEST(panic_on_unrecoverable_user_page)
-+{
-+	unsigned long page_size;
-+	int saved, status;
-+	void *addr;
-+	pid_t pid;
-+
-+	if (read_sysctl_int(PANIC_SYSCTL, &saved))
-+		SKIP(return, "%s not available\n", PANIC_SYSCTL);
-+	if (write_sysctl_int(PANIC_SYSCTL, 1))
-+		SKIP(return, "cannot enable %s (need root?)\n", PANIC_SYSCTL);
-+
-+	page_size = sysconf(_SC_PAGESIZE);
-+
-+	pid = fork();
-+	ASSERT_NE(pid, -1);
-+	if (pid == 0) {
-+		addr = mmap(NULL, page_size, PROT_READ | PROT_WRITE,
-+			    MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-+		if (addr == MAP_FAILED)
-+			_exit(1);
-+		*(volatile char *)addr = 1;
-+		if (madvise(addr, page_size, MADV_HWPOISON))
-+			_exit(2);
-+		FORCE_READ(*(volatile char *)addr);
-+		_exit(0); /* unreachable: SIGBUS expected */
-+	}
-+
-+	ASSERT_EQ(waitpid(pid, &status, 0), pid);
-+	write_sysctl_int(PANIC_SYSCTL, saved);
-+
-+	ASSERT_TRUE(WIFSIGNALED(status));
-+	ASSERT_EQ(WTERMSIG(status), SIGBUS);
-+}
-+
- TEST_HARNESS_MAIN
 _
 
 Patches currently in -mm which might be from leitao@debian.org are
 
 mm-huge_memory-use-sysfs_match_string-in-defrag_store.patch
 mm-huge_memory-refactor-defrag_show-to-use-defrag_flags.patch
-mm-vmstat-spread-vmstat_update-requeue-across-the-stat-interval.patch
 
