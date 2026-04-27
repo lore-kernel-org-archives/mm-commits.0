@@ -1,81 +1,97 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E2F03B27FB;
-	Mon, 27 Apr 2026 14:55:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BC593890F1
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 14:55:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777301711; cv=none; b=MzmFsQdUNcQk7uEJzqh5P3ucA+r2A4AkJVnWINA44vhg5cMRWoFMXrvUrStnbcbGBy7orIAmcCp90+LvYTzZTBdmcjUQFBMf2yiFQwwnkNqOav4xt1beZJsWqMjeB6OvS4hF3oauySmhrL2Np80JN5uzWXt4KP/xfqPczTsYqgs=
+	t=1777301756; cv=none; b=EzMGIdLx5SpVZ3NEWn637eJMZOPQKakmkBL+LqyaTIae8JHC+9bu7TVp+HLcVEVmnnwVCC6OKNQewBg2kcbr+HyQRbBWl1ihyrcnAURS1lxXnYti/UD71LAvMEAMoWN/zLHyiEVZb+g6k6nupeu+QrKnc6Oe1mJ+/Sex8Ctft6Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777301711; c=relaxed/simple;
-	bh=4fuQfK0U3MCtLpCaqNDn3ZYnCmYAsN25PDsyXgxtvfM=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=OoHi9IhAWc6UgxGhhmgVcFZpSvNp8DWGxjGLML0wtmQ3hwdAGBJfTviuIkLXaJueXFTyhv3RFU2LmdOSWCqFvgNGCf1KiMtKyQwo4BLHIhizmRnsJveV1wIH9KL0+jIs/Ylagdg82dyNu+mXaz3gu9/CWmu6/wc446w3yWXb7pk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v19bN0oa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777301756; c=relaxed/simple;
+	bh=h0g8wWxNaCGYtQhWMRa4HTlk6NSywo1Q4ntIsG0tca4=;
+	h=Date:To:From:Subject:Message-Id; b=UukG/kDmBH4faPCREpFx9dNdRA0y+4j+J00BNmoSyU+bbNImtOehAjYQpHodcAE30ev9nZtZDDBo47/g5rf+5MlHkmWoXl4EZhFcQzRyMMq+rsXhiMosQ6yE6Udyynn5PBaMIQ3mNRGRvjyjXacmq4PdBMOYR8PyaxrNSNYEiY0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bBjlP2zp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v19bN0oa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E3C2C19425;
-	Mon, 27 Apr 2026 14:55:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bBjlP2zp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCDE5C19425;
+	Mon, 27 Apr 2026 14:55:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777301710;
-	bh=4fuQfK0U3MCtLpCaqNDn3ZYnCmYAsN25PDsyXgxtvfM=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=v19bN0oao0FGtM0DaQMaeWM4xHGqaVBcVrB4U4tQxwlnqKjCjaxELNE14NBxwYH9D
-	 At4/U96J4/daE4Wwk7pKQ+2PXcI5iGgh0LcSPbv6RTIxaD07I6rr47xv3R5ftzzy9q
-	 ga50uMqOlVHIesyKg6QL0lSHxe9wrQYBeBVk0yn0=
-Date: Mon, 27 Apr 2026 07:55:10 -0700
+	s=korg; t=1777301755;
+	bh=h0g8wWxNaCGYtQhWMRa4HTlk6NSywo1Q4ntIsG0tca4=;
+	h=Date:To:From:Subject:From;
+	b=bBjlP2zpwnwivRCGsOLJSTedN8dDzaB3qr/AjyG7DXOZxX8i35KO88k9MsCN4m6Oy
+	 N4jM2+cK24xeYBb0Smb1mc2H8/LHVnET739ySm5aCbORq8YC72kWAJJ1aLe6B5Fe2K
+	 yYt8h5InsHX2nNLo7sWOhtBqcMLjhLb2NBS911gI=
+Date: Mon, 27 Apr 2026 07:55:55 -0700
+To: mm-commits@vger.kernel.org,npiggin@gmail.com,msalter@redhat.com,mpe@ellerman.id.au,maddy@linux.ibm.com,lkp@intel.com,david.laight.linux@gmail.com,david@kernel.org,dave@stgolabs.net,chmh0624@gmail.com,chleroy@kernel.org,arnd@arndb.de,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: kernel test robot <lkp@intel.com>
-Cc: <oe-kbuild-all@lists.linux.dev>, David Hildenbrand <david@kernel.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- <mm-commits@vger.kernel.org>, Davidlohr Bueso <dave@stgolabs.net>
-Subject: Re: [akpm-mm:mm-new 117/130] ./include/asm-generic/fixmap.h:77:9:
- error: implicit declaration of function '__set_fixmap'; did you mean
- 'set_fixmap'?
-Message-Id: <20260427075510.bbac70576250c2af5e76bbcc@linux-foundation.org>
-In-Reply-To: <ae92kz3LeyaFBvKw@rli9-mobl>
-References: <ae92kz3LeyaFBvKw@rli9-mobl>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix-fix.patch added to mm-new branch
+Message-Id: <20260427145555.BCDE5C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 
-On Mon, 27 Apr 2026 22:45:39 +0800 kernel test robot <lkp@intel.com> wrote:
 
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-> head:   4f7b2cc1ad8719d55a8de9675a0aca65cb17c364
-> commit: 93580c23bb3da5dd2926d6ae991ef04c2cdacaf2 [117/130] include/asm-generic/fixmap.h: reimplement nasty macros in C
-> config: powerpc64-allnoconfig-bpf (https://download.01.org/0day-ci/archive/20260427/202604271114.ebmzs1LE-lkp@intel.com/config)
-> compiler: powerpc64-linux-gnu-gcc (Debian 14.2.0-19) 14.2.0
-> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260427/202604271114.ebmzs1LE-lkp@intel.com/reproduce)
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/r/202604271114.ebmzs1LE-lkp@intel.com/
-> 
-> All error/warnings (new ones prefixed by >>):
-> 
->    In file included from ./arch/powerpc/include/asm/fixmap.h:91,
->                     from mm/early_ioremap.c:18:
->    ./include/asm-generic/fixmap.h: In function '__set_fixmap_offset':
-> >> ./include/asm-generic/fixmap.h:77:9: error: implicit declaration of function '__set_fixmap'; did you mean 'set_fixmap'? [-Wimplicit-function-declaration]
->       77 |         __set_fixmap(idx, phys, flags);
->          |         ^~~~~~~~~~~~
->          |         set_fixmap
->    ./arch/powerpc/include/asm/fixmap.h: At top level:
-> >> ./arch/powerpc/include/asm/fixmap.h:93:20: warning: conflicting types for '__set_fixmap'; have 'void(enum fixed_addresses,  phys_addr_t,  pgprot_t)' {aka 'void(enum fixed_addresses,  long long unsigned int,  pgprot_t)'}
->       93 | static inline void __set_fixmap(enum fixed_addresses idx,
->          |                    ^~~~~~~~~~~~
+The patch titled
+     Subject: include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix-fix
+has been added to the -mm mm-new branch.  Its filename is
+     include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix-fix.patch
 
-Sigh, thanks, of course one architecture had to go and be weird.
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix-fix.patch
 
-hacky fix:
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix-fix
+Date: Mon Apr 27 07:52:27 AM PDT 2026
+
+fix powerpc
+
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/r/202604271114.ebmzs1LE-lkp@intel.com/
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: David Laight <david.laight.linux@gmail.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Min-Hsun Chang <chmh0624@gmail.com>
+Cc: "Christophe Leroy (CS GROUP)" <chleroy@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/powerpc/include/asm/fixmap.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
 --- a/arch/powerpc/include/asm/fixmap.h~include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix-fix
 +++ a/arch/powerpc/include/asm/fixmap.h
@@ -90,4 +106,14 @@ hacky fix:
  
  static inline void __set_fixmap(enum fixed_addresses idx,
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free-fix.patch
+mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch
+mm-memory-failure-add-panic-option-for-unrecoverable-pages-fix.patch
+include-asm-generic-fixmaph-reimplement-nasty-macros-in-c.patch
+include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix.patch
+include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix-fix.patch
+proc-rewrite-next_tgid-fix.patch
 
