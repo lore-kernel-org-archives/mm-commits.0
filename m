@@ -1,115 +1,93 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7445127E1D7
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 14:47:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E2F03B27FB;
+	Mon, 27 Apr 2026 14:55:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777301263; cv=none; b=UH58hGfvgZ4fH3Yjx9rk/PaRAHEgiqs9xZ3bVasj3SblaZsiYiMQXLoDtetT1+bVyQ8y6b/llerXUFjye9X0sjwT4Clvn9ET3y2SwKEGNaUJxFYM9R1b/EoyKg4vCSBG/HihsFK9jhg/HoFDcfsjN2wPwMZ6DjiN7ZLjIFLFTz4=
+	t=1777301711; cv=none; b=MzmFsQdUNcQk7uEJzqh5P3ucA+r2A4AkJVnWINA44vhg5cMRWoFMXrvUrStnbcbGBy7orIAmcCp90+LvYTzZTBdmcjUQFBMf2yiFQwwnkNqOav4xt1beZJsWqMjeB6OvS4hF3oauySmhrL2Np80JN5uzWXt4KP/xfqPczTsYqgs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777301263; c=relaxed/simple;
-	bh=hsxNQacGtWFCv2Zoq5PyfZT7mSN/k7tkY/D0hT4kHa8=;
-	h=Date:To:From:Subject:Message-Id; b=lHhRyCIn6lnrl7N0FaKDYP33Q3hf0tVxvnRdWuPIYTw2TOnHLTkvaItDxN/+ELX6VWEM4UFM4qZt/vUktL3OW9cID9ykuCddQ1Im/GJv3lC6dywva6PRm67tOd/wIl/8RxPVP47Pmqnqg0rw0tZi+RKB9eIEvXy/+flMFd4TpiY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TdxljZJm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777301711; c=relaxed/simple;
+	bh=4fuQfK0U3MCtLpCaqNDn3ZYnCmYAsN25PDsyXgxtvfM=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=OoHi9IhAWc6UgxGhhmgVcFZpSvNp8DWGxjGLML0wtmQ3hwdAGBJfTviuIkLXaJueXFTyhv3RFU2LmdOSWCqFvgNGCf1KiMtKyQwo4BLHIhizmRnsJveV1wIH9KL0+jIs/Ylagdg82dyNu+mXaz3gu9/CWmu6/wc446w3yWXb7pk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=v19bN0oa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TdxljZJm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C515C2BCB7;
-	Mon, 27 Apr 2026 14:47:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="v19bN0oa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E3C2C19425;
+	Mon, 27 Apr 2026 14:55:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777301263;
-	bh=hsxNQacGtWFCv2Zoq5PyfZT7mSN/k7tkY/D0hT4kHa8=;
-	h=Date:To:From:Subject:From;
-	b=TdxljZJmdwfJsdFY/btnE47zXZ+qaUGib8pEOfM7+AY1qZxhMjgWUT3jkP97hq1Y6
-	 mEvcuqyLQAtR2SwiBNQBLvlukixmCyg87Hvx09NycXK9ufMz+EHvKC040OfKMh/rr0
-	 lr6dMuBkuMXBRUzWEuuORly3fYU2uFF3A4E0s5I8=
-Date: Mon, 27 Apr 2026 07:47:42 -0700
-To: mm-commits@vger.kernel.org,vbabka@suse.com,kbingham@kernel.org,jan.kiszka@siemens.com,hsj0512@snu.ac.kr,harry@kernel.org,hao.li@linux.dev,florian.fainelli@broadcom.com,illia@yshyn.com,akpm@linux-foundation.org
+	s=korg; t=1777301710;
+	bh=4fuQfK0U3MCtLpCaqNDn3ZYnCmYAsN25PDsyXgxtvfM=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=v19bN0oao0FGtM0DaQMaeWM4xHGqaVBcVrB4U4tQxwlnqKjCjaxELNE14NBxwYH9D
+	 At4/U96J4/daE4Wwk7pKQ+2PXcI5iGgh0LcSPbv6RTIxaD07I6rr47xv3R5ftzzy9q
+	 ga50uMqOlVHIesyKg6QL0lSHxe9wrQYBeBVk0yn0=
+Date: Mon, 27 Apr 2026 07:55:10 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + scripts-gdb-slab-update-field-names-of-struct-kmem_cache.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260427144743.0C515C2BCB7@smtp.kernel.org>
+To: kernel test robot <lkp@intel.com>
+Cc: <oe-kbuild-all@lists.linux.dev>, David Hildenbrand <david@kernel.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ <mm-commits@vger.kernel.org>, Davidlohr Bueso <dave@stgolabs.net>
+Subject: Re: [akpm-mm:mm-new 117/130] ./include/asm-generic/fixmap.h:77:9:
+ error: implicit declaration of function '__set_fixmap'; did you mean
+ 'set_fixmap'?
+Message-Id: <20260427075510.bbac70576250c2af5e76bbcc@linux-foundation.org>
+In-Reply-To: <ae92kz3LeyaFBvKw@rli9-mobl>
+References: <ae92kz3LeyaFBvKw@rli9-mobl>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
+On Mon, 27 Apr 2026 22:45:39 +0800 kernel test robot <lkp@intel.com> wrote:
 
-The patch titled
-     Subject: scripts/gdb: slab: update field names of struct kmem_cache
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     scripts-gdb-slab-update-field-names-of-struct-kmem_cache.patch
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+> head:   4f7b2cc1ad8719d55a8de9675a0aca65cb17c364
+> commit: 93580c23bb3da5dd2926d6ae991ef04c2cdacaf2 [117/130] include/asm-generic/fixmap.h: reimplement nasty macros in C
+> config: powerpc64-allnoconfig-bpf (https://download.01.org/0day-ci/archive/20260427/202604271114.ebmzs1LE-lkp@intel.com/config)
+> compiler: powerpc64-linux-gnu-gcc (Debian 14.2.0-19) 14.2.0
+> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260427/202604271114.ebmzs1LE-lkp@intel.com/reproduce)
+> 
+> If you fix the issue in a separate patch/commit (i.e. not just a new version of
+> the same patch/commit), kindly add following tags
+> | Reported-by: kernel test robot <lkp@intel.com>
+> | Closes: https://lore.kernel.org/r/202604271114.ebmzs1LE-lkp@intel.com/
+> 
+> All error/warnings (new ones prefixed by >>):
+> 
+>    In file included from ./arch/powerpc/include/asm/fixmap.h:91,
+>                     from mm/early_ioremap.c:18:
+>    ./include/asm-generic/fixmap.h: In function '__set_fixmap_offset':
+> >> ./include/asm-generic/fixmap.h:77:9: error: implicit declaration of function '__set_fixmap'; did you mean 'set_fixmap'? [-Wimplicit-function-declaration]
+>       77 |         __set_fixmap(idx, phys, flags);
+>          |         ^~~~~~~~~~~~
+>          |         set_fixmap
+>    ./arch/powerpc/include/asm/fixmap.h: At top level:
+> >> ./arch/powerpc/include/asm/fixmap.h:93:20: warning: conflicting types for '__set_fixmap'; have 'void(enum fixed_addresses,  phys_addr_t,  pgprot_t)' {aka 'void(enum fixed_addresses,  long long unsigned int,  pgprot_t)'}
+>       93 | static inline void __set_fixmap(enum fixed_addresses idx,
+>          |                    ^~~~~~~~~~~~
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/scripts-gdb-slab-update-field-names-of-struct-kmem_cache.patch
+Sigh, thanks, of course one architecture had to go and be weird.
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+hacky fix:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Illia Ostapyshyn <illia@yshyn.com>
-Subject: scripts/gdb: slab: update field names of struct kmem_cache
-Date: Mon, 27 Apr 2026 16:24:48 +0200
-
-The commit 5ba6bc27b1f9 ("slab: decouple pointer to barn from
-kmem_cache_node") reorganized the struct kmem_cache to factor out the
-per-node fields to the new struct kmem_cache_per_node_ptrs.  This causes
-the gdb scripts for lx-slabinfo and lx-slabtrace fail as they still
-reference the old structure.
-
-Adjust the gdb scripts to match the current state of struct kmem_cache.
-
-Link: https://lore.kernel.org/20260427142448.666117-3-illia@yshyn.com
-Fixes: 5ba6bc27b1f9 ("slab: decouple pointer to barn from kmem_cache_node")
-Signed-off-by: Illia Ostapyshyn <illia@yshyn.com>
-Cc: Florian Fainelli <florian.fainelli@broadcom.com>
-Cc: Hao Li <hao.li@linux.dev>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Kieran Bingham <kbingham@kernel.org>
-Cc: Seongjun Hong <hsj0512@snu.ac.kr>
-Cc: Vlastimil Babka <vbabka@suse.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- scripts/gdb/linux/slab.py |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---- a/scripts/gdb/linux/slab.py~scripts-gdb-slab-update-field-names-of-struct-kmem_cache
-+++ a/scripts/gdb/linux/slab.py
-@@ -196,7 +196,7 @@ def slabtrace(alloc, cache_name):
+--- a/arch/powerpc/include/asm/fixmap.h~include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix-fix
++++ a/arch/powerpc/include/asm/fixmap.h
+@@ -88,6 +88,9 @@ enum fixed_addresses {
+ #define FIXMAP_PAGE_NOCACHE PAGE_KERNEL_NCG
+ #define FIXMAP_PAGE_IO	PAGE_KERNEL_NCG
  
-     if target_cache['flags'] & SLAB_STORE_USER:
-         for i in range(0, nr_node_ids):
--            cache_node = target_cache['node'][i]
-+            cache_node = target_cache['per_node']['node'][i]
-             if cache_node['nr_slabs']['counter'] == 0:
-                 continue
-             process_slab(loc_track, cache_node['partial'], alloc, target_cache)
-@@ -300,7 +300,7 @@ def slabinfo():
-         nr_free = 0
-         nr_slabs = 0
-         for i in range(0, nr_node_ids):
--            cache_node = cache['node'][i]
-+            cache_node = cache['per_node']['node'][i]
-             try:
-                 nr_slabs += cache_node['nr_slabs']['counter']
-                 nr_objs = int(cache_node['total_objects']['counter'])
++static inline void __set_fixmap(enum fixed_addresses idx,
++				phys_addr_t phys, pgprot_t flags);
++
+ #include <asm-generic/fixmap.h>
+ 
+ static inline void __set_fixmap(enum fixed_addresses idx,
 _
-
-Patches currently in -mm which might be from illia@yshyn.com are
-
-scripts-gdb-mm-cast-untyped-symbols-in-x86_page_ops.patch
-scripts-gdb-slab-update-field-names-of-struct-kmem_cache.patch
 
