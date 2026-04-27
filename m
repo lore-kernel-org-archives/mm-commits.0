@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAD9C3E9F8C
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:23:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 035643E8C55
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:23:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777314202; cv=none; b=usBBErlMMG+n6TKvusBpkr9ta4zuatIrTJOJHqmaoqCj6adXh4xJ8nIADCrajFzs/YVYEwLxTcwVPe8CVdy9T1CNH8hKhwCFyysmNMGdNwQWOR7+H0mrYBSAkpd5xrFryRKESjP+5M6NyeA8+WlAw8NL6OaRVOmNKRv5V0w8Ji0=
+	t=1777314205; cv=none; b=lLLaIBtGznWc9rkj0Fa2XSkAdsKFehKf4UFA3fKFHb42eFbDi9/Ix37LjKF3gbGkAE+yQ8alCIvfbaRrYq1tWRw6v0L758RGpwOOi/mcEiIm9lQlQtw98wOjxuIAWQQLO0senIqTXtkgSq1Vj3iiAPwc3XKdHuOSx+xPHd8Cf+A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777314202; c=relaxed/simple;
-	bh=hekgrKYFI3I7wo96elAhjmlCxjuca+1xJbxo/n9M+lY=;
-	h=Date:To:From:Subject:Message-Id; b=hpA9RN9AapjnjKYgKMQCjmt/Xwo4LN/2NXTXgI2lddakDdpdaUcJdpF5D2IjQFqQ6/lIfyKhkBr/mEr5jE+zFOGLhovYzU/jxEslEgqQJdNpzeI3piiX7Bth2H+yJa5074Arfp7KDVAxeDr2vuZ9o3pLtpO3q/YnC349f7hGXXA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SuUa787j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777314205; c=relaxed/simple;
+	bh=t7hDp5fD5z8hHX5vZPZcxQFnoZK8tnw+DZcYfbG5I2U=;
+	h=Date:To:From:Subject:Message-Id; b=PdkodgBuA1SvZLBm8PacI0vdhu9mwp1FglLx/06AqIIQgU9xuiVkLZFMCAj6cezL6q5h9Ph6te7MT5r/YpZqjhIx+Eo/8EEigGVGHWD1gNY0Y8FbsP3WxNXeRwCV/NcTTo33bdyXAhEIxl1ShiauBm9gA+Yk6POV2lgT5EskquY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BmQx2FeU; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SuUa787j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86830C19425;
-	Mon, 27 Apr 2026 18:23:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BmQx2FeU"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE859C19425;
+	Mon, 27 Apr 2026 18:23:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777314202;
-	bh=hekgrKYFI3I7wo96elAhjmlCxjuca+1xJbxo/n9M+lY=;
+	s=korg; t=1777314204;
+	bh=t7hDp5fD5z8hHX5vZPZcxQFnoZK8tnw+DZcYfbG5I2U=;
 	h=Date:To:From:Subject:From;
-	b=SuUa787j4wEt8uU+UDMh26bV8oQ9pSeh74ba1n8Zvbqo4PqMzy6vKuM4pd7hU0+dd
-	 n6z7Gp3ZnuKNU9Ak51XYSY2Q9B7D/Enp6ka+4XGj/o4OobVhSyTpVUVh/GyIA8BGa6
-	 1bj8z2FTVyde2+nFDy05qa4WXXWyWSgpncJqAXGs=
-Date: Mon, 27 Apr 2026 11:23:22 -0700
+	b=BmQx2FeUlyQx8X/GP1m329rrxyWvUvnon1wJO8tEfT8ECR92akI7834ZsJpkUu2aj
+	 HDgVghjeVNjOHyf59T8EfywlKGQYUvDas6rTnrlGIxPgythFAW2Sa0GOfyD9/qIu96
+	 +rSrlNBvG4Nu2DUJmFJkbrvsIjLPOljY+mImLtzg=
+Date: Mon, 27 Apr 2026 11:23:24 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-use-a-smaller-batch-for-reclaim.patch added to mm-new branch
-Message-Id: <20260427182322.86830C19425@smtp.kernel.org>
+Subject: + mm-mglru-dont-abort-scan-immediately-right-after-aging.patch added to mm-new branch
+Message-Id: <20260427182324.BE859C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: use a smaller batch for reclaim
+     Subject: mm/mglru: don't abort scan immediately right after aging
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-use-a-smaller-batch-for-reclaim.patch
+     mm-mglru-dont-abort-scan-immediately-right-after-aging.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-use-a-smaller-batch-for-reclaim.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-dont-abort-scan-immediately-right-after-aging.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,20 +70,54 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru: use a smaller batch for reclaim
-Date: Tue, 28 Apr 2026 02:06:58 +0800
+Subject: mm/mglru: don't abort scan immediately right after aging
+Date: Tue, 28 Apr 2026 02:06:59 +0800
 
-With a fixed number to reclaim calculated at the beginning, making each
-following step smaller should reduce the lock contention and avoid
-over-aggressive reclaim of folios, as it will abort earlier when the
-number of folios to be reclaimed is reached.
+Right now, if eviction triggers aging, the reclaimer will abort.  This is
+not the optimal strategy for several reasons.
 
-Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-7-02fabb92dc43@tencent.com
+Aborting the reclaim early wastes a reclaim cycle when under pressure, and
+for concurrent reclaim, if the LRU is under aging, all concurrent
+reclaimers might fail.  And if the age has just finished, new cold folios
+exposed by the aging are not reclaimed until the next reclaim iteration.
+
+What's more, the current aging trigger is quite lenient, having 3 gens
+with a reclaim priority lower than default will trigger aging, and blocks
+reclaiming from one memcg.  This wastes reclaim retry cycles easily.  And
+in the worst case, if the reclaim is making slower progress and all
+following attempts fail due to being blocked by aging, it triggers
+unexpected early OOM.
+
+And if a lruvec requires aging, it doesn't mean it's hot.  Instead, the
+lruvec could be idle for quite a while, and hence it might contain lots of
+cold folios to be reclaimed.
+
+While it's helpful to rotate memcg LRU after aging for global reclaim, as
+global reclaim fairness is coupled with the rotation in shrink_many, memcg
+fairness is instead handled by cgroup iteration in shrink_node_memcgs. 
+So, for memcg level pressure, this abort is not the key part for keeping
+the fairness.  And in most cases, there is no need to age, and fairness
+must be achieved by upper-level reclaim control.
+
+So instead, just keep the scanning going unless one whole batch of folios
+failed to be isolated or enough folios have been scanned, which is
+triggered by evict_folios returning 0.  And only abort for global reclaim
+after one batch, so when there are fewer memcgs, progress is still made,
+and the fairness mechanism described above still works fine.
+
+And in most cases, the one more batch attempt for global reclaim might
+just be enough to satisfy what the reclaimer needs, hence improving global
+reclaim performance by reducing reclaim retry cycles.
+
+Rotation is still there after the reclaim is done, which still follows the
+comment in mmzone.h.  And fairness still looking good.
+
+Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-8-02fabb92dc43@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: Chen Ridong <chenridong@huaweicloud.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Reviewed-by: Barry Song <baohua@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Chris Li <chrisl@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: David Stevens <stevensd@google.com>
@@ -102,20 +136,44 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-use-a-smaller-batch-for-reclaim
+--- a/mm/vmscan.c~mm-mglru-dont-abort-scan-immediately-right-after-aging
 +++ a/mm/vmscan.c
-@@ -5007,7 +5007,7 @@ static bool try_to_shrink_lruvec(struct
- 			break;
+@@ -4985,7 +4985,7 @@ static bool should_abort_scan(struct lru
+  */
+ static bool try_to_shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
+ {
+-	bool need_rotate = false;
++	bool need_rotate = false, should_age = false;
+ 	long nr_batch, nr_to_scan;
+ 	int swappiness = get_swappiness(lruvec, sc);
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+@@ -5003,8 +5003,7 @@ static bool try_to_shrink_lruvec(struct
+ 		if (should_run_aging(lruvec, max_seq, sc, swappiness)) {
+ 			if (try_to_inc_max_seq(lruvec, max_seq, swappiness, false))
+ 				need_rotate = true;
+-			/* stop scanning as it's low on cold folios */
+-			break;
++			should_age = true;
  		}
  
--		nr_batch = min(nr_to_scan, MAX_LRU_BATCH);
-+		nr_batch = min(nr_to_scan, MIN_LRU_BATCH);
- 		delta = evict_folios(nr_batch, lruvec, sc, swappiness);
- 		if (!delta)
+ 		nr_batch = min(nr_to_scan, MIN_LRU_BATCH);
+@@ -5015,6 +5014,13 @@ static bool try_to_shrink_lruvec(struct
+ 		if (should_abort_scan(lruvec, sc))
  			break;
+ 
++		/*
++		 * Root reclaim needs rotation when low on cold folio for better
++		 * fairness. Cgroup reclaim gets fairness from the iterator.
++		 */
++		if (root_reclaim(sc) && should_age)
++			break;
++
+ 		nr_to_scan -= delta;
+ 		cond_resched();
+ 	}
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
