@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB1983E929C
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:23:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C86F733123F
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 18:23:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777314211; cv=none; b=qAIZ8mmn7pIkt2xkTWdl60nLsWj7IEfEdCHXbEJ7ETwtTgOK8Iztu/6413cwXgHjTfP59hgJohDuPzTPIODGaUKAzUFZj3VPSWCN2PJXc7LoVA3orkbdYMdflwnwBLk/XFx8+pkYNCpxlWjukXNlXFxuWsbFfIsAoUraVl6yN40=
+	t=1777314213; cv=none; b=G4lHxUlOMRLbDp1Lg+QyNVaba+s+BNG9T4eCSIyL7OMW00zmVIA6auyh+APTpOsUYjQLYf5fIkIczZlUYpkNgExYEH1g9UGBV7+04kNnq+2etTvwnfWeAcThnFfjcN0ZkoZnpjnx4isXcM2oU9UGaD3syF32EA+FA483MZ5TlxU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777314211; c=relaxed/simple;
-	bh=s9uIDFKxRwE8EPL4gnbGhwLSaMkzz0FY7t4AI5uqXcU=;
-	h=Date:To:From:Subject:Message-Id; b=bYLl8gQFtOREScvyOjdaKrwbyWRy7qbXdYz7RwnWiYIEq5uoOlwvMINWCKbDjEUR7Wc8YFKmVwy1d6K1yiUz5FmXUSwjRU2JQ3+RnZO2bnVTLAgDEZtCcssa7Dass71BCsHw2K8d2+1sJj6N9Gq1DhEynAAn9A6U07enDZZccsA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NVw2nllE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777314213; c=relaxed/simple;
+	bh=kTooc3lMNWwJdb178pJ7+pxFqZjx6IxOGdT4J9K/3pg=;
+	h=Date:To:From:Subject:Message-Id; b=Yo06l/1PqO0V1+Fl+SzkgKnDLoAsTmek8usFvHJJegQvBzaLl5F8NdPArir7qr1fMSW4A3WLdadnNnCEe6vBqUbLYpL9C3dD8u6WR6HVZg7lhnUaJh2MjBM4MnLGIe5oU4AvWEIh7lvB0Sn3I0NlVnT9mRPXbNCgDUl0JutJJhw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Q7+wde02; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NVw2nllE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67588C19425;
-	Mon, 27 Apr 2026 18:23:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Q7+wde02"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1735C19425;
+	Mon, 27 Apr 2026 18:23:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777314211;
-	bh=s9uIDFKxRwE8EPL4gnbGhwLSaMkzz0FY7t4AI5uqXcU=;
+	s=korg; t=1777314213;
+	bh=kTooc3lMNWwJdb178pJ7+pxFqZjx6IxOGdT4J9K/3pg=;
 	h=Date:To:From:Subject:From;
-	b=NVw2nllEdoI+dndA+4h5FE8qaTkgwiOOtjYY2M5qhCoAyJv7NdpoH4nr34cTobYcp
-	 IDOv/DWEzA+Vu2+Zffr2Ekqa8+M83NwXnB1Tg0wtJR7uNiSx8rSyPJ9nWzoKS8fyEQ
-	 yHuzzL0g69d6yRx/JsRcVy0UUD+vbAJb9Zglnp60=
-Date: Mon, 27 Apr 2026 11:23:30 -0700
+	b=Q7+wde02c9BZqwKLchek8WIXKEMNplzxg6fk/R4OPMCxIGrDoLs7SY1HbdCkf5Mfp
+	 26HH1GACePLwk95gyfl0zMUoJORMLBXT9vdCnQ8zCPkclSkUhPwLyp6+ADQnwIFDhO
+	 AbdyQEn/ycpbrgbn/zLGZmAsMSH/9vtmtYasA5Yg=
+Date: Mon, 27 Apr 2026 11:23:33 -0700
 To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-simplify-and-improve-dirty-writeback-handling.patch added to mm-new branch
-Message-Id: <20260427182331.67588C19425@smtp.kernel.org>
+Subject: + mm-mglru-remove-no-longer-used-reclaim-argument-for-folio-protection.patch added to mm-new branch
+Message-Id: <20260427182333.A1735C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: simplify and improve dirty writeback handling
+     Subject: mm/mglru: remove no longer used reclaim argument for folio protection
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mglru-simplify-and-improve-dirty-writeback-handling.patch
+     mm-mglru-remove-no-longer-used-reclaim-argument-for-folio-protection.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-simplify-and-improve-dirty-writeback-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-remove-no-longer-used-reclaim-argument-for-folio-protection.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,52 +70,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Kairui Song <kasong@tencent.com>
-Subject: mm/mglru: simplify and improve dirty writeback handling
-Date: Tue, 28 Apr 2026 02:07:02 +0800
+Subject: mm/mglru: remove no longer used reclaim argument for folio protection
+Date: Tue, 28 Apr 2026 02:07:03 +0800
 
-Right now the flusher wakeup mechanism for MGLRU is less responsive and
-unlikely to trigger compared to classical LRU.  The classical LRU wakes
-the flusher if one batch of folios passed to shrink_folio_list is
-unevictable due to under writeback.  MGLRU instead check and handle this
-after the whole reclaim loop is done.
+Now dirty reclaim folios are handled after isolation, not before, since
+dirty reactivation must take the folio off LRU first, and that helps to
+unify the dirty handling logic.
 
-We previously even saw OOM problems due to passive flusher, which were
-fixed but still not perfect [1].
+So this argument is no longer needed.  Just remove it.
 
-We have just unified the dirty folio counting and activation routine, now
-just move the dirty flush into the loop right after shrink_folio_list. 
-This improves the performance a lot for workloads involving heavy
-writeback and prepares for throttling too.
-
-Test with YCSB workloadb showed a major performance improvement:
-
-Before this series:
-Throughput(ops/sec): 62485.02962831822
-AverageLatency(us): 500.9746963330107
-pgpgin 159347462
-workingset_refault_file 34522071
-
-After this commit:
-Throughput(ops/sec): 80857.08510208207
-AverageLatency(us): 386.653262968934
-pgpgin 112233121
-workingset_refault_file 19516246
-
-The performance is a lot better with significantly lower refault.  We also
-observed similar or higher performance gain for other real-world
-workloads.
-
-We were concerned that the dirty flush could cause more wear for SSD: that
-should not be the problem here, since the wakeup condition is when the
-dirty folios have been pushed to the tail of LRU, which indicates that
-memory pressure is so high that writeback is blocking the workload
-already.
-
-Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-11-02fabb92dc43@tencent.com
+Link: https://lore.kernel.org/20260428-mglru-reclaim-v7-12-02fabb92dc43@tencent.com
 Signed-off-by: Kairui Song <kasong@tencent.com>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Link: https://lore.kernel.org/linux-mm/20241026115714.1437435-1-jingxiangzeng.cas@gmail.com/ [1]
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chen Ridong <chenridong@huaweicloud.com>
 Cc: Chris Li <chrisl@kernel.org>
@@ -136,78 +103,57 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   41 ++++++++++++++++-------------------------
- 1 file changed, 16 insertions(+), 25 deletions(-)
+ mm/vmscan.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
---- a/mm/vmscan.c~mm-mglru-simplify-and-improve-dirty-writeback-handling
+--- a/mm/vmscan.c~mm-mglru-remove-no-longer-used-reclaim-argument-for-folio-protection
 +++ a/mm/vmscan.c
-@@ -4724,8 +4724,6 @@ static int scan_folios(unsigned long nr_
- 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan,
- 				scanned, skipped, isolated,
- 				type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
--	if (type == LRU_GEN_FILE)
--		sc->nr.file_taken += isolated;
- 
- 	*isolatedp = isolated;
- 	return scanned;
-@@ -4838,12 +4836,27 @@ static int evict_folios(unsigned long nr
- 		return scanned;
- retry:
- 	reclaimed = shrink_folio_list(&list, pgdat, sc, &stat, false, memcg);
--	sc->nr.unqueued_dirty += stat.nr_unqueued_dirty;
- 	sc->nr_reclaimed += reclaimed;
- 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
- 			type_scanned, reclaimed, &stat, sc->priority,
- 			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
- 
-+	/*
-+	 * If too many file cache in the coldest generation can't be evicted
-+	 * due to being dirty, wake up the flusher.
-+	 */
-+	if (stat.nr_unqueued_dirty == isolated) {
-+		wakeup_flusher_threads(WB_REASON_VMSCAN);
-+
-+		/*
-+		 * For cgroupv1 dirty throttling is achieved by waking up
-+		 * the kernel flusher here and later waiting on folios
-+		 * which are in writeback to finish (see shrink_folio_list()).
-+		 */
-+		if (!writeback_throttling_sane(sc))
-+			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
-+	}
-+
- 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
- 		DEFINE_MIN_SEQ(lruvec);
- 
-@@ -5000,28 +5013,6 @@ static bool try_to_shrink_lruvec(struct
- 		cond_resched();
- 	}
- 
--	/*
--	 * If too many file cache in the coldest generation can't be evicted
--	 * due to being dirty, wake up the flusher.
--	 */
--	if (sc->nr.unqueued_dirty && sc->nr.unqueued_dirty == sc->nr.file_taken) {
--		struct pglist_data *pgdat = lruvec_pgdat(lruvec);
--
--		wakeup_flusher_threads(WB_REASON_VMSCAN);
--
--		/*
--		 * For cgroupv1 dirty throttling is achieved by waking up
--		 * the kernel flusher here and later waiting on folios
--		 * which are in writeback to finish (see shrink_folio_list()).
--		 *
--		 * Flusher may not be able to issue writeback quickly
--		 * enough for cgroupv1 writeback throttling to work
--		 * on a large system.
--		 */
--		if (!writeback_throttling_sane(sc))
--			reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
--	}
--
- 	return need_rotate;
+@@ -3220,7 +3220,7 @@ static int folio_update_gen(struct folio
  }
  
+ /* protect pages accessed multiple times through file descriptors */
+-static int folio_inc_gen(struct lruvec *lruvec, struct folio *folio, bool reclaiming)
++static int folio_inc_gen(struct lruvec *lruvec, struct folio *folio)
+ {
+ 	int type = folio_is_file_lru(folio);
+ 	struct lru_gen_folio *lrugen = &lruvec->lrugen;
+@@ -3239,9 +3239,6 @@ static int folio_inc_gen(struct lruvec *
+ 
+ 		new_flags = old_flags & ~(LRU_GEN_MASK | LRU_REFS_FLAGS);
+ 		new_flags |= (new_gen + 1UL) << LRU_GEN_PGOFF;
+-		/* for folio_end_writeback() */
+-		if (reclaiming)
+-			new_flags |= BIT(PG_reclaim);
+ 	} while (!try_cmpxchg(&folio->flags.f, &old_flags, new_flags));
+ 
+ 	lru_gen_update_size(lruvec, folio, old_gen, new_gen);
+@@ -3855,7 +3852,7 @@ static bool inc_min_seq(struct lruvec *l
+ 			VM_WARN_ON_ONCE_FOLIO(folio_is_file_lru(folio) != type, folio);
+ 			VM_WARN_ON_ONCE_FOLIO(folio_zonenum(folio) != zone, folio);
+ 
+-			new_gen = folio_inc_gen(lruvec, folio, false);
++			new_gen = folio_inc_gen(lruvec, folio);
+ 			list_move_tail(&folio->lru, &lrugen->folios[new_gen][type][zone]);
+ 
+ 			/* don't count the workingset being lazily promoted */
+@@ -4607,7 +4604,7 @@ static bool sort_folio(struct lruvec *lr
+ 
+ 	/* protected */
+ 	if (tier > tier_idx || refs + workingset == BIT(LRU_REFS_WIDTH) + 1) {
+-		gen = folio_inc_gen(lruvec, folio, false);
++		gen = folio_inc_gen(lruvec, folio);
+ 		list_move(&folio->lru, &lrugen->folios[gen][type][zone]);
+ 
+ 		/* don't count the workingset being lazily promoted */
+@@ -4622,7 +4619,7 @@ static bool sort_folio(struct lruvec *lr
+ 
+ 	/* ineligible */
+ 	if (zone > sc->reclaim_idx) {
+-		gen = folio_inc_gen(lruvec, folio, false);
++		gen = folio_inc_gen(lruvec, folio);
+ 		list_move_tail(&folio->lru, &lrugen->folios[gen][type][zone]);
+ 		return true;
+ 	}
 _
 
 Patches currently in -mm which might be from kasong@tencent.com are
