@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9062E315D29
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 15:19:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF52530EF8B
+	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 15:19:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777303184; cv=none; b=q5Nt/nfukJ1TUS1ZVPd+kck+DVXHXcweHpJHPt3/uZZTfl/eGNcxMyA/nvZdbF48CaKVVHanap5wDPSxr40vIc6lN4VXC0f71eFYw3BbS5UeDQGEpH6SzOGP880fOnoCJKHZRgh/4UrrM+oW6eWNctWoJKqrMuvIWxt1nFAkgC4=
+	t=1777303186; cv=none; b=nxyHY5UlCA2+aeEWziwNWrJXrp6H9LrETl38fQlwIrHsNk+xFXLjlEuz0opEFk0AIN4x0lwcZM+/wPAMKqcGZeurOimkk6WRYz8cWprxi317yVlp60eN49h3rmNAjte6ctujEiRVONrFxvpAYtAPcqlctGmUk8NwDzJ18aEejyY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777303184; c=relaxed/simple;
-	bh=Xj4NlSEd5VBInXbFAUUxB3Bg+RAisJy08T1Qz89dnN8=;
-	h=Date:To:From:Subject:Message-Id; b=oeYwP0RjVX0r+AmI6WB0FxpQ16tY+KMxn4hViJQG0hm422tqh0vGmpQ9nZAx0LpmKe0PgEJyMlLwR93nq9ZPnL+UCSG41SoUxnLm9lE8eAS5ggGWuolsEYI8Qr4SnwQ4cbcCgA2f5ZQJgncgNbvMswezRso5ColO8h/C4tFqlq8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L+Bfse0j; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777303186; c=relaxed/simple;
+	bh=PkfmfKxax1fgoNeu6v0lNjRTK4jLkfYsDs8KTv5vDXA=;
+	h=Date:To:From:Subject:Message-Id; b=p1T15RBfIU2ogjwVxaAYKq1C13Hvzb43sbuMSxIBMm47pWu/dSQozL/fCw0dlVRGh0fH187r1MDx963ejOFqz7J5Jsj6whGE//EUzx4YsuD9+vdZPyheQ8TY9tLvrXz0JYPUzX4kIbtvT5LtYtuX1CAFtsQwATnDyf1ZUxJm3wc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kdfcMqAF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L+Bfse0j"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 504EFC2BCB5;
-	Mon, 27 Apr 2026 15:19:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kdfcMqAF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A927C2BCB4;
+	Mon, 27 Apr 2026 15:19:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777303184;
-	bh=Xj4NlSEd5VBInXbFAUUxB3Bg+RAisJy08T1Qz89dnN8=;
+	s=korg; t=1777303186;
+	bh=PkfmfKxax1fgoNeu6v0lNjRTK4jLkfYsDs8KTv5vDXA=;
 	h=Date:To:From:Subject:From;
-	b=L+Bfse0jK6lYsNrFs0znIVyJk6JBWr2XXWYzK/GkulflHbUv1dw1HzcRuvVwW1ps/
-	 LYwFZ0KLM+AdrZmbIO6kTN9bJZ9M4AAa4VYtURkeGoLxP8JgLvwVfCF4NEEmdxCAw7
-	 JWS4eVRlRE1v+mdYY4MPcTF/v2/geNq9CSFMkprk=
-Date: Mon, 27 Apr 2026 08:19:43 -0700
+	b=kdfcMqAF1nbtAj07XBrPgYWRuaQ3Yh0DpZuOaU0aeUDrPsselcpH+uLJvHMpz5dfq
+	 i/5BTGOSK0Qtl45NMj3M23VsMT/n3hRKPKcObsr1wVJ9VU5d8KdR4sC/tNRbro/XCX
+	 wV4FL1nR6SoyBB1mj4se+NmR0WGDzliGey5Ah2PI=
+Date: Mon, 27 Apr 2026 08:19:45 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-update-for-context-pause-resume-feature.patch added to mm-new branch
-Message-Id: <20260427151944.504EFC2BCB5@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-update-for-pause-file.patch added to mm-new branch
+Message-Id: <20260427151946.6A927C2BCB4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: update for context pause/resume feature
+     Subject: Docs/admin-guide/mm/damon/usage: update for pause file
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-update-for-context-pause-resume-feature.patch
+     docs-admin-guide-mm-damon-usage-update-for-pause-file.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-context-pause-resume-feature.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-pause-file.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: update for context pause/resume feature
-Date: Mon, 27 Apr 2026 08:12:22 -0700
+Subject: Docs/admin-guide/mm/damon/usage: update for pause file
+Date: Mon, 27 Apr 2026 08:12:23 -0700
 
-Update DAMON design document for the context execution pause/resume
+Update DAMON usage document for the DAMON context execution pause/resume
 feature.
 
-Link: https://lore.kernel.org/20260427151231.113429-4-sj@kernel.org
+Link: https://lore.kernel.org/20260427151231.113429-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -91,25 +91,44 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    7 +++++++
- 1 file changed, 7 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-context-pause-resume-feature
-+++ a/Documentation/mm/damon/design.rst
-@@ -19,6 +19,13 @@ types of monitoring.
- To know how user-space can do the configurations and start/stop DAMON, refer to
- :ref:`DAMON sysfs interface <sysfs_interface>` documentation.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-pause-file
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -66,7 +66,8 @@ comma (",").
+     │ :ref:`kdamonds <sysfs_kdamonds>`/nr_kdamonds
+     │ │ :ref:`0 <sysfs_kdamond>`/state,pid,refresh_ms
+     │ │ │ :ref:`contexts <sysfs_contexts>`/nr_contexts
+-    │ │ │ │ :ref:`0 <sysfs_context>`/avail_operations,operations,addr_unit
++    │ │ │ │ :ref:`0 <sysfs_context>`/avail_operations,operations,addr_unit,
++    │ │ │ │   pause
+     │ │ │ │ │ :ref:`monitoring_attrs <sysfs_monitoring_attrs>`/
+     │ │ │ │ │ │ intervals/sample_us,aggr_us,update_us
+     │ │ │ │ │ │ │ intervals_goal/access_bp,aggrs,min_sample_us,max_sample_us
+@@ -194,9 +195,9 @@ details).  At the moment, only one conte
+ contexts/<N>/
+ -------------
  
-+Users can also request each context execution to be paused and resumed.  When
-+it is paused, the kdamond does nothing other than applying online parameter
-+update.
-+
-+To know how user-space can pause/resume each context, refer to :ref:`DAMON
-+sysfs context <sysfs_context>` usage documentation.
-+
+-In each context directory, three files (``avail_operations``, ``operations``
+-and ``addr_unit``) and three directories (``monitoring_attrs``, ``targets``,
+-and ``schemes``) exist.
++In each context directory, four files (``avail_operations``, ``operations``,
++``addr_unit`` and ``pause``) and three directories (``monitoring_attrs``,
++``targets``, and ``schemes``) exist.
  
- Overall Architecture
- ====================
+ DAMON supports multiple types of :ref:`monitoring operations
+ <damon_design_configurable_operations_set>`, including those for virtual address
+@@ -214,6 +215,9 @@ reading from the ``operations`` file.
+ ``addr_unit`` file is for setting and getting the :ref:`address unit
+ <damon_design_addr_unit>` parameter of the operations set.
+ 
++``pause`` file is for setting and getting the :ref:`pause request
++<damon_design_execution_model_and_data_structures>` parameter of the context.
++
+ .. _sysfs_monitoring_attrs:
+ 
+ contexts/<N>/monitoring_attrs/
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
