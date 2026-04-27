@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 585213B9DAD
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 12:55:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B52FF3BA24F;
+	Mon, 27 Apr 2026 12:55:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777294507; cv=none; b=J6t1wYxE4FKIBSJpwI0lXVjAp9SvVHFThOffv3nVQtoD4XOvypwfku84bmbW4UUO1Nn4r2JVXLrbrCFXCLpgDR7mHnaj/x79b9f5ZXwmBLwGCHT6uYYmCgrgF2m+i1KBUJaM1RxgOjX8wcC6BofiO3I4ickTG7aoFSJJ5+TVqNI=
+	t=1777294509; cv=none; b=sjeCGOH2nbWUZlEkYQOZkejOTDHRrLoh1q9hovXzySfEnN2VwkDFTrJPqv+Ty5IKIhMve9VVj7M8sAHzVgENUDDPxVhlnhjFXObBQp2M88eCw4jAbasQZj8+ukrQTGLhJoCDTw7hDTUPQ44oUT7KIHMPJyS1sZfYrAPr7+diUpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777294507; c=relaxed/simple;
-	bh=v+QlGJDaIzwuqi5zhlRFs8ZWiMhRVzsgSjVNC1Vp810=;
-	h=Date:To:From:Subject:Message-Id; b=CTseVy78z4zmdm8056q1sizPfCiR2s/x3aY0+X7TGwY3rwFJZogu6QhTxbJb75Hmuuoq3H33tUUb1+q3Wy8g4sLqWboGValdVOZjhEPZ/UV27qzvihcthbeeHHiCjDUNjzcvdbVr/DOflagO6ZpxU33kL8G8FZYXMXb/60Jf0Lg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=E2SjcsOH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777294509; c=relaxed/simple;
+	bh=88rTZMFUMABbnbOzK9r1HWPvrSruyPxV60HW8XCikAc=;
+	h=Date:To:From:Subject:Message-Id; b=jvoxxqkScDquWk3TZ3B5oUUwwmnx1xnoFPM+eylgMHrR8OYL4BUzdSd8SOssXzqBifp4P06s9ajoMDXeInKZ4H9zWcXl0qWYHwVMv2E7hXvUXB2cyf/3cyFBOKe5ycFXWfgRKmWWToP2fg5tABk6Bn3a8FlMoAZEs61uHQl3KVo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GV/GvElz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="E2SjcsOH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AEFBC19425;
-	Mon, 27 Apr 2026 12:55:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GV/GvElz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3830AC19425;
+	Mon, 27 Apr 2026 12:55:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777294507;
-	bh=v+QlGJDaIzwuqi5zhlRFs8ZWiMhRVzsgSjVNC1Vp810=;
+	s=korg; t=1777294509;
+	bh=88rTZMFUMABbnbOzK9r1HWPvrSruyPxV60HW8XCikAc=;
 	h=Date:To:From:Subject:From;
-	b=E2SjcsOH+cJAKL7ZTeZb4+tKRFoO43Vd4T9de8+8RgrZf6DwvLORqNX8V4QbFy1MW
-	 PFDAPnPs0jRqKlnSZJnze3QHRaIxOCOpyNIJyxHK24p5QSupmucTGG5HU6rz29rOlh
-	 Ae7gWF3sFtyBDVD5JVGFVs/8XZ0CRCZYhXoVqcZU=
-Date: Mon, 27 Apr 2026 05:55:06 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,sj@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,david@kernel.org,pfalcato@suse.de,akpm@linux-foundation.org
+	b=GV/GvElzaeL8k58599PZJGK9KcaNhlY7UWvR64+zQniYrL02fsKJbQez69b2z1m8u
+	 ftXNr6m9UIVi95qDz68iWFqhP05mHb0laG17ViA0FzS9FV8EKwrHUufAHlOXoj/OHU
+	 hTRPUkNbtlqiq0qnHXZBxcVVhYMDahrHuf8Vhvo0=
+Date: Mon, 27 Apr 2026 05:55:08 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-fix-regex-pattern-in-core-mm-category.patch removed from -mm tree
-Message-Id: <20260427125507.1AEFBC19425@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-hugetlb_cma-round-up-per_node-before-logging-it.patch removed from -mm tree
+Message-Id: <20260427125509.3830AC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,86 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: fix regex pattern in CORE MM category
+     Subject: mm/hugetlb_cma: round up per_node before logging it
 has been removed from the -mm tree.  Its filename was
-     maintainers-fix-regex-pattern-in-core-mm-category.patch
+     mm-hugetlb_cma-round-up-per_node-before-logging-it.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Pedro Falcato <pfalcato@suse.de>
-Subject: MAINTAINERS: fix regex pattern in CORE MM category
-Date: Wed, 22 Apr 2026 13:37:26 +0100
+From: Sang-Heon Jeon <ekffu200098@gmail.com>
+Subject: mm/hugetlb_cma: round up per_node before logging it
+Date: Wed, 22 Apr 2026 23:33:53 +0900
 
-The pattern "include/linux/page[-_]*" matches every file that starts with
-"page", because it's a regex and not a glob (so it has the meaning of
-include/linux/page + match [-_] 0+ times).
+When the user requests a total hugetlb CMA size without per-node
+specification, hugetlb_cma_reserve() computes per_node from
+hugetlb_cma_size and the number of nodes that have memory
 
-Fix it up into a more regex-correct expression.  Doing so reduces CC's
-drastically in patches that touch pagemap.h (which is maintained as part
-of PAGE CACHE).
+        per_node = DIV_ROUND_UP(hugetlb_cma_size,
+                                nodes_weight(hugetlb_bootmem_nodes));
 
-As a side-effect, move linux/pageblock-flags.h explicitly under PAGE
-ALLOCATOR.
+The reservation loop later computes
 
-Link: https://lore.kernel.org/linux-mm/20260422005608.342028-1-fmayle@google.com/
-Link: https://lore.kernel.org/20260422123726.517220-1-pfalcato@suse.de
-Signed-off-by: Pedro Falcato <pfalcato@suse.de>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Liam Howlett <liam.howlett@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+        size = round_up(min(per_node, hugetlb_cma_size - reserved),
+                          PAGE_SIZE << order);
+
+So the actually reserved per_node size is multiple of (PAGE_SIZE <<
+order), but the logged per_node is not rounded up, so it may be smaller
+than the actual reserved size.
+
+For example, as the existing comment describes, if a 3 GB area is
+requested on a machine with 4 NUMA nodes that have memory, 1 GB is
+allocated on the first three nodes, but the printed log is
+
+        hugetlb_cma: reserve 3072 MiB, up to 768 MiB per node
+
+Round per_node up to (PAGE_SIZE << order) before logging so that the
+printed log always matches the actual reserved size.  No functional change
+to the actual reservation size, as the following case analysis shows
+
+1. remaining (hugetlb_cma_size - reserved) >= rounded per_node
+ - AS-IS: min() picks unrounded per_node;
+    round_up() returns rounded per_node
+ - TO-BE: min() picks rounded per_node;
+    round_up() returns rounded per_node (no-op)
+2. remaining < unrounded per_node
+ - AS-IS: min() picks remaining;
+    round_up() returns round_up(remaining)
+ - TO-BE: min() picks remaining;
+    round_up() returns round_up(remaining)
+3. unrounded per_node <= remaining < rounded per_node
+ - AS-IS: min() picks unrounded per_node;
+    round_up() returns rounded per_node
+ - TO-BE: min() picks remaining;
+    round_up() returns round_up(remaining) equals rounded per_node
+
+Link: https://lore.kernel.org/20260422143353.852257-1-ekffu200098@gmail.com
+Fixes: cf11e85fc08c ("mm: hugetlb: optionally allocate gigantic hugepages using cma") # 5.7
+Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/hugetlb_cma.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/MAINTAINERS~maintainers-fix-regex-pattern-in-core-mm-category
-+++ a/MAINTAINERS
-@@ -16805,7 +16805,7 @@ F:	mm/sparse.c
- F:	mm/util.c
- F:	mm/vmpressure.c
- F:	mm/vmstat.c
--N:	include/linux/page[-_]*
-+N:	include\/linux\/page[-_][a-zA-Z]*
- 
- MEMORY MANAGEMENT - EXECMEM
- M:	Andrew Morton <akpm@linux-foundation.org>
-@@ -16962,6 +16962,7 @@ S:	Maintained
- F:	include/linux/compaction.h
- F:	include/linux/gfp.h
- F:	include/linux/page-isolation.h
-+F:	include/linux/pageblock-flags.h
- F:	mm/compaction.c
- F:	mm/debug_page_alloc.c
- F:	mm/debug_page_ref.c
+--- a/mm/hugetlb_cma.c~mm-hugetlb_cma-round-up-per_node-before-logging-it
++++ a/mm/hugetlb_cma.c
+@@ -204,6 +204,7 @@ void __init hugetlb_cma_reserve(void)
+ 		 */
+ 		per_node = DIV_ROUND_UP(hugetlb_cma_size,
+ 					nodes_weight(hugetlb_bootmem_nodes));
++		per_node = round_up(per_node, PAGE_SIZE << order);
+ 		pr_info("hugetlb_cma: reserve %lu MiB, up to %lu MiB per node\n",
+ 			hugetlb_cma_size / SZ_1M, per_node / SZ_1M);
+ 	}
 _
 
-Patches currently in -mm which might be from pfalcato@suse.de are
+Patches currently in -mm which might be from ekffu200098@gmail.com are
 
+mm-sparse-remove-unnecessary-null-check-before-allocating-mem_section.patch
 
