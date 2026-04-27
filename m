@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACF743BA24E
-	for <mm-commits@vger.kernel.org>; Mon, 27 Apr 2026 12:55:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E79853BA239;
+	Mon, 27 Apr 2026 12:55:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777294514; cv=none; b=EVR8apeKLYvEDUOzoRlFfXw87Or5YKm7vIRzScIjy8hP34QQ7cFc1lxHbrm8xoDMJLednkZh/BlHupxgw1aFGNkv8nMfaKxnVLU9EU+UwnQ1+zUZuZWHT5LEcaBDRhq7EHKcQD93N6RUn1ewDjmGXa70MnNsAsVbUa9wtpgmszI=
+	t=1777294517; cv=none; b=GsgC1tMY5zu4kp3tTEXJoJp98LU1ZyoOU4ZiNCqhZZdcz6Mhmx8Kcp0rKrVmMLJKy95ypga9U9lKjxTB8k2ryzYKIGchv28/T8Kqp2OpzUup4EnJrvIE3hhFB0eR3icxllpHZvUXOABq/B1HnpgkTuFBjYcNcff/BVhkeMKe5f0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777294514; c=relaxed/simple;
-	bh=0mXIh/JFwazY0/lHCShjP1l7CBfRuoGGlJKXe4IT7NQ=;
-	h=Date:To:From:Subject:Message-Id; b=Cu18UbxstRqj+gxN3/8MFWxlm9TUTeXMNA9cXt+PL7ddEBGFtAi/dQmXRZuougtqh3WCeh7ukoyLd2e9O+l1C9Rro93yn1sUE0jIBJ6G5ZnyxpsYkPZILImbXhvDnNNhPk7YQagOIb9Lzqfw8Je0twhQfZCV9ArfFmjCnImsSbA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q5liSWDO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777294517; c=relaxed/simple;
+	bh=jfm1vylwLQKdCt6oL4txjLvqFkOb0ycHxkGCvgPC8Pc=;
+	h=Date:To:From:Subject:Message-Id; b=KAHtzWxPYfiKzWPtWIgs0l0p+qhEg1o5igY9XENgEBm5F7H5jai6Q1Y8IJcHkx8bA0DlhjLqCwnwJGZ4udHV3gtBUf1nyR6IYvdSr6GeEfEyUvUMbQKGCC9z+6ensZ61nl97rRymFJfcZrOS0ESw1r63B3XEwXcpk0L4ydcYTVg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IMJvlxav; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q5liSWDO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D2E7C2BCB4;
-	Mon, 27 Apr 2026 12:55:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IMJvlxav"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B022C19425;
+	Mon, 27 Apr 2026 12:55:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777294514;
-	bh=0mXIh/JFwazY0/lHCShjP1l7CBfRuoGGlJKXe4IT7NQ=;
+	s=korg; t=1777294516;
+	bh=jfm1vylwLQKdCt6oL4txjLvqFkOb0ycHxkGCvgPC8Pc=;
 	h=Date:To:From:Subject:From;
-	b=q5liSWDOguviISgtKurgOe7dVFb8sYWufWcBj2O/399kPsq894YJOEufrVEGbzMKe
-	 jiGSL7GPylkZmbLjS+TcJb2eZF2UPuPlKKCq07BA2J3V2AtTnszt4AnDQ5SkXJBldL
-	 eaVwZyrkDPtyQ/ZioHh56FFTTDu9lRaZ/1C1T0B4=
-Date: Mon, 27 Apr 2026 05:55:13 -0700
-To: mm-commits@vger.kernel.org,sln@onemain.com,pvorel@suse.cz,martink@posteo.de,liwang@redhat.com,kuba@kernel.org,chrubis@suse.cz,arnd@arndb.de,li.wang@linux.dev,akpm@linux-foundation.org
+	b=IMJvlxavfLS1QyY9fupuohyRBjSbHZxr/LzN0D3JlgUYwEQjFtetNTESA03ObEvPb
+	 Ui2rEoH87U4xYyylUMAupST93A1NWrVk0J3oT/7R6ksuAPhJJd2EUNV4dQZMLrEsz4
+	 8KuRPhWhMh1j+utdavC+BD3M8XXIcQdoeBR7dVCM=
+Date: Mon, 27 Apr 2026 05:55:15 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,qjx1298677004@gmail.com,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-update-li-wangs-email-address.patch removed from -mm tree
-Message-Id: <20260427125514.5D2E7C2BCB4@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-schemes-protect-memcg_path-kfree-with-damon_sysfs_lock.patch removed from -mm tree
+Message-Id: <20260427125516.7B022C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,69 +35,89 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: update Li Wang's email address
+     Subject: mm/damon/sysfs-schemes: protect memcg_path kfree() with damon_sysfs_lock
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-li-wangs-email-address.patch
+     mm-damon-sysfs-schemes-protect-memcg_path-kfree-with-damon_sysfs_lock.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Li Wang <li.wang@linux.dev>
-Subject: MAINTAINERS: update Li Wang's email address
-Date: Thu, 23 Apr 2026 21:26:49 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: protect memcg_path kfree() with damon_sysfs_lock
+Date: Thu, 23 Apr 2026 08:02:51 -0700
 
-Update my email address as my work email account is no longer in use. 
-Also update .mailmap.
+Patch series "mm/damon/sysfs-schemes: fix use-after-free for [memcg_]path".
 
-Link: https://lore.kernel.org/20260423132649.31126-1-li.wang@linux.dev
-Signed-off-by: Li Wang <li.wang@linux.dev>
-Reviewed-by: Cyril Hrubis <chrubis@suse.cz>
-Reviewed-by: Petr Vorel <pvorel@suse.cz>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Li Wang <liwang@redhat.com>
-Cc: Martin Kepplinger <martink@posteo.de>
-Cc: Shannon Nelson <sln@onemain.com>
+Reads of 'memcg_path' and 'path' files in DAMON sysfs interface could race
+with their writes, results in use-after-free.  Fix those.
+
+
+This patch (of 2):
+
+damon_sysfs_scheme_filter->mmecg_path can be read and written by users,
+via DAMON sysfs memcg_path file.  It can also be indirectly read, for the
+parameters {on,off}line committing to DAMON.  The reads for parameters
+committing are protected by damon_sysfs_lock to avoid the sysfs files
+being destroyed while any of the parameters are being read.  But the
+user-driven direct reads and writes are not protected by any lock, while
+the write is deallocating the memcg_path-pointing buffer.  As a result,
+the readers could read the already freed buffer (user-after-free).  Note
+that the user-reads don't race when the same open file is used by the
+writer, due to kernfs's open file locking.  Nonetheless, doing the reads
+and writes with separate open files would be common.  Fix it by protecting
+both the user-direct reads and writes with damon_sysfs_lock.
+
+Link: https://lore.kernel.org/20260423150253.111520-1-sj@kernel.org
+Link: https://lore.kernel.org/20260423150253.111520-2-sj@kernel.org
+Fixes: 4f489fe6afb3 ("mm/damon/sysfs-schemes: free old damon_sysfs_scheme_filter->memcg_path on write")
+Co-developed-by: Junxi Qian <qjx1298677004@gmail.com>
+Signed-off-by: Junxi Qian <qjx1298677004@gmail.com>
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.16.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap    |    2 ++
- MAINTAINERS |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ mm/damon/sysfs-schemes.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/.mailmap~maintainers-update-li-wangs-email-address
-+++ a/.mailmap
-@@ -507,6 +507,8 @@ Linus Walleij <linusw@kernel.org> <linus
- Linus Walleij <linusw@kernel.org> <linus.walleij@linaro.org>
- Linus Walleij <linusw@kernel.org> <triad@df.lth.se>
- <linux-hardening@vger.kernel.org> <kernel-hardening@lists.openwall.com>
-+Li Wang <li.wang@linux.dev> <liwang@redhat.com>
-+Li Wang <li.wang@linux.dev> <wangli.ahau@gmail.com>
- Li Yang <leoyang.li@nxp.com> <leoli@freescale.com>
- Li Yang <leoyang.li@nxp.com> <leo@zh-kernel.org>
- Lior David <quic_liord@quicinc.com> <liord@codeaurora.org>
---- a/MAINTAINERS~maintainers-update-li-wangs-email-address
-+++ a/MAINTAINERS
-@@ -15252,7 +15252,7 @@ M:	Andrea Cervesato <andrea.cervesato@su
- M:	Cyril Hrubis <chrubis@suse.cz>
- M:	Jan Stancek <jstancek@redhat.com>
- M:	Petr Vorel <pvorel@suse.cz>
--M:	Li Wang <liwang@redhat.com>
-+M:	Li Wang <li.wang@linux.dev>
- M:	Yang Xu <xuyang2018.jy@fujitsu.com>
- M:	Xiao Yang <yangx.jy@fujitsu.com>
- L:	ltp@lists.linux.it (subscribers-only)
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-protect-memcg_path-kfree-with-damon_sysfs_lock
++++ a/mm/damon/sysfs-schemes.c
+@@ -533,9 +533,14 @@ static ssize_t memcg_path_show(struct ko
+ {
+ 	struct damon_sysfs_scheme_filter *filter = container_of(kobj,
+ 			struct damon_sysfs_scheme_filter, kobj);
++	int len;
+ 
+-	return sysfs_emit(buf, "%s\n",
++	if (!mutex_trylock(&damon_sysfs_lock))
++		return -EBUSY;
++	len = sysfs_emit(buf, "%s\n",
+ 			filter->memcg_path ? filter->memcg_path : "");
++	mutex_unlock(&damon_sysfs_lock);
++	return len;
+ }
+ 
+ static ssize_t memcg_path_store(struct kobject *kobj,
+@@ -550,8 +555,13 @@ static ssize_t memcg_path_store(struct k
+ 		return -ENOMEM;
+ 
+ 	strscpy(path, buf, count + 1);
++	if (!mutex_trylock(&damon_sysfs_lock)) {
++		kfree(path);
++		return -EBUSY;
++	}
+ 	kfree(filter->memcg_path);
+ 	filter->memcg_path = path;
++	mutex_unlock(&damon_sysfs_lock);
+ 	return count;
+ }
+ 
 _
 
-Patches currently in -mm which might be from li.wang@linux.dev are
+Patches currently in -mm which might be from sj@kernel.org are
 
-selftests-cgroup-skip-test_zswap-if-zswap-is-globally-disabled.patch
-selftests-cgroup-avoid-oom-in-test_swapin_nozswap.patch
-selftests-cgroup-use-runtime-page-size-for-zswpin-check.patch
-selftests-cgroup-rename-page_size-to-buf_size-in-cgroup_util.patch
-selftests-cgroup-replace-hardcoded-page-size-values-in-test_zswap.patch
-selftest-cgroup-fix-zswap-test_no_invasive_cgroup_shrink-on-large-pagesize-system.patch
-selftest-cgroup-fix-zswap-attempt_writeback-on-64k-pagesize-system.patch
-selftests-cgroup-test_zswap-wait-for-asynchronous-writeback.patch
+mm-damon-sysfs-schemes-call-missing-mem_cgroup_iter_break.patch
+mm-damon-fix-damos_stat-tracepoint-format-for-sz_applied.patch
+docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
 
