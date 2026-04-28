@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0D21402BBE
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 12:55:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C9F243900F
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 12:59:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777380941; cv=none; b=AVipOfO8K+3MbRdQQ3+toXk4CgWmZqGaKqdLfEBTmVYtCAy9Wzpfbxb71z2UQy3vWh64sdQcrJetd987xuu4q7CFiOsWckUq2I8f7cSG4RcMjAWJPK/hq2BzrognLUGcQkwZAOrwlgFXf7YlFAnQ/ezVi6TdFiBb6aJape7AN88=
+	t=1777381173; cv=none; b=KhTnLpRlnKGKFaD68+fvnBVP28JjR70pdoZRxHE2mzRb5JDoUhEf6ql7/uWGgxHOa1L1Qx9l/7Tm0jxm5fulJz+wy6jCeYcsKG8ce7vIoXrM5tUhpxaZdRpgEGsgAClqhmaRShnlezRaWUkWRWyuRn0HyCzUBum/v7sNCY3XbOM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777380941; c=relaxed/simple;
-	bh=rC9gtqgQopXhLzZU+atHiOGbSWMzLGC3Rea2P4Danqw=;
-	h=Date:To:From:Subject:Message-Id; b=AhFWnfF4CbF/69CADxxp2qLT71Q3oIlMiQOEcnwrhqFU+rwUZaNB6TmgWcypcDSNdPXAtog7IS7yYGKyqZx7rylRJ+RmtDmFF2WOo7MLUciX+eXL35Jz+2s/H1wNd22Pp57qOH/7DqPxMvNgAcLAwoVww/712WejdWDIfJ1w1LU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HkWrGtZO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777381173; c=relaxed/simple;
+	bh=Xwv+hoGDUMU+walgfVw4lIl2Ik35S9X0A5qArG5Aa5Q=;
+	h=Date:To:From:Subject:Message-Id; b=beKxISDSIqXcbIE0PfOwuBYRIsIKYpioVimiu6Oyn4q9LYdgnaavTaJSj46SWC9mxcQuHCtUwzGl2mLAEwHhYQ+DUzepBihCSDILslzIQHCdEp16ZcEly/xSwx/qDWBJ4czir1RYqArK9Wco31Rfp0vpeAWNRyuqsm4BJE0j1WU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g8hYoTG4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HkWrGtZO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E7C9C2BCAF;
-	Tue, 28 Apr 2026 12:55:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g8hYoTG4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24ED3C2BCAF;
+	Tue, 28 Apr 2026 12:59:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777380939;
-	bh=rC9gtqgQopXhLzZU+atHiOGbSWMzLGC3Rea2P4Danqw=;
+	s=korg; t=1777381173;
+	bh=Xwv+hoGDUMU+walgfVw4lIl2Ik35S9X0A5qArG5Aa5Q=;
 	h=Date:To:From:Subject:From;
-	b=HkWrGtZOWsJxzZyWk7Y+rt/K3t77lF94fBNPypnY381znQ54KGO6LtEqZ30ng3265
-	 S26Y9nW4cVC3P0YbrBDKqjBCZ1vlR9iAWC+2ca0z5ImvmDxQy+S/a0dAT7ld+01yFW
-	 HLJpzbuC1bdcKQ16yFa2oDqmbmeKVJdmKLMcdOpE=
-Date: Tue, 28 Apr 2026 05:55:38 -0700
-To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,thomas.weissschuh@linutronix.de,glaubitz@physik.fu-berlin.de,geert+renesas@glider.be,dalias@libc.org,contact@artur-rojek.eu,rppt@kernel.org,akpm@linux-foundation.org
+	b=g8hYoTG4EfURHVWUeIy4SnaNkxcQe9Aut3FpKIc1vxpMsjuIAiQ7wAo+Lc3zPIbuQ
+	 PIHY3i9NKLfA4OC+ezQFAU3ogS7lqHFfsLeWsucVr+YkWd9HUBjS0ZqFe0Xc5O71Sa
+	 vqWvzK6HgqmftLX4fQEjq3IAoNvmZJQqfMCmixrY=
+Date: Tue, 28 Apr 2026 05:59:32 -0700
+To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + sh-fix-fallout-from-zero_page-consolidation.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260428125539.5E7C9C2BCAF@smtp.kernel.org>
+Subject: + mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260428125933.24ED3C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: sh: fix fallout from ZERO_PAGE consolidation
+     Subject: mm: memcontrol: fix rcu unbalance in get_non_dying_memcg_end()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     sh-fix-fallout-from-zero_page-consolidation.patch
+     mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sh-fix-fallout-from-zero_page-consolidation.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,51 +58,165 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: sh: fix fallout from ZERO_PAGE consolidation
-Date: Fri, 17 Apr 2026 13:32:07 +0300
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm: memcontrol: fix rcu unbalance in get_non_dying_memcg_end()
+Date: Tue, 28 Apr 2026 18:31:08 +0800
 
-Consolidation of empty_zero_page declarations broke boot on sh.
+Currently, get_non_dying_memcg_start() and get_non_dying_memcg_end() both
+evaluate cgroup_subsys_on_dfl(memory_cgrp_subsys) independently to
+determine whether to acquire or release the RCU read lock.
 
-sh stores its initial boot parameters in a page reserved in
-arch/sh/kernel/head_32.S.  Before commit 6215d9f4470f ("arch, mm:
-consolidate empty_zero_page") this page was referenced in C code as an
-array and after that commit it is referenced as a pointer.
+However, the result of cgroup_subsys_on_dfl() can change dynamically at
+runtime due to cgroup hierarchy rebinding (e.g., when the memory
+controller is moved between cgroup v1 and v2 hierarchies).  This can cause
+the following warning:
 
-This causes wrong code generation and boot hang.
+ =====================================
+ WARNING: bad unlock balance detected!
+ 7.0.0-next-20260420+ #83 Tainted: G        W
+ -------------------------------------
+ memcg-repro/270 is trying to release lock (rcu_read_lock) at:
+ [<ffffffff815f57f7>] rcu_read_unlock+0x17/0x60
+ but there are no more locks to release!
 
-Declare boot_params_page as an array to fix the issue.
+ other info that might help us debug this:
+ 1 lock held by memcg-repro/270:
+  #0: ffff888102fa2088 (vm_lock){++++}-{0:0}, at: do_user_addr_fault+0x285/0x880
 
-Link: https://lore.kernel.org/20260417103208.1217010-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Fixes: 6215d9f4470f ("arch, mm: consolidate empty_zero_page")
-Reported-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Tested-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
-Tested-by: Artur Rojek <contact@artur-rojek.eu>
-Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+ stack backtrace:
+ CPU: 0 UID: 0 PID: 270 Comm: memcg-repro Tainted: G        W           7.0.0-next-20260420+ #
+ Tainted: [W]=WARN
+ Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.12.0-1 04/01/2014
+ Call Trace:
+  <TASK>
+  ? rcu_read_unlock+0x17/0x60
+  dump_stack_lvl+0x77/0xb0
+  print_unlock_imbalance_bug+0xe0/0xf0
+  ? rcu_read_unlock+0x17/0x60
+  lock_release+0x21d/0x2a0
+  rcu_read_unlock+0x1c/0x60
+  do_pte_missing+0x233/0xb40
+  __handle_mm_fault+0x80e/0xcd0
+  handle_mm_fault+0x146/0x310
+  do_user_addr_fault+0x303/0x880
+  exc_page_fault+0x9b/0x270
+  asm_exc_page_fault+0x26/0x30
+ RIP: 0033:0x5590e4eb41ea
+ Code: 61 cc 66 0f 6f e0 66 0f 61 c2 66 0f db cd 66 0f 69 e2 66 0f 6f d0 66 0f 69 d4 66 0f 61 0
+ RSP: 002b:00007ffcad25f030 EFLAGS: 00010202
+ RAX: 00005590e4eb8010 RBX: 00007ffcad260f7d RCX: 00007f73c474d44d
+ RDX: 00005590e4eb80a0 RSI: 00005590e4eb503c RDI: 000000000000000f
+ RBP: 00005590e4eb70a0 R08: 0000000000000000 R09: 00007f73c483a680
+ R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+ R13: 00007ffcad25f180 R14: 00005590e4eb6dd8 R15: 00007f73c4869020
+  </TASK>
+ ------------[ cut here ]------------
+
+Fix this by explicitly tracking the RCU lock state, ensuring that
+rcu_read_unlock() in get_non_dying_memcg_end() is strictly paired with the
+lock acquisition, regardless of any runtime rebinding events.
+
+Link: https://lore.kernel.org/20260428103108.45719-1-qi.zheng@linux.dev
+Fixes: 8285917d6f38 ("mm: memcontrol: prepare for reparenting non-hierarchical stats")
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/setup.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
 
---- a/arch/sh/include/asm/setup.h~sh-fix-fallout-from-zero_page-consolidation
-+++ a/arch/sh/include/asm/setup.h
-@@ -7,7 +7,7 @@
- /*
-  * This is set up by the setup-routine at boot-time
+--- a/mm/memcontrol.c~mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end
++++ a/mm/memcontrol.c
+@@ -805,12 +805,17 @@ static long memcg_state_val_in_pages(int
+  * Used in mod_memcg_state() and mod_memcg_lruvec_state() to avoid race with
+  * reparenting of non-hierarchical state_locals.
   */
--extern unsigned char *boot_params_page;
-+extern unsigned char boot_params_page[];
- #define PARAM boot_params_page
+-static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg)
++static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg,
++							   bool *rcu_locked)
+ {
+-	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
++	/* Rebinding can cause this value to be changed at runtime */
++	if (cgroup_subsys_on_dfl(memory_cgrp_subsys)) {
++		*rcu_locked = false;
+ 		return memcg;
++	}
  
- #define MOUNT_ROOT_RDONLY (*(unsigned long *) (PARAM+0x000))
+ 	rcu_read_lock();
++	*rcu_locked = true;
+ 
+ 	while (memcg_is_dying(memcg))
+ 		memcg = parent_mem_cgroup(memcg);
+@@ -818,20 +823,21 @@ static inline struct mem_cgroup *get_non
+ 	return memcg;
+ }
+ 
+-static inline void get_non_dying_memcg_end(void)
++static inline void get_non_dying_memcg_end(bool rcu_locked)
+ {
+-	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
++	if (!rcu_locked)
+ 		return;
+ 
+ 	rcu_read_unlock();
+ }
+ #else
+-static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg)
++static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg,
++							   bool *rcu_locked)
+ {
+ 	return memcg;
+ }
+ 
+-static inline void get_non_dying_memcg_end(void)
++static inline void get_non_dying_memcg_end(bool rcu_locked)
+ {
+ }
+ #endif
+@@ -865,12 +871,14 @@ static void __mod_memcg_state(struct mem
+ void mod_memcg_state(struct mem_cgroup *memcg, enum memcg_stat_item idx,
+ 		       int val)
+ {
++	bool rcu_locked;
++
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
+-	memcg = get_non_dying_memcg_start(memcg);
++	memcg = get_non_dying_memcg_start(memcg, &rcu_locked);
+ 	__mod_memcg_state(memcg, idx, val);
+-	get_non_dying_memcg_end();
++	get_non_dying_memcg_end(rcu_locked);
+ }
+ 
+ #ifdef CONFIG_MEMCG_V1
+@@ -933,14 +941,15 @@ static void mod_memcg_lruvec_state(struc
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 	struct mem_cgroup_per_node *pn;
+ 	struct mem_cgroup *memcg;
++	bool rcu_locked;
+ 
+ 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	memcg = get_non_dying_memcg_start(pn->memcg);
++	memcg = get_non_dying_memcg_start(pn->memcg, &rcu_locked);
+ 	pn = memcg->nodeinfo[pgdat->node_id];
+ 
+ 	__mod_memcg_lruvec_state(pn, idx, val);
+ 
+-	get_non_dying_memcg_end();
++	get_non_dying_memcg_end(rcu_locked);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-sh-fix-fallout-from-zero_page-consolidation.patch
+mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end.patch
 
