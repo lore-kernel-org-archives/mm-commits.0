@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2C59302165
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:17:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F25432882B4
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:17:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777385828; cv=none; b=YmtCxCmKAJ7Ow/6iWynZ9ZfdxUopcYB7u+h+0Hyr/RL87oR1pFGp0NENTs/SM+rZB8muJItXDnCByECT1a65iFr6ZKm9RScwUHA57bYdd9SuW/c/MCyx0F+IQQ9f22tG6ZVTTMFm0Sp689+OPCuNNok/i1me9JcHW4uj2DiVgdg=
+	t=1777385830; cv=none; b=aGVn4Ro2UFv4f3NEB3WiQkcjD33pZ3l6bxQhj7kInYxy0n4sS13tXl9O9OprNF3Fhh2ujlZ51PCq5WGKcVaMuFtmH5Uy8qMd2Hc83360Xt66nkXbt8PG2v61rksdTRuuTu6doFJk1AzQcO+05bGIe6fMiMwhBUZnDUcZCxvazM0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777385828; c=relaxed/simple;
-	bh=DbjG02pkAHkHtJVNH8RTSjMVabKgXxnldMHucSP4PMY=;
-	h=Date:To:From:Subject:Message-Id; b=ARgHVn9AYvi0zMhSuomhQ2Po4EJFdUQ/cfQE04D2Cfn9rW1VOHvSaClEpHu/3mxKzFmxj76EExjnX/3TVnVuVK0i01AFNYXoxg6FzSnGObRYV6tYQdP4Sm+DZelca6n9NQvuZPUingY+nYmgcqAmeTfpXSaUjlDJG452K7sACT0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fut2rjUQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777385830; c=relaxed/simple;
+	bh=nx6BP+2hXIz4NjgUhijn82rIihu0ZE9QluzAxXcgH3s=;
+	h=Date:To:From:Subject:Message-Id; b=q5nLqJB0ibHH3njFvemEc7AOAoHljp+91QoH94HIiGAHufziiVg0XNbo00097K2188Y7zlpuUwojTQixiY7AHLf3wfONlONu1f6GHhSftqtBHoULKXDY8ZdyXaZyYNDewH1JQIYyqHCQsQnE9TII9oD7hTq14YGXHT3DuJsH724=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oUuxFSMk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fut2rjUQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79CEEC2BCAF;
-	Tue, 28 Apr 2026 14:17:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oUuxFSMk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9601CC2BCAF;
+	Tue, 28 Apr 2026 14:17:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777385827;
-	bh=DbjG02pkAHkHtJVNH8RTSjMVabKgXxnldMHucSP4PMY=;
+	s=korg; t=1777385829;
+	bh=nx6BP+2hXIz4NjgUhijn82rIihu0ZE9QluzAxXcgH3s=;
 	h=Date:To:From:Subject:From;
-	b=fut2rjUQ1ASOx2sN6HprmYrFMyIm/yrKMBXcCHn+QyKSKSTLEWUM0YXMOgyGhqJdI
-	 pD+VSgDillp/YtKKV3vGVouDOe6dD/DM6tsuoI1gIOUhFxEABLsso7g++QX0F+T2yL
-	 /A6d7HL1F6kOzm2ZjV/+2/p26Sai0DlyjEMc4tBU=
-Date: Tue, 28 Apr 2026 07:17:06 -0700
+	b=oUuxFSMkDc9NKHZr+y/HYT9Rkm7z1bQy1i8yhdyNEYB1FzvKmH06hRTSRozXxl5Q4
+	 H+pYnvUoB2dt6L+L/VV8Ch3am8hlO+b4OOj8mUDXJ5tKHw27ChelNx1OnGW5v8i7j3
+	 7+Mrg+nm0VO6kqynVdzUOSrSnIWZ9LslTAUVE4Xg=
+Date: Tue, 28 Apr 2026 07:17:09 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-add-print_mode-filter.patch added to mm-new branch
-Message-Id: <20260428141707.79CEEC2BCAF@smtp.kernel.org>
+Subject: + mm-page_owner-add-numa-node-filter-with-nodelist-support.patch added to mm-new branch
+Message-Id: <20260428141709.9601CC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: add print_mode filter
+     Subject: mm/page_owner: add NUMA node filter with nodelist support
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_owner-add-print_mode-filter.patch
+     mm-page_owner-add-numa-node-filter-with-nodelist-support.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-print_mode-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-numa-node-filter-with-nodelist-support.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,27 +70,25 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zhen Ni <zhen.ni@easystack.cn>
-Subject: mm/page_owner: add print_mode filter
-Date: Tue, 28 Apr 2026 15:11:10 +0800
+Subject: mm/page_owner: add NUMA node filter with nodelist support
+Date: Tue, 28 Apr 2026 15:11:11 +0800
 
-Add print_mode functionality to reduce page_owner output size by printing
-only the stack handle instead of the full stack trace.
+Add NUMA node filtering functionality to page_owner to allow filtering
+pages by specific NUMA node(s) using nodelist format.
 
-Example output with print_mode enabled:
-  Page allocated via order 0, mask 0x42800(GFP_NOWAIT|__GFP_COMP),
-  pid 1, tgid 1 (systemd), ts 349667370 ns
-  PFN 0xa00a2 type Unmovable Block 1280 type Unmovable
-  Flags 0x33fffe0000004124(referenced|lru|active|private|node=3|zone=0|
-lastcpupid=0x1ffff)
-  handle: 17432583
-  Charged to memcg /
+The filter allows users to focus on pages from specific NUMA nodes, which
+is useful for NUMA-aware memory allocation analysis and debugging.
 
-Print mode significantly reduces output size while preserving all other
-page allocation information.  The correspondence between handles and stack
-traces can be obtained through the show_stacks_handles interface.
+Supported input formats:
+- Single node: echo "2" > nid
+- Multiple nodes: echo "0,2,3" > nid
+- Node range: echo "0-3" > nid
+- Mixed format: echo "0,2-4,7" > nid
+- Disable filter: echo "-1" > nid
 
-Link: https://lore.kernel.org/linux-mm/20260417154638.22370-3-zhen.ni@easystack.cn/
-Link: https://lore.kernel.org/20260428071112.1420380-3-zhen.ni@easystack.cn
+Link: https://lore.kernel.org/linux-mm/20260417154638.22370-4-zhen.ni@easystack.cn/
+Link: https://lore.kernel.org/linux-mm/20260419155540.376847-4-zhen.ni@easystack.cn/
+Link: https://lore.kernel.org/20260428071112.1420380-4-zhen.ni@easystack.cn
 Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
 Suggested-by: Zi Yan <ziy@nvidia.com>
 Cc: Brendan Jackman <jackmanb@google.com>
@@ -101,57 +99,125 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ mm/page_owner.c |   82 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 82 insertions(+)
 
---- a/mm/page_owner.c~mm-page_owner-add-print_mode-filter
+--- a/mm/page_owner.c~mm-page_owner-add-numa-node-filter-with-nodelist-support
 +++ a/mm/page_owner.c
-@@ -590,7 +590,13 @@ print_page_owner(char __user *buf, size_
- 			migratetype_names[pageblock_mt],
- 			&page->flags);
+@@ -685,6 +685,7 @@ read_page_owner(struct file *file, char
+ 	struct page_ext *page_ext;
+ 	struct page_owner *page_owner;
+ 	depot_stack_handle_t handle;
++	nodemask_t mask;
  
--	ret += stack_depot_snprint(handle, kbuf + ret, count - ret, 0);
-+	/* Print mode: full stack or stack handle */
-+	if (READ_ONCE(owner_filter.print_mode) == PAGE_OWNER_PRINT_STACK_HANDLE) {
-+		ret += scnprintf(kbuf + ret, count - ret,
-+				"handle: %d\n", handle);
-+	} else {
-+		ret += stack_depot_snprint(handle, kbuf + ret, count - ret, 0);
-+	}
- 	if (ret >= count)
- 		goto err;
+ 	if (!static_branch_unlikely(&page_owner_inited))
+ 		return -EINVAL;
+@@ -698,6 +699,8 @@ read_page_owner(struct file *file, char
+ 	while (!pfn_valid(pfn) && (pfn & (MAX_ORDER_NR_PAGES - 1)) != 0)
+ 		pfn++;
  
-@@ -985,6 +991,24 @@ static int page_owner_threshold_set(void
- DEFINE_SIMPLE_ATTRIBUTE(page_owner_threshold_fops, &page_owner_threshold_get,
- 			&page_owner_threshold_set, "%llu");
- 
-+static int page_owner_print_mode_get(void *data, u64 *val)
-+{
-+	*val = READ_ONCE(owner_filter.print_mode);
-+	return 0;
-+}
++	mask = owner_filter.nid_mask;
 +
-+static int page_owner_print_mode_set(void *data, u64 val)
+ 	/* Find an allocated page */
+ 	for (; pfn < max_pfn; pfn++) {
+ 		/*
+@@ -730,6 +733,14 @@ read_page_owner(struct file *file, char
+ 		if (unlikely(!page_ext))
+ 			continue;
+ 
++		/* NUMA node filter using bitmask */
++		if (!nodes_empty(mask)) {
++			int nid = page_to_nid(page);
++
++			if (!node_isset(nid, mask))
++				goto ext_put_continue;
++		}
++
+ 		/*
+ 		 * Some pages could be missed by concurrent allocation or free,
+ 		 * because we don't hold the zone lock.
+@@ -1009,6 +1020,75 @@ DEFINE_SIMPLE_ATTRIBUTE(page_owner_print
+ 			&page_owner_print_mode_get,
+ 			&page_owner_print_mode_set, "%lld");
+ 
++static ssize_t nid_filter_write(struct file *file,
++				 const char __user *buf,
++				 size_t count, loff_t *ppos)
 +{
-+	if (val > PAGE_OWNER_PRINT_STACK_HANDLE)
++	char *kbuf;
++	nodemask_t mask;
++	int ret;
++	int val;
++
++	/*
++	 * Limit input size to handle worst-case nodelist (all nodes).
++	 * Worst case per node: ",NNNNN" (comma + 5-digit node number) = 6 bytes.
++	 * Formula: 100 bytes overhead + 6 * MAX_NUMNODES
++	 */
++	if (count > (100 + 6 * MAX_NUMNODES))
 +		return -EINVAL;
-+	WRITE_ONCE(owner_filter.print_mode, val);
++
++	kbuf = kmalloc(count + 1, GFP_KERNEL);
++	if (!kbuf)
++		return -ENOMEM;
++
++	if (copy_from_user(kbuf, buf, count)) {
++		ret = -EFAULT;
++		goto out_free;
++	}
++	kbuf[count] = '\0';
++
++	/* Support: "-1" to clear, or nodelist format like "0", "0,2", "0-3" */
++	if (kstrtoint(kbuf, 10, &val) == 0 && val == -1)
++		nodes_clear(mask);
++	else if (nodelist_parse(kbuf, mask)) {
++		ret = -EINVAL;
++		goto out_free;
++	}
++
++	owner_filter.nid_mask = mask;
++	ret = count;
++
++out_free:
++	kfree(kbuf);
++	return ret;
++}
++
++static int nid_filter_show(struct seq_file *m, void *v)
++{
++	nodemask_t mask = owner_filter.nid_mask;
++
++	if (nodes_empty(mask))
++		seq_puts(m, "-1\n");
++	else
++		seq_printf(m, "%*pbl\n", nodemask_pr_args(&mask));
++
 +	return 0;
 +}
 +
-+DEFINE_SIMPLE_ATTRIBUTE(page_owner_print_mode_fops,
-+			&page_owner_print_mode_get,
-+			&page_owner_print_mode_set, "%lld");
++static int nid_filter_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, nid_filter_show, NULL);
++}
++
++static const struct file_operations nid_filter_fops = {
++	.owner		= THIS_MODULE,
++	.open		= nid_filter_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.write		= nid_filter_write,
++	.release	= single_release,
++};
 +
  
  static int __init pageowner_init(void)
  {
-@@ -998,6 +1022,8 @@ static int __init pageowner_init(void)
- 	debugfs_create_file("page_owner", 0400, NULL, NULL, &page_owner_fops);
- 
+@@ -1024,6 +1104,8 @@ static int __init pageowner_init(void)
  	filter_dir = debugfs_create_dir("page_owner_filter", NULL);
-+	debugfs_create_file("print_mode", 0600, filter_dir, NULL,
-+			    &page_owner_print_mode_fops);
+ 	debugfs_create_file("print_mode", 0600, filter_dir, NULL,
+ 			    &page_owner_print_mode_fops);
++	debugfs_create_file("nid", 0600, filter_dir, NULL,
++			    &nid_filter_fops);
  
  	dir = debugfs_create_dir("page_owner_stacks", NULL);
  	debugfs_create_file("show_stacks", 0400, dir,
