@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3AD7406268
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 13:54:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A40A43635F
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:09:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777384482; cv=none; b=kYapFpk+uEx31sKV5mRTIL5zEkK3+B0OImNCWeZr+qm9OIGUb1yWsK7aWBtooiFeCfemTiTujHc4MmLU5pfciJEJJiwpcTEjTlLNCjbFEweE9CSkv7+9W8nTbmQWNscuh83oarVZU7PyAcPlRoeTbfFWQKvsKnUtEeEA+TwcDsU=
+	t=1777385368; cv=none; b=o6nx3fUiXUNtdNqnwd4N05jGvZhCQB71oJprt+hJ+elvbZWM9IoBgXK5/TIq4SV+H7mVyy6taRu7kF5j9V16Htj/FOlrav8aVQIOeZrvNaxF9kSzXduWxXd6wUfXYho35v3DoAsuL5+RmSsZiTccE1BhRskHU587+0pTgXWKWCg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777384482; c=relaxed/simple;
-	bh=xsrWXfmmrJs9oat/fSU1QcTdW83c6GRtziZ/yPCIHPQ=;
-	h=Date:To:From:Subject:Message-Id; b=Thnk2bxc6pWKIvGTA0Jxhe0SQMNgrqaNxoFW+vfpe646To1IaLfik27/bS+zM2d4dmpmoTvIh7LaltEOR5THrHLpPYdP0M1Cykem9yf3LK+yhyPJ0FxWx0hQtgjMgacNpeF1q8l4FMhmDdBRMiTT7xxmKPC6GtXkzILhtNdDYSE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pHCLJRM0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777385368; c=relaxed/simple;
+	bh=W+jy66vbK1CToy83zZYoF3TVAoguFTTsdMzA8LqzhPU=;
+	h=Date:To:From:Subject:Message-Id; b=KeZ8SKIbE5AkG3olPVDZ5jeEISZWG4ikhtMdAvA/QIoGXF4ER29lILe58pMeS/HDXFhIJoiVkOeM9IoWnp+84yFBLYPKOVI4NDMqybZLASBdI0OY8HDlmEMrhXFHBk38Sv/9REIBFLwo2g2FZYobnsjHcs7ih3qNel7G4KMq4LY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QVKJ/Hhp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pHCLJRM0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A49CC2BCAF;
-	Tue, 28 Apr 2026 13:54:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QVKJ/Hhp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF6E7C2BCAF;
+	Tue, 28 Apr 2026 14:09:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777384482;
-	bh=xsrWXfmmrJs9oat/fSU1QcTdW83c6GRtziZ/yPCIHPQ=;
+	s=korg; t=1777385367;
+	bh=W+jy66vbK1CToy83zZYoF3TVAoguFTTsdMzA8LqzhPU=;
 	h=Date:To:From:Subject:From;
-	b=pHCLJRM0LhqazFdFIWK09hsZ2U3Q/3EKurx+FZ4Ty+q6LSGdu+kn0FfXxSyAEuXUD
-	 gmkDAptupM5coI66orJzlKgIn25kO/JBpgkXzI1PbuYqFgzrFJpV10LWkpDT9wxc5B
-	 brIlYMVLEj5DjX8sCbj2BlpfB//mkEh7jUastt3o=
-Date: Tue, 28 Apr 2026 06:54:42 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,willy@infradead.org,rakie.kim@sk.com,matthew.brost@intel.com,lance.yang@linux.dev,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,baolin.wang@linux.alibaba.com,apopple@nvidia.com,shivankg@amd.com,akpm@linux-foundation.org
+	b=QVKJ/Hhpvg3H6LDvHSeWs9pbU97bZwlDwLBHNw6uXrWgI1+ebd7zYyrTnOembVOyI
+	 PWPP+QDFqDQri3zflpKbxJPzB1NvnsWjifFiycodQqiWeKZbxj48RlG/Cy0Lypu3yn
+	 UpdNFl67LM3kmzrlkcpXiVWWyKr1r5+x5K4qP02g=
+Date: Tue, 28 Apr 2026 07:09:27 -0700
+To: mm-commits@vger.kernel.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migrate-rename-page_-migration-flags-to-folio_.patch added to mm-new branch
-Message-Id: <20260428135442.8A49CC2BCAF@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_owner-add-filter-infrastructure.patch removed from -mm tree
+Message-Id: <20260428140927.CF6E7C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,222 +34,221 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/migrate: rename PAGE_ migration flags to FOLIO_
-has been added to the -mm mm-new branch.  Its filename is
-     mm-migrate-rename-page_-migration-flags-to-folio_.patch
+The quilt patch titled
+     Subject: mm/page_owner: add filter infrastructure
+has been removed from the -mm tree.  Its filename was
+     mm-page_owner-add-filter-infrastructure.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-migrate-rename-page_-migration-flags-to-folio_.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Shivank Garg <shivankg@amd.com>
-Subject: mm/migrate: rename PAGE_ migration flags to FOLIO_
-Date: Tue, 24 Mar 2026 19:07:09 +0000
+From: Zhen Ni <zhen.ni@easystack.cn>
+Subject: mm/page_owner: add filter infrastructure
+Date: Sun, 19 Apr 2026 23:55:38 +0800
 
-These flags only track folio-specific state during migration and are not
-used for movable_ops pages.  Rename the enum values and the old_page_state
-variable to match.
+Patch series "mm/page_owner: add filter infrastructure for print_mode and
+NUMA filtering", v2.
 
-No functional change.
+This patch series introduces filtering capabilities to the page_owner
+feature to address storage and performance challenges in production
+environments.
 
-Link: https://lore.kernel.org/20260324190706.964555-4-shivankg@amd.com
-Signed-off-by: Shivank Garg <shivankg@amd.com>
-Suggested-by: David Hildenbrand <david@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Shivank Garg <shivankg@amd.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Changes from v1:
+- Renamed 'compact' to 'print_mode' with enum type for better clarity
+  * PAGE_OWNER_PRINT_FULL_STACK (0): print full stack traces
+  * PAGE_OWNER_PRINT_STACK_HANDLE (1): print only stack handles
+- Changed NUMA filter from single node to nodelist with bitmask support
+  * Uses nodelist_parse() to support "0", "0,2", "0-3", "0,2-4,7" formats
+  * Uses nodemask_t internally for efficient multi-node filtering
+  * Output uses %*pbl format (e.g., "0-2", "0,2-4,7")
+- Improved memory handling in nid_filter_write using dynamic allocation
+  * Limit: (100 + 6 * MAX_NUMNODES) to handle worst-case input
+
+These changes address feedback from v1 review:
+- "compact" was too vague → use descriptive enum (PAGE_OWNER_PRINT_*)
+- Single node filter was limiting → use nodelist_parse() for multi-node support
+
+Problem Statement
+=================
+
+In production environments with large memory configurations (e.g.,
+250GB+), collecting page_owner information often results in files ranging
+from several gigabytes to over 10GB.  This creates significant challenges:
+
+1. Storage pressure on production systems
+2. Difficulty transferring large files from production environments
+3. Post-processing overhead with tools/mm/page_owner_sort.c
+
+The primary contributor to file size is redundant stack trace information.
+While the kernel already deduplicates stacks via stackdepot, page_owner
+retrieves and stores full stack traces for each page, only to deduplicate
+them again during post-processing.
+
+Additionally, in NUMA-aware environments (e.g., DPDK-based cloud
+deployments where QEMU processes are bound to specific NUMA nodes), OOM
+events are often node-specific rather than system-wide.  Currently,
+page_owner cannot filter by NUMA node, forcing users to collect and
+analyze data for all nodes.
+
+Solution
+========
+
+This patch series introduces a flexible filter infrastructure with
+two initial filters:
+
+1. **Print Mode Filter**: Outputs only stack handles instead of
+   full stack traces. The handle-to-stack mapping can be retrieved
+   from the existing show_stacks_handles interface. This dramatically
+   reduces output size while preserving all allocation metadata.
+
+2. **NUMA Node Filter**: Allows filtering pages by specific NUMA node(s)
+   using flexible nodelist format, enabling targeted analysis of memory
+   issues in NUMA-aware deployments.
+
+Implementation
+==============
+
+The series is structured as follows:
+
+- Patch 1: Add filter infrastructure (data structures and
+  debugfs directory)
+- Patch 2: Implement print_mode filter
+- Patch 3: Implement NUMA node filter with nodelist support
+
+Usage Example
+=============
+
+Enable print_mode and filter for NUMA nodes 0,2-3:
+
+    # cd /sys/kernel/debug/page_owner_filter/
+    # echo 1 > print_mode
+    # echo "0,2-3" > nid
+    # cat /sys/kernel/debug/page_owner > page_owner.txt
+
+Sample print_mode output (showing handles only):
+
+    Page allocated via order 0, mask 0x0(), pid 0, tgid 0 (swapper),
+    ts 0 ns PFN 0x40000 type Unmovable Block 512 type Unmovable
+    Flags 0x3fffe0000000000(node=0|zone=0|lastcpupid=0x1ffff)
+    handle: 1048577
+
+    Page allocated via order 0, mask 0x252000(__GFP_NOWARN|
+    __GFP_NORETRY|__GFP_COMP|__GFP_THISNODE), pid 0, tgid 0 (swapper),
+    ts 0 ns PFN 0x40002 type Unmovable Block 512 type Unmovable
+    Flags 0x23fffe0000000200(workingset|node=0|zone=0|lastcpupid=0x1ffff)
+    handle: 1048577
+
+Testing
+=======
+
+Tested on a system with multiple NUMA nodes. Verified that:
+- Filters work independently and in combination
+- Print_mode output correlates correctly with show_stacks_handles
+- Default behavior (filters disabled) remains unchanged
+- NUMA filter works with single node, multiple nodes, and ranges
+
+Example test session:
+    # cat print_mode
+    0
+    # echo "0,1-2" > nid
+    # cat nid
+    0-2
+    # echo "0,2-3" > nid
+    # cat nid
+    0,2-3
+    # echo 1 > print_mode
+    # head -n 100 /sys/kernel/debug/page_owner
+    [Shows compact mode output with handles only]
+
+Future Enhancements
+==================
+
+The filter infrastructure is designed to be extensible. Potential
+future filters could include:
+- PID/TGID filtering
+- Time range filtering (allocation timestamp windows)
+- GFP flag filtering
+- Migration type filtering
+
+
+This patch (of 3):
+
+Add data structure for page_owner filtering functionality and create
+debugfs directory for filter controls.
+
+This adds:
+- enum page_owner_print_mode with values for full_stack and stack_handle
+- struct page_owner_filter with print_mode and nid_mask fields
+- Static owner_filter instance initialized with default values
+- page_owner_filter debugfs directory
+
+The filter infrastructure will be used to add print_mode and NUMA node
+filtering capabilities in subsequent commits.
+
+Link: https://lore.kernel.org/20260419155540.376847-1-zhen.ni@easystack.cn
+Link: https://lore.kernel.org/linux-mm/20260417154638.22370-2-zhen.ni@easystack.cn/
+Link: https://lore.kernel.org/20260419155540.376847-2-zhen.ni@easystack.cn
+Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
+Suggested-by: Zi Yan <ziy@nvidia.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   48 +++++++++++++++++++++++-------------------------
- 1 file changed, 23 insertions(+), 25 deletions(-)
+ mm/page_owner.c |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
---- a/mm/migrate.c~mm-migrate-rename-page_-migration-flags-to-folio_
-+++ a/mm/migrate.c
-@@ -1135,26 +1135,24 @@ static int move_to_new_folio(struct foli
-  * This is safe because nobody is using it except us.
-  */
- enum {
--	PAGE_WAS_MAPPED = BIT(0),
--	PAGE_WAS_MLOCKED = BIT(1),
--	PAGE_OLD_STATES = PAGE_WAS_MAPPED | PAGE_WAS_MLOCKED,
-+	FOLIO_WAS_MAPPED = BIT(0),
-+	FOLIO_WAS_MLOCKED = BIT(1),
-+	FOLIO_OLD_STATES = FOLIO_WAS_MAPPED | FOLIO_WAS_MLOCKED,
+--- a/mm/page_owner.c~mm-page_owner-add-filter-infrastructure
++++ a/mm/page_owner.c
+@@ -54,6 +54,21 @@ struct stack_print_ctx {
+ 	u8 flags;
  };
  
- static void __migrate_folio_record(struct folio *dst,
--				   int old_page_state,
--				   struct anon_vma *anon_vma)
-+		int old_folio_state, struct anon_vma *anon_vma)
++enum page_owner_print_mode {
++	PAGE_OWNER_PRINT_FULL_STACK,
++	PAGE_OWNER_PRINT_STACK_HANDLE,
++};
++
++struct page_owner_filter {
++	enum page_owner_print_mode print_mode;
++	nodemask_t nid_mask;
++};
++
++static struct page_owner_filter owner_filter = {
++	.print_mode = PAGE_OWNER_PRINT_FULL_STACK,
++	.nid_mask = NODE_MASK_NONE,
++};
++
+ static bool page_owner_enabled __initdata;
+ DEFINE_STATIC_KEY_FALSE(page_owner_inited);
+ 
+@@ -973,7 +988,7 @@ DEFINE_SIMPLE_ATTRIBUTE(page_owner_thres
+ 
+ static int __init pageowner_init(void)
  {
--	dst->private = (void *)anon_vma + old_page_state;
-+	dst->private = (void *)anon_vma + old_folio_state;
- }
+-	struct dentry *dir;
++	struct dentry *dir, *filter_dir;
  
- static void __migrate_folio_extract(struct folio *dst,
--				   int *old_page_state,
--				   struct anon_vma **anon_vmap)
-+		int *old_folio_state, struct anon_vma **anon_vmap)
- {
- 	unsigned long private = (unsigned long)dst->private;
- 
--	*anon_vmap = (struct anon_vma *)(private & ~PAGE_OLD_STATES);
--	*old_page_state = private & PAGE_OLD_STATES;
-+	*anon_vmap = (struct anon_vma *)(private & ~FOLIO_OLD_STATES);
-+	*old_folio_state = private & FOLIO_OLD_STATES;
- 	dst->private = NULL;
- }
- 
-@@ -1209,7 +1207,7 @@ static int migrate_folio_unmap(new_folio
- {
- 	struct folio *dst;
- 	int rc = -EAGAIN;
--	int old_page_state = 0;
-+	int old_folio_state = 0;
- 	struct anon_vma *anon_vma = NULL;
- 	bool locked = false;
- 	bool dst_locked = false;
-@@ -1253,7 +1251,7 @@ static int migrate_folio_unmap(new_folio
- 	}
- 	locked = true;
- 	if (folio_test_mlocked(src))
--		old_page_state |= PAGE_WAS_MLOCKED;
-+		old_folio_state |= FOLIO_WAS_MLOCKED;
- 
- 	if (folio_test_writeback(src)) {
- 		/*
-@@ -1302,7 +1300,7 @@ static int migrate_folio_unmap(new_folio
- 	dst_locked = true;
- 
- 	if (unlikely(page_has_movable_ops(&src->page))) {
--		__migrate_folio_record(dst, old_page_state, anon_vma);
-+		__migrate_folio_record(dst, old_folio_state, anon_vma);
- 		return 0;
+ 	if (!static_branch_unlikely(&page_owner_inited)) {
+ 		pr_info("page_owner is disabled\n");
+@@ -981,6 +996,9 @@ static int __init pageowner_init(void)
  	}
  
-@@ -1328,11 +1326,11 @@ static int migrate_folio_unmap(new_folio
- 		VM_BUG_ON_FOLIO(folio_test_anon(src) &&
- 			       !folio_test_ksm(src) && !anon_vma, src);
- 		try_to_migrate(src, mode == MIGRATE_ASYNC ? TTU_BATCH_FLUSH : 0);
--		old_page_state |= PAGE_WAS_MAPPED;
-+		old_folio_state |= FOLIO_WAS_MAPPED;
- 	}
- 
- 	if (!folio_mapped(src)) {
--		__migrate_folio_record(dst, old_page_state, anon_vma);
-+		__migrate_folio_record(dst, old_folio_state, anon_vma);
- 		return 0;
- 	}
- 
-@@ -1344,7 +1342,7 @@ out:
- 	if (rc == -EAGAIN)
- 		ret = NULL;
- 
--	migrate_folio_undo_src(src, old_page_state & PAGE_WAS_MAPPED,
-+	migrate_folio_undo_src(src, old_folio_state & FOLIO_WAS_MAPPED,
- 			       anon_vma, locked, ret);
- 	migrate_folio_undo_dst(dst, dst_locked, put_new_folio, private);
- 
-@@ -1358,13 +1356,13 @@ static int migrate_folio_move(free_folio
- 			      struct list_head *ret)
- {
- 	int rc;
--	int old_page_state = 0;
-+	int old_folio_state = 0;
- 	struct anon_vma *anon_vma = NULL;
- 	bool src_deferred_split = false;
- 	bool src_partially_mapped = false;
- 	struct list_head *prev;
- 
--	__migrate_folio_extract(dst, &old_page_state, &anon_vma);
-+	__migrate_folio_extract(dst, &old_folio_state, &anon_vma);
- 	prev = dst->lru.prev;
- 	list_del(&dst->lru);
- 
-@@ -1404,10 +1402,10 @@ static int migrate_folio_move(free_folio
- 	 * isolated from the unevictable LRU: but this case is the easiest.
- 	 */
- 	folio_add_lru(dst);
--	if (old_page_state & PAGE_WAS_MLOCKED)
-+	if (old_folio_state & FOLIO_WAS_MLOCKED)
- 		lru_add_drain();
- 
--	if (old_page_state & PAGE_WAS_MAPPED)
-+	if (old_folio_state & FOLIO_WAS_MAPPED)
- 		remove_migration_ptes(src, dst, 0);
- 
- out_unlock_both:
-@@ -1439,11 +1437,11 @@ out:
- 	 */
- 	if (rc == -EAGAIN) {
- 		list_add(&dst->lru, prev);
--		__migrate_folio_record(dst, old_page_state, anon_vma);
-+		__migrate_folio_record(dst, old_folio_state, anon_vma);
- 		return rc;
- 	}
- 
--	migrate_folio_undo_src(src, old_page_state & PAGE_WAS_MAPPED,
-+	migrate_folio_undo_src(src, old_folio_state & FOLIO_WAS_MAPPED,
- 			       anon_vma, true, ret);
- 	migrate_folio_undo_dst(dst, true, put_new_folio, private);
- 
-@@ -1777,11 +1775,11 @@ static void migrate_folios_undo(struct l
- 	dst = list_first_entry(dst_folios, struct folio, lru);
- 	dst2 = list_next_entry(dst, lru);
- 	list_for_each_entry_safe(folio, folio2, src_folios, lru) {
--		int old_page_state = 0;
-+		int old_folio_state = 0;
- 		struct anon_vma *anon_vma = NULL;
- 
--		__migrate_folio_extract(dst, &old_page_state, &anon_vma);
--		migrate_folio_undo_src(folio, old_page_state & PAGE_WAS_MAPPED,
-+		__migrate_folio_extract(dst, &old_folio_state, &anon_vma);
-+		migrate_folio_undo_src(folio, old_folio_state & FOLIO_WAS_MAPPED,
- 				anon_vma, true, ret_folios);
- 		list_del(&dst->lru);
- 		migrate_folio_undo_dst(dst, true, put_new_folio, private);
+ 	debugfs_create_file("page_owner", 0400, NULL, NULL, &page_owner_fops);
++
++	filter_dir = debugfs_create_dir("page_owner_filter", NULL);
++
+ 	dir = debugfs_create_dir("page_owner_stacks", NULL);
+ 	debugfs_create_file("show_stacks", 0400, dir,
+ 			    (void *)(STACK_PRINT_FLAG_STACK |
 _
 
-Patches currently in -mm which might be from shivankg@amd.com are
+Patches currently in -mm which might be from zhen.ni@easystack.cn are
 
-mm-migrate-rename-page_-migration-flags-to-folio_.patch
+mm-page_owner-add-print_mode-filter.patch
+mm-page_owner-add-numa-node-filter-with-nodelist-support.patch
+mm-page_owner-fix-%pgp-format-specifier-argument-type.patch
 
