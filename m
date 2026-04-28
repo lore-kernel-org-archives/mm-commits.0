@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B1533FB7E2
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 13:49:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 867E63F23B1
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 13:49:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777384153; cv=none; b=iTnxWSBmlyW1S/8nbYsbY2VfIbMtw5i01HDLTfH5hfB3m4ed7JZ/73Fb1eoHJDAKX/LkVscOXRib68sS70S0Y3dBMy7HArIFucJvhLNiIdZUObwagdONHcfZ9q2XO83/KjYCnhI6TzsuLYObsZQC6RJ/p/nalof63JNWAlTCBxA=
+	t=1777384155; cv=none; b=OwzGayZyr2H+6ufszui1SSHbVv26xwNWZAsaIyyzcOlPEQhINOzzrrQx0jxKla3VBfCz5XymICv78yxdVm9HR2oTwcvuCYVoRg775D/EZeQoF9HOL9XFaoCu/x5cuwgMAWyXS1KvHAGFuKRch70a0GaCObmvclwKXlNwbrq87r4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777384153; c=relaxed/simple;
-	bh=oNYrGCbOJxYVG+D3Qqd/VwdfGfWx2HFrFndunWy6Szg=;
-	h=Date:To:From:Subject:Message-Id; b=nP+dN6FKOIn7C00ud+svdDO6lhZMGC7KidexsUtU8n42ODgIZWhuvLOfeZo2sYxom9WdwX6DxS8uGxiMgmmhFvlMXpyt1QG1O73uGRB/4pCpl250KHJ616EXclCO6ak6miaaN/gGfLIKcvHvp4j6qHz3zjQr700MVRyDLk4Hoss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IuGPm4Sm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777384155; c=relaxed/simple;
+	bh=bHb/Yoh6O/YFYDYrM4frzppGiFEuC1PWMYEkF4OPW0Q=;
+	h=Date:To:From:Subject:Message-Id; b=Tv4KQd/+b8KplNwhUdOrfHOFCfPMOxdSxl79s8hUQSMxIoIT3t3cNKtlB+u1F2C0D/lQ9qW25YHfbIqUCdWyKDSjpJ6vxHWE1qRGZviPvptsGkgf1FF09MTqm1qERE/MrjV8CCQss41ycx3To2gyWD7AMEaA+zN708My2KtLmTU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cJaIgCL2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IuGPm4Sm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6F54C2BCAF;
-	Tue, 28 Apr 2026 13:49:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cJaIgCL2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25909C2BCAF;
+	Tue, 28 Apr 2026 13:49:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777384153;
-	bh=oNYrGCbOJxYVG+D3Qqd/VwdfGfWx2HFrFndunWy6Szg=;
+	s=korg; t=1777384155;
+	bh=bHb/Yoh6O/YFYDYrM4frzppGiFEuC1PWMYEkF4OPW0Q=;
 	h=Date:To:From:Subject:From;
-	b=IuGPm4SmXi0Khbh88szhoni2ggW0g7ZxRwO27A5Fk8So8JymAAnPGA/gRnqKAXk64
-	 pKiRTfBo73kF3CgQktsv0o0zZNU2vIWPNlWiI0LaiFmJPbvCUEFcY1B7gLSoFwmThc
-	 GhI+sRA53S3Ikx48rjG+pdq9Jn7nLJ3McRAaqoXc=
-Date: Tue, 28 Apr 2026 06:49:12 -0700
+	b=cJaIgCL2v1/TpW5s572C5EnpCPN9tlzm3uZamA/bRojOZyU8cg+7cHzFA43bVv1gI
+	 A+r0n1cYgFKW4JXQKC3PPhMFyuQ9U43fCZzsemDJiCgDyJCCV6o89inoxJbNZhnv0O
+	 4NhJScZuOi8KoQzaE2WSQ2aJSUh2Zmy33Gq3KZBE=
+Date: Tue, 28 Apr 2026 06:49:14 -0700
 To: mm-commits@vger.kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch added to mm-new branch
-Message-Id: <20260428134912.E6F54C2BCAF@smtp.kernel.org>
+Subject: + mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch added to mm-new branch
+Message-Id: <20260428134915.25909C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mm_init: fix pageblock migratetype for ZONE_DEVICE compound pages
+     Subject: mm/mm_init: fix uninitialized struct pages for ZONE_DEVICE
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch
+     mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,30 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/mm_init: fix pageblock migratetype for ZONE_DEVICE compound pages
-Date: Tue, 28 Apr 2026 16:18:54 +0800
+Subject: mm/mm_init: fix uninitialized struct pages for ZONE_DEVICE
+Date: Tue, 28 Apr 2026 16:18:55 +0800
 
-The memmap_init_zone_device() function only initializes the migratetype of
-the first pageblock of a compound page.  If the compound page size exceeds
-pageblock_nr_pages (e.g., 1GB hugepages with 2MB pageblocks), subsequent
-pageblocks in the compound page remain uninitialized.
+If DAX memory is hotplugged into an unoccupied subsection of an early
+section, section_activate() reuses the unoptimized boot memmap.  However,
+compound_nr_pages() still assumes that vmemmap optimization is in effect
+and initializes only the reduced number of struct pages.  As a result, the
+remaining tail struct pages are left uninitialized, which can later lead
+to unexpected behavior or crashes.
 
-Move the migratetype initialization out of __init_zone_device_page() and
-into a separate pageblock_migratetype_init_range() function.  This
-iterates over the entire PFN range of the memory, ensuring that all
-pageblocks are correctly initialized.
+Fix this by treating early sections as unoptimized when calculating how
+many struct pages to initialize.
 
-Also remove the stale confusing comment about MEMINIT_HOTPLUG above the
-migratetype setting since it is an obsolete relic from commit 966cf44f637e
-("mm: defer ZONE_DEVICE page initialization to the point where we init
-pgmap") and no longer makes sense here.
-
-Link: https://lore.kernel.org/20260428081855.1249045-6-songmuchun@bytedance.com
-Fixes: c4386bd8ee3a ("mm/memremap: add ZONE_DEVICE support for compound pages")
+Link: https://lore.kernel.org/20260428081855.1249045-7-songmuchun@bytedance.com
+Fixes: 6fd3620b3428 ("mm/page_alloc: reuse tail struct pages for compound devmaps")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Liam Howlett <liam@infradead.org>
@@ -102,79 +96,47 @@ Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+ mm/mm_init.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
---- a/mm/mm_init.c~mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages
+--- a/mm/mm_init.c~mm-mm_init-fix-uninitialized-struct-pages-for-zone_device
 +++ a/mm/mm_init.c
-@@ -674,6 +674,20 @@ static inline void fixup_hashdist(void)
- static inline void fixup_hashdist(void) {}
- #endif /* CONFIG_NUMA */
- 
-+#ifdef CONFIG_ZONE_DEVICE
-+static __meminit void pageblock_migratetype_init_range(unsigned long pfn,
-+		unsigned long nr_pages, int migratetype)
-+{
-+	const unsigned long end = pfn + nr_pages;
-+
-+	for (pfn = pageblock_align(pfn); pfn < end; pfn += pageblock_nr_pages) {
-+		init_pageblock_migratetype(pfn_to_page(pfn), migratetype, false);
-+		if (IS_ALIGNED(pfn, PAGES_PER_SECTION))
-+			cond_resched();
-+	}
-+}
-+#endif
-+
- /*
-  * Initialize a reserved page unconditionally, finding its zone first.
+@@ -1055,10 +1055,17 @@ static void __ref __init_zone_device_pag
+  * of how the sparse_vmemmap internals handle compound pages in the lack
+  * of an altmap. See vmemmap_populate_compound_pages().
   */
-@@ -1012,21 +1026,6 @@ static void __ref __init_zone_device_pag
- 	page->zone_device_data = NULL;
+-static inline unsigned long compound_nr_pages(struct vmem_altmap *altmap,
++static inline unsigned long compound_nr_pages(unsigned long pfn,
++					      struct vmem_altmap *altmap,
+ 					      struct dev_pagemap *pgmap)
+ {
+-	if (!vmemmap_can_optimize(altmap, pgmap))
++	/*
++	 * If DAX memory is hot-plugged into an unoccupied subsection
++	 * of an early section, the unoptimized boot memmap is reused.
++	 * See section_activate().
++	 */
++	if (early_section(__pfn_to_section(pfn)) ||
++	    !vmemmap_can_optimize(altmap, pgmap))
+ 		return pgmap_vmemmap_nr(pgmap);
  
- 	/*
--	 * Mark the block movable so that blocks are reserved for
--	 * movable at startup. This will force kernel allocations
--	 * to reserve their blocks rather than leaking throughout
--	 * the address space during boot when many long-lived
--	 * kernel allocations are made.
--	 *
--	 * Please note that MEMINIT_HOTPLUG path doesn't clear memmap
--	 * because this is done early in section_activate()
--	 */
--	if (pageblock_aligned(pfn)) {
--		init_pageblock_migratetype(page, MIGRATE_MOVABLE, false);
--		cond_resched();
--	}
--
--	/*
- 	 * ZONE_DEVICE pages other than MEMORY_TYPE_GENERIC are released
- 	 * directly to the driver page allocator which will set the page count
- 	 * to 1 when allocating the page.
-@@ -1122,6 +1121,9 @@ void __ref memmap_init_zone_device(struc
- 
- 		__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
- 
-+		if (IS_ALIGNED(pfn, PAGES_PER_SECTION))
-+			cond_resched();
-+
- 		if (pfns_per_compound == 1)
+ 	return VMEMMAP_RESERVE_NR * (PAGE_SIZE / sizeof(struct page));
+@@ -1128,7 +1135,7 @@ void __ref memmap_init_zone_device(struc
  			continue;
  
-@@ -1129,6 +1131,8 @@ void __ref memmap_init_zone_device(struc
- 				     compound_nr_pages(altmap, pgmap));
+ 		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
+-				     compound_nr_pages(altmap, pgmap));
++				     compound_nr_pages(pfn, altmap, pgmap));
  	}
  
-+	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE);
-+
- 	pr_debug("%s initialised %lu pages in %ums\n", __func__,
- 		nr_pages, jiffies_to_msecs(jiffies - start));
- }
+ 	pageblock_migratetype_init_range(start_pfn, nr_pages, MIGRATE_MOVABLE);
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
