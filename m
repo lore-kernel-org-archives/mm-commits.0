@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ABBE2BD030
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:49:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C1EB3ED11C
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:49:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777387745; cv=none; b=IoUBdtH7OBmHHkQKwu+IFqLpVWlBxEUEaHSs/Ffo/LHyDuCviVlcctbCchY9ldaEOufjwR48FXUBLSwPz4FmkXfo2Z//WU4oDRJJo/B+tGdW1NJHt/JgslnSFzQmv9XEYnQq0+JGM5dmknK6xmuNQ7ULSBBx1Pzl8HK0+1CwZzs=
+	t=1777387747; cv=none; b=cbaHDlh5oO5m45A5z8fKqoFWQEEQrTOgJQZriBbKk7KV86DwjalRFAPmLdNDcsAj3I+X5AhqdIgT8cN7n2UVsNO1DmC33adjsVcuqM4Hqv6ZszqtBnOEqzEymLYOVNQJ+tSPw81s14t2XjRgSC2otKukWUtvAmTrHs3ZgJzeueM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777387745; c=relaxed/simple;
-	bh=VrCjKXGwVb4CD3ueGj2lw9t1GxajA/L2OdCmgfFTZyM=;
-	h=Date:To:From:Subject:Message-Id; b=rOrbIPo+pLYI36UuaGotqOBMF6W2GD4zxqW6Vpsf8SUY3DQk+OWi5yMsQPfp30Ha66vDM/FMggMZNYIXeu+hROptMitu7ftaAlWD0hx1+DXyIBUo4pS5u+jhQ0LWJs7B++xajeISYmcZ1+reBGHTbB3Pwb1BGAEKIs5delEG1yE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uF7NughJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777387747; c=relaxed/simple;
+	bh=2T+HEDH3ctMPWZC6UqwL7ijdtAo+cUJKaXovaaT6Ios=;
+	h=Date:To:From:Subject:Message-Id; b=Db+1EQXIJddGgvcl11EoWTnHGeeDZ7sb0gnTChuh1hnhGLu2PNjUyLKbd88FVWrBBX09A2aG2XP8ohzzEPOzaqURtxCd2MhaFaMHUxCOV8Z9XuQm9dyXMpHFP0BEss+DqwYdy1h4VzgvcLiGr63OflCp1ly0pfVPaBU62jgyZY8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f2z2jSV3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uF7NughJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26021C2BCAF;
-	Tue, 28 Apr 2026 14:49:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f2z2jSV3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39CCAC2BCAF;
+	Tue, 28 Apr 2026 14:49:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777387745;
-	bh=VrCjKXGwVb4CD3ueGj2lw9t1GxajA/L2OdCmgfFTZyM=;
+	s=korg; t=1777387747;
+	bh=2T+HEDH3ctMPWZC6UqwL7ijdtAo+cUJKaXovaaT6Ios=;
 	h=Date:To:From:Subject:From;
-	b=uF7NughJMaPbpoZzzmvLwvFatVtVIKVlcHYAcCPPhfzuPtfc2/AfKrBmb8EEIstz3
-	 yCyKXoFXvzQ4YJ+XFg7wfZHM6o6czUfklRcdWPXDZqo0rZzFpBNjGv/tJawTJJ23s8
-	 H7gKnmKchq8dq39e1bOUd516pV/KQDfPq6MqCyfA=
-Date: Tue, 28 Apr 2026 07:49:04 -0700
+	b=f2z2jSV37ICr0c+v3DsKptZh3Dapql6P7Wag+flivQX7Y0NyTBp3WtMzZeLREuR5X
+	 7VdBukCTXK6htBDv2aju9HPab/ZQyIfU/Yy13d6DJ2X2r2azwBXrjlEoOjtmImXoiZ
+	 VJy71+mYsrwaaoLvt0+JBagjTILjfLnHtBNJ8oFA=
+Date: Tue, 28 Apr 2026 07:49:06 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-document-fail_charge_numdenom.patch added to mm-new branch
-Message-Id: <20260428144905.26021C2BCAF@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-document-fail_charge_numdenom-files.patch added to mm-new branch
+Message-Id: <20260428144907.39CCAC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: document fail_charge_{num,denom}
+     Subject: Docs/admin-guide/mm/damon/usage: document fail_charge_{num,denom} files
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-document-fail_charge_numdenom.patch
+     docs-admin-guide-mm-damon-usage-document-fail_charge_numdenom-files.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-document-fail_charge_numdenom.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-fail_charge_numdenom-files.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: document fail_charge_{num,denom}
-Date: Mon, 27 Apr 2026 18:33:54 -0700
+Subject: Docs/admin-guide/mm/damon/usage: document fail_charge_{num,denom} files
+Date: Mon, 27 Apr 2026 18:33:55 -0700
 
-Update DAMON design document for the DAMOS action failed region quota
-charge ratio.
+Update DAMON usage document for the DAMOS action failed regions quota
+charge ratio control sysfs files.
 
-Link: https://lore.kernel.org/20260428013402.115171-6-sj@kernel.org
+Link: https://lore.kernel.org/20260428013402.115171-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -91,40 +91,50 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   18 +++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-document-fail_charge_numdenom
-+++ a/Documentation/mm/damon/design.rst
-@@ -576,6 +576,28 @@ interface <sysfs_interface>`, refer to :
- the documentation.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-fail_charge_numdenom-files
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -84,7 +84,9 @@ comma (",").
+     │ │ │ │ │ │ │ │ sz/min,max
+     │ │ │ │ │ │ │ │ nr_accesses/min,max
+     │ │ │ │ │ │ │ │ age/min,max
+-    │ │ │ │ │ │ │ :ref:`quotas <sysfs_quotas>`/ms,bytes,reset_interval_ms,effective_bytes,goal_tuner
++    │ │ │ │ │ │ │ :ref:`quotas <sysfs_quotas>`/ms,bytes,reset_interval_ms,
++    │ │ │ │ │ │ │     effective_bytes,goal_tuner,
++    │ │ │ │ │ │ │     fail_charge_num,fail_charge_denom
+     │ │ │ │ │ │ │ │ weights/sz_permil,nr_accesses_permil,age_permil
+     │ │ │ │ │ │ │ │ :ref:`goals <sysfs_schemes_quota_goals>`/nr_goals
+     │ │ │ │ │ │ │ │ │ 0/target_metric,target_value,current_value,nid,path
+@@ -381,9 +383,10 @@ schemes/<N>/quotas/
+ The directory for the :ref:`quotas <damon_design_damos_quotas>` of the given
+ DAMON-based operation scheme.
  
+-Under ``quotas`` directory, five files (``ms``, ``bytes``,
+-``reset_interval_ms``, ``effective_bytes`` and ``goal_tuner``) and two
+-directories (``weights`` and ``goals``) exist.
++Under ``quotas`` directory, seven files (``ms``, ``bytes``,
++``reset_interval_ms``, ``effective_bytes``, ``goal_tuner``, ``fail_charge_num``
++and ``fail_charge_denom``) and two directories (``weights`` and ``goals``)
++exist.
  
-+.. _damon_design_damos_quotas_failed_memory_charging_ratio:
-+
-+Action-failed Memory Charging Ratio
-+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+
-+DAMOS action to a given region can fail for some subsets of the memory of the
-+region.  For example, if the action is ``pageout`` and the region has some
-+unreclaimable pages, applying the action to the pages will fail.  The amount of
-+system resource that is taken for such failed action applications is usually
-+different from that for successful action applications.  For such cases, users
-+can set different charging ratio for such failed memory.  The ratio can be
-+specified using ``fail_charge_num`` and ``fail_charge_denom`` parameters.  The
-+two parameters represent the numerator and denominator of the ratio.  The
-+feature is enabled only if ``fail_charge_denom`` is not zero.
-+
-+For example, let's suppose a DAMOS action is applied to a region of 1,000 MiB
-+size.  The action is successfully applied to only 700 MiB of the region.
-+``fail_charge_num`` and ``fail_charge_denom`` are set to ``1`` and ``1024``,
-+respectively.  Then only 700 MiB and 300 KiB of size (``700 MiB + 300 MiB * 1 /
-+1024``) will be charged.
-+
-+
- .. _damon_design_damos_quotas_auto_tuning:
+ You can set the ``time quota`` in milliseconds, ``size quota`` in bytes, and
+ ``reset interval`` in milliseconds by writing the values to the three files,
+@@ -402,6 +405,13 @@ the background design of the feature and
+ Refer to :ref:`goals directory <sysfs_schemes_quota_goals>` for the goals
+ setup.
  
- Aim-oriented Feedback-driven Auto-tuning
++You can set the action-failed memory quota charging ratio by writing the
++numerator and the denominator for the ratio to ``fail_charge_num`` and
++``fail_charge_denom`` files, respectively.  Reading those files will return the
++current set values.  Refer to :ref:`design
++<damon_design_damos_quotas_failed_memory_charging_ratio>` for more details of
++the ratio feature.
++
+ The time quota is internally transformed to a size quota.  Between the
+ transformed size quota and user-specified size quota, smaller one is applied.
+ Based on the user-specified :ref:`goal <sysfs_schemes_quota_goals>`, the
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
