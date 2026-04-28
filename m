@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC4403EF0AF
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:09:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDC9642314A
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:09:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777385370; cv=none; b=TKvW6yB+U8x/0zXSGutS5mEt/9D7wRayFA2Ms061mi++foIgNs4f1rd+Cw0i0Zg5ewlsoqWeyXup+UPUqu2LsK/2JvhG1krkxiWV4XcfQXSk4HvfYfnmMtzcpm6VFpDQ+zCuoA5O7awci+W3WirmiyxUUEtJNc4AK558frRv/Nk=
+	t=1777385371; cv=none; b=VdCzzwOsna9XXTtJGt+c3PgUpczQ5LSQo3LOMzg1fIsBTELj6giT7iHjzscTXyZTo6Ev699orGAA7rxVqnCnM99hiVUYzIXCUbL9RJZIGgNnNWv43E74bk9hc3vYwujpIq+sMFcQ9MKXemVg6lQEQZmrlbc1Qd61OCa+Wq2QYHM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777385370; c=relaxed/simple;
-	bh=xxVQDkqDYJIBA7QF4Imldtl2IAsnjJMauS8xFzTV3Dc=;
-	h=Date:To:From:Subject:Message-Id; b=UJnsgsvab5eIp/VDcgZS82as0AzNsKBWTfxq9Q+amGgdLoVbiBkoEG6aUrhhZlSzY5AsaZkqRKtFF4/+tlsBlwcFXp9fUdN79Dtu639clABPVH7NoJkVuA+vbr+5O/2Cu/TKsnD3e37/pSXRQKzA+ULO/KnpsFSJKitS79Qo5m4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I/6Xr33X; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777385371; c=relaxed/simple;
+	bh=SyD7Rjcw6kVud7FIGBmYAefY4BsZ3vry/dSoHbdain8=;
+	h=Date:To:From:Subject:Message-Id; b=S+9OwIsIZWa7qRaLw7sDiJyXzB+uLx7cSizTvXxZ9/XuVPY5utJmXwPrkiciZmUvF6O/7ttt8DhTM59wPB5CKHUyyXs2rmCSo9MRt6AvRst0mIh8lAz+RxK795yYimNhPYTDHeNz1GFFtvC8Ewa+oWezy0ED3TZoBe1OnW5PZUI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IYArrE6J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I/6Xr33X"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A340C2BCAF;
-	Tue, 28 Apr 2026 14:09:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IYArrE6J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C2F0C2BCAF;
+	Tue, 28 Apr 2026 14:09:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777385370;
-	bh=xxVQDkqDYJIBA7QF4Imldtl2IAsnjJMauS8xFzTV3Dc=;
+	s=korg; t=1777385371;
+	bh=SyD7Rjcw6kVud7FIGBmYAefY4BsZ3vry/dSoHbdain8=;
 	h=Date:To:From:Subject:From;
-	b=I/6Xr33XgJJ+QnkmtcXBv1K10tv3DskfO3FHz68OMj9AYxw3lF/oAGONNKYLu3sf0
-	 IQBwljOPL118EOHCWr/Qq6vBsG3IeFReF7Q71l5XmhW7Ek3wfRgyrh7Hh1lP8XRQ1d
-	 uh6dRrQfFqpIKYiNW7UhTzXWuw+WSopnUppLVjd4=
-Date: Tue, 28 Apr 2026 07:09:29 -0700
-To: mm-commits@vger.kernel.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
+	b=IYArrE6Ja+wT9iEGToVGe8EfsrnbyLxnEPqDsYdHccGPbN5tb86kuZt+moOEYOIQy
+	 mtA7UjLyO1MI+E7sub6ZKRHl6gBGRt4xaA8fFKFR3zFFRLsmoZ/0fhfvL3Csmckfw+
+	 U8SyVKDZSUGA8f+4lUnJV4QVJ+j7X/fy3ZWJVMCI=
+Date: Tue, 28 Apr 2026 07:09:31 -0700
+To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-page_owner-add-numa-node-filter-with-nodelist-support.patch removed from -mm tree
-Message-Id: <20260428140930.6A340C2BCAF@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch removed from -mm tree
+Message-Id: <20260428140931.9C2F0C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,154 +35,70 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_owner: add NUMA node filter with nodelist support
+     Subject: mm-page_owner-add-numa-node-filter-with-nodelist-support-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-add-numa-node-filter-with-nodelist-support.patch
+     mm-page_owner-add-numa-node-filter-with-nodelist-support-fix.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Zhen Ni <zhen.ni@easystack.cn>
-Subject: mm/page_owner: add NUMA node filter with nodelist support
-Date: Sun, 19 Apr 2026 23:55:40 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_owner-add-numa-node-filter-with-nodelist-support-fix
+Date: Fri Apr 24 01:08:46 PM PDT 2026
 
-Add NUMA node filtering functionality to page_owner to allow filtering
-pages by specific NUMA node(s) using nodelist format.
+remove READ_ONCE/WRITE_ONCE of nodemask_t
 
-The filter allows users to focus on pages from specific NUMA nodes, which
-is useful for NUMA-aware memory allocation analysis and debugging.
+It triggers compile-time assertions.
 
-Supported input formats:
-- Single node: echo "2" > nid
-- Multiple nodes: echo "0,2,3" > nid
-- Node range: echo "0-3" > nid
-- Mixed format: echo "0,2-4,7" > nid
-- Disable filter: echo "-1" > nid
-
-Link: https://lore.kernel.org/linux-mm/20260417154638.22370-4-zhen.ni@easystack.cn/
-Link: https://lore.kernel.org/20260419155540.376847-4-zhen.ni@easystack.cn
-Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
-Suggested-by: Zi Yan <ziy@nvidia.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zhen Ni <zhen.ni@easystack.cn>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   76 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 76 insertions(+)
+ mm/page_owner.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/page_owner.c~mm-page_owner-add-numa-node-filter-with-nodelist-support
+--- a/mm/page_owner.c~mm-page_owner-add-numa-node-filter-with-nodelist-support-fix
 +++ a/mm/page_owner.c
-@@ -707,6 +707,7 @@ read_page_owner(struct file *file, char
- 		 * user through copy_to_user() or GFP_KERNEL allocations.
- 		 */
- 		struct page_owner page_owner_tmp;
-+		nodemask_t mask;
- 
- 		/*
- 		 * If the new page is in a new MAX_ORDER_NR_PAGES area,
-@@ -730,6 +731,15 @@ read_page_owner(struct file *file, char
- 		if (unlikely(!page_ext))
+@@ -732,7 +732,7 @@ read_page_owner(struct file *file, char
  			continue;
  
-+		/* NUMA node filter using bitmask */
-+		mask = READ_ONCE(owner_filter.nid_mask);
-+		if (!nodes_empty(mask)) {
-+			int nid = page_to_nid(page);
-+
-+			if (!node_isset(nid, mask))
-+				goto ext_put_continue;
-+		}
-+
- 		/*
- 		 * Some pages could be missed by concurrent allocation or free,
- 		 * because we don't hold the zone lock.
-@@ -1009,6 +1019,70 @@ DEFINE_SIMPLE_ATTRIBUTE(page_owner_print
- 			&page_owner_print_mode_get,
- 			&page_owner_print_mode_set, "%lld");
+ 		/* NUMA node filter using bitmask */
+-		mask = READ_ONCE(owner_filter.nid_mask);
++		mask = owner_filter.nid_mask;
+ 		if (!nodes_empty(mask)) {
+ 			int nid = page_to_nid(page);
  
-+static ssize_t nid_filter_write(struct file *file,
-+				 const char __user *buf,
-+				 size_t count, loff_t *ppos)
-+{
-+	char *kbuf;
-+	nodemask_t mask;
-+	int ret;
-+
-+	/* Limit input size to handle worst-case nodelist (all nodes) */
-+	if (count > (100 + 6 * MAX_NUMNODES))
-+		return -EINVAL;
-+
-+	kbuf = kmalloc(count + 1, GFP_KERNEL);
-+	if (!kbuf)
-+		return -ENOMEM;
-+
-+	if (copy_from_user(kbuf, buf, count)) {
-+		ret = -EFAULT;
-+		goto out_free;
-+	}
-+	kbuf[count] = '\0';
-+
-+	/* Support: "-1" to clear, or nodelist format like "0", "0,2", "0-3" */
-+	if (strcmp(kbuf, "-1\n") == 0 || strcmp(kbuf, "-1") == 0)
-+		nodes_clear(mask);
-+	else if (nodelist_parse(kbuf, mask)) {
-+		ret = -EINVAL;
-+		goto out_free;
-+	}
-+
-+	WRITE_ONCE(owner_filter.nid_mask, mask);
-+	ret = count;
-+
-+out_free:
-+	kfree(kbuf);
-+	return ret;
-+}
-+
-+static int nid_filter_show(struct seq_file *m, void *v)
-+{
-+	nodemask_t mask = READ_ONCE(owner_filter.nid_mask);
-+
-+	if (nodes_empty(mask))
-+		seq_puts(m, "-1\n");
-+	else
-+		seq_printf(m, "%*pbl\n", nodemask_pr_args(&mask));
-+
-+	return 0;
-+}
-+
-+static int nid_filter_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, nid_filter_show, NULL);
-+}
-+
-+static const struct file_operations nid_filter_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= nid_filter_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.write		= nid_filter_write,
-+	.release	= single_release,
-+};
-+
+@@ -1049,7 +1049,7 @@ static ssize_t nid_filter_write(struct f
+ 		goto out_free;
+ 	}
  
- static int __init pageowner_init(void)
+-	WRITE_ONCE(owner_filter.nid_mask, mask);
++	owner_filter.nid_mask = mask;
+ 	ret = count;
+ 
+ out_free:
+@@ -1059,7 +1059,7 @@ out_free:
+ 
+ static int nid_filter_show(struct seq_file *m, void *v)
  {
-@@ -1024,6 +1098,8 @@ static int __init pageowner_init(void)
- 	filter_dir = debugfs_create_dir("page_owner_filter", NULL);
- 	debugfs_create_file("print_mode", 0600, filter_dir, NULL,
- 			    &page_owner_print_mode_fops);
-+	debugfs_create_file("nid", 0600, filter_dir, NULL,
-+			    &nid_filter_fops);
+-	nodemask_t mask = READ_ONCE(owner_filter.nid_mask);
++	nodemask_t mask = owner_filter.nid_mask;
  
- 	dir = debugfs_create_dir("page_owner_stacks", NULL);
- 	debugfs_create_file("show_stacks", 0400, dir,
+ 	if (nodes_empty(mask))
+ 		seq_puts(m, "-1\n");
 _
 
-Patches currently in -mm which might be from zhen.ni@easystack.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_owner-fix-%pgp-format-specifier-argument-type.patch
+mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free-fix.patch
+include-asm-generic-fixmaph-reimplement-nasty-macros-in-c.patch
+include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix.patch
+include-asm-generic-fixmaph-reimplement-nasty-macros-in-c-fix-fix.patch
+proc-rewrite-next_tgid-fix.patch
 
