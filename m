@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 583E138C40B
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:17:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76679351C2E;
+	Tue, 28 Apr 2026 14:29:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777385832; cv=none; b=hAeWYIoEO37T+jK4oHruNMi/sAAUB8l7VNn/91iYyrHaTKNB+9eqfjJWdW7MEh2shsCLZhfGGQ9s7Npvez6GEnKGuNzweBRiss+pslzVS9VOX+4fK894/rB38edHo/TOCsXTkM2yk9CPCoYLNNB8YpzE6xJiB6v5Vte1qBJuhCo=
+	t=1777386583; cv=none; b=W/lxAnzsY02NQhO4nWrEGluBP8l0gwHPqasIzWkOnOr5N51SwVzZtPP1ewqAfoeanjWohqgTx8HUvxrn+DutsOlPh5Wfs+dj/oXhUuQKoArdPb7donnoWdh7sEj8di1ObztlA4vnzUypJJV33fumsiBmpXcxTxE6tGbeyGZFAYQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777385832; c=relaxed/simple;
-	bh=mnM4laUFaCLd4vWdEWJFL2FIt2L44otnWexikrhV7CY=;
-	h=Date:To:From:Subject:Message-Id; b=oGZMUX4x2ezAoUYYcwMZc6RfwZyWNP+r3UC7L9OamS1RD/bCr6ytbzpENpk7epkNEj95e0Wa7v8y73Je4Vf8Mb+8s3vfLth3o14gbSOtBfTIxUxJk8oBSPRF84pHclYvtmIAPVuFR0ALsaWTHKfkX6MBjYCaq0gP64ejhGr4Q9Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yfE9eNeH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777386583; c=relaxed/simple;
+	bh=ZeqAw7GshDUVVPoMN36PQAnXsF9iQzDiavrgmuyk9ME=;
+	h=Date:To:From:Subject:Message-Id; b=euTdZZSaFmwwTzC0hhoPVK/IaPisY9xBRqNlyQ1F3fgJn+sG/ZqpK4OjSrVsm2P8svCplW8a+shaRoilbRJpa9ORmUv6cSgRz8qixSkmUgcHOMu1YhuWM/fYiLOK6V5UD8k3jW4k8XRgtJYUrWtbZX7wK18urZn+JM86dV6veOo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b5UwPuXO; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yfE9eNeH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD505C2BCAF;
-	Tue, 28 Apr 2026 14:17:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b5UwPuXO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECC48C2BCAF;
+	Tue, 28 Apr 2026 14:29:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777385831;
-	bh=mnM4laUFaCLd4vWdEWJFL2FIt2L44otnWexikrhV7CY=;
+	s=korg; t=1777386583;
+	bh=ZeqAw7GshDUVVPoMN36PQAnXsF9iQzDiavrgmuyk9ME=;
 	h=Date:To:From:Subject:From;
-	b=yfE9eNeHATBkCmG3E3Z4rgHroeXHtPUy7j7jUZaY1Ek78NBy+HQXmwfy0gKvs5Q8D
-	 GwzBqHikJ7TlkW8ZiIhrsgCfyvo406cGwHBnXi71dzaT45ktg9OJK0fR6U+emOXbeE
-	 N+4CyFkqwOWrPV4pCtpX3D9uR1H4IoBJHwYRllBA=
-Date: Tue, 28 Apr 2026 07:17:11 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
+	b=b5UwPuXOPd2+BRerGy3VS0kUvTzbQxLPS4/OlvNoYOpcttMurt+hU25k2oiPM1Zec
+	 R/sfaELJCjbTxkafrkLWjnE8QKPQVYlQCD0P1QfckreAB+V3DjLj3+VAzifaDHhaLI
+	 uGXl61upc0v/rcYo0DHySwLGItPwaK/+4UsoSJYw=
+Date: Tue, 28 Apr 2026 07:29:42 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-document-page_owner-filter-features.patch added to mm-new branch
-Message-Id: <20260428141711.CD505C2BCAF@smtp.kernel.org>
+Subject: + mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260428142942.ECC48C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: document page_owner filter features
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_owner-document-page_owner-filter-features.patch
+     Subject: mm/damon/core: make charge_addr_from aware of end-address exclusivity
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-document-page_owner-filter-features.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,107 +58,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Zhen Ni <zhen.ni@easystack.cn>
-Subject: mm/page_owner: document page_owner filter features
-Date: Tue, 28 Apr 2026 15:11:12 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: make charge_addr_from aware of end-address exclusivity
+Date: Mon, 27 Apr 2026 21:29:40 -0700
 
-Add documentation for the page_owner filter functionality, including:
-- Print mode filter (full stack vs stack handle)
-- NUMA node filter (single node, multiple nodes, ranges)
-- Usage examples for both filters
+DAMON region end address is exclusive one, but charge_addr_from is
+assigned assuming the end address is inclusive.  As a result, DAMOS action
+to next up to min_region_sz memory can be skipped.  This is quite
+negligible user impact.  But, the bug is a bug that can be very simply
+fixed.  Fix the wrong assignment to respect the exclusiveness of the
+address.
 
-Link: https://lore.kernel.org/20260428071112.1420380-5-zhen.ni@easystack.cn
-Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+The issue was discovered [1] by Sashiko.
+
+Link: https://lore.kernel.org/20260428042942.118230-1-sj@kernel.org
+Link: https://lore.kernel.org/20260428032324.115663-1-sj@kernel.org [1]
+Fixes: 50585192bc2e ("mm/damon/schemes: skip already charged targets and regions")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 5.16.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/page_owner.rst |   55 +++++++++++++++++++++++++++++-
- 1 file changed, 54 insertions(+), 1 deletion(-)
+ mm/damon/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/mm/page_owner.rst~mm-page_owner-document-page_owner-filter-features
-+++ a/Documentation/mm/page_owner.rst
-@@ -74,7 +74,17 @@ Usage
- 
- 3) Do the job that you want to debug.
- 
--4) Analyze information from page owner::
-+4) (Optional) Use filters to focus on specific memory allocations::
-+
-+    cd /sys/kernel/debug/page_owner_filter
-+
-+    # Print only stack handles instead of full traces
-+    echo 1 > print_mode
-+
-+    # Filter by NUMA nodes
-+    echo "0,2-3" > nid
-+
-+5) Analyze information from page owner::
- 
- 	cat /sys/kernel/debug/page_owner_stacks/show_stacks > stacks.txt
- 	cat stacks.txt
-@@ -238,6 +248,49 @@ Usage
- 				./page_owner_sort <input> <output> --tgid=1,2,3
- 				./page_owner_sort <input> <output> --name name1,name2
- 
-+Page Owner Filters
-+==================
-+
-+The page_owner feature provides filtering capabilities to focus on specific
-+memory allocations (e.g., by NUMA node). Filters are controlled through debugfs
-+files in ``/sys/kernel/debug/page_owner_filter/``.
-+
-+Print Mode Filter
-+-----------------
-+
-+The ``print_mode`` file controls the level of detail in stack trace output.
-+
-+Available modes:
-+
-+- ``0`` (default): Print full stack traces
-+- ``1``: Print only stack handles
-+
-+The ``print_mode=1`` output format::
-+
-+    Page allocated via order 0, mask 0x42800(GFP_NOWAIT|__GFP_COMP),
-+    pid 1, tgid 1 (systemd), ts 349667370 ns
-+    PFN 0xa00a2 type Unmovable Block 1280 type Unmovable
-+    Flags 0x33fffe0000004124(...)
-+    handle: 17432583
-+
-+To retrieve the full stack trace for a handle, use::
-+
-+    cat /sys/kernel/debug/page_owner_stacks/show_stacks_handles
-+
-+NUMA Node Filter
-+----------------
-+
-+The ``nid`` file filters pages by NUMA node. This is useful for NUMA-aware
-+environments to analyze node-specific memory allocation.
-+
-+Supported input formats:
-+
-+- Single node: ``echo "2" > nid``
-+- Multiple nodes: ``echo "0,2,3" > nid``
-+- Node range: ``echo "0-3" > nid``
-+- Mixed format: ``echo "0,2-4,7" > nid``
-+- Disable filter: ``echo "-1" > nid``
-+
- STANDARD FORMAT SPECIFIERS
- ==========================
- ::
+--- a/mm/damon/core.c~mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity
++++ a/mm/damon/core.c
+@@ -2106,7 +2106,7 @@ static void damos_apply_scheme(struct da
+ 		if (damos_quota_is_set(quota) &&
+ 				quota->charged_sz >= quota->esz) {
+ 			quota->charge_target_from = t;
+-			quota->charge_addr_from = r->ar.end + 1;
++			quota->charge_addr_from = r->ar.end;
+ 		}
+ 	}
+ 	if (s->action != DAMOS_STAT)
 _
 
-Patches currently in -mm which might be from zhen.ni@easystack.cn are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-page_owner-add-filter-infrastructure.patch
-mm-page_owner-add-print_mode-filter.patch
-mm-page_owner-add-numa-node-filter-with-nodelist-support.patch
-mm-page_owner-document-page_owner-filter-features.patch
-mm-page_owner-fix-%pgp-format-specifier-argument-type.patch
+mm-damon-sysfs-schemes-call-missing-mem_cgroup_iter_break.patch
+mm-damon-fix-damos_stat-tracepoint-format-for-sz_applied.patch
+mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch
+docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
+mm-damon-core-introduce-damon_ctx-paused.patch
+mm-damon-sysfs-add-pause-file-under-context-dir.patch
+docs-mm-damon-design-update-for-context-pause-resume-feature.patch
+docs-admin-guide-mm-damon-usage-update-for-pause-file.patch
+docs-abi-damon-update-for-pause-sysfs-file.patch
+mm-damon-tests-core-kunit-test-pause-commitment.patch
+selftests-damon-_damon_sysfs-support-pause-file-staging.patch
+selftests-damon-drgn_dump_damon_status-dump-pause.patch
+selftests-damon-sysfspy-check-pause-on-assert_ctx_committed.patch
+selftests-damon-sysfspy-pause-damon-before-dumping-status.patch
 
