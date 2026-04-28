@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFB1640F8DE
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:49:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1FD243E4B2
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:49:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777387751; cv=none; b=ZzwqBx80kudwebZetM6uf9ywLGuuYDxfbgl7avb7/SShQ1kpOwRz4WnUlX7jspwSviibWg4O2bsf+H75BzyPZxvlfa9sBygA+KSNxmHhrPxCZiI89zP8WM3yIuBB8qbg489vEokhHcNiuX/WpPRa2YjOLp4Yiu9kfeMWPEV3L9s=
+	t=1777387753; cv=none; b=pUxTSn7M8Y4YwyZ/VihlovAOY0QSSGTEn+JNWbNiN4hFXSv9Voy6miVcmwW33Tv2eAEwLfQ8/ZlbvNUQC2ms4udE7uQ8oU4lAAfRbYYRneBX1UYguKC/CgmU5eZ7NVgzRE+nHD9o8SnvB2t494wE4w69nrY+M8JkiyPk+JdiwsM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777387751; c=relaxed/simple;
-	bh=HdKCcb+XMkx0tubUBsZkPSxnKg9m/SS4cbbgEb1zBeQ=;
-	h=Date:To:From:Subject:Message-Id; b=rcL37JtiE+o/YB3lN60LipPOXmDqcVlpWgAmeWmcDJ1uU5I5i2srYwgwKopDhZSeG1EbfR9Yqq2UFj7vVxw43wPWbdwCf7JH6kKjcEb6SOBtCXlPrsYAcemRJ9al6Ja/UglNKhaoO4MB3wWEPFvk0Kva+JsbnC0Ec60fIN0IQWk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nHb+neUE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777387753; c=relaxed/simple;
+	bh=eBsRigWb6+d0cr9cNDaUpkiaZ8pr1ABGabjj+B89OK8=;
+	h=Date:To:From:Subject:Message-Id; b=SDUnXz459AWnOF6G9pkCkNIA19jSEtcMichC0PJMWBg7flx4D5a8zcXtn+SQXPDPjllDFcHnWb/nO3xvRMHmIkBZDm4HOJ/bLn4apf87cAbkrJh8el8mfC9ePSUvTWrwq5OHf7BsoAvUNGKj9IMU2e60lxS67wm5R1PI+j8OMEE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jrBzNwE4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nHb+neUE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FFC1C2BCAF;
-	Tue, 28 Apr 2026 14:49:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jrBzNwE4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 704E6C2BCAF;
+	Tue, 28 Apr 2026 14:49:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777387751;
-	bh=HdKCcb+XMkx0tubUBsZkPSxnKg9m/SS4cbbgEb1zBeQ=;
+	s=korg; t=1777387753;
+	bh=eBsRigWb6+d0cr9cNDaUpkiaZ8pr1ABGabjj+B89OK8=;
 	h=Date:To:From:Subject:From;
-	b=nHb+neUED/pg3XpaiVaOd5uGx4q4lnwQLhnpAGXAq9jI6UPoONewqfSh5V2qyXJSa
-	 t3v5RXeQVpNWj55a3DAoSv7uIaT/m0Gt8ktCyrWgtji6Vaqu5xGfern/VTLXRWXva/
-	 t4HwGk/OmZyDK7tOo/cMkjbSla06Ft0ruDYeTlac=
-Date: Tue, 28 Apr 2026 07:49:10 -0700
+	b=jrBzNwE4BHKwdYYCHZ9bgRTLuSDNdljGv08AslCtJIPvt0WK+diAm9a5NctkLU1QG
+	 FxVYkVSoa6IjsyIdIPk7Zt76uNgsq9eiyg4yhR8ZNQ8X+7QYT7tYBAdgFiWBSR8Gvz
+	 QUuhlr5vXUreofy82ugqRhzeNkHR9u+31Cm4eAZM=
+Date: Tue, 28 Apr 2026 07:49:12 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch added to mm-new branch
-Message-Id: <20260428144911.5FFC1C2BCAF@smtp.kernel.org>
+Subject: + selftests-damon-_damon_sysfs-support-failed-region-quota-charge-ratio.patch added to mm-new branch
+Message-Id: <20260428144913.704E6C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: test fail_charge_{num,denom} committing
+     Subject: selftests/damon/_damon_sysfs: support failed region quota charge ratio
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch
+     selftests-damon-_damon_sysfs-support-failed-region-quota-charge-ratio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-_damon_sysfs-support-failed-region-quota-charge-ratio.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: test fail_charge_{num,denom} committing
-Date: Mon, 27 Apr 2026 18:33:57 -0700
+Subject: selftests/damon/_damon_sysfs: support failed region quota charge ratio
+Date: Mon, 27 Apr 2026 18:33:58 -0700
 
-Extend damos_test_commit_quotas() kunit test to ensure
-damos_commit_quota() handles fail_charge_{num,denom} parameters.
+Extend _damon_sysfs.py for DAMOS action failed regions quota charge ratio
+setup, so that we can add kselftest for the new feature.
 
-Link: https://lore.kernel.org/20260428013402.115171-9-sj@kernel.org
+Link: https://lore.kernel.org/20260428013402.115171-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -91,38 +91,59 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ tools/testing/selftests/damon/_damon_sysfs.py |   21 ++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing
-+++ a/mm/damon/tests/core-kunit.h
-@@ -694,6 +694,8 @@ static void damos_test_commit_quota(stru
- 		.ms = 2,
- 		.sz = 3,
- 		.goal_tuner = DAMOS_QUOTA_GOAL_TUNER_CONSIST,
-+		.fail_charge_num = 2,
-+		.fail_charge_denom = 3,
- 		.weight_sz = 4,
- 		.weight_nr_accesses = 5,
- 		.weight_age = 6,
-@@ -703,6 +705,8 @@ static void damos_test_commit_quota(stru
- 		.ms = 8,
- 		.sz = 9,
- 		.goal_tuner = DAMOS_QUOTA_GOAL_TUNER_TEMPORAL,
-+		.fail_charge_num = 1,
-+		.fail_charge_denom = 1024,
- 		.weight_sz = 10,
- 		.weight_nr_accesses = 11,
- 		.weight_age = 12,
-@@ -717,6 +721,8 @@ static void damos_test_commit_quota(stru
- 	KUNIT_EXPECT_EQ(test, dst.ms, src.ms);
- 	KUNIT_EXPECT_EQ(test, dst.sz, src.sz);
- 	KUNIT_EXPECT_EQ(test, dst.goal_tuner, src.goal_tuner);
-+	KUNIT_EXPECT_EQ(test, dst.fail_charge_num, src.fail_charge_num);
-+	KUNIT_EXPECT_EQ(test, dst.fail_charge_denom, src.fail_charge_denom);
- 	KUNIT_EXPECT_EQ(test, dst.weight_sz, src.weight_sz);
- 	KUNIT_EXPECT_EQ(test, dst.weight_nr_accesses, src.weight_nr_accesses);
- 	KUNIT_EXPECT_EQ(test, dst.weight_age, src.weight_age);
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-support-failed-region-quota-charge-ratio
++++ a/tools/testing/selftests/damon/_damon_sysfs.py
+@@ -132,14 +132,17 @@ class DamosQuota:
+     goals = None                # quota goals
+     goal_tuner = None           # quota goal tuner
+     reset_interval_ms = None    # quota reset interval
++    fail_charge_num = None
++    fail_charge_denom = None
+     weight_sz_permil = None
+     weight_nr_accesses_permil = None
+     weight_age_permil = None
+     scheme = None               # owner scheme
+ 
+     def __init__(self, sz=0, ms=0, goals=None, goal_tuner='consist',
+-                 reset_interval_ms=0, weight_sz_permil=0,
+-                 weight_nr_accesses_permil=0, weight_age_permil=0):
++                 reset_interval_ms=0, fail_charge_num=0, fail_charge_denom=0,
++                 weight_sz_permil=0, weight_nr_accesses_permil=0,
++                 weight_age_permil=0):
+         self.sz = sz
+         self.ms = ms
+         self.reset_interval_ms = reset_interval_ms
+@@ -151,6 +154,8 @@ class DamosQuota:
+         for idx, goal in enumerate(self.goals):
+             goal.idx = idx
+             goal.quota = self
++        self.fail_charge_num = fail_charge_num
++        self.fail_charge_denom = fail_charge_denom
+ 
+     def sysfs_dir(self):
+         return os.path.join(self.scheme.sysfs_dir(), 'quotas')
+@@ -197,6 +202,18 @@ class DamosQuota:
+                 os.path.join(self.sysfs_dir(), 'goal_tuner'), self.goal_tuner)
+         if err is not None:
+             return err
++
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'fail_charge_num'),
++                self.fail_charge_num)
++        if err is not None:
++            return err
++        err = write_file(
++                os.path.join(self.sysfs_dir(), 'fail_charge_denom'),
++                self.fail_charge_denom)
++        if err is not None:
++            return err
++
+         return None
+ 
+ class DamosWatermarks:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
