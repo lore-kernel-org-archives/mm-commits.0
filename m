@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55A8743D4EA
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:48:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E9A22BD030
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:48:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777387736; cv=none; b=n5FicnwTLIxkAzCMgJOnd3mgzVTGSgFwRZL4L8pMKgIzp8P4NQCsAjEi8fKxoHeNv8oheUAVAXUZp2RAcR+rHQwH6I43MgaHqe069AjPFuovX6PB/t/MlfR7d69gBmDqUpmkog+xQOlWLb/YDmwp2h0TlB097o7Ii99sn6FOkJQ=
+	t=1777387738; cv=none; b=XbvqgDpqqHqwx9V7NCRX7xNxXa2klZNsZqANR/NVBrR0ubXCwJGX4UG0aWMooJDv4dyO5A201NCgnRidrxHbU4IoNaqSv9fxoCKMtURL7JeEBtBSESLauXUAymPUMJ9czOJg1ON3djKTVgeToPGHqGUI4upDv2GzxU0QL5tQnsg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777387736; c=relaxed/simple;
-	bh=3jWW0pGwxlb7MkDKMrWEDHqdUkTH3FEcdCupXnirWV8=;
-	h=Date:To:From:Subject:Message-Id; b=IcLKM07hWivf0DkrMudcvZpyd+lTlcWeBb+BR3xx2HNI6aw2Ge7FlPU/kFbgx84608IUaUAYMJUSh0sMQy1rkknKwJAn6hoCiQWoFoor6kDN7IFby24ri/gPC0csspe35W4VDD/THFYq8XcHXm7MCqv5+vPhPXw/2uNackkyjuE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SzCRPZTh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777387738; c=relaxed/simple;
+	bh=0/fNivY6Vh3ihZokST1hay4bWWx0QoOxUCBC4yaq7SA=;
+	h=Date:To:From:Subject:Message-Id; b=HAcq7NvGCF6Vl5qqU5Q73mqMcA709KeBJyvYNNyepHxluZuBKF/LyDF5O4yXqggbEmOdl3WxaWef3jB1w2/9J8D3PwCEoL7FUPwgucUT8eo6wS7HrhSmqrueM4WMsl2V3YCYT76aJe+qzFAYD00ctLSvRKw1WMRjF2zHpELUV18=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j7TfGVPx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SzCRPZTh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF35BC2BCAF;
-	Tue, 28 Apr 2026 14:48:55 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j7TfGVPx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C94AC2BCAF;
+	Tue, 28 Apr 2026 14:48:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777387736;
-	bh=3jWW0pGwxlb7MkDKMrWEDHqdUkTH3FEcdCupXnirWV8=;
+	s=korg; t=1777387738;
+	bh=0/fNivY6Vh3ihZokST1hay4bWWx0QoOxUCBC4yaq7SA=;
 	h=Date:To:From:Subject:From;
-	b=SzCRPZThj92OL2KJw3jSyGp3Z+WfGoC1MCBXnYB8JiGfXAiKQyd6KSlo4rR6dUIua
-	 dBy6wbPqw/qG1HC3ux7C1OeyNNOYbMxxxlbiHTXgWejgKrISBDFIPLXBt/5x0q0M19
-	 RL5ZV6YtpVwECPChTGvSwe2MiGzWVKjAaizA7l9c=
-Date: Tue, 28 Apr 2026 07:48:55 -0700
+	b=j7TfGVPx8RhDysdKRo9pT1zFqVFlwYJgjkpMKtcgz6eCbHLNPFNxLHUxV+7vVdsc0
+	 aLGP2G2K1g0auPv5pwfpVskBJLWEAMjYveMtys866a8AVrcUU54GKyLCNUEC0BKq86
+	 BO009YxeMUBf/XnR/X19+K1UsZOn7sdzeu5hNSNY=
+Date: Tue, 28 Apr 2026 07:48:57 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-handle-min_region_sz-remaining-quota-as-empty.patch added to mm-new branch
-Message-Id: <20260428144855.DF35BC2BCAF@smtp.kernel.org>
+Subject: + mm-damon-core-merge-regions-after-applying-damos-schemes.patch added to mm-new branch
+Message-Id: <20260428144858.1C94AC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: handle <min_region_sz remaining quota as empty
+     Subject: mm/damon/core: merge regions after applying DAMOS schemes
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-handle-min_region_sz-remaining-quota-as-empty.patch
+     mm-damon-core-merge-regions-after-applying-damos-schemes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-handle-min_region_sz-remaining-quota-as-empty.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-merge-regions-after-applying-damos-schemes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,182 +70,30 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: handle <min_region_sz remaining quota as empty
-Date: Mon, 27 Apr 2026 18:33:50 -0700
+Subject: mm/damon/core: merge regions after applying DAMOS schemes
+Date: Mon, 27 Apr 2026 18:33:51 -0700
 
-Patch series "mm/damon: introduce DAMOS failed region quota charge ratio".
+damos_apply_scheme() could split the given region if applying the scheme's
+action to the entire region can result in violating the quota-set upper
+limit.  Keeping regions that are created by such split operations is
+unnecessary overhead.
 
-Let users set different DAMOS quota charge ratios for DAMOS action failed
-regions, for deterministic and consistent DAMOS action progress.
+The overhead would be negligible in the common case because such split
+operations could happen only up to the number of installed schemes per
+scheme apply interval.  The following commit could make the impact larger,
+though.  The following commit will allow the action-failed region to be
+charged in a different ratio.  If both the ratio and the remaining quota
+is quite small while the region to apply the scheme is quite large and the
+action is nearly always failing, a high number of split operations could
+happen.
 
-Common Reports: Unexpectedly Slow DAMOS
-=======================================
+Remove the unnecessary overhead by merging regions after applying schemes
+is done for each region.  The merge operation is made only if it will not
+lose monitoring information and keep min_nr_regions constraint.  In the
+worst case, the max_nr_regions could still be violated until the next
+per-aggregation interval merge operation is made.
 
-One common issue report that we get from DAMON users is that DAMOS action
-applying progress speed is sometimes much slower than expected.  And one
-common root cause is that the DAMOS quota is exceeded by the action
-applying failed memory regions.
-
-For example, a group of users tried to run DAMOS-based proactive memory
-reclamation (DAMON_RECLAIM) with 100 MiB per second DAMOS quota.  They ran
-it on a system having no active workload which means all memory of the
-system is cold.  The expectation was that the system will show 100 MiB per
-second reclamation until (nearly) all memory is reclaimed.  But what they
-found is that the speed is quite inconsistent and sometimes it becomes
-very slower than the expectation, sometimes even no reclamation at all for
-about tens of seconds.  The upper limit of the speed (100 MiB per second)
-was being kept as expected, though.
-
-By monitoring the qt_exceeds (number of DAMOS quota exceed events) DAMOS
-stat, we found DAMOS quota is always exceeded when the speed is slow.  By
-monitoring sz_tried and sz_applied (the total amount of DAMOS action tried
-memory and succeeded memory) DAMOS stats together, we found the
-reclamation attempts nearly always failed when the speed is slow.
-
-DAMOS quota charges DAMOS action tried regions regardless of the
-successfulness of the try.  Hence in the example reported case, there was
-unreclaimable memory spread around the system memory.  Sometimes nearly
-100 MiB of memory that DAMOS tried to reclaim in the given quota interval
-was reclaimable, and therefore showed nearly 100 MiB per second speed. 
-Sometimes nearly 99 MiB of memory that DAMOS was trying to reclaim in the
-given quota interval was unreclaimable, and therefore showing only about 1
-MiB per second reclaim speed.
-
-We explained it is an expected behavior of the feature rather than a bug,
-as DAMOS quota is there for only the upper-limit of the speed.  The users
-agreed and later reported a huge win from the adoption of DAMON_RECLAIM on
-their products.
-
-It is Not a Bug but a Feature; But...
-=====================================
-
-So nothing is broken.  DAMOS quota is working as intended, as the upper
-limit of the speed.  It also provides its behavior observability via DAMOS
-stat.  In the real world production environment that runs long term active
-workloads and matters stability, the speed sometimes being slow is not a
-real problem.
-
-But, the non-deterministic behavior is sometimes annoying, especially in
-lab environments.  Even in a realistic production environment, when there
-is a huge amount of DAMOS action unapplicable memory, the speed could be
-problematically slow.  Let's suppose a virtual machines provider that
-setup 99% of the host memory as hugetlb pages that cannot be reclaimed, to
-give it to virtual machines.  Also, when aim-oriented DAMOS auto-tuning is
-applied, this could also make the internal feedback loop confused.
-
-The intention of the current behavior was that trying DAMOS action to
-regions would anyway impose some overhead, and therefore somehow be
-charged.  But in the real world, the overhead for failed action is much
-lighter than successful action.  Charging those at the same ratio may be
-unfair, or at least suboptimum in some environments.
-
-DAMOS Action Failed Region Quota Charge Ratio
-=============================================
-
-Let users set the charge ratio for the action-failed memory, for more
-optimal and deterministic use of DAMOS.  It allows users to specify the
-numerator and the denominator of the ratio for flexible setup.  For
-example, let's suppose the numerator and the denominator are set to 1 and
-4,096, respectively.  The ratio is 1 / 4,096.  A DAMOS scheme action is
-applied to 5 GiB memory.  For 1 GiB of the memory, the action is
-succeeded.  For the rest (4 GiB), the action is failed.  Then, only 1 GiB
-and 1 MiB quota is charged.
-
-The optimal charge ratio will depend on the use case and system/workload. 
-I'd recommend starting from setting the nominator as 1 and the denominator
-as PAGE_SIZE and tune based on the results, because many DAMOS actions are
-applied at page level.
-
-Tests
-=====
-
-I tested this feature in the steps below.
-
-1. Allocate 50% of system memory and mlock() it using a test program.
-2. Fill up the page cache to exhaust nearly all free memory.
-3. Start DAMON-based proactive reclamation with 100 MiB/second DAMOS
-   hard-quota.  Auto-tune the DAMOS soft-quota under the hard-quota for
-   achieving 40% free memory of the system with 'temporal' tuner.
-
-For step 1, I run a simple C program that is written by Gemini.  It is
-quite straightforward, so I'm not sharing the code here.
-
-For step 2, I use dd command like below:
-
-   dd if=/dev/zero of=foo bs=1M count=$50_percent_of_system_memory
-
-For step 3, I use the latest version of DAMON user-space tool (damo) like
-below.
-
-    sudo damo start --damos_action pageout \
-            ` # Do the pageout only up to 100 MiB per second ` \
-            --damos_quota_space 100M --damos_quota_interval 1s \
-            ` # Auto-tune the quota below the hard quota aiming` \
-            ` # 40% free memory of the node 0 ` \
-            ` # (entire node of the test system)` \
-            --damos_quota_goal node_mem_free_bp 40% 0 \
-            ` # use temporal tuner, which is easy to understnd ` \
-            --damos_quota_goal_tuner temporal
-
-As expected, the progress of the reclamation is not consistent, because
-the quota is exceeded for the failed reclamation of the unreclaimable
-memory.
-
-I do this again, but with the failed region charge ratio feature.  For
-this, the above 'damo' command is used, after appending command line
-option for setup of the charge ratio like below.  Note that the option was
-added to 'damo' after v3.1.9.
-
-    sudo ./damo start --damos_action pageout \
-            [...]
-            ` # quota-charge only 1/4096 for pageout-failed regions ` \
-            --damos_quota_fail_charge_ratio 1 4096
-
-The progress of the reclamation was nearly 100 MiB per second until the
-goal was achieved, meeting the expectation.
-
-Patches Sequence
-================
-
-The first two patches make preparational changes.  Patch 1 updates fully
-charged quota check to handle <min_region_sz remaining quota, which will
-be able to exist after this series is applied.  Patch 2 merges regions
-after applying schemes is done as long as it is ok to do, since regions
-split operations for quota could happen much more frequently under a
-corner case that this series will make available.
-
-Patch 3 implements the feature and exposes it via DAMON core API.  Patch 4
-implements DAMON sysfs ABI for the feature.  Three following patches (5-7)
-document the feature and ABI on design, usage, and ABI documents,
-respectively.  Four patches for testing of the new feature follow.  Patch
-8 implements a kunit test for the feature.  Patches 9 and 10 extend DAMON
-selftest helpers for DAMON sysfs control and internal state dumping for
-adding a new selftest for the feature.  Patch 11 extends existing DAMON
-sysfs interface selftest to test the new feature using the extended helper
-scripts.
-
-
-This patch (of 11):
-
-Less than min_region_sz remaining quota effectively means the quota is
-fully charged.  In other words, no remaining quota.  This is because DAMOS
-actions are applied in the region granularity, and each region should have
-min_region_sz or larger size.  However the existing fully charged quota
-check, which is also used for setting charge_target_from and
-charge_addr_from of the quota, is not aware of the case.  For the reason,
-charge_target_from and charge_addr_from of the quota will not be updated
-in the case.  This can result in DAMOS action being applied more
-frequently to a specific area of the memory.
-
-The case is unreal because quota charging is also made in the region
-granularity.  It could be changed in future, though.  Actually, the
-following commit will make the change, by allowing users to set arbitrary
-quota charging ratio for action-failed regions.  To be prepared for the
-change, update the fully charged quota checks to treat having less than
-min_region_sz remaining quota as fully charged.
-
-Link: https://lore.kernel.org/20260428013402.115171-1-sj@kernel.org
-Link: https://lore.kernel.org/20260428013402.115171-2-sj@kernel.org
+Link: https://lore.kernel.org/20260428013402.115171-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -260,62 +108,97 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   23 +++++++++++++++++------
- 1 file changed, 17 insertions(+), 6 deletions(-)
+ mm/damon/core.c |   59 ++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 55 insertions(+), 4 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-handle-min_region_sz-remaining-quota-as-empty
+--- a/mm/damon/core.c~mm-damon-core-merge-regions-after-applying-damos-schemes
 +++ a/mm/damon/core.c
-@@ -2066,6 +2066,20 @@ static void damos_walk_cancel(struct dam
- 	mutex_unlock(&ctx->walk_control_lock);
+@@ -2184,6 +2184,58 @@ static void damon_do_apply_schemes(struc
  }
  
-+static bool damos_quota_is_full(struct damos_quota *quota,
-+		unsigned long min_region_sz)
+ /*
++ * damos_apply_target() - Apply DAMOS schemes to a given target.
++ * @c:			monitoring context to apply its DAMOS schemes to..
++ * @t:			monitoring target to apply the schemes to.
++ * @max_region_sz:	maximum region size for @c.
++ *
++ * This function could split regions for keeping the quota.  To minimize
++ * overhead from the split operations increased number of regions, this
++ * function will also merge regions after the schemes applying attempt is done,
++ * for each region.  The merge operation is made only when it doesn't lose the
++ * monitoring information and not violating @max_region_sz.
++ *
++ * Hence, after this function is called, the total number of regions could
++ * be increased or reduced.  The increase could make max_nr_regions temporarily
++ * be violated, until the next per-aggregation interval regions merge operation
++ * is executed.  The decrease will not violate min_nr_regions though, since it
++ * keeps @max_region_sz.
++ */
++static void damos_apply_target(struct damon_ctx *c, struct damon_target *t,
++		unsigned long max_region_sz)
 +{
-+	if (!damos_quota_is_set(quota))
-+		return false;
-+	if (quota->charged_sz >= quota->esz)
-+		return true;
-+	/*
-+	 * DAMOS action is applied per region, so <min_region_sz remaining
-+	 * quota means the quota is effectively full.
-+	 */
-+	return quota->esz - quota->charged_sz < min_region_sz;
++	struct damon_region *r;
++
++	damon_for_each_region(r, t) {
++		struct damon_region *prev_r;
++
++		damon_do_apply_schemes(c, t, r);
++		/*
++		 * damon_do_apply_scheems() could split the region for the
++		 * quota.  Keeping the new slices is an overhead.  Merge back
++		 * the slices into the previous region if it doesn't lose any
++		 * information and not violating the max_region_sz.
++		 */
++		if (damon_first_region(t) == r)
++			continue;
++		prev_r = damon_prev_region(r);
++		if (prev_r->ar.end != r->ar.start)
++			continue;
++		if (prev_r->age != r->age)
++			continue;
++		if (prev_r->last_nr_accesses != r->last_nr_accesses)
++			continue;
++		if (prev_r->nr_accesses != r->nr_accesses)
++			continue;
++		if (r->ar.end - prev_r->ar.start > max_region_sz)
++			continue;
++		prev_r->ar.end = r->ar.end;
++		damon_destroy_region(r, t);
++		r = prev_r;
++	}
 +}
 +
- static void damos_apply_scheme(struct damon_ctx *c, struct damon_target *t,
- 		struct damon_region *r, struct damos *s)
++/*
+  * damon_feed_loop_next_input() - get next input to achieve a target score.
+  * @last_input	The last input.
+  * @score	Current score that made with @last_input.
+@@ -2675,9 +2727,9 @@ static void damos_trace_stat(struct damo
+ static void kdamond_apply_schemes(struct damon_ctx *c)
  {
-@@ -2123,8 +2137,7 @@ static void damos_apply_scheme(struct da
- 		quota->total_charged_ns += timespec64_to_ns(&end) -
- 			timespec64_to_ns(&begin);
- 		quota->charged_sz += sz;
--		if (damos_quota_is_set(quota) &&
--				quota->charged_sz >= quota->esz) {
-+		if (damos_quota_is_full(quota, c->min_region_sz)) {
- 			quota->charge_target_from = t;
- 			quota->charge_addr_from = r->ar.end;
- 		}
-@@ -2152,8 +2165,7 @@ static void damon_do_apply_schemes(struc
- 			continue;
+ 	struct damon_target *t;
+-	struct damon_region *r;
+ 	struct damos *s;
+ 	bool has_schemes_to_apply = false;
++	unsigned long max_region_sz;
  
- 		/* Check the quota */
--		if (damos_quota_is_set(quota) &&
--				quota->charged_sz >= quota->esz)
-+		if (damos_quota_is_full(quota, c->min_region_sz))
- 			continue;
+ 	damon_for_each_scheme(s, c) {
+ 		if (time_before(c->passed_sample_intervals, s->next_apply_sis))
+@@ -2694,13 +2746,12 @@ static void kdamond_apply_schemes(struct
+ 	if (!has_schemes_to_apply)
+ 		return;
  
- 		if (damos_skip_charged_region(t, r, s, c->min_region_sz))
-@@ -2602,8 +2614,7 @@ static void damos_adjust_quota(struct da
- 	if (!time_in_range_open(jiffies, quota->charged_from,
- 				quota->charged_from +
- 				msecs_to_jiffies(quota->reset_interval))) {
--		if (damos_quota_is_set(quota) &&
--				quota->charged_sz >= quota->esz)
-+		if (damos_quota_is_full(quota, c->min_region_sz))
- 			s->stat.qt_exceeds++;
- 		quota->total_charged_sz += quota->charged_sz;
- 		quota->charged_from = jiffies;
++	max_region_sz = damon_region_sz_limit(c);
+ 	mutex_lock(&c->walk_control_lock);
+ 	damon_for_each_target(t, c) {
+ 		if (c->ops.target_valid && c->ops.target_valid(t) == false)
+ 			continue;
+-
+-		damon_for_each_region(r, t)
+-			damon_do_apply_schemes(c, t, r);
++		damos_apply_target(c, t, max_region_sz);
+ 	}
+ 
+ 	damon_for_each_scheme(s, c) {
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
