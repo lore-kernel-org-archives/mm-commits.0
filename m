@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A45493ED11C
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:49:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEADD37F8DF
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:57:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777387757; cv=none; b=QMAgEKTrmq+GFlk+wi4fVYYzc1cqmm5laXx/WvnyhNL/Fc8V95AO4taooory1OkMpHvxhccIERsF7zJMSb9PRZneBu51VgIk0xcVY00PAUcPGhlBL2mkoqK5czXYH/6fEcU70fEXfRjHkLeyu23RFh5QjWK4fwAZaoVC1tDLFT0=
+	t=1777388235; cv=none; b=YlI+uWvAjtYHCL9Hkm0YeLAFLQU8cl83ORxmk0SpxBvE+bZy5DIfJbreAIcdKgoJX3IXnZTDW7a/jFVYZPhBWIvNQTqo5S5bAyPkiwt1A2869CprZ3UxA9fkRSWzgzf/0qt8xOKotDOJll9oxq0Rj5Qj5soP1RiJ/eJs2jiR0Dk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777387757; c=relaxed/simple;
-	bh=4+/Kf8RTWtHjj3vSXYOwpAnY/s3lww9uieu3b1SrtQU=;
-	h=Date:To:From:Subject:Message-Id; b=levDm9erIZ3zGk4rT80/ajvJ3ESz0sThQmjPhszUFlhFhCIqQ14+8xCK1K3VlzHAgKCIN2r1enu3pl45axkgdABmqzxTUHmewyVhUtkoGdkf5seYIR2TifTNSMvoR90Ujx5r99DY5uZgVGJELWe3/BlZMgvubLjUusYXqDRZVPo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qneZTJlj; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777388235; c=relaxed/simple;
+	bh=ngbfE2sQPbTri5X9CCqFtcb07oaBz8tQmNVAzqxOetw=;
+	h=Date:To:From:Subject:Message-Id; b=bdY6U7JSEcJGcc5a7afB9bagUS7fbdMlRl2SWGfsAywxVOss8R8kt3IMEPiWTSP/UfY6PR17afjvb9GNXUb9CbSjwrk3+BNPE7iRVq8kHyTmxWBaDsVOjrpY4W4dwwhFl8Xv1kQz9kdB9IF66ybkMoOoj9a106JwARHFMIEjwIg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yeq9J5VC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qneZTJlj"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C2C1C2BCAF;
-	Tue, 28 Apr 2026 14:49:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yeq9J5VC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5862FC2BCAF;
+	Tue, 28 Apr 2026 14:57:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777387757;
-	bh=4+/Kf8RTWtHjj3vSXYOwpAnY/s3lww9uieu3b1SrtQU=;
+	s=korg; t=1777388234;
+	bh=ngbfE2sQPbTri5X9CCqFtcb07oaBz8tQmNVAzqxOetw=;
 	h=Date:To:From:Subject:From;
-	b=qneZTJljqYwDtMxqkN+h8qtgxHbxYiPoIRFphvdiGqQjxSasJTUUIwfAQ/AHDSyQC
-	 wgKaMYj/sFOEuVxkrAsoOEBohVniCiG6lvufhn1vfd9dlLP4e1KedfAZwyAFIDnxH8
-	 5tOsDIORX1BwcI8ogYlk8CmIydIKgmPhEipd5Pxk=
-Date: Tue, 28 Apr 2026 07:49:16 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=yeq9J5VCDeJ6+0MG3B9glo4OBkVknymO5Oq0ddV63fiP6EvBikAgLO9axaBl1VDs7
+	 YHW7xYZRspN3nVuuOjVfLVmMIKl7K1xbv69tComIr2iR39F+VDvmhRlEymCEeS8lri
+	 3XRxCkUykjIwuS0DRP02vyW6wFL1R27ol+NHhaxc=
+Date: Tue, 28 Apr 2026 07:57:13 -0700
+To: mm-commits@vger.kernel.org,ruirui.yang@linux.dev,pratyush@kernel.org,pasha.tatashin@soleen.com,ebiederm@xmission.com,baoquan.he@linux.dev,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfspy-test-failed-region-quota-charge-ratio.patch added to mm-new branch
-Message-Id: <20260428144917.7C2C1C2BCAF@smtp.kernel.org>
+Subject: + maintainers-add-tree-for-kdump-and-kexec.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260428145714.5862FC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs.py: test failed region quota charge ratio
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfspy-test-failed-region-quota-charge-ratio.patch
+     Subject: MAINTAINERS: add tree for KDUMP and KEXEC
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     maintainers-add-tree-for-kdump-and-kexec.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-test-failed-region-quota-charge-ratio.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-tree-for-kdump-and-kexec.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,80 +58,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.py: test failed region quota charge ratio
-Date: Mon, 27 Apr 2026 18:34:00 -0700
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: MAINTAINERS: add tree for KDUMP and KEXEC
+Date: Tue, 28 Apr 2026 15:48:32 +0300
 
-Extend sysfs.py DAMON selftest to setup DAMOS action failed region quota
-charge ratio and assert the setup is made into DAMON internal state.
+Patch series "MAINTAINERS: update KEXEC, KDUMP and LIVE UPDATE".
 
-Link: https://lore.kernel.org/20260428013402.115171-12-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendan.higgins@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+KHO and LiveUpdate team is going to pick kdump and kexec patches to
+their tree at
+    
+https://git.kernel.org/pub/scm/linux/kernel/git/liveupdate/linux.git
+
+Update MAINTAINERS to reflect this change and add kexec@ list to LIVE
+UPDATE entry.
+
+
+This patch (of 2):
+
+KHO and LiveUpdate team is going to pick kdump and kexec patches to their
+tree at
+
+https://git.kernel.org/pub/scm/linux/kernel/git/liveupdate/linux.git
+
+Update MAINTAINERS to reflect it.
+
+Link: https://lore.kernel.org/20260428124833.1903302-1-rppt@kernel.org
+Link: https://lore.kernel.org/20260428124833.1903302-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Baoquan He <baoquan.he@linux.dev>, 
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
+Cc: Dave Young <ruirui.yang@linux.dev>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.py |    6 ++++++
- 1 file changed, 6 insertions(+)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-test-failed-region-quota-charge-ratio
-+++ a/tools/testing/selftests/damon/sysfs.py
-@@ -73,6 +73,10 @@ def assert_quota_committed(quota, dump):
-             }
-     assert_true(dump['goal_tuner'] == tuner_val[quota.goal_tuner],
-                 'goal_tuner', dump)
-+    assert_true(dump['fail_charge_num'] == quota.fail_charge_num,
-+                'fail_charge_num', dump)
-+    assert_true(dump['fail_charge_denom'] == quota.fail_charge_denom,
-+                'fail_charge_denom', dump)
-     assert_true(dump['weight_sz'] == quota.weight_sz_permil, 'weight_sz', dump)
-     assert_true(dump['weight_nr_accesses'] == quota.weight_nr_accesses_permil,
-                 'weight_nr_accesses', dump)
-@@ -278,6 +282,8 @@ def main():
-                         nid=1)],
-                     goal_tuner='temporal',
-                     reset_interval_ms=1500,
-+                    fail_charge_num=1,
-+                    fail_charge_denom=4096,
-                     weight_sz_permil=20,
-                     weight_nr_accesses_permil=200,
-                     weight_age_permil=1000),
+--- a/MAINTAINERS~maintainers-add-tree-for-kdump-and-kexec
++++ a/MAINTAINERS
+@@ -13860,6 +13860,7 @@ M:	Pratyush Yadav <pratyush@kernel.org>
+ R:	Dave Young <ruirui.yang@linux.dev>
+ L:	kexec@lists.infradead.org
+ S:	Maintained
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/liveupdate/linux.git
+ F:	Documentation/admin-guide/kdump/
+ F:	fs/proc/vmcore.c
+ F:	include/linux/crash_core.h
+@@ -14176,6 +14177,7 @@ M:	Pasha Tatashin <pasha.tatashin@soleen
+ M:	Pratyush Yadav <pratyush@kernel.org>
+ L:	kexec@lists.infradead.org
+ W:	http://kernel.org/pub/linux/utils/kernel/kexec/
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/liveupdate/linux.git
+ F:	include/linux/kexec.h
+ F:	include/uapi/linux/kexec.h
+ F:	kernel/kexec*
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-damon-sysfs-schemes-call-missing-mem_cgroup_iter_break.patch
-mm-damon-fix-damos_stat-tracepoint-format-for-sz_applied.patch
-mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch
-docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
-mm-damon-core-introduce-damon_ctx-paused.patch
-mm-damon-sysfs-add-pause-file-under-context-dir.patch
-docs-mm-damon-design-update-for-context-pause-resume-feature.patch
-docs-admin-guide-mm-damon-usage-update-for-pause-file.patch
-docs-abi-damon-update-for-pause-sysfs-file.patch
-mm-damon-tests-core-kunit-test-pause-commitment.patch
-selftests-damon-_damon_sysfs-support-pause-file-staging.patch
-selftests-damon-drgn_dump_damon_status-dump-pause.patch
-selftests-damon-sysfspy-check-pause-on-assert_ctx_committed.patch
-selftests-damon-sysfspy-pause-damon-before-dumping-status.patch
-mm-damon-core-handle-min_region_sz-remaining-quota-as-empty.patch
-mm-damon-core-merge-regions-after-applying-damos-schemes.patch
-mm-damon-core-introduce-failed-region-quota-charge-ratio.patch
-mm-damon-sysfs-schemes-implement-fail_charge_numdenom-files.patch
-docs-mm-damon-design-document-fail_charge_numdenom.patch
-docs-admin-guide-mm-damon-usage-document-fail_charge_numdenom-files.patch
-docs-abi-damon-document-fail_charge_numdenom.patch
-mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch
-selftests-damon-_damon_sysfs-support-failed-region-quota-charge-ratio.patch
-selftests-damon-drgn_dump_damon_status-support-failed-region-quota-charge-ratio.patch
-selftests-damon-sysfspy-test-failed-region-quota-charge-ratio.patch
+sh-fix-fallout-from-zero_page-consolidation.patch
+maintainers-add-tree-for-kdump-and-kexec.patch
+maintainers-add-kexec-list-to-live-update-entry.patch
 
