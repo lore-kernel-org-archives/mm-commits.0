@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 735E943D4F9
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:49:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFB1640F8DE
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:49:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777387749; cv=none; b=fKgVw03iV3tq3zOi6IwhUhJRQDsIbwpK2777WqH33iOqR3f8sx3dRx0aNdTnFIVNTylbCh8l3kbU9KppylEqTmvsYQH3nA39KT4BIIlJRPEmD9M9i2G6MJMwFcgYNqanI+SLACB4rd755uGBETKs2b3eFN4Wi7z8B/TsIOx0928=
+	t=1777387751; cv=none; b=ZzwqBx80kudwebZetM6uf9ywLGuuYDxfbgl7avb7/SShQ1kpOwRz4WnUlX7jspwSviibWg4O2bsf+H75BzyPZxvlfa9sBygA+KSNxmHhrPxCZiI89zP8WM3yIuBB8qbg489vEokhHcNiuX/WpPRa2YjOLp4Yiu9kfeMWPEV3L9s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777387749; c=relaxed/simple;
-	bh=3dVYW9pBUihgxfkRWEQAXpNuWgaBT3WWrohVGrF9Oxo=;
-	h=Date:To:From:Subject:Message-Id; b=NqQjQ9xVfZLiwjJwPy6YNF+8sMVnJhSNceLlK1WTUYCMuEkQvDty7NJc2H2s75e3wpyx808iWpGQ8giAfRrzh1mvVEINcInkYzqSxFKxKL4PKNFaVZKJYyzp4B6vnHP1EjktIziNuNJXbpl2DGSfLStLwBDKxlH3gsIZd+t16k8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rH4wm0E2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777387751; c=relaxed/simple;
+	bh=HdKCcb+XMkx0tubUBsZkPSxnKg9m/SS4cbbgEb1zBeQ=;
+	h=Date:To:From:Subject:Message-Id; b=rcL37JtiE+o/YB3lN60LipPOXmDqcVlpWgAmeWmcDJ1uU5I5i2srYwgwKopDhZSeG1EbfR9Yqq2UFj7vVxw43wPWbdwCf7JH6kKjcEb6SOBtCXlPrsYAcemRJ9al6Ja/UglNKhaoO4MB3wWEPFvk0Kva+JsbnC0Ec60fIN0IQWk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nHb+neUE; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rH4wm0E2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A7F4C2BCAF;
-	Tue, 28 Apr 2026 14:49:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nHb+neUE"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FFC1C2BCAF;
+	Tue, 28 Apr 2026 14:49:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777387749;
-	bh=3dVYW9pBUihgxfkRWEQAXpNuWgaBT3WWrohVGrF9Oxo=;
+	s=korg; t=1777387751;
+	bh=HdKCcb+XMkx0tubUBsZkPSxnKg9m/SS4cbbgEb1zBeQ=;
 	h=Date:To:From:Subject:From;
-	b=rH4wm0E2I1uML3F+BEdRal65y4P3i8EZ6tRmBXOPdtodVZKKfvHG1MoxA5zvTfGlp
-	 AECT7cGGsoGkT0NReuOZB9VC5SOUAkufcCBG1/1+CgYWaYNML89jhC6pMLl1FocL1x
-	 fYjUdxwRd00YKO7SF1Fo5KJEWI911DDU+NibNf3U=
-Date: Tue, 28 Apr 2026 07:49:08 -0700
+	b=nHb+neUED/pg3XpaiVaOd5uGx4q4lnwQLhnpAGXAq9jI6UPoONewqfSh5V2qyXJSa
+	 t3v5RXeQVpNWj55a3DAoSv7uIaT/m0Gt8ktCyrWgtji6Vaqu5xGfern/VTLXRWXva/
+	 t4HwGk/OmZyDK7tOo/cMkjbSla06Ft0ruDYeTlac=
+Date: Tue, 28 Apr 2026 07:49:10 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-document-fail_charge_numdenom.patch added to mm-new branch
-Message-Id: <20260428144909.4A7F4C2BCAF@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch added to mm-new branch
+Message-Id: <20260428144911.5FFC1C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/ABI/damon: document fail_charge_{num,denom}
+     Subject: mm/damon/tests/core-kunit: test fail_charge_{num,denom} committing
 has been added to the -mm mm-new branch.  Its filename is
-     docs-abi-damon-document-fail_charge_numdenom.patch
+     mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-document-fail_charge_numdenom.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/damon: document fail_charge_{num,denom}
-Date: Mon, 27 Apr 2026 18:33:56 -0700
+Subject: mm/damon/tests/core-kunit: test fail_charge_{num,denom} committing
+Date: Mon, 27 Apr 2026 18:33:57 -0700
 
-Update DAMON ABI document for the DAMOS action failed regions quota charge
-ratio control sysfs files.
+Extend damos_test_commit_quotas() kunit test to ensure
+damos_commit_quota() handles fail_charge_{num,denom} parameters.
 
-Link: https://lore.kernel.org/20260428013402.115171-8-sj@kernel.org
+Link: https://lore.kernel.org/20260428013402.115171-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -91,30 +91,38 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/damon/tests/core-kunit.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-document-fail_charge_numdenom
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -329,6 +329,18 @@ Contact:	SeongJae Park <sj@kernel.org>
- Description:	Writing to and reading from this file sets and gets the
- 		goal-based effective quota auto-tuning algorithm to use.
- 
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/fail_charge_num
-+Date:		Mar 2026
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the
-+		action-failed memory quota charging ratio numerator.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/fail_charge_denom
-+Date:		Mar 2026
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing to and reading from this file sets and gets the
-+		action-failed memory quota charging ratio denominator.
-+
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/quotas/weights/sz_permil
- Date:		Mar 2022
- Contact:	SeongJae Park <sj@kernel.org>
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing
++++ a/mm/damon/tests/core-kunit.h
+@@ -694,6 +694,8 @@ static void damos_test_commit_quota(stru
+ 		.ms = 2,
+ 		.sz = 3,
+ 		.goal_tuner = DAMOS_QUOTA_GOAL_TUNER_CONSIST,
++		.fail_charge_num = 2,
++		.fail_charge_denom = 3,
+ 		.weight_sz = 4,
+ 		.weight_nr_accesses = 5,
+ 		.weight_age = 6,
+@@ -703,6 +705,8 @@ static void damos_test_commit_quota(stru
+ 		.ms = 8,
+ 		.sz = 9,
+ 		.goal_tuner = DAMOS_QUOTA_GOAL_TUNER_TEMPORAL,
++		.fail_charge_num = 1,
++		.fail_charge_denom = 1024,
+ 		.weight_sz = 10,
+ 		.weight_nr_accesses = 11,
+ 		.weight_age = 12,
+@@ -717,6 +721,8 @@ static void damos_test_commit_quota(stru
+ 	KUNIT_EXPECT_EQ(test, dst.ms, src.ms);
+ 	KUNIT_EXPECT_EQ(test, dst.sz, src.sz);
+ 	KUNIT_EXPECT_EQ(test, dst.goal_tuner, src.goal_tuner);
++	KUNIT_EXPECT_EQ(test, dst.fail_charge_num, src.fail_charge_num);
++	KUNIT_EXPECT_EQ(test, dst.fail_charge_denom, src.fail_charge_denom);
+ 	KUNIT_EXPECT_EQ(test, dst.weight_sz, src.weight_sz);
+ 	KUNIT_EXPECT_EQ(test, dst.weight_nr_accesses, src.weight_nr_accesses);
+ 	KUNIT_EXPECT_EQ(test, dst.weight_age, src.weight_age);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
