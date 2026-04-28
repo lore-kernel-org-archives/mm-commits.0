@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7EA137DE9E
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:32:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA0DE27B35B
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:40:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777386763; cv=none; b=gVh4r5Ps3lmkqv7MXeVubaXmDbhjS23KNBOycXt4HxusOvpzegL4UCKZALf4qW42bnng+MC/mLoh1ZIgC0hKPWmAYp0nMGsaxY91L4MEAfHQHTzbzo+40XDUJA6oBYnhYy9NPKndWE8j4J0LLwaH0QgIBSSnQgqUfl+2V7VnyG8=
+	t=1777387217; cv=none; b=JaRgz0dVgxsCRTsraq7obJKAbEsZel7qGJQJrie545t5DuenDKRCITKNyAhyEsBjsBKuZv6+Gth51THrIhRInMbbon6HML49cHAx2z7VpHZ/cpllTVeB4t4trPifB2efVjkrdK/7kUoNDF/V3/f48ujUehwctviwAR2+iLj8vUY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777386763; c=relaxed/simple;
-	bh=9NTQT55wI33Dk9ca6Iivj4K9JdrEuIpmXEZ3G2VRfLE=;
-	h=Date:To:From:Subject:Message-Id; b=ouh0wODmQgvYDclC98hgBujGMzvfZxw1exXYz7NafGwpRvvoTxrmGq9ngNkH8Lsd5UCEalApT7kW8HvzXRBcmUF8HB1iaMGd1IpC2UEM8Q/lNwJBz0VSIQZQhJWabGydy23MAzBgCaMKbuF2eJsFAK06Cyt439HXq/qeJI0wjwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dgJEJLt+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777387217; c=relaxed/simple;
+	bh=4odd3jnTnJIBTAFjLPvDPTJi8R8JZcpPE+t7kB9N+9I=;
+	h=Date:To:From:Subject:Message-Id; b=SgRZ0rHxK5J4USZRHHO4nCRJPG7TyS6NkUht9wUyw/iZHca6z2FA016ljrWLPhImDKwziUyyuujiK53ayDWYUuM9usO33Zo0SQd/BrzB/zt1ZvDsPErnZZMXWW9xK/2A145/6yCzHULsyiXaelqZvkqFg+f3ae+GpPqZE6FUj4E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UnJk0c5J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dgJEJLt+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D241C2BCAF;
-	Tue, 28 Apr 2026 14:32:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UnJk0c5J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66D4DC2BCB7;
+	Tue, 28 Apr 2026 14:40:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777386763;
-	bh=9NTQT55wI33Dk9ca6Iivj4K9JdrEuIpmXEZ3G2VRfLE=;
+	s=korg; t=1777387216;
+	bh=4odd3jnTnJIBTAFjLPvDPTJi8R8JZcpPE+t7kB9N+9I=;
 	h=Date:To:From:Subject:From;
-	b=dgJEJLt+rQmVGLBzO3Y1qh9qNt78QbNPrY9rGmoId8AC5VlMSC+VM0jFe9Vp4rf/k
-	 BUui3hdNX+LvG0KTllcq0y5RLmvcT8ce+urFqvAdkRjGSGhNI+qhCI+TmDOHImqBaJ
-	 gIBS46bkF28srt3Zun0o2jeh4JwwEluUVwGDbUyo=
-Date: Tue, 28 Apr 2026 07:32:42 -0700
-To: mm-commits@vger.kernel.org,yunjeong.mun@sk.com,sj@kernel.org,honggyu.kim@sk.com,corbet@lwn.net,ravis.opensrc@gmail.com,akpm@linux-foundation.org
+	b=UnJk0c5JmrAd8VGr4MWr7TTL0knKK9N8LnPZeYXQCSQJIuW9OXT9ePFeELMA09Fov
+	 4TS2A/tUtRCDN0+aHd3kuf3nPMwQMgbP9InGJ/5hp4hZDR9wLUsk4pZfcJ4gKsYj6n
+	 ZRsew3yI39xOMG1J7kTUX0oULjs7uDkPpsTQR3pY=
+Date: Tue, 28 Apr 2026 07:40:15 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,roman.gushchin@linux.dev,jack@suse.cz,fujunjie1@qq.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-add-node_eligible_mem_bp-goal-metric.patch added to mm-new branch
-Message-Id: <20260428143243.7D241C2BCAF@smtp.kernel.org>
+Subject: + mm-filemap-count-only-the-faulting-address-as-a-mmap-hit.patch added to mm-new branch
+Message-Id: <20260428144016.66D4DC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon: add node_eligible_mem_bp goal metric
+     Subject: mm/filemap: count only the faulting address as a mmap hit
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-add-node_eligible_mem_bp-goal-metric.patch
+     mm-filemap-count-only-the-faulting-address-as-a-mmap-hit.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-add-node_eligible_mem_bp-goal-metric.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-count-only-the-faulting-address-as-a-mmap-hit.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,439 +69,254 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Ravi Jonnalagadda <ravis.opensrc@gmail.com>
-Subject: mm/damon: add node_eligible_mem_bp goal metric
-Date: Mon, 27 Apr 2026 20:05:20 -0700
+From: fujunjie <fujunjie1@qq.com>
+Subject: mm/filemap: count only the faulting address as a mmap hit
+Date: Tue, 28 Apr 2026 01:59:43 +0000
 
-Background and Motivation
-=========================
+Patch series "mm/filemap: tighten mmap_miss hit accounting", v3.
 
-In heterogeneous memory systems, controlling memory distribution across
-NUMA nodes is essential for performance optimization.  This patch enables
-system-wide page distribution with target-state goals such as "maintain
-60% of scheme-eligible memory on DRAM" using PA-mode DAMON schemes.
+mmap_miss is increased when synchronous mmap readahead is needed, and
+decreased when filemap_map_pages() maps folios that are already in the
+page cache.  The decrease side can over-credit hits in two cases:
 
-Rather than using absolute thresholds, this metric tracks the ratio of
-memory that matches each scheme's access pattern filters on a target node,
-enabling the quota system to automatically adjust migration aggressiveness
-to maintain the desired distribution.
+  - fault-around installs nearby PTEs even though the fault only proves
+    that the faulting address was accessed;
+  - after synchronous mmap readahead returns VM_FAULT_RETRY, the retry
+    can find the folio brought in by the same miss and immediately
+    cancel that miss.
 
-What This Metric Measures
-=========================
+Current evidence comes from a local KVM/data-disk microbenchmark using
+mmap_miss_probe, with an 8 GiB guest, 2 vCPUs, 8192 KiB read_ahead_kb,
+cold page cache before each run, 1% of the file accessed, and medians of 3
+runs.
 
-node_eligible_mem_bp:
-    scheme_eligible_bytes_on_node / total_scheme_eligible_bytes * 10000
+mmap_miss_probe mmap()s a prepared file with MADV_NORMAL and then touches
+one byte at selected base-page offsets.  The access order is random,
+sequential, or a fixed page stride.  The harness drops caches before each
+run and samples /proc/vmstat around that access loop.
 
-Two-Scheme Setup for Hot Page Distribution
-==========================================
+The 20 GiB case below is a larger-than-memory file case in an 8 GiB guest.
+No separate memory hog was used.  The 4 GiB case uses the same 8 GiB
+guest but keeps the file fit-in-memory.
 
-For maintaining 60% of hot memory on DRAM (node 0) and 40% on CXL
-(node 1):
+Each case used a fresh temporary qcow2 data disk, seen by the guest as
+/dev/vda, formatted as ext4 and mounted at /mnt/mmap-matrix.
 
-    PULL scheme: migrate_hot to node 0
-      goal: node_eligible_mem_bp, nid=0, target=6000
-      addr filter: node 1 address range (only migrate FROM CXL)
-      "Move hot pages to DRAM if less than 60% of hot data is in DRAM"
+Each result is "pgpgin GiB / elapsed seconds".  "pgpgin GiB" is the delta
+of the guest /proc/vmstat pgpgin counter, converted from KiB to GiB; it is
+used here as an approximate block input counter, not as resident memory or
+exact application IO.  "Elapsed seconds" is the wall-clock runtime of the
+whole mmap_miss_probe access pass, not per-access latency.
 
-    PUSH scheme: migrate_hot to node 1
-      goal: node_eligible_mem_bp, nid=1, target=4000
-      addr filter: node 0 address range (only migrate FROM DRAM)
-      "Move hot pages to CXL if less than 40% of hot data is in CXL"
+For the 20 GiB larger-than-memory case:
 
-Each scheme independently measures its own eligible memory and adjusts its
-quota to achieve its target ratio.  The schemes work in concert through
-DAMON's unified monitoring context, with the quota autotuner balancing
-their relative aggressiveness.
+        workload       before                after
+        random         223.377 GiB/101.293s  1.010 GiB/4.790s
+        stride1021     204.214 GiB/97.557s   204.208 GiB/108.086s
+        stride2053     409.584 GiB/193.700s  0.970 GiB/3.685s
+        stride4099     406.452 GiB/134.241s  0.975 GiB/3.499s
+        sequential       0.212 GiB/0.050s    0.212 GiB/0.057s
 
-Implementation Details
-======================
+For the 4 GiB fit-in-memory case:
 
-The implementation adds a new quota goal metric type
-DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP to the existing DAMOS quota goal
-framework.  When this metric is configured for a scheme:
+        workload       before              after
+        random         3.987 GiB/1.960s    0.980 GiB/1.221s
+        stride1021     4.002 GiB/1.838s    4.002 GiB/1.851s
+        stride2053     3.991 GiB/1.835s    0.811 GiB/0.985s
+        stride4099     4.001 GiB/1.836s    0.819 GiB/1.037s
+        sequential     0.056 GiB/0.013s    0.056 GiB/0.018s
 
-1. During each quota adjustment cycle, damos_get_node_eligible_mem_bp()
-   is called to calculate the current memory distribution.
+The 20 GiB setup also has an ablation.  P1 is only the faulting-address
+hit accounting change.  P2-only is only the FAULT_FLAG_TRIED retry
+filter.  P1+P2 is the combined accounting change:
 
-2. The function iterates through all regions that match the scheme's
-   access pattern (via __damos_valid_target()) and calculates:
-   - Total eligible bytes across all nodes
-   - Eligible bytes specifically on the target node (goal->nid)
+        workload    variant   result
+        random      baseline  223.377 GiB/101.293s
+        random      P1        223.268 GiB/98.481s
+        random      P2-only   223.257 GiB/100.091s
+        random      P1+P2     1.010 GiB/4.790s
+        stride2053  baseline  409.584 GiB/193.700s
+        stride2053  P1        409.584 GiB/197.645s
+        stride2053  P2-only   15.722 GiB/5.485s
+        stride2053  P1+P2     0.970 GiB/3.685s
+        sequential  baseline  0.212 GiB/0.050s
+        sequential  P1        0.212 GiB/0.046s
+        sequential  P2-only   0.212 GiB/0.050s
+        sequential  P1+P2     0.212 GiB/0.057s
 
-3. For each eligible region, damos_calc_eligible_bytes() walks through
-   the physical address range, using damon_get_folio() to look up
-   each folio and determine its NUMA node via folio_nid().
+After the v2 implementation refactor, only the final P1+P2 shape was rerun
+in the same setup.  The numbers stayed in line with the v1 P1+P2 rows
+above:
 
-4. Large folios are handled by calculating the exact overlap between
-   the region boundaries and folio boundaries, ensuring accurate
-   byte counts even when regions partially span folios.
+        workload       larger-than-memory case    fit-in-memory case
+                       20 GiB file, 1% access    4 GiB file, 1% access
+        random           1.010 GiB/4.383s          0.980 GiB/1.088s
+        stride1021     204.216 GiB/105.601s        4.001 GiB/1.783s
+        stride2053       0.970 GiB/3.760s          0.810 GiB/0.908s
+        stride4099       0.975 GiB/3.410s          0.818 GiB/0.870s
+        sequential       0.212 GiB/0.060s          0.056 GiB/0.016s
 
-5. The ratio (node_eligible / total_eligible * 10000) is returned
-   as basis points, which the quota autotuner uses to adjust the
-   scheme's effective quota size (esz).
+This does not claim to solve every sparse pattern.  The stride1021 rows
+are intentionally shown as a boundary: with 8192 KiB read_ahead_kb,
+file->f_ra.ra_pages is 2048 base pages, and synchronous mmap read-around
+uses a 2048-page window centered around the fault, roughly [index - 1024,
+index + 1023].  stride1021 is 1021 * 4 KiB = 4084 KiB, so the next access
+lands inside the previous read-around window.  About every other access
+can be a real faulting-address page-cache hit, and the other half can each
+read about 8 MiB.  For about 52k accesses in the 20 GiB/1% run, half of
+them times 8 MiB is about 205 GiB, matching the observed 204 GiB.
 
-The implementation requires CONFIG_DAMON_PADDR since damon_get_folio()
-is only available for physical address space monitoring.
 
-Testing Results
-===============
+This patch (of 2):
 
-Functionally tested on a two-node heterogeneous memory system with DRAM
-(node 0) and CXL memory (node 1).  A PUSH+PULL scheme configuration using
-migrate_hot actions was used to reach a target hot memory ratio between
-the two tiers.
+filemap_map_pages() reduces file->f_ra.mmap_miss when fault-around maps
+folios that are already present in the page cache.  That hit accounting is
+too generous because fault-around can install PTEs around the faulting
+address even though the fault only proves that the faulting address was
+accessed.
 
-With the TEMPORAL tuner, the system converges quickly to the target
-distribution.  The tuner drives esz to maximum when under goal and to zero
-once the goal is met, forming a simple on/off feedback loop that
-stabilizes at the desired ratio.
+Move the mmap_miss update back into filemap_map_pages(), drop the
+mmap_miss argument from the helper functions, and decrement mmap_miss only
+when the helper return value shows that the faulting address was mapped. 
+Keep the existing workingset-folio behavior unchanged.
 
-With the CONSIST tuner, the scheme still converges but more slowly, as it
-migrates and then throttles itself based on quota feedback.  The time to
-reach the goal varies depending on workload intensity.
-
-Note: This metric works with both TEMPORAL and CONSIST goal tuners.
-
-Link: https://lore.kernel.org/20260428030520.701-1-ravis.opensrc@gmail.com
-Suggested-by: SeongJae Park <sj@kernel.org>
-Signed-off-by: Ravi Jonnalagadda <ravis.opensrc@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Honggyu Kim <honggyu.kim@sk.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Yunjeong Mun <yunjeong.mun@sk.com>
+Link: https://lore.kernel.org/tencent_AA501E9A238337BD167E5C2ACF948A1AF308@qq.com
+Link: https://lore.kernel.org/tencent_756F151FE66F3D80479A6F982C0AB8569F09@qq.com
+Signed-off-by: fujunjie <fujunjie1@qq.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h    |    3 
- mm/damon/core.c          |  172 +++++++++++++++++++++++++++++++++----
- mm/damon/sysfs-schemes.c |    7 +
- 3 files changed, 167 insertions(+), 15 deletions(-)
+ mm/filemap.c |   62 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 31 insertions(+), 31 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-add-node_eligible_mem_bp-goal-metric
-+++ a/include/linux/damon.h
-@@ -161,6 +161,8 @@ enum damos_action {
-  * @DAMOS_QUOTA_NODE_MEMCG_FREE_BP:	MemFree ratio of a node for a cgroup.
-  * @DAMOS_QUOTA_ACTIVE_MEM_BP:		Active to total LRU memory ratio.
-  * @DAMOS_QUOTA_INACTIVE_MEM_BP:	Inactive to total LRU memory ratio.
-+ * @DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP:	Scheme-eligible memory ratio of a
-+ *					node in basis points (0-10000).
-  * @NR_DAMOS_QUOTA_GOAL_METRICS:	Number of DAMOS quota goal metrics.
-  *
-  * Metrics equal to larger than @NR_DAMOS_QUOTA_GOAL_METRICS are unsupported.
-@@ -174,6 +176,7 @@ enum damos_quota_goal_metric {
- 	DAMOS_QUOTA_NODE_MEMCG_FREE_BP,
- 	DAMOS_QUOTA_ACTIVE_MEM_BP,
- 	DAMOS_QUOTA_INACTIVE_MEM_BP,
-+	DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP,
- 	NR_DAMOS_QUOTA_GOAL_METRICS,
- };
- 
---- a/mm/damon/core.c~mm-damon-add-node_eligible_mem_bp-goal-metric
-+++ a/mm/damon/core.c
-@@ -13,10 +13,14 @@
- #include <linux/memcontrol.h>
- #include <linux/mm.h>
- #include <linux/psi.h>
-+#include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/string_choices.h>
- 
-+/* for damon_get_folio() used by node eligible memory metrics */
-+#include "ops-common.h"
-+
- #define CREATE_TRACE_POINTS
- #include <trace/events/damon.h>
- 
-@@ -1326,11 +1330,26 @@ static int damon_commit_targets(
- int damon_commit_ctx(struct damon_ctx *dst, struct damon_ctx *src)
+--- a/mm/filemap.c~mm-filemap-count-only-the-faulting-address-as-a-mmap-hit
++++ a/mm/filemap.c
+@@ -3751,8 +3751,7 @@ skip:
+ static vm_fault_t filemap_map_folio_range(struct vm_fault *vmf,
+ 			struct folio *folio, unsigned long start,
+ 			unsigned long addr, unsigned int nr_pages,
+-			unsigned long *rss, unsigned short *mmap_miss,
+-			pgoff_t file_end)
++			unsigned long *rss, pgoff_t file_end)
  {
- 	int err;
-+	struct damos *scheme;
-+	struct damos_quota_goal *goal;
+ 	struct address_space *mapping = folio->mapping;
+ 	unsigned int ref_from_caller = 1;
+@@ -3785,16 +3784,6 @@ static vm_fault_t filemap_map_folio_rang
+ 			goto skip;
  
- 	dst->maybe_corrupted = true;
- 	if (!is_power_of_2(src->min_region_sz))
- 		return -EINVAL;
+ 		/*
+-		 * If there are too many folios that are recently evicted
+-		 * in a file, they will probably continue to be evicted.
+-		 * In such situation, read-ahead is only a waste of IO.
+-		 * Don't decrease mmap_miss in this scenario to make sure
+-		 * we can stop read-ahead.
+-		 */
+-		if (!folio_test_workingset(folio))
+-			(*mmap_miss)++;
+-
+-		/*
+ 		 * NOTE: If there're PTE markers, we'll leave them to be
+ 		 * handled in the specific fault path, and it'll prohibit the
+ 		 * fault-around logic.
+@@ -3840,7 +3829,7 @@ skip:
  
-+	/* node_eligible_mem_bp metric requires PADDR ops */
-+	if (src->ops.id != DAMON_OPS_PADDR) {
-+		damon_for_each_scheme(scheme, src) {
-+			struct damos_quota *quota = &scheme->quota;
+ static vm_fault_t filemap_map_order0_folio(struct vm_fault *vmf,
+ 		struct folio *folio, unsigned long addr,
+-		unsigned long *rss, unsigned short *mmap_miss)
++		unsigned long *rss)
+ {
+ 	vm_fault_t ret = 0;
+ 	struct page *page = &folio->page;
+@@ -3848,10 +3837,6 @@ static vm_fault_t filemap_map_order0_fol
+ 	if (PageHWPoison(page))
+ 		goto out;
+ 
+-	/* See comment of filemap_map_folio_range() */
+-	if (!folio_test_workingset(folio))
+-		(*mmap_miss)++;
+-
+ 	/*
+ 	 * NOTE: If there're PTE markers, we'll leave them to be
+ 	 * handled in the specific fault path, and it'll prohibit
+@@ -3886,7 +3871,6 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 	vm_fault_t ret = 0;
+ 	unsigned long rss = 0;
+ 	unsigned int nr_pages = 0, folio_type;
+-	unsigned short mmap_miss = 0, mmap_miss_saved;
+ 
+ 	/*
+ 	 * Recalculate end_pgoff based on file_end before calling
+@@ -3925,6 +3909,7 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 	folio_type = mm_counter_file(folio);
+ 	do {
+ 		unsigned long end;
++		vm_fault_t map_ret;
+ 
+ 		addr += (xas.xa_index - last_pgoff) << PAGE_SHIFT;
+ 		vmf->pte += xas.xa_index - last_pgoff;
+@@ -3932,13 +3917,34 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 		end = folio_next_index(folio) - 1;
+ 		nr_pages = min(end, end_pgoff) - xas.xa_index + 1;
+ 
+-		if (!folio_test_large(folio))
+-			ret |= filemap_map_order0_folio(vmf,
+-					folio, addr, &rss, &mmap_miss);
+-		else
+-			ret |= filemap_map_folio_range(vmf, folio,
+-					xas.xa_index - folio->index, addr,
+-					nr_pages, &rss, &mmap_miss, file_end);
++		if (!folio_test_large(folio)) {
++			map_ret = filemap_map_order0_folio(vmf, folio, addr,
++							   &rss);
++		} else {
++			unsigned long start = xas.xa_index - folio->index;
 +
-+			damos_for_each_quota_goal(goal, quota) {
-+				if (goal->metric ==
-+						DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP)
-+					return -EINVAL;
-+			}
++			map_ret = filemap_map_folio_range(vmf, folio, start,
++							  addr, nr_pages, &rss,
++							  file_end);
 +		}
-+	}
++		ret |= map_ret;
 +
- 	err = damon_commit_schemes(dst, src);
- 	if (err)
- 		return err;
-@@ -2288,7 +2307,115 @@ static unsigned long damos_get_node_memc
- 		numerator = i.totalram - used_pages;
- 	return mult_frac(numerator, 10000, i.totalram);
- }
--#else
++		/*
++		 * If there are too many folios that are recently evicted
++		 * in a file, they will probably continue to be evicted.
++		 * In such situation, read-ahead is only a waste of IO.
++		 * Don't decrease mmap_miss in this scenario to make sure
++		 * we can stop read-ahead.
++		 */
++		if ((map_ret & VM_FAULT_NOPAGE) &&
++		    !folio_test_workingset(folio)) {
++			unsigned short mmap_miss;
 +
-+#ifdef CONFIG_DAMON_PADDR
-+/*
-+ * damos_calc_eligible_bytes() - Calculate raw eligible bytes per node.
-+ * @c:		The DAMON context.
-+ * @s:		The scheme.
-+ * @nid:	The target NUMA node id.
-+ * @total:	Output for total eligible bytes across all nodes.
-+ *
-+ * Iterates through each folio in eligible regions to accurately determine
-+ * which node the memory resides on. Returns eligible bytes on the specified
-+ * node and sets *total to the sum across all nodes.
-+ *
-+ * Note: This function requires damon_get_folio() from ops-common.c, which is
-+ * only available when CONFIG_DAMON_PADDR is enabled. It also requires the
-+ * context to be using PADDR operations for meaningful results.
-+ */
-+static phys_addr_t damos_calc_eligible_bytes(struct damon_ctx *c,
-+		struct damos *s, int nid, phys_addr_t *total)
-+{
-+	struct damon_target *t;
-+	struct damon_region *r;
-+	phys_addr_t total_eligible = 0;
-+	phys_addr_t node_eligible = 0;
-+
-+	damon_for_each_target(t, c) {
-+		damon_for_each_region(r, t) {
-+			phys_addr_t addr, end_addr;
-+
-+			if (!__damos_valid_target(r, s))
-+				continue;
-+
-+			/* Convert from core address units to physical bytes */
-+			addr = (phys_addr_t)r->ar.start * c->addr_unit;
-+			end_addr = (phys_addr_t)r->ar.end * c->addr_unit;
-+			while (addr < end_addr) {
-+				struct folio *folio;
-+				phys_addr_t folio_start, folio_end;
-+				phys_addr_t overlap_start, overlap_end;
-+				phys_addr_t counted;
-+
-+				folio = damon_get_folio(PHYS_PFN(addr));
-+				if (!folio) {
-+					addr = PAGE_ALIGN_DOWN(addr +
-+							PAGE_SIZE);
-+					if (!addr)
-+						break;
-+					continue;
-+				}
-+
-+				/*
-+				 * Calculate exact overlap between the region
-+				 * [addr, end_addr) and the folio range.
-+				 * The folio may start before addr if addr is
-+				 * in the middle of a large folio.
-+				 */
-+				folio_start = PFN_PHYS(folio_pfn(folio));
-+				folio_end = folio_start + folio_size(folio);
-+
-+				overlap_start = max(addr, folio_start);
-+				overlap_end = min(end_addr, folio_end);
-+
-+				if (overlap_end > overlap_start) {
-+					counted = overlap_end - overlap_start;
-+					total_eligible += counted;
-+					if (folio_nid(folio) == nid)
-+						node_eligible += counted;
-+				}
-+
-+				/* Advance past the entire folio */
-+				addr = folio_end;
-+				folio_put(folio);
-+			}
-+			cond_resched();
++			mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
++			if (mmap_miss)
++				WRITE_ONCE(file->f_ra.mmap_miss,
++					   mmap_miss - 1);
 +		}
-+	}
-+
-+	*total = total_eligible;
-+	return node_eligible;
-+}
-+
-+static unsigned long damos_get_node_eligible_mem_bp(struct damon_ctx *c,
-+		struct damos *s, int nid)
-+{
-+	phys_addr_t total_eligible = 0;
-+	phys_addr_t node_eligible;
-+
-+	if (c->ops.id != DAMON_OPS_PADDR)
-+		return 0;
-+
-+	if (nid < 0 || nid >= MAX_NUMNODES || !node_online(nid))
-+		return 0;
-+
-+	node_eligible = damos_calc_eligible_bytes(c, s, nid, &total_eligible);
-+
-+	if (!(unsigned long)total_eligible)
-+		return 0;
-+
-+	return mult_frac((unsigned long)node_eligible, 10000,
-+			(unsigned long)total_eligible);
-+}
-+#else /* CONFIG_DAMON_PADDR */
-+static unsigned long damos_get_node_eligible_mem_bp(struct damon_ctx *c,
-+		struct damos *s, int nid)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_DAMON_PADDR */
-+#else /* CONFIG_NUMA */
- static __kernel_ulong_t damos_get_node_mem_bp(
- 		struct damos_quota_goal *goal)
- {
-@@ -2300,7 +2427,13 @@ static unsigned long damos_get_node_memc
- {
- 	return 0;
+ 
+ 		folio_unlock(folio);
+ 	} while ((folio = next_uptodate_folio(&xas, mapping, end_pgoff)) != NULL);
+@@ -3948,12 +3954,6 @@ vm_fault_t filemap_map_pages(struct vm_f
+ out:
+ 	rcu_read_unlock();
+ 
+-	mmap_miss_saved = READ_ONCE(file->f_ra.mmap_miss);
+-	if (mmap_miss >= mmap_miss_saved)
+-		WRITE_ONCE(file->f_ra.mmap_miss, 0);
+-	else
+-		WRITE_ONCE(file->f_ra.mmap_miss, mmap_miss_saved - mmap_miss);
+-
+ 	return ret;
  }
--#endif
-+
-+static unsigned long damos_get_node_eligible_mem_bp(struct damon_ctx *c,
-+		struct damos *s, int nid)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_NUMA */
- 
- /*
-  * Returns LRU-active or inactive memory to total LRU memory size ratio.
-@@ -2320,7 +2453,8 @@ static unsigned int damos_get_in_active_
- 	return mult_frac(inactive, 10000, total);
- }
- 
--static void damos_set_quota_goal_current_value(struct damos_quota_goal *goal)
-+static void damos_set_quota_goal_current_value(struct damon_ctx *c,
-+		struct damos *s, struct damos_quota_goal *goal)
- {
- 	u64 now_psi_total;
- 
-@@ -2346,19 +2480,24 @@ static void damos_set_quota_goal_current
- 		goal->current_value = damos_get_in_active_mem_bp(
- 				goal->metric == DAMOS_QUOTA_ACTIVE_MEM_BP);
- 		break;
-+	case DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP:
-+		goal->current_value = damos_get_node_eligible_mem_bp(c, s,
-+				goal->nid);
-+		break;
- 	default:
- 		break;
- 	}
- }
- 
- /* Return the highest score since it makes schemes least aggressive */
--static unsigned long damos_quota_score(struct damos_quota *quota)
-+static unsigned long damos_quota_score(struct damon_ctx *c, struct damos *s)
- {
- 	struct damos_quota_goal *goal;
-+	struct damos_quota *quota = &s->quota;
- 	unsigned long highest_score = 0;
- 
- 	damos_for_each_quota_goal(goal, quota) {
--		damos_set_quota_goal_current_value(goal);
-+		damos_set_quota_goal_current_value(c, s, goal);
- 		highest_score = max(highest_score,
- 				mult_frac(goal->current_value, 10000,
- 					goal->target_value));
-@@ -2367,17 +2506,20 @@ static unsigned long damos_quota_score(s
- 	return highest_score;
- }
- 
--static void damos_goal_tune_esz_bp_consist(struct damos_quota *quota)
-+static void damos_goal_tune_esz_bp_consist(struct damon_ctx *c, struct damos *s)
- {
--	unsigned long score = damos_quota_score(quota);
-+	struct damos_quota *quota = &s->quota;
-+	unsigned long score = damos_quota_score(c, s);
- 
- 	quota->esz_bp = damon_feed_loop_next_input(
- 			max(quota->esz_bp, 10000UL), score);
- }
- 
--static void damos_goal_tune_esz_bp_temporal(struct damos_quota *quota)
-+static void damos_goal_tune_esz_bp_temporal(struct damon_ctx *c,
-+		struct damos *s)
- {
--	unsigned long score = damos_quota_score(quota);
-+	struct damos_quota *quota = &s->quota;
-+	unsigned long score = damos_quota_score(c, s);
- 
- 	if (score >= 10000)
- 		quota->esz_bp = 0;
-@@ -2390,9 +2532,9 @@ static void damos_goal_tune_esz_bp_tempo
- /*
-  * Called only if quota->ms, or quota->sz are set, or quota->goals is not empty
-  */
--static void damos_set_effective_quota(struct damos_quota *quota,
--		struct damon_ctx *ctx)
-+static void damos_set_effective_quota(struct damon_ctx *ctx, struct damos *s)
- {
-+	struct damos_quota *quota = &s->quota;
- 	unsigned long throughput;
- 	unsigned long esz = ULONG_MAX;
- 
-@@ -2403,9 +2545,9 @@ static void damos_set_effective_quota(st
- 
- 	if (!list_empty(&quota->goals)) {
- 		if (quota->goal_tuner == DAMOS_QUOTA_GOAL_TUNER_CONSIST)
--			damos_goal_tune_esz_bp_consist(quota);
-+			damos_goal_tune_esz_bp_consist(ctx, s);
- 		else if (quota->goal_tuner == DAMOS_QUOTA_GOAL_TUNER_TEMPORAL)
--			damos_goal_tune_esz_bp_temporal(quota);
-+			damos_goal_tune_esz_bp_temporal(ctx, s);
- 		esz = quota->esz_bp / 10000;
- 	}
- 
-@@ -2453,7 +2595,7 @@ static void damos_adjust_quota(struct da
- 	/* First charge window */
- 	if (!quota->total_charged_sz && !quota->charged_from) {
- 		quota->charged_from = jiffies;
--		damos_set_effective_quota(quota, c);
-+		damos_set_effective_quota(c, s);
- 	}
- 
- 	/* New charge window starts */
-@@ -2468,7 +2610,7 @@ static void damos_adjust_quota(struct da
- 		quota->charged_sz = 0;
- 		if (trace_damos_esz_enabled())
- 			cached_esz = quota->esz;
--		damos_set_effective_quota(quota, c);
-+		damos_set_effective_quota(c, s);
- 		if (trace_damos_esz_enabled() && quota->esz != cached_esz)
- 			damos_trace_esz(c, s, quota);
- 	}
---- a/mm/damon/sysfs-schemes.c~mm-damon-add-node_eligible_mem_bp-goal-metric
-+++ a/mm/damon/sysfs-schemes.c
-@@ -1094,6 +1094,10 @@ struct damos_sysfs_qgoal_metric_name dam
- 		.metric = DAMOS_QUOTA_INACTIVE_MEM_BP,
- 		.name = "inactive_mem_bp",
- 	},
-+	{
-+		.metric = DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP,
-+		.name = "node_eligible_mem_bp",
-+	},
- };
- 
- static ssize_t target_metric_show(struct kobject *kobj,
-@@ -2690,6 +2694,9 @@ static int damos_sysfs_add_quota_score(
- 			}
- 			goal->nid = sysfs_goal->nid;
- 			break;
-+		case DAMOS_QUOTA_NODE_ELIGIBLE_MEM_BP:
-+			goal->nid = sysfs_goal->nid;
-+			break;
- 		default:
- 			break;
- 		}
+ EXPORT_SYMBOL(filemap_map_pages);
 _
 
-Patches currently in -mm which might be from ravis.opensrc@gmail.com are
+Patches currently in -mm which might be from fujunjie1@qq.com are
 
-mm-damon-add-node_eligible_mem_bp-goal-metric.patch
+mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors.patch
+mm-filemap-count-only-the-faulting-address-as-a-mmap-hit.patch
+mm-filemap-do-not-count-fault_flag_tried-retries-as-mmap-hits.patch
 
