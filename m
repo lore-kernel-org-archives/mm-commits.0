@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F25432882B4
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:17:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 583E138C40B
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:17:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777385830; cv=none; b=aGVn4Ro2UFv4f3NEB3WiQkcjD33pZ3l6bxQhj7kInYxy0n4sS13tXl9O9OprNF3Fhh2ujlZ51PCq5WGKcVaMuFtmH5Uy8qMd2Hc83360Xt66nkXbt8PG2v61rksdTRuuTu6doFJk1AzQcO+05bGIe6fMiMwhBUZnDUcZCxvazM0=
+	t=1777385832; cv=none; b=hAeWYIoEO37T+jK4oHruNMi/sAAUB8l7VNn/91iYyrHaTKNB+9eqfjJWdW7MEh2shsCLZhfGGQ9s7Npvez6GEnKGuNzweBRiss+pslzVS9VOX+4fK894/rB38edHo/TOCsXTkM2yk9CPCoYLNNB8YpzE6xJiB6v5Vte1qBJuhCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777385830; c=relaxed/simple;
-	bh=nx6BP+2hXIz4NjgUhijn82rIihu0ZE9QluzAxXcgH3s=;
-	h=Date:To:From:Subject:Message-Id; b=q5nLqJB0ibHH3njFvemEc7AOAoHljp+91QoH94HIiGAHufziiVg0XNbo00097K2188Y7zlpuUwojTQixiY7AHLf3wfONlONu1f6GHhSftqtBHoULKXDY8ZdyXaZyYNDewH1JQIYyqHCQsQnE9TII9oD7hTq14YGXHT3DuJsH724=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oUuxFSMk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777385832; c=relaxed/simple;
+	bh=mnM4laUFaCLd4vWdEWJFL2FIt2L44otnWexikrhV7CY=;
+	h=Date:To:From:Subject:Message-Id; b=oGZMUX4x2ezAoUYYcwMZc6RfwZyWNP+r3UC7L9OamS1RD/bCr6ytbzpENpk7epkNEj95e0Wa7v8y73Je4Vf8Mb+8s3vfLth3o14gbSOtBfTIxUxJk8oBSPRF84pHclYvtmIAPVuFR0ALsaWTHKfkX6MBjYCaq0gP64ejhGr4Q9Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yfE9eNeH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oUuxFSMk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9601CC2BCAF;
-	Tue, 28 Apr 2026 14:17:09 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yfE9eNeH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD505C2BCAF;
+	Tue, 28 Apr 2026 14:17:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777385829;
-	bh=nx6BP+2hXIz4NjgUhijn82rIihu0ZE9QluzAxXcgH3s=;
+	s=korg; t=1777385831;
+	bh=mnM4laUFaCLd4vWdEWJFL2FIt2L44otnWexikrhV7CY=;
 	h=Date:To:From:Subject:From;
-	b=oUuxFSMkDc9NKHZr+y/HYT9Rkm7z1bQy1i8yhdyNEYB1FzvKmH06hRTSRozXxl5Q4
-	 H+pYnvUoB2dt6L+L/VV8Ch3am8hlO+b4OOj8mUDXJ5tKHw27ChelNx1OnGW5v8i7j3
-	 7+Mrg+nm0VO6kqynVdzUOSrSnIWZ9LslTAUVE4Xg=
-Date: Tue, 28 Apr 2026 07:17:09 -0700
+	b=yfE9eNeHATBkCmG3E3Z4rgHroeXHtPUy7j7jUZaY1Ek78NBy+HQXmwfy0gKvs5Q8D
+	 GwzBqHikJ7TlkW8ZiIhrsgCfyvo406cGwHBnXi71dzaT45ktg9OJK0fR6U+emOXbeE
+	 N+4CyFkqwOWrPV4pCtpX3D9uR1H4IoBJHwYRllBA=
+Date: Tue, 28 Apr 2026 07:17:11 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-add-numa-node-filter-with-nodelist-support.patch added to mm-new branch
-Message-Id: <20260428141709.9601CC2BCAF@smtp.kernel.org>
+Subject: + mm-page_owner-document-page_owner-filter-features.patch added to mm-new branch
+Message-Id: <20260428141711.CD505C2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: add NUMA node filter with nodelist support
+     Subject: mm/page_owner: document page_owner filter features
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_owner-add-numa-node-filter-with-nodelist-support.patch
+     mm-page_owner-document-page_owner-filter-features.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-numa-node-filter-with-nodelist-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-document-page_owner-filter-features.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,157 +70,99 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zhen Ni <zhen.ni@easystack.cn>
-Subject: mm/page_owner: add NUMA node filter with nodelist support
-Date: Tue, 28 Apr 2026 15:11:11 +0800
+Subject: mm/page_owner: document page_owner filter features
+Date: Tue, 28 Apr 2026 15:11:12 +0800
 
-Add NUMA node filtering functionality to page_owner to allow filtering
-pages by specific NUMA node(s) using nodelist format.
+Add documentation for the page_owner filter functionality, including:
+- Print mode filter (full stack vs stack handle)
+- NUMA node filter (single node, multiple nodes, ranges)
+- Usage examples for both filters
 
-The filter allows users to focus on pages from specific NUMA nodes, which
-is useful for NUMA-aware memory allocation analysis and debugging.
-
-Supported input formats:
-- Single node: echo "2" > nid
-- Multiple nodes: echo "0,2,3" > nid
-- Node range: echo "0-3" > nid
-- Mixed format: echo "0,2-4,7" > nid
-- Disable filter: echo "-1" > nid
-
-Link: https://lore.kernel.org/linux-mm/20260417154638.22370-4-zhen.ni@easystack.cn/
-Link: https://lore.kernel.org/linux-mm/20260419155540.376847-4-zhen.ni@easystack.cn/
-Link: https://lore.kernel.org/20260428071112.1420380-4-zhen.ni@easystack.cn
+Link: https://lore.kernel.org/20260428071112.1420380-5-zhen.ni@easystack.cn
 Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
-Suggested-by: Zi Yan <ziy@nvidia.com>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   82 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 82 insertions(+)
+ Documentation/mm/page_owner.rst |   55 +++++++++++++++++++++++++++++-
+ 1 file changed, 54 insertions(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mm-page_owner-add-numa-node-filter-with-nodelist-support
-+++ a/mm/page_owner.c
-@@ -685,6 +685,7 @@ read_page_owner(struct file *file, char
- 	struct page_ext *page_ext;
- 	struct page_owner *page_owner;
- 	depot_stack_handle_t handle;
-+	nodemask_t mask;
+--- a/Documentation/mm/page_owner.rst~mm-page_owner-document-page_owner-filter-features
++++ a/Documentation/mm/page_owner.rst
+@@ -74,7 +74,17 @@ Usage
  
- 	if (!static_branch_unlikely(&page_owner_inited))
- 		return -EINVAL;
-@@ -698,6 +699,8 @@ read_page_owner(struct file *file, char
- 	while (!pfn_valid(pfn) && (pfn & (MAX_ORDER_NR_PAGES - 1)) != 0)
- 		pfn++;
+ 3) Do the job that you want to debug.
  
-+	mask = owner_filter.nid_mask;
+-4) Analyze information from page owner::
++4) (Optional) Use filters to focus on specific memory allocations::
 +
- 	/* Find an allocated page */
- 	for (; pfn < max_pfn; pfn++) {
- 		/*
-@@ -730,6 +733,14 @@ read_page_owner(struct file *file, char
- 		if (unlikely(!page_ext))
- 			continue;
++    cd /sys/kernel/debug/page_owner_filter
++
++    # Print only stack handles instead of full traces
++    echo 1 > print_mode
++
++    # Filter by NUMA nodes
++    echo "0,2-3" > nid
++
++5) Analyze information from page owner::
  
-+		/* NUMA node filter using bitmask */
-+		if (!nodes_empty(mask)) {
-+			int nid = page_to_nid(page);
-+
-+			if (!node_isset(nid, mask))
-+				goto ext_put_continue;
-+		}
-+
- 		/*
- 		 * Some pages could be missed by concurrent allocation or free,
- 		 * because we don't hold the zone lock.
-@@ -1009,6 +1020,75 @@ DEFINE_SIMPLE_ATTRIBUTE(page_owner_print
- 			&page_owner_print_mode_get,
- 			&page_owner_print_mode_set, "%lld");
+ 	cat /sys/kernel/debug/page_owner_stacks/show_stacks > stacks.txt
+ 	cat stacks.txt
+@@ -238,6 +248,49 @@ Usage
+ 				./page_owner_sort <input> <output> --tgid=1,2,3
+ 				./page_owner_sort <input> <output> --name name1,name2
  
-+static ssize_t nid_filter_write(struct file *file,
-+				 const char __user *buf,
-+				 size_t count, loff_t *ppos)
-+{
-+	char *kbuf;
-+	nodemask_t mask;
-+	int ret;
-+	int val;
++Page Owner Filters
++==================
 +
-+	/*
-+	 * Limit input size to handle worst-case nodelist (all nodes).
-+	 * Worst case per node: ",NNNNN" (comma + 5-digit node number) = 6 bytes.
-+	 * Formula: 100 bytes overhead + 6 * MAX_NUMNODES
-+	 */
-+	if (count > (100 + 6 * MAX_NUMNODES))
-+		return -EINVAL;
++The page_owner feature provides filtering capabilities to focus on specific
++memory allocations (e.g., by NUMA node). Filters are controlled through debugfs
++files in ``/sys/kernel/debug/page_owner_filter/``.
 +
-+	kbuf = kmalloc(count + 1, GFP_KERNEL);
-+	if (!kbuf)
-+		return -ENOMEM;
++Print Mode Filter
++-----------------
 +
-+	if (copy_from_user(kbuf, buf, count)) {
-+		ret = -EFAULT;
-+		goto out_free;
-+	}
-+	kbuf[count] = '\0';
++The ``print_mode`` file controls the level of detail in stack trace output.
 +
-+	/* Support: "-1" to clear, or nodelist format like "0", "0,2", "0-3" */
-+	if (kstrtoint(kbuf, 10, &val) == 0 && val == -1)
-+		nodes_clear(mask);
-+	else if (nodelist_parse(kbuf, mask)) {
-+		ret = -EINVAL;
-+		goto out_free;
-+	}
++Available modes:
 +
-+	owner_filter.nid_mask = mask;
-+	ret = count;
++- ``0`` (default): Print full stack traces
++- ``1``: Print only stack handles
 +
-+out_free:
-+	kfree(kbuf);
-+	return ret;
-+}
++The ``print_mode=1`` output format::
 +
-+static int nid_filter_show(struct seq_file *m, void *v)
-+{
-+	nodemask_t mask = owner_filter.nid_mask;
++    Page allocated via order 0, mask 0x42800(GFP_NOWAIT|__GFP_COMP),
++    pid 1, tgid 1 (systemd), ts 349667370 ns
++    PFN 0xa00a2 type Unmovable Block 1280 type Unmovable
++    Flags 0x33fffe0000004124(...)
++    handle: 17432583
 +
-+	if (nodes_empty(mask))
-+		seq_puts(m, "-1\n");
-+	else
-+		seq_printf(m, "%*pbl\n", nodemask_pr_args(&mask));
++To retrieve the full stack trace for a handle, use::
 +
-+	return 0;
-+}
++    cat /sys/kernel/debug/page_owner_stacks/show_stacks_handles
 +
-+static int nid_filter_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, nid_filter_show, NULL);
-+}
++NUMA Node Filter
++----------------
 +
-+static const struct file_operations nid_filter_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= nid_filter_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.write		= nid_filter_write,
-+	.release	= single_release,
-+};
++The ``nid`` file filters pages by NUMA node. This is useful for NUMA-aware
++environments to analyze node-specific memory allocation.
 +
- 
- static int __init pageowner_init(void)
- {
-@@ -1024,6 +1104,8 @@ static int __init pageowner_init(void)
- 	filter_dir = debugfs_create_dir("page_owner_filter", NULL);
- 	debugfs_create_file("print_mode", 0600, filter_dir, NULL,
- 			    &page_owner_print_mode_fops);
-+	debugfs_create_file("nid", 0600, filter_dir, NULL,
-+			    &nid_filter_fops);
- 
- 	dir = debugfs_create_dir("page_owner_stacks", NULL);
- 	debugfs_create_file("show_stacks", 0400, dir,
++Supported input formats:
++
++- Single node: ``echo "2" > nid``
++- Multiple nodes: ``echo "0,2,3" > nid``
++- Node range: ``echo "0-3" > nid``
++- Mixed format: ``echo "0,2-4,7" > nid``
++- Disable filter: ``echo "-1" > nid``
++
+ STANDARD FORMAT SPECIFIERS
+ ==========================
+ ::
 _
 
 Patches currently in -mm which might be from zhen.ni@easystack.cn are
