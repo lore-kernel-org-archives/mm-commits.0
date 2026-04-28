@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A40A43635F
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:09:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7350A441024
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:09:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777385368; cv=none; b=o6nx3fUiXUNtdNqnwd4N05jGvZhCQB71oJprt+hJ+elvbZWM9IoBgXK5/TIq4SV+H7mVyy6taRu7kF5j9V16Htj/FOlrav8aVQIOeZrvNaxF9kSzXduWxXd6wUfXYho35v3DoAsuL5+RmSsZiTccE1BhRskHU587+0pTgXWKWCg=
+	t=1777385369; cv=none; b=O+rlbqkUjS2/C05qB4EYGpXe98KyRCLA6rcQd5eM+UbNX++G/3paZN2PU395zTh2yUmQ+gvsQvC7JST3GKyAknosXS9m7fgMpG2JbO0wMvdMaVFi4iSGXnJuXOnA1HQM0eVW2+c13aLjRHdW4fBB4HItTz7TLJpGSTFdjWsN4pw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777385368; c=relaxed/simple;
-	bh=W+jy66vbK1CToy83zZYoF3TVAoguFTTsdMzA8LqzhPU=;
-	h=Date:To:From:Subject:Message-Id; b=KeZ8SKIbE5AkG3olPVDZ5jeEISZWG4ikhtMdAvA/QIoGXF4ER29lILe58pMeS/HDXFhIJoiVkOeM9IoWnp+84yFBLYPKOVI4NDMqybZLASBdI0OY8HDlmEMrhXFHBk38Sv/9REIBFLwo2g2FZYobnsjHcs7ih3qNel7G4KMq4LY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QVKJ/Hhp; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777385369; c=relaxed/simple;
+	bh=d7lFmAesumy+Fr0Etp4lOMXroO1jmZRYMmdlzcY3JTg=;
+	h=Date:To:From:Subject:Message-Id; b=W5dwA88WJRFkE+KVpgsVv30BFdv5SI1MMQ2xEV7zu4iCYueD2RlSuArpfLpx6a/f4bKmJPD1ysMBoriRRAxreuFBN+oKO1yP9iS70CHKJDffFKuHuuk/igGXyWx4cVMLUmkEJcK/UwyOfg/Ihw/+XrqcODnjmjCC63qyeTPB9t4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jfzt0YFH; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QVKJ/Hhp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF6E7C2BCAF;
-	Tue, 28 Apr 2026 14:09:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jfzt0YFH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CB1AC2BCAF;
+	Tue, 28 Apr 2026 14:09:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777385367;
-	bh=W+jy66vbK1CToy83zZYoF3TVAoguFTTsdMzA8LqzhPU=;
+	s=korg; t=1777385369;
+	bh=d7lFmAesumy+Fr0Etp4lOMXroO1jmZRYMmdlzcY3JTg=;
 	h=Date:To:From:Subject:From;
-	b=QVKJ/Hhpvg3H6LDvHSeWs9pbU97bZwlDwLBHNw6uXrWgI1+ebd7zYyrTnOembVOyI
-	 PWPP+QDFqDQri3zflpKbxJPzB1NvnsWjifFiycodQqiWeKZbxj48RlG/Cy0Lypu3yn
-	 UpdNFl67LM3kmzrlkcpXiVWWyKr1r5+x5K4qP02g=
-Date: Tue, 28 Apr 2026 07:09:27 -0700
+	b=Jfzt0YFHZ0rp4VxUhzenig55BQd3jLVgrahH94pzLuodhdP90N+4YzqW6mBJ4+qnQ
+	 ZLYMyJ5OER+DY4mmuKabb/dA9GlF7TRbb3T5VBupOMQVY8fo641yEcMKWyPTn9Uiwb
+	 Ut9/rvrVxtbwXr+BdM2vZShsfT/NzzS2aoTOkwjg=
+Date: Tue, 28 Apr 2026 07:09:28 -0700
 To: mm-commits@vger.kernel.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-page_owner-add-filter-infrastructure.patch removed from -mm tree
-Message-Id: <20260428140927.CF6E7C2BCAF@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_owner-add-print_mode-filter.patch removed from -mm tree
+Message-Id: <20260428140929.2CB1AC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,159 +35,35 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/page_owner: add filter infrastructure
+     Subject: mm/page_owner: add print_mode filter
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-add-filter-infrastructure.patch
+     mm-page_owner-add-print_mode-filter.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Zhen Ni <zhen.ni@easystack.cn>
-Subject: mm/page_owner: add filter infrastructure
-Date: Sun, 19 Apr 2026 23:55:38 +0800
+Subject: mm/page_owner: add print_mode filter
+Date: Sun, 19 Apr 2026 23:55:39 +0800
 
-Patch series "mm/page_owner: add filter infrastructure for print_mode and
-NUMA filtering", v2.
+Add print_mode functionality to reduce page_owner output size by printing
+only the stack handle instead of the full stack trace.
 
-This patch series introduces filtering capabilities to the page_owner
-feature to address storage and performance challenges in production
-environments.
+Example output with print_mode enabled:
+  Page allocated via order 0, mask 0x42800(GFP_NOWAIT|__GFP_COMP),
+  pid 1, tgid 1 (systemd), ts 349667370 ns
+  PFN 0xa00a2 type Unmovable Block 1280 type Unmovable
+  Flags 0x33fffe0000004124(referenced|lru|active|private|node=3|zone=0|
+lastcpupid=0x1ffff)
+  handle: 17432583
+  Charged to memcg /
 
-Changes from v1:
-- Renamed 'compact' to 'print_mode' with enum type for better clarity
-  * PAGE_OWNER_PRINT_FULL_STACK (0): print full stack traces
-  * PAGE_OWNER_PRINT_STACK_HANDLE (1): print only stack handles
-- Changed NUMA filter from single node to nodelist with bitmask support
-  * Uses nodelist_parse() to support "0", "0,2", "0-3", "0,2-4,7" formats
-  * Uses nodemask_t internally for efficient multi-node filtering
-  * Output uses %*pbl format (e.g., "0-2", "0,2-4,7")
-- Improved memory handling in nid_filter_write using dynamic allocation
-  * Limit: (100 + 6 * MAX_NUMNODES) to handle worst-case input
+Print mode significantly reduces output size while preserving all other
+page allocation information.  The correspondence between handles and stack
+traces can be obtained through the show_stacks_handles interface.
 
-These changes address feedback from v1 review:
-- "compact" was too vague → use descriptive enum (PAGE_OWNER_PRINT_*)
-- Single node filter was limiting → use nodelist_parse() for multi-node support
-
-Problem Statement
-=================
-
-In production environments with large memory configurations (e.g.,
-250GB+), collecting page_owner information often results in files ranging
-from several gigabytes to over 10GB.  This creates significant challenges:
-
-1. Storage pressure on production systems
-2. Difficulty transferring large files from production environments
-3. Post-processing overhead with tools/mm/page_owner_sort.c
-
-The primary contributor to file size is redundant stack trace information.
-While the kernel already deduplicates stacks via stackdepot, page_owner
-retrieves and stores full stack traces for each page, only to deduplicate
-them again during post-processing.
-
-Additionally, in NUMA-aware environments (e.g., DPDK-based cloud
-deployments where QEMU processes are bound to specific NUMA nodes), OOM
-events are often node-specific rather than system-wide.  Currently,
-page_owner cannot filter by NUMA node, forcing users to collect and
-analyze data for all nodes.
-
-Solution
-========
-
-This patch series introduces a flexible filter infrastructure with
-two initial filters:
-
-1. **Print Mode Filter**: Outputs only stack handles instead of
-   full stack traces. The handle-to-stack mapping can be retrieved
-   from the existing show_stacks_handles interface. This dramatically
-   reduces output size while preserving all allocation metadata.
-
-2. **NUMA Node Filter**: Allows filtering pages by specific NUMA node(s)
-   using flexible nodelist format, enabling targeted analysis of memory
-   issues in NUMA-aware deployments.
-
-Implementation
-==============
-
-The series is structured as follows:
-
-- Patch 1: Add filter infrastructure (data structures and
-  debugfs directory)
-- Patch 2: Implement print_mode filter
-- Patch 3: Implement NUMA node filter with nodelist support
-
-Usage Example
-=============
-
-Enable print_mode and filter for NUMA nodes 0,2-3:
-
-    # cd /sys/kernel/debug/page_owner_filter/
-    # echo 1 > print_mode
-    # echo "0,2-3" > nid
-    # cat /sys/kernel/debug/page_owner > page_owner.txt
-
-Sample print_mode output (showing handles only):
-
-    Page allocated via order 0, mask 0x0(), pid 0, tgid 0 (swapper),
-    ts 0 ns PFN 0x40000 type Unmovable Block 512 type Unmovable
-    Flags 0x3fffe0000000000(node=0|zone=0|lastcpupid=0x1ffff)
-    handle: 1048577
-
-    Page allocated via order 0, mask 0x252000(__GFP_NOWARN|
-    __GFP_NORETRY|__GFP_COMP|__GFP_THISNODE), pid 0, tgid 0 (swapper),
-    ts 0 ns PFN 0x40002 type Unmovable Block 512 type Unmovable
-    Flags 0x23fffe0000000200(workingset|node=0|zone=0|lastcpupid=0x1ffff)
-    handle: 1048577
-
-Testing
-=======
-
-Tested on a system with multiple NUMA nodes. Verified that:
-- Filters work independently and in combination
-- Print_mode output correlates correctly with show_stacks_handles
-- Default behavior (filters disabled) remains unchanged
-- NUMA filter works with single node, multiple nodes, and ranges
-
-Example test session:
-    # cat print_mode
-    0
-    # echo "0,1-2" > nid
-    # cat nid
-    0-2
-    # echo "0,2-3" > nid
-    # cat nid
-    0,2-3
-    # echo 1 > print_mode
-    # head -n 100 /sys/kernel/debug/page_owner
-    [Shows compact mode output with handles only]
-
-Future Enhancements
-==================
-
-The filter infrastructure is designed to be extensible. Potential
-future filters could include:
-- PID/TGID filtering
-- Time range filtering (allocation timestamp windows)
-- GFP flag filtering
-- Migration type filtering
-
-
-This patch (of 3):
-
-Add data structure for page_owner filtering functionality and create
-debugfs directory for filter controls.
-
-This adds:
-- enum page_owner_print_mode with values for full_stack and stack_handle
-- struct page_owner_filter with print_mode and nid_mask fields
-- Static owner_filter instance initialized with default values
-- page_owner_filter debugfs directory
-
-The filter infrastructure will be used to add print_mode and NUMA node
-filtering capabilities in subsequent commits.
-
-Link: https://lore.kernel.org/20260419155540.376847-1-zhen.ni@easystack.cn
-Link: https://lore.kernel.org/linux-mm/20260417154638.22370-2-zhen.ni@easystack.cn/
-Link: https://lore.kernel.org/20260419155540.376847-2-zhen.ni@easystack.cn
+Link: https://lore.kernel.org/linux-mm/20260417154638.22370-3-zhen.ni@easystack.cn/
+Link: https://lore.kernel.org/20260419155540.376847-3-zhen.ni@easystack.cn
 Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
 Suggested-by: Zi Yan <ziy@nvidia.com>
 Cc: Brendan Jackman <jackmanb@google.com>
@@ -198,57 +74,64 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ mm/page_owner.c |   28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mm-page_owner-add-filter-infrastructure
+--- a/mm/page_owner.c~mm-page_owner-add-print_mode-filter
 +++ a/mm/page_owner.c
-@@ -54,6 +54,21 @@ struct stack_print_ctx {
- 	u8 flags;
- };
+@@ -590,7 +590,13 @@ print_page_owner(char __user *buf, size_
+ 			migratetype_names[pageblock_mt],
+ 			&page->flags);
  
-+enum page_owner_print_mode {
-+	PAGE_OWNER_PRINT_FULL_STACK,
-+	PAGE_OWNER_PRINT_STACK_HANDLE,
-+};
-+
-+struct page_owner_filter {
-+	enum page_owner_print_mode print_mode;
-+	nodemask_t nid_mask;
-+};
-+
-+static struct page_owner_filter owner_filter = {
-+	.print_mode = PAGE_OWNER_PRINT_FULL_STACK,
-+	.nid_mask = NODE_MASK_NONE,
-+};
-+
- static bool page_owner_enabled __initdata;
- DEFINE_STATIC_KEY_FALSE(page_owner_inited);
+-	ret += stack_depot_snprint(handle, kbuf + ret, count - ret, 0);
++	/* Print mode: full stack or stack handle */
++	if (READ_ONCE(owner_filter.print_mode) == PAGE_OWNER_PRINT_STACK_HANDLE) {
++		ret += scnprintf(kbuf + ret, count - ret,
++				"handle: %d\n", handle);
++	} else {
++		ret += stack_depot_snprint(handle, kbuf + ret, count - ret, 0);
++	}
+ 	if (ret >= count)
+ 		goto err;
  
-@@ -973,7 +988,7 @@ DEFINE_SIMPLE_ATTRIBUTE(page_owner_thres
+@@ -985,6 +991,24 @@ static int page_owner_threshold_set(void
+ DEFINE_SIMPLE_ATTRIBUTE(page_owner_threshold_fops, &page_owner_threshold_get,
+ 			&page_owner_threshold_set, "%llu");
+ 
++static int page_owner_print_mode_get(void *data, u64 *val)
++{
++	*val = READ_ONCE(owner_filter.print_mode);
++	return 0;
++}
++
++static int page_owner_print_mode_set(void *data, u64 val)
++{
++	if (val > PAGE_OWNER_PRINT_STACK_HANDLE)
++		return -EINVAL;
++	WRITE_ONCE(owner_filter.print_mode, val);
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(page_owner_print_mode_fops,
++			&page_owner_print_mode_get,
++			&page_owner_print_mode_set, "%lld");
++
  
  static int __init pageowner_init(void)
  {
--	struct dentry *dir;
-+	struct dentry *dir, *filter_dir;
- 
- 	if (!static_branch_unlikely(&page_owner_inited)) {
- 		pr_info("page_owner is disabled\n");
-@@ -981,6 +996,9 @@ static int __init pageowner_init(void)
- 	}
- 
+@@ -998,6 +1022,8 @@ static int __init pageowner_init(void)
  	debugfs_create_file("page_owner", 0400, NULL, NULL, &page_owner_fops);
-+
-+	filter_dir = debugfs_create_dir("page_owner_filter", NULL);
-+
+ 
+ 	filter_dir = debugfs_create_dir("page_owner_filter", NULL);
++	debugfs_create_file("print_mode", 0600, filter_dir, NULL,
++			    &page_owner_print_mode_fops);
+ 
  	dir = debugfs_create_dir("page_owner_stacks", NULL);
  	debugfs_create_file("show_stacks", 0400, dir,
- 			    (void *)(STACK_PRINT_FLAG_STACK |
 _
 
 Patches currently in -mm which might be from zhen.ni@easystack.cn are
 
-mm-page_owner-add-print_mode-filter.patch
 mm-page_owner-add-numa-node-filter-with-nodelist-support.patch
 mm-page_owner-fix-%pgp-format-specifier-argument-type.patch
 
