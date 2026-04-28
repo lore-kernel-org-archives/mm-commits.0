@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3A202EC0A4
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:17:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2C59302165
+	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 14:17:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777385825; cv=none; b=aDMN0uSV9W3HLFqgpjqP0TCL6qtzWMPb3HGz/uWx61BngX7atIfJNMZLO6Bd22jJbKgjYiRa6oqXZHKELsG5/sUZ4ZI+StitnkK19mVdLX2nYsffRQeKSbJqqRYVDv96nrDb3HpsIpeMX07FfFWMEuEqvGbdTbH/aDQ4X6xwlBo=
+	t=1777385828; cv=none; b=YmtCxCmKAJ7Ow/6iWynZ9ZfdxUopcYB7u+h+0Hyr/RL87oR1pFGp0NENTs/SM+rZB8muJItXDnCByECT1a65iFr6ZKm9RScwUHA57bYdd9SuW/c/MCyx0F+IQQ9f22tG6ZVTTMFm0Sp689+OPCuNNok/i1me9JcHW4uj2DiVgdg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777385825; c=relaxed/simple;
-	bh=hSzmcOxi9y+B696RjA/G+yClygAX3XmyO2rRuMehYmw=;
-	h=Date:To:From:Subject:Message-Id; b=mEnd+UOe9WAICEqw/nLMqtSSfPQpNZBIt+QFIQ7j9NVbbAGUMQkNmheBYZUceHSoq4nH9ZBvl89feY5qxse0x5Blv8UJ+idx6hLm2VnKIj9QDMD3+yBZKHaTky7dUH25ajSAd4GVwBmqXcXwsHn2S4WjBeCA8GYfp8u8qckG2G4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=D6BcRw1Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777385828; c=relaxed/simple;
+	bh=DbjG02pkAHkHtJVNH8RTSjMVabKgXxnldMHucSP4PMY=;
+	h=Date:To:From:Subject:Message-Id; b=ARgHVn9AYvi0zMhSuomhQ2Po4EJFdUQ/cfQE04D2Cfn9rW1VOHvSaClEpHu/3mxKzFmxj76EExjnX/3TVnVuVK0i01AFNYXoxg6FzSnGObRYV6tYQdP4Sm+DZelca6n9NQvuZPUingY+nYmgcqAmeTfpXSaUjlDJG452K7sACT0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fut2rjUQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="D6BcRw1Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50B0AC2BCAF;
-	Tue, 28 Apr 2026 14:17:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fut2rjUQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79CEEC2BCAF;
+	Tue, 28 Apr 2026 14:17:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777385825;
-	bh=hSzmcOxi9y+B696RjA/G+yClygAX3XmyO2rRuMehYmw=;
+	s=korg; t=1777385827;
+	bh=DbjG02pkAHkHtJVNH8RTSjMVabKgXxnldMHucSP4PMY=;
 	h=Date:To:From:Subject:From;
-	b=D6BcRw1QdTilakhkkUtKs6As+4zx0AXk+/8lmXYQ5a8LVjQJKVCqLafu3tuegG7Nw
-	 yyVA0fJ1q57/1KfPPlxm/GIBkDTz+uzJEGVxHrTAJ75uMObnYGTlIZK7N1dIOCn/bW
-	 PzqrlDhyqd/KtcEkNhY9AgicB3yoijOCVKLYRKHg=
-Date: Tue, 28 Apr 2026 07:17:04 -0700
+	b=fut2rjUQ1ASOx2sN6HprmYrFMyIm/yrKMBXcCHn+QyKSKSTLEWUM0YXMOgyGhqJdI
+	 pD+VSgDillp/YtKKV3vGVouDOe6dD/DM6tsuoI1gIOUhFxEABLsso7g++QX0F+T2yL
+	 /A6d7HL1F6kOzm2ZjV/+2/p26Sai0DlyjEMc4tBU=
+Date: Tue, 28 Apr 2026 07:17:06 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,zhen.ni@easystack.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_owner-add-filter-infrastructure.patch added to mm-new branch
-Message-Id: <20260428141705.50B0AC2BCAF@smtp.kernel.org>
+Subject: + mm-page_owner-add-print_mode-filter.patch added to mm-new branch
+Message-Id: <20260428141707.79CEEC2BCAF@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_owner: add filter infrastructure
+     Subject: mm/page_owner: add print_mode filter
 has been added to the -mm mm-new branch.  Its filename is
-     mm-page_owner-add-filter-infrastructure.patch
+     mm-page_owner-add-print_mode-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-filter-infrastructure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_owner-add-print_mode-filter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,34 +70,27 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zhen Ni <zhen.ni@easystack.cn>
-Subject: mm/page_owner: add filter infrastructure
-Date: Tue, 28 Apr 2026 15:11:09 +0800
+Subject: mm/page_owner: add print_mode filter
+Date: Tue, 28 Apr 2026 15:11:10 +0800
 
-Patch series "mm/page_owner: add filter infrastructure for print_mode and
-NUMA filtering", v3.
+Add print_mode functionality to reduce page_owner output size by printing
+only the stack handle instead of the full stack trace.
 
-This patch series introduces filtering capabilities to the page_owner
-feature to address storage and performance challenges in production
-environments.
+Example output with print_mode enabled:
+  Page allocated via order 0, mask 0x42800(GFP_NOWAIT|__GFP_COMP),
+  pid 1, tgid 1 (systemd), ts 349667370 ns
+  PFN 0xa00a2 type Unmovable Block 1280 type Unmovable
+  Flags 0x33fffe0000004124(referenced|lru|active|private|node=3|zone=0|
+lastcpupid=0x1ffff)
+  handle: 17432583
+  Charged to memcg /
 
+Print mode significantly reduces output size while preserving all other
+page allocation information.  The correspondence between handles and stack
+traces can be obtained through the show_stacks_handles interface.
 
-This patch (of 4):
-
-Add data structure for page_owner filtering functionality and create
-debugfs directory for filter controls.
-
-This adds:
-- enum page_owner_print_mode with values for full_stack and stack_handle
-- struct page_owner_filter with print_mode and nid_mask fields
-- Static owner_filter instance initialized with default values
-- page_owner_filter debugfs directory
-
-The filter infrastructure will be used to add print_mode and NUMA node
-filtering capabilities in subsequent commits.
-
-Link: https://lore.kernel.org/20260428071112.1420380-1-zhen.ni@easystack.cn
-Link: https://lore.kernel.org/linux-mm/20260417154638.22370-2-zhen.ni@easystack.cn/
-Link: https://lore.kernel.org/20260428071112.1420380-2-zhen.ni@easystack.cn
+Link: https://lore.kernel.org/linux-mm/20260417154638.22370-3-zhen.ni@easystack.cn/
+Link: https://lore.kernel.org/20260428071112.1420380-3-zhen.ni@easystack.cn
 Signed-off-by: Zhen Ni <zhen.ni@easystack.cn>
 Suggested-by: Zi Yan <ziy@nvidia.com>
 Cc: Brendan Jackman <jackmanb@google.com>
@@ -105,56 +98,63 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zhen Ni <zhen.ni@easystack.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ mm/page_owner.c |   28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
---- a/mm/page_owner.c~mm-page_owner-add-filter-infrastructure
+--- a/mm/page_owner.c~mm-page_owner-add-print_mode-filter
 +++ a/mm/page_owner.c
-@@ -54,6 +54,21 @@ struct stack_print_ctx {
- 	u8 flags;
- };
+@@ -590,7 +590,13 @@ print_page_owner(char __user *buf, size_
+ 			migratetype_names[pageblock_mt],
+ 			&page->flags);
  
-+enum page_owner_print_mode {
-+	PAGE_OWNER_PRINT_FULL_STACK,
-+	PAGE_OWNER_PRINT_STACK_HANDLE,
-+};
-+
-+struct page_owner_filter {
-+	enum page_owner_print_mode print_mode;
-+	nodemask_t nid_mask;
-+};
-+
-+static struct page_owner_filter owner_filter = {
-+	.print_mode = PAGE_OWNER_PRINT_FULL_STACK,
-+	.nid_mask = NODE_MASK_NONE,
-+};
-+
- static bool page_owner_enabled __initdata;
- DEFINE_STATIC_KEY_FALSE(page_owner_inited);
+-	ret += stack_depot_snprint(handle, kbuf + ret, count - ret, 0);
++	/* Print mode: full stack or stack handle */
++	if (READ_ONCE(owner_filter.print_mode) == PAGE_OWNER_PRINT_STACK_HANDLE) {
++		ret += scnprintf(kbuf + ret, count - ret,
++				"handle: %d\n", handle);
++	} else {
++		ret += stack_depot_snprint(handle, kbuf + ret, count - ret, 0);
++	}
+ 	if (ret >= count)
+ 		goto err;
  
-@@ -973,7 +988,7 @@ DEFINE_SIMPLE_ATTRIBUTE(page_owner_thres
+@@ -985,6 +991,24 @@ static int page_owner_threshold_set(void
+ DEFINE_SIMPLE_ATTRIBUTE(page_owner_threshold_fops, &page_owner_threshold_get,
+ 			&page_owner_threshold_set, "%llu");
+ 
++static int page_owner_print_mode_get(void *data, u64 *val)
++{
++	*val = READ_ONCE(owner_filter.print_mode);
++	return 0;
++}
++
++static int page_owner_print_mode_set(void *data, u64 val)
++{
++	if (val > PAGE_OWNER_PRINT_STACK_HANDLE)
++		return -EINVAL;
++	WRITE_ONCE(owner_filter.print_mode, val);
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(page_owner_print_mode_fops,
++			&page_owner_print_mode_get,
++			&page_owner_print_mode_set, "%lld");
++
  
  static int __init pageowner_init(void)
  {
--	struct dentry *dir;
-+	struct dentry *dir, *filter_dir;
- 
- 	if (!static_branch_unlikely(&page_owner_inited)) {
- 		pr_info("page_owner is disabled\n");
-@@ -981,6 +996,9 @@ static int __init pageowner_init(void)
- 	}
- 
+@@ -998,6 +1022,8 @@ static int __init pageowner_init(void)
  	debugfs_create_file("page_owner", 0400, NULL, NULL, &page_owner_fops);
-+
-+	filter_dir = debugfs_create_dir("page_owner_filter", NULL);
-+
+ 
+ 	filter_dir = debugfs_create_dir("page_owner_filter", NULL);
++	debugfs_create_file("print_mode", 0600, filter_dir, NULL,
++			    &page_owner_print_mode_fops);
+ 
  	dir = debugfs_create_dir("page_owner_stacks", NULL);
  	debugfs_create_file("show_stacks", 0400, dir,
- 			    (void *)(STACK_PRINT_FLAG_STACK |
 _
 
 Patches currently in -mm which might be from zhen.ni@easystack.cn are
