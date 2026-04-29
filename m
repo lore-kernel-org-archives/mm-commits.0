@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6902037C900
-	for <mm-commits@vger.kernel.org>; Tue, 28 Apr 2026 22:13:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0663329E49
+	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 10:46:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777414383; cv=none; b=n5lJz8JRa593CjuuFs/NLT/3stmtRrm5tkFRpMfdxkYPRRLG9y4uvxOnvDhqAztpFrVypydEsLdJ/n8zum3uxglD4t4Nas8+gHBb/4D0mpGbDLR6zPxZaqqjZGA1JakcQ44cqwfcmzaRTsoQVc+ZkU2/lHosRdch7DSswiZM9ts=
+	t=1777459599; cv=none; b=nMriSRE6JsoVKE/oeVrgvksxoicJhMRef82SbkBwuDm0sS4z52t4rG7dG9mud4t0xan2fJdfs8uR7D+CNRGYpFiygtT7iwfQSTHYYlx2dSYfR1Ws7jRTckxBEd0l8HnnhNkaMteN605/T5XFHA1JDiJKbTXiiDj+sR3qq6fPGno=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777414383; c=relaxed/simple;
-	bh=uPfkd0fbnIFLURQNR3NScfbW22If5tXyImBzr+guBYY=;
-	h=Date:To:From:Subject:Message-Id; b=ioZRdulxbxP1m0GgbJ92QMU9Bto50KJYJDzqH3kLNQwqjwlDxya3msH0mFyg4idpQvjz0xRnHKV/1sSXspIj8x+9ypQBB3JoeOGvOrp5Nj0WPwu6R9weQ+nrfXw9lEArEHtU+9bqRi/kdHzbba3sMirBL8zAHhOmaMBuzg3GDHk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hTutok94; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777459599; c=relaxed/simple;
+	bh=Zf1epmDk6wj/6TQEaIpJ0yMoljkq//9XCTsczO6fZm0=;
+	h=Date:To:From:Subject:Message-Id; b=beluEfROR1UucE9k+LKgLIoxjnKl4IkzV1NKp2jTPA1Ss+pS+PNM8+v+9Jvw9QUX5+29FX5XRd+ziPCpVPr5By3p75lpHdLiX6dfGjZG0r37cp3GOTT/6wN/SY+W62wRx2tVB2APoAXRH7XjtoRHv6w5rWVi35+SoOcfFBeZl04=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ccgOpASL; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hTutok94"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 030B5C2BCAF;
-	Tue, 28 Apr 2026 22:13:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ccgOpASL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7D35EC19425;
+	Wed, 29 Apr 2026 10:46:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777414383;
-	bh=uPfkd0fbnIFLURQNR3NScfbW22If5tXyImBzr+guBYY=;
+	s=korg; t=1777459598;
+	bh=Zf1epmDk6wj/6TQEaIpJ0yMoljkq//9XCTsczO6fZm0=;
 	h=Date:To:From:Subject:From;
-	b=hTutok943dym3JIJFj2TOwyCxYvxBRGCExomrzpMyljPfFem/qzGP14zS71DEK5th
-	 ldeDPr1Je9z2q2L45cZJSwCH4qC/zIuEkubWQv8W9AmrOOtpefF4yzAsM/8lbut0IZ
-	 UjaXktDoJiyKDZWlvLmu6r7UYSLcGlBB/P5cQCxc=
-Date: Tue, 28 Apr 2026 15:13:02 -0700
+	b=ccgOpASLwDvnaepMALDMir7sGXwybHLeyAphiBp9+R8SNTr+2iuekpUUOqtY+7znu
+	 ejlQxqu636m+pa/Ca5MPuTtMob5COa2M4KhJdEFXz1qiBeK2eTBSLDk1iSsYdxa44r
+	 06pVH2yK+Yt5c9q47YZpbOnWSXeL1BBJnceh18GA=
+Date: Wed, 29 Apr 2026 03:46:37 -0700
 To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end.patch removed from -mm tree
-Message-Id: <20260428221303.030B5C2BCAF@smtp.kernel.org>
+Subject: + mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260429104638.7D35EC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
+The patch titled
      Subject: mm: memcontrol: fix rcu unbalance in get_non_dying_memcg_end()
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
      mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Qi Zheng <zhengqi.arch@bytedance.com>
 Subject: mm: memcontrol: fix rcu unbalance in get_non_dying_memcg_end()
-Date: Tue, 28 Apr 2026 18:31:08 +0800
+Date: Wed, 29 Apr 2026 15:31:05 +0800
 
 Currently, get_non_dying_memcg_start() and get_non_dying_memcg_end() both
 evaluate cgroup_subsys_on_dfl(memory_cgrp_subsys) independently to
@@ -100,15 +116,15 @@ Fix this by explicitly tracking the RCU lock state, ensuring that
 rcu_read_unlock() in get_non_dying_memcg_end() is strictly paired with the
 lock acquisition, regardless of any runtime rebinding events.
 
-Link: https://lore.kernel.org/20260428103108.45719-1-qi.zheng@linux.dev
+Link: https://lore.kernel.org/20260429073105.44472-1-qi.zheng@linux.dev
 Fixes: 8285917d6f38 ("mm: memcontrol: prepare for reparenting non-hierarchical stats")
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
 Reviewed-by: Muchun Song <muchun.song@linux.dev>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
 Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -167,7 +183,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  void mod_memcg_state(struct mem_cgroup *memcg, enum memcg_stat_item idx,
  		       int val)
  {
-+	bool rcu_locked;
++	bool rcu_locked = false;
 +
  	if (mem_cgroup_disabled())
  		return;
@@ -184,7 +200,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
  	struct mem_cgroup_per_node *pn;
  	struct mem_cgroup *memcg;
-+	bool rcu_locked;
++	bool rcu_locked = false;
  
  	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
 -	memcg = get_non_dying_memcg_start(pn->memcg);
@@ -202,4 +218,5 @@ _
 
 Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
+mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end.patch
 
