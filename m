@@ -1,403 +1,172 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C5E537DEBA
-	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 16:13:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9194833F390
+	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 17:55:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777479231; cv=none; b=h1jMyUMHBrII7nL/9oJqzvA418EzoLf+DJCfhBTvoSs5gdNtp3Gk4y1wMm59xbcW1w70SyHUOt1ID9ZNxzXAHtgZ/tvykS6WQ7o4WlxzzxOMEy3N/NsJewBXU10m+U7TJ7MfCvqYwDaACJ2ciTA76YSggYsVNdSjGPyJv7BL1og=
+	t=1777485318; cv=none; b=PaOI5fL7mGVgJxaQYkT7GJ/5JqNdNLwWOPH9PL7O9sjSavHKjrrFbzWjk+qPOSXW0H9QvQ8yAO/HH8HugWWl4DxH9q9QWdBOixX5iqrRHcJy/m5halG6eB2JAbqv8MPY6WcyMleBvmbRt6j3E9E4b77LffVbNJ6eUBughPORUkg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777479231; c=relaxed/simple;
-	bh=CiXTtSyApTxVZFTMxk0kpGhic1HEIfJRKUXet2stK54=;
-	h=Date:To:From:Subject:Message-Id; b=Zo8VDkP5/DY5NS0R+mu0LBW7M3MebOkGAefQFRFnsUcpyFxvkUQAmGPEgO7YE68wHcRjjKrvmQsbr+bTC5wAVA2H1xW7Nc6dGQm/4lMc5l9GalZ08E+taqcZgtgknMso9SlOoHyzQEF70dXXIFLoE6ktac/nY7gGezZTeQZR70w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=axo0+3uz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777485318; c=relaxed/simple;
+	bh=qES5wi9rHeFRKHA56944QIARsJl/dmyOMftYE0DrvjY=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=R6CagoL+dXfX9VRKCp5FXdGO7f6JqK1zEQmqWX0iSQL3L5bePaYMtfXG1pBn/yrF9/rB5vl/UGJB2zLHPAnQzvrcdBa+v7WagGHK8QyhO/yUKcg65hRKFbP36iI44OGc5WkQkwOjnepz6hIXHksUSJGx3It0IRIy6IrngoYRjWw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HB+oJsdW; arc=none smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="axo0+3uz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A975C19425;
-	Wed, 29 Apr 2026 16:13:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777479229;
-	bh=CiXTtSyApTxVZFTMxk0kpGhic1HEIfJRKUXet2stK54=;
-	h=Date:To:From:Subject:From;
-	b=axo0+3uzmNIwYgPh6WNGBGQt14CKUvHgmcuHrcJqS4ga5/vgyJ3XEHWdA4dWoaQe+
-	 kg+HcBssBGc6ue6MQbo+FwEvkvYTec+uGVBGZb31evHcVCMdqDrgc3q5U3skvn8yat
-	 2whGuTLnoFeG7cG6dfUZ1Z8S2FOVNxOjS32ZqRKo=
-Date: Wed, 29 Apr 2026 09:13:48 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-writable-file-collapse-tests-for-khugepaged.patch added to mm-new branch
-Message-Id: <20260429161349.3A975C19425@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HB+oJsdW"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1777485317; x=1809021317;
+  h=date:from:to:cc:subject:message-id;
+  bh=qES5wi9rHeFRKHA56944QIARsJl/dmyOMftYE0DrvjY=;
+  b=HB+oJsdWwjrW2qzTm4asbcub57StaoyakGIvtZmuz69gYulUFBx7s9mO
+   VWSh30IrPqOmQuCbbmnu1TRiV+sO9XWOwPrD/3utZXOiqEGGcRwIhhtIE
+   6p43EhRCGu15bSMMlfgn97IkRG2LnrJw0Je3uaDzsNHseb+/4urRZ4nzC
+   Eheeu5t0iz3IlpkZQMl3X+QcqjZi2j6LsF/rXSbZ3INxQCsYFTc8pBHzc
+   8v3B3OR6A3VFqeyh+Ye9wIffrCANk+o112mM1gRaZZ7YjbGC9zw1OISxi
+   DEP1XOl315eHFhhP4v+lWZv66sbi8pNvJGmfNEx7opxdYosGt7hQoI+cr
+   Q==;
+X-CSE-ConnectionGUID: l3QyZ3G7Rxmw0yO4g9DIIQ==
+X-CSE-MsgGUID: h/FNPsSpS5K08KJAJLGjIg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11771"; a="89884369"
+X-IronPort-AV: E=Sophos;i="6.23,206,1770624000"; 
+   d="scan'208";a="89884369"
+Received: from fmviesa004.fm.intel.com ([10.60.135.144])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2026 10:55:16 -0700
+X-CSE-ConnectionGUID: 3iiTamUzSy2ltJXGS6U1YA==
+X-CSE-MsgGUID: IwKwGggbR9qySSnG1HQVkQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,206,1770624000"; 
+   d="scan'208";a="236106649"
+Received: from lkp-server01.sh.intel.com (HELO aa799cca880d) ([10.239.97.150])
+  by fmviesa004.fm.intel.com with ESMTP; 29 Apr 2026 10:55:14 -0700
+Received: from kbuild by aa799cca880d with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wI97w-00000000BKS-0GTU;
+	Wed, 29 Apr 2026 17:55:12 +0000
+Date: Thu, 30 Apr 2026 01:54:35 +0800
+From: kernel test robot <lkp@intel.com>
+To: David Hildenbrand <david@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-new] BUILD SUCCESS
+ 52dc268726a771d68839fb1e06e88b5157062a3f
+Message-ID: <202604300126.K1nrQFEC-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+branch HEAD: 52dc268726a771d68839fb1e06e88b5157062a3f  flush dirty folio so that drop_caches can work
 
-The patch titled
-     Subject: selftests/mm: add writable-file collapse tests for khugepaged
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-writable-file-collapse-tests-for-khugepaged.patch
+elapsed time: 1162m
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-writable-file-collapse-tests-for-khugepaged.patch
+configs tested: 93
+configs skipped: 2
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+The following configs have been built successfully.
+More configs may be tested in the coming days.
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+tested configs:
+alpha                             allnoconfig    gcc-15.2.0
+alpha                            allyesconfig    gcc-15.2.0
+alpha                               defconfig    gcc-15.2.0
+arc                              allmodconfig    gcc-15.2.0
+arc                               allnoconfig    gcc-15.2.0
+arc                              allyesconfig    gcc-15.2.0
+arc                                 defconfig    gcc-15.2.0
+arc                   randconfig-001-20260430    gcc-8.5.0
+arc                   randconfig-002-20260430    gcc-8.5.0
+arm                               allnoconfig    clang-23
+arm                              allyesconfig    gcc-15.2.0
+arm64                            allmodconfig    clang-19
+arm64                             allnoconfig    gcc-15.2.0
+csky                             allmodconfig    gcc-15.2.0
+csky                              allnoconfig    gcc-15.2.0
+csky                                defconfig    gcc-15.2.0
+hexagon                          allmodconfig    clang-17
+hexagon                           allnoconfig    clang-23
+hexagon                             defconfig    clang-23
+i386                             allmodconfig    gcc-14
+i386                              allnoconfig    gcc-14
+i386                             allyesconfig    gcc-14
+i386                  randconfig-011-20260430    clang-20
+i386                  randconfig-012-20260430    gcc-14
+i386                  randconfig-013-20260430    clang-20
+i386                  randconfig-014-20260430    gcc-14
+i386                  randconfig-015-20260430    gcc-14
+i386                  randconfig-016-20260430    gcc-14
+i386                  randconfig-017-20260430    clang-20
+loongarch                        allmodconfig    clang-19
+loongarch                         allnoconfig    clang-23
+loongarch             randconfig-001-20260430    gcc-14.3.0
+m68k                             allmodconfig    gcc-15.2.0
+m68k                              allnoconfig    gcc-15.2.0
+m68k                             allyesconfig    gcc-15.2.0
+microblaze                        allnoconfig    gcc-15.2.0
+microblaze                       allyesconfig    gcc-15.2.0
+microblaze                          defconfig    gcc-15.2.0
+mips                             allmodconfig    gcc-15.2.0
+mips                              allnoconfig    gcc-15.2.0
+mips                             allyesconfig    gcc-15.2.0
+nios2                            allmodconfig    gcc-11.5.0
+nios2                             allnoconfig    gcc-11.5.0
+nios2                               defconfig    gcc-11.5.0
+openrisc                         allmodconfig    gcc-15.2.0
+openrisc                          allnoconfig    gcc-15.2.0
+openrisc                            defconfig    gcc-15.2.0
+parisc                           allmodconfig    gcc-15.2.0
+parisc                            allnoconfig    gcc-15.2.0
+parisc                           allyesconfig    gcc-15.2.0
+parisc                              defconfig    gcc-15.2.0
+parisc                randconfig-001-20260430    gcc-12.5.0
+parisc                randconfig-002-20260430    gcc-8.5.0
+powerpc                          allmodconfig    gcc-15.2.0
+powerpc                           allnoconfig    gcc-15.2.0
+powerpc                      pasemi_defconfig    clang-23
+powerpc               randconfig-001-20260430    gcc-10.5.0
+riscv                            allmodconfig    clang-23
+riscv                             allnoconfig    gcc-15.2.0
+riscv                            allyesconfig    clang-16
+riscv                               defconfig    clang-23
+s390                             allmodconfig    clang-18
+s390                              allnoconfig    clang-23
+s390                             allyesconfig    gcc-15.2.0
+sh                               allmodconfig    gcc-15.2.0
+sh                                allnoconfig    gcc-15.2.0
+sh                               allyesconfig    gcc-15.2.0
+sh                                  defconfig    gcc-15.2.0
+sparc                             allnoconfig    gcc-15.2.0
+sparc                               defconfig    gcc-15.2.0
+sparc64                          allmodconfig    clang-23
+sparc64                             defconfig    clang-20
+sparc64               randconfig-002-20260430    gcc-8.5.0
+um                               allmodconfig    clang-19
+um                                allnoconfig    clang-23
+um                               allyesconfig    gcc-14
+um                                  defconfig    clang-23
+um                             i386_defconfig    gcc-14
+um                    randconfig-001-20260430    clang-23
+um                           x86_64_defconfig    clang-23
+x86_64                           allmodconfig    clang-20
+x86_64                            allnoconfig    clang-20
+x86_64                           allyesconfig    clang-20
+x86_64      buildonly-randconfig-001-20260430    clang-20
+x86_64      buildonly-randconfig-002-20260430    clang-20
+x86_64      buildonly-randconfig-003-20260430    clang-20
+x86_64      buildonly-randconfig-004-20260430    clang-20
+x86_64      buildonly-randconfig-005-20260430    gcc-14
+x86_64      buildonly-randconfig-006-20260430    gcc-14
+x86_64                              defconfig    gcc-14
+x86_64                          rhel-9.4-rust    clang-20
+xtensa                            allnoconfig    gcc-15.2.0
+xtensa                           allyesconfig    gcc-15.2.0
 
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: add writable-file collapse tests for khugepaged
-Date: Wed, 29 Apr 2026 11:35:37 -0400
-
-collapse_file() now supports collapsing clean pagecache folios from
-writable files, so add corresponding tests.
-
-Note that madvise(MADV_COLLAPSE) works for dirty pagecache folios from
-writable files, because collapse_single_pmd() triggers a synchronous
-writeback when first attempt of collapse_file() fails.  That writeback
-makes dirty folios clean and the retry of collapse_file() succeeds.
-
-Link: https://lore.kernel.org/20260429153538.727855-10-ziy@nvidia.com
-Signed-off-by: Zi Yan <ziy@nvidia.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- tools/testing/selftests/mm/khugepaged.c |  113 ++++++++++++++++------
- 1 file changed, 86 insertions(+), 27 deletions(-)
-
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-add-writable-file-collapse-tests-for-khugepaged
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -41,6 +41,12 @@ enum vma_type {
- 	VMA_SHMEM,
- };
- 
-+enum file_setup_ops {
-+	FILE_SETUP_READ_ONLY_FS,
-+	FILE_SETUP_READ_WRITE_FS_READ_DATA,
-+	FILE_SETUP_READ_WRITE_FS_WRITE_DATA,
-+};
-+
- struct mem_ops {
- 	void *(*setup_area)(int nr_hpages);
- 	void (*cleanup_area)(void *p, unsigned long size);
-@@ -50,7 +56,8 @@ struct mem_ops {
- };
- 
- static struct mem_ops *read_only_file_ops;
--static struct mem_ops *read_write_file_ops;
-+static struct mem_ops *read_write_file_read_ops;
-+static struct mem_ops *read_write_file_write_ops;
- static struct mem_ops *anon_ops;
- static struct mem_ops *shmem_ops;
- 
-@@ -113,7 +120,8 @@ static void restore_settings(int sig)
- static void save_settings(void)
- {
- 	printf("Save THP and khugepaged settings...");
--	if ((read_only_file_ops || read_write_file_ops) &&
-+	if ((read_only_file_ops || read_write_file_read_ops ||
-+	     read_write_file_write_ops) &&
- 	    finfo.type == VMA_FILE)
- 		thp_set_read_ahead_path(finfo.dev_queue_read_ahead_path);
- 	thp_save_settings();
-@@ -366,14 +374,14 @@ static bool anon_check_huge(void *addr,
- 	return check_huge_anon(addr, nr_hpages, hpage_pmd_size);
- }
- 
--static void *file_setup_area_common(int nr_hpages, bool read_only)
-+static void *file_setup_area_common(int nr_hpages, enum file_setup_ops setup)
- {
- 	int fd;
- 	void *p;
- 	unsigned long size;
--	int open_opt = read_only ? O_RDONLY : O_RDWR;
--	int mmap_prot = read_only ? PROT_READ : (PROT_READ | PROT_WRITE);
--	int mmap_opt = read_only ? MAP_PRIVATE : MAP_SHARED;
-+	int open_opt = setup == FILE_SETUP_READ_ONLY_FS ? O_RDONLY : O_RDWR;
-+	int mmap_prot = setup == FILE_SETUP_READ_ONLY_FS ? PROT_READ : (PROT_READ | PROT_WRITE);
-+	int mmap_opt = setup == FILE_SETUP_READ_ONLY_FS ? MAP_PRIVATE : MAP_SHARED;
- 
- 	unlink(finfo.path);  /* Cleanup from previous failed tests */
- 	printf("Creating %s for collapse%s...", finfo.path,
-@@ -406,7 +414,10 @@ static void *file_setup_area_common(int
- 	success("OK");
- 
- 	printf("Opening %s %s for collapse...", finfo.path,
--	       read_only ? "read only" : "read-write");
-+	       setup == FILE_SETUP_READ_ONLY_FS ? "read only" :
-+	       setup == FILE_SETUP_READ_WRITE_FS_READ_DATA ?
-+						  "read-write (read)" :
-+						  "read-write (write)");
- 	finfo.fd = open(finfo.path, open_opt, 777);
- 	if (finfo.fd < 0) {
- 		perror("open()");
-@@ -427,12 +438,17 @@ static void *file_setup_area_common(int
- 
- static void *file_setup_read_only_area(int nr_hpages)
- {
--	return file_setup_area_common(nr_hpages, /* read_only= */ true);
-+	return file_setup_area_common(nr_hpages, FILE_SETUP_READ_ONLY_FS);
-+}
-+
-+static void *file_setup_read_write_fs_read_area(int nr_hpages)
-+{
-+	return file_setup_area_common(nr_hpages, FILE_SETUP_READ_WRITE_FS_READ_DATA);
- }
- 
--static void *file_setup_read_write_area(int nr_hpages)
-+static void *file_setup_read_write_fs_write_area(int nr_hpages)
- {
--	return file_setup_area_common(nr_hpages, /* read_only= */ false);
-+	return file_setup_area_common(nr_hpages, FILE_SETUP_READ_WRITE_FS_WRITE_DATA);
- }
- 
- static void file_cleanup_area(void *p, unsigned long size)
-@@ -456,6 +472,17 @@ static void file_fault_read(void *p, uns
- 	file_fault_common(p, start, end, MADV_POPULATE_READ);
- }
- 
-+static void file_fault_read_and_flush(void *p, unsigned long start, unsigned long end)
-+{
-+	file_fault_common(p, start, end, MADV_POPULATE_READ);
-+
-+	/*
-+	 * make folio clean, since dirty folios from read&write file are
-+	 * rejected and not flushed
-+	 */
-+	msync((char *)p + start, end - start, MS_SYNC);
-+}
-+
- static void file_fault_write(void *p, unsigned long start, unsigned long end)
- {
- 	file_fault_common(p, start, end, MADV_POPULATE_WRITE);
-@@ -524,8 +551,16 @@ static struct mem_ops __read_only_file_o
- 	.name = "file",
- };
- 
--static struct mem_ops __read_write_file_ops = {
--	.setup_area = &file_setup_read_write_area,
-+static struct mem_ops __read_write_file_read_ops = {
-+	.setup_area = &file_setup_read_write_fs_read_area,
-+	.cleanup_area = &file_cleanup_area,
-+	.fault = &file_fault_read_and_flush,
-+	.check_huge = &file_check_huge,
-+	.name = "file",
-+};
-+
-+static struct mem_ops __read_write_file_write_ops = {
-+	.setup_area = &file_setup_read_write_fs_write_area,
- 	.cleanup_area = &file_cleanup_area,
- 	.fault = &file_fault_write,
- 	.check_huge = &file_check_huge,
-@@ -543,7 +578,8 @@ static struct mem_ops __shmem_ops = {
- static bool is_tmpfs(struct mem_ops *ops)
- {
- 	return (ops == &__read_only_file_ops ||
--		ops == &__read_write_file_ops) &&
-+		ops == &__read_write_file_read_ops ||
-+		ops == &__read_write_file_write_ops) &&
- 	       finfo.type == VMA_SHMEM;
- }
- 
-@@ -560,9 +596,11 @@ static void __madvise_collapse(const cha
- 
- 	printf("%s...", msg);
- 
--	/* read&write file collapse always fail */
--	if (!is_tmpfs(ops) && ops == &__read_write_file_ops)
--		expect = false;
-+	/*
-+	 * read&write file collapse succeeds for MADV_COLLAPSE because dirty
-+	 * folios are written back after collapse fails for dirty folios and
-+	 * another collapse is attempted.
-+	 */
- 
- 	/*
- 	 * Prevent khugepaged interference and tests that MADV_COLLAPSE
-@@ -630,8 +668,11 @@ static bool wait_for_scan(const char *ms
- static void khugepaged_collapse(const char *msg, char *p, int nr_hpages,
- 				struct mem_ops *ops, bool expect)
- {
--	/* read&write file collapse always fail */
--	if (!is_tmpfs(ops) && ops == &__read_write_file_ops)
-+	/*
-+	 * read&write file collapse fails since khugepaged does not flush
-+	 * the target dirty folios
-+	 */
-+	if (!is_tmpfs(ops) && ops == &__read_write_file_write_ops)
- 		expect = false;
- 
- 	if (wait_for_scan(msg, p, nr_hpages, ops)) {
-@@ -754,6 +795,9 @@ static void collapse_max_ptes_none(struc
- 	validate_memory(p, 0, (hpage_pmd_nr - max_ptes_none - fault_nr_pages) * page_size);
- 
- 	if (c->enforce_pte_scan_limits) {
-+		ops->cleanup_area(p, hpage_pmd_size);
-+		p = ops->setup_area(1);
-+
- 		ops->fault(p, 0, (hpage_pmd_nr - max_ptes_none) * page_size);
- 		c->collapse("Collapse with max_ptes_none PTEs empty", p, 1, ops,
- 			    true);
-@@ -1201,21 +1245,24 @@ static void parse_test_type(int argc, ch
- 
- 	if (!strcmp(buf, "all")) {
- 		read_only_file_ops =  &__read_only_file_ops;
--		read_write_file_ops =  &__read_write_file_ops;
-+		read_write_file_read_ops =  &__read_write_file_read_ops;
-+		read_write_file_write_ops =  &__read_write_file_write_ops;
- 		anon_ops = &__anon_ops;
- 		shmem_ops = &__shmem_ops;
- 	} else if (!strcmp(buf, "anon")) {
- 		anon_ops = &__anon_ops;
- 	} else if (!strcmp(buf, "file")) {
- 		read_only_file_ops =  &__read_only_file_ops;
--		read_write_file_ops =  &__read_write_file_ops;
-+		read_write_file_read_ops =  &__read_write_file_read_ops;
-+		read_write_file_write_ops =  &__read_write_file_write_ops;
- 	} else if (!strcmp(buf, "shmem")) {
- 		shmem_ops = &__shmem_ops;
- 	} else {
- 		usage();
- 	}
- 
--	if (!read_only_file_ops && !read_write_file_ops)
-+	if (!read_only_file_ops && !read_write_file_read_ops &&
-+	    !read_write_file_write_ops)
- 		return;
- 
- 	if (argc != 2)
-@@ -1288,11 +1335,13 @@ int main(int argc, char **argv)
- 
- 	TEST(collapse_full, khugepaged_context, anon_ops);
- 	TEST(collapse_full, khugepaged_context, read_only_file_ops);
--	TEST(collapse_full, khugepaged_context, read_write_file_ops);
-+	TEST(collapse_full, khugepaged_context, read_write_file_read_ops);
-+	TEST(collapse_full, khugepaged_context, read_write_file_write_ops);
- 	TEST(collapse_full, khugepaged_context, shmem_ops);
- 	TEST(collapse_full, madvise_context, anon_ops);
- 	TEST(collapse_full, madvise_context, read_only_file_ops);
--	TEST(collapse_full, madvise_context, read_write_file_ops);
-+	TEST(collapse_full, madvise_context, read_write_file_read_ops);
-+	TEST(collapse_full, madvise_context, read_write_file_write_ops);
- 	TEST(collapse_full, madvise_context, shmem_ops);
- 
- 	TEST(collapse_empty, khugepaged_context, anon_ops);
-@@ -1300,30 +1349,38 @@ int main(int argc, char **argv)
- 
- 	TEST(collapse_single_pte_entry, khugepaged_context, anon_ops);
- 	TEST(collapse_single_pte_entry, khugepaged_context, read_only_file_ops);
--	TEST(collapse_single_pte_entry, khugepaged_context, read_write_file_ops);
-+	TEST(collapse_single_pte_entry, khugepaged_context, read_write_file_read_ops);
-+	TEST(collapse_single_pte_entry, khugepaged_context, read_write_file_write_ops);
- 	TEST(collapse_single_pte_entry, khugepaged_context, shmem_ops);
- 	TEST(collapse_single_pte_entry, madvise_context, anon_ops);
- 	TEST(collapse_single_pte_entry, madvise_context, read_only_file_ops);
--	TEST(collapse_single_pte_entry, madvise_context, read_write_file_ops);
-+	TEST(collapse_single_pte_entry, madvise_context, read_write_file_read_ops);
-+	TEST(collapse_single_pte_entry, madvise_context, read_write_file_write_ops);
- 	TEST(collapse_single_pte_entry, madvise_context, shmem_ops);
- 
- 	TEST(collapse_max_ptes_none, khugepaged_context, anon_ops);
- 	TEST(collapse_max_ptes_none, khugepaged_context, read_only_file_ops);
--	TEST(collapse_max_ptes_none, khugepaged_context, read_write_file_ops);
-+	TEST(collapse_max_ptes_none, khugepaged_context, read_write_file_read_ops);
-+	TEST(collapse_max_ptes_none, khugepaged_context, read_write_file_write_ops);
- 	TEST(collapse_max_ptes_none, madvise_context, anon_ops);
- 	TEST(collapse_max_ptes_none, madvise_context, read_only_file_ops);
--	TEST(collapse_max_ptes_none, madvise_context, read_write_file_ops);
-+	TEST(collapse_max_ptes_none, madvise_context, read_write_file_read_ops);
-+	TEST(collapse_max_ptes_none, madvise_context, read_write_file_write_ops);
- 
- 	TEST(collapse_single_pte_entry_compound, khugepaged_context, anon_ops);
- 	TEST(collapse_single_pte_entry_compound, khugepaged_context, read_only_file_ops);
-+	TEST(collapse_single_pte_entry_compound, khugepaged_context, read_write_file_read_ops);
- 	TEST(collapse_single_pte_entry_compound, madvise_context, anon_ops);
- 	TEST(collapse_single_pte_entry_compound, madvise_context, read_only_file_ops);
-+	TEST(collapse_single_pte_entry_compound, madvise_context, read_write_file_read_ops);
- 
- 	TEST(collapse_full_of_compound, khugepaged_context, anon_ops);
- 	TEST(collapse_full_of_compound, khugepaged_context, read_only_file_ops);
-+	TEST(collapse_full_of_compound, khugepaged_context, read_write_file_read_ops);
- 	TEST(collapse_full_of_compound, khugepaged_context, shmem_ops);
- 	TEST(collapse_full_of_compound, madvise_context, anon_ops);
- 	TEST(collapse_full_of_compound, madvise_context, read_only_file_ops);
-+	TEST(collapse_full_of_compound, madvise_context, read_write_file_read_ops);
- 	TEST(collapse_full_of_compound, madvise_context, shmem_ops);
- 
- 	TEST(collapse_compound_extreme, khugepaged_context, anon_ops);
-@@ -1346,9 +1403,11 @@ int main(int argc, char **argv)
- 
- 	TEST(madvise_collapse_existing_thps, madvise_context, anon_ops);
- 	TEST(madvise_collapse_existing_thps, madvise_context, read_only_file_ops);
-+	TEST(madvise_collapse_existing_thps, madvise_context, read_write_file_read_ops);
- 	TEST(madvise_collapse_existing_thps, madvise_context, shmem_ops);
- 
- 	TEST(madvise_retracted_page_tables, madvise_context, read_only_file_ops);
-+	TEST(madvise_retracted_page_tables, madvise_context, read_write_file_read_ops);
- 	TEST(madvise_retracted_page_tables, madvise_context, shmem_ops);
- 
- 	restore_settings(0);
-_
-
-Patches currently in -mm which might be from ziy@nvidia.com are
-
-mm-khugepaged-remove-read_only_thp_for_fs-check.patch
-mm-khugepaged-add-folio-dirty-check-after-try_to_unmap.patch
-mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled.patch
-mm-khugepaged-remove-read_only_thp_for_fs-check-in-hugepage_enabled.patch
-mm-remove-read_only_thp_for_fs-kconfig-option.patch
-mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch
-fs-remove-nr_thps-from-struct-address_space.patch
-mm-huge_memory-remove-folio-split-check-for-read_only_thp_for_fs.patch
-mm-truncate-use-folio_split-in-truncate_inode_partial_folio.patch
-fs-btrfs-remove-a-comment-referring-to-read_only_thp_for_fs.patch
-selftests-mm-remove-read_only_thp_for_fs-in-khugepaged.patch
-selftests-mm-remove-read_only_thp_for_fs-code-from-guard-regions.patch
-mm-khugepaged-enable-clean-pagecache-folio-collapse-for-writable-files.patch
-selftests-mm-add-writable-file-collapse-tests-for-khugepaged.patch
-
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
