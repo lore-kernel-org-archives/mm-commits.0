@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4550C3F7885
-	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 12:52:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99C1F3F7AA1
+	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 12:52:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777467123; cv=none; b=AgHHQnaSTBYvDD3NsWK4xWQqJ3DwYPk9FaZvYq6JR1JBCh4n7h/uJ5NKVxY2q7Jey813h5xyjN3H7CunL1r67k5MV2jxECDVIT9pEkRaAb+Sg8OHmXzVU9I6Bp9ExurB7M32EGkZzA0qFoGS401YvEz43EssbNC6p2szUvtI52g=
+	t=1777467125; cv=none; b=KLWoQSYeOrZ8f6ZwglocMK5yAHGX+H9CziQcRWrWk/e3HpZOH1BJU/pZgWMJGtT+LjN0g5BaHg6DqQJiSMa26NuwLFuctcSwp/4s9KDPPGoXNq+T0aPXWYYZDYxX1wF0tXmAzz5rhidFdSBu1ooHrXT1yaWFKRjSXyFMiTsb4ns=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777467123; c=relaxed/simple;
-	bh=pI4mNcnUk/u3tVyOwrlz8po1J/pukEW136MAtdDDbeQ=;
-	h=Date:To:From:Subject:Message-Id; b=JZSc9Yp6VgBQZy+ki7INteWPaHW2nbROKOqYcZFk7xGYgHg0NqVij7BCBY/yRzzefHXDBKlC6dBKgIyMeO6g1/zdoAzjwLKWq2zOHOFUuDMikihr2B5mqzETE9vfir3S85XjYSFuRClWdjWiqi6pMC+/L+L/XL35MAVvElBUppQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hgi1cSt4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777467125; c=relaxed/simple;
+	bh=EYGrUSK8NuYqQl2dDdcLJgEiDsX4Rc7y11IDXCQFW98=;
+	h=Date:To:From:Subject:Message-Id; b=mB5lE55sw+4I7d8tq/2YfcDlsXCGYMYZiOiovD1Vu457d5KL7XgORtwYIavvM6epaD3+YiSEW425WrLzC5KQxPT063oQV04UwBmgoafpG3h4x/RvVLF/ttPH19LgLgWKFg5oPH6IZ44DYq7iBQFXk0NGCJeIGpcqE5StO66sxGg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xbjd7skA; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hgi1cSt4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E974BC19425;
-	Wed, 29 Apr 2026 12:52:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xbjd7skA"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CA20C19425;
+	Wed, 29 Apr 2026 12:52:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777467123;
-	bh=pI4mNcnUk/u3tVyOwrlz8po1J/pukEW136MAtdDDbeQ=;
+	s=korg; t=1777467125;
+	bh=EYGrUSK8NuYqQl2dDdcLJgEiDsX4Rc7y11IDXCQFW98=;
 	h=Date:To:From:Subject:From;
-	b=hgi1cSt4tDd2Sg98WIMBJhfUfafK6hXJK6JYo1x87Q8ogNwCq4mQBbosu92zbiEzJ
-	 jVZoI3GtZlFm2mKKYvdupy9DOVUTQPerhunqtkuFjju3tR8SFPZn5/JKlYjqEM8E7B
-	 xC+hTW452Rs4F2CJf1/DFblrAxKctX1eUKjh9RJs=
-Date: Wed, 29 Apr 2026 05:52:02 -0700
+	b=Xbjd7skAfXGMrbI4+4LrDYagxRunwVkrGAPtWjCxX0svBBxxMyU5t7HGqqBavMg7Y
+	 obqyywofH+xJpRa/lKGnxBBQkpC1EEaUKSDyZ5HBodsBlzfgdvtBuAZ/0guDQnqUxG
+	 zbyUU5Ii8bV7k5d8QCBQnJ3L9qJG8WO2GrDjuH48=
+Date: Wed, 29 Apr 2026 05:52:04 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-lru_sort-cover-all-system-rams.patch added to mm-new branch
-Message-Id: <20260429125202.E974BC19425@smtp.kernel.org>
+Subject: + mm-damon-core-remove-damon_set_region_biggest_system_ram_default.patch added to mm-new branch
+Message-Id: <20260429125205.1CA20C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/lru_sort: cover all system rams
+     Subject: mm/damon/core: remove damon_set_region_biggest_system_ram_default()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-lru_sort-cover-all-system-rams.patch
+     mm-damon-core-remove-damon_set_region_biggest_system_ram_default.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-cover-all-system-rams.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-damon_set_region_biggest_system_ram_default.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,19 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/lru_sort: cover all system rams
-Date: Tue, 28 Apr 2026 21:12:25 -0700
+Subject: mm/damon/core: remove damon_set_region_biggest_system_ram_default()
+Date: Tue, 28 Apr 2026 21:12:26 -0700
 
-DAMON_LRU_SORT allows users to set the physical address range to monitor
-and do the work on.  When users don't explicitly set the range, the
-biggest system ram resource of the system is selected as the monitoring
-target address range.  The intention was to reduce the overhead from
-monitoring non-System RAM areas because monitoring non-System RAM may be
-meaningless.  However, because of the sampling based access check and
-adaptive regions adjustment, the overhead should be negligible.  It makes
-more sense to just cover all system rams of the system.  Do so.
+Now nobody is using damon_set_region_biggest_system_ram_default().  Remove
+it.
 
-Link: https://lore.kernel.org/20260429041232.90257-4-sj@kernel.org
+Link: https://lore.kernel.org/20260429041232.90257-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -95,40 +89,97 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/lru_sort.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/linux/damon.h |    5 ---
+ mm/damon/core.c       |   64 ----------------------------------------
+ 2 files changed, 69 deletions(-)
 
---- a/mm/damon/lru_sort.c~mm-damon-lru_sort-cover-all-system-rams
-+++ a/mm/damon/lru_sort.c
-@@ -139,7 +139,8 @@ DEFINE_DAMON_MODULES_MON_ATTRS_PARAMS(da
-  * Start of the target memory region in physical address.
-  *
-  * The start physical address of memory region that DAMON_LRU_SORT will do work
-- * against.  By default, biggest System RAM is used as the region.
-+ * against.  By default, the system's entire physical memory is used as the
-+ * region.
-  */
- static unsigned long monitor_region_start __read_mostly;
- module_param(monitor_region_start, ulong, 0600);
-@@ -148,7 +149,8 @@ module_param(monitor_region_start, ulong
-  * End of the target memory region in physical address.
-  *
-  * The end physical address of memory region that DAMON_LRU_SORT will do work
-- * against.  By default, biggest System RAM is used as the region.
-+ * against.  By default, the system's entire physical memory is used as the
-+ * region.
-  */
- static unsigned long monitor_region_end __read_mostly;
- module_param(monitor_region_end, ulong, 0600);
-@@ -326,7 +328,7 @@ static int damon_lru_sort_apply_paramete
- 	if (err)
- 		goto out;
+--- a/include/linux/damon.h~mm-damon-core-remove-damon_set_region_biggest_system_ram_default
++++ a/include/linux/damon.h
+@@ -1003,11 +1003,6 @@ int damon_set_region_system_rams_default
+ 				unsigned long addr_unit,
+ 				unsigned long min_region_sz);
  
--	err = damon_set_region_biggest_system_ram_default(param_target,
-+	err = damon_set_region_system_rams_default(param_target,
- 					&monitor_region_start,
- 					&monitor_region_end,
- 					param_ctx->addr_unit,
+-int damon_set_region_biggest_system_ram_default(struct damon_target *t,
+-				unsigned long *start, unsigned long *end,
+-				unsigned long addr_unit,
+-				unsigned long min_region_sz);
+-
+ #endif	/* CONFIG_DAMON */
+ 
+ #endif	/* _DAMON_H */
+--- a/mm/damon/core.c~mm-damon-core-remove-damon_set_region_biggest_system_ram_default
++++ a/mm/damon/core.c
+@@ -3185,70 +3185,6 @@ int damon_set_region_system_rams_default
+ 	return damon_set_regions(t, &addr_range, 1, min_region_sz);
+ }
+ 
+-static int walk_system_ram(struct resource *res, void *arg)
+-{
+-	struct resource *a = arg;
+-
+-	if (resource_size(a) < resource_size(res)) {
+-		a->start = res->start;
+-		a->end = res->end;
+-	}
+-	return 0;
+-}
+-
+-/*
+- * Find biggest 'System RAM' resource and store its start and end address in
+- * @start and @end, respectively.  If no System RAM is found, returns false.
+- */
+-static bool damon_find_biggest_system_ram(unsigned long *start,
+-		unsigned long *end, unsigned long addr_unit)
+-
+-{
+-	struct resource res = {};
+-
+-	walk_system_ram_res(0, -1, &res, walk_system_ram);
+-	*start = damon_res_to_core_addr(res.start, addr_unit);
+-	*end = damon_res_to_core_addr(res.end + 1, addr_unit);
+-	if (*end <= *start)
+-		return false;
+-	return true;
+-}
+-
+-/**
+- * damon_set_region_biggest_system_ram_default() - Set the region of the given
+- * monitoring target as requested, or biggest 'System RAM'.
+- * @t:		The monitoring target to set the region.
+- * @start:	The pointer to the start address of the region.
+- * @end:	The pointer to the end address of the region.
+- * @addr_unit:	The address unit for the damon_ctx of @t.
+- * @min_region_sz:	Minimum region size.
+- *
+- * This function sets the region of @t as requested by @start and @end.  If the
+- * values of @start and @end are zero, however, this function finds the biggest
+- * 'System RAM' resource and sets the region to cover the resource.  In the
+- * latter case, this function saves the start and end addresses of the resource
+- * in @start and @end, respectively.
+- *
+- * Return: 0 on success, negative error code otherwise.
+- */
+-int damon_set_region_biggest_system_ram_default(struct damon_target *t,
+-			unsigned long *start, unsigned long *end,
+-			unsigned long addr_unit, unsigned long min_region_sz)
+-{
+-	struct damon_addr_range addr_range;
+-
+-	if (*start > *end)
+-		return -EINVAL;
+-
+-	if (!*start && !*end &&
+-			!damon_find_biggest_system_ram(start, end, addr_unit))
+-		return -EINVAL;
+-
+-	addr_range.start = *start;
+-	addr_range.end = *end;
+-	return damon_set_regions(t, &addr_range, 1, min_region_sz);
+-}
+-
+ /*
+  * damon_moving_sum() - Calculate an inferred moving sum value.
+  * @mvsum:	Inferred sum of the last @len_window values.
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
