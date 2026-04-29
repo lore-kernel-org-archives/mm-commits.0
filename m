@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 698143F7885
-	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 12:52:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4550C3F7885
+	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 12:52:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777467121; cv=none; b=utJQS5Qx11W2r7TS5VaZ7wQnUvQdZkZo68ZLxa4bPZTslQcX7HrAazFxeX80lQw/h5ESzeSZp/B3xvpxCi9zgg3HsunKLLKsAVvp850crFZSl1I8m3qwN7I4BWF7bSN0V12juUlAv9Z4ahPEa0j5OabynoP8Wj1Hzy5DPqgQGhk=
+	t=1777467123; cv=none; b=AgHHQnaSTBYvDD3NsWK4xWQqJ3DwYPk9FaZvYq6JR1JBCh4n7h/uJ5NKVxY2q7Jey813h5xyjN3H7CunL1r67k5MV2jxECDVIT9pEkRaAb+Sg8OHmXzVU9I6Bp9ExurB7M32EGkZzA0qFoGS401YvEz43EssbNC6p2szUvtI52g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777467121; c=relaxed/simple;
-	bh=RSkc+paXZUyJOBVFLtyV2VsJIjc8yj7kIpJxY5snDao=;
-	h=Date:To:From:Subject:Message-Id; b=bj55ZLD5Z++CYdmc7+kMvV5wlwk9eZHMvDMp7Tm+BtfiFq9zcjSg07YP4YwxShOC59Ob1E5vAzgR9mLsuOqJFuNUWtjUDqznwAWKWUYJ2mWAA6zV1oqrDdAhFxah846JrWC0XtGlx9viAbBUpCj+yma/vgz3q/HRiMbfk+gEqNg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VMTBpXEn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777467123; c=relaxed/simple;
+	bh=pI4mNcnUk/u3tVyOwrlz8po1J/pukEW136MAtdDDbeQ=;
+	h=Date:To:From:Subject:Message-Id; b=JZSc9Yp6VgBQZy+ki7INteWPaHW2nbROKOqYcZFk7xGYgHg0NqVij7BCBY/yRzzefHXDBKlC6dBKgIyMeO6g1/zdoAzjwLKWq2zOHOFUuDMikihr2B5mqzETE9vfir3S85XjYSFuRClWdjWiqi6pMC+/L+L/XL35MAVvElBUppQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hgi1cSt4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VMTBpXEn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E9ADC2BCF6;
-	Wed, 29 Apr 2026 12:52:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hgi1cSt4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E974BC19425;
+	Wed, 29 Apr 2026 12:52:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777467120;
-	bh=RSkc+paXZUyJOBVFLtyV2VsJIjc8yj7kIpJxY5snDao=;
+	s=korg; t=1777467123;
+	bh=pI4mNcnUk/u3tVyOwrlz8po1J/pukEW136MAtdDDbeQ=;
 	h=Date:To:From:Subject:From;
-	b=VMTBpXEnxcTCSpHnX52w2ObP06exS8fmdhXtEWON00q0NrDV3l+j1f6pGOJiCscF3
-	 3qsxI536Ii2eSnBh4J4oqSzWRIQ3+w6bP1mymBpH0v0KqpJ4yAJjNJKfyIW0M8YAp3
-	 oVcMcjJHNwbq1FmjXiq+GhYIs+9xcKDqhs2pSfeo=
-Date: Wed, 29 Apr 2026 05:51:59 -0700
+	b=hgi1cSt4tDd2Sg98WIMBJhfUfafK6hXJK6JYo1x87Q8ogNwCq4mQBbosu92zbiEzJ
+	 jVZoI3GtZlFm2mKKYvdupy9DOVUTQPerhunqtkuFjju3tR8SFPZn5/JKlYjqEM8E7B
+	 xC+hTW452Rs4F2CJf1/DFblrAxKctX1eUKjh9RJs=
+Date: Wed, 29 Apr 2026 05:52:02 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaim-cover-all-system-rams.patch added to mm-new branch
-Message-Id: <20260429125200.7E9ADC2BCF6@smtp.kernel.org>
+Subject: + mm-damon-lru_sort-cover-all-system-rams.patch added to mm-new branch
+Message-Id: <20260429125202.E974BC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/reclaim: cover all system rams
+     Subject: mm/damon/lru_sort: cover all system rams
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-reclaim-cover-all-system-rams.patch
+     mm-damon-lru_sort-cover-all-system-rams.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-cover-all-system-rams.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-lru_sort-cover-all-system-rams.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,19 +70,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/reclaim: cover all system rams
-Date: Tue, 28 Apr 2026 21:12:24 -0700
+Subject: mm/damon/lru_sort: cover all system rams
+Date: Tue, 28 Apr 2026 21:12:25 -0700
 
-DAMON_RECLAIM allows users to set the physical address range to monitor
+DAMON_LRU_SORT allows users to set the physical address range to monitor
 and do the work on.  When users don't explicitly set the range, the
-biggest System RAM resource of the system is selected as the monitoring
+biggest system ram resource of the system is selected as the monitoring
 target address range.  The intention was to reduce the overhead from
-monitoring non-System RAM areas because monitoring of non-System RAM may
-be meaningless.  However, because of the sampling based access check and
+monitoring non-System RAM areas because monitoring non-System RAM may be
+meaningless.  However, because of the sampling based access check and
 adaptive regions adjustment, the overhead should be negligible.  It makes
 more sense to just cover all system rams of the system.  Do so.
 
-Link: https://lore.kernel.org/20260429041232.90257-3-sj@kernel.org
+Link: https://lore.kernel.org/20260429041232.90257-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -95,46 +95,40 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/damon/lru_sort.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-cover-all-system-rams
-+++ a/mm/damon/reclaim.c
-@@ -113,7 +113,8 @@ DEFINE_DAMON_MODULES_MON_ATTRS_PARAMS(da
+--- a/mm/damon/lru_sort.c~mm-damon-lru_sort-cover-all-system-rams
++++ a/mm/damon/lru_sort.c
+@@ -139,7 +139,8 @@ DEFINE_DAMON_MODULES_MON_ATTRS_PARAMS(da
   * Start of the target memory region in physical address.
   *
-  * The start physical address of memory region that DAMON_RECLAIM will do work
+  * The start physical address of memory region that DAMON_LRU_SORT will do work
 - * against.  By default, biggest System RAM is used as the region.
 + * against.  By default, the system's entire physical memory is used as the
 + * region.
   */
  static unsigned long monitor_region_start __read_mostly;
  module_param(monitor_region_start, ulong, 0600);
-@@ -122,7 +123,8 @@ module_param(monitor_region_start, ulong
+@@ -148,7 +149,8 @@ module_param(monitor_region_start, ulong
   * End of the target memory region in physical address.
   *
-  * The end physical address of memory region that DAMON_RECLAIM will do work
+  * The end physical address of memory region that DAMON_LRU_SORT will do work
 - * against.  By default, biggest System RAM is used as the region.
 + * against.  By default, the system's entire physical memory is used as the
 + * region.
   */
  static unsigned long monitor_region_end __read_mostly;
  module_param(monitor_region_end, ulong, 0600);
-@@ -232,11 +234,9 @@ static int damon_reclaim_apply_parameter
- 		damos_add_filter(scheme, filter);
- 	}
- 
--	err = damon_set_region_biggest_system_ram_default(param_target,
--					&monitor_region_start,
--					&monitor_region_end,
--					param_ctx->addr_unit,
--					param_ctx->min_region_sz);
-+	err = damon_set_region_system_rams_default(param_target,
-+			&monitor_region_start, &monitor_region_end,
-+			param_ctx->addr_unit, param_ctx->min_region_sz);
+@@ -326,7 +328,7 @@ static int damon_lru_sort_apply_paramete
  	if (err)
  		goto out;
- 	err = damon_commit_ctx(ctx, param_ctx);
+ 
+-	err = damon_set_region_biggest_system_ram_default(param_target,
++	err = damon_set_region_system_rams_default(param_target,
+ 					&monitor_region_start,
+ 					&monitor_region_end,
+ 					param_ctx->addr_unit,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
