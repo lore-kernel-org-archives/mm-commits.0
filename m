@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC9DC3803C1
-	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 15:37:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7A7D33BBAD
+	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 15:37:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777477067; cv=none; b=sMtSEfxy5K5F6TI/ViUR049QE5ZLPIcTSeChKTLW4bMkW1zMHJJAzY6fv4k9q2P1wmmNUlh8XdzCZrKyABKgVXrzjxrzK+Z3qoK6FY6aDN1qmSP37MxxaXxU7Kc9vLR2yAYWC7HCLE6A4Bo2NWxaK4TdkthzVHPsenGWxH7CcLk=
+	t=1777477069; cv=none; b=D47NMKkLXrRMimVID8mUKa+u+yYX5bY0gQ0CHkYtuVlBn76BbiBFg1vdnNbYTIXsMkkQx+iqBwnoqGW4/dv/rgO3JfB3rUDtofD27TkY2FJnnjJK/3Vpfz6+JTTCb2u3ru2M+1Cq6nQglDWAAPk/oPcJCWVbxhF7PuCvMEhNPrU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777477067; c=relaxed/simple;
-	bh=/zJbg5W+P+RhyhY5IWAnBhYExEr1xgRZc5Pri0hwoPU=;
-	h=Date:To:From:Subject:Message-Id; b=bZf14l6xC4L3zN60ZuHZKpIBRSyxC6FxvCFLXjVg4zGqcGrmgKJFHYmcHznO/XWuGpEye9OepP0zs2BHqjEvrzq5de3etiPHi3zi+htLtSW5pOGAkbU4znEjFq0L3IniQtInU95Cyz12qmpt7nEm5AZTW7AeoCAz3/5GopxRpuM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xKellvIH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777477069; c=relaxed/simple;
+	bh=ifKGeishedef12j4qRaymwOXZPY0bU2LiwnlY9hK2M8=;
+	h=Date:To:From:Subject:Message-Id; b=JkVuWqDwAGuRVD7dvwSMnTwBRGwVfY1AlwJs1e3lNSjymZCJJYjcs60jD0nMB4dU42mPgT5+PNcGyvCG9D/m8Tz7dEIxGv2c/Nv+YiliHOyGXwf7femMTwVsw7awROlwDdNp7bfI0hc66XviqFjTu+iIkzovpW30iBiUvkIDLSA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1ZE0rBCf; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xKellvIH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7387FC19425;
-	Wed, 29 Apr 2026 15:37:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1ZE0rBCf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F701C19425;
+	Wed, 29 Apr 2026 15:37:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777477067;
-	bh=/zJbg5W+P+RhyhY5IWAnBhYExEr1xgRZc5Pri0hwoPU=;
+	s=korg; t=1777477069;
+	bh=ifKGeishedef12j4qRaymwOXZPY0bU2LiwnlY9hK2M8=;
 	h=Date:To:From:Subject:From;
-	b=xKellvIH2PYSdarSsUQG70o+/nvkmmVvYLhpVRY1YY4RyjScrqs3E5eX+ycRP+zbm
-	 n/2fWOHqbbKhOMMNf3bFdG+e/CzozYCeuuACHnwGfBuvEWThKL464NdvO5PXdcg5XK
-	 1zyfVZyzka2OgxghwVuSyzOE4pAbYDYFQi9YRKnE=
-Date: Wed, 29 Apr 2026 08:37:46 -0700
+	b=1ZE0rBCfIm/jSjc4wa+d8M0AhipNoz/6yssOMoXCkpeIibqK/Msw4wMs2jb/rYxiU
+	 /XhwJxmVw8Sjj/rKEvE+cRzoABNNi9tj6VeX2QGpaMcIZSDf0ECXVJ/4s8SozsOhov
+	 y7s5KKyubvNd4W8Yrha+cR3julef2NH9LlFKggbs=
+Date: Wed, 29 Apr 2026 08:37:49 -0700
 To: mm-commits@vger.kernel.org,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-use-zone-lock-guard-in-unset_migratetype_isolate.patch added to mm-new branch
-Message-Id: <20260429153747.7387FC19425@smtp.kernel.org>
+Subject: + mm-use-zone-lock-guard-in-unreserve_highatomic_pageblock.patch added to mm-new branch
+Message-Id: <20260429153749.8F701C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: use zone lock guard in unset_migratetype_isolate()
+     Subject: mm: use zone lock guard in unreserve_highatomic_pageblock()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-use-zone-lock-guard-in-unset_migratetype_isolate.patch
+     mm-use-zone-lock-guard-in-unreserve_highatomic_pageblock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-zone-lock-guard-in-unset_migratetype_isolate.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-zone-lock-guard-in-unreserve_highatomic_pageblock.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: mm: use zone lock guard in unset_migratetype_isolate()
-Date: Wed, 29 Apr 2026 12:02:07 +0000
+Subject: mm: use zone lock guard in unreserve_highatomic_pageblock()
+Date: Wed, 29 Apr 2026 12:02:08 +0000
 
-Use spinlock_irqsave zone lock guard in unset_migratetype_isolate() to
-replace the explicit lock/unlock and goto pattern with automatic
-scope-based cleanup.
+Use spinlock_irqsave zone lock guard in unreserve_highatomic_pageblock()
+to replace the explicit lock/unlock pattern with automatic scope-based
+cleanup.
 
-Link: https://lore.kernel.org/815c0905ea77828ed32bf56ff0a6d3c6548eb3a2.1777462630.git.d@ilvokhin.com
+Link: https://lore.kernel.org/69db814cd178915cb5615334a29304678f960963.1777462630.git.d@ilvokhin.com
 Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
 Suggested-by: Steven Rostedt <rostedt@goodmis.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -92,38 +92,42 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/mm/page_isolation.c~mm-use-zone-lock-guard-in-unset_migratetype_isolate
-+++ a/mm/page_isolation.c
-@@ -223,15 +223,14 @@ static int set_migratetype_isolate(struc
- static void unset_migratetype_isolate(struct page *page)
+--- a/mm/page_alloc.c~mm-use-zone-lock-guard-in-unreserve_highatomic_pageblock
++++ a/mm/page_alloc.c
+@@ -3481,7 +3481,6 @@ static bool unreserve_highatomic_pageblo
+ 						bool force)
  {
- 	struct zone *zone;
+ 	struct zonelist *zonelist = ac->zonelist;
 -	unsigned long flags;
- 	bool isolated_page = false;
- 	unsigned int order;
- 	struct page *buddy;
+ 	struct zoneref *z;
+ 	struct zone *zone;
+ 	struct page *page;
+@@ -3498,7 +3497,7 @@ static bool unreserve_highatomic_pageblo
+ 					pageblock_nr_pages)
+ 			continue;
  
- 	zone = page_zone(page);
--	spin_lock_irqsave(&zone->lock, flags);
-+	guard(spinlock_irqsave)(&zone->lock);
- 	if (!is_migrate_isolate_page(page))
--		goto out;
-+		return;
- 
- 	/*
- 	 * Because freepage with more than pageblock_order on isolated
-@@ -279,8 +278,6 @@ static void unset_migratetype_isolate(st
- 		__putback_isolated_page(page, order, get_pageblock_migratetype(page));
+-		spin_lock_irqsave(&zone->lock, flags);
++		guard(spinlock_irqsave)(&zone->lock);
+ 		for (order = 0; order < NR_PAGE_ORDERS; order++) {
+ 			struct free_area *area = &(zone->free_area[order]);
+ 			unsigned long size;
+@@ -3545,12 +3544,9 @@ static bool unreserve_highatomic_pageblo
+ 			 * so this should not fail on zone boundaries.
+ 			 */
+ 			WARN_ON_ONCE(ret == -1);
+-			if (ret > 0) {
+-				spin_unlock_irqrestore(&zone->lock, flags);
++			if (ret > 0)
+ 				return ret;
+-			}
+ 		}
+-		spin_unlock_irqrestore(&zone->lock, flags);
  	}
- 	zone->nr_isolate_pageblock--;
--out:
--	spin_unlock_irqrestore(&zone->lock, flags);
- }
  
- static inline struct page *
+ 	return false;
 _
 
 Patches currently in -mm which might be from d@ilvokhin.com are
