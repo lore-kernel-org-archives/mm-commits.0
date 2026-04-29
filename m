@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D6FE347515
-	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 12:41:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C9F73F7889
+	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 12:41:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777466462; cv=none; b=J3v052Fbx4igaztvah5GeBdpaujI/YH6wHEpGsbBjUlppRtor7Fa37wMpxz0TWzeWOocJNWnwANkFf5b+E4sR5Z4nWBO8Olr8XxJFoJpqVhnJKsqFYcHmGEKnRcr5JkEozKNzJM6E+lPD/MS6vIWnGtekA39cJbVTHRJOcppOuk=
+	t=1777466465; cv=none; b=mjuD7ndyblBAjoekx/3qblBzsbVCr/WHlKwOLF0yzkWdzn82IbT2cKOnQINzbEcpmIiePNJHlgDsz9fiRWe9QAPC9/2AVNgn0G35sZDcmTPcEtD6B9jgTym9tl5J6SdKMEO9+QqmTvc9urIYr6AXGl/7jRGWiJZmGTUmSE1X+Yc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777466462; c=relaxed/simple;
-	bh=DatUAEWE/Z4cdEsbOilqD4Z4lShDpJT5NB7tYTNZi5I=;
-	h=Date:To:From:Subject:Message-Id; b=nz7AdfwV8IM1NNStjxmgvht6IYwgtg37XgGXcsacTW46q3kaPMuBD4rifKMjWG6UErAmTkhY5Wbc5AK/Nd8HvnsDowiK1CB0TawbpC+SXeKKCML1MTEdOV/PSk+MWhYoo7Gdto3m8QS0ZgKB3ijoM1ND0dzs/jQOz6UUjIeYrFU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ra0qboth; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777466465; c=relaxed/simple;
+	bh=rLiv8Z4u+vHdTpYvE4TN2cANSNE5EcvIWSwHKPOScAI=;
+	h=Date:To:From:Subject:Message-Id; b=G3SL3rarolG9McLS5AJZOZO3pBoSCuJSXbjvuR5q/EyUpfs6df6iGFJi3iLC9L3xdZj0+kOresO8oAPYPsq0WIJHfD66p5+yAmzw+BeFaLFcYW2fQ+xme8eCBa5gJyWiofYCIx4o7IKBdm1gCQmXq/YeN+YF0im52+neIf/zhEI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=nW5QCkKY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ra0qboth"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F51CC2BCC4;
-	Wed, 29 Apr 2026 12:41:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="nW5QCkKY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9059C19425;
+	Wed, 29 Apr 2026 12:41:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777466462;
-	bh=DatUAEWE/Z4cdEsbOilqD4Z4lShDpJT5NB7tYTNZi5I=;
+	s=korg; t=1777466465;
+	bh=rLiv8Z4u+vHdTpYvE4TN2cANSNE5EcvIWSwHKPOScAI=;
 	h=Date:To:From:Subject:From;
-	b=ra0qbothe9rZuWzZQqtnFYPSSP0Wrbs32dbK9gBjHL63YYTiMARC9u5Z/ey46GQoq
-	 lhHTK6zH64KDf89h2gGbf9MasBPpw5WbpoPxcNj/rDQgg6w6g3QINsHTunl0dsh4Ry
-	 dpx8vJWO0WjmhfpYbbv9Jpw1tXDBgsKzQGHZ9GCA=
-Date: Wed, 29 Apr 2026 05:41:01 -0700
+	b=nW5QCkKYUjrvoIGp/0uP+otWNV2g5tQgUr86juYI6fFWXEDqJ9nTQveGXjrrDTZM3
+	 UmRIF70JxG6kFP0Yk5AHriCgHNM6S1J2vD4GWtaCZQVaiLkprMHLTw1888yDE7eHFo
+	 QIc0dQDEiNrIWn7xnth0w4WnnskMOcDsat9V1+hs=
+Date: Wed, 29 Apr 2026 05:41:04 -0700
 To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@kernel.org,urezki@gmail.com,surenb@google.com,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,mathieu.desnoyers@efficios.com,ljs@kernel.org,liam@infradead.org,kprateek.nayak@amd.com,kees@kernel.org,juri.lelli@redhat.com,dietmar.eggemann@arm.com,dev.jain@arm.com,david@kernel.org,catalin.marinas@arm.com,bsegall@google.com,arnd@arndb.de,usama.anjum@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kasan-skip-hw-tagging-for-all-kernel-thread-stacks.patch added to mm-new branch
-Message-Id: <20260429124102.1F51CC2BCC4@smtp.kernel.org>
+Subject: + mm-skip-kasan-tagging-for-page-allocated-page-tables.patch added to mm-new branch
+Message-Id: <20260429124104.E9059C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kasan: skip HW tagging for all kernel thread stacks
+     Subject: mm: skip KASAN tagging for page-allocated page tables
 has been added to the -mm mm-new branch.  Its filename is
-     kasan-skip-hw-tagging-for-all-kernel-thread-stacks.patch
+     mm-skip-kasan-tagging-for-page-allocated-page-tables.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-skip-hw-tagging-for-all-kernel-thread-stacks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-skip-kasan-tagging-for-page-allocated-page-tables.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,28 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@arm.com>
-Subject: kasan: skip HW tagging for all kernel thread stacks
-Date: Wed, 29 Apr 2026 15:57:03 +0530
+Subject: mm: skip KASAN tagging for page-allocated page tables
+Date: Wed, 29 Apr 2026 15:57:04 +0530
 
-HW-tag KASAN never checks kernel stacks because stack pointers carry the
-match-all tag, so setting/poisoning tags is pure overhead.
+Page tables are always accessed via the linear mapping with a match-all
+tag, so HW-tag KASAN never checks them.  For page-allocated tables (PTEs
+and PGDs etc), avoid the tag setup and poisoning overhead by using
+__GFP_SKIP_KASAN.  SLUB-backed page tables are unchanged for now.  (They
+aren't widely used and require more SLUB related skip logic.  Leave it
+later.)
 
-- Add __GFP_SKIP_KASAN to THREADINFO_GFP so every stack allocator that
-  uses it skips tagging (fork path plus arch users)
-- Add __GFP_SKIP_KASAN to GFP_VMAP_STACK for the fork-specific vmap
-  stacks.
-- When reusing cached vmap stacks, skip kasan_unpoison_range() if HW tags
-  are enabled.
-
-Software KASAN is unchanged; this only affects tag-based KASAN.
-
-Link: https://lore.kernel.org/20260429102704.680174-3-dev.jain@arm.com
+Link: https://lore.kernel.org/20260429102704.680174-4-dev.jain@arm.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@arm.com>
 Signed-off-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Ryan Roberts <ryan.roberts@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Ben Segall <bsegall@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Juri Lelli <juri.lelli@redhat.com>
@@ -104,7 +100,6 @@ Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
@@ -114,42 +109,20 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/thread_info.h |    2 +-
- kernel/fork.c               |    5 +++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ include/asm-generic/pgalloc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/thread_info.h~kasan-skip-hw-tagging-for-all-kernel-thread-stacks
-+++ a/include/linux/thread_info.h
-@@ -92,7 +92,7 @@ static inline long set_restart_fn(struct
- #define THREAD_ALIGN	THREAD_SIZE
- #endif
+--- a/include/asm-generic/pgalloc.h~mm-skip-kasan-tagging-for-page-allocated-page-tables
++++ a/include/asm-generic/pgalloc.h
+@@ -4,7 +4,7 @@
  
--#define THREADINFO_GFP		(GFP_KERNEL_ACCOUNT | __GFP_ZERO)
-+#define THREADINFO_GFP		(GFP_KERNEL_ACCOUNT | __GFP_ZERO | __GFP_SKIP_KASAN)
+ #ifdef CONFIG_MMU
  
- /*
-  * flag set/clear/test wrappers
---- a/kernel/fork.c~kasan-skip-hw-tagging-for-all-kernel-thread-stacks
-+++ a/kernel/fork.c
-@@ -204,7 +204,7 @@ static DEFINE_PER_CPU(struct vm_struct *
-  * accounting is performed by the code assigning/releasing stacks to tasks.
-  * We need a zeroed memory without __GFP_ACCOUNT.
-  */
--#define GFP_VMAP_STACK (GFP_KERNEL | __GFP_ZERO)
-+#define GFP_VMAP_STACK (GFP_KERNEL | __GFP_ZERO | __GFP_SKIP_KASAN)
+-#define GFP_PGTABLE_KERNEL	(GFP_KERNEL | __GFP_ZERO)
++#define GFP_PGTABLE_KERNEL	(GFP_KERNEL | __GFP_ZERO | __GFP_SKIP_KASAN)
+ #define GFP_PGTABLE_USER	(GFP_PGTABLE_KERNEL | __GFP_ACCOUNT)
  
- struct vm_stack {
- 	struct rcu_head rcu;
-@@ -342,7 +342,8 @@ static int alloc_thread_stack_node(struc
- 		}
- 
- 		/* Reset stack metadata. */
--		kasan_unpoison_range(vm_area->addr, THREAD_SIZE);
-+		if (!kasan_hw_tags_enabled())
-+			kasan_unpoison_range(vm_area->addr, THREAD_SIZE);
- 
- 		stack = kasan_reset_tag(vm_area->addr);
- 
+ /**
 _
 
 Patches currently in -mm which might be from usama.anjum@arm.com are
