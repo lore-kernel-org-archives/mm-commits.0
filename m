@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A9F64014B1
-	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 16:13:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78808401489
+	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 16:13:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777479208; cv=none; b=K5LHc1liokaip4TB7bRQ6B9jqvYmZJvyKikWn50Ym1ebdY7W7QUe4rqz/qp0QdLgzCD5YiRDdxjl2CsOGN+jxnegJw03owQjMH/aqmLJs8yJYcvILpPZLhyF8758q50IgxNrUixVi+nP248NE/J3ehi9ckp1/hX9MC963QOAhok=
+	t=1777479212; cv=none; b=GF9WGmZNLq/W7mCiuOhynADj5JSqfh0vV7LtUiES9LeKQkIQ86vELWeca8o4UZxsDs6EAo4+ACZYY5//8QcE56XDhuLDq0XGFdhT/NfO3VBcmB3i2N522uedM2H+Ir8t4KroHG2hPz3ESSVKzfKpn93m8iI1xk1BgjgeG+AjTI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777479208; c=relaxed/simple;
-	bh=Y/lW02mj92THb2I5dfJb/vAQVU4/uHVVI6qOCQT8hxA=;
-	h=Date:To:From:Subject:Message-Id; b=ni83DstwGgbe7JrpOI1W8qksZAMrc3VyNqZvBn+Y8VgZ51AkEGVwwdpBlL8iMyNZF5l28WS8G+SumevaJM4Y7Qqh9MEIu/s6hXKz6RUKarAW+GIPuacBWHoLTdi57R/nL1O2HcaGissk1/RBix3nkbb8t2uZJIq5a/2zfmsnawE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uM5FGHjT; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777479212; c=relaxed/simple;
+	bh=JRpdFfW/UbPoTK3UXoFGumm6m2vUwKT0viwQXFsBa60=;
+	h=Date:To:From:Subject:Message-Id; b=UUVIq3ty0MDqfrs1qFxJ9Hsml/Zypa1yNoxmmig4bT1Eav4ZLHhSqPBE/i1+VFdghjARcOCoT3UhuQ4nXViDyRMLxZXuQEkUyooDK+8YrpmA6chBnf9cg7bYDDptroDq5D3L/z/3mcSQZBC4ba5lOYo2HLN2bG+dxMzyqDl2quc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AjT+Rdcc; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uM5FGHjT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6676C19425;
-	Wed, 29 Apr 2026 16:13:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AjT+Rdcc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A828C2BCB8;
+	Wed, 29 Apr 2026 16:13:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777479207;
-	bh=Y/lW02mj92THb2I5dfJb/vAQVU4/uHVVI6qOCQT8hxA=;
+	s=korg; t=1777479211;
+	bh=JRpdFfW/UbPoTK3UXoFGumm6m2vUwKT0viwQXFsBa60=;
 	h=Date:To:From:Subject:From;
-	b=uM5FGHjTka/O68tyWBrYAOGevvUwQcUV5OG+M+2Z2Nd91kTS1PsIFUiTLQunpVmU2
-	 4o8+0seHMyMwcKJ3fCEjh9oxqsJGVRX+ICX/VOP+gFCXmSwJU94BZppYhr8ZFBqGkQ
-	 5dqRtGPir1MaDvVnMIRFBw2B9TU0RiiCuSZmjY8A=
-Date: Wed, 29 Apr 2026 09:13:27 -0700
+	b=AjT+RdccGaB1HqVgiMf+0fDBzQwn4VoAewsvXvAj5jFQAWk/DEDuFASgUQHMSOcVp
+	 pywe83jxoFiIV5mHWzObvs5KutYKN/eDZ2htFC6wR0Q9SGh5r8V3kM5msS8Rdlw2En
+	 k7DAeDxpDLNQ9wDqQcSIUYOcF76uJGfd3tnpPqPs=
+Date: Wed, 29 Apr 2026 09:13:31 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch added to mm-new branch
-Message-Id: <20260429161327.A6676C19425@smtp.kernel.org>
+Subject: + fs-remove-nr_thps-from-struct-address_space.patch added to mm-new branch
+Message-Id: <20260429161331.8A828C2BCB8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fs: remove filemap_nr_thps*() functions and their users
+     Subject: fs: remove nr_thps from struct address_space
 has been added to the -mm mm-new branch.  Its filename is
-     mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch
+     fs-remove-nr_thps-from-struct-address_space.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-remove-nr_thps-from-struct-address_space.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,30 +70,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm: fs: remove filemap_nr_thps*() functions and their users
-Date: Wed, 29 Apr 2026 11:35:29 -0400
+Subject: fs: remove nr_thps from struct address_space
+Date: Wed, 29 Apr 2026 11:35:30 -0400
 
-They are used by READ_ONLY_THP_FOR_FS to handle writes to FSes without
-large folio support, so that read-only THPs created in these FSes are not
-seen by the FSes when the underlying fd becomes writable.  Now read-only
-PMD THPs only appear in a FS with large folio support and the supported
-orders include PMD_ORDER.
+filemap_nr_thps*() are removed, the related field, address_space->nr_thps,
+is no longer needed.  Remove it.  This shrinks struct address_space by 8
+bytes on 64-bit systems which may increase the number of inodes we can
+cache.
 
-READ_ONLY_THP_FOR_FS was using mapping->nr_thps, inode->i_writecount, and
-smp_mb() to prevent writes to a read-only THP and collapsing writable
-folios into a THP.  In collapse_file(), mapping->nr_thps is increased,
-then smp_mb(), and if inode->i_writecount > 0, collapse is stopped, while
-do_dentry_open() first increases inode->i_writecount, then a full memory
-fence, and if mapping->nr_thps > 0, all read-only THPs are truncated.
-
-Now this mechanism can be removed along with READ_ONLY_THP_FOR_FS code,
-since a dirty folio check has been added after try_to_unmap() in
-collapse_file() to prevent dirty folios from being collapsed as clean.
-
-Link: https://lore.kernel.org/20260429153538.727855-2-ziy@nvidia.com
+Link: https://lore.kernel.org/20260429153538.727855-3-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Barry Song <baohua@kernel.org>
@@ -102,9 +92,7 @@ Cc: Christian Brauner <brauner@kernel.org>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jan Kara <jack@suse.cz>
-Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nico Pache <npache@redhat.com>
@@ -116,151 +104,43 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c               |   27 ---------------------------
- include/linux/pagemap.h |   29 -----------------------------
- mm/filemap.c            |    1 -
- mm/huge_memory.c        |    1 -
- mm/khugepaged.c         |   28 ----------------------------
- 5 files changed, 86 deletions(-)
+ fs/inode.c         |    3 ---
+ include/linux/fs.h |    5 -----
+ 2 files changed, 8 deletions(-)
 
---- a/fs/open.c~mm-fs-remove-filemap_nr_thps-functions-and-their-users
-+++ a/fs/open.c
-@@ -968,33 +968,6 @@ static int do_dentry_open(struct file *f
- 	if ((f->f_flags & O_DIRECT) && !(f->f_mode & FMODE_CAN_ODIRECT))
- 		return -EINVAL;
- 
--	/*
--	 * XXX: Huge page cache doesn't support writing yet. Drop all page
--	 * cache for this file before processing writes.
--	 */
--	if (f->f_mode & FMODE_WRITE) {
--		/*
--		 * Depends on full fence from get_write_access() to synchronize
--		 * against collapse_file() regarding i_writecount and nr_thps
--		 * updates. Ensures subsequent insertion of THPs into the page
--		 * cache will fail.
--		 */
--		if (filemap_nr_thps(inode->i_mapping)) {
--			struct address_space *mapping = inode->i_mapping;
--
--			filemap_invalidate_lock(inode->i_mapping);
--			/*
--			 * unmap_mapping_range just need to be called once
--			 * here, because the private pages is not need to be
--			 * unmapped mapping (e.g. data segment of dynamic
--			 * shared libraries here).
--			 */
--			unmap_mapping_range(mapping, 0, 0, 0);
--			truncate_inode_pages(mapping, 0);
--			filemap_invalidate_unlock(inode->i_mapping);
--		}
--	}
--
- 	return 0;
- 
- cleanup_all:
---- a/include/linux/pagemap.h~mm-fs-remove-filemap_nr_thps-functions-and-their-users
-+++ a/include/linux/pagemap.h
-@@ -545,35 +545,6 @@ static inline size_t mapping_max_folio_s
- 	return PAGE_SIZE << mapping_max_folio_order(mapping);
- }
- 
--static inline int filemap_nr_thps(const struct address_space *mapping)
--{
+--- a/fs/inode.c~fs-remove-nr_thps-from-struct-address_space
++++ a/fs/inode.c
+@@ -279,9 +279,6 @@ int inode_init_always_gfp(struct super_b
+ 	mapping->flags = 0;
+ 	mapping->wb_err = 0;
+ 	atomic_set(&mapping->i_mmap_writable, 0);
 -#ifdef CONFIG_READ_ONLY_THP_FOR_FS
--	return atomic_read(&mapping->nr_thps);
--#else
--	return 0;
+-	atomic_set(&mapping->nr_thps, 0);
 -#endif
--}
--
--static inline void filemap_nr_thps_inc(struct address_space *mapping)
--{
+ 	mapping_set_gfp_mask(mapping, GFP_HIGHUSER_MOVABLE);
+ 	mapping->writeback_index = 0;
+ 	init_rwsem(&mapping->invalidate_lock);
+--- a/include/linux/fs.h~fs-remove-nr_thps-from-struct-address_space
++++ a/include/linux/fs.h
+@@ -460,7 +460,6 @@ struct mapping_metadata_bhs {
+  *   memory mappings.
+  * @gfp_mask: Memory allocation flags to use for allocating pages.
+  * @i_mmap_writable: Number of VM_SHARED, VM_MAYWRITE mappings.
+- * @nr_thps: Number of THPs in the pagecache (non-shmem only).
+  * @i_mmap: Tree of private and shared mappings.
+  * @i_mmap_rwsem: Protects @i_mmap and @i_mmap_writable.
+  * @nrpages: Number of page entries, protected by the i_pages lock.
+@@ -476,10 +475,6 @@ struct address_space {
+ 	struct rw_semaphore	invalidate_lock;
+ 	gfp_t			gfp_mask;
+ 	atomic_t		i_mmap_writable;
 -#ifdef CONFIG_READ_ONLY_THP_FOR_FS
--	if (!mapping_large_folio_support(mapping))
--		atomic_inc(&mapping->nr_thps);
--#else
--	WARN_ON_ONCE(mapping_large_folio_support(mapping) == 0);
+-	/* number of thp, only for non-shmem files */
+-	atomic_t		nr_thps;
 -#endif
--}
--
--static inline void filemap_nr_thps_dec(struct address_space *mapping)
--{
--#ifdef CONFIG_READ_ONLY_THP_FOR_FS
--	if (!mapping_large_folio_support(mapping))
--		atomic_dec(&mapping->nr_thps);
--#else
--	WARN_ON_ONCE(mapping_large_folio_support(mapping) == 0);
--#endif
--}
--
- struct address_space *folio_mapping(const struct folio *folio);
- 
- /**
---- a/mm/filemap.c~mm-fs-remove-filemap_nr_thps-functions-and-their-users
-+++ a/mm/filemap.c
-@@ -189,7 +189,6 @@ static void filemap_unaccount_folio(stru
- 			lruvec_stat_mod_folio(folio, NR_SHMEM_THPS, -nr);
- 	} else if (folio_test_pmd_mappable(folio)) {
- 		lruvec_stat_mod_folio(folio, NR_FILE_THPS, -nr);
--		filemap_nr_thps_dec(mapping);
- 	}
- 	if (test_bit(AS_KERNEL_FILE, &folio->mapping->flags))
- 		mod_node_page_state(folio_pgdat(folio),
---- a/mm/huge_memory.c~mm-fs-remove-filemap_nr_thps-functions-and-their-users
-+++ a/mm/huge_memory.c
-@@ -3951,7 +3951,6 @@ static int __folio_freeze_and_split_unma
- 				} else {
- 					lruvec_stat_mod_folio(folio,
- 							NR_FILE_THPS, -nr);
--					filemap_nr_thps_dec(mapping);
- 				}
- 			}
- 		}
---- a/mm/khugepaged.c~mm-fs-remove-filemap_nr_thps-functions-and-their-users
-+++ a/mm/khugepaged.c
-@@ -2469,21 +2469,6 @@ out_unlock:
- 		goto xa_unlocked;
- 	}
- 
--	if (!is_shmem) {
--		filemap_nr_thps_inc(mapping);
--		/*
--		 * Paired with the fence in do_dentry_open() -> get_write_access()
--		 * to ensure i_writecount is up to date and the update to nr_thps
--		 * is visible. Ensures the page cache will be truncated if the
--		 * file is opened writable.
--		 */
--		smp_mb();
--		if (inode_is_open_for_write(mapping->host)) {
--			result = SCAN_FAIL;
--			filemap_nr_thps_dec(mapping);
--		}
--	}
--
- xa_locked:
- 	xas_unlock_irq(&xas);
- xa_unlocked:
-@@ -2661,19 +2646,6 @@ rollback:
- 		folio_putback_lru(folio);
- 		folio_put(folio);
- 	}
--	/*
--	 * Undo the updates of filemap_nr_thps_inc for non-SHMEM
--	 * file only. This undo is not needed unless failure is
--	 * due to SCAN_COPY_MC.
--	 */
--	if (!is_shmem && result == SCAN_COPY_MC) {
--		filemap_nr_thps_dec(mapping);
--		/*
--		 * Paired with the fence in do_dentry_open() -> get_write_access()
--		 * to ensure the update to nr_thps is visible.
--		 */
--		smp_mb();
--	}
- 
- 	new_folio->mapping = NULL;
- 
+ 	struct rb_root_cached	i_mmap;
+ 	unsigned long		nrpages;
+ 	pgoff_t			writeback_index;
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
