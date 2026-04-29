@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78808401489
-	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 16:13:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E35340149A
+	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 16:13:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777479212; cv=none; b=GF9WGmZNLq/W7mCiuOhynADj5JSqfh0vV7LtUiES9LeKQkIQ86vELWeca8o4UZxsDs6EAo4+ACZYY5//8QcE56XDhuLDq0XGFdhT/NfO3VBcmB3i2N522uedM2H+Ir8t4KroHG2hPz3ESSVKzfKpn93m8iI1xk1BgjgeG+AjTI0=
+	t=1777479214; cv=none; b=rh214DBNwWzvat0feftchCZpuGPBvbh8ZYjp8kUGZP/KTZu1mX1/OZ2/CaU4FoU5khJUBPhS0YBAlHiVVEOC7ySrVj0xXhQOu1xW8eavTIKF/332XG8kLPfCct1BF3AbFMYYU9TxUHWixP0tPq8xAJi7XE+8LRSfqZ3jy0A8QDs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777479212; c=relaxed/simple;
-	bh=JRpdFfW/UbPoTK3UXoFGumm6m2vUwKT0viwQXFsBa60=;
-	h=Date:To:From:Subject:Message-Id; b=UUVIq3ty0MDqfrs1qFxJ9Hsml/Zypa1yNoxmmig4bT1Eav4ZLHhSqPBE/i1+VFdghjARcOCoT3UhuQ4nXViDyRMLxZXuQEkUyooDK+8YrpmA6chBnf9cg7bYDDptroDq5D3L/z/3mcSQZBC4ba5lOYo2HLN2bG+dxMzyqDl2quc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AjT+Rdcc; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777479214; c=relaxed/simple;
+	bh=CSX/Gua7auMUNgG3wzl91N0Od36GcDxeyljMd1lab9U=;
+	h=Date:To:From:Subject:Message-Id; b=HEr+jWZYSxVTH8S5mgrdxd5wxcgpczg5MRWFM82jNYuAmwncwpE14ODuq3yeSbMA2uRlzmTJI62yWCFHwcyW15rwxk+kr5a1qYrPtAeJVHKMR+DTrFQfhjFRS9HGHMmnN9VnsVqYG/W+rYS4hD8moQB8lfAAv/13lGMCQxgnnGs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2dtvVat2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AjT+Rdcc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A828C2BCB8;
-	Wed, 29 Apr 2026 16:13:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2dtvVat2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2D77FC19425;
+	Wed, 29 Apr 2026 16:13:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777479211;
-	bh=JRpdFfW/UbPoTK3UXoFGumm6m2vUwKT0viwQXFsBa60=;
+	s=korg; t=1777479214;
+	bh=CSX/Gua7auMUNgG3wzl91N0Od36GcDxeyljMd1lab9U=;
 	h=Date:To:From:Subject:From;
-	b=AjT+RdccGaB1HqVgiMf+0fDBzQwn4VoAewsvXvAj5jFQAWk/DEDuFASgUQHMSOcVp
-	 pywe83jxoFiIV5mHWzObvs5KutYKN/eDZ2htFC6wR0Q9SGh5r8V3kM5msS8Rdlw2En
-	 k7DAeDxpDLNQ9wDqQcSIUYOcF76uJGfd3tnpPqPs=
-Date: Wed, 29 Apr 2026 09:13:31 -0700
+	b=2dtvVat2haRmLXpVPa45KrltYpDJrqyKuNHbDU4p+RfrvQl5SOi2pXdFROq6Wgq9E
+	 wymshA9z8OT/b9FsuM1zNDIhgsKpAAreSuDvLCbF1vBHuaGZm+/8ec2u6GPZOGGi4K
+	 p41Bpgmehg7Lh1yeeeOlBMR2jkFrhFp/ACYptdGU=
+Date: Wed, 29 Apr 2026 09:13:33 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + fs-remove-nr_thps-from-struct-address_space.patch added to mm-new branch
-Message-Id: <20260429161331.8A828C2BCB8@smtp.kernel.org>
+Subject: + mm-huge_memory-remove-folio-split-check-for-read_only_thp_for_fs.patch added to mm-new branch
+Message-Id: <20260429161334.2D77FC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: fs: remove nr_thps from struct address_space
+     Subject: mm/huge_memory: remove folio split check for READ_ONLY_THP_FOR_FS
 has been added to the -mm mm-new branch.  Its filename is
-     fs-remove-nr_thps-from-struct-address_space.patch
+     mm-huge_memory-remove-folio-split-check-for-read_only_thp_for_fs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/fs-remove-nr_thps-from-struct-address_space.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-remove-folio-split-check-for-read_only_thp_for_fs.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,21 +70,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: fs: remove nr_thps from struct address_space
-Date: Wed, 29 Apr 2026 11:35:30 -0400
+Subject: mm/huge_memory: remove folio split check for READ_ONLY_THP_FOR_FS
+Date: Wed, 29 Apr 2026 11:35:31 -0400
 
-filemap_nr_thps*() are removed, the related field, address_space->nr_thps,
-is no longer needed.  Remove it.  This shrinks struct address_space by 8
-bytes on 64-bit systems which may increase the number of inodes we can
-cache.
+Without READ_ONLY_THP_FOR_FS, large file-backed folios cannot be created
+by a FS without large folio support.  The check is no longer needed.
 
-Link: https://lore.kernel.org/20260429153538.727855-3-ziy@nvidia.com
+Link: https://lore.kernel.org/20260429153538.727855-4-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Mason <clm@fb.com>
@@ -93,6 +90,7 @@ Cc: David Sterba <dsterba@suse.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Liam Howlett <liam@infradead.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nico Pache <npache@redhat.com>
@@ -104,43 +102,48 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c         |    3 ---
- include/linux/fs.h |    5 -----
- 2 files changed, 8 deletions(-)
+ mm/huge_memory.c |   30 +++---------------------------
+ 1 file changed, 3 insertions(+), 27 deletions(-)
 
---- a/fs/inode.c~fs-remove-nr_thps-from-struct-address_space
-+++ a/fs/inode.c
-@@ -279,9 +279,6 @@ int inode_init_always_gfp(struct super_b
- 	mapping->flags = 0;
- 	mapping->wb_err = 0;
- 	atomic_set(&mapping->i_mmap_writable, 0);
--#ifdef CONFIG_READ_ONLY_THP_FOR_FS
--	atomic_set(&mapping->nr_thps, 0);
--#endif
- 	mapping_set_gfp_mask(mapping, GFP_HIGHUSER_MOVABLE);
- 	mapping->writeback_index = 0;
- 	init_rwsem(&mapping->invalidate_lock);
---- a/include/linux/fs.h~fs-remove-nr_thps-from-struct-address_space
-+++ a/include/linux/fs.h
-@@ -460,7 +460,6 @@ struct mapping_metadata_bhs {
-  *   memory mappings.
-  * @gfp_mask: Memory allocation flags to use for allocating pages.
-  * @i_mmap_writable: Number of VM_SHARED, VM_MAYWRITE mappings.
-- * @nr_thps: Number of THPs in the pagecache (non-shmem only).
-  * @i_mmap: Tree of private and shared mappings.
-  * @i_mmap_rwsem: Protects @i_mmap and @i_mmap_writable.
-  * @nrpages: Number of page entries, protected by the i_pages lock.
-@@ -476,10 +475,6 @@ struct address_space {
- 	struct rw_semaphore	invalidate_lock;
- 	gfp_t			gfp_mask;
- 	atomic_t		i_mmap_writable;
--#ifdef CONFIG_READ_ONLY_THP_FOR_FS
--	/* number of thp, only for non-shmem files */
--	atomic_t		nr_thps;
--#endif
- 	struct rb_root_cached	i_mmap;
- 	unsigned long		nrpages;
- 	pgoff_t			writeback_index;
+--- a/mm/huge_memory.c~mm-huge_memory-remove-folio-split-check-for-read_only_thp_for_fs
++++ a/mm/huge_memory.c
+@@ -3846,33 +3846,9 @@ int folio_check_splittable(struct folio
+ 	if (!folio->mapping && !folio_test_anon(folio))
+ 		return -EBUSY;
+ 
+-	if (folio_test_anon(folio)) {
+-		/* order-1 is not supported for anonymous THP. */
+-		if (new_order == 1)
+-			return -EINVAL;
+-	} else if (split_type == SPLIT_TYPE_NON_UNIFORM || new_order) {
+-		if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
+-		    !mapping_large_folio_support(folio->mapping)) {
+-			/*
+-			 * We can always split a folio down to a single page
+-			 * (new_order == 0) uniformly.
+-			 *
+-			 * For any other scenario
+-			 *   a) uniform split targeting a large folio
+-			 *      (new_order > 0)
+-			 *   b) any non-uniform split
+-			 * we must confirm that the file system supports large
+-			 * folios.
+-			 *
+-			 * Note that we might still have THPs in such
+-			 * mappings, which is created from khugepaged when
+-			 * CONFIG_READ_ONLY_THP_FOR_FS is enabled. But in that
+-			 * case, the mapping does not actually support large
+-			 * folios properly.
+-			 */
+-			return -EINVAL;
+-		}
+-	}
++	/* order-1 is not supported for anonymous THP. */
++	if (folio_test_anon(folio) && new_order == 1)
++		return -EINVAL;
+ 
+ 	/*
+ 	 * swapcache folio could only be split to order 0
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
