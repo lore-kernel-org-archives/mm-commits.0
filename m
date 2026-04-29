@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B19BF2DFA3A
-	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 15:22:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1ACF344D80
+	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 15:37:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777476168; cv=none; b=I8oyOUWfL8npqFc6V64RDc4ssJYPjhHJaYFM3XN/5BCA1bh37ItsBAS8NoVjZoi3VMaOGxPAlhIIf2NrtN5mWhzL9UL8byfrKF/XC8jOOtGHDtm491xAaobZxpkHvJRE4bP3gwbiNxh+/d5NwrA/PWS7KmSpRjk67pHXAsbyq8g=
+	t=1777477065; cv=none; b=ie3QhdyQ+dEo3KHlHowKXYIXEVSuR0yvl+rHRao87kcOSn3eP52zWD0kMyPZhJo8R3HBYxmSmyU8cp/6hq1ZRhEaSPKU+aHpLPqMcENMxI5lRut7XLK3soB73/b0H3UuYNbhlEWjvkKDmGQquth7jQkDOcY5bp0R4OCN9TSudXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777476168; c=relaxed/simple;
-	bh=W7CbHOp8FhzZgMInynh4qTJFq9XD2Rk+Ij3XTZ71fxE=;
-	h=Date:To:From:Subject:Message-Id; b=FS7kSUmdI+7hLeX5aStSQUqpyifdO9LLxCV+re/hEM8l1JOyr3CTFkC+641kxbtt3xghbhE55GJwGjYKbWHEySdGMC5qQWijC1TM+NdLj+u4hu6A3xstcmhQ9XC9/4S6+o0tZqRugLOlF5R/fFmGhM/BAJvjsfhdOl4DUBlCqhQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jdCxWp1G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777477065; c=relaxed/simple;
+	bh=QvjQaf5yULalvzjasXhrtxJpj9DhSwRfwsAINSqpC04=;
+	h=Date:To:From:Subject:Message-Id; b=SN2W4AlRBxBsCfDwsCLu91BIVsQIi74RqZ0GULAYGGFjEjubXcYEA6v/Mdqep0qmQukTWHuSNUOvTsKjCzmyMLs9Hae6bXldsRMNwxz0oH1GELWNEwz1uslhXQgOzyWXq2et741JkfAgjPxQhwIEegGkgiS/Ljb/01Frp5Mu55Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vu4uGnuQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jdCxWp1G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B5D1C19425;
-	Wed, 29 Apr 2026 15:22:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vu4uGnuQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DAB0C19425;
+	Wed, 29 Apr 2026 15:37:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777476168;
-	bh=W7CbHOp8FhzZgMInynh4qTJFq9XD2Rk+Ij3XTZ71fxE=;
+	s=korg; t=1777477065;
+	bh=QvjQaf5yULalvzjasXhrtxJpj9DhSwRfwsAINSqpC04=;
 	h=Date:To:From:Subject:From;
-	b=jdCxWp1GlmbaBDQLhyNuMCTpjaLpA2eF0jsYiso7+7pRc9LXPYlayLKDt3RtnZD2R
-	 EwCsK8HtqlNuD/80xyTt/38RbnMwj8urivqflZ9zNy/d2dd9ldfTK/3MRQpVAngv8j
-	 QCX3LqmnkwQLzn7R6D3cD8KiAdTBXuwQRmVPL3os=
-Date: Wed, 29 Apr 2026 08:22:47 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=Vu4uGnuQTO1sii4UjjPmDvoN9ItLRRK+P4rqMrhhU8rS5LQW8TyhwleSPBAOenvqX
+	 qkl2tPuQnPXb+wcN02Q/n/YLAh7p5zqUF7rjBB1hXagz4J1WTCDxuNtUEcauTQ6Dx5
+	 WcbjfBXxWnMiSli2NjCJ22c5a+GWwn1sl5dumesY=
+Date: Wed, 29 Apr 2026 08:37:44 -0700
+To: mm-commits@vger.kernel.org,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-abi-damon-mark-schemes-s-filters-deprecated.patch added to mm-new branch
-Message-Id: <20260429152248.4B5D1C19425@smtp.kernel.org>
+Subject: + mm-use-zone-lock-guard-in-reserve_highatomic_pageblock.patch added to mm-new branch
+Message-Id: <20260429153745.4DAB0C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/ABI/damon: mark schemes/<S>/filters/ deprecated
+     Subject: mm: use zone lock guard in reserve_highatomic_pageblock()
 has been added to the -mm mm-new branch.  Its filename is
-     docs-abi-damon-mark-schemes-s-filters-deprecated.patch
+     mm-use-zone-lock-guard-in-reserve_highatomic_pageblock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-abi-damon-mark-schemes-s-filters-deprecated.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-use-zone-lock-guard-in-reserve_highatomic_pageblock.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,185 +69,115 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/damon: mark schemes/<S>/filters/ deprecated
-Date: Wed, 29 Apr 2026 08:03:06 -0700
+From: Dmitry Ilvokhin <d@ilvokhin.com>
+Subject: mm: use zone lock guard in reserve_highatomic_pageblock()
+Date: Wed, 29 Apr 2026 12:02:06 +0000
 
-Now the 'filters/' directory is deprecated.  Update ABI document to also
-announce the fact.  Also update the descriptions of the files to be based
-on 'core_filter/' directory, to make the old descriptions ready to be
-removed when the time arrives.
+Patch series "mm: use spinlock guards for zone lock", v3.
 
-Link: https://lore.kernel.org/20260429150309.82282-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+This series uses spinlock guard for zone lock across several mm functions
+to replace explicit lock/unlock patterns with automatic scope-based
+cleanup.
+
+This simplifies the control flow by removing 'flags' variables, goto
+labels, and redundant unlock calls.
+
+Patches are ordered by decreasing value.  The first six patches simplify
+the control flow by removing gotos, multiple unlock paths, or 'ret'
+variables.  The last two are simpler lock/unlock pair conversions that
+only remove 'flags' and can be dropped if considered unnecessary churn.
+
+Binary size increase is +39 bytes, with Peter Zijlstra's fix for guards
+[1] applied.  This is due to the compiler not being able to deduplicate
+epilogue and eliminate redundant NULL check.  See discussion [2] for more
+details.  I proposed a patch [3] that fixes this, but until it is merged
+we need to assume +39 bytes will stay (though it is compiler dependent).
+
+
+This patch (of 8):
+
+Use the spinlock_irqsave zone lock guard in reserve_highatomic_pageblock()
+to replace the explicit lock/unlock and goto out_unlock pattern with
+automatic scope-based cleanup.
+
+Link: https://lore.kernel.org/cover.1777462630.git.d@ilvokhin.com
+Link: https://lore.kernel.org/3657e1144e2ffc1ca0eb57d57d89bfec4073d8c6.1777462630.git.d@ilvokhin.com
+Link: https://lore.kernel.org/all/20260309164516.GE606826@noisy.programming.kicks-ass.net/ [1]
+Link: https://lore.kernel.org/all/afC5C6fylF4AsITV@shell.ilvokhin.com/ [2]
+Link: https://lore.kernel.org/all/20260427165037.205337-1-d@ilvokhin.com/ [3]
+Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+Suggested-by: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |   62 +++++++-------
- 1 file changed, 34 insertions(+), 28 deletions(-)
+ mm/page_alloc.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-mark-schemes-s-filters-deprecated
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -384,15 +384,20 @@ Contact:	SeongJae Park <sj@kernel.org>
- Description:	Writing to and reading from this file sets and gets the low
- 		watermark of the scheme in permil.
+--- a/mm/page_alloc.c~mm-use-zone-lock-guard-in-reserve_highatomic_pageblock
++++ a/mm/page_alloc.c
+@@ -3432,7 +3432,7 @@ static void reserve_highatomic_pageblock
+ 					 struct zone *zone)
+ {
+ 	int mt;
+-	unsigned long max_managed, flags;
++	unsigned long max_managed;
  
--What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/nr_filters
--Date:		Dec 2022
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters
-+Date:		Feb 2025
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Directory for DAMON core layer-handled DAMOS filters.
-+
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters/nr_filters
-+Date:		Feb 2025
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	Writing a number 'N' to this file creates the number of
- 		directories for setting filters of the scheme named '0' to
--		'N-1' under the filters/ directory.
-+		'N-1' under the core_filters/ directory.
+ 	/*
+ 	 * The number reserved as: minimum is 1 pageblock, maximum is
+@@ -3446,29 +3446,26 @@ static void reserve_highatomic_pageblock
+ 	if (zone->nr_reserved_highatomic >= max_managed)
+ 		return;
  
--What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/type
--Date:		Dec 2022
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters/<F>/type
-+Date:		Feb 2025
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	Writing to and reading from this file sets and gets the type of
- 		the memory of the interest.  'anon' for anonymous pages,
-@@ -400,77 +405,78 @@ Description:	Writing to and reading from
- 		'addr' for address range (an open-ended interval), or 'target'
- 		for DAMON monitoring target can be written and read.
+-	spin_lock_irqsave(&zone->lock, flags);
++	guard(spinlock_irqsave)(&zone->lock);
  
--What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/memcg_path
--Date:		Dec 2022
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters/<F>/memcg_path
-+Date:		Feb 2025
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	If 'memcg' is written to the 'type' file, writing to and
- 		reading from this file sets and gets the path to the memory
- 		cgroup of the interest.
+ 	/* Recheck the nr_reserved_highatomic limit under the lock */
+ 	if (zone->nr_reserved_highatomic >= max_managed)
+-		goto out_unlock;
++		return;
  
--What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/addr_start
--Date:		Jul 2023
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters/<F>/addr_start
-+Date:		Feb 2025
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	If 'addr' is written to the 'type' file, writing to or reading
- 		from this file sets or gets the start address of the address
- 		range for the filter.
+ 	/* Yoink! */
+ 	mt = get_pageblock_migratetype(page);
+ 	/* Only reserve normal pageblocks (i.e., they can merge with others) */
+ 	if (!migratetype_is_mergeable(mt))
+-		goto out_unlock;
++		return;
  
--What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/addr_end
--Date:		Jul 2023
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters/<F>/addr_end
-+Date:		Feb 2025
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	If 'addr' is written to the 'type' file, writing to or reading
- 		from this file sets or gets the end address of the address
- 		range for the filter.
- 
--What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/min
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters/<F>/min
- Date:		Feb 2025
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	If 'hugepage_size' is written to the 'type' file, writing to
- 		or reading from this file sets or gets the minimum size of the
- 		hugepage for the filter.
- 
--What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/max
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters/<F>/max
- Date:		Feb 2025
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	If 'hugepage_size' is written to the 'type' file, writing to
- 		or reading from this file sets or gets the maximum size of the
- 		hugepage for the filter.
- 
--What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/target_idx
--Date:		Dec 2022
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters/<F>/target_idx
-+Date:		Feb 2025
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	If 'target' is written to the 'type' file, writing to or
- 		reading from this file sets or gets the index of the DAMON
- 		monitoring target of the interest.
- 
--What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/matching
--Date:		Dec 2022
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters/<F>/matching
-+Date:		Feb 2025
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	Writing 'Y' or 'N' to this file sets whether the filter is for
- 		the memory of the 'type', or all except the 'type'.
- 
--What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters/<F>/allow
--Date:		Jan 2025
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters/<F>/allow
-+Date:		Feb 2025
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	Writing 'Y' or 'N' to this file sets whether to allow or reject
- 		applying the scheme's action to the memory that satisfies the
- 		'type' and the 'matching' of the directory.
- 
--What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters
--Date:		Feb 2025
--Contact:	SeongJae Park <sj@kernel.org>
--Description:	Directory for DAMON core layer-handled DAMOS filters.  Files
--		under this directory works same to those of
--		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters
--		directory.
+ 	if (order < pageblock_order) {
+ 		if (move_freepages_block(zone, page, mt, MIGRATE_HIGHATOMIC) == -1)
+-			goto out_unlock;
++			return;
+ 		zone->nr_reserved_highatomic += pageblock_nr_pages;
+ 	} else {
+ 		change_pageblock_range(page, order, MIGRATE_HIGHATOMIC);
+ 		zone->nr_reserved_highatomic += 1 << order;
+ 	}
 -
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/ops_filters
- Date:		Feb 2025
- Contact:	SeongJae Park <sj@kernel.org>
- Description:	Directory for DAMON operations set layer-handled DAMOS filters.
- 		Files under this directory works same to those of
--		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters
-+		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/core_filters
- 		directory.
+-out_unlock:
+-	spin_unlock_irqrestore(&zone->lock, flags);
+ }
  
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/filters
-+Date:		Dec 2022
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Directory for DAMOS filters.  Files under this directory works
-+		same to those of
-+		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/{core,ops}_filters
-+		directory.  This is deprecated.  Use the core_filters and
-+		ops_filters instead.
-+
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/schemes/<S>/dests/nr_dests
- Date:		Jul 2025
- Contact:	SeongJae Park <sj@kernel.org>
+ /*
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from d@ilvokhin.com are
 
-mm-damon-sysfs-schemes-call-missing-mem_cgroup_iter_break.patch
-mm-damon-fix-damos_stat-tracepoint-format-for-sz_applied.patch
-docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
-mm-damon-core-introduce-damon_ctx-paused.patch
-mm-damon-sysfs-add-pause-file-under-context-dir.patch
-docs-mm-damon-design-update-for-context-pause-resume-feature.patch
-docs-admin-guide-mm-damon-usage-update-for-pause-file.patch
-docs-abi-damon-update-for-pause-sysfs-file.patch
-mm-damon-tests-core-kunit-test-pause-commitment.patch
-selftests-damon-_damon_sysfs-support-pause-file-staging.patch
-selftests-damon-drgn_dump_damon_status-dump-pause.patch
-selftests-damon-sysfspy-check-pause-on-assert_ctx_committed.patch
-selftests-damon-sysfspy-pause-damon-before-dumping-status.patch
-mm-damon-introduce-damon_set_region_system_rams_default.patch
-mm-damon-reclaim-cover-all-system-rams.patch
-mm-damon-lru_sort-cover-all-system-rams.patch
-mm-damon-core-remove-damon_set_region_biggest_system_ram_default.patch
-mm-damon-stat-use-damon_set_region_system_rams_default.patch
-docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring.patch
-docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring.patch
-docs-admin-guide-mm-damon-usage-mark-scheme-filters-sysfs-dir-as-deprecated.patch
-docs-abi-damon-mark-schemes-s-filters-deprecated.patch
+mm-use-zone-lock-guard-in-reserve_highatomic_pageblock.patch
+mm-use-zone-lock-guard-in-unset_migratetype_isolate.patch
+mm-use-zone-lock-guard-in-unreserve_highatomic_pageblock.patch
+mm-use-zone-lock-guard-in-set_migratetype_isolate.patch
+mm-use-zone-lock-guard-in-take_page_off_buddy.patch
+mm-use-zone-lock-guard-in-put_page_back_buddy.patch
+mm-use-zone-lock-guard-in-free_pcppages_bulk.patch
+mm-use-zone-lock-guard-in-__offline_isolated_pages.patch
 
