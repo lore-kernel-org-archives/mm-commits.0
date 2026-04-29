@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27D133FB05D
-	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 12:52:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25FBE3F54C5
+	for <mm-commits@vger.kernel.org>; Wed, 29 Apr 2026 12:52:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777467128; cv=none; b=eNroaJbcIADa6soYDZOqJKRop+SEstxuOy3JKWhH2ZFt+T4CeIT7Y1EDMNsu/IWvCn9UizqEtjm7yKdgUyjPYgQNdexlSWTtrY0IPvdl68XZhfRwvjF3kYx+HOwIzyo7iSnem48gsKaBuXIY5xnHBkOo23RIJ+i3dKkSLGEu6TA=
+	t=1777467130; cv=none; b=NubqJqo5cdpYkfENB5tziAwaR/SmF8OWX0hhCd3ClQCuUP3HpnxS9ABvdcFkPULkE5cgBLuSctfcLiVjPHmsYfR3zwCbRc0CQSBgidHGcPOno+siQGMpVuwL437v/igIQ4BpSThAdOXkk7w7uZq5LAg67fDEGugzdTpy29C5oNA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777467128; c=relaxed/simple;
-	bh=AJoXGHuDuPme7BkPHFH3x70Bo2YCq8xglUYEA72HTlQ=;
-	h=Date:To:From:Subject:Message-Id; b=C9eNP/XrFmhqYiLPCeIDTFod+vndIYlDM2Lt7kIr8iDDe2ya1AilwOmcWF+lUPy2mdnxA0KJIgiB5kmaxFolkniyrCQy0ZKnH6OPW+7Cy5EysXimiH4gJxYNQHiIzQ1FRpK5hQU+6NRgJC5OOKthxML3b5Pkx3860QXRLJ20S6E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R8FLRFIO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777467130; c=relaxed/simple;
+	bh=zynYvgoJzgkLsD29ZIXIrt7KK9c8X1kE/8en2cfaksA=;
+	h=Date:To:From:Subject:Message-Id; b=NAmX5arMF358mOeW9F0z5ototXgom0UWxztHyxrjDyfTJT0bREebYZ3KQToBVQCBOJt8ObTjMNcx8vqtxyAF1Hx58eRhXB95SnfXyYGgl5hOQkdkiPMevVMynSLb6vcLkY+xRs/YzGm7nLsjnYwfpkmyNnGdKLDPVdqIE0rlWoM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZzFqkVPN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R8FLRFIO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F115C2BCC9;
-	Wed, 29 Apr 2026 12:52:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZzFqkVPN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEBDBC19425;
+	Wed, 29 Apr 2026 12:52:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777467127;
-	bh=AJoXGHuDuPme7BkPHFH3x70Bo2YCq8xglUYEA72HTlQ=;
+	s=korg; t=1777467129;
+	bh=zynYvgoJzgkLsD29ZIXIrt7KK9c8X1kE/8en2cfaksA=;
 	h=Date:To:From:Subject:From;
-	b=R8FLRFIOkeEqWLM0qGxk1TMx33QTgiyB31DwToRXn21pucDr1u4sisUNZFQQTveX3
-	 PXg3i//gmUKPfhFuYDtIvMCPtTCZ9uxYNedBHqmxWm3O83Mk+DxeIzAPh6iAi9HSc9
-	 6YzoGmJKjGOST6yGW+QrBkEndiIUXUdG5W8GrRfs=
-Date: Wed, 29 Apr 2026 05:52:07 -0700
+	b=ZzFqkVPNK9fgft4LRuooUYMGzk9JRbWs5Ljro8RfJVCOZmNfi4WlwA6kxoXIJf0WW
+	 UtFDCMyfj76mMqO8bapLm/LfNI4hk7jxSnDW0MPdR9Xr2goM7KcUBAFBuLbI2oMoI3
+	 TyTeECjeNJBXqf4GYJw953QfuMKP7trGw5V2xqU8=
+Date: Wed, 29 Apr 2026 05:52:09 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-stat-use-damon_set_region_system_rams_default.patch added to mm-new branch
-Message-Id: <20260429125207.8F115C2BCC9@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring.patch added to mm-new branch
+Message-Id: <20260429125209.AEBDBC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/stat: use damon_set_region_system_rams_default()
+     Subject: Docs/admin-guide/mm/damon/reclaim: update for entire memory monitoring
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-stat-use-damon_set_region_system_rams_default.patch
+     docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-stat-use-damon_set_region_system_rams_default.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/stat: use damon_set_region_system_rams_default()
-Date: Tue, 28 Apr 2026 21:12:27 -0700
+Subject: Docs/admin-guide/mm/damon/reclaim: update for entire memory monitoring
+Date: Tue, 28 Apr 2026 21:12:28 -0700
 
-damon_stat_set_moniotirng_region() is nearly a duplicate of the core
-function, damon_set_region_system_rams_default().  Use the core
-implementation.
+Update DAMON_RECLAIM usage document for the changed default monitoring
+target region selection.
 
-Link: https://lore.kernel.org/20260429041232.90257-6-sj@kernel.org
+Link: https://lore.kernel.org/20260429041232.90257-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -90,83 +89,31 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/stat.c |   53 ++--------------------------------------------
- 1 file changed, 3 insertions(+), 50 deletions(-)
+ Documentation/admin-guide/mm/damon/reclaim.rst |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/damon/stat.c~mm-damon-stat-use-damon_set_region_system_rams_default
-+++ a/mm/damon/stat.c
-@@ -148,59 +148,12 @@ static int damon_stat_damon_call_fn(void
- 	return 0;
- }
+--- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring
++++ a/Documentation/admin-guide/mm/damon/reclaim.rst
+@@ -229,7 +229,8 @@ Start of target memory region in physica
  
--struct damon_stat_system_ram_range_walk_arg {
--	bool walked;
--	struct resource res;
--};
--
--static int damon_stat_system_ram_walk_fn(struct resource *res, void *arg)
--{
--	struct damon_stat_system_ram_range_walk_arg *a = arg;
--
--	if (!a->walked) {
--		a->walked = true;
--		a->res.start = res->start;
--	}
--	a->res.end = res->end;
--	return 0;
--}
--
--static unsigned long damon_stat_res_to_core_addr(resource_size_t ra,
--		unsigned long addr_unit)
--{
--	/*
--	 * Use div_u64() for avoiding linking errors related with __udivdi3,
--	 * __aeabi_uldivmod, or similar problems.  This should also improve the
--	 * performance optimization (read div_u64() comment for the detail).
--	 */
--	if (sizeof(ra) == 8 && sizeof(addr_unit) == 4)
--		return div_u64(ra, addr_unit);
--	return ra / addr_unit;
--}
--
--static int damon_stat_set_monitoring_region(struct damon_target *t,
--		unsigned long addr_unit, unsigned long min_region_sz)
--{
--	struct damon_addr_range addr_range;
--	struct damon_stat_system_ram_range_walk_arg arg = {};
--
--	walk_system_ram_res(0, -1, &arg, damon_stat_system_ram_walk_fn);
--	if (!arg.walked)
--		return -EINVAL;
--	addr_range.start = damon_stat_res_to_core_addr(
--			arg.res.start, addr_unit);
--	addr_range.end = damon_stat_res_to_core_addr(
--			arg.res.end + 1, addr_unit);
--	if (addr_range.end <= addr_range.start)
--		return -EINVAL;
--	return damon_set_regions(t, &addr_range, 1, min_region_sz);
--}
--
- static struct damon_ctx *damon_stat_build_ctx(void)
- {
- 	struct damon_ctx *ctx;
- 	struct damon_attrs attrs;
- 	struct damon_target *target;
-+	unsigned long start = 0, end = 0;
+ The start physical address of memory region that DAMON_RECLAIM will do work
+ against.  That is, DAMON_RECLAIM will find cold memory regions in this region
+-and reclaims.  By default, biggest System RAM is used as the region.
++and reclaims.  By default, the system's entire physical memory is used as the
++region.
  
- 	ctx = damon_new_ctx();
- 	if (!ctx)
-@@ -230,8 +183,8 @@ static struct damon_ctx *damon_stat_buil
- 	if (!target)
- 		goto free_out;
- 	damon_add_target(ctx, target);
--	if (damon_stat_set_monitoring_region(target, ctx->addr_unit,
--				ctx->min_region_sz))
-+	if (damon_set_region_system_rams_default(target, &start, &end,
-+				ctx->addr_unit, ctx->min_region_sz))
- 		goto free_out;
- 	return ctx;
- free_out:
+ monitor_region_end
+ ------------------
+@@ -238,7 +239,8 @@ End of target memory region in physical
+ 
+ The end physical address of memory region that DAMON_RECLAIM will do work
+ against.  That is, DAMON_RECLAIM will find cold memory regions in this region
+-and reclaims.  By default, biggest System RAM is used as the region.
++and reclaims.  By default, the system's entire physical memory is used as the
++region.
+ 
+ addr_unit
+ ---------
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
