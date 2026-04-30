@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A2F03D9DC7;
-	Thu, 30 Apr 2026 13:19:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4374342E019
+	for <mm-commits@vger.kernel.org>; Thu, 30 Apr 2026 14:43:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777555198; cv=none; b=sc2h+aQlHsveJtEv7anG0ghW/eL1sV07jeSreHm0R2Eiw0gFrwEIMK3C2iaTNR9Q891McsLQNUkZ1bacpJVh+/EpooumRAtDBpzH0SG1ollAzHdDR8JotEksHVcr5ZtRjQL41abVWa9XezkUBFt4uaLVfArarh/5rfOy3520Eqo=
+	t=1777560190; cv=none; b=IPhGoRqIDD6Rm3dhwZx9EAh2+Zk6oU4IyNwkBLtTA+MWiNVmV0IoBqYyDbWHqdiaau7xM9ymSkxGahk2MJrIwzSeVTaLErWRZbH4S3O62PpoAf9XJK7QS2wtfureSXJANHHNNrRYxXsA9O8G2wZ//L63nyTzKQDHw/W3ISd0riI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777555198; c=relaxed/simple;
-	bh=IBpDiy93+weWWApVOVB+pQcwXsPcT2CofYBIjjvyjhs=;
-	h=Date:To:From:Subject:Message-Id; b=thg5uJzRpLMP/g9jjFbQy9B6ZmD8tuhwxpK8BlP5vxaG5GBuWZYsaMZ2Lqe2NWE/Q+mlsjsM4EYzwkklc67CQ+qh0JcxpYxv41qLBxv9pqRPJWgjG6znCIpp8Xe6YPxZ7HI1/GwLunXCuec8PbgEcDUZ7S61ajBOScAAk7BMQXk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SBWki/Ya; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777560190; c=relaxed/simple;
+	bh=TL8XCufbe7k31T2ImMhvIoKOEygcLSt90VFmrp21bUw=;
+	h=Date:To:From:Subject:Message-Id; b=Qv+UYxVdnf+A7TiLuOjhZQwbkVUS+8lnvTD9KcDJgdHa2Tw9jxDlkt7qXLqc4dHnKgGv9zLYSuCxb7ZTZkX31i8a2HNL+OlYwANAdjTFXc7HVPGrTQqw6ZnTufEXgnqPywAOf6I5aLVMxiFx6baI7pklLNDbS7A3K+RmtrrfgB0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vu5kbgBF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SBWki/Ya"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94351C2BCB3;
-	Thu, 30 Apr 2026 13:19:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vu5kbgBF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B806CC2BCB3;
+	Thu, 30 Apr 2026 14:43:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777555197;
-	bh=IBpDiy93+weWWApVOVB+pQcwXsPcT2CofYBIjjvyjhs=;
+	s=korg; t=1777560189;
+	bh=TL8XCufbe7k31T2ImMhvIoKOEygcLSt90VFmrp21bUw=;
 	h=Date:To:From:Subject:From;
-	b=SBWki/YagYUAYU4Av/zwqOo/+7OGLvRtLJsvR+LmuHnabAfLrlGLEwGHiWp4ouGco
-	 llLjJk0JDGnFARg7uxp/WX8SuxU0itViscgFVXiaioHFwqKMH+bTNdkS5TtNx+25wh
-	 rb6+CYPbzGkC0Mwaz5JmUjVJdVWCC90ch8fsyQgE=
-Date: Thu, 30 Apr 2026 06:19:56 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,osalvador@suse.de,mhocko@suse.com,maobibo@loongson.cn,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,hughd@google.com,david@kernel.org,akpm@linux-foundation.org
+	b=Vu5kbgBFNcVEowy4uBDv1wA674otClEwGRFfM3kieGNbsiTzA4r/ImJpaRTfJDT5b
+	 AXY4uTL4SfVFObI7p4FKSiBIpwgK3RK92ZrI5TrfcpLPFn2GYtp4fpZl9a0rBj0TCA
+	 TKfv3dUOEkFqdCfMh3a76ZcJ2XU/LZF/CRrN2Bdc=
+Date: Thu, 30 Apr 2026 07:43:09 -0700
+To: mm-commits@vger.kernel.org,timmurray@google.com,surenb@google.com,shakeel.butt@linux.dev,rientjes@google.com,mhocko@suse.com,hca@linux.ibm.com,david@kernel.org,brauner@kernel.org,minchan@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-__vm_normal_page-to-handle-missing-support-for-pmd_special-pud_special.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260430131957.94351C2BCB3@smtp.kernel.org>
+Subject: + mm-process_mrelease-introduce-process_mrelease_reap_kill-flag.patch added to mm-new branch
+Message-Id: <20260430144309.B806CC2BCB3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: fix __vm_normal_page() to handle missing support for pmd_special()/pud_special()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-fix-__vm_normal_page-to-handle-missing-support-for-pmd_special-pud_special.patch
+     Subject: mm: process_mrelease: introduce PROCESS_MRELEASE_REAP_KILL flag
+has been added to the -mm mm-new branch.  Its filename is
+     mm-process_mrelease-introduce-process_mrelease_reap_kill-flag.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-__vm_normal_page-to-handle-missing-support-for-pmd_special-pud_special.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-process_mrelease-introduce-process_mrelease_reap_kill-flag.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,112 +69,145 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm: fix __vm_normal_page() to handle missing support for pmd_special()/pud_special()
-Date: Thu, 30 Apr 2026 13:31:22 +0200
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: process_mrelease: introduce PROCESS_MRELEASE_REAP_KILL flag
+Date: Wed, 29 Apr 2026 14:13:59 -0700
 
-On x86 32-bit with THP enabled, zap_huge_pmd() is seen to generate a
-"WARNING: mm/memory.c:735 at __vm_normal_page+0x6a/0x7d", from the
-VM_WARN_ON_ONCE(is_zero_pfn(pfn) || is_huge_zero_pfn(pfn)); followed by
-"BUG: Bad rss-counter state"s, then later "BUG: Bad page state"s when
-reclaim gets to call shrink_huge_zero_folio_scan().
+Currently, process_mrelease() requires userspace to send a SIGKILL signal
+prior to invocation.  This separation introduces a scheduling race window
+where the victim task may receive the signal and enter the exit path
+before the reaper can invoke process_mrelease().
 
-It's as if the _PAGE_SPECIAL bit never got set in the huge_zero pmd: and
-indeed, whereas pte_special() and pte_mkspecial() are subject to a
-dedicated CONFIG_ARCH_HAS_PTE_SPECIAL, pmd_special() and pmd_mkspecial()
-are subject to CONFIG_ARCH_SUPPORTS_PMD_PFNMAP, which is never enabled on
-any 32-bit architecture.
+When the victim enters the exit path (do_exit -> exit_mm), it clears its
+task->mm immediately.  This causes process_mrelease() to fail with -ESRCH,
+leaving the actual address space teardown (exit_mmap) to be deferred until
+the mm's reference count drops to zero.  In the field (e.g., Android),
+arbitrary reference counts (reading /proc/<pid>/cmdline, or various other
+remote VM accesses) frequently delay this teardown indefinitely, defeating
+the purpose of expedited reclamation.
 
-While the problem was exposed through commit d80a9cb1a64a
-("mm/huge_memory: add and use normal_or_softleaf_folio_pmd()"), it was an
-oversight in commit af38538801c6 ("mm/memory: factor out common code from
-vm_normal_page_*()") and would result in other problems:
-* huge zero folio accounted in smaps, pagemap (PAGE_IS_FILE) and
-  numamaps as file-backed THP
-* folio_walk_start() returning the folio even without FW_ZEROPAGE set.
-  Callers seem to tolerate that, though.
+In Android's LMKD scenarios, this delay keeps memory pressure high, forcing
+the system to unnecessarily kill additional innocent background apps before
+the memory from the first victim is recovered.
 
-... and triggering the VM_WARN_ON_ONE(), although never reported so far.
+This patch introduces the PROCESS_MRELEASE_REAP_KILL UAPI flag to support
+an integrated auto-kill mode. When specified, process_mrelease() directly
+injects a SIGKILL into the target task after finding its mm.
 
-To fix it, teach vm_normal_page_pmd()/vm_normal_page_pud() to consider
-whether pmd_special/pud_special is actually implemented.
+To solve the race condition, we grab the mm reference via mmgrab() before
+sending the SIGKILL. If the user passed PROCESS_MRELEASE_REAP_KILL, we assume
+it will free its memory and proceed with reaping, making the logic as simple
+as reap = reap_kill || task_will_free_mem(p).
 
-Link: https://lore.kernel.org/20260430-pmd_special-v1-1-dbcbcfd72c20@kernel.org
-Fixes: af38538801c6 ("mm/memory: factor out common code from vm_normal_page_*()")
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Reported-by: Hugh Dickins <hughd@google.com>
-Closes: https://lore.kernel.org/r/74a75b59-2e13-3985-ee99-d5521f39df2a@google.com
-Reported-by: Bibo Mao <maobibo@loongson.cn>
-Closes: https://lore.kernel.org/r/20260430041121.2839350-1-maobibo@loongson.cn
-Debugged-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
-Tested-by: Bibo Mao <maobibo@loongson.cn>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+To handle shared address spaces safely in the auto-kill mode, we bail out
+immediately if the mm is marked with MMF_MULTIPROCESS when
+PROCESS_MRELEASE_REAP_KILL is specified. This protects existing users of
+process_mrelease() from behavior changes while preventing unsafe reaping of
+shared memory.
+
+This policy differs from the global OOM killer, which kills all processes
+sharing the same mm to guarantee memory reclamation at all costs (preventing
+system hangs). However, process_mrelease() is invoked by userspace policy.
+If it fails due to sharing, userspace can simply adapt and select another
+victim process (such as another background app in Android case) to release
+memory. We do not need to force success or affect processes that were not
+targeted.
+
+Fundamentally, this allows process_mrelease() to trigger targeted memory
+reclaim (via oom_reaper infrastructure) quickly, even if the victim is
+not yet in the exit path, while reusing existing race handling between
+reaper and exit_mmap.
+
+Link: https://lore.kernel.org/20260429211359.3829683-1-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Tim Murray <timmurray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+ include/uapi/linux/mman.h |    4 ++++
+ mm/oom_kill.c             |   27 ++++++++++++++++++++-------
+ 2 files changed, 24 insertions(+), 7 deletions(-)
 
---- a/mm/memory.c~mm-fix-__vm_normal_page-to-handle-missing-support-for-pmd_special-pud_special
-+++ a/mm/memory.c
-@@ -612,6 +612,21 @@ static void print_bad_page_map(struct vm
- 	dump_stack();
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
- }
-+
-+static inline bool pgtable_level_has_pxx_special(enum pgtable_level level)
-+{
-+	switch (level) {
-+	case PGTABLE_LEVEL_PTE:
-+		return IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL);
-+	case PGTABLE_LEVEL_PMD:
-+		return IS_ENABLED(CONFIG_ARCH_SUPPORTS_PMD_PFNMAP);
-+	case PGTABLE_LEVEL_PUD:
-+		return IS_ENABLED(CONFIG_ARCH_SUPPORTS_PUD_PFNMAP);
-+	default:
-+		return false;
-+	}
-+}
-+
- #define print_bad_pte(vma, addr, pte, page) \
- 	print_bad_page_map(vma, addr, pte_val(pte), page, PGTABLE_LEVEL_PTE)
+--- a/include/uapi/linux/mman.h~mm-process_mrelease-introduce-process_mrelease_reap_kill-flag
++++ a/include/uapi/linux/mman.h
+@@ -56,4 +56,8 @@ struct cachestat {
+ 	__u64 nr_recently_evicted;
+ };
  
-@@ -684,7 +699,7 @@ static inline struct page *__vm_normal_p
- 		unsigned long addr, unsigned long pfn, bool special,
- 		unsigned long long entry, enum pgtable_level level)
- {
--	if (IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL)) {
-+	if (pgtable_level_has_pxx_special(level)) {
- 		if (unlikely(special)) {
- #ifdef CONFIG_FIND_NORMAL_PAGE
- 			if (vma->vm_ops && vma->vm_ops->find_normal_page)
-@@ -699,8 +714,9 @@ static inline struct page *__vm_normal_p
- 			return NULL;
- 		}
- 		/*
--		 * With CONFIG_ARCH_HAS_PTE_SPECIAL, any special page table
--		 * mappings (incl. shared zero folios) are marked accordingly.
-+		 * With working pte_special()/pmd_special()..., any special page
-+		 * table mappings (incl. shared zero folios) are marked
-+		 * accordingly.
- 		 */
- 	} else {
- 		if (unlikely(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))) {
++/* Flags for process_mrelease */
++#define PROCESS_MRELEASE_REAP_KILL	(1 << 0)
++#define PROCESS_MRELEASE_VALID_FLAGS	(PROCESS_MRELEASE_REAP_KILL)
++
+ #endif /* _UAPI_LINUX_MMAN_H */
+--- a/mm/oom_kill.c~mm-process_mrelease-introduce-process_mrelease_reap_kill-flag
++++ a/mm/oom_kill.c
+@@ -20,6 +20,7 @@
+ 
+ #include <linux/oom.h>
+ #include <linux/mm.h>
++#include <uapi/linux/mman.h>
+ #include <linux/err.h>
+ #include <linux/gfp.h>
+ #include <linux/sched.h>
+@@ -1201,9 +1202,11 @@ SYSCALL_DEFINE2(process_mrelease, int, p
+ 	unsigned int f_flags;
+ 	bool reap = false;
+ 	long ret = 0;
++	bool reap_kill;
+ 
+-	if (flags)
++	if (flags & ~PROCESS_MRELEASE_VALID_FLAGS)
+ 		return -EINVAL;
++	reap_kill = !!(flags & PROCESS_MRELEASE_REAP_KILL);
+ 
+ 	task = pidfd_get_task(pidfd, &f_flags);
+ 	if (IS_ERR(task))
+@@ -1220,19 +1223,29 @@ SYSCALL_DEFINE2(process_mrelease, int, p
+ 	}
+ 
+ 	mm = p->mm;
+-	mmgrab(mm);
++	if (reap_kill && mm_flags_test(MMF_MULTIPROCESS, mm)) {
++		ret = -EINVAL;
++		task_unlock(p);
++		goto put_task;
++	}
+ 
+-	if (task_will_free_mem(p))
+-		reap = true;
+-	else {
++	reap = reap_kill || task_will_free_mem(p);
++	if (!reap) {
+ 		/* Error only if the work has not been done already */
+ 		if (!mm_flags_test(MMF_OOM_SKIP, mm))
+ 			ret = -EINVAL;
++		task_unlock(p);
++		goto put_task;
+ 	}
++
++	mmgrab(mm);
+ 	task_unlock(p);
+ 
+-	if (!reap)
+-		goto drop_mm;
++	if (reap_kill) {
++		ret = kill_pid(task_tgid(task), SIGKILL, 0);
++		if (ret)
++			goto drop_mm;
++	}
+ 
+ 	if (mmap_read_lock_killable(mm)) {
+ 		ret = -EINTR;
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free.patch
-mm-fix-__vm_normal_page-to-handle-missing-support-for-pmd_special-pud_special.patch
-sh-use-folio_mapped-instead-of-page_mapped-in-sh4_flush_cache_page.patch
-bpf-arena-use-page_ref_count-instead-of-page_mapped-in-arena_free_pages.patch
-mm-remove-page_mapped.patch
+mm-process_mrelease-introduce-process_mrelease_reap_kill-flag.patch
 
