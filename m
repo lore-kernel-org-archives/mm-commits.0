@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64F51413246
-	for <mm-commits@vger.kernel.org>; Thu, 30 Apr 2026 13:13:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A2F03D9DC7;
+	Thu, 30 Apr 2026 13:19:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777554834; cv=none; b=qmKnZm8lVRXJ5kA6epv+hrjwvI1qNDBIEknuapysaRMFtjX4Ss5ia/me9v1GieDtcn0bB4UQ7fMDYxdDEm1MCJRM08Sl9jPvzGpNvuV6ohA3A0yj47xYcsoBOjfic/P7sBQQ8xkLYzH1n8OAIJCrVV1Kmw+HvO/xJeQOA7AUQKU=
+	t=1777555198; cv=none; b=sc2h+aQlHsveJtEv7anG0ghW/eL1sV07jeSreHm0R2Eiw0gFrwEIMK3C2iaTNR9Q891McsLQNUkZ1bacpJVh+/EpooumRAtDBpzH0SG1ollAzHdDR8JotEksHVcr5ZtRjQL41abVWa9XezkUBFt4uaLVfArarh/5rfOy3520Eqo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777554834; c=relaxed/simple;
-	bh=q6q+VtRGVwL12dR9oynXSzNDuNZ/Iyn4MDMvBXcndo8=;
-	h=Date:To:From:Subject:Message-Id; b=brSKtLsiQrZdOUJBjdhjpPTYkWtSuxiuLSazPg9NJQhnGPOU8XfAX9yqanYYwDbxZZF1q69fVscZ1Qlqfv1NfPgCKOgxeS2ZqVdBAOQ9zXPoHra8GkBEApIvrQ0jM7MXzDqnICgY1YOdxgZXJz8LBLcKE/Qqo9ikZ1G8NCmOvZg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q50mo5i4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777555198; c=relaxed/simple;
+	bh=IBpDiy93+weWWApVOVB+pQcwXsPcT2CofYBIjjvyjhs=;
+	h=Date:To:From:Subject:Message-Id; b=thg5uJzRpLMP/g9jjFbQy9B6ZmD8tuhwxpK8BlP5vxaG5GBuWZYsaMZ2Lqe2NWE/Q+mlsjsM4EYzwkklc67CQ+qh0JcxpYxv41qLBxv9pqRPJWgjG6znCIpp8Xe6YPxZ7HI1/GwLunXCuec8PbgEcDUZ7S61ajBOScAAk7BMQXk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SBWki/Ya; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q50mo5i4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1ABC3C2BCB8;
-	Thu, 30 Apr 2026 13:13:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SBWki/Ya"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 94351C2BCB3;
+	Thu, 30 Apr 2026 13:19:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777554833;
-	bh=q6q+VtRGVwL12dR9oynXSzNDuNZ/Iyn4MDMvBXcndo8=;
+	s=korg; t=1777555197;
+	bh=IBpDiy93+weWWApVOVB+pQcwXsPcT2CofYBIjjvyjhs=;
 	h=Date:To:From:Subject:From;
-	b=q50mo5i4jSLsPI2RyYTG8hsDMqbKSnlhAACNRo53Zz8DzaKqVWrbRc7yRL/IdWiQn
-	 wvpilG2aUkKs6KMciRxD2XJerKEbGsjHJ4vFHfxRQ+PTtTsHx3wXTJlsdWQmp7WwI+
-	 kHDAEV4qjoYfwpIuKrNWUchfUFF6kJTWddgxsZeY=
-Date: Thu, 30 Apr 2026 06:13:52 -0700
-To: mm-commits@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,zhengqi.arch@bytedance.com,akpm@linux-foundation.org
+	b=SBWki/YagYUAYU4Av/zwqOo/+7OGLvRtLJsvR+LmuHnabAfLrlGLEwGHiWp4ouGco
+	 llLjJk0JDGnFARg7uxp/WX8SuxU0itViscgFVXiaioHFwqKMH+bTNdkS5TtNx+25wh
+	 rb6+CYPbzGkC0Mwaz5JmUjVJdVWCC90ch8fsyQgE=
+Date: Thu, 30 Apr 2026 06:19:56 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,osalvador@suse.de,mhocko@suse.com,maobibo@loongson.cn,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,hughd@google.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end.patch removed from -mm tree
-Message-Id: <20260430131353.1ABC3C2BCB8@smtp.kernel.org>
+Subject: + mm-fix-__vm_normal_page-to-handle-missing-support-for-pmd_special-pud_special.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260430131957.94351C2BCB3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,173 +34,136 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: memcontrol: fix rcu unbalance in get_non_dying_memcg_end()
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end.patch
+The patch titled
+     Subject: mm: fix __vm_normal_page() to handle missing support for pmd_special()/pud_special()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-fix-__vm_normal_page-to-handle-missing-support-for-pmd_special-pud_special.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-fix-__vm_normal_page-to-handle-missing-support-for-pmd_special-pud_special.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: memcontrol: fix rcu unbalance in get_non_dying_memcg_end()
-Date: Wed, 29 Apr 2026 15:31:05 +0800
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: mm: fix __vm_normal_page() to handle missing support for pmd_special()/pud_special()
+Date: Thu, 30 Apr 2026 13:31:22 +0200
 
-Currently, get_non_dying_memcg_start() and get_non_dying_memcg_end() both
-evaluate cgroup_subsys_on_dfl(memory_cgrp_subsys) independently to
-determine whether to acquire or release the RCU read lock.
+On x86 32-bit with THP enabled, zap_huge_pmd() is seen to generate a
+"WARNING: mm/memory.c:735 at __vm_normal_page+0x6a/0x7d", from the
+VM_WARN_ON_ONCE(is_zero_pfn(pfn) || is_huge_zero_pfn(pfn)); followed by
+"BUG: Bad rss-counter state"s, then later "BUG: Bad page state"s when
+reclaim gets to call shrink_huge_zero_folio_scan().
 
-However, the result of cgroup_subsys_on_dfl() can change dynamically at
-runtime due to cgroup hierarchy rebinding (e.g., when the memory
-controller is moved between cgroup v1 and v2 hierarchies).  This can cause
-the following warning:
+It's as if the _PAGE_SPECIAL bit never got set in the huge_zero pmd: and
+indeed, whereas pte_special() and pte_mkspecial() are subject to a
+dedicated CONFIG_ARCH_HAS_PTE_SPECIAL, pmd_special() and pmd_mkspecial()
+are subject to CONFIG_ARCH_SUPPORTS_PMD_PFNMAP, which is never enabled on
+any 32-bit architecture.
 
- =====================================
- WARNING: bad unlock balance detected!
- 7.0.0-next-20260420+ #83 Tainted: G        W
- -------------------------------------
- memcg-repro/270 is trying to release lock (rcu_read_lock) at:
- [<ffffffff815f57f7>] rcu_read_unlock+0x17/0x60
- but there are no more locks to release!
+While the problem was exposed through commit d80a9cb1a64a
+("mm/huge_memory: add and use normal_or_softleaf_folio_pmd()"), it was an
+oversight in commit af38538801c6 ("mm/memory: factor out common code from
+vm_normal_page_*()") and would result in other problems:
+* huge zero folio accounted in smaps, pagemap (PAGE_IS_FILE) and
+  numamaps as file-backed THP
+* folio_walk_start() returning the folio even without FW_ZEROPAGE set.
+  Callers seem to tolerate that, though.
 
- other info that might help us debug this:
- 1 lock held by memcg-repro/270:
-  #0: ffff888102fa2088 (vm_lock){++++}-{0:0}, at: do_user_addr_fault+0x285/0x880
+... and triggering the VM_WARN_ON_ONE(), although never reported so far.
 
- stack backtrace:
- CPU: 0 UID: 0 PID: 270 Comm: memcg-repro Tainted: G        W           7.0.0-next-20260420+ #
- Tainted: [W]=WARN
- Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.12.0-1 04/01/2014
- Call Trace:
-  <TASK>
-  ? rcu_read_unlock+0x17/0x60
-  dump_stack_lvl+0x77/0xb0
-  print_unlock_imbalance_bug+0xe0/0xf0
-  ? rcu_read_unlock+0x17/0x60
-  lock_release+0x21d/0x2a0
-  rcu_read_unlock+0x1c/0x60
-  do_pte_missing+0x233/0xb40
-  __handle_mm_fault+0x80e/0xcd0
-  handle_mm_fault+0x146/0x310
-  do_user_addr_fault+0x303/0x880
-  exc_page_fault+0x9b/0x270
-  asm_exc_page_fault+0x26/0x30
- RIP: 0033:0x5590e4eb41ea
- Code: 61 cc 66 0f 6f e0 66 0f 61 c2 66 0f db cd 66 0f 69 e2 66 0f 6f d0 66 0f 69 d4 66 0f 61 0
- RSP: 002b:00007ffcad25f030 EFLAGS: 00010202
- RAX: 00005590e4eb8010 RBX: 00007ffcad260f7d RCX: 00007f73c474d44d
- RDX: 00005590e4eb80a0 RSI: 00005590e4eb503c RDI: 000000000000000f
- RBP: 00005590e4eb70a0 R08: 0000000000000000 R09: 00007f73c483a680
- R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
- R13: 00007ffcad25f180 R14: 00005590e4eb6dd8 R15: 00007f73c4869020
-  </TASK>
- ------------[ cut here ]------------
+To fix it, teach vm_normal_page_pmd()/vm_normal_page_pud() to consider
+whether pmd_special/pud_special is actually implemented.
 
-Fix this by explicitly tracking the RCU lock state, ensuring that
-rcu_read_unlock() in get_non_dying_memcg_end() is strictly paired with the
-lock acquisition, regardless of any runtime rebinding events.
-
-Link: https://lore.kernel.org/20260429073105.44472-1-qi.zheng@linux.dev
-Fixes: 8285917d6f38 ("mm: memcontrol: prepare for reparenting non-hierarchical stats")
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Link: https://lore.kernel.org/20260430-pmd_special-v1-1-dbcbcfd72c20@kernel.org
+Fixes: af38538801c6 ("mm/memory: factor out common code from vm_normal_page_*()")
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Reported-by: Hugh Dickins <hughd@google.com>
+Closes: https://lore.kernel.org/r/74a75b59-2e13-3985-ee99-d5521f39df2a@google.com
+Reported-by: Bibo Mao <maobibo@loongson.cn>
+Closes: https://lore.kernel.org/r/20260430041121.2839350-1-maobibo@loongson.cn
+Debugged-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Tested-by: Bibo Mao <maobibo@loongson.cn>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   29 +++++++++++++++++++----------
- 1 file changed, 19 insertions(+), 10 deletions(-)
+ mm/memory.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-fix-rcu-unbalance-in-get_non_dying_memcg_end
-+++ a/mm/memcontrol.c
-@@ -805,12 +805,17 @@ static long memcg_state_val_in_pages(int
-  * Used in mod_memcg_state() and mod_memcg_lruvec_state() to avoid race with
-  * reparenting of non-hierarchical state_locals.
-  */
--static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg)
-+static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg,
-+							   bool *rcu_locked)
- {
--	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+	/* Rebinding can cause this value to be changed at runtime */
-+	if (cgroup_subsys_on_dfl(memory_cgrp_subsys)) {
-+		*rcu_locked = false;
- 		return memcg;
-+	}
- 
- 	rcu_read_lock();
-+	*rcu_locked = true;
- 
- 	while (memcg_is_dying(memcg))
- 		memcg = parent_mem_cgroup(memcg);
-@@ -818,20 +823,21 @@ static inline struct mem_cgroup *get_non
- 	return memcg;
+--- a/mm/memory.c~mm-fix-__vm_normal_page-to-handle-missing-support-for-pmd_special-pud_special
++++ a/mm/memory.c
+@@ -612,6 +612,21 @@ static void print_bad_page_map(struct vm
+ 	dump_stack();
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
  }
- 
--static inline void get_non_dying_memcg_end(void)
-+static inline void get_non_dying_memcg_end(bool rcu_locked)
- {
--	if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+	if (!rcu_locked)
- 		return;
- 
- 	rcu_read_unlock();
- }
- #else
--static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg)
-+static inline struct mem_cgroup *get_non_dying_memcg_start(struct mem_cgroup *memcg,
-+							   bool *rcu_locked)
- {
- 	return memcg;
- }
- 
--static inline void get_non_dying_memcg_end(void)
-+static inline void get_non_dying_memcg_end(bool rcu_locked)
- {
- }
- #endif
-@@ -865,12 +871,14 @@ static void __mod_memcg_state(struct mem
- void mod_memcg_state(struct mem_cgroup *memcg, enum memcg_stat_item idx,
- 		       int val)
- {
-+	bool rcu_locked = false;
 +
- 	if (mem_cgroup_disabled())
- 		return;
++static inline bool pgtable_level_has_pxx_special(enum pgtable_level level)
++{
++	switch (level) {
++	case PGTABLE_LEVEL_PTE:
++		return IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL);
++	case PGTABLE_LEVEL_PMD:
++		return IS_ENABLED(CONFIG_ARCH_SUPPORTS_PMD_PFNMAP);
++	case PGTABLE_LEVEL_PUD:
++		return IS_ENABLED(CONFIG_ARCH_SUPPORTS_PUD_PFNMAP);
++	default:
++		return false;
++	}
++}
++
+ #define print_bad_pte(vma, addr, pte, page) \
+ 	print_bad_page_map(vma, addr, pte_val(pte), page, PGTABLE_LEVEL_PTE)
  
--	memcg = get_non_dying_memcg_start(memcg);
-+	memcg = get_non_dying_memcg_start(memcg, &rcu_locked);
- 	__mod_memcg_state(memcg, idx, val);
--	get_non_dying_memcg_end();
-+	get_non_dying_memcg_end(rcu_locked);
- }
- 
- #ifdef CONFIG_MEMCG_V1
-@@ -933,14 +941,15 @@ static void mod_memcg_lruvec_state(struc
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	struct mem_cgroup_per_node *pn;
- 	struct mem_cgroup *memcg;
-+	bool rcu_locked = false;
- 
- 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
--	memcg = get_non_dying_memcg_start(pn->memcg);
-+	memcg = get_non_dying_memcg_start(pn->memcg, &rcu_locked);
- 	pn = memcg->nodeinfo[pgdat->node_id];
- 
- 	__mod_memcg_lruvec_state(pn, idx, val);
- 
--	get_non_dying_memcg_end();
-+	get_non_dying_memcg_end(rcu_locked);
- }
- 
- /**
+@@ -684,7 +699,7 @@ static inline struct page *__vm_normal_p
+ 		unsigned long addr, unsigned long pfn, bool special,
+ 		unsigned long long entry, enum pgtable_level level)
+ {
+-	if (IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL)) {
++	if (pgtable_level_has_pxx_special(level)) {
+ 		if (unlikely(special)) {
+ #ifdef CONFIG_FIND_NORMAL_PAGE
+ 			if (vma->vm_ops && vma->vm_ops->find_normal_page)
+@@ -699,8 +714,9 @@ static inline struct page *__vm_normal_p
+ 			return NULL;
+ 		}
+ 		/*
+-		 * With CONFIG_ARCH_HAS_PTE_SPECIAL, any special page table
+-		 * mappings (incl. shared zero folios) are marked accordingly.
++		 * With working pte_special()/pmd_special()..., any special page
++		 * table mappings (incl. shared zero folios) are marked
++		 * accordingly.
+ 		 */
+ 	} else {
+ 		if (unlikely(vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))) {
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from david@kernel.org are
 
+mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free.patch
+mm-fix-__vm_normal_page-to-handle-missing-support-for-pmd_special-pud_special.patch
+sh-use-folio_mapped-instead-of-page_mapped-in-sh4_flush_cache_page.patch
+bpf-arena-use-page_ref_count-instead-of-page_mapped-in-arena_free_pages.patch
+mm-remove-page_mapped.patch
 
