@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C771C28002B
-	for <mm-commits@vger.kernel.org>; Fri,  1 May 2026 12:35:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D695D3A4F26
+	for <mm-commits@vger.kernel.org>; Fri,  1 May 2026 12:35:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777638947; cv=none; b=EbkV1XqFeFmabCVVQV8a1N6jKhqlH97AJANLA2iZNGa/6IDb5zpm2A/4Pf8G2ZVQG5axUohwikjs3ZWr31D7fBdKJJSLVVAIgU/9F+b/+AR0vLDjlLZABTQxLTUiZqRJS8ALLp2rf2trUMuqFwuyDPn+Lu7S62SuENXV4aRlBVY=
+	t=1777638949; cv=none; b=dyIxQ4fuj1eBsvWAXeulVSAGu/POEcGkW7ih+gMZGu0XPoSsmLWi5LyGwgnH67cc2hFpPDCEbtDstb9/1AOGCfBPMFsIehkTJP8+piI69xcGOmU84jDno1n6CNdPQFGWlk/dC1YLJXOhrOlDh0O9LJqIxZXmXhXY4/Jc47GCVVg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777638947; c=relaxed/simple;
-	bh=j+92rW7NjUUsbjZr1laAgX2gTxDTfwM/iDXhKJL51Qo=;
-	h=Date:To:From:Subject:Message-Id; b=T8TvGMafpiNcvdj1OWQS260sEbKmre8OPm52lH9Uu0e+3Pk+w3uHGiKB/+dzSfa+RNyCcZ1o5TnNgpKQXQpPmejLAY8L752t0DZ0tO+BIWQ4ABXyEpH21WERK6keNh94i+2u5hYPaJ+vuS2IHjtmWF02TLAps2jn+aiBF/gxD5Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=glAk2rSm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777638949; c=relaxed/simple;
+	bh=xvSVvF9WrgDkC4Y95og+EY5X2F5L2VauJZ6etEhWdc4=;
+	h=Date:To:From:Subject:Message-Id; b=E1yuvGiARzQjEXl6C42LG493WWpJNd2KOGUYKBdCRTaWp+Bvi+PzGJgXo6Ont7yafkReiBIcObvAAIw7ujR5OpMSJdgYO4+sVE/Dlovr+46VcBVaHrbzAZ0tf+N9DQS1b9kXbDoItSXtsDIHNvV9v88qPoapgXmlamR15Znjxlc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TBwyANlM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="glAk2rSm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 779FCC2BCB4;
-	Fri,  1 May 2026 12:35:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TBwyANlM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9731AC2BCB7;
+	Fri,  1 May 2026 12:35:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777638947;
-	bh=j+92rW7NjUUsbjZr1laAgX2gTxDTfwM/iDXhKJL51Qo=;
+	s=korg; t=1777638949;
+	bh=xvSVvF9WrgDkC4Y95og+EY5X2F5L2VauJZ6etEhWdc4=;
 	h=Date:To:From:Subject:From;
-	b=glAk2rSmJx2+tvnDyMka5Wkz0lrWfwUv43aQyLHbS/upib6lbQkWeF+r28lR8OYgE
-	 CI4EO5pk2D1LdkKprU+CEU2ZkmuCJyrHibLan49I89l2zYZIb+VE54zBDU/dUV5tx5
-	 dMo2Qq8fcuJuyw1uSSx+IC1lQB6owdbJ0MyyVokg=
-Date: Fri, 01 May 2026 05:35:46 -0700
+	b=TBwyANlMd2HQMP9UDHBXWVLEcuJbacW33RZGfYFCVzWJrfYWp+5yOoySIe3rZeOCY
+	 wDx8zMq2aTiirUpVbJjh/ofRMpaDgzkGWTwBXM6bY4a9x68D82iws1X/Lkm+slkNPf
+	 bJ/vofX6DJfhAgW+AnY9XpcQh6rosUZdzIn4Gc2Y=
+Date: Fri, 01 May 2026 05:35:49 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,tj@kernel.org,shakeelb@google.com,mhocko@kernel.org,longman@redhat.com,hannes@cmpxchg.org,cl@linux.com,li.wang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-cgroup-fix-hardcoded-page-size-in-test_percpu_basic.patch added to mm-new branch
-Message-Id: <20260501123547.779FCC2BCB4@smtp.kernel.org>
+Subject: + selftests-cgroup-include-slab-in-test_percpu_basic-memory-check.patch added to mm-new branch
+Message-Id: <20260501123549.9731AC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/cgroup: fix hardcoded page size in test_percpu_basic
+     Subject: selftests/cgroup: include slab in test_percpu_basic memory check
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-cgroup-fix-hardcoded-page-size-in-test_percpu_basic.patch
+     selftests-cgroup-include-slab-in-test_percpu_basic-memory-check.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-fix-hardcoded-page-size-in-test_percpu_basic.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-cgroup-include-slab-in-test_percpu_basic-memory-check.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,40 +70,45 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Li Wang <li.wang@linux.dev>
-Subject: selftests/cgroup: fix hardcoded page size in test_percpu_basic
-Date: Fri, 1 May 2026 10:20:57 +0800
+Subject: selftests/cgroup: include slab in test_percpu_basic memory check
+Date: Fri, 1 May 2026 10:20:58 +0800
 
-Patch series "selftests/cgroup: Fix false positive failures in
-test_percpu_basic", v2.
+test_percpu_basic() currently compares memory.current against only
+memory.stat:percpu after creating 1000 child cgroups.
 
-This patch series addresses two separate issues that cause false
-positive failures in the test_percpu_basic test within the cgroup
-kmem selftests.
+Observed failure:
+  #./test_kmem
+  ok 1 test_kmem_basic
+  ok 2 test_kmem_memcg_deletion
+  ok 3 test_kmem_proc_kpagecgroup
+  ok 4 test_kmem_kernel_stacks
+  ok 5 test_kmem_dead_cgroups
+  memory.current 11530240
+  percpu 8440000
+  not ok 6 test_percpu_basic
 
-The first issue stems from a hardcoded assumption about the system
-page size, which breaks the test on architectures with larger page
-sizes.
+That assumption is too strict: child cgroup creation also allocates
+slab-backed metadata, so memory.current is expected to be larger than
+percpu alone. One visible path is:
 
-The second issue is an overly strict memory check that fails to
-account for the slab metadata allocated during cgroup creation.
+  cgroup_mkdir()
+    cgroup_create()
+      cgroup_addrm_file()
+        cgroup_add_file()
+          __kernfs_create_file()
+            __kernfs_new_node()
+              kmem_cache_zalloc()
 
+These kernfs allocations are charged as slab and show up in
+memory.stat:slab.
 
-Thi patch (of 2):
+Update the check to compare memory.current against (percpu + slab)
+within MAX_VMSTAT_ERROR, and print slab/delta in the failure message to
+improve diagnostics.
 
-MAX_VMSTAT_ERROR uses a hardcoded page size of 4096, which assumes 4K
-pages.  This causes test_percpu_basic to fail on systems where the kernel
-is configured with a larger page size, such as aarch64 systems using 16K
-or 64K pages, where the maximum permissible discrepancy between
-memory.current and percpu charges is proportionally larger.
-
-Replace the hardcoded 4096 with sysconf(_SC_PAGESIZE) to correctly derive
-the page size at runtime regardless of the underlying architecture or
-kernel configuration.
-
-Link: https://lore.kernel.org/20260501022058.18024-1-li.wang@linux.dev
-Link: https://lore.kernel.org/20260501022058.18024-2-li.wang@linux.dev
+Link: https://lore.kernel.org/20260501022058.18024-3-li.wang@linux.dev
 Signed-off-by: Li Wang <li.wang@linux.dev>
-Acked-by: Waiman Long <longman@redhat.com>
+Reviewed-by: Waiman Long <longman@redhat.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -113,20 +118,39 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/cgroup/test_kmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/cgroup/test_kmem.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/cgroup/test_kmem.c~selftests-cgroup-fix-hardcoded-page-size-in-test_percpu_basic
+--- a/tools/testing/selftests/cgroup/test_kmem.c~selftests-cgroup-include-slab-in-test_percpu_basic-memory-check
 +++ a/tools/testing/selftests/cgroup/test_kmem.c
-@@ -24,7 +24,7 @@
-  * the maximum discrepancy between charge and vmstat entries is number
-  * of cpus multiplied by 64 pages.
-  */
--#define MAX_VMSTAT_ERROR (4096 * 64 * get_nprocs())
-+#define MAX_VMSTAT_ERROR (sysconf(_SC_PAGESIZE) * 64 * get_nprocs())
+@@ -353,7 +353,7 @@ static int test_percpu_basic(const char
+ {
+ 	int ret = KSFT_FAIL;
+ 	char *parent, *child;
+-	long current, percpu;
++	long current, percpu, slab;
+ 	int i;
  
- #define KMEM_DEAD_WAIT_RETRIES        80
+ 	parent = cg_name(root, "percpu_basic_test");
+@@ -379,13 +379,14 @@ static int test_percpu_basic(const char
  
+ 	current = cg_read_long(parent, "memory.current");
+ 	percpu = cg_read_key_long(parent, "memory.stat", "percpu ");
++	slab = cg_read_key_long(parent, "memory.stat", "slab ");
+ 
+-	if (current > 0 && percpu > 0 && labs(current - percpu) <
+-	    MAX_VMSTAT_ERROR)
++	if (current > 0 && percpu > 0 && slab >= 0 &&
++			labs(current - (percpu + slab)) < MAX_VMSTAT_ERROR)
+ 		ret = KSFT_PASS;
+ 	else
+-		printf("memory.current %ld\npercpu %ld\n",
+-		       current, percpu);
++		printf("memory.current %ld\npercpu %ld\nslab %ld\ndelta %ld\n",
++			current, percpu, slab, current - (percpu + slab));
+ 
+ cleanup_children:
+ 	for (i = 0; i < 1000; i++) {
 _
 
 Patches currently in -mm which might be from li.wang@linux.dev are
