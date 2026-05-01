@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A4A13126CA
-	for <mm-commits@vger.kernel.org>; Fri,  1 May 2026 13:13:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4ECBA30EF7E
+	for <mm-commits@vger.kernel.org>; Fri,  1 May 2026 13:13:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777641213; cv=none; b=HzCunroT6pMZ0T3ssNbTL3qG1jo9D/1gc6F7PlkalJq13684PVw84UsA2VvAXqSdqQD59BDSOD1/Dvn91l5i5fdkPTNdgnW3muY8etCmmh833MYmDsBpXvbCTKjWY6C5tPmQu/QRu803fkS9/Px2C13AKLzgCmyRHlPvjrag7EU=
+	t=1777641215; cv=none; b=FGT/iwykpzQ1J8VZj2pJbnhlS6wnTBfr890MfmUaGRM+QhNzhay385EHXAkGHw4O1l5Q7nihS5Fglkif4DSmuWT5bhnBvdn0D8pqEZZJsoyLJTyn5E+mNOPLpeH/XMsk1JkZ91GtKrarLdE4Q3QpmjLHESJBKOpuShMm40IIdwg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777641213; c=relaxed/simple;
-	bh=/UmMDljkAr2xvkJ5xN43bu53iDhmLqy22p5zVn9zP/o=;
-	h=Date:To:From:Subject:Message-Id; b=Lc9HADi2q2JCj0Tx4DQT7PkvLAJ0jguklSXMLftPtd/5P5IQlHXmsx590Qkq3yfwiJa1ruR6USWYzARQ0znlJ7sdpqTSe4fottykjQihtegCoyXH7I0NhmDaKO5FxWXC6Fp2QlCaYMb51g0+hFxvF9zmRpJhKyU9SjvAb17sCew=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1o80PKXx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777641215; c=relaxed/simple;
+	bh=Lc2Pd7syJGX5d8N79Jwq7LY+w/JQ3q8KChxteYMeHsE=;
+	h=Date:To:From:Subject:Message-Id; b=hSbhxuxgtYdEoZWXhfOvkMHlVUe+b8HDzdaGAJJjPtb/AhOdnr9aXHJNB+nwtVGOg8RirPQSWf0lyNNX5agUYTSH11lle0WDBYzkaWxgdGrmYOu2HPh8lRsaXclsNY7qBFzfuICh11dz5jlccg61KfIDIf1Nw6pxZfzwoLymvsE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Op2WFSwn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1o80PKXx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5F71C2BCB4;
-	Fri,  1 May 2026 13:13:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Op2WFSwn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1A29C2BCB4;
+	Fri,  1 May 2026 13:13:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777641212;
-	bh=/UmMDljkAr2xvkJ5xN43bu53iDhmLqy22p5zVn9zP/o=;
+	s=korg; t=1777641214;
+	bh=Lc2Pd7syJGX5d8N79Jwq7LY+w/JQ3q8KChxteYMeHsE=;
 	h=Date:To:From:Subject:From;
-	b=1o80PKXxc6JWkWrNsdf6G65CwjtNLjGIDwe09VB1W5PbCc+AKjePytfJePnCldttC
-	 70a9dzVu7uMCaVeGft+Ui9hHsffMg43fqBKwECNiRKmZK2E3Sa3qszCb81s3vebs5/
-	 D5uaKb9aX21UnoNc6p6qFZ8189KN9oO7KGf54Vb4=
-Date: Fri, 01 May 2026 06:13:32 -0700
+	b=Op2WFSwnTJlgHoxWTvz7IgwPYh9HBoB7Sd+kI68/XakwzUR4Rc8oPrF96l0Mwi7WS
+	 xl6iNr8O6Xh+3HeRfK7noFcUg8ofreszaZC6koldT8SWqpL/drTwCEuUkm0DhydEbd
+	 zWYU+5uWccdWQ39nwgnsAMRVJ/ZZmVf/Ma/TZ+xA=
+Date: Fri, 01 May 2026 06:13:34 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaim-add-autotune_monitoring_intervals-parameter.patch added to mm-new branch
-Message-Id: <20260501131332.A5F71C2BCB4@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-reclaim-update-for-autotune_monitoring_intervals.patch added to mm-new branch
+Message-Id: <20260501131334.D1A29C2BCB4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/reclaim: add autotune_monitoring_intervals parameter
+     Subject: Docs/admin-guide/mm/damon/reclaim: update for autotune_monitoring_intervals
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-reclaim-add-autotune_monitoring_intervals-parameter.patch
+     docs-admin-guide-mm-damon-reclaim-update-for-autotune_monitoring_intervals.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-add-autotune_monitoring_intervals-parameter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-reclaim-update-for-autotune_monitoring_intervals.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,31 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/reclaim: add autotune_monitoring_intervals parameter
-Date: Thu, 30 Apr 2026 18:17:38 -0700
+Subject: Docs/admin-guide/mm/damon/reclaim: update for autotune_monitoring_intervals
+Date: Thu, 30 Apr 2026 18:17:39 -0700
 
-Patch series "mm/damon/reclaim: support monitoring intervals auto-tuning".
+Update DAMON_RECLAIM usage document for the newly added monitoring
+intervals auto-tuning enablement parameter.
 
-The monitoring intervals auto-tuning feature of DAMON has proven to be
-useful in multiple environments.  Add a new DAMON_RECLAIM parameter for
-supporting the feature, and update the document for the new parameter.
-
-
-This patch (of 2):
-
-DAMON's monitoring intervals auto-tuning feature has proven to be useful
-in multiple environments.  DAMON_RECLAIM is still asking users to do the
-manual tuning of the intervals.  Add a module parameter for utilizing the
-auto-tuning feature with the suggested default setup.
-
-Note that use of the auto-tuning overrides the manually entered monitoring
-intervals.  Also, note that the 'min_age' will dynamically changed
-proportional to auto-tuned intervals.  It is recommended to use 'min_age'
-short enough and use 'quota_mem_pressure_us' like coldness threshold
-auto-tuning features together.
-
-Link: https://lore.kernel.org/20260501011740.81988-1-sj@kernel.org
-Link: https://lore.kernel.org/20260501011740.81988-2-sj@kernel.org
+Link: https://lore.kernel.org/20260501011740.81988-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -107,83 +89,29 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |   33 ++++++++++++++++++++++++++++-----
- 1 file changed, 28 insertions(+), 5 deletions(-)
+ Documentation/admin-guide/mm/damon/reclaim.rst |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-add-autotune_monitoring_intervals-parameter
-+++ a/mm/damon/reclaim.c
-@@ -91,6 +91,20 @@ module_param(quota_mem_pressure_us, ulon
- static unsigned long quota_autotune_feedback __read_mostly;
- module_param(quota_autotune_feedback, ulong, 0600);
+--- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-reclaim-update-for-autotune_monitoring_intervals
++++ a/Documentation/admin-guide/mm/damon/reclaim.rst
+@@ -85,6 +85,17 @@ identifies the region as cold, and recla
  
-+/*
-+ * Auto-tune monitoring intervals.
-+ *
-+ * If this parameter is set as ``Y``, DAMON_RECLAIM automatically tunes DAMON's
-+ * sampling and aggregation intervals.  The auto-tuning aims to capture
-+ * meaningful amount of access events in each DAMON-snapshot, while keeping the
-+ * sampling intervals 5 milliseconds in minimum, and 10 seconds in maximum.
-+ * Setting this as ``N`` disables the auto-tuning.
-+ *
-+ * Disabled by default.
-+ */
-+static bool autotune_monitoring_intervals __read_mostly;
-+module_param(autotune_monitoring_intervals, bool, 0600);
+ 120 seconds by default.
+ 
++autotune_monitoring_intervals
++-----------------------------
 +
- static struct damos_watermarks damon_reclaim_wmarks = {
- 	.metric = DAMOS_WMARK_FREE_MEM_RATE,
- 	.interval = 5000000,	/* 5 seconds */
-@@ -152,7 +166,7 @@ DEFINE_DAMON_MODULES_DAMOS_STATS_PARAMS(
- static struct damon_ctx *ctx;
- static struct damon_target *target;
++If this parameter is set as ``Y``, DAMON_RECLAIM automatically tunes DAMON's
++sampling and aggregation intervals.  The auto-tuning aims to capture meaningful
++amount of access events in each DAMON-snapshot, while keeping the sampling
++interval 5 milliseconds in minimum, and 10 seconds in maximum.  Setting this as
++``N`` disables the auto-tuning.
++
++Disabled by default.
++
+ quota_ms
+ --------
  
--static struct damos *damon_reclaim_new_scheme(void)
-+static struct damos *damon_reclaim_new_scheme(unsigned long aggr_interval)
- {
- 	struct damos_access_pattern pattern = {
- 		/* Find regions having PAGE_SIZE or larger size */
-@@ -162,8 +176,7 @@ static struct damos *damon_reclaim_new_s
- 		.min_nr_accesses = 0,
- 		.max_nr_accesses = 0,
- 		/* for min_age or more micro-seconds */
--		.min_age_region = min_age /
--			damon_reclaim_mon_attrs.aggr_interval,
-+		.min_age_region = min_age / aggr_interval,
- 		.max_age_region = UINT_MAX,
- 	};
- 
-@@ -184,6 +197,7 @@ static int damon_reclaim_apply_parameter
- {
- 	struct damon_ctx *param_ctx;
- 	struct damon_target *param_target;
-+	struct damon_attrs attrs;
- 	struct damos *scheme;
- 	struct damos_quota_goal *goal;
- 	struct damos_filter *filter;
-@@ -201,12 +215,21 @@ static int damon_reclaim_apply_parameter
- 		goto out;
- 	}
- 
--	err = damon_set_attrs(param_ctx, &damon_reclaim_mon_attrs);
-+	attrs = damon_reclaim_mon_attrs;
-+	if (autotune_monitoring_intervals) {
-+		attrs.sample_interval = 5000;
-+		attrs.aggr_interval = 100000;
-+		attrs.intervals_goal.access_bp = 40;
-+		attrs.intervals_goal.aggrs = 3;
-+		attrs.intervals_goal.min_sample_us = 5000;
-+		attrs.intervals_goal.max_sample_us = 10 * 1000 * 1000;
-+	}
-+	err = damon_set_attrs(param_ctx, &attrs);
- 	if (err)
- 		goto out;
- 
- 	err = -ENOMEM;
--	scheme = damon_reclaim_new_scheme();
-+	scheme = damon_reclaim_new_scheme(attrs.aggr_interval);
- 	if (!scheme)
- 		goto out;
- 	damon_set_schemes(param_ctx, &scheme, 1);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
