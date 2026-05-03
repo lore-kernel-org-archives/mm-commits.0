@@ -1,341 +1,234 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36E7213C9C4
-	for <mm-commits@vger.kernel.org>; Sun,  3 May 2026 13:17:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62A963B7B76
+	for <mm-commits@vger.kernel.org>; Sun,  3 May 2026 13:20:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777814275; cv=none; b=lMF1tnUGFB6LQpmeU2l/Glh9ToInor1jOaKaWSqoWhm6dao5E2iG/72i5bR54mhiLc8mZjFS4ms+8dTrBC1TlT14oMHO7R4EiUdzVZphbkzaMtFIWYRNjmZ0ekYNc9gRIGs0PGSxi49RwRqj4o5uMikLMQ9viO8Bf4ShRVCFlIU=
+	t=1777814424; cv=none; b=ufG0G5BHAkhBT78mPU1S4ihzDWe8DmNoGEQNsQAOWkZCb8ZVZv3IQL8t/bjCbrqjCr+1xBFRjIGfdqfpINYw7LFzI7N97+y1tF4WnSE9Wv1h0lN6y+isJuu/xmmaERtMa0OjCRKVVWUseQI3Qy6LAXMrKAXnMfC5O9mbFlbGNGQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777814275; c=relaxed/simple;
-	bh=FA/oICrk0l5fnF0DtAR3Yl0cIYuEj/8I0FIfSSW8rQE=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=HC/oHs2msO3bXgGfDK+WxvcXkXHuNCz2Zr4a9C6Clc5h5SQbd5kp8U8VAJuiJa5BXXihO+0zUCX8tRcgHjOGoIEniyUT+WeTUGybALSaAquDv0G+vYqL8s6ge4hl98yff9iqpfqPIqdxTAQf5QCipub6tHlbDkOdnaRh44HYlsc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CJ8R8PuF; arc=none smtp.client-ip=192.198.163.19
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1777814424; c=relaxed/simple;
+	bh=a10256jsWpcXaViBDG4fXRZAUxpyRgvdsIRJb2R90j8=;
+	h=Date:To:From:Subject:Message-Id; b=daCx+wQxVdZwQR2XkzLlcOvP4iGCDdReLtRvto5XYMLN02lsNQYkhMuIC+CZUxCFrQ+l8VkBiA1mjB/u9cMZWuvYbloCCiMbqxYIrzdmAQd+rn5F/ZAjLjq4HWa5sQbgz6nFgNXmcKYtVo0oI1xZFTkshthPTlZPg+sEaLH5DrQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ltMg7j7O; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CJ8R8PuF"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1777814273; x=1809350273;
-  h=date:from:to:cc:subject:message-id;
-  bh=FA/oICrk0l5fnF0DtAR3Yl0cIYuEj/8I0FIfSSW8rQE=;
-  b=CJ8R8PuFgIJshQnPLGhyNQ4OdLJBZz2TP+e5I5vvlMHr0vQom9S0rmTw
-   JwmdYQpWIONSiD9yOle3xD7J3L4vc8MA0xPKsLc0MWXLhZFmxCZ1WsCGI
-   yWyMKckcbY1Sce+YFhCodJ8tLjOC235J2wGoqm9zG3UteOkXMHv9Ge8g8
-   am/9Q2ltZhLwqXZ5nIkIXlrNNxyBlI5h4A6f9YwcOj9Rk4IU0WlbTHsUv
-   HQ9Xs7jkAFsgDc1yx/lvwjF5BhMQLfRn83Ut28HqhNyOkXgWCFp9gfOzp
-   DcxA9wiA/FdYED9EbMmEX62BXma7kHXJjsZLfsvewRl1/6sScOv5fToJU
-   w==;
-X-CSE-ConnectionGUID: CaSbPjbhQJauGCAC2cyXkQ==
-X-CSE-MsgGUID: Q+4UxiiCT+OcXemm6L8vKw==
-X-IronPort-AV: E=McAfee;i="6800,10657,11775"; a="77719880"
-X-IronPort-AV: E=Sophos;i="6.23,213,1770624000"; 
-   d="scan'208";a="77719880"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 May 2026 06:17:53 -0700
-X-CSE-ConnectionGUID: J5UNBXW7Q1CU/N2pKIL6jQ==
-X-CSE-MsgGUID: qjQAudKMQCGZGr5omLlNJg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.23,213,1770624000"; 
-   d="scan'208";a="258644667"
-Received: from lkp-server01.sh.intel.com (HELO 781826d00641) ([10.239.97.150])
-  by fmviesa002.fm.intel.com with ESMTP; 03 May 2026 06:17:51 -0700
-Received: from kbuild by 781826d00641 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wJWhf-000000002Zl-2hfL;
-	Sun, 03 May 2026 13:17:47 +0000
-Date: Sun, 03 May 2026 21:17:01 +0800
-From: kernel test robot <lkp@intel.com>
-To: David Hildenbrand <david@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org
-Subject: [akpm-mm:mm-new] BUILD SUCCESS
- 312ca1abefe5eac64bce040076802808d3c80cac
-Message-ID: <202605032138.oeUyFcz9-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ltMg7j7O"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2298FC2BCB4;
+	Sun,  3 May 2026 13:20:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1777814423;
+	bh=a10256jsWpcXaViBDG4fXRZAUxpyRgvdsIRJb2R90j8=;
+	h=Date:To:From:Subject:From;
+	b=ltMg7j7OZCi+grMUTCtWFcFueHY1Yd9CMoQXIkq+EsocDHsMvkU9BV8xVka9NH0bE
+	 4rYNU9uix+lUZvR4X+xszJgqwFFsimF8c1ofOZqwAfeuMekc+MsITI3ZDFFy7heBQO
+	 R+7/dIxjP7lFH9ZjmvEFBs5v0QV4xiO155Dr/knc=
+Date: Sun, 03 May 2026 06:20:20 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,ying.huang@linux.alibaba.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,vbabka@suse.cz,usama.arif@linux.dev,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shivankg@amd.com,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,rientjes@google.com,richard.weiyang@gmail.com,rdunlap@infradead.org,raquini@redhat.com,rakie.kim@sk.com,pfalcato@suse.de,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,matthew.brost@intel.com,mathieu.desnoyers@efficios.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,jack@suse.cz,jackmanb@google.com,hughd@google.com,hannes@cmpxchg.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,corbet@lwn.net,catalin.marinas@arm.com,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,bagasdotme@gmail.com,apopple@nvidia.com,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch removed from -mm tree
+Message-Id: <20260503132023.2298FC2BCB4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-branch HEAD: 312ca1abefe5eac64bce040076802808d3c80cac  mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes
 
-elapsed time: 744m
+The quilt patch titled
+     Subject: mm/khugepaged: generalize hugepage_vma_revalidate for mTHP support
+has been removed from the -mm tree.  Its filename was
+     mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
 
-configs tested: 262
-configs skipped: 6
+This patch was dropped because an updated version will be issued
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+------------------------------------------------------
+From: Nico Pache <npache@redhat.com>
+Subject: mm/khugepaged: generalize hugepage_vma_revalidate for mTHP support
+Date: Sun, 19 Apr 2026 12:57:38 -0600
 
-tested configs:
-alpha                             allnoconfig    gcc-15.2.0
-alpha                            allyesconfig    gcc-15.2.0
-alpha                               defconfig    gcc-15.2.0
-arc                              alldefconfig    gcc-15.2.0
-arc                              allmodconfig    gcc-15.2.0
-arc                               allnoconfig    gcc-15.2.0
-arc                              allyesconfig    clang-19
-arc                              allyesconfig    gcc-15.2.0
-arc                                 defconfig    gcc-15.2.0
-arc                            randconfig-001    gcc-8.5.0
-arc                   randconfig-001-20260503    gcc-15.2.0
-arc                   randconfig-001-20260503    gcc-8.5.0
-arc                            randconfig-002    gcc-8.5.0
-arc                   randconfig-002-20260503    gcc-10.5.0
-arc                   randconfig-002-20260503    gcc-8.5.0
-arm                               allnoconfig    clang-23
-arm                               allnoconfig    gcc-15.2.0
-arm                              allyesconfig    gcc-15.2.0
-arm                                 defconfig    clang-23
-arm                                 defconfig    gcc-15.2.0
-arm                            randconfig-001    gcc-8.5.0
-arm                   randconfig-001-20260503    gcc-12.5.0
-arm                   randconfig-001-20260503    gcc-8.5.0
-arm                            randconfig-002    gcc-8.5.0
-arm                   randconfig-002-20260503    clang-23
-arm                   randconfig-003-20260503    gcc-8.5.0
-arm                            randconfig-004    gcc-8.5.0
-arm                   randconfig-004-20260503    clang-23
-arm                   randconfig-004-20260503    gcc-8.5.0
-arm64                            allmodconfig    clang-19
-arm64                             allnoconfig    gcc-15.2.0
-arm64                               defconfig    gcc-15.2.0
-arm64                          randconfig-001    gcc-15.2.0
-arm64                 randconfig-001-20260503    gcc-15.2.0
-arm64                 randconfig-001-20260503    gcc-8.5.0
-arm64                          randconfig-002    gcc-15.2.0
-arm64                 randconfig-002-20260503    gcc-15.2.0
-arm64                 randconfig-002-20260503    gcc-8.5.0
-arm64                          randconfig-003    gcc-15.2.0
-arm64                 randconfig-003-20260503    clang-17
-arm64                 randconfig-003-20260503    gcc-15.2.0
-arm64                          randconfig-004    gcc-15.2.0
-arm64                 randconfig-004-20260503    clang-23
-arm64                 randconfig-004-20260503    gcc-15.2.0
-csky                             allmodconfig    gcc-15.2.0
-csky                              allnoconfig    gcc-15.2.0
-csky                                defconfig    gcc-15.2.0
-csky                           randconfig-001    gcc-15.2.0
-csky                  randconfig-001-20260503    gcc-15.2.0
-csky                           randconfig-002    gcc-15.2.0
-csky                  randconfig-002-20260503    gcc-15.2.0
-hexagon                          allmodconfig    clang-17
-hexagon                          allmodconfig    gcc-15.2.0
-hexagon                           allnoconfig    clang-23
-hexagon                           allnoconfig    gcc-15.2.0
-hexagon                             defconfig    clang-23
-hexagon                             defconfig    gcc-15.2.0
-hexagon                        randconfig-001    gcc-11.5.0
-hexagon               randconfig-001-20260503    clang-17
-hexagon               randconfig-001-20260503    gcc-11.5.0
-hexagon                        randconfig-002    gcc-11.5.0
-hexagon               randconfig-002-20260503    clang-23
-hexagon               randconfig-002-20260503    gcc-11.5.0
-i386                             allmodconfig    gcc-14
-i386                              allnoconfig    gcc-14
-i386                              allnoconfig    gcc-15.2.0
-i386                             allyesconfig    gcc-14
-i386                 buildonly-randconfig-001    gcc-14
-i386        buildonly-randconfig-001-20260503    clang-20
-i386                 buildonly-randconfig-002    clang-20
-i386        buildonly-randconfig-002-20260503    clang-20
-i386        buildonly-randconfig-002-20260503    gcc-14
-i386                 buildonly-randconfig-003    clang-20
-i386        buildonly-randconfig-003-20260503    clang-20
-i386                 buildonly-randconfig-004    gcc-14
-i386        buildonly-randconfig-004-20260503    clang-20
-i386                 buildonly-randconfig-005    gcc-14
-i386        buildonly-randconfig-005-20260503    clang-20
-i386                 buildonly-randconfig-006    gcc-14
-i386        buildonly-randconfig-006-20260503    clang-20
-i386                                defconfig    clang-20
-i386                                defconfig    gcc-15.2.0
-i386                  randconfig-001-20260503    clang-20
-i386                  randconfig-002-20260503    clang-20
-i386                  randconfig-002-20260503    gcc-14
-i386                  randconfig-003-20260503    clang-20
-i386                  randconfig-003-20260503    gcc-14
-i386                  randconfig-004-20260503    clang-20
-i386                  randconfig-005-20260503    clang-20
-i386                  randconfig-005-20260503    gcc-14
-i386                  randconfig-006-20260503    clang-20
-i386                  randconfig-007-20260503    clang-20
-i386                  randconfig-011-20260503    clang-20
-i386                  randconfig-012-20260503    clang-20
-i386                  randconfig-013-20260503    clang-20
-i386                  randconfig-014-20260503    clang-20
-i386                  randconfig-015-20260503    gcc-14
-i386                  randconfig-016-20260503    gcc-14
-i386                  randconfig-017-20260503    gcc-14
-loongarch                        allmodconfig    clang-19
-loongarch                         allnoconfig    clang-23
-loongarch                         allnoconfig    gcc-15.2.0
-loongarch                           defconfig    clang-19
-loongarch                      randconfig-001    gcc-11.5.0
-loongarch             randconfig-001-20260503    gcc-11.5.0
-loongarch             randconfig-001-20260503    gcc-15.2.0
-loongarch                      randconfig-002    gcc-11.5.0
-loongarch             randconfig-002-20260503    clang-20
-loongarch             randconfig-002-20260503    gcc-11.5.0
-m68k                             allmodconfig    gcc-15.2.0
-m68k                              allnoconfig    gcc-15.2.0
-m68k                             allyesconfig    gcc-15.2.0
-m68k                                defconfig    clang-19
-m68k                                defconfig    gcc-15.2.0
-microblaze                        allnoconfig    gcc-15.2.0
-microblaze                       allyesconfig    gcc-15.2.0
-microblaze                          defconfig    clang-19
-microblaze                          defconfig    gcc-15.2.0
-mips                             allmodconfig    gcc-15.2.0
-mips                              allnoconfig    gcc-15.2.0
-mips                             allyesconfig    gcc-15.2.0
-mips                          malta_defconfig    gcc-15.2.0
-nios2                            allmodconfig    clang-23
-nios2                            allmodconfig    gcc-11.5.0
-nios2                             allnoconfig    clang-23
-nios2                             allnoconfig    gcc-11.5.0
-nios2                               defconfig    clang-19
-nios2                               defconfig    gcc-11.5.0
-nios2                          randconfig-001    gcc-11.5.0
-nios2                 randconfig-001-20260503    gcc-11.5.0
-nios2                          randconfig-002    gcc-11.5.0
-nios2                 randconfig-002-20260503    gcc-11.5.0
-nios2                 randconfig-002-20260503    gcc-8.5.0
-openrisc                         allmodconfig    clang-23
-openrisc                         allmodconfig    gcc-15.2.0
-openrisc                          allnoconfig    clang-23
-openrisc                          allnoconfig    gcc-15.2.0
-openrisc                            defconfig    gcc-15.2.0
-parisc                           allmodconfig    gcc-15.2.0
-parisc                            allnoconfig    clang-23
-parisc                            allnoconfig    gcc-15.2.0
-parisc                           allyesconfig    clang-19
-parisc                           allyesconfig    gcc-15.2.0
-parisc                              defconfig    gcc-15.2.0
-parisc                randconfig-001-20260503    gcc-15.2.0
-parisc                randconfig-002-20260503    gcc-15.2.0
-parisc                randconfig-002-20260503    gcc-8.5.0
-parisc64                            defconfig    clang-19
-parisc64                            defconfig    gcc-15.2.0
-powerpc                          allmodconfig    gcc-15.2.0
-powerpc                           allnoconfig    clang-23
-powerpc                           allnoconfig    gcc-15.2.0
-powerpc               randconfig-001-20260503    clang-23
-powerpc               randconfig-001-20260503    gcc-15.2.0
-powerpc               randconfig-002-20260503    gcc-14.3.0
-powerpc               randconfig-002-20260503    gcc-15.2.0
-powerpc64             randconfig-001-20260503    gcc-15.2.0
-powerpc64             randconfig-001-20260503    gcc-8.5.0
-powerpc64             randconfig-002-20260503    gcc-10.5.0
-powerpc64             randconfig-002-20260503    gcc-15.2.0
-riscv                            allmodconfig    clang-23
-riscv                             allnoconfig    clang-23
-riscv                             allnoconfig    gcc-15.2.0
-riscv                            allyesconfig    clang-16
-riscv                               defconfig    clang-23
-riscv                               defconfig    gcc-15.2.0
-riscv                 randconfig-001-20260503    clang-23
-riscv                 randconfig-002-20260503    clang-23
-riscv                 randconfig-002-20260503    gcc-9.5.0
-s390                             allmodconfig    clang-18
-s390                             allmodconfig    clang-19
-s390                              allnoconfig    clang-23
-s390                             allyesconfig    gcc-15.2.0
-s390                                defconfig    clang-23
-s390                                defconfig    gcc-15.2.0
-s390                  randconfig-001-20260503    clang-23
-s390                  randconfig-001-20260503    gcc-14.3.0
-s390                  randconfig-002-20260503    clang-23
-s390                  randconfig-002-20260503    gcc-8.5.0
-sh                               allmodconfig    gcc-15.2.0
-sh                                allnoconfig    clang-23
-sh                                allnoconfig    gcc-15.2.0
-sh                               allyesconfig    clang-19
-sh                               allyesconfig    gcc-15.2.0
-sh                                  defconfig    gcc-14
-sh                                  defconfig    gcc-15.2.0
-sh                    randconfig-001-20260503    clang-23
-sh                    randconfig-001-20260503    gcc-13.4.0
-sh                    randconfig-002-20260503    clang-23
-sh                    randconfig-002-20260503    gcc-12.5.0
-sparc                             allnoconfig    clang-23
-sparc                             allnoconfig    gcc-15.2.0
-sparc                               defconfig    gcc-15.2.0
-sparc                 randconfig-001-20260503    gcc-15.2.0
-sparc                 randconfig-001-20260503    gcc-8.5.0
-sparc                 randconfig-002-20260503    gcc-15.2.0
-sparc64                          allmodconfig    clang-23
-sparc64                             defconfig    clang-20
-sparc64                             defconfig    gcc-14
-sparc64               randconfig-001-20260503    gcc-11.5.0
-sparc64               randconfig-001-20260503    gcc-15.2.0
-sparc64               randconfig-002-20260503    gcc-15.2.0
-sparc64               randconfig-002-20260503    gcc-8.5.0
-um                               allmodconfig    clang-19
-um                                allnoconfig    clang-23
-um                               allyesconfig    gcc-14
-um                               allyesconfig    gcc-15.2.0
-um                                  defconfig    clang-23
-um                                  defconfig    gcc-14
-um                             i386_defconfig    gcc-14
-um                    randconfig-001-20260503    clang-17
-um                    randconfig-001-20260503    gcc-15.2.0
-um                    randconfig-002-20260503    clang-23
-um                    randconfig-002-20260503    gcc-15.2.0
-um                           x86_64_defconfig    clang-23
-um                           x86_64_defconfig    gcc-14
-x86_64                           allmodconfig    clang-20
-x86_64                            allnoconfig    clang-20
-x86_64                            allnoconfig    clang-23
-x86_64                           allyesconfig    clang-20
-x86_64      buildonly-randconfig-001-20260503    clang-20
-x86_64      buildonly-randconfig-002-20260503    clang-20
-x86_64      buildonly-randconfig-002-20260503    gcc-14
-x86_64      buildonly-randconfig-003-20260503    clang-20
-x86_64      buildonly-randconfig-003-20260503    gcc-14
-x86_64      buildonly-randconfig-004-20260503    clang-20
-x86_64      buildonly-randconfig-005-20260503    clang-20
-x86_64      buildonly-randconfig-005-20260503    gcc-14
-x86_64      buildonly-randconfig-006-20260503    clang-20
-x86_64      buildonly-randconfig-006-20260503    gcc-14
-x86_64                              defconfig    gcc-14
-x86_64                randconfig-001-20260503    gcc-14
-x86_64                randconfig-002-20260503    gcc-14
-x86_64                randconfig-003-20260503    clang-20
-x86_64                randconfig-004-20260503    gcc-14
-x86_64                randconfig-005-20260503    gcc-14
-x86_64                randconfig-006-20260503    gcc-14
-x86_64                randconfig-011-20260503    clang-20
-x86_64                randconfig-012-20260503    clang-20
-x86_64                randconfig-013-20260503    clang-20
-x86_64                randconfig-014-20260503    clang-20
-x86_64                randconfig-015-20260503    clang-20
-x86_64                randconfig-015-20260503    gcc-14
-x86_64                randconfig-016-20260503    clang-20
-x86_64                randconfig-016-20260503    gcc-14
-x86_64                randconfig-071-20260503    clang-20
-x86_64                randconfig-072-20260503    clang-20
-x86_64                randconfig-073-20260503    clang-20
-x86_64                randconfig-074-20260503    clang-20
-x86_64                randconfig-075-20260503    clang-20
-x86_64                randconfig-076-20260503    clang-20
-x86_64                           rhel-9.4-bpf    gcc-14
-x86_64                         rhel-9.4-kunit    gcc-14
-x86_64                           rhel-9.4-ltp    gcc-14
-x86_64                          rhel-9.4-rust    clang-20
-xtensa                            allnoconfig    clang-23
-xtensa                            allnoconfig    gcc-15.2.0
-xtensa                           allyesconfig    clang-23
-xtensa                randconfig-001-20260503    gcc-11.5.0
-xtensa                randconfig-001-20260503    gcc-15.2.0
-xtensa                randconfig-002-20260503    gcc-13.4.0
-xtensa                randconfig-002-20260503    gcc-15.2.0
+Patch series "khugepaged: mTHP support", v16.
 
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+This series provides khugepaged with the capability to collapse anonymous
+memory regions to mTHPs.
+
+To achieve this we generalize the khugepaged functions to no longer depend
+on PMD_ORDER.  Then during the PMD scan, we use a bitmap to track
+individual pages that are occupied (!none/zero).  After the PMD scan is
+done, we use the bitmap to find the optimal mTHP sizes for the PMD range. 
+The restriction on max_ptes_none is removed during the scan, to make sure
+we account for the whole PMD range in the bitmap.  When no mTHP size is
+enabled, the legacy behavior of khugepaged is maintained.
+
+We currently only support max_ptes_none values of 0 or HPAGE_PMD_NR - 1
+(ie 511).  If any other value is specified, the kernel will emit a warning
+and no mTHP collapse will be attempted.  If a mTHP collapse is attempted,
+but contains swapped out, or shared pages, we don't perform the collapse. 
+It is now also possible to collapse to mTHPs without requiring the PMD THP
+size to be enabled.  These limitations are to prevent collapse "creep"
+behavior.  This prevents constantly promoting mTHPs to the next available
+size, which would occur because a collapse introduces more non-zero pages
+that would satisfy the promotion condition on subsequent scans.
+
+Patch 1-2:   Generalize hugepage_vma_revalidate and alloc_charge_folio
+	     for arbitrary orders.
+Patch 3:     Rework max_ptes_* handling into helper functions
+Patch 4-5:   Generalize __collapse_huge_page_* and collapse_huge_page
+Patch 6:     Skip collapsing mTHP to smaller orders
+Patch 7-8:   Add per-order mTHP statistics and tracepoints
+Patch 9:     Introduce collapse_allowable_orders helper function
+Patch 10-12: Introduce bitmap and mTHP collapse support, fully enabled
+Patch 13:    Documentation
+
+
+This patch (of 13):
+
+For khugepaged to support different mTHP orders, we must generalize this
+to check if the PMD is not shared by another VMA and that the order is
+enabled.
+
+No functional change in this patch.  Also correct a comment about the
+functionality of the revalidation and fix a double space issues.
+
+Link: https://lore.kernel.org/20260419185750.260784-1-npache@redhat.com
+Link: https://lore.kernel.org/20260419185750.260784-2-npache@redhat.com
+Co-developed-by: Dev Jain <dev.jain@arm.com>
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Signed-off-by: Nico Pache <npache@redhat.com>
+Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shivank Garg <shivankg@amd.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Takashi Iwai (SUSE) <tiwai@suse.de>
+Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <yang@os.amperecomputing.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/khugepaged.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
+
+--- a/mm/khugepaged.c~mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support
++++ a/mm/khugepaged.c
+@@ -902,12 +902,13 @@ static int collapse_find_target_node(str
+ 
+ /*
+  * If mmap_lock temporarily dropped, revalidate vma
+- * before taking mmap_lock.
++ * after taking the mmap_lock again.
+  * Returns enum scan_result value.
+  */
+ 
+ static enum scan_result hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address,
+-		bool expect_anon, struct vm_area_struct **vmap, struct collapse_control *cc)
++		bool expect_anon, struct vm_area_struct **vmap,
++		struct collapse_control *cc, unsigned int order)
+ {
+ 	struct vm_area_struct *vma;
+ 	enum tva_type type = cc->is_khugepaged ? TVA_KHUGEPAGED :
+@@ -920,15 +921,16 @@ static enum scan_result hugepage_vma_rev
+ 	if (!vma)
+ 		return SCAN_VMA_NULL;
+ 
++	/* Always check the PMD order to ensure its not shared by another VMA */
+ 	if (!thp_vma_suitable_order(vma, address, PMD_ORDER))
+ 		return SCAN_ADDRESS_RANGE;
+-	if (!thp_vma_allowable_order(vma, vma->vm_flags, type, PMD_ORDER))
++	if (!thp_vma_allowable_orders(vma, vma->vm_flags, type, BIT(order)))
+ 		return SCAN_VMA_CHECK;
+ 	/*
+ 	 * Anon VMA expected, the address may be unmapped then
+ 	 * remapped to file after khugepaged reaquired the mmap_lock.
+ 	 *
+-	 * thp_vma_allowable_order may return true for qualified file
++	 * thp_vma_allowable_orders may return true for qualified file
+ 	 * vmas.
+ 	 */
+ 	if (expect_anon && (!(*vmap)->anon_vma || !vma_is_anonymous(*vmap)))
+@@ -1121,7 +1123,8 @@ static enum scan_result collapse_huge_pa
+ 		goto out_nolock;
+ 
+ 	mmap_read_lock(mm);
+-	result = hugepage_vma_revalidate(mm, address, true, &vma, cc);
++	result = hugepage_vma_revalidate(mm, address, true, &vma, cc,
++					 HPAGE_PMD_ORDER);
+ 	if (result != SCAN_SUCCEED) {
+ 		mmap_read_unlock(mm);
+ 		goto out_nolock;
+@@ -1155,7 +1158,8 @@ static enum scan_result collapse_huge_pa
+ 	 * mmap_lock.
+ 	 */
+ 	mmap_write_lock(mm);
+-	result = hugepage_vma_revalidate(mm, address, true, &vma, cc);
++	result = hugepage_vma_revalidate(mm, address, true, &vma, cc,
++					 HPAGE_PMD_ORDER);
+ 	if (result != SCAN_SUCCEED)
+ 		goto out_up_write;
+ 	/* check if the pmd is still valid */
+@@ -2857,8 +2861,8 @@ int madvise_collapse(struct vm_area_stru
+ 			mmap_unlocked = false;
+ 			*lock_dropped = true;
+ 			result = hugepage_vma_revalidate(mm, addr, false, &vma,
+-							 cc);
+-			if (result  != SCAN_SUCCEED) {
++							 cc, HPAGE_PMD_ORDER);
++			if (result != SCAN_SUCCEED) {
+ 				last_fail = result;
+ 				goto out_nolock;
+ 			}
+_
+
+Patches currently in -mm which might be from npache@redhat.com are
+
+mm-khugepaged-rework-max_ptes_-handling-with-helper-functions.patch
+mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
+mm-khugepaged-generalize-collapse_huge_page-for-mthp-collapse.patch
+mm-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
+mm-khugepaged-add-per-order-mthp-collapse-failure-statistics.patch
+mm-khugepaged-improve-tracepoints-for-mthp-orders.patch
+mm-khugepaged-introduce-collapse_allowable_orders-helper-function.patch
+mm-khugepaged-introduce-mthp-collapse-support.patch
+mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
+documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
+
