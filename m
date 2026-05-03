@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9E8F3CA488
-	for <mm-commits@vger.kernel.org>; Sun,  3 May 2026 13:21:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86D8C3CA488
+	for <mm-commits@vger.kernel.org>; Sun,  3 May 2026 13:21:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1777814467; cv=none; b=Ntdr5JJb81AcQMPSZQZOKdlpSzvy3nPJc9BxLamSeJ8kO1eyy1tT9no7OkzNq2Bz/p5amiytOsTJJkDHV2Kee+O3fveDyQN25PRN+UK96+kSxQO+lYgKPVWeHq+5PqS8qHnsEgkhE8FwM90p9dRBebe8rkhUE7XWcLyP1VdJHqo=
+	t=1777814470; cv=none; b=eAj0jvkStoqALwJ2w9FSS5+rL1hJHoJ5H9P0AOtBXiyfvcGFRbVVchAjIw7q4T1dtFkahPmIiQYkMsqNNJOQ3WWBwYoaZm5DwofDnLjZdxFPpiexJaW9pdN+t7s6PUoOwrM4iX1h8vjg7PhyKKdpq7Fy2iSPfaptPgYxOO4WZp0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1777814467; c=relaxed/simple;
-	bh=N2I+rsra6NncqDflzehtlDYtcXoUZPqAUIkPA1h58WU=;
-	h=Date:To:From:Subject:Message-Id; b=LZlbBDoQwrnbxfcAg7g0XR6tpt96wXcynUUMtgep7vsVyoQ8GTV/fVhpWdEk0BNKwoa8NpXzQi3sWoKWDA/xAttKuis5NW1LyCWlLMz2ey0ZtABMfeuXjo7F9RAdliJjEdCx6amZzq6jY44Yka3NPmHn7IO32f3f1nKba7wlRPY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VyO4Qy5v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1777814470; c=relaxed/simple;
+	bh=5dA76nBJLjmacPS8naQxF7l0UUjjBZ8e3kvCwYNOTf4=;
+	h=Date:To:From:Subject:Message-Id; b=U8Bw1LuPFcV/fDF69Ul8LtTJ/CcmNApOcAV0XbhZrr9j1ROI9QAd4mlP6WpHULjAtfB0p2cJtJccEBwbjorq6qhEd+oR+ZGGk5DePgTiiz1WdEYgfsofXhGwJIEUJUW1RE2l/pEg1iybQNyPwW2irzqa8DhY/g9XJKXICdx3/PI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hycm6Lmu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VyO4Qy5v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81F0AC2BCB4;
-	Sun,  3 May 2026 13:21:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hycm6Lmu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FF2FC2BCB4;
+	Sun,  3 May 2026 13:21:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1777814466;
-	bh=N2I+rsra6NncqDflzehtlDYtcXoUZPqAUIkPA1h58WU=;
+	s=korg; t=1777814470;
+	bh=5dA76nBJLjmacPS8naQxF7l0UUjjBZ8e3kvCwYNOTf4=;
 	h=Date:To:From:Subject:From;
-	b=VyO4Qy5vtYebeJjvDYLxTus93QerGrr52hMCei7RIRhs97c0E3yI+9lviMFwaGFsZ
-	 2iaczCVMqUE+QX2Qrd7PfOnCGMJwL1WPdCFSOEEYPdqDrFJtvvBiKzCH9a+91faddu
-	 pWBWKvFvb8av7SWRweu5vIF6ofUmzcZXY+X+A3AM=
-Date: Sun, 03 May 2026 06:21:03 -0700
+	b=hycm6LmuMzeHdURlDoehSL7vd3Zq9nLLCS91un1jG8s0cGUG64VocDZSjVtDoV6rz
+	 +ZChbLgjW2+r6M35HCokqajEG7EguBD9TsK/8eULsTMzdSHINAPQhkpt6jhBvMTw7L
+	 1BYPfucURIh7ea2R6uCZ6gmOeWRUDxnqG37ZLoGg=
+Date: Sun, 03 May 2026 06:21:07 -0700
 To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,ying.huang@linux.alibaba.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,vbabka@suse.cz,usama.arif@linux.dev,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shivankg@amd.com,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,rientjes@google.com,richard.weiyang@gmail.com,rdunlap@infradead.org,raquini@redhat.com,rakie.kim@sk.com,pfalcato@suse.de,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,matthew.brost@intel.com,mathieu.desnoyers@efficios.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,jack@suse.cz,jackmanb@google.com,hughd@google.com,hannes@cmpxchg.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,corbet@lwn.net,catalin.marinas@arm.com,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,bagasdotme@gmail.com,apopple@nvidia.com,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-khugepaged-introduce-mthp-collapse-support.patch removed from -mm tree
-Message-Id: <20260503132105.81F0AC2BCB4@smtp.kernel.org>
+Subject: [to-be-updated] mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch removed from -mm tree
+Message-Id: <20260503132109.7FF2FC2BCB4@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,99 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/khugepaged: introduce mTHP collapse support
+     Subject: mm/khugepaged: avoid unnecessary mTHP collapse attempts
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-introduce-mthp-collapse-support.patch
+     mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Nico Pache <npache@redhat.com>
-Subject: mm/khugepaged: introduce mTHP collapse support
-Date: Sun, 19 Apr 2026 12:57:47 -0600
+Subject: mm/khugepaged: avoid unnecessary mTHP collapse attempts
+Date: Sun, 19 Apr 2026 12:57:48 -0600
 
-Enable khugepaged to collapse to mTHP orders.  This patch implements the
-main scanning logic using a bitmap to track occupied pages and a stack
-structure that allows us to find optimal collapse sizes.
+There are cases where, if an attempted collapse fails, all subsequent
+orders are guaranteed to also fail.  Avoid these collapse attempts by
+bailing out early.
 
-Previous to this patch, PMD collapse had 3 main phases, a light weight
-scanning phase (mmap_read_lock) that determines a potential PMD collapse,
-an alloc phase (mmap unlocked), then finally heavier collapse phase
-(mmap_write_lock).
-
-To enabled mTHP collapse we make the following changes:
-
-During PMD scan phase, track occupied pages in a bitmap.  When mTHP orders
-are enabled, we remove the restriction of max_ptes_none during the scan
-phase to avoid missing potential mTHP collapse candidates.  Once we have
-scanned the full PMD range and updated the bitmap to track occupied pages,
-we use the bitmap to find the optimal mTHP size.
-
-Implement collapse_scan_bitmap() to perform binary recursion on the bitmap
-and determine the best eligible order for the collapse.  A stack structure
-is used instead of traditional recursion to manage the search.  This also
-prevents a traditional recursive approach when the kernel stack struct is
-limited.  The algorithm recursively splits the bitmap into smaller chunks
-to find the highest order mTHPs that satisfy the collapse criteria.  We
-start by attempting the PMD order, then moved on the consecutively lower
-orders (mTHP collapse).  The stack maintains a pair of variables (offset,
-order), indicating the number of PTEs from the start of the PMD, and the
-order of the potential collapse candidate.
-
-The algorithm for consuming the bitmap works as such:
-    1) push (0, HPAGE_PMD_ORDER) onto the stack
-    2) pop the stack
-    3) check if the number of set bits in that (offset,order) pair
-       statisfy the max_ptes_none threshold for that order
-    4) if yes, attempt collapse
-    5) if no (or collapse fails), push two new stack items representing
-       the left and right halves of the current bitmap range, at the
-       next lower order
-    6) repeat at step (2) until stack is empty.
-
-Below is a diagram representing the algorithm and stack items:
-
-                            offset   mid_offset
-                            |        |
-                            |        |
-                            v        v
-          ____________________________________
-         |          PTE Page Table            |
-         --------------------------------------
-			    <-------><------->
-                             order-1  order-1
-
-mTHP collapses reject regions containing swapped out or shared pages. 
-This is because adding new entries can lead to new none pages, and these
-may lead to constant promotion into a higher order mTHP.  A similar issue
-can occur with "max_ptes_none > HPAGE_PMD_NR/2" due to a collapse
-introducing at least 2x the number of pages, and on a future scan will
-satisfy the promotion condition once again.  This issue is prevented via
-the collapse_max_ptes_none() function which imposes the max_ptes_none
-restrictions above.
-
-We currently only support mTHP collapse for max_ptes_none values of 0 and
-HPAGE_PMD_NR - 1.  resulting in the following behavior:
-
-    - max_ptes_none=0: Never introduce new empty pages during collapse
-    - max_ptes_none=HPAGE_PMD_NR-1: Always try collapse to the highest
-      available mTHP order
-
-Any other max_ptes_none value will emit a warning and skip mTHP collapse
-attempts.  There should be no behavior change for PMD collapse.
-
-Once we determine what mTHP sizes fits best in that PMD range a collapse
-is attempted.  A minimum collapse order of 2 is used as this is the lowest
-order supported by anon memory as defined by THP_ORDERS_ALL_ANON.
-
-Currently madv_collapse is not supported and will only attempt PMD
-collapse.
-
-We can also remove the check for is_khugepaged inside the PMD scan as the
-collapse_max_ptes_none() function handles this logic now.
-
-Link: https://lore.kernel.org/20260419185750.260784-11-npache@redhat.com
+Link: https://lore.kernel.org/20260419185750.260784-12-npache@redhat.com
 Signed-off-by: Nico Pache <npache@redhat.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: Usama Arif <usama.arif@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -137,7 +64,6 @@ Cc: Barry Song <baohua@kernel.org>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Byungchul Park <byungchul@sk.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Gregory Price <gourry@gourry.net>
@@ -151,7 +77,6 @@ Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Matthew Brost <matthew.brost@intel.com>
@@ -170,7 +95,6 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Takashi Iwai (SUSE) <tiwai@suse.de>
 Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
-Cc: Usama Arif <usama.arif@linux.dev>
 Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Wei Yang <richard.weiyang@gmail.com>
@@ -181,265 +105,47 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |  181 ++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 174 insertions(+), 7 deletions(-)
+ mm/khugepaged.c |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-introduce-mthp-collapse-support
+--- a/mm/khugepaged.c~mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts
 +++ a/mm/khugepaged.c
-@@ -99,6 +99,31 @@ static DEFINE_READ_MOSTLY_HASHTABLE(mm_s
- 
- static struct kmem_cache *mm_slot_cache __ro_after_init;
- 
-+#define KHUGEPAGED_MIN_MTHP_ORDER	2
-+/*
-+ * The maximum number of mTHP ranges that can be stored on the stack.
-+ * This is calculated based on the number of PTE entries in a PTE page table
-+ * and the minimum mTHP order.
-+ *
-+ * ilog2 is needed in place of HPAGE_PMD_ORDER due to some architectures
-+ * (ie ppc64le) not defining HPAGE_PMD_ORDER until after build time.
-+ *
-+ * At most there will be 1 << (PMD_ORDER - KHUGEPAGED_MIN_MTHP_ORDER) mTHP ranges
-+ */
-+#define MTHP_STACK_SIZE	(1UL << (ilog2(MAX_PTRS_PER_PTE) - KHUGEPAGED_MIN_MTHP_ORDER))
+@@ -1517,9 +1517,31 @@ static int mthp_collapse(struct mm_struc
+ 			collapse_address = address + offset * PAGE_SIZE;
+ 			ret = collapse_huge_page(mm, collapse_address, referenced,
+ 						 unmapped, cc, order);
+-			if (ret == SCAN_SUCCEED) {
 +
-+/*
-+ * Defines a range of PTE entries in a PTE page table which are being
-+ * considered for mTHP collapse.
-+ *
-+ * @offset: the offset of the first PTE entry in a PMD range.
-+ * @order: the order of the PTE entries being considered for collapse.
-+ */
-+struct mthp_range {
-+	u16 offset;
-+	u8 order;
-+};
-+
- struct collapse_control {
- 	bool is_khugepaged;
- 
-@@ -110,6 +135,12 @@ struct collapse_control {
- 
- 	/* nodemask for allocation fallback */
- 	nodemask_t alloc_nmask;
-+
-+	/* Each bit represents a single occupied (!none/zero) page. */
-+	DECLARE_BITMAP(mthp_bitmap, MAX_PTRS_PER_PTE);
-+	/* A mask of the current range being considered for mTHP collapse. */
-+	DECLARE_BITMAP(mthp_bitmap_mask, MAX_PTRS_PER_PTE);
-+	struct mthp_range mthp_bitmap_stack[MTHP_STACK_SIZE];
- };
- 
- /**
-@@ -1389,22 +1420,142 @@ out_nolock:
- 	return result;
- }
- 
-+static void collapse_mthp_stack_push(struct collapse_control *cc, int *stack_size,
-+				     u16 offset, u8 order)
-+{
-+	const int size = *stack_size;
-+	struct mthp_range *stack = &cc->mthp_bitmap_stack[size];
-+
-+	VM_WARN_ON_ONCE(size >= MTHP_STACK_SIZE);
-+	stack->order = order;
-+	stack->offset = offset;
-+	(*stack_size)++;
-+}
-+
-+static struct mthp_range collapse_mthp_stack_pop(struct collapse_control *cc,
-+						 int *stack_size)
-+{
-+	const int size = *stack_size;
-+
-+	VM_WARN_ON_ONCE(size <= 0);
-+	(*stack_size)--;
-+	return cc->mthp_bitmap_stack[size - 1];
-+}
-+
-+static unsigned int collapse_mthp_count_present(struct collapse_control *cc,
-+						u16 offset, unsigned int nr_ptes)
-+{
-+	bitmap_zero(cc->mthp_bitmap_mask, MAX_PTRS_PER_PTE);
-+	bitmap_set(cc->mthp_bitmap_mask, offset, nr_ptes);
-+	return bitmap_weight_and(cc->mthp_bitmap, cc->mthp_bitmap_mask, MAX_PTRS_PER_PTE);
-+}
-+
-+/*
-+ * mthp_collapse() consumes the bitmap that is generated during
-+ * collapse_scan_pmd() to determine what regions and mTHP orders fit best.
-+ *
-+ * Each bit in cc->mthp_bitmap represents a single occupied (!none/zero) page.
-+ * A stack structure cc->mthp_bitmap_stack is used to check different regions
-+ * of the bitmap for collapse eligibility. The stack maintains a pair of
-+ * variables (offset, order), indicating the number of PTEs from the start of
-+ * the PMD, and the order of the potential collapse candidate respectively. We
-+ * start at the PMD order and check if it is eligible for collapse; if not, we
-+ * add two entries to the stack at a lower order to represent the left and right
-+ * halves of the PTE page table we are examining.
-+ *
-+ *                         offset       mid_offset
-+ *                         |         |
-+ *                         |         |
-+ *                         v         v
-+ *      --------------------------------------
-+ *      |          cc->mthp_bitmap            |
-+ *      --------------------------------------
-+ *                         <-------><------->
-+ *                          order-1  order-1
-+ *
-+ * For each of these, we determine how many PTE entries are occupied in the
-+ * range of PTE entries we propose to collapse, then we compare this to a
-+ * threshold number of PTE entries which would need to be occupied for a
-+ * collapse to be permitted at that order (accounting for max_ptes_none).
-+ *
-+ * If a collapse is permitted, we attempt to collapse the PTE range into a
-+ * mTHP.
-+ */
-+static int mthp_collapse(struct mm_struct *mm, unsigned long address,
-+		int referenced, int unmapped, struct collapse_control *cc,
-+		unsigned long enabled_orders)
-+{
-+	unsigned int nr_occupied_ptes, nr_ptes;
-+	int max_ptes_none, collapsed = 0, stack_size = 0;
-+	unsigned long collapse_address;
-+	struct mthp_range range;
-+	u16 offset;
-+	u8 order;
-+
-+	collapse_mthp_stack_push(cc, &stack_size, 0, HPAGE_PMD_ORDER);
-+
-+	while (stack_size) {
-+		range = collapse_mthp_stack_pop(cc, &stack_size);
-+		order = range.order;
-+		offset = range.offset;
-+		nr_ptes = 1UL << order;
-+
-+		if (!test_bit(order, &enabled_orders))
-+			goto next_order;
-+
-+		max_ptes_none = collapse_max_ptes_none(cc, NULL, order);
-+
-+		if (max_ptes_none < 0)
-+			return collapsed;
-+
-+		nr_occupied_ptes = collapse_mthp_count_present(cc, offset,
-+							       nr_ptes);
-+
-+		if (nr_occupied_ptes >= nr_ptes - max_ptes_none) {
-+			int ret;
-+
-+			collapse_address = address + offset * PAGE_SIZE;
-+			ret = collapse_huge_page(mm, collapse_address, referenced,
-+						 unmapped, cc, order);
-+			if (ret == SCAN_SUCCEED) {
-+				collapsed += nr_ptes;
-+				continue;
-+			}
-+		}
-+
-+next_order:
-+		if (order > KHUGEPAGED_MIN_MTHP_ORDER) {
-+			const u8 next_order = order - 1;
-+			const u16 mid_offset = offset + (nr_ptes / 2);
-+
-+			collapse_mthp_stack_push(cc, &stack_size, mid_offset,
-+						 next_order);
-+			collapse_mthp_stack_push(cc, &stack_size, offset,
-+						 next_order);
-+		}
-+	}
-+	return collapsed;
-+}
-+
- static enum scan_result collapse_scan_pmd(struct mm_struct *mm,
- 		struct vm_area_struct *vma, unsigned long start_addr,
- 		bool *lock_dropped, struct collapse_control *cc)
- {
- 	pmd_t *pmd;
--	pte_t *pte, *_pte;
--	int none_or_zero = 0, shared = 0, referenced = 0;
-+	pte_t *pte, *_pte, pteval;
-+	int i;
-+	int none_or_zero = 0, shared = 0, nr_collapsed = 0, referenced = 0;
- 	enum scan_result result = SCAN_FAIL;
- 	struct page *page = NULL;
- 	struct folio *folio = NULL;
- 	unsigned long addr;
-+	unsigned long enabled_orders;
- 	spinlock_t *ptl;
- 	int node = NUMA_NO_NODE, unmapped = 0;
- 	int max_ptes_none = collapse_max_ptes_none(cc, vma, HPAGE_PMD_ORDER);
- 	unsigned int max_ptes_shared = collapse_max_ptes_shared(cc, HPAGE_PMD_ORDER);
- 	unsigned int max_ptes_swap = collapse_max_ptes_swap(cc, HPAGE_PMD_ORDER);
-+	enum tva_type tva_flags = cc->is_khugepaged ? TVA_KHUGEPAGED : TVA_FORCED_COLLAPSE;
- 
- 	VM_BUG_ON(start_addr & ~HPAGE_PMD_MASK);
- 
-@@ -1414,8 +1565,19 @@ static enum scan_result collapse_scan_pm
- 		goto out;
- 	}
- 
-+	bitmap_zero(cc->mthp_bitmap, MAX_PTRS_PER_PTE);
- 	memset(cc->node_load, 0, sizeof(cc->node_load));
- 	nodes_clear(cc->alloc_nmask);
-+
-+	enabled_orders = collapse_allowable_orders(vma, tva_flags);
-+
-+	/*
-+	 * If PMD is the only enabled order, enforce max_ptes_none, otherwise
-+	 * scan all pages to populate the bitmap for mTHP collapse.
-+	 */
-+	if (enabled_orders != BIT(HPAGE_PMD_ORDER))
-+		max_ptes_none = KHUGEPAGED_MAX_PTES_LIMIT;
-+
- 	pte = pte_offset_map_lock(mm, pmd, start_addr, &ptl);
- 	if (!pte) {
- 		cc->progress++;
-@@ -1423,11 +1585,13 @@ static enum scan_result collapse_scan_pm
- 		goto out;
- 	}
- 
--	for (addr = start_addr, _pte = pte; _pte < pte + HPAGE_PMD_NR;
--	     _pte++, addr += PAGE_SIZE) {
-+	for (i = 0; i < HPAGE_PMD_NR; i++) {
-+		_pte = pte + i;
-+		addr = start_addr + i * PAGE_SIZE;
-+		pteval = ptep_get(_pte);
-+
- 		cc->progress++;
- 
--		pte_t pteval = ptep_get(_pte);
- 		if (pte_none_or_zero(pteval)) {
- 			if (++none_or_zero > max_ptes_none) {
- 				result = SCAN_EXCEED_NONE_PTE;
-@@ -1507,6 +1671,8 @@ static enum scan_result collapse_scan_pm
++			switch (ret) {
++			/* Cases where we continue to next collapse candidate */
++			case SCAN_SUCCEED:
+ 				collapsed += nr_ptes;
++				fallthrough;
++			case SCAN_PTE_MAPPED_HUGEPAGE:
+ 				continue;
++			/* Cases where lower orders might still succeed */
++			case SCAN_LACK_REFERENCED_PAGE:
++			case SCAN_EXCEED_NONE_PTE:
++			case SCAN_EXCEED_SWAP_PTE:
++			case SCAN_EXCEED_SHARED_PTE:
++			case SCAN_PAGE_LOCK:
++			case SCAN_PAGE_COUNT:
++			case SCAN_PAGE_LRU:
++			case SCAN_PAGE_NULL:
++			case SCAN_DEL_PAGE_LRU:
++			case SCAN_PTE_NON_PRESENT:
++			case SCAN_PTE_UFFD_WP:
++			case SCAN_ALLOC_HUGE_PAGE_FAIL:
++				goto next_order;
++			/* Cases where no further collapse is possible */
++			default:
++				return collapsed;
  			}
  		}
  
-+		/* Set bit for occupied pages */
-+		__set_bit(i, cc->mthp_bitmap);
- 		/*
- 		 * Record which node the original page is from and save this
- 		 * information to cc->node_load[].
-@@ -1570,10 +1736,11 @@ out_unmap:
- 		 * that. We will recheck the vma after taking it again in write mode.
- 		 */
- 		mmap_read_unlock(mm);
--		result = collapse_huge_page(mm, start_addr, referenced,
--					    unmapped, cc, HPAGE_PMD_ORDER);
-+		nr_collapsed = mthp_collapse(mm, start_addr, referenced, unmapped,
-+					      cc, enabled_orders);
- 		/* collapse_huge_page will return with the mmap_lock released */
- 		*lock_dropped = true;
-+		result = nr_collapsed ? SCAN_SUCCEED : SCAN_FAIL;
- 	}
- out:
- 	trace_mm_khugepaged_scan_pmd(mm, folio, referenced,
 _
 
 Patches currently in -mm which might be from npache@redhat.com are
 
-mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
 documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
 
