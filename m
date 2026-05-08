@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 165021F91F6
-	for <mm-commits@vger.kernel.org>; Fri,  8 May 2026 18:31:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B02636F419
+	for <mm-commits@vger.kernel.org>; Fri,  8 May 2026 18:40:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778265114; cv=none; b=Tr6NgEIWxTpr8vDU5+D4ZzYg4j7vCpYaTSyR9UEswx6kkn4ZLgUVtCmon7xOTXpjrCC8kyDMqYrjvppIwt/7tzsvCYtLxOaGPhLeA0tusKrMxMDhIQ8jkbg4VYF3saY+Ma2rD8sAR3dRKVyELGitRzih4+YPwGr1/jIOaGxR3oo=
+	t=1778265631; cv=none; b=K6FX5LvVhp9R6kja74XsNYK+W1Cl/7mOCqS/rU/xXp51z6v8F8xQilWQUY45Jo+FiuX4XgrrkNbsXPLYH3i19OhlZzjyEUs4kc5qDMlU0ngicES0esv+eYUmcSP8ElHe1ap22jQaTOOgKF+Rmv+dLkkU4g4uZvNQpZcgBeVZ9Nw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778265114; c=relaxed/simple;
-	bh=5SmV5KN468LdSs6IMNW3szjf6t+TC+Hz1F+pCCdBmKg=;
-	h=Date:To:From:Subject:Message-Id; b=Kjc9wPEXsteZg32c1J0VJVjSpuEDA7J9obEqrRcQp9VUXKr6dnqdJK+8GxyTjSUtXgUbqCkpr7/x7d6fxmYMeHt9atapncLYTxYeLHzIz3yUDz3Hj3FgmELYq1u4ZwgbiiHDX2q+X4alo7bYoAnl3rBAm9PPZIq50G2lE2AUlK0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xh/dWwg2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778265631; c=relaxed/simple;
+	bh=0eXpDzJTswheJ6U5+2nA3aaPmEWp2c1ZL53c1zEqdas=;
+	h=Date:To:From:Subject:Message-Id; b=HL+QeFL64MXnSQ0MGxNQ77C19WbNDtj0YIxw+SDK6u8JQIbC1vImRBjrR7/USHDfNYrt2GeuGbZkI2kL/tN11aHvFSpIO7dYElr4ohik5AvUKEuEwcegimmz2L91GepBoBVp/xX71sKE5X+jSNzQLCBS3pd9QKnt1jIiq1nMTgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gh0/2/BF; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xh/dWwg2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A535EC2BCB0;
-	Fri,  8 May 2026 18:31:53 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gh0/2/BF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A0E5C2BCB0;
+	Fri,  8 May 2026 18:40:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778265113;
-	bh=5SmV5KN468LdSs6IMNW3szjf6t+TC+Hz1F+pCCdBmKg=;
+	s=korg; t=1778265631;
+	bh=0eXpDzJTswheJ6U5+2nA3aaPmEWp2c1ZL53c1zEqdas=;
 	h=Date:To:From:Subject:From;
-	b=Xh/dWwg2wLWL0P2xkiSbmkTYPBAeRh2L233hjGA7SK829Fbeyx4AEMQhYMplrd8wq
-	 T7smLEnPQyxsIMZj1W2ieIvUrxek09QjkqmLutXDYC33a4JrGyPKWk1BvbZ+9CDhnt
-	 vbVu+NlsfREtduNKhH7i6b6Edn8UuBbZSrNaS2t8=
-Date: Fri, 08 May 2026 11:31:53 -0700
-To: mm-commits@vger.kernel.org,david@kernel.org,hao.ge@linux.dev,akpm@linux-foundation.org
+	b=gh0/2/BFwQjBT6sLV1O5L9Y1e1QfFI4O9UqDbbNGJDBQARyR1c8C0hTL/jXdgGnr1
+	 P5oL22lgAdzzy1nIpvl2MaiMQkGWtZnuVMXlQU6TLyO/3Xol+Jzo4FsH2/REMc8Lyx
+	 1HKfGhVXzlKBEaTaz5i62NNwnqg4zXBCAypW0WAk=
+Date: Fri, 08 May 2026 11:40:30 -0700
+To: mm-commits@vger.kernel.org,mporter@kernel.crashing.org,chul.kim@idt.com,alex.bou9@gmail.com,error27@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-balloon-expose-per-node-balloon-pages-in-node-meminfo.patch added to mm-new branch
-Message-Id: <20260508183153.A535EC2BCB0@smtp.kernel.org>
+Subject: + rapidio-tsi721-prevent-a-bad-dereference-in-tsi721_db_dpc.patch added to mm-nonmm-unstable branch
+Message-Id: <20260508184031.1A0E5C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: proc/meminfo: expose per-node balloon pages in node meminfo
-has been added to the -mm mm-new branch.  Its filename is
-     mm-balloon-expose-per-node-balloon-pages-in-node-meminfo.patch
+     Subject: rapidio/tsi721: prevent a bad dereference in tsi721_db_dpc()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     rapidio-tsi721-prevent-a-bad-dereference-in-tsi721_db_dpc.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-balloon-expose-per-node-balloon-pages-in-node-meminfo.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/rapidio-tsi721-prevent-a-bad-dereference-in-tsi721_db_dpc.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,50 +58,57 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hao Ge <hao.ge@linux.dev>
-Subject: proc/meminfo: expose per-node balloon pages in node meminfo
-Date: Fri, 8 May 2026 17:47:36 +0800
+From: Dan Carpenter <error27@gmail.com>
+Subject: rapidio/tsi721: prevent a bad dereference in tsi721_db_dpc()
+Date: Fri, 8 May 2026 10:51:56 +0300
 
-Commit 835de37603ef ("meminfo: add a per node counter for balloon
-drivers") added NR_BALLOON_PAGES and exposed it in /proc/meminfo.
-However, the per-node view at /sys/devices/system/node/nodeX/meminfo
-was not updated, even though the counter is already tracked per-node.
+With a list_for_each() loop, if we don't find the item we are looking for
+in the list, then the loop exits with the iterator, which is "dbell" in
+this loop, pointing to invalid memory.
 
-Add it to node_read_meminfo() so users can see balloon usage per
-NUMA node without having to parse the raw vmstat file.
+This code uses the "found" variable to determine if we have found the
+doorbell we are looking for or not.  However, the problem that the "found"
+variable needs to be set to false at the start of each iteration,
+otherwise after the first correct doorbell, then everything is marked as
+found.
 
-Link: https://lore.kernel.org/20260508094736.142467-1-hao.ge@linux.dev
-Signed-off-by: Hao Ge <hao.ge@linux.dev>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reset the "found" to false at the start of the iteration and move the
+variable inside the loop.
+
+Link: https://lore.kernel.org/af2WHMZiqMwdYveO@stanley.mountain
+Fixes: 48618fb4e522 ("RapidIO: add mport driver for Tsi721 bridge")
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
+Cc: Chul Kim <chul.kim@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/rapidio/devices/tsi721.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/drivers/base/node.c~mm-balloon-expose-per-node-balloon-pages-in-node-meminfo
-+++ a/drivers/base/node.c
-@@ -525,6 +525,7 @@ static ssize_t node_read_meminfo(struct
- #endif
- 			     "Node %d GPUActive:      %8lu kB\n"
- 			     "Node %d GPUReclaim:     %8lu kB\n"
-+			     "Node %d Balloon:        %8lu kB\n"
- 			     ,
- 			     nid, K(node_page_state(pgdat, NR_FILE_DIRTY)),
- 			     nid, K(node_page_state(pgdat, NR_WRITEBACK)),
-@@ -560,7 +561,8 @@ static ssize_t node_read_meminfo(struct
- #endif
- 			     ,
- 			     nid, K(node_page_state(pgdat, NR_GPU_ACTIVE)),
--			     nid, K(node_page_state(pgdat, NR_GPU_RECLAIM))
-+			     nid, K(node_page_state(pgdat, NR_GPU_RECLAIM)),
-+			     nid, K(node_page_state(pgdat, NR_BALLOON_PAGES))
- 			    );
- 	len += hugetlb_report_node_meminfo(buf, len, nid);
- 	return len;
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-prevent-a-bad-dereference-in-tsi721_db_dpc
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -394,7 +394,6 @@ static void tsi721_db_dpc(struct work_st
+ 						    idb_work);
+ 	struct rio_mport *mport;
+ 	struct rio_dbell *dbell;
+-	int found = 0;
+ 	u32 wr_ptr, rd_ptr;
+ 	u64 *idb_entry;
+ 	u32 regval;
+@@ -412,6 +411,8 @@ static void tsi721_db_dpc(struct work_st
+ 	rd_ptr = ioread32(priv->regs + TSI721_IDQ_RP(IDB_QUEUE)) % IDB_QSIZE;
+ 
+ 	while (wr_ptr != rd_ptr) {
++		int found = 0;
++
+ 		idb_entry = (u64 *)(priv->idb_base +
+ 					(TSI721_IDB_ENTRY_SIZE * rd_ptr));
+ 		rd_ptr++;
 _
 
-Patches currently in -mm which might be from hao.ge@linux.dev are
+Patches currently in -mm which might be from error27@gmail.com are
 
-mm-balloon-expose-per-node-balloon-pages-in-node-meminfo.patch
+rapidio-tsi721-prevent-a-bad-dereference-in-tsi721_db_dpc.patch
 
