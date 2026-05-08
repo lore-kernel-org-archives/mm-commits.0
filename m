@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B162B1F63D9
-	for <mm-commits@vger.kernel.org>; Fri,  8 May 2026 22:17:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 939D42F8E82
+	for <mm-commits@vger.kernel.org>; Fri,  8 May 2026 23:45:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778278671; cv=none; b=XW3EMoTFFWIKj+g8S+CP0qsyyGem+9NyRg5xvmqYv66jg8q3Et1EqrPEDt+hpuZbk+wqfroZHcj1pZvO44MsWDgq5y2MgTKvziiqgLER/IebkHWTrqKxECCDKjNykIPWSGKxvSCctKn4rnGzTRizq5DWNAzCTu2TMefouXQStws=
+	t=1778283938; cv=none; b=s7W4OaNN0M2v/r3owlj/L5wJgJOpQm9+YaAupC2sjMJtJBhzmMhmCKWPneyQzFMAZYOYouMl84aHpCoeQXjqJw2seivFDXUvoc7SidM4AWITU/ZXUBY7hic8c3PD/NTWVuGuqM0ChZPDtT812DE10O7lZnLWjj/PQYHZrp0UBgA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778278671; c=relaxed/simple;
-	bh=L9lzF9uIn4IEFhW0U8M4WLkVESfG2TGkyf2jmsLt9Ag=;
-	h=Date:To:From:Subject:Message-Id; b=f5Xcz3J+nds0khKrGIZAU7jY5nVyXlLxAI7UPS7hi8wcbFOu2PH176bPSMwTW+W8a4zb854HjPjbOt4GheQEhfAg3rbLwKBy/KSIxCSAMxWVKnT+pt29O61P88UoBOAEo9FZ11fICz6n+zPupf/sa3lbGe726/u35f5B7lrcpBc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HgTYhk7d; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778283938; c=relaxed/simple;
+	bh=3ZbX9CGnHm64R9xgj+3lOWwHROQtQ9m0wn+8xLQd7M4=;
+	h=Date:To:From:Subject:Message-Id; b=OHsBWqkBRKup2mbmWmKMlOQbx5QfQezpKEGDF4PoTfm2yRs9puNzbpTfn2lWraVdQUNgZ0VIpF9MCZe7JMIHBnW8r+UNin+mf7pS8mV5XZtifJHAGhKoWMC+aqhps+0C3i71v6ynH6MgfQjW8etMN/dj6v+X911jjFPEwmJPXX0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EmKDqdGi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HgTYhk7d"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52882C2BCB0;
-	Fri,  8 May 2026 22:17:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EmKDqdGi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B64BC2BCB0;
+	Fri,  8 May 2026 23:45:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778278671;
-	bh=L9lzF9uIn4IEFhW0U8M4WLkVESfG2TGkyf2jmsLt9Ag=;
+	s=korg; t=1778283938;
+	bh=3ZbX9CGnHm64R9xgj+3lOWwHROQtQ9m0wn+8xLQd7M4=;
 	h=Date:To:From:Subject:From;
-	b=HgTYhk7da6zSG2r4UrXSjL09JO8FukLwD77/xCSk2Nri9Fe3BqrKPjNoL7rlfdd3f
-	 2pTRKkin6i8XrIXDzJRbQANXPxbg+gEh8h9f7Xzn84dT0havyrfJnILdaVFyvM579r
-	 t81Y4v9i2G8knvH1kDy66Dye1Q+yxCpZIlnlV0ZI=
-Date: Fri, 08 May 2026 15:17:50 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,catalin.marinas@arm.com,leitao@debian.org,akpm@linux-foundation.org
+	b=EmKDqdGibCQut+E69OLbcl5zwt8mDrrkAsra8X2s9L9rJlqEDUDHtBpiVD6nBF4Cb
+	 DEk2ciFdZ3Tlcr+y5UQJmt157LS3iFyPKHMxo7//6slltPMs29sIfcvJGox2+S5cuW
+	 chFqjBP3+TGIxnot2fV5Mm9c6dkdaoGGsBpKnFks=
+Date: Fri, 08 May 2026 16:45:37 -0700
+To: mm-commits@vger.kernel.org,zhengqi.arch@bytedance.com,yuanchu@google.com,willy@infradead.org,weixugc@google.com,shakeel.butt@linux.dev,rostedt@goodmis.org,qiwu.chen@transsion.com,mhocko@kernel.org,mhiramat@kernel.org,mathieu.desnoyers@efficios.com,ljs@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,qiwuchen55@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-add-kmemleak-verbose-dedup-test.patch added to mm-new branch
-Message-Id: <20260508221751.52882C2BCB0@smtp.kernel.org>
+Subject: + mm-vmscan-rework-lru_shrink-and-write_folio-tracepoints.patch added to mm-new branch
+Message-Id: <20260508234538.1B64BC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: add kmemleak verbose dedup test
+     Subject: mm: vmscan: rework lru_shrink and write_folio tracepoints
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-add-kmemleak-verbose-dedup-test.patch
+     mm-vmscan-rework-lru_shrink-and-write_folio-tracepoints.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-add-kmemleak-verbose-dedup-test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmscan-rework-lru_shrink-and-write_folio-tracepoints.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,309 +69,250 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Breno Leitao <leitao@debian.org>
-Subject: selftests/mm: add kmemleak verbose dedup test
-Date: Wed, 06 May 2026 05:58:25 -0700
+From: "qiwu.chen" <qiwuchen55@gmail.com>
+Subject: mm: vmscan: rework lru_shrink and write_folio tracepoints
+Date: Wed, 6 May 2026 16:36:52 +0800
 
-Add a regression test for the per-scan verbose dedup added in the
-preceding commit.  The test loads samples/kmemleak's helper module
-(CONFIG_SAMPLE_KMEMLEAK=m) to generate orphan allocations, several of
-which share an allocation backtrace, runs four kmemleak scans with verbose
-printing enabled, then walks dmesg looking for two "unreferenced object"
-reports within a single scan that share an identical backtrace - which
-would mean dedup failed to collapse them.
+Currently, reclaim_flags always contains RECLAIM_WB_ASYNC in lru_shrink
+tracepoints since commit 41ac1999c3e35 ("mm: vmscan: do not stall on
+writeback during memory compaction"), which is useless for debugging
+memory pressure issues.  Other RECLAIM_WB_* flags are not used anywhere
+else, so they can be directly removed.
 
-The test is intentionally permissive on detection but strict on
-regressions:
+This patch reworks the lru_shrink and write_folio tracepoints for better
+correlation and analysis:
 
- - PASS when no duplicates are observed, regardless of whether the
-   dedup summary line ("... and N more object(s) with the same
-   backtrace") was actually emitted. Per-CPU chunk reuse, slab
-   freelist pointers, kernel stack residue and CONFIG_DEBUG_KMEMLEAK_
-   AUTO_SCAN can all keep most of the orphans "still referenced" or
-   reported across many separate scans, so the dedup path may have
-   nothing to fold within one scan. That is not a regression.
+ - traces each folio lru type instead of reclaim_flags.
+ - traces each lru_shrink with reason.
+ - remove the printing of the unnecessary PFN for mm_vmscan_write_folio.
 
- - PASS reports whether dedup actually fired, so a passing run on a
-   well-behaved environment is still informative.
-
- - FAIL when two same-backtrace reports land in a single scan (clear
-   dedup regression).
-
- - FAIL when kmemleak's own per-scan tally counts leaks but the
-   verbose path emits zero "unreferenced object" lines - that catches
-   a regression in the verbose printer itself, which would otherwise
-   pass the duplicate check trivially.
-
- - SKIP when kmemleak is absent, disabled at runtime, or the helper
-   module is not built.
-
-The dmesg parser anchors stack-frame matching to the indentation kmemleak
-uses for them (4+ spaces under "kmemleak: ") so unrelated kmemleak
-warnings landing between reports do not get lumped into the backtrace key
-and mask a duplicate.
-
-Link: https://lore.kernel.org/20260506-kmemleak_dedup-v3-2-2d36aafc34da@debian.org
-Signed-off-by: Breno Leitao <leitao@debian.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lore.kernel.org/20260506083652.100160-1-qiwu.chen@transsion.com
+Fixes: 41ac1999c3e35 ("mm: vmscan: do not stall on writeback during memory compaction")
+Signed-off-by: qiwu.chen <qiwu.chen@transsion.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: chenqiwu <qiwu.chen@transsion.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kairui Song <kasong@tencent.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/Makefile               |    1 
- tools/testing/selftests/mm/ksft_kmemleak_dedup.sh |  222 ++++++++++++
- 2 files changed, 223 insertions(+)
+ include/trace/events/vmscan.h |   71 +++++++++++++-------------------
+ mm/vmscan.c                   |    9 ++--
+ 2 files changed, 35 insertions(+), 45 deletions(-)
 
-diff --git a/tools/testing/selftests/mm/ksft_kmemleak_dedup.sh a/tools/testing/selftests/mm/ksft_kmemleak_dedup.sh
-new file mode 100755
---- /dev/null
-+++ a/tools/testing/selftests/mm/ksft_kmemleak_dedup.sh
-@@ -0,0 +1,222 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+#
-+# Regression test for kmemleak's per-scan verbose dedup.
-+#
-+# Loads samples/kmemleak's helper module to generate orphan allocations
-+# (some of which share an allocation backtrace), runs a few kmemleak
-+# scans with verbose printing enabled, and verifies that no two
-+# "unreferenced object" reports within a single scan share the same
-+# backtrace - which would mean dedup failed to collapse them.
-+#
-+# This test is intentionally permissive: the kmemleak-test module's
-+# leaks frequently get reported across many separate scans (per-CPU
-+# chunk reuse, slab freelist pointers, kernel stack residue), so dedup
-+# may never have anything to fold within one scan. That is not a
-+# regression. The test only fails when it actually catches dedup not
-+# happening on input that should have triggered it - i.e. two reports
-+# with identical backtraces in the same scan.
-+#
-+# Author: Breno Leitao <leitao@debian.org>
-+
-+ksft_skip=4
-+KMEMLEAK=/sys/kernel/debug/kmemleak
-+VERBOSE_PARAM=/sys/module/kmemleak/parameters/verbose
-+MODULE=kmemleak-test
-+
-+skip() {
-+	echo "SKIP: $*"
-+	exit $ksft_skip
-+}
-+
-+fail() {
-+	echo "FAIL: $*"
-+	exit 1
-+}
-+
-+pass() {
-+	echo "PASS: $*"
-+	exit 0
-+}
-+
-+[ "$(id -u)" -eq 0 ] || skip "must run as root"
-+[ -r "$KMEMLEAK" ] || skip "no kmemleak debugfs (CONFIG_DEBUG_KMEMLEAK)"
-+[ -w "$VERBOSE_PARAM" ] || skip "kmemleak verbose param missing"
-+modinfo "$MODULE" >/dev/null 2>&1 ||
-+	skip "$MODULE not built (CONFIG_SAMPLE_KMEMLEAK)"
-+
-+# The verdict depends entirely on dmesg contents, so a silently-empty
-+# dmesg (dmesg_restrict=1 with CAP_SYSLOG dropped, restricted container,
-+# etc.) would let the script report PASS without parsing anything. Probe
-+# both read and clear up front and skip cleanly if either is denied.
-+dmesg >/dev/null 2>&1 ||
-+	skip "cannot read dmesg (need CAP_SYSLOG or dmesg_restrict=0)"
-+dmesg -C >/dev/null 2>&1 ||
-+	skip "cannot clear dmesg (need CAP_SYSLOG or dmesg_restrict=0)"
-+
-+# kmemleak can be present but disabled at runtime (boot arg kmemleak=off,
-+# or it self-disabled after an internal error). In that state writes other
-+# than "clear" return EPERM, so probe once and skip if so.
-+if ! echo scan > "$KMEMLEAK" 2>/dev/null; then
-+	skip "kmemleak is disabled (check dmesg or kmemleak= boot arg)"
-+fi
-+
-+prev_verbose=$(cat "$VERBOSE_PARAM")
-+# shellcheck disable=SC2317  # invoked indirectly via trap
-+cleanup() {
-+	echo "$prev_verbose" > "$VERBOSE_PARAM" 2>/dev/null
-+	rmmod "$MODULE" 2>/dev/null
-+	# Drain the leak set we generated. Subsequent selftests (e.g.
-+	# tools/testing/selftests/net/netfilter/nft_interface_stress.sh)
-+	# fail on any non-empty kmemleak report, so leaving the helper
-+	# module's intentional leaks behind would poison the rest of a
-+	# kselftest run.
-+	#
-+	# Caveat: kmemleak_clear() only greys objects that have already
-+	# been reported (OBJECT_REPORTED && unreferenced_object()). Helper
-+	# allocations that stayed "still referenced" throughout the test
-+	# (stale pointers in per-CPU chunks, slab freelists, kernel stacks)
-+	# were never reported and are therefore not greyed by this clear -
-+	# they remain tracked and a later scan can still surface them. Such
-+	# leftovers are inherent to the kmemleak-test sample module and are
-+	# not specific to this test; consumers that fail on any kmemleak
-+	# output (rather than on the test-specific backtraces) need to be
-+	# robust to that, or this test should be excluded from the run.
-+	echo clear > "$KMEMLEAK" 2>/dev/null
-+}
-+trap cleanup EXIT
-+
-+echo 1 > "$VERBOSE_PARAM"
-+
-+# Drain the existing leak set so the next scan only reports our objects.
-+echo clear > "$KMEMLEAK"
-+
-+# Re-clear dmesg now (the up-front probe also cleared it, but anything
-+# logged between then and here - module unload chatter, the probe scan,
-+# the verbose-param write - would otherwise pollute the parse window).
-+dmesg -C >/dev/null
-+
-+# If the module was left loaded by a previous aborted run, modprobe would
-+# be a no-op and the init function would not run, so no new leaks would be
-+# generated. Force a clean state first.
-+rmmod "$MODULE" 2>/dev/null
-+modprobe "$MODULE" || skip "failed to load $MODULE"
-+# Removing the module orphans the list elements without freeing them.
-+rmmod "$MODULE"    || skip "failed to unload $MODULE"
-+
-+# Run a handful of scans so kmemleak has the chance to age and report
-+# the orphans. We do not require any particular number to be reported:
-+# the regression check below operates on whatever lands in dmesg.
-+#
-+# Note: with CONFIG_DEBUG_KMEMLEAK_AUTO_SCAN=y the kernel's own scan
-+# thread can report and mark these orphans (OBJECT_REPORTED) before our
-+# manual scans run, after which our scans will see nothing. The
-+# lower-bound check below catches the case where that happens and the
-+# manual scans also produce nothing.
-+SCAN_COUNT=4
-+SCAN_SLEEP=6
-+for _ in $(seq 1 "$SCAN_COUNT"); do
-+	echo scan > "$KMEMLEAK"
-+	sleep "$SCAN_SLEEP"
-+done
-+
-+# Strip the leading "[   nnn.nnnnnn] " dmesg timestamp prefix. Without
-+# this, two identical stack frames printed from two reports in the same
-+# scan would produce different per-frame strings (different timestamps)
-+# and the duplicate-backtrace check below would not match them, silently
-+# passing a real dedup regression. Doing the strip here makes the rest
-+# of the parser timestamp-agnostic regardless of what dmesg defaults to.
-+log=$(dmesg | sed 's/^\[[^]]*\] //')
-+
-+# After running the workload (modprobe + scans), dmesg should contain at
-+# least the helper module's pr_info lines and our manual-scan output. An
-+# empty capture here means dmesg succeeded earlier but is now denying us
-+# the buffer (race with dmesg_restrict toggling, etc.); refuse to give a
-+# verdict on no evidence.
-+[ -n "$log" ] || skip "dmesg returned empty after running workload"
-+
-+# Lower bound: if kmemleak's own per-scan tally counted leaks but the
-+# verbose path emitted no "unreferenced object" line, the verbose printer
-+# itself is regressed - fail rather than silently passing on no input.
-+new_leaks=$(echo "$log" |
-+	sed -n 's/.*kmemleak: \([0-9]\+\) new suspected.*/\1/p' |
-+	awk '{s+=$1} END{print s+0}')
-+printed=$(echo "$log" | grep -c 'kmemleak: unreferenced object')
-+if [ "$new_leaks" -gt 0 ] && [ "$printed" -eq 0 ]; then
-+	fail "verbose path broken: $new_leaks leaks counted, 0 printed in $SCAN_COUNT scans"
-+fi
-+
-+# Walk the log: split into per-scan chunks at "N new suspected memory
-+# leaks" boundaries; within each chunk, capture each "unreferenced
-+# object" report's backtrace and check that no backtrace is reported
-+# more than once. A duplicate within a single scan means dedup failed
-+# to collapse two leaks that share an allocation site.
-+violations=$(echo "$log" | awk '
-+	function flush_block() {
-+		if (in_block) {
-+			# Skip empty backtraces: leaks with trace_handle == 0
-+			# (early-boot allocations or stack_depot_save() failures
-+			# under memory pressure) are intentionally not deduped,
-+			# so multiple such reports in one scan are expected and
-+			# must not be flagged as a regression.
-+			if (bt != "")
-+				seen[bt]++
-+			in_block = 0
-+			collecting = 0
-+			bt = ""
-+		}
-+	}
-+	function check_and_reset(   b) {
-+		for (b in seen)
-+			if (seen[b] > 1)
-+				printf("backtrace seen %d times in one scan:\n%s\n",
-+				       seen[b], b)
-+		delete seen
-+	}
-+	# Scan boundary: the per-scan summary line.
-+	/kmemleak: [0-9]+ new suspected memory leaks/ {
-+		flush_block()
-+		check_and_reset()
-+		next
-+	}
-+	# Start of a new "unreferenced object" report.
-+	/kmemleak: unreferenced object/ {
-+		flush_block()
-+		in_block = 1
-+		next
-+	}
-+	# Inside a report, the "backtrace (crc ...):" line switches us to
-+	# backtrace-collecting mode.
-+	in_block && /kmemleak:[[:space:]]+backtrace \(crc/ {
-+		collecting = 1
-+		next
-+	}
-+	# Once collecting, capture only deeply-indented "kmemleak: " lines
-+	# (stack frames have 4+ spaces of indentation under "kmemleak: ";
-+	# headers and the "... and N more" tail line have less). This stops
-+	# unrelated kmemleak warns landing between reports from being lumped
-+	# into the backtrace key, which would mask a genuine duplicate.
-+	in_block && collecting && /kmemleak:[[:space:]]{4,}/ {
-+		bt = bt $0 "\n"
-+		next
-+	}
-+	END {
-+		flush_block()
-+		check_and_reset()
-+	}
-+')
-+
-+if [ -n "$violations" ]; then
-+	echo "$violations"
-+	fail "kmemleak dedup regression: same backtrace reported more than once in a single scan"
-+fi
-+
-+# Count the dedup summary lines so the report distinguishes "dedup
-+# actually fired" from "no same-backtrace leaks turned up to dedup".
-+dedup_lines=$(echo "$log" | grep -c 'more object(s) with the same backtrace')
-+
-+if [ "$dedup_lines" -gt 0 ]; then
-+	pass "no dedup violations across $SCAN_COUNT scans; dedup fired ($dedup_lines summary line(s) observed)"
-+else
-+	pass "no dedup violations across $SCAN_COUNT scans; dedup had nothing to collapse"
-+fi
---- a/tools/testing/selftests/mm/Makefile~selftests-mm-add-kmemleak-verbose-dedup-test
-+++ a/tools/testing/selftests/mm/Makefile
-@@ -151,6 +151,7 @@ TEST_PROGS += ksft_gup_test.sh
- TEST_PROGS += ksft_hmm.sh
- TEST_PROGS += ksft_hugetlb.sh
- TEST_PROGS += ksft_hugevm.sh
-+TEST_PROGS += ksft_kmemleak_dedup.sh
- TEST_PROGS += ksft_ksm.sh
- TEST_PROGS += ksft_ksm_numa.sh
- TEST_PROGS += ksft_madv_guard.sh
+--- a/include/trace/events/vmscan.h~mm-vmscan-rework-lru_shrink-and-write_folio-tracepoints
++++ a/include/trace/events/vmscan.h
+@@ -11,22 +11,6 @@
+ #include <linux/memcontrol.h>
+ #include <trace/events/mmflags.h>
+ 
+-#define RECLAIM_WB_ANON		0x0001u
+-#define RECLAIM_WB_FILE		0x0002u
+-#define RECLAIM_WB_MIXED	0x0010u
+-#define RECLAIM_WB_SYNC		0x0004u /* Unused, all reclaim async */
+-#define RECLAIM_WB_ASYNC	0x0008u
+-#define RECLAIM_WB_LRU		(RECLAIM_WB_ANON|RECLAIM_WB_FILE)
+-
+-#define show_reclaim_flags(flags)				\
+-	(flags) ? __print_flags(flags, "|",			\
+-		{RECLAIM_WB_ANON,	"RECLAIM_WB_ANON"},	\
+-		{RECLAIM_WB_FILE,	"RECLAIM_WB_FILE"},	\
+-		{RECLAIM_WB_MIXED,	"RECLAIM_WB_MIXED"},	\
+-		{RECLAIM_WB_SYNC,	"RECLAIM_WB_SYNC"},	\
+-		{RECLAIM_WB_ASYNC,	"RECLAIM_WB_ASYNC"}	\
+-		) : "RECLAIM_WB_NONE"
+-
+ #define _VMSCAN_THROTTLE_WRITEBACK	(1 << VMSCAN_THROTTLE_WRITEBACK)
+ #define _VMSCAN_THROTTLE_ISOLATED	(1 << VMSCAN_THROTTLE_ISOLATED)
+ #define _VMSCAN_THROTTLE_NOPROGRESS	(1 << VMSCAN_THROTTLE_NOPROGRESS)
+@@ -51,10 +35,11 @@ TRACE_DEFINE_ENUM(KSWAPD_CLEAR_HOPELESS_
+ 	{KSWAPD_CLEAR_HOPELESS_PCP,	"PCP"},		\
+ 	{KSWAPD_CLEAR_HOPELESS_OTHER,	"OTHER"}
+ 
+-#define trace_reclaim_flags(file) ( \
+-	(file ? RECLAIM_WB_FILE : RECLAIM_WB_ANON) | \
+-	(RECLAIM_WB_ASYNC) \
+-	)
++#define trace_reclaim_reason_ops		\
++	{PGSTEAL_KSWAPD,	"KSWAPD"},	\
++	{PGSTEAL_DIRECT,	"DIRECT"},	\
++	{PGSTEAL_KHUGEPAGED,	"KHUGEPAGED"}, \
++	{PGSTEAL_PROACTIVE,	"PROACTIVE"}
+ 
+ TRACE_EVENT(mm_vmscan_kswapd_sleep,
+ 
+@@ -413,20 +398,18 @@ TRACE_EVENT(mm_vmscan_write_folio,
+ 	TP_ARGS(folio),
+ 
+ 	TP_STRUCT__entry(
+-		__field(unsigned long, pfn)
+-		__field(int, reclaim_flags)
++		__field(unsigned long, folio)
++		__field(int, lru)
+ 	),
+ 
+ 	TP_fast_assign(
+-		__entry->pfn = folio_pfn(folio);
+-		__entry->reclaim_flags = trace_reclaim_flags(
+-						folio_is_file_lru(folio));
++		__entry->folio = folio;
++		__entry->lru = folio_lru_list(folio);
+ 	),
+ 
+-	TP_printk("page=%p pfn=0x%lx flags=%s",
+-		pfn_to_page(__entry->pfn),
+-		__entry->pfn,
+-		show_reclaim_flags(__entry->reclaim_flags))
++	TP_printk("folio=%p lru=%s",
++		__entry->folio,
++		__print_symbolic(__entry->lru, LRU_NAMES))
+ );
+ 
+ TRACE_EVENT(mm_vmscan_reclaim_pages,
+@@ -478,9 +461,9 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
+ 
+ 	TP_PROTO(int nid,
+ 		unsigned long nr_scanned, unsigned long nr_reclaimed,
+-		struct reclaim_stat *stat, int priority, int file),
++		struct reclaim_stat *stat, int priority, int lru, int reason),
+ 
+-	TP_ARGS(nid, nr_scanned, nr_reclaimed, stat, priority, file),
++	TP_ARGS(nid, nr_scanned, nr_reclaimed, stat, priority, lru, reason),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(int, nid)
+@@ -495,7 +478,8 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
+ 		__field(unsigned long, nr_ref_keep)
+ 		__field(unsigned long, nr_unmap_fail)
+ 		__field(int, priority)
+-		__field(int, reclaim_flags)
++		__field(int, lru)
++		__field(int, reason)
+ 	),
+ 
+ 	TP_fast_assign(
+@@ -511,10 +495,11 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
+ 		__entry->nr_ref_keep = stat->nr_ref_keep;
+ 		__entry->nr_unmap_fail = stat->nr_unmap_fail;
+ 		__entry->priority = priority;
+-		__entry->reclaim_flags = trace_reclaim_flags(file);
++		__entry->lru = lru;
++		__entry->reason = reason;
+ 	),
+ 
+-	TP_printk("nid=%d nr_scanned=%ld nr_reclaimed=%ld nr_dirty=%ld nr_writeback=%ld nr_congested=%ld nr_immediate=%ld nr_activate_anon=%d nr_activate_file=%d nr_ref_keep=%ld nr_unmap_fail=%ld priority=%d flags=%s",
++	TP_printk("nid=%d nr_scanned=%ld nr_reclaimed=%ld nr_dirty=%ld nr_writeback=%ld nr_congested=%ld nr_immediate=%ld nr_activate_anon=%d nr_activate_file=%d nr_ref_keep=%ld nr_unmap_fail=%ld priority=%d lru=%s reason=%s",
+ 		__entry->nid,
+ 		__entry->nr_scanned, __entry->nr_reclaimed,
+ 		__entry->nr_dirty, __entry->nr_writeback,
+@@ -522,16 +507,17 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
+ 		__entry->nr_activate0, __entry->nr_activate1,
+ 		__entry->nr_ref_keep, __entry->nr_unmap_fail,
+ 		__entry->priority,
+-		show_reclaim_flags(__entry->reclaim_flags))
++		__print_symbolic(__entry->lru, LRU_NAMES),
++		__print_symbolic(__entry->reason, trace_reclaim_reason_ops))
+ );
+ 
+ TRACE_EVENT(mm_vmscan_lru_shrink_active,
+ 
+ 	TP_PROTO(int nid, unsigned long nr_taken,
+ 		unsigned long nr_active, unsigned long nr_deactivated,
+-		unsigned long nr_referenced, int priority, int file),
++		unsigned long nr_referenced, int priority, int lru, int reason),
+ 
+-	TP_ARGS(nid, nr_taken, nr_active, nr_deactivated, nr_referenced, priority, file),
++	TP_ARGS(nid, nr_taken, nr_active, nr_deactivated, nr_referenced, priority, lru, reason),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(int, nid)
+@@ -540,7 +526,8 @@ TRACE_EVENT(mm_vmscan_lru_shrink_active,
+ 		__field(unsigned long, nr_deactivated)
+ 		__field(unsigned long, nr_referenced)
+ 		__field(int, priority)
+-		__field(int, reclaim_flags)
++		__field(int, lru)
++		__field(int, reason)
+ 	),
+ 
+ 	TP_fast_assign(
+@@ -550,15 +537,17 @@ TRACE_EVENT(mm_vmscan_lru_shrink_active,
+ 		__entry->nr_deactivated = nr_deactivated;
+ 		__entry->nr_referenced = nr_referenced;
+ 		__entry->priority = priority;
+-		__entry->reclaim_flags = trace_reclaim_flags(file);
++		__entry->lru = lru;
++		__entry->reason = reason;
+ 	),
+ 
+-	TP_printk("nid=%d nr_taken=%ld nr_active=%ld nr_deactivated=%ld nr_referenced=%ld priority=%d flags=%s",
++	TP_printk("nid=%d nr_taken=%ld nr_active=%ld nr_deactivated=%ld nr_referenced=%ld priority=%d lru=%s reason=%s",
+ 		__entry->nid,
+ 		__entry->nr_taken,
+ 		__entry->nr_active, __entry->nr_deactivated, __entry->nr_referenced,
+ 		__entry->priority,
+-		show_reclaim_flags(__entry->reclaim_flags))
++		__print_symbolic(__entry->lru, LRU_NAMES),
++		__print_symbolic(__entry->reason, trace_reclaim_reason_ops))
+ );
+ 
+ TRACE_EVENT(mm_vmscan_node_reclaim_begin,
+--- a/mm/vmscan.c~mm-vmscan-rework-lru_shrink-and-write_folio-tracepoints
++++ a/mm/vmscan.c
+@@ -2045,7 +2045,7 @@ static unsigned long shrink_inactive_lis
+ 					nr_scanned - nr_reclaimed);
+ 	handle_reclaim_writeback(nr_taken, pgdat, sc, &stat);
+ 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
+-			nr_scanned, nr_reclaimed, &stat, sc->priority, file);
++			nr_scanned, nr_reclaimed, &stat, sc->priority, lru, item);
+ 	return nr_reclaimed;
+ }
+ 
+@@ -2152,7 +2152,8 @@ static void shrink_active_list(unsigned
+ 	lruvec_lock_irq(lruvec);
+ 	lru_note_cost_unlock_irq(lruvec, file, 0, nr_rotated);
+ 	trace_mm_vmscan_lru_shrink_active(pgdat->node_id, nr_taken, nr_activate,
+-			nr_deactivate, nr_rotated, sc->priority, file);
++			nr_deactivate, nr_rotated, sc->priority, lru,
++			PGSTEAL_KSWAPD + reclaimer_offset(sc));
+ }
+ 
+ static unsigned int reclaim_folio_list(struct list_head *folio_list,
+@@ -4838,9 +4839,10 @@ retry:
+ 	/* Retry pass is only meant for clean folios without new isolation */
+ 	if (isolated)
+ 		handle_reclaim_writeback(isolated, pgdat, sc, &stat);
++	item = PGSTEAL_KSWAPD + reclaimer_offset(sc);
+ 	trace_mm_vmscan_lru_shrink_inactive(pgdat->node_id,
+ 			type_scanned, reclaimed, &stat, sc->priority,
+-			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON);
++			type ? LRU_INACTIVE_FILE : LRU_INACTIVE_ANON, item);
+ 
+ 	list_for_each_entry_safe_reverse(folio, next, &list, lru) {
+ 		DEFINE_MIN_SEQ(lruvec);
+@@ -4876,7 +4878,6 @@ retry:
+ 	mod_lruvec_state(lruvec, PGDEMOTE_KSWAPD + reclaimer_offset(sc),
+ 					stat.nr_demoted);
+ 
+-	item = PGSTEAL_KSWAPD + reclaimer_offset(sc);
+ 	mod_lruvec_state(lruvec, item, reclaimed);
+ 	mod_lruvec_state(lruvec, PGSTEAL_ANON + type, reclaimed);
+ 
 _
 
-Patches currently in -mm which might be from leitao@debian.org are
+Patches currently in -mm which might be from qiwuchen55@gmail.com are
 
-mm-huge_memory-use-sysfs_match_string-in-defrag_store.patch
-mm-huge_memory-refactor-defrag_show-to-use-defrag_flags.patch
-mm-kmemleak-dedupe-verbose-scan-output-by-allocation-backtrace.patch
-selftests-mm-add-kmemleak-verbose-dedup-test.patch
+mm-vmscan-rework-lru_shrink-and-write_folio-tracepoints.patch
 
