@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95CEA3CFF40
-	for <mm-commits@vger.kernel.org>; Fri,  8 May 2026 18:17:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 165021F91F6
+	for <mm-commits@vger.kernel.org>; Fri,  8 May 2026 18:31:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778264263; cv=none; b=lJZfWHJm8ttMYBoiY/zxqvBPWynzVzN0/+Zxjj45JtH7fwmTe2wrUNCfLwLr1IlUTNCFEul/y4qFBy9iJzdIL6vtesmPfgjcx84d1+rSlx0BTgF+b8FMKyOe/1eQ/TehnfDNPLX+Inxw9dnAQ/BU2fgiPEML5aF170y87v4a/cI=
+	t=1778265114; cv=none; b=Tr6NgEIWxTpr8vDU5+D4ZzYg4j7vCpYaTSyR9UEswx6kkn4ZLgUVtCmon7xOTXpjrCC8kyDMqYrjvppIwt/7tzsvCYtLxOaGPhLeA0tusKrMxMDhIQ8jkbg4VYF3saY+Ma2rD8sAR3dRKVyELGitRzih4+YPwGr1/jIOaGxR3oo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778264263; c=relaxed/simple;
-	bh=G6qDNhf3uVPIouix++FH4tFZa8QDMen+vQstv16Hv+k=;
-	h=Date:To:From:Subject:Message-Id; b=Z+pZO8jsMK7vRn4Lgcoh+fxM9RIZuG1XoYJpwxgjnha0n1p/5DQkejQfgZh0wMpURfmmuOkf+L33g7ULTywTHGELhLHLnJT/j9ziKTlJ5V+cpwAkK1+e6NaXdCsnZ1HafQFShrMstr4P3iUViKlVL8TR4Ts6My5o8LpLVo0dpHA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=f+Vmst3B; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778265114; c=relaxed/simple;
+	bh=5SmV5KN468LdSs6IMNW3szjf6t+TC+Hz1F+pCCdBmKg=;
+	h=Date:To:From:Subject:Message-Id; b=Kjc9wPEXsteZg32c1J0VJVjSpuEDA7J9obEqrRcQp9VUXKr6dnqdJK+8GxyTjSUtXgUbqCkpr7/x7d6fxmYMeHt9atapncLYTxYeLHzIz3yUDz3Hj3FgmELYq1u4ZwgbiiHDX2q+X4alo7bYoAnl3rBAm9PPZIq50G2lE2AUlK0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xh/dWwg2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="f+Vmst3B"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABC37C2BCB0;
-	Fri,  8 May 2026 18:17:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xh/dWwg2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A535EC2BCB0;
+	Fri,  8 May 2026 18:31:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778264261;
-	bh=G6qDNhf3uVPIouix++FH4tFZa8QDMen+vQstv16Hv+k=;
+	s=korg; t=1778265113;
+	bh=5SmV5KN468LdSs6IMNW3szjf6t+TC+Hz1F+pCCdBmKg=;
 	h=Date:To:From:Subject:From;
-	b=f+Vmst3BIpRGtNfkFLZY2hZx0/TFkna8UEBMmfb+TxVXXlzo+i8tP3ykGkfOnqa/I
-	 hiHKOYv0Svk0FXZqNAoDpAc3NkB/hW8XgCdPCXKQG8Tj3mx9MNZSqiTCXTMtJZYc8E
-	 d5Bgplakv6fd3eBUq5tCipVXHgF+AcaWYtjbKoCM=
-Date: Fri, 08 May 2026 11:17:41 -0700
-To: mm-commits@vger.kernel.org,pchelkin@ispras.ru,hch@lst.de,axboe@kernel.dk,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=Xh/dWwg2wLWL0P2xkiSbmkTYPBAeRh2L233hjGA7SK829Fbeyx4AEMQhYMplrd8wq
+	 T7smLEnPQyxsIMZj1W2ieIvUrxek09QjkqmLutXDYC33a4JrGyPKWk1BvbZ+9CDhnt
+	 vbVu+NlsfREtduNKhH7i6b6Edn8UuBbZSrNaS2t8=
+Date: Fri, 08 May 2026 11:31:53 -0700
+To: mm-commits@vger.kernel.org,david@kernel.org,hao.ge@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch added to mm-nonmm-unstable branch
-Message-Id: <20260508181741.ABC37C2BCB0@smtp.kernel.org>
+Subject: + mm-balloon-expose-per-node-balloon-pages-in-node-meminfo.patch added to mm-new branch
+Message-Id: <20260508183153.A535EC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: free pagelist on error in iov_iter_extract_pages()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
+     Subject: proc/meminfo: expose per-node balloon pages in node meminfo
+has been added to the -mm mm-new branch.  Its filename is
+     mm-balloon-expose-per-node-balloon-pages-in-node-meminfo.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-balloon-expose-per-node-balloon-pages-in-node-meminfo.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,133 +69,50 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: lib: free pagelist on error in iov_iter_extract_pages()
-Date: Fri, 8 May 2026 14:13:29 +0300
+From: Hao Ge <hao.ge@linux.dev>
+Subject: proc/meminfo: expose per-node balloon pages in node meminfo
+Date: Fri, 8 May 2026 17:47:36 +0800
 
-Since 'iov_iter_extract_pages()' may allocate new pagelist if the passed
-one isn't large enough, the worst-case scenario may be:
+Commit 835de37603ef ("meminfo: add a per node counter for balloon
+drivers") added NR_BALLOON_PAGES and exposed it in /proc/meminfo.
+However, the per-node view at /sys/devices/system/node/nodeX/meminfo
+was not updated, even though the counter is already tracked per-node.
 
-...
-struct page *stack_pages[SMALL];
-struct page **pages = stack_pages;
-...
-if (iov_iter_extract_pages(i..., &pages, ...) <= 0) {
-        /* Even in case of error, new pagelist may be allocated */
-        if (pages != stack_pages)
-                kvfree(pages);                                  [1]
-        /* The rest of error handling and return */
-}
-/* Regular flow */
-...
-if (pages != stack_pages)
-        kvfree(pages);
-...
-return 0;
+Add it to node_read_meminfo() so users can see balloon usage per
+NUMA node without having to parse the raw vmstat file.
 
-If you're unlucky so SMALL amount of pages wasn't enough and new pagelist
-was allocated, missing [1] causes the memory leak similar to one I've
-recently observed and fixed for 6.12 in [2].  So adjust
-'iov_iter_extract_pages()' to make such a cleanup itself rather than rely
-on caller's handling on error paths, thus making [1] not needed.
-
-[2] https://lore.kernel.org/stable/20260505094529.406783-1-dmantipov@yandex.ru/T/#u
-
-Link: https://lore.kernel.org/20260508111329.329943-1-dmantipov@yandex.ru
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Suggested-by: Fedor Pchelkin <pchelkin@ispras.ru>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>
+Link: https://lore.kernel.org/20260508094736.142467-1-hao.ge@linux.dev
+Signed-off-by: Hao Ge <hao.ge@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/iov_iter.c |   54 ++++++++++++++++++++++++++++-------------------
- 1 file changed, 33 insertions(+), 21 deletions(-)
+ drivers/base/node.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/lib/iov_iter.c~lib-free-pagelist-on-error-in-iov_iter_extract_pages
-+++ a/lib/iov_iter.c
-@@ -1807,7 +1807,8 @@ static ssize_t iov_iter_extract_user_pag
-  *  (*) Use with ITER_DISCARD is not supported as that has no content.
-  *
-  * On success, the function sets *@pages to the new pagelist, if allocated, and
-- * sets *offset0 to the offset into the first page.
-+ * sets *offset0 to the offset into the first page. On error, new pagelist
-+ * is freed if was allocated, and *@pages sets back to its original value.
-  *
-  * It may also return -ENOMEM and -EFAULT.
-  */
-@@ -1818,31 +1819,42 @@ ssize_t iov_iter_extract_pages(struct io
- 			       iov_iter_extraction_t extraction_flags,
- 			       size_t *offset0)
- {
-+	struct page **oldpages = *pages;
-+	int ret;
-+
- 	maxsize = min_t(size_t, min_t(size_t, maxsize, i->count), MAX_RW_COUNT);
- 	if (!maxsize)
- 		return 0;
- 
- 	if (likely(user_backed_iter(i)))
--		return iov_iter_extract_user_pages(i, pages, maxsize,
--						   maxpages, extraction_flags,
--						   offset0);
--	if (iov_iter_is_kvec(i))
--		return iov_iter_extract_kvec_pages(i, pages, maxsize,
--						   maxpages, extraction_flags,
--						   offset0);
--	if (iov_iter_is_bvec(i))
--		return iov_iter_extract_bvec_pages(i, pages, maxsize,
--						   maxpages, extraction_flags,
--						   offset0);
--	if (iov_iter_is_folioq(i))
--		return iov_iter_extract_folioq_pages(i, pages, maxsize,
--						     maxpages, extraction_flags,
--						     offset0);
--	if (iov_iter_is_xarray(i))
--		return iov_iter_extract_xarray_pages(i, pages, maxsize,
--						     maxpages, extraction_flags,
--						     offset0);
--	return -EFAULT;
-+		ret = iov_iter_extract_user_pages(i, pages, maxsize,
-+						  maxpages, extraction_flags,
-+						  offset0);
-+	else if (iov_iter_is_kvec(i))
-+		ret = iov_iter_extract_kvec_pages(i, pages, maxsize,
-+						  maxpages, extraction_flags,
-+						  offset0);
-+	else if (iov_iter_is_bvec(i))
-+		ret = iov_iter_extract_bvec_pages(i, pages, maxsize,
-+						  maxpages, extraction_flags,
-+						  offset0);
-+	else if (iov_iter_is_folioq(i))
-+		ret = iov_iter_extract_folioq_pages(i, pages, maxsize,
-+						    maxpages, extraction_flags,
-+						    offset0);
-+	else if (iov_iter_is_xarray(i))
-+		ret = iov_iter_extract_xarray_pages(i, pages, maxsize,
-+						    maxpages, extraction_flags,
-+						    offset0);
-+	else
-+		ret = -EFAULT;
-+
-+	if (unlikely(ret) && *pages && *pages != oldpages) {
-+		kvfree(*pages);
-+		*pages = oldpages;
-+	}
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(iov_iter_extract_pages);
- 
+--- a/drivers/base/node.c~mm-balloon-expose-per-node-balloon-pages-in-node-meminfo
++++ a/drivers/base/node.c
+@@ -525,6 +525,7 @@ static ssize_t node_read_meminfo(struct
+ #endif
+ 			     "Node %d GPUActive:      %8lu kB\n"
+ 			     "Node %d GPUReclaim:     %8lu kB\n"
++			     "Node %d Balloon:        %8lu kB\n"
+ 			     ,
+ 			     nid, K(node_page_state(pgdat, NR_FILE_DIRTY)),
+ 			     nid, K(node_page_state(pgdat, NR_WRITEBACK)),
+@@ -560,7 +561,8 @@ static ssize_t node_read_meminfo(struct
+ #endif
+ 			     ,
+ 			     nid, K(node_page_state(pgdat, NR_GPU_ACTIVE)),
+-			     nid, K(node_page_state(pgdat, NR_GPU_RECLAIM))
++			     nid, K(node_page_state(pgdat, NR_GPU_RECLAIM)),
++			     nid, K(node_page_state(pgdat, NR_BALLOON_PAGES))
+ 			    );
+ 	len += hugetlb_report_node_meminfo(buf, len, nid);
+ 	return len;
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from hao.ge@linux.dev are
 
-lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
-lib-fix-_parse_integer_limit-to-handle-overflow.patch
-lib-fix-memparse-to-handle-overflow.patch
-lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch
-lib-cmdline_kunit-add-test-case-for-memparse.patch
-lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
-riscv-export-symbols-needed-for-riscv32-efi-stub.patch
+mm-balloon-expose-per-node-balloon-pages-in-node-meminfo.patch
 
