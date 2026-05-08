@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04CD03D7D70
-	for <mm-commits@vger.kernel.org>; Fri,  8 May 2026 20:10:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F6A932ED55
+	for <mm-commits@vger.kernel.org>; Fri,  8 May 2026 20:42:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778271060; cv=none; b=bzFACk6Og6j7EjDYQOPulTupUFBee6o4gXVQFfILqoLiueUwRnnwAg36f+8IlM+e2xifQ20Usnjq71rGd7fas2Hid7aWfz55lLWuDH/puTx741vQd/pf03VhqBrOU5KUbXHoQRPSMx9H1jE8UOBy03W8CU42P8d1Tf/6QRKHplA=
+	t=1778272966; cv=none; b=tIj1Gf8srcJ0WwwVE5FyGNnbMy/iOGytSxpX4vuEQG+mVD2nudb1CZ8IOJX+cY9Fdt98gE8hUFGwBfYm29eONRETrHs0ZNTQU+nsRu/h4IKNbZJC1JgUn3x6wszvPYblmBkvvR5+GyZo7sDhNJqmTXw4L34G3gj/YcdW0SUHPlw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778271060; c=relaxed/simple;
-	bh=7Ktk8RRPeUx/uV1mNvDzZeDEJqeN2XnfLP7xbISSeCs=;
-	h=Date:To:From:Subject:Message-Id; b=samue97eo3ADGdkv3mbrGno641p52JQ6jjC5yZBUqPGSoJVF/ocB9LXEFYW3N9Xr8mnYOovf1RsHJkV7ItTEGdhItPx314JQ4m7GwpI2a3IqiOrysd6zpWAUTebj9qM4408Qf2MPazwrCT8/z4p+CRNj5yOZzE1q6sI5BfrdqLQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rR+zVgHI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778272966; c=relaxed/simple;
+	bh=qW9+blvVuw2MjzOVar6rkU5a2+DNh0P1B775/FgprNg=;
+	h=Date:To:From:Subject:Message-Id; b=P9mQQHB9aKpwO5KAFchrAZ1VJzWW7NJWcQ68LugQieqgaJdrL0TjOAbpeKDuvQKjlRWgrHpR87OTybJLLnG1dNKVX7GJwEDzXaKMNqxrNCb7AFHn4v15K+BDOsJM/AkBgc6ClMA72pq5dCVVUmAJkFmiOvNOdE934qPvoU6w4rg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IC+Sat0E; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rR+zVgHI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9098BC2BCB0;
-	Fri,  8 May 2026 20:10:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IC+Sat0E"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD0EEC2BCB0;
+	Fri,  8 May 2026 20:42:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778271059;
-	bh=7Ktk8RRPeUx/uV1mNvDzZeDEJqeN2XnfLP7xbISSeCs=;
+	s=korg; t=1778272965;
+	bh=qW9+blvVuw2MjzOVar6rkU5a2+DNh0P1B775/FgprNg=;
 	h=Date:To:From:Subject:From;
-	b=rR+zVgHIhJ2/0BIv0lJcH4i3wSvpVxyLXNqkfi2R6zvtlg+sGNpCFfLCRxxTzPBxs
-	 LwqVD2ac/L50RCy3+uRb1tDxZ/GOHr/XEiOgfr4C6SRqH5UDUV/q0TOOWVh+8EO2fy
-	 VfgpTNqESVLzl9V5uaXN2IA8t9344jnU+mjx8P+M=
-Date: Fri, 08 May 2026 13:10:58 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,shakeel.butt@linux.dev,paulmck@kernel.org,axboe@kernel.dk,phasta@kernel.org,akpm@linux-foundation.org
+	b=IC+Sat0ETsoq4gcbYffnhqWkZpmzWR26yTosaayxAOxojSRvxOfQn280O17J5foA6
+	 2FfNTEJE3gYFv/MZxO4BWTviGSyNR2I8cXMM1hwDb7rTyq/cjUySlzqw8CDMIsP9bU
+	 OXCbNdrLo43Hte3s4KTGgOaQbR9Mz0/Y0+JkkN/I=
+Date: Fri, 08 May 2026 13:42:45 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + llist-make-locking-comments-consistent.patch added to mm-nonmm-unstable branch
-Message-Id: <20260508201059.9098BC2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-remove-read_only_thp_for_fs-in-khugepaged-fix-2.patch added to mm-new branch
+Message-Id: <20260508204245.BD0EEC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: llist: make locking comments consistent
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     llist-make-locking-comments-consistent.patch
+     Subject: fix run_vmtests.sh to only print SKIP when khugepaged is selected
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-remove-read_only_thp_for_fs-in-khugepaged-fix-2.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/llist-make-locking-comments-consistent.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-remove-read_only_thp_for_fs-in-khugepaged-fix-2.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,44 +69,47 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Philipp Stanner <phasta@kernel.org>
-Subject: llist: make locking comments consistent
-Date: Thu, 7 May 2026 11:49:19 +0200
+From: Zi Yan <ziy@nvidia.com>
+Subject: fix run_vmtests.sh to only print SKIP when khugepaged is selected
+Date: Thu, 7 May 2026 03:17:51 -0400
 
-llist's locking requirement table has a legend which claims that all
-operations not needing a lock a marked with '-', whereas in truth for some
-table entries just a whitespace is used.
-
-Add the '-' to all appropriate places.
-
-Link: https://lore.kernel.org/20260507094918.23910-2-phasta@kernel.org
-Signed-off-by: Philipp Stanner <phasta@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lore.kernel.org/E44ED51F-D250-442D-A89F-B90A671D53ED@nvidia.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/llist.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/llist.h~llist-make-locking-comments-consistent
-+++ a/include/linux/llist.h
-@@ -26,8 +26,8 @@
-  *
-  *           |   add    | del_first |  del_all
-  * add       |    -     |     -     |     -
-- * del_first |          |     L     |     L
-- * del_all   |          |           |     -
-+ * del_first |    -     |     L     |     L
-+ * del_all   |    -     |     -     |     -
-  *
-  * Where, a particular row's operation can happen concurrently with a column's
-  * operation, with "-" being no lock needed, while "L" being lock is needed.
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-remove-read_only_thp_for_fs-in-khugepaged-fix-2
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -508,7 +508,7 @@ fi
+ 
+ if [ -n "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
+ CATEGORY="thp" run_test ./khugepaged all:file ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
+-else
++elif test_selected thp; then
+ 	count_total=$(( count_total + 1 ))
+ 	count_skip=$(( count_skip + 1 ))
+ 	echo "[SKIP] ./khugepaged all:file" | tap_prefix
 _
 
-Patches currently in -mm which might be from phasta@kernel.org are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-llist-make-locking-comments-consistent.patch
+mm-khugepaged-remove-read_only_thp_for_fs-check.patch
+mm-khugepaged-add-folio-dirty-check-after-try_to_unmap.patch
+mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled.patch
+mm-khugepaged-remove-read_only_thp_for_fs-check-in-hugepage_enabled.patch
+mm-remove-read_only_thp_for_fs-kconfig-option.patch
+mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch
+fs-remove-nr_thps-from-struct-address_space.patch
+mm-huge_memory-remove-folio-split-check-for-read_only_thp_for_fs.patch
+mm-truncate-use-folio_split-in-truncate_inode_partial_folio.patch
+fs-btrfs-remove-a-comment-referring-to-read_only_thp_for_fs.patch
+selftests-mm-remove-read_only_thp_for_fs-in-khugepaged.patch
+selftests-mm-remove-read_only_thp_for_fs-in-khugepaged-fix.patch
+selftests-mm-remove-read_only_thp_for_fs-in-khugepaged-fix-2.patch
+selftests-mm-remove-read_only_thp_for_fs-code-from-guard-regions.patch
+mm-khugepaged-enable-clean-pagecache-folio-collapse-for-writable-files.patch
+selftests-mm-add-writable-file-collapse-tests-for-khugepaged.patch
 
