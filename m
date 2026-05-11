@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0C473B8920
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40A323B8920
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535344; cv=none; b=GBVHOchxJWht9Cjokbb0saP5RxOR9WdKmnPkum9AMfWqDJz1jvdsq0YZP89auRH2WeXopXS5qqENMnCJY67iubnmajAV5Yc+XrxZ0c2lwb6A9cJq52oUiCF2xkPnHJnkfNM+qTnA9rvnTpj7/TEeTN9GBEMuAlDBQfYqrWCrYp4=
+	t=1778535346; cv=none; b=dkzWy09a4fQf1omk+XXW7mmYeYlNJU/jIWcRmRr8I5mxgOJCIchyne4CPrkvu1NL0XH3ooKzgzHUbxfRtmc/PKhKAnT/SsvHouSDw5c6ybgmdF7bb7jnRc2f9xfunitTxG8SilSujAkpgXa3kVnP/M/IhsWNzHe1Gw81L9UNDq8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535344; c=relaxed/simple;
-	bh=ykGp6grSnmD1CQjNVbYfAOGWOvWKF2tDLzoWWU2ztO4=;
-	h=Date:To:From:Subject:Message-Id; b=cvWNbOUt8oOAtwG5JZtfxDjTacjYdIwrzp7qPsHnxfwvlmImwmdpZ7ewWiyHnupgQ5su59D85A4oKOr4oAuGU/A41MhoxFC7uhaUvSZhlSPSCm+8mkMINdJVQj5hK08eEwbul9kDMrFaX90/gCCQMPHhf0KjSux0OcRJ9jZvs1Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YT1QzljW; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535346; c=relaxed/simple;
+	bh=CLd0E3UML+DbZhMhXAXGcQxxjiaKPqjZQuPrkJoZlbc=;
+	h=Date:To:From:Subject:Message-Id; b=WRHvhj5PakQyQVAa44odS8o9a5DKHfJLB279/tnvfUw3CNWDCBZ4yWbgtCYpu4sfeRJATcg10+UvWPZSJf3w5OeRGAddNTo78Fl2Y47hu3Uwtaa8bX1BETmZ94V1/PJPjIjly7CfB6zd2aLhtr2OqxyawfK/+tLmFM04/u0psYw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=de22gTLP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YT1QzljW"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C943CC2BCB0;
-	Mon, 11 May 2026 21:35:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="de22gTLP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AB07C2BCB0;
+	Mon, 11 May 2026 21:35:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535343;
-	bh=ykGp6grSnmD1CQjNVbYfAOGWOvWKF2tDLzoWWU2ztO4=;
+	s=korg; t=1778535346;
+	bh=CLd0E3UML+DbZhMhXAXGcQxxjiaKPqjZQuPrkJoZlbc=;
 	h=Date:To:From:Subject:From;
-	b=YT1QzljWsWF8uCj4Z0+VCmSiMIGHL8FEVwcEPGzSu7Mn7eMah5fA3+4B66sTCf+fC
-	 dRe/6KvhGRDdQf+ton5eiqvH0KzxmfFczXZuKBmgOVTtqeHw4JW73THV4G5IPHEUqR
-	 OYOrywULisdO6NlIAvr4hOE812JytnNMid9J8Jo4=
-Date: Mon, 11 May 2026 14:35:43 -0700
+	b=de22gTLP+zPvX6MhCCS5JeQ3CKA9+jBJPOvGJ/T8Nuzb9Y6s00pCiLbAvTsHaZsTx
+	 F25pF70QBG5dzd/Kuq0w37/DqIZteGIDzxuTHZwINGBfWAKp/r2Vf7XZXulNAz1LO2
+	 P0SqZMWHXJ08lQb4WZjJjw8PjVYaGoCTFG9/LfDg=
+Date: Mon, 11 May 2026 14:35:45 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch added to mm-new branch
-Message-Id: <20260511213543.C943CC2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch added to mm-new branch
+Message-Id: <20260511213546.1AB07C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: hugetlb-mremap: add setup of HugeTLB pages
+     Subject: selftests/mm: hugetlb-shm: add setup of HugeTLB pages
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
+     selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: hugetlb-mremap: add setup of HugeTLB pages
-Date: Mon, 11 May 2026 19:28:25 +0300
+Subject: selftests/mm: hugetlb-shm: add setup of HugeTLB pages
+Date: Mon, 11 May 2026 19:28:26 +0300
 
-hugetlb-mremap test fails if there are no free huge pages prepared by a
-wrapper script.
+hugetlb-shm test fails if there are no free huge pages prepared by a
+wrapper script and shm liimts in proc are too low.
 
-Add setup of HugeTLB pages to the test and make sure that the original
-settings are restored on the test exit.
+Add setup of HugeTLB pages and shm limits to the test and make sure that
+the original settings are restored on the test exit.
 
-Link: https://lore.kernel.org/20260511162840.375890-42-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-43-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
@@ -107,47 +107,54 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb-mremap.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ tools/testing/selftests/mm/hugetlb-shm.c |   22 +++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/tools/testing/selftests/mm/hugetlb-mremap.c~selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages
-+++ a/tools/testing/selftests/mm/hugetlb-mremap.c
-@@ -26,6 +26,7 @@
- #include <stdbool.h>
- #include "kselftest.h"
+--- a/tools/testing/selftests/mm/hugetlb-shm.c~selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages
++++ a/tools/testing/selftests/mm/hugetlb-shm.c
+@@ -29,9 +29,27 @@
+ #include <sys/mman.h>
+ 
  #include "vm_util.h"
 +#include "hugepage_settings.h"
  
- #define DEFAULT_LENGTH_MB 10UL
- #define MB_TO_BYTES(x) (x * 1024 * 1024)
-@@ -108,8 +109,9 @@ static void register_region_with_uffd(ch
+ #define LENGTH (256UL*1024*1024)
  
- int main(int argc, char *argv[])
- {
-+	unsigned long hugepage_size;
-+	int ret = 0, fd, nr;
- 	size_t length = 0;
--	int ret = 0, fd;
- 
- 	ksft_print_header();
- 	ksft_set_plan(1);
-@@ -125,7 +127,16 @@ int main(int argc, char *argv[])
- 	else
- 		length = DEFAULT_LENGTH_MB;
- 
++static void prepare(void)
++{
++	unsigned long length, hugepage_size, nr;
++
 +	hugepage_size = default_huge_page_size();
 +	if (!hugepage_size)
-+		ksft_exit_skip("Could not detect default hugetlb page size\n");
- 	length = MB_TO_BYTES(length);
-+	length = (length + hugepage_size - 1) & ~(hugepage_size - 1);
++		ksft_exit_skip("Unable to determine huge page size\n");
++
++	length = (LENGTH + hugepage_size - 1) & ~(hugepage_size - 1);
 +	nr = length / hugepage_size;
 +
 +	if (!hugetlb_setup_default(nr))
-+		ksft_exit_skip("Not enough huge pages\n");
++		ksft_exit_skip("Not enough free huge pages\n");
 +
- 	fd = memfd_create(argv[0], MFD_HUGETLB);
- 	if (fd < 0)
- 		ksft_exit_fail_msg("Open failed: %s\n", strerror(errno));
++	shm_limits_prepare(length);
++}
++
+ int main(void)
+ {
+ 	int shmid;
+@@ -41,6 +59,8 @@ int main(void)
+ 	ksft_print_header();
+ 	ksft_set_plan(1);
+ 
++	prepare();
++
+ 	shmid = shmget(2, LENGTH, SHM_HUGETLB | IPC_CREAT | SHM_R | SHM_W);
+ 	if (shmid < 0)
+ 		ksft_exit_fail_perror("shmget");
+@@ -76,3 +96,5 @@ int main(void)
+ 	ksft_test_result_pass("hugepage using SysV shmget/shmat\n");
+ 	ksft_finished();
+ }
++
++SHM_LIMITS_RESTORE()
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
