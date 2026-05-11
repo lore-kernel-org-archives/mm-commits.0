@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA9572D47F1
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 23:28:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DC6F32143D
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 23:47:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778542127; cv=none; b=mkXIiFHQcI9JIW4yc6RVmXcGl5kv0EVU6BmrcxFv/E18XZfg/Ay/0/E9sYeM4wA2RCPXY19z3vIAF3avxeyPS6iKy0mjpC83w/J66sCPxnhAtGLTLx+IxBJEsuIWpsC2Hhd4NTHykZsycowqm2gp3xLT1CFqSYf7Ly+e6bjn1D4=
+	t=1778543272; cv=none; b=fAT79a0pUUWgynFBO1u+csyi9TvQG2z5IuJUifhu0qoMi2FEEwLfrsTCJhTcsEDCNbZ1nuP9aMkTE+Ot7GCb2U9B9WFcbwef0glOItbnf7e1o6D5KBYS0DXJRBCtySMc9Mrv3ELkgZYF4omRpYF35RTZ6X2YIi8FB6Zn4YUpurE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778542127; c=relaxed/simple;
-	bh=XBiW8hnVusyeFSsGSTk8AeowlQBWvnmAYZbeJv0etms=;
-	h=Date:To:From:Subject:Message-Id; b=Ozp2B2lJHQCZlFgXzycN4F4CkKHSTTwIQDe9JO4FCK5vL9KA4bY3c/D1zjW0XA8eIT7AeydcLT5pGhf0AvaPyrkM4m3cxNpUhUe6yk4gXNtTVcgoqRZ1dexLTbuD3VTh04iLkbZQ8Ox/fPxE+BoUWyzCrOebN+bFCG6nGCphpm8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IceO3pXH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778543272; c=relaxed/simple;
+	bh=NVV+tcLGxpHKT1uHaCTuRAgchlUjFhAAvvvWDOkyNEs=;
+	h=Date:To:From:Subject:Message-Id; b=oPRCgWA6cme5gMx++NgroE3MpgW88coSPKSia6F57O2PW/iAwSWWkhGnBhtP59LtZWRi26TkAdbyIrF8l/pdvouKFNg5mXNmNZBs9yoSSmbpMPqm4FFUDERCMtaztP7Cx9R6bTNHfZJm58Z9l6zs6qgAWI8gHSFI6D0whm9zey8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VrbZ28dX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IceO3pXH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FDFDC2BCB0;
-	Mon, 11 May 2026 23:28:47 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VrbZ28dX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13CF8C2BCB0;
+	Mon, 11 May 2026 23:47:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778542127;
-	bh=XBiW8hnVusyeFSsGSTk8AeowlQBWvnmAYZbeJv0etms=;
+	s=korg; t=1778543272;
+	bh=NVV+tcLGxpHKT1uHaCTuRAgchlUjFhAAvvvWDOkyNEs=;
 	h=Date:To:From:Subject:From;
-	b=IceO3pXH7FBpHhGKgAguUfOPvEQuelIs5mV3WzR3sk2YNzdn08di7LrnxIlwvZZ3l
-	 l9C9AEii1UxhQDhBNWpL2EosgDj0Dc3lgzbFMtbGgUbIZL85sxIzQ+7AuAVCnCA8y3
-	 sqyTa/ec/ADlCUuewefKgr3lPki9ghJSAyX8BYiM=
-Date: Mon, 11 May 2026 16:28:46 -0700
-To: mm-commits@vger.kernel.org,zaslonko@linux.ibm.com,ptikhomirov@virtuozzo.com,ojeda@kernel.org,oberpar@linux.ibm.com,nathan@kernel.org,masahiroy@kernel.org,linux@weissschuh.net,arnd@arndb.de,khorenko@virtuozzo.com,akpm@linux-foundation.org
+	b=VrbZ28dX5Z+feEVxR+JgyLOaS/Z/6OL5zhjvmuZhEcN5LjO/G3X8YDY3HBVbyysm9
+	 C1dyLjcr9owKRqOH6GSOEp9vFXC5rO1lHJzOWWeNmek1RjU3jucG3koh9jT5lumLsM
+	 V7xpCIIZivaTFh3i5JAOUGfdG4HtAlUqwdocmsqw=
+Date: Mon, 11 May 2026 16:47:51 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,donettom@linux.ibm.com,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes.patch added to mm-nonmm-unstable branch
-Message-Id: <20260511232847.4FDFDC2BCB0@smtp.kernel.org>
+Subject: + mm-memory_hotplug-factor-out-altmap-freeing-checks.patch added to mm-new branch
+Message-Id: <20260511234752.13CF8C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: gcov: use atomic counter updates to fix concurrent access crashes
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes.patch
+     Subject: mm/memory_hotplug: factor out altmap freeing checks
+has been added to the -mm mm-new branch.  Its filename is
+     mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,124 +69,85 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Konstantin Khorenko <khorenko@virtuozzo.com>
-Subject: gcov: use atomic counter updates to fix concurrent access crashes
-Date: Mon, 11 May 2026 12:50:52 +0200
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/memory_hotplug: factor out altmap freeing checks
+Date: Mon, 11 May 2026 16:43:07 +0800
 
-GCC's GCOV instrumentation can merge global branch counters with loop
-induction variables as an optimization.  In inflate_fast(), the inner copy
-loops get transformed so that the GCOV counter value is loaded multiple
-times to compute the loop base address, start index, and end bound.  Since
-GCOV counters are global (not per-CPU), concurrent execution on different
-CPUs causes the counter to change between loads, producing inconsistent
-values and out-of-bounds memory writes.
+Use a small helper to centralize altmap freeing after verifying that all
+vmemmap pages were released.  This keeps the check consistent between the
+normal teardown path and the memory hotplug error paths.
 
-The crash manifests during IPComp (IP Payload Compression) processing when
-inflate_fast() runs concurrently on multiple CPUs:
-
-  BUG: unable to handle page fault for address: ffffd0a3c0902ffa
-  RIP: inflate_fast+1431
-  Call Trace:
-   zlib_inflate
-   __deflate_decompress
-   crypto_comp_decompress
-   ipcomp_decompress [xfrm_ipcomp]
-   ipcomp_input [xfrm_ipcomp]
-   xfrm_input
-
-At the crash point, the compiler generated three loads from the same
-global GCOV counter (__gcov0.inflate_fast+216) to compute base, start, and
-end for an indexed loop.  Another CPU modified the counter between loads,
-making the values inconsistent - the write went 3.4 MB past a 65 KB
-buffer.
-
-Add -fprofile-update=prefer-atomic to CFLAGS_GCOV at the global level in
-the top-level Makefile, guarded by a try-run compile test.  The test
-compiles a minimal program with and without -fprofile-update=prefer-atomic
-using the full KBUILD_CFLAGS, then compares undefined symbols in the
-resulting object files.  If prefer-atomic introduces new undefined
-references (such as __atomic_fetch_add_8 on i386 or __aarch64_ldadd8_relax
-on arm64 with outline-atomics), the flag is not added -- the kernel does
-not link against libatomic.
-
-On architectures where GCC inlines 64-bit atomic counter updates (x86_64,
-s390, ...) the test passes and the flag is enabled, preventing the
-compiler from merging counters with loop induction variables and fixing
-the observed concurrent-access crash.
-
-On architectures where the flag would introduce libatomic dependencies, it
-is silently omitted and behaviour is no worse than before this patch.
-
-Move the CFLAGS_GCOV block from its original position (before the arch
-Makefile include) to after the core KBUILD_CFLAGS assignments but before
-the scripts/Makefile.gcc-plugins include.  This placement ensures the
-try-run test sees arch-specific flags (-m32, -march=,
--mno-outline-atomics) while avoiding GCC plugin flags (-fplugin=) that
-would break the test on clean builds when plugin shared objects do not yet
-exist.
-
-Link: https://lore.kernel.org/20260511105052.417187-2-khorenko@virtuozzo.com
-Signed-off-by: Konstantin Khorenko <khorenko@virtuozzo.com>
-Tested-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Mikhail Zaslonko <zaslonko@linux.ibm.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Cc: Peter Oberparleiter <oberpar@linux.ibm.com>
-Cc: Thomas Weißschuh <linux@weissschuh.net>
+Link: https://lore.kernel.org/20260511084307.1827127-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |   27 +++++++++++++++++++++------
- 1 file changed, 21 insertions(+), 6 deletions(-)
+ mm/memory_hotplug.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
---- a/Makefile~gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes
-+++ a/Makefile
-@@ -824,12 +824,6 @@ endif # KBUILD_EXTMOD
- # Defaults to vmlinux, but the arch makefile usually adds further targets
- all: vmlinux
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-factor-out-altmap-freeing-checks
++++ a/mm/memory_hotplug.c
+@@ -1403,6 +1403,12 @@ bool mhp_supports_memmap_on_memory(void)
+ }
+ EXPORT_SYMBOL_GPL(mhp_supports_memmap_on_memory);
  
--CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage
--ifdef CONFIG_CC_IS_GCC
--CFLAGS_GCOV	+= -fno-tree-loop-im
--endif
--export CFLAGS_GCOV
--
- # The arch Makefiles can override CC_FLAGS_FTRACE. We may also append it later.
- ifdef CONFIG_FUNCTION_TRACER
-   CC_FLAGS_FTRACE := -pg
-@@ -1147,6 +1141,27 @@ endif
- # Ensure compilers do not transform certain loops into calls to wcslen()
- KBUILD_CFLAGS += -fno-builtin-wcslen
- 
-+CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage
-+ifdef CONFIG_CC_IS_GCC
-+CFLAGS_GCOV	+= -fno-tree-loop-im
-+# Use atomic counter updates to avoid concurrent-access crashes in GCOV.
-+# Only enable if -fprofile-update=prefer-atomic does not introduce new
-+# undefined symbols (e.g. libatomic calls that the kernel cannot link).
-+CFLAGS_GCOV	+= $(call try-run,\
-+	echo 'long long x; void f(void){x++;}' | \
-+	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) -w -fprofile-arcs \
-+	-ftest-coverage -x c - -c -o "$$TMP.base" && \
-+	echo 'long long x; void f(void){x++;}' | \
-+	$(CC) $(KBUILD_CPPFLAGS) $(KBUILD_CFLAGS) -w -fprofile-arcs \
-+	-ftest-coverage -fprofile-update=prefer-atomic \
-+	-x c - -c -o "$$TMP" && \
-+	$(NM) "$$TMP.base" | grep ' U ' > "$$TMP.ubase" || true ; \
-+	$(NM) "$$TMP" | grep ' U ' > "$$TMP.utest" || true ; \
-+	cmp -s "$$TMP.ubase" "$$TMP.utest",\
-+	-fprofile-update=prefer-atomic)
-+endif
-+export CFLAGS_GCOV
++static void altmap_free(struct vmem_altmap *altmap)
++{
++	WARN_ONCE(altmap->alloc, "Altmap not fully unmapped");
++	kfree(altmap);
++}
 +
- # change __FILE__ to the relative path to the source directory
- ifdef building_out_of_srctree
- KBUILD_CPPFLAGS += -fmacro-prefix-map=$(srcroot)/=
+ static void remove_memory_blocks_and_altmaps(u64 start, u64 size)
+ {
+ 	unsigned long memblock_size = memory_block_size_bytes();
+@@ -1427,12 +1433,8 @@ static void remove_memory_blocks_and_alt
+ 		put_device(&mem->dev);
+ 
+ 		remove_memory_block_devices(cur_start, memblock_size);
+-
+ 		arch_remove_memory(cur_start, memblock_size, altmap, NULL);
+-
+-		/* Verify that all vmemmap pages have actually been freed. */
+-		WARN(altmap->alloc, "Altmap not fully unmapped");
+-		kfree(altmap);
++		altmap_free(altmap);
+ 	}
+ }
+ 
+@@ -1463,7 +1465,7 @@ static int create_altmaps_and_memory_blo
+ 		/* call arch's memory hotadd */
+ 		ret = arch_add_memory(nid, cur_start, memblock_size, &params);
+ 		if (ret < 0) {
+-			kfree(params.altmap);
++			altmap_free(params.altmap);
+ 			goto out;
+ 		}
+ 
+@@ -1472,7 +1474,7 @@ static int create_altmaps_and_memory_blo
+ 						  params.altmap, group);
+ 		if (ret) {
+ 			arch_remove_memory(cur_start, memblock_size, params.altmap, NULL);
+-			kfree(params.altmap);
++			altmap_free(params.altmap);
+ 			goto out;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from khorenko@virtuozzo.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-gcov-use-atomic-counter-updates-to-fix-concurrent-access-crashes.patch
+mm-memory_hotplug-fix-memory-block-reference-leak-on-remove.patch
+drivers-base-memory-fix-memory-block-reference-leak-in-poison-accounting.patch
+mm-sparse-remove-sparse-buffer-pre-allocation-mechanism.patch
+mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
+mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
+mm-sparse-vmemmap-pass-pgmap-argument-to-memory-deactivation-paths.patch
+mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization.patch
+mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch
+mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
+mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
 
