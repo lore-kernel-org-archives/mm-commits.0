@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D94164D90BF
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:36:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B7CB38E121
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:36:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535368; cv=none; b=hYmIL9yBhsPaLeNBCoJI4diZmTKbNPm1kmWp0JHfJhJFPldvVT1PEw+3c/IeoVvisDR4Xk8QoxMRyIeb0uDZfcPURgA5ymZt5YegMQxvpSqhwKyWL5myeSww5HJw4ZnDow/IigsEK0LKhIK9npbqIZx2nRPe+QHakTr/x52Pybw=
+	t=1778535371; cv=none; b=RpF1b8g1VDD5RqY49Nz+kodVJxUsKTt6WJZ5knmiua7Ud9MmxwBfUbsuxUULHqBEsAMgI5hk3RVvjYpzfyPOKSGy2ryiy5mgK+COAVp0vNx3BoUXMoUTff1WzsQMKImt3z6HQdAlHGSvw5IhFO2Ojd83VFMDWqW6ZaT2F5WR7KM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535368; c=relaxed/simple;
-	bh=cDIspdFBBCTP1gGrNHuQdNBfNzm4UDbSndvJWfq4rXU=;
-	h=Date:To:From:Subject:Message-Id; b=OcKp7g7JNf09p7F8T2XbOgbTc9AC+3u9S3YUfMxeRmIc72ED6LRcViZ1LnJQZP1JNCsJ1b/GR6TvxgvU0nB1OZjRp2kVKaojP08PM73bJ5TvST5YVaaGbS1JVTXt0Y1AmTogjdcXooT/DxFNLtUXRSdvO2HiNtbnxWajNXJJkbw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DivWzYaz; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535371; c=relaxed/simple;
+	bh=qyj/MZhoQ01wN78IYSt8F/EVRZ0GfbRcW45jEOPlfzg=;
+	h=Date:To:From:Subject:Message-Id; b=F2veQzxF4Px8l1A3FyxnZ39ZFP72GAtkwqu9kYsu8EsTAx6hrAa2g1E4PrglhAtf4Nup3w2HPcXqLY2yDkqFSIT5EiEEOlk0lKA0yn0G62BqJLfTStgsBsJEov92+Biv4JAND1OVMmApDjyMLcRGygSATJzxwn2ECISh13f418Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SbEJKcvh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DivWzYaz"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3D3DC2BCB0;
-	Mon, 11 May 2026 21:36:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SbEJKcvh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8F2FC2BCB0;
+	Mon, 11 May 2026 21:36:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535368;
-	bh=cDIspdFBBCTP1gGrNHuQdNBfNzm4UDbSndvJWfq4rXU=;
+	s=korg; t=1778535371;
+	bh=qyj/MZhoQ01wN78IYSt8F/EVRZ0GfbRcW45jEOPlfzg=;
 	h=Date:To:From:Subject:From;
-	b=DivWzYaz9mzctiMVW+KjnyDJsuOGRho/cjVgBxXjAyzom9Nafvv6r6VGWIylpOPln
-	 eoEdEgT0tGVzQm9buwhgS2i33vFbxOE/OaD9/M8AMj0Hx4opdnolxmbG0PPdM4c22d
-	 WjJhZsJe2y56T9NU26Ftqqqa/xc00RXUjDTf4ggw=
-Date: Mon, 11 May 2026 14:36:08 -0700
+	b=SbEJKcvheLnXgJmnUNxasYOZnSp2owpS6gjX1qDZ3wjdxVtmlwpYUR2iVrPmTU/Vh
+	 IRNcDxjwA/hYiVfNZBhU9nBYMUglGspx6ZuRag4tCVHWpMG44HpofltGga+CEJ7kEb
+	 4N72WjeXOkzB+cklvHUhh1XKYw0L23xPovDzIWZk=
+Date: Mon, 11 May 2026 14:36:10 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch added to mm-new branch
-Message-Id: <20260511213608.B3D3DC2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch added to mm-new branch
+Message-Id: <20260511213610.E8F2FC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: va_high_addr_switch: add setup of HugeTLB pages
+     Subject: selftests/mm: va_high_addr_switch.sh: drop huge pages setup
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
+     selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,20 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: va_high_addr_switch: add setup of HugeTLB pages
-Date: Mon, 11 May 2026 19:28:36 +0300
+Subject: selftests/mm: va_high_addr_switch.sh: drop huge pages setup
+Date: Mon, 11 May 2026 19:28:37 +0300
 
-va_high_addr_switch skips HugeTLB tests if there are no free huge pages
-prepared by a wrapper script.
+Since va_high_addr_switch takes care of setting up huge pages, there is no
+need to set them up in the va_high_addr_switch.sh wrapper script.
 
-Add setup of HugeTLB pages to the test and make sure that the original
-settings are restored on the test exit.
-
-Link: https://lore.kernel.org/20260511162840.375890-53-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-54-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
-Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -101,6 +97,7 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sarthak Sharma <sarthak.sharma@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -108,20 +105,64 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/va_high_addr_switch.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/va_high_addr_switch.sh |   41 ------------
+ 1 file changed, 1 insertion(+), 40 deletions(-)
 
---- a/tools/testing/selftests/mm/va_high_addr_switch.c~selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages
-+++ a/tools/testing/selftests/mm/va_high_addr_switch.c
-@@ -325,7 +325,7 @@ int main(int argc, char **argv)
- 	if (!supported_arch())
- 		ksft_exit_skip("Architecture not supported\n");
+--- a/tools/testing/selftests/mm/va_high_addr_switch.sh~selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup
++++ a/tools/testing/selftests/mm/va_high_addr_switch.sh
+@@ -9,7 +9,6 @@
  
--	if (argc == 2 && !strcmp(argv[1], "--run-hugetlb"))
-+	if (hugetlb_setup_default(6))
- 		run_hugetlb = true;
+ # Kselftest framework requirement - SKIP code is 4.
+ ksft_skip=4
+-orig_nr_hugepages=0
  
- 	testcases_init();
+ skip()
+ {
+@@ -77,43 +76,5 @@ check_test_requirements()
+ 	esac
+ }
+ 
+-save_nr_hugepages()
+-{
+-	orig_nr_hugepages=$(cat /proc/sys/vm/nr_hugepages)
+-}
+-
+-restore_nr_hugepages()
+-{
+-	echo "$orig_nr_hugepages" > /proc/sys/vm/nr_hugepages
+-}
+-
+-setup_nr_hugepages()
+-{
+-	local needpgs=$1
+-	while read -r name size unit; do
+-		if [ "$name" = "HugePages_Free:" ]; then
+-			freepgs="$size"
+-			break
+-		fi
+-	done < /proc/meminfo
+-	if [ "$freepgs" -ge "$needpgs" ]; then
+-		return
+-	fi
+-	local hpgs=$((orig_nr_hugepages + needpgs))
+-	echo $hpgs > /proc/sys/vm/nr_hugepages
+-
+-	local nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
+-	if [ "$nr_hugepgs" != "$hpgs" ]; then
+-		restore_nr_hugepages
+-		skip "$0: no enough hugepages for testing"
+-	fi
+-}
+-
+ check_test_requirements
+-save_nr_hugepages
+-# The HugeTLB tests require 6 pages
+-setup_nr_hugepages 6
+-./va_high_addr_switch --run-hugetlb
+-retcode=$?
+-restore_nr_hugepages
+-exit $retcode
++./va_high_addr_switch
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
