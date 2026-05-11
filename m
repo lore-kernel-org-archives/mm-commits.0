@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4818246BC0
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13DB64D2EF6
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535323; cv=none; b=freHpwGqkFCUGY/x8/OMhfEmMBXnpZpf0WrH9OdutGmrUHHGTqyB6iS+YL1ViMo1v3yeQXC/dLlnykzTpTbCYNSfG8Zl9qbrrG9BEV1NZgN1EI6babTUcj82qTK5yl/5N1er7EadsPXxmGsHuTUR6Um2vUU+lb7GDVigKyqyKnE=
+	t=1778535326; cv=none; b=bcRRJrGw28s0V7OSASvlf2+cYGYvUUhLdQQLTGfyDbuRkpZwv/by18lolt1DneXJb37hIbMn08z1Ok+OUY+fgDnnhgSKOUcXravfxfitcwlMEvdDLgY3lUokL0tWhWpLjQnJj+DuX/h/yM1WQ6veSFoshHBx6Phj89IeLgCBgII=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535323; c=relaxed/simple;
-	bh=/1XtybVAIaMl96UF6sjDbvS2NOoONOslIsNoyfYI6xI=;
-	h=Date:To:From:Subject:Message-Id; b=qkIz+Yb6lVjfrWf4NUG7gBijx50JmklE224AUdrQxbjNBAZ7oAwv5SMxgZVKNsFCaCicIHAlQ/sVhG8mZTgRAc5z1GozqUxJJTkgATf9cVr8KWhxwN4tPL7ntIxrHAH4g2E7Ct1oRH6ndoXnDonJP84EY4gxFFwAnTxA49YuIxc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G75SO8GA; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535326; c=relaxed/simple;
+	bh=GLTVi3fVSvFInUzfvqcJ52te1INlS8n2zyNeLxkc+6o=;
+	h=Date:To:From:Subject:Message-Id; b=j8NfegNZxZAV3lDMgWabIr8ADiqwKO7F2YC9pSqKUNE/qGaDk+9LkvakfB67WHiP7Eo+bN7ED4XxJ53HzXvgh6ja7Y8wTB+9h7b+5oXrfCdIuv0S0POR74poc+e+rnvdoihk6AUuTip1SpAp0a4T16CZ/BCZlp8HoWuc0VSEiIM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Sq9pvp9R; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G75SO8GA"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A580BC2BCB0;
-	Mon, 11 May 2026 21:35:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Sq9pvp9R"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E184FC2BCB0;
+	Mon, 11 May 2026 21:35:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535323;
-	bh=/1XtybVAIaMl96UF6sjDbvS2NOoONOslIsNoyfYI6xI=;
+	s=korg; t=1778535326;
+	bh=GLTVi3fVSvFInUzfvqcJ52te1INlS8n2zyNeLxkc+6o=;
 	h=Date:To:From:Subject:From;
-	b=G75SO8GAWtY9mKLIZNScuvk9tPvWbErfBwuVw5I/oq0aOVoxpq9oVM3FRC11zMkfs
-	 JmqZz+zcuB/6alDsyD7Bn+DJZ+CyeRG2RqAd5f3fRPFiwNbK8DBjEuYwDRSARdSCTM
-	 3/a2sb2PXooT7849mifgowtV0KVrQkHveoaeOnac=
-Date: Mon, 11 May 2026 14:35:23 -0700
+	b=Sq9pvp9RrWxbNnSHkgIGW8o1o3aCCjkf28ZmAYG7yuskGmFYmyONxAMYB7M7wttM7
+	 PL3ZO8imXC5HZxMDbh4KRiQ5IOD7KLLh2lnp70r2x2PnRkUc0Po/MbO3uqD48aiixv
+	 I1LVAY7fAlOKDH72hKRZddsM7BW8A/eb+DQQD7yo=
+Date: Mon, 11 May 2026 14:35:25 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-cow-add-setup-of-hugetlb-pages.patch added to mm-new branch
-Message-Id: <20260511213523.A580BC2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch added to mm-new branch
+Message-Id: <20260511213525.E184FC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: cow: add setup of HugeTLB pages
+     Subject: selftests/mm: gup_longterm: add setup of HugeTLB pages
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-cow-add-setup-of-hugetlb-pages.patch
+     selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-cow-add-setup-of-hugetlb-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: cow: add setup of HugeTLB pages
-Date: Mon, 11 May 2026 19:28:16 +0300
+Subject: selftests/mm: gup_longterm: add setup of HugeTLB pages
+Date: Mon, 11 May 2026 19:28:17 +0300
 
-cow tests skips HugeTLB tests if there are no free huge pages prepared by
-a wrapper script.
+gup_longterm tests skips HugeTLB tests if there are no free huge pages
+prepared by a wrapper script.
 
 Add setup of HugeTLB pages to the test and make sure that the original
 settings are restored on the test exit.
 
-Link: https://lore.kernel.org/20260511162840.375890-33-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-34-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
@@ -107,36 +107,20 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ tools/testing/selftests/mm/gup_longterm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-cow-add-setup-of-hugetlb-pages
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -1881,21 +1881,21 @@ int main(int argc, char **argv)
+--- a/tools/testing/selftests/mm/gup_longterm.c~selftests-mm-gup_longterm-add-setup-of-hugetlb-pages
++++ a/tools/testing/selftests/mm/gup_longterm.c
+@@ -510,7 +510,7 @@ int main(int argc, char **argv)
+ 	int i;
+ 
+ 	pagesize = getpagesize();
+-	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
++	nr_hugetlbsizes = hugetlb_setup(2, hugetlbsizes,
+ 						    ARRAY_SIZE(hugetlbsizes));
  
  	ksft_print_header();
- 
-+	thp_save_settings();
-+
- 	pagesize = getpagesize();
- 	pmdsize = read_pmd_pagesize();
- 	if (pmdsize) {
- 		/* Only if THP is supported. */
- 		thp_read_settings(&default_settings);
- 		default_settings.hugepages[sz2ord(pmdsize, pagesize)].enabled = THP_INHERIT;
--		thp_save_settings();
- 		thp_push_settings(&default_settings);
- 
- 		ksft_print_msg("[INFO] detected PMD size: %zu KiB\n",
- 			       pmdsize / 1024);
- 		nr_thpsizes = detect_thp_sizes(thpsizes, ARRAY_SIZE(thpsizes));
- 	}
--	nr_hugetlbsizes = detect_hugetlb_page_sizes(hugetlbsizes,
--						    ARRAY_SIZE(hugetlbsizes));
-+	nr_hugetlbsizes = hugetlb_setup(2, hugetlbsizes, ARRAY_SIZE(hugetlbsizes));
- 	has_huge_zeropage = detect_huge_zeropage();
- 
- 	ksft_set_plan(ARRAY_SIZE(anon_test_cases) * tests_per_anon_test_case() +
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
