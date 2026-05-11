@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46F133C945B
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 755AD4D90A1
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535337; cv=none; b=PZz3c05dfDR8wBJ24ar3KRFgoIF92Cl8C+2MMV7Z0VIPS1wUNKrpumtRzoXTlvkIBuc+HteHQL3QAJUT2dEc8u7ujSPgzO64q2D1iQlsq4uf+xyABt9cXpx1ZsEUJy+dpg6y9RkWD4Pp9FnU94BYbs7F8tFmbKCi0zpq+40aP4Q=
+	t=1778535339; cv=none; b=Mc9VrWwYs5GzK0M32Z31cH+hOD4mpCop/Q5ZBffEbQ8x5LOJ/GfVbRVpLPM9TDTaP1zNLwWy+VniDlqi9SLOBySdP6rRv8t02NAJ5wjcwAKc0/gnjz8Q/bqFUw9RfQ6jyOt4W5VE7Ici8o1LP5ixt7hzQo2NmCM3dZ3DtIYJRa0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535337; c=relaxed/simple;
-	bh=Eo7rw7fQB74kh9AxLIX7GUABkoijwA/A70S8zZDvLAU=;
-	h=Date:To:From:Subject:Message-Id; b=Gq8pAj3qVWLnGznybEHuak6EtMHgWRZsafoFWRUUXeLL+5+ypKxy/+1OZB0XlJ3HdfUM+1LkYjHj1f3N0dCgu1RcdXuosam63e8ZrkwuKme2hPMsnKEuKtLIG0dpxXXmtb8yBrBCQL/ir4filTi6wfwlUFIye1peh5biBG0AAyA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IRjutsaG; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535339; c=relaxed/simple;
+	bh=Ls2Pn8coEWYDc/pTxT4fujfUuWzVzKB09LY45Eof2dc=;
+	h=Date:To:From:Subject:Message-Id; b=GytGSHbNOoY+Gi/BLOPzFA7rNnReDx8T/EWc3Ho4L8Z7fiObeUPfJYlJ6X0sVT2wcEX5oZdm0QjvV7DmBVg6LXBS9XAye2Tc7SNRLUfpIpSHGKT4Rf8RRhx+sui4V700b8Uzx6dDZwS6V/uQpqEYqVHHkT5Ps4btAu1P8KE4lt0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=quxFMV6A; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IRjutsaG"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1938EC2BCB0;
-	Mon, 11 May 2026 21:35:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="quxFMV6A"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4EAAAC2BCB0;
+	Mon, 11 May 2026 21:35:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535337;
-	bh=Eo7rw7fQB74kh9AxLIX7GUABkoijwA/A70S8zZDvLAU=;
+	s=korg; t=1778535339;
+	bh=Ls2Pn8coEWYDc/pTxT4fujfUuWzVzKB09LY45Eof2dc=;
 	h=Date:To:From:Subject:From;
-	b=IRjutsaG9X4J2oCQhbz+aE3itgjhWBCx1O9SsmlZx4DVmaklxJGW2DNwmU0eCVYpg
-	 BaumMdn7N9zQnGLqrFv3dA9fP7AyWYDdn+BudpHH4jeQfxqURut9jnbcvq/LebpTWT
-	 MdpzvSpybViyvxYxJqmBui0uvB5xlf4O5ASjMC6A=
-Date: Mon, 11 May 2026 14:35:36 -0700
+	b=quxFMV6As0Q1zcnBbPmjZKBbXJwbo5MB7xwxuCFpRXvfhMh9UH8HoC/lxlfvIRPfP
+	 uo8ay/JB/zTMQmyTtCxe9k8cESqB+iXWnEA7qN+JbNoUOaTtJAPeA+dzqxzhaOIL4k
+	 yYJWoTa9FJmfpJBd4qPk/3WPDChVYaCE2nAa5Y3Y=
+Date: Mon, 11 May 2026 14:35:38 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch added to mm-new branch
-Message-Id: <20260511213537.1938EC2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch added to mm-new branch
+Message-Id: <20260511213539.4EAAAC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: hugetlb-madvise: add setup of HugeTLB pages
+     Subject: selftests/mm: hugetlb_madv_vs_map: add setup of HugeTLB pages
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
+     selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: hugetlb-madvise: add setup of HugeTLB pages
-Date: Mon, 11 May 2026 19:28:22 +0300
+Subject: selftests/mm: hugetlb_madv_vs_map: add setup of HugeTLB pages
+Date: Mon, 11 May 2026 19:28:23 +0300
 
-hugetlb-madvise test skips testing if there are no free huge pages
+hugetlb_madv_vs_map test skips testing if there are no free huge pages
 prepared by a wrapper script.
 
 Add setup of HugeTLB pages to the test and make sure that the original
 settings are restored on the test exit.
 
-Link: https://lore.kernel.org/20260511162840.375890-39-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-40-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
@@ -107,36 +107,33 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb-madvise.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ tools/testing/selftests/mm/hugetlb_madv_vs_map.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb-madvise.c~selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages
-+++ a/tools/testing/selftests/mm/hugetlb-madvise.c
-@@ -4,12 +4,6 @@
-  *
-  * Basic functional testing of madvise MADV_DONTNEED and MADV_REMOVE
-  * on hugetlb mappings.
-- *
-- * Before running this test, make sure the administrator has pre-allocated
-- * at least MIN_FREE_PAGES hugetlb pages and they are free.  In addition,
-- * the test takes an argument that is the path to a file in a hugetlbfs
-- * filesystem.  Therefore, a hugetlbfs filesystem must be mounted on some
-- * directory.
-  */
+--- a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c~selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages
++++ a/tools/testing/selftests/mm/hugetlb_madv_vs_map.c
+@@ -77,7 +77,6 @@ void *map_extra(void *unused)
+ int main(void)
+ {
+ 	pthread_t thread1, thread2, thread3;
+-	unsigned long free_hugepages;
+ 	void *ret;
  
- #define _GNU_SOURCE
-@@ -68,9 +62,9 @@ int main(int argc, char **argv)
- 	if (!base_page_size)
- 		ksft_exit_fail_msg("Unable to determine base page size\n");
+ 	/*
+@@ -89,11 +88,9 @@ int main(void)
+ 	ksft_print_header();
+ 	ksft_set_plan(1);
  
-+	if (!hugetlb_setup_default(MIN_FREE_PAGES))
-+		ksft_exit_skip("Not enough free huge pages (have %lu, need %d)\n", hugetlb_free_default_pages(), MIN_FREE_PAGES);
- 	free_hugepages = hugetlb_free_default_pages();
--	if (free_hugepages < MIN_FREE_PAGES)
--		ksft_exit_skip("Not enough free huge pages (have %lu, need %d)\n", free_hugepages, MIN_FREE_PAGES);
+-	free_hugepages = hugetlb_free_default_pages();
+-
+-	if (free_hugepages != 1)
++	if (!hugetlb_setup_default_exact(1))
+ 		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
+-			       free_hugepages);
++			       hugetlb_free_default_pages());
  
- 	fd = memfd_create(argv[0], MFD_HUGETLB);
- 	if (fd < 0)
+ 	mmap_size = default_huge_page_size();
+ 
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
