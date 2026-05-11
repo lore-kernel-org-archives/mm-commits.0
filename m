@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 026EC4D2EF6
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:34:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 027664D8DB8
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:34:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535268; cv=none; b=ra5taGt0g8vKroViX8GYU/yySmbBFtZIAR7ANbSImiRU5xM9k5U2obOa1O+m+F83Cbf7Z5GBeq889VPySWi+DFiDtutjaljzGto22w3q6X7kups+34nihSgk56qKAhkg38gWqoETwPwNE/ObLOCfyS+ZZVndON+eEikSDkKMFJE=
+	t=1778535270; cv=none; b=SQtUfWUFzNlnmkK7R1eMENa1Pmp1RYUMML0ZK7mzr+BGDQWwTPKpOxA+ykK3UpgMzG/yfa6KzttNfclqUTMPi04u6wEaTA8RVEMZNJMoH5cjJWET0uTXFVMpZ/CCI/26EFY6goWRcLg6ZBLY3+7uOulujCVGNlbGkZz2XNwIZCg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535268; c=relaxed/simple;
-	bh=ajye9kRr6+0wsA2m7DZq6Lwip98cvgOQQPhuL8VmUuQ=;
-	h=Date:To:From:Subject:Message-Id; b=P/T/hvr/DXR+nZiqxl4m/7fYwOgDJLyr1LuqPF/mGqpeAI+o2YAOnvRjb5YVnqiKrlM24wnou/OanPoZdmqrVr54NrxeEHF4M8oPwnEWg47Nzu2IUKN3gbSc3nyB4v4iSr9n4HQxyXR613ACf+efRpkSKNp79Ltivqj56h8DGao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Z0V6onoa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535270; c=relaxed/simple;
+	bh=P+swVNkJTtX/DVuIMW69Bpbc0TaLYtYP2mAfJlxkVio=;
+	h=Date:To:From:Subject:Message-Id; b=roKTCgA/aMMdJBmYhIfhlFTUOfq0/LU8fmS8k+5+q90+C6vSjIUphQOfO8x6N4Ra4fZv41semFGnfwVF+5fH8o2NXT9Rz9aBQb1KX/hm4YkvM3AtZ7iCNLT96pXoeSw8Z0swFrx3wS+Nk6DpuqpUo1pKrYJSCuEmO24TIQILg1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aN+PcaY0; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Z0V6onoa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D8AAC2BCF5;
-	Mon, 11 May 2026 21:34:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aN+PcaY0"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5905C2BCB0;
+	Mon, 11 May 2026 21:34:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535267;
-	bh=ajye9kRr6+0wsA2m7DZq6Lwip98cvgOQQPhuL8VmUuQ=;
+	s=korg; t=1778535269;
+	bh=P+swVNkJTtX/DVuIMW69Bpbc0TaLYtYP2mAfJlxkVio=;
 	h=Date:To:From:Subject:From;
-	b=Z0V6onoahXpWkzqvDOL/oS/m0A9v+iVuy4cPOX3BryZ4emnTiUTSyD4tBwF7j+WQ0
-	 0UV72fBUuEWUpyubO82gCQ/AVUFlizzUxHCaGFB2FLw7JZ6q/1/G5AuxgxaGAZ8SyB
-	 J0F8moA3gcvAcUoYk9Je+/l9xU84/YmoZ1m6c1vc=
-Date: Mon, 11 May 2026 14:34:27 -0700
+	b=aN+PcaY0x6H0OCbOQtpQuTFH/OwfbyV6YQYTaJU/XPP2LT1e99c10k/3mcGPfnSuI
+	 m0eGLXr5PmyPuVF7WL5rPoDl4LdthXFZU5AgpZin3a1DAcwjqDJx9WQ72scgrj9B2J
+	 PzRZLFZnOhFxFIkNJBR2rYcYblX7hHF1hprnO5Oo=
+Date: Mon, 11 May 2026 14:34:29 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-uffd-common-use-kselftest-framework.patch added to mm-new branch
-Message-Id: <20260511213427.8D8AAC2BCF5@smtp.kernel.org>
+Subject: + selftests-mm-uffd-stress-use-kselftest-framework.patch added to mm-new branch
+Message-Id: <20260511213429.C5905C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: uffd-common: use kselftest framework
+     Subject: selftests/mm: uffd-stress: use kselftest framework
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-uffd-common-use-kselftest-framework.patch
+     selftests-mm-uffd-stress-use-kselftest-framework.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-common-use-kselftest-framework.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-stress-use-kselftest-framework.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,17 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: uffd-common: use kselftest framework
-Date: Mon, 11 May 2026 19:28:02 +0300
+Subject: selftests/mm: uffd-stress: use kselftest framework
+Date: Mon, 11 May 2026 19:28:03 +0300
 
-Update err() and errexit() to use ksft_print_msg() and ksft_exit_fail().
+Convert uffd-stress test to use kselftest framework for reporting and
+tracking successful and failing runs.
 
-This is preparatory change required to update userfaulfd tests to use
-kselftest framework.
-
-Link: https://lore.kernel.org/20260511162840.375890-19-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-20-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Mark Brown <broonie@kernel.org>
+Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
+Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -92,13 +93,10 @@ Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
 Cc: Li Wang <li.wang@linux.dev>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Luiz Capitulino <luizcap@redhat.com>
-Cc: Mark Brown <broonie@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sarthak Sharma <sarthak.sharma@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -106,41 +104,86 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-common.h |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ tools/testing/selftests/mm/uffd-stress.c |   40 +++++++++------------
+ 1 file changed, 19 insertions(+), 21 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-common.h~selftests-mm-uffd-common-use-kselftest-framework
-+++ a/tools/testing/selftests/mm/uffd-common.h
-@@ -40,21 +40,20 @@
+--- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-uffd-stress-use-kselftest-framework
++++ a/tools/testing/selftests/mm/uffd-stress.c
+@@ -286,18 +286,12 @@ static int userfaultfd_stress(uffd_globa
+ 	pthread_attr_setstacksize(&attr, 16*1024*1024);
  
- #define UFFD_FLAGS	(O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY)
+ 	while (bounces--) {
+-		printf("bounces: %d, mode:", bounces);
+-		if (bounces & BOUNCE_RANDOM)
+-			printf(" rnd");
+-		if (bounces & BOUNCE_RACINGFAULTS)
+-			printf(" racing");
+-		if (bounces & BOUNCE_VERIFY)
+-			printf(" ver");
+-		if (bounces & BOUNCE_POLL)
+-			printf(" poll");
+-		else
+-			printf(" read");
+-		printf(", ");
++		ksft_print_msg("bounces: %d, mode:%s%s%s%s, ",
++			       bounces,
++			       bounces & BOUNCE_RANDOM ? " rnd" : "",
++			       bounces & BOUNCE_RACINGFAULTS ? " racing" : "",
++			       bounces & BOUNCE_VERIFY ? " ver" : "",
++			       bounces & BOUNCE_POLL ? " poll" : " read");
+ 		fflush(stdout);
  
--#define _err(fmt, ...)						\
--	do {							\
--		int ret = errno;				\
--		fprintf(stderr, "ERROR: " fmt, ##__VA_ARGS__);	\
--		fprintf(stderr, " (errno=%d, @%s:%d)\n",	\
--			ret, __FILE__, __LINE__);		\
-+#define _err(fmt, ...)							\
-+	do {								\
-+		int ret = errno;					\
-+		ksft_print_msg("ERROR: " fmt " (errno=%d, @%s:%d)\n",	\
-+			       ##__VA_ARGS__, ret, __FILE__, __LINE__); \
- 	} while (0)
+ 		if (bounces & BOUNCE_POLL)
+@@ -461,6 +455,9 @@ int main(int argc, char **argv)
+ 	if (argc < 4)
+ 		usage();
  
--#define errexit(exitcode, fmt, ...)		\
-+#define errexit(fmt, ...)			\
- 	do {					\
- 		_err(fmt, ##__VA_ARGS__);	\
--		exit(exitcode);			\
-+		ksft_exit_fail();		\
- 	} while (0)
++	ksft_print_header();
++	ksft_set_plan(1);
++
+ 	if (signal(SIGALRM, sigalrm) == SIG_ERR)
+ 		err("failed to arm SIGALRM");
+ 	alarm(ALARM_INTERVAL_SECS);
+@@ -484,10 +481,8 @@ int main(int argc, char **argv)
+ 	 * for racy extra reservation of hugepages.
+ 	 */
+ 	if (gopts->test_type == TEST_HUGETLB &&
+-	   get_free_hugepages() < 2 * (bytes / gopts->page_size) + gopts->nr_parallel - 1) {
+-		printf("skip: Skipping userfaultfd... not enough hugepages\n");
+-		return KSFT_SKIP;
+-	}
++	   get_free_hugepages() < 2 * (bytes / gopts->page_size) + gopts->nr_parallel - 1)
++		ksft_exit_skip("Skipping userfaultfd... not enough hugepages\n");
  
--#define err(fmt, ...) errexit(1, fmt, ##__VA_ARGS__)
-+#define err(fmt, ...) errexit(fmt, ##__VA_ARGS__)
+ 	gopts->nr_pages_per_cpu = bytes / gopts->page_size / gopts->nr_parallel;
+ 	if (!gopts->nr_pages_per_cpu) {
+@@ -503,9 +498,12 @@ int main(int argc, char **argv)
+ 	}
+ 	gopts->nr_pages = gopts->nr_pages_per_cpu * gopts->nr_parallel;
  
- struct uffd_global_test_opts {
- 	unsigned long nr_parallel, nr_pages, nr_pages_per_cpu, page_size;
+-	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
+-	       gopts->nr_pages, gopts->nr_pages_per_cpu);
+-	return userfaultfd_stress(gopts);
++	ksft_print_msg("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
++		       gopts->nr_pages, gopts->nr_pages_per_cpu);
++
++	ksft_test_result(!userfaultfd_stress(gopts),
++			 "uffd-stress %s\n", argv[1]);
++	ksft_finished();
+ }
+ 
+ #else /* __NR_userfaultfd */
+@@ -514,8 +512,8 @@ int main(int argc, char **argv)
+ 
+ int main(void)
+ {
+-	printf("skip: Skipping userfaultfd test (missing __NR_userfaultfd)\n");
+-	return KSFT_SKIP;
++	ksft_print_header();
++	ksft_exit_skip("missing __NR_userfaultfd definition\n");
+ }
+ 
+ #endif /* __NR_userfaultfd */
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
