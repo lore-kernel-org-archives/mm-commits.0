@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D243D4D8DBB
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:34:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCDF64D90AC
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:34:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535243; cv=none; b=r3RTvrIynAjYuF6IigjWgBTJA2TAkMUGsUWok65hMWG8b8VftD3qLXQTxY/PWFWE+PhfaXBPEa7bbn/w4HPVf/6x7m5SnrD8ZO8UK3bbWEw7HKjpAwIXywUSVBEVHCAFyQ0WkE3p3C3RHqDwJt+cqFQCqgD4gDmh8AwR07/L988=
+	t=1778535245; cv=none; b=N8jG6khgXlEgHYKY2b1qJUOIeYl7RqIi/pXdt1ov2e5MBSLs99kc73f3ZN9LKdUSwefGo61zdVXwqMlZ6wbXOVWkg9iL1yew8kQMmXONCZ4lRHH6A6XqqzR9IKOvF8Rib4L717BaWazUejQo4snIDtB511Q7yu+68T7gI/eocUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535243; c=relaxed/simple;
-	bh=ckmbEa3IZhBBe7kuzMmo3PDgeBuwNeLMSnMuoCNbW5o=;
-	h=Date:To:From:Subject:Message-Id; b=s7ehgGU/fNKCYZJZWoNHtB3faxN1tSPcvUvN36ks1ILWfS1m51hSE1k5/4uWT/4kXwA2Q6fC1g95OsD5Vl62Rx88OYwUijliM4rZjvep0Q/aUb0j5jMgVNJA9tIg+nOlrXJ6gZZZ9MUX0MZS4sEiTxugKihTRWOVept0kuGL9Qs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PYHe1HAH; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535245; c=relaxed/simple;
+	bh=9cC7AzeAhtn/nF6bq1dyDew7x4vzJ7sQSoK+7rkTmMU=;
+	h=Date:To:From:Subject:Message-Id; b=HUGl28OGJPz+nolM+0TXEnEcGeqgDGplQY06VuqeQaXlC4Vq3BJM64ogzmZj8TszQaxP6yEkRPuZOuUvQxuOz+26LRh1XOj3zkTMWLlkXctCFGimb3afDXYgH3iy+j9FJ5wGnkj/awzvQw4O/wBM98FA6H1Uv4DunVFSqQKLCnE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GMf2sd1x; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PYHe1HAH"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6365BC2BCB0;
-	Mon, 11 May 2026 21:34:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GMf2sd1x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6E2DC2BCF5;
+	Mon, 11 May 2026 21:34:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535243;
-	bh=ckmbEa3IZhBBe7kuzMmo3PDgeBuwNeLMSnMuoCNbW5o=;
+	s=korg; t=1778535245;
+	bh=9cC7AzeAhtn/nF6bq1dyDew7x4vzJ7sQSoK+7rkTmMU=;
 	h=Date:To:From:Subject:From;
-	b=PYHe1HAHGy+CInPZSEZw9tBsFERnG2hVmntSwJJl6FX91yK62ExajECe3VCVqdzEV
-	 sXak/D00GuRCm3srh43fmrg1sa7t2UOgLk0o6uqTQTE2I1kspsobxxZsAWZjmN/oQF
-	 n9pT+3Do2pOWoSGJhs2aMHVj8S3RfzsY518HLphk=
-Date: Mon, 11 May 2026 14:34:02 -0700
+	b=GMf2sd1xwEQWuLRkXVIOg3Tyh1swCI8hOQnmen9314tVqwl49GOZsx/H2JW9Churd
+	 Uzc8JO1vEi8hqbqdLMj4K4qnafQsc+iEeZHhcI0PpMX+OR9gTKCNVN6qe6LWiIM+Qb
+	 fmHXNLfBt16nVvEInRr48Bmch4VHnx7ptIniOj5U=
+Date: Mon, 11 May 2026 14:34:05 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-hugetlb-shm-use-kselftest-framework.patch added to mm-new branch
-Message-Id: <20260511213403.6365BC2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch added to mm-new branch
+Message-Id: <20260511213405.A6E2DC2BCF5@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: hugetlb-shm: use kselftest framework
+     Subject: selftests/mm: hugetlb-vmemmap: use kselftest framework
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-hugetlb-shm-use-kselftest-framework.patch
+     selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb-shm-use-kselftest-framework.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: hugetlb-shm: use kselftest framework
-Date: Mon, 11 May 2026 19:27:52 +0300
+Subject: selftests/mm: hugetlb-vmemmap: use kselftest framework
+Date: Mon, 11 May 2026 19:27:53 +0300
 
-Convert hugetlb-shm test to use kselftest framework for reporting and
+Convert hugetlb-vmemmap test to use kselftest framework for reporting and
 tracking successful and failing runs.
 
-Link: https://lore.kernel.org/20260511162840.375890-9-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-10-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Reviewed-by: Donet Tom <donettom@linux.ibm.com>
 Reviewed-by: Mark Brown <broonie@kernel.org>
@@ -104,86 +104,88 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb-shm.c |   47 +++++++++------------
- 1 file changed, 22 insertions(+), 25 deletions(-)
+ tools/testing/selftests/mm/hugetlb-vmemmap.c |   42 +++++++----------
+ 1 file changed, 18 insertions(+), 24 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb-shm.c~selftests-mm-hugetlb-shm-use-kselftest-framework
-+++ a/tools/testing/selftests/mm/hugetlb-shm.c
-@@ -28,9 +28,9 @@
- #include <sys/shm.h>
- #include <sys/mman.h>
+--- a/tools/testing/selftests/mm/hugetlb-vmemmap.c~selftests-mm-hugetlb-vmemmap-use-kselftest-framework
++++ a/tools/testing/selftests/mm/hugetlb-vmemmap.c
+@@ -63,7 +63,7 @@ static int check_page_flags(unsigned lon
+ 	read(fd, &pageflags, sizeof(pageflags));
+ 	if ((pageflags & HEAD_PAGE_FLAGS) != HEAD_PAGE_FLAGS) {
+ 		close(fd);
+-		printf("Head page flags (%lx) is invalid\n", pageflags);
++		ksft_print_msg("Head page flags (%lx) is invalid\n", pageflags);
+ 		return -1;
+ 	}
  
--#define LENGTH (256UL*1024*1024)
-+#include "vm_util.h"
- 
--#define dprintf(x)  printf(x)
-+#define LENGTH (256UL*1024*1024)
- 
- int main(void)
+@@ -77,7 +77,7 @@ static int check_page_flags(unsigned lon
+ 		if ((pageflags & TAIL_PAGE_FLAGS) != TAIL_PAGE_FLAGS ||
+ 		    (pageflags & HEAD_PAGE_FLAGS) == HEAD_PAGE_FLAGS) {
+ 			close(fd);
+-			printf("Tail page flags (%lx) is invalid\n", pageflags);
++			ksft_print_msg("Tail page flags (%lx) is invalid\n", pageflags);
+ 			return -1;
+ 		}
+ 	}
+@@ -91,44 +91,38 @@ int main(int argc, char **argv)
  {
-@@ -38,44 +38,41 @@ int main(void)
- 	unsigned long i;
- 	char *shmaddr;
- 
+ 	void *addr;
+ 	unsigned long pfn;
++	int ret;
++
 +	ksft_print_header();
 +	ksft_set_plan(1);
-+
- 	shmid = shmget(2, LENGTH, SHM_HUGETLB | IPC_CREAT | SHM_R | SHM_W);
--	if (shmid < 0) {
--		perror("shmget");
+ 
+ 	pagesize  = psize();
+ 	maplength = default_huge_page_size();
+-	if (!maplength) {
+-		printf("Unable to determine huge page size\n");
 -		exit(1);
 -	}
--	printf("shmid: 0x%x\n", shmid);
-+	if (shmid < 0)
-+		ksft_exit_fail_perror("shmget");
-+
-+	ksft_print_msg("shmid: 0x%x\n", shmid);
++	if (!maplength)
++		ksft_exit_skip("Unable to determine huge page size\n");
  
- 	shmaddr = shmat(shmid, NULL, 0);
- 	if (shmaddr == (char *)-1) {
--		perror("Shared memory attach failure");
-+		ksft_perror("Shared memory attach failure");
- 		shmctl(shmid, IPC_RMID, NULL);
--		exit(2);
-+		ksft_exit_fail();
- 	}
--	printf("shmaddr: %p\n", shmaddr);
-+	ksft_print_msg("shmaddr: %p\n", shmaddr);
- 
--	dprintf("Starting the writes:\n");
--	for (i = 0; i < LENGTH; i++) {
-+	ksft_print_msg("Starting the writes:\n");
-+	for (i = 0; i < LENGTH; i++)
- 		shmaddr[i] = (char)(i);
--		if (!(i % (1024 * 1024)))
--			dprintf(".");
+ 	addr = mmap(NULL, maplength, PROT_READ | PROT_WRITE,
+ 			MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+-	if (addr == MAP_FAILED) {
+-		perror("mmap");
+-		exit(1);
 -	}
--	dprintf("\n");
++	if (addr == MAP_FAILED)
++		ksft_exit_fail_perror("mmap");
  
--	dprintf("Starting the Check...");
-+	ksft_print_msg("Starting the Check...");
- 	for (i = 0; i < LENGTH; i++)
--		if (shmaddr[i] != (char)i) {
--			printf("\nIndex %lu mismatched\n", i);
--			exit(3);
--		}
--	dprintf("Done.\n");
-+		if (shmaddr[i] != (char)i)
-+			ksft_exit_fail_msg("Data mismatch at index %lu\n", i);
-+	ksft_print_msg("Done.\n");
+ 	/* Trigger allocation of HugeTLB page. */
+ 	write_bytes(addr, maplength);
  
- 	if (shmdt((const void *)shmaddr) != 0) {
--		perror("Detach failure");
-+		ksft_perror("Detach failure");
- 		shmctl(shmid, IPC_RMID, NULL);
--		exit(4);
+ 	pfn = virt_to_pfn(addr);
+ 	if (pfn == -1UL) {
++		ksft_perror("virt_to_pfn");
+ 		munmap(addr, maplength);
+-		perror("virt_to_pfn");
+-		exit(1);
 +		ksft_exit_fail();
  	}
  
- 	shmctl(shmid, IPC_RMID, NULL);
+-	printf("Returned address is %p whose pfn is %lx\n", addr, pfn);
++	ksft_print_msg("Returned address is %p whose pfn is %lx\n", addr, pfn);
+ 
+-	if (check_page_flags(pfn) < 0) {
+-		munmap(addr, maplength);
+-		perror("check_page_flags");
+-		exit(1);
+-	}
++	ret = check_page_flags(pfn);
+ 
+-	/* munmap() length of MAP_HUGETLB memory must be hugepage aligned */
+-	if (munmap(addr, maplength)) {
+-		perror("munmap");
+-		exit(1);
+-	}
++	if (munmap(addr, maplength))
++		ksft_exit_fail_perror("munmap");
  
 -	return 0;
-+	ksft_test_result_pass("hugepage using SysV shmget/shmat\n");
++	ksft_test_result(!ret, "HugeTLB vmemmap page flags\n");
 +	ksft_finished();
  }
 _
