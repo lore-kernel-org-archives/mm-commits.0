@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C1E74D90A1
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C98F4D90B7
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535328; cv=none; b=FX4rQDPzaapsLeBM26K6VFZHgJdsUlbHG55SuT0kIBlvrbXKfNvAd4stD+93eOtbE0E5+TVsWQeE3zGBGe9V6GGRFSq/1+ivMJFQ29V5gnLS8Z+4aF3NYcYyQRcObvsVWhsgso+YQi0LJbm5++fkpkJ9jvToylEeCeeg5Lmkkrs=
+	t=1778535330; cv=none; b=MaYdNqeiSi/cJtjppqZhpNhw3j4pNgfNCOwMplcJhzgVnXnYzhCUKEsgHqAzPd+qEVzTo4JOawvbhwqbIT70PW+P+XMPxNeOVduAgOxr03kn4DAUqd5Oficf/q1WPHSpYPhFK7OJKtSb8NmNMCeGyNXqBtLdhRrku0B3H7jbFJs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535328; c=relaxed/simple;
-	bh=VBMQi8Cvd53eKC5RGGnGC9QxUkjdvZt+kwsqHviBOu0=;
-	h=Date:To:From:Subject:Message-Id; b=P64uKJu1BE8p+xK/xO9yopFvhLQjfmSwwck7sviOW7gGucVO16gtID2pSPSTM4T2dCat4lbORq85uqrKHiq11b1kcs5yabJ8XDkfSnFbgs0VX1jQghY3ILG8zuCW2KiYYc22ANzI1CW5xC944tTejld2qvylPMnH0T1am1P9tyc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FkY93t4x; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535330; c=relaxed/simple;
+	bh=9si01LI3CkLOc1OUNVXmjmr/W9NX7+F2Kd+yrShf0j0=;
+	h=Date:To:From:Subject:Message-Id; b=VuTznwReZD1xi1DECgIVu1qicD5odOsMAy778kmhHTeVyAWOSHT/3427mROKUoU1vy9+jmsExKQwm/XoDKdnxDj+Ry3sRiPQdluNqqh7zElsqQXk0bUaoJ7/zsnf+piOm8FDteYbOybzBZn0w8eyFIb72Z9Egxa66z0W28w/zQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uv0BDoGC; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FkY93t4x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11DCBC2BCB0;
-	Mon, 11 May 2026 21:35:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uv0BDoGC"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51DB6C2BCB0;
+	Mon, 11 May 2026 21:35:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535328;
-	bh=VBMQi8Cvd53eKC5RGGnGC9QxUkjdvZt+kwsqHviBOu0=;
+	s=korg; t=1778535330;
+	bh=9si01LI3CkLOc1OUNVXmjmr/W9NX7+F2Kd+yrShf0j0=;
 	h=Date:To:From:Subject:From;
-	b=FkY93t4xVBsc3S0/Ap1cidYI/WEg56u6xTPiAyanJ8VQRvCKjdke0mxnTKICCJwSK
-	 SecN3InsUPFlZFaZQ1BcfMM0TUPVHb0StBjj4kA2UJLZdwEOCeq1SrLYHy0NlxrewD
-	 /JGGgaad+cTBoE9tQuJqY9Hk/Ag4w0PGHGLw2CrY=
-Date: Mon, 11 May 2026 14:35:27 -0700
+	b=uv0BDoGCHenqWjh9bQv74mGWU/1IR09qu8KfatF/4+vATbbM2xYRxh4Gyln4BuZSm
+	 gfztjszXVfF8aieENW9HHHykedkKPOICQr9Wo9QwPNwsXGGRGCgA0kfLtAHfglrivd
+	 ePWDCF0SBoJfpbx2GAtqWD29n2yLqxZg4v3NYqaM=
+Date: Mon, 11 May 2026 14:35:29 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch added to mm-new branch
-Message-Id: <20260511213528.11DCBC2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch added to mm-new branch
+Message-Id: <20260511213530.51DB6C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: gup_test: add setup of HugeTLB pages
+     Subject: selftests/mm: hmm-tests: add setup of HugeTLB pages
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
+     selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: gup_test: add setup of HugeTLB pages
-Date: Mon, 11 May 2026 19:28:18 +0300
+Subject: selftests/mm: hmm-tests: add setup of HugeTLB pages
+Date: Mon, 11 May 2026 19:28:19 +0300
 
-gup_test fails to run HugeTLB tests if there are no free huge pages
-prepared by a wrapper script.
+hmm-tests skips HugeTLB tests if there are no free huge pages prepared by
+a wrapper script.
 
 Add setup of HugeTLB pages to the test and make sure that the original
 settings are restored on the test exit.
 
-Link: https://lore.kernel.org/20260511162840.375890-35-rppt@kernel.org
+Since kselftest_harness runs fixture setup and the tests in child
+processes, use HUGETLB_SETUP_DEFAULT_PAGES() that defines a constructor
+that runs in the main process and add verification that there are enough
+free huge pages to the tests that use them.
+
+Replace exit() calls with _exit() to avoid restoring HugeTLB settings in
+the middle of test and use SIGKILL to kill a child process in
+hmm_cow_in_device test to avoid interference with signal handlers in
+hugepage_restore_settings().
+
+Link: https://lore.kernel.org/20260511162840.375890-36-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
@@ -107,54 +117,84 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/gup_test.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ tools/testing/selftests/mm/hmm-tests.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
---- a/tools/testing/selftests/mm/gup_test.c~selftests-mm-gup_test-add-setup-of-hugetlb-pages
-+++ a/tools/testing/selftests/mm/gup_test.c
-@@ -14,6 +14,7 @@
- #include <mm/gup_test.h>
- #include "kselftest.h"
- #include "vm_util.h"
-+#include "hugepage_settings.h"
+--- a/tools/testing/selftests/mm/hmm-tests.c~selftests-mm-hmm-tests-add-setup-of-hugetlb-pages
++++ a/tools/testing/selftests/mm/hmm-tests.c
+@@ -69,6 +69,9 @@ enum {
+ #ifndef FOLL_LONGTERM
+ #define FOLL_LONGTERM   0x100 /* mapping lifetime is indefinite */
+ #endif
++
++HUGETLB_SETUP_DEFAULT_PAGES(1)
++
+ FIXTURE(hmm)
+ {
+ 	int		fd;
+@@ -632,7 +635,7 @@ TEST_F(hmm, anon_write_child)
+ 			}
  
- #define MB (1UL << 20)
- 
-@@ -94,6 +95,7 @@ int main(int argc, char **argv)
- 	int filed, i, opt, nr_pages = 1, thp = -1, write = 1, nthreads = 1, ret;
- 	int flags = MAP_PRIVATE;
- 	char *file = "/dev/zero";
-+	bool hugetlb = false;
- 	pthread_t *tid;
- 	char *p;
- 
-@@ -168,6 +170,7 @@ int main(int argc, char **argv)
- 			break;
- 		case 'H':
- 			flags |= (MAP_HUGETLB | MAP_ANONYMOUS);
-+			hugetlb = true;
- 			break;
- 		default:
- 			ksft_exit_fail_msg("Wrong argument\n");
-@@ -199,6 +202,18 @@ int main(int argc, char **argv)
+ 			close(child_fd);
+-			exit(0);
++			_exit(0);
+ 		}
  	}
+ }
+@@ -712,7 +715,7 @@ TEST_F(hmm, anon_write_child_shared)
+ 		ASSERT_EQ(ptr[i], -i);
  
- 	ksft_print_header();
-+
-+	if (hugetlb) {
-+		unsigned long hp_size = default_huge_page_size();
-+
-+		if (!hp_size)
-+			ksft_exit_skip("HugeTLB is unavailable\n");
-+
-+		size = (size + hp_size - 1) & ~(hp_size - 1);
-+		if (!hugetlb_setup_default(size / hp_size))
-+			ksft_exit_skip("Not enough huge pages\n");
-+	}
-+
- 	ksft_set_plan(nthreads);
+ 	close(child_fd);
+-	exit(0);
++	_exit(0);
+ }
  
- 	filed = open(file, O_RDWR|O_CREAT, 0664);
+ /*
+@@ -784,8 +787,8 @@ TEST_F(hmm, anon_write_hugetlbfs)
+ 	int *ptr;
+ 	int ret;
+ 
+-	if (!default_hsize)
+-		SKIP(return, "Huge page size could not be determined");
++	if (!hugetlb_free_default_pages())
++		SKIP(return, "Not enough huge pages");
+ 
+ 	size = ALIGN(TWOMEG, default_hsize);
+ 	npages = size >> self->page_shift;
+@@ -1614,9 +1617,8 @@ TEST_F(hmm, compound)
+ 	unsigned long i;
+ 
+ 	/* Skip test if we can't allocate a hugetlbfs page. */
+-
+-	if (!default_hsize)
+-		SKIP(return, "Huge page size could not be determined");
++	if (!hugetlb_free_default_pages())
++		SKIP(return, "Not enough huge pages");
+ 
+ 	size = ALIGN(TWOMEG, default_hsize);
+ 	npages = size >> self->page_shift;
+@@ -2062,7 +2064,7 @@ TEST_F(hmm, hmm_cow_in_device)
+ 	if (pid == -1)
+ 		ASSERT_EQ(pid, 0);
+ 	if (!pid) {
+-		/* Child process waits for SIGTERM from the parent. */
++		/* Child process waits for SIGKILL from the parent. */
+ 		while (1) {
+ 		}
+ 		/* Should not reach this */
+@@ -2075,10 +2077,10 @@ TEST_F(hmm, hmm_cow_in_device)
+ 		ptr[i] = i;
+ 
+ 	/* Terminate child and wait */
+-	EXPECT_EQ(0, kill(pid, SIGTERM));
++	EXPECT_EQ(0, kill(pid, SIGKILL));
+ 	EXPECT_EQ(pid, waitpid(pid, &status, 0));
+ 	EXPECT_NE(0, WIFSIGNALED(status));
+-	EXPECT_EQ(SIGTERM, WTERMSIG(status));
++	EXPECT_EQ(SIGKILL, WTERMSIG(status));
+ 
+ 	/* Take snapshot to CPU pagetables */
+ 	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_SNAPSHOT, buffer, npages);
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
