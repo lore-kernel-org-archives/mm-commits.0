@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36AEE4D8D91
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:33:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE2D44D2EE6
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:33:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535226; cv=none; b=mkYr1RQvZKMnYRna4MWnooZAS69ZKsns7wPXBX6kbPal+ABbUX+oATOt6Ra6RLED/pAHgP/SrEfMO6xh6chGyYvx2eRjN6Tgm+sKtu3gYGaeCu5YDhAHQWcEHJFLes8IC3KaTIwSl2Rye75fvBU6x1hvpKFHhTP0MatlATc5aCw=
+	t=1778535228; cv=none; b=mvBVVv7iQTpOjFDovovGxdcXuQrpwRk7h+si708rg3oKNGWQhV0fsYGrwSCLYTIvl66Hf3aQvMjEI7j+NMWjOofWy/RlSobY1z8w1eVbNji5ZOSEiIPlk40qqgkhEnR1bNjoCt1vIaCuiA8LeVTzfTxk1EHCSId1nNAJrxGKdCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535226; c=relaxed/simple;
-	bh=Z7AcSr2mrixkAS/r6Jqwxh+r5PqkMfi/VgHQFnrsVRE=;
-	h=Date:To:From:Subject:Message-Id; b=pFjxRP/y7ubArE1GeKR17fpBwIzHotYPGaq4xsPGldB25O8gzd90kogxJa30qdEnztm9sgQNqf/kBbdlrLr2enHfBk6RU/bxrRGRJ30u+ZWxi0KZi3reuc9YzkHFBihBEdu1NVCGblISPab1JVKXtDTxyjIL3Ka9N0ONdaexySU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=USqYBn+S; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535228; c=relaxed/simple;
+	bh=2iiMuDdd9+WAv4PHULOTEScC90X/DmuAri5Ae61Idx0=;
+	h=Date:To:From:Subject:Message-Id; b=URF4L0z11yOG/QilqT5NyVpR6+iXdYRfkOEFT4xoeXHrVn/9kH2sA2kaIqVY0lPiPn/zS0WcZUSOjIlJm/WwTgyUZ57JfWZG9FXhVN81a+uIWbQnmUxrIJsTCOQIf0pkYv0155+A4uQWPbcyTM/o2w2DU9nzXv51c3ttuu+PYBg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=m4hZv+qp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="USqYBn+S"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0699FC2BCB0;
-	Mon, 11 May 2026 21:33:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="m4hZv+qp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 53DC2C2BCB0;
+	Mon, 11 May 2026 21:33:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535226;
-	bh=Z7AcSr2mrixkAS/r6Jqwxh+r5PqkMfi/VgHQFnrsVRE=;
+	s=korg; t=1778535228;
+	bh=2iiMuDdd9+WAv4PHULOTEScC90X/DmuAri5Ae61Idx0=;
 	h=Date:To:From:Subject:From;
-	b=USqYBn+S/fMnH3sVpTeBopIO3Z64gEVILvDY46iR0hHV46F+IDAbG5BruvzcRLaSI
-	 sSQDDYVitPRRD1hP1UH/KxplnFr3Imk0PPtWOQgjBdLV5uqgRLZu3V4Uun+hFmR9Go
-	 AR2VRPYzdGorhGRLm9ptw8/Bx9hht/Metwa6iFbw=
-Date: Mon, 11 May 2026 14:33:45 -0700
+	b=m4hZv+qpdf1tdt/Y1wtZyLnIgcgYMqVI7xdI6n2r9WeBfLeyg+HfO5iCHIXlNLTdk
+	 OMmCTV2FfYF/Juo8qJQYuzyNsdFqKkt6DuFZxT5idXpIh04nfjPwpGpR9DoBZSpp9X
+	 pQGgdiigjCwZFUbJFAHB8TVParowZjhnPWbvSWpI=
+Date: Mon, 11 May 2026 14:33:47 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-migration-properly-cleanup-forked-processes.patch added to mm-new branch
-Message-Id: <20260511213346.0699FC2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch added to mm-new branch
+Message-Id: <20260511213348.53DC2C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: migration: properly cleanup fork()ed processes
+     Subject: selftests/mm: run_vmtests.sh: don't gate THP and KSM tests on HAVE_HUGEPAGES
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-migration-properly-cleanup-forked-processes.patch
+     selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-migration-properly-cleanup-forked-processes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,22 +70,19 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: migration: properly cleanup fork()ed processes
-Date: Mon, 11 May 2026 19:27:48 +0300
+Subject: selftests/mm: run_vmtests.sh: don't gate THP and KSM tests on HAVE_HUGEPAGES
+Date: Mon, 11 May 2026 19:27:49 +0300
 
-Several migration test use fork() to create worker processes.  These
-processes are later killed, but nothing collects their exit status and
-they remain as zombies in the system.
+HAVE_HUGEPAGES indicates availability of free HugeTLB pages.  It should
+not be used to gate KSM test that merges transparent huge pages or
+split_huge_page_test.
 
-Add a helper function that kills the worker processes, waitpid()s for them
-and verifies the exit status.
+Remove check for HAVE_HUGEPAGES when running these tests.
 
-Replace the loops that call kill() for each process with a call to that
-helper.
-
-Link: https://lore.kernel.org/20260511162840.375890-5-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-6-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reported-by: Luiz Capitulino <luizcap@redhat.com>
+Tested-by: Li Wang <li.wang@linux.dev>
+Reviewed-by: Li Wang <li.wang@linux.dev>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
@@ -97,7 +94,6 @@ Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
-Cc: Li Wang <li.wang@linux.dev>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -112,107 +108,47 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/migration.c |   47 +++++++++++++++++------
- 1 file changed, 35 insertions(+), 12 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |   22 ++++++++------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
---- a/tools/testing/selftests/mm/migration.c~selftests-mm-migration-properly-cleanup-forked-processes
-+++ a/tools/testing/selftests/mm/migration.c
-@@ -67,6 +67,29 @@ FIXTURE_TEARDOWN(migration)
- 	free(self->pids);
- }
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages
++++ a/tools/testing/selftests/mm/run_vmtests.sh
+@@ -437,9 +437,7 @@ CATEGORY="memfd_secret" run_test ./memfd
+ fi
  
-+static bool kill_children(FIXTURE_DATA(migration) * self)
-+{
-+	bool err = false;
-+	pid_t pid;
-+	int i;
-+
-+	for (i = 0; i < self->nthreads; i++) {
-+		int status = 0;
-+
-+		pid = self->pids[i];
-+		if (pid < 0)
-+			continue;
-+		if (kill(pid, SIGTERM))
-+			err = true;
-+		if (pid != waitpid(pid, &status, 0))
-+			err = true;
-+		if (!WIFSIGNALED(status) || WTERMSIG(status) != SIGTERM)
-+			err = true;
-+	}
-+
-+	return !err;
-+}
-+
- int migrate(uint64_t *ptr, int n1, int n2)
- {
- 	int ret, tmp;
-@@ -151,7 +174,7 @@ TEST_F_TIMEOUT(migration, shared_anon, 2
- {
- 	pid_t pid;
- 	uint64_t *ptr;
--	int i;
-+	int i, err;
+ # KSM KSM_MERGE_TIME_HUGE_PAGES test with size of 100
+-if [ "${HAVE_HUGEPAGES}" = "1" ]; then
+-	CATEGORY="ksm" run_test ./ksm_tests -H -s 100
+-fi
++CATEGORY="ksm" run_test ./ksm_tests -H -s 100
+ # KSM KSM_MERGE_TIME test with size of 100
+ CATEGORY="ksm" run_test ./ksm_tests -P -s 100
+ # KSM MADV_MERGEABLE test with 10 identical pages
+@@ -492,16 +490,14 @@ CATEGORY="thp" run_test ./khugepaged -s
  
- 	ptr = mmap(NULL, TWOMEG, PROT_READ | PROT_WRITE,
- 		MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-@@ -171,9 +194,9 @@ TEST_F_TIMEOUT(migration, shared_anon, 2
- 		}
- 	}
- 
--	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
--	for (i = 0; i < self->nthreads; i++)
--		ASSERT_EQ(kill(self->pids[i], SIGTERM), 0);
-+	err = migrate(ptr, self->n1, self->n2);
-+	ASSERT_EQ(kill_children(self), true);
-+	ASSERT_EQ(err, 0);
- }
- 
- /*
-@@ -217,7 +240,7 @@ TEST_F_TIMEOUT(migration, shared_anon_th
- 	uint64_t pmdsize;
- 	pid_t pid;
- 	uint64_t *ptr;
--	int i;
-+	int i, err;
- 
- 	if (!thp_is_enabled())
- 		SKIP(return, "Transparent Hugepages not available");
-@@ -247,9 +270,9 @@ TEST_F_TIMEOUT(migration, shared_anon_th
- 		}
- 	}
- 
--	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
--	for (i = 0; i < self->nthreads; i++)
--		ASSERT_EQ(kill(self->pids[i], SIGTERM), 0);
-+	err = migrate(ptr, self->n1, self->n2);
-+	ASSERT_EQ(kill_children(self), true);
-+	ASSERT_EQ(err, 0);
- }
- 
- /*
-@@ -287,7 +310,7 @@ TEST_F_TIMEOUT(migration, shared_anon_ht
- 	unsigned long hugepage_size;
- 	pid_t pid;
- 	uint64_t *ptr;
--	int i;
-+	int i, err;
- 
- 	hugepage_size = default_huge_page_size();
- 	if (!hugepage_size)
-@@ -311,9 +334,9 @@ TEST_F_TIMEOUT(migration, shared_anon_ht
- 		}
- 	}
- 
--	ASSERT_EQ(migrate(ptr, self->n1, self->n2), 0);
--	for (i = 0; i < self->nthreads; i++)
--		ASSERT_EQ(kill(self->pids[i], SIGTERM), 0);
-+	err = migrate(ptr, self->n1, self->n2);
-+	ASSERT_EQ(kill_children(self), true);
-+	ASSERT_EQ(err, 0);
- }
- 
- TEST_HARNESS_MAIN
+ # Try to create XFS if not provided
+ if [ -z "${SPLIT_HUGE_PAGE_TEST_XFS_PATH}" ]; then
+-    if [ "${HAVE_HUGEPAGES}" = "1" ]; then
+-	if test_selected "thp"; then
+-	    if grep xfs /proc/filesystems &>/dev/null; then
+-		XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
+-		SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
+-		truncate -s 314572800 ${XFS_IMG}
+-		mkfs.xfs -q ${XFS_IMG}
+-		mount -o loop ${XFS_IMG} ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
+-		MOUNTED_XFS=1
+-	    fi
++    if test_selected "thp"; then
++	if grep xfs /proc/filesystems &>/dev/null; then
++	    XFS_IMG=$(mktemp /tmp/xfs_img_XXXXXX)
++	    SPLIT_HUGE_PAGE_TEST_XFS_PATH=$(mktemp -d /tmp/xfs_dir_XXXXXX)
++	    truncate -s 314572800 ${XFS_IMG}
++	    mkfs.xfs -q ${XFS_IMG}
++	    mount -o loop ${XFS_IMG} ${SPLIT_HUGE_PAGE_TEST_XFS_PATH}
++	    MOUNTED_XFS=1
+ 	fi
+     fi
+ fi
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
