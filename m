@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7E3B3AE1AF
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CFC14D90BA
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535332; cv=none; b=lHePLxV01nEGpfV4EHYBRftzoVvMtQvkF4cJjEVBEsrnFsTkFzJHj3uyDGuqHoEvRxH/TUHIFSWKZsuU9c0bNx32ITgTMfwZ7IUNNlMhJbOWbNfcKaOf4JCm2tCA6R9nWlQ7mDwFXHmrPZXA1Is9U2AOV2p387qTGMsCXnsszYU=
+	t=1778535335; cv=none; b=Sbyuqa3XcmYpQedL5NBGyfUVf2Z3g23wPvgf7u2h5Hz5wBM+E+idKlD+AuqspxRZn6Eys2YTsiTs5l0ADVHTHFeve1HpbLGCKVlIzsVGVc8HJbuasoY2KFzNRNpHw2InnExN/R/w3KxnF2UQX4k0r3ztjWNpUqewwXtYQRw8i/o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535332; c=relaxed/simple;
-	bh=UblJ7P/1GgALQEs75QPaI85gJ/uQ8hRllmWy+cIXeV0=;
-	h=Date:To:From:Subject:Message-Id; b=XO++BGUOTavyXeIlCD5CCJB7PiqrjM9jG5i76rkWgZpdwR9Z3h+r02aW5brW6DKDfLU+TjZ5WvTvfvzgdRVRf/xY9AN9olKqSgHgLN1oQzUDW9ealr/RK6i3pzZ1bwnnbMcfkIc4pk8dZuZ7S4rNodRj4f12raqGlFCKwBZyEzc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ImQg+7ti; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535335; c=relaxed/simple;
+	bh=uGN1OOUP9dbARWx2GyUTh848q9ZeiP2yu4ZkKeEzLQs=;
+	h=Date:To:From:Subject:Message-Id; b=cWaewj1yZaHPf8jR3yEqqjcvzphGWdPHOuw5nmj4/OUh+/MVB+c/yOpowtVitbfqgDcAKCqAlIuSuUkhy5/QY7v0uglrclxpRi9NCZVW7D0Vel6HB0jXPQe935GdtcXD8BELTxEcX4HM2TCNdxUsqCAbigqA+cMZmRG/3bG6YXI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2SkjnPBn; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ImQg+7ti"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9799AC2BCB0;
-	Mon, 11 May 2026 21:35:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2SkjnPBn"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB4ECC2BCB0;
+	Mon, 11 May 2026 21:35:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535332;
-	bh=UblJ7P/1GgALQEs75QPaI85gJ/uQ8hRllmWy+cIXeV0=;
+	s=korg; t=1778535334;
+	bh=uGN1OOUP9dbARWx2GyUTh848q9ZeiP2yu4ZkKeEzLQs=;
 	h=Date:To:From:Subject:From;
-	b=ImQg+7ti201bUr3HBMAR5QssOX/SrlwUolLZJvFd4kkl1uGKeutL8uM/K1oq0pNE5
-	 6ZWU1LpOlwPGpgQftUQvxWS1LC8F9kGwsqtSdcl8IE5ugZyyLlvjLkqQLzZZJPyHCM
-	 KJMywaAqVhqgrRChE58oPzsnL3SRxH55ynRpyzR0=
-Date: Mon, 11 May 2026 14:35:32 -0700
+	b=2SkjnPBnOIQVTQLzjC5e9hMS0pfLbKSoTBGyMrtxz5l9ZRp4k++AKhZjUIvfYMk1T
+	 zvRRmJ7zPD78uUMP19fGHYtiY6zjOaG+CgayMnVwKiixa2uzdEEDG2QCJxP/lYSulW
+	 HsVeOIhz964cssNU/vPJCEAkJe8p53zCpD973Rpo=
+Date: Mon, 11 May 2026 14:35:34 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch added to mm-new branch
-Message-Id: <20260511213532.9799AC2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch added to mm-new branch
+Message-Id: <20260511213534.DB4ECC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: hugepage_dio: add setup of HugeTLB pages
+     Subject: selftests/mm: hugetlb_fault_after_madv: add setup of HugeTLB pages
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
+     selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,16 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: hugepage_dio: add setup of HugeTLB pages
-Date: Mon, 11 May 2026 19:28:20 +0300
+Subject: selftests/mm: hugetlb_fault_after_madv: add setup of HugeTLB pages
+Date: Mon, 11 May 2026 19:28:21 +0300
 
-hugepage_dio test fails if there are no free huge pages prepared by a
-wrapper script.
+hugetlb_fault_after_madv test skips testing if there are no free huge
+pages prepared by a wrapper script.
 
 Add setup of HugeTLB pages to the test and make sure that the original
 settings are restored on the test exit.
 
-Link: https://lore.kernel.org/20260511162840.375890-37-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-38-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
@@ -107,42 +107,33 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb_dio.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ tools/testing/selftests/mm/hugetlb_fault_after_madv.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb_dio.c~selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages
-+++ a/tools/testing/selftests/mm/hugetlb_dio.c
-@@ -85,8 +85,6 @@ static void run_dio_using_hugetlb(int fd
+--- a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c~selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages
++++ a/tools/testing/selftests/mm/hugetlb_fault_after_madv.c
+@@ -54,7 +54,6 @@ void *madv(void *unused)
  
- 	/* Get the default huge page size */
- 	h_pagesize = default_huge_page_size();
--	if (!h_pagesize)
--		ksft_exit_fail_msg("Unable to determine huge page size\n");
+ int main(void)
+ {
+-	unsigned long free_hugepages;
+ 	pthread_t thread1, thread2;
+ 	/*
+ 	 * On kernel 6.4, we are able to reproduce the problem with ~1000
+@@ -78,11 +77,8 @@ int main(void)
+ 	ksft_print_msg("[INFO] detected default hugetlb page size: %zu KiB\n",
+ 		       huge_page_size / 1024);
  
- 	/* Reset file position since fd is shared across tests */
- 	if (lseek(fd, 0, SEEK_SET) < 0)
-@@ -94,10 +92,6 @@ static void run_dio_using_hugetlb(int fd
- 
- 	/* Get the free huge pages before allocation */
- 	free_hpage_b = hugetlb_free_default_pages();
--	if (free_hpage_b == 0) {
--		close(fd);
--		ksft_exit_skip("No free hugepage, exiting!\n");
+-	free_hugepages = hugetlb_free_default_pages();
+-	if (free_hugepages != 1) {
+-		ksft_exit_skip("This test needs one and only one page to execute. Got %lu\n",
+-			       free_hugepages);
 -	}
- 
- 	/* Allocate a hugetlb page */
- 	orig_buffer = mmap(NULL, h_pagesize, mmap_prot, mmap_flags, -1, 0);
-@@ -141,8 +135,8 @@ int main(void)
- 
- 	ksft_print_header();
- 
--	/* Check if huge pages are free */
--	if (!hugetlb_free_default_pages())
-+	/* request a huge page */
 +	if (!hugetlb_setup_default(1))
- 		ksft_exit_skip("No free hugepage, exiting\n");
++		ksft_exit_skip("Not enough HugeTLB pages\n");
  
- 	fd = open("/tmp", O_TMPFILE | O_RDWR | O_DIRECT, 0664);
+ 	while (max--) {
+ 		huge_ptr = mmap(NULL, huge_page_size, PROT_READ | PROT_WRITE,
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
