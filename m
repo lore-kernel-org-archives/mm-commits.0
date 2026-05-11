@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 027664D8DB8
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:34:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FF802DF717
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:34:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535270; cv=none; b=SQtUfWUFzNlnmkK7R1eMENa1Pmp1RYUMML0ZK7mzr+BGDQWwTPKpOxA+ykK3UpgMzG/yfa6KzttNfclqUTMPi04u6wEaTA8RVEMZNJMoH5cjJWET0uTXFVMpZ/CCI/26EFY6goWRcLg6ZBLY3+7uOulujCVGNlbGkZz2XNwIZCg=
+	t=1778535272; cv=none; b=qrP+/ayDlou2ut+t6Cpdyxo4b5oL9Xl/6Ui4agbOda5oUzZvog7ht+GCzjW5Rr58qG0GYr+McITUxMGtvgfpl4EgNiios8Wj77SaIB3uYTS9lFrJE1gngYXDErlZbo1vgURRdj9leg801k3j1EsIVf+3OHI3a/SpUlgEzgOLQ04=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535270; c=relaxed/simple;
-	bh=P+swVNkJTtX/DVuIMW69Bpbc0TaLYtYP2mAfJlxkVio=;
-	h=Date:To:From:Subject:Message-Id; b=roKTCgA/aMMdJBmYhIfhlFTUOfq0/LU8fmS8k+5+q90+C6vSjIUphQOfO8x6N4Ra4fZv41semFGnfwVF+5fH8o2NXT9Rz9aBQb1KX/hm4YkvM3AtZ7iCNLT96pXoeSw8Z0swFrx3wS+Nk6DpuqpUo1pKrYJSCuEmO24TIQILg1c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aN+PcaY0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535272; c=relaxed/simple;
+	bh=20wa2ay8lecYgmvjg1eLL/A3bMArEK/10ey44YyJg2A=;
+	h=Date:To:From:Subject:Message-Id; b=FPksY9+gZk/Xy8tewH11yzUAwChBvmS7t+ChkcA0k9o+omkI+kJ0Q0rhEVjlsOLGiPDJQXs0dgxeI+3BM3A+tiFC0nulyTz5qBcx+FJP+1ryCjybtkNcByeSFG08TIZUd1bUb5GG9n8NGFOq1D6ONq0oUfwnAUCtchE581YMT2o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wHSXrhR3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aN+PcaY0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5905C2BCB0;
-	Mon, 11 May 2026 21:34:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wHSXrhR3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16F05C2BCB0;
+	Mon, 11 May 2026 21:34:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535269;
-	bh=P+swVNkJTtX/DVuIMW69Bpbc0TaLYtYP2mAfJlxkVio=;
+	s=korg; t=1778535272;
+	bh=20wa2ay8lecYgmvjg1eLL/A3bMArEK/10ey44YyJg2A=;
 	h=Date:To:From:Subject:From;
-	b=aN+PcaY0x6H0OCbOQtpQuTFH/OwfbyV6YQYTaJU/XPP2LT1e99c10k/3mcGPfnSuI
-	 m0eGLXr5PmyPuVF7WL5rPoDl4LdthXFZU5AgpZin3a1DAcwjqDJx9WQ72scgrj9B2J
-	 PzRZLFZnOhFxFIkNJBR2rYcYblX7hHF1hprnO5Oo=
-Date: Mon, 11 May 2026 14:34:29 -0700
+	b=wHSXrhR34DDoK207X1YxhrLc0DXRsdlIR02QMcI7sYqtwNa1QblbgOvgkY7PyObK+
+	 LvQSQvB3p9nkHSamU+s5PlVWZTA5VNuS7Y1O1O/vvcRjzv63ha3qd4N2xWBV1gF+9Y
+	 3zsnOogAQh0HDaz4OIFaWlJLl/KSeP5VAi6CAqLM=
+Date: Mon, 11 May 2026 14:34:31 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-uffd-stress-use-kselftest-framework.patch added to mm-new branch
-Message-Id: <20260511213429.C5905C2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-uffd-unit-tests-use-kselftest-framework.patch added to mm-new branch
+Message-Id: <20260511213432.16F05C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: uffd-stress: use kselftest framework
+     Subject: selftests/mm: uffd-unit-tests: use kselftest framework
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-uffd-stress-use-kselftest-framework.patch
+     selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-stress-use-kselftest-framework.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,22 +70,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: uffd-stress: use kselftest framework
-Date: Mon, 11 May 2026 19:28:03 +0300
+Subject: selftests/mm: uffd-unit-tests: use kselftest framework
+Date: Mon, 11 May 2026 19:28:04 +0300
 
-Convert uffd-stress test to use kselftest framework for reporting and
+Convert uffd-unit-tests to use kselftest framework for reporting and
 tracking successful and failing runs.
 
-Link: https://lore.kernel.org/20260511162840.375890-20-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-21-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
 Reviewed-by: Mark Brown <broonie@kernel.org>
-Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lance Yang <lance.yang@linux.dev>
@@ -97,6 +96,7 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sarthak Sharma <sarthak.sharma@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -104,80 +104,201 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/uffd-stress.c |   40 +++++++++------------
- 1 file changed, 19 insertions(+), 21 deletions(-)
+ tools/testing/selftests/mm/uffd-unit-tests.c |  105 ++++++++---------
+ 1 file changed, 52 insertions(+), 53 deletions(-)
 
---- a/tools/testing/selftests/mm/uffd-stress.c~selftests-mm-uffd-stress-use-kselftest-framework
-+++ a/tools/testing/selftests/mm/uffd-stress.c
-@@ -286,18 +286,12 @@ static int userfaultfd_stress(uffd_globa
- 	pthread_attr_setstacksize(&attr, 16*1024*1024);
+--- a/tools/testing/selftests/mm/uffd-unit-tests.c~selftests-mm-uffd-unit-tests-use-kselftest-framework
++++ a/tools/testing/selftests/mm/uffd-unit-tests.c
+@@ -86,47 +86,28 @@ typedef struct {
+ 	uffd_test_case_ops_t *test_case_ops;
+ } uffd_test_case_t;
  
- 	while (bounces--) {
--		printf("bounces: %d, mode:", bounces);
--		if (bounces & BOUNCE_RANDOM)
--			printf(" rnd");
--		if (bounces & BOUNCE_RACINGFAULTS)
--			printf(" racing");
--		if (bounces & BOUNCE_VERIFY)
--			printf(" ver");
--		if (bounces & BOUNCE_POLL)
--			printf(" poll");
--		else
--			printf(" read");
--		printf(", ");
-+		ksft_print_msg("bounces: %d, mode:%s%s%s%s, ",
-+			       bounces,
-+			       bounces & BOUNCE_RANDOM ? " rnd" : "",
-+			       bounces & BOUNCE_RACINGFAULTS ? " racing" : "",
-+			       bounces & BOUNCE_VERIFY ? " ver" : "",
-+			       bounces & BOUNCE_POLL ? " poll" : " read");
- 		fflush(stdout);
+-static void uffd_test_report(void)
+-{
+-	printf("Userfaults unit tests: pass=%u, skip=%u, fail=%u (total=%u)\n",
+-	       ksft_get_pass_cnt(),
+-	       ksft_get_xskip_cnt(),
+-	       ksft_get_fail_cnt(),
+-	       ksft_test_num());
+-}
++static char current_test[256];
  
- 		if (bounces & BOUNCE_POLL)
-@@ -461,6 +455,9 @@ int main(int argc, char **argv)
- 	if (argc < 4)
- 		usage();
+ static void uffd_test_pass(void)
+ {
+-	printf("done\n");
+-	ksft_inc_pass_cnt();
++	ksft_test_result_pass("%s\n", current_test);
+ }
  
-+	ksft_print_header();
-+	ksft_set_plan(1);
-+
- 	if (signal(SIGALRM, sigalrm) == SIG_ERR)
- 		err("failed to arm SIGALRM");
- 	alarm(ALARM_INTERVAL_SECS);
-@@ -484,10 +481,8 @@ int main(int argc, char **argv)
- 	 * for racy extra reservation of hugepages.
- 	 */
- 	if (gopts->test_type == TEST_HUGETLB &&
--	   get_free_hugepages() < 2 * (bytes / gopts->page_size) + gopts->nr_parallel - 1) {
--		printf("skip: Skipping userfaultfd... not enough hugepages\n");
--		return KSFT_SKIP;
--	}
-+	   get_free_hugepages() < 2 * (bytes / gopts->page_size) + gopts->nr_parallel - 1)
-+		ksft_exit_skip("Skipping userfaultfd... not enough hugepages\n");
+ #define  uffd_test_start(...)  do {		\
+-		printf("Testing ");		\
+-		printf(__VA_ARGS__);		\
+-		printf("... ");			\
+-		fflush(stdout);			\
++		snprintf(current_test, sizeof(current_test), __VA_ARGS__); \
+ 	} while (0)
  
- 	gopts->nr_pages_per_cpu = bytes / gopts->page_size / gopts->nr_parallel;
- 	if (!gopts->nr_pages_per_cpu) {
-@@ -503,9 +498,12 @@ int main(int argc, char **argv)
+-#define  uffd_test_fail(...)  do {		\
+-		printf("failed [reason: ");	\
+-		printf(__VA_ARGS__);		\
+-		printf("]\n");			\
+-		ksft_inc_fail_cnt();		\
++#define  uffd_test_fail(fmt, ...)  do {					\
++		ksft_print_msg("failed reason: [" fmt "]\n", ##__VA_ARGS__); \
++		ksft_test_result_fail("%s\n", current_test);		\
+ 	} while (0)
+ 
+ static void uffd_test_skip(const char *message)
+ {
+-	printf("skipped [reason: %s]\n", message);
+-	ksft_inc_xskip_cnt();
++	ksft_test_result_skip("%s (%s)\n", current_test, message);
+ }
+ 
+-/*
+- * Returns 1 if specific userfaultfd supported, 0 otherwise.  Note, we'll
+- * return 1 even if some test failed as long as uffd supported, because in
+- * that case we still want to proceed with the rest uffd unit tests.
+- */
+-static int test_uffd_api(bool use_dev)
++static void test_uffd_api(bool use_dev)
+ {
+ 	struct uffdio_api uffdio_api;
+ 	int uffd;
+@@ -140,7 +121,7 @@ static int test_uffd_api(bool use_dev)
+ 		uffd = uffd_open_sys(UFFD_FLAGS);
+ 	if (uffd < 0) {
+ 		uffd_test_skip("cannot open userfaultfd handle");
+-		return 0;
++		return;
  	}
- 	gopts->nr_pages = gopts->nr_pages_per_cpu * gopts->nr_parallel;
  
--	printf("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
--	       gopts->nr_pages, gopts->nr_pages_per_cpu);
--	return userfaultfd_stress(gopts);
-+	ksft_print_msg("nr_pages: %lu, nr_pages_per_cpu: %lu\n",
-+		       gopts->nr_pages, gopts->nr_pages_per_cpu);
+ 	/* Test wrong UFFD_API */
+@@ -177,8 +158,6 @@ static int test_uffd_api(bool use_dev)
+ 	uffd_test_pass();
+ out:
+ 	close(uffd);
+-	/* We have a valid uffd handle */
+-	return 1;
+ }
+ 
+ 
+@@ -1701,6 +1680,26 @@ static void usage(const char *prog)
+ 	exit(KSFT_FAIL);
+ }
+ 
++static int uffd_count_tests(int n_tests, int n_mems, const char *test_filter)
++{
++	uffd_test_case_t *test;
++	int i, j, count = 0;
 +
-+	ksft_test_result(!userfaultfd_stress(gopts),
-+			 "uffd-stress %s\n", argv[1]);
++	if (!test_filter)
++		count += 2;	/* test_uffd_api(false) + test_uffd_api(true) */
++
++	for (i = 0; i < n_tests; i++) {
++		test = &uffd_tests[i];
++		if (test_filter && !strstr(test->name, test_filter))
++			continue;
++		for (j = 0; j < n_mems; j++)
++			if (test->mem_targets & mem_types[j].mem_flag)
++				count++;
++	}
++
++	return count;
++}
++
+ int main(int argc, char *argv[])
+ {
+ 	int n_tests = sizeof(uffd_tests) / sizeof(uffd_test_case_t);
+@@ -1711,8 +1710,7 @@ int main(int argc, char *argv[])
+ 	mem_type_t *mem_type;
+ 	uffd_test_args_t args;
+ 	const char *errmsg;
+-	int has_uffd, opt;
+-	int i, j;
++	int i, j, opt;
+ 
+ 	while ((opt = getopt(argc, argv, "f:hl")) != -1) {
+ 		switch (opt) {
+@@ -1730,24 +1728,28 @@ int main(int argc, char *argv[])
+ 		}
+ 	}
+ 
+-	if (!test_filter && !list_only) {
+-		has_uffd = test_uffd_api(false);
+-		has_uffd |= test_uffd_api(true);
+-
+-		if (!has_uffd) {
+-			printf("Userfaultfd not supported or unprivileged, skip all tests\n");
+-			exit(KSFT_SKIP);
++	if (list_only) {
++		for (i = 0; i < n_tests; i++) {
++			test = &uffd_tests[i];
++			if (test_filter && !strstr(test->name, test_filter))
++				continue;
++			printf("%s\n", test->name);
+ 		}
++		return KSFT_PASS;
++	}
++
++	ksft_print_header();
++	ksft_set_plan(uffd_count_tests(n_tests, n_mems, test_filter));
++
++	if (!test_filter) {
++		test_uffd_api(false);
++		test_uffd_api(true);
+ 	}
+ 
+ 	for (i = 0; i < n_tests; i++) {
+ 		test = &uffd_tests[i];
+ 		if (test_filter && !strstr(test->name, test_filter))
+ 			continue;
+-		if (list_only) {
+-			printf("%s\n", test->name);
+-			continue;
+-		}
+ 		for (j = 0; j < n_mems; j++) {
+ 			mem_type = &mem_types[j];
+ 
+@@ -1758,6 +1760,10 @@ int main(int argc, char *argv[])
+ 			uffd_test_ops = mem_type->mem_ops;
+ 			uffd_test_case_ops = test->test_case_ops;
+ 
++			if (!(test->mem_targets & mem_type->mem_flag))
++				continue;
++
++			uffd_test_start("%s on %s", test->name, mem_type->name);
+ 			if (mem_type->mem_flag & (MEM_HUGETLB_PRIVATE | MEM_HUGETLB)) {
+ 				gopts.page_size = default_huge_page_size();
+ 				if (gopts.page_size == 0) {
+@@ -1777,10 +1783,6 @@ int main(int argc, char *argv[])
+ 			/* Initialize test arguments */
+ 			args.mem_type = mem_type;
+ 
+-			if (!(test->mem_targets & mem_type->mem_flag))
+-				continue;
+-
+-			uffd_test_start("%s on %s", test->name, mem_type->name);
+ 			if (!uffd_feature_supported(test)) {
+ 				uffd_test_skip("feature missing");
+ 				continue;
+@@ -1794,10 +1796,7 @@ int main(int argc, char *argv[])
+ 		}
+ 	}
+ 
+-	if (!list_only)
+-		uffd_test_report();
+-
+-	return ksft_get_fail_cnt() ? KSFT_FAIL : KSFT_PASS;
 +	ksft_finished();
  }
  
  #else /* __NR_userfaultfd */
-@@ -514,8 +512,8 @@ int main(int argc, char **argv)
+@@ -1806,8 +1805,8 @@ int main(int argc, char *argv[])
  
  int main(void)
  {
--	printf("skip: Skipping userfaultfd test (missing __NR_userfaultfd)\n");
+-	printf("Skipping %s (missing __NR_userfaultfd)\n", __file__);
 -	return KSFT_SKIP;
 +	ksft_print_header();
 +	ksft_exit_skip("missing __NR_userfaultfd definition\n");
