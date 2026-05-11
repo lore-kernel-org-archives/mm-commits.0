@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F0BF3859C9
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:33:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C446B370D4D
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:33:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535219; cv=none; b=rYutWZCumypD7sQ1FUbb4+DVU3XQATznfKTkutC6hVhdTlj5K+5JoOY9gp7aJRtotQ5klbS0sRfRt8sC+zBln9HH4voSrllxCqlVNTirsA7aBw5crxvy6gbafa48Y5Kf2qQE5ik7LaJFpW3L+Ekbdavz4S7IB+dG4sukXko4o64=
+	t=1778535221; cv=none; b=j5Aqu23tNxASZITlLX7iP9YySGZKuDQgRhfJDXoRv+FAcOoAaBhQcit/1N6DgSJifR10Z/r9CKxq18l7I5yqGSnk7mjMeSuUi7RJDDBu8JaV4hH3SzfYkozKRrkrfu1+6rl5brKO7pIPEjwIZb0SD7iULuugvFeKz1KNohs8STg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535219; c=relaxed/simple;
-	bh=qmr3jT16C8u5FdmX8eeimYVPURIVwbd6WR58iuaPEis=;
-	h=Date:To:From:Subject:Message-Id; b=T0S9TKZ+mFHs5RO6uj2oAyA7OuV7y/K9pih75vUmUvfvwcQwolhS0BVXoP9uu6N9kuZXGXb9BhXu52qyXaV1lid26hSFJvbeQPUMiJpwFSuZxHDCuI8vs3G4jHQGcmd0znEQ5IXz8jJhlNwo0d130bXLP00AXxV+6iB4Rrd+z0Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=onBHPG0+; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535221; c=relaxed/simple;
+	bh=MS9Nw0xtXiouc965IFlVZpRyKujqmx6CohHTWEjZ0Tw=;
+	h=Date:To:From:Subject:Message-Id; b=r85zzyo0APZh4cAmDUOFK+JRYxerDRt0ywU8K+mBjGUZ5BrjA1umgyQFVmtoYOtrmi55SxoyppUuOWvwrK/pmkYihCIgsmkTUDKlDwF5MD3ex4VepAvLghw8Ah9m57ukHndzz7rSajIUkAnzNlCw2dGVfcVxxVs9Y4kpo6bOrZQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=r0AIRY7t; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="onBHPG0+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19D7BC2BCB0;
-	Mon, 11 May 2026 21:33:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="r0AIRY7t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 555EBC2BCB0;
+	Mon, 11 May 2026 21:33:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535219;
-	bh=qmr3jT16C8u5FdmX8eeimYVPURIVwbd6WR58iuaPEis=;
+	s=korg; t=1778535221;
+	bh=MS9Nw0xtXiouc965IFlVZpRyKujqmx6CohHTWEjZ0Tw=;
 	h=Date:To:From:Subject:From;
-	b=onBHPG0+33I90owTU/NfdcMr41tfMHZO7jYxFbKoyO159zqVoq6etCjZBbfNeSh3z
-	 9YDltqIKP80MNQPqNOWOx06Vb0LlN1AQTm0GAWiwXOyFUHnA6lLudWCTjqVk4g6Reg
-	 q73PLhhtGpxF4sBeSBKg+WqGCKYelaN6kBTwQ2yg=
-Date: Mon, 11 May 2026 14:33:38 -0700
+	b=r0AIRY7tPDfbF3+IjirtbN2Rysf1yDxHh19c8sJTDMCEAP5qPxpo7QursQ/vlz27j
+	 YCPsiu6XxAWl3gT/rPfg/o4KQm/+YNeAcAscggvrQufIiexZT6tVOcAEWG5VsJqqEJ
+	 hRcFlzipZw1X6lQRgWQtVfuFEtXZ29m/AkKPfS7Q=
+Date: Mon, 11 May 2026 14:33:40 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch added to mm-new branch
-Message-Id: <20260511213339.19D7BC2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch added to mm-new branch
+Message-Id: <20260511213341.555EBC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: hugetlb-read-hwpoison: add SIGBUS handler
+     Subject: selftests/mm: migration: don't assume huge page is TWOMEG
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
+     selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,70 +70,36 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: hugetlb-read-hwpoison: add SIGBUS handler
-Date: Mon, 11 May 2026 19:27:45 +0300
+Subject: selftests/mm: migration: don't assume huge page is TWOMEG
+Date: Mon, 11 May 2026 19:27:46 +0300
 
-Patch series "make MM selftests more CI friendly", v4.
+migration tests presume that both THP and HugeTLB huge pages are 2MB.
 
-There's a lot of dancing around HugeTLB settings in run_vmtests.sh.  Some
-test need just a few default huge pages, some require at least 256 MB, and
-some just skip lots of tests if huge pages of all supported sizes are not
-available.
+Add dynamic detection of huge page size with read_pmd_pagesize() for THP
+and with default_huge_page_size() for HugeTLB.
 
-The goal of this set is to make tests deal with HugeTLB setup and
-teardown.
-
-There are already convenient helpers that allow easy reading and writing
-of /proc and /sysfs, so adding a few APIs that will detect and update
-HugeTLB settings shouldn't be a big deal.  But these nice helpers use
-kselftest framework, and many of HugeTLB (and even THP) test don't, so as
-a result this patchset also includes a lot of churn for conversion of
-those tests to kselftest framework (patches 7-19).
-
-The series break out:
-patches 1-5:   small fixes
-patch 6:       merge of hugetlb mmap tests
-patch 7:       renaming of hugepage-* to hugetlb-*
-patches 8-21:  mechanical conversion to kselftest framework
-patches 22-28: extension of thp_settings to hugepage_settings to also include
-               HugeTLB helpers
-patches 29-30: add helpers for setting up SHM limits in hugetlb-shm and
-               thuge-gen tests
-patches 31-53: integrate the new APIs in all the tests that use HugeTLB
-patches 54-55: drop HugeTLB setup from run_vmtests.sh
-
-
-This patch (of 55):
-
-Injection of a memory error with madvise() causes SIGBUS, which terminates
-the hugetlb-read-hwpoison test prematurely.
-
-Add a dummy SIGBUS handler to allow the test to continue regardless of
-SIGBUS.
-
-Link: https://lore.kernel.org/20260511162840.375890-1-rppt@kernel.org
-Link: https://lore.kernel.org/20260511162840.375890-2-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-3-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
-Tested-by: Li Wang <li.wang@linux.dev>
-Reviewed-by: Li Wang <li.wang@linux.dev>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
+Reviewed-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
-Cc: Donet Tom <donettom@linux.ibm.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Liam Howlett <liam@infradead.org>
+Cc: Li Wang <li.wang@linux.dev>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Nico Pache <npache@redhat.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sarthak Sharma <sarthak.sharma@arm.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
@@ -141,38 +107,128 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb-read-hwpoison.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ tools/testing/selftests/mm/migration.c |   44 ++++++++++++++++-------
+ 1 file changed, 32 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb-read-hwpoison.c~selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler
-+++ a/tools/testing/selftests/mm/hugetlb-read-hwpoison.c
-@@ -10,6 +10,7 @@
- #include <sys/statfs.h>
- #include <errno.h>
- #include <stdbool.h>
-+#include <signal.h>
- 
- #include "kselftest.h"
- 
-@@ -261,6 +262,10 @@ close:
- 	return -1;
- }
- 
-+static void sigbus_handler(int sig)
-+{
-+}
-+
- int main(void)
+--- a/tools/testing/selftests/mm/migration.c~selftests-mm-migration-dont-assume-huge-page-is-twomeg
++++ a/tools/testing/selftests/mm/migration.c
+@@ -184,22 +184,27 @@ TEST_F_TIMEOUT(migration, shared_anon, 2
+  */
+ TEST_F_TIMEOUT(migration, private_anon_thp, 2*RUNTIME)
  {
- 	int fd;
-@@ -273,6 +278,7 @@ int main(void)
- 	};
- 	size_t i;
++	uint64_t pmdsize;
+ 	uint64_t *ptr;
+ 	int i;
  
-+	signal(SIGBUS, sigbus_handler);
- 	for (i = 0; i < ARRAY_SIZE(wr_chunk_sizes); ++i) {
- 		printf("Write/read chunk size=0x%lx\n",
- 		       wr_chunk_sizes[i]);
+ 	if (!thp_is_enabled())
+ 		SKIP(return, "Transparent Hugepages not available");
+ 
++	pmdsize = read_pmd_pagesize();
++	if (!pmdsize)
++		SKIP(return, "Reading PMD pagesize failed");
++
+ 	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
+ 		SKIP(return, "Not enough threads or NUMA nodes available");
+ 
+-	ptr = mmap(NULL, 2*TWOMEG, PROT_READ | PROT_WRITE,
++	ptr = mmap(NULL, 2 * pmdsize, PROT_READ | PROT_WRITE,
+ 		MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+ 	ASSERT_NE(ptr, MAP_FAILED);
+ 
+-	ptr = (uint64_t *) ALIGN((uintptr_t) ptr, TWOMEG);
+-	ASSERT_EQ(madvise(ptr, TWOMEG, MADV_HUGEPAGE), 0);
+-	memset(ptr, 0xde, TWOMEG);
++	ptr = (uint64_t *) ALIGN((uintptr_t) ptr, pmdsize);
++	ASSERT_EQ(madvise(ptr, pmdsize, MADV_HUGEPAGE), 0);
++	memset(ptr, 0xde, pmdsize);
+ 	for (i = 0; i < self->nthreads - 1; i++)
+ 		if (pthread_create(&self->threads[i], NULL, access_mem, ptr))
+ 			perror("Couldn't create thread");
+@@ -215,6 +220,7 @@ TEST_F_TIMEOUT(migration, private_anon_t
+ 
+ TEST_F_TIMEOUT(migration, shared_anon_thp, 2*RUNTIME)
+ {
++	uint64_t pmdsize;
+ 	pid_t pid;
+ 	uint64_t *ptr;
+ 	int i;
+@@ -222,17 +228,21 @@ TEST_F_TIMEOUT(migration, shared_anon_th
+ 	if (!thp_is_enabled())
+ 		SKIP(return, "Transparent Hugepages not available");
+ 
++	pmdsize = read_pmd_pagesize();
++	if (!pmdsize)
++		SKIP(return, "Reading PMD pagesize failed");
++
+ 	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
+ 		SKIP(return, "Not enough threads or NUMA nodes available");
+ 
+-	ptr = mmap(NULL, 2 * TWOMEG, PROT_READ | PROT_WRITE,
++	ptr = mmap(NULL, 2 * pmdsize, PROT_READ | PROT_WRITE,
+ 		MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+ 	ASSERT_NE(ptr, MAP_FAILED);
+ 
+-	ptr = (uint64_t *) ALIGN((uintptr_t) ptr, TWOMEG);
+-	ASSERT_EQ(madvise(ptr, TWOMEG, MADV_HUGEPAGE), 0);
++	ptr = (uint64_t *) ALIGN((uintptr_t) ptr, pmdsize);
++	ASSERT_EQ(madvise(ptr, pmdsize, MADV_HUGEPAGE), 0);
+ 
+-	memset(ptr, 0xde, TWOMEG);
++	memset(ptr, 0xde, pmdsize);
+ 	for (i = 0; i < self->nthreads - 1; i++) {
+ 		pid = fork();
+ 		if (!pid) {
+@@ -256,17 +266,22 @@ TEST_F_TIMEOUT(migration, shared_anon_th
+  */
+ TEST_F_TIMEOUT(migration, private_anon_htlb, 2*RUNTIME)
+ {
++	unsigned long hugepage_size;
+ 	uint64_t *ptr;
+ 	int i;
+ 
+ 	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
+ 		SKIP(return, "Not enough threads or NUMA nodes available");
+ 
+-	ptr = mmap(NULL, TWOMEG, PROT_READ | PROT_WRITE,
++	hugepage_size = default_huge_page_size();
++	if (!hugepage_size)
++		SKIP(return, "Reading HugeTLB pagesize failed");
++
++	ptr = mmap(NULL, hugepage_size, PROT_READ | PROT_WRITE,
+ 		MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+ 	ASSERT_NE(ptr, MAP_FAILED);
+ 
+-	memset(ptr, 0xde, TWOMEG);
++	memset(ptr, 0xde, hugepage_size);
+ 	for (i = 0; i < self->nthreads - 1; i++)
+ 		if (pthread_create(&self->threads[i], NULL, access_mem, ptr))
+ 			perror("Couldn't create thread");
+@@ -281,6 +296,7 @@ TEST_F_TIMEOUT(migration, private_anon_h
+  */
+ TEST_F_TIMEOUT(migration, shared_anon_htlb, 2*RUNTIME)
+ {
++	unsigned long hugepage_size;
+ 	pid_t pid;
+ 	uint64_t *ptr;
+ 	int i;
+@@ -288,11 +304,15 @@ TEST_F_TIMEOUT(migration, shared_anon_ht
+ 	if (self->nthreads < 2 || self->n1 < 0 || self->n2 < 0)
+ 		SKIP(return, "Not enough threads or NUMA nodes available");
+ 
+-	ptr = mmap(NULL, TWOMEG, PROT_READ | PROT_WRITE,
++	hugepage_size = default_huge_page_size();
++	if (!hugepage_size)
++		SKIP(return, "Reading HugeTLB pagesize failed");
++
++	ptr = mmap(NULL, hugepage_size, PROT_READ | PROT_WRITE,
+ 		MAP_SHARED | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+ 	ASSERT_NE(ptr, MAP_FAILED);
+ 
+-	memset(ptr, 0xde, TWOMEG);
++	memset(ptr, 0xde, hugepage_size);
+ 	for (i = 0; i < self->nthreads - 1; i++) {
+ 		pid = fork();
+ 		if (!pid) {
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
