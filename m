@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 353DF4D90CC
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:36:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66D334D90CC
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:36:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535373; cv=none; b=K9goOLTo1EYK1Lz5ybgyJ4eZbF9eDDq/MztIv19yTD1S3fjKZVnqCdMtiwTs5QXVNMwhIyeNTOnT6KPe2HawrLo4q4uAh8CnBXemK8TJkMq1/hmgFS0w9a6p9Pn6MkhU0RQ7VBOnUQzU//SJAhtwsZrnaFo5Xnrw0WUoA+x7ft4=
+	t=1778535375; cv=none; b=fKhvXGjJYHOsXQ19FjiDpCtoWmDQdyqXQWQbohsYMAASiKWMQKDA2pStIE5QYHnfaqIF9sHUv5KRqIeWBHlOR4YL5pGo0GKKvQAu+cFxm6AHYEP6WGexdDY6OuqZv16dVoDZ5f8SrHkzJdSUgs131tVzpnWaR11Tcg7f3LQDcio=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535373; c=relaxed/simple;
-	bh=yjPB0uNvRc8kgLgFV39Y8jc+d5HwVlqK3qqozXyW7lU=;
-	h=Date:To:From:Subject:Message-Id; b=eS6z4DCJ655vzvOfm6AmezxID6YGBQLg9yi7xJHpxEBtfUZV26/WDYttsXdkN6Pw9J63m3tclh3IiaF97kWblEZq6cDLGohlmaQRe11HNEqwgXeBtvr9re+QJKpALk/3UE9HBcZaNoA+ChJZ/498PAUmedC1XvU49O7cGpQuTMs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XxCP3JoQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535375; c=relaxed/simple;
+	bh=oqPsjRmSQK0tLi5tk1/BZXtmdvctfm10wT1l+wwOXLQ=;
+	h=Date:To:From:Subject:Message-Id; b=qe7TkoZkdkY35F7erHquMuJeo33bD8CuFh9jFwih/VxLnIPuB06HoPqzzoOnz1d3qouDYultWeN0/h0aJWf6r6f2qdGyXp3Fl89576bgbrdBVPu5BfuE8BYdnsEB03x/Xhqui15grN7xco8Cdwg7ZUi6jG6ilQvgTJqLIFEYoDs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S57HALK5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XxCP3JoQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0EC70C2BCF5;
-	Mon, 11 May 2026 21:36:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S57HALK5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3AA3CC2BCFA;
+	Mon, 11 May 2026 21:36:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535373;
-	bh=yjPB0uNvRc8kgLgFV39Y8jc+d5HwVlqK3qqozXyW7lU=;
+	s=korg; t=1778535375;
+	bh=oqPsjRmSQK0tLi5tk1/BZXtmdvctfm10wT1l+wwOXLQ=;
 	h=Date:To:From:Subject:From;
-	b=XxCP3JoQ7qws4d2i+2oCAkMLos8EpoXWVEEUR8zuRTmdew8mo5zLFSnRrhYlCs5xE
-	 uTt7lmmpkknFO18V4boaHv+r5m9bwMUcLQVLjUYreY2vGTN2t4u9CyC8umD/go3UeK
-	 vcPjzDevxJnvRQAK8qbiTNp5UbVC+dgzoTnzOXJI=
-Date: Mon, 11 May 2026 14:36:12 -0700
+	b=S57HALK51qrsbo00A7VrBuay94uPrUH4glKfSgrgTftcwpLwmvzvKt5AJPbGBmfoo
+	 NyFWDjKo0fapNTILOyY/UpQvgG0iO/gtn/oHtBhfXqJZSC3lHwGM1FdonJ+fkD6DLR
+	 kNEBqpXUR6Z7heaDyfBs2D18RHMWHL4JaUPjj98g=
+Date: Mon, 11 May 2026 14:36:14 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch added to mm-new branch
-Message-Id: <20260511213613.0EC70C2BCF5@smtp.kernel.org>
+Subject: + selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch added to mm-new branch
+Message-Id: <20260511213615.3AA3CC2BCFA@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: run_vmtests.sh: free memory if available memory is low
+     Subject: selftests/mm: run_vmtests.sh: drop detection and setup of HugeTLB
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
+     selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,20 +70,15 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: run_vmtests.sh: free memory if available memory is low
-Date: Mon, 11 May 2026 19:28:38 +0300
+Subject: selftests/mm: run_vmtests.sh: drop detection and setup of HugeTLB
+Date: Mon, 11 May 2026 19:28:39 +0300
 
-Currently when running THP and HugeTLB tests, if HAVE_HUGEPAGES is set
-run_test() drops caches, compacts memory and runs the test.  But if
-HAVE_HUGEPAGES is not set it skips the tests entirely, even if THP tests
-have nothing to do with HAVE_HUGEPAGES.
+All the tests that use HugeTLB can detect and setup HugeTLB pages on their
+own.
 
-Replace the check if HAVE_HUGEPAGES is set with a check of how much memory
-is available.  If there is less than 256 MB of available memory, drop
-caches and run compaction and then continue to run a test regardless of
-HAVE_HUGEPAGES value.
+Drop detection and setup of HugeTLB from run_vmtests.sh.
 
-Link: https://lore.kernel.org/20260511162840.375890-55-rppt@kernel.org
+Link: https://lore.kernel.org/20260511162840.375890-56-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
@@ -111,50 +106,202 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/run_vmtests.sh |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ tools/testing/selftests/mm/run_vmtests.sh |  125 +-------------------
+ 1 file changed, 7 insertions(+), 118 deletions(-)
 
---- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low
+--- a/tools/testing/selftests/mm/run_vmtests.sh~selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb
 +++ a/tools/testing/selftests/mm/run_vmtests.sh
-@@ -234,19 +234,17 @@ pretty_name() {
- # Usage: run_test [test binary] [arbitrary test arguments...]
- run_test() {
- 	if test_selected ${CATEGORY}; then
--		local skip=0
+@@ -132,7 +132,7 @@ test_selected() {
+ 
+ run_gup_matrix() {
+     # -t: thp=on, -T: thp=off, -H: hugetlb=on
+-    local hugetlb_mb=$(( needmem_KB / 1024 ))
++    local hugetlb_mb=256
+ 
+     for huge in -t -T "-H -m $hugetlb_mb"; do
+         # -u: gup-fast, -U: gup-basic, -a: pin-fast, -b: pin-basic, -L: pin-longterm
+@@ -154,60 +154,6 @@ run_gup_matrix() {
+     done
+ }
+ 
+-# get huge pagesize and freepages from /proc/meminfo
+-while read -r name size unit; do
+-	if [ "$name" = "HugePages_Free:" ]; then
+-		freepgs="$size"
+-	fi
+-	if [ "$name" = "Hugepagesize:" ]; then
+-		hpgsize_KB="$size"
+-	fi
+-done < /proc/meminfo
 -
- 		# On memory constrainted systems some tests can fail to allocate hugepages.
- 		# perform some cleanup before the test for a higher success rate.
- 		if [ ${CATEGORY} == "thp" -o ${CATEGORY} == "hugetlb" ]; then
--			if [ "${HAVE_HUGEPAGES}" = "1" ]; then
-+			mem_kb=$(awk '/MemAvailable/ {print $2}' /proc/meminfo)
-+			mem_Mb=$((mem_kb / 1024))
-+
-+			if (( $mem_Mb < 256 )); then
- 				echo 3 > /proc/sys/vm/drop_caches
- 				sleep 2
- 				echo 1 > /proc/sys/vm/compact_memory
- 				sleep 2
--			else
--				echo "hugepages not supported" | tap_prefix
--				skip=1
- 			fi
- 		fi
- 
-@@ -255,12 +253,8 @@ run_test() {
- 		local sep=$(echo -n "$title" | tr "[:graph:][:space:]" -)
- 		printf "%s\n%s\n%s\n" "$sep" "$title" "$sep" | tap_prefix
- 
--		if [ "${skip}" != "1" ]; then
--			("$@" 2>&1) | tap_prefix
--			local ret=${PIPESTATUS[0]}
--		else
--			local ret=$ksft_skip
+-# Simple hugetlbfs tests have a hardcoded minimum requirement of
+-# huge pages totaling 256MB (262144KB) in size.  The userfaultfd
+-# hugetlb test requires a minimum of 2 * nr_cpus huge pages.  Take
+-# both of these requirements into account and attempt to increase
+-# number of huge pages available.
+-nr_cpus=$(nproc)
+-uffd_min_KB=$((hpgsize_KB * nr_cpus * 2))
+-hugetlb_min_KB=$((256 * 1024))
+-if [[ $uffd_min_KB -gt $hugetlb_min_KB ]]; then
+-	needmem_KB=$uffd_min_KB
+-else
+-	needmem_KB=$hugetlb_min_KB
+-fi
+-
+-# set proper nr_hugepages
+-if [ -n "$freepgs" ] && [ -n "$hpgsize_KB" ]; then
+-	orig_nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
+-	needpgs=$((needmem_KB / hpgsize_KB))
+-	tries=2
+-	while [ "$tries" -gt 0 ] && [ "$freepgs" -lt "$needpgs" ]; do
+-		lackpgs=$((needpgs - freepgs))
+-		echo 3 > /proc/sys/vm/drop_caches
+-		if ! echo $((lackpgs + orig_nr_hugepgs)) > /proc/sys/vm/nr_hugepages; then
+-			echo "Please run this test as root"
+-			exit $ksft_skip
 -		fi
-+                ("$@" 2>&1) | tap_prefix
-+                local ret=${PIPESTATUS[0]}
- 		count_total=$(( count_total + 1 ))
- 		if [ $ret -eq 0 ]; then
- 			count_pass=$(( count_pass + 1 ))
+-		while read -r name size unit; do
+-			if [ "$name" = "HugePages_Free:" ]; then
+-				freepgs=$size
+-			fi
+-		done < /proc/meminfo
+-		tries=$((tries - 1))
+-	done
+-	nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
+-	if [ "$freepgs" -lt "$needpgs" ]; then
+-		printf "Not enough huge pages available (%d < %d)\n" \
+-		       "$freepgs" "$needpgs"
+-	fi
+-	HAVE_HUGEPAGES=1
+-else
+-	echo "no hugetlbfs support in kernel?"
+-	HAVE_HUGEPAGES=0
+-fi
+-
+ # filter 64bit architectures
+ ARCH64STR="arm64 mips64 parisc64 ppc64 ppc64le riscv64 s390x sparc64 x86_64"
+ if [ -z "$ARCH" ]; then
+@@ -277,29 +223,13 @@ run_test() {
+ echo "TAP version 13" | tap_output
+ 
+ CATEGORY="hugetlb" run_test ./hugetlb-mmap
+-
+-shmmax=$(cat /proc/sys/kernel/shmmax)
+-shmall=$(cat /proc/sys/kernel/shmall)
+-echo 268435456 > /proc/sys/kernel/shmmax
+-echo 4194304 > /proc/sys/kernel/shmall
+ CATEGORY="hugetlb" run_test ./hugetlb-shm
+-echo "$shmmax" > /proc/sys/kernel/shmmax
+-echo "$shmall" > /proc/sys/kernel/shmall
+-
+ CATEGORY="hugetlb" run_test ./hugetlb-mremap
+ CATEGORY="hugetlb" run_test ./hugetlb-vmemmap
+ CATEGORY="hugetlb" run_test ./hugetlb-madvise
+ CATEGORY="hugetlb" run_test ./hugetlb_dio
+-
+-if [ "${HAVE_HUGEPAGES}" = "1" ]; then
+-	nr_hugepages_tmp=$(cat /proc/sys/vm/nr_hugepages)
+-	# For this test, we need one and just one huge page
+-	echo 1 > /proc/sys/vm/nr_hugepages
+-	CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
+-	CATEGORY="hugetlb" run_test ./hugetlb_madv_vs_map
+-	# Restore the previous number of huge pages, since further tests rely on it
+-	echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
+-fi
++CATEGORY="hugetlb" run_test ./hugetlb_fault_after_madv
++CATEGORY="hugetlb" run_test ./hugetlb_madv_vs_map
+ 
+ if test_selected "hugetlb"; then
+ 	echo "NOTE: These hugetlb tests provide minimal coverage.  Use"	  | tap_prefix
+@@ -326,44 +256,11 @@ CATEGORY="gup_test" run_test ./gup_longt
+ CATEGORY="userfaultfd" run_test ./uffd-unit-tests
+ uffd_stress_bin=./uffd-stress
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} anon 20 16
+-# Hugetlb tests require source and destination huge pages. Pass in almost half
+-# the size of the free pages we have, which is used for *each*. An adjustment
+-# of (nr_parallel - 1) is done (see nr_parallel in uffd-stress.c) to have some
+-# extra hugepages - this is done to prevent the test from failing by racily
+-# reserving more hugepages than strictly required.
+-# uffd-stress expects a region expressed in MiB, so we adjust
+-# half_ufd_size_MB accordingly.
+-adjustment=$(( (31 < (nr_cpus - 1)) ? 31 : (nr_cpus - 1) ))
+-half_ufd_size_MB=$((((freepgs - adjustment) * hpgsize_KB) / 1024 / 2))
+-CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb "$half_ufd_size_MB" 32
+-CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private "$half_ufd_size_MB" 32
++CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb 128 32
++CATEGORY="userfaultfd" run_test ${uffd_stress_bin} hugetlb-private 128 32
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem 20 16
+ CATEGORY="userfaultfd" run_test ${uffd_stress_bin} shmem-private 20 16
+-# uffd-wp-mremap requires at least one page of each size.
+-have_all_size_hugepgs=true
+-declare -A nr_size_hugepgs
+-for f in /sys/kernel/mm/hugepages/**/nr_hugepages; do
+-	old=$(cat $f)
+-	nr_size_hugepgs["$f"]="$old"
+-	if [ "$old" == 0 ]; then
+-		echo 1 > "$f"
+-	fi
+-	if [ $(cat "$f") == 0 ]; then
+-		have_all_size_hugepgs=false
+-		break
+-	fi
+-done
+-if $have_all_size_hugepgs; then
+-	CATEGORY="userfaultfd" run_test ./uffd-wp-mremap
+-else
+-	echo "# SKIP ./uffd-wp-mremap"
+-fi
+-
+-#cleanup
+-for f in "${!nr_size_hugepgs[@]}"; do
+-	echo "${nr_size_hugepgs["$f"]}" > "$f"
+-done
+-echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
++CATEGORY="userfaultfd" run_test ./uffd-wp-mremap
+ 
+ CATEGORY="compaction" run_test ./compaction_test
+ 
+@@ -388,12 +285,10 @@ CATEGORY="mremap" run_test ./mremap_test
+ CATEGORY="hugetlb" run_test ./thuge-gen
+ CATEGORY="hugetlb" run_test ./charge_reserved_hugetlb.sh -cgroup-v2
+ CATEGORY="hugetlb" run_test ./hugetlb_reparenting_test.sh -cgroup-v2
++
+ if $RUN_DESTRUCTIVE; then
+-nr_hugepages_tmp=$(cat /proc/sys/vm/nr_hugepages)
+ enable_soft_offline=$(cat /proc/sys/vm/enable_soft_offline)
+-echo 8 > /proc/sys/vm/nr_hugepages
+ CATEGORY="hugetlb" run_test ./hugetlb-soft-offline
+-echo "$nr_hugepages_tmp" > /proc/sys/vm/nr_hugepages
+ echo "$enable_soft_offline" > /proc/sys/vm/enable_soft_offline
+ CATEGORY="hugetlb" run_test ./hugetlb-read-hwpoison
+ fi
+@@ -449,7 +344,6 @@ CATEGORY="ksm_numa" run_test ./ksm_tests
+ CATEGORY="ksm" run_test ./ksm_functional_tests
+ 
+ # protection_keys tests
+-nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
+ if [ -x ./protection_keys_32 ]
+ then
+ 	CATEGORY="pkey" run_test ./protection_keys_32
+@@ -459,7 +353,6 @@ if [ -x ./protection_keys_64 ]
+ then
+ 	CATEGORY="pkey" run_test ./protection_keys_64
+ fi
+-echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
+ 
+ if [ -x ./soft-dirty ]
+ then
+@@ -548,10 +441,6 @@ if [ -n "${LOADED_MOD}" ]; then
+ 	modprobe -r hwpoison_inject > /dev/null 2>&1
+ fi
+ 
+-if [ "${HAVE_HUGEPAGES}" = 1 ]; then
+-	echo "$orig_nr_hugepgs" > /proc/sys/vm/nr_hugepages
+-fi
+-
+ echo "SUMMARY: PASS=${count_pass} SKIP=${count_skip} FAIL=${count_fail}" | tap_prefix
+ echo "1..${count_total}" | tap_output
+ 
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
