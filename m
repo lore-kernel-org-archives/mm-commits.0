@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71D92299937
-	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99F5D34AB14
+	for <mm-commits@vger.kernel.org>; Mon, 11 May 2026 21:35:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778535300; cv=none; b=jQHntQKeOC4y70hr+AW9YamHkAOpRWyix8qaZp/pSOuJObbyfssXOqJ1TPOEUKXtGqhygkkDSJQ89K1RRNEMqVXVGWQtF2ScGAGnbQvhfAsygSDAUiWgEY0eSdVXg3wu3Dc8PHlG8IANuWrAQmZX2YWzeEn8Fb2eJVed/r+kVyI=
+	t=1778535304; cv=none; b=Xet2ilfRRnsZVYu8leGChYNwTdIVR8KL8U0Jr7Q8ROi8eOvhzQGF+a3uJenI9VED1NcipX4dkjizYchdhTDXIdfqIsbM5IipyJrleFnqNWuM6pcOW/BkILq2Yz1mcd9enlcQL0e48qE8Ynk96QPs9WcSz79ksTA+Tnl0QJQye4M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778535300; c=relaxed/simple;
-	bh=21QT/GyCg3ejaEoc2AzQCHhA/ya4MX+bmyjCmkH6Uq0=;
-	h=Date:To:From:Subject:Message-Id; b=JWNdK8sbq37o3nS5algI67Kk/tMxwgHhFP/p6CiZAgfeiGDEo//nsXuGUNwEUdBLB6ad1r5kJQtw5d35HfW97KdymotQTv2WNyG99aeN3YGBn/luZpUXqxYvxH5jLPyrfrgWY1x4AJAi9G7lab6OM/tugwmq907oHzzeBaQhyk8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1TM6EY6Q; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778535304; c=relaxed/simple;
+	bh=3j6Cc7RfOV887py0AU/RIErmP6QwOWK8ymPCWhC9JsE=;
+	h=Date:To:From:Subject:Message-Id; b=m1Uv9BAgTGzxb2ECbOGaDoUWmhXBHQtryaVRL0A8nzh4vy0UfjonsIUQOyTyx6zOGUhKgkAy7vel/wRVfo1aLAmdYEvg8DJx9rTd24efaC2eB50/dbHGMu+0BaM20bafe3mEK69dKKSpuD1hOCx786N4wxFzSsBeQXKaW46kiUs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=kpJMWxE5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1TM6EY6Q"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B148C2BCB0;
-	Mon, 11 May 2026 21:35:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="kpJMWxE5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55BB7C2BCB0;
+	Mon, 11 May 2026 21:35:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778535300;
-	bh=21QT/GyCg3ejaEoc2AzQCHhA/ya4MX+bmyjCmkH6Uq0=;
+	s=korg; t=1778535304;
+	bh=3j6Cc7RfOV887py0AU/RIErmP6QwOWK8ymPCWhC9JsE=;
 	h=Date:To:From:Subject:From;
-	b=1TM6EY6QhXRZEFuBlYC+zwGn17Snuyiab4+y+KopLjYF6RFn+JLzn+kaPujDdJ09Y
-	 0o4XspOVWEhau85s0j/eKaJyUt1kCdBI9lcYmWpxGK/zuYBP6HUcjmQyrXk/KwE4Jg
-	 mSFLXJj8rmxUWb7VE1bXGDfoQpQOo/lPFUw+KP8k=
-Date: Mon, 11 May 2026 14:34:59 -0700
+	b=kpJMWxE54lIOxni3B1wq/sELgun12xRTsBG48juTvrWcQGBmry+7bm14V2jic2SKg
+	 zJkV+/fCp9TFlQA1qSDnHzix6GwJPMfJ/BrgJ4knHDS3qp5AjDBnHlyMaxfNKAX5wR
+	 bBzf2wSBOtBxTMVgyCy/5/2rBWHBPzQrpKOGHGK4=
+Date: Mon, 11 May 2026 14:35:03 -0700
 To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch added to mm-new branch
-Message-Id: <20260511213500.4B148C2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch added to mm-new branch
+Message-Id: <20260511213504.55BB7C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: hugepage_settings: use unsigned long in detect_hugetlb_page_size
+     Subject: selftests/mm: hugepage_settings: add APIs to get and set nr_hugepages
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
+     selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,18 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: selftests/mm: hugepage_settings: use unsigned long in detect_hugetlb_page_size
-Date: Mon, 11 May 2026 19:28:09 +0300
+Subject: selftests/mm: hugepage_settings: add APIs to get and set nr_hugepages
+Date: Mon, 11 May 2026 19:28:10 +0300
 
-... instead of size_t to avoid type mismatch in 32 and 64 bit builds.
+Add APIs that allow reading and writing of
 
-Link: https://lore.kernel.org/20260511162840.375890-26-rppt@kernel.org
+/sys/kernel/mm/hugepages/hugepages-NkB/nr_hugepages
+
+to detect and change the amount of HugeTLB pages of different sizes.
+
+Link: https://lore.kernel.org/20260511162840.375890-27-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Luiz Capitulino <luizcap@redhat.com>
 Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
@@ -103,83 +108,71 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/cow.c               |    2 +-
- tools/testing/selftests/mm/gup_longterm.c      |    2 +-
- tools/testing/selftests/mm/hugepage_settings.c |    2 +-
- tools/testing/selftests/mm/hugepage_settings.h |    2 +-
- tools/testing/selftests/mm/uffd-wp-mremap.c    |    6 +++---
- 5 files changed, 7 insertions(+), 7 deletions(-)
+ tools/testing/selftests/mm/hugepage_settings.c |   25 +++++++++++++++
+ tools/testing/selftests/mm/hugepage_settings.h |   23 +++++++++++++
+ 2 files changed, 48 insertions(+)
 
---- a/tools/testing/selftests/mm/cow.c~selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size
-+++ a/tools/testing/selftests/mm/cow.c
-@@ -37,7 +37,7 @@ static size_t pmdsize;
- static int nr_thpsizes;
- static size_t thpsizes[20];
- static int nr_hugetlbsizes;
--static size_t hugetlbsizes[10];
-+static unsigned long hugetlbsizes[10];
- static int gup_fd;
- static bool has_huge_zeropage;
- 
---- a/tools/testing/selftests/mm/gup_longterm.c~selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size
-+++ a/tools/testing/selftests/mm/gup_longterm.c
-@@ -33,7 +33,7 @@
- 
- static size_t pagesize;
- static int nr_hugetlbsizes;
--static size_t hugetlbsizes[10];
-+static unsigned long hugetlbsizes[10];
- static int gup_fd;
- 
- static __fsword_t get_fs_type(int fd)
---- a/tools/testing/selftests/mm/hugepage_settings.c~selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size
+--- a/tools/testing/selftests/mm/hugepage_settings.c~selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages
 +++ a/tools/testing/selftests/mm/hugepage_settings.c
-@@ -398,7 +398,7 @@ bool thp_is_enabled(void)
- 	return mode == 1 || mode == 3;
+@@ -463,3 +463,28 @@ unsigned long get_free_hugepages(void)
+ 	fclose(f);
+ 	return fhp;
  }
- 
--int detect_hugetlb_page_sizes(size_t sizes[], int max)
-+int detect_hugetlb_page_sizes(unsigned long sizes[], int max)
- {
- 	DIR *dir = opendir("/sys/kernel/mm/hugepages/");
- 	int count = 0;
---- a/tools/testing/selftests/mm/hugepage_settings.h~selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size
++
++static void hugetlb_sysfs_path(char *buf, size_t buflen,
++			       unsigned long size, const char *attr)
++{
++	snprintf(buf, buflen, "/sys/kernel/mm/hugepages/hugepages-%lukB/%s",
++		 size / 1024, attr);
++}
++
++unsigned long hugetlb_nr_pages(unsigned long size)
++{
++	char path[PATH_MAX];
++
++	hugetlb_sysfs_path(path, sizeof(path), size, "nr_hugepages");
++
++	return read_num(path);
++}
++
++void hugetlb_set_nr_pages(unsigned long size, unsigned long nr)
++{
++	char path[PATH_MAX];
++
++	hugetlb_sysfs_path(path, sizeof(path), size, "nr_hugepages");
++
++	write_num(path, nr);
++}
+--- a/tools/testing/selftests/mm/hugepage_settings.h~selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages
 +++ a/tools/testing/selftests/mm/hugepage_settings.h
-@@ -90,7 +90,7 @@ bool thp_is_enabled(void);
- 
- /* HugeTLB */
- 
--int detect_hugetlb_page_sizes(size_t sizes[], int max);
-+int detect_hugetlb_page_sizes(unsigned long sizes[], int max);
+@@ -94,4 +94,27 @@ int detect_hugetlb_page_sizes(unsigned l
  unsigned long default_huge_page_size(void);
  unsigned long get_free_hugepages(void);
  
---- a/tools/testing/selftests/mm/uffd-wp-mremap.c~selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size
-+++ a/tools/testing/selftests/mm/uffd-wp-mremap.c
-@@ -12,12 +12,12 @@
- #include "uffd-common.h"
- 
- static int pagemap_fd;
--static size_t pagesize;
- static int nr_pagesizes = 1;
-+static unsigned long pagesize;
- static int nr_thpsizes;
- static size_t thpsizes[20];
- static int nr_hugetlbsizes;
--static size_t hugetlbsizes[10];
-+static unsigned long hugetlbsizes[10];
- 
- static int detect_thp_sizes(size_t sizes[], int max)
- {
-@@ -245,7 +245,7 @@ out:
- }
- 
- struct testcase {
--	size_t *sizes;
-+	unsigned long *sizes;
- 	int *nr_sizes;
- 	bool private;
- 	bool swapout;
++unsigned long hugetlb_nr_pages(unsigned long size);
++void hugetlb_set_nr_pages(unsigned long size, unsigned long nr);
++
++static inline unsigned long hugetlb_nr_default_pages(void)
++{
++	unsigned long size = default_huge_page_size();
++
++	if (!size)
++		return 0;
++
++	return hugetlb_nr_pages(size);
++}
++
++static inline void hugetlb_set_nr_default_pages(unsigned long nr)
++{
++	unsigned long size = default_huge_page_size();
++
++	if (!size)
++		return;
++
++	hugetlb_set_nr_pages(size, nr);
++}
++
+ #endif /* __HUGEPAGE_SETTINGS_H__ */
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
