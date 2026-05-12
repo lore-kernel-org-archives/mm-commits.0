@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BF403672A3
-	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 20:02:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B07A2F8E94
+	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 21:17:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778616178; cv=none; b=RL/gQz4+ugOUulPXSZf9bEOU91a71pCCMSy5yAASbJvRC6cZb7jPSNr+hm6TU3bZ3AYXoj/Wn7jZGildXQN984BmmqiocycdrUi59FfWK3eNwdg158jdhyp0SsBwxf1uAmvBAESUkwJQGqcpEr1SZpwxxG44iyF7u5YbeoAY1sI=
+	t=1778620655; cv=none; b=bDhE7BagIotHbc3g9cGy5feiPjwv8r0NoRyGtAFUw4upwvI3hyo7kD5q90M/xTXBFJzqUXzVVq9Xh1IakLL5UtuVKcysrVh9Gpd4YxqetavpoqOENgbfU/P5G3v1iq4o27+MVR+my1TOx9wLcsGE4F3RzZvtX7+GpD2QwJ1uNyA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778616178; c=relaxed/simple;
-	bh=5F6UFM581MNPPoBkJ+dAPLVgVfmcBK0JczOH3ysvqEs=;
-	h=Date:To:From:Subject:Message-Id; b=msnipdbjkJY6hlxnn54+SH2OAOUbe8MR68Lq8casK2kHFVZNMSCJNnQTO5/lw+3GAjrF0ypPKEfZ+sXACBigvrklFHelQjCDIi7QlN+CmjrUfepIhaZEYGUPxjFzmAJf28gV+KaefuzqGoL+EuO+J3uVR88rL+iDCZnz4lZn3/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=b+4D8cZq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778620655; c=relaxed/simple;
+	bh=SmZKSbHpUS3kcVHVdD1R7v+OKX6cvOCRts5t3MBaBBw=;
+	h=Date:To:From:Subject:Message-Id; b=vCz1TMKUlD+zbfowUcoFuBwutzrqHLo5ocJbfn0H2wFm+fDT74taNtjY1zVu7LQlWFJGkAwJDzLRpnQjj6suI7YQLe+49a6eArDbzS4v53qQQwK/8VQc48S7DqOlXeIKD0dxeLsTlvC0JG4Jw5xIGPdCp1vKBvr0phC9lBjf6XU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wunZRAo5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="b+4D8cZq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF99AC2BCC7;
-	Tue, 12 May 2026 20:02:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wunZRAo5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9BC7C2BCB0;
+	Tue, 12 May 2026 21:17:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778616177;
-	bh=5F6UFM581MNPPoBkJ+dAPLVgVfmcBK0JczOH3ysvqEs=;
+	s=korg; t=1778620654;
+	bh=SmZKSbHpUS3kcVHVdD1R7v+OKX6cvOCRts5t3MBaBBw=;
 	h=Date:To:From:Subject:From;
-	b=b+4D8cZqMZjPmqjZp8WIOUBjUeaLsoDCverC8rsfP8GPPasvUQq8izIOdQuJLG95r
-	 QFWmH1fvpRvTp3VvCVjSWPa26QWOeJhPDruQyn+0OfWZhlkDwsyyR50ovdHGMNUJVD
-	 fRVMNAOlYZ/puqdkS29I1OSB40vllKGEV/09RhB4=
-Date: Tue, 12 May 2026 13:02:57 -0700
-To: mm-commits@vger.kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=wunZRAo5ffI2ngNR9Ha8FWep3jx21J4/H5zzX0SgvT23ANRzq751z7rahyMNgjf57
+	 lHqZ8XJFXovojxXoOQ5X9ojzR6DID9zDh9gEYhxQ1fJLOW5bjSco5rMRIpiF3xCUWo
+	 lM6RI0p/HLPNj+DvaG+jOrO3s6mpkJbhmlC49SXY=
+Date: Tue, 12 May 2026 14:17:34 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,davem@davemloft.net,borntraeger@linux.ibm.com,andreas@gaisler.com,agordeev@linux.ibm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-khugepaged-use-ksefltest-framework-fix.patch added to mm-new branch
-Message-Id: <20260512200257.AF99AC2BCC7@smtp.kernel.org>
+Subject: + sparc-mm-remove-register_page_bootmem_info.patch added to mm-new branch
+Message-Id: <20260512211734.B9BC7C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests-mm-khugepaged-use-ksefltest-framework-fix
+     Subject: sparc/mm: remove register_page_bootmem_info()
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-khugepaged-use-ksefltest-framework-fix.patch
+     sparc-mm-remove-register_page_bootmem_info.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-khugepaged-use-ksefltest-framework-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/sparc-mm-remove-register_page_bootmem_info.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,92 +69,119 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@kernel.org>
-Subject: selftests-mm-khugepaged-use-ksefltest-framework-fix
-Date: Tue, 12 May 2026 19:04:39 +0300
+From: "David Hildenbrand (Arm)" <david@kernel.org>
+Subject: sparc/mm: remove register_page_bootmem_info()
+Date: Mon, 11 May 2026 16:05:29 +0200
 
-make the output TAP-compatible
+Patch series "mm: remove CONFIG_HAVE_BOOTMEM_INFO_NODE (Part 1)".
 
-Link: https://lore.kernel.org/agNPl-dl78UHo7qq@kernel.org
-Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+We want to remove CONFIG_HAVE_BOOTMEM_INFO_NODE.  As a first step, let's
+limit the remaining harm to x86 and core code, removing sparc, ppc and
+s390 leftovers, starting the stepwise removal by removing and simplifying
+some code.
+
+Once a related x86 vmemmap fix [1] is in, we can merge part 2 that will
+remove CONFIG_HAVE_BOOTMEM_INFO_NODE entirely.
+
+Tested on x86-64 with hugetlb vmemmap optimization in combination with
+KMEMLEAK, making sure that the problem reported in dd0ff4d12dd2 ("bootmem:
+remove the vmemmap pages from kmemleak in put_page_bootmem") does not
+reappear -- hoping I managed to trigger the original problem.
+
+
+This patch (of 8):
+
+sparc does not select CONFIG_HAVE_BOOTMEM_INFO_NODE, therefore,
+register_page_bootmem_info_node() is a nop.
+
+Let's just get rid of register_page_bootmem_info().
+
+Link: https://lore.kernel.org/20260511-bootmem_info_prep-v1-0-3fb0be6fc688@kernel.org
+Link: https://lore.kernel.org/20260511-bootmem_info_prep-v1-1-3fb0be6fc688@kernel.org
+Link: https://lore.kernel.org/r/20260429-vmemmap-v2-1-8dfcacffd877@kernel.org [1]
+Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Andreas Larsson <andreas@gaisler.com>
+Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sven Schnelle <svens@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/khugepaged.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/mm/init_64.c |   20 --------------------
+ 1 file changed, 20 deletions(-)
 
---- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-khugepaged-use-ksefltest-framework-fix
-+++ a/tools/testing/selftests/mm/khugepaged.c
-@@ -1386,7 +1386,7 @@ int main(int argc, char **argv)
- 	for (int i = 0; i < nr_test_cases; i++) {
- 		struct test_case *t = &test_cases[i];
+--- a/arch/sparc/mm/init_64.c~sparc-mm-remove-register_page_bootmem_info
++++ a/arch/sparc/mm/init_64.c
+@@ -27,7 +27,6 @@
+ #include <linux/percpu.h>
+ #include <linux/mmzone.h>
+ #include <linux/gfp.h>
+-#include <linux/bootmem_info.h>
  
--		ksft_print_msg("\nRun test: %s (%s:%s)\n", t->desc, t->ctx->name, t->ops->name);
-+		ksft_print_msg("\n# Run test: %s (%s:%s)\n", t->desc, t->ctx->name, t->ops->name);
- 		t->fn(t->ctx, t->ops);
- 	}
+ #include <asm/head.h>
+ #include <asm/page.h>
+@@ -2477,17 +2476,6 @@ int page_in_phys_avail(unsigned long pad
+ 	return 0;
+ }
  
+-static void __init register_page_bootmem_info(void)
+-{
+-#ifdef CONFIG_NUMA
+-	int i;
+-
+-	for_each_online_node(i)
+-		if (NODE_DATA(i)->node_spanned_pages)
+-			register_page_bootmem_info_node(NODE_DATA(i));
+-#endif
+-}
+-
+ void __init arch_setup_zero_pages(void)
+ {
+ 	phys_addr_t zero_page_pa = kern_base +
+@@ -2498,14 +2486,6 @@ void __init arch_setup_zero_pages(void)
+ 
+ void __init mem_init(void)
+ {
+-	/*
+-	 * Must be done after boot memory is put on freelist, because here we
+-	 * might set fields in deferred struct pages that have not yet been
+-	 * initialized, and memblock_free_all() initializes all the reserved
+-	 * deferred pages for us.
+-	 */
+-	register_page_bootmem_info();
+-
+ 	if (tlb_type == cheetah || tlb_type == cheetah_plus)
+ 		cheetah_ecache_flush_init();
+ }
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from david@kernel.org are
 
-maintainers-add-tree-for-kdump-and-kexec.patch
-maintainers-add-kexec-list-to-live-update-entry.patch
-sh-fix-fallout-from-zero_page-consolidation.patch
-selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
-selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
-selftests-mm-migration-make-nthreads-represent-number-of-working-threads.patch
-selftests-mm-migration-properly-cleanup-forked-processes.patch
-selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
-selftests-mm-merge-map_hugetlb-into-hugepage-mmap.patch
-selftests-mm-rename-hugepage-tests-to-hugetlb.patch
-selftests-mm-hugetlb-shm-use-kselftest-framework.patch
-selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
-selftests-mm-hugetlb-madvise-use-kselftest-framework.patch
-selftests-mm-hugetlb_madv_vs_map-use-kselftest-framework.patch
-selftests-mm-hugetlb-read-hwpoison-use-kselftest-framework.patch
-selftests-mm-khugepaged-group-tests-in-an-array.patch
-selftests-mm-khugepaged-use-ksefltest-framework.patch
-selftests-mm-khugepaged-use-ksefltest-framework-fix.patch
-selftests-mm-ksm_tests-use-kselftest-framework.patch
-selftests-mm-protection_keys-use-descriptive-test-names-in-the-output.patch
-selftests-mm-protection_keys-use-kselftest-framework.patch
-selftests-mm-uffd-common-use-kselftest-framework.patch
-selftests-mm-uffd-stress-use-kselftest-framework.patch
-selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
-selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
-selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
-selftests-mm-rename-thp_settings-to-hugepage_settings.patch
-selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
-selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
-selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
-selftests-mm-hugepage_settings-rename-and-rework-get_free_hugepages.patch
-selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
-selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
-selftests-mm-vm_util-add-helpers-to-set-and-restore-shm-limits.patch
-selftests-mm-compaction_test-use-hugetlb-helpers.patch
-selftests-mm-cow-add-setup-of-hugetlb-pages.patch
-selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
-selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
-selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-mmap-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-soft-offline-add-setup-of-hugetlb-pages.patch
-selftests-mm-hugetlb-vmemmap-add-setup-of-hugetlb-pages.patch
-selftests-mm-migration-add-setup-of-hugetlb-pages.patch
-selftests-mm-pagemap_ioctl-add-setup-of-hugetlb-pages.patch
-selftests-mm-protection_keys-use-library-code-for-hugetlb-setup.patch
-selftests-mm-thuge-gen-add-setup-of-hugetlb-pages.patch
-selftests-mm-uffd-stress-use-hugetlb_save-and-alloc-huge-pages.patch
-selftests-mm-uffd-unit-tests-add-setup-of-hugetlb-pages.patch
-selftests-mm-uffd-wp-mremap-add-setup-of-hugetlb-pages.patch
-selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
-selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
-selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
-selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
+mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free.patch
+mm-fix-__vm_normal_page-to-handle-missing-support-for-pmd_special-pud_special.patch
+sh-use-folio_mapped-instead-of-page_mapped-in-sh4_flush_cache_page.patch
+bpf-arena-use-page_ref_count-instead-of-page_mapped-in-arena_free_pages.patch
+mm-remove-page_mapped.patch
+sparc-mm-remove-register_page_bootmem_info.patch
+mm-bootmem_info-drop-initialization-of-page-lru.patch
+mm-bootmem_info-stop-using-pg_private.patch
+mm-bootmem_info-remove-call-to-kmemleak_free_part_phys.patch
+mm-bootmem_info-stop-marking-the-pgdat-as-node_info.patch
+mm-bootmem_info-stop-marking-mem_section_usage-as-mix_section_info.patch
+s390-mm-use-free_reserved_page-in-vmem_free_pages.patch
+powerpc-mm-remove-config_have_bootmem_info_node.patch
 
