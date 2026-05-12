@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24E553822B9
-	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 21:27:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 424D9382385
+	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 21:27:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778621272; cv=none; b=S0Acbm1mra1Dhr4ND12sU60ClhKeBFzl4J9BsAuPYNZkJxk2YRU/AJ7Im4scXpVsKfRWhJnd+QwMS9PkUoa3ZusxSYu5dRudOxuG3xz6ABb+kTK34n9Lc3RrjXgadWoWd4X3q4naL0+B8pVbOF1U32w0Q8gftjLFbm7pBs0EQvY=
+	t=1778621273; cv=none; b=k1CVn8Df4dkdMvnFpAdl6yZ/mSBwOnuhaVvHwIMJs/9w21AQbKK+QN39g623xvJEnN5McgHGFf53FKAaJyPlogS/54BlbBmf2XxU9tvw6gEr07KLaXkakToHQAJ0K7xZFlOUqtF0DL0x00fKO2gKENlxbMuQC5/eVznt4X+pvMU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778621272; c=relaxed/simple;
-	bh=rABy34ZJVQsu3uhGut26IpLkRsz0pPQiF8SvNhso7Rg=;
-	h=Date:To:From:Subject:Message-Id; b=T7+iYmkt3kxPXSTTeUWc95eqK1R7h+Aw+OgUWseU9hrIfwC3FSQMK1wuUizn7IdkAAmP+Zz75B9IO+mD+cLngsRLPNMHqotd8ah/n1FS+gvnHLZMJOn7acvSgby4FWcIC8JDfTxzJpv5ob+1Nt3D74AbmBquAAvt7Lvp3Hnzjqg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eABHurDx; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778621273; c=relaxed/simple;
+	bh=EzC1QzJgEiyn9oEqV+2Bb1c7PUawxAb9XJ4h5Xn1Evw=;
+	h=Date:To:From:Subject:Message-Id; b=sokL2sRe5O670vuFzpabNXv/0ABolg5X6Z68LxKK8kxZZazaz/2V5+exFTvYRxhUCVQZYb48HSEWAmu123erk0ZE5nqbDM3wLJVwC6MyHqPWL2Qbc2bzPnwmeOwtjsy03I0A8LqWYi5XNhSZP5QYxsG5oWfSLhey7yYwdMImbEc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RxoGg2Md; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eABHurDx"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C331FC2BCB0;
-	Tue, 12 May 2026 21:27:51 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RxoGg2Md"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E63CAC2BCB0;
+	Tue, 12 May 2026 21:27:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778621271;
-	bh=rABy34ZJVQsu3uhGut26IpLkRsz0pPQiF8SvNhso7Rg=;
+	s=korg; t=1778621273;
+	bh=EzC1QzJgEiyn9oEqV+2Bb1c7PUawxAb9XJ4h5Xn1Evw=;
 	h=Date:To:From:Subject:From;
-	b=eABHurDx9DzMsfVeVLlA/DGsornfz7q8D2V9KKWSWBGM6LUdJMvygZUzPpjaZ9/rB
-	 9/n2H3b71dOhgwz8uKzw9nWwiK/41yzX4n6zmfyX3PvPyaamqP6GhfEV8Q4TS3CFCB
-	 1XIL23QneW6777BkswiE2UiO0doSviJVFjiIyb+Q=
-Date: Tue, 12 May 2026 14:27:51 -0700
-To: mm-commits@vger.kernel.org,ljs@kernel.org,david@kernel.org,agarwal.vineet2006@gmail.com,akpm@linux-foundation.org
+	b=RxoGg2Md/Xd+wq6UPEouNt5KKrXmh45egnSSN2mEYWcPLfMiFP+B3ghVcrKwZeTlf
+	 n03nyDP0V/+EIm06eA0ErMzMUPOPnYUyb0QQD8ZvRLvpJsSxIZ0ws5tTV7pJeajZuQ
+	 HjmIkMdUadoR7uxhp0X+h6wJnfD6t9MGjkZVaCGc=
+Date: Tue, 12 May 2026 14:27:52 -0700
+To: mm-commits@vger.kernel.org,ljs@kernel.org,david@kernel.org,agarwal.vineet2006@gmail.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-check-file-initialization-writes-in-split_huge_page_test.patch added to mm-new branch
-Message-Id: <20260512212751.C331FC2BCB0@smtp.kernel.org>
+Subject: + selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch added to mm-new branch
+Message-Id: <20260512212752.E63CAC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: check file initialization writes in split_huge_page_test
+     Subject: selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-check-file-initialization-writes-in-split_huge_page_test.patch
+     selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-check-file-initialization-writes-in-split_huge_page_test.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,55 +69,41 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Vineet Agarwal <agarwal.vineet2006@gmail.com>
-Subject: selftests/mm: check file initialization writes in split_huge_page_test
-Date: Tue, 12 May 2026 13:19:24 +0530
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix
+Date: Tue May 12 02:26:23 PM PDT 2026
 
-create_pagecache_thp_and_fd() fills the backing file for the pagecache THP
-tests using repeated write() calls, but the return value is never checked.
+remove unneeded local, per David
 
-If a write fails or completes only partially, the test may continue with
-an incompletely initialized file and produce misleading results.
-
-Check the result of write() and fail the test if the expected number of
-bytes was not written.
-
-Link: https://lore.kernel.org/20260512074924.27721-1-agarwal.vineet2006@gmail.com
-Signed-off-by: Vineet Agarwal <agarwal.vineet2006@gmail.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Vineet Agarwal <agarwal.vineet2006@gmail.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/split_huge_page_test.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/split_huge_page_test.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-check-file-initialization-writes-in-split_huge_page_test
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix
 +++ a/tools/testing/selftests/mm/split_huge_page_test.c
-@@ -609,9 +609,16 @@ static int create_pagecache_thp_and_fd(c
- 	assert(fd_size % sizeof(buf) == 0);
+@@ -610,10 +610,7 @@ static int create_pagecache_thp_and_fd(c
  	for (i = 0; i < sizeof(buf); i++)
  		buf[i] = (unsigned char)i;
--	for (i = 0; i < fd_size; i += sizeof(buf))
--		write(*fd, buf, sizeof(buf));
-+	for (i = 0; i < fd_size; i += sizeof(buf)) {
-+		ssize_t written;
- 
-+		written = write(*fd, buf, sizeof(buf));
-+		if (written != sizeof(buf)) {
-+			ksft_perror("write testfile");
-+			close(*fd);
-+			goto err_out_unlink;
-+		}
-+	}
- 	close(*fd);
- 	sync();
- 	*fd = open("/proc/sys/vm/drop_caches", O_WRONLY);
+ 	for (i = 0; i < fd_size; i += sizeof(buf)) {
+-		ssize_t written;
+-
+-		written = write(*fd, buf, sizeof(buf));
+-		if (written != sizeof(buf)) {
++		if (write(*fd, buf, sizeof(buf)) != sizeof(buf)) {
+ 			ksft_perror("write testfile");
+ 			close(*fd);
+ 			goto err_out_unlink;
 _
 
-Patches currently in -mm which might be from agarwal.vineet2006@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-selftests-mm-khugepaged-initialize-file-contents-via-mmap.patch
-mm-khugepaged-return-eagain-for-scan_page_has_private-in-madv_collapse.patch
-selftests-mm-check-file-initialization-writes-in-split_huge_page_test.patch
+mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free-fix.patch
+mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
+selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch
+proc-rewrite-next_tgid-fix.patch
 
