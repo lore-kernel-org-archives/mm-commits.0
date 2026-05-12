@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C3C5367298
-	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 21:34:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FFE73859FA
+	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 21:38:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778621671; cv=none; b=keGX8h4JFsI2DNVvm36I4AZkloiybe8fVvuOgsAjID1R8pjTfPyytLKNiJxD/zqn3pNwRkkZWdhtuGRrIiIBr3IdHm90SOOQeizH6oHM2vyKFujT4qqGEf9FFEcKy8YbAu35NpFj0gVtxs0BWw7DvR/VU2ZHndhdfzkUwChSXxQ=
+	t=1778621899; cv=none; b=e/bNwNynhk9DadIp9HH64hWN5Y7jfF36QeziPLESM6K20i7K0Zmy6f4xlzgAdueH4+oiLfqsZX7rS9yqpBL+3rLjpgKDu8g0hp5Zb61TVEuy+3cLHi0J0YCh66mTdNsFtICCBEum3PZi81lktYlV00/mwOhWb+FhmaUmnyXr5sA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778621671; c=relaxed/simple;
-	bh=dUIrlMfq7Obpx07FQFhh53P2qigtnkV4RssU0uS0xPQ=;
-	h=Date:To:From:Subject:Message-Id; b=HsQmjs2KvaUdZ1pu37sUlqncTaww+lQ+vbXv378lunYAygeP3dohCtJqVD5gpZWc3m4Qtjg6G+nzQFZo0cIlg4Zso8Iq9dR5GCcfrggaW1y4j9R0MNaMNvmKf9mvzqaJ8u8Ey8++Lyzr624JWAC3Wm4/I4ymyXyYNqU8gDUQRc4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AHIEEpW5; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778621899; c=relaxed/simple;
+	bh=JDmtabrmtkgudonhpGTLj3QWPdOipm5R0sCRut5oLM4=;
+	h=Date:To:From:Subject:Message-Id; b=KpR94QLAORy+GOAy6LkKwP033+ydJOkesaeIECBgsdA26Ktw3t38mO+IDFxufktVo90KeNItybk87oM4M1jS14s1IKLpnD0p3eSj0f/trVCXDHKehldqaFZXarg4O6xZkjuQTrMJR+VM9ixX1kEX6kusGyYy1gSLZ5nGVAO25s4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wPXhvEzk; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AHIEEpW5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0665C2BCB0;
-	Tue, 12 May 2026 21:34:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wPXhvEzk"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14C10C2BCB8;
+	Tue, 12 May 2026 21:38:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778621670;
-	bh=dUIrlMfq7Obpx07FQFhh53P2qigtnkV4RssU0uS0xPQ=;
+	s=korg; t=1778621899;
+	bh=JDmtabrmtkgudonhpGTLj3QWPdOipm5R0sCRut5oLM4=;
 	h=Date:To:From:Subject:From;
-	b=AHIEEpW5zv5QrY0oBEKLHGsufreBQMum81kpomI+ER4Lgp0p2EErh1Kw+Ivduidj5
-	 aaMPJ6fDHoc/8FMSH+36y5QzIM2wNFfJ9PmlJ85lJtGRqq54/CYyZ1HDhxzaMFRdJN
-	 X+yFICYY1cKkK5R6JYm1ETJUYnYpxGpc8a6/BPqc=
-Date: Tue, 12 May 2026 14:34:30 -0700
-To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,gality369@gmail.com,akpm@linux-foundation.org
+	b=wPXhvEzkr0PJ1Kl9Fma54UJGOkYkxJAX2ImngSCBI/jAXC8eHRuW4IAPPq/UY5GGd
+	 51gIwQ1yNs1CFyLJvUpS+v1r+IJBhjandfbaYYpz675UsJ96BOcG4n9SK2HkB9Yktf
+	 zy3OGJ7G6QL7hf83ZczxRXttBSxCXWYJkvvjVhyY=
+Date: Tue, 12 May 2026 14:38:18 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,agarwal.vineet2006@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-dont-bug_on-an-invalid-journal-dinode.patch added to mm-nonmm-unstable branch
-Message-Id: <20260512213430.C0665C2BCB0@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-fix-double-increment-of-nr_regions.patch added to mm-new branch
+Message-Id: <20260512213819.14C10C2BCB8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: don't BUG_ON an invalid journal dinode
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-dont-bug_on-an-invalid-journal-dinode.patch
+     Subject: mm/damon/sysfs-schemes: fix double increment of nr_regions
+has been added to the -mm mm-new branch.  Its filename is
+     mm-damon-sysfs-schemes-fix-double-increment-of-nr_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-dont-bug_on-an-invalid-journal-dinode.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-fix-double-increment-of-nr_regions.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,87 +69,48 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: ZhengYuan Huang <gality369@gmail.com>
-Subject: ocfs2: don't BUG_ON an invalid journal dinode
-Date: Tue, 12 May 2026 10:41:15 +0800
+From: Vineet Agarwal <agarwal.vineet2006@gmail.com>
+Subject: mm/damon/sysfs-schemes: fix double increment of nr_regions
+Date: Tue, 12 May 2026 09:41:57 +0530
 
-[BUG]
-A fuzzed OCFS2 image can corrupt the current slot journal dinode while
-mount is still in progress. The mount path first reports the invalid
-journal block and then crashes in shutdown:
+damos_sysfs_populate_region_dir() increments sysfs_regions->nr_regions
+twice when adding a new region: once explicitly before
+kobject_init_and_add(), and once again through the post-increment used for
+the kobject name.
 
-kernel BUG at fs/ocfs2/journal.c:1034!
-Oops: invalid opcode: 0000 [#1] SMP KASAN NOPTI
-RIP: 0010:ocfs2_journal_toggle_dirty+0x2d6/0x340 fs/ocfs2/journal.c:1034
-Call Trace:
- ocfs2_journal_shutdown+0x414/0xc30 fs/ocfs2/journal.c:1116
- ocfs2_mount_volume fs/ocfs2/super.c:1785 [inline]
- ocfs2_fill_super+0x30a9/0x3cd0 fs/ocfs2/super.c:1083
- get_tree_bdev_flags+0x38b/0x640 fs/super.c:1698
- get_tree_bdev+0x24/0x40 fs/super.c:1721
- ocfs2_get_tree+0x21/0x30 fs/ocfs2/super.c:1184
- vfs_get_tree+0x9a/0x370 fs/super.c:1758
- fc_mount fs/namespace.c:1199 [inline]
- do_new_mount_fc fs/namespace.c:3642 [inline]
- do_new_mount fs/namespace.c:3718 [inline]
- path_mount+0x5b8/0x1ea0 fs/namespace.c:4028
- do_mount fs/namespace.c:4041 [inline]
- __do_sys_mount fs/namespace.c:4229 [inline]
- __se_sys_mount fs/namespace.c:4206 [inline]
- __x64_sys_mount+0x282/0x320 fs/namespace.c:4206
- ...
+As a result, nr_regions no longer matches the actual number of live
+regions, and region directory names skip numbers (1, 3, 5, ...).
 
-[CAUSE]
-ocfs2_journal_toggle_dirty() used to return -EIO when journal->j_bh no
-longer contained a valid dinode, because the startup and shutdown paths
-already handled that failure. Commit 10995aa2451a
-("ocfs2: Morph the haphazard OCFS2_IS_VALID_DINODE() checks.") changed
-the check to a BUG_ON() under the assumption that the journal dinode had
-already been validated. That turns an unexpected invalid journal dinode
-during mount teardown into a kernel crash instead of a normal mount
-failure.
+Use the already incremented value for naming instead of incrementing
+nr_regions a second time.
 
-[FIX]
-Replace the BUG_ON() with WARN_ON() and return -EIO. This keeps the
-invariant warning for debugging, but restores the original behavior of
-failing startup or shutdown cleanly instead of panicking the kernel.
-
-Link: https://lore.kernel.org/20260512024115.4036371-1-gality369@gmail.com
-Fixes: 10995aa2451a ("ocfs2: Morph the haphazard OCFS2_IS_VALID_DINODE() checks.")
-Signed-off-by: ZhengYuan Huang <gality369@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
+Link: https://lore.kernel.org/20260512041157.109845-1-agarwal.vineet2006@gmail.com
+Fixes: 66178e4ec30a ("mm/damon/sysfs: use damos_walk() for update_schemes_tried_{bytes,regions}")
+Signed-off-by: Vineet Agarwal <agarwal.vineet2006@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/damon/sysfs-schemes.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/journal.c~ocfs2-dont-bug_on-an-invalid-journal-dinode
-+++ a/fs/ocfs2/journal.c
-@@ -1022,11 +1022,8 @@ static int ocfs2_journal_toggle_dirty(st
- 	struct ocfs2_dinode *fe;
- 
- 	fe = (struct ocfs2_dinode *)bh->b_data;
--
--	/* The journal bh on the osb always comes from ocfs2_journal_init()
--	 * and was validated there inside ocfs2_inode_lock_full().  It's a
--	 * code bug if we mess it up. */
--	BUG_ON(!OCFS2_IS_VALID_DINODE(fe));
-+	if (WARN_ON(!OCFS2_IS_VALID_DINODE(fe)))
-+		return -EIO;
- 
- 	flags = le32_to_cpu(fe->id1.journal1.ij_flags);
- 	if (dirty)
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-fix-double-increment-of-nr_regions
++++ a/mm/damon/sysfs-schemes.c
+@@ -2998,7 +2998,7 @@ void damos_sysfs_populate_region_dir(str
+ 	if (kobject_init_and_add(&region->kobj,
+ 				&damon_sysfs_scheme_region_ktype,
+ 				&sysfs_regions->kobj, "%d",
+-				sysfs_regions->nr_regions++)) {
++				sysfs_regions->nr_regions)) {
+ 		kobject_put(&region->kobj);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from gality369@gmail.com are
+Patches currently in -mm which might be from agarwal.vineet2006@gmail.com are
 
-ocfs2-reject-inconsistent-inode-size-before-truncate.patch
-ocfs2-dont-bug_on-an-invalid-journal-dinode.patch
+selftests-mm-khugepaged-initialize-file-contents-via-mmap.patch
+mm-khugepaged-return-eagain-for-scan_page_has_private-in-madv_collapse.patch
+selftests-mm-check-file-initialization-writes-in-split_huge_page_test.patch
+mm-damon-sysfs-schemes-fix-double-increment-of-nr_regions.patch
 
