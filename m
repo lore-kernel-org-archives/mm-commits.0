@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E57739BFF8
-	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 22:15:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 127DA3672BB
+	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 22:27:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778624134; cv=none; b=gjfq2R/lYatxxoSY4v8KFXh97CU7upsZNzDuzxrdkHdg/es5Dx2so76OOyNqUmeWHzDlwmL8Zgudy/ro0L1uWcNn6hirBR0lfK2r5Cfw2y5AO9/uibrZb1Xa1xedI3I1iw59rX27ZukzilnwXkl6tJrHfiSBLiikqnC7iZSK4w4=
+	t=1778624877; cv=none; b=HoVxz6fNJ+2JHFNvygOhYQOkrSHW+yjcuBApzrfsXgXGem/fxajnuDPtGu9RVYtkoa0aNHntViaWF8oAlNmTYX6+Xu3i4W2X9pylzb7neR7HNkDcJErqAnrV9XK4/cS/pMgc9RvRo2pzSOo7bODIuICCMwEIlFRmhMTOGjSMwIw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778624134; c=relaxed/simple;
-	bh=uJR3bkdWUkPuyF5+iRRAdpeiYqaayidI3cJe2M3f+1U=;
-	h=Date:To:From:Subject:Message-Id; b=o1yUhMsqVHrJCD98aUweOY80O5gZpkbEFiCcxdsfTtqfVmKY9DChYgsZdJBfjoXp1tqv3xANY31YxFOhXCRLtE1L7sxoGc25mkP1gq1fQ1K7yea2AC32c+hXfYE+uKosBTaFrH9Wdq9VLS/+0u8ePMGcW3OwDkMRG0joB3oNGLg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ey7/pqmQ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778624877; c=relaxed/simple;
+	bh=LrfXUWzuK/HD2ul+74C0VkUI1FThQyA/o99HHK8KFig=;
+	h=Date:To:From:Subject:Message-Id; b=SSuqIrVBNzCgJBU5SDMhPD0X91P14bS0dYpHEpPA3KxQ7RC1rEZzJh8QxlEzi6AwpVM8lRwHAPC1eoCLGYduDoaIDYWkxKy64nnevRbK2YOhl9x+e8bKUygoKIFr+7T7slkJxjKvOzUZemnTyvjvaiZovcO1Y+oQCM/i/YJ2ECs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=At40739d; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ey7/pqmQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F09E6C2BCB0;
-	Tue, 12 May 2026 22:15:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="At40739d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8B440C2BCB0;
+	Tue, 12 May 2026 22:27:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778624134;
-	bh=uJR3bkdWUkPuyF5+iRRAdpeiYqaayidI3cJe2M3f+1U=;
+	s=korg; t=1778624876;
+	bh=LrfXUWzuK/HD2ul+74C0VkUI1FThQyA/o99HHK8KFig=;
 	h=Date:To:From:Subject:From;
-	b=Ey7/pqmQLJLwjnK4gujjbVaF2YRbp29LzhCZEITlHDXEhkI8qcDfULLq9dQPjnZsc
-	 yl0gXlUsLUOJPQAR8Pg2Fcp7WSeL1oxT/tI3ImR1jp3nHSCkh578pnhRgIyx4431R0
-	 /iCPpRS180zd0FNtKkW5ZTviKb5wsrmPDTXN836s=
-Date: Tue, 12 May 2026 15:15:33 -0700
-To: mm-commits@vger.kernel.org,r33s3n6@gmail.com,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,baijiaju1990@gmail.com,gality369@gmail.com,akpm@linux-foundation.org
+	b=At40739dFHsKfrPbQh/eWFOmLQAGfUxq1c2YslogmhI6LdcmyIsvgrjzy1eN0c44q
+	 V8q/Bo/U9KbFa5zqHO+nzZY6YqIDAyvpzQrx/9X+v18Wmz71fRX9WAizjnxih8MIHf
+	 dtKHJZA3e94RbJg1cb779NMqDkWaBsm9ROgH+lho=
+Date: Tue, 12 May 2026 15:27:56 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,xhao@linux.alibaba.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,liuye@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-validate-inline-xattr-header-before-reflinking-inline-xattrs.patch added to mm-nonmm-unstable branch
-Message-Id: <20260512221533.F09E6C2BCB0@smtp.kernel.org>
+Subject: + mm-khugepaged-fix-inconsistent-mmf_vm_hugepage-flag-due-to-allocation-failure-order.patch added to mm-new branch
+Message-Id: <20260512222756.8B440C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: validate inline xattr header before reflinking inline xattrs
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-validate-inline-xattr-header-before-reflinking-inline-xattrs.patch
+     Subject: mm/khugepaged: fix inconsistent MMF_VM_HUGEPAGE flag due to allocation failure order
+has been added to the -mm mm-new branch.  Its filename is
+     mm-khugepaged-fix-inconsistent-mmf_vm_hugepage-flag-due-to-allocation-failure-order.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-validate-inline-xattr-header-before-reflinking-inline-xattrs.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-fix-inconsistent-mmf_vm_hugepage-flag-due-to-allocation-failure-order.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,86 +69,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: ZhengYuan Huang <gality369@gmail.com>
-Subject: ocfs2: validate inline xattr header before reflinking inline xattrs
-Date: Fri, 8 May 2026 16:59:14 +0800
+From: Ye Liu <liuye@kylinos.cn>
+Subject: mm/khugepaged: fix inconsistent MMF_VM_HUGEPAGE flag due to allocation failure order
+Date: Mon, 11 May 2026 10:54:07 +0800
 
-[BUG]
-A corrupt inline xattr header can make ocfs2_reflink_xattr_inline() lock,
-copy, and reflink xattr state from an unchecked ibody xattr header.
+__khugepaged_enter() sets MMF_VM_HUGEPAGE before allocating the
+corresponding mm_slot.  If mm_slot_alloc() fails, the function returns
+with the flag set but without inserting the mm into the khugepaged
+tracking structures, leaving the mm in an inconsistent state where future
+registration attempts are skipped.
 
-[CAUSE]
-The inline reflink path still trusted di->i_xattr_inline_size to compute
-header_off, xh, and new_xh before handing the source header to the reflink
-allocator and copy logic.
+Fix this by reordering: allocate the mm_slot first, then check and set the
+flag.  If the flag is already set, free the allocated slot and return. 
+This ensures the flag is only set when the mm is successfully registered
+in the khugepaged tracking structures.
 
-[FIX]
-Validate the source inode's inline xattr header with the shared helper
-first, then derive the reflink copy offsets from the validated inline
-size/header. This keeps the reflink path from traversing corrupt ibody
-xattr geometry.
-
-Link: https://lore.kernel.org/20260508085914.61647-6-gality369@gmail.com
-Signed-off-by: ZhengYuan Huang <gality369@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Zixuan Fu <r33s3n6@gmail.com>
+Link: https://lore.kernel.org/20260511025408.54035-1-ye.liu@linux.dev
+Fixes: 16618670276a ("mm: khugepaged: avoid pointless allocation for "struct mm_slot"")
+Signed-off-by: Ye Liu <liuye@kylinos.cn>
+Suggested-by: David Hildenbrand <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Xin Hao <xhao@linux.alibaba.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ mm/khugepaged.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/xattr.c~ocfs2-validate-inline-xattr-header-before-reflinking-inline-xattrs
-+++ a/fs/ocfs2/xattr.c
-@@ -6511,12 +6511,10 @@ static int ocfs2_reflink_xattr_inline(st
- 	handle_t *handle;
- 	struct ocfs2_super *osb = OCFS2_SB(args->old_inode->i_sb);
- 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)args->old_bh->b_data;
--	int inline_size = le16_to_cpu(di->i_xattr_inline_size);
--	int header_off = osb->sb->s_blocksize - inline_size;
--	struct ocfs2_xattr_header *xh = (struct ocfs2_xattr_header *)
--					(args->old_bh->b_data + header_off);
--	struct ocfs2_xattr_header *new_xh = (struct ocfs2_xattr_header *)
--					(args->new_bh->b_data + header_off);
-+	int inline_size;
-+	int header_off;
-+	struct ocfs2_xattr_header *xh;
-+	struct ocfs2_xattr_header *new_xh;
- 	struct ocfs2_alloc_context *meta_ac = NULL;
- 	struct ocfs2_inode_info *new_oi;
- 	struct ocfs2_dinode *new_di;
-@@ -6525,6 +6523,15 @@ static int ocfs2_reflink_xattr_inline(st
- 		.vb_access = ocfs2_journal_access_di,
- 	};
+--- a/mm/khugepaged.c~mm-khugepaged-fix-inconsistent-mmf_vm_hugepage-flag-due-to-allocation-failure-order
++++ a/mm/khugepaged.c
+@@ -559,13 +559,16 @@ void __khugepaged_enter(struct mm_struct
  
-+	ret = ocfs2_xattr_ibody_lookup_header(args->old_inode, di, &xh);
-+	if (ret)
-+		goto out;
+ 	/* __khugepaged_exit() must not run from under us */
+ 	VM_BUG_ON_MM(collapse_test_exit(mm), mm);
+-	if (unlikely(mm_flags_test_and_set(MMF_VM_HUGEPAGE, mm)))
+-		return;
+ 
+ 	slot = mm_slot_alloc(mm_slot_cache);
+ 	if (!slot)
+ 		return;
+ 
++	if (unlikely(mm_flags_test_and_set(MMF_VM_HUGEPAGE, mm))) {
++		mm_slot_free(mm_slot_cache, slot);
++		return;
++	}
 +
-+	inline_size = le16_to_cpu(di->i_xattr_inline_size);
-+	header_off = osb->sb->s_blocksize - inline_size;
-+	new_xh = (struct ocfs2_xattr_header *)
-+		(args->new_bh->b_data + header_off);
-+
- 	ret = ocfs2_reflink_lock_xattr_allocators(osb, xh, args->ref_root_bh,
- 						  &credits, &meta_ac);
- 	if (ret) {
+ 	spin_lock(&khugepaged_mm_lock);
+ 	mm_slot_insert(mm_slots_hash, mm, slot);
+ 	/*
 _
 
-Patches currently in -mm which might be from gality369@gmail.com are
+Patches currently in -mm which might be from liuye@kylinos.cn are
 
-ocfs2-reject-inconsistent-inode-size-before-truncate.patch
-ocfs2-dont-bug_on-an-invalid-journal-dinode.patch
-ocfs2-validate-inline-xattr-header-before-ibody-lookups.patch
-ocfs2-validate-inline-xattr-header-before-checking-outside-values.patch
-ocfs2-validate-inline-xattr-header-before-ibody-remove.patch
-ocfs2-validate-inline-xattr-header-before-inline-refcount-attach.patch
-ocfs2-validate-inline-xattr-header-before-reflinking-inline-xattrs.patch
+mm-memory-failure-use-bool-for-forcekill-state.patch
+mm-khugepaged-use-align-helpers-for-pmd-alignment.patch
+mm-khugepaged-fix-inconsistent-mmf_vm_hugepage-flag-due-to-allocation-failure-order.patch
 
