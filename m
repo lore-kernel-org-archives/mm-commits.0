@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95C252F8E94
-	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 21:17:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B00D02F8E94
+	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 21:17:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778620656; cv=none; b=Ag74QOQQuYUvOWpxEPNr7P0FjqcopdS0KoQZSQmUrzSP46Krd6ZkHywgA2QmqceaDwPoztbKsuAxjbMMR3svTo6DU9ZYiBUUw7y98frg+BGOiJBTdCXi4D+UCjrNElqjxy2Ha7aEF0j8J14PDKCGroI3XLlDIv5AI2SSRKzii2c=
+	t=1778620657; cv=none; b=RgEG1jh/PmV+tk0NM4bXlVvakTZnLvnYXhR6J4f5CN+sDjjnt7K9S9e9ShrlKBlBGBYpUVBvofRSLIVscFX+iTo8q/FFXGtRBxyOs9XjH/IlTqLxz5YPOgS7cVZKbJjhcCHrkiXXbsuDVsDrR38+LFc22+XOmUILXVe8ZPeG38w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778620656; c=relaxed/simple;
-	bh=CLc1xc7cROaU2ZAQTa6UNxiSNWj/CLksPYO+K+79gcA=;
-	h=Date:To:From:Subject:Message-Id; b=ZcUImw3tLiOcBtrgGktX05RY9805isBVzJzgaNQVnf8dllz3maywsMiSJ8XiliAPWy8eCfNhdDG1EUNBtXrakh682W13PpOjTray2/caMDDao5rLGVibZ1CMnn+Q8/l+tMIA/2vPfBmkVp2wXQC3fA30Rpfv1HeTl6CvvvRwEd4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Mz7WCsSB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778620657; c=relaxed/simple;
+	bh=+Tt4DwIrcq1/vIeXii+RhnSTxdx1JGjgPnKplUpv3b4=;
+	h=Date:To:From:Subject:Message-Id; b=WGS98fce2s2kx9y2NwHxTrO5h1yOv4tgHu6dm3KjsEPgfQSJjTDojPiEI69ltk0vkkvif9KBCVjdPGjRHnVZndd6tgCVnrVr01NRazb2w6NXM2Jr4mCOZyxoJfJ/+AfrO4J1AyQ8dZBHaMz7/kj8zEs2K1EGa4IlX9lRHlUAR4M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=DnAjg5iQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Mz7WCsSB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15DADC2BCFA;
-	Tue, 12 May 2026 21:17:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="DnAjg5iQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5469CC2BCB0;
+	Tue, 12 May 2026 21:17:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778620656;
-	bh=CLc1xc7cROaU2ZAQTa6UNxiSNWj/CLksPYO+K+79gcA=;
+	s=korg; t=1778620657;
+	bh=+Tt4DwIrcq1/vIeXii+RhnSTxdx1JGjgPnKplUpv3b4=;
 	h=Date:To:From:Subject:From;
-	b=Mz7WCsSBBNbdAStkPbqw7rqK3khpTfoP2bj/hgcF/fokUZ6VdmbIvgAqBjNP8unaI
-	 BQ6osVQ6JC4778YhX4TyyXuLy0joqPnJCL8d/en/8up7nLH7Vr9cIKlTBxJjGpyKMs
-	 QwVXpIKnVMes3LjEhYH8S23TAY1b2MWoOfJNAt4s=
-Date: Tue, 12 May 2026 14:17:35 -0700
+	b=DnAjg5iQfXToSVi0aarn2G9YS1M7DFJvakEEslQtIV2MpbNUHYgoNo2nWdMhwmAxF
+	 4a2A7NlxO1SFLxgFiQFyCcarGZ9T5VlUoJANta+U71ovoC0w///0UxDaMZoGuuV086
+	 v9Eb/0dLcYsmBfHqfHEbPsd7BAVN/vdS1bzV5uv0=
+Date: Tue, 12 May 2026 14:17:36 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,davem@davemloft.net,borntraeger@linux.ibm.com,andreas@gaisler.com,agordeev@linux.ibm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-bootmem_info-drop-initialization-of-page-lru.patch added to mm-new branch
-Message-Id: <20260512211736.15DADC2BCFA@smtp.kernel.org>
+Subject: + mm-bootmem_info-stop-using-pg_private.patch added to mm-new branch
+Message-Id: <20260512211737.5469CC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/bootmem_info: drop initialization of page->lru
+     Subject: mm/bootmem_info: stop using PG_private
 has been added to the -mm mm-new branch.  Its filename is
-     mm-bootmem_info-drop-initialization-of-page-lru.patch
+     mm-bootmem_info-stop-using-pg_private.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bootmem_info-drop-initialization-of-page-lru.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bootmem_info-stop-using-pg_private.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,17 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/bootmem_info: drop initialization of page->lru
-Date: Mon, 11 May 2026 16:05:30 +0200
+Subject: mm/bootmem_info: stop using PG_private
+Date: Mon, 11 May 2026 16:05:31 +0200
 
-In the past, we used to store the type in page->lru.next, introduced by
-commit 5f24ce5fd34c ("thp: remove PG_buddy"). The location changed over
-the years; ever since commit 0386aaa6e9c8 ("bootmem: stop using
-page->index"), we store it alongside the info in page->private.
+Nobody checks PG_private for these pages, and we can happily use
+set_page_private() without setting PG_private. So let's just stop
+setting/clearing PG_private.
 
-Consequently, there is no need to reset page->lru anymore.
-
-Link: https://lore.kernel.org/20260511-bootmem_info_prep-v1-2-3fb0be6fc688@kernel.org
+Link: https://lore.kernel.org/20260511-bootmem_info_prep-v1-3-3fb0be6fc688@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Oscar Salvador <osalvador@suse.de>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -103,19 +100,27 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem_info.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/bootmem_info.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/mm/bootmem_info.c~mm-bootmem_info-drop-initialization-of-page-lru
+--- a/mm/bootmem_info.c~mm-bootmem_info-stop-using-pg_private
 +++ a/mm/bootmem_info.c
-@@ -34,7 +34,6 @@ void put_page_bootmem(struct page *page)
+@@ -19,7 +19,6 @@ void get_page_bootmem(unsigned long info
+ {
+ 	BUG_ON(type > 0xf);
+ 	BUG_ON(info > (ULONG_MAX >> 4));
+-	SetPagePrivate(page);
+ 	set_page_private(page, info << 4 | type);
+ 	page_ref_inc(page);
+ }
+@@ -32,7 +31,6 @@ void put_page_bootmem(struct page *page)
+ 	       type > MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE);
+ 
  	if (page_ref_dec_return(page) == 1) {
- 		ClearPagePrivate(page);
+-		ClearPagePrivate(page);
  		set_page_private(page, 0);
--		INIT_LIST_HEAD(&page->lru);
  		kmemleak_free_part_phys(PFN_PHYS(page_to_pfn(page)), PAGE_SIZE);
  		free_reserved_page(page);
- 	}
 _
 
 Patches currently in -mm which might be from david@kernel.org are
