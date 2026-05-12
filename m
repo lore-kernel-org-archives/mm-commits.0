@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDB55357CE3
-	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 21:17:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FC89357D16
+	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 21:17:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778620662; cv=none; b=d2SNLBtkk/7UsanN9jSxu4eSVJpWVvy2FUQDpayxCjndUeLP8O9DXhyG3ayoQKxFxdZVRjB0OWAopliBjKnyDig6R6FTmCAqGZaYvlioaCUSxKe1pZkF2Gl/3IgXY1mK1eDYfRieu/14ppBycpN4vY5ZLICCWbqHfmflHYiYHII=
+	t=1778620664; cv=none; b=qf73xRkYzie7/uJ5ahd35aeq+tX8yVggctZ2s5iporWizh733W5Aw3dbDqoOc1KcK1VlA2fU4kVPczyNwXnSQFvxBdrSV/U4H2LPVrp2zxauMLlNr/EOQ7PNKgsRTiamCQUUEdD2WyE8nVNN+IUrZSmj4XitkGlXbvbKZ19Jt2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778620662; c=relaxed/simple;
-	bh=W/zYkUdhR8kdVd6a56BJhROqrPkU3t4JoOTlj6PE49I=;
-	h=Date:To:From:Subject:Message-Id; b=a5vPhmqCqnkglYCxc0UTIntY4/2h3OqHPdtJlkc+ulv6kIQcY5h8sYSK/Pm7zwDUNpFeHL/JXyv1o3jdXNvd3eJy6JZbU7u11bL+7wrvkOP4IUkITJPI9YsN9MZKjBdXwSqHAVxoi4J35hfQrdGQT6j8xUaAjMGXWlM1FPCodpg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u1tfVIla; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778620664; c=relaxed/simple;
+	bh=MGQLeBimDy/PM6RDK0IDxK3F+J6bzQG6+ujp4kE+ZFw=;
+	h=Date:To:From:Subject:Message-Id; b=brUxwhxukL52t9lYe7ja23jpb0QT8PWmRVmQStUfDlPjd+OAHYT7n3h1IUws4ue2TzrC24HWOlrzTTFytWYwM4/P8WGpmrCyn0HmKR05WcztaUPgSNUHZsAMfVTdRgoDMUkmIhmd72pjm+QbjmU8x5f0j9MURRDGPZILmbG4hXA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mIG5Pv39; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u1tfVIla"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A69F7C2BCB0;
-	Tue, 12 May 2026 21:17:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mIG5Pv39"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3581C2BCB0;
+	Tue, 12 May 2026 21:17:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778620662;
-	bh=W/zYkUdhR8kdVd6a56BJhROqrPkU3t4JoOTlj6PE49I=;
+	s=korg; t=1778620663;
+	bh=MGQLeBimDy/PM6RDK0IDxK3F+J6bzQG6+ujp4kE+ZFw=;
 	h=Date:To:From:Subject:From;
-	b=u1tfVIlaaxKrtIJOkQNRlLrqWYLD1CDBE0EmzkoV+JFxFFnkJsIzm4EQnVT7XQTbm
-	 XU9GwLbaef6WUcQhPYynumxnJmDCEBEM8Oat23kcSZwYc2ycyLyfl8q0dArm5Z9qea
-	 Le/5+XgibYe3thadRh5LwqSPvrOb/MmeLE0TXsUs=
-Date: Tue, 12 May 2026 14:17:42 -0700
+	b=mIG5Pv39+9X3+7pdYeHDL/TdvcPbpOv/z+9M8v0XWi8E0YbfvePs6Yk7iRhG2BE9P
+	 f79LgQ1jGUpdI58eirDCFSV1y09fkhbx2VZEZSPqZF3GGHmAHJ8FoeQVMSPvQWo6/r
+	 Db5pq6O7alibvMdwEeSBOemaggTjmprbindibbAY=
+Date: Tue, 12 May 2026 14:17:43 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,davem@davemloft.net,borntraeger@linux.ibm.com,andreas@gaisler.com,agordeev@linux.ibm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + s390-mm-use-free_reserved_page-in-vmem_free_pages.patch added to mm-new branch
-Message-Id: <20260512211742.A69F7C2BCB0@smtp.kernel.org>
+Subject: + powerpc-mm-remove-config_have_bootmem_info_node.patch added to mm-new branch
+Message-Id: <20260512211743.D3581C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: s390/mm: use free_reserved_page() in vmem_free_pages()
+     Subject: powerpc/mm: remove CONFIG_HAVE_BOOTMEM_INFO_NODE
 has been added to the -mm mm-new branch.  Its filename is
-     s390-mm-use-free_reserved_page-in-vmem_free_pages.patch
+     powerpc-mm-remove-config_have_bootmem_info_node.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/s390-mm-use-free_reserved_page-in-vmem_free_pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/powerpc-mm-remove-config_have_bootmem_info_node.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,28 +70,26 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: s390/mm: use free_reserved_page() in vmem_free_pages()
-Date: Mon, 11 May 2026 16:05:35 +0200
+Subject: powerpc/mm: remove CONFIG_HAVE_BOOTMEM_INFO_NODE
+Date: Mon, 11 May 2026 16:05:36 +0200
 
-We never select CONFIG_HAVE_BOOTMEM_INFO_NODE on s390. Therefore,
-free_bootmem_page() nowadays always translates to free_reserved_page().
+register_page_bootmem_info_node() essentially only calls
+register_page_bootmem_memmap(). However, on powerpc that function is a
+nop. So there is not benefit in using CONFIG_HAVE_BOOTMEM_INFO_NODE
+anymore, let's just drop it.
 
-Let's use free_reserved_page() to replace the free_bootmem_page() loop.
 We can stop including bootmem_info.h.
 
-Likely, vmemmap freeing code could be factored out into the core in the
-future.
-
-Link: https://lore.kernel.org/20260511-bootmem_info_prep-v1-7-3fb0be6fc688@kernel.org
+Link: https://lore.kernel.org/20260511-bootmem_info_prep-v1-8-3fb0be6fc688@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Oscar Salvador <osalvador@suse.de>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
@@ -105,28 +103,45 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/vmem.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/powerpc/mm/init_64.c |    8 --------
+ mm/Kconfig                |    2 +-
+ 2 files changed, 1 insertion(+), 9 deletions(-)
 
---- a/arch/s390/mm/vmem.c~s390-mm-use-free_reserved_page-in-vmem_free_pages
-+++ a/arch/s390/mm/vmem.c
-@@ -4,7 +4,6 @@
-  */
- 
- #include <linux/memory_hotplug.h>
+--- a/arch/powerpc/mm/init_64.c~powerpc-mm-remove-config_have_bootmem_info_node
++++ a/arch/powerpc/mm/init_64.c
+@@ -41,7 +41,6 @@
+ #include <linux/libfdt.h>
+ #include <linux/memremap.h>
+ #include <linux/memory.h>
 -#include <linux/bootmem_info.h>
- #include <linux/cpufeature.h>
- #include <linux/memblock.h>
- #include <linux/pfn.h>
-@@ -51,7 +50,7 @@ static void vmem_free_pages(unsigned lon
- 	if (PageReserved(page)) {
- 		/* allocated from memblock */
- 		while (nr_pages--)
--			free_bootmem_page(page++);
-+			free_reserved_page(page++);
- 	} else {
- 		free_pages(addr, order);
- 	}
+ 
+ #include <asm/pgalloc.h>
+ #include <asm/page.h>
+@@ -388,13 +387,6 @@ void __ref vmemmap_free(unsigned long st
+ 
+ #endif
+ 
+-#ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
+-void register_page_bootmem_memmap(unsigned long section_nr,
+-				  struct page *start_page, unsigned long size)
+-{
+-}
+-#endif /* CONFIG_HAVE_BOOTMEM_INFO_NODE */
+-
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
+ #ifdef CONFIG_PPC_BOOK3S_64
+--- a/mm/Kconfig~powerpc-mm-remove-config_have_bootmem_info_node
++++ a/mm/Kconfig
+@@ -537,7 +537,7 @@ endchoice
+ 
+ config MEMORY_HOTREMOVE
+ 	bool "Allow for memory hot remove"
+-	select HAVE_BOOTMEM_INFO_NODE if (X86_64 || PPC64)
++	select HAVE_BOOTMEM_INFO_NODE if X86_64
+ 	depends on MEMORY_HOTPLUG
+ 	select MIGRATION
+ 
 _
 
 Patches currently in -mm which might be from david@kernel.org are
