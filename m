@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2287734C9A6
-	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 21:17:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B617357CE3
+	for <mm-commits@vger.kernel.org>; Tue, 12 May 2026 21:17:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778620659; cv=none; b=JKMTxTyVTj9hOPXWSGxyQygVQ9W9UD6vka4+ThCcjBc5xd6v0iePmHAvwNlv68Rqp/i/f87/q/Mtrx77In/H6f/yPbbyDXU2Zek7IGlLJNPWYL6+MJPTNd+KNCnf/85o4r1Kg2HvnFDj8AYPAuivVey41r2ld/mGTItibbEPh1E=
+	t=1778620660; cv=none; b=ayK04abZxj6gurz3l2OBspFdicdZEhhgT8Kzad/60l9utpyupyUwVvTS1Up2SUSglpGRU/jLaBYPhjGpKSN9EVRwHBzGU3GFRBmRYqVzSyiF1+4l/02M1aQSFVSyw5N+JUyMT3biZchsLyRkIX26xaqPuhgE0W9qHsPHwerUmWo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778620659; c=relaxed/simple;
-	bh=xyF0TMI4xIlj/c2KuZd75mxkks1Sl+ffeFY+s0hRqlI=;
-	h=Date:To:From:Subject:Message-Id; b=ihtAmzKKBJQiCuB4wE1fPgnMhmSSR6Z7eP2vE2+HAohw6hv+a7syG2BFic+b94LD4Bao+uS7GiwctApXn7RmWrn9LrtS1I105diA+sHkj54EavPk/tdaYEXwiX3VtvzEJJDVCi+rv6BOyrnb7n9ERfj5MTQn0U/3L1qdCOqgfJU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=btR8AVN6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778620660; c=relaxed/simple;
+	bh=oYdtp93AiPMnYK0vYGE/d5lnO5V6dIDita986/S2tGY=;
+	h=Date:To:From:Subject:Message-Id; b=G2FaEC05zpPNu9r9D/K5LGIWgBbzLdH17SSQ56jc0pRYpQbxR6WJPN3U8k4mecrSCAKv6oL5UNXK7bG061bcuRp/ptaY3+3UT6k3k/CUYVF+set931S6aQNuwN4MiaRTE/YaBDBY7JClMxaimcA+BB7m/OZVYBvbcTMLqcdJRwI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=C2z6eBqt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="btR8AVN6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BEE45C2BCB0;
-	Tue, 12 May 2026 21:17:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="C2z6eBqt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AB01C2BCB0;
+	Tue, 12 May 2026 21:17:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778620658;
-	bh=xyF0TMI4xIlj/c2KuZd75mxkks1Sl+ffeFY+s0hRqlI=;
+	s=korg; t=1778620660;
+	bh=oYdtp93AiPMnYK0vYGE/d5lnO5V6dIDita986/S2tGY=;
 	h=Date:To:From:Subject:From;
-	b=btR8AVN69TCRFOL7F4ssAL5wC80Yqfm7hwL2UtrXpC0G1UJZNV9glNbhKCa/Ep9d5
-	 0i1a+ObMivae7s12eEVZy8ADMnmWSovZ6d+RDfnFxgFCCwwhBWJau2prx4i+S6RgIm
-	 6v9qsCE5kCHrkyNkCmdZtlSWTCQdVYdR3x6VV6IE=
-Date: Tue, 12 May 2026 14:17:38 -0700
+	b=C2z6eBqtHi+b8L+3Iji1rBpTTKMbJnWmZHodRtMMkKUdkDej/6TWxNUHTsckEZd+I
+	 AxnSIBrdyveA1Gs+PYhC7EpEPvbEDjmn9BCWCDl/pbczaZU1cX/Wlx33KnHl/jx3Ri
+	 Ol9A+4fPQwAyAjYJz03RJhlDJqomxPoho7t6D9eM=
+Date: Tue, 12 May 2026 14:17:39 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,svens@linux.ibm.com,surenb@google.com,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,hca@linux.ibm.com,gor@linux.ibm.com,gerald.schaefer@linux.ibm.com,davem@davemloft.net,borntraeger@linux.ibm.com,andreas@gaisler.com,agordeev@linux.ibm.com,david@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-bootmem_info-remove-call-to-kmemleak_free_part_phys.patch added to mm-new branch
-Message-Id: <20260512211738.BEE45C2BCB0@smtp.kernel.org>
+Subject: + mm-bootmem_info-stop-marking-the-pgdat-as-node_info.patch added to mm-new branch
+Message-Id: <20260512211740.2AB01C2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/bootmem_info: remove call to kmemleak_free_part_phys()
+     Subject: mm/bootmem_info: stop marking the pgdat as NODE_INFO
 has been added to the -mm mm-new branch.  Its filename is
-     mm-bootmem_info-remove-call-to-kmemleak_free_part_phys.patch
+     mm-bootmem_info-stop-marking-the-pgdat-as-node_info.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bootmem_info-remove-call-to-kmemleak_free_part_phys.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-bootmem_info-stop-marking-the-pgdat-as-node_info.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,24 +70,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm/bootmem_info: remove call to kmemleak_free_part_phys()
-Date: Mon, 11 May 2026 16:05:32 +0200
+Subject: mm/bootmem_info: stop marking the pgdat as NODE_INFO
+Date: Mon, 11 May 2026 16:05:33 +0200
 
-The call to kmemleak_free_part_phys() was added in 2022 in
-commit dd0ff4d12dd2 ("bootmem: remove the vmemmap pages from kmemleak in
-put_page_bootmem").
+We removed the last user of NODE_INFO in commit 119c31caa59e ("mm/sparse:
+remove !CONFIG_SPARSEMEM_VMEMMAP leftovers for CONFIG_MEMORY_HOTPLUG").
 
-In 2025, commit b2aad24b5333 ("mm/memmap: prevent double scanning of memmap
-by kmemleak") started to use MEMBLOCK_ALLOC_NOLEAKTRACE when allocating
-the memmap to skip the kmemleak_alloc_phys() in the buddy.
+But it really was never used it besides for safety-checks ever since it was
+introduced in commit 04753278769f ("memory hotplug: register section/node
+id to free"), where we had the comment:
 
-So remove the call to kmemleak_free_part_phys(). If this would still
-be required for other purposes, either free_reserved_page() should take
-care of it, or selected users.
+	5) The node information like pgdat has similar issues. But, this
+	   will be able to be solved too by this.
+	   (Not implemented yet, but, remembering node id in the pages.)
 
-Link: https://lore.kernel.org/20260511-bootmem_info_prep-v1-4-3fb0be6fc688@kernel.org
+Of course, that never happened, and we are not planning on freeing the
+node data (pgdat/pglist_data), during memory hotunplug.
+
+So let's just stop marking the pgdat as NODE_INFO.
+
+Link: https://lore.kernel.org/20260511-bootmem_info_prep-v1-5-3fb0be6fc688@kernel.org
 Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>
 Cc: Andreas Larsson <andreas@gaisler.com>
 Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
@@ -98,7 +103,6 @@ Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
@@ -108,30 +112,28 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem_info.h |    1 -
- mm/bootmem_info.c            |    1 -
- 2 files changed, 2 deletions(-)
+ mm/bootmem_info.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
---- a/include/linux/bootmem_info.h~mm-bootmem_info-remove-call-to-kmemleak_free_part_phys
-+++ a/include/linux/bootmem_info.h
-@@ -82,7 +82,6 @@ static inline void get_page_bootmem(unsi
- 
- static inline void free_bootmem_page(struct page *page)
- {
--	kmemleak_free_part_phys(PFN_PHYS(page_to_pfn(page)), PAGE_SIZE);
- 	free_reserved_page(page);
- }
- #endif
---- a/mm/bootmem_info.c~mm-bootmem_info-remove-call-to-kmemleak_free_part_phys
+--- a/mm/bootmem_info.c~mm-bootmem_info-stop-marking-the-pgdat-as-node_info
 +++ a/mm/bootmem_info.c
-@@ -32,7 +32,6 @@ void put_page_bootmem(struct page *page)
+@@ -62,15 +62,8 @@ static void __init register_page_bootmem
  
- 	if (page_ref_dec_return(page) == 1) {
- 		set_page_private(page, 0);
--		kmemleak_free_part_phys(PFN_PHYS(page_to_pfn(page)), PAGE_SIZE);
- 		free_reserved_page(page);
- 	}
- }
+ void __init register_page_bootmem_info_node(struct pglist_data *pgdat)
+ {
+-	unsigned long i, pfn, end_pfn, nr_pages;
++	unsigned long pfn, end_pfn;
+ 	int node = pgdat->node_id;
+-	struct page *page;
+-
+-	nr_pages = PAGE_ALIGN(sizeof(struct pglist_data)) >> PAGE_SHIFT;
+-	page = virt_to_page(pgdat);
+-
+-	for (i = 0; i < nr_pages; i++, page++)
+-		get_page_bootmem(node, page, NODE_INFO);
+ 
+ 	pfn = pgdat->node_start_pfn;
+ 	end_pfn = pgdat_end_pfn(pgdat);
 _
 
 Patches currently in -mm which might be from david@kernel.org are
