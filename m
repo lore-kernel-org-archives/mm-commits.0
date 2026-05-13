@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A91B43921D0
-	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 18:23:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5788B3A9DB5
+	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 18:29:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778696617; cv=none; b=k2OpqcNjSIEF2L9jgKHTcHaRQK/f8ktUWXO3I62cKXLng2ckYyj671SWubAlxjfkLxBPoFB27LZez2WfkqI1tMpUzriNRtdskkxGi7ZvC0YYs87fi5/3dzIuHq/HdCykO1z/fWMUMPDMlzGxg0SPPfsxWQLvTdhvOyh1LPVnkW4=
+	t=1778696993; cv=none; b=NdK//FG2/7b8boct0G3LIeNzfrCqe44Y17lC78AWcZXa2yQc7UzN9D3L91rTf5eCCf7oYBc+g3rYYFmz3Qo1CXyyyPJzExp8o3I2okgtHwh7PZ8uwxpuQ/rWrAzI2/ZJjbFFqWyeVt9NM40DjRd++CDygBT55gC2tXfAJ9RAjHM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778696617; c=relaxed/simple;
-	bh=Y6IiloJ/8PgvuH3arIgd5AiazoxQizdtMrLqg+3n2bY=;
-	h=Date:To:From:Subject:Message-Id; b=Fl6T2yhucoa7VJVifR9JnfNyceyrYnduPPPrjyazC+GZwYF0CXSss4pGzxAxYZIMvOFc7uT/DcyuhKH1aRy1xiRYAu95Nh/C/sXUmp5N3KiaqBFlWWti0xhT7LXs4S+WVYQmaG1ENYnB7WoQm3CRPtD97i4+HC4MidBdz9WE7BM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SdG/LzDd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778696993; c=relaxed/simple;
+	bh=nJsZrPQw67hg3JZBWiFF2SGC+Rz2HArIyhiH/pu34NM=;
+	h=Date:To:From:Subject:Message-Id; b=QsC/0UNlSi85xtmIuftQy+LseGVFmBHXh17xuxTQMdaHNHNDPWiUh7G17xGaHQwFH9zZWHzo2DsehBEBdCdC8BU5rik9d76ipeAG9kh97FAS100DhrHuN/GBN0Afd+cVumjY2hE2x2X79tSfbH+vYUgzxRX6vEFqqRSw6dT1iyI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xIzgiMEz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SdG/LzDd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46473C19425;
-	Wed, 13 May 2026 18:23:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xIzgiMEz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5572C19425;
+	Wed, 13 May 2026 18:29:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778696617;
-	bh=Y6IiloJ/8PgvuH3arIgd5AiazoxQizdtMrLqg+3n2bY=;
+	s=korg; t=1778696992;
+	bh=nJsZrPQw67hg3JZBWiFF2SGC+Rz2HArIyhiH/pu34NM=;
 	h=Date:To:From:Subject:From;
-	b=SdG/LzDdR5yf0434ouSSwbYXFDErivundx1yvUpZLjr39jHZr5BnRqNY3YwsHAu8y
-	 OjeMvmS+NMchEg6dS8Tfsfrpgeue3geCx4U5kH/NIeVpVDHTwPaDoOfSYAwVo+5BXe
-	 AjJ+1e9rk3fnMe+riCzcyfW/8TxSJMRSifFvZOq0=
-Date: Wed, 13 May 2026 11:23:36 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,kaleshsingh@google.com,jack@suse.cz,fmayle@google.com,akpm@linux-foundation.org
+	b=xIzgiMEzMIQrf1KPGEo2HvDAq74mvzJaW6kMbVf/982gBbhnPNlqMBar53XPOYA98
+	 CiA+SsDNx6N2yJhOeQd0CLe7TNH1CdEyxDnSSH3rah5vI9pNAH8TudDEorvVTIuidE
+	 G9LiCT52Y5SEP591VOL4B6T6AivCbivpMaeW1J3o=
+Date: Wed, 13 May 2026 11:29:52 -0700
+To: mm-commits@vger.kernel.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,leitao@debian.org,chrisl@kernel.org,bhe@redhat.com,baohua@kernel.org,kasong@tencent.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-readahead-no-pg_readahead-on-eof.patch added to mm-new branch
-Message-Id: <20260513182337.46473C19425@smtp.kernel.org>
+Subject: + mm-swap-avoid-leaving-unused-extend-table-after-alloc-race.patch added to mm-new branch
+Message-Id: <20260513182952.C5572C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/readahead: no PG_readahead on EOF
+     Subject: mm, swap: avoid leaving unused extend table after alloc race
 has been added to the -mm mm-new branch.  Its filename is
-     mm-readahead-no-pg_readahead-on-eof.patch
+     mm-swap-avoid-leaving-unused-extend-table-after-alloc-race.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-readahead-no-pg_readahead-on-eof.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-avoid-leaving-unused-extend-table-after-alloc-race.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,83 +69,122 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Frederick Mayle <fmayle@google.com>
-Subject: mm/readahead: no PG_readahead on EOF
-Date: Fri, 8 May 2026 11:12:31 -0700
+From: Kairui Song <kasong@tencent.com>
+Subject: mm, swap: avoid leaving unused extend table after alloc race
+Date: Wed, 13 May 2026 17:21:11 +0800
 
-When readahead pulls in all the remaining pages for a file, setting the
-readahead bit is counter productive.  The async readahead it would trigger
-would almost certainly be a no-op.  Additionally, for mmap'd file IO, the
-readahead bit limits the fault around [1], causing an extra minor fault
-when the page is accessed.
+Allocating an extend table requires dropping the ci lock first.  While the
+lock is dropped, a concurrent put can decrease the slot's swap count to a
+value that is no longer maxed out, so the extend table is no longer
+required.  The current allocation path still attach the new extend table
+to the cluster anyway, leaving it unused.
 
-This was discovered when looking at /sys/kernel/tracing/events/readahead
-traces for a simple program.  With the patch applied, fewer
-page_cache_ra_unbounded calls are observed.
+It's not really leaked, the next maxed out count on the same cluster
+reuses the table, and frees it properly.  Swapoff will also clean it up.
 
-[1] do_fault_around calls filemap_map_pages, which finds eligible pages
-    by calling next_uptodate_folio [2]. next_uptodate_folio skips pages
-    with PG_readahead set [3].
+The worst case is one unused page pinned per cluster until the next
+maxed-out allocation or swapoff.  To eliminate the waste, re-check under
+the ci lock that the extend table is still needed before publishing it,
+and free the local allocation otherwise.  The added overhead is ignorable.
 
-Link: https://github.com/torvalds/linux/blob/v7.0/mm/filemap.c#L3921-L3939 [2]
-Link: https://github.com/torvalds/linux/blob/v7.0/mm/filemap.c#L3721-L3722 [3]
-Link: https://lore.kernel.org/20260508181237.670645-1-fmayle@google.com
-Signed-off-by: Frederick Mayle <fmayle@google.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Link: https://lore.kernel.org/20260513-swap-extend-table-fix-v1-1-a71dea851fb3@tencent.com
+Fixes: 0d6af9bcf383 ("mm, swap: use the swap table to track the swap count")
+Signed-off-by: Kairui Song <kasong@tencent.com>
+Reported-by: Breno Leitao <leitao@debian.org>
+Closes: https://lore.kernel.org/linux-mm/agG6Dp0umhs6O1SY@gmail.com/
+Tested-by: Breno Leitao <leitao@debian.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chris Li <chrisl@kernel.org>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ mm/swapfile.c |   32 +++++++++++++++++++++++++-------
+ 1 file changed, 25 insertions(+), 7 deletions(-)
 
---- a/mm/readahead.c~mm-readahead-no-pg_readahead-on-eof
-+++ a/mm/readahead.c
-@@ -340,8 +340,11 @@ static void do_page_cache_ra(struct read
- 	if (index > end_index)
- 		return;
- 	/* Don't read past the page containing the last byte of the file */
--	if (nr_to_read > end_index - index)
-+	if (nr_to_read > end_index - index) {
- 		nr_to_read = end_index - index + 1;
-+		/* We've reached the end, so don't set a readahead marker. */
-+		lookahead_size = 0;
-+	}
+--- a/mm/swapfile.c~mm-swap-avoid-leaving-unused-extend-table-after-alloc-race
++++ a/mm/swapfile.c
+@@ -1443,8 +1443,10 @@ start_over:
+ }
  
- 	filemap_invalidate_lock_shared(mapping);
- 	page_cache_ra_unbounded(ractl, nr_to_read, lookahead_size);
-@@ -485,7 +488,7 @@ void page_cache_ra_order(struct readahea
- 	pgoff_t index = start;
- 	unsigned int min_order = mapping_min_folio_order(mapping);
- 	pgoff_t limit;
--	pgoff_t mark = index + ra->size - ra->async_size;
-+	pgoff_t mark;
- 	unsigned int nofs;
- 	int err = 0;
- 	gfp_t gfp = readahead_gfp_mask(mapping);
-@@ -499,7 +502,13 @@ void page_cache_ra_order(struct readahea
+ static int swap_extend_table_alloc(struct swap_info_struct *si,
+-				   struct swap_cluster_info *ci, gfp_t gfp)
++				   struct swap_cluster_info *ci,
++				   unsigned int ci_off, gfp_t gfp)
+ {
++	int count;
+ 	void *table;
  
- 	limit = (i_size_read(mapping->host) - 1) >> PAGE_SHIFT;
- 	limit = min(limit, ractl->_max_index);
--	limit = min(limit, index + ra->size - 1);
-+	if (limit > index + ra->size - 1) {
-+		limit = index + ra->size - 1;
-+		mark = index + ra->size - ra->async_size;
-+	} else {
-+		/* We've reached the end, so don't set a readahead marker. */
-+		mark = ULONG_MAX;
-+	}
+ 	table = kzalloc(sizeof(ci->extend_table[0]) * SWAPFILE_CLUSTER, gfp);
+@@ -1452,11 +1454,27 @@ static int swap_extend_table_alloc(struc
+ 		return -ENOMEM;
  
- 	new_order = min(mapping_max_folio_order(mapping), new_order);
- 	new_order = min_t(unsigned int, new_order, ilog2(ra->size));
+ 	spin_lock(&ci->lock);
+-	if (!ci->extend_table)
+-		ci->extend_table = table;
+-	else
+-		kfree(table);
++	/*
++	 * Extend table allocation requires releasing ci lock first so it's
++	 * possible that the slot has been freed, no longer overflowed, or
++	 * a concurrent extend table allocation has already succeeded, so
++	 * the allocation is no longer needed.
++	 */
++	if (!cluster_table_is_alloced(ci))
++		goto out_free;
++	count = swp_tb_get_count(__swap_table_get(ci, ci_off));
++	if (count < (SWP_TB_COUNT_MAX - 1))
++		goto out_free;
++	if (ci->extend_table)
++		goto out_free;
++
++	ci->extend_table = table;
++	spin_unlock(&ci->lock);
++	return 0;
++
++out_free:
+ 	spin_unlock(&ci->lock);
++	kfree(table);
+ 	return 0;
+ }
+ 
+@@ -1472,7 +1490,7 @@ int swap_retry_table_alloc(swp_entry_t e
+ 		return 0;
+ 
+ 	ci = __swap_offset_to_cluster(si, offset);
+-	ret = swap_extend_table_alloc(si, ci, gfp);
++	ret = swap_extend_table_alloc(si, ci, swp_cluster_offset(entry), gfp);
+ 
+ 	put_swap_device(si);
+ 	return ret;
+@@ -1665,7 +1683,7 @@ restart:
+ 		if (unlikely(err)) {
+ 			if (err == -ENOMEM) {
+ 				spin_unlock(&ci->lock);
+-				err = swap_extend_table_alloc(si, ci, GFP_ATOMIC);
++				err = swap_extend_table_alloc(si, ci, ci_off, GFP_ATOMIC);
+ 				spin_lock(&ci->lock);
+ 				if (!err)
+ 					goto restart;
 _
 
-Patches currently in -mm which might be from fmayle@google.com are
+Patches currently in -mm which might be from kasong@tencent.com are
 
-mm-limit-filemap_fault-readahead-to-vma-boundaries.patch
-mm-readahead-add-kerneldoc-for-read_pages.patch
-mm-readahead-simplify-page_cache_ra_unbounded-loop-counter-reset.patch
-mm-readahead-no-pg_readahead-on-eof.patch
+mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
+mm-mglru-rename-variables-related-to-aging-and-rotation.patch
+mm-mglru-relocate-the-lru-scan-batch-limit-to-callers.patch
+mm-mglru-restructure-the-reclaim-loop.patch
+mm-mglru-scan-and-count-the-exact-number-of-folios.patch
+mm-mglru-use-a-smaller-batch-for-reclaim.patch
+mm-mglru-dont-abort-scan-immediately-right-after-aging.patch
+mm-mglru-remove-redundant-swap-constrained-check-upon-isolation.patch
+mm-mglru-use-the-common-routine-for-dirty-writeback-reactivation.patch
+mm-mglru-simplify-and-improve-dirty-writeback-handling.patch
+mm-mglru-remove-no-longer-used-reclaim-argument-for-folio-protection.patch
+mm-vmscan-remove-sc-file_taken.patch
+mm-vmscan-remove-sc-unqueued_dirty.patch
+mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch
+mm-swap-avoid-leaving-unused-extend-table-after-alloc-race.patch
 
