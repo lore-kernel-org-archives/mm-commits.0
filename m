@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CBAB2DC783
-	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 03:26:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8124A256C61
+	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 03:52:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778642765; cv=none; b=Dequnm2LaJpWok41s7Fpery38G/cbHB3SOhyWHtbNnmNB0wJTo6lCbw59K2b5noEkQ09Xcrf4cwl6o07uU4kmpI/ETAgSfWEyvsD/5N2LMxnqeLin6mnzavWLBEmJqfI3vFllRQlQgmqWKhVwbEKBPZEbiAXpMd2giIXxfz25PI=
+	t=1778644375; cv=none; b=uEnj6fljxdz4L88/5yx+aCFt2PX2c4lEIILY0iJiCJmVxG/JB/1nX/h012E/AZCkdPM21HBAMSFNT/wUY6XwPrMmXWewj3zgowr8sXASc+bSDWQP8L219sfs8Vpc9awWRY2Rwp4mdkrx7jAsEAcnEBa0nYkrr573uWIQRuOzxvc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778642765; c=relaxed/simple;
-	bh=iFold9YchIChzbUeBUb53yxVBJRPrL9yagZhzgAFiTs=;
-	h=Date:To:From:Subject:Message-Id; b=JiwfM8wiNizKFd3j/OOW4XD3AarqB66LNyZ8Uuu9lom39CxYYnh3ZHKIHTcGp1LRY7dTuO4hnw3y0BMOwb7jzueh5S/KNM67XmVHm3W+EqucdOdk9op3dsf9l8Jnb4A3ZimBzUBlKLvTciiqqWMgAnJnfyGx1K+3AC2QyIf1Dlk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J2W5AK2G; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778644375; c=relaxed/simple;
+	bh=hWr50w6vVaSLb0mHYxnbGEVejod0H4ObwkwT6ngXMX0=;
+	h=Date:To:From:Subject:Message-Id; b=rJpc0b+CbtSbj1rAHYLk5kM/7QoRJOGDGn3XvzUzhXUAcHgMnIQlPCPWXJcjO06NKGY/BK6H0RrwCI3pukBD0mBZ8pstZR7fPS57QmSW3Za+1GJTD6i/3gwph775CUj7zFCMdOTqJZIpFOz46oGym3UCmjHspBQsp+Z4qn7ntgo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LeURMqca; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J2W5AK2G"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E254BC2BCB0;
-	Wed, 13 May 2026 03:26:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LeURMqca"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12811C2BCC7;
+	Wed, 13 May 2026 03:52:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778642765;
-	bh=iFold9YchIChzbUeBUb53yxVBJRPrL9yagZhzgAFiTs=;
+	s=korg; t=1778644375;
+	bh=hWr50w6vVaSLb0mHYxnbGEVejod0H4ObwkwT6ngXMX0=;
 	h=Date:To:From:Subject:From;
-	b=J2W5AK2GBsBuSz/bGJqaZH5F4WVCzC3K51Dkl9oJ/m78idJ3kEKgOZ66sJUlMwKFT
-	 S/+AZrfBitjZbfTfVtFN1bEFO+r8ueGTxEPJoZWT6T0q+qINp/EB5+6a4/kXc7bJzS
-	 BD/9HL2afylCPl1Py3pGKp44QoS9ll45twLjeS44=
-Date: Tue, 12 May 2026 20:26:04 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,agarwal.vineet2006@gmail.com,akpm@linux-foundation.org
+	b=LeURMqcahJx+V2Ez/BTvHeXTJdBGOGaQ7ELKQCPGuWu41NdFgmStT09td1W+Meqmy
+	 rOX+4WVUnkPDm8bE+gKktqObzf4PSU6Wvgo52tzyLH+ezjhXxovCj7GbWtoSMneYVO
+	 kNNj+dhu0rwH/ymsQkYBepd1mcbriFwxdqN19Buw=
+Date: Tue, 12 May 2026 20:52:54 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shivankg@amd.com,rppt@kernel.org,pankaj.gupta@amd.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,bharata@amd.com,ankur.a.arora@oracle.com,hsalunke@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-ksm-functional-tests-fix-partial-write-handling.patch added to mm-new branch
-Message-Id: <20260513032604.E254BC2BCB0@smtp.kernel.org>
+Subject: + mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4.patch added to mm-unstable branch
+Message-Id: <20260513035255.12811C2BCC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: ksm-functional-tests: fix partial write handling
-has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-ksm-functional-tests-fix-partial-write-handling.patch
+     Subject: mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-ksm-functional-tests-fix-partial-write-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,87 +58,89 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Vineet Agarwal <agarwal.vineet2006@gmail.com>
-Subject: selftests/mm: ksm-functional-tests: fix partial write handling
-Date: Mon, 4 May 2026 13:43:13 +0530
+From: Hrushikesh Salunke <hsalunke@amd.com>
+Subject: mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4
+Date: Mon, 4 May 2026 06:39:19 +0000
 
-Update write() checks to properly detect and handle partial writes.
+Move clear_highpages_kasan_tagged() from include/linux/highmem.h to
+mm/page_alloc.c as a static function to avoid code size increase.  As the
+function is only used within page_alloc.c.
 
-Previously, the write() calls used <= 0 to detect failure.  This condition
-is never true for partial writes (ret > 0 but ret < len), so partial
-writes were silently treated as success.
-
-Fix this by verifying that write() returns the full expected length and
-treating any mismatch as failure.
-
-Link: https://lore.kernel.org/20260504081638.683223-1-agarwal.vineet2006@gmail.com
-Signed-off-by: Vineet Agarwal <agarwal.vineet2006@gmail.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam Howlett <liam@infradead.org>
+Link: https://lore.kernel.org/20260504063942.553438-1-hsalunke@amd.com
+Signed-off-by: Hrushikesh Salunke <hsalunke@amd.com>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Cc: Ankur Arora <ankur.a.arora@oracle.com>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shivank Garg <shivankg@amd.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/ksm_functional_tests.c |   21 ++++++------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ include/linux/highmem.h |   15 ---------------
+ mm/page_alloc.c         |   15 +++++++++++++++
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-ksm-functional-tests-fix-partial-write-handling
-+++ a/tools/testing/selftests/mm/ksm_functional_tests.c
-@@ -498,6 +498,7 @@ static void test_prctl_fork(void)
- static int start_ksmd_and_set_frequency(char *pages_to_scan, char *sleep_ms)
- {
- 	int ksm_fd;
-+	size_t len;
+--- a/include/linux/highmem.h~mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4
++++ a/include/linux/highmem.h
+@@ -345,21 +345,6 @@ static inline void clear_highpage_kasan_
+ 	kunmap_local(kaddr);
+ }
  
- 	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
- 	if (ksm_fd < 0)
-@@ -506,11 +507,13 @@ static int start_ksmd_and_set_frequency(
- 	if (write(ksm_fd, "1", 1) != 1)
- 		return -errno;
- 
--	if (write(pages_to_scan_fd, pages_to_scan, strlen(pages_to_scan)) <= 0)
--		return -errno;
+-static inline void clear_highpages_kasan_tagged(struct page *page, int numpages)
+-{
+-	/* s390's use of memset() could override KASAN redzones. */
+-	kasan_disable_current();
+-	if (!IS_ENABLED(CONFIG_HIGHMEM)) {
+-		clear_pages(kasan_reset_tag(page_address(page)), numpages);
+-	} else {
+-		int i;
 -
--	if (write(sleep_millisecs_fd, sleep_ms, strlen(sleep_ms)) <= 0)
--		return -errno;
-+	len = strlen(pages_to_scan);
-+	if (write(pages_to_scan_fd, pages_to_scan, len) != len)
-+		return -1;
+-		for (i = 0; i < numpages; i++)
+-			clear_highpage_kasan_tagged(page + i);
+-	}
+-	kasan_enable_current();
+-}
+-
+ #ifndef __HAVE_ARCH_TAG_CLEAR_HIGHPAGES
+ 
+ /* Returns true if the caller has to initialize the pages */
+--- a/mm/page_alloc.c~mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4
++++ a/mm/page_alloc.c
+@@ -1208,6 +1208,21 @@ static inline bool should_skip_kasan_poi
+ 	return page_kasan_tag(page) == KASAN_TAG_KERNEL;
+ }
+ 
++static void clear_highpages_kasan_tagged(struct page *page, int numpages)
++{
++	/* s390's use of memset() could override KASAN redzones. */
++	kasan_disable_current();
++	if (!IS_ENABLED(CONFIG_HIGHMEM)) {
++		clear_pages(kasan_reset_tag(page_address(page)), numpages);
++	} else {
++		int i;
 +
-+	len = strlen(sleep_ms);
-+	if (write(sleep_millisecs_fd, sleep_ms, len) != len)
-+		return -1;
++		for (i = 0; i < numpages; i++)
++			clear_highpage_kasan_tagged(page + i);
++	}
++	kasan_enable_current();
++}
++
+ #ifdef CONFIG_MEM_ALLOC_PROFILING
  
- 	return 0;
- }
-@@ -526,11 +529,11 @@ static int stop_ksmd_and_restore_frequen
- 	if (write(ksm_fd, "2", 1) != 1)
- 		return -errno;
- 
--	if (write(pages_to_scan_fd, "100", 3) <= 0)
--		return -errno;
-+	if (write(pages_to_scan_fd, "100", 3) != 3)
-+		return -1;
- 
--	if (write(sleep_millisecs_fd, "20", 2) <= 0)
--		return -errno;
-+	if (write(sleep_millisecs_fd, "20", 2) != 2)
-+		return -1;
- 
- 	return 0;
- }
+ /* Should be called only if mem_alloc_profiling_enabled() */
 _
 
-Patches currently in -mm which might be from agarwal.vineet2006@gmail.com are
+Patches currently in -mm which might be from hsalunke@amd.com are
 
-selftests-mm-khugepaged-initialize-file-contents-via-mmap.patch
-mm-khugepaged-return-eagain-for-scan_page_has_private-in-madv_collapse.patch
-selftests-mm-check-file-initialization-writes-in-split_huge_page_test.patch
-mm-damon-sysfs-schemes-fix-double-increment-of-nr_regions.patch
-selftests-mm-ksm-functional-tests-fix-partial-write-handling.patch
+mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing.patch
+mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4.patch
 
