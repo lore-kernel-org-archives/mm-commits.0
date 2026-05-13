@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EFF83264E9
-	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 23:27:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90A533B6BE4
+	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 23:38:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778714878; cv=none; b=Ku21va1k3J8i+UVjByMm3Fb478gnkcbeaqn0k1JysomXxeMGNxAIHhgGkzfCJ6vU7InkPafHNWjZQjdo4WQzB2KIxAN05yLeMMO+QhJdT0G5YfnJ1X96ZhIevl8LEOGOLzrJx+65Qok+DtHnBj32Ds+u/OoVhLxfvV9VrICcNLA=
+	t=1778715532; cv=none; b=LE0J8sJexsgsjnQWJt1t2ZLDq29GINWCfJYLaMmREViKrgSNFc9u+JA7OKDNJEpzaBE4DQGaUmJD2FrWcej6zjJKgl+0ilNHI1+FNhJAp3GK1Gp9rZbCaqlcCIQ5+TZk1+S/QHfTRho8iAfVrLQhEQWpAF5au8Z15ZisX1PpLQo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778714878; c=relaxed/simple;
-	bh=SYv/WNkd7MbMkiwIqe5qLPhsIG7sMlIkTT5SOU1LBgo=;
-	h=Date:To:From:Subject:Message-Id; b=K50O30h1khGwIvt+NIR7RARy7GhQfeScDJZfhsY/ZrK4bFOiNO8/As9tJceKjCY6JfoKz3KtF6p5UATosD4YHxu13UKbmvJObLIg77lV1f5boPYxnQbALKj2pP3radsfRZ/yIpE1/NPMLQpnUWb7CWDfOA9/KHITbw/jTyLnpIc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ksAUIKXV; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778715532; c=relaxed/simple;
+	bh=NxFyTsUJ/UCUIzKr4uO4SmZY/7UJOk0Gt+PTIo3qRIo=;
+	h=Date:To:From:Subject:Message-Id; b=g/UJx1lWmDtfKUSQgPVUnjIToRaTAZkiThWgMFISu7Y/qbok5Bxhm15OekP3orc9ux/zE4w7WeH9g3NlThy7oOTNnkXslNHb+sZb4RrsC8n+N6/tDvtJ74axAXO03AGzTPiV0VYOo4AEtOQ3aCPNLvZ/zDd/4pB77I42h14J9Uc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VPhUGUTT; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ksAUIKXV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A85A4C19425;
-	Wed, 13 May 2026 23:27:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VPhUGUTT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1DB14C19425;
+	Wed, 13 May 2026 23:38:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778714877;
-	bh=SYv/WNkd7MbMkiwIqe5qLPhsIG7sMlIkTT5SOU1LBgo=;
+	s=korg; t=1778715532;
+	bh=NxFyTsUJ/UCUIzKr4uO4SmZY/7UJOk0Gt+PTIo3qRIo=;
 	h=Date:To:From:Subject:From;
-	b=ksAUIKXV/OHxGHkSHlF9OIU3GA5kzysR7mCYlWyFOg0syJTzfcHdPIzMLesMyZsCY
-	 BuMM3H69Y6i0pI4QNhoBrTZjEKJIkFqgbWpPC/b6MAhFf336b3MigL3C8G33hs7lMt
-	 0oUIJl1urBx8L+eZP3ZI0bdg16+4SownYPTFNogo=
-Date: Wed, 13 May 2026 16:27:57 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,chenwandun@lixiang.com,akpm@linux-foundation.org
+	b=VPhUGUTThfh8yzfL7xvT24efeUEn1nSbmXCjtTXzJ64myJ8PXXzHEUMfxcTeg4OSq
+	 wNCu3B0snVOjCbHGOB6X4iaR9n8EC8u0odT8vdcZ2xZ76IfO2cqRrl6gPY4n2pxHPV
+	 gZDLXcRNyhdusmQ2GxloQs1AWfo5KQeCtrxoWDPY=
+Date: Wed, 13 May 2026 16:38:51 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,richard.weiyang@gmail.com,mingo@kernel.org,mic@digikod.net,khuey@kylehuey.com,akpm@linux-foundation.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse.patch added to mm-new branch
-Message-Id: <20260513232757.A85A4C19425@smtp.kernel.org>
+Subject: + selftests-perf_events-fix-mmap-error-check-in-sigtrap_threads.patch added to mm-nonmm-unstable branch
+Message-Id: <20260513233852.1DB14C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: avoid underflow in madvise_collapse for sub-PMD MADV_COLLAPSE
-has been added to the -mm mm-new branch.  Its filename is
-     mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse.patch
+     Subject: selftests/perf_events: fix mmap() error check in sigtrap_threads
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     selftests-perf_events-fix-mmap-error-check-in-sigtrap_threads.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-perf_events-fix-mmap-error-check-in-sigtrap_threads.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,72 +58,46 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Chen Wandun <chenwandun@lixiang.com>
-Subject: mm/khugepaged: avoid underflow in madvise_collapse for sub-PMD MADV_COLLAPSE
-Date: Wed, 13 May 2026 13:54:28 +0800
+From: Hongfu Li <lihongfu@kylinos.cn>
+Subject: selftests/perf_events: fix mmap() error check in sigtrap_threads
+Date: Wed, 13 May 2026 10:58:38 +0800
 
-madvise_collapse() computes the THP-aligned window:
+In sigtrap_threads(), the return value of mmap() is checked against NULL. 
+mmap() returns MAP_FAILED, which is (void *)-1, not NULL, when it fails. 
+Since MAP_FAILED is non-zero and non-NULL, the condition "p == NULL" will
+never be true on failure, causing the program to proceed with an invalid
+pointer and segfault if mmap() actually fails under memory pressure.
 
-    hstart = ALIGN(start, HPAGE_PMD_SIZE); 	/* round up */
-    hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);	/* round down */
-
-The following case will cause hstart > hend, and result in underflow in
-the return statement, avoid it by returning zero early when hstart > hend.
-The return value is due to input is valid to madvise(), and there is
-nothing to collapse.
-
-    madvise(PMD-aligned + PAGE_SIZE, PAGE_SIZE, MADV_COLLAPSE);
-
-In addition, kmalloc_obj(), mmgrab() and lru_add_drain_all() are
-unnecessary when hstart == hend, so skip these operations by returning
-early too.
-
-Link: https://lore.kernel.org/20260513055428.1664898-1-chenwandun@lixiang.com
-Signed-off-by: Chen Wandun <chenwandun@lixiang.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Lance Yang <lance.yang@linux.dev>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/20260513025838.594945-1-lihongfu@kylinos.cn
+Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mickael Salaun <mic@digikod.net>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Kyle Huey <khuey@kylehuey.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ tools/testing/selftests/perf_events/watermark_signal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse
-+++ a/mm/khugepaged.c
-@@ -3202,6 +3202,12 @@ int madvise_collapse(struct vm_area_stru
- 	if (!collapse_allowable_orders(vma, vma->vm_flags, TVA_FORCED_COLLAPSE))
- 		return -EINVAL;
+--- a/tools/testing/selftests/perf_events/watermark_signal.c~selftests-perf_events-fix-mmap-error-check-in-sigtrap_threads
++++ a/tools/testing/selftests/perf_events/watermark_signal.c
+@@ -102,7 +102,7 @@ TEST(watermark_signal)
+ 	}
  
-+	hstart = ALIGN(start, HPAGE_PMD_SIZE);
-+	hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);
-+
-+	if (hstart >= hend)
-+		return 0;
-+
- 	cc = kmalloc_obj(*cc);
- 	if (!cc)
- 		return -ENOMEM;
-@@ -3211,9 +3217,6 @@ int madvise_collapse(struct vm_area_stru
- 	mmgrab(mm);
- 	lru_add_drain_all();
- 
--	hstart = ALIGN(start, HPAGE_PMD_SIZE);
--	hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);
--
- 	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
- 		enum scan_result result = SCAN_FAIL;
- 
+ 	p = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+-	if (p == NULL) {
++	if (p == MAP_FAILED) {
+ 		perror("mmap");
+ 		goto cleanup;
+ 	}
 _
 
-Patches currently in -mm which might be from chenwandun@lixiang.com are
+Patches currently in -mm which might be from lihongfu@kylinos.cn are
 
-mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse.patch
+selftests-mm-fix-mmap-return-value-check-in-run_migration_benchmark.patch
+selftests-perf_events-fix-mmap-error-check-in-sigtrap_threads.patch
 
