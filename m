@@ -1,285 +1,174 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEA7E4DA551;
-	Wed, 13 May 2026 17:04:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E84C63A2E07;
+	Wed, 13 May 2026 17:27:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778691864; cv=none; b=H2k2smuvx7Vpqf6VHzSCkdXBQyQvMbv9Kky1kfrWJwoHRtc8A+KHAFRqEGyMEPU26ms02j4OdADGi03NdMAqxM1fbAW3RpnuxV/29Pi9ilPh1Tr1HA9qOKPz2T+X/C+M2zFjiAFPBW5BvnB2qEoc3evuDGYxUDPxZQH3jy+OUFs=
+	t=1778693233; cv=none; b=RhZNnlovKrXMAT2K6ogN05X66TvdTIWYvoMSRLnJSZMLgn9/gki2CO1goD/BHI6mxllm8AaTz+zTjKGgower32OI+fbCESWIZAQkQhEwwLhDckBalAX00EIgx208CkIv4Qb9L52Et77x4lcPuv+yxv/hCQ2UQNjQJuBKAIUazxA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778691864; c=relaxed/simple;
-	bh=j7jgZEJB2DskvKS8w+ZVQxLVbzOdCr5DmvQJUjgcbq4=;
-	h=Date:To:From:Subject:Message-Id; b=mFrRBPPv84ma+GchJN9uD8BNNbheKj6CancYYrWCtx6c1v2SjRJLW7BRX2DzeTmsHMD1r12UD0IkZWvFREmWCFY/ryblCpsVT0X9MyfHvNE5lSgrHReZfC9Ibscm7rnOnKcgMzAEP8WmOqyvs90f4nj3w+v/W3Jp7BGN/LHQEgU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=elRHtTCe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778693233; c=relaxed/simple;
+	bh=xbNqFRfEPLDvfnXWBGOb0+DeiVRfeyxliAUWgIwEAjg=;
+	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
+	 Mime-Version:Content-Type; b=M7gF0RwEXou1baubtNL4PC80z9cHToLo8hvJNXTFUnfZVyazzz9KwfY+s/ZP7eaLJU+GsdaTlkwEkBJyvGjgCaBeoli++MLwnSrTgD4lSJXoyIDN6XjYICiLgCQXLZo4MITh/Lxpvo7zePNv2hrYxUc+47ZBj71a0nWFUU782w4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eQE06z6g; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="elRHtTCe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F5D9C19425;
-	Wed, 13 May 2026 17:04:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eQE06z6g"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7413DC2BCB7;
+	Wed, 13 May 2026 17:27:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778691864;
-	bh=j7jgZEJB2DskvKS8w+ZVQxLVbzOdCr5DmvQJUjgcbq4=;
-	h=Date:To:From:Subject:From;
-	b=elRHtTCeUb66bv0eIHCP1QfFISYGxDdkzpyqgY0vWPDufRwTDbhSVhA0Co8VQ74c5
-	 U6rtiM/8Jykc/rpayHu7AIjk7JMwM+MI/84has10vrx3IpwcPc060uxef2KJ8FqHfx
-	 yS2s7/CI32uCxOf3vMymk9heJjGv4lRtubG1j9qk=
-Date: Wed, 13 May 2026 10:04:23 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	s=korg; t=1778693232;
+	bh=xbNqFRfEPLDvfnXWBGOb0+DeiVRfeyxliAUWgIwEAjg=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=eQE06z6gjM3bpDzZDm5424CoAuAbjQ4g/r3MVc8E6oBphcGLkKpJkYplWwSeixdEv
+	 YAIVBz8nUCiLXEJu0wNFZATFBujKfKZUtt/AJSL6eZZcG08a5uEpQvxWUaWmzesVhJ
+	 dbdVPUleVowZaPXXcNEHPb+ZvoKfzKVQfcgHLG60=
+Date: Wed, 13 May 2026 10:27:11 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-avoid-false-positive-lockdep-assertion.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260513170424.4F5D9C19425@smtp.kernel.org>
+To: kernel test robot <lkp@intel.com>
+Cc: Minchan Kim <minchan@kernel.org>, oe-kbuild-all@lists.linux.dev, David
+ Hildenbrand <david@kernel.org>, Linux Memory Management List
+ <linux-mm@kvack.org>, mm-commits@vger.kernel.org, Suren Baghdasaryan
+ <surenb@google.com>
+Subject: Re: [akpm-mm:mm-new 301/315] mm/oom_kill.c:922:12: warning:
+ 'kill_all_shared_mm' defined but not used
+Message-Id: <20260513102711.323fed51b7dbb1dfe6217b44@linux-foundation.org>
+In-Reply-To: <202605131940.kEzvUaiR-lkp@intel.com>
+References: <202605131940.kEzvUaiR-lkp@intel.com>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+
+On Wed, 13 May 2026 19:48:25 +0800 kernel test robot <lkp@intel.com> wrote:
+
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+> head:   2c3f468717231305523ddcd94d91c0d5e4a72419
+> commit: def36547cd98fa3f7ecac1bf860479f500bc6b1e [301/315] mm: process_mrelease: introduce PROCESS_MRELEASE_REAP_KILL flag
+> config: sh-allnoconfig (https://download.01.org/0day-ci/archive/20260513/202605131940.kEzvUaiR-lkp@intel.com/config)
+> compiler: sh4-linux-gcc (GCC) 15.2.0
+> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260513/202605131940.kEzvUaiR-lkp@intel.com/reproduce)
+> 
+> If you fix the issue in a separate patch/commit (i.e. not just a new version of
+> the same patch/commit), kindly add following tags
+> | Reported-by: kernel test robot <lkp@intel.com>
+> | Closes: https://lore.kernel.org/oe-kbuild-all/202605131940.kEzvUaiR-lkp@intel.com/
+> 
+> All warnings (new ones prefixed by >>):
+> 
+> >> mm/oom_kill.c:922:12: warning: 'kill_all_shared_mm' defined but not used [-Wunused-function]
+>      922 | static int kill_all_shared_mm(struct task_struct *victim, struct mm_struct *mm)
+
+Thanks. I  did this:
 
 
-The patch titled
-     Subject: mm/hugetlb: avoid false positive lockdep assertion
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-avoid-false-positive-lockdep-assertion.patch
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix
+Date: Wed May 13 10:22:14 AM PDT 2026
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-avoid-false-positive-lockdep-assertion.patch
+move kill_all_shared_mm() inside CONFIG_MMU
 
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
-
-------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/hugetlb: avoid false positive lockdep assertion
-Date: Wed, 13 May 2026 09:56:58 +0100
-
-Commit 081056dc00a2 ("mm/hugetlb: unshare page tables during VMA split,
-not before") changed the locking model around hugetlbfs PMD unsharing on
-VMA split, but did not update the function which asserts the locks,
-hugetlb_vma_assert_locked().
-
-This function asserts that either the hugetlb VMA lock is held (if a
-shared mapping) or that the reservation map lock is held (if private).
-
-If you get an unfortunate race between something which results in one of
-these locks being released and a hugetlb VMA split and you have
-CONFIG_LOCKDEP enabled, you can therefore see a false positive assertion
-arise when there is in fact no issue.
-
-Since this change introduced a new take_locks parameter to
-hugetlb_unshare_pmds(), which, when set to false, indicates that locking
-is sufficient, simply pass this to the unsharing logic and predicate the
-lock assertions on this.
-
-This is safe, as we already asserted the file rmap lock and the VMA write
-lock prior to this (implying exclusive mmap write lock), so we cannot be
-raced by either rmap or page fault page table walkers which the asserted
-locks are intended to protect against (we don't mind GUP-fast).
-
-Separate out huge_pmd_unshare() into __huge_pmd_unshare() to add a
-check_locks parameter, and update hugetlb_unshare_pmds() to pass this
-parameter to it.
-
-This leaves all other callers of huge_pmd_unshare() still correctly
-asserting the locks.
-
-The below reproducer will trigger the assert in a kernel with
-CONFIG_LOCKDEP enabled by racing process teardown (which will release the
-hugetlb lock) against a hugetlb split.
-
-void execute_one(void)
-{
-	void *ptr;
-	pid_t pid;
-
-	/*
-	 * Create a hugetlb mapping spanning a PUD entry.
-	 *
-	 * We force the hugetlb page allocation with populate and
-	 * noreserve.
-	 *
-	 * |---------------------|
-	 * |                     |
-	 * |---------------------|
-	 * 0                 PUD boundary
-	 */
-	ptr = mmap(0, PUD_SIZE, PROT_READ | PROT_WRITE,
-		   MAP_FIXED | MAP_SHARED | MAP_ANON |
-		   MAP_NORESERVE | MAP_HUGETLB | MAP_POPULATE,
-		   -1, 0);
-	if (ptr == MAP_FAILED) {
-		perror("mmap");
-		exit(EXIT_FAILURE);
-	}
-
-	/*
-	 * Fork but with a bogus stack pointer so we try to execute code in
-	 * a non-VM_EXEC VMA, causing segfault + teardown via exit_mmap().
-	 *
-	 * The clone will cause PMD page table sharing between the
-	 * processes first via:
-	 * copy_process() -> ... -> huge_pte_alloc() -> huge_pmd_share()
-	 *
-	 * Then tear down and release the hugetlb 'VMA' lock via:
-	 * exit_mmap() -> ... -> vma_close() -> hugetlb_vma_lock_free()
-	 */
-	pid = syscall(__NR_clone, 0, 2 * PMD_SIZE, 0, 0, 0);
-	if (pid < 0) {
-		perror("clone");
-		exit(EXIT_FAILURE);
-	} if (pid == 0) {
-		/* Pop stack... */
-		return;
-	}
-
-	/*
-	 * We are the parent process.
-	 *
-	 * Race the child process's teardown with a PMD unshare.
-	 *
-	 * We do this by triggering:
-	 *
-	 * __split_vma() -> hugetlb_split() -> hugetlb_unshare_pmds()
-	 *
-	 * Which, importantly, doesn't hold the hugetlb VMA lock (nor can
-	 * it), meaning we assert in hugetlb_vma_assert_locked().
-	 *
-	 *            .
-	 * |----------.----------|
-	 * |          .          |
-	 * |----------.----------|
-	 * 0          .     PUD boundary
-	 */
-	mmap(0, PUD_SIZE / 2, PROT_READ | PROT_WRITE,
-	     MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
-}
-
-int main(void)
-{
-	int i;
-
-	/* Kick off fork children. */
-	for (i = 0; i < NUM_FORKS; i++) {
-		pid_t pid = fork();
-
-		if (pid < 0) {
-			perror("fork");
-			exit(EXIT_FAILURE);
-		}
-
-		/* Fork children do their work and exit. */
-		if (!pid) {
-			int j;
-
-			for (j = 0; j < NUM_ITERS; j++)
-				execute_one();
-			return EXIT_SUCCESS;
-		}
-	}
-
-	/* If we succeeded, wait on children. */
-	for (i = 0; i < NUM_FORKS; i++)
-		wait(NULL);
-
-	return EXIT_SUCCESS;
-}
-
-Link: https://lore.kernel.org/20260513085658.45264-1-ljs@kernel.org
-Fixes: 081056dc00a2 ("mm/hugetlb: unshare page tables during VMA split, not before")
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Jann Horn <jannh@google.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Closes: https://lore.kernel.org/oe-kbuild-all/202605131940.kEzvUaiR-lkp@intel.com
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tim Murray <timmurray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   46 +++++++++++++++++++++++++++-------------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ mm/oom_kill.c |   66 ++++++++++++++++++++++++------------------------
+ 1 file changed, 33 insertions(+), 33 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-avoid-false-positive-lockdep-assertion
-+++ a/mm/hugetlb.c
-@@ -6892,6 +6892,31 @@ out:
- 	return pte;
- }
- 
-+static int __huge_pmd_unshare(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, unsigned long addr, pte_t *ptep,
-+		bool check_locks)
-+{
-+	unsigned long sz = huge_page_size(hstate_vma(vma));
-+	struct mm_struct *mm = vma->vm_mm;
-+	pgd_t *pgd = pgd_offset(mm, addr);
-+	p4d_t *p4d = p4d_offset(pgd, addr);
-+	pud_t *pud = pud_offset(p4d, addr);
-+
-+	if (sz != PMD_SIZE)
-+		return 0;
-+	if (!ptdesc_pmd_is_shared(virt_to_ptdesc(ptep)))
-+		return 0;
-+	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
-+	if (check_locks)
-+		hugetlb_vma_assert_locked(vma);
-+	pud_clear(pud);
-+
-+	tlb_unshare_pmd_ptdesc(tlb, virt_to_ptdesc(ptep), addr);
-+
-+	mm_dec_nr_pmds(mm);
-+	return 1;
-+}
-+
- /**
-  * huge_pmd_unshare - Unmap a pmd table if it is shared by multiple users
-  * @tlb: the current mmu_gather.
-@@ -6911,24 +6936,7 @@ out:
- int huge_pmd_unshare(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		unsigned long addr, pte_t *ptep)
- {
--	unsigned long sz = huge_page_size(hstate_vma(vma));
--	struct mm_struct *mm = vma->vm_mm;
--	pgd_t *pgd = pgd_offset(mm, addr);
--	p4d_t *p4d = p4d_offset(pgd, addr);
--	pud_t *pud = pud_offset(p4d, addr);
--
--	if (sz != PMD_SIZE)
--		return 0;
--	if (!ptdesc_pmd_is_shared(virt_to_ptdesc(ptep)))
--		return 0;
--	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
--	hugetlb_vma_assert_locked(vma);
--	pud_clear(pud);
--
--	tlb_unshare_pmd_ptdesc(tlb, virt_to_ptdesc(ptep), addr);
--
--	mm_dec_nr_pmds(mm);
--	return 1;
-+	return __huge_pmd_unshare(tlb, vma, addr, ptep, /*check_locks=*/true);
+--- a/mm/oom_kill.c~mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix
++++ a/mm/oom_kill.c
+@@ -676,6 +676,39 @@ static void wake_oom_reaper(struct timer
  }
  
  /*
-@@ -7270,7 +7278,7 @@ static void hugetlb_unshare_pmds(struct
- 		if (!ptep)
- 			continue;
- 		ptl = huge_pte_lock(h, mm, ptep);
--		huge_pmd_unshare(&tlb, vma, address, ptep);
-+		__huge_pmd_unshare(&tlb, vma, address, ptep, take_locks);
- 		spin_unlock(ptl);
- 	}
- 	huge_pmd_unshare_flush(&tlb, vma);
++ * kill_all_shared_mm - Deliver SIGKILL to all processes sharing the given address space.
++ * @victim: the targeted OOM process group leader
++ * @mm:     the virtual memory space being reaped
++ *
++ * Traverse all threads globally and signal any user processes sharing the
++ * identical mm footprints, ensuring no concurrent users pin the memory. Skips
++ * the system global init and kernel worker threads.
++ */
++static int kill_all_shared_mm(struct task_struct *victim, struct mm_struct *mm)
++{
++	struct task_struct *p;
++	bool failed = false;
++
++	rcu_read_lock();
++	for_each_process(p) {
++		if (!process_shares_mm(p, mm))
++			continue;
++		if (is_global_init(p)) {
++			failed = true;
++			continue;
++		}
++		if (unlikely(p->flags & PF_KTHREAD))
++			continue;
++
++		if (do_pidfd_send_signal_pidns(task_pid(p), SIGKILL, PIDTYPE_TGID, NULL, 0))
++			failed = true;
++	}
++	rcu_read_unlock();
++
++	return failed ? -EBUSY : 0;
++}
++
++/*
+  * Give the OOM victim time to exit naturally before invoking the oom_reaping.
+  * The timers timeout is arbitrary... the longer it is, the longer the worst
+  * case scenario for the OOM can take. If it is too small, the oom_reaper can
+@@ -910,39 +943,6 @@ static bool task_will_free_mem(struct ta
+ 	return ret;
+ }
+ 
+-/*
+- * kill_all_shared_mm - Deliver SIGKILL to all processes sharing the given address space.
+- * @victim: the targeted OOM process group leader
+- * @mm:     the virtual memory space being reaped
+- *
+- * Traverse all threads globally and signal any user processes sharing the identical
+- * mm footprints, ensuring no concurrent users pin the memory. Skips the system
+- * global init and kernel worker threads.
+- */
+-static int kill_all_shared_mm(struct task_struct *victim, struct mm_struct *mm)
+-{
+-	struct task_struct *p;
+-	bool failed = false;
+-
+-	rcu_read_lock();
+-	for_each_process(p) {
+-		if (!process_shares_mm(p, mm))
+-			continue;
+-		if (is_global_init(p)) {
+-			failed = true;
+-			continue;
+-		}
+-		if (unlikely(p->flags & PF_KTHREAD))
+-			continue;
+-
+-		if (do_pidfd_send_signal_pidns(task_pid(p), SIGKILL, PIDTYPE_TGID, NULL, 0))
+-			failed = true;
+-	}
+-	rcu_read_unlock();
+-
+-	return failed ? -EBUSY : 0;
+-}
+-
+ static void __oom_kill_process(struct task_struct *victim, const char *message)
+ {
+ 	struct task_struct *p;
 _
-
-Patches currently in -mm which might be from ljs@kernel.org are
-
-revert-mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
-mm-hugetlb-avoid-false-positive-lockdep-assertion.patch
 
