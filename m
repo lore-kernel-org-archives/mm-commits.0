@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31762385D81
-	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 03:03:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CBAB2DC783
+	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 03:26:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778641400; cv=none; b=QMsFdMEkhvEJPs1Kgq3jye3vFxbWEQJ1eyXLExZGOCnnk6QTA1DLV7a0LEivtMWTm/RIHlUe4pStaj8tKqFreGHWSenOyPfugTlHg6kPzEEe1RmGCYKI8JWBcBgwFoHDQ0dtUhqlCAKtVU0hfGAL62wZEgJUKMsdCoVJoF6Dsx0=
+	t=1778642765; cv=none; b=Dequnm2LaJpWok41s7Fpery38G/cbHB3SOhyWHtbNnmNB0wJTo6lCbw59K2b5noEkQ09Xcrf4cwl6o07uU4kmpI/ETAgSfWEyvsD/5N2LMxnqeLin6mnzavWLBEmJqfI3vFllRQlQgmqWKhVwbEKBPZEbiAXpMd2giIXxfz25PI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778641400; c=relaxed/simple;
-	bh=lLDBq2nD0VhrkfwZK2wc2cwyAqODYAVJMktH6zJWaD8=;
-	h=Date:To:From:Subject:Message-Id; b=KJGtLwrKI3kUo7xqNVwJHXApYBKBEH4QuC5VjkgKcidjZgMwt9o/WZ5Hg53cB4zDX1eY2NenzzVW65HzoYyyT3y2LgEaYvOT5BG8e4ty2EJuSnN7NXDpuX/pl15JLSscftyZQA4pHDGHRwlZEspNSGpEMf2OeIdHZ3tBHcGC8xE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=10b1zv2v; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778642765; c=relaxed/simple;
+	bh=iFold9YchIChzbUeBUb53yxVBJRPrL9yagZhzgAFiTs=;
+	h=Date:To:From:Subject:Message-Id; b=JiwfM8wiNizKFd3j/OOW4XD3AarqB66LNyZ8Uuu9lom39CxYYnh3ZHKIHTcGp1LRY7dTuO4hnw3y0BMOwb7jzueh5S/KNM67XmVHm3W+EqucdOdk9op3dsf9l8Jnb4A3ZimBzUBlKLvTciiqqWMgAnJnfyGx1K+3AC2QyIf1Dlk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=J2W5AK2G; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="10b1zv2v"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B39E5C2BCFC;
-	Wed, 13 May 2026 03:03:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="J2W5AK2G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E254BC2BCB0;
+	Wed, 13 May 2026 03:26:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778641399;
-	bh=lLDBq2nD0VhrkfwZK2wc2cwyAqODYAVJMktH6zJWaD8=;
+	s=korg; t=1778642765;
+	bh=iFold9YchIChzbUeBUb53yxVBJRPrL9yagZhzgAFiTs=;
 	h=Date:To:From:Subject:From;
-	b=10b1zv2v0c61bjwBsPH+WwEJUcoij++kErIgXyqWBcKWbnzjaccjAEs1z9nlefo/R
-	 8qfqTN1c7LdMzZdpgSZdRE/bw401+ymtwcx3r3dti7IW08rCmZY4/ROeYF1BWl6Uwt
-	 EX9nRkovuyyTNh4YtFn28SVTAzFEHwlyJqwb3qSo=
-Date: Tue, 12 May 2026 20:03:19 -0700
-To: mm-commits@vger.kernel.org,error27@gmail.com,glider@google.com,akpm@linux-foundation.org
+	b=J2W5AK2GBsBuSz/bGJqaZH5F4WVCzC3K51Dkl9oJ/m78idJ3kEKgOZ66sJUlMwKFT
+	 S/+AZrfBitjZbfTfVtFN1bEFO+r8ueGTxEPJoZWT6T0q+qINp/EB5+6a4/kXc7bJzS
+	 BD/9HL2afylCPl1Py3pGKp44QoS9ll45twLjeS44=
+Date: Tue, 12 May 2026 20:26:04 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,agarwal.vineet2006@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_meminit-use-for-bools.patch added to mm-new branch
-Message-Id: <20260513030319.B39E5C2BCFC@smtp.kernel.org>
+Subject: + selftests-mm-ksm-functional-tests-fix-partial-write-handling.patch added to mm-new branch
+Message-Id: <20260513032604.E254BC2BCB0@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/test_meminit: use && for bools
+     Subject: selftests/mm: ksm-functional-tests: fix partial write handling
 has been added to the -mm mm-new branch.  Its filename is
-     lib-test_meminit-use-for-bools.patch
+     selftests-mm-ksm-functional-tests-fix-partial-write-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_meminit-use-for-bools.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-ksm-functional-tests-fix-partial-write-handling.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,40 +69,87 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: lib/test_meminit: use && for bools
-Date: Mon, 4 May 2026 12:06:37 +0200
+From: Vineet Agarwal <agarwal.vineet2006@gmail.com>
+Subject: selftests/mm: ksm-functional-tests: fix partial write handling
+Date: Mon, 4 May 2026 13:43:13 +0530
 
-As pointed out by Dan Carpenter, test_kmemcache() was using a bitwise AND
-on two bools instead of a boolean AND.  Fix this for the sake of code
-cleanliness.
+Update write() checks to properly detect and handle partial writes.
 
-Link: https://lore.kernel.org/20260504100637.1535762-1-glider@google.com
-Fixes: 5015a300a522 ("lib: introduce test_meminit module")
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Reported-by: Dan Carpenter <error27@gmail.com>
-Closes: https://lore.kernel.org/kernel-janitors/afOcIan1ap9kD26M@stanley.mountain/
+Previously, the write() calls used <= 0 to detect failure.  This condition
+is never true for partial writes (ret > 0 but ret < len), so partial
+writes were silently treated as success.
+
+Fix this by verifying that write() returns the full expected length and
+treating any mismatch as failure.
+
+Link: https://lore.kernel.org/20260504081638.683223-1-agarwal.vineet2006@gmail.com
+Signed-off-by: Vineet Agarwal <agarwal.vineet2006@gmail.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_meminit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/mm/ksm_functional_tests.c |   21 ++++++------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
---- a/lib/test_meminit.c~lib-test_meminit-use-for-bools
-+++ a/lib/test_meminit.c
-@@ -387,7 +387,7 @@ static int __init test_kmemcache(int *to
- 			ctor = flags & 1;
- 			rcu = flags & 2;
- 			zero = flags & 4;
--			if (ctor & zero)
-+			if (ctor && zero)
- 				continue;
- 			num_tests += do_kmem_cache_size(size, ctor, rcu, zero,
- 							&failures);
+--- a/tools/testing/selftests/mm/ksm_functional_tests.c~selftests-mm-ksm-functional-tests-fix-partial-write-handling
++++ a/tools/testing/selftests/mm/ksm_functional_tests.c
+@@ -498,6 +498,7 @@ static void test_prctl_fork(void)
+ static int start_ksmd_and_set_frequency(char *pages_to_scan, char *sleep_ms)
+ {
+ 	int ksm_fd;
++	size_t len;
+ 
+ 	ksm_fd = open("/sys/kernel/mm/ksm/run", O_RDWR);
+ 	if (ksm_fd < 0)
+@@ -506,11 +507,13 @@ static int start_ksmd_and_set_frequency(
+ 	if (write(ksm_fd, "1", 1) != 1)
+ 		return -errno;
+ 
+-	if (write(pages_to_scan_fd, pages_to_scan, strlen(pages_to_scan)) <= 0)
+-		return -errno;
+-
+-	if (write(sleep_millisecs_fd, sleep_ms, strlen(sleep_ms)) <= 0)
+-		return -errno;
++	len = strlen(pages_to_scan);
++	if (write(pages_to_scan_fd, pages_to_scan, len) != len)
++		return -1;
++
++	len = strlen(sleep_ms);
++	if (write(sleep_millisecs_fd, sleep_ms, len) != len)
++		return -1;
+ 
+ 	return 0;
+ }
+@@ -526,11 +529,11 @@ static int stop_ksmd_and_restore_frequen
+ 	if (write(ksm_fd, "2", 1) != 1)
+ 		return -errno;
+ 
+-	if (write(pages_to_scan_fd, "100", 3) <= 0)
+-		return -errno;
++	if (write(pages_to_scan_fd, "100", 3) != 3)
++		return -1;
+ 
+-	if (write(sleep_millisecs_fd, "20", 2) <= 0)
+-		return -errno;
++	if (write(sleep_millisecs_fd, "20", 2) != 2)
++		return -1;
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from agarwal.vineet2006@gmail.com are
 
-lib-test_meminit-use-for-bools.patch
-kfence-fix-kasan-hw-tags-bypass-via-runtime-sample_interval-change.patch
+selftests-mm-khugepaged-initialize-file-contents-via-mmap.patch
+mm-khugepaged-return-eagain-for-scan_page_has_private-in-madv_collapse.patch
+selftests-mm-check-file-initialization-writes-in-split_huge_page_test.patch
+mm-damon-sysfs-schemes-fix-double-increment-of-nr_regions.patch
+selftests-mm-ksm-functional-tests-fix-partial-write-handling.patch
 
