@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D717139BFE0
-	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 18:04:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A91B43921D0
+	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 18:23:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778695492; cv=none; b=XMa4MgevXMTtx/JUtB9p/vndFZOPzWA6+5wFSM4Vgy6yqO//p4Fwa6FguPjC9/3AT8ZbkPlau+QjoTk2wbAFtAA0bw5f1epVKJ5hnoHxCCKsHQqz/rW92xkZ0Ff6mko5f/IWw7zR4CEtIUBX/jb73PJI4iauTECKOChlJCt+Td0=
+	t=1778696617; cv=none; b=k2OpqcNjSIEF2L9jgKHTcHaRQK/f8ktUWXO3I62cKXLng2ckYyj671SWubAlxjfkLxBPoFB27LZez2WfkqI1tMpUzriNRtdskkxGi7ZvC0YYs87fi5/3dzIuHq/HdCykO1z/fWMUMPDMlzGxg0SPPfsxWQLvTdhvOyh1LPVnkW4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778695492; c=relaxed/simple;
-	bh=RbrjE1oezGQ0SU+nCFnVdOqqZy+Q2Lk9c54MF8iullY=;
-	h=Date:To:From:Subject:Message-Id; b=U+bhAq8JfTjr0mZ+srQ9urgGJZ+UKaktiPassSrdakUz4mXKVzrsDmJ697TwIJjppvvueneBYDxEwR52hO7xQ3eMxidoEtt4GuoCeTq1RBAzKqT9BEE5OG5z9tk6TLO1KGulqDvaQidPVJ7DMdlziLBiKe0v6GzB4Wou1Mgnw8A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a0kny7Pe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778696617; c=relaxed/simple;
+	bh=Y6IiloJ/8PgvuH3arIgd5AiazoxQizdtMrLqg+3n2bY=;
+	h=Date:To:From:Subject:Message-Id; b=Fl6T2yhucoa7VJVifR9JnfNyceyrYnduPPPrjyazC+GZwYF0CXSss4pGzxAxYZIMvOFc7uT/DcyuhKH1aRy1xiRYAu95Nh/C/sXUmp5N3KiaqBFlWWti0xhT7LXs4S+WVYQmaG1ENYnB7WoQm3CRPtD97i4+HC4MidBdz9WE7BM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SdG/LzDd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a0kny7Pe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FA2EC19425;
-	Wed, 13 May 2026 18:04:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SdG/LzDd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46473C19425;
+	Wed, 13 May 2026 18:23:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778695492;
-	bh=RbrjE1oezGQ0SU+nCFnVdOqqZy+Q2Lk9c54MF8iullY=;
+	s=korg; t=1778696617;
+	bh=Y6IiloJ/8PgvuH3arIgd5AiazoxQizdtMrLqg+3n2bY=;
 	h=Date:To:From:Subject:From;
-	b=a0kny7Pe8zCx9yTZ7kP7J3l7CTZ1FywWdBP9kVAI3Bzw6b0dZkK3zy4FjcNdZwUaS
-	 Oc7RI3E3uFC7yFNgvq8NEYEf6vy6oKWXAe162gImm2e2V8D8TPGmzrb6wt6B5yR5Nu
-	 hf8oo692r/Dmxo1aUuTKa6hxX/3VUr4wlJ1JM4R4=
-Date: Wed, 13 May 2026 11:04:51 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,seanjc@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,itazur@amazon.com,akpm@linux-foundation.org
+	b=SdG/LzDdR5yf0434ouSSwbYXFDErivundx1yvUpZLjr39jHZr5BnRqNY3YwsHAu8y
+	 OjeMvmS+NMchEg6dS8Tfsfrpgeue3geCx4U5kH/NIeVpVDHTwPaDoOfSYAwVo+5BXe
+	 AjJ+1e9rk3fnMe+riCzcyfW/8TxSJMRSifFvZOq0=
+Date: Wed, 13 May 2026 11:23:36 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,kaleshsingh@google.com,jack@suse.cz,fmayle@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mmu_notifier-fix-a-begin-vs-start-typo-in-the-invalidate-range-comment.patch added to mm-new branch
-Message-Id: <20260513180452.8FA2EC19425@smtp.kernel.org>
+Subject: + mm-readahead-no-pg_readahead-on-eof.patch added to mm-new branch
+Message-Id: <20260513182337.46473C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mmu_notifier: fix a begin vs. start typo in the invalidate range comment
+     Subject: mm/readahead: no PG_readahead on EOF
 has been added to the -mm mm-new branch.  Its filename is
-     mm-mmu_notifier-fix-a-begin-vs-start-typo-in-the-invalidate-range-comment.patch
+     mm-readahead-no-pg_readahead-on-eof.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmu_notifier-fix-a-begin-vs-start-typo-in-the-invalidate-range-comment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-readahead-no-pg_readahead-on-eof.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,48 +69,83 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Takahiro Itazuri <itazur@amazon.com>
-Subject: mm/mmu_notifier: fix a begin vs. start typo in the invalidate range comment
-Date: Wed, 13 May 2026 09:35:46 -0700
+From: Frederick Mayle <fmayle@google.com>
+Subject: mm/readahead: no PG_readahead on EOF
+Date: Fri, 8 May 2026 11:12:31 -0700
 
-Fix a goof in the block comment for invalidate_range_{start,end}() where
-start() is incorrectly referred to as begin().
+When readahead pulls in all the remaining pages for a file, setting the
+readahead bit is counter productive.  The async readahead it would trigger
+would almost certainly be a no-op.  Additionally, for mmap'd file IO, the
+readahead bit limits the fault around [1], causing an extra minor fault
+when the page is accessed.
 
-No functional change intended.
+This was discovered when looking at /sys/kernel/tracing/events/readahead
+traces for a simple program.  With the patch applied, fewer
+page_cache_ra_unbounded calls are observed.
 
-[seanjc@google.com: split to separate patch, write changelog]
-Link: https://lore.kernel.org/20260513163546.1176742-1-seanjc@google.com
-Signed-off-by: Takahiro Itazuri <itazur@amazon.com>
-Signed-off-by: Sean Christopherson <seanjc@google.com>
-Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+[1] do_fault_around calls filemap_map_pages, which finds eligible pages
+    by calling next_uptodate_folio [2]. next_uptodate_folio skips pages
+    with PG_readahead set [3].
+
+Link: https://github.com/torvalds/linux/blob/v7.0/mm/filemap.c#L3921-L3939 [2]
+Link: https://github.com/torvalds/linux/blob/v7.0/mm/filemap.c#L3721-L3722 [3]
+Link: https://lore.kernel.org/20260508181237.670645-1-fmayle@google.com
+Signed-off-by: Frederick Mayle <fmayle@google.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/readahead.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
---- a/include/linux/mmu_notifier.h~mm-mmu_notifier-fix-a-begin-vs-start-typo-in-the-invalidate-range-comment
-+++ a/include/linux/mmu_notifier.h
-@@ -134,8 +134,8 @@ struct mmu_notifier_ops {
- 	 * Invalidation of multiple concurrent ranges may be
- 	 * optionally permitted by the driver. Either way the
- 	 * establishment of sptes is forbidden in the range passed to
--	 * invalidate_range_begin/end for the whole duration of the
--	 * invalidate_range_begin/end critical section.
-+	 * invalidate_range_start/end for the whole duration of the
-+	 * invalidate_range_start/end critical section.
- 	 *
- 	 * invalidate_range_start() is called when all pages in the
- 	 * range are still mapped and have at least a refcount of one.
+--- a/mm/readahead.c~mm-readahead-no-pg_readahead-on-eof
++++ a/mm/readahead.c
+@@ -340,8 +340,11 @@ static void do_page_cache_ra(struct read
+ 	if (index > end_index)
+ 		return;
+ 	/* Don't read past the page containing the last byte of the file */
+-	if (nr_to_read > end_index - index)
++	if (nr_to_read > end_index - index) {
+ 		nr_to_read = end_index - index + 1;
++		/* We've reached the end, so don't set a readahead marker. */
++		lookahead_size = 0;
++	}
+ 
+ 	filemap_invalidate_lock_shared(mapping);
+ 	page_cache_ra_unbounded(ractl, nr_to_read, lookahead_size);
+@@ -485,7 +488,7 @@ void page_cache_ra_order(struct readahea
+ 	pgoff_t index = start;
+ 	unsigned int min_order = mapping_min_folio_order(mapping);
+ 	pgoff_t limit;
+-	pgoff_t mark = index + ra->size - ra->async_size;
++	pgoff_t mark;
+ 	unsigned int nofs;
+ 	int err = 0;
+ 	gfp_t gfp = readahead_gfp_mask(mapping);
+@@ -499,7 +502,13 @@ void page_cache_ra_order(struct readahea
+ 
+ 	limit = (i_size_read(mapping->host) - 1) >> PAGE_SHIFT;
+ 	limit = min(limit, ractl->_max_index);
+-	limit = min(limit, index + ra->size - 1);
++	if (limit > index + ra->size - 1) {
++		limit = index + ra->size - 1;
++		mark = index + ra->size - ra->async_size;
++	} else {
++		/* We've reached the end, so don't set a readahead marker. */
++		mark = ULONG_MAX;
++	}
+ 
+ 	new_order = min(mapping_max_folio_order(mapping), new_order);
+ 	new_order = min_t(unsigned int, new_order, ilog2(ra->size));
 _
 
-Patches currently in -mm which might be from itazur@amazon.com are
+Patches currently in -mm which might be from fmayle@google.com are
 
-mm-mmu_notifier-fix-a-begin-vs-start-typo-in-the-invalidate-range-comment.patch
+mm-limit-filemap_fault-readahead-to-vma-boundaries.patch
+mm-readahead-add-kerneldoc-for-read_pages.patch
+mm-readahead-simplify-page_cache_ra_unbounded-loop-counter-reset.patch
+mm-readahead-no-pg_readahead-on-eof.patch
 
