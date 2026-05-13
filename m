@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11E6619CD03
-	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 23:17:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EFF83264E9
+	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 23:27:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778714240; cv=none; b=YujjtqeWsasmvY+K4hHn/UQ0k5ayvcIqxODI56s6dTtFLnFCL/GrVOKy2vTOft8Y59pg81Zjx5ZkeRmt6njSI5hE65XxEzD6v2Kd/cG+IWBp7oy8Fx/tizvNN5qx+9G9MECVIGJU3sza1o3QVlavJrXQ1hT7gzibAR3BU0PtksU=
+	t=1778714878; cv=none; b=Ku21va1k3J8i+UVjByMm3Fb478gnkcbeaqn0k1JysomXxeMGNxAIHhgGkzfCJ6vU7InkPafHNWjZQjdo4WQzB2KIxAN05yLeMMO+QhJdT0G5YfnJ1X96ZhIevl8LEOGOLzrJx+65Qok+DtHnBj32Ds+u/OoVhLxfvV9VrICcNLA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778714240; c=relaxed/simple;
-	bh=kuESs0ofR5JmHC7C1GGXrlO7emXqqvSmN1pDfXjdhns=;
-	h=Date:To:From:Subject:Message-Id; b=usgvkVaweTV5vduAxtKqRTTRLXXvnB4Wiea9w4hWLoqyLZWuEU6z/LoR2DPvghr9Z1sDDs7TrfiQKBcpzcZFA7A2GcFrFs+Lbx6Cq4fynjPSSrdoH/vIw/h/Bw/g5obITDXuBMsC+oDCl4Y9YbaXatpuBreFXXEsK2G/le6xcMg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xTD14sfq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778714878; c=relaxed/simple;
+	bh=SYv/WNkd7MbMkiwIqe5qLPhsIG7sMlIkTT5SOU1LBgo=;
+	h=Date:To:From:Subject:Message-Id; b=K50O30h1khGwIvt+NIR7RARy7GhQfeScDJZfhsY/ZrK4bFOiNO8/As9tJceKjCY6JfoKz3KtF6p5UATosD4YHxu13UKbmvJObLIg77lV1f5boPYxnQbALKj2pP3radsfRZ/yIpE1/NPMLQpnUWb7CWDfOA9/KHITbw/jTyLnpIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ksAUIKXV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xTD14sfq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2DFEC19425;
-	Wed, 13 May 2026 23:17:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ksAUIKXV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A85A4C19425;
+	Wed, 13 May 2026 23:27:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778714239;
-	bh=kuESs0ofR5JmHC7C1GGXrlO7emXqqvSmN1pDfXjdhns=;
+	s=korg; t=1778714877;
+	bh=SYv/WNkd7MbMkiwIqe5qLPhsIG7sMlIkTT5SOU1LBgo=;
 	h=Date:To:From:Subject:From;
-	b=xTD14sfqgT5qFN+VgSRLT2CdxyA3UzG8o+HpE9XTbQgTfcHBS5l5WcQmERPe//T5i
-	 2NdVD60AAKlOE3mygzK/Q7KZfGzIDHimEaRIrhyhmFlBu1YWlI5mv2fGfLzmol8sUO
-	 TSe4OfBxcVWDthH4K+ONBKMwmCXYpRAmO5xx72tk=
-Date: Wed, 13 May 2026 16:17:19 -0700
-To: mm-commits@vger.kernel.org,wangxuewen@kylinos.cn,roman.gushchin@linux.dev,muchun.song@linux.dev,david@fromorbit.com,18810879172@163.com,akpm@linux-foundation.org
+	b=ksAUIKXV/OHxGHkSHlF9OIU3GA5kzysR7mCYlWyFOg0syJTzfcHdPIzMLesMyZsCY
+	 BuMM3H69Y6i0pI4QNhoBrTZjEKJIkFqgbWpPC/b6MAhFf336b3MigL3C8G33hs7lMt
+	 0oUIJl1urBx8L+eZP3ZI0bdg16+4SownYPTFNogo=
+Date: Wed, 13 May 2026 16:27:57 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,chenwandun@lixiang.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shrinker-simplify-shrinker_memcg_alloc-using-guard.patch added to mm-new branch
-Message-Id: <20260513231719.B2DFEC19425@smtp.kernel.org>
+Subject: + mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse.patch added to mm-new branch
+Message-Id: <20260513232757.A85A4C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/shrinker: simplify shrinker_memcg_alloc() using guard()
+     Subject: mm/khugepaged: avoid underflow in madvise_collapse for sub-PMD MADV_COLLAPSE
 has been added to the -mm mm-new branch.  Its filename is
-     mm-shrinker-simplify-shrinker_memcg_alloc-using-guard.patch
+     mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shrinker-simplify-shrinker_memcg_alloc-using-guard.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,67 +69,72 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: wangxuewen <18810879172@163.com>
-Subject: mm/shrinker: simplify shrinker_memcg_alloc() using guard()
-Date: Wed, 13 May 2026 15:52:14 +0800
+From: Chen Wandun <chenwandun@lixiang.com>
+Subject: mm/khugepaged: avoid underflow in madvise_collapse for sub-PMD MADV_COLLAPSE
+Date: Wed, 13 May 2026 13:54:28 +0800
 
-Use guard(mutex) to automatically handle shrinker_mutex locking and
-unlocking in shrinker_memcg_alloc().  This removes the explicit
-mutex_unlock() call, the goto-based error path, and the redundant ret
-variable, resulting in cleaner and more concise code.
+madvise_collapse() computes the THP-aligned window:
 
-Link: https://lore.kernel.org/20260513075214.2655710-1-18810879172@163.com
-Signed-off-by: wangxuewen <wangxuewen@kylinos.cn>
-Acked-by: Muchun Song <muchun.song@linux.dev>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Xuewen Wang <wangxuewen@kylinos.cn>
+    hstart = ALIGN(start, HPAGE_PMD_SIZE); 	/* round up */
+    hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);	/* round down */
+
+The following case will cause hstart > hend, and result in underflow in
+the return statement, avoid it by returning zero early when hstart > hend.
+The return value is due to input is valid to madvise(), and there is
+nothing to collapse.
+
+    madvise(PMD-aligned + PAGE_SIZE, PAGE_SIZE, MADV_COLLAPSE);
+
+In addition, kmalloc_obj(), mmgrab() and lru_add_drain_all() are
+unnecessary when hstart == hend, so skip these operations by returning
+early too.
+
+Link: https://lore.kernel.org/20260513055428.1664898-1-chenwandun@lixiang.com
+Signed-off-by: Chen Wandun <chenwandun@lixiang.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shrinker.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ mm/khugepaged.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/mm/shrinker.c~mm-shrinker-simplify-shrinker_memcg_alloc-using-guard
-+++ a/mm/shrinker.c
-@@ -216,29 +216,26 @@ static DEFINE_IDR(shrinker_idr);
+--- a/mm/khugepaged.c~mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse
++++ a/mm/khugepaged.c
+@@ -3202,6 +3202,12 @@ int madvise_collapse(struct vm_area_stru
+ 	if (!collapse_allowable_orders(vma, vma->vm_flags, TVA_FORCED_COLLAPSE))
+ 		return -EINVAL;
  
- static int shrinker_memcg_alloc(struct shrinker *shrinker)
- {
--	int id, ret = -ENOMEM;
-+	int id;
++	hstart = ALIGN(start, HPAGE_PMD_SIZE);
++	hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);
++
++	if (hstart >= hend)
++		return 0;
++
+ 	cc = kmalloc_obj(*cc);
+ 	if (!cc)
+ 		return -ENOMEM;
+@@ -3211,9 +3217,6 @@ int madvise_collapse(struct vm_area_stru
+ 	mmgrab(mm);
+ 	lru_add_drain_all();
  
- 	if (mem_cgroup_disabled())
- 		return -ENOSYS;
- 	if (mem_cgroup_kmem_disabled() && !(shrinker->flags & SHRINKER_NONSLAB))
- 		return -ENOSYS;
+-	hstart = ALIGN(start, HPAGE_PMD_SIZE);
+-	hend = ALIGN_DOWN(end, HPAGE_PMD_SIZE);
+-
+ 	for (addr = hstart; addr < hend; addr += HPAGE_PMD_SIZE) {
+ 		enum scan_result result = SCAN_FAIL;
  
--	mutex_lock(&shrinker_mutex);
-+	guard(mutex)(&shrinker_mutex);
- 	id = idr_alloc(&shrinker_idr, shrinker, 0, 0, GFP_KERNEL);
- 	if (id < 0)
--		goto unlock;
-+		return id;
- 
- 	if (id >= shrinker_nr_max) {
- 		if (expand_shrinker_info(id)) {
- 			idr_remove(&shrinker_idr, id);
--			goto unlock;
-+			return -ENOMEM;
- 		}
- 	}
- 	shrinker->id = id;
--	ret = 0;
--unlock:
--	mutex_unlock(&shrinker_mutex);
--	return ret;
-+	return 0;
- }
- 
- static void shrinker_memcg_remove(struct shrinker *shrinker)
 _
 
-Patches currently in -mm which might be from 18810879172@163.com are
+Patches currently in -mm which might be from chenwandun@lixiang.com are
 
-mm-shrinker-simplify-shrinker_memcg_alloc-using-guard.patch
+mm-khugepaged-avoid-underflow-in-madvise_collapse-for-sub-pmd-madv_collapse.patch
 
