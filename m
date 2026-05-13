@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F112038B7CD
-	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 03:59:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F28D38B7CD
+	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 03:59:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778644769; cv=none; b=PgHN6KvMxfD0hyvkbb/RXbSnuczSzQGouubddGMtr1DnjFyOdHj4I/cEuSHxCxou0tyCRVIj6SmJg5ZAO+RGH5rHEV6D5GccyA+10Q1a5dqK1UGyUrvF6+s6YOcPWnbfa96XWRiucPwly7PTGwZZMMzMSQfc3d1DVhNPY6BaYQ4=
+	t=1778644770; cv=none; b=PF/L5v1Ryr0OmmhLv6aOSaUeqGkSc2qRoZ/OrbZIu8ZJy3fFsIJF/Vf0LXH38SjdjLBTw2pY6jRA9eT9rAJbtYGSLpH0VARjbtv+WLZ3Tatb1T2xHrfoOWJWLkn5Ls21nn8T6dMcSWUHbo3fWaK7q6CWA972JqJTOpiYOWeqs7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778644769; c=relaxed/simple;
-	bh=ArhiZiIZCVFA7V4dvLKilLj0tDnBce5pi22VkdfXgm8=;
-	h=Date:To:From:Subject:Message-Id; b=gGNtJlGPN1Q8T2dWjg4yTYx9IUBWUXdBjm3066m67hZ5/4tplJ9Q8fWeW3BQt3ZnE6xOe+AW9yC3jwx+abLJxypb0F1lmiM5FK7lRpLY2FlAuxzua49a9simj3TheKh2TwyjCYheLdWNNDBKrhjLEYPpZJ+zziyEw202pzFrBqM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1OI4gRIg; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778644770; c=relaxed/simple;
+	bh=21xlmX1moq0LkFxf3Hn32FTLis2IZRJcgXsGy2Jqd+U=;
+	h=Date:To:From:Subject:Message-Id; b=u6yTM+S7NQFEHgHYdK6kwU3Q1Wh/FCkAbSNnsZnP57SAPdVLPSBsM9re0bLlaBwq+XQPWvzCG1Ns6e4bRFnKmZ5rYsAdSHtEq/AsC63Z05j0hVtjYVHalKEXvD+4SdhNBpv0ssg5WJs0QGez4ThRSqTXWDpoSHu+50LD0IlK1xc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aDl7s3+L; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1OI4gRIg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4DEBC2BCC7;
-	Wed, 13 May 2026 03:59:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aDl7s3+L"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40E68C2BCC7;
+	Wed, 13 May 2026 03:59:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778644768;
-	bh=ArhiZiIZCVFA7V4dvLKilLj0tDnBce5pi22VkdfXgm8=;
+	s=korg; t=1778644770;
+	bh=21xlmX1moq0LkFxf3Hn32FTLis2IZRJcgXsGy2Jqd+U=;
 	h=Date:To:From:Subject:From;
-	b=1OI4gRIgrRb+mRxCJukvtmTDYo4nRShiNr0LbEYrqsxm57NqvEysUsG8Eiw6ZP0Je
-	 D3Ihd11zhvHxwyMcrMoYG1D4x0iZEssyPzq+4FiQV9TDWCu40fv5rSxDR/1oJXnuAj
-	 0YtUcnnAs5EPa4eJmVc06dnGgX9WfUg80MVhM2/U=
-Date: Tue, 12 May 2026 20:59:28 -0700
+	b=aDl7s3+Ld8HRme/5kS/nOQqg07g2iO6sxjfUFcCmoJHYPJDZduNmiSxgyvUf1GstC
+	 y00Nkj65vMODWc0O9lDJj3+B8ebwIs09x9MzLmXwgh1QyuIlsATJS85mCLz1+ZtzOY
+	 38ESr/4uon5k2AJoP31A7xu5ct3ZYzD1sOasQdTc=
+Date: Tue, 12 May 2026 20:59:29 -0700
 To: mm-commits@vger.kernel.org,pjw@kernel.org,palmer@dabbelt.com,nathan@kernel.org,kees@kernel.org,djwong@kernel.org,ardb@kernel.org,aou@eecs.berkeley.edu,andriy.shevchenko@intel.com,alex@ghiti.fr,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] lib-fix-memparse-to-handle-overflow.patch removed from -mm tree
-Message-Id: <20260513035928.A4DEBC2BCC7@smtp.kernel.org>
+Subject: [to-be-updated] lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch removed from -mm tree
+Message-Id: <20260513035930.40E68C2BCC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,25 +35,24 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib: fix memparse() to handle overflow
+     Subject: lib: add more string to 64-bit integer conversion overflow tests
 has been removed from the -mm tree.  Its filename was
-     lib-fix-memparse-to-handle-overflow.patch
+     lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: lib: fix memparse() to handle overflow
-Date: Fri, 3 Apr 2026 13:33:34 +0300
+Subject: lib: add more string to 64-bit integer conversion overflow tests
+Date: Fri, 3 Apr 2026 13:33:35 +0300
 
-Since '_parse_integer_limit()' (and so 'simple_strtoull()') is now capable
-to handle overflow, adjust 'memparse()' to handle overflow (denoted by
-ULLONG_MAX) returned from 'simple_strtoull()'.  Also use
-'check_shl_overflow()' to catch an overflow possibly caused by processing
-size suffix and denote it with ULLONG_MAX as well.
+Add a few more string to 64-bit integer conversion tests to check whether
+'kstrtoull()', 'kstrtoll()', 'kstrtou64()' and 'kstrtos64()' can handle
+overflows reported by '_parse_integer_limit()'.
 
-Link: https://lore.kernel.org/20260403103338.1122415-3-dmantipov@yandex.ru
+Link: https://lore.kernel.org/20260403103338.1122415-4-dmantipov@yandex.ru
 Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Suggested-by: Andy Shevchenko <andriy.shevchenko@intel.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
@@ -66,72 +65,53 @@ Cc: Paul Walmsley <pjw@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ lib/test-kstrtox.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/lib/cmdline.c~lib-fix-memparse-to-handle-overflow
-+++ a/lib/cmdline.c
-@@ -150,39 +150,46 @@ EXPORT_SYMBOL(get_options);
- unsigned long long memparse(const char *ptr, char **retptr)
- {
- 	char *endptr;	/* local pointer to end of parsed string */
--
- 	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
-+	unsigned int shl = 0;
- 
-+	/* Consume valid suffix even in case of overflow. */
- 	switch (*endptr) {
- 	case 'E':
- 	case 'e':
--		ret <<= 10;
-+		shl += 10;
- 		fallthrough;
- 	case 'P':
- 	case 'p':
--		ret <<= 10;
-+		shl += 10;
- 		fallthrough;
- 	case 'T':
- 	case 't':
--		ret <<= 10;
-+		shl += 10;
- 		fallthrough;
- 	case 'G':
- 	case 'g':
--		ret <<= 10;
-+		shl += 10;
- 		fallthrough;
- 	case 'M':
- 	case 'm':
--		ret <<= 10;
-+		shl += 10;
- 		fallthrough;
- 	case 'K':
- 	case 'k':
--		ret <<= 10;
--		endptr++;
-+		shl += 10;
- 		fallthrough;
- 	default:
- 		break;
- 	}
- 
-+	if (shl && likely(ptr != endptr)) {
-+		/* Have valid suffix with preceding number. */
-+		if (unlikely(check_shl_overflow(ret, shl, &ret)))
-+			ret = ULLONG_MAX;
-+		endptr++;
-+	}
-+
- 	if (retptr)
- 		*retptr = endptr;
- 
+--- a/lib/test-kstrtox.c~lib-add-more-string-to-64-bit-integer-conversion-overflow-tests
++++ a/lib/test-kstrtox.c
+@@ -198,6 +198,7 @@ static void __init test_kstrtoull_fail(v
+ 		{"10000000000000000000000000000000000000000000000000000000000000000",	2},
+ 		{"2000000000000000000000",	8},
+ 		{"18446744073709551616",	10},
++		{"569202370375329612767",	10},
+ 		{"10000000000000000",	16},
+ 		/* negative */
+ 		{"-0", 0},
+@@ -275,9 +276,11 @@ static void __init test_kstrtoll_fail(vo
+ 		{"9223372036854775809",	10},
+ 		{"18446744073709551614",	10},
+ 		{"18446744073709551615",	10},
++		{"569202370375329612767",	10},
+ 		{"-9223372036854775809",	10},
+ 		{"-18446744073709551614",	10},
+ 		{"-18446744073709551615",	10},
++		{"-569202370375329612767",	10},
+ 		/* sign is first character if any */
+ 		{"-+1", 0},
+ 		{"-+1", 8},
+@@ -334,6 +337,7 @@ static void __init test_kstrtou64_fail(v
+ 		{"-1",	10},
+ 		{"18446744073709551616",	10},
+ 		{"18446744073709551617",	10},
++		{"569202370375329612767",	10},
+ 	};
+ 	TEST_FAIL(kstrtou64, u64, "%llu", test_u64_fail);
+ }
+@@ -386,6 +390,8 @@ static void __init test_kstrtos64_fail(v
+ 		{"18446744073709551615",	10},
+ 		{"18446744073709551616",	10},
+ 		{"18446744073709551617",	10},
++		{"569202370375329612767",	10},
++		{"-569202370375329612767",	10},
+ 	};
+ 	TEST_FAIL(kstrtos64, s64, "%lld", test_s64_fail);
+ }
 _
 
 Patches currently in -mm which might be from dmantipov@yandex.ru are
 
 lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
-lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch
 lib-cmdline_kunit-add-test-case-for-memparse.patch
 lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
 riscv-export-symbols-needed-for-riscv32-efi-stub.patch
