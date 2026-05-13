@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B8663FFAB7
-	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 17:28:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D717139BFE0
+	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 18:04:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778693319; cv=none; b=djhvoS3U7QdsTZxtRBsF2TQH7qB5fCWTuzrWAGLqMHR1n+4WT2lkE+Uo582/l+c87/qOvwoe1gfKUkpe+xNZ3ionqEzHCrh5JfYYuiPnlAxV6FKe3gYiepMc/9hti7p40X5JQE6022q5zcje/kHl2fiQSaawUugY7ZF6Paqps9E=
+	t=1778695492; cv=none; b=XMa4MgevXMTtx/JUtB9p/vndFZOPzWA6+5wFSM4Vgy6yqO//p4Fwa6FguPjC9/3AT8ZbkPlau+QjoTk2wbAFtAA0bw5f1epVKJ5hnoHxCCKsHQqz/rW92xkZ0Ff6mko5f/IWw7zR4CEtIUBX/jb73PJI4iauTECKOChlJCt+Td0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778693319; c=relaxed/simple;
-	bh=uwy2dXCHFXjwIBhWFIfubJwdRrIBULdasULVyeNtvgQ=;
-	h=Date:To:From:Subject:Message-Id; b=A3Za9906UllsHseYdPPDkOCoHUxM7CHIsYNEmaba9r7p+148i9a5vCj4Uyk7PQyjTy74YBQiD1UCtBZVLpjtozcLBN494kTC0qUph2qCLJRv17/kV06pFyGCWNCyw28JxBngSXF+zKgONWGCPskOFdOoj1i2M40lKjwR6OmJ5vA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tl8R34Wq; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778695492; c=relaxed/simple;
+	bh=RbrjE1oezGQ0SU+nCFnVdOqqZy+Q2Lk9c54MF8iullY=;
+	h=Date:To:From:Subject:Message-Id; b=U+bhAq8JfTjr0mZ+srQ9urgGJZ+UKaktiPassSrdakUz4mXKVzrsDmJ697TwIJjppvvueneBYDxEwR52hO7xQ3eMxidoEtt4GuoCeTq1RBAzKqT9BEE5OG5z9tk6TLO1KGulqDvaQidPVJ7DMdlziLBiKe0v6GzB4Wou1Mgnw8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a0kny7Pe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tl8R34Wq"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CAF0C19425;
-	Wed, 13 May 2026 17:28:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a0kny7Pe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FA2EC19425;
+	Wed, 13 May 2026 18:04:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778693319;
-	bh=uwy2dXCHFXjwIBhWFIfubJwdRrIBULdasULVyeNtvgQ=;
+	s=korg; t=1778695492;
+	bh=RbrjE1oezGQ0SU+nCFnVdOqqZy+Q2Lk9c54MF8iullY=;
 	h=Date:To:From:Subject:From;
-	b=tl8R34WqB6Eye3Fv9BPCbcM+xarapemWCxZzr1jD9G6yI3BrUpTKCufAv2NuLfxyc
-	 P9+F4cnBwPkIDNP5eOV8beHnr0Y9xvV8t2xxyQ4yu8CQ9ptPrLB4kE1TofEHWtaDm0
-	 SM+xqkYpnt/tdBaFWHYRq5H/ZNIdetHl5TtixSh4=
-Date: Wed, 13 May 2026 10:28:38 -0700
-To: mm-commits@vger.kernel.org,timmurray@google.com,surenb@google.com,minchan@kernel.org,mhocko@suse.com,lkp@intel.com,hca@linux.ibm.com,david@kernel.org,brauner@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=a0kny7Pe8zCx9yTZ7kP7J3l7CTZ1FywWdBP9kVAI3Bzw6b0dZkK3zy4FjcNdZwUaS
+	 Oc7RI3E3uFC7yFNgvq8NEYEf6vy6oKWXAe162gImm2e2V8D8TPGmzrb6wt6B5yR5Nu
+	 hf8oo692r/Dmxo1aUuTKa6hxX/3VUr4wlJ1JM4R4=
+Date: Wed, 13 May 2026 11:04:51 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,seanjc@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,itazur@amazon.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix.patch added to mm-new branch
-Message-Id: <20260513172839.0CAF0C19425@smtp.kernel.org>
+Subject: + mm-mmu_notifier-fix-a-begin-vs-start-typo-in-the-invalidate-range-comment.patch added to mm-new branch
+Message-Id: <20260513180452.8FA2EC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix
+     Subject: mm/mmu_notifier: fix a begin vs. start typo in the invalidate range comment
 has been added to the -mm mm-new branch.  Its filename is
-     mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix.patch
+     mm-mmu_notifier-fix-a-begin-vs-start-typo-in-the-invalidate-range-comment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mmu_notifier-fix-a-begin-vs-start-typo-in-the-invalidate-range-comment.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,116 +69,48 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix
-Date: Wed May 13 10:22:14 AM PDT 2026
+From: Takahiro Itazuri <itazur@amazon.com>
+Subject: mm/mmu_notifier: fix a begin vs. start typo in the invalidate range comment
+Date: Wed, 13 May 2026 09:35:46 -0700
 
-move kill_all_shared_mm() inside CONFIG_MMU
+Fix a goof in the block comment for invalidate_range_{start,end}() where
+start() is incorrectly referred to as begin().
 
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202605131940.kEzvUaiR-lkp@intel.com
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
+No functional change intended.
+
+[seanjc@google.com: split to separate patch, write changelog]
+Link: https://lore.kernel.org/20260513163546.1176742-1-seanjc@google.com
+Signed-off-by: Takahiro Itazuri <itazur@amazon.com>
+Signed-off-by: Sean Christopherson <seanjc@google.com>
+Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tim Murray <timmurray@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   66 ++++++++++++++++++++++++------------------------
- 1 file changed, 33 insertions(+), 33 deletions(-)
+ include/linux/mmu_notifier.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/oom_kill.c~mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix
-+++ a/mm/oom_kill.c
-@@ -676,6 +676,39 @@ static void wake_oom_reaper(struct timer
- }
- 
- /*
-+ * kill_all_shared_mm - Deliver SIGKILL to all processes sharing the given address space.
-+ * @victim: the targeted OOM process group leader
-+ * @mm:     the virtual memory space being reaped
-+ *
-+ * Traverse all threads globally and signal any user processes sharing the
-+ * identical mm footprints, ensuring no concurrent users pin the memory. Skips
-+ * the system global init and kernel worker threads.
-+ */
-+static int kill_all_shared_mm(struct task_struct *victim, struct mm_struct *mm)
-+{
-+	struct task_struct *p;
-+	bool failed = false;
-+
-+	rcu_read_lock();
-+	for_each_process(p) {
-+		if (!process_shares_mm(p, mm))
-+			continue;
-+		if (is_global_init(p)) {
-+			failed = true;
-+			continue;
-+		}
-+		if (unlikely(p->flags & PF_KTHREAD))
-+			continue;
-+
-+		if (do_pidfd_send_signal_pidns(task_pid(p), SIGKILL, PIDTYPE_TGID, NULL, 0))
-+			failed = true;
-+	}
-+	rcu_read_unlock();
-+
-+	return failed ? -EBUSY : 0;
-+}
-+
-+/*
-  * Give the OOM victim time to exit naturally before invoking the oom_reaping.
-  * The timers timeout is arbitrary... the longer it is, the longer the worst
-  * case scenario for the OOM can take. If it is too small, the oom_reaper can
-@@ -910,39 +943,6 @@ static bool task_will_free_mem(struct ta
- 	return ret;
- }
- 
--/*
-- * kill_all_shared_mm - Deliver SIGKILL to all processes sharing the given address space.
-- * @victim: the targeted OOM process group leader
-- * @mm:     the virtual memory space being reaped
-- *
-- * Traverse all threads globally and signal any user processes sharing the identical
-- * mm footprints, ensuring no concurrent users pin the memory. Skips the system
-- * global init and kernel worker threads.
-- */
--static int kill_all_shared_mm(struct task_struct *victim, struct mm_struct *mm)
--{
--	struct task_struct *p;
--	bool failed = false;
--
--	rcu_read_lock();
--	for_each_process(p) {
--		if (!process_shares_mm(p, mm))
--			continue;
--		if (is_global_init(p)) {
--			failed = true;
--			continue;
--		}
--		if (unlikely(p->flags & PF_KTHREAD))
--			continue;
--
--		if (do_pidfd_send_signal_pidns(task_pid(p), SIGKILL, PIDTYPE_TGID, NULL, 0))
--			failed = true;
--	}
--	rcu_read_unlock();
--
--	return failed ? -EBUSY : 0;
--}
--
- static void __oom_kill_process(struct task_struct *victim, const char *message)
- {
- 	struct task_struct *p;
+--- a/include/linux/mmu_notifier.h~mm-mmu_notifier-fix-a-begin-vs-start-typo-in-the-invalidate-range-comment
++++ a/include/linux/mmu_notifier.h
+@@ -134,8 +134,8 @@ struct mmu_notifier_ops {
+ 	 * Invalidation of multiple concurrent ranges may be
+ 	 * optionally permitted by the driver. Either way the
+ 	 * establishment of sptes is forbidden in the range passed to
+-	 * invalidate_range_begin/end for the whole duration of the
+-	 * invalidate_range_begin/end critical section.
++	 * invalidate_range_start/end for the whole duration of the
++	 * invalidate_range_start/end critical section.
+ 	 *
+ 	 * invalidate_range_start() is called when all pages in the
+ 	 * range are still mapped and have at least a refcount of one.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from itazur@amazon.com are
 
-mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free-fix.patch
-mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
-selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch
-mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix.patch
-proc-rewrite-next_tgid-fix.patch
+mm-mmu_notifier-fix-a-begin-vs-start-typo-in-the-invalidate-range-comment.patch
 
