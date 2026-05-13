@@ -1,72 +1,74 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E84C63A2E07;
-	Wed, 13 May 2026 17:27:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B8663FFAB7
+	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 17:28:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778693233; cv=none; b=RhZNnlovKrXMAT2K6ogN05X66TvdTIWYvoMSRLnJSZMLgn9/gki2CO1goD/BHI6mxllm8AaTz+zTjKGgower32OI+fbCESWIZAQkQhEwwLhDckBalAX00EIgx208CkIv4Qb9L52Et77x4lcPuv+yxv/hCQ2UQNjQJuBKAIUazxA=
+	t=1778693319; cv=none; b=djhvoS3U7QdsTZxtRBsF2TQH7qB5fCWTuzrWAGLqMHR1n+4WT2lkE+Uo582/l+c87/qOvwoe1gfKUkpe+xNZ3ionqEzHCrh5JfYYuiPnlAxV6FKe3gYiepMc/9hti7p40X5JQE6022q5zcje/kHl2fiQSaawUugY7ZF6Paqps9E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778693233; c=relaxed/simple;
-	bh=xbNqFRfEPLDvfnXWBGOb0+DeiVRfeyxliAUWgIwEAjg=;
-	h=Date:From:To:Cc:Subject:Message-Id:In-Reply-To:References:
-	 Mime-Version:Content-Type; b=M7gF0RwEXou1baubtNL4PC80z9cHToLo8hvJNXTFUnfZVyazzz9KwfY+s/ZP7eaLJU+GsdaTlkwEkBJyvGjgCaBeoli++MLwnSrTgD4lSJXoyIDN6XjYICiLgCQXLZo4MITh/Lxpvo7zePNv2hrYxUc+47ZBj71a0nWFUU782w4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eQE06z6g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778693319; c=relaxed/simple;
+	bh=uwy2dXCHFXjwIBhWFIfubJwdRrIBULdasULVyeNtvgQ=;
+	h=Date:To:From:Subject:Message-Id; b=A3Za9906UllsHseYdPPDkOCoHUxM7CHIsYNEmaba9r7p+148i9a5vCj4Uyk7PQyjTy74YBQiD1UCtBZVLpjtozcLBN494kTC0qUph2qCLJRv17/kV06pFyGCWNCyw28JxBngSXF+zKgONWGCPskOFdOoj1i2M40lKjwR6OmJ5vA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tl8R34Wq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eQE06z6g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7413DC2BCB7;
-	Wed, 13 May 2026 17:27:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tl8R34Wq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CAF0C19425;
+	Wed, 13 May 2026 17:28:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778693232;
-	bh=xbNqFRfEPLDvfnXWBGOb0+DeiVRfeyxliAUWgIwEAjg=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=eQE06z6gjM3bpDzZDm5424CoAuAbjQ4g/r3MVc8E6oBphcGLkKpJkYplWwSeixdEv
-	 YAIVBz8nUCiLXEJu0wNFZATFBujKfKZUtt/AJSL6eZZcG08a5uEpQvxWUaWmzesVhJ
-	 dbdVPUleVowZaPXXcNEHPb+ZvoKfzKVQfcgHLG60=
-Date: Wed, 13 May 2026 10:27:11 -0700
+	s=korg; t=1778693319;
+	bh=uwy2dXCHFXjwIBhWFIfubJwdRrIBULdasULVyeNtvgQ=;
+	h=Date:To:From:Subject:From;
+	b=tl8R34WqB6Eye3Fv9BPCbcM+xarapemWCxZzr1jD9G6yI3BrUpTKCufAv2NuLfxyc
+	 P9+F4cnBwPkIDNP5eOV8beHnr0Y9xvV8t2xxyQ4yu8CQ9ptPrLB4kE1TofEHWtaDm0
+	 SM+xqkYpnt/tdBaFWHYRq5H/ZNIdetHl5TtixSh4=
+Date: Wed, 13 May 2026 10:28:38 -0700
+To: mm-commits@vger.kernel.org,timmurray@google.com,surenb@google.com,minchan@kernel.org,mhocko@suse.com,lkp@intel.com,hca@linux.ibm.com,david@kernel.org,brauner@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-To: kernel test robot <lkp@intel.com>
-Cc: Minchan Kim <minchan@kernel.org>, oe-kbuild-all@lists.linux.dev, David
- Hildenbrand <david@kernel.org>, Linux Memory Management List
- <linux-mm@kvack.org>, mm-commits@vger.kernel.org, Suren Baghdasaryan
- <surenb@google.com>
-Subject: Re: [akpm-mm:mm-new 301/315] mm/oom_kill.c:922:12: warning:
- 'kill_all_shared_mm' defined but not used
-Message-Id: <20260513102711.323fed51b7dbb1dfe6217b44@linux-foundation.org>
-In-Reply-To: <202605131940.kEzvUaiR-lkp@intel.com>
-References: <202605131940.kEzvUaiR-lkp@intel.com>
-X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Subject: + mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix.patch added to mm-new branch
+Message-Id: <20260513172839.0CAF0C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-
-On Wed, 13 May 2026 19:48:25 +0800 kernel test robot <lkp@intel.com> wrote:
-
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-> head:   2c3f468717231305523ddcd94d91c0d5e4a72419
-> commit: def36547cd98fa3f7ecac1bf860479f500bc6b1e [301/315] mm: process_mrelease: introduce PROCESS_MRELEASE_REAP_KILL flag
-> config: sh-allnoconfig (https://download.01.org/0day-ci/archive/20260513/202605131940.kEzvUaiR-lkp@intel.com/config)
-> compiler: sh4-linux-gcc (GCC) 15.2.0
-> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260513/202605131940.kEzvUaiR-lkp@intel.com/reproduce)
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202605131940.kEzvUaiR-lkp@intel.com/
-> 
-> All warnings (new ones prefixed by >>):
-> 
-> >> mm/oom_kill.c:922:12: warning: 'kill_all_shared_mm' defined but not used [-Wunused-function]
->      922 | static int kill_all_shared_mm(struct task_struct *victim, struct mm_struct *mm)
-
-Thanks. I  did this:
 
 
+The patch titled
+     Subject: mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix
+has been added to the -mm mm-new branch.  Its filename is
+     mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix.patch
+
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
 Subject: mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix
 Date: Wed May 13 10:22:14 AM PDT 2026
@@ -171,4 +173,12 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  {
  	struct task_struct *p;
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-page_alloc-fix-initialization-of-tags-of-the-huge-zero-folio-with-init_on_free-fix.patch
+mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
+selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch
+mm-process_mrelease-introduce-process_mrelease_reap_kill-flag-fix.patch
+proc-rewrite-next_tgid-fix.patch
 
