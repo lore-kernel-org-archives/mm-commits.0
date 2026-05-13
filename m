@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F28D38B7CD
-	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 03:59:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 030C839281D
+	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 03:59:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778644770; cv=none; b=PF/L5v1Ryr0OmmhLv6aOSaUeqGkSc2qRoZ/OrbZIu8ZJy3fFsIJF/Vf0LXH38SjdjLBTw2pY6jRA9eT9rAJbtYGSLpH0VARjbtv+WLZ3Tatb1T2xHrfoOWJWLkn5Ls21nn8T6dMcSWUHbo3fWaK7q6CWA972JqJTOpiYOWeqs7Y=
+	t=1778644772; cv=none; b=eM4AOivBnoSsgl7TRCq5DWRkVKOjfwp1Zasitqh6xqdfS3hUL9lIuKtKSBoibOfjuwdhEsZy/9FKLQoV1GXAVH0Y+FDjGb+4BPc28I2UED4zsp6lZ4jmYR1IuJ/VVqrt+ywxC99hbEoP5V2uEJIgoBZsXbyWVHVxDuubyisWiF0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778644770; c=relaxed/simple;
-	bh=21xlmX1moq0LkFxf3Hn32FTLis2IZRJcgXsGy2Jqd+U=;
-	h=Date:To:From:Subject:Message-Id; b=u6yTM+S7NQFEHgHYdK6kwU3Q1Wh/FCkAbSNnsZnP57SAPdVLPSBsM9re0bLlaBwq+XQPWvzCG1Ns6e4bRFnKmZ5rYsAdSHtEq/AsC63Z05j0hVtjYVHalKEXvD+4SdhNBpv0ssg5WJs0QGez4ThRSqTXWDpoSHu+50LD0IlK1xc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aDl7s3+L; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778644772; c=relaxed/simple;
+	bh=gzcTh6r81cK0cAK4wwj8K60YbazMkBT0NkPDNfOSzWg=;
+	h=Date:To:From:Subject:Message-Id; b=VzXRKnJH0pRoZoWsbufpYdSUN4nllvmhPRF9POr6m4EY2hgGtQJ8wE5sVyq4vnYDd9vWuYY2hbdNu5nE8uVl1ApoHXwsMJhltfajDIgYUtvpo1WeCsXBYt522jIVpu9cEGBzNWuqdqA9qp+OsEg2hleExYftYl3tl1OV9bFLhYE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=SadC0kku; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aDl7s3+L"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40E68C2BCC7;
-	Wed, 13 May 2026 03:59:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="SadC0kku"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7A25C2BCC7;
+	Wed, 13 May 2026 03:59:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778644770;
-	bh=21xlmX1moq0LkFxf3Hn32FTLis2IZRJcgXsGy2Jqd+U=;
+	s=korg; t=1778644771;
+	bh=gzcTh6r81cK0cAK4wwj8K60YbazMkBT0NkPDNfOSzWg=;
 	h=Date:To:From:Subject:From;
-	b=aDl7s3+Ld8HRme/5kS/nOQqg07g2iO6sxjfUFcCmoJHYPJDZduNmiSxgyvUf1GstC
-	 y00Nkj65vMODWc0O9lDJj3+B8ebwIs09x9MzLmXwgh1QyuIlsATJS85mCLz1+ZtzOY
-	 38ESr/4uon5k2AJoP31A7xu5ct3ZYzD1sOasQdTc=
-Date: Tue, 12 May 2026 20:59:29 -0700
+	b=SadC0kkuW5DYhM/1ia8yFBQGc4Sxa4yeSjttV4WQr3tJBaoVlE9/V+qIMHFhdpWO/
+	 GBBuXWupJ3NJKtAtHl8znhadsqkN5jy1KL+sMlVxwoPzkEcY58s4D5xUvNjgjAbfzJ
+	 3pvJ3Ti30Wp5D7p3pftmgUJL0XRPTYHi6e0eMmgU=
+Date: Tue, 12 May 2026 20:59:31 -0700
 To: mm-commits@vger.kernel.org,pjw@kernel.org,palmer@dabbelt.com,nathan@kernel.org,kees@kernel.org,djwong@kernel.org,ardb@kernel.org,aou@eecs.berkeley.edu,andriy.shevchenko@intel.com,alex@ghiti.fr,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch removed from -mm tree
-Message-Id: <20260513035930.40E68C2BCC7@smtp.kernel.org>
+Subject: [to-be-updated] lib-cmdline_kunit-add-test-case-for-memparse.patch removed from -mm tree
+Message-Id: <20260513035931.C7A25C2BCC7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,21 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib: add more string to 64-bit integer conversion overflow tests
+     Subject: lib/cmdline_kunit: add test case for memparse()
 has been removed from the -mm tree.  Its filename was
-     lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch
+     lib-cmdline_kunit-add-test-case-for-memparse.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: lib: add more string to 64-bit integer conversion overflow tests
-Date: Fri, 3 Apr 2026 13:33:35 +0300
+Subject: lib/cmdline_kunit: add test case for memparse()
+Date: Fri, 3 Apr 2026 13:33:36 +0300
 
-Add a few more string to 64-bit integer conversion tests to check whether
-'kstrtoull()', 'kstrtoll()', 'kstrtou64()' and 'kstrtos64()' can handle
-overflows reported by '_parse_integer_limit()'.
+Better late than never, now there is a long-awaited basic test for
+'memparse()' which is provided by cmdline.c.
 
-Link: https://lore.kernel.org/20260403103338.1122415-4-dmantipov@yandex.ru
+Link: https://lore.kernel.org/20260403103338.1122415-5-dmantipov@yandex.ru
 Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
 Suggested-by: Andy Shevchenko <andriy.shevchenko@intel.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
@@ -65,54 +64,91 @@ Cc: Paul Walmsley <pjw@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test-kstrtox.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/tests/cmdline_kunit.c |   56 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
---- a/lib/test-kstrtox.c~lib-add-more-string-to-64-bit-integer-conversion-overflow-tests
-+++ a/lib/test-kstrtox.c
-@@ -198,6 +198,7 @@ static void __init test_kstrtoull_fail(v
- 		{"10000000000000000000000000000000000000000000000000000000000000000",	2},
- 		{"2000000000000000000000",	8},
- 		{"18446744073709551616",	10},
-+		{"569202370375329612767",	10},
- 		{"10000000000000000",	16},
- 		/* negative */
- 		{"-0", 0},
-@@ -275,9 +276,11 @@ static void __init test_kstrtoll_fail(vo
- 		{"9223372036854775809",	10},
- 		{"18446744073709551614",	10},
- 		{"18446744073709551615",	10},
-+		{"569202370375329612767",	10},
- 		{"-9223372036854775809",	10},
- 		{"-18446744073709551614",	10},
- 		{"-18446744073709551615",	10},
-+		{"-569202370375329612767",	10},
- 		/* sign is first character if any */
- 		{"-+1", 0},
- 		{"-+1", 8},
-@@ -334,6 +337,7 @@ static void __init test_kstrtou64_fail(v
- 		{"-1",	10},
- 		{"18446744073709551616",	10},
- 		{"18446744073709551617",	10},
-+		{"569202370375329612767",	10},
- 	};
- 	TEST_FAIL(kstrtou64, u64, "%llu", test_u64_fail);
+--- a/lib/tests/cmdline_kunit.c~lib-cmdline_kunit-add-test-case-for-memparse
++++ a/lib/tests/cmdline_kunit.c
+@@ -6,6 +6,7 @@
+ #include <kunit/test.h>
+ #include <linux/kernel.h>
+ #include <linux/random.h>
++#include <linux/sizes.h>
+ #include <linux/string.h>
+ 
+ static const char *cmdline_test_strings[] = {
+@@ -139,11 +140,66 @@ static void cmdline_test_range(struct ku
+ 	} while (++i < ARRAY_SIZE(cmdline_test_range_strings));
  }
-@@ -386,6 +390,8 @@ static void __init test_kstrtos64_fail(v
- 		{"18446744073709551615",	10},
- 		{"18446744073709551616",	10},
- 		{"18446744073709551617",	10},
-+		{"569202370375329612767",	10},
-+		{"-569202370375329612767",	10},
- 	};
- 	TEST_FAIL(kstrtos64, s64, "%lld", test_s64_fail);
- }
+ 
++struct cmdline_test_memparse_entry {
++	const char *input;
++	const char *unrecognized;
++	unsigned long long result;
++};
++
++static const struct cmdline_test_memparse_entry testdata[] = {
++	{ "0",				"",	0ULL },
++	{ "1",				"",	1ULL },
++	{ "a",				"a",	0ULL },
++	{ "k",				"k",	0ULL },
++	{ "E",				"E",	0ULL },
++	{ "0xb",			"",	11ULL },
++	{ "0xz",			"x",	0ULL },
++	{ "1234",			"",	1234ULL },
++	{ "04567",			"",	2423ULL },
++	{ "0x9876",			"",	39030LL },
++	{ "05678",			"8",	375ULL },
++	{ "0xabcdefz",			"z",	11259375ULL },
++	{ "0cdba",			"c",	0ULL },
++	{ "4K",				"",	SZ_4K },
++	{ "0x10k@0xaaaabbbb",		"@",	SZ_16K },
++	{ "32M",			"",	SZ_32M },
++	{ "067m:foo",			":",	55 * SZ_1M },
++	{ "2G;bar=baz",			";",	SZ_2G },
++	{ "07gz",			"z",	7ULL * SZ_1G },
++	{ "3T+data",			"+",	3 * SZ_1T },
++	{ "04t,ro",			",",	SZ_4T },
++	{ "012p",			"",	11258999068426240ULL },
++	{ "7P,sync",			",",	7881299347898368ULL },
++	{ "0x2e",			"",	46ULL },
++	{ "2E and more",		" ",	2305843009213693952ULL },
++	{ "18446744073709551615",	"",	ULLONG_MAX },
++	{ "0xffffffffffffffff0",	"",	ULLONG_MAX },
++	{ "1111111111111111111T",	"",	ULLONG_MAX },
++	{ "222222222222222222222G",	"",	ULLONG_MAX },
++	{ "3333333333333333333333M",	"",	ULLONG_MAX },
++};
++
++static void cmdline_test_memparse(struct kunit *test)
++{
++	const struct cmdline_test_memparse_entry *e;
++	unsigned long long ret;
++	char *retptr;
++
++	for (e = testdata; e < testdata + ARRAY_SIZE(testdata); e++) {
++		ret = memparse(e->input, &retptr);
++		KUNIT_EXPECT_EQ_MSG(test, ret, e->result,
++				    "    when parsing '%s'", e->input);
++		KUNIT_EXPECT_EQ_MSG(test, *retptr, *e->unrecognized,
++				    "    when parsing '%s'", e->input);
++	}
++}
++
+ static struct kunit_case cmdline_test_cases[] = {
+ 	KUNIT_CASE(cmdline_test_noint),
+ 	KUNIT_CASE(cmdline_test_lead_int),
+ 	KUNIT_CASE(cmdline_test_tail_int),
+ 	KUNIT_CASE(cmdline_test_range),
++	KUNIT_CASE(cmdline_test_memparse),
+ 	{}
+ };
+ 
 _
 
 Patches currently in -mm which might be from dmantipov@yandex.ru are
 
 lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
-lib-cmdline_kunit-add-test-case-for-memparse.patch
 lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
 riscv-export-symbols-needed-for-riscv32-efi-stub.patch
 
