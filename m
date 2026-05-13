@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68E1D395AE3
-	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 03:59:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01B0E1991D4
+	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 04:22:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778644775; cv=none; b=cdptjLECu9D/GS6z5rVhQSpfO+HObcMR8ixW4rNOE03/u/IzbIGgRDpdfN5AMeqxkFl05yoix2XvptwPE/tkTyOPgulNruOfF/XkJSfKsQS10wsdoy09llzzACcv8uFTR9bhclllgy/fOTbIJR4A61PI6P9SFq3pTqaU0s+rams=
+	t=1778646165; cv=none; b=I8kuZ0uUTXE/FnxDinEb0nM2gtGdn28soJPXUIljeIVMfpztd8X0xoJ3mFJYmTi3BRK4vH6xcUCYPNcbdH5NJt1AC15QW8HLA3+dptKCMF3Pvhxu4R/jzK279jeuLoGITqE4RZylxneBo53CJOXTuvpoNLAEHBVp4Jdb1yndDks=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778644775; c=relaxed/simple;
-	bh=GlOjjdGeYsy4lsn1BLQ1PG1HooEZIm7lC2lVRhJYx3E=;
-	h=Date:To:From:Subject:Message-Id; b=mR/sCMS3yvRLknQACVesZVvdpUGWV3BT2wqfxXFAe0XhJoVYlhbU45PkeQ3VupbRRDDZEJhSuhEBHCSNxIqASfVAozrzDZww1rjglrMpdOi2p3ZVRRnPoxJQzF7uXapsHPNwypszLpP0rbkZGLtpgnPAfg7uy5WfyighZY0SuXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=S5nmu/rL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778646165; c=relaxed/simple;
+	bh=abwdr+V5iavUPhw4zXoPkWoeKo1Mi7xRyuH/LizE5w8=;
+	h=Date:To:From:Subject:Message-Id; b=F8z2V+p4D0TIr0RWLNRf+deEtitztyoOncSDKKchiDNDvnqcOxnQ2AsnwMBVsf53bBB1PSh8MF8YkunnuXfd0oCTOPkftVkgjdZPC+Q9WEwvOfyfC+3/dbJPlJ3xoaXASW9x3D0AORJ6+2NzQQYETvGWAeoFzhDHktjsq+dHZSw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tqRxUfDx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="S5nmu/rL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BA02C2BCC7;
-	Wed, 13 May 2026 03:59:35 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tqRxUfDx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7188C2BCB7;
+	Wed, 13 May 2026 04:22:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778644775;
-	bh=GlOjjdGeYsy4lsn1BLQ1PG1HooEZIm7lC2lVRhJYx3E=;
+	s=korg; t=1778646164;
+	bh=abwdr+V5iavUPhw4zXoPkWoeKo1Mi7xRyuH/LizE5w8=;
 	h=Date:To:From:Subject:From;
-	b=S5nmu/rLSjrQ3nQ8ktZpNYQ/HTNNX7qg019tDfYkB3OwO/WwDbPi3Nr0xIQPooQmP
-	 5rekfEQEOl65n5wpRTCDVbzYPWv0Wz5V4YugAp99CrOqwviAj+637OuSY4a8CMMyE/
-	 a0BcFoYx7Vm4V9iKB7Z47Duc+RaLYFkE9FdSWit8=
-Date: Tue, 12 May 2026 20:59:34 -0700
-To: mm-commits@vger.kernel.org,pjw@kernel.org,palmer@dabbelt.com,nathan@kernel.org,lkp@intel.com,kees@kernel.org,djwong@kernel.org,ardb@kernel.org,aou@eecs.berkeley.edu,andriy.shevchenko@intel.com,alex@ghiti.fr,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=tqRxUfDx577hGrIHljxzAbp+fliUoOEcFYrlHS4SICokyUwrcncCpKLBZ89yLU4OV
+	 wBGq5ufjGBzCUPxIGgpituiF0M2BbnKBDpOj/3krm9bmMG3Rz60odQ+VPw/CqnRSDz
+	 mzxXY3A7pw87k5f4j7grJvi/aCK6+VH30IfoEf8o=
+Date: Tue, 12 May 2026 21:22:44 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,sj@kernel.org,pfalcato@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,thorsten.blum@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] riscv-export-symbols-needed-for-riscv32-efi-stub.patch removed from -mm tree
-Message-Id: <20260513035935.1BA02C2BCC7@smtp.kernel.org>
+Subject: + mm-mseal-use-min-max-in-mseal_apply.patch added to mm-new branch
+Message-Id: <20260513042244.A7188C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,67 +34,89 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: riscv: export symbols needed for riscv32 EFI stub
-has been removed from the -mm tree.  Its filename was
-     riscv-export-symbols-needed-for-riscv32-efi-stub.patch
+The patch titled
+     Subject: mm/mseal: use min/max in mseal_apply
+has been added to the -mm mm-new branch.  Its filename is
+     mm-mseal-use-min-max-in-mseal_apply.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mseal-use-min-max-in-mseal_apply.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: riscv: export symbols needed for riscv32 EFI stub
-Date: Fri, 3 Apr 2026 13:33:38 +0300
+From: Thorsten Blum <thorsten.blum@linux.dev>
+Subject: mm/mseal: use min/max in mseal_apply
+Date: Sun, 3 May 2026 13:59:16 +0200
 
-Fix the following link error observed when building EFI-enabled kernel
-with CONFIG_EFI_STUB=y and CONFIG_EFI_GENERIC_STUB=y:
+Use the type-checked min()/max() macros instead of MIN()/MAX(), which are
+supposed to be used "for obvious constants only".
 
-riscv32-linux-gnu-ld: ./drivers/firmware/efi/libstub/lib-cmdline.stub.o: in function `__efistub_.L49':
-__efistub_cmdline.c:(.init.text+0x1f2): undefined reference to `__efistub___ashldi3'
-riscv32-linux-gnu-ld: __efistub_cmdline.c:(.init.text+0x202): undefined reference to `__efistub___lshrdi3'
-
-Note: compile (gcc 15.2.1 and clang 21.1.8) tested only.
-
-Link: https://lore.kernel.org/20260403103338.1122415-7-dmantipov@yandex.ru
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Reported-by: kernel test robot <lkp@intel.com>
-Closes: https://lore.kernel.org/oe-kbuild-all/202603041925.KLKqpK6N-lkp@intel.com
-Suggested-by: Ard Biesheuvel <ardb@kernel.org>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <pjw@kernel.org>
+Link: https://lore.kernel.org/20260503115915.18680-3-thorsten.blum@linux.dev
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Reviewed-by: Pedro Falcato <pfalcato@suse.de>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Thorsten Blum <thorsten.blum@linux.dev>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/kernel/image-vars.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/mseal.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/arch/riscv/kernel/image-vars.h~riscv-export-symbols-needed-for-riscv32-efi-stub
-+++ a/arch/riscv/kernel/image-vars.h
-@@ -32,6 +32,15 @@ __efistub___init_text_end	= __init_text_
- __efistub_sysfb_primary_display	= sysfb_primary_display;
- #endif
+--- a/mm/mseal.c~mm-mseal-use-min-max-in-mseal_apply
++++ a/mm/mseal.c
+@@ -8,6 +8,7 @@
+  */
  
-+#ifdef CONFIG_CC_IS_GCC
-+/*
-+ * Double-word integer shifts are used by the library code and so EFI stub as
-+ * well. Not needed for clang and please let me know if anyone understands why.
-+ */
-+PROVIDE(__efistub___lshrdi3    = __lshrdi3);
-+PROVIDE(__efistub___ashldi3    = __ashldi3);
-+#endif /* CONFIG_CC_IS_GCC */
-+
- #endif
+ #include <linux/mempolicy.h>
++#include <linux/minmax.h>
+ #include <linux/mman.h>
+ #include <linux/mm.h>
+ #include <linux/mm_inline.h>
+@@ -65,8 +66,8 @@ static int mseal_apply(struct mm_struct
+ 		prev = vma;
  
- #endif /* __RISCV_KERNEL_IMAGE_VARS_H */
+ 	for_each_vma_range(vmi, vma, end) {
+-		const unsigned long curr_start = MAX(vma->vm_start, start);
+-		const unsigned long curr_end = MIN(vma->vm_end, end);
++		const unsigned long curr_start = max(vma->vm_start, start);
++		const unsigned long curr_end = min(vma->vm_end, end);
+ 
+ 		if (!vma_test(vma, VMA_SEALED_BIT)) {
+ 			vma_flags_t vma_flags = vma->flags;
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from thorsten.blum@linux.dev are
 
-lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
+mm-mseal-use-min-max-in-mseal_apply.patch
+proc-use-strnlen-for-name-validation-in-__proc_create.patch
 
