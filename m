@@ -1,232 +1,156 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7E282DF13B;
-	Thu, 14 May 2026 00:40:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FBDE3A4275
+	for <mm-commits@vger.kernel.org>; Thu, 14 May 2026 07:04:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778719246; cv=none; b=UN6AdWm8T/9zTjD6Hgp6nbGEpNfmwDWuE3CWDL1vNrot9+8phFiOOSdUCwo/WM1syKCCkN07rT5HDd61RyOd1nn59wHOvcRy+tfhZJoueg3C4y6pnpFw5gz8iJKaOVSnqgx24ZFLMTc7J+w5Z2WHY2rAEpYOBo3LoH9oGHWM+HE=
+	t=1778742298; cv=none; b=XOC2yjo1zlG48YtTLgGgPltONER4cgB76UN289DTFZYCLlQJ+YFQX0dbuPdvwCG1k3ulXYp37uzZ+0G5q0dWnvk/6T2SGTIRQV4F5IOlQZV8nSL5/z3lwY/AlQlqTfDtW5A/p1/S1tG2hSl+uKzA1hKmzdtsKCSgDXN2rB0Pxgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778719246; c=relaxed/simple;
-	bh=NtQFy17Cb1DeMKkiMIndbwTOpPxdusJMJ0Y6NUXnaqA=;
-	h=Date:To:From:Subject:Message-Id; b=YZ4tRsD7GkjEkZHvB+bAfCo0pEgCaNNPLWZzRVksksEcFLYa+7rA5aNplYpG9ZAdGKIePtXy2ALg3kE7bonmjneX4pxAmR/BGX71i/BSdHj8jFPD64sZWm+t73MC+9hk3Th+2D4Rowl/ChKYAthRh3cSyKlinbjJ0mC2s35mshM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZQtlC2EY; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778742298; c=relaxed/simple;
+	bh=411Jnboet/QWwFehuAV9G/2CgnoSE5wfC1lKddwf7fo=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=U+JOVrlCsO6LrS4lUf4Wiz3CBRmFL5YeoCmTsrF5sDbgyxpe7MxYGXcnZXL3h8I0omPSqAYAz/A/R3+eCBRzf/zyJvlL+8tHEBqL5elo6VAhfIfFl/hu2W4dms4QVTWfe6j/Ut9AgaX3+kL3ie/G79Q8tUmf6NE69Ek6bJJiJzs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SKgDLbHr; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZQtlC2EY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6EA6CC19425;
-	Thu, 14 May 2026 00:40:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778719246;
-	bh=NtQFy17Cb1DeMKkiMIndbwTOpPxdusJMJ0Y6NUXnaqA=;
-	h=Date:To:From:Subject:From;
-	b=ZQtlC2EYfcmxdSCoNQ2TUyRBkPIfNKsh03Vi/JP+kjya55bMlcaRC8jpP4M3zXiFc
-	 5cgTUtZFj5cem5ThK0YTdov2EvzJgZ1STsjN1r0uHLx2n0j9zVZpIFlJJGk9+p/3vK
-	 hVePAhTXOhCJC51HxlboG/2lqykMOBAUXG5BTwsQ=
-Date: Wed, 13 May 2026 17:40:45 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,thomas.hellstrom@linux.intel.com,surenb@google.com,stable@vger.kernel.org,shuah@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,matthew.brost@intel.com,ljs@kernel.org,liam@infradead.org,leon@kernel.org,jhubbard@nvidia.com,jgg@ziepe.ca,david@kernel.org,balbirs@nvidia.com,aarsenovic@baylibre.com,apopple@nvidia.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-memory-fix-spurious-warning-when-unmapping-device-private-exclusive-pages.patch removed from -mm tree
-Message-Id: <20260514004046.6EA6CC19425@smtp.kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SKgDLbHr"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1778742297; x=1810278297;
+  h=date:from:to:cc:subject:message-id;
+  bh=411Jnboet/QWwFehuAV9G/2CgnoSE5wfC1lKddwf7fo=;
+  b=SKgDLbHrQsFdooNhkDhKqGhN/+fFw/ZeC76QKDTyrvVqXbtMP+JtstXT
+   f4C9xq4EA8hSxbZRi1rhyy6dU75uLQj+xUCGftKQM1JoQmHnOCwtxjkAk
+   beFm6PnIS5A0mvjYjI4ZS71qz1B8eCiGkjLgebvSFunAYGIKEK+aqJ8va
+   sZtDu3jS1eNUS8w/KEQ/77avjhtcUn2zezOi+zLkMCFcQWQe8TfcuqEMP
+   byRYmMaoa/y+X7b7w6Z6f1CRxcGpCZOUp5rXqqnlUaZ6UM5n5fVp3IbhQ
+   i2nTnvis6w7UMKlIzDB/UOT1WDD7xHSXOmSjI1FvKRWFiHxH3eGLJz0Rf
+   g==;
+X-CSE-ConnectionGUID: hP/6nA8dQkuFbPmFmMrvMQ==
+X-CSE-MsgGUID: cjHptCEVQ3uselCQn8xhRg==
+X-IronPort-AV: E=McAfee;i="6800,10657,11785"; a="105138342"
+X-IronPort-AV: E=Sophos;i="6.23,234,1770624000"; 
+   d="scan'208";a="105138342"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 May 2026 00:04:57 -0700
+X-CSE-ConnectionGUID: 0vgEPVR7SyW52BTDJXweJQ==
+X-CSE-MsgGUID: XNi7siZmSrSH1y2uJpTQ7w==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.23,234,1770624000"; 
+   d="scan'208";a="235656562"
+Received: from igk-lkp-server01.igk.intel.com (HELO bdf09bfdbd5f) ([10.211.93.152])
+  by fmviesa008.fm.intel.com with ESMTP; 14 May 2026 00:04:55 -0700
+Received: from kbuild by bdf09bfdbd5f with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wNQ7o-000000008ln-2Z4L;
+	Thu, 14 May 2026 07:04:52 +0000
+Date: Thu, 14 May 2026 09:04:19 +0200
+From: kernel test robot <lkp@intel.com>
+To: Lorenzo Stoakes <ljs@kernel.org>
+Cc: oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-unstable 25/274] mm/hugetlb.c:7281:17: error:
+ implicit declaration of function '__huge_pmd_unshare'; did you mean
+ 'huge_pmd_unshare'?
+Message-ID: <202605140938.6Mcv6k8i-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-unstable
+head:   444fc9435e57157fcf30fc99aee44997f3458641
+commit: 2bb8fe16f7bf4487248c9ff847fcf189c45b9508 [25/274] mm/hugetlb: avoid false positive lockdep assertion
+config: s390-allnoconfig-bpf (https://download.01.org/0day-ci/archive/20260514/202605140938.6Mcv6k8i-lkp@intel.com/config)
+compiler: s390x-linux-gnu-gcc (Debian 14.2.0-19) 14.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260514/202605140938.6Mcv6k8i-lkp@intel.com/reproduce)
 
-The quilt patch titled
-     Subject: mm/memory: fix spurious warning when unmapping device-private/exclusive pages
-has been removed from the -mm tree.  Its filename was
-     mm-memory-fix-spurious-warning-when-unmapping-device-private-exclusive-pages.patch
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202605140938.6Mcv6k8i-lkp@intel.com/
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+All errors (new ones prefixed by >>):
 
-------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/memory: fix spurious warning when unmapping device-private/exclusive pages
-Date: Fri, 1 May 2026 16:51:16 +1000
-
-Device private and exclusive entries are only supported for anonymous
-folios.  This condition is tested in __migrate_device_pages() and
-make_device_exclusive() using folio_test_anon().  However the unmap path
-tests this assumption using vma_is_anonymous().
-
-This is wrong because whilst anonymous VMAs can only contain folios where
-folio_test_anon() is true the opposite relation does not hold.  A folio
-for which folio_test_anon() is true does not imply vma_is_anonymous() is
-true.  Such a condition can occur if for example a folio is part of a
-private filebacked mapping.
-
-In this case vma_is_anonymous() is false as the mapping is filebacked, but
-folio_test_anon() may be true, thus permitting devices to migrate the
-folio to device private memory.  This can lead to the following spurious
-warnings during process teardown:
-
-[  772.737706] ------------[ cut here ]------------
-[  772.739201] WARNING: mm/memory.c:1754 at unmap_page_range.cold+0x26/0x18a, CPU#17: hmm-tests/2041
-[  772.742050] Modules linked in: test_hmm nvidia_uvm(O) nvidia(O)
-[  772.743959] CPU: 17 UID: 0 PID: 2041 Comm: hmm-tests Tainted: G        W  O        7.0.0+ #387 PREEMPT(full)
-[  772.747104] Tainted: [W]=WARN, [O]=OOT_MODULE
-[  772.748509] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org 04/01/2014
-[  772.752117] RIP: 0010:unmap_page_range.cold+0x26/0x18a
-[  772.753780] Code: 7e fe ff ff 48 89 4c 24 78 4c 89 44 24 38 e8 f2 ff b1 00 48 8b 4c 24 78 4c 8b 44 24 38 48 8b 44 24 18 48 83 78 48 00 74 04 90 <0f> 0b 90 48 89 ca b8 ff ff 37 00 48 c1 ea 03 48 c1 e0 2a 80 3c 02
-[  772.759602] RSP: 0018:ffff888112607550 EFLAGS: 00010286
-[  772.761310] RAX: ffff88811bbf4dc0 RBX: dffffc0000000000 RCX: ffffea03e9bfffd8
-[  772.763583] RDX: 1ffff1102377e9c1 RSI: 0000000000000008 RDI: ffff88811bbf4e08
-[  772.765914] RBP: 0000000000000006 R08: ffff8881059f7448 R09: ffffed10224c0e68
-[  772.768184] R10: ffff888112607347 R11: 0000000000000001 R12: 0000000000000001
-[  772.770461] R13: ffffea03e9bfffc0 R14: ffff888112607908 R15: ffffea03e9bfffc0
-[  772.772782] FS:  00007f327caa2780(0000) GS:ffff888427b7d000(0000) knlGS:0000000000000000
-[  772.775328] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  772.777187] CR2: 00007f327ca89000 CR3: 00000001994d5000 CR4: 00000000000006f0
-[  772.779135] Call Trace:
-[  772.779792]  <TASK>
-[  772.780317]  ? dmirror_interval_invalidate+0x1a3/0x290 [test_hmm]
-[  772.781873]  ? vm_normal_page_pud+0x2b0/0x2b0
-[  772.782992]  ? __rwlock_init+0x150/0x150
-[  772.784006]  ? lock_release+0x216/0x2b0
-[  772.785008]  ? __mmu_notifier_invalidate_range_start+0x505/0x6e0
-[  772.786522]  ? lock_release+0x216/0x2b0
-[  772.787498]  ? unmap_single_vma+0xb6/0x210
-[  772.788573]  unmap_vmas+0x27d/0x520
-[  772.789506]  ? unmap_single_vma+0x210/0x210
-[  772.790607]  ? mas_update_gap.part.0+0x620/0x620
-[  772.791834]  unmap_region+0x19e/0x350
-[  772.792769]  ? remove_vma+0x130/0x130
-[  772.793684]  ? mas_alloc_nodes+0x1f2/0x300
-[  772.794730]  vms_complete_munmap_vmas+0x8c1/0xe20
-[  772.795926]  ? unmap_region+0x350/0x350
-[  772.796917]  do_vmi_align_munmap+0x36a/0x4e0
-[  772.798018]  ? lock_release+0x216/0x2b0
-[  772.799024]  ? vma_shrink+0x620/0x620
-[  772.799983]  do_vmi_munmap+0x150/0x2c0
-[  772.800939]  __vm_munmap+0x161/0x2c0
-[  772.801872]  ? expand_downwards+0xd60/0xd60
-[  772.802948]  ? clockevents_program_event+0x1ef/0x540
-[  772.804217]  ? lock_release+0x216/0x2b0
-[  772.805158]  __x64_sys_munmap+0x59/0x80
-[  772.805776]  do_syscall_64+0xfc/0x670
-[  772.806336]  ? irqentry_exit+0xda/0x580
-[  772.806976]  entry_SYSCALL_64_after_hwframe+0x4b/0x53
-[  772.807772] RIP: 0033:0x7f327cbb2717
-[  772.808323] Code: 73 01 c3 48 8b 0d f9 76 0d 00 f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 b8 0b 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d c9 76 0d 00 f7 d8 64 89 01 48
-[  772.811337] RSP: 002b:00007ffde7f57d38 EFLAGS: 00000202 ORIG_RAX: 000000000000000b
-[  772.812564] RAX: ffffffffffffffda RBX: 00007f327cc9c000 RCX: 00007f327cbb2717
-[  772.813733] RDX: 0000000000000000 RSI: 0000000000400000 RDI: 00007f327c289000
-[  772.814867] RBP: 0000000000421360 R08: 000000000000001a R09: 0000000000000000
-[  772.815991] R10: 0000000000000003 R11: 0000000000000202 R12: 00007ffde7f57d74
-[  772.817121] R13: 00007f327c689010 R14: 0000000000100000 R15: 00007f327c289000
-[  772.818272]  </TASK>
-[  772.818614] irq event stamp: 0
-[  772.819159] hardirqs last  enabled at (0): [<0000000000000000>] 0x0
-[  772.820174] hardirqs last disabled at (0): [<ffffffff82a57ab3>] copy_process+0x19f3/0x6440
-[  772.821511] softirqs last  enabled at (0): [<ffffffff82a57b00>] copy_process+0x1a40/0x6440
-[  772.822869] softirqs last disabled at (0): [<0000000000000000>] 0x0
-[  772.823871] ---[ end trace 0000000000000000 ]---
-
-Fix this by using the same check for folio_test_anon() in
-zap_nonpresent_ptes(). Also add a hmm-test case for this.
-
-Link: https://lore.kernel.org/20260501065116.2057242-1-apopple@nvidia.com
-Fixes: 999dad824c39 ("mm/shmem: persist uffd-wp bit across zapping for file-backed")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reported-by: Arsen Arsenović <aarsenovic@baylibre.com>
-Reviewed-by: Balbir Singh <balbirs@nvidia.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memory.c                            |    2 
- tools/testing/selftests/mm/hmm-tests.c |   50 +++++++++++++++++++++++
- 2 files changed, 51 insertions(+), 1 deletion(-)
-
---- a/mm/memory.c~mm-memory-fix-spurious-warning-when-unmapping-device-private-exclusive-pages
-+++ a/mm/memory.c
-@@ -1755,7 +1755,7 @@ static inline int zap_nonpresent_ptes(st
- 		 * consider uffd-wp bit when zap. For more information,
- 		 * see zap_install_uffd_wp_if_needed().
- 		 */
--		WARN_ON_ONCE(!vma_is_anonymous(vma));
-+		WARN_ON_ONCE(!folio_test_anon(folio));
- 		rss[mm_counter(folio)]--;
- 		folio_remove_rmap_pte(folio, page, vma);
- 		folio_put(folio);
---- a/tools/testing/selftests/mm/hmm-tests.c~mm-memory-fix-spurious-warning-when-unmapping-device-private-exclusive-pages
-+++ a/tools/testing/selftests/mm/hmm-tests.c
-@@ -986,6 +986,56 @@ TEST_F(hmm, migrate)
- }
- 
- /*
-+ * Migrate private file memory to device private memory.
-+ */
-+TEST_F(hmm, migrate_file_private)
-+{
-+	struct hmm_buffer *buffer;
-+	unsigned long npages;
-+	unsigned long size;
-+	unsigned long i;
-+	int *ptr;
-+	int ret;
-+	int fd;
-+
-+	npages = ALIGN(HMM_BUFFER_SIZE, self->page_size) >> self->page_shift;
-+	ASSERT_NE(npages, 0);
-+	size = npages << self->page_shift;
-+
-+	fd = hmm_create_file(size);
-+	ASSERT_GE(fd, 0);
-+
-+	buffer = malloc(sizeof(*buffer));
-+	ASSERT_NE(buffer, NULL);
-+
-+	buffer->fd = fd;
-+	buffer->size = size;
-+	buffer->mirror = malloc(size);
-+	ASSERT_NE(buffer->mirror, NULL);
-+
-+	buffer->ptr = mmap(NULL, size,
-+			   PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE,
-+			   buffer->fd, 0);
-+	ASSERT_NE(buffer->ptr, MAP_FAILED);
-+
-+	/* Initialize buffer in system memory. */
-+	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
-+		ptr[i] = i;
-+
-+	/* Migrate memory to device. */
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
-+
-+	/* Check what the device read. */
-+	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
-+		ASSERT_EQ(ptr[i], i);
-+
-+	hmm_buffer_free(buffer);
-+}
-+
-+/*
-  * Migrate anonymous memory to device private memory and fault some of it back
-  * to system memory, then try migrating the resulting mix of system and device
-  * private memory to the device.
-_
-
-Patches currently in -mm which might be from apopple@nvidia.com are
+   mm/hugetlb.c: In function 'hugetlb_unshare_pmds':
+>> mm/hugetlb.c:7281:17: error: implicit declaration of function '__huge_pmd_unshare'; did you mean 'huge_pmd_unshare'? [-Wimplicit-function-declaration]
+    7281 |                 __huge_pmd_unshare(&tlb, vma, address, ptep, take_locks);
+         |                 ^~~~~~~~~~~~~~~~~~
+         |                 huge_pmd_unshare
 
 
+vim +7281 mm/hugetlb.c
+
+  7233	
+  7234	/*
+  7235	 * If @take_locks is false, the caller must ensure that no concurrent page table
+  7236	 * access can happen (except for gup_fast() and hardware page walks).
+  7237	 * If @take_locks is true, we take the hugetlb VMA lock (to lock out things like
+  7238	 * concurrent page fault handling) and the file rmap lock.
+  7239	 */
+  7240	static void hugetlb_unshare_pmds(struct vm_area_struct *vma,
+  7241					   unsigned long start,
+  7242					   unsigned long end,
+  7243					   bool take_locks)
+  7244	{
+  7245		struct hstate *h = hstate_vma(vma);
+  7246		unsigned long sz = huge_page_size(h);
+  7247		struct mm_struct *mm = vma->vm_mm;
+  7248		struct mmu_notifier_range range;
+  7249		struct mmu_gather tlb;
+  7250		unsigned long address;
+  7251		spinlock_t *ptl;
+  7252		pte_t *ptep;
+  7253	
+  7254		if (!(vma->vm_flags & VM_MAYSHARE))
+  7255			return;
+  7256	
+  7257		if (start >= end)
+  7258			return;
+  7259	
+  7260		flush_cache_range(vma, start, end);
+  7261		tlb_gather_mmu_vma(&tlb, vma);
+  7262	
+  7263		/*
+  7264		 * No need to call adjust_range_if_pmd_sharing_possible(), because
+  7265		 * we have already done the PUD_SIZE alignment.
+  7266		 */
+  7267		mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, mm,
+  7268					start, end);
+  7269		mmu_notifier_invalidate_range_start(&range);
+  7270		if (take_locks) {
+  7271			hugetlb_vma_lock_write(vma);
+  7272			i_mmap_lock_write(vma->vm_file->f_mapping);
+  7273		} else {
+  7274			i_mmap_assert_write_locked(vma->vm_file->f_mapping);
+  7275		}
+  7276		for (address = start; address < end; address += PUD_SIZE) {
+  7277			ptep = hugetlb_walk(vma, address, sz);
+  7278			if (!ptep)
+  7279				continue;
+  7280			ptl = huge_pte_lock(h, mm, ptep);
+> 7281			__huge_pmd_unshare(&tlb, vma, address, ptep, take_locks);
+  7282			spin_unlock(ptl);
+  7283		}
+  7284		huge_pmd_unshare_flush(&tlb, vma);
+  7285		if (take_locks) {
+  7286			i_mmap_unlock_write(vma->vm_file->f_mapping);
+  7287			hugetlb_vma_unlock_write(vma);
+  7288		}
+  7289		/*
+  7290		 * No need to call mmu_notifier_arch_invalidate_secondary_tlbs(), see
+  7291		 * Documentation/mm/mmu_notifier.rst.
+  7292		 */
+  7293		mmu_notifier_invalidate_range_end(&range);
+  7294		tlb_finish_mmu(&tlb);
+  7295	}
+  7296	
+
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
