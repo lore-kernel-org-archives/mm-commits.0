@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 404E03B28D
-	for <mm-commits@vger.kernel.org>; Thu, 14 May 2026 00:40:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17C423B28D
+	for <mm-commits@vger.kernel.org>; Thu, 14 May 2026 00:40:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778719233; cv=none; b=JWqFdEo9TGcoLSMM+Nfvp/QsqPRRSmDY5mYoyqOHtFZPgynimOiSDlFcYJTDWXJtBLsnZgW3gr72ucb7stlnvIbXys+YC3gGnnTgQKOgeMWcgRa9n2+AT79CL8KFW6FJLJ14+fU+dnEmQZ1xg/LyHX/S/+cwk48U17rF4USHnE4=
+	t=1778719235; cv=none; b=VL59pR3YaSrOjFJxs3PsSWDIvmSokaO82qqlHO0XuZYho6UZFG6WHbzAt3jZf3on3gdlgpJR3lE3Mf6L1j//WcA5rcylx/w7Y3hTw32pzBE0Bwi9vg9vXiGI7X/ZxK8DbhVEn6N/zfziSpe7NwFl/CqRjzjtfz0j13PDP906e0I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778719233; c=relaxed/simple;
-	bh=PHtu+iwkdeZg8gvWWli685qq5HwS5AYzQoCgEmQb944=;
-	h=Date:To:From:Subject:Message-Id; b=l45xTXBZ+PpBV9vvv0eDvh6FdAdWyLAvyNue/TgM3Bb0sC+oIbuIjuTi5J4Z3R+2lMvSsQ7nUybPX7S2refh9SaTbf4HZ1CxGfLijitAyjQfudcgd+J93XFFEKxQj/rSbuSpXnL1SUssN5pp64hLh/CzCdiPM3dyWG/+lxzNTjk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=fOOxeA/0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778719235; c=relaxed/simple;
+	bh=aH5cDMMN96bWshHCZGzpV7Jh5w980ES6vhkTEH8ldYQ=;
+	h=Date:To:From:Subject:Message-Id; b=nC+/l22qtn5quyTuAoobbIeKNawSO1mkBcTTSIMKATOq0g8edXjmsrqQ7ZWC3dn8JF2Uv1GofUMEaHKQdLHpPk8JH1k/BVbrQbrEFbjEhIgzKRLXEdb/XgBKNyoozIHVqs3bOxn9HRN2or/adVudPmZvgOGm5Fa34Cy5EFkvpvI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VPWaamT2; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="fOOxeA/0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD52DC19425;
-	Thu, 14 May 2026 00:40:32 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VPWaamT2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA04BC19425;
+	Thu, 14 May 2026 00:40:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778719232;
-	bh=PHtu+iwkdeZg8gvWWli685qq5HwS5AYzQoCgEmQb944=;
+	s=korg; t=1778719234;
+	bh=aH5cDMMN96bWshHCZGzpV7Jh5w980ES6vhkTEH8ldYQ=;
 	h=Date:To:From:Subject:From;
-	b=fOOxeA/0t5+hrEJTbVuLAI1vCt2oo1l+72T18f2ODhNyIaDkFTAduE7YmaQHYmeX8
-	 CvbDJ03c2lPY8OBwSOBls8KJH7PZJ0Z3GE2t58Dquhbzvhdkxmp97oc+8TcpXQFHWR
-	 a7T3ZB7S+S1T236vkCN1N6XLMgdoAypq0Cc7kw88=
-Date: Wed, 13 May 2026 17:40:32 -0700
+	b=VPWaamT2yTB3J5wsWdvNXJgbqfiBwpG2EUPx8+584IJdj4nF+il/2tVgi8ac97Vjo
+	 qQKsVrIXXJQxoIZ9QIvYoT3awQ8EXm/Rf8HnUmREI5S7bXsJr8L4c7zExnOxl/ZiCU
+	 NofEzYYF1/bBxmOtStH/XTfYj5kwQiR4QWRl2qG8=
+Date: Wed, 13 May 2026 17:40:34 -0700
 To: mm-commits@vger.kernel.org,ruirui.yang@linux.dev,pratyush@kernel.org,pasha.tatashin@soleen.com,ebiederm@xmission.com,baoquan.he@linux.dev,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] maintainers-add-tree-for-kdump-and-kexec.patch removed from -mm tree
-Message-Id: <20260514004032.DD52DC19425@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-add-kexec-list-to-live-update-entry.patch removed from -mm tree
+Message-Id: <20260514004034.CA04BC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,41 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: MAINTAINERS: add tree for KDUMP and KEXEC
+     Subject: MAINTAINERS: add kexec@ list to LIVE UPDATE ENTRY
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-tree-for-kdump-and-kexec.patch
+     maintainers-add-kexec-list-to-live-update-entry.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: MAINTAINERS: add tree for KDUMP and KEXEC
-Date: Tue, 28 Apr 2026 15:48:32 +0300
+Subject: MAINTAINERS: add kexec@ list to LIVE UPDATE ENTRY
+Date: Tue, 28 Apr 2026 15:48:33 +0300
 
-Patch series "MAINTAINERS: update KEXEC, KDUMP and LIVE UPDATE".
-
-KHO and LiveUpdate team is going to pick kdump and kexec patches to
-their tree at
-    
-https://git.kernel.org/pub/scm/linux/kernel/git/liveupdate/linux.git
-
-Update MAINTAINERS to reflect this change and add kexec@ list to LIVE
-UPDATE entry.
-
-
-This patch (of 2):
-
-KHO and LiveUpdate team is going to pick kdump and kexec patches to their
-tree at
-
-https://git.kernel.org/pub/scm/linux/kernel/git/liveupdate/linux.git
-
-Update MAINTAINERS to reflect it.
-
-Link: https://lore.kernel.org/20260428124833.1903302-1-rppt@kernel.org
-Link: https://lore.kernel.org/20260428124833.1903302-2-rppt@kernel.org
+Link: https://lore.kernel.org/20260428124833.1903302-3-rppt@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Acked-by: Pasha Tatashin <pasha.tatashin@soleen.com> 
 Acked-by: Baoquan He <baoquan.he@linux.dev>
-Acked-by: Pratyush Yadav <pratyush@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Dave Young <ruirui.yang@linux.dev>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Pratyush Yadav <pratyush@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/MAINTAINERS~maintainers-add-tree-for-kdump-and-kexec
+--- a/MAINTAINERS~maintainers-add-kexec-list-to-live-update-entry
 +++ a/MAINTAINERS
-@@ -13863,6 +13863,7 @@ M:	Pratyush Yadav <pratyush@kernel.org>
- R:	Dave Young <ruirui.yang@linux.dev>
- L:	kexec@lists.infradead.org
- S:	Maintained
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/liveupdate/linux.git
- F:	Documentation/admin-guide/kdump/
- F:	fs/proc/vmcore.c
- F:	include/linux/crash_core.h
-@@ -14179,6 +14180,7 @@ M:	Pasha Tatashin <pasha.tatashin@soleen
+@@ -14897,6 +14897,7 @@ LIVE UPDATE
+ M:	Pasha Tatashin <pasha.tatashin@soleen.com>
+ M:	Mike Rapoport <rppt@kernel.org>
  M:	Pratyush Yadav <pratyush@kernel.org>
- L:	kexec@lists.infradead.org
- W:	http://kernel.org/pub/linux/utils/kernel/kexec/
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/liveupdate/linux.git
- F:	include/linux/kexec.h
- F:	include/uapi/linux/kexec.h
- F:	kernel/kexec*
++L:	kexec@lists.infradead.org
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/liveupdate/linux.git
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
