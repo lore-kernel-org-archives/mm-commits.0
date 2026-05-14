@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AACD4A33
-	for <mm-commits@vger.kernel.org>; Thu, 14 May 2026 00:08:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7331AFC0A
+	for <mm-commits@vger.kernel.org>; Thu, 14 May 2026 00:08:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778717318; cv=none; b=CTdiEq/vRWBhVK5D+PwnNI/bxj0EAj11PbFKrEgSBBYbevZshEi3fdh99uTleyAnm7llr4w7142CTy+Ww25gVwwTX4vcvHIIGGv1efJ0vNOc+qGJkegMh2EBUOQo3D6ce6Nf78UOjuilb93v0v5/ZyjyEKVb4aUbsD9JrnAjR3A=
+	t=1778717320; cv=none; b=G9ODd3+iG+pk9mly/MHmm3pyojEFymW2HLfPrjDxOw6XD5lbX6x2AHo5OcJzgofvv13u7ndCv4ngVp/4cu6CMOitm31OWEMt5UOkU+33kb4Gp3hd/cmZzlOpYfYZEDAuCcvg85Rs+XayM79IA3b9of+cXLxVlYonJeiW8hO246g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778717318; c=relaxed/simple;
-	bh=vCN3ajTSgSh1k+BM9bJTzJEu77hYQm+tK9TTng4xDHk=;
-	h=Date:To:From:Subject:Message-Id; b=dNl6f8OXbUrYI53THvzwRRoZ4T4pnUtABp+yrRw++kDQCJqQcemkx32X1PDDC1AW2rY8Witf83axLzagoZymr5emhjeKwwnJgZpp8AgOYdYwR7h7TDyXesAb/LrpDdzLnivm3p5E7pjpaKCO18AEZjD+7DXxbdDye6KY7FCNMCw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zsF25IX4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778717320; c=relaxed/simple;
+	bh=74x9G/Q7CAnjDQpuMA6KKVkvdoFCxXB2kj6LUPPBlqA=;
+	h=Date:To:From:Subject:Message-Id; b=ZBPV9X/jsud74Xg2w9lQNLKYBRzc7IyZmFKrC67M9UsbaHQqq4NEoC8LJd+WuN06PpDv5/fhOC5oy+ypP3MRpsoFOvyGJK6t1S9IH5y1+lwBw+UOxlmGP7TZYk/jJ34sSsZnktcnxgPbdLQgOS9FnwtnfM2EYJSKbvso8fsGA10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gE2AZJAx; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zsF25IX4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3856C19425;
-	Thu, 14 May 2026 00:08:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gE2AZJAx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1EBAC19425;
+	Thu, 14 May 2026 00:08:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778717317;
-	bh=vCN3ajTSgSh1k+BM9bJTzJEu77hYQm+tK9TTng4xDHk=;
+	s=korg; t=1778717320;
+	bh=74x9G/Q7CAnjDQpuMA6KKVkvdoFCxXB2kj6LUPPBlqA=;
 	h=Date:To:From:Subject:From;
-	b=zsF25IX4oiceH16jF6fDVZpvDAEj/93GHLgWrnwdgpUpuOuXFXsdpvaRMrRnD2xPP
-	 GzqvQPvU3b9FXb5ii1LiaWUJrgrS41WpZHjGQ7Jq3rj8skAfJu3+hWteSOp8WayEu5
-	 NDwUrzU+BlDqgAcBukxVsJUxkgczYJ3O5WaLc8Ok=
-Date: Wed, 13 May 2026 17:08:37 -0700
+	b=gE2AZJAxzOGqgMWTkfwo9IQwEKOjpYmwyseeicKYGRaBfQnU5Otesg7SYznXRBf9z
+	 fcf8BVV2J1V1d0P++C6qdlagSltJ32F94XK73R0Eli4B0cBlMt0Zw65/MBalbUdrOF
+	 Ep/WZ5pSq5HCUeTecQeRHuJ+0CReRq89tLsgQqoY=
+Date: Wed, 13 May 2026 17:08:39 -0700
 To: mm-commits@vger.kernel.org,thecharlesjenkins@gmail.com,palmer@dabbelt.com,lkp@intel.com,ardb@kernel.org,aou@eecs.berkeley.edu,andriy.shevchenko@intel.com,alex@ghiti.fr,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-fix-_parse_integer_limit-to-handle-overflow.patch added to mm-nonmm-unstable branch
-Message-Id: <20260514000837.A3856C19425@smtp.kernel.org>
+Subject: + lib-fix-memparse-to-handle-overflow.patch added to mm-nonmm-unstable branch
+Message-Id: <20260514000839.E1EBAC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib: fix _parse_integer_limit() to handle overflow
+     Subject: lib: fix memparse() to handle overflow
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-fix-_parse_integer_limit-to-handle-overflow.patch
+     lib-fix-memparse-to-handle-overflow.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-fix-_parse_integer_limit-to-handle-overflow.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-fix-memparse-to-handle-overflow.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,119 +59,87 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: lib: fix _parse_integer_limit() to handle overflow
-Date: Wed, 13 May 2026 16:44:00 +0300
+Subject: lib: fix memparse() to handle overflow
+Date: Wed, 13 May 2026 16:44:01 +0300
 
-Patch series "lib and lib/cmdline enhancements", v10.
+Since '_parse_integer_limit()' (and so 'simple_strtoull()') is now capable
+to handle overflow, adjust 'memparse()' to handle overflow (denoted by
+ULLONG_MAX) returned from 'simple_strtoull()'.  Also use
+'check_shl_overflow()' to catch an overflow possibly caused by processing
+size suffix and denote it with ULLONG_MAX as well.
 
-This series is a merge of the recently posted [1] and [2]. The first
-one is intended to adjust '_parse_integer_limit()' and 'memparse()' to
-not ignore overflows, extend string to 64-bit integer conversion tests,
-add KUnit-based test for 'memparse()' and fix kernel-doc glitches found
-in lib/cmdline.c. The second one was originated from RISCV-specific
-build fixes needed to integrate the former and now aims to provide
-platform-specific double-word shifts and corresponding KUnit test.
-
-This series was briefly tested on X86, RISCV32, ARM, and MIPS using QEMU.
-
-Getting feedback from RISC-V core maintainers would be very helpful.
-
-Special thanks to Andy Shevchenko, Charlie Jenkins, and Andrew Morton.
-
-
-This patch (of 8):
-
-In '_parse_integer_limit()', adjust native integer arithmetic with
-near-to-overflow branch where 'check_mul_overflow()' and
-'check_add_overflow()' are used to check whether an intermediate result
-goes out of range, and denote such a case with ULLONG_MAX, thus making the
-function more similar to standard C library's 'strtoull()'.  Adjust
-comment to kernel-doc style as well.
-
-Link: https://lore.kernel.org/20260513134407.884033-1-dmantipov@yandex.ru
-Link: https://lore.kernel.org/20260513134407.884033-2-dmantipov@yandex.ru
-Link: https://lore.kernel.org/linux-riscv/20260403103338.1122415-1-dmantipov@yandex.ru [1]
-Link: https://lore.kernel.org/linux-riscv/20260427090105.705529-1-dmantipov@yandex.ru [2]
+Link: https://lore.kernel.org/20260513134407.884033-3-dmantipov@yandex.ru
 Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
 Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Charlie Jenkins <thecharlesjenkins@gmail.com>
 Cc: kernel test robot <lkp@intel.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kstrtox.c |   37 ++++++++++++++++++++++---------------
- 1 file changed, 22 insertions(+), 15 deletions(-)
+ lib/cmdline.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
---- a/lib/kstrtox.c~lib-fix-_parse_integer_limit-to-handle-overflow
-+++ a/lib/kstrtox.c
-@@ -39,25 +39,30 @@ const char *_parse_integer_fixup_radix(c
- 	return s;
- }
- 
--/*
-- * Convert non-negative integer string representation in explicitly given radix
-- * to an integer. A maximum of max_chars characters will be converted.
-+/**
-+ * _parse_integer_limit - Convert integer string representation to an integer
-+ * @s: Integer string representation
-+ * @base: Radix
-+ * @p: Where to store result
-+ * @max_chars: Maximum amount of characters to convert
-  *
-- * Return number of characters consumed maybe or-ed with overflow bit.
-- * If overflow occurs, result integer (incorrect) is still returned.
-+ * Convert non-negative integer string representation in explicitly given
-+ * radix to an integer. If overflow occurs, value at @p is set to ULLONG_MAX.
-  *
-- * Don't you dare use this function.
-+ * This function is the workhorse of other string conversion functions and it
-+ * is discouraged to use it explicitly. Consider kstrto*() family instead.
-+ *
-+ * Return: Number of characters consumed, maybe ORed with overflow bit
-  */
- noinline
- unsigned int _parse_integer_limit(const char *s, unsigned int base, unsigned long long *p,
- 				  size_t max_chars)
+--- a/lib/cmdline.c~lib-fix-memparse-to-handle-overflow
++++ a/lib/cmdline.c
+@@ -150,39 +150,46 @@ EXPORT_SYMBOL(get_options);
+ unsigned long long memparse(const char *ptr, char **retptr)
  {
-+	unsigned int rv, overflow = 0;
- 	unsigned long long res;
--	unsigned int rv;
+ 	char *endptr;	/* local pointer to end of parsed string */
+-
+ 	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
++	unsigned int shl = 0;
  
- 	res = 0;
--	rv = 0;
--	while (max_chars--) {
-+	for (rv = 0; rv < max_chars; rv++, s++) {
- 		unsigned int c = *s;
- 		unsigned int lc = _tolower(c);
- 		unsigned int val;
-@@ -76,15 +81,17 @@ unsigned int _parse_integer_limit(const
- 		 * it in the max base we support (16)
- 		 */
- 		if (unlikely(res & (~0ull << 60))) {
--			if (res > div_u64(ULLONG_MAX - val, base))
--				rv |= KSTRTOX_OVERFLOW;
-+			if (check_mul_overflow(res, base, &res) ||
-+			    check_add_overflow(res, val, &res)) {
-+				res = ULLONG_MAX;
-+				overflow = KSTRTOX_OVERFLOW;
-+			}
-+		} else {
-+			res = res * base + val;
- 		}
--		res = res * base + val;
--		rv++;
--		s++;
++	/* Consume valid suffix even in case of overflow. */
+ 	switch (*endptr) {
+ 	case 'E':
+ 	case 'e':
+-		ret <<= 10;
++		shl += 10;
+ 		fallthrough;
+ 	case 'P':
+ 	case 'p':
+-		ret <<= 10;
++		shl += 10;
+ 		fallthrough;
+ 	case 'T':
+ 	case 't':
+-		ret <<= 10;
++		shl += 10;
+ 		fallthrough;
+ 	case 'G':
+ 	case 'g':
+-		ret <<= 10;
++		shl += 10;
+ 		fallthrough;
+ 	case 'M':
+ 	case 'm':
+-		ret <<= 10;
++		shl += 10;
+ 		fallthrough;
+ 	case 'K':
+ 	case 'k':
+-		ret <<= 10;
+-		endptr++;
++		shl += 10;
+ 		fallthrough;
+ 	default:
+ 		break;
  	}
- 	*p = res;
--	return rv;
-+	return rv | overflow;
- }
  
- noinline
++	if (shl && likely(ptr != endptr)) {
++		/* Have valid suffix with preceding number. */
++		if (unlikely(check_shl_overflow(ret, shl, &ret)))
++			ret = ULLONG_MAX;
++		endptr++;
++	}
++
+ 	if (retptr)
+ 		*retptr = endptr;
+ 
 _
 
 Patches currently in -mm which might be from dmantipov@yandex.ru are
