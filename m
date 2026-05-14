@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B77B7290DBB
-	for <mm-commits@vger.kernel.org>; Thu, 14 May 2026 00:40:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCD182DF13B;
+	Thu, 14 May 2026 00:40:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778719240; cv=none; b=pJJpcXwzKcN868DpMpctX5jghoE4E8u74pDAb87GI9H8P6V/iYt9ruRYCNlTxzUQujwVOno0BQUz2aVLooxuj4bjtt66tXLpcsV5riBJ/NsR/bsIk6l8/5NZ5NuNgqS2YjMMHXIN7dlHg3eD8EjJm1CSHMUSrSVyu3b1KxZQ5UQ=
+	t=1778719241; cv=none; b=bjljLrcFioblP+TMFkFD7uq09LnIcE6RzmpFjiQRd9GiYCpuCrBJmQnuibL3hdGGPKTYdY9OYlWXAtB+hLb+M15QG0k5LQ+YGdxQpPoVvNzCpkv22oHWhzHORjJyySNsar/jboDCrYaXe1ffKyIJfwQP0gNzO/t3WsLAWL/Uibw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778719240; c=relaxed/simple;
-	bh=wV6ZUHkYg3chALAt2pvcJeSdEPQR5ipXTB+76dY8/ZY=;
-	h=Date:To:From:Subject:Message-Id; b=EvWyDPgT0QMbXbCu8E7SO7CD9jTktVWGOmge1KDIIAHBR65o9WdfzzH9AUDgYYDxdWbx37HTJGCYAlglWfgFRilUKAQBglLO6k5gajU32MA1cJXNAzeEQBRSEJCclfW7HZBSerY5ybmBqlsfdcQ9WWgXrMCMDty5VVVNn3p81qk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zYZbP/z4; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778719241; c=relaxed/simple;
+	bh=enMeri4ZgBUuSEv4ae3VQT2Qs8Bq+/pwXBTYa+imw+Q=;
+	h=Date:To:From:Subject:Message-Id; b=GU4tMOkov6bQLO/H7kSsejL6XiWB1nngE7Pxor0oBoRb9G1QgHbngUg4o7ihphKwI+n7BaOBbYfC/ntSXgeq7Gy7nKC2120bTrB/d2/4RCHef5UTXRVOsfUXbMDnqRyuQlW1fP+zY2ykORGwVr/EINwBm71v0z3B11An62PQ0Ak=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rqY98pnt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zYZbP/z4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E136C19425;
-	Thu, 14 May 2026 00:40:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rqY98pnt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A549AC19425;
+	Thu, 14 May 2026 00:40:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778719240;
-	bh=wV6ZUHkYg3chALAt2pvcJeSdEPQR5ipXTB+76dY8/ZY=;
+	s=korg; t=1778719241;
+	bh=enMeri4ZgBUuSEv4ae3VQT2Qs8Bq+/pwXBTYa+imw+Q=;
 	h=Date:To:From:Subject:From;
-	b=zYZbP/z4muTwk+TV8ppBTBVe8Xu+ojZrQr540KTOr8neI6KYtZ0j7EkVM9xp4XH7W
-	 aeuPRvIIZbJBJXECUWYMo2IKOcruueTrRfTAz2+7hDMAwSCyLaYzQuOftCHF5oqbJF
-	 gZzhYIH42hWhVvCLp/+JJku/O9UkbKS/IuXzchbE=
-Date: Wed, 13 May 2026 17:40:39 -0700
-To: mm-commits@vger.kernel.org,joshlaw48@gmail.com,davidgow@google.com,lk@c--e.de,akpm@linux-foundation.org
+	b=rqY98pntx/Qqq1Hhovh2+llUWj3/w0KxHON1hw6JK+pepIR874qvO4VupnQJ46OLO
+	 VkPK2IIoLP/pIyN83LCAN3UXposDjMs7WIJivVqQ3EvoheNe+gWMMYXSlGRbaC9yRm
+	 RZYZcmU+ipPhAWHnzBkXrsAwX+VUAPOojIo7x5bA=
+Date: Wed, 13 May 2026 17:40:41 -0700
+To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,stable@vger.kernel.org,rafael@kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,huang.ying.caritas@gmail.com,gregkh@linuxfoundation.org,david@kernel.org,dakr@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] lib-kunit_iov_iter-fix-test-fail-on-powerpc.patch removed from -mm tree
-Message-Id: <20260514004040.5E136C19425@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-memory_hotplug-fix-memory-block-reference-leak-on-remove.patch removed from -mm tree
+Message-Id: <20260514004041.A549AC19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,83 +35,77 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib: kunit_iov_iter: fix test fail on powerpc
+     Subject: mm/memory_hotplug: fix memory block reference leak on remove
 has been removed from the -mm tree.  Its filename was
-     lib-kunit_iov_iter-fix-test-fail-on-powerpc.patch
+     mm-memory_hotplug-fix-memory-block-reference-leak-on-remove.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "Christian A. Ehrhardt" <lk@c--e.de>
-Subject: lib: kunit_iov_iter: fix test fail on powerpc
-Date: Tue, 21 Apr 2026 09:07:07 +0200
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/memory_hotplug: fix memory block reference leak on remove
+Date: Tue, 28 Apr 2026 16:52:17 +0800
 
-Increase buffer size to accommodate machines with 64K PAGE_SIZE.
+Patch series "mm: Fix memory block leaks and locking", v2.
 
-Link: https://lore.kernel.org/20260421070707.992873-1-lk@c--e.de
-Fixes: 0913b7554726 ("lib: kunit_iov_iter: add tests for extract_iter_to_sg")
-Signed-off-by: Christian A. Ehrhardt <lk@c--e.de>
-Reported-by: David Gow <davidgow@google.com>
-Closes: https://lore.kernel.org/34a81ec2-af84-465d-9b5e-7bb5bf01680f@davidgow.net
-Tested-by: David Gow <davidgow@google.com>
-Tested-by: Josh Law <joshlaw48@gmail.com>
-Reviewed-by: Josh Law <joshlaw48@gmail.com>
+This series fixes two memory block device reference leaks and one locking
+issue around the per-memory_block hwpoison counter.
+
+
+This patch (of 2):
+
+remove_memory_blocks_and_altmaps() looks up each memory block with
+find_memory_block(), which acquires a reference to the memory block
+device.
+
+That reference is never dropped on this path, resulting in a leaked device
+reference when removing memory blocks and their altmaps.  Drop the
+reference after retrieving mem->altmap and clearing mem->altmap, before
+removing the memory block device.
+
+Link: https://lore.kernel.org/20260428085219.1316047-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260428085219.1316047-2-songmuchun@bytedance.com
+Fixes: 6b8f0798b85a ("mm/memory_hotplug: split memmap_on_memory requests across memblocks")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Danilo Krummrich <dakr@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Huang, Ying" <huang.ying.caritas@gmail.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/tests/kunit_iov_iter.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/memory_hotplug.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/lib/tests/kunit_iov_iter.c~lib-kunit_iov_iter-fix-test-fail-on-powerpc
-+++ a/lib/tests/kunit_iov_iter.c
-@@ -1128,7 +1128,7 @@ static void __init iov_kunit_iter_to_sg_
- 	struct kvec kvec;
- 	size_t bufsize;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-memory-block-reference-leak-on-remove
++++ a/mm/memory_hotplug.c
+@@ -1422,6 +1422,8 @@ static void remove_memory_blocks_and_alt
  
--	bufsize = 0x100000;
-+	bufsize = 0x200000;
- 	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
+ 		altmap = mem->altmap;
+ 		mem->altmap = NULL;
++		/* drop the ref. we got via find_memory_block() */
++		put_device(&mem->dev);
  
- 	kvec.iov_base = data.buffer;
-@@ -1146,7 +1146,7 @@ static void __init iov_kunit_iter_to_sg_
- 	struct bio_vec *bvec;
- 	struct iov_iter iter;
+ 		remove_memory_block_devices(cur_start, memblock_size);
  
--	bufsize = 0x100000;
-+	bufsize = 0x200000;
- 	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
- 
- 	bvec = kunit_kmalloc_array(test, data.npages, sizeof(*bvec),
-@@ -1173,7 +1173,7 @@ static void __init iov_kunit_iter_to_sg_
- 	struct iov_iter iter;
- 	size_t bufsize;
- 
--	bufsize = 0x100000;
-+	bufsize = 0x200000;
- 	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
- 
- 	folioq = iov_kunit_create_folioq(test);
-@@ -1190,7 +1190,7 @@ static void __init iov_kunit_iter_to_sg_
- 	struct iov_iter iter;
- 	size_t bufsize;
- 
--	bufsize = 0x100000;
-+	bufsize = 0x200000;
- 	iov_kunit_iter_to_sg_init(test, bufsize, false, &data);
- 
- 	xarray = iov_kunit_create_xarray(test);
-@@ -1206,7 +1206,7 @@ static void __init iov_kunit_iter_to_sg_
- 	struct iov_iter iter;
- 	size_t bufsize;
- 
--	bufsize = 0x100000;
-+	bufsize = 0x200000;
- 	iov_kunit_iter_to_sg_init(test, bufsize, true, &data);
- 
- 	iov_iter_ubuf(&iter, READ, data.ubuf, bufsize);
 _
 
-Patches currently in -mm which might be from lk@c--e.de are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-sparse-remove-sparse-buffer-pre-allocation-mechanism.patch
+mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
+mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
+mm-sparse-vmemmap-pass-pgmap-argument-to-memory-deactivation-paths.patch
+mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization.patch
+mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch
+mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
+mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
+drivers-base-memory-make-memory-block-get-put-explicit.patch
 
