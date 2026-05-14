@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 644BF78F26
-	for <mm-commits@vger.kernel.org>; Thu, 14 May 2026 00:08:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95418190473
+	for <mm-commits@vger.kernel.org>; Thu, 14 May 2026 00:16:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778717337; cv=none; b=rpm5jMBVW+pJk90FP76HG2r5wgPU5kj9bRcRFqhU79xLDY1xg2X8ucOqFFN0vnkWLI/pce3o6MPgGRAU3Q3+RxojrvkWhkmQ8nNMrjgbjNhyuJUPvaMNGegSlosLA++GwNnhS7tJmqm4tipRXazmeMP6C7kfeskb5gvNd+ooRvo=
+	t=1778717764; cv=none; b=NwTx5bHHxbXwFtE8bHwvebIu4VWS2zdciILVTotm6KztsvHbVlbKyzRYPozpBNj5satIbHFWHBHsFNka6/YWJqCcj4xHz1tMV/Z6sUKtN6Sm3vVF0iR1E8fQrhjyVB9X80wszPD6MVYQmPMltAN69pHyQiFSQxwNd2DCXR26NTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778717337; c=relaxed/simple;
-	bh=XQTzXo/R1p3aP6oThQ+8J2xVgbki5ZCJlX+0+pXhOjs=;
-	h=Date:To:From:Subject:Message-Id; b=LhlfCHYvfsTDRnownCvm8M6TFoiXe7ukHkZDEYioFBmxdWc1UJAgEAjv/hqqxQONX356V5FINLDwXKIGkixidpkBq9xQY2cQaIIOK+qmSqaaBH7h5i2PAK+Ae/LwUKSXwU65qI4dgO1I7pEnnmxVzb4+GouDs5ImO8svEeFm0dc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=j3esPkVF; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778717764; c=relaxed/simple;
+	bh=QiJEu00p7HSgTC0ppqh+CcPWf1F8DW9ls59YCsFzIfo=;
+	h=Date:To:From:Subject:Message-Id; b=CVXUWaenEVRq/P+Tqq0cfVrkQQQlQdoRkQkVEcZUSbN36x34MyTyQ+pALTuqAebuwaZEuPJR/j3RNFnZJFru2sQR4L6ejoT+YT5+EzDk7c9cO7iN8i5/pwu9cDTvJFRVPUMhdGmkq4/clltUxgIT7glsKVk6MHkgJl3Q/oThj/I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HGG+/ltt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="j3esPkVF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36CE4C19425;
-	Thu, 14 May 2026 00:08:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HGG+/ltt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07A24C19425;
+	Thu, 14 May 2026 00:16:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778717337;
-	bh=XQTzXo/R1p3aP6oThQ+8J2xVgbki5ZCJlX+0+pXhOjs=;
+	s=korg; t=1778717764;
+	bh=QiJEu00p7HSgTC0ppqh+CcPWf1F8DW9ls59YCsFzIfo=;
 	h=Date:To:From:Subject:From;
-	b=j3esPkVFqHn8b1YTjgLeRnb+iqassfVOHVVygXqYjUBDtYO627dtZ4ybj7SCHDbDe
-	 61RXtCqmieJP2HOUl440VrZ31HXNqlXx4BMertpz20ix1QYk/DZ7NKPsK7sfUeCOKR
-	 8IVUJDdeMbZytx3dgRd6yLdZVXkiKo/h1RKcbSeA=
-Date: Wed, 13 May 2026 17:08:56 -0700
-To: mm-commits@vger.kernel.org,thecharlesjenkins@gmail.com,palmer@dabbelt.com,lkp@intel.com,ardb@kernel.org,aou@eecs.berkeley.edu,andriy.shevchenko@intel.com,alex@ghiti.fr,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=HGG+/ltt4OibQa7ZMML/FnKUsWrGozx1oBMrLRzHL23g6KFjzyMCgaMMKiQ5D0DO5
+	 gip9l8Tg3iseEIghm7B/LTdPT/AwdldwYhG25iI/E9dwG9fGQtkxLzQzQgw2oOWuYh
+	 UtM8cQiFJrVA4VWBae76b1hXa+Pc5xP7ZM0F30IM=
+Date: Wed, 13 May 2026 17:16:03 -0700
+To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,thomas.weissschuh@linutronix.de,glaubitz@physik.fu-berlin.de,geert+renesas@glider.be,dalias@libc.org,contact@artur-rojek.eu,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-fix-building-compressed-efi-image.patch added to mm-nonmm-unstable branch
-Message-Id: <20260514000857.36CE4C19425@smtp.kernel.org>
+Subject: [merged] sh-fix-fallout-from-zero_page-consolidation.patch removed from -mm tree
+Message-Id: <20260514001604.07A24C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,85 +34,117 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: riscv: fix building compressed EFI image
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     riscv-fix-building-compressed-efi-image.patch
+The quilt patch titled
+     Subject: sh: fix fallout from ZERO_PAGE consolidation
+has been removed from the -mm tree.  Its filename was
+     sh-fix-fallout-from-zero_page-consolidation.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-fix-building-compressed-efi-image.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: riscv: fix building compressed EFI image
-Date: Wed, 13 May 2026 16:44:07 +0300
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: sh: fix fallout from ZERO_PAGE consolidation
+Date: Fri, 17 Apr 2026 13:32:07 +0300
 
-When building vmlinuz.efi with CONFIG_EFI_ZBOOT enabled,
-'__lshrdi3()' is also needed to fix yet another link error:
+Consolidation of empty_zero_page declarations broke boot on sh.
 
-riscv32-linux-gnu-ld: drivers/firmware/efi/libstub/lib-cmdline.stub.o: in function `__efistub_.L49':
-__efistub_cmdline.c:(.init.text+0x202): undefined reference to `__efistub___lshrdi3'
+sh stores its initial boot parameters in a page reserved in
+arch/sh/kernel/head_32.S.  Before commit 6215d9f4470f ("arch, mm:
+consolidate empty_zero_page") this page was referenced in C code as an
+array and after that commit it is referenced as a pointer.
 
-And since riscv64 can have CONFIG_EFI_ZBOOT but doesn't need
-these library routines, rely on CONFIG_32BIT to manage linking
-of lib-ashldi3.o and lib-lshrdi3.o on riscv32 only.
+This causes wrong code generation and boot hang.
 
-Link: https://lore.kernel.org/20260513134407.884033-9-dmantipov@yandex.ru
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Reported-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Closes: https://lore.kernel.org/linux-riscv/20260409050018.GA371560@inky.localdomain
-Tested-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Suggested-by: Ard Biesheuvel <ardb@kernel.org>
-Assisted-by: Gemini:gemini-3.1-pro-preview sashiko
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Andy Shevchenko <andriy.shevchenko@intel.com>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Declare boot_params_page as an array to fix the issue.
+
+Link: https://lore.kernel.org/20260417103208.1217010-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Fixes: 6215d9f4470f ("arch, mm: consolidate empty_zero_page")
+Reported-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Tested-by: Thomas Weißschuh <thomas.weissschuh@linutronix.de>
+Tested-by: Artur Rojek <contact@artur-rojek.eu>
+Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reviewed-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/efi/libstub/Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sh/include/asm/setup.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/firmware/efi/libstub/Makefile~riscv-fix-building-compressed-efi-image
-+++ a/drivers/firmware/efi/libstub/Makefile
-@@ -95,7 +95,8 @@ CFLAGS_zboot-decompress-gzip.o	+= -I$(sr
- zboot-obj-$(CONFIG_KERNEL_ZSTD)	:= zboot-decompress-zstd.o lib-xxhash.o
- CFLAGS_zboot-decompress-zstd.o	+= -I$(srctree)/lib/zstd
+--- a/arch/sh/include/asm/setup.h~sh-fix-fallout-from-zero_page-consolidation
++++ a/arch/sh/include/asm/setup.h
+@@ -7,7 +7,7 @@
+ /*
+  * This is set up by the setup-routine at boot-time
+  */
+-extern unsigned char *boot_params_page;
++extern unsigned char boot_params_page[];
+ #define PARAM boot_params_page
  
--zboot-obj-$(CONFIG_RISCV)	+= lib-clz_ctz.o lib-ashldi3.o
-+zboot-riscv-obj-$(CONFIG_32BIT)	+= lib-ashldi3.o lib-lshrdi3.o
-+zboot-obj-$(CONFIG_RISCV)	+= lib-clz_ctz.o $(zboot-riscv-obj-y)
- zboot-obj-$(CONFIG_LOONGARCH)	+= lib-clz_ctz.o lib-ashldi3.o
- lib-$(CONFIG_EFI_ZBOOT)		+= zboot.o $(zboot-obj-y)
- 
+ #define MOUNT_ROOT_RDONLY (*(unsigned long *) (PARAM+0x000))
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
-lib-fix-_parse_integer_limit-to-handle-overflow.patch
-lib-fix-memparse-to-handle-overflow.patch
-lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch
-lib-cmdline_kunit-add-test-case-for-memparse.patch
-lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
-riscv-add-platform-specific-double-word-shifts-for-riscv32.patch
-lib-kunit-add-tests-for-__ashldi3-__ashrdi3-and-__lshrdi3.patch
-riscv-fix-building-compressed-efi-image.patch
+maintainers-add-tree-for-kdump-and-kexec.patch
+maintainers-add-kexec-list-to-live-update-entry.patch
+selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
+selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
+selftests-mm-migration-make-nthreads-represent-number-of-working-threads.patch
+selftests-mm-migration-properly-cleanup-forked-processes.patch
+selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
+selftests-mm-merge-map_hugetlb-into-hugepage-mmap.patch
+selftests-mm-rename-hugepage-tests-to-hugetlb.patch
+selftests-mm-hugetlb-shm-use-kselftest-framework.patch
+selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
+selftests-mm-hugetlb-madvise-use-kselftest-framework.patch
+selftests-mm-hugetlb_madv_vs_map-use-kselftest-framework.patch
+selftests-mm-hugetlb-read-hwpoison-use-kselftest-framework.patch
+selftests-mm-khugepaged-group-tests-in-an-array.patch
+selftests-mm-khugepaged-use-ksefltest-framework.patch
+selftests-mm-khugepaged-use-ksefltest-framework-fix.patch
+selftests-mm-ksm_tests-use-kselftest-framework.patch
+selftests-mm-protection_keys-use-descriptive-test-names-in-the-output.patch
+selftests-mm-protection_keys-use-kselftest-framework.patch
+selftests-mm-uffd-common-use-kselftest-framework.patch
+selftests-mm-uffd-stress-use-kselftest-framework.patch
+selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
+selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
+selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
+selftests-mm-rename-thp_settings-to-hugepage_settings.patch
+selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
+selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
+selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
+selftests-mm-hugepage_settings-rename-and-rework-get_free_hugepages.patch
+selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
+selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
+selftests-mm-vm_util-add-helpers-to-set-and-restore-shm-limits.patch
+selftests-mm-compaction_test-use-hugetlb-helpers.patch
+selftests-mm-cow-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
+selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-soft-offline-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-vmemmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-migration-add-setup-of-hugetlb-pages.patch
+selftests-mm-pagemap_ioctl-add-setup-of-hugetlb-pages.patch
+selftests-mm-protection_keys-use-library-code-for-hugetlb-setup.patch
+selftests-mm-thuge-gen-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-stress-use-hugetlb_save-and-alloc-huge-pages.patch
+selftests-mm-uffd-unit-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-wp-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
+selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
+selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
+userfaultfd-ensure-mremap_userfaultfd_fail-releases-mmap_changing.patch
 
