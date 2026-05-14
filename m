@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F3DF36D51D
-	for <mm-commits@vger.kernel.org>; Wed, 13 May 2026 23:47:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3AACD4A33
+	for <mm-commits@vger.kernel.org>; Thu, 14 May 2026 00:08:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1778716062; cv=none; b=IdV4XywfrE8IFSbyulW/7XkaGMZORd56gl57WBB3MRBl4ItbhDLI1VElmpxBd1tHofWt40iuc5bNNWnG516J6zd4pKx8gP0x/KakqjR0N1IABplo+SqK90cJhMA4Fq9pjNscc6rQsbAe//ia15AkEMPP9YR/gXow55QrVq/MwZ0=
+	t=1778717318; cv=none; b=CTdiEq/vRWBhVK5D+PwnNI/bxj0EAj11PbFKrEgSBBYbevZshEi3fdh99uTleyAnm7llr4w7142CTy+Ww25gVwwTX4vcvHIIGGv1efJ0vNOc+qGJkegMh2EBUOQo3D6ce6Nf78UOjuilb93v0v5/ZyjyEKVb4aUbsD9JrnAjR3A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1778716062; c=relaxed/simple;
-	bh=ajuTFLZu49GzDH1wT3OydqV0vdUMRU1t3ZeczrcEBUg=;
-	h=Date:To:From:Subject:Message-Id; b=TvMLu3bCEw8FaUU1lQ60jPwBbrRK1Ltu3gpjZfxNt56MsgNzIv92KIkFm4aUTA7lfH/3kACz4Lwi2MZqAyG49MCoDO6XbH0WkJNmnlKlNWYyMr8h49GpBS2GgWwCr86CcJX9DtFKiJnObmmqFuxqMgx7R6IOfzoih4Wrkqo8pgk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GQ6ffK4A; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1778717318; c=relaxed/simple;
+	bh=vCN3ajTSgSh1k+BM9bJTzJEu77hYQm+tK9TTng4xDHk=;
+	h=Date:To:From:Subject:Message-Id; b=dNl6f8OXbUrYI53THvzwRRoZ4T4pnUtABp+yrRw++kDQCJqQcemkx32X1PDDC1AW2rY8Witf83axLzagoZymr5emhjeKwwnJgZpp8AgOYdYwR7h7TDyXesAb/LrpDdzLnivm3p5E7pjpaKCO18AEZjD+7DXxbdDye6KY7FCNMCw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zsF25IX4; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GQ6ffK4A"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05165C19425;
-	Wed, 13 May 2026 23:47:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zsF25IX4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3856C19425;
+	Thu, 14 May 2026 00:08:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1778716062;
-	bh=ajuTFLZu49GzDH1wT3OydqV0vdUMRU1t3ZeczrcEBUg=;
+	s=korg; t=1778717317;
+	bh=vCN3ajTSgSh1k+BM9bJTzJEu77hYQm+tK9TTng4xDHk=;
 	h=Date:To:From:Subject:From;
-	b=GQ6ffK4AHeLbWmoyDlRwmdhRmtbo0vm6yoZ1aHvyWR7Z36wfHoqMT0BIv2hKDU9bV
-	 MCxvrWqyVuIPd4fQFhwPDTlyTw2+Jmx63pKeBx84ZNgBOAxk5rZ8FBcaz7r17vMute
-	 tRZR7CVbn9pNwI9gWS+thyZBZv26AU8TpnjulXwg=
-Date: Wed, 13 May 2026 16:47:41 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,vishal.moola@gmail.com,jack@suse.cz,tz2294@columbia.edu,akpm@linux-foundation.org
+	b=zsF25IX4oiceH16jF6fDVZpvDAEj/93GHLgWrnwdgpUpuOuXFXsdpvaRMrRnD2xPP
+	 GzqvQPvU3b9FXb5ii1LiaWUJrgrS41WpZHjGQ7Jq3rj8skAfJu3+hWteSOp8WayEu5
+	 NDwUrzU+BlDqgAcBukxVsJUxkgczYJ3O5WaLc8Ok=
+Date: Wed, 13 May 2026 17:08:37 -0700
+To: mm-commits@vger.kernel.org,thecharlesjenkins@gmail.com,palmer@dabbelt.com,lkp@intel.com,ardb@kernel.org,aou@eecs.berkeley.edu,andriy.shevchenko@intel.com,alex@ghiti.fr,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-filemap-fix-page_cache_prev_miss-when-no-hole-is-found.patch added to mm-new branch
-Message-Id: <20260513234742.05165C19425@smtp.kernel.org>
+Subject: + lib-fix-_parse_integer_limit-to-handle-overflow.patch added to mm-nonmm-unstable branch
+Message-Id: <20260514000837.A3856C19425@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/filemap: fix page_cache_prev_miss() when no hole is found
-has been added to the -mm mm-new branch.  Its filename is
-     mm-filemap-fix-page_cache_prev_miss-when-no-hole-is-found.patch
+     Subject: lib: fix _parse_integer_limit() to handle overflow
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-fix-_parse_integer_limit-to-handle-overflow.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-filemap-fix-page_cache_prev_miss-when-no-hole-is-found.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-fix-_parse_integer_limit-to-handle-overflow.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,91 +58,131 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Tal Zussman <tz2294@columbia.edu>
-Subject: mm/filemap: fix page_cache_prev_miss() when no hole is found
-Date: Tue, 12 May 2026 16:45:59 -0400
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: lib: fix _parse_integer_limit() to handle overflow
+Date: Wed, 13 May 2026 16:44:00 +0300
 
-page_cache_prev_miss() is documented to return a value outside the
-searched range when no gap is found.  However, the no-gap-found path
-returns xas.xa_index, which after a successful loop is the first index in
-the range.  As such, that index is misreported as a gap.
+Patch series "lib and lib/cmdline enhancements", v10.
 
-The sole caller, page_cache_sync_ra(), uses the return value to estimate
-the cached run preceding a sequential read.  In some cases, the buggy
-return value can undercount the contiguous range by one, shrinking the
-readahead window or pushing borderline requests into the small-random-read
-branch.
+This series is a merge of the recently posted [1] and [2]. The first
+one is intended to adjust '_parse_integer_limit()' and 'memparse()' to
+not ignore overflows, extend string to 64-bit integer conversion tests,
+add KUnit-based test for 'memparse()' and fix kernel-doc glitches found
+in lib/cmdline.c. The second one was originated from RISCV-specific
+build fixes needed to integrate the former and now aims to provide
+platform-specific double-word shifts and corresponding KUnit test.
 
-Fix this by returning the start of the range - 1 when no hole is found. 
-Update page_cache_next_miss() for clarity as well.
+This series was briefly tested on X86, RISCV32, ARM, and MIPS using QEMU.
 
-Both helpers were previously fixed together in commit 9425c591e06a ("page
-cache: fix page_cache_next/prev_miss off by one"), but the fix was
-reverted because it caused a hugetlb performance regression.  hugetlb no
-longer uses these functions and next_miss was subsequently refixed in
-commit 901a269ff3d5 ("filemap: fix page_cache_next_miss() when no hole
-found") and commit bbcaee20e03e ("readahead: fix return value of
-page_cache_next_miss() when no hole is found"), but prev_miss was not
-addressed.
+Getting feedback from RISC-V core maintainers would be very helpful.
 
-This was found by pointing Claude Opus 4.7 at mm/filemap.c.
+Special thanks to Andy Shevchenko, Charlie Jenkins, and Andrew Morton.
 
-Link: https://lore.kernel.org/20260512-prev_miss_fix-v2-1-4af8e5c1ae62@columbia.edu
-Fixes: 0d3f92966629 ("page cache: Convert hole search to XArray")
-Assisted-by: Claude:claude-opus-4-7
-Signed-off-by: Tal Zussman <tz2294@columbia.edu>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Vishal Moola <vishal.moola@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+
+This patch (of 8):
+
+In '_parse_integer_limit()', adjust native integer arithmetic with
+near-to-overflow branch where 'check_mul_overflow()' and
+'check_add_overflow()' are used to check whether an intermediate result
+goes out of range, and denote such a case with ULLONG_MAX, thus making the
+function more similar to standard C library's 'strtoull()'.  Adjust
+comment to kernel-doc style as well.
+
+Link: https://lore.kernel.org/20260513134407.884033-1-dmantipov@yandex.ru
+Link: https://lore.kernel.org/20260513134407.884033-2-dmantipov@yandex.ru
+Link: https://lore.kernel.org/linux-riscv/20260403103338.1122415-1-dmantipov@yandex.ru [1]
+Link: https://lore.kernel.org/linux-riscv/20260427090105.705529-1-dmantipov@yandex.ru [2]
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Charlie Jenkins <thecharlesjenkins@gmail.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ lib/kstrtox.c |   37 ++++++++++++++++++++++---------------
+ 1 file changed, 22 insertions(+), 15 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-fix-page_cache_prev_miss-when-no-hole-is-found
-+++ a/mm/filemap.c
-@@ -1807,9 +1807,8 @@ pgoff_t page_cache_next_miss(struct addr
- 			     pgoff_t index, unsigned long max_scan)
+--- a/lib/kstrtox.c~lib-fix-_parse_integer_limit-to-handle-overflow
++++ a/lib/kstrtox.c
+@@ -39,25 +39,30 @@ const char *_parse_integer_fixup_radix(c
+ 	return s;
+ }
+ 
+-/*
+- * Convert non-negative integer string representation in explicitly given radix
+- * to an integer. A maximum of max_chars characters will be converted.
++/**
++ * _parse_integer_limit - Convert integer string representation to an integer
++ * @s: Integer string representation
++ * @base: Radix
++ * @p: Where to store result
++ * @max_chars: Maximum amount of characters to convert
+  *
+- * Return number of characters consumed maybe or-ed with overflow bit.
+- * If overflow occurs, result integer (incorrect) is still returned.
++ * Convert non-negative integer string representation in explicitly given
++ * radix to an integer. If overflow occurs, value at @p is set to ULLONG_MAX.
+  *
+- * Don't you dare use this function.
++ * This function is the workhorse of other string conversion functions and it
++ * is discouraged to use it explicitly. Consider kstrto*() family instead.
++ *
++ * Return: Number of characters consumed, maybe ORed with overflow bit
+  */
+ noinline
+ unsigned int _parse_integer_limit(const char *s, unsigned int base, unsigned long long *p,
+ 				  size_t max_chars)
  {
- 	XA_STATE(xas, &mapping->i_pages, index);
--	unsigned long nr = max_scan;
++	unsigned int rv, overflow = 0;
+ 	unsigned long long res;
+-	unsigned int rv;
  
--	while (nr--) {
-+	while (max_scan--) {
- 		void *entry = xas_next(&xas);
- 		if (!entry || xa_is_value(entry))
- 			return xas.xa_index;
-@@ -1817,7 +1816,8 @@ pgoff_t page_cache_next_miss(struct addr
- 			return 0;
+ 	res = 0;
+-	rv = 0;
+-	while (max_chars--) {
++	for (rv = 0; rv < max_chars; rv++, s++) {
+ 		unsigned int c = *s;
+ 		unsigned int lc = _tolower(c);
+ 		unsigned int val;
+@@ -76,15 +81,17 @@ unsigned int _parse_integer_limit(const
+ 		 * it in the max base we support (16)
+ 		 */
+ 		if (unlikely(res & (~0ull << 60))) {
+-			if (res > div_u64(ULLONG_MAX - val, base))
+-				rv |= KSTRTOX_OVERFLOW;
++			if (check_mul_overflow(res, base, &res) ||
++			    check_add_overflow(res, val, &res)) {
++				res = ULLONG_MAX;
++				overflow = KSTRTOX_OVERFLOW;
++			}
++		} else {
++			res = res * base + val;
+ 		}
+-		res = res * base + val;
+-		rv++;
+-		s++;
  	}
- 
--	return index + max_scan;
-+	/* Return end of the range + 1 when no hole is found */
-+	return xas.xa_index + 1;
+ 	*p = res;
+-	return rv;
++	return rv | overflow;
  }
- EXPORT_SYMBOL(page_cache_next_miss);
  
-@@ -1848,12 +1848,13 @@ pgoff_t page_cache_prev_miss(struct addr
- 	while (max_scan--) {
- 		void *entry = xas_prev(&xas);
- 		if (!entry || xa_is_value(entry))
--			break;
-+			return xas.xa_index;
- 		if (xas.xa_index == ULONG_MAX)
--			break;
-+			return ULONG_MAX;
- 	}
- 
--	return xas.xa_index;
-+	/* Return start of the range - 1 when no hole is found */
-+	return xas.xa_index - 1;
- }
- EXPORT_SYMBOL(page_cache_prev_miss);
- 
+ noinline
 _
 
-Patches currently in -mm which might be from tz2294@columbia.edu are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
-mm-filemap-fix-page_cache_prev_miss-when-no-hole-is-found.patch
+lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
+lib-fix-_parse_integer_limit-to-handle-overflow.patch
+lib-fix-memparse-to-handle-overflow.patch
+lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch
+lib-cmdline_kunit-add-test-case-for-memparse.patch
+lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
+riscv-add-platform-specific-double-word-shifts-for-riscv32.patch
+lib-kunit-add-tests-for-__ashldi3-__ashrdi3-and-__lshrdi3.patch
+riscv-fix-building-compressed-efi-image.patch
 
