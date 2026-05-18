@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33D11397338
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:14:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2655393DCD
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:29:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779138884; cv=none; b=ERiG5LTetc+t7mPMx5QDbC4aXo7OoeYzg/iqRUJhFCPhJ6cSCTZtgEv1S1HRbgrJCgV/PEqcvoEEy39VV2SJxve+YqQI+weboS1uiitWEgnb/RbYw9/NvCQiVuHiw66inGrKjY3disMjSVc0QyZCJiFITazSHKmgIAP3ZbIs+Gc=
+	t=1779139796; cv=none; b=YS+gpXLBb1fjWzd3GYBlGj9jTRMfqhHrwoVGiYjYf0h0+Ls5IDFfaHUuK024pqb6T2H1/SGUYpFm17SAT8TQd9XAkx2qXCSdp6nwQsmbu33ISgd58lGt2VURb/58v0OClMZ8Z+xy2LtDxWfGjh8Z8pep7K7EFFOVoXRyb5sNNTE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779138884; c=relaxed/simple;
-	bh=B3Rn3SpFWxJeMawOgYNGKxI8p1uAcoQbgDjI/gDBEzg=;
-	h=Date:To:From:Subject:Message-Id; b=NX6HynVVjFLVetZikQAPUgSE8qsRbOqBampFtaqr2NEhMvabLHgBy0ec7iF9VSmGayQULHvTXpEMYGQYUqiuE5TxR3Vy/LrzuiBEZE8592Evw0eZ0+0Dun4SEA1QOxN8ZTx58Rn4V/oDGvAz2OFmII/8jKiQ6snRD/jOAwO0c6k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tkFqsHrb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779139796; c=relaxed/simple;
+	bh=qu2ueXzSoNgknj4Cc21oKoo9DRGywHHVkx9U6sS7Zac=;
+	h=Date:To:From:Subject:Message-Id; b=TbYwrJJsavdlbptRYgUjzK+onFBr0NQ/ei1IqeJD8NRPhVSmr/NuNrONp7wDLYXPKnCTBgNv9BSHl3lTvXo2/q7pa9AEVlsgr4NUFF3k54Jx+tyQYR89nqEsed81EPp9qx9Hs1+/bkgL2zuBs6H15Lt5jSSfKJdZBJuSMT0XCpk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XQuhU/YK; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tkFqsHrb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD742C2BCC6;
-	Mon, 18 May 2026 21:14:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XQuhU/YK"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A0D7C2BCB7;
+	Mon, 18 May 2026 21:29:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779138883;
-	bh=B3Rn3SpFWxJeMawOgYNGKxI8p1uAcoQbgDjI/gDBEzg=;
+	s=korg; t=1779139795;
+	bh=qu2ueXzSoNgknj4Cc21oKoo9DRGywHHVkx9U6sS7Zac=;
 	h=Date:To:From:Subject:From;
-	b=tkFqsHrb0KKhOZcVHuaYEoENyDxHm/SpTAinJVWhDj8xbS30vBldRxUrrZJweAKZ9
-	 WqxS+L71rnwTqgzS7FqgGOLTao2hKWo3cpjVpBsSrazSTlQwDmofFrEQG528pbFjnT
-	 nB0ltRcHd32vWAzs6YxxFapbuebP3Ty10mWWjFXs=
-Date: Mon, 18 May 2026 14:14:43 -0700
-To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
+	b=XQuhU/YKJucUHeCEQK+Z7SBp6pxFdSLgLedGWq7w0IACcCNVa0QI64Mc26STiUab6
+	 ZMBYxGgCqhtauFmUsglgw5sd4ejJ9ZqwQfkZ5sBIf7tAFZcktuGKTHzZgT0BRuo61I
+	 REzzVL7BNaxoLL0kyBHdIsPrdX4j7MgJj/3YVKW4=
+Date: Mon, 18 May 2026 14:29:54 -0700
+To: mm-commits@vger.kernel.org,leon@kernel.org,jgg@ziepe.ca,apopple@nvidia.com,liuqiang@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + raid6_kunit-randomize-buffer-alignment.patch added to mm-nonmm-unstable branch
-Message-Id: <20260518211443.CD742C2BCC6@smtp.kernel.org>
+Subject: + lib-test_hmm-check-alloc_page_vma-return-value.patch added to mm-new branch
+Message-Id: <20260518212955.6A0D7C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: raid6_kunit: randomize buffer alignment
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     raid6_kunit-randomize-buffer-alignment.patch
+     Subject: lib/test_hmm: check alloc_page_vma() return value
+has been added to the -mm mm-new branch.  Its filename is
+     lib-test_hmm-check-alloc_page_vma-return-value.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6_kunit-randomize-buffer-alignment.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-check-alloc_page_vma-return-value.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,169 +69,47 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: raid6_kunit: randomize buffer alignment
-Date: Mon, 18 May 2026 07:18:01 +0200
+From: Qiang Liu <liuqiang@kylinos.cn>
+Subject: lib/test_hmm: check alloc_page_vma() return value
+Date: Mon, 18 May 2026 11:19:03 +0800
 
-Add code to add random alignment to the buffers to test the case where
-they are not page aligned, and to move the buffers to the end of the
-allocation so that they are next to the vmalloc guard page.
+Return VM_FAULT_OOM if page allocation fails, which avoids a NULL pointer
+dereference when calling lock_page().
 
-This does not include the recovery buffers as the recovery requires page
-alignment.
-
-Link: https://lore.kernel.org/20260518051804.462141-19-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Ard Biesheuvel <ardb@kernel.org>
-Tested-by: Ard Biesheuvel <ardb@kernel.org> # kunit only on arm64
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chris Mason <clm@fb.com>
-Cc: Christian Borntraeger <borntraeger@linux.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Sterba <dsterba@suse.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Huacai Chen <chenhuacai@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Li Nan <linan122@huawei.com>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Song Liu <song@kernel.org>
-Cc: Sven Schnelle <svens@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: WANG Xuerui <kernel@xen0n.name>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lore.kernel.org/20260518031903.63455-1-liuqiangneo@163.com
+Signed-off-by: Qiang Liu <liuqiang@kylinos.cn>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/raid6/tests/raid6_kunit.c |   41 +++++++++++++++++++++++----
- 1 file changed, 35 insertions(+), 6 deletions(-)
+ lib/test_hmm.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/lib/raid/raid6/tests/raid6_kunit.c~raid6_kunit-randomize-buffer-alignment
-+++ a/lib/raid/raid6/tests/raid6_kunit.c
-@@ -21,6 +21,7 @@ MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TES
- 
- static struct rnd_state rng;
- static void *test_buffers[RAID6_KUNIT_MAX_BUFFERS];
-+static void *aligned_buffers[RAID6_KUNIT_MAX_BUFFERS];
- static void *test_recov_buffers[RAID6_KUNIT_MAX_FAILURES];
- static size_t test_buflen;
- 
-@@ -50,6 +51,14 @@ static unsigned int random_nr_buffers(vo
- 			RAID6_MIN_DISKS;
- }
- 
-+/* Generate a random alignment that is a multiple of 64. */
-+static unsigned int random_alignment(unsigned int max_alignment)
-+{
-+	if (max_alignment == 0)
-+		return 0;
-+	return (rand32() % (max_alignment + 1)) & ~63;
-+}
+--- a/lib/test_hmm.c~lib-test_hmm-check-alloc_page_vma-return-value
++++ a/lib/test_hmm.c
+@@ -1063,6 +1063,17 @@ static vm_fault_t dmirror_devmem_fault_a
+ 			/* Try with smaller pages if large allocation fails */
+ 			if (!dpage && order) {
+ 				dpage = alloc_page_vma(GFP_HIGHUSER_MOVABLE, args->vma, addr);
++				if (!dpage) {
++					/* Unlock and free pages already allocated. */
++					while (i > 0) {
++						struct page *fpage;
 +
- static void makedata(int start, int stop)
- {
- 	int i;
-@@ -80,7 +89,7 @@ static void test_recover_one(struct kuni
- 	for (i = 0; i < RAID6_KUNIT_MAX_FAILURES; i++)
- 		memset(test_recov_buffers[i], 0xf0, test_buflen);
- 
--	memcpy(dataptrs, test_buffers, sizeof(dataptrs));
-+	memcpy(dataptrs, aligned_buffers, sizeof(dataptrs));
- 	dataptrs[faila] = test_recov_buffers[0];
- 	dataptrs[failb] = test_recov_buffers[1];
- 
-@@ -102,13 +111,13 @@ static void test_recover_one(struct kuni
- 		ta->recov->data2(nr_buffers, len, faila, failb, dataptrs);
- 	}
- 
--	KUNIT_EXPECT_MEMEQ_MSG(test, test_buffers[faila], test_recov_buffers[0],
-+	KUNIT_EXPECT_MEMEQ_MSG(test, aligned_buffers[faila], dataptrs[faila],
- 			len,
- 			"faila miscompared: %3d[%c] buffers %u len %u (failb=%3d[%c])\n",
- 			faila, member_type(nr_buffers, faila),
- 			nr_buffers, len,
- 			failb, member_type(nr_buffers, failb));
--	KUNIT_EXPECT_MEMEQ_MSG(test, test_buffers[failb], test_recov_buffers[1],
-+	KUNIT_EXPECT_MEMEQ_MSG(test, aligned_buffers[failb], dataptrs[failb],
- 			len,
- 			"failb miscompared: %3d[%c] buffers %u len %u (faila=%3d[%c])\n",
- 			failb, member_type(nr_buffers, failb),
-@@ -152,9 +161,9 @@ static void test_rmw_one(struct kunit *t
- {
- 	const struct test_args *ta = test->param_value;
- 
--	ta->gen->xor_syndrome(nr_buffers, p1, p2, len, test_buffers);
-+	ta->gen->xor_syndrome(nr_buffers, p1, p2, len, aligned_buffers);
- 	makedata(p1, p2);
--	ta->gen->xor_syndrome(nr_buffers, p1, p2, len, test_buffers);
-+	ta->gen->xor_syndrome(nr_buffers, p1, p2, len, aligned_buffers);
- 	test_recover(test, nr_buffers, len);
- }
- 
-@@ -178,13 +187,33 @@ static void raid6_test_one(struct kunit
- 	const struct test_args *ta = test->param_value;
- 	unsigned int nr_buffers = random_nr_buffers();
- 	unsigned int len = random_length(RAID6_KUNIT_MAX_BYTES);
-+	unsigned int max_alignment;
-+	int i;
- 
- 	/* Nuke syndromes */
- 	memset(test_buffers[nr_buffers - 2], 0xee, test_buflen);
- 	memset(test_buffers[nr_buffers - 1], 0xee, test_buflen);
- 
-+	/*
-+	 * If we're not using the entire buffer size, inject randomize alignment
-+	 * into the buffer.
-+	 */
-+	max_alignment = RAID6_KUNIT_MAX_BYTES - len;
-+	if (rand32() % 2 == 0) {
-+		/* Use random alignments mod 64 */
-+		for (i = 0; i < nr_buffers; i++)
-+			aligned_buffers[i] = test_buffers[i] +
-+				random_alignment(max_alignment);
-+	} else {
-+		/* Go up to the guard page, to catch buffer overreads */
-+		unsigned int align = test_buflen - len;
-+
-+		for (i = 0; i < nr_buffers; i++)
-+			aligned_buffers[i] = test_buffers[i] + align;
-+	}
-+
- 	/* Generate assumed good syndrome */
--	ta->gen->gen_syndrome(nr_buffers, len, test_buffers);
-+	ta->gen->gen_syndrome(nr_buffers, len, aligned_buffers);
- 
- 	test_recover(test, nr_buffers, len);
- 
++						fpage = migrate_pfn_to_page(dst[--i]);
++						unlock_page(fpage);
++						__free_page(fpage);
++					}
++					return VM_FAULT_OOM;
++				}
+ 				lock_page(dpage);
+ 				dst[i] = migrate_pfn(page_to_pfn(dpage));
+ 				dst_page = pfn_to_page(page_to_pfn(dpage));
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from liuqiang@kylinos.cn are
 
-raid6-turn-the-userspace-test-harness-into-a-kunit-test.patch
-raid6-remove-__kernel__-ifdefs.patch
-raid6-move-to-lib-raid.patch
-raid6-remove-unused-defines-in-pqh.patch
-raid6-remove-raid6_get_zero_page.patch
-raid6-use-named-initializers-for-struct-raid6_calls.patch
-raid6-improve-the-public-interface.patch
-raid6-warn-when-using-less-than-four-devices.patch
-raid6-hide-internals.patch
-raid6-rework-registration-of-optimized-algorithms.patch
-raid6-use-static_call-for-gen_syndrom-and-xor_syndrom.patch
-raid6-use-static_call-for-raid6_recov_2data-and-raid6_recov_datap.patch
-raid6-update-top-of-file-comments.patch
-raid6_kunit-use-kunit_case_param.patch
-raid6_kunit-dynamically-allocate-data-buffers-using-vmalloc.patch
-raid6_kunit-cleanup-dataptr-handling.patch
-raid6_kunit-randomize-parameters-and-increase-limits.patch
-raid6_kunit-randomize-buffer-alignment.patch
+lib-test_hmm-check-alloc_page_vma-return-value.patch
 
