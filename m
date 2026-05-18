@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B76C38F949
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:59:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B17D39D6C8
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:59:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779141583; cv=none; b=U5sgaGc4VTH2w/d00ktGsouJqkVkn5X0OQQRPleI49aw+NNDb2/bOvC+aTcrhRKJpYShd3s23sD5kYO7R3rPfTLIEJTKTwyc0E3sKFRm4MPvQM3/O3K9strQ6OSErB7KI2CtUjtYZEAhmMv2xgCKn9SbnqFy4gagXnEjq2a2IRQ=
+	t=1779141584; cv=none; b=RODnfvhz5wFFRBUd53+a6mVv2A1+B8UVDKbkx1e8Zbrnlmd5nOOhznOM/Ge/C+ooEMfZxm1sGHm+PEEpDiWgTj69z68GsII+bjxGi5rcF2QAoMz7NkY0Jq6HROKDGeofPyi06XMbSpY3AgBwTePyrffSRs76VfgqlU8SXwV2Btw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779141583; c=relaxed/simple;
-	bh=soY/rSb9r0XUdZFzk7ShFdemNcgonUrWJftICLC+V0Y=;
-	h=Date:To:From:Subject:Message-Id; b=KgvXY85AlmL3A2Oab/Jkrt11Pdf3zxXDPGp8MdN3NMYgY6zB4hQMgrJZ/dQQQr994MV2U4SBWhgUxsBM+pTLwvoYI2gccUUMKF51OBO25llvF2VEzIYkS6Q0MQGDaEwyEkvEp/AlcG4GsbEK6SgbyBKBJtHenc/tpAcJzkF5wLA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qzkRkbGe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779141584; c=relaxed/simple;
+	bh=P1Ud09Up6w8XapmjQ0U71EFke7d9GbDL31G6rosxuB4=;
+	h=Date:To:From:Subject:Message-Id; b=dHeYVrgeLy0RHUGAf7Uz3PtKULVbMEED69IfzSgi0B17D3S9as/iUN/0n9SSH8eJog39o6Jla4afE08N5Hau9V1dZVc2KsWG+WDlqPE7aE4Dl+SQjGyocMdvsuCw8XZhkA3yCBu2u4ueNGDU0HCVfhmlS+cTJtQyZDvvYEKhbH8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Jo4QIKuD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qzkRkbGe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2FA5C2BCB7;
-	Mon, 18 May 2026 21:59:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Jo4QIKuD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 74874C2BCB7;
+	Mon, 18 May 2026 21:59:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779141582;
-	bh=soY/rSb9r0XUdZFzk7ShFdemNcgonUrWJftICLC+V0Y=;
+	s=korg; t=1779141584;
+	bh=P1Ud09Up6w8XapmjQ0U71EFke7d9GbDL31G6rosxuB4=;
 	h=Date:To:From:Subject:From;
-	b=qzkRkbGexxJtZOd8GtPwSU5HXyEekHNso/2DPn5yNWpD5CNP9maU9hktSwEB1tIuD
-	 yKowVshyDgXmQg3mYfjAChNCoQJUES0axSYxTxwAwTJ8yfMPOHGuWL+5LBchDWmkso
-	 oCldFHZDWBRTPwu0ELJ9sBMazyfQD4u2mlJnk9hM=
-Date: Mon, 18 May 2026 14:59:42 -0700
+	b=Jo4QIKuDyZNbFfyKlv6/wBjHi68uMVsTBcwVtWPKFyotkhC9Of0blfqBUzSXpONfK
+	 cZKhJQ3HbjnIovg5coychdEXt0iw/41ZCqYPFVwFxKfpWOe7f7lsTkv8JCPRiIHROC
+	 0Ww+mmqyUEBQpmEFUXC1HysbDNSxv4m/sLjzWtRM=
+Date: Mon, 18 May 2026 14:59:43 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] selftests-mm-remove-read_only_thp_for_fs-code-from-guard-regions.patch removed from -mm tree
-Message-Id: <20260518215942.A2FA5C2BCB7@smtp.kernel.org>
+Subject: [to-be-updated] mm-khugepaged-enable-clean-pagecache-folio-collapse-for-writable-files.patch removed from -mm tree
+Message-Id: <20260518215944.74874C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,28 +35,45 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: remove READ_ONLY_THP_FOR_FS code from guard-regions
+     Subject: mm/khugepaged: enable clean pagecache folio collapse for writable files
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-remove-read_only_thp_for_fs-code-from-guard-regions.patch
+     mm-khugepaged-enable-clean-pagecache-folio-collapse-for-writable-files.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: selftests/mm: remove READ_ONLY_THP_FOR_FS code from guard-regions
-Date: Wed, 29 Apr 2026 11:35:35 -0400
+Subject: mm/khugepaged: enable clean pagecache folio collapse for writable files
+Date: Wed, 29 Apr 2026 11:35:36 -0400
 
-Any file system with large folio support and the supported orders include
-PMD_ORDER can be used.  There is no need to open a file with read-only.
+collapse_file() is capable of collapsing pagecache folios from writable
+files to PMD folios.  Now enable clean pagecache folio collapse in
+addition to read-only pagecache folio collapse by removing the
+inode_is_open_for_write() from file_thp_enabled() and only performing
+filemap_flush() if the file is read-only.
 
-Link: https://lore.kernel.org/20260429153538.727855-8-ziy@nvidia.com
+This means userspace needs to explicitly flush the content of pagecache
+folios before khugepaged can collapse the folios, or use
+madvise(MADV_COLLAPSE), which does the flush in the retry.  The reason is
+that blindly enabling dirty pagecache folio from writable files collapse
+makes khugepaged flush these folios all the time.  It is undesirable to
+cause system level pagecache flushes.
+
+To properly support dirty pagecache folio collapse, filemap_flush() needs
+to be avoided.  Potentially, merging associated buffer instead of dropping
+it with filemap_release_folio() might be needed.
+
+NOTE: this breaks khugepaged selftests for writable file pagecache
+collapse, which is set to fail all the time.  The next commit fixes it.
+
+Link: https://lore.kernel.org/20260429153538.727855-9-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: David Sterba <dsterba@suse.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Jan Kara <jack@suse.cz>
@@ -75,47 +92,42 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/guard-regions.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ mm/huge_memory.c |    2 +-
+ mm/khugepaged.c  |    9 ++++++++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/guard-regions.c~selftests-mm-remove-read_only_thp_for_fs-code-from-guard-regions
-+++ a/tools/testing/selftests/mm/guard-regions.c
-@@ -2203,17 +2203,6 @@ TEST_F(guard_regions, collapse)
- 	if (variant->backing != ANON_BACKED)
- 		ASSERT_EQ(ftruncate(self->fd, size), 0);
+--- a/mm/huge_memory.c~mm-khugepaged-enable-clean-pagecache-folio-collapse-for-writable-files
++++ a/mm/huge_memory.c
+@@ -97,7 +97,7 @@ static inline bool file_thp_enabled(stru
+ 	if (!mapping_pmd_folio_support(vma->vm_file->f_mapping))
+ 		return false;
  
--	/*
--	 * We must close and re-open local-file backed as read-only for
--	 * CONFIG_READ_ONLY_THP_FOR_FS to work.
--	 */
--	if (variant->backing == LOCAL_FILE_BACKED) {
--		ASSERT_EQ(close(self->fd), 0);
--
--		self->fd = open(self->path, O_RDONLY);
--		ASSERT_GE(self->fd, 0);
--	}
--
- 	ptr = mmap_(self, variant, NULL, size, PROT_READ, 0, 0);
- 	ASSERT_NE(ptr, MAP_FAILED);
+-	return !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
++	return S_ISREG(inode->i_mode);
+ }
  
-@@ -2237,9 +2226,10 @@ TEST_F(guard_regions, collapse)
- 	/*
- 	 * Now collapse the entire region. This should fail in all cases.
- 	 *
--	 * The madvise() call will also fail if CONFIG_READ_ONLY_THP_FOR_FS is
--	 * not set for the local file case, but we can't differentiate whether
--	 * this occurred or if the collapse was rightly rejected.
-+	 * The madvise() call will also fail if the file system does not support
-+	 * large folio or the supported orders do not include PMD_ORDER for the
-+	 * local file case, but we can't differentiate whether this occurred or
-+	 * if the collapse was rightly rejected.
- 	 */
- 	EXPECT_NE(madvise(ptr, size, MADV_COLLAPSE), 0);
- 
+ /* If returns true, we are unable to access the VMA's folios. */
+--- a/mm/khugepaged.c~mm-khugepaged-enable-clean-pagecache-folio-collapse-for-writable-files
++++ a/mm/khugepaged.c
+@@ -2353,7 +2353,14 @@ static enum scan_result collapse_file(st
+ 				 * forcing writeback in loop.
+ 				 */
+ 				xas_unlock_irq(&xas);
+-				filemap_flush(mapping);
++				/*
++				 * Only flush for read-only files. Writable
++				 * files can have their folios dirty at any
++				 * time; blindly flushing them would cause
++				 * undesirable system-wide writeback.
++				 */
++				if (!inode_is_open_for_write(mapping->host))
++					filemap_flush(mapping);
+ 				result = SCAN_PAGE_DIRTY_OR_WRITEBACK;
+ 				goto xa_unlocked;
+ 			} else if (folio_test_writeback(folio)) {
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-khugepaged-enable-clean-pagecache-folio-collapse-for-writable-files.patch
 selftests-mm-add-writable-file-collapse-tests-for-khugepaged.patch
 
