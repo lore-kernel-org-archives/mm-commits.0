@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC382396591
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:13:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A07BA3921DC
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:13:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779138811; cv=none; b=NM/5NeM0GUP7e6Zn56Fime7zfGAWZhJKQOCqgWFAn7Pt8uBNAFVrULQgpruF1xevyTtKGZUGn9UYI+xIwNH5+G04Fkr3EPEO7/8m5+VGFCZibbMle+9BZQQTv8gR2rh8amMnRwFGYm1yWqy46hfmKVCTIItWhxysNUSf4JN+Kqo=
+	t=1779138818; cv=none; b=mabfdA61fcmUtYONS4hNH+VCiBGO9fRHQcYGaBtAeT7yuOlpZS36d4TDwsE+0fQbttPfxKcHR29XDVAoj/bkbkICJwFPjedkLCyCTBc3WPiz1sEAtadSubqjorBAku4GLcVaemIVLTrYy2VYFP13cwtgG3DvYi3XwKQcIkEDYeo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779138811; c=relaxed/simple;
-	bh=fqVnkDzEfdRytRAgJutnMVn3f6lf7BBBIZPHM2cQHg8=;
-	h=Date:To:From:Subject:Message-Id; b=QqvwCAR83ZRBGX8TB/DYzVvmuLv1gDaAm7ePHRubq+RxzrS1dllkGMOvNvqPZdRdfAep4C5+ML2jQGU6+G+U74oh8ljd8PB1fqHCHDNoTXEE3hcJ4RinIO51GjWk9ziikElyrLSEWaTTWjtIaskQv8C7QZpUOCKGad9AqMTkdqQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ivsX8p7C; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779138818; c=relaxed/simple;
+	bh=NNC86xc9Gppoz3d9Qd4zBj8WwORknuTWpIKcoOtdDP8=;
+	h=Date:To:From:Subject:Message-Id; b=t5f9skX6bw/h2fjBYZR4KGIi+qFEdtzJrNitidQlGePPK/pKxdqELbADGAcUgj3jxisezpzLrmQKKWIz7QYw5ckul5wiOUpXv0v9YH8MK98RW1Jqv+tct28TZXOi6qv5Obb25Ay4smL9Ljq7TLhLP+TRCrXvO6ohrWJtgEYpxTg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bXtR/aXM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ivsX8p7C"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C39CFC2BCB7;
-	Mon, 18 May 2026 21:13:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bXtR/aXM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 322CBC2BCB7;
+	Mon, 18 May 2026 21:13:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779138810;
-	bh=fqVnkDzEfdRytRAgJutnMVn3f6lf7BBBIZPHM2cQHg8=;
+	s=korg; t=1779138818;
+	bh=NNC86xc9Gppoz3d9Qd4zBj8WwORknuTWpIKcoOtdDP8=;
 	h=Date:To:From:Subject:From;
-	b=ivsX8p7COHOWwms66dOBg0WbdxudpiSX4Ct/jN47CtR4IyREiStCnvO2OuPqxnQq9
-	 JskasA4k4FKPuk8waMG8W9fkQq+MZLaxqQsWHmHkF1to0E0biZnHUgtZSzTH3seA2g
-	 GZ9dM5R8c3GLCBRkHFM3jfNFA0mE1oT0BWQAeawQ=
-Date: Mon, 18 May 2026 14:13:30 -0700
+	b=bXtR/aXMkmUE3MQgk/cVMl7k3yUfmI1L5VUuREmjZgYCILeMcQmrROM5QpKHG27/7
+	 nF9UkFFWNc9Vt/nTRifrXDAB/Mt9+HxPMLsKUjZv2mHg3Db7tgryO8ZyTa8dnSJ9ko
+	 piKvomARC0aZ0MeQXjKhwcmS4S73d57xe9+8Aeds=
+Date: Mon, 18 May 2026 14:13:37 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + raid6-use-named-initializers-for-struct-raid6_calls.patch added to mm-nonmm-unstable branch
-Message-Id: <20260518211330.C39CFC2BCB7@smtp.kernel.org>
+Subject: + raid6-improve-the-public-interface.patch added to mm-nonmm-unstable branch
+Message-Id: <20260518211338.322CBC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: raid6: use named initializers for struct raid6_calls
+     Subject: raid6: improve the public interface
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     raid6-use-named-initializers-for-struct-raid6_calls.patch
+     raid6-improve-the-public-interface.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6-use-named-initializers-for-struct-raid6_calls.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6-improve-the-public-interface.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,10 +59,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: raid6: use named initializers for struct raid6_calls
-Date: Mon, 18 May 2026 07:17:49 +0200
+Subject: raid6: improve the public interface
+Date: Mon, 18 May 2026 07:17:50 +0200
 
-Link: https://lore.kernel.org/20260518051804.462141-7-hch@lst.de
+Stop directly calling into function pointers from users of the RAID6 PQ
+API, and provide exported functions with proper documentation and API
+guarantees asserts where applicable instead.
+
+Link: https://lore.kernel.org/20260518051804.462141-8-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Ard Biesheuvel <ardb@kernel.org>
 Tested-by: Ard Biesheuvel <ardb@kernel.org> # kunit only on arm64
@@ -94,375 +98,507 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/raid6/arm/neon.c                 |    9 ++---
- lib/raid/raid6/int.uc                     |    8 +---
- lib/raid/raid6/loongarch/loongarch_simd.c |   18 ++++------
- lib/raid/raid6/powerpc/altivec.uc         |    8 +---
- lib/raid/raid6/powerpc/vpermxor.uc        |    8 +---
- lib/raid/raid6/riscv/rvv.h                |    9 ++---
- lib/raid/raid6/s390/s390vx.uc             |   10 +++---
- lib/raid/raid6/x86/avx2.c                 |   33 ++++++++++----------
- lib/raid/raid6/x86/avx512.c               |   33 ++++++++++----------
- lib/raid/raid6/x86/mmx.c                  |   16 +++------
- lib/raid/raid6/x86/sse1.c                 |   18 ++++------
- lib/raid/raid6/x86/sse2.c                 |   30 +++++++++---------
- 12 files changed, 95 insertions(+), 105 deletions(-)
+ Documentation/crypto/async-tx-api.rst           |    4 
+ crypto/async_tx/async_pq.c                      |    6 
+ crypto/async_tx/async_raid6_recov.c             |    4 
+ drivers/md/raid5.c                              |    4 
+ fs/btrfs/raid56.c                               |    8 
+ include/linux/raid/pq.h                         |   19 +
+ lib/raid/raid6/algos.c                          |  139 +++++++++++++-
+ lib/raid/raid6/arm/recov_neon.c                 |    4 
+ lib/raid/raid6/loongarch/recov_loongarch_simd.c |    8 
+ lib/raid/raid6/recov.c                          |    4 
+ lib/raid/raid6/riscv/recov_rvv.c                |    4 
+ lib/raid/raid6/s390/recov_s390xc.c              |    4 
+ lib/raid/raid6/x86/recov_avx2.c                 |    4 
+ lib/raid/raid6/x86/recov_avx512.c               |    4 
+ lib/raid/raid6/x86/recov_ssse3.c                |    4 
+ 15 files changed, 171 insertions(+), 49 deletions(-)
 
---- a/lib/raid/raid6/arm/neon.c~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/arm/neon.c
-@@ -40,11 +40,10 @@
- 				start, stop, (unsigned long)bytes, ptrs);\
- 	}								\
- 	struct raid6_calls const raid6_neonx ## _n = {			\
--		raid6_neon ## _n ## _gen_syndrome,			\
--		raid6_neon ## _n ## _xor_syndrome,			\
--		raid6_have_neon,					\
--		"neonx" #_n,						\
--		0							\
-+		.gen_syndrome	= raid6_neon ## _n ## _gen_syndrome,	\
-+		.xor_syndrome	= raid6_neon ## _n ## _xor_syndrome,	\
-+		.valid		= raid6_have_neon,			\
-+		.name		= "neonx" #_n,				\
+--- a/crypto/async_tx/async_pq.c~raid6-improve-the-public-interface
++++ a/crypto/async_tx/async_pq.c
+@@ -131,11 +131,11 @@ do_sync_gen_syndrome(struct page **block
+ 		}
  	}
- 
- static int raid6_have_neon(void)
---- a/lib/raid/raid6/int.uc~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/int.uc
-@@ -139,9 +139,7 @@ static void raid6_int$#_xor_syndrome(int
+ 	if (submit->flags & ASYNC_TX_PQ_XOR_DST) {
+-		BUG_ON(!raid6_call.xor_syndrome);
++		BUG_ON(!raid6_can_xor_syndrome());
+ 		if (start >= 0)
+-			raid6_call.xor_syndrome(disks, start, stop, len, srcs);
++			raid6_xor_syndrome(disks, start, stop, len, srcs);
+ 	} else
+-		raid6_call.gen_syndrome(disks, len, srcs);
++		raid6_gen_syndrome(disks, len, srcs);
+ 	async_tx_sync_epilog(submit);
  }
  
- const struct raid6_calls raid6_intx$# = {
--	raid6_int$#_gen_syndrome,
--	raid6_int$#_xor_syndrome,
--	NULL,			/* always valid */
--	"int" NSTRING "x$#",
--	0
-+	.gen_syndrome	= raid6_int$#_gen_syndrome,
-+	.xor_syndrome	= raid6_int$#_xor_syndrome,
-+	.name		= "int" NSTRING "x$#",
- };
---- a/lib/raid/raid6/loongarch/loongarch_simd.c~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/loongarch/loongarch_simd.c
-@@ -244,11 +244,10 @@ static void raid6_lsx_xor_syndrome(int d
- }
+--- a/crypto/async_tx/async_raid6_recov.c~raid6-improve-the-public-interface
++++ a/crypto/async_tx/async_raid6_recov.c
+@@ -418,7 +418,7 @@ async_raid6_2data_recov(int disks, size_
+ 			else
+ 				ptrs[i] = page_address(blocks[i]) + offs[i];
  
- const struct raid6_calls raid6_lsx = {
--	raid6_lsx_gen_syndrome,
--	raid6_lsx_xor_syndrome,
--	raid6_has_lsx,
--	"lsx",
--	.priority = 0 /* see the comment near the top of the file for reason */
-+	.gen_syndrome	= raid6_lsx_gen_syndrome,
-+	.xor_syndrome	= raid6_lsx_xor_syndrome,
-+	.valid		= raid6_has_lsx,
-+	.name		= "lsx",
- };
+-		raid6_2data_recov(disks, bytes, faila, failb, ptrs);
++		raid6_recov_2data(disks, bytes, faila, failb, ptrs);
  
- #undef NSIZE
-@@ -413,11 +412,10 @@ static void raid6_lasx_xor_syndrome(int
- }
+ 		async_tx_sync_epilog(submit);
  
- const struct raid6_calls raid6_lasx = {
--	raid6_lasx_gen_syndrome,
--	raid6_lasx_xor_syndrome,
--	raid6_has_lasx,
--	"lasx",
--	.priority = 0 /* see the comment near the top of the file for reason */
-+	.gen_syndrome	= raid6_lasx_gen_syndrome,
-+	.xor_syndrome	= raid6_lasx_xor_syndrome,
-+	.valid		= raid6_has_lasx,
-+	.name		= "lasx",
- };
- #undef NSIZE
- #endif /* CONFIG_CPU_HAS_LASX */
---- a/lib/raid/raid6/powerpc/altivec.uc~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/powerpc/altivec.uc
-@@ -114,9 +114,7 @@ int raid6_have_altivec(void)
- #endif
+@@ -501,7 +501,7 @@ async_raid6_datap_recov(int disks, size_
+ 			else
+ 				ptrs[i] = page_address(blocks[i]) + offs[i];
  
- const struct raid6_calls raid6_altivec$# = {
--	raid6_altivec$#_gen_syndrome,
--	NULL,			/* XOR not yet implemented */
--	raid6_have_altivec,
--	"altivecx$#",
--	0
-+	.gen_syndrome	= raid6_altivec$#_gen_syndrome,
-+	.valid		= raid6_have_altivec,
-+	.name		= "altivecx$#",
- };
---- a/lib/raid/raid6/powerpc/vpermxor.uc~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/powerpc/vpermxor.uc
-@@ -87,9 +87,7 @@ int raid6_have_altivec_vpermxor(void)
- #endif
+-		raid6_datap_recov(disks, bytes, faila, ptrs);
++		raid6_recov_datap(disks, bytes, faila, ptrs);
  
- const struct raid6_calls raid6_vpermxor$# = {
--	raid6_vpermxor$#_gen_syndrome,
--	NULL,
--	raid6_have_altivec_vpermxor,
--	"vpermxor$#",
--	0
-+	.gen_syndrome	= raid6_vpermxor$#_gen_syndrome,
-+	.valid		= raid6_have_altivec_vpermxor,
-+	.name		= "vpermxor$#",
- };
---- a/lib/raid/raid6/riscv/rvv.h~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/riscv/rvv.h
-@@ -39,9 +39,8 @@ static int rvv_has_vector(void)
- 		kernel_vector_end();					\
- 	}								\
- 	struct raid6_calls const raid6_rvvx ## _n = {			\
--		raid6_rvv ## _n ## _gen_syndrome,			\
--		raid6_rvv ## _n ## _xor_syndrome,			\
--		rvv_has_vector,						\
--		"rvvx" #_n,						\
--		0							\
-+		.gen_syndrome	= raid6_rvv ## _n ## _gen_syndrome,	\
-+		.xor_syndrome	= raid6_rvv ## _n ## _xor_syndrome,	\
-+		.valid		= rvv_has_vector,			\
-+		.name		= "rvvx" #_n,				\
- 	}
---- a/lib/raid/raid6/s390/s390vx.uc~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/s390/s390vx.uc
-@@ -127,9 +127,9 @@ static int raid6_s390vx$#_valid(void)
- }
+ 		async_tx_sync_epilog(submit);
  
- const struct raid6_calls raid6_s390vx$# = {
--	raid6_s390vx$#_gen_syndrome,
--	raid6_s390vx$#_xor_syndrome,
--	raid6_s390vx$#_valid,
--	"vx128x$#",
--	1
-+	.gen_syndrome	= raid6_s390vx$#_gen_syndrome,
-+	.xor_syndrome	= raid6_s390vx$#_xor_syndrome,
-+	.valid		= raid6_s390vx$#_valid,
-+	.name		= "vx128x$#",
-+	.priority	= 1,
- };
---- a/lib/raid/raid6/x86/avx2.c~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/x86/avx2.c
-@@ -128,11 +128,12 @@ static void raid6_avx21_xor_syndrome(int
- }
+--- a/Documentation/crypto/async-tx-api.rst~raid6-improve-the-public-interface
++++ a/Documentation/crypto/async-tx-api.rst
+@@ -82,9 +82,9 @@ xor_val   xor a series of source buffers
+ pq	  generate the p+q (raid6 syndrome) from a series of source buffers
+ pq_val    validate that a p and or q buffer are in sync with a given series of
+ 	  sources
+-datap	  (raid6_datap_recov) recover a raid6 data block and the p block
++datap	  (raid6_recov_datap) recover a raid6 data block and the p block
+ 	  from the given sources
+-2data	  (raid6_2data_recov) recover 2 raid6 data blocks from the given
++2data	  (raid6_recov_2data) recover 2 raid6 data blocks from the given
+ 	  sources
+ ========  ====================================================================
  
- const struct raid6_calls raid6_avx2x1 = {
--	raid6_avx21_gen_syndrome,
--	raid6_avx21_xor_syndrome,
--	raid6_have_avx2,
--	"avx2x1",
--	.priority = 2		/* Prefer AVX2 over priority 1 (SSE2 and others) */
-+	.gen_syndrome	= raid6_avx21_gen_syndrome,
-+	.xor_syndrome	= raid6_avx21_xor_syndrome,
-+	.valid		= raid6_have_avx2,
-+	.name		= "avx2x1",
-+	/* Prefer AVX2 over priority 1 (SSE2 and others) */
-+	.priority	= 2,
+--- a/drivers/md/raid5.c~raid6-improve-the-public-interface
++++ a/drivers/md/raid5.c
+@@ -6955,7 +6955,7 @@ raid5_store_rmw_level(struct mddev  *mdd
+ 	if (kstrtoul(page, 10, &new))
+ 		return -EINVAL;
+ 
+-	if (new != PARITY_DISABLE_RMW && !raid6_call.xor_syndrome)
++	if (new != PARITY_DISABLE_RMW && !raid6_can_xor_syndrome())
+ 		return -EINVAL;
+ 
+ 	if (new != PARITY_DISABLE_RMW &&
+@@ -7646,7 +7646,7 @@ static struct r5conf *setup_conf(struct
+ 	conf->level = mddev->new_level;
+ 	if (conf->level == 6) {
+ 		conf->max_degraded = 2;
+-		if (raid6_call.xor_syndrome)
++		if (raid6_can_xor_syndrome())
+ 			conf->rmw_level = PARITY_ENABLE_RMW;
+ 		else
+ 			conf->rmw_level = PARITY_DISABLE_RMW;
+--- a/fs/btrfs/raid56.c~raid6-improve-the-public-interface
++++ a/fs/btrfs/raid56.c
+@@ -1410,7 +1410,7 @@ static void generate_pq_vertical_step(st
+ 				rbio_qstripe_paddr(rbio, sector_nr, step_nr));
+ 
+ 		assert_rbio(rbio);
+-		raid6_call.gen_syndrome(rbio->real_stripes, step, pointers);
++		raid6_gen_syndrome(rbio->real_stripes, step, pointers);
+ 	} else {
+ 		/* raid5 */
+ 		memcpy(pointers[rbio->nr_data], pointers[0], step);
+@@ -1987,10 +1987,10 @@ static void recover_vertical_step(struct
+ 		}
+ 
+ 		if (failb == rbio->real_stripes - 2) {
+-			raid6_datap_recov(rbio->real_stripes, step,
++			raid6_recov_datap(rbio->real_stripes, step,
+ 					  faila, pointers);
+ 		} else {
+-			raid6_2data_recov(rbio->real_stripes, step,
++			raid6_recov_2data(rbio->real_stripes, step,
+ 					  faila, failb, pointers);
+ 		}
+ 	} else {
+@@ -2644,7 +2644,7 @@ static bool verify_one_parity_step(struc
+ 	if (has_qstripe) {
+ 		assert_rbio(rbio);
+ 		/* RAID6, call the library function to fill in our P/Q. */
+-		raid6_call.gen_syndrome(rbio->real_stripes, step, pointers);
++		raid6_gen_syndrome(rbio->real_stripes, step, pointers);
+ 	} else {
+ 		/* RAID5. */
+ 		memcpy(pointers[nr_data], pointers[0], step);
+--- a/include/linux/raid/pq.h~raid6-improve-the-public-interface
++++ a/include/linux/raid/pq.h
+@@ -11,6 +11,16 @@
+ #include <linux/blkdev.h>
+ #include <linux/mm.h>
+ 
++void raid6_gen_syndrome(int disks, size_t bytes, void **ptrs);
++void raid6_xor_syndrome(int disks, int start, int stop, size_t bytes,
++		void **ptrs);
++bool raid6_can_xor_syndrome(void);
++
++void raid6_recov_2data(int disks, size_t bytes, int faila, int failb,
++		void **ptrs);
++void raid6_recov_datap(int disks, size_t bytes, int faila,
++		void **ptrs);
++
+ /* Routine choices */
+ struct raid6_calls {
+ 	void (*gen_syndrome)(int, size_t, void **);
+@@ -20,9 +30,6 @@ struct raid6_calls {
+ 	int priority;		/* Relative priority ranking if non-zero */
  };
  
- /*
-@@ -258,11 +259,12 @@ static void raid6_avx22_xor_syndrome(int
- }
+-/* Selected algorithm */
+-extern struct raid6_calls raid6_call;
+-
+ /* Various routine sets */
+ extern const struct raid6_calls raid6_intx1;
+ extern const struct raid6_calls raid6_intx2;
+@@ -92,10 +99,4 @@ extern const u8 raid6_gflog[256]      __
+ extern const u8 raid6_gfinv[256]      __attribute__((aligned(256)));
+ extern const u8 raid6_gfexi[256]      __attribute__((aligned(256)));
  
- const struct raid6_calls raid6_avx2x2 = {
--	raid6_avx22_gen_syndrome,
--	raid6_avx22_xor_syndrome,
--	raid6_have_avx2,
--	"avx2x2",
--	.priority = 2		/* Prefer AVX2 over priority 1 (SSE2 and others) */
-+	.gen_syndrome	= raid6_avx22_gen_syndrome,
-+	.xor_syndrome	= raid6_avx22_xor_syndrome,
-+	.valid		= raid6_have_avx2,
-+	.name		= "avx2x2",
-+	/* Prefer AVX2 over priority 1 (SSE2 and others) */
-+	.priority	= 2,
+-/* Recovery routines */
+-extern void (*raid6_2data_recov)(int disks, size_t bytes, int faila, int failb,
+-		       void **ptrs);
+-extern void (*raid6_datap_recov)(int disks, size_t bytes, int faila,
+-			void **ptrs);
+-
+ #endif /* LINUX_RAID_RAID6_H */
+--- a/lib/raid/raid6/algos.c~raid6-improve-the-public-interface
++++ a/lib/raid/raid6/algos.c
+@@ -16,8 +16,83 @@
+ #include <linux/gfp.h>
+ #include <kunit/visibility.h>
+ 
+-struct raid6_calls raid6_call;
+-EXPORT_SYMBOL_GPL(raid6_call);
++static const struct raid6_recov_calls *raid6_recov_algo;
++
++/* Selected algorithm */
++static struct raid6_calls raid6_call;
++
++/**
++ * raid6_gen_syndrome - generate RAID6 P/Q parity
++ * @disks:	number of "disks" to operate on including parity
++ * @bytes:	length in bytes of each vector
++ * @ptrs:	@disks size array of memory pointers
++ *
++ * Generate @bytes worth of RAID6 P and Q parity in @ptrs[@disks - 2] and
++ * @ptrs[@disks - 1] respectively from the memory pointed to by @ptrs[0] to
++ * @ptrs[@disks - 3].
++ *
++ * @disks must be at least 4, and the memory pointed to by each member of @ptrs
++ * must be at least 64-byte aligned.  @bytes must be non-zero and a multiple of
++ * 512.
++ *
++ * See https://kernel.org/pub/linux/kernel/people/hpa/raid6.pdf for underlying
++ * algorithm.
++ */
++void raid6_gen_syndrome(int disks, size_t bytes, void **ptrs)
++{
++	WARN_ON_ONCE(!in_task() || irqs_disabled() || softirq_count());
++	WARN_ON_ONCE(bytes & 511);
++
++	raid6_call.gen_syndrome(disks, bytes, ptrs);
++}
++EXPORT_SYMBOL_GPL(raid6_gen_syndrome);
++
++/**
++ * raid6_xor_syndrome - update RAID6 P/Q parity
++ * @disks:	number of "disks" to operate on including parity
++ * @start:	first index into @disk to update
++ * @stop:	last index into @disk to update
++ * @bytes:	length in bytes of each vector
++ * @ptrs:	@disks size array of memory pointers
++ *
++ * Update @bytes worth of RAID6 P and Q parity in @ptrs[@disks - 2] and
++ * @ptrs[@disks - 1] respectively for the memory pointed to by
++ * @ptrs[@start..@stop].
++ *
++ * This is used to update parity in place using the following sequence:
++ *
++ * 1) call raid6_xor_syndrome(disk, start, stop, ...) for the existing data.
++ * 2) update the the data in @ptrs[@start..@stop].
++ * 3) call raid6_xor_syndrome(disk, start, stop, ...) for the new data.
++ *
++ * Data between @start and @stop that is not changed should be filled
++ * with a pointer to the kernel zero page.
++ *
++ * @disks must be at least 4, and the memory pointed to by each member of @ptrs
++ * must be at least 64-byte aligned.  @bytes must be non-zero and a multiple of
++ * 512.  @stop must be larger or equal to @start.
++ */
++void raid6_xor_syndrome(int disks, int start, int stop, size_t bytes,
++		void **ptrs)
++{
++	WARN_ON_ONCE(!in_task() || irqs_disabled() || softirq_count());
++	WARN_ON_ONCE(bytes & 511);
++	WARN_ON_ONCE(stop < start);
++
++	raid6_call.xor_syndrome(disks, start, stop, bytes, ptrs);
++}
++EXPORT_SYMBOL_GPL(raid6_xor_syndrome);
++
++/*
++ * raid6_can_xor_syndrome - check if raid6_xor_syndrome() can be used
++ *
++ * Returns %true if raid6_can_xor_syndrome() can be used, else %false.
++ */
++bool raid6_can_xor_syndrome(void)
++{
++	return !!raid6_call.xor_syndrome;
++}
++EXPORT_SYMBOL_GPL(raid6_can_xor_syndrome);
+ 
+ const struct raid6_calls * const raid6_algos[] = {
+ #if defined(__i386__) && !defined(__arch_um__)
+@@ -84,11 +159,58 @@ const struct raid6_calls * const raid6_a
  };
+ EXPORT_SYMBOL_IF_KUNIT(raid6_algos);
  
- #ifdef CONFIG_X86_64
-@@ -461,10 +463,11 @@ static void raid6_avx24_xor_syndrome(int
- }
+-void (*raid6_2data_recov)(int, size_t, int, int, void **);
+-EXPORT_SYMBOL_GPL(raid6_2data_recov);
+-
+-void (*raid6_datap_recov)(int, size_t, int, void **);
+-EXPORT_SYMBOL_GPL(raid6_datap_recov);
++/**
++ * raid6_recov_2data - recover two missing data disks
++ * @disks:	number of "disks" to operate on including parity
++ * @bytes:	length in bytes of each vector
++ * @faila:	first failed data disk index
++ * @failb:	second failed data disk index
++ * @ptrs:	@disks size array of memory pointers
++ *
++ * Rebuild @bytes of missing data in @ptrs[@faila] and @ptrs[@failb] from the
++ * data in the remaining disks and the two parities pointed to by the other
++ * indices between 0 and @disks - 1 in @ptrs.  @disks includes the data disks
++ * and the two parities.  @faila must be smaller than @failb.
++ *
++ * Memory pointed to by each pointer in @ptrs must be page aligned and is
++ * limited to %PAGE_SIZE.
++ */
++void raid6_recov_2data(int disks, size_t bytes, int faila, int failb,
++		void **ptrs)
++{
++	WARN_ON_ONCE(!in_task() || irqs_disabled() || softirq_count());
++	WARN_ON_ONCE(bytes & 511);
++	WARN_ON_ONCE(bytes > PAGE_SIZE);
++	WARN_ON_ONCE(failb <= faila);
++
++	raid6_recov_algo->data2(disks, bytes, faila, failb, ptrs);
++}
++EXPORT_SYMBOL_GPL(raid6_recov_2data);
++
++/**
++ * raid6_recov_datap - recover a missing data disk and missing P-parity
++ * @disks:	number of "disks" to operate on including parity
++ * @bytes:	length in bytes of each vector
++ * @faila:	failed data disk index
++ * @ptrs:	@disks size array of memory pointers
++ *
++ * Rebuild @bytes of missing data in @ptrs[@faila] and the missing P-parity in
++ * @ptrs[@disks - 2] from the data in the remaining disks and the Q-parity
++ * pointed to by the other indices between 0 and @disks - 1 in @ptrs.  @disks
++ * includes the data disks and the two parities.
++ *
++ * Memory pointed to by each pointer in @ptrs must be page aligned and is
++ * limited to %PAGE_SIZE.
++ */
++void raid6_recov_datap(int disks, size_t bytes, int faila, void **ptrs)
++{
++	WARN_ON_ONCE(!in_task() || irqs_disabled() || softirq_count());
++	WARN_ON_ONCE(bytes & 511);
++	WARN_ON_ONCE(bytes > PAGE_SIZE);
++
++	raid6_recov_algo->datap(disks, bytes, faila, ptrs);
++}
++EXPORT_SYMBOL_GPL(raid6_recov_datap);
  
- const struct raid6_calls raid6_avx2x4 = {
--	raid6_avx24_gen_syndrome,
--	raid6_avx24_xor_syndrome,
--	raid6_have_avx2,
--	"avx2x4",
--	.priority = 2		/* Prefer AVX2 over priority 1 (SSE2 and others) */
-+	.gen_syndrome	= raid6_avx24_gen_syndrome,
-+	.xor_syndrome	= raid6_avx24_xor_syndrome,
-+	.valid		= raid6_have_avx2,
-+	.name		= "avx2x4",
-+	/* Prefer AVX2 over priority 1 (SSE2 and others) */
-+	.priority	= 2,
- };
- #endif /* CONFIG_X86_64 */
---- a/lib/raid/raid6/x86/avx512.c~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/x86/avx512.c
-@@ -156,11 +156,12 @@ static void raid6_avx5121_xor_syndrome(i
- }
+ const struct raid6_recov_calls *const raid6_recov_algos[] = {
+ #ifdef CONFIG_X86
+@@ -133,8 +255,7 @@ static inline const struct raid6_recov_c
+ 				best = *algo;
  
- const struct raid6_calls raid6_avx512x1 = {
--	raid6_avx5121_gen_syndrome,
--	raid6_avx5121_xor_syndrome,
--	raid6_have_avx512,
--	"avx512x1",
--	.priority = 2		/* Prefer AVX512 over priority 1 (SSE2 and others) */
-+	.gen_syndrome	= raid6_avx5121_gen_syndrome,
-+	.xor_syndrome	= raid6_avx5121_xor_syndrome,
-+	.valid		= raid6_have_avx512,
-+	.name		= "avx512x1",
-+	/* Prefer AVX512 over priority 1 (SSE2 and others) */
-+	.priority	= 2,
- };
+ 	if (best) {
+-		raid6_2data_recov = best->data2;
+-		raid6_datap_recov = best->datap;
++		raid6_recov_algo = best;
  
- /*
-@@ -313,11 +314,12 @@ static void raid6_avx5122_xor_syndrome(i
- }
+ 		pr_info("raid6: using %s recovery algorithm\n", best->name);
+ 	} else
+--- a/lib/raid/raid6/arm/recov_neon.c~raid6-improve-the-public-interface
++++ a/lib/raid/raid6/arm/recov_neon.c
+@@ -35,7 +35,7 @@ static void raid6_2data_recov_neon(int d
+ 	ptrs[failb] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks - 1] = dq;
  
- const struct raid6_calls raid6_avx512x2 = {
--	raid6_avx5122_gen_syndrome,
--	raid6_avx5122_xor_syndrome,
--	raid6_have_avx512,
--	"avx512x2",
--	.priority = 2		/* Prefer AVX512 over priority 1 (SSE2 and others) */
-+	.gen_syndrome	= raid6_avx5122_gen_syndrome,
-+	.xor_syndrome	= raid6_avx5122_xor_syndrome,
-+	.valid		= raid6_have_avx512,
-+	.name		= "avx512x2",
-+	/* Prefer AVX512 over priority 1 (SSE2 and others) */
-+	.priority	= 2,
- };
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
  
- #ifdef CONFIG_X86_64
-@@ -551,10 +553,11 @@ static void raid6_avx5124_xor_syndrome(i
- 	kernel_fpu_end();
- }
- const struct raid6_calls raid6_avx512x4 = {
--	raid6_avx5124_gen_syndrome,
--	raid6_avx5124_xor_syndrome,
--	raid6_have_avx512,
--	"avx512x4",
--	.priority = 2		/* Prefer AVX512 over priority 1 (SSE2 and others) */
-+	.gen_syndrome	= raid6_avx5124_gen_syndrome,
-+	.xor_syndrome	= raid6_avx5124_xor_syndrome,
-+	.valid		= raid6_have_avx512,
-+	.name		= "avx512x4",
-+	/* Prefer AVX512 over priority 1 (SSE2 and others) */
-+	.priority	= 2,
- };
- #endif
---- a/lib/raid/raid6/x86/mmx.c~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/x86/mmx.c
-@@ -68,11 +68,9 @@ static void raid6_mmx1_gen_syndrome(int
- }
+ 	/* Restore pointer table */
+ 	ptrs[faila]     = dp;
+@@ -69,7 +69,7 @@ static void raid6_datap_recov_neon(int d
+ 	ptrs[faila] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks - 1] = dq;
  
- const struct raid6_calls raid6_mmxx1 = {
--	raid6_mmx1_gen_syndrome,
--	NULL,			/* XOR not yet implemented */
--	raid6_have_mmx,
--	"mmxx1",
--	0
-+	.gen_syndrome	= raid6_mmx1_gen_syndrome,
-+	.valid		= raid6_have_mmx,
-+	.name		= "mmxx1",
- };
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
  
- /*
-@@ -127,9 +125,7 @@ static void raid6_mmx2_gen_syndrome(int
- }
+ 	/* Restore pointer table */
+ 	ptrs[faila]     = dq;
+--- a/lib/raid/raid6/loongarch/recov_loongarch_simd.c~raid6-improve-the-public-interface
++++ a/lib/raid/raid6/loongarch/recov_loongarch_simd.c
+@@ -49,7 +49,7 @@ static void raid6_2data_recov_lsx(int di
+ 	ptrs[failb] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks - 1] = dq;
  
- const struct raid6_calls raid6_mmxx2 = {
--	raid6_mmx2_gen_syndrome,
--	NULL,			/* XOR not yet implemented */
--	raid6_have_mmx,
--	"mmxx2",
--	0
-+	.gen_syndrome	= raid6_mmx2_gen_syndrome,
-+	.valid		= raid6_have_mmx,
-+	.name		= "mmxx2",
- };
---- a/lib/raid/raid6/x86/sse1.c~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/x86/sse1.c
-@@ -84,11 +84,10 @@ static void raid6_sse11_gen_syndrome(int
- }
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
  
- const struct raid6_calls raid6_sse1x1 = {
--	raid6_sse11_gen_syndrome,
--	NULL,			/* XOR not yet implemented */
--	raid6_have_sse1_or_mmxext,
--	"sse1x1",
--	1			/* Has cache hints */
-+	.gen_syndrome	= raid6_sse11_gen_syndrome,
-+	.valid		= raid6_have_sse1_or_mmxext,
-+	.name		= "sse1x1",
-+	.priority	= 1,	/* Has cache hints */
- };
+ 	/* Restore pointer table */
+ 	ptrs[faila] = dp;
+@@ -201,7 +201,7 @@ static void raid6_datap_recov_lsx(int di
+ 	ptrs[faila] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks - 1] = dq;
  
- /*
-@@ -147,9 +146,8 @@ static void raid6_sse12_gen_syndrome(int
- }
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
  
- const struct raid6_calls raid6_sse1x2 = {
--	raid6_sse12_gen_syndrome,
--	NULL,			/* XOR not yet implemented */
--	raid6_have_sse1_or_mmxext,
--	"sse1x2",
--	1			/* Has cache hints */
-+	.gen_syndrome	= raid6_sse12_gen_syndrome,
-+	.valid		= raid6_have_sse1_or_mmxext,
-+	.name		= "sse1x2",
-+	.priority	= 1,	/* Has cache hints */
- };
---- a/lib/raid/raid6/x86/sse2.c~raid6-use-named-initializers-for-struct-raid6_calls
-+++ a/lib/raid/raid6/x86/sse2.c
-@@ -133,11 +133,11 @@ static void raid6_sse21_xor_syndrome(int
- }
+ 	/* Restore pointer table */
+ 	ptrs[faila] = dq;
+@@ -323,7 +323,7 @@ static void raid6_2data_recov_lasx(int d
+ 	ptrs[failb] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks - 1] = dq;
  
- const struct raid6_calls raid6_sse2x1 = {
--	raid6_sse21_gen_syndrome,
--	raid6_sse21_xor_syndrome,
--	raid6_have_sse2,
--	"sse2x1",
--	1			/* Has cache hints */
-+	.gen_syndrome	= raid6_sse21_gen_syndrome,
-+	.xor_syndrome	= raid6_sse21_xor_syndrome,
-+	.valid		= raid6_have_sse2,
-+	.name		= "sse2x1",
-+	.priority	= 1,	/* Has cache hints */
- };
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
  
- /*
-@@ -263,11 +263,11 @@ static void raid6_sse22_xor_syndrome(int
- }
+ 	/* Restore pointer table */
+ 	ptrs[faila] = dp;
+@@ -440,7 +440,7 @@ static void raid6_datap_recov_lasx(int d
+ 	ptrs[faila] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks - 1] = dq;
  
- const struct raid6_calls raid6_sse2x2 = {
--	raid6_sse22_gen_syndrome,
--	raid6_sse22_xor_syndrome,
--	raid6_have_sse2,
--	"sse2x2",
--	1			/* Has cache hints */
-+	.gen_syndrome	= raid6_sse22_gen_syndrome,
-+	.xor_syndrome	= raid6_sse22_xor_syndrome,
-+	.valid		= raid6_have_sse2,
-+	.name		= "sse2x2",
-+	.priority	= 1,	/* Has cache hints */
- };
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
  
- #ifdef CONFIG_X86_64
-@@ -470,11 +470,11 @@ static void raid6_sse24_xor_syndrome(int
+ 	/* Restore pointer table */
+ 	ptrs[faila] = dq;
+--- a/lib/raid/raid6/recov.c~raid6-improve-the-public-interface
++++ a/lib/raid/raid6/recov.c
+@@ -37,7 +37,7 @@ static void raid6_2data_recov_intx1(int
+ 	ptrs[failb] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks-1] = dq;
  
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
  
- const struct raid6_calls raid6_sse2x4 = {
--	raid6_sse24_gen_syndrome,
--	raid6_sse24_xor_syndrome,
--	raid6_have_sse2,
--	"sse2x4",
--	1			/* Has cache hints */
-+	.gen_syndrome	= raid6_sse24_gen_syndrome,
-+	.xor_syndrome	= raid6_sse24_xor_syndrome,
-+	.valid		= raid6_have_sse2,
-+	.name		= "sse2x4",
-+	.priority	= 1,	/* Has cache hints */
- };
+ 	/* Restore pointer table */
+ 	ptrs[faila]   = dp;
+@@ -75,7 +75,7 @@ static void raid6_datap_recov_intx1(int
+ 	ptrs[faila] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks-1] = dq;
  
- #endif /* CONFIG_X86_64 */
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
+ 
+ 	/* Restore pointer table */
+ 	ptrs[faila]   = dq;
+--- a/lib/raid/raid6/riscv/recov_rvv.c~raid6-improve-the-public-interface
++++ a/lib/raid/raid6/riscv/recov_rvv.c
+@@ -164,7 +164,7 @@ static void raid6_2data_recov_rvv(int di
+ 	ptrs[failb] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks - 1] = dq;
+ 
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
+ 
+ 	/* Restore pointer table */
+ 	ptrs[faila]     = dp;
+@@ -199,7 +199,7 @@ static void raid6_datap_recov_rvv(int di
+ 	ptrs[faila] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks - 1] = dq;
+ 
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
+ 
+ 	/* Restore pointer table */
+ 	ptrs[faila]     = dq;
+--- a/lib/raid/raid6/s390/recov_s390xc.c~raid6-improve-the-public-interface
++++ a/lib/raid/raid6/s390/recov_s390xc.c
+@@ -40,7 +40,7 @@ static void raid6_2data_recov_s390xc(int
+ 	ptrs[failb] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks-1] = dq;
+ 
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
+ 
+ 	/* Restore pointer table */
+ 	ptrs[faila]   = dp;
+@@ -84,7 +84,7 @@ static void raid6_datap_recov_s390xc(int
+ 	ptrs[faila] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks-1] = dq;
+ 
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
+ 
+ 	/* Restore pointer table */
+ 	ptrs[faila]   = dq;
+--- a/lib/raid/raid6/x86/recov_avx2.c~raid6-improve-the-public-interface
++++ a/lib/raid/raid6/x86/recov_avx2.c
+@@ -34,7 +34,7 @@ static void raid6_2data_recov_avx2(int d
+ 	ptrs[failb] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks-1] = dq;
+ 
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
+ 
+ 	/* Restore pointer table */
+ 	ptrs[faila]   = dp;
+@@ -199,7 +199,7 @@ static void raid6_datap_recov_avx2(int d
+ 	ptrs[faila] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks-1] = dq;
+ 
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
+ 
+ 	/* Restore pointer table */
+ 	ptrs[faila]   = dq;
+--- a/lib/raid/raid6/x86/recov_avx512.c~raid6-improve-the-public-interface
++++ a/lib/raid/raid6/x86/recov_avx512.c
+@@ -43,7 +43,7 @@ static void raid6_2data_recov_avx512(int
+ 	ptrs[failb] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks-1] = dq;
+ 
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
+ 
+ 	/* Restore pointer table */
+ 	ptrs[faila]   = dp;
+@@ -241,7 +241,7 @@ static void raid6_datap_recov_avx512(int
+ 	ptrs[faila] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks-1] = dq;
+ 
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
+ 
+ 	/* Restore pointer table */
+ 	ptrs[faila]   = dq;
+--- a/lib/raid/raid6/x86/recov_ssse3.c~raid6-improve-the-public-interface
++++ a/lib/raid/raid6/x86/recov_ssse3.c
+@@ -36,7 +36,7 @@ static void raid6_2data_recov_ssse3(int
+ 	ptrs[failb] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks-1] = dq;
+ 
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
+ 
+ 	/* Restore pointer table */
+ 	ptrs[faila]   = dp;
+@@ -206,7 +206,7 @@ static void raid6_datap_recov_ssse3(int
+ 	ptrs[faila] = page_address(ZERO_PAGE(0));
+ 	ptrs[disks-1] = dq;
+ 
+-	raid6_call.gen_syndrome(disks, bytes, ptrs);
++	raid6_gen_syndrome(disks, bytes, ptrs);
+ 
+ 	/* Restore pointer table */
+ 	ptrs[faila]   = dq;
 _
 
 Patches currently in -mm which might be from hch@lst.de are
