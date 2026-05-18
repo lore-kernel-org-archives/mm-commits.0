@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55663B19D2
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 22:38:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF898302CD5
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 22:41:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779143880; cv=none; b=WVfiiBAwm6aABTbN3W29nlWAGFzj0wjcCaehWYfbSrkoa0zGtXwovpWZCg1djcrt7YUf8CAWfTTyVdFewBeLqXz0T37Zjk9kv3Q1oSN+6tXSDKPFM/wYuAO218DdbkwsUAyB3KA+DbQ4fAYLKcX/q9WI0k0U1z94CQIykAB+ijQ=
+	t=1779144066; cv=none; b=O5zbERPL4qJ6kVm297llRMYk8eoyXrhEXbf+VzgpMTBilmfbkSG7vxuUVtzF7/gQnDSSFVRwbHA3RL8kcUQVCKuth7xywSv6Jl+gMM/QFgEp/xDDTWYZ8yZA5qLC5+z1kVybwN2RL8lC9A6VImeKCiLkVHMzw+b8O3KofwCrMhk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779143880; c=relaxed/simple;
-	bh=EpgEXuL7f+z2fqZC4b5ILzh9iIeW8BehpdHR1BtHuEc=;
-	h=Date:To:From:Subject:Message-Id; b=KWnXNQpHhRuq2rfzMovMyryUhKPbWGQ5htDPjgg41O2oJkk8+ooOzyazHA5QxN/qkYR3m4OxlGjeHNA30OSXXpKfvrrK8hkOs9a5evYnj5PEXfSj5/CQ2+H3hxFn3EeU1a9JIyVGBr1oC9iZGiD/HfR9vyIuyIuFBx6WEyB2NVw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0Ut03IGl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779144066; c=relaxed/simple;
+	bh=+GQkobkIiWNMfJQHB8vG5fxx2EdXRH4HYz/I7UJPo2k=;
+	h=Date:To:From:Subject:Message-Id; b=DCGbaSvFuo9sQkEDKmrnByH6wtpqt2zNjRli2mY3g5qpxd4xn5Dbu2MvEzJ0jJG3MYIfZiXXi3gwWAvhUT80Ro3otvKMZCgUJJ9CmPxtr24n4KfcRt3O+zoUSaiUnu173RFWp6EpVF81R+jnrnVWTxDg1MARgpeFMiUM8QYYAgk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hbCER3Qe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0Ut03IGl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6DFAEC2BCB7;
-	Mon, 18 May 2026 22:38:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hbCER3Qe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57942C2BCB7;
+	Mon, 18 May 2026 22:41:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779143880;
-	bh=EpgEXuL7f+z2fqZC4b5ILzh9iIeW8BehpdHR1BtHuEc=;
+	s=korg; t=1779144066;
+	bh=+GQkobkIiWNMfJQHB8vG5fxx2EdXRH4HYz/I7UJPo2k=;
 	h=Date:To:From:Subject:From;
-	b=0Ut03IGlwsKg30RwVPyiLhhyRsrLTydtrHRSBZOQ6fVFUCzuUrjLr4ss8CFHKne4O
-	 4PCbFK6XdP6aB3xW7ebzTAVs0ZjNs9qnsAexeBfM1sdAcwce3pmVt+qJDho3wbbjf5
-	 EiRHBXPcK7TJn9SLKzUVherVTQlUkWZei/ysehU4=
-Date: Mon, 18 May 2026 15:37:59 -0700
-To: mm-commits@vger.kernel.org,vschneid@redhat.com,vincent.guittot@linaro.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,rostedt@goodmis.org,peterz@infradead.org,penguin-kernel@I-love.SAKURA.ne.jp,oleg@redhat.com,mingo@redhat.com,mhocko@suse.com,mgorman@suse.de,ljs@kernel.org,liam@infradead.org,kees@kernel.org,Kartikey406@gmail.com,juri.lelli@redhat.com,dietmar.eggemann@arm.com,david@kernel.org,bsegall@google.com,brauner@kernel.org,kartikey406@gmail.com,akpm@linux-foundation.org
+	b=hbCER3Qe1+BVxSooNtWa7cB8IplWK1gZRSRItDkK1UF00Gqagysldw3HoTcmFnoGn
+	 mEy6FRmb6ZGNoUtRQ1NulJhN4B0hbEXSzgMOsP+gaCCyo3/N8JA0gtC9NyOS3PEDab
+	 PF33N20l82YpoH1miXTKhFZnxx7eakTa7MS+DRtM=
+Date: Mon, 18 May 2026 15:41:05 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,qi.zheng@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,alex@ghiti.fr,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kernel-fork-validate-exit_signal-in-kernel_clone.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260518223800.6DFAEC2BCB7@smtp.kernel.org>
+Subject: + memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260518224106.57942C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kernel/fork: validate exit_signal in kernel_clone()
+     Subject: memcg: cache obj_stock by memcg, not by objcg pointer
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     kernel-fork-validate-exit_signal-in-kernel_clone.patch
+     memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kernel-fork-validate-exit_signal-in-kernel_clone.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,116 +58,186 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Deepanshu Kartikey <kartikey406@gmail.com>
-Subject: kernel/fork: validate exit_signal in kernel_clone()
-Date: Mon, 16 Mar 2026 20:49:56 +0530
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: cache obj_stock by memcg, not by objcg pointer
+Date: Mon, 18 May 2026 15:28:27 -0700
 
-When a child process exits, it sends exit_signal to its parent via
-do_notify_parent().  The clone() syscall constructs exit_signal as:
+Commit 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg
+per-node type") split a memcg's single obj_cgroup into one per NUMA node,
+but the per-CPU obj_stock_pcp still keys cached_objcg by pointer. 
+Cross-NUMA workloads now see a drain on every refill and a miss on every
+consume that targets a sibling per-node objcg of the same memcg, producing
+the 67.7% stress-ng switch-mq regression reported by LKP.
 
-(lower_32_bits(clone_flags) & CSIGNAL)
+stock->nr_bytes are fungible across per-node objcgs of one memcg.  Treat
+the cache as keyed by memcg in __consume_obj_stock() and
+__refill_obj_stock() so siblings share the reserve.  Compare via
+READ_ONCE(objcg->memcg) directly: pointer-compare only, no deref, so the
+rcu_read_lock contract on obj_cgroup_memcg() does not apply.
 
-CSIGNAL is 0xff, so values in the range 65-255 are possible.  However,
-valid_signal() only accepts signals up to _NSIG (64 on x86_64).  A
-non-zero non-valid exit_signal acts the same as exit_signal == 0: the
-parent process is not signaled when the child terminates.
+Sharing the reserve without re-caching means bytes funded by one per-node
+objcg's slow path can be consumed/freed under a different sibling, leaving
+sub-page residue on whichever sibling was cached at drain time.  The
+pre-existing obj_cgroup_release() path would WARN and silently drop that
+residue, leaking up to nr_node_ids * (PAGE_SIZE - 1) bytes per memcg
+lifecycle from the page_counter.  Forward the residue into a per-node
+objcg of the same (post-reparent) memcg at release time instead, so it can
+be reconciled later via a refill atomic_xchg or another release; the chain
+terminates at root_mem_cgroup, whose page_counter has no enforced limit.
 
-The syzkaller reproducer triggers this by calling clone() with flags=0x80,
-resulting in exit_signal = (0x80 & CSIGNAL) = 128, which exceeds _NSIG and
-is not a valid signal.
+Please note that this is temporary fix and will be reverted when per-node
+kmem accounting is introduced.
 
-The v1 of this patch added the check only in the clone() syscall handler,
-which is incomplete.  kernel_clone() has other callers such as
-sys_ia32_clone() which would remain unprotected.  Move the check to
-kernel_clone() to cover all callers.
+Update the stale invariant comment on __account_obj_stock().
 
-Since the valid_signal() check is now in kernel_clone() and covers all
-callers including clone3(), the same check in copy_clone_args_from_user()
-becomes redundant and is removed.  The higher 32bits check for clone3() is
-kept as it is clone3() specific.
+Qi Zheng built a specialized reproducer [1] for the corner case and
+confirmed the fix.
 
-Note that this is a user-visible change: previously, passing an invalid
-exit_signal to clone() was silently accepted.  The man page for clone()
-does not document any defined behavior for invalid exit_signal values, so
-rejecting them with -EINVAL is the correct behavior.  It is unlikely that
-any sane application relies on passing an invalid exit_signal.
-
-[oleg@redhat.com: the comment above kernel_clone() should be updated]
-  Link: https://lore.kernel.org/abwvgU17W8wuW2-J@redhat.com
-Link: https://lore.kernel.org/20260316151956.563558-1-kartikey406@gmail.com
-Fixes: 3f2c788a1314 ("fork: prevent accidental access to clone3 features")
-Signed-off-by: Deepanshu Kartikey <Kartikey406@gmail.com>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: syzbot+bbe6b99feefc3a0842de@syzkaller.appspotmail.com
-Closes: https://syzkaller.appspot.com/bug?extid=bbe6b99feefc3a0842de
-Tested-by: syzbot+bbe6b99feefc3a0842de@syzkaller.appspotmail.com
-Link: https://lore.kernel.org/all/20260307064202.353405-1-kartikey406@gmail.com/T/ [v1]
-Link: https://lore.kernel.org/all/20260316104536.558108-1-kartikey406@gmail.com/T/ [v2]
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes (Oracle) <ljs@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Valentin Schneider <vschneid@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Link: https://lore.kernel.org/20260518222827.110696-1-shakeel.butt@linux.dev
+Fixes: 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg per-node type")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202605121641.b6a60cb0-lkp@intel.com
+Link: https://lore.kernel.org/19693be6-7132-446e-b3fc-b7e9f56e5949@linux.dev/ [1]
+Debugged-by: Qi Zheng <qi.zheng@linux.dev>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |   69 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 51 insertions(+), 18 deletions(-)
 
---- a/kernel/fork.c~kernel-fork-validate-exit_signal-in-kernel_clone
-+++ a/kernel/fork.c
-@@ -2664,8 +2664,6 @@ struct task_struct *create_io_thread(int
-  *
-  * It copies the process, and if successful kick-starts
-  * it and waits for it to finish using the VM if required.
-- *
-- * args->exit_signal is expected to be checked for sanity by the caller.
-  */
- pid_t kernel_clone(struct kernel_clone_args *args)
- {
-@@ -2700,6 +2698,9 @@ pid_t kernel_clone(struct kernel_clone_a
- 	    (args->pidfd == args->parent_tid))
- 		return -EINVAL;
- 
-+	if (!valid_signal(args->exit_signal))
-+		return -EINVAL;
-+
- 	/*
- 	 * Determine whether and which event to report to ptracer.  When
- 	 * called from kernel_thread or CLONE_UNTRACED is explicitly
-@@ -2898,11 +2899,9 @@ static noinline int copy_clone_args_from
- 		return -EINVAL;
+--- a/mm/memcontrol.c~memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer
++++ a/mm/memcontrol.c
+@@ -142,14 +142,24 @@ static void obj_cgroup_release(struct pe
+ 	struct obj_cgroup *objcg = container_of(ref, struct obj_cgroup, refcnt);
+ 	unsigned int nr_bytes;
+ 	unsigned int nr_pages;
++	unsigned int sub_bytes;
+ 	unsigned long flags;
  
  	/*
--	 * Verify that higher 32bits of exit_signal are unset and that
--	 * it is a valid signal
-+	 * Verify that higher 32bits of exit_signal are unset
+-	 * At this point all allocated objects are freed, and
+-	 * objcg->nr_charged_bytes can't have an arbitrary byte value.
+-	 * However, it can be PAGE_SIZE or (x * PAGE_SIZE).
++	 * At this point all allocated objects are freed, but
++	 * objcg->nr_charged_bytes can still hold either
++	 *   - (x * PAGE_SIZE)  if a small-alloc/drain race left whole pages
++	 *     stranded (see the historical sequence below), or
++	 *   - any sub-page residue, now that the stock is keyed by memcg and
++	 *     sibling per-node objcgs share its reserve: bytes consumed by
++	 *     one sibling can spill into another sibling's nr_charged_bytes
++	 *     when the stock is drained.
+ 	 *
+-	 * The following sequence can lead to it:
++	 * Uncharge the page-aligned portion from this objcg's (post-reparent)
++	 * memcg, and forward any sub-page residue into a per-node objcg of
++	 * the same memcg so it can be reconciled later instead of being lost.
++	 *
++	 * Historical race producing the (x * PAGE_SIZE) case:
+ 	 * 1) CPU0: objcg == stock->cached_objcg
+ 	 * 2) CPU1: we do a small allocation (e.g. 92 bytes),
+ 	 *          PAGE_SIZE bytes are charged
+@@ -160,23 +170,33 @@ static void obj_cgroup_release(struct pe
+ 	 *          92 bytes are added to stock->nr_bytes
+ 	 * 6) CPU0: stock is flushed,
+ 	 *          92 bytes are added to objcg->nr_charged_bytes
+-	 *
+-	 * In the result, nr_charged_bytes == PAGE_SIZE.
+-	 * This page will be uncharged in obj_cgroup_release().
  	 */
--	if (unlikely((args.exit_signal & ~((u64)CSIGNAL)) ||
--		     !valid_signal(args.exit_signal)))
-+	if (unlikely(args.exit_signal & ~((u64)CSIGNAL)))
- 		return -EINVAL;
+ 	nr_bytes = atomic_read(&objcg->nr_charged_bytes);
+-	WARN_ON_ONCE(nr_bytes & (PAGE_SIZE - 1));
+ 	nr_pages = nr_bytes >> PAGE_SHIFT;
++	sub_bytes = nr_bytes & (PAGE_SIZE - 1);
  
- 	if ((args.flags & CLONE_INTO_CGROUP) &&
+-	if (nr_pages) {
++	if (nr_pages || sub_bytes) {
+ 		struct mem_cgroup *memcg;
+ 
+-		memcg = get_mem_cgroup_from_objcg(objcg);
+-		mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
+-		memcg1_account_kmem(memcg, -nr_pages);
+-		if (!mem_cgroup_is_root(memcg))
+-			memcg_uncharge(memcg, nr_pages);
+-		mem_cgroup_put(memcg);
++		rcu_read_lock();
++		memcg = obj_cgroup_memcg(objcg);
++
++		if (nr_pages) {
++			mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
++			memcg1_account_kmem(memcg, -nr_pages);
++			if (!mem_cgroup_is_root(memcg))
++				memcg_uncharge(memcg, nr_pages);
++		}
++
++		if (sub_bytes && !mem_cgroup_is_root(memcg)) {
++			struct obj_cgroup *fwd;
++
++			fwd = rcu_dereference(
++				memcg->nodeinfo[numa_node_id()]->objcg);
++			if (fwd)
++				atomic_add(sub_bytes, &fwd->nr_charged_bytes);
++		}
++		rcu_read_unlock();
+ 	}
+ 
+ 	spin_lock_irqsave(&objcg_lock, flags);
+@@ -3152,7 +3172,12 @@ static void unlock_stock(struct obj_stoc
+ 		local_unlock(&obj_stock.lock);
+ }
+ 
+-/* Call after __refill_obj_stock() to ensure stock->cached_objg == objcg */
++/*
++ * Call after __consume_obj_stock() / __refill_obj_stock(). The stock may be
++ * cached for a sibling per-node objcg of the same memcg; in that case the
++ * vmstat batching slot does not match objcg and we fallthrough to the
++ * direct path.
++ */
+ static void __account_obj_stock(struct obj_cgroup *objcg,
+ 				struct obj_stock_pcp *stock, int nr,
+ 				struct pglist_data *pgdat, enum node_stat_item idx)
+@@ -3210,7 +3235,11 @@ static bool __consume_obj_stock(struct o
+ 				struct obj_stock_pcp *stock,
+ 				unsigned int nr_bytes)
+ {
+-	if (objcg == READ_ONCE(stock->cached_objcg) &&
++	struct obj_cgroup *cached = READ_ONCE(stock->cached_objcg);
++
++	/* Sibling per-node objcgs share the reserve. */
++	if ((cached == objcg ||
++	     (cached && READ_ONCE(cached->memcg) == READ_ONCE(objcg->memcg))) &&
+ 	    stock->nr_bytes >= nr_bytes) {
+ 		stock->nr_bytes -= nr_bytes;
+ 		return true;
+@@ -3318,6 +3347,7 @@ static void __refill_obj_stock(struct ob
+ 			       unsigned int nr_bytes,
+ 			       bool allow_uncharge)
+ {
++	struct obj_cgroup *cached;
+ 	unsigned int nr_pages = 0;
+ 
+ 	if (!stock) {
+@@ -3327,7 +3357,10 @@ static void __refill_obj_stock(struct ob
+ 		goto out;
+ 	}
+ 
+-	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
++	cached = READ_ONCE(stock->cached_objcg);
++	/* Direct READ_ONCE due to just pointer comparison. */
++	if (cached != objcg &&
++	    (!cached || READ_ONCE(cached->memcg) != READ_ONCE(objcg->memcg))) {
+ 		drain_obj_stock(stock);
+ 		obj_cgroup_get(objcg);
+ 		stock->nr_bytes = atomic_read(&objcg->nr_charged_bytes)
 _
 
-Patches currently in -mm which might be from kartikey406@gmail.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-kernel-fork-validate-exit_signal-in-kernel_clone.patch
-mm-hugetlb-fix-hugetlb-cgroup-rsvd-charge-uncharge-mismatch.patch
+memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch
 
