@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 159513845BE;
-	Mon, 18 May 2026 20:54:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2063424501D;
+	Mon, 18 May 2026 21:03:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779137683; cv=none; b=WHs1GizX6zhDTqRPBLrFR7jQFIcQlRdu9mh+h4pkorpOVFfKmcO8Svk55uUTI62jAKAkaWljv5oGeZYrQxJvevv3AX/f6ojB2xr/zdSFMNB2ZfpHTJozwtAfszagMV2cv9NUTUrMqnzItDaCj51vmcfxUFPZHmxy55ruK1dCfSw=
+	t=1779138198; cv=none; b=YMeSgrGmdIxRiMY6/kDF+q8VrT8FA1zn4NiZ/UV/3mms9At2umTu1eVIKjVt5ROgU2StPDFvuLF94wK2lre/CHd4bsog8bpxourPVR+hfoUSmQM1WjMCptt/n3qM1szQpdqxOjH2a0kaGwQvtr+GSQqrFn7+7fLoylmyuedTrw4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779137683; c=relaxed/simple;
-	bh=0mLS/wtud///2+CnylUZ/6UQnheKJSAcZ3n28OLMDwM=;
-	h=Date:To:From:Subject:Message-Id; b=hWXourUtrzx/U/Uv5WDm6FZGNsQhrk6V61DD0oZUgBDqDJphij3OpauNMx4SHcTEAv0moKW4lXnhbXfH31+snCJhMNBOYCJoVB12XcCIco+3xndbZrNIcfyRgb2GU5LOICtrpOrTgL/Qe69XP4QsTNaxF3SboUSZe0qaGbBSu70=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hzw7Ts3k; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779138198; c=relaxed/simple;
+	bh=PjuubbTaQzw08p3fg1uTW+rQArJ6gXPx1T6N99trMAI=;
+	h=Date:To:From:Subject:Message-Id; b=H285FoUjzqFS05I/mKB/kM6fCu5/H5aU3eiAe1PnEgkkb1dZGg5PQthAfAAX/iOhPWVh0NkSNCbZrVIWI0034R2DCD7blhdnbU31k/IZiOFpNca/BhSIwEbG7X/kilssEmQGiKySqJQMTT1BH4GHLBgKyYOyiPimT+OjiZ3Ej+8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=p+THQJqe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hzw7Ts3k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82631C2BCB7;
-	Mon, 18 May 2026 20:54:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="p+THQJqe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9822FC2BCB7;
+	Mon, 18 May 2026 21:03:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779137682;
-	bh=0mLS/wtud///2+CnylUZ/6UQnheKJSAcZ3n28OLMDwM=;
+	s=korg; t=1779138197;
+	bh=PjuubbTaQzw08p3fg1uTW+rQArJ6gXPx1T6N99trMAI=;
 	h=Date:To:From:Subject:From;
-	b=hzw7Ts3kHpvOgWNuvMhl/snB3X/012o+842gC4tXWwBVhul9PV/oro8p1AX8Kv5hG
-	 TWdtJ6DJdn4lAkkfem5T/uwRYlI9wcfz5lBjzhzMkzqxMKp1I3Pd5QVNb7GHYGJKT+
-	 Wgssktu9Pp3NiAPribpXnIZI1cE6OJP+IiSq2wHg=
-Date: Mon, 18 May 2026 13:54:42 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,alex@ghiti.fr,akpm@linux-foundation.org
+	b=p+THQJqen7Hd+Am0C77qyAMza4aUjmTUhwGKIp7SR/64NJXFQmajjF/Dta1nMfzIj
+	 v5XBLBK5T7ON9X8ZH8mUd7YGKB6RzRPWs/9U+rNfQn0b9zDBx3C83AHgWAkY0ISwLD
+	 jL/6YXnq2mx1i2w9NqELS/ko7LdunmmPlxp5hXIc=
+Date: Mon, 18 May 2026 14:03:17 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org,wangxuewen@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcontrol-propagate-nmi-slab-stats-to-memcg-vmstats.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260518205442.82631C2BCB7@smtp.kernel.org>
+Subject: + tools-mm-slabinfo-fix-trace-disable-logic-inversion.patch added to mm-new branch
+Message-Id: <20260518210317.9822FC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: memcontrol: propagate NMI slab stats to memcg vmstats
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-memcontrol-propagate-nmi-slab-stats-to-memcg-vmstats.patch
+     Subject: tools/mm/slabinfo: fix trace disable logic inversion
+has been added to the -mm mm-new branch.  Its filename is
+     tools-mm-slabinfo-fix-trace-disable-logic-inversion.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-propagate-nmi-slab-stats-to-memcg-vmstats.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-slabinfo-fix-trace-disable-logic-inversion.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,60 +69,68 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Alexandre Ghiti <alex@ghiti.fr>
-Subject: mm: memcontrol: propagate NMI slab stats to memcg vmstats
-Date: Mon, 18 May 2026 10:28:19 +0200
+From: Xuewen Wang <wangxuewen@kylinos.cn>
+Subject: tools/mm/slabinfo: fix trace disable logic inversion
+Date: Mon, 18 May 2026 14:21:57 +0800
 
-flush_nmi_stats() drains per-node NMI slab atomics into the per-node
-lruvec_stats, but does not propagate them to the memcg-level vmstats.
+Patch series "Cleanup and fix tools/mm/slabinfo utility", v2.
 
-For non NMI case, account_slab_nmi_safe() calls mod_memcg_lruvec_state()
-which updates both per-node lruvec_stats and memcg-level vmstats, so
-flush_nmi_stats() needs to flush to per-node lruvec_stats as well as
-memcg-level vmstats.
+This series fixes one bug and cleans up two code quality issues in
+tools/mm/slabinfo:
 
-So fix this by flushing to the memcg-level vmstats for NMI too.
+1. Fix trace disable logic inversion: when the user intends to disable
+   tracing (!tracing) and it is currently enabled (s->trace),
+   set_obj() was called with 1 instead of 0, which is opposite to
+   the intended behavior. All other options (sanity_checks, red_zone,
+   poison, store_user) in the same function use 0 for the disable
+   case.
 
-Link: https://lore.kernel.org/20260518082830.599102-1-alex@ghiti.fr
-Fixes: 940b01fc8dc1 ("memcg: nmi safe memcg stats for specific archs")
-Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+2. Remove dead assignment in get_obj_and_str(): `x = NULL` sets the
+   local parameter variable instead of `*x`, which is a no-op since
+   `*x` was already set to NULL on the line above.
+
+3. Remove redundant slab->partial assignment in read_slab_dir():
+   slab->partial is assigned by get_obj("partial") and then
+   immediately overwritten by get_obj_and_str("partial", &t).
+
+
+This patch (of 3):
+
+The disable trace path in slab_debug() had a logic error where it would
+set trace=1 instead of trace=0.  This made trace functionality permanently
+enabled once turned on for any slab cache.
+
+Link: https://lore.kernel.org/20260518062159.80664-1-wangxuewen@kylinos.cn
+Link: https://lore.kernel.org/20260518062159.80664-2-wangxuewen@kylinos.cn
+Fixes: a87615b8f9e2 ("SLUB: slabinfo upgrade")
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: Xuewen Wang <wangxuewen@kylinos.cn>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ tools/mm/slabinfo.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-propagate-nmi-slab-stats-to-memcg-vmstats
-+++ a/mm/memcontrol.c
-@@ -4352,6 +4352,9 @@ static void flush_nmi_stats(struct mem_c
- 			lstats->state[index] += slab;
- 			if (plstats)
- 				plstats->state_pending[index] += slab;
-+			memcg->vmstats->state[index] += slab;
-+			if (parent)
-+				parent->vmstats->state_pending[index] += slab;
- 		}
- 		if (atomic_read(&pn->slab_unreclaimable)) {
- 			int slab = atomic_xchg(&pn->slab_unreclaimable, 0);
-@@ -4360,6 +4363,9 @@ static void flush_nmi_stats(struct mem_c
- 			lstats->state[index] += slab;
- 			if (plstats)
- 				plstats->state_pending[index] += slab;
-+			memcg->vmstats->state[index] += slab;
-+			if (parent)
-+				parent->vmstats->state_pending[index] += slab;
- 		}
+--- a/tools/mm/slabinfo.c~tools-mm-slabinfo-fix-trace-disable-logic-inversion
++++ a/tools/mm/slabinfo.c
+@@ -798,7 +798,7 @@ static void slab_debug(struct slabinfo *
+ 			fprintf(stderr, "%s can only enable trace for one slab at a time\n", s->name);
  	}
+ 	if (!tracing && s->trace)
+-		set_obj(s, "trace", 1);
++		set_obj(s, "trace", 0);
  }
+ 
+ static void totals(void)
 _
 
-Patches currently in -mm which might be from alex@ghiti.fr are
+Patches currently in -mm which might be from wangxuewen@kylinos.cn are
 
-mm-memcontrol-propagate-nmi-slab-stats-to-memcg-vmstats.patch
+mm-memory-failure-replace-magic-number-3-with-get_page_max_retry_num.patch
+tools-mm-slabinfo-fix-trace-disable-logic-inversion.patch
+tools-mm-slabinfo-remove-dead-assignment-in-get_obj_and_str.patch
+tools-mm-slabinfo-remove-redundant-slab-partial-assignment.patch
 
