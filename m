@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B25937CD4F
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 22:25:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB2CA3AC0FB
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 22:27:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779143107; cv=none; b=JdziEUNYbdu182+e34uiIQbRyVhkSAHDGjVWFFYzXqORiYc3wQ9i6MLAnr7kdPH2fbhQCXlZ9DbTiBuI2XkJpEFR/D+33g/9ss63u09EosdJL67B8p7dsLZbar/CCUAMGhr51N8FOyzBCJKQpQGrrwih4hn2duu2fDFAXjeh+4o=
+	t=1779143272; cv=none; b=NNCpRzOz3qiq114dxP7Za2my59BJ/tiCBT2nstajjOLShKtV1Xb03WnEX0d98ptrDUnsARfZqG7Tjw3dsWIlxDV3PSgj01S9Pekv4PdNTkEsbSzoWYV1cDtTny1qtiAzfMY4OoPZCf93OKOg66ErKIxIyM22pgSts219D+tUUck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779143107; c=relaxed/simple;
-	bh=hhVe8dOlNyGKN4h06AMz/tEHsJJPbn2u8ATWeeaEoyg=;
-	h=Date:To:From:Subject:Message-Id; b=dc7Lw4U0OgPAqU5Wg+LFLt9ymUE9a/Af1U+GMEPKQWmsFGGamL8lFDUhbpm06NCKIrb8Jj62YDq7ayif55+wqzu+ld4Y90aMLBcjJgW87gk5b1TjiKjAxszHlvt1aovOMR603QBLYKUVbkR9rwgZAwaZpCbVRMDXdEK8LkJRPsY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B94klI4e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779143272; c=relaxed/simple;
+	bh=SsPTgllf+YZYFJfaQMrcA8yyV4XpLJWFVNKrMoFSgn0=;
+	h=Date:To:From:Subject:Message-Id; b=f6w2a3dJjbFFvbpF15LAZrxKXsG6IayA5VGOXZI44nOQRBrVe5nW7TlTn1YMwTLjJhexpnq27APZ9fBwWH01qON0OlJvYEKA1JqYPbZ3duIHyCga2QokWwblFPst8JQw0I81S6rBzPggqEcxyxCMtGcXXCNw5zGnONx4JZ2RrvA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FX9/gQef; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B94klI4e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12265C2BCB7;
-	Mon, 18 May 2026 22:25:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FX9/gQef"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 77743C2BCB7;
+	Mon, 18 May 2026 22:27:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779143107;
-	bh=hhVe8dOlNyGKN4h06AMz/tEHsJJPbn2u8ATWeeaEoyg=;
+	s=korg; t=1779143272;
+	bh=SsPTgllf+YZYFJfaQMrcA8yyV4XpLJWFVNKrMoFSgn0=;
 	h=Date:To:From:Subject:From;
-	b=B94klI4ehPGjsT1f6qiTTNRmzr1jj1F+BAl8gHas6dyXUH8RPCAkCPdJIrcyUE2IE
-	 pVf1MZp4SatGWELsDfFSWvx7gD/qqaqp/RhJKI/iblPtSWdp2GDPdXwWNuNg2A7u7A
-	 +VY6whzDdWxWcUOVh/tpq+yfjUvtQ2lo8SSOACto=
-Date: Mon, 18 May 2026 15:25:06 -0700
-To: mm-commits@vger.kernel.org,ssh1326@icloud.com,akpm@linux-foundation.org
+	b=FX9/gQefkwnm6QdiVvTrv0xI+Tb8Gzb5CpVmANiyv72dNdVFu/0YhKmVyoPy2gtcc
+	 Bp/wkyUX3eZQdXFu/BEC8kTVI3m5nNy4pvkejhkU+5jKI8ZYPlZEF3+bdcTuaScIcj
+	 zUqN6YXLh/x+74ORqnRtlFU7YLjI5PtBbSRxk2es=
+Date: Mon, 18 May 2026 15:27:51 -0700
+To: mm-commits@vger.kernel.org,vincenzo.frascino@arm.com,ryabinin.a.a@gmail.com,glider@google.com,dvyukov@google.com,andreyknvl@gmail.com,wsw9603@163.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-fix-typo-in-process_addrsrst.patch added to mm-new branch
-Message-Id: <20260518222507.12265C2BCB7@smtp.kernel.org>
+Subject: + kasan-test-only-do-kmalloc_double_kzfree-for-generic-mode.patch added to mm-new branch
+Message-Id: <20260518222752.77743C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: docs/mm: fix typo in process_addrs.rst
+     Subject: kasan/test: only do kmalloc_double_kzfree for generic mode
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-fix-typo-in-process_addrsrst.patch
+     kasan-test-only-do-kmalloc_double_kzfree-for-generic-mode.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-fix-typo-in-process_addrsrst.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kasan-test-only-do-kmalloc_double_kzfree-for-generic-mode.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,34 +69,47 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sakurai Shun <ssh1326@icloud.com>
-Subject: docs/mm: fix typo in process_addrs.rst
-Date: Sun, 17 May 2026 19:36:35 +0900
+From: Wang Wensheng <wsw9603@163.com>
+Subject: kasan/test: only do kmalloc_double_kzfree for generic mode
+Date: Sun, 17 May 2026 15:17:13 +0800
 
-Replace "presense" with "presence"
+kmalloc_double_kzfree() would corrupt kernel memory when the just freed
+memory were allocated by another thread before the second call to
+kfree_sensitive().
 
-Link: https://lore.kernel.org/20260517103640.45444-1-ssh1326@icloud.com
-Signed-off-by: Sakurai Shun <ssh1326@icloud.com>
+This could not happen in GENERIC mode as it uses quarantine.
+
+Link: https://lore.kernel.org/20260517071713.353579-1-wsw9603@163.com
+Signed-off-by: Wang Wensheng <wsw9603@163.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/process_addrs.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/kasan_test_c.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/Documentation/mm/process_addrs.rst~docs-mm-fix-typo-in-process_addrsrst
-+++ a/Documentation/mm/process_addrs.rst
-@@ -775,7 +775,7 @@ lock, releasing or downgrading the mmap
- lock so there is no :c:func:`!vma_end_write` function.
+--- a/mm/kasan/kasan_test_c.c~kasan-test-only-do-kmalloc_double_kzfree-for-generic-mode
++++ a/mm/kasan/kasan_test_c.c
+@@ -874,6 +874,12 @@ static void kmalloc_double_kzfree(struct
+ 	char *ptr;
+ 	size_t size = 16;
  
- Note that when write-locking a VMA lock, the :c:member:`!vma.vm_refcnt` is temporarily
--modified so that readers can detect the presense of a writer. The reference counter is
-+modified so that readers can detect the presence of a writer. The reference counter is
- restored once the vma sequence number used for serialisation is updated.
++	/*
++	 * Only generic KASAN uses quarantine, which could prevent the just freed
++	 * memory from being allocated soon.
++	 */
++	KASAN_TEST_NEEDS_CONFIG_ON(test, CONFIG_KASAN_GENERIC);
++
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
  
- This ensures the semantics we require - VMA write locks provide exclusive write
 _
 
-Patches currently in -mm which might be from ssh1326@icloud.com are
+Patches currently in -mm which might be from wsw9603@163.com are
 
-docs-mm-fix-typo-in-process_addrsrst.patch
+kasan-test-only-do-kmalloc_double_kzfree-for-generic-mode.patch
 
