@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE83B24501D
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:03:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ED0A27E049
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:03:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779138200; cv=none; b=ZuUlf1N56wbyj5OkiShm2mxqqo2QamnEAlav3tgspYlGsbkVakBn6A3T7ASqGj6P7nOJ9p+nzDeaFedOsvqo6jZQfFu+H3HMq7RQfGta0ymFL0Zi4/BCa081T+HTU4Uy4zNZyGhMudgXFH1G27wtoD20V4vW+yf4YX6I2h3xhLI=
+	t=1779138202; cv=none; b=Afz1beFp2ktMHLiynPGX3R2GPaE2eqND/o56DMiXPIRS8N7y7l9f1UU5Hgb212cr/KE589q5cIjUCXIGjfxSIz2P+jf6H/+o5DkhH8UZoTcK9hAZFje7RLFfZSEeTD3JbhrDKEqy/069e4yAVvEl5Ewjyi2aFQX7Aj7u3TlEnZA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779138200; c=relaxed/simple;
-	bh=HTcYymu1PCQe10Vd0qBz/kAOsz8JAflpn3ARzpCmPgQ=;
-	h=Date:To:From:Subject:Message-Id; b=PSBKzo5PwGMzjvDZta8EsnOTbJV1qJCLiKBveqUb+g2aGWUZzAWfJ0DIHtt4FtMctjd1Wr8aRdOYK28GhdtXkIk5psxp0PYkLk3Jl8TvVwY5Cd/6Y8eUWIA8pAUYT2QHu5GUIwc5uoaOyraBdq8e56ylbI7Y5uSIveZ4SHJRz+k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pPtt1dxK; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779138202; c=relaxed/simple;
+	bh=mKAFA5P20aTWxrYxyfhW2XS6lUqhYbP8ofc+ooGW7n8=;
+	h=Date:To:From:Subject:Message-Id; b=uIhqGZl0/k0sKftQ+Uf1LITsH2B5w9EiSmfMvyI9vOb803tjuCnGj0ygHKvBxKv+m8diYbl9pG+OlBq0YIVyDnQjdpb3oqlh2lR0FB8mhdbXe1+XFmERm5LYWb1eMVhKuIwHKVaKmAZu63oAhSI/7hFmvgLze5fqurd/F88jDfw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RyzIdiQ/; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pPtt1dxK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95D2BC2BCB7;
-	Mon, 18 May 2026 21:03:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RyzIdiQ/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99F22C2BCC6;
+	Mon, 18 May 2026 21:03:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779138199;
-	bh=HTcYymu1PCQe10Vd0qBz/kAOsz8JAflpn3ARzpCmPgQ=;
+	s=korg; t=1779138201;
+	bh=mKAFA5P20aTWxrYxyfhW2XS6lUqhYbP8ofc+ooGW7n8=;
 	h=Date:To:From:Subject:From;
-	b=pPtt1dxKQio899zv/UTfyQ7qwGwOJW0ezZig9rzddJCa5HMoPRipd8NFvZxxhWKhY
-	 fWpJGzwPYSE9Rc5PAh6wF6X9dfihNPJIRycRv8Gz2qq2Rl/KWO8zNN4cj20e5XwxMx
-	 36HOrDHQSN3IYx5bXbyAstui3lVzT7rMyhjAU0+Y=
-Date: Mon, 18 May 2026 14:03:19 -0700
+	b=RyzIdiQ/HfmsYToyv992VEJT9I+9mm++xW+xA+3PdOj7ty0pfp7/EVfDOXZlUmeOr
+	 ORjmrB9fSFLGiePhXUAJu/ouyP6cKzoFlCTdpvMtXdZ62W2y+X624tBtkbfuRAGt2v
+	 dG0D2NCeg03WAceuH+9l+9CJmgThKbG8PIZr6MsI=
+Date: Mon, 18 May 2026 14:03:21 -0700
 To: mm-commits@vger.kernel.org,vbabka@suse.cz,sj@kernel.org,akpm@linux-foundation.org,wangxuewen@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-mm-slabinfo-remove-dead-assignment-in-get_obj_and_str.patch added to mm-new branch
-Message-Id: <20260518210319.95D2BC2BCB7@smtp.kernel.org>
+Subject: + tools-mm-slabinfo-remove-redundant-slab-partial-assignment.patch added to mm-new branch
+Message-Id: <20260518210321.99F22C2BCC6@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: tools/mm/slabinfo: remove dead assignment in get_obj_and_str()
+     Subject: tools/mm/slabinfo: remove redundant slab->partial assignment
 has been added to the -mm mm-new branch.  Its filename is
-     tools-mm-slabinfo-remove-dead-assignment-in-get_obj_and_str.patch
+     tools-mm-slabinfo-remove-redundant-slab-partial-assignment.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-slabinfo-remove-dead-assignment-in-get_obj_and_str.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/tools-mm-slabinfo-remove-redundant-slab-partial-assignment.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,39 +70,34 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Xuewen Wang <wangxuewen@kylinos.cn>
-Subject: tools/mm/slabinfo: remove dead assignment in get_obj_and_str()
-Date: Mon, 18 May 2026 14:21:58 +0800
+Subject: tools/mm/slabinfo: remove redundant slab->partial assignment
+Date: Mon, 18 May 2026 14:21:59 +0800
 
-The assignment `x = NULL` sets the local parameter variable instead of
-`*x`, which is a no-op since `*x` was already set to NULL on the line
-above.  Remove the dead assignment.
+slab->partial is assigned by get_obj("partial") and then immediately
+overwritten by get_obj_and_str("partial", &t).  Remove the first redundant
+assignment.
 
-Link: https://lore.kernel.org/20260518062159.80664-3-wangxuewen@kylinos.cn
+Link: https://lore.kernel.org/20260518062159.80664-4-wangxuewen@kylinos.cn
 Signed-off-by: Xuewen Wang <wangxuewen@kylinos.cn>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/mm/slabinfo.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ tools/mm/slabinfo.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/tools/mm/slabinfo.c~tools-mm-slabinfo-remove-dead-assignment-in-get_obj_and_str
+--- a/tools/mm/slabinfo.c~tools-mm-slabinfo-remove-redundant-slab-partial-assignment
 +++ a/tools/mm/slabinfo.c
-@@ -193,10 +193,9 @@ static unsigned long get_obj_and_str(con
- 
- 	*x = NULL;
- 
--	if (!read_obj(name)) {
--		x = NULL;
-+	if (!read_obj(name))
- 		return 0;
--	}
-+
- 	result = strtoul(buffer, &p, 10);
- 	while (*p == ' ')
- 		p++;
+@@ -1265,7 +1265,6 @@ static void read_slab_dir(void)
+ 			slab->objects_total = get_obj("objects_total");
+ 			slab->objs_per_slab = get_obj("objs_per_slab");
+ 			slab->order = get_obj("order");
+-			slab->partial = get_obj("partial");
+ 			slab->partial = get_obj_and_str("partial", &t);
+ 			decode_numa_list(slab->numa_partial, t);
+ 			free(t);
 _
 
 Patches currently in -mm which might be from wangxuewen@kylinos.cn are
