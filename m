@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77F11302CD5
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:59:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DB2C302CD5
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:59:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779141564; cv=none; b=UIL9cYpKxGRPKXG9owPLXoFE3CGOu5CxzfOlxeiEU/jqy59kvjvJ6t676xWFwPmiCuygR4vqDpQzmrBW+IVg3iI5Ioc1q+JFqgPKb8OrJto+upEGC0BwP40lesLPTprITvfI9HTNeB8dgitobu9H3KNgyXHpy3k2qdaY/N905n4=
+	t=1779141566; cv=none; b=IBFeMe11EJvIkT/r36F//P6UTJDsCYHPHPD4WT/96U5EB+NNOS1P0UMYV6pEBF7UnSzE2133YECIJu5Mid+7NQXXbTSs04IU9DJtRypQPuyFVOc0aKE1sXdGNsMkI7z/8gD4/eGRFP0UnCFlgkYm4zC0k/uTIQN6hwNfNAReehk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779141564; c=relaxed/simple;
-	bh=ok/CGP9YWih7bTnb9nINu60eOuacsqbcE/LvAjHnMhI=;
-	h=Date:To:From:Subject:Message-Id; b=nr1iVxTc6C9KOBvNlA6A5kjKc9hC4gnhqWAiM8BhVgbbOyzmFxT/tWgt194vWDE+CAZ6ozmb3l9HwGmA7b94CnMoagFzo+kSt97GMAjyQcDNulDcC3ScMYNGQp0K53dx0bUBv/D8o+FYnpJX4j+VtiHJrDphJCm3HIq8dCtRW+I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CmXhd0mO; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779141566; c=relaxed/simple;
+	bh=8NC5M3KovAwkGfU5/WP7unoK5sAWL1WkAXyriSvxDPY=;
+	h=Date:To:From:Subject:Message-Id; b=ANxWofIzop5g4zey4Auxuude3lpBRMR5JQC8u5HFj75BSIfjoTAhsTvM6J43USqUUrZMKr3ZEvo3JatIWZvYhpCBoWcI2nU+mnmHGLAp1G5TMPMj8kMR9CxRiq3ZY33i5++ahsPx4VVJvXTyXsv71yvdnS69pZjibkgjWXjyaIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=CggfMdFl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CmXhd0mO"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1AFCEC2BCB7;
-	Mon, 18 May 2026 21:59:24 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="CggfMdFl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6509C2BCB7;
+	Mon, 18 May 2026 21:59:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779141564;
-	bh=ok/CGP9YWih7bTnb9nINu60eOuacsqbcE/LvAjHnMhI=;
+	s=korg; t=1779141565;
+	bh=8NC5M3KovAwkGfU5/WP7unoK5sAWL1WkAXyriSvxDPY=;
 	h=Date:To:From:Subject:From;
-	b=CmXhd0mOUORO/2J34ToSyAh2Uojb35BzhRxLxH391mLKwqHMbUnm9ut3iVn4qNaad
-	 MWrLA2AjoaXWCP5tmPYt+BMTVixPcW11O2MU2V7TShrmjv8SF+M5shBNGbJ7BneG/s
-	 W8qoLctiHnkSdg7Rx2YroDlo17Ol/SXp8WY0b7p8=
-Date: Mon, 18 May 2026 14:59:23 -0700
+	b=CggfMdFlu9HhUaPCIbiC9JtUnpPlWdEgv6H6Ik4IveLv4pxhMcWaKDFddkMo19wP9
+	 pBaKb8iOAReVI6HEtgkX8l03J7MmiaisrjnIXigTAEqlohdW6R1HQTpCjtvIXpEAMT
+	 J2fpW/opCNhALjqZjMLBpjHVy51qER1fXJ1sYQh4=
+Date: Mon, 18 May 2026 14:59:25 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled.patch removed from -mm tree
-Message-Id: <20260518215924.1AFCEC2BCB7@smtp.kernel.org>
+Subject: [to-be-updated] mm-khugepaged-remove-read_only_thp_for_fs-check-in-hugepage_enabled.patch removed from -mm tree
+Message-Id: <20260518215925.D6509C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,31 +35,34 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/huge_memory: remove READ_ONLY_THP_FOR_FS from file_thp_enabled()
+     Subject: mm/khugepaged: remove READ_ONLY_THP_FOR_FS check in hugepage_enabled()
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled.patch
+     mm-khugepaged-remove-read_only_thp_for_fs-check-in-hugepage_enabled.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Zi Yan <ziy@nvidia.com>
-Subject: mm/huge_memory: remove READ_ONLY_THP_FOR_FS from file_thp_enabled()
-Date: Wed, 29 Apr 2026 11:29:13 -0400
+Subject: mm/khugepaged: remove READ_ONLY_THP_FOR_FS check in hugepage_enabled()
+Date: Wed, 29 Apr 2026 11:29:14 -0400
 
-Replace it with a check on the max folio order of the file's address space
-mapping, making sure PMD folio is supported.  Keep the inode
-open-for-write check, since even if collapse_file() now makes sure all
-to-be-collapsed folios are clean and the created PMD file THP can be
-handled by FSes properly, the filemap_flush() could perform undesirable
-write back.
+Remove the READ_ONLY_THP_FOR_FS gate and khugepaged for file-backed
+pmd-sized hugepages are enabled by the global transparent hugepage
+control.  khugepaged can still be enabled by per-size control for anon and
+shmem when the global control is off.
 
-Link: https://lore.kernel.org/20260429152924.727124-4-ziy@nvidia.com
+Add shmem_hpage_pmd_enabled() stub for !CONFIG_SHMEM to remove
+IS_ENABLED(SHMEM) in hugepage_enabled().
+
+Clean up hugepage_enabled() by moving anon code to anon_hpage_enabled().
+
+Link: https://lore.kernel.org/20260429152924.727124-5-ziy@nvidia.com
 Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: Nico Pache <npache@redhat.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
 Cc: Barry Song <baohua@kernel.org>
 Cc: Chris Mason <clm@fb.com>
 Cc: Christian Brauner <brauner@kernel.org>
@@ -79,36 +82,70 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/shmem_fs.h |    2 +-
+ mm/khugepaged.c          |   26 ++++++++++++++++----------
+ 2 files changed, 17 insertions(+), 11 deletions(-)
 
---- a/mm/huge_memory.c~mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled
-+++ a/mm/huge_memory.c
-@@ -86,9 +86,6 @@ static inline bool file_thp_enabled(stru
- {
- 	struct inode *inode;
+--- a/include/linux/shmem_fs.h~mm-khugepaged-remove-read_only_thp_for_fs-check-in-hugepage_enabled
++++ a/include/linux/shmem_fs.h
+@@ -127,7 +127,7 @@ int shmem_writeout(struct folio *folio,
+ void shmem_truncate_range(struct inode *inode, loff_t start, uoff_t end);
+ int shmem_unuse(unsigned int type);
  
--	if (!IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS))
--		return false;
--
- 	if (!vma->vm_file)
- 		return false;
- 
-@@ -97,6 +94,9 @@ static inline bool file_thp_enabled(stru
- 	if (IS_ANON_FILE(inode))
- 		return false;
- 
-+	if (!mapping_pmd_folio_support(vma->vm_file->f_mapping))
-+		return false;
-+
- 	return !inode_is_open_for_write(inode) && S_ISREG(inode->i_mode);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_SHMEM)
+ unsigned long shmem_allowable_huge_orders(struct inode *inode,
+ 				struct vm_area_struct *vma, pgoff_t index,
+ 				loff_t write_end, bool shmem_huge_force);
+--- a/mm/khugepaged.c~mm-khugepaged-remove-read_only_thp_for_fs-check-in-hugepage_enabled
++++ a/mm/khugepaged.c
+@@ -522,26 +522,32 @@ static inline int collapse_test_exit_or_
+ 		mm_flags_test(MMF_DISABLE_THP_COMPLETELY, mm);
  }
  
++static inline bool anon_hpage_enabled(void)
++{
++	if (READ_ONCE(huge_anon_orders_always))
++		return true;
++	if (READ_ONCE(huge_anon_orders_madvise))
++		return true;
++	if (READ_ONCE(huge_anon_orders_inherit) &&
++	    hugepage_global_enabled())
++		return true;
++	return false;
++}
++
+ static bool hugepage_enabled(void)
+ {
+ 	/*
+ 	 * We cover the anon, shmem and the file-backed case here; file-backed
+-	 * hugepages, when configured in, are determined by the global control.
++	 * hugepages are determined by the global control.
+ 	 * Anon hugepages are determined by its per-size mTHP control.
+ 	 * Shmem pmd-sized hugepages are also determined by its pmd-size control,
+ 	 * except when the global shmem_huge is set to SHMEM_HUGE_DENY.
+ 	 */
+-	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) &&
+-	    hugepage_global_enabled())
+-		return true;
+-	if (READ_ONCE(huge_anon_orders_always))
++	if (hugepage_global_enabled())
+ 		return true;
+-	if (READ_ONCE(huge_anon_orders_madvise))
+-		return true;
+-	if (READ_ONCE(huge_anon_orders_inherit) &&
+-	    hugepage_global_enabled())
++	if (anon_hpage_enabled())
+ 		return true;
+-	if (IS_ENABLED(CONFIG_SHMEM) && shmem_hpage_pmd_enabled())
++	if (shmem_hpage_pmd_enabled())
+ 		return true;
+ 	return false;
+ }
 _
 
 Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-khugepaged-remove-read_only_thp_for_fs-check-in-hugepage_enabled.patch
 mm-remove-read_only_thp_for_fs-kconfig-option.patch
 mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch
 fs-remove-nr_thps-from-struct-address_space.patch
