@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1E5D391838;
-	Mon, 18 May 2026 19:53:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80017405C4B
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 20:08:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779134011; cv=none; b=YCd9jVLKwdPnG5LbTlF0OBaOb2j0Q/e5ANjjSYh0sZtrVSGVjxv0INZNxo3HZfa25aYVoHLvxfo3EC7/Nj3tjMjo+9ZrNBEx9bJkS5iBt9bAqs6ZsKme48XdG127HbkNEi+de1DNYXJjO/NrcP9p7K+qId6cWZeQWhEeYl0S4iI=
+	t=1779134911; cv=none; b=C7vlnxVeOs0wt+xWTFWaGY47R62ih1B/u1wWyehg1C1TM2xMzsbD1JBKKH778q6qvIQjWc8OXJo+t6qIyo+I8Ba1PfAgIX5Lxyci4acqIm+vawBINZ2c/7ERRsmoHb1lWIZL45Tiboa5SZy+cEF7SwTmtGPRwiDeSks+mX2sdjg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779134011; c=relaxed/simple;
-	bh=V7ejyMtTb9M3iI61y6hmviI3Vy5/6/lTHolzIy5v7Ow=;
-	h=Date:To:From:Subject:Message-Id; b=qBQhoKr+KwNP3HKVgeirjRWQXweFsb8wXDxn5435Mh0MwbHdq2Bn8w1mXTfuv73Uc0SvipJnCp7eSdq6SC980D2R7GXnu61PDr7rwBjrXAzUnsmBc+SG7OcFW8dNqrEw6JV9awKWLCODT0i0PY3MqLcE+jN7tBmJc2DzjfY7/G0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zwss5PHd; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779134911; c=relaxed/simple;
+	bh=TJ96mhq6tOjlwEvGvcgClL007yPgn7bD2qFAOG2SUnE=;
+	h=Date:To:From:Subject:Message-Id; b=B/bgGuiXXI2vH9OY6hQnpaxcd+GvwrgBJIb07d5uqpnb1jrn/hc+mVZvWNsprOLvhv3ozzZQrUV9SHC3483QFDfsC8fTnUOlzrd2CKBwmDU4vSXTpWBl6r9QtNK1uquEO4F2zjCaoWdmhEYu9BPD8qdMOcAirS81dSaRbrhJePk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0UUX/7Ij; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zwss5PHd"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5D9CC2BCB7;
-	Mon, 18 May 2026 19:53:29 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0UUX/7Ij"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59055C2BCB7;
+	Mon, 18 May 2026 20:08:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779134009;
-	bh=V7ejyMtTb9M3iI61y6hmviI3Vy5/6/lTHolzIy5v7Ow=;
+	s=korg; t=1779134911;
+	bh=TJ96mhq6tOjlwEvGvcgClL007yPgn7bD2qFAOG2SUnE=;
 	h=Date:To:From:Subject:From;
-	b=Zwss5PHdkUYGwneS6Uqh/Zr31OxU5ITof/6bpy7+UlzvCmKKL47fWryz7foczRlI3
-	 nGn1fa5IfzqI5Z2fGVCNrPZRN/IuL9hjVNYPn6BIc7/K+t/pgxBdnhdSZM/ymhL8TI
-	 /qyxP7bVaZmUMmYW2WhEVfTXTxyXU+229F413DHQ=
-Date: Mon, 18 May 2026 12:53:29 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=0UUX/7Ij7iP2jaZbCP6iiLYg3VqSMOMK635ywdX0rsmepmlGoeGIhokhzLnNr0XO8
+	 3p9ly0kzPr6bff8QMpkq7Qqj7m08rCUfqRq0bafmdwJiK3t7p1PPUmDD94mdlVzV7Y
+	 uk7QnHcrBjPP24MTVIEa3sgpq10oCqeQedLXkTKk=
+Date: Mon, 18 May 2026 13:08:30 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,qi.zheng@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-hugetlb-avoid-false-positive-lockdep-assertion.patch removed from -mm tree
-Message-Id: <20260518195329.D5D9CC2BCB7@smtp.kernel.org>
+Subject: [to-be-updated] memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch removed from -mm tree
+Message-Id: <20260518200831.59055C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,234 +35,125 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/hugetlb: avoid false positive lockdep assertion
+     Subject: memcg: cache obj_stock by memcg, not by objcg pointer
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-avoid-false-positive-lockdep-assertion.patch
+     memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/hugetlb: avoid false positive lockdep assertion
-Date: Wed, 13 May 2026 09:56:58 +0100
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: cache obj_stock by memcg, not by objcg pointer
+Date: Sun, 17 May 2026 12:43:08 -0700
 
-Commit 081056dc00a2 ("mm/hugetlb: unshare page tables during VMA split,
-not before") changed the locking model around hugetlbfs PMD unsharing on
-VMA split, but did not update the function which asserts the locks,
-hugetlb_vma_assert_locked().
+Commit 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg
+per-node type") split a memcg's single obj_cgroup into one per NUMA node,
+but the per-CPU obj_stock_pcp still keys cached_objcg by pointer. 
+Cross-NUMA workloads now see a drain on every refill and a miss on every
+consume that targets a sibling per-node objcg of the same memcg, producing
+the 67.7% stress-ng switch-mq regression reported by LKP.
 
-This function asserts that either the hugetlb VMA lock is held (if a
-shared mapping) or that the reservation map lock is held (if private).
+stock->nr_bytes are fungible across per-node objcgs of one memcg.  Treat
+the cache as keyed by memcg in __consume_obj_stock() and
+__refill_obj_stock() so siblings share the reserve.  Compare via
+READ_ONCE(objcg->memcg) directly: pointer-compare only, no deref, so the
+rcu_read_lock contract on obj_cgroup_memcg() does not apply.
 
-If you get an unfortunate race between something which results in one of
-these locks being released and a hugetlb VMA split and you have
-CONFIG_LOCKDEP enabled, you can therefore see a false positive assertion
-arise when there is in fact no issue.
+In the same-memcg refill path also fold the incoming objcg's
+nr_charged_bytes into the stock; otherwise sub-page residue accumulates on
+whichever sibling was cached at drain time and obj_cgroup_release()
+silently drops it, leaking up to nr_node_ids * (PAGE_SIZE - 1) bytes per
+memcg lifecycle from the page_counter.  This issue was reported by
+Sashiko.
 
-Since this change introduced a new take_locks parameter to
-hugetlb_unshare_pmds(), which, when set to false, indicates that locking
-is sufficient, simply pass this to the unsharing logic and predicate the
-lock assertions on this.
+Update the now-stale invariant comment on __account_obj_stock().
 
-This is safe, as we already asserted the file rmap lock and the VMA write
-lock prior to this (implying exclusive mmap write lock), so we cannot be
-raced by either rmap or page fault page table walkers which the asserted
-locks are intended to protect against (we don't mind GUP-fast).
+Qi Zheng built a specialized reproducer [1] for the corner case and
+confirmed the fix.
 
-Separate out huge_pmd_unshare() into __huge_pmd_unshare() to add a
-check_locks parameter, and update hugetlb_unshare_pmds() to pass this
-parameter to it.
-
-This leaves all other callers of huge_pmd_unshare() still correctly
-asserting the locks.
-
-The below reproducer will trigger the assert in a kernel with
-CONFIG_LOCKDEP enabled by racing process teardown (which will release the
-hugetlb lock) against a hugetlb split.
-
-void execute_one(void)
-{
-	void *ptr;
-	pid_t pid;
-
-	/*
-	 * Create a hugetlb mapping spanning a PUD entry.
-	 *
-	 * We force the hugetlb page allocation with populate and
-	 * noreserve.
-	 *
-	 * |---------------------|
-	 * |                     |
-	 * |---------------------|
-	 * 0                 PUD boundary
-	 */
-	ptr = mmap(0, PUD_SIZE, PROT_READ | PROT_WRITE,
-		   MAP_FIXED | MAP_SHARED | MAP_ANON |
-		   MAP_NORESERVE | MAP_HUGETLB | MAP_POPULATE,
-		   -1, 0);
-	if (ptr == MAP_FAILED) {
-		perror("mmap");
-		exit(EXIT_FAILURE);
-	}
-
-	/*
-	 * Fork but with a bogus stack pointer so we try to execute code in
-	 * a non-VM_EXEC VMA, causing segfault + teardown via exit_mmap().
-	 *
-	 * The clone will cause PMD page table sharing between the
-	 * processes first via:
-	 * copy_process() -> ... -> huge_pte_alloc() -> huge_pmd_share()
-	 *
-	 * Then tear down and release the hugetlb 'VMA' lock via:
-	 * exit_mmap() -> ... -> vma_close() -> hugetlb_vma_lock_free()
-	 */
-	pid = syscall(__NR_clone, 0, 2 * PMD_SIZE, 0, 0, 0);
-	if (pid < 0) {
-		perror("clone");
-		exit(EXIT_FAILURE);
-	} if (pid == 0) {
-		/* Pop stack... */
-		return;
-	}
-
-	/*
-	 * We are the parent process.
-	 *
-	 * Race the child process's teardown with a PMD unshare.
-	 *
-	 * We do this by triggering:
-	 *
-	 * __split_vma() -> hugetlb_split() -> hugetlb_unshare_pmds()
-	 *
-	 * Which, importantly, doesn't hold the hugetlb VMA lock (nor can
-	 * it), meaning we assert in hugetlb_vma_assert_locked().
-	 *
-	 *            .
-	 * |----------.----------|
-	 * |          .          |
-	 * |----------.----------|
-	 * 0          .     PUD boundary
-	 */
-	mmap(0, PUD_SIZE / 2, PROT_READ | PROT_WRITE,
-	     MAP_FIXED | MAP_ANON | MAP_PRIVATE, -1, 0);
-}
-
-int main(void)
-{
-	int i;
-
-	/* Kick off fork children. */
-	for (i = 0; i < NUM_FORKS; i++) {
-		pid_t pid = fork();
-
-		if (pid < 0) {
-			perror("fork");
-			exit(EXIT_FAILURE);
-		}
-
-		/* Fork children do their work and exit. */
-		if (!pid) {
-			int j;
-
-			for (j = 0; j < NUM_ITERS; j++)
-				execute_one();
-			return EXIT_SUCCESS;
-		}
-	}
-
-	/* If we succeeded, wait on children. */
-	for (i = 0; i < NUM_FORKS; i++)
-		wait(NULL);
-
-	return EXIT_SUCCESS;
-}
-
-Link: https://lore.kernel.org/20260513085658.45264-1-ljs@kernel.org
-Fixes: 081056dc00a2 ("mm/hugetlb: unshare page tables during VMA split, not before")
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Oscar Salvador <osalvador@suse.de>
-Cc: Jann Horn <jannh@google.com>
+Link: https://lore.kernel.org/20260517194308.952655-1-shakeel.butt@linux.dev
+Fixes: 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg per-node type")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202605121641.b6a60cb0-lkp@intel.com
+Link: https://lore.kernel.org/19693be6-7132-446e-b3fc-b7e9f56e5949@linux.dev/ [1]
+Debugged-by: Qi Zheng <qi.zheng@linux.dev>
+Tested-by: Qi Zheng <qi.zheng@linux.dev>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: <stable@vger.kernel.org>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   46 +++++++++++++++++++++++++++-------------------
- 1 file changed, 27 insertions(+), 19 deletions(-)
+ mm/memcontrol.c |   25 ++++++++++++++++++++++---
+ 1 file changed, 22 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-avoid-false-positive-lockdep-assertion
-+++ a/mm/hugetlb.c
-@@ -6892,6 +6892,31 @@ out:
- 	return pte;
+--- a/mm/memcontrol.c~memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer
++++ a/mm/memcontrol.c
+@@ -3152,7 +3152,12 @@ static void unlock_stock(struct obj_stoc
+ 		local_unlock(&obj_stock.lock);
  }
  
-+static int __huge_pmd_unshare(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, unsigned long addr, pte_t *ptep,
-+		bool check_locks)
-+{
-+	unsigned long sz = huge_page_size(hstate_vma(vma));
-+	struct mm_struct *mm = vma->vm_mm;
-+	pgd_t *pgd = pgd_offset(mm, addr);
-+	p4d_t *p4d = p4d_offset(pgd, addr);
-+	pud_t *pud = pud_offset(p4d, addr);
-+
-+	if (sz != PMD_SIZE)
-+		return 0;
-+	if (!ptdesc_pmd_is_shared(virt_to_ptdesc(ptep)))
-+		return 0;
-+	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
-+	if (check_locks)
-+		hugetlb_vma_assert_locked(vma);
-+	pud_clear(pud);
-+
-+	tlb_unshare_pmd_ptdesc(tlb, virt_to_ptdesc(ptep), addr);
-+
-+	mm_dec_nr_pmds(mm);
-+	return 1;
-+}
-+
- /**
-  * huge_pmd_unshare - Unmap a pmd table if it is shared by multiple users
-  * @tlb: the current mmu_gather.
-@@ -6911,24 +6936,7 @@ out:
- int huge_pmd_unshare(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		unsigned long addr, pte_t *ptep)
+-/* Call after __refill_obj_stock() to ensure stock->cached_objg == objcg */
++/*
++ * Call after __consume_obj_stock() / __refill_obj_stock(). The stock may be
++ * cached for a sibling per-node objcg of the same memcg; in that case the
++ * vmstat batching slot does not match objcg and we fall through to the
++ * direct path.
++ */
+ static void __account_obj_stock(struct obj_cgroup *objcg,
+ 				struct obj_stock_pcp *stock, int nr,
+ 				struct pglist_data *pgdat, enum node_stat_item idx)
+@@ -3210,7 +3215,11 @@ static bool __consume_obj_stock(struct o
+ 				struct obj_stock_pcp *stock,
+ 				unsigned int nr_bytes)
  {
--	unsigned long sz = huge_page_size(hstate_vma(vma));
--	struct mm_struct *mm = vma->vm_mm;
--	pgd_t *pgd = pgd_offset(mm, addr);
--	p4d_t *p4d = p4d_offset(pgd, addr);
--	pud_t *pud = pud_offset(p4d, addr);
--
--	if (sz != PMD_SIZE)
--		return 0;
--	if (!ptdesc_pmd_is_shared(virt_to_ptdesc(ptep)))
--		return 0;
--	i_mmap_assert_write_locked(vma->vm_file->f_mapping);
--	hugetlb_vma_assert_locked(vma);
--	pud_clear(pud);
--
--	tlb_unshare_pmd_ptdesc(tlb, virt_to_ptdesc(ptep), addr);
--
--	mm_dec_nr_pmds(mm);
--	return 1;
-+	return __huge_pmd_unshare(tlb, vma, addr, ptep, /*check_locks=*/true);
- }
+-	if (objcg == READ_ONCE(stock->cached_objcg) &&
++	struct obj_cgroup *cached = READ_ONCE(stock->cached_objcg);
++
++	/* Sibling per-node objcgs share the reserve. */
++	if ((cached == objcg ||
++	     (cached && READ_ONCE(cached->memcg) == READ_ONCE(objcg->memcg))) &&
+ 	    stock->nr_bytes >= nr_bytes) {
+ 		stock->nr_bytes -= nr_bytes;
+ 		return true;
+@@ -3318,6 +3327,7 @@ static void __refill_obj_stock(struct ob
+ 			       unsigned int nr_bytes,
+ 			       bool allow_uncharge)
+ {
++	struct obj_cgroup *cached;
+ 	unsigned int nr_pages = 0;
  
- /*
-@@ -7270,7 +7278,7 @@ static void hugetlb_unshare_pmds(struct
- 		if (!ptep)
- 			continue;
- 		ptl = huge_pte_lock(h, mm, ptep);
--		huge_pmd_unshare(&tlb, vma, address, ptep);
-+		__huge_pmd_unshare(&tlb, vma, address, ptep, take_locks);
- 		spin_unlock(ptl);
+ 	if (!stock) {
+@@ -3327,7 +3337,11 @@ static void __refill_obj_stock(struct ob
+ 		goto out;
  	}
- 	huge_pmd_unshare_flush(&tlb, vma);
+ 
+-	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
++	cached = READ_ONCE(stock->cached_objcg);
++	if (cached == objcg)
++		goto add_bytes;
++	/* Direct READ_ONCE due to just pointer comparison. */
++	if (!cached || READ_ONCE(cached->memcg) != READ_ONCE(objcg->memcg)) {
+ 		drain_obj_stock(stock);
+ 		obj_cgroup_get(objcg);
+ 		stock->nr_bytes = atomic_read(&objcg->nr_charged_bytes)
+@@ -3335,7 +3349,12 @@ static void __refill_obj_stock(struct ob
+ 		WRITE_ONCE(stock->cached_objcg, objcg);
+ 
+ 		allow_uncharge = true;	/* Allow uncharge when objcg changes */
++	} else if (atomic_read(&objcg->nr_charged_bytes)) {
++		/* Fold sibling's stranded ncb into stock; else release leaks it. */
++		stock->nr_bytes += atomic_xchg(&objcg->nr_charged_bytes, 0);
++		allow_uncharge = true;
+ 	}
++add_bytes:
+ 	stock->nr_bytes += nr_bytes;
+ 
+ 	if (allow_uncharge && (stock->nr_bytes > PAGE_SIZE)) {
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-revert-mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
 
