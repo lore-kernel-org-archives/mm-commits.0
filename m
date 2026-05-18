@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF898302CD5
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 22:41:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B14A30BB8D
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 22:59:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779144066; cv=none; b=O5zbERPL4qJ6kVm297llRMYk8eoyXrhEXbf+VzgpMTBilmfbkSG7vxuUVtzF7/gQnDSSFVRwbHA3RL8kcUQVCKuth7xywSv6Jl+gMM/QFgEp/xDDTWYZ8yZA5qLC5+z1kVybwN2RL8lC9A6VImeKCiLkVHMzw+b8O3KofwCrMhk=
+	t=1779145144; cv=none; b=ddinIHT7zI+wgM4JK6GblaYvCQHU85aodmp5hRuJDe8B4OJqN4QyWgXf7e937Sl/ZS35GUqo3gL75XEUQG0Cc0iu+Cv6kULFk0oM9/sRkuQq/C/+y4etWeVTWXh5w9en5NmhxEcfe2PuIBz8YUVO2i8REwwHfIgB/SPm94UA7Zw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779144066; c=relaxed/simple;
-	bh=+GQkobkIiWNMfJQHB8vG5fxx2EdXRH4HYz/I7UJPo2k=;
-	h=Date:To:From:Subject:Message-Id; b=DCGbaSvFuo9sQkEDKmrnByH6wtpqt2zNjRli2mY3g5qpxd4xn5Dbu2MvEzJ0jJG3MYIfZiXXi3gwWAvhUT80Ro3otvKMZCgUJJ9CmPxtr24n4KfcRt3O+zoUSaiUnu173RFWp6EpVF81R+jnrnVWTxDg1MARgpeFMiUM8QYYAgk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hbCER3Qe; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779145144; c=relaxed/simple;
+	bh=laOKMJo2tlzPNk9ShWE320pca8DRYaPFUoRql224ZAs=;
+	h=Date:To:From:Subject:Message-Id; b=Rm74VKgpAecyk9T5J4VSfsSPnv8T6pRJqVMuCpRaSVDOOqLNZyfKJrQZ7V0ka8UUhsXDoKdC038bUUyWty3rKvaAfQDgJ3RWw/Xeq+8aSlsfcYNyvoO5o3ucnICOssJ8EYUUNJHnFcdWYzVaQ/JQqePeJFu2xfGA7j0BLDYOauw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BCVgAFlq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hbCER3Qe"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57942C2BCB7;
-	Mon, 18 May 2026 22:41:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BCVgAFlq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC2A7C2BCB7;
+	Mon, 18 May 2026 22:59:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779144066;
-	bh=+GQkobkIiWNMfJQHB8vG5fxx2EdXRH4HYz/I7UJPo2k=;
+	s=korg; t=1779145143;
+	bh=laOKMJo2tlzPNk9ShWE320pca8DRYaPFUoRql224ZAs=;
 	h=Date:To:From:Subject:From;
-	b=hbCER3Qe1+BVxSooNtWa7cB8IplWK1gZRSRItDkK1UF00Gqagysldw3HoTcmFnoGn
-	 mEy6FRmb6ZGNoUtRQ1NulJhN4B0hbEXSzgMOsP+gaCCyo3/N8JA0gtC9NyOS3PEDab
-	 PF33N20l82YpoH1miXTKhFZnxx7eakTa7MS+DRtM=
-Date: Mon, 18 May 2026 15:41:05 -0700
-To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,qi.zheng@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,alex@ghiti.fr,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=BCVgAFlqqvhXjonJOvemIWgwZSUhBn2rW6wXGkA+n5wCGJc3rPSb2zfklifA/8/pR
+	 3PTqoUmQKquQU5mI+6bcuUWTNjpz1lG1FWIeTG0d3FoCs733iP9M9UvGVV3ki1dDmX
+	 9wc3TaD+K19aRiWSwYB3hWNiKKViYm14TKAakEhY=
+Date: Mon, 18 May 2026 15:59:03 -0700
+To: mm-commits@vger.kernel.org,ehristev@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260518224106.57942C2BCB7@smtp.kernel.org>
+Subject: + maintainers-mailmap-change-email-for-eugen-hristev.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260518225903.BC2A7C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: cache obj_stock by memcg, not by objcg pointer
+     Subject: MAINTAINERS, mailmap: change email for Eugen Hristev
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch
+     maintainers-mailmap-change-email-for-eugen-hristev.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-mailmap-change-email-for-eugen-hristev.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,186 +58,94 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: cache obj_stock by memcg, not by objcg pointer
-Date: Mon, 18 May 2026 15:28:27 -0700
+From: Eugen Hristev <ehristev@kernel.org>
+Subject: MAINTAINERS, mailmap: change email for Eugen Hristev
+Date: Sat, 25 Apr 2026 16:06:48 +0300
 
-Commit 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg
-per-node type") split a memcg's single obj_cgroup into one per NUMA node,
-but the per-CPU obj_stock_pcp still keys cached_objcg by pointer. 
-Cross-NUMA workloads now see a drain on every refill and a miss on every
-consume that targets a sibling per-node objcg of the same memcg, producing
-the 67.7% stress-ng switch-mq regression reported by LKP.
+Replace old bouncing emails with ehristev@kernel.org
 
-stock->nr_bytes are fungible across per-node objcgs of one memcg.  Treat
-the cache as keyed by memcg in __consume_obj_stock() and
-__refill_obj_stock() so siblings share the reserve.  Compare via
-READ_ONCE(objcg->memcg) directly: pointer-compare only, no deref, so the
-rcu_read_lock contract on obj_cgroup_memcg() does not apply.
-
-Sharing the reserve without re-caching means bytes funded by one per-node
-objcg's slow path can be consumed/freed under a different sibling, leaving
-sub-page residue on whichever sibling was cached at drain time.  The
-pre-existing obj_cgroup_release() path would WARN and silently drop that
-residue, leaking up to nr_node_ids * (PAGE_SIZE - 1) bytes per memcg
-lifecycle from the page_counter.  Forward the residue into a per-node
-objcg of the same (post-reparent) memcg at release time instead, so it can
-be reconciled later via a refill atomic_xchg or another release; the chain
-terminates at root_mem_cgroup, whose page_counter has no enforced limit.
-
-Please note that this is temporary fix and will be reverted when per-node
-kmem accounting is introduced.
-
-Update the stale invariant comment on __account_obj_stock().
-
-Qi Zheng built a specialized reproducer [1] for the corner case and
-confirmed the fix.
-
-Link: https://lore.kernel.org/20260518222827.110696-1-shakeel.butt@linux.dev
-Fixes: 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg per-node type")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202605121641.b6a60cb0-lkp@intel.com
-Link: https://lore.kernel.org/19693be6-7132-446e-b3fc-b7e9f56e5949@linux.dev/ [1]
-Debugged-by: Qi Zheng <qi.zheng@linux.dev>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Link: https://lore.kernel.org/20260425-eh-mailmap-v1-1-58788d401eef@kernel.org
+Signed-off-by: Eugen Hristev <ehristev@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   69 ++++++++++++++++++++++++++++++++++------------
- 1 file changed, 51 insertions(+), 18 deletions(-)
+ .mailmap    |    5 +++--
+ MAINTAINERS |   12 ++++++------
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
---- a/mm/memcontrol.c~memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer
-+++ a/mm/memcontrol.c
-@@ -142,14 +142,24 @@ static void obj_cgroup_release(struct pe
- 	struct obj_cgroup *objcg = container_of(ref, struct obj_cgroup, refcnt);
- 	unsigned int nr_bytes;
- 	unsigned int nr_pages;
-+	unsigned int sub_bytes;
- 	unsigned long flags;
+--- a/.mailmap~maintainers-mailmap-change-email-for-eugen-hristev
++++ a/.mailmap
+@@ -263,8 +263,9 @@ Enric Balletbo i Serra <eballetbo@kernel
+ Enric Balletbo i Serra <eballetbo@kernel.org> <eballetbo@iseebcn.com>
+ Erik Kaneda <erik.kaneda@intel.com> <erik.schmauss@intel.com>
+ Ethan Carter Edwards <ethan@ethancedwards.com> Ethan Edwards <ethancarteredwards@gmail.com>
+-Eugen Hristev <eugen.hristev@linaro.org> <eugen.hristev@microchip.com>
+-Eugen Hristev <eugen.hristev@linaro.org> <eugen.hristev@collabora.com>
++Eugen Hristev <ehristev@kernel.org> <eugen.hristev@microchip.com>
++Eugen Hristev <ehristev@kernel.org> <eugen.hristev@linaro.org>
++Eugen Hristev <ehristev@kernel.org> <eugen.hristev@collabora.com>
+ Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+ Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> <ezequiel@collabora.com>
+ Faith Ekstrand <faith.ekstrand@collabora.com> <jason@jlekstrand.net>
+--- a/MAINTAINERS~maintainers-mailmap-change-email-for-eugen-hristev
++++ a/MAINTAINERS
+@@ -10826,7 +10826,7 @@ F:	include/linux/generic-radix-tree.h
+ F:	lib/generic-radix-tree.c
  
- 	/*
--	 * At this point all allocated objects are freed, and
--	 * objcg->nr_charged_bytes can't have an arbitrary byte value.
--	 * However, it can be PAGE_SIZE or (x * PAGE_SIZE).
-+	 * At this point all allocated objects are freed, but
-+	 * objcg->nr_charged_bytes can still hold either
-+	 *   - (x * PAGE_SIZE)  if a small-alloc/drain race left whole pages
-+	 *     stranded (see the historical sequence below), or
-+	 *   - any sub-page residue, now that the stock is keyed by memcg and
-+	 *     sibling per-node objcgs share its reserve: bytes consumed by
-+	 *     one sibling can spill into another sibling's nr_charged_bytes
-+	 *     when the stock is drained.
- 	 *
--	 * The following sequence can lead to it:
-+	 * Uncharge the page-aligned portion from this objcg's (post-reparent)
-+	 * memcg, and forward any sub-page residue into a per-node objcg of
-+	 * the same memcg so it can be reconciled later instead of being lost.
-+	 *
-+	 * Historical race producing the (x * PAGE_SIZE) case:
- 	 * 1) CPU0: objcg == stock->cached_objcg
- 	 * 2) CPU1: we do a small allocation (e.g. 92 bytes),
- 	 *          PAGE_SIZE bytes are charged
-@@ -160,23 +170,33 @@ static void obj_cgroup_release(struct pe
- 	 *          92 bytes are added to stock->nr_bytes
- 	 * 6) CPU0: stock is flushed,
- 	 *          92 bytes are added to objcg->nr_charged_bytes
--	 *
--	 * In the result, nr_charged_bytes == PAGE_SIZE.
--	 * This page will be uncharged in obj_cgroup_release().
- 	 */
- 	nr_bytes = atomic_read(&objcg->nr_charged_bytes);
--	WARN_ON_ONCE(nr_bytes & (PAGE_SIZE - 1));
- 	nr_pages = nr_bytes >> PAGE_SHIFT;
-+	sub_bytes = nr_bytes & (PAGE_SIZE - 1);
+ GENERIC RESISTIVE TOUCHSCREEN ADC DRIVER
+-M:	Eugen Hristev <eugen.hristev@microchip.com>
++M:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-input@vger.kernel.org
+ S:	Maintained
+ F:	drivers/input/touchscreen/resistive-adc-touch.c
+@@ -17336,7 +17336,7 @@ F:	Documentation/devicetree/bindings/sou
+ F:	sound/soc/atmel
  
--	if (nr_pages) {
-+	if (nr_pages || sub_bytes) {
- 		struct mem_cgroup *memcg;
+ MICROCHIP CSI2DC DRIVER
+-M:	Eugen Hristev <eugen.hristev@microchip.com>
++M:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-media@vger.kernel.org
+ S:	Supported
+ F:	Documentation/devicetree/bindings/media/microchip,csi2dc.yaml
+@@ -17363,7 +17363,7 @@ F:	drivers/i2c/busses/i2c-at91-*.c
+ F:	drivers/i2c/busses/i2c-at91.h
  
--		memcg = get_mem_cgroup_from_objcg(objcg);
--		mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
--		memcg1_account_kmem(memcg, -nr_pages);
--		if (!mem_cgroup_is_root(memcg))
--			memcg_uncharge(memcg, nr_pages);
--		mem_cgroup_put(memcg);
-+		rcu_read_lock();
-+		memcg = obj_cgroup_memcg(objcg);
-+
-+		if (nr_pages) {
-+			mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
-+			memcg1_account_kmem(memcg, -nr_pages);
-+			if (!mem_cgroup_is_root(memcg))
-+				memcg_uncharge(memcg, nr_pages);
-+		}
-+
-+		if (sub_bytes && !mem_cgroup_is_root(memcg)) {
-+			struct obj_cgroup *fwd;
-+
-+			fwd = rcu_dereference(
-+				memcg->nodeinfo[numa_node_id()]->objcg);
-+			if (fwd)
-+				atomic_add(sub_bytes, &fwd->nr_charged_bytes);
-+		}
-+		rcu_read_unlock();
- 	}
+ MICROCHIP ISC DRIVER
+-M:	Eugen Hristev <eugen.hristev@microchip.com>
++M:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-media@vger.kernel.org
+ S:	Supported
+ F:	Documentation/devicetree/bindings/media/atmel,isc.yaml
+@@ -17375,7 +17375,7 @@ F:	drivers/staging/media/deprecated/atme
+ F:	include/linux/atmel-isc-media.h
  
- 	spin_lock_irqsave(&objcg_lock, flags);
-@@ -3152,7 +3172,12 @@ static void unlock_stock(struct obj_stoc
- 		local_unlock(&obj_stock.lock);
- }
+ MICROCHIP ISI DRIVER
+-M:	Eugen Hristev <eugen.hristev@microchip.com>
++M:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-media@vger.kernel.org
+ S:	Supported
+ F:	drivers/media/platform/atmel/atmel-isi.c
+@@ -17565,7 +17565,7 @@ F:	Documentation/devicetree/bindings/dis
+ F:	drivers/gpu/drm/bridge/microchip-lvds.c
  
--/* Call after __refill_obj_stock() to ensure stock->cached_objg == objcg */
-+/*
-+ * Call after __consume_obj_stock() / __refill_obj_stock(). The stock may be
-+ * cached for a sibling per-node objcg of the same memcg; in that case the
-+ * vmstat batching slot does not match objcg and we fallthrough to the
-+ * direct path.
-+ */
- static void __account_obj_stock(struct obj_cgroup *objcg,
- 				struct obj_stock_pcp *stock, int nr,
- 				struct pglist_data *pgdat, enum node_stat_item idx)
-@@ -3210,7 +3235,11 @@ static bool __consume_obj_stock(struct o
- 				struct obj_stock_pcp *stock,
- 				unsigned int nr_bytes)
- {
--	if (objcg == READ_ONCE(stock->cached_objcg) &&
-+	struct obj_cgroup *cached = READ_ONCE(stock->cached_objcg);
-+
-+	/* Sibling per-node objcgs share the reserve. */
-+	if ((cached == objcg ||
-+	     (cached && READ_ONCE(cached->memcg) == READ_ONCE(objcg->memcg))) &&
- 	    stock->nr_bytes >= nr_bytes) {
- 		stock->nr_bytes -= nr_bytes;
- 		return true;
-@@ -3318,6 +3347,7 @@ static void __refill_obj_stock(struct ob
- 			       unsigned int nr_bytes,
- 			       bool allow_uncharge)
- {
-+	struct obj_cgroup *cached;
- 	unsigned int nr_pages = 0;
+ MICROCHIP SAMA5D2-COMPATIBLE ADC DRIVER
+-M:	Eugen Hristev <eugen.hristev@microchip.com>
++M:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-iio@vger.kernel.org
+ S:	Supported
+ F:	Documentation/devicetree/bindings/iio/adc/atmel,sama5d2-adc.yaml
+@@ -24116,7 +24116,7 @@ F:	drivers/mmc/host/sdhci*
  
- 	if (!stock) {
-@@ -3327,7 +3357,10 @@ static void __refill_obj_stock(struct ob
- 		goto out;
- 	}
- 
--	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
-+	cached = READ_ONCE(stock->cached_objcg);
-+	/* Direct READ_ONCE due to just pointer comparison. */
-+	if (cached != objcg &&
-+	    (!cached || READ_ONCE(cached->memcg) != READ_ONCE(objcg->memcg))) {
- 		drain_obj_stock(stock);
- 		obj_cgroup_get(objcg);
- 		stock->nr_bytes = atomic_read(&objcg->nr_charged_bytes)
+ SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) MICROCHIP DRIVER
+ M:	Aubin Constans <aubin.constans@microchip.com>
+-R:	Eugen Hristev <eugen.hristev@collabora.com>
++R:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-mmc@vger.kernel.org
+ S:	Supported
+ F:	drivers/mmc/host/sdhci-of-at91.c
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from ehristev@kernel.org are
 
-memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch
+maintainers-mailmap-change-email-for-eugen-hristev.patch
 
