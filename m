@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB79D38A716
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 18:14:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D37512AF1D;
+	Mon, 18 May 2026 18:59:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779128090; cv=none; b=r5qDyubwiqu2JhnNGcJv0Ri+bgwa73utREuhtVQnKNVsjvAea8hZkoOLMOVidleYYVEG8OCPFikTdcAhDzPXhqfV84yTUu95hmVL5xl88hBvNd6ZgjSmNm4x/LEo1j8fazcwzbLb0TY9whzxCnzLZRDI5pZNg98x9w7hjTWCUJI=
+	t=1779130745; cv=none; b=jeLaZCZMaAp8XHq7GlgKtUbIuRNGE4N52I0TlvVGURlykWezb8tEq6wgE+t8uj0MmLE+rp9AVNeYDibhyq3Nr7Dyw6rYDFXS7Ar3o9IZToH5ie9cdO8OaLBCPQ08fxRXFIRoBecblzVuX2Q7/c0ABCb/9UTPaHDlaqzuaiqSMk8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779128090; c=relaxed/simple;
-	bh=mI9zqKuU2umvjH20wdLlny7zyOpjQ3pENXCGo6P931w=;
-	h=Date:To:From:Subject:Message-Id; b=S9F+zhaKxCDTfzsy3GWmyJtT+puNQWcs7eUTtOIy52sLYHIcpkBEN2fe1K5QX/Z9fJUOtLxHoTtvRg0B1t8qIWR9BfTMkwq6ocu68t+VbJhxJZnBudsU4kNyMznPppfZzAb4oJxBl+HxczwyNOd/nV0DpO7DNC8xsjAXFQC5AAY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NJeV0ShI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779130745; c=relaxed/simple;
+	bh=9GjBhUIVMI9u+1q7jcMpsTP6grTif6Rv8ZVNygxyv4A=;
+	h=Date:To:From:Subject:Message-Id; b=GPWfScbrI56+/MO5mm6BK4hwPuww+zV/ByHTbRGCM/mDSMgvl1RhkGRfxQyF5ZPqkesRtnlWHTtO+sJMcls14izVIa9WdLSpOqOF1eK0Hm2JxV2GmB3vNn5x2rKf+kqYCXXVDeMMkferHZPyk9cQmHHAlOOvuOAFIGVNY5hBGwQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xfUm2AkN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NJeV0ShI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67E95C2BCB7;
-	Mon, 18 May 2026 18:14:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xfUm2AkN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 684BCC2BCB7;
+	Mon, 18 May 2026 18:59:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779128090;
-	bh=mI9zqKuU2umvjH20wdLlny7zyOpjQ3pENXCGo6P931w=;
+	s=korg; t=1779130744;
+	bh=9GjBhUIVMI9u+1q7jcMpsTP6grTif6Rv8ZVNygxyv4A=;
 	h=Date:To:From:Subject:From;
-	b=NJeV0ShITtDs7QbSNGcZc1QKwtoKeNc6KYlPiBRIYTM7k5fUN93Oadb7bjKwfa34F
-	 2LxJTo2icQiOyHVXBxDUPa3ON59Rv5OFzm3QZXQscSUBjmPx3zmbxxAnrYF5/vPS9B
-	 jdDzX5HbLzwrw+oycSZOCnbcxSYknq+NAqX6glEk=
-Date: Mon, 18 May 2026 11:14:49 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,yuanchu@google.com,weixugc@google.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,rafael@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lenb@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,jackmanb@google.com,akpm@linux-foundation.org
+	b=xfUm2AkNe63fwlSJyZChvckHKRyjGO0T9Vphb49UnzKQwJWAlw4EU1QsmFhXd77KY
+	 dfvWmVrhmJ3XpFc028W3C6eFm+il7cX+D0/IDuNzwrsAhmlpDmQ4QEnaQFDcbFfB8l
+	 FBzYvjXZlo97yhhI1qRWZKen+6zFdvxftelJrv/M=
+Date: Mon, 18 May 2026 11:59:03 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,riel@surriel.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,harry@kernel.org,david@kernel.org,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-remove-ifdefs-from-pindex-helpers.patch added to mm-new branch
-Message-Id: <20260518181450.67E95C2BCB7@smtp.kernel.org>
+Subject: + mm-rmap-initialize-nr_pages-to-1-at-loop-start-in-try_to_unmap_one.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260518185904.684BCC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: remove ifdefs from pindex helpers
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-remove-ifdefs-from-pindex-helpers.patch
+     Subject: mm/rmap: initialize nr_pages to 1 at loop start in try_to_unmap_one
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-rmap-initialize-nr_pages-to-1-at-loop-start-in-try_to_unmap_one.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-ifdefs-from-pindex-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-rmap-initialize-nr_pages-to-1-at-loop-start-in-try_to_unmap_one.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,99 +58,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Brendan Jackman <jackmanb@google.com>
-Subject: mm/page_alloc: remove ifdefs from pindex helpers
-Date: Wed, 13 May 2026 12:35:16 +0000
+From: Dev Jain <dev.jain@arm.com>
+Subject: mm/rmap: initialize nr_pages to 1 at loop start in try_to_unmap_one
+Date: Mon, 18 May 2026 12:06:56 +0530
 
-The ifdefs are not technically needed here, everything used here is
-always defined.
+Initialize nr_pages to 1 at the start of each loop iteration, like
+folio_referenced_one() does.
 
-Switching to IS_ENABLED() makes the code a bit less tiresome to read.
+Without this, nr_pages computed by a previous folio_unmap_pte_batch() call
+can be reused on a later iteration that does not run
+folio_unmap_pte_batch() again.
 
-Link: https://lore.kernel.org/20260513-page_alloc-unmapped-prep-v1-4-dacdf5402be8@google.com
-Signed-off-by: Brendan Jackman <jackmanb@google.com>
-Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
+mmap a 64K large folio with MAP_ANONYMOUS | MAP_DROPPABLE, then call
+madvise(MADV_FREE), then make the last page device-exclusive via
+HMM_DMIRROR_EXCLUSIVE.
+
+Trigger node reclaim through sysfs.  Now, in try_to_unmap_one(), we will
+first clear the first 15 out of 16 entries mapping the lazyfree folio. 
+This will set nr_pages to 15.  In the next pvmw walk, this nr_pages gets
+reused on a device-exclusive pte, thus potentially corrupting folio
+refcount/mapcount.
+
+At the moment, I have a userspace program which can make the kernel spit
+out a trace, but the blow up is in folio_referenced_one(), because there
+are existing bugs in the interaction between device-private and rmap
+(which too I am investigating).  I did a one liner kernel change to avoid
+going into folio_referenced_one(), and the kernel blows up at
+folio_remove_rmap_ptes in try_to_unmap_one which is what I wanted.
+
+Note that the bug is there not since file folio batching but lazyfree
+folio batching, since device-exclusive only works for anonymous folios.
+
+Userspace visible effect is simply kernel crashing somewhere due to
+refcount/mapcount corruption.
+
+Link: https://lore.kernel.org/20260518063656.3721056-1-dev.jain@arm.com
+Fixes: 354dffd29575 ("mm: support batched unmap for lazyfree large folios during reclamation")
+Signed-off-by: Dev Jain <dev.jain@arm.com>
+Acked-by: Barry Song <baohua@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Barry Song <baohua@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   30 ++++++++++++++----------------
- 1 file changed, 14 insertions(+), 16 deletions(-)
+ mm/rmap.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-remove-ifdefs-from-pindex-helpers
-+++ a/mm/page_alloc.c
-@@ -650,19 +650,17 @@ out:
+--- a/mm/rmap.c~mm-rmap-initialize-nr_pages-to-1-at-loop-start-in-try_to_unmap_one
++++ a/mm/rmap.c
+@@ -2030,6 +2030,8 @@ static bool try_to_unmap_one(struct foli
+ 	mmu_notifier_invalidate_range_start(&range);
  
- static inline unsigned int order_to_pindex(int migratetype, int order)
- {
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
-+		bool movable = migratetype == MIGRATE_MOVABLE;
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	bool movable;
--	if (order > PAGE_ALLOC_COSTLY_ORDER) {
--		VM_BUG_ON(!is_pmd_order(order));
-+		if (order > PAGE_ALLOC_COSTLY_ORDER) {
-+			VM_BUG_ON(!is_pmd_order(order));
- 
--		movable = migratetype == MIGRATE_MOVABLE;
--
--		return NR_LOWORDER_PCP_LISTS + movable;
-+			return NR_LOWORDER_PCP_LISTS + movable;
-+		}
-+	} else {
-+		VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
- 	}
--#else
--	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
--#endif
- 
- 	return (MIGRATE_PCPTYPES * order) + migratetype;
- }
-@@ -671,12 +669,12 @@ static inline int pindex_to_order(unsign
- {
- 	int order = pindex / MIGRATE_PCPTYPES;
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	if (pindex >= NR_LOWORDER_PCP_LISTS)
--		order = HPAGE_PMD_ORDER;
--#else
--	VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
--#endif
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
-+		if (pindex >= NR_LOWORDER_PCP_LISTS)
-+			order = HPAGE_PMD_ORDER;
-+	} else {
-+		VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
-+	}
- 
- 	return order;
- }
+ 	while (page_vma_mapped_walk(&pvmw)) {
++		nr_pages = 1;
++
+ 		/*
+ 		 * If the folio is in an mlock()d vma, we must not swap it out.
+ 		 */
 _
 
-Patches currently in -mm which might be from jackmanb@google.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-page_alloc-cleanup-flag-vars-in-alloc_pages_bulk_noprof.patch
-drm-managed-use-special-gfp_t-format-specifier.patch
-mm-kfence-use-special-gfp_t-format-specifier.patch
-net-rds-use-special-gfp_t-format-specifier.patch
-mm-introduce-for_each_free_list.patch
-mm-page_alloc-dont-overload-migratetype-in-find_suitable_fallback.patch
-mm-rejig-pageblock-mask-definitions.patch
-mm-page_alloc-remove-ifdefs-from-pindex-helpers.patch
+mm-rmap-initialize-nr_pages-to-1-at-loop-start-in-try_to_unmap_one.patch
+selftests-mm-simplify-byte-pattern-checking-in-mremap_test.patch
+mm-khugepaged-generalize-alloc_charge_folio.patch
 
