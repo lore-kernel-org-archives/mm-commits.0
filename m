@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C13864A3E
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:14:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ABAB397695
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:14:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779138876; cv=none; b=qSYwpt4vkigB9ZDu0C85yveIRk933a4NX6YpkVXnvDEbFcgvWwfNpL74dpnmnpViNY2pff/5vdNtKv9OliOXRDo18dU23bvhoO23n/ASJl4JmgSwjwKOenVSt2U0FwmhInyhlo0V2D2hGFUAcYWhH+JSZ/yqcDLsenfqre5UmK4=
+	t=1779138879; cv=none; b=dCq22O4pCyKTLvp+y7B12v/bjMlHqmhi/9FK3Y3dUHxiAckEDhcR/YAvjU6rc9B5SKHJu/gCjM/rgnWr1ZhAv1ISaxrm7heJYncK4T3okZo0k+m0HPyG7r31oTI6JHqCeWU/pgVju35+J83K/21L6305wNcc31UNiIb2UxhqrLE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779138876; c=relaxed/simple;
-	bh=dg9eDH9FozQU2Q/kHvZpNX5J3Yv9uY2oDnoBqVv8smk=;
-	h=Date:To:From:Subject:Message-Id; b=cnZLNRMaYYqIVw0Lw3bM3Gu5Hl5IAQ3EdtaSSDTEmH61BTJmkzbonZQjhj9lpdTD94h+VlavqPLM/trqMfl40h3mrAQqV5f3eBiY5mF6le0QQxWL0woqqa33yVumo1qVb69Fr6yD9t0nXWUNFQMMxxWWg3OzQabOfbYSBXK8Mnw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zfM4ITok; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779138879; c=relaxed/simple;
+	bh=Ca7TiKv40RYiWRQ3/qOSXSoYdK1DHmrzBI3zLYoOyKk=;
+	h=Date:To:From:Subject:Message-Id; b=CEMKvoGBf2AcleShPMIm7KBE2ncjERzT0zZp9Jom/j/pCTSWMsiZMc0Z6Zk2iCfBA31yLUIWz2CYmXMTx8Vt3Z7vNQSnzGUAqsZGFu02iDVGEZEnI45eO/VhcXvIXFSqC2eNMjG++uhvpDidp72FB3d2e1HlXL8NieVkRNdfGhE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uDWQRLtm; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zfM4ITok"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FE07C2BCC6;
-	Mon, 18 May 2026 21:14:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uDWQRLtm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02A8FC2BCB7;
+	Mon, 18 May 2026 21:14:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779138876;
-	bh=dg9eDH9FozQU2Q/kHvZpNX5J3Yv9uY2oDnoBqVv8smk=;
+	s=korg; t=1779138879;
+	bh=Ca7TiKv40RYiWRQ3/qOSXSoYdK1DHmrzBI3zLYoOyKk=;
 	h=Date:To:From:Subject:From;
-	b=zfM4ITokGX3zN8GPwDyOENMBM/aOs696oCCHXcagcooelXfs95Kw1hBkk+VvLyVaA
-	 b0xwmcdUhZ4NYQe4HEFH2MuR8pD2MyKqgjtmAQ8y3l7MmqkSR2mY0MT6JHzvbjwplp
-	 05eAo5cAY8psScnsR+BrvlzhpebtXkg7ukKKxWa8=
-Date: Mon, 18 May 2026 14:14:36 -0700
+	b=uDWQRLtmtk4RcqxVu2z5ooLHu9EfK1ydSLhzLG8yD0XVx4TDh5RTHePt435Ucbz69
+	 HlvB4lRVHtpU6BAKmAKhXmNStDIL2laV3gWpgGmBtqc4DKiSXpuKHKZra4H9mcXdRw
+	 syLj3vgsUvtOToGmd4+1edn1saEvQAmnEIkVCypg=
+Date: Mon, 18 May 2026 14:14:38 -0700
 To: mm-commits@vger.kernel.org,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + raid6_kunit-dynamically-allocate-data-buffers-using-vmalloc.patch added to mm-nonmm-unstable branch
-Message-Id: <20260518211436.8FE07C2BCC6@smtp.kernel.org>
+Subject: + raid6_kunit-cleanup-dataptr-handling.patch added to mm-nonmm-unstable branch
+Message-Id: <20260518211439.02A8FC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: raid6_kunit: dynamically allocate data buffers using vmalloc
+     Subject: raid6_kunit: cleanup dataptr handling
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     raid6_kunit-dynamically-allocate-data-buffers-using-vmalloc.patch
+     raid6_kunit-cleanup-dataptr-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6_kunit-dynamically-allocate-data-buffers-using-vmalloc.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6_kunit-cleanup-dataptr-handling.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,16 +59,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: raid6_kunit: dynamically allocate data buffers using vmalloc
-Date: Mon, 18 May 2026 07:17:58 +0200
+Subject: raid6_kunit: cleanup dataptr handling
+Date: Mon, 18 May 2026 07:17:59 +0200
 
-Use vmalloc for the data buffers instead of using static .data
-allocations.  This provides for better out of bounds checking and avoids
-wasting kernel memory after the test has run.  vmalloc is used instead of
-kmalloc to provide for better out of bounds access checking as in other
-kunit tests.
+Move the global dataptr array into test_recover() as all sites that fill
+data or parity can use test_buffers directly, and this localized the
+override for the failed slots to the recovery testing routine.
 
-Link: https://lore.kernel.org/20260518051804.462141-16-hch@lst.de
+Link: https://lore.kernel.org/20260518051804.462141-17-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Ard Biesheuvel <ardb@kernel.org>
 Tested-by: Ard Biesheuvel <ardb@kernel.org> # kunit only on arm64
@@ -100,159 +98,87 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/raid6/tests/raid6_kunit.c |   77 +++++++++++++++++++++------
- 1 file changed, 62 insertions(+), 15 deletions(-)
+ lib/raid/raid6/tests/raid6_kunit.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
---- a/lib/raid/raid6/tests/raid6_kunit.c~raid6_kunit-dynamically-allocate-data-buffers-using-vmalloc
+--- a/lib/raid/raid6/tests/raid6_kunit.c~raid6_kunit-cleanup-dataptr-handling
 +++ a/lib/raid/raid6/tests/raid6_kunit.c
-@@ -7,19 +7,20 @@
- 
- #include <kunit/test.h>
- #include <linux/prandom.h>
-+#include <linux/vmalloc.h>
- #include "../algos.h"
- 
- MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TESTING");
- 
- #define RAID6_KUNIT_SEED		42
-+#define RAID6_KUNIT_MAX_FAILURES	2
- 
+@@ -18,7 +18,6 @@ MODULE_IMPORT_NS("EXPORTED_FOR_KUNIT_TES
  #define NDISKS		16	/* Including P and Q */
  
  static struct rnd_state rng;
- static void *dataptrs[NDISKS];
--static char data[NDISKS][PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
--static char recovi[PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
--static char recovj[PAGE_SIZE] __attribute__((aligned(PAGE_SIZE)));
-+static void *test_buffers[NDISKS];
-+static void *test_recov_buffers[RAID6_KUNIT_MAX_FAILURES];
+-static void *dataptrs[NDISKS];
+ static void *test_buffers[NDISKS];
+ static void *test_recov_buffers[RAID6_KUNIT_MAX_FAILURES];
  
- struct test_args {
- 	unsigned int recov_idx;
-@@ -35,8 +36,8 @@ static void makedata(int start, int stop
+@@ -35,10 +34,8 @@ static void makedata(int start, int stop
+ {
  	int i;
  
- 	for (i = start; i <= stop; i++) {
--		prandom_bytes_state(&rng, data[i], PAGE_SIZE);
--		dataptrs[i] = data[i];
-+		prandom_bytes_state(&rng, test_buffers[i], PAGE_SIZE);
-+		dataptrs[i] = test_buffers[i];
- 	}
+-	for (i = start; i <= stop; i++) {
++	for (i = start; i <= stop; i++)
+ 		prandom_bytes_state(&rng, test_buffers[i], PAGE_SIZE);
+-		dataptrs[i] = test_buffers[i];
+-	}
  }
  
-@@ -55,12 +56,13 @@ static char member_type(int d)
+ static char member_type(int d)
+@@ -56,11 +53,13 @@ static char member_type(int d)
  static void test_recover(struct kunit *test, int faila, int failb)
  {
  	const struct test_args *ta = test->param_value;
-+	int i;
++	void *dataptrs[NDISKS];
+ 	int i;
  
--	memset(recovi, 0xf0, PAGE_SIZE);
--	memset(recovj, 0xba, PAGE_SIZE);
-+	for (i = 0; i < RAID6_KUNIT_MAX_FAILURES; i++)
-+		memset(test_recov_buffers[i], 0xf0, PAGE_SIZE);
+ 	for (i = 0; i < RAID6_KUNIT_MAX_FAILURES; i++)
+ 		memset(test_recov_buffers[i], 0xf0, PAGE_SIZE);
  
--	dataptrs[faila] = recovi;
--	dataptrs[failb] = recovj;
-+	dataptrs[faila] = test_recov_buffers[0];
-+	dataptrs[failb] = test_recov_buffers[1];
++	memcpy(dataptrs, test_buffers, sizeof(dataptrs));
+ 	dataptrs[faila] = test_recov_buffers[0];
+ 	dataptrs[failb] = test_recov_buffers[1];
  
- 	if (failb == NDISKS - 1) {
- 		/*
-@@ -80,18 +82,20 @@ static void test_recover(struct kunit *t
- 		ta->recov->data2(NDISKS, PAGE_SIZE, faila, failb, dataptrs);
- 	}
+@@ -70,7 +69,7 @@ static void test_recover(struct kunit *t
+ 		 * is equivalent to a RAID-5 failure (XOR, then recompute Q).
+ 		 */
+ 		if (faila != NDISKS - 2)
+-			goto skip;
++			return;
  
--	KUNIT_EXPECT_MEMEQ_MSG(test, data[faila], recovi, PAGE_SIZE,
-+	KUNIT_EXPECT_MEMEQ_MSG(test, test_buffers[faila], test_recov_buffers[0],
-+			PAGE_SIZE,
- 			"faila miscompared: %3d[%c] (failb=%3d[%c])\n",
- 			faila, member_type(faila),
- 			failb, member_type(failb));
--	KUNIT_EXPECT_MEMEQ_MSG(test, data[failb], recovj, PAGE_SIZE,
-+	KUNIT_EXPECT_MEMEQ_MSG(test, test_buffers[failb], test_recov_buffers[1],
-+			PAGE_SIZE,
+ 		/* P+Q failure.  Just rebuild the syndrome. */
+ 		ta->gen->gen_syndrome(NDISKS, PAGE_SIZE, dataptrs);
+@@ -92,10 +91,6 @@ static void test_recover(struct kunit *t
  			"failb miscompared: %3d[%c] (faila=%3d[%c])\n",
  			failb, member_type(failb),
  			faila, member_type(faila));
- 
- skip:
--	dataptrs[faila] = data[faila];
--	dataptrs[failb] = data[failb];
-+	dataptrs[faila] = test_buffers[faila];
-+	dataptrs[failb] = test_buffers[failb];
+-
+-skip:
+-	dataptrs[faila] = test_buffers[faila];
+-	dataptrs[failb] = test_buffers[failb];
  }
  
  static void raid6_test(struct kunit *test)
-@@ -100,8 +104,8 @@ static void raid6_test(struct kunit *tes
- 	int i, j, p1, p2;
- 
- 	/* Nuke syndromes */
--	memset(data[NDISKS - 2], 0xee, PAGE_SIZE);
--	memset(data[NDISKS - 1], 0xee, PAGE_SIZE);
-+	memset(test_buffers[NDISKS - 2], 0xee, PAGE_SIZE);
-+	memset(test_buffers[NDISKS - 1], 0xee, PAGE_SIZE);
+@@ -108,7 +103,7 @@ static void raid6_test(struct kunit *tes
+ 	memset(test_buffers[NDISKS - 1], 0xee, PAGE_SIZE);
  
  	/* Generate assumed good syndrome */
- 	ta->gen->gen_syndrome(NDISKS, PAGE_SIZE, (void **)&dataptrs);
-@@ -161,15 +165,58 @@ static struct kunit_case raid6_test_case
+-	ta->gen->gen_syndrome(NDISKS, PAGE_SIZE, (void **)&dataptrs);
++	ta->gen->gen_syndrome(NDISKS, PAGE_SIZE, test_buffers);
  
- static int raid6_suite_init(struct kunit_suite *suite)
- {
-+	int i;
-+
- 	prandom_seed_state(&rng, RAID6_KUNIT_SEED);
-+
-+	/*
-+	 * Allocate the test buffer using vmalloc() with a page-aligned length
-+	 * so that it is immediately followed by a guard page.  This allows
-+	 * buffer overreads to be detected, even in assembly code.
-+	 */
-+	for (i = 0; i < RAID6_KUNIT_MAX_FAILURES; i++) {
-+		test_recov_buffers[i] = vmalloc(PAGE_SIZE);
-+		if (!test_recov_buffers[i])
-+			goto out_free_recov_buffers;
-+	}
-+	for (i = 0; i < NDISKS; i++) {
-+		test_buffers[i] = vmalloc(PAGE_SIZE);
-+		if (!test_buffers[i])
-+			goto out_free_buffers;
-+	}
-+
- 	makedata(0, NDISKS - 1);
-+
- 	return 0;
-+
-+out_free_buffers:
-+	for (i = 0; i < NDISKS; i++)
-+		vfree(test_buffers[i]);
-+	memset(test_buffers, 0, sizeof(test_buffers));
-+out_free_recov_buffers:
-+	for (i = 0; i < RAID6_KUNIT_MAX_FAILURES; i++)
-+		vfree(test_recov_buffers[i]);
-+	memset(test_recov_buffers, 0, sizeof(test_recov_buffers));
-+	return -ENOMEM;
-+}
-+
-+static void raid6_suite_exit(struct kunit_suite *suite)
-+{
-+	int i;
-+
-+	for (i = 0; i < NDISKS; i++)
-+		vfree(test_buffers[i]);
-+	memset(test_buffers, 0, sizeof(test_buffers));
-+	for (i = 0; i < RAID6_KUNIT_MAX_FAILURES; i++)
-+		vfree(test_recov_buffers[i]);
-+	memset(test_recov_buffers, 0, sizeof(test_recov_buffers));
- }
+ 	for (i = 0; i < NDISKS - 1; i++)
+ 		for (j = i + 1; j < NDISKS; j++)
+@@ -121,10 +116,10 @@ static void raid6_test(struct kunit *tes
+ 		for (p2 = p1; p2 < NDISKS - 2; p2++) {
+ 			/* Simulate rmw run */
+ 			ta->gen->xor_syndrome(NDISKS, p1, p2, PAGE_SIZE,
+-					(void **)&dataptrs);
++					test_buffers);
+ 			makedata(p1, p2);
+ 			ta->gen->xor_syndrome(NDISKS, p1, p2, PAGE_SIZE,
+-					(void **)&dataptrs);
++					test_buffers);
  
- static struct kunit_suite raid6_test_suite = {
- 	.name		= "raid6",
- 	.test_cases	= raid6_test_cases,
- 	.suite_init	= raid6_suite_init,
-+	.suite_exit	= raid6_suite_exit,
- };
- kunit_test_suite(raid6_test_suite);
- 
+ 			for (i = 0; i < NDISKS - 1; i++)
+ 				for (j = i + 1; j < NDISKS; j++)
 _
 
 Patches currently in -mm which might be from hch@lst.de are
