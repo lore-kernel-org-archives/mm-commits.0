@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5030619E819
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 23:05:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E174765192
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 23:07:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779145519; cv=none; b=BTtrEKJUr6ycOLOjkOE7At/juxdEqHHTb3gl9NEwo1b4wvun/nKhcQYrtjYujYFl2Bk51dIt/GRSj9t5Ll+wt3KnURhzGP51/GeJXPR2BotL7Dtl9/B122TxgSi3S6XeVjbUD4mDCvtc7uNN5A5wu8XtsVL95ydpfDlj/tVsBvg=
+	t=1779145664; cv=none; b=D1i5dad29SF2dPGLcg6rJYYDUnCgY/k14Tj2HIxhmAJth/Ltdu4Ku5xxNGlDRLTdjrZHF+NFB1fBT4Iv32/kD3K2ERKRNaNtQqfE5Kj5S9Pig4shiE9VuXa5rxYaGhcZ9amVN9HqNsZLdxHSMCOvYDIeDKmIYzezePBi2Ctjwow=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779145519; c=relaxed/simple;
-	bh=9oeX3kKyntb+RLSscfbJd3Vn7ZriMSDB3HJjuZQwQ9M=;
-	h=Date:To:From:Subject:Message-Id; b=BBhpZ5d+Dxmcz0aymVpGewdXWjzRqPiAV07Cjgagahan/xSVEXrfYzTEUbAJD/WwyYssemGRxmdIBDA91xa/lnkhHbFUqCQ7Iq8g3qxm+yD9rFvt2EaV1AcPG5tpnE5bE/bANbvS5CAy+g8TPBRGzlf8gmLGu5KhIrLsvoIBJXc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Hx5ocVOv; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779145664; c=relaxed/simple;
+	bh=/SmIXD5j7m6HW0QMnFS2ABW9O8RxoWxMpKkg1aCXpZI=;
+	h=Date:To:From:Subject:Message-Id; b=a5MY4UwOnqelLDo17B9o8hckQxeyRg8kKhaqjSJ4zOVFPSjD8bYSI3yNPtmNgA2YoM6o4C/o55DdJNe8IDpzGIZJW2e1DiDAnfvSLmOFXTWvYUj9sRl1IOuxHOhkoSfXih9HvUYdDDvJNwV6Ska8bikBwVeK68XCrx2jbr4pZwM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Yk1GJpme; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Hx5ocVOv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B45F0C2BCB7;
-	Mon, 18 May 2026 23:05:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Yk1GJpme"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 70F6DC2BCB7;
+	Mon, 18 May 2026 23:07:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779145518;
-	bh=9oeX3kKyntb+RLSscfbJd3Vn7ZriMSDB3HJjuZQwQ9M=;
+	s=korg; t=1779145663;
+	bh=/SmIXD5j7m6HW0QMnFS2ABW9O8RxoWxMpKkg1aCXpZI=;
 	h=Date:To:From:Subject:From;
-	b=Hx5ocVOvZQdUtzGTE1TGZLgT6mk+g6+3iyHsCEKpTDQ91TG36wz+rc16ryEPaIwYc
-	 JRgyVMoSk+tRA65zwlOBMohuLqiz1kua70siIVmiyH+DpuTztAZse0EbpWtEtM9Llg
-	 hW8vGl1xvBOBi+yMwUN5b1BGv2iczutRDQii4g7E=
-Date: Mon, 18 May 2026 16:05:18 -0700
-To: mm-commits@vger.kernel.org,glider@google.com,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,jannh@google.com,akpm@linux-foundation.org
+	b=Yk1GJpme96V1htFiVh6TsmEnyfgDncSWjN3J0pTvVB9nrCYPCuRpPNjLSbI7khSSf
+	 HlNWalg4C634R21DCyW/znMnuouZ49gl+gsMzExtM3qjk4Cu8OKyhoprNDfMr3peIU
+	 cr9TjNjK4FyyaThzcKQuQd6YxCIDTE/OlCJYrt1c=
+Date: Mon, 18 May 2026 16:07:42 -0700
+To: mm-commits@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,penguin-kernel@I-love.SAKURA.ne.jp,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kcov-allow-simultaneous-kcov_enable-kcov_remote_enable-v2.patch added to mm-nonmm-unstable branch
-Message-Id: <20260518230518.B45F0C2BCB7@smtp.kernel.org>
+Subject: + ocfs2-kill-osb-system_file_mutex-lock.patch added to mm-nonmm-unstable branch
+Message-Id: <20260518230743.70F6DC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kcov-allow-simultaneous-kcov_enable-kcov_remote_enable-v2
+     Subject: ocfs2: kill osb->system_file_mutex lock
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kcov-allow-simultaneous-kcov_enable-kcov_remote_enable-v2.patch
+     ocfs2-kill-osb-system_file_mutex-lock.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-allow-simultaneous-kcov_enable-kcov_remote_enable-v2.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-kill-osb-system_file_mutex-lock.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,40 +58,94 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: kcov-allow-simultaneous-kcov_enable-kcov_remote_enable-v2
-Date: Fri, 15 May 2026 18:22:30 +0200
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: ocfs2: kill osb->system_file_mutex lock
+Date: Mon, 18 May 2026 13:23:40 +0900
 
-remove unused constant KCOV_MODE_REMOTE, per Dmitry
+Commit 43b10a20372d ("ocfs2: avoid system inode ref confusion by adding
+mutex lock") tried to avoid a refcount leak caused by allowing multiple
+threads to call igrab(inode).  But addition of osb->system_file_mutex made
+locking dependency complicated and is causing lockdep to warn about
+possibility of AB-BA deadlock.
 
-Link: https://lore.kernel.org/20260515-kcov-simultaneous-remote-v2-1-56fde1cfa509@google.com
-Signed-off-by: Jann Horn <jannh@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Marco Elver <elver@google.com>
+Since _ocfs2_get_system_file_inode() returns the same inode for the same
+input arguments, we don't need to serialize
+_ocfs2_get_system_file_inode().  What we need to make sure is that
+igrab(inode) is called for only once().  Therefore, replace
+osb->system_file_mutex with cmpxchg()-based locking.
+
+Link: https://lore.kernel.org/fea8d1fd-afb0-4302-a560-c202e2ef7afd@I-love.SAKURA.ne.jp
+Fixes: 43b10a20372d ("ocfs2: avoid system inode ref confusion by adding mutex lock")
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reviewed-by: Heming Zhao <heming.zhao@suse.com>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kcov.h |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ocfs2/ocfs2.h   |    2 --
+ fs/ocfs2/super.c   |    2 --
+ fs/ocfs2/sysfile.c |    9 +++------
+ 3 files changed, 3 insertions(+), 10 deletions(-)
 
---- a/include/linux/kcov.h~kcov-allow-simultaneous-kcov_enable-kcov_remote_enable-v2
-+++ a/include/linux/kcov.h
-@@ -21,8 +21,6 @@ enum kcov_mode {
- 	KCOV_MODE_TRACE_PC = 2,
- 	/* Collecting comparison operands mode. */
- 	KCOV_MODE_TRACE_CMP = 3,
--	/* The process owns a KCOV remote reference. */
--	KCOV_MODE_REMOTE = 4,
- };
+--- a/fs/ocfs2/ocfs2.h~ocfs2-kill-osb-system_file_mutex-lock
++++ a/fs/ocfs2/ocfs2.h
+@@ -494,8 +494,6 @@ struct ocfs2_super
+ 	struct rb_root	osb_rf_lock_tree;
+ 	struct ocfs2_refcount_tree *osb_ref_tree_lru;
  
- #define KCOV_IN_CTXSW	(1 << 30)
+-	struct mutex system_file_mutex;
+-
+ 	/*
+ 	 * OCFS2 needs to schedule several different types of work which
+ 	 * require cluster locking, disk I/O, recovery waits, etc. Since these
+--- a/fs/ocfs2/super.c~ocfs2-kill-osb-system_file_mutex-lock
++++ a/fs/ocfs2/super.c
+@@ -1997,8 +1997,6 @@ static int ocfs2_initialize_super(struct
+ 	spin_lock_init(&osb->osb_xattr_lock);
+ 	ocfs2_init_steal_slots(osb);
+ 
+-	mutex_init(&osb->system_file_mutex);
+-
+ 	atomic_set(&osb->alloc_stats.moves, 0);
+ 	atomic_set(&osb->alloc_stats.local_data, 0);
+ 	atomic_set(&osb->alloc_stats.bitmap_data, 0);
+--- a/fs/ocfs2/sysfile.c~ocfs2-kill-osb-system_file_mutex-lock
++++ a/fs/ocfs2/sysfile.c
+@@ -98,11 +98,9 @@ struct inode *ocfs2_get_system_file_inod
+ 	} else
+ 		arr = get_local_system_inode(osb, type, slot);
+ 
+-	mutex_lock(&osb->system_file_mutex);
+ 	if (arr && ((inode = *arr) != NULL)) {
+ 		/* get a ref in addition to the array ref */
+ 		inode = igrab(inode);
+-		mutex_unlock(&osb->system_file_mutex);
+ 		BUG_ON(!inode);
+ 
+ 		return inode;
+@@ -112,11 +110,10 @@ struct inode *ocfs2_get_system_file_inod
+ 	inode = _ocfs2_get_system_file_inode(osb, type, slot);
+ 
+ 	/* add one more if putting into array for first time */
+-	if (arr && inode) {
+-		*arr = igrab(inode);
+-		BUG_ON(!*arr);
++	if (inode && arr && !*arr && !cmpxchg(&(*arr), NULL, inode)) {
++		inode = igrab(inode);
++		BUG_ON(!inode);
+ 	}
+-	mutex_unlock(&osb->system_file_mutex);
+ 	return inode;
+ }
+ 
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-kcov-refactor-common-handle-id-into-kcov_common_handle_id.patch
-kcov-allow-simultaneous-kcov_enable-kcov_remote_enable.patch
-kcov-allow-simultaneous-kcov_enable-kcov_remote_enable-v2.patch
+ocfs2-kill-osb-system_file_mutex-lock.patch
 
