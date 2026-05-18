@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 890EF399015
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:53:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7ADA1302CD5
+	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 21:59:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779141195; cv=none; b=gFSVi3/5BtdI/hOyPPZzs9HuDWuwWRDy2ueTgvbmY/OjAo3L0Op25D82Cnnb90EluikM+RdjJzNKxGVglPvV+vNo1mInbgUVbj3wZiAN3yLDqMg2Jmq7TW5OD8yK/BRMr+GA8hknUgWW7z7rdTYKQPYLFheOLliUZ+/lWpEt/FI=
+	t=1779141559; cv=none; b=l2ZycrtHO3ZT9QU48fmaFGWqN5F7UHfI1sG4bGsG1YdZD7LUBU1cW/lzzDDYNqeUC3Z/RIeuCzecqveGHpzwrVMw4M33RX84QSULE7aIkn+nhCBjTHMQXq2ElnxDxJ/0QZFCd8aDKyN01fy1i7Kb0/ZbIK9VsDuF01Kwu9s+Bnk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779141195; c=relaxed/simple;
-	bh=1peg06bhQ7Uslo0LlxAV4D9UdxBV2FZ+q08pvBbr9Xk=;
-	h=Date:To:From:Subject:Message-Id; b=D4rVUhzRaZEraRDQLxnMbUMksEAhORvYHzIWBhkDwpv2PRLNUB1c2qrDTwih/0ZmaxULJzU8c6idq+X8+B/BDL22eev6ggFZfW5tAo+H1uMO2IXudj5M4uq8W5mnknjoxYlwxyGlOJgQmmuwIKC625QUAgTZxv4iAgzCROOtMP0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RTA7tGLk; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779141559; c=relaxed/simple;
+	bh=w+gVdrPhpdUrGYws+dIOQVxZbZQoYO7JBu+wYInuh4A=;
+	h=Date:To:From:Subject:Message-Id; b=tde8PmkPjwQqzY9gI/OxbXBcTu0eYNLkXFn05Ew0aAgxWQkmE7tipyP6iwYA/LMv+n7utgZxgx4QCStQOL7aghTjhCLKi5zulrgtc64Y2ppfk4VK9oShQyf7QdvDmnPe7NKvVrt8rEGaE54kSv2B4eQzAoeWiFx9N6VEs/LoDoc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0rJuQG5V; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RTA7tGLk"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A46BC2BCB7;
-	Mon, 18 May 2026 21:53:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0rJuQG5V"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05187C2BCB7;
+	Mon, 18 May 2026 21:59:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779141195;
-	bh=1peg06bhQ7Uslo0LlxAV4D9UdxBV2FZ+q08pvBbr9Xk=;
+	s=korg; t=1779141559;
+	bh=w+gVdrPhpdUrGYws+dIOQVxZbZQoYO7JBu+wYInuh4A=;
 	h=Date:To:From:Subject:From;
-	b=RTA7tGLkPQ9gWWgWoBdKgq/7kbpNZAxTFlG7EanFnE4erme0Zri4glzJenZSQggb+
-	 igpuxraQyZEXoDXN3+zIi3b55C+x5weNflJV7lnUywuh1aVp6g85Z+rPZWYdVrGXFZ
-	 pO6gYEDUS1yaWfV29KQTcGixlAt0JgpK25H67MgY=
-Date: Mon, 18 May 2026 14:53:14 -0700
-To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org
+	b=0rJuQG5VKgoW+mTqLVIE7verA1j7AYxjy1X047aSFIMMQutAx79JgzUdtlVF3qTD6
+	 6sU/szKJIOkAhXu+ZPEGSII3Pn6fSs2EKjQlkCHyvsqxq+YJLAeFsjLNiI3zYECy/w
+	 txQYcApdkcRzpFlwQobXOJUpvNB5j1p+0l1Vc4mU=
+Date: Mon, 18 May 2026 14:59:18 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-merge-zeromap-into-swap-table.patch added to mm-new branch
-Message-Id: <20260518215315.1A46BC2BCB7@smtp.kernel.org>
+Subject: [to-be-updated] mm-khugepaged-remove-read_only_thp_for_fs-check.patch removed from -mm tree
+Message-Id: <20260518215919.05187C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,784 +34,232 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm, swap: merge zeromap into swap table
-has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-merge-zeromap-into-swap-table.patch
+The quilt patch titled
+     Subject: mm/khugepaged: remove READ_ONLY_THP_FOR_FS check
+has been removed from the -mm tree.  Its filename was
+     mm-khugepaged-remove-read_only_thp_for_fs-check.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-merge-zeromap-into-swap-table.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Kairui Song <kasong@tencent.com>
-Subject: mm, swap: merge zeromap into swap table
-Date: Sun, 17 May 2026 23:39:51 +0800
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm/khugepaged: remove READ_ONLY_THP_FOR_FS check
+Date: Wed, 29 Apr 2026 11:29:11 -0400
 
-By allocating one additional bit in the swap table entry's flags field
-alongside the count, we can store the zeromap inline
+Patch series "Remove CONFIG_READ_ONLY_THP_FOR_FS and enable file THP for
+writable files", v5.
 
-For 64 bit systems, zeromap will store in the swap table, avoiding zeromap
-allocation.  It reduces the allocated memory.  That is the happy path.
+This patchset removes READ_ONLY_THP_FOR_FS Kconfig and enables creating
+file-backed THPs for FSes with large folio support (the supported orders
+need to include PMD_ORDER) by default, including for writable files.
 
-For certain 32-bit archs, there might not be enough bits in the swap table
-to contain both PFN and flags.  Therefore, conditionally let each cluster
-have a zeromap field at build time, and use that instead.  If the swapfile
-cluster is not fully used, it will still save memory for zeromap.  The
-empty cluster does not allocate a zeromap.  In the worst case, all cluster
-are fully populated.  We will use memory similar to the previous zeromap
-implementation.
 
-A few macros were moved to different headers for build time struct
-definition.
+This patch (of 14):
 
-Link: https://lore.kernel.org/20260517-swap-table-p4-v5-12-88ae43e064c7@tencent.com
-Signed-off-by: Kairui Song <kasong@tencent.com>
-Acked-by: Chris Li <chrisl@kernel.org>
-Reviewed-by: Youngjun Park <youngjun.park@lge.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
+Before the patchset, the status of creating read-only THPs is below:
+
+                            |    PF     | MADV_COLLAPSE | khugepaged |
+                            |-----------|---------------|------------|
+ large folio FSes only      |     ✓     |       x       |      x     |
+ READ_ONLY_THP_FOR_FS only  |     x     |       ✓       |      ✓     |
+ both                       |     ✓     |       ✓       |      ✓     |
+
+where READ_ONLY_THP_FOR_FS implies no large folio FSes.
+
+
+Now without READ_ONLY_THP_FOR_FS:
+
+                                  |    PF     | MADV_COLLAPSE | khugepaged |
+                                  |-----------|---------------|------------|
+ large folio FSes (read-only fd)  |     ✓     |       ✓       |      ✓     |
+ large folio FSes (read-write fd) |     ✓     |       ✓       |      ✓*    |
+ no large folio FSes              |     x     |       x       |      x     |
+
+* khugepaged only collapses clean folios from writable files. Userspace
+  must flush dirty folios explicitly before khugepaged can collapse them.
+  MADV_COLLAPSE handles the flush automatically via its writeback-and-retry
+  path. Collapsing writable MAP_PRIVATE pagecache folios is still not
+  supported, since PMD THP CoW only faults in at PTE level to avoid long
+  CoW latency, and file_backed_vma_is_retractable() prevents it.
+
+This means no-large-folio FSes need to add large folio support (the
+supported orders need to include PMD_ORDER), so that they can leverage
+file THP creation.
+
+To prevent breaking file THP support for large folio FSes,
+1. first 4 patches enable the support, so that without READ_ONLY_THP_FOR_FS,
+   file THP still works for large folio FSes,
+2. Patch 5 removes READ_ONLY_THP_FOR_FS Kconfig,
+3. patches 6-12 remove code related to READ_ONLY_THP_FOR_FS,
+4. patches 13-14 enable clean pagecache folio collapse for writable files.
+
+
+NOTE: collapsing writable MAP_PRIVATE pagecache folios is not supported,
+since:
+1. PMD THP CoW only faults in at PTE level to avoid long CoW latency,
+2. the first check, due to 1, in file_backed_vma_is_retractable() prevents it.
+
+
+Overview
+========
+
+1. collapse_file() checks for to-be-collapsed folio dirtiness after they
+   are locked and unmapped to make sure no new write happens. Before,
+   mapping->nr_thps and inode->i_writecount were used to cause read-only
+   THP truncation before a fd becomes writable.
+
+2. hugepage_enabled() is true for anon, shmem, and file-backed cases
+   if the global khugepaged control is on, otherwise, khugepaged for
+   file-backed case is turned off and anon and shmem depend on per-size
+   control knobs.
+
+3. collapse_file() from mm/khugepaged.c, instead of checking
+   CONFIG_READ_ONLY_THP_FOR_FS, makes sure the mapping_max_folio_order()
+   of struct address_space of the file is at least PMD_ORDER.
+
+4. file_thp_enabled() checks mapping_max_folio_order() instead of
+   CONFIG_READ_ONLY_THP_FOR_FS and no longer checks if the file is opened
+   read-only. The dirty folio check after try_to_unmap() (Change 1)
+   handles writable files correctly.
+
+5. truncate_inode_partial_folio() calls folio_split() directly instead
+   of the removed try_folio_split_to_order(), since large folios can
+   only show up on a FS with large folio support.
+
+6. nr_thps is removed from struct address_space, since it is no longer
+   needed to drop all read-only THPs from a FS without large folio
+   support when the fd becomes writable. Its related filemap_nr_thps*()
+   are removed too.
+
+7. folio_check_splittable() no longer checks READ_ONLY_THP_FOR_FS.
+
+8. collapse_file() only calls filemap_flush() for read-only files.
+   Blindly flushing dirty folios from writable files would cause
+   undesirable system-wide writeback; userspace is expected to flush
+   explicitly, or use MADV_COLLAPSE which handles it via its retry path.
+
+9. Updated comments and selftests in various places.
+
+
+This patch (of 14):
+
+collapse_file() requires FSes supporting large folio with at least
+PMD_ORDER, so replace the READ_ONLY_THP_FOR_FS check with that. 
+MADV_COLLAPSE ignores shmem huge config, so exclude the check for shmem.
+
+While at it, replace VM_BUG_ON with VM_WARN_ON_ONCE.
+
+Add a helper function mapping_pmd_folio_support() for FSes supporting
+large folio with at least PMD_ORDER.
+
+Link: https://lore.kernel.org/20260429152924.727124-1-ziy@nvidia.com
+Link: https://lore.kernel.org/20260429152924.727124-2-ziy@nvidia.com
+Link: https://lore.kernel.org/all/20260323190644.1714379-1-ziy@nvidia.com/ [1]
+Link: https://lore.kernel.org/all/20260327014255.2058916-1-ziy@nvidia.com/ [2]
+Link: https://lore.kernel.org/all/20260413192030.3275825-1-ziy@nvidia.com/ [3]
+Link: https://lore.kernel.org/all/20260418024429.4055056-1-ziy@nvidia.com/ [4]
+Link: https://lore.kernel.org/all/20260424024915.28758-1-ziy@nvidia.com/ [5]
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: Nico Pache <npache@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Barry Song <baohua@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: Chris Mason <clm@fb.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Liam Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/memory.c          |   11 ---
- mm/page_io.c         |   61 ++++++++++++++++++---
- mm/swap.h            |   51 +++++++-----------
- mm/swap_state.c      |   14 ++--
- mm/swap_table.h      |  115 ++++++++++++++++++++++++++++++-----------
- mm/swapfile.c        |   54 ++++++++-----------
- 7 files changed, 191 insertions(+), 116 deletions(-)
+ include/linux/pagemap.h |   26 ++++++++++++++++++++++++++
+ mm/khugepaged.c         |   10 ++++++++--
+ 2 files changed, 34 insertions(+), 2 deletions(-)
 
---- a/include/linux/swap.h~mm-swap-merge-zeromap-into-swap-table
-+++ a/include/linux/swap.h
-@@ -253,7 +253,6 @@ struct swap_info_struct {
- 	struct plist_node list;		/* entry in swap_active_head */
- 	signed char	type;		/* strange name for an index */
- 	unsigned int	max;		/* size of this swap device */
--	unsigned long *zeromap;		/* kvmalloc'ed bitmap to track zero pages */
- 	struct swap_cluster_info *cluster_info; /* cluster info. Only for SSD */
- 	struct list_head free_clusters; /* free clusters list */
- 	struct list_head full_clusters; /* full clusters list */
---- a/mm/memory.c~mm-swap-merge-zeromap-into-swap-table
-+++ a/mm/memory.c
-@@ -4611,13 +4611,11 @@ static vm_fault_t handle_pte_marker(stru
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /*
-- * Check if the PTEs within a range are contiguous swap entries
-- * and have consistent swapcache, zeromap.
-+ * Check if the PTEs within a range are contiguous swap entries.
-  */
- static bool can_swapin_thp(struct vm_fault *vmf, pte_t *ptep, int nr_pages)
- {
- 	unsigned long addr;
--	softleaf_t entry;
- 	int idx;
- 	pte_t pte;
- 
-@@ -4627,18 +4625,13 @@ static bool can_swapin_thp(struct vm_fau
- 
- 	if (!pte_same(pte, pte_move_swp_offset(vmf->orig_pte, -idx)))
- 		return false;
--	entry = softleaf_from_pte(pte);
--	if (swap_pte_batch(ptep, nr_pages, pte) != nr_pages)
--		return false;
--
- 	/*
- 	 * swap_read_folio() can't handle the case a large folio is hybridly
- 	 * from different backends. And they are likely corner cases. Similar
- 	 * things might be added once zswap support large folios.
- 	 */
--	if (unlikely(swap_zeromap_batch(entry, nr_pages, NULL) != nr_pages))
-+	if (swap_pte_batch(ptep, nr_pages, pte) != nr_pages)
- 		return false;
--
- 	return true;
+--- a/include/linux/pagemap.h~mm-khugepaged-remove-read_only_thp_for_fs-check
++++ a/include/linux/pagemap.h
+@@ -513,6 +513,32 @@ static inline bool mapping_large_folio_s
+ 	return mapping_max_folio_order(mapping) > 0;
  }
  
---- a/mm/page_io.c~mm-swap-merge-zeromap-into-swap-table
-+++ a/mm/page_io.c
-@@ -26,6 +26,7 @@
- #include <linux/delayacct.h>
- #include <linux/zswap.h>
- #include "swap.h"
-+#include "swap_table.h"
- 
- static void __end_swap_bio_write(struct bio *bio)
- {
-@@ -204,15 +205,20 @@ static bool is_folio_zero_filled(struct
- static void swap_zeromap_folio_set(struct folio *folio)
- {
- 	struct obj_cgroup *objcg = get_obj_cgroup_from_folio(folio);
--	struct swap_info_struct *sis = __swap_entry_to_info(folio->swap);
- 	int nr_pages = folio_nr_pages(folio);
-+	struct swap_cluster_info *ci;
- 	swp_entry_t entry;
- 	unsigned int i;
- 
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_swapcache(folio), folio);
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
-+
-+	ci = swap_cluster_get_and_lock(folio);
- 	for (i = 0; i < folio_nr_pages(folio); i++) {
- 		entry = page_swap_entry(folio_page(folio, i));
--		set_bit(swp_offset(entry), sis->zeromap);
-+		__swap_table_set_zero(ci, swp_cluster_offset(entry));
- 	}
-+	swap_cluster_unlock(ci);
- 
- 	count_vm_events(SWPOUT_ZERO, nr_pages);
- 	if (objcg) {
-@@ -223,14 +229,19 @@ static void swap_zeromap_folio_set(struc
- 
- static void swap_zeromap_folio_clear(struct folio *folio)
- {
--	struct swap_info_struct *sis = __swap_entry_to_info(folio->swap);
-+	struct swap_cluster_info *ci;
- 	swp_entry_t entry;
- 	unsigned int i;
- 
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_swapcache(folio), folio);
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
-+
-+	ci = swap_cluster_get_and_lock(folio);
- 	for (i = 0; i < folio_nr_pages(folio); i++) {
- 		entry = page_swap_entry(folio_page(folio, i));
--		clear_bit(swp_offset(entry), sis->zeromap);
-+		__swap_table_clear_zero(ci, swp_cluster_offset(entry));
- 	}
-+	swap_cluster_unlock(ci);
- }
- 
- /*
-@@ -255,10 +266,9 @@ int swap_writeout(struct folio *folio, s
- 	}
- 
- 	/*
--	 * Use a bitmap (zeromap) to avoid doing IO for zero-filled pages.
--	 * The bits in zeromap are protected by the locked swapcache folio
--	 * and atomic updates are used to protect against read-modify-write
--	 * corruption due to other zero swap entries seeing concurrent updates.
-+	 * Use the swap table zero mark to avoid doing IO for zero-filled
-+	 * pages. The zero mark is protected by the cluster lock, which is
-+	 * acquired internally by swap_zeromap_folio_set/clear.
- 	 */
- 	if (is_folio_zero_filled(folio)) {
- 		swap_zeromap_folio_set(folio);
-@@ -509,19 +519,52 @@ static void sio_read_complete(struct kio
- 	mempool_free(sio, sio_pool);
- }
- 
-+/*
-+ * Return the count of contiguous swap entries that share the same
-+ * zeromap status as the starting entry. If is_zerop is not NULL,
-+ * it will return the zeromap status of the starting entry.
++/**
++ * mapping_pmd_folio_support() - Check if a mapping support PMD-sized folio
++ * @mapping: The address_space
 + *
-+ * Context: Caller must ensure the cluster containing the entries
-+ * that will be checked won't be freed.
++ * Some file supports large folio but does not support as large as PMD order.
++ * If a PMD-sized pagecache folio is attempted to be created on a filesystem,
++ * this check needs to be performed first.
++ *
++ * Return: true - PMD-sized folio is supported, false - PMD-sized folio is not
++ * supported.
 + */
-+static int swap_zeromap_batch(swp_entry_t entry, int max_nr,
-+			      bool *is_zerop)
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static inline bool mapping_pmd_folio_support(const struct address_space *mapping)
 +{
-+	int i;
-+	bool is_zero;
-+	unsigned int ci_start = swp_cluster_offset(entry);
-+	struct swap_cluster_info *ci = __swap_entry_to_cluster(entry);
++	/* AS_FOLIO_ORDER is only reasonable for pagecache folios */
++	VM_WARN_ON_ONCE((unsigned long)mapping & FOLIO_MAPPING_ANON);
 +
-+	VM_WARN_ON_ONCE(ci_start + max_nr > SWAPFILE_CLUSTER);
-+
-+	rcu_read_lock();
-+	is_zero = __swap_table_test_zero(ci, ci_start);
-+	for (i = 1; i < max_nr; i++)
-+		if (is_zero != __swap_table_test_zero(ci, ci_start + i))
-+			break;
-+	rcu_read_unlock();
-+	if (is_zerop)
-+		*is_zerop = is_zero;
-+
-+	return i;
++	return mapping_max_folio_order(mapping) >= PMD_ORDER;
 +}
-+
- static bool swap_read_folio_zeromap(struct folio *folio)
- {
- 	int nr_pages = folio_nr_pages(folio);
- 	struct obj_cgroup *objcg;
- 	bool is_zeromap;
- 
-+	VM_WARN_ON_ONCE_FOLIO(!folio_test_locked(folio), folio);
-+
- 	/*
- 	 * Swapping in a large folio that is partially in the zeromap is not
- 	 * currently handled. Return true without marking the folio uptodate so
- 	 * that an IO error is emitted (e.g. do_swap_page() will sigbus).
-+	 * Folio lock stabilizes the cluster and map, so the check is safe.
- 	 */
- 	if (WARN_ON_ONCE(swap_zeromap_batch(folio->swap, nr_pages,
--			&is_zeromap) != nr_pages))
-+			 &is_zeromap) != nr_pages))
- 		return true;
- 
- 	if (!is_zeromap)
---- a/mm/swapfile.c~mm-swap-merge-zeromap-into-swap-table
-+++ a/mm/swapfile.c
-@@ -427,6 +427,11 @@ static void swap_cluster_free_table(stru
- 	ci->memcg_table = NULL;
- #endif
- 
-+#if !SWAP_TABLE_HAS_ZEROFLAG
-+	kfree(ci->zero_bitmap);
-+	ci->zero_bitmap = NULL;
-+#endif
-+
- 	table = (struct swap_table *)rcu_access_pointer(ci->table);
- 	if (!table)
- 		return;
-@@ -469,13 +474,21 @@ static int swap_cluster_alloc_table(stru
- 		VM_WARN_ON_ONCE(ci->memcg_table);
- 		ci->memcg_table = kzalloc_obj(*ci->memcg_table, gfp);
- 		if (!ci->memcg_table)
--			ret = -ENOMEM;
-+			goto err_free;
- 	}
- #endif
--	if (ret)
--		swap_cluster_free_table(ci);
- 
--	return ret;
-+#if !SWAP_TABLE_HAS_ZEROFLAG
-+	VM_WARN_ON_ONCE(ci->zero_bitmap);
-+	ci->zero_bitmap = bitmap_zalloc(SWAPFILE_CLUSTER, gfp);
-+	if (!ci->zero_bitmap)
-+		goto err_free;
-+#endif
-+	return 0;
-+
-+err_free:
-+	swap_cluster_free_table(ci);
-+	return -ENOMEM;
- }
- 
- /*
-@@ -928,8 +941,8 @@ static bool __swap_cluster_alloc_entries
- 		order = 0;
- 		nr_pages = 1;
- 		swap_cluster_assert_empty(ci, ci_off, 1, false);
--		/* Sets a fake shadow as placeholder */
--		__swap_table_set(ci, ci_off, shadow_to_swp_tb(NULL, 1));
-+		/* Fake shadow placeholder with no flag, hibernation does not use the zeromap */
-+		__swap_table_set(ci, ci_off, __swp_tb_mk_count(shadow_to_swp_tb(NULL, 0), 1));
- 	} else {
- 		/* Allocation without folio is only possible with hibernation */
- 		WARN_ON_ONCE(1);
-@@ -1302,14 +1315,8 @@ static void swap_range_free(struct swap_
- 	void (*swap_slot_free_notify)(struct block_device *, unsigned long);
- 	unsigned int i;
- 
--	/*
--	 * Use atomic clear_bit operations only on zeromap instead of non-atomic
--	 * bitmap_clear to prevent adjacent bits corruption due to simultaneous writes.
--	 */
--	for (i = 0; i < nr_entries; i++) {
--		clear_bit(offset + i, si->zeromap);
-+	for (i = 0; i < nr_entries; i++)
- 		zswap_invalidate(swp_entry(si->type, offset + i));
--	}
- 
- 	if (si->flags & SWP_BLKDEV)
- 		swap_slot_free_notify =
-@@ -1912,7 +1919,11 @@ void __swap_cluster_free_entries(struct
- 		 * ref, or after swap cache is dropped
- 		 */
- 		VM_WARN_ON(!swp_tb_is_shadow(old_tb) || __swp_tb_get_count(old_tb) > 1);
-+
-+		/* Resetting the slot to NULL also clears the inline flags. */
- 		__swap_table_set(ci, ci_off, null_to_swp_tb());
-+		if (!SWAP_TABLE_HAS_ZEROFLAG)
-+			__swap_table_clear_zero(ci, ci_off);
- 
- 		/*
- 		 * Uncharge swap slots by memcg in batches. Consecutive
-@@ -3106,7 +3117,6 @@ static void flush_percpu_swap_cluster(st
- SYSCALL_DEFINE1(swapoff, const char __user *, specialfile)
- {
- 	struct swap_info_struct *p = NULL;
--	unsigned long *zeromap;
- 	struct swap_cluster_info *cluster_info;
- 	struct file *swap_file, *victim;
- 	struct address_space *mapping;
-@@ -3202,8 +3212,6 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 
- 	swap_file = p->swap_file;
- 	p->swap_file = NULL;
--	zeromap = p->zeromap;
--	p->zeromap = NULL;
- 	maxpages = p->max;
- 	cluster_info = p->cluster_info;
- 	p->max = 0;
-@@ -3215,7 +3223,6 @@ SYSCALL_DEFINE1(swapoff, const char __us
- 	mutex_unlock(&swapon_mutex);
- 	kfree(p->global_cluster);
- 	p->global_cluster = NULL;
--	kvfree(zeromap);
- 	free_swap_cluster_info(cluster_info, maxpages);
- 
- 	inode = mapping->host;
-@@ -3747,17 +3754,6 @@ SYSCALL_DEFINE2(swapon, const char __use
- 	if (error)
- 		goto bad_swap_unlock_inode;
- 
--	/*
--	 * Use kvmalloc_array instead of bitmap_zalloc as the allocation order might
--	 * be above MAX_PAGE_ORDER incase of a large swap file.
--	 */
--	si->zeromap = kvmalloc_array(BITS_TO_LONGS(maxpages), sizeof(long),
--				     GFP_KERNEL | __GFP_ZERO);
--	if (!si->zeromap) {
--		error = -ENOMEM;
--		goto bad_swap_unlock_inode;
--	}
--
- 	if (si->bdev && bdev_stable_writes(si->bdev))
- 		si->flags |= SWP_STABLE_WRITES;
- 
-@@ -3859,8 +3855,6 @@ bad_swap:
- 	destroy_swap_extents(si, swap_file);
- 	free_swap_cluster_info(si->cluster_info, si->max);
- 	si->cluster_info = NULL;
--	kvfree(si->zeromap);
--	si->zeromap = NULL;
- 	/*
- 	 * Clear the SWP_USED flag after all resources are freed so
- 	 * alloc_swap_info can reuse this si safely.
---- a/mm/swap.h~mm-swap-merge-zeromap-into-swap-table
-+++ a/mm/swap.h
-@@ -3,12 +3,29 @@
- #define _MM_SWAP_H
- 
- #include <linux/atomic.h> /* for atomic_long_t */
-+#include <linux/mm.h> /* for PAGE_SHIFT */
- struct mempolicy;
- struct swap_iocb;
- struct swap_memcg_table;
- 
- extern int page_cluster;
- 
-+#if defined(MAX_POSSIBLE_PHYSMEM_BITS)
-+#define SWAP_CACHE_PFN_BITS (MAX_POSSIBLE_PHYSMEM_BITS - PAGE_SHIFT)
-+#elif defined(MAX_PHYSMEM_BITS)
-+#define SWAP_CACHE_PFN_BITS (MAX_PHYSMEM_BITS - PAGE_SHIFT)
 +#else
-+#define SWAP_CACHE_PFN_BITS (BITS_PER_LONG - PAGE_SHIFT)
++static inline bool mapping_pmd_folio_support(const struct address_space *mapping)
++{
++	return false;
++}
 +#endif
 +
-+/* Swap table marker, 0x1 means shadow, 0x2 means PFN (SWP_TB_PFN_MARK) */
-+#define SWAP_CACHE_PFN_MARK_BITS	2
-+/* At least 2 bits are needed to distinguish SWP_TB_COUNT_MAX, 1 and 0 */
-+#define SWAP_COUNT_MIN_BITS		2
-+/* If there are enough bits besides PFN and marker, store zero flag inline */
-+#define SWAP_TABLE_HAS_ZEROFLAG		((BITS_PER_LONG - SWAP_CACHE_PFN_MARK_BITS - \
-+					  SWAP_CACHE_PFN_BITS) > SWAP_COUNT_MIN_BITS)
-+
- #ifdef CONFIG_THP_SWAP
- #define SWAPFILE_CLUSTER	HPAGE_PMD_NR
- #define swap_entry_order(order)	(order)
-@@ -42,6 +59,9 @@ struct swap_cluster_info {
- #ifdef CONFIG_MEMCG
- 	struct swap_memcg_table *memcg_table;	/* Swap table entries' cgroup record */
- #endif
-+#if !SWAP_TABLE_HAS_ZEROFLAG
-+	unsigned long *zero_bitmap;
-+#endif
- 	struct list_head list;
- };
- 
-@@ -314,31 +334,6 @@ static inline unsigned int folio_swap_fl
- 	return __swap_entry_to_info(folio->swap)->flags;
- }
- 
--/*
-- * Return the count of contiguous swap entries that share the same
-- * zeromap status as the starting entry. If is_zeromap is not NULL,
-- * it will return the zeromap status of the starting entry.
-- */
--static inline int swap_zeromap_batch(swp_entry_t entry, int max_nr,
--		bool *is_zeromap)
--{
--	struct swap_info_struct *sis = __swap_entry_to_info(entry);
--	unsigned long start = swp_offset(entry);
--	unsigned long end = start + max_nr;
--	bool first_bit;
--
--	first_bit = test_bit(start, sis->zeromap);
--	if (is_zeromap)
--		*is_zeromap = first_bit;
--
--	if (max_nr <= 1)
--		return max_nr;
--	if (first_bit)
--		return find_next_zero_bit(sis->zeromap, end, start) - start;
--	else
--		return find_next_bit(sis->zeromap, end, start) - start;
--}
--
- #else /* CONFIG_SWAP */
- struct swap_iocb;
- static inline struct swap_cluster_info *swap_cluster_lock(
-@@ -476,11 +471,5 @@ static inline unsigned int folio_swap_fl
+ /* Return the maximum folio size for this pagecache mapping, in bytes. */
+ static inline size_t mapping_max_folio_size(const struct address_space *mapping)
  {
- 	return 0;
- }
--
--static inline int swap_zeromap_batch(swp_entry_t entry, int max_nr,
--		bool *has_zeromap)
--{
--	return 0;
--}
- #endif /* CONFIG_SWAP */
- #endif /* _MM_SWAP_H */
---- a/mm/swap_state.c~mm-swap-merge-zeromap-into-swap-table
-+++ a/mm/swap_state.c
-@@ -160,6 +160,7 @@ static int __swap_cache_add_check(struct
- {
- 	unsigned int ci_off, ci_end;
- 	unsigned long old_tb;
-+	bool is_zero;
+--- a/mm/khugepaged.c~mm-khugepaged-remove-read_only_thp_for_fs-check
++++ a/mm/khugepaged.c
+@@ -2243,8 +2243,14 @@ static enum scan_result collapse_file(st
+ 	int nr_none = 0;
+ 	bool is_shmem = shmem_file(file);
  
- 	lockdep_assert_held(&ci->lock);
+-	VM_BUG_ON(!IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && !is_shmem);
+-	VM_BUG_ON(start & (HPAGE_PMD_NR - 1));
++	/*
++	 * MADV_COLLAPSE ignores shmem huge config, so do not check shmem
++	 *
++	 * TODO: once shmem always calls mapping_set_large_folios() on its
++	 * mapping, the shmem check can be removed.
++	 */
++	VM_WARN_ON_ONCE(!is_shmem && !mapping_pmd_folio_support(mapping));
++	VM_WARN_ON_ONCE(start & (HPAGE_PMD_NR - 1));
  
-@@ -184,12 +185,14 @@ static int __swap_cache_add_check(struct
- 	if (nr == 1)
- 		return 0;
- 
-+	is_zero = __swap_table_test_zero(ci, ci_off);
- 	ci_off = round_down(ci_off, nr);
- 	ci_end = ci_off + nr;
- 	do {
- 		old_tb = __swap_table_get(ci, ci_off);
- 		if (unlikely(swp_tb_is_folio(old_tb) ||
- 			     !__swp_tb_get_count(old_tb) ||
-+			     is_zero != __swap_table_test_zero(ci, ci_off) ||
- 			     (memcg_id && *memcg_id != __swap_cgroup_get(ci, ci_off))))
- 			return -EBUSY;
- 	} while (++ci_off < ci_end);
-@@ -213,7 +216,7 @@ static void __swap_cache_do_add_folio(st
- 	do {
- 		old_tb = __swap_table_get(ci, ci_off);
- 		VM_WARN_ON_ONCE(swp_tb_is_folio(old_tb));
--		__swap_table_set(ci, ci_off, pfn_to_swp_tb(pfn, __swp_tb_get_count(old_tb)));
-+		__swap_table_set(ci, ci_off, pfn_to_swp_tb(pfn, __swp_tb_get_flags(old_tb)));
- 	} while (++ci_off < ci_end);
- 
- 	folio_ref_add(folio, nr_pages);
-@@ -249,7 +252,6 @@ static void __swap_cache_do_del_folio(st
- 				      struct folio *folio,
- 				      swp_entry_t entry, void *shadow)
- {
--	int count;
- 	unsigned long old_tb;
- 	struct swap_info_struct *si;
- 	unsigned int ci_start, ci_off, ci_end;
-@@ -269,13 +271,13 @@ static void __swap_cache_do_del_folio(st
- 		old_tb = __swap_table_get(ci, ci_off);
- 		WARN_ON_ONCE(!swp_tb_is_folio(old_tb) ||
- 			     swp_tb_to_folio(old_tb) != folio);
--		count = __swp_tb_get_count(old_tb);
--		if (count)
-+		if (__swp_tb_get_count(old_tb))
- 			folio_swapped = true;
- 		else
- 			need_free = true;
- 		/* If shadow is NULL, we set an empty shadow. */
--		__swap_table_set(ci, ci_off, shadow_to_swp_tb(shadow, count));
-+		__swap_table_set(ci, ci_off, shadow_to_swp_tb(shadow,
-+				 __swp_tb_get_flags(old_tb)));
- 	} while (++ci_off < ci_end);
- 
- 	folio->swap.val = 0;
-@@ -369,7 +371,7 @@ void __swap_cache_replace_folio(struct s
- 	do {
- 		old_tb = __swap_table_get(ci, ci_off);
- 		WARN_ON_ONCE(!swp_tb_is_folio(old_tb) || swp_tb_to_folio(old_tb) != old);
--		__swap_table_set(ci, ci_off, pfn_to_swp_tb(pfn, __swp_tb_get_count(old_tb)));
-+		__swap_table_set(ci, ci_off, pfn_to_swp_tb(pfn, __swp_tb_get_flags(old_tb)));
- 	} while (++ci_off < ci_end);
- 
- 	/*
---- a/mm/swap_table.h~mm-swap-merge-zeromap-into-swap-table
-+++ a/mm/swap_table.h
-@@ -26,12 +26,14 @@ struct swap_memcg_table {
-  * Swap table entry type and bits layouts:
-  *
-  * NULL:     |---------------- 0 ---------------| - Free slot
-- * Shadow:   | SWAP_COUNT |---- SHADOW_VAL ---|1| - Swapped out slot
-- * PFN:      | SWAP_COUNT |------ PFN -------|10| - Cached slot
-+ * Shadow:   |SWAP_COUNT|Z|---- SHADOW_VAL ---|1| - Swapped out slot
-+ * PFN:      |SWAP_COUNT|Z|------ PFN -------|10| - Cached slot
-  * Pointer:  |----------- Pointer ----------|100| - (Unused)
-  * Bad:      |------------- 1 -------------|1000| - Bad slot
-  *
-- * SWAP_COUNT is `SWP_TB_COUNT_BITS` long, each entry is an atomic long.
-+ * COUNT is `SWP_TB_COUNT_BITS` long, Z is the `SWP_TB_ZERO_FLAG` bit,
-+ * and together they form the `SWP_TB_FLAGS_BITS` wide flags field.
-+ * Each entry is an atomic long.
-  *
-  * Usages:
-  *
-@@ -54,14 +56,6 @@ struct swap_memcg_table {
-  * - Bad: Swap slot is reserved, protects swap header or holes on swap devices.
-  */
- 
--#if defined(MAX_POSSIBLE_PHYSMEM_BITS)
--#define SWAP_CACHE_PFN_BITS (MAX_POSSIBLE_PHYSMEM_BITS - PAGE_SHIFT)
--#elif defined(MAX_PHYSMEM_BITS)
--#define SWAP_CACHE_PFN_BITS (MAX_PHYSMEM_BITS - PAGE_SHIFT)
--#else
--#define SWAP_CACHE_PFN_BITS (BITS_PER_LONG - PAGE_SHIFT)
--#endif
--
- /* NULL Entry, all 0 */
- #define SWP_TB_NULL		0UL
- 
-@@ -69,22 +63,26 @@ struct swap_memcg_table {
- #define SWP_TB_SHADOW_MARK	0b1UL
- 
- /* Cached: PFN */
--#define SWP_TB_PFN_BITS		(SWAP_CACHE_PFN_BITS + SWP_TB_PFN_MARK_BITS)
-+#define SWP_TB_PFN_BITS		(SWAP_CACHE_PFN_BITS + SWAP_CACHE_PFN_MARK_BITS)
- #define SWP_TB_PFN_MARK		0b10UL
--#define SWP_TB_PFN_MARK_BITS	2
--#define SWP_TB_PFN_MARK_MASK	(BIT(SWP_TB_PFN_MARK_BITS) - 1)
-+#define SWP_TB_PFN_MARK_MASK	(BIT(SWAP_CACHE_PFN_MARK_BITS) - 1)
- 
--/* SWAP_COUNT part for PFN or shadow, the width can be shrunk or extended */
--#define SWP_TB_COUNT_BITS      min(4, BITS_PER_LONG - SWP_TB_PFN_BITS)
-+/* Flags: For PFN or shadow, contains SWAP_COUNT, width changes */
-+#define SWP_TB_FLAGS_BITS	min(5, BITS_PER_LONG - SWP_TB_PFN_BITS)
-+#define SWP_TB_COUNT_BITS	(SWP_TB_FLAGS_BITS - SWAP_TABLE_HAS_ZEROFLAG)
-+#define SWP_TB_FLAGS_MASK	(~((~0UL) >> SWP_TB_FLAGS_BITS))
- #define SWP_TB_COUNT_MASK      (~((~0UL) >> SWP_TB_COUNT_BITS))
-+#define SWP_TB_FLAGS_SHIFT     (BITS_PER_LONG - SWP_TB_FLAGS_BITS)
- #define SWP_TB_COUNT_SHIFT     (BITS_PER_LONG - SWP_TB_COUNT_BITS)
- #define SWP_TB_COUNT_MAX       ((1 << SWP_TB_COUNT_BITS) - 1)
-+/* The first flag is zero bit (SWAP_TABLE_HAS_ZEROFLAG) */
-+#define SWP_TB_ZERO_FLAG	BIT(BITS_PER_LONG - SWP_TB_FLAGS_BITS)
- 
- /* Bad slot: ends with 0b1000 and rests of bits are all 1 */
- #define SWP_TB_BAD		((~0UL) << 3)
- 
- /* Macro for shadow offset calculation */
--#define SWAP_COUNT_SHIFT	SWP_TB_COUNT_BITS
-+#define SWAP_COUNT_SHIFT	SWP_TB_FLAGS_BITS
- 
- /*
-  * Helpers for casting one type of info into a swap table entry.
-@@ -102,40 +100,47 @@ static inline unsigned long __count_to_s
- 	 * used (count > 0 && count < SWP_TB_COUNT_MAX), and
- 	 * overflow (count == SWP_TB_COUNT_MAX).
- 	 */
--	BUILD_BUG_ON(SWP_TB_COUNT_MAX < 2 || SWP_TB_COUNT_BITS < 2);
-+	BUILD_BUG_ON(SWP_TB_COUNT_BITS < SWAP_COUNT_MIN_BITS);
- 	VM_WARN_ON(count > SWP_TB_COUNT_MAX);
- 	return ((unsigned long)count) << SWP_TB_COUNT_SHIFT;
- }
- 
--static inline unsigned long pfn_to_swp_tb(unsigned long pfn, unsigned int count)
-+static inline unsigned long __flags_to_swp_tb(unsigned char flags)
-+{
-+	BUILD_BUG_ON(SWP_TB_FLAGS_BITS > BITS_PER_BYTE);
-+	VM_WARN_ON(flags >> SWP_TB_FLAGS_BITS);
-+	return ((unsigned long)flags) << SWP_TB_FLAGS_SHIFT;
-+}
-+
-+static inline unsigned long pfn_to_swp_tb(unsigned long pfn, unsigned char flags)
- {
- 	unsigned long swp_tb;
- 
- 	BUILD_BUG_ON(sizeof(unsigned long) != sizeof(void *));
- 	BUILD_BUG_ON(SWAP_CACHE_PFN_BITS >
--		     (BITS_PER_LONG - SWP_TB_PFN_MARK_BITS - SWP_TB_COUNT_BITS));
-+		     (BITS_PER_LONG - SWAP_CACHE_PFN_MARK_BITS - SWP_TB_FLAGS_BITS));
- 
--	swp_tb = (pfn << SWP_TB_PFN_MARK_BITS) | SWP_TB_PFN_MARK;
--	VM_WARN_ON_ONCE(swp_tb & SWP_TB_COUNT_MASK);
-+	swp_tb = (pfn << SWAP_CACHE_PFN_MARK_BITS) | SWP_TB_PFN_MARK;
-+	VM_WARN_ON_ONCE(swp_tb & SWP_TB_FLAGS_MASK);
- 
--	return swp_tb | __count_to_swp_tb(count);
-+	return swp_tb | __flags_to_swp_tb(flags);
- }
- 
--static inline unsigned long folio_to_swp_tb(struct folio *folio, unsigned int count)
-+static inline unsigned long folio_to_swp_tb(struct folio *folio, unsigned char flags)
- {
--	return pfn_to_swp_tb(folio_pfn(folio), count);
-+	return pfn_to_swp_tb(folio_pfn(folio), flags);
- }
- 
--static inline unsigned long shadow_to_swp_tb(void *shadow, unsigned int count)
-+static inline unsigned long shadow_to_swp_tb(void *shadow, unsigned char flags)
- {
- 	BUILD_BUG_ON((BITS_PER_XA_VALUE + 1) !=
- 		     BITS_PER_BYTE * sizeof(unsigned long));
- 	BUILD_BUG_ON((unsigned long)xa_mk_value(0) != SWP_TB_SHADOW_MARK);
- 
- 	VM_WARN_ON_ONCE(shadow && !xa_is_value(shadow));
--	VM_WARN_ON_ONCE(shadow && ((unsigned long)shadow & SWP_TB_COUNT_MASK));
-+	VM_WARN_ON_ONCE(shadow && ((unsigned long)shadow & SWP_TB_FLAGS_MASK));
- 
--	return (unsigned long)shadow | __count_to_swp_tb(count) | SWP_TB_SHADOW_MARK;
-+	return (unsigned long)shadow | SWP_TB_SHADOW_MARK | __flags_to_swp_tb(flags);
- }
- 
- /*
-@@ -173,14 +178,14 @@ static inline bool swp_tb_is_countable(u
- static inline struct folio *swp_tb_to_folio(unsigned long swp_tb)
- {
- 	VM_WARN_ON(!swp_tb_is_folio(swp_tb));
--	return pfn_folio((swp_tb & ~SWP_TB_COUNT_MASK) >> SWP_TB_PFN_MARK_BITS);
-+	return pfn_folio((swp_tb & ~SWP_TB_FLAGS_MASK) >> SWAP_CACHE_PFN_MARK_BITS);
- }
- 
- static inline void *swp_tb_to_shadow(unsigned long swp_tb)
- {
- 	VM_WARN_ON(!swp_tb_is_shadow(swp_tb));
- 	/* No shift needed, xa_value is stored as it is in the lower bits. */
--	return (void *)(swp_tb & ~SWP_TB_COUNT_MASK);
-+	return (void *)(swp_tb & ~SWP_TB_FLAGS_MASK);
- }
- 
- static inline unsigned char __swp_tb_get_count(unsigned long swp_tb)
-@@ -189,6 +194,12 @@ static inline unsigned char __swp_tb_get
- 	return ((swp_tb & SWP_TB_COUNT_MASK) >> SWP_TB_COUNT_SHIFT);
- }
- 
-+static inline unsigned char __swp_tb_get_flags(unsigned long swp_tb)
-+{
-+	VM_WARN_ON(!swp_tb_is_countable(swp_tb));
-+	return ((swp_tb & SWP_TB_FLAGS_MASK) >> SWP_TB_FLAGS_SHIFT);
-+}
-+
- static inline int swp_tb_get_count(unsigned long swp_tb)
- {
- 	if (swp_tb_is_countable(swp_tb))
-@@ -253,6 +264,50 @@ static inline unsigned long swap_table_g
- 	return swp_tb;
- }
- 
-+static inline void __swap_table_set_zero(struct swap_cluster_info *ci,
-+					 unsigned int ci_off)
-+{
-+#if SWAP_TABLE_HAS_ZEROFLAG
-+	unsigned long swp_tb = __swap_table_get(ci, ci_off);
-+
-+	BUILD_BUG_ON(SWP_TB_ZERO_FLAG & ~SWP_TB_FLAGS_MASK);
-+	VM_WARN_ON(!swp_tb_is_countable(swp_tb));
-+	swp_tb |= SWP_TB_ZERO_FLAG;
-+	__swap_table_set(ci, ci_off, swp_tb);
-+#else
-+	lockdep_assert_held(&ci->lock);
-+	__set_bit(ci_off, ci->zero_bitmap);
-+#endif
-+}
-+
-+static inline bool __swap_table_test_zero(struct swap_cluster_info *ci,
-+					  unsigned int ci_off)
-+{
-+#if SWAP_TABLE_HAS_ZEROFLAG
-+	unsigned long swp_tb = __swap_table_get(ci, ci_off);
-+
-+	VM_WARN_ON(!swp_tb_is_countable(swp_tb));
-+	return !!(swp_tb & SWP_TB_ZERO_FLAG);
-+#else
-+	return test_bit(ci_off, ci->zero_bitmap);
-+#endif
-+}
-+
-+static inline void __swap_table_clear_zero(struct swap_cluster_info *ci,
-+					   unsigned int ci_off)
-+{
-+#if SWAP_TABLE_HAS_ZEROFLAG
-+	unsigned long swp_tb = __swap_table_get(ci, ci_off);
-+
-+	VM_WARN_ON(!swp_tb_is_countable(swp_tb));
-+	swp_tb &= ~SWP_TB_ZERO_FLAG;
-+	__swap_table_set(ci, ci_off, swp_tb);
-+#else
-+	lockdep_assert_held(&ci->lock);
-+	__clear_bit(ci_off, ci->zero_bitmap);
-+#endif
-+}
-+
- #ifdef CONFIG_MEMCG
- static inline void __swap_cgroup_set(struct swap_cluster_info *ci,
- 		unsigned int ci_off, unsigned long nr, unsigned short id)
+ 	result = alloc_charge_folio(&new_folio, mm, cc, HPAGE_PMD_ORDER);
+ 	if (result != SCAN_SUCCEED)
 _
 
-Patches currently in -mm which might be from kasong@tencent.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-mglru-consolidate-common-code-for-retrieving-evictable-size.patch
-mm-mglru-rename-variables-related-to-aging-and-rotation.patch
-mm-mglru-relocate-the-lru-scan-batch-limit-to-callers.patch
-mm-mglru-restructure-the-reclaim-loop.patch
-mm-mglru-scan-and-count-the-exact-number-of-folios.patch
-mm-mglru-use-a-smaller-batch-for-reclaim.patch
-mm-mglru-dont-abort-scan-immediately-right-after-aging.patch
-mm-mglru-remove-redundant-swap-constrained-check-upon-isolation.patch
-mm-mglru-use-the-common-routine-for-dirty-writeback-reactivation.patch
-mm-mglru-simplify-and-improve-dirty-writeback-handling.patch
-mm-mglru-remove-no-longer-used-reclaim-argument-for-folio-protection.patch
-mm-vmscan-remove-sc-file_taken.patch
-mm-vmscan-remove-sc-unqueued_dirty.patch
-mm-vmscan-unify-writeback-reclaim-statistic-and-throttling.patch
-mm-swap-avoid-leaving-unused-extend-table-after-alloc-race.patch
-mm-swap-simplify-swap-cache-allocation-helper.patch
-mm-swap-move-common-swap-cache-operations-into-standalone-helpers.patch
-mm-huge_memory-move-thp-gfp-limit-helper-into-header.patch
-mm-swap-add-support-for-stable-large-allocation-in-swap-cache-directly.patch
-mm-swap-unify-large-folio-allocation.patch
-mm-memcg-swap-tidy-up-cgroup-v1-memsw-swap-helpers.patch
-mm-swap-support-flexible-batch-freeing-of-slots-in-different-memcgs.patch
-mm-swap-delay-and-unify-memcg-lookup-and-charging-for-swapin.patch
-mm-swap-consolidate-cluster-allocation-helpers.patch
-mm-memcg-swap-store-cgroup-id-in-cluster-table-directly.patch
-mm-memcg-remove-no-longer-used-swap-cgroup-array.patch
-mm-swap-merge-zeromap-into-swap-table.patch
+mm-khugepaged-remove-read_only_thp_for_fs-check-fix.patch
+mm-khugepaged-add-folio-dirty-check-after-try_to_unmap.patch
+mm-huge_memory-remove-read_only_thp_for_fs-from-file_thp_enabled.patch
+mm-khugepaged-remove-read_only_thp_for_fs-check-in-hugepage_enabled.patch
+mm-remove-read_only_thp_for_fs-kconfig-option.patch
+mm-fs-remove-filemap_nr_thps-functions-and-their-users.patch
+fs-remove-nr_thps-from-struct-address_space.patch
+mm-huge_memory-remove-folio-split-check-for-read_only_thp_for_fs.patch
+mm-truncate-use-folio_split-in-truncate_inode_partial_folio.patch
+fs-btrfs-remove-a-comment-referring-to-read_only_thp_for_fs.patch
+selftests-mm-remove-read_only_thp_for_fs-in-khugepaged.patch
+selftests-mm-remove-read_only_thp_for_fs-in-khugepaged-fix.patch
+selftests-mm-remove-read_only_thp_for_fs-in-khugepaged-fix-2.patch
+selftests-mm-remove-read_only_thp_for_fs-code-from-guard-regions.patch
+mm-khugepaged-enable-clean-pagecache-folio-collapse-for-writable-files.patch
+selftests-mm-add-writable-file-collapse-tests-for-khugepaged.patch
 
