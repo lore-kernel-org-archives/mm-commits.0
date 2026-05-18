@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13830359A68
-	for <mm-commits@vger.kernel.org>; Mon, 18 May 2026 20:49:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 159513845BE;
+	Mon, 18 May 2026 20:54:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779137377; cv=none; b=MIsXR1/+sPscPc/VcE+SPD5TQNlYijVWrYFlftgMzTNmBCtXkgtm7u7Wonvp+IxQw/yh0KQ/Gqp7Z+FC0FLvCAHJpmDczGBJBxYIs85TLKz731r2HXN1SkWq/YLH96UFx1ib4v0760jnPlhJDOTXtz4M/JvNzcjVutwJLRfHY8k=
+	t=1779137683; cv=none; b=WHs1GizX6zhDTqRPBLrFR7jQFIcQlRdu9mh+h4pkorpOVFfKmcO8Svk55uUTI62jAKAkaWljv5oGeZYrQxJvevv3AX/f6ojB2xr/zdSFMNB2ZfpHTJozwtAfszagMV2cv9NUTUrMqnzItDaCj51vmcfxUFPZHmxy55ruK1dCfSw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779137377; c=relaxed/simple;
-	bh=p2kYrpN2VCeGqO/FofWoF5w2BwRgjrePpnIbZbRbi3c=;
-	h=Date:To:From:Subject:Message-Id; b=Fpdeg9Q/iNMVh/FRWdbU1JagJwUKbX8N28Yxn1gxbgfDE5L8VyXxquiIRQ3cWwoB4jMnm5SMkPgfOW5mT90KKoLrDUSlgf5tCY5KulA4p/lsG7PaHocpyRI/YEnRNt7vcEGh5jh289G7w5AL7Xmko7ND/EZ/ATwF4mbTju1JJ2s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qIIxIVXZ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779137683; c=relaxed/simple;
+	bh=0mLS/wtud///2+CnylUZ/6UQnheKJSAcZ3n28OLMDwM=;
+	h=Date:To:From:Subject:Message-Id; b=hWXourUtrzx/U/Uv5WDm6FZGNsQhrk6V61DD0oZUgBDqDJphij3OpauNMx4SHcTEAv0moKW4lXnhbXfH31+snCJhMNBOYCJoVB12XcCIco+3xndbZrNIcfyRgb2GU5LOICtrpOrTgL/Qe69XP4QsTNaxF3SboUSZe0qaGbBSu70=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hzw7Ts3k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qIIxIVXZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A26DEC2BCB7;
-	Mon, 18 May 2026 20:49:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hzw7Ts3k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82631C2BCB7;
+	Mon, 18 May 2026 20:54:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779137376;
-	bh=p2kYrpN2VCeGqO/FofWoF5w2BwRgjrePpnIbZbRbi3c=;
+	s=korg; t=1779137682;
+	bh=0mLS/wtud///2+CnylUZ/6UQnheKJSAcZ3n28OLMDwM=;
 	h=Date:To:From:Subject:From;
-	b=qIIxIVXZo/HccHe0SwbD/V6QxSTKFDgFF5AOhsTB7e5Iw0HosaZdKqsjeqU3gimcs
-	 +0NRdgVj09K94sLUEBz1ezomx8mYls9zQJAY94rJWEP60yLX/e5rVFlgl5VtNv/+Q3
-	 9eIDV4lppYZJ62sXJtTniJaQGpC4GkTh4pg+jmPM=
-Date: Mon, 18 May 2026 13:49:36 -0700
-To: mm-commits@vger.kernel.org,sln@onemain.com,martink@posteo.de,kuba@kernel.org,konradybcio@kernel.org,jorge.ramirez@oss.qualcomm.com,akpm@linux-foundation.org
+	b=hzw7Ts3kHpvOgWNuvMhl/snB3X/012o+842gC4tXWwBVhul9PV/oro8p1AX8Kv5hG
+	 TWdtJ6DJdn4lAkkfem5T/uwRYlI9wcfz5lBjzhzMkzqxMKp1I3Pd5QVNb7GHYGJKT+
+	 Wgssktu9Pp3NiAPribpXnIZI1cE6OJP+IiSq2wHg=
+Date: Mon, 18 May 2026 13:54:42 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,shakeel.butt@linux.dev,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,hannes@cmpxchg.org,alex@ghiti.fr,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mailmap-update-jorge-ramirez-ortiz-email-address.patch added to mm-nonmm-unstable branch
-Message-Id: <20260518204936.A26DEC2BCB7@smtp.kernel.org>
+Subject: + mm-memcontrol-propagate-nmi-slab-stats-to-memcg-vmstats.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260518205442.82631C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mailmap: update Jorge Ramirez-Ortiz email address
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     mailmap-update-jorge-ramirez-ortiz-email-address.patch
+     Subject: mm: memcontrol: propagate NMI slab stats to memcg vmstats
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-memcontrol-propagate-nmi-slab-stats-to-memcg-vmstats.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mailmap-update-jorge-ramirez-ortiz-email-address.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcontrol-propagate-nmi-slab-stats-to-memcg-vmstats.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,37 +58,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Jorge Ramirez-Ortiz <jorge.ramirez@oss.qualcomm.com>
-Subject: mailmap: update Jorge Ramirez-Ortiz email address
-Date: Mon, 18 May 2026 11:10:05 +0200
+From: Alexandre Ghiti <alex@ghiti.fr>
+Subject: mm: memcontrol: propagate NMI slab stats to memcg vmstats
+Date: Mon, 18 May 2026 10:28:19 +0200
 
-Map old Linaro address to the new Qualcomm OSS address.
+flush_nmi_stats() drains per-node NMI slab atomics into the per-node
+lruvec_stats, but does not propagate them to the memcg-level vmstats.
 
-Link: https://lore.kernel.org/20260518091019.3926371-1-jorge.ramirez@oss.qualcomm.com
-Signed-off-by: Jorge Ramirez-Ortiz <jorge.ramirez@oss.qualcomm.com>
-Cc: Jakub Kacinski <kuba@kernel.org>
-Cc: Konrad Dybcio <konradybcio@kernel.org>
-Cc: Martin Kepplinger <martink@posteo.de>
-Cc: Shannon Nelson <sln@onemain.com>
+For non NMI case, account_slab_nmi_safe() calls mod_memcg_lruvec_state()
+which updates both per-node lruvec_stats and memcg-level vmstats, so
+flush_nmi_stats() needs to flush to per-node lruvec_stats as well as
+memcg-level vmstats.
+
+So fix this by flushing to the memcg-level vmstats for NMI too.
+
+Link: https://lore.kernel.org/20260518082830.599102-1-alex@ghiti.fr
+Fixes: 940b01fc8dc1 ("memcg: nmi safe memcg stats for specific archs")
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/.mailmap~mailmap-update-jorge-ramirez-ortiz-email-address
-+++ a/.mailmap
-@@ -434,6 +434,7 @@ John Stultz <johnstul@us.ibm.com>
- Jonas Gorski <jonas.gorski@gmail.com> <jogo@openwrt.org>
- Jonathan Cameron <jic23@kernel.org> <jonathan.cameron@huawei.com>
- Jordan Crouse <jordan@cosmicpenguin.net> <jcrouse@codeaurora.org>
-+Jorge Ramirez-Ortiz <jorge.ramirez@oss.qualcomm.com> <jorge.ramirez-ortiz@linaro.org>
- <josh@joshtriplett.org> <josh@freedesktop.org>
- <josh@joshtriplett.org> <josh@kernel.org>
- <josh@joshtriplett.org> <josht@linux.vnet.ibm.com>
+--- a/mm/memcontrol.c~mm-memcontrol-propagate-nmi-slab-stats-to-memcg-vmstats
++++ a/mm/memcontrol.c
+@@ -4352,6 +4352,9 @@ static void flush_nmi_stats(struct mem_c
+ 			lstats->state[index] += slab;
+ 			if (plstats)
+ 				plstats->state_pending[index] += slab;
++			memcg->vmstats->state[index] += slab;
++			if (parent)
++				parent->vmstats->state_pending[index] += slab;
+ 		}
+ 		if (atomic_read(&pn->slab_unreclaimable)) {
+ 			int slab = atomic_xchg(&pn->slab_unreclaimable, 0);
+@@ -4360,6 +4363,9 @@ static void flush_nmi_stats(struct mem_c
+ 			lstats->state[index] += slab;
+ 			if (plstats)
+ 				plstats->state_pending[index] += slab;
++			memcg->vmstats->state[index] += slab;
++			if (parent)
++				parent->vmstats->state_pending[index] += slab;
+ 		}
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from jorge.ramirez@oss.qualcomm.com are
+Patches currently in -mm which might be from alex@ghiti.fr are
 
-mailmap-update-jorge-ramirez-ortiz-email-address.patch
+mm-memcontrol-propagate-nmi-slab-stats-to-memcg-vmstats.patch
 
