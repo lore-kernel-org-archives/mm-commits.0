@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2420140963F
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 16:29:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9146E3EA961
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 16:29:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779208156; cv=none; b=O+Pl55OQRf+EG/ZDga6NNoxbIamVhXCydzB2bTu5sZx02+o1x2mZkjRIV+Gu79rzRexZM67ezffperkgZl3vsGlAD4QNjExUxahFx5Y3OXJvjSs+hI+76u4jToNyGr2Q/GJrh1jIqz49TqGFhV2VI8glaiRymh/vyd4RK4hZrlg=
+	t=1779208157; cv=none; b=WIgbyjfyTDnsrWbYBV71bHXaxAaTv/umU0bg/a2j+5BLBpBOpIyOn5nv3/rbUPoSr8oP56Hj7uRcHJCT9l8F+cQW/B6OjGG2rouyOlSdzRUoxA/CyKSD2qYxYo4WVNKSQKjI3u46sWAV8MdK/WuE6svq1XywS+wMhGRxPrwtxso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779208156; c=relaxed/simple;
-	bh=swMZbCDH07dPA319lXM2aqaRb8opCFJpOmmoZbc/UOI=;
-	h=Date:To:From:Subject:Message-Id; b=gDEfZCDNVdQrVg2iH3zzVzg0hvBDxpflej7GJ5449tnC5XgQ97xnP6RJikQF55qZcBf3GPB/TtZfN+gRokWh9r5WezShw1tTOlGYunZl8XX6gZkEcHPHsHNjY7LmGkVjpXrhlYTRlqsUK/0RFuVWWM5aQ9b2Cq2ZOoz5TOr02IU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EcOu4Xkb; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779208157; c=relaxed/simple;
+	bh=1jbrHl6tMyBWczSLCOaECvJvx8tipflZeBGxKLMltb0=;
+	h=Date:To:From:Subject:Message-Id; b=K8MnhhfJsbo2kfYAvvmihVkMT+oyQZwy4KwALmmlFq7dPBaaKX98LfGWadLP3XyFBePXeatpApR3rmpa/h/mZg4Bcc28pt6wHAb9DA6d4k1f+TgM6cm8wJX8nlbYw12hhn0lbgNft87sOvgEgMo0oje9ea0dN7kNdVUqjb7x9/k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=utk54RYB; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EcOu4Xkb"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC427C2BCB8;
-	Tue, 19 May 2026 16:29:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="utk54RYB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24CDEC2BCB3;
+	Tue, 19 May 2026 16:29:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779208155;
-	bh=swMZbCDH07dPA319lXM2aqaRb8opCFJpOmmoZbc/UOI=;
+	s=korg; t=1779208157;
+	bh=1jbrHl6tMyBWczSLCOaECvJvx8tipflZeBGxKLMltb0=;
 	h=Date:To:From:Subject:From;
-	b=EcOu4XkbKWUxTvM3FA5juBAUa0NE7WUIyAMluS1+MbCq2/M3ZRQJWyiFHkVAICg/S
-	 QnuKI7d8uAeBCKhYv3aHY0QHXPEP3omjeMr4NfoOceTZ2TekZdMi6+cPzllzyviaUh
-	 Vj2YZcjl3P+PMzUQ6hFsahCmBW0Bzjdgsy29OHhw=
-Date: Tue, 19 May 2026 09:29:15 -0700
+	b=utk54RYBM+XrzhE34CsHQoSH7a487uFPihQWZDiyL9uZb2zgSBqoXkXUU4+ymhBq3
+	 6RqnPMCjVeBaC8fWq4m8To2bVnVla4nlZ936pgTkKI9edX0xDhYIyAGdZFOYCPr9xH
+	 HabzE4sK6fvOUNC2ueKdmlkNrShQrHbgP/yDd1Hw=
+Date: Tue, 19 May 2026 09:29:16 -0700
 To: mm-commits@vger.kernel.org,ankur.a.arora@oracle.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] arm64-barrier-support-smp_cond_load_relaxed_timeout.patch removed from -mm tree
-Message-Id: <20260519162915.BC427C2BCB8@smtp.kernel.org>
+Subject: [to-be-updated] arm64-delay-move-some-constants-out-to-a-separate-header.patch removed from -mm tree
+Message-Id: <20260519162917.24CDEC2BCB3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,50 +35,42 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: arm64: barrier: support smp_cond_load_relaxed_timeout()
+     Subject: arm64/delay: move some constants out to a separate header
 has been removed from the -mm tree.  Its filename was
-     arm64-barrier-support-smp_cond_load_relaxed_timeout.patch
+     arm64-delay-move-some-constants-out-to-a-separate-header.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Ankur Arora <ankur.a.arora@oracle.com>
-Subject: arm64: barrier: support smp_cond_load_relaxed_timeout()
-Date: Wed, 8 Apr 2026 17:55:26 +0530
+Subject: arm64/delay: move some constants out to a separate header
+Date: Wed, 8 Apr 2026 17:55:27 +0530
 
-Support waiting in smp_cond_load_relaxed_timeout() via
-__cmpwait_relaxed().  To ensure that we wake from waiting in WFE
-periodically and don't block forever if there are no stores to ptr, this
-path is only used when the event-stream is enabled.
+Moves some constants and functions related to xloops, cycles computation
+out to a new header.  Also make __delay_cycles() available outside of
+arch/arm64/lib/delay.c.
 
-Note that when using __cmpwait_relaxed() we ignore the timeout value,
-allowing an overshoot by up to the event-stream period.  And, in the
-unlikely event that the event-stream is unavailable, fallback to
-spin-waiting.
+Rename some macros in qcom/rpmh-rsc.c which were occupying the same
+namespace.
 
-Also set SMP_TIMEOUT_POLL_COUNT to 1 so we do the time-check in each
-iteration of smp_cond_load_relaxed_timeout().
+No functional change.
 
-And finally define ARCH_HAS_CPU_RELAX to indicate that we have an
-optimized implementation of cpu_poll_relax().
-
-Link: https://lore.kernel.org/20260408122538.3610871-3-ankur.a.arora@oracle.com
+Link: https://lore.kernel.org/20260408122538.3610871-4-ankur.a.arora@oracle.com
 Signed-off-by: Ankur Arora <ankur.a.arora@oracle.com>
-Suggested-by: Will Deacon <will@kernel.org>
-Acked-by: Will Deacon <will@kernel.org>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexei Starovoitov <ast@kernel.org>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Cc: Bjorn Andersson <andersson@kernel.org>
+Cc: Konrad Dybcio <konradybcio@kernel.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Boqun Feng <boqun@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
 Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
 Cc: David Gow <davidgow@google.com>
 Cc: Gary Guo <gary@garyguo.net>
 Cc: Haris Okanovic <harisokn@amazon.com>
 Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Konrad Dybcio <konradybcio@kernel.org>
 Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -86,64 +78,117 @@ Cc: Rafael J. Wysocki (Intel) <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig               |    3 +++
- arch/arm64/include/asm/barrier.h |   21 +++++++++++++++++++++
- 2 files changed, 24 insertions(+)
+ arch/arm64/include/asm/delay-const.h |   27 +++++++++++++++++++++++++
+ arch/arm64/lib/delay.c               |   15 +++----------
+ drivers/soc/qcom/rpmh-rsc.c          |    8 +++----
+ 3 files changed, 35 insertions(+), 15 deletions(-)
 
---- a/arch/arm64/include/asm/barrier.h~arm64-barrier-support-smp_cond_load_relaxed_timeout
-+++ a/arch/arm64/include/asm/barrier.h
-@@ -12,6 +12,7 @@
- #include <linux/kasan-checks.h>
- 
- #include <asm/alternative-macros.h>
-+#include <asm/vdso/processor.h>
- 
- #define __nops(n)	".rept	" #n "\nnop\n.endr\n"
- #define nops(n)		asm volatile(__nops(n))
-@@ -219,6 +220,26 @@ do {									\
- 	(typeof(*ptr))VAL;						\
- })
- 
-+/* Re-declared here to avoid include dependency. */
-+extern bool arch_timer_evtstrm_available(void);
+diff --git a/arch/arm64/include/asm/delay-const.h a/arch/arm64/include/asm/delay-const.h
+new file mode 100644
+--- /dev/null
++++ a/arch/arm64/include/asm/delay-const.h
+@@ -0,0 +1,27 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++#ifndef _ASM_DELAY_CONST_H
++#define _ASM_DELAY_CONST_H
 +
-+/*
-+ * In the common case, cpu_poll_relax() sits waiting in __cmpwait_relaxed()
-+ * for the ptr value to change.
-+ *
-+ * Since this period is reasonably long, choose SMP_TIMEOUT_POLL_COUNT
-+ * to be 1, so smp_cond_load_{relaxed,acquire}_timeout() does a
-+ * time-check in each iteration.
-+ */
-+#define SMP_TIMEOUT_POLL_COUNT	1
++#include <asm/param.h>	/* For HZ */
 +
-+#define cpu_poll_relax(ptr, val, timeout_ns) do {			\
-+	if (arch_timer_evtstrm_available())				\
-+		__cmpwait_relaxed(ptr, val);				\
-+	else								\
-+		cpu_relax();						\
-+} while (0)
++/* 2**32 / 1000000 (rounded up) */
++#define __usecs_to_xloops_mult	0x10C7UL
 +
- #include <asm-generic/barrier.h>
- 
- #endif	/* __ASSEMBLER__ */
---- a/arch/arm64/Kconfig~arm64-barrier-support-smp_cond_load_relaxed_timeout
-+++ a/arch/arm64/Kconfig
-@@ -1606,6 +1606,9 @@ config ARCH_SUPPORTS_CRASH_DUMP
- config ARCH_DEFAULT_CRASH_DUMP
- 	def_bool y
- 
-+config ARCH_HAS_CPU_RELAX
-+	def_bool y
++/* 2**32 / 1000000000 (rounded up) */
++#define __nsecs_to_xloops_mult	0x5UL
 +
- config ARCH_HAS_GENERIC_CRASHKERNEL_RESERVATION
- 	def_bool CRASH_RESERVE
++extern unsigned long loops_per_jiffy;
++static inline unsigned long xloops_to_cycles(unsigned long xloops)
++{
++	return (xloops * loops_per_jiffy * HZ) >> 32;
++}
++
++#define USECS_TO_CYCLES(time_usecs) \
++	xloops_to_cycles((time_usecs) * __usecs_to_xloops_mult)
++
++#define NSECS_TO_CYCLES(time_nsecs) \
++	xloops_to_cycles((time_nsecs) * __nsecs_to_xloops_mult)
++
++u64 notrace __delay_cycles(void);
++
++#endif	/* _ASM_DELAY_CONST_H */
+--- a/arch/arm64/lib/delay.c~arm64-delay-move-some-constants-out-to-a-separate-header
++++ a/arch/arm64/lib/delay.c
+@@ -12,17 +12,10 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/timex.h>
++#include <asm/delay-const.h>
  
+ #include <clocksource/arm_arch_timer.h>
+ 
+-#define USECS_TO_CYCLES(time_usecs)			\
+-	xloops_to_cycles((time_usecs) * 0x10C7UL)
+-
+-static inline unsigned long xloops_to_cycles(unsigned long xloops)
+-{
+-	return (xloops * loops_per_jiffy * HZ) >> 32;
+-}
+-
+ /*
+  * Force the use of CNTVCT_EL0 in order to have the same base as WFxT.
+  * This avoids some annoying issues when CNTVOFF_EL2 is not reset 0 on a
+@@ -32,7 +25,7 @@ static inline unsigned long xloops_to_cy
+  * Note that userspace cannot change the offset behind our back either,
+  * as the vcpu mutex is held as long as KVM_RUN is in progress.
+  */
+-static cycles_t notrace __delay_cycles(void)
++u64 notrace __delay_cycles(void)
+ {
+ 	guard(preempt_notrace)();
+ 	return __arch_counter_get_cntvct_stable();
+@@ -73,12 +66,12 @@ EXPORT_SYMBOL(__const_udelay);
+ 
+ void __udelay(unsigned long usecs)
+ {
+-	__const_udelay(usecs * 0x10C7UL); /* 2**32 / 1000000 (rounded up) */
++	__const_udelay(usecs * __usecs_to_xloops_mult);
+ }
+ EXPORT_SYMBOL(__udelay);
+ 
+ void __ndelay(unsigned long nsecs)
+ {
+-	__const_udelay(nsecs * 0x5UL); /* 2**32 / 1000000000 (rounded up) */
++	__const_udelay(nsecs * __nsecs_to_xloops_mult);
+ }
+ EXPORT_SYMBOL(__ndelay);
+--- a/drivers/soc/qcom/rpmh-rsc.c~arm64-delay-move-some-constants-out-to-a-separate-header
++++ a/drivers/soc/qcom/rpmh-rsc.c
+@@ -146,10 +146,10 @@ enum {
+  *  +---------------------------------------------------+
+  */
+ 
+-#define USECS_TO_CYCLES(time_usecs)			\
+-	xloops_to_cycles((time_usecs) * 0x10C7UL)
++#define RPMH_USECS_TO_CYCLES(time_usecs)		\
++	rpmh_xloops_to_cycles((time_usecs) * 0x10C7UL)
+ 
+-static inline unsigned long xloops_to_cycles(u64 xloops)
++static inline unsigned long rpmh_xloops_to_cycles(u64 xloops)
+ {
+ 	return (xloops * loops_per_jiffy * HZ) >> 32;
+ }
+@@ -819,7 +819,7 @@ void rpmh_rsc_write_next_wakeup(struct r
+ 	wakeup_us = ktime_to_us(wakeup);
+ 
+ 	/* Convert the wakeup to arch timer scale */
+-	wakeup_cycles = USECS_TO_CYCLES(wakeup_us);
++	wakeup_cycles = RPMH_USECS_TO_CYCLES(wakeup_us);
+ 	wakeup_cycles += arch_timer_read_counter();
+ 
+ exit:
 _
 
 Patches currently in -mm which might be from ankur.a.arora@oracle.com are
 
-arm64-delay-move-some-constants-out-to-a-separate-header.patch
 arm64-support-wfet-in-smp_cond_load_relaxed_timeout.patch
 arm64-rqspinlock-remove-private-copy-of-smp_cond_load_acquire_timewait.patch
 asm-generic-barrier-add-smp_cond_load_acquire_timeout.patch
