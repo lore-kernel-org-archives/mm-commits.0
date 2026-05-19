@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EAEF212D7C
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2C5C278156
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152112; cv=none; b=bxVqyltrPMdE2+uksCrO/xjqbIgXkw4JncK0l7hq//A2DzjTmm1DHG4zZDQeIG/fqWGt8S3sOam4f0bwMgAXQu1lUkfmNzOAsDzbUVs6+JDOEjomvYTLxzOB9J2i6UOTniVlDyIcgv+RidQXfo5tbRPCdSfaW25S3XwCX6Hd32k=
+	t=1779152114; cv=none; b=ahrFCWSd7nS9BLHulXnDfci8ZrtUMxrW8doC/q0oVMlzb0kC4EqqGL7IKP6/pTOzjuVwyMzfEBu6Ce92Ay4oAKlLwgntApx3+Z+IWUIn18lHnd0Bk7i4II6cTArHwVDApKVwe65qneWXYiL//zxqzVwZgUdYzLjaAHcO1lvLc+I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152112; c=relaxed/simple;
-	bh=W58lM0M6pU4Y69trYr8RQio2IsjAQyLht+pJchojtuM=;
-	h=Date:To:From:Subject:Message-Id; b=Z8Mo6azboBQlN3t9YUhn9TocyCDGGsJwUMK9rJeu/wqEZNqWN+o61F07QvblZipV8EpUmogW1acU7oc0Qq9kW54pH7eVcoAH9B47EEiHGWjSSLEjzttxGdHom+wvGSjjl8193uWzauaBYvRpx+zJH7Vxw/5Y0FNlBFjjfu1jS6I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Ue1ehSc6; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152114; c=relaxed/simple;
+	bh=20SB87ARtUTIc7/TX4Ag+U1mjbBYP+bWONgspY0RnZk=;
+	h=Date:To:From:Subject:Message-Id; b=uJgo4FLuzCy84MV+zkw8qy13GXATZGTJy47QWURxc+BjU7nz+X9MOKTu/kw8Yo97vr9N24dJIlbqE4fWLMdwG4i9u/1wqpUW1ZGz6QUl3pU0euEqqZKndR9ja/9Pq2QDEDmyXKo8Eu2jSVNNtGmqiz2COIgjDq6sJKRkIK8GfL8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MdnGR4U1; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Ue1ehSc6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9ED09C2BCB7;
-	Tue, 19 May 2026 00:55:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MdnGR4U1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FD9CC2BCB7;
+	Tue, 19 May 2026 00:55:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152111;
-	bh=W58lM0M6pU4Y69trYr8RQio2IsjAQyLht+pJchojtuM=;
+	s=korg; t=1779152114;
+	bh=20SB87ARtUTIc7/TX4Ag+U1mjbBYP+bWONgspY0RnZk=;
 	h=Date:To:From:Subject:From;
-	b=Ue1ehSc6QRs5KqeZ8CImVKHZdUke+B/89rE/G9Rp0q7wtqeaoryLiV0uKuXCmbJOl
-	 1vK8wpffFLwOslEaFsVJI1P+oCXtemTCKWdEw9vD/HBahu65eWlVf6/HSBYyLu5cMy
-	 2WL0X062PDBydtnVxkaHtwHuYkKXC8H0itwa0lhs=
-Date: Mon, 18 May 2026 17:55:11 -0700
+	b=MdnGR4U1zYA2mNqaXxokWY416gf8IPTNw4mQqdBANrt7xBtd80jcJEKo9fxDekBCJ
+	 HiOAvaOM/NyVHdUGo8bWKUT3pGSfRT9fU/snaXoj2XFyVfo+U1cC7Z76ItG73qBmh7
+	 Zcd/nQOP70zy4vVS0JljwCKetLe7ChNtxNAPaTcY=
+Date: Mon, 18 May 2026 17:55:13 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-introduce-damon_filter.patch added to mm-new branch
-Message-Id: <20260519005511.9ED09C2BCB7@smtp.kernel.org>
+Subject: + mm-damon-core-commit-probes.patch added to mm-new branch
+Message-Id: <20260519005514.3FD9CC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: introduce damon_filter
+     Subject: mm/damon/core: commit probes
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-introduce-damon_filter.patch
+     mm-damon-core-commit-probes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-introduce-damon_filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-commit-probes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,15 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: introduce damon_filter
-Date: Mon, 18 May 2026 16:40:51 -0700
+Subject: mm/damon/core: commit probes
+Date: Mon, 18 May 2026 16:40:52 -0700
 
-Define a data structure for constructing damon_probe's attributes check,
-namely damon_filter.  It is very similar to damos_filter but works only
-for monitoring purposes.  Also embed that into damon_probe, implement
-essential handling of the link, with fundamental helpers.
+Update damon_commit_ctx() to commit installed data probes, too.
 
-Link: https://lore.kernel.org/20260518234119.97569-4-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-5-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -95,126 +92,147 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   36 ++++++++++++++++++++++++++++++++++++
- mm/damon/core.c       |   30 ++++++++++++++++++++++++++++++
- 2 files changed, 66 insertions(+)
+ mm/damon/core.c |  104 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 104 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-core-introduce-damon_filter
-+++ a/include/linux/damon.h
-@@ -731,11 +731,37 @@ struct damon_intervals_goal {
- };
- 
- /**
-+ * enum damon_filter_type - Type of &struct damon_filter
-+ *
-+ * @DAMON_FILTER_TYPE_ANON:	Anonymous pages.
-+ */
-+enum damon_filter_type {
-+	DAMON_FILTER_TYPE_ANON,
-+};
-+
-+/**
-+ * struct damon_filter - DAMON region filter for &struct damon_probe.
-+ *
-+ * @type:	Type of the region.
-+ * @matching:	Whether this filter is for the type-matching ones.
-+ * @allow:	Whether the @type-@matching ones should pass this filter.
-+ * @list:	Siblings list.
-+ */
-+struct damon_filter {
-+	enum damon_filter_type type;
-+	bool matching;
-+	bool allow;
-+	struct list_head list;
-+};
-+
-+/**
-  * struct damon_probe - Data region attribute probe.
-  *
-+ * @filters:	Filters for assessing if a given region is for this probe.
-  * @list:	Siblings list.
-  */
- struct damon_probe {
-+	struct list_head filters;
- 	struct list_head list;
- };
- 
-@@ -910,6 +936,12 @@ static inline unsigned long damon_sz_reg
- 	return r->ar.end - r->ar.start;
- }
- 
-+#define damon_for_each_filter(f, p) \
-+	list_for_each_entry(f, &(p)->filters, list)
-+
-+#define damon_for_each_filter_safe(f, next, p) \
-+	list_for_each_entry_safe(f, next, &(p)->filters, list)
-+
- #define damon_for_each_probe(p, ctx) \
- 	list_for_each_entry(p, &(ctx)->probes, list)
- 
-@@ -957,6 +989,10 @@ static inline unsigned long damon_sz_reg
- 
- #ifdef CONFIG_DAMON
- 
-+struct damon_filter *damon_new_filter(enum damon_filter_type type,
-+		bool matching, bool allow);
-+void damon_add_filter(struct damon_probe *probe, struct damon_filter *f);
-+
- struct damon_probe *damon_new_probe(void);
- void damon_add_probe(struct damon_ctx *ctx, struct damon_probe *probe);
- 
---- a/mm/damon/core.c~mm-damon-core-introduce-damon_filter
+--- a/mm/damon/core.c~mm-damon-core-commit-probes
 +++ a/mm/damon/core.c
-@@ -113,6 +113,31 @@ int damon_select_ops(struct damon_ctx *c
- 	return err;
+@@ -133,11 +133,34 @@ void damon_add_filter(struct damon_probe
+ 	list_add_tail(&f->list, &p->filters);
  }
  
-+struct damon_filter *damon_new_filter(enum damon_filter_type type,
-+		bool matching, bool allow)
++static void damon_del_filter(struct damon_filter *f)
 +{
-+	struct damon_filter *filter;
-+
-+	filter = kmalloc_obj(*filter);
-+	if (!filter)
-+		return NULL;
-+	filter->type = type;
-+	filter->matching = matching;
-+	filter->allow = allow;
-+	INIT_LIST_HEAD(&filter->list);
-+	return filter;
++	list_del(&f->list);
 +}
 +
-+void damon_add_filter(struct damon_probe *p, struct damon_filter *f)
+ static void damon_free_filter(struct damon_filter *f)
+ {
+ 	kfree(f);
+ }
+ 
++static void damon_destroy_filter(struct damon_filter *f)
 +{
-+	list_add_tail(&f->list, &p->filters);
++	damon_del_filter(f);
++	damon_free_filter(f);
 +}
 +
-+static void damon_free_filter(struct damon_filter *f)
++static struct damon_filter *damon_nth_filter(int n, struct damon_probe *p)
 +{
-+	kfree(f);
++	struct damon_filter *f;
++	int i = 0;
++
++	damon_for_each_filter(f, p) {
++		if (i++ == n)
++			return f;
++	}
++	return NULL;
 +}
 +
  struct damon_probe *damon_new_probe(void)
  {
  	struct damon_probe *p;
-@@ -120,6 +145,7 @@ struct damon_probe *damon_new_probe(void
- 	p = kmalloc_obj(*p);
- 	if (!p)
- 		return NULL;
-+	INIT_LIST_HEAD(&p->filters);
- 	INIT_LIST_HEAD(&p->list);
- 	return p;
+@@ -175,6 +198,18 @@ static void damon_destroy_probe(struct d
+ 	damon_free_probe(p);
  }
-@@ -136,6 +162,10 @@ static void damon_del_probe(struct damon
  
- static void damon_free_probe(struct damon_probe *p)
- {
-+	struct damon_filter *f, *next;
++static struct damon_probe *damon_nth_probe(int n, struct damon_ctx *ctx)
++{
++	struct damon_probe *p;
++	int i = 0;
 +
-+	damon_for_each_filter_safe(f, next, p)
-+		damon_free_filter(f);
- 	kfree(p);
++	damon_for_each_probe(p, ctx) {
++		if (i++ == n)
++			return p;
++	}
++	return NULL;
++}
++
+ #ifdef CONFIG_DAMON_DEBUG_SANITY
+ static void damon_verify_new_region(unsigned long start, unsigned long end)
+ {
+@@ -1386,6 +1421,72 @@ static int damon_commit_targets(
+ 	return 0;
  }
+ 
++static void damon_commit_filter(struct damon_filter *dst,
++		struct damon_filter *src)
++{
++	dst->type = src->type;
++	dst->matching = src->matching;
++	dst->allow = src->allow;
++}
++
++static int damon_commit_filters(struct damon_probe *dst,
++		struct damon_probe *src)
++{
++	struct damon_filter *dst_filter, *next, *src_filter, *new_filter;
++	int i = 0, j = 0;
++
++	damon_for_each_filter_safe(dst_filter, next, dst) {
++		src_filter = damon_nth_filter(i++, src);
++		if (src_filter)
++			damon_commit_filter(dst_filter, src_filter);
++		else
++			damon_destroy_filter(dst_filter);
++	}
++
++	damon_for_each_filter_safe(src_filter, next, src) {
++		if (j++ < i)
++			continue;
++
++		new_filter = damon_new_filter(src_filter->type,
++				src_filter->matching, src_filter->allow);
++		if (!new_filter)
++			return -ENOMEM;
++		damon_add_filter(dst, new_filter);
++	}
++	return 0;
++}
++
++static int damon_commit_probes(struct damon_ctx *dst, struct damon_ctx *src)
++{
++	struct damon_probe *dst_probe, *next, *src_probe, *new_probe;
++	int i = 0, j = 0, err;
++
++	damon_for_each_probe_safe(dst_probe, next, dst) {
++		src_probe = damon_nth_probe(i++, src);
++		if (src_probe) {
++			err = damon_commit_filters(dst_probe, src_probe);
++			if (err)
++				return err;
++		} else {
++			damon_destroy_probe(dst_probe);
++		}
++	}
++
++	damon_for_each_probe_safe(src_probe, next, src) {
++		if (j++ < i)
++			continue;
++
++		new_probe = damon_new_probe();
++		if (!new_probe)
++			return -ENOMEM;
++		damon_add_probe(dst, new_probe);
++		err = damon_commit_filters(new_probe, src_probe);
++		if (err)
++			return err;
++	}
++	return 0;
++}
++
+ /**
+  * damon_commit_ctx() - Commit parameters of a DAMON context to another.
+  * @dst:	The commit destination DAMON context.
+@@ -1442,6 +1543,9 @@ int damon_commit_ctx(struct damon_ctx *d
+ 	}
+ 	dst->pause = src->pause;
+ 	dst->ops = src->ops;
++	err = damon_commit_probes(dst, src);
++	if (err)
++		return err;
+ 	dst->addr_unit = src->addr_unit;
+ 	dst->min_region_sz = src->min_region_sz;
  
 _
 
