@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00FF61DA0E1
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:24:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B648E194A6C
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:31:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779150249; cv=none; b=cAN4QegoVvdeIdszz4Nrk5iY5BbhlRc9cRcXPpuVSL2hOD2emZkP3li+XkmEJ4L01NNpyGU2iAe6phmuWfzFYhh66boUNoEvdEIH17GpnrIIOLy1DMokh3hj/99mtj47cRwuYwwru3OChxvlYfz0G3wC1lUSa2hAXAGe3253vXM=
+	t=1779150685; cv=none; b=kbCKEU5Mu26VY6Ir8y3M+2BZnnY2lwHZYCOx2HmcH4DQv8cpNQtTNd0VoP6N6tjZUp0Sfji+ofGZwOArwr7YOrCFVlKv6B/qCNZZL1TK9vaL5lVPeuay0vhRvj6LPKtJEk5hFgurUOJ0iDssW3YpOrHS+GtiiyqT0grE0BzHJVA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779150249; c=relaxed/simple;
-	bh=taIAyhcIsO6epverlcIcscL7Mf9/Pmk4kuxD7WDIADo=;
-	h=Date:To:From:Subject:Message-Id; b=DsLztSeHa7XbDWnFwcCNzixUixvfNiIXTTp8b6yEuLuS48kmpQsujgPDZ1T/kB0gS/0K1wT6ptaIzAUY9nyXiqPigPX7xJAa6MzUR19Bsi4PDKgVqB1a8I+4gX4A4Sz5PwRRjWQwWO9LnOE/3XG4HQp1zDFeFP4y7Y3XJCV8d/U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Kq/kMoHI; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779150685; c=relaxed/simple;
+	bh=uRg4MfAg+n14fC+ZZ9FM+Kp4yJyLSB3XJlnG2K9hwiA=;
+	h=Date:To:From:Subject:Message-Id; b=l0LGjKiftMwMcHghhlN4ZaL39TCN7p2ZcagbYAPTrpINItIeFMRqkRhfrlqFl74IfiXk8A169NHICMgJJTvfitwCUbGGWy0q2CoRKMtDchGGRTLjxF/jMp0vLUZDljXhrqQ9SPtBrfa0GvFAXaTSUNNS2Pe9Rf5WTrJNdQxfTJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=faojjnTl; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Kq/kMoHI"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8801DC2BCB7;
-	Tue, 19 May 2026 00:24:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="faojjnTl"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5006AC2BCB7;
+	Tue, 19 May 2026 00:31:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779150248;
-	bh=taIAyhcIsO6epverlcIcscL7Mf9/Pmk4kuxD7WDIADo=;
+	s=korg; t=1779150685;
+	bh=uRg4MfAg+n14fC+ZZ9FM+Kp4yJyLSB3XJlnG2K9hwiA=;
 	h=Date:To:From:Subject:From;
-	b=Kq/kMoHImbKrqjSaotwcVR3/rZ79VdoN2Eybg8OTV8ebyqvNT15b8C0EbBTQ1VnbL
-	 rWd/OG73e4mzXho0OsWPKLijBgzIgM9o95y4L9ySKm0Lou4FDTFGGaXYDp1XKhhTXG
-	 GySzVCuaxdZpWrs1U/kshZNRjNV88OwbtYwue6qI=
-Date: Mon, 18 May 2026 17:24:07 -0700
-To: mm-commits@vger.kernel.org,leon@kernel.org,jgg@ziepe.ca,apopple@nvidia.com,liuqiang@kylinos.cn,akpm@linux-foundation.org
+	b=faojjnTlo9p+48cjMEfe+fSjX9sWWv34i5Q4cCz/q+NmWv1iPhBCkrfSdNkAtDpyv
+	 NmnNhPG4uTOiwqWHrGJIOPMowhLCbNWTC3z0WZZdOlqWU0cqPppxpbeqBD8vQ/9wgo
+	 hd93x46IsUs1btDPj2QT9/VdBCwRa0Di/iqvsME4=
+Date: Mon, 18 May 2026 17:31:24 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@kernel.org,toke@redhat.com,tariqt@nvidia.com,surenb@google.com,sdf@fomichev.me,saeedm@nvidia.com,rppt@kernel.org,pabeni@redhat.com,mhocko@suse.com,mbloch@nvidia.com,ljs@kernel.org,liam@infradead.org,leon@kernel.org,kuba@kernel.org,john.fastabend@gmail.com,jackmanb@google.com,ilias.apalodimas@linaro.org,horms@kernel.org,hawk@kernel.org,harry@kernel.org,hannes@cmpxchg.org,edumazet@google.com,dtatulea@nvidia.com,david@kernel.org,davem@davemloft.net,baolin.wang@linux.alibaba.com,ast@kernel.org,asml.silence@gmail.com,byungchul@sk.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_hmm-fix-error-path-in-dmirror_devmem_fault.patch added to mm-new branch
-Message-Id: <20260519002408.8801DC2BCB7@smtp.kernel.org>
+Subject: + revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260519003125.5006AC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/test_hmm: fix error path in dmirror_devmem_fault()
-has been added to the -mm mm-new branch.  Its filename is
-     lib-test_hmm-fix-error-path-in-dmirror_devmem_fault.patch
+     Subject: Revert "mm: introduce a new page type for page pool in page type"
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-fix-error-path-in-dmirror_devmem_fault.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,46 +58,317 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Qiang Liu <liuqiang@kylinos.cn>
-Subject: lib/test_hmm: fix error path in dmirror_devmem_fault()
-Date: Fri, 15 May 2026 15:03:11 +0800
+From: Byungchul Park <byungchul@sk.com>
+Subject: Revert "mm: introduce a new page type for page pool in page type"
+Date: Fri, 15 May 2026 12:47:01 +0900
 
-Handle migrate_vma_setup() failure via goto err for unified cleanup.
+This reverts commit db359fccf212 ("mm: introduce a new page type for page
+pool in page type") and a part of 735a309b4bfb9e ("net: add net_iov_init()
+and use it > to initialize ->page_type").
 
-Link: https://lore.kernel.org/20260515070312.130435-1-liuqiangneo@163.com
-Signed-off-by: Qiang Liu <liuqiang@kylinos.cn>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Netpp page_type'ed pages might be used in mapping so as to use @_mapcount.
+However, since @page_type and @_mapcount are union'ed in struct page,
+these two can't be used at the same time.  Revert the commit introducing
+page_type for Netpp for now.
+
+The patch will be retried once @page_type and @_mapcount get allowed to be
+used at the same time.
+
+The revert also includes removal of @page_type initialization part
+introduced by commit 735a309b4bfb9e ("net: add net_iov_init() and use it
+to initialize ->page_type"), which will be restored on the retry.
+
+Link: https://lore.kernel.org/20260515034701.17027-1-byungchul@sk.com
+Fixes: db359fccf212 ("mm: introduce a new page type for page pool in page type")
+Signed-off-by: Byungchul Park <byungchul@sk.com>
+Reported-by: Dragos Tatulea <dtatulea@nvidia.com>
+Closes: https://lore.kernel.org/all/982b9bc1-0a0a-4fc5-8e3a-3672db2b29a1@nvidia.com
+Acked-by: Jakub Kicinski <kuba@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Harry Yoo (Oracle) <harry@kernel.org>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+Cc: Jesper Dangaard Brouer <hawk@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Fastabend <john.fastabend@gmail.com>
 Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Mark Bloch <mbloch@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Paolo Abeni <pabeni@redhat.com>
+Cc: Pavel Begunkov <asml.silence@gmail.com>
+Cc: Saeed Mahameed <saeedm@nvidia.com>
+Cc: Simon Horman <horms@kernel.org>
+Cc: Stanislav Fomichev <sdf@fomichev.me>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tariq Toukan <tariqt@nvidia.com>
+Cc: Toke Hoiland-Jorgensen <toke@redhat.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c |    2 
+ include/linux/mm.h                               |   27 +++++++++++--
+ include/linux/page-flags.h                       |    6 --
+ include/net/netmem.h                             |   19 ---------
+ mm/page_alloc.c                                  |   13 +-----
+ net/core/netmem_priv.h                           |   23 ++++++-----
+ net/core/page_pool.c                             |   24 -----------
+ 7 files changed, 46 insertions(+), 68 deletions(-)
 
---- a/lib/test_hmm.c~lib-test_hmm-fix-error-path-in-dmirror_devmem_fault
-+++ a/lib/test_hmm.c
-@@ -1690,8 +1690,14 @@ static vm_fault_t dmirror_devmem_fault(s
- 	if (order)
- 		args.flags |= MIGRATE_VMA_SELECT_COMPOUND;
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
++++ a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+@@ -708,7 +708,7 @@ static void mlx5e_free_xdpsq_desc(struct
+ 				xdpi = mlx5e_xdpi_fifo_pop(xdpi_fifo);
+ 				page = xdpi.page.page;
  
--	if (migrate_vma_setup(&args))
--		return VM_FAULT_SIGBUS;
-+	/*
-+	 * In practice migrate_vma_setup() should never fail unless the
-+	 * test is wrong as it just tests some static VMA properties.
-+	 */
-+	if (migrate_vma_setup(&args)) {
-+		ret = VM_FAULT_SIGBUS;
-+		goto err;
-+	}
+-				/* No need to check PageNetpp() as we
++				/* No need to check page_pool_page_is_pp() as we
+ 				 * know this is a page_pool page.
+ 				 */
+ 				page_pool_recycle_direct(pp_page_to_nmdesc(page)->pp,
+--- a/include/linux/mm.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
++++ a/include/linux/mm.h
+@@ -5174,9 +5174,10 @@ int arch_lock_shadow_stack_status(struct
+  * DMA mapping IDs for page_pool
+  *
+  * When DMA-mapping a page, page_pool allocates an ID (from an xarray) and
+- * stashes it in the upper bits of page->pp_magic. Non-PP pages can have
+- * arbitrary kernel pointers stored in the same field as pp_magic (since
+- * it overlaps with page->lru.next), so we must ensure that we cannot
++ * stashes it in the upper bits of page->pp_magic. We always want to be able to
++ * unambiguously identify page pool pages (using page_pool_page_is_pp()). Non-PP
++ * pages can have arbitrary kernel pointers stored in the same field as pp_magic
++ * (since it overlaps with page->lru.next), so we must ensure that we cannot
+  * mistake a valid kernel pointer with any of the values we write into this
+  * field.
+  *
+@@ -5211,6 +5212,26 @@ int arch_lock_shadow_stack_status(struct
+ #define PP_DMA_INDEX_MASK GENMASK(PP_DMA_INDEX_BITS + PP_DMA_INDEX_SHIFT - 1, \
+ 				  PP_DMA_INDEX_SHIFT)
  
- 	ret = dmirror_devmem_fault_alloc_and_copy(&args, dmirror);
- 	if (ret)
++/* Mask used for checking in page_pool_page_is_pp() below. page->pp_magic is
++ * OR'ed with PP_SIGNATURE after the allocation in order to preserve bit 0 for
++ * the head page of compound page and bit 1 for pfmemalloc page, as well as the
++ * bits used for the DMA index. page_is_pfmemalloc() is checked in
++ * __page_pool_put_page() to avoid recycling the pfmemalloc page.
++ */
++#define PP_MAGIC_MASK ~(PP_DMA_INDEX_MASK | 0x3UL)
++
++#ifdef CONFIG_PAGE_POOL
++static inline bool page_pool_page_is_pp(const struct page *page)
++{
++	return (page->pp_magic & PP_MAGIC_MASK) == PP_SIGNATURE;
++}
++#else
++static inline bool page_pool_page_is_pp(const struct page *page)
++{
++	return false;
++}
++#endif
++
+ #define PAGE_SNAPSHOT_FAITHFUL (1 << 0)
+ #define PAGE_SNAPSHOT_PG_BUDDY (1 << 1)
+ #define PAGE_SNAPSHOT_PG_IDLE  (1 << 2)
+--- a/include/linux/page-flags.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
++++ a/include/linux/page-flags.h
+@@ -923,7 +923,6 @@ enum pagetype {
+ 	PGTY_zsmalloc		= 0xf6,
+ 	PGTY_unaccepted		= 0xf7,
+ 	PGTY_large_kmalloc	= 0xf8,
+-	PGTY_netpp		= 0xf9,
+ 
+ 	PGTY_mapcount_underflow = 0xff
+ };
+@@ -1056,11 +1055,6 @@ PAGE_TYPE_OPS(Zsmalloc, zsmalloc, zsmall
+ PAGE_TYPE_OPS(Unaccepted, unaccepted, unaccepted)
+ PAGE_TYPE_OPS(LargeKmalloc, large_kmalloc, large_kmalloc)
+ 
+-/*
+- * Marks page_pool allocated pages.
+- */
+-PAGE_TYPE_OPS(Netpp, netpp, netpp)
+-
+ /**
+  * PageHuge - Determine if the page belongs to hugetlbfs
+  * @page: The page to test.
+--- a/include/net/netmem.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
++++ a/include/net/netmem.h
+@@ -94,20 +94,10 @@ enum net_iov_type {
+  */
+ struct net_iov {
+ 	struct netmem_desc desc;
+-	unsigned int page_type;
+ 	enum net_iov_type type;
+ 	struct net_iov_area *owner;
+ };
+ 
+-/* Make sure 'the offset of page_type in struct page == the offset of
+- * type in struct net_iov'.
+- */
+-#define NET_IOV_ASSERT_OFFSET(pg, iov)			\
+-	static_assert(offsetof(struct page, pg) ==	\
+-		      offsetof(struct net_iov, iov))
+-NET_IOV_ASSERT_OFFSET(page_type, page_type);
+-#undef NET_IOV_ASSERT_OFFSET
+-
+ struct net_iov_area {
+ 	/* Array of net_iovs for this area. */
+ 	struct net_iov *niovs;
+@@ -127,11 +117,7 @@ static inline unsigned int net_iov_idx(c
+ 	return niov - net_iov_owner(niov)->niovs;
+ }
+ 
+-/* Initialize a niov: stamp the owning area, the memory provider type,
+- * and the page_type "no type" sentinel expected by the page-type API
+- * (see PAGE_TYPE_OPS in <linux/page-flags.h>) so that
+- * page_pool_set_pp_info() can later call __SetPageNetpp() on a niov
+- * cast to struct page.
++/* Initialize a niov: stamp the owning area, the memory provider type.
+  */
+ static inline void net_iov_init(struct net_iov *niov,
+ 				struct net_iov_area *owner,
+@@ -139,7 +125,6 @@ static inline void net_iov_init(struct n
+ {
+ 	niov->owner = owner;
+ 	niov->type = type;
+-	niov->page_type = UINT_MAX;
+ }
+ 
+ /* netmem */
+@@ -245,7 +230,7 @@ static inline unsigned long netmem_pfn_t
+  */
+ #define pp_page_to_nmdesc(p)						\
+ ({									\
+-	DEBUG_NET_WARN_ON_ONCE(!PageNetpp(p));				\
++	DEBUG_NET_WARN_ON_ONCE(!page_pool_page_is_pp(p));		\
+ 	__pp_page_to_nmdesc(p);						\
+ })
+ 
+--- a/mm/page_alloc.c~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
++++ a/mm/page_alloc.c
+@@ -1035,6 +1035,7 @@ static inline bool page_expected_state(s
+ #ifdef CONFIG_MEMCG
+ 			page->memcg_data |
+ #endif
++			page_pool_page_is_pp(page) |
+ 			(page->flags.f & check_flags)))
+ 		return false;
+ 
+@@ -1061,6 +1062,8 @@ static const char *page_bad_reason(struc
+ 	if (unlikely(page->memcg_data))
+ 		bad_reason = "page still charged to cgroup";
+ #endif
++	if (unlikely(page_pool_page_is_pp(page)))
++		bad_reason = "page_pool leak";
+ 	return bad_reason;
+ }
+ 
+@@ -1377,17 +1380,9 @@ __always_inline bool __free_pages_prepar
+ 		mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
+ 		folio->mapping = NULL;
+ 	}
+-	if (unlikely(page_has_type(page))) {
+-		/* networking expects to clear its page type before releasing */
+-		if (is_check_pages_enabled()) {
+-			if (unlikely(PageNetpp(page))) {
+-				bad_page(page, "page_pool leak");
+-				return false;
+-			}
+-		}
++	if (unlikely(page_has_type(page)))
+ 		/* Reset the page_type (which overlays _mapcount) */
+ 		page->page_type = UINT_MAX;
+-	}
+ 
+ 	if (is_check_pages_enabled()) {
+ 		if (free_page_is_bad(page))
+--- a/net/core/netmem_priv.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
++++ a/net/core/netmem_priv.h
+@@ -8,18 +8,21 @@ static inline unsigned long netmem_get_p
+ 	return netmem_to_nmdesc(netmem)->pp_magic & ~PP_DMA_INDEX_MASK;
+ }
+ 
+-static inline bool netmem_is_pp(netmem_ref netmem)
++static inline void netmem_or_pp_magic(netmem_ref netmem, unsigned long pp_magic)
++{
++	netmem_to_nmdesc(netmem)->pp_magic |= pp_magic;
++}
++
++static inline void netmem_clear_pp_magic(netmem_ref netmem)
+ {
+-	struct page *page;
++	WARN_ON_ONCE(netmem_to_nmdesc(netmem)->pp_magic & PP_DMA_INDEX_MASK);
+ 
+-	/* XXX: Now that the offset of page_type is shared between
+-	 * struct page and net_iov, just cast the netmem to struct page
+-	 * unconditionally by clearing NET_IOV if any, no matter whether
+-	 * it comes from struct net_iov or struct page.  This should be
+-	 * adjusted once the offset is no longer shared.
+-	 */
+-	page = (struct page *)((__force unsigned long)netmem & ~NET_IOV);
+-	return PageNetpp(page);
++	netmem_to_nmdesc(netmem)->pp_magic = 0;
++}
++
++static inline bool netmem_is_pp(netmem_ref netmem)
++{
++	return (netmem_get_pp_magic(netmem) & PP_MAGIC_MASK) == PP_SIGNATURE;
+ }
+ 
+ static inline void netmem_set_pp(netmem_ref netmem, struct page_pool *pool)
+--- a/net/core/page_pool.c~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
++++ a/net/core/page_pool.c
+@@ -707,18 +707,8 @@ s32 page_pool_inflight(const struct page
+ 
+ void page_pool_set_pp_info(struct page_pool *pool, netmem_ref netmem)
+ {
+-	struct page *page;
+-
+ 	netmem_set_pp(netmem, pool);
+-
+-	/* XXX: Now that the offset of page_type is shared between
+-	 * struct page and net_iov, just cast the netmem to struct page
+-	 * unconditionally by clearing NET_IOV if any, no matter whether
+-	 * it comes from struct net_iov or struct page.  This should be
+-	 * adjusted once the offset is no longer shared.
+-	 */
+-	page = (struct page *)((__force unsigned long)netmem & ~NET_IOV);
+-	__SetPageNetpp(page);
++	netmem_or_pp_magic(netmem, PP_SIGNATURE);
+ 
+ 	/* Ensuring all pages have been split into one fragment initially:
+ 	 * page_pool_set_pp_info() is only called once for every page when it
+@@ -733,17 +723,7 @@ void page_pool_set_pp_info(struct page_p
+ 
+ void page_pool_clear_pp_info(netmem_ref netmem)
+ {
+-	struct page *page;
+-
+-	/* XXX: Now that the offset of page_type is shared between
+-	 * struct page and net_iov, just cast the netmem to struct page
+-	 * unconditionally by clearing NET_IOV if any, no matter whether
+-	 * it comes from struct net_iov or struct page.  This should be
+-	 * adjusted once the offset is no longer shared.
+-	 */
+-	page = (struct page *)((__force unsigned long)netmem & ~NET_IOV);
+-	__ClearPageNetpp(page);
+-
++	netmem_clear_pp_magic(netmem);
+ 	netmem_set_pp(netmem, NULL);
+ }
+ 
 _
 
-Patches currently in -mm which might be from liuqiang@kylinos.cn are
+Patches currently in -mm which might be from byungchul@sk.com are
 
-lib-test_hmm-check-alloc_page_vma-return-value.patch
-lib-test_hmm-fix-error-path-in-dmirror_devmem_fault.patch
+revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch
 
