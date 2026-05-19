@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C3F8212D7C
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B81C12253EE
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152119; cv=none; b=Y0MPR1pTS+picdn6uauFfxJI0DAZM4KpKylwBxU0RK1GJZWo8LtJvGFo5BzP5KDMxHfC24MY79qGv6m2DDF+EK0QDnvOZr1dG9i74WLlZZQ+Pd1BR+BMs6QaUAN5XL3qO9hD89Ig1T/Xb2ZNWhQI886MtQXV3B8wuil2Bf6nQuc=
+	t=1779152121; cv=none; b=SrFzAt4p8DW4bvtXtsVb6UPPWjc/t2GDI+KZRh3JAgJ6PSALOeV/cSom36/+QijuPc6EH57zsEhnoab8fuHzy23X3COlWDhGqG4YtkKsawm/wzidS4LuDzi8KHd6Z3LqLOyr7ufiAc5OPjKNGk6+A42diFAm75CwQbtX8ZzELLs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152119; c=relaxed/simple;
-	bh=6uyB0dVSxJcrog85s7fNtv6ArEaGwYnSOpIe77DVHJ8=;
-	h=Date:To:From:Subject:Message-Id; b=Zbn8pD8nIiKjy5RvUlwchw4b9Pu1qxMJvPZcI4Wip3vAdD2vSWXmkXeob6dCbg/hpSA6obAHj2yT+1uA5jZ4J+qnwGDI4O4q/IT5EiZEeOoMxdc6IzAF+6JX6bBXKQbZA4Vk+iQh/l6iotWtSZWP27ikrp/GCmSBvSLa7GnC+i8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EF69rz41; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152121; c=relaxed/simple;
+	bh=E/CLeIGi35Mkxr+ECrqt3uJoWZ5CP6fOSwgtt73dJvk=;
+	h=Date:To:From:Subject:Message-Id; b=XtIEMm9r6Q5nbWBC3/z29irfftHkC4i9siWlnAwowDXD5jsOg5QoPhWy1v/KNhmPZsgBxJyQPIfQ8ijS3BHiWn1AZFTOoyPRIr+dLHKYnul26kPGDZu/KgK44kjVS5c63dZk7abgOTa3Og5fURIxcZzsvHT7mYB3j9jdQq9z5kA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYkFc1oD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EF69rz41"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27A15C2BCB7;
-	Tue, 19 May 2026 00:55:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYkFc1oD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46887C2BCB7;
+	Tue, 19 May 2026 00:55:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152119;
-	bh=6uyB0dVSxJcrog85s7fNtv6ArEaGwYnSOpIe77DVHJ8=;
+	s=korg; t=1779152121;
+	bh=E/CLeIGi35Mkxr+ECrqt3uJoWZ5CP6fOSwgtt73dJvk=;
 	h=Date:To:From:Subject:From;
-	b=EF69rz41OKIW6tTkA8vC5uQh+kBN+BMkqAb89FjoNvIJVot2Xd8LG9QK5VBnCAilX
-	 SHab6scnEOE3w53u7xcL7K67hRxEYq7M4bD2ubV/Q/CXEZQ103IZGXGQmBfLCIWzw9
-	 ypVaGuv+9qJa72//fzhtCbiJhRomAA9QT0MaM6s8=
-Date: Mon, 18 May 2026 17:55:18 -0700
+	b=AYkFc1oDpKHrMoVL1fEnDjvfZQIrBc+Cz5ZVtJ2KVbvKhktspHmrtVoUHPTrsuckS
+	 1BghrXspAj+oFNY4HUapjT/xnBTIpcR6oZZ2bydZ/zujGHSASfzK9ani2qtsBLskWL
+	 7iQO/OqThTCmx4zeAYXcwYMmKYnjlorAxQzPSjNU=
+Date: Mon, 18 May 2026 17:55:20 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-introduce-damon_ops-apply_probes.patch added to mm-new branch
-Message-Id: <20260519005519.27A15C2BCB7@smtp.kernel.org>
+Subject: + mm-damon-core-do-data-attributes-monitoring.patch added to mm-new branch
+Message-Id: <20260519005521.46887C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: introduce damon_ops->apply_probes
+     Subject: mm/damon/core: do data attributes monitoring
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-introduce-damon_ops-apply_probes.patch
+     mm-damon-core-do-data-attributes-monitoring.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-introduce-damon_ops-apply_probes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-do-data-attributes-monitoring.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: introduce damon_ops->apply_probes
-Date: Mon, 18 May 2026 16:40:54 -0700
+Subject: mm/damon/core: do data attributes monitoring
+Date: Mon, 18 May 2026 16:40:55 -0700
 
-Extend damon_operations struct with a new callback, namely apply_probes. 
-The callback will be invoked for data attributes monitoring.  More
-specifically, the callback will apply damon_probe objects to each region
-and update the per-region per-probe counters for the number of encountered
-probe-positive samples.
+Implement the data attributes monitoring execution.  Update kdamond to
+invoke the probes application callback, and reset the aggregated number of
+per-region per-probe positive samples for every aggregation interval.
 
-Link: https://lore.kernel.org/20260518234119.97569-7-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -96,36 +94,35 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/damon/core.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-core-introduce-damon_ops-apply_probes
-+++ a/include/linux/damon.h
-@@ -630,6 +630,7 @@ enum damon_ops_id {
-  * @update:			Update operations-related data structures.
-  * @prepare_access_checks:	Prepare next access check of target regions.
-  * @check_accesses:		Check the accesses to target regions.
-+ * @apply_probes:		Apply probes for each region.
-  * @get_scheme_score:		Get the score of a region for a scheme.
-  * @apply_scheme:		Apply a DAMON-based operation scheme.
-  * @target_valid:		Determine if the target is valid.
-@@ -656,6 +657,8 @@ enum damon_ops_id {
-  * last preparation and update the number of observed accesses of each region.
-  * It should also return max number of observed accesses that made as a result
-  * of its update.  The value will be used for regions adjustment threshold.
-+ * @apply_probes should apply the data attribute probes to each region and
-+ * accordingly update the probe hits counter of the region.
-  * @get_scheme_score should return the priority score of a region for a scheme
-  * as an integer in [0, &DAMOS_MAX_SCORE].
-  * @apply_scheme is called from @kdamond when a region for user provided
-@@ -673,6 +676,7 @@ struct damon_operations {
- 	void (*update)(struct damon_ctx *context);
- 	void (*prepare_access_checks)(struct damon_ctx *context);
- 	unsigned int (*check_accesses)(struct damon_ctx *context);
-+	void (*apply_probes)(struct damon_ctx *context);
- 	int (*get_scheme_score)(struct damon_ctx *context,
- 			struct damon_region *r, struct damos *scheme);
- 	unsigned long (*apply_scheme)(struct damon_ctx *context,
+--- a/mm/damon/core.c~mm-damon-core-do-data-attributes-monitoring
++++ a/mm/damon/core.c
+@@ -1910,10 +1910,14 @@ static void kdamond_reset_aggregated(str
+ 		struct damon_region *r;
+ 
+ 		damon_for_each_region(r, t) {
++			int i;
++
+ 			trace_damon_aggregated(ti, r, damon_nr_regions(t));
+ 			damon_warn_fix_nr_accesses_corruption(r);
+ 			r->last_nr_accesses = r->nr_accesses;
+ 			r->nr_accesses = 0;
++			for (i = 0; i < DAMON_MAX_PROBES; i++)
++				r->probe_hits[i] = 0;
+ 			damon_verify_reset_aggregated(r, c);
+ 		}
+ 		ti++;
+@@ -3407,6 +3411,8 @@ static int kdamond_fn(void *data)
+ 
+ 		if (ctx->ops.check_accesses)
+ 			max_nr_accesses = ctx->ops.check_accesses(ctx);
++		if (ctx->ops.apply_probes)
++			ctx->ops.apply_probes(ctx);
+ 
+ 		if (time_after_eq(ctx->passed_sample_intervals,
+ 					next_aggregation_sis)) {
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
