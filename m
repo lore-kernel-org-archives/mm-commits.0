@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D0452701B8
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:43:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA70E19CD0A
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:46:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779151393; cv=none; b=IlyplmeW1XKaCAumEd+qr8B4XNA9uDstrkUv8r7oP2kCCWok/YvypKoejr1Gh1rAb5YZmZbmVjAbALTrgkD+AsENGDdOolOHLJwohiye+U0+SPp+wzjRIiOeyqp0q1ggcMdC2O/1K2SQ6tItvc8ma9i7EhJNFB9UDZOb3H9mo0k=
+	t=1779151593; cv=none; b=MmuQVsp94aRrzPRY2MQ4rQbCeTPCmEwPMcLFMGEXSPzW4/aN3r3wNbYb1EpuUp8Ovwx6l65IzsX54ys66qichzildKrvEEgHwDbRA8yitD/ULSB6b/GJZTCPlutis3f4VQj0noHpq1z/kkHsn2yOvUI9vOkzkJA+KJBiZSdX7lM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779151393; c=relaxed/simple;
-	bh=+5xgrlDF+ghms9n8aDxIdH48Cn7rHfTbveWAh2pn5m8=;
-	h=Date:To:From:Subject:Message-Id; b=Kfb8eaEZbRg8mNJEpZ7pSREYlLTjGHbtX/FWpABgK400qLIRs5vcM/PW2xBKQ6eg65rOszwTEsGc2FwKujRrTKHfmAVTUsqGX1VtJsJjjDFfY2DvInY9cD/W7RcFk/M4S60JL5t0K0iiLiKn6dL6z5jH+WFt2sIK0sONfsnXCLY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=11HIuDfl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779151593; c=relaxed/simple;
+	bh=/EFRj0rjzYScjN7u5TMB7kop97uzkPHQnXisC9NmdnI=;
+	h=Date:To:From:Subject:Message-Id; b=UKaoOqACy9YaJym2Ck98wAE1gLpqCcfKeDGkrgbLKhkfuVm8JnyNSlNe7TfyOfOBgwQNEVYuRMORC1PvuFNKp0EKCdZCp0xNIFIINtDtEJ/86FFtEQ+Xpp30KgzcZp5VkIp1LSTGCa1ZUbO8EcPQuIGMHNVobA/G3mPhAfK6RWE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NL8BZK8k; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="11HIuDfl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8B2CC2BCB7;
-	Tue, 19 May 2026 00:43:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NL8BZK8k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 638A9C2BCB7;
+	Tue, 19 May 2026 00:46:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779151392;
-	bh=+5xgrlDF+ghms9n8aDxIdH48Cn7rHfTbveWAh2pn5m8=;
+	s=korg; t=1779151593;
+	bh=/EFRj0rjzYScjN7u5TMB7kop97uzkPHQnXisC9NmdnI=;
 	h=Date:To:From:Subject:From;
-	b=11HIuDfl9zkS0U+28YMuLpgReqAiqMiPTOEuj1kbA9Z/Xx63iaGCpRv2qmeETPlFT
-	 hrCXJvv5jSliJ5/FL5zPM78iEJRuUfibbH0KJI0JZPrtCjc5PU13k6rp24J6xGZ+B1
-	 VdvXQCxJCviu0rmIBicC9T93h7VaL+bFM1dvcnnE=
-Date: Mon, 18 May 2026 17:43:12 -0700
-To: mm-commits@vger.kernel.org,akpm@linux-foundation.org,ingyujang25@korea.ac.kr,akpm@linux-foundation.org
+	b=NL8BZK8kZcU5aVzf1xHmT+U8kKteWqV+DzWebvTAw8k+c0THM/Zik7WtjWX3BiOvl
+	 m/GSmqqJ2LjkrTUHxkTHE+uEJVVIQsGgTlRxoVMw7P6h4irg8KaxKF3ciGCvN2hwMG
+	 BB5OIRtM4dRChskrniiW4ge07sqikYyc5CuGGwoA=
+Date: Mon, 18 May 2026 17:46:32 -0700
+To: mm-commits@vger.kernel.org,leon@kernel.org,jgg@ziepe.ca,apopple@nvidia.com,liuqiang@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + error-inject-use-is_err-check-for-debugfs_create_file.patch added to mm-nonmm-unstable branch
-Message-Id: <20260519004312.C8B2CC2BCB7@smtp.kernel.org>
+Subject: [to-be-updated] lib-test_hmm-check-alloc_page_vma-return-value.patch removed from -mm tree
+Message-Id: <20260519004633.638A9C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,66 +34,55 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: error-inject: use IS_ERR() check for debugfs_create_file()
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     error-inject-use-is_err-check-for-debugfs_create_file.patch
+The quilt patch titled
+     Subject: lib/test_hmm: check alloc_page_vma() return value
+has been removed from the -mm tree.  Its filename was
+     lib-test_hmm-check-alloc_page_vma-return-value.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/error-inject-use-is_err-check-for-debugfs_create_file.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Ingyu Jang <ingyujang25@korea.ac.kr>
-Subject: error-inject: use IS_ERR() check for debugfs_create_file()
-Date: Fri, 15 May 2026 04:32:14 +0900
+From: Qiang Liu <liuqiang@kylinos.cn>
+Subject: lib/test_hmm: check alloc_page_vma() return value
+Date: Mon, 18 May 2026 11:19:03 +0800
 
-debugfs_create_file() returns an error pointer on failure, never NULL, so
-the !file check in ei_debugfs_init() never triggers and the
-debugfs_remove() cleanup cannot run.
+Return VM_FAULT_OOM if page allocation fails, which avoids a NULL pointer
+dereference when calling lock_page().
 
-Use IS_ERR() and propagate the actual error via PTR_ERR().
-
-Link: https://lore.kernel.org/20260514193214.2432769-1-ingyujang25@korea.ac.kr
-Signed-off-by: Ingyu Jang <ingyujang25@korea.ac.kr>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Link: https://lore.kernel.org/20260518031903.63455-1-liuqiangneo@163.com
+Signed-off-by: Qiang Liu <liuqiang@kylinos.cn>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/error-inject.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/test_hmm.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/lib/error-inject.c~error-inject-use-is_err-check-for-debugfs_create_file
-+++ a/lib/error-inject.c
-@@ -219,9 +219,9 @@ static int __init ei_debugfs_init(void)
- 	dir = debugfs_create_dir("error_injection", NULL);
- 
- 	file = debugfs_create_file("list", 0444, dir, NULL, &ei_fops);
--	if (!file) {
-+	if (IS_ERR(file)) {
- 		debugfs_remove(dir);
--		return -ENOMEM;
-+		return PTR_ERR(file);
- 	}
- 
- 	return 0;
+--- a/lib/test_hmm.c~lib-test_hmm-check-alloc_page_vma-return-value
++++ a/lib/test_hmm.c
+@@ -1063,6 +1063,17 @@ static vm_fault_t dmirror_devmem_fault_a
+ 			/* Try with smaller pages if large allocation fails */
+ 			if (!dpage && order) {
+ 				dpage = alloc_page_vma(GFP_HIGHUSER_MOVABLE, args->vma, addr);
++				if (!dpage) {
++					/* Unlock and free pages already allocated. */
++					while (i > 0) {
++						struct page *fpage;
++
++						fpage = migrate_pfn_to_page(dst[--i]);
++						unlock_page(fpage);
++						__free_page(fpage);
++					}
++					return VM_FAULT_OOM;
++				}
+ 				lock_page(dpage);
+ 				dst[i] = migrate_pfn(page_to_pfn(dpage));
+ 				dst_page = pfn_to_page(page_to_pfn(dpage));
 _
 
-Patches currently in -mm which might be from ingyujang25@korea.ac.kr are
+Patches currently in -mm which might be from liuqiang@kylinos.cn are
 
-error-inject-use-is_err-check-for-debugfs_create_file.patch
+lib-test_hmm-fix-error-path-in-dmirror_devmem_fault.patch
 
