@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57ABE278156
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB73520C461
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152130; cv=none; b=GbcAeQum2wfOOVRXywAYCfw9vqOpx7BjU2B23qCp8UdX/TlSFoV+kVkOxyoG0Mxv17GgHVohlkfTZ/64WTIrSln/jHu2iqlltnF0PzZ/PBUTg93I7f5GgZGJiRAXhEBku9bPayw45v3kyyGAAwbLePGl7R7vL8yvoE9NpOB/o64=
+	t=1779152133; cv=none; b=fHslgMxRxmdXeKRwVINeKx9ZquQRI/UbfnifDgORdfybp/GRO/VitVvgMBfRJOFPXUwSUeJp2fjWh9ZKD5hHhwOTU6SmgBOVQs2P2i897VXzFRUROOSz3c1jvDbUDR/S2xPVpADejsLa2pybmT82KU/aufODmN+5tfYKc2Vjxfw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152130; c=relaxed/simple;
-	bh=tx1BkRg6FIVxJeTuyvHy+OpOQW/Xf09STwh2/rn92JU=;
-	h=Date:To:From:Subject:Message-Id; b=PksA437vGi245M27u93UKxNm80hqijWM3yyhHG2p5him0znKO4qJLI7TUmG61MyljjQyzLQIFVWPoxZ96rpZHIFuKOTwLue0mkk5roW5A8A1I0xA2l+VS7RBPPa5Yf9JlwqW+u5yZ3P6PToC5cU1rB0hQQ+8e9HmnAhUaEkx+ZE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Oea0G6/e; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152133; c=relaxed/simple;
+	bh=Igi9XujXdgGnxd/1vDKXJprXT9O4ZiDLEqybXMjilpM=;
+	h=Date:To:From:Subject:Message-Id; b=EnwaA8dNXp7jM251a3KWN/Q7DAJWosmlq5B5eQ5fhBCJ5oVDaNQDzlNoE0IgenWU5/dWnaApdZjIsDnS/1gQQMy9TVoWu1Sg5Sn2dYS2/pkehRIWfkUJT6rZsM6QWprx428WhqvzvbHzVnANCRkuPbMqdsX56Lc4cPrh7bY/MGg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jZS/efGX; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Oea0G6/e"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27417C2BCB7;
-	Tue, 19 May 2026 00:55:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jZS/efGX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E3BEC2BCB7;
+	Tue, 19 May 2026 00:55:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152130;
-	bh=tx1BkRg6FIVxJeTuyvHy+OpOQW/Xf09STwh2/rn92JU=;
+	s=korg; t=1779152132;
+	bh=Igi9XujXdgGnxd/1vDKXJprXT9O4ZiDLEqybXMjilpM=;
 	h=Date:To:From:Subject:From;
-	b=Oea0G6/eyvEWDQDHbsbR4ogTKqM0m8exoEmqgFMQ0A7k6/1Yy20sBC6aUUHDVG7RT
-	 3a1Pp6VuklSffzkTkds/xhJ8F5TKh5QZqvPo2uQPRbzOxEZ4Qd5eXp0l7lfxfBmX/0
-	 J+QqEKh63H3evhgGKa2ahJpJ49GaqVuLbMBAtNqU=
-Date: Mon, 18 May 2026 17:55:29 -0700
+	b=jZS/efGXWa7/4k15jRvitcglDugbFS0znQiDGC4UhQ8bh72cNBoDsofsWzXKhABmt
+	 CC6ahu5kAbetFH8dgOMSOaHIbmJDknHrznHW+s1qeVX5GJNsvvHjjkczB5JVKnTsma
+	 1/nhovX5ik/9DuJmQaOFp9ahsqPdZsd1ijm5A9is=
+Date: Mon, 18 May 2026 17:55:31 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-implement-filters-directory.patch added to mm-new branch
-Message-Id: <20260519005530.27417C2BCB7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-implement-filter-dir.patch added to mm-new branch
+Message-Id: <20260519005532.7E3BEC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: implement filters directory
+     Subject: mm/damon/sysfs: implement filter dir
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-implement-filters-directory.patch
+     mm-damon-sysfs-implement-filter-dir.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-implement-filters-directory.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-implement-filter-dir.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,12 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: implement filters directory
-Date: Mon, 18 May 2026 16:40:59 -0700
+Subject: mm/damon/sysfs: implement filter dir
+Date: Mon, 18 May 2026 16:41:00 -0700
 
-Implement a directory for letting users to install data probe filters.
+Implement a sysfs directory for letting the users to configure each data
+probe filter.
 
-Link: https://lore.kernel.org/20260518234119.97569-12-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-13-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -92,110 +93,168 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   65 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 64 insertions(+), 1 deletion(-)
+ mm/damon/sysfs.c |  125 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 124 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-filters-directory
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-implement-filter-dir
 +++ a/mm/damon/sysfs.c
-@@ -748,11 +748,41 @@ static const struct kobj_type damon_sysf
+@@ -748,11 +748,45 @@ static const struct kobj_type damon_sysf
  };
  
  /*
-+ * filters directory
++ * filter directory
 + */
 +
-+struct damon_sysfs_filters {
++struct damon_sysfs_filter {
 +	struct kobject kobj;
 +};
 +
-+static struct damon_sysfs_filters *damon_sysfs_filters_alloc(void)
++static struct damon_sysfs_filter *damon_sysfs_filter_alloc(void)
 +{
-+	return kzalloc_obj(struct damon_sysfs_filters);
++	return kzalloc_obj(struct damon_sysfs_filter);
 +}
 +
-+static void damon_sysfs_filters_release(struct kobject *kobj)
++static void damon_sysfs_filter_release(struct kobject *kobj)
 +{
-+	kfree(container_of(kobj, struct damon_sysfs_filters, kobj));
++	struct damon_sysfs_filter *filter = container_of(kobj,
++			struct damon_sysfs_filter, kobj);
++
++	kfree(filter);
 +}
 +
-+static struct attribute *damon_sysfs_filters_attrs[] = {
++static struct attribute *damon_sysfs_filter_attrs[] = {
 +	NULL,
 +};
-+ATTRIBUTE_GROUPS(damon_sysfs_filters);
++ATTRIBUTE_GROUPS(damon_sysfs_filter);
 +
-+static const struct kobj_type damon_sysfs_filters_ktype = {
-+	.release = damon_sysfs_filters_release,
++static const struct kobj_type damon_sysfs_filter_ktype = {
++	.release = damon_sysfs_filter_release,
 +	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_groups = damon_sysfs_filters_groups,
++	.default_groups = damon_sysfs_filter_groups,
 +};
 +
 +/*
-  * probe directory
+  * filters directory
   */
  
- struct damon_sysfs_probe {
+ struct damon_sysfs_filters {
  	struct kobject kobj;
-+	struct damon_sysfs_filters *filters;
++	struct damon_sysfs_filter **filters_arr;
++	int nr;
  };
  
- static struct damon_sysfs_probe *damon_sysfs_probe_alloc(void)
-@@ -760,6 +790,30 @@ static struct damon_sysfs_probe *damon_s
- 	return kzalloc_obj(struct damon_sysfs_probe);
+ static struct damon_sysfs_filters *damon_sysfs_filters_alloc(void)
+@@ -760,12 +794,98 @@ static struct damon_sysfs_filters *damon
+ 	return kzalloc_obj(struct damon_sysfs_filters);
  }
  
-+static int damon_sysfs_probe_add_dirs(struct damon_sysfs_probe *attr)
++static void damon_sysfs_filters_rm_dirs(struct damon_sysfs_filters *filters)
 +{
-+	struct damon_sysfs_filters *filters;
-+	int err;
++	struct damon_sysfs_filter **filters_arr = filters->filters_arr;
++	int i;
 +
-+	filters = damon_sysfs_filters_alloc();
-+	if (!filters)
++	for (i = 0; i < filters->nr; i++)
++		kobject_put(&filters_arr[i]->kobj);
++	filters->nr = 0;
++	kfree(filters_arr);
++	filters->filters_arr = NULL;
++}
++
++static int damon_sysfs_filters_add_dirs(
++		struct damon_sysfs_filters *filters, int nr_filters)
++{
++	struct damon_sysfs_filter **filters_arr, *filter;
++	int err, i;
++
++	damon_sysfs_filters_rm_dirs(filters);
++	if (!nr_filters)
++		return 0;
++
++	filters_arr = kmalloc_objs(*filters_arr, nr_filters,
++				   GFP_KERNEL | __GFP_NOWARN);
++	if (!filters_arr)
 +		return -ENOMEM;
-+	attr->filters = filters;
++	filters->filters_arr = filters_arr;
 +
-+	err = kobject_init_and_add(&filters->kobj, &damon_sysfs_filters_ktype,
-+			&attr->kobj, "filters");
-+	if (err) {
-+		kobject_put(&filters->kobj);
-+		attr->filters = NULL;
-+	}
-+	return err;
-+}
++	for (i = 0; i < nr_filters; i++) {
++		filter = damon_sysfs_filter_alloc();
++		if (!filter) {
++			damon_sysfs_filters_rm_dirs(filters);
++			return -ENOMEM;
++		}
 +
-+static void damon_sysfs_probe_rm_dirs(struct damon_sysfs_probe *attr)
-+{
-+	kobject_put(&attr->filters->kobj);
-+}
-+
- static void damon_sysfs_probe_release(struct kobject *kobj)
- {
- 	kfree(container_of(kobj, struct damon_sysfs_probe, kobj));
-@@ -797,8 +851,10 @@ static void damon_sysfs_probes_rm_dirs(
- 	struct damon_sysfs_probe **probes_arr = probes->probes_arr;
- 	int i;
- 
--	for (i = 0; i < probes->nr; i++)
-+	for (i = 0; i < probes->nr; i++) {
-+		damon_sysfs_probe_rm_dirs(probes_arr[i]);
- 		kobject_put(&probes_arr[i]->kobj);
-+	}
- 	probes->nr = 0;
- 	kfree(probes_arr);
- 	probes->probes_arr = NULL;
-@@ -833,6 +889,13 @@ static int damon_sysfs_probes_add_dirs(
- 		if (err) {
- 			kobject_put(&probe->kobj);
- 			damon_sysfs_probes_rm_dirs(probes);
++		err = kobject_init_and_add(&filter->kobj,
++				&damon_sysfs_filter_ktype, &filters->kobj,
++				"%d", i);
++		if (err) {
++			kobject_put(&filter->kobj);
++			damon_sysfs_filters_rm_dirs(filters);
 +			return err;
 +		}
 +
-+		err = damon_sysfs_probe_add_dirs(probe);
-+		if (err) {
-+			kobject_put(&probe->kobj);
-+			damon_sysfs_probes_rm_dirs(probes);
- 			return err;
- 		}
++		filters_arr[i] = filter;
++		filters->nr++;
++	}
++	return 0;
++}
++
++static ssize_t nr_filters_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
++{
++	struct damon_sysfs_filters *filters = container_of(kobj,
++			struct damon_sysfs_filters, kobj);
++
++	return sysfs_emit(buf, "%d\n", filters->nr);
++}
++
++static ssize_t nr_filters_store(struct kobject *kobj,
++		struct kobj_attribute *attr, const char *buf, size_t count)
++{
++	struct damon_sysfs_filters *filters;
++	int nr, err = kstrtoint(buf, 0, &nr);
++
++	if (err)
++		return err;
++	if (nr < 0)
++		return -EINVAL;
++
++	filters = container_of(kobj, struct damon_sysfs_filters, kobj);
++
++	if (!mutex_trylock(&damon_sysfs_lock))
++		return -EBUSY;
++	err = damon_sysfs_filters_add_dirs(filters, nr);
++	mutex_unlock(&damon_sysfs_lock);
++	if (err)
++		return err;
++
++	return count;
++}
++
+ static void damon_sysfs_filters_release(struct kobject *kobj)
+ {
+ 	kfree(container_of(kobj, struct damon_sysfs_filters, kobj));
+ }
  
++static struct kobj_attribute damon_sysfs_filters_nr_attr =
++		__ATTR_RW_MODE(nr_filters, 0600);
++
+ static struct attribute *damon_sysfs_filters_attrs[] = {
++	&damon_sysfs_filters_nr_attr.attr,
+ 	NULL,
+ };
+ ATTRIBUTE_GROUPS(damon_sysfs_filters);
+@@ -811,7 +931,10 @@ static int damon_sysfs_probe_add_dirs(st
+ 
+ static void damon_sysfs_probe_rm_dirs(struct damon_sysfs_probe *attr)
+ {
+-	kobject_put(&attr->filters->kobj);
++	if (attr->filters) {
++		damon_sysfs_filters_rm_dirs(attr->filters);
++		kobject_put(&attr->filters->kobj);
++	}
+ }
+ 
+ static void damon_sysfs_probe_release(struct kobject *kobj)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
