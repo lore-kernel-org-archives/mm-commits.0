@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97C873EA96D;
-	Tue, 19 May 2026 17:45:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A4283EA953;
+	Tue, 19 May 2026 17:45:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779212716; cv=none; b=QOQQj8m1+T5UVmRGf3ApZAgopf6KPsA1N9HAmaY79YHTvENV1/bM2kwBQe9l6zcWEgPYa+WiY8GCV2dl1wPQaRhr7WpwjXP7ffVDCEEe8ogsd0l7kenNOcJJl5NfrRrjvWfP2zkFvr4zZewkx8AOkclatbOE6HWnGrApO3jo7Qw=
+	t=1779212718; cv=none; b=n/RfMki3rOrJdDPdRk+bJLMpvECG2/flywrGl4V6XFNOTws4BrZiNXDw5Vg1aXqTluO6Sf/H5ss8NJsqO0tFHGL22R9DK8r/QKgfmfNxjkYpnWyaebqebvvBHjBnCvVGwjQhY1e27g39f93wdNRdYBKxeptmQ/zJPjlT8ZWNVO8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779212716; c=relaxed/simple;
-	bh=By6wmNdWkSXZ2lU25eN5K4Fud2I3rTrNI+YdOHXdyRE=;
-	h=Date:To:From:Subject:Message-Id; b=jhiC2s71QQoItIL1myp13Ss0CrilfztDbIo9jT2BmLhg6C2Us2xlCUabNzW3s68y+piSq1XCP4B88VJpihnHXnoEMwWoThOLbSrGf65AjfopOdgg0xCQLFfjEfquJ0TE6xluzcEHEbpCp8bgQtmELkPyOWjln+eJKMrtITmWNPU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NObITNLE; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779212718; c=relaxed/simple;
+	bh=Akh3Zfn8+lYDQjfzNyhBVf7AJoRyxFn7W6oAfZBtfUc=;
+	h=Date:To:From:Subject:Message-Id; b=Ew0jMIk5pW1lcFlYBlknFFE7dgh6tgfhTSnH40o/ViSj7Pc4l9q/SHKFNMcKIt0MPQMQjqZ7Vv5njbiv/vXhgbn397xAtn/fJiwJH4itDEukGLjX4CQLco4tfY0+LETx79i3y1YJnHodMqfHHyNuF2cVKQvsygrGe/iUQWDwKFA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cu+FmfFP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NObITNLE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6392C2BCB3;
-	Tue, 19 May 2026 17:45:15 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cu+FmfFP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F154C2BCB3;
+	Tue, 19 May 2026 17:45:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779212716;
-	bh=By6wmNdWkSXZ2lU25eN5K4Fud2I3rTrNI+YdOHXdyRE=;
+	s=korg; t=1779212718;
+	bh=Akh3Zfn8+lYDQjfzNyhBVf7AJoRyxFn7W6oAfZBtfUc=;
 	h=Date:To:From:Subject:From;
-	b=NObITNLE8MekYiBRDx5nocUrTBioivCJCn8VgvMaa7QGe+rhYO4GXAJqbSxEU5/kd
-	 4GYcxbqlQXM0t6DmLmHurymvzWN/AOJX9/f7lGA8eCjyUgOOBIytzBGmu9TBjY2lRF
-	 lXR0x9sXDg4B7769SZnW67+VtjYMAtVJsFAfX55E=
-Date: Tue, 19 May 2026 10:45:15 -0700
+	b=cu+FmfFPUSoyusL1MLssSX541tq3FfxOG86zjP06Fb6TmmI+7vwM6WdNtw+c2sxd8
+	 E2xZ5WO3ogQ7SETM9CNDCftpQVH3CqRWHd9COrKlEDQlx8y+TwkovOLPOzhBjpEy2M
+	 jdORehbz9R2654i1ZVv2bKHgFWBX71SrlqDb5tB8=
+Date: Tue, 19 May 2026 10:45:17 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,michael.bommarito@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-reject-dinodes-whose-i_rdev-disagrees-with-the-file-type.patch added to mm-nonmm-unstable branch
-Message-Id: <20260519174515.E6392C2BCB3@smtp.kernel.org>
+Subject: + ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters.patch added to mm-nonmm-unstable branch
+Message-Id: <20260519174518.3F154C2BCB3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: reject dinodes whose i_rdev disagrees with the file type
+     Subject: ocfs2: reject non-inline dinodes with i_size and zero i_clusters
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-reject-dinodes-whose-i_rdev-disagrees-with-the-file-type.patch
+     ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-reject-dinodes-whose-i_rdev-disagrees-with-the-file-type.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,116 +59,131 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Michael Bommarito <michael.bommarito@gmail.com>
-Subject: ocfs2: reject dinodes whose i_rdev disagrees with the file type
-Date: Tue, 19 May 2026 07:04:03 -0400
+Subject: ocfs2: reject non-inline dinodes with i_size and zero i_clusters
+Date: Tue, 19 May 2026 07:04:04 -0400
 
-id1.dev1.i_rdev is the device-number arm of the ocfs2_dinode id1 union. 
-It is only meaningful for character and block device inodes.  For any
-other user-visible file type the on-disk value must be zero.
+On a volume mounted without OCFS2_FEATURE_INCOMPAT_SPARSE_ALLOC, a
+non-inline regular file with non-zero i_size and zero i_clusters is
+structurally malformed: the extent map declares no allocated clusters yet
+the size header claims content exists.  Keep rejecting that shape, but
+express it through a shared predicate so the same invariant is available
+to normal inode reads and online filecheck.
 
-ocfs2_populate_inode() currently copies id1.dev1.i_rdev into inode->i_rdev
-before the S_IFMT switch decides whether the inode is a special file.  A
-non-device inode with a non-zero i_rdev can therefore publish stale or
-attacker-controlled device state into the in-core inode.
+The same zero-cluster shape is also malformed for non-inline directories. 
+ocfs2 directory growth allocates backing storage before advancing i_size,
+and ocfs2_dir_foreach_blk_el() later walks until ctx->pos reaches
+i_size_read(inode).  A forged directory dinode with a huge i_size and no
+clusters would repeatedly fail on holes while advancing through the
+claimed size.
 
-System inodes legitimately use other arms of the same union, so keep the
-cross-check restricted to non-system inodes.  Factor that predicate into a
-helper and use it in both the normal validator and online filecheck path;
-filecheck reports the malformed dinode through
-OCFS2_FILECHECK_ERR_INVALIDINO instead of ocfs2_error().
+Sparse regular files remain exempt: on sparse-alloc volumes, truncate can
+legitimately grow i_size without allocating clusters.  System inodes and
+inline-data dinodes also retain their separate storage rules.
 
-Link: https://lore.kernel.org/20260519110404.1803902-3-michael.bommarito@gmail.com
+Mirror the check in ocfs2_filecheck_validate_inode_block() as well. 
+filecheck reports through its own error namespace, so malformed
+size/cluster state is logged as a filecheck invalid-inode result rather
+than via ocfs2_error(), but it must not proceed into
+ocfs2_populate_inode().
+
+Link: https://lore.kernel.org/20260519110404.1803902-4-michael.bommarito@gmail.com
 Fixes: b657c95c1108 ("ocfs2: Wrap inode block reads in a dedicated function.")
 Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
+Link: https://sashiko.dev/#/patchset/20260517111015.3187935-1-michael.bommarito%40gmail.com
 Assisted-by: Claude:claude-opus-4-7
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Heming Zhao <heming.zhao@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |   55 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ fs/ocfs2/inode.c |   60 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
 
---- a/fs/ocfs2/inode.c~ocfs2-reject-dinodes-whose-i_rdev-disagrees-with-the-file-type
+--- a/fs/ocfs2/inode.c~ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters
 +++ a/fs/ocfs2/inode.c
-@@ -72,6 +72,16 @@ static bool ocfs2_valid_inode_mode(umode
- 	return fs_umode_to_ftype(mode) != FT_UNKNOWN;
+@@ -82,6 +82,24 @@ static bool ocfs2_dinode_has_unexpected_
+ 	return !S_ISCHR(mode) && !S_ISBLK(mode) && di->id1.dev1.i_rdev != 0;
  }
  
-+static bool ocfs2_dinode_has_unexpected_rdev(struct ocfs2_dinode *di)
++static bool ocfs2_dinode_has_size_without_clusters(struct super_block *sb,
++						   struct ocfs2_dinode *di)
 +{
 +	umode_t mode = le16_to_cpu(di->i_mode);
 +
 +	if (le32_to_cpu(di->i_flags) & OCFS2_SYSTEM_FL)
 +		return false;
++	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL)
++		return false;
++	if (!le64_to_cpu(di->i_size) || le32_to_cpu(di->i_clusters))
++		return false;
 +
-+	return !S_ISCHR(mode) && !S_ISBLK(mode) && di->id1.dev1.i_rdev != 0;
++	if (S_ISDIR(mode))
++		return true;
++
++	return !ocfs2_sparse_alloc(OCFS2_SB(sb)) && S_ISREG(mode);
 +}
 +
  void ocfs2_set_inode_flags(struct inode *inode)
  {
  	unsigned int flags = OCFS2_I(inode)->ip_attr;
-@@ -1518,6 +1528,41 @@ int ocfs2_validate_inode_block(struct su
+@@ -1563,6 +1581,33 @@ int ocfs2_validate_inode_block(struct su
  		goto bail;
  	}
  
 +	/*
-+	 * id1.dev1.i_rdev is the device-number arm of the id1 union and
-+	 * is only meaningful for character and block device inodes.  For
-+	 * any other regular user-visible file type the on-disk value
-+	 * must be zero.  ocfs2_populate_inode() currently runs
++	 * Non-inline directories must not have i_size without allocated
++	 * clusters: directory growth adds storage before advancing i_size,
++	 * and readdir walks i_size block-by-block.  A forged directory
++	 * with zero clusters and a huge i_size would repeatedly fault on
++	 * holes while advancing through the claimed size.
 +	 *
-+	 *     inode->i_rdev = huge_decode_dev(le64_to_cpu(fe->id1.dev1.i_rdev));
-+	 *
-+	 * unconditionally, before the S_IFMT switch decides whether the
-+	 * inode is a special file.  As a result, an i_rdev value present
-+	 * on a non-device inode is silently published into the in-core
-+	 * inode; a subsequent forced re-read or in-core mode mutation
-+	 * (cluster peer with raw write access to the shared LUN,
-+	 * on-disk corruption, or a separately forged dinode) can then
-+	 * expose the attacker-controlled device number to
-+	 * init_special_inode() without ever showing an unusual i_mode
-+	 * at validation time.
-+	 *
-+	 * System inodes (OCFS2_SYSTEM_FL) legitimately use the bitmap1
-+	 * and journal1 arms of the same union (allocator i_used /
-+	 * i_total counters and the journal ij_flags /
-+	 * ij_recovery_generation pair); those bytes are not an i_rdev
-+	 * and must not be checked here.  Restrict the cross-check to
-+	 * non-system inodes, which is the full attacker-controllable
-+	 * surface.
++	 * Non-inline regular files have the same invariant on non-sparse
++	 * volumes.  Sparse regular files are different: truncate can
++	 * legitimately grow i_size without allocating clusters, so keep
++	 * the sparse-alloc carveout for S_IFREG only.  System inodes and
++	 * inline-data dinodes have their own storage rules.
 +	 */
-+	if (ocfs2_dinode_has_unexpected_rdev(di)) {
-+		rc = ocfs2_error(sb,
-+				 "Invalid dinode #%llu: non-device mode 0%o with i_rdev %llu\n",
-+				 (unsigned long long)bh->b_blocknr,
-+				 le16_to_cpu(di->i_mode),
-+				 (unsigned long long)le64_to_cpu(di->id1.dev1.i_rdev));
++	if (ocfs2_dinode_has_size_without_clusters(sb, di)) {
++		if (S_ISDIR(le16_to_cpu(di->i_mode)))
++			rc = ocfs2_error(sb,
++					 "Invalid dinode #%llu: directory i_size %llu with i_clusters 0 and no inline-data flag\n",
++					 (unsigned long long)bh->b_blocknr,
++					 (unsigned long long)le64_to_cpu(di->i_size));
++		else
++			rc = ocfs2_error(sb,
++					 "Invalid dinode #%llu: regular file i_size %llu with i_clusters 0 and no inline-data flag on non-sparse volume\n",
++					 (unsigned long long)bh->b_blocknr,
++					 (unsigned long long)le64_to_cpu(di->i_size));
 +		goto bail;
 +	}
 +
  	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL) {
  		struct ocfs2_inline_data *data = &di->id2.i_data;
  
-@@ -1657,6 +1702,16 @@ static int ocfs2_filecheck_validate_inod
- 		     (unsigned long long)bh->b_blocknr,
- 		     le16_to_cpu(di->i_mode));
+@@ -1712,6 +1757,21 @@ static int ocfs2_filecheck_validate_inod
+ 		     le16_to_cpu(di->i_mode),
+ 		     (unsigned long long)le64_to_cpu(di->id1.dev1.i_rdev));
  		rc = -OCFS2_FILECHECK_ERR_INVALIDINO;
 +		goto bail;
 +	}
 +
-+	if (ocfs2_dinode_has_unexpected_rdev(di)) {
-+		mlog(ML_ERROR,
-+		     "Filecheck: invalid dinode #%llu: non-device mode 0%o with i_rdev %llu\n",
-+		     (unsigned long long)bh->b_blocknr,
-+		     le16_to_cpu(di->i_mode),
-+		     (unsigned long long)le64_to_cpu(di->id1.dev1.i_rdev));
++	if (ocfs2_dinode_has_size_without_clusters(sb, di)) {
++		if (S_ISDIR(le16_to_cpu(di->i_mode)))
++			mlog(ML_ERROR,
++			     "Filecheck: invalid dinode #%llu: directory i_size %llu with i_clusters 0 and no inline-data flag\n",
++			     (unsigned long long)bh->b_blocknr,
++			     (unsigned long long)le64_to_cpu(di->i_size));
++		else
++			mlog(ML_ERROR,
++			     "Filecheck: invalid dinode #%llu: regular file i_size %llu with i_clusters 0 and no inline-data flag on non-sparse volume\n",
++			     (unsigned long long)bh->b_blocknr,
++			     (unsigned long long)le64_to_cpu(di->i_size));
 +		rc = -OCFS2_FILECHECK_ERR_INVALIDINO;
  	}
  
