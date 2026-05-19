@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A4283EA953;
-	Tue, 19 May 2026 17:45:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0AD22848A0
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 18:08:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779212718; cv=none; b=n/RfMki3rOrJdDPdRk+bJLMpvECG2/flywrGl4V6XFNOTws4BrZiNXDw5Vg1aXqTluO6Sf/H5ss8NJsqO0tFHGL22R9DK8r/QKgfmfNxjkYpnWyaebqebvvBHjBnCvVGwjQhY1e27g39f93wdNRdYBKxeptmQ/zJPjlT8ZWNVO8=
+	t=1779214086; cv=none; b=qStduLRrtGaM0YBENQ8IfZ+apD1YggE0XmYugwHbNQQOsWTdVr15XnoBzZiM4xjg+co1nug3UkXp46eAVq+LUZcpCGG4yX7D/4UfU45C/tIzSurPlTjnyqYLidoAFg6uAFKO/mhA9QoYHNypsZ1MLucFWYNk4zm+PQZ8ExSZ4Pc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779212718; c=relaxed/simple;
-	bh=Akh3Zfn8+lYDQjfzNyhBVf7AJoRyxFn7W6oAfZBtfUc=;
-	h=Date:To:From:Subject:Message-Id; b=Ew0jMIk5pW1lcFlYBlknFFE7dgh6tgfhTSnH40o/ViSj7Pc4l9q/SHKFNMcKIt0MPQMQjqZ7Vv5njbiv/vXhgbn397xAtn/fJiwJH4itDEukGLjX4CQLco4tfY0+LETx79i3y1YJnHodMqfHHyNuF2cVKQvsygrGe/iUQWDwKFA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cu+FmfFP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779214086; c=relaxed/simple;
+	bh=0XNGHo1cwLmTwg9+SH3cXV6/a+ThKT+VJl+bbxVuq4M=;
+	h=Date:To:From:Subject:Message-Id; b=hNyvB5LxjJqkAHDu0yR+4vrtPGQUqw3pQ6aDKLIL+Ggdo4mbv569c96TyAnDGnyvXxfTD0nAfa0R2nluW+uA5437HOvgLH3J1yxFeQ/4ayXwbbT0AS6pp72gxaCamz+ZfeEfWitTyS/pNkzoliU4i0Mh/tB3H7cHslZ/VvyCNmo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=afb9U/gr; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cu+FmfFP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F154C2BCB3;
-	Tue, 19 May 2026 17:45:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="afb9U/gr"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80481C2BCB8;
+	Tue, 19 May 2026 18:08:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779212718;
-	bh=Akh3Zfn8+lYDQjfzNyhBVf7AJoRyxFn7W6oAfZBtfUc=;
+	s=korg; t=1779214085;
+	bh=0XNGHo1cwLmTwg9+SH3cXV6/a+ThKT+VJl+bbxVuq4M=;
 	h=Date:To:From:Subject:From;
-	b=cu+FmfFPUSoyusL1MLssSX541tq3FfxOG86zjP06Fb6TmmI+7vwM6WdNtw+c2sxd8
-	 E2xZ5WO3ogQ7SETM9CNDCftpQVH3CqRWHd9COrKlEDQlx8y+TwkovOLPOzhBjpEy2M
-	 jdORehbz9R2654i1ZVv2bKHgFWBX71SrlqDb5tB8=
-Date: Tue, 19 May 2026 10:45:17 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,michael.bommarito@gmail.com,akpm@linux-foundation.org
+	b=afb9U/grmY+Uqzn+Vhs3RE9OvDWjj7wbZfT07NxrBVhXaQX5lGU/edGo78pnNLups
+	 TNehdHfz60tf/7yc1EfZQ8neeo3bsSbRNjzn1A1P48F6ZUf+1gVxiqGDSvKg4QBDm+
+	 ARa59riz8YqwCTSyAwgDo+h32rRIXiSaehiWxZdU=
+Date: Tue, 19 May 2026 11:08:05 -0700
+To: mm-commits@vger.kernel.org,urezki@gmail.com,dakr@kernel.org,aliceryhl@google.com,shivamkalra98@zohomail.in,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters.patch added to mm-nonmm-unstable branch
-Message-Id: <20260519174518.3F154C2BCB3@smtp.kernel.org>
+Subject: + mm-vmalloc-extract-vm_area_free_pages-helper-from-vfree.patch added to mm-new branch
+Message-Id: <20260519180805.80481C2BCB8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: ocfs2: reject non-inline dinodes with i_size and zero i_clusters
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters.patch
+     Subject: mm/vmalloc: extract vm_area_free_pages() helper from vfree()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-vmalloc-extract-vm_area_free_pages-helper-from-vfree.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-extract-vm_area_free_pages-helper-from-vfree.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,141 +69,131 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Michael Bommarito <michael.bommarito@gmail.com>
-Subject: ocfs2: reject non-inline dinodes with i_size and zero i_clusters
-Date: Tue, 19 May 2026 07:04:04 -0400
+From: Shivam Kalra <shivamkalra98@zohomail.in>
+Subject: mm/vmalloc: extract vm_area_free_pages() helper from vfree()
+Date: Tue, 19 May 2026 17:42:14 +0530
 
-On a volume mounted without OCFS2_FEATURE_INCOMPAT_SPARSE_ALLOC, a
-non-inline regular file with non-zero i_size and zero i_clusters is
-structurally malformed: the extent map declares no allocated clusters yet
-the size header claims content exists.  Keep rejecting that shape, but
-express it through a shared predicate so the same invariant is available
-to normal inode reads and online filecheck.
+Patch series "mm/vmalloc: free unused pages on vrealloc() shrink", v14.
 
-The same zero-cluster shape is also malformed for non-inline directories. 
-ocfs2 directory growth allocates backing storage before advancing i_size,
-and ocfs2_dir_foreach_blk_el() later walks until ctx->pos reaches
-i_size_read(inode).  A forged directory dinode with a huge i_size and no
-clusters would repeatedly fail on holes while advancing through the
-claimed size.
+This series implements the TODO in vrealloc() to unmap and free unused
+pages when shrinking across a page boundary.
 
-Sparse regular files remain exempt: on sparse-alloc volumes, truncate can
-legitimately grow i_size without allocating clusters.  System inodes and
-inline-data dinodes also retain their separate storage rules.
+Problem:
+When vrealloc() shrinks an allocation, it updates bookkeeping
+(requested_size, KASAN shadow) but does not free the underlying physical
+pages. This wastes memory for the lifetime of the allocation.
 
-Mirror the check in ocfs2_filecheck_validate_inode_block() as well. 
-filecheck reports through its own error namespace, so malformed
-size/cluster state is logged as a filecheck invalid-inode result rather
-than via ocfs2_error(), but it must not proceed into
-ocfs2_populate_inode().
+Solution:
+- Patch 1: Extracts a vm_area_free_pages(vm, start_idx, end_idx) helper
+  from vfree() that frees a range of pages with memcg and nr_vmalloc_pages
+  accounting. Freed page pointers are set to NULL to prevent stale
+  references.
+- Patch 2: Update the grow-in-place check in vrealloc() to compare the
+  requested size against the actual physical page count (vm->nr_pages) 
+  rather than the virtual area sizes. This is a prerequisite for shrinking.
+- Patch 3: For VM_ALLOC areas in vread_iter(), derive the vm area size 
+  from vm->nr_pages rather than get_vm_area_size(), which would 
+  overestimate the mapped range after a shrink. Other mapping types
+  (vmap, ioremap) don't set nr_pages and keep using get_vm_area_size().
+- Patch 4: Uses the helper to free tail pages when vrealloc() shrinks
+  across a page boundary. 
+- Patch 5: Adds a vrealloc test case to lib/test_vmalloc that exercises
+  grow-realloc, shrink-across-boundary, shrink-within-page, and
+  grow-in-place paths.
 
-Link: https://lore.kernel.org/20260519110404.1803902-4-michael.bommarito@gmail.com
-Fixes: b657c95c1108 ("ocfs2: Wrap inode block reads in a dedicated function.")
-Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
-Link: https://sashiko.dev/#/patchset/20260517111015.3187935-1-michael.bommarito%40gmail.com
-Assisted-by: Claude:claude-opus-4-7
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
+The virtual address reservation is kept intact to preserve the range for
+potential future grow-in-place support.  A concrete user is the Rust
+binder driver's KVVec::shrink_to [1], which performs explicit vrealloc()
+shrinks for memory reclamation.
+
+
+This patch (of 5):
+
+Extract page freeing and NR_VMALLOC stat accounting from vfree() into a
+reusable vm_area_free_pages() helper.  The helper operates on a range
+[start_idx, end_idx) of pages from a vm_struct, making it suitable for
+both full free (vfree) and partial free (upcoming vrealloc shrink).
+
+Freed page pointers in vm->pages[] are set to NULL to prevent stale
+references when the vm_struct outlives the free (as in vrealloc shrink).
+
+Link: https://lore.kernel.org/20260519-vmalloc-shrink-v14-0-70b96ee3e9c9@zohomail.in
+Link: https://lore.kernel.org/20260519-vmalloc-shrink-v14-1-70b96ee3e9c9@zohomail.in
+Link: https://lore.kernel.org/all/20260216-binder-shrink-vec-v3-v6-0-ece8e8593e53@zohomail.in/ [1]
+Signed-off-by: Shivam Kalra <shivamkalra98@zohomail.in>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |   60 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
+ mm/vmalloc.c |   34 +++++++++++++++++++++++++++-------
+ 1 file changed, 27 insertions(+), 7 deletions(-)
 
---- a/fs/ocfs2/inode.c~ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters
-+++ a/fs/ocfs2/inode.c
-@@ -82,6 +82,24 @@ static bool ocfs2_dinode_has_unexpected_
- 	return !S_ISCHR(mode) && !S_ISBLK(mode) && di->id1.dev1.i_rdev != 0;
+--- a/mm/vmalloc.c~mm-vmalloc-extract-vm_area_free_pages-helper-from-vfree
++++ a/mm/vmalloc.c
+@@ -3416,6 +3416,32 @@ void vfree_atomic(const void *addr)
+ 		schedule_work(&p->wq);
  }
  
-+static bool ocfs2_dinode_has_size_without_clusters(struct super_block *sb,
-+						   struct ocfs2_dinode *di)
++/*
++ * vm_area_free_pages - free a range of pages from a vmalloc allocation
++ * @vm: the vm_struct containing the pages
++ * @start_idx: first page index to free (inclusive)
++ * @end_idx: last page index to free (exclusive)
++ *
++ * Free pages [start_idx, end_idx) updating NR_VMALLOC stat accounting.
++ * Freed vm->pages[] entries are set to NULL.
++ * Caller is responsible for unmapping (vunmap_range) and KASAN
++ * poisoning before calling this.
++ */
++static void vm_area_free_pages(struct vm_struct *vm, unsigned int start_idx,
++			       unsigned int end_idx)
 +{
-+	umode_t mode = le16_to_cpu(di->i_mode);
++	unsigned int i;
 +
-+	if (le32_to_cpu(di->i_flags) & OCFS2_SYSTEM_FL)
-+		return false;
-+	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL)
-+		return false;
-+	if (!le64_to_cpu(di->i_size) || le32_to_cpu(di->i_clusters))
-+		return false;
++	if (!(vm->flags & VM_MAP_PUT_PAGES)) {
++		for (i = start_idx; i < end_idx; i++)
++			mod_lruvec_page_state(vm->pages[i], NR_VMALLOC, -1);
++	}
++	free_pages_bulk(vm->pages + start_idx, end_idx - start_idx);
 +
-+	if (S_ISDIR(mode))
-+		return true;
-+
-+	return !ocfs2_sparse_alloc(OCFS2_SB(sb)) && S_ISREG(mode);
++	for (i = start_idx; i < end_idx; i++)
++		vm->pages[i] = NULL;
 +}
 +
- void ocfs2_set_inode_flags(struct inode *inode)
+ /**
+  * vfree - Release memory allocated by vmalloc()
+  * @addr:  Memory base address
+@@ -3436,7 +3462,6 @@ void vfree_atomic(const void *addr)
+ void vfree(const void *addr)
  {
- 	unsigned int flags = OCFS2_I(inode)->ip_attr;
-@@ -1563,6 +1581,33 @@ int ocfs2_validate_inode_block(struct su
- 		goto bail;
- 	}
+ 	struct vm_struct *vm;
+-	int i;
  
-+	/*
-+	 * Non-inline directories must not have i_size without allocated
-+	 * clusters: directory growth adds storage before advancing i_size,
-+	 * and readdir walks i_size block-by-block.  A forged directory
-+	 * with zero clusters and a huge i_size would repeatedly fault on
-+	 * holes while advancing through the claimed size.
-+	 *
-+	 * Non-inline regular files have the same invariant on non-sparse
-+	 * volumes.  Sparse regular files are different: truncate can
-+	 * legitimately grow i_size without allocating clusters, so keep
-+	 * the sparse-alloc carveout for S_IFREG only.  System inodes and
-+	 * inline-data dinodes have their own storage rules.
-+	 */
-+	if (ocfs2_dinode_has_size_without_clusters(sb, di)) {
-+		if (S_ISDIR(le16_to_cpu(di->i_mode)))
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode #%llu: directory i_size %llu with i_clusters 0 and no inline-data flag\n",
-+					 (unsigned long long)bh->b_blocknr,
-+					 (unsigned long long)le64_to_cpu(di->i_size));
-+		else
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode #%llu: regular file i_size %llu with i_clusters 0 and no inline-data flag on non-sparse volume\n",
-+					 (unsigned long long)bh->b_blocknr,
-+					 (unsigned long long)le64_to_cpu(di->i_size));
-+		goto bail;
-+	}
-+
- 	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL) {
- 		struct ocfs2_inline_data *data = &di->id2.i_data;
+ 	if (unlikely(in_interrupt())) {
+ 		vfree_atomic(addr);
+@@ -3460,12 +3485,7 @@ void vfree(const void *addr)
+ 	if (unlikely(vm->flags & VM_FLUSH_RESET_PERMS))
+ 		vm_reset_perms(vm);
  
-@@ -1712,6 +1757,21 @@ static int ocfs2_filecheck_validate_inod
- 		     le16_to_cpu(di->i_mode),
- 		     (unsigned long long)le64_to_cpu(di->id1.dev1.i_rdev));
- 		rc = -OCFS2_FILECHECK_ERR_INVALIDINO;
-+		goto bail;
-+	}
-+
-+	if (ocfs2_dinode_has_size_without_clusters(sb, di)) {
-+		if (S_ISDIR(le16_to_cpu(di->i_mode)))
-+			mlog(ML_ERROR,
-+			     "Filecheck: invalid dinode #%llu: directory i_size %llu with i_clusters 0 and no inline-data flag\n",
-+			     (unsigned long long)bh->b_blocknr,
-+			     (unsigned long long)le64_to_cpu(di->i_size));
-+		else
-+			mlog(ML_ERROR,
-+			     "Filecheck: invalid dinode #%llu: regular file i_size %llu with i_clusters 0 and no inline-data flag on non-sparse volume\n",
-+			     (unsigned long long)bh->b_blocknr,
-+			     (unsigned long long)le64_to_cpu(di->i_size));
-+		rc = -OCFS2_FILECHECK_ERR_INVALIDINO;
- 	}
- 
- bail:
+-	if (!(vm->flags & VM_MAP_PUT_PAGES)) {
+-		for (i = 0; i < vm->nr_pages; i++)
+-			mod_lruvec_page_state(vm->pages[i], NR_VMALLOC, -1);
+-	}
+-	free_pages_bulk(vm->pages, vm->nr_pages);
+-
++	vm_area_free_pages(vm, 0, vm->nr_pages);
+ 	kvfree(vm->pages);
+ 	kfree(vm);
+ }
 _
 
-Patches currently in -mm which might be from michael.bommarito@gmail.com are
+Patches currently in -mm which might be from shivamkalra98@zohomail.in are
 
-ocfs2-reject-dinodes-with-non-canonical-i_mode-type.patch
-ocfs2-reject-dinodes-whose-i_rdev-disagrees-with-the-file-type.patch
-ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters.patch
+mm-vmalloc-extract-vm_area_free_pages-helper-from-vfree.patch
+mm-vmalloc-use-physical-page-count-for-vrealloc-grow-in-place-check.patch
+mm-vmalloc-use-physical-page-count-in-vread_iter-for-vm_alloc-areas.patch
+mm-vmalloc-free-unused-pages-on-vrealloc-shrink.patch
+lib-test_vmalloc-add-vrealloc-test-case.patch
 
