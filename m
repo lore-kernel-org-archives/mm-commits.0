@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04500320CD1;
-	Tue, 19 May 2026 20:25:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 722F43BB13D
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 20:28:26 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779222360; cv=none; b=X8riY+1CGSIayLjTSF654kWVQHGsNUPpscrYc50MZykfFMD1BEv6xgV4uAM3UjKnmHueh8596IjWAHmJOmbulDd9/RDMPosla66bO7pnC0+fReb3YG8GAayx/wfI8CmUPUNfPLvi/1Tb4Fm1Pw3sq7RAtEsrAXUgyGMFVm4txa0=
+	t=1779222507; cv=none; b=brpQLsYSFSoQjpUUHpN1fzaVvrPFYJ1V0R1cIgmHuPUM2gEqQy6lcVN+FdDQNMRvBGzstrxBFDjW9qpJ5P5y9txvnfPO6dIRJWcCc5mZNFodHimFa6NC0LyzeRpPd7bnw8YMWRjWHbBcqCr7cKGrh5emkXAqrYUVod5x7/b14M8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779222360; c=relaxed/simple;
-	bh=dZgB580wV5B3eYlBodT39eUPujogWfrWstymW3sdKBM=;
-	h=Date:To:From:Subject:Message-Id; b=q1rVh+UqteL6lWEOGGJUEE21Mk4S0uj8rvghpuCBiXmnde3I//q/qlKAHRW9enrMt5SZsZSEAB5suMajs99dnZu4pba5ogyUA5Sxr7jE7RVLAyWy97FFtDkp4NCXDkUEL1ysHS4YntbuGz0GG+BTOHdAxgJHIyTF2tqIZJc58nA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XJkTfs07; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779222507; c=relaxed/simple;
+	bh=3rYqydYlAP+oZn/FSc5y5lb3+Uuch9xJVYxgYTeQtLE=;
+	h=Date:To:From:Subject:Message-Id; b=TEyLEZCMqblgsnMzXm6wdQqH6Ko1riergYfC3oc0AV5IEWR5lDxhmqcsn6Ew5eakuyiIskx/1Ye2CZLgSH37jzeeRolon99B/B2+8k89WI2zVEioN6brhab3znPY8rgluPNLXdT5Egf/JzREuuF688m0NGgxCoN+EsBNf/gnJ1o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t3MgE2N6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XJkTfs07"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52DD81F000E9;
-	Tue, 19 May 2026 20:25:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t3MgE2N6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CA181F000E9;
+	Tue, 19 May 2026 20:28:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779222358;
-	bh=TPNmf42vxRoK8xZFLzKh6LF3SyiQbTxiXq12ogleSAU=;
+	d=linux-foundation.org; s=korg; t=1779222506;
+	bh=qUJzTW2qk8Wb7JV/CHjWtDPN6OEcz4UsGkpCRq5THuw=;
 	h=Date:To:From:Subject;
-	b=XJkTfs07Iz5M3FQgRcN4w6rDwbX+yJRnJbkPeI3j2dEO5xjAnQJxxti6WaGgTdlxw
-	 uSWLcVjp0sBAOLdIJTbmRxhxBjI2upHMOr8sBJuYVRNbGvHsqFxjGarkbChz4O47yr
-	 q5fwqNSL5geKm+5kmqgcOllFscGXi3kSrKUedujw=
-Date: Tue, 19 May 2026 13:25:57 -0700
-To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,stable@vger.kernel.org,rppt@kernel.org,rafael@kernel.org,osalvador@kernel.org,icheng@nvidia.com,gregkh@linuxfoundation.org,djakov@kernel.org,david@kernel.org,georgi.djakov@oss.qualcomm.com,akpm@linux-foundation.org
+	b=t3MgE2N6R5KCtINkC7PnQSOaS77gIHKKmZVeRt2/PYycGGSZtrZzMiX73gs/twPEC
+	 LUjVDt1tR9UbD3xkvxTJFzEvYeKmLtdDJGoGKiDxDvpkf3mwDrsAqXzfs1xOstFONb
+	 +jeFkWUbKPYBZ2SnkChrvOz91T86bi51DBTf1ZWk=
+Date: Tue, 19 May 2026 13:28:25 -0700
+To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,chengkaitao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-base-memory-set-mem-altmap-after-successful-device-registration.patch added to mm-new branch
-Message-Id: <20260519202558.52DD81F000E9@smtp.kernel.org>
+Subject: + mm-memory-failure-use-zone_pcp_disable-for-poison-handling.patch added to mm-new branch
+Message-Id: <20260519202826.0CA181F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drivers/base/memory: set mem->altmap after successful device registration
+     Subject: mm/memory-failure: use zone_pcp_disable() for poison handling
 has been added to the -mm mm-new branch.  Its filename is
-     drivers-base-memory-set-mem-altmap-after-successful-device-registration.patch
+     mm-memory-failure-use-zone_pcp_disable-for-poison-handling.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-memory-set-mem-altmap-after-successful-device-registration.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-use-zone_pcp_disable-for-poison-handling.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,58 +69,73 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Georgi Djakov <georgi.djakov@oss.qualcomm.com>
-Subject: drivers/base/memory: set mem->altmap after successful device registration
-Date: Thu, 14 May 2026 02:26:57 -0700
+From: Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: mm/memory-failure: use zone_pcp_disable() for poison handling
+Date: Thu, 14 May 2026 16:57:54 +0800
 
-If __add_memory_block() fails at xa_store() (under memory pressure for
-example), device_unregister() is called, which eventually triggers
-memory_block_release() with mem->altmap still set, causing a
-WARN_ON(mem->altmap).  This was triggered by modifying virtio-mem driver.
+__page_handle_poison() used drain_all_pages() instead of
+zone_pcp_disable() because dissolve_free_hugetlb_folio() could restore HVO
+vmemmap pages and decrement hugetlb_optimize_vmemmap_key.  That static key
+update took cpu_hotplug_lock through static_key_slow_dec(), while
+zone_pcp_disable() holds pcp_batch_high_lock.  CPU hotplug takes the locks
+in the opposite order through page_alloc_cpu_online/dead(), so the
+combination could deadlock.
 
-Fix this by delaying the assignment of mem->altmap until after
-__add_memory_block() has succeeded.
+That dependency no longer exists.  Commit da3e2d1ca43d ("mm/hugetlb:
+remove hugetlb_optimize_vmemmap_key static key") removed the HVO static
+key and the static_branch_dec() from hugetlb_vmemmap_restore_folio().  The
+dissolve_free_hugetlb_folio() path no longer reaches
+static_key_slow_dec().
 
-Link: https://lore.kernel.org/20260514092657.3057141-1-georgi.djakov@oss.qualcomm.com
-Fixes: 1a8c64e11043 ("mm/memory_hotplug: embed vmem_altmap details in memory block")
-Signed-off-by: Georgi Djakov <georgi.djakov@oss.qualcomm.com>
-Acked-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Richard Cheng <icheng@nvidia.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Georgi Djakov <djakov@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: <stable@vger.kernel.org>
+Use zone_pcp_disable() again while dissolving the hugetlb folio and taking
+the target page off the buddy allocator.  This prevents the drained PCP
+lists from being refilled before take_page_off_buddy() runs, making the
+page isolation deterministic.
+
+Link: https://lore.kernel.org/20260514085754.84097-1-kaitao.cheng@linux.dev
+Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Acked-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory-failure.c |   18 +++---------------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
---- a/drivers/base/memory.c~drivers-base-memory-set-mem-altmap-after-successful-device-registration
-+++ a/drivers/base/memory.c
-@@ -797,7 +797,6 @@ static int add_memory_block(unsigned lon
- 	mem->start_section_nr = block_id * sections_per_block;
- 	mem->state = state;
- 	mem->nid = nid;
--	mem->altmap = altmap;
- 	INIT_LIST_HEAD(&mem->group_next);
+--- a/mm/memory-failure.c~mm-memory-failure-use-zone_pcp_disable-for-poison-handling
++++ a/mm/memory-failure.c
+@@ -172,23 +172,11 @@ static int __page_handle_poison(struct p
+ {
+ 	int ret;
  
- #ifndef CONFIG_NUMA
-@@ -815,6 +814,8 @@ static int add_memory_block(unsigned lon
- 	if (ret)
- 		return ret;
+-	/*
+-	 * zone_pcp_disable() can't be used here. It will
+-	 * hold pcp_batch_high_lock and dissolve_free_hugetlb_folio() might hold
+-	 * cpu_hotplug_lock via static_key_slow_dec() when hugetlb vmemmap
+-	 * optimization is enabled. This will break current lock dependency
+-	 * chain and leads to deadlock.
+-	 * Disabling pcp before dissolving the page was a deterministic
+-	 * approach because we made sure that those pages cannot end up in any
+-	 * PCP list. Draining PCP lists expels those pages to the buddy system,
+-	 * but nothing guarantees that those pages do not get back to a PCP
+-	 * queue if we need to refill those.
+-	 */
++	zone_pcp_disable(page_zone(page));
+ 	ret = dissolve_free_hugetlb_folio(page_folio(page));
+-	if (!ret) {
+-		drain_all_pages(page_zone(page));
++	if (!ret)
+ 		ret = take_page_off_buddy(page);
+-	}
++	zone_pcp_enable(page_zone(page));
  
-+	mem->altmap = altmap;
-+
- 	if (group) {
- 		mem->group = group;
- 		list_add(&mem->group_next, &group->memory_blocks);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from georgi.djakov@oss.qualcomm.com are
+Patches currently in -mm which might be from chengkaitao@kylinos.cn are
 
-drivers-base-memory-set-mem-altmap-after-successful-device-registration.patch
+mm-convert-vmemmap_pd_populate-to-static-functions.patch
+mm-memory-failure-use-zone_pcp_disable-for-poison-handling.patch
 
