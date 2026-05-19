@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8500282F09
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:56:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA35E286419
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:56:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152165; cv=none; b=D2UtNHfIpURlXfTgm90c1mNGd03CruOHlfj98GfaL2g3imjfSafAnrAjMEhzRJ7vuvrsWSszNG2wpnPrWy0qa8y+eCRFBBh+DmLf7zxBO10PuLzYbzLICCqVC/yi57pnN/Lh/LGzOSrVdiii9clXeR3R6wv46UAu7/lu8GIpjW8=
+	t=1779152168; cv=none; b=MxBZn/A9DkyRXlrAfLXjVZSamVVpie0CDaMo6x9Lekje5UJLVcBJug3G21LdZiOr6Z1toonQxTjIROuSK3h3Rrx8peqSUIp+GPwjIaQnZiokxzmubzV3NXT25UQgw4tMMpqXuW9RTRYnDyAT7PkUQJg9XknjeBBe3a+Q0oK2BW0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152165; c=relaxed/simple;
-	bh=6rR6Rr/Fa0+DKJ2lxmkST0BtYA4+xlo3pEmS2BFQX04=;
-	h=Date:To:From:Subject:Message-Id; b=dvxt5vBrGTrvImE4uLQG0Gi4IpG5bJD+VaMnXQfFIgEc/T95yvjw5kmkmmomRm5KYL4Up8KkFbi6wFtEQW/4kAqfAsfnPFIgZB4UlempQvNkt3OmPXJZlrvDk9ux9/jd1ovCzcQ8r+76wVLzPqJa30nW1/A4cT7TyyFuStMGhxY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G5MmfgWD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152168; c=relaxed/simple;
+	bh=dh2ydJZqzodgF4L/LSgDWIkb4KF4KhgzmRsNtLwrYOY=;
+	h=Date:To:From:Subject:Message-Id; b=lf0CcX0lA/4IzlZvvkfbwusWjR4XkYH+hQBo33mnDdYB42rkLV9cUacwDXngK9MJ5jSUxN83EMvjZ1Kcm44fbZc/T//nv1bZxiBHrcVc0Z5joHtzofDc/YzZHULrYlMELmDEKBbPJIPYpBvVDKzZ9wH1H1tdlJl79iD7VZjqEi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GbA5PTB8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G5MmfgWD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E76EC2BCB7;
-	Tue, 19 May 2026 00:56:05 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GbA5PTB8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35947C2BCB7;
+	Tue, 19 May 2026 00:56:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152165;
-	bh=6rR6Rr/Fa0+DKJ2lxmkST0BtYA4+xlo3pEmS2BFQX04=;
+	s=korg; t=1779152168;
+	bh=dh2ydJZqzodgF4L/LSgDWIkb4KF4KhgzmRsNtLwrYOY=;
 	h=Date:To:From:Subject:From;
-	b=G5MmfgWD1DCMSdMisiEiDW+MYdicGnoTGHMDL4k8XDCyZR0GBp/+0YekYqVP221ya
-	 jib4GwdvwtNpa1u3Zkav7hgSD9Wt6n7mq917IXOmJE8QWgJPckT4fZSQIdt6QP5hUE
-	 Q8jN60CHTMz6nswkI4xptHBwvcNcP0A4f2aBRH4Q=
-Date: Mon, 18 May 2026 17:56:04 -0700
+	b=GbA5PTB8ydnhcEwMy8mDuwur2RPBl2XYduHlvpt/xbKgG/1eL1uZQMoZ26EanRlW5
+	 dcbPwlPBUYzGBktU49PSmlSldcVaCzmwH/v6JmweIIyYJEVcp6VeSudNtKDzC8p8lG
+	 tzVXQQ97ZGdu8PyKV2yHHGvUkZQSJ/+jFeAyuTcU=
+Date: Mon, 18 May 2026 17:56:07 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch added to mm-new branch
-Message-Id: <20260519005605.3E76EC2BCB7@smtp.kernel.org>
+Subject: + docs-mm-damon-design-update-for-memcg-damon-filter.patch added to mm-new branch
+Message-Id: <20260519005608.35947C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: setup damon_filter->memcg_id from path
+     Subject: Docs/mm/damon/design: update for memcg damon filter
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
+     docs-mm-damon-design-update-for-memcg-damon-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-memcg-damon-filter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: setup damon_filter->memcg_id from path
-Date: Mon, 18 May 2026 16:41:14 -0700
+Subject: Docs/mm/damon/design: update for memcg damon filter
+Date: Mon, 18 May 2026 16:41:15 -0700
 
-Find and set the memcg_id for damon_filter from the user-passed memory
-cgroup path when updating the DAMON input parameters.
+Update DAMON design document for the newly added belonging memory cgroup
+attribute monitoring feature.
 
-Link: https://lore.kernel.org/20260518234119.97569-27-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-28-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -93,52 +93,22 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    1 +
- mm/damon/core.c       |    2 +-
- mm/damon/sysfs.c      |   11 +++++++++++
- 3 files changed, 13 insertions(+), 1 deletion(-)
+ Documentation/mm/damon/design.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-sysfs-setup-damon_filter-memcg_id-from-path
-+++ a/include/linux/damon.h
-@@ -1006,6 +1006,7 @@ static inline unsigned long damon_sz_reg
- struct damon_filter *damon_new_filter(enum damon_filter_type type,
- 		bool matching, bool allow);
- void damon_add_filter(struct damon_probe *probe, struct damon_filter *f);
-+void damon_destroy_filter(struct damon_filter *f);
+--- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-memcg-damon-filter
++++ a/Documentation/mm/damon/design.rst
+@@ -293,8 +293,8 @@ registration is made by specifying a pro
+ specifies a rule to determine if a given memory region has the related
+ attribute.  The rule is constructed with multiple filters.  The filters work
+ same to :ref:`DAMOS filters <damon_design_damos_filters>` except the supported
+-filter types.  Currently only ``anon`` filter type is supported for data
+-attributes monitoring.
++filter types.  Currently only ``anon`` and ``memcg`` filter types are supported
++for data attributes monitoring.
  
- struct damon_probe *damon_new_probe(void);
- void damon_add_probe(struct damon_ctx *ctx, struct damon_probe *probe);
---- a/mm/damon/core.c~mm-damon-sysfs-setup-damon_filter-memcg_id-from-path
-+++ a/mm/damon/core.c
-@@ -143,7 +143,7 @@ static void damon_free_filter(struct dam
- 	kfree(f);
- }
- 
--static void damon_destroy_filter(struct damon_filter *f)
-+void damon_destroy_filter(struct damon_filter *f)
- {
- 	damon_del_filter(f);
- 	damon_free_filter(f);
---- a/mm/damon/sysfs.c~mm-damon-sysfs-setup-damon_filter-memcg_id-from-path
-+++ a/mm/damon/sysfs.c
-@@ -1927,6 +1927,17 @@ static int damon_sysfs_set_probes(struct
- 					sys_filter->allow);
- 			if (!filter)
- 				return -ENOMEM;
-+			if (filter->type == DAMON_FILTER_TYPE_MEMCG) {
-+				int err;
-+
-+				err = damon_sysfs_memcg_path_to_id(
-+						sys_filter->path,
-+						&filter->memcg_id);
-+				if (err) {
-+					damon_destroy_filter(filter);
-+					return err;
-+				}
-+			}
- 			damon_add_filter(c, filter);
- 		}
- 	}
+ If such probes are registered, DAMON executes the probes for each region's
+ sampling memory when it does the access :ref:`sampling
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
