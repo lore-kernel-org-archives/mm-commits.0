@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28596328631
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 18:08:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 261A9328631
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 18:08:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779214092; cv=none; b=BF4x6dz1M1sYDFNDvu/D4RyQBmo5ptHJ7RUtc9c+bHAUykW8KFuBey0fdrQ+ZCZnhWzbk6zOzxgFQ5Xr3lidkTYBKUwUcqObg04SE0UpRisJQsMGJBu0aaD8L4LU4RW+/i9orMk2FSiYQazxQ/bNCzqmpDWVAPzYibolpkvjiFM=
+	t=1779214094; cv=none; b=TQczNlcPoSj8SeuCDxNkVd78IQKHzP9WsNrTdo8xU9a9i7oCd85+sJrpAq4kMItbBTDrdU1UwL0Q6m6UDPrD/GdHuEceWbGRkoL188RZMWsNyJVU8FCpCh+qmPBmQVwXP8L7MNjYYGrVbsGmTKH0j7AgxYaMnyF5unxrLOubZ4s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779214092; c=relaxed/simple;
-	bh=uZHrEqcd1Z4V3YKR+5SAMCrg3AsxSYxImG5XG1TtP8g=;
-	h=Date:To:From:Subject:Message-Id; b=er7K/zwA250E3yLsAbVsVVK1Z4ZmbcaCB0m7ElgrCbgYGGhOuWezJGWjs9pw7c4zlo3mQRX4hJAsEkKHP5gVLVPjpbiDyE2Sc7csKgenMkHg4qI4URdcCeYUqlc+XvnRHWNleQg8P6t2wXPx810wa0i6JY60WXRTVcQMr4535EU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wBkRMe4J; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779214094; c=relaxed/simple;
+	bh=9fRTWRpX3/lpCo9YizEc7X5vmd0/C67K8gsDAr4emvk=;
+	h=Date:To:From:Subject:Message-Id; b=S1nqH+KHSIiN44LsyPLvjN75kyI/b2EIBx8VmeC17J3jSGHCQqD+kxDjzwng1ttt09zeMFqo1yA018Lm59RTi5BkVNNbaS4ylCn6vFaV71vSSG4KsEj9wXZhgOpq3fnNWEmFxkdW4oQtnJqlzz4JIEWPavMu7hP8bpH2sjadMuQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tUOZgPJt; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wBkRMe4J"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE199C2BCB3;
-	Tue, 19 May 2026 18:08:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tUOZgPJt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3EE0C2BCB8;
+	Tue, 19 May 2026 18:08:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779214091;
-	bh=uZHrEqcd1Z4V3YKR+5SAMCrg3AsxSYxImG5XG1TtP8g=;
+	s=korg; t=1779214093;
+	bh=9fRTWRpX3/lpCo9YizEc7X5vmd0/C67K8gsDAr4emvk=;
 	h=Date:To:From:Subject:From;
-	b=wBkRMe4JXFd3CVWUcr3Fym9lv6tVyqjKpP2j+6YrcXBGBfys1pxCzCgZna7sGIudx
-	 fJfCzc4Eu8LtLXvJY7z7VtmTr9dlBZ91yE/AtM2Aow2oe6s/fMfos65Qoc3rKsm28q
-	 G0VxAWcgr1bBY4vo2pa7X6CuD6yVXENMUbm8yL8k=
-Date: Tue, 19 May 2026 11:08:11 -0700
+	b=tUOZgPJtQQMMe7hLOI3p5zUSknJhkc9yV+jQ7mOYsNXufdaSYxto/8MJPceL8Pv7t
+	 aei3SpWWvDL03Tho5YdPr/KknbU88676HTBY8hMyz/1plaJRrFGKpFSEwXX8M13oAd
+	 3R8sqxmr4iGMwVtgCZ034pJ4D9O+PR8hR5tJWLqA=
+Date: Tue, 19 May 2026 11:08:13 -0700
 To: mm-commits@vger.kernel.org,urezki@gmail.com,dakr@kernel.org,aliceryhl@google.com,shivamkalra98@zohomail.in,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-free-unused-pages-on-vrealloc-shrink.patch added to mm-new branch
-Message-Id: <20260519180811.AE199C2BCB3@smtp.kernel.org>
+Subject: + lib-test_vmalloc-add-vrealloc-test-case.patch added to mm-new branch
+Message-Id: <20260519180813.C3EE0C2BCB8@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vmalloc: free unused pages on vrealloc() shrink
+     Subject: lib/test_vmalloc: add vrealloc test case
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vmalloc-free-unused-pages-on-vrealloc-shrink.patch
+     lib-test_vmalloc-add-vrealloc-test-case.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vmalloc-free-unused-pages-on-vrealloc-shrink.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_vmalloc-add-vrealloc-test-case.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,117 +70,118 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Shivam Kalra <shivamkalra98@zohomail.in>
-Subject: mm/vmalloc: free unused pages on vrealloc() shrink
-Date: Tue, 19 May 2026 17:42:17 +0530
+Subject: lib/test_vmalloc: add vrealloc test case
+Date: Tue, 19 May 2026 17:42:18 +0530
 
-When vrealloc() shrinks an allocation and the new size crosses a page
-boundary, unmap and free the tail pages that are no longer needed.  This
-reclaims physical memory that was previously wasted for the lifetime of
-the allocation.
+Introduce a new test case "vrealloc_test" that exercises the vrealloc()
+shrink and in-place grow paths:
 
-The heuristic is simple: always free when at least one full page becomes
-unused.  Huge page allocations (page_order > 0) are skipped, as partial
-freeing would require splitting.  Allocations with VM_FLUSH_RESET_PERMS
-are also skipped, as their direct-map permissions must be reset before
-pages are returned to the page allocator, which is handled by
-vm_reset_perms() during vfree().
+  - Grow beyond allocated pages (triggers full reallocation).
+  - Shrink crossing a page boundary (frees tail pages).
+  - Shrink within the same page (no page freeing).
+  - Grow within the already allocated page count (in-place).
 
-Additionally, allocations with VM_USERMAP are skipped because
-remap_vmalloc_range_partial() validates mapping requests against the
-unchanged vm->size; freeing tail pages would cause vmalloc_to_page() to
-return NULL for the unmapped range.
+Data integrity is validated after each realloc step by checking that the
+first byte of the original allocation is preserved.
 
-To protect concurrent readers, the shrink path uses Node lock to
-synchronize before freeing the pages.
+The test is gated behind run_test_mask bit 12 (id 4096).
 
-Finally, we notify kmemleak of the reduced allocation size using
-kmemleak_free_part() to prevent the kmemleak scanner from faulting on the
-newly unmapped virtual addresses.
-
-The virtual address reservation (vm->size / vmap_area) is intentionally
-kept unchanged, preserving the address for potential future grow-in-place
-support.
-
-Link: https://lore.kernel.org/20260519-vmalloc-shrink-v14-4-70b96ee3e9c9@zohomail.in
+Link: https://lore.kernel.org/20260519-vmalloc-shrink-v14-5-70b96ee3e9c9@zohomail.in
 Signed-off-by: Shivam Kalra <shivamkalra98@zohomail.in>
-Suggested-by: Danilo Krummrich <dakr@kernel.org>
 Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Alice Ryhl <aliceryhl@google.com>
+Cc: Danilo Krummrich <dakr@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   56 +++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 52 insertions(+), 4 deletions(-)
+ lib/test_vmalloc.c |   62 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 62 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-free-unused-pages-on-vrealloc-shrink
-+++ a/mm/vmalloc.c
-@@ -4351,14 +4351,62 @@ void *vrealloc_node_align_noprof(const v
- 		goto need_realloc;
- 	}
+--- a/lib/test_vmalloc.c~lib-test_vmalloc-add-vrealloc-test-case
++++ a/lib/test_vmalloc.c
+@@ -55,6 +55,7 @@ __param(int, run_test_mask, 7,
+ 		"\t\tid: 512,  name: kvfree_rcu_2_arg_vmalloc_test\n"
+ 		"\t\tid: 1024, name: vm_map_ram_test\n"
+ 		"\t\tid: 2048, name: no_block_alloc_test\n"
++		"\t\tid: 4096, name: vrealloc_test\n"
+ 		/* Add a new test case description here. */
+ );
  
--	/*
--	 * TODO: Shrink the vm_area, i.e. unmap and free unused pages. What
--	 * would be a good heuristic for when to shrink the vm_area?
--	 */
- 	if (size <= old_size) {
-+		unsigned int new_nr_pages = PAGE_ALIGN(size) >> PAGE_SHIFT;
+@@ -421,6 +422,66 @@ cleanup:
+ 	return nr_allocated != map_nr_pages;
+ }
+ 
++static int vrealloc_test(void)
++{
++	void *ptr, *tmp;
++	int i;
 +
- 		/* Zero out "freed" memory, potentially for future realloc. */
- 		if (want_init_on_free() || want_init_on_alloc(flags))
- 			memset((void *)p + size, 0, old_size - size);
++	for (i = 0; i < test_loop_count; i++) {
++		int err = -1;
 +
-+		/*
-+		 * Free tail pages when shrink crosses a page boundary.
-+		 *
-+		 * Skip huge page allocations (page_order > 0) as partial
-+		 * freeing would require splitting.
-+		 *
-+		 * Skip VM_FLUSH_RESET_PERMS, as direct-map permissions must
-+		 * be reset before pages are returned to the allocator.
-+		 *
-+		 * Skip VM_USERMAP, as remap_vmalloc_range_partial() validates
-+		 * mapping requests against the unchanged vm->size; freeing
-+		 * tail pages would cause vmalloc_to_page() to return NULL for
-+		 * the unmapped range.
-+		 *
-+		 * Skip if either GFP_NOFS or GFP_NOIO are used.
-+		 * kmemleak_free_part() internally allocates with
-+		 * GFP_KERNEL, which could trigger a recursive deadlock
-+		 * if we are under filesystem or I/O reclaim.
-+		 */
-+		if (new_nr_pages < vm->nr_pages && !vm_area_page_order(vm) &&
-+		    !(vm->flags & (VM_FLUSH_RESET_PERMS | VM_USERMAP)) &&
-+		    gfp_has_io_fs(flags)) {
-+			unsigned long addr = (unsigned long)kasan_reset_tag(p);
-+			unsigned int old_nr_pages = vm->nr_pages;
++		ptr = vrealloc(NULL, PAGE_SIZE, GFP_KERNEL);
++		if (!ptr)
++			return -1;
 +
-+			/*
-+			 * Use the node lock to synchronize with concurrent
-+			 * readers (vmalloc_info_show).
-+			 */
-+			struct vmap_node *vn = addr_to_node(addr);
++		*((__u8 *)ptr) = 'a';
 +
-+			spin_lock(&vn->busy.lock);
-+			vm->nr_pages = new_nr_pages;
-+			spin_unlock(&vn->busy.lock);
++		/* Grow: beyond allocated pages, triggers full realloc. */
++		tmp = vrealloc(ptr, 4 * PAGE_SIZE, GFP_KERNEL);
++		if (!tmp)
++			goto error;
++		ptr = tmp;
 +
-+			/* Notify kmemleak of the reduced allocation size before unmapping. */
-+			kmemleak_free_part(
-+				(void *)addr + ((unsigned long)new_nr_pages
-+						<< PAGE_SHIFT),
-+				(unsigned long)(old_nr_pages - new_nr_pages)
-+					<< PAGE_SHIFT);
++		if (*((__u8 *)ptr) != 'a')
++			goto error;
 +
-+			vunmap_range(addr + ((unsigned long)new_nr_pages
-+					     << PAGE_SHIFT),
-+				     addr + ((unsigned long)old_nr_pages
-+					     << PAGE_SHIFT));
++		/* Shrink: crosses page boundary, frees tail pages. */
++		tmp = vrealloc(ptr, PAGE_SIZE, GFP_KERNEL);
++		if (!tmp)
++			goto error;
++		ptr = tmp;
 +
-+			vm_area_free_pages(vm, new_nr_pages, old_nr_pages);
-+		}
- 		vm->requested_size = size;
- 		kasan_vrealloc(p, old_size, size);
- 		return (void *)p;
++		if (*((__u8 *)ptr) != 'a')
++			goto error;
++
++		/* Shrink: within same page, no page freeing. */
++		tmp = vrealloc(ptr, PAGE_SIZE / 2, GFP_KERNEL);
++		if (!tmp)
++			goto error;
++		ptr = tmp;
++
++		if (*((__u8 *)ptr) != 'a')
++			goto error;
++
++		/* Grow: within allocated page, in-place, no realloc. */
++		tmp = vrealloc(ptr, PAGE_SIZE, GFP_KERNEL);
++		if (!tmp)
++			goto error;
++		ptr = tmp;
++
++		if (*((__u8 *)ptr) != 'a')
++			goto error;
++
++		err = 0;
++error:
++		vfree(ptr);
++		if (err)
++			return err;
++	}
++
++	return 0;
++}
++
+ struct test_case_desc {
+ 	const char *test_name;
+ 	int (*test_func)(void);
+@@ -440,6 +501,7 @@ static struct test_case_desc test_case_a
+ 	{ "kvfree_rcu_2_arg_vmalloc_test", kvfree_rcu_2_arg_vmalloc_test, },
+ 	{ "vm_map_ram_test", vm_map_ram_test, },
+ 	{ "no_block_alloc_test", no_block_alloc_test, true },
++	{ "vrealloc_test", vrealloc_test, },
+ 	/* Add a new test case here. */
+ };
+ 
 _
 
 Patches currently in -mm which might be from shivamkalra98@zohomail.in are
