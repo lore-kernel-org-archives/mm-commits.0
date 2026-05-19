@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B81C12253EE
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3C2127AC48
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152121; cv=none; b=SrFzAt4p8DW4bvtXtsVb6UPPWjc/t2GDI+KZRh3JAgJ6PSALOeV/cSom36/+QijuPc6EH57zsEhnoab8fuHzy23X3COlWDhGqG4YtkKsawm/wzidS4LuDzi8KHd6Z3LqLOyr7ufiAc5OPjKNGk6+A42diFAm75CwQbtX8ZzELLs=
+	t=1779152123; cv=none; b=NdSmscq4MxjxuLJhv5aYiWU0/w0HMOCQpSLgFd9C1QYgVMYSXtNqY3/TZT4r++S3kabs1B9MTYlrgEvktsyECVRXBK7YMu10QqWs2z8SWPsaI3FPWfOHiosNmWK7nWJsOcN9C7y1iBPGUxDqzP0L8cLCN2pyBHUmpwwMDW6mCiM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152121; c=relaxed/simple;
-	bh=E/CLeIGi35Mkxr+ECrqt3uJoWZ5CP6fOSwgtt73dJvk=;
-	h=Date:To:From:Subject:Message-Id; b=XtIEMm9r6Q5nbWBC3/z29irfftHkC4i9siWlnAwowDXD5jsOg5QoPhWy1v/KNhmPZsgBxJyQPIfQ8ijS3BHiWn1AZFTOoyPRIr+dLHKYnul26kPGDZu/KgK44kjVS5c63dZk7abgOTa3Og5fURIxcZzsvHT7mYB3j9jdQq9z5kA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=AYkFc1oD; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152123; c=relaxed/simple;
+	bh=MIZmD7zGva1ZyJdTzO993fwl9tqMHUQBD3HfRT3t4e8=;
+	h=Date:To:From:Subject:Message-Id; b=tLedla63gtJ96dG814mosNQK/22yU6BiDbYBvCJ+gk0972Br728bSIa0Eze0lHRnBmz4kVxDLCNsuSdSQIqeTd0LpiHdHXgWq3ip34UqI9H6hKNirUDftKdI4OFt1tns6pWzUDnAA2v30umYefsej7tgkSzanauwJ3Xwg/DlNv4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Vlb2cOO8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="AYkFc1oD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46887C2BCB7;
-	Tue, 19 May 2026 00:55:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Vlb2cOO8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FD02C2BCB7;
+	Tue, 19 May 2026 00:55:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152121;
-	bh=E/CLeIGi35Mkxr+ECrqt3uJoWZ5CP6fOSwgtt73dJvk=;
+	s=korg; t=1779152123;
+	bh=MIZmD7zGva1ZyJdTzO993fwl9tqMHUQBD3HfRT3t4e8=;
 	h=Date:To:From:Subject:From;
-	b=AYkFc1oDpKHrMoVL1fEnDjvfZQIrBc+Cz5ZVtJ2KVbvKhktspHmrtVoUHPTrsuckS
-	 1BghrXspAj+oFNY4HUapjT/xnBTIpcR6oZZ2bydZ/zujGHSASfzK9ani2qtsBLskWL
-	 7iQO/OqThTCmx4zeAYXcwYMmKYnjlorAxQzPSjNU=
-Date: Mon, 18 May 2026 17:55:20 -0700
+	b=Vlb2cOO8Z2R6eVt6Inr4MEcTlg0Qrs3PQs9zj+7+TWl8AegTZmMGZjoihuNV2caCp
+	 GBFR8HRN+jt1O/JRYK7eARSoBMFEjWzg3IGjivLHu6UTJMauFJ6PGWJkoT2WR3uhAG
+	 HhuYUa11e5mhZfgSCwjQiletL9YRxXiLtC1R0e2o=
+Date: Mon, 18 May 2026 17:55:22 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-do-data-attributes-monitoring.patch added to mm-new branch
-Message-Id: <20260519005521.46887C2BCB7@smtp.kernel.org>
+Subject: + mm-damon-paddr-support-data-attributes-monitoring.patch added to mm-new branch
+Message-Id: <20260519005523.5FD02C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: do data attributes monitoring
+     Subject: mm/damon/paddr: support data attributes monitoring
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-do-data-attributes-monitoring.patch
+     mm-damon-paddr-support-data-attributes-monitoring.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-do-data-attributes-monitoring.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-paddr-support-data-attributes-monitoring.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,14 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: do data attributes monitoring
-Date: Mon, 18 May 2026 16:40:55 -0700
+Subject: mm/damon/paddr: support data attributes monitoring
+Date: Mon, 18 May 2026 16:40:56 -0700
 
-Implement the data attributes monitoring execution.  Update kdamond to
-invoke the probes application callback, and reset the aggregated number of
-per-region per-probe positive samples for every aggregation interval.
+Implement and register damon_operations->apply_probes() callback to
+support data attributes monitoring.
 
-Link: https://lore.kernel.org/20260518234119.97569-8-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-9-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -94,35 +93,87 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/damon/paddr.c |   62 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 62 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-do-data-attributes-monitoring
-+++ a/mm/damon/core.c
-@@ -1910,10 +1910,14 @@ static void kdamond_reset_aggregated(str
- 		struct damon_region *r;
+--- a/mm/damon/paddr.c~mm-damon-paddr-support-data-attributes-monitoring
++++ a/mm/damon/paddr.c
+@@ -120,6 +120,67 @@ static unsigned int damon_pa_check_acces
+ 	return max_nr_accesses;
+ }
  
- 		damon_for_each_region(r, t) {
-+			int i;
++static bool damon_pa_filter_match(struct damon_filter *filter,
++		struct folio *folio)
++{
++	bool matched = false;
 +
- 			trace_damon_aggregated(ti, r, damon_nr_regions(t));
- 			damon_warn_fix_nr_accesses_corruption(r);
- 			r->last_nr_accesses = r->nr_accesses;
- 			r->nr_accesses = 0;
-+			for (i = 0; i < DAMON_MAX_PROBES; i++)
-+				r->probe_hits[i] = 0;
- 			damon_verify_reset_aggregated(r, c);
- 		}
- 		ti++;
-@@ -3407,6 +3411,8 @@ static int kdamond_fn(void *data)
- 
- 		if (ctx->ops.check_accesses)
- 			max_nr_accesses = ctx->ops.check_accesses(ctx);
-+		if (ctx->ops.apply_probes)
-+			ctx->ops.apply_probes(ctx);
- 
- 		if (time_after_eq(ctx->passed_sample_intervals,
- 					next_aggregation_sis)) {
++	switch (filter->type) {
++	case DAMON_FILTER_TYPE_ANON:
++		if (!folio) {
++			matched = false;
++			break;
++		}
++		matched = folio_test_anon(folio);
++		break;
++	default:
++		break;
++	}
++	return matched == filter->matching;
++}
++
++static bool damon_pa_filter_pass(phys_addr_t pa, struct folio *folio,
++		struct damon_probe *p)
++{
++	struct damon_filter *f;
++	bool pass = true;
++
++	damon_for_each_filter(f, p) {
++		if (damon_pa_filter_match(f, folio)) {
++			pass = f->allow;
++			break;
++		}
++		pass = !f->allow;
++	}
++	return pass;
++}
++
++static void damon_pa_apply_probes(struct damon_ctx *ctx)
++{
++	struct damon_target *t;
++	struct damon_region *r;
++	struct damon_probe *p;
++
++	damon_for_each_target(t, ctx) {
++		damon_for_each_region(r, t) {
++			int i = 0;
++			phys_addr_t pa;
++			struct folio *folio;
++
++			pa = damon_pa_phys_addr(r->sampling_addr,
++					ctx->addr_unit);
++			folio = damon_get_folio(PHYS_PFN(pa));
++			damon_for_each_probe(p, ctx) {
++				if (damon_pa_filter_pass(pa, folio, p))
++					r->probe_hits[i]++;
++				i++;
++			}
++			if (folio)
++				folio_put(folio);
++		}
++	}
++}
++
+ /*
+  * damos_pa_filter_out - Return true if the page should be filtered out.
+  */
+@@ -371,6 +432,7 @@ static int __init damon_pa_initcall(void
+ 		.update = NULL,
+ 		.prepare_access_checks = damon_pa_prepare_access_checks,
+ 		.check_accesses = damon_pa_check_accesses,
++		.apply_probes = damon_pa_apply_probes,
+ 		.target_valid = NULL,
+ 		.apply_scheme = damon_pa_apply_scheme,
+ 		.get_scheme_score = damon_pa_scheme_score,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
