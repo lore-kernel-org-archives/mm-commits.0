@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F18E27CCE0
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8C5227AC48
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152137; cv=none; b=OxnrIIwqGza90F1Q3LQ2Nxc0agnetqGPXtAFxyQJb7CdDR5nAsbCeAIIuoWJQmyd7YZE8U61GJy4WCmMyxmYhW7eJonKUbO4sXFiaLJk0kPxC0pPSJK3pM303uCybqZmOAN1BlU9Wci4hMij+WoZInw+gaLjSunj2sEcJeiWeyc=
+	t=1779152139; cv=none; b=LxwUPECT4ueyFGNmfF4iq+VHG4UJkyzanMtzjZTX7lmMc2tSUrIWH5DPda7nId1siuldpuftOTC/pwpsNkAn+gYE8qw+ikn/xvDwV9smzOF5LH3mW6doO9CQfFjMTCC0okR1KXy24qzBZ2BWSVVMUPVHPsyRurAn3FltMUoJFEs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152137; c=relaxed/simple;
-	bh=FOVNyhBdGoTwRsUjr/ruRiS4thZFIgF/RPwrrTX4ntw=;
-	h=Date:To:From:Subject:Message-Id; b=Z71++EYlSXDRYxAdjKbOTu7BwHDocNqNIOoWAhQkJUhHh3gOPHSXTG3ftdns/nFKdat+Je+/woVOfowvC2t39DtVrsQ9b0ZIumYLC9NM5fA9++IOHmEcVeXW315OD79WzszX0WPapB0XdYXe36x4eydWgR4nYzifCE759r3AzzI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=dRZQTwZa; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152139; c=relaxed/simple;
+	bh=uR2zmjKM68vPYIMhyVNxQAU7BBuh9iD+sYsR/PbY07Q=;
+	h=Date:To:From:Subject:Message-Id; b=sGymmc5uK+yEw74N/sbIYxopMyaZk2947pTAPYx3lNIUdP7UFNFU0pusw3OXxTIUJuBqu340Jrp2L7sdrEVGTBtNLdBHmNR+20ewkbDJLDqKNYtDe5bBaw+geB4WvVFqVpuJl1WaU27rtNZXRVe9wsyTQbwne1zff/yg3Rpr1ZU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WXweImHw; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="dRZQTwZa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A881C2BCB7;
-	Tue, 19 May 2026 00:55:37 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WXweImHw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48279C2BCB7;
+	Tue, 19 May 2026 00:55:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152137;
-	bh=FOVNyhBdGoTwRsUjr/ruRiS4thZFIgF/RPwrrTX4ntw=;
+	s=korg; t=1779152139;
+	bh=uR2zmjKM68vPYIMhyVNxQAU7BBuh9iD+sYsR/PbY07Q=;
 	h=Date:To:From:Subject:From;
-	b=dRZQTwZaxFhuJHeeNbrHkc09bUfePJYizLZDEhjkXOX5J+pBxRZQBhmHwMl4Yf+hJ
-	 mapcT247EGTqPyGVrf9aTsVStaIS7aZrE/LJ0bAwnki5aAMxQfVAejiIXo+JNxAyQ4
-	 /9oXFdV7ywR9KokmK8PwhBuTEq0PNfZQqhpvTOdE=
-Date: Mon, 18 May 2026 17:55:36 -0700
+	b=WXweImHwykUm3o9acqAYv6zXgFk+p3q6NvfSJS6cL0oy9CEo0hECYufHnXU90z0A0
+	 aONBZm6S6ofnHznSvXuYygpXeD2FtKOYjAoeqdeFz/4cAOtmPXnS0MthJ86/jbPIGZ
+	 minAmz/FuFgOxHvYkn8C9gwiSd6vhFnGD2zc1CGo=
+Date: Mon, 18 May 2026 17:55:38 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch added to mm-new branch
-Message-Id: <20260519005537.1A881C2BCB7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch added to mm-new branch
+Message-Id: <20260519005539.48279C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs: setup probes on DAMON core API parameters
+     Subject: mm/damon/sysfs-schemes: implement tried_regions/<r>/probes/
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
+     mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs: setup probes on DAMON core API parameters
-Date: Mon, 18 May 2026 16:41:02 -0700
+Subject: mm/damon/sysfs-schemes: implement tried_regions/<r>/probes/
+Date: Mon, 18 May 2026 16:41:03 -0700
 
-Add user-installed data probes to DAMON core API parameters, so that user
-inputs for data probes are passed to DAMON core.
+Implement a sysfs directory for showing the per-region probe hit counts. 
+It is named 'probes/' and located under the DAMOS tried region directory.
 
-Link: https://lore.kernel.org/20260518234119.97569-15-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-16-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -93,62 +93,119 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs.c |   37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ mm/damon/sysfs-schemes.c |   67 ++++++++++++++++++++++++++++++++++---
+ 1 file changed, 63 insertions(+), 4 deletions(-)
 
---- a/mm/damon/sysfs.c~mm-damon-sysfs-setup-probes-on-damon-core-api-parameters
-+++ a/mm/damon/sysfs.c
-@@ -1855,6 +1855,40 @@ static int damon_sysfs_set_attrs(struct
- 	return damon_set_attrs(ctx, &attrs);
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-tried_regions-r-probes
++++ a/mm/damon/sysfs-schemes.c
+@@ -11,6 +11,32 @@
+ #include "sysfs-common.h"
+ 
+ /*
++ * probes directory
++ */
++
++struct damos_sysfs_probes {
++	struct kobject kobj;
++};
++
++static struct damos_sysfs_probes *damos_sysfs_probes_alloc(void)
++{
++	return kzalloc_obj(struct damos_sysfs_probes);
++}
++
++static void damos_sysfs_probes_release(struct kobject *kobj)
++{
++	struct damos_sysfs_probes *probes = container_of(kobj,
++			struct damos_sysfs_probes, kobj);
++
++	kfree(probes);
++}
++
++static const struct kobj_type damos_sysfs_probes_ktype = {
++	.release = damos_sysfs_probes_release,
++	.sysfs_ops = &kobj_sysfs_ops,
++};
++
++/*
+  * scheme region directory
+  */
+ 
+@@ -20,6 +46,7 @@ struct damon_sysfs_scheme_region {
+ 	unsigned int nr_accesses;
+ 	unsigned int age;
+ 	unsigned long sz_filter_passed;
++	struct damos_sysfs_probes *probes;
+ 	struct list_head list;
+ };
+ 
+@@ -34,10 +61,36 @@ static struct damon_sysfs_scheme_region
+ 	sysfs_region->ar = region->ar;
+ 	sysfs_region->nr_accesses = region->nr_accesses_bp / 10000;
+ 	sysfs_region->age = region->age;
++	sysfs_region->probes = NULL;
+ 	INIT_LIST_HEAD(&sysfs_region->list);
+ 	return sysfs_region;
  }
  
-+static int damon_sysfs_set_probes(struct damon_ctx *ctx,
-+		struct damon_sysfs_probes *sys_probes)
++static int damos_sysfs_region_add_dirs(
++		struct damon_sysfs_scheme_region *region)
 +{
-+	int i;
++	struct damos_sysfs_probes *probes = damos_sysfs_probes_alloc();
++	int err;
 +
-+	for (i = 0; i < sys_probes->nr; i++) {
-+		struct damon_sysfs_filters *sys_filters =
-+			sys_probes->probes_arr[i]->filters;
-+		struct damon_probe *c;
-+		int j;
-+
-+		if (!sys_filters)
-+			continue;
-+		c = damon_new_probe();
-+		if (!c)
-+			return -ENOMEM;
-+		damon_add_probe(ctx, c);
-+
-+		for (j = 0; j < sys_filters->nr; j++) {
-+			struct damon_sysfs_filter *sys_filter =
-+				sys_filters->filters_arr[j];
-+			struct damon_filter *filter;
-+
-+			filter = damon_new_filter(sys_filter->type,
-+					sys_filter->matching,
-+					sys_filter->allow);
-+			if (!filter)
-+				return -ENOMEM;
-+			damon_add_filter(c, filter);
-+		}
++	if (!probes)
++		return -ENOMEM;
++	err = kobject_init_and_add(&probes->kobj, &damos_sysfs_probes_ktype,
++			&region->kobj, "probes");
++	if (err) {
++		kobject_put(&probes->kobj);
++		return err;
 +	}
++
++	region->probes = probes;
 +	return 0;
 +}
 +
- static int damon_sysfs_set_regions(struct damon_target *t,
- 		struct damon_sysfs_regions *sysfs_regions,
- 		unsigned long min_region_sz)
-@@ -1969,6 +2003,9 @@ static int damon_sysfs_apply_inputs(stru
- 	err = damon_sysfs_set_attrs(ctx, sys_ctx->attrs);
- 	if (err)
- 		return err;
-+	err = damon_sysfs_set_probes(ctx, sys_ctx->attrs->probes);
-+	if (err)
-+		return err;
- 	err = damon_sysfs_add_targets(ctx, sys_ctx->targets);
- 	if (err)
- 		return err;
++static void damos_sysfs_region_rm_dirs(
++		struct damon_sysfs_scheme_region *region)
++{
++	kobject_put(&region->probes->kobj);
++}
++
+ static ssize_t start_show(struct kobject *kobj, struct kobj_attribute *attr,
+ 		char *buf)
+ {
+@@ -163,6 +216,7 @@ static void damon_sysfs_scheme_regions_r
+ 	struct damon_sysfs_scheme_region *r, *next;
+ 
+ 	list_for_each_entry_safe(r, next, &regions->regions_list, list) {
++		damos_sysfs_region_rm_dirs(r);
+ 		list_del(&r->list);
+ 		kobject_put(&r->kobj);
+ 		regions->nr_regions--;
+@@ -2998,12 +3052,17 @@ void damos_sysfs_populate_region_dir(str
+ 	if (kobject_init_and_add(&region->kobj,
+ 				&damon_sysfs_scheme_region_ktype,
+ 				&sysfs_regions->kobj, "%d",
+-				sysfs_regions->nr_regions)) {
+-		kobject_put(&region->kobj);
+-		return;
+-	}
++				sysfs_regions->nr_regions))
++		goto out;
++	if (damos_sysfs_region_add_dirs(region))
++		goto out;
++
+ 	list_add_tail(&region->list, &sysfs_regions->regions_list);
+ 	sysfs_regions->nr_regions++;
++	return;
++
++out:
++	kobject_put(&region->kobj);
+ }
+ 
+ int damon_sysfs_schemes_clear_regions(
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
