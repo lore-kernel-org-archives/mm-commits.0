@@ -1,62 +1,85 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0BA22D7DF1;
-	Tue, 19 May 2026 04:21:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: from invmail4.hynix.com (exvmail4.skhynix.com [166.125.252.92])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5F20C21A453
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 05:10:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=166.125.252.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779164503; cv=none; b=VBor83HLX9nvUsllbk+9owfKEhwoi3RggrpHOgvvuhq+ykf7aQ40Xp001Sp509pQ8vF+dbn7+/MkepEPO9bwS+PHKpRTY9IPR+GVwjlB2xjXZiBgAhKyzScE+zyjYmgOeY2OiR1gLaHPMb8mtHWWasa/Tgatil0EnAkJufN3YmY=
+	t=1779167416; cv=none; b=PDSnj33mzBXZYWLeYTk5MIcvzAU8vhhmcvTDmdcIhDJGwoFMWkSiLo+gbcP3jZ6d0Jjr6ArV9mxzmGgc66YWePcAFjKUYdSeV9L0Jtt/196CofWxyxhxmtypcB1zE23/5cufp4I7AldKWdCRU/CkwhmWtuL/VxPsfU0ZjDitQlA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779164503; c=relaxed/simple;
-	bh=RhnVCPPLfnjYRnj8ou9X6BWn68dqm94ppHHpqnsYxvQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hyplwvlREEdhF7c/aC9Uq2KEQENuthSagY/EYCumlpe5FnjqgTvM7f2bULQM8muOQ/ma7Zr/Ect9T8oBw63szG30TCvZKzL7jg0VbY8YebYnzgntV91YIP54iaPq1C/+8ZIzOEpHDfC9MpE+nxzz9Pt9eM1pH2QJuJQlYoJ8o/g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=g6qjPAcv; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="g6qjPAcv"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 486E1C2BCB3;
-	Tue, 19 May 2026 04:21:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1779164502;
-	bh=RhnVCPPLfnjYRnj8ou9X6BWn68dqm94ppHHpqnsYxvQ=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=g6qjPAcvnnPkkIOhjJdrXwkYOcrMR+tEmPxnLPw7HrgQws6c03pV8mqCFvZzRzHIO
-	 Jk3MdCDki0ZCcnznHtuXX/Hi8Y4FlW/LWZUrJNjFhcnQj7uyawnxunnsGTf3xqHykk
-	 pZK+sxarojCg2m1pd9QEDhgFUzkvndZQOBuNKv+AYxPiRbtdbG0s1PYpzhHoUz7iHs
-	 6tk6eiv0pwJcL702RBUsMIdV2qQNXVa3HSANwepXbVJw7KVITrS/jeOABRxi+DqobY
-	 r7FY93QNU94YaWIsuVPCZygJ9FVb++V2s7qi64c+HCPsFBL604s7QZsYXm7x8tvJxH
-	 dMIRTsyt/x12Q==
-From: SeongJae Park <sj@kernel.org>
+	s=arc-20240116; t=1779167416; c=relaxed/simple;
+	bh=W/vPzVKAT51UmEJ2dAG7p0cDx3NoxcWzZ6SLqrYYn2E=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=On8TuAzdSYAM/vT/N+Cr+QeKaBglw5Zac59/wRVY+xQEcxQRMqVer/nRIguDCIy5L0bFB6JB8iYO+zSXvhMeQhIkCBO3Bt0L5gabNULbPSU0DmNcLUFCLO47p1MQQMlmzk7K8a59BrFeJ/keUwgB9EpSBiMAm3Q2hhOvCEsbWIw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com; spf=pass smtp.mailfrom=sk.com; arc=none smtp.client-ip=166.125.252.92
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sk.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sk.com
+X-AuditID: a67dfc5b-c45ff70000001609-7b-6a0bf0b0e439
+Date: Tue, 19 May 2026 14:10:02 +0900
+From: Byungchul Park <byungchul@sk.com>
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: SeongJae Park <sj@kernel.org>,
-	mm-commits@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: + mm-damon-sysfs-schemes-delete-tried-region-in-regions_rmdirs.patch added to mm-hotfixes-unstable branch
-Date: Mon, 18 May 2026 21:21:19 -0700
-Message-ID: <20260519042120.88205-1-sj@kernel.org>
-X-Mailer: git-send-email 2.47.3
-In-Reply-To: <20260518195238.8FAE5C2BCB7@smtp.kernel.org>
-References: 
+Cc: mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
+	vbabka@kernel.org, toke@redhat.com, tariqt@nvidia.com,
+	surenb@google.com, sdf@fomichev.me, saeedm@nvidia.com,
+	rppt@kernel.org, pabeni@redhat.com, mhocko@suse.com,
+	mbloch@nvidia.com, ljs@kernel.org, liam@infradead.org,
+	leon@kernel.org, kuba@kernel.org, john.fastabend@gmail.com,
+	jackmanb@google.com, ilias.apalodimas@linaro.org, horms@kernel.org,
+	hawk@kernel.org, harry@kernel.org, hannes@cmpxchg.org,
+	edumazet@google.com, dtatulea@nvidia.com, david@kernel.org,
+	davem@davemloft.net, baolin.wang@linux.alibaba.com, ast@kernel.org,
+	asml.silence@gmail.com, kernel_team@skhynix.com
+Subject: Re: +
+ revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch added
+ to mm-hotfixes-unstable branch
+Message-ID: <20260519051002.GA16061@system.software.com>
+References: <20260519003125.5006AC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260519003125.5006AC2BCB7@smtp.kernel.org>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Brightmail-Tracker: H4sIAAAAAAAAA03Se0hTcRQH8H733t3dLRfXafrLHsREAkF74B9HkPCvuEVP7I8ef9Ryl5yP
+	KZuv9QBNyRJNM42cCyzMV+lsPicqNstnpRizVaapmUm+leE0NGdJ/vfhHM73nD8OQ0qXKQ9G
+	qYrm1Sp5uIwWU+JJpyc+FTNbQw/0dbuC3vCCBn1pDYIF+xchrDa2ItB3J1MwVr2EwFQ/hmC0
+	dVgIz40n4OPnEgQNKbUkDGe005CevExCo31KCLfqignoqbkngOylZySUd5ppmBg5AjM5r0kY
+	vBcIv+73CMDWNYHgtaGWAFvaYxosufUEPOjNp2EkeRBBb8swBXfGBylYXtTTkPdmQBi4l2uZ
+	mCa5qpJPBGdt6iQ4k+6rkMs3xnCVxd6csfQuzfX3NdBc+6NlijMN+XPpSVM0N91koTlDlYXi
+	5o17Tm+7IA5Q8OHKWF69//Blccj7ygEUVR4X352dTSagl+dSkYjBrB8um02iNpxhKBA4TLFe
+	eNyWQTpMs/uw1Wpftyvrg0vH6tcsZkg2V4B/lmeuD7uwN7Cp49m6JSzg/HfVtMPSNX/Tpfyr
+	O+OO3O/rJllvbF0ZJ1IRs+aduGiFcZRFrD8usw4SDm9nPXFzTRvh2IXZHAYPJ/agv4fuwK+K
+	rVQmYnWbYnWbYnX/Y/MRWYqkSlVshFwZ7ucbolUp432DIyOMaO0lCm/+vliH5nqCzIhlkMxJ
+	ErgqDpUK5LEabYQZYYaUuUpWDKJQqUQh117j1ZGX1DHhvMaMdjKUzF1yyBankLJX5dF8GM9H
+	8eqNLsGIPBIQr5gQq5cC5gX+UwOcpuHsrGWoVu++4Bx0vv9hnkuGx9EK6aO3pzRd5pOLSd2j
+	nonn26+8SU+Wxe2uU7cRI6IionW+V1GwEHm9ZO6Y/cGu/heh9i0d+qc2r5SZsNOrkKYNLrS4
+	5ZncphXPswprsjIbm2Ufjs+pftzWkjdzfpyZlFGaEPlBb1Ktkf8BPLt9FA4DAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAA03Ra0hTYRwG8N5zzs7OVsvTtDoqCa1EErSUhL90wQrqRUrqUyFEjjrldC7Z
+	1NQuSBpaZGau0KUwqqUu22wzdZIS08wLXjBWs9LZNFQyFRLzEpqTor79eB6eTw9DSt2UH6NQ
+	pfBqlVwpo8WUOGZPdkj19NqEXf1WAkrNVTSUGmsRzMx/EsJyYyuC0p4cCkZfLiCwNYwi+Nrq
+	FsIzyzH48LESwavcOhLcBW005OcsktA4PymE6/UVBDSXtQugt/aOALQLBhJMHXYaJoYPw/T9
+	FhJcd6LgW2GvAGY7JxC0mOsImL1dRoOjpIGAoj49DcM5LgR9zW4K8sZdFCzOldLw8M2gMGor
+	bp6YInFNZT+BnU0dBLbpBoRYb0nF1opgbDHepPHn969o3Fa8SGHbl0icnz1J46kmB40fj00T
+	2FzjoPAPS8Bxr1jx3nO8UpHGq3fujxPHd1sHUbLpUnqPVktmoRenbiERw7G7uQLzE4HHFBvI
+	jc8WkB7TbBDndM6v2ocN4YyjDSsWMyRbIuDGTHcpT+HNXuFs7YZVS1jg9F0vaY+lKx7S5f7J
+	N3DtJSOrJtlgzrk0TtxCzIr9ufIlxhOL2EjuudNFeLyR3ca9rn1L3EUS3X9r3X9r3b+1HpFG
+	5KNQpSXJFcqIUE1ifIZKkR569mKSBa08//Tqr8J6NPPuiB2xDJKtk0QtixOkAnmaJiPJjjiG
+	lPlIlsyiBKnknDwjk1dfPKNOVfIaO/JnKNlmSfRJPk7KXpCn8Ik8n8yr/7YEI/LLQucdY+vK
+	U3FYeL0lqPiQSqS7NsO1VxoexfpFJvYHXtPjNWnpOdb9Bx4UnQ2PnbN8v3yoKyZvZkgtrPhx
+	dP1Q5M/u2KSAOG/Tpiif775eRm2vsqBz5EbR++jorIipifmugeZ99nt7DlZzXsoTZQbf7Tsi
+	Mie9/U8v5w/5ObbkVwlGZJQmXh4WTKo18t8f6cUU9QIAAA==
+X-CFilter-Loop: Reflected
 
-Hello Andrew,
-
-On Mon, 18 May 2026 12:52:37 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
-
-> 
+On Mon, May 18, 2026 at 05:31:24PM -0700, Andrew Morton wrote:
 > The patch titled
->      Subject: mm/damon/sysfs-schemes: delete tried region in regions_rmdirs()
+>      Subject: Revert "mm: introduce a new page type for page pool in page type"
 > has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
->      mm-damon-sysfs-schemes-delete-tried-region-in-regions_rmdirs.patch
+>      revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch
 > 
 > This patch will shortly appear at
->      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-delete-tried-region-in-regions_rmdirs.patch
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch
 > 
 > This patch will later appear in the mm-hotfixes-unstable branch at
 >     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -74,177 +97,320 @@ On Mon, 18 May 2026 12:52:37 -0700 Andrew Morton <akpm@linux-foundation.org> wro
 > and is updated there most days
 > 
 > ------------------------------------------------------
-> From: SeongJae Park <sj@kernel.org>
-> Subject: mm/damon/sysfs-schemes: delete tried region in regions_rmdirs()
-> Date: Mon, 18 May 2026 08:25:58 -0700
+> From: Byungchul Park <byungchul@sk.com>
+> Subject: Revert "mm: introduce a new page type for page pool in page type"
+> Date: Fri, 15 May 2026 12:47:01 +0900
 > 
-> DAMON sysfs maintains the DAMOS tried region directory objects via a
-> linked list.  When the user requests refresh of the directories, DAMON
-> sysfs removes all the region directories first, and then generate updated
-> regions directory on the empty space.  The removal function
-> (damon_sysfs_scheme_regions_rm_dirs()) only puts the kobj objects. 
-> Deletion of the container region object from the linked list is done
-> inside the kobj release callback function.
+> This reverts commit db359fccf212 ("mm: introduce a new page type for page
+> pool in page type") and a part of 735a309b4bfb9e ("net: add net_iov_init()
+> and use it > to initialize ->page_type").
+             ^
+	     Check this out, Andrew.
+
+	Byungchul
+
+> Netpp page_type'ed pages might be used in mapping so as to use @_mapcount.
+> However, since @page_type and @_mapcount are union'ed in struct page,
+> these two can't be used at the same time.  Revert the commit introducing
+> page_type for Netpp for now.
 > 
-> If somehow the callback invocation is delayed, the list will contain
-> regions list that gonna be freed.  If the updated region directories
-> creation is started in this situation, the list can be corrupted and
-> use-after-free can happen.
+> The patch will be retried once @page_type and @_mapcount get allowed to be
+> used at the same time.
 > 
-> Because the kobj objects are managed by only DAMON sysfs, the issue cannot
-> happen in normal situation.  But, such delays can be made on kernels that
-> built with CONFIG_DEBUG_KOBJECT_RELEASE.  On the kernel, the issue can
-> indeed be reproduced like below.
+> The revert also includes removal of @page_type initialization part
+> introduced by commit 735a309b4bfb9e ("net: add net_iov_init() and use it
+> to initialize ->page_type"), which will be restored on the retry.
 > 
->     # damo start --damos_action stat
->     # cd /sys/kernel/mm/damon/admin/kdamonds/0/
->     # for i in {1..10}; do echo update_schemes_tried_regions > state; done
->     # dmesg | grep underflow
->     [   89.296152] refcount_t: underflow; use-after-free.
-> 
-> Fix the issue by removing the region object from the list when
-> decrementing the reference count.
-> 
-> Also update damos_sysfs_populate_region_dir() to add the region object to
-> the list only after the kobject_init_and_add() is success, so that fail of
-> kobject_init_and_add() is not leaving the deallocated object on the list.
-> 
-> The issue was discovered [1] by Sashiko.
-> 
-> Link: https://lore.kernel.org/20260518152559.93038-1-sj@kernel.org
-> Link: https://lore.kernel.org/20260513011920.119183-1-sj@kernel.org [1]
-> Fixes: 9277d0367ba1 ("mm/damon/sysfs-schemes: implement scheme region directory")
-> Signed-off-by: SeongJae Park <sj@kernel.org>
-> Cc: <stable@vger.kernel.org> # 6.2.x
+> Link: https://lore.kernel.org/20260515034701.17027-1-byungchul@sk.com
+> Fixes: db359fccf212 ("mm: introduce a new page type for page pool in page type")
+> Signed-off-by: Byungchul Park <byungchul@sk.com>
+> Reported-by: Dragos Tatulea <dtatulea@nvidia.com>
+> Closes: https://lore.kernel.org/all/982b9bc1-0a0a-4fc5-8e3a-3672db2b29a1@nvidia.com
+> Acked-by: Jakub Kicinski <kuba@kernel.org>
+> Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+> Acked-by: Harry Yoo (Oracle) <harry@kernel.org>
+> Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+> Cc: Alexei Starovoitov <ast@kernel.org>
+> Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+> Cc: Brendan Jackman <jackmanb@google.com>
+> Cc: David S. Miller <davem@davemloft.net>
+> Cc: Eric Dumazet <edumazet@google.com>
+> Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>
+> Cc: Jesper Dangaard Brouer <hawk@kernel.org>
+> Cc: Johannes Weiner <hannes@cmpxchg.org>
+> Cc: John Fastabend <john.fastabend@gmail.com>
+> Cc: Leon Romanovsky <leon@kernel.org>
+> Cc: Liam R. Howlett <liam@infradead.org>
+> Cc: Mark Bloch <mbloch@nvidia.com>
+> Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Mike Rapoport <rppt@kernel.org>
+> Cc: Paolo Abeni <pabeni@redhat.com>
+> Cc: Pavel Begunkov <asml.silence@gmail.com>
+> Cc: Saeed Mahameed <saeedm@nvidia.com>
+> Cc: Simon Horman <horms@kernel.org>
+> Cc: Stanislav Fomichev <sdf@fomichev.me>
+> Cc: Suren Baghdasaryan <surenb@google.com>
+> Cc: Tariq Toukan <tariqt@nvidia.com>
+> Cc: Toke Hoiland-Jorgensen <toke@redhat.com>
+> Cc: Vlastimil Babka <vbabka@kernel.org>
+> Cc: Zi Yan <ziy@nvidia.com>
 > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 > ---
 > 
->  mm/damon/sysfs-schemes.c |    7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
+>  drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c |    2
+>  include/linux/mm.h                               |   27 +++++++++++--
+>  include/linux/page-flags.h                       |    6 --
+>  include/net/netmem.h                             |   19 ---------
+>  mm/page_alloc.c                                  |   13 +-----
+>  net/core/netmem_priv.h                           |   23 ++++++-----
+>  net/core/page_pool.c                             |   24 -----------
+>  7 files changed, 46 insertions(+), 68 deletions(-)
 > 
-> --- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-delete-tried-region-in-regions_rmdirs
-> +++ a/mm/damon/sysfs-schemes.c
-[...]
-> @@ -2930,12 +2929,16 @@ void damos_sysfs_populate_region_dir(str
->  	region->sz_filter_passed = sz_filter_passed;
->  	list_add_tail(&region->list, &sysfs_regions->regions_list);
->  	sysfs_regions->nr_regions++;
-> +	sysfs_regions->nr_regions++;
->  	if (kobject_init_and_add(&region->kobj,
->  				&damon_sysfs_scheme_region_ktype,
->  				&sysfs_regions->kobj, "%d",
->  				sysfs_regions->nr_regions++)) {
->  		kobject_put(&region->kobj);
-> +		return;
->  	}
-> +	list_add_tail(&region->list, &sysfs_regions->regions_list);
-> +	sysfs_regions->nr_regions++;
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
+> +++ a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+> @@ -708,7 +708,7 @@ static void mlx5e_free_xdpsq_desc(struct
+>                                 xdpi = mlx5e_xdpi_fifo_pop(xdpi_fifo);
+>                                 page = xdpi.page.page;
+> 
+> -                               /* No need to check PageNetpp() as we
+> +                               /* No need to check page_pool_page_is_pp() as we
+>                                  * know this is a page_pool page.
+>                                  */
+>                                 page_pool_recycle_direct(pp_page_to_nmdesc(page)->pp,
+> --- a/include/linux/mm.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
+> +++ a/include/linux/mm.h
+> @@ -5174,9 +5174,10 @@ int arch_lock_shadow_stack_status(struct
+>   * DMA mapping IDs for page_pool
+>   *
+>   * When DMA-mapping a page, page_pool allocates an ID (from an xarray) and
+> - * stashes it in the upper bits of page->pp_magic. Non-PP pages can have
+> - * arbitrary kernel pointers stored in the same field as pp_magic (since
+> - * it overlaps with page->lru.next), so we must ensure that we cannot
+> + * stashes it in the upper bits of page->pp_magic. We always want to be able to
+> + * unambiguously identify page pool pages (using page_pool_page_is_pp()). Non-PP
+> + * pages can have arbitrary kernel pointers stored in the same field as pp_magic
+> + * (since it overlaps with page->lru.next), so we must ensure that we cannot
+>   * mistake a valid kernel pointer with any of the values we write into this
+>   * field.
+>   *
+> @@ -5211,6 +5212,26 @@ int arch_lock_shadow_stack_status(struct
+>  #define PP_DMA_INDEX_MASK GENMASK(PP_DMA_INDEX_BITS + PP_DMA_INDEX_SHIFT - 1, \
+>                                   PP_DMA_INDEX_SHIFT)
+> 
+> +/* Mask used for checking in page_pool_page_is_pp() below. page->pp_magic is
+> + * OR'ed with PP_SIGNATURE after the allocation in order to preserve bit 0 for
+> + * the head page of compound page and bit 1 for pfmemalloc page, as well as the
+> + * bits used for the DMA index. page_is_pfmemalloc() is checked in
+> + * __page_pool_put_page() to avoid recycling the pfmemalloc page.
+> + */
+> +#define PP_MAGIC_MASK ~(PP_DMA_INDEX_MASK | 0x3UL)
+> +
+> +#ifdef CONFIG_PAGE_POOL
+> +static inline bool page_pool_page_is_pp(const struct page *page)
+> +{
+> +       return (page->pp_magic & PP_MAGIC_MASK) == PP_SIGNATURE;
+> +}
+> +#else
+> +static inline bool page_pool_page_is_pp(const struct page *page)
+> +{
+> +       return false;
+> +}
+> +#endif
+> +
+>  #define PAGE_SNAPSHOT_FAITHFUL (1 << 0)
+>  #define PAGE_SNAPSHOT_PG_BUDDY (1 << 1)
+>  #define PAGE_SNAPSHOT_PG_IDLE  (1 << 2)
+> --- a/include/linux/page-flags.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
+> +++ a/include/linux/page-flags.h
+> @@ -923,7 +923,6 @@ enum pagetype {
+>         PGTY_zsmalloc           = 0xf6,
+>         PGTY_unaccepted         = 0xf7,
+>         PGTY_large_kmalloc      = 0xf8,
+> -       PGTY_netpp              = 0xf9,
+> 
+>         PGTY_mapcount_underflow = 0xff
+>  };
+> @@ -1056,11 +1055,6 @@ PAGE_TYPE_OPS(Zsmalloc, zsmalloc, zsmall
+>  PAGE_TYPE_OPS(Unaccepted, unaccepted, unaccepted)
+>  PAGE_TYPE_OPS(LargeKmalloc, large_kmalloc, large_kmalloc)
+> 
+> -/*
+> - * Marks page_pool allocated pages.
+> - */
+> -PAGE_TYPE_OPS(Netpp, netpp, netpp)
+> -
+>  /**
+>   * PageHuge - Determine if the page belongs to hugetlbfs
+>   * @page: The page to test.
+> --- a/include/net/netmem.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
+> +++ a/include/net/netmem.h
+> @@ -94,20 +94,10 @@ enum net_iov_type {
+>   */
+>  struct net_iov {
+>         struct netmem_desc desc;
+> -       unsigned int page_type;
+>         enum net_iov_type type;
+>         struct net_iov_area *owner;
+>  };
+> 
+> -/* Make sure 'the offset of page_type in struct page == the offset of
+> - * type in struct net_iov'.
+> - */
+> -#define NET_IOV_ASSERT_OFFSET(pg, iov)                 \
+> -       static_assert(offsetof(struct page, pg) ==      \
+> -                     offsetof(struct net_iov, iov))
+> -NET_IOV_ASSERT_OFFSET(page_type, page_type);
+> -#undef NET_IOV_ASSERT_OFFSET
+> -
+>  struct net_iov_area {
+>         /* Array of net_iovs for this area. */
+>         struct net_iov *niovs;
+> @@ -127,11 +117,7 @@ static inline unsigned int net_iov_idx(c
+>         return niov - net_iov_owner(niov)->niovs;
 >  }
-
-Seems the patch was not cleanly applicable on the mm-hotfixes-unstable branch,
-and a mistake was made while resolving the conflict.
-
-The list_add_tail() call and 'sysfs_regions->nr_regions++' at the beginning of
-the above hunk should be removed, but somehow those are not removed.  Instead,
-one more 'sysfs_regions->nr_regions++' is added.
-
-Could you please replace this with the below attaching one?
-
-
-Thanks,
-SJ
-
-=== >8 ===
-From 138504786fe7e50ca1edf29f670d50dd861c0230 Mon Sep 17 00:00:00 2001
-From: SeongJae Park <sj@kernel.org>
-Date: Sat, 16 May 2026 14:10:40 -0700
-Subject: [PATCH] mm/damon/sysfs-schemes: delete tried region in
- regions_rmdirs()
-
-DAMON sysfs maintains the DAMOS tried region directory objects via a
-linked list.  When the user requests refresh of the directories, DAMON
-sysfs removes all the region directories first, and then generate
-updated regions directory on the empty space.  The removal function
-(damon_sysfs_scheme_regions_rm_dirs()) only puts the kobj objects.
-Deletion of the container region object from the linked list is done
-inside the kobj release callback function.
-
-If somehow the callback invocation is delayed, the list will contain
-regions list that gonna be freed.  If the updated region directories
-creation is started in this situation, the list can be corrupted and
-use-after-free can happen.
-
-Because the kobj objects are managed by only DAMON sysfs, the issue
-cannot happen in normal situation.  But, such delays can be made on
-kernels that built with CONFIG_DEBUG_KOBJECT_RELEASE.  On the kernel,
-the issue can indeed be reproduced like below.
-
-    # damo start --damos_action stat
-    # cd /sys/kernel/mm/damon/admin/kdamonds/0/
-    # for i in {1..10}; do echo update_schemes_tried_regions > state; done
-    # dmesg | grep underflow
-    [   89.296152] refcount_t: underflow; use-after-free.
-
-Fix the issue by removing the region object from the list when
-decrementing the reference count.
-
-Also update damos_sysfs_populate_region_dir() to add the region object
-to the list only after the kobject_init_and_add() is success, so that
-fail of kobject_init_and_add() is not leaving the deallocated object on
-the list.
-
-The issue was discovered [1] by Sashiko.
-
-[1] https://lore.kernel.org/20260513011920.119183-1-sj@kernel.org
-
-Link: https://lore.kernel.org/20260518152559.93038-1-sj@kernel.org
-Link: https://lore.kernel.org/20260513011920.119183-1-sj@kernel.org [1]
-Fixes: 9277d0367ba1 ("mm/damon/sysfs-schemes: implement scheme region directory")
-Cc: <stable@vger.kernel.org> # 6.2.x
-Signed-off-by: SeongJae Park <sj@kernel.org>
----
- mm/damon/sysfs-schemes.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/mm/damon/sysfs-schemes.c b/mm/damon/sysfs-schemes.c
-index 04746cbb33272..a8014780edae9 100644
---- a/mm/damon/sysfs-schemes.c
-+++ b/mm/damon/sysfs-schemes.c
-@@ -88,7 +88,6 @@ static void damon_sysfs_scheme_region_release(struct kobject *kobj)
- 	struct damon_sysfs_scheme_region *region = container_of(kobj,
- 			struct damon_sysfs_scheme_region, kobj);
- 
--	list_del(&region->list);
- 	kfree(region);
- }
- 
-@@ -164,7 +163,7 @@ static void damon_sysfs_scheme_regions_rm_dirs(
- 	struct damon_sysfs_scheme_region *r, *next;
- 
- 	list_for_each_entry_safe(r, next, &regions->regions_list, list) {
--		/* release function deletes it from the list */
-+		list_del(&r->list);
- 		kobject_put(&r->kobj);
- 		regions->nr_regions--;
- 	}
-@@ -2928,14 +2927,15 @@ void damos_sysfs_populate_region_dir(struct damon_sysfs_schemes *sysfs_schemes,
- 	if (!region)
- 		return;
- 	region->sz_filter_passed = sz_filter_passed;
--	list_add_tail(&region->list, &sysfs_regions->regions_list);
--	sysfs_regions->nr_regions++;
- 	if (kobject_init_and_add(&region->kobj,
- 				&damon_sysfs_scheme_region_ktype,
- 				&sysfs_regions->kobj, "%d",
- 				sysfs_regions->nr_regions++)) {
- 		kobject_put(&region->kobj);
-+		return;
- 	}
-+	list_add_tail(&region->list, &sysfs_regions->regions_list);
-+	sysfs_regions->nr_regions++;
- }
- 
- int damon_sysfs_schemes_clear_regions(
--- 
-2.47.3
-
+> 
+> -/* Initialize a niov: stamp the owning area, the memory provider type,
+> - * and the page_type "no type" sentinel expected by the page-type API
+> - * (see PAGE_TYPE_OPS in <linux/page-flags.h>) so that
+> - * page_pool_set_pp_info() can later call __SetPageNetpp() on a niov
+> - * cast to struct page.
+> +/* Initialize a niov: stamp the owning area, the memory provider type.
+>   */
+>  static inline void net_iov_init(struct net_iov *niov,
+>                                 struct net_iov_area *owner,
+> @@ -139,7 +125,6 @@ static inline void net_iov_init(struct n
+>  {
+>         niov->owner = owner;
+>         niov->type = type;
+> -       niov->page_type = UINT_MAX;
+>  }
+> 
+>  /* netmem */
+> @@ -245,7 +230,7 @@ static inline unsigned long netmem_pfn_t
+>   */
+>  #define pp_page_to_nmdesc(p)                                           \
+>  ({                                                                     \
+> -       DEBUG_NET_WARN_ON_ONCE(!PageNetpp(p));                          \
+> +       DEBUG_NET_WARN_ON_ONCE(!page_pool_page_is_pp(p));               \
+>         __pp_page_to_nmdesc(p);                                         \
+>  })
+> 
+> --- a/mm/page_alloc.c~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
+> +++ a/mm/page_alloc.c
+> @@ -1035,6 +1035,7 @@ static inline bool page_expected_state(s
+>  #ifdef CONFIG_MEMCG
+>                         page->memcg_data |
+>  #endif
+> +                       page_pool_page_is_pp(page) |
+>                         (page->flags.f & check_flags)))
+>                 return false;
+> 
+> @@ -1061,6 +1062,8 @@ static const char *page_bad_reason(struc
+>         if (unlikely(page->memcg_data))
+>                 bad_reason = "page still charged to cgroup";
+>  #endif
+> +       if (unlikely(page_pool_page_is_pp(page)))
+> +               bad_reason = "page_pool leak";
+>         return bad_reason;
+>  }
+> 
+> @@ -1377,17 +1380,9 @@ __always_inline bool __free_pages_prepar
+>                 mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
+>                 folio->mapping = NULL;
+>         }
+> -       if (unlikely(page_has_type(page))) {
+> -               /* networking expects to clear its page type before releasing */
+> -               if (is_check_pages_enabled()) {
+> -                       if (unlikely(PageNetpp(page))) {
+> -                               bad_page(page, "page_pool leak");
+> -                               return false;
+> -                       }
+> -               }
+> +       if (unlikely(page_has_type(page)))
+>                 /* Reset the page_type (which overlays _mapcount) */
+>                 page->page_type = UINT_MAX;
+> -       }
+> 
+>         if (is_check_pages_enabled()) {
+>                 if (free_page_is_bad(page))
+> --- a/net/core/netmem_priv.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
+> +++ a/net/core/netmem_priv.h
+> @@ -8,18 +8,21 @@ static inline unsigned long netmem_get_p
+>         return netmem_to_nmdesc(netmem)->pp_magic & ~PP_DMA_INDEX_MASK;
+>  }
+> 
+> -static inline bool netmem_is_pp(netmem_ref netmem)
+> +static inline void netmem_or_pp_magic(netmem_ref netmem, unsigned long pp_magic)
+> +{
+> +       netmem_to_nmdesc(netmem)->pp_magic |= pp_magic;
+> +}
+> +
+> +static inline void netmem_clear_pp_magic(netmem_ref netmem)
+>  {
+> -       struct page *page;
+> +       WARN_ON_ONCE(netmem_to_nmdesc(netmem)->pp_magic & PP_DMA_INDEX_MASK);
+> 
+> -       /* XXX: Now that the offset of page_type is shared between
+> -        * struct page and net_iov, just cast the netmem to struct page
+> -        * unconditionally by clearing NET_IOV if any, no matter whether
+> -        * it comes from struct net_iov or struct page.  This should be
+> -        * adjusted once the offset is no longer shared.
+> -        */
+> -       page = (struct page *)((__force unsigned long)netmem & ~NET_IOV);
+> -       return PageNetpp(page);
+> +       netmem_to_nmdesc(netmem)->pp_magic = 0;
+> +}
+> +
+> +static inline bool netmem_is_pp(netmem_ref netmem)
+> +{
+> +       return (netmem_get_pp_magic(netmem) & PP_MAGIC_MASK) == PP_SIGNATURE;
+>  }
+> 
+>  static inline void netmem_set_pp(netmem_ref netmem, struct page_pool *pool)
+> --- a/net/core/page_pool.c~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
+> +++ a/net/core/page_pool.c
+> @@ -707,18 +707,8 @@ s32 page_pool_inflight(const struct page
+> 
+>  void page_pool_set_pp_info(struct page_pool *pool, netmem_ref netmem)
+>  {
+> -       struct page *page;
+> -
+>         netmem_set_pp(netmem, pool);
+> -
+> -       /* XXX: Now that the offset of page_type is shared between
+> -        * struct page and net_iov, just cast the netmem to struct page
+> -        * unconditionally by clearing NET_IOV if any, no matter whether
+> -        * it comes from struct net_iov or struct page.  This should be
+> -        * adjusted once the offset is no longer shared.
+> -        */
+> -       page = (struct page *)((__force unsigned long)netmem & ~NET_IOV);
+> -       __SetPageNetpp(page);
+> +       netmem_or_pp_magic(netmem, PP_SIGNATURE);
+> 
+>         /* Ensuring all pages have been split into one fragment initially:
+>          * page_pool_set_pp_info() is only called once for every page when it
+> @@ -733,17 +723,7 @@ void page_pool_set_pp_info(struct page_p
+> 
+>  void page_pool_clear_pp_info(netmem_ref netmem)
+>  {
+> -       struct page *page;
+> -
+> -       /* XXX: Now that the offset of page_type is shared between
+> -        * struct page and net_iov, just cast the netmem to struct page
+> -        * unconditionally by clearing NET_IOV if any, no matter whether
+> -        * it comes from struct net_iov or struct page.  This should be
+> -        * adjusted once the offset is no longer shared.
+> -        */
+> -       page = (struct page *)((__force unsigned long)netmem & ~NET_IOV);
+> -       __ClearPageNetpp(page);
+> -
+> +       netmem_clear_pp_magic(netmem);
+>         netmem_set_pp(netmem, NULL);
+>  }
+> 
+> _
+> 
+> Patches currently in -mm which might be from byungchul@sk.com are
+> 
+> revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch
