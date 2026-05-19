@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B03AD28468E
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:56:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12E1126E70E
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 01:16:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152170; cv=none; b=FxSvjtCsweZf1cqKZsEWUeO/uggxGXaR3Y58YyyIQOl+1qheLraXniNOeuOUQYxUcwhvbjuAmN4hx+hieQ1OzKrdFoUU36b0ErTrGS2hnsJbj7HqI3aDKeYn/ZEqk1rfVVLaVEtwM9hUxOBAY2HWSxKri1puK7J4wVoV92wPW6w=
+	t=1779153409; cv=none; b=VHpZKMtGGDFKJk+F66+cWIWFO0PFCrldJS4ccRbbu6j6iFYsRjfdp5VI08P6h/BBrOVef4pbUxrJFPOJEsRP6/HZvHiP4Omo4osvIu6KHzwC/pduXuUlFxb6v8lxZO56lOKs/P5hrksFpXr13lyhRAur30CkMQNKE0K9d+ar7Lw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152170; c=relaxed/simple;
-	bh=PsTND7LCjDJlRv/rYH0n/OOtAp9Um4FPHZ/MTYQZC5s=;
-	h=Date:To:From:Subject:Message-Id; b=uqlpjkjDR0S7C32aLNE1C2Z3IZmD4xcBttEiSBYx1usBPUYPGtT1v25smZVxzvMXs67bCLPtWjsot6qJokddO09l9SQT+aTdALwyJMQb6ra9/CmUYgfqe9ENEwXBGxkIea0Xs5lMj8FazTCQoC4WvQSB3XaYMkaXV3AMx96oGFg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NyEM0TAP; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779153409; c=relaxed/simple;
+	bh=Z7ZdULv6k2v90ssIByLYa9UxHC4AMBpfesoW5hy02jw=;
+	h=Date:To:From:Subject:Message-Id; b=DVhILN6K4fgLXgZNRxHQrC4vlaskw8GwRNKcD651HvivbgFmDSrLbXcww/1G9zGM2R90GvolDJJBGGLuqYhEWtDvIzlPZu36Al7ipOwWxxxIEeRNg78QRR3zOlhABn5V2M9MVtUnF7T8+i7b+QWX8v+GfGh4NoNdS1f3YW7QMII=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RjAiCFd3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NyEM0TAP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45638C2BCB7;
-	Tue, 19 May 2026 00:56:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RjAiCFd3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B0EDC2BCB7;
+	Tue, 19 May 2026 01:16:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152170;
-	bh=PsTND7LCjDJlRv/rYH0n/OOtAp9Um4FPHZ/MTYQZC5s=;
+	s=korg; t=1779153408;
+	bh=Z7ZdULv6k2v90ssIByLYa9UxHC4AMBpfesoW5hy02jw=;
 	h=Date:To:From:Subject:From;
-	b=NyEM0TAPSfMQqfXS1Y/MZi6we5Fo44/gKGh3XoZhzQvl8+z/RlCRB5Bc6dRYZaRN7
-	 AI1SIZsVYlxms6GKIRhCqvqL5CP423KASp5e6Pud8/FsBu1fa4oBwvjoqj4Q8iHLKS
-	 l67JodT2AELyq2yDxa46ugVwHA6WAxfQEsAZasqQ=
-Date: Mon, 18 May 2026 17:56:09 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
+	b=RjAiCFd3QtuUPmCyTAyBonSoJ3U5MLxabFBp1UmBgUC7naX+cO70lvOohPjCmfTz7
+	 xT7tUQRn413GBHjhE/MfYLxSReWD5z9qzZnxsDNSa5nafz7QEYX5OsuOQyh9IeI3/T
+	 cNEK7cvddAxLUGH61DRo0lfq0HJBuYz5sTpCpFjg=
+Date: Mon, 18 May 2026 18:16:47 -0700
+To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch added to mm-new branch
-Message-Id: <20260519005610.45638C2BCB7@smtp.kernel.org>
+Subject: + mm-swap-merge-zeromap-into-swap-table-fix.patch added to mm-new branch
+Message-Id: <20260519011648.2B0EDC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: update for memcg damon filter
+     Subject: mm-swap-merge-zeromap-into-swap-table-fix
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
+     mm-swap-merge-zeromap-into-swap-table-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-merge-zeromap-into-swap-table-fix.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,122 +69,35 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: update for memcg damon filter
-Date: Mon, 18 May 2026 16:41:16 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-swap-merge-zeromap-into-swap-table-fix
+Date: Mon May 18 06:15:39 PM PDT 2026
 
-Update DAMON usage document for the newly added belonging memory cgroup
-attribute monitoring feature.
+swap_cluster_alloc_table(): remove unused local `ret'
 
-Link: https://lore.kernel.org/20260518234119.97569-29-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Kairui Song <kasong@tencent.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -74,7 +74,7 @@ comma (",").
-     │ │ │ │ │ │ nr_regions/min,max
-     │ │ │ │ │ │ :ref:`probes <damon_usage_sysfs_probes>`/nr_probes
-     │ │ │ │ │ │ │ 0/filters/nr_filters
--    │ │ │ │ │ │ │ │ 0/type,matching,allow
-+    │ │ │ │ │ │ │ │ 0/type,matching,allow,path
-     │ │ │ │ │ │ │ │ ...
-     │ │ │ │ │ │ │ ...
-     │ │ │ │ │ :ref:`targets <sysfs_targets>`/nr_targets
-@@ -289,7 +289,9 @@ the data attribute for the probe.
- In the beginning, ``filters`` directory has only one file, ``nr_filters``.
- Writing a number (``N``) to the file creates the number of child directories
- named ``0`` to ``N-1``.  Each directory represents each filter and works in a
--way similar to that for :ref:`DAMOS filter <sysfs_filters>`.
-+way similar to that for :ref:`DAMOS filter <sysfs_filters>`.  When the filter
-+``type`` is ``memcg``, ``path`` file acts as ``memcg_path`` for :ref:`DAMOS
-+filter <sysfs_filters>`.
+--- a/mm/swapfile.c~mm-swap-merge-zeromap-into-swap-table-fix
++++ a/mm/swapfile.c
+@@ -450,7 +450,6 @@ static int swap_cluster_alloc_table(stru
+ {
+ 	struct swap_table *table = NULL;
+ 	struct folio *folio;
+-	int ret = 0;
  
- .. _sysfs_targets:
- 
+ 	/* The cluster must be empty and not on any list during allocation. */
+ 	VM_WARN_ON_ONCE(ci->flags || !cluster_is_empty(ci));
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-damon-sysfs-schemes-delete-tried-region-in-regions_rmdirs.patch
-mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch
-mm-damon-core-handle-min_region_sz-remaining-quota-as-empty.patch
-mm-damon-core-merge-regions-after-applying-damos-schemes.patch
-mm-damon-core-introduce-failed-region-quota-charge-ratio.patch
-mm-damon-sysfs-schemes-implement-fail_charge_numdenom-files.patch
-docs-mm-damon-design-document-fail_charge_numdenom.patch
-docs-admin-guide-mm-damon-usage-document-fail_charge_numdenom-files.patch
-docs-abi-damon-document-fail_charge_numdenom.patch
-mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch
-selftests-damon-_damon_sysfs-support-failed-region-quota-charge-ratio.patch
-selftests-damon-drgn_dump_damon_status-support-failed-region-quota-charge-ratio.patch
-selftests-damon-sysfspy-test-failed-region-quota-charge-ratio.patch
-docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
-mm-damon-core-introduce-damon_ctx-paused.patch
-mm-damon-sysfs-add-pause-file-under-context-dir.patch
-docs-mm-damon-design-update-for-context-pause-resume-feature.patch
-docs-admin-guide-mm-damon-usage-update-for-pause-file.patch
-docs-abi-damon-update-for-pause-sysfs-file.patch
-mm-damon-tests-core-kunit-test-pause-commitment.patch
-selftests-damon-_damon_sysfs-support-pause-file-staging.patch
-selftests-damon-drgn_dump_damon_status-dump-pause.patch
-selftests-damon-sysfspy-check-pause-on-assert_ctx_committed.patch
-selftests-damon-sysfspy-pause-damon-before-dumping-status.patch
-mm-damon-introduce-damon_set_region_system_rams_default.patch
-mm-damon-reclaim-cover-all-system-rams.patch
-mm-damon-lru_sort-cover-all-system-rams.patch
-mm-damon-core-remove-damon_set_region_biggest_system_ram_default.patch
-mm-damon-stat-use-damon_set_region_system_rams_default.patch
-docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring.patch
-docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring.patch
-docs-admin-guide-mm-damon-usage-mark-scheme-filters-sysfs-dir-as-deprecated.patch
-docs-abi-damon-mark-schemes-s-filters-deprecated.patch
-mm-damon-reclaim-add-autotune_monitoring_intervals-parameter.patch
-docs-admin-guide-mm-damon-reclaim-update-for-autotune_monitoring_intervals.patch
-mm-damon-stat-add-a-parameter-for-reading-kdamond-pid.patch
-docs-admin-guide-mm-damon-stat-document-kdamond_pid-parameter.patch
-mm-damon-core-introduce-struct-damon_probe.patch
-mm-damon-core-embed-damon_probe-objects-in-damon_ctx.patch
-mm-damon-core-introduce-damon_filter.patch
-mm-damon-core-commit-probes.patch
-mm-damon-core-introduce-damon_region-probe_hits.patch
-mm-damon-core-introduce-damon_ops-apply_probes.patch
-mm-damon-core-do-data-attributes-monitoring.patch
-mm-damon-paddr-support-data-attributes-monitoring.patch
-mm-damon-sysfs-implement-probes-dir.patch
-mm-damon-sysfs-implement-probe-dir.patch
-mm-damon-sysfs-implement-filters-directory.patch
-mm-damon-sysfs-implement-filter-dir.patch
-mm-damon-sysfs-implement-filter-dir-files.patch
-mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
-mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
-mm-damon-sysfs-schemes-implement-probe-dir.patch
-mm-damon-sysfs-schemes-implement-probe-hits-file.patch
-mm-damon-trace-probe_hits.patch
-selftests-damon-sysfssh-test-probes-dir.patch
-docs-mm-damon-design-document-data-attributes-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
-mm-damon-core-introduce-damon_filter_type_memcg.patch
-mm-damon-paddr-support-damon_filter_type_memcg.patch
-mm-damon-sysfs-add-filters-f-path-file.patch
-mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
-mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
-docs-mm-damon-design-update-for-memcg-damon-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
+selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch
+mm-swap-merge-zeromap-into-swap-table-fix.patch
+mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
+proc-rewrite-next_tgid-fix.patch
 
