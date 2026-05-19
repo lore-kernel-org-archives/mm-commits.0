@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59FA920C461
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:56:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8500282F09
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:56:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152162; cv=none; b=YsT0NoMu9rv9vbA+JL+tyhpZu5rOR00w8aBlCDJfHPlvcFjiCiMXCnecy9H+S+BL0pTJdB9JeuWaLd4MOahQ5Z4/mn+fUk3g+XAzAffH2sS5Au+FNo9CrgdzqztjKOj6W2I6Mm2/zsVehaukYx/+Y0NQd7NU/CRmir/ezHXe/iM=
+	t=1779152165; cv=none; b=D2UtNHfIpURlXfTgm90c1mNGd03CruOHlfj98GfaL2g3imjfSafAnrAjMEhzRJ7vuvrsWSszNG2wpnPrWy0qa8y+eCRFBBh+DmLf7zxBO10PuLzYbzLICCqVC/yi57pnN/Lh/LGzOSrVdiii9clXeR3R6wv46UAu7/lu8GIpjW8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152162; c=relaxed/simple;
-	bh=bSQABZn2E0sCPEVE4dzSBli6JPm8TeLe+Q8PPwGnueA=;
-	h=Date:To:From:Subject:Message-Id; b=Md0Kdja/W7vcw4L9UEttoPgWXyHEfFsdhmRi5mio73oO6TACC6raKgdiR/veZqVH/zKqVSkOk+7RRH1XLHKSwk970HMajC3Esa35Fx5A2cUlO5kKXWevfU7Y9FY809v1DGkyGq5vpXjsF64AwUuTaXSYKgPhA93MAthHutHzF48=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2sMWAnuL; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152165; c=relaxed/simple;
+	bh=6rR6Rr/Fa0+DKJ2lxmkST0BtYA4+xlo3pEmS2BFQX04=;
+	h=Date:To:From:Subject:Message-Id; b=dvxt5vBrGTrvImE4uLQG0Gi4IpG5bJD+VaMnXQfFIgEc/T95yvjw5kmkmmomRm5KYL4Up8KkFbi6wFtEQW/4kAqfAsfnPFIgZB4UlempQvNkt3OmPXJZlrvDk9ux9/jd1ovCzcQ8r+76wVLzPqJa30nW1/A4cT7TyyFuStMGhxY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=G5MmfgWD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2sMWAnuL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34675C2BCB7;
-	Tue, 19 May 2026 00:56:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="G5MmfgWD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E76EC2BCB7;
+	Tue, 19 May 2026 00:56:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152162;
-	bh=bSQABZn2E0sCPEVE4dzSBli6JPm8TeLe+Q8PPwGnueA=;
+	s=korg; t=1779152165;
+	bh=6rR6Rr/Fa0+DKJ2lxmkST0BtYA4+xlo3pEmS2BFQX04=;
 	h=Date:To:From:Subject:From;
-	b=2sMWAnuLE6kdOLswyOceOeUI7am763hB3uAFGYC+/9eNS7XMDGPyAdrHmnrQ4ZqYp
-	 L40Y4nHTsqKoIrfSReFsLpdK9biwEWecisu+1SMYg00MgksLjz9XMUoQPJdUdyzChP
-	 j24OlVWOhmKj02Fd9AdyxWefzO2wL6javv7BkcEE=
-Date: Mon, 18 May 2026 17:56:01 -0700
+	b=G5MmfgWD1DCMSdMisiEiDW+MYdicGnoTGHMDL4k8XDCyZR0GBp/+0YekYqVP221ya
+	 jib4GwdvwtNpa1u3Zkav7hgSD9Wt6n7mq917IXOmJE8QWgJPckT4fZSQIdt6QP5hUE
+	 Q8jN60CHTMz6nswkI4xptHBwvcNcP0A4f2aBRH4Q=
+Date: Mon, 18 May 2026 17:56:04 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch added to mm-new branch
-Message-Id: <20260519005602.34675C2BCB7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch added to mm-new branch
+Message-Id: <20260519005605.3E76EC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: move memcg_path_to_id() to sysfs-common
+     Subject: mm/damon/sysfs: setup damon_filter->memcg_id from path
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
+     mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,16 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: move memcg_path_to_id() to sysfs-common
-Date: Mon, 18 May 2026 16:41:13 -0700
+Subject: mm/damon/sysfs: setup damon_filter->memcg_id from path
+Date: Mon, 18 May 2026 16:41:14 -0700
 
-The next commit will need to find the memcg id from the user-passed path
-to the memory cgroup, from sysfs.c.  memcg_path_to_id() is doing that, but
-defined in sysfs-schemes.c as a static function.  Move the function to
-sysfs-common.c and mark it as non-static, so that the next commit can
-reuse the function.
+Find and set the memcg_id for damon_filter from the user-passed memory
+cgroup path when updating the DAMON input parameters.
 
-Link: https://lore.kernel.org/20260518234119.97569-26-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-27-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -96,116 +93,52 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-common.c  |   41 +++++++++++++++++++++++++++++++++++++
- mm/damon/sysfs-common.h  |    2 +
- mm/damon/sysfs-schemes.c |   41 -------------------------------------
- 3 files changed, 43 insertions(+), 41 deletions(-)
+ include/linux/damon.h |    1 +
+ mm/damon/core.c       |    2 +-
+ mm/damon/sysfs.c      |   11 +++++++++++
+ 3 files changed, 13 insertions(+), 1 deletion(-)
 
---- a/mm/damon/sysfs-common.c~mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common
-+++ a/mm/damon/sysfs-common.c
-@@ -104,3 +104,44 @@ const struct kobj_type damon_sysfs_ul_ra
- 	.default_groups = damon_sysfs_ul_range_groups,
- };
+--- a/include/linux/damon.h~mm-damon-sysfs-setup-damon_filter-memcg_id-from-path
++++ a/include/linux/damon.h
+@@ -1006,6 +1006,7 @@ static inline unsigned long damon_sz_reg
+ struct damon_filter *damon_new_filter(enum damon_filter_type type,
+ 		bool matching, bool allow);
+ void damon_add_filter(struct damon_probe *probe, struct damon_filter *f);
++void damon_destroy_filter(struct damon_filter *f);
  
-+
-+static bool damon_sysfs_memcg_path_eq(struct mem_cgroup *memcg,
-+		char *memcg_path_buf, char *path)
-+{
-+#ifdef CONFIG_MEMCG
-+	cgroup_path(memcg->css.cgroup, memcg_path_buf, PATH_MAX);
-+	if (sysfs_streq(memcg_path_buf, path))
-+		return true;
-+#endif /* CONFIG_MEMCG */
-+	return false;
-+}
-+
-+int damon_sysfs_memcg_path_to_id(char *memcg_path, u64 *id)
-+{
-+	struct mem_cgroup *memcg;
-+	char *path;
-+	bool found = false;
-+
-+	if (!memcg_path)
-+		return -EINVAL;
-+
-+	path = kmalloc_array(PATH_MAX, sizeof(*path), GFP_KERNEL);
-+	if (!path)
-+		return -ENOMEM;
-+
-+	for (memcg = mem_cgroup_iter(NULL, NULL, NULL); memcg;
-+			memcg = mem_cgroup_iter(NULL, memcg, NULL)) {
-+		/* skip offlined memcg */
-+		if (!mem_cgroup_online(memcg))
-+			continue;
-+		if (damon_sysfs_memcg_path_eq(memcg, path, memcg_path)) {
-+			*id = mem_cgroup_id(memcg);
-+			found = true;
-+			mem_cgroup_iter_break(NULL, memcg);
-+			break;
-+		}
-+	}
-+
-+	kfree(path);
-+	return found ? 0 : -EINVAL;
-+}
---- a/mm/damon/sysfs-common.h~mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common
-+++ a/mm/damon/sysfs-common.h
-@@ -59,3 +59,5 @@ int damos_sysfs_set_quota_scores(struct
- void damos_sysfs_update_effective_quotas(
- 		struct damon_sysfs_schemes *sysfs_schemes,
- 		struct damon_ctx *ctx);
-+
-+int damon_sysfs_memcg_path_to_id(char *memcg_path, u64 *id);
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common
-+++ a/mm/damon/sysfs-schemes.c
-@@ -2791,47 +2791,6 @@ const struct kobj_type damon_sysfs_schem
- 	.default_groups = damon_sysfs_schemes_groups,
- };
+ struct damon_probe *damon_new_probe(void);
+ void damon_add_probe(struct damon_ctx *ctx, struct damon_probe *probe);
+--- a/mm/damon/core.c~mm-damon-sysfs-setup-damon_filter-memcg_id-from-path
++++ a/mm/damon/core.c
+@@ -143,7 +143,7 @@ static void damon_free_filter(struct dam
+ 	kfree(f);
+ }
  
--static bool damon_sysfs_memcg_path_eq(struct mem_cgroup *memcg,
--		char *memcg_path_buf, char *path)
--{
--#ifdef CONFIG_MEMCG
--	cgroup_path(memcg->css.cgroup, memcg_path_buf, PATH_MAX);
--	if (sysfs_streq(memcg_path_buf, path))
--		return true;
--#endif /* CONFIG_MEMCG */
--	return false;
--}
--
--static int damon_sysfs_memcg_path_to_id(char *memcg_path, u64 *id)
--{
--	struct mem_cgroup *memcg;
--	char *path;
--	bool found = false;
--
--	if (!memcg_path)
--		return -EINVAL;
--
--	path = kmalloc_array(PATH_MAX, sizeof(*path), GFP_KERNEL);
--	if (!path)
--		return -ENOMEM;
--
--	for (memcg = mem_cgroup_iter(NULL, NULL, NULL); memcg;
--			memcg = mem_cgroup_iter(NULL, memcg, NULL)) {
--		/* skip offlined memcg */
--		if (!mem_cgroup_online(memcg))
--			continue;
--		if (damon_sysfs_memcg_path_eq(memcg, path, memcg_path)) {
--			*id = mem_cgroup_id(memcg);
--			found = true;
--			mem_cgroup_iter_break(NULL, memcg);
--			break;
--		}
--	}
--
--	kfree(path);
--	return found ? 0 : -EINVAL;
--}
--
- static int damon_sysfs_add_scheme_filters(struct damos *scheme,
- 		struct damon_sysfs_scheme_filters *sysfs_filters)
+-static void damon_destroy_filter(struct damon_filter *f)
++void damon_destroy_filter(struct damon_filter *f)
  {
+ 	damon_del_filter(f);
+ 	damon_free_filter(f);
+--- a/mm/damon/sysfs.c~mm-damon-sysfs-setup-damon_filter-memcg_id-from-path
++++ a/mm/damon/sysfs.c
+@@ -1927,6 +1927,17 @@ static int damon_sysfs_set_probes(struct
+ 					sys_filter->allow);
+ 			if (!filter)
+ 				return -ENOMEM;
++			if (filter->type == DAMON_FILTER_TYPE_MEMCG) {
++				int err;
++
++				err = damon_sysfs_memcg_path_to_id(
++						sys_filter->path,
++						&filter->memcg_id);
++				if (err) {
++					damon_destroy_filter(filter);
++					return err;
++				}
++			}
+ 			damon_add_filter(c, filter);
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
