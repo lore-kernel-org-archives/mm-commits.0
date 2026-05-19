@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 722F43BB13D
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 20:28:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6045031690E
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 20:59:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779222507; cv=none; b=brpQLsYSFSoQjpUUHpN1fzaVvrPFYJ1V0R1cIgmHuPUM2gEqQy6lcVN+FdDQNMRvBGzstrxBFDjW9qpJ5P5y9txvnfPO6dIRJWcCc5mZNFodHimFa6NC0LyzeRpPd7bnw8YMWRjWHbBcqCr7cKGrh5emkXAqrYUVod5x7/b14M8=
+	t=1779224399; cv=none; b=seNV5HAUcynOJj7Dc1MouRwbDSWPzD+fspef4MjOy9eU9SPQ0tSYcPRbH7fbMflV0AC3WQtznBVX8UfxvYCdNhFJ1DhWc/TRBBIWsh8cAvKcSlFvbEgwJTRFwTueltq2T1xLsJ5swlif0pFU3uYxGL2GzPVnfu7AqHr4+pAet7M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779222507; c=relaxed/simple;
-	bh=3rYqydYlAP+oZn/FSc5y5lb3+Uuch9xJVYxgYTeQtLE=;
-	h=Date:To:From:Subject:Message-Id; b=TEyLEZCMqblgsnMzXm6wdQqH6Ko1riergYfC3oc0AV5IEWR5lDxhmqcsn6Ew5eakuyiIskx/1Ye2CZLgSH37jzeeRolon99B/B2+8k89WI2zVEioN6brhab3znPY8rgluPNLXdT5Egf/JzREuuF688m0NGgxCoN+EsBNf/gnJ1o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=t3MgE2N6; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779224399; c=relaxed/simple;
+	bh=sPyLVGpGx8y/2iZPRgRZKl5xxCVbZWQWBBj4JBX/jbo=;
+	h=Date:To:From:Subject:Message-Id; b=W2DgheNAGrVrPVIzLyYLqS04m9W6tIojXE4ynVQrzrfjxmNEvvyI8P9V2uSKF3qxEDiNecNVx9Oknh0cyE8gnX+kGCvzHn0r3l+TzjG40t1iR6jMOOiwvMsFUHA8oKNK/tV90ZqE4KXeMxns5uXMgzfAlvE4AiXVZv47jOQFTIw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2KLRVJ/d; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="t3MgE2N6"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0CA181F000E9;
-	Tue, 19 May 2026 20:28:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2KLRVJ/d"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D15611F000E9;
+	Tue, 19 May 2026 20:59:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779222506;
-	bh=qUJzTW2qk8Wb7JV/CHjWtDPN6OEcz4UsGkpCRq5THuw=;
+	d=linux-foundation.org; s=korg; t=1779224397;
+	bh=EXlrZXvSRqFc/77m2NaKOnar1zua+LHmcwy8pG4jalw=;
 	h=Date:To:From:Subject;
-	b=t3MgE2N6R5KCtINkC7PnQSOaS77gIHKKmZVeRt2/PYycGGSZtrZzMiX73gs/twPEC
-	 LUjVDt1tR9UbD3xkvxTJFzEvYeKmLtdDJGoGKiDxDvpkf3mwDrsAqXzfs1xOstFONb
-	 +jeFkWUbKPYBZ2SnkChrvOz91T86bi51DBTf1ZWk=
-Date: Tue, 19 May 2026 13:28:25 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,nao.horiguchi@gmail.com,linmiaohe@huawei.com,chengkaitao@kylinos.cn,akpm@linux-foundation.org
+	b=2KLRVJ/dlJ/ewHr5COWabS0St8et83V2bsrSJ2Se18SbnqWxmYoDQirAWv7a3TW2f
+	 pPlkc8G2pPnhIqpe7pIzMcA7K4ZjFJCIhtCWcMB9WBq+Byx+GqRi64mCKWHax/Xk0Q
+	 +xX1F/UKxnOReCTIBAOR7QBXEtTAI4lElXQScJoA=
+Date: Tue, 19 May 2026 13:59:57 -0700
+To: mm-commits@vger.kernel.org,sunnanyong@huawei.com,sj@kernel.org,wangkefeng.wang@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memory-failure-use-zone_pcp_disable-for-poison-handling.patch added to mm-new branch
-Message-Id: <20260519202826.0CA181F000E9@smtp.kernel.org>
+Subject: + mm-damon-vaddr-attempt-per-vma-lock-during-page-table-walk.patch added to mm-new branch
+Message-Id: <20260519205957.D15611F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/memory-failure: use zone_pcp_disable() for poison handling
+     Subject: mm/damon/vaddr: attempt per-vma lock during page table walk
 has been added to the -mm mm-new branch.  Its filename is
-     mm-memory-failure-use-zone_pcp_disable-for-poison-handling.patch
+     mm-damon-vaddr-attempt-per-vma-lock-during-page-table-walk.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memory-failure-use-zone_pcp_disable-for-poison-handling.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-vaddr-attempt-per-vma-lock-during-page-table-walk.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,73 +69,164 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Kaitao Cheng <chengkaitao@kylinos.cn>
-Subject: mm/memory-failure: use zone_pcp_disable() for poison handling
-Date: Thu, 14 May 2026 16:57:54 +0800
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm/damon/vaddr: attempt per-vma lock during page table walk
+Date: Tue, 12 May 2026 23:15:23 +0800
 
-__page_handle_poison() used drain_all_pages() instead of
-zone_pcp_disable() because dissolve_free_hugetlb_folio() could restore HVO
-vmemmap pages and decrement hugetlb_optimize_vmemmap_key.  That static key
-update took cpu_hotplug_lock through static_key_slow_dec(), while
-zone_pcp_disable() holds pcp_batch_high_lock.  CPU hotplug takes the locks
-in the opposite order through page_alloc_cpu_online/dead(), so the
-combination could deadlock.
+Currently, DAMON virtual address operations use mmap_read_lock during page
+table walks, which can cause unnecessary contention under high
+concurrency.
 
-That dependency no longer exists.  Commit da3e2d1ca43d ("mm/hugetlb:
-remove hugetlb_optimize_vmemmap_key static key") removed the HVO static
-key and the static_branch_dec() from hugetlb_vmemmap_restore_folio().  The
-dissolve_free_hugetlb_folio() path no longer reaches
-static_key_slow_dec().
+Introduce damon_va_walk_page_range() to first attempt acquiring a per-vma
+lock.  If the VMA is found and the range is fully contained within it, the
+page table walk proceeds with the per-vma lock instead of mmap_read_lock.
 
-Use zone_pcp_disable() again while dissolving the hugetlb folio and taking
-the target page off the buddy allocator.  This prevents the drained PCP
-lists from being refilled before take_page_off_buddy() runs, making the
-page isolation deterministic.
+This optimization is expected to be particularly effective for
+damon_va_young() and damon_va_mkold(), which are frequently called and
+typically operate within a single VMA.
 
-Link: https://lore.kernel.org/20260514085754.84097-1-kaitao.cheng@linux.dev
-Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Link: https://lore.kernel.org/20260512151523.2092638-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   18 +++---------------
- 1 file changed, 3 insertions(+), 15 deletions(-)
+ mm/damon/vaddr.c |   69 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 43 insertions(+), 26 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory-failure-use-zone_pcp_disable-for-poison-handling
-+++ a/mm/memory-failure.c
-@@ -172,23 +172,11 @@ static int __page_handle_poison(struct p
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-attempt-per-vma-lock-during-page-table-walk
++++ a/mm/damon/vaddr.c
+@@ -237,6 +237,35 @@ static void damon_va_update(struct damon
+ 	}
+ }
+ 
++static void damon_va_walk_page_range(struct mm_struct *mm, unsigned long start,
++		unsigned long end, struct mm_walk_ops *ops, void *private)
++{
++	struct vm_area_struct *vma;
++
++	vma = lock_vma_under_rcu(mm, start);
++	if (!vma)
++		goto lock_mmap;
++
++	if (end > vma->vm_end) {
++		vma_end_read(vma);
++		goto lock_mmap;
++	}
++
++	if (!(vma->vm_flags & VM_PFNMAP)) {
++		ops->walk_lock = PGWALK_VMA_RDLOCK_VERIFY;
++		walk_page_range_vma(vma, start, end, ops, private);
++	}
++
++	vma_end_read(vma);
++	return;
++
++lock_mmap:
++	mmap_read_lock(mm);
++	ops->walk_lock = PGWALK_RDLOCK;
++	walk_page_range(mm, start, end, ops, private);
++	mmap_read_unlock(mm);
++}
++
+ static int damon_mkold_pmd_entry(pmd_t *pmd, unsigned long addr,
+ 		unsigned long next, struct mm_walk *walk)
  {
- 	int ret;
+@@ -315,17 +344,14 @@ out:
+ #define damon_mkold_hugetlb_entry NULL
+ #endif /* CONFIG_HUGETLB_PAGE */
  
--	/*
--	 * zone_pcp_disable() can't be used here. It will
--	 * hold pcp_batch_high_lock and dissolve_free_hugetlb_folio() might hold
--	 * cpu_hotplug_lock via static_key_slow_dec() when hugetlb vmemmap
--	 * optimization is enabled. This will break current lock dependency
--	 * chain and leads to deadlock.
--	 * Disabling pcp before dissolving the page was a deterministic
--	 * approach because we made sure that those pages cannot end up in any
--	 * PCP list. Draining PCP lists expels those pages to the buddy system,
--	 * but nothing guarantees that those pages do not get back to a PCP
--	 * queue if we need to refill those.
--	 */
-+	zone_pcp_disable(page_zone(page));
- 	ret = dissolve_free_hugetlb_folio(page_folio(page));
--	if (!ret) {
--		drain_all_pages(page_zone(page));
-+	if (!ret)
- 		ret = take_page_off_buddy(page);
--	}
-+	zone_pcp_enable(page_zone(page));
+-static const struct mm_walk_ops damon_mkold_ops = {
+-	.pmd_entry = damon_mkold_pmd_entry,
+-	.hugetlb_entry = damon_mkold_hugetlb_entry,
+-	.walk_lock = PGWALK_RDLOCK,
+-};
+-
+ static void damon_va_mkold(struct mm_struct *mm, unsigned long addr)
+ {
+-	mmap_read_lock(mm);
+-	walk_page_range(mm, addr, addr + 1, &damon_mkold_ops, NULL);
+-	mmap_read_unlock(mm);
++	struct mm_walk_ops damon_mkold_ops = {
++		.pmd_entry = damon_mkold_pmd_entry,
++		.hugetlb_entry = damon_mkold_hugetlb_entry,
++	};
++
++	damon_va_walk_page_range(mm, addr, addr + 1, &damon_mkold_ops, NULL);
+ }
  
- 	return ret;
+ /*
+@@ -445,12 +471,6 @@ out:
+ #define damon_young_hugetlb_entry NULL
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
+-static const struct mm_walk_ops damon_young_ops = {
+-	.pmd_entry = damon_young_pmd_entry,
+-	.hugetlb_entry = damon_young_hugetlb_entry,
+-	.walk_lock = PGWALK_RDLOCK,
+-};
+-
+ static bool damon_va_young(struct mm_struct *mm, unsigned long addr,
+ 		unsigned long *folio_sz)
+ {
+@@ -459,9 +479,12 @@ static bool damon_va_young(struct mm_str
+ 		.young = false,
+ 	};
+ 
+-	mmap_read_lock(mm);
+-	walk_page_range(mm, addr, addr + 1, &damon_young_ops, &arg);
+-	mmap_read_unlock(mm);
++	struct mm_walk_ops damon_young_ops = {
++		.pmd_entry = damon_young_pmd_entry,
++		.hugetlb_entry = damon_young_hugetlb_entry,
++	};
++
++	damon_va_walk_page_range(mm, addr, addr + 1, &damon_young_ops, &arg);
+ 	return arg.young;
+ }
+ 
+@@ -750,7 +773,6 @@ static unsigned long damos_va_migrate(st
+ 	struct mm_walk_ops walk_ops = {
+ 		.pmd_entry = damos_va_migrate_pmd_entry,
+ 		.pte_entry = NULL,
+-		.walk_lock = PGWALK_RDLOCK,
+ 	};
+ 
+ 	use_target_nid = dests->nr_dests == 0;
+@@ -768,9 +790,7 @@ static unsigned long damos_va_migrate(st
+ 	if (!mm)
+ 		goto free_lists;
+ 
+-	mmap_read_lock(mm);
+-	walk_page_range(mm, r->ar.start, r->ar.end, &walk_ops, &priv);
+-	mmap_read_unlock(mm);
++	damon_va_walk_page_range(mm, r->ar.start, r->ar.end, &walk_ops, &priv);
+ 	mmput(mm);
+ 
+ 	for (int i = 0; i < nr_dests; i++) {
+@@ -862,7 +882,6 @@ static unsigned long damos_va_stat(struc
+ 	struct mm_struct *mm;
+ 	struct mm_walk_ops walk_ops = {
+ 		.pmd_entry = damos_va_stat_pmd_entry,
+-		.walk_lock = PGWALK_RDLOCK,
+ 	};
+ 
+ 	priv.scheme = s;
+@@ -875,9 +894,7 @@ static unsigned long damos_va_stat(struc
+ 	if (!mm)
+ 		return 0;
+ 
+-	mmap_read_lock(mm);
+-	walk_page_range(mm, r->ar.start, r->ar.end, &walk_ops, &priv);
+-	mmap_read_unlock(mm);
++	damon_va_walk_page_range(mm, r->ar.start, r->ar.end, &walk_ops, &priv);
+ 	mmput(mm);
+ 	return 0;
  }
 _
 
-Patches currently in -mm which might be from chengkaitao@kylinos.cn are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-mm-convert-vmemmap_pd_populate-to-static-functions.patch
-mm-memory-failure-use-zone_pcp_disable-for-poison-handling.patch
+mm-damon-vaddr-attempt-per-vma-lock-during-page-table-walk.patch
 
