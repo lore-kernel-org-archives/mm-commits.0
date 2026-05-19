@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 459AA3EA959
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 19:13:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71ADE345CAF
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 19:22:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779217998; cv=none; b=WfnDPeKAqgX4FAeMKG4Ih/WOtkON9yeeNKiQXshd40YIr7oXkEz7dCJUbejvjMJq2BxuGhwz9UKDPepXKmMSY10mxVjsECD3aPYFIapLr3cGfOEgGCzwHRQfZkMUIbY3OKwKIs2CJt3bdJtFWfoQAiUlBU9inU8A2RB/4nIw1dU=
+	t=1779218573; cv=none; b=MQ+fDkPqbsOZtioBF4ww9BkeLwSMpHiI5haeu1941RtaGgUuP48pCNjQFnsKAzU/imKzjU8K4UtA/bE7k70w8ezvt8sWV+TPZ5BRU03DzQPppndZsbHiDf2cOYWS+chVAcy+lopehgmPXhKSenr0fbwX8eYy19RZQ6iJffD0Aq0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779217998; c=relaxed/simple;
-	bh=oO6Vc7q0q+ox9gxWlxRsAvAoiyImp9/zEbja81jfHjI=;
-	h=Date:To:From:Subject:Message-Id; b=n9qZv3qoRAHChnIQ2YDEv6tx75p207EyYpbOibKTGHKQlIklsUsZzM434PUkDTZWzrPzqgR2MhF8GXd+b0XAY/PFMuPo0cur5WIl6fqEim7tFk588txOHeMOvO7PAqAzGO427dHJKKR4uUV8KGJsyJSN1LoO29i0Z1KIEAlWN2I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O2s0DVmF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779218573; c=relaxed/simple;
+	bh=GWQDeEpoTquTt2xxqWQSobbYXuYC8rlYSY4NpaLatPc=;
+	h=Date:To:From:Subject:Message-Id; b=F/MBeZWh0ozwytEMyHf9pFYVcIuKz4/qduq5+vpiaFF1cbCUYGdyO3daZ5CSxuHW9zvq9O80bNaTvyc+mKIl86pKZLBqE0xs/TCTc9JeWLNBshTVPF08e+RAId3hKHHraqkdJHtAQuKLm5ZgF3QPu8H/qU6p/XH8OLSUptzxHR4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pK91MFca; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O2s0DVmF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD6481F000E9;
-	Tue, 19 May 2026 19:13:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pK91MFca"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19E111F000E9;
+	Tue, 19 May 2026 19:22:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779217996;
-	bh=ftjPwhH5P0w5LUPIGyBDXgIZry/eH21EcSQqj1EEvdU=;
+	d=linux-foundation.org; s=korg; t=1779218572;
+	bh=Klo32X/MeAMsb7fPEfyoqjFxT+nxHU/SSjlvqUKJMWg=;
 	h=Date:To:From:Subject;
-	b=O2s0DVmFft7RqYyUFu0V26Pfh7//3pZEgP1PPVJdVI8B/AOcijYx+b+UwOA3ky3+H
-	 FK8A9Y9Nz1yJYf/yR0HNUudvEhDOp7HkfaGaQrr1erafXwjxtLBj319o7E0KuciWcE
-	 4i8ecs1uZ7Txy0utytlHraGFvAc4yM8+cTsiwm4E=
-Date: Tue, 19 May 2026 12:13:16 -0700
-To: mm-commits@vger.kernel.org,thecharlesjenkins@gmail.com,palmer@dabbelt.com,ardb@kernel.org,aou@eecs.berkeley.edu,andriy.shevchenko@intel.com,alex@ghiti.fr,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=pK91MFcamMYSGVBYixTXRxGMXlDEhcden1h4Byb6WTDc7rlQPI+uDeSAWbLImN69W
+	 FlwjAwJ92ALFRyZTLxkGHJjhQac90yVjtZ7tlzXVk+Z72SudH2Pi9iiy9BQb52Xuzi
+	 HcM5PZTYIhSYyOsoWUCfIctaIEiKvc+GjjvmaG08=
+Date: Tue, 19 May 2026 12:22:51 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,leitao@debian.org,lance.yang@linux.dev,hughd@google.com,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-fix-building-compressed-efi-image.patch added to mm-nonmm-unstable branch
-Message-Id: <20260519191316.CD6481F000E9@smtp.kernel.org>
+Subject: + mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string.patch added to mm-new branch
+Message-Id: <20260519192252.19E111F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv: fix building compressed EFI image
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     riscv-fix-building-compressed-efi-image.patch
+     Subject: mm: shmem: refactor thpsize_shmem_enabled_store() with sysfs_match_string()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-fix-building-compressed-efi-image.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,60 +69,189 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: riscv: fix building compressed EFI image
-Date: Tue, 19 May 2026 20:22:59 +0300
+From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Subject: mm: shmem: refactor thpsize_shmem_enabled_store() with sysfs_match_string()
+Date: Mon, 18 May 2026 12:32:37 +0000
 
-When building vmlinuz.efi with CONFIG_EFI_ZBOOT enabled, '__lshrdi3()' is
-also needed to fix yet another link error:
+Patch series "refactors thpsize_shmem_enabled_store() and
+thpsize_shmem_enabled_show()", v3.
 
-riscv32-linux-gnu-ld: drivers/firmware/efi/libstub/lib-cmdline.stub.o: in function `__efistub_.L49':
-__efistub_cmdline.c:(.init.text+0x202): undefined reference to `__efistub___lshrdi3'
 
-And since riscv64 can have CONFIG_EFI_ZBOOT but doesn't need these library
-routines, rely on CONFIG_32BIT to manage linking of lib-ashldi3.o and
-lib-lshrdi3.o on riscv32 only.
+This patch (of 2):
 
-Link: https://lore.kernel.org/20260519172259.908980-9-dmantipov@yandex.ru
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Reported-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Closes: https://lore.kernel.org/linux-riscv/20260409050018.GA371560@inky.localdomain
-Tested-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Suggested-by: Ard Biesheuvel <ardb@kernel.org>
-Assisted-by: Gemini:gemini-3.1-pro-preview sashiko
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Andriy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Inspired by commit 82d9ff648c6c ("mm: huge_memory: refactor
+anon_enabled_store() with set_anon_enabled_mode()"), refactor
+thpsize_shmem_enabled_store() using sysfs_match_string().  This eliminates
+the duplicated spin_lock/unlock(), set/clear_bit(), calls across all
+branches, reducing code duplication.
+
+Behavioral change:
+Call start_stop_khugepaged() only when the mode actually changes.  If
+unchanged, call set_recommended_min_free_kbytes() to preserve legacy
+watermark behavior.  This avoids unnecessary khugepaged restarts.
+
+Tested with selftests ./run_kselftest.sh -t mm:ksft_thp.sh,
+all test cases passed.
+
+Link: https://lore.kernel.org/20260518123238.56344-1-ranxiaokai627@163.com
+Link: https://lore.kernel.org/20260518123238.56344-2-ranxiaokai627@163.com
+Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Breno Leitao <leitao@debian.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/efi/libstub/Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/shmem.c |  107 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 60 insertions(+), 47 deletions(-)
 
---- a/drivers/firmware/efi/libstub/Makefile~riscv-fix-building-compressed-efi-image
-+++ a/drivers/firmware/efi/libstub/Makefile
-@@ -95,7 +95,8 @@ CFLAGS_zboot-decompress-gzip.o	+= -I$(sr
- zboot-obj-$(CONFIG_KERNEL_ZSTD)	:= zboot-decompress-zstd.o lib-xxhash.o
- CFLAGS_zboot-decompress-zstd.o	+= -I$(srctree)/lib/zstd
+--- a/mm/shmem.c~mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string
++++ a/mm/shmem.c
+@@ -5463,6 +5463,29 @@ static ssize_t shmem_enabled_store(struc
+ struct kobj_attribute shmem_enabled_attr = __ATTR_RW(shmem_enabled);
+ static DEFINE_SPINLOCK(huge_shmem_orders_lock);
  
--zboot-obj-$(CONFIG_RISCV)	+= lib-clz_ctz.o lib-ashldi3.o
-+zboot-riscv-obj-$(CONFIG_32BIT)	+= lib-ashldi3.o lib-lshrdi3.o
-+zboot-obj-$(CONFIG_RISCV)	+= lib-clz_ctz.o $(zboot-riscv-obj-y)
- zboot-obj-$(CONFIG_LOONGARCH)	+= lib-clz_ctz.o lib-ashldi3.o
- lib-$(CONFIG_EFI_ZBOOT)		+= zboot.o $(zboot-obj-y)
++enum huge_shmem_enabled_mode {
++	HUGE_SHMEM_ENABLED_ALWAYS = 0,
++	HUGE_SHMEM_ENABLED_INHERIT,
++	HUGE_SHMEM_ENABLED_WITHIN_SIZE,
++	HUGE_SHMEM_ENABLED_ADVISE,
++	HUGE_SHMEM_ENABLED_NEVER,
++};
++
++static const char * const huge_shmem_enabled_mode_strings[] = {
++	[HUGE_SHMEM_ENABLED_ALWAYS]      = "always",
++	[HUGE_SHMEM_ENABLED_INHERIT]     = "inherit",
++	[HUGE_SHMEM_ENABLED_WITHIN_SIZE] = "within_size",
++	[HUGE_SHMEM_ENABLED_ADVISE]      = "advise",
++	[HUGE_SHMEM_ENABLED_NEVER]       = "never",
++};
++
++static unsigned long * const huge_shmem_orders_by_mode[] = {
++	[HUGE_SHMEM_ENABLED_ALWAYS]      = &huge_shmem_orders_always,
++	[HUGE_SHMEM_ENABLED_INHERIT]     = &huge_shmem_orders_inherit,
++	[HUGE_SHMEM_ENABLED_WITHIN_SIZE] = &huge_shmem_orders_within_size,
++	[HUGE_SHMEM_ENABLED_ADVISE]      = &huge_shmem_orders_madvise,
++};
++
+ static ssize_t thpsize_shmem_enabled_show(struct kobject *kobj,
+ 					  struct kobj_attribute *attr, char *buf)
+ {
+@@ -5483,63 +5506,53 @@ static ssize_t thpsize_shmem_enabled_sho
+ 	return sysfs_emit(buf, "%s\n", output);
+ }
  
++static bool set_shmem_enabled_mode(int order, enum huge_shmem_enabled_mode mode)
++{
++	bool changed = false;
++	enum huge_shmem_enabled_mode idx;
++
++	spin_lock(&huge_shmem_orders_lock);
++	for (idx = 0; idx < ARRAY_SIZE(huge_shmem_orders_by_mode); idx++) {
++		if (idx == mode)
++			changed |= !__test_and_set_bit(order, huge_shmem_orders_by_mode[idx]);
++		else
++			changed |= __test_and_clear_bit(order, huge_shmem_orders_by_mode[idx]);
++	}
++	spin_unlock(&huge_shmem_orders_lock);
++
++	return changed;
++}
++
+ static ssize_t thpsize_shmem_enabled_store(struct kobject *kobj,
+ 					   struct kobj_attribute *attr,
+ 					   const char *buf, size_t count)
+ {
+ 	int order = to_thpsize(kobj)->order;
+-	ssize_t ret = count;
++	int mode;
+ 
+-	if (sysfs_streq(buf, "always")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		set_bit(order, &huge_shmem_orders_always);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "inherit")) {
+-		/* Do not override huge allocation policy with non-PMD sized mTHP */
+-		if (shmem_huge == SHMEM_HUGE_FORCE && !is_pmd_order(order))
+-			return -EINVAL;
+-
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		set_bit(order, &huge_shmem_orders_inherit);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "within_size")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		set_bit(order, &huge_shmem_orders_within_size);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "advise")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		set_bit(order, &huge_shmem_orders_madvise);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "never")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else {
+-		ret = -EINVAL;
+-	}
++	mode = sysfs_match_string(huge_shmem_enabled_mode_strings, buf);
++	if (mode < 0)
++		return mode;
++
++	/* Do not override huge allocation policy with non-PMD sized mTHP */
++	if (mode == HUGE_SHMEM_ENABLED_INHERIT &&
++	    shmem_huge == SHMEM_HUGE_FORCE && !is_pmd_order(order))
++		return -EINVAL;
+ 
+-	if (ret > 0) {
++	if (set_shmem_enabled_mode(order, mode)) {
+ 		int err = start_stop_khugepaged();
+-
+ 		if (err)
+-			ret = err;
++			return err;
++	} else {
++		/*
++		 * Recalculate watermarks even when the mode hasn't changed
++		 * to preserve the legacy behavior, as this is always called
++		 * inside start_stop_khugepaged().
++		 */
++		set_recommended_min_free_kbytes();
+ 	}
+-	return ret;
++
++	return count;
+ }
+ 
+ struct kobj_attribute thpsize_shmem_enabled_attr =
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
 
-lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
-lib-fix-_parse_integer_limit-to-handle-overflow.patch
-lib-fix-memparse-to-handle-overflow.patch
-lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch
-lib-cmdline_kunit-add-test-case-for-memparse.patch
-lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
-riscv-add-platform-specific-double-word-shifts-for-riscv32.patch
-lib-kunit-add-tests-for-__ashldi3-__ashrdi3-and-__lshrdi3.patch
-riscv-fix-building-compressed-efi-image.patch
+mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string.patch
+mm-shmem-refactor-thpsize_shmem_enabled_show-with-helper-arrays.patch
 
