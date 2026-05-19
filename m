@@ -1,103 +1,117 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12E1126E70E
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 01:16:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CC7164AA4;
+	Tue, 19 May 2026 04:10:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779153409; cv=none; b=VHpZKMtGGDFKJk+F66+cWIWFO0PFCrldJS4ccRbbu6j6iFYsRjfdp5VI08P6h/BBrOVef4pbUxrJFPOJEsRP6/HZvHiP4Omo4osvIu6KHzwC/pduXuUlFxb6v8lxZO56lOKs/P5hrksFpXr13lyhRAur30CkMQNKE0K9d+ar7Lw=
+	t=1779163812; cv=none; b=Xa4zdUXSbTNzqrUhCnRVCjyhDdUQ84PKp2uP9wM0qXAAn4kxOgtlWaqmUKj2CEdWe/tk41ec+fgj40UDG0p5ZCJKbLRZHV5Xn3O/IhdHx3Xi5MfcjBDg8s0mfr99MgciAjCcIY9VxwCO4o9s8LJrfub8VgwmYNOGNp7OLZ7H50I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779153409; c=relaxed/simple;
-	bh=Z7ZdULv6k2v90ssIByLYa9UxHC4AMBpfesoW5hy02jw=;
-	h=Date:To:From:Subject:Message-Id; b=DVhILN6K4fgLXgZNRxHQrC4vlaskw8GwRNKcD651HvivbgFmDSrLbXcww/1G9zGM2R90GvolDJJBGGLuqYhEWtDvIzlPZu36Al7ipOwWxxxIEeRNg78QRR3zOlhABn5V2M9MVtUnF7T8+i7b+QWX8v+GfGh4NoNdS1f3YW7QMII=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RjAiCFd3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779163812; c=relaxed/simple;
+	bh=jKPUDmc9d1mUFqAQVaoaLRkscbcLeeodQ9MrqHblJxo=;
+	h=Date:From:To:Cc:Subject:Message-Id:Mime-Version:Content-Type; b=iyz+FDVwuE5gW7HnjrFFEwDe8s/8WsmLQixSpgS/m16g5RXEA8Z6sUkegMht5jXFa7IpkXjes5dAnLdP+kgm6v5JMs31E59tIA/BY6PM5cfnNfdMrwCycH94/cnNLL8+0E/AdUaLPQaEn59M3iRtECyeUsOaPx9ayes0hgjiqi8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bGiwBjeY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RjAiCFd3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B0EDC2BCB7;
-	Tue, 19 May 2026 01:16:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bGiwBjeY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 512F6C2BCB3;
+	Tue, 19 May 2026 04:10:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779153408;
-	bh=Z7ZdULv6k2v90ssIByLYa9UxHC4AMBpfesoW5hy02jw=;
-	h=Date:To:From:Subject:From;
-	b=RjAiCFd3QtuUPmCyTAyBonSoJ3U5MLxabFBp1UmBgUC7naX+cO70lvOohPjCmfTz7
-	 xT7tUQRn413GBHjhE/MfYLxSReWD5z9qzZnxsDNSa5nafz7QEYX5OsuOQyh9IeI3/T
-	 cNEK7cvddAxLUGH61DRo0lfq0HJBuYz5sTpCpFjg=
-Date: Mon, 18 May 2026 18:16:47 -0700
-To: mm-commits@vger.kernel.org,kasong@tencent.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	s=korg; t=1779163811;
+	bh=jKPUDmc9d1mUFqAQVaoaLRkscbcLeeodQ9MrqHblJxo=;
+	h=Date:From:To:Cc:Subject:From;
+	b=bGiwBjeYjAAQZt7zdfBbep2p8SpFYaHti0qkxt4p+QbdjUObgOZMLEfHH0CvoYl2x
+	 2TNlv2zwXexxFNZsnXPH4UmtNEd5VeKf/vRRhiYl107bIV5yeqIWzn5D/MRsKGAVe4
+	 7GTtTewKiau5wCR9MJKjlD7bgIysFAVrJxGIH17o=
+Date: Mon, 18 May 2026 21:10:10 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-swap-merge-zeromap-into-swap-table-fix.patch added to mm-new branch
-Message-Id: <20260519011648.2B0EDC2BCB7@smtp.kernel.org>
+To: Linus Torvalds <torvalds@linuxfoundation.org>
+Cc: linux-mm@kvack.org, mm-commits@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: [GIT PULL] hotfixes for 7.1-rc5
+Message-Id: <20260518211010.20af3906b324d3e674ed1e61@linux-foundation.org>
+X-Mailer: Sylpheed 3.8.0beta1 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
 
-The patch titled
-     Subject: mm-swap-merge-zeromap-into-swap-table-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-swap-merge-zeromap-into-swap-table-fix.patch
+Linus, please merge this batch of hotfixes, thanks.
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-swap-merge-zeromap-into-swap-table-fix.patch
+The following changes since commit 5d6919055dec134de3c40167a490f33c74c12581:
 
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+  Linux 7.1-rc3 (2026-05-10 14:08:09 -0700)
 
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
+are available in the Git repository at:
 
-The mm-new branch of mm.git is not included in linux-next
+  git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-05-18-21-07
 
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
+for you to fetch changes up to be3f38d05cc5a7c3f13e51994c5dd043ab604d28:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+  mm/memory: fix spurious warning when unmapping device-private/exclusive pages (2026-05-13 17:40:03 -0700)
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+----------------------------------------------------------------
+14 hotfixes.  9 are for MM.  10 are cc:stable and the remainder are for
+post-7.1 issues or aren't deemed suitable for backporting.
 
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+There's a 2 patch MAINTAINERS series from Mike Rapoport which updates us
+for the new KEXEC/KDUMP/crash/LUO/etc arrangements.  And a 2 patch series
+from Muchun Song to fix a couple of memory-hotplug issues.  Otherwise
+singletons, please see the changelogs for details.
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swap-merge-zeromap-into-swap-table-fix
-Date: Mon May 18 06:15:39 PM PDT 2026
+----------------------------------------------------------------
+Alistair Popple (1):
+      mm/memory: fix spurious warning when unmapping device-private/exclusive pages
 
-swap_cluster_alloc_table(): remove unused local `ret'
+Christian A. Ehrhardt (1):
+      lib: kunit_iov_iter: fix test fail on powerpc
 
-Cc: Kairui Song <kasong@tencent.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+David Hildenbrand (Arm) (2):
+      mm/page_alloc: fix initialization of tags of the huge zero folio with init_on_free
+      mm: fix __vm_normal_page() to handle missing support for pmd_special()/pud_special()
 
- mm/swapfile.c |    1 -
- 1 file changed, 1 deletion(-)
+Illia Ostapyshyn (2):
+      scripts/gdb: mm: cast untyped symbols in x86_page_ops
+      scripts/gdb: slab: update field names of struct kmem_cache
 
---- a/mm/swapfile.c~mm-swap-merge-zeromap-into-swap-table-fix
-+++ a/mm/swapfile.c
-@@ -450,7 +450,6 @@ static int swap_cluster_alloc_table(stru
- {
- 	struct swap_table *table = NULL;
- 	struct folio *folio;
--	int ret = 0;
- 
- 	/* The cluster must be empty and not on any list during allocation. */
- 	VM_WARN_ON_ONCE(ci->flags || !cluster_is_empty(ci));
-_
+Luiz Capitulino (1):
+      selftests/mm: run_vmtests.sh: fix destructive tests invocation
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Mike Rapoport (Microsoft) (2):
+      MAINTAINERS: add tree for KDUMP and KEXEC
+      MAINTAINERS: add kexec@ list to LIVE UPDATE ENTRY
 
-selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch
-mm-swap-merge-zeromap-into-swap-table-fix.patch
-mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
-proc-rewrite-next_tgid-fix.patch
+Muchun Song (2):
+      mm/memory_hotplug: fix memory block reference leak on remove
+      drivers/base/memory: fix memory block reference leak in poison accounting
+
+SeongJae Park (2):
+      mm/damon/sysfs-schemes: call missing mem_cgroup_iter_break()
+      mm/damon: fix damos_stat tracepoint format for sz_applied
+
+Sunny Patel (1):
+      mm/migrate_device: fix spinlock leak in migrate_vma_insert_huge_pmd_page
+
+ MAINTAINERS                               |  3 ++
+ arch/arm64/include/asm/page.h             |  2 +-
+ arch/arm64/mm/fault.c                     | 11 ++++---
+ drivers/base/memory.c                     |  8 +++--
+ include/linux/gfp_types.h                 | 10 +++----
+ include/linux/highmem.h                   |  7 +++--
+ include/trace/events/damon.h              |  2 +-
+ lib/tests/kunit_iov_iter.c                | 10 +++----
+ mm/damon/sysfs-schemes.c                  |  1 +
+ mm/memory.c                               | 24 ++++++++++++---
+ mm/memory_hotplug.c                       |  2 ++
+ mm/migrate_device.c                       |  2 +-
+ mm/page_alloc.c                           |  8 ++---
+ scripts/gdb/linux/mm.py                   |  6 ++--
+ scripts/gdb/linux/slab.py                 |  4 +--
+ tools/testing/selftests/mm/hmm-tests.c    | 50 +++++++++++++++++++++++++++++++
+ tools/testing/selftests/mm/run_vmtests.sh |  2 +-
+ 17 files changed, 116 insertions(+), 36 deletions(-)
 
