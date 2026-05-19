@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14AEB2609FD
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 22:26:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03729343889;
+	Tue, 19 May 2026 23:38:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779229612; cv=none; b=J39QCz2Km7JlkjPIXq5Eh8yAvwWvgiqTXfewlNn+Mi0I+r8E6crAk4GRPHBsttuypfbvja3i8cDZ4YmNYFkLvuZ/5eq/3wxOTbMKMqUgkklzC9Zc8ygDM1DuJvfkVAhuV364BBqQ7iMxJ56VK5ykdQmUilCDSJukX8QBm9APuxs=
+	t=1779233932; cv=none; b=V/XUspxGS8eX/G5OVrkdTjephPLz3l3JGryacu0vcA8sFQ3GHlumVBz+ZUZPmP7bEtmETdR1g6ntfZ/w6gWQ2SU4uDhE1zQ9Ja4etXMJDkjNeBKE85dOUo6gPLQvHxwZpn0dHWihhTXXrjPUuGpE9E4tPvul+WIiOh6SRCVX7eQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779229612; c=relaxed/simple;
-	bh=vNE4oAcrAvvOgxilIV46AO1vkkA0pOrE8s+XSdkDgZg=;
-	h=Date:To:From:Subject:Message-Id; b=MZ6ASFHLAu9FhT5fs+nxQHvryKpUsEgE2wnEnRyWYJy4/vCIrKxSgcEp8dRQGDZpYVNMZRDx4fTwfrgtddBnWNGSZ1eyt3IBgc7RqBWXSOa1omxqr0lMUwK+nVjagOh3aNTX5hjpYa6EnTGQpv9LiUQ1H5viLhwUlXtv+PJIGdk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wJz7AzR1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779233932; c=relaxed/simple;
+	bh=LpO4AGfvCs3ZVd7ZTSVCy35NcGWgtaHYMqiKe6Mig8E=;
+	h=Date:To:From:Subject:Message-Id; b=JiHinjm9wZHhQ9kY0FqmUCn8MdG1/N+iFOVeN80j94xuLb+uIsGo+GpM4uybhivZ8td17GZb0vDkX8n8nAQb0w7k2RyPVKcj1+DXhZoVjEb53Vt3NwLw3VIz/sP+dhEzjDrok8fM6IplPFlf9nkzpvvLKow5UQ9La6h0gvsSnp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eWSP2X0m; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wJz7AzR1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A46B11F00893;
-	Tue, 19 May 2026 22:26:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eWSP2X0m"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DAD91F000E9;
+	Tue, 19 May 2026 23:38:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779229610;
-	bh=pUIPC2Jf4/6NTDxaZ2gJ+mw+52O7pvoFLrbVLP18dwI=;
+	d=linux-foundation.org; s=korg; t=1779233930;
+	bh=0Afm1h8tIz9UFkG1QCkdBsiFKvajENQnOjSl1hzdMJo=;
 	h=Date:To:From:Subject;
-	b=wJz7AzR1fZE0By9pJunZdcleWhxLBDXnccLrR/OM8wtyq84C3R4TLJb8CLJ6X8oYU
-	 SoXZQDB7mpHqP3pBLhL568K757Rgx5eSDv5O/2LZe2wqD79kl3Tt5Dzl1mWbOeVwKG
-	 txMx5E+yoIHixV8pDzNmdoER9Kjm5LyS4Ms/c/RA=
-Date: Tue, 19 May 2026 15:26:50 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,youngjun.park@lge.com,shikemeng@huaweicloud.com,shakeel.butt@linux.dev,roman.gushchin@linux.dev,nphamcs@gmail.com,muchun.song@linux.dev,ljs@kernel.org,kasong@tencent.com,hughd@google.com,hannes@cmpxchg.org,david@kernel.org,chrisl@kernel.org,chengming.zhou@linux.dev,bhe@redhat.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=eWSP2X0mNdTiNWV0Fx/2F+e77BZnCegoHP36PeskSie6UiWwTNJiU29HG6t4Cr/uR
+	 ZmRiqBpX+1dB3Ku5GyYwyy0o9eDIsPetFLoAbk1b7QLjiKO+TWeu1ygNVJtVoMmE6A
+	 9BvonpUwokjETUnCYsG5WaABmXdSuEveaM2R5qNU=
+Date: Tue, 19 May 2026 16:38:50 -0700
+To: mm-commits@vger.kernel.org,yuehaibing@huawei.com,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,almasrymina@google.com,devnexen@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-swap-store-cgroup-id-in-cluster-table-directly-fix.patch added to mm-new branch
-Message-Id: <20260519222650.A46B11F00893@smtp.kernel.org>
+Subject: + mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260519233850.8DAD91F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-memcg-swap-store-cgroup-id-in-cluster-table-directly-fix
-has been added to the -mm mm-new branch.  Its filename is
-     mm-memcg-swap-store-cgroup-id-in-cluster-table-directly-fix.patch
+     Subject: mm/hugetlb: restore reservation on error in hugetlb_mfill_atomic_pte() resubmission path
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-memcg-swap-store-cgroup-id-in-cluster-table-directly-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,56 +58,60 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcg-swap-store-cgroup-id-in-cluster-table-directly-fix
-Date: Tue May 19 03:23:38 PM PDT 2026
+From: David Carlier <devnexen@gmail.com>
+Subject: mm/hugetlb: restore reservation on error in hugetlb_mfill_atomic_pte() resubmission path
+Date: Sun, 22 Mar 2026 05:21:20 +0000
 
-"fix" CONFIG_SWAP=n build
+When the resubmission path in hugetlb_mfill_atomic_pte() allocates a new
+hugetlb folio via alloc_hugetlb_folio(), a VMA reservation is consumed. 
+If copy_user_large_folio() subsequently fails (e.g.  -EHWPOISON when the
+source page is hwpoisoned), folio_put() restores the global hugetlb pool
+count through free_huge_folio(), but the per-VMA reservation map entry is
+left marked consumed.
 
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Chengming Zhou <chengming.zhou@linux.dev>
-Cc: Chris Li <chrisl@kernel.org>
+User-visible effect: on a UFFDIO_COPY into a private hugetlb VMA where the
+resubmission path's copy fails, the reservation for that address is leaked
+from the VMA's reserve map.  A subsequent fault at the same address takes
+the no-reservation path, and under hugetlb pool pressure the task is
+SIGBUSed at an address it had previously reserved.  One map entry is
+leaked per occurrence.
+
+Add the missing restore_reserve_on_error() call before folio_put(),
+matching the first-attempt error path which already handles this
+correctly.
+
+Link: https://lore.kernel.org/20260519230503.121293-1-devnexen@gmail.com
+Link: https://lore.kernel.org/20260322052120.14021-1-devnexen@gmail.com
+Fixes: 1cb9dc4b475c ("mm: hwpoison: support recovery from HugePage copy-on-write faults")
+Signed-off-by: David Carlier <devnexen@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Kemeng Shi <shikemeng@huaweicloud.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Mina Almasry <almasrymina@google.com>
 Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Nhat Pham <nphamcs@gmail.com>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: Youngjun Park <youngjun.park@lge.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: yuehaibing <yuehaibing@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/hugetlb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/swap.h~mm-memcg-swap-store-cgroup-id-in-cluster-table-directly-fix
-+++ a/mm/swap.h
-@@ -482,5 +482,11 @@ static inline int swap_zeromap_batch(swp
- {
- 	return 0;
- }
-+
-+static inline unsigned int swp_cluster_offset(swp_entry_t entry)
-+{
-+	return 0;
-+}
-+
- #endif /* CONFIG_SWAP */
- #endif /* _MM_SWAP_H */
+--- a/mm/hugetlb.c~mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path
++++ a/mm/hugetlb.c
+@@ -6270,6 +6270,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
+ 		folio_put(*foliop);
+ 		*foliop = NULL;
+ 		if (ret) {
++			restore_reserve_on_error(h, dst_vma, dst_addr, folio);
+ 			folio_put(folio);
+ 			goto out;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from devnexen@gmail.com are
 
-selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch
-mm-memcg-swap-store-cgroup-id-in-cluster-table-directly-fix.patch
-mm-swap-merge-zeromap-into-swap-table-fix.patch
-mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
-proc-rewrite-next_tgid-fix.patch
+mm-hugetlb-restore-reservation-on-error-in-hugetlb_mfill_atomic_pte-resubmission-path.patch
+mm-page_io-rename-swap_iocb-fields-for-clarity.patch
+mm-shrinker-avoid-out-of-bounds-read-in-set_shrinker_bit.patch
+mm-swap-pm-hibernate-atomically-replace-hibernation-pin.patch
 
