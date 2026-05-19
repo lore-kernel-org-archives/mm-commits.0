@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DB773DB32F
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 17:27:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A071B34388A
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 17:41:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779211671; cv=none; b=BFNFseNWanBK6VGBMmkCEeZIdlDcJbXtAf0XtO9Kfq+y21j1+QRrWQkPzgUl1ZrQetfBBOMv7u9VS3S2tgL45nBgFp7rnEg/EB4XgA0yEFKFY3Bj61eKwmaXPYllSHzkhP2wb5kGndpNnxgUQfAnEDCrE7oso6KQSkqDo8MLNJs=
+	t=1779212508; cv=none; b=iJkG5R3ilAa0HgfBQZ/4gU2jFWCvKlwBOHL7tnQop7x3U4aH6zbB+DW40Gt5pBrqksdhN4vlQHbEEg4DK0LJi8qAgIzE1jas4SNmmf2GdYaxn3dJcyBUdOxLIxpYYXbDjCAUu0QJqtd72PkzdDQHLBVAI6168MLZcC6lXq5rq1A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779211671; c=relaxed/simple;
-	bh=Z73co6X7aQUpRs7GhmaAL+hSJGO6YdLrrBqCcPhRamg=;
-	h=Date:To:From:Subject:Message-Id; b=PMxkpkDyQ3juiHNQ9M280qnk1aDc9ooEwGjyJcXhObsKwDNNc/BNoCdJhiMJR1SnN0OLrymKu/ZWQ6DS2EM0MkbOcPvLZaFzKntPVM+usN76NjlZXyiUsQuhcLnTJ3xTEzZ0vhDIc1wdXg1S0wfXf2MR/PtlJquV3T9+xfyKPR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=n94AByV2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779212508; c=relaxed/simple;
+	bh=99HHuMr9OQukK8QVwuWognFQDr86v4fJGpn9dn94d4Q=;
+	h=Date:To:From:Subject:Message-Id; b=F80ZzrdqdnQJJ+6OLbQbOw7aD3loHLM+sBUFfscLriFQC/EQOUgmOCHOteHaEInOm7XQrLVTeOfqA9YsW3Ze25dfG6czT36/S+vrZeg6UIOfpkVBxKpI/nf1QEtc2/jHaMn9GFFqFQ+ZilrOAeI4mFWllEHHOfjzZon73KPAEoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WYuxDQI3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="n94AByV2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C16D6C2BCB8;
-	Tue, 19 May 2026 17:27:50 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WYuxDQI3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20882C2BCB3;
+	Tue, 19 May 2026 17:41:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779211670;
-	bh=Z73co6X7aQUpRs7GhmaAL+hSJGO6YdLrrBqCcPhRamg=;
+	s=korg; t=1779212508;
+	bh=99HHuMr9OQukK8QVwuWognFQDr86v4fJGpn9dn94d4Q=;
 	h=Date:To:From:Subject:From;
-	b=n94AByV2tR3i6nu1zV3FYEIJcz8kRatL9g9QWWMrtQ97qNkKVAD0Cy0a3UVXC+3fT
-	 46XpKQSoMi/x2YKlQwVJlWL275PMfsEqdDEts3dCF92nh2OdkjDIq4eD6akTbNZLQG
-	 /BZKfE4Zu/4aH8qH5FAKRuyPBmiCdT01jXxuuIbo=
-Date: Tue, 19 May 2026 10:27:50 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,d@ilvokhin.com,akpm@linux-foundation.org
+	b=WYuxDQI3/zGntF0Bl6DR3xRfwEfB4KPO2M5bzTNJh7lEEsqdI1srdb9PAd9GcSk3+
+	 tx/XzayLAtwXzVuFjmxnES+oyDiRO8wXDdgWWuiU7vW9OjoG6rwoZMrm+KjrP4h7lb
+	 i5X0IKFekOrkcnMhESm7uYRDkwDin5Pk4B1o0z60=
+Date: Tue, 19 May 2026 10:41:47 -0700
+To: mm-commits@vger.kernel.org,michael.bommarito@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations.patch added to mm-new branch
-Message-Id: <20260519172750.C16D6C2BCB8@smtp.kernel.org>
+Subject: [to-be-updated] ocfs2-reject-dinodes-with-non-canonical-i_mode-type-or-stray-bits.patch removed from -mm tree
+Message-Id: <20260519174148.20882C2BCB3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,111 +34,241 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/page_alloc: fix defrag_mode for non-reclaimable allocations
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations.patch
+The quilt patch titled
+     Subject: ocfs2: reject dinodes with non-canonical i_mode type or stray bits
+has been removed from the -mm tree.  Its filename was
+     ocfs2-reject-dinodes-with-non-canonical-i_mode-type-or-stray-bits.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: mm/page_alloc: fix defrag_mode for non-reclaimable allocations
-Date: Mon, 18 May 2026 16:37:36 +0000
+From: Michael Bommarito <michael.bommarito@gmail.com>
+Subject: ocfs2: reject dinodes with non-canonical i_mode type or stray bits
+Date: Sun, 17 May 2026 07:10:12 -0400
 
-When defrag_mode is enabled, ALLOC_NOFRAGMENT is enforced to prevent
-migratetype fallbacks and keep pageblocks clean.  The allocator relies on
-reclaim and compaction to free pages of the correct type before allowing
-fallback as a last resort.
+Patch series "ocfs2: harden inode validators against forged metadata".
 
-However, non-reclaimable allocations such as GFP_ATOMIC cannot invoke
-direct reclaim or compaction.  With defrag_mode=1, these allocations hit
-the !can_direct_reclaim bailout in __alloc_pages_slowpath() with
-ALLOC_NOFRAGMENT still set, and fail without ever attempting a fallback.
+This series adds three structural checks to ocfs2_validate_inode_block()
+that catch attacker-controlled bytes in a freshly read dinode before
+ocfs2_populate_inode() copies them verbatim into the in-core inode.  All
+three checks fire on the mount, lookup, and read-after-cache-invalidation
+paths and reject the block with ocfs2_error(), the same error-propagation
+mechanism the existing suballoc-slot, inline-data, chain-list, and
+refcount checks use.
 
-This causes a large number of SLUB allocation failures for
-skbuff_head_cache under network-heavy workloads, despite free memory being
-available in other migratetype freelists.
+Direction
+=========
 
-Clear ALLOC_NOFRAGMENT and retry before giving up on allocations that
-cannot reclaim, following the same pattern used after reclaim/compaction
-exhaustion later in the slowpath.
+This continues the validator-hardening direction visible in the
+recent in-flight ocfs2_validate_inode_block hardening series,
+e.g. ZhengYuan Huang's "ocfs2: revalidate the journal dinode
+before toggling dirty"
+(<20260512024115.4036371-1-gality369@gmail.com>), "ocfs2: add
+extent tree depth validation"
+(<20260416110229.3283682-1-gality369@gmail.com>), and "ocfs2:
+add extent list validation v2"
+(<20260423094116.876696-1-gality369@gmail.com>).  Each of those
+adds a per-field invariant check against bytes that downstream
+code paths trust unconditionally.
 
-Link: https://lore.kernel.org/20260518163736.173910-1-d@ilvokhin.com
-Fixes: e3aa7df331bc ("mm: page_alloc: defrag_mode")
-Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+The three checks in this series cover three more fields whose
+attacker-controlled values currently propagate into VFS-visible state
+without question: i_mode (type bits and reserved bits), i_rdev
+(cross-checked against the file type), and the i_size / i_clusters pairing
+for regular files on non-sparse volumes (patch 3 is gated on
+!ocfs2_sparse_alloc(); sparse- allocation mounts legitimately commit
+i_size > 0 with i_clusters == 0 via ocfs2_zero_extend()).
+
+Threat model
+============
+
+The validator is the chokepoint that protects ocfs2_populate_inode() from
+a malformed dinode whether the malformation got there via:
+
+  (1) An attacker-supplied disk image mounted by a privileged
+      user.  The mount path runs every dinode through this
+      validator before any unprivileged user opens a file on
+      the volume.  This is the same threat model the existing
+      inline-data, refcount, and chain-list checks in this
+      function were written for.
+
+  (2) A compromised cluster peer with raw write access to the
+      shared block device.  OCFS2 is a clustered filesystem;
+      the on-disk blocks behind bh->b_data live on shared
+      storage that other cluster nodes can write.  The local
+      node's cache-eviction re-read runs the newly fetched
+      block through this validator before ocfs2_populate_inode()
+      runs again.  Oracle's BlockErrorDetection design document
+      scopes the existing CRC32 + Hamming integrity primitive
+      explicitly as defense against memory and wire corruption,
+      not as authentication of peer writes; the field-level
+      validators are therefore the kernel-side defense
+      whichever path produced the forged block.
+
+The three checks in this series are deliberately structural: they each
+express an invariant mkfs.ocfs2 and the kernel maintain unconditionally,
+and they reject any dinode whose header violates that invariant before its
+bytes propagate to the in-core inode.
+
+Scope note: these checks block forge patterns that touch i_mode (outside
+the canonical envelope), i_rdev (on a non-device file), or the i_size /
+i_clusters pair (regular file with size but no extents, on non-sparse
+volumes only).  A forger who keeps the dinode within these structural
+envelopes (for example, flipping only the permission bits and uid/gid on a
+regular file that already has clusters allocated) can still produce a
+dinode that satisfies the field-level invariants; closing that residual
+class is outside the scope of this hardening series.
+
+Validation
+==========
+
+Each patch builds on top of the previous one against mainline; the series
+as a whole builds clean against v7.1-rc1 with zero new warnings. 
+checkpatch --strict reports 0 errors, 0 warnings, 0 checks for each patch.
+
+The series was exercised on a two-node QEMU cluster (virtio-blk
+shared LUN with share-rw=on, both nodes joining the same o2cb
+cluster, mounted ocfs2 with metaecc):
+
+  - Pre-series baseline: a peer-node raw-write forge that adds
+    S_ISUID and flips uid/gid to 0 on a regular file is accepted
+    by the existing validator chain; the unprivileged user on
+    the victim node exec()s the file and gains euid=0.  This
+    confirms the cluster-peer write primitive is reachable in
+    today's mainline.  Per the Scope note above, this particular
+    forge stays within the structural envelope these patches
+    enforce and is NOT blocked by them; closing it requires the
+    out-of-scope keyed-integrity work.
+  - Post-series, structural-variant forge: a peer-node forge
+    that, in addition to the setuid + uid/gid changes, stores
+    i_rdev = MKDEV(1,1) on the same regular-file dinode (the
+    cleanest cluster-context attacker primitive patch 2
+    catches) is rejected by ocfs2_validate_inode_block() with
+    ocfs2_error "non-device mode 0104755 with i_rdev N".  The
+    buffer-head propagates -EFSCORRUPTED to
+    ocfs2_read_locked_inode and the user-visible result is
+    Permission denied on subsequent stat / open / exec of the
+    forged file.  Analogous post-series forge variants that
+    flip i_mode outside the canonical envelope, or that set
+    i_size > 0 with i_clusters == 0 on a non-inline regular
+    file mounted from a non-sparse volume, are rejected by
+    patches 1 and 3 respectively.
+
+A separate cluster regression (mount, peer-write a regular file,
+drop_caches on the second node, read it back) runs clean post-series, so
+the checks do not regress normal operation.
+
+In-tree selftests under tools/testing/selftests/ that reference
+fs/ocfs2/inode.c or any changed symbol were checked; no matching selftests
+exist for ocfs2_validate_inode_block(), which is consistent with OCFS2
+having no in-tree selftest coverage.  The subsystem's standard regression
+coverage is xfstests (the generic fs group) plus ocfs2-test, both out of
+tree.  Those were not run as part of this series; a full xfstests pass
+before merge is recommended and I am happy to run a representative subset
+and report results if reviewers would find it useful.
+
+
+This patch (of 3):
+
+ocfs2_validate_inode_block() currently accepts any 16-bit i_mode value as
+long as i_mode is non-zero.  ocfs2_populate_inode() then copies that mode
+verbatim into inode->i_mode and dispatches on i_mode & S_IFMT to the
+file/dir/symlink/special_file iops; any unrecognised type falls through to
+ocfs2_special_file_iops and init_special_inode(), which interprets
+id1.dev1.i_rdev as a device number.
+
+The result is that anything able to forge or corrupt an inode block (a
+hostile cluster peer with raw write access to the shared LUN, a privileged
+user mounting an attacker-supplied image, on-disk corruption) can publish
+an in-core inode whose type bits do not name a POSIX file type, or whose
+permission bits carry bytes outside S_IFMT|07777.  Both shapes propagate
+into VFS-visible state that downstream code paths assume is well-formed.
+
+Reject early in the validator:
+
+  - mode bits outside S_IFMT|07777
+  - S_IFMT values that are not one of S_IFREG, S_IFDIR, S_IFLNK,
+    S_IFCHR, S_IFBLK, S_IFIFO, S_IFSOCK
+
+mkfs.ocfs2 and the kernel only ever produce these seven types plus the
+standard permission, setuid/setgid/sticky bits; an on-disk i_mode outside
+this envelope is structurally malformed regardless of how it got there.
+
+Validated against the existing inline_data, refcount, and chain-list
+checks: this hardening fires before any of them and does not perturb their
+behaviour for well-formed inodes.
+
+Link: https://lore.kernel.org/20260517111015.3187935-1-michael.bommarito@gmail.com
+Link: https://lore.kernel.org/20260517111015.3187935-2-michael.bommarito@gmail.com
+Fixes: b657c95c1108 ("ocfs2: Wrap inode block reads in a dedicated function.")
+Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
+Assisted-by: Claude:claude-opus-4-7
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Heming Zhao <heming.zhao@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: <stable@vger.kernel.org>b
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ fs/ocfs2/inode.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations
-+++ a/mm/page_alloc.c
-@@ -4853,8 +4853,18 @@ retry:
+--- a/fs/ocfs2/inode.c~ocfs2-reject-dinodes-with-non-canonical-i_mode-type-or-stray-bits
++++ a/fs/ocfs2/inode.c
+@@ -1494,6 +1494,45 @@ int ocfs2_validate_inode_block(struct su
+ 		goto bail;
  	}
  
- 	/* Caller is not willing to reclaim, we can't balance anything */
--	if (!can_direct_reclaim)
-+	if (!can_direct_reclaim) {
-+		/*
-+		 * Reclaim/compaction cannot run, so defrag_mode's strategy
-+		 * of enforcing ALLOC_NOFRAGMENT cannot be fulfilled. Allow
-+		 * fallbacks rather than failing the allocation outright.
-+		 */
-+		if (defrag_mode && (alloc_flags & ALLOC_NOFRAGMENT)) {
-+			alloc_flags &= ~ALLOC_NOFRAGMENT;
-+			goto retry;
++	/*
++	 * Reject dinodes whose i_mode does not name one of the seven
++	 * canonical POSIX file types, or whose mode carries bits outside
++	 * S_IFMT | 07777.  ocfs2_populate_inode() copies i_mode verbatim
++	 * into inode->i_mode and then dispatches via switch (mode & S_IFMT)
++	 * to file/dir/symlink/special_file iops; an unrecognised type
++	 * falls into ocfs2_special_file_iops with init_special_inode(),
++	 * which interprets i_rdev.  Constrain the type byte here so the
++	 * dispatch only ever sees a value mkfs.ocfs2 / VFS can produce.
++	 */
++	{
++		u16 mode = le16_to_cpu(di->i_mode);
++
++		if (mode & ~(S_IFMT | 07777)) {
++			rc = ocfs2_error(sb,
++					 "Invalid dinode #%llu: mode 0%o has bits outside S_IFMT|07777\n",
++					 (unsigned long long)bh->b_blocknr,
++					 mode);
++			goto bail;
 +		}
- 		goto nopage;
++
++		switch (mode & S_IFMT) {
++		case S_IFREG:
++		case S_IFDIR:
++		case S_IFLNK:
++		case S_IFCHR:
++		case S_IFBLK:
++		case S_IFIFO:
++		case S_IFSOCK:
++			break;
++		default:
++			rc = ocfs2_error(sb,
++					 "Invalid dinode #%llu: mode 0%o has unknown file type\n",
++					 (unsigned long long)bh->b_blocknr,
++					 mode);
++			goto bail;
++		}
 +	}
++
+ 	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL) {
+ 		struct ocfs2_inline_data *data = &di->id2.i_data;
  
- 	/* Avoid recursion of direct reclaim */
- 	if (current->flags & PF_MEMALLOC)
 _
 
-Patches currently in -mm which might be from d@ilvokhin.com are
+Patches currently in -mm which might be from michael.bommarito@gmail.com are
 
-mm-use-zone-lock-guard-in-reserve_highatomic_pageblock.patch
-mm-use-zone-lock-guard-in-unset_migratetype_isolate.patch
-mm-use-zone-lock-guard-in-unreserve_highatomic_pageblock.patch
-mm-use-zone-lock-guard-in-set_migratetype_isolate.patch
-mm-use-zone-lock-guard-in-take_page_off_buddy.patch
-mm-use-zone-lock-guard-in-put_page_back_buddy.patch
-mm-use-zone-lock-guard-in-free_pcppages_bulk.patch
-mm-use-zone-lock-guard-in-__offline_isolated_pages.patch
-mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations.patch
+ocfs2-reject-dinodes-whose-i_rdev-disagrees-with-the-file-type.patch
+ocfs2-reject-regular-files-with-non-zero-i_size-and-zero-i_clusters.patch
 
