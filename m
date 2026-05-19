@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8C5227AC48
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4BC8282F25
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152139; cv=none; b=LxwUPECT4ueyFGNmfF4iq+VHG4UJkyzanMtzjZTX7lmMc2tSUrIWH5DPda7nId1siuldpuftOTC/pwpsNkAn+gYE8qw+ikn/xvDwV9smzOF5LH3mW6doO9CQfFjMTCC0okR1KXy24qzBZ2BWSVVMUPVHPsyRurAn3FltMUoJFEs=
+	t=1779152141; cv=none; b=MDH+t3x00A78Tmecrl7ItX3AhitrMlYRIyergWwdvzFBnlN/rmjmlS8z+zE0sl+owW0GS8t/y0xsTrbvB1e1ELNIKTld5Ha5yMRgd9EjzquEIIsxnp1I7RIBCfQGdS6Ukad1Ke+5WxZ1Q6Nm1/sctB+B2yoZhcguuCSW2PyAX0o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152139; c=relaxed/simple;
-	bh=uR2zmjKM68vPYIMhyVNxQAU7BBuh9iD+sYsR/PbY07Q=;
-	h=Date:To:From:Subject:Message-Id; b=sGymmc5uK+yEw74N/sbIYxopMyaZk2947pTAPYx3lNIUdP7UFNFU0pusw3OXxTIUJuBqu340Jrp2L7sdrEVGTBtNLdBHmNR+20ewkbDJLDqKNYtDe5bBaw+geB4WvVFqVpuJl1WaU27rtNZXRVe9wsyTQbwne1zff/yg3Rpr1ZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WXweImHw; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152141; c=relaxed/simple;
+	bh=4bs5+1t9v+H3gWsrxxZepiM434Sy+/gWt9kpgdbRkYg=;
+	h=Date:To:From:Subject:Message-Id; b=YP0qp2H8lfWY3iRiE6l4zMuEPQJH5kO0qxpgXEaFuUjllheL6/CZrd9+Hh0CMHeD4R5gNaUhzBAuya95Wgr0zqmkRZkeWlxFReRCtbSjP3ahpoKBdf8ZsawBDJV8C8hA1eE7KZcZC/4pqDj5Ib5RMuvucAxet5h4FITy1qjTx/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=mbqNG7W8; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WXweImHw"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48279C2BCB7;
-	Tue, 19 May 2026 00:55:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="mbqNG7W8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7BA16C2BCB7;
+	Tue, 19 May 2026 00:55:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152139;
-	bh=uR2zmjKM68vPYIMhyVNxQAU7BBuh9iD+sYsR/PbY07Q=;
+	s=korg; t=1779152141;
+	bh=4bs5+1t9v+H3gWsrxxZepiM434Sy+/gWt9kpgdbRkYg=;
 	h=Date:To:From:Subject:From;
-	b=WXweImHwykUm3o9acqAYv6zXgFk+p3q6NvfSJS6cL0oy9CEo0hECYufHnXU90z0A0
-	 aONBZm6S6ofnHznSvXuYygpXeD2FtKOYjAoeqdeFz/4cAOtmPXnS0MthJ86/jbPIGZ
-	 minAmz/FuFgOxHvYkn8C9gwiSd6vhFnGD2zc1CGo=
-Date: Mon, 18 May 2026 17:55:38 -0700
+	b=mbqNG7W82YX/dovuwKwBEtJrM9NG/sv3ZWlYtfkBG7RAj7h8OMEa3UsRTHnl+Dx3T
+	 vrAOIrtX8yBGfnMqL09b+JtknfnXTnhH+PSWVmwnr3y5Qd6lOSDRWWm2wwbKTtQ0LN
+	 F4khUZsWE42PTZ8mXyGrqi1mjbVbZe1/1kEE53Uo=
+Date: Mon, 18 May 2026 17:55:40 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch added to mm-new branch
-Message-Id: <20260519005539.48279C2BCB7@smtp.kernel.org>
+Subject: + mm-damon-sysfs-schemes-implement-probe-dir.patch added to mm-new branch
+Message-Id: <20260519005541.7BA16C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: implement tried_regions/<r>/probes/
+     Subject: mm/damon/sysfs-schemes: implement probe dir
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
+     mm-damon-sysfs-schemes-implement-probe-dir.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-implement-probe-dir.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,12 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: implement tried_regions/<r>/probes/
-Date: Mon, 18 May 2026 16:41:03 -0700
+Subject: mm/damon/sysfs-schemes: implement probe dir
+Date: Mon, 18 May 2026 16:41:04 -0700
 
-Implement a sysfs directory for showing the per-region probe hit counts. 
-It is named 'probes/' and located under the DAMOS tried region directory.
+Implement sysfs directory for showing per-probe hits count of each region.
 
-Link: https://lore.kernel.org/20260518234119.97569-16-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-17-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -93,119 +92,160 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   67 ++++++++++++++++++++++++++++++++++---
- 1 file changed, 63 insertions(+), 4 deletions(-)
+ mm/damon/sysfs-schemes.c |  101 ++++++++++++++++++++++++++++++++++---
+ 1 file changed, 95 insertions(+), 6 deletions(-)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-tried_regions-r-probes
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-probe-dir
 +++ a/mm/damon/sysfs-schemes.c
-@@ -11,6 +11,32 @@
+@@ -11,11 +11,39 @@
  #include "sysfs-common.h"
  
  /*
-+ * probes directory
++ * probe directory
 + */
 +
-+struct damos_sysfs_probes {
++struct damos_sysfs_probe {
 +	struct kobject kobj;
 +};
 +
-+static struct damos_sysfs_probes *damos_sysfs_probes_alloc(void)
++static struct damos_sysfs_probe *damos_sysfs_probe_alloc(void)
 +{
-+	return kzalloc_obj(struct damos_sysfs_probes);
++	return kzalloc_obj(struct damos_sysfs_probe);
 +}
 +
-+static void damos_sysfs_probes_release(struct kobject *kobj)
++static void damos_sysfs_probe_release(struct kobject *kobj)
 +{
-+	struct damos_sysfs_probes *probes = container_of(kobj,
-+			struct damos_sysfs_probes, kobj);
++	struct damos_sysfs_probe *probe = container_of(kobj,
++			struct damos_sysfs_probe, kobj);
 +
-+	kfree(probes);
++	kfree(probe);
 +}
 +
-+static const struct kobj_type damos_sysfs_probes_ktype = {
-+	.release = damos_sysfs_probes_release,
++static const struct kobj_type damos_sysfs_probe_ktype = {
++	.release = damos_sysfs_probe_release,
 +	.sysfs_ops = &kobj_sysfs_ops,
 +};
 +
 +/*
-  * scheme region directory
+  * probes directory
   */
  
-@@ -20,6 +46,7 @@ struct damon_sysfs_scheme_region {
- 	unsigned int nr_accesses;
- 	unsigned int age;
- 	unsigned long sz_filter_passed;
-+	struct damos_sysfs_probes *probes;
- 	struct list_head list;
+ struct damos_sysfs_probes {
+ 	struct kobject kobj;
++	struct damos_sysfs_probe **probes_arr;
++	int nr;
  };
  
-@@ -34,10 +61,36 @@ static struct damon_sysfs_scheme_region
- 	sysfs_region->ar = region->ar;
- 	sysfs_region->nr_accesses = region->nr_accesses_bp / 10000;
- 	sysfs_region->age = region->age;
-+	sysfs_region->probes = NULL;
- 	INIT_LIST_HEAD(&sysfs_region->list);
- 	return sysfs_region;
+ static struct damos_sysfs_probes *damos_sysfs_probes_alloc(void)
+@@ -23,6 +51,60 @@ static struct damos_sysfs_probes *damos_
+ 	return kzalloc_obj(struct damos_sysfs_probes);
  }
  
-+static int damos_sysfs_region_add_dirs(
-+		struct damon_sysfs_scheme_region *region)
++static void damos_sysfs_probes_rm_dirs(struct damos_sysfs_probes *probes)
 +{
-+	struct damos_sysfs_probes *probes = damos_sysfs_probes_alloc();
-+	int err;
++	struct damos_sysfs_probe **probes_arr = probes->probes_arr;
++	int i;
 +
-+	if (!probes)
++	for (i = 0; i < probes->nr; i++)
++		kobject_put(&probes_arr[i]->kobj);
++	probes->nr = 0;
++	kfree(probes_arr);
++	probes->probes_arr = NULL;
++}
++
++static int damos_sysfs_probes_add_dirs(struct damos_sysfs_probes *probes,
++		struct damon_ctx *ctx)
++{
++	struct damon_probe *probe;
++	struct damos_sysfs_probe **probes_arr;
++	int i = 0;
++
++	damon_for_each_probe(probe, ctx)
++		i++;
++
++	if (!i)
++		return 0;
++
++	probes_arr = kmalloc_objs(*probes_arr, i);
++	if (!probes_arr)
 +		return -ENOMEM;
-+	err = kobject_init_and_add(&probes->kobj, &damos_sysfs_probes_ktype,
-+			&region->kobj, "probes");
-+	if (err) {
-+		kobject_put(&probes->kobj);
-+		return err;
-+	}
++	probes->probes_arr = probes_arr;
 +
-+	region->probes = probes;
++	i = 0;
++	damon_for_each_probe(probe, ctx) {
++		struct damos_sysfs_probe *sys_probe;
++		int err;
++
++		sys_probe = damos_sysfs_probe_alloc();
++		if (!sys_probe) {
++			damos_sysfs_probes_rm_dirs(probes);
++			return -ENOMEM;
++		}
++		err = kobject_init_and_add(&sys_probe->kobj,
++				&damos_sysfs_probe_ktype, &probes->kobj, "%d",
++				i);
++		if (err) {
++			kobject_put(&sys_probe->kobj);
++			damos_sysfs_probes_rm_dirs(probes);
++			return err;
++		}
++		probes_arr[i++] = sys_probe;
++		probes->nr++;
++	}
 +	return 0;
 +}
 +
-+static void damos_sysfs_region_rm_dirs(
-+		struct damon_sysfs_scheme_region *region)
-+{
-+	kobject_put(&region->probes->kobj);
-+}
-+
- static ssize_t start_show(struct kobject *kobj, struct kobj_attribute *attr,
- 		char *buf)
+ static void damos_sysfs_probes_release(struct kobject *kobj)
  {
-@@ -163,6 +216,7 @@ static void damon_sysfs_scheme_regions_r
- 	struct damon_sysfs_scheme_region *r, *next;
- 
- 	list_for_each_entry_safe(r, next, &regions->regions_list, list) {
-+		damos_sysfs_region_rm_dirs(r);
- 		list_del(&r->list);
- 		kobject_put(&r->kobj);
- 		regions->nr_regions--;
-@@ -2998,12 +3052,17 @@ void damos_sysfs_populate_region_dir(str
- 	if (kobject_init_and_add(&region->kobj,
- 				&damon_sysfs_scheme_region_ktype,
- 				&sysfs_regions->kobj, "%d",
--				sysfs_regions->nr_regions)) {
--		kobject_put(&region->kobj);
--		return;
--	}
-+				sysfs_regions->nr_regions))
-+		goto out;
-+	if (damos_sysfs_region_add_dirs(region))
-+		goto out;
-+
- 	list_add_tail(&region->list, &sysfs_regions->regions_list);
- 	sysfs_regions->nr_regions++;
-+	return;
-+
-+out:
-+	kobject_put(&region->kobj);
+ 	struct damos_sysfs_probes *probes = container_of(kobj,
+@@ -67,7 +149,8 @@ static struct damon_sysfs_scheme_region
  }
  
- int damon_sysfs_schemes_clear_regions(
+ static int damos_sysfs_region_add_dirs(
+-		struct damon_sysfs_scheme_region *region)
++		struct damon_sysfs_scheme_region *region,
++		struct damon_ctx *ctx)
+ {
+ 	struct damos_sysfs_probes *probes = damos_sysfs_probes_alloc();
+ 	int err;
+@@ -76,18 +159,24 @@ static int damos_sysfs_region_add_dirs(
+ 		return -ENOMEM;
+ 	err = kobject_init_and_add(&probes->kobj, &damos_sysfs_probes_ktype,
+ 			&region->kobj, "probes");
+-	if (err) {
+-		kobject_put(&probes->kobj);
+-		return err;
+-	}
++	if (err)
++		goto fail;
++	err = damos_sysfs_probes_add_dirs(probes, ctx);
++	if (err)
++		goto fail;
+ 
+ 	region->probes = probes;
+ 	return 0;
++
++fail:
++	kobject_put(&probes->kobj);
++	return err;
+ }
+ 
+ static void damos_sysfs_region_rm_dirs(
+ 		struct damon_sysfs_scheme_region *region)
+ {
++	damos_sysfs_probes_rm_dirs(region->probes);
+ 	kobject_put(&region->probes->kobj);
+ }
+ 
+@@ -3054,7 +3143,7 @@ void damos_sysfs_populate_region_dir(str
+ 				&sysfs_regions->kobj, "%d",
+ 				sysfs_regions->nr_regions))
+ 		goto out;
+-	if (damos_sysfs_region_add_dirs(region))
++	if (damos_sysfs_region_add_dirs(region, ctx))
+ 		goto out;
+ 
+ 	list_add_tail(&region->list, &sysfs_regions->regions_list);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
