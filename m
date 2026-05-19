@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C244B27EFE9
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F4A1282F09
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152152; cv=none; b=K1evZ6+ZYZ4xzp+WdwdRAs7TqzJY9cBzqjQ6uVILFKAYetvT8HKwxoXpV12n2Uk80ahJ3p9I+KHnbAYKQMpnZq9gszEugb+rLSVCpJfA/nBerbIUYhO6Ro+oXfRM2IMbvZ7ZscrUp5tdIopLhdrVBCuWutcGLEea9iraFH4Io1Q=
+	t=1779152155; cv=none; b=OvgMU8XHWXVDkMKqZStvEAV5j59CJSd4gl1gjxyaElr/187LptmjGMTh99XTLqb9vZIjpiUQnpi1faZQMDpgk8+wFFiip2gW1M1+0J56YMc6aK23S14oUjU5p98rzXEzD7ISpSrunJqXlBgVRGF3vbR0yiaDwcXUOxXMj9e8/Oo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152152; c=relaxed/simple;
-	bh=DJtLAk8kxSFjmu1XxW2hlhLWpvVBhwMAhXy6QSJ8XNw=;
-	h=Date:To:From:Subject:Message-Id; b=fp3DMuTMzjVb62GWiMnr1oFWRglrtP0mT8SAlgF8kpODUqyohqcSSp076qKFYSTQG8hCZahv1eeumNyh+rnhBjjHwQKWFKj1Nj2pC8PvjSXMSwgMekmvj7PZDB3QXI3Ms87LeO82slxY94ghqyxTRUueHtGi7JAsjfoks3XH6Bs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=tewBMppm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152155; c=relaxed/simple;
+	bh=3AnS8Miv/OYtuNVLpKSvKdbfy2ePzqHiKXv+UTxVZJ4=;
+	h=Date:To:From:Subject:Message-Id; b=DsXvYnmPrQFDjgLdAgvUpqGojH6VJfcqiQXytxdnO0UmyW9IgVcoibvsqIzSgGq1sBI4XfQIJ+ahHdj7+Y9EBcGoE0+G/J7vGiuNH0/jkdpNyxKJuv9BOW2emuDtRuf7C97vZ3or94AjjtfjRqlW/TuBLKS7yFcFsBMyu+6ZmO0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QweXMEjd; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="tewBMppm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B240C2BCB7;
-	Tue, 19 May 2026 00:55:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QweXMEjd"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AD33C2BCB7;
+	Tue, 19 May 2026 00:55:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152152;
-	bh=DJtLAk8kxSFjmu1XxW2hlhLWpvVBhwMAhXy6QSJ8XNw=;
+	s=korg; t=1779152155;
+	bh=3AnS8Miv/OYtuNVLpKSvKdbfy2ePzqHiKXv+UTxVZJ4=;
 	h=Date:To:From:Subject:From;
-	b=tewBMppme82DKQpEmW3hzS72lw45yvHTugMw1+e/e/+r2+OlZphGNcvbHawCkirlF
-	 n7PU/2tS5TSCYQI3kocAQ31vaPGXuHjkB6RLJbG4Q44n4dqYUkctCSHpcrzE0Ecr4D
-	 WKMYmd/cJfTg8Mmv/9N0xeKL4Z1B5DckaMg8dvPA=
-Date: Mon, 18 May 2026 17:55:52 -0700
+	b=QweXMEjdPjH71fWCt4KPQJhpTwhcVUIJjEJlK8A/AWlyIzL/I6Pvux0hKHDqAwUn3
+	 a3/XcwzRw+7Zkw1rTBLBjskx1OOeqKwVvXznXv7DpP8oeoN8lVHJohkDXUABBfvhBZ
+	 BAa+X2gApJYzbiYsrxKro8j9pka+iW4ErgUNZPAQ=
+Date: Mon, 18 May 2026 17:55:54 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch added to mm-new branch
-Message-Id: <20260519005552.9B240C2BCB7@smtp.kernel.org>
+Subject: + mm-damon-core-introduce-damon_filter_type_memcg.patch added to mm-new branch
+Message-Id: <20260519005555.2AD33C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/usage: document data attributes monitoring
+     Subject: mm/damon/core: introduce DAMON_FILTER_TYPE_MEMCG
 has been added to the -mm mm-new branch.  Its filename is
-     docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
+     mm-damon-core-introduce-damon_filter_type_memcg.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-introduce-damon_filter_type_memcg.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/usage: document data attributes monitoring
-Date: Mon, 18 May 2026 16:41:09 -0700
+Subject: mm/damon/core: introduce DAMON_FILTER_TYPE_MEMCG
+Date: Mon, 18 May 2026 16:41:10 -0700
 
-Update DAMON usage document for the newly added data attributes monitoring
-feature.
+Belonging memory cgoup is another data attribute that can be useful to
+monitor.  Introduce a new DAMON filter type, namely
+DAMON_FILTER_TYPE_MEMCG, for monitoring of this attribute.
 
-Link: https://lore.kernel.org/20260518234119.97569-22-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-23-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -93,105 +94,71 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/usage.rst |   44 +++++++++++++++--
- Documentation/mm/damon/design.rst            |    2 
- 2 files changed, 43 insertions(+), 3 deletions(-)
+ include/linux/damon.h |    6 ++++++
+ mm/damon/core.c       |   14 ++++++++++++++
+ 2 files changed, 20 insertions(+)
 
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -72,6 +72,11 @@ comma (",").
-     │ │ │ │ │ │ intervals/sample_us,aggr_us,update_us
-     │ │ │ │ │ │ │ intervals_goal/access_bp,aggrs,min_sample_us,max_sample_us
-     │ │ │ │ │ │ nr_regions/min,max
-+    │ │ │ │ │ │ :ref:`probes <damon_usage_sysfs_probes>`/nr_probes
-+    │ │ │ │ │ │ │ 0/filters/nr_filters
-+    │ │ │ │ │ │ │ │ 0/type,matching,allow
-+    │ │ │ │ │ │ │ │ ...
-+    │ │ │ │ │ │ │ ...
-     │ │ │ │ │ :ref:`targets <sysfs_targets>`/nr_targets
-     │ │ │ │ │ │ :ref:`0 <sysfs_target>`/pid_target,obsolete_target
-     │ │ │ │ │ │ │ :ref:`regions <sysfs_regions>`/nr_regions
-@@ -98,6 +103,9 @@ comma (",").
-     │ │ │ │ │ │ │ :ref:`stats <sysfs_schemes_stats>`/nr_tried,sz_tried,nr_applied,sz_applied,sz_ops_filter_passed,qt_exceeds,nr_snapshots,max_nr_snapshots
-     │ │ │ │ │ │ │ :ref:`tried_regions <sysfs_schemes_tried_regions>`/total_bytes
-     │ │ │ │ │ │ │ │ 0/start,end,nr_accesses,age,sz_filter_passed
-+    │ │ │ │ │ │ │ │ │ probes
-+    │ │ │ │ │ │ │ │ │ │ 0/hits
-+    │ │ │ │ │ │ │ │ │ │ ...
-     │ │ │ │ │ │ │ │ ...
-     │ │ │ │ │ │ ...
-     │ │ │ │ ...
-@@ -227,8 +235,8 @@ contexts/<N>/monitoring_attrs/
+--- a/include/linux/damon.h~mm-damon-core-introduce-damon_filter_type_memcg
++++ a/include/linux/damon.h
+@@ -742,9 +742,11 @@ struct damon_intervals_goal {
+  * enum damon_filter_type - Type of &struct damon_filter
+  *
+  * @DAMON_FILTER_TYPE_ANON:	Anonymous pages.
++ * @DAMON_FILTER_TYPE_MEMCG:	Specific memcg's pages.
+  */
+ enum damon_filter_type {
+ 	DAMON_FILTER_TYPE_ANON,
++	DAMON_FILTER_TYPE_MEMCG,
+ };
  
- Files for specifying attributes of the monitoring including required quality
- and efficiency of the monitoring are in ``monitoring_attrs`` directory.
--Specifically, two directories, ``intervals`` and ``nr_regions`` exist in this
--directory.
-+Specifically, three directories, ``intervals``, ``nr_regions`` and ``probes``
-+exist in this directory.
+ /**
+@@ -753,12 +755,16 @@ enum damon_filter_type {
+  * @type:	Type of the region.
+  * @matching:	Whether this filter is for the type-matching ones.
+  * @allow:	Whether the @type-@matching ones should pass this filter.
++ * @memcg_id:	Memcg id of the question if @type is DAMON_FILTER_MEMCG.
+  * @list:	Siblings list.
+  */
+ struct damon_filter {
+ 	enum damon_filter_type type;
+ 	bool matching;
+ 	bool allow;
++	union {
++		u64 memcg_id;
++	};
+ 	struct list_head list;
+ };
  
- Under ``intervals`` directory, three files for DAMON's sampling interval
- (``sample_us``), aggregation interval (``aggr_us``), and update interval
-@@ -262,6 +270,27 @@ tuning-applied current values of the two
- ``sample_us`` and ``aggr_us`` files after writing ``update_tuned_intervals`` to
- the ``state`` file.
+--- a/mm/damon/core.c~mm-damon-core-introduce-damon_filter_type_memcg
++++ a/mm/damon/core.c
+@@ -1430,6 +1430,13 @@ static void damon_commit_filter(struct d
+ 	dst->type = src->type;
+ 	dst->matching = src->matching;
+ 	dst->allow = src->allow;
++	switch (dst->type) {
++	case DAMON_FILTER_TYPE_MEMCG:
++		dst->memcg_id = src->memcg_id;
++		break;
++	default:
++		break;
++	}
+ }
  
-+.. _damon_usage_sysfs_probes:
-+
-+contexts/<N>/monitoring_attrs/probes/
-+-------------------------------------
-+
-+A directory for registering :ref:`data attributes monitoring
-+<damon_design_data_attrs_monitoring>` probes.
-+
-+In the beginning, this directory has only one file, ``nr_probes``.  Writing a
-+number (``N``) to the file creates the number of child directories named ``0``
-+to ``N-1``.  Each directory represents each monitoring probe.
-+
-+In each probe directory, one directory, ``filters`` exists.  The directory
-+contains files for installing filters for the probe, that is used to determine
-+the data attribute for the probe.
-+
-+In the beginning, ``filters`` directory has only one file, ``nr_filters``.
-+Writing a number (``N``) to the file creates the number of child directories
-+named ``0`` to ``N-1``.  Each directory represents each filter and works in a
-+way similar to that for :ref:`DAMOS filter <sysfs_filters>`.
-+
- .. _sysfs_targets:
- 
- contexts/<N>/targets/
-@@ -615,10 +644,19 @@ tried_regions/<N>/
- ------------------
- 
- In each region directory, you will find five files (``start``, ``end``,
--``nr_accesses``, ``age``, and ``sz_filter_passed``).  Reading the files will
-+``nr_accesses``, ``age`` and ``sz_filter_passed``).  Reading the files will
- show the properties of the region that corresponding DAMON-based operation
- scheme ``action`` has tried to be applied.
- 
-+tried_regions/<N>/probes/
-+-------------------------
-+
-+In each region directory, one directory (``probes``) also exists.  In the
-+directory, subdirectories named ``0`` to ``N-1`` exists.  ``N`` is the number
-+of installed probes.  In each number-named directory, a file (``hits``) exist.
-+Reading the file shows the number of data attributes monitoring probe-hit
-+positive samples of the region.
-+
- Example
- ~~~~~~~
- 
---- a/Documentation/mm/damon/design.rst~docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring
-+++ a/Documentation/mm/damon/design.rst
-@@ -276,6 +276,8 @@ interval``, DAMON checks if the region's
- (``nr_accesses``) has significantly changed.  If so, the counter is reset to
- zero.  Otherwise, the counter is increased.
- 
-+.. _damon_design_data_attrs_monitoring:
-+
- Data Attributes Monitoring
- ~~~~~~~~~~~~~~~~~~~~~~~~~~
- 
+ static int damon_commit_filters(struct damon_probe *dst,
+@@ -1454,6 +1461,13 @@ static int damon_commit_filters(struct d
+ 				src_filter->matching, src_filter->allow);
+ 		if (!new_filter)
+ 			return -ENOMEM;
++		switch (src_filter->type) {
++		case DAMON_FILTER_TYPE_MEMCG:
++			new_filter->memcg_id = src_filter->memcg_id;
++			break;
++		default:
++			break;
++		}
+ 		damon_add_filter(dst, new_filter);
+ 	}
+ 	return 0;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
