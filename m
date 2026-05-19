@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 257B822B8AB
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12AE1278156
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152144; cv=none; b=oyKXR82q9cEQHFrsTeWE+bUcHiOXFU6hoLnFl++Ki5+Q4lFr9fezbNwOgUHMrDf4xNjA2ekJDCRobcPZ5bvIsYCuTu0cRHj9074xrlVSGNducJWSDkptgBEI03lcQYnag5RxwHGgbBVAkuZTr0Iyp1O+2uE/7D5+JqZ53LybEZg=
+	t=1779152146; cv=none; b=Zxin4+1EyfcSUJ14fw7gda5WutAykeFNB5lmtk0R18KwPB17sTejZmXg0UUoVyo50ZiRLzX5qrnaADdKCdYAT2eKRGJ9SQq8nwokMrH5mMOFYxSZ1659+EdhyMsvT9gi8Y+ao3rYnNvGK8XoPy4wBDWfSFohA4PvXvQFVE8lFaU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152144; c=relaxed/simple;
-	bh=AuqvLftD1ROahxLdyOjkFwxlYA+GxY1D34kx2moovE0=;
-	h=Date:To:From:Subject:Message-Id; b=iDEOMcou8q+fF4BBv19D/FVh4kcMuYkl4e7U2bSID8Oh8ssxP87YuJVEerBnYFbVzz/2CSW1NBi7fK1sJTjuiMuQShC4Swbf+6z6jVHzAhOftDhyguBePG3P+kRuMc6m6SWx9dHxULdmDTZTQ9B3R1yfUIIQDk+7UStyBJVox7c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vrowcJCn; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152146; c=relaxed/simple;
+	bh=Hdmf8AmrGs7XAp7oicpcNlTCBt1Onwe5iKDuBB4K1iM=;
+	h=Date:To:From:Subject:Message-Id; b=Lf7Wqe+Q5d9ebrTKup2Ug4YUL/MIbCCGsindeJd27/aFJ2bIO9RJkGKIi3X5Yqk/yKLGSVf+m1Hce/W6eNkqseVT4MBCTtPn7s1iKyJV3bEzrjacLNb4n81m3jAQ34uIepI3I5dGG3NhcrOn7df+Y5DAqiiZrdG37glb/HQSVA8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bBe8SV0o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vrowcJCn"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC5DEC2BCB7;
-	Tue, 19 May 2026 00:55:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bBe8SV0o"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEB8EC2BCB7;
+	Tue, 19 May 2026 00:55:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152143;
-	bh=AuqvLftD1ROahxLdyOjkFwxlYA+GxY1D34kx2moovE0=;
+	s=korg; t=1779152146;
+	bh=Hdmf8AmrGs7XAp7oicpcNlTCBt1Onwe5iKDuBB4K1iM=;
 	h=Date:To:From:Subject:From;
-	b=vrowcJCnTjZs53JmHOoY1K0khzIGFP0d7qw00x97qvzdYGwIO6OyOuefYndXEKl+v
-	 bf++3hbujAidSAD8JFEfUNi4feukMIumDeIF1M894bm2TbbgEj+5zvragwIJxgMrXv
-	 10G5Ct/boDIJ4ERS8i4h5WZ5Bd8dXc7eVxHG0Sqg=
-Date: Mon, 18 May 2026 17:55:43 -0700
+	b=bBe8SV0ofN32ArG5pfkw1AxsACqzUWedL83d6d7kr67gp/muUY1CqKO2jIL1wLdgn
+	 KAH6WWDyM/D2DlX+7HtBcWSFSz1UHbCAQPue8F0yQHfRU1sB683yuxM2zYSOK489Vg
+	 iETmxKfvpsk8kCLms8wJkyj741rTEAZrqtA1wG24=
+Date: Mon, 18 May 2026 17:55:45 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-sysfs-schemes-implement-probe-hits-file.patch added to mm-new branch
-Message-Id: <20260519005543.BC5DEC2BCB7@smtp.kernel.org>
+Subject: + mm-damon-trace-probe_hits.patch added to mm-new branch
+Message-Id: <20260519005545.DEB8EC2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/sysfs-schemes: implement probe/hits file
+     Subject: mm/damon: trace probe_hits
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-sysfs-schemes-implement-probe-hits-file.patch
+     mm-damon-trace-probe_hits.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-sysfs-schemes-implement-probe-hits-file.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-trace-probe_hits.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,12 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/sysfs-schemes: implement probe/hits file
-Date: Mon, 18 May 2026 16:41:05 -0700
+Subject: mm/damon: trace probe_hits
+Date: Mon, 18 May 2026 16:41:06 -0700
 
-Implement sysfs file for showing the per-region per-probe hits count.
+Introduce a new tracepoint for exposing the per-region per-probe positive
+sample count via tracefs.
 
-Link: https://lore.kernel.org/20260518234119.97569-18-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-19-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -92,107 +93,82 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/sysfs-schemes.c |   41 ++++++++++++++++++++++++++++++-------
- 1 file changed, 34 insertions(+), 7 deletions(-)
+ include/trace/events/damon.h |   38 +++++++++++++++++++++++++++++++++
+ mm/damon/core.c              |    9 +++++++
+ 2 files changed, 47 insertions(+)
 
---- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-implement-probe-hits-file
-+++ a/mm/damon/sysfs-schemes.c
-@@ -16,11 +16,27 @@
+--- a/include/trace/events/damon.h~mm-damon-trace-probe_hits
++++ a/include/trace/events/damon.h
+@@ -130,6 +130,44 @@ TRACE_EVENT(damon_monitor_intervals_tune
+ 	TP_printk("sample_us=%lu", __entry->sample_us)
+ );
  
- struct damos_sysfs_probe {
- 	struct kobject kobj;
-+	unsigned char hits;
- };
++TRACE_EVENT_CONDITION(damon_region_aggregated,
++
++	TP_PROTO(unsigned int target_id, struct damon_region *r,
++		unsigned int nr_regions, unsigned int nr_probes),
++
++	TP_ARGS(target_id, r, nr_regions, nr_probes),
++
++	TP_CONDITION(nr_probes > 0),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, target_id)
++		__field(unsigned long, start)
++		__field(unsigned long, end)
++		__field(unsigned int, nr_regions)
++		__field(unsigned int, nr_accesses)
++		__field(unsigned int, age)
++		__dynamic_array(unsigned char, probe_hits, nr_probes)
++	),
++
++	TP_fast_assign(
++		__entry->target_id = target_id;
++		__entry->start = r->ar.start;
++		__entry->end = r->ar.end;
++		__entry->nr_regions = nr_regions;
++		__entry->nr_accesses = r->nr_accesses;
++		__entry->age = r->age;
++		memcpy(__get_dynamic_array(probe_hits), r->probe_hits,
++			sizeof(*r->probe_hits) * nr_probes);
++	),
++
++	TP_printk("target_id=%lu nr_regions=%u %lu-%lu: %u %u probe_hits=%s",
++			__entry->target_id, __entry->nr_regions,
++			__entry->start, __entry->end,
++			__entry->nr_accesses, __entry->age,
++			__print_hex(__get_dynamic_array(probe_hits),
++				__get_dynamic_array_len(probe_hits)))
++);
++
+ TRACE_EVENT(damon_aggregated,
  
--static struct damos_sysfs_probe *damos_sysfs_probe_alloc(void)
-+static struct damos_sysfs_probe *damos_sysfs_probe_alloc(unsigned char hits)
+ 	TP_PROTO(unsigned int target_id, struct damon_region *r,
+--- a/mm/damon/core.c~mm-damon-trace-probe_hits
++++ a/mm/damon/core.c
+@@ -1905,6 +1905,13 @@ static void kdamond_reset_aggregated(str
  {
--	return kzalloc_obj(struct damos_sysfs_probe);
-+	struct damos_sysfs_probe *probe;
+ 	struct damon_target *t;
+ 	unsigned int ti = 0;	/* target's index */
++	unsigned int nr_probes = 0;
++	struct damon_probe *probe;
 +
-+	probe = kzalloc_obj(*probe);
-+	if (!probe)
-+		return NULL;
-+	probe->hits = hits;
-+	return probe;
-+}
-+
-+static ssize_t hits_show(struct kobject *kobj, struct kobj_attribute *attr,
-+		char *buf)
-+{
-+	struct damos_sysfs_probe *probe = container_of(kobj,
-+			struct damos_sysfs_probe, kobj);
-+
-+	return sysfs_emit(buf, "%hhu\n", probe->hits);
- }
++	if (trace_damon_region_aggregated_enabled()) {
++		damon_for_each_probe(probe, c)
++			nr_probes++;
++	}
  
- static void damos_sysfs_probe_release(struct kobject *kobj)
-@@ -31,9 +47,19 @@ static void damos_sysfs_probe_release(st
- 	kfree(probe);
- }
+ 	damon_for_each_target(t, c) {
+ 		struct damon_region *r;
+@@ -1913,6 +1920,8 @@ static void kdamond_reset_aggregated(str
+ 			int i;
  
-+static struct kobj_attribute damos_sysfs_probe_hits_attr =
-+		__ATTR_RO_MODE(hits, 0400);
-+
-+static struct attribute *damos_sysfs_probe_attrs[] = {
-+	&damos_sysfs_probe_hits_attr.attr,
-+	NULL,
-+};
-+ATTRIBUTE_GROUPS(damos_sysfs_probe);
-+
- static const struct kobj_type damos_sysfs_probe_ktype = {
- 	.release = damos_sysfs_probe_release,
- 	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_groups = damos_sysfs_probe_groups,
- };
- 
- /*
-@@ -64,7 +90,7 @@ static void damos_sysfs_probes_rm_dirs(s
- }
- 
- static int damos_sysfs_probes_add_dirs(struct damos_sysfs_probes *probes,
--		struct damon_ctx *ctx)
-+		struct damon_ctx *ctx, struct damon_region *region)
- {
- 	struct damon_probe *probe;
- 	struct damos_sysfs_probe **probes_arr;
-@@ -86,7 +112,7 @@ static int damos_sysfs_probes_add_dirs(s
- 		struct damos_sysfs_probe *sys_probe;
- 		int err;
- 
--		sys_probe = damos_sysfs_probe_alloc();
-+		sys_probe = damos_sysfs_probe_alloc(region->probe_hits[i]);
- 		if (!sys_probe) {
- 			damos_sysfs_probes_rm_dirs(probes);
- 			return -ENOMEM;
-@@ -150,7 +176,8 @@ static struct damon_sysfs_scheme_region
- 
- static int damos_sysfs_region_add_dirs(
- 		struct damon_sysfs_scheme_region *region,
--		struct damon_ctx *ctx)
-+		struct damon_ctx *ctx,
-+		struct damon_region *dregion)
- {
- 	struct damos_sysfs_probes *probes = damos_sysfs_probes_alloc();
- 	int err;
-@@ -161,7 +188,7 @@ static int damos_sysfs_region_add_dirs(
- 			&region->kobj, "probes");
- 	if (err)
- 		goto fail;
--	err = damos_sysfs_probes_add_dirs(probes, ctx);
-+	err = damos_sysfs_probes_add_dirs(probes, ctx, dregion);
- 	if (err)
- 		goto fail;
- 
-@@ -3143,7 +3170,7 @@ void damos_sysfs_populate_region_dir(str
- 				&sysfs_regions->kobj, "%d",
- 				sysfs_regions->nr_regions))
- 		goto out;
--	if (damos_sysfs_region_add_dirs(region, ctx))
-+	if (damos_sysfs_region_add_dirs(region, ctx, r))
- 		goto out;
- 
- 	list_add_tail(&region->list, &sysfs_regions->regions_list);
+ 			trace_damon_aggregated(ti, r, damon_nr_regions(t));
++			trace_damon_region_aggregated(ti, r,
++					damon_nr_regions(t), nr_probes);
+ 			damon_warn_fix_nr_accesses_corruption(r);
+ 			r->last_nr_accesses = r->nr_accesses;
+ 			r->nr_accesses = 0;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
