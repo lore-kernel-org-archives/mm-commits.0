@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2C5C278156
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 159F027A476
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:55:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152114; cv=none; b=ahrFCWSd7nS9BLHulXnDfci8ZrtUMxrW8doC/q0oVMlzb0kC4EqqGL7IKP6/pTOzjuVwyMzfEBu6Ce92Ay4oAKlLwgntApx3+Z+IWUIn18lHnd0Bk7i4II6cTArHwVDApKVwe65qneWXYiL//zxqzVwZgUdYzLjaAHcO1lvLc+I=
+	t=1779152117; cv=none; b=Ecym2KizXg481p1eam2olduFqsR6SViA9xgwoYVZPaUGXkXntgBxy8RlXal7to12lNqMed4PSFvh+3pB8OWm5Safz78raYfLwTjtM13qeQ4ghgDBIJVB/xGIGDpwfJMSCWi+yYYbP6/ekzs4dl1C/DCeFwKlQXdKSbzdAnhLIXc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152114; c=relaxed/simple;
-	bh=20SB87ARtUTIc7/TX4Ag+U1mjbBYP+bWONgspY0RnZk=;
-	h=Date:To:From:Subject:Message-Id; b=uJgo4FLuzCy84MV+zkw8qy13GXATZGTJy47QWURxc+BjU7nz+X9MOKTu/kw8Yo97vr9N24dJIlbqE4fWLMdwG4i9u/1wqpUW1ZGz6QUl3pU0euEqqZKndR9ja/9Pq2QDEDmyXKo8Eu2jSVNNtGmqiz2COIgjDq6sJKRkIK8GfL8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=MdnGR4U1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152117; c=relaxed/simple;
+	bh=7+sk6D88CwCgIr6vbq3q4rhPREDYbYxk1XoSrcoYBOA=;
+	h=Date:To:From:Subject:Message-Id; b=JtoovNotYHYNc2OIhVIUkAErPS0qYYvW93Ms98mw09cQwRmiMqaqqtrXdMUCd4qUK1t/GcXt3yOGR3ECVZDudQWZgEltZc4gUmIbvvcOazhS6FUpXuLPPYPkmEEKTSHuO6yAmVAbsjoBidqN3mSkGp/5RzbJqcgOQ99aCNK8fVI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ttpUpDPz; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="MdnGR4U1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3FD9CC2BCB7;
-	Tue, 19 May 2026 00:55:14 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ttpUpDPz"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8BB15C2BCB7;
+	Tue, 19 May 2026 00:55:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152114;
-	bh=20SB87ARtUTIc7/TX4Ag+U1mjbBYP+bWONgspY0RnZk=;
+	s=korg; t=1779152116;
+	bh=7+sk6D88CwCgIr6vbq3q4rhPREDYbYxk1XoSrcoYBOA=;
 	h=Date:To:From:Subject:From;
-	b=MdnGR4U1zYA2mNqaXxokWY416gf8IPTNw4mQqdBANrt7xBtd80jcJEKo9fxDekBCJ
-	 HiOAvaOM/NyVHdUGo8bWKUT3pGSfRT9fU/snaXoj2XFyVfo+U1cC7Z76ItG73qBmh7
-	 Zcd/nQOP70zy4vVS0JljwCKetLe7ChNtxNAPaTcY=
-Date: Mon, 18 May 2026 17:55:13 -0700
+	b=ttpUpDPzWZMof5sfKTQbphcC7VWCn/NzM6lTKXNmmnOCdOhx67wnzJxTRR43pxQzh
+	 vdMKIisIdew/srty9huIc/X3WqSJVSWZDh1uT9/zsex63FK7YbMfRHukWtvkuXRO+y
+	 PuOju97jw+wc0Bfi6lKZRp30cEbFgXF0W9xJGTto=
+Date: Mon, 18 May 2026 17:55:16 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-commit-probes.patch added to mm-new branch
-Message-Id: <20260519005514.3FD9CC2BCB7@smtp.kernel.org>
+Subject: + mm-damon-core-introduce-damon_region-probe_hits.patch added to mm-new branch
+Message-Id: <20260519005516.8BB15C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: commit probes
+     Subject: mm/damon/core: introduce damon_region->probe_hits
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-commit-probes.patch
+     mm-damon-core-introduce-damon_region-probe_hits.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-commit-probes.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-introduce-damon_region-probe_hits.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,12 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: commit probes
-Date: Mon, 18 May 2026 16:40:52 -0700
+Subject: mm/damon/core: introduce damon_region->probe_hits
+Date: Mon, 18 May 2026 16:40:53 -0700
 
-Update damon_commit_ctx() to commit installed data probes, too.
+Add an array for the per-region per-probe positive samples count.  For
+simple and efficient implementation, add a limit to the number of data
+probes and set the array to support only the limited number of counters.
 
-Link: https://lore.kernel.org/20260518234119.97569-5-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -92,148 +94,83 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |  104 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 104 insertions(+)
+ include/linux/damon.h |    4 ++++
+ mm/damon/core.c       |   10 ++++++++++
+ 2 files changed, 14 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-commit-probes
+--- a/include/linux/damon.h~mm-damon-core-introduce-damon_region-probe_hits
++++ a/include/linux/damon.h
+@@ -17,6 +17,8 @@
+ 
+ /* Minimal region size.  Every damon_region is aligned by this. */
+ #define DAMON_MIN_REGION_SZ	PAGE_SIZE
++/* Maximum number of monitoring probes. */
++#define DAMON_MAX_PROBES	(4)
+ /* Max priority score for DAMON-based operation schemes */
+ #define DAMOS_MAX_SCORE		(99)
+ 
+@@ -47,6 +49,7 @@ struct damon_size_range {
+  * @nr_accesses:	Access frequency of this region.
+  * @nr_accesses_bp:	@nr_accesses in basis point (0.01%) that updated for
+  *			each sampling interval.
++ * @probe_hits:		Number of probe-positive region samples.
+  * @list:		List head for siblings.
+  * @age:		Age of this region.
+  *
+@@ -75,6 +78,7 @@ struct damon_region {
+ 	unsigned long sampling_addr;
+ 	unsigned int nr_accesses;
+ 	unsigned int nr_accesses_bp;
++	unsigned char probe_hits[DAMON_MAX_PROBES];
+ 	struct list_head list;
+ 
+ 	unsigned int age;
+--- a/mm/damon/core.c~mm-damon-core-introduce-damon_region-probe_hits
 +++ a/mm/damon/core.c
-@@ -133,11 +133,34 @@ void damon_add_filter(struct damon_probe
- 	list_add_tail(&f->list, &p->filters);
- }
- 
-+static void damon_del_filter(struct damon_filter *f)
-+{
-+	list_del(&f->list);
-+}
-+
- static void damon_free_filter(struct damon_filter *f)
+@@ -229,6 +229,7 @@ static void damon_verify_new_region(unsi
+ struct damon_region *damon_new_region(unsigned long start, unsigned long end)
  {
- 	kfree(f);
- }
+ 	struct damon_region *region;
++	int i;
  
-+static void damon_destroy_filter(struct damon_filter *f)
-+{
-+	damon_del_filter(f);
-+	damon_free_filter(f);
-+}
-+
-+static struct damon_filter *damon_nth_filter(int n, struct damon_probe *p)
-+{
-+	struct damon_filter *f;
-+	int i = 0;
-+
-+	damon_for_each_filter(f, p) {
-+		if (i++ == n)
-+			return f;
-+	}
-+	return NULL;
-+}
-+
- struct damon_probe *damon_new_probe(void)
+ 	damon_verify_new_region(start, end);
+ 	region = kmem_cache_alloc(damon_region_cache, GFP_KERNEL);
+@@ -239,6 +240,8 @@ struct damon_region *damon_new_region(un
+ 	region->ar.end = end;
+ 	region->nr_accesses = 0;
+ 	region->nr_accesses_bp = 0;
++	for (i = 0; i < DAMON_MAX_PROBES; i++)
++		region->probe_hits[i] = 0;
+ 	INIT_LIST_HEAD(&region->list);
+ 
+ 	region->age = 0;
+@@ -2980,12 +2983,17 @@ static void damon_merge_two_regions(stru
+ 		struct damon_region *l, struct damon_region *r)
  {
- 	struct damon_probe *p;
-@@ -175,6 +198,18 @@ static void damon_destroy_probe(struct d
- 	damon_free_probe(p);
+ 	unsigned long sz_l = damon_sz_region(l), sz_r = damon_sz_region(r);
++	int i;
+ 
+ 	l->nr_accesses = (l->nr_accesses * sz_l + r->nr_accesses * sz_r) /
+ 			(sz_l + sz_r);
+ 	l->nr_accesses_bp = l->nr_accesses * 10000;
+ 	l->age = (l->age * sz_l + r->age * sz_r) / (sz_l + sz_r);
+ 	l->ar.end = r->ar.end;
++	/* todo: do this for only installed probes */
++	for (i = 0; i < DAMON_MAX_PROBES; i++)
++		l->probe_hits[i] = (l->probe_hits[i] * sz_l + r->probe_hits[i]
++				* sz_r) / (sz_l + sz_r);
+ 	damon_verify_merge_two_regions(l, r);
+ 	damon_destroy_region(r, t);
  }
+@@ -3108,6 +3116,8 @@ static void damon_split_region_at(struct
+ 	new->last_nr_accesses = r->last_nr_accesses;
+ 	new->nr_accesses_bp = r->nr_accesses_bp;
+ 	new->nr_accesses = r->nr_accesses;
++	/* todo: do this for only installed probes */
++	memcpy(new->probe_hits, r->probe_hits, sizeof(r->probe_hits));
  
-+static struct damon_probe *damon_nth_probe(int n, struct damon_ctx *ctx)
-+{
-+	struct damon_probe *p;
-+	int i = 0;
-+
-+	damon_for_each_probe(p, ctx) {
-+		if (i++ == n)
-+			return p;
-+	}
-+	return NULL;
-+}
-+
- #ifdef CONFIG_DAMON_DEBUG_SANITY
- static void damon_verify_new_region(unsigned long start, unsigned long end)
- {
-@@ -1386,6 +1421,72 @@ static int damon_commit_targets(
- 	return 0;
+ 	damon_insert_region(new, r, damon_next_region(r), t);
  }
- 
-+static void damon_commit_filter(struct damon_filter *dst,
-+		struct damon_filter *src)
-+{
-+	dst->type = src->type;
-+	dst->matching = src->matching;
-+	dst->allow = src->allow;
-+}
-+
-+static int damon_commit_filters(struct damon_probe *dst,
-+		struct damon_probe *src)
-+{
-+	struct damon_filter *dst_filter, *next, *src_filter, *new_filter;
-+	int i = 0, j = 0;
-+
-+	damon_for_each_filter_safe(dst_filter, next, dst) {
-+		src_filter = damon_nth_filter(i++, src);
-+		if (src_filter)
-+			damon_commit_filter(dst_filter, src_filter);
-+		else
-+			damon_destroy_filter(dst_filter);
-+	}
-+
-+	damon_for_each_filter_safe(src_filter, next, src) {
-+		if (j++ < i)
-+			continue;
-+
-+		new_filter = damon_new_filter(src_filter->type,
-+				src_filter->matching, src_filter->allow);
-+		if (!new_filter)
-+			return -ENOMEM;
-+		damon_add_filter(dst, new_filter);
-+	}
-+	return 0;
-+}
-+
-+static int damon_commit_probes(struct damon_ctx *dst, struct damon_ctx *src)
-+{
-+	struct damon_probe *dst_probe, *next, *src_probe, *new_probe;
-+	int i = 0, j = 0, err;
-+
-+	damon_for_each_probe_safe(dst_probe, next, dst) {
-+		src_probe = damon_nth_probe(i++, src);
-+		if (src_probe) {
-+			err = damon_commit_filters(dst_probe, src_probe);
-+			if (err)
-+				return err;
-+		} else {
-+			damon_destroy_probe(dst_probe);
-+		}
-+	}
-+
-+	damon_for_each_probe_safe(src_probe, next, src) {
-+		if (j++ < i)
-+			continue;
-+
-+		new_probe = damon_new_probe();
-+		if (!new_probe)
-+			return -ENOMEM;
-+		damon_add_probe(dst, new_probe);
-+		err = damon_commit_filters(new_probe, src_probe);
-+		if (err)
-+			return err;
-+	}
-+	return 0;
-+}
-+
- /**
-  * damon_commit_ctx() - Commit parameters of a DAMON context to another.
-  * @dst:	The commit destination DAMON context.
-@@ -1442,6 +1543,9 @@ int damon_commit_ctx(struct damon_ctx *d
- 	}
- 	dst->pause = src->pause;
- 	dst->ops = src->ops;
-+	err = damon_commit_probes(dst, src);
-+	if (err)
-+		return err;
- 	dst->addr_unit = src->addr_unit;
- 	dst->min_region_sz = src->min_region_sz;
- 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
