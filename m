@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA35E286419
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:56:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B03AD28468E
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 00:56:10 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779152168; cv=none; b=MxBZn/A9DkyRXlrAfLXjVZSamVVpie0CDaMo6x9Lekje5UJLVcBJug3G21LdZiOr6Z1toonQxTjIROuSK3h3Rrx8peqSUIp+GPwjIaQnZiokxzmubzV3NXT25UQgw4tMMpqXuW9RTRYnDyAT7PkUQJg9XknjeBBe3a+Q0oK2BW0=
+	t=1779152170; cv=none; b=FxSvjtCsweZf1cqKZsEWUeO/uggxGXaR3Y58YyyIQOl+1qheLraXniNOeuOUQYxUcwhvbjuAmN4hx+hieQ1OzKrdFoUU36b0ErTrGS2hnsJbj7HqI3aDKeYn/ZEqk1rfVVLaVEtwM9hUxOBAY2HWSxKri1puK7J4wVoV92wPW6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779152168; c=relaxed/simple;
-	bh=dh2ydJZqzodgF4L/LSgDWIkb4KF4KhgzmRsNtLwrYOY=;
-	h=Date:To:From:Subject:Message-Id; b=lf0CcX0lA/4IzlZvvkfbwusWjR4XkYH+hQBo33mnDdYB42rkLV9cUacwDXngK9MJ5jSUxN83EMvjZ1Kcm44fbZc/T//nv1bZxiBHrcVc0Z5joHtzofDc/YzZHULrYlMELmDEKBbPJIPYpBvVDKzZ9wH1H1tdlJl79iD7VZjqEi8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GbA5PTB8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779152170; c=relaxed/simple;
+	bh=PsTND7LCjDJlRv/rYH0n/OOtAp9Um4FPHZ/MTYQZC5s=;
+	h=Date:To:From:Subject:Message-Id; b=uqlpjkjDR0S7C32aLNE1C2Z3IZmD4xcBttEiSBYx1usBPUYPGtT1v25smZVxzvMXs67bCLPtWjsot6qJokddO09l9SQT+aTdALwyJMQb6ra9/CmUYgfqe9ENEwXBGxkIea0Xs5lMj8FazTCQoC4WvQSB3XaYMkaXV3AMx96oGFg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NyEM0TAP; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GbA5PTB8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35947C2BCB7;
-	Tue, 19 May 2026 00:56:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NyEM0TAP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 45638C2BCB7;
+	Tue, 19 May 2026 00:56:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779152168;
-	bh=dh2ydJZqzodgF4L/LSgDWIkb4KF4KhgzmRsNtLwrYOY=;
+	s=korg; t=1779152170;
+	bh=PsTND7LCjDJlRv/rYH0n/OOtAp9Um4FPHZ/MTYQZC5s=;
 	h=Date:To:From:Subject:From;
-	b=GbA5PTB8ydnhcEwMy8mDuwur2RPBl2XYduHlvpt/xbKgG/1eL1uZQMoZ26EanRlW5
-	 dcbPwlPBUYzGBktU49PSmlSldcVaCzmwH/v6JmweIIyYJEVcp6VeSudNtKDzC8p8lG
-	 tzVXQQ97ZGdu8PyKV2yHHGvUkZQSJ/+jFeAyuTcU=
-Date: Mon, 18 May 2026 17:56:07 -0700
+	b=NyEM0TAPSfMQqfXS1Y/MZi6we5Fo44/gKGh3XoZhzQvl8+z/RlCRB5Bc6dRYZaRN7
+	 AI1SIZsVYlxms6GKIRhCqvqL5CP423KASp5e6Pud8/FsBu1fa4oBwvjoqj4Q8iHLKS
+	 l67JodT2AELyq2yDxa46ugVwHA6WAxfQEsAZasqQ=
+Date: Mon, 18 May 2026 17:56:09 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + docs-mm-damon-design-update-for-memcg-damon-filter.patch added to mm-new branch
-Message-Id: <20260519005608.35947C2BCB7@smtp.kernel.org>
+Subject: + docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch added to mm-new branch
+Message-Id: <20260519005610.45638C2BCB7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: Docs/mm/damon/design: update for memcg damon filter
+     Subject: Docs/admin-guide/mm/damon/usage: update for memcg damon filter
 has been added to the -mm mm-new branch.  Its filename is
-     docs-mm-damon-design-update-for-memcg-damon-filter.patch
+     docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-mm-damon-design-update-for-memcg-damon-filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/mm/damon/design: update for memcg damon filter
-Date: Mon, 18 May 2026 16:41:15 -0700
+Subject: Docs/admin-guide/mm/damon/usage: update for memcg damon filter
+Date: Mon, 18 May 2026 16:41:16 -0700
 
-Update DAMON design document for the newly added belonging memory cgroup
+Update DAMON usage document for the newly added belonging memory cgroup
 attribute monitoring feature.
 
-Link: https://lore.kernel.org/20260518234119.97569-28-sj@kernel.org
+Link: https://lore.kernel.org/20260518234119.97569-29-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -93,22 +93,31 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/mm/damon/design.rst |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/Documentation/mm/damon/design.rst~docs-mm-damon-design-update-for-memcg-damon-filter
-+++ a/Documentation/mm/damon/design.rst
-@@ -293,8 +293,8 @@ registration is made by specifying a pro
- specifies a rule to determine if a given memory region has the related
- attribute.  The rule is constructed with multiple filters.  The filters work
- same to :ref:`DAMOS filters <damon_design_damos_filters>` except the supported
--filter types.  Currently only ``anon`` filter type is supported for data
--attributes monitoring.
-+filter types.  Currently only ``anon`` and ``memcg`` filter types are supported
-+for data attributes monitoring.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -74,7 +74,7 @@ comma (",").
+     │ │ │ │ │ │ nr_regions/min,max
+     │ │ │ │ │ │ :ref:`probes <damon_usage_sysfs_probes>`/nr_probes
+     │ │ │ │ │ │ │ 0/filters/nr_filters
+-    │ │ │ │ │ │ │ │ 0/type,matching,allow
++    │ │ │ │ │ │ │ │ 0/type,matching,allow,path
+     │ │ │ │ │ │ │ │ ...
+     │ │ │ │ │ │ │ ...
+     │ │ │ │ │ :ref:`targets <sysfs_targets>`/nr_targets
+@@ -289,7 +289,9 @@ the data attribute for the probe.
+ In the beginning, ``filters`` directory has only one file, ``nr_filters``.
+ Writing a number (``N``) to the file creates the number of child directories
+ named ``0`` to ``N-1``.  Each directory represents each filter and works in a
+-way similar to that for :ref:`DAMOS filter <sysfs_filters>`.
++way similar to that for :ref:`DAMOS filter <sysfs_filters>`.  When the filter
++``type`` is ``memcg``, ``path`` file acts as ``memcg_path`` for :ref:`DAMOS
++filter <sysfs_filters>`.
  
- If such probes are registered, DAMON executes the probes for each region's
- sampling memory when it does the access :ref:`sampling
+ .. _sysfs_targets:
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
