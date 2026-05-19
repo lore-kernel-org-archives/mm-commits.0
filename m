@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FAEF2874E3
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 20:11:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04500320CD1;
+	Tue, 19 May 2026 20:25:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779221518; cv=none; b=NMs3g1MWsNnLPfqNOltUWDa4KNgBKr2RmxpjQnkSMuTLZ/wsKnG5RjMCrd73y3PtfTOIKzSLLD+NinIdWMpM6oG5UGTT7GCMGH3etsAL0ZRA/I3NROCUEsX6JrjVxSNPr7Mjsfs4K6R4SXbpK9fiaFGDJ0+UWvbUY3akkJvfTjc=
+	t=1779222360; cv=none; b=X8riY+1CGSIayLjTSF654kWVQHGsNUPpscrYc50MZykfFMD1BEv6xgV4uAM3UjKnmHueh8596IjWAHmJOmbulDd9/RDMPosla66bO7pnC0+fReb3YG8GAayx/wfI8CmUPUNfPLvi/1Tb4Fm1Pw3sq7RAtEsrAXUgyGMFVm4txa0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779221518; c=relaxed/simple;
-	bh=yqPIxbUoF10d4vP8AsQ9wI4wd3dVoUZkl42eDkNUfOo=;
-	h=Date:To:From:Subject:Message-Id; b=TZdevOQ7FG2X75722PCvcySc888beFNYUwGdII8nLLytHWrx1WeyinP2jYAsyW83vpP6fj2qC0ulBXOD1va9xSTSNeW9mCVKqngbCmt+eEIJDg/bPU+qc8gbYq+qoyvmS3YWgNjTgDahwAI/u2Ko6Mx2KHRKqkCjM77gONgrSkg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qZQwhZfZ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779222360; c=relaxed/simple;
+	bh=dZgB580wV5B3eYlBodT39eUPujogWfrWstymW3sdKBM=;
+	h=Date:To:From:Subject:Message-Id; b=q1rVh+UqteL6lWEOGGJUEE21Mk4S0uj8rvghpuCBiXmnde3I//q/qlKAHRW9enrMt5SZsZSEAB5suMajs99dnZu4pba5ogyUA5Sxr7jE7RVLAyWy97FFtDkp4NCXDkUEL1ysHS4YntbuGz0GG+BTOHdAxgJHIyTF2tqIZJc58nA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XJkTfs07; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qZQwhZfZ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B7751F00893;
-	Tue, 19 May 2026 20:11:57 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XJkTfs07"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52DD81F000E9;
+	Tue, 19 May 2026 20:25:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779221517;
-	bh=9q2EtWo06RdcfvYD466+8C8iL3+Rf9YU0N4Sy+4puE0=;
+	d=linux-foundation.org; s=korg; t=1779222358;
+	bh=TPNmf42vxRoK8xZFLzKh6LF3SyiQbTxiXq12ogleSAU=;
 	h=Date:To:From:Subject;
-	b=qZQwhZfZ+mBeo1woDbU3Dl1NmawjWSeXNDeItoOD8GHTNzfnEk/Vju8t4xKFpSC4I
-	 51W+UXILDoj9RHJZjB7XCJnxUrBCwYavkn96X+cN5q40RhcJHyp2tGPyj+yZApjUAr
-	 MJnahDZlrbZeQB0Qvc6wO2QjbSJrG+sI2NfetGNc=
-Date: Tue, 19 May 2026 13:11:56 -0700
-To: mm-commits@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,jannh@google.com,david@kernel.org,ljs@kernel.org,akpm@linux-foundation.org
+	b=XJkTfs07Iz5M3FQgRcN4w6rDwbX+yJRnJbkPeI3j2dEO5xjAnQJxxti6WaGgTdlxw
+	 uSWLcVjp0sBAOLdIJTbmRxhxBjI2upHMOr8sBJuYVRNbGvHsqFxjGarkbChz4O47yr
+	 q5fwqNSL5geKm+5kmqgcOllFscGXi3kSrKUedujw=
+Date: Tue, 19 May 2026 13:25:57 -0700
+To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,stable@vger.kernel.org,rppt@kernel.org,rafael@kernel.org,osalvador@kernel.org,icheng@nvidia.com,gregkh@linuxfoundation.org,djakov@kernel.org,david@kernel.org,georgi.djakov@oss.qualcomm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-avoid-false-positive-lockdep-assertion-fix.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260519201157.0B7751F00893@smtp.kernel.org>
+Subject: + drivers-base-memory-set-mem-altmap-after-successful-device-registration.patch added to mm-new branch
+Message-Id: <20260519202558.52DD81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-hugetlb-avoid-false-positive-lockdep-assertion-fix
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-avoid-false-positive-lockdep-assertion-fix.patch
+     Subject: drivers/base/memory: set mem->altmap after successful device registration
+has been added to the -mm mm-new branch.  Its filename is
+     drivers-base-memory-set-mem-altmap-after-successful-device-registration.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-avoid-false-positive-lockdep-assertion-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-base-memory-set-mem-altmap-after-successful-device-registration.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,55 +69,58 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm-hugetlb-avoid-false-positive-lockdep-assertion-fix
-Date: Thu, 14 May 2026 10:45:38 +0100
+From: Georgi Djakov <georgi.djakov@oss.qualcomm.com>
+Subject: drivers/base/memory: set mem->altmap after successful device registration
+Date: Thu, 14 May 2026 02:26:57 -0700
 
-account for the !CONFIG_HUGETLB_PMD_PAGE_TABLE_SHARING case
+If __add_memory_block() fails at xa_store() (under memory pressure for
+example), device_unregister() is called, which eventually triggers
+memory_block_release() with mem->altmap still set, causing a
+WARN_ON(mem->altmap).  This was triggered by modifying virtio-mem driver.
 
-Link: https://lore.kernel.org/agWZsPGYid08uU6O@lucifer
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Fix this by delaying the assignment of mem->altmap until after
+__add_memory_block() has succeeded.
+
+Link: https://lore.kernel.org/20260514092657.3057141-1-georgi.djakov@oss.qualcomm.com
+Fixes: 1a8c64e11043 ("mm/memory_hotplug: embed vmem_altmap details in memory block")
+Signed-off-by: Georgi Djakov <georgi.djakov@oss.qualcomm.com>
+Acked-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Richard Cheng <icheng@nvidia.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Georgi Djakov <djakov@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/base/memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-avoid-false-positive-lockdep-assertion-fix
-+++ a/mm/hugetlb.c
-@@ -118,6 +118,9 @@ static int hugetlb_acct_memory(struct hs
- static void hugetlb_vma_lock_free(struct vm_area_struct *vma);
- static void hugetlb_vma_lock_alloc(struct vm_area_struct *vma);
- static void __hugetlb_vma_unlock_write_free(struct vm_area_struct *vma);
-+static int __huge_pmd_unshare(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, unsigned long addr, pte_t *ptep,
-+		bool check_locks);
- static void hugetlb_unshare_pmds(struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end, bool take_locks);
- static struct resv_map *vma_resv_map(struct vm_area_struct *vma);
-@@ -6970,6 +6973,13 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	return NULL;
- }
+--- a/drivers/base/memory.c~drivers-base-memory-set-mem-altmap-after-successful-device-registration
++++ a/drivers/base/memory.c
+@@ -797,7 +797,6 @@ static int add_memory_block(unsigned lon
+ 	mem->start_section_nr = block_id * sections_per_block;
+ 	mem->state = state;
+ 	mem->nid = nid;
+-	mem->altmap = altmap;
+ 	INIT_LIST_HEAD(&mem->group_next);
  
-+static int __huge_pmd_unshare(struct mmu_gather *tlb,
-+		struct vm_area_struct *vma, unsigned long addr, pte_t *ptep,
-+		bool check_locks)
-+{
-+	return 0;
-+}
+ #ifndef CONFIG_NUMA
+@@ -815,6 +814,8 @@ static int add_memory_block(unsigned lon
+ 	if (ret)
+ 		return ret;
+ 
++	mem->altmap = altmap;
 +
- int huge_pmd_unshare(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		unsigned long addr, pte_t *ptep)
- {
+ 	if (group) {
+ 		mem->group = group;
+ 		list_add(&mem->group_next, &group->memory_blocks);
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from georgi.djakov@oss.qualcomm.com are
 
-revert-mm-hugetlbfs-update-hugetlbfs-to-use-mmap_prepare.patch
-mm-hugetlb-avoid-false-positive-lockdep-assertion.patch
-mm-hugetlb-avoid-false-positive-lockdep-assertion-fix.patch
+drivers-base-memory-set-mem-altmap-after-successful-device-registration.patch
 
