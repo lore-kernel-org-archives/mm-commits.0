@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A071B34388A
-	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 17:41:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C63FA34388A
+	for <mm-commits@vger.kernel.org>; Tue, 19 May 2026 17:41:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779212508; cv=none; b=iJkG5R3ilAa0HgfBQZ/4gU2jFWCvKlwBOHL7tnQop7x3U4aH6zbB+DW40Gt5pBrqksdhN4vlQHbEEg4DK0LJi8qAgIzE1jas4SNmmf2GdYaxn3dJcyBUdOxLIxpYYXbDjCAUu0QJqtd72PkzdDQHLBVAI6168MLZcC6lXq5rq1A=
+	t=1779212509; cv=none; b=Q6E1nUCCwbM4+dUWXwLydQNCjWjjeAwRCNYcyTjGvsEPlB8mXnlCMyxT/Jm1t6GeJ8iqi3JlTYCdffBj+4JSuVMU7rGaLGdxw1zSIo8QWRRXaR6QmbsisDEssfAkX6V+jAGQ/40vlCptM8UIhdlSvxqN4zIdk3rB74iZXUPmJ2A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779212508; c=relaxed/simple;
-	bh=99HHuMr9OQukK8QVwuWognFQDr86v4fJGpn9dn94d4Q=;
-	h=Date:To:From:Subject:Message-Id; b=F80ZzrdqdnQJJ+6OLbQbOw7aD3loHLM+sBUFfscLriFQC/EQOUgmOCHOteHaEInOm7XQrLVTeOfqA9YsW3Ze25dfG6czT36/S+vrZeg6UIOfpkVBxKpI/nf1QEtc2/jHaMn9GFFqFQ+ZilrOAeI4mFWllEHHOfjzZon73KPAEoE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=WYuxDQI3; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1779212509; c=relaxed/simple;
+	bh=8Aqxcs+l/UJTuqbkKAgK3We1WQnByWgu7C16g28YJBs=;
+	h=Date:To:From:Subject:Message-Id; b=RHWjrgzsM5ycYyoYhWMLT6uMCFx52HZfZQgMt7SslE92T+HtyR5txGkPmho0Xtix4FUbXhf/kv8wFtdJpjqCCf0DvDpqfqFLmsuNcjF2Nwfh07GOI80quaA2T89unXSQaLdI6dF5f/VBzg2Ti7BRH9bXiAGwmCRihgzwlNH3e0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gMgT4rPe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="WYuxDQI3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20882C2BCB3;
-	Tue, 19 May 2026 17:41:48 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gMgT4rPe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 675D6C2BCB3;
+	Tue, 19 May 2026 17:41:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1779212508;
-	bh=99HHuMr9OQukK8QVwuWognFQDr86v4fJGpn9dn94d4Q=;
+	s=korg; t=1779212509;
+	bh=8Aqxcs+l/UJTuqbkKAgK3We1WQnByWgu7C16g28YJBs=;
 	h=Date:To:From:Subject:From;
-	b=WYuxDQI3/zGntF0Bl6DR3xRfwEfB4KPO2M5bzTNJh7lEEsqdI1srdb9PAd9GcSk3+
-	 tx/XzayLAtwXzVuFjmxnES+oyDiRO8wXDdgWWuiU7vW9OjoG6rwoZMrm+KjrP4h7lb
-	 i5X0IKFekOrkcnMhESm7uYRDkwDin5Pk4B1o0z60=
-Date: Tue, 19 May 2026 10:41:47 -0700
+	b=gMgT4rPevgJ1wSGci00xkLFRD80zO6KhU3t/P9SJHHK6E3j81hsa9IhvA6ga4ieuI
+	 nhIW+xQrZ/lMV3qHrAPMRrhhFA1T5JpqMG/TeD75xsYJFD7kwavlmm5o1+UNlypE0e
+	 aVaKIXOTKsmrKGcmDKHSdLhVFUEG1MSIX71L8rrw=
+Date: Tue, 19 May 2026 10:41:48 -0700
 To: mm-commits@vger.kernel.org,michael.bommarito@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] ocfs2-reject-dinodes-with-non-canonical-i_mode-type-or-stray-bits.patch removed from -mm tree
-Message-Id: <20260519174148.20882C2BCB3@smtp.kernel.org>
+Subject: [to-be-updated] ocfs2-reject-dinodes-whose-i_rdev-disagrees-with-the-file-type.patch removed from -mm tree
+Message-Id: <20260519174149.675D6C2BCB3@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,171 +35,47 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: reject dinodes with non-canonical i_mode type or stray bits
+     Subject: ocfs2: reject dinodes whose i_rdev disagrees with the file type
 has been removed from the -mm tree.  Its filename was
-     ocfs2-reject-dinodes-with-non-canonical-i_mode-type-or-stray-bits.patch
+     ocfs2-reject-dinodes-whose-i_rdev-disagrees-with-the-file-type.patch
 
 This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
 From: Michael Bommarito <michael.bommarito@gmail.com>
-Subject: ocfs2: reject dinodes with non-canonical i_mode type or stray bits
-Date: Sun, 17 May 2026 07:10:12 -0400
+Subject: ocfs2: reject dinodes whose i_rdev disagrees with the file type
+Date: Sun, 17 May 2026 07:10:13 -0400
 
-Patch series "ocfs2: harden inode validators against forged metadata".
+id1.dev1.i_rdev is the device-number arm of the ocfs2_dinode id1 union and
+is only meaningful for character and block device inodes.  For any other
+user-visible file type the on-disk value must be zero.
 
-This series adds three structural checks to ocfs2_validate_inode_block()
-that catch attacker-controlled bytes in a freshly read dinode before
-ocfs2_populate_inode() copies them verbatim into the in-core inode.  All
-three checks fire on the mount, lookup, and read-after-cache-invalidation
-paths and reject the block with ocfs2_error(), the same error-propagation
-mechanism the existing suballoc-slot, inline-data, chain-list, and
-refcount checks use.
+ocfs2_populate_inode() currently runs
 
-Direction
-=========
+    inode->i_rdev = huge_decode_dev(le64_to_cpu(fe->id1.dev1.i_rdev));
 
-This continues the validator-hardening direction visible in the
-recent in-flight ocfs2_validate_inode_block hardening series,
-e.g. ZhengYuan Huang's "ocfs2: revalidate the journal dinode
-before toggling dirty"
-(<20260512024115.4036371-1-gality369@gmail.com>), "ocfs2: add
-extent tree depth validation"
-(<20260416110229.3283682-1-gality369@gmail.com>), and "ocfs2:
-add extent list validation v2"
-(<20260423094116.876696-1-gality369@gmail.com>).  Each of those
-adds a per-field invariant check against bytes that downstream
-code paths trust unconditionally.
+unconditionally, before the S_IFMT switch decides whether the inode is a
+special file.  As a result, an i_rdev value present on a non-device inode
+is silently published into the in-core inode.  A subsequent forced re-read
+or in-core mode mutation (cluster peer with raw write access to the shared
+LUN, on-disk corruption, or a separately forged dinode) can then expose
+the attacker- controlled device number to init_special_inode() without
+ever showing an unusual i_mode at validation time.
 
-The three checks in this series cover three more fields whose
-attacker-controlled values currently propagate into VFS-visible state
-without question: i_mode (type bits and reserved bits), i_rdev
-(cross-checked against the file type), and the i_size / i_clusters pairing
-for regular files on non-sparse volumes (patch 3 is gated on
-!ocfs2_sparse_alloc(); sparse- allocation mounts legitimately commit
-i_size > 0 with i_clusters == 0 via ocfs2_zero_extend()).
+System inodes (OCFS2_SYSTEM_FL) legitimately use the bitmap1 and journal1
+arms of the same union: allocator inodes encode i_used / i_total in the
+bitmap1 arm and the journal encodes ij_flags / ij_recovery_generation in
+the journal1 arm.  Those byte sequences are not an i_rdev and a non-zero
+pattern there is the on-disk norm, not an integrity violation.  Restrict
+the cross- check to non-system inodes; that is the full surface where
+i_rdev semantics apply and is also the full surface an unprivileged
+consumer of the volume can see.
 
-Threat model
-============
+Following the i_mode canonicalisation in patch 1, S_ISCHR / S_ISBLK covers
+the whole device-inode space; this check operates correctly on its own,
+but the canonicalised i_mode makes the predicate exhaustive.
 
-The validator is the chokepoint that protects ocfs2_populate_inode() from
-a malformed dinode whether the malformation got there via:
-
-  (1) An attacker-supplied disk image mounted by a privileged
-      user.  The mount path runs every dinode through this
-      validator before any unprivileged user opens a file on
-      the volume.  This is the same threat model the existing
-      inline-data, refcount, and chain-list checks in this
-      function were written for.
-
-  (2) A compromised cluster peer with raw write access to the
-      shared block device.  OCFS2 is a clustered filesystem;
-      the on-disk blocks behind bh->b_data live on shared
-      storage that other cluster nodes can write.  The local
-      node's cache-eviction re-read runs the newly fetched
-      block through this validator before ocfs2_populate_inode()
-      runs again.  Oracle's BlockErrorDetection design document
-      scopes the existing CRC32 + Hamming integrity primitive
-      explicitly as defense against memory and wire corruption,
-      not as authentication of peer writes; the field-level
-      validators are therefore the kernel-side defense
-      whichever path produced the forged block.
-
-The three checks in this series are deliberately structural: they each
-express an invariant mkfs.ocfs2 and the kernel maintain unconditionally,
-and they reject any dinode whose header violates that invariant before its
-bytes propagate to the in-core inode.
-
-Scope note: these checks block forge patterns that touch i_mode (outside
-the canonical envelope), i_rdev (on a non-device file), or the i_size /
-i_clusters pair (regular file with size but no extents, on non-sparse
-volumes only).  A forger who keeps the dinode within these structural
-envelopes (for example, flipping only the permission bits and uid/gid on a
-regular file that already has clusters allocated) can still produce a
-dinode that satisfies the field-level invariants; closing that residual
-class is outside the scope of this hardening series.
-
-Validation
-==========
-
-Each patch builds on top of the previous one against mainline; the series
-as a whole builds clean against v7.1-rc1 with zero new warnings. 
-checkpatch --strict reports 0 errors, 0 warnings, 0 checks for each patch.
-
-The series was exercised on a two-node QEMU cluster (virtio-blk
-shared LUN with share-rw=on, both nodes joining the same o2cb
-cluster, mounted ocfs2 with metaecc):
-
-  - Pre-series baseline: a peer-node raw-write forge that adds
-    S_ISUID and flips uid/gid to 0 on a regular file is accepted
-    by the existing validator chain; the unprivileged user on
-    the victim node exec()s the file and gains euid=0.  This
-    confirms the cluster-peer write primitive is reachable in
-    today's mainline.  Per the Scope note above, this particular
-    forge stays within the structural envelope these patches
-    enforce and is NOT blocked by them; closing it requires the
-    out-of-scope keyed-integrity work.
-  - Post-series, structural-variant forge: a peer-node forge
-    that, in addition to the setuid + uid/gid changes, stores
-    i_rdev = MKDEV(1,1) on the same regular-file dinode (the
-    cleanest cluster-context attacker primitive patch 2
-    catches) is rejected by ocfs2_validate_inode_block() with
-    ocfs2_error "non-device mode 0104755 with i_rdev N".  The
-    buffer-head propagates -EFSCORRUPTED to
-    ocfs2_read_locked_inode and the user-visible result is
-    Permission denied on subsequent stat / open / exec of the
-    forged file.  Analogous post-series forge variants that
-    flip i_mode outside the canonical envelope, or that set
-    i_size > 0 with i_clusters == 0 on a non-inline regular
-    file mounted from a non-sparse volume, are rejected by
-    patches 1 and 3 respectively.
-
-A separate cluster regression (mount, peer-write a regular file,
-drop_caches on the second node, read it back) runs clean post-series, so
-the checks do not regress normal operation.
-
-In-tree selftests under tools/testing/selftests/ that reference
-fs/ocfs2/inode.c or any changed symbol were checked; no matching selftests
-exist for ocfs2_validate_inode_block(), which is consistent with OCFS2
-having no in-tree selftest coverage.  The subsystem's standard regression
-coverage is xfstests (the generic fs group) plus ocfs2-test, both out of
-tree.  Those were not run as part of this series; a full xfstests pass
-before merge is recommended and I am happy to run a representative subset
-and report results if reviewers would find it useful.
-
-
-This patch (of 3):
-
-ocfs2_validate_inode_block() currently accepts any 16-bit i_mode value as
-long as i_mode is non-zero.  ocfs2_populate_inode() then copies that mode
-verbatim into inode->i_mode and dispatches on i_mode & S_IFMT to the
-file/dir/symlink/special_file iops; any unrecognised type falls through to
-ocfs2_special_file_iops and init_special_inode(), which interprets
-id1.dev1.i_rdev as a device number.
-
-The result is that anything able to forge or corrupt an inode block (a
-hostile cluster peer with raw write access to the shared LUN, a privileged
-user mounting an attacker-supplied image, on-disk corruption) can publish
-an in-core inode whose type bits do not name a POSIX file type, or whose
-permission bits carry bytes outside S_IFMT|07777.  Both shapes propagate
-into VFS-visible state that downstream code paths assume is well-formed.
-
-Reject early in the validator:
-
-  - mode bits outside S_IFMT|07777
-  - S_IFMT values that are not one of S_IFREG, S_IFDIR, S_IFLNK,
-    S_IFCHR, S_IFBLK, S_IFIFO, S_IFSOCK
-
-mkfs.ocfs2 and the kernel only ever produce these seven types plus the
-standard permission, setuid/setgid/sticky bits; an on-disk i_mode outside
-this envelope is structurally malformed regardless of how it got there.
-
-Validated against the existing inline_data, refcount, and chain-list
-checks: this hardening fires before any of them and does not perturb their
-behaviour for well-formed inodes.
-
-Link: https://lore.kernel.org/20260517111015.3187935-1-michael.bommarito@gmail.com
-Link: https://lore.kernel.org/20260517111015.3187935-2-michael.bommarito@gmail.com
+Link: https://lore.kernel.org/20260517111015.3187935-3-michael.bommarito@gmail.com
 Fixes: b657c95c1108 ("ocfs2: Wrap inode block reads in a dedicated function.")
 Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
 Assisted-by: Claude:claude-opus-4-7
@@ -210,56 +86,55 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Jun Piao <piaojun@huawei.com>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mark@fasheh.com>
-Cc: <stable@vger.kernel.org>b
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |   39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ fs/ocfs2/inode.c |   38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
---- a/fs/ocfs2/inode.c~ocfs2-reject-dinodes-with-non-canonical-i_mode-type-or-stray-bits
+--- a/fs/ocfs2/inode.c~ocfs2-reject-dinodes-whose-i_rdev-disagrees-with-the-file-type
 +++ a/fs/ocfs2/inode.c
-@@ -1494,6 +1494,45 @@ int ocfs2_validate_inode_block(struct su
- 		goto bail;
+@@ -1533,6 +1533,44 @@ int ocfs2_validate_inode_block(struct su
+ 		}
  	}
  
 +	/*
-+	 * Reject dinodes whose i_mode does not name one of the seven
-+	 * canonical POSIX file types, or whose mode carries bits outside
-+	 * S_IFMT | 07777.  ocfs2_populate_inode() copies i_mode verbatim
-+	 * into inode->i_mode and then dispatches via switch (mode & S_IFMT)
-+	 * to file/dir/symlink/special_file iops; an unrecognised type
-+	 * falls into ocfs2_special_file_iops with init_special_inode(),
-+	 * which interprets i_rdev.  Constrain the type byte here so the
-+	 * dispatch only ever sees a value mkfs.ocfs2 / VFS can produce.
++	 * id1.dev1.i_rdev is the device-number arm of the id1 union and
++	 * is only meaningful for character and block device inodes.  For
++	 * any other regular user-visible file type the on-disk value
++	 * must be zero.  ocfs2_populate_inode() currently runs
++	 *
++	 *     inode->i_rdev = huge_decode_dev(le64_to_cpu(fe->id1.dev1.i_rdev));
++	 *
++	 * unconditionally, before the S_IFMT switch decides whether the
++	 * inode is a special file.  As a result, an i_rdev value present
++	 * on a non-device inode is silently published into the in-core
++	 * inode; a subsequent forced re-read or in-core mode mutation
++	 * (cluster peer with raw write access to the shared LUN,
++	 * on-disk corruption, or a separately forged dinode) can then
++	 * expose the attacker-controlled device number to
++	 * init_special_inode() without ever showing an unusual i_mode
++	 * at validation time.
++	 *
++	 * System inodes (OCFS2_SYSTEM_FL) legitimately use the bitmap1
++	 * and journal1 arms of the same union (allocator i_used /
++	 * i_total counters and the journal ij_flags /
++	 * ij_recovery_generation pair); those bytes are not an i_rdev
++	 * and must not be checked here.  Restrict the cross-check to
++	 * non-system inodes, which is the full attacker-controllable
++	 * surface.
 +	 */
-+	{
-+		u16 mode = le16_to_cpu(di->i_mode);
-+
-+		if (mode & ~(S_IFMT | 07777)) {
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode #%llu: mode 0%o has bits outside S_IFMT|07777\n",
-+					 (unsigned long long)bh->b_blocknr,
-+					 mode);
-+			goto bail;
-+		}
-+
-+		switch (mode & S_IFMT) {
-+		case S_IFREG:
-+		case S_IFDIR:
-+		case S_IFLNK:
-+		case S_IFCHR:
-+		case S_IFBLK:
-+		case S_IFIFO:
-+		case S_IFSOCK:
-+			break;
-+		default:
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode #%llu: mode 0%o has unknown file type\n",
-+					 (unsigned long long)bh->b_blocknr,
-+					 mode);
-+			goto bail;
-+		}
++	if (!(le32_to_cpu(di->i_flags) & OCFS2_SYSTEM_FL) &&
++	    !S_ISCHR(le16_to_cpu(di->i_mode)) &&
++	    !S_ISBLK(le16_to_cpu(di->i_mode)) &&
++	    di->id1.dev1.i_rdev != 0) {
++		rc = ocfs2_error(sb,
++				 "Invalid dinode #%llu: non-device mode 0%o with i_rdev %llu\n",
++				 (unsigned long long)bh->b_blocknr,
++				 le16_to_cpu(di->i_mode),
++				 (unsigned long long)le64_to_cpu(di->id1.dev1.i_rdev));
++		goto bail;
 +	}
 +
  	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL) {
@@ -269,6 +144,5 @@ _
 
 Patches currently in -mm which might be from michael.bommarito@gmail.com are
 
-ocfs2-reject-dinodes-whose-i_rdev-disagrees-with-the-file-type.patch
 ocfs2-reject-regular-files-with-non-zero-i_size-and-zero-i_clusters.patch
 
