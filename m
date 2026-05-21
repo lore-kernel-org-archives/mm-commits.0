@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4CF933689F
-	for <mm-commits@vger.kernel.org>; Thu, 21 May 2026 21:55:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB15333689F
+	for <mm-commits@vger.kernel.org>; Thu, 21 May 2026 21:55:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779400514; cv=none; b=pc9n7arQBHiAtLWKRVgu++YnuK6Uv/uZhLkjwhEtkKPBfvkgXwrKBOz7Dh0x+rArvw1OgdUNeY7/UT3gISF/2wg2H6ef3mp+jDWRDZe3zbkqH2l+zOAK9MgLYB57KPWXX97QtBW9mKRjaYgmy3J69S+4JqEoBnoIpUpJkRDxZnI=
+	t=1779400517; cv=none; b=gq6smqDdLQTnZxAOiWkzK9PZyopX5KnBh6pMhghSFpxpQXkRuYZfC1OBxLwYVsHx10v1CxfQyuatC9/vzFX62gNZHJj0t7QEK3pWc9e8ikWn2w8nE8B24OUdHyKxY+/f3U9SF94K54vi7xlp8Hrmj7wTG0lC2BM17erFyHKgH5Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779400514; c=relaxed/simple;
-	bh=3AXN6dtnnH49W+oSRdjso7Ar0zA1b81ZThM2bTKyA/k=;
-	h=Date:To:From:Subject:Message-Id; b=L/3W6YuArbTsWCfqbD4HZY57EzIUGvt2yiy8NegpD/8CbeF09WTeMpm+ZU6R5Ud65SCLEjAQsrcNRFCZGk5rZsZW95lLgcA7KNWqbINNus2yY0V2wssNVMLmtKpYWBPIcnpYEjM8eelYhDwF9EbTJpixZ4ZintEvf3lvgIYrimg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=HXSh6QC2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779400517; c=relaxed/simple;
+	bh=JOlWVyG3Zt5AJX7TfG1jOg7WBc8UPbRd7dRzRJ5nJgo=;
+	h=Date:To:From:Subject:Message-Id; b=OrXZgvTJmPDfv7Pew/9wVS8F5/NqT3WGvMSLXl+Y9NMCIO/wxnIKXapJFpPo9gBInwEOlkL4HVOSo1cNVLkmyJwIn3CMICpVeU0vr5inad+pMGhodnG88ReX5Flw9h90BowoN+wHpf4tEmxRnN3BvEBgjhH6JpqGpvc4efUGkmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hkR2DUsX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="HXSh6QC2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58F7B1F000E9;
-	Thu, 21 May 2026 21:55:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hkR2DUsX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 601D11F000E9;
+	Thu, 21 May 2026 21:55:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779400513;
-	bh=nXl+OWy8/2v/IZAR6VbEYU6GRlHVgSiC06Umtb+rbEk=;
+	d=linux-foundation.org; s=korg; t=1779400515;
+	bh=ZT3T79kjkWcPpCYLYK0J1j6uHO/6B2lWe8Gylmx8K0k=;
 	h=Date:To:From:Subject;
-	b=HXSh6QC2Sp3gzB1Xu4jNwCTG3SQoLIe9VkA+jNfldIEmnotq8nEz/RcuLm3d3HmDH
-	 SSY1s5OIP00S+MdkYym6ny4DqqiV58F2IdZDCX3dfKoDRjG8CmGXXIENsaC3p7Y4Ha
-	 Mn6I3E3Qb1k2Zsm49eBcRrQJlax7/tc2RAfBXcMc=
-Date: Thu, 21 May 2026 14:55:12 -0700
+	b=hkR2DUsXP8KpkbLs3f7UwWbN4oY/aAeL7huaiVa2DE4dp/ijrqW13zDcHNpeIZC5l
+	 R3nTMJrk8bkcHucJsaxaPOOg50pTj/oH7OfhrszRxpXX2IzkdJXuTUIe0lMwl3kvuJ
+	 O4d81Svwvs81FF1f2sCHJm6ZoR1CfvxgZh7kf6ig=
+Date: Thu, 21 May 2026 14:55:14 -0700
 To: mm-commits@vger.kernel.org,sayalip@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-mm-restore-default-nr_hugepages-value-via-exit-trap-in-hugetlb_reparenting_testsh.patch added to mm-new branch
-Message-Id: <20260521215513.58F7B1F000E9@smtp.kernel.org>
+Subject: + selftests-mm-fix-hugetlb-pathname-construction-in-hugetlb_reparenting_testsh.patch added to mm-new branch
+Message-Id: <20260521215515.601D11F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/mm: restore default nr_hugepages value via exit trap in hugetlb_reparenting_test.sh
+     Subject: selftests/mm: fix hugetlb pathname construction in hugetlb_reparenting_test.sh
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-mm-restore-default-nr_hugepages-value-via-exit-trap-in-hugetlb_reparenting_testsh.patch
+     selftests-mm-fix-hugetlb-pathname-construction-in-hugetlb_reparenting_testsh.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-restore-default-nr_hugepages-value-via-exit-trap-in-hugetlb_reparenting_testsh.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-fix-hugetlb-pathname-construction-in-hugetlb_reparenting_testsh.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,28 +70,31 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sayali Patil <sayalip@linux.ibm.com>
-Subject: selftests/mm: restore default nr_hugepages value via exit trap in hugetlb_reparenting_test.sh
-Date: Thu, 21 May 2026 12:17:43 +0530
+Subject: selftests/mm: fix hugetlb pathname construction in hugetlb_reparenting_test.sh
+Date: Thu, 21 May 2026 12:17:44 +0530
 
-The test modifies nr_hugepages during execution and restores it from
-cleanup() and again reconfigure it setup, which is invoked multiple times
-across test flow.  This can lead to repeated allocation/freeing of
-hugepages.
+The hugetlb_reparenting_test.sh script constructs hugetlb cgroup memory
+interface file names based on the configured huge page size.  The script
+formats the size only in MB units, which causes mismatches on systems
+using larger huge pages where the kernel exposes normalized units (e.g. 
+"1GB" instead of "1024MB").
 
-With set -e, failures in cleanup (e.g., rmdir/umount) can also cause early
-exit before restoring the original value at the end.
+As a result, the test fails to locate the corresponding cgroup files when
+1GB huge pages are configured.
 
-Move restoration of the original nr_hugepages value to a trap handler
-registered for EXIT, INT, and TERM signals so it is always restored on all
-exit paths.  This also avoids unnecessary allocation churn across repeated
-cleanup/setup cycles.
+Update the script to detect the huge page size and select the appropriate
+unit (MB or GB) so that the constructed paths match the kernel's hugetlb
+controller naming.
 
-Link: https://lore.kernel.org/29db637c3c6ba6c168f6b33f59f059a0b39c35c8.1779296493.git.sayalip@linux.ibm.com
-Fixes: 585a9145886a ("selftests/mm: restore default nr_hugepages value during cleanup in hugetlb_reparenting_test.sh")
+Also print an explicit "Fail" message when a test failure occurs to
+improve result visibility.
+
+Link: https://lore.kernel.org/837ce751965c93f74c95d89587debf1e93281364.1779296493.git.sayalip@linux.ibm.com
+Fixes: e487a5d513cb ("selftest/mm: make hugetlb_reparenting_test tolerant to async reparenting")
 Signed-off-by: Sayali Patil <sayalip@linux.ibm.com>
-Acked-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Tested-by: Venkat Rao Bagalkote <venkat88@linux.ibm.com>
-Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
@@ -102,33 +105,49 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/hugetlb_reparenting_test.sh |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/hugetlb_reparenting_test.sh |   14 ++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-restore-default-nr_hugepages-value-via-exit-trap-in-hugetlb_reparenting_testsh
+--- a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh~selftests-mm-fix-hugetlb-pathname-construction-in-hugetlb_reparenting_testsh
 +++ a/tools/testing/selftests/mm/hugetlb_reparenting_test.sh
-@@ -12,6 +12,8 @@ if [[ $(id -u) -ne 0 ]]; then
- fi
- 
- nr_hugepgs=$(cat /proc/sys/vm/nr_hugepages)
-+trap 'echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages' EXIT INT TERM
-+
- usage_file=usage_in_bytes
- 
- if [[ "$1" == "-cgroup-v2" ]]; then
-@@ -56,7 +58,6 @@ function cleanup() {
-   rmdir "$CGROUP_ROOT"/a/b 2>/dev/null
-   rmdir "$CGROUP_ROOT"/a 2>/dev/null
-   rmdir "$CGROUP_ROOT"/test1 2>/dev/null
--  echo $nr_hugepgs >/proc/sys/vm/nr_hugepages
-   set -e
+@@ -48,6 +48,13 @@ function get_machine_hugepage_size() {
  }
  
-@@ -240,4 +241,3 @@ if [[ $do_umount ]]; then
-   rm -rf $CGROUP_ROOT
- fi
+ MB=$(get_machine_hugepage_size)
++if (( MB >= 1024 )); then
++  UNIT="GB"
++  MB_DISPLAY=$((MB / 1024))
++else
++  UNIT="MB"
++  MB_DISPLAY=$MB
++fi
  
--echo "$nr_hugepgs" > /proc/sys/vm/nr_hugepages
+ function cleanup() {
+   echo cleanup
+@@ -88,6 +95,7 @@ function assert_with_retry() {
+     if [[ $elapsed -ge $timeout ]]; then
+       echo "actual = $((${actual%% *} / 1024 / 1024)) MB"
+       echo "expected = $((${expected%% *} / 1024 / 1024)) MB"
++      echo FAIL
+       cleanup
+       exit 1
+     fi
+@@ -108,11 +116,13 @@ function assert_state() {
+   fi
+ 
+   assert_with_retry "$CGROUP_ROOT/a/memory.$usage_file" "$expected_a"
+-  assert_with_retry "$CGROUP_ROOT/a/hugetlb.${MB}MB.$usage_file" "$expected_a_hugetlb"
++  assert_with_retry \
++	  "$CGROUP_ROOT/a/hugetlb.${MB_DISPLAY}${UNIT}.$usage_file" "$expected_a_hugetlb"
+ 
+   if [[ -n "$expected_b" && -n "$expected_b_hugetlb" ]]; then
+     assert_with_retry "$CGROUP_ROOT/a/b/memory.$usage_file" "$expected_b"
+-    assert_with_retry "$CGROUP_ROOT/a/b/hugetlb.${MB}MB.$usage_file" "$expected_b_hugetlb"
++    assert_with_retry \
++	  "$CGROUP_ROOT/a/b/hugetlb.${MB_DISPLAY}${UNIT}.$usage_file" "$expected_b_hugetlb"
+   fi
+ }
+ 
 _
 
 Patches currently in -mm which might be from sayalip@linux.ibm.com are
