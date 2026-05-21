@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 056553AE1B1;
-	Thu, 21 May 2026 23:55:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71A173B4E9E
+	for <mm-commits@vger.kernel.org>; Thu, 21 May 2026 23:57:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779407740; cv=none; b=qkBALQDl0VkZh66dfkJavZrSc1c2mXCSg3rn6ws/fr34HesWsvemXms8Pkk+LqKJXozvBu7qLpKk2/1CgKz94krm7fmpKKH3M1bZY4r8djn3cDYZdbBLfr4pXuB3QS09k2rN1Y2cPd7QdgXfI9VyEoHFZ7ItrANI+p8lF3Ehx/E=
+	t=1779407828; cv=none; b=pyAde0NcPXELFB0p40h1EoAMAOHQjoJySwE/KcB/iRoqWFs8SQbP0iLtEg1u3s7NGFNm9LrKDKmHAu4k1JAuyxS/BCRB3/TYRxfg4R6Z82OBJgbnTTvU2QARKg0o+86+dYDlKCqt9prli0DLHDG25POMWsRl8jSgqu6Bir2QixE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779407740; c=relaxed/simple;
-	bh=dhyUXiB2ZhDq63IpjY62aARgjqWSY8Me0llVup90P4s=;
-	h=Date:To:From:Subject:Message-Id; b=F6ay0c8eU28ggRmmO8Xwche2jH+HPQrAYb7pUY+ch9ZL0dlN0c4fcvPj6Jhz0RSOsYSvxFM7UaEIlcL9rzQYkofFSeJIQ9xaC5ByJ1S2JmLWURNhTuo+KQFGbCPMzNuFIPOvPxmaihkSx0VlwPdCwod3sSq74yVTGvCcW+GErHI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Bxn9gjTR; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779407828; c=relaxed/simple;
+	bh=aTw+chJvD/olnLs06yIxO3pNlIbmd/dbxIh1zqsXBPQ=;
+	h=Date:To:From:Subject:Message-Id; b=FgRh6M8BtdY2FhgZe236+yIvOQVB3bWCwXnpc4EmGyvQ1ieEk/LBv5XvZIF7kMSPyLEExT2GXT7j1+yqtR9O6JMwYgxTO/lnGcKDExTEjjLx74LCftmnaJDUWpBCgYL0hpEiP5GNJ2FCD1ijcBoG8dMu4OVy9UdLB44GE4wo5xA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=L8fbgPI8; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Bxn9gjTR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1909C1F000E9;
-	Thu, 21 May 2026 23:55:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="L8fbgPI8"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FF231F000E9;
+	Thu, 21 May 2026 23:57:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779407733;
-	bh=u4oR8z/pfRd47RpMQjTQ/Koe578zCVBqyZlw8FktE/s=;
+	d=linux-foundation.org; s=korg; t=1779407820;
+	bh=Xmq9C5GtyBtez17OTkhXGDCZ50d98WN7kLp13e5RmPY=;
 	h=Date:To:From:Subject;
-	b=Bxn9gjTROjyW/KmbDUuF45JmuCw9GpgEvab5mHg6CO9BlMmfEochJ35Na2FItDoOf
-	 kXUTOBRTGV4pKdcj965bmvT6hiJ/36H52HJhOoqLqs+Uh6ytLQhGNwjvpurlctW99v
-	 L7rGhDm2rDK1ZQotS4J9F0HpZ4aYfjI/YhjWlfZA=
-Date: Thu, 21 May 2026 16:55:32 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@kernel.org,harry@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=L8fbgPI8mQMwafmBKenf5mmsSfjfDHMEQHN0zyOQOVoAQYo9Mi0r6QzYm0iorGl2f
+	 rY6vvxXKsoHG1+zqk91ytwuqpbheIcKN9hnZVAgfRapvKHJfGIASGIh6WMBTlHUFvH
+	 fSm1WFv9gg0Nf4xN1vMrBoz9KqKMSuRLEAwfaHrY=
+Date: Thu, 21 May 2026 16:57:00 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,d@ilvokhin.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-use-round-robin-victim-selection-in-refill_stock.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260521235533.1909C1F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations.patch removed from -mm tree
+Message-Id: <20260521235700.7FF231F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,90 +34,83 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: memcg: use round-robin victim selection in refill_stock
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     memcg-use-round-robin-victim-selection-in-refill_stock.patch
+The quilt patch titled
+     Subject: mm/page_alloc: fix defrag_mode for non-reclaimable allocations
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-use-round-robin-victim-selection-in-refill_stock.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: use round-robin victim selection in refill_stock
-Date: Thu, 21 May 2026 15:37:51 -0700
+From: Dmitry Ilvokhin <d@ilvokhin.com>
+Subject: mm/page_alloc: fix defrag_mode for non-reclaimable allocations
+Date: Mon, 18 May 2026 16:37:36 +0000
 
-Harry Yoo reported that get_random_u32_below() is not safe to call in the
-nmi context and memcg charge draining can happen in nmi context.
+When defrag_mode is enabled, ALLOC_NOFRAGMENT is enforced to prevent
+migratetype fallbacks and keep pageblocks clean.  The allocator relies on
+reclaim and compaction to free pages of the correct type before allowing
+fallback as a last resort.
 
-More specifically get_random_u32_below() is neither reentrant- nor
-NMI-safe: it acquires a per-cpu local_lock via local_lock_irqsave() on the
-batched_entropy_u32 state.  An NMI that lands on a CPU mid-update of the
-ChaCha batch state and recurses into the random subsystem would corrupt
-that state.  The memcg_stock local_trylock prevents re-entry on the percpu
-stock itself, but cannot protect an unrelated subsystem's per-cpu lock.
+However, non-reclaimable allocations such as GFP_ATOMIC cannot invoke
+direct reclaim or compaction.  With defrag_mode=1, these allocations hit
+the !can_direct_reclaim bailout in __alloc_pages_slowpath() with
+ALLOC_NOFRAGMENT still set, and fail without ever attempting a fallback.
 
-Replace the random pick with a per-cpu round-robin counter stored in
-memcg_stock_pcp and serialized by the same local_trylock that already
-guards cached[] and nr_pages[].  No atomics, no random calls, no extra
-locks needed.
+This causes a large number of SLUB allocation failures for
+skbuff_head_cache under network-heavy workloads, despite free memory being
+available in other migratetype freelists.
 
-Link: https://lore.kernel.org/20260521223751.3794625-1-shakeel.butt@linux.dev
-Fixes: f735eebe55f8f ("memcg: multi-memcg percpu charge cache")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reported-by: Harry Yoo <harry@kernel.org>
-Closes: https://lore.kernel.org/4e20f643-6983-4b6e-b12d-c6c4eb20ae0c@kernel.org/
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: <stable@vger.kernel.org>
+Clear ALLOC_NOFRAGMENT and retry before giving up on allocations that
+cannot reclaim, following the same pattern used after reclaim/compaction
+exhaustion later in the slowpath.
+
+Link: https://lore.kernel.org/20260518163736.173910-1-d@ilvokhin.com
+Fixes: e3aa7df331bc ("mm: page_alloc: defrag_mode")
+Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~memcg-use-round-robin-victim-selection-in-refill_stock
-+++ a/mm/memcontrol.c
-@@ -2031,6 +2031,7 @@ struct memcg_stock_pcp {
+--- a/mm/page_alloc.c~mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations
++++ a/mm/page_alloc.c
+@@ -4853,8 +4853,18 @@ retry:
+ 	}
  
- 	struct work_struct work;
- 	unsigned long flags;
-+	uint8_t drain_idx;
- };
+ 	/* Caller is not willing to reclaim, we can't balance anything */
+-	if (!can_direct_reclaim)
++	if (!can_direct_reclaim) {
++		/*
++		 * Reclaim/compaction cannot run, so defrag_mode's strategy
++		 * of enforcing ALLOC_NOFRAGMENT cannot be fulfilled. Allow
++		 * fallbacks rather than failing the allocation outright.
++		 */
++		if (defrag_mode && (alloc_flags & ALLOC_NOFRAGMENT)) {
++			alloc_flags &= ~ALLOC_NOFRAGMENT;
++			goto retry;
++		}
+ 		goto nopage;
++	}
  
- static DEFINE_PER_CPU_ALIGNED(struct memcg_stock_pcp, memcg_stock) = {
-@@ -2214,7 +2215,9 @@ static void refill_stock(struct mem_cgro
- 	if (!success) {
- 		i = empty_slot;
- 		if (i == -1) {
--			i = get_random_u32_below(NR_MEMCG_STOCK);
-+			i = stock->drain_idx++;
-+			if (stock->drain_idx == NR_MEMCG_STOCK)
-+				stock->drain_idx = 0;
- 			drain_stock(stock, i);
- 		}
- 		css_get(&memcg->css);
+ 	/* Avoid recursion of direct reclaim */
+ 	if (current->flags & PF_MEMALLOC)
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from d@ilvokhin.com are
 
-memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch
-memcg-use-round-robin-victim-selection-in-refill_stock.patch
+mm-use-zone-lock-guard-in-reserve_highatomic_pageblock.patch
+mm-use-zone-lock-guard-in-unset_migratetype_isolate.patch
+mm-use-zone-lock-guard-in-unreserve_highatomic_pageblock.patch
+mm-use-zone-lock-guard-in-set_migratetype_isolate.patch
+mm-use-zone-lock-guard-in-take_page_off_buddy.patch
+mm-use-zone-lock-guard-in-put_page_back_buddy.patch
+mm-use-zone-lock-guard-in-free_pcppages_bulk.patch
+mm-use-zone-lock-guard-in-__offline_isolated_pages.patch
 
