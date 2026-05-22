@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3D141A6825
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:47:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88B8F357CF3
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:47:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779482866; cv=none; b=S0yoMmu8fdf1U+v9IXrf+JxDBzJwutudH34gILN8DV2P+CsNYsX5gpU5kO9zZCkE1LwwCLwGtERzJZtRbKBX+Fc5U7785gJNuYc/2T+h1TLrKs/CpwIgMUlKf59j3Yt4UEX1WLr9qV3C3DWtKtfg47MrrSER4t2yN26KLvAZVRs=
+	t=1779482869; cv=none; b=iVaWG3TJaEOESrmGIWFj9pNKcg50Lg5UwbsUy8Wo6UEYfVOAuM3lWdGcI7sCpUxm2ucot9cCMmQ/HSvwg/SHNvH2dNMA1w21Zff5mqTm9tX8T891o9KArVFKksAsICQ1D3G6rFDXKhJ3kxHsrcjsvB7jjFltBhKAw5H5Rj1mhyE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779482866; c=relaxed/simple;
-	bh=og7PKrCT1Z117iq9WtPNCtlMFaSugAc0HMM0RsoznoE=;
-	h=Date:To:From:Subject:Message-Id; b=KJcDx/SOq3UNk8Vcl167sFZTZ13KmXnRQpqo7+hj5Px2c5OMEzGUEOE5BUT2BlNua6KMKVeyG8QyrmIJ3Tdog8CjiwpQSAy90I22rx9k7TzWuxTlU0YgFXMD0beW8iZntXj2LHAr9r3wbEWRqGq8pm02LM5ZHuUn3HgjmV6fFtk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xIu5VpB3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779482869; c=relaxed/simple;
+	bh=enAtABz6uX9jP+WalNOYo60JDjNZQaH5B95BEWCTHxk=;
+	h=Date:To:From:Subject:Message-Id; b=unw9+mxA3ynVm3NDZOw17HcC0abud0aEI1lacbfE4Yaj51u25QVy1ORP/osBcMtvy8A6EUqQ6vHAZq7LkKXJ0Wrr0KqilzK70TNrWWOBQJnuHDGfEtQlXoBLD/h/ALKmjPBycyM+quYUDjzcW7q6Der0Iw8my9Il8KHx2B+p9Rw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PU80Gdju; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xIu5VpB3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61A2F1F00A3D;
-	Fri, 22 May 2026 20:47:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PU80Gdju"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 060461F000E9;
+	Fri, 22 May 2026 20:47:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779482864;
-	bh=97EzAkFq2dIGeq0/XjVIYOcGoY+fnBPMhJnH3ytQ5xI=;
+	d=linux-foundation.org; s=korg; t=1779482867;
+	bh=dTS0ewd1847L7egVFwHDUdMC/sluT+qmIB4s+y2QSQ8=;
 	h=Date:To:From:Subject;
-	b=xIu5VpB3ebSnTzUMXR86tSpZxJX4rhF6nNmeRYywxgbhuW45KM1rJnNGE+uHsVZw7
-	 aDNve+EnzKjbo9eDefs6DH7y6fdwA1fzQS2Uur7jD2LAnbYDwWe5F4MoGkHiLfW4q+
-	 C/Grz+ohkmQ9+oYMChcktRKlRtGRgRsToANVzPuE=
-Date: Fri, 22 May 2026 13:47:44 -0700
-To: mm-commits@vger.kernel.org,npache@redhat.com,akpm@linux-foundation.org
+	b=PU80GdjuGN1jaBYFQ4qepGowSUcDn8OOreZzh1DoKSV780mJRzUpEaEeHWPxMbUZK
+	 9M4BDk4g6JouhFR7NQ9mcn1/Kp4DGOYUEL8iUBPelBMfJrkzQ2GpSvvTeALaNdOUUR
+	 Y4vGQfRhSSeeQGSs3O1YismAm6Cdd3QSXnBj8lmI=
+Date: Fri, 22 May 2026 13:47:46 -0700
+To: mm-commits@vger.kernel.org,dev.jain@arm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch added to mm-unstable branch
-Message-Id: <20260522204744.61A2F1F00A3D@smtp.kernel.org>
+Subject: + mm-khugepaged-generalize-alloc_charge_folio.patch added to mm-unstable branch
+Message-Id: <20260522204747.060461F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: generalize hugepage_vma_revalidate for mTHP support
+     Subject: mm/khugepaged: generalize alloc_charge_folio()
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
+     mm-khugepaged-generalize-alloc_charge_folio.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-generalize-alloc_charge_folio.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,81 +58,15 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: mm/khugepaged: generalize hugepage_vma_revalidate for mTHP support
-Date: Fri, 22 May 2026 08:59:56 -0600
+From: Dev Jain <dev.jain@arm.com>
+Subject: mm/khugepaged: generalize alloc_charge_folio()
+Date: Fri, 22 May 2026 08:59:57 -0600
 
-Patch series "khugepaged: add mTHP collapse support", v18.
+Pass order to alloc_charge_folio() and update mTHP statistics.
 
-The following series provides khugepaged with the capability to collapse
-anonymous memory regions to mTHPs.
-
-To achieve this we generalize the khugepaged functions to no longer depend
-on PMD_ORDER.  Then during the PMD scan, we use a bitmap to track
-individual pages that are occupied (!none/zero).  After the PMD scan is
-done, we use the bitmap to find the optimal mTHP sizes for the PMD range. 
-The restriction on max_ptes_none is removed during the scan, to make sure
-we account for the whole PMD range in the bitmap.  When no mTHP size is
-enabled, the legacy behavior of khugepaged is maintained.
-
-We currently only support max_ptes_none values of 0 or HPAGE_PMD_NR - 1
-(ie 511).  If any other value is specified, the kernel will emit a warning
-and mTHP collapse will default to max_ptes_none=0.  If a mTHP collapse is
-attempted, but contains swapped out, or shared pages, we don't perform the
-collapse.  It is now also possible to collapse to mTHPs without requiring
-the PMD THP size to be enabled.  These limitations are to prevent collapse
-"creep" behavior.  This prevents constantly promoting mTHPs to the next
-available size, which would occur because a collapse introduces more
-non-zero pages that would satisfy the promotion condition on subsequent
-scans.
-
-Patch 1-2:   Generalize hugepage_vma_revalidate and alloc_charge_folio
-             for arbitrary orders.
-Patch 3:     Rework max_ptes_* handling into helper functions
-Patch 4:     Generalize __collapse_huge_page_* for mTHP support
-Patch 5:     Require collapse_huge_page to enter/exit with the lock dropped
-Patch 6:     Generalize collapse_huge_page for mTHP collapse
-Patch 7:     Skip collapsing mTHP to smaller orders
-Patch 8-9:   Add per-order mTHP statistics and tracepoints
-Patch 10:    Introduce collapse_allowable_orders helper function
-Patch 11-13: Introduce bitmap and mTHP collapse support, fully enabled
-Patch 14:    Documentation
-
-Testing:
-- Built for x86_64, aarch64, ppc64le, and s390x
-- ran all arches on test suites provided by the kernel-tests project
-- internal testing suites: functional testing and performance testing
-- selftests mm
-- I created a test script that I used to push khugepaged to its limits
-   while monitoring a number of stats and tracepoints. The code is
-   available here[1] (Run in legacy mode for these changes and set mthp
-   sizes to inherit)
-   The summary from my testings was that there was no significant
-   regression noticed through this test. In some cases my changes had
-   better collapse latencies, and was able to scan more pages in the same
-   amount of time/work, but for the most part the results were consistent.
-- redis testing. I did some testing with these changes along with my defer
-  changes (see followup [2] post for more details). We've decided to get
-  the mTHP changes merged first before attempting the defer series.
-- some basic testing on 64k page size.
-- lots of general use.
-
-
-This patch (of 14):
-
-For khugepaged to support different mTHP orders, we must generalize this
-to check if the PMD is not shared by another VMA and that the order is
-enabled.
-
-No functional change in this patch.  Also correct a comment about the
-functionality of the revalidation and fix a double space issues.
-
-Link: https://lore.kernel.org/20260522150009.121603-1-npache@redhat.com
-Link: https://lore.kernel.org/20260522150009.121603-2-npache@redhat.com
-Link: https://gitlab.com/npache/khugepaged_mthp_test [1]
-Link: https://lore.kernel.org/lkml/20250515033857.132535-1-npache@redhat.com/ [2]
-Co-developed-by: Dev Jain <dev.jain@arm.com>
+Link: https://lore.kernel.org/20260522150009.121603-3-npache@redhat.com
 Signed-off-by: Dev Jain <dev.jain@arm.com>
+Co-developed-by: Nico Pache <npache@redhat.com>
 Signed-off-by: Nico Pache <npache@redhat.com>
 Reviewed-by: Wei Yang <richard.weiyang@gmail.com>
 Reviewed-by: Lance Yang <lance.yang@linux.dev>
@@ -187,91 +121,124 @@ Cc: Zach O'Keefe <zokeefe@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ Documentation/admin-guide/mm/transhuge.rst |    8 +++++++
+ include/linux/huge_mm.h                    |    2 +
+ mm/huge_memory.c                           |    4 +++
+ mm/khugepaged.c                            |   20 ++++++++++++-------
+ 4 files changed, 27 insertions(+), 7 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support
+--- a/Documentation/admin-guide/mm/transhuge.rst~mm-khugepaged-generalize-alloc_charge_folio
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -639,6 +639,14 @@ anon_fault_fallback_charge
+ 	instead falls back to using huge pages with lower orders or
+ 	small pages even though the allocation was successful.
+ 
++collapse_alloc
++	is incremented every time a huge page is successfully allocated for a
++	khugepaged collapse.
++
++collapse_alloc_failed
++	is incremented every time a huge page allocation fails during a
++	khugepaged collapse.
++
+ zswpout
+ 	is incremented every time a huge page is swapped out to zswap in one
+ 	piece without splitting.
+--- a/include/linux/huge_mm.h~mm-khugepaged-generalize-alloc_charge_folio
++++ a/include/linux/huge_mm.h
+@@ -128,6 +128,8 @@ enum mthp_stat_item {
+ 	MTHP_STAT_ANON_FAULT_ALLOC,
+ 	MTHP_STAT_ANON_FAULT_FALLBACK,
+ 	MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE,
++	MTHP_STAT_COLLAPSE_ALLOC,
++	MTHP_STAT_COLLAPSE_ALLOC_FAILED,
+ 	MTHP_STAT_ZSWPOUT,
+ 	MTHP_STAT_SWPIN,
+ 	MTHP_STAT_SWPIN_FALLBACK,
+--- a/mm/huge_memory.c~mm-khugepaged-generalize-alloc_charge_folio
++++ a/mm/huge_memory.c
+@@ -699,6 +699,8 @@ static struct kobj_attribute _name##_att
+ DEFINE_MTHP_STAT_ATTR(anon_fault_alloc, MTHP_STAT_ANON_FAULT_ALLOC);
+ DEFINE_MTHP_STAT_ATTR(anon_fault_fallback, MTHP_STAT_ANON_FAULT_FALLBACK);
+ DEFINE_MTHP_STAT_ATTR(anon_fault_fallback_charge, MTHP_STAT_ANON_FAULT_FALLBACK_CHARGE);
++DEFINE_MTHP_STAT_ATTR(collapse_alloc, MTHP_STAT_COLLAPSE_ALLOC);
++DEFINE_MTHP_STAT_ATTR(collapse_alloc_failed, MTHP_STAT_COLLAPSE_ALLOC_FAILED);
+ DEFINE_MTHP_STAT_ATTR(zswpout, MTHP_STAT_ZSWPOUT);
+ DEFINE_MTHP_STAT_ATTR(swpin, MTHP_STAT_SWPIN);
+ DEFINE_MTHP_STAT_ATTR(swpin_fallback, MTHP_STAT_SWPIN_FALLBACK);
+@@ -764,6 +766,8 @@ static struct attribute *any_stats_attrs
+ #endif
+ 	&split_attr.attr,
+ 	&split_failed_attr.attr,
++	&collapse_alloc_attr.attr,
++	&collapse_alloc_failed_attr.attr,
+ 	NULL,
+ };
+ 
+--- a/mm/khugepaged.c~mm-khugepaged-generalize-alloc_charge_folio
 +++ a/mm/khugepaged.c
-@@ -902,12 +902,13 @@ static int collapse_find_target_node(str
+@@ -1068,28 +1068,34 @@ out:
+ }
  
- /*
-  * If mmap_lock temporarily dropped, revalidate vma
-- * before taking mmap_lock.
-+ * after taking the mmap_lock again.
-  * Returns enum scan_result value.
-  */
- 
- static enum scan_result hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address,
--		bool expect_anon, struct vm_area_struct **vmap, struct collapse_control *cc)
-+		bool expect_anon, struct vm_area_struct **vmap,
+ static enum scan_result alloc_charge_folio(struct folio **foliop, struct mm_struct *mm,
+-		struct collapse_control *cc)
 +		struct collapse_control *cc, unsigned int order)
  {
- 	struct vm_area_struct *vma;
- 	enum tva_type type = cc->is_khugepaged ? TVA_KHUGEPAGED :
-@@ -920,15 +921,16 @@ static enum scan_result hugepage_vma_rev
- 	if (!vma)
- 		return SCAN_VMA_NULL;
+ 	gfp_t gfp = (cc->is_khugepaged ? alloc_hugepage_khugepaged_gfpmask() :
+ 		     GFP_TRANSHUGE);
+ 	int node = collapse_find_target_node(cc);
+ 	struct folio *folio;
  
-+	/* Always check the PMD order to ensure its not shared by another VMA */
- 	if (!thp_vma_suitable_order(vma, address, PMD_ORDER))
- 		return SCAN_ADDRESS_RANGE;
--	if (!thp_vma_allowable_order(vma, vma->vm_flags, type, PMD_ORDER))
-+	if (!thp_vma_allowable_orders(vma, vma->vm_flags, type, BIT(order)))
- 		return SCAN_VMA_CHECK;
- 	/*
- 	 * Anon VMA expected, the address may be unmapped then
- 	 * remapped to file after khugepaged reaquired the mmap_lock.
- 	 *
--	 * thp_vma_allowable_order may return true for qualified file
-+	 * thp_vma_allowable_orders may return true for qualified file
- 	 * vmas.
- 	 */
- 	if (expect_anon && (!(*vmap)->anon_vma || !vma_is_anonymous(*vmap)))
-@@ -1121,7 +1123,8 @@ static enum scan_result collapse_huge_pa
- 		goto out_nolock;
+-	folio = __folio_alloc(gfp, HPAGE_PMD_ORDER, node, &cc->alloc_nmask);
++	folio = __folio_alloc(gfp, order, node, &cc->alloc_nmask);
+ 	if (!folio) {
+ 		*foliop = NULL;
+-		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
++		if (is_pmd_order(order))
++			count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
++		count_mthp_stat(order, MTHP_STAT_COLLAPSE_ALLOC_FAILED);
+ 		return SCAN_ALLOC_HUGE_PAGE_FAIL;
+ 	}
  
- 	mmap_read_lock(mm);
--	result = hugepage_vma_revalidate(mm, address, true, &vma, cc);
-+	result = hugepage_vma_revalidate(mm, address, true, &vma, cc,
-+					 HPAGE_PMD_ORDER);
- 	if (result != SCAN_SUCCEED) {
- 		mmap_read_unlock(mm);
- 		goto out_nolock;
-@@ -1155,7 +1158,8 @@ static enum scan_result collapse_huge_pa
- 	 * mmap_lock.
+-	count_vm_event(THP_COLLAPSE_ALLOC);
++	if (is_pmd_order(order))
++		count_vm_event(THP_COLLAPSE_ALLOC);
++	count_mthp_stat(order, MTHP_STAT_COLLAPSE_ALLOC);
++
+ 	if (unlikely(mem_cgroup_charge(folio, mm, gfp))) {
+ 		folio_put(folio);
+ 		*foliop = NULL;
+ 		return SCAN_CGROUP_CHARGE_FAIL;
+ 	}
+ 
+-	count_memcg_folio_events(folio, THP_COLLAPSE_ALLOC, 1);
++	if (is_pmd_order(order))
++		count_memcg_folio_events(folio, THP_COLLAPSE_ALLOC, 1);
+ 
+ 	*foliop = folio;
+ 	return SCAN_SUCCEED;
+@@ -1118,7 +1124,7 @@ static enum scan_result collapse_huge_pa
  	 */
- 	mmap_write_lock(mm);
--	result = hugepage_vma_revalidate(mm, address, true, &vma, cc);
-+	result = hugepage_vma_revalidate(mm, address, true, &vma, cc,
-+					 HPAGE_PMD_ORDER);
+ 	mmap_read_unlock(mm);
+ 
+-	result = alloc_charge_folio(&folio, mm, cc);
++	result = alloc_charge_folio(&folio, mm, cc, HPAGE_PMD_ORDER);
  	if (result != SCAN_SUCCEED)
- 		goto out_up_write;
- 	/* check if the pmd is still valid */
-@@ -2858,8 +2862,8 @@ int madvise_collapse(struct vm_area_stru
- 			mmap_unlocked = false;
- 			*lock_dropped = true;
- 			result = hugepage_vma_revalidate(mm, addr, false, &vma,
--							 cc);
--			if (result  != SCAN_SUCCEED) {
-+							 cc, HPAGE_PMD_ORDER);
-+			if (result != SCAN_SUCCEED) {
- 				last_fail = result;
- 				goto out_nolock;
- 			}
+ 		goto out_nolock;
+ 
+@@ -1899,7 +1905,7 @@ static enum scan_result collapse_file(st
+ 	VM_BUG_ON(!IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && !is_shmem);
+ 	VM_BUG_ON(start & (HPAGE_PMD_NR - 1));
+ 
+-	result = alloc_charge_folio(&new_folio, mm, cc);
++	result = alloc_charge_folio(&new_folio, mm, cc, HPAGE_PMD_ORDER);
+ 	if (result != SCAN_SUCCEED)
+ 		goto out;
+ 
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from dev.jain@arm.com are
 
-mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
-mm-khugepaged-rework-max_ptes_-handling-with-helper-functions.patch
-mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
-mm-khugepaged-require-collapse_huge_page-to-enter-exit-with-the-lock-dropped.patch
-mm-khugepaged-generalize-collapse_huge_page-for-mthp-collapse.patch
-mm-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
-mm-khugepaged-add-per-order-mthp-collapse-failure-statistics.patch
-mm-khugepaged-improve-tracepoints-for-mthp-orders.patch
-mm-khugepaged-introduce-collapse_allowable_orders-helper-function.patch
-mm-khugepaged-introduce-mthp-collapse-support.patch
-mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
-documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
+selftests-mm-simplify-byte-pattern-checking-in-mremap_test.patch
+mm-khugepaged-generalize-alloc_charge_folio.patch
 
