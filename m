@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3885934CFAB
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A5CB34CFAB
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779481345; cv=none; b=c37E4tBqEu0d9neftYlGAz2rj7zL4t9OZ11HP5lTVDI5C8nv4Pj4/P5ZHZHkBkE9OKiVPZEMNx/7bJR2Wekcfrvaa2fHkreHwuvVZM3fbCYDWgyog/8XmlK7j7digkCodN3414anvsw4DBgW5y7D5od1BmV2CvVt286o2ypFU/Y=
+	t=1779481347; cv=none; b=CRg+yc713+b6uC8HrRdo3Lg77WSX9X65lgocv/QdWHcpKhLrBHsyaOYhXFhRFmTgjOTQ5g/CwfqxvJnLyH2Hx5/E6e3z9uOuJRZ9yBTJuVVYUxYRMBOHJzVFKTRtFayZYJJ4nQUJT6tSgooXH2+YfRIIIuRayw3U6xiSBeelrrk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779481345; c=relaxed/simple;
-	bh=eUppcJm1wJDhO8taW/uBmRnDtJidTxo6evqWAcsoIGo=;
-	h=Date:To:From:Subject:Message-Id; b=m7MKbSaKlqJ7jBYDMV4Yl7g+U/w88/FT97P1Nun1j/aF0Kq+dQu4whlLHQLx+Hiz3n/x2OuSC1GJq5p2TevoBdgU5pYSVq0vRkCkeFtTS+VQJZuOmVnjlyCvBhUomR5/x1gykhES1twnwdyGbtWmUwCna0fp4VScDawFgkOOeqg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RC06kXeN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779481347; c=relaxed/simple;
+	bh=ZwqHUbGx0Ock1teCMCkie3EOOdjueJXlX9tzxic+Zyc=;
+	h=Date:To:From:Subject:Message-Id; b=DfcBqv8BRS7L7YH/aZy2fWWN4YKf/7US5ePI6qjur1Va18rGL12/4KjpyA5MPWIHIfuB8Ygo6fOl/0OXWnS7Itrp9Seheh2AFzQX9o+eCpJHyHXdkBv+GkBqNyVmSHKeUjkR/yyvnbpyJ4H57/5kPzcBguHQu1d6z9xBn9WdTxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g9kzxo0W; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RC06kXeN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C590C1F000E9;
-	Fri, 22 May 2026 20:22:23 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g9kzxo0W"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3EEA1F000E9;
+	Fri, 22 May 2026 20:22:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779481343;
-	bh=sIKDou/t/JCY750fcjq35QJ1e92W5v21RWv8oT5cKFk=;
+	d=linux-foundation.org; s=korg; t=1779481345;
+	bh=2K7C51nR+pEuUBTSh1S7K4ZECnTeo05MJORnuixrFPM=;
 	h=Date:To:From:Subject;
-	b=RC06kXeN8O7IY5lTn4/Xl+hhYFuhcnpwApRmsi94Fp96C3ksPWLgRHRlJkq5mo8sQ
-	 wW9ugbxmIWCqzTzEXm2zLP96hmHtBrSDsg+xyurnXzoGpeG5+PQSRaMY23AmgUXzd+
-	 u5OoHgpQz4YE+zPQMpQBo883iz4VcuSloAGfN1TI=
-Date: Fri, 22 May 2026 13:22:23 -0700
+	b=g9kzxo0WBssOouzGI9Yib5jQW1YroM13IIkXOVhD2NzNTQ84m/KrorOd8NIoRe/3Q
+	 OAj8iEfeXi4uxwG2oK+vL1v33D+fTkbTPcM/K3bOWKtBvWlYNz8cRb4KyywUkoJ+Zw
+	 Xtq68VfhRcPwMwdD6cJ5blVythX948euGLIop7W4=
+Date: Fri, 22 May 2026 13:22:25 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch added to mm-new branch
-Message-Id: <20260522202223.C590C1F000E9@smtp.kernel.org>
+Subject: + samples-damon-mtier-replace-damon_add_region-with-damon_set_regions.patch added to mm-new branch
+Message-Id: <20260522202225.B3EEA1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: do not use region out of a loop in damon_set_regions()
+     Subject: samples/damon/mtier: replace damon_add_region() with damon_set_regions()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
+     samples-damon-mtier-replace-damon_add_region-with-damon_set_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/samples-damon-mtier-replace-damon_add_region-with-damon_set_regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,62 +70,58 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: do not use region out of a loop in damon_set_regions()
-Date: Fri, 22 May 2026 08:40:13 -0700
+Subject: samples/damon/mtier: replace damon_add_region() with damon_set_regions()
+Date: Fri, 22 May 2026 08:40:14 -0700
 
-damon_set_regions() assumes the DAMON region iterator is referencing the
-last region after the region iteration loop is completed.  The code is
-indeed implemented in the way, but that is not a documented safe behavior.
-Hence it is unreliable and difficult to read.  Cleanup the code to avoid
-the case.
+mtier DAMON sample module and DAMON virtual address operation set (vaddr)
+unit tests are using damon_add_region() for setup of DAMON monitoring
+target region boundaries setup.  But, damon_set_regions() is designed for
+exactly the purpose.  All other DAMON API callers use the function for the
+purpose.  Replace damon_add_region() usage in mtier sample module with
+damon_set_regions(), for unifying the use case and reducing the
+maintenance cost.
 
-No behavioral change is intended.
-
-Link: https://lore.kernel.org/20260522154026.80546-3-sj@kernel.org
+Link: https://lore.kernel.org/20260522154026.80546-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ samples/damon/mtier.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions
-+++ a/mm/damon/core.c
-@@ -374,6 +374,7 @@ int damon_set_regions(struct damon_targe
- 	for (i = 0; i < nr_ranges; i++) {
- 		struct damon_region *first = NULL, *last, *newr;
- 		struct damon_addr_range *range;
-+		bool insert_before_r = false;
+--- a/samples/damon/mtier.c~samples-damon-mtier-replace-damon_add_region-with-damon_set_regions
++++ a/samples/damon/mtier.c
+@@ -75,11 +75,11 @@ static struct damon_ctx *damon_sample_mt
+ 	struct damon_ctx *ctx;
+ 	struct damon_attrs attrs;
+ 	struct damon_target *target;
+-	struct damon_region *region;
+ 	struct damos *scheme;
+ 	struct damos_quota_goal *quota_goal;
+ 	struct damos_filter *filter;
+ 	struct region_range addr;
++	struct damon_addr_range range;
+ 	int ret;
  
- 		range = &ranges[i];
- 		/* Get the first/last regions intersecting with the range */
-@@ -383,8 +384,10 @@ int damon_set_regions(struct damon_targe
- 					first = r;
- 				last = r;
- 			}
--			if (r->ar.start >= range->end)
-+			if (r->ar.start >= range->end) {
-+				insert_before_r = true;
- 				break;
-+			}
- 		}
- 		if (!first) {
- 			/* no region intersects with this range */
-@@ -394,7 +397,11 @@ int damon_set_regions(struct damon_targe
- 					ALIGN(range->end, min_region_sz));
- 			if (!newr)
- 				return -ENOMEM;
--			damon_insert_region(newr, damon_prev_region(r), r, t);
-+			if (insert_before_r)
-+				damon_insert_region(newr, damon_prev_region(r),
-+						r, t);
-+			else
-+				damon_add_region(newr, t);
- 		} else {
- 			/* resize intersecting regions to fit in this range */
- 			first->ar.start = ALIGN_DOWN(range->start,
+ 	ctx = damon_new_ctx();
+@@ -120,10 +120,12 @@ static struct damon_ctx *damon_sample_mt
+ 		addr.end = promote ? node1_end_addr : node0_end_addr;
+ 	}
+ 
+-	region = damon_new_region(addr.start, addr.end);
+-	if (!region)
++	range.start = addr.start;
++	range.end = addr.end;
++
++	ret = damon_set_regions(target, &range, 1, DAMON_MIN_REGION_SZ);
++	if (ret)
+ 		goto free_out;
+-	damon_add_region(region, target);
+ 
+ 	scheme = damon_new_scheme(
+ 			/* access pattern */
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
