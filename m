@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E1903822A9
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 534A4382F12
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779481368; cv=none; b=OKP/N0uSwEag8qi4ljrpG1HISRqKe4EwyRuDRlyI6tA//fk4o5Y4p286Nd2eJwTPVT9qgNWIT/Yo9knGjXRAw3iPWEv3McSUQus4Zk9R4zJ2yhmHiAgOYLsHC7F97/mDnhrLyM5TjqPo3uIyc8rONqWANiXWHouwMpSLRB8oLII=
+	t=1779481369; cv=none; b=U8RicODT6hp0HL3T8dTVKtqTppdbc82hTRkT/0FG67BZHpNrMlYwcrdy9K1jwdeE7yMd0pDvwNdaPVHTQ/pA11ezE6Km+Teg8wv14zIR6/8AroEyw+E1mIieCPtgHSTHw97welRCvZp9NlTnKGJPTkRGNDb3Ll3MwEyQU5ex6No=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779481368; c=relaxed/simple;
-	bh=oj0D8PAfyesffGFkuXr6WgkEMEjE8PVOlPYCsSpLUdE=;
-	h=Date:To:From:Subject:Message-Id; b=ptXSYF67ODbFxtSBEoQcIxDZmvbDt1Vk0MWheIAHlecT0zgIR7Yz8a40B/kuj2lWTfaDiaV3TrMoUVgt3JVWsVgoETfwbrqivT4kkgfDsdYvJD1Hh3Ctv40j12E9w2/rTvaInCOKdYSp5JT9hj+2fyxhqcWDH2lM5o6ZfZJjCEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jJFr4jx9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779481369; c=relaxed/simple;
+	bh=b45BARN4jSL6lpXebv0VxsDDuhUe5C1S1dniEsz7+xU=;
+	h=Date:To:From:Subject:Message-Id; b=fW1GuAZ2h6rotbPd51uP7o0xlq71+ZHbA1HSstNI6t1dHhRLiendVwMTF7ieJTeuMBYNJ9SAnwCJPJ+4yG0eb+r2CVO9Zsh+90YEp4I2CBS+q6EouH4WXmzqQtx8gU1hkQbtM9pxsGN9AlOXZKSVGBx41kp4FcPT8IVRhoWf7gE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0MstDAdw; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jJFr4jx9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F9761F000E9;
-	Fri, 22 May 2026 20:22:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0MstDAdw"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F088F1F00A3D;
+	Fri, 22 May 2026 20:22:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779481366;
-	bh=Ec/XV0YuLu7vCEu9ws9Q39H54bv8IRKMc44LJascqrE=;
+	d=linux-foundation.org; s=korg; t=1779481368;
+	bh=dMZpJ9nFoje2Mw9rhU70HbQDiUSVsBTdUFk0W2XdYXc=;
 	h=Date:To:From:Subject;
-	b=jJFr4jx9irhPsyO9sipI1AqW8NjCz3rz7EqNygKP3MJkYDsokclU9RQOFxC+hSgOH
-	 MBlsVsHSXCjBn//26iuLQRgDYvTZbquwbLJe0c621BlFcZHFMIT2ftnI9zWxyjXb81
-	 8TqhDaHLH0rJkzFNT2Rz2jsAE7oQH9kx2gDncwAY=
-Date: Fri, 22 May 2026 13:22:45 -0700
+	b=0MstDAdwDxG/30YHaiAN3NaZ9KMRWR4ipiTmAskmXwlF0aPCPKW0l9IHpvXph88LL
+	 QJeMT7J3B/AmnfK15ktNX3JgCwbAozQPThkl2LL7J+3zVsRohFIZ2nn8kyjskfvlDw
+	 nA6wburA6IuEaP4gEDlzT7WhgFCPOJ/nC5AtXOYo=
+Date: Fri, 22 May 2026 13:22:47 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfssh-test-addr_unit-file-existence.patch added to mm-new branch
-Message-Id: <20260522202246.2F9761F000E9@smtp.kernel.org>
+Subject: + selftests-damon-sysfssh-test-pause-file-existence.patch added to mm-new branch
+Message-Id: <20260522202247.F088F1F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs.sh: test addr_unit file existence
+     Subject: selftests/damon/sysfs.sh: test pause file existence
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfssh-test-addr_unit-file-existence.patch
+     selftests-damon-sysfssh-test-pause-file-existence.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfssh-test-addr_unit-file-existence.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfssh-test-pause-file-existence.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,13 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.sh: test addr_unit file existence
-Date: Fri, 22 May 2026 08:40:24 -0700
+Subject: selftests/damon/sysfs.sh: test pause file existence
+Date: Fri, 22 May 2026 08:40:25 -0700
 
-sysfs.sh DAMON selftest is not testing the existence of addr_unit sysfs
+sysfs.sh DAMON selftest is not testing the existence of the 'pause' sysfs
 file.  Add the test.
 
-Link: https://lore.kernel.org/20260522154026.80546-14-sj@kernel.org
+Link: https://lore.kernel.org/20260522154026.80546-15-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
@@ -86,13 +86,13 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  tools/testing/selftests/damon/sysfs.sh |    1 +
  1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-addr_unit-file-existence
+--- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-pause-file-existence
 +++ a/tools/testing/selftests/damon/sysfs.sh
-@@ -365,6 +365,7 @@ test_context()
- 	ensure_dir "$context_dir" "exist"
+@@ -366,6 +366,7 @@ test_context()
  	ensure_file "$context_dir/avail_operations" "exit" 400
  	ensure_file "$context_dir/operations" "exist" 600
-+	ensure_file "$context_dir/addr_unit" "exist" 600
+ 	ensure_file "$context_dir/addr_unit" "exist" 600
++	ensure_file "$context_dir/pause" "exist" 600
  	test_monitoring_attrs "$context_dir/monitoring_attrs"
  	test_targets "$context_dir/targets"
  	test_schemes "$context_dir/schemes"
