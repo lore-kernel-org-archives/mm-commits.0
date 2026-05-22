@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E295382F1A
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5497382F12
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779481362; cv=none; b=pXJSGJ0RVJKeJuzajI+g1LOgga+2r2c3fug/N8Veqy9shri6g8NpoaEAzUOID9AH+k0CNDTOk/00ZhGQdV45Gem+Idyo4qVJSwkDUvaloCjBOzrlH0MxaYwlY0PZd2ZPSpE4V0Q6yswyNnSwdg3GT6qpUk+JAkXuomn/LUEoWGk=
+	t=1779481363; cv=none; b=h3KnCzV2yI2lwMGhg7jAnGJX2HjG2LQnffmiSs+70qYz6lsvcqrDNZRLs5pzYEta+QPKni9KgYwuD4kN/2Mi0LyLADQB09VN7F4u0vyzh8B1HxA/lii4oyyFU6CmXDrSiil+za/jQtdezwc46NHWNlRQcrcCbrb4IXqcUHHdeO4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779481362; c=relaxed/simple;
-	bh=+CTp0TVDQ9Wk19Qeb4/TET5sb6wK8E46UE3W2XLiqh0=;
-	h=Date:To:From:Subject:Message-Id; b=aHp2PJkC54rUGa7z7ZLpK9vo9yM4lfPd2FTgsMUcKkUw9vs2JkShhIfk5sRQF71nuTQz6j2xMa2ejcvyiGZSl+9/l0hPx6dxdc+di+ivj2DL/366+Juok26sglVc48bnqlyNRBAJh+4Lx8ctU0u+xNIC0gMD6orbQYAIjDCY/m8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TaxXcW1f; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779481363; c=relaxed/simple;
+	bh=uRjhCqiYBD/lx2nAgWJeNV50/U+4eTKWWX4vODYsoDI=;
+	h=Date:To:From:Subject:Message-Id; b=fD+Gxoc/v/6apY9IKXhq5Y1Uiw0pVIbQpHM42NT7AmZYy1daueYeJFIHGQIH0lCGsZXWexvbkIbARn2ngdHrsBnCpXix5Yf35KdHVdN3h/m2/KxSMeYbF9vbcdKVlmNRAFkFFT099DLNDYCeosPALgM6cCN14HO+GbpTAnXucoE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ACR9DxC5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TaxXcW1f"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 633B81F000E9;
-	Fri, 22 May 2026 20:22:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ACR9DxC5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AF3C1F000E9;
+	Fri, 22 May 2026 20:22:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779481360;
-	bh=3r2XNt8s0o10OoL0o2yh/UQ4Q4TnMAPHJgB8NNP9se8=;
+	d=linux-foundation.org; s=korg; t=1779481362;
+	bh=PZXR64xx7Xv7wyf6HuRNA2NwohN1R8zhg6vLsfyWevA=;
 	h=Date:To:From:Subject;
-	b=TaxXcW1fwd82WIGqsP5Tl1GmhDz/9wDvbMCEN3Skb3xglDDSKUFduE/caLNq7i4Ex
-	 QJqUuJu9mdqONqwgLqVqhe922IbbS6dbdxmIXud4VvfC3qq0uDjJEC65I+ADmHo1V4
-	 bPnxIXI4rJPGgTA+DlkL3ZDV895XcMO01Frol1V4=
-Date: Fri, 22 May 2026 13:22:39 -0700
+	b=ACR9DxC5NV2EbqnruHGOqrQRh+NC39+tyy1r12RV+qnQzRz9v2PGiJv3EqAMPui8G
+	 aFw8autPBhjIE/suashhU8LlrdZNf0xRuNpcUiIKWAfOSODfT/BkhnXssm0eWpnIDa
+	 vbJe/yi/OUuogjLPZAW5Q0FgmdHMIG+aKdDzgI48=
+Date: Fri, 22 May 2026 13:22:42 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch added to mm-new branch
-Message-Id: <20260522202240.633B81F000E9@smtp.kernel.org>
+Subject: + selftests-damon-sysfspy-stop-kdamonds-before-failing.patch added to mm-new branch
+Message-Id: <20260522202242.7AF3C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/core-kunit: add damon_set_regions() test cases
+     Subject: selftests/damon/sysfs.py: stop kdamonds before failing
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
+     selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,187 +70,49 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: add damon_set_regions() test cases
-Date: Fri, 22 May 2026 08:40:21 -0700
+Subject: selftests/damon/sysfs.py: stop kdamonds before failing
+Date: Fri, 22 May 2026 08:40:22 -0700
 
-damon_set_regions() is one of the main DAMON kernel API functions that set
-up the monitoring target memory region boundaries.  Implement unit tests
-for verifying its basic functionalities.
+When an assertion is failed, sysfs.py DAMON selftest immediately exits the
+test program leaving the DAMON running behind.  Many of the following
+tests need to start DAMON on their own.  But because DAMON that was
+started by sysfs.py is still running, those start attempts fail, and the
+tests are failed or skipped.  Update sysfs.py to stop DAMON before exiting
+the test program due to the assertion failure.
 
-Link: https://lore.kernel.org/20260522154026.80546-11-sj@kernel.org
+Link: https://lore.kernel.org/20260522154026.80546-12-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |  142 ++++++++++++++++++++++++++++------
- 1 file changed, 120 insertions(+), 22 deletions(-)
+ tools/testing/selftests/damon/sysfs.py |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-damon_set_regions-test-cases
-+++ a/mm/damon/tests/core-kunit.h
-@@ -390,41 +390,139 @@ static void damon_test_ops_registration(
- 	}
- }
+--- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-stop-kdamonds-before-failing
++++ a/tools/testing/selftests/damon/sysfs.py
+@@ -24,9 +24,12 @@ def dump_damon_status_dict(pid):
+     except Exception as e:
+         return None, 'json.load fail (%s)' % e
  
--static void damon_test_set_regions(struct kunit *test)
-+static void damon_test_set_regions_for(struct kunit *test,
-+		struct damon_addr_range *old_ranges, int sz_old_ranges,
-+		struct damon_addr_range *new_ranges, int sz_new_ranges,
-+		unsigned long min_region_sz,
-+		struct damon_addr_range *expect_ranges, int sz_expect_ranges)
- {
--	struct damon_target *t = damon_new_target();
--	struct damon_region *r1, *r2;
--	struct damon_addr_range range = {.start = 8, .end = 28};
--	unsigned long expects[] = {8, 16, 16, 24, 24, 28};
--	int expect_idx = 0;
-+	struct damon_target *t;
- 	struct damon_region *r;
-+	int i;
++kdamonds = None
+ def fail(expectation, status):
+     print('unexpected %s' % expectation)
+     print(json.dumps(status, indent=4))
++    if kdamonds is not None:
++        kdamonds.stop()
+     exit(1)
  
-+	t = damon_new_target();
- 	if (!t)
- 		kunit_skip(test, "target alloc fail");
--	r1 = damon_new_region(4, 16);
--	if (!r1) {
--		damon_free_target(t);
--		kunit_skip(test, "region alloc fail");
--	}
--	r2 = damon_new_region(24, 32);
--	if (!r2) {
--		damon_free_target(t);
--		damon_free_region(r1);
--		kunit_skip(test, "second region alloc fail");
-+	for (i = 0; i < sz_old_ranges; i++) {
-+		r = damon_new_region(old_ranges[i].start, old_ranges[i].end);
-+		if (!r) {
-+			damon_destroy_target(t, NULL);
-+			kunit_skip(test, "%d-th r alloc fail\n", i);
-+		}
-+		damon_add_region(r, t);
- 	}
+ def assert_true(condition, expectation, status):
+@@ -248,6 +251,7 @@ def assert_ctxs_committed(kdamonds):
+                 ctx.pause = False
  
--	damon_add_region(r1, t);
--	damon_add_region(r2, t);
--	damon_set_regions(t, &range, 1, 1);
-+	damon_set_regions(t, new_ranges, sz_new_ranges, min_region_sz);
- 
--	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 3);
-+	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), sz_expect_ranges);
-+	if (damon_nr_regions(t) != sz_expect_ranges) {
-+		damon_destroy_target(t, NULL);
-+		return;
-+	}
-+	i = 0;
- 	damon_for_each_region(r, t) {
--		KUNIT_EXPECT_EQ(test, r->ar.start, expects[expect_idx++]);
--		KUNIT_EXPECT_EQ(test, r->ar.end, expects[expect_idx++]);
-+		KUNIT_EXPECT_EQ(test, r->ar.start, expect_ranges[i].start);
-+		KUNIT_EXPECT_EQ(test, r->ar.end, expect_ranges[i++].end);
- 	}
-+
- 	damon_destroy_target(t, NULL);
- }
- 
-+static void damon_test_set_regions(struct kunit *test)
-+{
-+	/* Initial build up on empty target. */
-+	damon_test_set_regions_for(test,
-+			(struct damon_addr_range[]){}, 0,
-+			(struct damon_addr_range[]){
-+			{.start = 5, .end = 15},
-+			{.start = 15, .end = 25},
-+			}, 2,
-+			1,
-+			(struct damon_addr_range[]){
-+			{.start = 5, .end = 15},
-+			{.start = 15, .end = 25},
-+			}, 2);
-+	/* Un-intersecting regions should be removed. */
-+	damon_test_set_regions_for(test,
-+			(struct damon_addr_range[]){
-+			{.start = 4, .end = 16},
-+			{.start = 24, .end = 32},
-+			}, 2,
-+			(struct damon_addr_range[]){
-+			{.start = 18, .end = 23},
-+			}, 1,
-+			1,
-+			(struct damon_addr_range[]){
-+			{.start = 18, .end = 23},
-+			}, 1);
-+	/*
-+	 * Holes should be filled up with new regions.
-+	 *
-+	 * old:       [4,   16)        [24,     32)
-+	 * new:         [8,                 28)
-+	 * expect:      [8, 16)[16,24),[24, 28)
-+	 */
-+	damon_test_set_regions_for(test,
-+			(struct damon_addr_range[]){
-+			{.start = 4, .end = 16},
-+			{.start = 24, .end = 32},
-+			}, 2,
-+			(struct damon_addr_range[]){
-+			{.start = 8, .end = 28},
-+			}, 1,
-+			1,
-+			(struct damon_addr_range[]){
-+			{.start = 8, .end = 16},
-+			{.start = 16, .end = 24},
-+			{.start = 24, .end = 28},
-+			}, 3);
-+	/*
-+	 * New regions should be able to be appended.
-+	 *
-+	 * old:       [0, 4)[4,    17)
-+	 * new:       [0,       15)     [25, 40)
-+	 * expect:    [0, 4)[4, 15)     [25, 40)
-+	 */
-+	damon_test_set_regions_for(test,
-+			(struct damon_addr_range[]){
-+			{.start = 0, .end = 4},
-+			{.start = 4, .end = 17},
-+			}, 2,
-+			(struct damon_addr_range[]){
-+			{.start = 0, .end = 15},
-+			{.start = 25, .end = 40},
-+			}, 2,
-+			1,
-+			(struct damon_addr_range[]){
-+			{.start = 0, .end = 4},
-+			{.start = 4, .end = 15},
-+			{.start = 25, .end = 40},
-+			}, 3);
-+	/*
-+	 * New regions should be able to be inserted.
-+	 *
-+	 * old:       [0, 4)                      [42,    52)
-+	 * new:       [0,       15)     [25, 40)    [44, 50)
-+	 * expect:    [0,       15)     [25, 40)    [44, 50)
-+	 */
-+	damon_test_set_regions_for(test,
-+			(struct damon_addr_range[]){
-+			{.start = 0, .end = 4},
-+			{.start = 42, .end = 52},
-+			}, 2,
-+			(struct damon_addr_range[]){
-+			{.start = 0, .end = 15},
-+			{.start = 25, .end = 40},
-+			{.start = 44, .end = 50},
-+			}, 3,
-+			1,
-+			(struct damon_addr_range[]){
-+			{.start = 0, .end = 15},
-+			{.start = 25, .end = 40},
-+			{.start = 44, .end = 50},
-+			}, 3);
-+}
-+
- static void damon_test_nr_accesses_to_accesses_bp(struct kunit *test)
- {
- 	struct damon_attrs attrs = {
+ def main():
++    global kdamonds
+     kdamonds = _damon_sysfs.Kdamonds(
+             [_damon_sysfs.Kdamond(
+                 contexts=[_damon_sysfs.DamonCtx(
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
