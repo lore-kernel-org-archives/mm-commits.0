@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A5497382F12
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 821AF3822A2
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779481363; cv=none; b=h3KnCzV2yI2lwMGhg7jAnGJX2HjG2LQnffmiSs+70qYz6lsvcqrDNZRLs5pzYEta+QPKni9KgYwuD4kN/2Mi0LyLADQB09VN7F4u0vyzh8B1HxA/lii4oyyFU6CmXDrSiil+za/jQtdezwc46NHWNlRQcrcCbrb4IXqcUHHdeO4=
+	t=1779481365; cv=none; b=Wa7SkO/U+dq2ukqBnNPOyH/UQ45Y8Pc9XW6/isgvPdmjAhO2RG9PrtgLKaxiPiRYGAByoKLWh3aU8tTfm7cXJ7f/LdZlexMcs3g92o6uLg/dbCt0uWapeyS+0f4jqvVshaIEEotEnWT/tCXT/RJu080xuF1R5RKNSX4XOmbCUxE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779481363; c=relaxed/simple;
-	bh=uRjhCqiYBD/lx2nAgWJeNV50/U+4eTKWWX4vODYsoDI=;
-	h=Date:To:From:Subject:Message-Id; b=fD+Gxoc/v/6apY9IKXhq5Y1Uiw0pVIbQpHM42NT7AmZYy1daueYeJFIHGQIH0lCGsZXWexvbkIbARn2ngdHrsBnCpXix5Yf35KdHVdN3h/m2/KxSMeYbF9vbcdKVlmNRAFkFFT099DLNDYCeosPALgM6cCN14HO+GbpTAnXucoE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ACR9DxC5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779481365; c=relaxed/simple;
+	bh=oNq9GqSOCNuhmX2qmTKuPNv9dAwodKwF61y6lazWiUo=;
+	h=Date:To:From:Subject:Message-Id; b=fbWgAXwm8Zy0HZKffFbq6v5ynEuE+2zf2hNfV/qMiMqKhOyh6W4JhuvSVITCMrHlbOg690yE7X/eV2A3uvrcrPDn9HV7XLwzvKLDF82saVVAd4HCC+pHz2OoAHOJZSQ3d5zuon2P0qy02H/Lv1qn5PK5SiwQplfE9JD0TF7bgbs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ru5PHUN1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ACR9DxC5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7AF3C1F000E9;
-	Fri, 22 May 2026 20:22:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ru5PHUN1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57D4A1F000E9;
+	Fri, 22 May 2026 20:22:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779481362;
-	bh=PZXR64xx7Xv7wyf6HuRNA2NwohN1R8zhg6vLsfyWevA=;
+	d=linux-foundation.org; s=korg; t=1779481364;
+	bh=Os+ePfArt6rFTChp+qc6ucSPmDOQt8RBS4yoMy+1ryg=;
 	h=Date:To:From:Subject;
-	b=ACR9DxC5NV2EbqnruHGOqrQRh+NC39+tyy1r12RV+qnQzRz9v2PGiJv3EqAMPui8G
-	 aFw8autPBhjIE/suashhU8LlrdZNf0xRuNpcUiIKWAfOSODfT/BkhnXssm0eWpnIDa
-	 vbJe/yi/OUuogjLPZAW5Q0FgmdHMIG+aKdDzgI48=
-Date: Fri, 22 May 2026 13:22:42 -0700
+	b=ru5PHUN1HBoHkqTAAxcFdbG1sujXsx4PkIgZm9ulJ+Lm9DaOkXnaA3Tv7ayZwy+Jn
+	 AYm/0jcZIOI4JAzmRMvj/dZWV1p0cFHI2ZZo80G2a8kyflBMwzN84ExP9vAr4rL9QD
+	 b7PIFCWd47CTBsRiBZdWjIE+amFCnfPgYb1egsMw=
+Date: Fri, 22 May 2026 13:22:43 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfspy-stop-kdamonds-before-failing.patch added to mm-new branch
-Message-Id: <20260522202242.7AF3C1F000E9@smtp.kernel.org>
+Subject: + selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch added to mm-new branch
+Message-Id: <20260522202244.57D4A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs.py: stop kdamonds before failing
+     Subject: selftests/damon/sysfs.sh: test monitoring intervals goal dir
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
+     selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,49 +70,50 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.py: stop kdamonds before failing
-Date: Fri, 22 May 2026 08:40:22 -0700
+Subject: selftests/damon/sysfs.sh: test monitoring intervals goal dir
+Date: Fri, 22 May 2026 08:40:23 -0700
 
-When an assertion is failed, sysfs.py DAMON selftest immediately exits the
-test program leaving the DAMON running behind.  Many of the following
-tests need to start DAMON on their own.  But because DAMON that was
-started by sysfs.py is still running, those start attempts fail, and the
-tests are failed or skipped.  Update sysfs.py to stop DAMON before exiting
-the test program due to the assertion failure.
+sysfs.sh DAMON selftest is not testing monitoring intervals goal
+directory.  Add the test.
 
-Link: https://lore.kernel.org/20260522154026.80546-12-sj@kernel.org
+Link: https://lore.kernel.org/20260522154026.80546-13-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.py |    4 ++++
- 1 file changed, 4 insertions(+)
+ tools/testing/selftests/damon/sysfs.sh |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/tools/testing/selftests/damon/sysfs.py~selftests-damon-sysfspy-stop-kdamonds-before-failing
-+++ a/tools/testing/selftests/damon/sysfs.py
-@@ -24,9 +24,12 @@ def dump_damon_status_dict(pid):
-     except Exception as e:
-         return None, 'json.load fail (%s)' % e
+--- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-monitoring-intervals-goal-dir
++++ a/tools/testing/selftests/damon/sysfs.sh
+@@ -282,6 +282,17 @@ test_targets()
+ 	ensure_dir "$targets_dir/1" "not_exist"
+ }
  
-+kdamonds = None
- def fail(expectation, status):
-     print('unexpected %s' % expectation)
-     print(json.dumps(status, indent=4))
-+    if kdamonds is not None:
-+        kdamonds.stop()
-     exit(1)
++
++test_intervals_goal()
++{
++	goal_dir=$1
++	ensure_dir "$goal_dir" "exist"
++	ensure_file "$goal_dir/access_bp" "exist" "600"
++	ensure_file "$goal_dir/aggrs" "exist" "600"
++	ensure_file "$goal_dir/min_sample_us" "exist" "600"
++	ensure_file "$goal_dir/max_sample_us" "exist" "600"
++}
++
+ test_intervals()
+ {
+ 	intervals_dir=$1
+@@ -289,6 +300,7 @@ test_intervals()
+ 	ensure_file "$intervals_dir/aggr_us" "exist" "600"
+ 	ensure_file "$intervals_dir/sample_us" "exist" "600"
+ 	ensure_file "$intervals_dir/update_us" "exist" "600"
++	test_intervals_goal "$intervals_dir/intervals_goal"
+ }
  
- def assert_true(condition, expectation, status):
-@@ -248,6 +251,7 @@ def assert_ctxs_committed(kdamonds):
-                 ctx.pause = False
- 
- def main():
-+    global kdamonds
-     kdamonds = _damon_sysfs.Kdamonds(
-             [_damon_sysfs.Kdamond(
-                 contexts=[_damon_sysfs.DamonCtx(
+ test_damon_filter()
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
