@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 821AF3822A2
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E1903822A9
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779481365; cv=none; b=Wa7SkO/U+dq2ukqBnNPOyH/UQ45Y8Pc9XW6/isgvPdmjAhO2RG9PrtgLKaxiPiRYGAByoKLWh3aU8tTfm7cXJ7f/LdZlexMcs3g92o6uLg/dbCt0uWapeyS+0f4jqvVshaIEEotEnWT/tCXT/RJu080xuF1R5RKNSX4XOmbCUxE=
+	t=1779481368; cv=none; b=OKP/N0uSwEag8qi4ljrpG1HISRqKe4EwyRuDRlyI6tA//fk4o5Y4p286Nd2eJwTPVT9qgNWIT/Yo9knGjXRAw3iPWEv3McSUQus4Zk9R4zJ2yhmHiAgOYLsHC7F97/mDnhrLyM5TjqPo3uIyc8rONqWANiXWHouwMpSLRB8oLII=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779481365; c=relaxed/simple;
-	bh=oNq9GqSOCNuhmX2qmTKuPNv9dAwodKwF61y6lazWiUo=;
-	h=Date:To:From:Subject:Message-Id; b=fbWgAXwm8Zy0HZKffFbq6v5ynEuE+2zf2hNfV/qMiMqKhOyh6W4JhuvSVITCMrHlbOg690yE7X/eV2A3uvrcrPDn9HV7XLwzvKLDF82saVVAd4HCC+pHz2OoAHOJZSQ3d5zuon2P0qy02H/Lv1qn5PK5SiwQplfE9JD0TF7bgbs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ru5PHUN1; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779481368; c=relaxed/simple;
+	bh=oj0D8PAfyesffGFkuXr6WgkEMEjE8PVOlPYCsSpLUdE=;
+	h=Date:To:From:Subject:Message-Id; b=ptXSYF67ODbFxtSBEoQcIxDZmvbDt1Vk0MWheIAHlecT0zgIR7Yz8a40B/kuj2lWTfaDiaV3TrMoUVgt3JVWsVgoETfwbrqivT4kkgfDsdYvJD1Hh3Ctv40j12E9w2/rTvaInCOKdYSp5JT9hj+2fyxhqcWDH2lM5o6ZfZJjCEQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jJFr4jx9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ru5PHUN1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57D4A1F000E9;
-	Fri, 22 May 2026 20:22:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jJFr4jx9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F9761F000E9;
+	Fri, 22 May 2026 20:22:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779481364;
-	bh=Os+ePfArt6rFTChp+qc6ucSPmDOQt8RBS4yoMy+1ryg=;
+	d=linux-foundation.org; s=korg; t=1779481366;
+	bh=Ec/XV0YuLu7vCEu9ws9Q39H54bv8IRKMc44LJascqrE=;
 	h=Date:To:From:Subject;
-	b=ru5PHUN1HBoHkqTAAxcFdbG1sujXsx4PkIgZm9ulJ+Lm9DaOkXnaA3Tv7ayZwy+Jn
-	 AYm/0jcZIOI4JAzmRMvj/dZWV1p0cFHI2ZZo80G2a8kyflBMwzN84ExP9vAr4rL9QD
-	 b7PIFCWd47CTBsRiBZdWjIE+amFCnfPgYb1egsMw=
-Date: Fri, 22 May 2026 13:22:43 -0700
+	b=jJFr4jx9irhPsyO9sipI1AqW8NjCz3rz7EqNygKP3MJkYDsokclU9RQOFxC+hSgOH
+	 MBlsVsHSXCjBn//26iuLQRgDYvTZbquwbLJe0c621BlFcZHFMIT2ftnI9zWxyjXb81
+	 8TqhDaHLH0rJkzFNT2Rz2jsAE7oQH9kx2gDncwAY=
+Date: Fri, 22 May 2026 13:22:45 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch added to mm-new branch
-Message-Id: <20260522202244.57D4A1F000E9@smtp.kernel.org>
+Subject: + selftests-damon-sysfssh-test-addr_unit-file-existence.patch added to mm-new branch
+Message-Id: <20260522202246.2F9761F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: selftests/damon/sysfs.sh: test monitoring intervals goal dir
+     Subject: selftests/damon/sysfs.sh: test addr_unit file existence
 has been added to the -mm mm-new branch.  Its filename is
-     selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
+     selftests-damon-sysfssh-test-addr_unit-file-existence.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-damon-sysfssh-test-addr_unit-file-existence.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,50 +70,32 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon/sysfs.sh: test monitoring intervals goal dir
-Date: Fri, 22 May 2026 08:40:23 -0700
+Subject: selftests/damon/sysfs.sh: test addr_unit file existence
+Date: Fri, 22 May 2026 08:40:24 -0700
 
-sysfs.sh DAMON selftest is not testing monitoring intervals goal
-directory.  Add the test.
+sysfs.sh DAMON selftest is not testing the existence of addr_unit sysfs
+file.  Add the test.
 
-Link: https://lore.kernel.org/20260522154026.80546-13-sj@kernel.org
+Link: https://lore.kernel.org/20260522154026.80546-14-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/sysfs.sh |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ tools/testing/selftests/damon/sysfs.sh |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-monitoring-intervals-goal-dir
+--- a/tools/testing/selftests/damon/sysfs.sh~selftests-damon-sysfssh-test-addr_unit-file-existence
 +++ a/tools/testing/selftests/damon/sysfs.sh
-@@ -282,6 +282,17 @@ test_targets()
- 	ensure_dir "$targets_dir/1" "not_exist"
- }
- 
-+
-+test_intervals_goal()
-+{
-+	goal_dir=$1
-+	ensure_dir "$goal_dir" "exist"
-+	ensure_file "$goal_dir/access_bp" "exist" "600"
-+	ensure_file "$goal_dir/aggrs" "exist" "600"
-+	ensure_file "$goal_dir/min_sample_us" "exist" "600"
-+	ensure_file "$goal_dir/max_sample_us" "exist" "600"
-+}
-+
- test_intervals()
- {
- 	intervals_dir=$1
-@@ -289,6 +300,7 @@ test_intervals()
- 	ensure_file "$intervals_dir/aggr_us" "exist" "600"
- 	ensure_file "$intervals_dir/sample_us" "exist" "600"
- 	ensure_file "$intervals_dir/update_us" "exist" "600"
-+	test_intervals_goal "$intervals_dir/intervals_goal"
- }
- 
- test_damon_filter()
+@@ -365,6 +365,7 @@ test_context()
+ 	ensure_dir "$context_dir" "exist"
+ 	ensure_file "$context_dir/avail_operations" "exit" 400
+ 	ensure_file "$context_dir/operations" "exist" 600
++	ensure_file "$context_dir/addr_unit" "exist" 600
+ 	test_monitoring_attrs "$context_dir/monitoring_attrs"
+ 	test_targets "$context_dir/targets"
+ 	test_schemes "$context_dir/schemes"
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
