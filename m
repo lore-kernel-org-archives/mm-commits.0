@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78257379C35
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 19:29:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61BCB37B00C
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 19:29:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779478157; cv=none; b=OJIIkhVl/MzcHOvtUxyKGsmQZsrhclzzULxAKrtwVqFsRI409SjFMPkkQG2VvV0UihlFaUGSVCpgOcz7vgHPpi+DiJMAn3vkH9seFKbyQn3SDf079Y6b0KR423FAZV4AsQu17wks3Sd7iOphxqDY1T3Yv3P8rvC3Jt1LHftbBC8=
+	t=1779478161; cv=none; b=n73DVN9BNyXwHC2H1Dx8PCKxutM6BUO7bvLjDNHBcH5T4uduGDpYZCyZ+1lMY3onaZIofJ51L8w7wUtQXxS76fYCcrdSJOAdHRIUMyrtMK5UPjGfJmh38B0NOhBKwlhLX2yBzJJ4q7UXvbkEVzBonHp7EkBNtfu2gMblXRxj0Jo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779478157; c=relaxed/simple;
-	bh=gdOuB2ILKKYt3Jb7HYF5ekex+SNDejTrgHkDmFamrGA=;
-	h=Date:To:From:Subject:Message-Id; b=QocaZn1efFdfJkjffKtoLG9IDVBugYTy5yglhzspm5tLN/5+en8FSpWhUf3K/D0D+IFAz5uNuOYdBdXi9mkccKNw0s2JWE15SpzR964kris76HT3N62mUl7kKZTDU0Ft6I60KgZ+iRYUGCCy/s4omwEVJHsWSWXuSNMeOSsNNMY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=1E3C5tp/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779478161; c=relaxed/simple;
+	bh=t86SSg/dV2752SJQ0ng7cFhmrHpv6jTXeBOVFpUYjrs=;
+	h=Date:To:From:Subject:Message-Id; b=XjVNWOEYNAbrKu49W6IsWGmCsAsWRor8OZCrwGTTrhsPhLvGD2H3XkqWeTlIDTO8rv0oxGhPKuRJx+iseIcKQK5tqvs9MYYcne1bIqk2/SxhRVBYx/ddw2p8VUhS4597a7EToxrP+MPJEPPE7GnxBkge1LLaYd4W/09mfZYqY8I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gA7NDPUX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="1E3C5tp/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A4E41F000E9;
-	Fri, 22 May 2026 19:29:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gA7NDPUX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 027911F000E9;
+	Fri, 22 May 2026 19:29:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779478156;
-	bh=wYtpBx9akw3xideP2CVeRakN5VgazPbcX5wmbphQLKg=;
+	d=linux-foundation.org; s=korg; t=1779478160;
+	bh=FUGjC4yqJR0+54qIcJ914kHCFSf4OHcHPqb6aBnrg8E=;
 	h=Date:To:From:Subject;
-	b=1E3C5tp/yVvg0HBY3bD2BT4BPSkB+gV8M+h5Q0vgwM8whAAaFXwYCnAGtqOBIVYOL
-	 NRNFCHlwynWO562EPWOhzZNfSGBJlBxclwi5I7xSFLyGVFsbcFcwT2MDheV/GMHmlX
-	 0s910L9uZwhhEXsMFgldvn1rkPpMWvUfiei9UYac=
-Date: Fri, 22 May 2026 12:29:15 -0700
+	b=gA7NDPUXT/G0dXlQQHWO2V+MV6q0UpLBWTSatM7xfgH/Oa49PzLz4UTzTvWoTdv36
+	 eUr9P1R+ie71OEx9CMDqMVJFcv1FbkH2D/deIZhYHUqxxLtpLiyo0L7lUjOUJBsnMS
+	 DDKNvOVs0q14haBQ/BIrzbMmwTklNNtLMwn2B2f4=
+Date: Fri, 22 May 2026 12:29:19 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,jannh@google.com,gregkh@linuxfoundation.org,david@kernel.org,arnd@arndb.de,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-char-mem-eliminate-unnecessary-use-of-success_hook.patch added to mm-new branch
-Message-Id: <20260522192916.3A4E41F000E9@smtp.kernel.org>
+Subject: + mm-vma-remove-mmap_action-success_hook.patch added to mm-new branch
+Message-Id: <20260522192920.027911F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: drivers/char/mem: eliminate unnecessary use of success_hook
+     Subject: mm/vma: remove mmap_action->success_hook
 has been added to the -mm mm-new branch.  Its filename is
-     drivers-char-mem-eliminate-unnecessary-use-of-success_hook.patch
+     mm-vma-remove-mmap_action-success_hook.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-char-mem-eliminate-unnecessary-use-of-success_hook.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-remove-mmap_action-success_hook.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,76 +70,21 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: drivers/char/mem: eliminate unnecessary use of success_hook
-Date: Fri, 22 May 2026 17:00:09 +0100
+Subject: mm/vma: remove mmap_action->success_hook
+Date: Fri, 22 May 2026 17:00:10 +0100
 
-Patch series "remove mmap_action success, error hooks", v2.
+This hook was introduced to work around code that seemed to absolutely
+require access to a VMA pointer upon mmap().
 
-The mmap_action->success_hook was a strange beast added to enable code
-which appeared to absolutely require access to a VMA pointer to work
-correctly.
+However, providing this hook leaves a backdoor to drivers getting access
+to the very thing mmap_prepare eliminates - a pointer to the VMA.
 
-Primarily this was for hugetlb, however a different approach will be taken
-there, as clearly more work is required to figure out a sensible way of
-converting hugetlb to use mmap_prepare.
+Let's solve this contradiction by removing it.  The key intended user was
+hugetlb, however it seems that the best course now is to avoid allowing
+all drivers the ability to work around mmap_prepare, and find a different
+solution there.
 
-The other user was the memory char driver, specifically /dev/zero which
-has the unusual property of explicitly setting file-backed VMAs anonymous.
-
-Providing the success hook was always foolish, as it allowed drivers a way
-to workaround the restriction that they should not access a pointer to a
-not-yet-correctly-initialised VMA - which defeats the purpose of the
-mmap_prepare work.
-
-We can achieve the same thing in memory char driver without needing the
-success hook, so this series removes that, then removes the success hook
-altogether.
-
-The error hook is also unnecessary - the motivation for this was for
-functions which need to filter the error code when performing an mmap
-action in order to avoid breaking userspace.
-
-We can achieve this by just providing a field for the error code.  Doing
-this means we don't have to worry about the hook doing anything odd.
-
-We also add a check to ensure the error code is in fact valid.
-
-Again the memory char driver is the only current user of this, so this
-series updates it to use that.
-
-After this change mmap_action has no custom hooks at all, which seems
-rather more cromulent than before.
-
-
-This patch (of 3):
-
-/dev/zero, uniquely, marks memory mapped there as anonymous.  This is
-currently achieved using the mmap_action->success_hook.
-
-However this hook circumvents the abstraction of VMA initialisation so
-it's preferable to do things a different way.
-
-To achieve this, this patch firstly defaults the VMA descriptor's vm_ops
-field to the dummy VMA operations, which is what file-backed VMAs default
-this field to.
-
-That way, we can detect whether a driver sets this field to NULL in order
-to mark it anonymous.
-
-We then introduce vma_desc_set_anonymous() to do this explicitly, and
-invoke it in mmap_zero_prepare().
-
-This way, any driver which does not explicitly set desc->vm_ops, retains
-the dummy vm_ops as they would previously.
-
-We also update set_vma_user_defined_fields() to make clear that we are
-either setting vma->vm_ops to what is provided by the driver (or
-defaulting to dummy_vm_ops if not set), or setting the VMA anonymous.
-
-This lays the groundwork for removing the success hook.
-
-Link: https://lore.kernel.org/cover.1779462249.git.ljs@kernel.org
-Link: https://lore.kernel.org/5d1e8bd29d6e070218ba7a03461df562e372b91e.1779462249.git.ljs@kernel.org
+Link: https://lore.kernel.org/2521c19866f3f10f9085d094cc4f06769042be71.1779462249.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: David Hildenbrand <david@kernel.org>
@@ -154,99 +99,60 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c              |   17 +++++------------
- include/linux/mm.h              |    5 +++++
- mm/util.c                       |    1 +
- mm/vma.c                        |    3 +++
- tools/testing/vma/include/dup.h |    1 +
- 5 files changed, 15 insertions(+), 12 deletions(-)
+ include/linux/mm_types.h        |   10 ----------
+ mm/util.c                       |    2 --
+ tools/testing/vma/include/dup.h |   10 ----------
+ 3 files changed, 22 deletions(-)
 
---- a/drivers/char/mem.c~drivers-char-mem-eliminate-unnecessary-use-of-success_hook
-+++ a/drivers/char/mem.c
-@@ -504,17 +504,6 @@ static ssize_t read_zero(struct file *fi
- 	return cleared;
- }
+--- a/include/linux/mm_types.h~mm-vma-remove-mmap_action-success_hook
++++ a/include/linux/mm_types.h
+@@ -844,16 +844,6 @@ struct mmap_action {
+ 	enum mmap_action_type type;
  
--static int mmap_zero_private_success(const struct vm_area_struct *vma)
--{
--	/*
--	 * This is a highly unique situation where we mark a MAP_PRIVATE mapping
--	 * of /dev/zero anonymous, despite it not being.
+ 	/*
+-	 * If specified, this hook is invoked after the selected action has been
+-	 * successfully completed. Note that the VMA write lock still held.
+-	 *
+-	 * The absolute minimum ought to be done here.
+-	 *
+-	 * Returns 0 on success, or an error code.
 -	 */
--	vma_set_anonymous((struct vm_area_struct *)vma);
+-	int (*success_hook)(const struct vm_area_struct *vma);
 -
--	return 0;
--}
--
- static int mmap_zero_prepare(struct vm_area_desc *desc)
- {
- #ifndef CONFIG_MMU
-@@ -523,7 +512,11 @@ static int mmap_zero_prepare(struct vm_a
- 	if (vma_desc_test(desc, VMA_SHARED_BIT))
- 		return shmem_zero_setup_desc(desc);
- 
--	desc->action.success_hook = mmap_zero_private_success;
-+	/*
-+	 * This is a highly unique situation where we mark a MAP_PRIVATE mapping
-+	 * of /dev/zero anonymous, despite it not being.
-+	 */
-+	vma_desc_set_anonymous(desc);
- 	return 0;
- }
- 
---- a/include/linux/mm.h~drivers-char-mem-eliminate-unnecessary-use-of-success_hook
-+++ a/include/linux/mm.h
-@@ -1489,6 +1489,11 @@ static inline void vma_set_anonymous(str
- 	vma->vm_ops = NULL;
- }
- 
-+static inline void vma_desc_set_anonymous(struct vm_area_desc *desc)
-+{
-+	desc->vm_ops = NULL;
-+}
-+
- static inline bool vma_is_anonymous(struct vm_area_struct *vma)
- {
- 	return !vma->vm_ops;
---- a/mm/util.c~drivers-char-mem-eliminate-unnecessary-use-of-success_hook
+-	/*
+ 	 * If specified, this hook is invoked when an error occurred when
+ 	 * attempting the selected action.
+ 	 *
+--- a/mm/util.c~mm-vma-remove-mmap_action-success_hook
 +++ a/mm/util.c
-@@ -1192,6 +1192,7 @@ void compat_set_desc_from_vma(struct vm_
- 	desc->vm_file = vma->vm_file;
- 	desc->vma_flags = vma->flags;
- 	desc->page_prot = vma->vm_page_prot;
-+	desc->vm_ops = vma->vm_ops;
+@@ -1397,8 +1397,6 @@ static int mmap_action_finish(struct vm_
  
- 	/* Default. */
- 	desc->action.type = MMAP_NOTHING;
---- a/mm/vma.c~drivers-char-mem-eliminate-unnecessary-use-of-success_hook
-+++ a/mm/vma.c
-@@ -2697,6 +2697,8 @@ static void set_vma_user_defined_fields(
- {
- 	if (map->vm_ops)
- 		vma->vm_ops = map->vm_ops;
-+	else	/* Only /dev/zero should do this. */
-+		vma_set_anonymous(vma);
- 	vma->vm_private_data = map->vm_private_data;
- }
+ 	if (!err)
+ 		err = call_vma_mapped(vma);
+-	if (!err && action->success_hook)
+-		err = action->success_hook(vma);
  
-@@ -2744,6 +2746,7 @@ static unsigned long __mmap_region(struc
- 		.action = {
- 			.type = MMAP_NOTHING, /* Default to no further action. */
- 		},
-+		.vm_ops = &vma_dummy_vm_ops,
- 	};
- 	bool allocated_new = false;
- 	int error;
---- a/tools/testing/vma/include/dup.h~drivers-char-mem-eliminate-unnecessary-use-of-success_hook
+ 	/* do_munmap() might take rmap lock, so release if held. */
+ 	maybe_rmap_unlock_action(vma, action);
+--- a/tools/testing/vma/include/dup.h~mm-vma-remove-mmap_action-success_hook
 +++ a/tools/testing/vma/include/dup.h
-@@ -1303,6 +1303,7 @@ static inline void compat_set_desc_from_
- 	desc->vm_file = vma->vm_file;
- 	desc->vma_flags = vma->flags;
- 	desc->page_prot = vma->vm_page_prot;
-+	desc->vm_ops = vma->vm_ops;
+@@ -483,16 +483,6 @@ struct mmap_action {
+ 	enum mmap_action_type type;
  
- 	/* Default. */
- 	desc->action.type = MMAP_NOTHING;
+ 	/*
+-	 * If specified, this hook is invoked after the selected action has been
+-	 * successfully completed. Note that the VMA write lock still held.
+-	 *
+-	 * The absolute minimum ought to be done here.
+-	 *
+-	 * Returns 0 on success, or an error code.
+-	 */
+-	int (*success_hook)(const struct vm_area_struct *vma);
+-
+-	/*
+ 	 * If specified, this hook is invoked when an error occurred when
+ 	 * attempting the selection action.
+ 	 *
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
