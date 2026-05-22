@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DD749460
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 00:10:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7447195811;
+	Fri, 22 May 2026 00:28:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779408650; cv=none; b=JMdjxL6iUvvgyPOnK/SDy636KZiN2Y8knPpFX/zn8fSPLTIOXY6hvacVH4vEYBRcGKk9Uk5GvxNKZ+oEq8c6eVIgI9bicDPVRXNSAQB/ADw6IBwFet7eR7pdxKkKMVX6WcIA6H5efhj3R9DyzZVDv9L4EpVPiz+tk52w2f6eTjo=
+	t=1779409716; cv=none; b=DUrBVr+3KXyAVMQtmjQBK7jD3JWP7GRxXOKndYLT7fgQih72jhZiE9ZBz5+WFXTzd1Hnap/d9+j7lXzqKh6bkhB4IcwFcAarsR0eQIIVDTud1H214XY2LJE0SzScdId9p/4k4UEYHBhZEVAfbPoMfozdu8tXoIq9D78e0Zr7ds4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779408650; c=relaxed/simple;
-	bh=j2j7FUQieNj0KfiX+yISPqBKJ409FDMh+4bG8sPcirI=;
-	h=Date:To:From:Subject:Message-Id; b=Tcmywem4DLKd2A8/Mk1Y02LUxPPCeK3qKrTUIjvuuGfrZ7s8W8+ESwD0Nt3gU7yyubhvN8m6c4TWHn9Ajtm+BRaS3mLMiwxSUtzCsqAmtoh1+ZRA2RJBYIbXR1PNepGgnQFuOYc6Ua1BhifD18BF5h4PeSQs13l3NMY1M6vmSXw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oE3otfuM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779409716; c=relaxed/simple;
+	bh=xEJoFcEwS0toFyn0Y5JzJR8hSh/bsMrJVV5If7HUaWc=;
+	h=Date:To:From:Subject:Message-Id; b=kMrvPqebE7SbHfc5Id2n2XJ3IpFVYNhFm/06VbmuGALahNb4cicfOEyrYqoheozul5KsCEhwszxi/EH629Sia1R01cSFRdWcXLekgdRyS1bj31WLrorPtj/iAH6pT35ixwJw5oHi8rQbbK3qlNsTAoBCGRk24E8DK3mugYgKFAs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hzQOpGRQ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oE3otfuM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 193251F000E9;
-	Fri, 22 May 2026 00:10:49 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hzQOpGRQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E93F1F000E9;
+	Fri, 22 May 2026 00:28:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779408649;
-	bh=kpJAo3TOrOvhdOBPh9Rn8J5RD1y49JcYUZtQYFkIcXA=;
+	d=linux-foundation.org; s=korg; t=1779409714;
+	bh=/ntJ++zzNW9gl05EL9fGgRT3Po0YIne7WeYxqnUz6/c=;
 	h=Date:To:From:Subject;
-	b=oE3otfuMDgFnhYc0vctgXiEWV0NwwnIfDEqx5Mntrr2eCe6Tzcu+K8udqStH4Uryz
-	 lURPMuai5mfSd0NBG5lhGJzI9RSdN2AyCHsZhSrATYWUtEXdJcxLs+RZOoK/bDWuXM
-	 dM4LWuuFn5Wmh3VVNq01813v3jnzsvuc3UQkIEb0=
-Date: Thu, 21 May 2026 17:10:48 -0700
-To: mm-commits@vger.kernel.org,thecharlesjenkins@gmail.com,palmer@dabbelt.com,ardb@kernel.org,aou@eecs.berkeley.edu,andriy.shevchenko@intel.com,alex@ghiti.fr,dmantipov@yandex.ru,akpm@linux-foundation.org
+	b=hzQOpGRQdSobOd5O6U5OX2AqkfsFVU77TndTUsixR3y7UGHkMK2Hw3dTR+NGdXmpd
+	 HhVI7vOcSLzrwOA+f3n+HKqMV63Fx/VXnkxq0tlt+yDzt0AXyiWlISntC5icjg7KQE
+	 mWCPpnV6iww2ikCDYCifTBooMLdrH//Ez74o+Al8=
+Date: Thu, 21 May 2026 17:28:33 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stefan.strogin@gmail.com,stable@vger.kernel.org,rppt@kernel.org,osalvador@kernel.org,mina86@mina86.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,fvdl@google.com,david@kernel.org,0x7f454c46@gmail.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + riscv-fix-building-compressed-efi-image-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20260522001049.193251F000E9@smtp.kernel.org>
+Subject: + mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260522002834.5E93F1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: riscv-fix-building-compressed-efi-image-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     riscv-fix-building-compressed-efi-image-fix.patch
+     Subject: mm/cma_debug: fix invalid accesses for inactive CMA areas
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-fix-building-compressed-efi-image-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,56 +58,75 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dmitry Antipov <dmantipov@yandex.ru>
-Subject: riscv-fix-building-compressed-efi-image-fix
-Date: Sat, 25 Apr 2026 06:07:22 +0300
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/cma_debug: fix invalid accesses for inactive CMA areas
+Date: Wed, 20 May 2026 14:10:25 +0800
 
-fix loongarch32
+cma_activate_area() can fail after allocating range bitmaps.  Its cleanup
+path frees those bitmaps, but only clears cma->count and
+cma->available_count.  It leaves cma->nranges and each range's count in
+place, so cma_debugfs_init() can still register debugfs files for an area
+that never activated successfully.
 
-Link: https://lore.kernel.org/8095016e47aceab4830c2523ce78af968ec0497e.camel@yandex.ru
-Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
-Reported-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Closes: https://lore.kernel.org/linux-riscv/20260409050018.GA371560@inky.localdomain
-Tested-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
-Suggested-by: Ard Biesheuvel <ardb@kernel.org>
-Assisted-by: Gemini:gemini-3.1-pro-preview sashiko
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Andriy Shevchenko <andriy.shevchenko@intel.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+That exposes two problems.  Reading the bitmap file can make debugfs walk
+a freed range bitmap and trigger an invalid memory access.  Reading
+maxchunk can also take cma->lock even though that lock is initialized only
+on the successful activation path.
+
+Fix this by creating debugfs entries only for CMA areas that reached
+CMA_ACTIVATED.
+
+c009da4258f9 introduced the invalid access to bitmap file.  2e32b947606d
+introduced the invalid access to cma->lock.  This change applies to both
+issues.  So I added two Fixes tags.
+
+Link: https://lore.kernel.org/20260520061025.3971821-1-songmuchun@bytedance.com
+Fixes: c009da4258f9 ("mm, cma: support multiple contiguous ranges, if requested")
+Fixes: 2e32b947606d ("mm: cma: add functions to get region pages counters")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Stefan Strogin <stefan.strogin@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/efi/libstub/Makefile |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/cma_debug.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/drivers/firmware/efi/libstub/Makefile~riscv-fix-building-compressed-efi-image-fix
-+++ a/drivers/firmware/efi/libstub/Makefile
-@@ -95,9 +95,10 @@ CFLAGS_zboot-decompress-gzip.o	+= -I$(sr
- zboot-obj-$(CONFIG_KERNEL_ZSTD)	:= zboot-decompress-zstd.o lib-xxhash.o
- CFLAGS_zboot-decompress-zstd.o	+= -I$(srctree)/lib/zstd
+--- a/mm/cma_debug.c~mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas
++++ a/mm/cma_debug.c
+@@ -205,7 +205,8 @@ static int __init cma_debugfs_init(void)
+ 	cma_debugfs_root = debugfs_create_dir("cma", NULL);
  
--zboot-riscv-obj-$(CONFIG_32BIT)	+= lib-ashldi3.o lib-lshrdi3.o
-+zboot-riscv-obj-$(CONFIG_32BIT)	:= lib-ashldi3.o lib-lshrdi3.o
- zboot-obj-$(CONFIG_RISCV)	+= lib-clz_ctz.o $(zboot-riscv-obj-y)
--zboot-obj-$(CONFIG_LOONGARCH)	+= lib-clz_ctz.o lib-ashldi3.o
-+zboot-loongarch-obj-$(CONFIG_32BIT) := lib-ashldi3.o lib-lshrdi3.o
-+zboot-obj-$(CONFIG_LOONGARCH)	+= lib-clz_ctz.o $(zboot-loongarch-obj-y)
- lib-$(CONFIG_EFI_ZBOOT)		+= zboot.o $(zboot-obj-y)
+ 	for (i = 0; i < cma_area_count; i++)
+-		cma_debugfs_add_one(&cma_areas[i], cma_debugfs_root);
++		if (test_bit(CMA_ACTIVATED, &cma_areas[i].flags))
++			cma_debugfs_add_one(&cma_areas[i], cma_debugfs_root);
  
- lib-$(CONFIG_UNACCEPTED_MEMORY) += unaccepted_memory.o bitmap.o find.o
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from dmantipov@yandex.ru are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
-lib-fix-_parse_integer_limit-to-handle-overflow.patch
-lib-fix-memparse-to-handle-overflow.patch
-lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch
-lib-cmdline_kunit-add-test-case-for-memparse.patch
-lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
-riscv-add-platform-specific-double-word-shifts-for-riscv32.patch
-lib-kunit-add-tests-for-__ashldi3-__ashrdi3-and-__lshrdi3.patch
-riscv-fix-building-compressed-efi-image.patch
-riscv-fix-building-compressed-efi-image-fix.patch
+mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas.patch
+mm-sparse-remove-sparse-buffer-pre-allocation-mechanism.patch
+mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
+mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
+mm-sparse-vmemmap-pass-pgmap-argument-to-memory-deactivation-paths.patch
+mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization.patch
+mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch
+mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
+mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
+drivers-base-memory-make-memory-block-get-put-explicit.patch
 
