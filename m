@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61BCB37B00C
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 19:29:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A3D6379C35
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 19:29:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779478161; cv=none; b=n73DVN9BNyXwHC2H1Dx8PCKxutM6BUO7bvLjDNHBcH5T4uduGDpYZCyZ+1lMY3onaZIofJ51L8w7wUtQXxS76fYCcrdSJOAdHRIUMyrtMK5UPjGfJmh38B0NOhBKwlhLX2yBzJJ4q7UXvbkEVzBonHp7EkBNtfu2gMblXRxj0Jo=
+	t=1779478164; cv=none; b=VrGNmZFeH+RJtGd6S0uSo9ZsXsq7tbz873cwUjGaySaBUK6WFI8dD8B7N8nttA1tiRr+2efDgKPVqk950qn86eAz/Jt+5Zr4K/VLNTEqq0EcPqEBO4bNsOKvTYxrEVmn3JN29/jxYnQ/p1c+U4JCxE25YVOp5Rxenc7CPlTDxyg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779478161; c=relaxed/simple;
-	bh=t86SSg/dV2752SJQ0ng7cFhmrHpv6jTXeBOVFpUYjrs=;
-	h=Date:To:From:Subject:Message-Id; b=XjVNWOEYNAbrKu49W6IsWGmCsAsWRor8OZCrwGTTrhsPhLvGD2H3XkqWeTlIDTO8rv0oxGhPKuRJx+iseIcKQK5tqvs9MYYcne1bIqk2/SxhRVBYx/ddw2p8VUhS4597a7EToxrP+MPJEPPE7GnxBkge1LLaYd4W/09mfZYqY8I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gA7NDPUX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779478164; c=relaxed/simple;
+	bh=9EMPgfKMKTCnN6KZtpJGttnX9IRTk5b2KLWcyXRMRE0=;
+	h=Date:To:From:Subject:Message-Id; b=kxWU54EaHbyDvKKZnhNTbtyVppifI6mVJpxlS9uWW0grdOPHFSMrJxFOcdfujCfF0H0uUrR85UbvfJGzgu3UQn/fiCxRdXEaq7Mxtke7XwxDdbt8k1R9DDbttn546ynao72RdcIM9a0CawD4Nn20Wc6Lsmjoz7r0L+1gH3G/AAQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aei4u3ja; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gA7NDPUX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 027911F000E9;
-	Fri, 22 May 2026 19:29:19 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aei4u3ja"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8C511F000E9;
+	Fri, 22 May 2026 19:29:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779478160;
-	bh=FUGjC4yqJR0+54qIcJ914kHCFSf4OHcHPqb6aBnrg8E=;
+	d=linux-foundation.org; s=korg; t=1779478163;
+	bh=lCUPMjmhaxA4FMytIk4ZfhpXfYcaJauBnlHZfqAEu30=;
 	h=Date:To:From:Subject;
-	b=gA7NDPUXT/G0dXlQQHWO2V+MV6q0UpLBWTSatM7xfgH/Oa49PzLz4UTzTvWoTdv36
-	 eUr9P1R+ie71OEx9CMDqMVJFcv1FbkH2D/deIZhYHUqxxLtpLiyo0L7lUjOUJBsnMS
-	 DDKNvOVs0q14haBQ/BIrzbMmwTklNNtLMwn2B2f4=
-Date: Fri, 22 May 2026 12:29:19 -0700
+	b=aei4u3ja4dHjxjZbAUCEJbHmfPkTSmbNFd/jnyl97ijEFWam58UqaP5XrN0j1rcMP
+	 edSVyP6AMknyo9UC+Zxl8u443+BMglSSmf4bcM3LFk9fKzPn9GLtiiN4fHVll74cvJ
+	 6UNrEN/6SBNsvvufn5ZouYkIk5pgyROInTI22p44=
+Date: Fri, 22 May 2026 12:29:22 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,jannh@google.com,gregkh@linuxfoundation.org,david@kernel.org,arnd@arndb.de,ljs@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-remove-mmap_action-success_hook.patch added to mm-new branch
-Message-Id: <20260522192920.027911F000E9@smtp.kernel.org>
+Subject: + mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter.patch added to mm-new branch
+Message-Id: <20260522192922.D8C511F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: remove mmap_action->success_hook
+     Subject: mm/vma: eliminate mmap_action->error_hook, introduce error_filter
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-remove-mmap_action-success_hook.patch
+     mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-remove-mmap_action-success_hook.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,21 +70,24 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: remove mmap_action->success_hook
-Date: Fri, 22 May 2026 17:00:10 +0100
+Subject: mm/vma: eliminate mmap_action->error_hook, introduce error_filter
+Date: Fri, 22 May 2026 17:00:11 +0100
 
-This hook was introduced to work around code that seemed to absolutely
-require access to a VMA pointer upon mmap().
+Rather than providing a hook, simplify things by providing the ability to
+filter errors.  This allows us to more carefully validate the value
+provided and thus ensure only a valid error code is specified, and
+simplifies the interface.
 
-However, providing this hook leaves a backdoor to drivers getting access
-to the very thing mmap_prepare eliminates - a pointer to the VMA.
+This way, we eliminate all hooks but mmap_prepare and allow only mmap
+actions to be specified (which core mm controls).
 
-Let's solve this contradiction by removing it.  The key intended user was
-hugetlb, however it seems that the best course now is to avoid allowing
-all drivers the ability to work around mmap_prepare, and find a different
-solution there.
+This significantly improves robustness and eliminates any unnecessary code
+duplication in driver mmap hooks.
 
-Link: https://lore.kernel.org/2521c19866f3f10f9085d094cc4f06769042be71.1779462249.git.ljs@kernel.org
+We also update the /dev/mem logic (the only user) to use
+mmap_action->error_filter instead.
+
+Link: https://lore.kernel.org/e770b28427937057fa953ac380a134b24acd8bb4.1779462249.git.ljs@kernel.org
 Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: David Hildenbrand <david@kernel.org>
@@ -99,60 +102,122 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h        |   10 ----------
- mm/util.c                       |    2 --
- tools/testing/vma/include/dup.h |   10 ----------
- 3 files changed, 22 deletions(-)
+ drivers/char/mem.c              |    8 +-------
+ include/linux/mm_types.h        |    9 +++------
+ mm/util.c                       |   29 +++++++++++++++++++++--------
+ tools/testing/vma/include/dup.h |    9 +++------
+ 4 files changed, 28 insertions(+), 27 deletions(-)
 
---- a/include/linux/mm_types.h~mm-vma-remove-mmap_action-success_hook
+--- a/drivers/char/mem.c~mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter
++++ a/drivers/char/mem.c
+@@ -322,11 +322,6 @@ static const struct vm_operations_struct
+ #endif
+ };
+ 
+-static int mmap_filter_error(int err)
+-{
+-	return -EAGAIN;
+-}
+-
+ static int mmap_mem_prepare(struct vm_area_desc *desc)
+ {
+ 	struct file *file = desc->file;
+@@ -362,8 +357,7 @@ static int mmap_mem_prepare(struct vm_ar
+ 
+ 	/* Remap-pfn-range will mark the range with the I/O flag. */
+ 	mmap_action_remap_full(desc, desc->pgoff);
+-	/* We filter remap errors to -EAGAIN. */
+-	desc->action.error_hook = mmap_filter_error;
++	desc->action.error_filter = -EAGAIN;
+ 
+ 	return 0;
+ }
+--- a/include/linux/mm_types.h~mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter
 +++ a/include/linux/mm_types.h
-@@ -844,16 +844,6 @@ struct mmap_action {
+@@ -844,13 +844,10 @@ struct mmap_action {
  	enum mmap_action_type type;
  
  	/*
--	 * If specified, this hook is invoked after the selected action has been
--	 * successfully completed. Note that the VMA write lock still held.
+-	 * If specified, this hook is invoked when an error occurred when
+-	 * attempting the selected action.
 -	 *
--	 * The absolute minimum ought to be done here.
--	 *
--	 * Returns 0 on success, or an error code.
--	 */
--	int (*success_hook)(const struct vm_area_struct *vma);
--
--	/*
- 	 * If specified, this hook is invoked when an error occurred when
- 	 * attempting the selected action.
- 	 *
---- a/mm/util.c~mm-vma-remove-mmap_action-success_hook
+-	 * The hook can return an error code in order to filter the error, but
+-	 * it is not valid to clear the error here.
++	 * If non-zero, filter errors that arise from mmap actions such that we
++	 * return error_filter instead. Only valid error codes may be specified.
+ 	 */
+-	int (*error_hook)(int err);
++	int error_filter;
+ 
+ 	/*
+ 	 * This should be set in rare instances where the operation required
+--- a/mm/util.c~mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter
 +++ a/mm/util.c
-@@ -1397,8 +1397,6 @@ static int mmap_action_finish(struct vm_
+@@ -1414,16 +1414,22 @@ static int mmap_action_finish(struct vm_
+ 	 */
+ 	len = vma_pages(vma) << PAGE_SHIFT;
+ 	do_munmap(current->mm, vma->vm_start, len, NULL);
+-	if (action->error_hook) {
+-		/* We may want to filter the error. */
+-		err = action->error_hook(err);
+-		/* The caller should not clear the error. */
+-		VM_WARN_ON_ONCE(!err);
+-	}
+-	return err;
++
++	return action->error_filter ?: err;
+ }
  
- 	if (!err)
- 		err = call_vma_mapped(vma);
--	if (!err && action->success_hook)
--		err = action->success_hook(vma);
- 
- 	/* do_munmap() might take rmap lock, so release if held. */
- 	maybe_rmap_unlock_action(vma, action);
---- a/tools/testing/vma/include/dup.h~mm-vma-remove-mmap_action-success_hook
+ #ifdef CONFIG_MMU
++
++static int check_mmap_action(struct mmap_action *action)
++{
++	const unsigned long filter = action->error_filter;
++
++	if (WARN_ON_ONCE(filter && !IS_ERR_VALUE(filter)))
++		return -EINVAL;
++
++	return 0;
++}
++
+ /**
+  * mmap_action_prepare - Perform preparatory setup for an VMA descriptor
+  * action which need to be performed.
+@@ -1433,7 +1439,14 @@ static int mmap_action_finish(struct vm_
+  */
+ int mmap_action_prepare(struct vm_area_desc *desc)
+ {
+-	switch (desc->action.type) {
++	struct mmap_action *action = &desc->action;
++	int err;
++
++	err = check_mmap_action(action);
++	if (err)
++		return err;
++
++	switch (action->type) {
+ 	case MMAP_NOTHING:
+ 		return 0;
+ 	case MMAP_REMAP_PFN:
+--- a/tools/testing/vma/include/dup.h~mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter
 +++ a/tools/testing/vma/include/dup.h
-@@ -483,16 +483,6 @@ struct mmap_action {
+@@ -483,13 +483,10 @@ struct mmap_action {
  	enum mmap_action_type type;
  
  	/*
--	 * If specified, this hook is invoked after the selected action has been
--	 * successfully completed. Note that the VMA write lock still held.
+-	 * If specified, this hook is invoked when an error occurred when
+-	 * attempting the selection action.
 -	 *
--	 * The absolute minimum ought to be done here.
--	 *
--	 * Returns 0 on success, or an error code.
--	 */
--	int (*success_hook)(const struct vm_area_struct *vma);
--
--	/*
- 	 * If specified, this hook is invoked when an error occurred when
- 	 * attempting the selection action.
- 	 *
+-	 * The hook can return an error code in order to filter the error, but
+-	 * it is not valid to clear the error here.
++	 * If non-zero, filter errors that arise from mmap actions such that we
++	 * return error_filter instead. Only valid error codes may be specified.
+ 	 */
+-	int (*error_hook)(int err);
++	int error_filter;
+ 
+ 	/*
+ 	 * This should be set in rare instances where the operation required
 _
 
 Patches currently in -mm which might be from ljs@kernel.org are
