@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B85B1FE47B
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 02:07:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93119346A18
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 03:54:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779415630; cv=none; b=tF2BefkhYmojBptxiZrC+ty7I9me1LydBsvz0Xid2+BQ46yx14OokjKxoyJJ2UVbYTIc0b0a/suWPad0VyW0/kiw7nKw1sMTLR/9lkgLIcav9FgSA+VVnZFCncW46XUXaY55xcqMAsMI7ZPFy4zLH70a5/d3bXJ9eQJ7fcSMPuE=
+	t=1779422041; cv=none; b=dnRo8HUQDq3SaLvqrkOLul7WQhu0XxCDyg4AvGJDRMGLIZVuYWF0r1Oh+EbmVUKJQSZC3cOAxx/qq3ap9rgzJ8Hna+Uc0hh4Yzy7JnyVNsB2qphx+Lj3wTNsSmKvZZumAZIQxD6KsnC5Jch40WPg+RPddBLgwXhbzXxKRr2hYAs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779415630; c=relaxed/simple;
-	bh=3sW/kuX5sWYXFQj2Hc1EM0nWBE3IlLA31XGFpp4cmik=;
-	h=Date:To:From:Subject:Message-Id; b=u7vemhrVQEtubT1den7XXMm86PxWnW+cGeov+CeRb1rfaGI7nTL2dPrf1ynJH+FRe9J/qrt83xv+S5ZEcLioGcdaF8tOATvuDh5ewMZ1ZmuIdMA5x9K/CQ1S92YsAqoxjEe0h8P9GjWVmIshRhoL8qJmV1wp9Kb7XgLo4b9N0pQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=bDST5iV8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779422041; c=relaxed/simple;
+	bh=wR1AOyfDLAp5VvING3+Z8S0SuW7nu4PGzm4bi7jzBx0=;
+	h=Date:To:From:Subject:Message-Id; b=egfZ5/zsLi/7UBIBcNytI4QsEuqZFzmbmYlMZKuchcnjRILKLZzRZCyesCZHdKQcujb0zMMtkSvGNh+/F6T0cMC/F+IeT2Re5pRmlEQNG8nVw4L02YUVMar07yCpXLS10V6qgy3QBN/JKgUdFTSimRBgY7UgfpQvqqm8ZK/3tBg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ieEnRPGT; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="bDST5iV8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 739411F000E9;
-	Fri, 22 May 2026 02:07:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ieEnRPGT"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 410A91F000E9;
+	Fri, 22 May 2026 03:54:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779415628;
-	bh=O2KI2W9DzeNHh2oJIU5X34iGr7F2MwKSRog9SYLWEPw=;
+	d=linux-foundation.org; s=korg; t=1779422040;
+	bh=CWtZ5nTxEw3EFs1m2iXUrUj2hXrV75jPKqbXrHWZU80=;
 	h=Date:To:From:Subject;
-	b=bDST5iV8fWW2gMqLBNwNmDka2QZEs5Q4UPDw0a3JTAvqMLPjp+zdeWD6EE3nAKXwV
-	 7JqQebirmhh+aqCKYHCLECXHvjFIkJubwGvZauL+gZD61NAyFf8YFTpp2seFtwjRXU
-	 qIyaHK/LXZf9HZKAfTkL7LqrW60OHsAvX/RKnr58=
-Date: Thu, 21 May 2026 19:07:07 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,willy@infradead.org,vbabka@kernel.org,toke@redhat.com,tariqt@nvidia.com,surenb@google.com,sdf@fomichev.me,saeedm@nvidia.com,rppt@kernel.org,pabeni@redhat.com,mhocko@suse.com,mbloch@nvidia.com,ljs@kernel.org,liam@infradead.org,leon@kernel.org,kuba@kernel.org,john.fastabend@gmail.com,jackmanb@google.com,ilias.apalodimas@linaro.org,horms@kernel.org,hawk@kernel.org,harry@kernel.org,hannes@cmpxchg.org,edumazet@google.com,dtatulea@nvidia.com,david@kernel.org,davem@davemloft.net,baolin.wang@linux.alibaba.com,ast@kernel.org,asml.silence@gmail.com,byungchul@sk.com,akpm@linux-foundation.org
+	b=ieEnRPGTTbisCRuWEvQ+VqiVozEl68zi6b7dqbkE4S4p01TFWUpiabsv5qbDjgq0r
+	 dgRJtqo3igltn2fzPYkg4eSPCkI4ZPOiFd6mDiZ2gc0e59G+wsPacVVAyHnYUGt0S8
+	 cm3oreVXI2SHXAuhmZIuv+/xy1CfL3qWTKtycwSg=
+Date: Thu, 21 May 2026 20:53:59 -0700
+To: mm-commits@vger.kernel.org,pmladek@suse.com,paulmck@kernel.org,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch removed from -mm tree
-Message-Id: <20260522020708.739411F000E9@smtp.kernel.org>
+Subject: + lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20260522035400.410A91F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,325 +34,83 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: Revert "mm: introduce a new page type for page pool in page type"
-has been removed from the -mm tree.  Its filename was
-     revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type.patch
+The patch titled
+     Subject: lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix.patch
 
-This patch was dropped because it was merged into the mm-hotfixes-stable branch
-of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
-From: Byungchul Park <byungchul@sk.com>
-Subject: Revert "mm: introduce a new page type for page pool in page type"
-Date: Fri, 15 May 2026 12:47:01 +0900
+From: Feng Tang <feng.tang@linux.alibaba.com>
+Subject: lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix
+Date: Fri, 22 May 2026 09:46:26 +0800
 
-This reverts commit db359fccf212 ("mm: introduce a new page type for page
-pool in page type") and a part of 735a309b4bfb9e ("net: add net_iov_init()
-and use it to initialize ->page_type").
+avoid hard-coding "10" in two places and in a comment
 
-Netpp page_type'ed pages might be used in mapping so as to use @_mapcount.
-However, since @page_type and @_mapcount are union'ed in struct page,
-these two can't be used at the same time.  Revert the commit introducing
-page_type for Netpp for now.
-
-The patch will be retried once @page_type and @_mapcount get allowed to be
-used at the same time.
-
-The revert also includes removal of @page_type initialization part
-introduced by commit 735a309b4bfb9e ("net: add net_iov_init() and use it
-to initialize ->page_type"), which will be restored on the retry.
-
-Link: https://lore.kernel.org/20260515034701.17027-1-byungchul@sk.com
-Fixes: db359fccf212 ("mm: introduce a new page type for page pool in page type")
-Signed-off-by: Byungchul Park <byungchul@sk.com>
-Reported-by: Dragos Tatulea <dtatulea@nvidia.com>
-Closes: https://lore.kernel.org/all/982b9bc1-0a0a-4fc5-8e3a-3672db2b29a1@nvidia.com
-Acked-by: Jakub Kicinski <kuba@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Harry Yoo (Oracle) <harry@kernel.org>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Ilias Apalodimas <ilias.apalodimas@linaro.org>
-Cc: Jesper Dangaard Brouer <hawk@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: John Fastabend <john.fastabend@gmail.com>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Mark Bloch <mbloch@nvidia.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Paolo Abeni <pabeni@redhat.com>
-Cc: Pavel Begunkov <asml.silence@gmail.com>
-Cc: Saeed Mahameed <saeedm@nvidia.com>
-Cc: Simon Horman <horms@kernel.org>
-Cc: Stanislav Fomichev <sdf@fomichev.me>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Tariq Toukan <tariqt@nvidia.com>
-Cc: Toke Hoiland-Jorgensen <toke@redhat.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/ag-1ciG0FSomBf7q@U-2FWC9VHC-2323.local
+Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c |    2 
- include/linux/mm.h                               |   27 +++++++++++--
- include/linux/page-flags.h                       |    6 --
- include/net/netmem.h                             |   19 ---------
- mm/page_alloc.c                                  |   13 +-----
- net/core/netmem_priv.h                           |   23 ++++++-----
- net/core/page_pool.c                             |   24 -----------
- 7 files changed, 46 insertions(+), 68 deletions(-)
+ lib/nmi_backtrace.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
-+++ a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-@@ -708,7 +708,7 @@ static void mlx5e_free_xdpsq_desc(struct
- 				xdpi = mlx5e_xdpi_fifo_pop(xdpi_fifo);
- 				page = xdpi.page.page;
+--- a/lib/nmi_backtrace.c~lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix
++++ a/lib/nmi_backtrace.c
+@@ -27,6 +27,8 @@ static DECLARE_BITMAP(backtrace_mask, NR
+ /* "in progress" flag of arch_trigger_cpumask_backtrace */
+ static unsigned long backtrace_flag;
  
--				/* No need to check PageNetpp() as we
-+				/* No need to check page_pool_page_is_pp() as we
- 				 * know this is a page_pool page.
- 				 */
- 				page_pool_recycle_direct(pp_page_to_nmdesc(page)->pp,
---- a/include/linux/mm.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
-+++ a/include/linux/mm.h
-@@ -5174,9 +5174,10 @@ int arch_lock_shadow_stack_status(struct
-  * DMA mapping IDs for page_pool
-  *
-  * When DMA-mapping a page, page_pool allocates an ID (from an xarray) and
-- * stashes it in the upper bits of page->pp_magic. Non-PP pages can have
-- * arbitrary kernel pointers stored in the same field as pp_magic (since
-- * it overlaps with page->lru.next), so we must ensure that we cannot
-+ * stashes it in the upper bits of page->pp_magic. We always want to be able to
-+ * unambiguously identify page pool pages (using page_pool_page_is_pp()). Non-PP
-+ * pages can have arbitrary kernel pointers stored in the same field as pp_magic
-+ * (since it overlaps with page->lru.next), so we must ensure that we cannot
-  * mistake a valid kernel pointer with any of the values we write into this
-  * field.
-  *
-@@ -5211,6 +5212,26 @@ int arch_lock_shadow_stack_status(struct
- #define PP_DMA_INDEX_MASK GENMASK(PP_DMA_INDEX_BITS + PP_DMA_INDEX_SHIFT - 1, \
- 				  PP_DMA_INDEX_SHIFT)
- 
-+/* Mask used for checking in page_pool_page_is_pp() below. page->pp_magic is
-+ * OR'ed with PP_SIGNATURE after the allocation in order to preserve bit 0 for
-+ * the head page of compound page and bit 1 for pfmemalloc page, as well as the
-+ * bits used for the DMA index. page_is_pfmemalloc() is checked in
-+ * __page_pool_put_page() to avoid recycling the pfmemalloc page.
-+ */
-+#define PP_MAGIC_MASK ~(PP_DMA_INDEX_MASK | 0x3UL)
++#define NMI_BT_TIMEOUT_SEC	10
 +
-+#ifdef CONFIG_PAGE_POOL
-+static inline bool page_pool_page_is_pp(const struct page *page)
-+{
-+	return (page->pp_magic & PP_MAGIC_MASK) == PP_SIGNATURE;
-+}
-+#else
-+static inline bool page_pool_page_is_pp(const struct page *page)
-+{
-+	return false;
-+}
-+#endif
-+
- #define PAGE_SNAPSHOT_FAITHFUL (1 << 0)
- #define PAGE_SNAPSHOT_PG_BUDDY (1 << 1)
- #define PAGE_SNAPSHOT_PG_IDLE  (1 << 2)
---- a/include/linux/page-flags.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
-+++ a/include/linux/page-flags.h
-@@ -923,7 +923,6 @@ enum pagetype {
- 	PGTY_zsmalloc		= 0xf6,
- 	PGTY_unaccepted		= 0xf7,
- 	PGTY_large_kmalloc	= 0xf8,
--	PGTY_netpp		= 0xf9,
- 
- 	PGTY_mapcount_underflow = 0xff
- };
-@@ -1056,11 +1055,6 @@ PAGE_TYPE_OPS(Zsmalloc, zsmalloc, zsmall
- PAGE_TYPE_OPS(Unaccepted, unaccepted, unaccepted)
- PAGE_TYPE_OPS(LargeKmalloc, large_kmalloc, large_kmalloc)
- 
--/*
-- * Marks page_pool allocated pages.
-- */
--PAGE_TYPE_OPS(Netpp, netpp, netpp)
--
- /**
-  * PageHuge - Determine if the page belongs to hugetlbfs
-  * @page: The page to test.
---- a/include/net/netmem.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
-+++ a/include/net/netmem.h
-@@ -94,20 +94,10 @@ enum net_iov_type {
-  */
- struct net_iov {
- 	struct netmem_desc desc;
--	unsigned int page_type;
- 	enum net_iov_type type;
- 	struct net_iov_area *owner;
- };
- 
--/* Make sure 'the offset of page_type in struct page == the offset of
-- * type in struct net_iov'.
-- */
--#define NET_IOV_ASSERT_OFFSET(pg, iov)			\
--	static_assert(offsetof(struct page, pg) ==	\
--		      offsetof(struct net_iov, iov))
--NET_IOV_ASSERT_OFFSET(page_type, page_type);
--#undef NET_IOV_ASSERT_OFFSET
--
- struct net_iov_area {
- 	/* Array of net_iovs for this area. */
- 	struct net_iov *niovs;
-@@ -127,11 +117,7 @@ static inline unsigned int net_iov_idx(c
- 	return niov - net_iov_owner(niov)->niovs;
- }
- 
--/* Initialize a niov: stamp the owning area, the memory provider type,
-- * and the page_type "no type" sentinel expected by the page-type API
-- * (see PAGE_TYPE_OPS in <linux/page-flags.h>) so that
-- * page_pool_set_pp_info() can later call __SetPageNetpp() on a niov
-- * cast to struct page.
-+/* Initialize a niov: stamp the owning area, the memory provider type.
-  */
- static inline void net_iov_init(struct net_iov *niov,
- 				struct net_iov_area *owner,
-@@ -139,7 +125,6 @@ static inline void net_iov_init(struct n
- {
- 	niov->owner = owner;
- 	niov->type = type;
--	niov->page_type = UINT_MAX;
- }
- 
- /* netmem */
-@@ -245,7 +230,7 @@ static inline unsigned long netmem_pfn_t
-  */
- #define pp_page_to_nmdesc(p)						\
- ({									\
--	DEBUG_NET_WARN_ON_ONCE(!PageNetpp(p));				\
-+	DEBUG_NET_WARN_ON_ONCE(!page_pool_page_is_pp(p));		\
- 	__pp_page_to_nmdesc(p);						\
- })
- 
---- a/mm/page_alloc.c~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
-+++ a/mm/page_alloc.c
-@@ -1035,6 +1035,7 @@ static inline bool page_expected_state(s
- #ifdef CONFIG_MEMCG
- 			page->memcg_data |
- #endif
-+			page_pool_page_is_pp(page) |
- 			(page->flags.f & check_flags)))
- 		return false;
- 
-@@ -1061,6 +1062,8 @@ static const char *page_bad_reason(struc
- 	if (unlikely(page->memcg_data))
- 		bad_reason = "page still charged to cgroup";
- #endif
-+	if (unlikely(page_pool_page_is_pp(page)))
-+		bad_reason = "page_pool leak";
- 	return bad_reason;
- }
- 
-@@ -1377,17 +1380,9 @@ __always_inline bool __free_pages_prepar
- 		mod_mthp_stat(order, MTHP_STAT_NR_ANON, -1);
- 		folio->mapping = NULL;
+ /*
+  * When raise() is called it will be passed a pointer to the
+  * backtrace_mask. Architectures that call nmi_cpu_backtrace()
+@@ -68,8 +70,8 @@ void nmi_trigger_cpumask_backtrace(const
+ 		raise(to_cpumask(backtrace_mask));
  	}
--	if (unlikely(page_has_type(page))) {
--		/* networking expects to clear its page type before releasing */
--		if (is_check_pages_enabled()) {
--			if (unlikely(PageNetpp(page))) {
--				bad_page(page, "page_pool leak");
--				return false;
--			}
--		}
-+	if (unlikely(page_has_type(page)))
- 		/* Reset the page_type (which overlays _mapcount) */
- 		page->page_type = UINT_MAX;
--	}
  
- 	if (is_check_pages_enabled()) {
- 		if (free_page_is_bad(page))
---- a/net/core/netmem_priv.h~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
-+++ a/net/core/netmem_priv.h
-@@ -8,18 +8,21 @@ static inline unsigned long netmem_get_p
- 	return netmem_to_nmdesc(netmem)->pp_magic & ~PP_DMA_INDEX_MASK;
- }
+-	/* Wait for up to 10 seconds for all CPUs to do the backtrace */
+-	for (i = 0; i < 10 * 1000; i++) {
++	/* Wait for up to NMI_BT_TIMEOUT_SEC seconds for all CPUs to do the backtrace */
++	for (i = 0; i < NMI_BT_TIMEOUT_SEC * 1000; i++) {
+ 		if (cpumask_empty(to_cpumask(backtrace_mask)))
+ 			break;
+ 		mdelay(1);
+@@ -77,8 +79,8 @@ void nmi_trigger_cpumask_backtrace(const
+ 	}
  
--static inline bool netmem_is_pp(netmem_ref netmem)
-+static inline void netmem_or_pp_magic(netmem_ref netmem, unsigned long pp_magic)
-+{
-+	netmem_to_nmdesc(netmem)->pp_magic |= pp_magic;
-+}
-+
-+static inline void netmem_clear_pp_magic(netmem_ref netmem)
- {
--	struct page *page;
-+	WARN_ON_ONCE(netmem_to_nmdesc(netmem)->pp_magic & PP_DMA_INDEX_MASK);
+ 	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
+-		pr_warn("After 10 seconds, these CPUS still haven't responded to the NMI: %*pbl\n",
+-			cpumask_pr_args(to_cpumask(backtrace_mask)));
++		pr_warn("After %d seconds, these CPUS still haven't responded to the NMI: %*pbl\n",
++			NMI_BT_TIMEOUT_SEC, cpumask_pr_args(to_cpumask(backtrace_mask)));
  
--	/* XXX: Now that the offset of page_type is shared between
--	 * struct page and net_iov, just cast the netmem to struct page
--	 * unconditionally by clearing NET_IOV if any, no matter whether
--	 * it comes from struct net_iov or struct page.  This should be
--	 * adjusted once the offset is no longer shared.
--	 */
--	page = (struct page *)((__force unsigned long)netmem & ~NET_IOV);
--	return PageNetpp(page);
-+	netmem_to_nmdesc(netmem)->pp_magic = 0;
-+}
-+
-+static inline bool netmem_is_pp(netmem_ref netmem)
-+{
-+	return (netmem_get_pp_magic(netmem) & PP_MAGIC_MASK) == PP_SIGNATURE;
- }
- 
- static inline void netmem_set_pp(netmem_ref netmem, struct page_pool *pool)
---- a/net/core/page_pool.c~revert-mm-introduce-a-new-page-type-for-page-pool-in-page-type
-+++ a/net/core/page_pool.c
-@@ -707,18 +707,8 @@ s32 page_pool_inflight(const struct page
- 
- void page_pool_set_pp_info(struct page_pool *pool, netmem_ref netmem)
- {
--	struct page *page;
--
- 	netmem_set_pp(netmem, pool);
--
--	/* XXX: Now that the offset of page_type is shared between
--	 * struct page and net_iov, just cast the netmem to struct page
--	 * unconditionally by clearing NET_IOV if any, no matter whether
--	 * it comes from struct net_iov or struct page.  This should be
--	 * adjusted once the offset is no longer shared.
--	 */
--	page = (struct page *)((__force unsigned long)netmem & ~NET_IOV);
--	__SetPageNetpp(page);
-+	netmem_or_pp_magic(netmem, PP_SIGNATURE);
- 
- 	/* Ensuring all pages have been split into one fragment initially:
- 	 * page_pool_set_pp_info() is only called once for every page when it
-@@ -733,17 +723,7 @@ void page_pool_set_pp_info(struct page_p
- 
- void page_pool_clear_pp_info(netmem_ref netmem)
- {
--	struct page *page;
--
--	/* XXX: Now that the offset of page_type is shared between
--	 * struct page and net_iov, just cast the netmem to struct page
--	 * unconditionally by clearing NET_IOV if any, no matter whether
--	 * it comes from struct net_iov or struct page.  This should be
--	 * adjusted once the offset is no longer shared.
--	 */
--	page = (struct page *)((__force unsigned long)netmem & ~NET_IOV);
--	__ClearPageNetpp(page);
--
-+	netmem_clear_pp_magic(netmem);
- 	netmem_set_pp(netmem, NULL);
- }
- 
+ 		nmi_backtrace_stall_check(to_cpumask(backtrace_mask));
+ 	}
 _
 
-Patches currently in -mm which might be from byungchul@sk.com are
+Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
 
+lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi.patch
+lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix.patch
 
