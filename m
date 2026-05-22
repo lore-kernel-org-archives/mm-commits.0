@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D551D382F18
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08BEC3815F7
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779481349; cv=none; b=eL+b15QPpjC8wmbUyzYgjQmQbESWDODKagkLMgBj5I5HGnIdSk1QdUYwAauOtXupfWraZt/p96OTo3zlrKxu/PPwaH5RXzMPv2Y1w2xbqyRlt9c8aVQNIIWDQUph95CsyRfrDYqRBBBc0jYypILTPKHCppET3fRfbgNiMhEu82o=
+	t=1779481351; cv=none; b=rq2Bwm4K8+S/9+bEPgO9VpL9SKGRsXqWwRIkWmBPC2UVKzuVWa+lxTxFjDUCI45FhT9fQEBhLH2Yd4yV2nqSb7UqvhDTpTZk07ACwfKo0Y250zgiqePqG1qosIdeUZ286r1xE9M1sDJtaOm1xow6oPrNkNBeN8CeDY6WWhbU4JA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779481349; c=relaxed/simple;
-	bh=/opeKRXS0nzA5Wii/CoRypU2EjbzVno4iFnNuS6F3/U=;
-	h=Date:To:From:Subject:Message-Id; b=dL+a2qX2Ff8JsnI4WjjxUxrRwFeoGP8AMQ3wAwu0VAOfCps7wOuwqbExJlukWTmdUyB+y80SLDDJaDCQcrBrghJgzO1HZ68JVTv2rqE/9zV7eUhnqWwXhKjyIfvgzd2cqPBQ7sy2ki/p+6FjWBZDWbVI3q77baWEvmQDbuaaci8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Xr+wxPTN; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779481351; c=relaxed/simple;
+	bh=xE+nASW08ROnVZRxU/N4nWPEs5/tv8zgfICLrnymqfM=;
+	h=Date:To:From:Subject:Message-Id; b=g1zk5XoqyUZ06A9RhNZINmx6q2F5A+IEpIt6V+rXlFO9Ar8W5LJR7fjE/cCki7BL9pqJww33PRwKFRhvyAJG9A+IRqIL3HIZNYmoSUhtwrkeAVLxEmpou9zf64S2VKaPTnPN4bmqaOOsYJN2A4G6+YjROqeMzWDYWC2vHmav/Uc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RF/n8wai; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Xr+wxPTN"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A16E71F00A3D;
-	Fri, 22 May 2026 20:22:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RF/n8wai"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91AA61F000E9;
+	Fri, 22 May 2026 20:22:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779481347;
-	bh=+pHWddLojUoHy/rvgxGX3ZvedQCytL5jV0leSUVC6+8=;
+	d=linux-foundation.org; s=korg; t=1779481349;
+	bh=7hVC3WKaUgxaH8C9T5dC6dp0+lWGpVLF45ujq07DoUE=;
 	h=Date:To:From:Subject;
-	b=Xr+wxPTNqmoeli8gEPOMi6+uQgE6kqQ52gMhDUqg8S5+XQAd56Cars9WieD5/3tu4
-	 LenJawSGjrSK1FrZNcZwqAka32unuWGpgp2uEpiGnOVovuzxmNOM9RiacYM9iYozTl
-	 w4zGbghoXnmchCH3B4FZF+UQiX5Oll9KAiGwhYYw=
-Date: Fri, 22 May 2026 13:22:27 -0700
+	b=RF/n8waizWm/OzYs4v6IUPkSOc/nMWLRTSpF/WRVLq6MBqnIXj20SlximWO55VSBq
+	 FsxbSJLV2P+U+xSc7K2Wp5xVuxllAhtLCim9Yiz1NNe52MzQ2kZB+07i8xXsrwuwie
+	 ilnfnOaXeB33zeaM8lP2Q2wowQakBQbB/QDlqWrk=
+Date: Fri, 22 May 2026 13:22:29 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions.patch added to mm-new branch
-Message-Id: <20260522202227.A16E71F00A3D@smtp.kernel.org>
+Subject: + mm-damon-core-hide-damon_add_region.patch added to mm-new branch
+Message-Id: <20260522202229.91AA61F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/tests/vaddr-kunit: replace damon_add_region() with damon_set_regions()
+     Subject: mm/damon/core: hide damon_add_region()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions.patch
+     mm-damon-core-hide-damon_add_region.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-hide-damon_add_region.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,71 +70,45 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/vaddr-kunit: replace damon_add_region() with damon_set_regions()
-Date: Fri, 22 May 2026 08:40:15 -0700
+Subject: mm/damon/core: hide damon_add_region()
+Date: Fri, 22 May 2026 08:40:16 -0700
 
-DAMON virtual address operation set (vaddr) unit tests is using
-damon_add_region() for setup of DAMON monitoring target region boundaries
-setup.  But, damon_set_regions() is designed for exactly the purpose.  All
-other DAMON API callers use the function for the purpose.  Replace
-damon_add_region() usage in the unit tests with damon_set_regions(), for
-unifying the use case and reducing the maintenance cost.
+damon_add_region() is being used by only DAMON core, but exposed to DAMON
+API callers.  Exposing something that is not really being used by others
+will only increase the maintenance cost.  Hide it.
 
-Link: https://lore.kernel.org/20260522154026.80546-5-sj@kernel.org
+Link: https://lore.kernel.org/20260522154026.80546-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/vaddr-kunit.h |   27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+ include/linux/damon.h |    1 -
+ mm/damon/core.c       |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/damon/tests/vaddr-kunit.h~mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions
-+++ a/mm/damon/tests/vaddr-kunit.h
-@@ -132,22 +132,35 @@ static void damon_do_test_apply_three_re
- 				unsigned long *expected, int nr_expected)
+--- a/include/linux/damon.h~mm-damon-core-hide-damon_add_region
++++ a/include/linux/damon.h
+@@ -1024,7 +1024,6 @@ static inline void damon_insert_region(s
+ 	t->nr_regions++;
+ }
+ 
+-void damon_add_region(struct damon_region *r, struct damon_target *t);
+ void damon_destroy_region(struct damon_region *r, struct damon_target *t);
+ int damon_set_regions(struct damon_target *t, struct damon_addr_range *ranges,
+ 		unsigned int nr_ranges, unsigned long min_region_sz);
+--- a/mm/damon/core.c~mm-damon-core-hide-damon_add_region
++++ a/mm/damon/core.c
+@@ -250,7 +250,7 @@ struct damon_region *damon_new_region(un
+ 	return region;
+ }
+ 
+-void damon_add_region(struct damon_region *r, struct damon_target *t)
++static void damon_add_region(struct damon_region *r, struct damon_target *t)
  {
- 	struct damon_target *t;
-+	struct damon_addr_range *ranges;
- 	struct damon_region *r;
- 	int i;
- 
- 	t = damon_new_target();
- 	if (!t)
- 		kunit_skip(test, "target alloc fail");
-+
-+	ranges = kmalloc_array(nr_regions / 2, sizeof(*ranges), GFP_KERNEL);
-+	if (!ranges) {
-+		damon_destroy_target(t, NULL);
-+		kunit_skip(test, "ranges alloc fail");
-+	}
- 	for (i = 0; i < nr_regions / 2; i++) {
--		r = damon_new_region(regions[i * 2], regions[i * 2 + 1]);
--		if (!r) {
--			damon_destroy_target(t, NULL);
--			kunit_skip(test, "region alloc fail");
--		}
--		damon_add_region(r, t);
-+		ranges[i].start = regions[i * 2];
-+		ranges[i].end = regions[i * 2 + 1];
- 	}
-+	if (damon_set_regions(t, ranges, nr_regions / 2,
-+				DAMON_MIN_REGION_SZ)) {
-+		kfree(ranges);
-+		damon_destroy_target(t, NULL);
-+		kunit_skip(test, "damon_set_regions() fail");
-+	}
-+	kfree(ranges);
- 
--	damon_set_regions(t, three_regions, 3, DAMON_MIN_REGION_SZ);
-+	if (damon_set_regions(t, three_regions, 3, DAMON_MIN_REGION_SZ)) {
-+		damon_destroy_target(t, NULL);
-+		kunit_skip(test, "second damon_set_regions() fail");
-+	}
- 
- 	for (i = 0; i < nr_expected / 2; i++) {
- 		r = __nth_region_of(t, i);
+ 	list_add_tail(&r->list, &t->regions_list);
+ 	t->nr_regions++;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
