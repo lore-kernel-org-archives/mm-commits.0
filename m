@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A3D6379C35
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 19:29:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C2273803D3
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779478164; cv=none; b=VrGNmZFeH+RJtGd6S0uSo9ZsXsq7tbz873cwUjGaySaBUK6WFI8dD8B7N8nttA1tiRr+2efDgKPVqk950qn86eAz/Jt+5Zr4K/VLNTEqq0EcPqEBO4bNsOKvTYxrEVmn3JN29/jxYnQ/p1c+U4JCxE25YVOp5Rxenc7CPlTDxyg=
+	t=1779481343; cv=none; b=b70wTMyuXwsx1Ij/4JSHKwIKxDddN8C1kgpKmSIxqweFFWqQCcBcF9/c4T97x+cT8NX6vh/GMMWKGxp76uE9wAGI9UMUEEC5LEZ/0Wig50dww0rzo3Oxi0o+1KxBxhK+nc14KdpLWWqrH852ujU6f0AU9opaywCcSeQL27OYaaw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779478164; c=relaxed/simple;
-	bh=9EMPgfKMKTCnN6KZtpJGttnX9IRTk5b2KLWcyXRMRE0=;
-	h=Date:To:From:Subject:Message-Id; b=kxWU54EaHbyDvKKZnhNTbtyVppifI6mVJpxlS9uWW0grdOPHFSMrJxFOcdfujCfF0H0uUrR85UbvfJGzgu3UQn/fiCxRdXEaq7Mxtke7XwxDdbt8k1R9DDbttn546ynao72RdcIM9a0CawD4Nn20Wc6Lsmjoz7r0L+1gH3G/AAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=aei4u3ja; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779481343; c=relaxed/simple;
+	bh=QNN5PpWo0VkNjLuxoPNwvNkD9NHdq1akQtovx57IA6E=;
+	h=Date:To:From:Subject:Message-Id; b=DcYwsA67AtuE5z/5n9HkstvpYiNI+MMzwgRWfkabhTqkpwJtQuENniIheo98PTCyUiVMzAxqBp3e+2N9IsGEa5+h/16Vjvo3uqk9zHd9XRVhSiGykMm7Kk2jl5NI26BZGoGh9q5FNjShy7JDBLjdD7/pzvN5iACPQHsBuWphJKY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vsPl9Ajc; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="aei4u3ja"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8C511F000E9;
-	Fri, 22 May 2026 19:29:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vsPl9Ajc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D35421F000E9;
+	Fri, 22 May 2026 20:22:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779478163;
-	bh=lCUPMjmhaxA4FMytIk4ZfhpXfYcaJauBnlHZfqAEu30=;
+	d=linux-foundation.org; s=korg; t=1779481341;
+	bh=TJzfUqce1Tr+vVQ48TPORbJBIwoKkE+R5dYvLl6E07g=;
 	h=Date:To:From:Subject;
-	b=aei4u3ja4dHjxjZbAUCEJbHmfPkTSmbNFd/jnyl97ijEFWam58UqaP5XrN0j1rcMP
-	 edSVyP6AMknyo9UC+Zxl8u443+BMglSSmf4bcM3LFk9fKzPn9GLtiiN4fHVll74cvJ
-	 6UNrEN/6SBNsvvufn5ZouYkIk5pgyROInTI22p44=
-Date: Fri, 22 May 2026 12:29:22 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,pfalcato@suse.de,mhocko@suse.com,liam@infradead.org,jannh@google.com,gregkh@linuxfoundation.org,david@kernel.org,arnd@arndb.de,ljs@kernel.org,akpm@linux-foundation.org
+	b=vsPl9AjcPp3srwrJGG4wAj+CfBbvrbBqLZAJ6lsqj+ca9BIYZbmxL9Ej1UQU5U7aX
+	 M0OmhJCb3s1ti7NF0eVX6F2F8GWP8DUBUAa6oNGg6jEVeJldByR9aMpqIzoeXnJOn0
+	 uVlchnm0z4AGNmbum7yAk8QjruvBSUu0oHf/6L8M=
+Date: Fri, 22 May 2026 13:22:21 -0700
+To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter.patch added to mm-new branch
-Message-Id: <20260522192922.D8C511F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch added to mm-new branch
+Message-Id: <20260522202221.D35421F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/vma: eliminate mmap_action->error_hook, introduce error_filter
+     Subject: mm/damon/core: safely handle no region case in damon_set_regions()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter.patch
+     mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,162 +69,154 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Lorenzo Stoakes <ljs@kernel.org>
-Subject: mm/vma: eliminate mmap_action->error_hook, introduce error_filter
-Date: Fri, 22 May 2026 17:00:11 +0100
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: safely handle no region case in damon_set_regions()
+Date: Fri, 22 May 2026 08:40:12 -0700
 
-Rather than providing a hook, simplify things by providing the ability to
-filter errors.  This allows us to more carefully validate the value
-provided and thus ensure only a valid error code is specified, and
-simplifies the interface.
+Patch series "mm/damon: minor improvements for code readability and tests".
 
-This way, we eliminate all hooks but mmap_prepare and allow only mmap
-actions to be specified (which core mm controls).
+Implement minor improvements on code readability and tests for DAMON.
 
-This significantly improves robustness and eliminates any unnecessary code
-duplication in driver mmap hooks.
+First seven patches are for DAMON code readability and resulting
+maintenance.  Patches 1 and 2 make damon_set_regions() safer and easier to
+read.  Patches 3 and 4 remove fragmented DAMON API use cases.  Patches 5-7
+hides unused core functions that are unnecessarily exposed to API callers.
 
-We also update the /dev/mem logic (the only user) to use
-mmap_action->error_filter instead.
+The following seven patches are for DAMON tests improvement.  Patches 8
+and 9 adds and removes DAMON_DEBUG_SANITY verifications to ensure
+reasonable test coverage without too high overhead.  Patch 10 adds a new
+kunit test for damon_set_regions().  Patch 11 makes sysfs.py selftest more
+gracefully finishes under test failures.  Patches 12-13 adds simple
+sysfs.sh test cases for the monitoring intervals goal directory, the
+addr_unit file and the pause file.
 
-Link: https://lore.kernel.org/e770b28427937057fa953ac380a134b24acd8bb4.1779462249.git.ljs@kernel.org
-Signed-off-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+
+This patch (of 14):
+
+damon_set_regions() calls damon_first_region() regardless of the number of
+DAMON regions in a given DAMON target.  damon_first_region() internally
+uses list_first_entry(), which clearly documents the list is expected to
+be not empty.  Due to the internal implementation of the macro,
+damon_set_regions() is safe for now.  But the internal implementation of
+the macro can be changed in future.  Refactor the function to explicitly
+and safely handle the empty region list case without depending on the
+internal implementation.
+
+No behavioral change is intended.
+
+Link: https://lore.kernel.org/20260522154026.80546-1-sj@kernel.org
+Link: https://lore.kernel.org/20260522154026.80546-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c              |    8 +-------
- include/linux/mm_types.h        |    9 +++------
- mm/util.c                       |   29 +++++++++++++++++++++--------
- tools/testing/vma/include/dup.h |    9 +++------
- 4 files changed, 28 insertions(+), 27 deletions(-)
+ mm/damon/core.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
---- a/drivers/char/mem.c~mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter
-+++ a/drivers/char/mem.c
-@@ -322,11 +322,6 @@ static const struct vm_operations_struct
- #endif
- };
+--- a/mm/damon/core.c~mm-damon-core-safely-handle-no-region-case-in-damon_set_regions
++++ a/mm/damon/core.c
+@@ -356,6 +356,19 @@ int damon_set_regions(struct damon_targe
+ 			damon_destroy_region(r, t);
+ 	}
  
--static int mmap_filter_error(int err)
--{
--	return -EAGAIN;
--}
--
- static int mmap_mem_prepare(struct vm_area_desc *desc)
- {
- 	struct file *file = desc->file;
-@@ -362,8 +357,7 @@ static int mmap_mem_prepare(struct vm_ar
- 
- 	/* Remap-pfn-range will mark the range with the I/O flag. */
- 	mmap_action_remap_full(desc, desc->pgoff);
--	/* We filter remap errors to -EAGAIN. */
--	desc->action.error_hook = mmap_filter_error;
-+	desc->action.error_filter = -EAGAIN;
- 
- 	return 0;
- }
---- a/include/linux/mm_types.h~mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter
-+++ a/include/linux/mm_types.h
-@@ -844,13 +844,10 @@ struct mmap_action {
- 	enum mmap_action_type type;
- 
- 	/*
--	 * If specified, this hook is invoked when an error occurred when
--	 * attempting the selected action.
--	 *
--	 * The hook can return an error code in order to filter the error, but
--	 * it is not valid to clear the error here.
-+	 * If non-zero, filter errors that arise from mmap actions such that we
-+	 * return error_filter instead. Only valid error codes may be specified.
- 	 */
--	int (*error_hook)(int err);
-+	int error_filter;
- 
- 	/*
- 	 * This should be set in rare instances where the operation required
---- a/mm/util.c~mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter
-+++ a/mm/util.c
-@@ -1414,16 +1414,22 @@ static int mmap_action_finish(struct vm_
- 	 */
- 	len = vma_pages(vma) << PAGE_SHIFT;
- 	do_munmap(current->mm, vma->vm_start, len, NULL);
--	if (action->error_hook) {
--		/* We may want to filter the error. */
--		err = action->error_hook(err);
--		/* The caller should not clear the error. */
--		VM_WARN_ON_ONCE(!err);
--	}
--	return err;
++	if (!damon_nr_regions(t)) {
++		for (i = 0; i < nr_ranges; i++) {
++			r = damon_new_region(
++					ALIGN_DOWN(ranges[i].start,
++						min_region_sz),
++					ALIGN(ranges[i].end, min_region_sz));
++			if (!r)
++				return -ENOMEM;
++			damon_add_region(r, t);
++		}
++		return 0;
++	}
 +
-+	return action->error_filter ?: err;
- }
- 
- #ifdef CONFIG_MMU
-+
-+static int check_mmap_action(struct mmap_action *action)
-+{
-+	const unsigned long filter = action->error_filter;
-+
-+	if (WARN_ON_ONCE(filter && !IS_ERR_VALUE(filter)))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
- /**
-  * mmap_action_prepare - Perform preparatory setup for an VMA descriptor
-  * action which need to be performed.
-@@ -1433,7 +1439,14 @@ static int mmap_action_finish(struct vm_
-  */
- int mmap_action_prepare(struct vm_area_desc *desc)
- {
--	switch (desc->action.type) {
-+	struct mmap_action *action = &desc->action;
-+	int err;
-+
-+	err = check_mmap_action(action);
-+	if (err)
-+		return err;
-+
-+	switch (action->type) {
- 	case MMAP_NOTHING:
- 		return 0;
- 	case MMAP_REMAP_PFN:
---- a/tools/testing/vma/include/dup.h~mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter
-+++ a/tools/testing/vma/include/dup.h
-@@ -483,13 +483,10 @@ struct mmap_action {
- 	enum mmap_action_type type;
- 
- 	/*
--	 * If specified, this hook is invoked when an error occurred when
--	 * attempting the selection action.
--	 *
--	 * The hook can return an error code in order to filter the error, but
--	 * it is not valid to clear the error here.
-+	 * If non-zero, filter errors that arise from mmap actions such that we
-+	 * return error_filter instead. Only valid error codes may be specified.
- 	 */
--	int (*error_hook)(int err);
-+	int error_filter;
- 
- 	/*
- 	 * This should be set in rare instances where the operation required
+ 	r = damon_first_region(t);
+ 	/* Add new regions or resize existing regions to fit in the ranges */
+ 	for (i = 0; i < nr_ranges; i++) {
 _
 
-Patches currently in -mm which might be from ljs@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-hugetlb-avoid-false-positive-lockdep-assertion.patch
-mm-hugetlb-avoid-false-positive-lockdep-assertion-fix.patch
-drivers-char-mem-eliminate-unnecessary-use-of-success_hook.patch
-mm-vma-remove-mmap_action-success_hook.patch
-mm-vma-eliminate-mmap_action-error_hook-introduce-error_filter.patch
+mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch
+mm-damon-core-handle-min_region_sz-remaining-quota-as-empty.patch
+mm-damon-core-merge-regions-after-applying-damos-schemes.patch
+mm-damon-core-introduce-failed-region-quota-charge-ratio.patch
+mm-damon-sysfs-schemes-implement-fail_charge_numdenom-files.patch
+docs-mm-damon-design-document-fail_charge_numdenom.patch
+docs-admin-guide-mm-damon-usage-document-fail_charge_numdenom-files.patch
+docs-abi-damon-document-fail_charge_numdenom.patch
+mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch
+selftests-damon-_damon_sysfs-support-failed-region-quota-charge-ratio.patch
+selftests-damon-drgn_dump_damon_status-support-failed-region-quota-charge-ratio.patch
+selftests-damon-sysfspy-test-failed-region-quota-charge-ratio.patch
+docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
+mm-damon-core-introduce-damon_ctx-paused.patch
+mm-damon-sysfs-add-pause-file-under-context-dir.patch
+docs-mm-damon-design-update-for-context-pause-resume-feature.patch
+docs-admin-guide-mm-damon-usage-update-for-pause-file.patch
+docs-abi-damon-update-for-pause-sysfs-file.patch
+mm-damon-tests-core-kunit-test-pause-commitment.patch
+selftests-damon-_damon_sysfs-support-pause-file-staging.patch
+selftests-damon-drgn_dump_damon_status-dump-pause.patch
+selftests-damon-sysfspy-check-pause-on-assert_ctx_committed.patch
+selftests-damon-sysfspy-pause-damon-before-dumping-status.patch
+mm-damon-introduce-damon_set_region_system_rams_default.patch
+mm-damon-reclaim-cover-all-system-rams.patch
+mm-damon-lru_sort-cover-all-system-rams.patch
+mm-damon-core-remove-damon_set_region_biggest_system_ram_default.patch
+mm-damon-stat-use-damon_set_region_system_rams_default.patch
+docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring.patch
+docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring.patch
+docs-admin-guide-mm-damon-usage-mark-scheme-filters-sysfs-dir-as-deprecated.patch
+docs-abi-damon-mark-schemes-s-filters-deprecated.patch
+mm-damon-reclaim-add-autotune_monitoring_intervals-parameter.patch
+docs-admin-guide-mm-damon-reclaim-update-for-autotune_monitoring_intervals.patch
+mm-damon-stat-add-a-parameter-for-reading-kdamond-pid.patch
+docs-admin-guide-mm-damon-stat-document-kdamond_pid-parameter.patch
+mm-damon-core-introduce-struct-damon_probe.patch
+mm-damon-core-embed-damon_probe-objects-in-damon_ctx.patch
+mm-damon-core-introduce-damon_filter.patch
+mm-damon-core-commit-probes.patch
+mm-damon-core-introduce-damon_region-probe_hits.patch
+mm-damon-core-introduce-damon_ops-apply_probes.patch
+mm-damon-core-do-data-attributes-monitoring.patch
+mm-damon-paddr-support-data-attributes-monitoring.patch
+mm-damon-sysfs-implement-probes-dir.patch
+mm-damon-sysfs-implement-probe-dir.patch
+mm-damon-sysfs-implement-filters-directory.patch
+mm-damon-sysfs-implement-filter-dir.patch
+mm-damon-sysfs-implement-filter-dir-files.patch
+mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
+mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
+mm-damon-sysfs-schemes-implement-probe-dir.patch
+mm-damon-sysfs-schemes-implement-probe-hits-file.patch
+mm-damon-trace-probe_hits.patch
+selftests-damon-sysfssh-test-probes-dir.patch
+docs-mm-damon-design-document-data-attributes-monitoring.patch
+docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
+mm-damon-core-introduce-damon_filter_type_memcg.patch
+mm-damon-paddr-support-damon_filter_type_memcg.patch
+mm-damon-sysfs-add-filters-f-path-file.patch
+mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
+mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
+docs-mm-damon-design-update-for-memcg-damon-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
+mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
+mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
+samples-damon-mtier-replace-damon_add_region-with-damon_set_regions.patch
+mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions.patch
+mm-damon-core-hide-damon_add_region.patch
+mm-damon-core-hide-damon_insert_region.patch
+mm-damon-core-hide-damon_destroy_region.patch
+mm-damon-core-add-kdamond_call-debug_sanity-check.patch
+mm-damon-core-remove-damon_verify_nr_regions.patch
+mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
+selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
+selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
+selftests-damon-sysfssh-test-addr_unit-file-existence.patch
+selftests-damon-sysfssh-test-pause-file-existence.patch
 
