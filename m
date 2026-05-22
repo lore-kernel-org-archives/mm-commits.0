@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11DAD3803D3
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F330D3803D3
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:38 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779481358; cv=none; b=fIH2pQJqIpbHQrs5tMbQ9mxBmV/Uu93WJZkjVM0/4+eHveCDIQEH8XBZRO4cTgBvYDE6ZjmpZV86Qj2KWCfpQWHTD/PMNpHdfLR2/ne02bTqbmCWArKhwU4BxHxPH6bW3Q/tyZS0TafNiJc7yjIwhNKk5PFmqZFA1S/a8pqUaPM=
+	t=1779481360; cv=none; b=JdL6buHsI0pWx0H6TwPY1on6gN7ao/oVgnieHstQBeKy5/M/7G1115qrzaR9iBWxEeKhudYDA7mlz0BdT6Ya2BfHsj7xiv45SIr9qYr69qLCrWXjwvcQIAZ+dlBzkGy06rguM57xyn/bvrdwldJh9IJ8eHlQ8XqAvYbRcn8U9Xg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779481358; c=relaxed/simple;
-	bh=doUTDxgeGByvvMgx3PyHgM2FujxfZZzbWnfloZcle4Q=;
-	h=Date:To:From:Subject:Message-Id; b=tWVNrR/OqFLWeQ3+8AZqTlMlkuceae7tGj3pd1pEwSExsYphuHKv9cq8626FE93ZSEioxPmB8rAbacOO8BY8VntRA8ntLJ6Xo+Iu4oA2vOQ9ilbYsxbbrWiGdl9Ie4vkqD6Hmaui3RHIfoR5+KqgQX6AFpo1BFZnNIh4psj6pPk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RDHCub3x; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779481360; c=relaxed/simple;
+	bh=aDQ/miSBM6MJxO7xoFVFrnz5w6dfIBJEYvz9LA5TyxI=;
+	h=Date:To:From:Subject:Message-Id; b=mfDMz+YrIOSV4ghlJkWct5SEoQrveyaDbRdWerOtKi9AicOOlwhOtJ3pLzrLhLG3FdDXWELL24EuKxOQnw9uUeIFPit9vBde5YsSxubVNtZxOGN1UKXae/6CHBGjUBr/hyz28HLv0Y4+NcxHjoR0ENwqTAY6EURtNiVXYOcSVAk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KgyC5cWL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RDHCub3x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9C2B71F00A3D;
-	Fri, 22 May 2026 20:22:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KgyC5cWL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E7C11F000E9;
+	Fri, 22 May 2026 20:22:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779481356;
-	bh=GJPC6xjHxepZ9diZEDiTXvc5NCTEY/Pe297WwY6RWu0=;
+	d=linux-foundation.org; s=korg; t=1779481358;
+	bh=4dRm+pBIW+7hqV/3EuY5ak8NpLei3eUszrn9e+zlJA4=;
 	h=Date:To:From:Subject;
-	b=RDHCub3xxbHRaNq1Kau1hAVMqHJSmjaOHHWV/biT4p3DWu4E1rw7UbvbnwTM0Ucd4
-	 xWxndRM0xQxb1ccmIrX7uvbICT6DwGAiqzogP9maBZqkbw92+f3SDysSR4EHMisM3B
-	 z36vF59Qn0tUaN6mnWXT2uQQM4dc2Ih6IL2cW82o=
-Date: Fri, 22 May 2026 13:22:36 -0700
+	b=KgyC5cWLitFk29GtCbN+PXkZh6SLX7f8cgqzXCsjw9ul7kjvA0f5TpTxpnYCOgq7U
+	 sVFSMdJTzPuWnT6GImO0vea5D4pjFGDKpTUIp0hFKr52MrocaBft7GBTMXPArs/PBn
+	 zr5ZuIrwUkhUyOy0J5qKjag8A1KRnKgDukfFY8Cc=
+Date: Fri, 22 May 2026 13:22:38 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-add-kdamond_call-debug_sanity-check.patch added to mm-new branch
-Message-Id: <20260522202236.9C2B71F00A3D@smtp.kernel.org>
+Subject: + mm-damon-core-remove-damon_verify_nr_regions.patch added to mm-new branch
+Message-Id: <20260522202238.8E7C11F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: add kdamond_call() debug_sanity check
+     Subject: mm/damon/core: remove damon_verify_nr_regions()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-add-kdamond_call-debug_sanity-check.patch
+     mm-damon-core-remove-damon_verify_nr_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-add-kdamond_call-debug_sanity-check.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-damon_verify_nr_regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,73 +70,62 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: add kdamond_call() debug_sanity check
-Date: Fri, 22 May 2026 08:40:19 -0700
+Subject: mm/damon/core: remove damon_verify_nr_regions()
+Date: Fri, 22 May 2026 08:40:20 -0700
 
-kdamond_call() is the place where DAMON API callers are allowed to access
-the DAMON context's public internal state including the monitoring
-results.  Hence it is important to ensure it is called with the expected
-DAMON context state.  Do the check under DAMON_DEBUG_SANITY.
+When CONFIG_DAMON_DEBUG_SANITY is enabled, damon_verify_nr_regions() is
+called for each damon_nr_regions() invocation.  damon_veify_nr_regions()
+iterates all regions.  damon_nr_regions() is called for each region in
+kdamond_reset_aggregated() and damos_apply_scheme().  Hence it imposes
+O(n**2) overhead where n is the number of regions.
 
-Link: https://lore.kernel.org/20260522154026.80546-9-sj@kernel.org
+Though the verification is enabled only under DAMON_DEBUG_SANITY, which is
+not for production use cases, it could be too high overhead.  Meanwhile,
+damon_verify_ctx() is doing the damon_nr_regions() test.  Because
+damon_verify_ctx() is called for each kdamond_call(), the test coverage
+from damon_verify_ctx() could be sufficient.  Remove damon_nr_regions()
+verification.
+
+Link: https://lore.kernel.org/20260522154026.80546-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ mm/damon/core.c |   19 -------------------
+ 1 file changed, 19 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-add-kdamond_call-debug_sanity-check
+--- a/mm/damon/core.c~mm-damon-core-remove-damon_verify_nr_regions
 +++ a/mm/damon/core.c
-@@ -3329,6 +3329,37 @@ static void kdamond_usleep(unsigned long
- 		usleep_range_idle(usecs, usecs + 1);
+@@ -686,27 +686,8 @@ void damon_destroy_target(struct damon_t
+ 	damon_free_target(t);
  }
  
-+#ifdef CONFIG_DAMON_DEBUG_SANITY
-+static void damon_verify_ctx(struct damon_ctx *c)
-+{
-+	struct damon_target *t;
-+	struct damon_region *r;
-+
-+	damon_for_each_target(t, c) {
-+		struct damon_region *prev_r = NULL;
-+		unsigned int nr_regions = 0;
-+
-+		damon_for_each_region(r, t) {
-+			WARN_ONCE(r->ar.start >= r->ar.end,
-+					"region start (%lu) >= end (%lu)\n",
-+					r->ar.start, r->ar.end);
-+			WARN_ONCE(prev_r && prev_r->ar.end > r->ar.start,
-+					"region overlap (%lu > %lu)\n",
-+					prev_r->ar.end, r->ar.start);
-+			prev_r = r;
-+			nr_regions++;
-+		}
-+		WARN_ONCE(damon_nr_regions(t) != nr_regions,
-+				"nr_regions mismatch: %u != %u\n",
-+				damon_nr_regions(t), nr_regions);
-+	}
-+}
-+#else
-+static void damon_verify_ctx(struct damon_ctx *c)
-+{
-+}
-+#endif
-+
- /*
-  * kdamond_call() - handle damon_call_control objects.
-  * @ctx:	The &struct damon_ctx of the kdamond.
-@@ -3344,6 +3375,8 @@ static void kdamond_call(struct damon_ct
- 	struct damon_call_control *control, *next;
- 	LIST_HEAD(controls);
+-#ifdef CONFIG_DAMON_DEBUG_SANITY
+-static void damon_verify_nr_regions(struct damon_target *t)
+-{
+-	struct damon_region *r;
+-	unsigned int count = 0;
+-
+-	damon_for_each_region(r, t)
+-		count++;
+-	WARN_ONCE(count != t->nr_regions, "t->nr_regions (%u) != count (%u)\n",
+-			t->nr_regions, count);
+-}
+-#else
+-static void damon_verify_nr_regions(struct damon_target *t)
+-{
+-}
+-#endif
+-
+ unsigned int damon_nr_regions(struct damon_target *t)
+ {
+-	damon_verify_nr_regions(t);
+-
+ 	return t->nr_regions;
+ }
  
-+	damon_verify_ctx(ctx);
-+
- 	mutex_lock(&ctx->call_controls_lock);
- 	list_splice_tail_init(&ctx->call_controls, &controls);
- 	mutex_unlock(&ctx->call_controls_lock);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
