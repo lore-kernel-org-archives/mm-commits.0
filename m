@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 421A435AC2F
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:48:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E238270545
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:48:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779482890; cv=none; b=sVFSMz47pvFlOgJurvsXmpdCd2PObBKEdQ2nm3dOfiYWwZByPkx5u+pqJfd4i5668y17rEcgBa3X+1ptY2co+HtHcIU4YRVrMUWjbcO7ZCX5AVLxlN3N9AVIfGz440gYIoV2VYQbpX7xMMNowmRLBdMrGgsMhsDLDhvl1Qt2q88=
+	t=1779482893; cv=none; b=WcGomRO8LpQDWI6s44n9pU4uKlHRRLCYOmN8PmzVTpc87hXxre4vzCuNawG2Lzly7eGfnfRerwTGgK6KT9LKpAdgHiKILIDVeoMsNNzFR3tzFiIM3E7ZE24VRT9Xurxl7RjMsi4FBXJlcFQF2c6hxcPNnzdDIAkNc85bOMujoZo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779482890; c=relaxed/simple;
-	bh=JKsPk+IQ+IakDZPScADGinm44T3vEa3GLnG9qL9v7H8=;
-	h=Date:To:From:Subject:Message-Id; b=l+E7x0FwEC1cN3iU6WJequaURJ/jGfkk/g2D+5LUrrLmhDjT+8o3sro12o7Sk4igZXoub48cn/0qB1swFIdOKR3v/ryfeLSrBrhlJhgOoYVjImINTo3IPwKhAXaOH7clPqj/646A95C7WNxWuVxLU1oLBwLmB4k6FtOrvkva3A8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=krUzLs2M; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779482893; c=relaxed/simple;
+	bh=sQNHRuUQt+KQIMMAqiaYTwQi0ME4KGAIaKqPIrJnJwI=;
+	h=Date:To:From:Subject:Message-Id; b=jJnNRFAoxQuCKjwgiD6IJV7sktR7BDUQwzVeWTtofPc5VQT2/YD9FVjmYPzML+8BsG8YSU/S7crqzckR0R0p2Fo1qLLks0UMd+Gy28hDOqk8oIltCa9fO4OAC1DJ+07B1YW7WV28KJnXCE+Xw4zJ6Wnfop5FFFJUfetnJ4lYlPM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cOBP6KZ/; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="krUzLs2M"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 093201F000E9;
-	Fri, 22 May 2026 20:48:08 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cOBP6KZ/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0BEDA1F000E9;
+	Fri, 22 May 2026 20:48:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779482888;
-	bh=WAqu9M99WgO6fjIkRREeSPk9cel7Jq5KGFDnItphSFo=;
+	d=linux-foundation.org; s=korg; t=1779482891;
+	bh=ioqKdio/eXyI911tQBK9MbDixV4hmRI3ImsSktN0LTE=;
 	h=Date:To:From:Subject;
-	b=krUzLs2MTkmIwcufq2Lr+7XAiCyXGc7oVJrsOFj6ANsxr5LGHnTpaVPqLMqZK5GxG
-	 N3czHKea7+jAyv/KI24lNT2b1fjPeNKDZElYOFf6YWSbOwU9MqxBO6qUJjt32FFgR0
-	 ylwoUm1ssAEyGptAiqLwUFOxZ1nGP0qeSJY6lQ+k=
-Date: Fri, 22 May 2026 13:48:07 -0700
+	b=cOBP6KZ/4HLXSp/M9XLGtRpGDG8yyi2lYqS7Eziq/D5nc8aA/NkHwtVxI8NdQmqUj
+	 SpGiaNRVNB1w+/LEwMvnsMEy3ComvyPLyMt6rFN5X1pzUzWnV7SYecL/8d6QFkU1Om
+	 UgMje2p3ddAtHavwZjKC8iG/WIcVJWJglQN8o8Nc=
+Date: Fri, 22 May 2026 13:48:10 -0700
 To: mm-commits@vger.kernel.org,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-improve-tracepoints-for-mthp-orders.patch added to mm-unstable branch
-Message-Id: <20260522204808.093201F000E9@smtp.kernel.org>
+Subject: + mm-khugepaged-introduce-collapse_allowable_orders-helper-function.patch added to mm-unstable branch
+Message-Id: <20260522204811.0BEDA1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/khugepaged: improve tracepoints for mTHP orders
+     Subject: mm/khugepaged: introduce collapse_allowable_orders helper function
 has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-improve-tracepoints-for-mthp-orders.patch
+     mm-khugepaged-introduce-collapse_allowable_orders-helper-function.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-improve-tracepoints-for-mthp-orders.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-introduce-collapse_allowable_orders-helper-function.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,17 +59,20 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Nico Pache <npache@redhat.com>
-Subject: mm/khugepaged: improve tracepoints for mTHP orders
-Date: Fri, 22 May 2026 09:00:04 -0600
+Subject: mm/khugepaged: introduce collapse_allowable_orders helper function
+Date: Fri, 22 May 2026 09:00:05 -0600
 
-Add the order to the mm_collapse_huge_page<_swapin,_isolate> tracepoints
-to give better insight into what order is being operated at for.
+Add collapse_allowable_orders() to generalize THP order eligibility.  The
+function determines which THP orders are permitted based on collapse
+context (khugepaged vs madv_collapse).
 
-Link: https://lore.kernel.org/20260522150009.121603-10-npache@redhat.com
+This consolidates collapse configuration logic and provides a clean
+interface for future mTHP collapse support where the orders may be
+different.
+
+Link: https://lore.kernel.org/20260522150009.121603-11-npache@redhat.com
 Signed-off-by: Nico Pache <npache@redhat.com>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -78,6 +81,7 @@ Cc: Barry Song <baohua@kernel.org>
 Cc: Brendan Jackman <jackmanb@google.com>
 Cc: Byungchul Park <byungchul@sk.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Gregory Price <gourry@gourry.net>
@@ -91,6 +95,7 @@ Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Matthew Brost <matthew.brost@intel.com>
@@ -121,153 +126,52 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |   34 +++++++++++++++++----------
- mm/khugepaged.c                    |    9 +++----
- 2 files changed, 27 insertions(+), 16 deletions(-)
+ mm/khugepaged.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-improve-tracepoints-for-mthp-orders
-+++ a/include/trace/events/huge_memory.h
-@@ -89,40 +89,44 @@ TRACE_EVENT(mm_khugepaged_scan_pmd,
- 
- TRACE_EVENT(mm_collapse_huge_page,
- 
--	TP_PROTO(struct mm_struct *mm, int isolated, int status),
-+	TP_PROTO(struct mm_struct *mm, int isolated, int status, unsigned int order),
- 
--	TP_ARGS(mm, isolated, status),
-+	TP_ARGS(mm, isolated, status, order),
- 
- 	TP_STRUCT__entry(
- 		__field(struct mm_struct *, mm)
- 		__field(int, isolated)
- 		__field(int, status)
-+		__field(unsigned int, order)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->mm = mm;
- 		__entry->isolated = isolated;
- 		__entry->status = status;
-+		__entry->order = order;
- 	),
- 
--	TP_printk("mm=%p, isolated=%d, status=%s",
-+	TP_printk("mm=%p, isolated=%d, status=%s, order=%u",
- 		__entry->mm,
- 		__entry->isolated,
--		__print_symbolic(__entry->status, SCAN_STATUS))
-+		__print_symbolic(__entry->status, SCAN_STATUS),
-+		__entry->order)
- );
- 
- TRACE_EVENT(mm_collapse_huge_page_isolate,
- 
- 	TP_PROTO(struct folio *folio, int none_or_zero,
--		 int referenced, int status),
-+		 int referenced, int status, unsigned int order),
- 
--	TP_ARGS(folio, none_or_zero, referenced, status),
-+	TP_ARGS(folio, none_or_zero, referenced, status, order),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, pfn)
- 		__field(int, none_or_zero)
- 		__field(int, referenced)
- 		__field(int, status)
-+		__field(unsigned int, order)
- 	),
- 
- 	TP_fast_assign(
-@@ -130,26 +134,30 @@ TRACE_EVENT(mm_collapse_huge_page_isolat
- 		__entry->none_or_zero = none_or_zero;
- 		__entry->referenced = referenced;
- 		__entry->status = status;
-+		__entry->order = order;
- 	),
- 
--	TP_printk("scan_pfn=0x%lx, none_or_zero=%d, referenced=%d, status=%s",
-+	TP_printk("scan_pfn=0x%lx, none_or_zero=%d, referenced=%d, status=%s, order=%u",
- 		__entry->pfn,
- 		__entry->none_or_zero,
- 		__entry->referenced,
--		__print_symbolic(__entry->status, SCAN_STATUS))
-+		__print_symbolic(__entry->status, SCAN_STATUS),
-+		__entry->order)
- );
- 
- TRACE_EVENT(mm_collapse_huge_page_swapin,
- 
--	TP_PROTO(struct mm_struct *mm, int swapped_in, int referenced, int ret),
-+	TP_PROTO(struct mm_struct *mm, int swapped_in, int referenced, int ret,
-+		 unsigned int order),
- 
--	TP_ARGS(mm, swapped_in, referenced, ret),
-+	TP_ARGS(mm, swapped_in, referenced, ret, order),
- 
- 	TP_STRUCT__entry(
- 		__field(struct mm_struct *, mm)
- 		__field(int, swapped_in)
- 		__field(int, referenced)
- 		__field(int, ret)
-+		__field(unsigned int, order)
- 	),
- 
- 	TP_fast_assign(
-@@ -157,13 +165,15 @@ TRACE_EVENT(mm_collapse_huge_page_swapin
- 		__entry->swapped_in = swapped_in;
- 		__entry->referenced = referenced;
- 		__entry->ret = ret;
-+		__entry->order = order;
- 	),
- 
--	TP_printk("mm=%p, swapped_in=%d, referenced=%d, ret=%d",
-+	TP_printk("mm=%p, swapped_in=%d, referenced=%d, ret=%d, order=%u",
- 		__entry->mm,
- 		__entry->swapped_in,
- 		__entry->referenced,
--		__entry->ret)
-+		__entry->ret,
-+		__entry->order)
- );
- 
- TRACE_EVENT(mm_khugepaged_scan_file,
---- a/mm/khugepaged.c~mm-khugepaged-improve-tracepoints-for-mthp-orders
+--- a/mm/khugepaged.c~mm-khugepaged-introduce-collapse_allowable_orders-helper-function
 +++ a/mm/khugepaged.c
-@@ -783,13 +783,13 @@ next:
- 	} else {
- 		result = SCAN_SUCCEED;
- 		trace_mm_collapse_huge_page_isolate(folio, none_or_zero,
--						    referenced, result);
-+						    referenced, result, order);
- 		return result;
+@@ -552,12 +552,21 @@ void __khugepaged_enter(struct mm_struct
+ 		wake_up_interruptible(&khugepaged_wait);
+ }
+ 
++/* Check what orders are allowed based on the vma and collapse type */
++static unsigned long collapse_allowable_orders(struct vm_area_struct *vma,
++		vm_flags_t vm_flags, enum tva_type tva_flags)
++{
++	unsigned long orders = BIT(HPAGE_PMD_ORDER);
++
++	return thp_vma_allowable_orders(vma, vm_flags, tva_flags, orders);
++}
++
+ void khugepaged_enter_vma(struct vm_area_struct *vma,
+ 			  vm_flags_t vm_flags)
+ {
+ 	if (!mm_flags_test(MMF_VM_HUGEPAGE, vma->vm_mm) &&
+ 	    hugepage_pmd_enabled()) {
+-		if (thp_vma_allowable_order(vma, vm_flags, TVA_KHUGEPAGED, PMD_ORDER))
++		if (collapse_allowable_orders(vma, vm_flags, TVA_KHUGEPAGED))
+ 			__khugepaged_enter(vma->vm_mm);
  	}
- out:
- 	release_pte_pages(pte, _pte, compound_pagelist);
- 	trace_mm_collapse_huge_page_isolate(folio, none_or_zero,
--					    referenced, result);
-+					    referenced, result, order);
- 	return result;
  }
+@@ -2680,7 +2689,7 @@ static void collapse_scan_mm_slot(unsign
+ 			cc->progress++;
+ 			break;
+ 		}
+-		if (!thp_vma_allowable_order(vma, vma->vm_flags, TVA_KHUGEPAGED, PMD_ORDER)) {
++		if (!collapse_allowable_orders(vma, vma->vm_flags, TVA_KHUGEPAGED)) {
+ 			cc->progress++;
+ 			continue;
+ 		}
+@@ -2990,7 +2999,7 @@ int madvise_collapse(struct vm_area_stru
+ 	BUG_ON(vma->vm_start > start);
+ 	BUG_ON(vma->vm_end < end);
  
-@@ -1189,7 +1189,8 @@ static enum scan_result __collapse_huge_
+-	if (!thp_vma_allowable_order(vma, vma->vm_flags, TVA_FORCED_COLLAPSE, PMD_ORDER))
++	if (!collapse_allowable_orders(vma, vma->vm_flags, TVA_FORCED_COLLAPSE))
+ 		return -EINVAL;
  
- 	result = SCAN_SUCCEED;
- out:
--	trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, result);
-+	trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, result,
-+					   order);
- 	return result;
- }
- 
-@@ -1397,7 +1398,7 @@ out_up_write:
- out_nolock:
- 	if (folio)
- 		folio_put(folio);
--	trace_mm_collapse_huge_page(mm, result == SCAN_SUCCEED, result);
-+	trace_mm_collapse_huge_page(mm, result == SCAN_SUCCEED, result, order);
- 	return result;
- }
- 
+ 	cc = kmalloc_obj(*cc);
 _
 
 Patches currently in -mm which might be from npache@redhat.com are
