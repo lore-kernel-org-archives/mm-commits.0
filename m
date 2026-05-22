@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CE9322424C
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 03:54:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 619F9257459;
+	Fri, 22 May 2026 18:21:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779422043; cv=none; b=qJymGvVONYt4CbiAwu4SgbZ1ssMxBtoKt7ZKeIYTSyygkGdvk6ArZ0eymYlcwNtHDZOn4/rXEfIDpKzBFsTjhbvTxGjhubm+Fl/BbFcMR4xcI1rG18I7OHlI2E7txJoGoxRCdfE9NYo7ZMOCwRY6BqoAuYCJuCJPL6S9RKSuOLg=
+	t=1779474092; cv=none; b=puOcEW/l2+OE5XFKuNGh+jB6k6vkwoGFfB0wb/1tuAgoAAAgJ1sSa26BqcKtlyymlU2S/FIgFl9d7CaJ4+6F3RYNcAkpjC1NVOZRcFM5EkJohUPMC/2EqjLrBFBYfgvUdRU+p9sQxy9h5ct7rrKiyDx68q1byRprxI5hq5j4iKI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779422043; c=relaxed/simple;
-	bh=mWwSKT2ZfdObK3MDXMFUPScN/FyjmYYga9ZhhWqJgjs=;
-	h=Date:To:From:Subject:Message-Id; b=Ds5LFxgNnXjDO9t0sqacQDvHdJmBmCP+bp8CXlGYLmT90zEsSu1N9MV4IQBcGOqhmztHW2IWbUuz+e6gYxZFJvp+uR6nWjvYrCb+IamRMRDZQYU/dWWQXeHxisQdcS3jXmElItBgW8w178YQ4IDVVowO16bF8uPy5FYBdNSWbN4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X2b7msZa; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779474092; c=relaxed/simple;
+	bh=eRl4shUEi5QLvdF4zeGSMq/iaU0zgIS1NjbRqiaWmb0=;
+	h=Date:To:From:Subject:Message-Id; b=HeWmD07c/ySFgu6nclH4HlEjg5s+p3p875RLySQew3/ZkLf4bouWP92p8i7ZFugakHtV5ggSpqU1cXId7M4Ckh4XdX/wL06sIkgZoqVieHD/iZfFyMfzRL4goG0aw5M1+21ioBCRj1JyGwtHRowSB4IBEoWIz4ridm0SAQwJNgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FYP8CXrL; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X2b7msZa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A6B41F000E9;
-	Fri, 22 May 2026 03:54:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FYP8CXrL"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14B2F1F00ADE;
+	Fri, 22 May 2026 18:21:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779422042;
-	bh=E+QEhnIqEFKGQRTU6vNBN6iE52eXjd53XK4nmOsjFJ0=;
+	d=linux-foundation.org; s=korg; t=1779474091;
+	bh=pBJ6FuyFlFt6o7BJE2eMhBkzUApGogFrBeTLh6e1KzE=;
 	h=Date:To:From:Subject;
-	b=X2b7msZa5vyvL1FD53XMOf0P3y8Xe+cSh1wxekS9SkH1r4XLG1O5xPbuEUL34qgjn
-	 solO824mn+XIuhUDpdtJGQojS+Gm1vGGeFJJQ9gtCeIifkmn3YUmQzv8d4UyBShhp6
-	 28QIUbFvWb9gR22UY1Abo8oNYmCmcMF0jP4NAtxU=
-Date: Thu, 21 May 2026 20:54:01 -0700
-To: mm-commits@vger.kernel.org,pmladek@suse.com,paulmck@kernel.org,feng.tang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=FYP8CXrLx+ash+bhjMHq0jr4yToX1KebD+eM//xTQPv/BLyZmL+cpQiV3ZSsVXL6T
+	 x/eTSgodcMPJfuSs2Gkuo4PKP0QBC4fc4gCrxw8GeBiS7bKhUJCb64zGWpFAFtcWHH
+	 PUY7hZ3CtERNbWIEOfWNQ6cFmN2JBXFVi6HQI+P0=
+Date: Fri, 22 May 2026 11:21:30 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,fvdl@google.com,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20260522035402.2A6B41F000E9@smtp.kernel.org>
+Subject: + mm-cma-fix-reserved-page-leak-on-activation-failure.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260522182131.14B2F1F00ADE@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix.patch
+     Subject: mm/cma: fix reserved page leak on activation failure
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-cma-fix-reserved-page-leak-on-activation-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-fix-reserved-page-leak-on-activation-failure.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,51 +58,74 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix
-Date: Thu May 21 08:49:00 PM PDT 2026
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/cma: fix reserved page leak on activation failure
+Date: Fri, 22 May 2026 14:26:58 +0800
 
-use __stringify()
+If cma_activate_area() fails after allocating only part of the range
+bitmaps, its cleanup path frees the bitmaps for the ranges below
+allocrange and then releases reserved pages using the same bound.
 
-Cc: Feng Tang <feng.tang@linux.alibaba.com>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
+That bound is only correct for bitmap freeing.  Pages in ranges that did
+not reach bitmap allocation are still reserved and should also be returned
+to the buddy when CMA_RESERVE_PAGES_ON_ERROR is clear.  As a result, a
+partial bitmap allocation failure can permanently leak the reserved pages
+from the failed range and all later ranges.
+
+Fix this by releasing reserved pages for all ranges.  For ranges whose
+bitmap allocation succeeded, use the early_pfn[] snapshot saved before the
+bitmap pointer overwrote the union field.  For later ranges, continue to
+use cmr->early_pfn directly.
+
+Link: https://lore.kernel.org/20260522062658.4095405-1-songmuchun@bytedance.com
+Fixes: c009da4258f9 ("mm, cma: support multiple contiguous ranges, if requested")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/nmi_backtrace.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/cma.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/lib/nmi_backtrace.c~lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix
-+++ a/lib/nmi_backtrace.c
-@@ -16,6 +16,7 @@
- #include <linux/cpumask.h>
- #include <linux/delay.h>
- #include <linux/kprobes.h>
-+#include <linux/stringify.h>
- #include <linux/nmi.h>
- #include <linux/cpu.h>
- #include <linux/sched/debug.h>
-@@ -79,8 +80,8 @@ void nmi_trigger_cpumask_backtrace(const
- 	}
+--- a/mm/cma.c~mm-cma-fix-reserved-page-leak-on-activation-failure
++++ a/mm/cma.c
+@@ -188,10 +188,13 @@ cleanup:
  
- 	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
--		pr_warn("After %d seconds, these CPUS still haven't responded to the NMI: %*pbl\n",
--			NMI_BT_TIMEOUT_SEC, cpumask_pr_args(to_cpumask(backtrace_mask)));
-+		pr_warn("After " __stringify(NMI_BT_TIMEOUT_SEC) " seconds, these CPUS still haven't responded to the NMI: %*pbl\n",
-+			cpumask_pr_args(to_cpumask(backtrace_mask)));
- 
- 		nmi_backtrace_stall_check(to_cpumask(backtrace_mask));
+ 	/* Expose all pages to the buddy, they are useless for CMA. */
+ 	if (!test_bit(CMA_RESERVE_PAGES_ON_ERROR, &cma->flags)) {
+-		for (r = 0; r < allocrange; r++) {
++		for (r = 0; r < cma->nranges; r++) {
++			unsigned long start_pfn;
++
+ 			cmr = &cma->ranges[r];
++			start_pfn = r < allocrange ? early_pfn[r] : cmr->early_pfn;
+ 			end_pfn = cmr->base_pfn + cmr->count;
+-			for (pfn = early_pfn[r]; pfn < end_pfn; pfn++)
++			for (pfn = start_pfn; pfn < end_pfn; pfn++)
+ 				free_reserved_page(pfn_to_page(pfn));
+ 		}
  	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch
-mm-memcg-swap-store-cgroup-id-in-cluster-table-directly-fix.patch
-mm-swap-merge-zeromap-into-swap-table-fix.patch
-mm-swap-merge-zeromap-into-swap-table-fix-2.patch
-mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
-proc-rewrite-next_tgid-fix.patch
-lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix.patch
+mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas.patch
+mm-cma-fix-reserved-page-leak-on-activation-failure.patch
+mm-sparse-remove-sparse-buffer-pre-allocation-mechanism.patch
+mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
+mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
+mm-sparse-vmemmap-pass-pgmap-argument-to-memory-deactivation-paths.patch
+mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization.patch
+mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch
+mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
+mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
+drivers-base-memory-make-memory-block-get-put-explicit.patch
 
