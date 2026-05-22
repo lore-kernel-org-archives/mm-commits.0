@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D6B711CAF;
-	Fri, 22 May 2026 00:44:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE70C233924
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 00:49:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779410649; cv=none; b=sQynqwD/7JNUXlk6g73dAp23g8QKe+mFiNlMmKV18m1uB+Ur1C9rgeQ2XF/jUWyn8wvEuNm3cmzuxVw5mFSiMP0OZGO+hZUz0b94rf9b922bJ34cJKY4yojk5MePGm4Qeohodq8YP/8DfQ2Fg7N4ycgo5wX5xX99+GVkDmR28sU=
+	t=1779411000; cv=none; b=SGpgGQ3uqX/eDHQmY/NHfLLjUOYwCg2Ykt0kxsNvzA50Vv8NGRPWY4OgbwzQqk16ZsOXZmbyFWNpoXxhMHbhcNCBv/5PUpup/tZc9x15prVBDKnh1Wuuy2AW+lYN3CnYt+17C6i+vEY32mmNoinjjIgzZGsQknqOyUN0OPA8aqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779410649; c=relaxed/simple;
-	bh=19YLvgtlMzU8ANelrSCykr6qqnrBqL0oi8/RpSbL01s=;
-	h=Date:To:From:Subject:Message-Id; b=EzNnhJZMeBWY5ylAH8DYS4Dwtzu98QANHzbagJ7g5e+Svv4R7GFuJgIn6BPFvSidBHdAXafF5/Lriyp+p012K5r0n7ya0EU6oRhz00XAg6tPcXircZFEi6Da1lU1o3/lfN5Q32INRb8UZ+0PrWA6cFEJZyk7Gojphb2do5Kavvg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lzOIcNAr; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779411000; c=relaxed/simple;
+	bh=T7YdyrHb3oFzWvo2L3HChCj8w6x/psDUtrxeHAGRALU=;
+	h=Date:To:From:Subject:Message-Id; b=N0iIAKnc0Wqmwfta1WdYM+Px5HopsENX2fZDF/8Ba8DoqSCQWS4M5aub1QuSRp0IyxPxkfOHH8LJcgGLsxaWP1FSSerFgtUwKABn06KaXj95Z+ml1n5qqRWDziIbeQ7dlAbXfTbcUD1l7q1j2g+q7UNlfxeM5X5qgrQDoEqYRDo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zv8mhq/M; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lzOIcNAr"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C03401F000E9;
-	Fri, 22 May 2026 00:44:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zv8mhq/M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A5661F000E9;
+	Fri, 22 May 2026 00:49:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779410647;
-	bh=2JBhH1Zuv1KpnjGr18PzaaMKL6STg2UjLyqqaX6vLoE=;
+	d=linux-foundation.org; s=korg; t=1779410998;
+	bh=aJIqLQ5MCyIC5/5bLptHfazr4IyI/kol8VsR3pEU4XU=;
 	h=Date:To:From:Subject;
-	b=lzOIcNAr83h1fzrFKhE/BCuWDSKkIPRs7bMTtLkheMA0cTywd7WzgjYDfF5i/TF+n
-	 OyoLqcdiLjZcWAYPFNGTNJJV5N0FwLVKNlsqU4KkC3IlCVOEEDPYFPU3UvVb7z6wh7
-	 A+u/b5YKu5EXKaCHPy3M3XnclThjXmECQfHOZa9M=
-Date: Thu, 21 May 2026 17:44:07 -0700
-To: mm-commits@vger.kernel.org,yuehaibing@huawei.com,stable@vger.kernel.org,osalvador@suse.de,muchun.song@linux.dev,david@kernel.org,almasrymina@google.com,devnexen@gmail.com,akpm@linux-foundation.org
+	b=zv8mhq/MRdQZGXRsX29bawgsZ4bBaRL7xxVohfjZFZMaxfwHVlGHT/xNeV/oKn91p
+	 0DZOTJpg35cUgE64jScIaQVIy4IOKYhfNleOSLqiilEvYO/dzv06E9djce2Fj4PXCc
+	 Lrn9vd/T/mCJAYzPcWKNaCWr7n5MPq9x/h1G6Tw4=
+Date: Thu, 21 May 2026 17:49:58 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,sj@kernel.org,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,richard.weiyang@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-restore-reservation-on-error-in-hugetlb-folio-copy-paths.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260522004407.C03401F000E9@smtp.kernel.org>
+Subject: + selftests-mm-close-fd-on-write-error.patch added to mm-new branch
+Message-Id: <20260522004958.6A5661F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/hugetlb: restore reservation on error in hugetlb folio copy paths
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-hugetlb-restore-reservation-on-error-in-hugetlb-folio-copy-paths.patch
+     Subject: selftests/mm/split_huge_page_test.c: close fd on write error
+has been added to the -mm mm-new branch.  Its filename is
+     selftests-mm-close-fd-on-write-error.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb-restore-reservation-on-error-in-hugetlb-folio-copy-paths.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/selftests-mm-close-fd-on-write-error.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,75 +69,55 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: David Carlier <devnexen@gmail.com>
-Subject: mm/hugetlb: restore reservation on error in hugetlb folio copy paths
-Date: Wed, 20 May 2026 05:49:12 +0100
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: selftests/mm/split_huge_page_test.c: close fd on write error
+Date: Wed, 20 May 2026 02:03:36 +0000
 
-Two sites in mm/hugetlb.c allocate a hugetlb folio via
-alloc_hugetlb_folio() (consuming a VMA reservation) and then call
-copy_user_large_folio(), which became int-returning in commit 1cb9dc4b475c
-("mm: hwpoison: support recovery from HugePage copy-on-write faults") and
-can now fail (e.g.  -EHWPOISON on a hwpoisoned source page).  On the
-failure path, folio_put() restores the global hugetlb pool count through
-free_huge_folio(), but the per-VMA reservation map entry is left marked
-consumed:
+When create_pagecache_thp_and_fd() write returns error on
+/proc/sys/vm/dropcache, it just "goto err_out_unlink", which left fd still
+open.
 
-  - hugetlb_mfill_atomic_pte() resubmission path (UFFDIO_COPY)
-  - copy_hugetlb_page_range() fork-time CoW path when
-    hugetlb_try_dup_anon_rmap() fails (rare: pinned hugetlb anon
-    folio under fork)
+Use "goto err_out_close" to close the fd.
 
-User-visible effect: on UFFDIO_COPY into a private hugetlb VMA where the
-resubmission copy fails, the reservation for that address is leaked from
-the VMA's reserve map.  A subsequent fault at the same address takes the
-no-reservation path, and under hugetlb pool pressure the task is SIGBUSed
-at an address it had previously reserved.  The fork-time CoW path leaks
-the same way in the child VMA's reserve map, though it requires the much
-rarer combination of pinned hugetlb anon page + hwpoisoned source.
-
-Add the missing restore_reserve_on_error() call before folio_put() on both
-error paths.
-
-Link: https://lore.kernel.org/20260520044912.6751-1-devnexen@gmail.com
-Fixes: 1cb9dc4b475c ("mm: hwpoison: support recovery from HugePage copy-on-write faults")
-Signed-off-by: David Carlier <devnexen@gmail.com>
-Reviewed-by: Muchun Song <muchun.song@linux.dev>
+Link: https://lore.kernel.org/20260520020336.28914-1-richard.weiyang@gmail.com
+Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
+Reviewed-by: Dev Jain <dev.jain@arm.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: yuehaibing <yuehaibing@huawei.com>
-Cc: <stable@vger.kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: "Liam R. Howlett" <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ tools/testing/selftests/mm/split_huge_page_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-restore-reservation-on-error-in-hugetlb-folio-copy-paths
-+++ a/mm/hugetlb.c
-@@ -4977,6 +4977,7 @@ again:
- 							    addr, dst_vma);
- 				folio_put(pte_folio);
- 				if (ret) {
-+					restore_reserve_on_error(h, dst_vma, addr, new_folio);
- 					folio_put(new_folio);
- 					break;
- 				}
-@@ -6273,6 +6274,7 @@ int hugetlb_mfill_atomic_pte(pte_t *dst_
- 		folio_put(*foliop);
- 		*foliop = NULL;
- 		if (ret) {
-+			restore_reserve_on_error(h, dst_vma, dst_addr, folio);
- 			folio_put(folio);
- 			goto out;
- 		}
+--- a/tools/testing/selftests/mm/split_huge_page_test.c~selftests-mm-close-fd-on-write-error
++++ a/tools/testing/selftests/mm/split_huge_page_test.c
+@@ -640,7 +640,7 @@ static int create_pagecache_thp_and_fd(c
+ 	}
+ 	if (write(*fd, "3", 1) != 1) {
+ 		ksft_perror("write to drop_caches");
+-		goto err_out_unlink;
++		goto err_out_close;
+ 	}
+ 	close(*fd);
+ 
 _
 
-Patches currently in -mm which might be from devnexen@gmail.com are
+Patches currently in -mm which might be from richard.weiyang@gmail.com are
 
-mm-hugetlb-restore-reservation-on-error-in-hugetlb-folio-copy-paths.patch
-mm-page_io-rename-swap_iocb-fields-for-clarity.patch
-mm-shrinker-avoid-out-of-bounds-read-in-set_shrinker_bit.patch
-mm-swap-pm-hibernate-atomically-replace-hibernation-pin.patch
+selftests-mm-close-fd-on-write-error.patch
 
