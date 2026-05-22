@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F19B217659;
-	Fri, 22 May 2026 02:06:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B412C285417;
+	Fri, 22 May 2026 02:07:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779415620; cv=none; b=oQYqHNMkT6nhR12Wu/5WMhdHfWTn7vMP389gt3ilQ8HyrhQuxF905CeuP+lsARdyeXeE6cQ7Xl7FUxvKGm6eyGVofo3GYtUC4l40IP92KHJ62aZubTaVrePVKX1Dwc0NTklEXt68At7/Xc1k5QQz2OvEgDO97NpXMaqEnddj5Zw=
+	t=1779415622; cv=none; b=bLVQ9uzKJXxPdM0Y/nYdWBK33rkotsiSOgwR0Rz77QRDWKk/Jwwk7wfgAvp1heQLH5Yz6a/+/IN/BWiIDhKj9x4ZfQGP9EmFnSBETc33/yl2MStDLyNWzwdpn3uMPSR1BJUEm3a01dojdc93fbHglwflCi1lwsUJjelUlUxwJjQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779415620; c=relaxed/simple;
-	bh=NyqgvsGe4QmJdovZ0+0/NcL5LjkkjgrWeSDVqrbdlMA=;
-	h=Date:To:From:Subject:Message-Id; b=kV40c8dlybSsRHpqOObn+dTnsAvlCXYPLfs4EFqWn8kVhQbCeaswSH/S1xK0Xvn86AoTd4X3CUJ5Cj3UGs5juVXCySDPYyUiIfzaJBe7G6R+F/WA8XjElF/fzhISqYjfeXERQJ0CDd9QpBkS6T0aXcnaRPbMIVfF9JV9tY51RoI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=O7+EWDTy; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779415622; c=relaxed/simple;
+	bh=wmjDWFcm2VsAXVCRn2IniD60T/5FyZ1o5PIZozJXyE8=;
+	h=Date:To:From:Subject:Message-Id; b=kfyLhNVc3kDDWhLaMDM5SKroNFFa5MobqLmqbNy+HHoPvgbRxck54bNdfecyMJSlyDTVCYSTfq8iQOl3Qt6c5MCOLgW2U3xeBgwRiaY6LvBWakhYZOs9jFXSo+/maB462l14IVkWLeQ6uJpOdtWH0Vvu9Umv0biGJ0zsrR3sUK4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=hjU8JDDx; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="O7+EWDTy"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6703F1F00A3D;
-	Fri, 22 May 2026 02:06:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="hjU8JDDx"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8A12C1F000E9;
+	Fri, 22 May 2026 02:07:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779415619;
-	bh=UBt7RjRz3IdEUM013ugty2AkkP3olofew1BSbrqZfEM=;
+	d=linux-foundation.org; s=korg; t=1779415620;
+	bh=HgODFTKNGj72b5djzz/mAE2OQTNkrxg0Q31LAv2oBLY=;
 	h=Date:To:From:Subject;
-	b=O7+EWDTyTwHVYoVSMLwi1B4Oir8OTZRSoCJwGJKi2rGrLkUvJR3ckxAlMdbuWRp8k
-	 zt5A3tBe6bePwb1HuKSqaJpzSQdk5NaLUMlNzFiSXbrFRtU6Zx+LAZl5I/myCi0VZS
-	 rF94VZQ4CXJbFmXNaOrZo8MBlxQ+/JdG3tQPBdwE=
-Date: Thu, 21 May 2026 19:06:59 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,stable@vger.kernel.org,ryan.roberts@arm.com,riel@surriel.com,ljs@kernel.org,liam@infradead.org,jannh@google.com,harry@kernel.org,david@kernel.org,baohua@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=hjU8JDDxhQ5gKM04zL4LeplT3aMACbTo/4QB/n8/hbgjX1HZcVzBeTdLwKQMqZfkQ
+	 PzhWhwBvIN1M9osD5fUiewMISTFC/1ylKGcCZdakjTcPq84/JLdSYQQNtO19CJuIJV
+	 5WLdL/pmMnLes/7P/71kQUOIYqM5tFFtQ7mztxLk=
+Date: Thu, 21 May 2026 19:07:00 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-rmap-initialize-nr_pages-to-1-at-loop-start-in-try_to_unmap_one.patch removed from -mm tree
-Message-Id: <20260522020659.6703F1F00A3D@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-damon-sysfs-schemes-delete-tried-region-in-regions_rmdirs.patch removed from -mm tree
+Message-Id: <20260522020700.8A12C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,85 +35,165 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/rmap: initialize nr_pages to 1 at loop start in try_to_unmap_one
+     Subject: mm/damon/sysfs-schemes: delete tried region in regions_rmdirs()
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-initialize-nr_pages-to-1-at-loop-start-in-try_to_unmap_one.patch
+     mm-damon-sysfs-schemes-delete-tried-region-in-regions_rmdirs.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: mm/rmap: initialize nr_pages to 1 at loop start in try_to_unmap_one
-Date: Mon, 18 May 2026 12:06:56 +0530
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/sysfs-schemes: delete tried region in regions_rmdirs()
+Date: Mon, 18 May 2026 08:25:58 -0700
 
-Initialize nr_pages to 1 at the start of each loop iteration, like
-folio_referenced_one() does.
+DAMON sysfs maintains the DAMOS tried region directory objects via a
+linked list.  When the user requests refresh of the directories, DAMON
+sysfs removes all the region directories first, and then generate updated
+regions directory on the empty space.  The removal function
+(damon_sysfs_scheme_regions_rm_dirs()) only puts the kobj objects. 
+Deletion of the container region object from the linked list is done
+inside the kobj release callback function.
 
-Without this, nr_pages computed by a previous folio_unmap_pte_batch() call
-can be reused on a later iteration that does not run
-folio_unmap_pte_batch() again.
+If somehow the callback invocation is delayed, the list will contain
+regions list that gonna be freed.  If the updated region directories
+creation is started in this situation, the list can be corrupted and
+use-after-free can happen.
 
-mmap a 64K large folio with MAP_ANONYMOUS | MAP_DROPPABLE, then call
-madvise(MADV_FREE), then make the last page device-exclusive via
-HMM_DMIRROR_EXCLUSIVE.
+Because the kobj objects are managed by only DAMON sysfs, the issue cannot
+happen in normal situation.  But, such delays can be made on kernels that
+built with CONFIG_DEBUG_KOBJECT_RELEASE.  On the kernel, the issue can
+indeed be reproduced like below.
 
-Trigger node reclaim through sysfs.  Now, in try_to_unmap_one(), we will
-first clear the first 15 out of 16 entries mapping the lazyfree folio. 
-This will set nr_pages to 15.  In the next pvmw walk, this nr_pages gets
-reused on a device-exclusive pte, thus potentially corrupting folio
-refcount/mapcount.
+    # damo start --damos_action stat
+    # cd /sys/kernel/mm/damon/admin/kdamonds/0/
+    # for i in {1..10}; do echo update_schemes_tried_regions > state; done
+    # dmesg | grep underflow
+    [   89.296152] refcount_t: underflow; use-after-free.
 
-At the moment, I have a userspace program which can make the kernel spit
-out a trace, but the blow up is in folio_referenced_one(), because there
-are existing bugs in the interaction between device-private and rmap
-(which too I am investigating).  I did a one liner kernel change to avoid
-going into folio_referenced_one(), and the kernel blows up at
-folio_remove_rmap_ptes in try_to_unmap_one which is what I wanted.
+Fix the issue by removing the region object from the list when
+decrementing the reference count.
 
-Note that the bug is there not since file folio batching but lazyfree
-folio batching, since device-exclusive only works for anonymous folios.
+Also update damos_sysfs_populate_region_dir() to add the region object to
+the list only after the kobject_init_and_add() is success, so that fail of
+kobject_init_and_add() is not leaving the deallocated object on the list.
 
-Userspace visible effect is simply kernel crashing somewhere due to
-refcount/mapcount corruption.
+The issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260518063656.3721056-1-dev.jain@arm.com
-Fixes: 354dffd29575 ("mm: support batched unmap for lazyfree large folios during reclamation")
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Acked-by: Barry Song <baohua@kernel.org>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260518152559.93038-1-sj@kernel.org
+Link: https://lore.kernel.org/20260513011920.119183-1-sj@kernel.org [1]
+Fixes: 9277d0367ba1 ("mm/damon/sysfs-schemes: implement scheme region directory")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.2.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/sysfs-schemes.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-initialize-nr_pages-to-1-at-loop-start-in-try_to_unmap_one
-+++ a/mm/rmap.c
-@@ -2030,6 +2030,8 @@ static bool try_to_unmap_one(struct foli
- 	mmu_notifier_invalidate_range_start(&range);
+--- a/mm/damon/sysfs-schemes.c~mm-damon-sysfs-schemes-delete-tried-region-in-regions_rmdirs
++++ a/mm/damon/sysfs-schemes.c
+@@ -88,7 +88,6 @@ static void damon_sysfs_scheme_region_re
+ 	struct damon_sysfs_scheme_region *region = container_of(kobj,
+ 			struct damon_sysfs_scheme_region, kobj);
  
- 	while (page_vma_mapped_walk(&pvmw)) {
-+		nr_pages = 1;
-+
- 		/*
- 		 * If the folio is in an mlock()d vma, we must not swap it out.
- 		 */
+-	list_del(&region->list);
+ 	kfree(region);
+ }
+ 
+@@ -164,7 +163,7 @@ static void damon_sysfs_scheme_regions_r
+ 	struct damon_sysfs_scheme_region *r, *next;
+ 
+ 	list_for_each_entry_safe(r, next, &regions->regions_list, list) {
+-		/* release function deletes it from the list */
++		list_del(&r->list);
+ 		kobject_put(&r->kobj);
+ 		regions->nr_regions--;
+ 	}
+@@ -2928,14 +2927,15 @@ void damos_sysfs_populate_region_dir(str
+ 	if (!region)
+ 		return;
+ 	region->sz_filter_passed = sz_filter_passed;
+-	list_add_tail(&region->list, &sysfs_regions->regions_list);
+-	sysfs_regions->nr_regions++;
+ 	if (kobject_init_and_add(&region->kobj,
+ 				&damon_sysfs_scheme_region_ktype,
+ 				&sysfs_regions->kobj, "%d",
+ 				sysfs_regions->nr_regions++)) {
+ 		kobject_put(&region->kobj);
++		return;
+ 	}
++	list_add_tail(&region->list, &sysfs_regions->regions_list);
++	sysfs_regions->nr_regions++;
+ }
+ 
+ int damon_sysfs_schemes_clear_regions(
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-selftests-mm-simplify-byte-pattern-checking-in-mremap_test.patch
-mm-khugepaged-generalize-alloc_charge_folio.patch
+mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch
+mm-damon-core-handle-min_region_sz-remaining-quota-as-empty.patch
+mm-damon-core-merge-regions-after-applying-damos-schemes.patch
+mm-damon-core-introduce-failed-region-quota-charge-ratio.patch
+mm-damon-sysfs-schemes-implement-fail_charge_numdenom-files.patch
+docs-mm-damon-design-document-fail_charge_numdenom.patch
+docs-admin-guide-mm-damon-usage-document-fail_charge_numdenom-files.patch
+docs-abi-damon-document-fail_charge_numdenom.patch
+mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch
+selftests-damon-_damon_sysfs-support-failed-region-quota-charge-ratio.patch
+selftests-damon-drgn_dump_damon_status-support-failed-region-quota-charge-ratio.patch
+selftests-damon-sysfspy-test-failed-region-quota-charge-ratio.patch
+docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
+mm-damon-core-introduce-damon_ctx-paused.patch
+mm-damon-sysfs-add-pause-file-under-context-dir.patch
+docs-mm-damon-design-update-for-context-pause-resume-feature.patch
+docs-admin-guide-mm-damon-usage-update-for-pause-file.patch
+docs-abi-damon-update-for-pause-sysfs-file.patch
+mm-damon-tests-core-kunit-test-pause-commitment.patch
+selftests-damon-_damon_sysfs-support-pause-file-staging.patch
+selftests-damon-drgn_dump_damon_status-dump-pause.patch
+selftests-damon-sysfspy-check-pause-on-assert_ctx_committed.patch
+selftests-damon-sysfspy-pause-damon-before-dumping-status.patch
+mm-damon-introduce-damon_set_region_system_rams_default.patch
+mm-damon-reclaim-cover-all-system-rams.patch
+mm-damon-lru_sort-cover-all-system-rams.patch
+mm-damon-core-remove-damon_set_region_biggest_system_ram_default.patch
+mm-damon-stat-use-damon_set_region_system_rams_default.patch
+docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring.patch
+docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring.patch
+docs-admin-guide-mm-damon-usage-mark-scheme-filters-sysfs-dir-as-deprecated.patch
+docs-abi-damon-mark-schemes-s-filters-deprecated.patch
+mm-damon-reclaim-add-autotune_monitoring_intervals-parameter.patch
+docs-admin-guide-mm-damon-reclaim-update-for-autotune_monitoring_intervals.patch
+mm-damon-stat-add-a-parameter-for-reading-kdamond-pid.patch
+docs-admin-guide-mm-damon-stat-document-kdamond_pid-parameter.patch
+mm-damon-core-introduce-struct-damon_probe.patch
+mm-damon-core-embed-damon_probe-objects-in-damon_ctx.patch
+mm-damon-core-introduce-damon_filter.patch
+mm-damon-core-commit-probes.patch
+mm-damon-core-introduce-damon_region-probe_hits.patch
+mm-damon-core-introduce-damon_ops-apply_probes.patch
+mm-damon-core-do-data-attributes-monitoring.patch
+mm-damon-paddr-support-data-attributes-monitoring.patch
+mm-damon-sysfs-implement-probes-dir.patch
+mm-damon-sysfs-implement-probe-dir.patch
+mm-damon-sysfs-implement-filters-directory.patch
+mm-damon-sysfs-implement-filter-dir.patch
+mm-damon-sysfs-implement-filter-dir-files.patch
+mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
+mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
+mm-damon-sysfs-schemes-implement-probe-dir.patch
+mm-damon-sysfs-schemes-implement-probe-hits-file.patch
+mm-damon-trace-probe_hits.patch
+selftests-damon-sysfssh-test-probes-dir.patch
+docs-mm-damon-design-document-data-attributes-monitoring.patch
+docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
+mm-damon-core-introduce-damon_filter_type_memcg.patch
+mm-damon-paddr-support-damon_filter_type_memcg.patch
+mm-damon-sysfs-add-filters-f-path-file.patch
+mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
+mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
+docs-mm-damon-design-update-for-memcg-damon-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
 
