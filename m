@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B017F23393F;
-	Fri, 22 May 2026 02:07:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08F3C2D94BA
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 02:07:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779415625; cv=none; b=Hv8AQNFBLhn8jgtcx61/iYTfMs6A5Fb9RbbL9pkXVAubCgNVg+3zXeQ9OvCDpkdPOYPJkS5fT3O/34ss0k3lKzTM75qg5S66WRmXFZLy6B1TzS+oIITLYxthp9FmggtHZMN94ul8c/wFpDKwwGrbyrHSR3nBJqSENC5lIeRR4HY=
+	t=1779415627; cv=none; b=k41tPrmn9erzkTPIJXHutA7VN9QWmPdECWj0mUECLhTGoL6HZEWOoVVq/yYoyoC/v/qwxLfQe0sb0IpIU6rm4sCSRgY/WDIyDpijdla8Lu9iu/KFKVdJGFPVWV9cgjaBktmtv6N9HAy5Zb3ZSpeV0vtO/bHdgzdOA6PFgCzGlZM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779415625; c=relaxed/simple;
-	bh=tR5J228uT8stCRZYgt0EZw0z7D5p4iJml8gYdS7lkyw=;
-	h=Date:To:From:Subject:Message-Id; b=ItCdhYAzonSHolpprizvbBTtoZ7snEu/5IxrBVZloCJj1yqhMm4z00uyitPuHznvIW4/s1QHZSM/lhitw8czEnQMkAHKMA97KYcD6uZD14iuXYcOil5S82gmwPdcfxklFQIaFbF+XzrVJD8LUddzcEvSlHl33MOrIoLhy/YRtf8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pSSo+9LC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779415627; c=relaxed/simple;
+	bh=yg/oR/l98ZgThYhbSNNirKYICc8oPir4BF3MrDJVlXo=;
+	h=Date:To:From:Subject:Message-Id; b=dR6kjFTkMIyloEN0h2QVw+Ir+a9GnxIxx7dUPGOiNrLNLEPZgWgR5e4WMwbY92W+VJhKeJGghYpolP72tHrNy6IudyLz3lxaxUTdR9vpEs9YJVxbwe1Fvj/LTFxLFHhSameWpbsnwai3q3gW4WY3Z45D9PVQ7gK+1KnMNWn/ucc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KpZZTmql; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pSSo+9LC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5176B1F00A3D;
-	Fri, 22 May 2026 02:07:04 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KpZZTmql"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC6C71F000E9;
+	Fri, 22 May 2026 02:07:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779415624;
-	bh=3GlUrVpYhAtx2bSFMxzm4STWLSexb2wc2Z9ZrVAj7UA=;
+	d=linux-foundation.org; s=korg; t=1779415625;
+	bh=P8JA/Ne1yW3X0hkUKicKN5IpkVoq/WLQ7BzyMy3hTWs=;
 	h=Date:To:From:Subject;
-	b=pSSo+9LCWDKucaGypZzS9NopfeR021RL3x123nnB/2V5x1fSmR8w5Dwt5x+GkFpMC
-	 Cfu22MEKQP/nesWxp3fvC3a6t71ZLI9Wn5pWgE0eNXK/ngz3sVq/xPYyITTxx9PtTP
-	 HZ6GqAAT3phBPT3WiicTeQWZ0WetGg/6aHixKTMI=
-Date: Thu, 21 May 2026 19:07:03 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ying.huang@linux.alibaba.com,stable@vger.kernel.org,rakie.kim@sk.com,matthew.brost@intel.com,joshua.hahnjy@gmail.com,gourry@gourry.net,david@kernel.org,byungchul@sk.com,balbirs@nvidia.com,apopple@nvidia.com,nueralspacetech@gmail.com,akpm@linux-foundation.org
+	b=KpZZTmqlI0IKwcvGt2RTJb//6/O6bJGOdO66m29jWjTUBH2s4GtvzraPARgPAlWty
+	 NTDVBY1jzlmtOCUjisb2TTta6wqdUr9xh3pUdz9lAYPm33MphcaL/7ghJ+jPZIfGKE
+	 XCplB0plDYiDspMvqTWpsBhQzf6Pqgho/4CyRhv0=
+Date: Thu, 21 May 2026 19:07:05 -0700
+To: mm-commits@vger.kernel.org,ehristev@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] mm-migrate_device-fix-pgtable-leak-in-migrate_vma_insert_huge_pmd_page.patch removed from -mm tree
-Message-Id: <20260522020704.5176B1F00A3D@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] maintainers-mailmap-change-email-for-eugen-hristev.patch removed from -mm tree
+Message-Id: <20260522020705.AC6C71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,67 +35,101 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/migrate_device: fix pgtable leak in migrate_vma_insert_huge_pmd_page
+     Subject: MAINTAINERS, mailmap: change email for Eugen Hristev
 has been removed from the -mm tree.  Its filename was
-     mm-migrate_device-fix-pgtable-leak-in-migrate_vma_insert_huge_pmd_page.patch
+     maintainers-mailmap-change-email-for-eugen-hristev.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sunny Patel <nueralspacetech@gmail.com>
-Subject: mm/migrate_device: fix pgtable leak in migrate_vma_insert_huge_pmd_page
-Date: Fri, 1 May 2026 17:21:16 +0530
+From: Eugen Hristev <ehristev@kernel.org>
+Subject: MAINTAINERS, mailmap: change email for Eugen Hristev
+Date: Sat, 25 Apr 2026 16:06:48 +0300
 
-When migrate_vma_insert_huge_pmd_page() jumps to unlock_abort due
-to a PMD check failure, the pgtable allocated earlier via
-pte_alloc_one() is never freed, causing a memory leak.
+Replace old bouncing emails with ehristev@kernel.org
 
-Added free_abort label to release the pgtable in error path.
-
-Link: https://lore.kernel.org/20260501115122.23288-1-nueralspacetech@gmail.com
-Fixes: a30b48bf1b24 ("mm/migrate_device: implement THP migration of zone device pages")
-Signed-off-by: Sunny Patel <nueralspacetech@gmail.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Huang Ying <ying.huang@linux.alibaba.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Balbir Singh <balbirs@nvidia.com>
-Cc: Byungchul Park <byungchul@sk.com>
-Cc: Gregory Price <gourry@gourry.net>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Matthew Brost <matthew.brost@intel.com>
-Cc: Rakie Kim <rakie.kim@sk.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260425-eh-mailmap-v1-1-58788d401eef@kernel.org
+Signed-off-by: Eugen Hristev <ehristev@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate_device.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ .mailmap    |    5 +++--
+ MAINTAINERS |   12 ++++++------
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
---- a/mm/migrate_device.c~mm-migrate_device-fix-pgtable-leak-in-migrate_vma_insert_huge_pmd_page
-+++ a/mm/migrate_device.c
-@@ -840,7 +840,7 @@ static int migrate_vma_insert_huge_pmd_p
- 	} else {
- 		if (folio_is_zone_device(folio) &&
- 		    !folio_is_device_coherent(folio)) {
--			goto abort;
-+			goto free_abort;
- 		}
- 		entry = folio_mk_pmd(folio, vma->vm_page_prot);
- 		if (vma->vm_flags & VM_WRITE)
-@@ -893,6 +893,8 @@ static int migrate_vma_insert_huge_pmd_p
+--- a/.mailmap~maintainers-mailmap-change-email-for-eugen-hristev
++++ a/.mailmap
+@@ -263,8 +263,9 @@ Enric Balletbo i Serra <eballetbo@kernel
+ Enric Balletbo i Serra <eballetbo@kernel.org> <eballetbo@iseebcn.com>
+ Erik Kaneda <erik.kaneda@intel.com> <erik.schmauss@intel.com>
+ Ethan Carter Edwards <ethan@ethancedwards.com> Ethan Edwards <ethancarteredwards@gmail.com>
+-Eugen Hristev <eugen.hristev@linaro.org> <eugen.hristev@microchip.com>
+-Eugen Hristev <eugen.hristev@linaro.org> <eugen.hristev@collabora.com>
++Eugen Hristev <ehristev@kernel.org> <eugen.hristev@microchip.com>
++Eugen Hristev <ehristev@kernel.org> <eugen.hristev@linaro.org>
++Eugen Hristev <ehristev@kernel.org> <eugen.hristev@collabora.com>
+ Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+ Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> <ezequiel@collabora.com>
+ Faith Ekstrand <faith.ekstrand@collabora.com> <jason@jlekstrand.net>
+--- a/MAINTAINERS~maintainers-mailmap-change-email-for-eugen-hristev
++++ a/MAINTAINERS
+@@ -10832,7 +10832,7 @@ F:	include/linux/generic-radix-tree.h
+ F:	lib/generic-radix-tree.c
  
- unlock_abort:
- 	spin_unlock(ptl);
-+free_abort:
-+	pte_free(vma->vm_mm, pgtable);
- abort:
- 	for (i = 0; i < HPAGE_PMD_NR; i++)
- 		src[i] &= ~MIGRATE_PFN_MIGRATE;
+ GENERIC RESISTIVE TOUCHSCREEN ADC DRIVER
+-M:	Eugen Hristev <eugen.hristev@microchip.com>
++M:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-input@vger.kernel.org
+ S:	Maintained
+ F:	drivers/input/touchscreen/resistive-adc-touch.c
+@@ -17343,7 +17343,7 @@ F:	Documentation/devicetree/bindings/sou
+ F:	sound/soc/atmel
+ 
+ MICROCHIP CSI2DC DRIVER
+-M:	Eugen Hristev <eugen.hristev@microchip.com>
++M:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-media@vger.kernel.org
+ S:	Supported
+ F:	Documentation/devicetree/bindings/media/microchip,csi2dc.yaml
+@@ -17370,7 +17370,7 @@ F:	drivers/i2c/busses/i2c-at91-*.c
+ F:	drivers/i2c/busses/i2c-at91.h
+ 
+ MICROCHIP ISC DRIVER
+-M:	Eugen Hristev <eugen.hristev@microchip.com>
++M:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-media@vger.kernel.org
+ S:	Supported
+ F:	Documentation/devicetree/bindings/media/atmel,isc.yaml
+@@ -17382,7 +17382,7 @@ F:	drivers/staging/media/deprecated/atme
+ F:	include/linux/atmel-isc-media.h
+ 
+ MICROCHIP ISI DRIVER
+-M:	Eugen Hristev <eugen.hristev@microchip.com>
++M:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-media@vger.kernel.org
+ S:	Supported
+ F:	drivers/media/platform/atmel/atmel-isi.c
+@@ -17572,7 +17572,7 @@ F:	Documentation/devicetree/bindings/dis
+ F:	drivers/gpu/drm/bridge/microchip-lvds.c
+ 
+ MICROCHIP SAMA5D2-COMPATIBLE ADC DRIVER
+-M:	Eugen Hristev <eugen.hristev@microchip.com>
++M:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-iio@vger.kernel.org
+ S:	Supported
+ F:	Documentation/devicetree/bindings/iio/adc/atmel,sama5d2-adc.yaml
+@@ -24123,7 +24123,7 @@ F:	drivers/mmc/host/sdhci*
+ 
+ SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) MICROCHIP DRIVER
+ M:	Aubin Constans <aubin.constans@microchip.com>
+-R:	Eugen Hristev <eugen.hristev@collabora.com>
++R:	Eugen Hristev <ehristev@kernel.org>
+ L:	linux-mmc@vger.kernel.org
+ S:	Supported
+ F:	drivers/mmc/host/sdhci-of-at91.c
 _
 
-Patches currently in -mm which might be from nueralspacetech@gmail.com are
+Patches currently in -mm which might be from ehristev@kernel.org are
 
-mm-migrate_device-cleanup-up-pmd-checks-and-warnings.patch
 
