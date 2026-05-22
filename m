@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C2273803D3
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3885934CFAB
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:23 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779481343; cv=none; b=b70wTMyuXwsx1Ij/4JSHKwIKxDddN8C1kgpKmSIxqweFFWqQCcBcF9/c4T97x+cT8NX6vh/GMMWKGxp76uE9wAGI9UMUEEC5LEZ/0Wig50dww0rzo3Oxi0o+1KxBxhK+nc14KdpLWWqrH852ujU6f0AU9opaywCcSeQL27OYaaw=
+	t=1779481345; cv=none; b=c37E4tBqEu0d9neftYlGAz2rj7zL4t9OZ11HP5lTVDI5C8nv4Pj4/P5ZHZHkBkE9OKiVPZEMNx/7bJR2Wekcfrvaa2fHkreHwuvVZM3fbCYDWgyog/8XmlK7j7digkCodN3414anvsw4DBgW5y7D5od1BmV2CvVt286o2ypFU/Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779481343; c=relaxed/simple;
-	bh=QNN5PpWo0VkNjLuxoPNwvNkD9NHdq1akQtovx57IA6E=;
-	h=Date:To:From:Subject:Message-Id; b=DcYwsA67AtuE5z/5n9HkstvpYiNI+MMzwgRWfkabhTqkpwJtQuENniIheo98PTCyUiVMzAxqBp3e+2N9IsGEa5+h/16Vjvo3uqk9zHd9XRVhSiGykMm7Kk2jl5NI26BZGoGh9q5FNjShy7JDBLjdD7/pzvN5iACPQHsBuWphJKY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vsPl9Ajc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779481345; c=relaxed/simple;
+	bh=eUppcJm1wJDhO8taW/uBmRnDtJidTxo6evqWAcsoIGo=;
+	h=Date:To:From:Subject:Message-Id; b=m7MKbSaKlqJ7jBYDMV4Yl7g+U/w88/FT97P1Nun1j/aF0Kq+dQu4whlLHQLx+Hiz3n/x2OuSC1GJq5p2TevoBdgU5pYSVq0vRkCkeFtTS+VQJZuOmVnjlyCvBhUomR5/x1gykhES1twnwdyGbtWmUwCna0fp4VScDawFgkOOeqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RC06kXeN; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vsPl9Ajc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D35421F000E9;
-	Fri, 22 May 2026 20:22:21 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RC06kXeN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C590C1F000E9;
+	Fri, 22 May 2026 20:22:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779481341;
-	bh=TJzfUqce1Tr+vVQ48TPORbJBIwoKkE+R5dYvLl6E07g=;
+	d=linux-foundation.org; s=korg; t=1779481343;
+	bh=sIKDou/t/JCY750fcjq35QJ1e92W5v21RWv8oT5cKFk=;
 	h=Date:To:From:Subject;
-	b=vsPl9AjcPp3srwrJGG4wAj+CfBbvrbBqLZAJ6lsqj+ca9BIYZbmxL9Ej1UQU5U7aX
-	 M0OmhJCb3s1ti7NF0eVX6F2F8GWP8DUBUAa6oNGg6jEVeJldByR9aMpqIzoeXnJOn0
-	 uVlchnm0z4AGNmbum7yAk8QjruvBSUu0oHf/6L8M=
-Date: Fri, 22 May 2026 13:22:21 -0700
+	b=RC06kXeN8O7IY5lTn4/Xl+hhYFuhcnpwApRmsi94Fp96C3ksPWLgRHRlJkq5mo8sQ
+	 wW9ugbxmIWCqzTzEXm2zLP96hmHtBrSDsg+xyurnXzoGpeG5+PQSRaMY23AmgUXzd+
+	 u5OoHgpQz4YE+zPQMpQBo883iz4VcuSloAGfN1TI=
+Date: Fri, 22 May 2026 13:22:23 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch added to mm-new branch
-Message-Id: <20260522202221.D35421F000E9@smtp.kernel.org>
+Subject: + mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch added to mm-new branch
+Message-Id: <20260522202223.C590C1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: safely handle no region case in damon_set_regions()
+     Subject: mm/damon/core: do not use region out of a loop in damon_set_regions()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
+     mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,73 +70,62 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: safely handle no region case in damon_set_regions()
-Date: Fri, 22 May 2026 08:40:12 -0700
+Subject: mm/damon/core: do not use region out of a loop in damon_set_regions()
+Date: Fri, 22 May 2026 08:40:13 -0700
 
-Patch series "mm/damon: minor improvements for code readability and tests".
-
-Implement minor improvements on code readability and tests for DAMON.
-
-First seven patches are for DAMON code readability and resulting
-maintenance.  Patches 1 and 2 make damon_set_regions() safer and easier to
-read.  Patches 3 and 4 remove fragmented DAMON API use cases.  Patches 5-7
-hides unused core functions that are unnecessarily exposed to API callers.
-
-The following seven patches are for DAMON tests improvement.  Patches 8
-and 9 adds and removes DAMON_DEBUG_SANITY verifications to ensure
-reasonable test coverage without too high overhead.  Patch 10 adds a new
-kunit test for damon_set_regions().  Patch 11 makes sysfs.py selftest more
-gracefully finishes under test failures.  Patches 12-13 adds simple
-sysfs.sh test cases for the monitoring intervals goal directory, the
-addr_unit file and the pause file.
-
-
-This patch (of 14):
-
-damon_set_regions() calls damon_first_region() regardless of the number of
-DAMON regions in a given DAMON target.  damon_first_region() internally
-uses list_first_entry(), which clearly documents the list is expected to
-be not empty.  Due to the internal implementation of the macro,
-damon_set_regions() is safe for now.  But the internal implementation of
-the macro can be changed in future.  Refactor the function to explicitly
-and safely handle the empty region list case without depending on the
-internal implementation.
+damon_set_regions() assumes the DAMON region iterator is referencing the
+last region after the region iteration loop is completed.  The code is
+indeed implemented in the way, but that is not a documented safe behavior.
+Hence it is unreliable and difficult to read.  Cleanup the code to avoid
+the case.
 
 No behavioral change is intended.
 
-Link: https://lore.kernel.org/20260522154026.80546-1-sj@kernel.org
-Link: https://lore.kernel.org/20260522154026.80546-2-sj@kernel.org
+Link: https://lore.kernel.org/20260522154026.80546-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/damon/core.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-safely-handle-no-region-case-in-damon_set_regions
+--- a/mm/damon/core.c~mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions
 +++ a/mm/damon/core.c
-@@ -356,6 +356,19 @@ int damon_set_regions(struct damon_targe
- 			damon_destroy_region(r, t);
- 	}
- 
-+	if (!damon_nr_regions(t)) {
-+		for (i = 0; i < nr_ranges; i++) {
-+			r = damon_new_region(
-+					ALIGN_DOWN(ranges[i].start,
-+						min_region_sz),
-+					ALIGN(ranges[i].end, min_region_sz));
-+			if (!r)
-+				return -ENOMEM;
-+			damon_add_region(r, t);
-+		}
-+		return 0;
-+	}
-+
- 	r = damon_first_region(t);
- 	/* Add new regions or resize existing regions to fit in the ranges */
+@@ -374,6 +374,7 @@ int damon_set_regions(struct damon_targe
  	for (i = 0; i < nr_ranges; i++) {
+ 		struct damon_region *first = NULL, *last, *newr;
+ 		struct damon_addr_range *range;
++		bool insert_before_r = false;
+ 
+ 		range = &ranges[i];
+ 		/* Get the first/last regions intersecting with the range */
+@@ -383,8 +384,10 @@ int damon_set_regions(struct damon_targe
+ 					first = r;
+ 				last = r;
+ 			}
+-			if (r->ar.start >= range->end)
++			if (r->ar.start >= range->end) {
++				insert_before_r = true;
+ 				break;
++			}
+ 		}
+ 		if (!first) {
+ 			/* no region intersects with this range */
+@@ -394,7 +397,11 @@ int damon_set_regions(struct damon_targe
+ 					ALIGN(range->end, min_region_sz));
+ 			if (!newr)
+ 				return -ENOMEM;
+-			damon_insert_region(newr, damon_prev_region(r), r, t);
++			if (insert_before_r)
++				damon_insert_region(newr, damon_prev_region(r),
++						r, t);
++			else
++				damon_add_region(newr, t);
+ 		} else {
+ 			/* resize intersecting regions to fit in this range */
+ 			first->ar.start = ALIGN_DOWN(range->start,
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
