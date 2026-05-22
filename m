@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 619F9257459;
-	Fri, 22 May 2026 18:21:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13130349CDF
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 19:21:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779474092; cv=none; b=puOcEW/l2+OE5XFKuNGh+jB6k6vkwoGFfB0wb/1tuAgoAAAgJ1sSa26BqcKtlyymlU2S/FIgFl9d7CaJ4+6F3RYNcAkpjC1NVOZRcFM5EkJohUPMC/2EqjLrBFBYfgvUdRU+p9sQxy9h5ct7rrKiyDx68q1byRprxI5hq5j4iKI=
+	t=1779477717; cv=none; b=ufeDG8j5PQv32kQ++e5qJavXBTg9/bq/3a3fLkxC+MULR+BBg9ohyDdN7GJCrRKQyGuJATbBUvFmCtOfS2qCVzk+MY8EC2eiI2PhDY8HmFzIx047lkYybKzsBJuKYQde0hOhQDBc/A0O/n1rhbJPvmvpfDajdpVjJ5lZ1mi9Qy8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779474092; c=relaxed/simple;
-	bh=eRl4shUEi5QLvdF4zeGSMq/iaU0zgIS1NjbRqiaWmb0=;
-	h=Date:To:From:Subject:Message-Id; b=HeWmD07c/ySFgu6nclH4HlEjg5s+p3p875RLySQew3/ZkLf4bouWP92p8i7ZFugakHtV5ggSpqU1cXId7M4Ckh4XdX/wL06sIkgZoqVieHD/iZfFyMfzRL4goG0aw5M1+21ioBCRj1JyGwtHRowSB4IBEoWIz4ridm0SAQwJNgc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FYP8CXrL; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779477717; c=relaxed/simple;
+	bh=oft2BEvsWOL5haaMEhXf37LX2gMbk271d5TQwojfu48=;
+	h=Date:To:From:Subject:Message-Id; b=ij/cMIYoontZP7LRDe4rRg/DYN3E7s7I3O24cKxgGVWFV25drHPUxj7Heb1bJB3tJkYIyy/CSk9ofFUgXejEcfc2nd0jP8EU9hC6YoHECSpU0gIBEUNLgCZnLJ5aHejzmnHFerBxcUFiuQpp4FCSxZmsjz/hSNYvDeLSqmzo74M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gq0V09jh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FYP8CXrL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14B2F1F00ADE;
-	Fri, 22 May 2026 18:21:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gq0V09jh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 991661F000E9;
+	Fri, 22 May 2026 19:21:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779474091;
-	bh=pBJ6FuyFlFt6o7BJE2eMhBkzUApGogFrBeTLh6e1KzE=;
+	d=linux-foundation.org; s=korg; t=1779477715;
+	bh=ahHlmAcC3Hkw+Gi5BdXuXgOnaB/yXVUiWMdVIEbMLd8=;
 	h=Date:To:From:Subject;
-	b=FYP8CXrLx+ash+bhjMHq0jr4yToX1KebD+eM//xTQPv/BLyZmL+cpQiV3ZSsVXL6T
-	 x/eTSgodcMPJfuSs2Gkuo4PKP0QBC4fc4gCrxw8GeBiS7bKhUJCb64zGWpFAFtcWHH
-	 PUY7hZ3CtERNbWIEOfWNQ6cFmN2JBXFVi6HQI+P0=
-Date: Fri, 22 May 2026 11:21:30 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,fvdl@google.com,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=Gq0V09jhJuKgfAQ8+4OxYiZa9VUlKluBTWiSEDVrSAiYx2AK0T7vjumRvvqrTAOEn
+	 d1mksJgcRntJGuV2oYwwozXDOQn8a6QNTQzn0J5UfAb7GW+vj1brKqi39Kd2ZPzMub
+	 ijozgkJH0+A44b1vt3Kjbw21BySUbnPnX6a/VNbQ=
+Date: Fri, 22 May 2026 12:21:55 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,qi.zheng@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,joshua.hahnjy@gmail.com,hannes@cmpxchg.org,alex@ghiti.fr,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-fix-reserved-page-leak-on-activation-failure.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260522182131.14B2F1F00ADE@smtp.kernel.org>
+Subject: [withdrawn] memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch removed from -mm tree
+Message-Id: <20260522192155.991661F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,98 +34,195 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: mm/cma: fix reserved page leak on activation failure
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-cma-fix-reserved-page-leak-on-activation-failure.patch
+The quilt patch titled
+     Subject: memcg: cache obj_stock by memcg, not by objcg pointer
+has been removed from the -mm tree.  Its filename was
+     memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-fix-reserved-page-leak-on-activation-failure.patch
-
-This patch will later appear in the mm-hotfixes-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/cma: fix reserved page leak on activation failure
-Date: Fri, 22 May 2026 14:26:58 +0800
+From: Shakeel Butt <shakeel.butt@linux.dev>
+Subject: memcg: cache obj_stock by memcg, not by objcg pointer
+Date: Mon, 18 May 2026 15:28:27 -0700
 
-If cma_activate_area() fails after allocating only part of the range
-bitmaps, its cleanup path frees the bitmaps for the ranges below
-allocrange and then releases reserved pages using the same bound.
+Commit 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg
+per-node type") split a memcg's single obj_cgroup into one per NUMA node,
+but the per-CPU obj_stock_pcp still keys cached_objcg by pointer. 
+Cross-NUMA workloads now see a drain on every refill and a miss on every
+consume that targets a sibling per-node objcg of the same memcg, producing
+the 67.7% stress-ng switch-mq regression reported by LKP.
 
-That bound is only correct for bitmap freeing.  Pages in ranges that did
-not reach bitmap allocation are still reserved and should also be returned
-to the buddy when CMA_RESERVE_PAGES_ON_ERROR is clear.  As a result, a
-partial bitmap allocation failure can permanently leak the reserved pages
-from the failed range and all later ranges.
+stock->nr_bytes are fungible across per-node objcgs of one memcg.  Treat
+the cache as keyed by memcg in __consume_obj_stock() and
+__refill_obj_stock() so siblings share the reserve.  Compare via
+READ_ONCE(objcg->memcg) directly: pointer-compare only, no deref, so the
+rcu_read_lock contract on obj_cgroup_memcg() does not apply.
 
-Fix this by releasing reserved pages for all ranges.  For ranges whose
-bitmap allocation succeeded, use the early_pfn[] snapshot saved before the
-bitmap pointer overwrote the union field.  For later ranges, continue to
-use cmr->early_pfn directly.
+Sharing the reserve without re-caching means bytes funded by one per-node
+objcg's slow path can be consumed/freed under a different sibling, leaving
+sub-page residue on whichever sibling was cached at drain time.  The
+pre-existing obj_cgroup_release() path would WARN and silently drop that
+residue, leaking up to nr_node_ids * (PAGE_SIZE - 1) bytes per memcg
+lifecycle from the page_counter.  Forward the residue into a per-node
+objcg of the same (post-reparent) memcg at release time instead, so it can
+be reconciled later via a refill atomic_xchg or another release; the chain
+terminates at root_mem_cgroup, whose page_counter has no enforced limit.
 
-Link: https://lore.kernel.org/20260522062658.4095405-1-songmuchun@bytedance.com
-Fixes: c009da4258f9 ("mm, cma: support multiple contiguous ranges, if requested")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+Please note that this is temporary fix and will be reverted when per-node
+kmem accounting is introduced.
+
+Update the stale invariant comment on __account_obj_stock().
+
+Qi Zheng built a specialized reproducer [1] for the corner case and
+confirmed the fix.
+
+Link: https://lore.kernel.org/20260518222827.110696-1-shakeel.butt@linux.dev
+Fixes: 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg per-node type")
+Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Closes: https://lore.kernel.org/oe-lkp/202605121641.b6a60cb0-lkp@intel.com
+Link: https://lore.kernel.org/19693be6-7132-446e-b3fc-b7e9f56e5949@linux.dev/ [1]
+Debugged-by: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Muchun Song <muchun.song@linux.dev>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   69 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 51 insertions(+), 18 deletions(-)
 
---- a/mm/cma.c~mm-cma-fix-reserved-page-leak-on-activation-failure
-+++ a/mm/cma.c
-@@ -188,10 +188,13 @@ cleanup:
+--- a/mm/memcontrol.c~memcg-cache-obj_stock-by-memcg-not-by-objcg-pointer
++++ a/mm/memcontrol.c
+@@ -142,14 +142,24 @@ static void obj_cgroup_release(struct pe
+ 	struct obj_cgroup *objcg = container_of(ref, struct obj_cgroup, refcnt);
+ 	unsigned int nr_bytes;
+ 	unsigned int nr_pages;
++	unsigned int sub_bytes;
+ 	unsigned long flags;
  
- 	/* Expose all pages to the buddy, they are useless for CMA. */
- 	if (!test_bit(CMA_RESERVE_PAGES_ON_ERROR, &cma->flags)) {
--		for (r = 0; r < allocrange; r++) {
-+		for (r = 0; r < cma->nranges; r++) {
-+			unsigned long start_pfn;
+ 	/*
+-	 * At this point all allocated objects are freed, and
+-	 * objcg->nr_charged_bytes can't have an arbitrary byte value.
+-	 * However, it can be PAGE_SIZE or (x * PAGE_SIZE).
++	 * At this point all allocated objects are freed, but
++	 * objcg->nr_charged_bytes can still hold either
++	 *   - (x * PAGE_SIZE)  if a small-alloc/drain race left whole pages
++	 *     stranded (see the historical sequence below), or
++	 *   - any sub-page residue, now that the stock is keyed by memcg and
++	 *     sibling per-node objcgs share its reserve: bytes consumed by
++	 *     one sibling can spill into another sibling's nr_charged_bytes
++	 *     when the stock is drained.
+ 	 *
+-	 * The following sequence can lead to it:
++	 * Uncharge the page-aligned portion from this objcg's (post-reparent)
++	 * memcg, and forward any sub-page residue into a per-node objcg of
++	 * the same memcg so it can be reconciled later instead of being lost.
++	 *
++	 * Historical race producing the (x * PAGE_SIZE) case:
+ 	 * 1) CPU0: objcg == stock->cached_objcg
+ 	 * 2) CPU1: we do a small allocation (e.g. 92 bytes),
+ 	 *          PAGE_SIZE bytes are charged
+@@ -160,23 +170,33 @@ static void obj_cgroup_release(struct pe
+ 	 *          92 bytes are added to stock->nr_bytes
+ 	 * 6) CPU0: stock is flushed,
+ 	 *          92 bytes are added to objcg->nr_charged_bytes
+-	 *
+-	 * In the result, nr_charged_bytes == PAGE_SIZE.
+-	 * This page will be uncharged in obj_cgroup_release().
+ 	 */
+ 	nr_bytes = atomic_read(&objcg->nr_charged_bytes);
+-	WARN_ON_ONCE(nr_bytes & (PAGE_SIZE - 1));
+ 	nr_pages = nr_bytes >> PAGE_SHIFT;
++	sub_bytes = nr_bytes & (PAGE_SIZE - 1);
+ 
+-	if (nr_pages) {
++	if (nr_pages || sub_bytes) {
+ 		struct mem_cgroup *memcg;
+ 
+-		memcg = get_mem_cgroup_from_objcg(objcg);
+-		mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
+-		memcg1_account_kmem(memcg, -nr_pages);
+-		if (!mem_cgroup_is_root(memcg))
+-			memcg_uncharge(memcg, nr_pages);
+-		mem_cgroup_put(memcg);
++		rcu_read_lock();
++		memcg = obj_cgroup_memcg(objcg);
 +
- 			cmr = &cma->ranges[r];
-+			start_pfn = r < allocrange ? early_pfn[r] : cmr->early_pfn;
- 			end_pfn = cmr->base_pfn + cmr->count;
--			for (pfn = early_pfn[r]; pfn < end_pfn; pfn++)
-+			for (pfn = start_pfn; pfn < end_pfn; pfn++)
- 				free_reserved_page(pfn_to_page(pfn));
- 		}
++		if (nr_pages) {
++			mod_memcg_state(memcg, MEMCG_KMEM, -nr_pages);
++			memcg1_account_kmem(memcg, -nr_pages);
++			if (!mem_cgroup_is_root(memcg))
++				memcg_uncharge(memcg, nr_pages);
++		}
++
++		if (sub_bytes && !mem_cgroup_is_root(memcg)) {
++			struct obj_cgroup *fwd;
++
++			fwd = rcu_dereference(
++				memcg->nodeinfo[numa_node_id()]->objcg);
++			if (fwd)
++				atomic_add(sub_bytes, &fwd->nr_charged_bytes);
++		}
++		rcu_read_unlock();
  	}
+ 
+ 	spin_lock_irqsave(&objcg_lock, flags);
+@@ -3152,7 +3172,12 @@ static void unlock_stock(struct obj_stoc
+ 		local_unlock(&obj_stock.lock);
+ }
+ 
+-/* Call after __refill_obj_stock() to ensure stock->cached_objg == objcg */
++/*
++ * Call after __consume_obj_stock() / __refill_obj_stock(). The stock may be
++ * cached for a sibling per-node objcg of the same memcg; in that case the
++ * vmstat batching slot does not match objcg and we fallthrough to the
++ * direct path.
++ */
+ static void __account_obj_stock(struct obj_cgroup *objcg,
+ 				struct obj_stock_pcp *stock, int nr,
+ 				struct pglist_data *pgdat, enum node_stat_item idx)
+@@ -3210,7 +3235,11 @@ static bool __consume_obj_stock(struct o
+ 				struct obj_stock_pcp *stock,
+ 				unsigned int nr_bytes)
+ {
+-	if (objcg == READ_ONCE(stock->cached_objcg) &&
++	struct obj_cgroup *cached = READ_ONCE(stock->cached_objcg);
++
++	/* Sibling per-node objcgs share the reserve. */
++	if ((cached == objcg ||
++	     (cached && READ_ONCE(cached->memcg) == READ_ONCE(objcg->memcg))) &&
+ 	    stock->nr_bytes >= nr_bytes) {
+ 		stock->nr_bytes -= nr_bytes;
+ 		return true;
+@@ -3318,6 +3347,7 @@ static void __refill_obj_stock(struct ob
+ 			       unsigned int nr_bytes,
+ 			       bool allow_uncharge)
+ {
++	struct obj_cgroup *cached;
+ 	unsigned int nr_pages = 0;
+ 
+ 	if (!stock) {
+@@ -3327,7 +3357,10 @@ static void __refill_obj_stock(struct ob
+ 		goto out;
+ 	}
+ 
+-	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
++	cached = READ_ONCE(stock->cached_objcg);
++	/* Direct READ_ONCE due to just pointer comparison. */
++	if (cached != objcg &&
++	    (!cached || READ_ONCE(cached->memcg) != READ_ONCE(objcg->memcg))) {
+ 		drain_obj_stock(stock);
+ 		obj_cgroup_get(objcg);
+ 		stock->nr_bytes = atomic_read(&objcg->nr_charged_bytes)
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from shakeel.butt@linux.dev are
 
-mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas.patch
-mm-cma-fix-reserved-page-leak-on-activation-failure.patch
-mm-sparse-remove-sparse-buffer-pre-allocation-mechanism.patch
-mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
-mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
-mm-sparse-vmemmap-pass-pgmap-argument-to-memory-deactivation-paths.patch
-mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization.patch
-mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch
-mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
-mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
-drivers-base-memory-make-memory-block-get-put-explicit.patch
+memcg-use-round-robin-victim-selection-in-refill_stock.patch
 
