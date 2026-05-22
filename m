@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F330D3803D3
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E295382F1A
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 20:22:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779481360; cv=none; b=JdL6buHsI0pWx0H6TwPY1on6gN7ao/oVgnieHstQBeKy5/M/7G1115qrzaR9iBWxEeKhudYDA7mlz0BdT6Ya2BfHsj7xiv45SIr9qYr69qLCrWXjwvcQIAZ+dlBzkGy06rguM57xyn/bvrdwldJh9IJ8eHlQ8XqAvYbRcn8U9Xg=
+	t=1779481362; cv=none; b=pXJSGJ0RVJKeJuzajI+g1LOgga+2r2c3fug/N8Veqy9shri6g8NpoaEAzUOID9AH+k0CNDTOk/00ZhGQdV45Gem+Idyo4qVJSwkDUvaloCjBOzrlH0MxaYwlY0PZd2ZPSpE4V0Q6yswyNnSwdg3GT6qpUk+JAkXuomn/LUEoWGk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779481360; c=relaxed/simple;
-	bh=aDQ/miSBM6MJxO7xoFVFrnz5w6dfIBJEYvz9LA5TyxI=;
-	h=Date:To:From:Subject:Message-Id; b=mfDMz+YrIOSV4ghlJkWct5SEoQrveyaDbRdWerOtKi9AicOOlwhOtJ3pLzrLhLG3FdDXWELL24EuKxOQnw9uUeIFPit9vBde5YsSxubVNtZxOGN1UKXae/6CHBGjUBr/hyz28HLv0Y4+NcxHjoR0ENwqTAY6EURtNiVXYOcSVAk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KgyC5cWL; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779481362; c=relaxed/simple;
+	bh=+CTp0TVDQ9Wk19Qeb4/TET5sb6wK8E46UE3W2XLiqh0=;
+	h=Date:To:From:Subject:Message-Id; b=aHp2PJkC54rUGa7z7ZLpK9vo9yM4lfPd2FTgsMUcKkUw9vs2JkShhIfk5sRQF71nuTQz6j2xMa2ejcvyiGZSl+9/l0hPx6dxdc+di+ivj2DL/366+Juok26sglVc48bnqlyNRBAJh+4Lx8ctU0u+xNIC0gMD6orbQYAIjDCY/m8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TaxXcW1f; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KgyC5cWL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E7C11F000E9;
-	Fri, 22 May 2026 20:22:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TaxXcW1f"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 633B81F000E9;
+	Fri, 22 May 2026 20:22:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779481358;
-	bh=4dRm+pBIW+7hqV/3EuY5ak8NpLei3eUszrn9e+zlJA4=;
+	d=linux-foundation.org; s=korg; t=1779481360;
+	bh=3r2XNt8s0o10OoL0o2yh/UQ4Q4TnMAPHJgB8NNP9se8=;
 	h=Date:To:From:Subject;
-	b=KgyC5cWLitFk29GtCbN+PXkZh6SLX7f8cgqzXCsjw9ul7kjvA0f5TpTxpnYCOgq7U
-	 sVFSMdJTzPuWnT6GImO0vea5D4pjFGDKpTUIp0hFKr52MrocaBft7GBTMXPArs/PBn
-	 zr5ZuIrwUkhUyOy0J5qKjag8A1KRnKgDukfFY8Cc=
-Date: Fri, 22 May 2026 13:22:38 -0700
+	b=TaxXcW1fwd82WIGqsP5Tl1GmhDz/9wDvbMCEN3Skb3xglDDSKUFduE/caLNq7i4Ex
+	 QJqUuJu9mdqONqwgLqVqhe922IbbS6dbdxmIXud4VvfC3qq0uDjJEC65I+ADmHo1V4
+	 bPnxIXI4rJPGgTA+DlkL3ZDV895XcMO01Frol1V4=
+Date: Fri, 22 May 2026 13:22:39 -0700
 To: mm-commits@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-core-remove-damon_verify_nr_regions.patch added to mm-new branch
-Message-Id: <20260522202238.8E7C11F000E9@smtp.kernel.org>
+Subject: + mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch added to mm-new branch
+Message-Id: <20260522202240.633B81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/core: remove damon_verify_nr_regions()
+     Subject: mm/damon/tests/core-kunit: add damon_set_regions() test cases
 has been added to the -mm mm-new branch.  Its filename is
-     mm-damon-core-remove-damon_verify_nr_regions.patch
+     mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-core-remove-damon_verify_nr_regions.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,62 +70,187 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: remove damon_verify_nr_regions()
-Date: Fri, 22 May 2026 08:40:20 -0700
+Subject: mm/damon/tests/core-kunit: add damon_set_regions() test cases
+Date: Fri, 22 May 2026 08:40:21 -0700
 
-When CONFIG_DAMON_DEBUG_SANITY is enabled, damon_verify_nr_regions() is
-called for each damon_nr_regions() invocation.  damon_veify_nr_regions()
-iterates all regions.  damon_nr_regions() is called for each region in
-kdamond_reset_aggregated() and damos_apply_scheme().  Hence it imposes
-O(n**2) overhead where n is the number of regions.
+damon_set_regions() is one of the main DAMON kernel API functions that set
+up the monitoring target memory region boundaries.  Implement unit tests
+for verifying its basic functionalities.
 
-Though the verification is enabled only under DAMON_DEBUG_SANITY, which is
-not for production use cases, it could be too high overhead.  Meanwhile,
-damon_verify_ctx() is doing the damon_nr_regions() test.  Because
-damon_verify_ctx() is called for each kdamond_call(), the test coverage
-from damon_verify_ctx() could be sufficient.  Remove damon_nr_regions()
-verification.
-
-Link: https://lore.kernel.org/20260522154026.80546-10-sj@kernel.org
+Link: https://lore.kernel.org/20260522154026.80546-11-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |   19 -------------------
- 1 file changed, 19 deletions(-)
+ mm/damon/tests/core-kunit.h |  142 ++++++++++++++++++++++++++++------
+ 1 file changed, 120 insertions(+), 22 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-core-remove-damon_verify_nr_regions
-+++ a/mm/damon/core.c
-@@ -686,27 +686,8 @@ void damon_destroy_target(struct damon_t
- 	damon_free_target(t);
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-add-damon_set_regions-test-cases
++++ a/mm/damon/tests/core-kunit.h
+@@ -390,41 +390,139 @@ static void damon_test_ops_registration(
+ 	}
  }
  
--#ifdef CONFIG_DAMON_DEBUG_SANITY
--static void damon_verify_nr_regions(struct damon_target *t)
--{
--	struct damon_region *r;
--	unsigned int count = 0;
--
--	damon_for_each_region(r, t)
--		count++;
--	WARN_ONCE(count != t->nr_regions, "t->nr_regions (%u) != count (%u)\n",
--			t->nr_regions, count);
--}
--#else
--static void damon_verify_nr_regions(struct damon_target *t)
--{
--}
--#endif
--
- unsigned int damon_nr_regions(struct damon_target *t)
+-static void damon_test_set_regions(struct kunit *test)
++static void damon_test_set_regions_for(struct kunit *test,
++		struct damon_addr_range *old_ranges, int sz_old_ranges,
++		struct damon_addr_range *new_ranges, int sz_new_ranges,
++		unsigned long min_region_sz,
++		struct damon_addr_range *expect_ranges, int sz_expect_ranges)
  {
--	damon_verify_nr_regions(t);
--
- 	return t->nr_regions;
+-	struct damon_target *t = damon_new_target();
+-	struct damon_region *r1, *r2;
+-	struct damon_addr_range range = {.start = 8, .end = 28};
+-	unsigned long expects[] = {8, 16, 16, 24, 24, 28};
+-	int expect_idx = 0;
++	struct damon_target *t;
+ 	struct damon_region *r;
++	int i;
+ 
++	t = damon_new_target();
+ 	if (!t)
+ 		kunit_skip(test, "target alloc fail");
+-	r1 = damon_new_region(4, 16);
+-	if (!r1) {
+-		damon_free_target(t);
+-		kunit_skip(test, "region alloc fail");
+-	}
+-	r2 = damon_new_region(24, 32);
+-	if (!r2) {
+-		damon_free_target(t);
+-		damon_free_region(r1);
+-		kunit_skip(test, "second region alloc fail");
++	for (i = 0; i < sz_old_ranges; i++) {
++		r = damon_new_region(old_ranges[i].start, old_ranges[i].end);
++		if (!r) {
++			damon_destroy_target(t, NULL);
++			kunit_skip(test, "%d-th r alloc fail\n", i);
++		}
++		damon_add_region(r, t);
+ 	}
+ 
+-	damon_add_region(r1, t);
+-	damon_add_region(r2, t);
+-	damon_set_regions(t, &range, 1, 1);
++	damon_set_regions(t, new_ranges, sz_new_ranges, min_region_sz);
+ 
+-	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 3);
++	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), sz_expect_ranges);
++	if (damon_nr_regions(t) != sz_expect_ranges) {
++		damon_destroy_target(t, NULL);
++		return;
++	}
++	i = 0;
+ 	damon_for_each_region(r, t) {
+-		KUNIT_EXPECT_EQ(test, r->ar.start, expects[expect_idx++]);
+-		KUNIT_EXPECT_EQ(test, r->ar.end, expects[expect_idx++]);
++		KUNIT_EXPECT_EQ(test, r->ar.start, expect_ranges[i].start);
++		KUNIT_EXPECT_EQ(test, r->ar.end, expect_ranges[i++].end);
+ 	}
++
+ 	damon_destroy_target(t, NULL);
  }
  
++static void damon_test_set_regions(struct kunit *test)
++{
++	/* Initial build up on empty target. */
++	damon_test_set_regions_for(test,
++			(struct damon_addr_range[]){}, 0,
++			(struct damon_addr_range[]){
++			{.start = 5, .end = 15},
++			{.start = 15, .end = 25},
++			}, 2,
++			1,
++			(struct damon_addr_range[]){
++			{.start = 5, .end = 15},
++			{.start = 15, .end = 25},
++			}, 2);
++	/* Un-intersecting regions should be removed. */
++	damon_test_set_regions_for(test,
++			(struct damon_addr_range[]){
++			{.start = 4, .end = 16},
++			{.start = 24, .end = 32},
++			}, 2,
++			(struct damon_addr_range[]){
++			{.start = 18, .end = 23},
++			}, 1,
++			1,
++			(struct damon_addr_range[]){
++			{.start = 18, .end = 23},
++			}, 1);
++	/*
++	 * Holes should be filled up with new regions.
++	 *
++	 * old:       [4,   16)        [24,     32)
++	 * new:         [8,                 28)
++	 * expect:      [8, 16)[16,24),[24, 28)
++	 */
++	damon_test_set_regions_for(test,
++			(struct damon_addr_range[]){
++			{.start = 4, .end = 16},
++			{.start = 24, .end = 32},
++			}, 2,
++			(struct damon_addr_range[]){
++			{.start = 8, .end = 28},
++			}, 1,
++			1,
++			(struct damon_addr_range[]){
++			{.start = 8, .end = 16},
++			{.start = 16, .end = 24},
++			{.start = 24, .end = 28},
++			}, 3);
++	/*
++	 * New regions should be able to be appended.
++	 *
++	 * old:       [0, 4)[4,    17)
++	 * new:       [0,       15)     [25, 40)
++	 * expect:    [0, 4)[4, 15)     [25, 40)
++	 */
++	damon_test_set_regions_for(test,
++			(struct damon_addr_range[]){
++			{.start = 0, .end = 4},
++			{.start = 4, .end = 17},
++			}, 2,
++			(struct damon_addr_range[]){
++			{.start = 0, .end = 15},
++			{.start = 25, .end = 40},
++			}, 2,
++			1,
++			(struct damon_addr_range[]){
++			{.start = 0, .end = 4},
++			{.start = 4, .end = 15},
++			{.start = 25, .end = 40},
++			}, 3);
++	/*
++	 * New regions should be able to be inserted.
++	 *
++	 * old:       [0, 4)                      [42,    52)
++	 * new:       [0,       15)     [25, 40)    [44, 50)
++	 * expect:    [0,       15)     [25, 40)    [44, 50)
++	 */
++	damon_test_set_regions_for(test,
++			(struct damon_addr_range[]){
++			{.start = 0, .end = 4},
++			{.start = 42, .end = 52},
++			}, 2,
++			(struct damon_addr_range[]){
++			{.start = 0, .end = 15},
++			{.start = 25, .end = 40},
++			{.start = 44, .end = 50},
++			}, 3,
++			1,
++			(struct damon_addr_range[]){
++			{.start = 0, .end = 15},
++			{.start = 25, .end = 40},
++			{.start = 44, .end = 50},
++			}, 3);
++}
++
+ static void damon_test_nr_accesses_to_accesses_bp(struct kunit *test)
+ {
+ 	struct damon_attrs attrs = {
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
