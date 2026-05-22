@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93119346A18
-	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 03:54:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CE9322424C
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 03:54:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779422041; cv=none; b=dnRo8HUQDq3SaLvqrkOLul7WQhu0XxCDyg4AvGJDRMGLIZVuYWF0r1Oh+EbmVUKJQSZC3cOAxx/qq3ap9rgzJ8Hna+Uc0hh4Yzy7JnyVNsB2qphx+Lj3wTNsSmKvZZumAZIQxD6KsnC5Jch40WPg+RPddBLgwXhbzXxKRr2hYAs=
+	t=1779422043; cv=none; b=qJymGvVONYt4CbiAwu4SgbZ1ssMxBtoKt7ZKeIYTSyygkGdvk6ArZ0eymYlcwNtHDZOn4/rXEfIDpKzBFsTjhbvTxGjhubm+Fl/BbFcMR4xcI1rG18I7OHlI2E7txJoGoxRCdfE9NYo7ZMOCwRY6BqoAuYCJuCJPL6S9RKSuOLg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779422041; c=relaxed/simple;
-	bh=wR1AOyfDLAp5VvING3+Z8S0SuW7nu4PGzm4bi7jzBx0=;
-	h=Date:To:From:Subject:Message-Id; b=egfZ5/zsLi/7UBIBcNytI4QsEuqZFzmbmYlMZKuchcnjRILKLZzRZCyesCZHdKQcujb0zMMtkSvGNh+/F6T0cMC/F+IeT2Re5pRmlEQNG8nVw4L02YUVMar07yCpXLS10V6qgy3QBN/JKgUdFTSimRBgY7UgfpQvqqm8ZK/3tBg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ieEnRPGT; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779422043; c=relaxed/simple;
+	bh=mWwSKT2ZfdObK3MDXMFUPScN/FyjmYYga9ZhhWqJgjs=;
+	h=Date:To:From:Subject:Message-Id; b=Ds5LFxgNnXjDO9t0sqacQDvHdJmBmCP+bp8CXlGYLmT90zEsSu1N9MV4IQBcGOqhmztHW2IWbUuz+e6gYxZFJvp+uR6nWjvYrCb+IamRMRDZQYU/dWWQXeHxisQdcS3jXmElItBgW8w178YQ4IDVVowO16bF8uPy5FYBdNSWbN4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=X2b7msZa; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ieEnRPGT"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 410A91F000E9;
-	Fri, 22 May 2026 03:54:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="X2b7msZa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A6B41F000E9;
+	Fri, 22 May 2026 03:54:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779422040;
-	bh=CWtZ5nTxEw3EFs1m2iXUrUj2hXrV75jPKqbXrHWZU80=;
+	d=linux-foundation.org; s=korg; t=1779422042;
+	bh=E+QEhnIqEFKGQRTU6vNBN6iE52eXjd53XK4nmOsjFJ0=;
 	h=Date:To:From:Subject;
-	b=ieEnRPGTTbisCRuWEvQ+VqiVozEl68zi6b7dqbkE4S4p01TFWUpiabsv5qbDjgq0r
-	 dgRJtqo3igltn2fzPYkg4eSPCkI4ZPOiFd6mDiZ2gc0e59G+wsPacVVAyHnYUGt0S8
-	 cm3oreVXI2SHXAuhmZIuv+/xy1CfL3qWTKtycwSg=
-Date: Thu, 21 May 2026 20:53:59 -0700
-To: mm-commits@vger.kernel.org,pmladek@suse.com,paulmck@kernel.org,feng.tang@linux.alibaba.com,akpm@linux-foundation.org
+	b=X2b7msZa5vyvL1FD53XMOf0P3y8Xe+cSh1wxekS9SkH1r4XLG1O5xPbuEUL34qgjn
+	 solO824mn+XIuhUDpdtJGQojS+Gm1vGGeFJJQ9gtCeIifkmn3YUmQzv8d4UyBShhp6
+	 28QIUbFvWb9gR22UY1Abo8oNYmCmcMF0jP4NAtxU=
+Date: Thu, 21 May 2026 20:54:01 -0700
+To: mm-commits@vger.kernel.org,pmladek@suse.com,paulmck@kernel.org,feng.tang@linux.alibaba.com,akpm@linux-foundation.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix.patch added to mm-nonmm-unstable branch
-Message-Id: <20260522035400.410A91F000E9@smtp.kernel.org>
+Subject: + lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20260522035402.2A6B41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix
+     Subject: lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix.patch
+     lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,59 +58,51 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Feng Tang <feng.tang@linux.alibaba.com>
-Subject: lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix
-Date: Fri, 22 May 2026 09:46:26 +0800
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix
+Date: Thu May 21 08:49:00 PM PDT 2026
 
-avoid hard-coding "10" in two places and in a comment
+use __stringify()
 
-Link: https://lore.kernel.org/ag-1ciG0FSomBf7q@U-2FWC9VHC-2323.local
-Signed-off-by: Feng Tang <feng.tang@linux.alibaba.com>
+Cc: Feng Tang <feng.tang@linux.alibaba.com>
 Cc: "Paul E . McKenney" <paulmck@kernel.org>
 Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/nmi_backtrace.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ lib/nmi_backtrace.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/lib/nmi_backtrace.c~lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix
+--- a/lib/nmi_backtrace.c~lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix
 +++ a/lib/nmi_backtrace.c
-@@ -27,6 +27,8 @@ static DECLARE_BITMAP(backtrace_mask, NR
- /* "in progress" flag of arch_trigger_cpumask_backtrace */
- static unsigned long backtrace_flag;
- 
-+#define NMI_BT_TIMEOUT_SEC	10
-+
- /*
-  * When raise() is called it will be passed a pointer to the
-  * backtrace_mask. Architectures that call nmi_cpu_backtrace()
-@@ -68,8 +70,8 @@ void nmi_trigger_cpumask_backtrace(const
- 		raise(to_cpumask(backtrace_mask));
- 	}
- 
--	/* Wait for up to 10 seconds for all CPUs to do the backtrace */
--	for (i = 0; i < 10 * 1000; i++) {
-+	/* Wait for up to NMI_BT_TIMEOUT_SEC seconds for all CPUs to do the backtrace */
-+	for (i = 0; i < NMI_BT_TIMEOUT_SEC * 1000; i++) {
- 		if (cpumask_empty(to_cpumask(backtrace_mask)))
- 			break;
- 		mdelay(1);
-@@ -77,8 +79,8 @@ void nmi_trigger_cpumask_backtrace(const
+@@ -16,6 +16,7 @@
+ #include <linux/cpumask.h>
+ #include <linux/delay.h>
+ #include <linux/kprobes.h>
++#include <linux/stringify.h>
+ #include <linux/nmi.h>
+ #include <linux/cpu.h>
+ #include <linux/sched/debug.h>
+@@ -79,8 +80,8 @@ void nmi_trigger_cpumask_backtrace(const
  	}
  
  	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
--		pr_warn("After 10 seconds, these CPUS still haven't responded to the NMI: %*pbl\n",
--			cpumask_pr_args(to_cpumask(backtrace_mask)));
-+		pr_warn("After %d seconds, these CPUS still haven't responded to the NMI: %*pbl\n",
-+			NMI_BT_TIMEOUT_SEC, cpumask_pr_args(to_cpumask(backtrace_mask)));
+-		pr_warn("After %d seconds, these CPUS still haven't responded to the NMI: %*pbl\n",
+-			NMI_BT_TIMEOUT_SEC, cpumask_pr_args(to_cpumask(backtrace_mask)));
++		pr_warn("After " __stringify(NMI_BT_TIMEOUT_SEC) " seconds, these CPUS still haven't responded to the NMI: %*pbl\n",
++			cpumask_pr_args(to_cpumask(backtrace_mask)));
  
  		nmi_backtrace_stall_check(to_cpumask(backtrace_mask));
  	}
 _
 
-Patches currently in -mm which might be from feng.tang@linux.alibaba.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi.patch
-lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix.patch
+selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch
+mm-memcg-swap-store-cgroup-id-in-cluster-table-directly-fix.patch
+mm-swap-merge-zeromap-into-swap-table-fix.patch
+mm-swap-merge-zeromap-into-swap-table-fix-2.patch
+mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
+proc-rewrite-next_tgid-fix.patch
+lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix.patch
 
