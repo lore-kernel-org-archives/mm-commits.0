@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FF893C1F51
-	for <mm-commits@vger.kernel.org>; Thu, 21 May 2026 23:59:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DD749460
+	for <mm-commits@vger.kernel.org>; Fri, 22 May 2026 00:10:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779407960; cv=none; b=GKiHFOozRUZt9wMcnashJtrY5SYSZk18g9c/haINoiBRAZreyrlnXW9wMbp6esQKfLskU6Gd873QwLOWi5iS+LbTnQ318H40/ZemhSzOZUaV16YLBHDGn2LpyE5M+OXL8Rjps/kMUHETJMTMNxFrxHvfgIf3sVI48CWQRQRBzIE=
+	t=1779408650; cv=none; b=JMdjxL6iUvvgyPOnK/SDy636KZiN2Y8knPpFX/zn8fSPLTIOXY6hvacVH4vEYBRcGKk9Uk5GvxNKZ+oEq8c6eVIgI9bicDPVRXNSAQB/ADw6IBwFet7eR7pdxKkKMVX6WcIA6H5efhj3R9DyzZVDv9L4EpVPiz+tk52w2f6eTjo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779407960; c=relaxed/simple;
-	bh=sUz1MNxeRX5+cMpYPr5Uenpko0V6dkHg7awHbm+wLIM=;
-	h=Date:To:From:Subject:Message-Id; b=jqPikzoiWA2OomC/MNebVJCddaAM6u6Hollxpq+OvbqcGNVLnHwnqtzqWYhgUUgmlkJHprRJP1PrOxW/gzTpHoaJ1GP88LUbIncfD9GsiMVdHoJf7V8ZWCHogVv1eh9va4q2kZqzvmZRtjQoZMdPAeDSQ21U0aPoPAt2seS3A1k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=y5Wwda2K; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779408650; c=relaxed/simple;
+	bh=j2j7FUQieNj0KfiX+yISPqBKJ409FDMh+4bG8sPcirI=;
+	h=Date:To:From:Subject:Message-Id; b=Tcmywem4DLKd2A8/Mk1Y02LUxPPCeK3qKrTUIjvuuGfrZ7s8W8+ESwD0Nt3gU7yyubhvN8m6c4TWHn9Ajtm+BRaS3mLMiwxSUtzCsqAmtoh1+ZRA2RJBYIbXR1PNepGgnQFuOYc6Ua1BhifD18BF5h4PeSQs13l3NMY1M6vmSXw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oE3otfuM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="y5Wwda2K"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 796771F000E9;
-	Thu, 21 May 2026 23:59:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oE3otfuM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 193251F000E9;
+	Fri, 22 May 2026 00:10:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779407957;
-	bh=VZs+5vKdzqyDkIkvY/Y2I5UtkHNIwuBeYEKJJBukweA=;
+	d=linux-foundation.org; s=korg; t=1779408649;
+	bh=kpJAo3TOrOvhdOBPh9Rn8J5RD1y49JcYUZtQYFkIcXA=;
 	h=Date:To:From:Subject;
-	b=y5Wwda2KU3LuNNT7wLiWiCNB+YZkQUOpWAm2sJjCCPPYzL7WZZQmon55nahBnO/Rq
-	 FRVUaKrzEf5R1yL43C11CuN/Iyoo8uvJc8FIn6iBz8eCOGOxGx+/54z7QyRnstV1gv
-	 3FXP00vtY9jCPa3sXIrmxZg8B3tgSWLKT6vvdFyM=
-Date: Thu, 21 May 2026 16:59:17 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,jackmanb@google.com,hannes@cmpxchg.org,d@ilvokhin.com,akpm@linux-foundation.org
+	b=oE3otfuMDgFnhYc0vctgXiEWV0NwwnIfDEqx5Mntrr2eCe6Tzcu+K8udqStH4Uryz
+	 lURPMuai5mfSd0NBG5lhGJzI9RSdN2AyCHsZhSrATYWUtEXdJcxLs+RZOoK/bDWuXM
+	 dM4LWuuFn5Wmh3VVNq01813v3jnzsvuc3UQkIEb0=
+Date: Thu, 21 May 2026 17:10:48 -0700
+To: mm-commits@vger.kernel.org,thecharlesjenkins@gmail.com,palmer@dabbelt.com,ardb@kernel.org,aou@eecs.berkeley.edu,andriy.shevchenko@intel.com,alex@ghiti.fr,dmantipov@yandex.ru,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations.patch added to mm-new branch
-Message-Id: <20260521235917.796771F000E9@smtp.kernel.org>
+Subject: + riscv-fix-building-compressed-efi-image-fix.patch added to mm-nonmm-unstable branch
+Message-Id: <20260522001049.193251F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_alloc: fix defrag_mode for non-reclaimable allocations
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations.patch
+     Subject: riscv-fix-building-compressed-efi-image-fix
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     riscv-fix-building-compressed-efi-image-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/riscv-fix-building-compressed-efi-image-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,79 +58,56 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Dmitry Ilvokhin <d@ilvokhin.com>
-Subject: mm/page_alloc: fix defrag_mode for non-reclaimable allocations
-Date: Wed, 20 May 2026 12:22:28 +0000
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Subject: riscv-fix-building-compressed-efi-image-fix
+Date: Sat, 25 Apr 2026 06:07:22 +0300
 
-When defrag_mode is enabled, ALLOC_NOFRAGMENT is enforced to prevent
-migratetype fallbacks and keep pageblocks clean.  The allocator relies on
-reclaim and compaction to free pages of the correct type before allowing
-fallback as a last resort.
+fix loongarch32
 
-However, non-reclaimable allocations such as GFP_ATOMIC cannot invoke
-direct reclaim or compaction.  With defrag_mode=1, these allocations hit
-the !can_direct_reclaim bailout in __alloc_pages_slowpath() with
-ALLOC_NOFRAGMENT still set, and fail without ever attempting a fallback.
-
-This causes a large number of SLUB allocation failures for
-skbuff_head_cache under network-heavy workloads, despite free memory being
-available in other migratetype freelists.
-
-Clear ALLOC_NOFRAGMENT and retry for allocations that request kswapd
-reclaim but cannot do direct reclaim themselves (GFP_ATOMIC).  Purely
-speculative allocations like GFP_TRANSHUGE_LIGHT that don't set
-__GFP_KSWAPD_RECLAIM are left to fail, since they have reasonable
-fallbacks and should not cause fragmentation.
-
-Link: https://lore.kernel.org/20260520122228.201550-1-d@ilvokhin.com
-Fixes: e3aa7df331bc ("mm: page_alloc: defrag_mode")
-Signed-off-by: Dmitry Ilvokhin <d@ilvokhin.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Brendan Jackman <jackmanb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lore.kernel.org/8095016e47aceab4830c2523ce78af968ec0497e.camel@yandex.ru
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reported-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
+Closes: https://lore.kernel.org/linux-riscv/20260409050018.GA371560@inky.localdomain
+Tested-by: Charlie Jenkins <thecharlesjenkins@gmail.com>
+Suggested-by: Ard Biesheuvel <ardb@kernel.org>
+Assisted-by: Gemini:gemini-3.1-pro-preview sashiko
+Cc: Albert Ou <aou@eecs.berkeley.edu>
+Cc: Alexandre Ghiti <alex@ghiti.fr>
+Cc: Andriy Shevchenko <andriy.shevchenko@intel.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ drivers/firmware/efi/libstub/Makefile |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations
-+++ a/mm/page_alloc.c
-@@ -4853,8 +4853,19 @@ retry:
- 	}
+--- a/drivers/firmware/efi/libstub/Makefile~riscv-fix-building-compressed-efi-image-fix
++++ a/drivers/firmware/efi/libstub/Makefile
+@@ -95,9 +95,10 @@ CFLAGS_zboot-decompress-gzip.o	+= -I$(sr
+ zboot-obj-$(CONFIG_KERNEL_ZSTD)	:= zboot-decompress-zstd.o lib-xxhash.o
+ CFLAGS_zboot-decompress-zstd.o	+= -I$(srctree)/lib/zstd
  
- 	/* Caller is not willing to reclaim, we can't balance anything */
--	if (!can_direct_reclaim)
-+	if (!can_direct_reclaim) {
-+		/*
-+		 * Reclaim/compaction cannot run, so defrag_mode's strategy
-+		 * of enforcing ALLOC_NOFRAGMENT cannot be fulfilled. Allow
-+		 * fallbacks rather than failing the allocation outright.
-+		 */
-+		if (defrag_mode && (alloc_flags & ALLOC_NOFRAGMENT) &&
-+		    (gfp_mask & __GFP_KSWAPD_RECLAIM)) {
-+			alloc_flags &= ~ALLOC_NOFRAGMENT;
-+			goto retry;
-+		}
- 		goto nopage;
-+	}
+-zboot-riscv-obj-$(CONFIG_32BIT)	+= lib-ashldi3.o lib-lshrdi3.o
++zboot-riscv-obj-$(CONFIG_32BIT)	:= lib-ashldi3.o lib-lshrdi3.o
+ zboot-obj-$(CONFIG_RISCV)	+= lib-clz_ctz.o $(zboot-riscv-obj-y)
+-zboot-obj-$(CONFIG_LOONGARCH)	+= lib-clz_ctz.o lib-ashldi3.o
++zboot-loongarch-obj-$(CONFIG_32BIT) := lib-ashldi3.o lib-lshrdi3.o
++zboot-obj-$(CONFIG_LOONGARCH)	+= lib-clz_ctz.o $(zboot-loongarch-obj-y)
+ lib-$(CONFIG_EFI_ZBOOT)		+= zboot.o $(zboot-obj-y)
  
- 	/* Avoid recursion of direct reclaim */
- 	if (current->flags & PF_MEMALLOC)
+ lib-$(CONFIG_UNACCEPTED_MEMORY) += unaccepted_memory.o bitmap.o find.o
 _
 
-Patches currently in -mm which might be from d@ilvokhin.com are
+Patches currently in -mm which might be from dmantipov@yandex.ru are
 
-mm-use-zone-lock-guard-in-reserve_highatomic_pageblock.patch
-mm-use-zone-lock-guard-in-unset_migratetype_isolate.patch
-mm-use-zone-lock-guard-in-unreserve_highatomic_pageblock.patch
-mm-use-zone-lock-guard-in-set_migratetype_isolate.patch
-mm-use-zone-lock-guard-in-take_page_off_buddy.patch
-mm-use-zone-lock-guard-in-put_page_back_buddy.patch
-mm-use-zone-lock-guard-in-free_pcppages_bulk.patch
-mm-use-zone-lock-guard-in-__offline_isolated_pages.patch
-mm-page_alloc-fix-defrag_mode-for-non-reclaimable-allocations.patch
+lib-free-pagelist-on-error-in-iov_iter_extract_pages.patch
+lib-fix-_parse_integer_limit-to-handle-overflow.patch
+lib-fix-memparse-to-handle-overflow.patch
+lib-add-more-string-to-64-bit-integer-conversion-overflow-tests.patch
+lib-cmdline_kunit-add-test-case-for-memparse.patch
+lib-cmdline-adjust-a-few-comments-to-fix-kernel-doc-wreturn-warnings.patch
+riscv-add-platform-specific-double-word-shifts-for-riscv32.patch
+lib-kunit-add-tests-for-__ashldi3-__ashrdi3-and-__lshrdi3.patch
+riscv-fix-building-compressed-efi-image.patch
+riscv-fix-building-compressed-efi-image-fix.patch
 
