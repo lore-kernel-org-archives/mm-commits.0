@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6DD71E5B88
-	for <mm-commits@vger.kernel.org>; Sat, 23 May 2026 02:31:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF8213148DD
+	for <mm-commits@vger.kernel.org>; Sat, 23 May 2026 02:50:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779503498; cv=none; b=Bwdh9sxNDwMv4kL8NgWAuhuPLZGknYm3I9JOTWkTvuTTLk9W658vxiwUJ72gzBXlbKwbvLX76SpMCqncamWoQUXQFmpzFfRMXHYdLXPo0VipmCMqXLus4LmAtDVvClH8J1nnSOnVuZGVnuFP543mP0LfbESVbMbvnG9QoJ3JBbY=
+	t=1779504627; cv=none; b=TgdpSrnBTcskwTdEu5t7i7SXEaxXcjZCtMkC0neMaj1t+phrp2HA2K2s4BgXDIPb4XmrArpqAOvw7PMrnTlgVKRwKJFPSvGm8F/PFCO87qrB3L1+iS0PZ0TNBLKw8vVzQawrYpn1ZOhbmQNOumu5nNKh7lMp1CrNdN6RKDpZa1s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779503498; c=relaxed/simple;
-	bh=oNLjPv1TbBgo1Ao6bElXbBPP9eYs4Fyzo2x9bfGL18c=;
-	h=Date:To:From:Subject:Message-Id; b=cePAHupyc84fHPTfomGf3W4K9boWDSyzV2IvxK1oi30HRzQClf2JSiNgrbo88yIOwDA4QnitoRTJq7Oq45c3ToMkADGw3My/QBQqaIBdUx0puFF2Lfd/NhhYsuWjiPbrwIEg3C9wY5A1YsTJc/MWmd/kypd//I9TrJzuPr/RHcw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VahPDR6s; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779504627; c=relaxed/simple;
+	bh=RnoETwnm8PigNUe0oYcfKP6By255dgqpsmSM7KCrfcc=;
+	h=Date:To:From:Subject:Message-Id; b=ZsQK56uIFxaux5Zhmxt+A2gKa6pLc880JFC2BLBGFHQABxvDmKRSMK2IT45j9PjEjgEz4X29l08uNKsF1epQevjQt/CJQPy36ue+UX5X4+l5zXZZk2BQKGgNi4SkTUcb7E7wBn1S/y6qT1Gd1s9WTTNS/aDpSnRwdmNCh7mcwzM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JKzAwdTV; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VahPDR6s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C4F01F000E9;
-	Sat, 23 May 2026 02:31:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JKzAwdTV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F4C81F000E9;
+	Sat, 23 May 2026 02:50:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779503496;
-	bh=Xx2g7ni9aIN7SehImRAjq4O+J48M4tWXvm80Cjl1ONo=;
+	d=linux-foundation.org; s=korg; t=1779504625;
+	bh=FWwDYFDqGaBNm/QMRTsIfFDY6bRqMbMqAj/3DyzKke0=;
 	h=Date:To:From:Subject;
-	b=VahPDR6sXXK6Mcke3aXx7ruKOW+TIsY9sfEnoVskJcU7qrP60L0sKd/AncRzlrxVG
-	 QIYzCXI59QRnEOOFI+HTGSKGfeo2CrE5Zn42C2hgUE1BQA1GtrxlwUDVNnBEemUVT4
-	 z1tEAjYjxKyFcMveiK4lNL2FulVtQQeoQpLtyOyI=
-Date: Fri, 22 May 2026 19:31:36 -0700
-To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,qi.zheng@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,joshua.hahnjy@gmail.com,harry@kernel.org,hannes@cmpxchg.org,alex@ghiti.fr,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=JKzAwdTVnICuQYdVlzsGt8dB/UM0NNsltXVLrUQZiOtFKPvEX7M9iZCPgnA/tAFvl
+	 7Li/hYcB5XeFDE1hTtXMjZJJW34nKwQhfakQG5plKECNEG7I+i1AGo+qAf7/VPiKNR
+	 2Kvcu88exyf/VL1JVRzDsyrFueV2dnqutiFBEZM0=
+Date: Fri, 22 May 2026 19:50:24 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,songmuchun@bytedance.com,rppt@kernel.org,muchun.song@linux.dev,minchan@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,jhubbard@nvidia.com,gregkh@linuxfoundation.org,digetx@gmail.com,david@kernel.org,chengkaitao@kylinos.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-multi-objcg-charge-support.patch added to mm-new branch
-Message-Id: <20260523023136.6C4F01F000E9@smtp.kernel.org>
+Subject: + mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260523025025.4F4C81F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: multi objcg charge support
-has been added to the -mm mm-new branch.  Its filename is
-     memcg-multi-objcg-charge-support.patch
+     Subject: mm/cma_sysfs: skip inactive CMA areas in sysfs
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-multi-objcg-charge-support.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,397 +58,82 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: multi objcg charge support
-Date: Thu, 21 May 2026 18:19:08 -0700
+From: Kaitao Cheng <chengkaitao@kylinos.cn>
+Subject: mm/cma_sysfs: skip inactive CMA areas in sysfs
+Date: Fri, 22 May 2026 21:14:34 +0800
 
-Commit 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg
-per-node type") split a memcg's single obj_cgroup into one per NUMA node
-so that reparenting LRU folios can take per-node lru locks.  As a side
-effect, the per-CPU obj_stock_pcp -- which caches exactly one cached_objcg
--- thrashes on workloads where threads of the same memcg run on different
-NUMA nodes.  The kernel test robot reported a 67.7% regression on
-stress-ng.switch.ops_per_sec from this pattern.
+cma_activate_area() can fail after a CMA area has already been added to
+cma_areas[].  In that case the area is left in the global array, but it
+does not reach the point where CMA_ACTIVATED is set.
 
-Mirror the multi-slot pattern already used by memcg_stock_pcp: turn
-nr_bytes and cached_objcg into NR_OBJ_STOCK-element arrays, scan all slots
-on consume/refill/account, prefer empty slots when inserting, and evict a
-random slot only when full.  With multiple slots a CPU can hold the
-per-node objcg variants of one memcg plus a few siblings without ever
-forcing a drain.
+cma_sysfs_init() currently walks all cma_area_count entries and creates
+sysfs files for every area, including ones that failed activation.  These
+areas are not usable CMA areas and should not be exposed to userspace as
+valid CMA regions.
 
-A single int8_t index records which slot the cached slab stats belong to;
-the stats are flushed on slot or pgdat change.  With NR_OBJ_STOCK = 5 the
-layout (verified with pahole) is:
+Skip CMA areas that did not reach CMA_ACTIVATED when creating the sysfs
+objects.  Since inactive entries can now be skipped, make the error unwind
+tolerate entries that never had cma_kobj initialized.
 
-  offset 0  : lock(1) + index(1) + node_id(2) + slab stats(4) = 8B
-  offset 8  : nr_bytes[5]                                     = 10B
-  offset 18 : padding                                         = 6B
-  offset 24 : cached[5]                                       = 40B
-  offset 64 : (line 2) work_struct + flags (cold)
-
-so consume_obj_stock, refill_obj_stock and the slab account path each
-touch exactly one 64-byte cache line on non-debug 64-bit builds.
-
-Link: https://lore.kernel.org/20260522011908.1669332-5-shakeel.butt@linux.dev
-Fixes: 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg per-node type")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202605121641.b6a60cb0-lkp@intel.com
-Tested-by: kernel test robot <oliver.sang@intel.com>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Harry Yoo (Oracle) <harry@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
+Link: https://lore.kernel.org/20260522131434.78532-1-kaitao.cheng@linux.dev
+Fixes: 43ca106fa8ec ("mm: cma: support sysfs")
+Signed-off-by: Kaitao Cheng <chengkaitao@kylinos.cn>
+Reported-by: David Hildenbrand (Arm) <david@kernel.org>
+Reported-by: Muchun Song <songmuchun@bytedance.com>
+Closes: https://lore.kernel.org/linux-mm/55481a8b-dcfc-4bef-ba59-aa0b43dca88b@kernel.org/
+Acked-by: Muchun Song <muchun.song@linux.dev>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Dmitry Osipenko <digetx@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  188 +++++++++++++++++++++++++++++++++-------------
- 1 file changed, 136 insertions(+), 52 deletions(-)
+ mm/cma_sysfs.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~memcg-multi-objcg-charge-support
-+++ a/mm/memcontrol.c
-@@ -150,14 +150,14 @@ static void obj_cgroup_release(struct pe
- 	 * However, it can be PAGE_SIZE or (x * PAGE_SIZE).
- 	 *
- 	 * The following sequence can lead to it:
--	 * 1) CPU0: objcg == stock->cached_objcg
-+	 * 1) CPU0: objcg cached in one of stock->cached[i]
- 	 * 2) CPU1: we do a small allocation (e.g. 92 bytes),
- 	 *          PAGE_SIZE bytes are charged
- 	 * 3) CPU1: a process from another memcg is allocating something,
- 	 *          the stock if flushed,
- 	 *          objcg->nr_charged_bytes = PAGE_SIZE - 92
- 	 * 5) CPU0: we do release this object,
--	 *          92 bytes are added to stock->nr_bytes
-+	 *          92 bytes are added to stock->nr_bytes[i]
- 	 * 6) CPU0: stock is flushed,
- 	 *          92 bytes are added to objcg->nr_charged_bytes
- 	 *
-@@ -2018,25 +2018,40 @@ static DEFINE_PER_CPU_ALIGNED(struct mem
- 	.lock = INIT_LOCAL_TRYLOCK(lock),
- };
+--- a/mm/cma_sysfs.c~mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs
++++ a/mm/cma_sysfs.c
+@@ -117,13 +117,16 @@ static int __init cma_sysfs_init(void)
+ 		return -ENOMEM;
  
-+/*
-+ * NR_OBJ_STOCK is sized so the entire hot path of obj_stock_pcp
-+ * (lock, accounting metadata, nr_bytes[] and cached[]) fits within a
-+ * single 64-byte cache line on non-debug 64-bit builds. With 5 slots:
-+ *   lock(1) + index(1) + node_id(2) + slab stats(4) + nr_bytes(10)
-+ *   + pad(6) + cached(40) == 64 bytes.
-+ * A CPU can thus consume/refill/account against five different objcgs
-+ * (typically per-node variants of the same memcg) while incurring at
-+ * most one cache miss on the stock.
-+ */
-+#define NR_OBJ_STOCK 5
- struct obj_stock_pcp {
- 	local_trylock_t lock;
--	struct obj_cgroup *cached_objcg;
--	uint16_t nr_bytes;
-+	int8_t index;
- 	int16_t node_id;
- 	int16_t nr_slab_reclaimable_b;
- 	int16_t nr_slab_unreclaimable_b;
-+	uint16_t nr_bytes[NR_OBJ_STOCK];
-+	struct obj_cgroup *cached[NR_OBJ_STOCK];
- 
- 	struct work_struct work;
- 	unsigned long flags;
-+	uint8_t drain_idx;
- };
- 
- static DEFINE_PER_CPU_ALIGNED(struct obj_stock_pcp, obj_stock) = {
- 	.lock = INIT_LOCAL_TRYLOCK(lock),
-+	.index = -1,
- 	.node_id = NUMA_NO_NODE,
- };
- 
- static DEFINE_MUTEX(percpu_charge_mutex);
- 
-+static void drain_obj_stock_slot(struct obj_stock_pcp *stock, int i);
- static void drain_obj_stock(struct obj_stock_pcp *stock);
- static bool obj_stock_flush_required(struct obj_stock_pcp *stock,
- 				     struct mem_cgroup *root_memcg);
-@@ -3156,12 +3171,13 @@ static void unlock_stock(struct obj_stoc
- 		local_unlock(&obj_stock.lock);
- }
- 
--/* Call after __refill_obj_stock() to ensure stock->cached_objg == objcg */
-+/* Call after __refill_obj_stock() so a slot for objcg exists in the stock */
- static void __account_obj_stock(struct obj_cgroup *objcg,
- 				struct obj_stock_pcp *stock, int nr,
- 				struct pglist_data *pgdat, enum node_stat_item idx)
- {
- 	int16_t *bytes;
-+	int i;
- 
- 	/*
- 	 * Though at the moment MAX_NUMNODES <= 1024 in all archs but let's make
-@@ -3170,29 +3186,39 @@ static void __account_obj_stock(struct o
- 	 */
- 	BUILD_BUG_ON(MAX_NUMNODES >= S16_MAX);
- 
--	if (!stock || READ_ONCE(stock->cached_objcg) != objcg)
-+	if (!stock)
-+		goto direct;
-+
-+	for (i = 0; i < NR_OBJ_STOCK; ++i) {
-+		if (READ_ONCE(stock->cached[i]) == objcg)
-+			break;
-+	}
-+	if (i == NR_OBJ_STOCK)
- 		goto direct;
- 
- 	/*
- 	 * Save vmstat data in stock and skip vmstat array update unless
--	 * accumulating over a page of vmstat data or when pgdat changes.
-+	 * accumulating over a page of vmstat data or when the objcg slot or
-+	 * pgdat the stats belong to changes.
- 	 */
--	if (stock->node_id == NUMA_NO_NODE) {
-+	if (stock->index < 0) {
-+		stock->index = i;
- 		stock->node_id = pgdat->node_id;
--	} else if (stock->node_id != pgdat->node_id) {
--		/* Flush the existing cached vmstat data */
-+	} else if (stock->index != i || stock->node_id != pgdat->node_id) {
-+		struct obj_cgroup *old = READ_ONCE(stock->cached[stock->index]);
- 		struct pglist_data *oldpg = NODE_DATA(stock->node_id);
- 
- 		if (stock->nr_slab_reclaimable_b) {
--			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_RECLAIMABLE_B,
-+			mod_objcg_mlstate(old, oldpg, NR_SLAB_RECLAIMABLE_B,
- 					  stock->nr_slab_reclaimable_b);
- 			stock->nr_slab_reclaimable_b = 0;
- 		}
- 		if (stock->nr_slab_unreclaimable_b) {
--			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_UNRECLAIMABLE_B,
-+			mod_objcg_mlstate(old, oldpg, NR_SLAB_UNRECLAIMABLE_B,
- 					  stock->nr_slab_unreclaimable_b);
- 			stock->nr_slab_unreclaimable_b = 0;
- 		}
-+		stock->index = i;
- 		stock->node_id = pgdat->node_id;
- 	}
- 
-@@ -3233,10 +3259,16 @@ static bool __consume_obj_stock(struct o
- 				struct obj_stock_pcp *stock,
- 				unsigned int nr_bytes)
- {
--	if (objcg == READ_ONCE(stock->cached_objcg) &&
--	    stock->nr_bytes >= nr_bytes) {
--		stock->nr_bytes -= nr_bytes;
--		return true;
-+	int i;
-+
-+	for (i = 0; i < NR_OBJ_STOCK; ++i) {
-+		if (READ_ONCE(stock->cached[i]) != objcg)
+ 	for (i = 0; i < cma_area_count; i++) {
++		cma = &cma_areas[i];
++		if (!test_bit(CMA_ACTIVATED, &cma->flags))
 +			continue;
-+		if (stock->nr_bytes[i] >= nr_bytes) {
-+			stock->nr_bytes[i] -= nr_bytes;
-+			return true;
-+		}
-+		return false;
- 	}
- 
- 	return false;
-@@ -3257,16 +3289,42 @@ static bool consume_obj_stock(struct obj
- 	return ret;
- }
- 
--static void drain_obj_stock(struct obj_stock_pcp *stock)
-+/* Flush the cached slab stats (if any) back to their owning objcg/pgdat. */
-+static void drain_obj_stock_stats(struct obj_stock_pcp *stock)
- {
--	struct obj_cgroup *old = READ_ONCE(stock->cached_objcg);
-+	struct obj_cgroup *old;
-+	struct pglist_data *oldpg;
 +
-+	if (stock->index < 0)
-+		return;
-+
-+	old = READ_ONCE(stock->cached[stock->index]);
-+	oldpg = NODE_DATA(stock->node_id);
-+
-+	if (stock->nr_slab_reclaimable_b) {
-+		mod_objcg_mlstate(old, oldpg, NR_SLAB_RECLAIMABLE_B,
-+				  stock->nr_slab_reclaimable_b);
-+		stock->nr_slab_reclaimable_b = 0;
-+	}
-+	if (stock->nr_slab_unreclaimable_b) {
-+		mod_objcg_mlstate(old, oldpg, NR_SLAB_UNRECLAIMABLE_B,
-+				  stock->nr_slab_unreclaimable_b);
-+		stock->nr_slab_unreclaimable_b = 0;
-+	}
-+	stock->index = -1;
-+	stock->node_id = NUMA_NO_NODE;
-+}
-+
-+static void drain_obj_stock_slot(struct obj_stock_pcp *stock, int i)
-+{
-+	struct obj_cgroup *old = READ_ONCE(stock->cached[i]);
- 
- 	if (!old)
- 		return;
- 
--	if (stock->nr_bytes) {
--		unsigned int nr_pages = stock->nr_bytes >> PAGE_SHIFT;
--		unsigned int nr_bytes = stock->nr_bytes & (PAGE_SIZE - 1);
-+	if (stock->nr_bytes[i]) {
-+		unsigned int nr_pages = stock->nr_bytes[i] >> PAGE_SHIFT;
-+		unsigned int nr_bytes = stock->nr_bytes[i] & (PAGE_SIZE - 1);
- 
- 		if (nr_pages) {
- 			struct mem_cgroup *memcg;
-@@ -3292,46 +3350,43 @@ static void drain_obj_stock(struct obj_s
- 		 * so it might be changed in the future.
- 		 */
- 		atomic_add(nr_bytes, &old->nr_charged_bytes);
--		stock->nr_bytes = 0;
-+		stock->nr_bytes[i] = 0;
- 	}
- 
--	/*
--	 * Flush the vmstat data in current stock
--	 */
--	if (stock->nr_slab_reclaimable_b || stock->nr_slab_unreclaimable_b) {
--		struct pglist_data *oldpg = NODE_DATA(stock->node_id);
-+	/* Flush vmstat data when its owning slot is being drained. */
-+	if (stock->index == i)
-+		drain_obj_stock_stats(stock);
- 
--		if (stock->nr_slab_reclaimable_b) {
--			mod_objcg_mlstate(old, oldpg,
--					  NR_SLAB_RECLAIMABLE_B,
--					  stock->nr_slab_reclaimable_b);
--			stock->nr_slab_reclaimable_b = 0;
--		}
--		if (stock->nr_slab_unreclaimable_b) {
--			mod_objcg_mlstate(old, oldpg,
--					  NR_SLAB_UNRECLAIMABLE_B,
--					  stock->nr_slab_unreclaimable_b);
--			stock->nr_slab_unreclaimable_b = 0;
--		}
--		stock->node_id = NUMA_NO_NODE;
--	}
--
--	WRITE_ONCE(stock->cached_objcg, NULL);
-+	WRITE_ONCE(stock->cached[i], NULL);
- 	obj_cgroup_put(old);
- }
- 
-+static void drain_obj_stock(struct obj_stock_pcp *stock)
-+{
-+	int i;
-+
-+	for (i = 0; i < NR_OBJ_STOCK; ++i)
-+		drain_obj_stock_slot(stock, i);
-+}
-+
- static bool obj_stock_flush_required(struct obj_stock_pcp *stock,
- 				     struct mem_cgroup *root_memcg)
- {
--	struct obj_cgroup *objcg = READ_ONCE(stock->cached_objcg);
-+	struct obj_cgroup *objcg;
- 	struct mem_cgroup *memcg;
- 	bool flush = false;
-+	int i;
- 
- 	rcu_read_lock();
--	if (objcg) {
-+	for (i = 0; i < NR_OBJ_STOCK; ++i) {
-+		objcg = READ_ONCE(stock->cached[i]);
-+		if (!objcg)
-+			continue;
- 		memcg = obj_cgroup_memcg(objcg);
--		if (memcg && mem_cgroup_is_descendant(memcg, root_memcg))
-+		if (memcg && mem_cgroup_is_descendant(memcg, root_memcg)) {
- 			flush = true;
-+			break;
-+		}
- 	}
- 	rcu_read_unlock();
- 
-@@ -3345,6 +3400,7 @@ static void __refill_obj_stock(struct ob
- {
- 	unsigned int nr_pages = 0;
- 	unsigned int stock_nr_bytes;
-+	int i, slot = -1, empty_slot = -1;
- 
- 	if (!stock) {
- 		nr_pages = nr_bytes >> PAGE_SHIFT;
-@@ -3353,19 +3409,47 @@ static void __refill_obj_stock(struct ob
- 		goto out;
- 	}
- 
--	stock_nr_bytes = stock->nr_bytes;
--	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
--		drain_obj_stock(stock);
-+	for (i = 0; i < NR_OBJ_STOCK; ++i) {
-+		struct obj_cgroup *cached = READ_ONCE(stock->cached[i]);
-+
-+		if (!cached) {
-+			if (empty_slot == -1)
-+				empty_slot = i;
-+			continue;
-+		}
-+		if (cached == objcg) {
-+			slot = i;
-+			break;
-+		}
-+	}
-+
-+	if (slot == -1) {
-+		slot = empty_slot;
-+		if (slot == -1) {
-+			slot = stock->drain_idx++;
-+			if (stock->drain_idx == NR_OBJ_STOCK)
-+				stock->drain_idx = 0;
-+			drain_obj_stock_slot(stock, slot);
-+		}
- 		obj_cgroup_get(objcg);
-+		/*
-+		 * Keep the xchg result in the unsigned int local; storing
-+		 * it directly into stock->nr_bytes[slot] (uint16_t) would
-+		 * silently truncate values >= U16_MAX and bypass the flush
-+		 * guard below, leaking page-counter charges.
-+		 */
- 		stock_nr_bytes = atomic_read(&objcg->nr_charged_bytes)
- 				? atomic_xchg(&objcg->nr_charged_bytes, 0) : 0;
--		WRITE_ONCE(stock->cached_objcg, objcg);
-+		WRITE_ONCE(stock->cached[slot], objcg);
- 
- 		allow_uncharge = true;	/* Allow uncharge when objcg changes */
-+	} else {
-+		stock_nr_bytes = stock->nr_bytes[slot];
- 	}
-+
- 	stock_nr_bytes += nr_bytes;
- 
--	/* Since stock->nr_bytes is uint16_t, don't refill >= U16_MAX */
-+	/* nr_bytes[] is uint16_t; flush if we would refill >= U16_MAX. */
- 	if ((allow_uncharge && (stock_nr_bytes > PAGE_SIZE)) ||
- 	    stock_nr_bytes > U16_MAX) {
- 		nr_pages = stock_nr_bytes >> PAGE_SHIFT;
-@@ -3387,7 +3471,7 @@ static void __refill_obj_stock(struct ob
- 			stock_nr_bytes = kept;
+ 		cma_kobj = kzalloc_obj(*cma_kobj);
+ 		if (!cma_kobj) {
+ 			err = -ENOMEM;
+ 			goto out;
  		}
- 	}
--	stock->nr_bytes = stock_nr_bytes;
-+	stock->nr_bytes[slot] = stock_nr_bytes;
  
+-		cma = &cma_areas[i];
+ 		cma->cma_kobj = cma_kobj;
+ 		cma_kobj->cma = cma;
+ 		err = kobject_init_and_add(&cma_kobj->kobj, &cma_ktype,
+@@ -138,7 +141,8 @@ static int __init cma_sysfs_init(void)
  out:
- 	if (nr_pages)
+ 	while (--i >= 0) {
+ 		cma = &cma_areas[i];
+-		kobject_put(&cma->cma_kobj->kobj);
++		if (cma->cma_kobj)
++			kobject_put(&cma->cma_kobj->kobj);
+ 	}
+ 	kobject_put(cma_kobj_root);
+ 
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from chengkaitao@kylinos.cn are
 
-memcg-use-round-robin-victim-selection-in-refill_stock.patch
-memcg-store-node_id-instead-of-pglist_data-pointer.patch
-memcg-uint16_t-for-nr_bytes-in-obj_stock_pcp.patch
-memcg-int16_t-for-cached-slab-stats.patch
-memcg-multi-objcg-charge-support.patch
+mm-cma_sysfs-skip-inactive-cma-areas-in-sysfs.patch
+mm-convert-vmemmap_pd_populate-to-static-functions.patch
+mm-memory-failure-use-zone_pcp_disable-for-poison-handling.patch
 
