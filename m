@@ -1,32 +1,33 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CA893806BE
-	for <mm-commits@vger.kernel.org>; Mon, 25 May 2026 18:47:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4884138C433
+	for <mm-commits@vger.kernel.org>; Mon, 25 May 2026 19:10:46 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779734832; cv=none; b=e+DDFEBYriI7TAMaUU5ywqiSsSp/r6UScu378//TtUopJUFeBclberLJXIJnzmC9H4ErGxHv+F+UDDlsslCDLTdCcG8BSL7fjWggv38RtLt20w6bbPhXK0PJM79vYQFObw/iXT7XUwpfTsl+D/TdVesdbPTF9cpV2zoSeCEbSDA=
+	t=1779736247; cv=none; b=lrMnFUmVID0Rbkf0MjHDY9dwdXeUh4N/SCbI9lf0H1toBG0Ra0QoXEswf5jRw28odaB0L1z1HKTHtojfrm5643dq2s+/ygkIFzLsKzcw5tU37EIRDjusEKEFXvHs3rKztuPPS6q7mjJvMiOv8pXp+vIbbBRkIINzPPMuFCXtygo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779734832; c=relaxed/simple;
-	bh=MH5cM/579u4SouidbVpgJ6T9iIRPeFEs8XCryLKgIAg=;
-	h=Date:To:From:Subject:Message-Id; b=amtyxWUq6ymnX+r0BpnJvn3GGbbeZgN4SFJxYpHeFECyKA7gT/sIUNrReUg/3ybjI6tk/MFwf+EZO8BUx1TfHHLNP3h9A5PJy1KMIbmyA6tmqZ0wvWRpE6EM8TZfcICsqDZSpbnn8y4Gfic4wD3gBgbFmXgUHNtdp5gFZAA23r8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gAAMZdfs; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779736247; c=relaxed/simple;
+	bh=Rz0IjHHOSbPO1Bf/GFui/ITaBvSbBb+dVhotGk1iyd8=;
+	h=Date:To:From:Subject:Message-Id; b=AEMdimk53xZw0r/KTez72lx//r+ZNY9OwIApGaYFStKWTdu8aikcHrBppThdOcgaNblHKi9c/aRqvP9wh+Xr2q96Gh2jrEwlOFuqHqD7y3uB2SKPttapyTK23+2AL6pwu0KL/dhPvhYxfwaS/RpFLoxzKzQTeBfrkK3UQgUImJk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=fail (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=d3UAnpA1 reason="signature verification failed"; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gAAMZdfs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0F001F000E9;
-	Mon, 25 May 2026 18:47:08 +0000 (UTC)
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="d3UAnpA1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 00EC71F000E9;
+	Mon, 25 May 2026 19:10:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779734829;
-	bh=Cf1c7bKQi9riXwZH6PHLdFKo4QgCuxE+q7osT/AKgms=;
+	d=linux-foundation.org; s=korg; t=1779736246;
+	bh=izOsAX2WBGdHdPvJZBCYFa27ngrwkm3g3vZTHn9Rj4I=;
 	h=Date:To:From:Subject;
-	b=gAAMZdfsEi700Mg4d7SdQfkM2AVFLWZbetbfb+mswxbA/9zP28jZeyd0oNZcmYvxv
-	 3os6pdzPtMxEhtI7nTHIidtM24ekn5vNoDdCVwKHgvCDUraZ0x0LVuWpzbD8rR28Zv
-	 f9DkZVpMBwszQjFGVXCNjfkYQYjk4m/fZ6S/ii9g=
-Date: Mon, 25 May 2026 11:47:08 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,jack@suse.cz,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
+	b=d3UAnpA1owi+RikZ5JqFsw1pEaIFgmsxmMfOeh61cRr4/463IuqvX6ySCtMm7qZ9I
+	 TG2IzRzHIfIK/1WXoD4X2Kgfly8u5eYVXAbyoaujfkZF5W5eXp7QsDJ+e9AQLUDvnf
+	 /PojzU2LwX4E3SAfKrDcIWYycjnq0ZenXCjMgGsk=
+Date: Mon, 25 May 2026 12:10:45 -0700
+To: mm-commits@vger.kernel.org,zokeefe@google.com,ziy@nvidia.com,ying.huang@linux.alibaba.com,yang@os.amperecomputing.com,willy@infradead.org,will@kernel.org,wangkefeng.wang@huawei.com,vishal.moola@gmail.com,vbabka@suse.cz,usama.arif@linux.dev,usamaarif642@gmail.com,tiwai@suse.de,thomas.hellstrom@linux.intel.com,surenb@google.com,sunnanyong@huawei.com,shivankg@amd.com,ryan.roberts@arm.com,rppt@kernel.org,rostedt@goodmis.org,rientjes@google.com,richard.weiyang@gmail.com,rdunlap@infradead.org,raquini@redhat.com,rakie.kim@sk.com,pfalcato@suse.de,peterx@redhat.com,mhocko@suse.com,mhiramat@kernel.org,matthew.brost@intel.com,mathieu.desnoyers@efficios.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,joshua.hahnjy@gmail.com,jannh@google.com,jack@suse.cz,jackmanb@google.com,hughd@google.com,hannes@cmpxchg.org,gourry@gourry.net,dev.jain@arm.com,david@kernel.org,corbet@lwn.net,catalin.marinas@arm.com,byungchul@sk.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,bagasdotme@gmail.co
+ m,apopple@nvidia.com,anshuman.khandual@arm.com,aarcange@redhat.com,npache@redhat.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch added to mm-new branch
-Message-Id: <20260525184708.F0F001F000E9@smtp.kernel.org>
+Subject: + mm-khugepaged-introduce-mthp-collapse-support-fix.patch added to mm-unstable branch
+Message-Id: <20260525191046.00EC71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +36,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: make mmap_miss accounting symmetric for VM_SEQ_READ
-has been added to the -mm mm-new branch.  Its filename is
-     mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch
+     Subject: fix potential use-after-free of vma in mthp_collapse()
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-khugepaged-introduce-mthp-collapse-support-fix.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-introduce-mthp-collapse-support-fix.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,78 +59,129 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Usama Arif <usama.arif@linux.dev>
-Subject: mm: make mmap_miss accounting symmetric for VM_SEQ_READ
-Date: Mon, 25 May 2026 07:57:51 -0700
 
-do_sync_mmap_readahead() skips both the mmap_miss increment and the
-MMAP_LOTSAMISS check for VM_SEQ_READ mappings, since sequential access is
-non-speculative and should always read ahead.  The two decrement sites in
-do_async_mmap_readahead() and filemap_map_pages() do not mirror this skip,
-so concurrent faults on a VM_SEQ_READ mapping can still drive
-ra->mmap_miss down to zero through the decrement paths even though nothing
-in the sync path ever increments it.  The counter itself is per-file
-(file->f_ra.mmap_miss), so it can be moved by any VMA mapping the file,
-not just the one currently faulting.
+Author: Nico Pache <npache@redhat.com>
+Subject: fix potential use-after-free of vma in mthp_collapse()
+Date: Mon May 25 07:38:59 2026 -0600
 
-Skip the decrement for VM_SEQ_READ in both decrement sites so the counter
-only moves for mappings that also participate in the increment side.  No
-functional change for VM_SEQ_READ users, since the increment-side gate
-already prevents the counter from being consulted on their behalf, but it
-stops a VM_SEQ_READ mapping from biasing the counter for other mappings of
-the same file.
+Between V17 and v18, one reviewer (Wei) brought up that we are not doing
+the uffd-armed check until deep in the collapse operation.  While not
+functionally incorrect, it can lead to unnecessary work.
 
-Link: https://lore.kernel.org/20260525145751.2671248-1-usama.arif@linux.dev
-Signed-off-by: Usama Arif <usama.arif@linux.dev>
-Closes: https://lore.kernel.org/all/8edc8cd0-f65c-4456-9b3f-362e744c9a96@linux.dev/
+We optimized this by passing the vma variable to mthp_collapse() and using
+the collapse_max_ptes_none() function to check the state of uffd-armed
+preventing the wasted work later in the collapse.
+
+mthp_collapse() is called after mmap_read_unlock(), so the vma pointer can
+become stale.  Remove the vma parameter and pass NULL to
+collapse_max_ptes_none() instead.
+
+Link: https://lore.kernel.org/2b2cda8c-358a-4a5c-989c-ae42593ef2ea@redhat.com
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: Byungchul Park <byungchul@sk.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Gregory Price <gourry@gourry.net>
+Cc: "Huang, Ying" <ying.huang@linux.alibaba.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Lance Yang <lance.yang@linux.dev>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: "Masami Hiramatsu (Google)" <mhiramat@kernel.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Matthew Brost <matthew.brost@intel.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nanyong Sun <sunnanyong@huawei.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Rafael Aquini <raquini@redhat.com>
+Cc: Rakie Kim <rakie.kim@sk.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shivank Garg <shivankg@amd.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Takashi Iwai (SUSE) <tiwai@suse.de>
+Cc: Thomas Hellström <thomas.hellstrom@linux.intel.com>
+Cc: Usama Arif <usamaarif642@gmail.com>
+Cc: Usama Arif <usama.arif@linux.dev>
+Cc: Vishal Moola (Oracle) <vishal.moola@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yang Shi <yang@os.amperecomputing.com>
+Cc: Zach O'Keefe <zokeefe@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ mm/khugepaged.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/filemap.c~mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read
-+++ a/mm/filemap.c
-@@ -3433,8 +3433,13 @@ static struct file *do_async_mmap_readah
- 	 * Don't touch the mmap_miss counter to avoid decreasing it multiple
- 	 * times for a single folio and break the balance with mmap_miss
- 	 * increase in do_sync_mmap_readahead().
-+	 *
-+	 * VM_SEQ_READ mappings skip the mmap_miss increment in
-+	 * do_sync_mmap_readahead(), so skip the decrement here as well to
-+	 * keep the counter symmetric.
- 	 */
--	if (likely(!folio_test_locked(folio))) {
-+	if (likely(!folio_test_locked(folio)) &&
-+	    !(vmf->vma->vm_flags & VM_SEQ_READ)) {
- 		mmap_miss = READ_ONCE(ra->mmap_miss);
- 		if (mmap_miss)
- 			WRITE_ONCE(ra->mmap_miss, --mmap_miss);
-@@ -3935,10 +3940,15 @@ vm_fault_t filemap_map_pages(struct vm_f
- 		 * In such situation, read-ahead is only a waste of IO.
- 		 * Don't decrease mmap_miss in this scenario to make sure
- 		 * we can stop read-ahead.
-+		 *
-+		 * VM_SEQ_READ mappings skip the mmap_miss increment in
-+		 * do_sync_mmap_readahead(), so skip the decrement here as
-+		 * well to keep the counter symmetric.
- 		 */
- 		if ((map_ret & VM_FAULT_NOPAGE) &&
- 		    !(vmf->flags & FAULT_FLAG_TRIED) &&
--		    !folio_test_workingset(folio)) {
-+		    !folio_test_workingset(folio) &&
-+		    !(vma->vm_flags & VM_SEQ_READ)) {
- 			unsigned short mmap_miss;
+--- a/mm/khugepaged.c~mm-khugepaged-introduce-mthp-collapse-support-fix
++++ a/mm/khugepaged.c
+@@ -1502,9 +1502,9 @@ static unsigned int collapse_mthp_count_
+  * If a collapse is permitted, we attempt to collapse the PTE range into a
+  * mTHP.
+  */
+-static int mthp_collapse(struct mm_struct *mm, struct vm_area_struct *vma,
+-		unsigned long address, int referenced, int unmapped,
+-		struct collapse_control *cc, unsigned long enabled_orders)
++static int mthp_collapse(struct mm_struct *mm, unsigned long address,
++		int referenced, int unmapped, struct collapse_control *cc,
++		unsigned long enabled_orders)
+ {
+ 	unsigned int nr_occupied_ptes, nr_ptes, max_ptes_none;
+ 	int collapsed = 0, stack_size = 0;
+@@ -1524,7 +1524,7 @@ static int mthp_collapse(struct mm_struc
+ 		if (!test_bit(order, &enabled_orders))
+ 			goto next_order;
  
- 			mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
+-		max_ptes_none = collapse_max_ptes_none(cc, vma, order);
++		max_ptes_none = collapse_max_ptes_none(cc, NULL, order);
+ 
+ 		nr_occupied_ptes = collapse_mthp_count_present(cc, offset,
+ 							       nr_ptes);
+@@ -1749,7 +1749,7 @@ out_unmap:
+ 	if (result == SCAN_SUCCEED) {
+ 		/* collapse_huge_page expects the lock to be dropped before calling */
+ 		mmap_read_unlock(mm);
+-		nr_collapsed = mthp_collapse(mm, vma, start_addr, referenced,
++		nr_collapsed = mthp_collapse(mm, start_addr, referenced,
+ 					     unmapped, cc, enabled_orders);
+ 		/* mmap_lock was released above, set lock_dropped */
+ 		*lock_dropped = true;
 _
 
-Patches currently in -mm which might be from usama.arif@linux.dev are
+Patches currently in -mm which might be from npache@redhat.com are
 
-mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch
+mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
+mm-khugepaged-rework-max_ptes_-handling-with-helper-functions.patch
+mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
+mm-khugepaged-require-collapse_huge_page-to-enter-exit-with-the-lock-dropped.patch
+mm-khugepaged-generalize-collapse_huge_page-for-mthp-collapse.patch
+mm-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
+mm-khugepaged-add-per-order-mthp-collapse-failure-statistics.patch
+mm-khugepaged-improve-tracepoints-for-mthp-orders.patch
+mm-khugepaged-introduce-collapse_allowable_orders-helper-function.patch
+mm-khugepaged-introduce-mthp-collapse-support.patch
+mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
+documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
 
