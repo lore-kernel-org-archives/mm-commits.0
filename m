@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5562833ADAF
-	for <mm-commits@vger.kernel.org>; Mon, 25 May 2026 19:36:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAAAB18050
+	for <mm-commits@vger.kernel.org>; Mon, 25 May 2026 19:39:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779737820; cv=none; b=sygZALRYCICmWGKX4aU+zL8HM79l0N38MEZQbcyTUfUD9IsQiap3lrBXhUgSl8OeniGn/BxKutZlYQem/FPObEWU9y80eE6qK/FW2s5gYid6lY7o115O7kAjHdoZUUGErgfrkIyLwpuFmj9+D02h5C0iisZXX/SKA/p/Dn7Grk4=
+	t=1779737949; cv=none; b=FUlBVPDYNdTlq7HZRY0kUutMuB5ImzuGHBS++I3yNY4pXyOwFw4jxozd1iyhzEX19s/R6RDUD+eyj0LXdhSbZ+gOxy8SJg62zhLEJzyvflYo2lB3KbxMJOJs5YWY3g0TV5bmdfULMhksCo0mpuuYQ1io792Bex7Rz14pgHOXmgw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779737820; c=relaxed/simple;
-	bh=gq5Vy4Wy7SE/YyLV7blfIR1faygVn73iHvfAhMqWRo8=;
-	h=Date:To:From:Subject:Message-Id; b=f8FFY+CtM80h3QbyskuHHKhnBCZTIn6EnuLatKuvQWGuaPEDJhASTyu/la4+gChKVpXZ3LxnnnxXHPT2rJX/EaP9ag22BLBs84aBnLpLRkD7XPedqr8wRxQqGI3TGXKHhXQOJjg7CSdtXCGapPrmx8/JzQX3dseghNBoQ9oAdmE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zdgBYTkh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779737949; c=relaxed/simple;
+	bh=4uPlEzNAyENY7GLUA+Os8QaA7LOmuS5WVO4Um2tab3w=;
+	h=Date:To:From:Subject:Message-Id; b=q8vTzIy7p0qx9mpxo+Q27TqItUuTFZD5U9lbzO3h40dPltM8x2vqTSxu/JUTSAN9BTihO6WxzATVmLdXA2DsVHM0mt9GRbWMbSW+ZvOkhzVUhKbygtuiME2+1BK8YBjWSqpHtim/ynkYRU508T5FrjQ/QQEiJzqqwAVoRJwzrWs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=joqPiP3z; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zdgBYTkh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E71251F00A3A;
-	Mon, 25 May 2026 19:36:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="joqPiP3z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4ADA11F000E9;
+	Mon, 25 May 2026 19:39:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779737819;
-	bh=IYZ0YqjIkDNcWWvpI9pfulfD5IUREMr05eFfveXPlCc=;
+	d=linux-foundation.org; s=korg; t=1779737947;
+	bh=wKju9LdynZvBp0BF8LQlqvMCMe0tVAqFSyTDfp/DVus=;
 	h=Date:To:From:Subject;
-	b=zdgBYTkh2J7c3aozu4oPqwuFuK38IuzCkwzsV9h/YcW79DgPiK2bYVPGaacnPnB1b
-	 e9z1AyEoFIZe/7lzKzp+gyK3flxqKr4jWjYsRPOEWijdJ9ukJmzDy1IGP6nniVh1EP
-	 B7MUkxOJy7xwbjusIiKSIPfasvDWBB6R7GfPeT10=
-Date: Mon, 25 May 2026 12:36:58 -0700
-To: mm-commits@vger.kernel.org,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
+	b=joqPiP3zHmGTyw6fWIKeYe0RgJuxSeIGYpPAFX6IYN2pP3uNoSfwrPuoxcf7C2NHS
+	 UsVFsq5NjnoilwA1ZNRm65o3/9h/fPumGuiK4PWuLiXPXV6Af/vdWTXPE4TSuJ72mX
+	 bcVxLz4jKZRaC2e4qsrHw3kkF6Yg5Gar92/SZ1A4=
+Date: Mon, 25 May 2026 12:39:06 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,leitao@debian.org,lance.yang@linux.dev,hughd@google.com,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,ran.xiaokai@zte.com.cn,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-shmem-refactor-thpsize_shmem_enabled_show-with-helper-arrays.patch removed from -mm tree
-Message-Id: <20260525193658.E71251F00A3A@smtp.kernel.org>
+Subject: + mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string.patch added to mm-new branch
+Message-Id: <20260525193907.4ADA11F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,93 +34,225 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm: shmem: refactor thpsize_shmem_enabled_show() with helper arrays
-has been removed from the -mm tree.  Its filename was
-     mm-shmem-refactor-thpsize_shmem_enabled_show-with-helper-arrays.patch
+The patch titled
+     Subject: mm: shmem: refactor thpsize_shmem_enabled_store() with sysfs_match_string()
+has been added to the -mm mm-new branch.  Its filename is
+     mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string.patch
+
+This patch will later appear in the mm-new branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
-Subject: mm: shmem: refactor thpsize_shmem_enabled_show() with helper arrays
-Date: Mon, 18 May 2026 12:32:38 +0000
+Subject: mm: shmem: refactor thpsize_shmem_enabled_store() with sysfs_match_string()
+Date: Mon, 25 May 2026 10:26:59 +0000
 
-Replace the hardcoded if/else chain of test_bit() calls and string
-literals in thpsize_shmem_enabled_show() with a loop over
-huge_shmem_orders_by_mode[] and huge_shmem_enabled_mode_strings[] arrays.
+Patch series "refactors thpsize_shmem_enabled_store() and
+thpsize_shmem_enabled_show()", v4.
 
-This makes thpsize_shmem_enabled_show() consistent with
-thpsize_shmem_enabled_store() and eliminates duplicated mode name strings.
 
-Link: https://lore.kernel.org/20260518123238.56344-3-ranxiaokai627@163.com
+This patch (of 2):
+
+Inspired by commit 82d9ff648c6c ("mm: huge_memory: refactor
+anon_enabled_store() with set_anon_enabled_mode()"), refactor
+thpsize_shmem_enabled_store() using sysfs_match_string().  This eliminates
+the duplicated spin_lock/unlock(), set/clear_bit(), calls across all
+branches, reducing code duplication.
+
+Behavioral change:
+Call start_stop_khugepaged() only when the mode actually changes.
+If unchanged, call set_recommended_min_free_kbytes() to preserve
+legacy watermark behavior. This avoids unnecessary khugepaged restarts.
+
+Tested with selftests ./run_kselftest.sh -t mm:ksft_thp.sh,
+all test cases passed.
+
+Link: https://lore.kernel.org/20260525102700.68707-1-ranxiaokai627@163.com
+Link: https://lore.kernel.org/20260525102700.68707-2-ranxiaokai627@163.com
 Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
 Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Breno Leitao <leitao@debian.org>
-Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
-Tested-by: Lance Yang <lance.yang@linux.dev>
 Reviewed-by: Barry Song <baohua@kernel.org>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Tested-by: Lance Yang <lance.yang@linux.dev>
+Cc: Breno Leitao <leitao@debian.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Dev Jain <dev.jain@arm.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Nico Pache <npache@redhat.com>
+Cc: Ran Xiaokai <ran.xiaokai@zte.com.cn>
 Cc: Ryan Roberts <ryan.roberts@arm.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   34 ++++++++++++++++++++++------------
- 1 file changed, 22 insertions(+), 12 deletions(-)
+ mm/shmem.c |  107 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 60 insertions(+), 47 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-refactor-thpsize_shmem_enabled_show-with-helper-arrays
+--- a/mm/shmem.c~mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string
 +++ a/mm/shmem.c
-@@ -5490,20 +5490,30 @@ static ssize_t thpsize_shmem_enabled_sho
+@@ -5463,6 +5463,29 @@ static ssize_t shmem_enabled_store(struc
+ struct kobj_attribute shmem_enabled_attr = __ATTR_RW(shmem_enabled);
+ static DEFINE_SPINLOCK(huge_shmem_orders_lock);
+ 
++enum huge_mode {
++	HUGE_SHMEM_ENABLED_ALWAYS = 0,
++	HUGE_SHMEM_ENABLED_INHERIT,
++	HUGE_SHMEM_ENABLED_WITHIN_SIZE,
++	HUGE_SHMEM_ENABLED_ADVISE,
++	HUGE_SHMEM_ENABLED_NEVER,
++};
++
++static const char * const huge_mode_strings[] = {
++	[HUGE_SHMEM_ENABLED_ALWAYS]      = "always",
++	[HUGE_SHMEM_ENABLED_INHERIT]     = "inherit",
++	[HUGE_SHMEM_ENABLED_WITHIN_SIZE] = "within_size",
++	[HUGE_SHMEM_ENABLED_ADVISE]      = "advise",
++	[HUGE_SHMEM_ENABLED_NEVER]       = "never",
++};
++
++static unsigned long * const huge_mode_orders[] = {
++	[HUGE_SHMEM_ENABLED_ALWAYS]      = &huge_shmem_orders_always,
++	[HUGE_SHMEM_ENABLED_INHERIT]     = &huge_shmem_orders_inherit,
++	[HUGE_SHMEM_ENABLED_WITHIN_SIZE] = &huge_shmem_orders_within_size,
++	[HUGE_SHMEM_ENABLED_ADVISE]      = &huge_shmem_orders_madvise,
++};
++
+ static ssize_t thpsize_shmem_enabled_show(struct kobject *kobj,
  					  struct kobj_attribute *attr, char *buf)
  {
- 	int order = to_thpsize(kobj)->order;
--	const char *output;
-+	int active = HUGE_SHMEM_ENABLED_NEVER;
-+	int len = 0;
-+	int i;
- 
--	if (test_bit(order, &huge_shmem_orders_always))
--		output = "[always] inherit within_size advise never";
--	else if (test_bit(order, &huge_shmem_orders_inherit))
--		output = "always [inherit] within_size advise never";
--	else if (test_bit(order, &huge_shmem_orders_within_size))
--		output = "always inherit [within_size] advise never";
--	else if (test_bit(order, &huge_shmem_orders_madvise))
--		output = "always inherit within_size [advise] never";
--	else
--		output = "always inherit within_size advise [never]";
-+	for (i = 0; i < ARRAY_SIZE(huge_shmem_orders_by_mode); i++) {
-+		if (test_bit(order, huge_shmem_orders_by_mode[i])) {
-+			active = i;
-+			break;
-+		}
-+	}
- 
--	return sysfs_emit(buf, "%s\n", output);
-+	for (i = 0; i < ARRAY_SIZE(huge_shmem_enabled_mode_strings); i++) {
-+		if (i == active)
-+			len += sysfs_emit_at(buf, len, "[%s] ",
-+					     huge_shmem_enabled_mode_strings[i]);
-+		else
-+			len += sysfs_emit_at(buf, len, "%s ",
-+					     huge_shmem_enabled_mode_strings[i]);
-+	}
-+
-+	/* Replace trailing space with newline */
-+	buf[len - 1] = '\n';
-+
-+	return len;
+@@ -5483,63 +5506,53 @@ static ssize_t thpsize_shmem_enabled_sho
+ 	return sysfs_emit(buf, "%s\n", output);
  }
  
- static bool set_shmem_enabled_mode(int order, enum huge_shmem_enabled_mode mode)
++static bool set_shmem_enabled_mode(int order, enum huge_mode mode)
++{
++	bool changed = false;
++	enum huge_mode idx;
++
++	spin_lock(&huge_shmem_orders_lock);
++	for (idx = 0; idx < ARRAY_SIZE(huge_mode_orders); idx++) {
++		if (idx == mode)
++			changed |= !__test_and_set_bit(order, huge_mode_orders[idx]);
++		else
++			changed |= __test_and_clear_bit(order, huge_mode_orders[idx]);
++	}
++	spin_unlock(&huge_shmem_orders_lock);
++
++	return changed;
++}
++
+ static ssize_t thpsize_shmem_enabled_store(struct kobject *kobj,
+ 					   struct kobj_attribute *attr,
+ 					   const char *buf, size_t count)
+ {
+ 	int order = to_thpsize(kobj)->order;
+-	ssize_t ret = count;
++	int mode;
+ 
+-	if (sysfs_streq(buf, "always")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		set_bit(order, &huge_shmem_orders_always);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "inherit")) {
+-		/* Do not override huge allocation policy with non-PMD sized mTHP */
+-		if (shmem_huge == SHMEM_HUGE_FORCE && !is_pmd_order(order))
+-			return -EINVAL;
+-
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		set_bit(order, &huge_shmem_orders_inherit);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "within_size")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		set_bit(order, &huge_shmem_orders_within_size);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "advise")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		set_bit(order, &huge_shmem_orders_madvise);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else if (sysfs_streq(buf, "never")) {
+-		spin_lock(&huge_shmem_orders_lock);
+-		clear_bit(order, &huge_shmem_orders_always);
+-		clear_bit(order, &huge_shmem_orders_inherit);
+-		clear_bit(order, &huge_shmem_orders_within_size);
+-		clear_bit(order, &huge_shmem_orders_madvise);
+-		spin_unlock(&huge_shmem_orders_lock);
+-	} else {
+-		ret = -EINVAL;
+-	}
++	mode = sysfs_match_string(huge_mode_strings, buf);
++	if (mode < 0)
++		return mode;
++
++	/* Do not override huge allocation policy with non-PMD sized mTHP */
++	if (mode == HUGE_SHMEM_ENABLED_INHERIT &&
++	    shmem_huge == SHMEM_HUGE_FORCE && !is_pmd_order(order))
++		return -EINVAL;
+ 
+-	if (ret > 0) {
++	if (set_shmem_enabled_mode(order, mode)) {
+ 		int err = start_stop_khugepaged();
+-
+ 		if (err)
+-			ret = err;
++			return err;
++	} else {
++		/*
++		 * Recalculate watermarks even when the mode hasn't changed
++		 * to preserve the legacy behavior, as this is always called
++		 * inside start_stop_khugepaged().
++		 */
++		set_recommended_min_free_kbytes();
+ 	}
+-	return ret;
++
++	return count;
+ }
+ 
+ struct kobj_attribute thpsize_shmem_enabled_attr =
 _
 
 Patches currently in -mm which might be from ran.xiaokai@zte.com.cn are
 
+mm-shmem-refactor-thpsize_shmem_enabled_store-with-sysfs_match_string.patch
+mm-shmem-refactor-thpsize_shmem_enabled_show-with-helper-arrays.patch
 
