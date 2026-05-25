@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 552003438B5
-	for <mm-commits@vger.kernel.org>; Mon, 25 May 2026 21:31:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D2BF3438B5
+	for <mm-commits@vger.kernel.org>; Mon, 25 May 2026 21:31:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779744706; cv=none; b=F2lgbVStkqn40fdCvLeX/J2kBx3Qpxn+pVnkDm8Mm3J1MkpF5MDHrm7QU8f13ct9NS+po8f/i6jDWVxEVwPwbn0hA6N74SFnCr+lLct4oRecqAjQuFR7ubQ2szy/TmCo+5p6qRE/wHeIepj2PT/x14tTgPLrGWmvkp4+v89+RC0=
+	t=1779744708; cv=none; b=U1gazSB0X8/DSfC7MCmiiCmFmb2hKV/P34B4F4h8z/NwNjjpxw7mss+/KDPJPbbp1lko7TbVki2E1HqDrzBG2Y9f8ptQ4BTBfc1gb9UB9Kmw0ng4jP+qWXFeERRyWsVpSFJJW4SITzoK/LWnFgFP2T0Oi6lJQ1IpAoiPpzIHQes=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779744706; c=relaxed/simple;
-	bh=3iXpzOYc721wjuby94jNnz6dcEqniSzXnV6LpiKAU5E=;
-	h=Date:To:From:Subject:Message-Id; b=QL1yiiTjycAFlz3rhYo4+9RMeCLFUCuERVR7G2y8f6DJy6IUBRHSOSNIaoK4IWLNfoLRdXM9deFOVNSNFfRF5giIUSUesjbpjiaSMp+UXn6dEc2I2vnFOINVX2Q6QoWu5lGrv+Qe0m0E4X0IR5AlN0gKQKaF3tTVNqX+djOpjQc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=P/bMQzZ9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779744708; c=relaxed/simple;
+	bh=s6gyq00fm1tWLUKtXa8CFp9UE5Szs1cIsDJUqMtlrgY=;
+	h=Date:To:From:Subject:Message-Id; b=W4asg1FaEW0xxXOqyAhroptZ/vNe2Xtqkifbu6ubwFWguUZL/4eYqxFAXk5KpxUKH+t5x7BLyJacddls86dn9+2o+KC8tHYtkXnAlAC2t7jl4BEN6VeGzxsVbUDAIoqB5Vjqcb6ZnSndEQ0SjFG9QlS08wcqGRvV63+QZLbWdCc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pe21uZQ2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="P/bMQzZ9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3B461F000E9;
-	Mon, 25 May 2026 21:31:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pe21uZQ2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD75E1F000E9;
+	Mon, 25 May 2026 21:31:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779744705;
-	bh=D9gjLaYaMW1Hy8hw51AMnDBwXId6mm5KxEMEi0yHfl8=;
+	d=linux-foundation.org; s=korg; t=1779744706;
+	bh=PBHmWbq93eDlPM90hySfDtpx+Yd17ww4gEaPpTkApF4=;
 	h=Date:To:From:Subject;
-	b=P/bMQzZ9nNMtcggt5k8oL46fd1kEco7J9p8oComftz6P062Sc2AlPnNVbdddSaAHp
-	 rhf1ZeG3d30VUBVWiBRebelrIKAjcR30UKU4AYTDIQWGqLYb9ZGeie6DyzuY8gH70C
-	 6vbAQQL1pmoGUvOakG51/QXRLgYit9w7Tnrzr5V0=
-Date: Mon, 25 May 2026 14:31:44 -0700
+	b=Pe21uZQ22/AwWZIsx5ylk+lmIVXEs68xfz2xJ7j5/MTbs9+E1bDFfvdxNY2d5l4/J
+	 UpcjqsNEVxqxSKqwF6tR3dp1DNH0Vu15Txxg72aP0bI2RaFyPbU8Q0+qWWxkJ5ZfhV
+	 qf1c54yS8mRZQkF0EAQrkKaBmaPE3DzoE9U779S4=
+Date: Mon, 25 May 2026 14:31:46 -0700
 To: mm-commits@vger.kernel.org,richardycc@google.com,minchan@kernel.org,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-do-not-leak-blk-idx-at-the-end-of-writeback.patch added to mm-new branch
-Message-Id: <20260525213144.E3B461F000E9@smtp.kernel.org>
+Subject: + zram-clear-trailing-bytes-of-compressed-writeback-pages.patch added to mm-new branch
+Message-Id: <20260525213146.CD75E1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: do not leak blk idx at the end of writeback
+     Subject: zram: clear trailing bytes of compressed writeback pages
 has been added to the -mm mm-new branch.  Its filename is
-     zram-do-not-leak-blk-idx-at-the-end-of-writeback.patch
+     zram-clear-trailing-bytes-of-compressed-writeback-pages.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-do-not-leak-blk-idx-at-the-end-of-writeback.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-clear-trailing-bytes-of-compressed-writeback-pages.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,25 +70,14 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: do not leak blk idx at the end of writeback
-Date: Mon, 25 May 2026 13:46:01 +0900
+Subject: zram: clear trailing bytes of compressed writeback pages
+Date: Mon, 25 May 2026 13:46:02 +0900
 
-Patch series "zram: writeback fixes".
+When compressed writeback is available writtenback pages contain garbage
+PAGE_SIZE - obj_size trailing bytes.  Zero out those trailing bytes before
+writeback to a backing device.
 
-Brian reported several issues with zram's writeback implementation.
-This small series addresses those issues.
-
-
-This patch (of 2):
-
-In certain cases zram_writeback_slots() loop can terminate with blk_idx
-being valid (in particular when we race with modification of last slot)
-but zram_writeback_slots() forgets to release the reserved block id, which
-leads to this block becoming unavailable for future writeback.  Release
-valid blk_idx before returning from zram_writeback_slots().
-
-Link: https://lore.kernel.org/20260525044639.1888561-1-senozhatsky@chromium.org
-Link: https://lore.kernel.org/20260525044639.1888561-2-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20260525044639.1888561-3-senozhatsky@chromium.org
 Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
 Suggested-by: Brian Geffon <bgeffon@google.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -97,21 +86,20 @@ Cc: Richard Chang <richardycc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/block/zram/zram_drv.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/drivers/block/zram/zram_drv.c~zram-do-not-leak-blk-idx-at-the-end-of-writeback
+--- a/drivers/block/zram/zram_drv.c~zram-clear-trailing-bytes-of-compressed-writeback-pages
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1127,6 +1127,9 @@ next:
- 	if (req)
- 		release_wb_req(req);
+@@ -2134,6 +2134,8 @@ static int read_from_zspool_raw(struct z
+ 	zs_obj_read_end(zram->mem_pool, handle, size, src);
+ 	zcomp_stream_put(zstrm);
  
-+	if (blk_idx != INVALID_BDEV_BLOCK)
-+		zram_release_bdev_block(zram, blk_idx);
++	memzero_page(page, size, PAGE_SIZE - size);
 +
- 	while (atomic_read(&wb_ctl->num_inflight) > 0) {
- 		wait_event(wb_ctl->done_wait, !list_empty(&wb_ctl->done_reqs));
- 		err = zram_complete_done_reqs(zram, wb_ctl);
+ 	return 0;
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from senozhatsky@chromium.org are
