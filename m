@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F59230C34A;
-	Mon, 25 May 2026 18:44:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CA893806BE
+	for <mm-commits@vger.kernel.org>; Mon, 25 May 2026 18:47:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779734659; cv=none; b=N6a1ri4KBU3FSW11ua3kfH7oCcM51KoA/Bz/ZPA4Go7u5quU62BfXz+DAzikAJ68RSVkV9ItH0hFwyGEOaLJwLsHmO4CHvuylL/vHcR22JLnHZyYiZtd3/3RNzJMpfCxNcvmwbvCCQrxFNJr78cY1eecNUQcukmDWSVovk4pNEY=
+	t=1779734832; cv=none; b=e+DDFEBYriI7TAMaUU5ywqiSsSp/r6UScu378//TtUopJUFeBclberLJXIJnzmC9H4ErGxHv+F+UDDlsslCDLTdCcG8BSL7fjWggv38RtLt20w6bbPhXK0PJM79vYQFObw/iXT7XUwpfTsl+D/TdVesdbPTF9cpV2zoSeCEbSDA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779734659; c=relaxed/simple;
-	bh=pD/0U9/k/2uxVA7PK3GF6SV/ULb/1oeEqjNi9H+mKok=;
-	h=Date:To:From:Subject:Message-Id; b=q0nhXpUf+4qgp8MTnTD5BFHH+trGvD60619BAz3jV47WsCpaP74HAjflXVZuTUGwRK8awABHYMJ7rv4YqsMXYBGeQSyg+Y+uOqsWofOsdBd+PbC0/cJFLhFjeBAbCXnYq8W6dHaKr5LRqoZ55k05UqC3Ap0Q10mrejHecrzHCf0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=K5ISIbgL; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779734832; c=relaxed/simple;
+	bh=MH5cM/579u4SouidbVpgJ6T9iIRPeFEs8XCryLKgIAg=;
+	h=Date:To:From:Subject:Message-Id; b=amtyxWUq6ymnX+r0BpnJvn3GGbbeZgN4SFJxYpHeFECyKA7gT/sIUNrReUg/3ybjI6tk/MFwf+EZO8BUx1TfHHLNP3h9A5PJy1KMIbmyA6tmqZ0wvWRpE6EM8TZfcICsqDZSpbnn8y4Gfic4wD3gBgbFmXgUHNtdp5gFZAA23r8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=gAAMZdfs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="K5ISIbgL"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 053EA1F000E9;
-	Mon, 25 May 2026 18:44:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="gAAMZdfs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0F001F000E9;
+	Mon, 25 May 2026 18:47:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779734658;
-	bh=UfYAMDtCMJMoq4kNs1ZwK56oZLsCKGRZISu6KzdSqa4=;
+	d=linux-foundation.org; s=korg; t=1779734829;
+	bh=Cf1c7bKQi9riXwZH6PHLdFKo4QgCuxE+q7osT/AKgms=;
 	h=Date:To:From:Subject;
-	b=K5ISIbgLm47wNSDkNPMSP+egBS8eC4yIPSx6KcxqaRRFvV4F9J4XxPfUGheQ+KE4w
-	 b2nefPX56K74kGHJCHLzkPNqcUcrXxIREWAR2Cl8EwbwOts9SvvIKs8iBlEFF0bYx5
-	 GXEWDeCeS/fMhCfb8A1BQ20BxfPJp6EsQxr2pROU=
-Date: Mon, 25 May 2026 11:44:17 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sieberf@amazon.com,shakeel.butt@linux.dev,foersleo@amazon.de,sj@kernel.org,akpm@linux-foundation.org
+	b=gAAMZdfsEi700Mg4d7SdQfkM2AVFLWZbetbfb+mswxbA/9zP28jZeyd0oNZcmYvxv
+	 3os6pdzPtMxEhtI7nTHIidtM24ekn5vNoDdCVwKHgvCDUraZ0x0LVuWpzbD8rR28Zv
+	 f9DkZVpMBwszQjFGVXCNjfkYQYjk4m/fZ6S/ii9g=
+Date: Mon, 25 May 2026 11:47:08 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shakeel.butt@linux.dev,jack@suse.cz,hannes@cmpxchg.org,david@kernel.org,usama.arif@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-ops-common-call-folio_test_lru-after-folio_get.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260525184418.053EA1F000E9@smtp.kernel.org>
+Subject: + mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch added to mm-new branch
+Message-Id: <20260525184708.F0F001F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,15 +35,26 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/ops-common: call folio_test_lru() after folio_get()
-has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-ops-common-call-folio_test_lru-after-folio_get.patch
+     Subject: mm: make mmap_miss accounting symmetric for VM_SEQ_READ
+has been added to the -mm mm-new branch.  Its filename is
+     mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-ops-common-call-folio_test_lru-after-folio_get.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch
 
-This patch will later appear in the mm-hotfixes-unstable branch at
+This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Note, mm-new is a provisional staging ground for work-in-progress
+patches, and acceptance into mm-new is a notification for others take
+notice and to finish up reviews.  Please do not hesitate to respond to
+review feedback and post updated versions to replace or incrementally
+fixup patches in mm-new.
+
+The mm-new branch of mm.git is not included in linux-next
+
+If a few days of testing in mm-new is successful, the patch will me moved
+into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,140 +69,78 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/ops-common: call folio_test_lru() after folio_get()
-Date: Mon, 25 May 2026 09:22:55 -0700
+From: Usama Arif <usama.arif@linux.dev>
+Subject: mm: make mmap_miss accounting symmetric for VM_SEQ_READ
+Date: Mon, 25 May 2026 07:57:51 -0700
 
-damon_get_folio() speculatively calls folio_test_lru() before
-folio_try_get().  The folio can get freed and reallocated to a tail page. 
-In the case, VM_BUG_ON_PGFLAGS() in const_folio_flags() can be triggered. 
-Remove the speculative call.
+do_sync_mmap_readahead() skips both the mmap_miss increment and the
+MMAP_LOTSAMISS check for VM_SEQ_READ mappings, since sequential access is
+non-speculative and should always read ahead.  The two decrement sites in
+do_async_mmap_readahead() and filemap_map_pages() do not mirror this skip,
+so concurrent faults on a VM_SEQ_READ mapping can still drive
+ra->mmap_miss down to zero through the decrement paths even though nothing
+in the sync path ever increments it.  The counter itself is per-file
+(file->f_ra.mmap_miss), so it can be moved by any VMA mapping the file,
+not just the one currently faulting.
 
-Also mark folio_test_lru() check right after folio_try_get() success as no
-more unlikely.
+Skip the decrement for VM_SEQ_READ in both decrement sites so the counter
+only moves for mappings that also participate in the increment side.  No
+functional change for VM_SEQ_READ users, since the increment-side gate
+already prevents the counter from being consulted on their behalf, but it
+stops a VM_SEQ_READ mapping from biasing the counter for other mappings of
+the same file.
 
-The race should be rare.  Also the problem can happen only if the kernel
-has enabled CONFIG_DEBUG_VM_PGFLAGS.  No real world report of this issue
-has been made so far.  This fix is based on only theoretical analysis. 
-That said, a bug is a bug.  A similar issue was also fixed via commit
-3203b3ab0fcf ("mm/filemap: don't call folio_test_locked() without a
-reference in next_uptodate_folio()").  I don't expect this change will
-make a meaningful impact to DAMON performance in the real world, though I
-will be happy to be corrected from the real world reports.
-
-The issue was discovered [1] by Sashiko.
-
-
-Link: https://lore.kernel.org/20260525162256.8317-1-sj@kernel.org
-Link: https://lore.kernel.org/20260517234112.89245-1-sj@kernel.org [1]
-Fixes: 3f49584b262c ("mm/damon: implement primitives for the virtual memory address spaces")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Fernand Sieber <sieberf@amazon.com>
-Cc: Leonard Foerster <foersleo@amazon.de>
+Link: https://lore.kernel.org/20260525145751.2671248-1-usama.arif@linux.dev
+Signed-off-by: Usama Arif <usama.arif@linux.dev>
+Closes: https://lore.kernel.org/all/8edc8cd0-f65c-4456-9b3f-362e744c9a96@linux.dev/
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: <stable@vger.kernel.org> # 5.15.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/ops-common.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/filemap.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
---- a/mm/damon/ops-common.c~mm-damon-ops-common-call-folio_test_lru-after-folio_get
-+++ a/mm/damon/ops-common.c
-@@ -32,9 +32,9 @@ struct folio *damon_get_folio(unsigned l
- 		return NULL;
+--- a/mm/filemap.c~mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read
++++ a/mm/filemap.c
+@@ -3433,8 +3433,13 @@ static struct file *do_async_mmap_readah
+ 	 * Don't touch the mmap_miss counter to avoid decreasing it multiple
+ 	 * times for a single folio and break the balance with mmap_miss
+ 	 * increase in do_sync_mmap_readahead().
++	 *
++	 * VM_SEQ_READ mappings skip the mmap_miss increment in
++	 * do_sync_mmap_readahead(), so skip the decrement here as well to
++	 * keep the counter symmetric.
+ 	 */
+-	if (likely(!folio_test_locked(folio))) {
++	if (likely(!folio_test_locked(folio)) &&
++	    !(vmf->vma->vm_flags & VM_SEQ_READ)) {
+ 		mmap_miss = READ_ONCE(ra->mmap_miss);
+ 		if (mmap_miss)
+ 			WRITE_ONCE(ra->mmap_miss, --mmap_miss);
+@@ -3935,10 +3940,15 @@ vm_fault_t filemap_map_pages(struct vm_f
+ 		 * In such situation, read-ahead is only a waste of IO.
+ 		 * Don't decrease mmap_miss in this scenario to make sure
+ 		 * we can stop read-ahead.
++		 *
++		 * VM_SEQ_READ mappings skip the mmap_miss increment in
++		 * do_sync_mmap_readahead(), so skip the decrement here as
++		 * well to keep the counter symmetric.
+ 		 */
+ 		if ((map_ret & VM_FAULT_NOPAGE) &&
+ 		    !(vmf->flags & FAULT_FLAG_TRIED) &&
+-		    !folio_test_workingset(folio)) {
++		    !folio_test_workingset(folio) &&
++		    !(vma->vm_flags & VM_SEQ_READ)) {
+ 			unsigned short mmap_miss;
  
- 	folio = page_folio(page);
--	if (!folio_test_lru(folio) || !folio_try_get(folio))
-+	if (!folio_try_get(folio))
- 		return NULL;
--	if (unlikely(page_folio(page) != folio || !folio_test_lru(folio))) {
-+	if (unlikely(page_folio(page) != folio) || !folio_test_lru(folio)) {
- 		folio_put(folio);
- 		folio = NULL;
- 	}
+ 			mmap_miss = READ_ONCE(file->f_ra.mmap_miss);
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from usama.arif@linux.dev are
 
-mm-damon-ops-common-call-folio_test_lru-after-folio_get.patch
-mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch
-mm-damon-core-handle-min_region_sz-remaining-quota-as-empty.patch
-mm-damon-core-merge-regions-after-applying-damos-schemes.patch
-mm-damon-core-introduce-failed-region-quota-charge-ratio.patch
-mm-damon-sysfs-schemes-implement-fail_charge_numdenom-files.patch
-docs-mm-damon-design-document-fail_charge_numdenom.patch
-docs-admin-guide-mm-damon-usage-document-fail_charge_numdenom-files.patch
-docs-abi-damon-document-fail_charge_numdenom.patch
-mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch
-selftests-damon-_damon_sysfs-support-failed-region-quota-charge-ratio.patch
-selftests-damon-drgn_dump_damon_status-support-failed-region-quota-charge-ratio.patch
-selftests-damon-sysfspy-test-failed-region-quota-charge-ratio.patch
-docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
-mm-damon-core-introduce-damon_ctx-paused.patch
-mm-damon-sysfs-add-pause-file-under-context-dir.patch
-docs-mm-damon-design-update-for-context-pause-resume-feature.patch
-docs-admin-guide-mm-damon-usage-update-for-pause-file.patch
-docs-abi-damon-update-for-pause-sysfs-file.patch
-mm-damon-tests-core-kunit-test-pause-commitment.patch
-selftests-damon-_damon_sysfs-support-pause-file-staging.patch
-selftests-damon-drgn_dump_damon_status-dump-pause.patch
-selftests-damon-sysfspy-check-pause-on-assert_ctx_committed.patch
-selftests-damon-sysfspy-pause-damon-before-dumping-status.patch
-mm-damon-introduce-damon_set_region_system_rams_default.patch
-mm-damon-reclaim-cover-all-system-rams.patch
-mm-damon-lru_sort-cover-all-system-rams.patch
-mm-damon-core-remove-damon_set_region_biggest_system_ram_default.patch
-mm-damon-stat-use-damon_set_region_system_rams_default.patch
-docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring.patch
-docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring.patch
-docs-admin-guide-mm-damon-usage-mark-scheme-filters-sysfs-dir-as-deprecated.patch
-docs-abi-damon-mark-schemes-s-filters-deprecated.patch
-mm-damon-reclaim-add-autotune_monitoring_intervals-parameter.patch
-docs-admin-guide-mm-damon-reclaim-update-for-autotune_monitoring_intervals.patch
-mm-damon-stat-add-a-parameter-for-reading-kdamond-pid.patch
-docs-admin-guide-mm-damon-stat-document-kdamond_pid-parameter.patch
-mm-damon-core-introduce-struct-damon_probe.patch
-mm-damon-core-embed-damon_probe-objects-in-damon_ctx.patch
-mm-damon-core-introduce-damon_filter.patch
-mm-damon-core-commit-probes.patch
-mm-damon-core-introduce-damon_region-probe_hits.patch
-mm-damon-core-introduce-damon_ops-apply_probes.patch
-mm-damon-core-do-data-attributes-monitoring.patch
-mm-damon-paddr-support-data-attributes-monitoring.patch
-mm-damon-sysfs-implement-probes-dir.patch
-mm-damon-sysfs-implement-probe-dir.patch
-mm-damon-sysfs-implement-filters-directory.patch
-mm-damon-sysfs-implement-filter-dir.patch
-mm-damon-sysfs-implement-filter-dir-files.patch
-mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
-mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
-mm-damon-sysfs-schemes-implement-probe-dir.patch
-mm-damon-sysfs-schemes-implement-probe-hits-file.patch
-mm-damon-trace-probe_hits.patch
-selftests-damon-sysfssh-test-probes-dir.patch
-docs-mm-damon-design-document-data-attributes-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
-mm-damon-core-introduce-damon_filter_type_memcg.patch
-mm-damon-paddr-support-damon_filter_type_memcg.patch
-mm-damon-sysfs-add-filters-f-path-file.patch
-mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
-mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
-docs-mm-damon-design-update-for-memcg-damon-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
-mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
-mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
-samples-damon-mtier-replace-damon_add_region-with-damon_set_regions.patch
-mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions.patch
-mm-damon-core-hide-damon_add_region.patch
-mm-damon-core-hide-damon_insert_region.patch
-mm-damon-core-hide-damon_destroy_region.patch
-mm-damon-core-add-kdamond_call-debug_sanity-check.patch
-mm-damon-core-remove-damon_verify_nr_regions.patch
-mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
-selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
-selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
-selftests-damon-sysfssh-test-addr_unit-file-existence.patch
-selftests-damon-sysfssh-test-pause-file-existence.patch
-mm-damon-core-trace-esz-at-first-setup.patch
+mm-make-mmap_miss-accounting-symmetric-for-vm_seq_read.patch
 
