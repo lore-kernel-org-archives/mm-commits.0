@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80DCD50276;
-	Sat, 23 May 2026 21:42:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E045D312815
+	for <mm-commits@vger.kernel.org>; Mon, 25 May 2026 17:41:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779572548; cv=none; b=VIBQQvGxn2FVlkehUvv6a8CEqNI9mxFSbi+vtyXYoEG5pqyVv+1ZLSQp9ddmm1NgCWTJh7VwJqtRpGp6+nGMBpxVp6Sr0VpaXz5eiFHrLln8nEtyhdchGf8gq7xD+1Z2PA4wKyXSS/Pt27I7SSX7SXP0dEarm8ZWzFVQ0X0/xFE=
+	t=1779730887; cv=none; b=dSJHvfoIpWo1nogQHhYK/mFjphRPU+3uowUO0em6FsUWFR+6ehpQMOZaR3lFbFjgF7abAsA+zgT8x0aA8IxnINtazROhsnyTyOamjjrcLfzV0y6SYB5IGbreS51impXwLex8f6HpirMP7mk4I1XOo+gRNL+B7IVCRmrzG/jpq/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779572548; c=relaxed/simple;
-	bh=4St5n7uQpnLLZS4wy/1KrtoZ9sgr/sulNBs3hSwXy88=;
-	h=Date:To:From:Subject:Message-Id; b=Pv8QTa7to5QCmlFVUrTc8On17o2RPtXrKoPHqEBo2gSGDKIR/xtzEzrgScL65T6Qtsa6faGcmZSWl0sXToT0iqhck+9QKZT8J++0iCXjatU/Smn0OKh6/HfTjQ3MLCeEA8qs2vilMV2YTvph4Haubu3IccKf2RXnXTPXEK09f2I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ahPpe13O; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779730887; c=relaxed/simple;
+	bh=7y3+3ZHyqngVhUKw7Ql/n1U4MICfNC2jpc1fdSPaoMc=;
+	h=Date:To:From:Subject:Message-Id; b=GByP01bm7LZ94mfiOOwjQERyZffDg0FcfDJLFNRZ04E+4v27Op5aMQ7OrjAn9LHAmYyp7qehIuxLQlQMnZRH7DlzSdbOcVGXab3HoLeDwAvCRdX/9DUmoQUdIPgqnZORl8dx8jshQtwtqQh8jiWfY/y86EldEBcyY0EQ3i4vZVA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vDKpIJf6; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ahPpe13O"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1EA531F000E9;
-	Sat, 23 May 2026 21:42:27 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vDKpIJf6"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 746121F000E9;
+	Mon, 25 May 2026 17:41:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779572547;
-	bh=qeTQNXknogBa/HDC88qmLwfZ8zL+XhnZR6yL7/uVDGM=;
+	d=linux-foundation.org; s=korg; t=1779730885;
+	bh=0H4/kkaFRJZFAXRUSB4XFuOnjnAidWc7mjgSAXHDTdM=;
 	h=Date:To:From:Subject;
-	b=ahPpe13OGzXnV0Fdwi3ydXXdaMV2A+p7uIZRJEZaAZ+rD2Ej5eQNJn13e9gpJ0+i9
-	 QcfRu/HK3k+OWaC3wLejYyY9x6C6hczJuVADfYOEPJNq73aa2Q8v8UtvE7SHj41/oG
-	 4O799p5XWSSraHucBIogutHtss8+4OAk5iW4r4no=
-Date: Sat, 23 May 2026 14:42:26 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,fvdl@google.com,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=vDKpIJf6mxVBMhCs5iui2fZVKwKYKyd6L1Ou/fhoyLTB9qiv6l/9kmtOa3B0H7xaM
+	 tqXKqNA81upU9Q6syBYRcF8RDcga4aSTTeJZm0pjNcEA44TIRlna6OL3Ay03Lwa+FY
+	 L7D5FNKtDjLW/T6GVp3IBwuIIh6Hohea1VAh5/0I=
+Date: Mon, 25 May 2026 10:41:24 -0700
+To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,rientjes@google.com,harry@kernel.org,vbabka@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-cma-fix-reserved-page-leak-on-activation-failure.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260523214227.1EA531F000E9@smtp.kernel.org>
+Subject: + maintainers-add-slab-related-scripts-and-tools-to-slab-allocator.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260525174125.746121F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/cma: fix reserved page leak on activation failure
+     Subject: MAINTAINERS: add slab-related scripts and tools to SLAB ALLOCATOR
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-cma-fix-reserved-page-leak-on-activation-failure.patch
+     maintainers-add-slab-related-scripts-and-tools-to-slab-allocator.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-cma-fix-reserved-page-leak-on-activation-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-slab-related-scripts-and-tools-to-slab-allocator.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -58,80 +58,43 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/cma: fix reserved page leak on activation failure
-Date: Sat, 23 May 2026 14:01:23 +0800
+From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
+Subject: MAINTAINERS: add slab-related scripts and tools to SLAB ALLOCATOR
+Date: Mon, 25 May 2026 09:26:39 +0200
 
-If cma_activate_area() fails after allocating only part of the range
-bitmaps, the cleanup path still has to release the reserved pages when
-CMA_RESERVE_PAGES_ON_ERROR is clear.
+Make sure the maintainers and reviewers are CC'd on changes to the scripts
+and tools that depend on slab internals.
 
-That is still worth doing even in this __init path.  A bitmap_zalloc()
-failure does not necessarily mean the system cannot make further progress:
-freeing the reserved CMA pages can return a substantial amount of memory
-to the buddy allocator and may relieve the temporary memory shortage that
-caused the allocation failure in the first place.
-
-However, the cleanup path currently uses the bitmap-freeing bound for page
-release as well.  That is only correct for ranges whose bitmap allocation
-already succeeded.  The failed range and all later ranges still keep their
-reserved pages, so a partial bitmap allocation failure can permanently
-leak them.
-
-Fix this by releasing reserved pages for all ranges.  Use the saved
-early_pfn[] value for ranges whose bitmap allocation already succeeded and
-for the failed range, and use cmr->early_pfn for later ranges whose bitmap
-allocation was never attempted.
-
-Link: https://lore.kernel.org/20260523060123.2207992-1-songmuchun@bytedance.com
-Fixes: c009da4258f9 ("mm, cma: support multiple contiguous ranges, if requested")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Frank van der Linden <fvdl@google.com>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lore.kernel.org/20260525-maint-slab-tools-v1-1-d66b69f1412a@kernel.org
+Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: Harry Yoo (Oracle) <harry@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ MAINTAINERS |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/cma.c~mm-cma-fix-reserved-page-leak-on-activation-failure
-+++ a/mm/cma.c
-@@ -188,10 +188,13 @@ cleanup:
+--- a/MAINTAINERS~maintainers-add-slab-related-scripts-and-tools-to-slab-allocator
++++ a/MAINTAINERS
+@@ -24622,6 +24622,12 @@ F:	mm/mempool.c
+ F:	mm/slab.h
+ F:	mm/slab_common.c
+ F:	mm/slub.c
++F:	scripts/gdb/linux/slab.py
++F:	tools/cgroup/memcg_slabinfo.py
++F:	tools/include/linux/slab.h
++F:	tools/lib/slab.c
++F:	tools/mm/slabinfo-gnuplot.sh
++F:	tools/mm/slabinfo.c
  
- 	/* Expose all pages to the buddy, they are useless for CMA. */
- 	if (!test_bit(CMA_RESERVE_PAGES_ON_ERROR, &cma->flags)) {
--		for (r = 0; r < allocrange; r++) {
-+		for (r = 0; r < cma->nranges; r++) {
-+			unsigned long start_pfn;
-+
- 			cmr = &cma->ranges[r];
-+			start_pfn = r <= allocrange ? early_pfn[r] : cmr->early_pfn;
- 			end_pfn = cmr->base_pfn + cmr->count;
--			for (pfn = early_pfn[r]; pfn < end_pfn; pfn++)
-+			for (pfn = start_pfn; pfn < end_pfn; pfn++)
- 				free_reserved_page(pfn_to_page(pfn));
- 		}
- 	}
+ SLCAN CAN NETWORK DRIVER
+ M:	Dario Binacchi <dario.binacchi@amarulasolutions.com>
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from vbabka@kernel.org are
 
-mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas.patch
-mm-cma-fix-reserved-page-leak-on-activation-failure.patch
-mm-sparse-remove-sparse-buffer-pre-allocation-mechanism.patch
-mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
-mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
-mm-sparse-vmemmap-pass-pgmap-argument-to-memory-deactivation-paths.patch
-mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization.patch
-mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch
-mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
-mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
-drivers-base-memory-make-memory-block-get-put-explicit.patch
+maintainers-add-slab-related-scripts-and-tools-to-slab-allocator.patch
 
