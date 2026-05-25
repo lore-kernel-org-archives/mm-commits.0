@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D2BF3438B5
-	for <mm-commits@vger.kernel.org>; Mon, 25 May 2026 21:31:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF42E156F45;
+	Mon, 25 May 2026 21:50:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779744708; cv=none; b=U1gazSB0X8/DSfC7MCmiiCmFmb2hKV/P34B4F4h8z/NwNjjpxw7mss+/KDPJPbbp1lko7TbVki2E1HqDrzBG2Y9f8ptQ4BTBfc1gb9UB9Kmw0ng4jP+qWXFeERRyWsVpSFJJW4SITzoK/LWnFgFP2T0Oi6lJQ1IpAoiPpzIHQes=
+	t=1779745802; cv=none; b=Uu2GbYqQvWrH800sAlfMdIGIRuyP6Pyyws6jJyvsmYropvBAkZLPgVz0AnIMCXiojbWkUaB+V9ShUdhqjumzKSBBMIfzCuxIPBjfdzFujX1ubMco70lN+Xf9Fy+J0//hvLXjb5FTHWDLKuruDRUYmPn7dzv2TdsT3Qda2HflB/M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779744708; c=relaxed/simple;
-	bh=s6gyq00fm1tWLUKtXa8CFp9UE5Szs1cIsDJUqMtlrgY=;
-	h=Date:To:From:Subject:Message-Id; b=W4asg1FaEW0xxXOqyAhroptZ/vNe2Xtqkifbu6ubwFWguUZL/4eYqxFAXk5KpxUKH+t5x7BLyJacddls86dn9+2o+KC8tHYtkXnAlAC2t7jl4BEN6VeGzxsVbUDAIoqB5Vjqcb6ZnSndEQ0SjFG9QlS08wcqGRvV63+QZLbWdCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Pe21uZQ2; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779745802; c=relaxed/simple;
+	bh=QLK/wBmwIX/EE/eVtfESUxdlvgf+74JixaElDaNPq/4=;
+	h=Date:To:From:Subject:Message-Id; b=pDq0Kwzzg590XZUk2sJLUmONebDN+jUbSbp6AS6uf29JDWzUNzbMdf+KOuKul27058EspiCaIs1ewbIGnfqsP8/LDclf36LjRGrI6ZhL3gSOosRPJMz0igQ8kKwliMNoyhtiLCTJEyXjSoEOajEoCiaaC5hvUUy+vJ5XxIYMmGE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BPYKn25X; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Pe21uZQ2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD75E1F000E9;
-	Mon, 25 May 2026 21:31:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BPYKn25X"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73FBE1F000E9;
+	Mon, 25 May 2026 21:50:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779744706;
-	bh=PBHmWbq93eDlPM90hySfDtpx+Yd17ww4gEaPpTkApF4=;
+	d=linux-foundation.org; s=korg; t=1779745800;
+	bh=AEu3UiBHKdoTTuSWrpLLwUGyuaXJEOQsbZK+TgcrS1o=;
 	h=Date:To:From:Subject;
-	b=Pe21uZQ22/AwWZIsx5ylk+lmIVXEs68xfz2xJ7j5/MTbs9+E1bDFfvdxNY2d5l4/J
-	 UpcjqsNEVxqxSKqwF6tR3dp1DNH0Vu15Txxg72aP0bI2RaFyPbU8Q0+qWWxkJ5ZfhV
-	 qf1c54yS8mRZQkF0EAQrkKaBmaPE3DzoE9U779S4=
-Date: Mon, 25 May 2026 14:31:46 -0700
-To: mm-commits@vger.kernel.org,richardycc@google.com,minchan@kernel.org,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=BPYKn25XacHWjc/CQmzjDoDGbL5aBhAW4ER6efaKdd2+/U3SysPs/9CLlHJt7jgAP
+	 yw/8gA+EmJ56vek3OzNMh8j6wXbcbp6bfCv+iDksQSJUTE0UQW9tU3USMpEgonBoYi
+	 ThEjQPSwc1Ip5A4g6V/pf4CL0dQlPIIe33GNQc4o=
+Date: Mon, 25 May 2026 14:49:59 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,osalvador@kernel.org,kas@kernel.org,david@kernel.org,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-clear-trailing-bytes-of-compressed-writeback-pages.patch added to mm-new branch
-Message-Id: <20260525213146.CD75E1F000E9@smtp.kernel.org>
+Subject: + mm-hugetlb_vmemmap-fix-incorrect-vmemmap-restore-in-rollback.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260525215000.73FBE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: clear trailing bytes of compressed writeback pages
-has been added to the -mm mm-new branch.  Its filename is
-     zram-clear-trailing-bytes-of-compressed-writeback-pages.patch
+     Subject: mm/hugetlb_vmemmap: fix incorrect vmemmap restore in rollback
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-hugetlb_vmemmap-fix-incorrect-vmemmap-restore-in-rollback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-clear-trailing-bytes-of-compressed-writeback-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-hugetlb_vmemmap-fix-incorrect-vmemmap-restore-in-rollback.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,41 +58,126 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: clear trailing bytes of compressed writeback pages
-Date: Mon, 25 May 2026 13:46:02 +0900
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/hugetlb_vmemmap: fix incorrect vmemmap restore in rollback
+Date: Mon, 25 May 2026 10:52:13 +0800
 
-When compressed writeback is available writtenback pages contain garbage
-PAGE_SIZE - obj_size trailing bytes.  Zero out those trailing bytes before
-writeback to a backing device.
+vmemmap_restore_pte() rebuilds restored vmemmap pages from a tail-page
+template derived from compound_head().  This is wrong when the current PTE
+already maps a page whose contents are not tail-page metadata.
 
-Link: https://lore.kernel.org/20260525044639.1888561-3-senozhatsky@chromium.org
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Suggested-by: Brian Geffon <bgeffon@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Richard Chang <richardycc@google.com>
+In the rollback path of vmemmap_remap_free(), the first restored PTE is
+backed by vmemmap_head and contains head-page metadata.  Reconstructing
+that page from a tail-page template overwrites the head-page state and
+corrupts the restored vmemmap page.
+
+Fix this by copying the full page from the page currently mapped by the
+PTE.  Also pass vmemmap_tail to the rollback walk so only PTEs backed by
+the shared tail page are restored, while the head PTE remains mapped to
+vmemmap_head.  Add VM_WARN_ON_ONCE() checks for unexpected cases.
+
+Link: https://lore.kernel.org/20260525025213.2229628-1-songmuchun@bytedance.com
+Fixes: c0b495b91a47 ("mm/hugetlb: refactor code around vmemmap_walk")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Kiryl Shutsemau <kas@kernel.org>
+Acked-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/hugetlb_vmemmap.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-clear-trailing-bytes-of-compressed-writeback-pages
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2134,6 +2134,8 @@ static int read_from_zspool_raw(struct z
- 	zs_obj_read_end(zram->mem_pool, handle, size, src);
- 	zcomp_stream_put(zstrm);
+--- a/mm/hugetlb_vmemmap.c~mm-hugetlb_vmemmap-fix-incorrect-vmemmap-restore-in-rollback
++++ a/mm/hugetlb_vmemmap.c
+@@ -207,6 +207,8 @@ static void vmemmap_remap_pte(pte_t *pte
  
-+	memzero_page(page, size, PAGE_SIZE - size);
+ 	/* Remapping the head page requires r/w */
+ 	if (unlikely(walk->nr_walked == 0 && walk->vmemmap_head)) {
++		VM_WARN_ON_ONCE(!PageHead((const struct page *)addr));
 +
- 	return 0;
+ 		list_del(&walk->vmemmap_head->lru);
+ 
+ 		/*
+@@ -218,6 +220,8 @@ static void vmemmap_remap_pte(pte_t *pte
+ 
+ 		entry = mk_pte(walk->vmemmap_head, PAGE_KERNEL);
+ 	} else {
++		VM_WARN_ON_ONCE(!PageTail((const struct page *)addr));
++
+ 		/*
+ 		 * Remap the tail pages as read-only to catch illegal write
+ 		 * operation to the tail pages.
+@@ -232,33 +236,28 @@ static void vmemmap_remap_pte(pte_t *pte
+ static void vmemmap_restore_pte(pte_t *pte, unsigned long addr,
+ 				struct vmemmap_remap_walk *walk)
+ {
+-	struct page *page;
+-	struct page *from, *to;
+-
+-	page = list_first_entry(walk->vmemmap_pages, struct page, lru);
+-	list_del(&page->lru);
++	struct page *src = pte_page(ptep_get(pte)), *dst;
+ 
+ 	/*
+-	 * Initialize tail pages in the newly allocated vmemmap page.
+-	 *
+-	 * There is folio-scope metadata that is encoded in the first few
+-	 * tail pages.
+-	 *
+-	 * Use the value last tail page in the page with the head page
+-	 * to initialize the rest of tail pages.
++	 * When rolling back vmemmap_remap_free(), keep the copied head page
++	 * mapping and restore only PTEs currently pointing at the shared tail
++	 * page.
+ 	 */
+-	from = compound_head((struct page *)addr) +
+-		PAGE_SIZE / sizeof(struct page) - 1;
+-	to = page_to_virt(page);
+-	for (int i = 0; i < PAGE_SIZE / sizeof(struct page); i++, to++)
+-		*to = *from;
++	if (walk->vmemmap_tail && walk->vmemmap_tail != src)
++		return;
++
++	VM_WARN_ON_ONCE(PageHead((const struct page *)addr));
++
++	dst = list_first_entry(walk->vmemmap_pages, struct page, lru);
++	list_del(&dst->lru);
++	copy_page(page_to_virt(dst), page_to_virt(src));
+ 
+ 	/*
+ 	 * Makes sure that preceding stores to the page contents become visible
+ 	 * before the set_pte_at() write.
+ 	 */
+ 	smp_wmb();
+-	set_pte_at(&init_mm, addr, pte, mk_pte(page, PAGE_KERNEL));
++	set_pte_at(&init_mm, addr, pte, mk_pte(dst, PAGE_KERNEL));
  }
- #endif
+ 
+ /**
+@@ -324,6 +323,7 @@ static int vmemmap_remap_free(unsigned l
+ 	 */
+ 	walk = (struct vmemmap_remap_walk) {
+ 		.remap_pte	= vmemmap_restore_pte,
++		.vmemmap_tail	= vmemmap_tail,
+ 		.vmemmap_pages	= vmemmap_pages,
+ 		.flags		= 0,
+ 	};
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-zram-do-not-leak-blk-idx-at-the-end-of-writeback.patch
-zram-clear-trailing-bytes-of-compressed-writeback-pages.patch
+mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas.patch
+mm-cma-fix-reserved-page-leak-on-activation-failure.patch
+mm-hugetlb_vmemmap-fix-incorrect-vmemmap-restore-in-rollback.patch
+mm-sparse-remove-sparse-buffer-pre-allocation-mechanism.patch
+mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
+mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
+mm-sparse-vmemmap-pass-pgmap-argument-to-memory-deactivation-paths.patch
+mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization.patch
+mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch
+mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
+mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
+drivers-base-memory-make-memory-block-get-put-explicit.patch
 
