@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7098E3D3CE9
-	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 16:44:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3EAD2D97AA
+	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 17:17:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779813870; cv=none; b=FesKglav09cIfOF8J9fa72RD95JG1H4IkzE3H0W0ovCyQYmdTao0HPdCm3SM82CeJ3FkoEIDIEXvPk/fPS4z1wD2GqmBKfxBeBlMEOW7EGit5ZSNFX6lkKxAUEpY2YWfGOkKNImS6WOSTFrF/Iyr+ytDwKcPl1t+67/+w9jd/hE=
+	t=1779815842; cv=none; b=EbyzBNI7kZTaPhCxRxb/sDy2gw9K337lIB81fnfm2aSwVndGcG+vlkIeTbTfSO19rPhTIQdejxvG7+40EnEuvA/fJWXM86f8T2KedKE5Npq8cA7bJqewFSKqm5FJGmukunEQh8ddxyHDuKUbrxAuDpZi/34TV2j72q+PefYxdB8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779813870; c=relaxed/simple;
-	bh=TAErXzuKWTFvDRnk+H8bwLBXUyu9fw0heq/6voTJ650=;
-	h=Date:To:From:Subject:Message-Id; b=b3rcoBhNbv/3bJgAgMPGZJwTT34JMqzqhGWmh6Thq7nSpWuGgWqq51p5nupYvWtlFFEc+vJOaAjlykvmgAmB4EXpo+YkTx/Exwt99I8vsFgVsaHVTcvRYBy9pI8D0OOTspIfIiCM3ChalXIuZ2RCpb/j+97KhMSs72wnJJNWPqY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LucGWPHX; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779815842; c=relaxed/simple;
+	bh=7OgOjxkFDtfuQpj2kAOPY/QAGwNvbC+3CHIQgAMv5q8=;
+	h=Date:To:From:Subject:Message-Id; b=FOgVHBtFdJb3u2VJb1+6iq9DE9jsdGA2MnKIwhMH7X+ZU3M4PzSTw7A2vH13fz12WqXKG97RLTCDEjmsxfd6AV4zs34EJA39vwEZh4C2fvrySS0jhs28s3yXsXVEJIv5CuvMMXLE/H6CZby7FJtimZy0pj4Rc7VsTX2a2FT3qaw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0eZQVYjM; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LucGWPHX"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 03D9C1F000E9;
-	Tue, 26 May 2026 16:44:28 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0eZQVYjM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78DA01F000E9;
+	Tue, 26 May 2026 17:17:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779813869;
-	bh=JwaMwjcEHHgNVcrOtXh5NZCiZee8TV55DlxT3XTqSNg=;
+	d=linux-foundation.org; s=korg; t=1779815840;
+	bh=iUPlP7rLLAHHnKAesvxYtx3gL5sa0P1MTlgV92vKywE=;
 	h=Date:To:From:Subject;
-	b=LucGWPHXPTm02pRXl/5Bj8P5MaS8b4AcqX0efs9OlqxJTFFAadZlHYMmvkh72/dk+
-	 ftZLUDKV7roezGJxMbTqwUg4X0CtvxSvltJxj4BfmLNAMjXUBJlBUG5InAEpzmklL2
-	 8s9dFtwMyTg9VjEd6ncXjbIE5GFJsbJec+5IXLmo=
-Date: Tue, 26 May 2026 09:44:28 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,npache@redhat.com,akpm@linux-foundation.org
+	b=0eZQVYjMoiRs7aY48vNMIW3Slgl1ZxWy03lZoVcQcGx521QNcuyN7dfRmMYxzIdS7
+	 TreQ/xf5u6iZd+d3n5yFii94Dgq91fWfu4KnYT3GdGXClNtIU1aUuvGdMWyeuorQDk
+	 sN/ZP7tqfHnzlZ0mOr9GnXJWhsL5LSEf28cMVcNw=
+Date: Tue, 26 May 2026 10:17:20 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,xueyuan.chen21@gmail.com,willy@infradead.org,will@kernel.org,weixugc@google.com,wangzicheng@honor.com,surenb@google.com,shakeel.butt@linux.dev,qi.zheng@linux.dev,liulei.rjpt@vivo.com,lance.yang@linux.dev,kasong@tencent.com,kaleshsingh@google.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support-fix.patch added to mm-unstable branch
-Message-Id: <20260526164429.03D9C1F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active-in-pf.patch removed from -mm tree
+Message-Id: <20260526171720.78DA01F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,100 +34,167 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: cleanup collapse_max_ptes_none
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support-fix.patch
+The quilt patch titled
+     Subject: mm/mglru: use folio_mark_accessed to replace folio_set_active in PF
+has been removed from the -mm tree.  Its filename was
+     mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active-in-pf.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support-fix.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: cleanup collapse_max_ptes_none
-Date: Tue May 26 05:40:03 2026 -0600
+From: "Barry Song (Xiaomi)" <baohua@kernel.org>
+Subject: mm/mglru: use folio_mark_accessed to replace folio_set_active in PF
+Date: Sat, 18 Apr 2026 20:02:33 +0800
 
-make max_ptes_none a const and cleanup the pr_warn_once
+MGLRU gives high priority to folios mapped in page tables.  As a result,
+folio_set_active() is invoked for all folios read during page faults.  In
+practice, however, readahead can bring in many folios that are never
+accessed via page tables.
 
-Link: https://lore.kernel.org/b5fa19c5-4b3e-40b8-8e78-fc31169a7a79@redhat.com
-Signed-off-by: Nico Pache <npache@redhat.com>
-Acked-by: David Hildenbrand (arm) <david@kernel.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: "Liam R. Howlett" <liam@infradead.org>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: Lance Yang <lance.yang@linux.dev>
+A previous attempt by Lei Liu proposed introducing a separate LRU for
+readahead[1] to make readahead pages easier to reclaim, but that approach
+is likely over-engineered.
+
+Before commit 4d5d14a01e2c ("mm/mglru: rework workingset protection"),
+folios with PG_active were always placed in the youngest generation,
+leading to over-protection and increased refaults.  After that commit,
+PG_active folios are placed in the second youngest generation, which is
+still too optimistic given the presence of readahead.  In contrast, the
+classic active/inactive scheme is more conservative.
+
+This patch switches to folio_mark_accessed().  If folio_check_references()
+later detects referenced PTEs, the folio will be promoted based on the
+reference flag set by folio_mark_accessed().
+
+The following uses a simple model to demonstrate why the current code is
+not ideal.  It runs fio-3.42 in a memcg, reading a file in a strided
+pattern—4KB every 64KB—to simulate prefaulted pages that may not be
+accessed.
+
+ #!/bin/bash
+
+ CG_NAME="mglru_verify_test"
+ CG_PATH="/sys/fs/cgroup/$CG_NAME"
+ MEM_LIMIT="400M"
+ HOT_SIZE="600M"
+
+ # 1. Environment Setup
+ sudo rmdir "$CG_PATH" 2>/dev/null
+ sudo mkdir -p "$CG_PATH"
+ sudo chown -R $USER:$USER "$CG_PATH"
+ echo "$MEM_LIMIT" > "$CG_PATH/memory.max"
+
+ # 2. Prepare Data Files
+ dd if=/dev/urandom of=hot_data.bin bs=1M count=600 conv=notrunc 2>/dev/null
+ sync
+ echo 3 > /proc/sys/vm/drop_caches
+
+ # 3. Start Workload (Working Set)
+ (
+     echo $BASHPID > "$CG_PATH/cgroup.procs"
+     exec ./fio-3.42 --name=hot_ws --rw=read --bs=4K --size=$HOT_SIZE --runtime=600 \
+          --zonemode=strided --zonesize=4K --zonerange=64K \
+ 	 --time_based --direct=0 --filename=hot_data.bin --ioengine=mmap \
+          --fadvise_hint=0 --group_reporting --numjobs=1 > fio.stats
+ ) &
+ WORKLOAD_PID=$!
+
+ # 4. Waiting for hot data to warm up
+ sleep 30
+ BASE_FILE=$(grep "workingset_refault_file" "$CG_PATH/memory.stat" | awk '{print $2}')
+
+ # 5. Running workload for 60second
+ sleep 60
+
+ # 6. Report refault and IO bandwidth
+ FINAL_FILE=$(grep "workingset_refault_file" "$CG_PATH/memory.stat" | awk '{print $2}')
+ FINAL_D_FILE=$((FINAL_FILE - BASE_FILE))
+ echo "File Refault Delta is $FINAL_D_FILE"
+
+ kill $WORKLOAD_PID 2>/dev/null
+ sleep 2
+ grep -E "READ|WRITE" fio.stats \
+ | awk '{for(i=1;i<=NF;i++){if($i ~ /^bw=/) bw=$i; if($i ~ /^io=/) io=$i} print $1, bw, io}'
+ rm -f hot_data.bin fio.stats
+
+Without the patch, we observed 12883855 file refaults and a very low
+bandwidth of 58.5 MiB/s, because prefaulted but unused pages occupy hot
+positions, continuously pushing out the real working set and causing
+incorrect reclaim.  With the patch, we observed 0 refaults and bandwidth
+increased to 5078 MiB/s.
+
+Note that this patch does not benefit any platform other than arm64, since
+commit 315d09bf30c2 ("Revert "mm: make faultaround produce old ptes"")
+reverted the change that made prefault PTEs “old”, after it was
+identified as the cause of a ~6% regression in UnixBench on x86.  This was
+due to reports that x86 uses an internal microfault mechanism for HW AF. 
+The hardware access flag mechanism is relatively expensive and can lead to
+a ~6% UnixBench regression when prefaulted PTEs are not marked young
+directly in the page fault path, especially when UnixBench runs without
+any memory pressure[2].
+
+Thanks to Will for raising this for arm64—“Create `old' PTEs for
+faultaround mappings on arm64 with hardware access flag” [3].  This is
+also thanks to arm64 microarchitectures, which incur zero cost for HW AF
+handling.
+
+It may be time for x86 and other architectures to revisit whether HW AF is
+truly costly on their platforms, given that the original x86 regression
+was reported 10 years ago.
+
+For those who want to try the model on x86, you will need the
+following in arch/x86/include/asm/pgtable.h.
+
+ #define arch_wants_old_prefaulted_pte arch_wants_old_prefaulted_pte
+ static inline bool arch_wants_old_prefaulted_pte(void)
+ {
+ 	return true;
+ }
+
+Lance and Xueyuan made a huge contribution to this patch through testing. 
+They truly worked over weekends and after work hours.  If this patch
+deserves any credit, it belongs to them.
+
+Link: https://lore.kernel.org/20260418120233.7162-1-baohua@kernel.org
+Link: https://lore.kernel.org/linux-mm/20250916072226.220426-1-liulei.rjpt@vivo.com/ [1]
+Link: https://lore.kernel.org/lkml/20160606022724.GA26227@yexl-desktop/ [2]
+Link: https://lore.kernel.org/lkml/20210120173612.20913-1-will@kernel.org/ [3]
+Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
+Tested-by: Lance Yang <lance.yang@linux.dev>
+Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
+Cc: Kairui Song <kasong@tencent.com>
+Cc: Qi Zheng <qi.zheng@linux.dev>
+Cc: Shakeel Butt <shakeel.butt@linux.dev>
+Cc: wangzicheng <wangzicheng@honor.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Lei Liu <liulei.rjpt@vivo.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/swap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support-fix
-+++ a/mm/khugepaged.c
-@@ -360,7 +360,7 @@ static bool pte_none_or_zero(pte_t pte)
- static unsigned int collapse_max_ptes_none(struct collapse_control *cc,
- 		struct vm_area_struct *vma, unsigned int order)
- {
--	unsigned int max_ptes_none = khugepaged_max_ptes_none;
-+	const unsigned int max_ptes_none = khugepaged_max_ptes_none;
+--- a/mm/swap.c~mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active-in-pf
++++ a/mm/swap.c
+@@ -512,7 +512,7 @@ void folio_add_lru(struct folio *folio)
+ 	/* see the comment in lru_gen_folio_seq() */
+ 	if (lru_gen_enabled() && !folio_test_unevictable(folio) &&
+ 	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC))
+-		folio_set_active(folio);
++		folio_mark_accessed(folio);
  
- 	if (vma && userfaultfd_armed(vma))
- 		return 0;
-@@ -376,14 +376,13 @@ static unsigned int collapse_max_ptes_no
- 	 */
- 	if (max_ptes_none == KHUGEPAGED_MAX_PTES_LIMIT)
- 		return (1 << order) - 1;
--	if (!max_ptes_none)
--		return 0;
- 	/*
- 	 * For mTHP collapse of values other than 0 or KHUGEPAGED_MAX_PTES_LIMIT,
- 	 * emit a warning and return 0.
- 	 */
--	pr_warn_once("mTHP collapse does not support max_ptes_none values"
--		     " other than 0 or %u, defaulting to 0.\n",
-+	if (max_ptes_none)
-+		pr_warn_once("mTHP collapse does not support max_ptes_none"
-+		     " values other than 0 or %u, defaulting to 0.\n",
- 		     KHUGEPAGED_MAX_PTES_LIMIT);
- 	return 0;
+ 	folio_batch_add_and_move(folio, lru_add);
  }
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from baohua@kernel.org are
 
-mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
-mm-khugepaged-rework-max_ptes_-handling-with-helper-functions.patch
-mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
-mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support-fix.patch
-mm-khugepaged-require-collapse_huge_page-to-enter-exit-with-the-lock-dropped.patch
-mm-khugepaged-generalize-collapse_huge_page-for-mthp-collapse.patch
-mm-khugepaged-generalize-collapse_huge_page-for-mthp-collapse-fix.patch
-mm-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
-mm-khugepaged-add-per-order-mthp-collapse-failure-statistics.patch
-mm-khugepaged-improve-tracepoints-for-mthp-orders.patch
-mm-khugepaged-introduce-collapse_allowable_orders-helper-function.patch
-mm-khugepaged-introduce-mthp-collapse-support.patch
-mm-khugepaged-introduce-mthp-collapse-support-fix.patch
-mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
-documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
-documentation-mm-update-the-admin-guide-for-mthp-collapse-fix.patch
+mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split.patch
+mm-mglru-avoid-reclaim-type-fall-back-when-isolation-makes-no-progress.patch
 
