@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CAB939732C
-	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 20:03:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D62E318EE2
+	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 20:15:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779825823; cv=none; b=kAMgZu1gNnBPhfN4dOGvamNn3Yt7lJfmoU2AbnOOjFRDY6XmPIgifO5pRCBy3HQMkimJD0b8jWyGA3s7IdfjcVXexfnbXPuds8oKlY1yCceHFWOcgE83OxanR1epTf4Exm45h6Tbt/ylyJ0bWeVAzO8E9Bqgc9FjMDYguAAYS8o=
+	t=1779826526; cv=none; b=SEv/Aldjf1U6pBAbKcQzMUnNzDRlb6RTQk3IjSGyomFlkUptdOf7677354gTRCMBbNadxnv3RAEjIaF6sinzoYDd3u8hNVd6HysYi1N7JhpY3bHFU/jue9d1BgQY80+xxbyK0m4dyU7/8UHLGzFt3lnWDVy5AzBv5lAsg0YrreM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779825823; c=relaxed/simple;
-	bh=u27+7IHg6zyDpTEubIG9pJdzpBGFSax6B9KlahBSiV4=;
-	h=Date:To:From:Subject:Message-Id; b=lEa/LEPnBMYXbkML7P9VJhCllOMIplvC/YJpT2/iuqqTXPr0u49NtXtglQA19eGAaMDPx3owdk5DHRKtQZWJPXpvgziqfhVe1hPSvVUDgjXqDlkVJVEUql35BSGxAAiN8v6epXeG/ebvHJQtGRzKdomfVzofvvNFVtP1IgDsYPM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=wuLjZz+5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779826526; c=relaxed/simple;
+	bh=Wirds/06H8fgTlPBtOHZ696+v/kaen9z7ZZPHD6Jr7c=;
+	h=Date:To:From:Subject:Message-Id; b=PUwB8HzzebZQumpGlzgYAJEkUPrbDjHtyQisQyNsUqyaUBI/Ad76zQOb4oAYDyxUGphY93Y6kYmKkjQUFckuqa0yyAHknjC8Q+597AevTg/oRq+ZCYPW5WwADghKUX6nFveewpKS8T/8Ze5UPPUB1Hy6xu/KugO6MhiFRu6ADc4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H5VteAA+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="wuLjZz+5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF5301F00A3A;
-	Tue, 26 May 2026 20:03:41 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H5VteAA+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 64D971F000E9;
+	Tue, 26 May 2026 20:15:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779825821;
-	bh=MwvVSZh7Ui/AVUcEIN/izygRdhKZm9t+a0CsKUc55Uc=;
+	d=linux-foundation.org; s=korg; t=1779826524;
+	bh=cllDD94vcr9QBxRiDvbIEgDXei1UlNZ2qoGLsuRj1Yk=;
 	h=Date:To:From:Subject;
-	b=wuLjZz+5fcUJWDIpUbMXaFskxUqyF77xi9+hC+43rIZmQSFj2/QJVZ6+27hAkEC+J
-	 n9scVM1cn4NVVHZ7vNA4N8AOxSABa7Erx90IBkyA286Xs0XPjaWKi5HQ9mGT6TOi0D
-	 lDA1+KnfpnyqwQzBaSS8na/aHs41FUB9w1nDQ40Y=
-Date: Tue, 26 May 2026 13:03:41 -0700
-To: mm-commits@vger.kernel.org,richardycc@google.com,minchan@kernel.org,bgeffon@google.com,axboe@kernel.dk,senozhatsky@chromium.org,akpm@linux-foundation.org
+	b=H5VteAA+ndxpKtX0spbx3IEdCStisyCklIkic5zutSmfBDbjz6TTpHJKcwFMlCNJr
+	 oESkowkoCGunm20p8PAxs66dgnzkMZN2cuycetMDSrgHASIKnRf1f4RVck/BEDaxRY
+	 CLzV7juxh0p3Sse54XTW3upeN8kcsRcHk2c9wYRc=
+Date: Tue, 26 May 2026 13:15:23 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-clear-trailing-bytes-of-compressed-writeback-pages.patch added to mm-new branch
-Message-Id: <20260526200341.BF5301F00A3A@smtp.kernel.org>
+Subject: + mm-remove-mentions-of-pagewriteback.patch added to mm-new branch
+Message-Id: <20260526201524.64D971F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: clear trailing bytes of compressed writeback pages
+     Subject: mm: remove mentions of PageWriteback
 has been added to the -mm mm-new branch.  Its filename is
-     zram-clear-trailing-bytes-of-compressed-writeback-pages.patch
+     mm-remove-mentions-of-pagewriteback.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-clear-trailing-bytes-of-compressed-writeback-pages.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-remove-mentions-of-pagewriteback.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,57 +69,81 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: zram: clear trailing bytes of compressed writeback pages
-Date: Tue, 26 May 2026 11:27:17 +0900
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: remove mentions of PageWriteback
+Date: Tue, 26 May 2026 20:56:48 +0100
 
-Patch series "zram: writeback fixes", v2.
+Update two comments to refer to writeback in general instead of the
+specific flag.  Convert the large comment in memory.c to be entirely
+folio-based.
 
-Brian (privately) reported a "leak" of writeback bitmap in certain cases,
-so that backing device can store less pages; and a theoretical data leak
-in the trailing bytes of compressed writeback pages.  Both issues are low
-risk.
-
-
-This patch (of 2):
-
-When compressed writeback is available writtenback pages contain "garbage"
-in PAGE_SIZE - obj_size trailing bytes.  That "garbage" is, basically,
-whatever data that page held before we got it for writeback.  To get
-advantage of it an attacker needs to be able to read from active backing
-swap device, which is already catastrophic.  Still, just in case, zero out
-those trailing bytes before writeback to a backing device so that we only
-store swap-ed out data there.
-
-Link: https://lore.kernel.org/20260526022754.2377730-1-senozhatsky@chromium.org
-Link: https://lore.kernel.org/20260526022754.2377730-3-senozhatsky@chromium.org
-Fixes: d38fab605c66 ("zram: introduce compressed data writeback")
-Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Suggested-by: Brian Geffon <bgeffon@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Richard Chang <richardycc@google.com>
+Link: https://lore.kernel.org/20260526195650.353196-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/compaction.c |    2 +-
+ mm/memory.c     |   20 ++++++++++----------
+ mm/migrate.c    |    2 +-
+ 3 files changed, 12 insertions(+), 12 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-clear-trailing-bytes-of-compressed-writeback-pages
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2134,6 +2134,8 @@ static int read_from_zspool_raw(struct z
- 	zs_obj_read_end(zram->mem_pool, handle, size, src);
- 	zcomp_stream_put(zstrm);
+--- a/mm/compaction.c~mm-remove-mentions-of-pagewriteback
++++ a/mm/compaction.c
+@@ -1123,7 +1123,7 @@ isolate_migratepages_block(struct compac
+ 		 * To minimise LRU disruption, the caller can indicate with
+ 		 * ISOLATE_ASYNC_MIGRATE that it only wants to isolate pages
+ 		 * it will be able to migrate without blocking - clean pages
+-		 * for the most part.  PageWriteback would require blocking.
++		 * for the most part.  Writeback would require blocking.
+ 		 */
+ 		if ((mode & ISOLATE_ASYNC_MIGRATE) && folio_test_writeback(folio))
+ 			goto isolate_fail_put;
+--- a/mm/memory.c~mm-remove-mentions-of-pagewriteback
++++ a/mm/memory.c
+@@ -5398,18 +5398,18 @@ static vm_fault_t __do_fault(struct vm_f
+ 	vm_fault_t ret;
  
-+	memzero_page(page, size, PAGE_SIZE - size);
-+
- 	return 0;
- }
- #endif
+ 	/*
+-	 * Preallocate pte before we take page_lock because this might lead to
+-	 * deadlocks for memcg reclaim which waits for pages under writeback:
+-	 *				lock_page(A)
+-	 *				SetPageWriteback(A)
+-	 *				unlock_page(A)
+-	 * lock_page(B)
+-	 *				lock_page(B)
++	 * Preallocate pte before we take folio lock because this might lead to
++	 * deadlocks for memcg reclaim which waits for folios under writeback:
++	 *				folio_lock(A)
++	 *				folio_set_writeback(A)
++	 *				folio_unlock(A)
++	 * folio_lock(B)
++	 *				folio_lock(B)
+ 	 * pte_alloc_one
+ 	 *   shrink_folio_list
+-	 *     wait_on_page_writeback(A)
+-	 *				SetPageWriteback(B)
+-	 *				unlock_page(B)
++	 *     folio_wait_writeback(A)
++	 *				folio_set_writeback(B)
++	 *				folio_unlock(B)
+ 	 *				# flush A, B to clear the writeback
+ 	 */
+ 	if (pmd_none(*vmf->pmd) && !vmf->prealloc_pte) {
+--- a/mm/migrate.c~mm-remove-mentions-of-pagewriteback
++++ a/mm/migrate.c
+@@ -1256,7 +1256,7 @@ static int migrate_folio_unmap(new_folio
+ 	if (folio_test_writeback(src)) {
+ 		/*
+ 		 * Only in the case of a full synchronous migration is it
+-		 * necessary to wait for PageWriteback. In the async case,
++		 * necessary to wait for writeback. In the async case,
+ 		 * the retry loop is too short and in the sync-light case,
+ 		 * the overhead of stalling is too much
+ 		 */
 _
 
-Patches currently in -mm which might be from senozhatsky@chromium.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-zram-do-not-leak-blk-idx-at-the-end-of-writeback.patch
-zram-clear-trailing-bytes-of-compressed-writeback-pages.patch
+mm-remove-mentions-of-pagewriteback.patch
+mm-document-the-folio-refcount-a-little-better.patch
 
