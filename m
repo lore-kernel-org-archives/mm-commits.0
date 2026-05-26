@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A371D156CA;
-	Tue, 26 May 2026 18:41:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A39CC156CA;
+	Tue, 26 May 2026 18:46:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779820862; cv=none; b=I+ZwymwC+GsCBmR0PmAnuSQ/ruCPNJFSC0Ym/XutafTDYGx7RSnHxDtTFI/ydJ2DKbV3PkSfuSTkmVjA2OsIX+wEiJG6NxpB1DzK+wpBw4D0a9+vS0RPIS/p+miGovqcYRpRnNas3UmEv2eLJ5my2LR/mB9PfEI7d0bUMH0qRdk=
+	t=1779821219; cv=none; b=fE+6Kn9KfuwHXahr7PfffIIa2s/08Izt5TMoZF5U1fUDm+HiwTsCF8+qf2YVtp5DJKoBdl05r3rdRG6kjU9ZKq3gyI53fhAEPM8wCIYKd02uz9L2L/BuHZH2QRmj94LZUGcrtrVVOilB+7MDOW8Vsv2u1u5LwBbkuQuXs+5NuYQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779820862; c=relaxed/simple;
-	bh=5TUz7hKJ2spVPhj1jubgmwYfG+fYhUVUAO1TLToQTvY=;
-	h=Date:To:From:Subject:Message-Id; b=Jvl8ufSGe9xwqfIjHP3DHxUGOPNWVVefA+PPF6dC9hs+eAZclWj3iROkq9xHMcMGOljzzJCOjq7li8Hw3UyW5vqlxAe0mznDeOFgQBHbUdilY0gDATbdPVthH3eP0OP81E92lLjGdroWQIsY1dwitIulYxAOuWdlYu7Cpxw3hIU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pAUhs5ph; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779821219; c=relaxed/simple;
+	bh=b+PFGuxn4oW4UDvhhsh0mxUNZbVnK3ju+oIn7lqT2cQ=;
+	h=Date:To:From:Subject:Message-Id; b=u9QLTUSPHZXnvagNjZPlrYr5zrRTJ59cqlsLNQSOlO0M4VOj6M75ErGLmior1adEwHiDudTLef7EXm+hREYf2ub6Pn3Mz2Knu8wtNwZNENpqKL/HPP0BKMPTf32ct+EPzVMm0X4HPZpPfXlcLEXAvP6N9aMpv2AaHFbD8WuGYQM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=PE/ahD6c; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pAUhs5ph"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BA431F000E9;
-	Tue, 26 May 2026 18:41:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="PE/ahD6c"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DED71F00A3C;
+	Tue, 26 May 2026 18:46:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779820860;
-	bh=S0k7sdh9b+kV2OAw2subjfrrMUXuf08AOusv7MZwdsg=;
+	d=linux-foundation.org; s=korg; t=1779821218;
+	bh=t/9ZzDp61s9GPyUsg5pIOn18nUTW7EH47VDxEhT2HcQ=;
 	h=Date:To:From:Subject;
-	b=pAUhs5phOs3NLNlLHkjRruu+b7azXR33b7ZMVOu+PtNEz3Lg45S9Cka99JFWE1XqD
-	 ew+RC+1I4iIGxxjoOtc5T9HbingscVR3QV3WH07tXHlBni06X3OHRuwH7mCi7uA9ju
-	 D2UnlINce5sUnAOU8XgAU1xHSZulsi1XVkya52v0=
-Date: Tue, 26 May 2026 11:40:59 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,nathan@kernel.org,hca@linux.ibm.com,gor@linux.ibm.com,ansuelsmth@gmail.com,andriy.shevchenko@linux.intel.com,andersson@kernel.org,aleksander.lobakin@intel.com,agordeev@linux.ibm.com,arnd@arndb.de,akpm@linux-foundation.org
+	b=PE/ahD6c6cJEBQDbXvJJS3XJGKfv2Q0NKGZeJWIAnPGxxsLmSsnrqpHsJbuU7XZoU
+	 nI9YTW9nPkC8tCLPS/BsLwBkMbbP6YA85LFRvPiidjb5EVpp7tGeh6FlYtr4KOUy1x
+	 1bg3UASU3AdzjvR5+MBGOlDOIYhZR6kn23pokeHA=
+Date: Tue, 26 May 2026 11:46:57 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,wangkefeng.wang@huawei.com,stable@vger.kernel.org,ryan.roberts@arm.com,npache@redhat.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,chenjun102@huawei.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,apopple@nvidia.com,yintirui@huawei.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + errh-use-__always_inline-on-all-error-pointer-helpers.patch added to mm-nonmm-unstable branch
-Message-Id: <20260526184100.3BA431F000E9@smtp.kernel.org>
+Subject: + mm-huge_memory-update-file-pud-counter-before-folio_put.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260526184658.2DED71F00A3C@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: err.h: use __always_inline on all error pointer helpers
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     errh-use-__always_inline-on-all-error-pointer-helpers.patch
+     Subject: mm/huge_memory: update file PUD counter before folio_put()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-huge_memory-update-file-pud-counter-before-folio_put.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/errh-use-__always_inline-on-all-error-pointer-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-update-file-pud-counter-before-folio_put.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,100 +58,56 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: err.h: use __always_inline on all error pointer helpers
-Date: Tue, 26 May 2026 12:18:41 +0200
+From: Yin Tirui <yintirui@huawei.com>
+Subject: mm/huge_memory: update file PUD counter before folio_put()
+Date: Tue, 26 May 2026 18:13:55 +0800
 
-While testing randconfig builds on s390, I came across a link failure with
-CONFIG_DMA_SHARED_BUFFER disabled:
+__split_huge_pud_locked() updates the file/shmem RSS counter after
+dropping the PUD mapping's folio reference.  If folio_put() drops the last
+reference, mm_counter_file() can later read freed folio state via
+folio_test_swapbacked().
 
-ERROR: modpost: "dma_buf_put" [drivers/iommu/iommufd/iommufd.ko] undefined!
+Move the counter update before folio_put().
 
-The problem here is that IS_ERR() is not inlined and dead code elimination
-fails as a consequence.
-
-The err.h helpers all turn into a trivial assignment of a bit mask and
-should never result in a function call, so force them to always be inline.
-This should generally result in better object code aside from avoiding
-the link failure above.
-
-Link: https://lore.kernel.org/20260526101851.2495110-1-arnd@kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Alexander Lobakin <aleksander.lobakin@intel.com>
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Ansuel Smith <ansuelsmth@gmail.com>
-Cc: Bjorn Andersson <andersson@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Link: https://lore.kernel.org/20260526101355.1984244-1-yintirui@huawei.com
+Fixes: dbe54153296d ("mm/huge_memory: add vmf_insert_folio_pud()")
+Signed-off-by: Yin Tirui <yintirui@huawei.com>
+Reviewed-by: Lorenzo Stoakes <ljs@kernel.org>
+Acked-by: David Hildenbrand (arm) <david@kernel.org>
+Reviewed-by: Lance Yang <lance.yang@linux.dev>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Chen Jun <chenjun102@huawei.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/err.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/err.h~errh-use-__always_inline-on-all-error-pointer-helpers
-+++ a/include/linux/err.h
-@@ -36,7 +36,7 @@
-  *
-  * Return: A pointer with @error encoded within its value.
-  */
--static inline void * __must_check ERR_PTR(long error)
-+static __always_inline void * __must_check ERR_PTR(long error)
- {
- 	return (void *) error;
+--- a/mm/huge_memory.c~mm-huge_memory-update-file-pud-counter-before-folio_put
++++ a/mm/huge_memory.c
+@@ -3015,9 +3015,9 @@ static void __split_huge_pud_locked(stru
+ 	if (!folio_test_referenced(folio) && pud_young(old_pud))
+ 		folio_set_referenced(folio);
+ 	folio_remove_rmap_pud(folio, page, vma);
+-	folio_put(folio);
+ 	add_mm_counter(vma->vm_mm, mm_counter_file(folio),
+ 		-HPAGE_PUD_NR);
++	folio_put(folio);
  }
-@@ -60,7 +60,7 @@ static inline void * __must_check ERR_PT
-  * @ptr: An error pointer.
-  * Return: The error code within @ptr.
-  */
--static inline long __must_check PTR_ERR(__force const void *ptr)
-+static __always_inline long __must_check PTR_ERR(__force const void *ptr)
- {
- 	return (long) ptr;
- }
-@@ -73,7 +73,7 @@ static inline long __must_check PTR_ERR(
-  * @ptr: The pointer to check.
-  * Return: true if @ptr is an error pointer, false otherwise.
-  */
--static inline bool __must_check IS_ERR(__force const void *ptr)
-+static __always_inline bool __must_check IS_ERR(__force const void *ptr)
- {
- 	return IS_ERR_VALUE((unsigned long)ptr);
- }
-@@ -87,7 +87,7 @@ static inline bool __must_check IS_ERR(_
-  *
-  * Like IS_ERR(), but also returns true for a null pointer.
-  */
--static inline bool __must_check IS_ERR_OR_NULL(__force const void *ptr)
-+static __always_inline bool __must_check IS_ERR_OR_NULL(__force const void *ptr)
- {
- 	return unlikely(!ptr) || IS_ERR_VALUE((unsigned long)ptr);
- }
-@@ -99,7 +99,7 @@ static inline bool __must_check IS_ERR_O
-  * Explicitly cast an error-valued pointer to another pointer type in such a
-  * way as to make it clear that's what's going on.
-  */
--static inline void * __must_check ERR_CAST(__force const void *ptr)
-+static __always_inline void * __must_check ERR_CAST(__force const void *ptr)
- {
- 	/* cast away the const */
- 	return (void *) ptr;
-@@ -122,7 +122,7 @@ static inline void * __must_check ERR_CA
-  *
-  * Return: The error code within @ptr if it is an error pointer; 0 otherwise.
-  */
--static inline int __must_check PTR_ERR_OR_ZERO(__force const void *ptr)
-+static __always_inline int __must_check PTR_ERR_OR_ZERO(__force const void *ptr)
- {
- 	if (IS_ERR(ptr))
- 		return PTR_ERR(ptr);
+ 
+ void __split_huge_pud(struct vm_area_struct *vma, pud_t *pud,
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from yintirui@huawei.com are
 
-inith-discard-exitcall-symbols-early.patch
-errh-use-__always_inline-on-all-error-pointer-helpers.patch
+mm-huge_memory-update-file-pud-counter-before-folio_put.patch
 
