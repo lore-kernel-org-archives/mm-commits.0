@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 729A9421F11
-	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 17:18:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84D0A402B8D
+	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 17:42:52 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779815914; cv=none; b=OCS2/h6cqmubtXWw4Rxh7lr7Pg9V5q7IJqSejeTKgf0BN7pMIYhVxR6hISqO9c4ZKz83wAVEpTOcJFlKqyrUcyYNXo7JyzZkMPyrpGZZWR/mtujfXUz9STpKW2j8vqi3nkG9kEe4xJUdcMVhtmjPDqFkiS4sphWvKYwXmkEJp6w=
+	t=1779817373; cv=none; b=fTxUjZ3BOyIiwK4RvJNl6eI5/Hr0Qhf+02RRzgeRLGyiCtAEgGmbpkHGPuXy+nNwARyyAs9nXbwcfp/LtFx0GuoS3M8xgQaxHzwr5ZdqyI3lYAPSTg3jkybosvqSUgeKJnhDsozgtanWaaKQswUA8aWxC4EvIG7WWe89ywju4ug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779815914; c=relaxed/simple;
-	bh=Eck+ij5rXj5hSyjT8McfXF6hQkif9wJjPPF8y0TYWFU=;
-	h=Date:To:From:Subject:Message-Id; b=hjj76m51bJGQCnl/Iapmu8o81anZuqS2Obzh1zVyWx1DGBR0oQMsrVxAvKMuk74hOXprdBaLYuFAHTOJjSsXg5ylxWhfJfu13oQ17EN1RvpKN4ZJP0tIJMGmN1dw6Oj2UEj/TG033uvey7s6GdfZSNt6xZ39UdRdfgwmSausSds=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=trIbk/hs; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779817373; c=relaxed/simple;
+	bh=6kaz08eDlbv/Gwp1hrh7oKA41c/3L9ii5Et7GlIp/mY=;
+	h=Date:To:From:Subject:Message-Id; b=WNdunvTI+jiyTMDUcxSOtqK2PMntTLgxe43hJMPwZ+q8OA+yzVzdPELuqcgCm2bFUF3Rz0LyKM2z4259Pt625MS/3i6QjlE2KH1GwomPzhQqZyLslyMtkPJVTCwZXbvl0rpnFEaVmIQph5ZxdO0sRVF9YPHk5OJGuXWShj9u2PA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BZhM/reD; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="trIbk/hs"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51B7A1F000E9;
-	Tue, 26 May 2026 17:18:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BZhM/reD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E65FF1F000E9;
+	Tue, 26 May 2026 17:42:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779815910;
-	bh=zEQ18al6yJEG7+uUI17BBu1fpIY8PrdGlL3+69fAaxk=;
+	d=linux-foundation.org; s=korg; t=1779817372;
+	bh=SKU/tyrA9DirL4DkYbd0rJmrUrefYKj2brvxUDRADpc=;
 	h=Date:To:From:Subject;
-	b=trIbk/hsrCctxfi2Bo2xPM+q6K0ayN/bIKBUz3N8pXcGdu4k9mfKxTEwuLFos2pfe
-	 M4S/FuUI5OpYCC8tB0EHpDwlMTRxFnYGER/43Xby0QVbTn4gopa7ATdBJwKuLLUxXJ
-	 qudYndIupmJKFAhLiErCsoQJ8VG41rr1Hh3oozrY=
-Date: Tue, 26 May 2026 10:18:29 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,xueyuan.chen21@gmail.com,willy@infradead.org,will@kernel.org,weixugc@google.com,wangzicheng@honor.com,surenb@google.com,shakeel.butt@linux.dev,qi.zheng@linux.dev,pfalcato@suse.de,liulei.rjpt@vivo.com,lance.yang@linux.dev,kasong@tencent.com,kaleshsingh@google.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
+	b=BZhM/reDxwqexet7Jmnjx2TupoY8YsJvpjiop6XKXgd/OM1whdvkj8wQi2Y3e8JVG
+	 KKbWQ3hLTwU2GV32dezTtPBAlNV/sajtHdyELMYEmvTd/4vREJ2GrvD6DYRrIt50M7
+	 UKWfBNhhkBKXjeg5cZl5ivXh0ClKe9ylNYEb+8cc=
+Date: Tue, 26 May 2026 10:42:51 -0700
+To: mm-commits@vger.kernel.org,yukuai@fnnas.com,xiao@kernel.org,song@kernel.org,linan122@huawei.com,hch@lst.de,david.laight.linux@gmail.com,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active.patch added to mm-unstable branch
-Message-Id: <20260526171830.51B7A1F000E9@smtp.kernel.org>
+Subject: + lib-raid-use-kvmalloc-in-calibrate_xor_blocks.patch added to mm-nonmm-unstable branch
+Message-Id: <20260526174251.E65FF1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/mglru: use folio_mark_accessed to replace folio_set_active
-has been added to the -mm mm-unstable branch.  Its filename is
-     mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active.patch
+     Subject: lib/raid: use kvmalloc() in calibrate_xor_blocks()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     lib-raid-use-kvmalloc-in-calibrate_xor_blocks.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-raid-use-kvmalloc-in-calibrate_xor_blocks.patch
 
-This patch will later appear in the mm-unstable branch at
+This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,189 +58,136 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: use folio_mark_accessed to replace folio_set_active
-Date: Tue, 26 May 2026 21:09:38 +0800
+From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Subject: lib/raid: use kvmalloc() in calibrate_xor_blocks()
+Date: Tue, 26 May 2026 15:50:38 +0300
 
-MGLRU gives high priority to folios mapped in page tables.  As a result,
-folio_set_active() is invoked for all folios read during page faults.  In
-practice, however, readahead can bring in many folios that are never
-accessed via page tables.
+Patch series "lib/raid: replace __get_free_pages() call with kvmalloc()",
+v2.
 
-A previous attempt by Lei Liu proposed introducing a separate LRU for
-readahead[1] to make readahead pages easier to reclaim, but that approach
-is likely over-engineered.
+This is a (tiny) part of larger work of replacing page allocator calls
+with k*malloc.
 
-Before commit 4d5d14a01e2c ("mm/mglru: rework workingset protection"),
-folios with PG_active were always placed in the youngest generation,
-leading to over-protection and increased refaults.  After that commit,
-PG_active folios are placed in the second youngest generation, which is
-still too optimistic given the presence of readahead.  In contrast, the
-classic active/inactive scheme is more conservative.
 
-This patch switches to using folio_mark_accessed() and
-begins prefaulted file folios from the second oldest
-generation instead of active generations.
-We should also adjust the following accordingly:
-- WORKINGSET_ACTIVATE: aligned with setting active for refaulted workingset
-  folios;
-- lru_gen_folio_seq(): place (pre)faulted file folios into the second
-oldest generation;
-- promote second-scanned folios to workingset in
-folio_check_references(): we now have to depend on
-folio_lru_refs() > 1, since we previously relied on PG_referenced
-being set during the first scan, but PG_referenced is now set
-earlier.
+This patch (of 2):
 
-On x86, running a kernel build inside a memcg with a 1GB memory
-limit using 20 threads.
+The xor benchmark allocates an order 2 (4 pages) scratch buffer that is
+used purely as a CPU-only XOR working area.
 
-w/o patch:
-real	1m50.764s
-user	25m32.305s
-sys	4m0.012s
-pswpin: 1333245
-pswpout: 4366443
-pgpgin: 6962592
-pgpgout: 17780712
-swpout_zero: 1019603
-swpin_zero: 14764
-refault_file: 287794
-refault_anon: 1347963
+This buffer does not need to be physically contiguous and can be allocated
+with kvmalloc().
 
-w/ patch:
-real	1m48.879s
-user	25m29.224s
-sys	3m37.421s
-pswpin: 568480
-pswpout: 2322657
-pgpgin: 4073416
-pgpgout: 9613408
-swpout_zero: 593275
-swpin_zero: 9118
-refault_file: 262505
-refault_anon: 577550
+Replace __get_free_pages() call with kvmalloc().
 
-active/inactive LRU:
-
-real	1m49.928s
-user	25m28.196s
-sys	3m40.740s
-pswpin: 463452
-pswpout: 2309119
-pgpgin: 4438856
-pgpgout: 9568628
-swpout_zero: 743704
-swpin_zero: 7244
-refault_file: 562555
-refault_anon: 470694
-
-Lance and Xueyuan made a huge contribution to this patch through testing.
-
-Link: https://lore.kernel.org/20260526130938.66253-1-baohua@kernel.org
-Link: https://lore.kernel.org/linux-mm/20250916072226.220426-1-liulei.rjpt@vivo.com/ [1]
-Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
-Tested-by: Lance Yang <lance.yang@linux.dev>
-Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
-Cc: Pedro Falcato <pfalcato@suse.de>
-Cc: Kairui Song <kasong@tencent.com>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Shakeel Butt <shakeel.butt@linux.dev>
-Cc: wangzicheng <wangzicheng@honor.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Lei Liu <liulei.rjpt@vivo.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
+Link: https://lore.kernel.org/20260526-lib-v2-0-ca3f0fc24b14@kernel.org
+Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@redhat.com
+Link: https://lore.kernel.org/20260526-lib-v2-1-ca3f0fc24b14@kernel.org
+Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Cc: Li Nan <linan122@huawei.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Song Liu <song@kernel.org>
+Cc: Yu Kuai <yukuai@fnnas.com>
+Cc: Xiao Ni <xiao@kernel.org>
+Cc: David Laight <david.laight.linux@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    2 +-
- mm/swap.c                 |   16 +++++++++++++---
- mm/vmscan.c               |    6 +++++-
- mm/workingset.c           |   10 ++++++----
- 4 files changed, 25 insertions(+), 9 deletions(-)
+ lib/raid/xor/xor-core.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/include/linux/mm_inline.h~mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active
-+++ a/include/linux/mm_inline.h
-@@ -247,7 +247,7 @@ static inline unsigned long lru_gen_foli
- 		  (folio_test_dirty(folio) || folio_test_writeback(folio))))
- 		gen = MIN_NR_GENS;
- 	else
--		gen = MAX_NR_GENS - folio_test_workingset(folio);
-+		gen = MAX_NR_GENS - (folio_test_workingset(folio) || folio_test_referenced(folio));
+--- a/lib/raid/xor/xor-core.c~lib-raid-use-kvmalloc-in-calibrate_xor_blocks
++++ a/lib/raid/xor/xor-core.c
+@@ -8,6 +8,7 @@
  
- 	return max(READ_ONCE(lrugen->max_seq) - gen + 1, READ_ONCE(lrugen->min_seq[type]));
+ #include <linux/module.h>
+ #include <linux/gfp.h>
++#include <linux/slab.h>
+ #include <linux/raid/xor.h>
+ #include <linux/jiffies.h>
+ #include <linux/preempt.h>
+@@ -114,7 +115,7 @@ static int __init calibrate_xor_blocks(v
+ 	if (forced_template)
+ 		return 0;
+ 
+-	b1 = (void *) __get_free_pages(GFP_KERNEL, 2);
++	b1 = kvmalloc(PAGE_SIZE * 4, GFP_KERNEL);
+ 	if (!b1) {
+ 		pr_warn("xor: Yikes!  No memory available.\n");
+ 		return -ENOMEM;
+@@ -132,7 +133,7 @@ static int __init calibrate_xor_blocks(v
+ 	pr_info("xor: using function: %s (%d MB/sec)\n",
+ 	       fastest->name, fastest->speed);
+ 
+-	free_pages((unsigned long)b1, 2);
++	kvfree(b1);
+ 	return 0;
  }
---- a/mm/swap.c~mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active
-+++ a/mm/swap.c
-@@ -544,10 +544,20 @@ void folio_add_lru(struct folio *folio)
- 			folio_test_unevictable(folio), folio);
- 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
  
--	/* see the comment in lru_gen_folio_seq() */
-+	/*
-+	 * For refaulted workingset folios, set PG_active so they
-+	 * can be added to active generations.
-+	 * For prefaulted file folios, folio_mark_accessed() sets
-+	 * PG_referenced so lru_gen_folio_seq() places them into
-+	 * the second oldest generation.
-+	 */
- 	if (lru_gen_enabled() && !folio_test_unevictable(folio) &&
--	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC))
--		folio_set_active(folio);
-+	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC)) {
-+		if (folio_test_workingset(folio))
-+			folio_set_active(folio);
-+		else if (!folio_test_referenced(folio))
-+			folio_mark_accessed(folio);
-+	}
- 
- 	folio_batch_add_and_move(folio, lru_add);
- }
---- a/mm/vmscan.c~mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active
-+++ a/mm/vmscan.c
-@@ -848,7 +848,11 @@ static bool lru_gen_set_refs(struct foli
- 		return false;
- 	}
- 
--	set_mask_bits(&folio->flags.f, LRU_REFS_FLAGS, BIT(PG_workingset));
-+	/* Promote on second access */
-+	if (folio_lru_refs(folio) > 1)
-+		set_mask_bits(&folio->flags.f, LRU_REFS_FLAGS, BIT(PG_workingset));
-+	else
-+		folio_mark_accessed(folio);
- 	return true;
- }
- #else
---- a/mm/workingset.c~mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active
-+++ a/mm/workingset.c
-@@ -319,11 +319,13 @@ static void lru_gen_refault(struct folio
- 
- 	atomic_long_add(delta, &lrugen->refaulted[hist][type][tier]);
- 
--	/* see folio_add_lru() where folio_set_active() will be called */
--	if (lru_gen_in_fault())
--		mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
--
- 	if (workingset) {
-+		/*
-+		 * see folio_add_lru(), where folio_set_active() is
-+		 * called for workingset folios
-+		 */
-+		if (lru_gen_in_fault())
-+			mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
- 		folio_set_workingset(folio);
- 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + type, delta);
- 	} else
 _
 
-Patches currently in -mm which might be from baohua@kernel.org are
+Patches currently in -mm which might be from rppt@kernel.org are
 
-mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split.patch
-mm-mglru-avoid-reclaim-type-fall-back-when-isolation-makes-no-progress.patch
-mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active.patch
+userfaultfd-snapshot-vma-state-across-uffdio_copy-retry.patch
+selftests-mm-hugetlb-read-hwpoison-add-sigbus-handler.patch
+selftests-mm-migration-dont-assume-huge-page-is-twomeg.patch
+selftests-mm-migration-make-nthreads-represent-number-of-working-threads.patch
+selftests-mm-migration-properly-cleanup-forked-processes.patch
+selftests-mm-run_vmtestssh-dont-gate-thp-and-ksm-tests-on-have_hugepages.patch
+selftests-mm-merge-map_hugetlb-into-hugepage-mmap.patch
+selftests-mm-rename-hugepage-tests-to-hugetlb.patch
+selftests-mm-hugetlb-shm-use-kselftest-framework.patch
+selftests-mm-hugetlb-vmemmap-use-kselftest-framework.patch
+selftests-mm-hugetlb-madvise-use-kselftest-framework.patch
+selftests-mm-hugetlb_madv_vs_map-use-kselftest-framework.patch
+selftests-mm-hugetlb-read-hwpoison-use-kselftest-framework.patch
+selftests-mm-khugepaged-group-tests-in-an-array.patch
+selftests-mm-khugepaged-use-ksefltest-framework.patch
+selftests-mm-khugepaged-use-ksefltest-framework-fix.patch
+selftests-mm-ksm_tests-use-kselftest-framework.patch
+selftests-mm-protection_keys-use-descriptive-test-names-in-the-output.patch
+selftests-mm-protection_keys-use-kselftest-framework.patch
+selftests-mm-uffd-common-use-kselftest-framework.patch
+selftests-mm-uffd-stress-use-kselftest-framework.patch
+selftests-mm-uffd-unit-tests-use-kselftest-framework.patch
+selftests-mm-va_high_addr_switch-use-kselftest-framework.patch
+selftests-mm-add-atexit-and-signal-handlers-to-thp_settings.patch
+selftests-mm-rename-thp_settings-to-hugepage_settings.patch
+selftests-mm-move-hugetlb-helpers-to-hugepage_settings.patch
+selftests-mm-hugepage_settings-use-unsigned-long-in-detect_hugetlb_page_size.patch
+selftests-mm-hugepage_settings-add-apis-to-get-and-set-nr_hugepages.patch
+selftests-mm-hugepage_settings-rename-and-rework-get_free_hugepages.patch
+selftests-mm-hugepage_settings-add-apis-for-hugetlb-setup-and-teardown.patch
+selftests-mm-move-read_file-read_num-and-write_num-to-vm_util.patch
+selftests-mm-vm_util-add-helpers-to-set-and-restore-shm-limits.patch
+selftests-mm-compaction_test-use-hugetlb-helpers.patch
+selftests-mm-cow-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_longterm-add-setup-of-hugetlb-pages.patch
+selftests-mm-gup_test-add-setup-of-hugetlb-pages.patch
+selftests-mm-hmm-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugepage_dio-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_fault_after_madv-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-madvise-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb_madv_vs_map-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-shm-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-soft-offline-add-setup-of-hugetlb-pages.patch
+selftests-mm-hugetlb-vmemmap-add-setup-of-hugetlb-pages.patch
+selftests-mm-migration-add-setup-of-hugetlb-pages.patch
+selftests-mm-pagemap_ioctl-add-setup-of-hugetlb-pages.patch
+selftests-mm-protection_keys-use-library-code-for-hugetlb-setup.patch
+selftests-mm-thuge-gen-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-stress-use-hugetlb_save-and-alloc-huge-pages.patch
+selftests-mm-uffd-unit-tests-add-setup-of-hugetlb-pages.patch
+selftests-mm-uffd-wp-mremap-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switch-add-setup-of-hugetlb-pages.patch
+selftests-mm-va_high_addr_switchsh-drop-huge-pages-setup.patch
+selftests-mm-run_vmtestssh-free-memory-if-available-memory-is-low.patch
+selftests-mm-run_vmtestssh-drop-detection-and-setup-of-hugetlb.patch
+userfaultfd-ensure-mremap_userfaultfd_fail-releases-mmap_changing.patch
+userfaultfd-merge-fs-userfaultfdc-into-mm-userfaultfdc.patch
+userfaultfd-make-functions-that-are-not-used-outside-uffd-static.patch
+lib-raid-use-kvmalloc-in-calibrate_xor_blocks.patch
+lib-raid6-use-kvmalloc-in-raid6_select_algo.patch
 
