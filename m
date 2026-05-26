@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7E6E3AC0C2
-	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 19:39:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 96FB7395AC3
+	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 20:01:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779824344; cv=none; b=DxbTo2UJyXpKAKrECpb9BmZtL5BkQ7hYlFKeAXr3DT4CoseBesp/c6fBwqpnp/c067ZYkuLGJntCKbyTb8fLdDkDW99rqKGzV+d5Oi2jynwEv2Mvbwsx94WRx8chsuZEjmJesMSIe1POHYk7B6SqgOt07XAPabib+Zo6q7OxIKQ=
+	t=1779825710; cv=none; b=tOylkN2GbaL4kJgfrBRM4JXYBNcGAcDT1IiQJPTS0pyuu6ZsmPd2Pbms8+HLGM5beEA4iDRIaHvAfATRufxDkVhRUJisIXvOdsfljbeUjDJ0eRSoGvh2LMjMgM922PqKypYt5nXblXjN4I9EgHChOPDW4PBM0m3YbyyCHasC8J8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779824344; c=relaxed/simple;
-	bh=C6miJAIYmNHbPzd3WXzB+TJMSX17aFPVs2kkfjlR9cI=;
-	h=Date:To:From:Subject:Message-Id; b=fDyWBXVByfwZd6m0R3cwk8/jPElOFW4/dTxaTukBuAGbadlwJpT3GlzDXge7vVm37tHHbsJHpJYGF09jQKUIbVFlw0l93PAuomM5FStc1fNYPBoEH/Dj9QeV1Y3qnZO2PaaOfBNGw7mnNDrERfHncVcs0a8hzsdcs02/LhiM15o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=uO05Y/j9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779825710; c=relaxed/simple;
+	bh=GATdQKl/g1kkwgJAD9eE+AmYwEb1o8xqs8zDbFyS1Sw=;
+	h=Date:To:From:Subject:Message-Id; b=Fvjx1QNi0nSrPPe8bkQH7oelj6936Ll2piWNrM0fC5vBgQwv2FDQKt8EsfgRUYv08k6taq4anlOOIKI5U+kp7KtkEvzA4+Xm17ARg0DamAJL0Uojq+tcPtZZezy16oMIz45HdCQCT7oaOrsnzyet2q33clp486ChUIiDIcx5hQ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=od2ob4iZ; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="uO05Y/j9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79DD01F000E9;
-	Tue, 26 May 2026 19:39:02 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="od2ob4iZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A5C41F000E9;
+	Tue, 26 May 2026 20:01:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779824342;
-	bh=hw37myUf1Xwd1dpIG5wG/BoAFBUOhxiYcnMoXjTUtuY=;
+	d=linux-foundation.org; s=korg; t=1779825708;
+	bh=8OOymiD/4Bk9T9PZCX2p6gAaZEHSgLC8Nn3//XsKUKk=;
 	h=Date:To:From:Subject;
-	b=uO05Y/j9sR3nDpVcaBfxbZyAV5P5/EgfcvLBfYWJ73SnF2N9XhyzPXgt5uqdKOqUP
-	 RB09+Fm15qP/KChqhLgjkar1H3/Gdj6qYcModfRQJqe+n61W2zN3w5hitiMPHPxQ7l
-	 JWkAQa7w8sb20kmZaYDmQErNcgAVz/NkB9FGUIa0=
-Date: Tue, 26 May 2026 12:39:02 -0700
-To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,qi.zheng@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,joshua.hahnjy@gmail.com,harry@kernel.org,hannes@cmpxchg.org,alex@ghiti.fr,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=od2ob4iZTWg5JH9BTRyvRyNQ0etbXHZ4GXfQ0vSw/0c7s+bGwv7Qdo8CDvrXo+r2y
+	 HYrtZucUqQS4VFGj2KneU+mYT/ZC6JUqHJsHavP322yJWGOsZcvKJPm6B1oBmCMXHx
+	 7ucQCRiVVaLrNs7VBbOD6Sg4SKvfQtZChfjgTPWw=
+Date: Tue, 26 May 2026 13:01:47 -0700
+To: mm-commits@vger.kernel.org,senozhatsky@chromium.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-multi-objcg-charge-support.patch added to mm-new branch
-Message-Id: <20260526193902.79DD01F000E9@smtp.kernel.org>
+Subject: [to-be-updated] zram-do-not-leak-blk-idx-at-the-end-of-writeback.patch removed from -mm tree
+Message-Id: <20260526200148.1A5C41F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,445 +34,60 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: memcg: multi objcg charge support
-has been added to the -mm mm-new branch.  Its filename is
-     memcg-multi-objcg-charge-support.patch
+The quilt patch titled
+     Subject: zram: do not leak blk idx at the end of writeback
+has been removed from the -mm tree.  Its filename was
+     zram-do-not-leak-blk-idx-at-the-end-of-writeback.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-multi-objcg-charge-support.patch
-
-This patch will later appear in the mm-new branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: multi objcg charge support
-Date: Mon, 25 May 2026 20:39:31 -0700
+From: Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: zram: do not leak blk idx at the end of writeback
+Date: Mon, 25 May 2026 13:46:01 +0900
 
-Commit 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg
-per-node type") split a memcg's single obj_cgroup into one per NUMA node
-so that reparenting LRU folios can take per-node lru locks.  As a side
-effect, the per-CPU obj_stock_pcp -- which caches exactly one cached_objcg
--- thrashes on workloads where threads of the same memcg run on different
-NUMA nodes.  The kernel test robot reported a 67.7% regression on
-stress-ng.switch.ops_per_sec from this pattern.
+Patch series "zram: writeback fixes".
 
-Mirror the multi-slot pattern already used by memcg_stock_pcp: turn
-nr_bytes and cached_objcg into NR_OBJ_STOCK-element arrays, scan all slots
-on consume/refill/account, prefer empty slots when inserting, and evict a
-slot round-robin only when full.  With multiple slots a CPU can hold the
-per-node objcg variants of one memcg plus a few siblings without ever
-forcing a drain.
+Brian reported several issues with zram's writeback implementation.
+This small series addresses those issues.
 
-A single int8_t index records which slot the cached slab stats belong to;
-the stats are flushed on slot or pgdat change.  With NR_OBJ_STOCK = 5 the
-layout (verified with pahole) is:
 
-  offset 0  : lock(1) + index(1) + node_id(2) + slab stats(4) = 8B
-  offset 8  : nr_bytes[5]                                     = 10B
-  offset 18 : padding                                         = 6B
-  offset 24 : cached[5]                                       = 40B
-  offset 64 : (line 2) work_struct + flags (cold)
+This patch (of 2):
 
-so consume_obj_stock, refill_obj_stock and the slab account path each
-touch exactly one 64-byte cache line on non-debug 64-bit builds.
+In certain cases zram_writeback_slots() loop can terminate with blk_idx
+being valid (in particular when we race with modification of last slot)
+but zram_writeback_slots() forgets to release the reserved block id, which
+leads to this block becoming unavailable for future writeback.  Release
+valid blk_idx before returning from zram_writeback_slots().
 
-Link: https://lore.kernel.org/20260526033931.1760588-5-shakeel.butt@linux.dev
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Closes: https://lore.kernel.org/oe-lkp/202605121641.b6a60cb0-lkp@intel.com
-Fixes: 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg per-node type")
-Tested-by: kernel test robot <oliver.sang@intel.com>
-Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+Link: https://lore.kernel.org/20260525044639.1888561-1-senozhatsky@chromium.org
+Link: https://lore.kernel.org/20260525044639.1888561-2-senozhatsky@chromium.org
+Signed-off-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Suggested-by: Brian Geffon <bgeffon@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Richard Chang <richardycc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  200 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 142 insertions(+), 58 deletions(-)
+ drivers/block/zram/zram_drv.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/memcontrol.c~memcg-multi-objcg-charge-support
-+++ a/mm/memcontrol.c
-@@ -150,15 +150,15 @@ static void obj_cgroup_release(struct pe
- 	 * However, it can be PAGE_SIZE or (x * PAGE_SIZE).
- 	 *
- 	 * The following sequence can lead to it:
--	 * 1) CPU0: objcg == stock->cached_objcg
-+	 * 1) CPU0: objcg cached in one of stock->cached[i]
- 	 * 2) CPU1: we do a small allocation (e.g. 92 bytes),
- 	 *          PAGE_SIZE bytes are charged
- 	 * 3) CPU1: a process from another memcg is allocating something,
- 	 *          the stock if flushed,
- 	 *          objcg->nr_charged_bytes = PAGE_SIZE - 92
--	 * 5) CPU0: we do release this object,
--	 *          92 bytes are added to stock->nr_bytes
--	 * 6) CPU0: stock is flushed,
-+	 * 4) CPU0: we do release this object,
-+	 *          92 bytes are added to stock->nr_bytes[i]
-+	 * 5) CPU0: stock is flushed,
- 	 *          92 bytes are added to objcg->nr_charged_bytes
- 	 *
- 	 * In the result, nr_charged_bytes == PAGE_SIZE.
-@@ -2018,34 +2018,49 @@ static DEFINE_PER_CPU_ALIGNED(struct mem
- 	.lock = INIT_LOCAL_TRYLOCK(lock),
- };
+--- a/drivers/block/zram/zram_drv.c~zram-do-not-leak-blk-idx-at-the-end-of-writeback
++++ a/drivers/block/zram/zram_drv.c
+@@ -1127,6 +1127,9 @@ next:
+ 	if (req)
+ 		release_wb_req(req);
  
-+/*
-+ * NR_OBJ_STOCK is sized so the entire hot path of obj_stock_pcp
-+ * (lock, accounting metadata, nr_bytes[] and cached[]) fits within a
-+ * single 64-byte cache line on non-debug 64-bit builds. With 5 slots:
-+ *   lock(1) + index(1) + node_id(2) + slab stats(4) + nr_bytes(10)
-+ *   + pad(6) + cached(40) == 64 bytes.
-+ * A CPU can thus consume/refill/account against five different objcgs
-+ * (typically per-node variants of the same memcg) while incurring at
-+ * most one cache miss on the stock.
-+ */
-+#define NR_OBJ_STOCK 5
- struct obj_stock_pcp {
- 	local_trylock_t lock;
--	struct obj_cgroup *cached_objcg;
-+	int8_t index;
-+	int16_t node_id;
-+	int16_t nr_slab_reclaimable_b;
-+	int16_t nr_slab_unreclaimable_b;
- #if PAGE_SHIFT > 16
- 	/*
- 	 * On rare archs with 256KiB base page size (hexagon and powerpc 44x)
- 	 * keep nr_bytes to unsigned int as uint16_t cannot represent the full
--	 * sub-page remainder.
-+e patches/memcg-uint16_t-for-nr_bytes-in-obj_stock_pcp.patch	 * sub-page remainder. Such archs are not cacheline optimization target.
- 	 */
--	unsigned int nr_bytes;
-+	unsigned int nr_bytes[NR_OBJ_STOCK];
- #else
--	uint16_t nr_bytes;
-+	uint16_t nr_bytes[NR_OBJ_STOCK];
- #endif
--	int16_t node_id;
--	int16_t nr_slab_reclaimable_b;
--	int16_t nr_slab_unreclaimable_b;
-+	struct obj_cgroup *cached[NR_OBJ_STOCK];
- 
- 	struct work_struct work;
- 	unsigned long flags;
-+	uint8_t drain_idx;
- };
- 
- static DEFINE_PER_CPU_ALIGNED(struct obj_stock_pcp, obj_stock) = {
- 	.lock = INIT_LOCAL_TRYLOCK(lock),
-+	.index = -1,
- 	.node_id = NUMA_NO_NODE,
- };
- 
- static DEFINE_MUTEX(percpu_charge_mutex);
- 
-+static void drain_obj_stock_slot(struct obj_stock_pcp *stock, int i);
- static void drain_obj_stock(struct obj_stock_pcp *stock);
- static bool obj_stock_flush_required(struct obj_stock_pcp *stock,
- 				     struct mem_cgroup *root_memcg);
-@@ -3165,12 +3180,13 @@ static void unlock_stock(struct obj_stoc
- 		local_unlock(&obj_stock.lock);
- }
- 
--/* Call after __refill_obj_stock() to ensure stock->cached_objg == objcg */
-+/* Call after __refill_obj_stock() so a slot for objcg exists in the stock */
- static void __account_obj_stock(struct obj_cgroup *objcg,
- 				struct obj_stock_pcp *stock, int nr,
- 				struct pglist_data *pgdat, enum node_stat_item idx)
- {
- 	int16_t *bytes;
-+	int i;
- 
- 	/*
- 	 * Though at the moment MAX_NUMNODES <= 1024 in all archs but let's make
-@@ -3179,29 +3195,39 @@ static void __account_obj_stock(struct o
- 	 */
- 	BUILD_BUG_ON(MAX_NUMNODES >= S16_MAX);
- 
--	if (!stock || READ_ONCE(stock->cached_objcg) != objcg)
-+	if (!stock)
-+		goto direct;
++	if (blk_idx != INVALID_BDEV_BLOCK)
++		zram_release_bdev_block(zram, blk_idx);
 +
-+	for (i = 0; i < NR_OBJ_STOCK; ++i) {
-+		if (READ_ONCE(stock->cached[i]) == objcg)
-+			break;
-+	}
-+	if (i == NR_OBJ_STOCK)
- 		goto direct;
- 
- 	/*
- 	 * Save vmstat data in stock and skip vmstat array update unless
--	 * accumulating over a page of vmstat data or when pgdat changes.
-+	 * accumulating over a page of vmstat data or when the objcg slot or
-+	 * pgdat the stats belong to changes.
- 	 */
--	if (stock->node_id == NUMA_NO_NODE) {
-+	if (stock->index < 0) {
-+		stock->index = i;
- 		stock->node_id = pgdat->node_id;
--	} else if (stock->node_id != pgdat->node_id) {
--		/* Flush the existing cached vmstat data */
-+	} else if (stock->index != i || stock->node_id != pgdat->node_id) {
-+		struct obj_cgroup *old = READ_ONCE(stock->cached[stock->index]);
- 		struct pglist_data *oldpg = NODE_DATA(stock->node_id);
- 
- 		if (stock->nr_slab_reclaimable_b) {
--			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_RECLAIMABLE_B,
-+			mod_objcg_mlstate(old, oldpg, NR_SLAB_RECLAIMABLE_B,
- 					  stock->nr_slab_reclaimable_b);
- 			stock->nr_slab_reclaimable_b = 0;
- 		}
- 		if (stock->nr_slab_unreclaimable_b) {
--			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_UNRECLAIMABLE_B,
-+			mod_objcg_mlstate(old, oldpg, NR_SLAB_UNRECLAIMABLE_B,
- 					  stock->nr_slab_unreclaimable_b);
- 			stock->nr_slab_unreclaimable_b = 0;
- 		}
-+		stock->index = i;
- 		stock->node_id = pgdat->node_id;
- 	}
- 
-@@ -3231,10 +3257,16 @@ static bool __consume_obj_stock(struct o
- 				struct obj_stock_pcp *stock,
- 				unsigned int nr_bytes)
- {
--	if (objcg == READ_ONCE(stock->cached_objcg) &&
--	    stock->nr_bytes >= nr_bytes) {
--		stock->nr_bytes -= nr_bytes;
--		return true;
-+	int i;
-+
-+	for (i = 0; i < NR_OBJ_STOCK; ++i) {
-+		if (READ_ONCE(stock->cached[i]) != objcg)
-+			continue;
-+		if (stock->nr_bytes[i] >= nr_bytes) {
-+			stock->nr_bytes[i] -= nr_bytes;
-+			return true;
-+		}
-+		return false;
- 	}
- 
- 	return false;
-@@ -3255,16 +3287,42 @@ static bool consume_obj_stock(struct obj
- 	return ret;
- }
- 
--static void drain_obj_stock(struct obj_stock_pcp *stock)
-+/* Flush the cached slab stats (if any) back to their owning objcg/pgdat. */
-+static void drain_obj_stock_stats(struct obj_stock_pcp *stock)
- {
--	struct obj_cgroup *old = READ_ONCE(stock->cached_objcg);
-+	struct obj_cgroup *old;
-+	struct pglist_data *oldpg;
-+
-+	if (stock->index < 0)
-+		return;
-+
-+	old = READ_ONCE(stock->cached[stock->index]);
-+	oldpg = NODE_DATA(stock->node_id);
-+
-+	if (stock->nr_slab_reclaimable_b) {
-+		mod_objcg_mlstate(old, oldpg, NR_SLAB_RECLAIMABLE_B,
-+				  stock->nr_slab_reclaimable_b);
-+		stock->nr_slab_reclaimable_b = 0;
-+	}
-+	if (stock->nr_slab_unreclaimable_b) {
-+		mod_objcg_mlstate(old, oldpg, NR_SLAB_UNRECLAIMABLE_B,
-+				  stock->nr_slab_unreclaimable_b);
-+		stock->nr_slab_unreclaimable_b = 0;
-+	}
-+	stock->index = -1;
-+	stock->node_id = NUMA_NO_NODE;
-+}
-+
-+static void drain_obj_stock_slot(struct obj_stock_pcp *stock, int i)
-+{
-+	struct obj_cgroup *old = READ_ONCE(stock->cached[i]);
- 
- 	if (!old)
- 		return;
- 
--	if (stock->nr_bytes) {
--		unsigned int nr_pages = stock->nr_bytes >> PAGE_SHIFT;
--		unsigned int nr_bytes = stock->nr_bytes & (PAGE_SIZE - 1);
-+	if (stock->nr_bytes[i]) {
-+		unsigned int nr_pages = stock->nr_bytes[i] >> PAGE_SHIFT;
-+		unsigned int nr_bytes = stock->nr_bytes[i] & (PAGE_SIZE - 1);
- 
- 		if (nr_pages) {
- 			struct mem_cgroup *memcg;
-@@ -3290,46 +3348,43 @@ static void drain_obj_stock(struct obj_s
- 		 * so it might be changed in the future.
- 		 */
- 		atomic_add(nr_bytes, &old->nr_charged_bytes);
--		stock->nr_bytes = 0;
-+		stock->nr_bytes[i] = 0;
- 	}
- 
--	/*
--	 * Flush the vmstat data in current stock
--	 */
--	if (stock->nr_slab_reclaimable_b || stock->nr_slab_unreclaimable_b) {
--		struct pglist_data *oldpg = NODE_DATA(stock->node_id);
-+	/* Flush vmstat data when its owning slot is being drained. */
-+	if (stock->index == i)
-+		drain_obj_stock_stats(stock);
- 
--		if (stock->nr_slab_reclaimable_b) {
--			mod_objcg_mlstate(old, oldpg,
--					  NR_SLAB_RECLAIMABLE_B,
--					  stock->nr_slab_reclaimable_b);
--			stock->nr_slab_reclaimable_b = 0;
--		}
--		if (stock->nr_slab_unreclaimable_b) {
--			mod_objcg_mlstate(old, oldpg,
--					  NR_SLAB_UNRECLAIMABLE_B,
--					  stock->nr_slab_unreclaimable_b);
--			stock->nr_slab_unreclaimable_b = 0;
--		}
--		stock->node_id = NUMA_NO_NODE;
--	}
--
--	WRITE_ONCE(stock->cached_objcg, NULL);
-+	WRITE_ONCE(stock->cached[i], NULL);
- 	obj_cgroup_put(old);
- }
- 
-+static void drain_obj_stock(struct obj_stock_pcp *stock)
-+{
-+	int i;
-+
-+	for (i = 0; i < NR_OBJ_STOCK; ++i)
-+		drain_obj_stock_slot(stock, i);
-+}
-+
- static bool obj_stock_flush_required(struct obj_stock_pcp *stock,
- 				     struct mem_cgroup *root_memcg)
- {
--	struct obj_cgroup *objcg = READ_ONCE(stock->cached_objcg);
-+	struct obj_cgroup *objcg;
- 	struct mem_cgroup *memcg;
- 	bool flush = false;
-+	int i;
- 
- 	rcu_read_lock();
--	if (objcg) {
-+	for (i = 0; i < NR_OBJ_STOCK; ++i) {
-+		objcg = READ_ONCE(stock->cached[i]);
-+		if (!objcg)
-+			continue;
- 		memcg = obj_cgroup_memcg(objcg);
--		if (memcg && mem_cgroup_is_descendant(memcg, root_memcg))
-+		if (memcg && mem_cgroup_is_descendant(memcg, root_memcg)) {
- 			flush = true;
-+			break;
-+		}
- 	}
- 	rcu_read_unlock();
- 
-@@ -3343,6 +3398,7 @@ static void __refill_obj_stock(struct ob
- {
- 	unsigned int nr_pages = 0;
- 	unsigned int stock_nr_bytes;
-+	int i, slot = -1, empty_slot = -1;
- 
- 	if (!stock) {
- 		nr_pages = nr_bytes >> PAGE_SHIFT;
-@@ -3351,16 +3407,44 @@ static void __refill_obj_stock(struct ob
- 		goto out;
- 	}
- 
--	stock_nr_bytes = stock->nr_bytes;
--	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
--		drain_obj_stock(stock);
-+	for (i = 0; i < NR_OBJ_STOCK; ++i) {
-+		struct obj_cgroup *cached = READ_ONCE(stock->cached[i]);
-+
-+		if (!cached) {
-+			if (empty_slot == -1)
-+				empty_slot = i;
-+			continue;
-+		}
-+		if (cached == objcg) {
-+			slot = i;
-+			break;
-+		}
-+	}
-+
-+	if (slot == -1) {
-+		slot = empty_slot;
-+		if (slot == -1) {
-+			slot = stock->drain_idx++;
-+			if (stock->drain_idx == NR_OBJ_STOCK)
-+				stock->drain_idx = 0;
-+			drain_obj_stock_slot(stock, slot);
-+		}
- 		obj_cgroup_get(objcg);
-+		/*
-+		 * Keep the xchg result in the unsigned int local; storing
-+		 * it directly into stock->nr_bytes[slot] (uint16_t) would
-+		 * silently truncate values >= U16_MAX and bypass the flush
-+		 * guard below, leaking page-counter charges.
-+		 */
- 		stock_nr_bytes = atomic_read(&objcg->nr_charged_bytes)
- 				? atomic_xchg(&objcg->nr_charged_bytes, 0) : 0;
--		WRITE_ONCE(stock->cached_objcg, objcg);
-+		WRITE_ONCE(stock->cached[slot], objcg);
- 
- 		allow_uncharge = true;	/* Allow uncharge when objcg changes */
-+	} else {
-+		stock_nr_bytes = stock->nr_bytes[slot];
- 	}
-+
- 	stock_nr_bytes += nr_bytes;
- 
- 	if ((allow_uncharge && (stock_nr_bytes > PAGE_SIZE)) ||
-@@ -3368,7 +3452,7 @@ static void __refill_obj_stock(struct ob
- 		nr_pages = stock_nr_bytes >> PAGE_SHIFT;
- 		stock_nr_bytes &= (PAGE_SIZE - 1);
- 	}
--	stock->nr_bytes = stock_nr_bytes;
-+	stock->nr_bytes[slot] = stock_nr_bytes;
- 
- out:
- 	if (nr_pages)
+ 	while (atomic_read(&wb_ctl->num_inflight) > 0) {
+ 		wait_event(wb_ctl->done_wait, !list_empty(&wb_ctl->done_reqs));
+ 		err = zram_complete_done_reqs(zram, wb_ctl);
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from senozhatsky@chromium.org are
 
-memcg-use-round-robin-victim-selection-in-refill_stock.patch
-memcg-store-node_id-instead-of-pglist_data-pointer.patch
-memcg-uint16_t-for-nr_bytes-in-obj_stock_pcp.patch
-memcg-int16_t-for-cached-slab-stats.patch
-memcg-multi-objcg-charge-support.patch
+zram-clear-trailing-bytes-of-compressed-writeback-pages.patch
 
