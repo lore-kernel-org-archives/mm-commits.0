@@ -1,63 +1,114 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0FD2376BD0;
-	Tue, 26 May 2026 15:54:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1AF233BBD7
+	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 16:34:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779810888; cv=none; b=VNcKTEuM28LVs9hsVmsjFp/GmDwvQX38RE1YMvEegFD6dKDYRMnGAMnNG3Fa3hlP1jFBw+T0VVDZ/Y6Eggj62Jcshtrn5AB9sdvHG7X8zGTeSQ0H7ISA9Q4KVUXDa79nO62vo4z48bv3uG/13RC5AXRGO9D7KstQ0a10jjTtduY=
+	t=1779813267; cv=none; b=OZritgqWc+07vvpMLDImEWN9YlyzL30kl+CXbWLuQI+GDoaUEWekVpP/DW4PrlHBydhhmLgqFqTM73oloJWV+S4FMojK128ZejtYWnA1Z/nHJ9Qs7Aj+Mebp4YSswQht49atHoZkTPc5QhhSbDnXw+X+nPDIXSMduXMv0xKrWBU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779810888; c=relaxed/simple;
-	bh=4lFP7qu4Y1vSofhJqegVQs8wRl6aKhGmI1/6kJuG2VE=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=ONTkFe0s9Ra88L+ng6V2e0qFidi4Boi9NF1x3iiGv6MavqMDAXkX5N1vfokQoWaD7wawgjAkuoPaPW4V/OyZ/wmFX2PCNoGbz18ukzLjbbBZqYVlTptOkIsputJTdbmiQLvJ4vAWgJcB4ZkbYJXN/HjQhubNY7KLDigI+n6i+Ak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TwGgf5eY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779813267; c=relaxed/simple;
+	bh=gmh99Qko4iN92TqaMsoLfTUtKqBDfBgbJV8x4T6IRus=;
+	h=Date:To:From:Subject:Message-Id; b=aAie4wcFxsR1zonbmrAq1xxIS+te1YUxwFcb5x/nUkBAZ5J128b88b358RGMWXiy4uzBa3Xt6mkJ5v00d6527lREtONQyyXC7OwYSkBd75x9nUPmxNE3C2qUJ+Kxh9dBaEesNxHCVAI+p1TseJtqY6wIyO9fkDR8pDg0xedcaSU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FQvNjmD9; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TwGgf5eY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9B711F000E9;
-	Tue, 26 May 2026 15:54:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779810886;
-	bh=mjTjLcUf3D3RpHdforEePIUHCwUbuLTqLgsCOgyF/uQ=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc;
-	b=TwGgf5eYPo8x81cmujdnoOfMNKzw8AGuohgG1b0mkf7HduN6SB+brzvWeN3KokGFd
-	 yWPshT7SJK4udoqPAYn3zyZ5suXDwn5Ts5muoqwnUu2Hd0/Qn/yN5NwtBMkf0dUIh8
-	 y1jMN0wlHxm7JlqVnhVeNhBvfIR3zDi3mN5vSilxbGL5S7d6b6hu0A6NysLcnIRpti
-	 Xho5JKlddVz2Q+A47KvQpScz9eb/q9vV8Vp33LKlNGzwZy+bPsIX5lmClXe9wc3kXs
-	 +0l4+bEX71oJ3ipy22Fx4Ft0V1TnbyJvS0AaetD6xvbW8ZMgO19HrO8eMhRZBGwWUs
-	 CnksU9A/U9OUA==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id F020D380CEDF;
-	Tue, 26 May 2026 15:54:53 +0000 (UTC)
-Subject: Re: [GIT PULL] hotfixes for 7.1-rc6
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20260525162455.b407390573351c2d352baa16@linux-foundation.org>
-References: <20260525162455.b407390573351c2d352baa16@linux-foundation.org>
-X-PR-Tracked-List-Id: <linux-mm.kvack.org>
-X-PR-Tracked-Message-Id: <20260525162455.b407390573351c2d352baa16@linux-foundation.org>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-05-25-16-22
-X-PR-Tracked-Commit-Id: 54cf41c969da6637cce790b7400da1451609db9b
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: d60ec36cab338dfe2ae40d73e9c8d6c4af70d2b8
-Message-Id: <177981089259.3872742.1490966349452710325.pr-tracker-bot@kernel.org>
-Date: Tue, 26 May 2026 15:54:52 +0000
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linuxfoundation.org>, linux-mm@kvack.org, mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FQvNjmD9"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B33A1F000E9;
+	Tue, 26 May 2026 16:34:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1779813265;
+	bh=JYK/c/xNHG8cyQCYx/dUXNDcrh6fQAUnRw01N+Yi/kM=;
+	h=Date:To:From:Subject;
+	b=FQvNjmD9O1qKBx2IIMRPjIsMLOzZhMWG8hCSNe6YrwkIQ0AB4k2weisbnSJKMzAwa
+	 9qlqDEuRK5fYjKy7HCPWp/EG0Aw7EsuXnHm5apr+dGOgcjbC5HKi8frOfFhlknlg45
+	 bXksdsoSIKhuqQGXKw4PcSW1RSRBdjUzP+bpN2qY=
+Date: Tue, 26 May 2026 09:34:24 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ryan.roberts@arm.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,npache@redhat.com,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: + documentation-mm-update-the-admin-guide-for-mthp-collapse-fix.patch added to mm-unstable branch
+Message-Id: <20260526163425.4B33A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
-The pull request you sent on Mon, 25 May 2026 16:24:55 -0700:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm tags/mm-hotfixes-stable-2026-05-25-16-22
+The patch titled
+     Subject: add back note and edit doc about khugepaged limits
+has been added to the -mm mm-unstable branch.  Its filename is
+     documentation-mm-update-the-admin-guide-for-mthp-collapse-fix.patch
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/d60ec36cab338dfe2ae40d73e9c8d6c4af70d2b8
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentation-mm-update-the-admin-guide-for-mthp-collapse-fix.patch
 
-Thank you!
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
+
+------------------------------------------------------
+From: Nico Pache <npache@redhat.com>
+Subject: add back note and edit doc about khugepaged limits
+Date: Tue May 26 07:47:42 2026 -0600
+
+Link: https://lore.kernel.org/b457f6e9-ae12-4e1f-8484-f3043ca62276@redhat.com
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: "Liam R. Howlett" <liam@infradead.org>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Lance Yang <lance.yang@linux.dev>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/admin-guide/mm/transhuge.rst |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+--- a/Documentation/admin-guide/mm/transhuge.rst~documentation-mm-update-the-admin-guide-for-mthp-collapse-fix
++++ a/Documentation/admin-guide/mm/transhuge.rst
+@@ -265,6 +265,11 @@ support the following arguments::
+ Khugepaged controls
+ -------------------
+ 
++.. note::
++   khugepaged currently only searches for opportunities to collapse file/shmem
++   to PMD-sized THP. Only anonymous memory will attempt to collapse to other THP
++   sizes.
++
+ khugepaged runs usually at low frequency so while one may not want to
+ invoke defrag algorithms synchronously during the page faults, it
+ should be worth invoking defrag at least in khugepaged. However it's
+_
+
+Patches currently in -mm which might be from npache@redhat.com are
+
+mm-khugepaged-generalize-hugepage_vma_revalidate-for-mthp-support.patch
+mm-khugepaged-rework-max_ptes_-handling-with-helper-functions.patch
+mm-khugepaged-generalize-__collapse_huge_page_-for-mthp-support.patch
+mm-khugepaged-require-collapse_huge_page-to-enter-exit-with-the-lock-dropped.patch
+mm-khugepaged-generalize-collapse_huge_page-for-mthp-collapse.patch
+mm-khugepaged-skip-collapsing-mthp-to-smaller-orders.patch
+mm-khugepaged-add-per-order-mthp-collapse-failure-statistics.patch
+mm-khugepaged-improve-tracepoints-for-mthp-orders.patch
+mm-khugepaged-introduce-collapse_allowable_orders-helper-function.patch
+mm-khugepaged-introduce-mthp-collapse-support.patch
+mm-khugepaged-introduce-mthp-collapse-support-fix.patch
+mm-khugepaged-avoid-unnecessary-mthp-collapse-attempts.patch
+documentation-mm-update-the-admin-guide-for-mthp-collapse.patch
+documentation-mm-update-the-admin-guide-for-mthp-collapse-fix.patch
+
