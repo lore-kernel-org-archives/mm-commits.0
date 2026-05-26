@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3EAD2D97AA
-	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 17:17:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 729A9421F11
+	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 17:18:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779815842; cv=none; b=EbyzBNI7kZTaPhCxRxb/sDy2gw9K337lIB81fnfm2aSwVndGcG+vlkIeTbTfSO19rPhTIQdejxvG7+40EnEuvA/fJWXM86f8T2KedKE5Npq8cA7bJqewFSKqm5FJGmukunEQh8ddxyHDuKUbrxAuDpZi/34TV2j72q+PefYxdB8=
+	t=1779815914; cv=none; b=OCS2/h6cqmubtXWw4Rxh7lr7Pg9V5q7IJqSejeTKgf0BN7pMIYhVxR6hISqO9c4ZKz83wAVEpTOcJFlKqyrUcyYNXo7JyzZkMPyrpGZZWR/mtujfXUz9STpKW2j8vqi3nkG9kEe4xJUdcMVhtmjPDqFkiS4sphWvKYwXmkEJp6w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779815842; c=relaxed/simple;
-	bh=7OgOjxkFDtfuQpj2kAOPY/QAGwNvbC+3CHIQgAMv5q8=;
-	h=Date:To:From:Subject:Message-Id; b=FOgVHBtFdJb3u2VJb1+6iq9DE9jsdGA2MnKIwhMH7X+ZU3M4PzSTw7A2vH13fz12WqXKG97RLTCDEjmsxfd6AV4zs34EJA39vwEZh4C2fvrySS0jhs28s3yXsXVEJIv5CuvMMXLE/H6CZby7FJtimZy0pj4Rc7VsTX2a2FT3qaw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0eZQVYjM; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779815914; c=relaxed/simple;
+	bh=Eck+ij5rXj5hSyjT8McfXF6hQkif9wJjPPF8y0TYWFU=;
+	h=Date:To:From:Subject:Message-Id; b=hjj76m51bJGQCnl/Iapmu8o81anZuqS2Obzh1zVyWx1DGBR0oQMsrVxAvKMuk74hOXprdBaLYuFAHTOJjSsXg5ylxWhfJfu13oQ17EN1RvpKN4ZJP0tIJMGmN1dw6Oj2UEj/TG033uvey7s6GdfZSNt6xZ39UdRdfgwmSausSds=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=trIbk/hs; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0eZQVYjM"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 78DA01F000E9;
-	Tue, 26 May 2026 17:17:20 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="trIbk/hs"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 51B7A1F000E9;
+	Tue, 26 May 2026 17:18:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779815840;
-	bh=iUPlP7rLLAHHnKAesvxYtx3gL5sa0P1MTlgV92vKywE=;
+	d=linux-foundation.org; s=korg; t=1779815910;
+	bh=zEQ18al6yJEG7+uUI17BBu1fpIY8PrdGlL3+69fAaxk=;
 	h=Date:To:From:Subject;
-	b=0eZQVYjMoiRs7aY48vNMIW3Slgl1ZxWy03lZoVcQcGx521QNcuyN7dfRmMYxzIdS7
-	 TreQ/xf5u6iZd+d3n5yFii94Dgq91fWfu4KnYT3GdGXClNtIU1aUuvGdMWyeuorQDk
-	 sN/ZP7tqfHnzlZ0mOr9GnXJWhsL5LSEf28cMVcNw=
-Date: Tue, 26 May 2026 10:17:20 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,xueyuan.chen21@gmail.com,willy@infradead.org,will@kernel.org,weixugc@google.com,wangzicheng@honor.com,surenb@google.com,shakeel.butt@linux.dev,qi.zheng@linux.dev,liulei.rjpt@vivo.com,lance.yang@linux.dev,kasong@tencent.com,kaleshsingh@google.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
+	b=trIbk/hsrCctxfi2Bo2xPM+q6K0ayN/bIKBUz3N8pXcGdu4k9mfKxTEwuLFos2pfe
+	 M4S/FuUI5OpYCC8tB0EHpDwlMTRxFnYGER/43Xby0QVbTn4gopa7ATdBJwKuLLUxXJ
+	 qudYndIupmJKFAhLiErCsoQJ8VG41rr1Hh3oozrY=
+Date: Tue, 26 May 2026 10:18:29 -0700
+To: mm-commits@vger.kernel.org,yuanchu@google.com,xueyuan.chen21@gmail.com,willy@infradead.org,will@kernel.org,weixugc@google.com,wangzicheng@honor.com,surenb@google.com,shakeel.butt@linux.dev,qi.zheng@linux.dev,pfalcato@suse.de,liulei.rjpt@vivo.com,lance.yang@linux.dev,kasong@tencent.com,kaleshsingh@google.com,axelrasmussen@google.com,baohua@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active-in-pf.patch removed from -mm tree
-Message-Id: <20260526171720.78DA01F000E9@smtp.kernel.org>
+Subject: + mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active.patch added to mm-unstable branch
+Message-Id: <20260526171830.51B7A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,17 +34,33 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: mm/mglru: use folio_mark_accessed to replace folio_set_active in PF
-has been removed from the -mm tree.  Its filename was
-     mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active-in-pf.patch
+The patch titled
+     Subject: mm/mglru: use folio_mark_accessed to replace folio_set_active
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active.patch
+
+This patch will later appear in the mm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Barry Song (Xiaomi)" <baohua@kernel.org>
-Subject: mm/mglru: use folio_mark_accessed to replace folio_set_active in PF
-Date: Sat, 18 Apr 2026 20:02:33 +0800
+Subject: mm/mglru: use folio_mark_accessed to replace folio_set_active
+Date: Tue, 26 May 2026 21:09:38 +0800
 
 MGLRU gives high priority to folios mapped in page tables.  As a result,
 folio_set_active() is invoked for all folios read during page faults.  In
@@ -62,106 +78,71 @@ PG_active folios are placed in the second youngest generation, which is
 still too optimistic given the presence of readahead.  In contrast, the
 classic active/inactive scheme is more conservative.
 
-This patch switches to folio_mark_accessed().  If folio_check_references()
-later detects referenced PTEs, the folio will be promoted based on the
-reference flag set by folio_mark_accessed().
+This patch switches to using folio_mark_accessed() and
+begins prefaulted file folios from the second oldest
+generation instead of active generations.
+We should also adjust the following accordingly:
+- WORKINGSET_ACTIVATE: aligned with setting active for refaulted workingset
+  folios;
+- lru_gen_folio_seq(): place (pre)faulted file folios into the second
+oldest generation;
+- promote second-scanned folios to workingset in
+folio_check_references(): we now have to depend on
+folio_lru_refs() > 1, since we previously relied on PG_referenced
+being set during the first scan, but PG_referenced is now set
+earlier.
 
-The following uses a simple model to demonstrate why the current code is
-not ideal.  It runs fio-3.42 in a memcg, reading a file in a strided
-pattern—4KB every 64KB—to simulate prefaulted pages that may not be
-accessed.
+On x86, running a kernel build inside a memcg with a 1GB memory
+limit using 20 threads.
 
- #!/bin/bash
+w/o patch:
+real	1m50.764s
+user	25m32.305s
+sys	4m0.012s
+pswpin: 1333245
+pswpout: 4366443
+pgpgin: 6962592
+pgpgout: 17780712
+swpout_zero: 1019603
+swpin_zero: 14764
+refault_file: 287794
+refault_anon: 1347963
 
- CG_NAME="mglru_verify_test"
- CG_PATH="/sys/fs/cgroup/$CG_NAME"
- MEM_LIMIT="400M"
- HOT_SIZE="600M"
+w/ patch:
+real	1m48.879s
+user	25m29.224s
+sys	3m37.421s
+pswpin: 568480
+pswpout: 2322657
+pgpgin: 4073416
+pgpgout: 9613408
+swpout_zero: 593275
+swpin_zero: 9118
+refault_file: 262505
+refault_anon: 577550
 
- # 1. Environment Setup
- sudo rmdir "$CG_PATH" 2>/dev/null
- sudo mkdir -p "$CG_PATH"
- sudo chown -R $USER:$USER "$CG_PATH"
- echo "$MEM_LIMIT" > "$CG_PATH/memory.max"
+active/inactive LRU:
 
- # 2. Prepare Data Files
- dd if=/dev/urandom of=hot_data.bin bs=1M count=600 conv=notrunc 2>/dev/null
- sync
- echo 3 > /proc/sys/vm/drop_caches
+real	1m49.928s
+user	25m28.196s
+sys	3m40.740s
+pswpin: 463452
+pswpout: 2309119
+pgpgin: 4438856
+pgpgout: 9568628
+swpout_zero: 743704
+swpin_zero: 7244
+refault_file: 562555
+refault_anon: 470694
 
- # 3. Start Workload (Working Set)
- (
-     echo $BASHPID > "$CG_PATH/cgroup.procs"
-     exec ./fio-3.42 --name=hot_ws --rw=read --bs=4K --size=$HOT_SIZE --runtime=600 \
-          --zonemode=strided --zonesize=4K --zonerange=64K \
- 	 --time_based --direct=0 --filename=hot_data.bin --ioengine=mmap \
-          --fadvise_hint=0 --group_reporting --numjobs=1 > fio.stats
- ) &
- WORKLOAD_PID=$!
+Lance and Xueyuan made a huge contribution to this patch through testing.
 
- # 4. Waiting for hot data to warm up
- sleep 30
- BASE_FILE=$(grep "workingset_refault_file" "$CG_PATH/memory.stat" | awk '{print $2}')
-
- # 5. Running workload for 60second
- sleep 60
-
- # 6. Report refault and IO bandwidth
- FINAL_FILE=$(grep "workingset_refault_file" "$CG_PATH/memory.stat" | awk '{print $2}')
- FINAL_D_FILE=$((FINAL_FILE - BASE_FILE))
- echo "File Refault Delta is $FINAL_D_FILE"
-
- kill $WORKLOAD_PID 2>/dev/null
- sleep 2
- grep -E "READ|WRITE" fio.stats \
- | awk '{for(i=1;i<=NF;i++){if($i ~ /^bw=/) bw=$i; if($i ~ /^io=/) io=$i} print $1, bw, io}'
- rm -f hot_data.bin fio.stats
-
-Without the patch, we observed 12883855 file refaults and a very low
-bandwidth of 58.5 MiB/s, because prefaulted but unused pages occupy hot
-positions, continuously pushing out the real working set and causing
-incorrect reclaim.  With the patch, we observed 0 refaults and bandwidth
-increased to 5078 MiB/s.
-
-Note that this patch does not benefit any platform other than arm64, since
-commit 315d09bf30c2 ("Revert "mm: make faultaround produce old ptes"")
-reverted the change that made prefault PTEs “old”, after it was
-identified as the cause of a ~6% regression in UnixBench on x86.  This was
-due to reports that x86 uses an internal microfault mechanism for HW AF. 
-The hardware access flag mechanism is relatively expensive and can lead to
-a ~6% UnixBench regression when prefaulted PTEs are not marked young
-directly in the page fault path, especially when UnixBench runs without
-any memory pressure[2].
-
-Thanks to Will for raising this for arm64—“Create `old' PTEs for
-faultaround mappings on arm64 with hardware access flag” [3].  This is
-also thanks to arm64 microarchitectures, which incur zero cost for HW AF
-handling.
-
-It may be time for x86 and other architectures to revisit whether HW AF is
-truly costly on their platforms, given that the original x86 regression
-was reported 10 years ago.
-
-For those who want to try the model on x86, you will need the
-following in arch/x86/include/asm/pgtable.h.
-
- #define arch_wants_old_prefaulted_pte arch_wants_old_prefaulted_pte
- static inline bool arch_wants_old_prefaulted_pte(void)
- {
- 	return true;
- }
-
-Lance and Xueyuan made a huge contribution to this patch through testing. 
-They truly worked over weekends and after work hours.  If this patch
-deserves any credit, it belongs to them.
-
-Link: https://lore.kernel.org/20260418120233.7162-1-baohua@kernel.org
+Link: https://lore.kernel.org/20260526130938.66253-1-baohua@kernel.org
 Link: https://lore.kernel.org/linux-mm/20250916072226.220426-1-liulei.rjpt@vivo.com/ [1]
-Link: https://lore.kernel.org/lkml/20160606022724.GA26227@yexl-desktop/ [2]
-Link: https://lore.kernel.org/lkml/20210120173612.20913-1-will@kernel.org/ [3]
 Signed-off-by: Barry Song (Xiaomi) <baohua@kernel.org>
 Tested-by: Lance Yang <lance.yang@linux.dev>
 Tested-by: Xueyuan Chen <xueyuan.chen21@gmail.com>
+Cc: Pedro Falcato <pfalcato@suse.de>
 Cc: Kairui Song <kasong@tencent.com>
 Cc: Qi Zheng <qi.zheng@linux.dev>
 Cc: Shakeel Butt <shakeel.butt@linux.dev>
@@ -177,24 +158,89 @@ Cc: Kalesh Singh <kaleshsingh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm_inline.h |    2 +-
+ mm/swap.c                 |   16 +++++++++++++---
+ mm/vmscan.c               |    6 +++++-
+ mm/workingset.c           |   10 ++++++----
+ 4 files changed, 25 insertions(+), 9 deletions(-)
 
---- a/mm/swap.c~mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active-in-pf
+--- a/include/linux/mm_inline.h~mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active
++++ a/include/linux/mm_inline.h
+@@ -247,7 +247,7 @@ static inline unsigned long lru_gen_foli
+ 		  (folio_test_dirty(folio) || folio_test_writeback(folio))))
+ 		gen = MIN_NR_GENS;
+ 	else
+-		gen = MAX_NR_GENS - folio_test_workingset(folio);
++		gen = MAX_NR_GENS - (folio_test_workingset(folio) || folio_test_referenced(folio));
+ 
+ 	return max(READ_ONCE(lrugen->max_seq) - gen + 1, READ_ONCE(lrugen->min_seq[type]));
+ }
+--- a/mm/swap.c~mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active
 +++ a/mm/swap.c
-@@ -512,7 +512,7 @@ void folio_add_lru(struct folio *folio)
- 	/* see the comment in lru_gen_folio_seq() */
+@@ -544,10 +544,20 @@ void folio_add_lru(struct folio *folio)
+ 			folio_test_unevictable(folio), folio);
+ 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
+ 
+-	/* see the comment in lru_gen_folio_seq() */
++	/*
++	 * For refaulted workingset folios, set PG_active so they
++	 * can be added to active generations.
++	 * For prefaulted file folios, folio_mark_accessed() sets
++	 * PG_referenced so lru_gen_folio_seq() places them into
++	 * the second oldest generation.
++	 */
  	if (lru_gen_enabled() && !folio_test_unevictable(folio) &&
- 	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC))
+-	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC))
 -		folio_set_active(folio);
-+		folio_mark_accessed(folio);
++	    lru_gen_in_fault() && !(current->flags & PF_MEMALLOC)) {
++		if (folio_test_workingset(folio))
++			folio_set_active(folio);
++		else if (!folio_test_referenced(folio))
++			folio_mark_accessed(folio);
++	}
  
  	folio_batch_add_and_move(folio, lru_add);
  }
+--- a/mm/vmscan.c~mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active
++++ a/mm/vmscan.c
+@@ -848,7 +848,11 @@ static bool lru_gen_set_refs(struct foli
+ 		return false;
+ 	}
+ 
+-	set_mask_bits(&folio->flags.f, LRU_REFS_FLAGS, BIT(PG_workingset));
++	/* Promote on second access */
++	if (folio_lru_refs(folio) > 1)
++		set_mask_bits(&folio->flags.f, LRU_REFS_FLAGS, BIT(PG_workingset));
++	else
++		folio_mark_accessed(folio);
+ 	return true;
+ }
+ #else
+--- a/mm/workingset.c~mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active
++++ a/mm/workingset.c
+@@ -319,11 +319,13 @@ static void lru_gen_refault(struct folio
+ 
+ 	atomic_long_add(delta, &lrugen->refaulted[hist][type][tier]);
+ 
+-	/* see folio_add_lru() where folio_set_active() will be called */
+-	if (lru_gen_in_fault())
+-		mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
+-
+ 	if (workingset) {
++		/*
++		 * see folio_add_lru(), where folio_set_active() is
++		 * called for workingset folios
++		 */
++		if (lru_gen_in_fault())
++			mod_lruvec_state(lruvec, WORKINGSET_ACTIVATE_BASE + type, delta);
+ 		folio_set_workingset(folio);
+ 		mod_lruvec_state(lruvec, WORKINGSET_RESTORE_BASE + type, delta);
+ 	} else
 _
 
 Patches currently in -mm which might be from baohua@kernel.org are
 
 mm-huge_memory-fix-outdated-comment-about-freeing-subpages-in-__folio_split.patch
 mm-mglru-avoid-reclaim-type-fall-back-when-isolation-makes-no-progress.patch
+mm-mglru-use-folio_mark_accessed-to-replace-folio_set_active.patch
 
