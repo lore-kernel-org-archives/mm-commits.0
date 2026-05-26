@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9E40242D72
-	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 19:38:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE3AC242D72
+	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 19:38:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779824338; cv=none; b=OPfIKM95rONNb/izGJLxMN/iGaGHUtPreZQY0p0KTY99juUllf0RHkWZqZTEB65v9jVFCzA2jvDmC2d3OMm/w7wUMDhEQKjDT4q/88KhhAvUYGEvkWz74Zw9w5qGSybvcB4pbymGlpqZdAuW7uZGnGfOpVoUffVsCSEsMoMM1tU=
+	t=1779824340; cv=none; b=YinPsmMe7AV2J5KHsT5xrvuFLpFAF2f4IrHNGahVIiACap2+uJ2+M4w6hMPnXjCNlMau6BaVJzTdbTxGNsXVAzvqN1P/prGLjwZasi36YxZpqzZ7VXBuKXx/6/pLFIGleYNR7K4KOR7xhAzK9hyq7LMB07fX8zIxZYQ25fAve38=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779824338; c=relaxed/simple;
-	bh=q1P6nYH65lMiQVHAW+CWnAonvzR9l4wIQQpsdaeyVx0=;
-	h=Date:To:From:Subject:Message-Id; b=dhW80YsIshxTdjKHfd05Xsvler1n0zK0IuscIQIKqKIq7agwgfHPNKjqNl4i/jgRaR3iSLisDPs9UT6PInw5/KIYrQOFLHRhIGVBYxvIZjg54GIQUvrBfDugVk69PISFss10yPW8Rite89SvQfiWJXZn8Q38HnWap0vu6hOnN1o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=khv1AdGB; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779824340; c=relaxed/simple;
+	bh=B8Ri/ygHj1xoXWuqGGyDs9QIfv6rtKR1T3Itx+h1nXo=;
+	h=Date:To:From:Subject:Message-Id; b=TRegCtdRCC/3XPlaTcUinvfc+w9h4qm0SkFBvxthlH0jlJQGDfMbTMIPHvjz/2p6C8P3n1K/RHsRMarf/CfuNDp/7gtBfmkLZalSbYnH+Aw7g+sany5Dh+qZbeRu0baJLmr/MTZeV5I1U9c198FbF/1aUc5QdSrHCBMBusr1f8c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=yjJFE46J; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="khv1AdGB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2745B1F000E9;
-	Tue, 26 May 2026 19:38:56 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="yjJFE46J"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4CA981F000E9;
+	Tue, 26 May 2026 19:38:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779824336;
-	bh=WMg5JEw0fNzRbVSMOjLiKmnDhYQK7glC7xujrPL1xfE=;
+	d=linux-foundation.org; s=korg; t=1779824338;
+	bh=1bY0FnLeaUftw0caRRGunXW63kLnJXjJBcXsk7PwwMI=;
 	h=Date:To:From:Subject;
-	b=khv1AdGBtGKMT3ybJDLbJ4/NvwkrMhY6SRSw3556Pz6IK0qTB/0nxBqsw8iyWlclM
-	 lQfR2PlsMz9LctD8jEHzVPeDV+azpSlUBBwt/du6+ZE7raojtmTEZMfzQfCM7n6yWV
-	 Lq8Abti+ehhkJ1SeCaXddL8wgN9rAUhR3kQu435c=
-Date: Tue, 26 May 2026 12:38:55 -0700
+	b=yjJFE46J7wskUOMjHAEP2OTvZE7TbQRceWHJAq7o42inpG7H3z0duiy8RynUPhSUn
+	 pbkZ35KR3J7/tQylpUabJCF/wnheNsdl1Yr22Atc4h+F92jDOZvThLLQWdjyNQgsrX
+	 fAh9xbDnGEnyVHuX7ZMDvx3RAhkDMis0ft8ROz1Y=
+Date: Tue, 26 May 2026 12:38:57 -0700
 To: mm-commits@vger.kernel.org,roman.gushchin@linux.dev,qi.zheng@linux.dev,oliver.sang@intel.com,muchun.song@linux.dev,mhocko@kernel.org,joshua.hahnjy@gmail.com,harry@kernel.org,hannes@cmpxchg.org,alex@ghiti.fr,shakeel.butt@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + memcg-store-node_id-instead-of-pglist_data-pointer.patch added to mm-new branch
-Message-Id: <20260526193856.2745B1F000E9@smtp.kernel.org>
+Subject: + memcg-uint16_t-for-nr_bytes-in-obj_stock_pcp.patch added to mm-new branch
+Message-Id: <20260526193858.4CA981F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: memcg: store node_id instead of pglist_data pointer
+     Subject: memcg: uint16_t for nr_bytes in obj_stock_pcp
 has been added to the -mm mm-new branch.  Its filename is
-     memcg-store-node_id-instead-of-pglist_data-pointer.patch
+     memcg-uint16_t-for-nr_bytes-in-obj_stock_pcp.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-store-node_id-instead-of-pglist_data-pointer.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/memcg-uint16_t-for-nr_bytes-in-obj_stock_pcp.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,55 +70,42 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: store node_id instead of pglist_data pointer
-Date: Mon, 25 May 2026 20:39:28 -0700
+Subject: memcg: uint16_t for nr_bytes in obj_stock_pcp
+Date: Mon, 25 May 2026 20:39:29 -0700
 
-Patch series "memcg: shrink obj_stock_pcp and cache multiple objcgs", v3.
+Currently struct obj_stock_pcp stores nr_bytes in an 'unsigned int' which
+is 4 bytes on 64-bit machines.  Switch the field to uint16_t to shrink the
+per-CPU cache.
 
-Commit 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg
-per-node type") split a memcg's single obj_cgroup into one per NUMA node
-so that reparenting LRU folios can take per-node lru locks.  As a side
-effect, the per-CPU obj_stock_pcp -- which caches a single cached_objcg
-pointer -- thrashes on workloads where threads of the same memcg run on
-different NUMA nodes.  The kernel test robot reported a 67.7% regression
-on stress-ng.switch.ops_per_sec from this pattern.
+The kernel supports PAGE_SIZE_4KB, _8KB, _16KB, _32KB, _64KB and _256KB
+(see HAVE_PAGE_SIZE_* in arch/Kconfig).  After the PAGE_SIZE-aligned flush
+in __refill_obj_stock(), the sub-page remainder fits in uint16_t up
+through 64KiB pages where PAGE_SIZE - 1 == U16_MAX, but on 256KiB pages
+PAGE_SIZE - 1 == 0x3FFFF exceeds U16_MAX.  The accumulator also needs to
+stay within uint16_t between page-aligned flushes on 64KiB pages where
+PAGE_SIZE itself is U16_MAX + 1.
 
-Commit d0211878ce06 ("memcg: cache obj_stock by memcg, not by objcg
-pointer") landed as a temporary fix by treating sibling per-node objcgs as
-equivalent for the cache lookup, intended to be reverted once per-node
-kmem accounting is introduced.  This series takes a more general approach:
-cache multiple objcgs per CPU using the multi-slot pattern memcg_stock_pcp
-already uses, so the per-node objcg variants of one memcg can all coexist
-in the stock without ever forcing a drain.  The temporary fix can then be
-reverted.
+Accumulate the new total in an 'unsigned int' local, then on PAGE_SHIFT <=
+16 flush whenever the accumulator would hit U16_MAX; together with the
+existing allow_uncharge flush at PAGE_SIZE this keeps the uint16_t safe.
 
-To avoid increasing the per-CPU cache footprint, the first three patches
-shrink the existing single-slot obj_stock_pcp fields.  The final patch
-converts cached_objcg and nr_bytes into NR_OBJ_STOCK=5 slot arrays and
-reorders the struct so the entire consume/refill/account hot path fits
-within a single 64-byte cache line on non-debug 64-bit builds (verified
-with pahole).
+On configs with PAGE_SHIFT > 16 (PAGE_SIZE_256KB on hexagon and powerpc
+44x, both 32-bit), uint16_t cannot represent the sub-page remainder. 
+Define obj_stock_bytes_t as 'unsigned int' on those archs so nr_bytes can
+hold the full remainder and the normal page-boundary flush in
+__refill_obj_stock() and the page extraction in drain_obj_stock() both
+work correctly.
 
+The single-cache-line layout target only applies to PAGE_SHIFT <= 16;
+those archs are 32-bit embedded and not the optimization target.
 
-This patch (of 4):
-
-The struct obj_stock_pcp stores a pointer to pglist_data for the slab
-stats cached on the cpu.  On 64-bit machines, this costs 8 bytes.  The
-pointer is not strictly required: NODE_DATA() can recover it from the node
-id.  Replace cached_pgdat with int16_t node_id and use NUMA_NO_NODE as the
-"no stats cached" sentinel.
-
-At the moment all the archs limit MAX_NUMNODES to 1024 so int16_t is
-plenty; a BUILD_BUG_ON() makes sure we notice if that ever changes.
-
-Link: https://lore.kernel.org/20260526033931.1760588-1-shakeel.butt@linux.dev
-Link: https://lore.kernel.org/20260526033931.1760588-2-shakeel.butt@linux.dev
+Link: https://lore.kernel.org/20260526033931.1760588-3-shakeel.butt@linux.dev
 Fixes: 01b9da291c49 ("mm: memcontrol: convert objcg to be per-memcg per-node type")
 Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
 Tested-by: kernel test robot <oliver.sang@intel.com>
-Acked-by: Muchun Song <muchun.song@linux.dev>
 Reviewed-by: Harry Yoo (Oracle) <harry@kernel.org>
 Acked-by: Qi Zheng <qi.zheng@linux.dev>
+Acked-by: Muchun Song <muchun.song@linux.dev>
 Cc: Alexandre Ghiti <alex@ghiti.fr>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joshua Hahn <joshua.hahnjy@gmail.com>
@@ -127,90 +114,68 @@ Cc: Roman Gushchin <roman.gushchin@linux.dev>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |   25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
---- a/mm/memcontrol.c~memcg-store-node_id-instead-of-pglist_data-pointer
+--- a/mm/memcontrol.c~memcg-uint16_t-for-nr_bytes-in-obj_stock_pcp
 +++ a/mm/memcontrol.c
-@@ -2022,7 +2022,7 @@ struct obj_stock_pcp {
+@@ -2020,8 +2020,17 @@ static DEFINE_PER_CPU_ALIGNED(struct mem
+ 
+ struct obj_stock_pcp {
  	local_trylock_t lock;
- 	unsigned int nr_bytes;
+-	unsigned int nr_bytes;
  	struct obj_cgroup *cached_objcg;
--	struct pglist_data *cached_pgdat;
-+	int16_t node_id;
++#if PAGE_SHIFT > 16
++	/*
++	 * On rare archs with 256KiB base page size (hexagon and powerpc 44x)
++	 * keep nr_bytes to unsigned int as uint16_t cannot represent the full
++	 * sub-page remainder.
++	 */
++	unsigned int nr_bytes;
++#else
++	uint16_t nr_bytes;
++#endif
+ 	int16_t node_id;
  	int nr_slab_reclaimable_b;
  	int nr_slab_unreclaimable_b;
- 
-@@ -2032,6 +2032,7 @@ struct obj_stock_pcp {
- 
- static DEFINE_PER_CPU_ALIGNED(struct obj_stock_pcp, obj_stock) = {
- 	.lock = INIT_LOCAL_TRYLOCK(lock),
-+	.node_id = NUMA_NO_NODE,
- };
- 
- static DEFINE_MUTEX(percpu_charge_mutex);
-@@ -3162,6 +3163,13 @@ static void __account_obj_stock(struct o
+@@ -3334,6 +3343,7 @@ static void __refill_obj_stock(struct ob
+ 			       bool allow_uncharge)
  {
- 	int *bytes;
+ 	unsigned int nr_pages = 0;
++	unsigned int stock_nr_bytes;
  
-+	/*
-+	 * Though at the moment MAX_NUMNODES <= 1024 in all archs but let's make
-+	 * sure it does not exceed S16_MAX otherwise we need to fix node_id type
-+	 * in struct obj_stock_pcp.
-+	 */
-+	BUILD_BUG_ON(MAX_NUMNODES >= S16_MAX);
-+
- 	if (!stock || READ_ONCE(stock->cached_objcg) != objcg)
- 		goto direct;
- 
-@@ -3169,9 +3177,11 @@ static void __account_obj_stock(struct o
- 	 * Save vmstat data in stock and skip vmstat array update unless
- 	 * accumulating over a page of vmstat data or when pgdat changes.
- 	 */
--	if (stock->cached_pgdat != pgdat) {
-+	if (stock->node_id == NUMA_NO_NODE) {
-+		stock->node_id = pgdat->node_id;
-+	} else if (stock->node_id != pgdat->node_id) {
- 		/* Flush the existing cached vmstat data */
--		struct pglist_data *oldpg = stock->cached_pgdat;
-+		struct pglist_data *oldpg = NODE_DATA(stock->node_id);
- 
- 		if (stock->nr_slab_reclaimable_b) {
- 			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_RECLAIMABLE_B,
-@@ -3183,7 +3193,7 @@ static void __account_obj_stock(struct o
- 					  stock->nr_slab_unreclaimable_b);
- 			stock->nr_slab_unreclaimable_b = 0;
- 		}
--		stock->cached_pgdat = pgdat;
-+		stock->node_id = pgdat->node_id;
+ 	if (!stock) {
+ 		nr_pages = nr_bytes >> PAGE_SHIFT;
+@@ -3342,21 +3352,24 @@ static void __refill_obj_stock(struct ob
+ 		goto out;
  	}
  
- 	bytes = (idx == NR_SLAB_RECLAIMABLE_B) ? &stock->nr_slab_reclaimable_b
-@@ -3279,19 +3289,21 @@ static void drain_obj_stock(struct obj_s
- 	 * Flush the vmstat data in current stock
- 	 */
- 	if (stock->nr_slab_reclaimable_b || stock->nr_slab_unreclaimable_b) {
-+		struct pglist_data *oldpg = NODE_DATA(stock->node_id);
-+
- 		if (stock->nr_slab_reclaimable_b) {
--			mod_objcg_mlstate(old, stock->cached_pgdat,
-+			mod_objcg_mlstate(old, oldpg,
- 					  NR_SLAB_RECLAIMABLE_B,
- 					  stock->nr_slab_reclaimable_b);
- 			stock->nr_slab_reclaimable_b = 0;
- 		}
- 		if (stock->nr_slab_unreclaimable_b) {
--			mod_objcg_mlstate(old, stock->cached_pgdat,
-+			mod_objcg_mlstate(old, oldpg,
- 					  NR_SLAB_UNRECLAIMABLE_B,
- 					  stock->nr_slab_unreclaimable_b);
- 			stock->nr_slab_unreclaimable_b = 0;
- 		}
--		stock->cached_pgdat = NULL;
-+		stock->node_id = NUMA_NO_NODE;
- 	}
++	stock_nr_bytes = stock->nr_bytes;
+ 	if (READ_ONCE(stock->cached_objcg) != objcg) { /* reset if necessary */
+ 		drain_obj_stock(stock);
+ 		obj_cgroup_get(objcg);
+-		stock->nr_bytes = atomic_read(&objcg->nr_charged_bytes)
++		stock_nr_bytes = atomic_read(&objcg->nr_charged_bytes)
+ 				? atomic_xchg(&objcg->nr_charged_bytes, 0) : 0;
+ 		WRITE_ONCE(stock->cached_objcg, objcg);
  
- 	WRITE_ONCE(stock->cached_objcg, NULL);
+ 		allow_uncharge = true;	/* Allow uncharge when objcg changes */
+ 	}
+-	stock->nr_bytes += nr_bytes;
++	stock_nr_bytes += nr_bytes;
+ 
+-	if (allow_uncharge && (stock->nr_bytes > PAGE_SIZE)) {
+-		nr_pages = stock->nr_bytes >> PAGE_SHIFT;
+-		stock->nr_bytes &= (PAGE_SIZE - 1);
++	if ((allow_uncharge && (stock_nr_bytes > PAGE_SIZE)) ||
++	    stock_nr_bytes > U16_MAX) {
++		nr_pages = stock_nr_bytes >> PAGE_SHIFT;
++		stock_nr_bytes &= (PAGE_SIZE - 1);
+ 	}
++	stock->nr_bytes = stock_nr_bytes;
+ 
+ out:
+ 	if (nr_pages)
 _
 
 Patches currently in -mm which might be from shakeel.butt@linux.dev are
