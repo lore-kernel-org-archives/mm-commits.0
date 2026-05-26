@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C983740B6DC;
-	Tue, 26 May 2026 18:18:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3488D4219FE
+	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 18:37:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779819495; cv=none; b=uR3d0dZ25MGWv/e5vYaSl6A2Gjymx7GJWBZges1fwGM05n6voOOMf42IaS79X5g3F0+6bhk3kxlci2wCtPCW8gd8uwcIaRy75aUls8nLj4nYmkyWYqsXts2s/DUBveoyFu9wsO02Sch35mSvtzqxeiGC+mqTIcvqn0MyHt5S30s=
+	t=1779820660; cv=none; b=R9IkNCagjJJSI8tMMRdv2vRrW2brREz7M/J3HQ/JwSC6S8CRh6i+W66UJ/LQtapeIe8XROkdztDBTq8QQTOjcukvGdOfrNHe2FJWZ2WBlRZGV9dMPn2F50i5CIFblHvKr8/NB3ZoR98xrgv8kJ1kB+PRCJMrDWxIC89s8yCumus=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779819495; c=relaxed/simple;
-	bh=SDhlbdhio/Fm5EHseNKzLXWK6u0znuB9FATXc4Ps5j8=;
-	h=Date:To:From:Subject:Message-Id; b=QsvJhJqtEfJjBh95sWjECkKOTAFhtIcv45sdu0DVKRb1yHOEPe59W/Nu5KeaHLBfxpHkPTjytY4vWXwMsuxE9RfmO0Cl+6JO4JirwiXEf5MpgFWl6NHMb8aajvroNoKdnSzuf4jlbDz3LzsUlC5BZ/WADzaPnEzV4dNuSIWWsN0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FQiRW5A8; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779820660; c=relaxed/simple;
+	bh=8Q649AwKICe900SEmK6t4EH+llO8Mzl6M81eRP+XDyU=;
+	h=Date:To:From:Subject:Message-Id; b=hzQAGgthLmwwJ6cnSkxuX7R1bA83Ml+p8rGEGLwQgX5Fa1LB9ZKSZG526gpyH0kpXF66/JOHjcPackP0lIN5+fg7ic103K7dRa6UnEGVuEMxMkESNbY9DHZECHu7ZaHAYlqiUgEVcIIA8F8Rh9EkgMkW+MQ+bQxxpd0uueP+8wM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=B8rWrgg2; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FQiRW5A8"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF4931F000E9;
-	Tue, 26 May 2026 18:18:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="B8rWrgg2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D4A651F000E9;
+	Tue, 26 May 2026 18:37:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779819492;
-	bh=+SRgWQKEPH5Yc8Rb8It1nmmpoHHNIZT5kuovoJE8WUM=;
+	d=linux-foundation.org; s=korg; t=1779820658;
+	bh=MSvfrCorQRRJwk9yz83eixlNvFRNK87PwmPebS1R5Ks=;
 	h=Date:To:From:Subject;
-	b=FQiRW5A8qP+x+4AQdVXnhp+UFy3yquOrWES9ZDD9C0cIU7QMdZdMOadNg9dO35mvJ
-	 leSISoq69iiySz5Wydb+V3CN5ql+OTihUZxieTMrrhDXGdarZReFAAPJvo5EvJfgWC
-	 bg4M6BEpKaszK5osN0JAPrPDj2qHaDAwnRL9shSA=
-Date: Tue, 26 May 2026 11:18:12 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,peterz@infradead.org,kees@kernel.org,elver@google.com,dvyukov@google.com,andreyknvl@gmail.com,kmehltretter@gmail.com,akpm@linux-foundation.org
+	b=B8rWrgg2l4dIonrltNWfmJVluc13H0V1cqyi/3IKVARf03IRve47d/c29XEeFCCfA
+	 mptFBIw4A4FtmezBVZHnX3OstMAWGSSw8ZJHbfUFdJ6PL7vt1ARn+cksDK6KuKvZrJ
+	 hVWe7pQ7yk/CsDjfIa0nJHVija2k/RDZx8Z46OM8=
+Date: Tue, 26 May 2026 11:37:38 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,mhocko@suse.com,hannes@cmpxchg.org,jackmanb@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + kcov-use-write_once-for-selftest-mode-stores.patch added to mm-nonmm-unstable branch
-Message-Id: <20260526181812.BF4931F000E9@smtp.kernel.org>
+Subject: + mm-page_alloc-remove-vm_bug_ons-from-pindex-helpers.patch added to mm-unstable branch
+Message-Id: <20260526183738.D4A651F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,14 +35,14 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: kcov: use WRITE_ONCE() for selftest mode stores
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     kcov-use-write_once-for-selftest-mode-stores.patch
+     Subject: mm/page_alloc: remove VM_BUG_ON()s from pindex helpers
+has been added to the -mm mm-unstable branch.  Its filename is
+     mm-page_alloc-remove-vm_bug_ons-from-pindex-helpers.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/kcov-use-write_once-for-selftest-mode-stores.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_alloc-remove-vm_bug_ons-from-pindex-helpers.patch
 
-This patch will later appear in the mm-nonmm-unstable branch at
+This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 Before you just go and hit "reply", please:
@@ -58,71 +58,67 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Karl Mehltretter <kmehltretter@gmail.com>
-Subject: kcov: use WRITE_ONCE() for selftest mode stores
-Date: Tue, 26 May 2026 13:47:15 +0200
+From: Brendan Jackman <jackmanb@google.com>
+Subject: mm/page_alloc: remove VM_BUG_ON()s from pindex helpers
+Date: Tue, 26 May 2026 11:28:36 +0000
 
-The KCOV selftest enables coverage by setting current->kcov_mode to
-KCOV_MODE_TRACE_PC without installing a coverage area.  If an interrupt
-records coverage in that window, the access should fault and expose the
-bug.
+Vlastimil pointed out that the VM_BUG_ON()s have fallen out of favour, so
+remove them.
 
-When building for QEMU raspi0 (Raspberry Pi Zero, ARMv6, CONFIG_CPU_V6K=y,
-CONFIG_CURRENT_POINTER_IN_TPIDRURO=y) with GCC 13.3.0, the store that
-enables the mode is removed.  The generated kcov_init() code only stores
-zero after the wait loop:
-
-  mrc	15, 0, r3, cr13, cr0, {3}
-  str	r4, [r3, #2028]
-
-where r4 is zero.  There is no store of KCOV_MODE_TRACE_PC before the
-loop, so the selftest reports success without exercising coverage.
-
-Use WRITE_ONCE() for the temporary mode stores.  With the same compiler
-and config, kcov_init() contains the intended mode store:
-
-  mov	r3, #2
-  mrc	15, 0, r2, cr13, cr0, {3}
-  str	r3, [r2, #2028]
-
-Now that the KCOV selftest is actually executed, it may expose KCOV
-instrumentation issues depending on the kernel config.  That is expected
-for a selftest that was intended to catch coverage from interrupt paths.
-
-Link: https://lore.kernel.org/20260526114715.38280-1-kmehltretter@gmail.com
-Fixes: 6cd0dd934b03 ("kcov: Add interrupt handling self test")
-Assisted-by: Codex:gpt-5
-Signed-off-by: Karl Mehltretter <kmehltretter@gmail.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Kees Cook <kees@kernel.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260526-page_alloc-unmapped-prep-v2-1-412f4d486115@google.com
+Signed-off-by: Brendan Jackman <jackmanb@google.com>
+Suggested-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Link: https://lore.kernel.org/all/4074a816-9e75-45a6-8141-25459bcc106b@kernel.org/
+Reviewed-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
---- a/kernel/kcov.c~kcov-use-write_once-for-selftest-mode-stores
-+++ a/kernel/kcov.c
-@@ -1119,10 +1119,10 @@ static void __init selftest(void)
- 	 * potentially traced functions in this region.
- 	 */
- 	start = jiffies;
--	current->kcov_mode = KCOV_MODE_TRACE_PC;
-+	WRITE_ONCE(current->kcov_mode, KCOV_MODE_TRACE_PC);
- 	while ((jiffies - start) * MSEC_PER_SEC / HZ < 300)
- 		;
--	current->kcov_mode = 0;
-+	WRITE_ONCE(current->kcov_mode, 0);
- 	pr_err("done running self test\n");
- }
- #endif
+--- a/mm/page_alloc.c~mm-page_alloc-remove-vm_bug_ons-from-pindex-helpers
++++ a/mm/page_alloc.c
+@@ -653,13 +653,8 @@ static inline unsigned int order_to_pind
+ 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
+ 		bool movable = migratetype == MIGRATE_MOVABLE;
+ 
+-		if (order > PAGE_ALLOC_COSTLY_ORDER) {
+-			VM_BUG_ON(!is_pmd_order(order));
+-
++		if (order > PAGE_ALLOC_COSTLY_ORDER)
+ 			return NR_LOWORDER_PCP_LISTS + movable;
+-		}
+-	} else {
+-		VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
+ 	}
+ 
+ 	return (MIGRATE_PCPTYPES * order) + migratetype;
+@@ -672,8 +667,6 @@ static inline int pindex_to_order(unsign
+ 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
+ 		if (pindex >= NR_LOWORDER_PCP_LISTS)
+ 			order = HPAGE_PMD_ORDER;
+-	} else {
+-		VM_BUG_ON(order > PAGE_ALLOC_COSTLY_ORDER);
+ 	}
+ 
+ 	return order;
 _
 
-Patches currently in -mm which might be from kmehltretter@gmail.com are
+Patches currently in -mm which might be from jackmanb@google.com are
 
-kcov-use-write_once-for-selftest-mode-stores.patch
+mm-page_alloc-cleanup-flag-vars-in-alloc_pages_bulk_noprof.patch
+drm-managed-use-special-gfp_t-format-specifier.patch
+mm-kfence-use-special-gfp_t-format-specifier.patch
+net-rds-use-special-gfp_t-format-specifier.patch
+mm-introduce-for_each_free_list.patch
+mm-page_alloc-dont-overload-migratetype-in-find_suitable_fallback.patch
+mm-rejig-pageblock-mask-definitions.patch
+mm-page_alloc-remove-ifdefs-from-pindex-helpers.patch
+mm-page_alloc-drop-a-misleading-__always_inline.patch
+mm-page_alloc-document-that-alloc_pages_nolock-uses-rcu.patch
+mm-page_alloc-remove-vm_bug_ons-from-pindex-helpers.patch
 
