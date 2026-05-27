@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72BE0388E77
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7513E389460
 	for <mm-commits@vger.kernel.org>; Wed, 27 May 2026 19:35:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779910525; cv=none; b=X05Ju4JRGMr6ccq9IG1lGFK7Q88MJsirp8BQKNRPxgLG2nI8+jYJ1PP51RoXrmsllrSPAtE5fnvMCHxcV5yCtf8VzXgcrNLv1+X/23GIJ+z2JGoGNowRGw8Xq9r1RjP8u2yLrL/N49mKZFeMVTWVyGfV2NCVMxmJEaDSoidbvfg=
+	t=1779910528; cv=none; b=iVqtxn3+fO4AGf0oh6iHiLelryHqHq3OiNra2H9VKXtE7zaCjcV0ZzPy40iiTSHzBzBwoFM3B/h7fNegn0z1ZIfTWnN76jw+zscSMcJsE3T1W4oFjSugYkOjAN+HlE1hZb6Q5l35upzN27A0N0GexZORtvDUbtM+T03idt3fflU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779910525; c=relaxed/simple;
-	bh=Fg6PncjcW0fbdVJxJbfW4j8nBxcuYabInenkrVN1rCo=;
-	h=Date:To:From:Subject:Message-Id; b=SvHkwIc8Kx4RejxypUXjNzw6K1PI8KK3k+XpoXNW+DcwujJZ/34xrnOpoeu03UTOAOmaob9hqdwaALzeoDYT39YlLUZg9huGhd8bDj+QubG+IgbicZr+9J/DG4E5XkJJhY7Mz6BPm7t71vz/u8M6qCl9tXIyzQVJJfu3b0JKQP8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qgDNOT/k; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779910528; c=relaxed/simple;
+	bh=ayiW+N8VafRSeZvBjf0DPjNRHwEFJxyRq8+oxN5HRw4=;
+	h=Date:To:From:Subject:Message-Id; b=OEwUP9N4d4fObQ5HHQ7wnDtrAaTDItbsYpTGIoG9uBCCRBUhhfTn242OOFcdg/z1yowQFA6nHMIDHYNnFSq9UKuxOmKyHqs6Wb4d7zHPU3e+P77YmUcV09khI+2T15GMbqwrf1FveMBSKm7sN1tBE3VIsY8CX4T7mUTJXXOTvxc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rSkeamrg; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qgDNOT/k"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96DF71F000E9;
-	Wed, 27 May 2026 19:35:11 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rSkeamrg"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD7451F00A3E;
+	Wed, 27 May 2026 19:35:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779910511;
-	bh=U+eN9/k0TbdEGmlf8wuN/TVKuRXHunlusbXzuHqYoyE=;
+	d=linux-foundation.org; s=korg; t=1779910512;
+	bh=3J9I3MQ142kKh/zGUNt4rGp1QwJnUYTRRdT6Y/MTDbE=;
 	h=Date:To:From:Subject;
-	b=qgDNOT/klTxSncZsv1R0DcXxg/btCOpPvfmtTNVcktiGcwe+QwDereXXuCU2HadXi
-	 jpb1iamjQSgND/l4E3bjKQo25GoQOjL/wZ0xQo/F868pzpoU6CY1NEwPfpgLwnl8Nh
-	 z2sEBuPA4DgP5YjtaJ1nboad++WgKuhOj2dVNl70=
-Date: Wed, 27 May 2026 12:35:11 -0700
+	b=rSkeamrgJ2sERTJeehn/j3d9r5NvbFg8UPqdMy+YF/9gBseKdAP9yef5R1Ul+IWES
+	 25QdDFYhzHkK5MBv+X/61cmdG8jk8W5wyCWN9zy6Li+Lz+miwj6NYkKxjEgkFRnLEF
+	 hIN3Ofjej1dxEy87V3QDr8xJI/avgtyy/ubScEXg=
+Date: Wed, 27 May 2026 12:35:12 -0700
 To: mm-commits@vger.kernel.org,peterx@redhat.com,michael.bommarito@gmail.com,ljs@kernel.org,liam@infradead.org,devnexen@gmail.com,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-refuse-to-__mfill_atomic_pte-for-unsupported-vmas.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260527193511.96DF71F000E9@smtp.kernel.org>
+Subject: + userfaultfd-remove-redundant-check-in-vm_uffd_ops.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260527193512.BD7451F00A3E@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: refuse to __mfill_atomic_pte() for unsupported VMAs
+     Subject: userfaultfd: remove redundant check in vm_uffd_ops()
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     userfaultfd-refuse-to-__mfill_atomic_pte-for-unsupported-vmas.patch
+     userfaultfd-remove-redundant-check-in-vm_uffd_ops.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-refuse-to-__mfill_atomic_pte-for-unsupported-vmas.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-remove-redundant-check-in-vm_uffd_ops.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,45 +59,50 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: userfaultfd: refuse to __mfill_atomic_pte() for unsupported VMAs
-Date: Wed, 27 May 2026 21:47:50 +0300
+Subject: userfaultfd: remove redundant check in vm_uffd_ops()
+Date: Wed, 27 May 2026 21:47:51 +0300
 
-__mfill_atomic_pte() unconditionally dereferences ops because there is an
-assumption that VMAs that can undergo mfill_* operations are vetted on
-registration and must have valid vm_uffd_ops.
+Lorenzo says:
 
-Add a guard against potential bugs and make sure __mfill_atomic_pte()
-bails out if ops is NULL.
+  static const struct vm_uffd_ops *vma_uffd_ops(struct vm_area_struct *vma)
+  {
+          if (vma_is_anonymous(vma))
+                  return &anon_uffd_ops;
+          return vma->vm_ops ? vma->vm_ops->uffd_ops : NULL;
+  }
 
-Link: https://lore.kernel.org/20260527184751.4147364-3-rppt@kernel.org
-Fixes: ad9ac3081332 ("userfaultfd: introduce vm_uffd_ops->alloc_folio()")
+  This is doing a redundant check _and_ making life confusing, as if
+  !vma->vm_ops is a condition that can be reached there, it can't, as
+  vma_is_anonymous() is literally a !vma->vm_ops check :)
+
+Remove the redundant check.
+
+Link: https://lore.kernel.org/20260527184751.4147364-4-rppt@kernel.org
+Fixes: 0f48947c4232 ("userfaultfd: introduce vm_uffd_ops")
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 Suggested-by: Lorenzo Stoakes <ljs@kernel.org>
-Cc: David Carlier <devnexen@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Michael Bommarito <michael.bommarito@gmail.com>
 Cc: Peter Xu <peterx@redhat.com>
+Cc: David Carlier <devnexen@gmail.com>
+Cc: Michael Bommarito <michael.bommarito@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/userfaultfd.c~userfaultfd-refuse-to-__mfill_atomic_pte-for-unsupported-vmas
+--- a/mm/userfaultfd.c~userfaultfd-remove-redundant-check-in-vm_uffd_ops
 +++ a/mm/userfaultfd.c
-@@ -552,6 +552,11 @@ static int __mfill_atomic_pte(struct mfi
- 	struct folio *folio;
- 	int ret;
+@@ -68,7 +68,7 @@ static const struct vm_uffd_ops *vma_uff
+ {
+ 	if (vma_is_anonymous(vma))
+ 		return &anon_uffd_ops;
+-	return vma->vm_ops ? vma->vm_ops->uffd_ops : NULL;
++	return vma->vm_ops->uffd_ops;
+ }
  
-+	if (!ops) {
-+		VM_WARN_ONCE(1, "UFFDIO_COPY for unsupported VMA");
-+		return -EOPNOTSUPP;
-+	}
-+
- 	folio = ops->alloc_folio(state->vma, state->dst_addr);
- 	if (!folio)
- 		return -ENOMEM;
+ static __always_inline
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
