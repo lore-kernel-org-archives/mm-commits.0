@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F13DB3264E2
-	for <mm-commits@vger.kernel.org>; Wed, 27 May 2026 01:44:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4934127A10F
+	for <mm-commits@vger.kernel.org>; Wed, 27 May 2026 01:51:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779846300; cv=none; b=NElRVMICn3QfRZr7JXnWHsTsQkT0JvkACGx00xygW4uabhCOotJd2f+XsqwgIs6w+ySa45cHBYQwF6OK+kdBNUuOHiqjvLb0ZB0xw131xvIPWYMBzUwy5Y5n0Pz3x+eHb7TWrP35uM+HvgZPzf2fXGYCyl3fyImR9+ldn+F7pKY=
+	t=1779846666; cv=none; b=Jo1uCIEeSLieHZVJDSFZXqaeCA1JSnKXMbWwo8AxgXB11GM76NlZ5LdKxfwbWI9ukNbT8mDNbazkt9fZaZ7QxUhy4TgfQPqoJFKMBGplF5h1IYdUyowac2qXc15ae+uIoLjINTaS6guXmDr/e4oNAnG2YcI+K03IbAfRDWg8s0Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779846300; c=relaxed/simple;
-	bh=mphL0uhJRRa+4vKRyTO6uafg07uNNHgsqDIImAKTzXc=;
-	h=Date:To:From:Subject:Message-Id; b=iZvXWKRVUUYmIX3/icmaf7jS60xW4cXnNDxfWfFnhBZGs8CHjJI8uG6wF7RqYJ7TXSQbJHHNnHPX+zSxUgp4VkiqB38uAVN1/5WlO6BiYShEI+mnw85c+gEN5RBMcciqoM5rM0oVLyvlhMN7XHm3stu2xDxnps7enpgLmzZBpEo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=azuz6RaE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779846666; c=relaxed/simple;
+	bh=h6UU315UUIe7BV2eSGfDBsOFloZYxpf/BGIeiB4+E4k=;
+	h=Date:To:From:Subject:Message-Id; b=kMfxOEGWzbpA/Zs2zz+12+WSRGM0jXNFjRNxTKh2TsHEstR0xCUlL4jHo2bxEDytFM8OULH84xhcPr4IgqMPsoRMLHoJ4KCEip7+zqDridPhX4HwKVTfKJ/eLyFD3fpVPkz2o1QvIJAD7JiL1dM4+2VlVwQjgx2ABm9K0BnYtyU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=BfGpfXAy; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="azuz6RaE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8DD901F00A3A;
-	Wed, 27 May 2026 01:44:58 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="BfGpfXAy"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0A4B1F000E9;
+	Wed, 27 May 2026 01:51:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779846298;
-	bh=zGxIB/eKEr8PcVImL+dMalJDjfkUnPjj/IJJ2unTfCs=;
+	d=linux-foundation.org; s=korg; t=1779846664;
+	bh=T9qRoyTADPrKHmAH/tq2a8ZcQSC8KG1WzegSCFSTzEo=;
 	h=Date:To:From:Subject;
-	b=azuz6RaELr1AQSfVAf3rySOQBYJIU1Ppp717845Y91BxP+VpgDhp0C9UCx34ofFRP
-	 UOZH/bhI89d6U9tJEXI4v1rrT3A9NcEIxUXubEozrgPHNfAUBajhgI2RDbmzeg1vgs
-	 VahoSzK7Np/qpVYItOLBRi5DtSNuUN2eNqYpqeGc=
-Date: Tue, 26 May 2026 18:44:58 -0700
-To: mm-commits@vger.kernel.org,ziy@nvidia.com,ypodemsk@redhat.com,will@kernel.org,tglx@linutronix.de,shy828301@gmail.com,seanjc@google.com,ryan.roberts@arm.com,riel@surriel.com,peterz@infradead.org,pbonzini@redhat.com,npiggin@gmail.com,npache@redhat.com,mingo@redhat.com,ljs@kernel.org,liam@infradead.org,jgross@suse.com,jannh@google.com,hughd@google.com,hpa@zytor.com,dev.jain@arm.com,david@kernel.org,dave.hansen@intel.com,bp@alien8.de,boris.ostrovsky@oracle.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,arnd@arndb.de,aneesh.kumar@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
+	b=BfGpfXAy3ICUldguXuFjbrjXi6HAir1vO20FuuKlmxg03zJYe0cChASXa8eskD8Yd
+	 t6PDBZEvQZvo98BvlOYcdZTFnbVCSjTPOeU2OI6+24DRIAlGxBvIuhLBgMAp9MdgC8
+	 ufh3EyXUjDCpiQiWs5Gls/HU9cnxOtl1Iw0IE3S0=
+Date: Tue, 26 May 2026 18:51:04 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shivankg@amd.com,rppt@kernel.org,pankaj.gupta@amd.com,mhocko@suse.com,ljs@kernel.org,liam.howlett@oracle.com,jackmanb@google.com,hannes@cmpxchg.org,david@kernel.org,bharata@amd.com,ankur.a.arora@oracle.com,hsalunke@amd.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch removed from -mm tree
-Message-Id: <20260527014458.8DD901F00A3A@smtp.kernel.org>
+Subject: [folded-merged] mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4.patch removed from -mm tree
+Message-Id: <20260527015104.D0A4B1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,291 +35,95 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: x86/tlb: skip redundant sync IPIs for native TLB flush
+     Subject: mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4
 has been removed from the -mm tree.  Its filename was
-     x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch
+     mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4.patch
 
-This patch was dropped because an updated version will be issued
+This patch was dropped because it was folded into mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing.patch
 
 ------------------------------------------------------
-From: Lance Yang <lance.yang@linux.dev>
-Subject: x86/tlb: skip redundant sync IPIs for native TLB flush
-Date: Fri, 24 Apr 2026 14:25:28 +0800
+From: Hrushikesh Salunke <hsalunke@amd.com>
+Subject: mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4
+Date: Mon, 4 May 2026 06:39:19 +0000
 
-Some page table operations need to synchronize with software/lockless
-walkers after a TLB flush by calling tlb_remove_table_sync_{one,rcu}(). 
-On x86, that extra synchronization is redundant when the preceding TLB
-flush already broadcast IPIs to all relevant CPUs.
+Move clear_highpages_kasan_tagged() from include/linux/highmem.h to
+mm/page_alloc.c as a static function to avoid code size increase.  As the
+function is only used within page_alloc.c.
 
-native_pv_tlb_init() checks whether native_flush_tlb_multi() is in use. 
-On CONFIG_PARAVIRT systems, it checks pv_ops; on non-PARAVIRT, native
-flush is always in use.
-
-It decides once at boot whether to enable the optimization: if using
-native TLB flush and INVLPGB is not supported, we know IPIs were sent and
-can skip the redundant sync.  The decision is fixed via a static key as
-Peter suggested[1].
-
-PV backends (KVM, Xen, Hyper-V) typically have their own implementations
-and don't call native_flush_tlb_multi() directly, so they cannot be
-trusted to provide the IPI guarantees we need.
-
-Also rename the x86 flush_tlb_info bit from freed_tables to
-wake_lazy_cpus, as Dave suggested[2], to match the behavior it controls:
-whether the remote flush may skip CPUs in lazy TLB mode.  Both
-freed_tables and unshared_tables set it, because lazy-TLB CPUs must
-receive IPIs before page tables can be freed or reused.  With that
-guarantee in place, tlb_table_flush_implies_ipi_broadcast() can safely
-skip the later sync IPI.
-
-Two-step plan as David suggested[3]:
-
-Step 1 (this patch): Skip redundant sync when we're 100% certain the TLB
-flush sent IPIs. INVLPGB is excluded because when supported, we cannot
-guarantee IPIs were sent, keeping it clean and simple.
-
-Step 2 (future work): Send targeted IPIs only to CPUs actually doing
-software/lockless page table walks, benefiting all architectures.
-
-Regarding Step 2, it obviously only applies to setups where Step 1 does
-not apply: like x86 with INVLPGB or arm64.
-
-Link: https://lore.kernel.org/20260424062528.71951-3-lance.yang@linux.dev
-Link: https://lore.kernel.org/linux-mm/20260302145652.GH1395266@noisy.programming.kicks-ass.net/ [1]
-Link: https://lore.kernel.org/linux-mm/f856051b-10c7-4d65-9dbe-6b1677af74bd@intel.com/ [2]
-Link: https://lore.kernel.org/linux-mm/bbfdf226-4660-4949-b17b-0d209ee4ef8c@kernel.org/ [3]
-Signed-off-by: Lance Yang <lance.yang@linux.dev>
-Suggested-by: Dave Hansen <dave.hansen@intel.com>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: Barry Song <baohua@kernel.org>
-Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Dev Jain <dev.jain@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Juegren Gross <jgross@suse.com>
-Cc: Liam Howlett <liam@infradead.org>
+Link: https://lore.kernel.org/20260504063942.553438-1-hsalunke@amd.com
+Signed-off-by: Hrushikesh Salunke <hsalunke@amd.com>
+Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+Acked-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Cc: Ankur Arora <ankur.a.arora@oracle.com>
+Cc: Bharata B Rao <bharata@amd.com>
+Cc: Brendan Jackman <jackmanb@google.com>
+Cc: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Liam Howlett <liam.howlett@oracle.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Nico Pache <npache@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yair Podemsky <ypodemsk@redhat.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shivank Garg <shivankg@amd.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/hyperv/mmu.c           |    4 +--
- arch/x86/include/asm/tlb.h      |   19 +++++++++++++-
- arch/x86/include/asm/tlbflush.h |    6 +++-
- arch/x86/kernel/smpboot.c       |    1 
- arch/x86/mm/tlb.c               |   39 ++++++++++++++++++++----------
- 5 files changed, 52 insertions(+), 17 deletions(-)
+ include/linux/highmem.h |   15 ---------------
+ mm/page_alloc.c         |   15 +++++++++++++++
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
---- a/arch/x86/hyperv/mmu.c~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/hyperv/mmu.c
-@@ -63,7 +63,7 @@ static void hyperv_flush_tlb_multi(const
- 	struct hv_tlb_flush *flush;
- 	u64 status;
- 	unsigned long flags;
--	bool do_lazy = !info->freed_tables;
-+	bool do_lazy = !info->wake_lazy_cpus;
+--- a/include/linux/highmem.h~mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4
++++ a/include/linux/highmem.h
+@@ -345,21 +345,6 @@ static inline void clear_highpage_kasan_
+ 	kunmap_local(kaddr);
+ }
  
- 	trace_hyperv_mmu_flush_tlb_multi(cpus, info);
+-static inline void clear_highpages_kasan_tagged(struct page *page, int numpages)
+-{
+-	/* s390's use of memset() could override KASAN redzones. */
+-	kasan_disable_current();
+-	if (!IS_ENABLED(CONFIG_HIGHMEM)) {
+-		clear_pages(kasan_reset_tag(page_address(page)), numpages);
+-	} else {
+-		int i;
+-
+-		for (i = 0; i < numpages; i++)
+-			clear_highpage_kasan_tagged(page + i);
+-	}
+-	kasan_enable_current();
+-}
+-
+ #ifndef __HAVE_ARCH_TAG_CLEAR_HIGHPAGES
  
-@@ -198,7 +198,7 @@ static u64 hyperv_flush_tlb_others_ex(co
+ /* Returns true if the caller has to initialize the pages */
+--- a/mm/page_alloc.c~mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing-v4
++++ a/mm/page_alloc.c
+@@ -1211,6 +1211,21 @@ static inline bool should_skip_kasan_poi
+ 	return page_kasan_tag(page) == KASAN_TAG_KERNEL;
+ }
  
- 	flush->hv_vp_set.format = HV_GENERIC_SET_SPARSE_4K;
- 	nr_bank = cpumask_to_vpset_skip(&flush->hv_vp_set, cpus,
--			info->freed_tables ? NULL : cpu_is_lazy);
-+			info->wake_lazy_cpus ? NULL : cpu_is_lazy);
- 	if (nr_bank < 0)
- 		return HV_STATUS_INVALID_PARAMETER;
- 
---- a/arch/x86/include/asm/tlbflush.h~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/include/asm/tlbflush.h
-@@ -18,6 +18,8 @@
- 
- DECLARE_PER_CPU(u64, tlbstate_untag_mask);
- 
-+void __init native_pv_tlb_init(void);
-+
- void __flush_tlb_all(void);
- 
- #define TLB_FLUSH_ALL	-1UL
-@@ -247,7 +249,7 @@ struct flush_tlb_info {
- 	u64			new_tlb_gen;
- 	unsigned int		initiating_cpu;
- 	u8			stride_shift;
--	u8			freed_tables;
-+	u8			wake_lazy_cpus;
- 	u8			trim_cpumask;
- };
- 
-@@ -337,7 +339,7 @@ static inline bool mm_in_asid_transition
- extern void flush_tlb_all(void);
- extern void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
- 				unsigned long end, unsigned int stride_shift,
--				bool freed_tables);
-+				bool wake_lazy_cpus);
- extern void flush_tlb_kernel_range(unsigned long start, unsigned long end);
- 
- static inline void flush_tlb_page(struct vm_area_struct *vma, unsigned long a)
---- a/arch/x86/include/asm/tlb.h~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/include/asm/tlb.h
-@@ -5,22 +5,39 @@
- #define tlb_flush tlb_flush
- static inline void tlb_flush(struct mmu_gather *tlb);
- 
-+#define tlb_table_flush_implies_ipi_broadcast tlb_table_flush_implies_ipi_broadcast
-+static inline bool tlb_table_flush_implies_ipi_broadcast(void);
-+
- #include <asm-generic/tlb.h>
- #include <linux/kernel.h>
- #include <vdso/bits.h>
- #include <vdso/page.h>
- 
-+DECLARE_STATIC_KEY_FALSE(tlb_ipi_broadcast_key);
-+
-+static inline bool tlb_table_flush_implies_ipi_broadcast(void)
++static void clear_highpages_kasan_tagged(struct page *page, int numpages)
 +{
-+	return static_branch_likely(&tlb_ipi_broadcast_key);
++	/* s390's use of memset() could override KASAN redzones. */
++	kasan_disable_current();
++	if (!IS_ENABLED(CONFIG_HIGHMEM)) {
++		clear_pages(kasan_reset_tag(page_address(page)), numpages);
++	} else {
++		int i;
++
++		for (i = 0; i < numpages; i++)
++			clear_highpage_kasan_tagged(page + i);
++	}
++	kasan_enable_current();
 +}
 +
- static inline void tlb_flush(struct mmu_gather *tlb)
- {
- 	unsigned long start = 0UL, end = TLB_FLUSH_ALL;
- 	unsigned int stride_shift = tlb_get_unmap_shift(tlb);
+ #ifdef CONFIG_MEM_ALLOC_PROFILING
  
-+	/*
-+	 * Both freed_tables and unshared_tables must wake lazy-TLB CPUs, so
-+	 * they receive IPIs before reusing or freeing page tables, allowing
-+	 * us to safely implement tlb_table_flush_implies_ipi_broadcast().
-+	 */
-+	bool wake_lazy_cpus = tlb->freed_tables || tlb->unshared_tables;
-+
- 	if (!tlb->fullmm && !tlb->need_flush_all) {
- 		start = tlb->start;
- 		end = tlb->end;
- 	}
- 
--	flush_tlb_mm_range(tlb->mm, start, end, stride_shift, tlb->freed_tables);
-+	flush_tlb_mm_range(tlb->mm, start, end, stride_shift, wake_lazy_cpus);
- }
- 
- static inline void invlpg(unsigned long addr)
---- a/arch/x86/kernel/smpboot.c~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/kernel/smpboot.c
-@@ -1256,6 +1256,7 @@ void __init native_smp_prepare_boot_cpu(
- 		switch_gdt_and_percpu_base(me);
- 
- 	native_pv_lock_init();
-+	native_pv_tlb_init();
- }
- 
- void __init native_smp_cpus_done(unsigned int max_cpus)
---- a/arch/x86/mm/tlb.c~x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush
-+++ a/arch/x86/mm/tlb.c
-@@ -26,6 +26,8 @@
- 
- #include "mm_internal.h"
- 
-+DEFINE_STATIC_KEY_FALSE(tlb_ipi_broadcast_key);
-+
- #ifdef CONFIG_PARAVIRT
- # define STATIC_NOPV
- #else
-@@ -1339,16 +1341,16 @@ STATIC_NOPV void native_flush_tlb_multi(
- 				(info->end - info->start) >> PAGE_SHIFT);
- 
- 	/*
--	 * If no page tables were freed, we can skip sending IPIs to
--	 * CPUs in lazy TLB mode. They will flush the CPU themselves
--	 * at the next context switch.
-+	 * If lazy-TLB CPUs do not need to be woken, we can skip sending
-+	 * IPIs to them. They will flush themselves at the next context
-+	 * switch.
- 	 *
--	 * However, if page tables are getting freed, we need to send the
--	 * IPI everywhere, to prevent CPUs in lazy TLB mode from tripping
--	 * up on the new contents of what used to be page tables, while
--	 * doing a speculative memory access.
-+	 * However, if page tables are getting freed or unshared, we need
-+	 * to send the IPI everywhere, to prevent CPUs in lazy TLB mode
-+	 * from tripping up on the new contents of what used to be page
-+	 * tables, while doing a speculative memory access.
- 	 */
--	if (info->freed_tables || mm_in_asid_transition(info->mm))
-+	if (info->wake_lazy_cpus || mm_in_asid_transition(info->mm))
- 		on_each_cpu_mask(cpumask, flush_tlb_func, (void *)info, true);
- 	else
- 		on_each_cpu_cond_mask(should_flush_tlb, flush_tlb_func,
-@@ -1381,7 +1383,7 @@ static DEFINE_PER_CPU(unsigned int, flus
- 
- static struct flush_tlb_info *get_flush_tlb_info(struct mm_struct *mm,
- 			unsigned long start, unsigned long end,
--			unsigned int stride_shift, bool freed_tables,
-+			unsigned int stride_shift, bool wake_lazy_cpus,
- 			u64 new_tlb_gen)
- {
- 	struct flush_tlb_info *info = this_cpu_ptr(&flush_tlb_info);
-@@ -1408,7 +1410,7 @@ static struct flush_tlb_info *get_flush_
- 	info->end		= end;
- 	info->mm		= mm;
- 	info->stride_shift	= stride_shift;
--	info->freed_tables	= freed_tables;
-+	info->wake_lazy_cpus	= wake_lazy_cpus;
- 	info->new_tlb_gen	= new_tlb_gen;
- 	info->initiating_cpu	= smp_processor_id();
- 	info->trim_cpumask	= 0;
-@@ -1427,7 +1429,7 @@ static void put_flush_tlb_info(void)
- 
- void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
- 				unsigned long end, unsigned int stride_shift,
--				bool freed_tables)
-+				bool wake_lazy_cpus)
- {
- 	struct flush_tlb_info *info;
- 	int cpu = get_cpu();
-@@ -1436,7 +1438,7 @@ void flush_tlb_mm_range(struct mm_struct
- 	/* This is also a barrier that synchronizes with switch_mm(). */
- 	new_tlb_gen = inc_mm_tlb_gen(mm);
- 
--	info = get_flush_tlb_info(mm, start, end, stride_shift, freed_tables,
-+	info = get_flush_tlb_info(mm, start, end, stride_shift, wake_lazy_cpus,
- 				  new_tlb_gen);
- 
- 	/*
-@@ -1813,3 +1815,16 @@ static int __init create_tlb_single_page
- 	return 0;
- }
- late_initcall(create_tlb_single_page_flush_ceiling);
-+
-+void __init native_pv_tlb_init(void)
-+{
-+#ifdef CONFIG_PARAVIRT
-+	if (pv_ops.mmu.flush_tlb_multi != native_flush_tlb_multi)
-+		return;
-+#endif
-+
-+	if (cpu_feature_enabled(X86_FEATURE_INVLPGB))
-+		return;
-+
-+	static_branch_enable(&tlb_ipi_broadcast_key);
-+}
+ /* Should be called only if mem_alloc_profiling_enabled() */
 _
 
-Patches currently in -mm which might be from lance.yang@linux.dev are
+Patches currently in -mm which might be from hsalunke@amd.com are
 
+mm-page_alloc-replace-kernel_init_pages-with-batch-page-clearing.patch
 
