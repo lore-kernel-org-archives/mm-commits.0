@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CACB83C5856
-	for <mm-commits@vger.kernel.org>; Tue, 26 May 2026 22:25:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CA5C305698
+	for <mm-commits@vger.kernel.org>; Wed, 27 May 2026 01:44:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779834302; cv=none; b=KB/iM4FqKJTEdOTf63va4p5NTXsPDW2StJZAzjdkFgAzP4ckAqBZpH8qtb4hVZNQC8VmY49r8YUn3CWBpANKMFr6swRim2evtxTZnwEibwIWmqwT/pbxqbjB3v1EBbRWVHLf7IjIM8+Q7uJ7xH1Pn23z/KFZqEv9DdB0LH/uFwU=
+	t=1779846298; cv=none; b=kkjiM1240mfyyhccHj3VBxiAcO7zXbtg7Z+rHlgAGmp/9U79QEHMAR9+SmS2utS25PfPzJDcGOwusDudG07OF6B36SUpXq9/lkJxpNFKnSQHMyUnvNdCaW1Ci6ciusTJvXoSN10RYwLxh3Ht3L9fSwU5VabKroGVSxqBPytxTwM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779834302; c=relaxed/simple;
-	bh=XbKW7W43z3Gz4XU7iRKsmpOk3BI8DZXAyXlr3F4NUx4=;
-	h=Date:To:From:Subject:Message-Id; b=onR2+QRHgWH8X9eHugsrgo90ca1i4dKnhUX9Ogjy5AYRsA75W+0Vm66BesRNzRJmt+8Bp4nxhsh4sq6M8ulBegt+km413BpL+0MYowe+k+ICcmGiMwoO7ayEux5soL54eicWoFOCP64PndQ9I5nioZC5oZBtLYur/BPSXwA9tSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=FjQxnQup; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779846298; c=relaxed/simple;
+	bh=Rcf8gUBuXXzVohSJcnoW3330THQdjDcXuVIc+7hjpRc=;
+	h=Date:To:From:Subject:Message-Id; b=uobdt36Gd2MBhPs51z7kWbGkBLKCi19JlqnkXWbSNyoQSc5o/Ex5h7fCfJkHUhR0w0jqthzsCFV9cri5Q/9jYTlqsvIYsTj9Xf++Kb2DyVCkrWAh3n+tZ88i5+78gecX/t1ajxxZiaXihJzw2MLatPwKWSsmRoOZ0K0AOQovg2k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=cYr5rs3Z; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="FjQxnQup"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 551D71F000E9;
-	Tue, 26 May 2026 22:25:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="cYr5rs3Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEFAE1F000E9;
+	Wed, 27 May 2026 01:44:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779834300;
-	bh=GHf9MPeHAn+A6XSVbJeJGTFIvsksS7iJSEBLQ3Fcz6s=;
+	d=linux-foundation.org; s=korg; t=1779846297;
+	bh=2bs6Oo6nLdx4qJmZAVetqXkmlNdLX8EyrmxucFUZ2/g=;
 	h=Date:To:From:Subject;
-	b=FjQxnQup4doXMM3wmRBGxbPDIysAbP3pZW22Na/xYbBw30iae9gHG/jdgElvxGyKX
-	 qnE9DwNTg+W+Wvfirt22+jeRc5b6cPjsh5CdyxYlwNDWde4M6UN6ssn/GvdXniqZeY
-	 z6rApqWONTLldj7loZL7PVrzjL9zo87wyLQD0g30=
-Date: Tue, 26 May 2026 15:24:59 -0700
-To: mm-commits@vger.kernel.org,mchehab@kernel.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=cYr5rs3ZwvaB2LxOEpBZ8gPQPXe6QBQnxOz5QnsAjQGGn9XmtVEZAlJKU4I9XQ3Gb
+	 JEoCPoRcCPOmNEAyTj2FaVd6wUpe33Uvui/Es2DCjyJEZjQM4FO7PxC2U+vcPcoBnh
+	 lblv9Muwt8b4TQ28lIlwd/NqkSc3IA405r+DEzzM=
+Date: Tue, 26 May 2026 18:44:56 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,ypodemsk@redhat.com,will@kernel.org,tglx@linutronix.de,shy828301@gmail.com,seanjc@google.com,ryan.roberts@arm.com,riel@surriel.com,peterz@infradead.org,pbonzini@redhat.com,npiggin@gmail.com,npache@redhat.com,mingo@redhat.com,ljs@kernel.org,liam@infradead.org,jgross@suse.com,jannh@google.com,hughd@google.com,hpa@zytor.com,dev.jain@arm.com,david@kernel.org,dave.hansen@intel.com,bp@alien8.de,boris.ostrovsky@oracle.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,arnd@arndb.de,aneesh.kumar@kernel.org,lance.yang@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch added to mm-nonmm-unstable branch
-Message-Id: <20260526222500.551D71F000E9@smtp.kernel.org>
+Subject: [to-be-updated] mm-mmu_gather-prepare-to-skip-redundant-sync-ipis.patch removed from -mm tree
+Message-Id: <20260527014456.DEFAE1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,179 +34,197 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The patch titled
-     Subject: drivers/media/v4l2-core/v4l2-vp9.c: reduce inlining
-has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+The quilt patch titled
+     Subject: mm/mmu_gather: prepare to skip redundant sync IPIs
+has been removed from the -mm tree.  Its filename was
+     mm-mmu_gather-prepare-to-skip-redundant-sync-ipis.patch
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
-
-This patch will later appear in the mm-nonmm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via various
-branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there most days
+This patch was dropped because an updated version will be issued
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/media/v4l2-core/v4l2-vp9.c: reduce inlining
-Date: Tue May 26 03:14:09 PM PDT 2026
+From: Lance Yang <lance.yang@linux.dev>
+Subject: mm/mmu_gather: prepare to skip redundant sync IPIs
+Date: Fri, 24 Apr 2026 14:25:27 +0800
 
-csky allmodconfig, gcc-15.2.0:
+Patch series "skip redundant sync IPIs when TLB flush sent them", v10.
 
-drivers/media/v4l2-core/v4l2-vp9.c: In function 'v4l2_vp9_adapt_noncoef_probs':
-drivers/media/v4l2-core/v4l2-vp9.c:1834:1: error: the frame size of 1436 bytes is larger than 1280 bytes [-Werror=frame-larger-than=]
+When page table operations require synchronization with software/lockless
+walkers, they call tlb_remove_table_sync_{one,rcu}() after flushing the
+TLB (tlb->freed_tables or tlb->unshared_tables).
 
-The amount of inlining in there is simply nuts.  This patch semi-randomly
-uninlines various things and fixes the above.
+On architectures where the TLB flush already sends IPIs to all target CPUs,
+the subsequent sync IPI broadcast is redundant. This is not only costly on
+large systems where it disrupts all CPUs even for single-process page table
+operations, but has also been reported to hurt RT workloads[1].
 
-Ad the .text size reduction is tremendous:
+This series introduces tlb_table_flush_implies_ipi_broadcast() to check if
+the prior TLB flush already provided the necessary synchronization. When
+true, the sync calls can early-return.
 
-ts:/usr/src/25> size drivers/media/v4l2-core/v4l2-vp9.o
-   text	   data	    bss	    dec	    hex	filename
-  22450	     36	      0	  22486	   57d6	drivers/media/v4l2-core/v4l2-vp9.o-before
-  16144	     36	      0	  16180	   3f34	drivers/media/v4l2-core/v4l2-vp9.o-after
+A few cases rely on this synchronization:
 
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+1) hugetlb PMD unshare[2]: The problem is not the freeing but the reuse
+   of the PMD table for other purposes in the last remaining user after
+   unsharing.
+
+2) khugepaged collapse[3]: Ensure no concurrent GUP-fast before collapsing
+   and (possibly) freeing the page table / re-depositing it.
+
+Two-step plan as David suggested[4]:
+
+Step 1 (this series): Skip redundant sync when we're 100% certain the TLB
+flush sent IPIs. INVLPGB is excluded because when supported, we cannot
+guarantee IPIs were sent, keeping it clean and simple.
+
+Step 2 (future work): Send targeted IPIs only to CPUs actually doing
+software/lockless page table walks, benefiting all architectures.
+
+Regarding Step 2, it obviously only applies to setups where Step 1 does not
+apply: like x86 with INVLPGB or arm64. Step 2 work is ongoing; early
+attempts showed ~3% GUP-fast overhead. Reducing the overhead requires more
+work and tuning; it will be submitted separately once ready.
+
+On a 64-core Intel x86 server, the CAL interrupt count in
+/proc/interrupts dropped from 646,316 to 785 when collapsing a 20 GiB
+range with this series applied.
+
+David Hildenbrand did the initial implementation. I built on his work and
+relied on off-list discussions to push it further - thanks a lot David!
+
+
+This patch (of 2):
+
+When page table operations require synchronization with software/lockless
+walkers, they call tlb_remove_table_sync_{one,rcu}() after flushing the
+TLB (tlb->freed_tables or tlb->unshared_tables).
+
+On architectures where the TLB flush already sends IPIs to all target
+CPUs, the subsequent sync IPI broadcast is redundant.  This is not only
+costly on large systems where it disrupts all CPUs even for single-process
+page table operations, but has also been reported to hurt RT workloads[5].
+
+Introduce tlb_table_flush_implies_ipi_broadcast() to check if the prior
+TLB flush already provided the necessary synchronization.  When true, the
+sync calls can early-return.
+
+A few cases rely on this synchronization:
+
+1) hugetlb PMD unshare[6]: The problem is not the freeing but the reuse
+   of the PMD table for other purposes in the last remaining user after
+   unsharing.
+
+2) khugepaged collapse[7]: Ensure no concurrent GUP-fast before collapsing
+   and (possibly) freeing the page table / re-depositing it.
+
+Currently always returns false (no behavior change). The follow-up patch
+will enable the optimization for x86.
+
+Link: https://lore.kernel.org/20260424062528.71951-1-lance.yang@linux.dev
+Link: https://lore.kernel.org/20260424062528.71951-2-lance.yang@linux.dev
+Link: https://lore.kernel.org/linux-mm/1b27a3fa-359a-43d0-bdeb-c31341749367@kernel.org/ [1]
+Link: https://lore.kernel.org/linux-mm/6a364356-5fea-4a6c-b959-ba3b22ce9c88@kernel.org/ [2]
+Link: https://lore.kernel.org/linux-mm/2cb4503d-3a3f-4f6c-8038-7b3d1c74b3c2@kernel.org/ [3]
+Link: https://lore.kernel.org/linux-mm/bbfdf226-4660-4949-b17b-0d209ee4ef8c@kernel.org/ [4]
+Link: https://lore.kernel.org/linux-mm/1b27a3fa-359a-43d0-bdeb-c31341749367@kernel.org/ [5]
+Link: https://lore.kernel.org/linux-mm/6a364356-5fea-4a6c-b959-ba3b22ce9c88@kernel.org/ [6]
+Link: https://lore.kernel.org/linux-mm/2cb4503d-3a3f-4f6c-8038-7b3d1c74b3c2@kernel.org/ [7]
+Signed-off-by: Lance Yang <lance.yang@linux.dev>
+Suggested-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: "Borislav Petkov (AMD)" <bp@alien8.de>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Juegren Gross <jgross@suse.com>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Sean Christopherson <seanjc@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yair Podemsky <ypodemsk@redhat.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/v4l2-core/v4l2-vp9.c |   30 +++++++++++++--------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ include/asm-generic/tlb.h |   17 +++++++++++++++++
+ mm/mmu_gather.c           |   15 +++++++++++++++
+ 2 files changed, 32 insertions(+)
 
---- a/drivers/media/v4l2-core/v4l2-vp9.c~drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining
-+++ a/drivers/media/v4l2-core/v4l2-vp9.c
-@@ -1582,25 +1582,25 @@ static inline u8 noncoef_merge_prob(u8 p
-  *	merge_prob(p[9], c[9], [10])
+--- a/include/asm-generic/tlb.h~mm-mmu_gather-prepare-to-skip-redundant-sync-ipis
++++ a/include/asm-generic/tlb.h
+@@ -240,6 +240,23 @@ static inline void tlb_remove_table(stru
+ }
+ #endif /* CONFIG_MMU_GATHER_TABLE_FREE */
+ 
++/**
++ * tlb_table_flush_implies_ipi_broadcast - does TLB flush imply IPI sync
++ *
++ * When page table operations require synchronization with software/lockless
++ * walkers, they flush the TLB (tlb->freed_tables or tlb->unshared_tables)
++ * then call tlb_remove_table_sync_{one,rcu}(). If the flush already sent
++ * IPIs to all CPUs, the sync call is redundant.
++ *
++ * Returns false by default. Architectures can override by defining this.
++ */
++#ifndef tlb_table_flush_implies_ipi_broadcast
++static inline bool tlb_table_flush_implies_ipi_broadcast(void)
++{
++	return false;
++}
++#endif
++
+ #ifdef CONFIG_MMU_GATHER_RCU_TABLE_FREE
+ /*
+  * This allows an architecture that does not use the linux page-tables for
+--- a/mm/mmu_gather.c~mm-mmu_gather-prepare-to-skip-redundant-sync-ipis
++++ a/mm/mmu_gather.c
+@@ -283,6 +283,14 @@ void tlb_remove_table_sync_one(void)
+ 	 * It is however sufficient for software page-table walkers that rely on
+ 	 * IRQ disabling.
+ 	 */
++
++	/*
++	 * Skip IPI if the preceding TLB flush already synchronized with
++	 * all CPUs that could be doing software/lockless page table walks.
++	 */
++	if (tlb_table_flush_implies_ipi_broadcast())
++		return;
++
+ 	smp_call_function(tlb_remove_table_smp_sync, NULL, 1);
+ }
+ 
+@@ -312,6 +320,13 @@ static void tlb_remove_table_free(struct
   */
- 
--static inline void merge_probs_variant_a(u8 *p, const u32 *c, u16 count_sat, u32 update_factor)
-+static noinline_for_stack void merge_probs_variant_a(u8 *p, const u32 *c, u16 count_sat, u32 update_factor)
+ void tlb_remove_table_sync_rcu(void)
  {
- 	p[1] = merge_prob(p[1], c[0], c[1] + c[2], count_sat, update_factor);
- 	p[2] = merge_prob(p[2], c[1], c[2], count_sat, update_factor);
++	/*
++	 * Skip RCU wait if the preceding TLB flush already synchronized
++	 * with all CPUs that could be doing software/lockless page table walks.
++	 */
++	if (tlb_table_flush_implies_ipi_broadcast())
++		return;
++
+ 	synchronize_rcu();
  }
  
--static inline void merge_probs_variant_b(u8 *p, const u32 *c, u16 count_sat, u32 update_factor)
-+static noinline_for_stack void merge_probs_variant_b(u8 *p, const u32 *c, u16 count_sat, u32 update_factor)
- {
- 	p[0] = merge_prob(p[0], c[0], c[1], count_sat, update_factor);
- }
- 
--static inline void merge_probs_variant_c(u8 *p, const u32 *c)
-+static noinline_for_stack void merge_probs_variant_c(u8 *p, const u32 *c)
- {
- 	p[0] = noncoef_merge_prob(p[0], c[2], c[1] + c[0] + c[3]);
- 	p[1] = noncoef_merge_prob(p[1], c[0], c[1] + c[3]);
- 	p[2] = noncoef_merge_prob(p[2], c[1], c[3]);
- }
- 
--static void merge_probs_variant_d(u8 *p, const u32 *c)
-+static noinline_for_stack void merge_probs_variant_d(u8 *p, const u32 *c)
- {
- 	u32 sum = 0, s2;
- 
-@@ -1624,20 +1624,20 @@ static void merge_probs_variant_d(u8 *p,
- 	p[8] = noncoef_merge_prob(p[8], c[6], c[7]);
- }
- 
--static inline void merge_probs_variant_e(u8 *p, const u32 *c)
-+static noinline_for_stack void merge_probs_variant_e(u8 *p, const u32 *c)
- {
- 	p[0] = noncoef_merge_prob(p[0], c[0], c[1] + c[2] + c[3]);
- 	p[1] = noncoef_merge_prob(p[1], c[1], c[2] + c[3]);
- 	p[2] = noncoef_merge_prob(p[2], c[2], c[3]);
- }
- 
--static inline void merge_probs_variant_f(u8 *p, const u32 *c)
-+static noinline_for_stack void merge_probs_variant_f(u8 *p, const u32 *c)
- {
- 	p[0] = noncoef_merge_prob(p[0], c[0], c[1] + c[2]);
- 	p[1] = noncoef_merge_prob(p[1], c[1], c[2]);
- }
- 
--static void merge_probs_variant_g(u8 *p, const u32 *c)
-+static noinline_for_stack void merge_probs_variant_g(u8 *p, const u32 *c)
- {
- 	u32 sum;
- 
-@@ -1659,12 +1659,12 @@ static void merge_probs_variant_g(u8 *p,
- }
- 
- /* 8.4.3 Coefficient probability adaptation process */
--static inline void adapt_probs_variant_a_coef(u8 *p, const u32 *c, u32 update_factor)
-+static noinline_for_stack void adapt_probs_variant_a_coef(u8 *p, const u32 *c, u32 update_factor)
- {
- 	merge_probs_variant_a(p, c, 24, update_factor);
- }
- 
--static inline void adapt_probs_variant_b_coef(u8 *p, const u32 *c, u32 update_factor)
-+static noinline_for_stack void adapt_probs_variant_b_coef(u8 *p, const u32 *c, u32 update_factor)
- {
- 	merge_probs_variant_b(p, c, 24, update_factor);
- }
-@@ -1724,33 +1724,33 @@ static inline void adapt_probs_variant_b
- 	merge_probs_variant_b(p, c, 20, 128);
- }
- 
--static inline void adapt_probs_variant_c(u8 *p, const u32 *c)
-+static noinline_for_stack void adapt_probs_variant_c(u8 *p, const u32 *c)
- {
- 	merge_probs_variant_c(p, c);
- }
- 
--static inline void adapt_probs_variant_d(u8 *p, const u32 *c)
-+static noinline_for_stack void adapt_probs_variant_d(u8 *p, const u32 *c)
- {
- 	merge_probs_variant_d(p, c);
- }
- 
--static inline void adapt_probs_variant_e(u8 *p, const u32 *c)
-+static noinline_for_stack void adapt_probs_variant_e(u8 *p, const u32 *c)
- {
- 	merge_probs_variant_e(p, c);
- }
- 
--static inline void adapt_probs_variant_f(u8 *p, const u32 *c)
-+static noinline_for_stack void adapt_probs_variant_f(u8 *p, const u32 *c)
- {
- 	merge_probs_variant_f(p, c);
- }
- 
--static inline void adapt_probs_variant_g(u8 *p, const u32 *c)
-+static noinline_for_stack void adapt_probs_variant_g(u8 *p, const u32 *c)
- {
- 	merge_probs_variant_g(p, c);
- }
- 
- /* 8.4.4 Non coefficient probability adaptation process, adapt_prob() */
--static inline u8 adapt_prob(u8 prob, const u32 counts[2])
-+static noinline_for_stack u8 adapt_prob(u8 prob, const u32 counts[2])
- {
- 	return noncoef_merge_prob(prob, counts[0], counts[1]);
- }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lance.yang@linux.dev are
 
-mm-memory-failure-fix-hugetlb_lock-aa-deadlock-in-get_huge_page_for_hwpoison-fix.patch
-selftests-mm-check-file-initialization-writes-in-split_huge_page_test-fix.patch
-mm-memcg-swap-store-cgroup-id-in-cluster-table-directly-fix.patch
-mm-swap-merge-zeromap-into-swap-table-fix.patch
-mm-swap-merge-zeromap-into-swap-table-fix-2.patch
-mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
-proc-rewrite-next_tgid-fix.patch
-lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix.patch
-sparc-add-_mcount-prototype.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+x86-tlb-skip-redundant-sync-ipis-for-native-tlb-flush.patch
 
