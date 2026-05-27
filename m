@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7513E389460
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7525C38AC85
 	for <mm-commits@vger.kernel.org>; Wed, 27 May 2026 19:35:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779910528; cv=none; b=iVqtxn3+fO4AGf0oh6iHiLelryHqHq3OiNra2H9VKXtE7zaCjcV0ZzPy40iiTSHzBzBwoFM3B/h7fNegn0z1ZIfTWnN76jw+zscSMcJsE3T1W4oFjSugYkOjAN+HlE1hZb6Q5l35upzN27A0N0GexZORtvDUbtM+T03idt3fflU=
+	t=1779910526; cv=none; b=d6MYbeO4/yV0t7uBeNBZeXI/QZ7EUYmpVCI6QjEgyv2gQcygE1fE5g/muXb63g217iyZqdUmA/1lh6VQmfHMo4N7qj8Gqs5A+1QfTAWJ35gteNqiTv30JMclat+2mfRoqd8mPA/BJ5xAHRyol6arqzPfHOZqhTDXciR1WMuisIk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779910528; c=relaxed/simple;
-	bh=ayiW+N8VafRSeZvBjf0DPjNRHwEFJxyRq8+oxN5HRw4=;
-	h=Date:To:From:Subject:Message-Id; b=OEwUP9N4d4fObQ5HHQ7wnDtrAaTDItbsYpTGIoG9uBCCRBUhhfTn242OOFcdg/z1yowQFA6nHMIDHYNnFSq9UKuxOmKyHqs6Wb4d7zHPU3e+P77YmUcV09khI+2T15GMbqwrf1FveMBSKm7sN1tBE3VIsY8CX4T7mUTJXXOTvxc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rSkeamrg; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779910526; c=relaxed/simple;
+	bh=WePPK/dd9Mpcs1GMsOL2qItgcVH7RfY+amhsBE4NHi4=;
+	h=Date:To:From:Subject:Message-Id; b=UL2MHpqzvlIsxpHMt/1srAHGGzSz8YoVFeyn8iDDT0X0NGhUzGeE90n+9r8sMCPJEDaSMo6Q9X37LVyrM/2+ncW5FAENrVKyFeF6vfl136ouEI8Svvb63/wU3GSXWbjU9vwmp1kiyjZ1WWM4fjpmjXdSwMbbo+qXtFFyBcg/+tc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Gr9T76ly; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rSkeamrg"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BD7451F00A3E;
-	Wed, 27 May 2026 19:35:12 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Gr9T76ly"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A8891F00A3D;
+	Wed, 27 May 2026 19:35:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779910512;
-	bh=3J9I3MQ142kKh/zGUNt4rGp1QwJnUYTRRdT6Y/MTDbE=;
+	d=linux-foundation.org; s=korg; t=1779910510;
+	bh=ItlmK36eV+j/lETIBEOaG2yUzllaIfspv55q9ojwjdo=;
 	h=Date:To:From:Subject;
-	b=rSkeamrgJ2sERTJeehn/j3d9r5NvbFg8UPqdMy+YF/9gBseKdAP9yef5R1Ul+IWES
-	 25QdDFYhzHkK5MBv+X/61cmdG8jk8W5wyCWN9zy6Li+Lz+miwj6NYkKxjEgkFRnLEF
-	 hIN3Ofjej1dxEy87V3QDr8xJI/avgtyy/ubScEXg=
-Date: Wed, 27 May 2026 12:35:12 -0700
+	b=Gr9T76lyty/dY1OefW8+NNBkvP40YHXb9dxVGx2nRLk1mw0VeF8MvKYqCzd5bTZPs
+	 eXzO2F/BSmhw1fl4iztAVACbObFLf7wtwHfU9WTG0HoQjEqzz+f1eYMoLO+vGfLRzu
+	 rsJgxB/Z2cyu/hS0N2taqBtzjJtZzL9LGjX47AVY=
+Date: Wed, 27 May 2026 12:35:09 -0700
 To: mm-commits@vger.kernel.org,peterx@redhat.com,michael.bommarito@gmail.com,ljs@kernel.org,liam@infradead.org,devnexen@gmail.com,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + userfaultfd-remove-redundant-check-in-vm_uffd_ops.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260527193512.BD7451F00A3E@smtp.kernel.org>
+Subject: + userfaultfd-verify-vma-state-across-uffdio_copy-retry.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260527193510.5A8891F00A3D@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: userfaultfd: remove redundant check in vm_uffd_ops()
+     Subject: userfaultfd: verify VMA state across UFFDIO_COPY retry
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     userfaultfd-remove-redundant-check-in-vm_uffd_ops.patch
+     userfaultfd-verify-vma-state-across-uffdio_copy-retry.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-remove-redundant-check-in-vm_uffd_ops.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-verify-vma-state-across-uffdio_copy-retry.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,50 +59,183 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: userfaultfd: remove redundant check in vm_uffd_ops()
-Date: Wed, 27 May 2026 21:47:51 +0300
+Subject: userfaultfd: verify VMA state across UFFDIO_COPY retry
+Date: Wed, 27 May 2026 21:47:49 +0300
 
-Lorenzo says:
+Patch series "userfaultfd: verify VMA state across UFFDIO_COPY retry", v2.
 
-  static const struct vm_uffd_ops *vma_uffd_ops(struct vm_area_struct *vma)
-  {
-          if (vma_is_anonymous(vma))
-                  return &anon_uffd_ops;
-          return vma->vm_ops ? vma->vm_ops->uffd_ops : NULL;
-  }
+... and two more small fixes.
 
-  This is doing a redundant check _and_ making life confusing, as if
-  !vma->vm_ops is a condition that can be reached there, it can't, as
-  vma_is_anonymous() is literally a !vma->vm_ops check :)
 
-Remove the redundant check.
+This patch (of 3):
 
-Link: https://lore.kernel.org/20260527184751.4147364-4-rppt@kernel.org
-Fixes: 0f48947c4232 ("userfaultfd: introduce vm_uffd_ops")
+mfill_copy_folio_retry() drops the VMA lock for copy_from_user() and
+reacquires it afterwards.  The destination VMA can be replaced during that
+window.
+
+The existing check compares vma_uffd_ops() before and after the retry, but
+if a shmem VMA with MAP_SHARED is replaced with a shmem VMA with
+MAP_PRIVATE (or vice versa) the replacement goes undetected.
+
+The change from MAP_PRIVATE to MAP_SHARED will treat the folio allocated
+with shmem_alloc_folio() as anonymous and this will cause BUG() when
+mfill_atomic_install_pte() will try to folio_add_new_anon_rmap().
+
+The change from MAP_SHARED to MAP_PRIVATE allows injection of folios into
+the page cache of the original VMA.
+
+There is no need to change for hugetlb because it never uses
+mfill_copy_folio_retry().
+
+Introduce helpers for more comprehensive comparison of VMA state:
+- mfill_retry_state_save() to save the relevant VMA state into a struct
+  mfill_retry_state (original uffd_ops, relevant VMA flags, vm_file and
+  pgoff) before dropping the lock
+- mfill_retry_state_changed() to compare the saved state with the state
+  of the VMA acquired after retaking the locks
+- mfill_retry_state_put() to release vm_file pinning.
+
+Use DEFINE_FREE() cleanup to wrap mfill_retry_state_put() to avoid
+complicating error handling paths in mfill_copy_folio_retry().
+
+Link: https://lore.kernel.org/20260527184751.4147364-1-rppt@kernel.org
+Link: https://lore.kernel.org/20260527184751.4147364-2-rppt@kernel.org
+Fixes: 292411fda25b ("mm/userfaultfd: detect VMA type change after copy retry in mfill_copy_folio_retry()")
+Fixes: 6ab703034f14 ("userfaultfd: mfill_atomic(): remove retry logic")
+Co-developed-by: Michael Bommarito <michael.bommarito@gmail.com>
+Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Suggested-by: Lorenzo Stoakes <ljs@kernel.org>
+Suggested-by: Peter Xu <peterx@redhat.com>
+Co-developed-by: David Carlier <devnexen@gmail.com>
+Signed-off-by: David Carlier <devnexen@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: David Carlier <devnexen@gmail.com>
-Cc: Michael Bommarito <michael.bommarito@gmail.com>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/userfaultfd.c |   85 ++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 73 insertions(+), 12 deletions(-)
 
---- a/mm/userfaultfd.c~userfaultfd-remove-redundant-check-in-vm_uffd_ops
+--- a/mm/userfaultfd.c~userfaultfd-verify-vma-state-across-uffdio_copy-retry
 +++ a/mm/userfaultfd.c
-@@ -68,7 +68,7 @@ static const struct vm_uffd_ops *vma_uff
- {
- 	if (vma_is_anonymous(vma))
- 		return &anon_uffd_ops;
--	return vma->vm_ops ? vma->vm_ops->uffd_ops : NULL;
-+	return vma->vm_ops->uffd_ops;
+@@ -14,6 +14,8 @@
+ #include <linux/userfaultfd_k.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/hugetlb.h>
++#include <linux/file.h>
++#include <linux/cleanup.h>
+ #include <asm/tlbflush.h>
+ #include <asm/tlb.h>
+ #include "internal.h"
+@@ -443,16 +445,80 @@ static int mfill_copy_folio_locked(struc
+ 	return ret;
  }
  
- static __always_inline
+-static int mfill_copy_folio_retry(struct mfill_state *state,
++#define MFILL_RETRY_STATE_VMA_FLAGS \
++	append_vma_flags(__VMA_UFFD_FLAGS, VMA_SHARED_BIT)
++
++/*
++ * VMA state saved before dropping the locks in mfill_copy_folio_retry().
++ * Used to detect VMA replacement or incompatible changes after reacquiring the
++ * locks.
++ */
++struct mfill_retry_state {
++	const struct vm_uffd_ops *ops;
++	struct file *file;
++	vma_flags_t flags;
++	pgoff_t pgoff;
++};
++
++static void mfill_retry_state_save(struct mfill_retry_state *s,
++				   struct vm_area_struct *vma)
++{
++	s->flags = vma_flags_and_mask(&vma->flags, MFILL_RETRY_STATE_VMA_FLAGS);
++	s->ops = vma_uffd_ops(vma);
++	s->pgoff = vma->vm_pgoff;
++
++	if (vma->vm_file)
++		s->file = get_file(vma->vm_file);
++}
++
++static bool mfill_retry_state_changed(struct mfill_retry_state *state,
++				      struct vm_area_struct *vma)
++{
++	vma_flags_t flags = vma_flags_and_mask(&vma->flags,
++					       MFILL_RETRY_STATE_VMA_FLAGS);
++
++	/* Have any UFFD flags (missing, WP, minor) changed? */
++	if (!vma_flags_same_pair(&state->flags, &flags))
++		return true;
++
++	/* VMA type or effective uffd_ops changed while the lock was dropped */
++	if (state->ops != vma_uffd_ops(vma))
++		return true;
++
++	/* VMA was anonymous before; changed only if it no longer is */
++	if (!state->file)
++		return !vma_is_anonymous(vma);
++
++	/* VMA was file backed, but file, inode or offset has changed */
++	if (!vma->vm_file || vma->vm_file->f_inode != state->file->f_inode ||
++	    state->file != vma->vm_file || vma->vm_pgoff != state->pgoff)
++		return true;
++
++	return false;
++}
++
++static void mfill_retry_state_put(struct mfill_retry_state *s)
++{
++	if (s->file)
++		fput(s->file);
++}
++
++DEFINE_FREE(retry_put, struct mfill_retry_state *,
++	    if (_T) mfill_retry_state_put(_T));
++
++static int mfill_copy_folio_retry(struct mfill_state *mfill_state,
+ 				  struct folio *folio)
+ {
+-	const struct vm_uffd_ops *orig_ops = vma_uffd_ops(state->vma);
+-	unsigned long src_addr = state->src_addr;
++	struct mfill_retry_state retry_state = { 0 };
++	struct mfill_retry_state *for_free __free(retry_put) = &retry_state;
++	unsigned long src_addr = mfill_state->src_addr;
+ 	void *kaddr;
+ 	int err;
+ 
++	mfill_retry_state_save(&retry_state, mfill_state->vma);
++
+ 	/* retry copying with mm_lock dropped */
+-	mfill_put_vma(state);
++	mfill_put_vma(mfill_state);
+ 
+ 	kaddr = kmap_local_folio(folio, 0);
+ 	err = copy_from_user(kaddr, (const void __user *) src_addr, PAGE_SIZE);
+@@ -463,19 +529,14 @@ static int mfill_copy_folio_retry(struct
+ 	flush_dcache_folio(folio);
+ 
+ 	/* reget VMA and PMD, they could change underneath us */
+-	err = mfill_get_vma(state);
++	err = mfill_get_vma(mfill_state);
+ 	if (err)
+ 		return err;
+ 
+-	/*
+-	 * The VMA type may have changed while the lock was dropped
+-	 * (e.g. replaced with a hugetlb mapping), making the caller's
+-	 * ops pointer stale.
+-	 */
+-	if (vma_uffd_ops(state->vma) != orig_ops)
++	if (mfill_retry_state_changed(&retry_state, mfill_state->vma))
+ 		return -EAGAIN;
+ 
+-	err = mfill_establish_pmd(state);
++	err = mfill_establish_pmd(mfill_state);
+ 	if (err)
+ 		return err;
+ 
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
