@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C30E3655EE
-	for <mm-commits@vger.kernel.org>; Wed, 27 May 2026 19:22:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72BE0388E77
+	for <mm-commits@vger.kernel.org>; Wed, 27 May 2026 19:35:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779909768; cv=none; b=AiLVCyycXpYk7FLF3tmv3QEuaavj6PWdOItVYp4LdJzh1i+hD0s6iXM71Wb/wptEPLeIivJMLy5mSEh2xOHsEOIBhSGi7coVt8oxdydgDan761esWR2/JB/L8y1WvyuiLSM2z6MOPbMdQSspYwge6YL72svFA3x+FeCt1SgqRhI=
+	t=1779910525; cv=none; b=X05Ju4JRGMr6ccq9IG1lGFK7Q88MJsirp8BQKNRPxgLG2nI8+jYJ1PP51RoXrmsllrSPAtE5fnvMCHxcV5yCtf8VzXgcrNLv1+X/23GIJ+z2JGoGNowRGw8Xq9r1RjP8u2yLrL/N49mKZFeMVTWVyGfV2NCVMxmJEaDSoidbvfg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779909768; c=relaxed/simple;
-	bh=UXZUfUnB48NMv5CslFDRZWQf9Mg2n2gF8qAKr2JUO2E=;
-	h=Date:To:From:Subject:Message-Id; b=rCY/fziAyMnGQ5BMCZ6C6oYwPz90eGqcDPdfX85sQJbVTZfudJt0iapm3K4HmRVhfSzeVdRIqa6ZKOdQDLQ95BDJxbwBJ+LjSWelxDCIdn0RcwgiiHDeaG1B3AtHs7Qv7dfqxz9ZDRU+dt0wLPDmRkW7SwOSbOCCewk/NyAV6qM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z4y15cJS; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779910525; c=relaxed/simple;
+	bh=Fg6PncjcW0fbdVJxJbfW4j8nBxcuYabInenkrVN1rCo=;
+	h=Date:To:From:Subject:Message-Id; b=SvHkwIc8Kx4RejxypUXjNzw6K1PI8KK3k+XpoXNW+DcwujJZ/34xrnOpoeu03UTOAOmaob9hqdwaALzeoDYT39YlLUZg9huGhd8bDj+QubG+IgbicZr+9J/DG4E5XkJJhY7Mz6BPm7t71vz/u8M6qCl9tXIyzQVJJfu3b0JKQP8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=qgDNOT/k; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z4y15cJS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 939EE1F000E9;
-	Wed, 27 May 2026 19:22:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="qgDNOT/k"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96DF71F000E9;
+	Wed, 27 May 2026 19:35:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779909766;
-	bh=T+838lbidLnSykmGp39gAjmwKShqZFKQKUsnJ8qsU8o=;
+	d=linux-foundation.org; s=korg; t=1779910511;
+	bh=U+eN9/k0TbdEGmlf8wuN/TVKuRXHunlusbXzuHqYoyE=;
 	h=Date:To:From:Subject;
-	b=z4y15cJSibBubjPme5wLMsit2CjjwC+/6ew8uUwTAUtzw2zNhYTy+i8LorCQL0mo/
-	 WZFzB+GWV0RvgQRWNYB06tFw/0bAztJ3LAHOaHFN4IKKhHKQz7PtFgCGZKniwfcs0P
-	 XUU0cNn9r03aUydbMHEz1wZ3WeFeKYFR1ZYRKDpo=
-Date: Wed, 27 May 2026 12:22:46 -0700
-To: mm-commits@vger.kernel.org,peterx@redhat.com,michael.bommarito@gmail.com,ljs@kernel.org,liam@infradead.org,gganji11@naver.com,devnexen@gmail.com,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
+	b=qgDNOT/klTxSncZsv1R0DcXxg/btCOpPvfmtTNVcktiGcwe+QwDereXXuCU2HadXi
+	 jpb1iamjQSgND/l4E3bjKQo25GoQOjL/wZ0xQo/F868pzpoU6CY1NEwPfpgLwnl8Nh
+	 z2sEBuPA4DgP5YjtaJ1nboad++WgKuhOj2dVNl70=
+Date: Wed, 27 May 2026 12:35:11 -0700
+To: mm-commits@vger.kernel.org,peterx@redhat.com,michael.bommarito@gmail.com,ljs@kernel.org,liam@infradead.org,devnexen@gmail.com,david@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [alternative-merged] userfaultfd-snapshot-vma-state-across-uffdio_copy-retry.patch removed from -mm tree
-Message-Id: <20260527192246.939EE1F000E9@smtp.kernel.org>
+Subject: + userfaultfd-refuse-to-__mfill_atomic_pte-for-unsupported-vmas.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260527193511.96DF71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,213 +34,77 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: userfaultfd: snapshot VMA state across UFFDIO_COPY retry
-has been removed from the -mm tree.  Its filename was
-     userfaultfd-snapshot-vma-state-across-uffdio_copy-retry.patch
+The patch titled
+     Subject: userfaultfd: refuse to __mfill_atomic_pte() for unsupported VMAs
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     userfaultfd-refuse-to-__mfill_atomic_pte-for-unsupported-vmas.patch
 
-This patch was dropped because an alternative patch was or shall be merged
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-refuse-to-__mfill_atomic_pte-for-unsupported-vmas.patch
+
+This patch will later appear in the mm-hotfixes-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: userfaultfd: snapshot VMA state across UFFDIO_COPY retry
-Date: Tue, 19 May 2026 08:25:16 +0300
+Subject: userfaultfd: refuse to __mfill_atomic_pte() for unsupported VMAs
+Date: Wed, 27 May 2026 21:47:50 +0300
 
-mfill_copy_folio_retry() drops the VMA lock for copy_from_user() and
-reacquires it afterwards.  The destination VMA can be replaced during that
-window.
+__mfill_atomic_pte() unconditionally dereferences ops because there is an
+assumption that VMAs that can undergo mfill_* operations are vetted on
+registration and must have valid vm_uffd_ops.
 
-The existing check compares vma_uffd_ops() before and after the retry, but
-if a shmem VMA with MAP_SHARED is replaced with a shmem VMA with
-MAP_PRIVATE (or vice versa) the replacement goes undetected.
+Add a guard against potential bugs and make sure __mfill_atomic_pte()
+bails out if ops is NULL.
 
-The change from MAP_PRIVATE to MAP_SHARED will treat the folio allocated
-with shmem_alloc_folio() as anonymous and this will cause BUG() when
-mfill_atomic_install_pte() will try to folio_add_new_anon_rmap().
-
-The change from MAP_SHARED to MAP_PRIVATE allows injection of folios into
-the page cache of the original VMA.
-
-Introduce helpers for more comprehensive comparison of VMA state:
-- vma_snapshot_get() to save the relevant VMA state into a struct
-  vma_snapshot (original uffd_ops, actual uffd_ops, relevant VMA flags,
-  vm_file and pgoff) before dropping the lock
-- vma_snapshot_changed() to compare the saved state with the state of the
-  VMA acquired after retaking the locks
-- vma_snapshot_put() to release vm_file pinning.
-
-Use DEFINE_FREE() cleanup to wrap vma_snapshot_put() to avoid complicating
-error handling paths in mfill_copy_folio_retry().
-
-Add vma_uffd_copy_ops() to avoid code duplication when original ops of
-shmem VMA with MAP_PRIVATE are replaced with anon_uffd_ops.
-
-Link: https://lore.kernel.org/20260519052516.3315196-1-rppt@kernel.org
-Fixes: 292411fda25b ("mm/userfaultfd: detect VMA type change after copy retry in mfill_copy_folio_retry()")
-Fixes: 6ab703034f14 ("userfaultfd: mfill_atomic(): remove retry logic")
+Link: https://lore.kernel.org/20260527184751.4147364-3-rppt@kernel.org
+Fixes: ad9ac3081332 ("userfaultfd: introduce vm_uffd_ops->alloc_folio()")
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Co-developed-by: Michael Bommarito <michael.bommarito@gmail.com>
-Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
-Co-developed-by: David Carlier <devnexen@gmail.com>
-Signed-off-by: David Carlier <devnexen@gmail.com>
-Tested-by: Heechan Kang <gganji11@naver.com>
-Suggested-by: Peter Xu <peterx@redhat.com>
+Suggested-by: Lorenzo Stoakes <ljs@kernel.org>
+Cc: David Carlier <devnexen@gmail.com>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michael Bommarito <michael.bommarito@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |   99 +++++++++++++++++++++++++++++++++++----------
- 1 file changed, 79 insertions(+), 20 deletions(-)
+ mm/userfaultfd.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/userfaultfd.c~userfaultfd-snapshot-vma-state-across-uffdio_copy-retry
+--- a/mm/userfaultfd.c~userfaultfd-refuse-to-__mfill_atomic_pte-for-unsupported-vmas
 +++ a/mm/userfaultfd.c
-@@ -14,6 +14,8 @@
- #include <linux/userfaultfd_k.h>
- #include <linux/mmu_notifier.h>
- #include <linux/hugetlb.h>
-+#include <linux/file.h>
-+#include <linux/cleanup.h>
- #include <asm/tlbflush.h>
- #include <asm/tlb.h>
- #include "internal.h"
-@@ -69,6 +71,24 @@ static const struct vm_uffd_ops *vma_uff
- 	return vma->vm_ops ? vma->vm_ops->uffd_ops : NULL;
- }
+@@ -552,6 +552,11 @@ static int __mfill_atomic_pte(struct mfi
+ 	struct folio *folio;
+ 	int ret;
  
-+static const struct vm_uffd_ops *vma_uffd_copy_ops(struct vm_area_struct *vma)
-+{
-+	const struct vm_uffd_ops *ops = vma_uffd_ops(vma);
++	if (!ops) {
++		VM_WARN_ONCE(1, "UFFDIO_COPY for unsupported VMA");
++		return -EOPNOTSUPP;
++	}
 +
-+	if (!ops)
-+		return NULL;
-+
-+	/*
-+	 * UFFDIO_COPY fills MAP_PRIVATE file-backed mappings as anonymous
-+	 * memory. This is an effective ops override, so retry validation must
-+	 * compare the override result, not just vma->vm_ops->uffd_ops.
-+	 */
-+	if (!(vma->vm_flags & VM_SHARED))
-+		return &anon_uffd_ops;
-+
-+	return ops;
-+}
-+
- static __always_inline
- bool validate_dst_vma(struct vm_area_struct *dst_vma, unsigned long dst_end)
- {
-@@ -443,14 +463,70 @@ static int mfill_copy_folio_locked(struc
- 	return ret;
- }
- 
-+#define VMA_SNAPSHOT_FLAGS append_vma_flags(__VMA_UFFD_FLAGS, VMA_SHARED_BIT)
-+
-+struct vma_snapshot {
-+	const struct vm_uffd_ops *copy_ops;
-+	const struct vm_uffd_ops *ops;
-+	struct file *file;
-+	vma_flags_t flags;
-+	pgoff_t pgoff;
-+};
-+
-+static void vma_snapshot_get(struct vma_snapshot *s, struct vm_area_struct *vma)
-+{
-+	s->flags = vma_flags_and_mask(&vma->flags, VMA_SNAPSHOT_FLAGS);
-+	s->copy_ops = vma_uffd_copy_ops(vma);
-+	s->ops = vma_uffd_ops(vma);
-+	s->pgoff = vma->vm_pgoff;
-+
-+	if (vma->vm_file)
-+		s->file = get_file(vma->vm_file);
-+}
-+
-+static bool vma_snapshot_changed(struct vma_snapshot *s,
-+				 struct vm_area_struct *vma)
-+{
-+	vma_flags_t flags = vma_flags_and_mask(&vma->flags, VMA_SNAPSHOT_FLAGS);
-+
-+	if (!vma_flags_same_pair(&s->flags, &flags))
-+		return true;
-+
-+	/* VMA type or effective uffd_ops changed while the lock was dropped */
-+	if (s->ops != vma_uffd_ops(vma) || s->copy_ops != vma_uffd_copy_ops(vma))
-+		return true;
-+
-+	/* VMA was anonymous before; changed only if it no longer is */
-+	if (!s->file)
-+		return !vma_is_anonymous(vma);
-+
-+	/* VMA was file backed, but inode or offset has changed */
-+	if (!vma->vm_file || vma->vm_file->f_inode != s->file->f_inode ||
-+	    vma->vm_pgoff != s->pgoff)
-+		return true;
-+
-+	return false;
-+}
-+
-+static void vma_snapshot_put(struct vma_snapshot *s)
-+{
-+	if (s->file)
-+		fput(s->file);
-+}
-+
-+DEFINE_FREE(snapshot_put, struct vma_snapshot *, if (_T) vma_snapshot_put(_T));
-+
- static int mfill_copy_folio_retry(struct mfill_state *state,
- 				  struct folio *folio)
- {
--	const struct vm_uffd_ops *orig_ops = vma_uffd_ops(state->vma);
-+	struct vma_snapshot s = { 0 };
-+	struct vma_snapshot *p __free(snapshot_put) = &s;
- 	unsigned long src_addr = state->src_addr;
- 	void *kaddr;
- 	int err;
- 
-+	vma_snapshot_get(&s, state->vma);
-+
- 	/* retry copying with mm_lock dropped */
- 	mfill_put_vma(state);
- 
-@@ -467,12 +543,7 @@ static int mfill_copy_folio_retry(struct
- 	if (err)
- 		return err;
- 
--	/*
--	 * The VMA type may have changed while the lock was dropped
--	 * (e.g. replaced with a hugetlb mapping), making the caller's
--	 * ops pointer stale.
--	 */
--	if (vma_uffd_ops(state->vma) != orig_ops)
-+	if (vma_snapshot_changed(&s, state->vma))
- 		return -EAGAIN;
- 
- 	err = mfill_establish_pmd(state);
-@@ -545,19 +616,7 @@ err_folio_put:
- 
- static int mfill_atomic_pte_copy(struct mfill_state *state)
- {
--	const struct vm_uffd_ops *ops = vma_uffd_ops(state->vma);
--
--	/*
--	 * The normal page fault path for a MAP_PRIVATE mapping in a
--	 * file-backed VMA will invoke the fault, fill the hole in the file and
--	 * COW it right away. The result generates plain anonymous memory.
--	 * So when we are asked to fill a hole in a MAP_PRIVATE mapping, we'll
--	 * generate anonymous memory directly without actually filling the
--	 * hole. For the MAP_PRIVATE case the robustness check only happens in
--	 * the pagetable (to verify it's still none) and not in the page cache.
--	 */
--	if (!(state->vma->vm_flags & VM_SHARED))
--		ops = &anon_uffd_ops;
-+	const struct vm_uffd_ops *ops = vma_uffd_copy_ops(state->vma);
- 
- 	return __mfill_atomic_pte(state, ops);
- }
+ 	folio = ops->alloc_folio(state->vma, state->dst_addr);
+ 	if (!folio)
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
 
+userfaultfd-verify-vma-state-across-uffdio_copy-retry.patch
+userfaultfd-refuse-to-__mfill_atomic_pte-for-unsupported-vmas.patch
+userfaultfd-remove-redundant-check-in-vm_uffd_ops.patch
 userfaultfd-ensure-mremap_userfaultfd_fail-releases-mmap_changing.patch
 userfaultfd-merge-fs-userfaultfdc-into-mm-userfaultfdc.patch
 userfaultfd-make-functions-that-are-not-used-outside-uffd-static.patch
