@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 835453590A9
-	for <mm-commits@vger.kernel.org>; Wed, 27 May 2026 22:03:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A68A0264612
+	for <mm-commits@vger.kernel.org>; Wed, 27 May 2026 22:03:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779919388; cv=none; b=DZkBMowuQqnfGI8RXSc4MPKZWbymUb5eLLTXE/+2hVOLUiBKYMpcpuxbivRYtDww8ZfhDc0UMJY0r8oOVD9GSIkEpZEi6X+9BPycbB+ryHRZqUKsIXiog2PcZD4sy9myd1GiNhDM7P45qNLARUdNVyGLYexizJDo0fIExSyBDiI=
+	t=1779919390; cv=none; b=VBVO+M2oRIBuGWbdlytpM6uuJJ/3B6CzMNfjFdaQgo9sK9Rg6aiusw756dYKrnEltDTuLrrnvKHXUqsxXpYY8c3upU+7OOJ2Zw9dZOOGTawFUL4u/HgG2A4Lfj/wYUEmoKaqGWNpmNL5Ndi7uFYAZ0pooP61Dlnz58a6sUMQqQ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779919388; c=relaxed/simple;
-	bh=IOgOYIXL649FkZhZNqgcKb6Wcb+b9yZpsW0RpR4cXQc=;
-	h=Date:To:From:Subject:Message-Id; b=TCOdPv1iVnkZc8DLCwgLk8TWBHw9NfMAOHovu3sQeuDUo9C7LqRKNKNcR3M6RVHB2g7ZGOORKGex0tvbz2Oh7ZZfEEb0BLwB2MTLH/p9nTVVRL1NfivQHThIl81pf/j1xtSpxriEGToUk5tZCPIVCEVK5KmK+SSnZqSUgTjkI9k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=pRz1yZev; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779919390; c=relaxed/simple;
+	bh=3vJOnY8lctAHeacfOhS7MGt9TY1S9c9Ps6FduSa8SlE=;
+	h=Date:To:From:Subject:Message-Id; b=rvdvsABe+Kyc6jO2sNMlGooQ0RdvxqOR00af1Zsb2FSKKTgFqKE2aoLR0rCmyGZNEiylmH6CZ6344lUzDJfTu2v53jxAGgcog70jdk9hZxIDwD6+idgZvAf3dXAqNhvrZJ1lXbPCSUDXLPyT+fPUILaJpHdSFK1/ZgANgl7qxKI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=VZWncEd4; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="pRz1yZev"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F48E1F00A3D;
-	Wed, 27 May 2026 22:03:07 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="VZWncEd4"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 50AC71F000E9;
+	Wed, 27 May 2026 22:03:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1779919387;
-	bh=bABQATHE03HINrtA7KGJ45b3zqYt6XjWclVG20g5YfY=;
+	d=linux-foundation.org; s=korg; t=1779919388;
+	bh=+pqnIHmxFPnMSJMmvHrejmzcdDxFDc8q2CUFat9tALA=;
 	h=Date:To:From:Subject;
-	b=pRz1yZevfW3achdSrdUYPefzfsTmeV39G8nm/C8KJYsXCwoIi9zin0hvaxK1XOMKZ
-	 znzfJl/crRk6VtlmMSG/AUr1dUt/udlmV4KfvkQYqmdFSbBIVresbOpHXSaVrKTvS5
-	 k5lDymcVBqnKoJFREXzwtmiPnoXT/W4jkpl6dyqM=
-Date: Wed, 27 May 2026 15:03:06 -0700
+	b=VZWncEd4YHxWbQscZ/hf6GLqhS5+qQ9pkE6VAAOG30KdnZFaI5Gnsln97QwwscUVf
+	 ADsE0yCcoFyxBI2mWnJA9tKoKllCjgTExd3qUCwIQEdDOtJjokvKy5kA0Xzyp6p2Ri
+	 VABe2mohn2nmFFOwTjMxetP+CSWr8uqu4yNf/0yI=
+Date: Wed, 27 May 2026 15:03:07 -0700
 To: mm-commits@vger.kernel.org,ziy@nvidia.com,zaslonko@linux.ibm.com,vbabka@kernel.org,usama.arif@linux.dev,shakeel.butt@linux.dev,ryncsn@gmail.com,ryan.roberts@arm.com,roman.gushchin@linux.dev,npache@redhat.com,muchun.song@linux.dev,mhocko@kernel.org,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,gor@linux.ibm.com,dev.jain@arm.com,david@kernel.org,david@fromorbit.com,baolin.wang@linux.alibaba.com,baohua@kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty.patch added to mm-new branch
-Message-Id: <20260527220307.0F48E1F00A3D@smtp.kernel.org>
+Subject: + mm-list_lru-deduplicate-unlock_list_lru.patch added to mm-new branch
+Message-Id: <20260527220308.50AC71F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm: list_lru: lock_list_lru_of_memcg() cannot return NULL if !skip_empty
+     Subject: mm: list_lru: deduplicate unlock_list_lru()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty.patch
+     mm-list_lru-deduplicate-unlock_list_lru.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-list_lru-deduplicate-unlock_list_lru.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,18 +70,13 @@ and is updated there most days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: list_lru: lock_list_lru_of_memcg() cannot return NULL if !skip_empty
-Date: Wed, 27 May 2026 16:45:09 -0400
+Subject: mm: list_lru: deduplicate unlock_list_lru()
+Date: Wed, 27 May 2026 16:45:10 -0400
 
-skip_empty is only for the shrinker to abort and skip a list that's empty
-or whose cgroup is being deleted.
+The MEMCG and !MEMCG variants are the same.  lock_list_lru() has the same
+pattern when bailing.  Consolidate into a common implementation.
 
-For list additions and deletions, the cgroup hierarchy is walked upwards
-until a valid list_lru head is found, or it will fall back to the node
-list.  Acquiring the lock won't fail.  Remove the NULL checks in those
-callers.
-
-Link: https://lore.kernel.org/20260527204757.2544958-3-hannes@cmpxchg.org
+Link: https://lore.kernel.org/20260527204757.2544958-4-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: David Hildenbrand (Arm) <david@kernel.org>
 Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
@@ -106,31 +101,68 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/list_lru.c |   29 +++++++++--------------------
+ 1 file changed, 9 insertions(+), 20 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lru-lock_list_lru_of_memcg-cannot-return-null-if-skip_empty
+--- a/mm/list_lru.c~mm-list_lru-deduplicate-unlock_list_lru
 +++ a/mm/list_lru.c
-@@ -165,8 +165,6 @@ bool list_lru_add(struct list_lru *lru,
- 	struct list_lru_one *l;
+@@ -15,6 +15,14 @@
+ #include "slab.h"
+ #include "internal.h"
  
- 	l = lock_list_lru_of_memcg(lru, nid, &memcg, false, false);
--	if (!l)
--		return false;
- 	if (list_empty(item)) {
- 		list_add_tail(item, &l->list);
- 		/*
-@@ -208,9 +206,8 @@ bool list_lru_del(struct list_lru *lru,
- {
- 	struct list_lru_node *nlru = &lru->node[nid];
- 	struct list_lru_one *l;
++static inline void unlock_list_lru(struct list_lru_one *l, bool irq_off)
++{
++	if (irq_off)
++		spin_unlock_irq(&l->lock);
++	else
++		spin_unlock(&l->lock);
++}
 +
- 	l = lock_list_lru_of_memcg(lru, nid, &memcg, false, false);
--	if (!l)
--		return false;
- 	if (!list_empty(item)) {
- 		list_del_init(item);
- 		l->nr_items--;
+ #ifdef CONFIG_MEMCG
+ static LIST_HEAD(memcg_list_lrus);
+ static DEFINE_MUTEX(list_lrus_mutex);
+@@ -67,10 +75,7 @@ static inline bool lock_list_lru(struct
+ 	else
+ 		spin_lock(&l->lock);
+ 	if (unlikely(READ_ONCE(l->nr_items) == LONG_MIN)) {
+-		if (irq)
+-			spin_unlock_irq(&l->lock);
+-		else
+-			spin_unlock(&l->lock);
++		unlock_list_lru(l, irq);
+ 		return false;
+ 	}
+ 	return true;
+@@ -101,14 +106,6 @@ again:
+ 	*memcg = parent_mem_cgroup(*memcg);
+ 	goto again;
+ }
+-
+-static inline void unlock_list_lru(struct list_lru_one *l, bool irq_off)
+-{
+-	if (irq_off)
+-		spin_unlock_irq(&l->lock);
+-	else
+-		spin_unlock(&l->lock);
+-}
+ #else
+ static void list_lru_register(struct list_lru *lru)
+ {
+@@ -147,14 +144,6 @@ lock_list_lru_of_memcg(struct list_lru *
+ 
+ 	return l;
+ }
+-
+-static inline void unlock_list_lru(struct list_lru_one *l, bool irq_off)
+-{
+-	if (irq_off)
+-		spin_unlock_irq(&l->lock);
+-	else
+-		spin_unlock(&l->lock);
+-}
+ #endif /* CONFIG_MEMCG */
+ 
+ /* The caller must ensure the memcg lifetime. */
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
