@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E9B933372A
-	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 22:19:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E641D35E1B6;
+	Thu, 28 May 2026 22:26:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780006788; cv=none; b=rRD0SK+7R1bTg6aJyIdUtFxl41F7B+T0BcvJjLgoTaJ604y+CAW7uaPv6XKC0I351e6iaPS7yem2dqO1IFgR3fTpb/0oNHfJHJwtKhKzM5A8am8jzbaoURvl5DCexQ4JzhzNPt5q3azH8L3K8vSdSYnNbCyUkCCmCEMnpP84KbY=
+	t=1780007195; cv=none; b=bTLXcJEdYgd69QUMwpqQihsdCoDHg3jn8nOK5GYxSNau5wSl5ZirTOM5v0femOYiW8c5xK/IxlIpXCC34mXiaK58YTORPjnaXG/jBP21e/cdT3zJ6lJIh2CcDe8PfiMnxLk94nG/B3cUN9FSiFlJlZW1harJm12DXEl2ypgRVlU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780006788; c=relaxed/simple;
-	bh=snwuubVSw6IBHWGTylf6gaj/rsWBNLSFqViBVBdC03Q=;
-	h=Date:To:From:Subject:Message-Id; b=ZliRMmIUB08MvFA4k53cO9HFY4pQwlQBeevjhb6EFr4GGtlVtsqoZ+/BTdewfnSJC0/+ZsZIt1aSRv/5/gNHtA9Vz3F8veIIjkyxMwP+Koa9KeRiDbrIeMu+M556I9r8I0VIWhy0xN6uywsLN5/JDqXJ67jp2tI4zZCoBvx6aqc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jM9/p3uh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780007195; c=relaxed/simple;
+	bh=f6a4kzZvcF4CSpD8ZPTHpcWH7pBLrQ7tM9yMXCvBV+c=;
+	h=Date:To:From:Subject:Message-Id; b=Qr0G0C3spBH1VNxSvhpy8KtmAR50crbhudx9du9gE1LJAHYviYLa/xCH1V4W5sXGxFk2geVe1LdevigKa4s07VFnAWNXANjMt9+CCyT1dvdtDTpYEHsZy3JkCWsYQ2cdGu4cdMaLkFQHrjglLjIKmzQhLrCvbhaP2JwUZy0ry5M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=g4Vx9SxO; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jM9/p3uh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC6891F000E9;
-	Thu, 28 May 2026 22:19:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="g4Vx9SxO"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 926401F000E9;
+	Thu, 28 May 2026 22:26:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780006786;
-	bh=CE3H4TkFYylBXRG7ydoFL7YQKgxmMTz1lkYr684RKJk=;
+	d=linux-foundation.org; s=korg; t=1780007193;
+	bh=RMne29sfpRPQPscGqixHcT1sc+5mjoH8asYJW3GMRQY=;
 	h=Date:To:From:Subject;
-	b=jM9/p3uhVVj8+a/su2IGGIn+gX/oM5Mi8DMgmAfW++VnqMt9RrsrRq/1PPCdY69kC
-	 uAElg6Yy6d0COY683ACFlhAoxvRKemxJ1f1rBICw7YDKvxFNBIJV4PNbzjP6GIEiYl
-	 rdxLCF8xBYBZIK3nB89t5LtLovOf1YCwAVILdXrw=
-Date: Thu, 28 May 2026 15:19:46 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,riel@surriel.com,richard.weiyang@gmail.com,osalvador@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,harry@kernel.org,david@kernel.org,anshuman.khandual@arm.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
+	b=g4Vx9SxOVILJAvlcXuLVjldey0U1SYzmK6uB6CXeL/3tyYtNsxkf9S8ssp6x9ECv8
+	 M9ifN+t2ONSrsk+rYU81TTTNw1JwIBwo3uzpQQJl29alE33ixeeGpvgR1rD42oz6Md
+	 aoxPiDgymrIDhW1D4KwFqdGzEQdzFVM4Oo/rnOvg=
+Date: Thu, 28 May 2026 15:26:33 -0700
+To: mm-commits@vger.kernel.org,xieyisheng1@huawei.com,stable@vger.kernel.org,senozhatsky@chromium.org,minchan@kernel.org,hch@lst.de,axboe@kernel.dk,shenxiaogll@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch added to mm-new branch
-Message-Id: <20260528221946.CC6891F000E9@smtp.kernel.org>
+Subject: + zram-fix-use-after-free-in-zram_bvec_write_partial.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260528222633.926401F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/page_vma_mapped_walk: use ptep_get_lockless() for lockless access
-has been added to the -mm mm-new branch.  Its filename is
-     mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch
+     Subject: zram: fix use-after-free in zram_bvec_write_partial()
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     zram-fix-use-after-free-in-zram_bvec_write_partial.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-fix-use-after-free-in-zram_bvec_write_partial.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,74 +58,52 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Alexander Gordeev <agordeev@linux.ibm.com>
-Subject: mm/page_vma_mapped_walk: use ptep_get_lockless() for lockless access
-Date: Thu, 28 May 2026 09:55:07 +0200
+From: Cunlong Li <shenxiaogll@gmail.com>
+Subject: zram: fix use-after-free in zram_bvec_write_partial()
+Date: Thu, 28 May 2026 10:48:44 +0800
 
-When not holding the lock, there is a chance that the pte gets modified
-under our feet, so we need to use the lockless API to make sure that the
-entries remain consistent during the read."
+zram_read_page() picks the sync or async backing device read path based on
+whether the parent bio is NULL.  zram_bvec_write_partial() passes its
+parent bio down, so for ZRAM_WB slots the read is dispatched
+asynchronously and zram_read_page() returns 0 while the bio is still in
+flight.  The caller then runs memcpy_from_bvec(), zram_write_page() and
+__free_page() on the buffer, leaving the async read to write into a freed
+page.
 
-Switch from ptep_get() to ptep_get_lockless() accessor for PTE reads when
-no lock is taken.
+zram_bvec_read_partial() was switched to NULL in commit 4e3c87b9421d
+("zram: fix synchronous reads") for the same reason; the write_partial
+counterpart was missed.
 
-[osalvador@suse.de: changelog addition]
-  Link: https://lore.kernel.org/ahhNq0pFKvSKZQbR@localhost.localdomain
-Link: https://lore.kernel.org/20260528075507.1821939-1-agordeev@linux.ibm.com
-Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Harry Yoo <harry@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-
+Link: https://lore.kernel.org/20260528-zram-v3-1-cab86eef8764@gmail.com
+Fixes: 8e654f8fbff5 ("zram: read page from backing device")
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Signed-off-by: Cunlong Li <shenxiaogll@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Yisheng Xie <xieyisheng1@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_vma_mapped.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_vma_mapped.c~mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access
-+++ a/mm/page_vma_mapped.c
-@@ -41,7 +41,7 @@ again:
- 	if (!pvmw->pte)
- 		return false;
+--- a/drivers/block/zram/zram_drv.c~zram-fix-use-after-free-in-zram_bvec_write_partial
++++ a/drivers/block/zram/zram_drv.c
+@@ -2337,7 +2337,7 @@ static int zram_bvec_write_partial(struc
+ 	if (!page)
+ 		return -ENOMEM;
  
--	ptent = ptep_get(pvmw->pte);
-+	ptent = ptep_get_lockless(pvmw->pte);
- 
- 	if (pte_none(ptent)) {
- 		return false;
-@@ -183,6 +183,7 @@ bool page_vma_mapped_walk(struct page_vm
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long end;
- 	spinlock_t *ptl;
-+	pte_t pteval;
- 	pgd_t *pgd;
- 	p4d_t *p4d;
- 	pud_t *pud;
-@@ -310,7 +311,11 @@ next_pte:
- 				goto restart;
- 			}
- 			pvmw->pte++;
--		} while (pte_none(ptep_get(pvmw->pte)));
-+			if (!pvmw->ptl)
-+				pteval = ptep_get_lockless(pvmw->pte);
-+			else
-+				pteval = ptep_get(pvmw->pte);
-+		} while (pte_none(pteval));
- 
- 		if (!pvmw->ptl) {
- 			spin_lock(ptl);
+-	ret = zram_read_page(zram, page, index, bio);
++	ret = zram_read_page(zram, page, index, NULL);
+ 	if (!ret) {
+ 		memcpy_from_bvec(page_address(page) + offset, bvec);
+ 		ret = zram_write_page(zram, page, index);
 _
 
-Patches currently in -mm which might be from agordeev@linux.ibm.com are
+Patches currently in -mm which might be from shenxiaogll@gmail.com are
 
-mm-gup-cleanup-pgtable-entry-accessors.patch
-mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch
+zram-fix-use-after-free-in-zram_bvec_write_partial.patch
+zram-drop-unused-bio-parameter-from-write-helpers.patch
 
