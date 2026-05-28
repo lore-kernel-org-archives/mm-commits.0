@@ -1,193 +1,165 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86B11372661
-	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 08:16:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01B993B0AF8
+	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 09:44:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779956170; cv=none; b=rJkm3f3LqQf4fYyCNW9fOm4++8kZanR7gvv2Ytve7FsNJFdnXyW/lQMSU17nb3MnWl+NJG72jJc+UpkLStb8WVShhDzXAdGkHaCnTFRI/vtbQkdkV0fwx2N58UNpDHPkWQUM2HpGy7H3aY7EqDCh3js1s52aqmZF3PqDgLozbXg=
+	t=1779961465; cv=none; b=ea/oOZ3J3JmGJuffqNjNmEXuIqXgh9wiLOMaWe11zvHlmqAk5OgwCyaR5YMbgTwYchAHo1bk4RUhK01Ah4N60lqq+N0WrJpZWueSD0cSdf4Qj5T1db9D6OxqjZl7ltnFkgEFGqwufZtXk1XfQpkDOUUyxVjP4lJv0Uh3WELwhNM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779956170; c=relaxed/simple;
-	bh=XRG8W9NAHc+HbEyj0+UtCgt+HhS+ZeeZXcAuoLpSGFE=;
-	h=Date:From:To:Cc:Subject:Message-ID; b=Mswzm/nRLXXDFkGiwiZvEYYJHgby0H3TV4U6RgWI0x6jmLBWR9wOzVjOjN2o/GPewXdB1Nojfzj7MU4p3aGJQ7CETsAYdATNO/68uryeHo9USulLHHm0z+jv/w3vv0XkvlAXDLaT/MMozCLbEHMdak6TRPNbbXVS5yb9H6sV2ec=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=IHGDkimU; arc=none smtp.client-ip=198.175.65.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1779961465; c=relaxed/simple;
+	bh=/b4vOpec9iABpcQBE3MhMY+Yg/ru9RM5LcBZD8U9uew=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=KYc5zF45sPNhiI5cCDDEH/BIqBHVOPHTg8NnKg3RUgrYCqEEmgm1UCvyTcVXCAzblEeO1ZIddqDglLtMMGqeqRo87kRWpGca74BrmkF1s092krJyIWOK1thm2i3jGY6+1dEFhABgnyWw1JJVBAeSXfDpyBJqB43EyROSeGh3xuI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Urk34fJH; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IHGDkimU"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1779956167; x=1811492167;
-  h=date:from:to:cc:subject:message-id;
-  bh=XRG8W9NAHc+HbEyj0+UtCgt+HhS+ZeeZXcAuoLpSGFE=;
-  b=IHGDkimUC1MfgVBtimXvqjELLUBoBJGBQd3UPiTmQBzPJy3BHjXCdyG2
-   m8hByVb3A2XfOL38mxuwI8WH/pi3NuRHgFu+jeg8sGBzNc0zW8lojsZIN
-   Y4fuuUS9HKmjLQiEr7ol2DBxNY9Cppp0Szpn0p/mlFfrEfkxthNA2+DeQ
-   nIBUKu4hfjxAB4D5lr4KgHuWsCuaNLNIcvq9VtXlQTNAgfmkhr90AYVHJ
-   OA2lmiXWp5cz/DII+NElLnsTWLWsCzlCkBet15dAmw6zdGXT6IXB1rjI8
-   pAEPzZ3pD/AEtqF9WCmc0fG8tkhR3WRlbCnUHy6bl7So9XzJWf10djulB
-   A==;
-X-CSE-ConnectionGUID: lRM6m6WAQHamdPsaIdfFng==
-X-CSE-MsgGUID: pIcDASyITYqHY8Nos8JDVg==
-X-IronPort-AV: E=McAfee;i="6800,10657,11799"; a="80520124"
-X-IronPort-AV: E=Sophos;i="6.24,173,1774335600"; 
-   d="scan'208";a="80520124"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 May 2026 01:16:07 -0700
-X-CSE-ConnectionGUID: 91NmiBW4RE2ttYlQlBmu7g==
-X-CSE-MsgGUID: 7247Q2d1SaOkJYI760tmCg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.24,173,1774335600"; 
-   d="scan'208";a="266088107"
-Received: from lkp-server01.sh.intel.com (HELO f0d55cb201f0) ([10.239.97.150])
-  by fmviesa002.fm.intel.com with ESMTP; 28 May 2026 01:16:04 -0700
-Received: from kbuild by f0d55cb201f0 with local (Exim 4.98.2)
-	(envelope-from <lkp@intel.com>)
-	id 1wSVuL-000000005j0-3mpc;
-	Thu, 28 May 2026 08:16:01 +0000
-Date: Thu, 28 May 2026 16:15:31 +0800
-From: kernel test robot <lkp@intel.com>
-To: Johannes Weiner <hannes@cmpxchg.org>
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
- David Hildenbrand <david@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>,
- Linux Memory Management List <linux-mm@kvack.org>,
- mm-commits@vger.kernel.org, "Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
-Subject: [akpm-mm:mm-new 429/433] mm/swap_state.c:468:19: error: call
- to undeclared function 'folio_memcg_alloc_deferred'; ISO C99 and later do not
- support implicit function declarations
-Message-ID: <202605281620.lc3rtkBm-lkp@intel.com>
-User-Agent: s-nail v14.9.25
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Urk34fJH"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E8561F000E9;
+	Thu, 28 May 2026 09:44:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
+	s=k20260515; t=1779961463;
+	bh=jeODhg2MK7/WnTZNEyznRuSHbbNRvWLI4usnQCb2UCI=;
+	h=Date:Subject:To:References:From:In-Reply-To;
+	b=Urk34fJHgFhpclWq2tgQc11LJSzLB8Q6fNfdhVjHQLdYkeJOr6KJCI5iTTTeQLai2
+	 TrPXjqkP2bpkbnu6Z2UiN1RP5ELa/Ssc9zLfsvbeS4AGltTPc/XxMR+sDEEOFvsgjQ
+	 S6ckGrNIyLtgvnc/LuETN/tjHVYzzk271sSo2S9yx+FUlXWF1/g9syD+Rbm+UGkghg
+	 daHJ7uvgkGzmces+LCBSJg4SbOuYVKLQaY9ESjtEScYeC/Il076wDCozZ7wz2b5QAN
+	 TE6iEhpY9ev2mT5tRWzEJLpCqhDV9B+bXdcsuWt/On4k82X7zCTDXfX354SoAIbH5t
+	 8UZP+fGg2ZkxA==
+Message-ID: <5c340177-548e-4c9d-aaaa-d28b30b0903a@kernel.org>
+Date: Thu, 28 May 2026 11:44:20 +0200
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: +
+ maintainers-add-slab-related-scripts-and-tools-to-slab-allocator.patch added
+ to mm-hotfixes-unstable branch
+Content-Language: en-US
+To: Mark Brown <broonie@kernel.org>, Andrew Morton
+ <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
+ roman.gushchin@linux.dev, rientjes@google.com, harry@kernel.org
+References: <20260525174125.746121F000E9@smtp.kernel.org>
+From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
+Autocrypt: addr=vbabka@kernel.org; keydata=
+ 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
+In-Reply-To: <20260525174125.746121F000E9@smtp.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
-head:   d7d405cc33d6e3eeba2d6ec8f0b595da2a5c600a
-commit: a5e62d9e00dac6f96174c397a82da30e7ae53064 [429/433] mm: switch deferred split shrinker to list_lru
-config: hexagon-defconfig (https://download.01.org/0day-ci/archive/20260528/202605281620.lc3rtkBm-lkp@intel.com/config)
-compiler: clang version 23.0.0git (https://github.com/llvm/llvm-project 9409c07de6378507397ecdb6f05f628f58110112)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260528/202605281620.lc3rtkBm-lkp@intel.com/reproduce)
+On 5/25/26 19:41, Andrew Morton wrote:
+> The patch titled
+>      Subject: MAINTAINERS: add slab-related scripts and tools to SLAB ALLOCATOR
+> has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+>      maintainers-add-slab-related-scripts-and-tools-to-slab-allocator.patch
+> 
+> This patch will shortly appear at
+>      https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/maintainers-add-slab-related-scripts-and-tools-to-slab-allocator.patch
+> 
+> This patch will later appear in the mm-hotfixes-unstable branch at
+>     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next via various
+> branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+> and is updated there most days
+> 
+> ------------------------------------------------------
+> From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
+> Subject: MAINTAINERS: add slab-related scripts and tools to SLAB ALLOCATOR
+> Date: Mon, 25 May 2026 09:26:39 +0200
+> 
+> Make sure the maintainers and reviewers are CC'd on changes to the scripts
+> and tools that depend on slab internals.
+> 
+> Link: https://lore.kernel.org/20260525-maint-slab-tools-v1-1-d66b69f1412a@kernel.org
+> Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
+> Acked-by: Harry Yoo (Oracle) <harry@kernel.org>
+> Cc: David Rientjes <rientjes@google.com>
+> Cc: Roman Gushchin <roman.gushchin@linux.dev>
+> Cc: Vlastimil Babka <vbabka@kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202605281620.lc3rtkBm-lkp@intel.com/
+Hm I've put that to slab/for-next too, and the slabinfo patches that
+triggered this update as well [1] and they are also in the mm tree.
 
-All errors (new ones prefixed by >>):
+So I see next-20260527 now has that both from mm and slab trees (with
+different sha1 hashes), but can't see any heads-up mail about that like in
+the past? Did anything change, Mark?
 
->> mm/swap_state.c:468:19: error: call to undeclared function 'folio_memcg_alloc_deferred'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
-     468 |         if (order > 1 && folio_memcg_alloc_deferred(folio)) {
-         |                          ^
-   1 error generated.
+[1] https://lore.kernel.org/all/bc96e4ee-faac-4bed-ac3d-54f1003be62d@suse.com/
 
+> ---
+> 
+>  MAINTAINERS |    6 ++++++
+>  1 file changed, 6 insertions(+)
+> 
+> --- a/MAINTAINERS~maintainers-add-slab-related-scripts-and-tools-to-slab-allocator
+> +++ a/MAINTAINERS
+> @@ -24622,6 +24622,12 @@ F:	mm/mempool.c
+>  F:	mm/slab.h
+>  F:	mm/slab_common.c
+>  F:	mm/slub.c
+> +F:	scripts/gdb/linux/slab.py
+> +F:	tools/cgroup/memcg_slabinfo.py
+> +F:	tools/include/linux/slab.h
+> +F:	tools/lib/slab.c
+> +F:	tools/mm/slabinfo-gnuplot.sh
+> +F:	tools/mm/slabinfo.c
+>  
+>  SLCAN CAN NETWORK DRIVER
+>  M:	Dario Binacchi <dario.binacchi@amarulasolutions.com>
+> _
+> 
+> Patches currently in -mm which might be from vbabka@kernel.org are
+> 
+> maintainers-add-slab-related-scripts-and-tools-to-slab-allocator.patch
+> 
 
-vim +/folio_memcg_alloc_deferred +468 mm/swap_state.c
-
-   390	
-   391	/*
-   392	 * Try to allocate a folio of given order in the swap cache.
-   393	 *
-   394	 * This helper resolves the potential races of swap allocation
-   395	 * and prepares a folio to be used for swap IO. May return following
-   396	 * value:
-   397	 *
-   398	 * -ENOMEM / -EBUSY: Order is too large or in conflict with sub slot,
-   399	 *                   caller should shrink the order and retry
-   400	 * -ENOENT / -EEXIST: Target swap entry is unavailable or cached, the caller
-   401	 *                    should abort or try to use the cached folio instead
-   402	 */
-   403	static struct folio *__swap_cache_alloc(struct swap_cluster_info *ci,
-   404						swp_entry_t targ_entry, gfp_t gfp,
-   405						unsigned int order, struct vm_fault *vmf,
-   406						struct mempolicy *mpol, pgoff_t ilx)
-   407	{
-   408		int err;
-   409		swp_entry_t entry;
-   410		struct folio *folio;
-   411		void *shadow = NULL;
-   412		unsigned short memcg_id;
-   413		unsigned long address, nr_pages = 1UL << order;
-   414		struct vm_area_struct *vma = vmf ? vmf->vma : NULL;
-   415	
-   416		VM_WARN_ON_ONCE(nr_pages > SWAPFILE_CLUSTER);
-   417		entry.val = round_down(targ_entry.val, nr_pages);
-   418	
-   419		/* Check if the slot and range are available, skip allocation if not */
-   420		spin_lock(&ci->lock);
-   421		err = __swap_cache_add_check(ci, targ_entry, nr_pages, NULL, NULL);
-   422		spin_unlock(&ci->lock);
-   423		if (unlikely(err))
-   424			return ERR_PTR(err);
-   425	
-   426		/*
-   427		 * Limit THP gfp. The limitation is a no-op for typical
-   428		 * GFP_HIGHUSER_MOVABLE but matters for shmem.
-   429		 */
-   430		if (order)
-   431			gfp = thp_shmem_limit_gfp_mask(vma_thp_gfp_mask(vma), gfp);
-   432	
-   433		if (mpol || !vmf) {
-   434			folio = folio_alloc_mpol(gfp, order, mpol, ilx, numa_node_id());
-   435		} else {
-   436			address = round_down(vmf->address, PAGE_SIZE << order);
-   437			folio = vma_alloc_folio(gfp, order, vmf->vma, address);
-   438		}
-   439		if (unlikely(!folio))
-   440			return ERR_PTR(-ENOMEM);
-   441	
-   442		/* Double check the range is still not in conflict */
-   443		spin_lock(&ci->lock);
-   444		err = __swap_cache_add_check(ci, targ_entry, nr_pages, &shadow, &memcg_id);
-   445		if (unlikely(err)) {
-   446			spin_unlock(&ci->lock);
-   447			folio_put(folio);
-   448			return ERR_PTR(err);
-   449		}
-   450	
-   451		__folio_set_locked(folio);
-   452		__folio_set_swapbacked(folio);
-   453		__swap_cache_do_add_folio(ci, folio, entry);
-   454		spin_unlock(&ci->lock);
-   455	
-   456		if (mem_cgroup_swapin_charge_folio(folio, memcg_id,
-   457						   vmf ? vmf->vma->vm_mm : NULL, gfp)) {
-   458			spin_lock(&ci->lock);
-   459			__swap_cache_do_del_folio(ci, folio, entry, shadow);
-   460			spin_unlock(&ci->lock);
-   461			folio_unlock(folio);
-   462			/* nr_pages refs from swap cache, 1 from allocation */
-   463			folio_put_refs(folio, nr_pages + 1);
-   464			count_mthp_stat(order, MTHP_STAT_SWPIN_FALLBACK_CHARGE);
-   465			return ERR_PTR(-ENOMEM);
-   466		}
-   467	
- > 468		if (order > 1 && folio_memcg_alloc_deferred(folio)) {
-   469			spin_lock(&ci->lock);
-   470			__swap_cache_do_del_folio(ci, folio, entry, shadow);
-   471			spin_unlock(&ci->lock);
-   472			folio_unlock(folio);
-   473			/* nr_pages refs from swap cache, 1 from allocation */
-   474			folio_put_refs(folio, nr_pages + 1);
-   475			return ERR_PTR(-ENOMEM);
-   476		}
-   477	
-   478		/* memsw uncharges swap when folio is added to swap cache */
-   479		memcg1_swapin(folio);
-   480		if (shadow)
-   481			workingset_refault(folio, shadow);
-   482	
-   483		node_stat_mod_folio(folio, NR_FILE_PAGES, nr_pages);
-   484		lruvec_stat_mod_folio(folio, NR_SWAPCACHE, nr_pages);
-   485	
-   486		/* Caller will initiate read into locked new_folio */
-   487		folio_add_lru(folio);
-   488		return folio;
-   489	}
-   490	
-
---
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
