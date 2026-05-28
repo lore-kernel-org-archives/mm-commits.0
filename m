@@ -1,122 +1,108 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDDE43DDDBE
-	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 17:49:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B47C348C61;
+	Thu, 28 May 2026 19:15:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779990549; cv=none; b=cFqL9LstoGxHLP5VFWZiu28TwGF61PFwFedzJtTqOKFQAZ0Xvc5baacmC2RA6cmv3mtN7Ja5GP/2ZGUW0bk14CVYmWu75LLZG0J/z2N02X7PY1+GMbUI0yFQAJhzyQQlYjZ0LhiO8ZfBedVf94WhjmJiPhB7v3/HEPBTVut+y9U=
+	t=1779995755; cv=none; b=WZMaPz3oQ3+W6b1PaBZrz6CsKuC6NMqh+X7miVxrvLAxwuY2dUH4EwWYrJ/o858jqKUWa9BkOGiPCbdpDO3fhNrqTDQiXsG2Lu9jwkFmEb3GqqOxJG7S3Hzl1boQUJ9RJxhcoIQrc1Nxa6WSLcPjpu+mDMI6Wjwwz0yAOlXD6BE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779990549; c=relaxed/simple;
-	bh=8PIv6MyHiB35Td3BeCQRaJ/31mmQ3YFvH7BUAftNYh8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=hZxRtCA67R1obwaKUR2npCE+NohX28CA4WfmP1G8DSjZgGCghG6y2Cix9+ERPQ3yXFtBi6GqxyU7fd2R2bTImw+gPdMN5Z3170q41J1jBmv3h4FqzEStDlodrgvlQa5B69xfmOTAUl24KlSPNN07RLQQ67yutY4vYwAC9YdINd4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=MY/Ty3Ox; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779995755; c=relaxed/simple;
+	bh=nBLSRdY+ODEyGChV5l/yQbEiAqjN9SMLZt7yWnzO+kE=;
+	h=Date:To:From:Subject:Message-Id; b=q51SQKuiNhjbmG4FMSMlEJC1TJ7rUZpH51POLj2507wTLTy6apjrLVKuxhIMurey4sn3fKUE+qOIdNEXGozAbdJ1N38mOuUKhSiAdNJtEo2feJ4w0bAAYrRd9rKY1VrAOzqzlpXXNZCKfdj6BQxyWKJbqQtgGFAfOk+wDP+eCj4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=acooBV6+; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MY/Ty3Ox"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 417601F00A3D;
-	Thu, 28 May 2026 17:49:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779990548;
-	bh=fU2fx7cAzyqWEpad/qbOWMkjQQ8+Xrw5mf2h6UogI7w=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=MY/Ty3OxC0VJJ2tmxGdI9/1Xhu+ZNo/52sij3DfaFLW1K+l7WPr9NcmnJtt2io6Lg
-	 1g6teUcHzVsOz3O6oxRt9+EuXV55d9uF9EkgOk8ml44yKVmp+9SfzlrqJIPswtkLbD
-	 m3QQaMrk18vgVaG7MTccvsXR2N6a6NpLdmFRSacge0vNNXcRqj7pFIN6tsxPy2iv55
-	 YbZSY0fr61UO0EY/5Tdjpjq8WA57exavJVnA+0FurXWbXEbB7N+z+0UO7bCPwNumxf
-	 IMrAs+sdJbiRtUoieR/bQjYnQAdsa9s6YwcE/MvZc2UX0V2c077OVknG00C/e+Q76j
-	 kMKl6Wn19Nabw==
-Message-ID: <2e6f54ad-c9fe-4ae7-b133-0957b03d1f5c@kernel.org>
-Date: Thu, 28 May 2026 19:49:05 +0200
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="acooBV6+"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CF261F00A3A;
+	Thu, 28 May 2026 19:15:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=linux-foundation.org; s=korg; t=1779995754;
+	bh=j5AX/cP5GkyP5EDqZ/nohpXOtT5YIPTXO+HQweXFIgc=;
+	h=Date:To:From:Subject;
+	b=acooBV6+IXgYb81XfbFtEUyNxl7DAEmtU33CVGQ6fsZQUh26oQtW+6VV9vIUVAooK
+	 6NAepGagFNfdaWA94yoPv7L6Z3uXPxXxoOfScSr1XeQ0vOXa7AERty7A4TEwa0ofNX
+	 OQjGHdmoGmVTWJAxodmZXfaxvbZkArJie+P8BLzY=
+Date: Thu, 28 May 2026 12:15:53 -0700
+To: mm-commits@vger.kernel.org,vbabka@suse.cz,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org,wangxuewen@kylinos.cn,akpm@linux-foundation.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: [merged] tools-mm-slabinfo-fix-trace-disable-logic-inversion.patch removed from -mm tree
+Message-Id: <20260528191554.1CF261F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: +
- maintainers-add-slab-related-scripts-and-tools-to-slab-allocator.patch added
- to mm-hotfixes-unstable branch
-Content-Language: en-US
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mark Brown <broonie@kernel.org>, mm-commits@vger.kernel.org,
- roman.gushchin@linux.dev, rientjes@google.com, harry@kernel.org
-References: <20260525174125.746121F000E9@smtp.kernel.org>
- <5c340177-548e-4c9d-aaaa-d28b30b0903a@kernel.org>
- <20260528101401.c4727d268ee70092e7234966@linux-foundation.org>
-From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
-Autocrypt: addr=vbabka@kernel.org; keydata=
- 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
-In-Reply-To: <20260528101401.c4727d268ee70092e7234966@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-On 5/28/26 19:14, Andrew Morton wrote:
-> On Thu, 28 May 2026 11:44:20 +0200 "Vlastimil Babka (SUSE)" <vbabka@kernel.org> wrote:
-> 
->> > From: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
->> > Subject: MAINTAINERS: add slab-related scripts and tools to SLAB ALLOCATOR
->> > Date: Mon, 25 May 2026 09:26:39 +0200
->> > 
->> > Make sure the maintainers and reviewers are CC'd on changes to the scripts
->> > and tools that depend on slab internals.
->> > 
->> > Link: https://lore.kernel.org/20260525-maint-slab-tools-v1-1-d66b69f1412a@kernel.org
->> > Signed-off-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
->> > Acked-by: Harry Yoo (Oracle) <harry@kernel.org>
->> > Cc: David Rientjes <rientjes@google.com>
->> > Cc: Roman Gushchin <roman.gushchin@linux.dev>
->> > Cc: Vlastimil Babka <vbabka@kernel.org>
->> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
->> 
->> Hm I've put that to slab/for-next too, and the slabinfo patches that
->> triggered this update as well [1] and they are also in the mm tree.
-> 
-> It's confusing when a git tree owner sends a patch.  I don't know if it
-> means "please apply this" or "I intend to apply this, please review". 
-> Not a huge issue, but explicit clarification would be helpful.
 
-Yeah sorry, I tried to indicate by [PATCH slab] but it was subtle.
+The quilt patch titled
+     Subject: tools/mm/slabinfo: fix trace disable logic inversion
+has been removed from the -mm tree.  Its filename was
+     tools-mm-slabinfo-fix-trace-disable-logic-inversion.patch
 
-> I'll drop the mm.git copy of this.
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-Thanks, please drop also the 3-patch slabinfo series.
-https://lore.kernel.org/all/bc96e4ee-faac-4bed-ac3d-54f1003be62d@suse.com/
+------------------------------------------------------
+From: Xuewen Wang <wangxuewen@kylinos.cn>
+Subject: tools/mm/slabinfo: fix trace disable logic inversion
+Date: Mon, 18 May 2026 14:21:57 +0800
+
+Patch series "Cleanup and fix tools/mm/slabinfo utility", v2.
+
+This series fixes one bug and cleans up two code quality issues in
+tools/mm/slabinfo:
+
+1. Fix trace disable logic inversion: when the user intends to disable
+   tracing (!tracing) and it is currently enabled (s->trace),
+   set_obj() was called with 1 instead of 0, which is opposite to
+   the intended behavior. All other options (sanity_checks, red_zone,
+   poison, store_user) in the same function use 0 for the disable
+   case.
+
+2. Remove dead assignment in get_obj_and_str(): `x = NULL` sets the
+   local parameter variable instead of `*x`, which is a no-op since
+   `*x` was already set to NULL on the line above.
+
+3. Remove redundant slab->partial assignment in read_slab_dir():
+   slab->partial is assigned by get_obj("partial") and then
+   immediately overwritten by get_obj_and_str("partial", &t).
+
+
+This patch (of 3):
+
+The disable trace path in slab_debug() had a logic error where it would
+set trace=1 instead of trace=0.  This made trace functionality permanently
+enabled once turned on for any slab cache.
+
+Link: https://lore.kernel.org/20260518062159.80664-1-wangxuewen@kylinos.cn
+Link: https://lore.kernel.org/20260518062159.80664-2-wangxuewen@kylinos.cn
+Fixes: a87615b8f9e2 ("SLUB: slabinfo upgrade")
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Signed-off-by: Xuewen Wang <wangxuewen@kylinos.cn>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ tools/mm/slabinfo.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/tools/mm/slabinfo.c~tools-mm-slabinfo-fix-trace-disable-logic-inversion
++++ a/tools/mm/slabinfo.c
+@@ -798,7 +798,7 @@ static void slab_debug(struct slabinfo *
+ 			fprintf(stderr, "%s can only enable trace for one slab at a time\n", s->name);
+ 	}
+ 	if (!tracing && s->trace)
+-		set_obj(s, "trace", 1);
++		set_obj(s, "trace", 0);
+ }
+ 
+ static void totals(void)
+_
+
+Patches currently in -mm which might be from wangxuewen@kylinos.cn are
+
+mm-memory-failure-replace-magic-number-3-with-get_page_max_retry_num.patch
+tools-mm-slabinfo-remove-dead-assignment-in-get_obj_and_str.patch
+tools-mm-slabinfo-remove-redundant-slab-partial-assignment.patch
+
