@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F93D368D7B
-	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 22:26:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9740030C608
+	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 22:35:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780007205; cv=none; b=fnsq4KneFIlx2c+qrSohxXBEdzHuYPE3jG5iztbbgMHd5tt+SegiB/pF7c3LAh9WEhwENoH660lBh7dU8fee/yhRmTRmbG8Jd/xoIsRJKcgVSmH4wPKj4c45zx0ZbQ9CCXjg8b6fgbo4/QjvsI/J/myYsI1wOKOuLFKixPCLGZs=
+	t=1780007718; cv=none; b=k1foZdENO22Vcr1nPtj2zSM5Za3qD95s9vlNYRLT9nBEV/jJlxd1aTt3WPT5qwogIbNcI974mz3cx3IcFnbAFBM+m436gVnUVWsiIhEagx+uq2Y6MO/f9EVe9EkCc7DdVQKbo2naJa7zaDd62smjItyxCSbUXb9RVNZCeSEMan8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780007205; c=relaxed/simple;
-	bh=0guI/qOwXr+V11W70b6RPzpFK92Rla7EQn9u9GzBpJI=;
-	h=Date:To:From:Subject:Message-Id; b=mOvnvtQXu/19/2OEdKx7sbzt3H3NugU3N2a0v60jdwfkhCAZ/4gEzWYFidauT/pGPF2QF/s0BO54+JPih3RsnB5Q72y8l0jzHh8FRix5sHOXDAHXYXXBqlNGIePI8zWbR9+rT8aofHgmKiqUYizGxNZVW1SBxFxhsbNoP/lC/rQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=swTXhFi/; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780007718; c=relaxed/simple;
+	bh=1rsPLMfLOvpM0lrpyEzNHg6OD7OoF5e4sj2tA51Xc2I=;
+	h=Date:To:From:Subject:Message-Id; b=tfPPVo+3crwUN7ljBSsRLp9cJ3TAhOebWYwn7GAMrHQDaW7kD0WEHjo01HR9sODAHHXymtrRc1YQQTq3RY2Y9IJUqbUYh938ehlhrZ7OSiyfKKrynjSi2ycrFKnf3syP6sNlQYEh5Qx0hfSkZEupb2XHaPY0Q8Qpr2RC65dtNPE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a14RhpWh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="swTXhFi/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 195BB1F000E9;
-	Thu, 28 May 2026 22:26:44 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a14RhpWh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2925A1F000E9;
+	Thu, 28 May 2026 22:35:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780007204;
-	bh=cRZza1+ZYjMIEBamkMp3ZND6NWq+WrdueG3Uvbgpois=;
+	d=linux-foundation.org; s=korg; t=1780007717;
+	bh=5PTPJ5zO08TNEmBAqwN6mUyRwAWYgr8vGVQH2wRvudk=;
 	h=Date:To:From:Subject;
-	b=swTXhFi/HQshXZoaLx4UiPYaZ7YSYPm5fQ5StIvQvSrlAcSt3mDR4Itfs6jV1cTaz
-	 RPOt+2ueXZgRAlGF/zJKKxnG86eCZLoUCDCM4bZ0xQ7kNKgfrOmU5+/ghdD+hy0Bkv
-	 000YVpToJf6fGtbTnFYH7H4gItYY3UnLgkykhhS0=
-Date: Thu, 28 May 2026 15:26:43 -0700
-To: mm-commits@vger.kernel.org,xieyisheng1@huawei.com,senozhatsky@chromium.org,minchan@kernel.org,hch@lst.de,axboe@kernel.dk,shenxiaogll@gmail.com,akpm@linux-foundation.org
+	b=a14RhpWhSWTLBoUSJhueL4ZMd87kVRbZtCeCS4gXl0n2FO0wc3EK8kSC3ZIgxdT1s
+	 xfLuEbxrQxk63LDD2MJzrxQfMk53CHjOhn919yRkTiTfvGqOg4mD+IOguahvqz7Ov5
+	 0nXlcpZ4MrGzYQQ+iCVBAQWgiPklAehJBcfBV8Ko=
+Date: Thu, 28 May 2026 15:35:16 -0700
+To: mm-commits@vger.kernel.org,sashiko-bot@kernel.org,leon@kernel.org,jgg@ziepe.ca,balbirs@nvidia.com,apopple@nvidia.com,hao.ge@linux.dev,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + zram-drop-unused-bio-parameter-from-write-helpers.patch added to mm-new branch
-Message-Id: <20260528222644.195BB1F000E9@smtp.kernel.org>
+Subject: + lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch added to mm-new branch
+Message-Id: <20260528223517.2925A1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: zram: drop unused bio parameter from write helpers
+     Subject: lib/test_hmm: fix memory leak in dmirror_migrate_to_system()
 has been added to the -mm mm-new branch.  Its filename is
-     zram-drop-unused-bio-parameter-from-write-helpers.patch
+     lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/zram-drop-unused-bio-parameter-from-write-helpers.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,69 +69,56 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Cunlong Li <shenxiaogll@gmail.com>
-Subject: zram: drop unused bio parameter from write helpers
-Date: Thu, 28 May 2026 10:48:45 +0800
+From: Hao Ge <hao.ge@linux.dev>
+Subject: lib/test_hmm: fix memory leak in dmirror_migrate_to_system()
+Date: Thu, 28 May 2026 09:13:36 +0800
 
-After "zram: fix use-after-free in zram_bvec_write_partial()",
-zram_bvec_write_partial() always passes NULL to zram_read_page() and no
-longer needs the parent bio.  Mirror the read side
-(zram_bvec_read_partial() has not taken a bio since commit 4e3c87b9421d
-("zram: fix synchronous reads")) and drop the parameter from
-zram_bvec_write_partial() and zram_bvec_write().
+Move the kvcalloc() calls after the early return checks to avoid leaking
+src_pfns and dst_pfns when end < start or mmget_not_zero() fails.
 
-No functional change.
-
-Link: https://lore.kernel.org/20260528-zram-v3-2-cab86eef8764@gmail.com
-Signed-off-by: Cunlong Li <shenxiaogll@gmail.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Yisheng Xie <xieyisheng1@huawei.com>
+Link: https://lore.kernel.org/20260528011336.20797-1-hao.ge@linux.dev
+Fixes: 775465fd26a3 ("lib/test_hmm: add zone device private THP test infrastructure")
+Signed-off-by: Hao Ge <hao.ge@linux.dev>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Reported-by: Sashiko <sashiko-bot@kernel.org>
+Cc: Balbir Singh <balbirs@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/test_hmm.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-drop-unused-bio-parameter-from-write-helpers
-+++ a/drivers/block/zram/zram_drv.c
-@@ -2334,7 +2334,7 @@ static int zram_write_page(struct zram *
-  * This is a partial IO. Read the full page before writing the changes.
-  */
- static int zram_bvec_write_partial(struct zram *zram, struct bio_vec *bvec,
--				   u32 index, int offset, struct bio *bio)
-+				   u32 index, int offset)
- {
- 	struct page *page = alloc_page(GFP_NOIO);
- 	int ret;
-@@ -2352,10 +2352,10 @@ static int zram_bvec_write_partial(struc
- }
+--- a/lib/test_hmm.c~lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system
++++ a/lib/test_hmm.c
+@@ -1130,9 +1130,6 @@ static int dmirror_migrate_to_system(str
+ 	unsigned long *src_pfns;
+ 	unsigned long *dst_pfns;
  
- static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
--			   u32 index, int offset, struct bio *bio)
-+			   u32 index, int offset)
- {
- 	if (is_partial_io(bvec))
--		return zram_bvec_write_partial(zram, bvec, index, offset, bio);
-+		return zram_bvec_write_partial(zram, bvec, index, offset);
- 	return zram_write_page(zram, bvec->bv_page, index);
- }
+-	src_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
+-	dst_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
+-
+ 	start = cmd->addr;
+ 	end = start + size;
+ 	if (end < start)
+@@ -1142,6 +1139,9 @@ static int dmirror_migrate_to_system(str
+ 	if (!mmget_not_zero(mm))
+ 		return -EINVAL;
  
-@@ -2752,7 +2752,7 @@ static void zram_bio_write(struct zram *
- 
- 		bv.bv_len = min_t(u32, bv.bv_len, PAGE_SIZE - offset);
- 
--		if (zram_bvec_write(zram, &bv, index, offset, bio) < 0) {
-+		if (zram_bvec_write(zram, &bv, index, offset) < 0) {
- 			atomic64_inc(&zram->stats.failed_writes);
- 			bio->bi_status = BLK_STS_IOERR;
- 			break;
++	src_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
++	dst_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
++
+ 	cmd->cpages = 0;
+ 	mmap_read_lock(mm);
+ 	for (addr = start; addr < end; addr = next) {
 _
 
-Patches currently in -mm which might be from shenxiaogll@gmail.com are
+Patches currently in -mm which might be from hao.ge@linux.dev are
 
-zram-fix-use-after-free-in-zram_bvec_write_partial.patch
-zram-drop-unused-bio-parameter-from-write-helpers.patch
+proc-meminfo-expose-per-node-balloon-pages-in-node-meminfo.patch
+lib-test_hmm-use-kvfree-to-free-kvcalloc-allocations.patch
+mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list.patch
+alloc_tag-fix-use-after-free-in-proc-allocinfo-after-module-unload.patch
+lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch
 
