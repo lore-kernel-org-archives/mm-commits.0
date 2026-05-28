@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD341332612
-	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 22:03:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBBD1335566
+	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 22:03:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780005817; cv=none; b=ZTfv4p33IdfVXovAzSjFgoHzAtGunJFZ9TFCWgOrm5ov6TXGnITNSvoUt9m7hqpccy82x1YqFjTcP4+8hB3P84pRlN/pgAyhwMmHEA8FUFUsWPACpZco0r+YyU9wzAaNw1fSegCf2wJclOpyM1ufkJ/OXuwvSpi5JSpHqc5D4KQ=
+	t=1780005819; cv=none; b=kWj1AWLUryBYvHc/TApXrp0jdwf3fPnTnkESfloYSPBb3iqaQBvCojiSm1eFB85CxQFQlBB1thquSgKXMDaWBk19HWX3UzsW82DvHJ3V/pwZGdHOarFamXv5qAJR80Zd71cdhbvxNZrBNOnYAx4qoi+MHIOYyK/ZSNMiC8fK3C8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780005817; c=relaxed/simple;
-	bh=kwaRy8cppR4Oh/yZMf9gxdvWIVn68v58bpF1oFhTyuY=;
-	h=Date:To:From:Subject:Message-Id; b=uDEppcGi5UdDYdX76Jd0zjMyxk0/q7lzz2cF24+8GvbR937MSOO0f68X257a8d0CFFUZcVxUAqXtg7gPfIyxMStXem4csfUmq+rD/C0+1fTCw270KSZNmqviIESxg8tMskDKbLTSHLoWYXx32fJGnu3MuPTLwcPoMcgbMzjj7Ko=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eTeTTJut; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780005819; c=relaxed/simple;
+	bh=1Q/NivlxVWDc3yQuvj8A7PggzJqt91vtoU9sOeySlRk=;
+	h=Date:To:From:Subject:Message-Id; b=JxVlvepgoAsTinkgdRW+fTsokWsPxvUmD8P+g4tDdIARCFsv0NrN96TA285z3QQPFMG61L6/HIF2weHYm0DY2ulvobQGaKR4w4rog98DtqhUUnbAHsDGe8RPbKev12F1t9XnVDLa8vSxxkGvXms/UtmCRN6CM59r0szbiowAyOo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZeECGA10; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eTeTTJut"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44EBF1F000E9;
-	Thu, 28 May 2026 22:03:36 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZeECGA10"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79A711F00A3A;
+	Thu, 28 May 2026 22:03:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780005816;
-	bh=A8K0onxbMO8lRSIbAo1G1Phur0ooHcOhWkJJ+AysEQ0=;
+	d=linux-foundation.org; s=korg; t=1780005817;
+	bh=ii89AbB268nuLx53rrjP40Udnb0ykfxfKTBWYoTDxZU=;
 	h=Date:To:From:Subject;
-	b=eTeTTJutE14IGPMpOfP/ts0DqkeVqgnd06gnOP02qMOgJllUoaWTR2TF6jHvRR6g9
-	 KrHlWJfJts/KGiA5DKUHs8xxBI1Dx1T9kAnrnjRAFa5mTijxLB9oarnEOP3vSUx3lL
-	 abcTJL1lSFfMSfaIghg9ihldhGWdpK5dKZD05GNI=
-Date: Thu, 28 May 2026 15:03:35 -0700
+	b=ZeECGA10q0s9/uf6I0LXc4soSMbzcpiw64Z2t/0tohoXonLrcyda486Rh+qITxydE
+	 Ezk52LQ7KESsrtlSO8flDM1EEz5nFEcmLW6EqIR1GVJsJZa+XtgU5fbrASt7DdrOmI
+	 Y3mOa3wGkimeNcSbx/YDvpi857vCl+onIyRyWvAI=
+Date: Thu, 28 May 2026 15:03:37 -0700
 To: mm-commits@vger.kernel.org,song@kernel.org,linan122@huawei.com,hch@lst.de,hch@infradead.org,hare@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + xor-use-kmalloc-in-calibrate_xor_blocks.patch added to mm-nonmm-unstable branch
-Message-Id: <20260528220336.44EBF1F000E9@smtp.kernel.org>
+Subject: + raid6-use-kmalloc-in-raid6_select_algo.patch added to mm-nonmm-unstable branch
+Message-Id: <20260528220337.79A711F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: xor: use kmalloc() in calibrate_xor_blocks()
+     Subject: raid6: use kmalloc() in raid6_select_algo()
 has been added to the -mm mm-nonmm-unstable branch.  Its filename is
-     xor-use-kmalloc-in-calibrate_xor_blocks.patch
+     raid6-use-kmalloc-in-raid6_select_algo.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xor-use-kmalloc-in-calibrate_xor_blocks.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/raid6-use-kmalloc-in-raid6_select_algo.patch
 
 This patch will later appear in the mm-nonmm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,31 +59,11 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: xor: use kmalloc() in calibrate_xor_blocks()
-Date: Thu, 28 May 2026 12:53:00 +0300
+Subject: raid6: use kmalloc() in raid6_select_algo()
+Date: Thu, 28 May 2026 12:53:01 +0300
 
-Patch series "lib/raid: replace __get_free_pages() call with kmalloc()", v4.
-
-The xor benchmark allocates 4 pages for a scratch buffer that is used
-purely as a CPU-only XOR working area.
-
-This buffer can be allocated with kmalloc() as there's nothing special
-about it to go directly to the page allocator.
-
-kmalloc() provides a better API than ancient __get_free_pages(). 
-kmalloc() does not require ugly casts and kfree() does not need to know
-the size of the freed object.
-
-There is no performance difference because kmalloc() redirects allocations
-of such size to the page allocator.
-
-Replace __get_free_pages() call with kmalloc().
-
-
-This patch (of 2):
-
-The xor benchmark allocates 4 pages for a scratch buffer that is used
-purely as a CPU-only XOR working area.
+raid6_select_algo() allocates 8 pages for buffer that is used
+as a scratch area for selection of the best algorithm.
 
 This buffer can be allocated with kmalloc() as there's nothing special
 about it to go directly to the page allocator.
@@ -97,50 +77,56 @@ of such size to the page allocator.
 
 Replace __get_free_pages() call with kmalloc().
 
-Link: https://lore.kernel.org/20260528-lib-v4-0-4e3ad1277279@kernel.org
 Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@redhat.com
-Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@redhat.com
-Link: https://lore.kernel.org/20260528-lib-v4-1-4e3ad1277279@kernel.org
+Link: https://lore.kernel.org/20260528-lib-v4-2-4e3ad1277279@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Hannes Reinecke <hare@kernel.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Hannes Reinecke <hare@kernel.org>
 Cc: Li Nan <linan122@huawei.com>
 Cc: Song Liu <song@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/xor/xor-core.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/raid/raid6/algos.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/lib/raid/xor/xor-core.c~xor-use-kmalloc-in-calibrate_xor_blocks
-+++ a/lib/raid/xor/xor-core.c
+--- a/lib/raid/raid6/algos.c~raid6-use-kmalloc-in-raid6_select_algo
++++ a/lib/raid/raid6/algos.c
 @@ -8,6 +8,7 @@
- 
  #include <linux/module.h>
  #include <linux/gfp.h>
+ #include <linux/raid/pq.h>
 +#include <linux/slab.h>
- #include <linux/raid/xor.h>
- #include <linux/jiffies.h>
- #include <linux/preempt.h>
-@@ -114,7 +115,7 @@ static int __init calibrate_xor_blocks(v
- 	if (forced_template)
- 		return 0;
+ #include <linux/static_call.h>
+ #include <kunit/visibility.h>
+ #include "algos.h"
+@@ -153,7 +154,6 @@ EXPORT_SYMBOL_GPL(raid6_recov_datap);
  
--	b1 = (void *) __get_free_pages(GFP_KERNEL, 2);
-+	b1 = kmalloc(PAGE_SIZE * 4, GFP_KERNEL);
- 	if (!b1) {
- 		pr_warn("xor: Yikes!  No memory available.\n");
+ #define RAID6_TIME_JIFFIES_LG2	4
+ #define RAID6_TEST_DISKS	8
+-#define RAID6_TEST_DISKS_ORDER	3
+ 
+ static int raid6_choose_gen(void *(*const dptrs)[RAID6_TEST_DISKS],
+ 		const int disks)
+@@ -247,7 +247,7 @@ static int __init raid6_select_algo(void
+ 	}
+ 
+ 	/* prepare the buffer and fill it circularly with gfmul table */
+-	disk_ptr = (char *)__get_free_pages(GFP_KERNEL, RAID6_TEST_DISKS_ORDER);
++	disk_ptr = kmalloc(PAGE_SIZE * RAID6_TEST_DISKS, GFP_KERNEL);
+ 	if (!disk_ptr) {
+ 		pr_err("raid6: Yikes!  No memory available.\n");
  		return -ENOMEM;
-@@ -132,7 +133,7 @@ static int __init calibrate_xor_blocks(v
- 	pr_info("xor: using function: %s (%d MB/sec)\n",
- 	       fastest->name, fastest->speed);
+@@ -269,7 +269,7 @@ static int __init raid6_select_algo(void
+ 	/* select raid gen_syndrome function */
+ 	error = raid6_choose_gen(&dptrs, disks);
  
--	free_pages((unsigned long)b1, 2);
-+	kfree(b1);
- 	return 0;
+-	free_pages((unsigned long)disk_ptr, RAID6_TEST_DISKS_ORDER);
++	kfree(disk_ptr);
+ 
+ 	return error;
  }
- 
 _
 
 Patches currently in -mm which might be from rppt@kernel.org are
