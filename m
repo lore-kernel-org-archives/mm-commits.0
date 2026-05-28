@@ -1,88 +1,125 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A475D3E1227
-	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 11:23:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E52EB28488D
+	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 15:28:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1779967403; cv=none; b=tC9K/ztCurTClQfWCSRvSX99YSp7Jp2VsaTtFMkSTVXdjlV5jT1DXzlJlibuERIX6IP5anL+vNObw1OWOru37b8A/VvzMG2OBg2RmdUGxTFLEwPyJGpf+OxOJWm2/eInOJy8PBWz658MAoN7OYWJWRoJLF8a/TTWqIqiqrFQQCA=
+	t=1779982118; cv=none; b=dvUFKWve/gwKGmhd+83PUjJysuU7Tsvodi2qGA+9gxrdx3ldfLz3Rn5QEbTnJu3y53NQtOUOpPWxoVVdMzmYjpvs5T48iAzelmiB1V+E6XyzvKq3u9Kq2+rwnmfCgPiypVmklrPAeuMtigKSf12mFkOg1eeYFyxZV+/MpsanI3I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1779967403; c=relaxed/simple;
-	bh=YudU7u5DNSANXQ+Ik0SvhNuBPdxtuaWorFnsyimTN+Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oIQmH8SJxDsAzuMvHLOxWZDKkXA7ZCo1/pPEmsql1xBXEjVLoES/94d7gbaJ5X+Ii2NY2m4QRbLSZ1LaX+jZFEgj+dKMzF0Ph+SxRU3Id3F8Uwbngz5UHqhF3/0pPGxFvZ3QemRfWvzHZAkn7FmadYT3hgatt5ZmF07AihT0XmQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=NUNH5swE; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1779982118; c=relaxed/simple;
+	bh=h6gIQSh7EnSLP0hziwCdjn4VeCMknpf+zkhPz4Yk5XQ=;
+	h=Date:From:To:Cc:Subject:Message-ID; b=jA03YWKwfMdkpkl2t65S+ssZJODUMSW3d8EeknZus+krcOeniDYHacddTszq9+o3+Z8NZ6X++s0nCH4C+Mat/QXe70RfPZumRh1662ALnzLJxcF/6G1v8946Ev/8aCL5sNQSp/9h8ezpEGiyWGP2+Zt/4jFLQOd3XxcsutWIdFI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=IKTxhQRi; arc=none smtp.client-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="NUNH5swE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0934E1F000E9;
-	Thu, 28 May 2026 11:23:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kernel.org;
-	s=k20260515; t=1779967402;
-	bh=0BLxN5GXNXMyMxV0/6XSe2RcNthOX1DfF54HLNnUtzk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To;
-	b=NUNH5swEJYTriQUVBCS3ojXpQO3G58LeQak/uS0e5A+55lqDGPYW4rXUppFDxhKD0
-	 +fLMUo2F9D1nEiaPJ1FYUD8CYAel1iAqTyYOWmrpbeVlTkQ14DcgXO8ahIhNyJNHY8
-	 4imsFi634EhyxJxYOZGTaR3ldIzvpCrwYtIAti+QHhF7yNHGFr9/NAdKtJtS37mAsQ
-	 3raXmvDCslYVm0AxgPxrjrnUYnQeT3TRpz7+p1agm5yL9YatV/rB/3uSR1cftI2u9D
-	 KGA6LL9FcpAdWeuEiQoaT6uYgqExvSnQH8p1h6QOm31u293Q+ao+kKvazJ3wAMOg6y
-	 ZA8fdNlsczgow==
-Date: Thu, 28 May 2026 12:23:18 +0100
-From: Mark Brown <broonie@kernel.org>
-To: "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, mm-commits@vger.kernel.org,
-	roman.gushchin@linux.dev, rientjes@google.com, harry@kernel.org
-Subject: Re: +
- maintainers-add-slab-related-scripts-and-tools-to-slab-allocator.patch added
- to mm-hotfixes-unstable branch
-Message-ID: <a4b11bf6-ab93-4531-bc0e-9762483bfd2a@sirena.org.uk>
-References: <20260525174125.746121F000E9@smtp.kernel.org>
- <5c340177-548e-4c9d-aaaa-d28b30b0903a@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IKTxhQRi"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1779982118; x=1811518118;
+  h=date:from:to:cc:subject:message-id;
+  bh=h6gIQSh7EnSLP0hziwCdjn4VeCMknpf+zkhPz4Yk5XQ=;
+  b=IKTxhQRiXivgtvBs7dDkMWacEOrHMNFfp6l5X+Cby62zp1WracOjyJ74
+   FXHAs86jMG3xMVEz26UkWqxxgAnMe+DerXmuO7PE7ozqxIIQLUTFV3SAX
+   orw3VFKabzQJYKxTJmByxG+29Ara8OEBcllwObOyOOlJz216sTuH8BVP9
+   Meh9kgYDeuRzf1UQ/7ktTlqNy1w94I44ZlfflcM5HVnw9XRRbw01IDleO
+   iVlACyNgPC9MEAVNFvbE0f334MNYHyK5+lxpPqX5+H6GyD4okonmtSZI+
+   if9PS5D+h0j08IJXeHaADhz2sAhWULMG/lT9lo52rgyPjA3rDqR3NvCPR
+   g==;
+X-CSE-ConnectionGUID: ZkJN3xJxRNejtEeXlqWJrg==
+X-CSE-MsgGUID: LP+aWqJHSgCqidnZSR54Gw==
+X-IronPort-AV: E=McAfee;i="6800,10657,11800"; a="79975583"
+X-IronPort-AV: E=Sophos;i="6.24,173,1774335600"; 
+   d="scan'208";a="79975583"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 May 2026 08:28:37 -0700
+X-CSE-ConnectionGUID: DMwmCKApSv+F9qWfLRbzpA==
+X-CSE-MsgGUID: e7+FBSsnRKK8gBnb32NJVQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.24,173,1774335600"; 
+   d="scan'208";a="238399635"
+Received: from lkp-server01.sh.intel.com (HELO f0d55cb201f0) ([10.239.97.150])
+  by fmviesa010.fm.intel.com with ESMTP; 28 May 2026 08:28:35 -0700
+Received: from kbuild by f0d55cb201f0 with local (Exim 4.98.2)
+	(envelope-from <lkp@intel.com>)
+	id 1wSceu-0000000064g-0QZ5;
+	Thu, 28 May 2026 15:28:32 +0000
+Date: Thu, 28 May 2026 23:28:25 +0800
+From: kernel test robot <lkp@intel.com>
+To: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+ David Hildenbrand <david@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linux Memory Management List <linux-mm@kvack.org>,
+ mm-commits@vger.kernel.org
+Subject: [akpm-mm:mm-unstable 273/420] mm/userfaultfd.c:4475:1:
+ warning: alias and aliasee have different types 'long (int)' and 'long
+ (typeof (__builtin_choose_expr((__builtin_types_compatible_p(typeof ((int)0),
+ typeof (0LL)) || __builtin_types_compatible_p(typeof ((int)0), typeof
+ (0ULL))), 0...
+Message-ID: <202605282311.BlbuvsRF-lkp@intel.com>
+User-Agent: s-nail v14.9.25
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="cfxNpRDGvA5G+Qxn"
-Content-Disposition: inline
-In-Reply-To: <5c340177-548e-4c9d-aaaa-d28b30b0903a@kernel.org>
-X-Cookie: Someone is speaking well of you.
+
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-unstable
+head:   8a74e22643189e0ae339afc91110ddb4cab1941b
+commit: 688eee218159283140c8c4b48429cfe400cb64e4 [273/420] userfaultfd: merge fs/userfaultfd.c into mm/userfaultfd.c
+config: arm-randconfig-003-20260528 (https://download.01.org/0day-ci/archive/20260528/202605282311.BlbuvsRF-lkp@intel.com/config)
+compiler: clang version 23.0.0git (https://github.com/llvm/llvm-project 9409c07de6378507397ecdb6f05f628f58110112)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260528/202605282311.BlbuvsRF-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202605282311.BlbuvsRF-lkp@intel.com/
+
+All warnings (new ones prefixed by >>):
+
+>> mm/userfaultfd.c:4475:1: warning: alias and aliasee have different types 'long (int)' and 'long (typeof (__builtin_choose_expr((__builtin_types_compatible_p(typeof ((int)0), typeof (0LL)) || __builtin_types_compatible_p(typeof ((int)0), typeof (0ULL))), 0LL, 0L)))' (aka 'long (long)') [-Wattribute-alias]
+    4475 | SYSCALL_DEFINE1(userfaultfd, int, flags)
+         | ^
+   include/linux/syscalls.h:225:36: note: expanded from macro 'SYSCALL_DEFINE1'
+     225 | #define SYSCALL_DEFINE1(name, ...) SYSCALL_DEFINEx(1, _##name, __VA_ARGS__)
+         |                                    ^
+   include/linux/syscalls.h:236:2: note: expanded from macro 'SYSCALL_DEFINEx'
+     236 |         __SYSCALL_DEFINEx(x, sname, __VA_ARGS__)
+         |         ^
+   include/linux/syscalls.h:251:18: note: expanded from macro '__SYSCALL_DEFINEx'
+     251 |                 __attribute__((alias(__stringify(__se_sys##name))));    \
+         |                                ^
+   mm/userfaultfd.c:4475:1: note: aliasee is declared here
+   include/linux/syscalls.h:225:36: note: expanded from macro 'SYSCALL_DEFINE1'
+     225 | #define SYSCALL_DEFINE1(name, ...) SYSCALL_DEFINEx(1, _##name, __VA_ARGS__)
+         |                                    ^
+   include/linux/syscalls.h:236:2: note: expanded from macro 'SYSCALL_DEFINEx'
+     236 |         __SYSCALL_DEFINEx(x, sname, __VA_ARGS__)
+         |         ^
+   include/linux/syscalls.h:255:18: note: expanded from macro '__SYSCALL_DEFINEx'
+     255 |         asmlinkage long __se_sys##name(__MAP(x,__SC_LONG,__VA_ARGS__))  \
+         |                         ^
+   <scratch space>:46:1: note: expanded from here
+      46 | __se_sys_userfaultfd
+         | ^
+   1 warning generated.
 
 
---cfxNpRDGvA5G+Qxn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+vim +4475 mm/userfaultfd.c
 
-On Thu, May 28, 2026 at 11:44:20AM +0200, Vlastimil Babka (SUSE) wrote:
+  4474	
+> 4475	SYSCALL_DEFINE1(userfaultfd, int, flags)
+  4476	{
+  4477		if (!userfaultfd_syscall_allowed(flags))
+  4478			return -EPERM;
+  4479	
+  4480		return new_userfaultfd(flags);
+  4481	}
+  4482	
 
-> So I see next-20260527 now has that both from mm and slab trees (with
-> different sha1 hashes), but can't see any heads-up mail about that like in
-> the past? Did anything change, Mark?
-
-As mentioned on IRC the reporting here is manual so can be laggy, and I
-need to do something about the trees like drm that just routinely have
-enormous numbers of cherry picks.  FWIW the current set of things I have
-in slab is:
-
-  0317d2ff0cbdc ("tools/mm/slabinfo: remove redundant slab->partial assignment")
-  9fc57929420fa ("MAINTAINERS: add slab-related scripts and tools to SLAB ALLOCATOR")
-  a47d084532859 ("tools/mm/slabinfo: Fix trace disable logic inversion")
-  f132df576e9a6 ("tools/mm/slabinfo: remove dead assignment in get_obj_and_str()")
-
---cfxNpRDGvA5G+Qxn
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmoYJaUACgkQJNaLcl1U
-h9CZvAf/QfzHUNSCDzDq1ryzFjV4YceJym6HILZ5b1iKLG+uhNAY5RlKto2hBp9A
-OyQEDGaDFfa9oFMbjLUe+a7QDFDMpg8QpaWdfEoGcfytCikfDeezgK3RnIaqqZYy
-ZcqKwJEsps4sGgJKPZJnt1ZdLpQAykSg/mZz6FmAS68YexRyCYTgs0a6A8cte0Sv
-3x1W+NArUmD2E3RqBwwjDBXWpgYQp8dnOI8NuVckx1a/3TrQhmJ1zB3S0TakWXp+
-7SKiKEdjna+jYtWcquWIjyZl+A0apyvnwzxUPjylb9/0tBnPjtgsIJCqhoMlHqdB
-Uziy+wFKr5fXTBKx+7/HVpTGZGAZhg==
-=NJOT
------END PGP SIGNATURE-----
-
---cfxNpRDGvA5G+Qxn--
+--
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
