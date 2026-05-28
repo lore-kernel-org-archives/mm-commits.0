@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B16913655DA
-	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 21:58:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD341332612
+	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 22:03:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780005533; cv=none; b=osNQsWYhrHjsySI/EiOBOqv7U7IS058pQttntzMpChheMP3KnwI5fxtCtg2sT2E9OD2CJ4Sh1PofKZQEw4TIQyKgFXwqAPetFOt2sqjX/Sxhc4yHl2MHHECpfFP77d/qxvV7iJoU74DNOFEpxCtHvwbdttHQZ2kxqeooQTYRs2I=
+	t=1780005817; cv=none; b=ZTfv4p33IdfVXovAzSjFgoHzAtGunJFZ9TFCWgOrm5ov6TXGnITNSvoUt9m7hqpccy82x1YqFjTcP4+8hB3P84pRlN/pgAyhwMmHEA8FUFUsWPACpZco0r+YyU9wzAaNw1fSegCf2wJclOpyM1ufkJ/OXuwvSpi5JSpHqc5D4KQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780005533; c=relaxed/simple;
-	bh=gyseLgRkfcI9H65JPTpGg03IG9Ihxen89+wzFHW02bE=;
-	h=Date:To:From:Subject:Message-Id; b=nLN++M3CpYc8PdoZ8m8q/FCqXxNmIS08cOoGxl7PTeOZk8/xSIwUaOx7XHsZdhYKYZ0G4C5yGVLXC80GGu9GDe76b33D+sqats5ozvEd036h5WTbQ2cFQbRICjXK+Sla1QEeR63sDZplr+h/eJy893xu8ycdaLZOawppX/vWuSo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=R6IK278N; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780005817; c=relaxed/simple;
+	bh=kwaRy8cppR4Oh/yZMf9gxdvWIVn68v58bpF1oFhTyuY=;
+	h=Date:To:From:Subject:Message-Id; b=uDEppcGi5UdDYdX76Jd0zjMyxk0/q7lzz2cF24+8GvbR937MSOO0f68X257a8d0CFFUZcVxUAqXtg7gPfIyxMStXem4csfUmq+rD/C0+1fTCw270KSZNmqviIESxg8tMskDKbLTSHLoWYXx32fJGnu3MuPTLwcPoMcgbMzjj7Ko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=eTeTTJut; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="R6IK278N"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2A4771F000E9;
-	Thu, 28 May 2026 21:58:52 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="eTeTTJut"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44EBF1F000E9;
+	Thu, 28 May 2026 22:03:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780005532;
-	bh=xmXLg4xeHrGi7CvvMR886LAOSK7AC1z26PfX/i32NZA=;
+	d=linux-foundation.org; s=korg; t=1780005816;
+	bh=A8K0onxbMO8lRSIbAo1G1Phur0ooHcOhWkJJ+AysEQ0=;
 	h=Date:To:From:Subject;
-	b=R6IK278NCwe9FaDb7rZN7WyqagVZAC09RC/PI/usBQJUGTzbrjfie6YcX8NG0ZfNR
-	 bcmVXOZrFZ9i1xumprM8+AKZJCn01aZxoT7bwrfNp6f4y8il4Mz+hXDvVi1VWf6fPZ
-	 oxole0hHo4qRNYsi9vcp9lE7BmN07Uoz0C1Dp3zs=
-Date: Thu, 28 May 2026 14:58:51 -0700
-To: mm-commits@vger.kernel.org,yukuai@fnnas.com,xiao@kernel.org,song@kernel.org,linan122@huawei.com,hch@lst.de,david.laight.linux@gmail.com,rppt@kernel.org,akpm@linux-foundation.org
+	b=eTeTTJutE14IGPMpOfP/ts0DqkeVqgnd06gnOP02qMOgJllUoaWTR2TF6jHvRR6g9
+	 KrHlWJfJts/KGiA5DKUHs8xxBI1Dx1T9kAnrnjRAFa5mTijxLB9oarnEOP3vSUx3lL
+	 abcTJL1lSFfMSfaIghg9ihldhGWdpK5dKZD05GNI=
+Date: Thu, 28 May 2026 15:03:35 -0700
+To: mm-commits@vger.kernel.org,song@kernel.org,linan122@huawei.com,hch@lst.de,hch@infradead.org,hare@kernel.org,rppt@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] lib-raid-use-kvmalloc-in-calibrate_xor_blocks.patch removed from -mm tree
-Message-Id: <20260528215852.2A4771F000E9@smtp.kernel.org>
+Subject: + xor-use-kmalloc-in-calibrate_xor_blocks.patch added to mm-nonmm-unstable branch
+Message-Id: <20260528220336.44EBF1F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -34,44 +34,86 @@ List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
-The quilt patch titled
-     Subject: lib/raid: use kvmalloc() in calibrate_xor_blocks()
-has been removed from the -mm tree.  Its filename was
-     lib-raid-use-kvmalloc-in-calibrate_xor_blocks.patch
+The patch titled
+     Subject: xor: use kmalloc() in calibrate_xor_blocks()
+has been added to the -mm mm-nonmm-unstable branch.  Its filename is
+     xor-use-kmalloc-in-calibrate_xor_blocks.patch
 
-This patch was dropped because an updated version will be issued
+This patch will shortly appear at
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/xor-use-kmalloc-in-calibrate_xor_blocks.patch
+
+This patch will later appear in the mm-nonmm-unstable branch at
+    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next via various
+branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
+and is updated there most days
 
 ------------------------------------------------------
 From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-Subject: lib/raid: use kvmalloc() in calibrate_xor_blocks()
-Date: Tue, 26 May 2026 15:50:38 +0300
+Subject: xor: use kmalloc() in calibrate_xor_blocks()
+Date: Thu, 28 May 2026 12:53:00 +0300
 
-The xor benchmark allocates an order 2 (4 pages) scratch buffer that is
-used purely as a CPU-only XOR working area.
+Patch series "lib/raid: replace __get_free_pages() call with kmalloc()", v4.
 
-This buffer does not need to be physically contiguous and can be allocated
-with kvmalloc().
+The xor benchmark allocates 4 pages for a scratch buffer that is used
+purely as a CPU-only XOR working area.
 
-Replace __get_free_pages() call with kvmalloc().
+This buffer can be allocated with kmalloc() as there's nothing special
+about it to go directly to the page allocator.
 
-Link: https://lore.kernel.org/20260526-lib-v2-0-ca3f0fc24b14@kernel.org
+kmalloc() provides a better API than ancient __get_free_pages(). 
+kmalloc() does not require ugly casts and kfree() does not need to know
+the size of the freed object.
+
+There is no performance difference because kmalloc() redirects allocations
+of such size to the page allocator.
+
+Replace __get_free_pages() call with kmalloc().
+
+
+This patch (of 2):
+
+The xor benchmark allocates 4 pages for a scratch buffer that is used
+purely as a CPU-only XOR working area.
+
+This buffer can be allocated with kmalloc() as there's nothing special
+about it to go directly to the page allocator.
+
+kmalloc() provides a better API than ancient __get_free_pages().
+kmalloc() does not require ugly casts and kfree() does not need to know the
+size of the freed object.
+
+There is no performance difference because kmalloc() redirects allocations
+of such size to the page allocator.
+
+Replace __get_free_pages() call with kmalloc().
+
+Link: https://lore.kernel.org/20260528-lib-v4-0-4e3ad1277279@kernel.org
 Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@redhat.com
-Link: https://lore.kernel.org/20260526-lib-v2-1-ca3f0fc24b14@kernel.org
+Link: https://lore.kernel.org/all/635405e4-9423-4a25-a6e7-e03c8ea0bcbe@redhat.com
+Link: https://lore.kernel.org/20260528-lib-v4-1-4e3ad1277279@kernel.org
 Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Reviewed-by: Hannes Reinecke <hare@kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Li Nan <linan122@huawei.com>
-Cc: Mike Rapoport <rppt@kernel.org>
 Cc: Song Liu <song@kernel.org>
-Cc: Yu Kuai <yukuai@fnnas.com>
-Cc: Xiao Ni <xiao@kernel.org>
-Cc: David Laight <david.laight.linux@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  lib/raid/xor/xor-core.c |    5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/lib/raid/xor/xor-core.c~lib-raid-use-kvmalloc-in-calibrate_xor_blocks
+--- a/lib/raid/xor/xor-core.c~xor-use-kmalloc-in-calibrate_xor_blocks
 +++ a/lib/raid/xor/xor-core.c
 @@ -8,6 +8,7 @@
  
@@ -86,7 +128,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		return 0;
  
 -	b1 = (void *) __get_free_pages(GFP_KERNEL, 2);
-+	b1 = kvmalloc(PAGE_SIZE * 4, GFP_KERNEL);
++	b1 = kmalloc(PAGE_SIZE * 4, GFP_KERNEL);
  	if (!b1) {
  		pr_warn("xor: Yikes!  No memory available.\n");
  		return -ENOMEM;
@@ -95,7 +137,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	       fastest->name, fastest->speed);
  
 -	free_pages((unsigned long)b1, 2);
-+	kvfree(b1);
++	kfree(b1);
  	return 0;
  }
  
