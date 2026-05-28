@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC287369D7D
-	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 22:16:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E9B933372A
+	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 22:19:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780006605; cv=none; b=iTt35BMqPBcgz071nwrIbf11Y+ctXzjnPJhM7k0SFXeh/HhFshfrJP7uyEMR6rrnpqKBZjL61xqSkO0fsEO64y+l6srJ4bvk8e3CFiENC7Ru4aZVyo52UmGwM2GdNSg80QnsS33BF70sTcbHZfuIcDrXUNtmz0gcz+EzyLZ3sug=
+	t=1780006788; cv=none; b=rRD0SK+7R1bTg6aJyIdUtFxl41F7B+T0BcvJjLgoTaJ604y+CAW7uaPv6XKC0I351e6iaPS7yem2dqO1IFgR3fTpb/0oNHfJHJwtKhKzM5A8am8jzbaoURvl5DCexQ4JzhzNPt5q3azH8L3K8vSdSYnNbCyUkCCmCEMnpP84KbY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780006605; c=relaxed/simple;
-	bh=EXy3rjocSO6GdOCqiajw5HyEB7wkJLkGA/RdlJL6Db0=;
-	h=Date:To:From:Subject:Message-Id; b=ZiGNKtLjbDJgnblXpSVh5qXdRHph3PUkATJWTgvoAoDG1vpAYbT+aNGZZdZUPgq7XHMc401vOGqT2cpt946+pXybjeRvkZQSeVs75qOiC5XBsBuWtmRYrQXcGA+2vObIS9snEblJaESs2uMtPZWuI8oOTXP4SqYgjOiaRvMg8X8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vnwvJbHK; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780006788; c=relaxed/simple;
+	bh=snwuubVSw6IBHWGTylf6gaj/rsWBNLSFqViBVBdC03Q=;
+	h=Date:To:From:Subject:Message-Id; b=ZliRMmIUB08MvFA4k53cO9HFY4pQwlQBeevjhb6EFr4GGtlVtsqoZ+/BTdewfnSJC0/+ZsZIt1aSRv/5/gNHtA9Vz3F8veIIjkyxMwP+Koa9KeRiDbrIeMu+M556I9r8I0VIWhy0xN6uywsLN5/JDqXJ67jp2tI4zZCoBvx6aqc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jM9/p3uh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vnwvJbHK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A9201F000E9;
-	Thu, 28 May 2026 22:16:43 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jM9/p3uh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC6891F000E9;
+	Thu, 28 May 2026 22:19:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780006603;
-	bh=pw8sWCGGnbC0Pa+IHghmxfKvQYgGbUPU5JufVXR6HeM=;
+	d=linux-foundation.org; s=korg; t=1780006786;
+	bh=CE3H4TkFYylBXRG7ydoFL7YQKgxmMTz1lkYr684RKJk=;
 	h=Date:To:From:Subject;
-	b=vnwvJbHKbQ278WCzyzDTKHpLk89mMwi5Q5wlrp6OB4aPnyd0hurEvae4gWUJ/jf0S
-	 AhkzS1v9C/XtVJqYy91kz9Q3mXc6Y5RUE665hkR+DOJroJ8pP4q1WxMh+KmfxrPLU3
-	 97Z3m2LG2fWsEEsVEwY0aDUPHeEMpBMYIs2W1dIw=
-Date: Thu, 28 May 2026 15:16:42 -0700
-To: mm-commits@vger.kernel.org,hannes@cmpxchg.org,akpm@linux-foundation.org,akpm@linux-foundation.org
+	b=jM9/p3uhVVj8+a/su2IGGIn+gX/oM5Mi8DMgmAfW++VnqMt9RrsrRq/1PPCdY69kC
+	 uAElg6Yy6d0COY683ACFlhAoxvRKemxJ1f1rBICw7YDKvxFNBIJV4PNbzjP6GIEiYl
+	 rdxLCF8xBYBZIK3nB89t5LtLovOf1YCwAVILdXrw=
+Date: Thu, 28 May 2026 15:19:46 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,riel@surriel.com,richard.weiyang@gmail.com,osalvador@suse.de,ljs@kernel.org,liam@infradead.org,jannh@google.com,harry@kernel.org,david@kernel.org,anshuman.khandual@arm.com,agordeev@linux.ibm.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-switch-deferred-split-shrinker-to-list_lru-fix.patch added to mm-new branch
-Message-Id: <20260528221643.4A9201F000E9@smtp.kernel.org>
+Subject: + mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch added to mm-new branch
+Message-Id: <20260528221946.CC6891F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm-switch-deferred-split-shrinker-to-list_lru-fix
+     Subject: mm/page_vma_mapped_walk: use ptep_get_lockless() for lockless access
 has been added to the -mm mm-new branch.  Its filename is
-     mm-switch-deferred-split-shrinker-to-list_lru-fix.patch
+     mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-switch-deferred-split-shrinker-to-list_lru-fix.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -69,51 +69,74 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-switch-deferred-split-shrinker-to-list_lru-fix
-Date: Thu May 28 03:12:45 PM PDT 2026
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Subject: mm/page_vma_mapped_walk: use ptep_get_lockless() for lockless access
+Date: Thu, 28 May 2026 09:55:07 +0200
 
-fix build with CONFIG_TRANSPARENT_HUGEPAGE=n
+When not holding the lock, there is a chance that the pte gets modified
+under our feet, so we need to use the lockless API to make sure that the
+entries remain consistent during the read."
 
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202605281620.lc3rtkBm-lkp@intel.com/
-Link: https://lore.kernel.org/202605281620.lc3rtkBm-lkp@intel.com
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Switch from ptep_get() to ptep_get_lockless() accessor for PTE reads when
+no lock is taken.
+
+[osalvador@suse.de: changelog addition]
+  Link: https://lore.kernel.org/ahhNq0pFKvSKZQbR@localhost.localdomain
+Link: https://lore.kernel.org/20260528075507.1821939-1-agordeev@linux.ibm.com
+Signed-off-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: David Hildenbrand <david@kernel.org>
+Cc: Harry Yoo <harry@kernel.org>
+Cc: Jann Horn <jannh@google.com>
+Cc: Liam Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/page_vma_mapped.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/include/linux/huge_mm.h~mm-switch-deferred-split-shrinker-to-list_lru-fix
-+++ a/include/linux/huge_mm.h
-@@ -663,7 +663,15 @@ static inline int folio_split(struct fol
- 	return -EINVAL;
- }
+--- a/mm/page_vma_mapped.c~mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access
++++ a/mm/page_vma_mapped.c
+@@ -41,7 +41,7 @@ again:
+ 	if (!pvmw->pte)
+ 		return false;
  
--static inline void deferred_split_folio(struct folio *folio, bool partially_mapped) {}
-+static inline int folio_memcg_alloc_deferred(struct folio *folio)
-+{
-+	return 0;
-+}
-+
-+static inline void deferred_split_folio(struct folio *folio, bool partially_mapped)
-+{
-+}
-+
- #define split_huge_pmd(__vma, __pmd, __address)	\
- 	do { } while (0)
+-	ptent = ptep_get(pvmw->pte);
++	ptent = ptep_get_lockless(pvmw->pte);
  
+ 	if (pte_none(ptent)) {
+ 		return false;
+@@ -183,6 +183,7 @@ bool page_vma_mapped_walk(struct page_vm
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long end;
+ 	spinlock_t *ptl;
++	pte_t pteval;
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+ 	pud_t *pud;
+@@ -310,7 +311,11 @@ next_pte:
+ 				goto restart;
+ 			}
+ 			pvmw->pte++;
+-		} while (pte_none(ptep_get(pvmw->pte)));
++			if (!pvmw->ptl)
++				pteval = ptep_get_lockless(pvmw->pte);
++			else
++				pteval = ptep_get(pvmw->pte);
++		} while (pte_none(pteval));
+ 
+ 		if (!pvmw->ptl) {
+ 			spin_lock(ptl);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from agordeev@linux.ibm.com are
 
-mm-memory-failure-fix-hugetlb_lock-aa-deadlock-in-get_huge_page_for_hwpoison-fix.patch
-memcgv1-dont-compile-swap-functions-when-config_swap=n.patch
-mm-switch-deferred-split-shrinker-to-list_lru-fix.patch
-mm-swap-pm-hibernate-atomically-replace-hibernation-pin-checkpatch-fixes.patch
-proc-rewrite-next_tgid-fix.patch
-lib-nmi_backtrace-print-out-the-cpus-which-fail-to-respond-to-nmi-fix-fix.patch
-sparc-add-_mcount-prototype.patch
-drivers-media-v4l2-core-v4l2-vp9c-reduce-inlining.patch
+mm-gup-cleanup-pgtable-entry-accessors.patch
+mm-page_vma_mapped_walk-use-ptep_get_lockless-for-lockless-access.patch
 
