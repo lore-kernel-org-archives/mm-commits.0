@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56F7D2253EE
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 123D7282F02;
+	Fri, 29 May 2026 04:06:12 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027572; cv=none; b=rGQ+Lcnbw7mjL4g/wk88IEX5o+R2ko8RDkXDzKmmnLgllcRUpPO01l4dTgxNUT1udx2NrbI0UV7wp3mmDotojzpvmgxDuEdDvsDir0XHiRPySd7mPqDC6bcmt/9IJeXpMr6HOUc7NmOLeq8qaB8qOKKabvQrN6hf/mQeMcZZbes=
+	t=1780027573; cv=none; b=UUaby9qaOgDup/p8GpQKhzAK6Wy5xpckc1x2yrrpNsnJp7l8sQV42Z9camDysx3m8OkHJvKLHjFKpflGv1lwV9IKNj/UYVjj1RoQ/r3ibRwySO83yra6qMXo25ibkvebjKgngufeAeBJ5p3FKtjX06xgOMEekpiU5Io8XextrpA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027572; c=relaxed/simple;
-	bh=ZXCZozbZn0iGKi9kq3jCU1wTUjOiG1lHBfnv3sOkmTw=;
-	h=Date:To:From:Subject:Message-Id; b=ib9/zY2Gy0jZ+ZNtMnsTLyPEgnnEQCj+xtaoKKXwlmLNOBGmtZJz0xQF880UK/9mZYRrUbBJOOkyQ40dpqKyUSqQWgbh9C2u9OZM0WncqTzF5IjjDlcb02vfWcupji4UZGzNLMBB/xya//3aARmJ8mYXGJpe0kmw+4r0Vr6DoWQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ud6+D5BP; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027573; c=relaxed/simple;
+	bh=AuF6S5/4nuW6VGOqJmVUc6GCmIg5OVMeUonhQXLDIvI=;
+	h=Date:To:From:Subject:Message-Id; b=EKu7EjzUuenuddzovHQrCGS40X4yC6WaTajZRAWyL/6EoiW8Y5cJKEvy0kxKnjaZ7yDq7/T1LULw4W7C9zZxbiUMjFEysbTaL4FWcLNrrk63MkV7WEY/Xodp+RMm6SZV6c/ziDMGPjRH4Y/KqyCh+CHYLrxeb4s7+6DyiWsRNfI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=QEkyxYFX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ud6+D5BP"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB8D11F00893;
-	Fri, 29 May 2026 04:06:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="QEkyxYFX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D977D1F00898;
+	Fri, 29 May 2026 04:06:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027570;
-	bh=tYeZ9RbEqGbV8/CP+rjUa6oOuPKXPdTdFYcICLygWhc=;
+	d=linux-foundation.org; s=korg; t=1780027572;
+	bh=VAu1jVkmQLGApMdR1dMXFdFmoyyEXVt7oKChATzll9k=;
 	h=Date:To:From:Subject;
-	b=ud6+D5BPBveEY3pqHutGYUEBRZrCreYDXqQtXbPIF/9uhQI8GkfFtfVOkB3Zwd8OW
-	 I5D4eWEGHWBBrnH8IB5yG0Kfu2sVjYaZu4ee65mRMP+LZKvMUaQLZ17KV2VFBk0fvx
-	 yyFghZxUGsmwSk8ajueMnIYGvUYRY7tGUU87O33o=
-Date: Thu, 28 May 2026 21:06:10 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,adi.sharma@zohomail.in,akpm@linux-foundation.org
+	b=QEkyxYFXRELfwqL9dgf72q6LwEkVK5Q1ezdeJfwWxxDVNUnavSjZSHDooYPrArITa
+	 Tm4UgojUTKmbv+BVqI9FX2w53hreSjB4rAs33zy/eHpJDRNMYhUqOjPzb1pE4zYvEN
+	 DLWmUvmMoGTwtYXfSIrFprkN+9OeXkjybSPcaMqQ=
+Date: Thu, 28 May 2026 21:06:11 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory-update-stale-locking-comments-for-fault-handlers.patch removed from -mm tree
-Message-Id: <20260529040610.CB8D11F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch removed from -mm tree
+Message-Id: <20260529040611.D977D1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,174 +35,97 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory: update stale locking comments for fault handlers
+     Subject: mm/damon/core: make charge_addr_from aware of end-address exclusivity
 has been removed from the -mm tree.  Its filename was
-     mm-memory-update-stale-locking-comments-for-fault-handlers.patch
+     mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Aditya Sharma <adi.sharma@zohomail.in>
-Subject: mm/memory: update stale locking comments for fault handlers
-Date: Fri, 24 Apr 2026 14:52:17 +0530
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: make charge_addr_from aware of end-address exclusivity
+Date: Mon, 27 Apr 2026 21:29:40 -0700
 
-Update the comments for wp_page_copy(), do_wp_page(), do_swap_page(),
-do_anonymous_page(), __do_fault(), do_fault(), handle_pte_fault(),
-__handle_mm_fault(), and handle_mm_fault() to concisely clarify that they
-can be entered holding either the mmap_lock or the VMA lock, and that the
-lock may be released upon returning VM_FAULT_RETRY.
+DAMON region end address is exclusive one, but charge_addr_from is
+assigned assuming the end address is inclusive.  As a result, DAMOS action
+to next up to min_region_sz memory can be skipped.  This is quite
+negligible user impact.  But, the bug is a bug that can be very simply
+fixed.  Fix the wrong assignment to respect the exclusiveness of the
+address.
 
-Additionally, make the following corrections:
-- In do_anonymous_page(), correct the outdated claim that the function
-  is entered with the PTE "mapped but not yet locked". Since
-  handle_pte_fault() unmaps the empty PTE before routing to
-  do_pte_missing(), the comment now correctly states it is entered
-  with the PTE unmapped and unlocked.
-- In __do_fault(), update the stale reference from __lock_page_retry()
-  to __folio_lock_or_retry().
+The issue was discovered [1] by Sashiko.
 
-Link: https://lore.kernel.org/20260424092217.263648-1-adi.sharma@zohomail.in
-Signed-off-by: Aditya Sharma <adi.sharma@zohomail.in>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lore.kernel.org/20260428042942.118230-1-sj@kernel.org
+Link: https://lore.kernel.org/20260428032324.115663-1-sj@kernel.org [1]
+Fixes: 50585192bc2e ("mm/damon/schemes: skip already charged targets and regions")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 5.16.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   55 ++++++++++++++++++++++++++------------------------
- 1 file changed, 29 insertions(+), 26 deletions(-)
+ mm/damon/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-memory-update-stale-locking-comments-for-fault-handlers
-+++ a/mm/memory.c
-@@ -3837,8 +3837,8 @@ vm_fault_t __vmf_anon_prepare(struct vm_
-  * Handle the case of a page which we actually need to copy to a new page,
-  * either due to COW or unsharing.
-  *
-- * Called with mmap_lock locked and the old page referenced, but
-- * without the ptl held.
-+ * Called with either the VMA lock or the mmap_lock held (see FAULT_FLAG_VMA_LOCK)
-+ * and the old page referenced, but without the ptl held.
-  *
-  * High level logic flow:
-  *
-@@ -4237,9 +4237,9 @@ static bool wp_can_reuse_anon_folio(stru
-  * though the page will change only once the write actually happens. This
-  * avoids a few races, and potentially makes it more efficient.
-  *
-- * We enter with non-exclusive mmap_lock (to exclude vma changes,
-- * but allow concurrent faults), with pte both mapped and locked.
-- * We return with mmap_lock still held, but pte unmapped and unlocked.
-+ * We enter with either the VMA lock or the mmap_lock held (see
-+ * FAULT_FLAG_VMA_LOCK) and pte both mapped and locked. We return with
-+ * the same lock still held, but pte unmapped and unlocked.
-  */
- static vm_fault_t do_wp_page(struct vm_fault *vmf)
- 	__releases(vmf->ptl)
-@@ -4785,12 +4785,12 @@ static void check_swap_exclusive(struct
- }
- 
- /*
-- * We enter with non-exclusive mmap_lock (to exclude vma changes,
-- * but allow concurrent faults), and pte mapped but not yet locked.
-+ * We enter with either the VMA lock or the mmap_lock held (see
-+ * FAULT_FLAG_VMA_LOCK), and pte mapped but not yet locked.
-  * We return with pte unmapped and unlocked.
-  *
-- * We return with the mmap_lock locked or unlocked in the same cases
-- * as does filemap_fault().
-+ * When returning, the lock may have been released in the same cases
-+ * as done by filemap_fault().
-  */
- vm_fault_t do_swap_page(struct vm_fault *vmf)
- {
-@@ -5330,9 +5330,10 @@ static void map_anon_folio_pte_pf(struct
- }
- 
- /*
-- * We enter with non-exclusive mmap_lock (to exclude vma changes,
-- * but allow concurrent faults), and pte mapped but not yet locked.
-- * We return with mmap_lock still held, but pte unmapped and unlocked.
-+ * We enter with either the VMA lock or the mmap_lock held (see
-+ * FAULT_FLAG_VMA_LOCK), and pte unmapped and unlocked.
-+ * We return with the lock still held, but pte unmapped and unlocked.
-+ * If VM_FAULT_RETRY is returned, the lock may have been released.
-  */
- static vm_fault_t do_anonymous_page(struct vm_fault *vmf)
- {
-@@ -5440,9 +5441,10 @@ oom:
- }
- 
- /*
-- * The mmap_lock must have been held on entry, and may have been
-- * released depending on flags and vma->vm_ops->fault() return value.
-- * See filemap_fault() and __lock_page_retry().
-+ * Either the VMA lock or the mmap_lock must have been held on entry
-+ * (see FAULT_FLAG_VMA_LOCK) and may have been released depending on
-+ * flags and vma->vm_ops->fault() return value.
-+ * See filemap_fault() and __folio_lock_or_retry().
-  */
- static vm_fault_t __do_fault(struct vm_fault *vmf)
- {
-@@ -6003,11 +6005,11 @@ static vm_fault_t do_shared_fault(struct
- }
- 
- /*
-- * We enter with non-exclusive mmap_lock (to exclude vma changes,
-- * but allow concurrent faults).
-- * The mmap_lock may have been released depending on flags and our
-+ * We enter with either the VMA lock or the mmap_lock held (see
-+ * FAULT_FLAG_VMA_LOCK).
-+ * The lock may have been released depending on flags and our
-  * return value.  See filemap_fault() and __folio_lock_or_retry().
-- * If mmap_lock is released, vma may become invalid (for example
-+ * If the lock is released, vma may become invalid (for example
-  * by other thread calling munmap()).
-  */
- static vm_fault_t do_fault(struct vm_fault *vmf)
-@@ -6374,10 +6376,11 @@ static void fix_spurious_fault(struct vm
-  * with external mmu caches can use to update those (ie the Sparc or
-  * PowerPC hashed page tables that act as extended TLBs).
-  *
-- * We enter with non-exclusive mmap_lock (to exclude vma changes, but allow
-- * concurrent faults).
-+ * On entry, we hold either the VMA lock or the mmap_lock
-+ * (see FAULT_FLAG_VMA_LOCK).
-  *
-- * The mmap_lock may have been released depending on flags and our return value.
-+ * The mmap_lock or VMA lock may have been released depending on flags
-+ * and our return value.
-  * See filemap_fault() and __folio_lock_or_retry().
-  */
- static vm_fault_t handle_pte_fault(struct vm_fault *vmf)
-@@ -6458,8 +6461,8 @@ unlock:
- 
- /*
-  * On entry, we hold either the VMA lock or the mmap_lock
-- * (FAULT_FLAG_VMA_LOCK tells you which).  If VM_FAULT_RETRY is set in
-- * the result, the mmap_lock is not held on exit.  See filemap_fault()
-+ * (see FAULT_FLAG_VMA_LOCK).  If VM_FAULT_RETRY is set in
-+ * the result, the lock is not held on exit.  See filemap_fault()
-  * and __folio_lock_or_retry().
-  */
- static vm_fault_t __handle_mm_fault(struct vm_area_struct *vma,
-@@ -6691,9 +6694,9 @@ static vm_fault_t sanitize_fault_flags(s
- 
- /*
-  * By the time we get here, we already hold either the VMA lock or the
-- * mmap_lock (FAULT_FLAG_VMA_LOCK tells you which).
-+ * mmap_lock (see FAULT_FLAG_VMA_LOCK).
-  *
-- * The mmap_lock may have been released depending on flags and our
-+ * The lock may have been released depending on flags and our
-  * return value.  See filemap_fault() and __folio_lock_or_retry().
-  */
- vm_fault_t handle_mm_fault(struct vm_area_struct *vma, unsigned long address,
+--- a/mm/damon/core.c~mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity
++++ a/mm/damon/core.c
+@@ -2106,7 +2106,7 @@ static void damos_apply_scheme(struct da
+ 		if (damos_quota_is_set(quota) &&
+ 				quota->charged_sz >= quota->esz) {
+ 			quota->charge_target_from = t;
+-			quota->charge_addr_from = r->ar.end + 1;
++			quota->charge_addr_from = r->ar.end;
+ 		}
+ 	}
+ 	if (s->action != DAMOS_STAT)
 _
 
-Patches currently in -mm which might be from adi.sharma@zohomail.in are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-ops-common-call-folio_test_lru-after-folio_get.patch
+mm-damon-reclaim-handle-ctx-allocation-failure.patch
+mm-damonn-lru_sort-handle-ctx-allocation-failure.patch
+mm-damon-core-introduce-struct-damon_probe.patch
+mm-damon-core-embed-damon_probe-objects-in-damon_ctx.patch
+mm-damon-core-introduce-damon_filter.patch
+mm-damon-core-commit-probes.patch
+mm-damon-core-introduce-damon_region-probe_hits.patch
+mm-damon-core-introduce-damon_ops-apply_probes.patch
+mm-damon-core-do-data-attributes-monitoring.patch
+mm-damon-paddr-support-data-attributes-monitoring.patch
+mm-damon-sysfs-implement-probes-dir.patch
+mm-damon-sysfs-implement-probe-dir.patch
+mm-damon-sysfs-implement-filters-directory.patch
+mm-damon-sysfs-implement-filter-dir.patch
+mm-damon-sysfs-implement-filter-dir-files.patch
+mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
+mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
+mm-damon-sysfs-schemes-implement-probe-dir.patch
+mm-damon-sysfs-schemes-implement-probe-hits-file.patch
+mm-damon-trace-probe_hits.patch
+selftests-damon-sysfssh-test-probes-dir.patch
+docs-mm-damon-design-document-data-attributes-monitoring.patch
+docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
+mm-damon-core-introduce-damon_filter_type_memcg.patch
+mm-damon-paddr-support-damon_filter_type_memcg.patch
+mm-damon-sysfs-add-filters-f-path-file.patch
+mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
+mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
+docs-mm-damon-design-update-for-memcg-damon-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
+mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
+mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
+samples-damon-mtier-replace-damon_add_region-with-damon_set_regions.patch
+mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions.patch
+mm-damon-core-hide-damon_add_region.patch
+mm-damon-core-hide-damon_insert_region.patch
+mm-damon-core-hide-damon_destroy_region.patch
+mm-damon-core-add-kdamond_call-debug_sanity-check.patch
+mm-damon-core-remove-damon_verify_nr_regions.patch
+mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
+selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
+selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
+selftests-damon-sysfssh-test-addr_unit-file-existence.patch
+selftests-damon-sysfssh-test-pause-file-existence.patch
+mm-damon-core-trace-esz-at-first-setup.patch
 
