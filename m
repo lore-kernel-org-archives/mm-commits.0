@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5168E29D26B;
-	Fri, 29 May 2026 23:29:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53B683B38AD;
+	Fri, 29 May 2026 23:30:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780097401; cv=none; b=KadbDimZDClNkRDTrj1+mkIrk8OgQKjcVZSn2ucLy8p3viiz8RJ46NqPGh8w1mm+2wHbbVao7lKOUx4aHHCts1ebUAIhXUMyE0YGggO1xtMq7kPHG7Dexm0G8ksPQM5h8224UG7u1kDq2ikLasdxWGNr1bKlQvS8o2RjmboY+XI=
+	t=1780097403; cv=none; b=X3HfYb9oxxp7mgypq6Pe6zBeY/jGhy+DNyrIrGrrMiWTcrlQS3AqQf62F9RonLn4ZoSjhnirOV0StCmlounTjElX3t5HebmOxwt0p2mFVABiBiJ0U5LVaXReRMeqMxYOwXTCGASky8OanKMkzL+L85hMPdHD05m2yjAhJojaHMs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780097401; c=relaxed/simple;
-	bh=wqlX10ptD6G0Sy0U+H7rTMauxwC04zA4qIN47cKNDss=;
-	h=Date:To:From:Subject:Message-Id; b=f1DNNmvbSjnlCZznJU/ggLedOO50IHz09bELROCnoMSSsm+q7aRVEPe5Cz4ZCtGX2xW5inER9/ExSQqoGoO5LdTrzIR4SVhT6yrUkFZuaU5HSwEidbovQdzjJSAnc1DEnR2U97lED93I2ttTRKKFJwbqnyGlbJ3z4nwJ4QHr2PU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=rUjpnrBc; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780097403; c=relaxed/simple;
+	bh=HaBzKETcgHQ+G+wBZDyTwIeEulvXbw/qTdt4Q4AYPBA=;
+	h=Date:To:From:Subject:Message-Id; b=oRtwWHZD+2b0p/TU0fjFL5Y35FCuTgwpWUlLEwZbw3yEaYAYNC+etfeCjLGQd9zhKE+qsqS7E4QNuoL2nDeIM9MS4FhDveRL9YPBUNvFFxaUrPYdav4qFu5UuetK3UMLznvPoP1YicmfQGpue4LmhVDk7XoihEQ1WgZvIBm7Kx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=neZTBStX; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="rUjpnrBc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C62D81F00893;
-	Fri, 29 May 2026 23:29:59 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="neZTBStX"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA3C31F00893;
+	Fri, 29 May 2026 23:30:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780097399;
-	bh=2Dq5XqllVrENOUnMWr6d8a8D4lIBdT6qXMoz0uHAD00=;
+	d=linux-foundation.org; s=korg; t=1780097402;
+	bh=UeaCMd2dK6jhLDM7W9W7hHKjGU/o8mdT3Df6BFxaKEs=;
 	h=Date:To:From:Subject;
-	b=rUjpnrBcSrPwWKaCePbKAjq4o8DmFIngtVlo7yWKqTRZkmclK3ZFiY21akrOzLg2h
-	 bauh9chGG8y5Ms+SmcAXHgNUlp3gBccPYwg7N3fjH6Ql4awT56nZUovvy1uhY2Cz43
-	 h+1ZoRFGxf+EzlUvM/H7x9T3jq3dCyyrZYefocJ0=
-Date: Fri, 29 May 2026 16:29:59 -0700
+	b=neZTBStXT2bqY+U5iteIPp0nG3ubXhrrSqFwEALHR5A86/XP5wHkf4YkMUyP6RHaS
+	 SbGS3kOeEaxq7QEbOZBhX021zS0YRB+GjMakchedr58GiSWHEVBTtv+i9+kIzxcpYH
+	 mv9DHD9+j4oOBl7T+fa3W7lDKbko/3ADIuWUy4WY=
+Date: Fri, 29 May 2026 16:30:01 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,sashiko-bot@kernel.org,rppt@kernel.org,peterx@redhat.com,mhocko@suse.com,ljs@kernel.org,david@kernel.org,kas@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-huge_memory-preserve-pmd_swp_uffd_wp-on-device-private-pmd-downgrade.patch added to mm-new branch
-Message-Id: <20260529232959.C62D81F00893@smtp.kernel.org>
+Subject: + userfaultfd-gate-must_wait-writability-check-on-pte_present.patch added to mm-new branch
+Message-Id: <20260529233001.DA3C31F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/huge_memory: preserve pmd_swp_uffd_wp on device-private PMD downgrade
+     Subject: userfaultfd: gate must_wait writability check on pte_present()
 has been added to the -mm mm-new branch.  Its filename is
-     mm-huge_memory-preserve-pmd_swp_uffd_wp-on-device-private-pmd-downgrade.patch
+     userfaultfd-gate-must_wait-writability-check-on-pte_present.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-huge_memory-preserve-pmd_swp_uffd_wp-on-device-private-pmd-downgrade.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/userfaultfd-gate-must_wait-writability-check-on-pte_present.patch
 
 This patch will later appear in the mm-new branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -70,18 +70,31 @@ and is updated there most days
 
 ------------------------------------------------------
 From: "Kiryl Shutsemau (Meta)" <kas@kernel.org>
-Subject: mm/huge_memory: preserve pmd_swp_uffd_wp on device-private PMD downgrade
-Date: Fri, 29 May 2026 18:23:28 +0100
+Subject: userfaultfd: gate must_wait writability check on pte_present()
+Date: Fri, 29 May 2026 18:23:29 +0100
 
-change_non_present_huge_pmd() rewrites a writable device-private PMD swap
-entry into a readable one without carrying pmd_swp_uffd_wp() across.  The
-PTE-level change_softleaf_pte() does this correctly; mirror that here,
-matching what copy_huge_pmd() does for the fork path.  Without the carry,
-a plain mprotect() over a UFFD_WP-marked device-private THP strips the bit
-and the trap is bypassed on swap-in.
+userfaultfd_must_wait() and userfaultfd_huge_must_wait() read the PTE
+without taking the page table lock and then apply pte_write() /
+huge_pte_write() to it.  Those accessors decode bits from the present
+encoding only; on a swap or migration entry they read the offset bits that
+happen to share the same position and return an undefined result.
 
-Link: https://lore.kernel.org/20260529172331.356655-5-kas@kernel.org
-Fixes: 368076f52ebe ("mm/huge_memory: add device-private THP support to PMD operations")
+The intent of the check is "is this fault still WP-blocked?".  A
+non-marker swap entry means the page is in transit -- the userfault
+context the original fault delivered against is no longer the same, and
+the swap-in or migration completion path will re-deliver a fresh fault if
+userspace still needs to handle it.  Worst case under the current code the
+garbage write bit says "wait", and the thread stays asleep until a
+UFFDIO_WAKE that may never arrive.
+
+Gate the writability check on pte_present() so the lockless re-check only
+inspects present-PTE bits when the entry is actually present.  The
+non-present, non-marker case returns "don't wait" and lets the fault path
+retry.
+
+Link: https://lore.kernel.org/20260529172331.356655-6-kas@kernel.org
+Fixes: 369cd2121be4 ("userfaultfd: hugetlbfs: userfaultfd_huge_must_wait for hugepmd ranges")
+Fixes: 63b2d4174c4a ("userfaultfd: wp: add the writeprotect API to userfaultfd ioctl")
 Signed-off-by: Kiryl Shutsemau <kas@kernel.org>
 Reported-by: Sashiko AI review <sashiko-bot@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
@@ -95,20 +108,45 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/userfaultfd.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
---- a/mm/huge_memory.c~mm-huge_memory-preserve-pmd_swp_uffd_wp-on-device-private-pmd-downgrade
-+++ a/mm/huge_memory.c
-@@ -2577,6 +2577,8 @@ static void change_non_present_huge_pmd(
- 	} else if (softleaf_is_device_private_write(entry)) {
- 		entry = make_readable_device_private_entry(swp_offset(entry));
- 		newpmd = swp_entry_to_pmd(entry);
-+		if (pmd_swp_uffd_wp(*pmd))
-+			newpmd = pmd_swp_mkuffd_wp(newpmd);
- 	} else {
- 		newpmd = *pmd;
- 	}
+--- a/mm/userfaultfd.c~userfaultfd-gate-must_wait-writability-check-on-pte_present
++++ a/mm/userfaultfd.c
+@@ -2543,6 +2543,15 @@ static inline bool userfaultfd_huge_must
+ 	if (pte_is_uffd_marker(pte))
+ 		return true;
+ 	/*
++	 * Concurrent migration may have replaced the present PTE with a
++	 * non-marker swap entry between fault delivery and this lockless
++	 * re-check. huge_pte_write() on a swap entry decodes random offset
++	 * bits, so gate it on pte_present(). The migration completion path
++	 * will re-deliver the fault if it still needs userspace.
++	 */
++	if (!pte_present(pte))
++		return false;
++	/*
+ 	 * If VMA has UFFD WP faults enabled and WP fault, wait for userspace to
+ 	 * resolve the fault.
+ 	 */
+@@ -2629,6 +2638,17 @@ again:
+ 	if (pte_is_uffd_marker(ptent))
+ 		goto out;
+ 	/*
++	 * Concurrent swap-out / migration may have replaced the present PTE
++	 * with a non-marker swap entry between fault delivery and this
++	 * lockless re-check. pte_write() on a swap entry decodes random
++	 * offset bits, so gate it on pte_present(). The page-in path will
++	 * re-deliver the fault if it still needs userspace.
++	 */
++	if (!pte_present(ptent)) {
++		ret = false;
++		goto out;
++	}
++	/*
+ 	 * If VMA has UFFD WP faults enabled and WP fault, wait for userspace to
+ 	 * resolve the fault.
+ 	 */
 _
 
 Patches currently in -mm which might be from kas@kernel.org are
