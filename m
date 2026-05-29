@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9740030C608
-	for <mm-commits@vger.kernel.org>; Thu, 28 May 2026 22:35:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A057C1DFFB;
+	Fri, 29 May 2026 00:12:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780007718; cv=none; b=k1foZdENO22Vcr1nPtj2zSM5Za3qD95s9vlNYRLT9nBEV/jJlxd1aTt3WPT5qwogIbNcI974mz3cx3IcFnbAFBM+m436gVnUVWsiIhEagx+uq2Y6MO/f9EVe9EkCc7DdVQKbo2naJa7zaDd62smjItyxCSbUXb9RVNZCeSEMan8=
+	t=1780013543; cv=none; b=Z2y4AyqTWt7UtgNAo+smzI5UffQNtP2izq35ed+mGpSy1JoC/9o29MDUika6YVggxQm20D37YFWASxYes8OgbzCxsx5a6YhCWDO4f/RE0jaRh04kbKxpEwzIUkPleW3tBQnCXL9Jkmoi4zgJoxUur56u/nmXl+5H/MYZu8RAk6c=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780007718; c=relaxed/simple;
-	bh=1rsPLMfLOvpM0lrpyEzNHg6OD7OoF5e4sj2tA51Xc2I=;
-	h=Date:To:From:Subject:Message-Id; b=tfPPVo+3crwUN7ljBSsRLp9cJ3TAhOebWYwn7GAMrHQDaW7kD0WEHjo01HR9sODAHHXymtrRc1YQQTq3RY2Y9IJUqbUYh938ehlhrZ7OSiyfKKrynjSi2ycrFKnf3syP6sNlQYEh5Qx0hfSkZEupb2XHaPY0Q8Qpr2RC65dtNPE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=a14RhpWh; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780013543; c=relaxed/simple;
+	bh=ms73O5CGb5I26p6B8UM9XQQuu7rKG89arC7xlwXKkk0=;
+	h=Date:To:From:Subject:Message-Id; b=KmZuVaOrqdJBpPGGOQczQTy1mR3QtftNZv73ym3dQFLxdudqzhxgWkT/DtC6HP1NtjhpC3Dy9gtxy19lAD3LnoeEC3Mz7/bVWkUAjCBrrRxh1Uv8BOd9fF7jsXNInvNuJTILUWe3J2DIqQZLju/aNs/M/tRkt56uCmpznjqvnb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oyerUa6Z; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="a14RhpWh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2925A1F000E9;
-	Thu, 28 May 2026 22:35:17 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oyerUa6Z"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 362D11F000E9;
+	Fri, 29 May 2026 00:12:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780007717;
-	bh=5PTPJ5zO08TNEmBAqwN6mUyRwAWYgr8vGVQH2wRvudk=;
+	d=linux-foundation.org; s=korg; t=1780013542;
+	bh=DjcRoblmu8Rixu/kzN6ldqxcxN9vAxh23jP0z+URLUo=;
 	h=Date:To:From:Subject;
-	b=a14RhpWhSWTLBoUSJhueL4ZMd87kVRbZtCeCS4gXl0n2FO0wc3EK8kSC3ZIgxdT1s
-	 xfLuEbxrQxk63LDD2MJzrxQfMk53CHjOhn919yRkTiTfvGqOg4mD+IOguahvqz7Ov5
-	 0nXlcpZ4MrGzYQQ+iCVBAQWgiPklAehJBcfBV8Ko=
-Date: Thu, 28 May 2026 15:35:16 -0700
-To: mm-commits@vger.kernel.org,sashiko-bot@kernel.org,leon@kernel.org,jgg@ziepe.ca,balbirs@nvidia.com,apopple@nvidia.com,hao.ge@linux.dev,akpm@linux-foundation.org
+	b=oyerUa6ZWjAPHh5esDiQY0PsMDrxKbdYWjNIOwyIbansr6ESc3Fa9r5ZKQVOZ+/QV
+	 q4nIgCgQlFTzWBYJrJJtGVbbTJ2xgjOD6wZ/+VC0sVYcXvxc7YCpyaotL01eX5VUDc
+	 5VXxwbug2OuexcEaajNHnNE2/hs27pASFr3VBmPo=
+Date: Thu, 28 May 2026 17:12:21 -0700
+To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch added to mm-new branch
-Message-Id: <20260528223517.2925A1F000E9@smtp.kernel.org>
+Subject: + mm-damon-reclaim-handle-ctx-allocation-failure.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260529001222.362D11F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,26 +35,15 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: lib/test_hmm: fix memory leak in dmirror_migrate_to_system()
-has been added to the -mm mm-new branch.  Its filename is
-     lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch
+     Subject: mm/damon/reclaim: handle ctx allocation failure
+has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
+     mm-damon-reclaim-handle-ctx-allocation-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-handle-ctx-allocation-failure.patch
 
-This patch will later appear in the mm-new branch at
+This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Note, mm-new is a provisional staging ground for work-in-progress
-patches, and acceptance into mm-new is a notification for others take
-notice and to finish up reviews.  Please do not hesitate to respond to
-review feedback and post updated versions to replace or incrementally
-fixup patches in mm-new.
-
-The mm-new branch of mm.git is not included in linux-next
-
-If a few days of testing in mm-new is successful, the patch will me moved
-into mm.git's mm-unstable branch, which is included in linux-next
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,56 +58,138 @@ branches at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 and is updated there most days
 
 ------------------------------------------------------
-From: Hao Ge <hao.ge@linux.dev>
-Subject: lib/test_hmm: fix memory leak in dmirror_migrate_to_system()
-Date: Thu, 28 May 2026 09:13:36 +0800
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/reclaim: handle ctx allocation failure
+Date: Thu, 28 May 2026 17:01:02 -0700
 
-Move the kvcalloc() calls after the early return checks to avoid leaking
-src_pfns and dst_pfns when end < start or mmget_not_zero() fails.
+Patch series "mm/damon/{reclaim,lru_sort}: handle ctx allocation failures".
 
-Link: https://lore.kernel.org/20260528011336.20797-1-hao.ge@linux.dev
-Fixes: 775465fd26a3 ("lib/test_hmm: add zone device private THP test infrastructure")
-Signed-off-by: Hao Ge <hao.ge@linux.dev>
-Reviewed-by: Alistair Popple <apopple@nvidia.com>
-Reported-by: Sashiko <sashiko-bot@kernel.org>
-Cc: Balbir Singh <balbirs@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
+DAMON_RECLAIM and DAMON_LRU_SORT could dereference NULL pointers if their
+damon_ctx object allocations fail.  The bugs are expected to happen
+infrequently because the allocations are arguably too small to fail on
+common setups.  But theoretically they are possible and the consequences
+are bad.  Fix those.
+
+The issues were discovered [1] by Sashiko.
+
+
+This patch (of 2):
+
+DAMON_RECLAIM allocates the damon_ctx object for its kdamond in its init
+function.  damon_reclaim_enabled_store() wrongly assumes the allocation
+will always succeed once tried.  If the damon_ctx allocation was failed,
+therefore, code execution reaches to damon_commit_ctx() while 'ctx' is
+NULL.  As a result, it dereferences the NULL 'ctx' pointer.  Avoid the
+NULL dereference by returning -ENOMEM if 'ctx' is NULL.
+
+Link: https://lore.kernel.org/20260529000104.7006-2-sj@kernel.org
+Link: https://lore.kernel.org/20260419014800.877-1-sj@kernel.org [1]
+Fixes: 3f7a914ab9a5 ("mm/damon/reclaim: use damon_initialized()")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org> # 6.18.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/damon/reclaim.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/lib/test_hmm.c~lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system
-+++ a/lib/test_hmm.c
-@@ -1130,9 +1130,6 @@ static int dmirror_migrate_to_system(str
- 	unsigned long *src_pfns;
- 	unsigned long *dst_pfns;
+--- a/mm/damon/reclaim.c~mm-damon-reclaim-handle-ctx-allocation-failure
++++ a/mm/damon/reclaim.c
+@@ -339,6 +339,10 @@ static int damon_reclaim_enabled_store(c
+ 	if (!damon_initialized())
+ 		return 0;
  
--	src_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
--	dst_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
--
- 	start = cmd->addr;
- 	end = start + size;
- 	if (end < start)
-@@ -1142,6 +1139,9 @@ static int dmirror_migrate_to_system(str
- 	if (!mmget_not_zero(mm))
- 		return -EINVAL;
- 
-+	src_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*src_pfns), GFP_KERNEL | __GFP_NOFAIL);
-+	dst_pfns = kvcalloc(PTRS_PER_PTE, sizeof(*dst_pfns), GFP_KERNEL | __GFP_NOFAIL);
++	/* damon_modules_new_paddr_ctx_target() in the init function failed. */
++	if (!ctx)
++		return -ENOMEM;
 +
- 	cmd->cpages = 0;
- 	mmap_read_lock(mm);
- 	for (addr = start; addr < end; addr = next) {
+ 	return damon_reclaim_turn(enabled);
+ }
+ 
 _
 
-Patches currently in -mm which might be from hao.ge@linux.dev are
+Patches currently in -mm which might be from sj@kernel.org are
 
-proc-meminfo-expose-per-node-balloon-pages-in-node-meminfo.patch
-lib-test_hmm-use-kvfree-to-free-kvcalloc-allocations.patch
-mm-alloc_tag-replace-fixed-size-early-pfn-array-with-dynamic-linked-list.patch
-alloc_tag-fix-use-after-free-in-proc-allocinfo-after-module-unload.patch
-lib-test_hmm-fix-memory-leak-in-dmirror_migrate_to_system.patch
+mm-damon-ops-common-call-folio_test_lru-after-folio_get.patch
+mm-damon-reclaim-handle-ctx-allocation-failure.patch
+mm-damonn-lru_sort-handle-ctx-allocation-failure.patch
+mm-damon-core-make-charge_addr_from-aware-of-end-address-exclusivity.patch
+mm-damon-core-handle-min_region_sz-remaining-quota-as-empty.patch
+mm-damon-core-merge-regions-after-applying-damos-schemes.patch
+mm-damon-core-introduce-failed-region-quota-charge-ratio.patch
+mm-damon-sysfs-schemes-implement-fail_charge_numdenom-files.patch
+docs-mm-damon-design-document-fail_charge_numdenom.patch
+docs-admin-guide-mm-damon-usage-document-fail_charge_numdenom-files.patch
+docs-abi-damon-document-fail_charge_numdenom.patch
+mm-damon-tests-core-kunit-test-fail_charge_numdenom-committing.patch
+selftests-damon-_damon_sysfs-support-failed-region-quota-charge-ratio.patch
+selftests-damon-drgn_dump_damon_status-support-failed-region-quota-charge-ratio.patch
+selftests-damon-sysfspy-test-failed-region-quota-charge-ratio.patch
+docs-mm-damon-maintainer-profile-add-ai-review-usage-guideline.patch
+mm-damon-core-introduce-damon_ctx-paused.patch
+mm-damon-sysfs-add-pause-file-under-context-dir.patch
+docs-mm-damon-design-update-for-context-pause-resume-feature.patch
+docs-admin-guide-mm-damon-usage-update-for-pause-file.patch
+docs-abi-damon-update-for-pause-sysfs-file.patch
+mm-damon-tests-core-kunit-test-pause-commitment.patch
+selftests-damon-_damon_sysfs-support-pause-file-staging.patch
+selftests-damon-drgn_dump_damon_status-dump-pause.patch
+selftests-damon-sysfspy-check-pause-on-assert_ctx_committed.patch
+selftests-damon-sysfspy-pause-damon-before-dumping-status.patch
+mm-damon-introduce-damon_set_region_system_rams_default.patch
+mm-damon-reclaim-cover-all-system-rams.patch
+mm-damon-lru_sort-cover-all-system-rams.patch
+mm-damon-core-remove-damon_set_region_biggest_system_ram_default.patch
+mm-damon-stat-use-damon_set_region_system_rams_default.patch
+docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring.patch
+docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring.patch
+docs-admin-guide-mm-damon-usage-mark-scheme-filters-sysfs-dir-as-deprecated.patch
+docs-abi-damon-mark-schemes-s-filters-deprecated.patch
+mm-damon-reclaim-add-autotune_monitoring_intervals-parameter.patch
+docs-admin-guide-mm-damon-reclaim-update-for-autotune_monitoring_intervals.patch
+mm-damon-stat-add-a-parameter-for-reading-kdamond-pid.patch
+docs-admin-guide-mm-damon-stat-document-kdamond_pid-parameter.patch
+mm-damon-core-introduce-struct-damon_probe.patch
+mm-damon-core-embed-damon_probe-objects-in-damon_ctx.patch
+mm-damon-core-introduce-damon_filter.patch
+mm-damon-core-commit-probes.patch
+mm-damon-core-introduce-damon_region-probe_hits.patch
+mm-damon-core-introduce-damon_ops-apply_probes.patch
+mm-damon-core-do-data-attributes-monitoring.patch
+mm-damon-paddr-support-data-attributes-monitoring.patch
+mm-damon-sysfs-implement-probes-dir.patch
+mm-damon-sysfs-implement-probe-dir.patch
+mm-damon-sysfs-implement-filters-directory.patch
+mm-damon-sysfs-implement-filter-dir.patch
+mm-damon-sysfs-implement-filter-dir-files.patch
+mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
+mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
+mm-damon-sysfs-schemes-implement-probe-dir.patch
+mm-damon-sysfs-schemes-implement-probe-hits-file.patch
+mm-damon-trace-probe_hits.patch
+selftests-damon-sysfssh-test-probes-dir.patch
+docs-mm-damon-design-document-data-attributes-monitoring.patch
+docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
+mm-damon-core-introduce-damon_filter_type_memcg.patch
+mm-damon-paddr-support-damon_filter_type_memcg.patch
+mm-damon-sysfs-add-filters-f-path-file.patch
+mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
+mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
+docs-mm-damon-design-update-for-memcg-damon-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
+mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
+mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
+samples-damon-mtier-replace-damon_add_region-with-damon_set_regions.patch
+mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions.patch
+mm-damon-core-hide-damon_add_region.patch
+mm-damon-core-hide-damon_insert_region.patch
+mm-damon-core-hide-damon_destroy_region.patch
+mm-damon-core-add-kdamond_call-debug_sanity-check.patch
+mm-damon-core-remove-damon_verify_nr_regions.patch
+mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
+selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
+selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
+selftests-damon-sysfssh-test-addr_unit-file-existence.patch
+selftests-damon-sysfssh-test-pause-file-existence.patch
+mm-damon-core-trace-esz-at-first-setup.patch
 
