@@ -1,569 +1,115 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41A4438BF7A
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:51:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 564BD2C11F1
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 12:35:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780030307; cv=none; b=uHSID3Iis9g+J6lfxKQdn6kPzDCtF/Gy7uPPYy5yWhrGSlu85pHKw/cfWlUmI8b/tZ1NW8AM+ap2hur4SQJbond+6rR1P3oAmZyYsMQNL5RvT6+G7DaP7JTalBqp7t9d0TK6bNS0RW0qssYhD0AsQQ7mtNBu3D5boTJANeVeUdE=
+	t=1780058147; cv=none; b=Eizeo88IdeUvIdVnnYvUmI0manVdlgAAwn0NtIQvYjND7p1sKNeIphbnUlqBmBteNhjjF+J2AqgTEIOZMNGni5/CyoCjC87mvFGf2Lkc+fUnDNnHxq2OahkNKeRd502brxFM7AeIocQu4xQcri8ejrKIkizbB0eYjZ3rgrWeifo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780030307; c=relaxed/simple;
-	bh=Qg59IzKaqb628QEZahBCquXETcf83kdulWNsUcHYCQw=;
-	h=Date:To:From:Subject:Message-Id; b=QsonABFUJUFXWLBNiy8zQfRTcq7BBzN3YxiVH9SBCNzBW5VfC4ghq1R2ImpM9jc6CeQIrPeqhceb5esF/Zz1qAwKT7XRR5/SDwnmEW1qs+P5QzIprDI2Q0JeXuG5MXtj1bwwoRpePJQ73mqgS8QeiDuMEZEE+wuUWx6x+o0eC8I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ZNprMS98; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780058147; c=relaxed/simple;
+	bh=Uu0pOOe3qel1vCkqwx+k52targ03de26WlHCo/vfDlg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=s3yxDtCfbBYw52fOEzLcnnE4+5LYaP8bjL5m/rKRykB6AI/woqYG7A5ds4DdbxsBFdXS6YYBy9Iw2Ns482PXn+JIPT+LNg2wZni+YI0dmSKEuEA4LDwGi9353jcnfuDtY0pRRivt07s0pUyZekB+MRtr000OOFGVZiipLuGGmp0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmpxchg.org; spf=pass smtp.mailfrom=cmpxchg.org; dkim=pass (2048-bit key) header.d=cmpxchg.org header.i=@cmpxchg.org header.b=L75lg7wG; arc=none smtp.client-ip=209.85.222.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=cmpxchg.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cmpxchg.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ZNprMS98"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDB281F00893;
-	Fri, 29 May 2026 04:51:43 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=cmpxchg.org header.i=@cmpxchg.org header.b="L75lg7wG"
+Received: by mail-qk1-f176.google.com with SMTP id af79cd13be357-90fbf21d9d3so2049901885a.1
+        for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 05:35:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780030303;
-	bh=wFEMXtCwo39dZyR8zcOR/pZS+nwqs/qRSdOiuQXE+7o=;
-	h=Date:To:From:Subject;
-	b=ZNprMS98MzDzTIQ9Gg3/KdyMT66EKn7qZj85v3DeSN9ATn4fVnbwlwjEitdsANf/3
-	 bFpJ/gxdiwkphgUtURFynXkbvyrv/itvI6Nx91XawHbo/Zh+TwwtS/64DykpJyHZCE
-	 OtcMnunlQHF/NR/S1JVdj9odnuVniYlOs+hcsf4w=
-Date: Thu, 28 May 2026 21:51:43 -0700
-To: mm-commits@vger.kernel.org,tj@kernel.org,dennis@kernel.org,joonwonkang@google.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] percpu-introduce-struct-pcpu_region.patch removed from -mm tree
-Message-Id: <20260529045143.BDB281F00893@smtp.kernel.org>
+        d=cmpxchg.org; s=google; t=1780058144; x=1780662944; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=C8tyG14nP5ARAFOFatQyu1rvTUj9VVrrHucz+LTuvp4=;
+        b=L75lg7wGwuKFoqAieyo01sb0Ur2SgKfttVtdJX6SYbLPpZP5LZrSbNnGK8F1c8cxUk
+         2Mwo1OFXRUJY3PvOwj1r8SuR/Pe604w8XJhC8VvpbulykZgDC6zgDHoks8ziciGuqAa9
+         NbwlW7jWUnLDIQ2SYYpn3QyH0X3hwwV47NknnbAWjesr4oV5vZyBpHFAflqO5HT3Aygy
+         6NRJj7sSRtsbohIr63t0TSUoJXelLZ5Snl8WLOUhANojmNkbTGM5ADO6x77+tBUf8Cqn
+         kgwDKHCRX/tADjpVaaY5csg50Xs1OMMd+ek6q0JeFKXdWd3PVmPX1r/4wS3QtKcFVpbw
+         V8jQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20251104; t=1780058144; x=1780662944;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-gg:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=C8tyG14nP5ARAFOFatQyu1rvTUj9VVrrHucz+LTuvp4=;
+        b=nPd0oAP8lpex2IpsTwg6xR5nBRto3Io2vkb2BueQv/JyaALmw02W2VieYMztbyGzTm
+         hHJT4oomDCWCcJvWsUBxnhiXrdK6EqrIsviUExISGxbfu9QnBG8ElrDns36LvCF+kwvB
+         ZbLT+ecZZvgasXFU4JbrP9T8CvRYOCLBRm6U72zYWuVixAVoVvNBT9c28Vg7LDUl6600
+         4ariIHPVmHuwzGmRW4+i2MlBlFkWBhDo8+LtVHeKq6tF32g6gF5Ny+ozhWwz2sBuhTJ7
+         gKHEiO4vZh/9mzdok8sxuW62z88hHpy5udFPX8a/O/IpGEGtRc7htDe7GjVvfVGWibM2
+         586w==
+X-Forwarded-Encrypted: i=1; AFNElJ9USyNOvElsG9MsrbGgRTFlHyBluje6vYW4IQwRwkBKEo5srFpXu39/sX5o3RDaMctffg5MImYcURoa@vger.kernel.org
+X-Gm-Message-State: AOJu0YwzZBMOTVFt8u/Lk4EgEijHVnrlakDDFvDph3sYeuuWR6PeemzB
+	bYQBj5fuxe0efQxc3dlMPK0OfyOAlCQybx3hROV9WwyayvDSro36ei++V3+lnMsJOOY=
+X-Gm-Gg: Acq92OFr1/sVBHfcHbcyf/4zjnWqmtYp1DIf6cPnvn+GoWjzuuM1FDdbZuO/s1FJwLn
+	2KgkbqZvBLoTcadL8qWcuFJ8Chl7sQi9CVXIZ4nJgomWNldnchJ3Ro8oRXe7XI2hwqkyuRNgyvZ
+	jUQrazHoNVPMsXo1JNMgB+DQTnFwhmsXGeoIuHv91LULzl2v0UwJ5K5rs+Jv2BdXVuTplQqUEva
+	k/fWK8+tWQIuAGz8qbSFfiSnlnHnC+IQMy8wSFXxyHn9SxHd+OafJSVudfN0RNr9M2Tw/NjodWs
+	2/3j+qwlmMON0nnr4e8MSc31HAehqEOmqO1iHvB+/QjLOAwVs52oR35eXqQ3PZN8x5k9swLnc+E
+	GcvTZ2N0qRTWtnhw+Ug1VaxVhl7TAsnO/81cUdAk3yP8MfAmgbg3vE4farvPP6xXyZkUF5wblEx
+	MfwyTkNO34857Q19FdHUIz0MAslX9kz1zR
+X-Received: by 2002:a05:620a:2982:b0:914:bd3f:b6d0 with SMTP id af79cd13be357-9152fdf204fmr323840685a.31.1780058143430;
+        Fri, 29 May 2026 05:35:43 -0700 (PDT)
+Received: from localhost ([2603:7001:f100:500:365a:60ff:fe62:ff29])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-9153262d1b4sm172594285a.39.2026.05.29.05.35.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 29 May 2026 05:35:42 -0700 (PDT)
+Date: Fri, 29 May 2026 08:35:41 -0400
+From: Johannes Weiner <hannes@cmpxchg.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: kernel test robot <lkp@intel.com>, llvm@lists.linux.dev,
+	oe-kbuild-all@lists.linux.dev, David Hildenbrand <david@kernel.org>,
+	Linux Memory Management List <linux-mm@kvack.org>,
+	mm-commits@vger.kernel.org,
+	"Lorenzo Stoakes (Oracle)" <ljs@kernel.org>
+Subject: Re: [akpm-mm:mm-new 429/433] mm/swap_state.c:468:19: error: call to
+ undeclared function 'folio_memcg_alloc_deferred'; ISO C99 and later do not
+ support implicit function declarations
+Message-ID: <ahmIHZUg2IRrSgnm@cmpxchg.org>
+References: <202605281620.lc3rtkBm-lkp@intel.com>
+ <20260528151618.7aa255415825c8d1de6ca437@linux-foundation.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
 List-Subscribe: <mailto:mm-commits+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20260528151618.7aa255415825c8d1de6ca437@linux-foundation.org>
 
+On Thu, May 28, 2026 at 03:16:18PM -0700, Andrew Morton wrote:
+> On Thu, 28 May 2026 16:15:31 +0800 kernel test robot <lkp@intel.com> wrote:
+> 
+> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-new
+> > head:   d7d405cc33d6e3eeba2d6ec8f0b595da2a5c600a
+> > commit: a5e62d9e00dac6f96174c397a82da30e7ae53064 [429/433] mm: switch deferred split shrinker to list_lru
+> > config: hexagon-defconfig (https://download.01.org/0day-ci/archive/20260528/202605281620.lc3rtkBm-lkp@intel.com/config)
+> > compiler: clang version 23.0.0git (https://github.com/llvm/llvm-project 9409c07de6378507397ecdb6f05f628f58110112)
+> > reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20260528/202605281620.lc3rtkBm-lkp@intel.com/reproduce)
+> > 
+> > If you fix the issue in a separate patch/commit (i.e. not just a new version of
+> > the same patch/commit), kindly add following tags
+> > | Reported-by: kernel test robot <lkp@intel.com>
+> > | Closes: https://lore.kernel.org/oe-kbuild-all/202605281620.lc3rtkBm-lkp@intel.com/
+> > 
+> > All errors (new ones prefixed by >>):
+> > 
+> > >> mm/swap_state.c:468:19: error: call to undeclared function 'folio_memcg_alloc_deferred'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+> >      468 |         if (order > 1 && folio_memcg_alloc_deferred(folio)) {
+> >          |                          ^
+> >    1 error generated.
+> 
+> Thanks.  How does this look?
+> 
+> 
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: mm-switch-deferred-split-shrinker-to-list_lru-fix
+> Date: Thu May 28 03:12:45 PM PDT 2026
+> 
+> fix build with CONFIG_TRANSPARENT_HUGEPAGE=n
 
-The quilt patch titled
-     Subject: percpu: introduce struct pcpu_region
-has been removed from the -mm tree.  Its filename was
-     percpu-introduce-struct-pcpu_region.patch
-
-This patch was dropped because an updated version will be issued
-
-------------------------------------------------------
-From: Joonwon Kang <joonwonkang@google.com>
-Subject: percpu: introduce struct pcpu_region
-Date: Wed, 13 May 2026 08:51:15 +0000
-
-The new struct is introduced to prevent mis-use of hint start and size and
-improve readability.
-
-Link: https://lore.kernel.org/all/aegQgyf3KuIZMK9x@palisades.local/
-Link: https://lore.kernel.org/20260513085117.1024175-3-joonwonkang@google.com
-Signed-off-by: Joonwon Kang <joonwonkang@google.com>
-Suggested-by: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/percpu-internal.h |   24 ++--
- mm/percpu-stats.c    |    2 
- mm/percpu.c          |  244 +++++++++++++++++++----------------------
- 3 files changed, 131 insertions(+), 139 deletions(-)
-
---- a/mm/percpu.c~percpu-introduce-struct-pcpu_region
-+++ a/mm/percpu.c
-@@ -244,10 +244,11 @@ static int pcpu_chunk_slot(const struct
- 	const struct pcpu_block_md *chunk_md = &chunk->chunk_md;
- 
- 	if (chunk->free_bytes < PCPU_MIN_ALLOC_SIZE ||
--	    chunk_md->contig_hint == 0)
-+	    chunk_md->contig_hint.size == 0)
- 		return 0;
- 
--	return pcpu_size_to_slot(chunk_md->contig_hint * PCPU_MIN_ALLOC_SIZE);
-+	return pcpu_size_to_slot(chunk_md->contig_hint.size *
-+				 PCPU_MIN_ALLOC_SIZE);
- }
- 
- /* set the pointer to a chunk in a page struct */
-@@ -317,10 +318,10 @@ static unsigned long pcpu_block_off_to_o
- static bool pcpu_check_block_hint(struct pcpu_block_md *block, int bits,
- 				  size_t align)
- {
--	int bit_off = ALIGN(block->contig_hint_start, align) -
--		block->contig_hint_start;
-+	int bit_off = ALIGN(block->contig_hint.start, align) -
-+		block->contig_hint.start;
- 
--	return bit_off + bits <= block->contig_hint;
-+	return bit_off + bits <= block->contig_hint.size;
- }
- 
- /*
-@@ -330,7 +331,7 @@ static bool pcpu_check_block_hint(struct
-  *
-  * This determines if we should scan based on the scan_hint or first_free.
-  * In general, we want to scan from first_free to fulfill allocations by
-- * first fit.  However, if we know a scan_hint at position scan_hint_start
-+ * first fit.  However, if we know a scan_hint at position scan_hint.start
-  * cannot fulfill an allocation, we can begin scanning from there knowing
-  * the contig_hint will be our fallback.
-  */
-@@ -340,13 +341,13 @@ static int pcpu_next_hint(struct pcpu_bl
- 	 * The three conditions below determine if we can skip past the
- 	 * scan_hint.  First, does the scan hint exist.  Second, is the
- 	 * contig_hint after the scan_hint (possibly not true iff
--	 * contig_hint == scan_hint).  Third, is the allocation request
--	 * larger than the scan_hint.
-+	 * contig_hint.size == scan_hint.size).  Third, is the allocation
-+	 * request larger than the scan_hint.
- 	 */
--	if (block->scan_hint &&
--	    block->contig_hint_start > block->scan_hint_start &&
--	    alloc_bits > block->scan_hint)
--		return block->scan_hint_start + block->scan_hint;
-+	if (block->scan_hint.size &&
-+	    block->contig_hint.start > block->scan_hint.start &&
-+	    alloc_bits > block->scan_hint.size)
-+		return block->scan_hint.start + block->scan_hint.size;
- 
- 	return block->first_free;
- }
-@@ -388,11 +389,11 @@ static void pcpu_next_md_free_region(str
- 		 * the next block and should be handled by the contig area
- 		 * across blocks code.
- 		 */
--		*bits = block->contig_hint;
--		if (*bits && block->contig_hint_start >= block_off &&
--		    *bits + block->contig_hint_start < PCPU_BITMAP_BLOCK_BITS) {
-+		*bits = block->contig_hint.size;
-+		if (*bits && block->contig_hint.start >= block_off &&
-+		    *bits + block->contig_hint.start < PCPU_BITMAP_BLOCK_BITS) {
- 			*bit_off = pcpu_block_off_to_off(i,
--					block->contig_hint_start);
-+					block->contig_hint.start);
- 			return;
- 		}
- 		/* reset to satisfy the second predicate above */
-@@ -437,19 +438,18 @@ static void pcpu_next_fit_region(struct
- 		}
- 
- 		/* check block->contig_hint */
--		*bits = ALIGN(block->contig_hint_start, align) -
--			block->contig_hint_start;
-+		*bits = ALIGN(block->contig_hint.start, align) -
-+			block->contig_hint.start;
- 		/*
- 		 * This uses the block offset to determine if this has been
- 		 * checked in the prior iteration.
- 		 */
--		if (block->contig_hint &&
--		    block->contig_hint_start >= block_off &&
--		    block->contig_hint >= *bits + alloc_bits) {
-+		if (block->contig_hint.size &&
-+		    block->contig_hint.start >= block_off &&
-+		    block->contig_hint.size >= *bits + alloc_bits) {
- 			int start = pcpu_next_hint(block, alloc_bits);
- 
--			*bits += alloc_bits + block->contig_hint_start -
--				 start;
-+			*bits += alloc_bits + block->contig_hint.start - start;
- 			*bit_off = pcpu_block_off_to_off(i, start);
- 			return;
- 		}
-@@ -604,17 +604,16 @@ static inline void pcpu_update_empty_pag
- 
- /*
-  * pcpu_region_overlap - determines if two regions overlap
-- * @a: start of first region, inclusive
-- * @b: end of first region, exclusive
-- * @x: start of second region, inclusive
-- * @y: end of second region, exclusive
-+ * @a: first region
-+ * @b: second region
-  *
-- * This is used to determine if the hint region [a, b) overlaps with the
-- * allocated region [x, y).
-+ * This is used to determine if the hint region [a.start, a.start + a.size)
-+ * overlaps with the allocated region [b.start, b.start + b.size).
-  */
--static inline bool pcpu_region_overlap(int a, int b, int x, int y)
-+static inline bool pcpu_region_overlap(struct pcpu_region a,
-+				       struct pcpu_region b)
- {
--	return (a < y) && (x < b);
-+	return (a.start < b.start + b.size) && (b.start < a.start + a.size);
- }
- 
- /**
-@@ -629,56 +628,54 @@ static inline bool pcpu_region_overlap(i
-  */
- static void pcpu_block_update(struct pcpu_block_md *block, int start, int end)
- {
--	int contig = end - start;
-+	struct pcpu_region free = { .start = start, .size = end - start };
- 
--	block->first_free = min(block->first_free, start);
--	if (start == 0)
--		block->left_free = contig;
-+	block->first_free = min(block->first_free, free.start);
-+	if (free.start == 0)
-+		block->left_free = free.size;
- 
--	if (end == block->nr_bits)
--		block->right_free = contig;
-+	if (free.start + free.size == block->nr_bits)
-+		block->right_free = free.size;
- 
--	if (contig > block->contig_hint) {
-+	if (free.size > block->contig_hint.size) {
- 		/* promote the old contig_hint to be the new scan_hint */
--		if (block->contig_hint && start > block->contig_hint_start) {
--			if (block->contig_hint > block->scan_hint) {
--				block->scan_hint_start =
--					block->contig_hint_start;
-+		if (block->contig_hint.size &&
-+		    free.start > block->contig_hint.start) {
-+			if (block->contig_hint.size > block->scan_hint.size) {
- 				block->scan_hint = block->contig_hint;
--			} else if (block->scan_hint &&
--				   start < block->scan_hint_start) {
-+			} else if (block->scan_hint.size &&
-+				   free.start < block->scan_hint.start) {
- 				/*
--				 * The old contig_hint == scan_hint.  But, the
--				 * new contig is larger so hold the invariant
--				 * scan_hint_start < contig_hint_start.
-+				 * The old contig_hint.size == scan_hint.size.
-+				 * But, the new contig is larger so hold the
-+				 * invariant scan_hint.start <
-+				 * contig_hint.start.
- 				 */
--				block->scan_hint = 0;
-+				block->scan_hint.size = 0;
- 			}
- 		} else {
--			block->scan_hint = 0;
-+			block->scan_hint.size = 0;
- 		}
--		block->contig_hint_start = start;
--		block->contig_hint = contig;
--	} else if (contig == block->contig_hint) {
--		if (block->contig_hint_start &&
--		    (!start ||
--		     __ffs(start) > __ffs(block->contig_hint_start))) {
--			/* start has a better alignment so use it */
--			block->contig_hint_start = start;
--			if (block->scan_hint &&
--			    start < block->scan_hint_start &&
--			    block->contig_hint > block->scan_hint)
--				block->scan_hint = 0;
--		} else if ((block->scan_hint &&
--			    start > block->scan_hint_start) ||
--			   block->contig_hint > block->scan_hint) {
-+		block->contig_hint = free;
-+	} else if (free.size == block->contig_hint.size) {
-+		if (block->contig_hint.start &&
-+		    (!free.start ||
-+		     __ffs(free.start) > __ffs(block->contig_hint.start))) {
-+			/* new start has a better alignment so use it */
-+			block->contig_hint.start = free.start;
-+			if (block->scan_hint.size &&
-+			    free.start < block->scan_hint.start &&
-+			    block->contig_hint.size > block->scan_hint.size)
-+				block->scan_hint.size = 0;
-+		} else if ((block->scan_hint.size &&
-+			    free.start > block->scan_hint.start) ||
-+			   block->contig_hint.size > block->scan_hint.size) {
- 			/*
--			 * Knowing contig == contig_hint, update the scan_hint
--			 * if it is farther than or larger than the current
--			 * scan_hint.
-+			 * Knowing new contig size == contig_hint.size, update
-+			 * the scan_hint if it is farther than or larger than
-+			 * the current scan_hint.
- 			 */
--			block->scan_hint_start = start;
--			block->scan_hint = contig;
-+			block->scan_hint = free;
- 		}
- 	} else {
- 		/*
-@@ -686,12 +683,11 @@ static void pcpu_block_update(struct pcp
- 		 * the scan_hint if it is larger than or equal and farther than
- 		 * the current scan_hint.
- 		 */
--		if ((start < block->contig_hint_start &&
--		     (contig > block->scan_hint ||
--		      (contig == block->scan_hint &&
--		       start > block->scan_hint_start)))) {
--			block->scan_hint_start = start;
--			block->scan_hint = contig;
-+		if ((free.start < block->contig_hint.start &&
-+		     (free.size > block->scan_hint.size ||
-+		      (free.size == block->scan_hint.size &&
-+		       free.start > block->scan_hint.start)))) {
-+			block->scan_hint = free;
- 		}
- 	}
- }
-@@ -741,8 +737,8 @@ static void pcpu_block_update_scan(struc
-  * Iterates over the metadata blocks to find the largest contig area.
-  * A full scan can be avoided on the allocation path as this is triggered
-  * if we broke the contig_hint.  In doing so, the scan_hint will be before
-- * the contig_hint or after if the scan_hint == contig_hint.  This cannot
-- * be prevented on freeing as we want to find the largest area possibly
-+ * the contig_hint or after if the scan_hint.size == contig_hint.size.  This
-+ * cannot be prevented on freeing as we want to find the largest area possibly
-  * spanning blocks.
-  */
- static void pcpu_chunk_refresh_hint(struct pcpu_chunk *chunk, bool full_scan)
-@@ -751,14 +747,13 @@ static void pcpu_chunk_refresh_hint(stru
- 	int bit_off, bits;
- 
- 	/* promote scan_hint to contig_hint */
--	if (!full_scan && chunk_md->scan_hint) {
--		bit_off = chunk_md->scan_hint_start + chunk_md->scan_hint;
--		chunk_md->contig_hint_start = chunk_md->scan_hint_start;
-+	if (!full_scan && chunk_md->scan_hint.size) {
-+		bit_off = chunk_md->scan_hint.start + chunk_md->scan_hint.size;
- 		chunk_md->contig_hint = chunk_md->scan_hint;
--		chunk_md->scan_hint = 0;
-+		chunk_md->scan_hint.size = 0;
- 	} else {
- 		bit_off = chunk_md->first_free;
--		chunk_md->contig_hint = 0;
-+		chunk_md->contig_hint.size = 0;
- 	}
- 
- 	bits = 0;
-@@ -781,14 +776,13 @@ static void pcpu_block_refresh_hint(stru
- 	unsigned int start, end;	/* region start, region end */
- 
- 	/* promote scan_hint to contig_hint */
--	if (block->scan_hint) {
--		start = block->scan_hint_start + block->scan_hint;
--		block->contig_hint_start = block->scan_hint_start;
-+	if (block->scan_hint.size) {
-+		start = block->scan_hint.start + block->scan_hint.size;
- 		block->contig_hint = block->scan_hint;
--		block->scan_hint = 0;
-+		block->scan_hint.size = 0;
- 	} else {
- 		start = block->first_free;
--		block->contig_hint = 0;
-+		block->contig_hint.size = 0;
- 	}
- 
- 	block->right_free = 0;
-@@ -834,7 +828,7 @@ static void pcpu_block_update_hint_alloc
- 	/*
- 	 * Update s_block.
- 	 */
--	if (s_block->contig_hint == PCPU_BITMAP_BLOCK_BITS)
-+	if (s_block->contig_hint.size == PCPU_BITMAP_BLOCK_BITS)
- 		nr_empty_pages++;
- 
- 	/*
-@@ -848,18 +842,13 @@ static void pcpu_block_update_hint_alloc
- 					PCPU_BITMAP_BLOCK_BITS,
- 					s_off + bits);
- 
--	if (s_block->scan_hint &&
--	    pcpu_region_overlap(s_block->scan_hint_start,
--				s_block->scan_hint_start + s_block->scan_hint,
--				s_off,
--				s_off + bits))
--		s_block->scan_hint = 0;
--
--	if (pcpu_region_overlap(s_block->contig_hint_start,
--				s_block->contig_hint_start +
--				s_block->contig_hint,
--				s_off,
--				s_off + bits)) {
-+	struct pcpu_region s_region = { .start = s_off, .size = bits };
-+
-+	if (s_block->scan_hint.size &&
-+	    pcpu_region_overlap(s_block->scan_hint, s_region))
-+		s_block->scan_hint.size = 0;
-+
-+	if (pcpu_region_overlap(s_block->contig_hint, s_region)) {
- 		/* block contig hint is broken - scan to fix it */
- 		if (!s_off)
- 			s_block->left_free = 0;
-@@ -878,7 +867,7 @@ static void pcpu_block_update_hint_alloc
- 	 * Update e_block.
- 	 */
- 	if (s_index != e_index) {
--		if (e_block->contig_hint == PCPU_BITMAP_BLOCK_BITS)
-+		if (e_block->contig_hint.size == PCPU_BITMAP_BLOCK_BITS)
- 			nr_empty_pages++;
- 
- 		/*
-@@ -893,12 +882,12 @@ static void pcpu_block_update_hint_alloc
- 			/* reset the block */
- 			e_block++;
- 		} else {
--			if (e_block->scan_hint &&
--			    e_off > e_block->scan_hint_start)
--				e_block->scan_hint = 0;
-+			if (e_block->scan_hint.size &&
-+			    e_off > e_block->scan_hint.start)
-+				e_block->scan_hint.size = 0;
- 
- 			e_block->left_free = 0;
--			if (e_off > e_block->contig_hint_start) {
-+			if (e_off > e_block->contig_hint.start) {
- 				/* contig hint is broken - scan to fix it */
- 				pcpu_block_refresh_hint(chunk, e_index);
- 			} else {
-@@ -911,8 +900,8 @@ static void pcpu_block_update_hint_alloc
- 		/* update in-between md_blocks */
- 		nr_empty_pages += (e_index - s_index - 1);
- 		for (block = s_block + 1; block < e_block; block++) {
--			block->scan_hint = 0;
--			block->contig_hint = 0;
-+			block->scan_hint.size = 0;
-+			block->contig_hint.size = 0;
- 			block->left_free = 0;
- 			block->right_free = 0;
- 		}
-@@ -927,24 +916,18 @@ static void pcpu_block_update_hint_alloc
- 	if (nr_empty_pages)
- 		pcpu_update_empty_pages(chunk, -nr_empty_pages);
- 
--	if (chunk_md->scan_hint &&
--	    pcpu_region_overlap(chunk_md->scan_hint_start,
--				chunk_md->scan_hint_start +
--				chunk_md->scan_hint,
--				bit_off,
--				bit_off + bits))
--		chunk_md->scan_hint = 0;
-+	struct pcpu_region req_region = { .start = bit_off, .size = bits };
-+
-+	if (chunk_md->scan_hint.size &&
-+	    pcpu_region_overlap(chunk_md->scan_hint, req_region))
-+		chunk_md->scan_hint.size = 0;
- 
- 	/*
- 	 * The only time a full chunk scan is required is if the chunk
- 	 * contig hint is broken.  Otherwise, it means a smaller space
- 	 * was used and therefore the chunk contig hint is still correct.
- 	 */
--	if (pcpu_region_overlap(chunk_md->contig_hint_start,
--				chunk_md->contig_hint_start +
--				chunk_md->contig_hint,
--				bit_off,
--				bit_off + bits))
-+	if (pcpu_region_overlap(chunk_md->contig_hint, req_region))
- 		pcpu_chunk_refresh_hint(chunk, false);
- }
- 
-@@ -1000,8 +983,8 @@ static void pcpu_block_update_hint_free(
- 	 * or end of the block.
- 	 */
- 	start = s_off;
--	if (s_off == s_block->contig_hint + s_block->contig_hint_start) {
--		start = s_block->contig_hint_start;
-+	if (s_off == s_block->contig_hint.size + s_block->contig_hint.start) {
-+		start = s_block->contig_hint.start;
- 	} else {
- 		/*
- 		 * Scan backwards to find the extent of the free area.
-@@ -1015,8 +998,8 @@ static void pcpu_block_update_hint_free(
- 	}
- 
- 	end = e_off;
--	if (e_off == e_block->contig_hint_start)
--		end = e_block->contig_hint_start + e_block->contig_hint;
-+	if (e_off == e_block->contig_hint.start)
-+		end = e_block->contig_hint.start + e_block->contig_hint.size;
- 	else
- 		end = find_next_bit(pcpu_index_alloc_map(chunk, e_index),
- 				    PCPU_BITMAP_BLOCK_BITS, end);
-@@ -1038,9 +1021,11 @@ static void pcpu_block_update_hint_free(
- 		nr_empty_pages += (e_index - s_index - 1);
- 		for (block = s_block + 1; block < e_block; block++) {
- 			block->first_free = 0;
--			block->scan_hint = 0;
--			block->contig_hint_start = 0;
--			block->contig_hint = PCPU_BITMAP_BLOCK_BITS;
-+			block->scan_hint.size = 0;
-+			block->contig_hint = (struct pcpu_region){
-+				.start = 0,
-+				.size = PCPU_BITMAP_BLOCK_BITS,
-+			};
- 			block->left_free = PCPU_BITMAP_BLOCK_BITS;
- 			block->right_free = PCPU_BITMAP_BLOCK_BITS;
- 		}
-@@ -1320,8 +1305,9 @@ static int pcpu_free_area(struct pcpu_ch
- 
- static void pcpu_init_md_block(struct pcpu_block_md *block, int nr_bits)
- {
--	block->scan_hint = 0;
--	block->contig_hint = nr_bits;
-+	block->scan_hint = (struct pcpu_region){ .start = 0, .size = 0 };
-+	block->contig_hint =
-+		(struct pcpu_region){ .start = 0, .size = nr_bits };
- 	block->left_free = nr_bits;
- 	block->right_free = nr_bits;
- 	block->first_free = 0;
-@@ -2147,7 +2133,7 @@ static void pcpu_reclaim_populated(void)
- 			 * (first) page in the chunk.
- 			 */
- 			block = chunk->md_blocks + i;
--			if (block->contig_hint == PCPU_BITMAP_BLOCK_BITS &&
-+			if (block->contig_hint.size == PCPU_BITMAP_BLOCK_BITS &&
- 			    test_bit(i, chunk->populated)) {
- 				if (end == -1)
- 					end = i;
---- a/mm/percpu-internal.h~percpu-introduce-struct-pcpu_region
-+++ a/mm/percpu-internal.h
-@@ -7,23 +7,29 @@
- #include <linux/memcontrol.h>
- 
- /*
-+ * pcpu region represents a hint region.
-+ * A region is only valid when @size is greater than 0.
-+ */
-+struct pcpu_region {
-+	int start;
-+	int size;
-+};
-+
-+/*
-  * pcpu_block_md is the metadata block struct.
-  * Each chunk's bitmap is split into a number of full blocks.
-  * All units are in terms of bits.
-  *
-  * The scan hint is the largest known contiguous area before the contig hint.
-  * It is not necessarily the actual largest contig hint though.  There is an
-- * invariant that the scan_hint_start > contig_hint_start iff
-- * scan_hint == contig_hint.  This is necessary because when scanning forward,
-- * we don't know if a new contig hint would be better than the current one.
-+ * invariant that the scan_hint.start > contig_hint.start iff
-+ * scan_hint.size == contig_hint.size.  This is necessary because when scanning
-+ * forward, we don't know if a new contig hint would be better than the current
-+ * one.
-  */
- struct pcpu_block_md {
--	int			scan_hint;	/* scan hint for block */
--	int			scan_hint_start; /* block relative starting
--						    position of the scan hint */
--	int                     contig_hint;    /* contig hint for block */
--	int                     contig_hint_start; /* block relative starting
--						      position of the contig hint */
-+	struct pcpu_region	scan_hint;	/* scan hint for block */
-+	struct pcpu_region	contig_hint;	/* contig hint for block */
- 	int                     left_free;      /* size of free space along
- 						   the left side of the block */
- 	int                     right_free;     /* size of free space along
---- a/mm/percpu-stats.c~percpu-introduce-struct-pcpu_region
-+++ a/mm/percpu-stats.c
-@@ -122,7 +122,7 @@ static void chunk_map_stats(struct seq_f
- 	P("empty_pop_pages", chunk->nr_empty_pop_pages);
- 	P("first_bit", chunk_md->first_free);
- 	P("free_bytes", chunk->free_bytes);
--	P("contig_bytes", chunk_md->contig_hint * PCPU_MIN_ALLOC_SIZE);
-+	P("contig_bytes", chunk_md->contig_hint.size * PCPU_MIN_ALLOC_SIZE);
- 	P("sum_frag", sum_frag);
- 	P("max_frag", max_frag);
- 	P("cur_min_alloc", cur_min_alloc);
-_
-
-Patches currently in -mm which might be from joonwonkang@google.com are
-
-percpu-fix-hint-invariant-breakage.patch
-
+Thanks! SJ also sent a fix to this end. Either of them will work :)
