@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D836A370AC5
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0ED1636F915
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027662; cv=none; b=mJMd3u/uzC7Ql8Va0ulu9SuCzReVW5iXXs1nFkTu+896cfgNCE4fKtgYUtdtnW7Ia4sAY3Ltw3d1boMZKUl+y0tXegAXES7IXFiOFV2bT1FrVplrCp2UP2JRGRcW8eWD5FRs5pCqIQwbWR8xuGoAYOdCG1tZTZUvMnzAKRqkh6Q=
+	t=1780027663; cv=none; b=jyJmFekGxJl4SZIKG+Z/z3CYPzBBE8Z5LkuSCEilYBXDXE80JzDado7/+6oEGZ1pUr9h7DTGEYvvfZ9L0EU3jQsHmJjVKHZ17ZQOstIQwKp2Jcuvm1x5LDEMACgwebII72EjKCPhqo58CKvfXF7lBcuYFEmmP0oQWZWvoZkXd/k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027662; c=relaxed/simple;
-	bh=AE1PbIceVCeiOMbe4q0ighUwUh5ad1fgU4jI54lmHlM=;
-	h=Date:To:From:Subject:Message-Id; b=IpJNbCW3tZSFRK3aEl9eSCd8YcGvK3ksN/3+lPlXOc7QegLUn1TmHJRSHTx75IwmS3reK+UuFN4WfzGpIf+rQ3CcVBKIuucZjgLBRlKUAGtHXoKhtAGTN4S4V0ShaLHV7xMgN/iEIRCqkn6cNTd43DDny44ntJPPuQ8LqbWro88=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vCrdPuF3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027663; c=relaxed/simple;
+	bh=cJMLRmDD1KPJc0yg448IEfdeTqy5sBLTxRWafMcch2A=;
+	h=Date:To:From:Subject:Message-Id; b=fe4G4xKSKq/2XZDAcCp7lLmU80F0Nfv8Xk3VUECrdFS9J6dnybFdW0N1J1utvywUxMNItiqeoDyNYf2o7idBO3JhiroEYmDV9s34s6Uv9/j/2TsOlRfCQEZBKyr31pzNg099W9PZm/4hR/oHeYQzEdazxqwqHLzoupSQ7w9JjuU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=H6jWUadP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vCrdPuF3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD26D1F00893;
-	Fri, 29 May 2026 04:07:40 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="H6jWUadP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D87681F00898;
+	Fri, 29 May 2026 04:07:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027660;
-	bh=+1pGVQQusn703RRXbKFF2/SWb4qrb8VMDMQixcHVRTs=;
+	d=linux-foundation.org; s=korg; t=1780027662;
+	bh=8t746m9AcQ2WLiFEQ/6klBvHrE98dhkTBzK8jcX6zu4=;
 	h=Date:To:From:Subject;
-	b=vCrdPuF3r7qxY3klZCUAJU9BjgVxavJ8hHAOkglG2DNp8X1R4q02RAAo5s6pyQP1x
-	 zQZDAuLEgNOXyotMQDaKAZIOgmBgiaRxacNPbLUV1tb1CgzeEyJFxx3kAbz8T0Bfax
-	 fUht3LTZ0Fs6gKSAGOmDbv2GRvsKYMeUehRlo7LQ=
-Date: Thu, 28 May 2026 21:07:40 -0700
+	b=H6jWUadPN0vXsvkt7KfP16Yzq807lhOQWm7yxx1tu3mJ683sLxkzC5DwwctYxZ39G
+	 WyuYmFqIJRbpAUYbz74nWeRlDEC1LJXLZk4ToPifKz3FEtLkPjQU0l9/dv7a8LfTPJ
+	 LYQL9qAIMjXynQW2wj31YKlCxMjxXlTwRWblv8zk=
+Date: Thu, 28 May 2026 21:07:41 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-damon-tests-core-kunit-test-pause-commitment.patch removed from -mm tree
-Message-Id: <20260529040740.AD26D1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-damon-_damon_sysfs-support-pause-file-staging.patch removed from -mm tree
+Message-Id: <20260529040741.D87681F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,23 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/damon/tests/core-kunit: test pause commitment
+     Subject: selftests/damon/_damon_sysfs: support pause file staging
 has been removed from the -mm tree.  Its filename was
-     mm-damon-tests-core-kunit-test-pause-commitment.patch
+     selftests-damon-_damon_sysfs-support-pause-file-staging.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/tests/core-kunit: test pause commitment
-Date: Mon, 27 Apr 2026 08:12:25 -0700
+Subject: selftests/damon/_damon_sysfs: support pause file staging
+Date: Mon, 27 Apr 2026 08:12:26 -0700
 
-Add a kunit test for commitment of damon_ctx->pause parameter that can be
-done using damon_commit_ctx().
+DAMON test-purpose sysfs interface control Python module, _damon_sysfs, is
+not supporting the newly added pause file.  Add the support of the file,
+for future test and use of the feature.
 
-Link: https://lore.kernel.org/20260427151231.113429-7-sj@kernel.org
+Link: https://lore.kernel.org/20260427151231.113429-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -65,22 +66,45 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/tests/core-kunit.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ tools/testing/selftests/damon/_damon_sysfs.py |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-pause-commitment
-+++ a/mm/damon/tests/core-kunit.h
-@@ -1083,6 +1083,10 @@ static void damon_test_commit_ctx(struct
- 	KUNIT_EXPECT_EQ(test, damon_commit_ctx(dst, src), 0);
- 	src->min_region_sz = 4095;
- 	KUNIT_EXPECT_EQ(test, damon_commit_ctx(dst, src), -EINVAL);
-+	src->min_region_sz = 4096;
-+	src->pause = true;
-+	KUNIT_EXPECT_EQ(test, damon_commit_ctx(dst, src), 0);
-+	KUNIT_EXPECT_TRUE(test, dst->pause);
- 	damon_destroy_ctx(src);
- 	damon_destroy_ctx(dst);
- }
+--- a/tools/testing/selftests/damon/_damon_sysfs.py~selftests-damon-_damon_sysfs-support-pause-file-staging
++++ a/tools/testing/selftests/damon/_damon_sysfs.py
+@@ -621,10 +621,11 @@ class DamonCtx:
+     targets = None
+     schemes = None
+     kdamond = None
++    pause = None
+     idx = None
+ 
+     def __init__(self, ops='paddr', monitoring_attrs=DamonAttrs(), targets=[],
+-            schemes=[]):
++            schemes=[], pause=False):
+         self.ops = ops
+         self.monitoring_attrs = monitoring_attrs
+         self.monitoring_attrs.context = self
+@@ -639,6 +640,8 @@ class DamonCtx:
+             scheme.idx = idx
+             scheme.context = self
+ 
++        self.pause=pause
++
+     def sysfs_dir(self):
+         return os.path.join(self.kdamond.sysfs_dir(), 'contexts',
+                 '%d' % self.idx)
+@@ -679,6 +682,11 @@ class DamonCtx:
+             err = scheme.stage()
+             if err is not None:
+                 return err
++
++        err = write_file(os.path.join(self.sysfs_dir(), 'pause'), self.pause)
++        if err is not None:
++            return err
++
+         return None
+ 
+ class Kdamond:
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
