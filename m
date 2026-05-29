@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF7BE370AC6
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BA8F36F900
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027654; cv=none; b=DUe5/Ww0j7lIG8PNFGB284eQn4Qp0UdxWqYU869HPVtTfgodtZiiW2OMDjpCJHO7MP88PRnbNm+I/9yV7hRUjmQVWiHFhSJ51urtJ12FyO1cHaVXCV7tjDRZijIUjT6n3hK3hu+PyqCQZImP1YpSxS0eCTV6W9m6r7ZJG0hYyFE=
+	t=1780027655; cv=none; b=MyAwvZDkBC/7YFgJr/Lv+9JDzEvQ8Dp9tAHx7PIIm+dybOfRH9HSSODwE9rLoY3XrNO38mBvJskS4DT8V+fedwjeHDeOL134eYYVqgGyukO79kBEL3zDPkZvUKScDqp7co00nsjN+6V0bAfM/BmkuskcoGZPsb1dCEYsNBEdM9Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027654; c=relaxed/simple;
-	bh=A4CTLbuAei6DXHKJzR9QNrcTaVSU3f6/GEWkcZVMf6Y=;
-	h=Date:To:From:Subject:Message-Id; b=d4Wl1e+J9A9o0t00zV20IUXwHqU4R0EuYehMn6MfQAU641ukOkhCH8IkdQ8EnFVAyT3AAxxZVZfQ/xwT8J+Fr9mZ/DgK342AFtH3QoPz+TIYfQwO92dacMe8cTRVEKXhLNXHZTVUBGfy2XEGNg+1GJfnTDtBW0XZ4KtmwqwFJhQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lLVR5aGm; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027655; c=relaxed/simple;
+	bh=oKMrv3niKoFoonQiwM3D8ieYeGiZHG0/+TsF1Kd/dUc=;
+	h=Date:To:From:Subject:Message-Id; b=XUN03AEjqiL4Y9xPH4EKrvAE8zVbXqTVhjfWOuLcQpmJiYp7WCDsdQ3OOAK+rkFPR95h5HhrPiQI85QeH4wlY+qg9Eu7quizmlvQ3x8eOUPrt4+L5QLf2HneLlESEJcdOXhm6I35oG/1swSIOebAE7xbqTXiLxpDNkKxWRb53ME=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vrAd+I0F; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lLVR5aGm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0A5C1F00893;
-	Fri, 29 May 2026 04:07:31 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vrAd+I0F"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8566D1F00898;
+	Fri, 29 May 2026 04:07:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027651;
-	bh=Qc8czZqfxkhNkBdEsj9ENOmYamuL2u0r2DRfE12mp9Q=;
+	d=linux-foundation.org; s=korg; t=1780027653;
+	bh=nACgrv9u7QHrilSXUryIzyPyRaqao/ftSp+FCMudcTg=;
 	h=Date:To:From:Subject;
-	b=lLVR5aGmZeb+vbDjNk2iVOnV/jOw1JFvQJ2uwDApmzoPs6zAPYBYZkXpwv7BQrnL2
-	 Z0sz1IDd9hPaB4QPZUuzHc84/SkBQyupFYVCVmc76wQEaoEHisOfgQrL988pJCS8L4
-	 5q/s7WWEO+HURGauD+otu27/rBwJBFzAWtpJhjt4=
-Date: Thu, 28 May 2026 21:07:31 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,sj@kernel.org,shuah@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,brauner@kernel.org,fujunjie1@qq.com,akpm@linux-foundation.org
+	b=vrAd+I0F3tEkxx35+YIazdHFIMXsXiwLu7V7ZCDpzfYPkOwbokUUAUfUjhJYTR639
+	 9WRL3KGFz6MQqOc6GkHFgMyWPmVEELoUKmQL6p+scPJhI2/KjriyCCjjKwWEwfupDM
+	 SF6z7KgRQ3kwmaJB/wBQ+tnsOpmZ3AqFtVWew7B8=
+Date: Thu, 28 May 2026 21:07:33 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,ljs@kernel.org,kaleshsingh@google.com,jack@suse.cz,david@kernel.org,fmayle@google.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors.patch removed from -mm tree
-Message-Id: <20260529040731.B0A5C1F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-limit-filemap_fault-readahead-to-vma-boundaries.patch removed from -mm tree
+Message-Id: <20260529040733.8566D1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,202 +35,196 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/madvise: reject invalid process_madvise() advice for zero-length vectors
+     Subject: mm: limit filemap_fault readahead to VMA boundaries
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors.patch
+     mm-limit-filemap_fault-readahead-to-vma-boundaries.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: fujunjie <fujunjie1@qq.com>
-Subject: mm/madvise: reject invalid process_madvise() advice for zero-length vectors
-Date: Mon, 4 May 2026 10:39:57 +0000
+From: Frederick Mayle <fmayle@google.com>
+Subject: mm: limit filemap_fault readahead to VMA boundaries
+Date: Sun, 26 Apr 2026 20:01:47 -0700
 
-process_madvise() used to validate the advice while walking each imported
-iovec.  If the vector has zero total length, vector_madvise() does not
-enter the loop and can return success without checking whether the advice
-value is valid.
+When a file mapping covers a strict subset of a file, an access to the
+mapping can trigger readahead of file pages outside the mapped region. 
+Readahead is meant to prefetch pages likely to be accessed soon, but these
+pages aren't accessible via the same means, so it fair to say we don't
+have a good indicator they'll be accessed soon.  Take an ELF file for
+example: an access to the end of a program's read-only segment isn't a
+sign that nearby file contents will be accessed next (they are likely to
+be mapped discontiguously, or not at all).  The pressure from loading
+these pages into the cache can evict more useful pages.
 
-For a local mm, such as process_madvise(PIDFD_SELF, ...), the remote-only
-process_madvise_remote_valid() check is skipped.  As a result, an invalid
-advice can be reported as success when the vector has zero total length. 
-This differs from madvise(), which rejects an invalid advice before
-returning success for a zero-length range.
+To improve the behavior, make three changes:
 
-Validate the generic madvise behavior at the syscall-facing entry points
-before any vector walk.  In process_madvise(), do this before the
-remote-only advice restriction so unsupported advice is rejected with the
-same priority for local and remote mm.
+* Introduce a new readahead_control field, max_index, as a hard limit on
+  the readahead. The existing file_ra_state->size can't be used as a
+  limit, it is more of a hint and can be increased by various
+  heuristics.
+* Set readahead_control->max_index to the end of the VMA in all of the
+  readahead paths that can be triggered from a fault on a file mapping
+  (both "sync" and "async" readahead).
+* Limit the read-around range start to the VMA's start.
 
-Use an errno-returning helper for address/length validation, and handle
-zero-length ranges explicitly at the call sites.  Requests with valid
-advice and zero total length remain a noop and continue to return 0.  Add
-a selftest that covers invalid advice with a zero-length iovec and an
-empty vector, while also checking that a request with valid advice and
-zero length still succeeds.
+Note that these changes only affect readahead triggered in the context of
+a fault, they do not affect readahead triggered by read syscalls.  If a
+user mixes the two types of accesses, the behavior is expected to be the
+following: if a fault causes readahead and places a PG_readahead marker
+and then a read(2) syscall hits the PG_readahead marker, the resulting
+async readahead *will not* be limited to the VMA end.  Conversely, if a
+read(2) syscall places a PG_readahead marker and then a fault hits the
+marker, the async readahead *will* be limited to the VMA end.
 
-Link: https://lore.kernel.org/tencent_C3AEB0E769C5F4F9370F9411B69B7F8B2907@qq.com
-Fixes: 021781b01275 ("mm/madvise: unrestrict process_madvise() for current process")
-Signed-off-by: fujunjie <fujunjie1@qq.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Jann Horn <jannh@google.com>
-Cc: Liam Howlett <liam@infradead.org>
+There is an edge case that the above motivation glosses over: A single
+file mapping might be backed by multiple VMAs.  For example, a whole file
+could be mapped RW, then part of the mapping made RO using mprotect.  This
+patch would hurt performance of a sequential faulted read of such a
+mapping, the degree depending on how fragmented the VMAs are.  A usage
+pattern like that is likely rare and already suffering from sub-optimal
+performance because, e.g., the fragmented VMAs limit the fault-around, so
+each VMA boundary in a sequential faulted read would cause a minor fault. 
+Still, this patch would make it worse.  See a previous discussion of this
+topic at [1].
+
+Tested by mapping and reading a small subset of a large file, then using
+the cachestat syscall to verify the number of cached pages didn't exceed
+the mapping size.
+
+In practical scenarios, the effect depends on the specific file and usage.
+Sometimes there is no effect at all, but, for some ELF files in Android,
+we see ~20% fewer pages pulled into the cache.
+
+A comprehensive performance evaluation hasn't been done, but, in addition
+to the anecdontal memory savings mentioned above, a benchmark was run with
+fio 3.38, showing neutral looking results:
+
+    /data/local/tmp/fio --version
+
+    fio --name=mmap_test --ioengine=mmap --rw=read --bs=4k \
+        --offset=1G --size=1G --filesize=3G --numjobs=1 \
+        --filename=testfile.bin
+
+        Before: 4366.6 MiB/s (avg of 3459, 4592, 4613, 4697, 4472)
+        After:  4444.0 MiB/s (avg of 4633, 4655, 4511, 4571, 3850)
+                +1.7%
+
+    Same, with --ioengine=mmap --rw=randread
+
+        Before: 445.6 MiB/s  (avg of 446, 447, 442, 452, 441)
+        After:  447.0 MiB/s  (avg of 447, 446, 446, 451, 445)
+                +0.3%
+
+    Same, with --ioengine=psync --rw=read
+
+        Before: 3086.6 MiB/s (avg of 3122, 3094, 3066, 3094, 3057)
+        After:  3084.6 MiB/s (avg of 3039, 3103, 3103, 3084, 3094)
+                -0.06%
+
+    Same, with --ioengine=psync --rw=randread
+
+        Before: 2226.4 MiB/s (avg of 2256, 2183, 2207, 2265, 2221)
+        After:  2231.4 MiB/s (avg of 2236, 2241, 2236, 2193, 2251)
+                +0.2%
+
+
+Link: https://lore.kernel.org/20260427030148.653228-1-fmayle@google.com
+Link: https://lore.kernel.org/all/ivnv2crd3et76p2nx7oszuqhzzah756oecn5yuykzqfkqzoygw@yvnlkhjjssoz/ [1]
+Signed-off-by: Frederick Mayle <fmayle@google.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Kalesh Singh <kaleshsingh@google.com>
+Cc: David Hildenbrand <david@kernel.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c                              |   60 ++++++++------------
- tools/testing/selftests/mm/process_madv.c |   28 +++++++++
- 2 files changed, 53 insertions(+), 35 deletions(-)
+ include/linux/pagemap.h |    2 ++
+ mm/filemap.c            |    4 ++++
+ mm/readahead.c          |    6 +++++-
+ 3 files changed, 11 insertions(+), 1 deletion(-)
 
---- a/mm/madvise.c~mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors
-+++ a/mm/madvise.c
-@@ -1834,50 +1834,29 @@ static void madvise_finish_tlb(struct ma
- 		tlb_finish_mmu(madv_behavior->tlb);
- }
- 
--static bool is_valid_madvise(unsigned long start, size_t len_in, int behavior)
-+/**
-+ * check_input_range() - Check if the requested range is valid.
-+ * @start:	Start address of madvise-requested address range.
-+ * @len_in:	Length of madvise-requested address range.
-+ *
-+ * Returns: 0 if the input range is valid, otherwise an error code.
-+ */
-+static int check_input_range(unsigned long start, size_t len_in)
- {
- 	size_t len;
- 
--	if (!madvise_behavior_valid(behavior))
--		return false;
--
- 	if (!PAGE_ALIGNED(start))
--		return false;
-+		return -EINVAL;
- 	len = PAGE_ALIGN(len_in);
- 
- 	/* Check to see whether len was rounded up from small -ve to zero */
- 	if (len_in && !len)
--		return false;
-+		return -EINVAL;
- 
- 	if (start + len < start)
--		return false;
-+		return -EINVAL;
- 
--	return true;
--}
--
--/*
-- * madvise_should_skip() - Return if the request is invalid or nothing.
-- * @start:	Start address of madvise-requested address range.
-- * @len_in:	Length of madvise-requested address range.
-- * @behavior:	Requested madvise behavior.
-- * @err:	Pointer to store an error code from the check.
-- *
-- * If the specified behaviour is invalid or nothing would occur, we skip the
-- * operation.  This function returns true in the cases, otherwise false.  In
-- * the former case we store an error on @err.
-- */
--static bool madvise_should_skip(unsigned long start, size_t len_in,
--		int behavior, int *err)
--{
--	if (!is_valid_madvise(start, len_in, behavior)) {
--		*err = -EINVAL;
--		return true;
--	}
--	if (start + PAGE_ALIGN(len_in) == start) {
--		*err = 0;
--		return true;
--	}
--	return false;
-+	return 0;
- }
- 
- static bool is_madvise_populate(struct madvise_behavior *madv_behavior)
-@@ -2013,8 +1992,13 @@ int do_madvise(struct mm_struct *mm, uns
- 		.tlb = &tlb,
- 	};
- 
--	if (madvise_should_skip(start, len_in, behavior, &error))
-+	if (!madvise_behavior_valid(behavior))
-+		return -EINVAL;
-+
-+	error = check_input_range(start, len_in);
-+	if (error || !len_in)
- 		return error;
-+
- 	error = madvise_lock(&madv_behavior);
- 	if (error)
- 		return error;
-@@ -2056,7 +2040,8 @@ static ssize_t vector_madvise(struct mm_
- 		size_t len_in = iter_iov_len(iter);
- 		int error;
- 
--		if (madvise_should_skip(start, len_in, behavior, &error))
-+		error = check_input_range(start, len_in);
-+		if (error || !len_in)
- 			ret = error;
- 		else
- 			ret = madvise_do_behavior(start, len_in, &madv_behavior);
-@@ -2131,6 +2116,11 @@ SYSCALL_DEFINE5(process_madvise, int, pi
- 		goto release_task;
+--- a/include/linux/pagemap.h~mm-limit-filemap_fault-readahead-to-vma-boundaries
++++ a/include/linux/pagemap.h
+@@ -1350,6 +1350,7 @@ struct readahead_control {
+ 	struct file_ra_state *ra;
+ /* private: use the readahead_* accessors instead */
+ 	pgoff_t _index;
++	pgoff_t _max_index; /* limit readahead to _max_index, inclusive */
+ 	unsigned int _nr_pages;
+ 	unsigned int _batch_count;
+ 	bool dropbehind;
+@@ -1363,6 +1364,7 @@ struct readahead_control {
+ 		.mapping = m,						\
+ 		.ra = r,						\
+ 		._index = i,						\
++		._max_index = ULONG_MAX,				\
  	}
  
-+	if (!madvise_behavior_valid(behavior)) {
-+		ret = -EINVAL;
-+		goto release_mm;
-+	}
-+
- 	/*
- 	 * We need only perform this check if we are attempting to manipulate a
- 	 * remote process's address space.
---- a/tools/testing/selftests/mm/process_madv.c~mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors
-+++ a/tools/testing/selftests/mm/process_madv.c
-@@ -310,6 +310,34 @@ TEST_F(process_madvise, invalid_vlen)
- }
+ #define VM_READAHEAD_PAGES	(SZ_128K / PAGE_SIZE)
+--- a/mm/filemap.c~mm-limit-filemap_fault-readahead-to-vma-boundaries
++++ a/mm/filemap.c
+@@ -3314,6 +3314,8 @@ static struct file *do_sync_mmap_readahe
+ 	bool force_thp_readahead = false;
+ 	unsigned short mmap_miss;
  
- /*
-+ * Test that invalid advice is rejected even when the iovec has zero total
-+ * length. A request with valid advice and zero length is a noop, but
-+ * invalid advice should still fail with EINVAL.
-+ */
-+TEST_F(process_madvise, invalid_advice_zero_length)
-+{
-+	struct iovec vec = {
-+		.iov_base = NULL,
-+		.iov_len = 0,
-+	};
-+	int pidfd = self->pidfd;
-+	ssize_t ret;
++	ractl._max_index = vmf->vma->vm_pgoff + vma_pages(vmf->vma) - 1;
 +
-+	errno = 0;
-+	ret = sys_process_madvise(pidfd, &vec, 1, -1, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EINVAL);
-+
-+	errno = 0;
-+	ret = sys_process_madvise(pidfd, &vec, 1, MADV_DONTNEED, 0);
-+	ASSERT_EQ(ret, 0);
-+
-+	ret = sys_process_madvise(pidfd, NULL, 0, -1, 0);
-+	ASSERT_EQ(ret, -1);
-+	ASSERT_EQ(errno, EINVAL);
-+}
-+
-+/*
-  * Test process_madvise() with an invalid flag value. Currently, only a flag
-  * value of 0 is supported. This test is reserved for the future, e.g., if
-  * synchronous flags are added.
+ 	/* Use the readahead code, even if readahead is disabled */
+ 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
+ 	    (vm_flags & VM_HUGEPAGE) && HPAGE_PMD_ORDER <= MAX_PAGECACHE_ORDER)
+@@ -3396,6 +3398,7 @@ static struct file *do_sync_mmap_readahe
+ 		 * mmap read-around
+ 		 */
+ 		ra->start = max_t(long, 0, vmf->pgoff - ra->ra_pages / 2);
++		ra->start = max(ra->start, vmf->vma->vm_pgoff);
+ 		ra->size = ra->ra_pages;
+ 		ra->async_size = ra->ra_pages / 4;
+ 		ra->order = 0;
+@@ -3438,6 +3441,7 @@ static struct file *do_async_mmap_readah
+ 	}
+ 
+ 	if (folio_test_readahead(folio)) {
++		ractl._max_index = vmf->vma->vm_pgoff + vma_pages(vmf->vma) - 1;
+ 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
+ 		page_cache_async_ra(&ractl, folio, ra->ra_pages);
+ 	}
+--- a/mm/readahead.c~mm-limit-filemap_fault-readahead-to-vma-boundaries
++++ a/mm/readahead.c
+@@ -324,6 +324,8 @@ static void do_page_cache_ra(struct read
+ 		return;
+ 
+ 	end_index = (isize - 1) >> PAGE_SHIFT;
++	if (end_index > ractl->_max_index)
++		end_index = ractl->_max_index;
+ 	if (index > end_index)
+ 		return;
+ 	/* Don't read past the page containing the last byte of the file */
+@@ -471,7 +473,7 @@ void page_cache_ra_order(struct readahea
+ 	pgoff_t start = readahead_index(ractl);
+ 	pgoff_t index = start;
+ 	unsigned int min_order = mapping_min_folio_order(mapping);
+-	pgoff_t limit = (i_size_read(mapping->host) - 1) >> PAGE_SHIFT;
++	pgoff_t limit;
+ 	pgoff_t mark = index + ra->size - ra->async_size;
+ 	unsigned int nofs;
+ 	int err = 0;
+@@ -484,6 +486,8 @@ void page_cache_ra_order(struct readahea
+ 		goto fallback;
+ 	}
+ 
++	limit = (i_size_read(mapping->host) - 1) >> PAGE_SHIFT;
++	limit = min(limit, ractl->_max_index);
+ 	limit = min(limit, index + ra->size - 1);
+ 
+ 	new_order = min(mapping_max_folio_order(mapping), new_order);
 _
 
-Patches currently in -mm which might be from fujunjie1@qq.com are
+Patches currently in -mm which might be from fmayle@google.com are
 
-mm-compaction-respect-cpusets-when-checking-retry-suitability.patch
-mm-page_alloc-fix-deferred-compaction-accounting.patch
+mm-readahead-add-kerneldoc-for-read_pages.patch
+mm-readahead-simplify-page_cache_ra_unbounded-loop-counter-reset.patch
+mm-readahead-no-pg_readahead-on-eof.patch
 
