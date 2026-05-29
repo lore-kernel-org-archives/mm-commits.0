@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D324C370D49
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:08:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4F67370AF8
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:08:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027708; cv=none; b=KVAKZFHqbmnNrfqdgiLypdIjoRS4Gw+oNcfuRJowk469dbw3hFZke5Ck0HBjtgFFxrzIEdev5RcOIZuXePWbT+1p6m38k7XrzSe/8BVx1Tjn/4I4vUOgdeT/RN6CCXCW2/EAHRLy8z3gEQT0sJV9F2kH7vnOPRRo86A/9tA1w10=
+	t=1780027708; cv=none; b=jxZ+z0DWXksfdqA8b/VhzA97D2wZeWuOcv5xJ0qIU9DxbT213t6+48KyNaLlX3gcz6SO11Oqv4bwvHjdmqqpdD2dKKWSg80osNCWKOljc0FRSjFUuJSOAusQw1Jbwn5bDJb2qaMeCPeM3djziWQurp7IgwNoLug8FK8woUo2uew=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1780027708; c=relaxed/simple;
-	bh=Ot9RkaECNjqHif/cjMN93m2hj9XFlv6P8O3sBrOgY/c=;
-	h=Date:To:From:Subject:Message-Id; b=Ks3hv1tOU7QFW+HuiHK8jDdx2drFnCR6eeFhOgbrHcbhZc5euFpG3+kM86omDiH7/nwlfMUaFDT68YH+O/uR+2rNXCDZZjjN4rNMudVGf8QlYPf0try8Qdi727AGBRZt2nnkW6fzXLjzN1u7BW1ZQz4rbZSI9pwh3nk2ckOIa8k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=jgAbD+On; arc=none smtp.client-ip=100.103.45.18
+	bh=izMVzCNKIwwiG9yaq/SXPyS31FBxSmhmWG4RzRlPkEM=;
+	h=Date:To:From:Subject:Message-Id; b=izI3kW6e3SFXXpZmeUseKvGaBLA9A8aS86gZhXW147FnHFtiatH9KD+ozXFJP9MSINqC0DhF9LyYBK9UA+l7VUrn6Egi1xsvk5X8U50bzffphpuOghxSD+Ry5e3aexqkFudumHHvBhgD/zFw7bW+DpmZs+0xD7uOz2Zp1BSQPJ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u2NDddzf; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="jgAbD+On"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A85681F00898;
-	Fri, 29 May 2026 04:08:26 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u2NDddzf"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAD341F00893;
+	Fri, 29 May 2026 04:08:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027706;
-	bh=FHmrHn0aBSJegknBanrTdT5B9vlhfsyDAnMYAdDYBd0=;
+	d=linux-foundation.org; s=korg; t=1780027707;
+	bh=8sXnjunr2eH4UOkjT0oegXE38QLtfLlwL1KrW0YYSxU=;
 	h=Date:To:From:Subject;
-	b=jgAbD+Onm/DwcHnq9CdLRUfZuNJYecneWMZnWXr7ciMq1s+eLDqx7akFVQgfldff0
-	 XSvweZngGpWI6wtdOaQLmhHYlzZWbQ6dr1Hl32og8eqc2Y3SmWKJ2p7rh79lv8c3mT
-	 n6BtoincJK6xhZ+8HzR6Wfo7TzsZJmpEtescmzoU=
-Date: Thu, 28 May 2026 21:08:26 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=u2NDddzfl7clelk4uIwB5oUE15c8h53wXHAlJ0cPZiI//K/mxZ24dk4RyMRG3SU54
+	 buU+u5B+QpfXWbWgoKd8Jm1Iez9i1BCTO2wP6nvReTD55eY+pmHbCzEfQ7CIHoqGlc
+	 lr9rnaOk9Cuvp2QY6o9bTGECCtUZuX/7zsSTttX0=
+Date: Thu, 28 May 2026 21:08:27 -0700
+To: mm-commits@vger.kernel.org,bigeasy@linutronix.de,zhouzhouyi@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-stat-document-kdamond_pid-parameter.patch removed from -mm tree
-Message-Id: <20260529040826.A85681F00898@smtp.kernel.org>
+Subject: [merged mm-stable] preempt_rt-fix-the-typo-in-the-comment-for-kunmap_atomic.patch removed from -mm tree
+Message-Id: <20260529040827.BAD341F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,97 +35,43 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/stat: document kdamond_pid parameter
+     Subject: highmem-internal.h: fix typo in the comment for kunmap_atomic()
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-stat-document-kdamond_pid-parameter.patch
+     preempt_rt-fix-the-typo-in-the-comment-for-kunmap_atomic.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/stat: document kdamond_pid parameter
-Date: Fri, 1 May 2026 19:05:04 -0700
+From: Zhouyi Zhou <zhouzhouyi@gmail.com>
+Subject: highmem-internal.h: fix typo in the comment for kunmap_atomic()
+Date: Tue, 5 May 2026 02:11:25 +0000
 
-Update DAMON_STAT usage document for newly added kdamond_pid parameter.
+Replace `PREEMP_RT` with `PREEMPT_RT` in the header comment to match the
+correct kernel configuration name.
 
-Link: https://lore.kernel.org/20260502020505.80822-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Liam R. Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
+Link: https://lore.kernel.org/20260505021125.1941691-1-zhouzhouyi@gmail.com
+Signed-off-by: Zhouyi Zhou <zhouzhouyi@gmail.com>
+Reviewed-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/stat.rst |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/linux/highmem-internal.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/stat.rst~docs-admin-guide-mm-damon-stat-document-kdamond_pid-parameter
-+++ a/Documentation/admin-guide/mm/damon/stat.rst
-@@ -89,3 +89,10 @@ percentiles of the idle time values via
- parameter returns 101 idle time values in milliseconds, separated by comma.
- Each value represents 0-th, 1st, 2nd, 3rd, ..., 99th and 100th percentile idle
- times.
-+
-+kdamond_pid
-+-----------
-+
-+PID of the DAMON thread.
-+
-+If DAMON_STAT is enabled, this becomes the PID of the worker thread.  Else, -1.
+--- a/include/linux/highmem-internal.h~preempt_rt-fix-the-typo-in-the-comment-for-kunmap_atomic
++++ a/include/linux/highmem-internal.h
+@@ -262,7 +262,7 @@ static inline bool is_kmap_addr(const vo
+  * @__addr:       Virtual address to be unmapped
+  *
+  * Unmaps an address previously mapped by kmap_atomic() and re-enables
+- * pagefaults. Depending on PREEMP_RT configuration, re-enables also
++ * pagefaults. Depending on PREEMPT_RT configuration, re-enables also
+  * migration and preemption. Users should not count on these side effects.
+  *
+  * Mappings should be unmapped in the reverse order that they were mapped.
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from zhouzhouyi@gmail.com are
 
-mm-damon-ops-common-call-folio_test_lru-after-folio_get.patch
-mm-damon-reclaim-handle-ctx-allocation-failure.patch
-mm-damonn-lru_sort-handle-ctx-allocation-failure.patch
-mm-damon-core-introduce-struct-damon_probe.patch
-mm-damon-core-embed-damon_probe-objects-in-damon_ctx.patch
-mm-damon-core-introduce-damon_filter.patch
-mm-damon-core-commit-probes.patch
-mm-damon-core-introduce-damon_region-probe_hits.patch
-mm-damon-core-introduce-damon_ops-apply_probes.patch
-mm-damon-core-do-data-attributes-monitoring.patch
-mm-damon-paddr-support-data-attributes-monitoring.patch
-mm-damon-sysfs-implement-probes-dir.patch
-mm-damon-sysfs-implement-probe-dir.patch
-mm-damon-sysfs-implement-filters-directory.patch
-mm-damon-sysfs-implement-filter-dir.patch
-mm-damon-sysfs-implement-filter-dir-files.patch
-mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
-mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
-mm-damon-sysfs-schemes-implement-probe-dir.patch
-mm-damon-sysfs-schemes-implement-probe-hits-file.patch
-mm-damon-trace-probe_hits.patch
-selftests-damon-sysfssh-test-probes-dir.patch
-docs-mm-damon-design-document-data-attributes-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
-mm-damon-core-introduce-damon_filter_type_memcg.patch
-mm-damon-paddr-support-damon_filter_type_memcg.patch
-mm-damon-sysfs-add-filters-f-path-file.patch
-mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
-mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
-docs-mm-damon-design-update-for-memcg-damon-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
-mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
-mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
-samples-damon-mtier-replace-damon_add_region-with-damon_set_regions.patch
-mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions.patch
-mm-damon-core-hide-damon_add_region.patch
-mm-damon-core-hide-damon_insert_region.patch
-mm-damon-core-hide-damon_destroy_region.patch
-mm-damon-core-add-kdamond_call-debug_sanity-check.patch
-mm-damon-core-remove-damon_verify_nr_regions.patch
-mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
-selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
-selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
-selftests-damon-sysfssh-test-addr_unit-file-existence.patch
-selftests-damon-sysfssh-test-pause-file-existence.patch
-mm-damon-core-trace-esz-at-first-setup.patch
 
