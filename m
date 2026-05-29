@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76BA5371D01
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:26:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D3DD372661
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:26:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028779; cv=none; b=o+lbPGMQTJO1eG6Riih0GIYMkwIe5t54YAbRF4OmURGC2Qcoezj8kp/W9TWSdOC3bsiyoYpeOB4YYwKnlt2gMcKiH7mqrfZbWPVL1rQIJyVzkYuMsetx40L2sGjxvC6fOhi5CT/0B6DnGVRj0CmlEUqbdogKHs217blTRIwB+ZQ=
+	t=1780028780; cv=none; b=QF9BKwAsuQ4+hm7GfGZzD5c2wxOxRIVZo4oXYW2rCWm78tWJ9R7Ofkyc3z39Tay/3OzY+LNixIqAHs4kNIzKOSBx4TKbMNrAAwN8camOdjOJYlW5PCYZYlewOE1+GbaIyMGZVIcAdfx8jZU/jzl8kGU3oAsS0DUE8npk2RCOl0A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028779; c=relaxed/simple;
-	bh=Gav6ZeYJgQkrUIyYKWEGNKruTCsLZRUa2QhIRNizD3k=;
-	h=Date:To:From:Subject:Message-Id; b=s6lYGK/VAyWo3dNJtzeo6GcXD7GrsZtrNLADdHtswV3rDAUoG+bHTK7A0Xm+m637/HYKxPIHGMVufSi+8mhTnaPgRKFGMeMQJOBsuEe4GWTCT+PXm9sa75EBIRjH0lYyfvE0uiElHo2LguJu3Gdv8g4GOksmUtIG2M2ovdjnePQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=YMqwecfY; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028780; c=relaxed/simple;
+	bh=aVF1xIqIQsRuA0EGzooQfjEVIFlQWvGkrbsIuTq+iho=;
+	h=Date:To:From:Subject:Message-Id; b=C156nU9bm7/lQRorgtCsU6hAV618vXTTF5IaZ5P/rbSwXcn+uhUabhoAGz+Is05WyFASetxLlCf/NN3WN62vFTRbsbiD/i+eEs65RVYF3zRobfQzPapMX9UYU5GksltCCGDDyaVxeBCNY/8ykVilfzksR5Q9Y/i6qlPfkMTXcL0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u5D9vTMt; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="YMqwecfY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A7F51F00898;
-	Fri, 29 May 2026 04:26:18 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u5D9vTMt"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 643CA1F00893;
+	Fri, 29 May 2026 04:26:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028778;
-	bh=c3n2AGreV0qe1nB0j0LETfe9k2ZnZkr4vqMxxl0ZXtI=;
+	d=linux-foundation.org; s=korg; t=1780028779;
+	bh=tmqyUbzHx9kTskji3kWXDaEfaM3Yd2H39D5zR/1laQg=;
 	h=Date:To:From:Subject;
-	b=YMqwecfYjHfuRplbpGdqLubTzy96yDj6u6U1oa67iqbQvJvC9TyES9GaVR0Rl5/h+
-	 tyLyTLvKQrVJrMap7mrKT3BjO3ZjPdIx9KmQXXrDEJvb5YzrOSkyYrGDgg+AjsbGby
-	 Yqz+9o5m7QoljIj+Uw+qPi8JlSl3xsU9BXPHb1zw=
-Date: Thu, 28 May 2026 21:26:17 -0700
-To: mm-commits@vger.kernel.org,sj@kernel.org,shuah@kernel.org,richard.weiyang@gmail.com,mingo@kernel.org,mic@digikod.net,khuey@kylehuey.com,akpm@linux-foundation.org,lihongfu@kylinos.cn,akpm@linux-foundation.org
+	b=u5D9vTMtaSendgjEE1d7YqkxRE7u1aenE674OgJIdK2kl6+TjEdFwGwZydzImjPwy
+	 IMm/TZZqXFlxBBY9QkyLe6VSji1KJSswYq125sL8nIuMnfL5kt6Bnx0YsFHWYP8a/c
+	 Uqvr2aw/Ej9FoXQecMk+NUZb1zmNq/p9xNY4cYI8=
+Date: Thu, 28 May 2026 21:26:19 -0700
+To: mm-commits@vger.kernel.org,neelnatu@google.com,kees@kernel.org,dmantipov@yandex.ru,djwong@kernel.org,andriy.shevchenko@intel.com,shuvampandey1@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] selftests-perf_events-fix-mmap-error-check-in-sigtrap_threads.patch removed from -mm tree
-Message-Id: <20260529042618.4A7F51F00898@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-tests-extend-cmdline-kunit-with-next_arg-tests.patch removed from -mm tree
+Message-Id: <20260529042619.643CA1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,54 +35,120 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/perf_events: fix mmap() error check in sigtrap_threads
+     Subject: lib/tests: extend cmdline KUnit with next_arg() tests
 has been removed from the -mm tree.  Its filename was
-     selftests-perf_events-fix-mmap-error-check-in-sigtrap_threads.patch
+     lib-tests-extend-cmdline-kunit-with-next_arg-tests.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Hongfu Li <lihongfu@kylinos.cn>
-Subject: selftests/perf_events: fix mmap() error check in sigtrap_threads
-Date: Wed, 13 May 2026 10:58:38 +0800
+From: Shuvam Pandey <shuvampandey1@gmail.com>
+Subject: lib/tests: extend cmdline KUnit with next_arg() tests
+Date: Mon, 16 Mar 2026 15:57:27 +0545
 
-In sigtrap_threads(), the return value of mmap() is checked against NULL. 
-mmap() returns MAP_FAILED, which is (void *)-1, not NULL, when it fails. 
-Since MAP_FAILED is non-zero and non-NULL, the condition "p == NULL" will
-never be true on failure, causing the program to proceed with an invalid
-pointer and segfault if mmap() actually fails under memory pressure.
+The cmdline KUnit suite covers get_option() and get_options(), but it
+does not exercise next_arg().
 
-Link: https://lore.kernel.org/20260513025838.594945-1-lihongfu@kylinos.cn
-Signed-off-by: Hongfu Li <lihongfu@kylinos.cn>
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mickael Salaun <mic@digikod.net>
-Cc: SeongJae Park <sj@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Kyle Huey <khuey@kylehuey.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Extend the suite with one test for a quoted value containing spaces and
+one regression test for a bare quote token after a normal parameter.
+
+The regression test covers the bare quote token path fixed by commit
+9847f21225c4 ("lib/cmdline: avoid page fault in next_arg").
+
+[shuvampandey1@gmail.com: extend cmdline next_arg() coverage with mixed tokens]
+  Link: https://lore.kernel.org/20260316211249.88601-1-shuvampandey1@gmail.com
+Link: https://lore.kernel.org/20260316101227.15807-1-shuvampandey1@gmail.com
+Signed-off-by: Shuvam Pandey <shuvampandey1@gmail.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
+Cc: Neel Natu <neelnatu@google.com>
+Cc: Dmitry Antipov <dmantipov@yandex.ru>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Kees Cook <kees@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/perf_events/watermark_signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/tests/cmdline_kunit.c |   62 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 62 insertions(+)
 
---- a/tools/testing/selftests/perf_events/watermark_signal.c~selftests-perf_events-fix-mmap-error-check-in-sigtrap_threads
-+++ a/tools/testing/selftests/perf_events/watermark_signal.c
-@@ -102,7 +102,7 @@ TEST(watermark_signal)
- 	}
+--- a/lib/tests/cmdline_kunit.c~lib-tests-extend-cmdline-kunit-with-next_arg-tests
++++ a/lib/tests/cmdline_kunit.c
+@@ -139,11 +139,73 @@ static void cmdline_test_range(struct ku
+ 	} while (++i < ARRAY_SIZE(cmdline_test_range_strings));
+ }
  
- 	p = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
--	if (p == NULL) {
-+	if (p == MAP_FAILED) {
- 		perror("mmap");
- 		goto cleanup;
- 	}
++static void cmdline_test_next_arg_quoted_value(struct kunit *test)
++{
++	char in[] = "foo=\"bar baz\" qux=1";
++	char *next, *param, *val;
++
++	next = next_arg(in, &param, &val);
++	KUNIT_EXPECT_STREQ(test, param, "foo");
++	KUNIT_ASSERT_NOT_NULL(test, val);
++	KUNIT_EXPECT_STREQ(test, val, "bar baz");
++	KUNIT_EXPECT_STREQ(test, next, "qux=1");
++
++	next = next_arg(next, &param, &val);
++	KUNIT_EXPECT_STREQ(test, param, "qux");
++	KUNIT_ASSERT_NOT_NULL(test, val);
++	KUNIT_EXPECT_STREQ(test, val, "1");
++	KUNIT_EXPECT_STREQ(test, next, "");
++}
++
++static void cmdline_test_next_arg_bare_quote_regression(struct kunit *test)
++{
++	char in[] = "foo=bar \"";
++	char *next, *param, *val;
++
++	next = next_arg(in, &param, &val);
++	KUNIT_EXPECT_STREQ(test, param, "foo");
++	KUNIT_ASSERT_NOT_NULL(test, val);
++	KUNIT_EXPECT_STREQ(test, val, "bar");
++	KUNIT_EXPECT_STREQ(test, next, "\"");
++
++	/* This hits the i == 0 quoted-token case fixed by 9847f21225c4. */
++	next = next_arg(next, &param, &val);
++	KUNIT_EXPECT_STREQ(test, param, "");
++	KUNIT_EXPECT_PTR_EQ(test, val, NULL);
++	KUNIT_EXPECT_STREQ(test, next, "");
++}
++
++static void cmdline_test_next_arg_mixed_tokens(struct kunit *test)
++{
++	char in[] = "bbb= jjj kkk=\"a=b\"";
++	char *next, *param, *val;
++
++	next = next_arg(in, &param, &val);
++	KUNIT_EXPECT_STREQ(test, param, "bbb");
++	KUNIT_ASSERT_NOT_NULL(test, val);
++	KUNIT_EXPECT_STREQ(test, val, "");
++	KUNIT_EXPECT_STREQ(test, next, "jjj kkk=\"a=b\"");
++
++	next = next_arg(next, &param, &val);
++	KUNIT_EXPECT_STREQ(test, param, "jjj");
++	KUNIT_EXPECT_NULL(test, val);
++	KUNIT_EXPECT_STREQ(test, next, "kkk=\"a=b\"");
++
++	next = next_arg(next, &param, &val);
++	KUNIT_EXPECT_STREQ(test, param, "kkk");
++	KUNIT_ASSERT_NOT_NULL(test, val);
++	KUNIT_EXPECT_STREQ(test, val, "a=b");
++	KUNIT_EXPECT_STREQ(test, next, "");
++}
++
+ static struct kunit_case cmdline_test_cases[] = {
+ 	KUNIT_CASE(cmdline_test_noint),
+ 	KUNIT_CASE(cmdline_test_lead_int),
+ 	KUNIT_CASE(cmdline_test_tail_int),
+ 	KUNIT_CASE(cmdline_test_range),
++	KUNIT_CASE(cmdline_test_next_arg_quoted_value),
++	KUNIT_CASE(cmdline_test_next_arg_bare_quote_regression),
++	KUNIT_CASE(cmdline_test_next_arg_mixed_tokens),
+ 	{}
+ };
+ 
 _
 
-Patches currently in -mm which might be from lihongfu@kylinos.cn are
+Patches currently in -mm which might be from shuvampandey1@gmail.com are
 
-selftests-mm-fix-mmap-return-value-check-in-run_migration_benchmark.patch
-selftests-mm-fix-incorrect-mmap-error-handling-with-null-instead-of-map_failed.patch
 
