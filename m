@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BA8F36F900
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A75236F8F5
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:35 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027655; cv=none; b=MyAwvZDkBC/7YFgJr/Lv+9JDzEvQ8Dp9tAHx7PIIm+dybOfRH9HSSODwE9rLoY3XrNO38mBvJskS4DT8V+fedwjeHDeOL134eYYVqgGyukO79kBEL3zDPkZvUKScDqp7co00nsjN+6V0bAfM/BmkuskcoGZPsb1dCEYsNBEdM9Y=
+	t=1780027656; cv=none; b=mYxswWeBFr1C0tLvHatepHkhax0F5qe74jRDU4siAXqNCR7wVd3zL6+mVuwPee/YbKAjzXbMZVjCo3f7g5C5y9IMvynfl2qTQjVOuRHRk2xIqQm2bomw3oXI1nJkjnW1jY0JdxJsUePPGldsiOFwNeq2edEgQkUn7T3cz+9Q9TM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027655; c=relaxed/simple;
-	bh=oKMrv3niKoFoonQiwM3D8ieYeGiZHG0/+TsF1Kd/dUc=;
-	h=Date:To:From:Subject:Message-Id; b=XUN03AEjqiL4Y9xPH4EKrvAE8zVbXqTVhjfWOuLcQpmJiYp7WCDsdQ3OOAK+rkFPR95h5HhrPiQI85QeH4wlY+qg9Eu7quizmlvQ3x8eOUPrt4+L5QLf2HneLlESEJcdOXhm6I35oG/1swSIOebAE7xbqTXiLxpDNkKxWRb53ME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vrAd+I0F; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027656; c=relaxed/simple;
+	bh=oft9B5muXuaQ61517ZbvRpWxvo+AhN4eIoLBfZ2i50Y=;
+	h=Date:To:From:Subject:Message-Id; b=K5ZHk0CUwi1spnMnL8Tok5Jrd6xQZPgB6Cuie7OtUhhn+WSJjQwBGaEMT+5fpOHMLMLIvB/vwFB71VOrOR78iRL0HAHBn0lyocySfeLPdpiMowRFZwUT/emEvPq77OYnJNcUymExDAGmFTC9RDZKYV/fg/O6/RQMWZP39uZj8+Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GiOtlrbm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vrAd+I0F"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8566D1F00898;
-	Fri, 29 May 2026 04:07:33 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GiOtlrbm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D511B1F00893;
+	Fri, 29 May 2026 04:07:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027653;
-	bh=nACgrv9u7QHrilSXUryIzyPyRaqao/ftSp+FCMudcTg=;
+	d=linux-foundation.org; s=korg; t=1780027654;
+	bh=fxH/BEBPKx9qEUl6A1NGJ2c5sS+MTiN4zi0icuZ2qkM=;
 	h=Date:To:From:Subject;
-	b=vrAd+I0F3tEkxx35+YIazdHFIMXsXiwLu7V7ZCDpzfYPkOwbokUUAUfUjhJYTR639
-	 9WRL3KGFz6MQqOc6GkHFgMyWPmVEELoUKmQL6p+scPJhI2/KjriyCCjjKwWEwfupDM
-	 SF6z7KgRQ3kwmaJB/wBQ+tnsOpmZ3AqFtVWew7B8=
-Date: Thu, 28 May 2026 21:07:33 -0700
-To: mm-commits@vger.kernel.org,willy@infradead.org,surenb@google.com,ljs@kernel.org,kaleshsingh@google.com,jack@suse.cz,david@kernel.org,fmayle@google.com,akpm@linux-foundation.org
+	b=GiOtlrbmYRkApC3n69VeXEUHjEDE4+mBhCcT/vVNJenr1bAWhXZQyXx+UblwcXbnw
+	 /YyTMw1vYjDlJWYNPlXoJtsEqBn+iUBYlRaDSpTOewpKIHr13joCOLba/5FZWSbFts
+	 7nHR8UJepbOa33qchsw884ipwt96fM7Kb8J4jP5s=
+Date: Thu, 28 May 2026 21:07:34 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-limit-filemap_fault-readahead-to-vma-boundaries.patch removed from -mm tree
-Message-Id: <20260529040733.8566D1F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-core-introduce-damon_ctx-paused.patch removed from -mm tree
+Message-Id: <20260529040734.D511B1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,196 +35,227 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: limit filemap_fault readahead to VMA boundaries
+     Subject: mm/damon/core: introduce damon_ctx->paused
 has been removed from the -mm tree.  Its filename was
-     mm-limit-filemap_fault-readahead-to-vma-boundaries.patch
+     mm-damon-core-introduce-damon_ctx-paused.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Frederick Mayle <fmayle@google.com>
-Subject: mm: limit filemap_fault readahead to VMA boundaries
-Date: Sun, 26 Apr 2026 20:01:47 -0700
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: introduce damon_ctx->paused
+Date: Mon, 27 Apr 2026 08:12:20 -0700
 
-When a file mapping covers a strict subset of a file, an access to the
-mapping can trigger readahead of file pages outside the mapped region. 
-Readahead is meant to prefetch pages likely to be accessed soon, but these
-pages aren't accessible via the same means, so it fair to say we don't
-have a good indicator they'll be accessed soon.  Take an ELF file for
-example: an access to the end of a program's read-only segment isn't a
-sign that nearby file contents will be accessed next (they are likely to
-be mapped discontiguously, or not at all).  The pressure from loading
-these pages into the cache can evict more useful pages.
+Patch series "mm/damon: let DAMON be paused and resumed", v2.
 
-To improve the behavior, make three changes:
+DAMON utilizes a few mechanisms that enhance itself over time.  Adaptive
+regions adjustment, goal-based DAMOS quota auto-tuning and monitoring
+intervals auto-tuning like self-training mechanisms are such examples.  It
+also adds access frequency stability information (age) to the monitoring
+results, which makes it enhanced over time.
 
-* Introduce a new readahead_control field, max_index, as a hard limit on
-  the readahead. The existing file_ra_state->size can't be used as a
-  limit, it is more of a hint and can be increased by various
-  heuristics.
-* Set readahead_control->max_index to the end of the VMA in all of the
-  readahead paths that can be triggered from a fault on a file mapping
-  (both "sync" and "async" readahead).
-* Limit the read-around range start to the VMA's start.
+Sometimes users have to stop DAMON.  In this case, DAMON internal state
+that enhanced over the time of the last execution simply goes away. 
+Restarted DAMON have to train itself and enhance its output from the
+scratch.  This makes DAMON less useful in such cases.  Introducing three
+such use cases below.
 
-Note that these changes only affect readahead triggered in the context of
-a fault, they do not affect readahead triggered by read syscalls.  If a
-user mixes the two types of accesses, the behavior is expected to be the
-following: if a fault causes readahead and places a PG_readahead marker
-and then a read(2) syscall hits the PG_readahead marker, the resulting
-async readahead *will not* be limited to the VMA end.  Conversely, if a
-read(2) syscall places a PG_readahead marker and then a fault hits the
-marker, the async readahead *will* be limited to the VMA end.
+Investigation of DAMON.  It is best to do the investigation online,
+especially when it is a production environment.  DAMON therefore provides
+features for such online investigations, including DAMOS stats, monitoring
+result snapshot exposure, and multiple tracepoints.  When those are
+insufficient, and there are additional clues that could be interfered by
+DAMON, users have to temporarily stop DAMON to collect the additional
+clues.  It is not very useful since many of DAMON internal clues are gone
+when DAMON is stopped.  The loss of the monitoring results that improved
+over time is also problematic, especially in production environments.
 
-There is an edge case that the above motivation glosses over: A single
-file mapping might be backed by multiple VMAs.  For example, a whole file
-could be mapped RW, then part of the mapping made RO using mprotect.  This
-patch would hurt performance of a sequential faulted read of such a
-mapping, the degree depending on how fragmented the VMAs are.  A usage
-pattern like that is likely rare and already suffering from sub-optimal
-performance because, e.g., the fragmented VMAs limit the fault-around, so
-each VMA boundary in a sequential faulted read would cause a minor fault. 
-Still, this patch would make it worse.  See a previous discussion of this
-topic at [1].
+Monitoring of workloads that have different user-known phases.  For
+example, in Android, applications are known to have very different access
+patterns and behaviors when they are running on the foreground and the
+background.  It can therefore be useful to separate monitoring of apps
+based on whether they are running on the foreground and on the background.
+Having two DAMON threads per application that paused and resumed for the
+apps foreground/background switches can be useful for the purpose.  But
+such pause/resume of the execution is not supported.
 
-Tested by mapping and reading a small subset of a large file, then using
-the cachestat syscall to verify the number of cached pages didn't exceed
-the mapping size.
+Tests of DAMON.  A few DAMON selftests are using drgn to dump the internal
+DAMON status.  The tests show if the dumped status is the same as what the
+test code expected.  Because DAMON keeps running and modifying its
+internal status, there are chances of data races that can cause false test
+results.  Stopping DAMON can avoid the race.  But, since the internal
+state of DAMON is dropped, the test coverage will be limited.
 
-In practical scenarios, the effect depends on the specific file and usage.
-Sometimes there is no effect at all, but, for some ELF files in Android,
-we see ~20% fewer pages pulled into the cache.
+Let DAMON execution be paused and resumed without loss of the internal
+state, to overhaul the limitations.  For this, introduce a new DAMON
+context parameter, namely 'pause'.  API callers can update it while the
+context is running, using the online parameters update functions
+(damon_commit_ctx() and damon_call()).  Once it is set, kdamond_fn() main
+loop will do only limited works excluding the monitoring and DAMOS works,
+while sleeping sampling intervals per the work.  The limited works include
+handling of the online parameters update.  Hence users can unset the
+'pause' parameter again.  Once it is unset, kdamond_fn() main loop will do
+all the work again (resumed).  Under the paused state, it also does stop
+condition checks and handling of it, so that paused DAMON can also be
+stopped if needed.  Expose the feature to the user space via DAMON sysfs
+interface.  Also, update existing drgn-based tests to test and use the
+feature.
 
-A comprehensive performance evaluation hasn't been done, but, in addition
-to the anecdontal memory savings mentioned above, a benchmark was run with
-fio 3.38, showing neutral looking results:
+Tests
+=====
 
-    /data/local/tmp/fio --version
+I confirmed the feature functionality using real time tracing ('perf
+trace' or 'trace-cmd stream') of damon:damon_aggregated DAMON tracepoint. 
+By pausing and resuming the DAMON execution, I was able to see the trace
+stops and continued as expected.  Note that the pause feature support is
+added to DAMON user-space tool (damo) after v3.1.9.  Users can use
+'--pause_ctx' command line option of damo for that, and I actually used it
+for my test.  The extended drgn-based selftests are also testing a part of
+the functionality.
 
-    fio --name=mmap_test --ioengine=mmap --rw=read --bs=4k \
-        --offset=1G --size=1G --filesize=3G --numjobs=1 \
-        --filename=testfile.bin
+Patches Sequence
+================
 
-        Before: 4366.6 MiB/s (avg of 3459, 4592, 4613, 4697, 4472)
-        After:  4444.0 MiB/s (avg of 4633, 4655, 4511, 4571, 3850)
-                +1.7%
-
-    Same, with --ioengine=mmap --rw=randread
-
-        Before: 445.6 MiB/s  (avg of 446, 447, 442, 452, 441)
-        After:  447.0 MiB/s  (avg of 447, 446, 446, 451, 445)
-                +0.3%
-
-    Same, with --ioengine=psync --rw=read
-
-        Before: 3086.6 MiB/s (avg of 3122, 3094, 3066, 3094, 3057)
-        After:  3084.6 MiB/s (avg of 3039, 3103, 3103, 3084, 3094)
-                -0.06%
-
-    Same, with --ioengine=psync --rw=randread
-
-        Before: 2226.4 MiB/s (avg of 2256, 2183, 2207, 2265, 2221)
-        After:  2231.4 MiB/s (avg of 2236, 2241, 2236, 2193, 2251)
-                +0.2%
+Patch 1 introduces the new core API for the pause feature.  Patch 2 extend
+DAMON sysfs interface for the new parameter.  Patches 3-5 update design,
+usage and ABI documents for the new sysfs file, respectively.  The
+following five patches are for tests.  Patch 6 implements a new kunit test
+for the pause parameter online commitment.  Patches 7 and 8 extend DAMON
+selftest helpers to support the new feature.  Patch 9 extends selftest to
+test the commitment of the feature.  Finally, patch 10 updates existing
+selftest to be safe from the race condition using the pause/resume
+feature.
 
 
-Link: https://lore.kernel.org/20260427030148.653228-1-fmayle@google.com
-Link: https://lore.kernel.org/all/ivnv2crd3et76p2nx7oszuqhzzah756oecn5yuykzqfkqzoygw@yvnlkhjjssoz/ [1]
-Signed-off-by: Frederick Mayle <fmayle@google.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Kalesh Singh <kaleshsingh@google.com>
+This patch (of 10):
+
+DAMON supports only start and stop of the execution.  When it is stopped,
+its internal data that it self-trained goes away.  It will be useful if
+the execution can be paused and resumed with the previous self-trained
+data.
+
+Introduce per-context API parameter, 'paused', for the purpose.  The
+parameter can be set and unset while DAMON is running and paused, using
+the online parameters commit helper functions (damon_commit_ctx() and
+damon_call()).  Once 'paused' is set, the kdamond_fn() main loop does only
+limited works with sampling interval sleep during the works.  The limited
+works include the handling of the online parameters update, so that users
+can unset the 'pause' and resume the execution when they want.  It also
+keep checking DAMON stop conditions and handling of it, so that DAMON can
+be stopped while paused if needed.
+
+Link: https://lore.kernel.org/20260427151231.113429-1-sj@kernel.org
+Link: https://lore.kernel.org/20260427151231.113429-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 ++
- mm/filemap.c            |    4 ++++
- mm/readahead.c          |    6 +++++-
- 3 files changed, 11 insertions(+), 1 deletion(-)
+ include/linux/damon.h |    2 ++
+ mm/damon/core.c       |    9 +++++++++
+ 2 files changed, 11 insertions(+)
 
---- a/include/linux/pagemap.h~mm-limit-filemap_fault-readahead-to-vma-boundaries
-+++ a/include/linux/pagemap.h
-@@ -1350,6 +1350,7 @@ struct readahead_control {
- 	struct file_ra_state *ra;
- /* private: use the readahead_* accessors instead */
- 	pgoff_t _index;
-+	pgoff_t _max_index; /* limit readahead to _max_index, inclusive */
- 	unsigned int _nr_pages;
- 	unsigned int _batch_count;
- 	bool dropbehind;
-@@ -1363,6 +1364,7 @@ struct readahead_control {
- 		.mapping = m,						\
- 		.ra = r,						\
- 		._index = i,						\
-+		._max_index = ULONG_MAX,				\
+--- a/include/linux/damon.h~mm-damon-core-introduce-damon_ctx-paused
++++ a/include/linux/damon.h
+@@ -801,6 +801,7 @@ struct damon_attrs {
+  * @ops:	Set of monitoring operations for given use cases.
+  * @addr_unit:	Scale factor for core to ops address conversion.
+  * @min_region_sz:	Minimum region size.
++ * @pause:	Pause kdamond main loop.
+  * @adaptive_targets:	Head of monitoring targets (&damon_target) list.
+  * @schemes:		Head of schemes (&damos) list.
+  */
+@@ -854,6 +855,7 @@ struct damon_ctx {
+ 	struct damon_operations ops;
+ 	unsigned long addr_unit;
+ 	unsigned long min_region_sz;
++	bool pause;
+ 
+ 	struct list_head adaptive_targets;
+ 	struct list_head schemes;
+--- a/mm/damon/core.c~mm-damon-core-introduce-damon_ctx-paused
++++ a/mm/damon/core.c
+@@ -1370,6 +1370,7 @@ int damon_commit_ctx(struct damon_ctx *d
+ 		if (err)
+ 			return err;
  	}
- 
- #define VM_READAHEAD_PAGES	(SZ_128K / PAGE_SIZE)
---- a/mm/filemap.c~mm-limit-filemap_fault-readahead-to-vma-boundaries
-+++ a/mm/filemap.c
-@@ -3314,6 +3314,8 @@ static struct file *do_sync_mmap_readahe
- 	bool force_thp_readahead = false;
- 	unsigned short mmap_miss;
- 
-+	ractl._max_index = vmf->vma->vm_pgoff + vma_pages(vmf->vma) - 1;
-+
- 	/* Use the readahead code, even if readahead is disabled */
- 	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
- 	    (vm_flags & VM_HUGEPAGE) && HPAGE_PMD_ORDER <= MAX_PAGECACHE_ORDER)
-@@ -3396,6 +3398,7 @@ static struct file *do_sync_mmap_readahe
- 		 * mmap read-around
- 		 */
- 		ra->start = max_t(long, 0, vmf->pgoff - ra->ra_pages / 2);
-+		ra->start = max(ra->start, vmf->vma->vm_pgoff);
- 		ra->size = ra->ra_pages;
- 		ra->async_size = ra->ra_pages / 4;
- 		ra->order = 0;
-@@ -3438,6 +3441,7 @@ static struct file *do_async_mmap_readah
- 	}
- 
- 	if (folio_test_readahead(folio)) {
-+		ractl._max_index = vmf->vma->vm_pgoff + vma_pages(vmf->vma) - 1;
- 		fpin = maybe_unlock_mmap_for_io(vmf, fpin);
- 		page_cache_async_ra(&ractl, folio, ra->ra_pages);
- 	}
---- a/mm/readahead.c~mm-limit-filemap_fault-readahead-to-vma-boundaries
-+++ a/mm/readahead.c
-@@ -324,6 +324,8 @@ static void do_page_cache_ra(struct read
- 		return;
- 
- 	end_index = (isize - 1) >> PAGE_SHIFT;
-+	if (end_index > ractl->_max_index)
-+		end_index = ractl->_max_index;
- 	if (index > end_index)
- 		return;
- 	/* Don't read past the page containing the last byte of the file */
-@@ -471,7 +473,7 @@ void page_cache_ra_order(struct readahea
- 	pgoff_t start = readahead_index(ractl);
- 	pgoff_t index = start;
- 	unsigned int min_order = mapping_min_folio_order(mapping);
--	pgoff_t limit = (i_size_read(mapping->host) - 1) >> PAGE_SHIFT;
-+	pgoff_t limit;
- 	pgoff_t mark = index + ra->size - ra->async_size;
- 	unsigned int nofs;
- 	int err = 0;
-@@ -484,6 +486,8 @@ void page_cache_ra_order(struct readahea
- 		goto fallback;
- 	}
- 
-+	limit = (i_size_read(mapping->host) - 1) >> PAGE_SHIFT;
-+	limit = min(limit, ractl->_max_index);
- 	limit = min(limit, index + ra->size - 1);
- 
- 	new_order = min(mapping_max_folio_order(mapping), new_order);
++	dst->pause = src->pause;
+ 	dst->ops = src->ops;
+ 	dst->addr_unit = src->addr_unit;
+ 	dst->min_region_sz = src->min_region_sz;
+@@ -3237,6 +3238,14 @@ static int kdamond_fn(void *data)
+ 		kdamond_call(ctx, false);
+ 		if (ctx->maybe_corrupted)
+ 			break;
++		while (ctx->pause) {
++			damos_walk_cancel(ctx);
++			kdamond_usleep(ctx->attrs.sample_interval);
++			/* allow caller unset pause via damon_call() */
++			kdamond_call(ctx, false);
++			if (kdamond_need_stop(ctx) || ctx->maybe_corrupted)
++				goto done;
++		}
+ 		if (!list_empty(&ctx->schemes))
+ 			kdamond_apply_schemes(ctx);
+ 		else
 _
 
-Patches currently in -mm which might be from fmayle@google.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-readahead-add-kerneldoc-for-read_pages.patch
-mm-readahead-simplify-page_cache_ra_unbounded-loop-counter-reset.patch
-mm-readahead-no-pg_readahead-on-eof.patch
+mm-damon-ops-common-call-folio_test_lru-after-folio_get.patch
+mm-damon-reclaim-handle-ctx-allocation-failure.patch
+mm-damonn-lru_sort-handle-ctx-allocation-failure.patch
+mm-damon-core-introduce-struct-damon_probe.patch
+mm-damon-core-embed-damon_probe-objects-in-damon_ctx.patch
+mm-damon-core-introduce-damon_filter.patch
+mm-damon-core-commit-probes.patch
+mm-damon-core-introduce-damon_region-probe_hits.patch
+mm-damon-core-introduce-damon_ops-apply_probes.patch
+mm-damon-core-do-data-attributes-monitoring.patch
+mm-damon-paddr-support-data-attributes-monitoring.patch
+mm-damon-sysfs-implement-probes-dir.patch
+mm-damon-sysfs-implement-probe-dir.patch
+mm-damon-sysfs-implement-filters-directory.patch
+mm-damon-sysfs-implement-filter-dir.patch
+mm-damon-sysfs-implement-filter-dir-files.patch
+mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
+mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
+mm-damon-sysfs-schemes-implement-probe-dir.patch
+mm-damon-sysfs-schemes-implement-probe-hits-file.patch
+mm-damon-trace-probe_hits.patch
+selftests-damon-sysfssh-test-probes-dir.patch
+docs-mm-damon-design-document-data-attributes-monitoring.patch
+docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
+mm-damon-core-introduce-damon_filter_type_memcg.patch
+mm-damon-paddr-support-damon_filter_type_memcg.patch
+mm-damon-sysfs-add-filters-f-path-file.patch
+mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
+mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
+docs-mm-damon-design-update-for-memcg-damon-filter.patch
+docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
+mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
+mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
+samples-damon-mtier-replace-damon_add_region-with-damon_set_regions.patch
+mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions.patch
+mm-damon-core-hide-damon_add_region.patch
+mm-damon-core-hide-damon_insert_region.patch
+mm-damon-core-hide-damon_destroy_region.patch
+mm-damon-core-add-kdamond_call-debug_sanity-check.patch
+mm-damon-core-remove-damon_verify_nr_regions.patch
+mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
+selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
+selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
+selftests-damon-sysfssh-test-addr_unit-file-existence.patch
+selftests-damon-sysfssh-test-pause-file-existence.patch
+mm-damon-core-trace-esz-at-first-setup.patch
 
