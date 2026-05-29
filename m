@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8014B370AE0
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA31D370AC8;
+	Fri, 29 May 2026 04:07:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027632; cv=none; b=KdDVAKHG36f36QGsapZm5By6nnVKbbEOJktBc/MRR5R+sa0TCqU599AwhPp7qO8CewG/octOYPunwwhxi0hq5oGNF4kNwcW72EwzAHk58SbP3d2Vl9oHLSuAOX3qjXtvfF8j2oBuJ+JieuNgbJNR4FUmd+dy71ZL8sKdVeMsN8c=
+	t=1780027634; cv=none; b=pYciqa75ytULCquWUTBOnPMpGH325wyyK0wsVn0mL5GSQJu1Qk+/K4gfLVy7v7foVmaEomE7iDllLLX2qkJC3GpP7HU/NOy54nz+ECYQHksD3zLnRZOgPxQjRh0Wp/nWMGeNrwHVANHLAslrZIKSWbSoTHWsotOqQlX5ROOa6yg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027632; c=relaxed/simple;
-	bh=0skpKXk4Cc8ye79whSossarpveJl0iAG3DcUjNOid30=;
-	h=Date:To:From:Subject:Message-Id; b=O27xI4JR5HTuhFT+U4Mk0sg7DCKgrrmywYtdtoadP7o8fzcrnP4eqSvo/oVBYRtf03NLU7Ks5IB2mS2Xrt35k34k2BpRiS+OFd/XRnCwLkh/U5hk3171IkPasTNWDrtO9juZFa+FSFr2RUiXOp8BbwJoHQ5/7YAcsgV3TmAg5yo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Eau0ofcF; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027634; c=relaxed/simple;
+	bh=EJO+WoAbwgDzIdkVLUU5z+zkNu0IIhDMPAFpi9LoZKA=;
+	h=Date:To:From:Subject:Message-Id; b=nxSJ95GzkjEZ13lyJUEfLk2aavTUM0TI3+ePUBtrG9qFXnrslTRBp8c3mICdtWHd2r58JAXL8WN6HAN344PwdRuniQVc6ImUUtYXFhIMyyESoMwnc1Nr1goeeTzhcWatr0F68QcKb/OAhY0akxJ7WZVJOH+MpI7Bs1OLpU3vDDQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=0QmUAFXh; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Eau0ofcF"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 515F81F00893;
-	Fri, 29 May 2026 04:07:10 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="0QmUAFXh"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BB6F1F00899;
+	Fri, 29 May 2026 04:07:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027630;
-	bh=qNkyaFT6WPvPYRcRR3Vw5kAiMSi7+2RP3/h31ZLhVUY=;
+	d=linux-foundation.org; s=korg; t=1780027631;
+	bh=NLbnSmQc416jEJx79fpVBepqLWVCA4ma0Ke0OrDH47k=;
 	h=Date:To:From:Subject;
-	b=Eau0ofcFPx5z5YbEQ/C6FMC4dAwzjQIu/92iT+wUwz6nGkUijcXGwoK/LkPilUuuA
-	 yjzWIu+W7rjbRG91xh3LfbJpNnAtB6fEW69dNgO3P61j9YxdvK0WF0GTuxz1oAUiRD
-	 qPkbpdFkh7NYOS+FgiUi2taeB4yjKZwFZ6w+f3Aw=
-Date: Thu, 28 May 2026 21:07:09 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,sarthak.sharma@arm.com,ryan.roberts@arm.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david.laight.linux@gmail.com,david@kernel.org,anshuman.khandual@arm.com,dev.jain@arm.com,akpm@linux-foundation.org
+	b=0QmUAFXhJyFDl9yjfShNkhKqr//iK/UX8bP+3zKIqYB3cfZK/YeApKTFlXX3WoPUw
+	 MtlGoW8wc3PxDgvNOFyCEK0spudj1swVcw4KvwUm9FTtzCMCw5+otQEpwr/1oyiDoa
+	 HplF44m9POzBe2gJnLu97UwNxR9ytHk2m0BRGetQ=
+Date: Thu, 28 May 2026 21:07:11 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,joao.m.martins@oracle.com,david@kernel.org,aneesh.kumar@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] selftests-mm-simplify-byte-pattern-checking-in-mremap_test.patch removed from -mm tree
-Message-Id: <20260529040710.515F81F00893@smtp.kernel.org>
+Subject: [merged mm-stable] mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch removed from -mm tree
+Message-Id: <20260529040711.9BB6F1F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,199 +35,151 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/mm: simplify byte pattern checking in mremap_test
+     Subject: mm/sparse-vmemmap: fix vmemmap accounting underflow
 has been removed from the -mm tree.  Its filename was
-     selftests-mm-simplify-byte-pattern-checking-in-mremap_test.patch
+     mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Dev Jain <dev.jain@arm.com>
-Subject: selftests/mm: simplify byte pattern checking in mremap_test
-Date: Wed, 15 Apr 2026 10:15:09 +0530
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/sparse-vmemmap: fix vmemmap accounting underflow
+Date: Tue, 28 Apr 2026 16:18:50 +0800
 
-The original version of mremap_test (7df666253f26: "kselftests: vm: add
-mremap tests") validated remapped contents byte-by-byte and printed a
-mismatch index in case the bytes streams didn't match.  That was rather
-inefficient, especially also if the test passed.
+Patch series "mm: Fix vmemmap optimization accounting and initialization",
+v8.
 
-Later, commit 7033c6cc9620 ("selftests/mm: mremap_test: optimize execution
-time from minutes to seconds using chunkwise memcmp") used memcmp() on
-bigger chunks, to fallback to byte-wise scanning to detect the problematic
-index only if it discovered a problem.
+The series fixes several bugs in vmemmap optimization, mainly around
+incorrect page accounting and memmap initialization in DAX and memory
+hotplug paths.  It also fixes pageblock migratetype initialization and
+struct page initialization for ZONE_DEVICE compound pages.
 
-However, the implementation is overly complicated (e.g., get_sqrt() is
-currently not optimal) and we don't really have to report the exact index:
-whoever debugs the failing test can figure that out.
+Patches 1-4 fix vmemmap accounting issues.  Patch 1 fixes an accounting
+underflow in the section activation failure path by moving vmemmap page
+accounting into the lower-level allocation and freeing helpers.  Patch 2
+fixes incorrect altmap passing in the memory hotplug error path.  Patch 3
+passes pgmap through memory deactivation paths so the teardown side can
+determine whether vmemmap optimization was in effect.  Patch 4 uses that
+information to account the optimized DAX vmemmap size correctly.
 
-Let's simplify by just comparing both byte streams with memcmp() and not
-detecting the exact failed index.
+Patches 5-6 fix initialization issues in mm/mm_init.  One makes sure all
+pageblocks in ZONE_DEVICE compound pages get their migratetype
+initialized.  The other fixes a case where DAX memory hotplug reuses an
+unoptimized early-section memmap while compound_nr_pages() still assumes
+vmemmap optimization, leaving tail struct pages uninitialized.
 
-Link: https://lore.kernel.org/20260415044509.579428-1-dev.jain@arm.com
-Signed-off-by: Dev Jain <dev.jain@arm.com>
-Reported-by: Sarthak Sharma <sarthak.sharma@arm.com>
-Tested-by: Sarthak Sharma <sarthak.sharma@arm.com>
+
+This patch (of 6):
+
+In section_activate(), if populate_section_memmap() fails, the error
+handling path calls section_deactivate() to roll back the state.  This
+causes a vmemmap accounting imbalance.
+
+Since commit c3576889d87b ("mm: fix accounting of memmap pages"), memmap
+pages are accounted for only after populate_section_memmap() succeeds. 
+However, the failure path unconditionally calls section_deactivate(),
+which decreases the vmemmap count.  Consequently, a failure in
+populate_section_memmap() leads to an accounting underflow, incorrectly
+reducing the system's tracked vmemmap usage.
+
+Fix this more thoroughly by moving all accounting calls into the lower
+level functions that actually perform the vmemmap allocation and freeing:
+
+  - populate_section_memmap() accounts for newly allocated vmemmap pages -
+depopulate_section_memmap() unaccounts when vmemmap is freed
+
+This ensures proper accounting in all code paths, including error handling
+and early section cases.
+
+Link: https://lore.kernel.org/20260428081855.1249045-1-songmuchun@bytedance.com
+Link: https://lore.kernel.org/20260428081855.1249045-2-songmuchun@bytedance.com
+Fixes: c3576889d87b ("mm: fix accounting of memmap pages")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Oscar Salvador <osalvador@suse.de>
 Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Liam Howlett <liam@infradead.org>
+Acked-by: Liam R. Howlett <liam@infradead.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Ryan Roberts <ryan.roberts@arm.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: David Laight <david.laight.linux@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/mm/mremap_test.c |  109 +--------------------
- 1 file changed, 10 insertions(+), 99 deletions(-)
+ mm/sparse-vmemmap.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
---- a/tools/testing/selftests/mm/mremap_test.c~selftests-mm-simplify-byte-pattern-checking-in-mremap_test
-+++ a/tools/testing/selftests/mm/mremap_test.c
-@@ -76,27 +76,6 @@ enum {
- 	.expect_failure = should_fail				\
+--- a/mm/sparse-vmemmap.c~mm-sparse-vmemmap-fix-vmemmap-accounting-underflow
++++ a/mm/sparse-vmemmap.c
+@@ -651,7 +651,12 @@ static struct page * __meminit populate_
+ 		unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
+ 		struct dev_pagemap *pgmap)
+ {
+-	return __populate_section_memmap(pfn, nr_pages, nid, altmap, pgmap);
++	struct page *page = __populate_section_memmap(pfn, nr_pages, nid, altmap,
++						      pgmap);
++
++	memmap_pages_add(DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE));
++
++	return page;
  }
  
--/* compute square root using binary search */
--static unsigned long get_sqrt(unsigned long val)
--{
--	unsigned long low = 1;
--
--	/* assuming rand_size is less than 1TB */
--	unsigned long high = (1UL << 20);
--
--	while (low <= high) {
--		unsigned long mid = low + (high - low) / 2;
--		unsigned long temp = mid * mid;
--
--		if (temp == val)
--			return mid;
--		if (temp < val)
--			low = mid + 1;
--		high = mid - 1;
--	}
--	return low;
--}
--
- /*
-  * Returns false if the requested remap region overlaps with an
-  * existing mapping (e.g text, stack) else returns true.
-@@ -995,11 +974,9 @@ static long long remap_region(struct con
- 			      char *rand_addr)
+ static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages,
+@@ -660,13 +665,17 @@ static void depopulate_section_memmap(un
+ 	unsigned long start = (unsigned long) pfn_to_page(pfn);
+ 	unsigned long end = start + nr_pages * sizeof(struct page);
+ 
++	memmap_pages_add(-1L * (DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE)));
+ 	vmemmap_free(start, end, altmap);
+ }
++
+ static void free_map_bootmem(struct page *memmap)
  {
- 	void *addr, *tmp_addr, *src_addr, *dest_addr, *dest_preamble_addr = NULL;
--	unsigned long long t, d;
- 	struct timespec t_start = {0, 0}, t_end = {0, 0};
- 	long long  start_ns, end_ns, align_mask, ret, offset;
- 	unsigned long long threshold;
--	unsigned long num_chunks;
+ 	unsigned long start = (unsigned long)memmap;
+ 	unsigned long end = (unsigned long)(memmap + PAGES_PER_SECTION);
  
- 	if (threshold_mb == VALIDATION_NO_THRESHOLD)
- 		threshold = c.region_size;
-@@ -1068,87 +1045,21 @@ static long long remap_region(struct con
- 		goto clean_up_dest_preamble;
- 	}
++	memmap_boot_pages_add(-1L * (DIV_ROUND_UP(PAGES_PER_SECTION * sizeof(struct page),
++						  PAGE_SIZE)));
+ 	vmemmap_free(start, end, NULL);
+ }
  
--	/*
--	 * Verify byte pattern after remapping. Employ an algorithm with a
--	 * square root time complexity in threshold: divide the range into
--	 * chunks, if memcmp() returns non-zero, only then perform an
--	 * iteration in that chunk to find the mismatch index.
--	 */
--	num_chunks = get_sqrt(threshold);
--	for (unsigned long i = 0; i < num_chunks; ++i) {
--		size_t chunk_size = threshold / num_chunks;
--		unsigned long shift = i * chunk_size;
--
--		if (!memcmp(dest_addr + shift, rand_addr + shift, chunk_size))
--			continue;
--
--		/* brute force iteration only over mismatch segment */
--		for (t = shift; t < shift + chunk_size; ++t) {
--			if (((char *) dest_addr)[t] != rand_addr[t]) {
--				ksft_print_msg("Data after remap doesn't match at offset %llu\n",
--						t);
--				ksft_print_msg("Expected: %#x\t Got: %#x\n", rand_addr[t] & 0xff,
--						((char *) dest_addr)[t] & 0xff);
--				ret = -1;
--				goto clean_up_dest;
--			}
--		}
+@@ -769,14 +778,10 @@ static void section_deactivate(unsigned
+ 	 * The memmap of early sections is always fully populated. See
+ 	 * section_activate() and pfn_valid() .
+ 	 */
+-	if (!section_is_early) {
+-		memmap_pages_add(-1L * (DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE)));
++	if (!section_is_early)
+ 		depopulate_section_memmap(pfn, nr_pages, altmap);
+-	} else if (memmap) {
+-		memmap_boot_pages_add(-1L * (DIV_ROUND_UP(nr_pages * sizeof(struct page),
+-							  PAGE_SIZE)));
++	else if (memmap)
+ 		free_map_bootmem(memmap);
 -	}
--
--	/*
--	 * if threshold is not divisible by num_chunks, then check the
--	 * last chunk
--	 */
--	for (t = num_chunks * (threshold / num_chunks); t < threshold; ++t) {
--		if (((char *) dest_addr)[t] != rand_addr[t]) {
--			ksft_print_msg("Data after remap doesn't match at offset %llu\n",
--					t);
--			ksft_print_msg("Expected: %#x\t Got: %#x\n", rand_addr[t] & 0xff,
--					((char *) dest_addr)[t] & 0xff);
--			ret = -1;
--			goto clean_up_dest;
--		}
-+	/* Verify byte pattern after remapping */
-+	if (memcmp(dest_addr, rand_addr, threshold)) {
-+		ksft_print_msg("Data after remap doesn't match\n");
-+		ret = -1;
-+		goto clean_up_dest;
- 	}
  
- 	/* Verify the dest preamble byte pattern after remapping */
--	if (!c.dest_preamble_size)
--		goto no_preamble;
--
--	num_chunks = get_sqrt(c.dest_preamble_size);
--
--	for (unsigned long i = 0; i < num_chunks; ++i) {
--		size_t chunk_size = c.dest_preamble_size / num_chunks;
--		unsigned long shift = i * chunk_size;
--
--		if (!memcmp(dest_preamble_addr + shift, rand_addr + shift,
--			    chunk_size))
--			continue;
--
--		/* brute force iteration only over mismatched segment */
--		for (d = shift; d < shift + chunk_size; ++d) {
--			if (((char *) dest_preamble_addr)[d] != rand_addr[d]) {
--				ksft_print_msg("Preamble data after remap doesn't match at offset %llu\n",
--						d);
--				ksft_print_msg("Expected: %#x\t Got: %#x\n", rand_addr[d] & 0xff,
--						((char *) dest_preamble_addr)[d] & 0xff);
--				ret = -1;
--				goto clean_up_dest;
--			}
--		}
--	}
--
--	for (d = num_chunks * (c.dest_preamble_size / num_chunks); d < c.dest_preamble_size; ++d) {
--		if (((char *) dest_preamble_addr)[d] != rand_addr[d]) {
--			ksft_print_msg("Preamble data after remap doesn't match at offset %llu\n",
--					d);
--			ksft_print_msg("Expected: %#x\t Got: %#x\n", rand_addr[d] & 0xff,
--					((char *) dest_preamble_addr)[d] & 0xff);
--			ret = -1;
--			goto clean_up_dest;
--		}
-+	if (c.dest_preamble_size &&
-+	    memcmp(dest_preamble_addr, rand_addr, c.dest_preamble_size)) {
-+		ksft_print_msg("Preamble data after remap doesn't match\n");
-+		ret = -1;
-+		goto clean_up_dest;
+ 	if (empty)
+ 		ms->section_mem_map = (unsigned long)NULL;
+@@ -821,7 +826,6 @@ static struct page * __meminit section_a
+ 		section_deactivate(pfn, nr_pages, altmap);
+ 		return ERR_PTR(-ENOMEM);
  	}
+-	memmap_pages_add(DIV_ROUND_UP(nr_pages * sizeof(struct page), PAGE_SIZE));
  
--no_preamble:
- 	start_ns = t_start.tv_sec * NS_PER_SEC + t_start.tv_nsec;
- 	end_ns = t_end.tv_sec * NS_PER_SEC + t_end.tv_nsec;
- 	ret = end_ns - start_ns;
+ 	return memmap;
+ }
 _
 
-Patches currently in -mm which might be from dev.jain@arm.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-khugepaged-generalize-alloc_charge_folio.patch
+mm-hugetlb_vmemmap-fix-incorrect-vmemmap-restore-in-rollback.patch
+mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
+drivers-base-memory-make-memory-block-get-put-explicit.patch
 
