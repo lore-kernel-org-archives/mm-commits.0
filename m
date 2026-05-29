@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AC20370AED
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:08:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F642370AE0
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:08:03 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027683; cv=none; b=Cx5JbgHYBly9l+MODHnSLLAMqQKWFVJ9kuidJRyNgfLzJKwQNbMmlycq9p8oNpV3C4UyOebhBrFw5UCIxx5LjQ+OTo3jFrdOZFTIWNfFF2R3/vlRAjMVdrBnEPD67C3YauMqwd2yG+Zk/qDAP6V6cVHD3E85aUjUUfNYao6WyVs=
+	t=1780027684; cv=none; b=eJzobWDLUxNvjkfWZECs4bpw1fwpYvLJ8Lp/WJ5lLA15F9D4kZR2e8ZYw0hC6oz7vqanxHwLn4GRDVmHrwTgJGkYVWfDkyWxwYAQ+DIGWFg544sNZ2xbh9lQlrKVo61hkz8UHgClmKfYdGpy477VC0xk/PiK4V21b9HJtYUKHec=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027683; c=relaxed/simple;
-	bh=yYdP3NVOFtTa7s3jmdAxlbJxOcnd5b9zECB+8otqtTk=;
-	h=Date:To:From:Subject:Message-Id; b=A1xvGjWUAv+SocwA6Ud8b7OE67+FHZSZ5uV85uEi0amxg2XeiC8TbVj4d1AjwHyaJmnSfFciXI7Lm3vR5NuoJQAUB3PjOCuG9gOWcQCQuSdJXmM7osnfdX5D2EibdBOM27vwm0TKBYbVNxwm2EWI6TVU81aLAKy9FVxtHq5vqlQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=iwYuMD2h; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027684; c=relaxed/simple;
+	bh=amb+hpTQebYpHRZlf/gRJf6EJQtuwqBd5s5BLnJ8td0=;
+	h=Date:To:From:Subject:Message-Id; b=sWlBUaUQY6ppS+kO2hodYZKYN53UFf3VhLWm/I+vj+A56XN70QyHDaaabA4dDgsSdpkvmX1fmtRbYuIbA0Z9/+/l8rQN/v3kaOVtSkUJulmKUi3WwdAX2aSfg1xVR3tACp2M4ZWKYZrdn/nqDl6A92xbmcoHvEgatXcypAYNKn0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z+el5Lih; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="iwYuMD2h"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBAF11F00893;
-	Fri, 29 May 2026 04:08:01 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z+el5Lih"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 150ED1F00898;
+	Fri, 29 May 2026 04:08:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027682;
-	bh=MCbIbizsZcL04DoFg4Kcjd7mcwFhAkqZd3HSAVCYk8c=;
+	d=linux-foundation.org; s=korg; t=1780027683;
+	bh=W1funQXENWrqOavxxMBIxDXgwOdbmMAEsnr3vhnzAe8=;
 	h=Date:To:From:Subject;
-	b=iwYuMD2h9sS/pkvzJz8XOJz+yBiRy3U62gFe6jhUd7U7g8vJE73IKrNAgXUTVMzQj
-	 2z5hHrGhz9Pt7uDGFQj7EmiKpHIZiYtlxWpxEjjF3oR23LJN4UJ4jVYvzMEhJ76mTR
-	 oF629vHqUt35LrmMHAEqAj7d/R2e8PfjQFwLIHT8=
-Date: Thu, 28 May 2026 21:08:01 -0700
+	b=z+el5LihqEyJhgjH+HJ163qEiDN7bAlJFTWOCcJWn5NKLtXezM5nsHACznjn9Sm6G
+	 pmR9OUbNCO386mtE0rk5Sixc/DgyjHqhOPlDjfPwb6wuqDP60TMyvrndvH5vUvLzx/
+	 AlnAxlfN+a06EG6+rz2hu/y7iRkQe8wtojz2yxUY=
+Date: Thu, 28 May 2026 21:08:02 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring.patch removed from -mm tree
-Message-Id: <20260529040801.EBAF11F00893@smtp.kernel.org>
+Subject: [merged mm-stable] docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring.patch removed from -mm tree
+Message-Id: <20260529040803.150ED1F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/reclaim: update for entire memory monitoring
+     Subject: Docs/admin-guide/mm/damon/lru_sort: update for entire memory monitoring
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring.patch
+     docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/reclaim: update for entire memory monitoring
-Date: Tue, 28 Apr 2026 21:12:28 -0700
+Subject: Docs/admin-guide/mm/damon/lru_sort: update for entire memory monitoring
+Date: Tue, 28 Apr 2026 21:12:29 -0700
 
-Update DAMON_RECLAIM usage document for the changed default monitoring
+Update DAMON_LRU_SORT usage document for the changed default monitoring
 target region selection.
 
-Link: https://lore.kernel.org/20260429041232.90257-7-sj@kernel.org
+Link: https://lore.kernel.org/20260429041232.90257-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: David Hildenbrand <david@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -63,27 +63,27 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/reclaim.rst |    6 ++++--
+ Documentation/admin-guide/mm/damon/lru_sort.rst |    6 ++++--
  1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-reclaim-update-for-entire-memory-monitoring
-+++ a/Documentation/admin-guide/mm/damon/reclaim.rst
-@@ -229,7 +229,8 @@ Start of target memory region in physica
+--- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring
++++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
+@@ -246,7 +246,8 @@ monitor_region_start
+ Start of target memory region in physical address.
  
- The start physical address of memory region that DAMON_RECLAIM will do work
- against.  That is, DAMON_RECLAIM will find cold memory regions in this region
--and reclaims.  By default, biggest System RAM is used as the region.
-+and reclaims.  By default, the system's entire physical memory is used as the
+ The start physical address of memory region that DAMON_LRU_SORT will do work
+-against.  By default, biggest System RAM is used as the region.
++against.  By default, the system's entire physical memory is used as the
 +region.
  
  monitor_region_end
  ------------------
-@@ -238,7 +239,8 @@ End of target memory region in physical
+@@ -254,7 +255,8 @@ monitor_region_end
+ End of target memory region in physical address.
  
- The end physical address of memory region that DAMON_RECLAIM will do work
- against.  That is, DAMON_RECLAIM will find cold memory regions in this region
--and reclaims.  By default, biggest System RAM is used as the region.
-+and reclaims.  By default, the system's entire physical memory is used as the
+ The end physical address of memory region that DAMON_LRU_SORT will do work
+-against.  By default, biggest System RAM is used as the region.
++against.  By default, the system's entire physical memory is used as the
 +region.
  
  addr_unit
