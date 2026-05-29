@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A057C1DFFB;
-	Fri, 29 May 2026 00:12:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 993031DFFB;
+	Fri, 29 May 2026 00:12:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780013543; cv=none; b=Z2y4AyqTWt7UtgNAo+smzI5UffQNtP2izq35ed+mGpSy1JoC/9o29MDUika6YVggxQm20D37YFWASxYes8OgbzCxsx5a6YhCWDO4f/RE0jaRh04kbKxpEwzIUkPleW3tBQnCXL9Jkmoi4zgJoxUur56u/nmXl+5H/MYZu8RAk6c=
+	t=1780013545; cv=none; b=g1SjYRCy8PClRkd+XTMmK2dyeYgnT/jAO+UNj23FlSyUHyUTB5q1ta3UdHEg6RMz8XNafcoKKBtv/yn8M/Wt0w6LuvFngWnUuKTcQDCNA9tf7YKZzeJ8cD7xC+TE97iUJUrZKlFXaCk3yvfro8lQWXP+Avw+3KqjAwEJuzoHdVM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780013543; c=relaxed/simple;
-	bh=ms73O5CGb5I26p6B8UM9XQQuu7rKG89arC7xlwXKkk0=;
-	h=Date:To:From:Subject:Message-Id; b=KmZuVaOrqdJBpPGGOQczQTy1mR3QtftNZv73ym3dQFLxdudqzhxgWkT/DtC6HP1NtjhpC3Dy9gtxy19lAD3LnoeEC3Mz7/bVWkUAjCBrrRxh1Uv8BOd9fF7jsXNInvNuJTILUWe3J2DIqQZLju/aNs/M/tRkt56uCmpznjqvnb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oyerUa6Z; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780013545; c=relaxed/simple;
+	bh=qWcZ90m9f5vrz6GDTx9rVqzA7yV4jczKmbPQueWhRrI=;
+	h=Date:To:From:Subject:Message-Id; b=GBFk8wPDtE2HEPQo4NkEm7mAriIItZikRf69WnbosIa3cAETIefQD9d5YdMrEUjKmHFWYo/KMQI6vrTGNk9dzUv5hKHtQ+0GGSLG9AEpJmf4LADN6GTC6a6gHq6vqoJpwQDH0+svOfRI6gL/YmGtCLehComHLEweFGwo/hH5f7U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=TFv1fcW5; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oyerUa6Z"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 362D11F000E9;
-	Fri, 29 May 2026 00:12:22 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="TFv1fcW5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1FD261F000E9;
+	Fri, 29 May 2026 00:12:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780013542;
-	bh=DjcRoblmu8Rixu/kzN6ldqxcxN9vAxh23jP0z+URLUo=;
+	d=linux-foundation.org; s=korg; t=1780013544;
+	bh=AMuX9xHIZ3VFolwveTrCu3ktkuJIQKgTc4XKxkowijs=;
 	h=Date:To:From:Subject;
-	b=oyerUa6ZWjAPHh5esDiQY0PsMDrxKbdYWjNIOwyIbansr6ESc3Fa9r5ZKQVOZ+/QV
-	 q4nIgCgQlFTzWBYJrJJtGVbbTJ2xgjOD6wZ/+VC0sVYcXvxc7YCpyaotL01eX5VUDc
-	 5VXxwbug2OuexcEaajNHnNE2/hs27pASFr3VBmPo=
-Date: Thu, 28 May 2026 17:12:21 -0700
+	b=TFv1fcW5A1UmmsJ7CtfkL7fo0StP0YpHJ917b2Xf3dajvn3DoZvSCjavl/RaaF6Lo
+	 4vu+W8C0rDvUshIb89s65KeLOU/1nlrE7SHYwOqlR9b014f/5/lpCb0tjcpeXelBvI
+	 tmris1xY70vRQzMhWvHFlXgQ9dllkNM4qZl1DUl8=
+Date: Thu, 28 May 2026 17:12:23 -0700
 To: mm-commits@vger.kernel.org,stable@vger.kernel.org,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-damon-reclaim-handle-ctx-allocation-failure.patch added to mm-hotfixes-unstable branch
-Message-Id: <20260529001222.362D11F000E9@smtp.kernel.org>
+Subject: + mm-damonn-lru_sort-handle-ctx-allocation-failure.patch added to mm-hotfixes-unstable branch
+Message-Id: <20260529001224.1FD261F000E9@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The patch titled
-     Subject: mm/damon/reclaim: handle ctx allocation failure
+     Subject: mm/damon/lru_sort: handle ctx allocation failure
 has been added to the -mm mm-hotfixes-unstable branch.  Its filename is
-     mm-damon-reclaim-handle-ctx-allocation-failure.patch
+     mm-damonn-lru_sort-handle-ctx-allocation-failure.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damon-reclaim-handle-ctx-allocation-failure.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/mm-damonn-lru_sort-handle-ctx-allocation-failure.patch
 
 This patch will later appear in the mm-hotfixes-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,43 +59,29 @@ and is updated there most days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/reclaim: handle ctx allocation failure
-Date: Thu, 28 May 2026 17:01:02 -0700
+Subject: mm/damon/lru_sort: handle ctx allocation failure
+Date: Thu, 28 May 2026 17:01:03 -0700
 
-Patch series "mm/damon/{reclaim,lru_sort}: handle ctx allocation failures".
-
-DAMON_RECLAIM and DAMON_LRU_SORT could dereference NULL pointers if their
-damon_ctx object allocations fail.  The bugs are expected to happen
-infrequently because the allocations are arguably too small to fail on
-common setups.  But theoretically they are possible and the consequences
-are bad.  Fix those.
-
-The issues were discovered [1] by Sashiko.
-
-
-This patch (of 2):
-
-DAMON_RECLAIM allocates the damon_ctx object for its kdamond in its init
-function.  damon_reclaim_enabled_store() wrongly assumes the allocation
+DAMON_LRU_SORT allocates the damon_ctx object for its kdamond in its init
+function.  damon_lru_sort_enabled_store() wrongly assumes the allocation
 will always succeed once tried.  If the damon_ctx allocation was failed,
 therefore, code execution reaches to damon_commit_ctx() while 'ctx' is
 NULL.  As a result, it dereferences the NULL 'ctx' pointer.  Avoid the
 NULL dereference by returning -ENOMEM if 'ctx' is NULL.
 
-Link: https://lore.kernel.org/20260529000104.7006-2-sj@kernel.org
-Link: https://lore.kernel.org/20260419014800.877-1-sj@kernel.org [1]
-Fixes: 3f7a914ab9a5 ("mm/damon/reclaim: use damon_initialized()")
+Link: https://lore.kernel.org/20260529000104.7006-3-sj@kernel.org
+Fixes: c4a8e662c839 ("mm/damon/lru_sort: use damon_initialized()")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: <stable@vger.kernel.org> # 6.18.x
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/reclaim.c |    4 ++++
+ mm/damon/lru_sort.c |    4 ++++
  1 file changed, 4 insertions(+)
 
---- a/mm/damon/reclaim.c~mm-damon-reclaim-handle-ctx-allocation-failure
-+++ a/mm/damon/reclaim.c
-@@ -339,6 +339,10 @@ static int damon_reclaim_enabled_store(c
+--- a/mm/damon/lru_sort.c~mm-damonn-lru_sort-handle-ctx-allocation-failure
++++ a/mm/damon/lru_sort.c
+@@ -437,6 +437,10 @@ static int damon_lru_sort_enabled_store(
  	if (!damon_initialized())
  		return 0;
  
@@ -103,7 +89,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +	if (!ctx)
 +		return -ENOMEM;
 +
- 	return damon_reclaim_turn(enabled);
+ 	return damon_lru_sort_turn(enabled);
  }
  
 _
