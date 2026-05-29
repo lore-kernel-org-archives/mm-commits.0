@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09A27372B59
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:27:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67471372ECD
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:27:02 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028822; cv=none; b=YQvrvgAK43dUYHyhpC8nb0m4SIJ74QKM0Z62zvqaHZMMd9RvQDfLPFqken/iaMH0zEoRT3QmbPIHBQGQQ42a/sNgc8px4q8KuVXX7yMo+rIPNytTBu8t26sMw35wjuqk1lmMeDhCiTi4jZdoAyiVua4oDYqKxxZCHD2IOt88gE0=
+	t=1780028823; cv=none; b=FyXG5urGNoKUyYOOPVNHW6lNI8l54W/pvfzQjcBwEBv9+WVOR3+KTIwjexjDvZB0nLaki9lqiY+9H1ezSkkbbZOi8FupPV6hfYCh/4ZJSfOsxaQ+b8upkys9tWJcvAGsjMMD+5VawihJObF7nCzZ54fv7D5GgslXplGBrEAzOjI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028822; c=relaxed/simple;
-	bh=5/zfw8em5x/8dgh8hTHzvqTMCdhSQF4ev9iWoOrheFc=;
-	h=Date:To:From:Subject:Message-Id; b=mLAkIsp9tdwGlFQbJT3b7WF5sHCKB3o5W56hDflnOQPDvQLOhjnTNB50v81YJNoRv14d5IWZWK8YQ0NftswRL0CaqkY+9oWBLB4+FwHT2D8ZQG9ZldgOpI9FN/DSYCxXmdceCOnGXc4FQxd/YdhCbgsb0UzNU2VaTVwh9DaumPQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=oSo5EYS5; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028823; c=relaxed/simple;
+	bh=NEYd7d0czA0bLYPDB5fPyF/JjCScrGFC2PEyIHKxSiA=;
+	h=Date:To:From:Subject:Message-Id; b=E2SdF8c3sm9za3OX4aISqTIo2cEBmE4OVVEUSlN4gop2NSvZQOL+eEKJV2RawcFROqQgie8yRL7a6wnhuisBT5lCkFRfDkEhfv9mVfgiP5xcSCusG+1XOSVSgzGjBPz0GSIa0I2klB864Ae4ezI1vy8khZ4/y1+MZoO6tpbFh/I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vpJ5uTk1; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="oSo5EYS5"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CD2CD1F00893;
-	Fri, 29 May 2026 04:27:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vpJ5uTk1"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 35D951F00898;
+	Fri, 29 May 2026 04:27:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028820;
-	bh=3XrtwOniTj79ArdohusYwnElNWSnTQdqcm01Wfutr4E=;
+	d=linux-foundation.org; s=korg; t=1780028822;
+	bh=Oq+ko622wl/npbtAU/GiOgbRdqvS//A01/p5tyBNr7Y=;
 	h=Date:To:From:Subject;
-	b=oSo5EYS50LpuXvsn3/C1pF1fXENRNn9fm+L9uVbbKsuNQgVjH6YDgkuRyCpJK5CdQ
-	 GPVCHCN+k8jpo5RW5E6tX+i+pevkh4O+cBdJt++LnuQZZPrvUBtkouupKVMfC6QI+P
-	 Wec8xEOqc6OxpwH7QJqLcC+ubjqfMQqN0zp62Pb0=
-Date: Thu, 28 May 2026 21:27:00 -0700
+	b=vpJ5uTk1B8Oe3Ga8ZIFVaVy3QxVVw6nHL+3N7y5odJPlLE5jH4Sw+GmfRb0aZPtZb
+	 CFGnca9UYYvBNAznsyueEeRgzS28slhBRFGkIFyW8V+nLPP00wX794sjx/RX3l3DwN
+	 59rc9K+WWjC6mh8QUdWsoxZMgg+N6rW8Ro1HvPkw=
+Date: Thu, 28 May 2026 21:27:01 -0700
 To: mm-commits@vger.kernel.org,will@kernel.org,svens@linux.ibm.com,song@kernel.org,palmer@dabbelt.com,npiggin@gmail.com,mpe@ellerman.id.au,mingo@redhat.com,maddy@linux.ibm.com,linan122@huawei.com,kernel@xen0n.name,hpa@zytor.com,herbert@gondor.apana.org.au,hca@linux.ibm.com,gor@linux.ibm.com,dsterba@suse.com,dan.j.williams@intel.com,clm@fb.com,chenhuacai@kernel.org,catalin.marinas@arm.com,bp@alien8.de,borntraeger@linux.ibm.com,arnd@arndb.de,ardb@kernel.org,aou@eecs.berkeley.edu,alex@ghiti.fr,agordeev@linux.ibm.com,hch@lst.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] raid6-use-static_call-for-raid6_recov_2data-and-raid6_recov_datap.patch removed from -mm tree
-Message-Id: <20260529042700.CD2CD1F00893@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] raid6-update-top-of-file-comments.patch removed from -mm tree
+Message-Id: <20260529042702.35D951F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,21 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: raid6: use static_call for raid6_recov_2data and raid6_recov_datap
+     Subject: raid6: update top of file comments
 has been removed from the -mm tree.  Its filename was
-     raid6-use-static_call-for-raid6_recov_2data-and-raid6_recov_datap.patch
+     raid6-update-top-of-file-comments.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: raid6: use static_call for raid6_recov_2data and raid6_recov_datap
-Date: Mon, 18 May 2026 07:17:55 +0200
+Subject: raid6: update top of file comments
+Date: Mon, 18 May 2026 07:17:56 +0200
 
-Avoid expensive indirect calls for the recovery routines as well.
+Drop the pointless mention of the file name, and use standard formatting
+for the top of file comments.
 
-Link: https://lore.kernel.org/20260518051804.462141-13-hch@lst.de
+Link: https://lore.kernel.org/20260518051804.462141-14-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Ard Biesheuvel <ardb@kernel.org>
 Tested-by: Ard Biesheuvel <ardb@kernel.org> # kunit only on arm64
@@ -81,47 +82,217 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/raid/raid6/algos.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ lib/raid/raid6/algos.c      |    8 +-------
+ lib/raid/raid6/arm/neon.c   |    2 +-
+ lib/raid/raid6/mktables.c   |   12 +++---------
+ lib/raid/raid6/recov.c      |   14 ++++----------
+ lib/raid/raid6/riscv/rvv.h  |    2 --
+ lib/raid/raid6/x86/avx2.c   |   13 ++++---------
+ lib/raid/raid6/x86/avx512.c |   18 ++++++------------
+ lib/raid/raid6/x86/mmx.c    |   10 ++--------
+ lib/raid/raid6/x86/sse1.c   |   18 ++++++------------
+ lib/raid/raid6/x86/sse2.c   |    9 +--------
+ 10 files changed, 28 insertions(+), 78 deletions(-)
 
---- a/lib/raid/raid6/algos.c~raid6-use-static_call-for-raid6_recov_2data-and-raid6_recov_datap
+--- a/lib/raid/raid6/algos.c~raid6-update-top-of-file-comments
 +++ a/lib/raid/raid6/algos.c
-@@ -26,6 +26,8 @@ static const struct raid6_recov_calls *r
- /* Selected algorithm */
- DEFINE_STATIC_CALL_NULL(raid6_gen_syndrome_impl, *raid6_intx1.gen_syndrome);
- DEFINE_STATIC_CALL_NULL(raid6_xor_syndrome_impl, *raid6_intx1.xor_syndrome);
-+DEFINE_STATIC_CALL_NULL(raid6_recov_2data_impl, *raid6_recov_intx1.data2);
-+DEFINE_STATIC_CALL_NULL(raid6_recov_datap_impl, *raid6_recov_intx1.datap);
+@@ -1,12 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/* -*- linux-c -*- ------------------------------------------------------- *
+- *
+- *   Copyright 2002 H. Peter Anvin - All Rights Reserved
+- *
+- * ----------------------------------------------------------------------- */
+-
+ /*
+- * raid6/algos.c
++ * Copyright 2002 H. Peter Anvin - All Rights Reserved
+  *
+  * Algorithm list and algorithm selection for RAID-6
+  */
+--- a/lib/raid/raid6/arm/neon.c~raid6-update-top-of-file-comments
++++ a/lib/raid/raid6/arm/neon.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * linux/lib/raid6/neon.c - RAID6 syndrome calculation using ARM NEON intrinsics
++ * RAID6 syndrome calculation using ARM NEON intrinsics
+  *
+  * Copyright (C) 2013 Linaro Ltd <ard.biesheuvel@linaro.org>
+  */
+--- a/lib/raid/raid6/mktables.c~raid6-update-top-of-file-comments
++++ a/lib/raid/raid6/mktables.c
+@@ -1,15 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/* -*- linux-c -*- ------------------------------------------------------- *
+- *
+- *   Copyright 2002-2007 H. Peter Anvin - All Rights Reserved
+- *
+- * ----------------------------------------------------------------------- */
+-
+ /*
+- * mktables.c
++ * Copyright 2002-2007 H. Peter Anvin - All Rights Reserved
+  *
+- * Make RAID-6 tables.  This is a host user space program to be run at
+- * compile time.
++ * Make RAID-6 tables.  This is a host user space program to be run at compile
++ * time.
+  */
  
- /**
-  * raid6_gen_syndrome - generate RAID6 P/Q parity
-@@ -126,7 +128,7 @@ void raid6_recov_2data(int disks, size_t
- 	WARN_ON_ONCE(bytes > PAGE_SIZE);
- 	WARN_ON_ONCE(failb <= faila);
+ #include <stdio.h>
+--- a/lib/raid/raid6/recov.c~raid6-update-top-of-file-comments
++++ a/lib/raid/raid6/recov.c
+@@ -1,16 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/* -*- linux-c -*- ------------------------------------------------------- *
+- *
+- *   Copyright 2002 H. Peter Anvin - All Rights Reserved
+- *
+- * ----------------------------------------------------------------------- */
+-
+ /*
+- * raid6/recov.c
++ * Copyright 2002 H. Peter Anvin - All Rights Reserved
+  *
+- * RAID-6 data recovery in dual failure mode.  In single failure mode,
+- * use the RAID-5 algorithm (or, in the case of Q failure, just reconstruct
+- * the syndrome.)
++ * RAID-6 data recovery in dual failure mode.  In single failure mode, use the
++ * RAID-5 algorithm (or, in the case of Q failure, just reconstruct the
++ * syndrome.)
+  */
  
--	raid6_recov_algo->data2(disks, bytes, faila, failb, ptrs);
-+	static_call(raid6_recov_2data_impl)(disks, bytes, faila, failb, ptrs);
- }
- EXPORT_SYMBOL_GPL(raid6_recov_2data);
+ #include <linux/mm.h>
+--- a/lib/raid/raid6/riscv/rvv.h~raid6-update-top-of-file-comments
++++ a/lib/raid/raid6/riscv/rvv.h
+@@ -2,8 +2,6 @@
+ /*
+  * Copyright 2024 Institute of Software, CAS.
+  *
+- * raid6/rvv.h
+- *
+  * Definitions for RISC-V RAID-6 code
+  */
  
-@@ -151,7 +153,7 @@ void raid6_recov_datap(int disks, size_t
- 	WARN_ON_ONCE(bytes & 511);
- 	WARN_ON_ONCE(bytes > PAGE_SIZE);
+--- a/lib/raid/raid6/x86/avx2.c~raid6-update-top-of-file-comments
++++ a/lib/raid/raid6/x86/avx2.c
+@@ -1,16 +1,11 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/* -*- linux-c -*- ------------------------------------------------------- *
+- *
+- *   Copyright (C) 2012 Intel Corporation
+- *   Author: Yuanhan Liu <yuanhan.liu@linux.intel.com>
++/*
++ * Copyright (C) 2012 Intel Corporation
++ * Author: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+  *
+- *   Based on sse2.c: Copyright 2002 H. Peter Anvin - All Rights Reserved
++ * Based on sse2.c: Copyright 2002 H. Peter Anvin - All Rights Reserved
+  *
+- * ----------------------------------------------------------------------- */
+-
+-/*
+  * AVX2 implementation of RAID-6 syndrome functions
+- *
+  */
  
--	raid6_recov_algo->datap(disks, bytes, faila, ptrs);
-+	static_call(raid6_recov_datap_impl)(disks, bytes, faila, ptrs);
- }
- EXPORT_SYMBOL_GPL(raid6_recov_datap);
+ #include <asm/cpufeature.h>
+--- a/lib/raid/raid6/x86/avx512.c~raid6-update-top-of-file-comments
++++ a/lib/raid/raid6/x86/avx512.c
+@@ -1,20 +1,14 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/* -*- linux-c -*- --------------------------------------------------------
+- *
+- *   Copyright (C) 2016 Intel Corporation
++/*
++ * Copyright (C) 2016 Intel Corporation
+  *
+- *   Author: Gayatri Kammela <gayatri.kammela@intel.com>
+- *   Author: Megha Dey <megha.dey@linux.intel.com>
++ * Author: Gayatri Kammela <gayatri.kammela@intel.com>
++ * Author: Megha Dey <megha.dey@linux.intel.com>
+  *
+- *   Based on avx2.c: Copyright 2012 Yuanhan Liu All Rights Reserved
+- *   Based on sse2.c: Copyright 2002 H. Peter Anvin - All Rights Reserved
++ * Based on avx2.c: Copyright 2012 Yuanhan Liu All Rights Reserved
++ * Based on sse2.c: Copyright 2002 H. Peter Anvin - All Rights Reserved
+  *
+- * -----------------------------------------------------------------------
+- */
+-
+-/*
+  * AVX512 implementation of RAID-6 syndrome functions
+- *
+  */
  
-@@ -329,6 +331,8 @@ static int __init raid6_init(void)
- 	 */
- 	if (!raid6_recov_algo)
- 		raid6_recov_algo = &raid6_recov_intx1;
-+	static_call_update(raid6_recov_2data_impl, raid6_recov_algo->data2);
-+	static_call_update(raid6_recov_datap_impl, raid6_recov_algo->datap);
- 	pr_info("raid6: using %s recovery algorithm\n", raid6_recov_algo->name);
+ #include <asm/cpufeature.h>
+--- a/lib/raid/raid6/x86/mmx.c~raid6-update-top-of-file-comments
++++ a/lib/raid/raid6/x86/mmx.c
+@@ -1,14 +1,8 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/* -*- linux-c -*- ------------------------------------------------------- *
+- *
+- *   Copyright 2002 H. Peter Anvin - All Rights Reserved
+- *
+- * ----------------------------------------------------------------------- */
+-
+ /*
+- * raid6/mmx.c
++ * Copyright 2002 H. Peter Anvin - All Rights Reserved
+  *
+- * MMX implementation of RAID-6 syndrome functions
++ * MMX implementation of RAID-6 syndrome functions.
+  */
  
- 	return raid6_select_algo();
+ #include <asm/cpufeature.h>
+--- a/lib/raid/raid6/x86/sse1.c~raid6-update-top-of-file-comments
++++ a/lib/raid/raid6/x86/sse1.c
+@@ -1,19 +1,13 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/* -*- linux-c -*- ------------------------------------------------------- *
+- *
+- *   Copyright 2002 H. Peter Anvin - All Rights Reserved
+- *
+- * ----------------------------------------------------------------------- */
+-
+ /*
+- * raid6/sse1.c
++ * Copyright 2002 H. Peter Anvin - All Rights Reserved
+  *
+- * SSE-1/MMXEXT implementation of RAID-6 syndrome functions
++ * SSE-1/MMXEXT implementation of RAID-6 syndrome functions.
+  *
+- * This is really an MMX implementation, but it requires SSE-1 or
+- * AMD MMXEXT for prefetch support and a few other features.  The
+- * support for nontemporal memory accesses is enough to make this
+- * worthwhile as a separate implementation.
++ * This is really an MMX implementation, but it requires SSE-1 or AMD MMXEXT for
++ * prefetch support and a few other features.  The support for nontemporal
++ * memory accesses is enough to make this worthwhile as a separate
++ * implementation.
+  */
+ 
+ #include <asm/cpufeature.h>
+--- a/lib/raid/raid6/x86/sse2.c~raid6-update-top-of-file-comments
++++ a/lib/raid/raid6/x86/sse2.c
+@@ -1,15 +1,8 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+-/* -*- linux-c -*- ------------------------------------------------------- *
+- *
+- *   Copyright 2002 H. Peter Anvin - All Rights Reserved
+- *
+- * ----------------------------------------------------------------------- */
+-
+ /*
+- * raid6/sse2.c
++ * Copyright 2002 H. Peter Anvin - All Rights Reserved
+  *
+  * SSE-2 implementation of RAID-6 syndrome functions
+- *
+  */
+ 
+ #include <asm/cpufeature.h>
 _
 
 Patches currently in -mm which might be from hch@lst.de are
