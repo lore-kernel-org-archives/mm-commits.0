@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CBEC36EA9E
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC67A1AA1D2
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027600; cv=none; b=rFwFfAeGjexlnyhM0+KQO69P3mejiIaj8asCQGqsF0cCxUQFxtfNQbAlbnduX+JbrRfWD8otCXid/g3u2Z9LDDDhyRtOE/WnKm8boYXcM+WVqZzJ8pzZO9XPR0kWZztuMaJiZTzmG/+tlch50isq/sIu/KLYKUF77RWWnQa9isY=
+	t=1780027601; cv=none; b=o6kedm7mfg5kSkFa4d7CtJKdcJdU1ozx+gwYvG/B4vcdmNcNlfKQt3K2ZSuRQhzTvwRQffgV/Pn6WhfprH8we/4/bVYZG1+EJiNoH3jOO9dhjsLMyx1LRZB0uwJ6RbIY4WA/aP5jQzJW0Qcd1JFzu/XljRDnJfYQd241zQhrFzE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027600; c=relaxed/simple;
-	bh=Ovs1KIsZFIgLFNgMXJKZH3snLIncTlcId9hVckDPUSY=;
-	h=Date:To:From:Subject:Message-Id; b=qABhepGuNSsHrFvRyIrrURCWwDT1camgWSGlWTeOr1q3d8q6uhvCc8bKeKPxWYbJDXpYM4Q2dL8EqjIRkxhjfDKmJ0/LIlSNSisDz/ArpGij20BPw86WJLYH3S0wFORZ6oL9okyzBlOQFrQ8TevklYMO9gJQCQ7LkFnO+RGsb5A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=NHkoYQ+y; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027601; c=relaxed/simple;
+	bh=kNQzIW+P1XpFwSzAKmWZ7QvlKelwjbYc0Fj5ZptK7Vs=;
+	h=Date:To:From:Subject:Message-Id; b=b5NeJr8++4KOYIx15QGHuhYdq9IOiAvIsiA45dGKPqsq6k0TidENS0yth1I15N+wgPR364W5/nMyr3xWHcRknR4uR7O3iWVdC8+2+GzTlg579kTD7Qw8tTsn5sStfepQDgMiJygQ7+r/P7pC2o0YtRrUVCG35kluwVMbMaXtaLc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=GscDAC7C; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="NHkoYQ+y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4038D1F00898;
-	Fri, 29 May 2026 04:06:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="GscDAC7C"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A3201F00893;
+	Fri, 29 May 2026 04:06:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027599;
-	bh=6K1IrDb00kP22bWpMRry2tCAs6tocvLGyRUVgmFRdDQ=;
+	d=linux-foundation.org; s=korg; t=1780027600;
+	bh=gWEcLoCeDB0vARE80UQYXqfCxsCPR4k4/NgqPDsaJoA=;
 	h=Date:To:From:Subject;
-	b=NHkoYQ+yDX2j0yOr8KfMqkqzLN3t/anLWm2AFL8iAZHds7NTDNfnGX0KZgmJOjflK
-	 3Z1xWgMhWffoNeAIxertdf412mc97HYY2LedO2NRmnhjcN3zJ3TUZQNE+tz6IWp3if
-	 Ybe5eh7GSXEruheMVD2fBuvBE87nxMvM2Wk/wmJw=
-Date: Thu, 28 May 2026 21:06:38 -0700
-To: mm-commits@vger.kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,ekffu200098@gmail.com,akpm@linux-foundation.org
+	b=GscDAC7C0V6DEqmhYR5WNq4c4Yj46//pv/Qg0/8owEZWOSPhHHtSSburIJFYSUUjU
+	 R7JOmez+y9ZEZGGXfAI/ATDdLIBg3HdrzqxcjmOWPE4Sd9Rz8YhuEsXpABR/O5tPZI
+	 yF2NgMSriiqpfWLCAmzOgLGClR1ssEFWJiPeh1jA=
+Date: Thu, 28 May 2026 21:06:39 -0700
+To: mm-commits@vger.kernel.org,donettom@linux.ibm.com,baohua@kernel.org,gaoxiang17@xiaomi.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-sparse-remove-unnecessary-null-check-before-allocating-mem_section.patch removed from -mm tree
-Message-Id: <20260529040639.4038D1F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-vmscan-fix-typos-in-comments.patch removed from -mm tree
+Message-Id: <20260529040640.4A3201F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,71 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/sparse: remove unnecessary NULL check before allocating mem_section
+     Subject: mm/vmscan: fix typos in comments
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-remove-unnecessary-null-check-before-allocating-mem_section.patch
+     mm-vmscan-fix-typos-in-comments.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Sang-Heon Jeon <ekffu200098@gmail.com>
-Subject: mm/sparse: remove unnecessary NULL check before allocating mem_section
-Date: Sun, 19 Apr 2026 23:42:25 +0900
+From: Xiang Gao <gaoxiang17@xiaomi.com>
+Subject: mm/vmscan: fix typos in comments
+Date: Thu, 16 Apr 2026 14:23:02 +0800
 
-Commit 850ed20539a4 ("mm: move array mem_section init code out of
-memory_present()") moved mem_section allocation logic into
-memblocks_present().
+Fix three typos in comments:
 
-Before that move, memory_present() could be called multiple times, so
-unlikely() matched the common case, where most calls found mem_section
-already allocated.
+- Line 112: "zome_reclaim_mode" -> "zone_reclaim_mode"
+- Line 6208: "prioities" -> "priorities"
+- Line 7067: "that that high" -> "that the high" (duplicated word)
 
-After that move, memblocks_present() is called exactly once from
-sparse_init().  Under CONFIG_SPARSEMEM_EXTREME, mem_section is always NULL
-when it is called.
-
-So remove unnecessary NULL check before allocating mem_section.  No
-functional change.
-
-Link: https://lore.kernel.org/20260419144225.2875654-1-ekffu200098@gmail.com
-Signed-off-by: Sang-Heon Jeon <ekffu200098@gmail.com>
-Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed by: Donet Tom <donettom@linux.ibm.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lore.kernel.org/20260416062302.727468-1-gxxa03070307@gmail.com
+Signed-off-by: Xiang Gao <gaoxiang17@xiaomi.com>
+Reviewed-by: Barry Song <baohua@kernel.org>
+Reviewed-by: Donet Tom <donettom@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/vmscan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/sparse.c~mm-sparse-remove-unnecessary-null-check-before-allocating-mem_section
-+++ a/mm/sparse.c
-@@ -201,13 +201,11 @@ static void __init memblocks_present(voi
- 	int i, nid;
+--- a/mm/vmscan.c~mm-vmscan-fix-typos-in-comments
++++ a/mm/vmscan.c
+@@ -109,7 +109,7 @@ struct scan_control {
+ 	/* zone_reclaim_mode */
+ 	unsigned int may_unmap:1;
  
- #ifdef CONFIG_SPARSEMEM_EXTREME
--	if (unlikely(!mem_section)) {
--		unsigned long size, align;
-+	unsigned long size, align;
+-	/* zome_reclaim_mode, boost reclaim, cgroup restrictions */
++	/* zone_reclaim_mode, boost reclaim, cgroup restrictions */
+ 	unsigned int may_swap:1;
  
--		size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
--		align = 1 << (INTERNODE_CACHE_SHIFT);
--		mem_section = memblock_alloc_or_panic(size, align);
--	}
-+	size = sizeof(struct mem_section *) * NR_SECTION_ROOTS;
-+	align = 1 << (INTERNODE_CACHE_SHIFT);
-+	mem_section = memblock_alloc_or_panic(size, align);
- #endif
+ 	/* Not allow cache_trim_mode to be turned on as part of reclaim? */
+@@ -6359,7 +6359,7 @@ static void consider_reclaim_throttle(pg
+ 	if (current_is_kswapd() || cgroup_reclaim(sc))
+ 		return;
  
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start, &end, &nid)
+-	/* Throttle if making no progress at high prioities. */
++	/* Throttle if making no progress at high priorities. */
+ 	if (sc->priority == 1 && !sc->nr_reclaimed)
+ 		reclaim_throttle(pgdat, VMSCAN_THROTTLE_NOPROGRESS);
+ }
+@@ -7224,7 +7224,7 @@ restart:
+ 
+ 		/*
+ 		 * There should be no need to raise the scanning priority if
+-		 * enough pages are already being scanned that that high
++		 * enough pages are already being scanned that the high
+ 		 * watermark would be met at 100% efficiency.
+ 		 */
+ 		if (kswapd_shrink_node(pgdat, &sc))
 _
 
-Patches currently in -mm which might be from ekffu200098@gmail.com are
+Patches currently in -mm which might be from gaoxiang17@xiaomi.com are
 
-mm-hugetlb_cma-restrict-hugetlb_cma-parameter-to-gigantic-page-alignment.patch
 
