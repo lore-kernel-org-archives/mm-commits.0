@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E07C4370AE6
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D836A370AC5
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027661; cv=none; b=Ocq621j44K3kV1QwMQkhY0wpw+CqNmwnipKOnnpEkVjZx4FPFfnGjL10M/NuFEMW8TVf4pPsOUiXg2QE5TfQWVCzI7x1a4M0TEqJnjkemXWHF/5SzfRJnHwGlYhO0R3nzNUJikLAJ7KfoAdO+9bLlaAhI+RQt0xE4AfdMBzXsMU=
+	t=1780027662; cv=none; b=mJMd3u/uzC7Ql8Va0ulu9SuCzReVW5iXXs1nFkTu+896cfgNCE4fKtgYUtdtnW7Ia4sAY3Ltw3d1boMZKUl+y0tXegAXES7IXFiOFV2bT1FrVplrCp2UP2JRGRcW8eWD5FRs5pCqIQwbWR8xuGoAYOdCG1tZTZUvMnzAKRqkh6Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027661; c=relaxed/simple;
-	bh=OROqGiM5wpAH+poss9TXX9A0VO8bo0BK5dZQae/m/Ak=;
-	h=Date:To:From:Subject:Message-Id; b=XX1mCmIPKL3NE5QM8vACpd2oul6zDNgv9cUIMszY90bxf6qMYXRhdzQIHeIdfYtD5VKiuPpv3Z2GDavA+oYzQ6DjRuZS5lkfPkvPbU6mDj3YM48Gg8YL8ulOvpqaY3z10IKh6bJbXvvR0NBkrDrU8GJlNmbnQ4EfzDDqZ28IaGg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=xwJVjmI4; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027662; c=relaxed/simple;
+	bh=AE1PbIceVCeiOMbe4q0ighUwUh5ad1fgU4jI54lmHlM=;
+	h=Date:To:From:Subject:Message-Id; b=IpJNbCW3tZSFRK3aEl9eSCd8YcGvK3ksN/3+lPlXOc7QegLUn1TmHJRSHTx75IwmS3reK+UuFN4WfzGpIf+rQ3CcVBKIuucZjgLBRlKUAGtHXoKhtAGTN4S4V0ShaLHV7xMgN/iEIRCqkn6cNTd43DDny44ntJPPuQ8LqbWro88=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=vCrdPuF3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="xwJVjmI4"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81ABF1F00899;
-	Fri, 29 May 2026 04:07:39 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="vCrdPuF3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD26D1F00893;
+	Fri, 29 May 2026 04:07:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027659;
-	bh=4aECLR+EeBAUa3s7z9ApEutqz+wJwF8JwbFhuljQt9M=;
+	d=linux-foundation.org; s=korg; t=1780027660;
+	bh=+1pGVQQusn703RRXbKFF2/SWb4qrb8VMDMQixcHVRTs=;
 	h=Date:To:From:Subject;
-	b=xwJVjmI4zAkuUt7bGgcUXwyt/WbAbFe/YKrn92Bb1GylTjFWZFltwQfki2842ka3/
-	 udi6yEYyFBlAC6CBqtUALUTuBwBDNvBNPp6ThrXPKTCMNlB/rxRzehH6rFKbCiFQM6
-	 f8ey0SPGsMLNxvUmxj0RzhQlEwz1FcLFNgcUns6E=
-Date: Thu, 28 May 2026 21:07:39 -0700
+	b=vCrdPuF3r7qxY3klZCUAJU9BjgVxavJ8hHAOkglG2DNp8X1R4q02RAAo5s6pyQP1x
+	 zQZDAuLEgNOXyotMQDaKAZIOgmBgiaRxacNPbLUV1tb1CgzeEyJFxx3kAbz8T0Bfax
+	 fUht3LTZ0Fs6gKSAGOmDbv2GRvsKYMeUehRlo7LQ=
+Date: Thu, 28 May 2026 21:07:40 -0700
 To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,brendan.higgins@linux.dev,sj@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-abi-damon-update-for-pause-sysfs-file.patch removed from -mm tree
-Message-Id: <20260529040739.81ABF1F00899@smtp.kernel.org>
+Subject: [merged mm-stable] mm-damon-tests-core-kunit-test-pause-commitment.patch removed from -mm tree
+Message-Id: <20260529040740.AD26D1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,22 +35,22 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/ABI/damon: update for pause sysfs file
+     Subject: mm/damon/tests/core-kunit: test pause commitment
 has been removed from the -mm tree.  Its filename was
-     docs-abi-damon-update-for-pause-sysfs-file.patch
+     mm-damon-tests-core-kunit-test-pause-commitment.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/ABI/damon: update for pause sysfs file
-Date: Mon, 27 Apr 2026 08:12:24 -0700
+Subject: mm/damon/tests/core-kunit: test pause commitment
+Date: Mon, 27 Apr 2026 08:12:25 -0700
 
-Update DAMON ABI document for the DAMON context execution pause/resume
-feature.
+Add a kunit test for commitment of damon_ctx->pause parameter that can be
+done using damon_commit_ctx().
 
-Link: https://lore.kernel.org/20260427151231.113429-6-sj@kernel.org
+Link: https://lore.kernel.org/20260427151231.113429-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendan.higgins@linux.dev>
 Cc: David Hildenbrand <david@kernel.org>
@@ -65,25 +65,22 @@ Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-damon |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/damon/tests/core-kunit.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/Documentation/ABI/testing/sysfs-kernel-mm-damon~docs-abi-damon-update-for-pause-sysfs-file
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-damon
-@@ -84,6 +84,13 @@ Description:	Writing an integer to this
- 		parameter of the given operations set of the context.  Reading
- 		the file returns the last-written 'address unit' value.
- 
-+What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/pause
-+Date:		Mar 2026
-+Contact:	SeongJae Park <sj@kernel.org>
-+Description:	Writing a boolean keyword to this file sets the 'pause' request
-+		parameter for the context.  Reading the file returns the
-+		last-written 'pause' value.
-+
- What:		/sys/kernel/mm/damon/admin/kdamonds/<K>/contexts/<C>/monitoring_attrs/intervals/sample_us
- Date:		Mar 2022
- Contact:	SeongJae Park <sj@kernel.org>
+--- a/mm/damon/tests/core-kunit.h~mm-damon-tests-core-kunit-test-pause-commitment
++++ a/mm/damon/tests/core-kunit.h
+@@ -1083,6 +1083,10 @@ static void damon_test_commit_ctx(struct
+ 	KUNIT_EXPECT_EQ(test, damon_commit_ctx(dst, src), 0);
+ 	src->min_region_sz = 4095;
+ 	KUNIT_EXPECT_EQ(test, damon_commit_ctx(dst, src), -EINVAL);
++	src->min_region_sz = 4096;
++	src->pause = true;
++	KUNIT_EXPECT_EQ(test, damon_commit_ctx(dst, src), 0);
++	KUNIT_EXPECT_TRUE(test, dst->pause);
+ 	damon_destroy_ctx(src);
+ 	damon_destroy_ctx(dst);
+ }
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
