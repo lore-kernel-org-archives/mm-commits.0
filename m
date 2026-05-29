@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D802A373BE4;
-	Fri, 29 May 2026 04:27:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CE5E372EDD
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:27:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028838; cv=none; b=i6n7NhsG8VUTMTYZqHXkiJSkb+5JpdP9QKqdZH+wmK+skTY0dvft9JqS1htwICY8/ZpnKf58YoQXlFKG98Qs247v3h/3yed9whMRQnp9TZ4KDB/eaI3W5V9DDs/Bm+8Ch4DDZ+vmfo6x2ZCigDGOhCu83mQc0HZhZP9R6Pva0p0=
+	t=1780028839; cv=none; b=Sa2QpfB9iIHihbcwv59ZVKcWRRRRQQXnMPuAQKhPqF2nThdHO3OQIcU0vZAL6dx2+99WdMXmfH1eXJHbfpjtkuye2kaihlSgROblNyZ1050a3bJXPKvO8hQwqP3NAISQgDGDk4H/a1WNb9H2mch9Lm7o8sBVVBVrtSOa0SebUVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028838; c=relaxed/simple;
-	bh=qsPONvq5w1NtH29U42Umw2XookIWHrVwLFY02qFulKQ=;
-	h=Date:To:From:Subject:Message-Id; b=OOz0IvJY6cXbCvBgtXvtdPkL5+HpgObnJuGKG0fTiud5c+8e6kBgkLiui5ORZVeOfOcdjjrX97c3RhBEI7DVMutWrl54Z/dFmKxg9rcElZ3bLUHYicxTo83z4M+l9CIi9do6D/OefqFsdzplEpA5jE2r7B4B2OMewv4kmaA+i48=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=I5Fs9ts3; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028839; c=relaxed/simple;
+	bh=ZRUa7OfrN/KIjhkDNM6cwJfygtqoqWMxjZ5B/J/nlNc=;
+	h=Date:To:From:Subject:Message-Id; b=sBE3Pgq7LZjXGH6C1WlsgIUJlW+1g6LMjJ+IV0JfJd7sHvZOvYXSJ4oWcSLhSDXqNZuzG8XDtii3ijjnS1Daynps2bEfnhWkxqHaHfgVDpSSdxRS59cYw/uZK16okGN1dTOuMFxEvXxewaT5H1oPkOlJeo5gKri4YonA0mX/hkM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=EKzDhIaP; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="I5Fs9ts3"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC27F1F00893;
-	Fri, 29 May 2026 04:27:16 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EKzDhIaP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE2511F00898;
+	Fri, 29 May 2026 04:27:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028836;
-	bh=0TU9tacIfC2l7bNczHIGcIdr2LaZOopC/UX0pncXbtc=;
+	d=linux-foundation.org; s=korg; t=1780028837;
+	bh=BEe55qvjkeChxfe3po9R3h4V7BsG1cx4Zt7ApVcGJ2M=;
 	h=Date:To:From:Subject;
-	b=I5Fs9ts3O8ITMFu7ykc9F/bh4Zoej6oVq/PgUmTPBuG0EBASkiqAOQbwGw76wKKAz
-	 0/McC9ceypuIPHgyynMa7HBXfeS8L9OLPf8rKXIDwUi+GMt+6HvwVkLegUbrTUfZ6M
-	 VkBudKyYKreu2987ujBwTtW1xaaR7QiLQnO8fAhY=
-Date: Thu, 28 May 2026 21:27:16 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,piaojun@huawei.com,mark@fasheh.com,junxiao.bi@oracle.com,joseph.qi@linux.alibaba.com,jlbec@evilplan.org,heming.zhao@suse.com,gechangwei@live.cn,michael.bommarito@gmail.com,akpm@linux-foundation.org
+	b=EKzDhIaPKZFKTrZ3LmUUV45FJXktRJvU1zHTH+1G4p/1wFDIy3+UmfSgU0298mBfK
+	 Fu3+bx0kBfT8CmPPqB49TYH/h9E5gJ4bqkECnSAlLOAz4j33mNLZ8xv7QJfVju5a2E
+	 ZxnzWNtwcRFUb3UL/bmpq/2ZHZCairRmnKQ/710A=
+Date: Thu, 28 May 2026 21:27:17 -0700
+To: mm-commits@vger.kernel.org,gregkh@linuxfoundation.org,david@davidgow.net,brendan.higgins@linux.dev,andriy.shevchenko@linux.intel.com,sozdayvek@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters.patch removed from -mm tree
-Message-Id: <20260529042716.AC27F1F00893@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] lib-uuid_kunit-add-tests-for-the-four-random-uuid-guid-generators.patch removed from -mm tree
+Message-Id: <20260529042717.CE2511F00898@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,146 +35,123 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: ocfs2: reject non-inline dinodes with i_size and zero i_clusters
+     Subject: lib/uuid_kunit: add tests for the four random UUID/GUID generators
 has been removed from the -mm tree.  Its filename was
-     ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters.patch
+     lib-uuid_kunit-add-tests-for-the-four-random-uuid-guid-generators.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Michael Bommarito <michael.bommarito@gmail.com>
-Subject: ocfs2: reject non-inline dinodes with i_size and zero i_clusters
-Date: Tue, 19 May 2026 07:04:04 -0400
+From: Stepan Ionichev <sozdayvek@gmail.com>
+Subject: lib/uuid_kunit: add tests for the four random UUID/GUID generators
+Date: Sat, 16 May 2026 17:09:15 +0500
 
-On a volume mounted without OCFS2_FEATURE_INCOMPAT_SPARSE_ALLOC, a
-non-inline regular file with non-zero i_size and zero i_clusters is
-structurally malformed: the extent map declares no allocated clusters yet
-the size header claims content exists.  Keep rejecting that shape, but
-express it through a shared predicate so the same invariant is available
-to normal inode reads and online filecheck.
+uuid_kunit currently exercises only guid_parse() and uuid_parse() (plus
+their invalid-input paths).  The four random generators exported from
+lib/uuid.c -- generate_random_uuid(), generate_random_guid(), uuid_gen()
+and guid_gen() -- have no direct kunit coverage.
 
-The same zero-cluster shape is also malformed for non-inline directories. 
-ocfs2 directory growth allocates backing storage before advancing i_size,
-and ocfs2_dir_foreach_blk_el() later walks until ctx->pos reaches
-i_size_read(inode).  A forged directory dinode with a huge i_size and no
-clusters would repeatedly fail on holes while advancing through the
-claimed size.
+Random output cannot be compared against a fixed expected value, but RFC
+4122 section 4.4 specifies two invariants that any version-4 random
+UUID/GUID must satisfy:
 
-Sparse regular files remain exempt: on sparse-alloc volumes, truncate can
-legitimately grow i_size without allocating clusters.  System inodes and
-inline-data dinodes also retain their separate storage rules.
+  - version 4 in the high nibble of the version byte
+    (byte 6 in the wire uuid_t layout, byte 7 in the byte-swapped
+    guid_t layout);
+  - variant DCE 1.1 (binary 10x) in the high bits of byte 8.
 
-Mirror the check in ocfs2_filecheck_validate_inode_block() as well. 
-filecheck reports through its own error namespace, so malformed
-size/cluster state is logged as a filecheck invalid-inode result rather
-than via ocfs2_error(), but it must not proceed into
-ocfs2_populate_inode().
+Add four test cases that invoke each generator several times and verify
+these bit patterns hold.  The same checks catch a regression in either the
+mask/OR sequence in the generators or the layout constants.  Run the loop
+a handful of times to cover the small but non-zero chance that an unmasked
+random byte happens to satisfy the version/variant pattern by accident on
+a single call.
 
-Link: https://lore.kernel.org/20260519110404.1803902-4-michael.bommarito@gmail.com
-Fixes: b657c95c1108 ("ocfs2: Wrap inode block reads in a dedicated function.")
-Signed-off-by: Michael Bommarito <michael.bommarito@gmail.com>
-Link: https://sashiko.dev/#/patchset/20260517111015.3187935-1-michael.bommarito%40gmail.com
-Assisted-by: Claude:claude-opus-4-7
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Heming Zhao <heming.zhao@suse.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260516120915.40544-1-sozdayvek@gmail.com
+Signed-off-by: Stepan Ionichev <sozdayvek@gmail.com>
+Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Brendan Higgins <brendan.higgins@linux.dev>
+Cc: David Gow <david@davidgow.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |   60 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
+ lib/tests/uuid_kunit.c |   56 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
---- a/fs/ocfs2/inode.c~ocfs2-reject-non-inline-dinodes-with-i_size-and-zero-i_clusters
-+++ a/fs/ocfs2/inode.c
-@@ -82,6 +82,24 @@ static bool ocfs2_dinode_has_unexpected_
- 	return !S_ISCHR(mode) && !S_ISBLK(mode) && di->id1.dev1.i_rdev != 0;
+--- a/lib/tests/uuid_kunit.c~lib-uuid_kunit-add-tests-for-the-four-random-uuid-guid-generators
++++ a/lib/tests/uuid_kunit.c
+@@ -86,11 +86,67 @@ static void uuid_test_uuid_invalid(struc
+ 	}
  }
  
-+static bool ocfs2_dinode_has_size_without_clusters(struct super_block *sb,
-+						   struct ocfs2_dinode *di)
++/*
++ * RFC 4122 section 4.4 says random UUIDs/GUIDs (version 4) must have:
++ *   - version 4 in the high nibble of the version byte,
++ *   - variant DCE 1.1 (binary 10x) in the high bits of byte 8.
++ *
++ * The version byte is byte 6 in the "wire" uuid_t layout and byte 7 in
++ * the byte-swapped guid_t layout.
++ */
++static void uuid_test_uuid_gen(struct kunit *test)
 +{
-+	umode_t mode = le16_to_cpu(di->i_mode);
++	uuid_t u;
 +
-+	if (le32_to_cpu(di->i_flags) & OCFS2_SYSTEM_FL)
-+		return false;
-+	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL)
-+		return false;
-+	if (!le64_to_cpu(di->i_size) || le32_to_cpu(di->i_clusters))
-+		return false;
-+
-+	if (S_ISDIR(mode))
-+		return true;
-+
-+	return !ocfs2_sparse_alloc(OCFS2_SB(sb)) && S_ISREG(mode);
++	for (unsigned int i = 0; i < 8; i++) {
++		uuid_gen(&u);
++		KUNIT_EXPECT_EQ(test, u.b[6] & 0xf0, 0x40);
++		KUNIT_EXPECT_EQ(test, u.b[8] & 0xc0, 0x80);
++	}
 +}
 +
- void ocfs2_set_inode_flags(struct inode *inode)
- {
- 	unsigned int flags = OCFS2_I(inode)->ip_attr;
-@@ -1563,6 +1581,33 @@ int ocfs2_validate_inode_block(struct su
- 		goto bail;
- 	}
- 
-+	/*
-+	 * Non-inline directories must not have i_size without allocated
-+	 * clusters: directory growth adds storage before advancing i_size,
-+	 * and readdir walks i_size block-by-block.  A forged directory
-+	 * with zero clusters and a huge i_size would repeatedly fault on
-+	 * holes while advancing through the claimed size.
-+	 *
-+	 * Non-inline regular files have the same invariant on non-sparse
-+	 * volumes.  Sparse regular files are different: truncate can
-+	 * legitimately grow i_size without allocating clusters, so keep
-+	 * the sparse-alloc carveout for S_IFREG only.  System inodes and
-+	 * inline-data dinodes have their own storage rules.
-+	 */
-+	if (ocfs2_dinode_has_size_without_clusters(sb, di)) {
-+		if (S_ISDIR(le16_to_cpu(di->i_mode)))
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode #%llu: directory i_size %llu with i_clusters 0 and no inline-data flag\n",
-+					 (unsigned long long)bh->b_blocknr,
-+					 (unsigned long long)le64_to_cpu(di->i_size));
-+		else
-+			rc = ocfs2_error(sb,
-+					 "Invalid dinode #%llu: regular file i_size %llu with i_clusters 0 and no inline-data flag on non-sparse volume\n",
-+					 (unsigned long long)bh->b_blocknr,
-+					 (unsigned long long)le64_to_cpu(di->i_size));
-+		goto bail;
-+	}
++static void uuid_test_guid_gen(struct kunit *test)
++{
++	guid_t g;
 +
- 	if (le16_to_cpu(di->i_dyn_features) & OCFS2_INLINE_DATA_FL) {
- 		struct ocfs2_inline_data *data = &di->id2.i_data;
- 
-@@ -1712,6 +1757,21 @@ static int ocfs2_filecheck_validate_inod
- 		     le16_to_cpu(di->i_mode),
- 		     (unsigned long long)le64_to_cpu(di->id1.dev1.i_rdev));
- 		rc = -OCFS2_FILECHECK_ERR_INVALIDINO;
-+		goto bail;
++	for (unsigned int i = 0; i < 8; i++) {
++		guid_gen(&g);
++		KUNIT_EXPECT_EQ(test, g.b[7] & 0xf0, 0x40);
++		KUNIT_EXPECT_EQ(test, g.b[8] & 0xc0, 0x80);
 +	}
++}
 +
-+	if (ocfs2_dinode_has_size_without_clusters(sb, di)) {
-+		if (S_ISDIR(le16_to_cpu(di->i_mode)))
-+			mlog(ML_ERROR,
-+			     "Filecheck: invalid dinode #%llu: directory i_size %llu with i_clusters 0 and no inline-data flag\n",
-+			     (unsigned long long)bh->b_blocknr,
-+			     (unsigned long long)le64_to_cpu(di->i_size));
-+		else
-+			mlog(ML_ERROR,
-+			     "Filecheck: invalid dinode #%llu: regular file i_size %llu with i_clusters 0 and no inline-data flag on non-sparse volume\n",
-+			     (unsigned long long)bh->b_blocknr,
-+			     (unsigned long long)le64_to_cpu(di->i_size));
-+		rc = -OCFS2_FILECHECK_ERR_INVALIDINO;
- 	}
++static void uuid_test_generate_random_uuid(struct kunit *test)
++{
++	unsigned char buf[16];
++
++	for (unsigned int i = 0; i < 8; i++) {
++		generate_random_uuid(buf);
++		KUNIT_EXPECT_EQ(test, buf[6] & 0xf0, 0x40);
++		KUNIT_EXPECT_EQ(test, buf[8] & 0xc0, 0x80);
++	}
++}
++
++static void uuid_test_generate_random_guid(struct kunit *test)
++{
++	unsigned char buf[16];
++
++	for (unsigned int i = 0; i < 8; i++) {
++		generate_random_guid(buf);
++		KUNIT_EXPECT_EQ(test, buf[7] & 0xf0, 0x40);
++		KUNIT_EXPECT_EQ(test, buf[8] & 0xc0, 0x80);
++	}
++}
++
+ static struct kunit_case uuid_test_cases[] = {
+ 	KUNIT_CASE(uuid_test_guid_valid),
+ 	KUNIT_CASE(uuid_test_uuid_valid),
+ 	KUNIT_CASE(uuid_test_guid_invalid),
+ 	KUNIT_CASE(uuid_test_uuid_invalid),
++	KUNIT_CASE(uuid_test_uuid_gen),
++	KUNIT_CASE(uuid_test_guid_gen),
++	KUNIT_CASE(uuid_test_generate_random_uuid),
++	KUNIT_CASE(uuid_test_generate_random_guid),
+ 	{},
+ };
  
- bail:
 _
 
-Patches currently in -mm which might be from michael.bommarito@gmail.com are
+Patches currently in -mm which might be from sozdayvek@gmail.com are
 
 
