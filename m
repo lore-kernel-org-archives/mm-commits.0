@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D7EA34BA20;
-	Fri, 29 May 2026 03:51:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B35553672B6;
+	Fri, 29 May 2026 03:51:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780026667; cv=none; b=B+iRpUBsiz6C3W5GP9DetZEyMcbxfs5m+vkXni2deMOJAkEsTgxo29sMemC8JKUsKB/7MkpCyIL5umD3wVza82qy8H5I+wwEKKwLdB9wRwh0ly5ryV4Uw5tBdJs9btQU2kVWqew3q6y0TqcK8riL0SNliXHdN+nh9pRoHZ04qJ0=
+	t=1780026668; cv=none; b=mlbTOUWgZr3n+GGUFw/hDT+TBXlKrdWaq35dSaL9S8PvHNzT4LQqaub958pw/cDuiNzln7mmt9JaF1zJFYV1YwhTejXVetixgMfxbZXIRI+A973dQRHQYkGaokuIYy/ZoM7MGCqFtPsB7jXDZ4iXY0TqLQS3fBm3xQeUpogAr2s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780026667; c=relaxed/simple;
-	bh=rzHbB8VqvFzhRzyjOjxtBT8g95/hY2Zk5I756/j20gE=;
-	h=Date:To:From:Subject:Message-Id; b=EJh/g14oi5JCBwp4epktV/ZKvFopnv4Gq0NWNNXgLxM619HWXCMsv9iyaBGk2oFvqkTItFkpgYYAPGmGF08ItGR1/k4gbFEPoAz0wrCTGjjocFT07vHvpAAQ2VaGSTz31X/fe8X1wqqZJAMzE7mqsTbX9e6Pbsc633qHaZfAiho=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=zsWX29Ih; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780026668; c=relaxed/simple;
+	bh=WFa7w0Yeq0mISsDZ7eaBb7eSG3S5V+gw3fCB/nOPf2k=;
+	h=Date:To:From:Subject:Message-Id; b=aDlVk0FJGfgNarkbYXSc0RIV80coJZIhF89kPlBOAdbEarQZNdnwcWf4ew0b3ytrLekfWbdACCtHJUbpbplJNHA2aXUVewTrVGdfkCNE+6lBIczqDk5LkObH+fM64PvIBojjY4iYmZFcoBkEndfDLSYmJanVlBg1t2XaCF+X+JQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=q499wqz3; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="zsWX29Ih"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1BE8F1F000E9;
-	Fri, 29 May 2026 03:51:06 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="q499wqz3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67AB71F00A3A;
+	Fri, 29 May 2026 03:51:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780026666;
-	bh=bSKjpRtPhh6pk4lnXCQ7tP+u4oXGtpSUXZfgR/slSJY=;
+	d=linux-foundation.org; s=korg; t=1780026667;
+	bh=Hpyt1CzqKxdEk/kiQy/0sBHIEl0qvRmHUdK+dfvHQPI=;
 	h=Date:To:From:Subject;
-	b=zsWX29Ih/TnWwa8wr2zOCQT/tpULL5wcpAF82Cw4/4441KkNgs+k85yiDKe1BNh4d
-	 oSF7RNkp5qgscb6/pdFsMmygVUAkx8maG4IOyu0LoU+fzwcTScCWOkaFP746NdmuyX
-	 e9ZHNPfzEuJn1DQqdKWquX6AZAjRxGHvShROMU7c=
-Date: Thu, 28 May 2026 20:51:05 -0700
-To: mm-commits@vger.kernel.org,stable@vger.kernel.org,roman.gushchin@linux.dev,muchun.song@linux.dev,mhocko@suse.com,harry@kernel.org,hannes@cmpxchg.org,shakeel.butt@linux.dev,akpm@linux-foundation.org
+	b=q499wqz3IToLL9XRJD/kfuugitQYDsRvZfu7Ct9n98Z0JwpwxvNIM5Mq2Z10p7t1e
+	 yiNvxxSDrUY7/zA8QGf5+mIC/vVpLpc5OVGFEoxTy7ZL8lJ2lvkZ6uHDslyQggND4e
+	 ihM/RRlMKkl7Wxm7c8B2Zdyq0KQ1cmoKVF/25CnI=
+Date: Thu, 28 May 2026 20:51:06 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stefan.strogin@gmail.com,stable@vger.kernel.org,rppt@kernel.org,osalvador@kernel.org,mina86@mina86.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,fvdl@google.com,david@kernel.org,0x7f454c46@gmail.com,songmuchun@bytedance.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-hotfixes-stable] memcg-use-round-robin-victim-selection-in-refill_stock.patch removed from -mm tree
-Message-Id: <20260529035106.1BE8F1F000E9@smtp.kernel.org>
+Subject: [merged mm-hotfixes-stable] mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas.patch removed from -mm tree
+Message-Id: <20260529035107.67AB71F00A3A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,77 +35,83 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: memcg: use round-robin victim selection in refill_stock
+     Subject: mm/cma_debug: fix invalid accesses for inactive CMA areas
 has been removed from the -mm tree.  Its filename was
-     memcg-use-round-robin-victim-selection-in-refill_stock.patch
+     mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas.patch
 
 This patch was dropped because it was merged into the mm-hotfixes-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeel.butt@linux.dev>
-Subject: memcg: use round-robin victim selection in refill_stock
-Date: Thu, 21 May 2026 15:37:51 -0700
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/cma_debug: fix invalid accesses for inactive CMA areas
+Date: Wed, 20 May 2026 14:10:25 +0800
 
-Harry Yoo reported that get_random_u32_below() is not safe to call in the
-nmi context and memcg charge draining can happen in nmi context.
+cma_activate_area() can fail after allocating range bitmaps.  Its cleanup
+path frees those bitmaps, but only clears cma->count and
+cma->available_count.  It leaves cma->nranges and each range's count in
+place, so cma_debugfs_init() can still register debugfs files for an area
+that never activated successfully.
 
-More specifically get_random_u32_below() is neither reentrant- nor
-NMI-safe: it acquires a per-cpu local_lock via local_lock_irqsave() on the
-batched_entropy_u32 state.  An NMI that lands on a CPU mid-update of the
-ChaCha batch state and recurses into the random subsystem would corrupt
-that state.  The memcg_stock local_trylock prevents re-entry on the percpu
-stock itself, but cannot protect an unrelated subsystem's per-cpu lock.
+That exposes two problems.  Reading the bitmap file can make debugfs walk
+a freed range bitmap and trigger an invalid memory access.  Reading
+maxchunk can also take cma->lock even though that lock is initialized only
+on the successful activation path.
 
-Replace the random pick with a per-cpu round-robin counter stored in
-memcg_stock_pcp and serialized by the same local_trylock that already
-guards cached[] and nr_pages[].  No atomics, no random calls, no extra
-locks needed.
+Fix this by creating debugfs entries only for CMA areas that reached
+CMA_ACTIVATED.
 
-Link: https://lore.kernel.org/20260521223751.3794625-1-shakeel.butt@linux.dev
-Fixes: f735eebe55f8f ("memcg: multi-memcg percpu charge cache")
-Signed-off-by: Shakeel Butt <shakeel.butt@linux.dev>
-Reported-by: Harry Yoo <harry@kernel.org>
-Closes: https://lore.kernel.org/4e20f643-6983-4b6e-b12d-c6c4eb20ae0c@kernel.org/
-Acked-by: Harry Yoo (Oracle) <harry@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Muchun Song <muchun.song@linux.dev>
-Cc: Roman Gushchin <roman.gushchin@linux.dev>
+c009da4258f9 introduced the invalid access to bitmap file.  2e32b947606d
+introduced the invalid access to cma->lock.  This change applies to both
+issues.  So I added two Fixes tags.
+
+Link: https://lore.kernel.org/20260520061025.3971821-1-songmuchun@bytedance.com
+Fixes: c009da4258f9 ("mm, cma: support multiple contiguous ranges, if requested")
+Fixes: 2e32b947606d ("mm: cma: add functions to get region pages counters")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+Acked-by: Oscar Salvador (SUSE) <osalvador@kernel.org>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Frank van der Linden <fvdl@google.com>
+Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Lorenzo Stoakes <ljs@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Stefan Strogin <stefan.strogin@gmail.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@kernel.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/cma_debug.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~memcg-use-round-robin-victim-selection-in-refill_stock
-+++ a/mm/memcontrol.c
-@@ -2011,6 +2011,7 @@ struct memcg_stock_pcp {
+--- a/mm/cma_debug.c~mm-cma_debug-fix-invalid-accesses-for-inactive-cma-areas
++++ a/mm/cma_debug.c
+@@ -205,7 +205,8 @@ static int __init cma_debugfs_init(void)
+ 	cma_debugfs_root = debugfs_create_dir("cma", NULL);
  
- 	struct work_struct work;
- 	unsigned long flags;
-+	uint8_t drain_idx;
- };
+ 	for (i = 0; i < cma_area_count; i++)
+-		cma_debugfs_add_one(&cma_areas[i], cma_debugfs_root);
++		if (test_bit(CMA_ACTIVATED, &cma_areas[i].flags))
++			cma_debugfs_add_one(&cma_areas[i], cma_debugfs_root);
  
- static DEFINE_PER_CPU_ALIGNED(struct memcg_stock_pcp, memcg_stock) = {
-@@ -2194,7 +2195,9 @@ static void refill_stock(struct mem_cgro
- 	if (!success) {
- 		i = empty_slot;
- 		if (i == -1) {
--			i = get_random_u32_below(NR_MEMCG_STOCK);
-+			i = stock->drain_idx++;
-+			if (stock->drain_idx == NR_MEMCG_STOCK)
-+				stock->drain_idx = 0;
- 			drain_stock(stock, i);
- 		}
- 		css_get(&memcg->css);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from shakeel.butt@linux.dev are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-memcg-store-node_id-instead-of-pglist_data-pointer.patch
-memcg-uint16_t-for-nr_bytes-in-obj_stock_pcp.patch
-memcg-int16_t-for-cached-slab-stats.patch
-memcg-multi-objcg-charge-support.patch
+mm-hugetlb_vmemmap-fix-incorrect-vmemmap-restore-in-rollback.patch
+mm-sparse-remove-sparse-buffer-pre-allocation-mechanism.patch
+mm-sparse-vmemmap-fix-vmemmap-accounting-underflow.patch
+mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
+mm-sparse-vmemmap-pass-pgmap-argument-to-memory-deactivation-paths.patch
+mm-sparse-vmemmap-fix-dax-vmemmap-accounting-with-optimization.patch
+mm-mm_init-fix-pageblock-migratetype-for-zone_device-compound-pages.patch
+mm-mm_init-fix-uninitialized-struct-pages-for-zone_device.patch
+mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
+drivers-base-memory-make-memory-block-get-put-explicit.patch
 
