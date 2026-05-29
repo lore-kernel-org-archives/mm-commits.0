@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 67B6936F8EF;
-	Fri, 29 May 2026 04:07:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E12436F8F3
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027635; cv=none; b=roVYRXfLk75bbpmwJkppzKqD83NsODGj1lZvdqe4zxgd2jpnXqhTw1VtXSTsrbXDypBo7Gqo7VpmqDLOpUWpo6uhxk1pfOMNXmU7DNe8FtPa4utn9g9W2C9Vp3GfzbIxeYwa+AGj2J1vWY1RTinEtexoivIyhGCVIS6w+d7Efis=
+	t=1780027638; cv=none; b=ULlUZ0kR8adiEUsYzMzUsqpTe7bABIHl5WiWCsF/SSowy6sS7xseakAkZFJ9EJfDr55xKGPN0mnWJnbzCDNkfXtx7ylL94LpOUrbkopHAdK/F1iVo+KVH1tRtqRfkzQAUnbMOEiir8rdTlQmCeD/u48ASGPHlbg+Epp/uAuDE+4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027635; c=relaxed/simple;
-	bh=nSgQbp7PL6uCFyAz2NJQ0VrcpxsG+0bNHbGJ7c09HP0=;
-	h=Date:To:From:Subject:Message-Id; b=Z3pfghpZOMWT5oc5U9kfEmXu0OtCsklm/SsJ7yjCqR+GWPOzKVO9ejnbmmLt4i9q3fa3tT/XN7mUA2eejLLLmoiMVvFE8INwY8casdPNtRszYYzmxjiAmD9iGFzW5mVJ4xxBmBccsj0x1E8EdNi2mL8MF0OXDNHNKYnX4fg3PTI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LmdPfoNC; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027638; c=relaxed/simple;
+	bh=yltfHTRG8eLRdSHIzfV9GrcoOQyYavYywmPKXWtNU7o=;
+	h=Date:To:From:Subject:Message-Id; b=TLZFe/GkeRC0hHFUyr3kCNoxpyAw9OHyVhLZNM0i0Qptr4jaFEP0Riw2Kn2ve/T9I+FmEP5ilZxjlIPE1ktO67GLnMMmV56MNXIUyAd/94xr0bB0gS7KPcJz0nB7/YmOYdLvVeWLVeBLehNZkdv9oQ9Eq0R7djBGOIbYcWMqpZc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=LNCQDdSB; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LmdPfoNC"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 423B81F00893;
-	Fri, 29 May 2026 04:07:13 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="LNCQDdSB"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 182351F0089A;
+	Fri, 29 May 2026 04:07:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027633;
-	bh=+oL9xshrH67n7gsQsKvjmDwhT4HBcS6cNrI0F1sgQJA=;
+	d=linux-foundation.org; s=korg; t=1780027629;
+	bh=6Mkyt+BSytFC+EIu1vmpQmTdJjbjUbFE1KGsPsoO1zw=;
 	h=Date:To:From:Subject;
-	b=LmdPfoNCe8LzYmnf7ZQqVu2PxIt+2I8Og9YBB/add8YpJcR+FgVIkM8X68rQMd/Hu
-	 77Rlk9d6BDfE6YV/T8vxkW3Q5wEv82mg34AgbCW9mOgDupe7HrGqw9PYDr3NwtFU5g
-	 vUQpbBPZV4hq7VMji6YpL4pHfdzgKnmxBGml44vo=
-Date: Thu, 28 May 2026 21:07:12 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,stable@vger.kernel.org,rppt@kernel.org,osalvador@suse.de,npiggin@gmail.com,mpe@ellerman.id.au,mhocko@suse.com,maddy@linux.ibm.com,ljs@kernel.org,liam@infradead.org,joao.m.martins@oracle.com,georgi.djakov@oss.qualcomm.com,david@kernel.org,aneesh.kumar@linux.ibm.com,songmuchun@bytedance.com,akpm@linux-foundation.org
+	b=LNCQDdSBinn2mUe8V1yggxZviNh7F7SaBoJTj84TB//TUG1ScdnoNZp1iRSghAaM1
+	 YsWCL0A24gXnDBroZBqOtV7x02tJB5GZmXqX4UEX/AitbrOh+s26nd2gD5k8WV3n5W
+	 PvvgVnyXdjScOKUV4d2ymuITou2I65qL2fGQa2i8=
+Date: Thu, 28 May 2026 21:07:08 -0700
+To: mm-commits@vger.kernel.org,vishal.l.verma@intel.com,jonathan.cameron@huawei.com,dave.jiang@intel.com,dan.j.williams@intel.com,benjamin.cheatham@amd.com,alison.schofield@intel.com,dave@stgolabs.net,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch removed from -mm tree
-Message-Id: <20260529040713.423B81F00893@smtp.kernel.org>
+Subject: [merged mm-stable] dax-kmem-account-for-partial-dis-contiguous-resource-upon-removal.patch removed from -mm tree
+Message-Id: <20260529040709.182351F0089A@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,75 +35,65 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/memory_hotplug: fix incorrect altmap passing in error path
+     Subject: dax/kmem: account for partial discontiguous resource upon removal
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path.patch
+     dax-kmem-account-for-partial-dis-contiguous-resource-upon-removal.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm/memory_hotplug: fix incorrect altmap passing in error path
-Date: Tue, 28 Apr 2026 16:18:51 +0800
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: dax/kmem: account for partial discontiguous resource upon removal
+Date: Mon, 23 Feb 2026 12:15:16 -0800
 
-In create_altmaps_and_memory_blocks(), when arch_add_memory() succeeds
-with memmap_on_memory enabled, the vmemmap pages are allocated from
-params.altmap.  If create_memory_block_devices() subsequently fails, the
-error path calls arch_remove_memory() with a NULL altmap instead of
-params.altmap.
+When dev_dax_kmem_probe() partially succeeds (at least one range is
+mapped) but a subsequent range fails request_mem_region() or
+add_memory_driver_managed(), the probe silently continues, ultimately
+returning success, but with the corresponding range resource NULL'ed out.
 
-This is a bug that could lead to memory corruption.  Since altmap is NULL,
-vmemmap_free() falls back to freeing the vmemmap pages into the system
-buddy allocator via free_pages() instead of the altmap. 
-arch_remove_memory() then immediately destroys the physical linear mapping
-for this memory.  This injects unowned pages into the buddy allocator,
-causing machine checks or memory corruption if the system later attempts
-to allocate and use those freed pages.
+dev_dax_kmem_remove() iterates over all dax_device ranges regardless of if
+the underlying resource exists.  When remove_memory() is called later, it
+returns 0 because the memory was never added which causes
+dev_dax_kmem_remove() to incorrectly assume the (nonexistent) resource can
+be removed and attempts cleanup on a NULL pointer.
 
-Fix this by passing params.altmap to arch_remove_memory() in the error
-path.
+Fix this by skipping these ranges altogether, noting that these cases are
+considered success, such that the cleanup is still reached when all
+actually-added ranges are successfully removed.
 
-Link: https://lore.kernel.org/20260428081855.1249045-3-songmuchun@bytedance.com
-Fixes: 6b8f0798b85a ("mm/memory_hotplug: split memmap_on_memory requests across memblocks")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: David Hildenbrand (Arm) <david@kernel.org>
-Acked-by: Liam R. Howlett <liam@infradead.org>
-Reviewed-by: Georgi Djakov <georgi.djakov@oss.qualcomm.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Madhavan Srinivasan <maddy@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lore.kernel.org/20260223201516.1517657-1-dave@stgolabs.net
+Fixes: 60e93dc097f7 ("device-dax: add dis-contiguous resource support")
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+Reviewed-by: Ben Cheatham <benjamin.cheatham@amd.com>
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Reviewed-by: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/dax/kmem.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-incorrect-altmap-passing-in-error-path
-+++ a/mm/memory_hotplug.c
-@@ -1470,7 +1470,7 @@ static int create_altmaps_and_memory_blo
- 		ret = create_memory_block_devices(cur_start, memblock_size, nid,
- 						  params.altmap, group);
- 		if (ret) {
--			arch_remove_memory(cur_start, memblock_size, NULL);
-+			arch_remove_memory(cur_start, memblock_size, params.altmap);
- 			kfree(params.altmap);
- 			goto out;
- 		}
+--- a/drivers/dax/kmem.c~dax-kmem-account-for-partial-dis-contiguous-resource-upon-removal
++++ a/drivers/dax/kmem.c
+@@ -227,6 +227,12 @@ static void dev_dax_kmem_remove(struct d
+ 		if (rc)
+ 			continue;
+ 
++		/* range was never added during probe */
++		if (!data->res[i]) {
++			success++;
++			continue;
++		}
++
+ 		rc = remove_memory(range.start, range_len(&range));
+ 		if (rc == 0) {
+ 			remove_resource(data->res[i]);
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-mm-hugetlb_vmemmap-fix-incorrect-vmemmap-restore-in-rollback.patch
-mm-memory_hotplug-factor-out-altmap-freeing-checks.patch
-drivers-base-memory-make-memory-block-get-put-explicit.patch
 
