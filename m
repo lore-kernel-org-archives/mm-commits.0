@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F642370AE0
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:08:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7973836F8EF
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:08:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027684; cv=none; b=eJzobWDLUxNvjkfWZECs4bpw1fwpYvLJ8Lp/WJ5lLA15F9D4kZR2e8ZYw0hC6oz7vqanxHwLn4GRDVmHrwTgJGkYVWfDkyWxwYAQ+DIGWFg544sNZ2xbh9lQlrKVo61hkz8UHgClmKfYdGpy477VC0xk/PiK4V21b9HJtYUKHec=
+	t=1780027685; cv=none; b=H7uHAA0OpHFv6tDA+bXD5igFJ6pjQncPWYYpaZfOB/bsFhzaaQE+qWauhJF/vYzYnVaOPYCuTx08mPiozE7dSn/F2T/G4zeVtIX95emp4hden0GNwUS+sTDxIrwQgexyfs2NpQ/AzwDr06tWaPSRnGobo7sobRbxo8jZhzLMlMg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027684; c=relaxed/simple;
-	bh=amb+hpTQebYpHRZlf/gRJf6EJQtuwqBd5s5BLnJ8td0=;
-	h=Date:To:From:Subject:Message-Id; b=sWlBUaUQY6ppS+kO2hodYZKYN53UFf3VhLWm/I+vj+A56XN70QyHDaaabA4dDgsSdpkvmX1fmtRbYuIbA0Z9/+/l8rQN/v3kaOVtSkUJulmKUi3WwdAX2aSfg1xVR3tACp2M4ZWKYZrdn/nqDl6A92xbmcoHvEgatXcypAYNKn0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=z+el5Lih; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027685; c=relaxed/simple;
+	bh=gQF/tqMB/SPo3GrvzqSo5LS9ZWlFOj3+eG6CNce0Sao=;
+	h=Date:To:From:Subject:Message-Id; b=fC7zpmDDbATrcDuN8Sp9cIVtr5xGZmcTNAgimQtwCZ0kKeLWuaQenauM+CMyGh9d5SK+cX0wu/VTNfngktnKyfJd+EOmRr3ZeHrdPm1TuUkvVHhQhYwhoklX9iFEkfUKim4ogZ5S3RXUo2xhgjAQQR6BP1i3o8hPOvAziwcSKDs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=Zz1jNz8G; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="z+el5Lih"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 150ED1F00898;
-	Fri, 29 May 2026 04:08:03 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="Zz1jNz8G"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 541F51F00893;
+	Fri, 29 May 2026 04:08:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027683;
-	bh=W1funQXENWrqOavxxMBIxDXgwOdbmMAEsnr3vhnzAe8=;
+	d=linux-foundation.org; s=korg; t=1780027684;
+	bh=rKeAYGNiVuFbCh0+GDYh4jPanypY1Prfq8TmKxvUWa8=;
 	h=Date:To:From:Subject;
-	b=z+el5LihqEyJhgjH+HJ163qEiDN7bAlJFTWOCcJWn5NKLtXezM5nsHACznjn9Sm6G
-	 pmR9OUbNCO386mtE0rk5Sixc/DgyjHqhOPlDjfPwb6wuqDP60TMyvrndvH5vUvLzx/
-	 AlnAxlfN+a06EG6+rz2hu/y7iRkQe8wtojz2yxUY=
-Date: Thu, 28 May 2026 21:08:02 -0700
-To: mm-commits@vger.kernel.org,vbabka@kernel.org,surenb@google.com,rppt@kernel.org,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,david@kernel.org,corbet@lwn.net,sj@kernel.org,akpm@linux-foundation.org
+	b=Zz1jNz8G9uE+Eq+/qR6YwFf00EZlKbEz9ETLLVJS4kZMFXPM1hzzxnjTLY+XNoOgK
+	 sEwYYMfRmb+oZ5PoFKivHMXavEBDDvuX4uhZrT9Lsvc4PI4rCzGXxqgQhLkwqfa7t8
+	 T1vKIY95EKrCS2HsVpXdX6U05ay/A8ceY3eg+C0w=
+Date: Thu, 28 May 2026 21:08:03 -0700
+To: mm-commits@vger.kernel.org,ziy@nvidia.com,vbabka@kernel.org,surenb@google.com,shuah@kernel.org,ryan.roberts@arm.com,rppt@kernel.org,npache@redhat.com,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,lance.yang@linux.dev,dev.jain@arm.com,david@kernel.org,baolin.wang@linux.alibaba.com,baohua@kernel.org,agarwal.vineet2006@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring.patch removed from -mm tree
-Message-Id: <20260529040803.150ED1F00898@smtp.kernel.org>
+Subject: [merged mm-stable] selftests-mm-khugepaged-initialize-file-contents-via-mmap.patch removed from -mm tree
+Message-Id: <20260529040804.541F51F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,107 +35,91 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: Docs/admin-guide/mm/damon/lru_sort: update for entire memory monitoring
+     Subject: selftests/mm: khugepaged: initialize file contents via mmap
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring.patch
+     selftests-mm-khugepaged-initialize-file-contents-via-mmap.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/lru_sort: update for entire memory monitoring
-Date: Tue, 28 Apr 2026 21:12:29 -0700
+From: Vineet Agarwal <agarwal.vineet2006@gmail.com>
+Subject: selftests/mm: khugepaged: initialize file contents via mmap
+Date: Wed, 29 Apr 2026 17:28:16 +0530
 
-Update DAMON_LRU_SORT usage document for the changed default monitoring
-target region selection.
+file_setup_area() currently allocates anonymous memory, fills it, and
+writes it into the backing file used for collapse testing.
 
-Link: https://lore.kernel.org/20260429041232.90257-8-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Instead of copying data through write(), resize the file with ftruncate(),
+map it directly with MAP_SHARED, and initialize the mapped area in place.
+
+This simplifies the setup path and avoids the need for explicit partial
+write handling.
+
+Link: https://lore.kernel.org/20260429115816.98824-1-agarwal.vineet2006@gmail.com
+Signed-off-by: Vineet Agarwal <agarwal.vineet2006@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Tested-by: Zi Yan <ziy@nvidia.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Barry Song <baohua@kernel.org>
+Cc: Dev Jain <dev.jain@arm.com>
+Cc: Lance Yang <lance.yang@linux.dev>
 Cc: Liam R. Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Ryan Roberts <ryan.roberts@arm.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/lru_sort.rst |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ tools/testing/selftests/mm/khugepaged.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/lru_sort.rst~docs-admin-guide-mm-damon-lru_sort-update-for-entire-memory-monitoring
-+++ a/Documentation/admin-guide/mm/damon/lru_sort.rst
-@@ -246,7 +246,8 @@ monitor_region_start
- Start of target memory region in physical address.
+--- a/tools/testing/selftests/mm/khugepaged.c~selftests-mm-khugepaged-initialize-file-contents-via-mmap
++++ a/tools/testing/selftests/mm/khugepaged.c
+@@ -373,7 +373,7 @@ static void *file_setup_area(int nr_hpag
+ 	unlink(finfo.path);  /* Cleanup from previous failed tests */
+ 	printf("Creating %s for collapse%s...", finfo.path,
+ 	       finfo.type == VMA_SHMEM ? " (tmpfs)" : "");
+-	fd = open(finfo.path, O_DSYNC | O_CREAT | O_RDWR | O_TRUNC | O_EXCL,
++	fd = open(finfo.path, O_CREAT | O_RDWR | O_TRUNC | O_EXCL,
+ 		  777);
+ 	if (fd < 0) {
+ 		perror("open()");
+@@ -381,9 +381,21 @@ static void *file_setup_area(int nr_hpag
+ 	}
  
- The start physical address of memory region that DAMON_LRU_SORT will do work
--against.  By default, biggest System RAM is used as the region.
-+against.  By default, the system's entire physical memory is used as the
-+region.
- 
- monitor_region_end
- ------------------
-@@ -254,7 +255,8 @@ monitor_region_end
- End of target memory region in physical address.
- 
- The end physical address of memory region that DAMON_LRU_SORT will do work
--against.  By default, biggest System RAM is used as the region.
-+against.  By default, the system's entire physical memory is used as the
-+region.
- 
- addr_unit
- ---------
+ 	size = nr_hpages * hpage_pmd_size;
+-	p = alloc_mapping(nr_hpages);
++	if (ftruncate(fd, size)) {
++		perror("ftruncate()");
++		exit(EXIT_FAILURE);
++	}
++	p = mmap(BASE_ADDR, size, PROT_READ | PROT_WRITE,
++		MAP_SHARED, fd, 0);
++	if (p != BASE_ADDR) {
++		perror("mmap()");
++		exit(EXIT_FAILURE);
++	}
+ 	fill_memory(p, 0, size);
+-	write(fd, p, size);
++	if (msync(p, size, MS_SYNC)) {
++		perror("msync()");
++		exit(EXIT_FAILURE);
++	}
+ 	close(fd);
+ 	munmap(p, size);
+ 	success("OK");
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from agarwal.vineet2006@gmail.com are
 
-mm-damon-ops-common-call-folio_test_lru-after-folio_get.patch
-mm-damon-reclaim-handle-ctx-allocation-failure.patch
-mm-damonn-lru_sort-handle-ctx-allocation-failure.patch
-mm-damon-core-introduce-struct-damon_probe.patch
-mm-damon-core-embed-damon_probe-objects-in-damon_ctx.patch
-mm-damon-core-introduce-damon_filter.patch
-mm-damon-core-commit-probes.patch
-mm-damon-core-introduce-damon_region-probe_hits.patch
-mm-damon-core-introduce-damon_ops-apply_probes.patch
-mm-damon-core-do-data-attributes-monitoring.patch
-mm-damon-paddr-support-data-attributes-monitoring.patch
-mm-damon-sysfs-implement-probes-dir.patch
-mm-damon-sysfs-implement-probe-dir.patch
-mm-damon-sysfs-implement-filters-directory.patch
-mm-damon-sysfs-implement-filter-dir.patch
-mm-damon-sysfs-implement-filter-dir-files.patch
-mm-damon-sysfs-setup-probes-on-damon-core-api-parameters.patch
-mm-damon-sysfs-schemes-implement-tried_regions-r-probes.patch
-mm-damon-sysfs-schemes-implement-probe-dir.patch
-mm-damon-sysfs-schemes-implement-probe-hits-file.patch
-mm-damon-trace-probe_hits.patch
-selftests-damon-sysfssh-test-probes-dir.patch
-docs-mm-damon-design-document-data-attributes-monitoring.patch
-docs-admin-guide-mm-damon-usage-document-data-attributes-monitoring.patch
-mm-damon-core-introduce-damon_filter_type_memcg.patch
-mm-damon-paddr-support-damon_filter_type_memcg.patch
-mm-damon-sysfs-add-filters-f-path-file.patch
-mm-damon-sysfs-schemes-move-memcg_path_to_id-to-sysfs-common.patch
-mm-damon-sysfs-setup-damon_filter-memcg_id-from-path.patch
-docs-mm-damon-design-update-for-memcg-damon-filter.patch
-docs-admin-guide-mm-damon-usage-update-for-memcg-damon-filter.patch
-mm-damon-core-safely-handle-no-region-case-in-damon_set_regions.patch
-mm-damon-core-do-not-use-region-out-of-a-loop-in-damon_set_regions.patch
-samples-damon-mtier-replace-damon_add_region-with-damon_set_regions.patch
-mm-damon-tests-vaddr-kunit-replace-damon_add_region-with-damon_set_regions.patch
-mm-damon-core-hide-damon_add_region.patch
-mm-damon-core-hide-damon_insert_region.patch
-mm-damon-core-hide-damon_destroy_region.patch
-mm-damon-core-add-kdamond_call-debug_sanity-check.patch
-mm-damon-core-remove-damon_verify_nr_regions.patch
-mm-damon-tests-core-kunit-add-damon_set_regions-test-cases.patch
-selftests-damon-sysfspy-stop-kdamonds-before-failing.patch
-selftests-damon-sysfssh-test-monitoring-intervals-goal-dir.patch
-selftests-damon-sysfssh-test-addr_unit-file-existence.patch
-selftests-damon-sysfssh-test-pause-file-existence.patch
-mm-damon-core-trace-esz-at-first-setup.patch
+selftests-mm-check-file-initialization-writes-in-split_huge_page_test.patch
+mm-damon-sysfs-schemes-fix-double-increment-of-nr_regions.patch
+selftests-mm-ksm-functional-tests-fix-partial-write-handling.patch
 
