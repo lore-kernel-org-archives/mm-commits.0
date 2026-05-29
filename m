@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65B2836E466
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AC3036F418
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:06:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027615; cv=none; b=phwbZf30ACParBtJOtdPW1JmZalrzd78q2CEm81C1iLdW9xiBSj64fHiNwajOAoZWHOa+LUydlKlYeNvXZit6M8JlJM53/RBLM59Xzj9rNQxTQzUb1n7CekU45LLHI3wTU4npx36nnBV2JnIc87G6j2XrCsc2lYeziZ+nNh6YYY=
+	t=1780027616; cv=none; b=CB8P8O+U//tKPI7OxqQVwt372Ufi/kK58f95k64ysO9qlhe1n8ChU/MMkIhmB4G6ZpG3/VPFUywb9OYoyQkddUfdoaDNjfgEUjVCFi5WQ5UgEaSd16aXcIQLrfaGpL9xYM0WyPrTSRwlQhYQlCCRWub9uO71gEJYhaIHue7+X0w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027615; c=relaxed/simple;
-	bh=/DSiNIRnsjA/5LTBb8JVU8WpWUDp2k+ZnavaLiCBv9A=;
-	h=Date:To:From:Subject:Message-Id; b=b4oObyU4sShTFziZERLhgpdqgjLSq1G13+nn8ZJqMp/J9az6YZ+c+MVnhYrhliu9XV/gLO/W1WaLs6CSze9YWdkYCZamHpB2P4zek//fpqhWXFBVo5flj/l1n6EVw3O4nn6LQLXQab/WYz4UY59pcsxBN3R+Ln33ybrb6ly9FX8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=o3gCdJ0x; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027616; c=relaxed/simple;
+	bh=Yb6gflobZd9GU/pfFfeRXzlYOR2MryMKB3ni/f0enD8=;
+	h=Date:To:From:Subject:Message-Id; b=Fakk6O/8hQ1TKPYQcZQYjKO4LuqBEHUHxB0tHEXoW3/Yo+fze5LKmrFT3GkiUu1NFS6sqKnf66r0X4Usce+UJPuc2+W/7CPKky5DHHZ0Az8FSwjCvo5bWX50a+67jajURB4mWeCymh1CNG/QN3YgiHF5X6QOo6fmh76pdD3+TcM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=UGK8TN0t; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="o3gCdJ0x"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E4C41F00898;
-	Fri, 29 May 2026 04:06:54 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="UGK8TN0t"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5E8591F00893;
+	Fri, 29 May 2026 04:06:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027614;
-	bh=4m7rPEj56FA7IaDLCVKgHvq5JEiCRj27vFrqiLQH6a4=;
+	d=linux-foundation.org; s=korg; t=1780027615;
+	bh=UH72E3gsHrqDmzsQSj1GA64lzvEbnEaLg+L7ePoXDYQ=;
 	h=Date:To:From:Subject;
-	b=o3gCdJ0xeO8gWNFbJpj2AxbPQGmIe3c2unsjtJrrSl2/9T1kd2FbWQ9mmtDJpSCa4
-	 GrPXvQeubyJwHXJZSQxN3It7Yl9hrCEv9bzbH0Xuk6GccKVeoI+b9Eg9AT57Up2EmL
-	 PBnBxi0orG8Qdrn+tc/VU5KNFfjAXIt8DZDasJqA=
-Date: Thu, 28 May 2026 21:06:53 -0700
-To: mm-commits@vger.kernel.org,yuanchu@google.com,willy@infradead.org,weixugc@google.com,vbabka@kernel.org,surenb@google.com,shakeel.butt@linux.dev,rppt@kernel.org,riel@surriel.com,qi.zheng@linux.dev,mhocko@suse.com,ljs@kernel.org,liam@infradead.org,kuba@kernel.org,kasong@tencent.com,hannes@cmpxchg.org,edumazet@google.com,david@kernel.org,baohua@kernel.org,axelrasmussen@google.com,jp.kobryn@linux.dev,akpm@linux-foundation.org
+	b=UGK8TN0tACzfTgaTRZ5EZnz5U3OyWDjPHKW0xJ/z0tQJybFMjKNe8xG0guLRkgJqC
+	 6XSLEQV65vSkr4hXCjWKeTvfe8i/NZkSOj2XTZZ4HgyblwFHAIX2nK6pqSdGab4Vey
+	 2znVS88aj2yuF8i6SAg70uNg4ByCew0JVm/EYEUg=
+Date: Thu, 28 May 2026 21:06:54 -0700
+To: mm-commits@vger.kernel.org,willy@infradead.org,shikemeng@huaweicloud.com,nphamcs@gmail.com,neil@brown.name,kasong@tencent.com,david@redhat.com,david@kernel.org,chrisl@kernel.org,bhe@redhat.com,devnexen@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-vmpressure-skip-socket-pressure-for-costly-order-reclaim.patch removed from -mm tree
-Message-Id: <20260529040654.3E4C41F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-page_io-rename-swap_iocb-fields-for-clarity.patch removed from -mm tree
+Message-Id: <20260529040655.5E8591F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,197 +35,161 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm/vmpressure: skip socket pressure for costly order reclaim
+     Subject: mm/page_io: rename swap_iocb fields for clarity
 has been removed from the -mm tree.  Its filename was
-     mm-vmpressure-skip-socket-pressure-for-costly-order-reclaim.patch
+     mm-page_io-rename-swap_iocb-fields-for-clarity.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "JP Kobryn (Meta)" <jp.kobryn@linux.dev>
-Subject: mm/vmpressure: skip socket pressure for costly order reclaim
-Date: Mon, 6 Apr 2026 12:50:14 -0700
+From: David Carlier <devnexen@gmail.com>
+Subject: mm/page_io: rename swap_iocb fields for clarity
+Date: Thu, 2 Apr 2026 08:26:50 +0100
 
-When reclaim is triggered by high order allocations on a fragmented
-system, vmpressure() can report poor reclaim efficiency even though the
-system has plenty of free memory.  This is because many pages are scanned,
-but few are found to actually reclaim - the pages are actively in use and
-don't need to be freed.  The resulting scan:reclaim ratio causes
-vmpressure() to assert socket pressure, throttling TCP throughput
-unnecessarily.
+swap_iocb->pages tracks the number of bvec entries (folios), not base
+pages.  Rename the array from bvec to bvecs and the counter from pages to
+nr_bvecs to accurately reflect their purpose.
 
-Costly order allocations (above PAGE_ALLOC_COSTLY_ORDER) rely heavily on
-compaction to succeed, so poor reclaim efficiency at these orders does not
-necessarily indicate memory pressure.  The kernel already treats this
-order as the boundary where reclaim is no longer expected to succeed and
-compaction may take over.
-
-Make vmpressure() order-aware through an additional parameter sourced from
-scan_control at existing call sites.  Socket pressure is now only asserted
-when order <= PAGE_ALLOC_COSTLY_ORDER.
-
-Memcg reclaim is unaffected since try_to_free_mem_cgroup_pages() always
-uses order 0, which passes the filter unconditionally.  Similarly,
-vmpressure_prio() now passes order 0 internally when calling vmpressure(),
-ensuring critical pressure from low reclaim priority is not suppressed by
-the order filter.
-
-The patch was motivated by a case of impacted net throughput in
-production.  On one affected host, the memory state at the time showed
-~15GB available, zero cgroup pressure, and the following buddyinfo state:
-
-Order FreePages
-0:    133,970
-1:    29,230
-2:    17,351
-3:    18,984
-7+:   0
-
-Using bpf, it was found that 94% of vmpressure calls on this host were
-from order-7 kswapd reclaim.
-
-TCP minimum recv window is rcv_ssthresh:19712.
-
-Before patch:
-723 out of 3,843 (19%) TCP connections stuck at minimum recv window
-
-After live-patching and ~30min elapsed:
-0 out of 3,470 TCP connections stuck at minimum recv window
-
-Link: https://lore.kernel.org/20260406195014.112521-1-jp.kobryn@linux.dev
-Signed-off-by: JP Kobryn (Meta) <jp.kobryn@linux.dev>
-Reviewed-by: Rik van Riel <riel@surriel.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Shakeel Butt <shakeel.butt@linux.dev>
-Acked-by: Jakub Kicinski <kuba@kernel.org>
-Reviewed-by: Barry Song <baohua@kernel.org>
-Acked-by: Vlastimil Babka (SUSE) <vbabka@kernel.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Hildenbrand <david@kernel.org>
-Cc: Eric Dumazet <edumazet@google.com>
+Link: https://lore.kernel.org/20260402072650.48811-1-devnexen@gmail.com
+Signed-off-by: David Carlier <devnexen@gmail.com>
+Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Suggested-by: David Hildenbrand <david@redhat.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Acked-by: Chris Li <chrisl@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Kairui Song <kasong@tencent.com>
-Cc: Liam Howlett <liam@infradead.org>
-Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Qi Zheng <qi.zheng@linux.dev>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yuanchu Xie <yuanchu@google.com>
+Cc: Kemeng Shi <shikemeng@huaweicloud.com>
+Cc: NeilBrown <neil@brown.name>
+Cc: Nhat Pham <nphamcs@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmpressure.h |    9 +++++----
- mm/vmpressure.c            |   15 ++++++++++++---
- mm/vmscan.c                |    8 ++++----
- 3 files changed, 21 insertions(+), 11 deletions(-)
+ mm/page_io.c |   42 +++++++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
 
---- a/include/linux/vmpressure.h~mm-vmpressure-skip-socket-pressure-for-costly-order-reclaim
-+++ a/include/linux/vmpressure.h
-@@ -30,8 +30,8 @@ struct vmpressure {
- struct mem_cgroup;
+--- a/mm/page_io.c~mm-page_io-rename-swap_iocb-fields-for-clarity
++++ a/mm/page_io.c
+@@ -326,8 +326,8 @@ static void bio_associate_blkg_from_page
  
- #ifdef CONFIG_MEMCG
--extern void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
--		       unsigned long scanned, unsigned long reclaimed);
-+void vmpressure(gfp_t gfp, int order, struct mem_cgroup *memcg, bool tree,
-+		unsigned long scanned, unsigned long reclaimed);
- extern void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio);
- 
- extern void vmpressure_init(struct vmpressure *vmpr);
-@@ -44,8 +44,9 @@ extern int vmpressure_register_event(str
- extern void vmpressure_unregister_event(struct mem_cgroup *memcg,
- 					struct eventfd_ctx *eventfd);
- #else
--static inline void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
--			      unsigned long scanned, unsigned long reclaimed) {}
-+static inline void vmpressure(gfp_t gfp, int order, struct mem_cgroup *memcg,
-+			      bool tree, unsigned long scanned,
-+			      unsigned long reclaimed) {}
- static inline void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg,
- 				   int prio) {}
- #endif /* CONFIG_MEMCG */
---- a/mm/vmpressure.c~mm-vmpressure-skip-socket-pressure-for-costly-order-reclaim
-+++ a/mm/vmpressure.c
-@@ -218,6 +218,7 @@ static void vmpressure_work_fn(struct wo
- /**
-  * vmpressure() - Account memory pressure through scanned/reclaimed ratio
-  * @gfp:	reclaimer's gfp mask
-+ * @order:	allocation order being reclaimed for
-  * @memcg:	cgroup memory controller handle
-  * @tree:	legacy subtree mode
-  * @scanned:	number of pages scanned
-@@ -236,7 +237,7 @@ static void vmpressure_work_fn(struct wo
-  *
-  * This function does not return any value.
-  */
--void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
-+void vmpressure(gfp_t gfp, int order, struct mem_cgroup *memcg, bool tree,
- 		unsigned long scanned, unsigned long reclaimed)
+ struct swap_iocb {
+ 	struct kiocb		iocb;
+-	struct bio_vec		bvec[SWAP_CLUSTER_MAX];
+-	int			pages;
++	struct bio_vec		bvecs[SWAP_CLUSTER_MAX];
++	int			nr_bvecs;
+ 	int			len;
+ };
+ static mempool_t *sio_pool;
+@@ -348,7 +348,7 @@ int sio_pool_init(void)
+ static void sio_write_complete(struct kiocb *iocb, long ret)
  {
- 	struct vmpressure *vmpr;
-@@ -307,7 +308,15 @@ void vmpressure(gfp_t gfp, struct mem_cg
+ 	struct swap_iocb *sio = container_of(iocb, struct swap_iocb, iocb);
+-	struct page *page = sio->bvec[0].bv_page;
++	struct page *page = sio->bvecs[0].bv_page;
+ 	int p;
  
- 		level = vmpressure_calc_level(scanned, reclaimed);
+ 	if (ret != sio->len) {
+@@ -362,15 +362,15 @@ static void sio_write_complete(struct ki
+ 		 */
+ 		pr_err_ratelimited("Write error %ld on dio swapfile (%llu)\n",
+ 				   ret, swap_dev_pos(page_swap_entry(page)));
+-		for (p = 0; p < sio->pages; p++) {
+-			page = sio->bvec[p].bv_page;
++		for (p = 0; p < sio->nr_bvecs; p++) {
++			page = sio->bvecs[p].bv_page;
+ 			set_page_dirty(page);
+ 			ClearPageReclaim(page);
+ 		}
+ 	}
  
--		if (level > VMPRESSURE_LOW) {
-+		/*
-+		 * Once we go above COSTLY_ORDER, reclaim relies heavily on
-+		 * compaction to make progress. Reclaim efficiency was never a
-+		 * great proxy for pressure to begin with, but it's outright
-+		 * misleading with these high orders. Don't throttle sockets
-+		 * because somebody is attempting something crazy like an order-7
-+		 * and predictably struggling.
-+		 */
-+		if (level > VMPRESSURE_LOW && order <= PAGE_ALLOC_COSTLY_ORDER) {
- 			/*
- 			 * Let the socket buffer allocator know that
- 			 * we are having trouble reclaiming LRU pages.
-@@ -348,7 +357,7 @@ void vmpressure_prio(gfp_t gfp, struct m
- 	 * to the vmpressure() basically means that we signal 'critical'
- 	 * level.
- 	 */
--	vmpressure(gfp, memcg, true, vmpressure_win, 0);
-+	vmpressure(gfp, 0, memcg, true, vmpressure_win, 0);
+-	for (p = 0; p < sio->pages; p++)
+-		end_page_writeback(sio->bvec[p].bv_page);
++	for (p = 0; p < sio->nr_bvecs; p++)
++		end_page_writeback(sio->bvecs[p].bv_page);
+ 
+ 	mempool_free(sio, sio_pool);
  }
+@@ -397,13 +397,13 @@ static void swap_writepage_fs(struct fol
+ 		init_sync_kiocb(&sio->iocb, swap_file);
+ 		sio->iocb.ki_complete = sio_write_complete;
+ 		sio->iocb.ki_pos = pos;
+-		sio->pages = 0;
++		sio->nr_bvecs = 0;
+ 		sio->len = 0;
+ 	}
+-	bvec_set_folio(&sio->bvec[sio->pages], folio, folio_size(folio), 0);
++	bvec_set_folio(&sio->bvecs[sio->nr_bvecs], folio, folio_size(folio), 0);
+ 	sio->len += folio_size(folio);
+-	sio->pages += 1;
+-	if (sio->pages == ARRAY_SIZE(sio->bvec) || !swap_plug) {
++	sio->nr_bvecs += 1;
++	if (sio->nr_bvecs == ARRAY_SIZE(sio->bvecs) || !swap_plug) {
+ 		swap_write_unplug(sio);
+ 		sio = NULL;
+ 	}
+@@ -477,7 +477,7 @@ void swap_write_unplug(struct swap_iocb
+ 	struct address_space *mapping = sio->iocb.ki_filp->f_mapping;
+ 	int ret;
  
- #define MAX_VMPRESSURE_ARGS_LEN	(strlen("critical") + strlen("hierarchy") + 2)
---- a/mm/vmscan.c~mm-vmpressure-skip-socket-pressure-for-costly-order-reclaim
-+++ a/mm/vmscan.c
-@@ -5071,8 +5071,8 @@ static int shrink_one(struct lruvec *lru
- 	shrink_slab(sc->gfp_mask, pgdat->node_id, memcg, sc->priority);
+-	iov_iter_bvec(&from, ITER_SOURCE, sio->bvec, sio->pages, sio->len);
++	iov_iter_bvec(&from, ITER_SOURCE, sio->bvecs, sio->nr_bvecs, sio->len);
+ 	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
+ 	if (ret != -EIOCBQUEUED)
+ 		sio_write_complete(&sio->iocb, ret);
+@@ -489,8 +489,8 @@ static void sio_read_complete(struct kio
+ 	int p;
  
- 	if (!sc->proactive)
--		vmpressure(sc->gfp_mask, memcg, false, sc->nr_scanned - scanned,
--			   sc->nr_reclaimed - reclaimed);
-+		vmpressure(sc->gfp_mask, sc->order, memcg, false,
-+			   sc->nr_scanned - scanned, sc->nr_reclaimed - reclaimed);
+ 	if (ret == sio->len) {
+-		for (p = 0; p < sio->pages; p++) {
+-			struct folio *folio = page_folio(sio->bvec[p].bv_page);
++		for (p = 0; p < sio->nr_bvecs; p++) {
++			struct folio *folio = page_folio(sio->bvecs[p].bv_page);
  
- 	flush_reclaim_state(sc);
+ 			count_mthp_stat(folio_order(folio), MTHP_STAT_SWPIN);
+ 			count_memcg_folio_events(folio, PSWPIN, folio_nr_pages(folio));
+@@ -499,8 +499,8 @@ static void sio_read_complete(struct kio
+ 		}
+ 		count_vm_events(PSWPIN, sio->len >> PAGE_SHIFT);
+ 	} else {
+-		for (p = 0; p < sio->pages; p++) {
+-			struct folio *folio = page_folio(sio->bvec[p].bv_page);
++		for (p = 0; p < sio->nr_bvecs; p++) {
++			struct folio *folio = page_folio(sio->bvecs[p].bv_page);
  
-@@ -6175,7 +6175,7 @@ static void shrink_node_memcgs(pg_data_t
+ 			folio_unlock(folio);
+ 		}
+@@ -559,13 +559,13 @@ static void swap_read_folio_fs(struct fo
+ 		init_sync_kiocb(&sio->iocb, sis->swap_file);
+ 		sio->iocb.ki_pos = pos;
+ 		sio->iocb.ki_complete = sio_read_complete;
+-		sio->pages = 0;
++		sio->nr_bvecs = 0;
+ 		sio->len = 0;
+ 	}
+-	bvec_set_folio(&sio->bvec[sio->pages], folio, folio_size(folio), 0);
++	bvec_set_folio(&sio->bvecs[sio->nr_bvecs], folio, folio_size(folio), 0);
+ 	sio->len += folio_size(folio);
+-	sio->pages += 1;
+-	if (sio->pages == ARRAY_SIZE(sio->bvec) || !plug) {
++	sio->nr_bvecs += 1;
++	if (sio->nr_bvecs == ARRAY_SIZE(sio->bvecs) || !plug) {
+ 		swap_read_unplug(sio);
+ 		sio = NULL;
+ 	}
+@@ -666,7 +666,7 @@ void __swap_read_unplug(struct swap_iocb
+ 	struct address_space *mapping = sio->iocb.ki_filp->f_mapping;
+ 	int ret;
  
- 		/* Record the group's reclaim efficiency */
- 		if (!sc->proactive)
--			vmpressure(sc->gfp_mask, memcg, false,
-+			vmpressure(sc->gfp_mask, sc->order, memcg, false,
- 				   sc->nr_scanned - scanned,
- 				   sc->nr_reclaimed - reclaimed);
- 
-@@ -6220,7 +6220,7 @@ again:
- 
- 	/* Record the subtree's reclaim efficiency */
- 	if (!sc->proactive)
--		vmpressure(sc->gfp_mask, sc->target_mem_cgroup, true,
-+		vmpressure(sc->gfp_mask, sc->order, sc->target_mem_cgroup, true,
- 			   sc->nr_scanned - nr_scanned, nr_node_reclaimed);
- 
- 	if (nr_node_reclaimed)
+-	iov_iter_bvec(&from, ITER_DEST, sio->bvec, sio->pages, sio->len);
++	iov_iter_bvec(&from, ITER_DEST, sio->bvecs, sio->nr_bvecs, sio->len);
+ 	ret = mapping->a_ops->swap_rw(&sio->iocb, &from);
+ 	if (ret != -EIOCBQUEUED)
+ 		sio_read_complete(&sio->iocb, ret);
 _
 
-Patches currently in -mm which might be from jp.kobryn@linux.dev are
+Patches currently in -mm which might be from devnexen@gmail.com are
 
-mm-compaction-cap-compact_gap-at-compact_cluster_max.patch
+mm-shrinker-avoid-out-of-bounds-read-in-set_shrinker_bit.patch
+mm-swap-pm-hibernate-atomically-replace-hibernation-pin.patch
 
