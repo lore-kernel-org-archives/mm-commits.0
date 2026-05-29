@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6A6A371D19
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:25:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3D7135AC01
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:25:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028745; cv=none; b=KzCR2Qj8xiu0lKdvidUkOofRVlhLJvjxoDu0F7symOLhIUm8SrQiu71g3KqHMTeoH7SpaML1224IgLIo5lbSTWObg+3UDsd4bEU6I1i2+/7KtZc6jjhnDi+cNfNn7+bHmZE4MrBO7lWNFrda8Ou7vYWDflw5IXUCybGcIwsIq8Q=
+	t=1780028746; cv=none; b=HasVnEZf8F0015nr9gVAoJj8jcjRs2InDD233er69xCe0na3xFz3UTg+ztsAhehxB9jPcy2Vm2WqxI6vY+A9x+z4FGFNShMXbWDj1UaAbXPdVTi0wc7vYYQsBXccSWEouN/SfkDAnrUucmfB2NJEfvKsolQeR3vLrKxXD/pjbRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028745; c=relaxed/simple;
-	bh=QAM7fwe2x4aQd0Iz38+3iKIQh6n2pR/GYTbQ9aSVW9M=;
-	h=Date:To:From:Subject:Message-Id; b=d/js5tz+1AxvZoc7kpPqobWqHoD+/o7xR5OB6dXZn1g+Ht3/RdEyvUF1NiXMbqaS3hHK+u+jZD61+JPmew2HnzBWlijJBhtOB5DivJc16d5sOmct1M95Z1O1no6JYbVA9cZM8yYbcx5u1CRnNhNcJPf8CmC1mCqBolFBr/BuPfE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=KWqrxGZ9; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028746; c=relaxed/simple;
+	bh=XWy/BopNoahg5JNA5irV0DZLMruqd14o5s9u887TcHA=;
+	h=Date:To:From:Subject:Message-Id; b=uXCayUaAuX267JqrzhqG/eZzfYIdoyXr9cYBiimB0adTfvchC6ETG5aM7YmMIAddbqeVk6Ojet5znIJVZv1Qp6yU0g2guJyKH/ybcDCZuaVRLZJHtthJOzgtGOoHvjLUV2fL8Kfa04s8/oqikVo0uOcnqKzE7GDbS7ydDOtx+Yk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=JvyTE1sF; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="KWqrxGZ9"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7FFF11F00898;
-	Fri, 29 May 2026 04:25:42 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="JvyTE1sF"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0F841F00899;
+	Fri, 29 May 2026 04:25:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028742;
-	bh=bEkV0MT3cuBMT/pEnx2ma576/rqW1A0Ple32tHDCt44=;
+	d=linux-foundation.org; s=korg; t=1780028744;
+	bh=ofcByyTtSepY+9DSX3CxWNm8uY+thR0jt4cfSr3KW8g=;
 	h=Date:To:From:Subject;
-	b=KWqrxGZ9E4pvMniiezcH9R5LCPOsT+a+Fm56EcdutRa2aQdEjyp5sQJXA0UNuOQsf
-	 fo9xLMpX6a/yC0csQKkZuOWX89IM8JYR/1vmAabXz4fBDky8yPfX4+LgsIdUSez6zi
-	 EnQV6WBuo8VyTY/JOu3qqloRpE3nJ8Ynd5gjhlnc=
-Date: Thu, 28 May 2026 21:25:42 -0700
-To: mm-commits@vger.kernel.org,yang.yang29@zte.com.cn,wang.yaxin@zte.com.cn,thomas.orgis@uni-hamburg.de,oleg@redhat.com,balbirs@nvidia.com,cyyzero16@gmail.com,akpm@linux-foundation.org
+	b=JvyTE1sFiKGFJhUBDX1+lfkc7/H+L5MxOU2SsBRp9w6+7U8XtCSnDtlzMq0dFnkAK
+	 OiH8Du8e7uJoWNVMjjgX9p0Rv5jmUs8qGgI4NdEvHA+hBiqKZDzLZG2EgLxaxB2bbg
+	 zpDaD+9yhcNX0XE8bHQ+f5mrI1N7JZSBZpiDPi9k=
+Date: Thu, 28 May 2026 21:25:44 -0700
+To: mm-commits@vger.kernel.org,joe@perches.com,sashal@kernel.org,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] selftests-acct-add-taskstats-tgid-retention-test.patch removed from -mm tree
-Message-Id: <20260529042542.7FFF11F00898@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] get_maintainer-add-json-output-mode.patch removed from -mm tree
+Message-Id: <20260529042544.B0F841F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,447 +35,155 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: selftests/acct: add taskstats TGID retention test
+     Subject: get_maintainer: add --json output mode
 has been removed from the -mm tree.  Its filename was
-     selftests-acct-add-taskstats-tgid-retention-test.patch
+     get_maintainer-add-json-output-mode.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Yiyang Chen <cyyzero16@gmail.com>
-Subject: selftests/acct: add taskstats TGID retention test
-Date: Mon, 13 Apr 2026 23:45:45 +0800
+From: Sasha Levin <sashal@kernel.org>
+Subject: get_maintainer: add --json output mode
+Date: Wed, 8 Apr 2026 15:45:42 -0400
 
-Add a kselftest for the taskstats TGID aggregation fix.
+Add a --json flag to get_maintainer.pl that emits structured JSON output,
+making results machine-parseable for CI systems, IDE integrations, and
+AI-assisted development tools.
 
-The test creates a worker thread, snapshots TGID taskstats while the
-worker is still alive, lets the worker exit, and then verifies that the
-TGID CPU total does not regress after the thread has been reaped.
+The JSON output includes a maintainers array with structured name, email,
+and role fields, plus optional arrays for scm, status, subsystem, web, and
+bug information when those flags are enabled.
 
-The pass/fail check intentionally keys off ac_utime + ac_stime only, which
-is the primary user-visible regression fixed by the taskstats change and
-is less sensitive to scheduling noise than context-switch counters.
+Normal text output behavior is completely unchanged when --json is not
+specified.
 
-Link: https://lore.kernel.org/0d55354911c54cd1b9f10a09f6fd378af85c8d43.1776094300.git.cyyzero16@gmail.com
-Signed-off-by: Yiyang Chen <cyyzero16@gmail.com>
-Acked-by: Balbir Singh <balbirs@nvidia.com>
-Cc: Dr. Thomas Orgis <thomas.orgis@uni-hamburg.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Wang Yaxin <wang.yaxin@zte.com.cn>
-Cc: Yang Yang <yang.yang29@zte.com.cn>
+Assisted-by: Claude:claude-opus-4-6
+Link: https://lore.kernel.org/20260408194542.1354549-1-sashal@kernel.org
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/acct/.gitignore                  |    3 
- tools/testing/selftests/acct/Makefile                    |    5 
- tools/testing/selftests/acct/taskstats_fill_stats_tgid.c |  375 ++++++++++
- 3 files changed, 381 insertions(+), 2 deletions(-)
+ scripts/get_maintainer.pl |   75 +++++++++++++++++++++---------------
+ 1 file changed, 44 insertions(+), 31 deletions(-)
 
---- a/tools/testing/selftests/acct/.gitignore~selftests-acct-add-taskstats-tgid-retention-test
-+++ a/tools/testing/selftests/acct/.gitignore
-@@ -1,3 +1,4 @@
- acct_syscall
-+taskstats_fill_stats_tgid
- config
--process_log
-\ No newline at end of file
-+process_log
---- a/tools/testing/selftests/acct/Makefile~selftests-acct-add-taskstats-tgid-retention-test
-+++ a/tools/testing/selftests/acct/Makefile
-@@ -1,5 +1,8 @@
- # SPDX-License-Identifier: GPL-2.0
- TEST_GEN_PROGS := acct_syscall
-+TEST_GEN_PROGS += taskstats_fill_stats_tgid
-+
- CFLAGS += -Wall
-+LDLIBS += -lpthread
+--- a/scripts/get_maintainer.pl~get_maintainer-add-json-output-mode
++++ a/scripts/get_maintainer.pl
+@@ -21,6 +21,7 @@ use Cwd;
+ use File::Find;
+ use File::Spec::Functions;
+ use open qw(:std :encoding(UTF-8));
++use JSON::PP;
  
--include ../lib.mk
-\ No newline at end of file
-+include ../lib.mk
-diff --git a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c
-new file mode 100644
---- /dev/null
-+++ a/tools/testing/selftests/acct/taskstats_fill_stats_tgid.c
-@@ -0,0 +1,375 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#define _GNU_SOURCE
+ my $cur_path = fastgetcwd() . '/';
+ my $lk_path = "./";
+@@ -68,6 +69,7 @@ my $pattern_depth = 0;
+ my $self_test = undef;
+ my $version = 0;
+ my $help = 0;
++my $json = 0;
+ my $find_maintainer_files = 0;
+ my $maintainer_path;
+ my $vcs_used = 0;
+@@ -285,6 +287,7 @@ if (!GetOptions(
+ 		'find-maintainer-files' => \$find_maintainer_files,
+ 		'mpath|maintainer-path=s' => \$maintainer_path,
+ 		'self-test:s' => \$self_test,
++		'json!' => \$json,
+ 		'v|version' => \$version,
+ 		'h|help|usage' => \$help,
+ 		)) {
+@@ -650,39 +653,48 @@ my %deduplicate_name_hash = ();
+ my %deduplicate_address_hash = ();
+ 
+ my @maintainers = get_maintainers();
+-if (@maintainers) {
+-    @maintainers = merge_email(@maintainers);
+-    output(@maintainers);
+-}
+-
+-if ($scm) {
+-    @scm = uniq(@scm);
+-    output(@scm);
+-}
+-
+-if ($output_substatus) {
+-    @substatus = uniq(@substatus);
+-    output(@substatus);
+-}
+-
+-if ($status) {
+-    @status = uniq(@status);
+-    output(@status);
+-}
+ 
+-if ($subsystem) {
+-    @subsystem = uniq(@subsystem);
+-    output(@subsystem);
+-}
+-
+-if ($web) {
+-    @web = uniq(@web);
+-    output(@web);
+-}
++@maintainers = merge_email(@maintainers) if (@maintainers);
++@scm = uniq(@scm) if ($scm);
++@substatus = uniq(@substatus) if ($output_substatus);
++@status = uniq(@status) if ($status);
++@subsystem = uniq(@subsystem) if ($subsystem);
++@web = uniq(@web) if ($web);
++@bug = uniq(@bug) if ($bug);
 +
-+#include <errno.h>
-+#include <linux/genetlink.h>
-+#include <linux/netlink.h>
-+#include <linux/taskstats.h>
-+#include <pthread.h>
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <sys/socket.h>
-+#include <sys/types.h>
-+#include <time.h>
-+#include <unistd.h>
-+
-+#include "kselftest.h"
-+
-+#ifndef NLA_ALIGN
-+#define NLA_ALIGNTO 4
-+#define NLA_ALIGN(len) (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
-+#define NLA_HDRLEN ((int)NLA_ALIGN(sizeof(struct nlattr)))
-+#endif
-+
-+#define BUSY_NS (200ULL * 1000 * 1000)
-+
-+struct worker_ctx {
-+	pthread_mutex_t lock;
-+	pthread_cond_t cond;
-+	bool ready;
-+	bool release;
-+};
-+
-+static unsigned long busy_sink;
-+
-+static void *taskstats_nla_data(const struct nlattr *na)
-+{
-+	return (void *)((char *)na + NLA_HDRLEN);
-+}
-+
-+static bool taskstats_nla_ok(const struct nlattr *na, int remaining)
-+{
-+	return remaining >= (int)sizeof(*na) &&
-+	       na->nla_len >= sizeof(*na) &&
-+	       na->nla_len <= remaining;
-+}
-+
-+static struct nlattr *taskstats_nla_next(const struct nlattr *na, int *remaining)
-+{
-+	int aligned_len = NLA_ALIGN(na->nla_len);
-+
-+	*remaining -= aligned_len;
-+	return (struct nlattr *)((char *)na + aligned_len);
-+}
-+
-+static uint64_t timespec_diff_ns(const struct timespec *start,
-+				 const struct timespec *end)
-+{
-+	return (uint64_t)(end->tv_sec - start->tv_sec) * 1000000000ULL +
-+	       (uint64_t)(end->tv_nsec - start->tv_nsec);
-+}
-+
-+static void burn_cpu_for_ns(uint64_t runtime_ns)
-+{
-+	struct timespec start, now;
-+	unsigned long acc = 0;
-+
-+	if (clock_gettime(CLOCK_MONOTONIC, &start)) {
-+		perror("clock_gettime");
-+		exit(EXIT_FAILURE);
++if ($json) {
++    my @json_maintainers;
++    for my $m (@maintainers) {
++	my ($addr, $role);
++	if ($output_roles && $m =~ /^(.*?)\s+\((.+)\)\s*$/) {
++	    $addr = $1;
++	    $role = $2;
++	} else {
++	    $addr = $m;
 +	}
++	my ($name, $email_addr) = parse_email($addr);
++	my %entry = (name => $name, email => $email_addr);
++	$entry{role} = $role if (defined $role && $role ne '');
++	push(@json_maintainers, \%entry);
++    }
 +
-+	do {
-+		for (int i = 0; i < 100000; i++)
-+			acc += i;
-+		if (clock_gettime(CLOCK_MONOTONIC, &now)) {
-+			perror("clock_gettime");
-+			exit(EXIT_FAILURE);
-+		}
-+	} while (timespec_diff_ns(&start, &now) < runtime_ns);
-+
-+	busy_sink = acc;
-+}
-+
-+static int netlink_open(void)
-+{
-+	struct sockaddr_nl addr = {
-+		.nl_family = AF_NETLINK,
-+		.nl_pid = getpid(),
-+	};
-+	int fd;
-+
-+	fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
-+	if (fd < 0)
-+		return -errno;
-+
-+	if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-+		int err = -errno;
-+
-+		close(fd);
-+		return err;
-+	}
-+
-+	return fd;
-+}
-+
-+static int send_request(int fd, void *buf, size_t len)
-+{
-+	struct sockaddr_nl addr = {
-+		.nl_family = AF_NETLINK,
-+	};
-+
-+	if (sendto(fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-+		return -errno;
-+
-+	return 0;
-+}
-+
-+static int get_family_id(int fd, const char *name)
-+{
-+	struct {
-+		struct nlmsghdr nlh;
-+		struct genlmsghdr genl;
-+		char buf[256];
-+	} req = { 0 };
-+	char resp[8192];
-+	struct nlmsghdr *nlh;
-+	struct genlmsghdr *genl;
-+	struct nlattr *na;
-+	int len;
-+	int rem;
-+	int ret;
-+
-+	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
-+	req.nlh.nlmsg_type = GENL_ID_CTRL;
-+	req.nlh.nlmsg_flags = NLM_F_REQUEST;
-+	req.nlh.nlmsg_seq = 1;
-+	req.nlh.nlmsg_pid = getpid();
-+
-+	req.genl.cmd = CTRL_CMD_GETFAMILY;
-+	req.genl.version = 1;
-+
-+	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
-+	na->nla_type = CTRL_ATTR_FAMILY_NAME;
-+	na->nla_len = NLA_HDRLEN + strlen(name) + 1;
-+	memcpy(taskstats_nla_data(na), name, strlen(name) + 1);
-+	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
-+
-+	ret = send_request(fd, &req, req.nlh.nlmsg_len);
-+	if (ret)
-+		return ret;
-+
-+	len = recv(fd, resp, sizeof(resp), 0);
-+	if (len < 0)
-+		return -errno;
-+
-+	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
-+	     nlh = NLMSG_NEXT(nlh, len)) {
-+		if (nlh->nlmsg_type == NLMSG_ERROR) {
-+			struct nlmsgerr *err = NLMSG_DATA(nlh);
-+
-+			return err->error ? err->error : -ENOENT;
-+		}
-+
-+		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
-+		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
-+		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
-+		while (taskstats_nla_ok(na, rem)) {
-+			if (na->nla_type == CTRL_ATTR_FAMILY_ID)
-+				return *(uint16_t *)taskstats_nla_data(na);
-+			na = taskstats_nla_next(na, &rem);
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static int get_taskstats(int fd, int family_id, uint16_t attr_type, uint32_t id,
-+			 struct taskstats *stats)
-+{
-+	struct {
-+		struct nlmsghdr nlh;
-+		struct genlmsghdr genl;
-+		char buf[256];
-+	} req = { 0 };
-+	char resp[16384];
-+	struct nlmsghdr *nlh;
-+	struct genlmsghdr *genl;
-+	struct nlattr *na;
-+	struct nlattr *nested;
-+	int len;
-+	int rem;
-+	int nrem;
-+	int ret;
-+
-+	memset(stats, 0, sizeof(*stats));
-+
-+	req.nlh.nlmsg_len = NLMSG_LENGTH(GENL_HDRLEN);
-+	req.nlh.nlmsg_type = family_id;
-+	req.nlh.nlmsg_flags = NLM_F_REQUEST;
-+	req.nlh.nlmsg_seq = 2;
-+	req.nlh.nlmsg_pid = getpid();
-+
-+	req.genl.cmd = TASKSTATS_CMD_GET;
-+	req.genl.version = 1;
-+
-+	na = (struct nlattr *)((char *)&req + NLMSG_ALIGN(req.nlh.nlmsg_len));
-+	na->nla_type = attr_type;
-+	na->nla_len = NLA_HDRLEN + sizeof(id);
-+	memcpy(taskstats_nla_data(na), &id, sizeof(id));
-+	req.nlh.nlmsg_len = NLMSG_ALIGN(req.nlh.nlmsg_len) + NLA_ALIGN(na->nla_len);
-+
-+	ret = send_request(fd, &req, req.nlh.nlmsg_len);
-+	if (ret)
-+		return ret;
-+
-+	len = recv(fd, resp, sizeof(resp), 0);
-+	if (len < 0)
-+		return -errno;
-+
-+	for (nlh = (struct nlmsghdr *)resp; NLMSG_OK(nlh, len);
-+	     nlh = NLMSG_NEXT(nlh, len)) {
-+		if (nlh->nlmsg_type == NLMSG_ERROR) {
-+			struct nlmsgerr *err = NLMSG_DATA(nlh);
-+
-+			return err->error ? err->error : -ENOENT;
-+		}
-+
-+		genl = (struct genlmsghdr *)NLMSG_DATA(nlh);
-+		rem = nlh->nlmsg_len - NLMSG_HDRLEN - GENL_HDRLEN;
-+		na = (struct nlattr *)((char *)genl + GENL_HDRLEN);
-+		while (taskstats_nla_ok(na, rem)) {
-+			if (na->nla_type == TASKSTATS_TYPE_AGGR_PID ||
-+			    na->nla_type == TASKSTATS_TYPE_AGGR_TGID) {
-+				nested = (struct nlattr *)taskstats_nla_data(na);
-+				nrem = na->nla_len - NLA_HDRLEN;
-+				while (taskstats_nla_ok(nested, nrem)) {
-+					if (nested->nla_type == TASKSTATS_TYPE_STATS) {
-+						memcpy(stats, taskstats_nla_data(nested),
-+						       sizeof(*stats));
-+						return 0;
-+					}
-+					nested = taskstats_nla_next(nested, &nrem);
-+				}
-+			}
-+			na = taskstats_nla_next(na, &rem);
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static uint64_t cpu_total(const struct taskstats *stats)
-+{
-+	return (uint64_t)stats->ac_utime + (uint64_t)stats->ac_stime;
-+}
-+
-+static void print_stats(const char *label, const struct taskstats *stats)
-+{
-+	ksft_print_msg("%s: cpu_total=%llu nvcsw=%llu nivcsw=%llu\n",
-+		       label, (unsigned long long)cpu_total(stats),
-+		       (unsigned long long)stats->nvcsw,
-+		       (unsigned long long)stats->nivcsw);
-+}
-+
-+static void *worker_thread(void *arg)
-+{
-+	struct worker_ctx *ctx = arg;
-+
-+	burn_cpu_for_ns(BUSY_NS);
-+
-+	pthread_mutex_lock(&ctx->lock);
-+	ctx->ready = true;
-+	pthread_cond_broadcast(&ctx->cond);
-+	while (!ctx->release)
-+		pthread_cond_wait(&ctx->cond, &ctx->lock);
-+	pthread_mutex_unlock(&ctx->lock);
-+
-+	return NULL;
-+}
-+
-+int main(void)
-+{
-+	struct worker_ctx ctx = {
-+		.lock = PTHREAD_MUTEX_INITIALIZER,
-+		.cond = PTHREAD_COND_INITIALIZER,
-+	};
-+	struct taskstats before, after;
-+	pthread_t thread;
-+	pid_t tgid = getpid();
-+	int family_id;
-+	int fd;
-+	int ret;
-+
-+	ksft_print_header();
-+	ksft_set_plan(1);
-+
-+	if (geteuid())
-+		ksft_exit_skip("taskstats_fill_stats_tgid needs root\n");
-+
-+	fd = netlink_open();
-+	if (fd < 0)
-+		ksft_exit_skip("failed to open generic netlink socket: %s\n",
-+			       strerror(-fd));
-+
-+	family_id = get_family_id(fd, TASKSTATS_GENL_NAME);
-+	if (family_id < 0)
-+		ksft_exit_skip("taskstats generic netlink family unavailable: %s\n",
-+			       strerror(-family_id));
-+
-+	/* Create worker thread that burns 200ms of CPU */
-+	if (pthread_create(&thread, NULL, worker_thread, &ctx) != 0)
-+		ksft_exit_fail_msg("pthread_create failed: %s\n", strerror(errno));
-+
-+	/* Wait for worker to finish generating activity */
-+	pthread_mutex_lock(&ctx.lock);
-+	while (!ctx.ready)
-+		pthread_cond_wait(&ctx.cond, &ctx.lock);
-+	pthread_mutex_unlock(&ctx.lock);
-+
-+	/*
-+	 * Snapshot A: TGID stats while worker is alive and sleeping.
-+	 * Contains main thread + worker contributions.
-+	 */
-+	ret = get_taskstats(fd, family_id, TASKSTATS_CMD_ATTR_TGID, tgid, &before);
-+	if (ret)
-+		ksft_exit_fail_msg("TGID query before exit failed: %s\n",
-+				   strerror(-ret));
-+
-+	/* Release worker so it can exit, then join (deterministic wait).
-+	 *
-+	 * Kernel exit path ordering guarantees:
-+	 *   do_exit()
-+	 *     taskstats_exit() -> fill_tgid_exit()  (accumulates worker into signal->stats)
-+	 *     exit_notify()                         (releases the thread)
-+	 *     do_task_dead() -> __schedule()        (wakes joiner)
-+	 *
-+	 * So pthread_join() returns only after fill_tgid_exit() has completed.
-+	 */
-+	pthread_mutex_lock(&ctx.lock);
-+	ctx.release = true;
-+	pthread_cond_broadcast(&ctx.cond);
-+	pthread_mutex_unlock(&ctx.lock);
-+
-+	pthread_join(thread, NULL);
-+
-+	/*
-+	 * Snapshot B: TGID stats after worker has exited.
-+	 * fill_stats_for_tgid() does:
-+	 *   memcpy(signal->stats)   <- includes fill_tgid_exit accumulation
-+	 *   + scan live threads      <- only main thread now
-+	 */
-+	ret = get_taskstats(fd, family_id, TASKSTATS_CMD_ATTR_TGID, tgid, &after);
-+	if (ret)
-+		ksft_exit_fail_msg("TGID query after exit failed: %s\n",
-+				   strerror(-ret));
-+
-+	print_stats("TGID before worker exit", &before);
-+	print_stats("TGID after  worker exit", &after);
-+
-+	/*
-+	 * The worker burned 200ms of CPU before the first snapshot.
-+	 * If the kernel correctly retained its contribution via
-+	 * fill_tgid_exit(), then the TGID CPU total after exit must be at
-+	 * least as large as the TGID CPU total before exit.
-+	 */
-+	ksft_test_result(cpu_total(&after) >= cpu_total(&before),
-+			 "TGID CPU stats should not regress after thread exit\n");
-+
-+	close(fd);
-+	ksft_finished();
-+	return ksft_get_fail_cnt() ? KSFT_FAIL : KSFT_PASS;
-+}
++    my %result = (maintainers => \@json_maintainers);
++    $result{scm} = \@scm if ($scm);
++    $result{status} = \@status if ($status);
++    $result{subsystem} = \@subsystem if ($subsystem);
++    $result{web} = \@web if ($web);
++    $result{bug} = \@bug if ($bug);
+ 
+-if ($bug) {
+-    @bug = uniq(@bug);
+-    output(@bug);
++    my $json_encoder = JSON::PP->new->canonical->utf8;
++    print($json_encoder->encode(\%result) . "\n");
++} else {
++    output(@maintainers) if (@maintainers);
++    output(@scm) if ($scm);
++    output(@substatus) if ($output_substatus);
++    output(@status) if ($status);
++    output(@subsystem) if ($subsystem);
++    output(@web) if ($web);
++    output(@bug) if ($bug);
+ }
+ 
+ exit($exit);
+@@ -1104,6 +1116,7 @@ Output type options:
+   --separator [, ] => separator for multiple entries on 1 line
+     using --separator also sets --nomultiline if --separator is not [, ]
+   --multiline => print 1 entry per line
++  --json => output results as JSON
+ 
+ Other options:
+   --pattern-depth => Number of pattern directory traversals (default: 0 (all))
 _
 
-Patches currently in -mm which might be from cyyzero16@gmail.com are
+Patches currently in -mm which might be from sashal@kernel.org are
 
 
