@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 010C136F914
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF7BE370AC6
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:07:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780027652; cv=none; b=qRszPhCvNnssEeLgVU+yqAMVzGn3racdGys4BltwLDcGrw/P5MeJAPXd8sQfi8k7fQ4F6wnHjGnYl0OZ492LyJ+4/hfkxnO1/siuLNlSbxE/39LFupBojazLNPcDX603lLPVcG28kexicNz8uLY8eyPlxewE7R8NhmSUokfn+lk=
+	t=1780027654; cv=none; b=DUe5/Ww0j7lIG8PNFGB284eQn4Qp0UdxWqYU869HPVtTfgodtZiiW2OMDjpCJHO7MP88PRnbNm+I/9yV7hRUjmQVWiHFhSJ51urtJ12FyO1cHaVXCV7tjDRZijIUjT6n3hK3hu+PyqCQZImP1YpSxS0eCTV6W9m6r7ZJG0hYyFE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780027652; c=relaxed/simple;
-	bh=182qCe6IbUgtJIFdgfCXLdXGaIwF0QPt6gfCfgMm4hU=;
-	h=Date:To:From:Subject:Message-Id; b=fcAILU6Q0O2aw1htsOrglGDYYn6crLwkhtgRRdD71xHCLplRs3drEH1hEeTBVR5r+duYp+813/b7Oem6/aEPILMOH8vw1LEPpqeUi6pij+44wooJ93dVAYdk2Tax7d7P9kIsh/jN0lu5GAKRCz+CCZb0eC+BymVkWdBatH3c41E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=2EYSvRYD; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780027654; c=relaxed/simple;
+	bh=A4CTLbuAei6DXHKJzR9QNrcTaVSU3f6/GEWkcZVMf6Y=;
+	h=Date:To:From:Subject:Message-Id; b=d4Wl1e+J9A9o0t00zV20IUXwHqU4R0EuYehMn6MfQAU641ukOkhCH8IkdQ8EnFVAyT3AAxxZVZfQ/xwT8J+Fr9mZ/DgK342AFtH3QoPz+TIYfQwO92dacMe8cTRVEKXhLNXHZTVUBGfy2XEGNg+1GJfnTDtBW0XZ4KtmwqwFJhQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lLVR5aGm; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="2EYSvRYD"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 836861F00898;
-	Fri, 29 May 2026 04:07:30 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lLVR5aGm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0A5C1F00893;
+	Fri, 29 May 2026 04:07:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780027650;
-	bh=Jf7a2j8ylBSN++svzFVjHVFCgayXknseEammlXsSJOk=;
+	d=linux-foundation.org; s=korg; t=1780027651;
+	bh=Qc8czZqfxkhNkBdEsj9ENOmYamuL2u0r2DRfE12mp9Q=;
 	h=Date:To:From:Subject;
-	b=2EYSvRYDnXmRCJygt3MQeDdbesExPVaM8Sk2R2Zzm0zTiWfpwpSzImftu3QK4ZJ7Q
-	 Cp5mg81bgBrjhSApcdZ0CRehQYW04VOftceW3Dzy44rl6fWcDUJxI+mfWX+0ity4Kc
-	 tAwLJBrf4aum6oSL3FXKiTfqd1yjBvSNqCl6QWHQ=
-Date: Thu, 28 May 2026 21:07:30 -0700
-To: mm-commits@vger.kernel.org,ysato@users.sourceforge.jp,yonghong.song@linux.dev,willy@infradead.org,vbabka@kernel.org,surenb@google.com,song@kernel.org,rppt@kernel.org,riel@surriel.com,mhocko@suse.com,memxor@gmail.com,martin.lau@linux.dev,ljs@kernel.org,liam@infradead.org,jolsa@kernel.org,jannh@google.com,harry@kernel.org,glaubitz@physik.fu-berlin.de,eddyz87@gmail.com,dalias@libc.org,ast@kernel.org,andrii@kernel.org,david@kernel.org,akpm@linux-foundation.org
+	b=lLVR5aGmZeb+vbDjNk2iVOnV/jOw1JFvQJ2uwDApmzoPs6zAPYBYZkXpwv7BQrnL2
+	 Z0sz1IDd9hPaB4QPZUuzHc84/SkBQyupFYVCVmc76wQEaoEHisOfgQrL988pJCS8L4
+	 5q/s7WWEO+HURGauD+otu27/rBwJBFzAWtpJhjt4=
+Date: Thu, 28 May 2026 21:07:31 -0700
+To: mm-commits@vger.kernel.org,vbabka@kernel.org,sj@kernel.org,shuah@kernel.org,ljs@kernel.org,liam@infradead.org,jannh@google.com,david@kernel.org,brauner@kernel.org,fujunjie1@qq.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-stable] mm-remove-page_mapped.patch removed from -mm tree
-Message-Id: <20260529040730.836861F00898@smtp.kernel.org>
+Subject: [merged mm-stable] mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors.patch removed from -mm tree
+Message-Id: <20260529040731.B0A5C1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,133 +35,202 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: mm: remove page_mapped()
+     Subject: mm/madvise: reject invalid process_madvise() advice for zero-length vectors
 has been removed from the -mm tree.  Its filename was
-     mm-remove-page_mapped.patch
+     mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors.patch
 
 This patch was dropped because it was merged into the mm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: "David Hildenbrand (Arm)" <david@kernel.org>
-Subject: mm: remove page_mapped()
-Date: Mon, 27 Apr 2026 13:43:16 +0200
+From: fujunjie <fujunjie1@qq.com>
+Subject: mm/madvise: reject invalid process_madvise() advice for zero-length vectors
+Date: Mon, 4 May 2026 10:39:57 +0000
 
-Let's replace the last user of page_mapped() by folio_mapped() so we can
-get rid of page_mapped().
+process_madvise() used to validate the advice while walking each imported
+iovec.  If the vector has zero total length, vector_madvise() does not
+enter the loop and can return success without checking whether the advice
+value is valid.
 
-Replace the remaining occurrences of page_mapped() in rmap documentation
-by folio_mapped().
+For a local mm, such as process_madvise(PIDFD_SELF, ...), the remote-only
+process_madvise_remote_valid() check is skipped.  As a result, an invalid
+advice can be reported as success when the vector has zero total length. 
+This differs from madvise(), which rejects an invalid advice before
+returning success for a zero-length range.
 
-Link: https://lore.kernel.org/20260427-page_mapped-v1-3-e89c3592c74c@kernel.org
-Signed-off-by: David Hildenbrand (Arm) <david@kernel.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Andrii Nakryiko <andrii@kernel.org>
-Cc: Eduard Zingerman <eddyz87@gmail.com>
-Cc: Harry Yoo <harry@kernel.org>
+Validate the generic madvise behavior at the syscall-facing entry points
+before any vector walk.  In process_madvise(), do this before the
+remote-only advice restriction so unsupported advice is rejected with the
+same priority for local and remote mm.
+
+Use an errno-returning helper for address/length validation, and handle
+zero-length ranges explicitly at the call sites.  Requests with valid
+advice and zero total length remain a noop and continue to return 0.  Add
+a selftest that covers invalid advice with a zero-length iovec and an
+empty vector, while also checking that a request with valid advice and
+zero length still succeeds.
+
+Link: https://lore.kernel.org/tencent_C3AEB0E769C5F4F9370F9411B69B7F8B2907@qq.com
+Fixes: 021781b01275 ("mm/madvise: unrestrict process_madvise() for current process")
+Signed-off-by: fujunjie <fujunjie1@qq.com>
+Acked-by: David Hildenbrand (Arm) <david@kernel.org>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: Jann Horn <jannh@google.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Kumar Kartikeya Dwivedi <memxor@gmail.com>
-Cc: Liam R. Howlett <liam@infradead.org>
+Cc: Liam Howlett <liam@infradead.org>
 Cc: Lorenzo Stoakes <ljs@kernel.org>
-Cc: Martin KaFai Lau <martin.lau@linux.dev>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Song Liu <song@kernel.org>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Vlastimil Babka <vbabka@kernel.org>
-Cc: Yonghong Song <yonghong.song@linux.dev>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   10 ----------
- mm/memory.c        |    2 +-
- mm/rmap.c          |    8 ++++----
- 3 files changed, 5 insertions(+), 15 deletions(-)
+ mm/madvise.c                              |   60 ++++++++------------
+ tools/testing/selftests/mm/process_madv.c |   28 +++++++++
+ 2 files changed, 53 insertions(+), 35 deletions(-)
 
---- a/include/linux/mm.h~mm-remove-page_mapped
-+++ a/include/linux/mm.h
-@@ -1888,16 +1888,6 @@ static inline bool folio_mapped(const st
- 	return folio_mapcount(folio) >= 1;
+--- a/mm/madvise.c~mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors
++++ a/mm/madvise.c
+@@ -1834,50 +1834,29 @@ static void madvise_finish_tlb(struct ma
+ 		tlb_finish_mmu(madv_behavior->tlb);
  }
  
--/*
-- * Return true if this page is mapped into pagetables.
-- * For compound page it returns true if any sub-page of compound page is mapped,
-- * even if this particular sub-page is not itself mapped by any PTE or PMD.
-- */
--static inline bool page_mapped(const struct page *page)
--{
--	return folio_mapped(page_folio(page));
+-static bool is_valid_madvise(unsigned long start, size_t len_in, int behavior)
++/**
++ * check_input_range() - Check if the requested range is valid.
++ * @start:	Start address of madvise-requested address range.
++ * @len_in:	Length of madvise-requested address range.
++ *
++ * Returns: 0 if the input range is valid, otherwise an error code.
++ */
++static int check_input_range(unsigned long start, size_t len_in)
+ {
+ 	size_t len;
+ 
+-	if (!madvise_behavior_valid(behavior))
+-		return false;
+-
+ 	if (!PAGE_ALIGNED(start))
+-		return false;
++		return -EINVAL;
+ 	len = PAGE_ALIGN(len_in);
+ 
+ 	/* Check to see whether len was rounded up from small -ve to zero */
+ 	if (len_in && !len)
+-		return false;
++		return -EINVAL;
+ 
+ 	if (start + len < start)
+-		return false;
++		return -EINVAL;
+ 
+-	return true;
 -}
 -
- static inline struct page *virt_to_head_page(const void *x)
- {
- 	struct page *page = virt_to_page(x);
---- a/mm/memory.c~mm-remove-page_mapped
-+++ a/mm/memory.c
-@@ -5482,7 +5482,7 @@ static vm_fault_t __do_fault(struct vm_f
- 	if (unlikely(PageHWPoison(vmf->page))) {
- 		vm_fault_t poisonret = VM_FAULT_HWPOISON;
- 		if (ret & VM_FAULT_LOCKED) {
--			if (page_mapped(vmf->page))
-+			if (folio_mapped(folio))
- 				unmap_mapping_folio(folio);
- 			/* Retry if a clean folio was removed from the cache. */
- 			if (mapping_evict_folio(folio->mapping, folio))
---- a/mm/rmap.c~mm-remove-page_mapped
-+++ a/mm/rmap.c
-@@ -571,7 +571,7 @@ void __init anon_vma_init(void)
-  * In case it was remapped to a different anon_vma, the new anon_vma will be a
-  * child of the old anon_vma, and the anon_vma lifetime rules will therefore
-  * ensure that any anon_vma obtained from the page will still be valid for as
-- * long as we observe page_mapped() [ hence all those page_mapped() tests ].
-+ * long as we observe folio_mapped() [ hence all those folio_mapped() tests ].
-  *
-  * All users of this function must be very careful when walking the anon_vma
-  * chain and verify that the page in question is indeed mapped in it
-@@ -1999,7 +1999,7 @@ static bool try_to_unmap_one(struct foli
- 	/*
- 	 * When racing against e.g. zap_pte_range() on another cpu,
- 	 * in between its ptep_get_and_clear_full() and folio_remove_rmap_*(),
--	 * try_to_unmap() may return before page_mapped() has become false,
-+	 * try_to_unmap() may return before folio_mapped() has become false,
- 	 * if page table locking is skipped: use TTU_SYNC to wait for that.
- 	 */
- 	if (flags & TTU_SYNC)
-@@ -2428,7 +2428,7 @@ static bool try_to_migrate_one(struct fo
- 	/*
- 	 * When racing against e.g. zap_pte_range() on another cpu,
- 	 * in between its ptep_get_and_clear_full() and folio_remove_rmap_*(),
--	 * try_to_migrate() may return before page_mapped() has become false,
-+	 * try_to_migrate() may return before folio_mapped() has become false,
- 	 * if page table locking is skipped: use TTU_SYNC to wait for that.
- 	 */
- 	if (flags & TTU_SYNC)
-@@ -2929,7 +2929,7 @@ static struct anon_vma *rmap_walk_anon_l
+-/*
+- * madvise_should_skip() - Return if the request is invalid or nothing.
+- * @start:	Start address of madvise-requested address range.
+- * @len_in:	Length of madvise-requested address range.
+- * @behavior:	Requested madvise behavior.
+- * @err:	Pointer to store an error code from the check.
+- *
+- * If the specified behaviour is invalid or nothing would occur, we skip the
+- * operation.  This function returns true in the cases, otherwise false.  In
+- * the former case we store an error on @err.
+- */
+-static bool madvise_should_skip(unsigned long start, size_t len_in,
+-		int behavior, int *err)
+-{
+-	if (!is_valid_madvise(start, len_in, behavior)) {
+-		*err = -EINVAL;
+-		return true;
+-	}
+-	if (start + PAGE_ALIGN(len_in) == start) {
+-		*err = 0;
+-		return true;
+-	}
+-	return false;
++	return 0;
+ }
  
+ static bool is_madvise_populate(struct madvise_behavior *madv_behavior)
+@@ -2013,8 +1992,13 @@ int do_madvise(struct mm_struct *mm, uns
+ 		.tlb = &tlb,
+ 	};
+ 
+-	if (madvise_should_skip(start, len_in, behavior, &error))
++	if (!madvise_behavior_valid(behavior))
++		return -EINVAL;
++
++	error = check_input_range(start, len_in);
++	if (error || !len_in)
+ 		return error;
++
+ 	error = madvise_lock(&madv_behavior);
+ 	if (error)
+ 		return error;
+@@ -2056,7 +2040,8 @@ static ssize_t vector_madvise(struct mm_
+ 		size_t len_in = iter_iov_len(iter);
+ 		int error;
+ 
+-		if (madvise_should_skip(start, len_in, behavior, &error))
++		error = check_input_range(start, len_in);
++		if (error || !len_in)
+ 			ret = error;
+ 		else
+ 			ret = madvise_do_behavior(start, len_in, &madv_behavior);
+@@ -2131,6 +2116,11 @@ SYSCALL_DEFINE5(process_madvise, int, pi
+ 		goto release_task;
+ 	}
+ 
++	if (!madvise_behavior_valid(behavior)) {
++		ret = -EINVAL;
++		goto release_mm;
++	}
++
  	/*
- 	 * Note: remove_migration_ptes() cannot use folio_lock_anon_vma_read()
--	 * because that depends on page_mapped(); but not all its usages
-+	 * because that depends on folio_mapped(); but not all its usages
- 	 * are holding mmap_lock. Users without mmap_lock are required to
- 	 * take a reference count to prevent the anon_vma disappearing
- 	 */
+ 	 * We need only perform this check if we are attempting to manipulate a
+ 	 * remote process's address space.
+--- a/tools/testing/selftests/mm/process_madv.c~mm-madvise-reject-invalid-process_madvise-advice-for-zero-length-vectors
++++ a/tools/testing/selftests/mm/process_madv.c
+@@ -310,6 +310,34 @@ TEST_F(process_madvise, invalid_vlen)
+ }
+ 
+ /*
++ * Test that invalid advice is rejected even when the iovec has zero total
++ * length. A request with valid advice and zero length is a noop, but
++ * invalid advice should still fail with EINVAL.
++ */
++TEST_F(process_madvise, invalid_advice_zero_length)
++{
++	struct iovec vec = {
++		.iov_base = NULL,
++		.iov_len = 0,
++	};
++	int pidfd = self->pidfd;
++	ssize_t ret;
++
++	errno = 0;
++	ret = sys_process_madvise(pidfd, &vec, 1, -1, 0);
++	ASSERT_EQ(ret, -1);
++	ASSERT_EQ(errno, EINVAL);
++
++	errno = 0;
++	ret = sys_process_madvise(pidfd, &vec, 1, MADV_DONTNEED, 0);
++	ASSERT_EQ(ret, 0);
++
++	ret = sys_process_madvise(pidfd, NULL, 0, -1, 0);
++	ASSERT_EQ(ret, -1);
++	ASSERT_EQ(errno, EINVAL);
++}
++
++/*
+  * Test process_madvise() with an invalid flag value. Currently, only a flag
+  * value of 0 is supported. This test is reserved for the future, e.g., if
+  * synchronous flags are added.
 _
 
-Patches currently in -mm which might be from david@kernel.org are
+Patches currently in -mm which might be from fujunjie1@qq.com are
 
-sparc-mm-remove-register_page_bootmem_info.patch
-mm-bootmem_info-drop-initialization-of-page-lru.patch
-mm-bootmem_info-stop-using-pg_private.patch
-mm-bootmem_info-remove-call-to-kmemleak_free_part_phys.patch
-mm-bootmem_info-stop-marking-the-pgdat-as-node_info.patch
-mm-bootmem_info-stop-marking-mem_section_usage-as-mix_section_info.patch
-s390-mm-use-free_reserved_page-in-vmem_free_pages.patch
-powerpc-mm-remove-config_have_bootmem_info_node.patch
+mm-compaction-respect-cpusets-when-checking-retry-suitability.patch
+mm-page_alloc-fix-deferred-compaction-accounting.patch
 
