@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 732D1371CE4
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:26:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91EFB37266E
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:26:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028761; cv=none; b=UJaWQ/EbZ0vp59MXjwfO76Bq9t2uGpBzNhgTAr04NXOVB6xCShQt+fpG8XFuXGjb6HZYMh/XdXtd5gl3Q61Xyd9gKt10wxGpmilZcPljiErgcnfmOCPqs8Ek3QLmg3E48u2UI+770EnkpNljCFOmGshvnFYJx0v3WxW3qYWdEoY=
+	t=1780028762; cv=none; b=dadLGdN6gnAhO6BGwxl5tRVFI3TvShS5ifjXIoJBWMSsBoKfR1PgiKz84yIluEz76TzVedm2bfib6ryMrGVaNB8Ej+n86uQxxYAH+5uGf0e6xPfRDxzAzxPYBv8LgGj+YsfT8/p5v270dOK22oXV8XOisykWUU/m9XD/0ywEacM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028761; c=relaxed/simple;
-	bh=Z2wR+3zFuYwFRuUYbpyVJr5xBUJkYaH9RWCSgeydDdA=;
-	h=Date:To:From:Subject:Message-Id; b=Du+ZDrerLpWg3Fl2H5lvtc1FuVQbeVVTNPXQa/IN3/yJ/56OMtmuLTyFfQkX/MhuNZBgVjh7cbIGtC1pt+39LehLEfJdzHenXltTIUvuYeH1kZUqraG1ZWyfENO06DW/NCaUIeXakb1VHMchdj6yRR1WlspTxGSNf6B8RNcL2lQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=u3Dv+BdQ; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028762; c=relaxed/simple;
+	bh=O3fcK1GA7LcyRdpMkrZbedCwQJrsGFM0LCnj6x+QxAU=;
+	h=Date:To:From:Subject:Message-Id; b=A3WVApJQQHhg4AOGx7XAUoq9gn+DB/+jwkN2/7Pn/F+f28VN0sOGoaCLFVZho5Dm2LeLW2N/aw6OrWwh8GEJLahMVrx//m6cmYrEk9FTj2+rXC6JZsnyrS6j+c/gFQFRzsQ+Tfvke9l61LVkQBHuTKTlPQlFv3hKVptPH5eXR/U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=buTH/1St; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="u3Dv+BdQ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48E7C1F00898;
-	Fri, 29 May 2026 04:26:00 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="buTH/1St"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6816C1F00899;
+	Fri, 29 May 2026 04:26:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028760;
-	bh=kJjdLmaiv2b/PaYwHA2LnBn8QwWjcUDV8XvfD/uKjxw=;
+	d=linux-foundation.org; s=korg; t=1780028761;
+	bh=vQdYaDxmCutXW1sLUmYwsI2z/GaVaAbXmOBHYBBTjVY=;
 	h=Date:To:From:Subject;
-	b=u3Dv+BdQsU0R0FixzmS79R/HG3IoiA9IcfPW6Mg7FFcAgcMeFS4o7H35uBOH6V6Pk
-	 YkPgLlo5JAbbnu2zLWXaeUA84hgfqg+cSD5b0AliUbFqzy7PNrMzvXq2E8LrsA70Eu
-	 8uFFCykzmNyOEJxmUdakzRPj3bTuatEFHaVEsOzo=
-Date: Thu, 28 May 2026 21:25:59 -0700
-To: mm-commits@vger.kernel.org,valentina.manea.m@gmail.com,shuah@kernel.org,mst@redhat.com,kuba@kernel.org,jasowang@redhat.com,i@zenithal.me,gregkh@linuxfoundation.org,glider@google.com,eperezma@redhat.com,dvyukov@google.com,andreyknvl@gmail.com,jannh@google.com,akpm@linux-foundation.org
+	b=buTH/1St6jIgcHdQDAGK7CM6DHWZwvUDWgCnubftAArFuboy702zqrnYjFi2wd8+O
+	 BcCIwsL2aRpY6NA64VtJgc5yrzbsI4kjZ/uq1kVjy4zQ/eKRI3G6yeWzvdaUcKDYkr
+	 BlJHV+Sea2f7Nm5I4giqEHLvNKdOF1i+8n7gJn+4=
+Date: Thu, 28 May 2026 21:26:01 -0700
+To: mm-commits@vger.kernel.org,mporter@kernel.crashing.org,chul.kim@idt.com,alex.bou9@gmail.com,error27@gmail.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] kcov-refactor-common-handle-id-into-kcov_common_handle_id.patch removed from -mm tree
-Message-Id: <20260529042600.48E7C1F00898@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] rapidio-tsi721-prevent-a-bad-dereference-in-tsi721_db_dpc.patch removed from -mm tree
+Message-Id: <20260529042601.6816C1F00899@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,236 +35,64 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: kcov: refactor common handle ID into kcov_common_handle_id
+     Subject: rapidio/tsi721: prevent a bad dereference in tsi721_db_dpc()
 has been removed from the -mm tree.  Its filename was
-     kcov-refactor-common-handle-id-into-kcov_common_handle_id.patch
+     rapidio-tsi721-prevent-a-bad-dereference-in-tsi721_db_dpc.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: kcov: refactor common handle ID into kcov_common_handle_id
-Date: Thu, 30 Apr 2026 16:15:33 +0200
+From: Dan Carpenter <error27@gmail.com>
+Subject: rapidio/tsi721: prevent a bad dereference in tsi721_db_dpc()
+Date: Fri, 8 May 2026 10:51:56 +0300
 
-Store common handle IDs in "struct kcov_common_handle_id", which consumes
-no space in non-KCOV builds.
+With a list_for_each() loop, if we don't find the item we are looking for
+in the list, then the loop exits with the iterator, which is "dbell" in
+this loop, pointing to invalid memory.
 
-This cleanup removes #ifdef boilerplate code from subsystems that
-integrate with KCOV (in particular in usbip_common.h and skbuff.h, see the
-diffstat).
+This code uses the "found" variable to determine if we have found the
+doorbell we are looking for or not.  However, the problem that the "found"
+variable needs to be set to false at the start of each iteration,
+otherwise after the first correct doorbell, then everything is marked as
+found.
 
-This should also make it easier to add KCOV remote coverage to more
-subsystems in the future.
+Reset the "found" to false at the start of the iteration and move the
+variable inside the loop.
 
-Link: https://lore.kernel.org/20260430-kcov-refactor-common-handle-v1-1-23a0c7a0ba38@google.com
-Signed-off-by: Jann Horn <jannh@google.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Jakub Kicinski <kuba@kernel.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Eugenio Pérez <eperezma@redhat.com>
-Cc: Hongren (Zenithal) Zheng <i@zenithal.me>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Valentina Manea <valentina.manea.m@gmail.com>
+Link: https://lore.kernel.org/af2WHMZiqMwdYveO@stanley.mountain
+Fixes: 48618fb4e522 ("RapidIO: add mport driver for Tsi721 bridge")
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
+Cc: Chul Kim <chul.kim@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/usbip/usbip_common.h |   29 +----------------------------
- drivers/usb/usbip/vhci_rx.c      |    4 ++--
- drivers/usb/usbip/vhci_sysfs.c   |    2 +-
- drivers/vhost/vhost.h            |    2 +-
- include/linux/kcov.h             |   12 ++++++------
- include/linux/skbuff.h           |   14 +++-----------
- include/linux/types.h            |    6 ++++++
- kernel/kcov.c                    |    6 +++---
- 8 files changed, 23 insertions(+), 52 deletions(-)
+ drivers/rapidio/devices/tsi721.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/drivers/usb/usbip/usbip_common.h~kcov-refactor-common-handle-id-into-kcov_common_handle_id
-+++ a/drivers/usb/usbip/usbip_common.h
-@@ -282,9 +282,7 @@ struct usbip_device {
- 		void (*unusable)(struct usbip_device *);
- 	} eh_ops;
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-prevent-a-bad-dereference-in-tsi721_db_dpc
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -394,7 +394,6 @@ static void tsi721_db_dpc(struct work_st
+ 						    idb_work);
+ 	struct rio_mport *mport;
+ 	struct rio_dbell *dbell;
+-	int found = 0;
+ 	u32 wr_ptr, rd_ptr;
+ 	u64 *idb_entry;
+ 	u32 regval;
+@@ -412,6 +411,8 @@ static void tsi721_db_dpc(struct work_st
+ 	rd_ptr = ioread32(priv->regs + TSI721_IDQ_RP(IDB_QUEUE)) % IDB_QSIZE;
  
--#ifdef CONFIG_KCOV
--	u64 kcov_handle;
--#endif
-+	struct kcov_common_handle_id kcov_handle;
- };
- 
- #define kthread_get_run(threadfn, data, namefmt, ...)			   \
-@@ -339,29 +337,4 @@ static inline int interface_to_devnum(st
- 	return udev->devnum;
- }
- 
--#ifdef CONFIG_KCOV
--
--static inline void usbip_kcov_handle_init(struct usbip_device *ud)
--{
--	ud->kcov_handle = kcov_common_handle();
--}
--
--static inline void usbip_kcov_remote_start(struct usbip_device *ud)
--{
--	kcov_remote_start_common(ud->kcov_handle);
--}
--
--static inline void usbip_kcov_remote_stop(void)
--{
--	kcov_remote_stop();
--}
--
--#else /* CONFIG_KCOV */
--
--static inline void usbip_kcov_handle_init(struct usbip_device *ud) { }
--static inline void usbip_kcov_remote_start(struct usbip_device *ud) { }
--static inline void usbip_kcov_remote_stop(void) { }
--
--#endif /* CONFIG_KCOV */
--
- #endif /* __USBIP_COMMON_H */
---- a/drivers/usb/usbip/vhci_rx.c~kcov-refactor-common-handle-id-into-kcov_common_handle_id
-+++ a/drivers/usb/usbip/vhci_rx.c
-@@ -261,9 +261,9 @@ int vhci_rx_loop(void *data)
- 		if (usbip_event_happened(ud))
- 			break;
- 
--		usbip_kcov_remote_start(ud);
-+		kcov_remote_start_common(ud->kcov_handle);
- 		vhci_rx_pdu(ud);
--		usbip_kcov_remote_stop();
-+		kcov_remote_stop();
- 	}
- 
- 	return 0;
---- a/drivers/usb/usbip/vhci_sysfs.c~kcov-refactor-common-handle-id-into-kcov_common_handle_id
-+++ a/drivers/usb/usbip/vhci_sysfs.c
-@@ -425,7 +425,7 @@ static ssize_t attach_store(struct devic
- 	vdev->ud.tcp_rx     = tcp_rx;
- 	vdev->ud.tcp_tx     = tcp_tx;
- 	vdev->ud.status     = VDEV_ST_NOTASSIGNED;
--	usbip_kcov_handle_init(&vdev->ud);
-+	vdev->ud.kcov_handle = kcov_common_handle();
- 
- 	spin_unlock(&vdev->ud.lock);
- 	spin_unlock_irqrestore(&vhci->lock, flags);
---- a/drivers/vhost/vhost.h~kcov-refactor-common-handle-id-into-kcov_common_handle_id
-+++ a/drivers/vhost/vhost.h
-@@ -44,7 +44,7 @@ struct vhost_worker {
- 	/* Used to serialize device wide flushing with worker swapping. */
- 	struct mutex		mutex;
- 	struct llist_head	work_list;
--	u64			kcov_handle;
-+	struct kcov_common_handle_id kcov_handle;
- 	u32			id;
- 	int			attachment_cnt;
- 	bool			killed;
---- a/include/linux/kcov.h~kcov-refactor-common-handle-id-into-kcov_common_handle_id
-+++ a/include/linux/kcov.h
-@@ -43,11 +43,11 @@ do {						\
- /* See Documentation/dev-tools/kcov.rst for usage details. */
- void kcov_remote_start(u64 handle);
- void kcov_remote_stop(void);
--u64 kcov_common_handle(void);
-+struct kcov_common_handle_id kcov_common_handle(void);
- 
--static inline void kcov_remote_start_common(u64 id)
-+static inline void kcov_remote_start_common(struct kcov_common_handle_id id)
- {
--	kcov_remote_start(kcov_remote_handle(KCOV_SUBSYSTEM_COMMON, id));
-+	kcov_remote_start(kcov_remote_handle(KCOV_SUBSYSTEM_COMMON, id.val));
- }
- 
- static inline void kcov_remote_start_usb(u64 id)
-@@ -99,11 +99,11 @@ static inline void kcov_prepare_switch(s
- static inline void kcov_finish_switch(struct task_struct *t) {}
- static inline void kcov_remote_start(u64 handle) {}
- static inline void kcov_remote_stop(void) {}
--static inline u64 kcov_common_handle(void)
-+static inline struct kcov_common_handle_id kcov_common_handle(void)
- {
--	return 0;
-+	return (struct kcov_common_handle_id){};
- }
--static inline void kcov_remote_start_common(u64 id) {}
-+static inline void kcov_remote_start_common(struct kcov_common_handle_id id) {}
- static inline void kcov_remote_start_usb(u64 id) {}
- static inline void kcov_remote_start_usb_softirq(u64 id) {}
- static inline void kcov_remote_stop_softirq(void) {}
---- a/include/linux/skbuff.h~kcov-refactor-common-handle-id-into-kcov_common_handle_id
-+++ a/include/linux/skbuff.h
-@@ -1082,9 +1082,7 @@ struct sk_buff {
- 	__u16			network_header;
- 	__u16			mac_header;
- 
--#ifdef CONFIG_KCOV
--	u64			kcov_handle;
--#endif
-+	struct kcov_common_handle_id kcov_handle;
- 
- 	); /* end headers group */
- 
-@@ -5437,20 +5435,14 @@ static inline void skb_reset_csum_not_in
- }
- 
- static inline void skb_set_kcov_handle(struct sk_buff *skb,
--				       const u64 kcov_handle)
-+				       struct kcov_common_handle_id kcov_handle)
- {
--#ifdef CONFIG_KCOV
- 	skb->kcov_handle = kcov_handle;
--#endif
- }
- 
--static inline u64 skb_get_kcov_handle(struct sk_buff *skb)
-+static inline struct kcov_common_handle_id skb_get_kcov_handle(struct sk_buff *skb)
- {
--#ifdef CONFIG_KCOV
- 	return skb->kcov_handle;
--#else
--	return 0;
--#endif
- }
- 
- static inline void skb_mark_for_recycle(struct sk_buff *skb)
---- a/include/linux/types.h~kcov-refactor-common-handle-id-into-kcov_common_handle_id
-+++ a/include/linux/types.h
-@@ -224,6 +224,12 @@ struct ustat {
- 	char			f_fpack[6];
- };
- 
-+struct kcov_common_handle_id {
-+#ifdef CONFIG_KCOV
-+	u64 val;
-+#endif
-+};
+ 	while (wr_ptr != rd_ptr) {
++		int found = 0;
 +
- /**
-  * struct callback_head - callback structure for use with RCU and task_work
-  * @next: next update requests in a list
---- a/kernel/kcov.c~kcov-refactor-common-handle-id-into-kcov_common_handle_id
-+++ a/kernel/kcov.c
-@@ -1083,11 +1083,11 @@ void kcov_remote_stop(void)
- EXPORT_SYMBOL(kcov_remote_stop);
- 
- /* See the comment before kcov_remote_start() for usage details. */
--u64 kcov_common_handle(void)
-+struct kcov_common_handle_id kcov_common_handle(void)
- {
- 	if (!in_task())
--		return 0;
--	return current->kcov_handle;
-+		return (struct kcov_common_handle_id){ .val = 0 };
-+	return (struct kcov_common_handle_id){ .val = current->kcov_handle };
- }
- EXPORT_SYMBOL(kcov_common_handle);
- 
+ 		idb_entry = (u64 *)(priv->idb_base +
+ 					(TSI721_IDB_ENTRY_SIZE * rd_ptr));
+ 		rd_ptr++;
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from error27@gmail.com are
 
 
