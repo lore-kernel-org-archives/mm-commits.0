@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-alma10-1.taild15c8.ts.net [100.103.45.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B820371867
-	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:25:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8773B371867
+	for <mm-commits@vger.kernel.org>; Fri, 29 May 2026 04:25:50 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=100.103.45.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1780028749; cv=none; b=PI2r5OPkrku7D2HoGS8O3BczT9nNMMfSMfCbLvYS3TzDLNw43C3K8Q+XlEq+bLm59m/oEunfpdbvpOI1BvR6VSzPhXIGAxW2oMFsam1a+AgwJP5GqX2ndpCUkSbwQO0dU7dRtOArkH/KaDpOT9S2Oebel/QVSgJxJ8eXXF4iGvk=
+	t=1780028751; cv=none; b=YtI/pp5tSMrpKon6ZqCWOaBz0NV/xajnq4npZ5gqnwVZdRZzEJ64hrz7kNG3hkui+gUAESJtFAGp2JF0f3hZIKFZagcpITx0nihre62DgIp2UdliJxdj6kVXY6Ev/OCsxgmqQkc6a9ragQ1dpH9JlnJxWzwH+8cx5T7wE5inKPg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1780028749; c=relaxed/simple;
-	bh=Lq8SAjfE+v/AzxO6ThDNl4N8j7CNMZjd2lRuc43Xu94=;
-	h=Date:To:From:Subject:Message-Id; b=qY1cN8OtyaCjV9nAawzLuS6EaH6UXTWumlpugDxBKURf3wA0w6hFv80HlhqciYikSunpntwvBh7DOTGDnqspX1AgNYch2frKpvQ3ZUVbgG1EkfbML+gXNDdW8MFHTi+DUnkPIPae4EZiyOBNVCflXqXXH5QbEHjohCUtU4vNgXs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=sIxk1u1Y; arc=none smtp.client-ip=100.103.45.18
+	s=arc-20240116; t=1780028751; c=relaxed/simple;
+	bh=kWEfuPilnOD4YU9c4R0KbqBsaOKLgwGcRHppFh0x2QA=;
+	h=Date:To:From:Subject:Message-Id; b=Ikpu3Q3ubwTmuHJjELHd5wzDb6vuhTP8JhJdnKTnTi3SZiBEWZc6BYSIXTd/qrl4EcIkfS1xuOeCxVmJJB3vsjB22cVSAcM9IXFrt6Ek3tDu6I6mFpApz+zsrAERe4iDMHh4WJSBdn3vEUxwEvx1ezq3+Yhv2qgiBrHWV3Xtgoc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=lRfkgupj; arc=none smtp.client-ip=100.103.45.18
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="sIxk1u1Y"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E53321F00898;
-	Fri, 29 May 2026 04:25:46 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="lRfkgupj"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE5CF1F00893;
+	Fri, 29 May 2026 04:25:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=linux-foundation.org; s=korg; t=1780028747;
-	bh=rIbnQRCjp41gTrSuHHTedqqCAsSFA3BngKOOjlGDlso=;
+	d=linux-foundation.org; s=korg; t=1780028750;
+	bh=F/9Nq6Gd62B2EGs+oNYziP3858F0H4Va+QU96VCss8Y=;
 	h=Date:To:From:Subject;
-	b=sIxk1u1Ytr90dUEqWLuQbBc4qtS4DNcHxdI0WqXq4USFQ6n6RjUO5uwwkOH76VFwC
-	 R1tbgoJ9kQfy7vZWnxg+UU0yBEIX1iL0tfONndldaxaPKTcuj5dwjmtY3+hW+rpXC4
-	 r6hFED0XoirAoTPd6k9zGAfCFOwpy8ZcLmLKnA/g=
-Date: Thu, 28 May 2026 21:25:46 -0700
-To: mm-commits@vger.kernel.org,kees@kernel.org,andriy.shevchenko@linux.intel.com,akpm@linux-foundation.org
+	b=lRfkgupjslIEgjsU5rbCQ3p4sVjVkadIUVTuqapoMUFgD1jv0COH9qQZgjrJ4inXB
+	 dd7fYeBD1YkGpCTGds4YE5Xs8BvtHWxC+wGRjdOzss8cTSyvkYAejFjCvMrKJs8XKs
+	 1RZb1LTmnM3Pkr0FGc5UtH2GHnes9dEwU+k/Drfo=
+Date: Thu, 28 May 2026 21:25:48 -0700
+To: mm-commits@vger.kernel.org,pmladek@suse.com,peterz@infradead.org,nsc@kernel.org,nathan@kernel.org,kees@kernel.org,jpoimboe@kernel.org,elver@google.com,dmitry.torokhov@gmail.com,andriy.shevchenko@linux.intel.com,arnd@arndb.de,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: [merged mm-nonmm-stable] lib-tests-string_helpers-decouple-unescape-and-escape-cases.patch removed from -mm tree
-Message-Id: <20260529042546.E53321F00898@smtp.kernel.org>
+Subject: [merged mm-nonmm-stable] inith-discard-exitcall-symbols-early.patch removed from -mm tree
+Message-Id: <20260529042549.CE5CF1F00893@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: mm-commits@vger.kernel.org
 List-Id: <mm-commits.vger.kernel.org>
@@ -35,65 +35,63 @@ List-Unsubscribe: <mailto:mm-commits+unsubscribe@vger.kernel.org>
 
 
 The quilt patch titled
-     Subject: lib/tests: string_helpers: decouple unescape and escape cases
+     Subject: init.h: discard exitcall symbols early
 has been removed from the -mm tree.  Its filename was
-     lib-tests-string_helpers-decouple-unescape-and-escape-cases.patch
+     inith-discard-exitcall-symbols-early.patch
 
 This patch was dropped because it was merged into the mm-nonmm-stable branch
 of git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/tests: string_helpers: decouple unescape and escape cases
-Date: Mon, 6 Apr 2026 21:32:47 +0200
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: init.h: discard exitcall symbols early
+Date: Tue, 31 Mar 2026 16:28:38 +0200
 
-Patch series "lib/tests: string_helpers: Slight improvements".
+Any __exitcall() and built-in module_exit() handler is marked as __used,
+which leads to the code being included in the object file and later
+discarded at link time.
 
-Two ad-hoc patches to improve the test module.  It was induced by another
-patch that poorly tried to add (existing) test cases and make me revisit
-string_helpers_kunit.c.
+As far as I can tell, this was originally added at the same time as
+initcalls were marked the same way, to prevent them from getting dropped
+with gcc-3.4, but it was never actaully necessary to keep exit functions
+around.
 
+Mark them as __maybe_unused instead, which lets the compiler treat the
+exitcalls as entirely unused, and make better decisions about dropping
+specializing static functions called from these.
 
-This patch (of 2):
-
-Currently the escape and unescape test cases go in one step.  Decouple
-them for the better granularity and understanding test coverage in the
-results.
-
-Link: https://lore.kernel.org/20260406193425.1534197-1-andriy.shevchenko@linux.intel.com
-Link: https://lore.kernel.org/20260406193425.1534197-2-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Link: https://lore.kernel.org/all/acruxMNdnUlyRHiy@google.com/
+Link: https://lore.kernel.org/20260331142846.3187706-1-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Nicolas Schier <nsc@kernel.org>
+Cc: Andriy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Josh Poimboeuf <jpoimboe@kernel.org>
 Cc: Kees Cook <kees@kernel.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/tests/string_helpers_kunit.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/init.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/tests/string_helpers_kunit.c~lib-tests-string_helpers-decouple-unescape-and-escape-cases
-+++ a/lib/tests/string_helpers_kunit.c
-@@ -601,6 +601,11 @@ static void test_unescape(struct kunit *
- 		test_string_unescape(test, "unescape", i, false);
- 	test_string_unescape(test, "unescape inplace",
- 			     get_random_u32_below(UNESCAPE_ALL_MASK + 1), true);
-+}
-+
-+static void test_escape(struct kunit *test)
-+{
-+	unsigned int i;
+--- a/include/linux/init.h~inith-discard-exitcall-symbols-early
++++ a/include/linux/init.h
+@@ -47,7 +47,7 @@
+ #define __initdata	__section(".init.data")
+ #define __initconst	__section(".init.rodata")
+ #define __exitdata	__section(".exit.data")
+-#define __exit_call	__used __section(".exitcall.exit")
++#define __exit_call	__maybe_unused __section(".exitcall.exit")
  
- 	/* Without dictionary */
- 	for (i = 0; i < ESCAPE_ALL_MASK + 1; i++)
-@@ -615,6 +620,7 @@ static struct kunit_case string_helpers_
- 	KUNIT_CASE(test_get_size),
- 	KUNIT_CASE(test_upper_lower),
- 	KUNIT_CASE(test_unescape),
-+	KUNIT_CASE(test_escape),
- 	{}
- };
- 
+ /*
+  * modpost check for section mismatches during the kernel build.
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+errh-use-__always_inline-on-all-error-pointer-helpers.patch
 
